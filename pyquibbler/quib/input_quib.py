@@ -1,10 +1,16 @@
 from .quib import Quib
+from .utils import is_there_a_quib_in_object
+from ..env import is_debug
+from ..exceptions import DebugException
 
 
 class InputQuib(Quib):
     def __init__(self, artists, children, value):
         super().__init__(artists=artists, children=children)
         self._value = value
+        if is_debug():
+            if is_there_a_quib_in_object(value):
+                raise DebugException('Cannot create an input quib that contains another quib')
 
     def __getitem__(self, item):
         """
@@ -34,4 +40,7 @@ class InputQuib(Quib):
 
 
 def iquib(value):
+    """
+    Creates an input quib containing the given value and return it.
+    """
     return InputQuib(set(), [], value)
