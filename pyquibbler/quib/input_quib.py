@@ -5,8 +5,8 @@ from ..exceptions import DebugException
 
 
 class InputQuib(Quib):
-    def __init__(self, artists, children, value):
-        super().__init__(artists=artists, children=children)
+    def __init__(self, artists_redrawers, children, value):
+        super().__init__(artists_redrawers=artists_redrawers, children=children)
         self._value = value
         if is_debug():
             if is_there_a_quib_in_object(value):

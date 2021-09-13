@@ -9,8 +9,8 @@ class Quib(ABC):
     An abstract class to describe the common methods and attributes of all quib types.
     """
 
-    def __init__(self, artists: Set, children: List['Quib']):
-        self._artists = artists
+    def __init__(self, artists_redrawers: Set, children: List['Quib']):
+        self._artists_redrawers = artists_redrawers
         self._children = children
 
     def __invalidate_children(self):
@@ -21,18 +21,19 @@ class Quib(ABC):
         for child in self._children:
             child._invalidate()
 
-    def __get_artists_recursively(self):
+    def __get_artists_redrawers_recursively(self):
         """
         Get all artists that directly or indirectly depend on this quib.
         """
-        return reduce(or_, (child.__get_artists_recursively() for child in self._children), self._artists)
+        return reduce(or_, (child.__get_artists_redrawers_recursively()
+                            for child in self._children), self._artists_redrawers)
 
     def __redraw(self):
         """
         Redraw all artists that directly or indirectly depend on this quib.
         """
-        for artist in self.__get_artists_recursively():
-            artist.redraw()
+        for artists_redrawers in self.__get_artists_redrawers_recursively():
+            artists_redrawers.redraw()
 
     def _invalidate_and_redraw(self):
         """
@@ -56,11 +57,11 @@ class Quib(ABC):
         even have to calculate the values of its dependencies.
         """
 
-    def add_artist(self, artist):
+    def add_artists_redrawers(self, artists_redrawers):
         """
         Add the given artist to this quib's direct artists.
         """
-        self._artists.add(artist)
+        self._artists_redrawers.add(artists_redrawers)
 
     def add_child(self, quib):
         """
