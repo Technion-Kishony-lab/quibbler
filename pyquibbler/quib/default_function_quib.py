@@ -1,3 +1,4 @@
+from operator import getitem
 from typing import Set, List, Callable, Any, Mapping, Tuple
 
 from .function_quib import FunctionQuib
@@ -45,3 +46,8 @@ class DefaultFunctionQuib(FunctionQuib):
         self._cached_result = result
         self._is_cache_valid = True
         return result
+
+
+# We want quibs' __getitem__ to return a function quib representing the __getitem__ operation,
+# so if the original quib is changed, whoever called __getitem__ will be invalidated.
+Quib.__getitem__ = DefaultFunctionQuib.create_wrapper(getitem)
