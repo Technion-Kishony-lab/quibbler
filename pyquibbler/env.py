@@ -3,7 +3,7 @@
 DEBUG = False
 
 
-def set_debug(debug=False):
+def set_debug(debug):
     global DEBUG
     DEBUG = debug
 
