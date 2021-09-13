@@ -50,3 +50,5 @@ jobs:
         uses: coroo/pytest-coverage-commentator@v1.0.2
         with:
           pytest-coverage: pytest-coverage.txt
+        # We want to execute this step even if the previous one had failed.
+        if: ${{ always() }}

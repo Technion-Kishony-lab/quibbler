@@ -1,9 +1,9 @@
 from unittest.mock import Mock
 
-from pytest import fixture, mark
+from pytest import fixture
 
 from pyquibbler import iquib
-from pyquibbler.quib import Quib
+from pyquibbler.quib import Quib, DefaultFunctionQuib
 
 
 @fixture
@@ -16,39 +16,30 @@ def input_quib(input_quib_val):
     return iquib(input_quib_val)
 
 
-@fixture
-def artist_mock():
-    return Mock()
+def create_child_with_valid_cache(input_quib, artist_redrawer):
+    child = DefaultFunctionQuib.create(Mock(), (), {})
+    child.add_artists_redrawer(artist_redrawer)
+    child.get_value()
+    assert child.is_cache_valid
+    input_quib.add_child(child)
+    return child
 
 
-@fixture
-def input_quib_child1(input_quib, artist_mock):
-    q = input_quib + [2]
-    q.add_artist(artist_mock)
-    return q
-
-
-@fixture
-def input_quib_child2(input_quib, artist_mock):
-    q = input_quib + [3]
-    q.add_artist(artist_mock)
-    return q
-
-
-@mark.skip
 def test_input_quib_getitem(input_quib, input_quib_val):
     got = input_quib[0]
     assert isinstance(got, Quib)
     assert got.get_value() == input_quib_val[0]
 
 
-@mark.skip
-def test_input_quib_setitem(input_quib, input_quib_child1, input_quib_child2, artist_mock):
-    new_val = 'new_val!!'
-    input_quib[0] = new_val
-    assert artist_mock.redraw.call_count == 1
-    assert not input_quib_child1.is_cache_valid
-    assert not input_quib_child2.is_cache_valid
+def test_input_quib_setitem(input_quib):
+    artist_redrawer_mock = Mock()
+    child1 = create_child_with_valid_cache(input_quib, artist_redrawer_mock)
+    child2 = create_child_with_valid_cache(input_quib, artist_redrawer_mock)
+    # Mutate the input quib so its children will be invalidated and redrawn
+    input_quib[0] = 'new_val!!'
+    assert artist_redrawer_mock.redraw.call_count == 1
+    assert not child1.is_cache_valid
+    assert not child2.is_cache_valid
 
 
 def test_input_quib_get_value(input_quib, input_quib_val):
