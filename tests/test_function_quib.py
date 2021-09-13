@@ -1,5 +1,3 @@
-from unittest.mock import Mock
-
 from pytest import fixture
 
 from pyquibbler import iquib
@@ -12,16 +10,6 @@ class ExampleFunctionQuib(FunctionQuib):
 
     def get_value(self):
         return self._call_func()
-
-
-@fixture
-def function_mock_return_val():
-    return object()
-
-
-@fixture
-def function_mock(function_mock_return_val):
-    return Mock(return_value=function_mock_return_val)
 
 
 @fixture
