@@ -1,5 +1,5 @@
 from functools import wraps
-from typing import Set, List, Callable, Any, Mapping
+from typing import Set, List, Callable, Any, Mapping, Tuple
 
 from .quib import Quib
 from .utils import is_there_a_quib_in_args, iter_quibs_in_args, call_func_with_quib_values
@@ -14,7 +14,7 @@ class FunctionQuib(Quib):
                  artists_redrawers: Set,
                  children: List[Quib],
                  func: Callable,
-                 args: List[Any],
+                 args: Tuple[Any, ...],
                  kwargs: Mapping[str, Any]):
         super().__init__(artists_redrawers=artists_redrawers, children=children)
         self._func = func
@@ -24,7 +24,7 @@ class FunctionQuib(Quib):
     @classmethod
     def create(cls, func, func_args, func_kwargs):
         """
-        Public constructor for AnyFunctionQuib.
+        Public constructor for DefaultFunctionQuib.
         """
         self = cls(artists_redrawers=set(), children=[], func=func, args=func_args, kwargs=func_kwargs)
 
