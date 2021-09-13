@@ -1,4 +1,3 @@
-import time
 from typing import Callable, Tuple, Any, Mapping, List, Set
 
 from matplotlib.axes import Axes
