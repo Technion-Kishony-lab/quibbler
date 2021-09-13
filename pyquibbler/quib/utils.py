@@ -52,20 +52,20 @@ def iter_quibs_in_args(args, kwargs):
     return iter_quibs_in_object(list(chain(args, kwargs.values())))
 
 
-def call_func_with_quib_values(fn, args, kwargs):
+def call_func_with_quib_values(func, args, kwargs):
     """
     Calls a function with the specified args and kwargs while replacing quibs with their values.
     """
     new_args = [deep_copy_and_replace_quibs_with_vals(arg) for arg in args]
     kwargs = {name: deep_copy_and_replace_quibs_with_vals(val) for name, val in kwargs.items()}
-    return fn(*new_args, **kwargs)
+    return func(*new_args, **kwargs)
 
 
-def call_method_with_quib_values(fn, self, args, kwargs):
+def call_method_with_quib_values(func, self, args, kwargs):
     """
     Calls an instance method with the specified args and kwargs while replacing quibs with their values.
     """
-    return call_func_with_quib_values(fn, [self, *args], kwargs)
+    return call_func_with_quib_values(func, [self, *args], kwargs)
 
 
 def is_there_a_quib_in_object(obj):
