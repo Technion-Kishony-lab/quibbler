@@ -22,15 +22,15 @@ class FunctionQuib(Quib):
         self._kwargs = kwargs
 
     @classmethod
-    def create(cls, func, func_args, func_kwargs):
+    def create(cls, func, func_args=(), func_kwargs=None):
         """
         Public constructor for DefaultFunctionQuib.
         """
+        if func_kwargs is None:
+            func_kwargs = {}
         self = cls(artists_redrawers=set(), children=[], func=func, args=func_args, kwargs=func_kwargs)
-
         for arg in iter_quibs_in_args(func_args, func_kwargs):
             arg.add_child(self)
-
         return self
 
     @classmethod

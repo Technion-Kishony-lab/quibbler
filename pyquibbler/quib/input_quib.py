@@ -1,5 +1,7 @@
+from operator import getitem
 from typing import Set, List, Any
 
+from .default_function_quib import DefaultFunctionQuib
 from .quib import Quib
 from .utils import is_there_a_quib_in_object
 from ..env import is_debug
@@ -26,7 +28,7 @@ class InputQuib(Quib):
         Returns a quib representing the __getitem__ operation, so if this quib is changed,
         whoever called __getitem__ will get the update.
         """
-        raise NotImplementedError()
+        return DefaultFunctionQuib.create(getitem, (self, item))
 
     def __setitem__(self, key, value):
         """

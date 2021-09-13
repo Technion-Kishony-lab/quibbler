@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from functools import reduce
-from typing import Set, List
 from operator import or_
+from typing import Set, List
 
 
 class Quib(ABC):
@@ -57,11 +57,11 @@ class Quib(ABC):
         even have to calculate the values of its dependencies.
         """
 
-    def add_artists_redrawers(self, artists_redrawers):
+    def add_artists_redrawer(self, artists_redrawer):
         """
         Add the given artist to this quib's direct artists.
         """
-        self._artists_redrawers.add(artists_redrawers)
+        self._artists_redrawers.add(artists_redrawer)
 
     def add_child(self, quib):
         """
