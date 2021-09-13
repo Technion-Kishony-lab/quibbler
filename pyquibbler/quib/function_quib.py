@@ -9,6 +9,8 @@ class FunctionQuib(Quib):
     """
     An abstract class for quibs that represent the result of a computation.
     """
+    MAX_BYTES_PER_SECOND = 2 ** 30
+    MIN_SECONDS_FOR_CACHE = 1e-3
 
     def __init__(self,
                  artists_redrawers: Set,
