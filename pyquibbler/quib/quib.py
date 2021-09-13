@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from functools import reduce
-from operator import or_
 from typing import Set, List
+from operator import or_
 
 
 class Quib(ABC):
