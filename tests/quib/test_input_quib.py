@@ -17,7 +17,7 @@ def input_quib(input_quib_val):
 
 
 def create_child_with_valid_cache(input_quib, artist_redrawer):
-    child = DefaultFunctionQuib.create(Mock(), (), {})
+    child = DefaultFunctionQuib.create(Mock())
     child.add_artists_redrawer(artist_redrawer)
     child.get_value()
     assert child.is_cache_valid
