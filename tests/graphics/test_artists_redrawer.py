@@ -4,7 +4,6 @@ import pytest
 from matplotlib.testing.decorators import image_comparison
 
 import matplotlib.pyplot as plt
-
 from pyquibbler import iquib
 from pyquibbler.graphics.artists_redrawer import ArtistsRedrawer
 
@@ -13,13 +12,6 @@ from pyquibbler.graphics.artists_redrawer import ArtistsRedrawer
 from matplotlib.testing.conftest import mpl_test_settings
 
 DONT_RUN_GRAPHICS_TESTS = not (os.getenv("RUN_GRAPHICS", "false") == "true")
-
-# TODO: create test that checks artistredrawer AFTER initial render
-
-
-@pytest.fixture(autouse=True)
-def figure_draw():
-    plt.gca().figure.canvas.draw()
 
 
 @pytest.mark.skipif(DONT_RUN_GRAPHICS_TESTS, reason="No CI support")
@@ -75,5 +67,4 @@ def test_artists_redrawer_does_not_change_artist_position():
     plt.plot([30, 30, 30], color="blue")
 
     redrawer.redraw()
-
 

@@ -1,7 +1,13 @@
 from typing import Callable, Tuple, Any, Mapping, List, Set
 
 from matplotlib.axes import Axes
+from matplotlib.collections import Collection
 from matplotlib.lines import Line2D
+from matplotlib.patches import Patch
+from matplotlib.spines import Spine
+from matplotlib.table import Table
+from matplotlib.text import Text
+from matplotlib.image import AxesImage
 
 from pyquibbler.env import is_debug
 from pyquibbler.exceptions import DebugException
@@ -17,7 +23,13 @@ class ArtistsRedrawer:
     """
 
     TYPES_TO_ARTIST_ARRAY_NAMES = {
-        Line2D: "lines"
+        Line2D: "lines",
+        Collection: "collections",
+        Patch: "patches",
+        Text: "texts",
+        Spine: "spines",
+        Table: "tables",
+        AxesImage: "images"
     }
 
     def __init__(self,
@@ -56,8 +68,13 @@ class ArtistsRedrawer:
         """
         The name of the array within `self._axes` that the artists belongs to
         """
-        # TODO: check if doesn't exist
-        return self.TYPES_TO_ARTIST_ARRAY_NAMES[self._exemplifying_artist.__class__]
+        # We don't want to simply access TYPES_TO_ARTIST_ARRAY_NAMES by key as we may be a subclass of one of the types
+        # We default to general artists list if we don't know the arrays
+        return next((
+            array_name
+            for type_, array_name in self.TYPES_TO_ARTIST_ARRAY_NAMES.items()
+            if isinstance(self._exemplifying_artist, type_)
+        ), "artists")
 
     @property
     def _artists_array(self) -> List[Artist]:
@@ -109,8 +126,6 @@ class ArtistsRedrawer:
         The main entrypoint- this reruns the function that created the artists in the first place,
         and replaces the current artists with the new ones
         """
-        # TODO use update_from
-        # COLOR
         if is_debug():
             axeses: Set[Axes] = set()
             for artist in self.artists:
