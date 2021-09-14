@@ -48,3 +48,11 @@ def test_invalidation(parent_quib, quib_with_valid_cache, quib_cached_result, fu
     result = quib_with_valid_cache.get_value()
     assert result is function_mock_return_val
     function_mock.assert_called_once()
+
+
+def test_no_caching_is_done_when_cache_is_off(function_mock, function_mock_return_val):
+    function_quib = DefaultFunctionQuib.create(function_mock, (), {}, CacheBehavior.OFF)
+    assert function_quib.get_value() is function_mock_return_val
+    assert not function_quib.is_cache_valid
+    assert function_quib.get_value() is function_mock_return_val
+    assert function_mock.call_count == 2
