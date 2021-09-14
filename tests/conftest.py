@@ -2,6 +2,7 @@ from unittest.mock import Mock
 
 from pytest import fixture
 
+from pyquibbler import CacheBehavior
 from pyquibbler.env import set_debug
 from pyquibbler.quib import FunctionQuib
 
@@ -9,7 +10,7 @@ from pyquibbler.quib import FunctionQuib
 @fixture(scope="session", autouse=True)
 def setup_environment_for_tests():
     set_debug(True)
-    FunctionQuib.MIN_SECONDS_FOR_CACHE = 0
+    FunctionQuib.DEFAULT_CACHE_BEHAVIOR = CacheBehavior.ON
 
 
 @fixture
