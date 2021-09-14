@@ -99,8 +99,9 @@ class ArtistsRedrawer:
             # redraw_in_frame is supposed to be a quick way to redraw all artists in an axes- the expectation is
             # that the renderer will not rerender any artists that already exist.
             # We saw that the performance matched the performance of what automatically happens when pausing
-            # (which causes a redraw)
+            # (which causes a the event loop to run)
             self._axes.redraw_in_frame()
+            # After redrawing to the canvas, we now need to blit the bitmap to the GUI
             self._axes.figure.canvas.blit(self._axes.bbox)
 
     def redraw(self):
