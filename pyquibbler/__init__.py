@@ -1,1 +1,1 @@
-from .quib import iquib
+from .quib import iquib, CacheBehavior

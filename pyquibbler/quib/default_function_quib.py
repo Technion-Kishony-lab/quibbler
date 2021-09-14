@@ -1,9 +1,9 @@
+from operator import getitem
 from sys import getsizeof
 from time import perf_counter
-from operator import getitem
 from typing import Set, List, Callable, Any, Mapping, Tuple
 
-from .function_quib import FunctionQuib
+from .function_quib import FunctionQuib, CacheBehavior
 from .quib import Quib
 
 
@@ -20,9 +20,10 @@ class DefaultFunctionQuib(FunctionQuib):
                  func: Callable,
                  args: Tuple[Any, ...],
                  kwargs: Mapping[str, Any],
+                 cache_behavior: CacheBehavior,
                  is_cache_valid: bool = False,
                  cached_result: Any = None):
-        super().__init__(artists_redrawers=artists_redrawers, children=children, func=func, args=args, kwargs=kwargs)
+        super().__init__(artists_redrawers, children, func, args, kwargs, cache_behavior)
         self._is_cache_valid = is_cache_valid
         self._cached_result = cached_result
 
@@ -42,6 +43,12 @@ class DefaultFunctionQuib(FunctionQuib):
         Note that there is no accurate way (and no efficient way to even approximate) the complete size of composite
         types in python, so we only measure the outer size of the object.
         """
+        if self._cache_behavior is CacheBehavior.ON:
+            return True
+        if self._cache_behavior is CacheBehavior.OFF:
+            return False
+        assert self._cache_behavior is CacheBehavior.AUTO, \
+            f'self._cache_behavior has unexpected value: "{self._cache_behavior}"'
         return elapsed_seconds > self.MIN_SECONDS_FOR_CACHE \
                and getsizeof(result) / elapsed_seconds < self.MAX_BYTES_PER_SECOND
 

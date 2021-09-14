@@ -1,3 +1,4 @@
+from enum import Enum
 from functools import wraps
 from typing import Set, List, Callable, Any, Mapping, Tuple
 
@@ -5,10 +6,17 @@ from .quib import Quib
 from .utils import is_there_a_quib_in_args, iter_quibs_in_args, call_func_with_quib_values
 
 
+class CacheBehavior(Enum):
+    AUTO = 'auto'
+    OFF = 'off'
+    ON = 'on'
+
+
 class FunctionQuib(Quib):
     """
     An abstract class for quibs that represent the result of a computation.
     """
+    DEFAULT_CACHE_BEHAVIOR = CacheBehavior.AUTO
     MAX_BYTES_PER_SECOND = 2 ** 30
     MIN_SECONDS_FOR_CACHE = 1e-3
 
@@ -17,26 +25,38 @@ class FunctionQuib(Quib):
                  children: List[Quib],
                  func: Callable,
                  args: Tuple[Any, ...],
-                 kwargs: Mapping[str, Any]):
-        super().__init__(artists_redrawers=artists_redrawers, children=children)
+                 kwargs: Mapping[str, Any],
+                 cache_behavior: CacheBehavior):
+        super().__init__(artists_redrawers, children)
         self._func = func
         self._args = args
         self._kwargs = kwargs
+        if cache_behavior is None:
+            cache_behavior = self.DEFAULT_CACHE_BEHAVIOR
+        self.set_cache_behavior(cache_behavior)
 
     @classmethod
-    def create(cls, func, func_args=(), func_kwargs=None):
+    def create(cls, func, func_args=(), func_kwargs=None, cache_behavior=None):
         """
         Public constructor for DefaultFunctionQuib.
         """
         if func_kwargs is None:
             func_kwargs = {}
-        self = cls(artists_redrawers=set(), children=[], func=func, args=func_args, kwargs=func_kwargs)
+        self = cls(artists_redrawers=set(), children=[], func=func, args=func_args, kwargs=func_kwargs,
+                   cache_behavior=cache_behavior)
         for arg in iter_quibs_in_args(func_args, func_kwargs):
             arg.add_child(self)
         return self
 
     @classmethod
     def create_wrapper(cls, func):
+        """
+        Given an original function, return a new function (a "wrapper") to be used instead of the original.
+        The wrapper, when called, will return a FunctionQuib of type `cls` if its arguments contain a quib.
+        Otherwise it will call the original function and will return its result.
+        This function can be used as a decorator.
+        """
+
         @wraps(func)
         def quib_supporting_func_wrapper(*args, **kwargs):
             if is_there_a_quib_in_args(args, kwargs):
@@ -46,9 +66,22 @@ class FunctionQuib(Quib):
 
         return quib_supporting_func_wrapper
 
+    def get_cache_behavior(self):
+        return self._cache_behavior
+
+    def set_cache_behavior(self, cache_behavior: CacheBehavior):
+        self._cache_behavior = cache_behavior
+
     def _call_func(self):
         """
         Call the function wrapped by this FunctionQuib with the
         given arguments after replacing quib with their values.
         """
         return call_func_with_quib_values(self._func, self._args, self._kwargs)
+
+    def _get_dependencies(self) -> List['Quib']:
+        """
+        A utility for debug purposes.
+        Returns a list of quibs that this quib depends on.
+        """
+        return iter_quibs_in_args(self._args, self._kwargs)

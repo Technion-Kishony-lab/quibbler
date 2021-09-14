@@ -44,7 +44,3 @@ def test_input_quib_setitem(input_quib):
 
 def test_input_quib_get_value(input_quib, input_quib_val):
     assert input_quib.get_value() == input_quib_val
-
-
-def test_getitem_support(input_quib, input_quib_val):
-    assert input_quib[0].get_value() is input_quib_val[0]

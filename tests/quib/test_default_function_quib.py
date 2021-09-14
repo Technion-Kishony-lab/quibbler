@@ -1,6 +1,6 @@
 from pytest import fixture
 
-from pyquibbler import iquib
+from pyquibbler import iquib, CacheBehavior
 from pyquibbler.quib import DefaultFunctionQuib
 
 
@@ -16,19 +16,19 @@ def parent_quib():
 
 @fixture
 def quib_with_valid_cache(parent_quib, function_mock, quib_cached_result):
-    quib = DefaultFunctionQuib(set(), [], function_mock, (parent_quib,), {}, True, quib_cached_result)
+    quib = DefaultFunctionQuib(set(), [], function_mock, (parent_quib,), {}, CacheBehavior.ON, True, quib_cached_result)
     parent_quib.add_child(quib)
     return quib
 
 
 def test_calculation_is_lazy(function_mock):
-    function_quib = DefaultFunctionQuib.create(function_mock, (), {})
+    function_quib = DefaultFunctionQuib.create(function_mock, (), {}, CacheBehavior.ON)
     function_mock.assert_not_called()
     assert not function_quib.is_cache_valid
 
 
 def test_calculation_enters_cache(function_mock, function_mock_return_val):
-    function_quib = DefaultFunctionQuib.create(function_mock, (), {})
+    function_quib = DefaultFunctionQuib.create(function_mock, (), {}, CacheBehavior.ON)
     result = function_quib.get_value()
     assert result is function_mock_return_val
     assert function_quib.is_cache_valid
