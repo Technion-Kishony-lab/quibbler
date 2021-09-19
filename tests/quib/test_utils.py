@@ -4,7 +4,8 @@ from pytest import mark, raises
 from pyquibbler import iquib
 from pyquibbler.quib.utils import is_iterator_empty, deep_copy_and_replace_quibs_with_vals, \
     iter_quibs_in_object_recursively, call_func_with_quib_values, iter_quibs_in_args, \
-    is_there_a_quib_in_args, NestedQuibException, copy_and_replace_quibs_with_vals, iter_quibs_in_object
+    is_there_a_quib_in_args, NestedQuibException, copy_and_replace_quibs_with_vals, iter_quibs_in_object, \
+    FunctionCalledWithNestedQuibException
 
 iquib1 = iquib(1)
 iquib2 = iquib(2)
@@ -85,6 +86,18 @@ def test_call_func_with_quib_values(func, args, kwargs, result):
     assert call_func_with_quib_values(func, args, kwargs) == result
 
 
+@mark.debug(False)
+def test_call_func_with_quib_values_raises_when_receives_nested_quib():
+    obj = [[iquib1]]
+    func = lambda x: open(x[0][0])
+    with raises(FunctionCalledWithNestedQuibException) as exc_info:
+        call_func_with_quib_values(func, (obj,), {})
+    assert exc_info.type is FunctionCalledWithNestedQuibException
+    assert exc_info.value.func == func
+    assert exc_info.value.nested_quibs_by_arg_names == {'x': {iquib1}}
+    assert isinstance(exc_info.value.__cause__, TypeError)
+
+
 args_kwargs_quibs_test = mark.parametrize(['args', 'kwargs', 'quibs'], [
     ((), dict(), set()),
     ((1,), dict(a=1), set()),
@@ -112,6 +125,7 @@ def test_copy_and_replace_quibs_with_vals_raises_when_receives_nested_quibs():
     assert exc_info.type is NestedQuibException
     assert exc_info.value.obj is obj
     assert exc_info.value.nested_quibs == {iquib1}
+
 
 def test_iter_quibs_in_object_raises_when_receives_nested_quibs():
     obj = [[iquib1]]

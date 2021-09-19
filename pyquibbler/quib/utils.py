@@ -1,17 +1,31 @@
 from __future__ import annotations
 from dataclasses import dataclass
+from inspect import signature
 from itertools import chain
-from typing import Any, Optional, Set, TYPE_CHECKING
+from typing import Any, Optional, Set, TYPE_CHECKING, Callable, Tuple, Dict
 from copy import copy
 
 from pyquibbler.env import is_debug
-from pyquibbler.exceptions import DebugException
+from pyquibbler.exceptions import DebugException, PyQuibblerException
 
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib
 
 SHALLOW_MAX_DEPTH = 1
 SHALLOW_MAX_LENGTH = 100
+
+
+def iter_args_and_names_in_function_call(func: Callable, args: Tuple[Any, ...], kwargs: Dict[str, Any],
+                                         apply_defaults: bool):
+    """
+    Given a specific function call - func, args, kwargs - return an iterator to (name, val) tuples
+    of all arguments that would have been passed to the function.
+    If apply_defaults is True, add the default values from the function to the iterator.
+    """
+    bound_args = signature(func).bind(*args, **kwargs)
+    if apply_defaults:
+        bound_args.apply_defaults()
+    return bound_args.arguments.items()
 
 
 @dataclass
@@ -26,6 +40,31 @@ class NestedQuibException(DebugException):
     @classmethod
     def create_from_object(cls, obj: Any):
         return cls(obj, set(iter_quibs_in_object_recursively(obj)))
+
+
+@dataclass
+class FunctionCalledWithNestedQuibException(PyQuibblerException):
+    func: Callable
+    nested_quibs_by_arg_names: Dict[str, Set[Quib]]
+
+    def __str__(self):
+        return f'The function {self.func} was called with nested Quib objects. This is not supported.\n' + \
+               '\n'.join(f'The argument "{arg}" contains the quibs: {quibs}'
+                         for arg, quibs in self.nested_quibs_by_arg_names)
+
+    @classmethod
+    def from_call(cls, func: Callable, args: Tuple[Any, ...], kwargs: Dict[str, Any]):
+        """
+        Creates an instance of this exception given a specific function call,
+        by finding the erroneously nested quibs.
+        """
+        nested_quibs_by_arg_names = {}
+        for name, val in iter_args_and_names_in_function_call(func, args, kwargs, False):
+            quibs = set(iter_quibs_in_object_recursively(val))
+            if quibs:
+                nested_quibs_by_arg_names[name] = quibs
+        assert nested_quibs_by_arg_names
+        return cls(func, nested_quibs_by_arg_names)
 
 
 def is_iterator_empty(iterator):
@@ -138,7 +177,12 @@ def call_func_with_quib_values(func, args, kwargs):
     """
     new_args = [copy_and_replace_quibs_with_vals(arg) for arg in args]
     kwargs = {name: copy_and_replace_quibs_with_vals(val) for name, val in kwargs.items()}
-    return func(*new_args, **kwargs)
+    try:
+        return func(*new_args, **kwargs)
+    except TypeError as e:
+        if len(e.args) == 1 and 'Quib' in e.args[0]:
+            raise FunctionCalledWithNestedQuibException.from_call(func, args, kwargs) from e
+        raise
 
 
 def call_method_with_quib_values(func, self, args, kwargs):
