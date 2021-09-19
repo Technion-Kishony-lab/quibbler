@@ -1,3 +1,4 @@
+from copy import deepcopy
 from enum import Enum
 from functools import wraps
 from typing import Set, List, Callable, Any, Mapping, Tuple
@@ -48,6 +49,9 @@ class FunctionQuib(Quib):
         """
         if func_kwargs is None:
             func_kwargs = {}
+        else:
+            func_kwargs = deepcopy(func_kwargs)
+        func_args = deepcopy(func_args)
         self = cls(artists_redrawers=set(), children=[], func=func, args=func_args, kwargs=func_kwargs,
                    cache_behavior=cache_behavior)
         for arg in iter_quibs_in_args(func_args, func_kwargs):
