@@ -3,13 +3,15 @@ from functools import reduce
 from operator import or_
 from typing import Set, List
 
+from pyquibbler.graphics import ArtistsRedrawer
+
 
 class Quib(ABC):
     """
     An abstract class to describe the common methods and attributes of all quib types.
     """
 
-    def __init__(self, artists_redrawers: Set, children: List['Quib']):
+    def __init__(self, artists_redrawers: Set[ArtistsRedrawer], children: List['Quib']):
         self._artists_redrawers = artists_redrawers
         self._children = children
 
@@ -35,7 +37,7 @@ class Quib(ABC):
         for artists_redrawers in self.__get_artists_redrawers_recursively():
             artists_redrawers.redraw()
 
-    def _invalidate_and_redraw(self):
+    def invalidate_and_redraw(self):
         """
         Perform all actions needed after the quib was mutated (whether by overriding or reverse assignment).
         """

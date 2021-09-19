@@ -26,7 +26,7 @@ class InputQuib(Quib):
         Override data inside the input quib.
         """
         self._value[key] = value
-        self._invalidate_and_redraw()
+        self.invalidate_and_redraw()
 
     def get_value(self):
         """
