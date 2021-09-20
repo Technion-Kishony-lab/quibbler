@@ -4,16 +4,14 @@ import numpy as np
 import pytest
 
 from pyquibbler import iquib, graphics
-from pyquibbler.graphics import override_axes_methods
-from pyquibbler.graphics.overriding import override_applier_functions
 from pyquibbler.graphics import GraphicsFunctionCall
+from pyquibbler.quib import override_numpy_functions
 from pyquibbler.quib.holistic_function_quib import HolisticFunctionQuib
 
 
 @pytest.fixture(autouse=True)
 def override():
-    override_axes_methods()
-    override_applier_functions()
+    override_numpy_functions()
 
 
 def test_holistic_function_quib_with_numpy_applier():
