@@ -1,57 +1,12 @@
-import contextlib
 import functools
-from typing import Callable, Tuple, Dict, Mapping
-from dataclasses import dataclass
+from typing import Callable
 
 import numpy as np
 from matplotlib import pyplot as plt
 
+from pyquibbler.graphics import global_collecting
 from pyquibbler.graphics.artists_redrawer import ArtistsRedrawer
 from pyquibbler.quib.utils import iter_quibs_in_args, call_func_with_quib_values
-
-COLLECTING_GLOBAL_ARTISTS = False
-GRAPHICS_CALLS_COLLECTED = []
-ARTISTS_COLLECTED = []
-
-
-@dataclass
-class GraphicsFunctionCall:
-    func: Callable
-    args: Tuple
-    kwargs: Mapping
-
-    def run(self):
-        return self.func(*self.args, **self.kwargs)
-
-
-def start_global_graphics_collecting_mode():
-    global GRAPHICS_CALLS_COLLECTED
-    global ARTISTS_COLLECTED
-    global COLLECTING_GLOBAL_ARTISTS
-
-    GRAPHICS_CALLS_COLLECTED = []
-    ARTISTS_COLLECTED = []
-    COLLECTING_GLOBAL_ARTISTS = True
-
-
-def get_graphics_calls_collected():
-    return GRAPHICS_CALLS_COLLECTED
-
-
-def get_artists_collected():
-    return ARTISTS_COLLECTED
-
-
-def end_global_graphics_collecting_mode():
-    global COLLECTING_GLOBAL_ARTISTS
-    COLLECTING_GLOBAL_ARTISTS = False
-
-
-@contextlib.contextmanager
-def global_graphics_collecting_mode():
-    start_global_graphics_collecting_mode()
-    yield
-    end_global_graphics_collecting_mode()
 
 
 def override_axes_method(method_name: str):
@@ -65,9 +20,11 @@ def override_axes_method(method_name: str):
 
     def override(*args, **kwargs):
         artists = call_func_with_quib_values(func=original_method, args=args, kwargs=kwargs)
-        if COLLECTING_GLOBAL_ARTISTS:
-            GRAPHICS_CALLS_COLLECTED.append(GraphicsFunctionCall(original_method, args, kwargs))
-            ARTISTS_COLLECTED.extend(artists)
+        if global_collecting.COLLECTING_GLOBAL_ARTISTS:
+            global_collecting.GRAPHICS_CALLS_COLLECTED.append(
+                global_collecting.GraphicsFunctionCall(original_method, args, kwargs)
+            )
+            global_collecting.ARTISTS_COLLECTED.extend(artists)
         else:
             redrawer = ArtistsRedrawer(
                 artists=artists,

@@ -2,8 +2,8 @@ from unittest import mock
 
 import pytest
 
-from pyquibbler.graphics import overriding
-from pyquibbler.graphics.overriding import GraphicsFunctionCall
+from pyquibbler import graphics
+from pyquibbler.graphics import GraphicsFunctionCall
 from pyquibbler.quib.holistic_function_quib import HolisticFunctionQuib
 
 
@@ -16,7 +16,7 @@ def create_mock_artist():
 @pytest.fixture()
 def mock_artists_collected(monkeypatch):
     artists = [create_mock_artist()]
-    monkeypatch.setattr(overriding, "get_artists_collected", lambda *_, **__: artists)
+    monkeypatch.setattr(graphics, "get_artists_collected", lambda *_, **__: artists)
     return artists
 
 
@@ -24,7 +24,7 @@ def mock_artists_collected(monkeypatch):
 def mock_graphics_calls_collected(monkeypatch):
     graphics_call = mock.Mock()
     graphics_call.return_value = [create_mock_artist()]
-    monkeypatch.setattr(overriding, "get_graphics_calls_collected", lambda *_, **__: [GraphicsFunctionCall(
+    monkeypatch.setattr(graphics, "get_graphics_calls_collected", lambda *_, **__: [GraphicsFunctionCall(
         func=graphics_call,
         args=tuple(),
         kwargs={}

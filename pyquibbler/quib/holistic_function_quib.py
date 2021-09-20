@@ -2,8 +2,8 @@
 from typing import Set, List, Callable, Tuple, Any, Mapping
 
 from .function_quib import CacheBehavior
-from pyquibbler.graphics import overriding, ArtistsRedrawer
-from pyquibbler.graphics.overriding import GraphicsFunctionCall
+from pyquibbler.graphics import overriding, ArtistsRedrawer, GraphicsFunctionCall
+from pyquibbler import graphics
 from .default_function_quib import DefaultFunctionQuib, Quib
 from pyquibbler.quib.utils import call_func_with_quib_values, iter_quibs_in_args
 
@@ -63,12 +63,12 @@ class HolisticFunctionQuib(DefaultFunctionQuib):
         return artists
 
     def _call_func(self):
-        with overriding.global_graphics_collecting_mode():
+        with graphics.global_graphics_collecting_mode():
             res = call_func_with_quib_values(self._func, self._args, self._kwargs)
 
-        self._graphics_calls = overriding.get_graphics_calls_collected()
+        self._graphics_calls = graphics.get_graphics_calls_collected()
 
-        artists_created = overriding.get_artists_collected()
+        artists_created = graphics.get_artists_collected()
         for artist in artists_created:
             artist.remove()
 
