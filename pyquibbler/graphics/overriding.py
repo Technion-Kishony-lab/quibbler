@@ -1,12 +1,9 @@
-import functools
-from typing import Callable
-
-import numpy as np
 from matplotlib import pyplot as plt
 
 from pyquibbler.graphics import global_collecting
 from pyquibbler.graphics.artists_redrawer import ArtistsRedrawer
 from pyquibbler.quib.utils import iter_quibs_in_args, call_func_with_quib_values
+from pyquibbler.utils import ensure_only_run_once_globally
 
 
 def override_axes_method(method_name: str):
@@ -41,46 +38,9 @@ def override_axes_method(method_name: str):
 
 
 OVERRIDDEN_AXES_METHODS = ['plot', 'imshow', 'text']
-OVERRIDDEN_APPLY_FUNCTIONS = ['apply_along_axis', 'apply_over_axes', 'vectorize']
 
 
-def override_apply_func(module, func_name):
-    original_method = getattr(module, func_name)
-
-    def apply(*args, **kwargs):
-        from pyquibbler.quib.holistic_function_quib import HolisticFunctionQuib
-        return HolisticFunctionQuib.create(
-            func_args=args,
-            func_kwargs=kwargs,
-            func=original_method,
-        )
-
-    setattr(module, func_name, apply)
-
-
-def run_once_globally(func: Callable):
-    did_run = False
-
-    @functools.wraps(func)
-    def _wrapper(*args, **kwargs):
-        nonlocal did_run
-        if not did_run:
-            func(*args, **kwargs)
-            did_run = True
-
-    return _wrapper
-
-
-@run_once_globally
-def override_applier_functions():
-    """
-    Override all applier functions so we can create HolisticFunctionQuibs when they are ran
-    """
-    for apply_method in OVERRIDDEN_APPLY_FUNCTIONS:
-        override_apply_func(np, apply_method)
-
-
-@run_once_globally
+@ensure_only_run_once_globally
 def override_axes_methods():
     """
     Override all axes methods so we can add redrawers to the relevant quibs
