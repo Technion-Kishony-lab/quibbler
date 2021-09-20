@@ -43,9 +43,9 @@ class FunctionQuib(Quib):
         self.set_cache_behavior(cache_behavior)
 
     @classmethod
-    def create(cls, func, func_args=(), func_kwargs=None, cache_behavior=None):
+    def create(cls, func, func_args=(), func_kwargs=None, cache_behavior=None, **kwargs):
         """
-        Public constructor for DefaultFunctionQuib.
+        Public constructor for FunctionQuib.
         """
         if func_kwargs is None:
             func_kwargs = {}
@@ -53,7 +53,7 @@ class FunctionQuib(Quib):
             func_kwargs = deepcopy(func_kwargs)
         func_args = deepcopy(func_args)
         self = cls(artists_redrawers=set(), children=[], func=func, args=func_args, kwargs=func_kwargs,
-                   cache_behavior=cache_behavior)
+                   cache_behavior=cache_behavior, **kwargs)
         for arg in iter_quibs_in_args(func_args, func_kwargs):
             arg.add_child(self)
         return self

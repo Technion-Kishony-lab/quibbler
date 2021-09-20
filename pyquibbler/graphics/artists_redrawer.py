@@ -1,4 +1,5 @@
-from typing import Callable, Tuple, Any, Mapping, List, Set
+from dataclasses import dataclass
+from typing import Callable, Tuple, Any, Mapping, List, Set, Optional, Dict
 
 from matplotlib.axes import Axes
 from matplotlib.collections import Collection
@@ -11,15 +12,16 @@ from matplotlib.image import AxesImage
 
 from pyquibbler.env import is_debug
 from pyquibbler.exceptions import DebugException
-from pyquibbler.quib.utils import iter_quibs_in_args, call_func_with_quib_values
+from pyquibbler.quib.utils import call_func_with_quib_values
 from matplotlib.artist import Artist
-from matplotlib import pyplot as plt
 
 
 class ArtistsRedrawer:
     """
     Handles redrawing artists in an efficient manner while keeping their position within the axes, as well as other 
     critical attributes (color etc)
+
+    An ArtistsRedrawer MUST BE per one axes
     """
 
     TYPES_TO_ARTIST_ARRAY_NAMES = {
@@ -48,78 +50,81 @@ class ArtistsRedrawer:
 
         return cls(artists, func, args, kwargs)
 
-    @property
-    def _exemplifying_artist(self) -> Artist:
-        """
-        We expect certain attributes of our artists (for example their `axes`, `zorder`, type)
-        to be the same in all our artists-
-        (Based on the assumption that one matplotlib function won't output artists with different attributes in
-        above areas)
-        This means we can take the first artist as an "exemplifying" artist for certain attributes
-        """
-        return self.artists[0]
-
-    @property
-    def _axes(self) -> Axes:
-        return self._exemplifying_artist.axes
-
-    @property
-    def _artists_array_name(self) -> str:
-        """
-        The name of the array within `self._axes` that the artists belongs to
-        """
-        # We don't want to simply access TYPES_TO_ARTIST_ARRAY_NAMES by key as we may be a subclass of one of the types
-        # We default to general artists list if we don't know the arrays
+    def _get_artist_array_name(self, artist: Artist):
         return next((
             array_name
             for type_, array_name in self.TYPES_TO_ARTIST_ARRAY_NAMES.items()
-            if isinstance(self._exemplifying_artist, type_)
+            if isinstance(artist, type_)
         ), "artists")
 
-    @property
-    def _artists_array(self) -> List[Artist]:
-        """
-        The array within `self._axes` that the artists belongs to
-        """
-        return getattr(self._axes, self._artists_array_name)
+    def _get_artist_array(self, artist: Artist):
+        return getattr(artist.axes, self._get_artist_array_name(artist))
 
-    def _remove_current_artists(self):
+    def _get_axes_array_names_to_artists(self) -> Dict[str, List[Artist]]:
+        array_names_to_artists = {}
+        for artist in self.artists:
+            array_name = self._get_artist_array_name(artist)
+            if array_name not in array_names_to_artists:
+                array_names_to_artists[array_name] = []
+            array_names_to_artists[array_name].append(artist)
+
+        return array_names_to_artists
+
+    def remove_current_artists(self):
         """
-        Remove all the current artists
+        Remove all the current artists (does NOT redraw)
         """
         for artist in self.artists:
-            self._artists_array.remove(artist)
+            self._get_artist_array(artist).remove(artist)
 
-    def _create_new_artists(self, previous_artists_index: int, previous_exemplifying_artist: Artist):
-        """
-        Create the new artists in the correct index with
-        """
-        new_artists = call_func_with_quib_values(self._func, self._args, self._kwargs)
-        self.artists = new_artists
-
-        # insert new artists at correct location
-        complete_artists_array = self._artists_array[:previous_artists_index] + new_artists + \
-                                 self._artists_array[previous_artists_index:len(self._artists_array) - len(new_artists)]
-        setattr(self._axes, self._artists_array_name, complete_artists_array)
-
-        for new_artist in new_artists:
-            new_artist.zorder = previous_exemplifying_artist.zorder
-            new_artist.set_color(previous_exemplifying_artist.get_color())
-
-    def _redraw_axes_and_update_gui(self):
+    def redraw_axes_and_update_gui(self):
         """
         Does the actual redrawing gui-wise - this should be WITHOUT rendering anything except for the new artists
         """
+        exemplifying_artist = self.artists[0]
+        axes = exemplifying_artist.axes
         # if the renderer cache is None, we've never done an initial draw- which means we can just wait for the
         # initial draw to happen which will naturally use our updated artists
-        if self._axes.get_renderer_cache() is not None:
+        if axes.get_renderer_cache() is not None:
             # redraw_in_frame is supposed to be a quick way to redraw all artists in an axes- the expectation is
             # that the renderer will not rerender any artists that already exist.
             # We saw that the performance matched the performance of what automatically happens when pausing
             # (which causes a the event loop to run)
-            self._axes.redraw_in_frame()
+            axes.redraw_in_frame()
             # After redrawing to the canvas, we now need to blit the bitmap to the GUI
-            self._axes.figure.canvas.blit(self._axes.bbox)
+            axes.figure.canvas.blit(axes.bbox)
+
+    def create_new_artists(self,
+                           previous_array_names_to_indices_and_artists: Dict[str, Tuple[int, List[Artist]]] = None):
+        """
+        Create the new artists in the correct index with
+        """
+        previous_array_names_to_indices_and_artists = previous_array_names_to_indices_and_artists or {}
+
+        new_artists: List[Artist] = call_func_with_quib_values(self._func, self._args, self._kwargs)
+        self.artists = new_artists
+
+        current_array_names_to_artists = self._get_axes_array_names_to_artists()
+
+        for array_name, artists in current_array_names_to_artists.items():
+            if array_name in previous_array_names_to_indices_and_artists:
+                starting_index, previous_artists = previous_array_names_to_indices_and_artists[array_name]
+
+                exemplifying_artist = artists[0]
+                array = getattr(exemplifying_artist.axes, array_name)
+                complete_artists_array = array[:starting_index] + new_artists + array[starting_index:len(array)
+                                                                                                     - len(new_artists)]
+
+                # insert new artists at correct location
+                setattr(exemplifying_artist.axes, array_name, complete_artists_array)
+
+                # We only want to update from the previous artists if their lengths are equal (if so, we assume they're
+                # referencing the same artists)
+                if len(artists) == len(previous_artists):
+                    for previous_artist, new_artist in zip(previous_artists, artists):
+                        new_artist.update_from(previous_artist)
+            # If the array name isn't in previous_array_names_to_indices_and_artists, we don't need to update positions,
+            # etc
 
     def redraw(self):
         """
@@ -133,44 +138,15 @@ class ArtistsRedrawer:
             if len(axeses) > 1:
                 raise DebugException("There cannot be more than one axes!")
 
-        previous_artists_index = self._artists_array.index(self._exemplifying_artist)
-        previous_exemplifying_artist = self._exemplifying_artist
-        self._remove_current_artists()
-        self._create_new_artists(previous_exemplifying_artist=previous_exemplifying_artist,
-                                 previous_artists_index=previous_artists_index)
+        array_names_to_artists = self._get_axes_array_names_to_artists()
+        axes_array_names_to_indices_and_artists = {}
+        for array_name, artists in array_names_to_artists.items():
+            exemplifying_artist = artists[0]
+            array = getattr(exemplifying_artist.axes, array_name)
+            axes_array_names_to_indices_and_artists[array_name] = (array.index(exemplifying_artist), artists)
 
-        self._redraw_axes_and_update_gui()
+        self.remove_current_artists()
+        self.create_new_artists(axes_array_names_to_indices_and_artists)
 
+        self.redraw_axes_and_update_gui()
 
-def override_axes_method(method_name: str):
-    """
-    Override an axes method to create a method that will add an artistsredrawer to any quibs in the arguments
-
-    :param method_name - name of axes method
-    """
-    cls = plt.Axes
-    original_method = getattr(cls, method_name)
-
-    def override(*args, **kwargs):
-        redrawer = ArtistsRedrawer.create_from_function_call(
-            func=original_method,
-            args=args,
-            kwargs=kwargs
-        )
-        for quib in iter_quibs_in_args(args, kwargs):
-            quib.add_artists_redrawer(redrawer)
-
-        return redrawer.artists
-
-    setattr(cls, method_name, override)
-
-
-OVERRIDDEN_AXES_METHODS = ['plot', 'imshow', 'text']
-
-
-def override_axes_methods():
-    """
-    Override all axes methods so we can add redrawers to the relevant quibs
-    """
-    for axes_method in OVERRIDDEN_AXES_METHODS:
-        override_axes_method(axes_method)
