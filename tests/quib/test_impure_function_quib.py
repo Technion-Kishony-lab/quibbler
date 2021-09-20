@@ -1,5 +1,4 @@
 from unittest.mock import Mock
-
 from pytest import fixture, raises, mark
 
 from pyquibbler import CacheBehavior

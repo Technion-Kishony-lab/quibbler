@@ -68,3 +68,9 @@ class Quib(ABC):
         Add the given quib to the list of quibs that are dependent on this quib.
         """
         self._children.append(quib)
+
+    def __copy__(self):
+        return self
+
+    def __deepcopy__(self, memodict={}):
+        return self
