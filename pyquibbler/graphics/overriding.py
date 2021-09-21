@@ -1,4 +1,5 @@
 from matplotlib import pyplot as plt
+from matplotlib.artist import Artist
 
 from pyquibbler.graphics import global_collecting
 from pyquibbler.graphics.artists_redrawer import ArtistsRedrawer
@@ -17,6 +18,9 @@ def override_axes_method(method_name: str):
 
     def override(*args, **kwargs):
         artists = call_func_with_quib_values(func=original_method, args=args, kwargs=kwargs)
+        if isinstance(artists, Artist):
+            artists = [artists]
+
         if global_collecting.COLLECTING_GLOBAL_ARTISTS:
             global_collecting.GRAPHICS_CALLS_COLLECTED.append(
                 global_collecting.GraphicsFunctionCall(original_method, args, kwargs)
@@ -37,7 +41,7 @@ def override_axes_method(method_name: str):
     setattr(cls, method_name, override)
 
 
-OVERRIDDEN_AXES_METHODS = ['plot', 'imshow', 'text']
+OVERRIDDEN_AXES_METHODS = ['plot', 'imshow', 'text', 'bar']
 
 
 @ensure_only_run_once_globally

@@ -138,6 +138,8 @@ class ArtistsRedrawer:
             previous_axeses_to_array_names_to_indices_and_artists or {}
 
         new_artists: List[Artist] = call_func_with_quib_values(self._func, self._args, self._kwargs)
+        if isinstance(new_artists, Artist):
+            new_artists = [new_artists]
         self.artists = new_artists
 
         current_axeses_to_array_names_to_artists = self._get_axeses_to_array_names_to_artists()

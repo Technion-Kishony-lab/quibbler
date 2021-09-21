@@ -78,6 +78,9 @@ class Quib(ABC):
         """
         self._children.append(quib)
 
+    def __len__(self):
+        return len(self.get_value())
+
     def __copy__(self):
         return self
 
