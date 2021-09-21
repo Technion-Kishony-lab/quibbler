@@ -88,6 +88,7 @@ def deep_copy_and_replace_quibs_with_vals(obj: Any, max_depth: Optional[int] = N
     When `max_length` is given, does not recurse into iterables larger than `max_length`.
     """
     from pyquibbler.quib import Quib
+    from matplotlib.artist import Artist
     if isinstance(obj, Quib):
         return obj.get_value()
     if max_depth is None or max_depth > 0:
@@ -100,6 +101,9 @@ def deep_copy_and_replace_quibs_with_vals(obj: Any, max_depth: Optional[int] = N
             return slice(deep_copy_and_replace_quibs_with_vals(obj.start, next_max_depth),
                          deep_copy_and_replace_quibs_with_vals(obj.stop, next_max_depth),
                          deep_copy_and_replace_quibs_with_vals(obj.step, next_max_depth))
+
+    if isinstance(obj, Artist):
+        return obj
     return copy(obj)
 
 
