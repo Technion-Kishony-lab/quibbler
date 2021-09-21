@@ -3,7 +3,7 @@ from functools import reduce
 from operator import or_
 from typing import Set, List
 
-from pyquibbler.graphics import ArtistsRedrawer
+from pyquibbler.graphics import ArtistsRedrawer, redraw_axes
 
 
 class Quib(ABC):
@@ -34,8 +34,15 @@ class Quib(ABC):
         """
         Redraw all artists that directly or indirectly depend on this quib.
         """
-        for artists_redrawers in self.__get_artists_redrawers_recursively():
-            artists_redrawers.redraw()
+        for artists_redrawer in self.__get_artists_redrawers_recursively():
+            artists_redrawer.redraw(redraw_in_gui=False)
+
+        axeses = set()
+        for artists_redrawer in self.__get_artists_redrawers_recursively():
+            for axes in artists_redrawer.get_axeses():
+                axeses.add(axes)
+        for axes in axeses:
+            redraw_axes(axes)
 
     def invalidate_and_redraw(self):
         """

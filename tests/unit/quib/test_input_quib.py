@@ -33,11 +33,14 @@ def test_input_quib_getitem(input_quib, input_quib_val):
 
 def test_input_quib_setitem(input_quib):
     artist_redrawer_mock = Mock()
+    artist_redrawer_mock.get_axeses.return_value = []
     child1 = create_child_with_valid_cache(input_quib, artist_redrawer_mock)
     child2 = create_child_with_valid_cache(input_quib, artist_redrawer_mock)
+
     # Mutate the input quib so its children will be invalidated and redrawn
     input_quib[0] = 'new_val!!'
-    assert artist_redrawer_mock.redraw.call_count == 1
+
+    artist_redrawer_mock.redraw.assert_called_once_with(redraw_in_gui=False)
     assert not child1.is_cache_valid
     assert not child2.is_cache_valid
 
