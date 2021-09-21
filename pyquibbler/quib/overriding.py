@@ -29,7 +29,7 @@ def override_numpy_functions():
     """
     quib_types_with_function_names_to_override = [
         (DefaultFunctionQuib, [
-            "abs", "average", "around"
+            "abs", "average", "around", "square", "repeat"
         ]),
         (
             HolisticFunctionQuib, [

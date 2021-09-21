@@ -67,4 +67,3 @@ def test_artists_redrawer_does_not_change_artist_position():
     plt.plot([30, 30, 30], color="blue")
 
     redrawer.redraw()
-
