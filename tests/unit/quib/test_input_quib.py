@@ -1,9 +1,8 @@
 from unittest.mock import Mock
-
 from pytest import fixture
 
 from pyquibbler import iquib
-from pyquibbler.quib import Quib, DefaultFunctionQuib
+from pyquibbler.quib import DefaultFunctionQuib
 
 
 @fixture
@@ -23,12 +22,6 @@ def create_child_with_valid_cache(input_quib, artist_redrawer):
     assert child.is_cache_valid
     input_quib.add_child(child)
     return child
-
-
-def test_input_quib_getitem(input_quib, input_quib_val):
-    got = input_quib[0]
-    assert isinstance(got, Quib)
-    assert got.get_value() == input_quib_val[0]
 
 
 def test_input_quib_setitem(input_quib):

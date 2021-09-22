@@ -72,3 +72,5 @@ class DefaultFunctionQuib(FunctionQuib):
 # We want quibs' __getitem__ to return a function quib representing the __getitem__ operation,
 # so if the original quib is changed, whoever called __getitem__ will be invalidated.
 Quib.__getitem__ = DefaultFunctionQuib.create_wrapper(getitem)
+Quib.__getattr__ = DefaultFunctionQuib.create_wrapper(getattr)
+Quib.__call__ = DefaultFunctionQuib.create_wrapper(lambda func, *args, **kwargs: func(*args, **kwargs))
