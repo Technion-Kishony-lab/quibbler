@@ -16,8 +16,7 @@
 - `FunctionQuib._args`
 - `FunctionQuib._kwargs`
 - `FunctionQuib._get_dependencies()`
-
-#### Quib properties
+- `FunctionQuib.get_cache_behavior()`
 
 ## Q/A
 
@@ -27,3 +26,16 @@
     As a side note, our solution (of ```axes.redraw_in_frame(); axes.figure.canvas.blit()```)
     has near identical performance to running the event loop ) <br/>
     It is important to note that we're not sure of all of this for other backends.
+
+#### Array copy/view behavior
+In some cases, an operation on a numpy array can result with a view to that numpy array,
+instead of a new array referencing new memory. For example:
+
+- `np.view(arr)`
+- `arr[4:10]`
+- `arr.reshape((3, 5))`
+- `arr.swapaxes((1, 2))`
+
+Some functions can return both a view an a copy, according to the arguments.
+For example `__getitem__` will return a copy only if the selected data is contiguous in memory.
+On view arrays, the attribute `base` points to the original array instead of `None`.
