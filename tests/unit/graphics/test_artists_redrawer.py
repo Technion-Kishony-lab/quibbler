@@ -1,6 +1,3 @@
-import os
-
-import pytest
 from matplotlib.testing.decorators import image_comparison
 
 import matplotlib.pyplot as plt
@@ -11,10 +8,7 @@ from pyquibbler.graphics.artists_redrawer import ArtistsRedrawer
 # This imports a fixture (it has autouse=True) that cleans up matplotlib stuffs our tests do
 from matplotlib.testing.conftest import mpl_test_settings
 
-IS_IN_CI = os.getenv("CI", "false") == "true"
 
-
-@pytest.mark.skipif(IS_IN_CI, reason="No CI support")
 @image_comparison(baseline_images=['happy_flow'], remove_text=True,
                   extensions=['png'])
 def test_artists_redrawer_happy_flow():
@@ -27,7 +21,6 @@ def test_artists_redrawer_happy_flow():
     redrawer.redraw()
 
 
-@pytest.mark.skipif(IS_IN_CI, reason="No CI support")
 @image_comparison(baseline_images=["happy_flow"], remove_text=True,
                   extensions=['png'])
 def test_artists_redrawer_uses_quib_value():
@@ -40,7 +33,6 @@ def test_artists_redrawer_uses_quib_value():
     redrawer.redraw()
 
 
-@pytest.mark.skipif(IS_IN_CI, reason="No CI support")
 @image_comparison(baseline_images=["happy_flow"], remove_text=True,
                   extensions=['png'])
 def test_artists_redrawer_does_not_change_on_redraw():
@@ -54,7 +46,6 @@ def test_artists_redrawer_does_not_change_on_redraw():
         redrawer.redraw()
 
 
-@pytest.mark.skipif(IS_IN_CI, reason="No CI support")
 @image_comparison(baseline_images=["layered"], remove_text=True,
                   extensions=['png'])
 def test_artists_redrawer_does_not_change_artist_position():
