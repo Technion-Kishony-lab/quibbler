@@ -27,6 +27,13 @@ jobs:
       - name: Run tox
         run: |
           python -m tox
+      - name: Upload result_images from graphics tests
+        if: failure() && steps.integrationTests.outcome == 'failure'
+        uses: actions/upload-artifact@v2
+        with:
+          name: Result images
+          path: result_images
+
 
   coverage:
 
