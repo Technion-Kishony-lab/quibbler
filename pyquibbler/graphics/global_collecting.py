@@ -1,7 +1,6 @@
 import contextlib
-from collections import Callable
 from dataclasses import dataclass
-from typing import Tuple, Mapping
+from typing import Tuple, Mapping, Callable
 
 COLLECTING_GLOBAL_ARTISTS = False
 GRAPHICS_CALLS_COLLECTED = []
