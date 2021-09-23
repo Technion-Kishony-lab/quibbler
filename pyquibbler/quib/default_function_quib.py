@@ -1,6 +1,7 @@
 from sys import getsizeof
 from time import perf_counter
 from typing import Set, Callable, Any, Mapping, Tuple, Optional
+from weakref import ref as weakref
 
 from .function_quib import FunctionQuib, CacheBehavior
 from .quib import Quib
@@ -15,7 +16,7 @@ class DefaultFunctionQuib(FunctionQuib):
 
     def __init__(self,
                  artists_redrawers: Set,
-                 children: Set[Quib],
+                 children: Set[weakref],
                  func: Callable,
                  args: Tuple[Any, ...],
                  kwargs: Mapping[str, Any],

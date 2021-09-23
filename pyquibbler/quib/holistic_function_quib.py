@@ -1,8 +1,10 @@
 from typing import Set, List, Callable, Tuple, Any, Mapping, Optional
+from weakref import ref as weakref
+
 from pyquibbler.graphics import ArtistsRedrawer, GraphicsFunctionCall
 from pyquibbler import graphics
-from pyquibbler.quib.utils import call_func_with_quib_values, iter_quibs_in_args
 
+from .utils import call_func_with_quib_values, iter_quibs_in_args
 from .function_quib import CacheBehavior
 from .default_function_quib import DefaultFunctionQuib, Quib
 
@@ -19,7 +21,7 @@ class HolisticFunctionQuib(DefaultFunctionQuib):
     """
 
     def __init__(self, artists_redrawers: Set,
-                 children: Set[Quib],
+                 children: Set[weakref],
                  func: Callable,
                  args: Tuple[Any, ...],
                  kwargs: Mapping[str, Any],

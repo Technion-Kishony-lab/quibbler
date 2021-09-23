@@ -1,4 +1,5 @@
 from typing import Set, Any
+from weakref import ref as weakref
 
 from .quib import Quib
 from .utils import is_there_a_quib_in_object
@@ -7,7 +8,7 @@ from ..exceptions import DebugException
 
 
 class InputQuib(Quib):
-    def __init__(self, artists_redrawers: Set, children: Set[Quib], value: Any):
+    def __init__(self, artists_redrawers: Set, children: Set[weakref], value: Any):
         super().__init__(artists_redrawers, children)
         self._value = value
         if is_debug():

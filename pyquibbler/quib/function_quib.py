@@ -2,6 +2,7 @@ from copy import deepcopy
 from enum import Enum
 from functools import wraps
 from typing import Set, List, Callable, Any, Mapping, Tuple, Optional
+from weakref import ref as weakref
 
 from .quib import Quib
 from .utils import is_there_a_quib_in_args, iter_quibs_in_args, call_func_with_quib_values
@@ -27,7 +28,7 @@ class FunctionQuib(Quib):
     MAX_BYTES_PER_SECOND = 2 ** 30
     def __init__(self,
                  artists_redrawers: Set,
-                 children: Set[Quib],
+                 children: Set[weakref],
                  func: Callable,
                  args: Tuple[Any, ...],
                  kwargs: Mapping[str, Any],

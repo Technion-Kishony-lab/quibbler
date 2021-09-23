@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from functools import reduce
 from operator import or_
 from typing import Set
+from weakref import ref as weakref
 
 from pyquibbler.graphics import ArtistsRedrawer, redraw_axes
 
@@ -11,8 +12,7 @@ class Quib(ABC):
     An abstract class to describe the common methods and attributes of all quib types.
     """
 
-    def __init__(self, artists_redrawers: Set[ArtistsRedrawer], children: Set['Quib']):
-        assert isinstance(children, set)
+    def __init__(self, artists_redrawers: Set[ArtistsRedrawer], children: Set[weakref]):
         self._artists_redrawers = artists_redrawers
         self._children = children
 
@@ -22,13 +22,13 @@ class Quib(ABC):
         This should be called every time the quib is changed.
         """
         for child in self._children:
-            child._invalidate()
+            child()._invalidate()
 
     def __get_artists_redrawers_recursively(self):
         """
         Get all artists that directly or indirectly depend on this quib.
         """
-        return reduce(or_, (child.__get_artists_redrawers_recursively()
+        return reduce(or_, (child().__get_artists_redrawers_recursively()
                             for child in self._children), self._artists_redrawers)
 
     def __redraw(self):
@@ -77,7 +77,7 @@ class Quib(ABC):
         """
         Add the given quib to the list of quibs that are dependent on this quib.
         """
-        self._children.add(quib)
+        self._children.add(weakref(quib, lambda ref: self._children.remove(ref)))
 
     def __len__(self):
         return len(self.get_value())

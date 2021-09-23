@@ -1,3 +1,6 @@
+from sys import getrefcount
+from unittest.mock import Mock
+
 import magicmethods
 import operator
 from pytest import fixture, mark
@@ -74,3 +77,18 @@ def test_quib_forward_and_reverse_binary_operators(operator_name: str):
     assert op(quib1, quib2.value).get_value() == op(quib1.value, quib2.value)
     # Reverse operators
     assert op(quib1.value, quib2).get_value() == op(quib1.value, quib2.value)
+
+
+
+
+def test_quib_children_can_die():
+    quib = ExampleQuib.create('something')
+    child = ExampleQuib.create('child')
+    child_invalidate = child._invalidate = Mock()
+    quib.add_child(child)
+    quib.invalidate_and_redraw()
+
+    child_invalidate.assert_called_once()
+    del child
+    quib.invalidate_and_redraw()
+    child_invalidate.assert_called_once()
