@@ -6,7 +6,7 @@ from pyquibbler import graphics
 
 from .utils import call_func_with_quib_values, iter_quibs_in_args
 from .function_quib import CacheBehavior
-from .default_function_quib import DefaultFunctionQuib, Quib
+from .default_function_quib import DefaultFunctionQuib
 
 
 class HolisticFunctionQuib(DefaultFunctionQuib):
@@ -20,8 +20,7 @@ class HolisticFunctionQuib(DefaultFunctionQuib):
     accidentally draw graphics twice
     """
 
-    def __init__(self, artists_redrawers: Set,
-                 children: Set[weakref],
+    def __init__(self,
                  func: Callable,
                  args: Tuple[Any, ...],
                  kwargs: Mapping[str, Any],
@@ -29,7 +28,7 @@ class HolisticFunctionQuib(DefaultFunctionQuib):
                  graphics_calls: List[GraphicsFunctionCall],
                  corresponding_artist_redrawer: ArtistsRedrawer = None):
 
-        super().__init__(artists_redrawers, children, func, args, kwargs, cache_behavior)
+        super().__init__(func, args, kwargs, cache_behavior)
         self._graphics_calls = graphics_calls
         self._corresponding_artist_redrawer = corresponding_artist_redrawer
 

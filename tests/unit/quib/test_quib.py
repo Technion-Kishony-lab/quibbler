@@ -7,8 +7,8 @@ from pyquibbler.quib import Quib
 
 
 class ExampleQuib(Quib):
-    def __init__(self, artists_redrawers, children, value):
-        super().__init__(artists_redrawers, children)
+    def __init__(self, value):
+        super().__init__()
         self.value = value
 
     def _invalidate(self):
@@ -17,14 +17,10 @@ class ExampleQuib(Quib):
     def get_value(self):
         return self.value
 
-    @classmethod
-    def create(cls, value):
-        return cls(set(), set(), value)
-
 
 @fixture
 def example_quib():
-    return ExampleQuib.create(['the', 'quib', 'value'])
+    return ExampleQuib(['the', 'quib', 'value'])
 
 
 def test_quib_getitem(example_quib):
@@ -38,7 +34,7 @@ def test_quib_getattr_with_class_attr(example_quib):
 
 
 def test_quib_getattr_with_instance_attr():
-    quib = ExampleQuib.create(type('_', (), dict(attr='value')))
+    quib = ExampleQuib(type('_', (), dict(attr='value')))
     got = quib.attr
     assert got.get_value() == quib.value.attr
 
@@ -57,7 +53,7 @@ def test_quib_call():
         assert expected_kwargs == kwargs
         return expected_result
 
-    quib = ExampleQuib.create(wrapped_func)
+    quib = ExampleQuib(wrapped_func)
     call_quib = quib(*expected_args, **expected_kwargs)
     result = call_quib.get_value()
 
@@ -67,8 +63,8 @@ def test_quib_call():
 @mark.parametrize('operator_name', set(magicmethods.arithmetic) - {'__div__', '__divmod__'})
 def test_quib_forward_and_reverse_binary_operators(operator_name: str):
     op = getattr(operator, operator_name, None)
-    quib1 = ExampleQuib.create(1)
-    quib2 = ExampleQuib.create(2)
+    quib1 = ExampleQuib(1)
+    quib2 = ExampleQuib(2)
 
     # Forward operators
     assert op(quib1, quib2).get_value() == op(quib1.value, quib2.value)
@@ -78,8 +74,8 @@ def test_quib_forward_and_reverse_binary_operators(operator_name: str):
 
 
 def test_quib_children_can_die():
-    quib = ExampleQuib.create('something')
-    child = ExampleQuib.create('child')
+    quib = ExampleQuib('something')
+    child = ExampleQuib('child')
     child_invalidate = child._invalidate = Mock()
     quib.add_child(child)
     quib.invalidate_and_redraw()
@@ -91,10 +87,10 @@ def test_quib_children_can_die():
 
 
 def test_quib_invalidation_is_recursive():
-    quib = ExampleQuib.create(0)
-    child = ExampleQuib.create(1)
+    quib = ExampleQuib(0)
+    child = ExampleQuib(1)
     quib.add_child(child)
-    grandchild = ExampleQuib.create(2)
+    grandchild = ExampleQuib(2)
     child.add_child(grandchild)
     grandchild._invalidate = Mock()
     quib.invalidate_and_redraw()
