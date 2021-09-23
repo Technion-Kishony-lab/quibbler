@@ -8,6 +8,9 @@ magic method call, and not being able to handle cases where a magic method is no
 operator works anyway (e.g. float.__ceil__).
 """
 import magicmethods
+from dis import opname
+from inspect import currentframe
+from operator import getitem
 
 from .quib import Quib
 from .function_quibs import DefaultFunctionQuib
@@ -22,11 +25,31 @@ from .function_quibs import DefaultFunctionQuib
 # copying:               already defined on the Quib class
 # unary:                 not all builtin types implement them, so getattr fails (e.g. float.__ceil__)
 # comparison, callables, representation, containers: change python's behavior unexpectedly
-OVERRIDES = magicmethods.arithmetic + magicmethods.rarithmetic + ['__getitem__']
+OVERRIDES = magicmethods.arithmetic + magicmethods.rarithmetic
 
 
 def get_magic_method_wrapper(name: str):
     return DefaultFunctionQuib.create_wrapper(lambda val, *args, **kwargs: getattr(val, name)(*args, **kwargs))
+
+
+def get_unpack_amount():
+    # inspiration - https://stackoverflow.com/a/16481975/2907819
+    frame = currentframe().f_back.f_back
+    instruction_index = frame.f_lasti
+    bytecode = frame.f_code.co_code
+    instruction = bytecode[instruction_index]
+    if opname[instruction] == 'UNPACK_SEQUENCE':
+        return bytecode[instruction_index + 1]
+    return None
+
+
+def quib_getitem_override(self, item):
+    unpack_amount = get_unpack_amount()
+    if unpack_amount is not None:
+        assert isinstance(item, int)
+        if item >= unpack_amount:
+            raise IndexError
+    return DefaultFunctionQuib.create(getitem, (self, item))
 
 
 def override_quib_operators():
@@ -36,6 +59,7 @@ def override_quib_operators():
     through the standard getattr process.
     See more here: https://docs.python.org/3/reference/datamodel.html#special-method-lookup
     """
+    Quib.__getitem__ = quib_getitem_override
     # Override a bunch of magic methods to enable operators to work.
     for magic_method_name in OVERRIDES:
         assert magic_method_name not in vars(Quib), magic_method_name
