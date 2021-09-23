@@ -1,3 +1,12 @@
+"""
+Override Quib operators by replacing magic methods with Quibs that represent the getattr of these magic methods
+from the original values.
+This could also be done by replacing the magic methods with Quib function wrappers
+(see commit 6d06b9fe76e3b7279c1dd737152d9c3cc586ebec).
+The first method has the advantage of being simple and easy to implement, but the disadvantage of create two quibs per
+magic method call, and not being able to handle cases where a magic method is not present on a built-in type but the
+operator works anyway (e.g. float.__ceil__).
+"""
 import magicmethods
 
 from .quib import Quib
