@@ -23,6 +23,7 @@ class Quib(ABC):
         """
         for child in self._children:
             child()._invalidate()
+            child().__invalidate_children()
 
     def __get_artists_redrawers_recursively(self):
         """
