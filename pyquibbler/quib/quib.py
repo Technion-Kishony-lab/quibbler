@@ -86,3 +86,6 @@ class Quib(ABC):
 
     def __deepcopy__(self, memodict={}):
         return self
+
+    def __iter__(self):
+        raise TypeError('Cannot iterate over quibs, as their size can vary')
