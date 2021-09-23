@@ -39,7 +39,7 @@ def test_holistic_function_quib_get_value_returns_value():
         kwargs={},
         artists_redrawers=set(),
         cache_behavior=None,
-        children=[],
+        children=set(),
         func=mock_func,
         graphics_calls=[]
     )
@@ -55,7 +55,7 @@ def test_holistic_function_quib_removes_artists_created(mock_artists_collected):
         kwargs={},
         artists_redrawers=set(),
         cache_behavior=None,
-        children=[],
+        children=set(),
         func=mock.Mock(),
         graphics_calls=[]
     )

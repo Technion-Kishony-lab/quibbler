@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from functools import reduce
 from operator import or_
-from typing import Set, List
+from typing import Set
 
 from pyquibbler.graphics import ArtistsRedrawer, redraw_axes
 
@@ -11,7 +11,8 @@ class Quib(ABC):
     An abstract class to describe the common methods and attributes of all quib types.
     """
 
-    def __init__(self, artists_redrawers: Set[ArtistsRedrawer], children: List['Quib']):
+    def __init__(self, artists_redrawers: Set[ArtistsRedrawer], children: Set['Quib']):
+        assert isinstance(children, set)
         self._artists_redrawers = artists_redrawers
         self._children = children
 
@@ -76,7 +77,7 @@ class Quib(ABC):
         """
         Add the given quib to the list of quibs that are dependent on this quib.
         """
-        self._children.append(quib)
+        self._children.add(quib)
 
     def __len__(self):
         return len(self.get_value())

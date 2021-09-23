@@ -1,7 +1,7 @@
 from copy import deepcopy
 from enum import Enum
 from functools import wraps
-from typing import Set, List, Callable, Any, Mapping, Tuple
+from typing import Set, List, Callable, Any, Mapping, Tuple, Optional
 
 from .quib import Quib
 from .utils import is_there_a_quib_in_args, iter_quibs_in_args, call_func_with_quib_values
@@ -25,15 +25,13 @@ class FunctionQuib(Quib):
     """
     DEFAULT_CACHE_BEHAVIOR = CacheBehavior.AUTO
     MAX_BYTES_PER_SECOND = 2 ** 30
-    MIN_SECONDS_FOR_CACHE = 1e-3
-
     def __init__(self,
                  artists_redrawers: Set,
-                 children: List[Quib],
+                 children: Set[Quib],
                  func: Callable,
                  args: Tuple[Any, ...],
                  kwargs: Mapping[str, Any],
-                 cache_behavior: CacheBehavior):
+                 cache_behavior: Optional[CacheBehavior]):
         super().__init__(artists_redrawers, children)
         self._func = func
         self._args = args
@@ -41,6 +39,8 @@ class FunctionQuib(Quib):
         if cache_behavior is None:
             cache_behavior = self.DEFAULT_CACHE_BEHAVIOR
         self.set_cache_behavior(cache_behavior)
+
+    MIN_SECONDS_FOR_CACHE = 1e-3
 
     @classmethod
     def create(cls, func, func_args=(), func_kwargs=None, cache_behavior=None, **kwargs):
@@ -52,7 +52,7 @@ class FunctionQuib(Quib):
         else:
             func_kwargs = deepcopy(func_kwargs)
         func_args = deepcopy(func_args)
-        self = cls(artists_redrawers=set(), children=[], func=func, args=func_args, kwargs=func_kwargs,
+        self = cls(artists_redrawers=set(), children=set(), func=func, args=func_args, kwargs=func_kwargs,
                    cache_behavior=cache_behavior, **kwargs)
         for arg in iter_quibs_in_args(func_args, func_kwargs):
             arg.add_child(self)

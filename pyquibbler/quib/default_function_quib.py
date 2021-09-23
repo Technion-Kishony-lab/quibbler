@@ -1,6 +1,6 @@
 from sys import getsizeof
 from time import perf_counter
-from typing import Set, List, Callable, Any, Mapping, Tuple
+from typing import Set, Callable, Any, Mapping, Tuple, Optional
 
 from .function_quib import FunctionQuib, CacheBehavior
 from .quib import Quib
@@ -15,11 +15,11 @@ class DefaultFunctionQuib(FunctionQuib):
 
     def __init__(self,
                  artists_redrawers: Set,
-                 children: List[Quib],
+                 children: Set[Quib],
                  func: Callable,
                  args: Tuple[Any, ...],
                  kwargs: Mapping[str, Any],
-                 cache_behavior: CacheBehavior,
+                 cache_behavior: Optional[CacheBehavior],
                  is_cache_valid: bool = False,
                  cached_result: Any = None):
         super().__init__(artists_redrawers, children, func, args, kwargs, cache_behavior)

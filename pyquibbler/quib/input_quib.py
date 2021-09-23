@@ -1,4 +1,4 @@
-from typing import Set, List, Any
+from typing import Set, Any
 
 from .quib import Quib
 from .utils import is_there_a_quib_in_object
@@ -7,7 +7,7 @@ from ..exceptions import DebugException
 
 
 class InputQuib(Quib):
-    def __init__(self, artists_redrawers: Set, children: List[Quib], value: Any):
+    def __init__(self, artists_redrawers: Set, children: Set[Quib], value: Any):
         super().__init__(artists_redrawers, children)
         self._value = value
         if is_debug():
@@ -19,7 +19,7 @@ class InputQuib(Quib):
         """
         Public constructor for InputQuib
         """
-        return cls(set(), [], value)
+        return cls(set(), set(), value)
 
     def __setitem__(self, key, value):
         """

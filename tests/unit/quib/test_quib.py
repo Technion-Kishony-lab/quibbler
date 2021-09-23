@@ -18,7 +18,7 @@ class ExampleQuib(Quib):
 
     @classmethod
     def create(cls, value):
-        return cls(set(), [], value)
+        return cls(set(), set(), value)
 
 
 @fixture
@@ -56,7 +56,7 @@ def test_quib_call():
         assert expected_kwargs == kwargs
         return expected_result
 
-    quib = ExampleQuib(set(), [], wrapped_func)
+    quib = ExampleQuib.create(wrapped_func)
     call_quib = quib(*expected_args, **expected_kwargs)
     result = call_quib.get_value()
 
