@@ -27,6 +27,3 @@
     As a side note, our solution (of ```axes.redraw_in_frame(); axes.figure.canvas.blit()```)
     has near identical performance to running the event loop ) <br/>
     It is important to note that we're not sure of all of this for other backends.
-- Why don't the GUI tests run in CI?
-  - We don't know yet, some works needs to be done to understand why the image is different on the server and the local
-    tests

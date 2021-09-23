@@ -1,7 +1,6 @@
+import numpy as np
 import functools
 from typing import Type
-
-import numpy as np
 
 from pyquibbler.quib import DefaultFunctionQuib, HolisticFunctionQuib, FunctionQuib
 from pyquibbler.quib.utils import is_there_a_quib_in_args

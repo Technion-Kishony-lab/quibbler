@@ -4,5 +4,5 @@ setup(
     name="pyquibbler",
     version='0.1.0',
     packages=find_packages(),
-    install_requires=["matplotlib"]
+    install_requires=["matplotlib", "magicmethods>=0.1.2,<=0.1.3"]
 )
