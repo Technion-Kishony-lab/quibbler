@@ -1,4 +1,6 @@
-from pytest import fixture
+import magicmethods
+import operator
+from pytest import fixture, mark
 
 from pyquibbler.quib import Quib
 
@@ -59,3 +61,16 @@ def test_quib_call():
     result = call_quib.get_value()
 
     assert result is expected_result
+
+
+@mark.parametrize('operator_name', set(magicmethods.arithmetic) - {'__div__', '__divmod__'})
+def test_quib_forward_and_reverse_binary_operators(operator_name: str):
+    op = getattr(operator, operator_name, None)
+    quib1 = ExampleQuib.create(1)
+    quib2 = ExampleQuib.create(2)
+
+    # Forward operators
+    assert op(quib1, quib2).get_value() == op(quib1.value, quib2.value)
+    assert op(quib1, quib2.value).get_value() == op(quib1.value, quib2.value)
+    # Reverse operators
+    assert op(quib1.value, quib2).get_value() == op(quib1.value, quib2.value)

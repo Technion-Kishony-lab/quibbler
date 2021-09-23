@@ -3,24 +3,50 @@ import magicmethods
 from .quib import Quib
 from .default_function_quib import DefaultFunctionQuib
 
-# skipping:
-# No need:             lifecycle, iassign, attributes, reflection, contextmanagers, descriptors, copying, pickling
-# Unexpected behavior: comparison, callables, representation, containers
-OVERRIDES = set(magicmethods.unary + magicmethods.arithmetic + magicmethods.rarithmetic +
-                magicmethods.typeconv + ['__getitem__'])
+## Reasons for skipping some magic method groups:
+# typeconv:              python checks that the return value is of the expected type
+# lifecycle, reflection: don't want to mess with that
+# iassign, pickling:     not supported at the moment
+# attributes:            overriding manually
+# contextmanagers:       doesn't make sense to override
+# descriptors:           Quibs shouldn't be used as descriptors
+# copying:               already defined on the Quib class
+# unary:                 not all builtin types implement them, so getattr fails (e.g. float.__ceil__)
+# comparison, callables, representation, containers: change python's behavior unexpectedly
+OVERRIDES = magicmethods.arithmetic + magicmethods.rarithmetic + ['__getitem__']
 
 
 class MagicDescriptor(object):
+    """
+    A descriptor that represents a magic method of a Quib.
+    When `__get__` is called, the descriptor
+    """
+
     def __init__(self, name):
         self.name = name
+        self.value = None
 
     def __get__(self, instance, owner):
-        return DefaultFunctionQuib.create(getattr, (instance, self.name))
+        """
+        Returns a FunctionQuib representing the getattr of self.name from the quib's value.
+        This FunctionQuib is cached so it is only created once per a descriptor.
+        """
+        if self.value is None:
+            self.value = DefaultFunctionQuib.create(getattr, (instance, self.name))
+        return self.value
 
 
 def override_quib_operators():
+    """
+    Make operators (and other magic methods) on quibs return quibs.
+    Overriding __getattr__ does not suffice because lookup of magic methods does not go
+    through the standard getattr process.
+    See more here: https://docs.python.org/3/reference/datamodel.html#special-method-lookup
+    """
+    # Magic methods that need special handling
     Quib.__getattr__ = DefaultFunctionQuib.create_wrapper(getattr)
     Quib.__call__ = DefaultFunctionQuib.create_wrapper(lambda func, *args, **kwargs: func(*args, **kwargs))
+    # Override a bunch of magic methods to enable operators to work.
     for magic_method_name in OVERRIDES:
         assert magic_method_name not in vars(Quib), magic_method_name
         setattr(Quib, magic_method_name, MagicDescriptor(magic_method_name))
