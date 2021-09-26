@@ -1,7 +1,10 @@
+from __future__ import annotations
 from abc import ABC, abstractmethod
-from functools import reduce
-from operator import or_
+from typing import Set, Any, TYPE_CHECKING
 from weakref import ref as weakref
+
+if TYPE_CHECKING:
+    from pyquibbler.quib.graphics import GraphicsFunctionQuib
 
 
 class Quib(ABC):
@@ -12,41 +15,43 @@ class Quib(ABC):
     def __init__(self):
         self._children = set()
 
-    def __invalidate_children_recursively(self):
+    def __invalidate_children_recursively(self) -> None:
         """
         Notify this quib's dependents that the data in this quib has changed.
         This should be called every time the quib is changed.
         """
-        for child in self.get_children_recursively():
-            child()._invalidate()
+        for child in self.__get_children_recursively():
+            child._invalidate()
 
-    def get_children_recursively(self):
-        return reduce(or_, (child().get_children_recursively()
-                            for child in self._children), set(self._children))
+    def __get_children_recursively(self) -> Set[Quib]:
+        children = {child_ref() for child_ref in self._children}
+        for child_ref in self._children:
+            children |= child_ref().__get_children_recursively()
+        return children
 
-    def __get_graphics_function_quibs_recursively(self):
+    def __get_graphics_function_quibs_recursively(self) -> Set[GraphicsFunctionQuib]:
         """
         Get all artists that directly or indirectly depend on this quib.
         """
         from pyquibbler.quib.graphics import GraphicsFunctionQuib
-        return {child for child in self.get_children_recursively() if isinstance(child(), GraphicsFunctionQuib)}
+        return {child for child in self.__get_children_recursively() if isinstance(child, GraphicsFunctionQuib)}
 
-    def __redraw(self):
+    def __redraw(self) -> None:
         """
         Redraw all artists that directly or indirectly depend on this quib.
         """
         from pyquibbler.quib.graphics import redraw_axes
         for graphics_function_quib in self.__get_graphics_function_quibs_recursively():
-            graphics_function_quib().get_value()
+            graphics_function_quib.get_value()
 
         axeses = set()
         for graphics_function_quib in self.__get_graphics_function_quibs_recursively():
-            for axes in graphics_function_quib().get_axeses():
+            for axes in graphics_function_quib.get_axeses():
                 axeses.add(axes)
         for axes in axeses:
             redraw_axes(axes)
 
-    def invalidate_and_redraw(self):
+    def invalidate_and_redraw(self) -> None:
         """
         Perform all actions needed after the quib was mutated (whether by overriding or reverse assignment).
         """
@@ -54,13 +59,13 @@ class Quib(ABC):
         self.__redraw()
 
     @abstractmethod
-    def _invalidate(self):
+    def _invalidate(self) -> None:
         """
         Change this quib's state according to a change in a dependency.
         """
 
     @abstractmethod
-    def get_value(self):
+    def get_value(self) -> Any:
         """
         Get the actual data that this quib represents.
         This function might perform several different calculations - function quibs
@@ -68,7 +73,7 @@ class Quib(ABC):
         even have to calculate the values of its dependencies.
         """
 
-    def add_child(self, quib):
+    def add_child(self, quib: Quib) -> None:
         """
         Add the given quib to the list of quibs that are dependent on this quib.
         """
