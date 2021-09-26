@@ -1,7 +1,9 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import Set, Any, TYPE_CHECKING
+from typing import Set, Any, TYPE_CHECKING, Optional
 from weakref import ref as weakref
+
+from .assignment_template import AssignmentTemplate, RangeAssignmentTemplate, BoundAssignmentTemplate
 
 if TYPE_CHECKING:
     from pyquibbler.quib.graphics import GraphicsFunctionQuib
@@ -12,7 +14,8 @@ class Quib(ABC):
     An abstract class to describe the common methods and attributes of all quib types.
     """
 
-    def __init__(self):
+    def __init__(self, assignment_template: Optional[AssignmentTemplate] = None):
+        self._assignment_template = assignment_template
         self._children = set()
 
     def __invalidate_children_recursively(self) -> None:
@@ -90,3 +93,13 @@ class Quib(ABC):
 
     def __iter__(self):
         raise TypeError('Cannot iterate over quibs, as their size can vary')
+
+    def get_assignment_template(self) -> AssignmentTemplate:
+        return self._assignment_template
+
+    def set_assignment_template(self, start, stop, step=None) -> None:
+        if step is None:
+            template = BoundAssignmentTemplate(start, stop)
+        else:
+            template = RangeAssignmentTemplate(start, stop, step)
+        self._assignment_template = template

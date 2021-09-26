@@ -1,5 +1,5 @@
 from itertools import chain
-from typing import List, Callable, Tuple, Any, Mapping, Dict
+from typing import List, Callable, Tuple, Any, Mapping, Dict, Optional
 
 from matplotlib.artist import Artist
 from matplotlib.axes import Axes
@@ -11,11 +11,10 @@ from matplotlib.spines import Spine
 from matplotlib.table import Table
 from matplotlib.text import Text
 
-
-from pyquibbler.quib import DefaultFunctionQuib
-from pyquibbler.quib.graphics import global_collecting
-from pyquibbler.quib.utils import call_func_with_quib_values, \
-    iter_object_type_in_args
+from ..assignment_template import AssignmentTemplate
+from ..utils import call_func_with_quib_values, iter_object_type_in_args
+from .. import DefaultFunctionQuib, CacheBehavior
+from . import global_collecting
 
 
 class GraphicsFunctionQuib(DefaultFunctionQuib):
@@ -28,10 +27,15 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         Table: "tables",
         AxesImage: "images"
     }
-    
-    def __init__(self, func: Callable, args: Tuple[Any, ...],
-                 kwargs: Mapping[str, Any], cache_behavior, artists: List[Artist]):
-        super().__init__(func, args, kwargs, cache_behavior)
+
+    def __init__(self,
+                 func: Callable,
+                 args: Tuple[Any, ...],
+                 kwargs: Mapping[str, Any],
+                 cache_behavior: CacheBehavior,
+                 artists: List[Artist],
+                 assignment_template: Optional[AssignmentTemplate] = None):
+        super().__init__(func, args, kwargs, cache_behavior, assignment_template=assignment_template)
         self._artists = artists
 
     @classmethod
@@ -117,7 +121,7 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
 
     def _create_new_artists(self,
                             previous_axeses_to_array_names_to_indices_and_artists:
-                           Dict[Axes, Dict[str, Tuple[int, List[Artist]]]] = None):
+                            Dict[Axes, Dict[str, Tuple[int, List[Artist]]]] = None):
         """
         Create the new artists, then update them (if appropriate) with correct attributes (such as color) and place them
         in the same place they were in their axes

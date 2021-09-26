@@ -1,12 +1,13 @@
 import magicmethods
 import operator
 from unittest.mock import Mock
-from pytest import fixture, mark
+from pytest import mark
 from unittest import mock
 
 from pytest import fixture
 
 from pyquibbler.quib import Quib
+from pyquibbler.quib.assignment_template import RangeAssignmentTemplate, BoundAssignmentTemplate
 
 
 class ExampleQuib(Quib):
@@ -20,7 +21,6 @@ class ExampleQuib(Quib):
 
     def get_value(self):
         return self.value
-
 
 
 @fixture
@@ -107,7 +107,7 @@ def test_quib_invalidates_children_recursively(example_quib):
     child = ExampleQuib(value=mock.Mock(), invalidate_func=child_invalidate)
     child._invalidate = child_invalidate
     grandchild_invalidate = mock.Mock()
-    grandchild = ExampleQuib(value=mock.Mock(),invalidate_func=grandchild_invalidate)
+    grandchild = ExampleQuib(value=mock.Mock(), invalidate_func=grandchild_invalidate)
     example_quib.add_child(child)
     child.add_child(grandchild)
 
@@ -115,3 +115,17 @@ def test_quib_invalidates_children_recursively(example_quib):
 
     child_invalidate.assert_called_once()
     grandchild_invalidate.assert_called_once()
+
+
+def test_set_assignment_template_with_bounds(example_quib):
+    example_quib.set_assignment_template(1, 2)
+    template = example_quib.get_assignment_template()
+
+    assert template == BoundAssignmentTemplate(1, 2)
+
+
+def test_set_assignment_template_with_range(example_quib):
+    example_quib.set_assignment_template(1, 2, 3)
+    template = example_quib.get_assignment_template()
+
+    assert template == RangeAssignmentTemplate(1, 2, 3)

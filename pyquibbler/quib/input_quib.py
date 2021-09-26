@@ -1,7 +1,8 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Optional
 
+from .assignment_template import AssignmentTemplate
 from .quib import Quib
 from .utils import is_there_a_quib_in_object
 from ..env import is_debug
@@ -17,11 +18,11 @@ class CannotNestQuibInIQuibException(DebugException):
 
 
 class InputQuib(Quib):
-    def __init__(self, value: Any):
+    def __init__(self, value: Any, assignment_template: Optional[AssignmentTemplate] = None):
         """
         Creates an InputQuib instance containing the given value.
         """
-        super().__init__()
+        super().__init__(assignment_template=assignment_template)
         self._value = value
         if is_debug():
             if is_there_a_quib_in_object(value, force_recursive=True):

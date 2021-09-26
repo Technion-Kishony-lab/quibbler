@@ -1,5 +1,4 @@
 from typing import Any
-
 from pytest import mark, raises
 
 from pyquibbler.quib.assignment_template import AssignmentTemplate, BoundAssignmentTemplate, RangeAssignmentTemplate, \
@@ -15,7 +14,7 @@ class ExampleAssignmentTemplate(AssignmentTemplate):
     (1, -1),
     ([1], [-1]),
     ([[1, 2], [3, 4]], [[-1, -2], [-3, -4]]),
-    ((1,), [-1, ]),
+    ((1,), [-1]),
 ])
 def test_assignment_template_convert(data, expected):
     assert ExampleAssignmentTemplate().convert(data) == expected
