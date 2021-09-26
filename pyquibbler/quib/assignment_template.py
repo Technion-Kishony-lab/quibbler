@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from math import floor
-from typing import Callable, Any
+from typing import Any
 from dataclasses import dataclass
 
 from pyquibbler.exceptions import DebugException
@@ -31,16 +31,24 @@ def get_number_in_bounds(number, minimum, maximum):
 @dataclass
 class AssignmentTemplate(ABC):
     @abstractmethod
-    def convert(self, data):
+    def _convert_number(self, number: Any):
         """
         Convert the given object to match the template.
         """
 
+    def convert(self, data: Any):
+        try:
+            iterator = iter(data)
+        except TypeError:
+            return self._convert_number(data)
+        else:
+            return [self.convert(item) for item in iterator]
+
 
 @dataclass
-class BoundAssinmentTemplate(AssignmentTemplate):
+class BoundAssignmentTemplate(AssignmentTemplate):
     """
-    Limits assigned data to specific minimum and maximum bounds.
+    Limits assigned number to specific minimum and maximum bounds.
     """
     minimum: Any
     maximum: Any
@@ -49,14 +57,14 @@ class BoundAssinmentTemplate(AssignmentTemplate):
         if self.maximum < self.minimum:
             raise BoundMaxBelowMinException(self.minimum, self.maximum)
 
-    def convert(self, data):
-        return get_number_in_bounds(data, self.minimum, self.maximum)
+    def _convert_number(self, number):
+        return get_number_in_bounds(number, self.minimum, self.maximum)
 
 
 @dataclass
 class RangeAssignmentTemplate(AssignmentTemplate):
     """
-    Limits assigned data to a given range.
+    Limits assigned number to a given range.
     """
 
     start: Any
@@ -67,7 +75,7 @@ class RangeAssignmentTemplate(AssignmentTemplate):
         if self.stop < self.start:
             raise RangeStopBelowStartException(self.start, self.stop)
 
-    def convert(self, data):
-        rounded = round((data - self.start) / self.step)
+    def _convert_number(self, number: Any):
+        rounded = round((number - self.start) / self.step)
         bound = get_number_in_bounds(rounded, 0, floor((self.stop - self.start) / self.step))
-        return type(data)(self.start + bound * self.step)
+        return type(number)(self.start + bound * self.step)

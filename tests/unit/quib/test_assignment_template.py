@@ -1,22 +1,39 @@
+from typing import Any
+
 from pytest import mark, raises
 
-from pyquibbler.quib.assignment_template import BoundAssinmentTemplate, RangeAssignmentTemplate, \
+from pyquibbler.quib.assignment_template import AssignmentTemplate, BoundAssignmentTemplate, RangeAssignmentTemplate, \
     BoundMaxBelowMinException, RangeStopBelowStartException
+
+
+class ExampleAssignmentTemplate(AssignmentTemplate):
+    def _convert_number(self, number: Any):
+        return -number
+
+
+@mark.parametrize(['data', 'expected'], [
+    (1, -1),
+    ([1], [-1]),
+    ([[1, 2], [3, 4]], [[-1, -2], [-3, -4]]),
+    ((1,), [-1, ]),
+])
+def test_assignment_template_convert(data, expected):
+    assert ExampleAssignmentTemplate().convert(data) == expected
 
 
 @mark.parametrize(['template', 'data', 'expected'], [
     # Bound int
-    (BoundAssinmentTemplate(0, 2), -1, 0),
-    (BoundAssinmentTemplate(0, 2), 0, 0),
-    (BoundAssinmentTemplate(0, 2), 1, 1),
-    (BoundAssinmentTemplate(0, 2), 2, 2),
-    (BoundAssinmentTemplate(0, 2), 3, 2),
-    (BoundAssinmentTemplate(0, 2), 3, 2),
+    (BoundAssignmentTemplate(0, 2), -1, 0),
+    (BoundAssignmentTemplate(0, 2), 0, 0),
+    (BoundAssignmentTemplate(0, 2), 1, 1),
+    (BoundAssignmentTemplate(0, 2), 2, 2),
+    (BoundAssignmentTemplate(0, 2), 3, 2),
+    (BoundAssignmentTemplate(0, 2), 3, 2),
 
     # Bound float
-    (BoundAssinmentTemplate(0.1, 0.2), 0., 0.1),
-    (BoundAssinmentTemplate(0.1, 0.2), 0.15, 0.15),
-    (BoundAssinmentTemplate(0.1, 0.2), 0.2, 0.2),
+    (BoundAssignmentTemplate(0.1, 0.2), 0., 0.1),
+    (BoundAssignmentTemplate(0.1, 0.2), 0.15, 0.15),
+    (BoundAssignmentTemplate(0.1, 0.2), 0.2, 0.2),
 
     # Range int
     (RangeAssignmentTemplate(-3, 3, 3), -7, -3),
@@ -70,7 +87,7 @@ def test_casting_assignment_template(template, data, expected):
 
 def test_cant_create_bound_assignment_template_with_max_smaller_than_min():
     with raises(BoundMaxBelowMinException):
-        BoundAssinmentTemplate(1., 0.9)
+        BoundAssignmentTemplate(1., 0.9)
 
 
 def test_cant_create_range_assignment_template_with_stop_smaller_than_start():
