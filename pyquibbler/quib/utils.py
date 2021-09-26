@@ -207,9 +207,9 @@ def iter_objects_of_type_in_object(object_type: Type, obj: Any, force_recursive:
     return result
 
 
-def iter_quibs_in_object(obj):
+def iter_quibs_in_object(obj, force_recursive: bool = False):
     from pyquibbler.quib import Quib
-    return iter_objects_of_type_in_object(Quib, obj)
+    return iter_objects_of_type_in_object(Quib, obj, force_recursive)
 
 
 def iter_object_type_in_args(object_type, args, kwargs):
