@@ -1,11 +1,12 @@
+from typing import Set, List, Callable, Tuple, Any, Mapping, Optional
+from weakref import ref as weakref
 
-from typing import Set, List, Callable, Tuple, Any, Mapping
-
-from .function_quib import CacheBehavior
-from pyquibbler.graphics import overriding, ArtistsRedrawer, GraphicsFunctionCall
+from pyquibbler.graphics import ArtistsRedrawer, GraphicsFunctionCall
 from pyquibbler import graphics
-from .default_function_quib import DefaultFunctionQuib, Quib
-from pyquibbler.quib.utils import call_func_with_quib_values, iter_quibs_in_args
+
+from .utils import call_func_with_quib_values, iter_quibs_in_args
+from .function_quib import CacheBehavior
+from .default_function_quib import DefaultFunctionQuib
 
 
 class HolisticFunctionQuib(DefaultFunctionQuib):
@@ -19,16 +20,15 @@ class HolisticFunctionQuib(DefaultFunctionQuib):
     accidentally draw graphics twice
     """
 
-    def __init__(self, artists_redrawers: Set,
-                 children: List[Quib],
+    def __init__(self,
                  func: Callable,
                  args: Tuple[Any, ...],
                  kwargs: Mapping[str, Any],
-                 cache_behavior: CacheBehavior,
+                 cache_behavior: Optional[CacheBehavior],
                  graphics_calls: List[GraphicsFunctionCall],
                  corresponding_artist_redrawer: ArtistsRedrawer = None):
 
-        super().__init__(artists_redrawers, children, func, args, kwargs, cache_behavior)
+        super().__init__(func, args, kwargs, cache_behavior)
         self._graphics_calls = graphics_calls
         self._corresponding_artist_redrawer = corresponding_artist_redrawer
 
