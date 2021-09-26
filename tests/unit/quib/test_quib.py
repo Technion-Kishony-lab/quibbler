@@ -73,17 +73,15 @@ def test_quib_forward_and_reverse_binary_operators(operator_name: str):
     assert op(quib1.value, quib2).get_value() == op(quib1.value, quib2.value)
 
 
-def test_quib_children_can_die():
+def test_quib_children_automatically():
     quib = ExampleQuib('something')
     child = ExampleQuib('child')
     child_invalidate = child._invalidate = Mock()
     quib.add_child(child)
-    quib.invalidate_and_redraw()
-
-    child_invalidate.assert_called_once()
     del child
     quib.invalidate_and_redraw()
-    child_invalidate.assert_called_once()
+
+    child_invalidate.assert_not_called()
 
 
 def test_quib_invalidation_is_recursive():
