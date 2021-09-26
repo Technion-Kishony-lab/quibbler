@@ -38,18 +38,6 @@ class AssignmentTemplate(ABC):
 
 
 @dataclass
-class CastingAssignmentTemplate(AssignmentTemplate):
-    """
-    Converts assigned data to a given type.
-    """
-
-    type: Callable
-
-    def convert(self, data):
-        return self.type(data)
-
-
-@dataclass
 class BoundAssinmentTemplate(AssignmentTemplate):
     """
     Limits assigned data to specific minimum and maximum bounds.

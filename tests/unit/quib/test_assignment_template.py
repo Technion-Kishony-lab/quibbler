@@ -1,14 +1,10 @@
 from pytest import mark, raises
 
-from pyquibbler.quib.assignment_template import CastingAssignmentTemplate, BoundAssinmentTemplate, \
-    RangeAssignmentTemplate, BoundMaxBelowMinException, RangeStopBelowStartException
+from pyquibbler.quib.assignment_template import BoundAssinmentTemplate, RangeAssignmentTemplate, \
+    BoundMaxBelowMinException, RangeStopBelowStartException
 
 
 @mark.parametrize(['template', 'data', 'expected'], [
-    # Casting
-    (CastingAssignmentTemplate(int), 3.14, 3),
-    (CastingAssignmentTemplate(float), 3, 3.),
-
     # Bound int
     (BoundAssinmentTemplate(0, 2), -1, 0),
     (BoundAssinmentTemplate(0, 2), 0, 0),
