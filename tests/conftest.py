@@ -24,7 +24,7 @@ def pytest_generate_tests(metafunc):
     if debug_markers:
         marker, = debug_markers
         debug_on, = marker.args
-        metafunc.parametrize('setup_debug', [debug_on])
+        metafunc.parametrize('setup_debug', [debug_on], indirect=True, ids=[f'debug={debug_on}'])
 
 
 @fixture(autouse=True)

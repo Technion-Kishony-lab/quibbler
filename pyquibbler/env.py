@@ -1,5 +1,3 @@
-
-
 DEBUG = False
 
 
