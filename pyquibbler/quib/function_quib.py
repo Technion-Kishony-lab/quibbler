@@ -1,10 +1,9 @@
-from copy import deepcopy
 from enum import Enum
 from functools import wraps
 from typing import List, Callable, Any, Mapping, Tuple, Optional
-
 from .quib import Quib
-from .utils import is_there_a_quib_in_args, iter_quibs_in_args, call_func_with_quib_values
+from .utils import is_there_a_quib_in_args, iter_quibs_in_args, call_func_with_quib_values, \
+    deep_copy_without_quibs_or_artists
 
 
 class CacheBehavior(Enum):
@@ -48,8 +47,12 @@ class FunctionQuib(Quib):
         if func_kwargs is None:
             func_kwargs = {}
         else:
-            func_kwargs = deepcopy(func_kwargs)
-        func_args = deepcopy(func_args)
+            func_kwargs = {
+                k: deep_copy_without_quibs_or_artists(v)
+                for k, v
+                in func_kwargs.items()
+            }
+        func_args = deep_copy_without_quibs_or_artists(tuple(arg for arg in func_args))
         self = cls(func=func, args=func_args, kwargs=func_kwargs,
                    cache_behavior=cache_behavior, **kwargs)
         for arg in iter_quibs_in_args(func_args, func_kwargs):
@@ -73,6 +76,9 @@ class FunctionQuib(Quib):
             return func(*args, **kwargs)
 
         return quib_supporting_func_wrapper
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__} - {self._func.__name__}>"
 
     def get_cache_behavior(self):
         return self._cache_behavior

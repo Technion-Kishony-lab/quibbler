@@ -2,20 +2,25 @@ import magicmethods
 import operator
 from unittest.mock import Mock
 from pytest import fixture, mark
+from unittest import mock
+
+from pytest import fixture
 
 from pyquibbler.quib import Quib
 
 
 class ExampleQuib(Quib):
-    def __init__(self, value):
+    def __init__(self, value, invalidate_func=None):
         super().__init__()
         self.value = value
+        self._invalidate = invalidate_func
 
     def _invalidate(self):
         pass
 
     def get_value(self):
         return self.value
+
 
 
 @fixture
@@ -41,6 +46,18 @@ def test_quib_getattr_with_instance_attr():
 
 def test_call_quib_method(example_quib):
     assert example_quib.index(example_quib.value[1]).get_value() == 1
+
+
+def test_quib_invalidate_and_redraw_calls_graphics_function_quib_children(example_quib):
+    from pyquibbler.quib.graphics import GraphicsFunctionQuib
+    mock_func = mock.Mock()
+    mock_func.return_value = []
+    quib = GraphicsFunctionQuib(func=mock_func, args=tuple(), kwargs={}, artists=[], cache_behavior=None)
+    example_quib.add_child(quib)
+
+    example_quib.invalidate_and_redraw()
+
+    mock_func.assert_called_once()
 
 
 def test_quib_call():
@@ -84,13 +101,17 @@ def test_quib_children_automatically():
     child_invalidate.assert_not_called()
 
 
-def test_quib_invalidation_is_recursive():
-    quib = ExampleQuib(0)
-    child = ExampleQuib(1)
-    quib.add_child(child)
-    grandchild = ExampleQuib(2)
+def test_quib_invalidates_children_recursively(example_quib):
+    # Regression test
+    child_invalidate = mock.Mock()
+    child = ExampleQuib(value=mock.Mock(), invalidate_func=child_invalidate)
+    child._invalidate = child_invalidate
+    grandchild_invalidate = mock.Mock()
+    grandchild = ExampleQuib(value=mock.Mock(),invalidate_func=grandchild_invalidate)
+    example_quib.add_child(child)
     child.add_child(grandchild)
-    grandchild._invalidate = Mock()
-    quib.invalidate_and_redraw()
 
-    grandchild._invalidate.assert_called_once()
+    example_quib.invalidate_and_redraw()
+
+    child_invalidate.assert_called_once()
+    grandchild_invalidate.assert_called_once()
