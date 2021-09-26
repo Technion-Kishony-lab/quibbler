@@ -1,6 +1,6 @@
 import functools
 
-from pyquibbler.quib.holistic_function_quib import HolisticFunctionQuib
+from pyquibbler.quib.graphics import GraphicsFunctionQuib
 
 
 def quibbler_user_function(lazy=True):
@@ -16,7 +16,7 @@ def quibbler_user_function(lazy=True):
     def _decorator(func):
         @functools.wraps(func)
         def _wrapper(*args, **kwargs):
-            quib = HolisticFunctionQuib.create(func=func, func_args=args, func_kwargs=kwargs)
+            quib = GraphicsFunctionQuib.create(func=func, func_args=args, func_kwargs=kwargs, lazy=lazy)
             if not lazy:
                 quib.run_if_needed_and_draw()
             return quib

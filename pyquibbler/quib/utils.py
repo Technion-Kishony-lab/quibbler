@@ -1,8 +1,10 @@
 from __future__ import annotations
+
+import functools
 from dataclasses import dataclass
 from inspect import signature
 from itertools import chain
-from typing import Any, Optional, Set, TYPE_CHECKING, Callable, Tuple, Dict
+from typing import Any, Optional, Set, TYPE_CHECKING, Callable, Tuple, Dict, Type
 from copy import copy
 
 from pyquibbler.env import is_debug
@@ -79,6 +81,34 @@ def is_iterator_empty(iterator):
         return True
 
 
+def recursively_run_func_on_object(func: Callable, obj: Any,
+                                   max_depth: Optional[int] = None, max_length: Optional[int] = None):
+    if max_depth is None or max_depth > 0:
+        # Recurse into composite objects
+        next_max_depth = None if max_depth is None else max_depth - 1
+        if isinstance(obj, (tuple, list, set)):
+            if max_length is None or len(obj) <= max_length:
+                return type(obj)(recursively_run_func_on_object(func, sub_obj, next_max_depth) for sub_obj in obj)
+        elif isinstance(obj, slice):
+            return slice(recursively_run_func_on_object(func, obj.start, next_max_depth),
+                         recursively_run_func_on_object(func, obj.stop, next_max_depth),
+                         recursively_run_func_on_object(func, obj.step, next_max_depth))
+    return func(obj)
+
+
+def deep_copy_without_quibs_or_artists(obj: Any, max_depth: Optional[int] = None, max_length: Optional[int] = None):
+    from pyquibbler.quib import Quib
+    from matplotlib.artist import Artist
+
+    def copy_if_not_quib_or_artist(o):
+        if isinstance(o, (Quib, Artist)):
+            return o
+        return copy(o)
+
+    return recursively_run_func_on_object(func=copy_if_not_quib_or_artist, max_length=max_length,
+                                          max_depth=max_depth, obj=obj)
+
+
 def deep_copy_and_replace_quibs_with_vals(obj: Any, max_depth: Optional[int] = None, max_length: Optional[int] = None):
     """
     Deep copy an object while replacing quibs with their values.
@@ -89,22 +119,16 @@ def deep_copy_and_replace_quibs_with_vals(obj: Any, max_depth: Optional[int] = N
     """
     from pyquibbler.quib import Quib
     from matplotlib.artist import Artist
-    if isinstance(obj, Quib):
-        return obj.get_value()
-    if max_depth is None or max_depth > 0:
-        # Recurse into composite objects
-        next_max_depth = None if max_depth is None else max_depth - 1
-        if isinstance(obj, (tuple, list, set)):
-            if max_length is None or len(obj) <= max_length:
-                return type(obj)(deep_copy_and_replace_quibs_with_vals(sub_obj, next_max_depth) for sub_obj in obj)
-        elif isinstance(obj, slice):
-            return slice(deep_copy_and_replace_quibs_with_vals(obj.start, next_max_depth),
-                         deep_copy_and_replace_quibs_with_vals(obj.stop, next_max_depth),
-                         deep_copy_and_replace_quibs_with_vals(obj.step, next_max_depth))
 
-    if isinstance(obj, Artist):
-        return obj
-    return copy(obj)
+    def replace_with_value_if_quib_or_copy(o):
+        if isinstance(o, Quib):
+            return o.get_value()
+        if isinstance(o, Artist):
+            return o
+        return copy(o)
+
+    return recursively_run_func_on_object(func=replace_with_value_if_quib_or_copy, max_depth=max_depth,
+                                          max_length=max_length, obj=obj)
 
 
 def shallow_copy_and_replace_quibs_with_vals(obj: Any):
@@ -125,7 +149,7 @@ def copy_and_replace_quibs_with_vals(obj: Any):
 
 def iter_quibs_in_object_recursively(obj, max_depth: Optional[int] = None, max_length: Optional[int] = None):
     """
-    Returns an iterator for quib objects nested in the given python object.
+    Returns an iterator for quibs of a type nested in the given python object.
     Quibs that appear more than once will not be repeated.
     When `max_depth` is given, limits the depth in which quibs are looked for.
     `max_depth=0` means only `obj` itself will be checked and replaced,
@@ -133,10 +157,23 @@ def iter_quibs_in_object_recursively(obj, max_depth: Optional[int] = None, max_l
     When `max_length` is given, does not recurse into iterables larger than `max_length`.
     """
     from pyquibbler.quib import Quib
-    quibs = set()
-    if isinstance(obj, Quib):
-        if obj not in quibs:
-            quibs.add(obj)
+    return iter_objects_of_type_in_object_recursively(Quib, obj, max_depth, max_length)
+
+
+def iter_objects_of_type_in_object_recursively(object_type: Type,
+                                               obj, max_depth: Optional[int] = None, max_length: Optional[int] = None):
+    """
+    Returns an iterator for objects of a type nested in the given python object.
+    Objects that appear more than once will not be repeated.
+    When `max_depth` is given, limits the depth in which quibs are looked for.
+    `max_depth=0` means only `obj` itself will be checked and replaced,
+    `max_depth=1` means `obj` and all objects it directly references, and so on.
+    When `max_length` is given, does not recurse into iterables larger than `max_length`.
+    """
+    objects = set()
+    if isinstance(obj, object_type):
+        if obj not in objects:
+            objects.add(obj)
             yield obj
     elif max_depth is None or max_depth > 0:
         # Recurse into composite objects
@@ -146,33 +183,47 @@ def iter_quibs_in_object_recursively(obj, max_depth: Optional[int] = None, max_l
                 # The collection is small enough
                 next_max_depth = None if max_depth is None else max_depth - 1
                 for sub_obj in obj:
-                    yield from iter_quibs_in_object_recursively(sub_obj, next_max_depth, max_length)
+                    yield from iter_objects_of_type_in_object_recursively(object_type,
+                                                                          sub_obj, next_max_depth, max_length)
 
 
-def iter_quibs_in_object_shallowly(obj: Any):
+def iter_objects_of_type_in_object_shallowly(object_type: Type, obj: Any):
     """
     Returns an iterator for quib objects nested within the given python object,
     with limited width and length while scanning for quibs.
     """
-    return iter_quibs_in_object_recursively(obj, SHALLOW_MAX_DEPTH, SHALLOW_MAX_LENGTH)
+    return iter_objects_of_type_in_object_recursively(object_type, obj, SHALLOW_MAX_DEPTH, SHALLOW_MAX_LENGTH)
 
 
-def iter_quibs_in_object(obj: Any):
-    result = iter_quibs_in_object_shallowly(obj)
+def iter_objects_of_type_in_object(object_type: Type, obj: Any):
+    result = iter_objects_of_type_in_object_shallowly(object_type, obj)
     if is_debug():
         collected_result = set(result)
         result = iter(collected_result)
-        expected = set(iter_quibs_in_object_recursively(obj))
+        expected = set(iter_objects_of_type_in_object_recursively(object_type, obj))
         if collected_result != expected:
             raise NestedQuibException(obj, set(expected))
     return result
+
+
+def iter_quibs_in_object(obj):
+    from pyquibbler.quib import Quib
+    return iter_objects_of_type_in_object(Quib, obj)
+
+
+def iter_object_type_in_args(object_type, args, kwargs):
+    """
+    Returns an iterator for all objects of a type nested in the given args and kwargs.
+    """
+    return chain(*map(functools.partial(iter_objects_of_type_in_object, object_type), chain(args, kwargs.values())))
 
 
 def iter_quibs_in_args(args, kwargs):
     """
     Returns an iterator for all quib objects nested in the given args and kwargs.
     """
-    return chain(*map(iter_quibs_in_object, chain(args, kwargs.values())))
+    from pyquibbler.quib import Quib
+    return iter_object_type_in_args(Quib, args, kwargs)
 
 
 def call_func_with_quib_values(func, args, kwargs):

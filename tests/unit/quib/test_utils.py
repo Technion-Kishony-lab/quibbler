@@ -2,8 +2,9 @@ from operator import add
 from pytest import mark, raises
 
 from pyquibbler import iquib
+from pyquibbler.quib import Quib
 from pyquibbler.quib.utils import is_iterator_empty, deep_copy_and_replace_quibs_with_vals, \
-    iter_quibs_in_object_recursively, call_func_with_quib_values, iter_quibs_in_args, \
+    iter_objects_of_type_in_object_recursively, call_func_with_quib_values, iter_quibs_in_args, \
     is_there_a_quib_in_args, NestedQuibException, copy_and_replace_quibs_with_vals, iter_quibs_in_object, \
     FunctionCalledWithNestedQuibException
 
@@ -72,7 +73,7 @@ def test_deep_copy_and_replace_quibs_with_vals(to_copy, depth, length, expected_
     ([1, [iquib1, [iquib2]]], None, 2, {iquib1, iquib2}),
 ])
 def test_iter_quibs_in_object(to_iter, depth, length, expected_result):
-    assert set(iter_quibs_in_object_recursively(to_iter, depth, length)) == expected_result
+    assert set(iter_objects_of_type_in_object_recursively(Quib, to_iter, depth, length)) == expected_result
 
 
 @mark.parametrize(['func', 'args', 'kwargs', 'result'], [

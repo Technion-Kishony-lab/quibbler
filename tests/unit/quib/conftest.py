@@ -2,7 +2,7 @@ from unittest import mock
 
 import pytest
 
-from pyquibbler.graphics import overriding
+from pyquibbler.quib.graphics import overriding
 
 
 @pytest.fixture()

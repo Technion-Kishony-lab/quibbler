@@ -1,4 +1,4 @@
-from .graphics import override_axes_methods
+from .quib.graphics import override_axes_methods
 from .quib import override_numpy_functions
 from .utils import ensure_only_run_once_globally
 

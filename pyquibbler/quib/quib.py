@@ -3,8 +3,6 @@ from functools import reduce
 from operator import or_
 from weakref import ref as weakref
 
-from pyquibbler.graphics import redraw_axes
-
 
 class Quib(ABC):
     """
@@ -12,35 +10,38 @@ class Quib(ABC):
     """
 
     def __init__(self):
-        self._artists_redrawers = set()
         self._children = set()
 
-    def __invalidate_children(self):
+    def __invalidate_children_recursively(self):
         """
         Notify this quib's dependents that the data in this quib has changed.
         This should be called every time the quib is changed.
         """
-        for child in self._children:
+        for child in self.get_children_recursively():
             child()._invalidate()
-            child().__invalidate_children()
 
-    def __get_artists_redrawers_recursively(self):
+    def get_children_recursively(self):
+        return reduce(or_, (child().get_children_recursively()
+                            for child in self._children), set(self._children))
+
+    def __get_graphics_function_quibs_recursively(self):
         """
         Get all artists that directly or indirectly depend on this quib.
         """
-        return reduce(or_, (child().__get_artists_redrawers_recursively()
-                            for child in self._children), self._artists_redrawers)
+        from pyquibbler.quib.graphics import GraphicsFunctionQuib
+        return {child for child in self.get_children_recursively() if isinstance(child(), GraphicsFunctionQuib)}
 
     def __redraw(self):
         """
         Redraw all artists that directly or indirectly depend on this quib.
         """
-        for artists_redrawer in self.__get_artists_redrawers_recursively():
-            artists_redrawer.redraw(redraw_in_gui=False)
+        from pyquibbler.quib.graphics import redraw_axes
+        for graphics_function_quib in self.__get_graphics_function_quibs_recursively():
+            graphics_function_quib().get_value()
 
         axeses = set()
-        for artists_redrawer in self.__get_artists_redrawers_recursively():
-            for axes in artists_redrawer.get_axeses():
+        for graphics_function_quib in self.__get_graphics_function_quibs_recursively():
+            for axes in graphics_function_quib().get_axeses():
                 axeses.add(axes)
         for axes in axeses:
             redraw_axes(axes)
@@ -49,7 +50,7 @@ class Quib(ABC):
         """
         Perform all actions needed after the quib was mutated (whether by overriding or reverse assignment).
         """
-        self.__invalidate_children()
+        self.__invalidate_children_recursively()
         self.__redraw()
 
     @abstractmethod
@@ -66,12 +67,6 @@ class Quib(ABC):
         are lazy, so a function quib might need to calculate uncached values and might
         even have to calculate the values of its dependencies.
         """
-
-    def add_artists_redrawer(self, artists_redrawer):
-        """
-        Add the given artist to this quib's direct artists.
-        """
-        self._artists_redrawers.add(artists_redrawer)
 
     def add_child(self, quib):
         """

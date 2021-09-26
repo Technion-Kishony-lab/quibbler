@@ -1,7 +1,7 @@
 from unittest import mock
 
 from pyquibbler import quibbler_user_function
-from pyquibbler.quib import HolisticFunctionQuib
+from pyquibbler.quib.graphics import GraphicsFunctionQuib
 
 
 def test_quibbler_user_function_lazy():
@@ -10,7 +10,7 @@ def test_quibbler_user_function_lazy():
 
     res = user_function()
 
-    assert isinstance(res, HolisticFunctionQuib)
+    assert isinstance(res, GraphicsFunctionQuib)
     assert mock_func.call_count == 0
 
 
@@ -20,6 +20,6 @@ def test_quibbler_user_function_non_lazy():
 
     res = user_function()
 
-    assert isinstance(res, HolisticFunctionQuib)
+    assert isinstance(res, GraphicsFunctionQuib)
     assert mock_func.call_count == 1
 

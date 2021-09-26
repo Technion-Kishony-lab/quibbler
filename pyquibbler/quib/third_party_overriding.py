@@ -2,7 +2,8 @@ import numpy as np
 import functools
 from typing import Type
 
-from pyquibbler.quib import DefaultFunctionQuib, HolisticFunctionQuib, FunctionQuib
+from pyquibbler.quib import DefaultFunctionQuib, FunctionQuib
+from pyquibbler.quib.graphics import GraphicsFunctionQuib
 from pyquibbler.quib.utils import is_there_a_quib_in_args
 from pyquibbler.utils import ensure_only_run_once_globally
 
@@ -28,10 +29,10 @@ def override_numpy_functions():
     """
     quib_types_with_function_names_to_override = [
         (DefaultFunctionQuib, [
-            "abs", "average", "around", "square", "repeat"
+            "abs", "average", "around", "square", "repeat", "max"
         ]),
         (
-            HolisticFunctionQuib, [
+            GraphicsFunctionQuib, [
                 'apply_along_axis', 'apply_over_axes', 'vectorize']
         )
     ]

@@ -29,7 +29,7 @@ jobs:
           python -m tox -- --junit-xml pytest.xml
 
       - name: Upload result_images from graphics tests
-        if: failure() && steps.integrationTests.outcome == 'failure'
+        if: failure()
         uses: actions/upload-artifact@v2
         with:
           name: Result images
