@@ -15,16 +15,17 @@ def override_axes_method(method_name: str):
     original_method = getattr(cls, method_name)
 
     def override(*args, **kwargs):
-        if is_there_a_quib_in_args(args, kwargs):
-            from pyquibbler import CacheBehavior
-            return GraphicsFunctionQuib.create(
-                func=original_method,
-                func_args=args,
-                func_kwargs=kwargs,
-                cache_behavior=CacheBehavior.AUTO,
-                lazy=False
-            )
-        return call_func_with_quib_values(func=original_method, args=args, kwargs=kwargs)
+        with global_collecting.overriden_graphics_function():
+            if is_there_a_quib_in_args(args, kwargs):
+                from pyquibbler import CacheBehavior
+                return GraphicsFunctionQuib.create(
+                    func=original_method,
+                    func_args=args,
+                    func_kwargs=kwargs,
+                    cache_behavior=CacheBehavior.AUTO,
+                    lazy=False
+                )
+            return call_func_with_quib_values(func=original_method, args=args, kwargs=kwargs)
 
     setattr(cls, method_name, override)
 
