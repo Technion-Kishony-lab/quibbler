@@ -12,15 +12,15 @@ class Quib(ABC):
     """
 
     def __init__(self):
-        self.__artists_redrawers = set()
-        self.__children = set()
+        self._artists_redrawers = set()
+        self._children = set()
 
     def __invalidate_children(self):
         """
         Notify this quib's dependents that the data in this quib has changed.
         This should be called every time the quib is changed.
         """
-        for child in self.__children:
+        for child in self._children:
             child()._invalidate()
             child().__invalidate_children()
 
@@ -29,7 +29,7 @@ class Quib(ABC):
         Get all artists that directly or indirectly depend on this quib.
         """
         return reduce(or_, (child().__get_artists_redrawers_recursively()
-                            for child in self.__children), self.__artists_redrawers)
+                            for child in self._children), self._artists_redrawers)
 
     def __redraw(self):
         """
@@ -71,13 +71,13 @@ class Quib(ABC):
         """
         Add the given artist to this quib's direct artists.
         """
-        self.__artists_redrawers.add(artists_redrawer)
+        self._artists_redrawers.add(artists_redrawer)
 
     def add_child(self, quib):
         """
         Add the given quib to the list of quibs that are dependent on this quib.
         """
-        self.__children.add(weakref(quib, lambda ref: self.__children.remove(ref)))
+        self._children.add(weakref(quib, lambda ref: self._children.remove(ref)))
 
     def __len__(self):
         return len(self.get_value())

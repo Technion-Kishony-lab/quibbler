@@ -25,6 +25,7 @@ class FunctionQuib(Quib):
     """
     DEFAULT_CACHE_BEHAVIOR = CacheBehavior.AUTO
     MAX_BYTES_PER_SECOND = 2 ** 30
+    MIN_SECONDS_FOR_CACHE = 1e-3
 
     def __init__(self,
                  func: Callable,
@@ -38,8 +39,6 @@ class FunctionQuib(Quib):
         if cache_behavior is None:
             cache_behavior = self.DEFAULT_CACHE_BEHAVIOR
         self.set_cache_behavior(cache_behavior)
-
-    MIN_SECONDS_FOR_CACHE = 1e-3
 
     @classmethod
     def create(cls, func, func_args=(), func_kwargs=None, cache_behavior=None, **kwargs):
