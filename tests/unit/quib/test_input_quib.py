@@ -1,8 +1,9 @@
 from unittest.mock import Mock
-from pytest import fixture
+from pytest import fixture, mark, raises
 
 from pyquibbler import iquib
 from pyquibbler.quib import DefaultFunctionQuib
+from pyquibbler.quib.input_quib import CannotNestQuibInIQuibException
 
 
 @fixture
@@ -36,3 +37,10 @@ def test_input_quib_setitem(input_quib):
 
 def test_input_quib_get_value(input_quib, input_quib_val):
     assert input_quib.get_value() == input_quib_val
+
+
+@mark.debug(True)
+def test_cant_create_an_input_quib_that_containts_a_quib():
+    obj = [[iquib(1)]]
+    with raises(CannotNestQuibInIQuibException) as e:
+        iquib(obj)

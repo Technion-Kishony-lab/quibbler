@@ -1,9 +1,19 @@
+from __future__ import annotations
+from dataclasses import dataclass
 from typing import Any
 
 from .quib import Quib
 from .utils import is_there_a_quib_in_object
 from ..env import is_debug
 from ..exceptions import DebugException
+
+
+@dataclass
+class CannotNestQuibInIQuibException(DebugException):
+    iquib: InputQuib
+
+    def __str__(self):
+        return 'Cannot create an input quib that contains another quib'
 
 
 class InputQuib(Quib):
@@ -14,8 +24,8 @@ class InputQuib(Quib):
         super().__init__()
         self._value = value
         if is_debug():
-            if is_there_a_quib_in_object(value):
-                raise DebugException('Cannot create an input quib that contains another quib')
+            if is_there_a_quib_in_object(value, force_recursive=True):
+                raise CannotNestQuibInIQuibException(self)
 
     def __setitem__(self, key, value):
         """
