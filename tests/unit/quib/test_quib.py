@@ -24,13 +24,6 @@ class ExampleQuib(Quib):
 
 
 @fixture
-def assignment_template_mock():
-    mock = Mock()
-    mock.convert.return_value = object()
-    return mock
-
-
-@fixture
 def example_quib(assignment_template_mock):
     return ExampleQuib(['the', 'quib', 'value'], assignment_template=assignment_template_mock)
 
