@@ -5,6 +5,7 @@ from weakref import ref as weakref
 
 from .assignment_template import AssignmentTemplate, RangeAssignmentTemplate, BoundAssignmentTemplate
 from .overrider import Overrider
+from .utils import deep_copy_without_quibs_or_artists
 
 if TYPE_CHECKING:
     from pyquibbler.quib.graphics import GraphicsFunctionQuib
@@ -129,6 +130,6 @@ class Quib(ABC):
         are lazy, so a function quib might need to calculate uncached values and might
         even have to calculate the values of its dependencies.
         """
-        value = self._get_inner_value()
+        value = deep_copy_without_quibs_or_artists(self._get_inner_value())
         self._overrider.override(value, self._assignment_template)
         return value

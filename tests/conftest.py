@@ -13,8 +13,9 @@ def setup_environment_for_tests():
 
 
 def pytest_configure(config):
-    # register an additional marker
+    # register additional markers
     config.addinivalue_line("markers", "debug(on): mark test to run with or without debug mode")
+    config.addinivalue_line("markers", "regression: mark test as regression test")
     # Copied from matplotlib to disable warning
     config.addinivalue_line("markers", "style: Set alternate Matplotlib style temporarily (deprecated).")
 
