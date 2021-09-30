@@ -6,7 +6,7 @@ from unittest import mock
 from pytest import fixture
 
 from pyquibbler.quib import Quib
-from pyquibbler.quib.assignment_template import RangeAssignmentTemplate, BoundAssignmentTemplate
+from pyquibbler.quib.assignment import RangeAssignmentTemplate, BoundAssignmentTemplate
 from pyquibbler.quib.graphics import GraphicsFunctionQuib
 
 

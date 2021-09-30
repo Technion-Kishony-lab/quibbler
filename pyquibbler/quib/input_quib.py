@@ -2,7 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Optional
 
-from .assignment_template import AssignmentTemplate
+from .assignment import AssignmentTemplate
 from .quib import Quib
 from .utils import is_there_a_quib_in_object
 from ..env import is_debug

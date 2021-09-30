@@ -3,7 +3,7 @@ from time import perf_counter
 from typing import Callable, Any, Mapping, Tuple, Optional
 
 from .function_quib import FunctionQuib, CacheBehavior
-from ..assignment_template import AssignmentTemplate
+from ..assignment import AssignmentTemplate
 
 
 class DefaultFunctionQuib(FunctionQuib):

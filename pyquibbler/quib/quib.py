@@ -3,8 +3,7 @@ from abc import ABC, abstractmethod
 from typing import Set, Any, TYPE_CHECKING, Optional
 from weakref import ref as weakref
 
-from .assignment_template import AssignmentTemplate, RangeAssignmentTemplate, BoundAssignmentTemplate
-from .overrider import Overrider
+from .assignment import AssignmentTemplate, RangeAssignmentTemplate, BoundAssignmentTemplate, Overrider
 
 if TYPE_CHECKING:
     from pyquibbler.quib.graphics import GraphicsFunctionQuib
@@ -85,7 +84,7 @@ class Quib(ABC):
         """
         Overrides a part of the data the quib represents.
         """
-        self._overrider.add_override(key, value)
+        self._overrider.add_assignment(key, value)
 
     def __setitem__(self, key, value):
         self._override(key, value)
@@ -132,3 +131,8 @@ class Quib(ABC):
         value = self._get_inner_value()
         self._overrider.override(value, self._assignment_template)
         return value
+
+    def get_override_list(self):
+        """
+        Returns
+        """
