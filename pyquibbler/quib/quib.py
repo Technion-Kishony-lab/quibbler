@@ -85,12 +85,6 @@ class Quib(ABC):
     def __len__(self):
         return len(self.get_value())
 
-    def __copy__(self):
-        return self
-
-    def __deepcopy__(self, memodict):
-        return self
-
     def __iter__(self):
         raise TypeError('Cannot iterate over quibs, as their size can vary')
 
