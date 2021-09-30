@@ -32,7 +32,7 @@ def test_create_wrapper_with_quib_args(function_wrapper, function_mock, function
 
     assert isinstance(function_quib, ExampleFunctionQuib)
     function_mock.assert_not_called()
-    assert function_quib.get_value() is function_mock_return_val
+    assert function_quib.get_value() == function_mock_return_val
     function_mock.assert_called_once_with(quib_val1, a=quib_val2)
 
 
@@ -50,4 +50,4 @@ def test_cant_mutate_function_quib_args_after_creation(function_wrapper, functio
 
 
 def test_func_get_value_returns_inner_value(function_wrapper, function_mock_return_val):
-    assert function_wrapper(iquib(1)).get_value() is function_mock_return_val
+    assert function_wrapper(iquib(1)).get_value() == function_mock_return_val

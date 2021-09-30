@@ -29,6 +29,13 @@ class ExampleQuib(Quib):
 @fixture
 def example_quib(assignment_template_mock):
     return ExampleQuib(['the', 'quib', 'value'], assignment_template=assignment_template_mock)
+  
+  
+@fixture
+def assignment_template_mock():
+    mock = Mock()
+    mock.convert.return_value = 'assignment_template_mock.convert.return_value'
+    return mock
 
 
 @fixture
@@ -128,23 +135,23 @@ def test_quib_override_with_assignment_template(example_quib, assignment_templat
     result = example_quib[0].get_value()
 
     assignment_template_mock.convert.assert_called_with('val')
-    assert result is assignment_template_mock.convert.return_value
+    assert result == assignment_template_mock.convert.return_value
 
 
 def test_quib_updates_override_after_assignment_template_changed(example_quib, assignment_template_mock):
     example_quib[0] = 'val'
     item = example_quib[0]
     new_assignment_template = Mock()
-    new_assignment_template.convert.return_value = object()
+    new_assignment_template.convert.return_value = 'new_assignment_template.convert.return_value'
     example_quib.set_assignment_template(new_assignment_template)
 
     result = item.get_value()
 
     assignment_template_mock.convert.assert_not_called()
     new_assignment_template.convert.assert_called_with('val')
-    assert result is new_assignment_template.convert.return_value
+    assert result == new_assignment_template.convert.return_value
 
-
+    
 def test_overrides_are_applied_in_order():
     quib = ExampleQuib([0])
     quib[0] = 1
