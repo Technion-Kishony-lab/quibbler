@@ -3,21 +3,21 @@ import operator
 from unittest.mock import Mock
 from pytest import mark, raises
 from unittest import mock
-
 from pytest import fixture
 
 from pyquibbler.quib import Quib
 from pyquibbler.quib.assignment_template import RangeAssignmentTemplate, BoundAssignmentTemplate
+from pyquibbler.quib.graphics import GraphicsFunctionQuib
 
 
 class ExampleQuib(Quib):
     def __init__(self, value, assignment_template=None):
         super().__init__(assignment_template=assignment_template)
         self.value = value
-        self._invalidate = invalidate_func
+        self.invalidate_count = 0
 
     def _invalidate(self):
-        pass
+        self.invalidate_count += 1
 
     def get_value(self):
         return self.value
@@ -37,11 +37,13 @@ def example_quib(assignment_template_mock):
 
 def test_quib_getitem(example_quib):
     got = example_quib[0]
+
     assert got.get_value() is example_quib.value[0]
 
 
 def test_quib_getattr_with_class_attr(example_quib):
     got = example_quib.sort
+
     assert got.get_value() == example_quib.value.sort
 
 
@@ -56,7 +58,6 @@ def test_call_quib_method(example_quib):
 
 
 def test_quib_invalidate_and_redraw_calls_graphics_function_quib_children(example_quib):
-    from pyquibbler.quib.graphics import GraphicsFunctionQuib
     mock_func = mock.Mock()
     mock_func.return_value = []
     quib = GraphicsFunctionQuib(func=mock_func, args=tuple(), kwargs={}, artists=[], cache_behavior=None)
@@ -97,7 +98,7 @@ def test_quib_forward_and_reverse_binary_operators(operator_name: str):
     assert op(quib1.value, quib2).get_value() == op(quib1.value, quib2.value)
 
 
-def test_quib_children_automatically():
+def test_quib_removes_dead_children_automatically():
     quib = ExampleQuib('something')
     child = ExampleQuib('child')
     child_invalidate = child._invalidate = Mock()
@@ -108,20 +109,17 @@ def test_quib_children_automatically():
     child_invalidate.assert_not_called()
 
 
+@mark.regression
 def test_quib_invalidates_children_recursively(example_quib):
-    # Regression test
-    child_invalidate = mock.Mock()
-    child = ExampleQuib(value=mock.Mock(), invalidate_func=child_invalidate)
-    child._invalidate = child_invalidate
-    grandchild_invalidate = mock.Mock()
-    grandchild = ExampleQuib(value=mock.Mock(), invalidate_func=grandchild_invalidate)
+    child = ExampleQuib(mock.Mock())
     example_quib.add_child(child)
+    grandchild = ExampleQuib(mock.Mock())
     child.add_child(grandchild)
 
     example_quib.invalidate_and_redraw()
 
-    child_invalidate.assert_called_once()
-    grandchild_invalidate.assert_called_once()
+    assert child.invalidate_count == 1
+    assert grandchild.invalidate_count == 1
 
 
 @mark.parametrize(['args', 'expected_template'], [
