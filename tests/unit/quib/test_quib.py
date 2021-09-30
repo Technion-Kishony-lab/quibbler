@@ -1,9 +1,8 @@
 import magicmethods
 import operator
 from unittest.mock import Mock
-from pytest import mark, raises
+from pytest import mark, raises, fixture
 from unittest import mock
-from pytest import fixture
 
 from pyquibbler.quib import Quib
 from pyquibbler.quib.assignment import RangeAssignmentTemplate, BoundAssignmentTemplate
@@ -135,3 +134,22 @@ def test_quib_updates_override_after_assignment_template_changed(example_quib, a
     assignment_template_mock.convert.assert_not_called()
     new_assignment_template.convert.assert_called_with('val')
     assert result is new_assignment_template.convert.return_value
+
+
+def get_mock_with_repr(repr_value: str):
+    mock = Mock()
+    mock.__repr__ = Mock(return_value=repr_value)
+    return mock
+
+
+def test_quib_get_override_list_shows_user_friendly_information_about_overrides(example_quib):
+    key_repr = 'key_repr'
+    value_repr = 'value_repr'
+    key_mock = get_mock_with_repr(key_repr)
+    value_mock = get_mock_with_repr(value_repr)
+    example_quib[key_mock] = value_mock
+
+    overrides_repr = repr(example_quib.get_override_list())
+
+    assert key_repr in overrides_repr
+    assert value_repr in overrides_repr
