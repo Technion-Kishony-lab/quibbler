@@ -2,8 +2,8 @@ from sys import getsizeof
 from time import perf_counter
 from typing import Callable, Any, Mapping, Tuple, Optional
 
-from .assignment_template import AssignmentTemplate
 from .function_quib import FunctionQuib, CacheBehavior
+from ..assignment_template import AssignmentTemplate
 
 
 class DefaultFunctionQuib(FunctionQuib):

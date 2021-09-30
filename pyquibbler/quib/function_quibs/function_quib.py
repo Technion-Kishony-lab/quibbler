@@ -3,9 +3,9 @@ from enum import Enum
 from functools import wraps
 from typing import List, Callable, Any, Mapping, Tuple, Optional
 
-from .assignment_template import AssignmentTemplate
-from .quib import Quib
-from .utils import is_there_a_quib_in_args, iter_quibs_in_args, call_func_with_quib_values, \
+from ..assignment_template import AssignmentTemplate
+from ..quib import Quib
+from ..utils import is_there_a_quib_in_args, iter_quibs_in_args, call_func_with_quib_values, \
     deep_copy_without_quibs_or_artists
 
 

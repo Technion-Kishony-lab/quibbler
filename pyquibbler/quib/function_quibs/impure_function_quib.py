@@ -1,8 +1,9 @@
 from dataclasses import dataclass
 
+from pyquibbler.exceptions import PyQuibblerException
+
 from .default_function_quib import DefaultFunctionQuib
 from .function_quib import CacheBehavior
-from ..exceptions import PyQuibblerException
 
 
 @dataclass
