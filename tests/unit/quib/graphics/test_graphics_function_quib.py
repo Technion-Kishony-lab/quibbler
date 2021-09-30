@@ -31,7 +31,7 @@ def mock_artists_collected(create_mock_artist, monkeypatch):
 
 
 def test_graphics_function_quib_get_value_returns_value():
-    mock_func = mock.Mock()
+    mock_func = mock.Mock(return_value='mock_func.return_value')
     quib = GraphicsFunctionQuib(
         args=tuple(),
         kwargs={},

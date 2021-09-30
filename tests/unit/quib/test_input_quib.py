@@ -36,10 +36,10 @@ def test_input_quib_setitem_invalidates_children(input_quib):
 
 
 def test_input_quib_setitem_overrides_data(input_quib):
-    val = object()
+    val = 123123
     input_quib[0] = val
 
-    assert input_quib[0].get_value() is val
+    assert input_quib[0].get_value() == val
 
 
 def test_input_quib_get_value(input_quib, input_quib_val):
