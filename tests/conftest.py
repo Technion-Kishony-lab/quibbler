@@ -9,7 +9,7 @@ DEFAULT_DEBUG = True
 
 @fixture(scope="session", autouse=True)
 def setup_environment_for_tests():
-    FunctionQuib.DEFAULT_CACHE_BEHAVIOR = CacheBehavior.ON
+    FunctionQuib._DEFAULT_CACHE_BEHAVIOR = CacheBehavior.ON
 
 
 def pytest_configure(config):

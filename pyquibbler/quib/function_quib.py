@@ -24,7 +24,7 @@ class FunctionQuib(Quib):
     """
     An abstract class for quibs that represent the result of a computation.
     """
-    DEFAULT_CACHE_BEHAVIOR = CacheBehavior.AUTO
+    _DEFAULT_CACHE_BEHAVIOR = CacheBehavior.AUTO
     MAX_BYTES_PER_SECOND = 2 ** 30
     MIN_SECONDS_FOR_CACHE = 1e-3
 
@@ -39,7 +39,7 @@ class FunctionQuib(Quib):
         self._args = args
         self._kwargs = kwargs
         if cache_behavior is None:
-            cache_behavior = self.DEFAULT_CACHE_BEHAVIOR
+            cache_behavior = self._DEFAULT_CACHE_BEHAVIOR
         self.set_cache_behavior(cache_behavior)
 
     @classmethod
