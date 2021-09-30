@@ -5,6 +5,10 @@ from .assignment_template import AssignmentTemplate
 
 
 class Overrider:
+    """
+    Gathers overriding assignments performed on a quib in order to apply them on a quib value.
+    """
+
     def __init__(self, assignments: Iterable[Assignment] = ()):
         self._assignments: List[Assignment] = list(assignments)
 

@@ -6,6 +6,9 @@ from .assignment_template import AssignmentTemplate
 
 @dataclass
 class Assignment:
+    """
+    Represents a change performed on a quib.
+    """
     key: Any
     value: Any
 
