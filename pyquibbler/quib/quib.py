@@ -1,12 +1,34 @@
 from __future__ import annotations
+import numpy as np
+from dataclasses import dataclass
 from abc import ABC, abstractmethod
-from typing import Set, Any, TYPE_CHECKING, Optional
+from typing import Set, Any, TYPE_CHECKING, Optional, Tuple
 from weakref import ref as weakref
+
+from pyquibbler.exceptions import PyQuibblerException
 
 from .assignment import AssignmentTemplate, RangeAssignmentTemplate, BoundAssignmentTemplate, Overrider, Assignment
 
 if TYPE_CHECKING:
     from pyquibbler.quib.graphics import GraphicsFunctionQuib
+
+
+@dataclass
+class QuibIsNotNdArrayException(PyQuibblerException):
+    quib: Quib
+    value: Any
+
+    def __str__(self):
+        return f'The quib {self.quib} evaluates to {self.value}, which is not an ndarray'
+
+
+@dataclass
+class OverrideMaskNotSupportedForNonNdArrayQuibs(PyQuibblerException):
+    quib: Quib
+
+    def __str__(self):
+        return f'The quib {self.quib} evaluates to a non-ndarray value, ' \
+               f'which quibbler cannot generate an override mask for'
 
 
 class Quib(ABC):
@@ -137,3 +159,27 @@ class Quib(ABC):
         Returns an Overrider object representing a list of overrides performed on the quib.
         """
         return self._overrider
+
+    def get_shape(self) -> Tuple[int, ...]:
+        """
+        Assuming this quib represents a numpy ndarray, returns its shape.
+        """
+        value = self.get_value()
+        if not isinstance(value, np.ndarray):
+            raise QuibIsNotNdArrayException(self, value)
+        return value.shape
+
+    def get_override_mask(self) -> np.ndarray:
+        """
+        Assuming this quib represents a numpy ndarray, returns a boolean array of the same shape.
+        Every value in that array is set to True if the matching value in the array is overridden, and False otherwise.
+        """
+        try:
+            shape = self.get_shape()
+        except QuibIsNotNdArrayException as e:
+            raise OverrideMaskNotSupportedForNonNdArrayQuibs(self)
+        else:
+            mask = np.zeros(shape, dtype=np.bool)
+            for assignment in self._overrider:
+                mask[assignment.key] = True
+            return mask
