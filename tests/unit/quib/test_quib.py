@@ -1,7 +1,7 @@
 import magicmethods
 import operator
 from unittest.mock import Mock
-from pytest import mark
+from pytest import mark, raises
 from unittest import mock
 
 from pytest import fixture
@@ -11,8 +11,8 @@ from pyquibbler.quib.assignment_template import RangeAssignmentTemplate, BoundAs
 
 
 class ExampleQuib(Quib):
-    def __init__(self, value, invalidate_func=None):
-        super().__init__()
+    def __init__(self, value, assignment_template=None):
+        super().__init__(assignment_template=assignment_template)
         self.value = value
         self._invalidate = invalidate_func
 
@@ -24,8 +24,15 @@ class ExampleQuib(Quib):
 
 
 @fixture
-def example_quib():
-    return ExampleQuib(['the', 'quib', 'value'])
+def assignment_template_mock():
+    mock = Mock()
+    mock.convert.return_value = object()
+    return mock
+
+
+@fixture
+def example_quib(assignment_template_mock):
+    return ExampleQuib(['the', 'quib', 'value'], assignment_template=assignment_template_mock)
 
 
 def test_quib_getitem(example_quib):
@@ -117,11 +124,22 @@ def test_quib_invalidates_children_recursively(example_quib):
     grandchild_invalidate.assert_called_once()
 
 
-def test_set_assignment_template_with_bounds(example_quib):
-    example_quib.set_assignment_template(1, 2)
+@mark.parametrize(['args', 'expected_template'], [
+    ((BoundAssignmentTemplate(2, 4),), BoundAssignmentTemplate(2, 4)),
+    ((1, 2), BoundAssignmentTemplate(1, 2)),
+    ((1, 2, 3), RangeAssignmentTemplate(1, 2, 3))
+])
+def test_set_assignment_template(args, expected_template, example_quib):
+    example_quib.set_assignment_template(*args)
     template = example_quib.get_assignment_template()
 
-    assert template == BoundAssignmentTemplate(1, 2)
+    assert template == expected_template
+
+
+@mark.parametrize('args', [(), (1, 2, 3, 4)])
+def test_set_assignment_template_with_wrong_number_of_args_raises_typeerror(args, example_quib):
+    with raises(TypeError):
+        example_quib.set_assignment_template(*args)
 
 
 def test_set_assignment_template_with_range(example_quib):

@@ -97,9 +97,23 @@ class Quib(ABC):
     def get_assignment_template(self) -> AssignmentTemplate:
         return self._assignment_template
 
-    def set_assignment_template(self, start, stop, step=None) -> None:
-        if step is None:
-            template = BoundAssignmentTemplate(start, stop)
-        else:
+    def set_assignment_template(self, *args) -> None:
+        """
+        Sets an assignment template for the quib.
+        Usage:
+
+        - quib.set_assignment_template(assignment_template): set a specific AssignmentTemplate object.
+        - quib.set_assignment_template(min, max): set the template to a bound template between min and max.
+        - quib.set_assignment_template(start, stop, step): set the template to a bound template between min and max.
+        """
+        if len(args) == 1:
+            template, = args
+        elif len(args) == 2:
+            minimum, maximum = args
+            template = BoundAssignmentTemplate(minimum, maximum)
+        elif len(args) == 3:
+            start, stop, step = args
             template = RangeAssignmentTemplate(start, stop, step)
+        else:
+            raise TypeError('Unsupported number of arguments, see docstring for usage')
         self._assignment_template = template
