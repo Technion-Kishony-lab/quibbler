@@ -32,7 +32,7 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
                  func: Callable,
                  args: Tuple[Any, ...],
                  kwargs: Mapping[str, Any],
-                 cache_behavior: CacheBehavior,
+                 cache_behavior: Optional[CacheBehavior],
                  artists: List[Artist],
                  assignment_template: Optional[AssignmentTemplate] = None):
         super().__init__(func, args, kwargs, cache_behavior, assignment_template=assignment_template)
@@ -47,7 +47,6 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         return self
 
     def persist_self_on_artists(self):
-
         for artist in chain(self._artists, iter_object_type_in_args(Artist, self._args, self._kwargs)):
             quibs = getattr(artist, "graphics_function_quibs", set())
             quibs.add(self)
