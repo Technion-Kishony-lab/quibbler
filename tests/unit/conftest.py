@@ -1,21 +1,11 @@
-from unittest.mock import Mock, MagicMock
+from unittest.mock import Mock
 
 from pytest import fixture
 
 
-class CopyableMock(MagicMock):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.args = args
-        self.kwargs = kwargs
-
-    def __copy__(self):
-        return CopyableMock(*self.args, **self.kwargs)
-
-
 @fixture
 def function_mock_return_val():
-    return CopyableMock(spec=['__setitem__'])
+    return [1, 2, 3, 4, 3, 2, 1]
 
 
 @fixture
