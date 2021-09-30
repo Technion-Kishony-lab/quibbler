@@ -2,10 +2,10 @@ import numpy as np
 import functools
 from typing import Type
 
-from pyquibbler.quib import DefaultFunctionQuib, FunctionQuib
-from pyquibbler.quib.graphics import GraphicsFunctionQuib
-from pyquibbler.quib.utils import is_there_a_quib_in_args
-from pyquibbler.utils import ensure_only_run_once_globally
+from .function_quibs import DefaultFunctionQuib, FunctionQuib
+from .graphics import GraphicsFunctionQuib
+from .utils import is_there_a_quib_in_args
+from ..utils import ensure_only_run_once_globally
 
 
 def override_numpy_function(quib_type: Type[FunctionQuib], func_name: str):
@@ -40,4 +40,3 @@ def override_numpy_functions():
     for quib_type, function_names in quib_types_with_function_names_to_override:
         for function_name in function_names:
             override_numpy_function(quib_type, function_name)
-

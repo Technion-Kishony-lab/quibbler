@@ -37,6 +37,15 @@ class AssignmentTemplate(ABC):
         """
 
     def convert(self, data: Any):
+        """
+        Convert the given data according to the assignment template.
+        Assignment templates work on numbers, so if the data is iterable, its items will be converted recursively.
+        This is useful in cases like the following:
+        ```
+        iquib(np.arange(5))[[1, 2, 3]] = [1, 2, 3]
+        iquib(np.zeros((2, 2)))[0] = [1, 1]
+        ```
+        """
         try:
             iterator = iter(data)
         except TypeError:

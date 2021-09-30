@@ -11,9 +11,9 @@ from matplotlib.spines import Spine
 from matplotlib.table import Table
 from matplotlib.text import Text
 
-from ..assignment_template import AssignmentTemplate
+from ..assignment import AssignmentTemplate
 from ..utils import call_func_with_quib_values, iter_object_type_in_args
-from .. import DefaultFunctionQuib, CacheBehavior
+from ..function_quibs import DefaultFunctionQuib, CacheBehavior
 from . import global_collecting
 
 

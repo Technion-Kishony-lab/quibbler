@@ -1,7 +1,7 @@
 from typing import Any
 from pytest import mark, raises
 
-from pyquibbler.quib.assignment_template import AssignmentTemplate, BoundAssignmentTemplate, RangeAssignmentTemplate, \
+from pyquibbler.quib.assignment import AssignmentTemplate, BoundAssignmentTemplate, RangeAssignmentTemplate, \
     BoundMaxBelowMinException, RangeStopBelowStartException
 
 
