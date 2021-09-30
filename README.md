@@ -48,6 +48,14 @@ new_a = fquib.get_value()
 new_a.append(1)
 # Without deepcopy, the internal arg storage of fquib was mutated
 ```
+Also, the user can mutate the result of `get_value` and by that unknowingly mutate
+the internal cache of the quib:
+```python
+q = iquib([0])
+a = q.get_value()
+a.append(1)
+# Without deepcopy, we have changed the iquib without invalidating anything.
+```
 #### Cache storage
 When a result of a function is stored in cache, it should be deepcopied as well.
 A function might return an object that has other references to it (a global object, a view, etc.)
