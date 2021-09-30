@@ -17,7 +17,7 @@ class InvalidCacheBehaviorForImpureFunctionQuibException(PyQuibblerException):
 
 
 class ImpureFunctionQuib(DefaultFunctionQuib):
-    DEFAULT_CACHE_BEHAVIOR = CacheBehavior.ON
+    _DEFAULT_CACHE_BEHAVIOR = CacheBehavior.ON
 
     def set_cache_behavior(self, cache_behavior: CacheBehavior):
         """

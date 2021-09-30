@@ -9,7 +9,7 @@ DEFAULT_DEBUG = True
 
 @fixture(scope="session", autouse=True)
 def setup_environment_for_tests():
-    FunctionQuib.DEFAULT_CACHE_BEHAVIOR = CacheBehavior.ON
+    FunctionQuib._DEFAULT_CACHE_BEHAVIOR = CacheBehavior.ON
 
 
 def pytest_configure(config):
@@ -24,7 +24,7 @@ def pytest_generate_tests(metafunc):
     if debug_markers:
         marker, = debug_markers
         debug_on, = marker.args
-        metafunc.parametrize('setup_debug', [debug_on])
+        metafunc.parametrize('setup_debug', [debug_on], indirect=True, ids=[f'debug={debug_on}'])
 
 
 @fixture(autouse=True)

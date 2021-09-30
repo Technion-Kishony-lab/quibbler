@@ -18,7 +18,7 @@ def quibbler_user_function(lazy=True):
         def _wrapper(*args, **kwargs):
             quib = GraphicsFunctionQuib.create(func=func, func_args=args, func_kwargs=kwargs, lazy=lazy)
             if not lazy:
-                quib.run_if_needed_and_draw()
+                quib.get_value()
             return quib
         return _wrapper
     return _decorator

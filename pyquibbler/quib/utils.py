@@ -1,5 +1,4 @@
 from __future__ import annotations
-
 import functools
 from dataclasses import dataclass
 from inspect import signature
@@ -195,7 +194,9 @@ def iter_objects_of_type_in_object_shallowly(object_type: Type, obj: Any):
     return iter_objects_of_type_in_object_recursively(object_type, obj, SHALLOW_MAX_DEPTH, SHALLOW_MAX_LENGTH)
 
 
-def iter_objects_of_type_in_object(object_type: Type, obj: Any):
+def iter_objects_of_type_in_object(object_type: Type, obj: Any, force_recursive: bool = False):
+    if force_recursive:
+        return iter_objects_of_type_in_object_recursively(object_type, obj)
     result = iter_objects_of_type_in_object_shallowly(object_type, obj)
     if is_debug():
         collected_result = set(result)
@@ -206,9 +207,9 @@ def iter_objects_of_type_in_object(object_type: Type, obj: Any):
     return result
 
 
-def iter_quibs_in_object(obj):
+def iter_quibs_in_object(obj, force_recursive: bool = False):
     from pyquibbler.quib import Quib
-    return iter_objects_of_type_in_object(Quib, obj)
+    return iter_objects_of_type_in_object(Quib, obj, force_recursive)
 
 
 def iter_object_type_in_args(object_type, args, kwargs):
@@ -247,11 +248,11 @@ def call_method_with_quib_values(func, self, args, kwargs):
     return call_func_with_quib_values(func, [self, *args], kwargs)
 
 
-def is_there_a_quib_in_object(obj):
+def is_there_a_quib_in_object(obj, force_recursive: bool = False):
     """
     Returns true if there is a quib object nested inside the given object and false otherwise.
     """
-    return not is_iterator_empty(iter_quibs_in_object(obj))
+    return not is_iterator_empty(iter_quibs_in_object(obj, force_recursive))
 
 
 def is_there_a_quib_in_args(args, kwargs):

@@ -25,24 +25,8 @@ from .default_function_quib import DefaultFunctionQuib
 OVERRIDES = magicmethods.arithmetic + magicmethods.rarithmetic + ['__getitem__']
 
 
-class MagicDescriptor(object):
-    """
-    A descriptor that represents a magic method of a Quib.
-    When `__get__` is called, the descriptor
-    """
-
-    def __init__(self, name):
-        self.name = name
-        self.value = None
-
-    def __get__(self, instance, owner):
-        """
-        Returns a FunctionQuib representing the getattr of self.name from the quib's value.
-        This FunctionQuib is cached so it is only created once per a descriptor.
-        """
-        if self.value is None:
-            self.value = DefaultFunctionQuib.create(getattr, (instance, self.name))
-        return self.value
+def get_magic_method_wrapper(name: str):
+    return DefaultFunctionQuib.create_wrapper(lambda val, *args, **kwargs: getattr(val, name)(*args, **kwargs))
 
 
 def override_quib_operators():
@@ -52,10 +36,7 @@ def override_quib_operators():
     through the standard getattr process.
     See more here: https://docs.python.org/3/reference/datamodel.html#special-method-lookup
     """
-    # Magic methods that need special handling
-    Quib.__getattr__ = DefaultFunctionQuib.create_wrapper(getattr)
-    Quib.__call__ = DefaultFunctionQuib.create_wrapper(lambda func, *args, **kwargs: func(*args, **kwargs))
     # Override a bunch of magic methods to enable operators to work.
     for magic_method_name in OVERRIDES:
         assert magic_method_name not in vars(Quib), magic_method_name
-        setattr(Quib, magic_method_name, MagicDescriptor(magic_method_name))
+        setattr(Quib, magic_method_name, get_magic_method_wrapper(magic_method_name))

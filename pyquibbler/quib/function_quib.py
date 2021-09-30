@@ -1,6 +1,9 @@
+from __future__ import annotations
 from enum import Enum
 from functools import wraps
 from typing import List, Callable, Any, Mapping, Tuple, Optional
+
+from .assignment_template import AssignmentTemplate
 from .quib import Quib
 from .utils import is_there_a_quib_in_args, iter_quibs_in_args, call_func_with_quib_values, \
     deep_copy_without_quibs_or_artists
@@ -22,7 +25,7 @@ class FunctionQuib(Quib):
     """
     An abstract class for quibs that represent the result of a computation.
     """
-    DEFAULT_CACHE_BEHAVIOR = CacheBehavior.AUTO
+    _DEFAULT_CACHE_BEHAVIOR = CacheBehavior.AUTO
     MAX_BYTES_PER_SECOND = 2 ** 30
     MIN_SECONDS_FOR_CACHE = 1e-3
 
@@ -30,13 +33,16 @@ class FunctionQuib(Quib):
                  func: Callable,
                  args: Tuple[Any, ...],
                  kwargs: Mapping[str, Any],
-                 cache_behavior: Optional[CacheBehavior]):
-        super().__init__()
+                 cache_behavior: Optional[CacheBehavior],
+                 assignment_template: Optional[AssignmentTemplate] = None):
+        super().__init__(assignment_template=assignment_template)
         self._func = func
         self._args = args
         self._kwargs = kwargs
+        self._cache_behavior = None
+
         if cache_behavior is None:
-            cache_behavior = self.DEFAULT_CACHE_BEHAVIOR
+            cache_behavior = self._DEFAULT_CACHE_BEHAVIOR
         self.set_cache_behavior(cache_behavior)
 
     @classmethod
@@ -78,7 +84,7 @@ class FunctionQuib(Quib):
         return quib_supporting_func_wrapper
 
     def __repr__(self):
-        return f"<{self.__class__.__name__} - {self._func.__name__}>"
+        return f"<{self.__class__.__name__} - {self._func}>"
 
     def get_cache_behavior(self):
         return self._cache_behavior
@@ -93,7 +99,7 @@ class FunctionQuib(Quib):
         """
         return call_func_with_quib_values(self._func, self._args, self._kwargs)
 
-    def _get_dependencies(self) -> List['Quib']:
+    def _get_dependencies(self) -> List[Quib]:
         """
         A utility for debug purposes.
         Returns a list of quibs that this quib depends on.

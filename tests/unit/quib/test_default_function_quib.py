@@ -16,7 +16,8 @@ def parent_quib():
 
 @fixture
 def quib_with_valid_cache(parent_quib, function_mock, quib_cached_result):
-    quib = DefaultFunctionQuib(function_mock, (parent_quib,), {}, CacheBehavior.ON, True, quib_cached_result)
+    quib = DefaultFunctionQuib(func=function_mock, args=(parent_quib,), kwargs={}, cache_behavior=CacheBehavior.ON,
+                               is_cache_valid=True, cached_result=quib_cached_result)
     parent_quib.add_child(quib)
     return quib
 

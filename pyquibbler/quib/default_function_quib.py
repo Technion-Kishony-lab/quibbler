@@ -2,6 +2,7 @@ from sys import getsizeof
 from time import perf_counter
 from typing import Callable, Any, Mapping, Tuple, Optional
 
+from .assignment_template import AssignmentTemplate
 from .function_quib import FunctionQuib, CacheBehavior
 
 
@@ -12,23 +13,24 @@ class DefaultFunctionQuib(FunctionQuib):
     is changed, the whole cache is thrown away.
     """
 
-    def __init__(self,
-                 func: Callable,
-                 args: Tuple[Any, ...],
-                 kwargs: Mapping[str, Any],
-                 cache_behavior: Optional[CacheBehavior],
-                 is_cache_valid: bool = False,
-                 cached_result: Any = None):
-        super().__init__(func, args, kwargs, cache_behavior)
-        self._is_cache_valid = is_cache_valid
-        self._cached_result = cached_result
-
     @property
     def is_cache_valid(self):
         """
         User interface to check cache validity.
         """
         return self._is_cache_valid
+
+    def __init__(self,
+                 func: Callable,
+                 args: Tuple[Any, ...],
+                 kwargs: Mapping[str, Any],
+                 cache_behavior: Optional[CacheBehavior],
+                 assignment_template: Optional[AssignmentTemplate] = None,
+                 is_cache_valid: bool = False,
+                 cached_result: Any = None):
+        super().__init__(func, args, kwargs, cache_behavior, assignment_template=assignment_template)
+        self._is_cache_valid = is_cache_valid
+        self._cached_result = cached_result
 
     def _invalidate(self):
         self._is_cache_valid = False
@@ -48,7 +50,7 @@ class DefaultFunctionQuib(FunctionQuib):
         return elapsed_seconds > self.MIN_SECONDS_FOR_CACHE \
                and getsizeof(result) / elapsed_seconds < self.MAX_BYTES_PER_SECOND
 
-    def get_value(self):
+    def _get_inner_value(self):
         """
         If the cached result is still valid, return it.
         Otherwise, calculate the value, store it in the cache and return it.

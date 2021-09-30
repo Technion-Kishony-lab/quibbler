@@ -1,8 +1,9 @@
 from unittest.mock import Mock
-from pytest import fixture
+from pytest import fixture, mark, raises
 
 from pyquibbler import iquib
 from pyquibbler.quib import DefaultFunctionQuib
+from pyquibbler.quib.input_quib import CannotNestQuibInIQuibException
 
 
 @fixture
@@ -23,7 +24,7 @@ def create_child_with_valid_cache(input_quib):
     return child
 
 
-def test_input_quib_setitem(input_quib):
+def test_input_quib_setitem_invalidates_children(input_quib):
     child1 = create_child_with_valid_cache(input_quib)
     child2 = create_child_with_valid_cache(input_quib)
 
@@ -34,5 +35,19 @@ def test_input_quib_setitem(input_quib):
     assert not child2.is_cache_valid
 
 
+def test_input_quib_setitem_overrides_data(input_quib):
+    val = object()
+    input_quib[0] = val
+
+    assert input_quib[0].get_value() is val
+
+
 def test_input_quib_get_value(input_quib, input_quib_val):
     assert input_quib.get_value() == input_quib_val
+
+
+@mark.debug(True)
+def test_cant_create_an_input_quib_that_containts_a_quib():
+    obj = [[iquib(1)]]
+    with raises(CannotNestQuibInIQuibException) as e:
+        iquib(obj)
