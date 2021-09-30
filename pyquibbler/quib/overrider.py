@@ -1,4 +1,6 @@
-from typing import Any, Tuple, List
+from typing import Any, Tuple, List, Optional
+
+from .assignment_template import AssignmentTemplate
 
 
 class Overrider:
@@ -11,9 +13,11 @@ class Overrider:
         """
         self._overrides.append((key, value))
 
-    def override(self, data: Any):
+    def override(self, data: Any, assignment_template: Optional[AssignmentTemplate] = None):
         """
         Applies all overrides to the given data.
         """
         for key, value in self._overrides:
+            if assignment_template is not None:
+                value = assignment_template.convert(value)
             data[key] = value

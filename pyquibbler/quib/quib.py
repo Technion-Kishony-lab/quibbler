@@ -4,6 +4,7 @@ from typing import Set, Any, TYPE_CHECKING, Optional
 from weakref import ref as weakref
 
 from .assignment_template import AssignmentTemplate, RangeAssignmentTemplate, BoundAssignmentTemplate
+from .overrider import Overrider
 
 if TYPE_CHECKING:
     from pyquibbler.quib.graphics import GraphicsFunctionQuib
@@ -17,6 +18,7 @@ class Quib(ABC):
     def __init__(self, assignment_template: Optional[AssignmentTemplate] = None):
         self._assignment_template = assignment_template
         self._children = set()
+        self._overrider = Overrider()
 
     def __invalidate_children_recursively(self) -> None:
         """
@@ -67,15 +69,6 @@ class Quib(ABC):
         Change this quib's state according to a change in a dependency.
         """
 
-    @abstractmethod
-    def get_value(self) -> Any:
-        """
-        Get the actual data that this quib represents.
-        This function might perform several different calculations - function quibs
-        are lazy, so a function quib might need to calculate uncached values and might
-        even have to calculate the values of its dependencies.
-        """
-
     def add_child(self, quib: Quib) -> None:
         """
         Add the given quib to the list of quibs that are dependent on this quib.
@@ -88,15 +81,13 @@ class Quib(ABC):
     def __iter__(self):
         raise TypeError('Cannot iterate over quibs, as their size can vary')
 
-    @abstractmethod
     def _override(self, key, value):
         """
         Overrides a part of the data the quib represents.
         """
+        self._overrider.add_override(key, value)
 
     def __setitem__(self, key, value):
-        if self._assignment_template is not None:
-            value = self._assignment_template.convert(value)
         self._override(key, value)
         self.invalidate_and_redraw()
 
@@ -123,3 +114,21 @@ class Quib(ABC):
         else:
             raise TypeError('Unsupported number of arguments, see docstring for usage')
         self._assignment_template = template
+
+    @abstractmethod
+    def _get_inner_value(self) -> Any:
+        """
+        Get the data this quib represents, before applying quib features like overrides.
+        Perform calculations if needed.
+        """
+
+    def get_value(self) -> Any:
+        """
+        Get the actual data that this quib represents.
+        This function might perform several different computations - function quibs
+        are lazy, so a function quib might need to calculate uncached values and might
+        even have to calculate the values of its dependencies.
+        """
+        value = self._get_inner_value()
+        self._overrider.override(value, self._assignment_template)
+        return value

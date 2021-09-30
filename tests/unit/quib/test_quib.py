@@ -19,11 +19,8 @@ class ExampleQuib(Quib):
     def _invalidate(self):
         self.invalidate_count += 1
 
-    def get_value(self):
+    def _get_inner_value(self):
         return self.value
-
-    def _override(self, key, value):
-        self.value[key] = value
 
 
 @fixture
@@ -125,8 +122,23 @@ def test_quib_setitem_without_assignment_template():
     assert quib.get_value()[0] is new_item
 
 
-def test_quib_setitem_uses_assignment_template(example_quib, assignment_template_mock):
+def test_quib_override_uses_assignment_template(example_quib, assignment_template_mock):
     example_quib[0] = 'val'
+    result = example_quib[0].get_value()
 
-    assignment_template_mock.convert.assert_called_once_with('val')
-    assert example_quib[0].get_value() is assignment_template_mock.convert.return_value
+    assignment_template_mock.convert.assert_called_with('val')
+    assert result is assignment_template_mock.convert.return_value
+
+
+def test_quib_updates_override_after_assignment_template_changed(example_quib, assignment_template_mock):
+    example_quib[0] = 'val'
+    item = example_quib[0]
+    new_assignment_template = Mock()
+    new_assignment_template.convert.return_value = object()
+    example_quib.set_assignment_template(new_assignment_template)
+
+    result = item.get_value()
+
+    assignment_template_mock.convert.assert_not_called()
+    new_assignment_template.convert.assert_called_with('val')
+    assert result is new_assignment_template.convert.return_value
