@@ -122,5 +122,5 @@ class FunctionQuib(Quib):
         even have to calculate the values of its dependencies.
         """
         value = self._get_inner_value()
-        self._overrider.apply(value)
+        # self._overrider.apply(value)
         return value

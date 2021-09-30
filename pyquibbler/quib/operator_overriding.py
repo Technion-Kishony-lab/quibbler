@@ -36,9 +36,6 @@ def override_quib_operators():
     through the standard getattr process.
     See more here: https://docs.python.org/3/reference/datamodel.html#special-method-lookup
     """
-    # Magic methods that need special handling
-    Quib.__getattr__ = DefaultFunctionQuib.create_wrapper(getattr)
-    Quib.__call__ = DefaultFunctionQuib.create_wrapper(lambda func, *args, **kwargs: func(*args, **kwargs))
     # Override a bunch of magic methods to enable operators to work.
     for magic_method_name in OVERRIDES:
         assert magic_method_name not in vars(Quib), magic_method_name

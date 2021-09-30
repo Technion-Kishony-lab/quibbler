@@ -44,22 +44,6 @@ def test_quib_getitem(example_quib):
     assert got.get_value() is example_quib.value[0]
 
 
-def test_quib_getattr_with_class_attr(example_quib):
-    got = example_quib.sort
-
-    assert got.get_value() == example_quib.value.sort
-
-
-def test_quib_getattr_with_instance_attr():
-    quib = ExampleQuib(type('_', (), dict(attr='value')))
-    got = quib.attr
-    assert got.get_value() == quib.value.attr
-
-
-def test_call_quib_method(example_quib):
-    assert example_quib.index(example_quib.value[1]).get_value() == 1
-
-
 def test_quib_invalidate_and_redraw_calls_graphics_function_quib_children(example_quib):
     mock_func = mock.Mock()
     mock_func.return_value = []
@@ -69,23 +53,6 @@ def test_quib_invalidate_and_redraw_calls_graphics_function_quib_children(exampl
     example_quib.invalidate_and_redraw()
 
     mock_func.assert_called_once()
-
-
-def test_quib_call():
-    expected_args = (2, 'args')
-    expected_kwargs = dict(name='val')
-    expected_result = 'the result'
-
-    def wrapped_func(*args, **kwargs):
-        assert expected_args == args
-        assert expected_kwargs == kwargs
-        return expected_result
-
-    quib = ExampleQuib(wrapped_func)
-    call_quib = quib(*expected_args, **expected_kwargs)
-    result = call_quib.get_value()
-
-    assert result is expected_result
 
 
 @mark.parametrize('operator_name', set(magicmethods.arithmetic) - {'__div__', '__divmod__'})
