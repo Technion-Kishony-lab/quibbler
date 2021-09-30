@@ -8,7 +8,7 @@ class ExampleFunctionQuib(FunctionQuib):
     def _invalidate(self):
         pass
 
-    def get_value(self):
+    def _get_inner_value(self):
         return self._call_func()
 
 

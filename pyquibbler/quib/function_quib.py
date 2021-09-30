@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from enum import Enum
 from functools import wraps
 from typing import List, Callable, Any, Mapping, Tuple, Optional
@@ -102,3 +103,24 @@ class FunctionQuib(Quib):
         Returns a list of quibs that this quib depends on.
         """
         return iter_quibs_in_args(self._args, self._kwargs)
+
+    def _override(self, key, value):
+        pass
+
+    @abstractmethod
+    def _get_inner_value(self) -> Any:
+        """
+        Get the data this quib represents, before applying quib features like overrides.
+        Perform calculations if needed.
+        """
+
+    def get_value(self) -> Any:
+        """
+        Get the actual data that this quib represents.
+        This function might perform several different calculations - function quibs
+        are lazy, so a function quib might need to calculate uncached values and might
+        even have to calculate the values of its dependencies.
+        """
+        value = self._get_inner_value()
+        self._overrider.apply(value)
+        return value

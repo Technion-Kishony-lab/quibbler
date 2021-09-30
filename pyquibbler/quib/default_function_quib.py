@@ -50,7 +50,7 @@ class DefaultFunctionQuib(FunctionQuib):
         return elapsed_seconds > self.MIN_SECONDS_FOR_CACHE \
                and getsizeof(result) / elapsed_seconds < self.MAX_BYTES_PER_SECOND
 
-    def get_value(self):
+    def _get_inner_value(self):
         """
         If the cached result is still valid, return it.
         Otherwise, calculate the value, store it in the cache and return it.

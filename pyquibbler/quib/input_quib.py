@@ -28,12 +28,11 @@ class InputQuib(Quib):
             if is_there_a_quib_in_object(value, force_recursive=True):
                 raise CannotNestQuibInIQuibException(self)
 
-    def __setitem__(self, key, value):
+    def _override(self, key, value):
         """
         Override data inside the input quib.
         """
         self._value[key] = value
-        self.invalidate_and_redraw()
 
     def get_value(self):
         """

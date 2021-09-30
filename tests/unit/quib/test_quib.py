@@ -22,6 +22,9 @@ class ExampleQuib(Quib):
     def get_value(self):
         return self.value
 
+    def _override(self, key, value):
+        self.value[key] = value
+
 
 @fixture
 def assignment_template_mock():
@@ -145,3 +148,18 @@ def test_set_assignment_template_with_range(example_quib):
     template = example_quib.get_assignment_template()
 
     assert template == RangeAssignmentTemplate(1, 2, 3)
+
+
+def test_quib_setitem_without_assignment_template():
+    quib = ExampleQuib(['old item'])
+    new_item = 'new item'
+    quib[0] = new_item
+
+    assert quib.get_value()[0] is new_item
+
+
+def test_quib_setitem_uses_assignment_template(example_quib, assignment_template_mock):
+    example_quib[0] = 'val'
+
+    assignment_template_mock.convert.assert_called_once_with('val')
+    assert example_quib[0].get_value() is assignment_template_mock.convert.return_value

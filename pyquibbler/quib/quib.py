@@ -88,11 +88,23 @@ class Quib(ABC):
     def __copy__(self):
         return self
 
-    def __deepcopy__(self, memodict={}):
+    def __deepcopy__(self, memodict):
         return self
 
     def __iter__(self):
         raise TypeError('Cannot iterate over quibs, as their size can vary')
+
+    @abstractmethod
+    def _override(self, key, value):
+        """
+        Overrides a part of the data the quib represents.
+        """
+
+    def __setitem__(self, key, value):
+        if self._assignment_template is not None:
+            value = self._assignment_template.convert(value)
+        self._override(key, value)
+        self.invalidate_and_redraw()
 
     def get_assignment_template(self) -> AssignmentTemplate:
         return self._assignment_template
