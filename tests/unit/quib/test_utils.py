@@ -1,13 +1,13 @@
 from operator import add
 
-from pytest import mark, raises
+from pytest import mark, raises, fixture
 
 from pyquibbler import iquib
 from pyquibbler.quib import Quib
 from pyquibbler.quib.utils import is_iterator_empty, deep_copy_and_replace_quibs_with_vals, \
     iter_objects_of_type_in_object_recursively, call_func_with_quib_values, iter_quibs_in_args, \
     is_there_a_quib_in_args, NestedQuibException, copy_and_replace_quibs_with_vals, iter_quibs_in_object, \
-    FunctionCalledWithNestedQuibException, QuibRef
+    FunctionCalledWithNestedQuibException, QuibRef, Unpacker
 
 iquib1 = iquib(1)
 iquib2 = iquib(2)
@@ -139,3 +139,91 @@ def test_iter_quibs_in_object_raises_when_receives_nested_quibs():
     assert exc_info.type is NestedQuibException
     assert exc_info.value.obj is obj
     assert exc_info.value.nested_quibs == {iquib1}
+
+
+@fixture
+def unpacker_value():
+    return (1, 2, 3)
+
+
+@fixture
+def unpacker(unpacker_value):
+    return Unpacker(unpacker_value)
+
+
+@fixture
+def unpacker_with_set_length(unpacker_value):
+    return Unpacker(unpacker_value, len(unpacker_value))
+
+
+def test_unpacker_with_normal_unpack_of_one(unpacker, unpacker_value):
+    a, = unpacker
+
+    assert a == unpacker_value[0]
+
+
+def test_unpacker_with_normal_unpack_of_two(unpacker, unpacker_value):
+    a, b = unpacker
+
+    assert (a, b) == unpacker_value[:2]
+
+
+def test_unpacker_with_normal_unpack_of_three(unpacker, unpacker_value):
+    a, b, c = unpacker
+
+    assert (a, b, c) == unpacker_value[:3]
+
+
+def test_unpacker_with_tuple_unpack(unpacker, unpacker_value):
+    (a, b, c) = unpacker
+
+    assert (a, b, c) == unpacker_value[:3]
+
+
+def test_unpacker_with_list_unpack(unpacker, unpacker_value):
+    [a, b, c] = unpacker
+
+    assert (a, b, c) == unpacker_value[:3]
+
+
+def test_unpacker_after_iter(unpacker, unpacker_value):
+    unpacker = iter(unpacker)
+    a, b, c = unpacker
+
+    assert (a, b, c) == unpacker_value[:3]
+
+
+def test_unpacker_after_next(unpacker, unpacker_value):
+    a = next(unpacker)
+    b, c = unpacker
+
+    assert (a, b, c) == unpacker_value[:3]
+
+
+def test_unpacker_raises_with_star_unpack(unpacker):
+    with raises(RuntimeError):
+        a, *b = unpacker
+
+
+def test_unpacker_raises_when_unpacking_too_much(unpacker):
+    with raises(ValueError) as e:
+        a, b, c, d = unpacker
+    assert e.value.args == ('not enough values to unpack (expected 4, got 3)',)
+
+
+def test_unpacker_with_set_length_unpacks(unpacker_with_set_length, unpacker_value):
+    a, b, c = unpacker_with_set_length
+
+    assert (a, b, c) == unpacker_value[:3]
+
+
+def test_unpacker_with_set_length_fails_on_too_little(unpacker_with_set_length, unpacker_value):
+    with raises(ValueError) as e:
+        a, b = unpacker_with_set_length
+    assert e.value.args == ('too many values to unpack (expected 2)',)
+
+
+def test_unpacker_with_set_length_fails_on_too_much(unpacker_with_set_length, unpacker_value):
+    with raises(ValueError) as e:
+        a, b, c, d = unpacker_with_set_length
+    assert e.value.args == ('not enough values to unpack (expected 4, got 3)',)

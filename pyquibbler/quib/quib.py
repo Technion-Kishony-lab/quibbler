@@ -9,7 +9,7 @@ import numpy as np
 
 from pyquibbler.exceptions import PyQuibblerException
 from .assignment import AssignmentTemplate, RangeAssignmentTemplate, BoundAssignmentTemplate, Overrider, Assignment
-from .utils import deep_copy_without_quibs_or_artists, quib_method
+from .utils import deep_copy_without_quibs_or_artists, quib_method, Unpacker
 
 if TYPE_CHECKING:
     from pyquibbler.quib.graphics import GraphicsFunctionQuib
@@ -93,7 +93,8 @@ class Quib(ABC):
         return len(self.get_value())
 
     def __iter__(self):
-        raise TypeError('Cannot iterate over quibs, as their size can vary')
+        raise TypeError('Cannot iterate over quibs, as their size can vary. '
+                        'Try Quib.iter_first() to iterate over the n-first items of the quib.')
 
     def _override(self, key, value):
         """
@@ -183,3 +184,12 @@ class Quib(ABC):
         set to True if the matching value in the array is overridden, and False otherwise.
         """
         return self._get_override_mask(self.get_shape())
+
+    def iter_first(self, amount: Optional[int] = None):
+        """
+        Returns an iterator to the first `amount` elements of the quib.
+        `a, b = quib.iter_first(2)` is the same as `a, b = quib[0], quib[1]`.
+        When `amount` is not given, quibbler will try to detect the correct amount automatically, and
+        might fail with a RuntimeError.
+        """
+        return Unpacker(self, amount)

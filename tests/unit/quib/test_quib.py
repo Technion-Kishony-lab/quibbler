@@ -1,15 +1,15 @@
 import operator
-import magicmethods
-import numpy as np
 from unittest import mock
 from unittest.mock import Mock
+
+import magicmethods
+import numpy as np
 from pytest import mark, raises, fixture
 
 from pyquibbler.quib import Quib
 from pyquibbler.quib.assignment import RangeAssignmentTemplate, BoundAssignmentTemplate
 from pyquibbler.quib.graphics import GraphicsFunctionQuib
 from pyquibbler.quib.quib import QuibIsNotNdArrayException
-
 from .utils import get_mock_with_repr, slicer
 
 
@@ -197,26 +197,7 @@ def test_quib_get_override_mask(data, overrides, expected_mask):
     assert np.array_equal(quib.get_override_mask().get_value(), expected_mask)
 
 
-def test_quib_unpack_one():
-    one, = ExampleQuib.create((1,))
+def test_quib_iter_first(example_quib):
+    first, second = example_quib.iter_first()
 
-    assert one.get_value() == 1
-
-
-def test_quib_unpack_two():
-    one, two = ExampleQuib.create((1, 2))
-
-    assert (one.get_value(), two.get_value()) == (1, 2)
-
-
-def test_quib_unpack_too_little():
-    one, two = ExampleQuib.create((1,))
-    # Should that actually work?
-    assert one.get_value() == 1
-    with raises(IndexError):
-        two.get_value()
-
-# Should fail:
-# one, = ExampleQuib.create((1, 2))
-# Should work:
-# one, *others, bla = ExampleQuib.create((1, 2))
+    assert (first.get_value(), second.get_value()) == tuple(example_quib.value[:2])
