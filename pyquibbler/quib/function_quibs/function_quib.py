@@ -6,6 +6,7 @@ from typing import List, Callable, Any, Mapping, Tuple, Optional
 
 from ..assignment import AssignmentTemplate
 from ..quib import Quib
+
 from ..utils import is_there_a_quib_in_args, iter_quibs_in_args, call_func_with_quib_values, \
     deep_copy_without_quibs_or_artists
 
@@ -37,9 +38,9 @@ class FunctionQuib(Quib):
                  cache_behavior: Optional[CacheBehavior],
                  assignment_template: Optional[AssignmentTemplate] = None):
         super().__init__(assignment_template=assignment_template)
-        self._func = func
-        self._args = args
-        self._kwargs = kwargs
+        self.func = func
+        self.args = args
+        self.kwargs = kwargs
         self._cache_behavior = None
 
         if cache_behavior is None:
@@ -81,8 +82,18 @@ class FunctionQuib(Quib):
         quib_supporting_func_wrapper.__annotations__['return'] = cls
         return quib_supporting_func_wrapper
 
+    def assign(self, value: Any, indices: Optional = None) -> None:
+        from pyquibbler.quib.assignment.reverse_assignment import CannotReverseUnknownFunctionException, \
+            reverse_function_quib
+        try:
+            reverse_function_quib(function_quib=self,
+                                  indices=indices,
+                                  value=value)
+        except CannotReverseUnknownFunctionException:
+            super(FunctionQuib, self).assign(value=value, indices=indices)
+
     def __repr__(self):
-        return f"<{self.__class__.__name__} - {self._func}>"
+        return f"<{self.__class__.__name__} - {self.func}>"
 
     def get_cache_behavior(self):
         return self._cache_behavior
@@ -95,11 +106,11 @@ class FunctionQuib(Quib):
         Call the function wrapped by this FunctionQuib with the
         given arguments after replacing quib with their values.
         """
-        return call_func_with_quib_values(self._func, self._args, self._kwargs)
+        return call_func_with_quib_values(self.func, self.args, self.kwargs)
 
     def _get_dependencies(self) -> List[Quib]:
         """
         A utility for debug purposes.
         Returns a list of quibs that this quib depends on.
         """
-        return iter_quibs_in_args(self._args, self._kwargs)
+        return iter_quibs_in_args(self.args, self.kwargs)

@@ -22,7 +22,7 @@ from .quib import Quib
 # copying:               already defined on the Quib class
 # unary:                 not all builtin types implement them, so getattr fails (e.g. float.__ceil__)
 # comparison, callables, representation, containers: change python's behavior unexpectedly
-OVERRIDES = magicmethods.arithmetic + magicmethods.rarithmetic + ['__getitem__']
+OVERRIDES = magicmethods.arithmetic + magicmethods.rarithmetic
 
 
 def get_magic_method_wrapper(name: str):
