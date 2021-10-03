@@ -1,15 +1,15 @@
-import magicmethods
 import operator
-import numpy as np
-from unittest.mock import Mock
-from pytest import mark, raises, fixture
 from unittest import mock
+from unittest.mock import Mock
+
+import magicmethods
+import numpy as np
+from pytest import mark, raises, fixture
 
 from pyquibbler.quib import Quib
 from pyquibbler.quib.assignment import RangeAssignmentTemplate, BoundAssignmentTemplate
 from pyquibbler.quib.graphics import GraphicsFunctionQuib
 from pyquibbler.quib.quib import QuibIsNotNdArrayException
-
 from .utils import get_mock_with_repr, slicer
 
 
@@ -29,18 +29,13 @@ class ExampleQuib(Quib):
 @fixture
 def example_quib(assignment_template_mock):
     return ExampleQuib(['the', 'quib', 'value'], assignment_template=assignment_template_mock)
-  
-  
+
+
 @fixture
 def assignment_template_mock():
     mock = Mock()
     mock.convert.return_value = 'assignment_template_mock.convert.return_value'
     return mock
-
-
-@fixture
-def ndarray_mock():
-    return Mock(spec=np.ndarray)
 
 
 def test_quib_getitem(example_quib):
@@ -151,7 +146,7 @@ def test_quib_updates_override_after_assignment_template_changed(example_quib, a
     new_assignment_template.convert.assert_called_with('val')
     assert result == new_assignment_template.convert.return_value
 
-    
+
 def test_overrides_are_applied_in_order():
     quib = ExampleQuib([0])
     quib[0] = 1
@@ -173,15 +168,16 @@ def test_quib_get_override_list_shows_user_friendly_information_about_overrides(
     assert value_repr in overrides_repr
 
 
-def test_quib_get_shape(ndarray_mock):
-    quib = ExampleQuib(ndarray_mock)
+def test_quib_get_shape():
+    arr = np.array([1, 2, 3])
+    quib = ExampleQuib(arr)
 
-    assert quib.get_shape() is ndarray_mock.shape
+    assert quib.get_shape().get_value() == arr.shape
 
 
 def test_quib_get_shape_with_non_ndarray_quib(example_quib):
     with raises(QuibIsNotNdArrayException):
-        example_quib.get_shape()
+        example_quib.get_shape().get_value()
 
 
 @mark.parametrize(['data', 'overrides', 'expected_mask'], [
@@ -198,4 +194,4 @@ def test_quib_get_override_mask(data, overrides, expected_mask):
     quib = ExampleQuib(np.array(data))
     for key, value in overrides:
         quib[key] = value
-    assert np.array_equal(quib.get_override_mask(), expected_mask)
+    assert np.array_equal(quib.get_override_mask().get_value(), expected_mask)

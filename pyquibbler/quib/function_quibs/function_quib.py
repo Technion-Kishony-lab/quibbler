@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from enum import Enum
 from functools import wraps
 from typing import List, Callable, Any, Mapping, Tuple, Optional
@@ -62,7 +63,7 @@ class FunctionQuib(Quib):
         return self
 
     @classmethod
-    def create_wrapper(cls, func):
+    def create_wrapper(cls, func: Callable):
         """
         Given an original function, return a new function (a "wrapper") to be used instead of the original.
         The wrapper, when called, will return a FunctionQuib of type `cls` if its arguments contain a quib.
@@ -77,6 +78,7 @@ class FunctionQuib(Quib):
 
             return func(*args, **kwargs)
 
+        quib_supporting_func_wrapper.__annotations__['return'] = cls
         return quib_supporting_func_wrapper
 
     def __repr__(self):
