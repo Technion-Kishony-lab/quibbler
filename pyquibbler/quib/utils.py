@@ -1,5 +1,6 @@
 from __future__ import annotations
 import functools
+import numpy as np
 from dataclasses import dataclass
 from inspect import signature
 from itertools import chain
@@ -141,7 +142,8 @@ def copy_and_replace_quibs_with_vals(obj: Any):
     result = shallow_copy_and_replace_quibs_with_vals(obj)
     if is_debug():
         expected = deep_copy_and_replace_quibs_with_vals(obj)
-        if expected != result:
+        equal = np.array_equal(expected, result) if isinstance(expected, np.ndarray) else expected == result
+        if not equal:
             raise NestedQuibException.create_from_object(obj)
     return result
 
