@@ -191,5 +191,8 @@ class Quib(ABC):
         `a, b = quib.iter_first(2)` is the same as `a, b = quib[0], quib[1]`.
         When `amount` is not given, quibbler will try to detect the correct amount automatically, and
         might fail with a RuntimeError.
+        For example, `a, b = iquib([1, 2]).iter_first()` is the same as `a, b = iquib([1, 2]).iter_first(2)`.
+        But note that even if the quib is larger than the unpacked amount, the iterator will still yield only the first
+        items - `a, b = iquib([1, 2, 3, 4]).iter_first()` is the same as `a, b = iquib([1, 2, 3, 4]).iter_first(2)`.
         """
         return Unpacker(self, amount)
