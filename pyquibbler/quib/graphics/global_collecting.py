@@ -6,7 +6,7 @@ from matplotlib.artist import Artist
 
 CURRENT_THREAD_ID = None
 COLLECTING_GLOBAL_ARTISTS = False
-IN_OVERRIDEN_FUNCTION = False
+IN_OVERRIDDEN_FUNCTION = False
 ARTISTS_COLLECTED = []
 
 
@@ -39,7 +39,7 @@ def global_graphics_collecting_mode():
         @functools.wraps(func)
         def wrapped_init(self, *args, **kwargs):
             res = func(self, *args, **kwargs)
-            if threading.get_ident() == CURRENT_THREAD_ID and IN_OVERRIDEN_FUNCTION:
+            if threading.get_ident() == CURRENT_THREAD_ID and IN_OVERRIDDEN_FUNCTION:
                 ARTISTS_COLLECTED.append(self)
             return res
         return wrapped_init
@@ -53,8 +53,13 @@ def global_graphics_collecting_mode():
 
 
 @contextlib.contextmanager
-def overriden_graphics_function():
-    global IN_OVERRIDEN_FUNCTION
-    IN_OVERRIDEN_FUNCTION = True
+def overridden_graphics_function():
+    """
+    Any overridden graphics function should be run within this context manager.
+    Even in global collecting mode, artists will NOT be collected if not within this context manager.
+    This serves as an extra layer of protection to make sure we're only collecting artists from known functions.
+    """
+    global IN_OVERRIDDEN_FUNCTION
+    IN_OVERRIDDEN_FUNCTION = True
     yield
-    IN_OVERRIDEN_FUNCTION = False
+    IN_OVERRIDDEN_FUNCTION = False
