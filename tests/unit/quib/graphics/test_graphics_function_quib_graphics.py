@@ -20,13 +20,6 @@ def run_graphics_function_quib_and_redraw(q: GraphicsFunctionQuib):
         redraw_axes(axes)
 
 
-@pytest.fixture
-def axes():
-    plt.close("all")
-    plt.gcf().set_size_inches(8, 6)
-    return plt.gca()
-
-
 quibbler_image_comparison = functools.partial(image_comparison, remove_text=True, extensions=['png'],
                                               savefig_kwarg=dict(dpi=100))
 

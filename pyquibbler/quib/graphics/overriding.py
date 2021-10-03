@@ -1,3 +1,6 @@
+import functools
+from typing import Callable
+
 from matplotlib import pyplot as plt
 
 from pyquibbler.quib.graphics import global_collecting, GraphicsFunctionQuib
@@ -14,18 +17,24 @@ def override_axes_method(method_name: str):
     cls = plt.Axes
     original_method = getattr(cls, method_name)
 
+    @functools.wraps(original_method)
+    def overridden_func(*args, **kwargs):
+        # We need overridden funcs to be run in `overridden_graphics_function` context manager
+        # so artists will be collected
+        with global_collecting.overridden_graphics_function():
+            return original_method(*args, **kwargs)
+
     def override(*args, **kwargs):
-        with global_collecting.overriden_graphics_function():
-            if is_there_a_quib_in_args(args, kwargs):
-                from pyquibbler import CacheBehavior
-                return GraphicsFunctionQuib.create(
-                    func=original_method,
-                    func_args=args,
-                    func_kwargs=kwargs,
-                    cache_behavior=CacheBehavior.AUTO,
-                    lazy=False
-                )
-            return call_func_with_quib_values(func=original_method, args=args, kwargs=kwargs)
+        if is_there_a_quib_in_args(args, kwargs):
+            from pyquibbler import CacheBehavior
+            return GraphicsFunctionQuib.create(
+                func=overridden_func,
+                func_args=args,
+                func_kwargs=kwargs,
+                cache_behavior=CacheBehavior.AUTO,
+                lazy=False
+            )
+        return call_func_with_quib_values(func=overridden_func, args=args, kwargs=kwargs)
 
     setattr(cls, method_name, override)
 
