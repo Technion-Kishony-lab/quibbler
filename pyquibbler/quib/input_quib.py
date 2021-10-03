@@ -41,7 +41,7 @@ class InputQuib(Quib):
         pass
 
     def __repr__(self):
-        return f'iquib({self._value})'
+        return f'<{self.__class__.__name__} ({self._value})>'
 
 
 iquib = InputQuib

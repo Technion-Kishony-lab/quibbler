@@ -47,7 +47,11 @@ def test_input_quib_get_value(input_quib, input_quib_val):
 
 
 @mark.debug(True)
-def test_cant_create_an_input_quib_that_containts_a_quib():
+def test_cant_create_an_input_quib_that_contains_a_quib():
     obj = [[iquib(1)]]
     with raises(CannotNestQuibInIQuibException) as e:
         iquib(obj)
+
+
+def test_iquib_repr_doesnt_fail():
+    repr(iquib([10]))
