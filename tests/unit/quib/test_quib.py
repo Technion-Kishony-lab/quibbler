@@ -38,12 +38,6 @@ def assignment_template_mock():
     return mock
 
 
-def test_quib_getitem(example_quib):
-    got = example_quib[0]
-
-    assert got.get_value() is example_quib.value[0]
-
-
 def test_quib_invalidate_and_redraw_calls_graphics_function_quib_children(example_quib):
     mock_func = mock.Mock()
     mock_func.return_value = []
@@ -201,3 +195,11 @@ def test_quib_iter_first(example_quib):
     first, second = example_quib.iter_first()
 
     assert (first.get_value(), second.get_value()) == tuple(example_quib.value[:2])
+
+
+def test_quib_getitem(example_quib):
+    function_quib = example_quib[0]
+
+    assert function_quib.func == operator.getitem
+    assert function_quib.get_value() == example_quib.value[0]
+

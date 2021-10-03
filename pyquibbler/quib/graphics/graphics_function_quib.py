@@ -47,7 +47,7 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         return self
 
     def persist_self_on_artists(self):
-        for artist in chain(self._artists, iter_object_type_in_args(Artist, self._args, self._kwargs)):
+        for artist in chain(self._artists, iter_object_type_in_args(Artist, self.args, self.kwargs)):
             quibs = getattr(artist, "graphics_function_quibs", set())
             quibs.add(self)
             artist.graphics_function_quibs = quibs
@@ -129,7 +129,7 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
             previous_axeses_to_array_names_to_indices_and_artists or {}
 
         with global_collecting.global_graphics_collecting_mode():
-            func_res = call_func_with_quib_values(self._func, self._args, self._kwargs)
+            func_res = call_func_with_quib_values(self.func, self.args, self.kwargs)
 
         self._artists = global_collecting.get_artists_collected()
         self.persist_self_on_artists()

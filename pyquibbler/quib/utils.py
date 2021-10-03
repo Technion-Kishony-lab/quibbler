@@ -158,7 +158,18 @@ def copy_and_replace_quibs_with_vals(obj: Any):
     result = shallow_copy_and_replace_quibs_with_vals(obj)
     if is_debug():
         expected = deep_copy_and_replace_quibs_with_vals(obj)
-        equal = np.array_equal(expected, result) if isinstance(expected, np.ndarray) else expected == result
+        try:
+            # instead of doing expected == result we do a "not not" so as to evaluate the result as truthy,
+            # and so throw an exception here if we evaluated the equalness of two numpy arrays
+            # (in which case we need to do array_equal).
+            # We also can't check isinstance as the arrays may be embedded in tuples etc
+            equal = not (expected != result)
+        except ValueError as e:
+            if "The truth value of an array" in str(e):
+                equal = np.array_equal(expected, result)
+            else:
+                raise
+
         if not equal:
             raise NestedQuibException.create_from_object(obj)
     return result

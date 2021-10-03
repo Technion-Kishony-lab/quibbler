@@ -1,3 +1,4 @@
+import numpy as np
 from pytest import fixture
 
 from pyquibbler import iquib
@@ -51,3 +52,14 @@ def test_cant_mutate_function_quib_args_after_creation(function_wrapper, functio
 
 def test_func_get_value_returns_inner_value(function_wrapper, function_mock_return_val):
     assert function_wrapper(iquib(1)).get_value() == function_mock_return_val
+
+def test_assign_with_unknown_function_overrides(function_wrapper, function_mock_return_val):
+    q = function_wrapper(iquib(np.array([1])))
+    new_value = 420
+    index = 2
+    expected_value = np.array(function_mock_return_val)
+    expected_value[index] = new_value
+
+    q.assign(new_value, indices=index)
+
+    assert np.array_equal(q.get_value(), expected_value)

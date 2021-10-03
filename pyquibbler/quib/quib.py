@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from operator import getitem
 from typing import Set, Any, TYPE_CHECKING, Optional, Tuple
 from weakref import ref as weakref
 
@@ -102,8 +103,20 @@ class Quib(ABC):
         """
         self._overrider.add_assignment(Assignment(key, value))
 
-    def __setitem__(self, key: Any, value: Any) -> None:
-        self._override(key, value)
+    def assign(self, value: Any, indices: Optional = None) -> None:
+        self._override(indices, value)
+
+    def __getitem__(self, item):
+        # We don't use the normal operator_overriding interface for two reasons:
+        # 1. It can create issues with hinting in IDEs (for example, Pycharm will not reconize that Quibs have a
+        # getitem and will issue a warning)
+        # 2. We need the function to not be created dynamically as it needs to be in the reverser's supported functions
+        # in order to be reversed correctly (and not simply override)
+        from pyquibbler.quib import DefaultFunctionQuib
+        return DefaultFunctionQuib.create(func=getitem, func_args=[self, item])
+
+    def __setitem__(self, key, value):
+        self.assign(value=value, indices=key)
         self.invalidate_and_redraw()
 
     def get_assignment_template(self) -> AssignmentTemplate:
