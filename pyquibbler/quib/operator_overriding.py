@@ -9,8 +9,8 @@ operator works anyway (e.g. float.__ceil__).
 """
 import magicmethods
 
-from .quib import Quib
 from .function_quibs import DefaultFunctionQuib
+from .quib import Quib
 
 ## Reasons for skipping some magic method groups:
 # typeconv:              python checks that the return value is of the expected type

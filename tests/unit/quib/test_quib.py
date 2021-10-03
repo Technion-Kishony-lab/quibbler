@@ -195,3 +195,9 @@ def test_quib_get_override_mask(data, overrides, expected_mask):
     for key, value in overrides:
         quib[key] = value
     assert np.array_equal(quib.get_override_mask().get_value(), expected_mask)
+
+
+def test_quib_iter_first(example_quib):
+    first, second = example_quib.iter_first()
+
+    assert (first.get_value(), second.get_value()) == tuple(example_quib.value[:2])
