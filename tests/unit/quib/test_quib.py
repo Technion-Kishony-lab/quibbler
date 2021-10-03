@@ -1,15 +1,15 @@
-import magicmethods
 import operator
-import numpy as np
-from unittest.mock import Mock
-from pytest import mark, raises, fixture
 from unittest import mock
+from unittest.mock import Mock
+
+import magicmethods
+import numpy as np
+from pytest import mark, raises, fixture
 
 from pyquibbler.quib import Quib
 from pyquibbler.quib.assignment import RangeAssignmentTemplate, BoundAssignmentTemplate
 from pyquibbler.quib.graphics import GraphicsFunctionQuib
 from pyquibbler.quib.quib import QuibIsNotNdArrayException
-
 from .utils import get_mock_with_repr, slicer
 
 
@@ -194,4 +194,4 @@ def test_quib_get_override_mask(data, overrides, expected_mask):
     quib = ExampleQuib(np.array(data))
     for key, value in overrides:
         quib[key] = value
-    assert np.array_equal(quib.get_override_mask(), expected_mask)
+    assert np.array_equal(quib.get_override_mask().get_value(), expected_mask)

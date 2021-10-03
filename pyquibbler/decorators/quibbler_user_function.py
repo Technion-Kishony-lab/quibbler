@@ -20,5 +20,6 @@ def quibbler_user_function(lazy=True):
             if not lazy:
                 quib.get_value()
             return quib
+
         return _wrapper
     return _decorator
