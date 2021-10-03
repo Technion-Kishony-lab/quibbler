@@ -40,5 +40,8 @@ class InputQuib(Quib):
         """
         pass
 
+    def __repr__(self):
+        return f'iquib({self._value})'
+
 
 iquib = InputQuib
