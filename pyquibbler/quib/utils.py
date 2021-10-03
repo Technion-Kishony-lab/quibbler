@@ -314,6 +314,12 @@ def get_unpack_amount(frame: Optional = None, raise_if_no_unpack=False) -> Optio
 
 
 class Unpacker:
+    """
+    A utility that allows iteration over an object (self._indexable) by using __getitem__ on it with an increasing
+    index, until a specific maximum index (self._amount) is reached.
+    If the amount is not given by the user, it will be determined automatically.
+    """
+
     def __init__(self, indexable: Any, amount: Optional[int] = None):
         self._indexable = indexable
         self._amount = amount
@@ -338,11 +344,12 @@ class Unpacker:
             unpack_amount = get_unpack_amount()
             if unpack_amount is not None:
                 self._amount = unpack_amount + self._index
+
         if self._amount is not None and self._index >= self._amount:
             raise StopIteration
         try:
             item = self._indexable[self._index]
-        except IndexError:
-            raise StopIteration
+        except IndexError as e:
+            raise StopIteration from e
         self._index += 1
         return item
