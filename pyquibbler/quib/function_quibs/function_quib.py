@@ -1,17 +1,13 @@
 from __future__ import annotations
+
 from enum import Enum
-from functools import partial, partialmethod, update_wrapper
+from functools import wraps
 from typing import List, Callable, Any, Mapping, Tuple, Optional
 
 from ..assignment import AssignmentTemplate
 from ..quib import Quib
 from ..utils import is_there_a_quib_in_args, iter_quibs_in_args, call_func_with_quib_values, \
     deep_copy_without_quibs_or_artists
-
-
-def wraps(wrapped, is_method=False):
-    partial_type = partialmethod if is_method else partial
-    return partial_type(update_wrapper, wrapped=wrapped)
 
 
 class CacheBehavior(Enum):
@@ -67,7 +63,7 @@ class FunctionQuib(Quib):
         return self
 
     @classmethod
-    def create_wrapper(cls, func: Callable, is_method: bool = False):
+    def create_wrapper(cls, func: Callable):
         """
         Given an original function, return a new function (a "wrapper") to be used instead of the original.
         The wrapper, when called, will return a FunctionQuib of type `cls` if its arguments contain a quib.
@@ -75,7 +71,7 @@ class FunctionQuib(Quib):
         This function can be used as a decorator.
         """
 
-        @wraps(func, is_method=is_method)
+        @wraps(func)
         def quib_supporting_func_wrapper(*args, **kwargs):
             if is_there_a_quib_in_args(args, kwargs):
                 return cls.create(func=func, func_args=args, func_kwargs=kwargs)

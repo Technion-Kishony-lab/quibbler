@@ -1,11 +1,14 @@
 from __future__ import annotations
+
 import functools
-import numpy as np
+from copy import copy
 from dataclasses import dataclass
+from functools import wraps
 from inspect import signature
 from itertools import chain
 from typing import Any, Optional, Set, TYPE_CHECKING, Callable, Tuple, Dict, Type
-from copy import copy
+
+import numpy as np
 
 from pyquibbler.env import is_debug
 from pyquibbler.exceptions import DebugException, PyQuibblerException
@@ -15,6 +18,15 @@ if TYPE_CHECKING:
 
 SHALLOW_MAX_DEPTH = 1
 SHALLOW_MAX_LENGTH = 100
+
+
+@dataclass
+class QuibRef:
+    """
+    Wraps a quib when passed as an argument to a quib-supporting function,
+    in order to signal that the function expects the quib itself and not its value.
+    """
+    quib: Quib
 
 
 def iter_args_and_names_in_function_call(func: Callable, args: Tuple[Any, ...], kwargs: Dict[str, Any],
@@ -121,6 +133,8 @@ def deep_copy_and_replace_quibs_with_vals(obj: Any, max_depth: Optional[int] = N
     from matplotlib.artist import Artist
 
     def replace_with_value_if_quib_or_copy(o):
+        if isinstance(o, QuibRef):
+            return o.quib
         if isinstance(o, Quib):
             return o.get_value()
         if isinstance(o, Artist):
@@ -263,3 +277,13 @@ def is_there_a_quib_in_args(args, kwargs):
     For use by function wrappers that need to determine if the underlying function was called with a quib.
     """
     return not is_iterator_empty(iter_quibs_in_args(args, kwargs))
+
+
+def quib_method(func: Callable) -> Callable:
+    @wraps(func)
+    def quib_supporting_method_wrapper(self, *args, **kwargs):
+        from pyquibbler.quib import DefaultFunctionQuib
+        args = (QuibRef(self), *args)
+        return DefaultFunctionQuib.create(func=func, func_args=args, func_kwargs=kwargs)
+
+    return quib_supporting_method_wrapper
