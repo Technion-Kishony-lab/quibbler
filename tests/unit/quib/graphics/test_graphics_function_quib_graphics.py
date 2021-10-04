@@ -4,8 +4,7 @@ from importlib import import_module
 from matplotlib.testing.decorators import image_comparison
 
 from pyquibbler import iquib
-from pyquibbler.quib.graphics import GraphicsFunctionQuib
-from pyquibbler.quib.graphics import redraw_axes
+from pyquibbler.quib.graphics import GraphicsFunctionQuib, redraw_axes
 
 # This import is critical!! Do not delete!!
 # This imports a fixture (it has autouse=True) that cleans up matplotlib stuffs our tests do
