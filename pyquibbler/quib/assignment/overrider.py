@@ -21,7 +21,7 @@ class Overrider:
 
     def override(self, data: Any, assignment_template: Optional[AssignmentTemplate] = None):
         """
-        Applies all overrides to the given data.
+        Deep copies the argument and returns said data with applied overrides
         """
         data = deep_copy_without_quibs_or_artists(data)
         for assignment in self._assignments:
