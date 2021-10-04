@@ -39,7 +39,7 @@ def override_axes_method(method_name: str):
     setattr(cls, method_name, override)
 
 
-OVERRIDDEN_AXES_METHODS = ['plot', 'imshow', 'text', 'bar', 'set_xlim', 'set_ylim']
+OVERRIDDEN_AXES_METHODS = ['plot', 'imshow', 'text', 'bar', 'set_xlim', 'set_ylim', 'set_title']
 
 
 @ensure_only_run_once_globally

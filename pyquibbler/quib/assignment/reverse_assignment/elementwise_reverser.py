@@ -62,12 +62,15 @@ class ElementWiseReverser(Reverser):
             }
         ),
 
-        magic_method(int, '__pow__'): create_inverse_function_from_indexes_to_funcs(
+        **{method: create_inverse_function_from_indexes_to_funcs(
             {
                 0: lambda x, n: x**(1/n),
                 1: lambda x, n: math.log(n, x)
             }
-        ),
+            ) for method in [magic_method(int, '__pow__'),
+                             magic_method(np.float64, '__pow__'),
+                             magic_method(float, '__pow__')]
+        }
     }
 
     SUPPORTED_FUNCTIONS = list(FUNCTIONS_TO_INVERSE_FUNCTIONS.keys())
