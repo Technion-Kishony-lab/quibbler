@@ -14,7 +14,3 @@ class Assignment:
 
     def __repr__(self):
         return f'[{self.key}] = {self.value}'
-
-    def apply(self, data: Any, assignment_template: Optional[AssignmentTemplate] = None):
-        value = self.value if assignment_template is None else assignment_template.convert(self.value)
-        data[self.key] = value
