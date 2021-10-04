@@ -2,10 +2,9 @@
 Override 3rd party library functions to return quibs (each function and its respective quib type)
 when called with quib arguments.
 """
+import numpy as np
 from functools import wraps
 from typing import Type, Any, Callable, Optional, List, Tuple
-
-import numpy as np
 from matplotlib.axes import Axes
 
 from pyquibbler.quib import ImpureFunctionQuib, DefaultFunctionQuib, FunctionQuib, GraphicsFunctionQuib
@@ -18,7 +17,7 @@ NUMPY_OVERRIDES = [
         (GraphicsFunctionQuib, ['apply_along_axis', 'apply_over_axes', 'vectorize']),
     ]),
     (np.random, [
-        (ImpureFunctionQuib, ['rand'])
+        (ImpureFunctionQuib, ['rand', 'randint'])
     ])
 ]
 

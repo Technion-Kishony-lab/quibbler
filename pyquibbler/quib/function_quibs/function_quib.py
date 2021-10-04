@@ -80,6 +80,7 @@ class FunctionQuib(Quib):
             return func(*args, **kwargs)
 
         quib_supporting_func_wrapper.__annotations__['return'] = cls
+        quib_supporting_func_wrapper.__quib_wrapper__ = cls
         return quib_supporting_func_wrapper
 
     @property
