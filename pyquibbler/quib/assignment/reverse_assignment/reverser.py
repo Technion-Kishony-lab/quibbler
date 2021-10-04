@@ -69,4 +69,4 @@ class Reverser(ABC):
         reversals = self._get_reversals()
         for reversal in reversals:
             for assignment in reversal.assignments:
-                assignment.apply(reversal.quib)
+                reversal.quib.assign(value=assignment.value, indices=assignment.key)

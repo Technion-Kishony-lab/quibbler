@@ -158,12 +158,7 @@ class Quib(ABC):
         are lazy, so a function quib might need to calculate uncached values and might
         even have to calculate the values of its dependencies.
         """
-        value = deep_copy_without_quibs_or_artists(self._get_inner_value())
-        if self._overrider.is_global_override():
-            value = self._overrider.get_global_override(self._assignment_template)
-        else:
-            self._overrider.override_collection(value, self._assignment_template)
-        return value
+        return self._overrider.override(self._get_inner_value(), self._assignment_template)
 
     def get_override_list(self) -> Overrider:
         """
