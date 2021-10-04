@@ -38,9 +38,9 @@ class FunctionQuib(Quib):
                  cache_behavior: Optional[CacheBehavior],
                  assignment_template: Optional[AssignmentTemplate] = None):
         super().__init__(assignment_template=assignment_template)
-        self.func = func
-        self.args = args
-        self.kwargs = kwargs
+        self._func = func
+        self._args = args
+        self._kwargs = kwargs
         self._cache_behavior = None
 
         if cache_behavior is None:
@@ -81,6 +81,18 @@ class FunctionQuib(Quib):
 
         quib_supporting_func_wrapper.__annotations__['return'] = cls
         return quib_supporting_func_wrapper
+
+    @property
+    def func(self):
+        return self._func
+
+    @property
+    def args(self):
+        return self._args
+
+    @property
+    def kwargs(self):
+        return self._kwargs
 
     def assign(self, value: Any, indices: Optional = None) -> None:
         from pyquibbler.quib.assignment.reverse_assignment import CannotReverseUnknownFunctionException, \
