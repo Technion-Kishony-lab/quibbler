@@ -1,6 +1,8 @@
-from typing import Any, Iterable
+from __future__ import annotations
+from typing import Any, Iterable, TYPE_CHECKING
 
-from pyquibbler.quib import Quib
+if TYPE_CHECKING:
+    from pyquibbler.quib import Quib
 
 
 def assign_data(quib: Quib, indices: Any, data_to_set: Any):

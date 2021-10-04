@@ -1,17 +1,15 @@
 import functools
-
-import pytest
+import matplotlib.pyplot as plt
+from importlib import import_module
 from matplotlib.testing.decorators import image_comparison
 
-import matplotlib.pyplot as plt
 from pyquibbler import iquib
+from pyquibbler.quib.graphics import GraphicsFunctionQuib
 from pyquibbler.quib.graphics import redraw_axes
 
 # This import is critical!! Do not delete!!
 # This imports a fixture (it has autouse=True) that cleans up matplotlib stuffs our tests do
-from matplotlib.testing.conftest import mpl_test_settings
-
-from pyquibbler.quib.graphics import GraphicsFunctionQuib, override_axes_methods
+mpl_test_settings = import_module('matplotlib.testing.conftest').mpl_test_settings
 
 
 def run_graphics_function_quib_and_redraw(q: GraphicsFunctionQuib):

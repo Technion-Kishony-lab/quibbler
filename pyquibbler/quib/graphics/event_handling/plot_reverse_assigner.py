@@ -1,10 +1,8 @@
-from typing import Tuple, Any, Iterable, List, TYPE_CHECKING
-
+from typing import Tuple, Any, List, TYPE_CHECKING
 from matplotlib.backend_bases import PickEvent, MouseEvent
 
-from pyquibbler.quib import Quib
-from pyquibbler.quib.graphics.event_handling.graphics_reverse_assigner import graphics_reverse_assigner
-from pyquibbler.quib.graphics.event_handling.utils import assign_data
+from .graphics_reverse_assigner import graphics_reverse_assigner
+from .utils import assign_data
 
 if TYPE_CHECKING:
     from pyquibbler.quib.graphics.graphics_function_quib import GraphicsFunctionQuib
@@ -56,6 +54,7 @@ def assign_data_for_axes(function_quib: 'GraphicsFunctionQuib',
     """
     Assign data for an axes (x or y) to all relevant quib args
     """
+    from pyquibbler.quib import Quib
     # mouse_event.xdata and mouse_event.ydata can be None if the mouse is outside the figure
     if value is None:
         return
@@ -66,7 +65,8 @@ def assign_data_for_axes(function_quib: 'GraphicsFunctionQuib',
 
 
 @graphics_reverse_assigner('Axes.plot')
-def reverse_assign_axes_plot(pick_event: PickEvent, mouse_event: MouseEvent, function_quib: 'GraphicsFunctionQuib') -> None:
+def reverse_assign_axes_plot(pick_event: PickEvent, mouse_event: MouseEvent,
+                             function_quib: 'GraphicsFunctionQuib') -> None:
     indices = pick_event.ind
     x_arg_indices, y_arg_indices = get_xdata_arg_indices_and_ydata_arg_indices(function_quib.args)
     assign_data_for_axes(function_quib, x_arg_indices, indices, mouse_event.xdata)

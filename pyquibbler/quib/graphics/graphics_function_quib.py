@@ -11,14 +11,17 @@ from matplotlib.spines import Spine
 from matplotlib.table import Table
 from matplotlib.text import Text
 
+from . import global_collecting
 from .event_handling import CanvasEventHandler
 from ..assignment import AssignmentTemplate
-from ..utils import call_func_with_quib_values, iter_object_type_in_args
 from ..function_quibs import DefaultFunctionQuib, CacheBehavior
-from . import global_collecting
+from ..utils import call_func_with_quib_values, iter_object_type_in_args
 
 
 class GraphicsFunctionQuib(DefaultFunctionQuib):
+    # Avoid unnecessary repaints
+    _DEFAULT_CACHE_BEHAVIOR = CacheBehavior.ON
+
     TYPES_TO_ARTIST_ARRAY_NAMES = {
         Line2D: "lines",
         Collection: "collections",
