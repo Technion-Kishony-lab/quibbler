@@ -86,9 +86,7 @@ class FunctionQuib(Quib):
         from pyquibbler.quib.assignment.reverse_assignment import CannotReverseUnknownFunctionException, \
             reverse_function_quib
         try:
-            reverse_function_quib(function_quib=self,
-                                  indices=indices,
-                                  value=value)
+            reverse_function_quib(function_quib=self, indices=indices, value=value)
         except CannotReverseUnknownFunctionException:
             super(FunctionQuib, self).assign(value=value, indices=indices)
 
