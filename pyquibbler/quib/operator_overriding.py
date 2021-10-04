@@ -25,8 +25,32 @@ from .quib import Quib
 OVERRIDES = magicmethods.arithmetic + magicmethods.rarithmetic
 
 
+MAGIC_METHOD_IMPLEMENTATIONS = {}
+
+
+def magic_method_implementation(name: str):
+    def _decorator(func):
+        MAGIC_METHOD_IMPLEMENTATIONS[name] = func
+        return func
+    return _decorator
+
+
+@magic_method_implementation("__add__")
+def add_wrapper(self, *args, **_):
+    # In python, when using the plus sign, Python will first attempt to use .__add__ of the left side, and
+    # then if NotImplemented is returned, will use .__radd__ of the right side.
+    # Since we always return Quibs, we'll never return a NotImplemented for our __add__, even if potentially our
+    # value would in fact return a NotImplemented.
+    # If we simply run __add__ when we're finally meant to actually get the result, we're potentially just returning
+    # NotImplemented. This is why we need to simulate a plus sign and not just call it.
+    return self + args[0]
+
+
 def get_magic_method_wrapper(name: str):
-    return DefaultFunctionQuib.create_wrapper(lambda val, *args, **kwargs: getattr(val, name)(*args, **kwargs))
+    func = lambda val, *args, **kwargs: getattr(val, name)(*args, **kwargs)
+    if name in MAGIC_METHOD_IMPLEMENTATIONS:
+        func = MAGIC_METHOD_IMPLEMENTATIONS[name]
+    return DefaultFunctionQuib.create_wrapper(func)
 
 
 def override_quib_operators():

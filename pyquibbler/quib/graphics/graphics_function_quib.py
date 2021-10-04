@@ -11,6 +11,7 @@ from matplotlib.spines import Spine
 from matplotlib.table import Table
 from matplotlib.text import Text
 
+from .event_handling import CanvasEventHandler
 from ..assignment import AssignmentTemplate
 from ..utils import call_func_with_quib_values, iter_object_type_in_args
 from ..function_quibs import DefaultFunctionQuib, CacheBehavior
@@ -47,6 +48,12 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         return self
 
     def persist_self_on_artists(self):
+        """
+        Persist self on on all artists we're connected to, making sure we won't be garbage collected until they are
+        off the screen
+        We need to also go over args as there may be a situation in which the function did not create new artists, but
+        did perform an action on an existing one, such as Axes.set_xlim
+        """
         for artist in chain(self._artists, iter_object_type_in_args(Artist, self.args, self.kwargs)):
             quibs = getattr(artist, "graphics_function_quibs", set())
             quibs.add(self)
@@ -130,9 +137,9 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
 
         with global_collecting.global_graphics_collecting_mode():
             func_res = call_func_with_quib_values(self.func, self.args, self.kwargs)
-
         self._artists = global_collecting.get_artists_collected()
         self.persist_self_on_artists()
+        self.track_artists()
 
         current_axeses_to_array_names_to_artists = self._get_axeses_to_array_names_to_artists()
         self._update_new_artists_from_previous_artists(previous_axeses_to_array_names_to_indices_and_artists,
@@ -161,10 +168,15 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
                 exemplifying_artist = artists[0]
                 array = getattr(exemplifying_artist.axes, array_name)
                 array_names_to_indices_and_artists[array_name] = (array.index(exemplifying_artist), artists)
+
         return axeses_to_array_names_to_indices_and_artists
 
     def get_axeses(self) -> List[Axes]:
         return list(self._get_axeses_to_array_names_to_artists().keys())
+
+    def track_artists(self):
+        for artist in self._artists:
+            CanvasEventHandler.get_or_create_initialized_event_handler(artist.figure.canvas)
 
     def _call_func(self):
         """
@@ -175,6 +187,5 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         # Get the *current* artists together with their starting indices (per axes per artists array) so we can
         # place the new artists we create in their correct locations
         axeses_to_array_names_to_indices_and_artists = self._get_axeses_to_array_names_to_starting_indices_and_artists()
-
         self._remove_current_artists()
         return self._create_new_artists(axeses_to_array_names_to_indices_and_artists)

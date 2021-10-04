@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from collections import Iterable
 from dataclasses import dataclass
 from operator import getitem
 from typing import Set, Any, TYPE_CHECKING, Optional, Tuple
@@ -105,6 +106,7 @@ class Quib(ABC):
 
     def assign(self, value: Any, indices: Optional = None) -> None:
         self._override(indices, value)
+        self.invalidate_and_redraw()
 
     def __getitem__(self, item):
         # We don't use the normal operator_overriding interface for two reasons:
@@ -117,7 +119,6 @@ class Quib(ABC):
 
     def __setitem__(self, key, value):
         self.assign(value=value, indices=key)
-        self.invalidate_and_redraw()
 
     def get_assignment_template(self) -> AssignmentTemplate:
         return self._assignment_template
@@ -158,7 +159,10 @@ class Quib(ABC):
         even have to calculate the values of its dependencies.
         """
         value = deep_copy_without_quibs_or_artists(self._get_inner_value())
-        self._overrider.override(value, self._assignment_template)
+        if self._overrider.is_global_override():
+            value = self._overrider.get_global_override(self._assignment_template)
+        else:
+            self._overrider.override_collection(value, self._assignment_template)
         return value
 
     def get_override_list(self) -> Overrider:
@@ -209,3 +213,4 @@ class Quib(ABC):
         items - `a, b = iquib([1, 2, 3, 4]).iter_first()` is the same as `a, b = iquib([1, 2, 3, 4]).iter_first(2)`.
         """
         return Unpacker(self, amount)
+
