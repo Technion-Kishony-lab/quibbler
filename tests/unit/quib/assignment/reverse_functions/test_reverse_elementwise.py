@@ -64,3 +64,25 @@ def test_reverse_elementwise(function_quib: FunctionQuib, indices, value, quib_a
                           value=value)
 
     assert np.array_equal(function_quib.args[quib_arg_index].get_value(), expected_value)
+
+
+def test_reverse_elementwise_operator():
+    q = iquib(np.array([5, 5, 5]))
+    function_quib = q + 3
+
+    reverse_function_quib(function_quib=function_quib,
+                          indices=0,
+                          value=7)
+
+    assert np.array_equal(q.get_value(), [4, 5, 5])
+
+
+def test_reverse_elementwise_on_int():
+    q = iquib(5)
+    function_quib = q + 3
+
+    reverse_function_quib(function_quib=function_quib,
+                          indices=None,
+                          value=7)
+
+    assert q.get_value() == 4

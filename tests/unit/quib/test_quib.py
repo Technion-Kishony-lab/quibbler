@@ -37,7 +37,6 @@ def assignment_template_mock():
     mock.convert.return_value = 'assignment_template_mock.convert.return_value'
     return mock
 
-
 def test_quib_invalidate_and_redraw_calls_graphics_function_quib_children(example_quib):
     mock_func = mock.Mock()
     mock_func.return_value = []
@@ -203,3 +202,12 @@ def test_quib_getitem(example_quib):
     assert function_quib.func == operator.getitem
     assert function_quib.get_value() == example_quib.value[0]
 
+
+# Regression test
+def test_quib_add_with_float_does_not_return_not_implemented():
+    function_quib = ExampleQuib(1)
+    add_function_quib = function_quib + 1.2
+
+    value = add_function_quib.get_value()
+
+    assert value == 2.2
