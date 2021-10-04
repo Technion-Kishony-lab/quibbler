@@ -1,5 +1,5 @@
 # Test artifacts
-/result_images/
+result_images/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

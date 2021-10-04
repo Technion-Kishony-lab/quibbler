@@ -1,16 +1,7 @@
-from unittest import mock
-
 import numpy as np
-import pytest
 
 from pyquibbler import iquib
-from pyquibbler.quib import override_numpy_functions
 from pyquibbler.quib.graphics import GraphicsFunctionQuib
-
-
-@pytest.fixture(autouse=True)
-def override():
-    override_numpy_functions()
 
 
 def test_holistic_function_quib_with_numpy_applier():

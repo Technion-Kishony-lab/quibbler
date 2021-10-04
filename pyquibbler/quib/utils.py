@@ -295,6 +295,21 @@ def is_there_a_quib_in_args(args, kwargs):
 
 
 def quib_method(func: Callable) -> Callable:
+    """
+    A decorator for methods of Quib classes that should return quibs that depend on self.
+    For example:
+    ```
+    Class ExampleQuib(Quib):
+        @quib_method
+        def method(self, some_quib_val):
+            return 1
+
+    example_quib = ExampleQuib()
+    # This will return a quib that depends both on example_quib and on some_quib.
+    example_quib.method(some_quib)
+    ```
+    """
+
     @wraps(func)
     def quib_supporting_method_wrapper(self, *args, **kwargs):
         from pyquibbler.quib import DefaultFunctionQuib

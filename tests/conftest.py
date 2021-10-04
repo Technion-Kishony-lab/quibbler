@@ -1,6 +1,6 @@
 from pytest import fixture
 
-from pyquibbler import CacheBehavior
+from pyquibbler import CacheBehavior, override_all
 from pyquibbler.env import set_debug, is_debug
 from pyquibbler.quib import FunctionQuib
 
@@ -10,6 +10,7 @@ DEFAULT_DEBUG = True
 @fixture(scope="session", autouse=True)
 def setup_environment_for_tests():
     FunctionQuib._DEFAULT_CACHE_BEHAVIOR = CacheBehavior.ON
+    override_all()
 
 
 def pytest_configure(config):
