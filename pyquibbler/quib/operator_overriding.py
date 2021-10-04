@@ -7,6 +7,9 @@ The first method has the advantage of being simple and easy to implement, but th
 magic method call, and not being able to handle cases where a magic method is not present on a built-in type but the
 operator works anyway (e.g. float.__ceil__).
 """
+import functools
+from typing import Type, Callable
+
 import magicmethods
 
 from .function_quibs import DefaultFunctionQuib
@@ -26,6 +29,7 @@ OVERRIDES = magicmethods.arithmetic + magicmethods.rarithmetic
 
 
 MAGIC_METHOD_IMPLEMENTATIONS = {}
+MAGIC_METHOD_IMPLEMENTATIONS_PER_CLASS = {}
 
 
 def magic_method_implementation(name: str):
@@ -35,7 +39,26 @@ def magic_method_implementation(name: str):
     return _decorator
 
 
-@magic_method_implementation("__add__")
+def get_magic_method_implementation_for_cls(cls: Type, func_name: str) -> Callable:
+    """
+    Gets the magic method implementation for a class and a function name.
+    When a quib of the above type is called with this magic method, the DefaultFunctionQuib is guaranteed to be built
+    with the returned function.
+    """
+    if func_name not in MAGIC_METHOD_IMPLEMENTATIONS:
+        return getattr(cls, func_name)
+
+    @functools.wraps(getattr(cls, func_name))
+    def _wrapper(*args, **kwargs):
+        return func(*args, **kwargs)
+
+    func = MAGIC_METHOD_IMPLEMENTATIONS[func_name]
+    MAGIC_METHOD_IMPLEMENTATIONS_PER_CLASS.setdefault(cls, {}).setdefault(func_name, _wrapper)
+
+    return MAGIC_METHOD_IMPLEMENTATIONS_PER_CLASS[cls][func_name]
+
+
+@magic_method_implementation('__add__')
 def add_wrapper(self, *args, **_):
     # In python, when using the plus sign, Python will first attempt to use .__add__ of the left side, and
     # then if NotImplemented is returned, will use .__radd__ of the right side.
@@ -47,10 +70,13 @@ def add_wrapper(self, *args, **_):
 
 
 def get_magic_method_wrapper(name: str):
-    func = lambda val, *args, **kwargs: getattr(val, name)(*args, **kwargs)
-    if name in MAGIC_METHOD_IMPLEMENTATIONS:
-        func = MAGIC_METHOD_IMPLEMENTATIONS[name]
-    return DefaultFunctionQuib.create_wrapper(func)
+    def _wrapper(self, *args, **kwargs):
+        return DefaultFunctionQuib.create(func=get_magic_method_implementation_for_cls(type(self.get_value()),
+                                                                                       func_name=name),
+                                          func_args=(self, *args),
+                                          func_kwargs=kwargs)
+
+    return _wrapper
 
 
 def override_quib_operators():
