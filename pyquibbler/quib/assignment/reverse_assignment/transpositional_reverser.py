@@ -1,13 +1,16 @@
-from operator import getitem
-from typing import Dict, List
-
+from __future__ import annotations
 import numpy as np
+from operator import getitem
+from typing import Dict, List, TYPE_CHECKING
 
-from pyquibbler.quib import Quib
 from pyquibbler.quib.assignment import Assignment
-from .reverser import Reversal, Reverser
 from pyquibbler.quib.assignment.reverse_assignment.utils import create_empty_array_with_values_at_indices
 from pyquibbler.quib.utils import recursively_run_func_on_object
+
+from .reverser import Reversal, Reverser
+
+if TYPE_CHECKING:
+    from pyquibbler.quib import Quib
 
 
 class TranspositionalReverser(Reverser):
@@ -33,6 +36,7 @@ class TranspositionalReverser(Reverser):
         """
         Runs the function with each quib's ids instead of it's values
         """
+        from pyquibbler.quib import Quib
         quibs_to_ids = self._get_quibs_to_ids()
 
         def replace_quib_with_id(obj):
@@ -93,6 +97,7 @@ class TranspositionalReverser(Reverser):
         """
         Get a mapping of quibs to their referenced indices at a *specific dimension*
         """
+        from pyquibbler.quib import Quib
         quibs_to_index_grids = self._get_quibs_to_index_grids()
         quibs_to_masks = self._get_quibs_to_masks()
 

@@ -1,9 +1,9 @@
-from operator import getitem
-
 import numpy as np
+from operator import getitem
+from pytest import mark
 
 from pyquibbler import iquib
-from pyquibbler.quib import DefaultFunctionQuib, Quib
+from pyquibbler.quib import DefaultFunctionQuib
 from pyquibbler.quib.assignment.reverse_assignment import reverse_function_quib
 
 
@@ -56,3 +56,12 @@ def test_reverse_getitem():
             value=100)
 
     assert np.array_equal(quib_arg.get_value(), np.array([[1, 2, 3], [100, 5, 6]]))
+
+
+def test_reverse_assign_to_sub_array():
+    a = iquib(np.array([0, 1, 2]))
+    b = a[:2]
+
+    b.assign([3, 4])
+
+    assert np.array_equal(a.get_value(), [3, 4, 2])

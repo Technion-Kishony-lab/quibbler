@@ -1,6 +1,5 @@
-from unittest import mock
-
 import pytest
+from unittest import mock
 
 from pyquibbler.quib import DefaultFunctionQuib
 from pyquibbler.quib.assignment.reverse_assignment import reverse_function_quib, CannotReverseUnknownFunctionException

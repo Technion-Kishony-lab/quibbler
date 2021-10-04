@@ -1,5 +1,5 @@
 from __future__ import annotations
-
+from pyquibbler.quib.assignment.reverse_assignment import CannotReverseUnknownFunctionException, reverse_function_quib
 from enum import Enum
 from functools import wraps
 from typing import List, Callable, Any, Mapping, Tuple, Optional
@@ -96,8 +96,6 @@ class FunctionQuib(Quib):
         return self._kwargs
 
     def assign(self, value: Any, indices: Optional = None) -> None:
-        from pyquibbler.quib.assignment.reverse_assignment import CannotReverseUnknownFunctionException, \
-            reverse_function_quib
         try:
             reverse_function_quib(function_quib=self, indices=indices, value=value)
         except CannotReverseUnknownFunctionException:
