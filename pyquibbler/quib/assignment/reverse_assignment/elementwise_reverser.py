@@ -1,3 +1,4 @@
+import math
 from typing import Any, List, Dict, Callable
 
 import numpy as np
@@ -54,6 +55,19 @@ class ElementWiseReverser(Reverser):
             0: np.multiply,
             1: np.divide
         }),
+
+        magic_method(int, '__add__'): create_inverse_function_from_indexes_to_funcs(
+            {
+                i: int.__sub__ for i in range(2)
+            }
+        ),
+
+        magic_method(int, '__pow__'): create_inverse_function_from_indexes_to_funcs(
+            {
+                0: lambda x, n: x**(1/n),
+                1: lambda x, n: math.log(n, x)
+            }
+        ),
     }
 
     SUPPORTED_FUNCTIONS = list(FUNCTIONS_TO_INVERSE_FUNCTIONS.keys())
@@ -97,6 +111,7 @@ class ElementWiseReverser(Reverser):
         return [Reversal(
             quib=quib_to_change,
             assignments=[
-                Assignment(changed_indices, new_quib_argument_value[self._indices])
+                Assignment(changed_indices, new_quib_argument_value[self._indices]
+                if self._indices is not None else new_quib_argument_value)
             ]
         )]

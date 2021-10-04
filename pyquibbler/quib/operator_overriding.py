@@ -29,6 +29,7 @@ OVERRIDES = magicmethods.arithmetic + magicmethods.rarithmetic
 
 
 MAGIC_METHOD_IMPLEMENTATIONS = {}
+MAGIC_METHOD_IMPLEMENTATIONS_PER_CLASS = {}
 
 
 def magic_method_implementation(name: str):
@@ -46,7 +47,15 @@ def get_magic_method_implementation_for_cls(cls: Type, func_name: str) -> Callab
     """
     if func_name not in MAGIC_METHOD_IMPLEMENTATIONS:
         return getattr(cls, func_name)
-    return MAGIC_METHOD_IMPLEMENTATIONS[func_name]
+
+    @functools.wraps(getattr(cls, func_name))
+    def _wrapper(*args, **kwargs):
+        return func(*args, **kwargs)
+
+    func = MAGIC_METHOD_IMPLEMENTATIONS[func_name]
+    MAGIC_METHOD_IMPLEMENTATIONS_PER_CLASS.setdefault(cls, {}).setdefault(func_name, _wrapper)
+
+    return MAGIC_METHOD_IMPLEMENTATIONS_PER_CLASS[cls][func_name]
 
 
 @magic_method_implementation('__add__')

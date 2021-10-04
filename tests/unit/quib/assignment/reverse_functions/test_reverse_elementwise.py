@@ -1,3 +1,5 @@
+from collections import Iterable
+
 import numpy as np
 import pytest
 
@@ -46,8 +48,12 @@ from pyquibbler.quib.assignment.reverse_assignment import reverse_function_quib
     (DefaultFunctionQuib.create(func=np.divide,
                                 func_args=(np.array([20, 20, 20]),
                                            iquib(np.array([5, 5, 5])))),
-     ([0]), 5, 1, np.array([4, 5, 5])
+     ([0]), 5, 1, np.array([4, 5, 5]),
      ),
+    (DefaultFunctionQuib.create(func=int.__pow__,
+                                func_args=(iquib(10), 2)), None, 10_000, 0, 100),
+    (DefaultFunctionQuib.create(func=int.__pow__,
+                                func_args=(10, iquib(1))), None, 100, 1, 2)
 
 ], ids=["add: simple",
         "add: multiple dimensions",
@@ -56,14 +62,20 @@ from pyquibbler.quib.assignment.reverse_assignment import reverse_function_quib
         "subtract: second arg is quib",
         "multiply",
         "divide: first arg is quib",
-        "divide: second arg is quib"])
+        "divide: second arg is quib",
+        "power: first arg is quib",
+        "power: second arg is quib"])
 def test_reverse_elementwise(function_quib: FunctionQuib, indices, value, quib_arg_index, expected_value):
 
     reverse_function_quib(function_quib=function_quib,
                           indices=indices,
                           value=value)
 
-    assert np.array_equal(function_quib.args[quib_arg_index].get_value(), expected_value)
+    value = function_quib.args[quib_arg_index].get_value()
+    if isinstance(expected_value, Iterable):
+        assert np.array_equal(value, expected_value)
+    else:
+        assert value == expected_value
 
 
 def test_reverse_elementwise_operator():
