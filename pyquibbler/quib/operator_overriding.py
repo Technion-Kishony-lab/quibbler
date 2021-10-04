@@ -1,82 +1,76 @@
 """
-Override Quib operators by replacing magic methods with Quibs that represent the getattr of these magic methods
-from the original values.
-This could also be done by replacing the magic methods with Quib function wrappers
-(see commit 6d06b9fe76e3b7279c1dd737152d9c3cc586ebec).
-The first method has the advantage of being simple and easy to implement, but the disadvantage of create two quibs per
-magic method call, and not being able to handle cases where a magic method is not present on a built-in type but the
-operator works anyway (e.g. float.__ceil__).
+Override Quib operators by replacing magic methods with function quib wrappers that wrap operator function
+from the operator module.
+We have to use the operator functions in order to allow builtin operator functionality:
+1. Calling reverse arithmetic operations when the normal ones return NotImplemented
+2. Cases where a magic method is not present on a built-in type but the operator works anyway (e.g. float.__ceil__).
 """
-import functools
-from typing import Type, Callable
-
-import magicmethods
+import operator
+from math import trunc, floor, ceil
+from typing import Callable, Tuple
 
 from .function_quibs import DefaultFunctionQuib
 from .quib import Quib
 
-## Reasons for skipping some magic method groups:
-# typeconv:              python checks that the return value is of the expected type
-# lifecycle, reflection: don't want to mess with that
-# iassign, pickling:     not supported at the moment
-# attributes:            overriding manually
-# contextmanagers:       doesn't make sense to override
-# descriptors:           Quibs shouldn't be used as descriptors
-# copying:               already defined on the Quib class
-# unary:                 not all builtin types implement them, so getattr fails (e.g. float.__ceil__)
-# comparison, callables, representation, containers: change python's behavior unexpectedly
-OVERRIDES = magicmethods.arithmetic + magicmethods.rarithmetic
+
+def operator_override(operator_name: str) -> Tuple[str, Callable]:
+    return operator_name, getattr(operator, operator_name)
 
 
-MAGIC_METHOD_IMPLEMENTATIONS = {}
-MAGIC_METHOD_IMPLEMENTATIONS_PER_CLASS = {}
+def reverse_operator_override(operator_name: str) -> Tuple[str, Callable]:
+    non_reverse_operator = getattr(operator, '__' + operator_name[3:])
+    return operator_name, lambda self, other: non_reverse_operator(other, self)
 
 
-def magic_method_implementation(name: str):
-    def _decorator(func):
-        MAGIC_METHOD_IMPLEMENTATIONS[name] = func
-        return func
-    return _decorator
+ARITHMETIC_OVERRIDES = [
+    operator_override('__add__'),
+    operator_override('__sub__'),
+    operator_override('__mul__'),
+    operator_override('__matmul__'),
+    operator_override('__truediv__'),
+    operator_override('__floordiv__'),
+    operator_override('__mod__'),
+    ('__divmod__', divmod),
+    operator_override('__pow__'),
+    operator_override('__lshift__'),
+    operator_override('__rshift__'),
+    operator_override('__and__'),
+    operator_override('__xor__'),
+    operator_override('__or__'),
+]
 
+REVERSE_ARITHMETIC_OVERRIDES = [
+    reverse_operator_override('__radd__'),
+    reverse_operator_override('__rsub__'),
+    reverse_operator_override('__rmul__'),
+    reverse_operator_override('__rmatmul__'),
+    reverse_operator_override('__rtruediv__'),
+    reverse_operator_override('__rfloordiv__'),
+    reverse_operator_override('__rmod__'),
+    ('__rdivmod__', lambda self, other: divmod(other, self)),
+    reverse_operator_override('__rpow__'),
+    reverse_operator_override('__rlshift__'),
+    reverse_operator_override('__rrshift__'),
+    reverse_operator_override('__rand__'),
+    reverse_operator_override('__rxor__'),
+    reverse_operator_override('__ror__'),
+]
 
-def get_magic_method_implementation_for_cls(cls: Type, func_name: str) -> Callable:
-    """
-    Gets the magic method implementation for a class and a function name.
-    When a quib of the above type is called with this magic method, the DefaultFunctionQuib is guaranteed to be built
-    with the returned function.
-    """
-    if func_name not in MAGIC_METHOD_IMPLEMENTATIONS:
-        return getattr(cls, func_name)
+UNARY_OVERRIDES = [
+    operator_override('__neg__'),
+    operator_override('__pos__'),
+    operator_override('__abs__'),
+    operator_override('__invert__'),
+]
 
-    @functools.wraps(getattr(cls, func_name))
-    def _wrapper(*args, **kwargs):
-        return func(*args, **kwargs)
+ROUNDING_OVERRIDES = [
+    ('__round__', round),
+    ('__trunc__', trunc),
+    ('__floor__', floor),
+    ('__ceil__', ceil),
+]
 
-    func = MAGIC_METHOD_IMPLEMENTATIONS[func_name]
-    MAGIC_METHOD_IMPLEMENTATIONS_PER_CLASS.setdefault(cls, {}).setdefault(func_name, _wrapper)
-
-    return MAGIC_METHOD_IMPLEMENTATIONS_PER_CLASS[cls][func_name]
-
-
-@magic_method_implementation('__add__')
-def add_wrapper(self, *args, **_):
-    # In python, when using the plus sign, Python will first attempt to use .__add__ of the left side, and
-    # then if NotImplemented is returned, will use .__radd__ of the right side.
-    # Since we always return Quibs, we'll never return a NotImplemented for our __add__, even if potentially our
-    # value would in fact return a NotImplemented.
-    # If we simply run __add__ when we're finally meant to actually get the result, we're potentially just returning
-    # NotImplemented. This is why we need to simulate a plus sign and not just call it.
-    return self + args[0]
-
-
-def get_magic_method_wrapper(name: str):
-    def _wrapper(self, *args, **kwargs):
-        return DefaultFunctionQuib.create(func=get_magic_method_implementation_for_cls(type(self.get_value()),
-                                                                                       func_name=name),
-                                          func_args=(self, *args),
-                                          func_kwargs=kwargs)
-
-    return _wrapper
+ALL_OVERRIDES = ARITHMETIC_OVERRIDES + REVERSE_ARITHMETIC_OVERRIDES + UNARY_OVERRIDES + ROUNDING_OVERRIDES
 
 
 def override_quib_operators():
@@ -86,7 +80,6 @@ def override_quib_operators():
     through the standard getattr process.
     See more here: https://docs.python.org/3/reference/datamodel.html#special-method-lookup
     """
-    # Override a bunch of magic methods to enable operators to work.
-    for magic_method_name in OVERRIDES:
-        assert magic_method_name not in vars(Quib), magic_method_name
-        setattr(Quib, magic_method_name, get_magic_method_wrapper(magic_method_name))
+    for name, wrapped in ALL_OVERRIDES:
+        assert name not in vars(Quib), name
+        setattr(Quib, name, DefaultFunctionQuib.create_wrapper(wrapped))

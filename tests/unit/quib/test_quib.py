@@ -1,14 +1,14 @@
 import operator
+from math import trunc, floor, ceil
 from unittest import mock
 from unittest.mock import Mock
-
-import magicmethods
 import numpy as np
 from pytest import mark, raises, fixture
 
 from pyquibbler.quib import Quib
 from pyquibbler.quib.assignment import RangeAssignmentTemplate, BoundAssignmentTemplate
 from pyquibbler.quib.graphics import GraphicsFunctionQuib
+from pyquibbler.quib.operator_overriding import ARITHMETIC_OVERRIDES, UNARY_OVERRIDES
 from pyquibbler.quib.quib import QuibIsNotNdArrayException
 from .utils import get_mock_with_repr, slicer
 
@@ -37,6 +37,7 @@ def assignment_template_mock():
     mock.convert.return_value = 'assignment_template_mock.convert.return_value'
     return mock
 
+
 def test_quib_invalidate_and_redraw_calls_graphics_function_quib_children(example_quib):
     mock_func = mock.Mock()
     mock_func.return_value = []
@@ -48,17 +49,68 @@ def test_quib_invalidate_and_redraw_calls_graphics_function_quib_children(exampl
     mock_func.assert_called_once()
 
 
-@mark.parametrize('operator_name', set(magicmethods.arithmetic) - {'__div__', '__divmod__'})
-def test_quib_forward_and_reverse_binary_operators(operator_name: str):
-    op = getattr(operator, operator_name, None)
+@mark.parametrize(['val1', 'val2'], [
+    (1, 2),
+    (1., 2.),
+    (1., 2),
+    (1, 2.)
+])
+@mark.parametrize('operator_name', {override[0] for override in ARITHMETIC_OVERRIDES} - {'__matmul__', '__divmod__'})
+def test_quib_forward_and_reverse_arithmetic_operators(operator_name: str, val1, val2):
+    op = getattr(operator, operator_name)
+    quib1 = ExampleQuib(val1)
+    quib2 = ExampleQuib(val2)
+
+    if (isinstance(val1, float) or isinstance(val2, float)) and operator_name in {'__rshift__', '__lshift__', '__or__',
+                                                                                  '__and__', '__xor__'}:
+        # Bitwise operators don't work with floats
+        result_quib = op(quib1, quib2)
+        with raises(TypeError):
+            result_quib.get_value()
+
+    else:
+        # Forward operators
+        assert op(quib1, quib2).get_value() == op(val1, val2)
+        assert op(quib1, val2).get_value() == op(val1, val2)
+        # Reverse operators
+        assert op(val1, quib2).get_value() == op(val1, val2)
+
+
+def test_quib_divmod():
     quib1 = ExampleQuib(1)
     quib2 = ExampleQuib(2)
 
-    # Forward operators
-    assert op(quib1, quib2).get_value() == op(quib1.value, quib2.value)
-    assert op(quib1, quib2.value).get_value() == op(quib1.value, quib2.value)
-    # Reverse operators
-    assert op(quib1.value, quib2).get_value() == op(quib1.value, quib2.value)
+    # Forward
+    assert divmod(quib1, quib2).get_value() == divmod(quib1.value, quib2.value)
+    assert divmod(quib1, quib2.value).get_value() == divmod(quib1.value, quib2.value)
+    # Reverse
+    assert divmod(quib1.value, quib2).get_value() == divmod(quib1.value, quib2.value)
+
+
+@mark.parametrize('val', [1, 1., -1, -1.])
+@mark.parametrize('operator_name', [override[0] for override in UNARY_OVERRIDES])
+def test_quib_unary_operators(operator_name, val):
+    op = getattr(operator, operator_name)
+    quib = ExampleQuib(val)
+    result_quib = op(quib)
+
+    if isinstance(val, float) and operator_name in {'__invert__'}:
+        # Bitwise operators don't work with floats
+        with raises(TypeError):
+            result_quib.get_value()
+    else:
+        assert result_quib.get_value() == op(val)
+
+
+@mark.parametrize('val', [1, 1., -1, -1.])
+@mark.parametrize('op', [round, trunc, floor, ceil])
+def test_quib_rounding_operators(op, val):
+    quib = ExampleQuib(val)
+    result_quib = op(quib)
+
+    result = result_quib.get_value()
+
+    assert result == op(val)
 
 
 def test_quib_removes_dead_children_automatically():
@@ -203,7 +255,7 @@ def test_quib_getitem(example_quib):
     assert function_quib.get_value() == example_quib.value[0]
 
 
-# Regression test
+@mark.regression
 def test_quib_add_with_float_does_not_return_not_implemented():
     function_quib = ExampleQuib(1)
     add_function_quib = function_quib + 1.2

@@ -1,7 +1,7 @@
-from collections import Iterable
-
 import numpy as np
 import pytest
+from collections import Iterable
+from operator import __pow__
 
 from pyquibbler import iquib
 from pyquibbler.quib import DefaultFunctionQuib, FunctionQuib
@@ -10,7 +10,8 @@ from pyquibbler.quib.assignment.reverse_assignment import reverse_function_quib
 
 @pytest.mark.parametrize("function_quib,indices,value,quib_arg_index,expected_value", [
     (DefaultFunctionQuib.create(func=np.add,
-                                func_args=(iquib(np.array([2, 2, 2])), np.array([5, 5, 5]))),
+                                func_args=(iquib(np.array([2, 2, 2])),
+                                           np.array([5, 5, 5]))),
      0, 10, 0, np.array([5, 2, 2])
      ),
     (DefaultFunctionQuib.create(func=np.add,
@@ -50,9 +51,9 @@ from pyquibbler.quib.assignment.reverse_assignment import reverse_function_quib
                                            iquib(np.array([5, 5, 5])))),
      ([0]), 5, 1, np.array([4, 5, 5]),
      ),
-    (DefaultFunctionQuib.create(func=int.__pow__,
+    (DefaultFunctionQuib.create(func=__pow__,
                                 func_args=(iquib(10), 2)), None, 10_000, 0, 100),
-    (DefaultFunctionQuib.create(func=int.__pow__,
+    (DefaultFunctionQuib.create(func=__pow__,
                                 func_args=(10, iquib(1))), None, 100, 1, 2)
 
 ], ids=["add: simple",
@@ -66,7 +67,6 @@ from pyquibbler.quib.assignment.reverse_assignment import reverse_function_quib
         "power: first arg is quib",
         "power: second arg is quib"])
 def test_reverse_elementwise(function_quib: FunctionQuib, indices, value, quib_arg_index, expected_value):
-
     reverse_function_quib(function_quib=function_quib,
                           indices=indices,
                           value=value)

@@ -1,12 +1,14 @@
+from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import Any, List
+from typing import Any, List, TYPE_CHECKING
 
-
-from pyquibbler.quib import Quib, FunctionQuib
 from pyquibbler.quib.assignment import Assignment
 from pyquibbler.quib.utils import iter_quibs_in_object_recursively
+
+if TYPE_CHECKING:
+    from pyquibbler.quib import Quib, FunctionQuib
 
 
 @dataclass

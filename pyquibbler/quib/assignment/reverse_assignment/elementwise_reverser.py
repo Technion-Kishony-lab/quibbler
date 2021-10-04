@@ -1,26 +1,30 @@
+from __future__ import annotations
 import math
-from typing import Any, List, Dict, Callable
-
 import numpy as np
-
-from pyquibbler.quib import Quib
-from pyquibbler.quib.assignment.reverse_assignment.reverser import Reversal, Reverser
-from .utils import create_empty_array_with_values_at_indices
+from operator import __add__, __pow__
+from typing import Any, List, Dict, Callable, TYPE_CHECKING
 from pyquibbler.quib.assignment import Assignment
 from pyquibbler.quib.utils import call_func_with_quib_values
-from ...operator_overriding import get_magic_method_implementation_for_cls as magic_method
+
+if TYPE_CHECKING:
+    from pyquibbler.quib import Quib
+
+from .reverser import Reversal, Reverser
+from .utils import create_empty_array_with_values_at_indices
 
 
 def create_inverse_function_from_indexes_to_funcs(quib_argument_indexes_to_inverse_functions: Dict[int, Callable]):
     """
     Create an inverse function that will call actual inverse functions based on the index of the quib in the arguments
     """
+
     def _inverse(representative_result: Any, args, kwargs, quib_to_change: Quib):
         quib_index = next(i for i, v in enumerate(args) if v is quib_to_change)
         inverse_func = quib_argument_indexes_to_inverse_functions[quib_index]
         new_args = list(args)
         new_args[quib_index] = representative_result
         return call_func_with_quib_values(inverse_func, new_args, kwargs)
+
     return _inverse
 
 
@@ -36,10 +40,11 @@ class ElementWiseReverser(Reverser):
                 i: np.subtract for i in range(2)
             }
         ),
-        magic_method(np.ndarray, '__add__'): create_inverse_function_from_indexes_to_funcs({
-            0: np.subtract,
-            1: np.subtract
-        }),
+        __add__: create_inverse_function_from_indexes_to_funcs(
+            {
+                i: np.subtract for i in range(2)
+            }
+        ),
         np.multiply: create_inverse_function_from_indexes_to_funcs(
             {
                 i: np.divide for i in range(2)
@@ -55,22 +60,10 @@ class ElementWiseReverser(Reverser):
             0: np.multiply,
             1: np.divide
         }),
-
-        magic_method(int, '__add__'): create_inverse_function_from_indexes_to_funcs(
-            {
-                i: int.__sub__ for i in range(2)
-            }
-        ),
-
-        **{method: create_inverse_function_from_indexes_to_funcs(
-            {
-                0: lambda x, n: x**(1/n),
-                1: lambda x, n: math.log(n, x)
-            }
-            ) for method in [magic_method(int, '__pow__'),
-                             magic_method(np.float64, '__pow__'),
-                             magic_method(float, '__pow__')]
-        }
+        __pow__: create_inverse_function_from_indexes_to_funcs({
+            0: lambda x, n: x ** (1 / n),
+            1: lambda x, n: math.log(n, x)
+        })
     }
 
     SUPPORTED_FUNCTIONS = list(FUNCTIONS_TO_INVERSE_FUNCTIONS.keys())
@@ -87,7 +80,8 @@ class ElementWiseReverser(Reverser):
         if self._indices is None:
             return None
         index_grid = np.indices(argument_quib.get_shape().get_value())
-        broadcasted_grid = np.broadcast_to(index_grid, (index_grid.shape[0], *self._function_quib.get_shape().get_value()))
+        broadcasted_grid = np.broadcast_to(index_grid,
+                                           (index_grid.shape[0], *self._function_quib.get_shape().get_value()))
         return [
             dimension[self._indices]
             for dimension in broadcasted_grid
@@ -99,7 +93,7 @@ class ElementWiseReverser(Reverser):
         if self._indices is not None:
             shape = self._function_quib.get_shape().get_value()
             representative_result = create_empty_array_with_values_at_indices(shape,
-                                                                                self._indices, self._value)
+                                                                              self._indices, self._value)
         else:
             representative_result = self._value
 

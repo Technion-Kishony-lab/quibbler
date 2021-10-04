@@ -1,21 +1,22 @@
-from typing import Any, List, Type
-from .exceptions import CannotReverseUnknownFunctionException
+from __future__ import annotations
+from typing import Any, List, Type, TYPE_CHECKING
 
-from typing import TYPE_CHECKING
+from .exceptions import CannotReverseUnknownFunctionException
+from .elementwise_reverser import ElementWiseReverser
+from .transpositional_reverser import TranspositionalReverser
+
 if TYPE_CHECKING:
     from pyquibbler.quib import FunctionQuib
     from pyquibbler.quib.assignment.reverse_assignment.reverser import Reverser
 
 
-def reverse_function_quib(function_quib: 'FunctionQuib',
+def reverse_function_quib(function_quib: FunctionQuib,
                           indices: Any,
                           value: Any) -> None:
     """
     Given a function quib and a change in it's result (at `indices` to `value`), reverse assign relevant values
     to relevant quib arguments
     """
-    from .elementwise_reverser import ElementWiseReverser
-    from .transpositional_reverser import TranspositionalReverser
 
     reversers: List[Type[Reverser]] = [TranspositionalReverser, ElementWiseReverser]
 
