@@ -1,6 +1,6 @@
-from operator import getitem
-
 import numpy as np
+from operator import getitem
+from pytest import mark
 
 from pyquibbler import iquib
 from pyquibbler.quib import DefaultFunctionQuib

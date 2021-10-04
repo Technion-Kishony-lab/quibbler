@@ -9,6 +9,8 @@ if TYPE_CHECKING:
     from pyquibbler.quib import FunctionQuib
     from pyquibbler.quib.assignment.reverse_assignment.reverser import Reverser
 
+REVERSERS: List[Type[Reverser]] = [TranspositionalReverser, ElementWiseReverser]
+
 
 def reverse_function_quib(function_quib: FunctionQuib,
                           indices: Any,
@@ -18,9 +20,7 @@ def reverse_function_quib(function_quib: FunctionQuib,
     to relevant quib arguments
     """
 
-    reversers: List[Type[Reverser]] = [TranspositionalReverser, ElementWiseReverser]
-
-    for reverser_cls in reversers:
+    for reverser_cls in REVERSERS:
         if reverser_cls.matches(function_quib):
             reverser_cls(function_quib=function_quib, indices=indices, value=value).reverse()
             return
