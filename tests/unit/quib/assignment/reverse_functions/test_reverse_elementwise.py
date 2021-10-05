@@ -109,7 +109,7 @@ def test_quib_raises_exception_when_reversing_with_common_parent_in_multiple_arg
     x = iquib(5)
     y = x + 2
     z = x + 3
-    function_quib = y + z
+    function_quib: FunctionQuib = y + z
 
     with pytest.raises(CommonAncestorBetweenArgumentsException):
         reverse(function_quib, 20, [...])

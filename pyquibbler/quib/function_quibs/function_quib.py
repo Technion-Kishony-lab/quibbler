@@ -1,15 +1,14 @@
 from __future__ import annotations
-
 import types
-
-from pyquibbler.quib.assignment.reverse_assignment import CannotReverseUnknownFunctionException, reverse_function_quib
+from pyquibbler.quib.assignment.reverse_assignment import get_override_options
 from enum import Enum
 from functools import wraps, cached_property
 from typing import List, Callable, Any, Mapping, Tuple, Optional, Set
 
+from .utils import choose_override_dialog
 from ..assignment import AssignmentTemplate, Assignment
+from ..assignment.assignment import QuibWithAssignment
 from ..quib import Quib
-
 from ..utils import is_there_a_quib_in_args, iter_quibs_in_args, call_func_with_quib_values, \
     deep_copy_without_quibs_or_artists
 
@@ -119,13 +118,23 @@ class FunctionQuib(Quib):
     def kwargs(self):
         return self._kwargs
 
+    def _choose_and_apply_overrides(self, override_options, diverged_options):
+        if override_options:
+            if len(override_options) == 1 and not diverged_options:
+                chosen_override = override_options[0]
+            else:
+                chosen_override = choose_override_dialog(override_options, len(diverged_options) > 0)
+            if chosen_override is not None:
+                chosen_override.quib._override(chosen_override.assignment)
+                return
+
+        assert diverged_options
+        for next_override_options, next_diverged_options in diverged_options:
+            self._choose_and_apply_overrides(next_override_options, next_diverged_options)
+
     def assign(self, assignment: Assignment) -> None:
-        try:
-            reversals = reverse_function_quib(function_quib=self, assignment=assignment)
-            for reversal in reversals:
-                reversal.apply()
-        except CannotReverseUnknownFunctionException:
-            super(FunctionQuib, self).assign(assignment)
+        override_options, diverged_options = get_override_options(QuibWithAssignment(self, assignment))
+        self._choose_and_apply_overrides(override_options, diverged_options)
 
     def __repr__(self):
         return f"<{self.__class__.__name__} - {self.func}>"

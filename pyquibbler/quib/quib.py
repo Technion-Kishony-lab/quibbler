@@ -1,18 +1,16 @@
 from __future__ import annotations
-
+import numpy as np
 from abc import ABC, abstractmethod
-from collections import Iterable
 from dataclasses import dataclass
 from operator import getitem
-from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List
+from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type
 from weakref import ref as weakref
 
-import numpy as np
-
 from pyquibbler.exceptions import PyQuibblerException
+
 from .assignment import AssignmentTemplate, RangeAssignmentTemplate, BoundAssignmentTemplate, Overrider, Assignment
 from .assignment.overrider import deep_assign_data_with_paths
-from .utils import deep_copy_without_quibs_or_artists, quib_method, Unpacker, recursively_run_func_on_object
+from .utils import quib_method, Unpacker, recursively_run_func_on_object
 
 if TYPE_CHECKING:
     from pyquibbler.quib.graphics import GraphicsFunctionQuib
@@ -31,11 +29,17 @@ class Quib(ABC):
     """
     An abstract class to describe the common methods and attributes of all quib types.
     """
+    _DEFAULT_ALLOW_OVERRIDING = False
 
-    def __init__(self, assignment_template: Optional[AssignmentTemplate] = None):
+    def __init__(self,
+                 assignment_template: Optional[AssignmentTemplate] = None,
+                 allow_overriding: Optional[bool] = None):
         self._assignment_template = assignment_template
         self._children = set()
         self._overrider = Overrider()
+        if allow_overriding is None:
+            allow_overriding = self._DEFAULT_ALLOW_OVERRIDING
+        self.allow_overriding = allow_overriding
 
     def __invalidate_children_recursively(self) -> None:
         """
@@ -103,7 +107,10 @@ class Quib(ABC):
         """
         Overrides a part of the data the quib represents.
         """
+        # This is not an exception, if this function is called while overriding is not allowed then we have a bug
+        assert self.allow_overriding
         self._overrider.add_assignment(assignment)
+        self.invalidate_and_redraw()
 
     def assign(self, assignment: Assignment) -> None:
         """
@@ -111,7 +118,6 @@ class Quib(ABC):
         assignment's value
         """
         self._override(assignment)
-        self.invalidate_and_redraw()
 
     def assign_value(self, value: Any) -> None:
         """
@@ -237,4 +243,3 @@ class Quib(ABC):
         items - `a, b = iquib([1, 2, 3, 4]).iter_first()` is the same as `a, b = iquib([1, 2, 3, 4]).iter_first(2)`.
         """
         return Unpacker(self, amount)
-

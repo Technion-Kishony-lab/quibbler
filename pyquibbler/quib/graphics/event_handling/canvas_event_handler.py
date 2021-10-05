@@ -1,5 +1,7 @@
+import matplotlib.pyplot as plt
+from contextlib import contextmanager
+from threading import Lock
 from typing import Optional
-
 from matplotlib.artist import Artist
 from matplotlib.backend_bases import MouseEvent, PickEvent
 
@@ -30,6 +32,7 @@ class CanvasEventHandler:
         self.canvas = canvas
         self.current_pick_event: Optional[PickEvent] = None
         self.previous_mouse_event: Optional[PickEvent] = None
+        self._assignment_lock = Lock()
 
         self.EVENT_HANDLERS = {
             'button_release_event': self._handle_button_release,
@@ -55,12 +58,30 @@ class CanvasEventHandler:
                                                                      mouse_event=mouse_event,
                                                                      pick_event=self.current_pick_event)
 
+    @contextmanager
+    def _acquire_assignment_lock(self):
+        print(1)
+        while True:
+            if self.canvas.figure.stale:
+                self.canvas.draw_idle()
+            plt.show(block=False)
+            self.canvas.flush_events()
+            if self._assignment_lock.acquire(timeout=0.01):
+                break
+        try:
+            print(2)
+            yield
+        finally:
+            print(3)
+            self._assignment_lock.release()
+
     def _handle_motion_notify(self, mouse_event: MouseEvent):
 
         if self.current_pick_event is not None:
             drawing_func = getattr(self.current_pick_event.artist, '_quibbler_drawing_func', None)
             if drawing_func is not None:
-                self._reverse_assign_graphics(self.current_pick_event.artist, mouse_event)
+                with self._acquire_assignment_lock():
+                    self._reverse_assign_graphics(self.current_pick_event.artist, mouse_event)
 
     def initialize(self):
         """
