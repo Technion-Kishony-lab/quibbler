@@ -256,8 +256,7 @@ class TranspositionalReverser(Reverser):
             ))
         return quibs_with_assignments
 
-    def get_quibs_with_assignments(self) -> List[QuibWithAssignment]:
-
+    def get_reversed_quibs_with_assignments(self) -> List[QuibWithAssignment]:
         if self._is_getitem_with_field() or self._is_getitem_of_quib_list():
             return self._build_quibs_with_assignments_for_getitem()
 

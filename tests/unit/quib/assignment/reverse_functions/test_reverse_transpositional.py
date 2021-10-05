@@ -1,9 +1,7 @@
-from unittest import mock
-
-import numpy as np
-from operator import getitem
-
 import pytest
+import numpy as np
+from unittest import mock
+from operator import getitem
 
 from pyquibbler import iquib
 from pyquibbler.quib import DefaultFunctionQuib
@@ -12,11 +10,13 @@ from pyquibbler.quib.assignment.reverse_assignment import reverse_function_quib
 
 
 def reverse(func, indices, value, args, kwargs=None):
-    reverse_function_quib(function_quib=DefaultFunctionQuib.create(
+    reversals = reverse_function_quib(function_quib=DefaultFunctionQuib.create(
         func=func,
         func_args=args,
         func_kwargs=kwargs
     ), assignment=Assignment(value=value, paths=[indices]))
+    for reversal in reversals:
+        reversal.apply()
 
 
 def test_reverse_rot90():

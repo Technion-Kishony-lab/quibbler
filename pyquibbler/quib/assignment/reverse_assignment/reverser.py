@@ -82,7 +82,7 @@ class Reverser(ABC):
         )
 
     @abstractmethod
-    def get_quibs_with_assignments(self) -> List[QuibWithAssignment]:
+    def get_reversed_quibs_with_assignments(self) -> List[QuibWithAssignment]:
         """
         Get all reversals that need to be applied for the reversal to be complete
         (This can potentially contain multiple quibs with multiple assignments)

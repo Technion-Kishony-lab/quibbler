@@ -5,6 +5,7 @@ from .exceptions import CannotReverseUnknownFunctionException
 from .elementwise_reverser import ElementWiseReverser
 from .transpositional_reverser import TranspositionalReverser
 from .. import Assignment
+from ..assignment import QuibWithAssignment
 
 if TYPE_CHECKING:
     from pyquibbler.quib import FunctionQuib
@@ -43,8 +44,7 @@ def _run_reverser_on_function_quib_and_assignment(reverser_cls: Type[Reverser],
         quib_with_assignment.apply()
 
 
-def reverse_function_quib(function_quib: FunctionQuib,
-                          assignment: Assignment) -> None:
+def reverse_function_quib(function_quib: FunctionQuib, assignment: Assignment) -> List[QuibWithAssignment]:
     """
     Given a function quib and a change in it's result (at `indices` to `value`), reverse assign relevant values
     to relevant quib arguments
@@ -52,4 +52,4 @@ def reverse_function_quib(function_quib: FunctionQuib,
     reverser_cls = REVERSER_CLS_BY_FUNC.get(function_quib.func)
     if reverser_cls is None:
         raise CannotReverseUnknownFunctionException(function_quib.func)
-    return reverser_cls(function_quib=function_quib, assignment=assignment).reverse()
+    return reverser_cls(function_quib=function_quib, assignment=assignment).get_reversed_quibs_with_assignments()

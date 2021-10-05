@@ -10,6 +10,13 @@ from pyquibbler.quib.assignment.reverse_assignment import reverse_function_quib
 from pyquibbler.quib.assignment.reverse_assignment.elementwise_reverser import CommonAncestorBetweenArgumentsException
 
 
+def reverse(function_quib: FunctionQuib, value, paths):
+    assignment = Assignment(value, paths)
+    reversals = reverse_function_quib(function_quib=function_quib, assignment=assignment)
+    for reversal in reversals:
+        reversal.apply()
+
+
 @pytest.mark.parametrize("function_quib,indices,value,quib_arg_index,expected_value", [
     (DefaultFunctionQuib.create(func=np.add,
                                 func_args=(iquib(np.array([2, 2, 2])),
@@ -60,19 +67,17 @@ from pyquibbler.quib.assignment.reverse_assignment.elementwise_reverser import C
 
 ], ids=[
     "add: simple",
-        "add: multiple dimensions",
-        "add: result with different shape than quib",
-        "subtract: first arg is quib",
-        "subtract: second arg is quib",
-        "multiply",
-        "divide: first arg is quib",
-        "divide: second arg is quib",
-        "power: first arg is quib",
-        "power: second arg is quib"])
+    "add: multiple dimensions",
+    "add: result with different shape than quib",
+    "subtract: first arg is quib",
+    "subtract: second arg is quib",
+    "multiply",
+    "divide: first arg is quib",
+    "divide: second arg is quib",
+    "power: first arg is quib",
+    "power: second arg is quib"])
 def test_reverse_elementwise(function_quib: FunctionQuib, indices, value, quib_arg_index, expected_value):
-    assignment = Assignment(value=value, paths=[indices])
-    reverse_function_quib(function_quib=function_quib,
-                          assignment=assignment)
+    reverse(function_quib, value, [indices])
 
     value = function_quib.args[quib_arg_index].get_value()
     if isinstance(expected_value, Iterable):
@@ -83,20 +88,18 @@ def test_reverse_elementwise(function_quib: FunctionQuib, indices, value, quib_a
 
 def test_reverse_elementwise_operator():
     q = iquib(np.array([5, 5, 5]))
-    function_quib = q + 3
+    function_quib: FunctionQuib = q + 3
 
-    reverse_function_quib(function_quib=function_quib,
-                          assignment=Assignment(value=7, paths=[0]))
+    reverse(function_quib, 7, [0])
 
     assert np.array_equal(q.get_value(), [4, 5, 5])
 
 
 def test_reverse_elementwise_on_int():
     q = iquib(5)
-    function_quib = q + 3
+    function_quib: FunctionQuib = q + 3
 
-    reverse_function_quib(function_quib=function_quib,
-                          assignment=Assignment(value=7, paths=[...]))
+    reverse(function_quib, 7, paths=[...])
 
     assert q.get_value() == 4
 
@@ -109,7 +112,7 @@ def test_quib_raises_exception_when_reversing_with_common_parent_in_multiple_arg
     function_quib = y + z
 
     with pytest.raises(CommonAncestorBetweenArgumentsException):
-        reverse_function_quib(function_quib, Assignment(value=20, paths=[...]))
+        reverse(function_quib, 20, [...])
 
 
 @pytest.mark.regression
