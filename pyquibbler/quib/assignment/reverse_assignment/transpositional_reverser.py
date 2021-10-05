@@ -1,7 +1,10 @@
 from __future__ import annotations
+
+import numpy
+
 import numpy as np
 from operator import getitem
-from typing import Dict, List, TYPE_CHECKING
+from typing import Dict, List, TYPE_CHECKING, Union, Any
 
 from pyquibbler.quib.assignment import Assignment
 from pyquibbler.quib.assignment.reverse_assignment.utils import create_empty_array_with_values_at_indices
@@ -50,19 +53,26 @@ class TranspositionalReverser(Reverser):
         )
         return self._func(*arguments, *self._kwargs)
 
-    def _get_empty_function_quib_result_with_value(self) -> np.ndarray:
+    def _get_representative_function_quib_result_with_value(self) -> Union[np.ndarray, Any]:
         """
         Since we don't have the real result (may not have been computed yet),
-        we create an empty result in same shape as the real result and set the new value in it
+        we create a representative result in same shape as the real result and set the new value in it
         """
+        if self._indices is None:
+            # if the indices is None, then the entire result has been changes- therefore we can simply return the value
+            # as a representation of the whole result (since it IS the whole result)
+            return self._value
         return create_empty_array_with_values_at_indices(self._function_quib.get_shape().get_value(),
                                                          indices=self._indices, value=self._value)
 
-    def _get_bool_mask_representing_indices_in_result(self) -> np.ndarray:
+    def _get_bool_mask_representing_indices_in_result(self) -> Union[np.ndarray, bool]:
         """
         Get a boolean mask representing where the indices that were changed are in the result- this will be in
         same shape as the result
         """
+        if self._indices is None:
+            # If our indices is None, then the whole result is relevant- therefore we return a boolean mask of True
+            return True
         return create_empty_array_with_values_at_indices(self._function_quib.get_shape().get_value(),
                                                          indices=self._indices,
                                                          value=True, empty_value=False)
@@ -93,7 +103,7 @@ class TranspositionalReverser(Reverser):
             for quib in self._get_quibs_in_args()
         }
 
-    def _get_quibs_to_indices_at_dimension(self, dimension: int):
+    def _get_quibs_to_indices_at_dimension(self, dimension: int) -> Dict[Quib]:
         """
         Get a mapping of quibs to their referenced indices at a *specific dimension*
         """
@@ -139,9 +149,23 @@ class TranspositionalReverser(Reverser):
         Get a mapping of quibs to values that were both referenced in `self._indices` and came from the
         corresponding quib
         """
+        representative_result_value = self._get_representative_function_quib_result_with_value()
         quibs_to_masks = self._get_quibs_to_masks()
+
+        def get_relevant_values_for_quib(quib):
+            # Because `representative_result_value` may not be an np type, and we may not be able to successfully
+            # convert it to an np type, we need to try returning the correct value WITHOUT subscription. For example, if
+            # the mask is True or False we can immediately return the value or an empty array.
+            # An example of this is if the `representative_result_value` is an int, and out masks are `True` or
+            # `False`
+            if np.all(quibs_to_masks[quib]):
+                return representative_result_value
+            if not np.any(quibs_to_masks[quib]):
+                return np.array([])
+            return representative_result_value[quibs_to_masks[quib]]
+
         return {
-            quib: self._get_empty_function_quib_result_with_value()[quibs_to_masks[quib]]
+            quib: get_relevant_values_for_quib(quib)
             for quib in self._get_quibs_in_args()
         }
 

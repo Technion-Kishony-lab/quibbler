@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from collections import Iterable
 from dataclasses import dataclass
 from operator import getitem
-from typing import Set, Any, TYPE_CHECKING, Optional, Tuple
+from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type
 from weakref import ref as weakref
 
 import numpy as np
@@ -165,6 +165,12 @@ class Quib(ABC):
         Returns an Overrider object representing a list of overrides performed on the quib.
         """
         return self._overrider
+
+    def get_type(self) -> Type[Any]:
+        """
+        Returns the wrapped value's type
+        """
+        return type(self.get_value())
 
     @quib_method
     def get_shape(self) -> Tuple[int, ...]:

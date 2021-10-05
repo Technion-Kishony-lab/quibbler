@@ -1,5 +1,9 @@
+from unittest import mock
+
 import numpy as np
 from operator import getitem
+
+import pytest
 from pytest import mark
 
 from pyquibbler import iquib
@@ -65,3 +69,23 @@ def test_reverse_assign_to_sub_array():
     b.assign([3, 4])
 
     assert np.array_equal(a.get_value(), [3, 4, 2])
+
+
+def test_reverse_assign_pyobject_array():
+    a = iquib(np.array([mock.Mock()]))
+    new_mock = mock.Mock()
+    b = a[0]
+
+    b.assign(new_mock)
+
+    assert a.get_value() == [new_mock]
+
+
+@pytest.mark.regeression
+def test_reverse_assign_to_single_element():
+    a = iquib(np.array([0, 1, 2]))
+    b = a[1]
+
+    b.assign(3)
+
+    assert np.array_equal(a.get_value(), [0, 3, 2])
