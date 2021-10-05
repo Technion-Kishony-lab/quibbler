@@ -2,6 +2,7 @@ import pytest
 from unittest import mock
 
 from pyquibbler.quib import DefaultFunctionQuib
+from pyquibbler.quib.assignment import Assignment, IndicesAssignment
 from pyquibbler.quib.assignment.reverse_assignment import reverse_function_quib, CannotReverseUnknownFunctionException
 
 
@@ -11,8 +12,7 @@ def test_reverse_raises_exception_on_no_reverser_available():
             function_quib=DefaultFunctionQuib.create(
                 func=mock.Mock()
             ),
-            indices=0,
-            value=0
+            assignment=IndicesAssignment(indices=0, value=0, field=None)
         )
 
 #  All functionality tests reside per reverser in each of the sister modules in this package (they all still

@@ -1,6 +1,7 @@
+import numpy as np
 from pytest import fixture
 
-from pyquibbler.quib.assignment import Overrider, Assignment
+from pyquibbler.quib.assignment import Overrider, IndicesAssignment, Assignment
 
 
 @fixture
@@ -9,22 +10,38 @@ def overrider():
 
 
 def test_overrider_add_assignment_and_override(overrider):
-    overrider.add_assignment(Assignment(key=0, value=0))
+    overrider.add_assignment(IndicesAssignment(indices=0, value=0, field=None))
     new_data = overrider.override([1])
 
     assert new_data == [0]
 
 
 def test_overrider_with_global_override(overrider):
-    overrider.add_assignment(Assignment(key=None, value=[2, 3, 4]))
+    overrider.add_assignment(Assignment(value=[2, 3, 4], field=None))
     new_data = overrider.override([1, 2, 3])
 
     assert new_data == [2, 3, 4]
 
 
 def test_overrider_with_global_override_and_partial_assignments(overrider):
-    overrider.add_assignment(Assignment(key=None, value=[2, 3, 4]))
-    overrider.add_assignment(Assignment(key=0, value=100))
+    overrider.add_assignment(Assignment(value=[2, 3, 4], field=None))
+    overrider.add_assignment(IndicesAssignment(indices=0, value=100, field=None))
     new_data = overrider.override([1, 2, 3])
 
     assert new_data == [100, 3, 4]
+
+
+def test_overrider_with_field_assignment(overrider):
+    dtype = [('name', np.unicode, 21), ('age', np.int_)]
+    overrider.add_assignment(Assignment(value=1, field="age"))
+    new_data = overrider.override(np.array([('maor2', 23)], dtype=dtype))
+
+    assert new_data['age'] == 1
+
+
+def test_overrider_with_field_assignment_and_indices(overrider):
+    dtype = [('name', np.unicode, 21), ('age', np.int_)]
+    overrider.add_assignment(IndicesAssignment(indices=[0, 0], value=1, field="age"))
+    new_data = overrider.override(np.array([[('maor2', 23)]], dtype=dtype))
+
+    assert np.array_equal(new_data, np.array([[('maor2', 1)]], dtype=dtype))
