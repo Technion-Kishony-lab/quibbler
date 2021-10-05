@@ -166,12 +166,6 @@ class Quib(ABC):
         """
         return self._overrider
 
-    def get_type(self) -> Type[Any]:
-        """
-        Returns the wrapped value's type
-        """
-        return type(self.get_value())
-
     @quib_method
     def get_shape(self) -> Tuple[int, ...]:
         """
