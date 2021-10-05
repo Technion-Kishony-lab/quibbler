@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import List, Type, TYPE_CHECKING
+from typing import Any, List, Type, TYPE_CHECKING, Tuple
 
 from .exceptions import CannotReverseUnknownFunctionException
 from .elementwise_reverser import ElementWiseReverser
@@ -53,3 +54,26 @@ def reverse_function_quib(function_quib: FunctionQuib, assignment: Assignment) -
     if reverser_cls is None:
         raise CannotReverseUnknownFunctionException(function_quib.func)
     return reverser_cls(function_quib=function_quib, assignment=assignment).get_reversed_quibs_with_assignments()
+
+
+def get_override_options(quib_with_assignment: QuibWithAssignment) -> Tuple[List[QuibWithAssignment], List]:
+    from pyquibbler.quib import FunctionQuib
+    options = []
+    reversals = [quib_with_assignment]
+    while len(reversals) == 1:
+        reversal = reversals[0]
+        if reversal.quib.allow_overriding:
+            options.append(reversal)
+        if isinstance(reversal.quib, FunctionQuib):
+            try:
+                reversals = reverse_function_quib(reversal.quib, reversal.assignment)
+            except CannotReverseUnknownFunctionException:
+                reversals = []
+        else:
+            reversals = []
+    diverged_options = [get_override_options(reversal) for reversal in reversals]
+    if not all(option[0] or option[1] for option in diverged_options):
+        # If one of the diverged options does not allow overriding, then we can't reverse assign through the diverger -
+        # only one of the reverse assignment threads will be able to end with an override.
+        diverged_options = []
+    return options, diverged_options

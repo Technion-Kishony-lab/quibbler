@@ -18,6 +18,8 @@ class CannotNestQuibInIQuibException(DebugException):
 
 
 class InputQuib(Quib):
+    _DEFAULT_ALLOW_OVERRIDING = True
+
     def __init__(self, value: Any, assignment_template: Optional[AssignmentTemplate] = None):
         """
         Creates an InputQuib instance containing the given value.
