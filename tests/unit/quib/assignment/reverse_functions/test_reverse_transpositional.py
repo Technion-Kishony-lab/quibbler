@@ -81,7 +81,7 @@ def test_reverse_assign_pyobject_array():
     assert a.get_value() == [new_mock]
 
 
-@pytest.mark.regeression
+@pytest.mark.regression
 def test_reverse_assign_to_single_element():
     a = iquib(np.array([0, 1, 2]))
     b = a[1]
