@@ -121,7 +121,9 @@ class FunctionQuib(Quib):
 
     def assign(self, assignment: Assignment) -> None:
         try:
-            reverse_function_quib(function_quib=self, assignment=assignment)
+            reversals = reverse_function_quib(function_quib=self, assignment=assignment)
+            for reversal in reversals:
+                reversal.apply()
         except CannotReverseUnknownFunctionException:
             super(FunctionQuib, self).assign(assignment)
 
