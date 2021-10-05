@@ -2,13 +2,23 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import Any, List, TYPE_CHECKING
+from typing import Any, List, TYPE_CHECKING, Union
 
+import numpy as np
+
+from pyquibbler.exceptions import PyQuibblerException
+from pyquibbler.quib.assignment import Assignment, IndicesAssignment
 from pyquibbler.quib.assignment import Assignment
+from pyquibbler.quib.assignment.assignment import QuibWithAssignment
+from pyquibbler.quib.assignment.reverse_assignment.utils import create_empty_array_with_values_at_indices
 from pyquibbler.quib.utils import iter_quibs_in_object_recursively
 
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib, FunctionQuib
+
+
+class NoIndicesInAssignmentException(PyQuibblerException):
+    pass
 
 
 @dataclass
@@ -31,10 +41,9 @@ class Reverser(ABC):
     def matches(cls, function_quib: FunctionQuib):
         return function_quib.func in cls.SUPPORTED_FUNCTIONS
 
-    def __init__(self, function_quib: FunctionQuib, indices: Any, value: Any):
+    def __init__(self, function_quib: FunctionQuib, assignment: Assignment):
         self._function_quib = function_quib
-        self._indices = indices
-        self._value = value
+        self._assignment = assignment
 
     @lru_cache()
     def _get_quibs_in_args(self) -> List[Quib]:
@@ -42,6 +51,16 @@ class Reverser(ABC):
         Gets a list of all quibs in the args of self._function_quib
         """
         return list(set(iter_quibs_in_object_recursively(self._args)))
+
+    @property
+    def _indices(self):
+        if isinstance(self._assignment, IndicesAssignment):
+            return self._assignment.indices
+        raise NoIndicesInAssignmentException()
+
+    @property
+    def _value(self):
+        return self._assignment.value
 
     @property
     def _func(self):
@@ -55,8 +74,21 @@ class Reverser(ABC):
     def _kwargs(self):
         return self._function_quib.kwargs
 
+    def _get_representative_function_quib_result_with_value(self) -> Union[np.ndarray, Any]:
+        """
+        Since we don't have the real result (may not have been computed yet),
+        we create a representative result in same shape as the real result and set the new value in it
+        """
+        if not isinstance(self._assignment, IndicesAssignment):
+            # if this is not an IndicesAssignment,
+            # then the entire result has been changed- therefore we can simply return the value
+            # as a representation of the whole result (since it IS the whole result)
+            return self._value
+        return create_empty_array_with_values_at_indices(self._function_quib.get_shape().get_value(),
+                                                         indices=self._indices, value=self._value)
+
     @abstractmethod
-    def _get_reversals(self) -> List[Reversal]:
+    def _get_quibs_with_assignments(self) -> List[QuibWithAssignment]:
         """
         Get all reversals that need to be applied for the reversal to be complete
         (This can potentially contain multiple quibs with multiple assignments)
@@ -68,7 +100,6 @@ class Reverser(ABC):
         Go through all quibs in args and apply any assignments that need be, given a change in the result of
         a function quib (at self._indices to self._value)
         """
-        reversals = self._get_reversals()
-        for reversal in reversals:
-            for assignment in reversal.assignments:
-                reversal.quib.assign(value=assignment.value, indices=assignment.key)
+        quibs_with_assignments = self._get_quibs_with_assignments()
+        for quib_with_assignment in quibs_with_assignments:
+            quib_with_assignment.apply()

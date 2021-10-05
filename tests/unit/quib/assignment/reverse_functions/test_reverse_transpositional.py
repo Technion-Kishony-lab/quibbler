@@ -8,6 +8,7 @@ from pytest import mark
 
 from pyquibbler import iquib
 from pyquibbler.quib import DefaultFunctionQuib
+from pyquibbler.quib.assignment import IndicesAssignment, Assignment
 from pyquibbler.quib.assignment.reverse_assignment import reverse_function_quib
 
 
@@ -16,7 +17,7 @@ def reverse(func, indices, value, args, kwargs=None):
         func=func,
         func_args=args,
         func_kwargs=kwargs
-    ), value=value, indices=indices, )
+    ), assignment=IndicesAssignment(value=value, indices=indices, field=None))
 
 
 def test_reverse_rot90():
@@ -66,7 +67,7 @@ def test_reverse_assign_to_sub_array():
     a = iquib(np.array([0, 1, 2]))
     b = a[:2]
 
-    b.assign([3, 4])
+    b.assign(Assignment(value=[3, 4], field=None))
 
     assert np.array_equal(a.get_value(), [3, 4, 2])
 
@@ -76,7 +77,7 @@ def test_reverse_assign_pyobject_array():
     new_mock = mock.Mock()
     b = a[0]
 
-    b.assign(new_mock)
+    b.assign(Assignment(value=new_mock, field=None))
 
     assert a.get_value() == [new_mock]
 
@@ -86,6 +87,17 @@ def test_reverse_assign_to_single_element():
     a = iquib(np.array([0, 1, 2]))
     b = a[1]
 
-    b.assign(3)
+    b.assign(Assignment(value=3, field=None))
 
     assert np.array_equal(a.get_value(), [0, 3, 2])
+
+
+def test_reverse_assign_field_array():
+    dtype = [('name', np.unicode, 21), ('age', np.int_)]
+    a = iquib(np.array([[("maor", 24)], [("maor2", 22)]], dtype=dtype))
+    b = a[[1], [0]]
+
+    b.assign(Assignment(value=23, field='age'))
+
+    assert np.array_equal(a.get_value(), np.array([[("maor", 24)], [("maor2", 23)]], dtype=dtype))
+    assert np.array_equal(b.get_value(), np.array([('maor2', 23)], dtype=dtype))

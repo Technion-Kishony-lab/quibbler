@@ -1,10 +1,10 @@
 from __future__ import annotations
 from pyquibbler.quib.assignment.reverse_assignment import CannotReverseUnknownFunctionException, reverse_function_quib
 from enum import Enum
-from functools import wraps
-from typing import List, Callable, Any, Mapping, Tuple, Optional
+from functools import wraps, cached_property
+from typing import List, Callable, Any, Mapping, Tuple, Optional, Set
 
-from ..assignment import AssignmentTemplate
+from ..assignment import AssignmentTemplate, Assignment
 from ..quib import Quib
 
 from ..utils import is_there_a_quib_in_args, iter_quibs_in_args, call_func_with_quib_values, \
@@ -46,6 +46,18 @@ class FunctionQuib(Quib):
         if cache_behavior is None:
             cache_behavior = self._DEFAULT_CACHE_BEHAVIOR
         self.set_cache_behavior(cache_behavior)
+
+    @cached_property
+    def ancestors(self) -> Set[Quib]:
+        """
+        Return all ancestors of the quib, going recursively up the tree
+        """
+        all_ancestors = set()
+        for quib in iter_quibs_in_args(self._args, self._kwargs):
+            all_ancestors.add(quib)
+            if isinstance(quib, FunctionQuib):
+                all_ancestors |= quib.ancestors
+        return all_ancestors
 
     @classmethod
     def create(cls, func, func_args=(), func_kwargs=None, cache_behavior=None, **kwargs):
@@ -95,11 +107,11 @@ class FunctionQuib(Quib):
     def kwargs(self):
         return self._kwargs
 
-    def assign(self, value: Any, indices: Optional = None) -> None:
+    def assign(self, assignment: Assignment) -> None:
         try:
-            reverse_function_quib(function_quib=self, indices=indices, value=value)
+            reverse_function_quib(function_quib=self, assignment=assignment)
         except CannotReverseUnknownFunctionException:
-            super(FunctionQuib, self).assign(value=value, indices=indices)
+            super(FunctionQuib, self).assign(assignment)
 
     def __repr__(self):
         return f"<{self.__class__.__name__} - {self.func}>"

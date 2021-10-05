@@ -5,7 +5,9 @@ from operator import __pow__
 
 from pyquibbler import iquib
 from pyquibbler.quib import DefaultFunctionQuib, FunctionQuib
+from pyquibbler.quib.assignment import Assignment, IndicesAssignment
 from pyquibbler.quib.assignment.reverse_assignment import reverse_function_quib
+from pyquibbler.quib.assignment.reverse_assignment.elementwise_reverser import CommonAncestorBetweenArgumentsException
 
 
 @pytest.mark.parametrize("function_quib,indices,value,quib_arg_index,expected_value", [
@@ -67,9 +69,9 @@ from pyquibbler.quib.assignment.reverse_assignment import reverse_function_quib
         "power: first arg is quib",
         "power: second arg is quib"])
 def test_reverse_elementwise(function_quib: FunctionQuib, indices, value, quib_arg_index, expected_value):
+    assignment = IndicesAssignment(indices=indices, value=value) if indices is not None else Assignment(value=value)
     reverse_function_quib(function_quib=function_quib,
-                          indices=indices,
-                          value=value)
+                          assignment=assignment)
 
     value = function_quib.args[quib_arg_index].get_value()
     if isinstance(expected_value, Iterable):
@@ -83,8 +85,7 @@ def test_reverse_elementwise_operator():
     function_quib = q + 3
 
     reverse_function_quib(function_quib=function_quib,
-                          indices=0,
-                          value=7)
+                          assignment=IndicesAssignment(indices=0, value=7, field=None))
 
     assert np.array_equal(q.get_value(), [4, 5, 5])
 
@@ -94,7 +95,16 @@ def test_reverse_elementwise_on_int():
     function_quib = q + 3
 
     reverse_function_quib(function_quib=function_quib,
-                          indices=None,
-                          value=7)
+                          assignment=Assignment(value=7))
 
     assert q.get_value() == 4
+
+
+def test_quib_raises_exception_when_reversing_with_common_parent_in_multiple_args():
+    x = iquib(5)
+    y = x + 2
+    z = x + 3
+    function_quib = y + z
+
+    with pytest.raises(CommonAncestorBetweenArgumentsException):
+        reverse_function_quib(function_quib, Assignment(value=20, field=None))

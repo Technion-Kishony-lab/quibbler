@@ -263,3 +263,7 @@ def test_quib_add_with_float_does_not_return_not_implemented():
     value = add_function_quib.get_value()
 
     assert value == 2.2
+
+
+def test_quib_get_type(example_quib):
+    assert example_quib.get_type() == list

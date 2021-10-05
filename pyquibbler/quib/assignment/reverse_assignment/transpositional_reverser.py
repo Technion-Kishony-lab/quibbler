@@ -6,11 +6,12 @@ import numpy as np
 from operator import getitem
 from typing import Dict, List, TYPE_CHECKING, Union, Any
 
-from pyquibbler.quib.assignment import Assignment
+from pyquibbler.quib.assignment import Assignment, IndicesAssignment
 from pyquibbler.quib.assignment.reverse_assignment.utils import create_empty_array_with_values_at_indices
 from pyquibbler.quib.utils import recursively_run_func_on_object
 
 from .reverser import Reversal, Reverser
+from ..assignment import QuibWithAssignment
 
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib
@@ -53,24 +54,12 @@ class TranspositionalReverser(Reverser):
         )
         return self._func(*arguments, *self._kwargs)
 
-    def _get_representative_function_quib_result_with_value(self) -> Union[np.ndarray, Any]:
-        """
-        Since we don't have the real result (may not have been computed yet),
-        we create a representative result in same shape as the real result and set the new value in it
-        """
-        if self._indices is None:
-            # if the indices is None, then the entire result has been changes- therefore we can simply return the value
-            # as a representation of the whole result (since it IS the whole result)
-            return self._value
-        return create_empty_array_with_values_at_indices(self._function_quib.get_shape().get_value(),
-                                                         indices=self._indices, value=self._value)
-
     def _get_bool_mask_representing_indices_in_result(self) -> Union[np.ndarray, bool]:
         """
         Get a boolean mask representing where the indices that were changed are in the result- this will be in
         same shape as the result
         """
-        if self._indices is None:
+        if not isinstance(self._assignment, IndicesAssignment):
             # If our indices is None, then the whole result is relevant- therefore we return a boolean mask of True
             return True
         return create_empty_array_with_values_at_indices(self._function_quib.get_shape().get_value(),
@@ -169,17 +158,17 @@ class TranspositionalReverser(Reverser):
             for quib in self._get_quibs_in_args()
         }
 
-    def _get_reversals(self) -> List[Reversal]:
+    def _get_quibs_with_assignments(self) -> List[QuibWithAssignment]:
         quibs_to_indices_in_quibs = self._get_quibs_to_indices_in_quibs()
         quibs_to_results = self._get_quibs_to_relevant_result_values()
 
         return [
-            Reversal(
+            QuibWithAssignment(
                 quib=quib,
-                assignments=[
-                    Assignment(quibs_to_indices_in_quibs[quib],
-                               quibs_to_results[quib])
-                ]
+                assignment=IndicesAssignment(indices=quibs_to_indices_in_quibs[quib], value=quibs_to_results[quib],
+                                             field=self._assignment.field),
+
             )
             for quib in quibs_to_indices_in_quibs
         ]
+

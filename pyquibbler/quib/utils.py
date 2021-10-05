@@ -8,7 +8,7 @@ from functools import wraps
 from inspect import currentframe
 from inspect import signature
 from itertools import chain
-from typing import Any, Optional, Set, TYPE_CHECKING, Callable, Tuple, Dict, Type
+from typing import Any, Optional, Set, TYPE_CHECKING, Callable, Tuple, Dict, Type, List
 
 import numpy as np
 

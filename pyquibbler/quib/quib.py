@@ -4,13 +4,14 @@ from abc import ABC, abstractmethod
 from collections import Iterable
 from dataclasses import dataclass
 from operator import getitem
-from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type
+from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List
 from weakref import ref as weakref
 
 import numpy as np
 
 from pyquibbler.exceptions import PyQuibblerException
-from .assignment import AssignmentTemplate, RangeAssignmentTemplate, BoundAssignmentTemplate, Overrider, Assignment
+from .assignment import AssignmentTemplate, RangeAssignmentTemplate, BoundAssignmentTemplate, Overrider, Assignment, \
+    IndicesAssignment
 from .utils import deep_copy_without_quibs_or_artists, quib_method, Unpacker
 
 if TYPE_CHECKING:
@@ -98,14 +99,14 @@ class Quib(ABC):
         raise TypeError('Cannot iterate over quibs, as their size can vary. '
                         'Try Quib.iter_first() to iterate over the n-first items of the quib.')
 
-    def _override(self, key, value):
+    def _override(self, assignment: Assignment):
         """
         Overrides a part of the data the quib represents.
         """
-        self._overrider.add_assignment(Assignment(key, value))
+        self._overrider.add_assignment(assignment)
 
-    def assign(self, value: Any, indices: Optional = None) -> None:
-        self._override(indices, value)
+    def assign(self, assignment: Assignment) -> None:
+        self._override(assignment)
         self.invalidate_and_redraw()
 
     def __getitem__(self, item):
@@ -118,7 +119,10 @@ class Quib(ABC):
         return DefaultFunctionQuib.create(func=getitem, func_args=[self, item])
 
     def __setitem__(self, key, value):
-        self.assign(value=value, indices=key)
+        if isinstance(key, str):
+            self.assign(Assignment(value=value, field=key))
+        else:
+            self.assign(IndicesAssignment(value=value, indices=key, field=None))
 
     def get_assignment_template(self) -> AssignmentTemplate:
         return self._assignment_template
@@ -166,6 +170,12 @@ class Quib(ABC):
         """
         return self._overrider
 
+    def get_type(self) -> Type:
+        """
+        Get the type of wrapped value
+        """
+        return type(self.get_value())
+
     @quib_method
     def get_shape(self) -> Tuple[int, ...]:
         """
@@ -186,7 +196,10 @@ class Quib(ABC):
         mask = np.zeros(shape, dtype=np.bool)
         # Can't use `mask[all_keys] = True` trivially, because some of the keys might be lists themselves.
         for assignment in self._overrider:
-            mask[assignment.key] = True
+            if isinstance(assignment, IndicesAssignment):
+                mask[assignment.indices] = True
+            else:
+                mask.fill(True)
         return mask
 
     def get_override_mask(self) -> Quib:
