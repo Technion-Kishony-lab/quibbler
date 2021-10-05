@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from collections import Iterable
 from dataclasses import dataclass
 from operator import getitem
-from typing import Set, Any, TYPE_CHECKING, Optional, Tuple
+from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type
 from weakref import ref as weakref
 
 import numpy as np
