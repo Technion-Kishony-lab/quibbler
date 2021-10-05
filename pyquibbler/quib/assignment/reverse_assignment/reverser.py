@@ -2,8 +2,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from functools import lru_cache
-from operator import getitem
-from typing import Any, List, TYPE_CHECKING, Union, Optional
+from typing import Any, List, TYPE_CHECKING, Union, Optional, Callable
 
 import numpy as np
 
@@ -29,11 +28,7 @@ class Reverser(ABC):
     (`SUPPORTED_FUNCTIONS`).
     """
 
-    SUPPORTED_FUNCTIONS: List = NotImplemented
-
-    @classmethod
-    def matches(cls, function_quib: FunctionQuib):
-        return function_quib.func.__name__ in [supported_func.__name__ for supported_func in cls.SUPPORTED_FUNCTIONS]
+    SUPPORTED_FUNCTIONS: List[Callable] = NotImplemented
 
     def __init__(self, function_quib: FunctionQuib, assignment: Assignment):
         self._function_quib = function_quib
