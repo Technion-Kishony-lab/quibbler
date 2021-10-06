@@ -11,7 +11,7 @@ from pyquibbler.quib.assignment.reverse_assignment.utils import create_empty_arr
 from pyquibbler.quib.utils import recursively_run_func_on_object
 
 from .reverser import Reverser
-from ..assignment import QuibWithAssignment, ReplaceObject
+from ..assignment import QuibWithAssignment
 
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib
@@ -64,7 +64,7 @@ class TranspositionalReverser(Reverser):
         same shape as the result
         """
         return create_empty_array_with_values_at_indices(self._function_quib.get_shape().get_value(),
-                                                         indices=self._indices,
+                                                         indices=self._working_indices,
                                                          value=True, empty_value=False)
 
     def _get_quibs_to_index_grids(self) -> Dict[Quib, np.ndarray]:
@@ -168,18 +168,20 @@ class TranspositionalReverser(Reverser):
         Check's whether we have at hand a function quib which represents a __getitem__ with the indices being a string
         """
         from pyquibbler.quib import Quib
-        return self._func == getitem and isinstance(self._args[1], str) is not None and isinstance(self._args[0], Quib)
+        return self._func == getitem and isinstance(self._args[1], str) and isinstance(self._args[0], Quib)
 
     def _build_quibs_with_assignments_for_getitem_with_field(self) -> List[QuibWithAssignment]:
         """
         We can't compute any any translation of indices, as the key of the getitem is a string
         Because of this, we put all pieces of the getitem in the path- making sure to put the field BEFORE the indexing
         (keeping it in the same order as it was, so we don't reverse the indices in the next reversal)
+
+        getitem 1,2,3 -> @set |maor="pasten"|
+
         """
-        new_paths = [self._args[1], self._assignment.paths[0], *self._assignment.paths[1:]]
         return [QuibWithAssignment(
             quib=self._args[0],
-            assignment=Assignment(paths=new_paths,
+            assignment=Assignment(paths=[self._args[1], self._working_indices],
                                   value=self._value)
         )]
 
@@ -197,21 +199,17 @@ class TranspositionalReverser(Reverser):
         quibs_with_assignments = []
         for quib, result in quibs_to_results.items():
             # If we have no indices but we do have results, we set the whole quib to the result
-            paths = self._get_new_paths_for_assignment(quibs_to_indices_in_quibs.get(quib, ReplaceObject))
-
             quibs_with_assignments.append(QuibWithAssignment(
                 quib=quib,
-                assignment=Assignment(paths=paths,
+                assignment=Assignment(paths=[quibs_to_indices_in_quibs.get(quib, ...)],
                                       value=quibs_to_results[quib])
             ))
 
         return quibs_with_assignments
 
-    def _get_quibs_with_assignments(self) -> List[QuibWithAssignment]:
+    def get_quibs_with_assignments(self) -> List[QuibWithAssignment]:
 
         if self._is_getitem_with_field():
             return self._build_quibs_with_assignments_for_getitem_with_field()
 
         return self._build_quibs_with_assignments_for_generic_case()
-
-

@@ -6,7 +6,6 @@ from operator import __pow__
 from pyquibbler import iquib
 from pyquibbler.quib import DefaultFunctionQuib, FunctionQuib
 from pyquibbler.quib.assignment import Assignment
-from pyquibbler.quib.assignment.assignment import ReplaceObject
 from pyquibbler.quib.assignment.reverse_assignment import reverse_function_quib
 from pyquibbler.quib.assignment.reverse_assignment.elementwise_reverser import CommonAncestorBetweenArgumentsException
 
@@ -55,9 +54,9 @@ from pyquibbler.quib.assignment.reverse_assignment.elementwise_reverser import C
      ([0]), 5, 1, np.array([4, 5, 5]),
      ),
     (DefaultFunctionQuib.create(func=__pow__,
-                                func_args=(iquib(10), 2)), None, 10_000, 0, 100),
+                                func_args=(iquib(10), 2)), ..., 10_000, 0, 100),
     (DefaultFunctionQuib.create(func=__pow__,
-                                func_args=(10, iquib(1))), None, 100, 1, 2)
+                                func_args=(10, iquib(1))), ..., 100, 1, 2)
 
 ], ids=[
     "add: simple",
@@ -71,7 +70,7 @@ from pyquibbler.quib.assignment.reverse_assignment.elementwise_reverser import C
         "power: first arg is quib",
         "power: second arg is quib"])
 def test_reverse_elementwise(function_quib: FunctionQuib, indices, value, quib_arg_index, expected_value):
-    assignment = Assignment(value=value, paths=[*([ReplaceObject] if indices is None else [indices])])
+    assignment = Assignment(value=value, paths=[indices])
     reverse_function_quib(function_quib=function_quib,
                           assignment=assignment)
 
@@ -97,7 +96,7 @@ def test_reverse_elementwise_on_int():
     function_quib = q + 3
 
     reverse_function_quib(function_quib=function_quib,
-                          assignment=Assignment(value=7, paths=[ReplaceObject]))
+                          assignment=Assignment(value=7, paths=[...]))
 
     assert q.get_value() == 4
 
@@ -110,4 +109,4 @@ def test_quib_raises_exception_when_reversing_with_common_parent_in_multiple_arg
     function_quib = y + z
 
     with pytest.raises(CommonAncestorBetweenArgumentsException):
-        reverse_function_quib(function_quib, Assignment(value=20, paths=[ReplaceObject]))
+        reverse_function_quib(function_quib, Assignment(value=20, paths=[...]))

@@ -7,12 +7,12 @@ from typing import Any, List, Dict, Callable, TYPE_CHECKING
 from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.quib.assignment import Assignment
 from pyquibbler.quib.utils import call_func_with_quib_values
-from ..assignment import QuibWithAssignment, ReplaceObject
+from ..assignment import QuibWithAssignment
 
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib
 
-from .reverser import Reversal, Reverser
+from .reverser import Reverser
 
 
 class CommonAncestorBetweenArgumentsException(PyQuibblerException):
@@ -93,7 +93,7 @@ class ElementWiseReverser(Reverser):
         broadcasted_grid = np.broadcast_to(index_grid,
                                            (index_grid.shape[0], *self._function_quib.get_shape().get_value()))
         return [
-            dimension[self._indices]
+            dimension[self._working_indices]
             for dimension in broadcasted_grid
         ]
 
@@ -118,24 +118,20 @@ class ElementWiseReverser(Reverser):
         """
         Create all quibs with assignments after having calculated which quib to change and new value of quib
         """
-        if self._indices is not ReplaceObject:
-            changed_indices = self._get_indices_to_change(quib_to_change)
-            paths = self._get_new_paths_for_assignment(changed_indices)
-            return [QuibWithAssignment(
-                quib=quib_to_change,
-                assignment=Assignment(paths=paths, value=new_value_for_quib[self._indices])
-            )]
-        return [
-            QuibWithAssignment(
-                quib=quib_to_change,
-                assignment=Assignment(
-                    value=new_value_for_quib,
-                    paths=self._get_new_paths_for_assignment()
-                )
-            )
-        ]
+        changed_indices = self._get_indices_to_change(quib_to_change)
+        if len(changed_indices) == 0:
+            changed_indices = ...
 
-    def _get_quibs_with_assignments(self) -> List[QuibWithAssignment]:
+        # We can't subscribe with ellipsis on `new_value_for_quib` because it might not be a numpy type
+        value_to_set = new_value_for_quib if self._working_indices is ... else new_value_for_quib[self._working_indices]
+
+        return [QuibWithAssignment(
+            quib=quib_to_change,
+            assignment=Assignment(paths=[changed_indices],
+                                  value=value_to_set)
+        )]
+
+    def get_quibs_with_assignments(self) -> List[QuibWithAssignment]:
         self.raise_if_multiple_args_have_common_ancestor()
 
         quib_to_change = self._get_quibs_in_args()[0]

@@ -220,11 +220,6 @@ def test_quib_get_shape():
     assert quib.get_shape().get_value() == arr.shape
 
 
-def test_quib_get_shape_with_non_ndarray_quib(example_quib):
-    with raises(QuibIsNotNdArrayException):
-        example_quib.get_shape().get_value()
-
-
 @mark.parametrize(['data', 'overrides', 'expected_mask'], [
     ([], [], []),
     ([0], [], [False]),

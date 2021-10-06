@@ -2,7 +2,6 @@ import numpy as np
 from pytest import fixture
 
 from pyquibbler.quib.assignment import Overrider, Assignment
-from pyquibbler.quib.assignment.assignment import ReplaceObject
 
 
 @fixture
@@ -18,14 +17,14 @@ def test_overrider_add_assignment_and_override(overrider):
 
 
 def test_overrider_with_global_override(overrider):
-    overrider.add_assignment(Assignment(value=[2, 3, 4], paths=[ReplaceObject]))
+    overrider.add_assignment(Assignment(value=[2, 3, 4], paths=[...]))
     new_data = overrider.override([1, 2, 3])
 
     assert new_data == [2, 3, 4]
 
 
 def test_overrider_with_global_override_and_partial_assignments(overrider):
-    overrider.add_assignment(Assignment(value=[2, 3, 4], paths=[ReplaceObject]))
+    overrider.add_assignment(Assignment(value=[2, 3, 4], paths=[...]))
     overrider.add_assignment(Assignment(value=100, paths=[0]))
     new_data = overrider.override([1, 2, 3])
 
