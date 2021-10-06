@@ -205,6 +205,8 @@ class TranspositionalReverser(Reverser):
                 return np.array([])
             return representative_result_value[quibs_to_masks[quib]]
 
+        quibs = self._get_quibs_in_args()
+        values = map(get_relevant_values_for_quib, quibs)
         return {
             quib: get_relevant_values_for_quib(quib)
             for quib in self._get_quibs_which_can_change()
@@ -246,6 +248,10 @@ class TranspositionalReverser(Reverser):
         """
         quibs_to_indices_in_quibs = self._get_quibs_to_indices_in_quibs()
         quibs_to_results = self._get_quibs_to_relevant_result_values()
+        assert set(quibs_to_indices_in_quibs) <= set(quibs_to_results), \
+            f'We should\'t have indices without values:' \
+            f'\n\tindices: {quibs_to_indices_in_quibs}' \
+            f'\n\tvalues: {quibs_to_results}'
 
         quibs_with_assignments = []
         for quib in quibs_to_indices_in_quibs:
