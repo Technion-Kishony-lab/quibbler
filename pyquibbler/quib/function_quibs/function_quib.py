@@ -1,16 +1,21 @@
 from __future__ import annotations
-import types
-from pyquibbler.quib.assignment.reverse_assignment import get_override_options
+from dataclasses import dataclass
 from enum import Enum
 from functools import wraps, cached_property
 from typing import List, Callable, Any, Mapping, Tuple, Optional, Set
 
-from .override_choice import choose_overrides
+from .override_choice import OverrideOptionsTree
 from ..assignment import AssignmentTemplate, Assignment
 from ..assignment.assignment import QuibWithAssignment
 from ..quib import Quib
 from ..utils import is_there_a_quib_in_args, iter_quibs_in_args, call_func_with_quib_values, \
     deep_copy_without_quibs_or_artists
+from ...exceptions import PyQuibblerException
+
+
+@dataclass
+class CannotAssignException(PyQuibblerException):
+    pass
 
 
 class CacheBehavior(Enum):
@@ -119,8 +124,10 @@ class FunctionQuib(Quib):
         return self._kwargs
 
     def assign(self, assignment: Assignment) -> None:
-        override_options, diverged_options = get_override_options(QuibWithAssignment(self, assignment))
-        chosen_overrides = choose_overrides(override_options, diverged_options)
+        options_tree = OverrideOptionsTree.from_reversal(QuibWithAssignment(self, assignment))
+        if not options_tree:
+            raise CannotAssignException()
+        chosen_overrides = options_tree.choose_overrides(self)
         for chosen_override in chosen_overrides:
             chosen_override.quib._override(chosen_override.assignment)
 

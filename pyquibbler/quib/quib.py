@@ -25,6 +25,11 @@ class QuibIsNotNdArrayException(PyQuibblerException):
         return f'The quib {self.quib} evaluates to {self.value}, which is not an ndarray'
 
 
+@dataclass
+class OverridingNotAllowedException(PyQuibblerException):
+    pass
+
+
 class Quib(ABC):
     """
     An abstract class to describe the common methods and attributes of all quib types.
@@ -120,6 +125,8 @@ class Quib(ABC):
         Create an assignment with an Assignment object, overriding the current values at the assignment's paths with the
         assignment's value
         """
+        if not self.allow_overriding:
+            raise OverridingNotAllowedException()
         self._override(assignment)
 
     def assign_value(self, value: Any) -> None:

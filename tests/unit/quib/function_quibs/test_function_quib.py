@@ -57,6 +57,7 @@ def test_func_get_value_returns_inner_value(function_wrapper, function_mock_retu
 
 def test_assign_with_unknown_function_overrides(function_wrapper, function_mock_return_val):
     q = function_wrapper(iquib(np.array([1])))
+    q.allow_overriding = True
     new_value = 420
     index = 2
     expected_value = np.array(function_mock_return_val)

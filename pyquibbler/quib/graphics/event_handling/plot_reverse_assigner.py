@@ -1,10 +1,12 @@
+import numpy as np
 from collections import Iterable
-from typing import Tuple, Any, List, TYPE_CHECKING
+from typing import Tuple, Any, List
 from matplotlib.backend_bases import PickEvent, MouseEvent
 
 from .graphics_reverse_assigner import graphics_reverse_assigner
 from ...assignment import Assignment
 from ...assignment.assignment import QuibWithAssignment
+from ...assignment import Assignment, QuibWithAssignment
 
 
 def get_xdata_arg_indices_and_ydata_arg_indices(args: Tuple[Any, ...]):
@@ -75,11 +77,11 @@ def get_quibs_with_assignments_for_axes(args: List[Any],
 @graphics_reverse_assigner('Axes.plot')
 def get_quibs_with_assignments_for_axes_plot(pick_event: PickEvent, mouse_event: MouseEvent,
                                              args: List[Any]) -> List[QuibWithAssignment]:
+    # It's deprecated to use a non-tuple as a per-dimension index
     indices = pick_event.ind
-    x_arg_indices, y_arg_indices = get_xdata_arg_indices_and_ydata_arg_indices(args)
-    quibs_with_assignments = get_quibs_with_assignments_for_axes(args, x_arg_indices, indices,
-                                                                 mouse_event.xdata)
-    quibs_with_assignments.extend(get_quibs_with_assignments_for_axes(args, y_arg_indices, indices,
-                                                                   mouse_event.ydata))
-
+    if isinstance(indices, np.ndarray):
+        indices = tuple(indices)
+    x_arg_indices, y_arg_indices = get_xdata_arg_indices_and_ydata_arg_indices(tuple(args))
+    quibs_with_assignments = get_quibs_with_assignments_for_axes(args, x_arg_indices, indices, mouse_event.xdata)
+    quibs_with_assignments.extend(get_quibs_with_assignments_for_axes(args, y_arg_indices, indices, mouse_event.ydata))
     return quibs_with_assignments

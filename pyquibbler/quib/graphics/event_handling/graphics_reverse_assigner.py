@@ -32,8 +32,7 @@ def reverse_assign_drawing_func(drawing_func: Callable,
     """
     reverse_assigner_func = GRAPHICS_REVERSE_ASSIGNERS.get(drawing_func.__qualname__)
     if reverse_assigner_func is not None:
-        quibs_with_assignments = reverse_assigner_func(pick_event=pick_event, mouse_event=mouse_event,
-                                                       args=args)
+        quibs_with_assignments = reverse_assigner_func(pick_event=pick_event, mouse_event=mouse_event, args=args)
         filtered_quibs_with_assignments = filter_quibs_with_assignments(quibs_with_assignments)
         for quib_with_assignment in filtered_quibs_with_assignments:
             quib_with_assignment.apply()
