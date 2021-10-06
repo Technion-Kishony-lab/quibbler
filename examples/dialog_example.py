@@ -27,5 +27,5 @@ c.allow_overriding = True
 d = c + 1
 d.allow_overriding = True
 
-plt.plot(d, marker='o', markersize=18, picker=True, pickradius=20)
+plt.plot(np.concatenate(([a], [a2], [b], [b2], c, d)), marker='o', markersize=18, picker=True, pickradius=20)
 plt.show()
