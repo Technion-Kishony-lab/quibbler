@@ -171,3 +171,13 @@ def test_reverse_setitem_on_non_ndarray():
     first_row.assign(Assignment(value=10, paths=[0]))
 
     assert np.array_equal(first_quib_arg.get_value(), [[10, 2, 3]])
+
+
+@pytest.mark.regression
+def test_reverse_setitem_on_non_ndarray_after_rotation():
+    first_quib_arg = iquib([[[1, 2, 3]]])
+    rotated = DefaultFunctionQuib.create(func=np.rot90, func_args=(first_quib_arg[0],))
+
+    rotated.assign(Assignment(value=4, paths=[(0, 0)]))
+
+    assert np.array_equal(first_quib_arg.get_value(), [[[1, 2, 4]]])

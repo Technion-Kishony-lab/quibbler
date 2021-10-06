@@ -167,14 +167,18 @@ class TranspositionalReverser(Reverser):
         from pyquibbler.quib import Quib
         return self._func == getitem and isinstance(self._args[1], str) and isinstance(self._args[0], Quib)
 
-    def _build_quibs_with_assignments_for_getitem_with_field(self) -> List[QuibWithAssignment]:
+    def _is_getitem_of_quib_list(self):
         """
-        We can't compute any any translation of indices, as the key of the getitem is a string
+        Check's whether we have at hand a function quib which represents a __getitem__ with the indices being a string
+        """
+        from pyquibbler.quib import Quib
+        return self._func == getitem and isinstance(self._args[0], Quib) and issubclass(self._args[0].get_type(), list)
+
+    def _build_quibs_with_assignments_for_getitem(self) -> List[QuibWithAssignment]:
+        """
+        We're in a situation where we can't compute any any translation of indices
         Because of this, we put all pieces of the getitem in the path- making sure to put the field BEFORE the indexing
         (keeping it in the same order as it was, so we don't reverse the indices in the next reversal)
-
-        getitem 1,2,3 -> @set |maor="pasten"|
-
         """
         return [QuibWithAssignment(
             quib=self._args[0],
@@ -206,7 +210,7 @@ class TranspositionalReverser(Reverser):
 
     def get_quibs_with_assignments(self) -> List[QuibWithAssignment]:
 
-        if self._is_getitem_with_field():
-            return self._build_quibs_with_assignments_for_getitem_with_field()
+        if self._is_getitem_with_field() or self._is_getitem_of_quib_list():
+            return self._build_quibs_with_assignments_for_getitem()
 
         return self._build_quibs_with_assignments_for_generic_case()
