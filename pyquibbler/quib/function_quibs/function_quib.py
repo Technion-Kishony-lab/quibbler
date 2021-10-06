@@ -10,6 +10,7 @@ from ..assignment.assignment import QuibWithAssignment
 from ..quib import Quib
 from ..utils import is_there_a_quib_in_args, iter_quibs_in_args, call_func_with_quib_values, \
     deep_copy_without_quibs_or_artists, recursively_run_func_on_object, convert_args
+from ...env import is_lazy
 from ...exceptions import PyQuibblerException
 
 
@@ -89,6 +90,8 @@ class FunctionQuib(Quib):
                    cache_behavior=cache_behavior, **kwargs)
         for arg in iter_quibs_in_args(func_args, func_kwargs):
             arg.add_child(self)
+        if not is_lazy():
+            self.get_value()
         return self
 
     @classmethod
