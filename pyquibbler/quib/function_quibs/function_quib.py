@@ -132,7 +132,7 @@ class FunctionQuib(Quib):
             chosen_override.quib._override(chosen_override.assignment)
 
     def __repr__(self):
-        return f"<{self.__class__.__name__} - {self.func}>"
+        return f"<{self.__class__.__name__} - {getattr(self.func, '__name__', repr(self.func))}>"
 
     def pretty_repr(self):
         func_name = getattr(self.func, '__name__', str(self.func))

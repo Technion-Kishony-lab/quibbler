@@ -1,12 +1,12 @@
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-from pyquibbler import override_all, iquib, q
+from pyquibbler import override_all, iquib
 
 override_all()
 mpl.use('TkAgg')
 
-plt.xlim(-1, 8)
+plt.xlim(-1, 9)
 plt.ylim(-1, 7)
 
 a = iquib(np.array([0]))
@@ -17,15 +17,15 @@ b = iquib(np.array([1]))
 b2 = b * 2
 b2.allow_overriding = True
 
-c = np.concatenate((a2, b2))
-c.allow_overriding = True
+c = b2 + 1
 
-d = c + 1
-d.allow_overriding = True
+e = a2[0] + b2[0]
+e.allow_overriding = True
+# TODO: 1. dragging goes to opposite side 2. when there is dependent, we change the left quib
 
-allz = (c, d)  # (q(np.array, a), q(np.array, a2), q(np.array, b), q(np.array, b2), c, d)
-print([a.get_value() for a in allz])
-everything = np.concatenate(allz)
-print(everything.get_value())
-plt.plot(everything, marker='o', markersize=18, picker=True, pickradius=20)
+# allz = (q(np.array, a), q(np.array, a2), q(np.array, b), q(np.array, b2), c, d, q(np.array, [e]))
+# print([a.get_value() for a in allz])
+# everything = np.concatenate(allz)
+# print(everything.get_value())
+plt.plot(e, marker='o', markersize=18, picker=True, pickradius=20)
 plt.show()

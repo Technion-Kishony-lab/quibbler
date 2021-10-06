@@ -5,6 +5,7 @@ from matplotlib.artist import Artist
 from matplotlib.backend_bases import MouseEvent, PickEvent
 
 from pyquibbler.performance_utils import timer
+from pyquibbler.quib.function_quibs import CannotAssignException
 from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
 from pyquibbler.quib.graphics.event_handling import graphics_reverse_assigner
 
@@ -67,7 +68,6 @@ class CanvasEventHandler:
                 self._assignment_lock.release()
 
     def _handle_motion_notify(self, mouse_event: MouseEvent):
-
         if self.current_pick_event is not None:
             drawing_func = getattr(self.current_pick_event.artist, '_quibbler_drawing_func', None)
             if drawing_func is not None:
@@ -75,7 +75,10 @@ class CanvasEventHandler:
                     if locked:
                         # If not locked, there is already another motion handler running, we just drop this one.
                         # This could happen if changes are slow or if a dialog is open
-                        self._reverse_assign_graphics(self.current_pick_event.artist, mouse_event)
+                        try:
+                            self._reverse_assign_graphics(self.current_pick_event.artist, mouse_event)
+                        except CannotAssignException:
+                            pass
 
     def initialize(self):
         """
