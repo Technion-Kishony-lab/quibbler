@@ -33,6 +33,7 @@ class ArtistsCollector:
     A context manager to begin global collecting of artists.
     After exiting the context manager use `get_artists_collected` to get a list of artists created during this time
     """
+
     def __init__(self, artists_collected: List[Artist] = None, thread_id: int = None,
                  raise_if_within_collector: bool = False, previous_init: Callable = None):
         self._artists_collected = artists_collected or []
@@ -51,6 +52,7 @@ class ArtistsCollector:
             if threading.get_ident() == self._thread_id and OVERRIDDEN_GRAPHICS_FUNCTIONS_RUNNING:
                 self._artists_collected.append(artist)
             return res
+
         return wrapped_init
 
     def __enter__(self):
@@ -79,3 +81,22 @@ def overridden_graphics_function():
     OVERRIDDEN_GRAPHICS_FUNCTIONS_RUNNING += 1
     yield
     OVERRIDDEN_GRAPHICS_FUNCTIONS_RUNNING -= 1
+
+
+class QuibDependencyCollector:
+    _collecting = False
+    _deps = set()
+
+    @classmethod
+    @contextlib.contextmanager
+    def collect(cls):
+        assert not cls._collecting
+        cls._collecting = True
+        yield cls._deps
+        cls._collecting = False
+        cls._deps = set()
+
+    @classmethod
+    def add_dependency(cls, quib):
+        if cls._collecting:
+            cls._deps.add(quib)

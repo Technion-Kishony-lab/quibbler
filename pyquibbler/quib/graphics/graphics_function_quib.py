@@ -194,7 +194,11 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
             previous_axeses_to_array_names_to_indices_and_artists or {}
 
         with global_collecting.ArtistsCollector() as collector:
-            func_res = call_func_with_quib_values(self.func, self.args, self.kwargs)
+            # Graphics function quibs support user functions that might use quibs they did not receive as arguments
+            with global_collecting.QuibDependencyCollector.collect() as deps:
+                func_res = call_func_with_quib_values(self.func, self.args, self.kwargs)
+        for dep in deps:
+            dep.add_child(self)
         self._artists = collector.artists_collected
 
         save_func_and_args_on_artists(self._artists, func=self.func, args=self.args)
