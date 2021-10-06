@@ -13,7 +13,7 @@ from pyquibbler.utils import ensure_only_run_once_globally
 
 NUMPY_OVERRIDES = [
     (np, [
-        (DefaultFunctionQuib, ["abs", "average", "around", "square", "repeat", "max"]),
+        (DefaultFunctionQuib, ["abs", "average", "around", "square", "repeat", "max", "full"]),
         (GraphicsFunctionQuib, ['apply_along_axis', 'apply_over_axes', 'vectorize']),
     ]),
     (np.random, [

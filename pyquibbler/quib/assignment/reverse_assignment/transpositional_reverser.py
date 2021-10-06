@@ -26,6 +26,8 @@ class TranspositionalReverser(Reverser):
     SUPPORTED_FUNCTIONS = [
         np.rot90,
         np.concatenate,
+        np.repeat,
+        np.full,
         getitem
     ]
 
@@ -45,7 +47,9 @@ class TranspositionalReverser(Reverser):
 
         def replace_quib_with_id(obj):
             if isinstance(obj, Quib):
-                return np.full(obj.get_shape().get_value(), quibs_to_ids[obj])
+                if issubclass(obj.get_type(), np.ndarray):
+                    return np.full(obj.get_shape().get_value(), quibs_to_ids[obj])
+                return quibs_to_ids[obj]
             return obj
 
         arguments = recursively_run_func_on_object(
@@ -73,6 +77,7 @@ class TranspositionalReverser(Reverser):
         return {
             quib: np.indices(quib.get_shape().get_value())
             for quib in self._get_quibs_in_args()
+            if issubclass(quib.get_type(), np.ndarray)
         }
 
     def _get_quibs_to_masks(self):
@@ -122,7 +127,7 @@ class TranspositionalReverser(Reverser):
         Get a mapping of quibs to the quib's indices that were referenced in `self._indices` (ie after reversal of the
         indices relevant to the particular quib)
         """
-        max_shape_length = max([len(quib.get_shape().get_value())
+        max_shape_length = max([len(quib.get_shape().get_value()) if issubclass(quib.get_type(), np.ndarray) else 0
                                 for quib in self._get_quibs_in_args()])
         quibs_to_indices_in_quibs = {}
         for i in range(max_shape_length):
@@ -131,7 +136,10 @@ class TranspositionalReverser(Reverser):
             for quib, index in quibs_to_indices_at_dimension.items():
                 quibs_to_indices_in_quibs.setdefault(quib, []).append(index)
 
-        return quibs_to_indices_in_quibs
+        return {
+            quib: tuple(indices)
+            for quib, indices in quibs_to_indices_in_quibs.items()
+        }
 
     def _get_quibs_to_relevant_result_values(self) -> Dict[Quib, np.ndarray]:
         """
@@ -162,13 +170,21 @@ class TranspositionalReverser(Reverser):
         quibs_to_indices_in_quibs = self._get_quibs_to_indices_in_quibs()
         quibs_to_results = self._get_quibs_to_relevant_result_values()
 
-        return [
-            QuibWithAssignment(
-                quib=quib,
-                assignment=IndicesAssignment(indices=quibs_to_indices_in_quibs[quib], value=quibs_to_results[quib],
-                                             field=self._assignment.field),
+        quibs_with_assignments = []
+        for quib, result in quibs_to_results.items():
+            if quib in quibs_to_indices_in_quibs:
+                indices = quibs_to_indices_in_quibs[quib]
+                assignment = IndicesAssignment(indices=indices,
+                                               value=quibs_to_results[quib],
+                                               field=self._assignment.field)
 
-            )
-            for quib in quibs_to_indices_in_quibs
-        ]
+            else:
+                assignment = Assignment(value=quibs_to_results[quib], field=self._assignment.field)
+
+            quibs_with_assignments.append(QuibWithAssignment(
+                quib=quib,
+                assignment=assignment
+            ))
+
+        return quibs_with_assignments
 

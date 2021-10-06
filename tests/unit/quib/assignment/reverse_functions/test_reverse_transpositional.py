@@ -101,3 +101,21 @@ def test_reverse_assign_field_array():
 
     assert np.array_equal(a.get_value(), np.array([[("maor", 24)], [("maor2", 23)]], dtype=dtype))
     assert np.array_equal(b.get_value(), np.array([('maor2', 23)], dtype=dtype))
+
+
+def test_reverse_assign_repeat():
+    q = iquib(3)
+    repeated = np.repeat(q, 4)
+
+    repeated.assign(IndicesAssignment(value=10, indices=2))
+
+    assert q.get_value() == 10
+
+
+def test_reverse_assign_full():
+    q = iquib(3)
+    repeated = np.full((1, 3), q)
+
+    repeated.assign(IndicesAssignment(value=10, indices=[[0], [1]]))
+
+    assert q.get_value() == 10
