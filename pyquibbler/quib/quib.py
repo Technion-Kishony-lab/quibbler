@@ -191,6 +191,8 @@ class Quib(ABC):
         are lazy, so a function quib might need to calculate uncached values and might
         even have to calculate the values of its dependencies.
         """
+        from pyquibbler.quib.graphics.global_collecting import QuibDependencyCollector
+        QuibDependencyCollector.add_dependency(self)
         return self._overrider.override(self._get_inner_value(), self._assignment_template)
 
     def get_override_list(self) -> Overrider:
