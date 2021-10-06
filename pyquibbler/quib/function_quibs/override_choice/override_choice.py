@@ -37,7 +37,7 @@ class OverrideOptionsTree:
         if self.children:
             assert self.diverged_quib is not None
         from pyquibbler.quib import Quib
-        assert isinstance(self.diverged_quib, Quib)
+        assert isinstance(self.diverged_quib, (Quib, type(None)))
 
     @property
     def can_diverge(self):
@@ -112,8 +112,7 @@ class OverrideOptionsTree:
                 # If one of the diverged options does not allow overriding,
                 # then we can't reverse assign through the diverger, because
                 # only one of the reverse assignment threads will be able to end with an override.
-                children = []
-                break
+                return []
             children.append(child)
         return children
 
