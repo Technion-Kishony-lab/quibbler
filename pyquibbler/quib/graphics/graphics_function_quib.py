@@ -1,5 +1,6 @@
+from functools import wraps
 from itertools import chain
-from typing import List, Callable, Tuple, Any, Mapping, Dict, Optional
+from typing import List, Callable, Tuple, Any, Mapping, Dict, Optional, Iterable
 
 from matplotlib.artist import Artist
 from matplotlib.axes import Axes
@@ -16,6 +17,19 @@ from .event_handling import CanvasEventHandler
 from ..assignment import AssignmentTemplate
 from ..function_quibs import DefaultFunctionQuib, CacheBehavior
 from ..utils import call_func_with_quib_values, iter_object_type_in_args
+
+
+def save_func_and_args_on_artists(artists: List[Artist], func: Callable, args: Iterable[Any]):
+    """
+    Set the drawing func and on the artists- this will be used later on when tracking artists, in order to know how to
+    reverse and handle events.
+    If there's already a creating func, we assume the lower func that already created the artist is the actual
+    drawing func (such as a user func that called plt.plot)
+    """
+    for artist in artists:
+        if getattr(artist, '_quibbler_drawing_func', None) is None:
+            artist._quibbler_drawing_func = func
+            artist._quibbler_args = args
 
 
 class GraphicsFunctionQuib(DefaultFunctionQuib):
@@ -50,6 +64,23 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
             self.get_value()
         return self
 
+    @classmethod
+    def create_wrapper(cls, func: Callable):
+        quib_creator = super(GraphicsFunctionQuib, cls).create_wrapper(func)
+
+        @wraps(quib_creator)
+        def wrapper(*args, **kwargs):
+            # We never want to create a quib if someone else is creating artists- those artists belong to him/her,
+            # not us
+            if global_collecting.is_within_artists_collector():
+                with global_collecting.ArtistsCollector() as collector:
+                    res = call_func_with_quib_values(func, args, kwargs)
+                save_func_and_args_on_artists(artists=collector.artists_collected, func=func, args=args)
+                return res
+            return quib_creator(*args, **kwargs)
+
+        return wrapper
+
     def persist_self_on_artists(self):
         """
         Persist self on on all artists we're connected to, making sure we won't be garbage collected until they are
@@ -58,9 +89,9 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         did perform an action on an existing one, such as Axes.set_xlim
         """
         for artist in chain(self._artists, iter_object_type_in_args(Artist, self.args, self.kwargs)):
-            quibs = getattr(artist, "graphics_function_quibs", set())
+            quibs = getattr(artist, '_quibbler_graphics_function_quibs', set())
             quibs.add(self)
-            artist.graphics_function_quibs = quibs
+            artist._quibbler_graphics_function_quibs = quibs
 
     def _get_artist_array_name(self, artist: Artist):
         return next((
@@ -127,7 +158,18 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
                         starting_index=starting_index)
                 # If the array name isn't in previous_array_names_to_indices_and_artists,
                 # we don't need to update positions, etc
-
+    
+    def save_drawing_func_on_artists(self):
+        """
+        Set the drawing func on the artists- this will be used later on when tracking artists, in order to know how to 
+        reverse and handle events.
+        If there's already a creating func, we assume the lower func that already created the artist is the actual 
+        drawing func (such as a user func that called plt.plot)
+        """
+        for artist in self._artists:
+            if getattr(artist, '_quibbler_drawing_func', None) is None:
+                artist._quibbler_drawing_func = self._func
+        
     def _create_new_artists(self,
                             previous_axeses_to_array_names_to_indices_and_artists:
                             Dict[Axes, Dict[str, Tuple[int, List[Artist]]]] = None):
@@ -138,9 +180,11 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         previous_axeses_to_array_names_to_indices_and_artists = \
             previous_axeses_to_array_names_to_indices_and_artists or {}
 
-        with global_collecting.global_graphics_collecting_mode():
+        with global_collecting.ArtistsCollector() as collector:
             func_res = call_func_with_quib_values(self.func, self.args, self.kwargs)
-        self._artists = global_collecting.get_artists_collected()
+        self._artists = collector.artists_collected
+
+        save_func_and_args_on_artists(self._artists, func=self.func, args=self.args)
         self.persist_self_on_artists()
         self.track_artists()
 

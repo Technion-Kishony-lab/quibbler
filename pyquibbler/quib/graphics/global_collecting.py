@@ -1,55 +1,68 @@
 import contextlib
 import functools
 import threading
+from typing import List, Callable
 
 from matplotlib.artist import Artist
 
+from pyquibbler.exceptions import PyQuibblerException
+
+ORIGINAL_ARTIST_INIT = Artist.__init__
+
 CURRENT_THREAD_ID = None
-COLLECTING_GLOBAL_ARTISTS = False
-IN_OVERRIDDEN_FUNCTION = False
-ARTISTS_COLLECTED = []
+GLOBAL_ARTIST_COLLECTORS = 0
+OVERRIDDEN_GRAPHICS_FUNCTIONS_RUNNING = 0
 
 
-def start_global_graphics_collecting_mode():
-    global CURRENT_THREAD_ID
-    global ARTISTS_COLLECTED
-    global COLLECTING_GLOBAL_ARTISTS
-
-    CURRENT_THREAD_ID = threading.get_ident()
-    ARTISTS_COLLECTED = []
-    COLLECTING_GLOBAL_ARTISTS = True
+def is_within_artists_collector():
+    """
+    Returns whether there's an active artists collector at this moment
+    """
+    return GLOBAL_ARTIST_COLLECTORS > 0
 
 
-def get_artists_collected():
-    return list(set(ARTISTS_COLLECTED))
+class AlreadyCollectingArtistsException(PyQuibblerException):
+    pass
 
 
-def end_global_graphics_collecting_mode():
-    global COLLECTING_GLOBAL_ARTISTS
-    COLLECTING_GLOBAL_ARTISTS = False
-
-
-@contextlib.contextmanager
-def global_graphics_collecting_mode():
+class ArtistsCollector:
     """
     A context manager to begin global collecting of artists.
     After exiting the context manager use `get_artists_collected` to get a list of artists created during this time
     """
-    def wrap_artist_creation(func):
+    def __init__(self, artists_collected: List[Artist] = None, thread_id: int = None,
+                 raise_if_within_collector: bool = False, previous_init: Callable = None):
+        self._artists_collected = artists_collected or []
+        self._thread_id = thread_id or threading.get_ident()
+        self._raise_if_within_collector = raise_if_within_collector
+        self._previous_init = previous_init
+
+    @property
+    def artists_collected(self):
+        return self._artists_collected
+
+    def wrap_artist_creation(self, func):
         @functools.wraps(func)
-        def wrapped_init(self, *args, **kwargs):
-            res = func(self, *args, **kwargs)
-            if threading.get_ident() == CURRENT_THREAD_ID and IN_OVERRIDDEN_FUNCTION:
-                ARTISTS_COLLECTED.append(self)
+        def wrapped_init(artist, *args, **kwargs):
+            res = func(artist, *args, **kwargs)
+            if threading.get_ident() == self._thread_id and OVERRIDDEN_GRAPHICS_FUNCTIONS_RUNNING:
+                self._artists_collected.append(artist)
             return res
         return wrapped_init
 
-    old_init = Artist.__init__
-    Artist.__init__ = wrap_artist_creation(Artist.__init__)
-    start_global_graphics_collecting_mode()
-    yield
-    end_global_graphics_collecting_mode()
-    Artist.__init__ = old_init
+    def __enter__(self):
+        global GLOBAL_ARTIST_COLLECTORS
+        if self._raise_if_within_collector and GLOBAL_ARTIST_COLLECTORS:
+            raise AlreadyCollectingArtistsException()
+        GLOBAL_ARTIST_COLLECTORS += 1
+        self._previous_init = Artist.__init__
+        Artist.__init__ = self.wrap_artist_creation(Artist.__init__)
+        return self
+
+    def __exit__(self, *_, **__):
+        global GLOBAL_ARTIST_COLLECTORS
+        GLOBAL_ARTIST_COLLECTORS -= 1
+        Artist.__init__ = self._previous_init
 
 
 @contextlib.contextmanager
@@ -59,7 +72,7 @@ def overridden_graphics_function():
     Even in global collecting mode, artists will NOT be collected if not within this context manager.
     This serves as an extra layer of protection to make sure we're only collecting artists from known functions.
     """
-    global IN_OVERRIDDEN_FUNCTION
-    IN_OVERRIDDEN_FUNCTION = True
+    global OVERRIDDEN_GRAPHICS_FUNCTIONS_RUNNING
+    OVERRIDDEN_GRAPHICS_FUNCTIONS_RUNNING += 1
     yield
-    IN_OVERRIDDEN_FUNCTION = False
+    OVERRIDDEN_GRAPHICS_FUNCTIONS_RUNNING -= 1

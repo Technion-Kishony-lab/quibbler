@@ -1,4 +1,4 @@
-from typing import Callable, TYPE_CHECKING, List
+from typing import Callable, TYPE_CHECKING, List, Any, Iterable
 
 from matplotlib.backend_bases import MouseEvent, PickEvent
 
@@ -15,22 +15,25 @@ def graphics_reverse_assigner(graphics_func_name_to_handle: str):
     """
     Decorate a function capable of reverse assigning to argument quibs given a mouse event
     """
+
     def _decorator(func: Callable[[PickEvent, MouseEvent, 'GraphicsFunctionQuib'], List[QuibWithAssignment]]):
         GRAPHICS_REVERSE_ASSIGNERS[graphics_func_name_to_handle] = func
         return func
+
     return _decorator
 
 
-def reverse_graphics_function_quib(graphics_function_quib: 'GraphicsFunctionQuib',
-                                   pick_event: PickEvent,
-                                   mouse_event: MouseEvent):
+def reverse_assign_drawing_func(drawing_func: Callable,
+                                args: Iterable[Any],
+                                pick_event: PickEvent,
+                                mouse_event: MouseEvent):
     """
     Reverse a graphics function quib, assigning to all it's arguments values based on pick event and mouse event
     """
-    reverse_assigner_func = GRAPHICS_REVERSE_ASSIGNERS.get(graphics_function_quib.func.__qualname__)
+    reverse_assigner_func = GRAPHICS_REVERSE_ASSIGNERS.get(drawing_func.__qualname__)
     if reverse_assigner_func is not None:
         quibs_with_assignments = reverse_assigner_func(pick_event=pick_event, mouse_event=mouse_event,
-                                                       function_quib=graphics_function_quib)
+                                                       args=args)
         filtered_quibs_with_assignments = filter_quibs_with_assignments(quibs_with_assignments)
         for quib_with_assignment in filtered_quibs_with_assignments:
             quib_with_assignment.apply()

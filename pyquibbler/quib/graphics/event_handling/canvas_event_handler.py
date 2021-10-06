@@ -1,13 +1,11 @@
-from typing import Optional, TYPE_CHECKING, Sized, List, Tuple, Any
+from typing import Optional
 
+from matplotlib.artist import Artist
 from matplotlib.backend_bases import MouseEvent, PickEvent
 
 from pyquibbler.performance_utils import timer
 from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
 from pyquibbler.quib.graphics.event_handling import graphics_reverse_assigner
-
-if TYPE_CHECKING:
-    from pyquibbler.quib.graphics.graphics_function_quib import GraphicsFunctionQuib
 
 
 class CanvasEventHandler:
@@ -45,23 +43,24 @@ class CanvasEventHandler:
     def _handle_pick_event(self, pick_event: PickEvent):
         self.current_pick_event = pick_event
 
-    def _reverse_assign_graphics_function_quibs(self, mouse_event: MouseEvent,
-                                                graphics_function_quibs: List['GraphicsFunctionQuib']):
+    def _reverse_assign_graphics(self, artist: Artist, mouse_event: MouseEvent):
         """
-        Reverse each of the graphics function quibs (each by finding a corresponding reverse assigner)
-        given the mouse event
+        Reverse any relevant quibs in artists creation args
         """
+        drawing_func = getattr(artist, '_quibbler_drawing_func', None)
+        args = getattr(artist, '_quibbler_args', tuple())
         with timer(name="motion_notify"), aggregate_redraw_mode():
-            for graphics_function_quib in graphics_function_quibs:
-                graphics_reverse_assigner.reverse_graphics_function_quib(graphics_function_quib=graphics_function_quib,
-                                                                         mouse_event=mouse_event,
-                                                                         pick_event=self.current_pick_event)
+            graphics_reverse_assigner.reverse_assign_drawing_func(drawing_func=drawing_func,
+                                                                     args=args,
+                                                                     mouse_event=mouse_event,
+                                                                     pick_event=self.current_pick_event)
 
     def _handle_motion_notify(self, mouse_event: MouseEvent):
+
         if self.current_pick_event is not None:
-            graphics_function_quibs = getattr(self.current_pick_event.artist, 'graphics_function_quibs')
-            if graphics_function_quibs is not None:
-                self._reverse_assign_graphics_function_quibs(mouse_event, graphics_function_quibs)
+            drawing_func = getattr(self.current_pick_event.artist, '_quibbler_drawing_func', None)
+            if drawing_func is not None:
+                self._reverse_assign_graphics(self.current_pick_event.artist, mouse_event)
 
     def initialize(self):
         """

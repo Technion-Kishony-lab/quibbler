@@ -5,7 +5,8 @@ from operator import __pow__
 
 from pyquibbler import iquib
 from pyquibbler.quib import DefaultFunctionQuib, FunctionQuib
-from pyquibbler.quib.assignment import Assignment, IndicesAssignment
+from pyquibbler.quib.assignment import Assignment
+from pyquibbler.quib.assignment.assignment import ReplaceObject
 from pyquibbler.quib.assignment.reverse_assignment import reverse_function_quib
 from pyquibbler.quib.assignment.reverse_assignment.elementwise_reverser import CommonAncestorBetweenArgumentsException
 
@@ -58,7 +59,8 @@ from pyquibbler.quib.assignment.reverse_assignment.elementwise_reverser import C
     (DefaultFunctionQuib.create(func=__pow__,
                                 func_args=(10, iquib(1))), None, 100, 1, 2)
 
-], ids=["add: simple",
+], ids=[
+    "add: simple",
         "add: multiple dimensions",
         "add: result with different shape than quib",
         "subtract: first arg is quib",
@@ -69,7 +71,7 @@ from pyquibbler.quib.assignment.reverse_assignment.elementwise_reverser import C
         "power: first arg is quib",
         "power: second arg is quib"])
 def test_reverse_elementwise(function_quib: FunctionQuib, indices, value, quib_arg_index, expected_value):
-    assignment = IndicesAssignment(indices=indices, value=value) if indices is not None else Assignment(value=value)
+    assignment = Assignment(value=value, paths=[*([ReplaceObject] if indices is None else [indices])])
     reverse_function_quib(function_quib=function_quib,
                           assignment=assignment)
 
@@ -85,7 +87,7 @@ def test_reverse_elementwise_operator():
     function_quib = q + 3
 
     reverse_function_quib(function_quib=function_quib,
-                          assignment=IndicesAssignment(indices=0, value=7, field=None))
+                          assignment=Assignment(value=7, paths=[0]))
 
     assert np.array_equal(q.get_value(), [4, 5, 5])
 
@@ -95,11 +97,12 @@ def test_reverse_elementwise_on_int():
     function_quib = q + 3
 
     reverse_function_quib(function_quib=function_quib,
-                          assignment=Assignment(value=7))
+                          assignment=Assignment(value=7, paths=[ReplaceObject]))
 
     assert q.get_value() == 4
 
 
+@pytest.mark.regression
 def test_quib_raises_exception_when_reversing_with_common_parent_in_multiple_args():
     x = iquib(5)
     y = x + 2
@@ -107,4 +110,4 @@ def test_quib_raises_exception_when_reversing_with_common_parent_in_multiple_arg
     function_quib = y + z
 
     with pytest.raises(CommonAncestorBetweenArgumentsException):
-        reverse_function_quib(function_quib, Assignment(value=20, field=None))
+        reverse_function_quib(function_quib, Assignment(value=20, paths=[ReplaceObject]))

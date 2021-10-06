@@ -5,15 +5,20 @@ when called with quib arguments.
 import numpy as np
 from functools import wraps
 from typing import Type, Any, Callable, Optional, List, Tuple
+
+from matplotlib import widgets
 from matplotlib.axes import Axes
 
 from pyquibbler.quib import ImpureFunctionQuib, DefaultFunctionQuib, FunctionQuib, GraphicsFunctionQuib
 from pyquibbler.quib.graphics import global_collecting
+from pyquibbler.quib.graphics.elements.slider_graphics_function_quib import SliderGraphicsFunctionQuib
 from pyquibbler.utils import ensure_only_run_once_globally
 
 NUMPY_OVERRIDES = [
     (np, [
         (DefaultFunctionQuib, ["abs", "average", "around", "square", "repeat", "max", "full"]),
+        (DefaultFunctionQuib, ["abs", "average", "around", "square", "repeat", "max", "arange", "polyfit",
+                               "linspace", "polyval", "full"]),
         (GraphicsFunctionQuib, ['apply_along_axis', 'apply_over_axes', 'vectorize']),
     ]),
     (np.random, [
@@ -24,7 +29,12 @@ NUMPY_OVERRIDES = [
 MPL_OVERRIDES = [
     (Axes, [
         (GraphicsFunctionQuib, ['plot', 'imshow', 'text', 'bar', 'set_xlim', 'set_ylim', 'set_title'])
-    ])
+    ]),
+    (
+     widgets, [
+         (SliderGraphicsFunctionQuib, ['Slider'])
+     ]
+    )
 ]
 
 

@@ -7,20 +7,19 @@ from typing import Any, List, Dict, Callable, TYPE_CHECKING
 from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.quib.assignment import Assignment
 from pyquibbler.quib.utils import call_func_with_quib_values
-from ..assignment import QuibWithAssignment, IndicesAssignment
+from ..assignment import QuibWithAssignment, ReplaceObject
 
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib
 
 from .reverser import Reversal, Reverser
-from .utils import create_empty_array_with_values_at_indices
 
 
 class CommonAncestorBetweenArgumentsException(PyQuibblerException):
     pass
 
 
-def create_inverse_function_from_indexes_to_funcs(quib_argument_indexes_to_inverse_functions: Dict[int, Callable]):
+def create_inverse_func_from_indexes_to_funcs(quib_argument_indexes_to_inverse_functions: Dict[int, Callable]):
     """
     Create an inverse function that will call actual inverse functions based on the index of the quib in the arguments
     """
@@ -42,36 +41,36 @@ class ElementWiseReverser(Reverser):
 
     # We use indexes instead of arg names because you cannot get signature from ufuncs (numpy functions)
     FUNCTIONS_TO_INVERSE_FUNCTIONS = {
-        np.add: create_inverse_function_from_indexes_to_funcs(
+        np.add: create_inverse_func_from_indexes_to_funcs(
             {
                 i: np.subtract for i in range(2)
             }
         ),
-        __add__: create_inverse_function_from_indexes_to_funcs(
+        __add__: create_inverse_func_from_indexes_to_funcs(
             {
                 i: np.subtract for i in range(2)
             }
         ),
-        np.multiply: create_inverse_function_from_indexes_to_funcs(
+        np.multiply: create_inverse_func_from_indexes_to_funcs(
             {
                 i: np.divide for i in range(2)
             }
         ),
-        np.subtract: create_inverse_function_from_indexes_to_funcs(
+        np.subtract: create_inverse_func_from_indexes_to_funcs(
             {
                 0: np.add,
                 1: np.subtract
             }
         ),
-        np.divide: create_inverse_function_from_indexes_to_funcs({
+        np.divide: create_inverse_func_from_indexes_to_funcs({
             0: np.multiply,
             1: np.divide
         }),
-        __pow__: create_inverse_function_from_indexes_to_funcs({
+        __pow__: create_inverse_func_from_indexes_to_funcs({
             0: lambda x, n: x ** (1 / n),
             1: lambda x, n: math.log(n, x)
         }),
-        __sub__: create_inverse_function_from_indexes_to_funcs(
+        __sub__: create_inverse_func_from_indexes_to_funcs(
             {
                 0: np.add,
                 1: np.subtract
@@ -90,8 +89,6 @@ class ElementWiseReverser(Reverser):
         and broadcast it's index grid to the shape of the result, so we can see the corresponding quib indices for the
         result indices
         """
-        if self._indices is None:
-            return None
         index_grid = np.indices(argument_quib.get_shape().get_value())
         broadcasted_grid = np.broadcast_to(index_grid,
                                            (index_grid.shape[0], *self._function_quib.get_shape().get_value()))
@@ -121,21 +118,19 @@ class ElementWiseReverser(Reverser):
         """
         Create all quibs with assignments after having calculated which quib to change and new value of quib
         """
-        if isinstance(self._assignment, IndicesAssignment):
+        if self._indices is not ReplaceObject:
             changed_indices = self._get_indices_to_change(quib_to_change)
-
+            paths = self._get_new_paths_for_assignment(changed_indices)
             return [QuibWithAssignment(
                 quib=quib_to_change,
-                assignment=IndicesAssignment(indices=changed_indices,
-                                             value=new_value_for_quib[self._indices],
-                                             field=self._assignment.field)
+                assignment=Assignment(paths=paths, value=new_value_for_quib[self._indices])
             )]
         return [
             QuibWithAssignment(
                 quib=quib_to_change,
                 assignment=Assignment(
                     value=new_value_for_quib,
-                    field=self._assignment.field
+                    paths=self._get_new_paths_for_assignment()
                 )
             )
         ]

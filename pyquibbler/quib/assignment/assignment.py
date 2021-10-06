@@ -1,8 +1,13 @@
 from dataclasses import dataclass
-from typing import Any, Optional, TYPE_CHECKING
+from typing import Any, Optional, TYPE_CHECKING, List, Union, Tuple, Type
 
 if TYPE_CHECKING:
     from ..quib import Quib
+
+
+ReplaceObject = object()
+
+AssignmentPath = Union[str, Tuple, Any]
 
 
 @dataclass
@@ -12,22 +17,7 @@ class Assignment:
     """
     value: Any
 
-    field: Optional[Any] = None
-
-
-# This is not a dataclass as we would like to have field be a default arg
-class IndicesAssignment(Assignment):
-    """
-    A change performed on a quib in specific indices.
-    """
-
-    def __repr__(self):
-        return f'[{self.indices}] = {self.value})'
-
-    def __init__(self, value: Any, indices: Any, field: Optional[str] = None):
-        self.value = value
-        self.indices = indices
-        self.field = field
+    paths: List[AssignmentPath]
 
 
 @dataclass

@@ -4,14 +4,14 @@ import numpy
 
 import numpy as np
 from operator import getitem
-from typing import Dict, List, TYPE_CHECKING, Union, Any
+from typing import Dict, List, TYPE_CHECKING, Union
 
-from pyquibbler.quib.assignment import Assignment, IndicesAssignment
+from pyquibbler.quib.assignment import Assignment
 from pyquibbler.quib.assignment.reverse_assignment.utils import create_empty_array_with_values_at_indices
 from pyquibbler.quib.utils import recursively_run_func_on_object
 
-from .reverser import Reversal, Reverser
-from ..assignment import QuibWithAssignment
+from .reverser import Reverser
+from ..assignment import QuibWithAssignment, ReplaceObject
 
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib
@@ -63,9 +63,6 @@ class TranspositionalReverser(Reverser):
         Get a boolean mask representing where the indices that were changed are in the result- this will be in
         same shape as the result
         """
-        if not isinstance(self._assignment, IndicesAssignment):
-            # If our indices is None, then the whole result is relevant- therefore we return a boolean mask of True
-            return True
         return create_empty_array_with_values_at_indices(self._function_quib.get_shape().get_value(),
                                                          indices=self._indices,
                                                          value=True, empty_value=False)
@@ -166,25 +163,55 @@ class TranspositionalReverser(Reverser):
             for quib in self._get_quibs_in_args()
         }
 
-    def _get_quibs_with_assignments(self) -> List[QuibWithAssignment]:
+    def _is_getitem_with_field(self):
+        """
+        Check's whether we have at hand a function quib which represents a __getitem__ with the indices being a string
+        """
+        from pyquibbler.quib import Quib
+        return self._func == getitem and isinstance(self._args[1], str) is not None and isinstance(self._args[0], Quib)
+
+    def _build_quibs_with_assignments_for_getitem_with_field(self) -> List[QuibWithAssignment]:
+        """
+        We can't compute any any translation of indices, as the key of the getitem is a string
+        Because of this, we put all pieces of the getitem in the path- making sure to put the field BEFORE the indexing
+        (keeping it in the same order as it was, so we don't reverse the indices in the next reversal)
+        """
+        new_paths = [self._args[1], self._assignment.paths[0], *self._assignment.paths[1:]]
+        return [QuibWithAssignment(
+            quib=self._args[0],
+            assignment=Assignment(paths=new_paths,
+                                  value=self._value)
+        )]
+
+    def _build_quibs_with_assignments_for_generic_case(self) -> List[QuibWithAssignment]:
+        """
+        Build assignments for the generic case, in which we want to attempt translation of indices and values
+        to the quib we're creating an assignment to.
+        If the self.field is a string, we always look attempt to look at the array without it's structure quality,
+        meaning our self.indices will always be True (as we're not dividing that last 'dimension').
+        Because of this, we need to add self.field to the paths.
+        """
         quibs_to_indices_in_quibs = self._get_quibs_to_indices_in_quibs()
         quibs_to_results = self._get_quibs_to_relevant_result_values()
 
         quibs_with_assignments = []
         for quib, result in quibs_to_results.items():
-            if quib in quibs_to_indices_in_quibs:
-                indices = quibs_to_indices_in_quibs[quib]
-                assignment = IndicesAssignment(indices=indices,
-                                               value=quibs_to_results[quib],
-                                               field=self._assignment.field)
-
-            else:
-                assignment = Assignment(value=quibs_to_results[quib], field=self._assignment.field)
+            # If we have no indices but we do have results, we set the whole quib to the result
+            paths = self._get_new_paths_for_assignment(quibs_to_indices_in_quibs.get(quib, ReplaceObject))
 
             quibs_with_assignments.append(QuibWithAssignment(
                 quib=quib,
-                assignment=assignment
+                assignment=Assignment(paths=paths,
+                                      value=quibs_to_results[quib])
             ))
 
         return quibs_with_assignments
+
+    def _get_quibs_with_assignments(self) -> List[QuibWithAssignment]:
+
+        if self._is_getitem_with_field():
+            return self._build_quibs_with_assignments_for_getitem_with_field()
+
+        return self._build_quibs_with_assignments_for_generic_case()
+
 

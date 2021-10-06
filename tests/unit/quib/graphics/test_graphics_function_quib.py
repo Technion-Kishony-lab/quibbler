@@ -48,12 +48,22 @@ def test_graphics_function_quib_get_value_returns_value():
 def test_graphics_function_quib_rerun_removes_artists_created(monkeypatch, mock_axes, create_mock_artist):
     all_mock_artists_created = []
 
-    def mock_get_artists():
-        artist = create_mock_artist()
-        all_mock_artists_created.append(artist)
-        return [artist]
+    class MockArtistsCollector:
 
-    monkeypatch.setattr(global_collecting, "get_artists_collected", mock_get_artists)
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            pass
+
+        @property
+        def artists_collected(self):
+            artist = create_mock_artist()
+            all_mock_artists_created.append(artist)
+            return [artist]
+
+    monkeypatch.setattr(global_collecting, "ArtistsCollector", MockArtistsCollector)
+
     father_quib = iquib(1)
     quib = GraphicsFunctionQuib(
         args=tuple(),

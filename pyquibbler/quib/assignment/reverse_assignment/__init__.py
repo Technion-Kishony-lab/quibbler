@@ -19,7 +19,6 @@ def reverse_function_quib(function_quib: FunctionQuib,
     Given a function quib and a change in it's result (at `indices` to `value`), reverse assign relevant values
     to relevant quib arguments
     """
-
     for reverser_cls in REVERSERS:
         if reverser_cls.matches(function_quib):
             reverser_cls(function_quib=function_quib, assignment=assignment).reverse()

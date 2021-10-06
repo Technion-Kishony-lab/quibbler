@@ -6,7 +6,7 @@ from matplotlib.axes import Axes
 
 from pyquibbler import iquib
 from pyquibbler.quib.graphics import GraphicsFunctionQuib
-from pyquibbler.quib.graphics.event_handling.graphics_reverse_assigner import reverse_graphics_function_quib
+from pyquibbler.quib.graphics.event_handling.graphics_reverse_assigner import reverse_assign_drawing_func
 
 
 @pytest.fixture
@@ -31,8 +31,9 @@ def test_plot_reverse_assigner_happy_flow(mock_plot):
     q = iquib(np.array([1, 2, 3]))
     pick_event, mouse_event = create_mock_pick_event_and_mouse_event(0, 10, 20)
 
-    reverse_graphics_function_quib(
-        GraphicsFunctionQuib.create(mock_plot, func_args=(None, q)),
+    reverse_assign_drawing_func(
+        drawing_func=mock_plot,
+        args=(None, q),
         mouse_event=mouse_event,
         pick_event=pick_event
     )
@@ -52,8 +53,9 @@ def test_plot_reverse_assigner_happy_flow(mock_plot):
 def test_plot_reverse_assigner(mock_plot, indices, xdata, ydata, args, quib_index, expected_value):
     pick_event, mouse_event = create_mock_pick_event_and_mouse_event(indices, xdata, ydata)
 
-    reverse_graphics_function_quib(
-        GraphicsFunctionQuib.create(mock_plot, func_args=(None, *args)),
+    reverse_assign_drawing_func(
+        drawing_func=mock_plot,
+        args=(None, *args),
         mouse_event=mouse_event,
         pick_event=pick_event
     )

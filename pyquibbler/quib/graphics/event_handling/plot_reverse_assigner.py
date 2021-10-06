@@ -3,9 +3,8 @@ from typing import Tuple, Any, List, TYPE_CHECKING
 from matplotlib.backend_bases import PickEvent, MouseEvent
 
 from .graphics_reverse_assigner import graphics_reverse_assigner
-from .utils import assign_data
 from ...assignment import Assignment
-from ...assignment.assignment import QuibWithAssignment, IndicesAssignment
+from ...assignment.assignment import QuibWithAssignment, ReplaceObject
 
 if TYPE_CHECKING:
     from pyquibbler.quib.graphics.graphics_function_quib import GraphicsFunctionQuib
@@ -50,7 +49,7 @@ def get_xdata_arg_indices_and_ydata_arg_indices(args: Tuple[Any, ...]):
     return x_data_arg_indexes, y_data_arg_indexes
 
 
-def get_quibs_with_assignments_for_axes(function_quib: 'GraphicsFunctionQuib',
+def get_quibs_with_assignments_for_axes(args: List[Any],
                                         arg_indices: List[int],
                                         indices_to_set: Any,
                                         value: Any):
@@ -64,14 +63,13 @@ def get_quibs_with_assignments_for_axes(function_quib: 'GraphicsFunctionQuib',
 
     quibs_with_assignments = []
     for arg_index in arg_indices:
-        quib = function_quib.args[arg_index]
+        quib = args[arg_index]
         if isinstance(quib, Quib):
             # We want to support both single values and arrays, so we need to reverse assign
             # appropriately (not use index if it was a single number)
-            if issubclass(quib.get_type(), Iterable):
-                assignment = IndicesAssignment(indices=indices_to_set, value=value)
-            else:
-                assignment = Assignment(value=value)
+            assignment = Assignment(value=value, paths=[indices_to_set
+                                                        if issubclass(quib.get_type(), Iterable)
+                                                        else ReplaceObject])
             quibs_with_assignments.append(QuibWithAssignment(quib=quib,
                                                              assignment=assignment))
     return quibs_with_assignments
@@ -79,12 +77,12 @@ def get_quibs_with_assignments_for_axes(function_quib: 'GraphicsFunctionQuib',
 
 @graphics_reverse_assigner('Axes.plot')
 def get_quibs_with_assignments_for_axes_plot(pick_event: PickEvent, mouse_event: MouseEvent,
-                                             function_quib: 'GraphicsFunctionQuib') -> List[QuibWithAssignment]:
+                                             args: List[Any]) -> List[QuibWithAssignment]:
     indices = pick_event.ind
-    x_arg_indices, y_arg_indices = get_xdata_arg_indices_and_ydata_arg_indices(function_quib.args)
-    quibs_with_assignments = get_quibs_with_assignments_for_axes(function_quib, x_arg_indices, indices,
+    x_arg_indices, y_arg_indices = get_xdata_arg_indices_and_ydata_arg_indices(args)
+    quibs_with_assignments = get_quibs_with_assignments_for_axes(args, x_arg_indices, indices,
                                                                  mouse_event.xdata)
-    quibs_with_assignments.extend(get_quibs_with_assignments_for_axes(function_quib, y_arg_indices, indices,
+    quibs_with_assignments.extend(get_quibs_with_assignments_for_axes(args, y_arg_indices, indices,
                                                                    mouse_event.ydata))
 
     return quibs_with_assignments
