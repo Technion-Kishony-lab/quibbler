@@ -258,14 +258,18 @@ def iter_quibs_in_args(args, kwargs):
     return iter_object_type_in_args(Quib, args, kwargs)
 
 
+def convert_args(args, kwargs):
+    return ([copy_and_replace_quibs_with_vals(arg) for arg in args],
+            {name: copy_and_replace_quibs_with_vals(val) for name, val in kwargs.items()})
+
+
 def call_func_with_quib_values(func, args, kwargs):
     """
     Calls a function with the specified args and kwargs while replacing quibs with their values.
     """
-    new_args = [copy_and_replace_quibs_with_vals(arg) for arg in args]
-    kwargs = {name: copy_and_replace_quibs_with_vals(val) for name, val in kwargs.items()}
+    new_args, new_kwargs = convert_args(args, kwargs)
     try:
-        return func(*new_args, **kwargs)
+        return func(*new_args, **new_kwargs)
     except TypeError as e:
         if len(e.args) == 1 and 'Quib' in e.args[0]:
             raise FunctionCalledWithNestedQuibException.from_call(func, args, kwargs) from e

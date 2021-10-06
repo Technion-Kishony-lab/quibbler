@@ -9,7 +9,7 @@ from ..assignment import AssignmentTemplate, Assignment
 from ..assignment.assignment import QuibWithAssignment
 from ..quib import Quib
 from ..utils import is_there_a_quib_in_args, iter_quibs_in_args, call_func_with_quib_values, \
-    deep_copy_without_quibs_or_artists, recursively_run_func_on_object
+    deep_copy_without_quibs_or_artists, recursively_run_func_on_object, convert_args
 from ...exceptions import PyQuibblerException
 
 
@@ -136,10 +136,9 @@ class FunctionQuib(Quib):
 
     def pretty_repr(self):
         func_name = getattr(self.func, '__name__', str(self.func))
-        obj_repr = lambda obj: obj.pretty_repr() if isinstance(obj, Quib) else obj
-        arg_reps = lambda arg: str(recursively_run_func_on_object(obj_repr, arg))
-        posarg_reprs = map(arg_reps, self.args)
-        kwarg_reprs = [f'{key}={arg_reps(val)}' for key, val in self.kwargs.items()]
+        args, kwargs = convert_args(self.args, self.kwargs)
+        posarg_reprs = map(str, args)
+        kwarg_reprs = (f'{key}={val}' for key, val in kwargs.items())
         return f'{func_name}({", ".join([*posarg_reprs, *kwarg_reprs])})'
 
     def get_cache_behavior(self):
