@@ -63,6 +63,13 @@ UNARY_OVERRIDES = [
     operator_override('__invert__'),
 ]
 
+COMPARISON_OVERRIDES = [
+    operator_override('__lt__'),
+    operator_override('__gt__'),
+    operator_override('__ge__'),
+    operator_override('__le__'),
+]
+
 ROUNDING_OVERRIDES = [
     ('__round__', round),
     ('__trunc__', trunc),
@@ -70,7 +77,9 @@ ROUNDING_OVERRIDES = [
     ('__ceil__', ceil),
 ]
 
-ALL_OVERRIDES = ARITHMETIC_OVERRIDES + REVERSE_ARITHMETIC_OVERRIDES + UNARY_OVERRIDES + ROUNDING_OVERRIDES
+
+ALL_OVERRIDES = ARITHMETIC_OVERRIDES + REVERSE_ARITHMETIC_OVERRIDES + UNARY_OVERRIDES + ROUNDING_OVERRIDES + \
+                COMPARISON_OVERRIDES
 
 
 def override_quib_operators():
