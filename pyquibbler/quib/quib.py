@@ -101,9 +101,6 @@ class Quib(ABC):
         """
         self._children.add(weakref(quib, lambda ref: self._children.remove(ref)))
 
-    def __hash__(self):
-        return id(self)
-
     def __len__(self):
         return len(self.get_value())
 
@@ -152,6 +149,9 @@ class Quib(ABC):
 
     def __setitem__(self, key, value):
         self.assign(Assignment(value=value, paths=[key]))
+
+    def pretty_repr(self):
+        return repr(self)
 
     def get_assignment_template(self) -> AssignmentTemplate:
         return self._assignment_template

@@ -45,5 +45,8 @@ class InputQuib(Quib):
     def __repr__(self):
         return f'<{self.__class__.__name__} ({self._value})>'
 
+    def pretty_repr(self):
+        return f'iquib({self.get_value()})'
+
 
 iquib = InputQuib
