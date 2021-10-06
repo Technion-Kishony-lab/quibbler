@@ -1,5 +1,7 @@
 from typing import Any, List, Optional, Iterable
 
+import numpy as np
+
 from .assignment import Assignment, AssignmentPath
 from .assignment_template import AssignmentTemplate
 from ..utils import deep_copy_without_quibs_or_artists
@@ -13,6 +15,10 @@ def _deep_assign_data_with_paths(data: Any, paths: List[AssignmentPath], value: 
     assignments given to the user's whims
     """
     *pre_paths, last_path = paths
+
+    if isinstance(data, list):
+        # In order to allow fancy indexing we need the data to be np
+        data = np.array(data)
 
     elements = [data]
     for path in pre_paths:

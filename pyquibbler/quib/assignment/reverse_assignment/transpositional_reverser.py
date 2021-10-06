@@ -47,9 +47,7 @@ class TranspositionalReverser(Reverser):
 
         def replace_quib_with_id(obj):
             if isinstance(obj, Quib):
-                if issubclass(obj.get_type(), np.ndarray):
-                    return np.full(obj.get_shape().get_value(), quibs_to_ids[obj])
-                return quibs_to_ids[obj]
+                return np.full(obj.get_shape().get_value(), quibs_to_ids[obj])
             return obj
 
         arguments = recursively_run_func_on_object(
@@ -74,7 +72,6 @@ class TranspositionalReverser(Reverser):
         return {
             quib: np.indices(quib.get_shape().get_value())
             for quib in self._get_quibs_in_args()
-            if issubclass(quib.get_type(), np.ndarray)
         }
 
     def _get_quibs_to_masks(self):
@@ -124,7 +121,7 @@ class TranspositionalReverser(Reverser):
         Get a mapping of quibs to the quib's indices that were referenced in `self._indices` (ie after reversal of the
         indices relevant to the particular quib)
         """
-        max_shape_length = max([len(quib.get_shape().get_value()) if issubclass(quib.get_type(), np.ndarray) else 0
+        max_shape_length = max([len(quib.get_shape().get_value())
                                 for quib in self._get_quibs_in_args()])
         quibs_to_indices_in_quibs = {}
         for i in range(max_shape_length):

@@ -179,6 +179,8 @@ class Quib(ABC):
         """
         value = self.get_value()
         if not isinstance(value, np.ndarray):
+            if isinstance(value, list):
+                return np.array(value).shape
             # We, like numpy, consider this a zero dimensional array
             return tuple()
         return value.shape
