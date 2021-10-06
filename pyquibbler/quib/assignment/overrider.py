@@ -1,8 +1,24 @@
 from typing import Any, List, Optional, Iterable
 
-from .assignment import Assignment, IndicesAssignment
+from .assignment import Assignment, ReplaceObject, AssignmentPath
 from .assignment_template import AssignmentTemplate
 from ..utils import deep_copy_without_quibs_or_artists
+
+
+def _deep_assign_data_with_paths(data: Any, paths: List[AssignmentPath], value: Any):
+    """
+    Go path by path setting value, each time ensuring we don't lost copied values (for example if there was
+    fancy indexing) by making sure to set recursively back anything that made an assignment
+    """
+    current_path = paths[0]
+    if current_path is ReplaceObject:
+        return value
+    elif len(paths) == 1:
+        data[current_path] = value
+        return data
+
+    data[current_path] = _deep_assign_data_with_paths(data[current_path], paths[1:], value)
+    return data
 
 
 class Overrider:
@@ -26,16 +42,7 @@ class Overrider:
         data = deep_copy_without_quibs_or_artists(data)
         for assignment in self._assignments:
             value = assignment.value if assignment_template is None else assignment_template.convert(assignment.value)
-            if isinstance(assignment, IndicesAssignment):
-                data_to_set = data
-                if assignment.field is not None:
-                    data_to_set = data[assignment.field]
-                data_to_set[assignment.indices] = value
-            else:
-                if assignment.field is not None:
-                    data[assignment.field] = value
-                else:
-                    data = value
+            data = _deep_assign_data_with_paths(data, assignment.paths, value)
 
         return data
 

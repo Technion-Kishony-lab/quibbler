@@ -3,7 +3,7 @@ from pytest import fixture
 
 from pyquibbler import iquib
 from pyquibbler.quib import FunctionQuib
-from pyquibbler.quib.assignment import Assignment, IndicesAssignment
+from pyquibbler.quib.assignment import Assignment
 
 
 class ExampleFunctionQuib(FunctionQuib):
@@ -62,7 +62,7 @@ def test_assign_with_unknown_function_overrides(function_wrapper, function_mock_
     expected_value = np.array(function_mock_return_val)
     expected_value[index] = new_value
 
-    q.assign(IndicesAssignment(value=new_value, indices=index))
+    q.assign(Assignment(value=new_value, paths=[index]))
 
     assert np.array_equal(q.get_value(), expected_value)
 

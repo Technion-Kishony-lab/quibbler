@@ -10,8 +10,7 @@ from weakref import ref as weakref
 import numpy as np
 
 from pyquibbler.exceptions import PyQuibblerException
-from .assignment import AssignmentTemplate, RangeAssignmentTemplate, BoundAssignmentTemplate, Overrider, Assignment, \
-    IndicesAssignment
+from .assignment import AssignmentTemplate, RangeAssignmentTemplate, BoundAssignmentTemplate, Overrider, Assignment
 from .utils import deep_copy_without_quibs_or_artists, quib_method, Unpacker
 
 if TYPE_CHECKING:
@@ -119,10 +118,7 @@ class Quib(ABC):
         return DefaultFunctionQuib.create(func=getitem, func_args=[self, item])
 
     def __setitem__(self, key, value):
-        if isinstance(key, str):
-            self.assign(Assignment(value=value, field=key))
-        else:
-            self.assign(IndicesAssignment(value=value, indices=key, field=None))
+        self.assign(Assignment(value=value, paths=[key]))
 
     def get_assignment_template(self) -> AssignmentTemplate:
         return self._assignment_template
@@ -196,10 +192,10 @@ class Quib(ABC):
         mask = np.zeros(shape, dtype=np.bool)
         # Can't use `mask[all_keys] = True` trivially, because some of the keys might be lists themselves.
         for assignment in self._overrider:
-            if isinstance(assignment, IndicesAssignment):
-                mask[assignment.indices] = True
-            else:
-                mask.fill(True)
+            end_index = next((i for i, path in enumerate(assignment.paths)
+                              if isinstance(path, str)), len(assignment.paths))
+            for i in range(end_index):
+                mask[assignment.paths[i]] = True
         return mask
 
     def get_override_mask(self) -> Quib:

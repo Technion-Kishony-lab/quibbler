@@ -27,7 +27,7 @@ def canvas_event_handler():
 @pytest.fixture()
 def mock_reverse_graphics_function(monkeypatch):
     mock_reverse = mock.Mock()
-    monkeypatch.setattr(graphics_reverse_assigner, 'reverse_graphics_function_quib', mock_reverse)
+    monkeypatch.setattr(graphics_reverse_assigner, 'reverse_assign_drawing_func', mock_reverse)
     return mock_reverse
 
 
@@ -40,13 +40,15 @@ def test_canvas_event_handler_plot_drag_without_pick_event_does_nothing(canvas_e
 
 def test_canvas_event_handler_plot_drag(canvas_event_handler, mock_reverse_graphics_function):
     pick_event = mock.Mock()
-    graphics_function_quib = mock.Mock()
-    pick_event.artist.graphics_function_quibs = [graphics_function_quib]
+    drawing_func = mock.Mock()
+    pick_event.artist._quibbler_drawing_func = drawing_func
+    pick_event.artist._quibbler_args = [mock.Mock()]
     canvas_event_handler._handle_pick_event(pick_event)
     mouse_event = mock.Mock()
     canvas_event_handler._handle_motion_notify(mouse_event)
 
-    mock_reverse_graphics_function.assert_called_once_with(graphics_function_quib=graphics_function_quib,
+    mock_reverse_graphics_function.assert_called_once_with(drawing_func=drawing_func,
+                                                           args=pick_event.artist._quibbler_args,
                                                            mouse_event=mouse_event,
                                                            pick_event=pick_event)
 
@@ -54,6 +56,13 @@ def test_canvas_event_handler_plot_drag(canvas_event_handler, mock_reverse_graph
 def test_canvas_event_handler_plot_drag_after_releasing(canvas_event_handler, mock_reverse_graphics_function):
     canvas_event_handler._handle_pick_event(mock.Mock())
     canvas_event_handler._handle_button_release(mock.Mock())
+    canvas_event_handler._handle_motion_notify(mock.Mock())
+
+    mock_reverse_graphics_function.assert_not_called()
+
+
+def test_canvas_event_handler_raises_exception(canvas_event_handler,
+                                                                        mock_reverse_graphics_function):
     canvas_event_handler._handle_motion_notify(mock.Mock())
 
     mock_reverse_graphics_function.assert_not_called()

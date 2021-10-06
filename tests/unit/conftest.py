@@ -1,4 +1,4 @@
-from unittest.mock import Mock
+from unittest.mock import Mock, MagicMock
 
 from pytest import fixture
 
@@ -10,4 +10,6 @@ def function_mock_return_val():
 
 @fixture
 def function_mock(function_mock_return_val):
-    return Mock(return_value=function_mock_return_val)
+    func_mock = MagicMock(return_value=function_mock_return_val)
+    func_mock.__name__ = 'func_mock'
+    return func_mock
