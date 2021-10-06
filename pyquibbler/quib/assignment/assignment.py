@@ -5,8 +5,6 @@ if TYPE_CHECKING:
     from ..quib import Quib
 
 
-ReplaceObject = object()
-
 AssignmentPath = Union[str, Tuple, Any]
 
 

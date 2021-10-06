@@ -179,7 +179,8 @@ class Quib(ABC):
         """
         value = self.get_value()
         if not isinstance(value, np.ndarray):
-            raise QuibIsNotNdArrayException(self, value)
+            # We, like numpy, consider this a zero dimensional array
+            return tuple()
         return value.shape
 
     @quib_method

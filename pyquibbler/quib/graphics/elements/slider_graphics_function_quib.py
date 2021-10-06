@@ -1,6 +1,5 @@
 from pyquibbler.quib import GraphicsFunctionQuib, Quib
 from pyquibbler.quib.assignment import Assignment
-from pyquibbler.quib.assignment.assignment import ReplaceObject
 from pyquibbler.quib.graphics import global_collecting
 
 
@@ -12,7 +11,7 @@ class SliderGraphicsFunctionQuib(GraphicsFunctionQuib):
     def _on_change(self, new_value: float):
         val = self._kwargs['valinit']
         if isinstance(val, Quib):
-            val.assign(Assignment(value=new_value, paths=[ReplaceObject]))
+            val.assign(Assignment(value=new_value, paths=[...]))
         return val
 
     def _call_func(self):

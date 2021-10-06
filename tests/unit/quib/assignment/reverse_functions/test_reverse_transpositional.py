@@ -8,7 +8,6 @@ import pytest
 from pyquibbler import iquib
 from pyquibbler.quib import DefaultFunctionQuib
 from pyquibbler.quib.assignment import Assignment
-from pyquibbler.quib.assignment.assignment import ReplaceObject
 from pyquibbler.quib.assignment.reverse_assignment import reverse_function_quib
 
 
@@ -77,7 +76,7 @@ def test_reverse_assign_pyobject_array():
     new_mock = mock.Mock()
     b = a[0]
 
-    b.assign(Assignment(value=new_mock, paths=[ReplaceObject]))
+    b.assign(Assignment(value=new_mock, paths=[...]))
 
     assert a.get_value() == [new_mock]
 
@@ -87,7 +86,7 @@ def test_reverse_assign_to_single_element():
     a = iquib(np.array([0, 1, 2]))
     b = a[1]
 
-    b.assign(Assignment(value=3, paths=[ReplaceObject]))
+    b.assign(Assignment(value=3, paths=[...]))
 
     assert np.array_equal(a.get_value(), [0, 3, 2])
 
@@ -158,7 +157,7 @@ def test_reverse_assign_nested_with_fancy_rot90_fancy_and_replace():
     rotated_children = DefaultFunctionQuib.create(func=np.rot90, func_args=(children_names,))
 
     dumbest_child = rotated_children[([0], [0])]
-    dumbest_child.assign(Assignment(value=new_name, paths=[ReplaceObject]))
+    dumbest_child.assign(Assignment(value=new_name, paths=[...]))
 
     assert np.array_equal(families.get_value(), np.array([[(name_1, first_children)],
                                                           [(name_2, [*second_children[:-1], new_name])]], dtype=dtype))

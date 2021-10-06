@@ -9,7 +9,7 @@ import numpy as np
 
 from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.quib.assignment import Assignment
-from pyquibbler.quib.assignment.assignment import QuibWithAssignment, ReplaceObject
+from pyquibbler.quib.assignment.assignment import QuibWithAssignment
 from pyquibbler.quib.assignment.reverse_assignment.utils import create_empty_array_with_values_at_indices
 from pyquibbler.quib.utils import iter_quibs_in_object_recursively
 
@@ -53,20 +53,12 @@ class Reverser(ABC):
         return list(set(iter_quibs_in_object_recursively(self._args)))
 
     @property
-    def _indices(self):
-        # If our field is not None, we are representing a structured array that is being changed on it's structured
-        # keys. These keys are NOT simply another dimension, and the ndarray's shape is as if without it. Therefore,
-        # we attempt to regard the change made as global, and will add the field later on to any paths of
-        # assignments we make
-        if self._field is not None:
-            return True
+    def _working_indices(self):
+        """
+        Our working indices, ie the ones that need to be either squashed
+        :return:
+        """
         return self._assignment.paths[0]
-
-    @property
-    def _field(self):
-        if len(self._assignment.paths) > 0 and isinstance(self._assignment.paths[0], str):
-            return self._assignment.paths[0]
-        return None
 
     @property
     def _value(self):
@@ -89,31 +81,14 @@ class Reverser(ABC):
         Since we don't have the real result (may not have been computed yet),
         we create a representative result in same shape as the real result and set the new value in it
         """
-        if self._indices is ReplaceObject:
-            # If the entire result has been changed, we can simply return the value
-            # as a representation of the whole result (since it IS the whole result)
-            return self._value
-
         return create_empty_array_with_values_at_indices(
             self._function_quib.get_shape().get_value(),
-            indices=self._indices,
+            indices=self._working_indices,
             value=self._value,
         )
 
-    def _get_new_paths_for_assignment(self, new_indices: Optional[Any] = ReplaceObject):
-        """
-        Get a list of all new paths necessary for assignment- note that this may not be enough in certain scenarios
-        """
-        paths = [new_indices, *self._assignment.paths[1:]]
-        if self._field is not None:
-            # The field we have are relevant for the shape of the quib, but not the field- we need to add the
-            # field to the paths. We do want to add it AFTER whichever indexing we did, so that that indexing can
-            # continue to be reversed up the quib tree
-            paths.insert(1, self._field)
-        return paths
-
     @abstractmethod
-    def _get_quibs_with_assignments(self) -> List[QuibWithAssignment]:
+    def get_quibs_with_assignments(self) -> List[QuibWithAssignment]:
         """
         Get all reversals that need to be applied for the reversal to be complete
         (This can potentially contain multiple quibs with multiple assignments)
@@ -125,7 +100,8 @@ class Reverser(ABC):
         Go through all quibs in args and apply any assignments that need be, given a change in the result of
         a function quib (at self._indices to self._value)
         """
-        quibs_with_assignments = self._get_quibs_with_assignments()
+        quibs_with_assignments = self.get_quibs_with_assignments()
 
         for quib_with_assignment in quibs_with_assignments:
             quib_with_assignment.apply()
+
