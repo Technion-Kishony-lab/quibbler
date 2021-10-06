@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 from contextlib import contextmanager
 from threading import Lock
 from typing import Optional
@@ -40,7 +39,7 @@ class CanvasEventHandler:
             'pick_event': self._handle_pick_event
         }
 
-    def _handle_button_release(self, mouse_event: MouseEvent):
+    def _handle_button_release(self, _mouse_event: MouseEvent):
         self.current_pick_event = None
 
     def _handle_pick_event(self, pick_event: PickEvent):
@@ -59,29 +58,24 @@ class CanvasEventHandler:
                                                                      pick_event=self.current_pick_event)
 
     @contextmanager
-    def _acquire_assignment_lock(self):
-        print(1)
-        while True:
-            if self.canvas.figure.stale:
-                self.canvas.draw_idle()
-            plt.show(block=False)
-            self.canvas.flush_events()
-            if self._assignment_lock.acquire(timeout=0.01):
-                break
+    def _try_acquire_assignment_lock(self):
+        locked = self._assignment_lock.acquire(blocking=False)
         try:
-            print(2)
-            yield
+            yield locked
         finally:
-            print(3)
-            self._assignment_lock.release()
+            if locked:
+                self._assignment_lock.release()
 
     def _handle_motion_notify(self, mouse_event: MouseEvent):
 
         if self.current_pick_event is not None:
             drawing_func = getattr(self.current_pick_event.artist, '_quibbler_drawing_func', None)
             if drawing_func is not None:
-                with self._acquire_assignment_lock():
-                    self._reverse_assign_graphics(self.current_pick_event.artist, mouse_event)
+                with self._try_acquire_assignment_lock() as locked:
+                    if locked:
+                        # If not locked, there is already another motion handler running, we just drop this one.
+                        # This could happen if changes are slow or if a dialog is open
+                        self._reverse_assign_graphics(self.current_pick_event.artist, mouse_event)
 
     def initialize(self):
         """

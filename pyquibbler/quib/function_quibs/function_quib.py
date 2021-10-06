@@ -5,7 +5,7 @@ from enum import Enum
 from functools import wraps, cached_property
 from typing import List, Callable, Any, Mapping, Tuple, Optional, Set
 
-from .utils import choose_override_dialog
+from .override_choice import choose_overrides
 from ..assignment import AssignmentTemplate, Assignment
 from ..assignment.assignment import QuibWithAssignment
 from ..quib import Quib
@@ -118,23 +118,11 @@ class FunctionQuib(Quib):
     def kwargs(self):
         return self._kwargs
 
-    def _choose_and_apply_overrides(self, override_options, diverged_options):
-        if override_options:
-            if len(override_options) == 1 and not diverged_options:
-                chosen_override = override_options[0]
-            else:
-                chosen_override = choose_override_dialog(override_options, len(diverged_options) > 0)
-            if chosen_override is not None:
-                chosen_override.quib._override(chosen_override.assignment)
-                return
-
-        assert diverged_options
-        for next_override_options, next_diverged_options in diverged_options:
-            self._choose_and_apply_overrides(next_override_options, next_diverged_options)
-
     def assign(self, assignment: Assignment) -> None:
         override_options, diverged_options = get_override_options(QuibWithAssignment(self, assignment))
-        self._choose_and_apply_overrides(override_options, diverged_options)
+        chosen_overrides = choose_overrides(override_options, diverged_options)
+        for chosen_override in chosen_overrides:
+            chosen_override.quib._override(chosen_override.assignment)
 
     def __repr__(self):
         return f"<{self.__class__.__name__} - {self.func}>"

@@ -5,10 +5,10 @@ from functools import partial
 from matplotlib.axes import Axes
 from matplotlib.backend_bases import Event
 from matplotlib.widgets import RadioButtons, Button
-from typing import List, Optional, Callable
+from typing import List, Callable, Tuple
 from enum import Enum
 
-from ..assignment import QuibWithAssignment
+from pyquibbler.quib.assignment import QuibWithAssignment
 
 
 class MyRadioButtons(RadioButtons):
@@ -22,7 +22,7 @@ class MyRadioButtons(RadioButtons):
 
 
 class OverrideChoice(Enum):
-    NONE = 0
+    CANCEL = 0
     OVERRIDE = 1
     DIVERGE = 2
 
@@ -38,7 +38,7 @@ class Flag:
         return self.is_set
 
 
-def button(ax: Axes, label: str, callback: Callable[[Event], None]):
+def create_button(ax: Axes, label: str, callback: Callable[[Event], None]):
     button = Button(ax, label)
     button.on_clicked(callback)
     return button
@@ -58,30 +58,33 @@ def show_fig(fig):
         sleep(0.01)
 
 
-def choose_override_dialog(options: List[QuibWithAssignment], can_diverge: bool) -> Optional[QuibWithAssignment]:
+def choose_override_dialog(options: List[QuibWithAssignment],
+                           can_diverge: bool) -> Tuple[OverrideChoice, QuibWithAssignment]:
+    # Used to keep references to the widgets so they won't be garbage collected
+    widgets = []
     fig = plt.figure()
-    labels = [f'Override {option.quib}' for option in options]
-    # Warning: don't lose the reference to the radio object or it will be garbage collected
-    grid = fig.add_gridspec(5, 5)
+    grid = fig.add_gridspec(6, 6)
+
     radio_ax = fig.add_subplot(grid[:-1, :])
-    radio = MyRadioButtons(radio_ax, labels)
-    choice = OverrideChoice.NONE
+    radio = MyRadioButtons(radio_ax, [f'Override {option.quib}' for option in options])
+    widgets.append(radio)  # This is not strictly needed but left here to prevent a bug
+
+    choice = OverrideChoice.CANCEL
 
     def button_callback(button_choice, _event):
         nonlocal choice
         choice = button_choice
         plt.close(fig)
 
-    override_button_ax = fig.add_subplot(grid[-1, -1])
-    # Warning: don't lose the reference to the button or it will be garbage collected
-    _override_button = button(override_button_ax, 'Override', partial(button_callback, OverrideChoice.OVERRIDE))
+    button_specs = [('Cancel', OverrideChoice.CANCEL),
+                    ('Override', OverrideChoice.CANCEL)]
     if can_diverge:
-        diverge_button_ax = fig.add_subplot(grid[-1, -2])
-        # Warning: don't lose the reference to the button or it will be garbage collected
-        _diverge_button = button(diverge_button_ax, 'Diverge', partial(button_callback, OverrideChoice.DIVERGE))
+        button_specs.append(('Diverge', OverrideChoice.DIVERGE))
+
+    for i, (label, choice) in enumerate(button_specs):
+        ax = fig.add_subplot(grid[-1, -i - 1])
+        button = create_button(ax, label, partial(button_callback, choice))
+        widgets.append(button)
+
     show_fig(fig)
-    assert choice is not OverrideChoice.NONE
-    if choice is OverrideChoice.OVERRIDE:
-        assert radio.selected_index is not None
-        return options[radio.selected_index]
-    return None
+    return choice, options[radio.selected_index]
