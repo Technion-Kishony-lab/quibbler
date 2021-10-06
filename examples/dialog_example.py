@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 from pyquibbler import override_all, iquib
 
 override_all()
-mpl.use('TkAgg')
 
 plt.xlim(-1, 9)
 plt.ylim(-1, 7)

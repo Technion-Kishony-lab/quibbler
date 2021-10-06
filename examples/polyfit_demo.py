@@ -23,8 +23,9 @@ ax = plt.axes([0.2, 0.2, 0.7, .6])
 
 
 def plot_point(i):
-    ax.plot(x[i], y[i], marker='o', markersize=12, markerfacecolor='y', linestyle='None', picker=True,
-            pickradius=15)
+    ax.plot(x[i], y[i],
+            marker='o', markersize=12, markerfacecolor='y',
+            linestyle='None', picker=True, pickradius=15)
 
 
 res = np.apply_along_axis(plot_point, 0, np.reshape(np.arange(q(len, x)), (1, q(len, x))))
