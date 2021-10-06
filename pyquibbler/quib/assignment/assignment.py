@@ -14,7 +14,6 @@ class Assignment:
     A change performed on a quib.
     """
     value: Any
-
     paths: List[AssignmentPath]
 
 
