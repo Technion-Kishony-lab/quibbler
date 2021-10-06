@@ -14,6 +14,8 @@ from .utils import get_mock_with_repr, slicer
 
 
 class ExampleQuib(Quib):
+    _DEFAULT_ALLOW_OVERRIDING = True
+
     def __init__(self, value, assignment_template=None):
         super().__init__(assignment_template=assignment_template)
         self.value = value

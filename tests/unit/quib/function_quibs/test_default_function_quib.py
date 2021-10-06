@@ -16,7 +16,9 @@ def parent_quib():
 
 @fixture
 def default_function_quib(function_mock):
-    return DefaultFunctionQuib.create(function_mock, cache_behavior=CacheBehavior.ON)
+    fquib = DefaultFunctionQuib.create(function_mock, cache_behavior=CacheBehavior.ON)
+    fquib.allow_overriding = True
+    return fquib
 
 
 @fixture
