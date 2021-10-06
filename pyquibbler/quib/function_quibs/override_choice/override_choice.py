@@ -1,16 +1,34 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import List, TYPE_CHECKING, Optional
+from typing import List, TYPE_CHECKING, Optional, Dict, Any
 from pyquibbler.quib.assignment import QuibWithAssignment, CannotReverseUnknownFunctionException, reverse_function_quib
 
 from .override_dialog import OverrideChoiceType, OverrideChoice, choose_override_dialog
 
 if TYPE_CHECKING:
-    from pyquibbler.quib import FunctionQuib
+    from pyquibbler.quib import FunctionQuib, Quib
+
+
+class ChoiceCache:
+    def __init__(self):
+        self._map: Dict[Any, OverrideChoice] = {}
+
+    def _get_key(self, reversed_quib: FunctionQuib, options_tree: OverrideOptionsTree):
+        return (id(reversed_quib),
+                frozenset({id(option.quib) for option in options_tree.options}),
+                options_tree.can_diverge)
+
+    def store(self, choice: OverrideChoice, reversed_quib: FunctionQuib, options_tree: OverrideOptionsTree):
+        self._map[self._get_key(reversed_quib, options_tree)] = choice
+
+    def load(self, reversed_quib: FunctionQuib, options_tree: OverrideOptionsTree) -> Optional[OverrideChoice]:
+        return self._map.get(self._get_key(reversed_quib, options_tree))
 
 
 @dataclass
 class OverrideOptionsTree:
+    _CHOICE_CACHE = ChoiceCache()
+
     options: List[QuibWithAssignment]
     diverged_quib: Optional[FunctionQuib]
     children: List[OverrideOptionsTree]
@@ -20,25 +38,31 @@ class OverrideOptionsTree:
             assert self.diverged_quib is not None
 
     @property
-    def _can_diverge(self):
+    def can_diverge(self):
         return len(self.children) > 0
 
     def __bool__(self):
-        return len(self.options) > 0 or self._can_diverge
+        return len(self.options) > 0 or self.can_diverge
 
     def _try_load_choice(self, reversed_quib: FunctionQuib) -> Optional[OverrideChoice]:
-        return None
+        choice = self._CHOICE_CACHE.load(reversed_quib, self)
+        if choice is not None and choice.choice_type is OverrideChoiceType.OVERRIDE:
+            chosen_quib = choice.chosen_override.quib
+            option = next(option for option in self.options if option.quib is chosen_quib)
+            choice = OverrideChoice(choice.choice_type, option)
+        return choice
 
     def _store_choice(self, reversed_quib: FunctionQuib, choice: OverrideChoice):
-        pass
+        self._CHOICE_CACHE.store(choice, reversed_quib, self)
 
     def get_override_choice(self, reversed_quib: FunctionQuib) -> OverrideChoice:
-        if len(self.options) == 1 and not self._can_diverge:
+        if len(self.options) == 1 and not self.can_diverge:
             return OverrideChoice(OverrideChoiceType.OVERRIDE, self.options[0])
         choice = self._try_load_choice(reversed_quib)
         if choice is None:
-            choice = choose_override_dialog(self.options, self._can_diverge)
-            self._store_choice(reversed_quib, choice)
+            choice = choose_override_dialog(self.options, self.can_diverge)
+            if choice is not OverrideChoiceType.CANCEL:
+                self._store_choice(reversed_quib, choice)
         return choice
 
     def choose_overrides_from_diverged_reverse_assignment(self,
@@ -63,7 +87,7 @@ class OverrideOptionsTree:
                 # if override_choice is OverrideChoiceType.OVERRIDE, metadata is the choice index
                 return [choice.chosen_override]
 
-        assert self._can_diverge
+        assert self.can_diverge
         assert choice_type is OverrideChoiceType.DIVERGE
         return self.choose_overrides_from_diverged_reverse_assignment(self.diverged_quib)
 

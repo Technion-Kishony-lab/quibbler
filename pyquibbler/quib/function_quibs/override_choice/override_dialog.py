@@ -77,7 +77,7 @@ def choose_override_dialog(options: List[QuibWithAssignment],
     grid = fig.add_gridspec(6, 6)
 
     radio_ax = fig.add_subplot(grid[:-1, :])
-    radio = MyRadioButtons(radio_ax, [f'Override {option.quib}' for option in options])
+    radio = MyRadioButtons(radio_ax, [f'Override {option.quib.pretty_repr()}' for option in options])
     widgets.append(radio)  # This is not strictly needed but left here to prevent a bug
 
     choice_type = OverrideChoiceType.CANCEL
