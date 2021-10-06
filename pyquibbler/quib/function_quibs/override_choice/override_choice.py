@@ -36,6 +36,8 @@ class OverrideOptionsTree:
     def __post_init__(self):
         if self.children:
             assert self.diverged_quib is not None
+        from pyquibbler.quib import Quib
+        assert isinstance(self.diverged_quib, Quib)
 
     @property
     def can_diverge(self):
@@ -129,4 +131,4 @@ class OverrideOptionsTree:
                 last_reversal = reversal
 
         children = cls._get_children_from_diverged_reversals(reversals)
-        return OverrideOptionsTree(options, last_reversal, children)
+        return OverrideOptionsTree(options, None if last_reversal is None else last_reversal.quib, children)
