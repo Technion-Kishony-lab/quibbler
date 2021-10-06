@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Optional, TYPE_CHECKING, List, Union, Tuple, Type
+from typing import Any, TYPE_CHECKING, List, Union, Tuple, Type
 
 if TYPE_CHECKING:
     from ..quib import Quib
