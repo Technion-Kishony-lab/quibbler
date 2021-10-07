@@ -123,16 +123,25 @@ class TranspositionalReverser(Reverser):
         """
         max_shape_length = max([len(quib.get_shape().get_value())
                                 for quib in self._get_quibs_in_args()])
-        quibs_to_indices_in_quibs = {}
+        # Default is to set all - if we have a shape we'll change this
+        quibs_to_indices_in_quibs = {
+            quib: ... for quib in self._get_quibs_in_args()
+        }
         for i in range(max_shape_length):
             quibs_to_indices_at_dimension = self._get_quibs_to_indices_at_dimension(i)
 
             for quib, index in quibs_to_indices_at_dimension.items():
-                quibs_to_indices_in_quibs.setdefault(quib, []).append(index)
+                if quibs_to_indices_in_quibs[quib] is ...:
+                    quibs_to_indices_in_quibs[quib] = tuple()
+                quibs_to_indices_in_quibs[quib] = (*quibs_to_indices_in_quibs[quib], index)
 
         return {
-            quib: tuple(indices)
+            quib: indices
             for quib, indices in quibs_to_indices_in_quibs.items()
+            if indices is ... or all(
+                len(dim) > 0
+                for dim in indices
+            )
         }
 
     def _get_quibs_to_relevant_result_values(self) -> Dict[Quib, np.ndarray]:
@@ -198,14 +207,12 @@ class TranspositionalReverser(Reverser):
         quibs_to_results = self._get_quibs_to_relevant_result_values()
 
         quibs_with_assignments = []
-        for quib, result in quibs_to_results.items():
-            # If we have no indices but we do have results, we set the whole quib to the result
+        for quib in quibs_to_indices_in_quibs:
             quibs_with_assignments.append(QuibWithAssignment(
                 quib=quib,
-                assignment=Assignment(paths=[quibs_to_indices_in_quibs.get(quib, ...)],
+                assignment=Assignment(paths=[quibs_to_indices_in_quibs[quib]],
                                       value=quibs_to_results[quib])
             ))
-
         return quibs_with_assignments
 
     def get_quibs_with_assignments(self) -> List[QuibWithAssignment]:
