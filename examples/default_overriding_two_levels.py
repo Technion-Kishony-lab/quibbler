@@ -5,8 +5,6 @@ from pyquibbler import iquib, override_all, q
 
 override_all()
 
-# TODO: clrs(isoverride(WellFactor)+1)
-
 default_factor = iquib(np.array([70]))
 default_factor.set_assignment_template(0, 100, 1)
 n_plates = iquib(3)
@@ -23,20 +21,15 @@ plt.bar(x, plate_factor, color=(0.7, 0.7, 0.7))
 plt.plot([-0.5, n_plates - 0.5], default_factor[[0, 0]], linewidth=5, picker=True)
 ax1 = plt.gca()
 
-plt.plot(x, plate_factor,
-         marker='s', markerfacecolor='y', markersize=9,
-         linestyle='None', picker=True)
 
-
-# plt.show()
-# exit(0)
 def draw_plate_marker(i):
+    color = q(tuple, [(0, 1, 0), (1, 0, 0)])[plate_factor.get_override_mask()[i[0]]]
     ax1.plot(x[i], plate_factor[i],
-             marker='s', markerfacecolor='y', markersize=9,
+             marker='s', markerfacecolor=color, markersize=9,
              linestyle='None', picker=True)
 
 
-np.apply_along_axis(draw_plate_marker, 0, np.arange(q(len, x)))
+np.apply_along_axis(draw_plate_marker, 0, np.reshape(np.arange(q(len, x)), (q(len, x), 1)))
 
 plt.axis([-0.5, n_plates - 0.5, 0, 100])
 plt.ylabel('Plate factor')
@@ -56,12 +49,13 @@ ax2 = plt.gca()
 
 
 def draw_well_marker(i):
+    color = q(tuple, [(0, 1, 0), (1, 0, 0)])[well_factor.get_override_mask()[i[0]]]
     ax2.plot(xx[i], well_factor[i],
-             marker='s', markerfacecolor='y', markersize=9,
+             marker='s', markerfacecolor=color, markersize=9,
              linestyle='None', picker=True)
 
 
-np.apply_along_axis(draw_well_marker, 0, np.arange(q(len, xx)))
+np.apply_along_axis(draw_well_marker, -1, np.reshape(np.arange(q(len, xx)), (q(len, xx), 1)))
 
 plt.ylabel('Well factor')
 plt.show()
