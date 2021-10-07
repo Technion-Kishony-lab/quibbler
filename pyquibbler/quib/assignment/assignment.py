@@ -1,3 +1,4 @@
+from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, TYPE_CHECKING, List, Union, Tuple
 
@@ -21,7 +22,7 @@ class QuibWithAssignment:
     """
     A quib together with it's assignment
     """
-    quib: 'Quib'
+    quib: Quib
     assignment: Assignment
 
     def apply(self):

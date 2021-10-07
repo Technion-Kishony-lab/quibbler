@@ -1,5 +1,6 @@
 import operator
 from math import trunc, floor, ceil
+from typing import Set
 from unittest import mock
 from unittest.mock import Mock
 import numpy as np
@@ -26,6 +27,10 @@ class ExampleQuib(Quib):
 
     def _get_inner_value(self):
         return self.value
+
+    @property
+    def parents(self) -> Set[Quib]:
+        return set()
 
 
 @fixture
