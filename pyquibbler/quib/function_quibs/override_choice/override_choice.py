@@ -14,7 +14,7 @@ class ChoiceCache:
         self._map: Dict[Any, OverrideChoice] = {}
 
     def _get_key(self, reversed_quib: FunctionQuib, options_tree: OverrideOptionsTree):
-        return (id(reversed_quib),
+        return (reversed_quib,
                 frozenset({id(option.quib) for option in options_tree.options}),
                 options_tree.can_diverge)
 

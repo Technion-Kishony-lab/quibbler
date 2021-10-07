@@ -10,7 +10,6 @@ from pyquibbler.quib import Quib
 from pyquibbler.quib.assignment import RangeAssignmentTemplate, BoundAssignmentTemplate, Assignment
 from pyquibbler.quib.graphics import GraphicsFunctionQuib
 from pyquibbler.quib.operator_overriding import ARITHMETIC_OVERRIDES, UNARY_OVERRIDES
-from pyquibbler.quib.quib import QuibIsNotNdArrayException
 from .utils import get_mock_with_repr, slicer
 
 
