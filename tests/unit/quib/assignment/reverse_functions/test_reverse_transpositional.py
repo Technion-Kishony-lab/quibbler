@@ -62,6 +62,34 @@ def test_reverse_getitem():
     assert np.array_equal(quib_arg.get_value(), np.array([[1, 2, 3], [100, 5, 6]]))
 
 
+@pytest.mark.regression
+def test_reverse_repeat_with_quib_as_repeat_count():
+    arg_arr = np.array([1, 2, 3, 4])
+    repeat_count = iquib(3)
+
+    reverse(func=np.repeat, args=(arg_arr, repeat_count, 0),
+            indices=(np.array([0]), ),
+            value=[120])
+
+    assert repeat_count.get_value() == 3
+
+
+@pytest.mark.regression
+def test_reverse_repeat_with_quib_as_repeat_count_and_quib_as_arr():
+    new_value = 120
+    quib_arg_arr = iquib(np.array([1, 2, 3, 4]))
+    repeat_count = iquib(3)
+
+    reverse(func=np.repeat, args=(quib_arg_arr, repeat_count, 0),
+            indices=(np.array([4]), ),
+            value=[new_value])
+
+    assert repeat_count.get_value() == 3
+    assert np.array_equal(quib_arg_arr.get_value(), np.array([
+        1, new_value, 3, 4
+    ]))
+
+
 def test_reverse_assign_to_sub_array():
     a = iquib(np.array([0, 1, 2]))
     b = a[:2]

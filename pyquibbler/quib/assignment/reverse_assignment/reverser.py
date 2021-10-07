@@ -21,12 +21,6 @@ class NoIndicesInAssignmentException(PyQuibblerException):
     pass
 
 
-@dataclass
-class Reversal:
-    quib: Quib
-    assignments: List[Assignment]
-
-
 class Reverser(ABC):
     """
     Capable of reverse assigning a function quibs quib arguments given a change in the

@@ -1,14 +1,17 @@
 from __future__ import annotations
 
+import functools
+
 import numpy
 
 import numpy as np
 from operator import getitem
-from typing import Dict, List, TYPE_CHECKING, Union
+from typing import Dict, List, TYPE_CHECKING, Union, Callable, Any
 
 from pyquibbler.quib.assignment import Assignment
 from pyquibbler.quib.assignment.reverse_assignment.utils import create_empty_array_with_values_at_indices
-from pyquibbler.quib.utils import recursively_run_func_on_object
+from pyquibbler.quib.utils import recursively_run_func_on_object, call_func_with_quib_values, \
+    iter_quibs_in_object_recursively, iter_objects_of_type_in_object_shallowly
 
 from .reverser import Reverser
 from ..assignment import QuibWithAssignment
@@ -23,20 +26,48 @@ class TranspositionalReverser(Reverser):
     any mathematical operations between them.
     """
 
-    SUPPORTED_FUNCTIONS = [
-        np.rot90,
-        np.concatenate,
-        np.repeat,
-        np.full,
-        getitem
-    ]
+    SUPPORTED_FUNCTIONS_TO_POTENTIALLY_CHANGED_QUIB_INDICES = {
+        np.rot90: {0},
+        np.concatenate: {0},
+        np.repeat: {0},
+        np.full: {1},
+        getitem: {0}
+    }
+
+    SUPPORTED_FUNCTIONS = list(SUPPORTED_FUNCTIONS_TO_POTENTIALLY_CHANGED_QUIB_INDICES.keys())
+
+    @functools.lru_cache()
+    def _get_quibs_which_can_change(self):
+        from pyquibbler.quib import Quib
+        potentially_changed_quib_indices = self.SUPPORTED_FUNCTIONS_TO_POTENTIALLY_CHANGED_QUIB_INDICES[self._func]
+        quibs = []
+        for i, arg in enumerate(self._args):
+            if i in potentially_changed_quib_indices:
+                quibs.extend(iter_objects_of_type_in_object_shallowly(Quib, arg))
+        return quibs
+
+    def _replace_quibs_in_arguments_which_can_potentially_change(self, replace_func: Callable[['Quib'], Any]):
+        """
+        Get a new list of arguments where all quibs that can be potentially changed by the transposition func
+        are replaced by the given function
+        """
+        from pyquibbler.quib import Quib
+        return [
+            recursively_run_func_on_object(
+                func=replace_func,
+                obj=arg
+            )
+            if isinstance(arg, Quib) and arg in self._get_quibs_which_can_change() else arg
+            for arg in self._args
+        ]
 
     def _get_quibs_to_ids(self) -> Dict[Quib, int]:
         """
         Get a mapping between quibs and their unique ids (these ids are only constant for the particular
         instance of the transpositional reverser)
         """
-        return {potential_quib: i for i, potential_quib in enumerate(self._get_quibs_in_args())}
+        return {potential_quib: i
+                for i, potential_quib in enumerate(self._get_quibs_which_can_change())}
 
     def _get_quib_ids_mask(self) -> np.ndarray:
         """
@@ -46,15 +77,17 @@ class TranspositionalReverser(Reverser):
         quibs_to_ids = self._get_quibs_to_ids()
 
         def replace_quib_with_id(obj):
-            if isinstance(obj, Quib):
+            if obj in self._get_quibs_which_can_change():
                 return np.full(obj.get_shape().get_value(), quibs_to_ids[obj])
             return obj
 
-        arguments = recursively_run_func_on_object(
+        new_arguments = recursively_run_func_on_object(
             func=replace_quib_with_id,
             obj=self._args
         )
-        return self._func(*arguments, *self._kwargs)
+        # new_arguments = self._replace_quibs_in_arguments_which_can_potentially_change(replace_quib_with_id)
+
+        return call_func_with_quib_values(self._func, new_arguments, self._kwargs)
 
     def _get_bool_mask_representing_indices_in_result(self) -> Union[np.ndarray, bool]:
         """
@@ -71,7 +104,7 @@ class TranspositionalReverser(Reverser):
         """
         return {
             quib: np.indices(quib.get_shape().get_value())
-            for quib in self._get_quibs_in_args()
+            for quib in self._get_quibs_which_can_change()
         }
 
     def _get_quibs_to_masks(self):
@@ -88,7 +121,7 @@ class TranspositionalReverser(Reverser):
 
         return {
             quib: _build_quib_mask(quib)
-            for quib in self._get_quibs_in_args()
+            for quib in self._get_quibs_which_can_change()
         }
 
     def _get_quibs_to_indices_at_dimension(self, dimension: int) -> Dict[Quib]:
@@ -100,7 +133,7 @@ class TranspositionalReverser(Reverser):
         quibs_to_masks = self._get_quibs_to_masks()
 
         def replace_quib_with_index_at_dimension(q):
-            if isinstance(q, Quib):
+            if q in self._get_quibs_which_can_change():
                 return quibs_to_index_grids[q][dimension]
             return q
 
@@ -109,11 +142,11 @@ class TranspositionalReverser(Reverser):
             obj=self._args
         )
 
-        indices_res = self._func(*new_arguments, **self._kwargs)
+        indices_res = call_func_with_quib_values(self._func, new_arguments, self._kwargs)
 
         return {
             quib: indices_res[quibs_to_masks[quib]]
-            for quib in self._get_quibs_in_args()
+            for quib in self._get_quibs_which_can_change()
         }
 
     def _get_quibs_to_indices_in_quibs(self) -> Dict[Quib, np.ndarray]:
@@ -121,11 +154,12 @@ class TranspositionalReverser(Reverser):
         Get a mapping of quibs to the quib's indices that were referenced in `self._indices` (ie after reversal of the
         indices relevant to the particular quib)
         """
+        quibs = self._get_quibs_which_can_change()
         max_shape_length = max([len(quib.get_shape().get_value())
-                                for quib in self._get_quibs_in_args()])
+                                for quib in quibs]) if len(quibs) > 0 else 0
         # Default is to set all - if we have a shape we'll change this
         quibs_to_indices_in_quibs = {
-            quib: ... for quib in self._get_quibs_in_args()
+            quib: ... for quib in quibs
         }
         for i in range(max_shape_length):
             quibs_to_indices_at_dimension = self._get_quibs_to_indices_at_dimension(i)
@@ -166,7 +200,7 @@ class TranspositionalReverser(Reverser):
 
         return {
             quib: get_relevant_values_for_quib(quib)
-            for quib in self._get_quibs_in_args()
+            for quib in self._get_quibs_which_can_change()
         }
 
     def _is_getitem_with_field(self):

@@ -45,7 +45,6 @@ def wrap_overridden_graphics_function(func: Callable) -> Callable:
         # so artists will be collected
         with global_collecting.overridden_graphics_function():
             return func(*args, **kwargs)
-
     return _wrapper
 
 
