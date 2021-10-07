@@ -17,7 +17,8 @@ from pyquibbler.utils import ensure_only_run_once_globally
 NUMPY_OVERRIDES = [
     (np, [
         (DefaultFunctionQuib, ["abs", "average", "around", "square", "repeat", "max", "arange", "polyfit",
-                               "linspace", "polyval", "full", "concatenate", "array", "reshape", "genfromtxt"]),
+                               "linspace", "polyval", "full", "concatenate", "array", "reshape", "genfromtxt",
+                               "ravel"]),
         (GraphicsFunctionQuib, ['apply_along_axis', 'apply_over_axes']),
     ]),
     (np.random, [
