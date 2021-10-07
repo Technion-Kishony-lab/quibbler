@@ -33,6 +33,12 @@ def save_func_and_args_on_artists(artists: List[Artist], func: Callable, args: I
 
 
 class GraphicsFunctionQuib(DefaultFunctionQuib):
+    """
+    A function quib representing a function that can potentially draw graphics.
+    This quib takes care of removing any previously drawn artists and updating newly created artists with old artist's
+    attributes, such as color.
+    """
+
     # Avoid unnecessary repaints
     _DEFAULT_CACHE_BEHAVIOR = CacheBehavior.ON
 
