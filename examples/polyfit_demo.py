@@ -25,7 +25,7 @@ def plot_point(i):
             pickradius=15)
 
 
-res = np.apply_along_axis(plot_point, 0, np.arange(q(len, x)))
+res = np.apply_along_axis(plot_point, 0, np.reshape(np.arange(q(len, x)), (1, q(len, x))))
 
 pf = np.polyfit(x, y, degrees)
 x0 = np.linspace(q(min, x), q(max, x), 30)

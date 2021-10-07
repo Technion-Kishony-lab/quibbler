@@ -46,6 +46,10 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         AxesImage: "images"
     }
 
+    ATTRIBUTES_TO_COPY_FROM_ARTIST_TO_ARTIST = {
+        '_color'
+    }
+
     def __init__(self,
                  func: Callable,
                  args: Tuple[Any, ...],
@@ -113,8 +117,8 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
             array_names_to_artists.setdefault(self._get_artist_array_name(artist), []).append(artist)
         return axeses_to_array_names_to_artists
 
-    @staticmethod
     def _update_position_and_attributes_of_created_artists(
+            self,
             axes: Axes,
             array_name: str,
             new_artists: List[Artist],
@@ -133,7 +137,9 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         # referencing the same artists)
         if len(new_artists) == len(previous_artists):
             for previous_artist, new_artist in zip(previous_artists, new_artists):
-                new_artist.update_from(previous_artist)
+                for attribute in self.ATTRIBUTES_TO_COPY_FROM_ARTIST_TO_ARTIST:
+                    if hasattr(previous_artist, attribute) and hasattr(new_artist, attribute):
+                        setattr(new_artist, attribute, getattr(previous_artist, attribute))
 
     def _update_new_artists_from_previous_artists(self,
                                                   previous_axeses_to_array_names_to_indices_and_artists: Dict[

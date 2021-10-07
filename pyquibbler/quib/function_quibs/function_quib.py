@@ -1,4 +1,7 @@
 from __future__ import annotations
+
+import types
+
 from pyquibbler.quib.assignment.reverse_assignment import CannotReverseUnknownFunctionException, reverse_function_quib
 from enum import Enum
 from functools import wraps, cached_property
@@ -64,6 +67,15 @@ class FunctionQuib(Quib):
         """
         Public constructor for FunctionQuib.
         """
+        # If we received a function that was already wrapped with a function quib, we want want to unwrap it
+        while hasattr(func, '__quib_wrapper__'):
+            assert func.__quib_wrapper__ is cls, "This function was wrapped previously with a different class"
+            previous_func = func
+            func = func.__wrapped__
+            # If it was a bound method we need to recreate it
+            if hasattr(previous_func, '__self__'):
+                func = types.MethodType(func, previous_func.__self__)
+
         if func_kwargs is None:
             func_kwargs = {}
         func_kwargs = {k: deep_copy_without_quibs_or_artists(v)
