@@ -1,6 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any, Optional, Set
 
 from .assignment import AssignmentTemplate
 from .quib import Quib
@@ -47,6 +47,10 @@ class InputQuib(Quib):
 
     def pretty_repr(self):
         return f'iquib({self.get_value()})'
+
+    @property
+    def parents(self) -> Set[Quib]:
+        return set()
 
 
 iquib = InputQuib

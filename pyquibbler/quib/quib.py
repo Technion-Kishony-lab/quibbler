@@ -1,5 +1,6 @@
 from __future__ import annotations
 import numpy as np
+from functools import cached_property
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from operator import getitem
@@ -255,3 +256,21 @@ class Quib(ABC):
         items - `a, b = iquib([1, 2, 3, 4]).iter_first()` is the same as `a, b = iquib([1, 2, 3, 4]).iter_first(2)`.
         """
         return Unpacker(self, amount)
+
+    @property
+    @abstractmethod
+    def parents(self) -> Set[Quib]:
+        """
+        Returns a list of quibs that this quib depends on.
+        """
+
+    @cached_property
+    def ancestors(self) -> Set[Quib]:
+        """
+        Return all ancestors of the quib, going recursively up the tree
+        """
+        ancestors = set()
+        for parent in self.parents:
+            ancestors.add(parent)
+            ancestors |= parent.ancestors
+        return ancestors

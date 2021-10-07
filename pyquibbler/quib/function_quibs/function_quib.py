@@ -56,16 +56,8 @@ class FunctionQuib(Quib):
         self.set_cache_behavior(cache_behavior)
 
     @cached_property
-    def ancestors(self) -> Set[Quib]:
-        """
-        Return all ancestors of the quib, going recursively up the tree
-        """
-        all_ancestors = set()
-        for quib in iter_quibs_in_args(self._args, self._kwargs):
-            all_ancestors.add(quib)
-            if isinstance(quib, FunctionQuib):
-                all_ancestors |= quib.ancestors
-        return all_ancestors
+    def parents(self) -> Set[Quib]:
+        return set(iter_quibs_in_args(self.args, self.kwargs))
 
     @classmethod
     def create(cls, func, func_args=(), func_kwargs=None, cache_behavior=None, **kwargs):
@@ -156,10 +148,3 @@ class FunctionQuib(Quib):
         given arguments after replacing quib with their values.
         """
         return call_func_with_quib_values(self.func, self.args, self.kwargs)
-
-    def _get_dependencies(self) -> List[Quib]:
-        """
-        A utility for debug purposes.
-        Returns a list of quibs that this quib depends on.
-        """
-        return iter_quibs_in_args(self.args, self.kwargs)
