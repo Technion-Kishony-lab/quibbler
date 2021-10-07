@@ -3,7 +3,7 @@ from typing import Callable, TYPE_CHECKING, List, Any, Iterable
 from matplotlib.backend_bases import MouseEvent, PickEvent
 
 from pyquibbler.quib.assignment.assignment import QuibWithAssignment
-from pyquibbler.quib.graphics.event_handling.utils import filter_quibs_with_assignments
+from pyquibbler.quib.graphics.event_handling.utils import apply_assignment_group
 
 if TYPE_CHECKING:
     from pyquibbler.quib.graphics import GraphicsFunctionQuib
@@ -33,6 +33,4 @@ def reverse_assign_drawing_func(drawing_func: Callable,
     reverse_assigner_func = GRAPHICS_REVERSE_ASSIGNERS.get(drawing_func.__qualname__)
     if reverse_assigner_func is not None:
         quibs_with_assignments = reverse_assigner_func(pick_event=pick_event, mouse_event=mouse_event, args=args)
-        filtered_quibs_with_assignments = filter_quibs_with_assignments(quibs_with_assignments)
-        for quib_with_assignment in filtered_quibs_with_assignments:
-            quib_with_assignment.apply()
+        apply_assignment_group(quibs_with_assignments)

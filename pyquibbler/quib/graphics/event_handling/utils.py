@@ -1,77 +1,56 @@
 from __future__ import annotations
-from typing import Any, Iterable, TYPE_CHECKING, List, Set
+from collections import defaultdict
+from typing import List, Iterable, Mapping, TYPE_CHECKING
 
-from pyquibbler.quib.assignment.assignment import QuibWithAssignment
-
-from pyquibbler.quib.assignment import Assignment
+from pyquibbler.quib.assignment import QuibWithAssignment
+from pyquibbler.quib.function_quibs import CannotAssignException
 
 if TYPE_CHECKING:
-    from pyquibbler.quib import Quib, FunctionQuib
+    from pyquibbler.quib import Quib
 
 
-def _quib_with_ancestors(quib: Quib) -> Set[Quib]:
+def filter_quibs_with_assignment_with_ancestor_in_different_quibs_with_assignments(
+        quibs_with_assignments: Iterable[QuibWithAssignment]):
     """
-    Get the ancestors of a quib (if relevant) together with it
+    Filter out assignments to quibs for which there is an assigment to an ancestor of
     """
-    from pyquibbler.quib import FunctionQuib
-    if not isinstance(quib, FunctionQuib):
-        return {quib}
-    return {quib, *quib.ancestors}
-
-
-def quib_has_ancestor_in_other_quibs(quib: Quib, quibs: List[Quib]):
-    """
-    Whether or not a quib has an ancestor in a group of other quibs
-    """
-    from pyquibbler.quib import FunctionQuib
-    if not isinstance(quib, FunctionQuib):
-        return False
-
-    return any(quib in {_quib_with_ancestors(other_quib)}
-               for other_quib in quibs)
-
-
-def quib_with_assignment_has_ancestor_in_different_quibs_with_assignments(
-        quib_with_assignment: QuibWithAssignment, quibs_with_assignments: Iterable[QuibWithAssignment]):
-    """
-    Whether or not a quib_with_assignment has an ancestor in other quibs_with_assignments
-    """
-    other_quibs = [quib_with_assignment.quib
-                   for quib_with_assignment in quibs_with_assignments
-                   if quib_with_assignment.quib is not quib_with_assignment.quib]
-
-    return quib_has_ancestor_in_other_quibs(quib_with_assignment.quib, other_quibs)
-
-
-def filter_quibs_with_assignments_with_common_ancestors(quibs_with_assignments: Iterable[QuibWithAssignment]):
-    """
-    Filter out quibs_with_assignments so that there won't be two quibs_with_assignments quibs' with the same ancestor
-    (one will be chosen at random)
-    """
-    filtered = []
-    filtered_ancestors = set()
-    for quib_with_assignment in quibs_with_assignments:
-        if not (_quib_with_ancestors(quib_with_assignment.quib) & filtered_ancestors):
-            filtered.append(quib_with_assignment)
-            filtered_ancestors |= _quib_with_ancestors(quib_with_assignment.quib)
-    return filtered
-
-
-def filter_quibs_with_assignments(quibs_with_assignments: List[QuibWithAssignment]):
-    """
-    Filter `quibs_with_assignments` so that there won't be quibs that:
-    1.Have a common ancestor in other quibs with assignments
-    2 Both attempt to change the same common ancestor (one will be choosed at random)
-    """
-    filtered_quibs_with_assignments = [
+    assigned_quibs = set(quib_with_assignment.quib for quib_with_assignment in quibs_with_assignments)
+    return [
         quib_with_assignment
         for quib_with_assignment in quibs_with_assignments
-        if not quib_with_assignment_has_ancestor_in_different_quibs_with_assignments(quib_with_assignment,
-                                                                                     quibs_with_assignments)
+        if not quib_with_assignment.quib.ancestors.intersection(assigned_quibs)
     ]
 
-    filtered_quibs_with_assignments = filter_quibs_with_assignments_with_common_ancestors(
-        filtered_quibs_with_assignments
-    )
 
-    return filtered_quibs_with_assignments
+def get_ancestors_to_assignments(quibs_with_assignments: Iterable[QuibWithAssignment]
+                                 ) -> Mapping[Quib, List[QuibWithAssignment]]:
+    ancestors_to_assignments = defaultdict(list)
+    for quib_with_assignment in quibs_with_assignments:
+        for ancestor in quib_with_assignment.quib.ancestors:
+            ancestors_to_assignments[ancestor].append(quib_with_assignment)
+    return ancestors_to_assignments
+
+
+def apply_assignment_group(quibs_with_assignments: List[QuibWithAssignment]):
+    """
+    Applies a group of assignments.
+    When we logically want to apply a group of assignments and not individual assignments,
+    there are two corner cases we have to take care of:
+    1. One assignment is done to a quib, which is the ancestor of another quib which there is an assignment to
+       In this case we assign only to the upstream quib.
+    2. Multiple assignments are done to quibs with a common ancestor.
+       In this case we want to perform only one of them, so we try them one by one until one succeeds.
+    """
+    quibs_with_assignments = \
+        filter_quibs_with_assignment_with_ancestor_in_different_quibs_with_assignments(quibs_with_assignments)
+    ancestors_to_assignments = get_ancestors_to_assignments(quibs_with_assignments)
+    blacklist = set()
+    for quib_with_assignment in quibs_with_assignments:
+        if quib_with_assignment not in blacklist:
+            try:
+                quib_with_assignment.apply()
+            except CannotAssignException:
+                pass
+            else:
+                for ancestor in quib_with_assignment.quib.ancestors:
+                    blacklist.update(ancestors_to_assignments[ancestor])
