@@ -1,11 +1,10 @@
 from dataclasses import dataclass
-from typing import Any, TYPE_CHECKING, List, Union, Tuple, Type
+from typing import Any, TYPE_CHECKING, List, Union, Tuple
 
 if TYPE_CHECKING:
     from ..quib import Quib
 
-
-AssignmentPath = Union[str, Tuple, Any]
+AssignmentPath = Union[str, Tuple, ellipsis]
 
 
 @dataclass
@@ -27,3 +26,9 @@ class QuibWithAssignment:
 
     def apply(self):
         self.quib.assign(self.assignment)
+
+    def __hash__(self):
+        return id(self)
+
+    def __eq__(self, other):
+        return self is other
