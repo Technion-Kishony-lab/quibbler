@@ -1,9 +1,5 @@
 from __future__ import annotations
-
 import functools
-
-import numpy
-
 import numpy as np
 from operator import getitem
 from typing import Dict, List, TYPE_CHECKING, Union, Callable, Any
@@ -250,10 +246,6 @@ class TranspositionalReverser(Reverser):
         """
         quibs_to_indices_in_quibs = self._get_quibs_to_indices_in_quibs()
         quibs_to_results = self._get_quibs_to_relevant_result_values()
-        assert set(quibs_to_indices_in_quibs) <= set(quibs_to_results), \
-            f'We should\'t have indices without values:' \
-            f'\n\tindices: {quibs_to_indices_in_quibs}' \
-            f'\n\tvalues: {quibs_to_results}'
 
         quibs_with_assignments = []
         for quib in quibs_to_indices_in_quibs:

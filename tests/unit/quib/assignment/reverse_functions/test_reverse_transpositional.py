@@ -53,6 +53,24 @@ def test_reverse_concat_in_both_arguments():
     assert np.array_equal(second_quib_arg.get_value(), np.array([[second_new_value, 12, 14]]))
 
 
+@pytest.mark.regression
+def test_reverse_concat_does_not_return_empty_assignments():
+    first_quib_arg = iquib(np.array([[1, 2, 3]]))
+    second_quib_arg = iquib(np.array([[8, 12, 14]]))
+    new_value = 20
+
+    reversals = reverse_function_quib(function_quib=DefaultFunctionQuib.create(
+        func=np.concatenate,
+        func_args=((first_quib_arg, second_quib_arg),),
+    ), assignment=Assignment(value=np.array([new_value]), paths=[(0, 0)]))
+
+    assert len(reversals) == 1
+    assignment = reversals[0].assignment
+    assert np.array_equal(assignment.paths,[(np.array([0]), np.array([0]))])
+    assert assignment.value == [20]
+
+
+
 def test_reverse_getitem():
     quib_arg = iquib(np.array([[1, 2, 3], [4, 5, 6]]))
 
