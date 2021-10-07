@@ -37,5 +37,3 @@ def test_slider_graphics_on_change(slider_quib, mock_quib):
     slider_quib._on_change(new_value)
 
     assert mock_quib.get_value() == new_value
-
-

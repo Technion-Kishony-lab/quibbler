@@ -9,15 +9,15 @@ plt.figure(figsize=[10, 7])
 x = iquib(np.arange(0., 10))
 y = iquib(100. - np.power(np.arange(1, 11), 2) + 5 * np.random.randn(10))
 
-axfreq = plt.axes([0.25, 0.1, 0.65, 0.03])
+slider_ax = plt.axes([0.25, 0.1, 0.65, 0.03])
 freq_slider = q(widgets.Slider,
-                ax=axfreq,
+                ax=slider_ax,
                 label='Freq',
                 valmin=0,
                 valmax=5,
                 valstep=1
                 )
-axfreq.text(0, -1, q("poly deg {:.0f}".format, freq_slider.val))
+slider_ax.text(0, -1, q("poly deg {:.0f}".format, freq_slider.val))
 
 ax = plt.axes([0.2, 0.2, 0.7, .6])
 
