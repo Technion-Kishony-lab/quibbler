@@ -1,5 +1,7 @@
 from typing import Any, List, Optional, Iterable
 
+import numpy as np
+
 from .assignment import Assignment, AssignmentPath
 from .assignment_template import AssignmentTemplate
 from ..utils import deep_copy_without_quibs_or_artists
@@ -29,6 +31,9 @@ def _deep_assign_data_with_paths(data: Any, paths: List[AssignmentPath], value: 
             # to be the new element and by this we set the whole thing
             new_element = last_element
         else:
+            if isinstance(path, tuple) and not isinstance(new_element, np.ndarray):
+                # We can't access a regular list with a tuple, so we're forced to convert to a numpy array
+                new_element = np.array(new_element)
             new_element[path] = last_element
         last_element = new_element
 

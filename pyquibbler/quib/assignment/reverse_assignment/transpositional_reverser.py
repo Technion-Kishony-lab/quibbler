@@ -47,9 +47,7 @@ class TranspositionalReverser(Reverser):
 
         def replace_quib_with_id(obj):
             if isinstance(obj, Quib):
-                if issubclass(obj.get_type(), np.ndarray):
-                    return np.full(obj.get_shape().get_value(), quibs_to_ids[obj])
-                return quibs_to_ids[obj]
+                return np.full(obj.get_shape().get_value(), quibs_to_ids[obj])
             return obj
 
         arguments = recursively_run_func_on_object(
@@ -74,7 +72,6 @@ class TranspositionalReverser(Reverser):
         return {
             quib: np.indices(quib.get_shape().get_value())
             for quib in self._get_quibs_in_args()
-            if issubclass(quib.get_type(), np.ndarray)
         }
 
     def _get_quibs_to_masks(self):
@@ -124,7 +121,7 @@ class TranspositionalReverser(Reverser):
         Get a mapping of quibs to the quib's indices that were referenced in `self._indices` (ie after reversal of the
         indices relevant to the particular quib)
         """
-        max_shape_length = max([len(quib.get_shape().get_value()) if issubclass(quib.get_type(), np.ndarray) else 0
+        max_shape_length = max([len(quib.get_shape().get_value())
                                 for quib in self._get_quibs_in_args()])
         quibs_to_indices_in_quibs = {}
         for i in range(max_shape_length):
@@ -170,14 +167,18 @@ class TranspositionalReverser(Reverser):
         from pyquibbler.quib import Quib
         return self._func == getitem and isinstance(self._args[1], str) and isinstance(self._args[0], Quib)
 
-    def _build_quibs_with_assignments_for_getitem_with_field(self) -> List[QuibWithAssignment]:
+    def _is_getitem_of_quib_list(self):
         """
-        We can't compute any any translation of indices, as the key of the getitem is a string
+        Check's whether we have at hand a function quib which represents a __getitem__ with the indices being a string
+        """
+        from pyquibbler.quib import Quib
+        return self._func == getitem and isinstance(self._args[0], Quib) and issubclass(self._args[0].get_type(), list)
+
+    def _build_quibs_with_assignments_for_getitem(self) -> List[QuibWithAssignment]:
+        """
+        We're in a situation where we can't compute any any translation of indices
         Because of this, we put all pieces of the getitem in the path- making sure to put the field BEFORE the indexing
         (keeping it in the same order as it was, so we don't reverse the indices in the next reversal)
-
-        getitem 1,2,3 -> @set |maor="pasten"|
-
         """
         return [QuibWithAssignment(
             quib=self._args[0],
@@ -209,7 +210,7 @@ class TranspositionalReverser(Reverser):
 
     def get_quibs_with_assignments(self) -> List[QuibWithAssignment]:
 
-        if self._is_getitem_with_field():
-            return self._build_quibs_with_assignments_for_getitem_with_field()
+        if self._is_getitem_with_field() or self._is_getitem_of_quib_list():
+            return self._build_quibs_with_assignments_for_getitem()
 
         return self._build_quibs_with_assignments_for_generic_case()
