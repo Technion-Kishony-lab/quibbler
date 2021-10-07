@@ -4,7 +4,7 @@ from typing import Any, TYPE_CHECKING, List, Union, Tuple
 if TYPE_CHECKING:
     from ..quib import Quib
 
-AssignmentPath = Union[str, Tuple, ellipsis]
+AssignmentPath = Union[str, Tuple, type(Ellipsis)]
 
 
 @dataclass
