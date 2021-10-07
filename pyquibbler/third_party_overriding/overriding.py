@@ -18,7 +18,7 @@ NUMPY_OVERRIDES = [
     (np, [
         (DefaultFunctionQuib, ["abs", "average", "around", "square", "repeat", "max", "arange", "polyfit",
                                "linspace", "polyval", "full", "concatenate", "array", "reshape", "genfromtxt"]),
-        (GraphicsFunctionQuib, ['apply_along_axis', 'apply_over_axes', 'vectorize']),
+        (GraphicsFunctionQuib, ['apply_along_axis', 'apply_over_axes']),
     ]),
     (np.random, [
         (ImpureFunctionQuib, ['rand', 'randint'])

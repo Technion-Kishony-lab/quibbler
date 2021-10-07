@@ -66,21 +66,7 @@ class FunctionCalledWithNestedQuibException(PyQuibblerException):
     def __str__(self):
         return f'The function {self.func} was called with nested Quib objects. This is not supported.\n' + \
                '\n'.join(f'The argument "{arg}" contains the quibs: {quibs}'
-                         for arg, quibs in self.nested_quibs_by_arg_names)
-
-    @classmethod
-    def from_call(cls, func: Callable, args: Tuple[Any, ...], kwargs: Dict[str, Any]):
-        """
-        Creates an instance of this exception given a specific function call,
-        by finding the erroneously nested quibs.
-        """
-        nested_quibs_by_arg_names = {}
-        for name, val in iter_args_and_names_in_function_call(func, args, kwargs, False):
-            quibs = set(iter_quibs_in_object_recursively(val))
-            if quibs:
-                nested_quibs_by_arg_names[name] = quibs
-        assert nested_quibs_by_arg_names
-        return cls(func, nested_quibs_by_arg_names)
+                         for arg, quibs in self.nested_quibs_by_arg_names.items())  # TODO: add regression test
 
 
 def is_iterator_empty(iterator):
@@ -259,8 +245,21 @@ def iter_quibs_in_args(args, kwargs):
 
 
 def convert_args(args, kwargs):
-    return ([copy_and_replace_quibs_with_vals(arg) for arg in args],
+    return (tuple(copy_and_replace_quibs_with_vals(arg) for arg in args),
             {name: copy_and_replace_quibs_with_vals(val) for name, val in kwargs.items()})
+
+
+def get_nested_quibs_by_arg_names_in_function_call(func: Callable, args: Tuple[Any, ...], kwargs: Dict[str, Any]):
+    """
+    Look for erroneously nested quibs in a function call and return a mapping between arg names and the quibs they
+    have nested inside them.
+    """
+    nested_quibs_by_arg_names = {}
+    for name, val in iter_args_and_names_in_function_call(func, args, kwargs, False):
+        quibs = set(iter_quibs_in_object_recursively(val))
+        if quibs:
+            nested_quibs_by_arg_names[name] = quibs
+    return nested_quibs_by_arg_names
 
 
 def call_func_with_quib_values(func, args, kwargs):
@@ -272,7 +271,9 @@ def call_func_with_quib_values(func, args, kwargs):
         return func(*new_args, **new_kwargs)
     except TypeError as e:
         if len(e.args) == 1 and 'Quib' in e.args[0]:
-            raise FunctionCalledWithNestedQuibException.from_call(func, args, kwargs) from e
+            nested_quibs_by_arg_names = get_nested_quibs_by_arg_names_in_function_call(func, new_args, new_kwargs)
+            if nested_quibs_by_arg_names:
+                raise FunctionCalledWithNestedQuibException(func, nested_quibs_by_arg_names) from e
         raise
 
 
