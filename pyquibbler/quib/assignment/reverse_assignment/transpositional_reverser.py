@@ -1,5 +1,4 @@
 from __future__ import annotations
-import functools
 import numpy as np
 from operator import getitem
 from typing import Dict, List, TYPE_CHECKING, Union, Callable, Any

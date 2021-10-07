@@ -53,9 +53,9 @@ class CanvasEventHandler:
         args = getattr(artist, '_quibbler_args', tuple())
         with timer(name="motion_notify"), aggregate_redraw_mode():
             graphics_reverse_assigner.reverse_assign_drawing_func(drawing_func=drawing_func,
-                                                                     args=args,
-                                                                     mouse_event=mouse_event,
-                                                                     pick_event=self.current_pick_event)
+                                                                  args=args,
+                                                                  mouse_event=mouse_event,
+                                                                  pick_event=self.current_pick_event)
 
     @contextmanager
     def _try_acquire_assignment_lock(self):
