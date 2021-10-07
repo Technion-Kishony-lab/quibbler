@@ -25,7 +25,7 @@ class Timer:
 
     def __repr__(self):
         return f"<{self.__class__.__name__} - (tot: {self.total_time}s, " \
-               f"count: {self.total_count}s, " \
+               f"count: {self.total_count}, " \
                f"t/c {self.total_time / self.total_count}s)>"
 
     @contextlib.contextmanager
