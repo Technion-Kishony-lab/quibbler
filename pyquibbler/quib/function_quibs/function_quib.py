@@ -1,15 +1,16 @@
 from __future__ import annotations
+import types
 from dataclasses import dataclass
 from enum import Enum
 from functools import wraps, cached_property
-from typing import List, Callable, Any, Mapping, Tuple, Optional, Set
+from typing import Callable, Any, Mapping, Tuple, Optional, Set
 
 from .override_choice import OverrideOptionsTree
 from ..assignment import AssignmentTemplate, Assignment
 from ..assignment.assignment import QuibWithAssignment
 from ..quib import Quib
 from ..utils import is_there_a_quib_in_args, iter_quibs_in_args, call_func_with_quib_values, \
-    deep_copy_without_quibs_or_artists, recursively_run_func_on_object, convert_args
+    deep_copy_without_quibs_or_artists, convert_args
 from ...env import is_lazy
 from ...exceptions import PyQuibblerException
 
