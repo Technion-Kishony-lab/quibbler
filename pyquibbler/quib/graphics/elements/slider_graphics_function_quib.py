@@ -1,6 +1,6 @@
 from pyquibbler.quib import GraphicsFunctionQuib, Quib
 from pyquibbler.quib.assignment import Assignment
-from pyquibbler.quib.graphics import global_collecting
+from pyquibbler.quib.utils import quib_method
 
 
 class SliderGraphicsFunctionQuib(GraphicsFunctionQuib):
@@ -9,9 +9,10 @@ class SliderGraphicsFunctionQuib(GraphicsFunctionQuib):
     """
 
     def _on_change(self, new_value: float):
-        val = self._kwargs['valinit']
+        val = self._kwargs.get('valinit')
         if isinstance(val, Quib):
             val.assign(Assignment(value=new_value, paths=[...]))
+        self.invalidate_and_redraw()
         return val
 
     def _call_func(self):
@@ -21,3 +22,8 @@ class SliderGraphicsFunctionQuib(GraphicsFunctionQuib):
 
     def get_axeses(self):
         return {self.kwargs['ax']}
+
+    @property
+    @quib_method
+    def val(self):
+        return self.get_value().val
