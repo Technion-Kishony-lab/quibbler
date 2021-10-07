@@ -209,3 +209,11 @@ def test_reverse_setitem_on_non_ndarray_after_rotation():
     rotated.assign(Assignment(value=4, paths=[(0, 0)]))
 
     assert np.array_equal(first_quib_arg.get_value(), [[[1, 2, 4]]])
+
+
+def test_reverse_assign_reshape():
+    quib_arg = iquib(np.arange(9))
+
+    reverse(func=np.reshape, args=(quib_arg, (3, 3)), value=10, indices=(0, 0))
+
+    assert np.array_equal(quib_arg.get_value(), np.array([10, 1, 2, 3, 4, 5, 6, 7, 8]))
