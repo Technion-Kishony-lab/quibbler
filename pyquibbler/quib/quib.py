@@ -105,8 +105,24 @@ class Quib(ABC):
         self._overrider.add_assignment(assignment)
 
     def assign(self, assignment: Assignment) -> None:
+        """
+        Create an assignment with an Assignment object, overriding the current values at the assignment's paths with the
+        assignment's value
+        """
         self._override(assignment)
         self.invalidate_and_redraw()
+
+    def assign_value(self, value: Any) -> None:
+        """
+        Helper method to assign a single value and override the whole value of the quib
+        """
+        self.assign(Assignment(value=value, paths=[]))
+
+    def assign_value_to_key(self, key: Any, value: Any) -> None:
+        """
+        Helper method to assign a value at a specific key
+        """
+        self.assign(Assignment(paths=[key], value=value))
 
     def __getitem__(self, item):
         # We don't use the normal operator_overriding interface for two reasons:

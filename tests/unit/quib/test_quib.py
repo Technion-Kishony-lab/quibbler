@@ -6,7 +6,7 @@ import numpy as np
 from pytest import mark, raises, fixture
 
 from pyquibbler.quib import Quib
-from pyquibbler.quib.assignment import RangeAssignmentTemplate, BoundAssignmentTemplate
+from pyquibbler.quib.assignment import RangeAssignmentTemplate, BoundAssignmentTemplate, Assignment
 from pyquibbler.quib.graphics import GraphicsFunctionQuib
 from pyquibbler.quib.operator_overriding import ARITHMETIC_OVERRIDES, UNARY_OVERRIDES
 from pyquibbler.quib.quib import QuibIsNotNdArrayException
@@ -262,3 +262,22 @@ def test_quib_add_with_float_does_not_return_not_implemented():
 
 def test_quib_get_type(example_quib):
     assert example_quib.get_type() == list
+
+
+def test_quib_assign_value(example_quib):
+    example_quib.assign = mock.Mock()
+    mock_value = mock.Mock()
+
+    example_quib.assign_value(mock_value)
+
+    example_quib.assign.assert_called_once_with(Assignment(paths=[], value=mock_value))
+
+
+def test_quib_assign_value_to_key(example_quib):
+    example_quib.assign = mock.Mock()
+    mock_value = mock.Mock()
+    mock_key = mock.Mock()
+
+    example_quib.assign_value_to_key(value=mock_value, key=mock_key)
+
+    example_quib.assign.assert_called_once_with(Assignment(paths=[mock_key], value=mock_value))
