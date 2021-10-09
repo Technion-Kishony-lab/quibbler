@@ -5,7 +5,9 @@ We have to use the operator functions in order to allow builtin operator functio
 1. Calling reverse arithmetic operations when the normal ones return NotImplemented
 2. Cases where a magic method is not present on a built-in type but the operator works anyway (e.g. float.__ceil__).
 """
+import functools
 import operator
+from functools import wraps
 from math import trunc, floor, ceil
 from typing import Callable, Tuple
 
@@ -15,11 +17,6 @@ from .quib import Quib
 
 def operator_override(operator_name: str) -> Tuple[str, Callable]:
     return operator_name, getattr(operator, operator_name)
-
-
-def reverse_operator_override(operator_name: str) -> Tuple[str, Callable]:
-    non_reverse_operator = getattr(operator, '__' + operator_name[3:])
-    return operator_name, lambda self, other: non_reverse_operator(other, self)
 
 
 ARITHMETIC_OVERRIDES = [
@@ -37,23 +34,6 @@ ARITHMETIC_OVERRIDES = [
     operator_override('__and__'),
     operator_override('__xor__'),
     operator_override('__or__'),
-]
-
-REVERSE_ARITHMETIC_OVERRIDES = [
-    reverse_operator_override('__radd__'),
-    reverse_operator_override('__rsub__'),
-    reverse_operator_override('__rmul__'),
-    reverse_operator_override('__rmatmul__'),
-    reverse_operator_override('__rtruediv__'),
-    reverse_operator_override('__rfloordiv__'),
-    reverse_operator_override('__rmod__'),
-    ('__rdivmod__', lambda self, other: divmod(other, self)),
-    reverse_operator_override('__rpow__'),
-    reverse_operator_override('__rlshift__'),
-    reverse_operator_override('__rrshift__'),
-    reverse_operator_override('__rand__'),
-    reverse_operator_override('__rxor__'),
-    reverse_operator_override('__ror__'),
 ]
 
 UNARY_OVERRIDES = [
@@ -78,8 +58,17 @@ ROUNDING_OVERRIDES = [
 ]
 
 
-ALL_OVERRIDES = ARITHMETIC_OVERRIDES + REVERSE_ARITHMETIC_OVERRIDES + UNARY_OVERRIDES + ROUNDING_OVERRIDES + \
+ALL_OVERRIDES = ARITHMETIC_OVERRIDES + UNARY_OVERRIDES + ROUNDING_OVERRIDES + \
                 COMPARISON_OVERRIDES
+
+
+def _create_reverse_operator_wrapper(forward_operator: Callable):
+    quib_creator = DefaultFunctionQuib.create_wrapper(forward_operator)
+
+    def _wrapper(self, other):
+        return quib_creator(other, self)
+
+    return _wrapper
 
 
 def override_quib_operators():
@@ -92,3 +81,7 @@ def override_quib_operators():
     for name, wrapped in ALL_OVERRIDES:
         assert name not in vars(Quib), name
         setattr(Quib, name, DefaultFunctionQuib.create_wrapper(wrapped))
+
+    for name, wrapped in ARITHMETIC_OVERRIDES:
+        rname = '__r' + name[2:]
+        setattr(Quib, rname, _create_reverse_operator_wrapper(wrapped))
