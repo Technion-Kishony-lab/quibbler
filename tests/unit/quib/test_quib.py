@@ -280,7 +280,7 @@ def test_quib_assign_value(example_quib):
 
     example_quib.assign_value(mock_value)
 
-    example_quib.assign.assert_called_once_with(Assignment(paths=[], value=mock_value))
+    example_quib.assign.assert_called_once_with(Assignment(paths=[...], value=mock_value))
 
 
 def test_quib_assign_value_to_key(example_quib):

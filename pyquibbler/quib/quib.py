@@ -117,7 +117,7 @@ class Quib(ABC):
         """
         Helper method to assign a single value and override the whole value of the quib
         """
-        self.assign(Assignment(value=value, paths=[]))
+        self.assign(Assignment(value=value, paths=[...]))
 
     def assign_value_to_key(self, key: Any, value: Any) -> None:
         """
