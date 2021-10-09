@@ -2,8 +2,7 @@ name: CI
 
 on:
   push: null
-  pull_request:
-    branches: [ master ]
+  pull_request: null
 
 jobs:
   tests:
