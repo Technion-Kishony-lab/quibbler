@@ -7,7 +7,7 @@ from .assignment_template import AssignmentTemplate
 from ..utils import deep_copy_without_quibs_or_artists
 
 
-def _deep_assign_data_with_paths(data: Any, paths: List[AssignmentPath], value: Any):
+def deep_assign_data_with_paths(data: Any, paths: List[AssignmentPath], value: Any):
     """
     Go path by path setting value, each time ensuring we don't lost copied values (for example if there was
     fancy indexing) by making sure to set recursively back anything that made an assignment/
@@ -36,7 +36,6 @@ def _deep_assign_data_with_paths(data: Any, paths: List[AssignmentPath], value: 
                 new_element = np.array(new_element)
             new_element[path] = last_element
         last_element = new_element
-
     return last_element
 
 
@@ -63,7 +62,7 @@ class Overrider:
             data = deep_copy_without_quibs_or_artists(data)
             for assignment in self._assignments:
                 value = assignment.value if assignment_template is None else assignment_template.convert(assignment.value)
-                data = _deep_assign_data_with_paths(data, assignment.paths, value)
+                data = deep_assign_data_with_paths(data, assignment.paths, value)
 
         return data
 

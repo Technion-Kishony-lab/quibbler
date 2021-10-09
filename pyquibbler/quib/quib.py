@@ -11,7 +11,8 @@ import numpy as np
 
 from pyquibbler.exceptions import PyQuibblerException
 from .assignment import AssignmentTemplate, RangeAssignmentTemplate, BoundAssignmentTemplate, Overrider, Assignment
-from .utils import deep_copy_without_quibs_or_artists, quib_method, Unpacker
+from .assignment.overrider import deep_assign_data_with_paths
+from .utils import deep_copy_without_quibs_or_artists, quib_method, Unpacker, recursively_run_func_on_object
 
 if TYPE_CHECKING:
     from pyquibbler.quib.graphics import GraphicsFunctionQuib
@@ -196,7 +197,7 @@ class Quib(ABC):
         value = self.get_value()
         if not isinstance(value, np.ndarray):
             if isinstance(value, list):
-                return np.array(value).shape
+                return np.array(value, dtype=object).shape
             # We, like numpy, consider this a zero dimensional array
             return tuple()
         return value.shape
@@ -208,13 +209,13 @@ class Quib(ABC):
         This is an internal method so when called with a quib instead of the shape, the resulting quib
         will be dependent on both self and the shape quib.
         """
-        mask = np.zeros(shape, dtype=np.bool)
+        if issubclass(self.get_type(), np.ndarray):
+            mask = np.zeros(shape, dtype=np.bool)
+        else:
+            mask = recursively_run_func_on_object(func=lambda x: False, obj=self.get_value())
         # Can't use `mask[all_keys] = True` trivially, because some of the keys might be lists themselves.
         for assignment in self._overrider:
-            end_index = next((i for i, path in enumerate(assignment.paths)
-                              if isinstance(path, str)), len(assignment.paths))
-            for i in range(end_index):
-                mask[assignment.paths[i]] = True
+            mask = deep_assign_data_with_paths(paths=assignment.paths, value=True, data=mask)
         return mask
 
     def get_override_mask(self) -> Quib:

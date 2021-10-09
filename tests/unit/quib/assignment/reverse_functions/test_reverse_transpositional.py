@@ -217,3 +217,11 @@ def test_reverse_assign_reshape():
     reverse(func=np.reshape, args=(quib_arg, (3, 3)), value=10, indices=(0, 0))
 
     assert np.array_equal(quib_arg.get_value(), np.array([10, 1, 2, 3, 4, 5, 6, 7, 8]))
+
+
+def test_reverse_assign_list_within_list():
+    quib_arg = iquib(np.arange(9))
+
+    reverse(func=np.reshape, args=(quib_arg, (3, 3)), value=10, indices=(0, 0))
+
+    assert np.array_equal(quib_arg.get_value(), np.array([10, 1, 2, 3, 4, 5, 6, 7, 8]))

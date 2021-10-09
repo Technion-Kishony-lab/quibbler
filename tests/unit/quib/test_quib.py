@@ -230,11 +230,21 @@ def test_quib_get_shape():
     ([[0, 1], [2, 3]], [((0, 0), 5)], [[True, False], [False, False]]),
     ([[0, 1], [2, 3]], [(slicer[:], 5)], [[True, True], [True, True]]),
 ])
-def test_quib_get_override_mask(data, overrides, expected_mask):
+def test_quib_get_reversed_quibs_with_assignments(data, overrides, expected_mask):
     quib = ExampleQuib(np.array(data))
     for key, value in overrides:
         quib[key] = value
     assert np.array_equal(quib.get_override_mask().get_value(), expected_mask)
+
+
+@mark.regression
+def test_quib_get_override_mask_with_list():
+    quib = ExampleQuib([10, [21, 22], 30])
+    quib[1][1] = 222
+
+    mask = quib.get_override_mask()
+
+    assert mask.get_value() == [False, [False, True], False]
 
 
 def test_quib_iter_first(example_quib):
