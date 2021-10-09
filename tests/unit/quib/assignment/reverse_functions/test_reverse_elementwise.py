@@ -110,3 +110,13 @@ def test_quib_raises_exception_when_reversing_with_common_parent_in_multiple_arg
 
     with pytest.raises(CommonAncestorBetweenArgumentsException):
         reverse_function_quib(function_quib, Assignment(value=20, paths=[...]))
+
+
+@pytest.mark.regression
+def test_add_second_argument_is_quib():
+    quib = iquib(np.array(9))
+    sum_ = 3 + quib
+
+    reverse_function_quib(sum_, Assignment(value=10, paths=[...]))
+
+    assert np.array_equal(quib.get_value(), np.array(7))

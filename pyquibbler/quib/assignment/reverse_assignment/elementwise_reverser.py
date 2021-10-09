@@ -1,7 +1,7 @@
 from __future__ import annotations
 import math
 import numpy as np
-from operator import __add__, __pow__, __sub__
+from operator import __add__, __pow__, __sub__, __mul__
 from typing import Any, List, Dict, Callable, TYPE_CHECKING
 
 from pyquibbler.exceptions import PyQuibblerException
@@ -28,8 +28,8 @@ def create_inverse_func_from_indexes_to_funcs(quib_argument_indexes_to_inverse_f
         quib_index = next(i for i, v in enumerate(args) if v is quib_to_change)
         inverse_func = quib_argument_indexes_to_inverse_functions[quib_index]
         new_args = list(args)
-        new_args[quib_index] = representative_result
-        return call_func_with_quib_values(inverse_func, new_args, kwargs)
+        new_args.pop(quib_index)
+        return call_func_with_quib_values(inverse_func, [representative_result, *new_args], kwargs)
 
     return _inverse
 
@@ -41,41 +41,35 @@ class ElementWiseReverser(Reverser):
 
     # We use indexes instead of arg names because you cannot get signature from ufuncs (numpy functions)
     FUNCTIONS_TO_INVERSE_FUNCTIONS = {
-        np.add: create_inverse_func_from_indexes_to_funcs(
-            {
-                i: np.subtract for i in range(2)
-            }
-        ),
-        __add__: create_inverse_func_from_indexes_to_funcs(
-            {
-                i: np.subtract for i in range(2)
-            }
-        ),
-        np.multiply: create_inverse_func_from_indexes_to_funcs(
-            {
-                i: np.divide for i in range(2)
-            }
-        ),
-        np.subtract: create_inverse_func_from_indexes_to_funcs(
+        **{
+            func: create_inverse_func_from_indexes_to_funcs(
+                {
+                    0: np.subtract,
+                    1: np.subtract
+                }
+            ) for func in [__add__, np.add]},
+        **{
+            func: create_inverse_func_from_indexes_to_funcs(
+                {
+                    0: np.divide,
+                    1: np.divide
+                }
+            ) for func in [np.multiply, __mul__]},
+        **{
+            func: create_inverse_func_from_indexes_to_funcs(
             {
                 0: np.add,
-                1: np.subtract
+                1: lambda result, other: np.subtract(other, result)
             }
-        ),
+        ) for func in [np.subtract, __sub__]},
         np.divide: create_inverse_func_from_indexes_to_funcs({
             0: np.multiply,
-            1: np.divide
+            1: lambda result, other: np.divide(other, result)
         }),
         __pow__: create_inverse_func_from_indexes_to_funcs({
             0: lambda x, n: x ** (1 / n),
-            1: lambda x, n: math.log(n, x)
+            1: lambda result, other: math.log(result, other)
         }),
-        __sub__: create_inverse_func_from_indexes_to_funcs(
-            {
-                0: np.add,
-                1: np.subtract
-            }
-        )
     }
 
     SUPPORTED_FUNCTIONS = list(FUNCTIONS_TO_INVERSE_FUNCTIONS.keys())
@@ -141,6 +135,5 @@ class ElementWiseReverser(Reverser):
                                                    self._args,
                                                    self._kwargs,
                                                    quib_to_change)
-
         return self._create_quibs_with_assignments(quib_to_change=quib_to_change,
                                                    new_value_for_quib=new_quib_argument_value)
