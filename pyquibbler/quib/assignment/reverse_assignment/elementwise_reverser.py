@@ -86,10 +86,10 @@ class ElementWiseReverser(Reverser):
         index_grid = np.indices(argument_quib.get_shape().get_value())
         broadcasted_grid = np.broadcast_to(index_grid,
                                            (index_grid.shape[0], *self._function_quib.get_shape().get_value()))
-        return [
+        return tuple([
             dimension[self._working_indices]
             for dimension in broadcasted_grid
-        ]
+        ])
 
     def raise_if_multiple_args_have_common_ancestor(self):
         """
