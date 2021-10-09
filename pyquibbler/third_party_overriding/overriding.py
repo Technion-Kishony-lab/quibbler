@@ -12,27 +12,29 @@ from matplotlib.axes import Axes
 from pyquibbler.quib import ImpureFunctionQuib, DefaultFunctionQuib, FunctionQuib, GraphicsFunctionQuib
 from pyquibbler.quib.graphics import global_collecting
 from pyquibbler.quib.graphics.elements.slider_graphics_function_quib import SliderGraphicsFunctionQuib
+from pyquibbler.quib.graphics.elements.radiobuttons_graphics_function_quib import RadioButtonsGraphicsFunctionQuib
 from pyquibbler.utils import ensure_only_run_once_globally
 
 NUMPY_OVERRIDES = [
     (np, [
-        (DefaultFunctionQuib, {"abs", "average", "around", "square", "repeat", "max", "arange", "polyfit",
+        (DefaultFunctionQuib, {"abs", "average", "around", "square", "repeat", "min", "max", "arange", "polyfit",
                                "linspace", "polyval", "full", "concatenate", "array", "reshape", "genfromtxt",
-                               "ravel"}),
+                               "ravel", "sin", "cos", "tan", "arcsin", "arccos", "arctan", "real", "imag"}),
         (GraphicsFunctionQuib, {'apply_along_axis', 'apply_over_axes'}),
     ]),
     (np.random, [
-        (ImpureFunctionQuib, {'rand', 'randint'})
+        (ImpureFunctionQuib, {'rand', 'randn', 'randint'})
     ])
 ]
 
 MPL_OVERRIDES = [
     (Axes, [
-        (GraphicsFunctionQuib, {'plot', 'imshow', 'text', 'bar', 'set_xlim', 'set_ylim', 'set_title',
-                                'hist', 'pie', 'set_xlabel', 'set_ylabel'})
+        (GraphicsFunctionQuib, ['plot', 'imshow', 'text', 'bar', 'set_xlim', 'set_ylim', 'set_title',
+                                'hist', 'pie', 'set_xlabel', 'set_ylabel', 'set_visible'])
     ]),
     (widgets, [
-        (SliderGraphicsFunctionQuib, {'Slider'})
+        (SliderGraphicsFunctionQuib, {'Slider'}),
+        (RadioButtonsGraphicsFunctionQuib, {'RadioButtons',})
     ])
 ]
 

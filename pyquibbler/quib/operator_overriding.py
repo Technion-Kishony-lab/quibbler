@@ -48,6 +48,8 @@ COMPARISON_OVERRIDES = [
     operator_override('__gt__'),
     operator_override('__ge__'),
     operator_override('__le__'),
+    operator_override('__iand__'),
+    operator_override('__ior__'),
 ]
 
 ROUNDING_OVERRIDES = [

@@ -12,7 +12,7 @@ def mock_quib():
 
 
 @pytest.fixture
-def slider_quib(mock_quib, axes):
+def slider_quib(mock_quib: object, axes: object) -> object:
     return SliderGraphicsFunctionQuib.create(
         func=mock.Mock(),
         func_kwargs={
