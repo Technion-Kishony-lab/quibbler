@@ -125,12 +125,11 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
             array_names_to_artists.setdefault(self._get_artist_array_name(artist), []).append(artist)
         return axeses_to_array_names_to_artists
 
-    def _update_position_and_attributes_of_created_artists(
+    def _update_position_of_created_artists(
             self,
             axes: Axes,
             array_name: str,
             new_artists: List[Artist],
-            previous_artists: List[Artist],
             starting_index: int):
         """
         Updates the positions and attributes of the new artists from old ones (together with the given starting index)
@@ -141,19 +140,12 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
                                                                                              - len(new_artists)]
         # insert new artists at correct location
         setattr(axes, array_name, complete_artists_array)
-        # We only want to update from the previous artists if their lengths are equal (if so, we assume they're
-        # referencing the same artists)
-        if len(new_artists) == len(previous_artists):
-            for previous_artist, new_artist in zip(previous_artists, new_artists):
-                for attribute in self.ATTRIBUTES_TO_COPY_FROM_ARTIST_TO_ARTIST:
-                    if hasattr(previous_artist, attribute):
-                        # setattr(new_artist, attribute, getattr(previous_artist, attribute))
-                        pass
-    def _update_new_artists_from_previous_artists(self,
-                                                  previous_axeses_to_array_names_to_indices_and_artists: Dict[
-                                                      Axes, Dict[str, Tuple[int, List[Artist]]]
+
+    def _update_new_artists_from_previous_artist_positions(self,
+                                                           previous_axeses_to_array_names_to_indices: Dict[
+                                                      Axes, Dict[str, int]
                                                   ],
-                                                  current_axeses_to_array_names_to_artists: Dict[
+                                                           current_axeses_to_array_names_to_artists: Dict[
                                                       Axes, Dict[str, List[Artist]]
                                                   ]):
         """
@@ -161,14 +153,13 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         """
         for axes, current_array_names_to_artists in current_axeses_to_array_names_to_artists.items():
             for array_name, artists in current_array_names_to_artists.items():
-                if array_name in previous_axeses_to_array_names_to_indices_and_artists.get(axes, {}):
-                    array_names_to_indices_and_artists = previous_axeses_to_array_names_to_indices_and_artists[axes]
-                    starting_index, previous_artists = array_names_to_indices_and_artists[array_name]
-                    self._update_position_and_attributes_of_created_artists(
+                if array_name in previous_axeses_to_array_names_to_indices.get(axes, {}):
+                    array_names_to_indices = previous_axeses_to_array_names_to_indices[axes]
+                    starting_index = array_names_to_indices[array_name]
+                    self._update_position_of_created_artists(
                         axes=axes,
                         array_name=array_name,
                         new_artists=artists,
-                        previous_artists=previous_artists,
                         starting_index=starting_index)
                 # If the array name isn't in previous_array_names_to_indices_and_artists,
                 # we don't need to update positions, etc
@@ -185,14 +176,14 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
                 artist._quibbler_drawing_func = self._func
         
     def _create_new_artists(self,
-                            previous_axeses_to_array_names_to_indices_and_artists:
-                            Dict[Axes, Dict[str, Tuple[int, List[Artist]]]] = None):
+                            previous_axeses_to_array_names_to_indices:
+                            Dict[Axes, Dict[str, int]] = None):
         """
         Create the new artists, then update them (if appropriate) with correct attributes (such as color) and place them
         in the same place they were in their axes
         """
-        previous_axeses_to_array_names_to_indices_and_artists = \
-            previous_axeses_to_array_names_to_indices_and_artists or {}
+        previous_axeses_to_array_names_to_indices = \
+            previous_axeses_to_array_names_to_indices or {}
 
         with global_collecting.ArtistsCollector() as collector:
             func_res = call_func_with_quib_values(self.func, self.args, self.kwargs)
@@ -203,8 +194,8 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         self.track_artists()
 
         current_axeses_to_array_names_to_artists = self._get_axeses_to_array_names_to_artists()
-        self._update_new_artists_from_previous_artists(previous_axeses_to_array_names_to_indices_and_artists,
-                                                       current_axeses_to_array_names_to_artists)
+        self._update_new_artists_from_previous_artist_positions(previous_axeses_to_array_names_to_indices,
+                                                                current_axeses_to_array_names_to_artists)
         return func_res
 
     def _reset_axes_cyclers(self):
@@ -218,23 +209,23 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         for artist in self._artists:
             self._get_artist_array(artist).remove(artist)
 
-    def _get_axeses_to_array_names_to_starting_indices_and_artists(self) -> Dict[
-        Axes, Dict[str, Tuple[int, List[Artist]]]
+    def _get_axeses_to_array_names_to_starting_indices(self) -> Dict[
+        Axes, Dict[str, int]
     ]:
         """
         Creates a mapping of axes -> artists_array_name -> (starting_index, artists)
         """
-        axeses_to_array_names_to_indices_and_artists = {}
+        axeses_to_array_names_to_indices = {}
         for axes, array_names_to_artists in self._get_axeses_to_array_names_to_artists().items():
-            array_names_to_indices_and_artists = {}
-            axeses_to_array_names_to_indices_and_artists[axes] = array_names_to_indices_and_artists
+            array_names_to_indices = {}
+            axeses_to_array_names_to_indices[axes] = array_names_to_indices
 
             for array_name, artists in array_names_to_artists.items():
                 exemplifying_artist = artists[0]
                 array = getattr(exemplifying_artist.axes, array_name)
-                array_names_to_indices_and_artists[array_name] = (array.index(exemplifying_artist), artists)
+                array_names_to_indices[array_name] = array.index(exemplifying_artist)
 
-        return axeses_to_array_names_to_indices_and_artists
+        return axeses_to_array_names_to_indices
 
     def get_axeses(self) -> List[Axes]:
         return list(self._get_axeses_to_array_names_to_artists().keys())
@@ -251,7 +242,7 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
 
         # Get the *current* artists together with their starting indices (per axes per artists array) so we can
         # place the new artists we create in their correct locations
-        axeses_to_array_names_to_indices_and_artists = self._get_axeses_to_array_names_to_starting_indices_and_artists()
+        axeses_to_array_names_to_indices = self._get_axeses_to_array_names_to_starting_indices()
         self._reset_axes_cyclers()
         self._remove_current_artists()
-        return self._create_new_artists(axeses_to_array_names_to_indices_and_artists)
+        return self._create_new_artists(axeses_to_array_names_to_indices)
