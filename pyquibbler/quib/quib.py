@@ -28,7 +28,11 @@ class QuibIsNotNdArrayException(PyQuibblerException):
 
 @dataclass
 class OverridingNotAllowedException(PyQuibblerException):
-    pass
+    quib: Quib
+    override: Assignment
+
+    def __str__(self):
+        return f'Cannot override {self.quib} with {self.override} as it does not allow overriding.'
 
 
 class Quib(ABC):
@@ -109,12 +113,14 @@ class Quib(ABC):
         raise TypeError('Cannot iterate over quibs, as their size can vary. '
                         'Try Quib.iter_first() to iterate over the n-first items of the quib.')
 
-    def _override(self, assignment: Assignment):
+    def override(self, assignment: Assignment, allow_overriding_from_now_on=True):
         """
         Overrides a part of the data the quib represents.
         """
-        # This is not an exception, if this function is called while overriding is not allowed then we have a bug
-        assert self.allow_overriding
+        if allow_overriding_from_now_on:
+            self.allow_overriding = True
+        if not self.allow_overriding:
+            raise OverridingNotAllowedException(self, assignment)
         self._overrider.add_assignment(assignment)
         self.invalidate_and_redraw()
 
@@ -123,9 +129,7 @@ class Quib(ABC):
         Create an assignment with an Assignment object, overriding the current values at the assignment's paths with the
         assignment's value
         """
-        if not self.allow_overriding:
-            raise OverridingNotAllowedException()
-        self._override(assignment)
+        self.override(assignment, allow_overriding_from_now_on=False)
 
     def assign_value(self, value: Any) -> None:
         """

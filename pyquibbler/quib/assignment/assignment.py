@@ -1,5 +1,5 @@
 from __future__ import annotations
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, TYPE_CHECKING, List, Union, Tuple
 
 if TYPE_CHECKING:
@@ -14,7 +14,7 @@ class Assignment:
     A change performed on a quib.
     """
     value: Any
-    paths: List[AssignmentPath]
+    paths: List[AssignmentPath] = field(default_factory=list)
 
 
 @dataclass
@@ -27,6 +27,9 @@ class QuibWithAssignment:
 
     def apply(self):
         self.quib.assign(self.assignment)
+
+    def override(self):
+        self.quib.override(self.assignment, allow_overriding_from_now_on=False)
 
     def __hash__(self):
         return id(self)
