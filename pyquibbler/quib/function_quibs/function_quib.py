@@ -125,9 +125,18 @@ class FunctionQuib(Quib):
         return self._kwargs
 
     def assign(self, assignment: Assignment) -> None:
+        """
+        Apply the given assignment to the function quib.
+        Using reverse assignments, the assignment will propagate as far is possible up the dependency graph,
+        and collect possible overrides.
+        When more than one override can be performed, the user will be asked to choose one.
+        When there is only one override option, is will be automatically performed.
+        When there are no override options, CannotAssignException is raised.
+        """
         options_tree = OverrideOptionsTree.from_reversal(QuibWithAssignment(self, assignment))
         if not options_tree:
             raise CannotAssignException(self, assignment)
+        # chosen_overrides might be empty if the user cancelled the assignment
         chosen_overrides = options_tree.choose_overrides(self)
         for chosen_override in chosen_overrides:
             chosen_override.override()

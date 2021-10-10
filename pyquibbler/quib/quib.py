@@ -156,6 +156,9 @@ class Quib(ABC):
         self.assign(Assignment(value=value, paths=[key]))
 
     def pretty_repr(self):
+        """
+        Returns a pretty representation of the quib. Might calculate values of parent quibs.
+        """
         return repr(self)
 
     def get_assignment_template(self) -> AssignmentTemplate:
