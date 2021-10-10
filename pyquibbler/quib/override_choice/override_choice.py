@@ -3,7 +3,8 @@ from dataclasses import dataclass
 from typing import List, TYPE_CHECKING, Optional, Dict, Any
 
 from pyquibbler.exceptions import PyQuibblerException
-from pyquibbler.quib.assignment import QuibWithAssignment, reverse_function_quib, CannotReverseException, Assignment
+from pyquibbler.quib.assignment import QuibWithAssignment, get_reversals_for_assignment, CannotReverseException, \
+    Assignment
 
 from .override_dialog import OverrideChoiceType, OverrideChoice, choose_override_dialog
 
@@ -173,7 +174,7 @@ class OverrideOptionsTree:
         from pyquibbler.quib import FunctionQuib
         if isinstance(quib_with_assignment.quib, FunctionQuib):
             try:
-                return reverse_function_quib(quib_with_assignment.quib, quib_with_assignment.assignment)
+                return get_reversals_for_assignment(quib_with_assignment.quib, quib_with_assignment.assignment)
             except CannotReverseException:
                 pass
         return []

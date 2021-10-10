@@ -42,7 +42,7 @@ def _get_reversed_quibs_with_assignments_from_reverser(reverser_cls: Type[Revers
     return quibs_with_assignments
 
 
-def reverse_function_quib(function_quib: FunctionQuib, assignment: Assignment) -> List[QuibWithAssignment]:
+def get_reversals_for_assignment(function_quib: FunctionQuib, assignment: Assignment) -> List[QuibWithAssignment]:
     """
     Given a function quib and a change in it's result (at `indices` to `value`), reverse assign relevant values
     to relevant quib arguments

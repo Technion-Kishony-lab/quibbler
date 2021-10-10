@@ -6,13 +6,13 @@ from operator import __pow__
 from pyquibbler import iquib
 from pyquibbler.quib import DefaultFunctionQuib, FunctionQuib
 from pyquibbler.quib.assignment import Assignment
-from pyquibbler.quib.assignment.reverse_assignment import reverse_function_quib
+from pyquibbler.quib.assignment.reverse_assignment import get_reversals_for_assignment
 from pyquibbler.quib.assignment.reverse_assignment.elementwise_reverser import CommonAncestorBetweenArgumentsException
 
 
 def reverse(function_quib: FunctionQuib, value, paths):
     assignment = Assignment(value, paths)
-    reversals = reverse_function_quib(function_quib=function_quib, assignment=assignment)
+    reversals = get_reversals_for_assignment(function_quib=function_quib, assignment=assignment)
     for reversal in reversals:
         reversal.apply()
 
@@ -127,11 +127,11 @@ def test_add_second_argument_is_quib():
 
 @pytest.mark.regression
 def test_elementwise_always_picks_first_quib():
-    first_quib = iquib(5)
-    second_quib = iquib(5)
+    first_quib = iquib(1)
+    second_quib = iquib(2)
 
-    reverse_function_quib(first_quib + second_quib, Assignment(value=20, paths=[...]))
-    reverse_function_quib(second_quib + first_quib, Assignment(value=25, paths=[...]))
+    reverse(first_quib + second_quib, 5, [...])
+    assert first_quib.get_value() == 3
 
-    assert first_quib.get_value() == 15
-    assert second_quib.get_value() == 10
+    reverse(second_quib + first_quib, 7, [...])
+    assert second_quib.get_value() == 4
