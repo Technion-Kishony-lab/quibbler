@@ -18,7 +18,7 @@ class CannotAssignException(PyQuibblerException):
 
     def __str__(self):
         return f'Cannot perform {self.assignment} on {self.quib}, because it cannot ' \
-               f'be overridden and we could not find an overridable parnet quib to reverse assign into.'
+               f'be overridden and we could not find an overridable parent quib to reverse assign into.'
 
 
 class ChoiceCache:
@@ -85,12 +85,23 @@ class OverrideOptionsTree:
 
     @property
     def can_diverge(self):
+        """
+        Return True if the original assignment can be translated into
+        multiple assignment into ancestor quibs, and False otherwise.
+        Note that self.children will be empty if any of these assignments cannot be translated into an override.
+        """
         return len(self.children) > 0
 
     def __bool__(self):
+        """
+        Return True if the original assignment can be translated into an override and False otherwise.
+        """
         return len(self.options) > 0 or self.can_diverge
 
     def _try_load_choice(self) -> Optional[OverrideChoice]:
+        """
+        If a choice fitting the current options has been cached, return it. Otherwise return None.
+        """
         choice = self._CHOICE_CACHE.load(self.reversed_quib, self)
         if choice is not None and choice.choice_type is OverrideChoiceType.OVERRIDE:
             chosen_quib = choice.chosen_override.quib
@@ -99,9 +110,18 @@ class OverrideOptionsTree:
         return choice
 
     def _store_choice(self, choice: OverrideChoice):
+        """
+        Store a user override choice in the cache for future use.
+        """
         self._CHOICE_CACHE.store(choice, self.reversed_quib, self)
 
     def get_override_choice(self) -> OverrideChoice:
+        """
+        Choose an override from the options or choose to diverge.
+        If there is only one option and can't diverge, return it.
+        If there are no options and can diverge, diverge.
+        Otherwise, prompt the user to choose.
+        """
         if len(self.options) == 1 and not self.can_diverge:
             return OverrideChoice(OverrideChoiceType.OVERRIDE, self.options[0])
         choice = self._try_load_choice()
@@ -112,6 +132,11 @@ class OverrideOptionsTree:
         return choice
 
     def choose_overrides_from_diverged_reverse_assignment(self) -> List[QuibWithAssignment]:
+        """
+        If we have chosen to diverge our overrides, we must choose an override for each diverged assignment.
+        If one of the diverged assignments is canceled, the whole operation is cancelled to we don't override
+        partially.
+        """
         chosen_overrides = []
         for child in self.children:
             new_overrides = child.choose_overrides()
@@ -122,6 +147,9 @@ class OverrideOptionsTree:
         return chosen_overrides
 
     def choose_overrides(self) -> List[QuibWithAssignment]:
+        """
+        Choose and return the overrides for this node.
+        """
         choice_type = OverrideChoiceType.DIVERGE
         if self.options:
             choice = self.get_override_choice()
@@ -137,20 +165,28 @@ class OverrideOptionsTree:
         return self.choose_overrides_from_diverged_reverse_assignment()
 
     @classmethod
-    def _get_next_reversals(cls, reversal: QuibWithAssignment):
+    def _reverse_assignment(cls, quib_with_assignment: QuibWithAssignment) -> List[QuibWithAssignment]:
+        """
+        Try to reverse the given assignment and return the resulting assignments.
+        Return an empty list if cannot reverse.
+        """
         from pyquibbler.quib import FunctionQuib
-        if isinstance(reversal.quib, FunctionQuib):
+        if isinstance(quib_with_assignment.quib, FunctionQuib):
             try:
-                return reverse_function_quib(reversal.quib, reversal.assignment)
+                return reverse_function_quib(quib_with_assignment.quib, quib_with_assignment.assignment)
             except CannotReverseException:
                 pass
         return []
 
     @classmethod
     def _get_children_from_diverged_reversals(cls, reversals: List[QuibWithAssignment]):
+        """
+        For each diverged reversal, create a new OverrideOptionsTree instance, and return a list of all instances.
+        If any reversal cannot be translated into an override, return an empty list.
+        """
         children = []
         for reversal in reversals:
-            child = cls.from_reversal(reversal)
+            child = cls.from_assignment(reversal)
             if not child:
                 # If one of the diverged options does not allow overriding,
                 # then we can't reverse assign through the diverger, because
@@ -160,7 +196,10 @@ class OverrideOptionsTree:
         return children
 
     @classmethod
-    def from_reversal(cls, quib_with_assignment: QuibWithAssignment) -> OverrideOptionsTree:
+    def from_assignment(cls, quib_with_assignment: QuibWithAssignment) -> OverrideOptionsTree:
+        """
+        Build an OverrideOptionsTree representing all the override options for the given assignment.
+        """
         options = []
         reversals = [quib_with_assignment]
         last_reversal = None
@@ -168,7 +207,7 @@ class OverrideOptionsTree:
             reversal = reversals[0]
             if reversal.quib.allow_overriding:
                 options.append(reversal)
-            reversals = cls._get_next_reversals(reversal)
+            reversals = cls._reverse_assignment(reversal)
             if reversals:
                 last_reversal = reversal
 
@@ -184,7 +223,7 @@ def get_overrides_for_assignment(quib: Quib, assignment: Assignment) -> List[Qui
     When the assignment cannot be translated, CannotAssignException is raised.
     The returned override list might be empty if the user has chosen to cancel the assignment.
     """
-    options_tree = OverrideOptionsTree.from_reversal(QuibWithAssignment(quib, assignment))
+    options_tree = OverrideOptionsTree.from_assignment(QuibWithAssignment(quib, assignment))
     if not options_tree:
         raise CannotAssignException(quib, assignment)
     return options_tree.choose_overrides()
