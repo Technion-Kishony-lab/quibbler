@@ -59,9 +59,7 @@ def reset_time_traveling_cyclers_on_axes(axes: Axes):
     """
     for cycler_holding_name in CYCLER_HOLDER_NAMES:
         current_cycler_holder = getattr(axes, cycler_holding_name)
-        assert isinstance(current_cycler_holder.prop_cycler, TimeTravelingCycler)
-
-        current_cycler_holder.reset()
+        current_cycler_holder.prop_cycler.reset()
 
 
 def get_wrapped_init_to_add_time_traveling_cyclers(original_init):

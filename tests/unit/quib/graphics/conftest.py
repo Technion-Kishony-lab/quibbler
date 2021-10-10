@@ -6,4 +6,6 @@ from matplotlib import pyplot as plt
 def axes():
     plt.close("all")
     plt.gcf().set_size_inches(8, 6)
-    return plt.gca()
+    axes = plt.gca()
+    axes.funtimes = 1
+    return axes
