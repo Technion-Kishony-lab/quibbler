@@ -6,6 +6,8 @@ from pyquibbler import iquib
 from pyquibbler.quib import FunctionQuib
 from pyquibbler.quib.assignment import Assignment
 
+from ..utils import get_mock_with_repr
+
 
 class ExampleFunctionQuib(FunctionQuib):
     def _invalidate(self):
@@ -92,3 +94,15 @@ def function_quib_create_calculates_when_not_lazy(function_mock):
     ExampleFunctionQuib.create(function_mock)
 
     function_mock.assert_called_once()
+
+
+def test_pretty_repr():
+    function_repr = 'woohoo'
+    function = get_mock_with_repr(function_repr)
+    parent = iquib('lolol')
+    fquib = ExampleFunctionQuib.create(function, (parent,))
+
+    string = fquib.pretty_repr()
+
+    assert function_repr in string
+    assert parent.get_value() in string
