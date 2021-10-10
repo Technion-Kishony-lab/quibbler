@@ -120,7 +120,7 @@ def test_add_second_argument_is_quib():
     quib = iquib(np.array(9))
     sum_ = 3 + quib
 
-    reverse_function_quib(sum_, Assignment(value=10, paths=[...]))
+    reverse(sum_, 10, [...])
 
     assert np.array_equal(quib.get_value(), np.array(7))
 
