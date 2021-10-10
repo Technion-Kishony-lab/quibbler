@@ -5,7 +5,7 @@ from functools import partial
 from matplotlib.axes import Axes
 from matplotlib.backend_bases import Event
 from matplotlib.widgets import RadioButtons, Button
-from typing import List, Callable, Tuple, Optional
+from typing import List, Callable, Optional
 from enum import Enum
 
 from pyquibbler.quib.assignment import QuibWithAssignment

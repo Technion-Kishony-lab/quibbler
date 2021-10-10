@@ -4,6 +4,7 @@ from enum import Enum
 from functools import wraps, cached_property
 from typing import Callable, Any, Mapping, Tuple, Optional, Set
 
+from ..override_choice import get_overrides_for_assignment
 from ..assignment import AssignmentTemplate, Assignment
 from ..quib import Quib
 from ..utils import is_there_a_quib_in_args, iter_quibs_in_args, call_func_with_quib_values, \
@@ -119,7 +120,7 @@ class FunctionQuib(Quib):
         When there is only one override option, is will be automatically performed.
         When there are no override options, CannotAssignException is raised.
         """
-        for chosen_override in self._get_overrides_for_assignment(assignment):
+        for chosen_override in get_overrides_for_assignment(self, assignment):
             chosen_override.override()
 
     def __repr__(self):

@@ -1,13 +1,24 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import List, TYPE_CHECKING, Optional, Dict, Any
-from pyquibbler.quib.assignment import QuibWithAssignment, reverse_function_quib
+
+from pyquibbler.exceptions import PyQuibblerException
+from pyquibbler.quib.assignment import QuibWithAssignment, reverse_function_quib, CannotReverseException, Assignment
 
 from .override_dialog import OverrideChoiceType, OverrideChoice, choose_override_dialog
-from ...assignment.reverse_assignment import CannotReverseException
 
 if TYPE_CHECKING:
     from pyquibbler.quib import FunctionQuib, Quib
+
+
+@dataclass
+class CannotAssignException(PyQuibblerException):
+    quib: Quib
+    assignment: Assignment
+
+    def __str__(self):
+        return f'Cannot perform {self.assignment} on {self.quib}, because it cannot ' \
+               f'be overridden and we could not find an overridable parnet quib to reverse assign into.'
 
 
 class ChoiceCache:
@@ -132,3 +143,35 @@ class OverrideOptionsTree:
 
         children = cls._get_children_from_diverged_reversals(reversals)
         return OverrideOptionsTree(options, None if not children else last_reversal.quib, children)
+
+
+def get_overrides_for_assignment(quib: Quib, assignment: Assignment) -> List[QuibWithAssignment]:
+    """
+    Every assignment to a quib is translated at the end to a list of overrides to quibs in the graph.
+    This function determines those overrides and returns them.
+    When the assignment cannot be translated, CannotAssignException is raised.
+    The returned override list might be empty if the user has chosen to cancel the assignment.
+    """
+    options_tree = OverrideOptionsTree.from_reversal(QuibWithAssignment(quib, assignment))
+    if not options_tree:
+        raise CannotAssignException(quib, assignment)
+    return options_tree.choose_overrides(quib)
+
+
+def get_overrides_for_assignment_group(quibs_with_assignments: List[QuibWithAssignment]):
+    """
+    Get all overrides for a group of assignments, filter them to leave out contradictory assignments
+    (assignments that cause overrides in the same quibs) and return the remaining overrides.
+    """
+    all_overridden_quibs = set()
+    all_overrides = []
+    for quib_with_assignment in quibs_with_assignments:
+        try:
+            current_overrides = get_overrides_for_assignment(quib_with_assignment.quib, quib_with_assignment.assignment)
+        except CannotAssignException:
+            break
+        current_overridden_quibs = set(override.quib for override in current_overrides)
+        if not current_overridden_quibs.intersection(all_overridden_quibs):
+            all_overridden_quibs.update(current_overridden_quibs)
+            all_overrides.extend(current_overrides)
+    return all_overrides
