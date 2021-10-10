@@ -53,7 +53,8 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
     }
 
     ATTRIBUTES_TO_COPY_FROM_ARTIST_TO_ARTIST = {
-        '_color'
+        '_color',
+        '_facecolor'
     }
 
     def __init__(self,
@@ -144,7 +145,7 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         if len(new_artists) == len(previous_artists):
             for previous_artist, new_artist in zip(previous_artists, new_artists):
                 for attribute in self.ATTRIBUTES_TO_COPY_FROM_ARTIST_TO_ARTIST:
-                    if hasattr(previous_artist, attribute) and hasattr(new_artist, attribute):
+                    if hasattr(previous_artist, attribute):
                         setattr(new_artist, attribute, getattr(previous_artist, attribute))
 
     def _update_new_artists_from_previous_artists(self,
