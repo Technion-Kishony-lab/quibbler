@@ -1,5 +1,6 @@
+from unittest.mock import Mock
 import numpy as np
-from pytest import fixture
+from pytest import fixture, mark
 
 from pyquibbler import iquib
 from pyquibbler.quib import FunctionQuib
@@ -69,9 +70,25 @@ def test_assign_with_unknown_function_overrides(function_wrapper, function_mock_
 
 
 def test_quib_ancestors(function_wrapper):
-    great_grandfather = iquib(1)
-    grandparent = function_wrapper(great_grandfather)
+    great_grandparent = iquib(1)
+    grandparent = function_wrapper(great_grandparent)
     parent = function_wrapper(grandparent)
     me = function_wrapper(parent)
 
-    assert me.ancestors == {great_grandfather, parent, grandparent}
+    assert me.ancestors == {great_grandparent, parent, grandparent}
+
+
+def test_parents():
+    parent1 = iquib(1)
+    grandparent = iquib(2)
+    parent2 = ExampleFunctionQuib.create(Mock(), (grandparent,))
+    fquib = ExampleFunctionQuib.create(Mock(), (0, parent1, 2), dict(a=parent2, b=3))
+
+    assert fquib.parents == {parent1, parent2}
+
+
+@mark.lazy(False)
+def function_quib_create_calculates_when_not_lazy(function_mock):
+    ExampleFunctionQuib.create(function_mock)
+
+    function_mock.assert_called_once()
