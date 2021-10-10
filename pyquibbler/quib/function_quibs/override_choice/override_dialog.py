@@ -9,6 +9,7 @@ from typing import List, Callable, Tuple, Optional
 from enum import Enum
 
 from pyquibbler.quib.assignment import QuibWithAssignment
+from pyquibbler.utils import Flag
 
 
 class MyRadioButtons(RadioButtons):
@@ -37,17 +38,6 @@ class OverrideChoice:
             assert self.chosen_override is not None
 
 
-@dataclass
-class Flag:
-    is_set: bool = False
-
-    def set(self):
-        self.is_set = True
-
-    def __bool__(self):
-        return self.is_set
-
-
 def create_button(ax: Axes, label: str, callback: Callable[[Event], None]):
     button = Button(ax, label)
     button.on_clicked(callback)
@@ -55,8 +45,8 @@ def create_button(ax: Axes, label: str, callback: Callable[[Event], None]):
 
 
 def show_fig(fig):
-    closed = Flag()
-    fig.canvas.mpl_connect('close_event', lambda _event: closed.set())
+    closed = Flag(False)
+    fig.canvas.mpl_connect('close_event', lambda _event: closed.set(True))
     fig.show()
 
     while not closed:

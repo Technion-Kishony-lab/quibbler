@@ -4,7 +4,7 @@ when called with quib arguments.
 """
 import numpy as np
 from functools import wraps
-from typing import Type, Any, Callable, Optional, List, Tuple
+from typing import Type, Any, Callable, Optional, List, Tuple, Set
 
 from matplotlib import widgets
 from matplotlib.axes import Axes
@@ -16,26 +16,24 @@ from pyquibbler.utils import ensure_only_run_once_globally
 
 NUMPY_OVERRIDES = [
     (np, [
-        (DefaultFunctionQuib, ["abs", "average", "around", "square", "repeat", "max", "arange", "polyfit",
+        (DefaultFunctionQuib, {"abs", "average", "around", "square", "repeat", "max", "arange", "polyfit",
                                "linspace", "polyval", "full", "concatenate", "array", "reshape", "genfromtxt",
-                               "ravel"]),
-        (GraphicsFunctionQuib, ['apply_along_axis', 'apply_over_axes']),
+                               "ravel"}),
+        (GraphicsFunctionQuib, {'apply_along_axis', 'apply_over_axes'}),
     ]),
     (np.random, [
-        (ImpureFunctionQuib, ['rand', 'randint'])
+        (ImpureFunctionQuib, {'rand', 'randint'})
     ])
 ]
 
 MPL_OVERRIDES = [
     (Axes, [
-        (GraphicsFunctionQuib, ['plot', 'imshow', 'text', 'bar', 'set_xlim', 'set_ylim', 'set_title',
-                                'hist', 'pie', 'set_xlabel', 'set_ylabel'])
+        (GraphicsFunctionQuib, {'plot', 'imshow', 'text', 'bar', 'set_xlim', 'set_ylim', 'set_title',
+                                'hist', 'pie', 'set_xlabel', 'set_ylabel'})
     ]),
-    (
-     widgets, [
-         (SliderGraphicsFunctionQuib, ['Slider'])
-     ]
-    )
+    (widgets, [
+        (SliderGraphicsFunctionQuib, {'Slider'})
+    ])
 ]
 
 
@@ -46,6 +44,7 @@ def wrap_overridden_graphics_function(func: Callable) -> Callable:
         # so artists will be collected
         with global_collecting.overridden_graphics_function():
             return func(*args, **kwargs)
+
     return _wrapper
 
 
@@ -62,7 +61,7 @@ def override_func(obj: Any, name: str, quib_type: Type[FunctionQuib],
     setattr(obj, name, func)
 
 
-def apply_overrides(override_list: List[Tuple[Any, List[Tuple[Type[FunctionQuib], List[str]]]]],
+def apply_overrides(override_list: List[Tuple[Any, List[Tuple[Type[FunctionQuib], Set[str]]]]],
                     function_wrapper: Optional[Callable[[Callable], Callable]] = None):
     for obj, overrides_per_quib_type in override_list:
         for quib_type, func_names in overrides_per_quib_type:
