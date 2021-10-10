@@ -169,7 +169,7 @@ def get_overrides_for_assignment_group(quibs_with_assignments: List[QuibWithAssi
         try:
             current_overrides = get_overrides_for_assignment(quib_with_assignment.quib, quib_with_assignment.assignment)
         except CannotAssignException:
-            break
+            continue
         current_overridden_quibs = set(override.quib for override in current_overrides)
         if not current_overridden_quibs.intersection(all_overridden_quibs):
             all_overridden_quibs.update(current_overridden_quibs)
