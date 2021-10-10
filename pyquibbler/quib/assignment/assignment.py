@@ -25,7 +25,7 @@ class QuibWithAssignment:
     quib: Quib
     assignment: Assignment
 
-    def apply(self):
+    def apply(self) -> None:
         self.quib.assign(self.assignment)
 
     def override(self):

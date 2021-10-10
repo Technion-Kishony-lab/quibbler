@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import List, Type, TYPE_CHECKING
 
-from .exceptions import CannotReverseUnknownFunctionException
+from .exceptions import CannotReverseUnknownFunctionException, CannotReverseException
 from .elementwise_reverser import ElementWiseReverser
 from .transpositional_reverser import TranspositionalReverser
 from ..assignment import Assignment, QuibWithAssignment
@@ -33,10 +33,8 @@ def _get_reversed_quibs_with_assignments_from_reverser(reverser_cls: Type[Revers
         paths_at_end = [assignment.paths[0], *paths_at_end]
         current_path = ...
 
-    quibs_with_assignments = reverser_cls(function_quib=function_quib,
-                                          assignment=Assignment(
-                                              paths=[current_path],
-                                              value=assignment.value)).get_reversed_quibs_with_assignments()
+    reverser = reverser_cls(function_quib, Assignment(assignment.value, [current_path]))
+    quibs_with_assignments = reverser.get_reversed_quibs_with_assignments()
 
     for quib_with_assignment in quibs_with_assignments:
         quib_with_assignment.assignment.paths.extend(paths_at_end)
@@ -51,6 +49,6 @@ def reverse_function_quib(function_quib: FunctionQuib, assignment: Assignment) -
     """
     reverser_cls = reverser_cls_by_func.get(function_quib.func.__name__)
     if reverser_cls is None:
-        raise CannotReverseUnknownFunctionException(function_quib.func)
+        raise CannotReverseUnknownFunctionException(function_quib, assignment)
     return _get_reversed_quibs_with_assignments_from_reverser(reverser_cls, function_quib=function_quib,
                                                               assignment=assignment)

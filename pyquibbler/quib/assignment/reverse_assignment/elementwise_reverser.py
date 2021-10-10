@@ -4,19 +4,16 @@ import numpy as np
 from operator import __add__, __pow__, __sub__, __mul__
 from typing import Any, List, Dict, Callable, TYPE_CHECKING
 
-from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.quib.assignment import Assignment
 from pyquibbler.quib.utils import call_func_with_quib_values
+
+from .exceptions import CommonAncestorBetweenArgumentsException
 from ..assignment import QuibWithAssignment
 
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib
 
 from .reverser import Reverser
-
-
-class CommonAncestorBetweenArgumentsException(PyQuibblerException):
-    pass
 
 
 def create_inverse_func_from_indexes_to_funcs(quib_argument_indexes_to_inverse_functions: Dict[int, Callable]):
@@ -57,11 +54,11 @@ class ElementWiseReverser(Reverser):
             ) for func in [np.multiply, __mul__]},
         **{
             func: create_inverse_func_from_indexes_to_funcs(
-            {
-                0: np.add,
-                1: lambda result, other: np.subtract(other, result)
-            }
-        ) for func in [np.subtract, __sub__]},
+                {
+                    0: np.add,
+                    1: lambda result, other: np.subtract(other, result)
+                }
+            ) for func in [np.subtract, __sub__]},
         np.divide: create_inverse_func_from_indexes_to_funcs({
             0: np.multiply,
             1: lambda result, other: np.divide(other, result)
@@ -104,7 +101,7 @@ class ElementWiseReverser(Reverser):
                 arg_and_ancestors |= arg.ancestors
 
             if all_ancestors & arg_and_ancestors:
-                raise CommonAncestorBetweenArgumentsException()
+                raise CommonAncestorBetweenArgumentsException(self._function_quib, self._assignment)
 
             all_ancestors |= arg_and_ancestors
 

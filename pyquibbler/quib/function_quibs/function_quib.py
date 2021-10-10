@@ -1,28 +1,14 @@
 from __future__ import annotations
 import types
-from dataclasses import dataclass
 from enum import Enum
 from functools import wraps, cached_property
 from typing import Callable, Any, Mapping, Tuple, Optional, Set
 
-from .override_choice import OverrideOptionsTree
 from ..assignment import AssignmentTemplate, Assignment
-from ..assignment.assignment import QuibWithAssignment
 from ..quib import Quib
 from ..utils import is_there_a_quib_in_args, iter_quibs_in_args, call_func_with_quib_values, \
     deep_copy_without_quibs_or_artists, convert_args
 from ...env import LAZY
-from ...exceptions import PyQuibblerException
-
-
-@dataclass
-class CannotAssignException(PyQuibblerException):
-    quib: Quib
-    assignment: Assignment
-
-    def __str__(self):
-        return f'Could not perform {self.assignment} on {self.quib}, because it cannot ' \
-               f'be overridden and we could not find an overridable parnet quib to reverse assign into.'
 
 
 class CacheBehavior(Enum):
@@ -133,12 +119,7 @@ class FunctionQuib(Quib):
         When there is only one override option, is will be automatically performed.
         When there are no override options, CannotAssignException is raised.
         """
-        options_tree = OverrideOptionsTree.from_reversal(QuibWithAssignment(self, assignment))
-        if not options_tree:
-            raise CannotAssignException(self, assignment)
-        # chosen_overrides might be empty if the user cancelled the assignment
-        chosen_overrides = options_tree.choose_overrides(self)
-        for chosen_override in chosen_overrides:
+        for chosen_override in self._get_overrides_for_assignment(assignment):
             chosen_override.override()
 
     def __repr__(self):

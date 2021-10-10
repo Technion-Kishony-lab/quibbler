@@ -1,10 +1,8 @@
-from unittest.mock import Mock
 import numpy as np
+from unittest.mock import Mock
 from pytest import fixture, mark, raises
 from pyquibbler import iquib
-from pyquibbler.quib import FunctionQuib
-from pyquibbler.quib.assignment import Assignment
-from pyquibbler.quib.function_quibs import CannotAssignException
+from pyquibbler.quib import FunctionQuib, Assignment, CannotAssignException
 from pyquibbler.quib.function_quibs.override_choice import OverrideOptionsTree
 
 from ..utils import get_mock_with_repr

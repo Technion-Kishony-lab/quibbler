@@ -1,3 +1,3 @@
 from .default_function_quib import DefaultFunctionQuib
-from .function_quib import FunctionQuib, CacheBehavior, CannotAssignException
+from .function_quib import FunctionQuib, CacheBehavior
 from .impure_function_quib import ImpureFunctionQuib, InvalidCacheBehaviorForImpureFunctionQuibException

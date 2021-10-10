@@ -4,13 +4,15 @@ from functools import cached_property
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from operator import getitem
-from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type
+from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List
 from weakref import ref as weakref
 
 from pyquibbler.exceptions import PyQuibblerException
 
-from .assignment import AssignmentTemplate, RangeAssignmentTemplate, BoundAssignmentTemplate, Overrider, Assignment
+from .assignment import AssignmentTemplate, RangeAssignmentTemplate, BoundAssignmentTemplate, Overrider, Assignment, \
+    QuibWithAssignment
 from .assignment.overrider import deep_assign_data_with_paths
+from .function_quibs.override_choice import OverrideOptionsTree
 from .utils import quib_method, Unpacker, recursively_run_func_on_object
 
 if TYPE_CHECKING:
@@ -35,6 +37,16 @@ class OverridingNotAllowedException(PyQuibblerException):
         return f'Cannot override {self.quib} with {self.override} as it does not allow overriding.'
 
 
+@dataclass
+class CannotAssignException(PyQuibblerException):
+    quib: Quib
+    assignment: Assignment
+
+    def __str__(self):
+        return f'Could not perform {self.assignment} on {self.quib}, because it cannot ' \
+               f'be overridden and we could not find an overridable parnet quib to reverse assign into.'
+
+
 class Quib(ABC):
     """
     An abstract class to describe the common methods and attributes of all quib types.
@@ -50,6 +62,39 @@ class Quib(ABC):
         if allow_overriding is None:
             allow_overriding = self._DEFAULT_ALLOW_OVERRIDING
         self.allow_overriding = allow_overriding
+
+    def _get_overrides_for_assignment(self, assignment: Assignment) -> List[QuibWithAssignment]:
+        """
+        Every assignment to a quib is translated at the end to a list of overrides to quibs in the graph.
+        This function determines those overrides and returns them.
+        When the assignment cannot be translated, CannotAssignException is raised.
+        The returned override list might be empty if the user has chosen to cancel the assignment.
+        """
+        options_tree = OverrideOptionsTree.from_reversal(QuibWithAssignment(self, assignment))
+        if not options_tree:
+            raise CannotAssignException(self, assignment)
+        return options_tree.choose_overrides(self)
+
+    @classmethod
+    def apply_assignment_group(cls, quibs_with_assignments: List[QuibWithAssignment]):
+        """
+        Applies a group of assignments in an arbitrary order,
+        while avoiding applying assignments that result in contradictory overrides.
+        """
+        all_overridden_quibs = set()
+        all_overrides = []
+        for quib_with_assignment in quibs_with_assignments:
+            try:
+                current_overrides = quib_with_assignment.quib._get_overrides_for_assignment(
+                    quib_with_assignment.assignment)
+            except CannotAssignException:
+                break
+            current_overridden_quibs = set(override.quib for override in current_overrides)
+            if not current_overridden_quibs.intersection(all_overridden_quibs):
+                all_overridden_quibs.update(current_overridden_quibs)
+                all_overrides.extend(current_overrides)
+        for override in all_overrides:
+            override.override()
 
     def __invalidate_children_recursively(self) -> None:
         """
