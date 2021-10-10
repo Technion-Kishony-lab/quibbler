@@ -11,6 +11,7 @@ from matplotlib.axes import Axes
 
 from pyquibbler.quib import ImpureFunctionQuib, DefaultFunctionQuib, FunctionQuib, GraphicsFunctionQuib
 from pyquibbler.quib.graphics import global_collecting
+from pyquibbler.quib.graphics.cycler_tracker import override_axes_init
 from pyquibbler.quib.graphics.elements.slider_graphics_function_quib import SliderGraphicsFunctionQuib
 from pyquibbler.utils import ensure_only_run_once_globally
 
@@ -76,3 +77,4 @@ def override_all():
     """
     apply_overrides(NUMPY_OVERRIDES)
     apply_overrides(MPL_OVERRIDES, wrap_overridden_graphics_function)
+    override_axes_init()
