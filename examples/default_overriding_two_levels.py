@@ -48,4 +48,4 @@ for i in range(len(xx)):
 
 plt.ylabel('Well factor')
 plt.show()
-# when override source iquib from overridden value, dragging is weird
+# TODO: when override source iquib from overridden value, dragging is weird
