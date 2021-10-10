@@ -1,5 +1,7 @@
+import contextlib
 import functools
 from typing import Callable
+from dataclasses import dataclass
 
 
 def ensure_only_run_once_globally(func: Callable):
@@ -18,3 +20,21 @@ def ensure_only_run_once_globally(func: Callable):
             return res
 
     return _wrapper
+
+
+@dataclass
+class Flag:
+    is_set: bool
+
+    def set(self, val: bool):
+        self.is_set = val
+
+    def __bool__(self):
+        return self.is_set
+
+    @contextlib.contextmanager
+    def temporary_set(self, val: bool):
+        current = self.is_set
+        self.set(val)
+        yield
+        self.set(current)

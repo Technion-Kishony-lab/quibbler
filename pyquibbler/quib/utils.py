@@ -12,7 +12,7 @@ from typing import Any, Optional, Set, TYPE_CHECKING, Callable, Tuple, Dict, Typ
 
 import numpy as np
 
-from pyquibbler.env import is_debug
+from pyquibbler.env import DEBUG
 from pyquibbler.exceptions import DebugException, PyQuibblerException
 
 if TYPE_CHECKING:
@@ -142,7 +142,7 @@ def shallow_copy_and_replace_quibs_with_vals(obj: Any):
 
 def copy_and_replace_quibs_with_vals(obj: Any):
     result = shallow_copy_and_replace_quibs_with_vals(obj)
-    if is_debug():
+    if DEBUG:
         expected = deep_copy_and_replace_quibs_with_vals(obj)
         try:
             # instead of doing expected == result we do a "not not" so as to evaluate the result as truthy,
@@ -215,7 +215,7 @@ def iter_objects_of_type_in_object(object_type: Type, obj: Any, force_recursive:
     if force_recursive:
         return iter_objects_of_type_in_object_recursively(object_type, obj)
     result = iter_objects_of_type_in_object_shallowly(object_type, obj)
-    if is_debug():
+    if DEBUG:
         collected_result = set(result)
         result = iter(collected_result)
         expected = set(iter_objects_of_type_in_object_recursively(object_type, obj))

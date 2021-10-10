@@ -5,7 +5,7 @@ from typing import Any, Optional, Set
 from .assignment import AssignmentTemplate
 from .quib import Quib
 from .utils import is_there_a_quib_in_object
-from ..env import is_debug
+from ..env import DEBUG
 from ..exceptions import DebugException
 
 
@@ -26,7 +26,7 @@ class InputQuib(Quib):
         """
         super().__init__(assignment_template=assignment_template)
         self._value = value
-        if is_debug():
+        if DEBUG:
             if is_there_a_quib_in_object(value, force_recursive=True):
                 raise CannotNestQuibInIQuibException(self)
 

@@ -1,15 +1,4 @@
-DEBUG = False
-LAZY = True
+from .utils import Flag
 
-
-def set_debug(debug):
-    global DEBUG
-    DEBUG = debug
-
-
-def is_debug():
-    return DEBUG
-
-
-def is_lazy():
-    return LAZY
+DEBUG = Flag(False)
+LAZY = Flag(True)

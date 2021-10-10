@@ -11,13 +11,18 @@ from ..assignment.assignment import QuibWithAssignment
 from ..quib import Quib
 from ..utils import is_there_a_quib_in_args, iter_quibs_in_args, call_func_with_quib_values, \
     deep_copy_without_quibs_or_artists, convert_args
-from ...env import is_lazy
+from ...env import LAZY
 from ...exceptions import PyQuibblerException
 
 
 @dataclass
 class CannotAssignException(PyQuibblerException):
-    pass
+    quib: Quib
+    assignment: Assignment
+
+    def __str__(self):
+        return f'Could not perform {self.assignment} on {self.quib}, because it cannot ' \
+               f'be overridden and we could not find an overridable parnet quib to reverse assign into.'
 
 
 class CacheBehavior(Enum):
@@ -83,7 +88,7 @@ class FunctionQuib(Quib):
                    cache_behavior=cache_behavior, **kwargs)
         for arg in iter_quibs_in_args(func_args, func_kwargs):
             arg.add_child(self)
-        if not is_lazy():
+        if not LAZY:
             self.get_value()
         return self
 
@@ -122,7 +127,7 @@ class FunctionQuib(Quib):
     def assign(self, assignment: Assignment) -> None:
         options_tree = OverrideOptionsTree.from_reversal(QuibWithAssignment(self, assignment))
         if not options_tree:
-            raise CannotAssignException()
+            raise CannotAssignException(self, assignment)
         chosen_overrides = options_tree.choose_overrides(self)
         for chosen_override in chosen_overrides:
             chosen_override.quib._override(chosen_override.assignment)
