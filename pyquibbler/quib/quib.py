@@ -51,7 +51,7 @@ class Quib(ABC):
             children |= child_ref().__get_children_recursively()
         return children
 
-    def __get_graphics_function_quibs_recursively(self) -> Set[GraphicsFunctionQuib]:
+    def _get_graphics_function_quibs_recursively(self) -> Set[GraphicsFunctionQuib]:
         """
         Get all artists that directly or indirectly depend on this quib.
         """
@@ -63,11 +63,11 @@ class Quib(ABC):
         Redraw all artists that directly or indirectly depend on this quib.
         """
         from pyquibbler.quib.graphics import redraw_axes
-        for graphics_function_quib in self.__get_graphics_function_quibs_recursively():
+        for graphics_function_quib in self._get_graphics_function_quibs_recursively():
             graphics_function_quib.get_value()
 
         axeses = set()
-        for graphics_function_quib in self.__get_graphics_function_quibs_recursively():
+        for graphics_function_quib in self._get_graphics_function_quibs_recursively():
             for axes in graphics_function_quib.get_axeses():
                 axeses.add(axes)
         for axes in axeses:
@@ -90,6 +90,7 @@ class Quib(ABC):
         """
         Add the given quib to the list of quibs that are dependent on this quib.
         """
+        # import ipdb; ipdb.set_trace()
         self._children.add(weakref(quib, lambda ref: self._children.remove(ref)))
 
     def __len__(self):
@@ -238,3 +239,8 @@ class Quib(ABC):
         """
         return Unpacker(self, amount)
 
+    def remove_child(self, quib_to_remove: Quib):
+        """
+        Removes a child from the quib, no longer sending invalidations to it
+        """
+        self._children.remove(weakref(quib_to_remove))

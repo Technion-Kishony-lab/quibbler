@@ -12,6 +12,7 @@ from matplotlib.axes import Axes
 from pyquibbler.quib import ImpureFunctionQuib, DefaultFunctionQuib, FunctionQuib, GraphicsFunctionQuib
 from pyquibbler.quib.graphics import global_collecting
 from pyquibbler.quib.graphics.elements.slider_graphics_function_quib import SliderGraphicsFunctionQuib
+from pyquibbler.quib.graphics.replacing_graphics_function_quib import ReplacingGraphicsFunctionQuib
 from pyquibbler.utils import ensure_only_run_once_globally
 
 NUMPY_OVERRIDES = [
@@ -27,8 +28,10 @@ NUMPY_OVERRIDES = [
 
 MPL_OVERRIDES = [
     (Axes, [
-        (GraphicsFunctionQuib, ['plot', 'imshow', 'text', 'bar', 'set_xlim', 'set_ylim', 'set_title',
-                                'hist', 'pie', 'set_xlabel', 'set_ylabel'])
+        (GraphicsFunctionQuib, ['plot', 'imshow', 'text', 'bar', 'hist', 'pie'])
+    ]),
+    (Axes, [
+        (ReplacingGraphicsFunctionQuib, ['set_xlim', 'set_ylim', 'set_title', 'set_xlabel', 'set_ylabel'])
     ]),
     (
      widgets, [
