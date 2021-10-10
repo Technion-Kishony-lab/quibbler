@@ -59,6 +59,10 @@ class CanvasEventHandler:
 
     @contextmanager
     def _try_acquire_assignment_lock(self):
+        """
+        A context manager that tries to acquire the assignment lock without blocking and returns
+        whether it had succeeded or not.
+        """
         locked = self._assignment_lock.acquire(blocking=False)
         try:
             yield locked
