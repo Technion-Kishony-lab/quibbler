@@ -6,7 +6,7 @@ from unittest.mock import Mock
 import numpy as np
 from pytest import mark, raises, fixture
 
-from pyquibbler.quib import Quib
+from pyquibbler.quib import Quib, OverridingNotAllowedException
 from pyquibbler.quib.assignment import RangeAssignmentTemplate, BoundAssignmentTemplate, Assignment
 from pyquibbler.quib.graphics import GraphicsFunctionQuib
 from pyquibbler.quib.operator_overriding import ARITHMETIC_OVERRIDES, UNARY_OVERRIDES
@@ -297,3 +297,24 @@ def test_quib_assign_value_to_key(example_quib):
     example_quib.assign_value_to_key(value=mock_value, key=mock_key)
 
     example_quib.assign.assert_called_once_with(Assignment(paths=[mock_key], value=mock_value))
+
+
+def test_quib_override_when_overriding_not_allowed(example_quib):
+    example_quib.allow_overriding = False
+    override = Mock()
+
+    with raises(OverridingNotAllowedException) as exc_info:
+        example_quib.override(override, allow_overriding_from_now_on=False)
+
+    assert exc_info.value.quib is example_quib
+    assert exc_info.value.override is override
+    assert isinstance(str(exc_info.value), str)
+
+
+def test_quib_override_allow_overriding_from_now_on(example_quib):
+    example_quib.allow_overriding = False
+    override = Mock()
+
+    example_quib.override(override, allow_overriding_from_now_on=True)
+
+    assert example_quib.allow_overriding
