@@ -1,6 +1,6 @@
 import functools
 from dataclasses import dataclass
-from typing import List
+from typing import List, Iterable, Iterator
 from matplotlib.axes import Axes
 
 
@@ -16,18 +16,21 @@ class TimeTravelingCycler:
     time" so as to recreate the cyclers history
     """
 
-    def __init__(self, original_cycler, cycled: List = None, current_index: int = 0):
+    def __init__(self, original_cycler: Iterator, cycled: List = None, current_index: int = 0):
         self._original_cycler = original_cycler
         self._cycled = cycled or []
         self._current_index = current_index
 
     def __iter__(self):
+        return self
+
+    def __next__(self):
         if self._current_index < len(self._cycled):
             next_item = self._cycled[self._current_index]
-            self._current_index += 1
         else:
             next_item = next(self._original_cycler)
             self._cycled.append(next_item)
+        self._current_index += 1
         return next_item
 
     def reset(self):

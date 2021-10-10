@@ -13,6 +13,7 @@ from matplotlib.table import Table
 from matplotlib.text import Text
 
 from . import global_collecting
+from .time_traveling_cycler import reset_time_traveling_cyclers_on_axes
 from .event_handling import CanvasEventHandler
 from ..assignment import AssignmentTemplate
 from ..function_quibs import DefaultFunctionQuib, CacheBehavior
@@ -91,18 +92,6 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
             return quib_creator(*args, **kwargs)
 
         return wrapper
-
-    def persist_self_on_artists(self):
-        """
-        Persist self on on all artists we're connected to, making sure we won't be garbage collected until they are
-        off the screen
-        We need to also go over args as there may be a situation in which the function did not create new artists, but
-        did perform an action on an existing one, such as Axes.set_xlim
-        """
-        for artist in chain(self._artists, iter_object_type_in_args(Artist, self.args, self.kwargs)):
-            quibs = getattr(artist, '_quibbler_graphics_function_quibs', set())
-            quibs.add(self)
-            artist._quibbler_graphics_function_quibs = quibs
 
     def persist_self_on_artists(self):
         """
@@ -208,8 +197,6 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         with global_collecting.ArtistsCollector() as collector:
             func_res = call_func_with_quib_values(self.func, self.args, self.kwargs)
         self._artists = collector.artists_collected
-        for axes in self.get_axeses():
-            pass
 
         save_func_and_args_on_artists(self._artists, func=self.func, args=self.args)
         self.persist_self_on_artists()
@@ -222,7 +209,7 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
 
     def _reset_axes_cyclers(self):
         for axes in self.get_axeses():
-            axes._quibbler_cycler_tracker.reset()
+            reset_time_traveling_cyclers_on_axes(axes)
 
     def _remove_current_artists(self):
         """

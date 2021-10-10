@@ -59,6 +59,7 @@ def test_graphics_function_quib_does_not_change_on_redraw(axes):
 
 @quibbler_image_comparison(baseline_images=["layered"])
 def test_graphics_function_quib_does_not_change_artist_position(axes):
+    quib = [iquib(30) for _ in range(3)]
     q = GraphicsFunctionQuib.create(
         func=axes.plot,
         func_args=([iquib(30) for _ in range(3)],),
