@@ -18,7 +18,7 @@ for reverser_cls in REVERSER_CLASSES:
 
 
 def _get_reversed_quibs_with_assignments_from_reverser(reverser_cls: Type[Reverser], function_quib: FunctionQuib,
-                                                 assignment: Assignment):
+                                                       assignment: Assignment):
     """
     Runs a reverser, wrapping up all logic with paths (such as dealing with field arrays)
     """
@@ -53,4 +53,4 @@ def reverse_function_quib(function_quib: FunctionQuib, assignment: Assignment) -
     if reverser_cls is None:
         raise CannotReverseUnknownFunctionException(function_quib.func)
     return _get_reversed_quibs_with_assignments_from_reverser(reverser_cls, function_quib=function_quib,
-                                                                           assignment=assignment)
+                                                              assignment=assignment)
