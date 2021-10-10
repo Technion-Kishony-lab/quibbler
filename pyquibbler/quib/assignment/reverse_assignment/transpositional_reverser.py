@@ -201,8 +201,6 @@ class TranspositionalReverser(Reverser):
                 return np.array([])
             return representative_result_value[quibs_to_masks[quib]]
 
-        quibs = self._get_quibs_in_args()
-        values = map(get_relevant_values_for_quib, quibs)
         return {
             quib: get_relevant_values_for_quib(quib)
             for quib in self._get_quibs_which_can_change()
