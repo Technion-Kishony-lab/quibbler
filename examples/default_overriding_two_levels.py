@@ -40,8 +40,6 @@ xx = np.ravel(x + np.reshape(dd, (n_wells, 1)), 'F')
 plt.bar(xx, well_factor, color=(0.7, 0.7, 0.7), width=0.1)
 plt.axis([-0.5, n_plates - 0.5, 0, 100])
 
-ax2 = plt.gca()
-
 for i in range(len(xx)):
     color = q(tuple, [(0, 1, 0), (1, 0, 0)])[well_factor.get_override_mask()[i]]
     plt.plot(xx[[i]], well_factor[[i]],  # TODO: without list
@@ -50,5 +48,4 @@ for i in range(len(xx)):
 
 plt.ylabel('Well factor')
 plt.show()
-# correct caching for level choosing when recalled
 # when override source iquib from overridden value, dragging is weird
