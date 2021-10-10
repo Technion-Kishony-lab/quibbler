@@ -120,3 +120,15 @@ def test_add_second_argument_is_quib():
     reverse_function_quib(sum_, Assignment(value=10, paths=[...]))
 
     assert np.array_equal(quib.get_value(), np.array(7))
+
+
+@pytest.mark.regression
+def test_elementwise_always_picks_first_quib():
+    first_quib = iquib(5)
+    second_quib = iquib(5)
+
+    reverse_function_quib(first_quib + second_quib, Assignment(value=20, paths=[...]))
+    reverse_function_quib(second_quib + first_quib, Assignment(value=25, paths=[...]))
+
+    assert first_quib.get_value() == 15
+    assert second_quib.get_value() == 10

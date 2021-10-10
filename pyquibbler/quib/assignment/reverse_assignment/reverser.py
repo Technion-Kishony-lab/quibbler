@@ -42,9 +42,14 @@ class Reverser(ABC):
     @lru_cache()
     def _get_quibs_in_args(self) -> List[Quib]:
         """
-        Gets a list of all quibs in the args of self._function_quib
+        Gets a list of all unique quibs in the args of self._function_quib
         """
-        return list(set(iter_quibs_in_object_recursively(self._args)))
+        quibs = []
+        for quib in iter_quibs_in_object_recursively(self._args):
+            if quib not in quibs:
+                quibs.append(quib)
+
+        return quibs
 
     @property
     def _working_indices(self):
