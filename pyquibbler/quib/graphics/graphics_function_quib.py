@@ -104,6 +104,18 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
             quibs.add(self)
             artist._quibbler_graphics_function_quibs = quibs
 
+    def persist_self_on_artists(self):
+        """
+        Persist self on on all artists we're connected to, making sure we won't be garbage collected until they are
+        off the screen
+        We need to also go over args as there may be a situation in which the function did not create new artists, but
+        did perform an action on an existing one, such as Axes.set_xlim
+        """
+        for artist in chain(self._artists, iter_object_type_in_args(Artist, self.args, self.kwargs)):
+            quibs = getattr(artist, '_quibbler_graphics_function_quibs', set())
+            quibs.add(self)
+            artist._quibbler_graphics_function_quibs = quibs
+
     def _get_artist_array_name(self, artist: Artist):
         return next((
             array_name
@@ -146,8 +158,8 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
             for previous_artist, new_artist in zip(previous_artists, new_artists):
                 for attribute in self.ATTRIBUTES_TO_COPY_FROM_ARTIST_TO_ARTIST:
                     if hasattr(previous_artist, attribute):
-                        setattr(new_artist, attribute, getattr(previous_artist, attribute))
-
+                        # setattr(new_artist, attribute, getattr(previous_artist, attribute))
+                        pass
     def _update_new_artists_from_previous_artists(self,
                                                   previous_axeses_to_array_names_to_indices_and_artists: Dict[
                                                       Axes, Dict[str, Tuple[int, List[Artist]]]
@@ -196,6 +208,8 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         with global_collecting.ArtistsCollector() as collector:
             func_res = call_func_with_quib_values(self.func, self.args, self.kwargs)
         self._artists = collector.artists_collected
+        for axes in self.get_axeses():
+            pass
 
         save_func_and_args_on_artists(self._artists, func=self.func, args=self.args)
         self.persist_self_on_artists()
@@ -205,6 +219,10 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         self._update_new_artists_from_previous_artists(previous_axeses_to_array_names_to_indices_and_artists,
                                                        current_axeses_to_array_names_to_artists)
         return func_res
+
+    def _reset_axes_cyclers(self):
+        for axes in self.get_axeses():
+            axes._quibbler_cycler_tracker.reset()
 
     def _remove_current_artists(self):
         """
@@ -247,5 +265,6 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         # Get the *current* artists together with their starting indices (per axes per artists array) so we can
         # place the new artists we create in their correct locations
         axeses_to_array_names_to_indices_and_artists = self._get_axeses_to_array_names_to_starting_indices_and_artists()
+        self._reset_axes_cyclers()
         self._remove_current_artists()
         return self._create_new_artists(axeses_to_array_names_to_indices_and_artists)
