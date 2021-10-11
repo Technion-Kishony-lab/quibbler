@@ -1,6 +1,6 @@
+import numpy as np
 from typing import List
 from unittest.mock import Mock
-import numpy as np
 from pytest import raises, fixture
 
 from pyquibbler import iquib

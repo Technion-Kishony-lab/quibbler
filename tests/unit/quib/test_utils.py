@@ -1,4 +1,5 @@
 from operator import add
+from unittest.mock import Mock
 
 from pytest import mark, raises, fixture
 
@@ -100,6 +101,12 @@ def test_call_func_with_quib_values_raises_when_receives_nested_quib():
     assert exc_info.value.func == func
     assert exc_info.value.nested_quibs_by_arg_names == {'x': {iquib1}}
     assert isinstance(exc_info.value.__cause__, TypeError)
+
+
+@mark.regression
+def test_call_func_with_quib_values_does_not_raise_nexted_quib_excepion_when_there_are_no_nested_quibs():
+    with raises(TypeError):
+        call_func_with_quib_values(Mock(side_effect=TypeError('Quib Quib!!')), (), {})
 
 
 args_kwargs_quibs_test = mark.parametrize(['args', 'kwargs', 'quibs'], [
