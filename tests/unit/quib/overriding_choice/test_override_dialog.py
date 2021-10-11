@@ -30,8 +30,8 @@ def override_create_button(monkeypatch, button_callbacks):
     original = override_module_func(monkeypatch, override_dialog, 'create_button', create_button_wrapper)
 
 
-def override_show_fig_with_button_press(monkeypatch, button_label: str, callbacks: Dict[str, Callable[[Any], None]]):
-    mock = lambda fig: callbacks[button_label](Mock())
+def override_show_fig_with_button_press(monkeypatch, button_label: str, callbacks: Dict[str, Callable[[], None]]):
+    mock = lambda fig, _choice_type: callbacks[button_label]()
     override_module_func(monkeypatch, override_dialog, 'show_fig', mock)
 
 

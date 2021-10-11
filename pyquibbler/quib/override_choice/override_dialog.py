@@ -1,15 +1,21 @@
 import matplotlib.pyplot as plt
-from time import sleep
 from dataclasses import dataclass
 from functools import partial
 from matplotlib.axes import Axes
 from matplotlib.backend_bases import Event
 from matplotlib.widgets import RadioButtons, Button
-from typing import List, Callable, Optional
+from typing import List, Callable, Optional, Any
 from enum import Enum
 
 from pyquibbler.quib.assignment import QuibWithAssignment
-from pyquibbler.utils import Flag
+
+
+@dataclass
+class Mutable:
+    val: Any
+
+    def set(self, val: Any):
+        self.val = val
 
 
 class MyRadioButtons(RadioButtons):
@@ -32,7 +38,7 @@ class OverrideChoiceType(Enum):
     DIVERGE = 2
 
 
-@dataclass()
+@dataclass
 class OverrideChoice:
     """
     Result of a choice between possible overrides.
@@ -45,21 +51,27 @@ class OverrideChoice:
             assert self.chosen_override is not None
 
 
-def create_button(ax: Axes, label: str, callback: Callable[[Event], None]) -> Button:
+def create_button(ax: Axes, label: str, callback: Callable[[], None]) -> Button:
     button = Button(ax, label)
-    button.on_clicked(callback)
+    button.on_clicked(lambda _event: callback())
     return button
 
 
-def show_fig(fig):
+def show_fig(fig, choice_type):
     """
-    Show the given figure and wait until it is closed.
+    Show fig until it is closed or choice_type is set.
+    Return True if the figure was closed and False otherwise.
     """
-    closed = Flag(False)
-    fig.canvas.mpl_connect('close_event', lambda _event: closed.set(True))
-    fig.show()
-    while not closed:
-        plt.pause(0.1)
+    figure_closed = Mutable(False)
+    fig.canvas.mpl_connect('close_event', lambda _event: figure_closed.set(True))
+
+    while choice_type.val is None and not figure_closed.val:
+        try:
+            plt.pause(0.05)
+        except Exception:
+            # This throws a TclError on windows with tkinter backend when the figure is closed
+            break
+    return figure_closed.val
 
 
 def choose_override_dialog(options: List[QuibWithAssignment], can_diverge: bool) -> OverrideChoice:
@@ -69,20 +81,21 @@ def choose_override_dialog(options: List[QuibWithAssignment], can_diverge: bool)
     """
     # Used to keep references to the widgets so they won't be garbage collected
     widgets = []
-    fig = plt.figure()
-    grid = fig.add_gridspec(6, 6)
+    axeses = []
+    fig = plt.gcf()  # TODO: use figure the drag event was fired in
+    grid = fig.add_gridspec(6, 6, left=0, right=1, bottom=0, top=1)
+
+    background_ax = fig.add_subplot(grid[:, :])
+    background_ax.tick_params(left=False, right=False, labelleft=False, labelbottom=False, bottom=False)
+    axeses.append(background_ax)
 
     radio_ax = fig.add_subplot(grid[:-1, :])
+    radio_ax.axis("off")
     radio = MyRadioButtons(radio_ax, [f'Override {option.quib.pretty_repr()}' for option in options])
     widgets.append(radio)  # This is not strictly needed but left here to prevent a bug
+    axeses.append(radio_ax)
 
-    choice_type = OverrideChoiceType.CANCEL
-
-    def button_callback(button_choice: OverrideChoiceType, _event):
-        nonlocal choice_type
-        choice_type = button_choice
-        plt.close(fig)
-
+    choice_type = Mutable(None)
     button_specs = [('Cancel', OverrideChoiceType.CANCEL),
                     ('Override', OverrideChoiceType.OVERRIDE)]
     if can_diverge:
@@ -90,8 +103,16 @@ def choose_override_dialog(options: List[QuibWithAssignment], can_diverge: bool)
 
     for i, (label, button_choice) in enumerate(button_specs):
         ax = fig.add_subplot(grid[-1, -i - 1])
-        button = create_button(ax, label, partial(button_callback, button_choice))
+        button = create_button(ax, label, partial(choice_type.set, button_choice))
         widgets.append(button)
+        axeses.append(ax)
 
-    show_fig(fig)
-    return OverrideChoice(choice_type, options[radio.selected_index])
+    figure_closed = show_fig(fig, choice_type)
+    if figure_closed:
+        choice_type.val = OverrideChoiceType.CANCEL
+    else:
+        for axes in axeses:
+            axes.remove()
+        plt.show(block=False)
+
+    return OverrideChoice(choice_type.val, options[radio.selected_index])

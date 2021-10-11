@@ -66,7 +66,7 @@ class FunctionCalledWithNestedQuibException(PyQuibblerException):
     def __str__(self):
         return f'The function {self.func} was called with nested Quib objects. This is not supported.\n' + \
                '\n'.join(f'The argument "{arg}" contains the quibs: {quibs}'
-                         for arg, quibs in self.nested_quibs_by_arg_names.items())  # TODO: add regression test
+                         for arg, quibs in self.nested_quibs_by_arg_names.items())
 
 
 def is_iterator_empty(iterator):
