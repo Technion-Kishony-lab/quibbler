@@ -11,8 +11,8 @@ from pyquibbler.quib.utils import recursively_run_func_on_object, call_func_with
 
 from .reverser import Reverser
 from ..assignment import QuibWithAssignment
-
 if TYPE_CHECKING:
+    from ...function_quibs.transpositional_quib import TranspositionalQuib
     from pyquibbler.quib import Quib
 
 
@@ -22,34 +22,8 @@ class TranspositionalReverser(Reverser):
     any mathematical operations between them.
     """
 
-    SUPPORTED_FUNCTIONS_TO_POTENTIALLY_CHANGED_QUIB_INDICES = {
-        np.rot90: {0},
-        np.concatenate: {0},
-        np.repeat: {0},
-        np.full: {1},
-        getitem: {0},
-        np.reshape: {0}
-    }
-
-    SUPPORTED_FUNCTIONS = list(SUPPORTED_FUNCTIONS_TO_POTENTIALLY_CHANGED_QUIB_INDICES.keys())
-
-    @functools.lru_cache()
     def _get_quibs_which_can_change(self):
-        """
-        Return a list of quibs that can potentially change as a result of the transpositional function- this does NOT
-        necessarily mean these quibs will in fact be changed.
-
-        For example, in `np.repeat(q1, q2)`, where q1 is a numpy array quib
-        and q2 is a number quib with amount of times to repeat, q2 cannot in any
-        situation be changed by a change in `np.repeat`'s result. So only `q1` would be returned.
-        """
-        from pyquibbler.quib import Quib
-        potentially_changed_quib_indices = self.SUPPORTED_FUNCTIONS_TO_POTENTIALLY_CHANGED_QUIB_INDICES[self._func]
-        quibs = []
-        for i, arg in enumerate(self._args):
-            if i in potentially_changed_quib_indices:
-                quibs.extend(iter_objects_of_type_in_object_shallowly(Quib, arg))
-        return quibs
+        return self._function_quib.get_quibs_which_can_change()
 
     def _replace_quibs_in_arguments_which_can_potentially_change(self, replace_func: Callable[['Quib'], Any]):
         """
@@ -206,20 +180,6 @@ class TranspositionalReverser(Reverser):
             for quib in self._get_quibs_which_can_change()
         }
 
-    def _is_getitem_with_field(self):
-        """
-        Check's whether we have at hand a function quib which represents a __getitem__ with the indices being a string
-        """
-        from pyquibbler.quib import Quib
-        return self._func == getitem and isinstance(self._args[1], str) and isinstance(self._args[0], Quib)
-
-    def _is_getitem_of_quib_list(self):
-        """
-        Check's whether we have at hand a function quib which represents a __getitem__ with the indices being a string
-        """
-        from pyquibbler.quib import Quib
-        return self._func == getitem and isinstance(self._args[0], Quib) and issubclass(self._args[0].get_type(), list)
-
     def _build_quibs_with_assignments_for_getitem(self) -> List[QuibWithAssignment]:
         """
         We're in a situation where we can't compute any any translation of indices
@@ -228,7 +188,7 @@ class TranspositionalReverser(Reverser):
         """
         return [QuibWithAssignment(
             quib=self._args[0],
-            assignment=Assignment(paths=[self._args[1], self._working_indices],
+            assignment=Assignment(path=[self._args[1], *self._assignment.path],
                                   value=self._value)
         )]
 
@@ -247,13 +207,13 @@ class TranspositionalReverser(Reverser):
         for quib in quibs_to_indices_in_quibs:
             quibs_with_assignments.append(QuibWithAssignment(
                 quib=quib,
-                assignment=Assignment(paths=[quibs_to_indices_in_quibs[quib]],
+                assignment=Assignment(path=[quibs_to_indices_in_quibs[quib], *self._assignment.path[1:]],
                                       value=quibs_to_results[quib])
             ))
         return quibs_with_assignments
 
     def get_reversed_quibs_with_assignments(self) -> List[QuibWithAssignment]:
-        if self._is_getitem_with_field() or self._is_getitem_of_quib_list():
+        if self._func == getitem:
             return self._build_quibs_with_assignments_for_getitem()
 
         return self._build_quibs_with_assignments_for_generic_case()

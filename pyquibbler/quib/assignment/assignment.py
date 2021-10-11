@@ -1,5 +1,7 @@
 from __future__ import annotations
 import numpy as np
+
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any, TYPE_CHECKING, List, Union, Tuple
 
@@ -9,13 +11,16 @@ if TYPE_CHECKING:
 AssignmentPath = Union[str, Tuple, type(Ellipsis)]
 
 
-@dataclass(frozen=True)
+PathComponent = Union[str, Tuple, type(Ellipsis)]
+
+
+@dataclass
 class Assignment:
     """
     A change performed on a quib.
     """
     value: Any
-    paths: List[AssignmentPath] = field(default_factory=list)
+    path: List[AssignmentPath] = field(default_factory=list)
 
     def __eq__(self, other):
         if not isinstance(other, Assignment):

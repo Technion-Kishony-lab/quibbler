@@ -63,7 +63,7 @@ def get_quibs_with_assignments_for_axes(args: List[Any],
         if isinstance(quib, Quib):
             # We want to support both single values and arrays, so we need to reverse assign
             # appropriately (not use index if it was a single number, index will be zero but that's irrelevant to us)
-            assignment = Assignment(value=value, paths=[indices_to_set
+            assignment = Assignment(value=value, path=[indices_to_set
                                                         if issubclass(quib.get_type(), Iterable)
                                                         else ...])
             quibs_with_assignments.append(QuibWithAssignment(quib=quib,

@@ -1,12 +1,16 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Any, Optional, Set
+from typing import Any, Optional, Set, TYPE_CHECKING
 
 from .assignment import AssignmentTemplate
 from .quib import Quib
 from .utils import is_there_a_quib_in_object
 from ..env import DEBUG
 from ..exceptions import DebugException
+
+
+if TYPE_CHECKING:
+    from .. import Assignment
 
 
 @dataclass
@@ -35,12 +39,11 @@ class InputQuib(Quib):
         No need to do any calculation, this is an input quib.
         """
         return self._value
-
-    def _invalidate(self):
-        """
-        Input quibs are always valid, no need to do anything.
-        """
-        pass
+    #
+    # def _invalidate_self(self, assignment: 'Assignment'):
+    #     """
+    #     Input quibs are always valid, no need to do anything.
+    #     """
 
     def __repr__(self):
         return f'<{self.__class__.__name__} ({self.get_value()})>'

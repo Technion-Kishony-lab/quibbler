@@ -23,7 +23,7 @@ class Reverser(ABC):
 
     SUPPORTED_FUNCTIONS: List[Callable] = NotImplemented
 
-    def __init__(self, function_quib: FunctionQuib, assignment: Assignment):
+    def __init__(self, function_quib, assignment: Assignment):
         self._function_quib = function_quib
         self._assignment = assignment
 
@@ -45,7 +45,7 @@ class Reverser(ABC):
         Our working indices, ie the ones that need to be either squashed
         :return:
         """
-        return self._assignment.paths[0]
+        return self._assignment.path[0]
 
     @property
     def _value(self):

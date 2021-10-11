@@ -9,25 +9,28 @@ import functools
 import operator
 from functools import wraps
 from math import trunc, floor, ceil
-from typing import Callable, Tuple
+from typing import Callable, Tuple, Optional, Type
 
 from .function_quibs import DefaultFunctionQuib
+from .function_quibs.elementwise_quib import ElementWiseQuib
 from .quib import Quib
 
 
-def operator_override(operator_name: str) -> Tuple[str, Callable]:
-    return operator_name, getattr(operator, operator_name)
+def operator_override(operator_name: str, cls: Type[DefaultFunctionQuib] = None) -> Tuple[Type[DefaultFunctionQuib],
+                                                                                          str, Callable]:
+    cls = cls or DefaultFunctionQuib
+    return cls, operator_name, getattr(operator, operator_name)
 
 
 ARITHMETIC_OVERRIDES = [
-    operator_override('__add__'),
-    operator_override('__sub__'),
-    operator_override('__mul__'),
+    operator_override('__add__', ElementWiseQuib),
+    operator_override('__sub__', ElementWiseQuib),
+    operator_override('__mul__', ElementWiseQuib),
     operator_override('__matmul__'),
-    operator_override('__truediv__'),
+    operator_override('__truediv__', ElementWiseQuib),
     operator_override('__floordiv__'),
     operator_override('__mod__'),
-    ('__divmod__', divmod),
+    (DefaultFunctionQuib, '__divmod__', divmod),
     operator_override('__pow__'),
     operator_override('__lshift__'),
     operator_override('__rshift__'),
@@ -51,10 +54,10 @@ COMPARISON_OVERRIDES = [
 ]
 
 ROUNDING_OVERRIDES = [
-    ('__round__', round),
-    ('__trunc__', trunc),
-    ('__floor__', floor),
-    ('__ceil__', ceil),
+    (DefaultFunctionQuib, '__round__', round),
+    (DefaultFunctionQuib, '__trunc__', trunc),
+    (DefaultFunctionQuib, '__floor__', floor),
+    (DefaultFunctionQuib, '__ceil__', ceil),
 ]
 
 
@@ -62,8 +65,8 @@ ALL_OVERRIDES = ARITHMETIC_OVERRIDES + UNARY_OVERRIDES + ROUNDING_OVERRIDES + \
                 COMPARISON_OVERRIDES
 
 
-def _create_reverse_operator_wrapper(forward_operator: Callable):
-    quib_creator = DefaultFunctionQuib.create_wrapper(forward_operator)
+def _create_reverse_operator_wrapper(cls, forward_operator: Callable):
+    quib_creator = cls.create_wrapper(forward_operator)
 
     def _wrapper(self, other):
         return quib_creator(other, self)
@@ -78,10 +81,10 @@ def override_quib_operators():
     through the standard getattr process.
     See more here: https://docs.python.org/3/reference/datamodel.html#special-method-lookup
     """
-    for name, wrapped in ALL_OVERRIDES:
+    for cls, name, wrapped in ALL_OVERRIDES:
         assert name not in vars(Quib), name
-        setattr(Quib, name, DefaultFunctionQuib.create_wrapper(wrapped))
+        setattr(Quib, name, cls.create_wrapper(wrapped))
 
-    for name, wrapped in ARITHMETIC_OVERRIDES:
+    for cls, name, wrapped in ARITHMETIC_OVERRIDES:
         rname = '__r' + name[2:]
-        setattr(Quib, rname, _create_reverse_operator_wrapper(wrapped))
+        setattr(Quib, rname, _create_reverse_operator_wrapper(cls, wrapped))

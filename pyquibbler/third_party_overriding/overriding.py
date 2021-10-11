@@ -9,6 +9,8 @@ from matplotlib import widgets
 from matplotlib.axes import Axes
 
 from pyquibbler.quib import ImpureFunctionQuib, DefaultFunctionQuib, FunctionQuib, GraphicsFunctionQuib
+from pyquibbler.quib.function_quibs.elementwise_quib import ElementWiseQuib
+from pyquibbler.quib.function_quibs.transpositional_quib import TranspositionalQuib
 from pyquibbler.quib.graphics import global_collecting
 from pyquibbler.quib.graphics.elements.slider_graphics_function_quib import SliderGraphicsFunctionQuib
 from pyquibbler.quib.graphics.replacing_graphics_function_quib import ReplacingGraphicsFunctionQuib
@@ -16,10 +18,11 @@ from pyquibbler.utils import ensure_only_run_once_globally
 
 NUMPY_OVERRIDES = [
     (np, [
-        (DefaultFunctionQuib, {"abs", "average", "around", "square", "repeat", "max", "arange", "polyfit",
-                               "linspace", "polyval", "full", "concatenate", "array", "reshape", "genfromtxt",
-                               "ravel"}),
+        (DefaultFunctionQuib, {"abs", "average", "around", "max", "arange", "polyfit",
+                               "linspace", "polyval", "array", "genfromtxt"}),
         (GraphicsFunctionQuib, {'apply_along_axis', 'apply_over_axes'}),
+        (TranspositionalQuib, {'reshape', 'rot90', 'ravel', 'concatenate', 'repeat', 'full'}),
+        (ElementWiseQuib, {'add', 'square'})
     ]),
     (np.random, [
         (ImpureFunctionQuib, {'rand', 'randint'})

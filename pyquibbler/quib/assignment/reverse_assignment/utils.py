@@ -13,5 +13,9 @@ def create_empty_array_with_values_at_indices(shape: tuple, indices: Any, value:
     if empty_value is not None:
         res.fill(empty_value)
 
-    res[indices] = value
+    try:
+        res[indices] = value
+    except IndexError:
+        print(1)
+        raise
     return res

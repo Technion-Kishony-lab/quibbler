@@ -69,8 +69,6 @@ class ElementWiseReverser(Reverser):
         }),
     }
 
-    SUPPORTED_FUNCTIONS = list(FUNCTIONS_TO_INVERSE_FUNCTIONS.keys())
-
     def _get_indices_to_change(self, argument_quib: Quib) -> Any:
         """
         Get the relevant indices for the argument quib that will need to be changed
@@ -118,7 +116,7 @@ class ElementWiseReverser(Reverser):
 
         return [QuibWithAssignment(
             quib=quib_to_change,
-            assignment=Assignment(paths=[changed_indices],
+            assignment=Assignment(path=[changed_indices],
                                   value=value_to_set)
         )]
 

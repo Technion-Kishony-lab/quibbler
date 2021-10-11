@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from operator import getitem
 from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type
+from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Union
 from weakref import ref as weakref
 
 from pyquibbler.exceptions import PyQuibblerException
@@ -14,6 +15,7 @@ from .assignment.overrider import deep_assign_data_with_paths
 from .utils import quib_method, Unpacker, recursively_run_func_on_object
 
 if TYPE_CHECKING:
+    from .assignment.assignment import AssignmentPath, PathComponent
     from pyquibbler.quib.graphics import GraphicsFunctionQuib
 
 
@@ -51,14 +53,6 @@ class Quib(ABC):
             allow_overriding = self._DEFAULT_ALLOW_OVERRIDING
         self.allow_overriding = allow_overriding
 
-    def __invalidate_children_recursively(self) -> None:
-        """
-        Notify this quib's dependents that the data in this quib has changed.
-        This should be called every time the quib is changed.
-        """
-        for child in self.__get_children_recursively():
-            child._invalidate()
-
     def __get_children_recursively(self) -> Set[Quib]:
         children = {child_ref() for child_ref in self._children}
         for child_ref in self._children:
@@ -87,18 +81,22 @@ class Quib(ABC):
         for axes in axeses:
             redraw_axes(axes)
 
-    def invalidate_and_redraw(self) -> None:
+    def invalidate_and_redraw(self, path: List[PathComponent]) -> None:
         """
         Perform all actions needed after the quib was mutated (whether by overriding or reverse assignment).
         """
-        self.__invalidate_children_recursively()
+        self._invalidate_children(path)
         self.__redraw()
 
-    @abstractmethod
-    def _invalidate(self) -> None:
+    def _invalidate_children(self, path: List[PathComponent]) -> None:
         """
         Change this quib's state according to a change in a dependency.
         """
+        for child_ref in self._children:
+            child_ref()._invalidate_with_children(self, path)
+
+    def _invalidate_with_children(self, invalidator_quib, path: List[PathComponent]):
+        self._invalidate_children(path)
 
     def add_child(self, quib: Quib) -> None:
         """
@@ -122,7 +120,8 @@ class Quib(ABC):
         if not self.allow_overriding:
             raise OverridingNotAllowedException(self, assignment)
         self._overrider.add_assignment(assignment)
-        self.invalidate_and_redraw()
+
+        self.invalidate_and_redraw(assignment.path)
 
     def assign(self, assignment: Assignment) -> None:
         """
@@ -135,13 +134,13 @@ class Quib(ABC):
         """
         Helper method to assign a single value and override the whole value of the quib
         """
-        self.assign(Assignment(value=value, paths=[...]))
+        self.assign(Assignment(value=value, path=[...]))
 
     def assign_value_to_key(self, key: Any, value: Any) -> None:
         """
         Helper method to assign a value at a specific key
         """
-        self.assign(Assignment(paths=[key], value=value))
+        self.assign(Assignment(path=[key], value=value))
 
     def __getitem__(self, item):
         # We don't use the normal operator_overriding interface for two reasons:
@@ -150,10 +149,11 @@ class Quib(ABC):
         # 2. We need the function to not be created dynamically as it needs to be in the reverser's supported functions
         # in order to be reversed correctly (and not simply override)
         from pyquibbler.quib import DefaultFunctionQuib
-        return DefaultFunctionQuib.create(func=getitem, func_args=[self, item])
+        from pyquibbler.quib.function_quibs.transpositional_quib import TranspositionalQuib
+        return TranspositionalQuib.create(func=getitem, func_args=[self, item])
 
     def __setitem__(self, key, value):
-        self.assign(Assignment(value=value, paths=[key]))
+        self.assign(Assignment(value=value, path=[key]))
 
     def pretty_repr(self):
         """
@@ -241,7 +241,7 @@ class Quib(ABC):
             mask = recursively_run_func_on_object(func=lambda x: False, obj=self.get_value())
         # Can't use `mask[all_keys] = True` trivially, because some of the keys might be lists themselves.
         for assignment in self._overrider:
-            mask = deep_assign_data_with_paths(paths=assignment.paths, value=True, data=mask)
+            mask = deep_assign_data_with_paths(path=assignment.path, value=True, data=mask)
         return mask
 
     def get_override_mask(self) -> Quib:

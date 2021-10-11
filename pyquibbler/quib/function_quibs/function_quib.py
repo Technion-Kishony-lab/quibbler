@@ -2,7 +2,10 @@ from __future__ import annotations
 import types
 from enum import Enum
 from functools import wraps, cached_property
+from operator import getitem
 from typing import Callable, Any, Mapping, Tuple, Optional, Set
+
+import numpy as np
 
 from ..override_choice import get_overrides_for_assignment
 from ..assignment import AssignmentTemplate, Assignment
@@ -145,3 +148,6 @@ class FunctionQuib(Quib):
         given arguments after replacing quib with their values.
         """
         return call_func_with_quib_values(self.func, self.args, self.kwargs)
+
+    def get_reversals_for_assignment(self, assignment: Assignment):
+        return []

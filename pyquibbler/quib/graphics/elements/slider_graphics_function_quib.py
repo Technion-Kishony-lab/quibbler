@@ -11,8 +11,7 @@ class SliderGraphicsFunctionQuib(GraphicsFunctionQuib):
     def _on_change(self, new_value: float):
         val = self._kwargs.get('valinit')
         if isinstance(val, Quib):
-            val.assign(Assignment(value=new_value, paths=[...]))
-        self.invalidate_and_redraw()
+            val.assign(Assignment(value=new_value, path=[...]))
         return val
 
     def _call_func(self):
