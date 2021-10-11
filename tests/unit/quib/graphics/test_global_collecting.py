@@ -1,6 +1,5 @@
-from unittest.mock import Mock
-
 import pytest
+from unittest.mock import Mock
 from matplotlib import pyplot as plt
 from matplotlib.artist import Artist
 from matplotlib.lines import Line2D

@@ -9,6 +9,7 @@ from pytest import mark, raises, fixture
 from pyquibbler.quib import Quib, OverridingNotAllowedException
 from pyquibbler.quib.assignment import RangeAssignmentTemplate, BoundAssignmentTemplate, Assignment
 from pyquibbler.quib.graphics import GraphicsFunctionQuib
+from pyquibbler.quib.graphics.global_collecting import QuibDependencyCollector
 from pyquibbler.quib.operator_overriding import ARITHMETIC_OVERRIDES, UNARY_OVERRIDES
 from .utils import get_mock_with_repr, slicer
 
@@ -318,3 +319,12 @@ def test_quib_override_allow_overriding_from_now_on(example_quib):
     example_quib.override(override, allow_overriding_from_now_on=True)
 
     assert example_quib.allow_overriding
+
+
+def test_quibs_are_collected_when_used():
+    quib = ExampleQuib(1)
+
+    with QuibDependencyCollector.collect() as collected:
+        quib.get_value()
+
+    assert collected == {quib}
