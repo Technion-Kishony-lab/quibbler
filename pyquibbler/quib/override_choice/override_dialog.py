@@ -31,7 +31,7 @@ class OverrideChoiceType(Enum):
 @dataclass()
 class OverrideChoice:
     choice_type: OverrideChoiceType
-    chosen_override: Optional[QuibWithAssignment]
+    chosen_override: Optional[QuibWithAssignment] = None
 
     def __post_init__(self):
         if self.choice_type is OverrideChoiceType.OVERRIDE:
