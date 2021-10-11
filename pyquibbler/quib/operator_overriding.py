@@ -29,14 +29,14 @@ ARITHMETIC_OVERRIDES = [
     operator_override('__matmul__'),
     operator_override('__truediv__', ElementWiseQuib),
     operator_override('__floordiv__'),
-    operator_override('__mod__'),
+    operator_override('__mod__', ElementWiseQuib),
     (DefaultFunctionQuib, '__divmod__', divmod),
-    operator_override('__pow__'),
+    operator_override('__pow__', ElementWiseQuib),
     operator_override('__lshift__'),
     operator_override('__rshift__'),
-    operator_override('__and__'),
-    operator_override('__xor__'),
-    operator_override('__or__'),
+    operator_override('__and__', ElementWiseQuib),
+    operator_override('__xor__', ElementWiseQuib),
+    operator_override('__or__', ElementWiseQuib),
 ]
 
 UNARY_OVERRIDES = [
