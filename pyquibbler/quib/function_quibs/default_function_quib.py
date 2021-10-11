@@ -10,7 +10,7 @@ from ..assignment.reverse_assignment.utils import create_empty_array_with_values
 
 
 if TYPE_CHECKING:
-    from ..assignment.assignment import AssignmentPath, Assignment, PathComponent
+    from ..assignment.assignment import PathComponent, Assignment, PathComponent
 
 
 class DefaultFunctionQuib(FunctionQuib):

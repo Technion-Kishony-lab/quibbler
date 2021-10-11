@@ -8,8 +8,6 @@ from typing import Any, TYPE_CHECKING, List, Union, Tuple
 if TYPE_CHECKING:
     from ..quib import Quib
 
-AssignmentPath = Union[str, Tuple, type(Ellipsis)]
-
 
 PathComponent = Union[str, Tuple, type(Ellipsis)]
 
@@ -20,7 +18,7 @@ class Assignment:
     A change performed on a quib.
     """
     value: Any
-    path: List[AssignmentPath] = field(default_factory=list)
+    path: List[PathComponent] = field(default_factory=list)
 
     def __eq__(self, other):
         if not isinstance(other, Assignment):

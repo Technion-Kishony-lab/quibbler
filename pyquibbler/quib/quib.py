@@ -15,7 +15,7 @@ from .assignment.overrider import deep_assign_data_with_paths
 from .utils import quib_method, Unpacker, recursively_run_func_on_object
 
 if TYPE_CHECKING:
-    from .assignment.assignment import AssignmentPath, PathComponent
+    from .assignment.assignment import PathComponent, PathComponent
     from pyquibbler.quib.graphics import GraphicsFunctionQuib
 
 

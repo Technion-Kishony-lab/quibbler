@@ -2,7 +2,7 @@ from typing import Any, List, Optional, Iterable
 
 import numpy as np
 
-from .assignment import Assignment, AssignmentPath, PathComponent
+from .assignment import Assignment, PathComponent, PathComponent
 from .assignment_template import AssignmentTemplate
 from ..utils import deep_copy_without_quibs_or_artists
 
