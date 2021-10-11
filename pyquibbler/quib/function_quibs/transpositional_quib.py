@@ -45,11 +45,7 @@ class TranspositionalQuib(DefaultFunctionQuib):
             func=_replace_arg_with_corresponding_mask_or_arg,
             obj=self._args
         )
-        try:
-            return call_func_with_quib_values(self._func, new_arguments, self._kwargs)
-        except IndexError:
-            print(1)
-            raise
+        return call_func_with_quib_values(self._func, new_arguments, self._kwargs)
 
     def _invalidate_with_children(self, invalidator_quib, path):
         if self.func == getitem and isinstance(self._args[1], str):
