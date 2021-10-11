@@ -1,5 +1,6 @@
 import functools
 from operator import getitem
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -9,8 +10,10 @@ from pyquibbler.quib.assignment.reverse_assignment import TranspositionalReverse
 from pyquibbler.quib.assignment.reverse_assignment.utils import create_empty_array_with_values_at_indices
 from pyquibbler.quib.utils import iter_objects_of_type_in_object_shallowly, recursively_run_func_on_object, \
     call_func_with_quib_values
-from .. import Quib
 from ..assignment.assignment import PathComponent
+
+if TYPE_CHECKING:
+    from .. import Quib
 
 
 class TranspositionalQuib(DefaultFunctionQuib):
@@ -29,8 +32,7 @@ class TranspositionalQuib(DefaultFunctionQuib):
         np.reshape: {0}
     }
 
-    def _get_boolean_mask_representing_new_indices_of_quib(self, quib: Quib,
-                                                           path_component: PathComponent) -> np.ndarray:
+    def _get_boolean_mask_representing_new_indices_of_quib(self, quib: 'Quib', path_component: PathComponent) -> np.ndarray:
         """
         Get a boolean mask representing all new indices of the quib after having passed through the function.
         The boolean mask will be in the shape of the final result of the function
