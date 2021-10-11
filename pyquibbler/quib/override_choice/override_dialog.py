@@ -59,8 +59,7 @@ def show_fig(fig):
         sleep(0.01)
 
 
-def choose_override_dialog(options: List[QuibWithAssignment],
-                           can_diverge: bool) -> OverrideChoice:
+def choose_override_dialog(options: List[QuibWithAssignment], can_diverge: bool) -> OverrideChoice:
     # Used to keep references to the widgets so they won't be garbage collected
     widgets = []
     fig = plt.figure()

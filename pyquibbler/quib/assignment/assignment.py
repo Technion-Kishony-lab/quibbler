@@ -8,7 +8,7 @@ if TYPE_CHECKING:
 AssignmentPath = Union[str, Tuple, type(Ellipsis)]
 
 
-@dataclass
+@dataclass(frozen=True)
 class Assignment:
     """
     A change performed on a quib.
@@ -17,7 +17,7 @@ class Assignment:
     paths: List[AssignmentPath] = field(default_factory=list)
 
 
-@dataclass
+@dataclass(frozen=True)
 class QuibWithAssignment:
     """
     A quib together with it's assignment
@@ -30,9 +30,3 @@ class QuibWithAssignment:
 
     def override(self):
         self.quib.override(self.assignment, allow_overriding_from_now_on=False)
-
-    def __hash__(self):
-        return id(self)
-
-    def __eq__(self, other):
-        return self is other

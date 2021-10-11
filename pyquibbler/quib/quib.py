@@ -4,7 +4,7 @@ from functools import cached_property
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from operator import getitem
-from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List
+from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type
 from weakref import ref as weakref
 
 from pyquibbler.exceptions import PyQuibblerException
@@ -23,7 +23,7 @@ class QuibIsNotNdArrayException(PyQuibblerException):
     value: Any
 
     def __str__(self):
-        return f'The quib {self.quib} evaluates to {self.value}, which is not an ndarray'
+        return f'The quib {self.quib} evaluates to {self.value}, which is not an ndarray, but a {type(self.value)}'
 
 
 @dataclass

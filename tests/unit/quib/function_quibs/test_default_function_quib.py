@@ -74,4 +74,4 @@ def test_overrides_do_not_mutate_internal_cache(default_function_quib, function_
     default_function_quib[0] = new_val
     default_function_quib.get_value()
 
-    function_mock_return_val[0] is not new_val
+    assert function_mock_return_val[0] is not new_val
