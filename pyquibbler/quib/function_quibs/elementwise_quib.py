@@ -8,6 +8,10 @@ if TYPE_CHECKING:
 
 
 class ElementWiseQuib(DefaultFunctionQuib):
+    """
+    A quib representing an element wise mathematical operation- this includes any op that can map an output element
+    back to an input element, and the operation can be reversed per element
+    """
 
     def get_reversals_for_assignment(self, assignment: 'Assignment'):
         return ElementWiseReverser(
