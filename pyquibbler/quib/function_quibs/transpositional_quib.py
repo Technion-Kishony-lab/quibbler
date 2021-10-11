@@ -12,6 +12,10 @@ from pyquibbler.quib.utils import iter_objects_of_type_in_object_shallowly, recu
 
 
 class TranspositionalQuib(DefaultFunctionQuib):
+    """
+    A quib that represents any transposition function- a function that moves elements (but commits no operation on
+    them)
+    """
 
     # A mapping between functions and indices of args that can change
     SUPPORTED_FUNCTIONS_TO_POTENTIALLY_CHANGED_QUIB_INDICES = {
