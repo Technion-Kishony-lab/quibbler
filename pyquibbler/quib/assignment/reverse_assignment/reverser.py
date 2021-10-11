@@ -1,13 +1,9 @@
 from __future__ import annotations
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from functools import lru_cache
-from operator import getitem
-from typing import Any, List, TYPE_CHECKING, Union, Optional
-
 import numpy as np
+from abc import ABC, abstractmethod
+from functools import lru_cache
+from typing import Any, List, TYPE_CHECKING, Union, Callable
 
-from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.quib.assignment import Assignment
 from pyquibbler.quib.assignment.assignment import QuibWithAssignment
 from pyquibbler.quib.assignment.reverse_assignment.utils import create_empty_array_with_values_at_indices
@@ -15,10 +11,6 @@ from pyquibbler.quib.utils import iter_quibs_in_object_recursively
 
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib, FunctionQuib
-
-
-class NoIndicesInAssignmentException(PyQuibblerException):
-    pass
 
 
 class Reverser(ABC):
@@ -29,11 +21,7 @@ class Reverser(ABC):
     (`SUPPORTED_FUNCTIONS`).
     """
 
-    SUPPORTED_FUNCTIONS: List = NotImplemented
-
-    @classmethod
-    def matches(cls, function_quib: FunctionQuib):
-        return function_quib.func.__name__ in [supported_func.__name__ for supported_func in cls.SUPPORTED_FUNCTIONS]
+    SUPPORTED_FUNCTIONS: List[Callable] = NotImplemented
 
     def __init__(self, function_quib: FunctionQuib, assignment: Assignment):
         self._function_quib = function_quib
@@ -87,20 +75,8 @@ class Reverser(ABC):
         )
 
     @abstractmethod
-    def get_quibs_with_assignments(self) -> List[QuibWithAssignment]:
+    def get_reversed_quibs_with_assignments(self) -> List[QuibWithAssignment]:
         """
         Get all reversals that need to be applied for the reversal to be complete
         (This can potentially contain multiple quibs with multiple assignments)
         """
-        pass
-
-    def reverse(self):
-        """
-        Go through all quibs in args and apply any assignments that need be, given a change in the result of
-        a function quib (at self._indices to self._value)
-        """
-        quibs_with_assignments = self.get_quibs_with_assignments()
-
-        for quib_with_assignment in quibs_with_assignments:
-            quib_with_assignment.apply()
-

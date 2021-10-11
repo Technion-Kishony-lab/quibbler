@@ -1,5 +1,6 @@
+from contextlib import contextmanager
+from threading import Lock
 from typing import Optional
-
 from matplotlib.artist import Artist
 from matplotlib.backend_bases import MouseEvent, PickEvent
 
@@ -30,6 +31,7 @@ class CanvasEventHandler:
         self.canvas = canvas
         self.current_pick_event: Optional[PickEvent] = None
         self.previous_mouse_event: Optional[PickEvent] = None
+        self._assignment_lock = Lock()
 
         self.EVENT_HANDLERS = {
             'button_release_event': self._handle_button_release,
@@ -37,7 +39,7 @@ class CanvasEventHandler:
             'pick_event': self._handle_pick_event
         }
 
-    def _handle_button_release(self, mouse_event: MouseEvent):
+    def _handle_button_release(self, _mouse_event: MouseEvent):
         self.current_pick_event = None
 
     def _handle_pick_event(self, pick_event: PickEvent):
@@ -51,16 +53,32 @@ class CanvasEventHandler:
         args = getattr(artist, '_quibbler_args', tuple())
         with timer(name="motion_notify"), aggregate_redraw_mode():
             graphics_reverse_assigner.reverse_assign_drawing_func(drawing_func=drawing_func,
-                                                                     args=args,
-                                                                     mouse_event=mouse_event,
-                                                                     pick_event=self.current_pick_event)
+                                                                  args=args,
+                                                                  mouse_event=mouse_event,
+                                                                  pick_event=self.current_pick_event)
+
+    @contextmanager
+    def _try_acquire_assignment_lock(self):
+        """
+        A context manager that tries to acquire the assignment lock without blocking and returns
+        whether it had succeeded or not.
+        """
+        locked = self._assignment_lock.acquire(blocking=False)
+        try:
+            yield locked
+        finally:
+            if locked:
+                self._assignment_lock.release()
 
     def _handle_motion_notify(self, mouse_event: MouseEvent):
-
         if self.current_pick_event is not None:
             drawing_func = getattr(self.current_pick_event.artist, '_quibbler_drawing_func', None)
             if drawing_func is not None:
-                self._reverse_assign_graphics(self.current_pick_event.artist, mouse_event)
+                with self._try_acquire_assignment_lock() as locked:
+                    if locked:
+                        # If not locked, there is already another motion handler running, we just drop this one.
+                        # This could happen if changes are slow or if a dialog is open
+                        self._reverse_assign_graphics(self.current_pick_event.artist, mouse_event)
 
     def initialize(self):
         """

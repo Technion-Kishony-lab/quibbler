@@ -1,19 +1,22 @@
 import operator
 from math import trunc, floor, ceil
+from typing import Set
 from unittest import mock
 from unittest.mock import Mock
 import numpy as np
 from pytest import mark, raises, fixture
 
-from pyquibbler.quib import Quib
+from pyquibbler.quib import Quib, OverridingNotAllowedException
 from pyquibbler.quib.assignment import RangeAssignmentTemplate, BoundAssignmentTemplate, Assignment
 from pyquibbler.quib.graphics import GraphicsFunctionQuib
+from pyquibbler.quib.graphics.global_collecting import QuibDependencyCollector
 from pyquibbler.quib.operator_overriding import ARITHMETIC_OVERRIDES, UNARY_OVERRIDES
-from pyquibbler.quib.quib import QuibIsNotNdArrayException
 from .utils import get_mock_with_repr, slicer
 
 
 class ExampleQuib(Quib):
+    _DEFAULT_ALLOW_OVERRIDING = True
+
     def __init__(self, value, assignment_template=None):
         super().__init__(assignment_template=assignment_template)
         self.value = value
@@ -24,6 +27,10 @@ class ExampleQuib(Quib):
 
     def _get_inner_value(self):
         return self.value
+
+    @property
+    def parents(self) -> Set[Quib]:
+        return set()
 
 
 @fixture
@@ -291,3 +298,33 @@ def test_quib_assign_value_to_key(example_quib):
     example_quib.assign_value_to_key(value=mock_value, key=mock_key)
 
     example_quib.assign.assert_called_once_with(Assignment(paths=[mock_key], value=mock_value))
+
+
+def test_quib_override_when_overriding_not_allowed(example_quib):
+    example_quib.allow_overriding = False
+    override = Mock()
+
+    with raises(OverridingNotAllowedException) as exc_info:
+        example_quib.override(override, allow_overriding_from_now_on=False)
+
+    assert exc_info.value.quib is example_quib
+    assert exc_info.value.override is override
+    assert isinstance(str(exc_info.value), str)
+
+
+def test_quib_override_allow_overriding_from_now_on(example_quib):
+    example_quib.allow_overriding = False
+    override = Mock()
+
+    example_quib.override(override, allow_overriding_from_now_on=True)
+
+    assert example_quib.allow_overriding
+
+
+def test_quibs_are_collected_when_used():
+    quib = ExampleQuib(1)
+
+    with QuibDependencyCollector.collect() as collected:
+        quib.get_value()
+
+    assert collected == {quib}

@@ -12,7 +12,7 @@ from typing import Any, Optional, Set, TYPE_CHECKING, Callable, Tuple, Dict, Typ
 
 import numpy as np
 
-from pyquibbler.env import is_debug
+from pyquibbler.env import DEBUG
 from pyquibbler.exceptions import DebugException, PyQuibblerException
 
 if TYPE_CHECKING:
@@ -66,21 +66,7 @@ class FunctionCalledWithNestedQuibException(PyQuibblerException):
     def __str__(self):
         return f'The function {self.func} was called with nested Quib objects. This is not supported.\n' + \
                '\n'.join(f'The argument "{arg}" contains the quibs: {quibs}'
-                         for arg, quibs in self.nested_quibs_by_arg_names)
-
-    @classmethod
-    def from_call(cls, func: Callable, args: Tuple[Any, ...], kwargs: Dict[str, Any]):
-        """
-        Creates an instance of this exception given a specific function call,
-        by finding the erroneously nested quibs.
-        """
-        nested_quibs_by_arg_names = {}
-        for name, val in iter_args_and_names_in_function_call(func, args, kwargs, False):
-            quibs = set(iter_quibs_in_object_recursively(val))
-            if quibs:
-                nested_quibs_by_arg_names[name] = quibs
-        assert nested_quibs_by_arg_names
-        return cls(func, nested_quibs_by_arg_names)
+                         for arg, quibs in self.nested_quibs_by_arg_names.items())  # TODO: add regression test
 
 
 def is_iterator_empty(iterator):
@@ -156,7 +142,7 @@ def shallow_copy_and_replace_quibs_with_vals(obj: Any):
 
 def copy_and_replace_quibs_with_vals(obj: Any):
     result = shallow_copy_and_replace_quibs_with_vals(obj)
-    if is_debug():
+    if DEBUG:
         expected = deep_copy_and_replace_quibs_with_vals(obj)
         try:
             # instead of doing expected == result we do a "not not" so as to evaluate the result as truthy,
@@ -229,7 +215,7 @@ def iter_objects_of_type_in_object(object_type: Type, obj: Any, force_recursive:
     if force_recursive:
         return iter_objects_of_type_in_object_recursively(object_type, obj)
     result = iter_objects_of_type_in_object_shallowly(object_type, obj)
-    if is_debug():
+    if DEBUG:
         collected_result = set(result)
         result = iter(collected_result)
         expected = set(iter_objects_of_type_in_object_recursively(object_type, obj))
@@ -258,17 +244,36 @@ def iter_quibs_in_args(args, kwargs):
     return iter_object_type_in_args(Quib, args, kwargs)
 
 
+def convert_args(args, kwargs):
+    return (tuple(copy_and_replace_quibs_with_vals(arg) for arg in args),
+            {name: copy_and_replace_quibs_with_vals(val) for name, val in kwargs.items()})
+
+
+def get_nested_quibs_by_arg_names_in_function_call(func: Callable, args: Tuple[Any, ...], kwargs: Dict[str, Any]):
+    """
+    Look for erroneously nested quibs in a function call and return a mapping between arg names and the quibs they
+    have nested inside them.
+    """
+    nested_quibs_by_arg_names = {}
+    for name, val in iter_args_and_names_in_function_call(func, args, kwargs, False):
+        quibs = set(iter_quibs_in_object_recursively(val))
+        if quibs:
+            nested_quibs_by_arg_names[name] = quibs
+    return nested_quibs_by_arg_names
+
+
 def call_func_with_quib_values(func, args, kwargs):
     """
     Calls a function with the specified args and kwargs while replacing quibs with their values.
     """
-    new_args = [copy_and_replace_quibs_with_vals(arg) for arg in args]
-    kwargs = {name: copy_and_replace_quibs_with_vals(val) for name, val in kwargs.items()}
+    new_args, new_kwargs = convert_args(args, kwargs)
     try:
-        return func(*new_args, **kwargs)
+        return func(*new_args, **new_kwargs)
     except TypeError as e:
         if len(e.args) == 1 and 'Quib' in e.args[0]:
-            raise FunctionCalledWithNestedQuibException.from_call(func, args, kwargs) from e
+            nested_quibs_by_arg_names = get_nested_quibs_by_arg_names_in_function_call(func, new_args, new_kwargs)
+            if nested_quibs_by_arg_names:
+                raise FunctionCalledWithNestedQuibException(func, nested_quibs_by_arg_names) from e
         raise
 
 

@@ -1,13 +1,20 @@
 import numpy as np
 import pytest
-from collections import Iterable
+from typing import Iterable
 from operator import __pow__
 
 from pyquibbler import iquib
 from pyquibbler.quib import DefaultFunctionQuib, FunctionQuib
 from pyquibbler.quib.assignment import Assignment
-from pyquibbler.quib.assignment.reverse_assignment import reverse_function_quib
+from pyquibbler.quib.assignment.reverse_assignment import get_reversals_for_assignment
 from pyquibbler.quib.assignment.reverse_assignment.elementwise_reverser import CommonAncestorBetweenArgumentsException
+
+
+def reverse(function_quib: FunctionQuib, value, paths):
+    assignment = Assignment(value, paths)
+    reversals = get_reversals_for_assignment(function_quib=function_quib, assignment=assignment)
+    for reversal in reversals:
+        reversal.apply()
 
 
 @pytest.mark.parametrize("function_quib,indices,value,quib_arg_index,expected_value", [
@@ -60,19 +67,17 @@ from pyquibbler.quib.assignment.reverse_assignment.elementwise_reverser import C
 
 ], ids=[
     "add: simple",
-        "add: multiple dimensions",
-        "add: result with different shape than quib",
-        "subtract: first arg is quib",
-        "subtract: second arg is quib",
-        "multiply",
-        "divide: first arg is quib",
-        "divide: second arg is quib",
-        "power: first arg is quib",
-        "power: second arg is quib"])
+    "add: multiple dimensions",
+    "add: result with different shape than quib",
+    "subtract: first arg is quib",
+    "subtract: second arg is quib",
+    "multiply",
+    "divide: first arg is quib",
+    "divide: second arg is quib",
+    "power: first arg is quib",
+    "power: second arg is quib"])
 def test_reverse_elementwise(function_quib: FunctionQuib, indices, value, quib_arg_index, expected_value):
-    assignment = Assignment(value=value, paths=[indices])
-    reverse_function_quib(function_quib=function_quib,
-                          assignment=assignment)
+    reverse(function_quib, value, [indices])
 
     value = function_quib.args[quib_arg_index].get_value()
     if isinstance(expected_value, Iterable):
@@ -83,20 +88,18 @@ def test_reverse_elementwise(function_quib: FunctionQuib, indices, value, quib_a
 
 def test_reverse_elementwise_operator():
     q = iquib(np.array([5, 5, 5]))
-    function_quib = q + 3
+    function_quib: FunctionQuib = q + 3
 
-    reverse_function_quib(function_quib=function_quib,
-                          assignment=Assignment(value=7, paths=[0]))
+    reverse(function_quib, 7, [0])
 
     assert np.array_equal(q.get_value(), [4, 5, 5])
 
 
 def test_reverse_elementwise_on_int():
     q = iquib(5)
-    function_quib = q + 3
+    function_quib: FunctionQuib = q + 3
 
-    reverse_function_quib(function_quib=function_quib,
-                          assignment=Assignment(value=7, paths=[...]))
+    reverse(function_quib, 7, paths=[...])
 
     assert q.get_value() == 4
 
@@ -106,10 +109,10 @@ def test_quib_raises_exception_when_reversing_with_common_parent_in_multiple_arg
     x = iquib(5)
     y = x + 2
     z = x + 3
-    function_quib = y + z
+    function_quib: FunctionQuib = y + z
 
     with pytest.raises(CommonAncestorBetweenArgumentsException):
-        reverse_function_quib(function_quib, Assignment(value=20, paths=[...]))
+        reverse(function_quib, 20, [...])
 
 
 @pytest.mark.regression
@@ -117,18 +120,18 @@ def test_add_second_argument_is_quib():
     quib = iquib(np.array(9))
     sum_ = 3 + quib
 
-    reverse_function_quib(sum_, Assignment(value=10, paths=[...]))
+    reverse(sum_, 10, [...])
 
     assert np.array_equal(quib.get_value(), np.array(7))
 
 
 @pytest.mark.regression
 def test_elementwise_always_picks_first_quib():
-    first_quib = iquib(5)
-    second_quib = iquib(5)
+    first_quib = iquib(1)
+    second_quib = iquib(2)
 
-    reverse_function_quib(first_quib + second_quib, Assignment(value=20, paths=[...]))
-    reverse_function_quib(second_quib + first_quib, Assignment(value=25, paths=[...]))
+    reverse(first_quib + second_quib, 5, [...])
+    assert first_quib.get_value() == 3
 
-    assert first_quib.get_value() == 15
-    assert second_quib.get_value() == 10
+    reverse(second_quib + first_quib, 7, [...])
+    assert second_quib.get_value() == 4

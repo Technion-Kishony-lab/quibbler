@@ -1,9 +1,5 @@
 from __future__ import annotations
-
 import functools
-
-import numpy
-
 import numpy as np
 from operator import getitem
 from typing import Dict, List, TYPE_CHECKING, Union, Callable, Any
@@ -11,7 +7,7 @@ from typing import Dict, List, TYPE_CHECKING, Union, Callable, Any
 from pyquibbler.quib.assignment import Assignment
 from pyquibbler.quib.assignment.reverse_assignment.utils import create_empty_array_with_values_at_indices
 from pyquibbler.quib.utils import recursively_run_func_on_object, call_func_with_quib_values, \
-    iter_quibs_in_object_recursively, iter_objects_of_type_in_object_shallowly
+    iter_objects_of_type_in_object_shallowly
 
 from .reverser import Reverser
 from ..assignment import QuibWithAssignment
@@ -256,8 +252,7 @@ class TranspositionalReverser(Reverser):
             ))
         return quibs_with_assignments
 
-    def get_quibs_with_assignments(self) -> List[QuibWithAssignment]:
-
+    def get_reversed_quibs_with_assignments(self) -> List[QuibWithAssignment]:
         if self._is_getitem_with_field() or self._is_getitem_of_quib_list():
             return self._build_quibs_with_assignments_for_getitem()
 

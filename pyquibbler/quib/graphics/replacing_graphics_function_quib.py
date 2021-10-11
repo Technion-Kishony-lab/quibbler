@@ -1,10 +1,9 @@
 from itertools import chain
-from typing import Optional, List
-
+from typing import Optional
 from matplotlib.artist import Artist
 
-from pyquibbler.quib import GraphicsFunctionQuib, Quib
-from pyquibbler.quib.utils import iter_object_type_in_args, iter_quibs_in_args
+from pyquibbler.quib import GraphicsFunctionQuib
+from pyquibbler.quib.utils import iter_object_type_in_args
 
 
 class ReplacingGraphicsFunctionQuib(GraphicsFunctionQuib):
@@ -13,8 +12,7 @@ class ReplacingGraphicsFunctionQuib(GraphicsFunctionQuib):
     """
 
     def _remove_previous_quib_from_parents(self, previous_quib: 'ReplacingGraphicsFunctionQuib'):
-        parents: List[Quib] = list(iter_quibs_in_args(previous_quib.args, previous_quib.kwargs))
-        for parent in parents:
+        for parent in previous_quib.parents:
             parent.remove_child(previous_quib)
 
     def persist_self_on_artists(self):
@@ -24,4 +22,3 @@ class ReplacingGraphicsFunctionQuib(GraphicsFunctionQuib):
             if current_quib is not None:
                 self._remove_previous_quib_from_parents(current_quib)
             setattr(artist, name, self)
-

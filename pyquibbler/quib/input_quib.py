@@ -1,11 +1,11 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any, Optional, Set
 
 from .assignment import AssignmentTemplate
 from .quib import Quib
 from .utils import is_there_a_quib_in_object
-from ..env import is_debug
+from ..env import DEBUG
 from ..exceptions import DebugException
 
 
@@ -18,13 +18,15 @@ class CannotNestQuibInIQuibException(DebugException):
 
 
 class InputQuib(Quib):
+    _DEFAULT_ALLOW_OVERRIDING = True
+
     def __init__(self, value: Any, assignment_template: Optional[AssignmentTemplate] = None):
         """
         Creates an InputQuib instance containing the given value.
         """
         super().__init__(assignment_template=assignment_template)
         self._value = value
-        if is_debug():
+        if DEBUG:
             if is_there_a_quib_in_object(value, force_recursive=True):
                 raise CannotNestQuibInIQuibException(self)
 
@@ -41,7 +43,14 @@ class InputQuib(Quib):
         pass
 
     def __repr__(self):
-        return f'<{self.__class__.__name__} ({self._value})>'
+        return f'<{self.__class__.__name__} ({self.get_value()})>'
+
+    def pretty_repr(self):
+        return f'iquib({self.get_value()})'
+
+    @property
+    def parents(self) -> Set[Quib]:
+        return set()
 
 
 iquib = InputQuib

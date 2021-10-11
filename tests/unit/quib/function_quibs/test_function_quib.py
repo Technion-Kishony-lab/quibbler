@@ -1,9 +1,10 @@
 import numpy as np
-from pytest import fixture
-
+from unittest.mock import Mock
+from pytest import fixture, mark
 from pyquibbler import iquib
-from pyquibbler.quib import FunctionQuib
-from pyquibbler.quib.assignment import Assignment
+from pyquibbler.quib import FunctionQuib, Assignment
+
+from ..utils import get_mock_with_repr
 
 
 class ExampleFunctionQuib(FunctionQuib):
@@ -17,6 +18,24 @@ class ExampleFunctionQuib(FunctionQuib):
 @fixture
 def function_wrapper(function_mock):
     return ExampleFunctionQuib.create_wrapper(function_mock)
+
+
+@fixture
+def mock_overrides():
+    return [Mock(), Mock()]
+
+
+@fixture
+def mock_options_tree_with_options(mock_overrides):
+    options_tree_mock = Mock()
+    options_tree_mock.__bool__ = Mock(return_value=True)
+    options_tree_mock.choose_overrides = Mock(return_value=mock_overrides)
+    return options_tree_mock
+
+
+@fixture
+def example_function_quib():
+    return ExampleFunctionQuib.create(Mock())
 
 
 def test_create_wrapper_with_regular_args(function_wrapper, function_mock):
@@ -57,6 +76,7 @@ def test_func_get_value_returns_inner_value(function_wrapper, function_mock_retu
 
 def test_assign_with_unknown_function_overrides(function_wrapper, function_mock_return_val):
     q = function_wrapper(iquib(np.array([1])))
+    q.allow_overriding = True
     new_value = 420
     index = 2
     expected_value = np.array(function_mock_return_val)
@@ -68,9 +88,37 @@ def test_assign_with_unknown_function_overrides(function_wrapper, function_mock_
 
 
 def test_quib_ancestors(function_wrapper):
-    great_grandfather = iquib(1)
-    grandparent = function_wrapper(great_grandfather)
+    great_grandparent = iquib(1)
+    grandparent = function_wrapper(great_grandparent)
     parent = function_wrapper(grandparent)
     me = function_wrapper(parent)
 
-    assert me.ancestors == {great_grandfather, parent, grandparent}
+    assert me.ancestors == {great_grandparent, parent, grandparent}
+
+
+def test_parents():
+    parent1 = iquib(1)
+    grandparent = iquib(2)
+    parent2 = ExampleFunctionQuib.create(Mock(), (grandparent,))
+    fquib = ExampleFunctionQuib.create(Mock(), (0, parent1, 2), dict(a=parent2, b=3))
+
+    assert fquib.parents == {parent1, parent2}
+
+
+@mark.lazy(False)
+def function_quib_create_calculates_when_not_lazy(function_mock):
+    ExampleFunctionQuib.create(function_mock)
+
+    function_mock.assert_called_once()
+
+
+def test_pretty_repr():
+    function_repr = 'woohoo'
+    function = get_mock_with_repr(function_repr)
+    parent = iquib('lolol')
+    fquib = ExampleFunctionQuib.create(function, (parent,))
+
+    string = fquib.pretty_repr()
+
+    assert function_repr in string
+    assert parent.get_value() in string

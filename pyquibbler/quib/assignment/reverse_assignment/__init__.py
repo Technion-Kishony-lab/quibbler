@@ -1,21 +1,24 @@
 from __future__ import annotations
 from typing import List, Type, TYPE_CHECKING
 
-from .exceptions import CannotReverseUnknownFunctionException
+from .exceptions import CannotReverseUnknownFunctionException, CannotReverseException
 from .elementwise_reverser import ElementWiseReverser
 from .transpositional_reverser import TranspositionalReverser
-from .. import Assignment
+from ..assignment import Assignment, QuibWithAssignment
 
 if TYPE_CHECKING:
     from pyquibbler.quib import FunctionQuib
     from pyquibbler.quib.assignment.reverse_assignment.reverser import Reverser
 
-REVERSERS: List[Type[Reverser]] = [TranspositionalReverser, ElementWiseReverser]
+REVERSER_CLASSES: List[Type[Reverser]] = [TranspositionalReverser, ElementWiseReverser]
+reverser_cls_by_func = {}
+for reverser_cls in REVERSER_CLASSES:
+    for func in reverser_cls.SUPPORTED_FUNCTIONS:
+        assert reverser_cls_by_func.setdefault(func, reverser_cls) is reverser_cls
 
 
-def _run_reverser_on_function_quib_and_assignment(reverser_cls: Type[Reverser],
-                                                 function_quib: FunctionQuib,
-                                                 assignment: Assignment):
+def _get_reversed_quibs_with_assignments_from_reverser(reverser_cls: Type[Reverser], function_quib: FunctionQuib,
+                                                       assignment: Assignment):
     """
     Runs a reverser, wrapping up all logic with paths (such as dealing with field arrays)
     """
@@ -30,24 +33,22 @@ def _run_reverser_on_function_quib_and_assignment(reverser_cls: Type[Reverser],
         paths_at_end = [assignment.paths[0], *paths_at_end]
         current_path = ...
 
-    quibs_with_assignments = reverser_cls(function_quib=function_quib,
-                                          assignment=Assignment(
-                                              paths=[current_path],
-                                              value=assignment.value)).get_quibs_with_assignments()
+    reverser = reverser_cls(function_quib, Assignment(assignment.value, [current_path]))
+    quibs_with_assignments = reverser.get_reversed_quibs_with_assignments()
 
     for quib_with_assignment in quibs_with_assignments:
         quib_with_assignment.assignment.paths.extend(paths_at_end)
-        quib_with_assignment.apply()
+
+    return quibs_with_assignments
 
 
-def reverse_function_quib(function_quib: FunctionQuib,
-                          assignment: Assignment) -> None:
+def get_reversals_for_assignment(function_quib: FunctionQuib, assignment: Assignment) -> List[QuibWithAssignment]:
     """
     Given a function quib and a change in it's result (at `indices` to `value`), reverse assign relevant values
     to relevant quib arguments
     """
-    for reverser_cls in REVERSERS:
-        if reverser_cls.matches(function_quib):
-            _run_reverser_on_function_quib_and_assignment(reverser_cls, function_quib, assignment)
-            return
-    raise CannotReverseUnknownFunctionException(function_quib.func)
+    reverser_cls = reverser_cls_by_func.get(function_quib.func)
+    if reverser_cls is None:
+        raise CannotReverseUnknownFunctionException(function_quib, assignment)
+    return _get_reversed_quibs_with_assignments_from_reverser(reverser_cls, function_quib=function_quib,
+                                                              assignment=assignment)

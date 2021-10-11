@@ -1,22 +1,22 @@
-from unittest import mock
-
-import numpy as np
-from operator import getitem
-
 import pytest
+import numpy as np
+from unittest import mock
+from operator import getitem
 
 from pyquibbler import iquib
 from pyquibbler.quib import DefaultFunctionQuib
 from pyquibbler.quib.assignment import Assignment
-from pyquibbler.quib.assignment.reverse_assignment import reverse_function_quib
+from pyquibbler.quib.assignment.reverse_assignment import get_reversals_for_assignment
 
 
 def reverse(func, indices, value, args, kwargs=None):
-    reverse_function_quib(function_quib=DefaultFunctionQuib.create(
+    reversals = get_reversals_for_assignment(function_quib=DefaultFunctionQuib.create(
         func=func,
         func_args=args,
         func_kwargs=kwargs
     ), assignment=Assignment(value=value, paths=[indices]))
+    for reversal in reversals:
+        reversal.apply()
 
 
 def test_reverse_rot90():
@@ -53,6 +53,23 @@ def test_reverse_concat_in_both_arguments():
     assert np.array_equal(second_quib_arg.get_value(), np.array([[second_new_value, 12, 14]]))
 
 
+@pytest.mark.regression
+def test_reverse_concat_does_not_return_empty_assignments():
+    first_quib_arg = iquib(np.array([[1, 2, 3]]))
+    second_quib_arg = iquib(np.array([[8, 12, 14]]))
+    new_value = 20
+
+    reversals = get_reversals_for_assignment(function_quib=DefaultFunctionQuib.create(
+        func=np.concatenate,
+        func_args=((first_quib_arg, second_quib_arg),),
+    ), assignment=Assignment(value=np.array([new_value]), paths=[(0, 0)]))
+
+    assert len(reversals) == 1
+    assignment = reversals[0].assignment
+    assert np.array_equal(assignment.paths, [(np.array([0]), np.array([0]))])
+    assert assignment.value == [20]
+
+
 def test_reverse_getitem():
     quib_arg = iquib(np.array([[1, 2, 3], [4, 5, 6]]))
 
@@ -68,7 +85,7 @@ def test_reverse_repeat_with_quib_as_repeat_count():
     repeat_count = iquib(3)
 
     reverse(func=np.repeat, args=(arg_arr, repeat_count, 0),
-            indices=(np.array([0]), ),
+            indices=(np.array([0]),),
             value=[120])
 
     assert repeat_count.get_value() == 3
@@ -81,7 +98,7 @@ def test_reverse_repeat_with_quib_as_repeat_count_and_quib_as_arr():
     repeat_count = iquib(3)
 
     reverse(func=np.repeat, args=(quib_arg_arr, repeat_count, 0),
-            indices=(np.array([4]), ),
+            indices=(np.array([4]),),
             value=[new_value])
 
     assert repeat_count.get_value() == 3
@@ -153,7 +170,7 @@ def test_reverse_assign_field_array(basic_dtype):
 
 
 def test_reverse_assign_field_array_with_function_and_fancy_indexing_and_field_name(basic_dtype):
-    arr = iquib(np.array([[('shlomi', 9)], [('maor', 3)]],  dtype=basic_dtype))
+    arr = iquib(np.array([[('shlomi', 9)], [('maor', 3)]], dtype=basic_dtype))
     rotation_quib = DefaultFunctionQuib.create(func=np.rot90, func_args=(arr,))
     first_value = rotation_quib[[0], [1]]
 
@@ -165,7 +182,7 @@ def test_reverse_assign_field_array_with_function_and_fancy_indexing_and_field_n
 def test_reverse_assign_field_with_multiple_field_values(basic_dtype):
     name_1 = 'heisenberg'
     name_2 = 'john'
-    arr = iquib(np.array([[('', 9)], [('', 3)]],  dtype=basic_dtype))
+    arr = iquib(np.array([[('', 9)], [('', 3)]], dtype=basic_dtype))
     arr.assign(Assignment(value=[[name_1], [name_2]], paths=['name']))
 
     assert np.array_equal(arr.get_value(), np.array([[(name_1, 9)], [(name_2, 3)]], dtype=basic_dtype))
@@ -225,3 +242,11 @@ def test_reverse_assign_list_within_list():
     reverse(func=np.reshape, args=(quib_arg, (3, 3)), value=10, indices=(0, 0))
 
     assert np.array_equal(quib_arg.get_value(), np.array([10, 1, 2, 3, 4, 5, 6, 7, 8]))
+
+
+def test_reverse_getitem_on_non_view_slice():
+    a = iquib(np.array([0, 1, 2]))
+
+    a[[0, 2]][0] = 3
+
+    assert np.array_equal(a.get_value(), [3, 1, 2])

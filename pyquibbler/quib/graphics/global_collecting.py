@@ -33,6 +33,7 @@ class ArtistsCollector:
     A context manager to begin global collecting of artists.
     After exiting the context manager use `get_artists_collected` to get a list of artists created during this time
     """
+
     def __init__(self, artists_collected: List[Artist] = None, thread_id: int = None,
                  raise_if_within_collector: bool = False, previous_init: Callable = None):
         self._artists_collected = artists_collected or []
@@ -51,6 +52,7 @@ class ArtistsCollector:
             if threading.get_ident() == self._thread_id and OVERRIDDEN_GRAPHICS_FUNCTIONS_RUNNING:
                 self._artists_collected.append(artist)
             return res
+
         return wrapped_init
 
     def __enter__(self):
@@ -79,3 +81,35 @@ def overridden_graphics_function():
     OVERRIDDEN_GRAPHICS_FUNCTIONS_RUNNING += 1
     yield
     OVERRIDDEN_GRAPHICS_FUNCTIONS_RUNNING -= 1
+
+
+class classproperty:
+    def __init__(self, function: Callable):
+        self.function = function
+
+    def __get__(self, instance, owner):
+        return self.function(owner)
+
+
+class QuibDependencyCollector:
+    """
+    A global recursive collector for dependent quibs.
+    It needs to be recursive in case a graphics quib depends on another graphics quib.
+    """
+    _collection_stack: List[Set[Quib]] = []
+
+    @classmethod
+    @contextlib.contextmanager
+    def collect(cls):
+        cls._collection_stack.append(set())
+        yield cls._top
+        cls._collection_stack.pop()
+
+    @classproperty
+    def _top(cls):
+        return cls._collection_stack[-1]
+
+    @classmethod
+    def add_dependency(cls, quib: Quib):
+        if cls._collection_stack:
+            cls._top.add(quib)

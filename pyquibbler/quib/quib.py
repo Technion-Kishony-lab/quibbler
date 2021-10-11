@@ -1,18 +1,17 @@
 from __future__ import annotations
-
+import numpy as np
+from functools import cached_property
 from abc import ABC, abstractmethod
-from collections import Iterable
 from dataclasses import dataclass
 from operator import getitem
-from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List
+from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type
 from weakref import ref as weakref
 
-import numpy as np
-
 from pyquibbler.exceptions import PyQuibblerException
+
 from .assignment import AssignmentTemplate, RangeAssignmentTemplate, BoundAssignmentTemplate, Overrider, Assignment
 from .assignment.overrider import deep_assign_data_with_paths
-from .utils import deep_copy_without_quibs_or_artists, quib_method, Unpacker, recursively_run_func_on_object
+from .utils import quib_method, Unpacker, recursively_run_func_on_object
 
 if TYPE_CHECKING:
     from pyquibbler.quib.graphics import GraphicsFunctionQuib
@@ -24,18 +23,33 @@ class QuibIsNotNdArrayException(PyQuibblerException):
     value: Any
 
     def __str__(self):
-        return f'The quib {self.quib} evaluates to {self.value}, which is not an ndarray'
+        return f'The quib {self.quib} evaluates to {self.value}, which is not an ndarray, but a {type(self.value)}'
+
+
+@dataclass
+class OverridingNotAllowedException(PyQuibblerException):
+    quib: Quib
+    override: Assignment
+
+    def __str__(self):
+        return f'Cannot override {self.quib} with {self.override} as it does not allow overriding.'
 
 
 class Quib(ABC):
     """
     An abstract class to describe the common methods and attributes of all quib types.
     """
+    _DEFAULT_ALLOW_OVERRIDING = False
 
-    def __init__(self, assignment_template: Optional[AssignmentTemplate] = None):
+    def __init__(self,
+                 assignment_template: Optional[AssignmentTemplate] = None,
+                 allow_overriding: Optional[bool] = None):
         self._assignment_template = assignment_template
         self._children = set()
         self._overrider = Overrider()
+        if allow_overriding is None:
+            allow_overriding = self._DEFAULT_ALLOW_OVERRIDING
+        self.allow_overriding = allow_overriding
 
     def __invalidate_children_recursively(self) -> None:
         """
@@ -90,7 +104,7 @@ class Quib(ABC):
         """
         Add the given quib to the list of quibs that are dependent on this quib.
         """
-        self._children.add(weakref(quib, lambda ref: self._children.remove(ref)))
+        self._children.add(weakref(quib, lambda ref: self._children.discard(ref)))
 
     def __len__(self):
         return len(self.get_value())
@@ -99,19 +113,23 @@ class Quib(ABC):
         raise TypeError('Cannot iterate over quibs, as their size can vary. '
                         'Try Quib.iter_first() to iterate over the n-first items of the quib.')
 
-    def _override(self, assignment: Assignment):
+    def override(self, assignment: Assignment, allow_overriding_from_now_on=True):
         """
         Overrides a part of the data the quib represents.
         """
+        if allow_overriding_from_now_on:
+            self.allow_overriding = True
+        if not self.allow_overriding:
+            raise OverridingNotAllowedException(self, assignment)
         self._overrider.add_assignment(assignment)
+        self.invalidate_and_redraw()
 
     def assign(self, assignment: Assignment) -> None:
         """
         Create an assignment with an Assignment object, overriding the current values at the assignment's paths with the
         assignment's value
         """
-        self._override(assignment)
-        self.invalidate_and_redraw()
+        self.override(assignment, allow_overriding_from_now_on=False)
 
     def assign_value(self, value: Any) -> None:
         """
@@ -136,6 +154,12 @@ class Quib(ABC):
 
     def __setitem__(self, key, value):
         self.assign(Assignment(value=value, paths=[key]))
+
+    def pretty_repr(self):
+        """
+        Returns a pretty representation of the quib. Might calculate values of parent quibs.
+        """
+        return repr(self)
 
     def get_assignment_template(self) -> AssignmentTemplate:
         return self._assignment_template
@@ -175,6 +199,8 @@ class Quib(ABC):
         are lazy, so a function quib might need to calculate uncached values and might
         even have to calculate the values of its dependencies.
         """
+        from pyquibbler.quib.graphics.global_collecting import QuibDependencyCollector
+        QuibDependencyCollector.add_dependency(self)
         return self._overrider.override(self._get_inner_value(), self._assignment_template)
 
     def get_override_list(self) -> Overrider:
@@ -243,3 +269,21 @@ class Quib(ABC):
         Removes a child from the quib, no longer sending invalidations to it
         """
         self._children.remove(weakref(quib_to_remove))
+
+    @property
+    @abstractmethod
+    def parents(self) -> Set[Quib]:
+        """
+        Returns a list of quibs that this quib depends on.
+        """
+
+    @cached_property
+    def ancestors(self) -> Set[Quib]:
+        """
+        Return all ancestors of the quib, going recursively up the tree
+        """
+        ancestors = set()
+        for parent in self.parents:
+            ancestors.add(parent)
+            ancestors |= parent.ancestors
+        return ancestors
