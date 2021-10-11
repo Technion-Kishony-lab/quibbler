@@ -214,7 +214,7 @@ def test_get_overrides_for_assignment_caches_override_choice(assignment, parent_
 
     overrides = get_overrides_for_assignment(child, assignment)
     # If this invokes a dialog, the dialog mock will fail the test
-    second_overrides = get_overrides_for_assignment(child, Assignment(assignment.value + 1, assignment.paths))
+    second_overrides = get_overrides_for_assignment(child, Assignment(assignment.value + 1, assignment.path))
 
     assert overrides == [chosen_override]
     assert second_overrides != overrides
@@ -232,7 +232,7 @@ def test_get_overrides_for_assignment_caches_diverged_choices(diverged_quib_grap
 
     overrides = get_overrides_for_assignment(child, assignment)
     # If this invokes a dialog, the dialog mock will fail the test
-    second_overrides = get_overrides_for_assignment(child, Assignment(assignment.value + 1, assignment.paths))
+    second_overrides = get_overrides_for_assignment(child, Assignment(assignment.value + 1, assignment.path))
 
     assert overrides != second_overrides
 
@@ -247,7 +247,7 @@ def test_get_overrides_for_assignment_doesnt_cache_cancel(assignment, parent_and
 
     overrides = get_overrides_for_assignment(child, assignment)
     # If this invokes a dialog, the dialog mock will fail the test
-    second_overrides = get_overrides_for_assignment(child, Assignment(assignment.value + 1, assignment.paths))
+    second_overrides = get_overrides_for_assignment(child, Assignment(assignment.value + 1, assignment.path))
 
     assert overrides == second_overrides == []
 
@@ -265,7 +265,7 @@ def test_get_overrides_for_assignment_does_not_use_cache_when_diverge_changes(di
     get_overrides_for_assignment(child, assignment)
     # Now we can't diverge
     grandparent2.allow_overriding = False
-    assignment2 = Assignment(assignment.value + 1, assignment.paths)
+    assignment2 = Assignment(assignment.value + 1, assignment.path)
     overrides = get_overrides_for_assignment(child, assignment2)
 
     assert overrides == [QuibWithAssignment(child, assignment2)]
@@ -283,7 +283,7 @@ def test_get_overrides_for_assignment_does_not_use_cache_when_options_change(ass
 
     get_overrides_for_assignment(child, assignment)
     parent.allow_overriding = False
-    assignment2 = Assignment(assignment.value + 1, assignment.paths)
+    assignment2 = Assignment(assignment.value + 1, assignment.path)
     second_overrides = get_overrides_for_assignment(child, assignment2)
 
     assert second_overrides == [QuibWithAssignment(child, assignment2)]

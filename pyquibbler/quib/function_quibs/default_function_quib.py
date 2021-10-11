@@ -7,7 +7,6 @@ import numpy as np
 from .function_quib import FunctionQuib, CacheBehavior
 from ..assignment import AssignmentTemplate
 from ..assignment.reverse_assignment.utils import create_empty_array_with_values_at_indices
-from ..assignment.invalidators.invalidation import get_boolean_mask_of_quib_indices_in_result
 
 
 if TYPE_CHECKING:
