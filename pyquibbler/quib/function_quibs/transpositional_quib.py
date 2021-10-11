@@ -53,6 +53,10 @@ class TranspositionalQuib(DefaultFunctionQuib):
 
     def _invalidate_with_children(self, invalidator_quib, path):
         if self.func == getitem and isinstance(self._args[1], str):
+            # We can't run normal our operation to get a boolean mask representing new indices, since our key is a
+            # string- this may mean we're a dict, in which case we can't run the boolean mask op,
+            # or we're in a field array, in which case we can't create a boolean mask to work with our key unless we
+            # have the dtype (which we dont')
             super(TranspositionalQuib, self)._invalidate_with_children(invalidator_quib=self,
                                                                        path=path)
             return
