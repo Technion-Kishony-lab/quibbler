@@ -14,7 +14,7 @@ REVERSER_CLASSES: List[Type[Reverser]] = [TranspositionalReverser, ElementWiseRe
 reverser_cls_by_func = {}
 for reverser_cls in REVERSER_CLASSES:
     for func in reverser_cls.SUPPORTED_FUNCTIONS:
-        assert reverser_cls_by_func.setdefault(func.__name__, reverser_cls) is reverser_cls
+        assert reverser_cls_by_func.setdefault(func, reverser_cls) is reverser_cls
 
 
 def _get_reversed_quibs_with_assignments_from_reverser(reverser_cls: Type[Reverser], function_quib: FunctionQuib,
@@ -47,7 +47,7 @@ def get_reversals_for_assignment(function_quib: FunctionQuib, assignment: Assign
     Given a function quib and a change in it's result (at `indices` to `value`), reverse assign relevant values
     to relevant quib arguments
     """
-    reverser_cls = reverser_cls_by_func.get(function_quib.func.__name__)
+    reverser_cls = reverser_cls_by_func.get(function_quib.func)
     if reverser_cls is None:
         raise CannotReverseUnknownFunctionException(function_quib, assignment)
     return _get_reversed_quibs_with_assignments_from_reverser(reverser_cls, function_quib=function_quib,
