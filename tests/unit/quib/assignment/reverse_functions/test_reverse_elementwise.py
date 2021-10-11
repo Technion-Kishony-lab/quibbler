@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from collections import Iterable
+from typing import Iterable
 from operator import __pow__
 
 from pyquibbler import iquib

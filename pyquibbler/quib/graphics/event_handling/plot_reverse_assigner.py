@@ -1,6 +1,5 @@
 import numpy as np
-from collections import Iterable
-from typing import Tuple, Any, List
+from typing import Tuple, Any, List, Iterable
 from matplotlib.backend_bases import PickEvent, MouseEvent
 
 from .graphics_reverse_assigner import graphics_reverse_assigner
