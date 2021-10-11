@@ -8,7 +8,7 @@ from ..override_choice import get_overrides_for_assignment
 from ..assignment import AssignmentTemplate, Assignment
 from ..quib import Quib
 from ..utils import is_there_a_quib_in_args, iter_quibs_in_args, call_func_with_quib_values, \
-    deep_copy_without_quibs_or_artists, convert_args
+    deep_copy_without_quibs_or_artists, copy_and_convert_args_to_values
 from ...env import LAZY
 
 
@@ -128,7 +128,7 @@ class FunctionQuib(Quib):
 
     def pretty_repr(self):
         func_name = getattr(self.func, '__name__', str(self.func))
-        args, kwargs = convert_args(self.args, self.kwargs)
+        args, kwargs = copy_and_convert_args_to_values(self.args, self.kwargs)
         posarg_reprs = map(str, args)
         kwarg_reprs = (f'{key}={val}' for key, val in kwargs.items())
         return f'{func_name}({", ".join([*posarg_reprs, *kwarg_reprs])})'

@@ -8,7 +8,7 @@ from functools import wraps
 from inspect import currentframe
 from inspect import signature
 from itertools import chain
-from typing import Any, Optional, Set, TYPE_CHECKING, Callable, Tuple, Dict, Type, List
+from typing import Any, Optional, Set, TYPE_CHECKING, Callable, Tuple, Dict, Type, Mapping
 
 import numpy as np
 
@@ -229,14 +229,14 @@ def iter_quibs_in_object(obj, force_recursive: bool = False):
     return iter_objects_of_type_in_object(Quib, obj, force_recursive)
 
 
-def iter_object_type_in_args(object_type, args, kwargs):
+def iter_object_type_in_args(object_type, args: Tuple[Any, ...], kwargs: Mapping[str, Any]):
     """
     Returns an iterator for all objects of a type nested in the given args and kwargs.
     """
     return chain(*map(functools.partial(iter_objects_of_type_in_object, object_type), chain(args, kwargs.values())))
 
 
-def iter_quibs_in_args(args, kwargs):
+def iter_quibs_in_args(args: Tuple[Any, ...], kwargs: Mapping[str, Any]):
     """
     Returns an iterator for all quib objects nested in the given args and kwargs.
     """
@@ -244,7 +244,11 @@ def iter_quibs_in_args(args, kwargs):
     return iter_object_type_in_args(Quib, args, kwargs)
 
 
-def convert_args(args, kwargs):
+def copy_and_convert_args_to_values(args: Tuple[Any, ...], kwargs: Mapping[str, Any]):
+    """
+    Copy and convert args and kwargs to their respective values- if an arg is a quib it will be replaced with a value,
+    elsewise it will just be copied
+    """
     return (tuple(copy_and_replace_quibs_with_vals(arg) for arg in args),
             {name: copy_and_replace_quibs_with_vals(val) for name, val in kwargs.items()})
 
@@ -266,7 +270,7 @@ def call_func_with_quib_values(func, args, kwargs):
     """
     Calls a function with the specified args and kwargs while replacing quibs with their values.
     """
-    new_args, new_kwargs = convert_args(args, kwargs)
+    new_args, new_kwargs = copy_and_convert_args_to_values(args, kwargs)
     try:
         return func(*new_args, **new_kwargs)
     except TypeError as e:
