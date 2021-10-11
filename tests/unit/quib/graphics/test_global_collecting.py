@@ -1,3 +1,5 @@
+from unittest.mock import Mock
+
 import pytest
 from matplotlib import pyplot as plt
 from matplotlib.artist import Artist
@@ -5,7 +7,7 @@ from matplotlib.lines import Line2D
 
 from pyquibbler import iquib
 from pyquibbler.quib.graphics import global_collecting
-from pyquibbler.quib.graphics.global_collecting import AlreadyCollectingArtistsException
+from pyquibbler.quib.graphics.global_collecting import AlreadyCollectingArtistsException, QuibDependencyCollector
 
 
 @pytest.mark.parametrize("data", [
@@ -62,3 +64,18 @@ def test_overridden_graphics_function_within_overridden_graphics_function(axes):
         artist = Artist()
 
     assert collector.artists_collected == [artist]
+
+
+def test_quib_dependency_collector():
+    dep1a = Mock()
+    dep1b = Mock()
+    dep2 = Mock()
+
+    with QuibDependencyCollector.collect() as collected1:
+        QuibDependencyCollector.add_dependency(dep1a)
+        with QuibDependencyCollector.collect() as collected2:
+            QuibDependencyCollector.add_dependency(dep2)
+        QuibDependencyCollector.add_dependency(dep1b)
+
+    assert collected1 == {dep1a, dep1b}
+    assert collected2 == {dep2}
