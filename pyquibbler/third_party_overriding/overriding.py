@@ -5,7 +5,6 @@ when called with quib arguments.
 import numpy as np
 from functools import wraps
 from typing import Type, Any, Callable, Optional, List, Tuple
-
 from matplotlib import widgets
 from matplotlib.axes import Axes
 

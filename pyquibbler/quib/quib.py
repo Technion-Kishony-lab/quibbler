@@ -90,7 +90,6 @@ class Quib(ABC):
         """
         Add the given quib to the list of quibs that are dependent on this quib.
         """
-        # import ipdb; ipdb.set_trace()
         self._children.add(weakref(quib, lambda ref: self._children.remove(ref)))
 
     def __len__(self):
