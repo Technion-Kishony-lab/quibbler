@@ -23,6 +23,11 @@ class TranspositionalReverser(Reverser):
     """
 
     def _get_quibs_which_can_change(self):
+        """
+        Helper method to get quibs which can change (are "data" quibs)
+        from function quib- see docs of TranspositionalFunctionQuib's `get_quibs_which_can_change`
+         to understand functionality
+        """
         return self._function_quib.get_quibs_which_can_change()
 
     def _replace_quibs_in_arguments_which_can_potentially_change(self, replace_func: Callable[['Quib'], Any]):
