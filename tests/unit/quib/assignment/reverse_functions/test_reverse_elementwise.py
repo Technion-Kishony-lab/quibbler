@@ -4,65 +4,64 @@ from typing import Iterable
 from operator import __pow__
 
 from pyquibbler import iquib
-from pyquibbler.quib import DefaultFunctionQuib, FunctionQuib
+from pyquibbler.quib import ElementWiseQuib, FunctionQuib
 from pyquibbler.quib.assignment import Assignment
-from pyquibbler.quib.assignment.reverse_assignment import get_reversals_for_assignment
 from pyquibbler.quib.assignment.reverse_assignment.elementwise_reverser import CommonAncestorBetweenArgumentsException
 
 
-def reverse(function_quib: FunctionQuib, value, paths):
-    assignment = Assignment(value, paths)
-    reversals = get_reversals_for_assignment(function_quib=function_quib, assignment=assignment)
+def reverse(function_quib: FunctionQuib, value, path):
+    assignment = Assignment(value, path)
+    reversals = function_quib.get_reversals_for_assignment(assignment=assignment)
     for reversal in reversals:
         reversal.apply()
 
 
 @pytest.mark.parametrize("function_quib,indices,value,quib_arg_index,expected_value", [
-    (DefaultFunctionQuib.create(func=np.add,
+    (ElementWiseQuib.create(func=np.add,
                                 func_args=(iquib(np.array([2, 2, 2])),
                                            np.array([5, 5, 5]))),
      0, 10, 0, np.array([5, 2, 2])
      ),
-    (DefaultFunctionQuib.create(func=np.add,
+    (ElementWiseQuib.create(func=np.add,
                                 func_args=(iquib(np.array([[1, 2, 3], [4, 5, 6]])),
                                            np.array([5, 5, 5]))),
      ([1], [2]), 100, 0, np.array([[1, 2, 3], [4, 5, 95]])
      ),
-    (DefaultFunctionQuib.create(func=np.add,
+    (ElementWiseQuib.create(func=np.add,
                                 func_args=(iquib(np.array([5, 5, 5])),
                                            np.array([[1, 2, 3]]))),
      ([0], [0]), 100, 0, np.array([99, 5, 5])
      ),
-    (DefaultFunctionQuib.create(func=np.subtract,
+    (ElementWiseQuib.create(func=np.subtract,
                                 func_args=(iquib(np.array([5, 5, 5])),
                                            np.array([1, 1, 1]))),
      ([0]), 0, 0, np.array([1, 5, 5])
      ),
-    (DefaultFunctionQuib.create(func=np.subtract,
+    (ElementWiseQuib.create(func=np.subtract,
                                 func_args=(
                                         np.array([10, 10, 10]),
                                         iquib(np.array([1, 1, 1])),
                                 )),
      ([0]), 0, 1, np.array([10, 1, 1])
      ),
-    (DefaultFunctionQuib.create(func=np.multiply,
+    (ElementWiseQuib.create(func=np.multiply,
                                 func_args=(iquib(np.array([1, 1, 1])),
                                            np.array([10, 10, 10]))),
      ([0]), 100, 0, np.array([10, 1, 1])
      ),
-    (DefaultFunctionQuib.create(func=np.divide,
+    (ElementWiseQuib.create(func=np.divide,
                                 func_args=(iquib(np.array([20, 20, 20])),
                                            np.array([5, 5, 5]))),
      ([0]), 5, 0, np.array([25, 20, 20])
      ),
-    (DefaultFunctionQuib.create(func=np.divide,
+    (ElementWiseQuib.create(func=np.divide,
                                 func_args=(np.array([20, 20, 20]),
                                            iquib(np.array([5, 5, 5])))),
      ([0]), 5, 1, np.array([4, 5, 5]),
      ),
-    (DefaultFunctionQuib.create(func=__pow__,
+    (ElementWiseQuib.create(func=__pow__,
                                 func_args=(iquib(10), 2)), ..., 10_000, 0, 100),
-    (DefaultFunctionQuib.create(func=__pow__,
+    (ElementWiseQuib.create(func=__pow__,
                                 func_args=(10, iquib(1))), ..., 100, 1, 2)
 
 ], ids=[
@@ -99,7 +98,7 @@ def test_reverse_elementwise_on_int():
     q = iquib(5)
     function_quib: FunctionQuib = q + 3
 
-    reverse(function_quib, 7, paths=[...])
+    reverse(function_quib, 7, path=[...])
 
     assert q.get_value() == 4
 

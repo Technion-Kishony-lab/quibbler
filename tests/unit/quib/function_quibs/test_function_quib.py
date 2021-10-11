@@ -82,7 +82,7 @@ def test_assign_with_unknown_function_overrides(function_wrapper, function_mock_
     expected_value = np.array(function_mock_return_val)
     expected_value[index] = new_value
 
-    q.assign(Assignment(value=new_value, paths=[index]))
+    q.assign(Assignment(value=new_value, path=[index]))
 
     assert np.array_equal(q.get_value(), expected_value)
 

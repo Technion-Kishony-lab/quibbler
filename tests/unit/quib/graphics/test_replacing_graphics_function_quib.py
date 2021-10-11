@@ -23,6 +23,6 @@ def test_replacing_graphics_function_quib():
         func_args=(mock_artist,)
     )
 
-    first_quib.invalidate_and_redraw()
+    first_quib.invalidate_and_redraw(path=[...])
 
     assert mock_func.call_count == 2
