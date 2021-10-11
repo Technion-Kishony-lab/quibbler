@@ -19,7 +19,9 @@ class CannotAssignException(PyQuibblerException):
 
     def __str__(self):
         return f'Cannot perform {self.assignment} on {self.quib}, because it cannot ' \
-               f'be overridden and we could not find an overridable parent quib to reverse assign into.'
+               f'be overridden and we could not find an overridable parent quib to reverse assign into.\n' \
+               f'Don\'t forget that non-input quibs are not overridable by default.\n' \
+               f'To allow overriding {self.quib}, try using "{self.quib}.allow_overriding = True"'
 
 
 class ChoiceCache:
@@ -53,6 +55,9 @@ class ChoiceCache:
         Try to find a cached choice for the given reversed quib and override options.
         """
         return self._map.get(self._get_key(reversed_quib, options_tree))
+
+    def clear(self):
+        self._map.clear()
 
 
 @dataclass

@@ -1,4 +1,5 @@
 from __future__ import annotations
+import numpy as np
 from dataclasses import dataclass, field
 from typing import Any, TYPE_CHECKING, List, Union, Tuple
 
@@ -15,6 +16,12 @@ class Assignment:
     """
     value: Any
     paths: List[AssignmentPath] = field(default_factory=list)
+
+    def __eq__(self, other):
+        if not isinstance(other, Assignment):
+            return NotImplemented
+        # array_equal works for all objects, and our value and paths might contain ndarrays
+        return np.array_equal((self.value, self.paths), (other.value, other.paths))
 
 
 @dataclass(frozen=True)
