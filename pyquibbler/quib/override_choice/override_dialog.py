@@ -13,6 +13,10 @@ from pyquibbler.utils import Flag
 
 
 class MyRadioButtons(RadioButtons):
+    """
+    Radio buttons that expose the selected index
+    """
+
     def __init__(self, ax, labels, active=0):
         super().__init__(ax, labels, active=active)
         self.selected_index = active
@@ -30,6 +34,9 @@ class OverrideChoiceType(Enum):
 
 @dataclass()
 class OverrideChoice:
+    """
+    Result of a choice between possible overrides.
+    """
     choice_type: OverrideChoiceType
     chosen_override: Optional[QuibWithAssignment] = None
 
@@ -38,28 +45,28 @@ class OverrideChoice:
             assert self.chosen_override is not None
 
 
-def create_button(ax: Axes, label: str, callback: Callable[[Event], None]):
+def create_button(ax: Axes, label: str, callback: Callable[[Event], None]) -> Button:
     button = Button(ax, label)
     button.on_clicked(callback)
     return button
 
 
 def show_fig(fig):
+    """
+    Show the given figure and wait until it is closed.
+    """
     closed = Flag(False)
     fig.canvas.mpl_connect('close_event', lambda _event: closed.set(True))
     fig.show()
-
     while not closed:
-        # plt.pause blocks forever on tkinter backend when the figure is closed, so we implement our version that
-        # doesn't call start_event_loop
-        if fig.canvas.figure.stale:
-            fig.canvas.draw_idle()
-        plt.show(block=False)
-        fig.canvas.flush_events()
-        sleep(0.01)
+        plt.pause(0.1)
 
 
 def choose_override_dialog(options: List[QuibWithAssignment], can_diverge: bool) -> OverrideChoice:
+    """
+    Open a popup dialog to offer the user a choice between override options.
+    If can_diverge is true, offer the user to diverge the override instead of choosing an override option.
+    """
     # Used to keep references to the widgets so they won't be garbage collected
     widgets = []
     fig = plt.figure()
