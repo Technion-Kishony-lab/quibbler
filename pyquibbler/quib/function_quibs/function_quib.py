@@ -6,6 +6,7 @@ from typing import Callable, Any, Mapping, Tuple, Optional, Set
 
 from ..override_choice import get_overrides_for_assignment
 from ..assignment import AssignmentTemplate, Assignment
+from ..assignment.assignment import QuibWithAssignment
 from ..quib import Quib
 from ..utils import is_there_a_quib_in_args, iter_quibs_in_args, call_func_with_quib_values, \
     deep_copy_without_quibs_or_artists, copy_and_convert_args_to_values
