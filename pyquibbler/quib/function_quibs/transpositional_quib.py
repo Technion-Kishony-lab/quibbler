@@ -56,13 +56,17 @@ class TranspositionalQuib(DefaultFunctionQuib):
         )
         return call_func_with_quib_values(self._func, new_arguments, self._kwargs)
 
-    def _represent_non_numpy_indexing(self, component):
-        return not issubclass(component.indexed_cls, np.ndarray) or component.references_field_in_field_array()
+    def _translate_path_and_invalidate(self, invalidator_quib, path):
+        """
+        Translate the invalidation path to it's location after passing through the current function quib.
+        If that path represents anything (ie any indices intersecting with the invalidation exist in the result),
+        invalidate the children with the resulting indices.
 
-    def _represents_translatable_numpy_indexing(self, component):
-        return issubclass(component.indexed_cls, np.ndarray) and not component.references_field_in_field_array()
-
-    def _translate_and_invalidate(self, invalidator_quib, path):
+        For example, if we have a rotate function, replace the arguments with a grid representing
+        the arguments' indices that intersect with the invalidation path, and see where those indices land in the result
+        If any indices exist in the result, invalidate all children with the resulting indices (or, in this
+        implementation, a boolean mask representing them)
+        """
         boolean_mask = self._get_boolean_mask_representing_new_indices_of_quib(invalidator_quib, path[0])
         if np.any(boolean_mask):
             new_path = path[1:]
@@ -71,12 +75,6 @@ class TranspositionalQuib(DefaultFunctionQuib):
                 new_path = [PathComponent(indexed_cls=self.get_type(), component=boolean_mask), *path[1:]]
             super(TranspositionalQuib, self)._invalidate_with_children(invalidator_quib=self,
                                                                        path=new_path)
-
-    def _check_first_components_equality_and_invalidate(self, path):
-        working_component = path[0]
-        if self.args[1] == working_component.component:
-            super(TranspositionalQuib, self)._invalidate_with_children(invalidator_quib=self,
-                                                                       path=path[1:])
 
     def _handle_invalidation_on_get_item(self, invalidator_quib, path_to_invalidate):
         """
@@ -100,7 +98,7 @@ class TranspositionalQuib(DefaultFunctionQuib):
                 # Therefore, we translate the indices and invalidate our children with the new indices (which are an
                 # intersection between our getitem and the path to invalidate- if this intersections yields nothing,
                 # we do NOT invalidate our children)
-                return self._translate_and_invalidate(invalidator_quib, path_to_invalidate)
+                return self._translate_path_and_invalidate(invalidator_quib, path_to_invalidate)
             elif (
                     getitem_path_component.references_field_in_field_array()
                     !=
@@ -123,13 +121,17 @@ class TranspositionalQuib(DefaultFunctionQuib):
         # or
         # 3. The invalidation is for a field and the current getitem is for a field
         #
-        # We want to only check equality of the invalidation path and our getitem - essentially saying we don't have
-        # anything to interpret in the invalidation more than simply checking it's equality.
-        # For example, if we have a getitem on a dict, and we are invalidated at the a certain item on the dict,
-        # we simply want to check if the paths are equal (ie if the invalidation is equal to the item in our getitem)
-        #
-        # Number 3 (above) is relavent as well since if we have two keys one after the other,
-        return self._check_first_components_equality_and_invalidate(path_to_invalidate)
+        # We want to check equality of the invalidation path and our getitem - essentially saying we don't have
+        # anything to interpret in the invalidation path more than simply checking it's equality to our current
+        # getitem's `item`.
+        # For example, if we have a getitem on a dict, and we are requested to be
+        # invalidated at a certain item on the dict,
+        # we simply want to check if our getitem's item is equal to the invalidations item (ie it's path).
+        # If so, invalidate. This is true for field arrays as well (We do need to
+        # add support for indexing multiple fields).
+        if self.args[1] == working_component.component:
+            super(TranspositionalQuib, self)._invalidate_with_children(invalidator_quib=self,
+                                                                       path=path_to_invalidate[1:])
 
     def _invalidate_with_children(self, invalidator_quib, path: List[PathComponent]):
         """
@@ -150,7 +152,7 @@ class TranspositionalQuib(DefaultFunctionQuib):
                 # normal transpositional function
                 return super(TranspositionalQuib, self)._invalidate_with_children(invalidator_quib=self,
                                                                                   path=path)
-            return self._translate_and_invalidate(invalidator_quib, path)
+            return self._translate_path_and_invalidate(invalidator_quib, path)
 
     @functools.lru_cache()
     def get_quibs_which_can_change(self):
