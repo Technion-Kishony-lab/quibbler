@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from operator import getitem
 from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type
 from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Union
+from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List
 from weakref import ref as weakref
 
 from pyquibbler.exceptions import PyQuibblerException
@@ -122,6 +123,13 @@ class Quib(ABC):
         self._overrider.add_assignment(assignment)
 
         self.invalidate_and_redraw(assignment.path)
+
+    def remove_override(self, path: List[PathComponent]):
+        """
+        Remove overriding in a specific path in the quib.
+        """
+        self._overrider.remove_assignment(path)
+        self.invalidate_and_redraw(path=path)
 
     def assign(self, assignment: Assignment) -> None:
         """
@@ -240,10 +248,7 @@ class Quib(ABC):
             mask = np.zeros(shape, dtype=np.bool)
         else:
             mask = recursively_run_func_on_object(func=lambda x: False, obj=self.get_value())
-        # Can't use `mask[all_keys] = True` trivially, because some of the keys might be lists themselves.
-        for assignment in self._overrider:
-            mask = deep_assign_data_with_paths(path=assignment.path, value=True, data=mask)
-        return mask
+        return self._overrider.fill_override_mask(mask)
 
     def get_override_mask(self) -> Quib:
         """

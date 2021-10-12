@@ -110,3 +110,6 @@ venv.bak/
 
 # mac crap
 *.DSTORE
+pyquibbler/quib/.DS_Store
+
+.DS_Store

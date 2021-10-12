@@ -9,6 +9,7 @@ import numpy as np
 
 from ..override_choice import get_overrides_for_assignment
 from ..assignment import AssignmentTemplate, Assignment
+from ..assignment.assignment import QuibWithAssignment
 from ..quib import Quib
 from ..utils import is_there_a_quib_in_args, iter_quibs_in_args, call_func_with_quib_values, \
     deep_copy_without_quibs_or_artists, copy_and_convert_args_to_values
@@ -120,11 +121,10 @@ class FunctionQuib(Quib):
         Using reverse assignments, the assignment will propagate as far is possible up the dependency graph,
         and collect possible overrides.
         When more than one override can be performed, the user will be asked to choose one.
-        When there is only one override option, is will be automatically performed.
-        When there are no override options, CannotAssignException is raised.
+        When there is only one override option, it will be automatically performed.
+        When there are no override options, AssignmentNotPossibleException is raised.
         """
-        for chosen_override in get_overrides_for_assignment(self, assignment):
-            chosen_override.override()
+        get_overrides_for_assignment(self, assignment).apply()
 
     def __repr__(self):
         return f"<{self.__class__.__name__} - {getattr(self.func, '__name__', repr(self.func))}>"

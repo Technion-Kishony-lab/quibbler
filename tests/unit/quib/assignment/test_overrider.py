@@ -50,3 +50,11 @@ def test_overrider_with_field_assignment_and_indices(overrider):
     new_data = overrider.override(np.array([[('maor2', 23)]], dtype=dtype))
 
     assert np.array_equal(new_data, np.array([[('maor2', 1)]], dtype=dtype))
+
+
+def test_overrider_remove_assignment(overrider):
+    overrider.add_assignment(Assignment(value=[1, 1], paths=[...]))
+    overrider.remove_assignment([1])
+    new_data = overrider.override([0, 0])
+
+    assert new_data == [1, 0]

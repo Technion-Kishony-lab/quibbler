@@ -1,34 +1,36 @@
 import numpy as np
-from typing import List, Tuple
+from typing import List, Tuple, Union
 from unittest.mock import Mock
 from pytest import raises, fixture, mark
 
 from pyquibbler import iquib
-from pyquibbler.quib import get_overrides_for_assignment, CannotAssignException, DefaultFunctionQuib
+from pyquibbler.quib import get_overrides_for_assignment, AssignmentNotPossibleException, DefaultFunctionQuib, Quib
 from pyquibbler.quib.assignment import Assignment, QuibWithAssignment
-from pyquibbler.quib.override_choice import override_choice as override_choice_module
+from pyquibbler.quib.override_choice import override_choice as override_choice_module, OverrideGroup, OverrideRemoval
 from pyquibbler.quib.override_choice.override_choice import OverrideOptionsTree
-from pyquibbler.quib.override_choice.override_dialog import OverrideChoice, OverrideChoiceType
+from pyquibbler.quib.override_choice.override_dialog import OverrideChoice, OverrideChoiceType, \
+    AssignmentCancelledByUserException
 
 
 class ChooseOverrideDialogMockSideEffect:
     def __init__(self):
         self.choices = []
 
-    def add_choices(self, *choices: Tuple[OverrideChoice, List[QuibWithAssignment], bool]):
+    def add_choices(self, *choices: Tuple[Union[OverrideChoice, Exception], List[QuibWithAssignment], bool]):
         self.choices = [*self.choices, *choices]
 
     def __call__(self, options: List[QuibWithAssignment], can_diverge: bool):
         assert self.choices, 'The dialog mock was called more times than expected'
         (choice, expected_options, excpected_can_diverge) = self.choices.pop(0)
-        if expected_options is not None:
-            assert expected_options == options
+        assert expected_options == options
         assert excpected_can_diverge == can_diverge
-        assert choice is not None, f'Choice for {self} not set before it was called'
         assert options, 'There is no reason to open a dialog without options'
+        if isinstance(choice, Exception):
+            raise choice
         if choice.choice_type is OverrideChoiceType.OVERRIDE:
-            assert choice.chosen_override in options, \
-                f'Chose option {choice.chosen_override} which was not in {options}'
+            assert isinstance(choice.chosen_index, int)
+            assert choice.chosen_index < len(options), \
+                f'Chose option {choice.chosen_index} which is out of bounds for {options}'
         elif choice.choice_type is OverrideChoiceType.DIVERGE:
             assert can_diverge, 'Chose to diverge but it is not an option'
         return choice
@@ -71,19 +73,20 @@ def override_choice_dialog(monkeypatch, choose_override_dialog_mock):
 def parent_and_child(assignment):
     add = 1
     parent = iquib(1)
-    child = parent + add
-    child_override = QuibWithAssignment(child, assignment)
-    parent_override = QuibWithAssignment(parent, Assignment(assignment.value - add, [...]))
+    child: Quib = parent + add
+    child_override = OverrideGroup([QuibWithAssignment(child, assignment)])
+    parent_override = OverrideGroup([QuibWithAssignment(parent, Assignment(assignment.value - add, [...]))],
+                                    [OverrideRemoval(child, [...])])  # TODO: a more complicated path
     return parent, child, parent_override, child_override
 
 
 @fixture
 def diverged_quib_graph(assignment):
     grandparent1 = iquib(np.array([1]))
-    parent1 = grandparent1 * 1.
+    parent1: Quib = grandparent1 * 1.
     grandparent2 = iquib(np.array([2]))
-    parent2 = grandparent2 * 1.
-    child = np.concatenate((parent1, parent2))
+    parent2: Quib = grandparent2 * 1.
+    child: Quib = np.concatenate((parent1, parent2))
     parent1_override = QuibWithAssignment(parent1, Assignment(np.array([assignment.value]), [(np.array([0]),)]))
     return grandparent1, parent1, grandparent2, parent2, child, parent1_override
 
@@ -92,7 +95,7 @@ def test_get_overrides_for_assignment_when_nothing_is_overridable(assignment, pa
     parent, child, parent_override, child_override = parent_and_child
     parent.allow_overriding = False
 
-    with raises(CannotAssignException) as exc_info:
+    with raises(AssignmentNotPossibleException) as exc_info:
         get_overrides_for_assignment(child, assignment)
     assert exc_info.value.assignment is assignment
     assert exc_info.value.quib is child
@@ -102,7 +105,7 @@ def test_get_overrides_for_assignment_when_reverse_assignment_not_implemented(as
     parent = iquib(1)
     child = DefaultFunctionQuib.create(lambda x: x, (parent,))
 
-    with raises(CannotAssignException) as exc_info:
+    with raises(AssignmentNotPossibleException) as exc_info:
         get_overrides_for_assignment(child, assignment)
     assert exc_info.value.assignment is assignment
     assert exc_info.value.quib is child
@@ -113,7 +116,7 @@ def test_get_overrides_for_assignment_when_diverged_reverse_assign_has_only_one_
     grandparent1, parent1, grandparent2, parent2, child, parent1_override = diverged_quib_graph
     grandparent2.allow_overriding = False
 
-    with raises(CannotAssignException) as exc_info:
+    with raises(AssignmentNotPossibleException) as exc_info:
         get_overrides_for_assignment(child, assignment)
     assert exc_info.value.assignment is assignment
     assert exc_info.value.quib is child
@@ -122,9 +125,9 @@ def test_get_overrides_for_assignment_when_diverged_reverse_assign_has_only_one_
 def test_get_overrides_for_assignment_on_iquib(assignment):
     quib = iquib(1)
 
-    overrides = get_overrides_for_assignment(quib, assignment)
+    override_group = get_overrides_for_assignment(quib, assignment)
 
-    assert overrides == [QuibWithAssignment(quib, assignment)]
+    assert override_group == OverrideGroup([QuibWithAssignment(quib, assignment)])
 
 
 def test_get_overrides_for_assignment_on_quib_without_overridable_parents(assignment, parent_and_child):
@@ -132,17 +135,17 @@ def test_get_overrides_for_assignment_on_quib_without_overridable_parents(assign
     parent.allow_overriding = False
     child.allow_overriding = True
 
-    overrides = get_overrides_for_assignment(child, assignment)
+    override_group = get_overrides_for_assignment(child, assignment)
 
-    assert overrides == [QuibWithAssignment(child, assignment)]
+    assert override_group == child_override
 
 
 def test_get_overrides_for_assignment_on_non_overridable_quib_with_overridable_parent(assignment, parent_and_child):
     parent, child, parent_override, child_override = parent_and_child
 
-    overrides = get_overrides_for_assignment(child, assignment)
+    override_group = get_overrides_for_assignment(child, assignment)
 
-    assert overrides == [parent_override]
+    assert override_group == parent_override
 
 
 @mark.parametrize('parent_chosen', [True, False])
@@ -150,30 +153,28 @@ def test_get_overrides_for_assignment_with_choice_to_override_child(assignment, 
                                                                     parent_and_child, parent_chosen):
     parent, child, parent_override, child_override = parent_and_child
     child.allow_overriding = True
-    chosen_override = parent_override if parent_chosen else child_override
     choose_override_dialog_mock.side_effect.add_choices(
-        (OverrideChoice(OverrideChoiceType.OVERRIDE, chosen_override),
-         [child_override, parent_override],
+        (OverrideChoice(OverrideChoiceType.OVERRIDE, 1 if parent_chosen else 0),
+         [child, parent],
          False)
     )
 
-    overrides = get_overrides_for_assignment(child, assignment)
+    override_group = get_overrides_for_assignment(child, assignment)
 
-    assert overrides == [chosen_override]
+    assert override_group == parent_override if parent_chosen else child_override
 
 
 def test_override_choice_when_cancelled(assignment, choose_override_dialog_mock, parent_and_child):
     parent, child, parent_override, child_override = parent_and_child
     child.allow_overriding = True
     choose_override_dialog_mock.side_effect.add_choices(
-        (OverrideChoice(OverrideChoiceType.CANCEL),
-         [child_override, parent_override],
+        (AssignmentCancelledByUserException(),
+         [child, parent],
          False)
     )
 
-    overrides = get_overrides_for_assignment(child, assignment)
-
-    assert overrides == []
+    with raises(AssignmentCancelledByUserException):
+        get_overrides_for_assignment(child, assignment)
 
 
 def test_override_choice_when_diverged_parent_is_cancelled(diverged_quib_graph, assignment,
@@ -182,22 +183,22 @@ def test_override_choice_when_diverged_parent_is_cancelled(diverged_quib_graph, 
     parent1.allow_overriding = True
     child.allow_overriding = True
     choose_override_dialog_mock.side_effect.add_choices(
-        (OverrideChoice(OverrideChoiceType.DIVERGE), None, True),
-        (OverrideChoice(OverrideChoiceType.CANCEL), None, False)
+        (OverrideChoice(OverrideChoiceType.DIVERGE), [child], True),
+        (AssignmentCancelledByUserException(), [parent1, grandparent1], False)
     )
 
-    overrides = get_overrides_for_assignment(child, assignment)
-
-    assert overrides == []
+    with raises(AssignmentCancelledByUserException):
+        get_overrides_for_assignment(child, assignment)
 
 
 def test_override_choice_when_diverged_and_all_diverged_reversals_are_overridden(diverged_quib_graph, assignment,
                                                                                  choose_override_dialog_mock):
     grandparent1, parent1, grandparent2, parent2, child, parent1_override = diverged_quib_graph
 
-    overrides = get_overrides_for_assignment(child, assignment)
+    override_group = get_overrides_for_assignment(child, assignment)
 
-    assert len(overrides) == 2
+    assert len(override_group.overrides) == 2
+    assert len(override_group.override_removals) == 3
 
 
 @mark.parametrize('parent_chosen', [True, False])
@@ -205,19 +206,19 @@ def test_get_overrides_for_assignment_caches_override_choice(assignment, parent_
                                                              choose_override_dialog_mock, parent_chosen):
     parent, child, parent_override, child_override = parent_and_child
     child.allow_overriding = True
-    chosen_override = parent_override if parent_chosen else child_override
     choose_override_dialog_mock.side_effect.add_choices(
-        (OverrideChoice(OverrideChoiceType.OVERRIDE, chosen_override),
-         [child_override, parent_override],
+        (OverrideChoice(OverrideChoiceType.OVERRIDE, 1 if parent_chosen else 0),
+         [child, parent],
          False)
     )
 
-    overrides = get_overrides_for_assignment(child, assignment)
+    override_group = get_overrides_for_assignment(child, assignment)
     # If this invokes a dialog, the dialog mock will fail the test
-    second_overrides = get_overrides_for_assignment(child, Assignment(assignment.value + 1, assignment.path))
 
-    assert overrides == [chosen_override]
-    assert second_overrides != overrides
+    second_override_group = get_overrides_for_assignment(child, Assignment(assignment.value + 1, assignment.path))
+
+    assert override_group == parent_override if parent_chosen else child_override
+    assert second_override_group != override_group
 
 
 def test_get_overrides_for_assignment_caches_diverged_choices(diverged_quib_graph, assignment,
@@ -226,30 +227,31 @@ def test_get_overrides_for_assignment_caches_diverged_choices(diverged_quib_grap
     parent1.allow_overriding = True
     child.allow_overriding = True
     choose_override_dialog_mock.side_effect.add_choices(
-        (OverrideChoice(OverrideChoiceType.DIVERGE), None, True),
-        (OverrideChoice(OverrideChoiceType.OVERRIDE, parent1_override), None, False),
+        (OverrideChoice(OverrideChoiceType.DIVERGE), [child], True),
+        (OverrideChoice(OverrideChoiceType.OVERRIDE, 1), [parent1, grandparent1], False),
     )
 
-    overrides = get_overrides_for_assignment(child, assignment)
+    override_group = get_overrides_for_assignment(child, assignment)
     # If this invokes a dialog, the dialog mock will fail the test
-    second_overrides = get_overrides_for_assignment(child, Assignment(assignment.value + 1, assignment.path))
 
-    assert overrides != second_overrides
+    second_override_group = get_overrides_for_assignment(child, Assignment(assignment.value + 1, assignment.path))
+
+    assert override_group != second_override_group
 
 
 def test_get_overrides_for_assignment_doesnt_cache_cancel(assignment, parent_and_child, choose_override_dialog_mock):
     parent, child, parent_override, child_override = parent_and_child
     child.allow_overriding = True
     choose_override_dialog_mock.side_effect.add_choices(
-        (OverrideChoice(OverrideChoiceType.CANCEL), None, False),
-        (OverrideChoice(OverrideChoiceType.CANCEL), None, False)
+        (AssignmentCancelledByUserException(), [child, parent], False),
+        (AssignmentCancelledByUserException(), [child, parent], False)
     )
 
-    overrides = get_overrides_for_assignment(child, assignment)
-    # If this invokes a dialog, the dialog mock will fail the test
-    second_overrides = get_overrides_for_assignment(child, Assignment(assignment.value + 1, assignment.path))
-
-    assert overrides == second_overrides == []
+    with raises(AssignmentCancelledByUserException):
+        get_overrides_for_assignment(child, assignment)
+    # If this doesn't invoke a dialog, the dialog mock will fail the test
+    with raises(AssignmentCancelledByUserException):
+        get_overrides_for_assignment(child, Assignment(assignment.value + 1, assignment.path))
 
 
 def test_get_overrides_for_assignment_does_not_use_cache_when_diverge_changes(diverged_quib_graph, assignment,
@@ -258,17 +260,18 @@ def test_get_overrides_for_assignment_does_not_use_cache_when_diverge_changes(di
     parent1.allow_overriding = True
     child.allow_overriding = True
     choose_override_dialog_mock.side_effect.add_choices(
-        (OverrideChoice(OverrideChoiceType.DIVERGE), None, True),
-        (OverrideChoice(OverrideChoiceType.OVERRIDE, parent1_override), None, False),
+        (OverrideChoice(OverrideChoiceType.DIVERGE), [child], True),
+        (OverrideChoice(OverrideChoiceType.OVERRIDE, 1), [parent1, grandparent1], False),
     )
 
     get_overrides_for_assignment(child, assignment)
     # Now we can't diverge
     grandparent2.allow_overriding = False
-    assignment2 = Assignment(assignment.value + 1, assignment.path)
-    overrides = get_overrides_for_assignment(child, assignment2)
 
-    assert overrides == [QuibWithAssignment(child, assignment2)]
+    assignment2 = Assignment(assignment.value + 1, assignment.path)
+    override_group = get_overrides_for_assignment(child, assignment2)
+
+    assert override_group == OverrideGroup([QuibWithAssignment(child, assignment2)])
 
 
 def test_get_overrides_for_assignment_does_not_use_cache_when_options_change(assignment, parent_and_child,
@@ -276,14 +279,16 @@ def test_get_overrides_for_assignment_does_not_use_cache_when_options_change(ass
     parent, child, parent_override, child_override = parent_and_child
     child.allow_overriding = True
     choose_override_dialog_mock.side_effect.add_choices(
-        (OverrideChoice(OverrideChoiceType.OVERRIDE, child_override),
-         [child_override, parent_override],
-         False)
+        (OverrideChoice(OverrideChoiceType.OVERRIDE, 0), [child, parent], False)
     )
 
     get_overrides_for_assignment(child, assignment)
     parent.allow_overriding = False
-    assignment2 = Assignment(assignment.value + 1, assignment.path)
-    second_overrides = get_overrides_for_assignment(child, assignment2)
 
-    assert second_overrides == [QuibWithAssignment(child, assignment2)]
+    assignment2 = Assignment(assignment.value + 1, assignment.path)
+    second_override_group = get_overrides_for_assignment(child, assignment2)
+
+    assert second_override_group == OverrideGroup([QuibWithAssignment(child, assignment2)])
+
+# TODO: Test override removal generation
+# TODO: Test get_overrides_for_assignment_group
