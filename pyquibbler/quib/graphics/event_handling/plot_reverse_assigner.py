@@ -4,6 +4,7 @@ from matplotlib.backend_bases import PickEvent, MouseEvent
 
 from .graphics_reverse_assigner import graphics_reverse_assigner
 from ...assignment import Assignment, QuibWithAssignment
+from ...assignment.assignment import PathComponent
 
 
 def get_xdata_arg_indices_and_ydata_arg_indices(args: Tuple[Any, ...]):
@@ -63,9 +64,9 @@ def get_quibs_with_assignments_for_axes(args: List[Any],
         if isinstance(quib, Quib):
             # We want to support both single values and arrays, so we need to reverse assign
             # appropriately (not use index if it was a single number, index will be zero but that's irrelevant to us)
-            assignment = Assignment(value=value, path=[indices_to_set
-                                                        if issubclass(quib.get_type(), Iterable)
-                                                        else ...])
+            inner_component = indices_to_set if issubclass(quib.get_type(), Iterable) else ...
+            assignment = Assignment(value=value, path=[PathComponent(component=inner_component,
+                                                                     indexed_cls=quib.get_type())])
             quibs_with_assignments.append(QuibWithAssignment(quib=quib,
                                                              assignment=assignment))
     return quibs_with_assignments
