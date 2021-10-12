@@ -108,6 +108,36 @@ def test_invalidate_and_redraw_on_dict_after_index(
 
 
 @pytest.fixture()
+def quib_dict():
+    return iquib({
+        'a': {
+            'b': 1
+        }
+    })
+
+
+def test_invalidate_embedded_dicts_shouldnt_invalidate(quib_dict):
+    second_quib = quib_dict['a']
+    third_quib = second_quib['b']
+    third_quib.get_value()
+
+    quib_dict.invalidate_and_redraw(path=[PathComponent(component='a', indexed_cls=dict),
+                                     PathComponent(component='c', indexed_cls=dict)])
+
+    assert third_quib.is_cache_valid
+
+
+def test_invalidate_embedded_dicts_should_invalidate(quib_dict):
+    second_quib = quib_dict['a']['b']
+    second_quib.get_value()
+
+    quib_dict.invalidate_and_redraw(path=[PathComponent(component='a', indexed_cls=dict),
+                                     PathComponent(component='b', indexed_cls=dict)])
+
+    assert not second_quib.is_cache_valid
+
+
+@pytest.fixture()
 def quib_with_nested_arr():
     dtype = [('nested', [('child_name', np.unicode, 30)], (2,))]
     return iquib(np.array(['Yechiel', "Yossiel"], dtype=dtype))

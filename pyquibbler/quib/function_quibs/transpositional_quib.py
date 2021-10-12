@@ -73,9 +73,7 @@ class TranspositionalQuib(DefaultFunctionQuib):
         working_component = path[0]
         if self.args[1] == working_component.component:
             super(TranspositionalQuib, self)._invalidate_with_children(invalidator_quib=self,
-                                                                       path=[PathComponent(component=...,
-                                                                                           indexed_cls=self.get_type()),
-                                                                             *path[1:]])
+                                                                       path=path[1:])
 
     def _pass_and_invalidate(self, path):
         super(TranspositionalQuib, self)._invalidate_with_children(invalidator_quib=self,
@@ -95,9 +93,6 @@ class TranspositionalQuib(DefaultFunctionQuib):
         and our indices. If they're the same, drop it from the path and invalidate our children
         2. If we're getitem, take where our invalidator quib was invalidated and pass it on to our children
         3. Translate the indices if possible
-        
-        We also need to solve for when a numpy array is expanded by getting an item- for example in a nested field 
-        array. We can do this by adding an Ellipsis for every added dimension.
         """
         if len(path) == 0:
             return super(TranspositionalQuib, self)._invalidate_with_children(invalidator_quib=self, path=[])
@@ -122,8 +117,6 @@ class TranspositionalQuib(DefaultFunctionQuib):
             elif self._represents_translatable_numpy_indexing(working_component):
                 # Our invalidator DID represent numpy indicing, and WAS a numpy array, we are
                 # [this means invalidator was numpy, this getitem's is numpy, get item is NOT translatable indices, the invalidator's are]
-
-                # TODO: Do we need to potentially grow our first path in component??? What if array shape size changed???
                 self._pass_and_invalidate(path)
         else:
             # Any other situation ->
