@@ -78,13 +78,9 @@ class TranspositionalReverser(Reverser):
         Get a boolean mask representing where the indices that were changed are in the result- this will be in
         same shape as the result
         """
-        try:
-            return create_empty_array_with_values_at_indices(self._function_quib.get_shape().get_value(),
-                                                         indices=self._working_indices,
-                                                     value=True, empty_value=False)
-        except Exception:
-            print(1)
-            raise
+        return create_empty_array_with_values_at_indices(self._function_quib.get_shape().get_value(),
+                                                     indices=self._working_indices, value=True, empty_value=False)
+    
     def _get_quibs_to_index_grids(self) -> Dict[Quib, np.ndarray]:
         """
         Get a mapping between quibs and their indices grid
