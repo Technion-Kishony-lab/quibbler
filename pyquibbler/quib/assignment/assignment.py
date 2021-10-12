@@ -9,13 +9,14 @@ if TYPE_CHECKING:
     from ..quib import Quib
 
 
+
 @dataclass
 class PathComponent:
     cls: Type
     component: Any
 
     def references_field_in_field_array(self):
-        return self.cls == np.ndarray and (isinstance(self.component, str)
+        return issubclass(self.cls, np.ndarray) and (isinstance(self.component, str)
                                            or
                                            (isinstance(self.component, list) and isinstance(self.component[0], str)))
 

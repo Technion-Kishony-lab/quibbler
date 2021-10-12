@@ -31,7 +31,7 @@ def deep_assign_data_with_paths(data: Any, path: List[PathComponent], value: Any
             # to be the new element and by this we set the whole thing
             new_element = last_element
         else:
-            if isinstance(component, tuple) and not isinstance(new_element, np.ndarray):
+            if isinstance(component.component, tuple) and not isinstance(new_element, np.ndarray):
                 # We can't access a regular list with a tuple, so we're forced to convert to a numpy array
                 new_element = np.array(new_element)
             new_element[component.component] = last_element

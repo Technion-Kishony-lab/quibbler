@@ -78,10 +78,13 @@ class TranspositionalReverser(Reverser):
         Get a boolean mask representing where the indices that were changed are in the result- this will be in
         same shape as the result
         """
-        return create_empty_array_with_values_at_indices(self._function_quib.get_shape().get_value(),
+        try:
+            return create_empty_array_with_values_at_indices(self._function_quib.get_shape().get_value(),
                                                          indices=self._working_indices,
-                                                         value=True, empty_value=False)
-
+                                                     value=True, empty_value=False)
+        except Exception:
+            print(1)
+            raise
     def _get_quibs_to_index_grids(self) -> Dict[Quib, np.ndarray]:
         """
         Get a mapping between quibs and their indices grid
@@ -187,7 +190,7 @@ class TranspositionalReverser(Reverser):
             for quib in self._get_quibs_which_can_change()
         }
 
-    def _build_quibs_with_assignments_for_getitem(self) -> List[QuibWithAssignment]:
+    def _build_quibs_with_assignments_for_getitem(self) -> List:
         """
         We're in a situation where we can't compute any any translation of indices
         Because of this, we put all pieces of the getitem in the path- making sure to put the field BEFORE the indexing
@@ -222,14 +225,20 @@ class TranspositionalReverser(Reverser):
             ))
         return quibs_with_assignments
 
-    def _is_getitem_of_ndarray(self):
+    def _next_path_is_fancy_indexing(self):
         """
-        Check's whether we have at hand a function quib which represents a __getitem__ with the indices being a string
+        Check's whether we have at hand a function quib which represents a __getitem__ with the indices being fancy
+        indexes
         """
-        return self._func == getitem and issubclass(self._function_quib.get_type(), np.ndarray)
+        return issubclass(self._function_quib.get_type(), np.ndarray)  \
+               and not self._assignment.path[0].references_field_in_field_array()
 
-    def _get_reversed_quibs_with_assignments(self) -> List[QuibWithAssignment]:
-        if self._func == getitem and not self._is_getitem_of_ndarray():
+    def _is_getitem_with_field(self):
+        return \
+            PathComponent(cls=self._function_quib.get_type(), component=self._args[1]).references_field_in_field_array()
+
+    def get_reversed_quibs_with_assignments(self) -> List[QuibWithAssignment]:
+        if self._func == getitem and (not self._next_path_is_fancy_indexing() or self._is_getitem_with_field()):
             return self._build_quibs_with_assignments_for_getitem()
 
         return self._build_quibs_with_assignments_for_generic_case()

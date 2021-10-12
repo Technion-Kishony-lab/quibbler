@@ -70,6 +70,16 @@ def test_invalidate_and_redraw_on_dict(
     assert not second_quib.is_cache_valid
 
 
+def test_invalidate_and_redraw_on_dict2(
+):
+    quib = iquib({"maor": 1, 'y': 2})
+    second_quib = quib["maor"]
+
+    quib.invalidate_and_redraw(path=[PathComponent("y")])
+
+    assert second_quib.is_cache_valid
+
+
 def test_invalidate_and_redraw_on_dict_after_index(
 ):
     quib = iquib([1, 2, {

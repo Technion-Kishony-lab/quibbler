@@ -56,21 +56,21 @@ class TranspositionalQuib(DefaultFunctionQuib):
         )
         return call_func_with_quib_values(self._func, new_arguments, self._kwargs)
 
-    def _invalidate_with_children(self, invalidator_quib, path):
-        if self.func == getitem and isinstance(self._args[1], str):
-            # We can't run normal our operation to get a boolean mask representing new indices, since our key is a
-            # string- this may mean we're a dict, in which case we can't run the boolean mask op,
-            # or we're in a field array, in which case we can't create a boolean mask to work with our key unless we
-            # have the dtype (which we dont')
-            super(TranspositionalQuib, self)._invalidate_with_children(invalidator_quib=self,
-                                                                       path=path)
-            return
-
-        boolean_mask = self._get_boolean_mask_representing_new_indices_of_quib(invalidator_quib, path[0])
-        if np.any(boolean_mask):
-            new_path = [boolean_mask, *path[1:]]
-            super(TranspositionalQuib, self)._invalidate_with_children(invalidator_quib=self,
-                                                                       path=new_path)
+    # def _invalidate_with_children(self, invalidator_quib, path):
+    #     if self.func == getitem and isinstance(self._args[1], str):
+    #         # We can't run normal our operation to get a boolean mask representing new indices, since our key is a
+    #         # string- this may mean we're a dict, in which case we can't run the boolean mask op,
+    #         # or we're in a field array, in which case we can't create a boolean mask to work with our key unless we
+    #         # have the dtype (which we dont')
+    #         # super(TranspositionalQuib, self)._invalidate_with_children(invalidator_quib=self,
+    #         #                                                            path=path)
+    #         return
+    #
+    #     boolean_mask = self._get_boolean_mask_representing_new_indices_of_quib(invalidator_quib, path[0])
+    #     if np.any(boolean_mask):
+    #         new_path = [boolean_mask, *path[1:]]
+    #         # super(TranspositionalQuib, self)._invalidate_with_children(invalidator_quib=self,
+    #         #                                                            path=new_path)
 
     @functools.lru_cache()
     def get_quibs_which_can_change(self):
@@ -91,7 +91,7 @@ class TranspositionalQuib(DefaultFunctionQuib):
         return quibs
 
     def get_reversals_for_assignment(self, assignment: Assignment):
-        return TranspositionalReverser(
+        return TranspositionalReverser.create_and_get_reversed_quibs_with_assignments(
             assignment=assignment,
             function_quib=self
-        ).get_reversed_quibs_with_assignments()
+        )

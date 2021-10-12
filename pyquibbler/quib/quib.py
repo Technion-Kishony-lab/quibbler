@@ -153,7 +153,8 @@ class Quib(ABC):
         return TranspositionalQuib.create(func=getitem, func_args=[self, item])
 
     def __setitem__(self, key, value):
-        self.assign(Assignment(value=value, path=[key]))
+        from .assignment.assignment import PathComponent
+        self.assign(Assignment(value=value, path=[PathComponent(component=key, cls=self.get_type())]))
 
     def pretty_repr(self):
         """
