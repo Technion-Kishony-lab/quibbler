@@ -18,9 +18,8 @@ from pyquibbler.utils import ensure_only_run_once_globally
 
 NUMPY_OVERRIDES = [
     (np, [
-        (DefaultFunctionQuib, {"abs", "average", "around", "square", "repeat", "max", "arange", "polyfit",
-                               "linspace", "polyval", "full", "concatenate", "array", "reshape", "genfromtxt",
-                               "ravel",
+        (DefaultFunctionQuib, {"abs", "average", "around", "square", "max", "arange", "polyfit",
+                               "linspace", "polyval", "array", "genfromtxt",
                                "sin", "cos", "tan", "sinh", "cosh", "tanh",
                                "arcsin", "arccos", "arctan", "arcsinh", "arccosh", "arctanh",
                                "exp", "exp2", "expm1",
