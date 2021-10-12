@@ -69,54 +69,66 @@ class TranspositionalQuib(DefaultFunctionQuib):
             super(TranspositionalQuib, self)._invalidate_with_children(invalidator_quib=self,
                                                                        path=new_path)
 
-    def _check_indices_equality_and_invalidate(self, path):
+    def _check_first_components_equality_and_invalidate(self, path):
         working_component = path[0]
         if self.args[1] == working_component.component:
             super(TranspositionalQuib, self)._invalidate_with_children(invalidator_quib=self,
                                                                        path=path[1:])
-
-    def _pass_and_invalidate(self, path):
-        super(TranspositionalQuib, self)._invalidate_with_children(invalidator_quib=self,
-                                                                   path=path)
 
     def _handle_invalidation_on_get_item(self, invalidator_quib, path_to_invalidate):
         """
         Handle invalidation on a getitem quib, correctly choosing whether or not and at what indices to invalidate
         child quibs
         """
-
-        """
-        There are three potentials for get item:
-        1. Both the path to invalidate and the `item` of the getitem are translatable 
-        2. If we're getitem, take where our invalidator quib was invalidated and pass it on to our children
-        3. If we're getitem, equalize where our invalidator quib (which is the quib we're getitem'ing) was invalidated
-        and our indices. If they're the same, drop it from the path and invalidate our children
-        """
         working_component = path_to_invalidate[0]
         getitem_path_component = PathComponent(component=self._args[1], indexed_cls=invalidator_quib.get_type())
-        can_translate = self._represents_translatable_numpy_indexing(getitem_path_component) and self._represents_translatable_numpy_indexing(working_component)
-        if can_translate:
-            # We're both numpy indicing; we can translate!
-            # [This means invalidator was numpy, this getitem's result is numpy array, no fields]
-            return self._translate_and_invalidate(invalidator_quib, path_to_invalidate)
-        elif not issubclass(invalidator_quib.get_type(), np.ndarray) or not issubclass(self.get_type(), np.ndarray):
-            # Our invalidator was NOT a numpy array- we check pure equality and invalidate by that
-            # [this means invalidator was not numpy, this getitem's is anything, potentially fields/indices]
-            return self._check_indices_equality_and_invalidate(path_to_invalidate)
-        elif self._represents_translatable_numpy_indexing(working_component) \
-                != self._represents_translatable_numpy_indexing(getitem_path_component):
-            # Our invalidator DID represent numpy indicing, and WAS a numpy array, we are
-            # [this means invalidator was numpy, this getitem's is numpy, get item is NOT translatable indices, the invalidator's are]
-            self._pass_and_invalidate(path_to_invalidate)
+        if (
+                issubclass(invalidator_quib.get_type(), np.ndarray)
+        ):
+            if (
+                    not getitem_path_component.references_field_in_field_array()
+                    and
+                    not working_component.references_field_in_field_array()
+            ):
+                # This means:
+                # 1. The invalidator quib's result is an ndarray,
+                # 2. Both the path to invalidate and the `item` of the getitem are translatable indices
+                #
+                # Therefore, we translate the indices and invalidate our children with the new indices (which are an
+                # intersection between our getitem and the path to invalidate- if this intersections yields nothing,
+                # we do NOT invalidate our children)
+                return self._translate_and_invalidate(invalidator_quib, path_to_invalidate)
+            elif (
+                    getitem_path_component.references_field_in_field_array()
+                    !=
+                    working_component.references_field_in_field_array()
+                    and
+                    issubclass(self.get_type(), np.ndarray)
+            ):
+                # This means
+                # 1. Both this function quib's result and the invalidator's result are ndarrays
+                # 2. One of the paths references a field in a field array, the other does not
+                #
+                # Therefore, we want to pass on this invalidation path to our children since indices and field names are
+                # interchangeable when indexing structured ndarrays
+                super(TranspositionalQuib, self)._invalidate_with_children(invalidator_quib=self,
+                                                                           path=path_to_invalidate)
+        # We come to our default scenario- if
+        # 1. The invalidator quib is not an ndarray
+        # or
+        # 2. The current getitem is not an ndarray
+        # or
+        # 3. The invalidation is for a field and the current getitem is for a field
+        #
+        # We want to only check equality of the invalidation path and our getitem - essentially saying we don't have
+        # anything to interpret in the invalidation more than simply checking it's equality.
+        # For example, if we have a getitem on a dict, and we are invalidated at the a certain item on the dict,
+        # we simply want to check if the paths are equal (ie if the invalidation is equal to the item in our getitem)
+        #
+        # Number 3 (above) is relavent as well since if we have two keys one after the other,
+        return self._check_first_components_equality_and_invalidate(path_to_invalidate)
 
     def _invalidate_with_children(self, invalidator_quib, path: List[PathComponent]):
-        """
-
-        :param invalidator_quib:
-        :param path:
-        :return:
-        """
-
         """
         There are three things we can potentially do: 
         1. If we're getitem, equalize where our invalidator quib (which is the quib we're getitem'ing) was invalidated
@@ -134,7 +146,8 @@ class TranspositionalQuib(DefaultFunctionQuib):
             # Any other situation ->
             assert issubclass(self.get_type(), np.ndarray)
             if not self._represents_translatable_numpy_indexing(working_component):
-                return self._pass_and_invalidate(path)
+                return super(TranspositionalQuib, self)._invalidate_with_children(invalidator_quib=self,
+                                                                                  path=path)
             return self._translate_and_invalidate(invalidator_quib, path)
 
     @functools.lru_cache()
@@ -160,69 +173,3 @@ class TranspositionalQuib(DefaultFunctionQuib):
             assignment=assignment,
             function_quib=self
         )
-
-
-
-
-
-"""
-{
-    a: np.array()
-}
-
-"""
-# def _invalidate_with_children(self, invalidator_quib, path: List[PathComponent]):
-#     component = path[0]
-#
-#     if self.func == getitem:
-#         # If we're a getitem, there are two options:
-#         # 1. We're both non numpy indexing (meaning we can't create bool masks), so
-#         #   a. If we're equal, invalidate
-#         #   b. If we're not, don't
-#         # 2. We're not BOTH non numpy- continue
-#         getitem_path_component = PathComponent(component=self._args[1], indexed_cls=self.get_type())
-#
-#         if self._represent_non_numpy_indexing(component) and self._represent_non_numpy_indexing(getitem_path_component):
-#             if self.args[1] == component.component or self.args[1] is Ellipsis or component.component is Ellipsis:
-#                 super(TranspositionalQuib, self)._invalidate_with_children(invalidator_quib=self,
-#                                                                            path=[PathComponent(component=...,
-#                                                                                                indexed_cls=self.get_type()),
-#                                                                                  *path[1:]])
-#                 return
-#             else:
-#                 # Do nothing, this is on purpose
-#                 return
-#         else:
-#             if self._represent_non_numpy_indexing(component):
-#                 # The getitem does represent numpy indices- which means we are entirely invalidated, and the key should
-#                 # continue on
-#                 super(TranspositionalQuib, self)._invalidate_with_children(invalidator_quib=self,
-#                                                                            path=path)
-#                 return
-#             else:
-#                 # Continue on, this is on purpose:
-#                 pass
-#
-#     # The component is non numpy indexing- we won't be able to create a bool mask
-#     if self._represent_non_numpy_indexing(component):
-#         super(TranspositionalQuib, self)._invalidate_with_children(invalidator_quib=self,
-#                                                                    path=path)
-#         return
-#
-#     # if self.func == getitem and (component.references_field_in_field_array()
-#     #                              or not issubclass(component.indexed_cls, np.ndarray)):
-#     #     # We can't run normal our operation to get a boolean mask representing new indices, since our key is a
-#     #     # string- this may mean we're a dict, in which case we can't run the boolean mask op,
-#     #     # or we're in a field array, in which case we can't create a boolean mask to work with our key unless we
-#     #     # have the dtype (which we dont')
-#     #     if self.args[1] == component.component:
-#     #         super(TranspositionalQuib, self)._invalidate_with_children(invalidator_quib=self,
-#     #                                                                    path=[PathComponent(component=...,
-#     #                                                                                        indexed_cls=self.get_type()), *path[1:]])
-#     #     return
-#
-#     boolean_mask = self._get_boolean_mask_representing_new_indices_of_quib(invalidator_quib, path[0])
-#     if np.any(boolean_mask):
-#         new_path = [PathComponent(indexed_cls=self.get_type(), component=boolean_mask), *path[1:]]
-#         super(TranspositionalQuib, self)._invalidate_with_children(invalidator_quib=self,
-#                                                                    path=new_path)
