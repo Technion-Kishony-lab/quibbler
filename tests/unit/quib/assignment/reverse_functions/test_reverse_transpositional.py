@@ -6,14 +6,21 @@ from operator import getitem
 from pyquibbler import iquib
 from pyquibbler.quib import TranspositionalQuib
 from pyquibbler.quib.assignment import Assignment
+from pyquibbler.quib.assignment.assignment import PathComponent
 
 
 def reverse(func, indices, value, args, kwargs=None):
+    quib = TranspositionalQuib.create(
+        func=func,
+        func_args=args,
+        func_kwargs=kwargs
+    )
     reversals = TranspositionalQuib.create(
         func=func,
         func_args=args,
         func_kwargs=kwargs
-    ).get_reversals_for_assignment(assignment=Assignment(value=value, path=[indices]))
+    ).get_reversals_for_assignment(assignment=Assignment(value=value, path=[PathComponent(cls=quib.get_type(),
+                                                                                          component=indices)]))
     for reversal in reversals:
         reversal.apply()
 
@@ -58,14 +65,17 @@ def test_reverse_concat_does_not_return_empty_assignments():
     second_quib_arg = iquib(np.array([[8, 12, 14]]))
     new_value = 20
 
-    reversals = TranspositionalQuib.create(
+    quib = TranspositionalQuib.create(
         func=np.concatenate,
         func_args=((first_quib_arg, second_quib_arg),),
-    ).get_reversals_for_assignment(assignment=Assignment(value=np.array([new_value]), path=[(0, 0)]))
+    )
+    reversals = quib.get_reversals_for_assignment(assignment=Assignment(value=np.array([new_value]),
+                                                                        path=[PathComponent(component=(0, 0),
+                                                                                           cls=quib.get_type())]))
 
     assert len(reversals) == 1
     assignment = reversals[0].assignment
-    assert np.array_equal(assignment.path, [(np.array([0]), np.array([0]))])
+    assert np.array_equal(assignment.path[0].component, (np.array([0]), np.array([0])))
     assert assignment.value == [20]
 
 
@@ -110,7 +120,7 @@ def test_reverse_assign_to_sub_array():
     a = iquib(np.array([0, 1, 2]))
     b = a[:2]
 
-    b.assign(Assignment(value=[3, 4], path=[True]))
+    b.assign(Assignment(value=[3, 4], path=[PathComponent(component=True, cls=b)]))
 
     assert np.array_equal(a.get_value(), [3, 4, 2])
 
@@ -120,7 +130,7 @@ def test_reverse_assign_pyobject_array():
     new_mock = mock.Mock()
     b = a[0]
 
-    b.assign(Assignment(value=new_mock, path=[...]))
+    b.assign(Assignment(value=new_mock, path=[PathComponent(component=..., cls=b)]))
 
     assert a.get_value() == [new_mock]
 
@@ -130,7 +140,7 @@ def test_reverse_assign_to_single_element():
     a = iquib(np.array([0, 1, 2]))
     b = a[1]
 
-    b.assign(Assignment(value=3, path=[...]))
+    b.assign(Assignment(value=3, path=[PathComponent(b, ...)]))
 
     assert np.array_equal(a.get_value(), [0, 3, 2])
 
@@ -139,7 +149,7 @@ def test_reverse_assign_repeat():
     q = iquib(3)
     repeated = np.repeat(q, 4)
 
-    repeated.assign(Assignment(value=10, path=[2]))
+    repeated.assign(Assignment(value=10, path=[PathComponent(repeated, 2)]))
 
     assert q.get_value() == 10
 
@@ -148,7 +158,7 @@ def test_reverse_assign_full():
     q = iquib(3)
     repeated = np.full((1, 3), q)
 
-    repeated.assign(Assignment(value=10, path=[[[0], [1]]]))
+    repeated.assign(Assignment(value=10, path=[PathComponent(repeated, [[0], [1]])]))
 
     assert q.get_value() == 10
 
@@ -162,7 +172,7 @@ def test_reverse_assign_field_array(basic_dtype):
     a = iquib(np.array([[("maor", 24)], [("maor2", 22)]], dtype=basic_dtype))
     b = a[[1], [0]]
 
-    b.assign(Assignment(value=23, path=['age']))
+    b.assign(Assignment(value=23, path=[PathComponent(b, 'age')]))
 
     assert np.array_equal(a.get_value(), np.array([[("maor", 24)], [("maor2", 23)]], dtype=basic_dtype))
     assert np.array_equal(b.get_value(), np.array([('maor2', 23)], dtype=basic_dtype))

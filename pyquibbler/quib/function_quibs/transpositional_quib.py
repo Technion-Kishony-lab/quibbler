@@ -42,7 +42,7 @@ class TranspositionalQuib(DefaultFunctionQuib):
                 if q is quib:
                     return create_empty_array_with_values_at_indices(
                         quib.get_shape().get_value(),
-                        path_component=path_component,
+                        indices=path_component.component,
                         value=True,
                         empty_value=False
                     )

@@ -3,13 +3,21 @@ import numpy as np
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, TYPE_CHECKING, List, Union, Tuple
+from typing import Any, TYPE_CHECKING, List, Union, Tuple, Type, Dict
 
 if TYPE_CHECKING:
     from ..quib import Quib
 
 
-PathComponent = Union[str, Tuple, type(Ellipsis)]
+@dataclass
+class PathComponent:
+    cls: Type
+    component: Any
+
+    def references_field_in_field_array(self):
+        return self.cls == np.ndarray and (isinstance(self.component, str)
+                                           or
+                                           (isinstance(self.component, list) and isinstance(self.component[0], str)))
 
 
 @dataclass

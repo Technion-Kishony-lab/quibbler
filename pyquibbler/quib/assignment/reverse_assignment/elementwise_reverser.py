@@ -120,7 +120,7 @@ class ElementWiseReverser(Reverser):
                                   value=value_to_set)
         )]
 
-    def get_reversed_quibs_with_assignments(self) -> List[QuibWithAssignment]:
+    def _get_reversed_quibs_with_assignments(self) -> List[QuibWithAssignment]:
         self.raise_if_multiple_args_have_common_ancestor()
 
         quib_to_change = self._get_quibs_in_args()[0]

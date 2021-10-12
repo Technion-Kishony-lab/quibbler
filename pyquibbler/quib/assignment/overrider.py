@@ -18,13 +18,13 @@ def deep_assign_data_with_paths(data: Any, path: List[PathComponent], value: Any
 
     elements = [data]
     for component in pre_components:
-        last_element = elements[-1][component]
+        last_element = elements[-1][component.component]
         elements.append(last_element)
 
     last_element = value
     for i, component in enumerate(reversed(path)):
         new_element = elements[-(i + 1)]
-        if component is ...:
+        if component.component is ...:
             # We manually do this even though numpy would have supported this (ie x[...] = v would
             # have set all values to x, even in a zero dimension array (which any type in numpy represents)),
             # but since we might not be with a numpy type we need to do it ourselves- we simply switch last_element
@@ -34,7 +34,7 @@ def deep_assign_data_with_paths(data: Any, path: List[PathComponent], value: Any
             if isinstance(component, tuple) and not isinstance(new_element, np.ndarray):
                 # We can't access a regular list with a tuple, so we're forced to convert to a numpy array
                 new_element = np.array(new_element)
-            new_element[component] = last_element
+            new_element[component.component] = last_element
         last_element = new_element
     return last_element
 
