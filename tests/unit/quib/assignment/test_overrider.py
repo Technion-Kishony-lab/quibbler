@@ -53,8 +53,8 @@ def test_overrider_with_field_assignment_and_indices(overrider):
 
 
 def test_overrider_remove_assignment(overrider):
-    overrider.add_assignment(Assignment(value=[1, 1], paths=[...]))
-    overrider.remove_assignment([1])
+    overrider.add_assignment(Assignment(value=[1, 1], path=[PathComponent(component=..., indexed_cls=list)]))
+    overrider.remove_assignment([PathComponent(component=1, indexed_cls=list)])
     new_data = overrider.override([0, 0])
 
     assert new_data == [1, 0]
