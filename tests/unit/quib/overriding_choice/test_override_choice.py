@@ -76,7 +76,7 @@ def parent_and_child(assignment):
     child: Quib = parent + add
     child_override = OverrideGroup([QuibWithAssignment(child, assignment)])
     parent_override = OverrideGroup([QuibWithAssignment(parent, Assignment(assignment.value - add, [...]))],
-                                    [OverrideRemoval(child, [...])])  # TODO: a more complicated path
+                                    [OverrideRemoval(child, [...])])
     return parent, child, parent_override, child_override
 
 
@@ -285,6 +285,3 @@ def test_get_overrides_for_assignment_does_not_use_cache_when_options_change(ass
     second_override_group = get_overrides_for_assignment(child, assignment2)
 
     assert second_override_group == OverrideGroup([QuibWithAssignment(child, assignment2)])
-
-# TODO: Test override removal generation
-# TODO: Test get_overrides_for_assignment_group

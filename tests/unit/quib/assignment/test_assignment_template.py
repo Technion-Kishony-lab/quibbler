@@ -1,3 +1,4 @@
+import numpy as np
 from typing import Any
 from pytest import mark, raises
 
@@ -77,6 +78,9 @@ def test_assignment_template_convert(data, expected):
     (RangeAssignmentTemplate(-0.3, 0.4, 0.3), 0.6, 0.3),
     (RangeAssignmentTemplate(-0.3, 0.4, 0.3), 1., 0.3),
     (RangeAssignmentTemplate(-0.3, -0.3, 0.3), 1., -0.3),
+
+    # Regression - range ndarray
+    (RangeAssignmentTemplate(np.array(-0.3), np.array(-0.3), np.array(0.3)), np.array(1.), np.array(-0.3)),
 ])
 def test_casting_assignment_template(template, data, expected):
     result = template.convert(data)

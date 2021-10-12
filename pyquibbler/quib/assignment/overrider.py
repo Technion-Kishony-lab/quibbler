@@ -71,7 +71,8 @@ class Overrider:
         """
         Remove overriding in a specific path.
         """
-        self._assignments.append(AssignmentRemoval(path))
+        if self._assignments:
+            self._assignments.append(AssignmentRemoval(path))
 
     def override(self, data: Any, assignment_template: Optional[AssignmentTemplate] = None):
         """
