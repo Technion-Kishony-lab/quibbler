@@ -5,7 +5,8 @@ from operator import getitem
 from typing import Dict, List, TYPE_CHECKING, Union, Callable, Any
 
 from pyquibbler.quib.assignment import Assignment
-from pyquibbler.quib.assignment.reverse_assignment.utils import create_empty_array_with_values_at_indices
+from pyquibbler.quib.assignment.reverse_assignment.utils import create_empty_array_with_values_at_indices, \
+    deep_get_until_field
 from pyquibbler.quib.utils import recursively_run_func_on_object, call_func_with_quib_values, \
     iter_objects_of_type_in_object_shallowly
 
@@ -77,7 +78,7 @@ class TranspositionalReverser(Reverser):
         same shape as the result
         """
         return create_empty_array_with_values_at_indices(self._function_quib.get_shape().get_value(),
-                                                         indices=self._working_indices,
+                                                         path_component=self.squashed_path[0],
                                                          value=True, empty_value=False)
 
     def _get_quibs_to_index_grids(self) -> Dict[Quib, np.ndarray]:
@@ -217,8 +218,25 @@ class TranspositionalReverser(Reverser):
             ))
         return quibs_with_assignments
 
+    def _is_getitem_with_field(self):
+        """
+        Check's whether we have at hand a function quib which represents a __getitem__ with the indices being a string
+        """
+        from pyquibbler.quib import Quib
+        return self._func == getitem \
+               and (isinstance(self._args[1], str) or (isinstance(self._args[1], list)
+                                                       and isinstance(self._args[1][0], str))) \
+               and isinstance(self._args[0], Quib)
+
+    def _is_getitem_of_quib_list(self):
+        """
+        Check's whether we have at hand a function quib which represents a __getitem__ with the indices being a string
+        """
+        from pyquibbler.quib import Quib
+        return self._func == getitem and isinstance(self._args[0], Quib) and issubclass(self._args[0].get_type(), list)
+
     def get_reversed_quibs_with_assignments(self) -> List[QuibWithAssignment]:
-        if self._func == getitem:
+        if self._func == getitem and (self._is_getitem_of_quib_list() or self._is_getitem_with_field()):
             return self._build_quibs_with_assignments_for_getitem()
 
         return self._build_quibs_with_assignments_for_generic_case()

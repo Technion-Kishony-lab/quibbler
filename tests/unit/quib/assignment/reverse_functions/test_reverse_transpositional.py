@@ -249,3 +249,13 @@ def test_reverse_getitem_on_non_view_slice():
     a[[0, 2]][0] = 3
 
     assert np.array_equal(a.get_value(), [3, 1, 2])
+
+
+def test_reverse_getitem_on_dict_and_rot90():
+    a = iquib([[1, 2, 3]])
+    rot90 = np.rot90(a)
+    get_item = rot90[0]
+
+    get_item[0] = 20
+
+    assert np.array_equal(a.get_value(), [[1, 2, 20]])

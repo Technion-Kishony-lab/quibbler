@@ -134,3 +134,13 @@ def test_elementwise_always_picks_first_quib():
 
     reverse(second_quib + first_quib, 7, [...])
     assert second_quib.get_value() == 4
+
+
+def test_elementwise_with_deep_path():
+    first_quib = iquib([[1, 2, 3]])
+    sum_quib = ElementWiseQuib.create(func=np.add, func_args=(first_quib, 1))
+    getitem_quib = sum_quib[0]
+
+    reverse(getitem_quib, path=[0], value=0)
+
+    assert np.array_equal(first_quib.get_value(), [-1, 2, 3])

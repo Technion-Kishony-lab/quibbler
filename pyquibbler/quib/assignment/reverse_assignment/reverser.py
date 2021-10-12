@@ -70,7 +70,7 @@ class Reverser(ABC):
         """
         return create_empty_array_with_values_at_indices(
             self._function_quib.get_shape().get_value(),
-            indices=self._working_indices,
+            path_component=self._assignment.path[0],
             value=self._value,
         )
 
