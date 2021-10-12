@@ -8,7 +8,7 @@ from pyquibbler.quib.assignment import Assignment
 from pyquibbler.quib.utils import call_func_with_quib_values
 
 from .exceptions import CommonAncestorBetweenArgumentsException
-from ..assignment import QuibWithAssignment
+from ..assignment import QuibWithAssignment, PathComponent
 
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib
@@ -116,7 +116,8 @@ class ElementWiseReverser(Reverser):
 
         return [QuibWithAssignment(
             quib=quib_to_change,
-            assignment=Assignment(path=[changed_indices],
+            assignment=Assignment(path=[PathComponent(indexed_cls=self._function_quib.get_type(),
+                                                      component=changed_indices)],
                                   value=value_to_set)
         )]
 

@@ -6,6 +6,7 @@ from operator import __pow__
 from pyquibbler import iquib
 from pyquibbler.quib import ElementWiseQuib, FunctionQuib
 from pyquibbler.quib.assignment import Assignment
+from pyquibbler.quib.assignment.assignment import PathComponent
 from pyquibbler.quib.assignment.reverse_assignment.elementwise_reverser import CommonAncestorBetweenArgumentsException
 
 
@@ -59,10 +60,8 @@ def reverse(function_quib: FunctionQuib, value, path):
                                            iquib(np.array([5, 5, 5])))),
      ([0]), 5, 1, np.array([4, 5, 5]),
      ),
-    (ElementWiseQuib.create(func=__pow__,
-                                func_args=(iquib(10), 2)), ..., 10_000, 0, 100),
-    (ElementWiseQuib.create(func=__pow__,
-                                func_args=(10, iquib(1))), ..., 100, 1, 2)
+    (ElementWiseQuib.create(func=__pow__, func_args=(iquib(10), 2)), ..., 10_000, 0, 100),
+    (ElementWiseQuib.create(func=__pow__, func_args=(10, iquib(1))), ..., 100, 1, 2)
 
 ], ids=[
     "add: simple",
@@ -76,7 +75,7 @@ def reverse(function_quib: FunctionQuib, value, path):
     "power: first arg is quib",
     "power: second arg is quib"])
 def test_reverse_elementwise(function_quib: FunctionQuib, indices, value, quib_arg_index, expected_value):
-    reverse(function_quib, value, [indices])
+    reverse(function_quib, value, [PathComponent(component=indices, indexed_cls=function_quib.get_type())])
 
     value = function_quib.args[quib_arg_index].get_value()
     if isinstance(expected_value, Iterable):
