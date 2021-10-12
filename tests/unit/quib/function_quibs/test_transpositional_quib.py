@@ -105,3 +105,18 @@ def test_invalidate_and_redraw_on_dict_after_index(
     quib.invalidate_and_redraw(path=[PathComponent(component=2, indexed_cls=quib.get_type())])
 
     assert not third_quib.is_cache_valid
+
+
+def test_invalidate_and_redraw_with_expanding_shape():
+    dtype = [('nested', [('child_name', np.unicode, 30)], (2,))]
+    starting_quib = iquib(np.array(['Yechiel', "Yossiel"], dtype=dtype))
+    nested_quib = starting_quib['nested']
+    children = nested_quib['child_name']
+    first_row = children[1]
+    child = first_row[0]
+    child.get_value()
+
+    starting_quib.invalidate_and_redraw(path=[PathComponent(component=0, indexed_cls=starting_quib.get_type())])
+
+    assert child.is_cache_valid
+
