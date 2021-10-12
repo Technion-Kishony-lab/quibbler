@@ -80,7 +80,7 @@ class TranspositionalReverser(Reverser):
         """
         return create_empty_array_with_values_at_indices(self._function_quib.get_shape().get_value(),
                                                      indices=self._working_indices, value=True, empty_value=False)
-    
+
     def _get_quibs_to_index_grids(self) -> Dict[Quib, np.ndarray]:
         """
         Get a mapping between quibs and their indices grid
@@ -221,20 +221,28 @@ class TranspositionalReverser(Reverser):
             ))
         return quibs_with_assignments
 
-    def _next_path_is_fancy_indexing(self):
+    def _next_path_component_has_translatable_np_indices(self):
         """
         Check's whether we have at hand a function quib which represents a __getitem__ with the indices being fancy
         indexes
         """
-        return issubclass(self._function_quib.get_type(), np.ndarray)  \
-               and not self._assignment.path[0].references_field_in_field_array()
+        return (issubclass(self._function_quib.get_type(), np.ndarray)
+                and not self._assignment.path[0].references_field_in_field_array())
 
     def _is_getitem_with_field(self):
         return \
             PathComponent(indexed_cls=self._function_quib.get_type(), component=self._args[1]).references_field_in_field_array()
 
     def get_reversed_quibs_with_assignments(self) -> List[QuibWithAssignment]:
-        if self._func == getitem and (not self._next_path_is_fancy_indexing() or self._is_getitem_with_field()):
+        if (self._func == getitem and
+                (
+                        not self._next_path_component_has_translatable_np_indices()
+                        or
+                        self._is_getitem_with_field()
+                )
+        ):
+            # We are a getitem and can't translate the indices- simply add the getitem's item as the first item
+            # before the rest of the path
             return self._build_quibs_with_assignments_for_getitem()
 
         return self._build_quibs_with_assignments_for_generic_case()
