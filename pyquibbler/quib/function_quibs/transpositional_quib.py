@@ -57,7 +57,7 @@ class TranspositionalQuib(DefaultFunctionQuib):
         return call_func_with_quib_values(self._func, new_arguments, self._kwargs)
 
     def _represent_non_numpy_indexing(self, component):
-        return not component.references_field_in_field_array() and issubclass(component.indexed_cls, np.ndarray)
+        return not issubclass(component.indexed_cls, np.ndarray) or component.references_field_in_field_array()
 
     def _invalidate_with_children(self, invalidator_quib, path: List[PathComponent]):
         component = path[0]
@@ -69,8 +69,9 @@ class TranspositionalQuib(DefaultFunctionQuib):
             #   b. If we're not, don't
             # 2. We're not BOTH non numpy- continue
             getitem_path_component = PathComponent(component=self._args[1], indexed_cls=self.get_type())
+
             if self._represent_non_numpy_indexing(component) and self._represent_non_numpy_indexing(getitem_path_component):
-                if self.args[1] == component.component:
+                if self.args[1] == component.component or self.args[1] is Ellipsis or component.component is Ellipsis:
                     super(TranspositionalQuib, self)._invalidate_with_children(invalidator_quib=self,
                                                                                path=[PathComponent(component=...,
                                                                                                    indexed_cls=self.get_type()),
@@ -85,12 +86,10 @@ class TranspositionalQuib(DefaultFunctionQuib):
                     # continue on
                     super(TranspositionalQuib, self)._invalidate_with_children(invalidator_quib=self,
                                                                                path=path)
+                    return
                 else:
-                    # The component invalidating does represent numpy indices, we don't- which means we need to send the path
-                    # on
-                    super(TranspositionalQuib, self)._invalidate_with_children(invalidator_quib=self,
-                                                                               path=path)
-                return
+                    # Continue on, this is on purpose:
+                    pass
 
         # The component is non numpy indexing- we won't be able to create a bool mask
         if self._represent_non_numpy_indexing(component):
