@@ -5,6 +5,6 @@ from .input_quib import iquib
 from .operator_overriding import override_quib_operators
 from .quib import Quib, OverridingNotAllowedException, QuibIsNotNdArrayException
 from .assignment import Assignment
-from .override_choice import CannotAssignException, get_overrides_for_assignment, get_overrides_for_assignment_group
+from .override_choice import AssignmentNotPossibleException, get_overrides_for_assignment, get_overrides_for_assignment_group
 
 override_quib_operators()

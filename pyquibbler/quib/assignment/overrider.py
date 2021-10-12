@@ -4,7 +4,7 @@ from typing import Any, List, Optional, Iterable, Union
 
 from .assignment import Assignment, AssignmentPath
 from .assignment_template import AssignmentTemplate
-from ..utils import deep_copy_without_quibs_or_artists
+from ..utils import deep_copy_without_quibs_or_artists, recursively_run_func_on_object
 
 
 @dataclass
@@ -16,7 +16,6 @@ def get_sub_data_from_object_in_path(obj: Any, path: List[AssignmentPath]):
     """
     Get the data from an object in a given path.
     """
-    path = path[:]
     for component in path:
         obj = obj[component]
     return obj
@@ -93,6 +92,26 @@ class Overrider:
                 data = deep_assign_data_with_paths(data, path, value)
 
         return data
+
+    def fill_override_mask(self, false_mask):
+        """
+        Given a mask in the desired shape with all values set to False, update it so
+        all cells in overridden indexes will be set to True.
+        """
+        mask = false_mask
+        for assignment in self:
+            if isinstance(assignment, AssignmentRemoval):
+                path=  assignment.path
+                val = False
+            else:
+                path = assignment.paths
+                val = True
+            if isinstance(path[-1], slice):
+                inner_data = get_sub_data_from_object_in_path(mask, path[:-1])
+                if not isinstance(inner_data, np.ndarray):
+                    val = recursively_run_func_on_object(lambda x: val, inner_data)
+            mask = deep_assign_data_with_paths(mask, path, val)
+        return mask
 
     def __getitem__(self, item) -> Assignment:
         return self._assignments[item]

@@ -28,7 +28,8 @@ class TranspositionalReverser(Reverser):
         np.repeat: {0},
         np.full: {1},
         getitem: {0},
-        np.reshape: {0}
+        np.reshape: {0},
+        np.ravel: {0}
     }
 
     SUPPORTED_FUNCTIONS = list(SUPPORTED_FUNCTIONS_TO_POTENTIALLY_CHANGED_QUIB_INDICES.keys())

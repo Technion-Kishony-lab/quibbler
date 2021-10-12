@@ -1,9 +1,8 @@
 from typing import Any, Callable, Dict
 from unittest.mock import Mock
-from pytest import fixture, mark
+from pytest import fixture, mark, raises
 
-from pyquibbler.quib.assignment import QuibWithAssignment
-from pyquibbler.quib.override_choice import override_dialog
+from pyquibbler.quib.override_choice import override_dialog, AssignmentCancelledByUserException
 
 
 @fixture
@@ -37,15 +36,14 @@ def override_show_fig_with_button_press(monkeypatch, button_label: str, callback
 
 @fixture
 def override_options():
-    return [QuibWithAssignment(Mock(), Mock()), QuibWithAssignment(Mock(), Mock())]
+    return [Mock(), Mock()]
 
 
 @mark.parametrize('can_diverge', [True, False])
 def test_override_dialog_cancel_button(monkeypatch, override_options, can_diverge, button_callbacks):
     override_show_fig_with_button_press(monkeypatch, 'Cancel', button_callbacks)
-    result = override_dialog.choose_override_dialog(override_options, can_diverge)
-
-    assert result.choice_type is override_dialog.OverrideChoiceType.CANCEL
+    with raises(AssignmentCancelledByUserException):
+        override_dialog.choose_override_dialog(override_options, can_diverge)
 
 
 @mark.parametrize('can_diverge', [True, False])
@@ -54,7 +52,7 @@ def test_override_dialog_override_button(monkeypatch, override_options, can_dive
     result = override_dialog.choose_override_dialog(override_options, can_diverge)
 
     assert result.choice_type is override_dialog.OverrideChoiceType.OVERRIDE
-    assert result.chosen_override in override_options
+    assert result.chosen_index == 0
 
 
 def test_override_dialog_diverge_button(monkeypatch, override_options, button_callbacks):
