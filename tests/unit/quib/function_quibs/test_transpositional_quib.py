@@ -181,3 +181,36 @@ def test_invalidate_and_redraw_with_double_field_keys_invalidates(quib_with_nest
                                                      ])
 
     assert not child.is_cache_valid
+
+
+def test_invalidate_and_redraw_multiple_getitems():
+    quib = iquib(np.array([1, 2, 3, 4, 5]))
+    child = quib[1:4][2:3]
+    child.get_value()
+
+    quib.invalidate_and_redraw(path=[PathComponent(component=3,
+                                                   indexed_cls=np.ndarray),])
+
+    assert not child.is_cache_valid
+
+
+def test_invalidate_and_redraw_with_dict_and_ndarrays_within():
+    quib = iquib({
+        'a': np.array([{
+            'c': 'd'
+        }]),
+    })
+    child = quib['a'][0]['c']
+    child.get_value()
+
+    quib.invalidate_and_redraw(path=[PathComponent(component="a",
+                                                   indexed_cls=dict),
+                                     PathComponent(component=0,
+                                                   indexed_cls=np.ndarray),
+                                     PathComponent(
+                                         component='c',
+                                         indexed_cls=dict
+                                     )
+                                     ])
+
+    assert not child.is_cache_valid

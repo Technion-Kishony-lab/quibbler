@@ -65,7 +65,10 @@ class TranspositionalQuib(DefaultFunctionQuib):
     def _translate_and_invalidate(self, invalidator_quib, path):
         boolean_mask = self._get_boolean_mask_representing_new_indices_of_quib(invalidator_quib, path[0])
         if np.any(boolean_mask):
-            new_path = [PathComponent(indexed_cls=self.get_type(), component=boolean_mask), *path[1:]]
+            new_path = path[1:]
+            assert np.all(boolean_mask) or issubclass(self.get_type(), np.ndarray)
+            if not np.all(boolean_mask) and issubclass(self.get_type(), np.ndarray):
+                new_path = [PathComponent(indexed_cls=self.get_type(), component=boolean_mask), *path[1:]]
             super(TranspositionalQuib, self)._invalidate_with_children(invalidator_quib=self,
                                                                        path=new_path)
 
