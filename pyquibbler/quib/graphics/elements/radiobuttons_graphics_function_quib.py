@@ -8,7 +8,7 @@ class RadioButtonsGraphicsFunctionQuib(GraphicsFunctionQuib):
     A quib representing a matplotlib.widgets.RadioButtons. Will automatically add a listener and update the relevant quib
     """
 
-    def _on_change(self, new_value: float):
+    def _on_change(self, new_value: str):
         valindex = self._kwargs.get('active')
         if isinstance(valindex, Quib):
             labels = self._kwargs.get('labels')
