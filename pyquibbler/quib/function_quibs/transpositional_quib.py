@@ -66,7 +66,8 @@ class TranspositionalQuib(DefaultFunctionQuib):
             # have the dtype (which we dont')
             if self.args[1] == component.component:
                 super(TranspositionalQuib, self)._invalidate_with_children(invalidator_quib=self,
-                                                                           path=path)
+                                                                           path=[PathComponent(component=...,
+                                                                                               indexed_cls=self.get_type()), *path[1:]])
             return
 
         boolean_mask = self._get_boolean_mask_representing_new_indices_of_quib(invalidator_quib, path[0])

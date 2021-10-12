@@ -82,6 +82,18 @@ def test_invalidate_and_redraw_on_dict2(
     assert second_quib.is_cache_valid
 
 
+def test_invalidate_and_redraw_on_inner_list(
+):
+    quib = iquib({"a": np.array([[0, 2]])})
+    second_quib = quib["a"]
+    third_quib = second_quib[(0, 0)]
+    third_quib.get_value()
+
+    quib.invalidate_and_redraw(path=[PathComponent(indexed_cls=quib.get_type(), component="a")])
+
+    assert not third_quib.is_cache_valid
+
+
 def test_invalidate_and_redraw_on_dict_after_index(
 ):
     quib = iquib([1, 2, {
