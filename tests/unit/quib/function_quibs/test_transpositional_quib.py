@@ -169,7 +169,7 @@ def test_invalidate_and_redraw_with_expanding_shape_should_invalidate(quib_with_
     assert not child.is_cache_valid
 
 
-def test_invalidate_and_redraw_pasten(quib_with_nested_arr, children):
+def test_invalidate_and_redraw_with_double_field_keys_invalidates(quib_with_nested_arr, children):
     first_row = children[0]
     child = first_row[0]
     child.get_value()
