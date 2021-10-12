@@ -1,9 +1,14 @@
+import numpy as np
 from abc import ABC, abstractmethod
 from math import floor
 from typing import Any
 from dataclasses import dataclass
 
 from pyquibbler.exceptions import DebugException
+
+CONSTRUCTORS = {
+    np.ndarray: np.array
+}
 
 
 @dataclass
@@ -87,4 +92,5 @@ class RangeAssignmentTemplate(AssignmentTemplate):
     def _convert_number(self, number: Any):
         rounded = round((number - self.start) / self.step)
         bound = get_number_in_bounds(rounded, 0, floor((self.stop - self.start) / self.step))
-        return type(number)(self.start + bound * self.step)
+        constructor = CONSTRUCTORS.get(type(number), type(number))
+        return constructor(self.start + bound * self.step)
