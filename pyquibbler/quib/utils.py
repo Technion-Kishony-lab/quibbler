@@ -152,10 +152,14 @@ def copy_and_replace_quibs_with_vals(obj: Any):
             equal = not (expected != result)
         except ValueError as e:
             if "The truth value of an array" in str(e):
-                # TODO fix
-                equal = True
+                try:
+                    np.testing.assert_equal(expected, result)
+                except AssertionError:
+                    equal = False
+                else:
+                    equal = True
             else:
-                raise
+                equal = False
 
         if not equal:
             raise NestedQuibException.create_from_object(obj)
