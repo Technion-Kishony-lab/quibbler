@@ -6,7 +6,7 @@ from typing import Dict, List, TYPE_CHECKING, Union, Callable, Any
 
 from pyquibbler.quib.assignment import Assignment
 from pyquibbler.quib.assignment.reverse_assignment.utils import create_empty_array_with_values_at_indices, \
-    deep_get_until_field
+    deep_get_until_field, deep_get
 from pyquibbler.quib.utils import recursively_run_func_on_object, call_func_with_quib_values, \
     iter_objects_of_type_in_object_shallowly
 
@@ -78,7 +78,7 @@ class TranspositionalReverser(Reverser):
         same shape as the result
         """
         return create_empty_array_with_values_at_indices(self._function_quib.get_shape().get_value(),
-                                                         path_component=self.squashed_path[0],
+                                                         path_component=self._working_indices,
                                                          value=True, empty_value=False)
 
     def _get_quibs_to_index_grids(self) -> Dict[Quib, np.ndarray]:
@@ -235,8 +235,37 @@ class TranspositionalReverser(Reverser):
         from pyquibbler.quib import Quib
         return self._func == getitem and isinstance(self._args[0], Quib) and issubclass(self._args[0].get_type(), list)
 
+    def squash_path(self):
+
+        def is_field_path(c):
+            return isinstance(c, str) or (isinstance(c, list) and isinstance(c[0], str))
+
+        new_path = []
+        current_component = None
+        i = 0
+        indices_grid = np.indices(self._function_quib.get_shape().get_value())
+        while i < len(self._assignment.path):
+            component = self._assignment.path[i]
+            if is_field_path(component):
+                if current_component is not None:
+                    new_path.append(current_component)
+                    current_component = None
+                new_path.append(component)
+            else:
+                path_for_indices = [current_component, component] if current_component is not None else [component]
+                new_indices = []
+                for indices in indices_grid:
+                    new_indices.append(deep_get(indices, path_for_indices))
+                current_component = tuple(new_indices)
+
+            i += 1
+        if current_component is not None:
+            new_path.append(current_component)
+        return new_path
+
     def get_reversed_quibs_with_assignments(self) -> List[QuibWithAssignment]:
-        if self._func == getitem and (self._is_getitem_of_quib_list() or self._is_getitem_with_field()):
+        if self._func == getitem:
             return self._build_quibs_with_assignments_for_getitem()
 
+        self._assignment.path = self.squash_path()
         return self._build_quibs_with_assignments_for_generic_case()

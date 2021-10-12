@@ -29,5 +29,10 @@ def deep_get_until_field(data: Any, path: List[PathComponent]):
     return data
 
 
+def deep_get(data: Any, path: List[PathComponent]):
+    for component in path:
+        data = data[component]
+    return data
+
 def squash_path(shape: Tuple, path: List[PathComponent]):
     pass
