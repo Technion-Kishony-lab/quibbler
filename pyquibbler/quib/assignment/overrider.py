@@ -2,53 +2,53 @@ import numpy as np
 from dataclasses import dataclass
 from typing import Any, List, Optional, Iterable, Union
 
-from .assignment import Assignment, AssignmentPath
+from .assignment import Assignment, PathComponent, PathComponent
 from .assignment_template import AssignmentTemplate
 from ..utils import deep_copy_without_quibs_or_artists, recursively_run_func_on_object
 
 
 @dataclass
 class AssignmentRemoval:
-    path: List[AssignmentPath]
+    path: List[PathComponent]
 
 
-def get_sub_data_from_object_in_path(obj: Any, path: List[AssignmentPath]):
+def get_sub_data_from_object_in_path(obj: Any, path: List[PathComponent]):
     """
     Get the data from an object in a given path.
     """
     for component in path:
-        obj = obj[component]
+        obj = obj[component.component]
     return obj
 
 
-def deep_assign_data_with_paths(data: Any, paths: List[AssignmentPath], value: Any):
+def deep_assign_data_with_paths(data: Any, path: List[PathComponent], value: Any):
     """
     Go path by path setting value, each time ensuring we don't lost copied values (for example if there was
     fancy indexing) by making sure to set recursively back anything that made an assignment/
     We don't do this recursively for performance reasons- there could potentially be a very long string of
     assignments given to the user's whims
     """
-    *pre_paths, last_path = paths
+    *pre_components, last_component = path
 
     elements = [data]
-    for path in pre_paths:
-        last_element = elements[-1][path]
+    for component in pre_components:
+        last_element = elements[-1][component.component]
         elements.append(last_element)
 
     last_element = value
-    for i, path in enumerate(reversed(paths)):
+    for i, component in enumerate(reversed(path)):
         new_element = elements[-(i + 1)]
-        if path is ...:
+        if component.component is ...:
             # We manually do this even though numpy would have supported this (ie x[...] = v would
             # have set all values to x, even in a zero dimension array (which any type in numpy represents)),
             # but since we might not be with a numpy type we need to do it ourselves- we simply switch last_element
             # to be the new element and by this we set the whole thing
             new_element = last_element
         else:
-            if isinstance(path, tuple) and not isinstance(new_element, np.ndarray):
+            if isinstance(component.component, tuple) and not isinstance(new_element, np.ndarray):
                 # We can't access a regular list with a tuple, so we're forced to convert to a numpy array
                 new_element = np.array(new_element)
-            new_element[path] = last_element
+            new_element[component.component] = last_element
         last_element = new_element
     return last_element
 
@@ -67,7 +67,7 @@ class Overrider:
         """
         self._assignments.append(assignment)
 
-    def remove_assignment(self, path: List[AssignmentPath]):
+    def remove_assignment(self, path: List[PathComponent]):
         """
         Remove overriding in a specific path.
         """
@@ -89,7 +89,7 @@ class Overrider:
                 else:
                     value = assignment.value if assignment_template is None \
                         else assignment_template.convert(assignment.value)
-                    path = assignment.paths
+                    path = assignment.path
                 data = deep_assign_data_with_paths(data, path, value)
 
         return data
@@ -102,12 +102,12 @@ class Overrider:
         mask = false_mask
         for assignment in self:
             if isinstance(assignment, AssignmentRemoval):
-                path=  assignment.path
+                path = assignment.path
                 val = False
             else:
-                path = assignment.paths
+                path = assignment.path
                 val = True
-            if isinstance(path[-1], slice):
+            if isinstance(path[-1].component, slice):
                 inner_data = get_sub_data_from_object_in_path(mask, path[:-1])
                 if not isinstance(inner_data, np.ndarray):
                     val = recursively_run_func_on_object(lambda x: val, inner_data)

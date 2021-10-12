@@ -1,6 +1,10 @@
+from operator import getitem
+from unittest import mock
+
+import numpy as np
 from pytest import fixture, mark
 
-from pyquibbler import iquib, CacheBehavior
+from pyquibbler import iquib, CacheBehavior, Assignment
 from pyquibbler.quib import DefaultFunctionQuib
 
 
@@ -75,3 +79,18 @@ def test_overrides_do_not_mutate_internal_cache(default_function_quib, function_
     default_function_quib.get_value()
 
     assert function_mock_return_val[0] is not new_val
+
+
+def test_invalidation_invalidates_quib_when_needed():
+    quib = iquib(np.array([[1, 2, 3]]))
+    function_quib = DefaultFunctionQuib.create(
+        func=mock.Mock(),
+        func_args=(quib, 1)
+    )
+    mock_dependant_quib = DefaultFunctionQuib.create(
+        func=mock.Mock(),
+        func_args=(function_quib,)
+    )
+    function_quib.invalidate_and_redraw_at_path(path=[(0, 0)])
+
+    assert not mock_dependant_quib.is_cache_valid

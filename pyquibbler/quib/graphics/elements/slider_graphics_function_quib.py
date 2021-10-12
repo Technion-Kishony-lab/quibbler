@@ -1,5 +1,6 @@
 from pyquibbler.quib import GraphicsFunctionQuib, Quib
 from pyquibbler.quib.assignment import Assignment
+from pyquibbler.quib.assignment.assignment import PathComponent
 from pyquibbler.quib.utils import quib_method
 
 
@@ -11,8 +12,8 @@ class SliderGraphicsFunctionQuib(GraphicsFunctionQuib):
     def _on_change(self, new_value: float):
         val = self._kwargs.get('valinit')
         if isinstance(val, Quib):
-            val.assign(Assignment(value=new_value, paths=[...]))
-        self.invalidate_and_redraw()
+            val.assign(Assignment(value=new_value, path=[PathComponent(component=...,
+                                                                       indexed_cls=val.get_type())]))
         return val
 
     def _call_func(self):

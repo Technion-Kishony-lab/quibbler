@@ -2,7 +2,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import List, TYPE_CHECKING, Union
 
-from pyquibbler.quib.assignment import QuibWithAssignment, AssignmentPath
+from pyquibbler.quib.assignment import QuibWithAssignment
+from pyquibbler.quib.assignment.assignment import PathComponent
 
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib
@@ -20,14 +21,14 @@ class OverrideRemoval:
     Removal of overrides in a specific path on a specific quib.
     """
     quib: Quib
-    path: List[AssignmentPath]
+    path: List[PathComponent]
 
     def apply(self):
         self.quib.remove_override(self.path)
 
     @classmethod
     def from_reversal(cls, reversal: QuibWithAssignment):
-        return cls(reversal.quib, reversal.assignment.paths)
+        return cls(reversal.quib, reversal.assignment.path)
 
 
 @dataclass

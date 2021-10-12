@@ -4,6 +4,7 @@ from unittest.mock import Mock
 from pytest import fixture, mark
 from pyquibbler import iquib
 from pyquibbler.quib import FunctionQuib, Assignment
+from pyquibbler.quib.assignment.assignment import PathComponent
 
 from ..utils import get_mock_with_repr
 
@@ -83,7 +84,7 @@ def test_assign_with_unknown_function_overrides(function_wrapper, function_mock_
     expected_value = np.array(function_mock_return_val)
     expected_value[index] = new_value
 
-    q.assign(Assignment(value=new_value, paths=[index]))
+    q.assign(Assignment(value=new_value, path=[PathComponent(component=index, indexed_cls=q.get_type())]))
 
     assert np.array_equal(q.get_value(), expected_value)
 

@@ -1,3 +1,5 @@
 from .default_function_quib import DefaultFunctionQuib
 from .function_quib import FunctionQuib, CacheBehavior
 from .impure_function_quib import ImpureFunctionQuib, InvalidCacheBehaviorForImpureFunctionQuibException
+from .elementwise_quib import ElementWiseQuib
+from .transpositional_quib import TranspositionalQuib

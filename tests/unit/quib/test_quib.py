@@ -8,6 +8,7 @@ from pytest import mark, raises, fixture
 
 from pyquibbler.quib import Quib, OverridingNotAllowedException
 from pyquibbler.quib.assignment import RangeAssignmentTemplate, BoundAssignmentTemplate, Assignment
+from pyquibbler.quib.assignment.assignment import PathComponent
 from pyquibbler.quib.graphics import GraphicsFunctionQuib
 from pyquibbler.quib.graphics.global_collecting import QuibDependencyCollector
 from pyquibbler.quib.operator_overriding import ARITHMETIC_OVERRIDES, UNARY_OVERRIDES
@@ -22,8 +23,9 @@ class ExampleQuib(Quib):
         self.value = value
         self.invalidate_count = 0
 
-    def _invalidate(self):
+    def _invalidate_quib_with_children_at_path(self, invalidator_quib, path_component):
         self.invalidate_count += 1
+        super(ExampleQuib, self)._invalidate_quib_with_children_at_path(invalidator_quib, path_component)
 
     def _get_inner_value(self):
         return self.value
@@ -51,7 +53,7 @@ def test_quib_invalidate_and_redraw_calls_graphics_function_quib_children(exampl
     quib = GraphicsFunctionQuib(func=mock_func, args=tuple(), kwargs={}, artists=[], cache_behavior=None)
     example_quib.add_child(quib)
 
-    example_quib.invalidate_and_redraw()
+    example_quib.invalidate_and_redraw_at_path(path=[...])
 
     mock_func.assert_called_once()
 
@@ -62,7 +64,7 @@ def test_quib_invalidate_and_redraw_calls_graphics_function_quib_children(exampl
     (1., 2),
     (1, 2.)
 ])
-@mark.parametrize('operator_name', {override[0] for override in ARITHMETIC_OVERRIDES} - {'__matmul__', '__divmod__'})
+@mark.parametrize('operator_name', {override[1] for override in ARITHMETIC_OVERRIDES} - {'__matmul__', '__divmod__'})
 def test_quib_forward_and_reverse_arithmetic_operators(operator_name: str, val1, val2):
     op = getattr(operator, operator_name)
     quib1 = ExampleQuib(val1)
@@ -95,7 +97,7 @@ def test_quib_divmod():
 
 
 @mark.parametrize('val', [1, 1., -1, -1.])
-@mark.parametrize('operator_name', [override[0] for override in UNARY_OVERRIDES])
+@mark.parametrize('operator_name', [override[1] for override in UNARY_OVERRIDES])
 def test_quib_unary_operators(operator_name, val):
     op = getattr(operator, operator_name)
     quib = ExampleQuib(val)
@@ -126,7 +128,7 @@ def test_quib_removes_dead_children_automatically():
     child_invalidate = child._invalidate = Mock()
     quib.add_child(child)
     del child
-    quib.invalidate_and_redraw()
+    quib.invalidate_and_redraw_at_path(path=[...])
 
     child_invalidate.assert_not_called()
 
@@ -138,7 +140,7 @@ def test_quib_invalidates_children_recursively(example_quib):
     grandchild = ExampleQuib(mock.Mock())
     child.add_child(grandchild)
 
-    example_quib.invalidate_and_redraw()
+    example_quib.invalidate_and_redraw_at_path(...)
 
     assert child.invalidate_count == 1
     assert grandchild.invalidate_count == 1
@@ -258,7 +260,8 @@ def test_quib_get_override_mask_with_list():
 def test_quib_get_override_mask_with_override_removal():
     quib = ExampleQuib([0, [1, 2], 3])
     quib[:] = [9, [9, 9], 9]
-    quib.remove_override([1, 0])
+    quib.remove_override([PathComponent(indexed_cls=quib.get_type(), component=1),
+                          PathComponent(indexed_cls=list, component=0)])
 
     mask = quib.get_override_mask().get_value()
 
@@ -298,7 +301,7 @@ def test_quib_assign_value(example_quib):
 
     example_quib.assign_value(mock_value)
 
-    example_quib.assign.assert_called_once_with(Assignment(paths=[...], value=mock_value))
+    example_quib.assign.assert_called_once_with(Assignment(path=[...], value=mock_value))
 
 
 def test_quib_assign_value_to_key(example_quib):
@@ -308,7 +311,7 @@ def test_quib_assign_value_to_key(example_quib):
 
     example_quib.assign_value_to_key(value=mock_value, key=mock_key)
 
-    example_quib.assign.assert_called_once_with(Assignment(paths=[mock_key], value=mock_value))
+    example_quib.assign.assert_called_once_with(Assignment(path=[mock_key], value=mock_value))
 
 
 def test_quib_override_when_overriding_not_allowed(example_quib):
@@ -326,6 +329,7 @@ def test_quib_override_when_overriding_not_allowed(example_quib):
 def test_quib_override_allow_overriding_from_now_on(example_quib):
     example_quib.allow_overriding = False
     override = Mock()
+    override.path = [...]
 
     example_quib.override(override, allow_overriding_from_now_on=True)
 

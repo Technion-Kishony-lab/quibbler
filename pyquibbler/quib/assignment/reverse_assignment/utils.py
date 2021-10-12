@@ -14,4 +14,5 @@ def create_empty_array_with_values_at_indices(shape: tuple, indices: Any, value:
         res.fill(empty_value)
 
     res[indices] = value
+
     return res
