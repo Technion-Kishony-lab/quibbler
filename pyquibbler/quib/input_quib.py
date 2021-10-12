@@ -9,10 +9,6 @@ from ..env import DEBUG
 from ..exceptions import DebugException
 
 
-if TYPE_CHECKING:
-    from .. import Assignment
-
-
 @dataclass
 class CannotNestQuibInIQuibException(DebugException):
     iquib: InputQuib
@@ -39,11 +35,6 @@ class InputQuib(Quib):
         No need to do any calculation, this is an input quib.
         """
         return self._value
-    #
-    # def _invalidate_self(self, assignment: 'Assignment'):
-    #     """
-    #     Input quibs are always valid, no need to do anything.
-    #     """
 
     def __repr__(self):
         return f'<{self.__class__.__name__} ({self.get_value()})>'
