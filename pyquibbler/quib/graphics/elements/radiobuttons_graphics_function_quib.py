@@ -16,7 +16,7 @@ class RadioButtonsGraphicsFunctionQuib(GraphicsFunctionQuib):
             new_value_index = labels.index(new_value)
             valindex.assign(Assignment(value=new_value_index, path=[PathComponent(component=...,
                                                                                   indexed_cls=valindex.get_type())]))
-        self.invalidate_and_redraw(path=[PathComponent(
+        self.invalidate_and_redraw_at_path(path=[PathComponent(
             component=...,
             indexed_cls=self.value_selected.get_type()
         )])

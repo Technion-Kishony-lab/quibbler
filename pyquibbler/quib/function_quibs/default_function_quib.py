@@ -2,11 +2,9 @@ from sys import getsizeof
 from time import perf_counter
 from typing import Callable, Any, Mapping, Tuple, Optional, Dict, List, TYPE_CHECKING
 
-import numpy as np
 
 from .function_quib import FunctionQuib, CacheBehavior
 from ..assignment import AssignmentTemplate
-from ..assignment.reverse_assignment.utils import create_empty_array_with_values_at_indices
 
 
 if TYPE_CHECKING:
@@ -39,10 +37,10 @@ class DefaultFunctionQuib(FunctionQuib):
         self._is_cache_valid = is_cache_valid
         self._cached_result = cached_result
 
-    def _invalidate_with_children(self, invalidator_quib, path):
+    def _invalidate_quib_with_children_at_path(self, invalidator_quib: 'Quib', path: List['PathComponent']):
         self._is_cache_valid = False
         for child in self._children:
-            child()._invalidate_with_children(invalidator_quib=self, path=path)
+            child()._invalidate_quib_with_children_at_path(invalidator_quib=self, path=path)
 
     def _should_cache(self, result: Any, elapsed_seconds: float):
         """

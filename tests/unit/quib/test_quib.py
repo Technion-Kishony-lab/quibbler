@@ -23,9 +23,9 @@ class ExampleQuib(Quib):
         self.value = value
         self.invalidate_count = 0
 
-    def _invalidate_with_children(self, invalidator_quib, path_component):
+    def _invalidate_quib_with_children_at_path(self, invalidator_quib, path_component):
         self.invalidate_count += 1
-        super(ExampleQuib, self)._invalidate_with_children(invalidator_quib, path_component)
+        super(ExampleQuib, self)._invalidate_quib_with_children_at_path(invalidator_quib, path_component)
 
     def _get_inner_value(self):
         return self.value
@@ -53,7 +53,7 @@ def test_quib_invalidate_and_redraw_calls_graphics_function_quib_children(exampl
     quib = GraphicsFunctionQuib(func=mock_func, args=tuple(), kwargs={}, artists=[], cache_behavior=None)
     example_quib.add_child(quib)
 
-    example_quib.invalidate_and_redraw(path=[...])
+    example_quib.invalidate_and_redraw_at_path(path=[...])
 
     mock_func.assert_called_once()
 
@@ -128,7 +128,7 @@ def test_quib_removes_dead_children_automatically():
     child_invalidate = child._invalidate = Mock()
     quib.add_child(child)
     del child
-    quib.invalidate_and_redraw(path=[...])
+    quib.invalidate_and_redraw_at_path(path=[...])
 
     child_invalidate.assert_not_called()
 
@@ -140,7 +140,7 @@ def test_quib_invalidates_children_recursively(example_quib):
     grandchild = ExampleQuib(mock.Mock())
     child.add_child(grandchild)
 
-    example_quib.invalidate_and_redraw(...)
+    example_quib.invalidate_and_redraw_at_path(...)
 
     assert child.invalidate_count == 1
     assert grandchild.invalidate_count == 1

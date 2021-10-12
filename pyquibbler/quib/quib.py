@@ -82,22 +82,27 @@ class Quib(ABC):
         for axes in axeses:
             redraw_axes(axes)
 
-    def invalidate_and_redraw(self, path: List[PathComponent]) -> None:
+    def invalidate_and_redraw_at_path(self, path: List[PathComponent]) -> None:
         """
         Perform all actions needed after the quib was mutated (whether by overriding or reverse assignment).
         """
-        self._invalidate_children(path)
+        self._invalidate_children_at_path(path)
         self.__redraw()
 
-    def _invalidate_children(self, path: List[PathComponent]) -> None:
+    def _invalidate_children_at_path(self, path: List[PathComponent]) -> None:
         """
         Change this quib's state according to a change in a dependency.
         """
         for child_ref in self._children:
-            child_ref()._invalidate_with_children(self, path)
+            child_ref()._invalidate_quib_with_children_at_path(self, path)
 
-    def _invalidate_with_children(self, invalidator_quib, path: List[PathComponent]):
-        self._invalidate_children(path)
+    def _invalidate_quib_with_children_at_path(self, invalidator_quib, path: List[PathComponent]):
+        """
+        Invalidate a quib and it's children at a given path.
+        This method should be overriden if there is any 'special' implementation for either invalidating oneself
+        or for translating a path for invalidation
+        """
+        self._invalidate_children_at_path(path)
 
     def add_child(self, quib: Quib) -> None:
         """
@@ -122,14 +127,14 @@ class Quib(ABC):
             raise OverridingNotAllowedException(self, assignment)
         self._overrider.add_assignment(assignment)
 
-        self.invalidate_and_redraw(assignment.path)
+        self.invalidate_and_redraw_at_path(assignment.path)
 
     def remove_override(self, path: List[PathComponent]):
         """
         Remove overriding in a specific path in the quib.
         """
         self._overrider.remove_assignment(path)
-        self.invalidate_and_redraw(path=path)
+        self.invalidate_and_redraw_at_path(path=path)
 
     def assign(self, assignment: Assignment) -> None:
         """
