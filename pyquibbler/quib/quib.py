@@ -147,13 +147,14 @@ class Quib(ABC):
         """
         Helper method to assign a single value and override the whole value of the quib
         """
-        self.assign(Assignment(value=value, path=[...]))
+        self.assign(Assignment(value=value,
+                               path=[PathComponent(component=..., indexed_cls=self.get_type())]))
 
     def assign_value_to_key(self, key: Any, value: Any) -> None:
         """
         Helper method to assign a value at a specific key
         """
-        self.assign(Assignment(path=[key], value=value))
+        self.assign(Assignment(path=[PathComponent(component=key, indexed_cls=self.get_type())], value=value))
 
     def __getitem__(self, item):
         # We don't use the normal operator_overriding interface for two reasons:
