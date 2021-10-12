@@ -8,6 +8,7 @@ from pytest import mark, raises, fixture
 
 from pyquibbler.quib import Quib, OverridingNotAllowedException
 from pyquibbler.quib.assignment import RangeAssignmentTemplate, BoundAssignmentTemplate, Assignment
+from pyquibbler.quib.assignment.assignment import PathComponent
 from pyquibbler.quib.graphics import GraphicsFunctionQuib
 from pyquibbler.quib.graphics.global_collecting import QuibDependencyCollector
 from pyquibbler.quib.operator_overriding import ARITHMETIC_OVERRIDES, UNARY_OVERRIDES
@@ -259,7 +260,8 @@ def test_quib_get_override_mask_with_list():
 def test_quib_get_override_mask_with_override_removal():
     quib = ExampleQuib([0, [1, 2], 3])
     quib[:] = [9, [9, 9], 9]
-    quib.remove_override([1, 0])
+    quib.remove_override([PathComponent(indexed_cls=quib.get_type(), component=1),
+                          PathComponent(indexed_cls=list, component=0)])
 
     mask = quib.get_override_mask().get_value()
 

@@ -28,7 +28,7 @@ class OverrideRemoval:
 
     @classmethod
     def from_reversal(cls, reversal: QuibWithAssignment):
-        return cls(reversal.quib, reversal.assignment.paths)
+        return cls(reversal.quib, reversal.assignment.path)
 
 
 @dataclass
