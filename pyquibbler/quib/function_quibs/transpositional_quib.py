@@ -79,6 +79,36 @@ class TranspositionalQuib(DefaultFunctionQuib):
         super(TranspositionalQuib, self)._invalidate_with_children(invalidator_quib=self,
                                                                    path=path)
 
+    def _handle_invalidation_on_get_item(self, invalidator_quib, path_to_invalidate):
+        """
+        Handle invalidation on a getitem quib, correctly choosing whether or not and at what indices to invalidate
+        child quibs
+        """
+
+        """
+        There are three potentials for get item:
+        1. Both the path to invalidate and the `item` of the getitem are translatable 
+        2. If we're getitem, take where our invalidator quib was invalidated and pass it on to our children
+        3. If we're getitem, equalize where our invalidator quib (which is the quib we're getitem'ing) was invalidated
+        and our indices. If they're the same, drop it from the path and invalidate our children
+        """
+        working_component = path_to_invalidate[0]
+        getitem_path_component = PathComponent(component=self._args[1], indexed_cls=invalidator_quib.get_type())
+        can_translate = self._represents_translatable_numpy_indexing(getitem_path_component) and self._represents_translatable_numpy_indexing(working_component)
+        if can_translate:
+            # We're both numpy indicing; we can translate!
+            # [This means invalidator was numpy, this getitem's result is numpy array, no fields]
+            return self._translate_and_invalidate(invalidator_quib, path_to_invalidate)
+        elif not issubclass(invalidator_quib.get_type(), np.ndarray) or not issubclass(self.get_type(), np.ndarray):
+            # Our invalidator was NOT a numpy array- we check pure equality and invalidate by that
+            # [this means invalidator was not numpy, this getitem's is anything, potentially fields/indices]
+            return self._check_indices_equality_and_invalidate(path_to_invalidate)
+        elif self._represents_translatable_numpy_indexing(working_component) \
+                != self._represents_translatable_numpy_indexing(getitem_path_component):
+            # Our invalidator DID represent numpy indicing, and WAS a numpy array, we are
+            # [this means invalidator was numpy, this getitem's is numpy, get item is NOT translatable indices, the invalidator's are]
+            self._pass_and_invalidate(path_to_invalidate)
+
     def _invalidate_with_children(self, invalidator_quib, path: List[PathComponent]):
         """
 
@@ -99,25 +129,7 @@ class TranspositionalQuib(DefaultFunctionQuib):
 
         working_component = path[0]
         if self.func == getitem:
-            getitem_path_component = PathComponent(component=self._args[1], indexed_cls=invalidator_quib.get_type())
-            if self._represents_translatable_numpy_indexing(getitem_path_component) and self._represents_translatable_numpy_indexing(working_component):
-                # We're both numpy indicing; we can translate!
-                # [This means invalidator was numpy, this getitem's result is numpy array, no fields]
-                return self._translate_and_invalidate(invalidator_quib, path)
-            elif not issubclass(invalidator_quib.get_type(), np.ndarray):
-                # Our invalidator was NOT a numpy array- we check pure equality and invalidate by that
-                # [this means invalidator was not numpy, this getitem's is anything, potentially fields/indices]
-                return self._check_indices_equality_and_invalidate(path)
-            elif self._represents_translatable_numpy_indexing(getitem_path_component):
-                # Our invalidator did NOT represent numpy indicing, but WAS a numpy array
-                # [this means invalidator was numpy, this getitem's is numpy, get item is translatable indices, invalidator is a field]
-                self._pass_and_invalidate(path)
-            elif not issubclass(self.get_type(), np.ndarray):
-                return self._check_indices_equality_and_invalidate(path)
-            elif self._represents_translatable_numpy_indexing(working_component):
-                # Our invalidator DID represent numpy indicing, and WAS a numpy array, we are
-                # [this means invalidator was numpy, this getitem's is numpy, get item is NOT translatable indices, the invalidator's are]
-                self._pass_and_invalidate(path)
+            self._handle_invalidation_on_get_item(invalidator_quib, path)
         else:
             # Any other situation ->
             assert issubclass(self.get_type(), np.ndarray)
