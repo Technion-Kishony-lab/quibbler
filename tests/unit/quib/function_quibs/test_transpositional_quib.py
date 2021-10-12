@@ -107,16 +107,33 @@ def test_invalidate_and_redraw_on_dict_after_index(
     assert not third_quib.is_cache_valid
 
 
-def test_invalidate_and_redraw_with_expanding_shape():
+@pytest.fixture()
+def quib_with_nested_arr():
     dtype = [('nested', [('child_name', np.unicode, 30)], (2,))]
-    starting_quib = iquib(np.array(['Yechiel', "Yossiel"], dtype=dtype))
-    nested_quib = starting_quib['nested']
-    children = nested_quib['child_name']
+    return iquib(np.array(['Yechiel', "Yossiel"], dtype=dtype))
+
+
+@pytest.fixture()
+def children(quib_with_nested_arr):
+    return quib_with_nested_arr['nested']['child_name']
+
+
+def test_invalidate_and_redraw_with_expanding_shape_shouldnt_invalidate(quib_with_nested_arr, children):
     first_row = children[1]
     child = first_row[0]
     child.get_value()
 
-    starting_quib.invalidate_and_redraw(path=[PathComponent(component=0, indexed_cls=starting_quib.get_type())])
+    quib_with_nested_arr.invalidate_and_redraw(path=[PathComponent(component=0,
+                                                                   indexed_cls=quib_with_nested_arr.get_type())])
 
     assert child.is_cache_valid
 
+
+def test_invalidate_and_redraw_with_expanding_shape_should_invalidate(quib_with_nested_arr, children):
+    first_row = children[0]
+    child = first_row[0]
+    child.get_value()
+
+    quib_with_nested_arr.invalidate_and_redraw(path=[PathComponent(component=0, indexed_cls=quib_with_nested_arr.get_type())])
+
+    assert not child.is_cache_valid
