@@ -1,5 +1,6 @@
 from pyquibbler.quib import GraphicsFunctionQuib, Quib
 from pyquibbler.quib.assignment import Assignment
+from pyquibbler.quib.assignment.assignment import PathComponent
 from pyquibbler.quib.utils import quib_method
 
 
@@ -13,8 +14,12 @@ class RadioButtonsGraphicsFunctionQuib(GraphicsFunctionQuib):
         if isinstance(valindex, Quib):
             labels = self._kwargs.get('labels')
             new_value_index = labels.index(new_value)
-            valindex.assign(Assignment(value=new_value_index, paths=[...]))
-        self.invalidate_and_redraw()
+            valindex.assign(Assignment(value=new_value_index, path=[PathComponent(component=...,
+                                                                                  indexed_cls=valindex.get_type())]))
+        self.invalidate_and_redraw(path=[PathComponent(
+            component=...,
+            indexed_cls=self.value_selected.get_type()
+        )])
         return valindex
 
     def _call_func(self):
