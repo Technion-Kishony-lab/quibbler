@@ -9,7 +9,7 @@ from typing import Any, List, TYPE_CHECKING, Union, Callable
 
 from pyquibbler.quib.assignment import Assignment
 from pyquibbler.quib.assignment.assignment import QuibWithAssignment, PathComponent
-from pyquibbler.quib.assignment.reverse_assignment.utils import create_empty_array_with_values_at_indices, deep_get
+from pyquibbler.quib.assignment.reverse_assignment.utils import create_empty_array_with_values_at_indices
 from pyquibbler.quib.utils import iter_quibs_in_object_recursively
 
 if TYPE_CHECKING:

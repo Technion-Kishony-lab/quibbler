@@ -5,8 +5,7 @@ from operator import getitem
 from typing import Dict, List, TYPE_CHECKING, Union, Callable, Any, Tuple
 
 from pyquibbler.quib.assignment import Assignment
-from pyquibbler.quib.assignment.reverse_assignment.utils import create_empty_array_with_values_at_indices, \
-    deep_get_until_field, deep_get
+from pyquibbler.quib.assignment.reverse_assignment.utils import create_empty_array_with_values_at_indices
 from pyquibbler.quib.utils import recursively_run_func_on_object, call_func_with_quib_values, \
     iter_objects_of_type_in_object_shallowly
 
