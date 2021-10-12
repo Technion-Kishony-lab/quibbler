@@ -32,13 +32,13 @@ def getitem_quib(rot90_quib):
 
 
 def test_invalidate_and_redraw_invalidates_that_which_should_be_invalidated(rot90_quib, getitem_quib):
-    rot90_quib.invalidate_and_redraw(path=[(0, 0)])
+    rot90_quib.invalidate_and_redraw(path=[PathComponent(component=(0, 0), indexed_cls=rot90_quib.get_type())])
 
     assert not getitem_quib.is_cache_valid
 
 
 def test_invalidate_and_redraw_does_not_invalidate_that_which_should_not_be_invalidated(rot90_quib, getitem_quib):
-    rot90_quib.invalidate_and_redraw(path=[(1, 0)])
+    rot90_quib.invalidate_and_redraw(path=[PathComponent(component=(1, 0), indexed_cls=rot90_quib.get_type())])
 
     assert getitem_quib.is_cache_valid
 
@@ -47,7 +47,7 @@ def test_invalidate_and_redraw_invalidates_that_which_should_be_invalidated_with
         input_quib,
         getitem_quib
 ):
-    input_quib.invalidate_and_redraw(path=[(0, 1)])
+    input_quib.invalidate_and_redraw(path=[PathComponent(component=(0, 1), indexed_cls=input_quib.get_type())])
 
     assert getitem_quib.is_cache_valid
 
@@ -56,7 +56,7 @@ def test_invalidate_and_redraw_does_not_invalidate_that_which_should_be_invalida
         input_quib,
         getitem_quib
 ):
-    input_quib.invalidate_and_redraw(path=[(0, 2)])
+    input_quib.invalidate_and_redraw(path=[PathComponent(component=(0, 2), indexed_cls=input_quib.get_type())])
 
     assert not getitem_quib.is_cache_valid
 
@@ -66,7 +66,7 @@ def test_invalidate_and_redraw_on_dict(
     quib = iquib({"maor": 1})
     second_quib = quib["maor"]
 
-    quib.invalidate_and_redraw(path=["maor"])
+    quib.invalidate_and_redraw(path=[PathComponent(component="maor", indexed_cls=quib.get_type())])
 
     assert not second_quib.is_cache_valid
 
@@ -75,6 +75,7 @@ def test_invalidate_and_redraw_on_dict2(
 ):
     quib = iquib({"maor": 1, 'y': 2})
     second_quib = quib["maor"]
+    second_quib.get_value()
 
     quib.invalidate_and_redraw(path=[PathComponent(indexed_cls=quib.get_type(), component="y")])
 
@@ -89,6 +90,6 @@ def test_invalidate_and_redraw_on_dict_after_index(
     second_quib = quib[2]
     third_quib = second_quib['MAOR']
 
-    quib.invalidate_and_redraw(path=[2])
+    quib.invalidate_and_redraw(path=[PathComponent(component=2, indexed_cls=quib.get_type())])
 
     assert not third_quib.is_cache_valid
