@@ -17,7 +17,7 @@ def get_sub_data_from_object_in_path(obj: Any, path: List[PathComponent]):
     Get the data from an object in a given path.
     """
     for component in path:
-        obj = obj[component]
+        obj = obj[component.component]
     return obj
 
 
@@ -48,7 +48,11 @@ def deep_assign_data_with_paths(data: Any, path: List[PathComponent], value: Any
             if isinstance(component.component, tuple) and not isinstance(new_element, np.ndarray):
                 # We can't access a regular list with a tuple, so we're forced to convert to a numpy array
                 new_element = np.array(new_element)
-            new_element[component.component] = last_element
+            try:
+                new_element[component.component] = last_element
+            except Exception:
+                print(1)
+                raise
         last_element = new_element
     return last_element
 
@@ -106,7 +110,7 @@ class Overrider:
             else:
                 path = assignment.path
                 val = True
-            if isinstance(path[-1], slice):
+            if isinstance(path[-1].component, slice):
                 inner_data = get_sub_data_from_object_in_path(mask, path[:-1])
                 if not isinstance(inner_data, np.ndarray):
                     val = recursively_run_func_on_object(lambda x: val, inner_data)
