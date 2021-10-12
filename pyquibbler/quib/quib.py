@@ -154,7 +154,7 @@ class Quib(ABC):
 
     def __setitem__(self, key, value):
         from .assignment.assignment import PathComponent
-        self.assign(Assignment(value=value, path=[PathComponent(component=key, cls=self.get_type())]))
+        self.assign(Assignment(value=value, path=[PathComponent(component=key, indexed_cls=self.get_type())]))
 
     def pretty_repr(self):
         """

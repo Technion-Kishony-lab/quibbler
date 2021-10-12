@@ -198,7 +198,7 @@ class TranspositionalReverser(Reverser):
         """
         return [QuibWithAssignment(
             quib=self._args[0],
-            assignment=Assignment(path=[PathComponent(cls=self._args[0].get_type(),
+            assignment=Assignment(path=[PathComponent(indexed_cls=self._args[0].get_type(),
                                                       component=self._args[1]), *self._assignment.path],
                                   value=self._value)
         )]
@@ -218,7 +218,7 @@ class TranspositionalReverser(Reverser):
         for quib in quibs_to_indices_in_quibs:
             quibs_with_assignments.append(QuibWithAssignment(
                 quib=quib,
-                assignment=Assignment(path=[PathComponent(cls=np.ndarray,
+                assignment=Assignment(path=[PathComponent(indexed_cls=np.ndarray,
                                                           component=quibs_to_indices_in_quibs[quib]),
                                             *self._assignment.path[1:]],
                                       value=quibs_to_results[quib])
@@ -235,7 +235,7 @@ class TranspositionalReverser(Reverser):
 
     def _is_getitem_with_field(self):
         return \
-            PathComponent(cls=self._function_quib.get_type(), component=self._args[1]).references_field_in_field_array()
+            PathComponent(indexed_cls=self._function_quib.get_type(), component=self._args[1]).references_field_in_field_array()
 
     def get_reversed_quibs_with_assignments(self) -> List[QuibWithAssignment]:
         if self._func == getitem and (not self._next_path_is_fancy_indexing() or self._is_getitem_with_field()):

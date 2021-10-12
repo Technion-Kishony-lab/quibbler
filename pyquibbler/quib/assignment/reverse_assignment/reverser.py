@@ -100,7 +100,7 @@ class Reverser(ABC):
         # of only changing the referenced field
         if assignment.path[0].references_field_in_field_array():
             components_at_end = [assignment.path[0], *components_at_end]
-            current_path = PathComponent(cls=np.ndarray, component=...)
+            current_path = PathComponent(indexed_cls=np.ndarray, component=...)
 
         reverser = cls(function_quib, Assignment(assignment.value, [current_path]))
         quibs_with_assignments = reverser.get_reversed_quibs_with_assignments()

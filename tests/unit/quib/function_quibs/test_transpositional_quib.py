@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 
 from pyquibbler import iquib, Assignment
+from pyquibbler.quib.assignment.assignment import PathComponent
 from pyquibbler.quib.function_quibs.transpositional_quib import TranspositionalQuib
 
 
@@ -75,7 +76,7 @@ def test_invalidate_and_redraw_on_dict2(
     quib = iquib({"maor": 1, 'y': 2})
     second_quib = quib["maor"]
 
-    quib.invalidate_and_redraw(path=[PathComponent("y")])
+    quib.invalidate_and_redraw(path=[PathComponent(indexed_cls=quib.get_type(), component="y")])
 
     assert second_quib.is_cache_valid
 

@@ -19,7 +19,7 @@ def reverse(func, indices, value, args, kwargs=None):
         func=func,
         func_args=args,
         func_kwargs=kwargs
-    ).get_reversals_for_assignment(assignment=Assignment(value=value, path=[PathComponent(cls=quib.get_type(),
+    ).get_reversals_for_assignment(assignment=Assignment(value=value, path=[PathComponent(indexed_cls=quib.get_type(),
                                                                                           component=indices)]))
     for reversal in reversals:
         reversal.apply()
@@ -71,7 +71,7 @@ def test_reverse_concat_does_not_return_empty_assignments():
     )
     reversals = quib.get_reversals_for_assignment(assignment=Assignment(value=np.array([new_value]),
                                                                         path=[PathComponent(component=(0, 0),
-                                                                                           cls=quib.get_type())]))
+                                                                                           indexed_cls=quib.get_type())]))
 
     assert len(reversals) == 1
     assignment = reversals[0].assignment
@@ -120,7 +120,7 @@ def test_reverse_assign_to_sub_array():
     a = iquib(np.array([0, 1, 2]))
     b = a[:2]
 
-    b.assign(Assignment(value=[3, 4], path=[PathComponent(component=True, cls=b.get_type())]))
+    b.assign(Assignment(value=[3, 4], path=[PathComponent(component=True, indexed_cls=b.get_type())]))
 
     assert np.array_equal(a.get_value(), [3, 4, 2])
 
@@ -130,7 +130,7 @@ def test_reverse_assign_pyobject_array():
     new_mock = mock.Mock()
     b = a[0]
 
-    b.assign(Assignment(value=new_mock, path=[PathComponent(component=..., cls=b.get_type())]))
+    b.assign(Assignment(value=new_mock, path=[PathComponent(component=..., indexed_cls=b.get_type())]))
 
     assert a.get_value() == [new_mock]
 
@@ -183,7 +183,7 @@ def test_reverse_assign_field_array_with_function_and_fancy_indexing_and_field_n
     rotation_quib = TranspositionalQuib.create(func=np.rot90, func_args=(arr,))
     first_value = rotation_quib[[0], [1]]
 
-    first_value.assign(Assignment(value="heisenberg", path=[PathComponent(cls=arr.get_type(), component='name')]))
+    first_value.assign(Assignment(value="heisenberg", path=[PathComponent(indexed_cls=arr.get_type(), component='name')]))
 
     assert np.array_equal(arr.get_value(), np.array([[("shlomi", 9)], [("heisenberg", 3)]], dtype=basic_dtype))
 
@@ -192,7 +192,7 @@ def test_reverse_assign_field_with_multiple_field_values(basic_dtype):
     name_1 = 'heisenberg'
     name_2 = 'john'
     arr = iquib(np.array([[('', 9)], [('', 3)]], dtype=basic_dtype))
-    arr.assign(Assignment(value=[[name_1], [name_2]], path=[PathComponent(cls=arr.get_type(), component='name')]))
+    arr.assign(Assignment(value=[[name_1], [name_2]], path=[PathComponent(indexed_cls=arr.get_type(), component='name')]))
 
     assert np.array_equal(arr.get_value(), np.array([[(name_1, 9)], [(name_2, 3)]], dtype=basic_dtype))
 
@@ -212,7 +212,7 @@ def test_reverse_assign_nested_with_fancy_rot90_fancy_and_replace():
 
     dumbest_child = rotated_children[([0], [0])]
     dumbest_child.assign(Assignment(value=new_name, path=[PathComponent(component=...,
-                                                                        cls=dumbest_child.get_type())]))
+                                                                        indexed_cls=dumbest_child.get_type())]))
 
     assert np.array_equal(families.get_value(), np.array([[(name_1, first_children)],
                                                           [(name_2, [*second_children[:-1], new_name])]], dtype=dtype))
@@ -223,7 +223,7 @@ def test_reverse_setitem_on_non_ndarray():
     first_quib_arg = iquib([[1, 2, 3]])
     first_row = first_quib_arg[0]
 
-    first_row.assign(Assignment(value=10, path=[PathComponent(cls=first_row.get_type(), component=0)]))
+    first_row.assign(Assignment(value=10, path=[PathComponent(indexed_cls=first_row.get_type(), component=0)]))
 
     assert np.array_equal(first_quib_arg.get_value(), [[10, 2, 3]])
 
@@ -233,7 +233,7 @@ def test_reverse_setitem_on_non_ndarray_after_rotation():
     first_quib_arg = iquib([[[1, 2, 3]]])
     rotated = TranspositionalQuib.create(func=np.rot90, func_args=(first_quib_arg[0],))
 
-    rotated.assign(Assignment(value=4, path=[PathComponent(cls=rotated.get_type(), component=(0, 0))]))
+    rotated.assign(Assignment(value=4, path=[PathComponent(indexed_cls=rotated.get_type(), component=(0, 0))]))
 
     assert np.array_equal(first_quib_arg.get_value(), [[[1, 2, 4]]])
 
@@ -263,10 +263,10 @@ def test_reverse_getitem_on_non_view_slice():
 
 
 def test_reverse_getitem_on_dict_and_rot90():
-    a = iquib([[1, 2, 3]])
-    rot90 = np.rot90(a)
-    get_item = rot90[0]
+    quib = iquib({'a': [[1, 2, 3]]})
+    get_item = quib['a']
+    rot90 = np.rot90(get_item)
 
-    get_item[0] = 20
+    rot90[(0, 0)] = 20
 
-    assert np.array_equal(a.get_value(), [[1, 2, 20]])
+    assert np.array_equal(quib['a'].get_value(), [[1, 2, 20]])

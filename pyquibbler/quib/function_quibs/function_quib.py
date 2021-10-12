@@ -147,7 +147,10 @@ class FunctionQuib(Quib):
         Call the function wrapped by this FunctionQuib with the
         given arguments after replacing quib with their values.
         """
-        return call_func_with_quib_values(self.func, self.args, self.kwargs)
-
+        try:
+            return call_func_with_quib_values(self.func, self.args, self.kwargs)
+        except Exception:
+            print(1)
+            raise
     def get_reversals_for_assignment(self, assignment: Assignment):
         return []
