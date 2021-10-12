@@ -119,10 +119,9 @@ class FunctionQuib(Quib):
         and collect possible overrides.
         When more than one override can be performed, the user will be asked to choose one.
         When there is only one override option, it will be automatically performed.
-        When there are no override options, CannotAssignException is raised.
+        When there are no override options, AssignmentNotPossibleException is raised.
         """
-        for chosen_override in get_overrides_for_assignment(self, assignment):
-            chosen_override.override()
+        get_overrides_for_assignment(self, assignment).apply()
 
     def __repr__(self):
         return f"<{self.__class__.__name__} - {getattr(self.func, '__name__', repr(self.func))}>"

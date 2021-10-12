@@ -254,6 +254,17 @@ def test_quib_get_override_mask_with_list():
     assert mask.get_value() == [False, [False, True], False]
 
 
+@mark.regression
+def test_quib_get_override_mask_with_override_removal():
+    quib = ExampleQuib([0, [1, 2], 3])
+    quib[:] = [9, [9, 9], 9]
+    quib.remove_override([1, 0])
+
+    mask = quib.get_override_mask().get_value()
+
+    assert mask == [True, [False, True], True]
+
+
 def test_quib_iter_first(example_quib):
     first, second = example_quib.iter_first()
 

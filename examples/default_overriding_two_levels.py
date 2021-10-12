@@ -22,7 +22,7 @@ plt.plot([-0.5, n_plates - 0.5], default_factor[[0, 0]], linewidth=5, picker=Tru
 
 for i in range(len(x)):
     color = q(tuple, [(0, 1, 0), (1, 0, 0)])[plate_factor.get_override_mask()[i]]
-    plt.plot(x[[i]], plate_factor[[i]],
+    plt.plot(x[[i]], plate_factor[[i]],  # TODO: without list
              marker='s', markerfacecolor=color, markersize=9,
              linestyle='None', picker=True)
 
@@ -48,4 +48,3 @@ for i in range(len(xx)):
 
 plt.ylabel('Well factor')
 plt.show()
-# TODO: when override source iquib from overridden value, dragging is weird

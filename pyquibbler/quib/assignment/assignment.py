@@ -27,7 +27,7 @@ class Assignment:
 @dataclass(frozen=True)
 class QuibWithAssignment:
     """
-    A quib together with it's assignment
+    An assignment to be performed on a specific quib.
     """
     quib: Quib
     assignment: Assignment
