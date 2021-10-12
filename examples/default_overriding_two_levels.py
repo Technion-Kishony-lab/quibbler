@@ -13,6 +13,7 @@ plate_factor = np.repeat(default_factor, n_plates, 0)
 plate_factor.set_assignment_template(0, 100, 1)
 plate_factor.allow_overriding = True
 
+clrs = iquib('gr')
 plt.figure()
 plt.subplot(2, 1, 1)
 x = np.arange(n_plates)
@@ -47,5 +48,4 @@ for i in range(len(xx)):
 
 plt.ylabel('Well factor')
 plt.show()
-
-# when override source iquib from overridden value, dragging is weird
+# TODO: when override source iquib from overridden value, dragging is weird

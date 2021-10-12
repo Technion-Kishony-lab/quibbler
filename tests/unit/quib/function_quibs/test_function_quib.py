@@ -1,11 +1,9 @@
 from unittest.mock import Mock
 import numpy as np
-from pytest import fixture, mark, raises
+from unittest.mock import Mock
+from pytest import fixture, mark
 from pyquibbler import iquib
-from pyquibbler.quib import FunctionQuib
-from pyquibbler.quib.assignment import Assignment
-from pyquibbler.quib.function_quibs import CannotAssignException
-from pyquibbler.quib.function_quibs.override_choice import OverrideOptionsTree
+from pyquibbler.quib import FunctionQuib, Assignment
 
 from ..utils import get_mock_with_repr
 
@@ -125,26 +123,3 @@ def test_pretty_repr():
 
     assert function_repr in string
     assert parent.get_value() in string
-
-
-def test_assign_with_override_options(monkeypatch, mock_options_tree_with_options, mock_overrides,
-                                      example_function_quib):
-    monkeypatch.setattr(OverrideOptionsTree, 'from_reversal', lambda *args, **kwargs: mock_options_tree_with_options)
-    assignment = Assignment('bla')
-    example_function_quib.allow_overriding = True
-
-    example_function_quib.assign(assignment)
-
-    for override in mock_overrides:
-        override.override.assert_called_once()
-
-
-def test_assign_with_no_override_options(monkeypatch, example_function_quib):
-    monkeypatch.setattr(OverrideOptionsTree, 'from_reversal', lambda *args, **kwargs: OverrideOptionsTree([], None, []))
-    assignment = Assignment('bla')
-
-    with raises(CannotAssignException) as exc_info:
-        example_function_quib.assign(assignment)
-
-    assert exc_info.value.quib is example_function_quib
-    assert exc_info.value.assignment is assignment

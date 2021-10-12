@@ -1,18 +1,18 @@
 import numpy as np
 import pytest
-from collections import Iterable
+from typing import Iterable
 from operator import __pow__
 
 from pyquibbler import iquib
 from pyquibbler.quib import DefaultFunctionQuib, FunctionQuib
 from pyquibbler.quib.assignment import Assignment
-from pyquibbler.quib.assignment.reverse_assignment import reverse_function_quib
+from pyquibbler.quib.assignment.reverse_assignment import get_reversals_for_assignment
 from pyquibbler.quib.assignment.reverse_assignment.elementwise_reverser import CommonAncestorBetweenArgumentsException
 
 
 def reverse(function_quib: FunctionQuib, value, paths):
     assignment = Assignment(value, paths)
-    reversals = reverse_function_quib(function_quib=function_quib, assignment=assignment)
+    reversals = get_reversals_for_assignment(function_quib=function_quib, assignment=assignment)
     for reversal in reversals:
         reversal.apply()
 
@@ -123,3 +123,15 @@ def test_add_second_argument_is_quib():
     reverse(sum_, 10, [...])
 
     assert np.array_equal(quib.get_value(), np.array(7))
+
+
+@pytest.mark.regression
+def test_elementwise_always_picks_first_quib():
+    first_quib = iquib(1)
+    second_quib = iquib(2)
+
+    reverse(first_quib + second_quib, 5, [...])
+    assert first_quib.get_value() == 3
+
+    reverse(second_quib + first_quib, 7, [...])
+    assert second_quib.get_value() == 4

@@ -5,36 +5,36 @@ when called with quib arguments.
 import numpy as np
 from functools import wraps
 from typing import Type, Any, Callable, Optional, List, Tuple, Set
-
 from matplotlib import widgets
 from matplotlib.axes import Axes
 
 from pyquibbler.quib import ImpureFunctionQuib, DefaultFunctionQuib, FunctionQuib, GraphicsFunctionQuib
 from pyquibbler.quib.graphics import global_collecting
 from pyquibbler.quib.graphics.elements.slider_graphics_function_quib import SliderGraphicsFunctionQuib
-from pyquibbler.quib.graphics.elements.radiobuttons_graphics_function_quib import RadioButtonsGraphicsFunctionQuib
+from pyquibbler.quib.graphics.replacing_graphics_function_quib import ReplacingGraphicsFunctionQuib
 from pyquibbler.utils import ensure_only_run_once_globally
 
 NUMPY_OVERRIDES = [
     (np, [
-        (DefaultFunctionQuib, {"abs", "average", "around", "square", "repeat", "min", "max", "arange", "polyfit",
+        (DefaultFunctionQuib, {"abs", "average", "around", "square", "repeat", "max", "arange", "polyfit",
                                "linspace", "polyval", "full", "concatenate", "array", "reshape", "genfromtxt",
-                               "ravel", "sin", "cos", "tan", "arcsin", "arccos", "arctan", "real", "imag"}),
+                               "ravel"}),
         (GraphicsFunctionQuib, {'apply_along_axis', 'apply_over_axes'}),
     ]),
     (np.random, [
-        (ImpureFunctionQuib, {'rand', 'randn', 'randint'})
+        (ImpureFunctionQuib, {'rand', 'randint'})
     ])
 ]
 
 MPL_OVERRIDES = [
     (Axes, [
-        (GraphicsFunctionQuib, ['plot', 'imshow', 'text', 'bar', 'set_xlim', 'set_ylim', 'set_title',
-                                'hist', 'pie', 'set_xlabel', 'set_ylabel', 'set_visible'])
+        (GraphicsFunctionQuib, {'plot', 'imshow', 'text', 'bar', 'hist', 'pie'})
+    ]),
+    (Axes, [
+        (ReplacingGraphicsFunctionQuib, {'set_xlim', 'set_ylim', 'set_title', 'set_xlabel', 'set_ylabel'})
     ]),
     (widgets, [
-        (SliderGraphicsFunctionQuib, {'Slider'}),
-        (RadioButtonsGraphicsFunctionQuib, {'RadioButtons',})
+        (SliderGraphicsFunctionQuib, {'Slider'})
     ])
 ]
 

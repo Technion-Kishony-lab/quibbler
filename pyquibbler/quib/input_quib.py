@@ -43,7 +43,14 @@ class InputQuib(Quib):
         pass
 
     def __repr__(self):
-        return f'<{self.__class__.__name__} ({self._value})>'
+        return f'<{self.__class__.__name__} ({self.get_value()})>'
+
+    def pretty_repr(self):
+        return f'iquib({self.get_value()})'
+
+    @property
+    def parents(self) -> Set[Quib]:
+        return set()
 
     def pretty_repr(self):
         return f'iquib({self.get_value()})'

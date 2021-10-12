@@ -1,9 +1,7 @@
 from typing import Callable, TYPE_CHECKING, List, Any, Iterable
-
 from matplotlib.backend_bases import MouseEvent, PickEvent
 
 from pyquibbler.quib.assignment.assignment import QuibWithAssignment
-from pyquibbler.quib.graphics.event_handling.utils import apply_assignment_group
 
 if TYPE_CHECKING:
     from pyquibbler.quib.graphics import GraphicsFunctionQuib
@@ -30,7 +28,9 @@ def reverse_assign_drawing_func(drawing_func: Callable,
     """
     Reverse a graphics function quib, assigning to all it's arguments values based on pick event and mouse event
     """
+    from pyquibbler.quib import get_overrides_for_assignment_group
     reverse_assigner_func = GRAPHICS_REVERSE_ASSIGNERS.get(drawing_func.__qualname__)
     if reverse_assigner_func is not None:
         quibs_with_assignments = reverse_assigner_func(pick_event=pick_event, mouse_event=mouse_event, args=args)
-        apply_assignment_group(quibs_with_assignments)
+        for override in get_overrides_for_assignment_group(quibs_with_assignments):
+            override.override()

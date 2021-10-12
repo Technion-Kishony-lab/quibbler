@@ -78,7 +78,6 @@ class TranspositionalReverser(Reverser):
         """
         Runs the function with each quib's ids instead of it's values
         """
-        from pyquibbler.quib import Quib
         quibs_to_ids = self._get_quibs_to_ids()
 
         def replace_quib_with_id(obj):
@@ -90,7 +89,6 @@ class TranspositionalReverser(Reverser):
             func=replace_quib_with_id,
             obj=self._args
         )
-        # new_arguments = self._replace_quibs_in_arguments_which_can_potentially_change(replace_quib_with_id)
 
         return call_func_with_quib_values(self._func, new_arguments, self._kwargs)
 

@@ -1,6 +1,6 @@
-from functools import wraps
+from functools import wraps, cached_property
 from itertools import chain
-from typing import List, Callable, Tuple, Any, Mapping, Dict, Optional, Iterable
+from typing import List, Callable, Tuple, Any, Mapping, Dict, Optional, Iterable, Set
 
 from matplotlib.artist import Artist
 from matplotlib.axes import Axes
@@ -14,6 +14,7 @@ from matplotlib.text import Text
 
 from . import global_collecting
 from .event_handling import CanvasEventHandler
+from ..quib import Quib
 from ..assignment import AssignmentTemplate
 from ..function_quibs import DefaultFunctionQuib, CacheBehavior
 from ..utils import call_func_with_quib_values, iter_object_type_in_args
@@ -53,7 +54,8 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
     }
 
     ATTRIBUTES_TO_COPY_FROM_ARTIST_TO_ARTIST = {
-        '_color'
+        '_color',
+        '_facecolor'
     }
 
     def __init__(self,
@@ -65,6 +67,11 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
                  assignment_template: Optional[AssignmentTemplate] = None):
         super().__init__(func, args, kwargs, cache_behavior, assignment_template=assignment_template)
         self._artists = artists
+        self._non_arg_parents = set()
+
+    @property
+    def parents(self) -> Set[Quib]:
+        return super().parents | self._non_arg_parents
 
     @classmethod
     def create(cls, func, func_args=(), func_kwargs=None, cache_behavior=None, lazy=False, **kwargs):
@@ -144,7 +151,7 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         if len(new_artists) == len(previous_artists):
             for previous_artist, new_artist in zip(previous_artists, new_artists):
                 for attribute in self.ATTRIBUTES_TO_COPY_FROM_ARTIST_TO_ARTIST:
-                    if hasattr(previous_artist, attribute) and hasattr(new_artist, attribute):
+                    if hasattr(previous_artist, attribute):
                         setattr(new_artist, attribute, getattr(previous_artist, attribute))
 
     def _update_new_artists_from_previous_artists(self,
@@ -170,7 +177,7 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
                         starting_index=starting_index)
                 # If the array name isn't in previous_array_names_to_indices_and_artists,
                 # we don't need to update positions, etc
-    
+
     def save_drawing_func_on_artists(self):
         """
         Set the drawing func on the artists- this will be used later on when tracking artists, in order to know how to 
@@ -181,7 +188,7 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         for artist in self._artists:
             if getattr(artist, '_quibbler_drawing_func', None) is None:
                 artist._quibbler_drawing_func = self._func
-        
+
     def _create_new_artists(self,
                             previous_axeses_to_array_names_to_indices_and_artists:
                             Dict[Axes, Dict[str, Tuple[int, List[Artist]]]] = None):
@@ -198,6 +205,7 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
                 func_res = call_func_with_quib_values(self.func, self.args, self.kwargs)
         for dep in deps:
             dep.add_child(self)
+            self._non_arg_parents.add(dep)
         self._artists = collector.artists_collected
 
         save_func_and_args_on_artists(self._artists, func=self.func, args=self.args)
