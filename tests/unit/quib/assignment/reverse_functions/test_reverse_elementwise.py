@@ -88,7 +88,7 @@ def test_reverse_elementwise_operator():
     q = iquib(np.array([5, 5, 5]))
     function_quib: FunctionQuib = q + 3
 
-    reverse(function_quib, 7, [0])
+    reverse(function_quib, 7, [PathComponent(component=0, indexed_cls=function_quib.get_type())])
 
     assert np.array_equal(q.get_value(), [4, 5, 5])
 
@@ -97,7 +97,7 @@ def test_reverse_elementwise_on_int():
     q = iquib(5)
     function_quib: FunctionQuib = q + 3
 
-    reverse(function_quib, 7, path=[...])
+    reverse(function_quib, 7, path=[PathComponent(component=..., indexed_cls=function_quib.get_type())])
 
     assert q.get_value() == 4
 
@@ -110,7 +110,7 @@ def test_quib_raises_exception_when_reversing_with_common_parent_in_multiple_arg
     function_quib: FunctionQuib = y + z
 
     with pytest.raises(CommonAncestorBetweenArgumentsException):
-        reverse(function_quib, 20, [...])
+        reverse(function_quib, 20, [PathComponent(component=..., indexed_cls=function_quib.get_type())])
 
 
 @pytest.mark.regression
@@ -118,7 +118,7 @@ def test_add_second_argument_is_quib():
     quib = iquib(np.array(9))
     sum_ = 3 + quib
 
-    reverse(sum_, 10, [...])
+    reverse(sum_, 10, [PathComponent(component=..., indexed_cls=sum_.get_type())])
 
     assert np.array_equal(quib.get_value(), np.array(7))
 
@@ -128,10 +128,10 @@ def test_elementwise_always_picks_first_quib():
     first_quib = iquib(1)
     second_quib = iquib(2)
 
-    reverse(first_quib + second_quib, 5, [...])
+    reverse(first_quib + second_quib, 5, [PathComponent(component=..., indexed_cls=int)])
     assert first_quib.get_value() == 3
 
-    reverse(second_quib + first_quib, 7, [...])
+    reverse(second_quib + first_quib, 7, [PathComponent(component=..., indexed_cls=int)])
     assert second_quib.get_value() == 4
 
 
@@ -140,6 +140,6 @@ def test_elementwise_with_deep_path():
     sum_quib = ElementWiseQuib.create(func=np.add, func_args=(first_quib, 1))
     getitem_quib = sum_quib[0]
 
-    reverse(getitem_quib, path=[0], value=0)
+    reverse(getitem_quib, path=[PathComponent(component=0, indexed_cls=getitem_quib.get_type())], value=0)
 
-    assert np.array_equal(first_quib.get_value(), [-1, 2, 3])
+    assert np.array_equal(first_quib.get_value(), [[-1, 2, 3]])
