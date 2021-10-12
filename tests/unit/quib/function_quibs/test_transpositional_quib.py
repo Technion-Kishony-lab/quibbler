@@ -167,3 +167,17 @@ def test_invalidate_and_redraw_with_expanding_shape_should_invalidate(quib_with_
     quib_with_nested_arr.invalidate_and_redraw(path=[PathComponent(component=0, indexed_cls=quib_with_nested_arr.get_type())])
 
     assert not child.is_cache_valid
+
+
+def test_invalidate_and_redraw_pasten(quib_with_nested_arr, children):
+    first_row = children[0]
+    child = first_row[0]
+    child.get_value()
+
+    quib_with_nested_arr.invalidate_and_redraw(path=[PathComponent(component="nested",
+                                                                   indexed_cls=quib_with_nested_arr.get_type()),
+                                                     PathComponent(component="child_name",
+                                                                   indexed_cls=quib_with_nested_arr.get_type())
+                                                     ])
+
+    assert not child.is_cache_valid
