@@ -36,6 +36,7 @@ class ElementWiseReverser(Reverser):
     In charge of reversing all element-wise mathematical operation functions
     """
 
+    identity = lambda x : x
     # We use indexes instead of arg names because you cannot get signature from ufuncs (numpy functions)
     FUNCTIONS_TO_INVERSE_FUNCTIONS = {
         **{
@@ -67,6 +68,38 @@ class ElementWiseReverser(Reverser):
             0: lambda x, n: x ** (1 / n),
             1: lambda result, other: math.log(result, other)
         }),
+        **{
+            func: create_inverse_func_from_indexes_to_funcs({0: invfunc})
+            for func,invfunc in
+            [
+                (np.sin,        np.arcsin),
+                (np.cos,        np.arccos),
+                (np.tan,        np.arctan),
+                (np.sinh,       np.arcsinh),
+                (np.cosh,       np.arccosh),
+                (np.tanh,       np.arctanh),
+                (np.arcsin,     np.sin),
+                (np.arccos,     np.cos),
+                (np.arctan,     np.tan),
+                (np.arcsinh,    np.sinh),
+                (np.arccosh,    np.cosh),
+                (np.arctanh,    np.tanh),
+                (np.ceil,       identity),
+                (np.floor,      identity),
+                (np.round,      identity),
+                (np.exp,        np.log),
+                (np.exp2,       np.log2),
+                (np.expm1,      np.log1p),
+                (np.log,        np.exp),
+                (np.log2,       np.exp2),
+                (np.log1p,      np.expm1),
+                (np.log10,      lambda x: 10 ** x),
+                (np.sqrt,       np.square),
+                (np.square,     np.sqrt),
+                (np.int,        identity),
+                (np.float,      identity),
+            ]
+        },
     }
 
     SUPPORTED_FUNCTIONS = list(FUNCTIONS_TO_INVERSE_FUNCTIONS.keys())
