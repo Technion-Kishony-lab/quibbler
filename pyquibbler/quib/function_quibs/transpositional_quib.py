@@ -131,21 +131,20 @@ class TranspositionalQuib(DefaultFunctionQuib):
     def _invalidate_with_children(self, invalidator_quib, path: List[PathComponent]):
         """
         There are three things we can potentially do: 
-        1. If we're getitem, equalize where our invalidator quib (which is the quib we're getitem'ing) was invalidated
-        and our indices. If they're the same, drop it from the path and invalidate our children
-        2. If we're getitem, take where our invalidator quib was invalidated and pass it on to our children
-        3. Translate the indices if possible
+        1. Translate the invalidation path given the current function quib (eg if this function quib is rotate,
+        take the invalidated indices, rotate them and invalidate children with the resulting indices)
+        2. In getitem, check equality of indices and invalidation path- if so, continue with path[1:]
+        3. Pass on the current path to all our children
         """
         if len(path) == 0:
             return super(TranspositionalQuib, self)._invalidate_with_children(invalidator_quib=self, path=[])
 
-        working_component = path[0]
         if self.func == getitem:
             self._handle_invalidation_on_get_item(invalidator_quib, path)
         else:
-            # Any other situation ->
-            assert issubclass(self.get_type(), np.ndarray)
-            if not self._represents_translatable_numpy_indexing(working_component):
+            if path[0].references_field_in_field_array():
+                # The path at the first component references a field, and therefore we cannot translate it given a
+                # normal transpositional function
                 return super(TranspositionalQuib, self)._invalidate_with_children(invalidator_quib=self,
                                                                                   path=path)
             return self._translate_and_invalidate(invalidator_quib, path)
