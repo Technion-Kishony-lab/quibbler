@@ -56,19 +56,59 @@ class TranspositionalQuib(DefaultFunctionQuib):
         )
         return call_func_with_quib_values(self._func, new_arguments, self._kwargs)
 
+    def _represent_non_numpy_indexing(self, component):
+        return not component.references_field_in_field_array() and issubclass(component.indexed_cls, np.ndarray)
+
     def _invalidate_with_children(self, invalidator_quib, path: List[PathComponent]):
         component = path[0]
-        if self.func == getitem and (component.references_field_in_field_array()
-                                     or not issubclass(component.indexed_cls, np.ndarray)):
-            # We can't run normal our operation to get a boolean mask representing new indices, since our key is a
-            # string- this may mean we're a dict, in which case we can't run the boolean mask op,
-            # or we're in a field array, in which case we can't create a boolean mask to work with our key unless we
-            # have the dtype (which we dont')
-            if self.args[1] == component.component:
-                super(TranspositionalQuib, self)._invalidate_with_children(invalidator_quib=self,
-                                                                           path=[PathComponent(component=...,
-                                                                                               indexed_cls=self.get_type()), *path[1:]])
+
+        if self.func == getitem:
+            # If we're a getitem, there are two options:
+            # 1. We're both non numpy indexing (meaning we can't create bool masks), so
+            #   a. If we're equal, invalidate
+            #   b. If we're not, don't
+            # 2. We're not BOTH non numpy- continue
+            getitem_path_component = PathComponent(component=self._args[1], indexed_cls=self.get_type())
+            if self._represent_non_numpy_indexing(component) and self._represent_non_numpy_indexing(getitem_path_component):
+                if self.args[1] == component.component:
+                    super(TranspositionalQuib, self)._invalidate_with_children(invalidator_quib=self,
+                                                                               path=[PathComponent(component=...,
+                                                                                                   indexed_cls=self.get_type()),
+                                                                                     *path[1:]])
+                    return
+                else:
+                    # Do nothing, this is on purpose
+                    return
+            else:
+                if self._represent_non_numpy_indexing(component):
+                    # The getitem does represent numpy indices- which means we are entirely invalidated, and the key should
+                    # continue on
+                    super(TranspositionalQuib, self)._invalidate_with_children(invalidator_quib=self,
+                                                                               path=path)
+                else:
+                    # The component invalidating does represent numpy indices, we don't- which means we need to send the path
+                    # on
+                    super(TranspositionalQuib, self)._invalidate_with_children(invalidator_quib=self,
+                                                                               path=path)
+                return
+
+        # The component is non numpy indexing- we won't be able to create a bool mask
+        if self._represent_non_numpy_indexing(component):
+            super(TranspositionalQuib, self)._invalidate_with_children(invalidator_quib=self,
+                                                                       path=path)
             return
+
+        # if self.func == getitem and (component.references_field_in_field_array()
+        #                              or not issubclass(component.indexed_cls, np.ndarray)):
+        #     # We can't run normal our operation to get a boolean mask representing new indices, since our key is a
+        #     # string- this may mean we're a dict, in which case we can't run the boolean mask op,
+        #     # or we're in a field array, in which case we can't create a boolean mask to work with our key unless we
+        #     # have the dtype (which we dont')
+        #     if self.args[1] == component.component:
+        #         super(TranspositionalQuib, self)._invalidate_with_children(invalidator_quib=self,
+        #                                                                    path=[PathComponent(component=...,
+        #                                                                                        indexed_cls=self.get_type()), *path[1:]])
+        #     return
 
         boolean_mask = self._get_boolean_mask_representing_new_indices_of_quib(invalidator_quib, path[0])
         if np.any(boolean_mask):
