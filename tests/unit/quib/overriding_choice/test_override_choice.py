@@ -6,6 +6,7 @@ from pytest import raises, fixture, mark
 from pyquibbler import iquib
 from pyquibbler.quib import get_overrides_for_assignment, AssignmentNotPossibleException, DefaultFunctionQuib, Quib
 from pyquibbler.quib.assignment import Assignment, QuibWithAssignment
+from pyquibbler.quib.assignment.assignment import PathComponent
 from pyquibbler.quib.override_choice import override_choice as override_choice_module, OverrideGroup, OverrideRemoval
 from pyquibbler.quib.override_choice.override_choice import OverrideOptionsTree
 from pyquibbler.quib.override_choice.override_dialog import OverrideChoice, OverrideChoiceType, \
@@ -41,7 +42,7 @@ class ChooseOverrideDialogMockSideEffect:
 
 @fixture
 def assignment():
-    return Assignment(5, [...])
+    return Assignment(5, [PathComponent(component=..., indexed_cls=int)])
 
 
 @fixture(autouse=True)
@@ -75,8 +76,11 @@ def parent_and_child(assignment):
     parent = iquib(1)
     child: Quib = parent + add
     child_override = OverrideGroup([QuibWithAssignment(child, assignment)])
-    parent_override = OverrideGroup([QuibWithAssignment(parent, Assignment(assignment.value - add, [...]))],
-                                    [OverrideRemoval(child, [...])])  # TODO: a more complicated path
+    parent_override = OverrideGroup([QuibWithAssignment(parent, Assignment(assignment.value - add, [
+       PathComponent(component=..., indexed_cls=parent.get_type())
+    ]))],
+                                    [OverrideRemoval(child, [PathComponent(component=...,
+                                                                           indexed_cls=child.get_type())])])  # TODO: a more complicated path
     return parent, child, parent_override, child_override
 
 
