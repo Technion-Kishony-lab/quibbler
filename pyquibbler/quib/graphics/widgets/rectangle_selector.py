@@ -60,7 +60,7 @@ class QRectangleSelector(RectangleSelector):
     def extents(self, extents):
         super(type(self), type(self)).extents.fset(self, extents)
         if self.changed_callback is not None:
-            # important to use self.extents because it sorts the values according to size
+            # Important to use self.extents and not extents because it sorts the coordinates
             self.changed_callback(self.extents)
 
 
