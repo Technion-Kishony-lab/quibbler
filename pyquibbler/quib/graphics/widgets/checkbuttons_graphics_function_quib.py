@@ -1,7 +1,7 @@
 from matplotlib.widgets import CheckButtons
 
 from pyquibbler.quib import Quib
-from pyquibbler.quib.assignment import Assignment
+from pyquibbler.quib.assignment import Assignment, PathComponent
 from pyquibbler.quib.utils import quib_method
 
 from .widget_graphics_function_quib import WidgetGraphicsFunctionQuib
@@ -20,7 +20,8 @@ class CheckButtonsGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
             buttons_checked = widget.get_status()
             labels = self._all_args_dict.get('labels')
             new_value_index = labels.index(new_value)
-            actives.assign(Assignment(value=buttons_checked[new_value_index], paths=[new_value_index]))
+            actives.assign(Assignment(value=buttons_checked[new_value_index],
+                                      path=[PathComponent(indexed_cls=list, component=new_value_index)]))
         else:
             # We only need to invalidate children if we didn't assign
             self.invalidate_and_redraw_at_path()
