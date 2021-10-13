@@ -13,7 +13,7 @@ from .inverser import Inverser
 from ..assignment import QuibWithAssignment, PathComponent
 
 if TYPE_CHECKING:
-    from ...function_quibs.transpositional_quib import TranspositionalQuib
+    from ...function_quibs.transpositional_function_quib import TranspositionalFunctionQuib
     from pyquibbler.quib import Quib
 
 

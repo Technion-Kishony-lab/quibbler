@@ -4,18 +4,18 @@ from unittest import mock
 from operator import getitem
 
 from pyquibbler import iquib
-from pyquibbler.quib import TranspositionalQuib
+from pyquibbler.quib import TranspositionalFunctionQuib
 from pyquibbler.quib.assignment import Assignment
 from pyquibbler.quib.assignment.assignment import PathComponent
 
 
 def inverse(func, indices, value, args, kwargs=None):
-    quib = TranspositionalQuib.create(
+    quib = TranspositionalFunctionQuib.create(
         func=func,
         func_args=args,
         func_kwargs=kwargs
     )
-    inversals = TranspositionalQuib.create(
+    inversals = TranspositionalFunctionQuib.create(
         func=func,
         func_args=args,
         func_kwargs=kwargs
@@ -65,7 +65,7 @@ def test_inverse_concat_does_not_return_empty_assignments():
     second_quib_arg = iquib(np.array([[8, 12, 14]]))
     new_value = 20
 
-    quib = TranspositionalQuib.create(
+    quib = TranspositionalFunctionQuib.create(
         func=np.concatenate,
         func_args=((first_quib_arg, second_quib_arg),),
     )
@@ -180,7 +180,7 @@ def test_inverse_assign_field_array(basic_dtype):
 
 def test_inverse_assign_field_array_with_function_and_fancy_indexing_and_field_name(basic_dtype):
     arr = iquib(np.array([[('shlomi', 9)], [('maor', 3)]], dtype=basic_dtype))
-    rotation_quib = TranspositionalQuib.create(func=np.rot90, func_args=(arr,))
+    rotation_quib = TranspositionalFunctionQuib.create(func=np.rot90, func_args=(arr,))
     first_value = rotation_quib[[0], [1]]
 
     first_value.assign(Assignment(value="heisenberg", path=[PathComponent(indexed_cls=arr.get_type(), component='name')]))
@@ -208,7 +208,7 @@ def test_inverse_assign_nested_with_fancy_rot90_fancy_and_replace():
                                [(name_2, second_children)]], dtype=dtype))
     second_family = families[([1], [0])]  # Fancy Indexing, should copy
     children_names = second_family['nested']['child_name']
-    rotated_children = TranspositionalQuib.create(func=np.rot90, func_args=(children_names,))
+    rotated_children = TranspositionalFunctionQuib.create(func=np.rot90, func_args=(children_names,))
 
     dumbest_child = rotated_children[([0], [0])]
     dumbest_child.assign(Assignment(value=new_name, path=[PathComponent(component=...,
@@ -231,7 +231,7 @@ def test_inverse_setitem_on_non_ndarray():
 @pytest.mark.regression
 def test_inverse_setitem_on_non_ndarray_after_rotation():
     first_quib_arg = iquib([[[1, 2, 3]]])
-    rotated = TranspositionalQuib.create(func=np.rot90, func_args=(first_quib_arg[0],))
+    rotated = TranspositionalFunctionQuib.create(func=np.rot90, func_args=(first_quib_arg[0],))
 
     rotated.assign(Assignment(value=4, path=[PathComponent(indexed_cls=rotated.get_type(), component=(0, 0))]))
 

@@ -5,7 +5,7 @@ import pytest
 
 from pyquibbler import iquib, Assignment
 from pyquibbler.quib.assignment.assignment import PathComponent
-from pyquibbler.quib.function_quibs.transpositional_quib import TranspositionalQuib
+from pyquibbler.quib.function_quibs.transpositional_function_quib import TranspositionalFunctionQuib
 
 
 @pytest.fixture()
@@ -15,7 +15,7 @@ def input_quib():
 
 @pytest.fixture()
 def rot90_quib(input_quib):
-    return TranspositionalQuib.create(
+    return TranspositionalFunctionQuib.create(
         func=np.rot90,
         func_args=(input_quib,)
     )
@@ -23,7 +23,7 @@ def rot90_quib(input_quib):
 
 @pytest.fixture()
 def getitem_quib(rot90_quib):
-    getitem_quib_ = TranspositionalQuib.create(
+    getitem_quib_ = TranspositionalFunctionQuib.create(
         func=getitem,
         func_args=(rot90_quib, (0, 0))
     )

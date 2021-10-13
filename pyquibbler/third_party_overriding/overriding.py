@@ -9,8 +9,8 @@ from matplotlib import widgets
 from matplotlib.axes import Axes
 
 from pyquibbler.quib import ImpureFunctionQuib, DefaultFunctionQuib, FunctionQuib, GraphicsFunctionQuib
-from pyquibbler.quib.function_quibs.elementwise_quib import ElementWiseQuib
-from pyquibbler.quib.function_quibs.transpositional_quib import TranspositionalQuib
+from pyquibbler.quib.function_quibs.elementwise_function_quib import ElementWiseFunctionQuib
+from pyquibbler.quib.function_quibs.transpositional_function_quib import TranspositionalFunctionQuib
 from pyquibbler.quib.graphics import global_collecting
 from pyquibbler.quib.graphics.elements.slider_graphics_function_quib import SliderGraphicsFunctionQuib
 from pyquibbler.quib.graphics.elements.checkbuttons_graphics_function_quib import CheckButtonsGraphicsFunctionQuib
@@ -29,9 +29,9 @@ NUMPY_OVERRIDES = [
         (DefaultFunctionQuib, {"abs", "average", "max", "min", "arange", "polyfit",
                                "linspace", "polyval", "array", "genfromtxt", 'prod'}),
         (GraphicsFunctionQuib, {'apply_along_axis', 'apply_over_axes'}),
-        (TranspositionalQuib, {'reshape', 'rot90', 'ravel', 'concatenate', 'repeat', 'full', 'concatenate',
+        (TranspositionalFunctionQuib, {'reshape', 'rot90', 'ravel', 'concatenate', 'repeat', 'full', 'concatenate',
                                }),
-        (ElementWiseQuib, {'add', 'square',  "sin", "cos", "tan", "sinh", "cosh", "tanh", "real", "imag",
+        (ElementWiseFunctionQuib, {'add', 'square',  "sin", "cos", "tan", "sinh", "cosh", "tanh", "real", "imag",
                            "arcsin", "arccos", "arctan", "arcsinh", "arccosh", "arctanh",
                            "exp", "exp2", "expm1",
                            "log", "log2", "log1p", "log10",

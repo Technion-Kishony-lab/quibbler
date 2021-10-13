@@ -12,7 +12,7 @@ from math import trunc, floor, ceil
 from typing import Callable, Tuple, Optional, Type
 
 from .function_quibs import DefaultFunctionQuib
-from .function_quibs.elementwise_quib import ElementWiseQuib
+from .function_quibs.elementwise_function_quib import ElementWiseFunctionQuib
 from .quib import Quib
 
 
@@ -23,20 +23,20 @@ def operator_override(operator_name: str, cls: Type[DefaultFunctionQuib] = None)
 
 
 ARITHMETIC_OVERRIDES = [
-    operator_override('__add__', ElementWiseQuib),
-    operator_override('__sub__', ElementWiseQuib),
-    operator_override('__mul__', ElementWiseQuib),
+    operator_override('__add__', ElementWiseFunctionQuib),
+    operator_override('__sub__', ElementWiseFunctionQuib),
+    operator_override('__mul__', ElementWiseFunctionQuib),
     operator_override('__matmul__'),
-    operator_override('__truediv__', ElementWiseQuib),
+    operator_override('__truediv__', ElementWiseFunctionQuib),
     operator_override('__floordiv__'),
-    operator_override('__mod__', ElementWiseQuib),
+    operator_override('__mod__', ElementWiseFunctionQuib),
     (DefaultFunctionQuib, '__divmod__', divmod),
-    operator_override('__pow__', ElementWiseQuib),
+    operator_override('__pow__', ElementWiseFunctionQuib),
     operator_override('__lshift__'),
     operator_override('__rshift__'),
-    operator_override('__and__', ElementWiseQuib),
-    operator_override('__xor__', ElementWiseQuib),
-    operator_override('__or__', ElementWiseQuib),
+    operator_override('__and__', ElementWiseFunctionQuib),
+    operator_override('__xor__', ElementWiseFunctionQuib),
+    operator_override('__or__', ElementWiseFunctionQuib),
 ]
 
 UNARY_OVERRIDES = [

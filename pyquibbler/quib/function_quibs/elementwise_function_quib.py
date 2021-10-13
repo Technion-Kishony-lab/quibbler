@@ -7,7 +7,7 @@ if TYPE_CHECKING:
     from pyquibbler import Assignment
 
 
-class ElementWiseQuib(DefaultFunctionQuib):
+class ElementWiseFunctionQuib(DefaultFunctionQuib):
     """
     A quib representing an element wise mathematical operation- this includes any op that can map an output element
     back to an input element, and the operation can be inversed per element

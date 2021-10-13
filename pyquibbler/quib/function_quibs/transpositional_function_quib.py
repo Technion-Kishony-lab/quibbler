@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from .. import Quib
 
 
-class TranspositionalQuib(DefaultFunctionQuib):
+class TranspositionalFunctionQuib(DefaultFunctionQuib):
     """
     A quib that represents any transposition function- a function that moves elements (but commits no operation on
     them)
@@ -73,8 +73,8 @@ class TranspositionalQuib(DefaultFunctionQuib):
             assert np.all(boolean_mask) or issubclass(self.get_type(), np.ndarray)
             if not np.all(boolean_mask) and issubclass(self.get_type(), np.ndarray):
                 new_path = [PathComponent(indexed_cls=self.get_type(), component=boolean_mask), *path[1:]]
-            super(TranspositionalQuib, self)._invalidate_quib_with_children_at_path(invalidator_quib=self,
-                                                                                    path=new_path)
+            super(TranspositionalFunctionQuib, self)._invalidate_quib_with_children_at_path(invalidator_quib=self,
+                                                                                            path=new_path)
 
     def _handle_invalidation_on_get_item(self, invalidator_quib, path_to_invalidate):
         """
@@ -112,8 +112,8 @@ class TranspositionalQuib(DefaultFunctionQuib):
                 #
                 # Therefore, we want to pass on this invalidation path to our children since indices and field names are
                 # interchangeable when indexing structured ndarrays
-                super(TranspositionalQuib, self)._invalidate_quib_with_children_at_path(invalidator_quib=self,
-                                                                                        path=path_to_invalidate)
+                super(TranspositionalFunctionQuib, self)._invalidate_quib_with_children_at_path(invalidator_quib=self,
+                                                                                                path=path_to_invalidate)
         # We come to our default scenario- if
         # 1. The invalidator quib is not an ndarray
         # or
@@ -130,8 +130,8 @@ class TranspositionalQuib(DefaultFunctionQuib):
         # If so, invalidate. This is true for field arrays as well (We do need to
         # add support for indexing multiple fields).
         if self.args[1] == working_component.component:
-            super(TranspositionalQuib, self)._invalidate_quib_with_children_at_path(invalidator_quib=self,
-                                                                                    path=path_to_invalidate[1:])
+            super(TranspositionalFunctionQuib, self)._invalidate_quib_with_children_at_path(invalidator_quib=self,
+                                                                                            path=path_to_invalidate[1:])
 
     def _quib_in_data_quibs(self, quib: 'Quib'):
         """
@@ -148,7 +148,7 @@ class TranspositionalQuib(DefaultFunctionQuib):
         3. Pass on the current path to all our children
         """
         if len(path) == 0:
-            return super(TranspositionalQuib, self)._invalidate_quib_with_children_at_path(invalidator_quib=self, path=[])
+            return super(TranspositionalFunctionQuib, self)._invalidate_quib_with_children_at_path(invalidator_quib=self, path=[])
 
         if self.func == getitem:
             self._handle_invalidation_on_get_item(invalidator_quib, path)
@@ -157,13 +157,13 @@ class TranspositionalQuib(DefaultFunctionQuib):
             if path[0].references_field_in_field_array():
                 # The path at the first component references a field, and therefore we cannot translate it given a
                 # normal transpositional function
-                return super(TranspositionalQuib, self)._invalidate_quib_with_children_at_path(invalidator_quib=self,
-                                                                                               path=path)
+                return super(TranspositionalFunctionQuib, self)._invalidate_quib_with_children_at_path(invalidator_quib=self,
+                                                                                                       path=path)
             if not self._quib_in_data_quibs(invalidator_quib):
                 # Any param quib should invalidate ALL children- it is not simply the data being changed, but how the
                 # data is processed by the transpositional function
-                return super(TranspositionalQuib, self)._invalidate_quib_with_children_at_path(invalidator_quib=self,
-                                                                                               path=[])
+                return super(TranspositionalFunctionQuib, self)._invalidate_quib_with_children_at_path(invalidator_quib=self,
+                                                                                                       path=[])
 
             return self._translate_path_and_invalidate(invalidator_quib, path)
 

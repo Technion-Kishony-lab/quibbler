@@ -165,8 +165,8 @@ class Quib(ABC):
         # 2. We need the function to not be created dynamically as it needs to be in the inverser's supported functions
         # in order to be inversed correctly (and not simply override)
         from pyquibbler.quib import DefaultFunctionQuib
-        from pyquibbler.quib.function_quibs.transpositional_quib import TranspositionalQuib
-        return TranspositionalQuib.create(func=getitem, func_args=[self, item])
+        from pyquibbler.quib.function_quibs.transpositional_function_quib import TranspositionalFunctionQuib
+        return TranspositionalFunctionQuib.create(func=getitem, func_args=[self, item])
 
     def __setitem__(self, key, value):
         from .assignment.assignment import PathComponent
