@@ -38,20 +38,8 @@ class DefaultFunctionQuib(FunctionQuib):
         self._is_cache_valid = is_cache_valid
         self._cached_result = cached_result
 
-    def _get_path_for_children_invalidation(self, invalidator_quib: 'Quib',
-                                            path: List['PathComponent']) -> Optional[List['PathComponent']]:
-        return path
-
-    def _invalidate_quib_with_children_at_path(self, invalidator_quib: 'Quib', path: List['PathComponent']):
-        if len(path) == 0:
-            # if there is no specific path to invalidate, we simply want to invalidate the entire quib
-            new_path = []
-        else:
-            new_path = self._get_path_for_children_invalidation(invalidator_quib, path)
-        if new_path is not None:
-            self._is_cache_valid = False
-            for child in self._children:
-                child()._invalidate_quib_with_children_at_path(invalidator_quib=self, path=new_path)
+    def _invalidate_self(self):
+        self._is_cache_valid = False
 
     def _should_cache(self, result: Any, elapsed_seconds: float):
         """

@@ -96,13 +96,34 @@ class Quib(ABC):
         for child_ref in self._children:
             child_ref()._invalidate_quib_with_children_at_path(self, path)
 
+    def _get_path_for_children_invalidation(self, invalidator_quib: 'Quib',
+                                            path: List['PathComponent']) -> Optional[List['PathComponent']]:
+        """
+        Get the new path for invalidating children- a quib overrides this method if it has a specific way to translate
+        paths to new invalidation paths.
+        We simply return by default an empty invalidation path, which means we are asking our children quibs to
+        invalidate completely
+        """
+        return []
+
+    def _invalidate_self(self):
+        pass
+
     def _invalidate_quib_with_children_at_path(self, invalidator_quib, path: List[PathComponent]):
         """
         Invalidate a quib and it's children at a given path.
         This method should be overriden if there is any 'special' implementation for either invalidating oneself
         or for translating a path for invalidation
         """
-        self._invalidate_children_at_path(path)
+        if len(path) == 0:
+            # an invalidation path signifies a specific location to invalidate;
+            # if there is no specific location to invalidate, we simply want to invalidate the entire quib
+            new_path = []
+        else:
+            new_path = self._get_path_for_children_invalidation(invalidator_quib, path)
+        if new_path is not None:
+            self._invalidate_self()
+            self._invalidate_children_at_path(new_path)
 
     def add_child(self, quib: Quib) -> None:
         """
