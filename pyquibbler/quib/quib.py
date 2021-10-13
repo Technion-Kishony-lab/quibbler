@@ -108,10 +108,7 @@ class Quib(ABC):
         """
         Add the given quib to the list of quibs that are dependent on this quib.
         """
-
-        def discard(ref):
-            self._children.discard(ref)
-        self._children.add(weakref(quib, discard))
+        self._children.add(weakref(quib, lambda ref: self._children.discard(ref)))
 
     def __len__(self):
         return len(self.get_value())
