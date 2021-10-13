@@ -1,8 +1,7 @@
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from functools import partial
 from threading import RLock
-from typing import Callable, Any
+from typing import Any
 from matplotlib.widgets import RectangleSelector
 
 from pyquibbler.quib.utils import quib_method
@@ -10,7 +9,7 @@ from pyquibbler.utils import Mutable
 
 from .widget_graphics_function_quib import WidgetGraphicsFunctionQuib
 
-from ... import Quib
+from pyquibbler.quib import Quib
 
 
 @dataclass
@@ -28,6 +27,7 @@ class QRectangleSelector(RectangleSelector):
     CURRENT_SELECTOR = Locked(Mutable(None))
 
     def __init__(self, ax, onselect=None, extents=None, interactive=None, **kwargs):
+        self.changed_callback = None
         if interactive is None:
             interactive = True
         super().__init__(ax, onselect, interactive=interactive, **kwargs)
@@ -52,6 +52,16 @@ class QRectangleSelector(RectangleSelector):
                 current_selector.val = None
                 return release_result
 
+    @property
+    def extents(self):
+        return super().extents
+
+    @extents.setter
+    def extents(self, extents):
+        super(type(self), type(self)).extents.fset(self, extents)
+        if self.changed_callback is not None:
+            self.changed_callback(extents)
+
 
 class RectangleSelectorGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
     """
@@ -60,21 +70,21 @@ class RectangleSelectorGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
     WIDGET_CLS = RectangleSelector
     REPLACEMENT_CLS = QRectangleSelector
 
-    def _on_select(self, user_onselect, click_event, release_event):
-        if user_onselect is not None:
-            user_onselect(click_event, release_event)
-
-        val = self._all_args_dict.get('extents')
-        if isinstance(val, Quib):
-            raise TypeError('Quib extents are not supported yet')
-            val[:] = click_event.xdata, release_event.xdata, click_event.ydata, release_event.ydata
+    def _on_changed(self, extents):
+        init_val = self._all_args_dict.get('extents')
+        if isinstance(init_val, Quib):
+            init_val[:] = extents
         else:
             # We only need to invalidate children if we didn't assign
             self.invalidate_and_redraw_at_path()
 
     def _call_func(self):
+        if self._cached_result is not None:
+            self._cached_result.set_visible(False)
         selector = super()._call_func()
-        selector.onselect = partial(self._on_select, selector.onselect)
+        if selector.onselect is None:
+            selector.onselect = lambda *args, **kwargs: None
+        selector.changed_callback = self._on_changed
         return selector
 
     @property
