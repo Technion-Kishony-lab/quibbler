@@ -101,10 +101,9 @@ class Quib(ABC):
         """
         Get the new path for invalidating children- a quib overrides this method if it has a specific way to translate
         paths to new invalidation paths.
-        We simply return by default an invalidation path to invalidate all
+        If not, just return the path for invalidation of children
         """
-        from .assignment.assignment import PathComponent
-        return [PathComponent(component=..., indexed_cls=self.get_type())]
+        return path
 
     def _invalidate_self(self):
         """
