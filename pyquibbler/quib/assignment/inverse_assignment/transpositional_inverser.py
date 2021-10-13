@@ -168,20 +168,8 @@ class TranspositionalInverser(Inverser):
         representative_result_value = self._get_representative_function_quib_result_with_value()
         quibs_to_masks = self._get_quibs_to_masks()
 
-        def get_relevant_values_for_quib(quib):
-            # Because `representative_result_value` may not be an np type, and we may not be able to successfully
-            # convert it to an np type, we need to try returning the correct value WITHOUT subscription. For example, if
-            # the mask is True or False we can immediately return the value or an empty array.
-            # An example of this is if the `representative_result_value` is an int, and out masks are `True` or
-            # `False`
-            if np.all(quibs_to_masks[quib]):
-                return representative_result_value
-            if not np.any(quibs_to_masks[quib]):
-                return np.array([])
-            return representative_result_value[quibs_to_masks[quib]]
-
         return {
-            quib: get_relevant_values_for_quib(quib)
+            quib: representative_result_value[quibs_to_masks[quib]]
             for quib in self._get_quibs_which_can_change()
         }
 
@@ -223,7 +211,7 @@ class TranspositionalInverser(Inverser):
     def _next_path_component_has_translatable_np_indices(self):
         """
         Check's whether we have at hand a function quib which represents a __getitem__ with the indices being fancy
-        indexes
+        indexes [and the resulting type being an ndarray]
         """
         return (issubclass(self._function_quib.get_type(), np.ndarray)
                 and not self._assignment.path[0].references_field_in_field_array())

@@ -270,3 +270,23 @@ def test_inverse_getitem_on_dict_and_rot90():
     rot90[(0, 0)] = 20
 
     assert np.array_equal(quib['a'].get_value(), [[1, 2, 20]])
+
+
+def test_inverse_with_int_as_result_of_function_quib_after_slicing():
+    a = iquib(np.array([1, 2, 3]))
+    b = a[0:1]
+    c = b[0]
+
+    c.assign_value(3)
+
+    assert np.array_equal(a.get_value(), np.array([3, 2, 3]))
+
+
+@pytest.mark.regression
+def test_inverse_with_resulting_int_and_changing_value_shape():
+    a = iquib(np.arange(6).reshape(2, 3))
+    b = a[:, :]
+
+    b[:, :] = 0
+
+    assert np.array_equal(a.get_value(), np.full((2, 3), fill_value=0))

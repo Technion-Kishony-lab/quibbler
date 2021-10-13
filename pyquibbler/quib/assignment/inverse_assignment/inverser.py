@@ -66,7 +66,7 @@ class Inverser(ABC):
     def _kwargs(self):
         return self._function_quib.kwargs
 
-    def _get_representative_function_quib_result_with_value(self) -> Union[np.ndarray, Any]:
+    def _get_representative_function_quib_result_with_value(self) -> np.ndarray:
         """
         Since we don't have the real result (may not have been computed yet),
         we create a representative result in same shape as the real result and set the new value in it
