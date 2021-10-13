@@ -22,6 +22,13 @@ class ElementWiseFunctionQuib(DefaultFunctionQuib):
     def _create_bool_mask_representing_invalidator_quib_at_indices_in_result(self,
                                                                              invalidator_quib: 'Quib',
                                                                              indices: Any):
+        """
+        Create a boolean mask representing the invalidator quib at certain indices in the result.
+        For a simple operation (eg `invalidator=[1, 2, 3]`, `invalidator + [2, 3, 4]`, and we invalidate `(0, 0)`),
+        the `True`'s will be in the location of the indices (`[True, False, False]`)- but if
+        the invalidator quib was broadcasted, we need to make sure we get a boolean mask representing where the indices
+        were in the entire result.
+        """
         return np.broadcast_to(create_empty_array_with_values_at_indices(
             value=True,
             empty_value=False,
