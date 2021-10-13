@@ -227,9 +227,7 @@ class Quib(ABC):
         even have to calculate the values of its dependencies.
         """
         from .assignment.assignment import PathComponent
-        # Since `get_type` today calls `get_value`, we can't get our type without recursively calling ourselves-
-        # which means the `indexed_cls` must be set to the most generic class there is, which would be `object`
-        return self.get_value_valid_at_path([PathComponent(indexed_cls=object, component=...)])
+        return self.get_value_valid_at_path([PathComponent(indexed_cls=self.get_type(), component=...)])
 
     def get_override_list(self) -> Overrider:
         """
@@ -241,14 +239,14 @@ class Quib(ABC):
         """
         Get the type of wrapped value
         """
-        return type(self.get_value())
+        return type(self.get_value_valid_at_path([]))
 
     @quib_method
     def get_shape(self) -> Tuple[int, ...]:
         """
         Assuming this quib represents a numpy ndarray, returns a quib of its shape.
         """
-        value = self.get_value()
+        value = self.get_value_valid_at_path([])
         if not isinstance(value, np.ndarray):
             if isinstance(value, list):
                 return np.array(value, dtype=object).shape

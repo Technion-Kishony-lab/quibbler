@@ -6,6 +6,7 @@ from pytest import fixture, mark
 
 from pyquibbler import iquib, CacheBehavior, Assignment
 from pyquibbler.quib import DefaultFunctionQuib
+from pyquibbler.quib.assignment.assignment import PathComponent
 
 
 @fixture
@@ -65,10 +66,14 @@ def test_invalidation(parent_quib, quib_with_valid_cache, quib_cached_result, fu
 
 def test_no_caching_is_done_when_cache_is_off(function_mock, function_mock_return_val):
     function_quib = DefaultFunctionQuib.create(function_mock, cache_behavior=CacheBehavior.OFF)
+    path_to_get_value = [PathComponent(
+        component=...,
+        indexed_cls=np.ndarray
+    )]
 
-    assert function_quib.get_value() == function_mock_return_val
+    assert function_quib.get_value_valid_at_path(path_to_get_value) == function_mock_return_val
     assert not function_quib.is_cache_valid
-    assert function_quib.get_value() == function_mock_return_val
+    assert function_quib.get_value_valid_at_path(path_to_get_value) == function_mock_return_val
     assert function_mock.call_count == 2
 
 
