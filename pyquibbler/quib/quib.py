@@ -122,15 +122,11 @@ class Quib(ABC):
         or for translating a path for invalidation
         """
         from .assignment.assignment import PathComponent
-        if path[0].component is Ellipsis:
-            # an invalidation path signifies a specific location to invalidate;
-            # if there is no specific location to invalidate, we simply want to invalidate the entire quib
-            #
-            # In the future we need to squash- for now if we see an ellipsis we expect it to be the
-            # only component in the path
-            assert len(path) == 1
+        if all([c.component is Ellipsis for c in path]):
             new_path = [PathComponent(indexed_cls=self.get_type(), component=...)]
         else:
+            # We expect the given path to be fully squashed; it will be as long as we don't have ellipsis's
+            path = [c for c in path if c.component is not Ellipsis]
             new_path = self._get_path_for_children_invalidation(invalidator_quib, path)
         if new_path:
             self._invalidate_self()

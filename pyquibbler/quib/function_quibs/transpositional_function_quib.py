@@ -67,16 +67,22 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib):
         If any indices exist in the result, invalidate all children with the resulting indices (or, in this
         implementation, a boolean mask representing them)
         """
-        boolean_mask = self._get_boolean_mask_representing_new_indices_of_quib(invalidator_quib, path[0])
+        working_component = path[0]
+        boolean_mask = self._get_boolean_mask_representing_new_indices_of_quib(invalidator_quib, working_component)
         if np.any(boolean_mask):
-            new_path = path[1:]
-            assert np.all(boolean_mask) or issubclass(self.get_type(), np.ndarray)
+            # If there exist both True's and False's in the boolean mask,
+            # this function's quib result must be an ndarray- if it were a single item (say a PyObj, int, dict, list)
+            # we'd expect it to be completely True (as it is ONE single object). If it is not a single item, it is by
+            # definitely an ndarray
+            assert issubclass(self.get_type(), np.ndarray) or np.all(boolean_mask)
+            assert issubclass(self.get_type(), np.ndarray) or isinstance(boolean_mask, np.bool_)
+
             if not np.all(boolean_mask) and issubclass(self.get_type(), np.ndarray):
                 new_path = [PathComponent(indexed_cls=self.get_type(), component=boolean_mask), *path[1:]]
-            if len(new_path) == 0:
-                new_path = [PathComponent(indexed_cls=self.get_type(), component=...)]
+            else:
+                new_path = [PathComponent(indexed_cls=self.get_type(), component=...), *path[1:]]
             return new_path
-        return None
+        return []
 
     def _get_path_for_invalidation_on_get_item(self, invalidator_quib: 'Quib',
                                                path_to_invalidate: List[PathComponent]):
@@ -95,7 +101,7 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib):
                     not working_component.references_field_in_field_array()
             ):
                 # This means:
-                # 1. The invalidator quib's result is an ndarray,
+                # 1. The invalidator quib's result is an ndarray, (We're a getitem on that said ndarray)
                 # 2. Both the path to invalidate and the `item` of the getitem are translatable indices
                 #
                 # Therefore, we translate the indices and invalidate our children with the new indices (which are an
@@ -155,12 +161,14 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib):
         2. In getitem, check equality of indices and invalidation path- if so, continue with path[1:]
         3. Pass on the current path to all our children
         """
+        component = path[0]
         if self.func == getitem:
             return self._get_path_for_invalidation_on_get_item(invalidator_quib, path)
         else:
-            if path[0].references_field_in_field_array():
+            if component.references_field_in_field_array():
                 # The path at the first component references a field, and therefore we cannot translate it given a
-                # normal transpositional function
+                # normal transpositional function (neither does it make any difference, as transpositional functions
+                # don't change fields)
                 return path
             if not self._quib_in_data_quibs(invalidator_quib):
                 # Any param quib should invalidate ALL children- it is not simply the data being changed, but how the
