@@ -2,20 +2,14 @@ import matplotlib.pyplot as plt
 from dataclasses import dataclass
 from functools import partial
 from matplotlib.axes import Axes
-from matplotlib.backend_bases import Event
 from matplotlib.widgets import RadioButtons, Button
-from typing import List, Callable, Optional, Any
+from typing import List, Callable, Optional
 from enum import Enum
 
 from pyquibbler.quib.assignment import QuibWithAssignment
+from pyquibbler.utils import Mutable, Flag
 
-
-@dataclass
-class Mutable:
-    val: Any
-
-    def set(self, val: Any):
-        self.val = val
+DIALOG_OPEN = Flag(False)
 
 
 class MyRadioButtons(RadioButtons):
@@ -62,10 +56,10 @@ def show_fig(fig, choice_type):
     Show fig until it is closed or choice_type is set.
     Return True if the figure was closed and False otherwise.
     """
-    figure_closed = Mutable(False)
+    figure_closed = Flag(False)
     fig.canvas.mpl_connect('close_event', lambda _event: figure_closed.set(True))
 
-    while choice_type.val is None and not figure_closed.val:
+    while choice_type.val is None and not figure_closed:
         try:
             plt.pause(0.05)
         except Exception:
