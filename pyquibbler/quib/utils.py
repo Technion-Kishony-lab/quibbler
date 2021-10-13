@@ -125,7 +125,10 @@ def deep_copy_and_replace_quibs_with_vals(obj: Any, max_depth: Optional[int] = N
             return o.get_value()
         if isinstance(o, Artist):
             return o
-        return copy(o)
+        try:
+            return copy(o)
+        except NotImplementedError:
+            return o
 
     return recursively_run_func_on_object(func=replace_with_value_if_quib_or_copy, max_depth=max_depth,
                                           max_length=max_length, obj=obj)
