@@ -30,6 +30,8 @@ class QRectangleSelector(RectangleSelector):
         self.changed_callback = None
         if interactive is None:
             interactive = True
+        if onselect is None:
+            onselect = lambda *args, **kwargs: None
         super().__init__(ax, onselect, interactive=interactive, **kwargs)
         if extents is not None:
             self.extents = extents
@@ -83,8 +85,6 @@ class RectangleSelectorGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
         if self._cached_result is not None:
             self._cached_result.set_visible(False)
         selector = super()._call_func()
-        if selector.onselect is None:
-            selector.onselect = lambda *args, **kwargs: None
         selector.changed_callback = self._on_changed
         return selector
 
