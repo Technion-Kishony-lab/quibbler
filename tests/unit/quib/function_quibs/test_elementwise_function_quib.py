@@ -15,3 +15,18 @@ def test_elementwise_function_quib_invalidation_when_should_invalidate():
     )])
 
     assert not b.is_cache_valid
+
+
+def test_elementwise_function_quib_invalidation_when_should_not_invalidate():
+    a = iquib(np.array([[1, 2, 3]]))
+    b = iquib(np.array([[1], [2], [3]]))
+    sum_ = a + b
+    item = sum_[(2, 0)]
+    item.get_value()
+
+    a.invalidate_and_redraw_at_path(path=[PathComponent(
+        component=(0, 0),
+        indexed_cls=list
+    )])
+
+    assert not item.is_cache_valid
