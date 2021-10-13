@@ -1,7 +1,9 @@
+import numpy as np
 import pytest
 from unittest import mock
 
 from pyquibbler import CacheBehavior, iquib
+from pyquibbler.quib.assignment.assignment import PathComponent
 from pyquibbler.quib.graphics import GraphicsFunctionQuib, global_collecting
 from pyquibbler.quib.graphics.global_collecting import QuibDependencyCollector
 
@@ -65,7 +67,7 @@ def test_graphics_function_quib_rerun_removes_artists_created(monkeypatch, mock_
     father_quib.add_child(quib)
 
     quib.get_value()
-    father_quib.invalidate_and_redraw_at_path(path=[...])
+    father_quib.invalidate_and_redraw_at_path(path=[PathComponent(component=..., indexed_cls=np.ndarray)])
 
     assert len(mock_artists_collector.all_mock_artists_created) == 2
     assert len(mock_axes.artists) == 1

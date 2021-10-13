@@ -96,6 +96,7 @@ def test_invalidation_invalidates_quib_when_needed():
         func=mock.Mock(),
         func_args=(function_quib,)
     )
-    function_quib.invalidate_and_redraw_at_path(path=[(0, 0)])
+    function_quib.invalidate_and_redraw_at_path(path=[PathComponent(indexed_cls=function_quib.get_type(),
+                                                                    component=(0, 0))])
 
     assert not mock_dependant_quib.is_cache_valid
