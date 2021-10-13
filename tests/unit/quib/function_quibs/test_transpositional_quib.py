@@ -216,6 +216,28 @@ def test_invalidate_and_redraw_with_dict_and_ndarrays_within():
     assert not child.is_cache_valid
 
 
+def test_invalidate_and_redraw_with_dict_and_ndarrays_within_does_not_invalidate():
+    quib = iquib({
+        'a': np.array([{
+            'c': 'd'
+        }]),
+    })
+    child = quib['a'][0]['c']
+    child.get_value()
+
+    quib.invalidate_and_redraw_at_path(path=[PathComponent(component="a",
+                                                           indexed_cls=dict),
+                                             PathComponent(component=0,
+                                                   indexed_cls=np.ndarray),
+                                             PathComponent(
+                                         component='e',
+                                         indexed_cls=dict
+                                     )
+                                             ])
+
+    assert child.is_cache_valid
+
+
 def test_invalidate_and_redraw_invalidates_all_when_minor_parameter_changes():
     quib = iquib(np.array([1, 2, 3]))
     param = iquib(3)

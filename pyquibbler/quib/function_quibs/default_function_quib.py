@@ -8,7 +8,8 @@ from ..assignment import AssignmentTemplate
 
 
 if TYPE_CHECKING:
-    from ..assignment.assignment import PathComponent, PathComponent
+    from ..assignment.assignment import PathComponent, Assignment, PathComponent
+    from ..quib import Quib
 
 
 class DefaultFunctionQuib(FunctionQuib):
@@ -37,10 +38,8 @@ class DefaultFunctionQuib(FunctionQuib):
         self._is_cache_valid = is_cache_valid
         self._cached_result = cached_result
 
-    def _invalidate_quib_with_children_at_path(self, invalidator_quib: 'Quib', path: List['PathComponent']):
+    def _invalidate_self(self):
         self._is_cache_valid = False
-        for child in self._children:
-            child()._invalidate_quib_with_children_at_path(invalidator_quib=self, path=path)
 
     def _should_cache(self, result: Any, elapsed_seconds: float):
         """

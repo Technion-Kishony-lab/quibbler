@@ -107,7 +107,6 @@ class TranspositionalInverser(Inverser):
         """
         Get a mapping of quibs to their referenced indices at a *specific dimension*
         """
-        from pyquibbler.quib import Quib
         quibs_to_index_grids = self._get_quibs_to_index_grids()
         quibs_to_masks = self._get_quibs_to_masks()
 
