@@ -140,7 +140,7 @@ def test_quib_invalidates_children_recursively(example_quib):
     grandchild = ExampleQuib(mock.Mock())
     child.add_child(grandchild)
 
-    example_quib.invalidate_and_redraw_at_path(...)
+    example_quib.invalidate_and_redraw_at_path([PathComponent(component=..., indexed_cls=np.ndarray)])
 
     assert child.invalidate_count == 1
     assert grandchild.invalidate_count == 1
