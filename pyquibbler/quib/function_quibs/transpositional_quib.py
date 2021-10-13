@@ -133,6 +133,12 @@ class TranspositionalQuib(DefaultFunctionQuib):
             super(TranspositionalQuib, self)._invalidate_quib_with_children_at_path(invalidator_quib=self,
                                                                                     path=path_to_invalidate[1:])
 
+    def _quib_in_data_quibs(self, quib: 'Quib'):
+        """
+        Whether or not the current function quib can change the given quib
+        """
+        return quib in self.get_quibs_which_can_change()
+
     def _invalidate_quib_with_children_at_path(self, invalidator_quib, path: List[PathComponent]):
         """
         There are three things we can potentially do: 
@@ -147,11 +153,18 @@ class TranspositionalQuib(DefaultFunctionQuib):
         if self.func == getitem:
             self._handle_invalidation_on_get_item(invalidator_quib, path)
         else:
+
             if path[0].references_field_in_field_array():
                 # The path at the first component references a field, and therefore we cannot translate it given a
                 # normal transpositional function
                 return super(TranspositionalQuib, self)._invalidate_quib_with_children_at_path(invalidator_quib=self,
                                                                                                path=path)
+            if not self._quib_in_data_quibs(invalidator_quib):
+                # Any param quib should invalidate ALL children- it is not simply the data being changed, but how the
+                # data is processed by the transpositional function
+                return super(TranspositionalQuib, self)._invalidate_quib_with_children_at_path(invalidator_quib=self,
+                                                                                               path=[])
+
             return self._translate_path_and_invalidate(invalidator_quib, path)
 
     @functools.lru_cache()
