@@ -12,9 +12,8 @@ from pyquibbler.quib import ImpureFunctionQuib, DefaultFunctionQuib, FunctionQui
 from pyquibbler.quib.function_quibs.elementwise_function_quib import ElementWiseFunctionQuib
 from pyquibbler.quib.function_quibs.transpositional_function_quib import TranspositionalFunctionQuib
 from pyquibbler.quib.graphics import global_collecting
-from pyquibbler.quib.graphics.elements.slider_graphics_function_quib import SliderGraphicsFunctionQuib
-from pyquibbler.quib.graphics.elements.checkbuttons_graphics_function_quib import CheckButtonsGraphicsFunctionQuib
-from pyquibbler.quib.graphics.elements.radiobuttons_graphics_function_quib import RadioButtonsGraphicsFunctionQuib
+from pyquibbler.quib.graphics.widgets import SliderGraphicsFunctionQuib, CheckButtonsGraphicsFunctionQuib, \
+    RadioButtonsGraphicsFunctionQuib, RectangleSelectorGraphicsFunctionQuib, QRadioButtons, QRectangleSelector
 from pyquibbler.quib.graphics.replacing_graphics_function_quib import ReplacingGraphicsFunctionQuib
 from pyquibbler.utils import ensure_only_run_once_globally
 
@@ -29,9 +28,8 @@ NUMPY_OVERRIDES = [
         (DefaultFunctionQuib, {"abs", "average", "max", "min", "arange", "polyfit",
                                "linspace", "polyval", "array", "genfromtxt", 'prod'}),
         (GraphicsFunctionQuib, {'apply_along_axis', 'apply_over_axes'}),
-        (TranspositionalFunctionQuib, {'reshape', 'rot90', 'ravel', 'concatenate', 'repeat', 'full', 'concatenate',
-                               }),
-        (ElementWiseFunctionQuib, {'add', 'square',  "sin", "cos", "tan", "sinh", "cosh", "tanh", "real", "imag",
+        (TranspositionalFunctionQuib, {'reshape', 'rot90', 'ravel', 'concatenate', 'repeat', 'full', 'concatenate'}),
+        (ElementWiseFunctionQuib, {'add', 'square', "sin", "cos", "tan", "sinh", "cosh", "tanh", "real", "imag",
                            "arcsin", "arccos", "arctan", "arcsinh", "arccosh", "arctanh",
                            "exp", "exp2", "expm1",
                            "log", "log2", "log1p", "log10",
@@ -48,12 +46,14 @@ MPL_OVERRIDES = [
         (GraphicsFunctionQuib, {'plot', 'imshow', 'text', 'bar', 'hist', 'pie', 'legend'})
     ]),
     (Axes, [
-        (ReplacingGraphicsFunctionQuib, {'set_xlim', 'set_ylim', 'set_title', 'set_xlabel', 'set_ylabel', 'set_visible', 'set_facecolor'})
+        (ReplacingGraphicsFunctionQuib,
+         {'set_xlim', 'set_ylim', 'set_title', 'set_xlabel', 'set_ylabel', 'set_visible', 'set_facecolor'})
     ]),
     (widgets, [
         (SliderGraphicsFunctionQuib, {'Slider'}),
         (CheckButtonsGraphicsFunctionQuib, {'CheckButtons'}),
-        (RadioButtonsGraphicsFunctionQuib, {'RadioButtons'})
+        (RadioButtonsGraphicsFunctionQuib, {'RadioButtons'}),
+        (RectangleSelectorGraphicsFunctionQuib, {'RectangleSelector'})
     ])
 ]
 

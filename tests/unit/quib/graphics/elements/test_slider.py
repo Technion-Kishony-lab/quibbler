@@ -1,9 +1,7 @@
-from unittest import mock
-
 import pytest
-
+from unittest import mock
 from pyquibbler import iquib
-from pyquibbler.quib.graphics.elements.slider_graphics_function_quib import SliderGraphicsFunctionQuib
+from pyquibbler.quib.graphics.widgets import SliderGraphicsFunctionQuib
 
 
 @pytest.fixture
@@ -13,12 +11,10 @@ def mock_quib():
 
 @pytest.fixture
 def slider_quib(mock_quib, axes):
+    func_mock = mock.create_autospec(SliderGraphicsFunctionQuib.WIDGET_CLS)
     return SliderGraphicsFunctionQuib.create(
-        func=mock.Mock(),
-        func_kwargs={
-            'ax': axes,
-            'valinit': mock_quib
-        }
+        func=func_mock,
+        func_kwargs=dict(ax=axes, valinit=mock_quib, label='Whatever', valmin=0, valmax=1)
     )
 
 

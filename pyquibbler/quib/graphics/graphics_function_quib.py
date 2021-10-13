@@ -75,15 +75,14 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
 
     @classmethod
     def create(cls, func, func_args=(), func_kwargs=None, cache_behavior=None, lazy=False, **kwargs):
-        self = super(GraphicsFunctionQuib, cls).create(func, func_args, func_kwargs, cache_behavior,
-                                                       artists=[], **kwargs)
+        self = super().create(func, func_args, func_kwargs, cache_behavior, artists=[], **kwargs)
         if not lazy:
             self.get_value()
         return self
 
     @classmethod
     def create_wrapper(cls, func: Callable):
-        quib_creator = super(GraphicsFunctionQuib, cls).create_wrapper(func)
+        quib_creator = super().create_wrapper(func)
 
         @wraps(quib_creator)
         def wrapper(*args, **kwargs):

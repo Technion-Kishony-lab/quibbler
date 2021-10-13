@@ -1,6 +1,6 @@
 from sys import getsizeof
 from time import perf_counter
-from typing import Callable, Any, Mapping, Tuple, Optional, Dict, List, TYPE_CHECKING
+from typing import Callable, Any, Mapping, Tuple, Optional, List, TYPE_CHECKING
 
 
 from .function_quib import FunctionQuib, CacheBehavior
@@ -8,7 +8,7 @@ from ..assignment import AssignmentTemplate
 
 
 if TYPE_CHECKING:
-    from ..assignment.assignment import PathComponent, Assignment, PathComponent
+    from ..assignment.assignment import PathComponent, PathComponent
 
 
 class DefaultFunctionQuib(FunctionQuib):

@@ -4,19 +4,16 @@ from functools import cached_property
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from operator import getitem
-from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type
-from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Union
 from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List
 from weakref import ref as weakref
 
 from pyquibbler.exceptions import PyQuibblerException
 
 from .assignment import AssignmentTemplate, RangeAssignmentTemplate, BoundAssignmentTemplate, Overrider, Assignment
-from .assignment.overrider import deep_assign_data_with_paths
 from .utils import quib_method, Unpacker, recursively_run_func_on_object
+from .assignment import PathComponent
 
 if TYPE_CHECKING:
-    from .assignment.assignment import PathComponent
     from pyquibbler.quib.graphics import GraphicsFunctionQuib
 
 
@@ -82,10 +79,13 @@ class Quib(ABC):
         for axes in axeses:
             redraw_axes(axes)
 
-    def invalidate_and_redraw_at_path(self, path: List[PathComponent]) -> None:
+    def invalidate_and_redraw_at_path(self, path: Optional[List[PathComponent]] = None) -> None:
         """
         Perform all actions needed after the quib was mutated (whether by overriding or inverse assignment).
+        If path is not given, the whole quib is invalidated.
         """
+        if path is None:
+            path = [PathComponent(component=..., indexed_cls=self.get_type())]
         self._invalidate_children_at_path(path)
         self.__redraw()
 

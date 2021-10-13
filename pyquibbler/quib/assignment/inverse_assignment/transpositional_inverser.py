@@ -1,19 +1,16 @@
 from __future__ import annotations
-import functools
 import numpy as np
 from operator import getitem
-from typing import Dict, List, TYPE_CHECKING, Union, Callable, Any, Tuple
+from typing import Dict, List, TYPE_CHECKING, Union, Callable, Any
 
 from pyquibbler.quib.assignment import Assignment
 from pyquibbler.quib.assignment.inverse_assignment.utils import create_empty_array_with_values_at_indices
-from pyquibbler.quib.utils import recursively_run_func_on_object, call_func_with_quib_values, \
-    iter_objects_of_type_in_object_shallowly
+from pyquibbler.quib.utils import recursively_run_func_on_object, call_func_with_quib_values
 
 from .inverser import Inverser
 from ..assignment import QuibWithAssignment, PathComponent
 
 if TYPE_CHECKING:
-    from ...function_quibs.transpositional_function_quib import TranspositionalFunctionQuib
     from pyquibbler.quib import Quib
 
 

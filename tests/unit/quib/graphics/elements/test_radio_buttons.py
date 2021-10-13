@@ -1,9 +1,8 @@
+import pytest
 from unittest import mock
 
-import pytest
-
 from pyquibbler import iquib
-from pyquibbler.quib.graphics.elements.radiobuttons_graphics_function_quib import RadioButtonsGraphicsFunctionQuib
+from pyquibbler.quib.graphics.widgets import RadioButtonsGraphicsFunctionQuib
 
 
 @pytest.fixture
@@ -13,8 +12,9 @@ def mock_quib():
 
 @pytest.fixture
 def radibuttons_quib(mock_quib, axes):
+    func_mock = mock.create_autospec(RadioButtonsGraphicsFunctionQuib.WIDGET_CLS)
     return RadioButtonsGraphicsFunctionQuib.create(
-        func=mock.Mock(),
+        func=func_mock,
         func_kwargs={
             'ax': axes,
             'active': mock_quib,
