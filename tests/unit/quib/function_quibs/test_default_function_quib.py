@@ -88,12 +88,14 @@ def test_overrides_do_not_mutate_internal_cache(default_function_quib, function_
 
 def test_invalidation_invalidates_quib_when_needed():
     quib = iquib(np.array([[1, 2, 3]]))
+    mock_func = mock.Mock()
+    mock_func.return_value = 1
     function_quib = DefaultFunctionQuib.create(
-        func=mock.Mock(),
+        func=mock_func,
         func_args=(quib, 1)
     )
     mock_dependant_quib = DefaultFunctionQuib.create(
-        func=mock.Mock(),
+        func=mock_func,
         func_args=(function_quib,)
     )
     function_quib.invalidate_and_redraw_at_path(path=[PathComponent(indexed_cls=function_quib.get_type(),

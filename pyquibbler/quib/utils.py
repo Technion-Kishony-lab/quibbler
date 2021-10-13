@@ -9,7 +9,6 @@ from inspect import currentframe
 from inspect import signature
 from itertools import chain
 from typing import Any, Optional, Set, TYPE_CHECKING, Callable, Tuple, Dict, Type, Mapping
-from unittest import mock
 
 from pyquibbler.env import DEBUG
 from pyquibbler.exceptions import DebugException, PyQuibblerException
@@ -160,7 +159,7 @@ def copy_and_replace_quibs_with_vals(obj: Any):
             else:
                 equal = False
 
-        if not equal and not isinstance(expected, mock.Mock):
+        if not equal:
             raise NestedQuibException.create_from_object(obj)
     return result
 
