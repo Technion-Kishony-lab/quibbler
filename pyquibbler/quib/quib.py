@@ -107,6 +107,12 @@ class Quib(ABC):
         return []
 
     def _invalidate_self(self):
+        """
+        This method is called whenever a quib itself is invalidated; subclasses will override this with their
+        implementations for invalidations.
+        For example, a simple implementation for a quib which is a function could be setting a boolean to true or
+        false signifying validity
+        """
         pass
 
     def _invalidate_quib_with_children_at_path(self, invalidator_quib, path: List[PathComponent]):
