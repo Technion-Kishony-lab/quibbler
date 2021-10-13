@@ -19,6 +19,6 @@ class ReplacingGraphicsFunctionQuib(GraphicsFunctionQuib):
         for artist in chain(self._artists, iter_object_type_in_args(Artist, self.args, self.kwargs)):
             name = f'_quibbler_{self.func.__name__}'
             current_quib: Optional['ReplacingGraphicsFunctionQuib'] = getattr(artist, name, None)
-            if current_quib is not None:
+            if current_quib is not self and current_quib is not None:
                 self._remove_previous_quib_from_parents(current_quib)
             setattr(artist, name, self)
