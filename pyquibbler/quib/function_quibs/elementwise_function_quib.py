@@ -28,6 +28,18 @@ class ElementWiseFunctionQuib(DefaultFunctionQuib):
         the `True`'s will be in the location of the indices (`[True, False, False]`)- but if
         the invalidator quib was broadcasted, we need to make sure we get a boolean mask representing where the indices
         were in the entire result.
+
+        For example- if we have
+        ```
+        invalidator_quib = [[1, 2, 3]]
+        sum_ = invalidator_quib + [[1], [2], [3]]
+        ```
+        and we invalidate at (0, 0), we need to create a mask broadcasted like the argument was, ie
+        [
+        [True, False, False],
+        [True, False, False],
+        [True, False, False]
+        ]
         """
         return np.broadcast_to(create_empty_array_with_values_at_indices(
             value=True,
