@@ -50,12 +50,15 @@ def assignment_template_mock():
 def test_quib_invalidate_and_redraw_calls_graphics_function_quib_children(example_quib):
     mock_func = mock.Mock()
     mock_func.return_value = []
+
     quib = GraphicsFunctionQuib(func=mock_func, args=tuple(), kwargs={}, artists=[], cache_behavior=None)
     example_quib.add_child(quib)
+    quib.get_value()  # we want to set cache to valid
 
-    example_quib.invalidate_and_redraw_at_path(path=[...])
+    example_quib.invalidate_and_redraw_at_path(path=[PathComponent(component=...,
+                                                                   indexed_cls=np.ndarray)])
 
-    mock_func.assert_called_once()
+    assert mock_func.call_count == 2  # once for our original get_value, once for the redraw after invalidation
 
 
 @mark.parametrize(['val1', 'val2'], [
@@ -140,7 +143,7 @@ def test_quib_invalidates_children_recursively(example_quib):
     grandchild = ExampleQuib(mock.Mock())
     child.add_child(grandchild)
 
-    example_quib.invalidate_and_redraw_at_path(...)
+    example_quib.invalidate_and_redraw_at_path([PathComponent(component=..., indexed_cls=np.ndarray)])
 
     assert child.invalidate_count == 1
     assert grandchild.invalidate_count == 1

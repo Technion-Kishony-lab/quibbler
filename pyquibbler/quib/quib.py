@@ -96,13 +96,40 @@ class Quib(ABC):
         for child_ref in self._children:
             child_ref()._invalidate_quib_with_children_at_path(self, path)
 
+    def _get_path_for_children_invalidation(self, invalidator_quib: 'Quib',
+                                            path: List['PathComponent']) -> List['PathComponent']:
+        """
+        Get the new path for invalidating children- a quib overrides this method if it has a specific way to translate
+        paths to new invalidation paths.
+        If not, just return the path for invalidation of children
+        """
+        return path
+
+    def _invalidate_self(self):
+        """
+        This method is called whenever a quib itself is invalidated; subclasses will override this with their
+        implementations for invalidations.
+        For example, a simple implementation for a quib which is a function could be setting a boolean to true or
+        false signifying validity
+        """
+        pass
+
     def _invalidate_quib_with_children_at_path(self, invalidator_quib, path: List[PathComponent]):
         """
         Invalidate a quib and it's children at a given path.
         This method should be overriden if there is any 'special' implementation for either invalidating oneself
         or for translating a path for invalidation
         """
-        self._invalidate_children_at_path(path)
+        from .assignment.assignment import PathComponent
+        if all([c.component is Ellipsis for c in path]):
+            new_path = [PathComponent(indexed_cls=self.get_type(), component=...)]
+        else:
+            # We expect the given path to be fully squashed; it will be as long as we don't have ellipsis's
+            path = [c for c in path if c.component is not Ellipsis]
+            new_path = self._get_path_for_children_invalidation(invalidator_quib, path)
+        if new_path:
+            self._invalidate_self()
+            self._invalidate_children_at_path(new_path)
 
     def add_child(self, quib: Quib) -> None:
         """
