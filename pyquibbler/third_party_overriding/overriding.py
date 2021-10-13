@@ -41,10 +41,11 @@ MPL_OVERRIDES = [
         (GraphicsFunctionQuib, {'plot', 'imshow', 'text', 'bar', 'hist', 'pie'})
     ]),
     (Axes, [
-        (ReplacingGraphicsFunctionQuib, {'set_xlim', 'set_ylim', 'set_title', 'set_xlabel', 'set_ylabel', 'set_visible'})
+        (ReplacingGraphicsFunctionQuib, {'set_xlim', 'set_ylim', 'set_title', 'set_xlabel', 'set_ylabel', 'set_visible', 'set_facecolor'})
     ]),
     (widgets, [
         (SliderGraphicsFunctionQuib, {'Slider'}),
+        (CheckButtonsGraphicsFunctionQuib, {'CheckButtons'}),
         (RadioButtonsGraphicsFunctionQuib, {'RadioButtons'})
     ])
 ]
