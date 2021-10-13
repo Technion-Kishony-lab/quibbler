@@ -97,14 +97,14 @@ class Quib(ABC):
             child_ref()._invalidate_quib_with_children_at_path(self, path)
 
     def _get_path_for_children_invalidation(self, invalidator_quib: 'Quib',
-                                            path: List['PathComponent']) -> Optional[List['PathComponent']]:
+                                            path: List['PathComponent']) -> List['PathComponent']:
         """
         Get the new path for invalidating children- a quib overrides this method if it has a specific way to translate
         paths to new invalidation paths.
-        We simply return by default an empty invalidation path, which means we are asking our children quibs to
-        invalidate completely
+        We simply return by default an invalidation path to invalidate all
         """
-        return []
+        from .assignment.assignment import PathComponent
+        return [PathComponent(component=..., indexed_cls=self.get_type())]
 
     def _invalidate_self(self):
         """
@@ -121,13 +121,18 @@ class Quib(ABC):
         This method should be overriden if there is any 'special' implementation for either invalidating oneself
         or for translating a path for invalidation
         """
-        if len(path) == 0:
+        from .assignment.assignment import PathComponent
+        if path[0].component is Ellipsis:
             # an invalidation path signifies a specific location to invalidate;
             # if there is no specific location to invalidate, we simply want to invalidate the entire quib
-            new_path = []
+            #
+            # In the future we need to squash- for now if we see an ellipsis we expect it to be the
+            # only component in the path
+            assert len(path) == 1
+            new_path = [PathComponent(indexed_cls=self.get_type(), component=...)]
         else:
             new_path = self._get_path_for_children_invalidation(invalidator_quib, path)
-        if new_path is not None:
+        if new_path:
             self._invalidate_self()
             self._invalidate_children_at_path(new_path)
 

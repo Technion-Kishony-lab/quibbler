@@ -73,7 +73,10 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib):
             assert np.all(boolean_mask) or issubclass(self.get_type(), np.ndarray)
             if not np.all(boolean_mask) and issubclass(self.get_type(), np.ndarray):
                 new_path = [PathComponent(indexed_cls=self.get_type(), component=boolean_mask), *path[1:]]
+            if len(new_path) == 0:
+                new_path = [PathComponent(indexed_cls=self.get_type(), component=...)]
             return new_path
+        return None
 
     def _get_path_for_invalidation_on_get_item(self, invalidator_quib: 'Quib',
                                                path_to_invalidate: List[PathComponent]):
@@ -113,6 +116,7 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib):
                 # Therefore, we want to pass on this invalidation path to our children since indices and field names are
                 # interchangeable when indexing structured ndarrays
                 return path_to_invalidate
+
         # We come to our default scenario- if
         # 1. The invalidator quib is not an ndarray
         # or
@@ -129,9 +133,12 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib):
         # If so, invalidate. This is true for field arrays as well (We do need to
         # add support for indexing multiple fields).
         if self.args[1] == working_component.component:
+            rest_of_path = path_to_invalidate[1:]
+            if len(rest_of_path) == 0:
+                return [PathComponent(indexed_cls=self.get_type(), component=...)]
             return path_to_invalidate[1:]
 
-        return None
+        return []
 
     def _quib_in_data_quibs(self, quib: 'Quib'):
         """
@@ -158,7 +165,7 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib):
             if not self._quib_in_data_quibs(invalidator_quib):
                 # Any param quib should invalidate ALL children- it is not simply the data being changed, but how the
                 # data is processed by the transpositional function
-                return []
+                return [PathComponent(indexed_cls=self.get_type(), component=...)]
             return self._get_translated_path(invalidator_quib, path)
 
     @functools.lru_cache()
