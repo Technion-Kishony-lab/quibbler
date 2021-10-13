@@ -32,7 +32,7 @@ def test_elementwise_function_quib_invalidation_when_should_not_invalidate():
     assert not item.is_cache_valid
 
 
-def test_elementwise_function_quib_invalidation_at_field_does_nothing():
+def test_elementwise_function_quib_invalidation_at_field_invalidates():
     dtype = [('inteliggence', np.int_), ('age', np.int_)]
     a = iquib(np.array([(100, 24)], dtype=dtype))
     b = a['age'] + 1
