@@ -5,11 +5,11 @@ from operator import getitem
 from typing import Dict, List, TYPE_CHECKING, Union, Callable, Any, Tuple
 
 from pyquibbler.quib.assignment import Assignment
-from pyquibbler.quib.assignment.reverse_assignment.utils import create_empty_array_with_values_at_indices
+from pyquibbler.quib.assignment.inverse_assignment.utils import create_empty_array_with_values_at_indices
 from pyquibbler.quib.utils import recursively_run_func_on_object, call_func_with_quib_values, \
     iter_objects_of_type_in_object_shallowly
 
-from .reverser import Reverser
+from .inverser import Inverser
 from ..assignment import QuibWithAssignment, PathComponent
 
 if TYPE_CHECKING:
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from pyquibbler.quib import Quib
 
 
-class TranspositionalReverser(Reverser):
+class TranspositionalInverser(Inverser):
     """
     In charge of reversing all functions which move elements around from it's arguments WITHOUT performing
     any mathematical operations between them.
@@ -49,7 +49,7 @@ class TranspositionalReverser(Reverser):
     def _get_quibs_to_ids(self) -> Dict[Quib, int]:
         """
         Get a mapping between quibs and their unique ids (these ids are only constant for the particular
-        instance of the transpositional reverser)
+        instance of the transpositional inverser)
         """
         return {potential_quib: i
                 for i, potential_quib in enumerate(self._get_quibs_which_can_change())}
@@ -133,7 +133,7 @@ class TranspositionalReverser(Reverser):
 
     def _get_quibs_to_indices_in_quibs(self) -> Dict[Quib, np.ndarray]:
         """
-        Get a mapping of quibs to the quib's indices that were referenced in `self._indices` (ie after reversal of the
+        Get a mapping of quibs to the quib's indices that were referenced in `self._indices` (ie after inversal of the
         indices relevant to the particular quib)
         """
         quibs = self._get_quibs_which_can_change()
@@ -189,7 +189,7 @@ class TranspositionalReverser(Reverser):
         """
         We're in a situation where we can't compute any any translation of indices
         Because of this, we put all pieces of the getitem in the path- making sure to put the field BEFORE the indexing
-        (keeping it in the same order as it was, so we don't reverse the indices in the next reversal)
+        (keeping it in the same order as it was, so we don't inverse the indices in the next inversal)
         """
         return [QuibWithAssignment(
             quib=self._args[0],
@@ -232,7 +232,7 @@ class TranspositionalReverser(Reverser):
         return \
             PathComponent(indexed_cls=self._function_quib.get_type(), component=self._args[1]).references_field_in_field_array()
 
-    def get_reversed_quibs_with_assignments(self) -> List[QuibWithAssignment]:
+    def get_inversed_quibs_with_assignments(self) -> List[QuibWithAssignment]:
         if (self._func == getitem and
                 (
                         not self._next_path_component_has_translatable_np_indices()

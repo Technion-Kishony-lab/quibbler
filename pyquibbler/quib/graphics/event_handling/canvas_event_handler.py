@@ -6,13 +6,13 @@ from matplotlib.backend_bases import MouseEvent, PickEvent
 
 from pyquibbler.performance_utils import timer
 from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
-from pyquibbler.quib.graphics.event_handling import graphics_reverse_assigner
+from pyquibbler.quib.graphics.event_handling import graphics_inverse_assigner
 
 
 class CanvasEventHandler:
     """
-    Handles all events from the canvas (such as press, drag, and pick), reverse assigning to the relevant quibs
-    using a specific graphics reverse assignment function handler
+    Handles all events from the canvas (such as press, drag, and pick), inverse assigning to the relevant quibs
+    using a specific graphics inverse assignment function handler
     """
     CANVASES_TO_TRACKERS = {}
 
@@ -45,14 +45,14 @@ class CanvasEventHandler:
     def _handle_pick_event(self, pick_event: PickEvent):
         self.current_pick_event = pick_event
 
-    def _reverse_assign_graphics(self, artist: Artist, mouse_event: MouseEvent):
+    def _inverse_assign_graphics(self, artist: Artist, mouse_event: MouseEvent):
         """
         Reverse any relevant quibs in artists creation args
         """
         drawing_func = getattr(artist, '_quibbler_drawing_func', None)
         args = getattr(artist, '_quibbler_args', tuple())
         with timer(name="motion_notify"), aggregate_redraw_mode():
-            graphics_reverse_assigner.reverse_assign_drawing_func(drawing_func=drawing_func,
+            graphics_inverse_assigner.inverse_assign_drawing_func(drawing_func=drawing_func,
                                                                   args=args,
                                                                   mouse_event=mouse_event,
                                                                   pick_event=self.current_pick_event)
@@ -78,7 +78,7 @@ class CanvasEventHandler:
                     if locked:
                         # If not locked, there is already another motion handler running, we just drop this one.
                         # This could happen if changes are slow or if a dialog is open
-                        self._reverse_assign_graphics(self.current_pick_event.artist, mouse_event)
+                        self._inverse_assign_graphics(self.current_pick_event.artist, mouse_event)
 
     def initialize(self):
         """

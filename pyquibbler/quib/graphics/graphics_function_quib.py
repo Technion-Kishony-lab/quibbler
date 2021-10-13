@@ -23,7 +23,7 @@ from ..utils import call_func_with_quib_values, iter_object_type_in_args
 def save_func_and_args_on_artists(artists: List[Artist], func: Callable, args: Iterable[Any]):
     """
     Set the drawing func and on the artists- this will be used later on when tracking artists, in order to know how to
-    reverse and handle events.
+    inverse and handle events.
     If there's already a creating func, we assume the lower func that already created the artist is the actual
     drawing func (such as a user func that called plt.plot)
     """
@@ -181,7 +181,7 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
     def save_drawing_func_on_artists(self):
         """
         Set the drawing func on the artists- this will be used later on when tracking artists, in order to know how to 
-        reverse and handle events.
+        inverse and handle events.
         If there's already a creating func, we assume the lower func that already created the artist is the actual 
         drawing func (such as a user func that called plt.plot)
         """

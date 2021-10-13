@@ -106,7 +106,7 @@ def test_get_overrides_for_assignment_when_nothing_is_overridable(assignment, pa
     assert exc_info.value.quib is child
 
 
-def test_get_overrides_for_assignment_when_reverse_assignment_not_implemented(assignment):
+def test_get_overrides_for_assignment_when_inverse_assignment_not_implemented(assignment):
     parent = iquib(1)
     child = DefaultFunctionQuib.create(lambda x: x, (parent,))
 
@@ -116,7 +116,7 @@ def test_get_overrides_for_assignment_when_reverse_assignment_not_implemented(as
     assert exc_info.value.quib is child
 
 
-def test_get_overrides_for_assignment_when_diverged_reverse_assign_has_only_one_overridable_child(assignment,
+def test_get_overrides_for_assignment_when_diverged_inverse_assign_has_only_one_overridable_child(assignment,
                                                                                                   diverged_quib_graph):
     grandparent1, parent1, grandparent2, parent2, child, parent1_override = diverged_quib_graph
     grandparent2.allow_overriding = False
@@ -196,7 +196,7 @@ def test_override_choice_when_diverged_parent_is_cancelled(diverged_quib_graph, 
         get_overrides_for_assignment(child, assignment)
 
 
-def test_override_choice_when_diverged_and_all_diverged_reversals_are_overridden(diverged_quib_graph, assignment,
+def test_override_choice_when_diverged_and_all_diverged_inversals_are_overridden(diverged_quib_graph, assignment,
                                                                                  choose_override_dialog_mock):
     grandparent1, parent1, grandparent2, parent2, child, parent1_override = diverged_quib_graph
 

@@ -65,7 +65,7 @@ def test_quib_invalidate_and_redraw_calls_graphics_function_quib_children(exampl
     (1, 2.)
 ])
 @mark.parametrize('operator_name', {override[1] for override in ARITHMETIC_OVERRIDES} - {'__matmul__', '__divmod__'})
-def test_quib_forward_and_reverse_arithmetic_operators(operator_name: str, val1, val2):
+def test_quib_forward_and_inverse_arithmetic_operators(operator_name: str, val1, val2):
     op = getattr(operator, operator_name)
     quib1 = ExampleQuib(val1)
     quib2 = ExampleQuib(val2)
@@ -239,7 +239,7 @@ def test_quib_get_shape():
     ([[0, 1], [2, 3]], [((0, 0), 5)], [[True, False], [False, False]]),
     ([[0, 1], [2, 3]], [(slicer[:], 5)], [[True, True], [True, True]]),
 ])
-def test_quib_get_reversed_quibs_with_assignments(data, overrides, expected_mask):
+def test_quib_get_inversed_quibs_with_assignments(data, overrides, expected_mask):
     quib = ExampleQuib(np.array(data))
     for key, value in overrides:
         quib[key] = value

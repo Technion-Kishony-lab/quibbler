@@ -13,7 +13,7 @@ from ..assignment import QuibWithAssignment, PathComponent
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib
 
-from .reverser import Reverser
+from .inverser import Inverser
 
 
 def create_inverse_func_from_indexes_to_funcs(quib_argument_indexes_to_inverse_functions: Dict[int, Callable]):
@@ -31,7 +31,7 @@ def create_inverse_func_from_indexes_to_funcs(quib_argument_indexes_to_inverse_f
     return _inverse
 
 
-class ElementWiseReverser(Reverser):
+class ElementWiseInverser(Inverser):
     """
     In charge of reversing all element-wise mathematical operation functions
     """
@@ -154,7 +154,7 @@ class ElementWiseReverser(Reverser):
                                   value=value_to_set)
         )]
 
-    def get_reversed_quibs_with_assignments(self) -> List[QuibWithAssignment]:
+    def get_inversed_quibs_with_assignments(self) -> List[QuibWithAssignment]:
         self.raise_if_multiple_args_have_common_ancestor()
 
         quib_to_change = self._get_quibs_in_args()[0]

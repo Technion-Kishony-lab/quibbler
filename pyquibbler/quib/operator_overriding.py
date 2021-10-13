@@ -2,7 +2,7 @@
 Override Quib operators by replacing magic methods with function quib wrappers that wrap operator function
 from the operator module.
 We have to use the operator functions in order to allow builtin operator functionality:
-1. Calling reverse arithmetic operations when the normal ones return NotImplemented
+1. Calling inverse arithmetic operations when the normal ones return NotImplemented
 2. Cases where a magic method is not present on a built-in type but the operator works anyway (e.g. float.__ceil__).
 """
 import functools
@@ -65,7 +65,7 @@ ALL_OVERRIDES = ARITHMETIC_OVERRIDES + UNARY_OVERRIDES + ROUNDING_OVERRIDES + \
                 COMPARISON_OVERRIDES
 
 
-def _create_reverse_operator_wrapper(cls, forward_operator: Callable):
+def _create_inverse_operator_wrapper(cls, forward_operator: Callable):
     quib_creator = cls.create_wrapper(forward_operator)
 
     def _wrapper(self, other):
@@ -87,4 +87,4 @@ def override_quib_operators():
 
     for cls, name, wrapped in ARITHMETIC_OVERRIDES:
         rname = '__r' + name[2:]
-        setattr(Quib, rname, _create_reverse_operator_wrapper(cls, wrapped))
+        setattr(Quib, rname, _create_inverse_operator_wrapper(cls, wrapped))

@@ -2,7 +2,7 @@ import numpy as np
 from typing import Tuple, Any, List, Iterable
 from matplotlib.backend_bases import PickEvent, MouseEvent
 
-from .graphics_reverse_assigner import graphics_reverse_assigner
+from .graphics_inverse_assigner import graphics_inverse_assigner
 from ...assignment import Assignment, QuibWithAssignment
 from ...assignment.assignment import PathComponent
 
@@ -62,7 +62,7 @@ def get_quibs_with_assignments_for_axes(args: List[Any],
     for arg_index in arg_indices:
         quib = args[arg_index]
         if isinstance(quib, Quib):
-            # We want to support both single values and arrays, so we need to reverse assign
+            # We want to support both single values and arrays, so we need to inverse assign
             # appropriately (not use index if it was a single number, index will be zero but that's irrelevant to us)
             inner_component = indices_to_set if issubclass(quib.get_type(), Iterable) else ...
             assignment = Assignment(value=value, path=[PathComponent(component=inner_component,
@@ -72,7 +72,7 @@ def get_quibs_with_assignments_for_axes(args: List[Any],
     return quibs_with_assignments
 
 
-@graphics_reverse_assigner('Axes.plot')
+@graphics_inverse_assigner('Axes.plot')
 def get_quibs_with_assignments_for_axes_plot(pick_event: PickEvent, mouse_event: MouseEvent,
                                              args: List[Any]) -> List[QuibWithAssignment]:
     # It's deprecated to use a non-tuple as a per-dimension index

@@ -118,7 +118,7 @@ class FunctionQuib(Quib):
     def assign(self, assignment: Assignment) -> None:
         """
         Apply the given assignment to the function quib.
-        Using reverse assignments, the assignment will propagate as far is possible up the dependency graph,
+        Using inverse assignments, the assignment will propagate as far is possible up the dependency graph,
         and collect possible overrides.
         When more than one override can be performed, the user will be asked to choose one.
         When there is only one override option, it will be automatically performed.
@@ -149,5 +149,5 @@ class FunctionQuib(Quib):
         """
         return call_func_with_quib_values(self.func, self.args, self.kwargs)
 
-    def get_reversals_for_assignment(self, assignment: Assignment):
+    def get_inversals_for_assignment(self, assignment: Assignment):
         return []

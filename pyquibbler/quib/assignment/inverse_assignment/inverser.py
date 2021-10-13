@@ -9,18 +9,18 @@ from typing import Any, List, TYPE_CHECKING, Union, Callable
 
 from pyquibbler.quib.assignment import Assignment
 from pyquibbler.quib.assignment.assignment import QuibWithAssignment, PathComponent
-from pyquibbler.quib.assignment.reverse_assignment.utils import create_empty_array_with_values_at_indices
+from pyquibbler.quib.assignment.inverse_assignment.utils import create_empty_array_with_values_at_indices
 from pyquibbler.quib.utils import iter_quibs_in_object_recursively
 
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib, FunctionQuib
 
 
-class Reverser(ABC):
+class Inverser(ABC):
     """
-    Capable of reverse assigning a function quibs quib arguments given a change in the
+    Capable of inverse assigning a function quibs quib arguments given a change in the
     aforementioned function quib's result.
-    A particular `Reverser` class knows how to reverse a specific set of functions
+    A particular `Inverser` class knows how to inverse a specific set of functions
     (`SUPPORTED_FUNCTIONS`).
     """
 
@@ -78,15 +78,15 @@ class Reverser(ABC):
         )
 
     @abstractmethod
-    def get_reversed_quibs_with_assignments(self) -> List[QuibWithAssignment]:
+    def get_inversed_quibs_with_assignments(self) -> List[QuibWithAssignment]:
         """
-        Get all reversals that need to be applied for the reversal to be complete
+        Get all inversals that need to be applied for the inversal to be complete
         (This can potentially contain multiple quibs with multiple assignments)
         """
         pass
 
     @classmethod
-    def create_and_get_reversed_quibs_with_assignments(cls, function_quib: 'FunctionQuib', assignment: Assignment):
+    def create_and_get_inversed_quibs_with_assignments(cls, function_quib: 'FunctionQuib', assignment: Assignment):
         components_at_end = assignment.path[1:]
         current_path = assignment.path[0]
 
@@ -102,8 +102,8 @@ class Reverser(ABC):
             components_at_end = [assignment.path[0], *components_at_end]
             current_path = PathComponent(indexed_cls=np.ndarray, component=...)
 
-        reverser = cls(function_quib, Assignment(assignment.value, [current_path]))
-        quibs_with_assignments = reverser.get_reversed_quibs_with_assignments()
+        inverser = cls(function_quib, Assignment(assignment.value, [current_path]))
+        quibs_with_assignments = inverser.get_inversed_quibs_with_assignments()
 
         for quib_with_assignment in quibs_with_assignments:
             quib_with_assignment.assignment.path.extend(components_at_end)

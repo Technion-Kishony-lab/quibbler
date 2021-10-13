@@ -7,14 +7,14 @@ from pyquibbler import iquib
 from pyquibbler.quib import ElementWiseQuib, FunctionQuib
 from pyquibbler.quib.assignment import Assignment
 from pyquibbler.quib.assignment.assignment import PathComponent
-from pyquibbler.quib.assignment.reverse_assignment.elementwise_reverser import CommonAncestorBetweenArgumentsException
+from pyquibbler.quib.assignment.inverse_assignment.elementwise_inverser import CommonAncestorBetweenArgumentsException
 
 
-def reverse(function_quib: FunctionQuib, value, path):
+def inverse(function_quib: FunctionQuib, value, path):
     assignment = Assignment(value, path)
-    reversals = function_quib.get_reversals_for_assignment(assignment=assignment)
-    for reversal in reversals:
-        reversal.apply()
+    inversals = function_quib.get_inversals_for_assignment(assignment=assignment)
+    for inversal in inversals:
+        inversal.apply()
 
 
 @pytest.mark.parametrize("function_quib,indices,value,quib_arg_index,expected_value", [
@@ -74,8 +74,8 @@ def reverse(function_quib: FunctionQuib, value, path):
     "divide: second arg is quib",
     "power: first arg is quib",
     "power: second arg is quib"])
-def test_reverse_elementwise(function_quib: FunctionQuib, indices, value, quib_arg_index, expected_value):
-    reverse(function_quib, value, [PathComponent(component=indices, indexed_cls=function_quib.get_type())])
+def test_inverse_elementwise(function_quib: FunctionQuib, indices, value, quib_arg_index, expected_value):
+    inverse(function_quib, value, [PathComponent(component=indices, indexed_cls=function_quib.get_type())])
 
     value = function_quib.args[quib_arg_index].get_value()
     if isinstance(expected_value, Iterable):
@@ -84,20 +84,20 @@ def test_reverse_elementwise(function_quib: FunctionQuib, indices, value, quib_a
         assert value == expected_value
 
 
-def test_reverse_elementwise_operator():
+def test_inverse_elementwise_operator():
     q = iquib(np.array([5, 5, 5]))
     function_quib: FunctionQuib = q + 3
 
-    reverse(function_quib, 7, [PathComponent(component=0, indexed_cls=function_quib.get_type())])
+    inverse(function_quib, 7, [PathComponent(component=0, indexed_cls=function_quib.get_type())])
 
     assert np.array_equal(q.get_value(), [4, 5, 5])
 
 
-def test_reverse_elementwise_on_int():
+def test_inverse_elementwise_on_int():
     q = iquib(5)
     function_quib: FunctionQuib = q + 3
 
-    reverse(function_quib, 7, path=[PathComponent(component=..., indexed_cls=function_quib.get_type())])
+    inverse(function_quib, 7, path=[PathComponent(component=..., indexed_cls=function_quib.get_type())])
 
     assert q.get_value() == 4
 
@@ -110,7 +110,7 @@ def test_quib_raises_exception_when_reversing_with_common_parent_in_multiple_arg
     function_quib: FunctionQuib = y + z
 
     with pytest.raises(CommonAncestorBetweenArgumentsException):
-        reverse(function_quib, 20, [PathComponent(component=..., indexed_cls=function_quib.get_type())])
+        inverse(function_quib, 20, [PathComponent(component=..., indexed_cls=function_quib.get_type())])
 
 
 @pytest.mark.regression
@@ -118,7 +118,7 @@ def test_add_second_argument_is_quib():
     quib = iquib(np.array(9))
     sum_ = 3 + quib
 
-    reverse(sum_, 10, [PathComponent(component=..., indexed_cls=sum_.get_type())])
+    inverse(sum_, 10, [PathComponent(component=..., indexed_cls=sum_.get_type())])
 
     assert np.array_equal(quib.get_value(), np.array(7))
 
@@ -128,10 +128,10 @@ def test_elementwise_always_picks_first_quib():
     first_quib = iquib(1)
     second_quib = iquib(2)
 
-    reverse(first_quib + second_quib, 5, [PathComponent(component=..., indexed_cls=int)])
+    inverse(first_quib + second_quib, 5, [PathComponent(component=..., indexed_cls=int)])
     assert first_quib.get_value() == 3
 
-    reverse(second_quib + first_quib, 7, [PathComponent(component=..., indexed_cls=int)])
+    inverse(second_quib + first_quib, 7, [PathComponent(component=..., indexed_cls=int)])
     assert second_quib.get_value() == 4
 
 
@@ -140,6 +140,6 @@ def test_elementwise_with_deep_path():
     sum_quib = ElementWiseQuib.create(func=np.add, func_args=(first_quib, 1))
     getitem_quib = sum_quib[0]
 
-    reverse(getitem_quib, path=[PathComponent(component=0, indexed_cls=getitem_quib.get_type())], value=0)
+    inverse(getitem_quib, path=[PathComponent(component=0, indexed_cls=getitem_quib.get_type())], value=0)
 
     assert np.array_equal(first_quib.get_value(), [[-1, 2, 3]])

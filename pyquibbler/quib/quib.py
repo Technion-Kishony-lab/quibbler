@@ -84,7 +84,7 @@ class Quib(ABC):
 
     def invalidate_and_redraw_at_path(self, path: List[PathComponent]) -> None:
         """
-        Perform all actions needed after the quib was mutated (whether by overriding or reverse assignment).
+        Perform all actions needed after the quib was mutated (whether by overriding or inverse assignment).
         """
         self._invalidate_children_at_path(path)
         self.__redraw()
@@ -162,8 +162,8 @@ class Quib(ABC):
         # We don't use the normal operator_overriding interface for two reasons:
         # 1. It can create issues with hinting in IDEs (for example, Pycharm will not recognize that Quibs have a
         # getitem and will issue a warning)
-        # 2. We need the function to not be created dynamically as it needs to be in the reverser's supported functions
-        # in order to be reversed correctly (and not simply override)
+        # 2. We need the function to not be created dynamically as it needs to be in the inverser's supported functions
+        # in order to be inversed correctly (and not simply override)
         from pyquibbler.quib import DefaultFunctionQuib
         from pyquibbler.quib.function_quibs.transpositional_quib import TranspositionalQuib
         return TranspositionalQuib.create(func=getitem, func_args=[self, item])

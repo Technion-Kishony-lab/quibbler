@@ -1,4 +1,4 @@
 from __future__ import annotations
 from .exceptions import CannotReverseUnknownFunctionException, CannotReverseException
-from .elementwise_reverser import ElementWiseReverser
-from .transpositional_reverser import TranspositionalReverser
+from .elementwise_inverser import ElementWiseInverser
+from .transpositional_inverser import TranspositionalInverser
