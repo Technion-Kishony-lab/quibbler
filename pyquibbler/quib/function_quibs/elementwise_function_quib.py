@@ -49,10 +49,11 @@ class ElementWiseFunctionQuib(DefaultFunctionQuib):
         ), self.get_shape().get_value())
 
     def _invalidate_quib_with_children_at_path(self, invalidator_quib: 'Quib', path: List['PathComponent']):
-        working_component = path[0]
-        if working_component.references_field_in_field_array():
-            return super(ElementWiseFunctionQuib, self)._invalidate_quib_with_children_at_path(self, path)
+        if len(path) == 0:
+            return super(ElementWiseFunctionQuib, self)._invalidate_quib_with_children_at_path(invalidator_quib,
+                                                                                               path)
 
+        working_component = path[0]
         new_component = self._create_bool_mask_representing_invalidator_quib_at_indices_in_result(invalidator_quib,
                                                                                                   working_component.
                                                                                                   component)

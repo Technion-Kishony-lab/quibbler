@@ -37,7 +37,7 @@ def test_elementwise_function_quib_invalidation_at_field_does_nothing():
     a = iquib(np.array([(100, 24)], dtype=dtype))
     b = a['age'] + 1
     b.get_value()
-    
+
     a.invalidate_and_redraw_at_path(path=[PathComponent(
         component='age',
         indexed_cls=np.ndarray
