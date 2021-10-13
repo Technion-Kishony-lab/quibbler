@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Tuple, Any
+from typing import TYPE_CHECKING, List, Tuple, Any, Optional
 
 import numpy as np
 
@@ -48,11 +48,8 @@ class ElementWiseFunctionQuib(DefaultFunctionQuib):
             shape=invalidator_quib.get_shape().get_value()
         ), self.get_shape().get_value())
 
-    def _invalidate_quib_with_children_at_path(self, invalidator_quib: 'Quib', path: List['PathComponent']):
-        if len(path) == 0:
-            return super(ElementWiseFunctionQuib, self)._invalidate_quib_with_children_at_path(invalidator_quib,
-                                                                                               path)
-
+    def _get_path_for_children_invalidation(self, invalidator_quib: 'Quib',
+                                            path: List['PathComponent']) -> Optional[List['PathComponent']]:
         working_component = path[0]
         new_component = self._create_bool_mask_representing_invalidator_quib_at_indices_in_result(invalidator_quib,
                                                                                                   working_component.
@@ -62,7 +59,7 @@ class ElementWiseFunctionQuib(DefaultFunctionQuib):
             PathComponent(component=new_component, indexed_cls=self.get_type()),
             *path[1:]
         ]
-        super(ElementWiseFunctionQuib, self)._invalidate_quib_with_children_at_path(invalidator_quib, new_path)
+        return new_path
 
     def get_inversals_for_assignment(self, assignment: 'Assignment'):
         return ElementWiseInverser(
