@@ -2,17 +2,13 @@ from __future__ import annotations
 import types
 from enum import Enum
 from functools import wraps, cached_property
-from operator import getitem
 from typing import Callable, Any, Mapping, Tuple, Optional, Set
-
-import numpy as np
 
 from ..override_choice import get_overrides_for_assignment
 from ..assignment import AssignmentTemplate, Assignment
-from ..assignment.assignment import QuibWithAssignment
 from ..quib import Quib
 from ..utils import is_there_a_quib_in_args, iter_quibs_in_args, call_func_with_quib_values, \
-    deep_copy_without_quibs_or_artists, copy_and_convert_args_to_values
+    deep_copy_without_quibs_or_artists, copy_and_convert_args_to_values, iter_args_and_names_in_function_call
 from ...env import LAZY
 
 
@@ -151,3 +147,7 @@ class FunctionQuib(Quib):
 
     def get_inversals_for_assignment(self, assignment: Assignment):
         return []
+
+    @cached_property
+    def _all_args_dict(self):
+        return dict(iter_args_and_names_in_function_call(self.func, self.args, self.kwargs, True))

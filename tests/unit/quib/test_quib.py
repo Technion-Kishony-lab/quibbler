@@ -25,7 +25,7 @@ class ExampleQuib(Quib):
 
     def _invalidate_quib_with_children_at_path(self, invalidator_quib, path_component):
         self.invalidate_count += 1
-        super(ExampleQuib, self)._invalidate_quib_with_children_at_path(invalidator_quib, path_component)
+        super()._invalidate_quib_with_children_at_path(invalidator_quib, path_component)
 
     def _get_inner_value_valid_at_path(self, path):
         return self.value

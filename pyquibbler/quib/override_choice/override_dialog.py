@@ -4,12 +4,12 @@ from dataclasses import dataclass
 from functools import partial
 from matplotlib.axes import Axes
 from matplotlib.backend_bases import Event
-from matplotlib.widgets import RadioButtons, Button
+from matplotlib.widgets import Button
 from typing import List, Callable, Optional, TYPE_CHECKING
 from enum import Enum
 
 from pyquibbler.exceptions import PyQuibblerException
-from pyquibbler.utils import Flag
+from pyquibbler.utils import Flag, Mutable
 
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib
@@ -18,20 +18,6 @@ if TYPE_CHECKING:
 @dataclass
 class AssignmentCancelledByUserException(PyQuibblerException):
     pass
-
-
-class SelectedIndexExposingRadioButtons(RadioButtons):
-    """
-    Radio buttons that expose the selected index
-    """
-
-    def __init__(self, ax: Axes, labels: List[str], active=0):
-        super().__init__(ax, labels, active=active)
-        self.selected_index = active
-
-    def set_active(self, index: int):
-        self.selected_index = index
-        super().set_active(index)
 
 
 class OverrideChoiceType(Enum):
@@ -74,20 +60,20 @@ def choose_override_dialog(options: List[Quib], can_diverge: bool) -> OverrideCh
     Open a popup dialog to offer the user a choice between override options.
     If can_diverge is true, offer the user to diverge the override instead of choosing an override option.
     """
+    from pyquibbler.quib.graphics.widgets import QRadioButtons
     # Used to keep references to the widgets so they won't be garbage collected
     widgets = []
     fig = plt.figure()
     grid = fig.add_gridspec(6, 6)
 
     radio_ax = fig.add_subplot(grid[:-1, :])
-    radio = SelectedIndexExposingRadioButtons(radio_ax, [f'Override {quib.pretty_repr()}' for quib in options])
+    radio = QRadioButtons(radio_ax, [f'Override {quib.pretty_repr()}' for quib in options])
     widgets.append(radio)  # This is not strictly needed but left here to prevent a bug
 
-    choice_type = None
+    choice_type = Mutable(None)
 
     def button_callback(button_choice: OverrideChoiceType, _event):
-        nonlocal choice_type
-        choice_type = button_choice
+        choice_type.set(button_choice)
         plt.close(fig)
 
     button_specs = [('Cancel', None),
@@ -101,6 +87,6 @@ def choose_override_dialog(options: List[Quib], can_diverge: bool) -> OverrideCh
         widgets.append(button)
 
     show_fig(fig)
-    if choice_type is None:
+    if choice_type.val is None:
         raise AssignmentCancelledByUserException()
-    return OverrideChoice(choice_type, radio.selected_index)
+    return OverrideChoice(choice_type.val, radio.selected_index)

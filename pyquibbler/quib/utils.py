@@ -1,5 +1,5 @@
 from __future__ import annotations
-
+import numpy as np
 import functools
 from copy import copy
 from dataclasses import dataclass
@@ -9,8 +9,6 @@ from inspect import currentframe
 from inspect import signature
 from itertools import chain
 from typing import Any, Optional, Set, TYPE_CHECKING, Callable, Tuple, Dict, Type, Mapping
-
-import numpy as np
 
 from pyquibbler.env import DEBUG
 from pyquibbler.exceptions import DebugException, PyQuibblerException
@@ -31,7 +29,7 @@ class QuibRef:
     quib: Quib
 
 
-def iter_args_and_names_in_function_call(func: Callable, args: Tuple[Any, ...], kwargs: Dict[str, Any],
+def iter_args_and_names_in_function_call(func: Callable, args: Tuple[Any, ...], kwargs: Mapping[str, Any],
                                          apply_defaults: bool):
     """
     Given a specific function call - func, args, kwargs - return an iterator to (name, val) tuples
