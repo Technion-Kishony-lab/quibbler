@@ -16,7 +16,7 @@ from .assignment.overrider import deep_assign_data_with_paths
 from .utils import quib_method, Unpacker, recursively_run_func_on_object
 
 if TYPE_CHECKING:
-    from .assignment.assignment import PathComponent, PathComponent
+    from .assignment.assignment import PathComponent
     from pyquibbler.quib.graphics import GraphicsFunctionQuib
 
 
@@ -108,7 +108,10 @@ class Quib(ABC):
         """
         Add the given quib to the list of quibs that are dependent on this quib.
         """
-        self._children.add(weakref(quib, lambda ref: self._children.discard(ref)))
+
+        def discard(ref):
+            self._children.discard(ref)
+        self._children.add(weakref(quib, discard))
 
     def __len__(self):
         return len(self.get_value())
@@ -147,6 +150,7 @@ class Quib(ABC):
         """
         Helper method to assign a single value and override the whole value of the quib
         """
+        from .assignment.assignment import PathComponent
         self.assign(Assignment(value=value,
                                path=[PathComponent(component=..., indexed_cls=self.get_type())]))
 
@@ -154,6 +158,7 @@ class Quib(ABC):
         """
         Helper method to assign a value at a specific key
         """
+        from .assignment.assignment import PathComponent
         self.assign(Assignment(path=[PathComponent(component=key, indexed_cls=self.get_type())], value=value))
 
     def __getitem__(self, item):

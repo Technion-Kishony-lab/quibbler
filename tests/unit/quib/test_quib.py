@@ -301,7 +301,9 @@ def test_quib_assign_value(example_quib):
 
     example_quib.assign_value(mock_value)
 
-    example_quib.assign.assert_called_once_with(Assignment(path=[...], value=mock_value))
+    example_quib.assign.assert_called_once_with(Assignment(path=[PathComponent(component=...,
+                                                                               indexed_cls=example_quib.get_type())],
+                                                           value=mock_value))
 
 
 def test_quib_assign_value_to_key(example_quib):
@@ -311,7 +313,9 @@ def test_quib_assign_value_to_key(example_quib):
 
     example_quib.assign_value_to_key(value=mock_value, key=mock_key)
 
-    example_quib.assign.assert_called_once_with(Assignment(path=[mock_key], value=mock_value))
+    example_quib.assign.assert_called_once_with(Assignment(path=[PathComponent(component=mock_key,
+                                                                               indexed_cls=example_quib.get_type())],
+                                                           value=mock_value))
 
 
 def test_quib_override_when_overriding_not_allowed(example_quib):
