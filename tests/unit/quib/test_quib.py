@@ -27,7 +27,7 @@ class ExampleQuib(Quib):
         self.invalidate_count += 1
         super(ExampleQuib, self)._invalidate_quib_with_children_at_path(invalidator_quib, path_component)
 
-    def _get_inner_value(self):
+    def _get_inner_value_valid_at_path(self, path):
         return self.value
 
     @property

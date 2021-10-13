@@ -1,8 +1,9 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Any, Optional, Set, TYPE_CHECKING
+from typing import Any, Optional, Set, TYPE_CHECKING, List
 
 from .assignment import AssignmentTemplate
+from .assignment.assignment import PathComponent
 from .quib import Quib
 from .utils import is_there_a_quib_in_object
 from ..env import DEBUG
@@ -30,7 +31,7 @@ class InputQuib(Quib):
             if is_there_a_quib_in_object(value, force_recursive=True):
                 raise CannotNestQuibInIQuibException(self)
 
-    def _get_inner_value(self) -> Any:
+    def _get_inner_value_valid_at_path(self, path: List[PathComponent]) -> Any:
         """
         No need to do any calculation, this is an input quib.
         """

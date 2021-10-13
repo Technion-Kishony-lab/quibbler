@@ -203,22 +203,33 @@ class Quib(ABC):
         self._assignment_template = template
 
     @abstractmethod
-    def _get_inner_value(self) -> Any:
+    def _get_inner_value_valid_at_path(self, path: List[PathComponent]) -> Any:
         """
-        Get the data this quib represents, before applying quib features like overrides.
+        Get the data this quib represents valid at the pat given, before applying quib features like overrides.
         Perform calculations if needed.
         """
 
+    def get_value_valid_at_path(self, path: List[PathComponent]) -> Any:
+        """
+        Get the actual data that this quib represents, valid at the path given in the argument.
+        The value will necessarily return in the shape of the actual result, but only the values at the given path
+        are guaranteed to be valid
+        """
+        from pyquibbler.quib.graphics.global_collecting import QuibDependencyCollector
+        QuibDependencyCollector.add_dependency(self)
+        return self._overrider.override(self._get_inner_value_valid_at_path(path), self._assignment_template)
+
     def get_value(self) -> Any:
         """
-        Get the actual data that this quib represents.
+        Get the entire actual data that this quib represents, all valid.
         This function might perform several different computations - function quibs
         are lazy, so a function quib might need to calculate uncached values and might
         even have to calculate the values of its dependencies.
         """
-        from pyquibbler.quib.graphics.global_collecting import QuibDependencyCollector
-        QuibDependencyCollector.add_dependency(self)
-        return self._overrider.override(self._get_inner_value(), self._assignment_template)
+        from .assignment.assignment import PathComponent
+        # Since `get_type` today calls `get_value`, we can't get our type without recursively calling ourselves-
+        # which means the `indexed_cls` must be set to the most generic class there is, which would be `object`
+        return self.get_value_valid_at_path([PathComponent(indexed_cls=object, component=...)])
 
     def get_override_list(self) -> Overrider:
         """

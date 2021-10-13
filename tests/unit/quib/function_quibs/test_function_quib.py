@@ -13,7 +13,7 @@ class ExampleFunctionQuib(FunctionQuib):
     def _invalidate(self):
         pass
 
-    def _get_inner_value(self):
+    def _get_inner_value_valid_at_path(self, path):
         return self._call_func()
 
 
