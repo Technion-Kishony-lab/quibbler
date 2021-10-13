@@ -14,13 +14,12 @@ n = iquib(2)
 axfreq = plt.axes([0.25, 0.1, 0.65, 0.03])
 freq_slider = widgets.Slider(
     ax=axfreq,
-    label='Freq',
+    label=q("poly deg {:.0f}".format, n),
     valmin=0,
     valmax=5,
     valstep=1,
     valinit=n
 )
-axfreq.text(0, -1, q("poly deg {:.0f}".format, n))
 
 ax = plt.axes([0.2, 0.2, 0.7, .6])
 
