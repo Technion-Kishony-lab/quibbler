@@ -60,7 +60,8 @@ class QRectangleSelector(RectangleSelector):
     def extents(self, extents):
         super(type(self), type(self)).extents.fset(self, extents)
         if self.changed_callback is not None:
-            self.changed_callback(extents)
+            # important to use self.extents because it sorts the values according to size
+            self.changed_callback(self.extents)
 
 
 class RectangleSelectorGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
