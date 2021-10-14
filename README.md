@@ -1,4 +1,100 @@
+![PyQuibbler](quib.png)
 # PyQuibbler
+Building interactive, traceable, transparent, and efficient data analysis pipelines. 
+
+## What is it?
+PyQuibbler is a toolset for building highly interactive, yet traceable, 
+transparent and efficient data analysis pipelines. PyQuibbler allows using standard 
+Python syntax to process data through any complex series of analysis steps, while 
+automatically maintaining connectivity between downstream results 
+and upstream raw sources. PyQuibbler facilitates and embraces human interventions 
+as an inherent part of the analysis pipeline: input parameters as well as exceptions and overrides 
+can be specified and adjusted either programmatically, through input files, or by
+interacting with "live" graphics, and all such interventions are automatically 
+recorded in well-documented human-machine readable files. Changes to such parameters are
+automatically propagated downstream, pinpointing which specific steps and specific
+data array slices are affected, thereby vastly saving unnecessary 
+recalculations. PyQuibbler therefore facilitates fun hands-on playing with data 
+in ways that are flexible and interactive, yet also efficient, traceable, well-documented, 
+and reproducible.
+
+## Main Features
+Here are a few of the things that PyQuibbler does:
+
+* Easily build powerful GUI-like interaction with data, without a need for callbacks 
+and listeners. 
+
+* Easy manual specification of overrides and exceptions to default functionalities.
+
+* Calculate, cache and validate/invalidate focal sub-slices of heavy-to-calculate arrays. 
+
+* Track a dependency graph between raw data and downstream results.  
+
+* Track and maintain a human-readable record of user interventions and parameter
+specifications (TBD).
+
+* Inherent undo/redo functionality (TBD).
+
+## Rationale
+Traceability, transparency, interactivity and efficiency are becoming increasingly
+important, yet challenging, in today’s data-rich science, engineering and biomedicine. 
+Throughout these fields, important insights are derived from highly complex data analysis
+pipelines, where, through chained transformation steps, raw data is gradually transformed 
+into simpler, more abstract and insightful forms. Understanding how a given downstream 
+focal result depends on upstream raw data is crucial, yet often very difficult. 
+Not only there are multiple complex steps and algorithmic dependencies, but also, 
+each of these steps often requires multiple human decisions, interventions and informed
+choices (choosing parameters, setting thresholds, excluding data points, cleaning
+artifacts, etc.). It is therefore often difficult to know how a focal downstream result
+or key insight depends on the raw data sources and on any of the multiple manual
+interventions and decisions made throughout the pipeline. Conversely, it is typically 
+almost impossible to trace which downstream result is affected when the user changes an
+upstream parameter or data source and which specific parts of the analysis must be
+recalculated upon any such changes. Parameters are often buried in the code and
+re-specification of parameters is slow, undocumented and non-interactive. 
+
+
+![Conceptual view of a data analysis pipeline](conceptual_view.png)
+*Conceptual view of a data analysis pipeline: Raw data (left) is gradually cleaned and 
+transformed as it is processed through multiple analysis steps, ultimately leading to
+key results and insights (right). These analysis steps often require choices and 
+specifications of key critical parameters (green boxes). While the data flow downstream 
+(left to right), the data analyst must have tools to transverse the pipeline upstream 
+(grey arrows), questioning how a given downstream result or insight depends on the raw
+data and the many choices and parameters through the analysis process (red arrow). 
+Changing and refining an upstream parameter (red 'X') may affect one (or more) of 
+the data items, which requires recalculating specific parts of the pipeline 
+(red dashed arrows). In "diverged" analysis steps, data items are processed independently 
+and only the affected items must be recalculated, and in "converged" steps, the entire 
+calculation needs to be repeated. Strong analysis pipelines must facilitate tracing 
+from downstream results to upstream parameters, must allow easy interactive yet 
+well-documented way to change and refine parameters, and must be able to efficiently 
+pinpoint and recalculate only affected data items following such parameter changes.*
+
+Addressing these challenges, PyQuibbler offers a data analysis toolset built on three
+key principles:
+1. Forward and backward traceability. In PyQuibbler every piece of data maintains
+upstream connectivity all the way to the raw data. PyQuibbler thereby allows both 
+forward and backward dependency-tracing through the data analysis pipeline. 
+2. Interactive, transparent, and well-documented human interventions. Realizing that 
+data analysis pipelines are rarely fully automated, Quibbler facilitates and embraces 
+human interventions as an inherent part of the analysis pipeline. Users can readily
+change any external input parameters as well as override any default intermediate
+algorithmic result. Whether made through the command line, the code, input files,
+or by interacting with "live" graphics, all such interventions are automatically 
+documented in transparent human-machine read-write files. Quibbler thereby maintains 
+complete documentation of all the steps, decisions and parameters that led to any
+key observation, making the results of the analysis pipeline transparent, understandable 
+and reproducible. 
+3. Computation efficiency. In PyQuibbler, intermediate calculations can be cached 
+in memory or in cache files. The user can specify the basic data elements that
+are processed, stored and tracked as independent individual units. When an upstream
+parameter changes, only the specific cached calculations that depend on this parameter
+are invalidated. Quibbler thereby avoids re-running of complex codes and make sure only
+the very necessary parts of the analysis are re-calculated upon any upstream parameter 
+changes. 
+
+
 
 ## DOC
 
