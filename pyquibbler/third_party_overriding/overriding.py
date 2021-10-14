@@ -7,6 +7,7 @@ from functools import wraps
 from typing import Type, Any, Callable, Optional, List, Tuple, Set
 from matplotlib import widgets
 from matplotlib.axes import Axes
+import matplotlib.pyplot as plt
 
 from pyquibbler.quib import ImpureFunctionQuib, DefaultFunctionQuib, FunctionQuib, GraphicsFunctionQuib
 from pyquibbler.quib.function_quibs.elementwise_function_quib import ElementWiseFunctionQuib
@@ -26,7 +27,7 @@ __eq__
 NUMPY_OVERRIDES = [
     (np, [
         (DefaultFunctionQuib, {"abs", "average", "max", "min", "arange", "polyfit",
-                               "linspace", "polyval", "array", "genfromtxt", 'prod'}),
+                               "linspace", "polyval", "array", "genfromtxt", 'prod', 'sum'}),
         (GraphicsFunctionQuib, {'apply_along_axis', 'apply_over_axes'}),
         (TranspositionalFunctionQuib, {'reshape', 'rot90', 'ravel', 'concatenate', 'repeat', 'full', 'concatenate'}),
         (ElementWiseFunctionQuib, {'add', 'square', "sin", "cos", "tan", "sinh", "cosh", "tanh", "real", "imag",
@@ -44,6 +45,9 @@ NUMPY_OVERRIDES = [
 MPL_OVERRIDES = [
     (Axes, [
         (GraphicsFunctionQuib, {'plot', 'imshow', 'text', 'bar', 'hist', 'pie', 'legend'})
+    ]),
+    (plt, [
+        (DefaultFunctionQuib, {'imread'})
     ]),
     (Axes, [
         (ReplacingGraphicsFunctionQuib,
