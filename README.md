@@ -1,25 +1,25 @@
-![PyQuibbler](quib.png)
-# PyQuibbler
-Building interactive, traceable, transparent, and efficient data analysis pipelines. 
+![Quibbler](quib.png)
+# Data Quibbler
+**Building interactive, traceable, transparent, and efficient data analysis pipelines.** 
 
 ## What is it?
-PyQuibbler is a toolset for building highly interactive, yet traceable, 
-transparent and efficient data analysis pipelines. PyQuibbler allows using standard 
+**Data Quibbler** is a toolset for building highly interactive, yet traceable, 
+transparent and efficient data analysis pipelines. Quibbler allows using standard 
 Python syntax to process data through any complex series of analysis steps, while 
 automatically maintaining connectivity between downstream results 
-and upstream raw sources. PyQuibbler facilitates and embraces human interventions 
+and upstream raw sources. Quibbler facilitates and embraces human interventions 
 as an inherent part of the analysis pipeline: input parameters as well as exceptions and overrides 
 can be specified and adjusted either programmatically, through input files, or by
 interacting with "live" graphics, and all such interventions are automatically 
-recorded in well-documented human-machine readable files. Changes to such parameters are
-automatically propagated downstream, pinpointing which specific steps and specific
-data array slices are affected, thereby vastly saving unnecessary 
-recalculations. PyQuibbler therefore facilitates fun hands-on playing with data 
+recorded in well-documented human-machine readable files. Changes to such parameters 
+propagate downstream, pinpointing which specific steps and specific
+data array or even slices thereof are affected, thereby vastly saving unnecessary 
+recalculations. Quibbler therefore facilitates fun hands-on playing with data 
 in ways that are flexible and interactive, yet also efficient, traceable, well-documented, 
 and reproducible.
 
 ## Main Features
-Here are a few of the things that PyQuibbler does:
+Here are a few of the things that Quibbler does:
 
 * Easily build powerful GUI-like interaction with data, without a need for callbacks 
 and listeners. 
@@ -71,10 +71,10 @@ from downstream results to upstream parameters, must allow easy interactive yet
 well-documented way to change and refine parameters, and must be able to efficiently 
 pinpoint and recalculate only affected data items following such parameter changes.*
 
-Addressing these challenges, PyQuibbler offers a data analysis toolset built on three
+Addressing these challenges, Quibbler offers a data analysis toolset built on three
 key principles:
-1. Forward and backward traceability. In PyQuibbler every piece of data maintains
-upstream connectivity all the way to the raw data. PyQuibbler thereby allows both 
+1. Forward and backward traceability. In Quibbler every piece of data maintains
+upstream connectivity all the way to the raw data. Quibbler thereby allows both 
 forward and backward dependency-tracing through the data analysis pipeline. 
 2. Interactive, transparent, and well-documented human interventions. Realizing that 
 data analysis pipelines are rarely fully automated, Quibbler facilitates and embraces 
@@ -86,7 +86,7 @@ documented in transparent human-machine read-write files. Quibbler thereby maint
 complete documentation of all the steps, decisions and parameters that led to any
 key observation, making the results of the analysis pipeline transparent, understandable 
 and reproducible. 
-3. Computation efficiency. In PyQuibbler, intermediate calculations can be cached 
+3. Computation efficiency. In Quibbler, intermediate calculations can be cached 
 in memory or in cache files. The user can specify the basic data elements that
 are processed, stored and tracked as independent individual units. When an upstream
 parameter changes, only the specific cached calculations that depend on this parameter
