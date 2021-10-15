@@ -14,7 +14,8 @@ from pyquibbler.quib.function_quibs.elementwise_function_quib import ElementWise
 from pyquibbler.quib.function_quibs.transpositional_function_quib import TranspositionalFunctionQuib
 from pyquibbler.quib.graphics import global_collecting
 from pyquibbler.quib.graphics.widgets import SliderGraphicsFunctionQuib, CheckButtonsGraphicsFunctionQuib, \
-    RadioButtonsGraphicsFunctionQuib, RectangleSelectorGraphicsFunctionQuib, QRadioButtons, QRectangleSelector
+    RadioButtonsGraphicsFunctionQuib, RectangleSelectorGraphicsFunctionQuib, QRadioButtons, QRectangleSelector, \
+    TextBoxGraphicsFunctionQuib
 from pyquibbler.quib.graphics.replacing_graphics_function_quib import ReplacingGraphicsFunctionQuib
 from pyquibbler.utils import ensure_only_run_once_globally
 
@@ -55,6 +56,7 @@ MPL_OVERRIDES = [
     ]),
     (widgets, [
         (SliderGraphicsFunctionQuib, {'Slider'}),
+        (TextBoxGraphicsFunctionQuib, {'TextBox'}),
         (CheckButtonsGraphicsFunctionQuib, {'CheckButtons'}),
         (RadioButtonsGraphicsFunctionQuib, {'RadioButtons'}),
         (RectangleSelectorGraphicsFunctionQuib, {'RectangleSelector'})
