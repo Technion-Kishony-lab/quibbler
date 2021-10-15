@@ -2,3 +2,4 @@ from .checkbuttons_graphics_function_quib import CheckButtonsGraphicsFunctionQui
 from .radio_buttons import QRadioButtons, RadioButtonsGraphicsFunctionQuib
 from .rectangle_selector import QRectangleSelector, RectangleSelectorGraphicsFunctionQuib
 from .slider import SliderGraphicsFunctionQuib
+from .textbox import TextBoxGraphicsFunctionQuib
