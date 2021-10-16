@@ -27,7 +27,7 @@ __eq__
 
 NUMPY_OVERRIDES = [
     (np, [
-        (DefaultFunctionQuib, {"abs", "average", "max", "min", "arange", "polyfit",
+        (DefaultFunctionQuib, {"abs", "average", "max", "min", "arange", "polyfit", "shape",
                                "linspace", "polyval", "array", "genfromtxt", 'prod', 'sum'}),
         (GraphicsFunctionQuib, {'apply_along_axis', 'apply_over_axes'}),
         (TranspositionalFunctionQuib, {'reshape', 'rot90', 'ravel', 'concatenate', 'repeat', 'full', 'concatenate'}),
