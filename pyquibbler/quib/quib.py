@@ -51,10 +51,27 @@ class Quib(ABC):
             allow_overriding = self._DEFAULT_ALLOW_OVERRIDING
         self.allow_overriding = allow_overriding
 
-    def __get_children_recursively(self) -> Set[Quib]:
-        children = {child_ref() for child_ref in self._children}
+    @property
+    def children(self) -> Set[Quib]:
+        """
+        Return all valid children and clean up dead refs.
+        """
+        children = set()
+        refs_to_remove = set()
         for child_ref in self._children:
-            children |= child_ref().__get_children_recursively()
+            child = child_ref()
+            if child is None:
+                refs_to_remove.add(child_ref)
+            else:
+                children.add(child)
+        for ref in refs_to_remove:
+            self._children.remove(ref)
+        return children
+
+    def __get_children_recursively(self) -> Set[Quib]:
+        children = self.children
+        for child in self.children:
+            children |= child.__get_children_recursively()
         return children
 
     def _get_graphics_function_quibs_recursively(self) -> Set[GraphicsFunctionQuib]:
@@ -93,8 +110,8 @@ class Quib(ABC):
         """
         Change this quib's state according to a change in a dependency.
         """
-        for child_ref in self._children:
-            child_ref()._invalidate_quib_with_children_at_path(self, path)
+        for child in self.children:
+            child._invalidate_quib_with_children_at_path(self, path)
 
     def _get_path_for_children_invalidation(self, invalidator_quib: 'Quib',
                                             path: List['PathComponent']) -> List['PathComponent']:
@@ -135,7 +152,10 @@ class Quib(ABC):
         """
         Add the given quib to the list of quibs that are dependent on this quib.
         """
-        self._children.add(weakref(quib, lambda ref: self._children.discard(ref)))
+        # We used to give the ref a destruction callback that removed it from the children set,
+        # but it could sometimes cause the set to change size during iteration.
+        # So now we cleanup dead refs in the children property.
+        self._children.add(weakref(quib))
 
     def __len__(self):
         return len(self.get_value())
