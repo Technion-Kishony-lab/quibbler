@@ -336,7 +336,7 @@ def test_quib_override_when_overriding_not_allowed(example_quib):
 def test_quib_override_allow_overriding_from_now_on(example_quib):
     example_quib.allow_overriding = False
     override = Mock()
-    override.path = [...]
+    override.path = [PathComponent(component=..., indexed_cls=example_quib.get_type())]
 
     example_quib.override(override, allow_overriding_from_now_on=True)
 
