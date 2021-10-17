@@ -1,3 +1,5 @@
+import logging
+
 import numpy as np
 from dataclasses import dataclass
 from typing import Any, List, Optional, Iterable, Union
@@ -5,6 +7,7 @@ from typing import Any, List, Optional, Iterable, Union
 from .assignment import Assignment, PathComponent, PathComponent
 from .assignment_template import AssignmentTemplate
 from ..utils import deep_copy_without_quibs_or_artists, recursively_run_func_on_object
+from ...env import DEBUG
 
 
 @dataclass
@@ -48,7 +51,13 @@ def deep_assign_data_with_paths(data: Any, path: List[PathComponent], value: Any
             if isinstance(component.component, tuple) and not isinstance(new_element, np.ndarray):
                 # We can't access a regular list with a tuple, so we're forced to convert to a numpy array
                 new_element = np.array(new_element)
-            new_element[component.component] = last_element
+
+            try:
+                new_element[component.component] = last_element
+            except IndexError as e:
+                if DEBUG:
+                    logging.warning(f"Attempted out of range assignment- {component.component}, exception: {e}")
+
         last_element = new_element
     return last_element
 

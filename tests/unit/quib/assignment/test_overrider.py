@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 from pytest import fixture
 
 from pyquibbler.quib.assignment import Overrider, Assignment
@@ -58,3 +59,13 @@ def test_overrider_remove_assignment(overrider):
     new_data = overrider.override([0, 0])
 
     assert new_data == [1, 0]
+
+
+@pytest.mark.regression
+def test_overrider_doesnt_raise_exception_when_out_of_bounds(overrider):
+    overrider.add_assignment(Assignment(value=10, path=[PathComponent(component=10, indexed_cls=list)]))
+
+    # We only truly want to make sure the above assignment didn't cause an exception
+    new_data = overrider.override([])
+
+    assert new_data == []
