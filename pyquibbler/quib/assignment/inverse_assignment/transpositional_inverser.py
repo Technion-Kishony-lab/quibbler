@@ -7,7 +7,7 @@ from pyquibbler.quib.assignment import Assignment
 from pyquibbler.quib.assignment.inverse_assignment.utils import create_empty_array_with_values_at_indices
 from pyquibbler.quib.utils import recursively_run_func_on_object, call_func_with_quib_values
 
-from .inverser import Inverter
+from .inverter import Inverter
 from ..assignment import QuibWithAssignment, PathComponent
 
 if TYPE_CHECKING:

@@ -13,7 +13,7 @@ from ..assignment import QuibWithAssignment, PathComponent
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib
 
-from .inverser import Inverter
+from .inverter import Inverter
 
 
 def create_inverse_func_from_indexes_to_funcs(quib_argument_indexes_to_inverse_functions: Dict[int, Callable]):
