@@ -6,7 +6,7 @@ from typing import Any, List, Dict, Callable, TYPE_CHECKING
 
 from pyquibbler.env import ASSIGNMENT_RESTRICTIONS
 from pyquibbler.quib.assignment import Assignment
-from pyquibbler.quib.utils import call_func_with_quib_values
+from pyquibbler.quib.utils import call_func_with_quib_values, iter_quibs_in_object_recursively
 
 from .exceptions import CommonAncestorBetweenArgumentsException
 from ..assignment import QuibWithAssignment, PathComponent
@@ -126,7 +126,7 @@ class ElementWiseInverter(Inverter):
         x is on both sides of the equation
         """
         all_ancestors = set()
-        for arg in self._get_quibs_in_args():
+        for arg in iter_quibs_in_object_recursively(self._args):
             from pyquibbler.quib import FunctionQuib
             arg_and_ancestors = {arg}
             if isinstance(arg, FunctionQuib):

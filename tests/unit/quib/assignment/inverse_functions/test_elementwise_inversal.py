@@ -144,3 +144,13 @@ def test_elementwise_with_deep_path():
     inverse(getitem_quib, path=[PathComponent(component=0, indexed_cls=getitem_quib.get_type())], value=0)
 
     assert np.array_equal(first_quib.get_value(), [[-1, 2, 3]])
+
+
+@pytest.mark.assignment_restrictions(False)
+def test_elementwise_doesnt_raise_exception_when_assignment_restrictions_off():
+    quib = iquib(100)
+    fquib = quib - quib
+
+    fquib.assign_value(50)
+
+    assert fquib.get_value() == 0
