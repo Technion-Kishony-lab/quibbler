@@ -350,3 +350,25 @@ def test_quibs_are_collected_when_used():
         quib.get_value()
 
     assert collected == {quib}
+
+
+@mark.regression
+def test_remove_child_while_invalidating():
+    class RemoveOnInvalidateQuib(ExampleQuib):
+        def __init__(self, parent):
+            super().__init__(None)
+            parent.add_child(self)
+            self._parent = parent
+
+        @property
+        def parents(self) -> Set[Quib]:
+            return {self._parent}
+
+        def _invalidate_self(self):
+            for parent in self.parents:
+                parent.remove_child(self)
+
+    parent = ExampleQuib([1])
+    child = RemoveOnInvalidateQuib(parent)
+
+    parent[0] = 1

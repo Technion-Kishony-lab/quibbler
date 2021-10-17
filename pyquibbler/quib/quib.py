@@ -45,6 +45,7 @@ class Quib(ABC):
                  assignment_template: Optional[AssignmentTemplate] = None,
                  allow_overriding: Optional[bool] = None):
         self._assignment_template = assignment_template
+        # Can't use WeakSet because it can change during iteration
         self._children = set()
         self._overrider = Overrider()
         if allow_overriding is None:
