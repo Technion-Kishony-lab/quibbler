@@ -129,7 +129,7 @@ def test_is_there_a_quib_in_args(args, kwargs, quibs):
 
 
 def test_copy_and_replace_quibs_with_vals_raises_when_receives_nested_quibs():
-    obj = [[iquib1]]
+    obj = [[[iquib1]]]
     with raises(NestedQuibException) as exc_info:
         copy_and_replace_quibs_with_vals(obj)
 
@@ -139,7 +139,7 @@ def test_copy_and_replace_quibs_with_vals_raises_when_receives_nested_quibs():
 
 
 def test_iter_quibs_in_object_raises_when_receives_nested_quibs():
-    obj = [[iquib1]]
+    obj = [[[iquib1]]]
     with raises(NestedQuibException) as exc_info:
         iter_quibs_in_object(obj)
 
