@@ -118,9 +118,9 @@ class Quib(ABC):
         """
         Get the new path for invalidating children- a quib overrides this method if it has a specific way to translate
         paths to new invalidation paths.
-        If not, just return the path for invalidation of children
+        If not, invalidate all children all over; as you have no more specific way to invalidate them
         """
-        return path
+        return [PathComponent(component=..., indexed_cls=self.get_type())]
 
     def _invalidate_self(self):
         """

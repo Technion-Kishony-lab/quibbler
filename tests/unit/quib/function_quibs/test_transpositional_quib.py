@@ -249,27 +249,3 @@ def test_invalidate_and_redraw_invalidates_all_when_minor_parameter_changes():
                                                             indexed_cls=int), ])
 
     assert not child.is_cache_valid
-
-
-@pytest.fixture()
-def list_with_quib(input_quib, quib_dict):
-    return q(list, [input_quib, quib_dict])
-
-
-def test_invalidate_and_redraw_invalidate_inner_quib_does_invalidate_getitem(input_quib, list_with_quib):
-    child = list_with_quib[0][0]
-    child.get_value()
-
-    input_quib.invalidate_and_redraw_at_path(path=[PathComponent(component=0, indexed_cls=list), ])
-
-    assert not child.is_cache_valid
-
-
-def test_invalidate_and_redraw_invalidates_invalidate_inner_quib_does_not_invalidate_other_getitem(input_quib,
-                                                                                                   list_with_quib):
-    child = list_with_quib[1]['a']
-    child.get_value()
-
-    input_quib.invalidate_and_redraw_at_path(path=[PathComponent(component=0, indexed_cls=list), ])
-
-    assert child.is_cache_valid
