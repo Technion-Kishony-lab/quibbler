@@ -9,6 +9,7 @@ from pyquibbler.quib.assignment import QuibWithAssignment, CannotReverseExceptio
 from .override_dialog import OverrideChoiceType, OverrideChoice, choose_override_dialog
 from .types import OverrideRemoval, OverrideGroup, OverrideWithOverrideRemovals
 from .choice_cache import ChoiceCache
+from ...env import ASSIGNMENT_RESTRICTIONS
 
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib, FunctionQuib
@@ -215,7 +216,7 @@ def get_overrides_for_assignment_group(quibs_with_assignments: List[QuibWithAssi
         except AssignmentNotPossibleException:
             continue
         current_overridden_quibs = set(override.quib for override in override_group.overrides)
-        if not current_overridden_quibs.intersection(all_overridden_quibs):
+        if not ASSIGNMENT_RESTRICTIONS or not current_overridden_quibs.intersection(all_overridden_quibs):
             all_overridden_quibs.update(current_overridden_quibs)
             result.extend(override_group)
     return result
