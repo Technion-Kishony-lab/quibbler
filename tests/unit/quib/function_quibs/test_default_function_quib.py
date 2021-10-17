@@ -2,6 +2,7 @@ from operator import getitem
 from unittest import mock
 
 import numpy as np
+import pytest
 from pytest import fixture, mark
 
 from pyquibbler import iquib, CacheBehavior, Assignment
@@ -102,3 +103,11 @@ def test_invalidation_invalidates_quib_when_needed():
                                                                     component=(0, 0))])
 
     assert not mock_dependant_quib.is_cache_valid
+
+
+@pytest.mark.regression
+def test_second_level_nested_argument_quib_is_replaced():
+    a = iquib(np.arange(6).reshape(2, 3))
+
+    # We are checking this doesn't raise an exception
+    assert np.array_equal(a[1, iquib(1):1].get_value(), np.array([]))

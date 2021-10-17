@@ -16,7 +16,7 @@ from pyquibbler.exceptions import DebugException, PyQuibblerException
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib
 
-SHALLOW_MAX_DEPTH = 1
+SHALLOW_MAX_DEPTH = 2
 SHALLOW_MAX_LENGTH = 100
 
 
@@ -48,7 +48,7 @@ class NestedQuibException(DebugException):
     nested_quibs: Set[Quib]
 
     def __str__(self):
-        return 'PyQuibbler does not support calling functions with arguments that contain nested quibs.\n' \
+        return 'PyQuibbler does not support calling functions with arguments that contain deeply nested quibs.\n' \
                f'The quibs {self.nested_quibs} are nested within {self.obj}.'
 
     @classmethod
