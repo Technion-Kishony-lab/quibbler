@@ -4,6 +4,7 @@ import numpy as np
 from operator import __add__, __pow__, __sub__, __mul__
 from typing import Any, List, Dict, Callable, TYPE_CHECKING
 
+from pyquibbler.env import ASSIGNMENT_RESTRICTIONS
 from pyquibbler.quib.assignment import Assignment
 from pyquibbler.quib.utils import call_func_with_quib_values
 
@@ -155,7 +156,8 @@ class ElementWiseInverter(Inverter):
         )]
 
     def get_inversed_quibs_with_assignments(self) -> List[QuibWithAssignment]:
-        self.raise_if_multiple_args_have_common_ancestor()
+        if ASSIGNMENT_RESTRICTIONS:
+            self.raise_if_multiple_args_have_common_ancestor()
 
         quib_to_change = self._get_quibs_in_args()[0]
 

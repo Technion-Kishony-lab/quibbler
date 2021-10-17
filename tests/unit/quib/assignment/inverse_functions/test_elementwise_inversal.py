@@ -103,6 +103,7 @@ def test_inverse_elementwise_on_int():
 
 
 @pytest.mark.regression
+@pytest.mark.assignment_restrictions(True)
 def test_quib_raises_exception_when_reversing_with_common_parent_in_multiple_args():
     x = iquib(5)
     y = x + 2
