@@ -7,7 +7,7 @@ from pyquibbler import iquib
 from pyquibbler.quib import ElementWiseFunctionQuib, FunctionQuib
 from pyquibbler.quib.assignment import Assignment
 from pyquibbler.quib.assignment.assignment import PathComponent
-from pyquibbler.quib.assignment.inverse_assignment.elementwise_inverser import CommonAncestorBetweenArgumentsException
+from pyquibbler.quib.assignment.inverse_assignment.elementwise_inverter import CommonAncestorBetweenArgumentsException
 
 
 def inverse(function_quib: FunctionQuib, value, path):
