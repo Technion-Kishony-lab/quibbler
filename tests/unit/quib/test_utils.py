@@ -93,8 +93,8 @@ def test_call_func_with_quib_values(func, args, kwargs, result):
 
 @mark.debug(False)
 def test_call_func_with_quib_values_raises_when_receives_nested_quib():
-    obj = [[iquib1]]
-    func = lambda x: open(x[0][0])
+    obj = [[[iquib1]]]
+    func = lambda x: open(x[0][0][0])
     with raises(FunctionCalledWithNestedQuibException) as exc_info:
         call_func_with_quib_values(func, (obj,), {})
     assert exc_info.type is FunctionCalledWithNestedQuibException
