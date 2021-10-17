@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, List, Tuple, Any, Optional
 import numpy as np
 
 from .default_function_quib import DefaultFunctionQuib
-from pyquibbler.quib.assignment.inverse_assignment import ElementWiseInverser
+from pyquibbler.quib.assignment.inverse_assignment import ElementWiseInverter
 
 from ..assignment.assignment import PathComponent
 from ..assignment.inverse_assignment.utils import create_empty_array_with_values_at_indices
@@ -62,7 +62,7 @@ class ElementWiseFunctionQuib(DefaultFunctionQuib):
         return new_path
 
     def get_inversions_for_assignment(self, assignment: 'Assignment'):
-        return ElementWiseInverser(
+        return ElementWiseInverter(
             assignment=assignment,
             function_quib=self
         ).get_inversed_quibs_with_assignments()

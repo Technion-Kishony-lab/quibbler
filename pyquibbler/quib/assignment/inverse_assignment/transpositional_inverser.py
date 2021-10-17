@@ -7,14 +7,14 @@ from pyquibbler.quib.assignment import Assignment
 from pyquibbler.quib.assignment.inverse_assignment.utils import create_empty_array_with_values_at_indices
 from pyquibbler.quib.utils import recursively_run_func_on_object, call_func_with_quib_values
 
-from .inverser import Inverser
+from .inverser import Inverter
 from ..assignment import QuibWithAssignment, PathComponent
 
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib
 
 
-class TranspositionalInverser(Inverser):
+class TranspositionalInverter(Inverter):
     """
     In charge of reversing all functions which move elements around from it's arguments WITHOUT performing
     any mathematical operations between them.

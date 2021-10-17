@@ -16,11 +16,11 @@ if TYPE_CHECKING:
     from pyquibbler.quib import Quib, FunctionQuib
 
 
-class Inverser(ABC):
+class Inverter(ABC):
     """
     Capable of inverse assigning a function quibs quib arguments given a change in the
     aforementioned function quib's result.
-    A particular `Inverser` class knows how to inverse a specific set of functions
+    A particular `Inverter` class knows how to inverse a specific set of functions
     (`SUPPORTED_FUNCTIONS`).
     """
 

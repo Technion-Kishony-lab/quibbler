@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, List, Optional
 
 from pyquibbler.quib.assignment import Assignment
 from .default_function_quib import DefaultFunctionQuib
-from pyquibbler.quib.assignment.inverse_assignment import TranspositionalInverser
+from pyquibbler.quib.assignment.inverse_assignment import TranspositionalInverter
 from pyquibbler.quib.assignment.inverse_assignment.utils import create_empty_array_with_values_at_indices
 from pyquibbler.quib.utils import iter_objects_of_type_in_object_shallowly, recursively_run_func_on_object, \
     call_func_with_quib_values
@@ -195,7 +195,7 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib):
         return quibs
 
     def get_inversions_for_assignment(self, assignment: Assignment):
-        return TranspositionalInverser.create_and_get_inversed_quibs_with_assignments(
+        return TranspositionalInverter.create_and_get_inversed_quibs_with_assignments(
             assignment=assignment,
             function_quib=self
         )
