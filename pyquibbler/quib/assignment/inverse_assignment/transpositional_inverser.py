@@ -129,7 +129,7 @@ class TranspositionalInverser(Inverser):
 
     def _get_quibs_to_indices_in_quibs(self) -> Dict[Quib, np.ndarray]:
         """
-        Get a mapping of quibs to the quib's indices that were referenced in `self._indices` (ie after inversal of the
+        Get a mapping of quibs to the quib's indices that were referenced in `self._indices` (ie after inversion of the
         indices relevant to the particular quib)
         """
         quibs = self._get_quibs_which_can_change()
@@ -173,7 +173,7 @@ class TranspositionalInverser(Inverser):
         """
         We're in a situation where we can't compute any any translation of indices
         Because of this, we put all pieces of the getitem in the path- making sure to put the field BEFORE the indexing
-        (keeping it in the same order as it was, so we don't inverse the indices in the next inversal)
+        (keeping it in the same order as it was, so we don't inverse the indices in the next inversion)
         """
         return [QuibWithAssignment(
             quib=self._args[0],

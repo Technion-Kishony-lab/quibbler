@@ -27,8 +27,8 @@ class OverrideRemoval:
         self.quib.remove_override(self.path)
 
     @classmethod
-    def from_inversal(cls, inversal: QuibWithAssignment):
-        return cls(inversal.quib, inversal.assignment.path)
+    def from_inversion(cls, inversion: QuibWithAssignment):
+        return cls(inversion.quib, inversion.assignment.path)
 
 
 @dataclass

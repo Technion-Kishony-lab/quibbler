@@ -144,20 +144,20 @@ class OverrideOptionsTree:
         from pyquibbler.quib import FunctionQuib
         if isinstance(quib_with_assignment.quib, FunctionQuib):
             try:
-                return quib_with_assignment.quib.get_inversals_for_assignment(quib_with_assignment.assignment)
+                return quib_with_assignment.quib.get_inversions_for_assignment(quib_with_assignment.assignment)
             except CannotReverseException:
                 pass
         return []
 
     @classmethod
-    def _get_children_from_diverged_inversals(cls, inversals: List[QuibWithAssignment]):
+    def _get_children_from_diverged_inversions(cls, inversions: List[QuibWithAssignment]):
         """
-        For each diverged inversal, create a new OverrideOptionsTree instance, and return a list of all instances.
-        If any inversal cannot be translated into an override, return an empty list.
+        For each diverged inversion, create a new OverrideOptionsTree instance, and return a list of all instances.
+        If any inversion cannot be translated into an override, return an empty list.
         """
         children = []
-        for inversal in inversals:
-            child = cls.from_assignment(inversal)
+        for inversion in inversions:
+            child = cls.from_assignment(inversion)
             if not child:
                 # If one of the diverged options does not allow overriding,
                 # then we can't inverse assign through the diverger, because
@@ -172,20 +172,20 @@ class OverrideOptionsTree:
         Build an OverrideOptionsTree representing all the override options for the given assignment.
         """
         options: List[OverrideWithOverrideRemovals] = []
-        inversals = [quib_with_assignment]
+        inversions = [quib_with_assignment]
         override_removals = []
-        last_inversal = None
-        while len(inversals) == 1:
-            inversal = inversals[0]
-            if inversal.quib.allow_overriding:
-                options.append(OverrideWithOverrideRemovals(inversal, override_removals[:]))
-            override_removals.append(OverrideRemoval.from_inversal(inversal))
-            inversals = cls._inverse_assignment(inversal)
-            if inversals:
-                last_inversal = inversal
+        last_inversion = None
+        while len(inversions) == 1:
+            inversion = inversions[0]
+            if inversion.quib.allow_overriding:
+                options.append(OverrideWithOverrideRemovals(inversion, override_removals[:]))
+            override_removals.append(OverrideRemoval.from_inversion(inversion))
+            inversions = cls._inverse_assignment(inversion)
+            if inversions:
+                last_inversion = inversion
 
-        children = cls._get_children_from_diverged_inversals(inversals)
-        diverged_quib = None if not children else last_inversal.quib
+        children = cls._get_children_from_diverged_inversions(inversions)
+        diverged_quib = None if not children else last_inversion.quib
         return OverrideOptionsTree(quib_with_assignment.quib, options, diverged_quib, children, override_removals)
 
 

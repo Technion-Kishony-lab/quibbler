@@ -15,14 +15,14 @@ def inverse(func, indices, value, args, kwargs=None):
         func_args=args,
         func_kwargs=kwargs
     )
-    inversals = TranspositionalFunctionQuib.create(
+    inversions = TranspositionalFunctionQuib.create(
         func=func,
         func_args=args,
         func_kwargs=kwargs
-    ).get_inversals_for_assignment(assignment=Assignment(value=value, path=[PathComponent(indexed_cls=quib.get_type(),
+    ).get_inversions_for_assignment(assignment=Assignment(value=value, path=[PathComponent(indexed_cls=quib.get_type(),
                                                                                           component=indices)]))
-    for inversal in inversals:
-        inversal.apply()
+    for inversion in inversions:
+        inversion.apply()
 
 
 def test_inverse_rot90():
@@ -69,12 +69,12 @@ def test_inverse_concat_does_not_return_empty_assignments():
         func=np.concatenate,
         func_args=((first_quib_arg, second_quib_arg),),
     )
-    inversals = quib.get_inversals_for_assignment(assignment=Assignment(value=np.array([new_value]),
+    inversions = quib.get_inversions_for_assignment(assignment=Assignment(value=np.array([new_value]),
                                                                         path=[PathComponent(component=(0, 0),
                                                                                            indexed_cls=quib.get_type())]))
 
-    assert len(inversals) == 1
-    assignment = inversals[0].assignment
+    assert len(inversions) == 1
+    assignment = inversions[0].assignment
     assert np.array_equal(assignment.path[0].component, (np.array([0]), np.array([0])))
     assert assignment.value == [20]
 

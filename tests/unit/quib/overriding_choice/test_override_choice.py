@@ -196,7 +196,7 @@ def test_override_choice_when_diverged_parent_is_cancelled(diverged_quib_graph, 
         get_overrides_for_assignment(child, assignment)
 
 
-def test_override_choice_when_diverged_and_all_diverged_inversals_are_overridden(diverged_quib_graph, assignment,
+def test_override_choice_when_diverged_and_all_diverged_inversions_are_overridden(diverged_quib_graph, assignment,
                                                                                  choose_override_dialog_mock):
     grandparent1, parent1, grandparent2, parent2, child, parent1_override = diverged_quib_graph
 

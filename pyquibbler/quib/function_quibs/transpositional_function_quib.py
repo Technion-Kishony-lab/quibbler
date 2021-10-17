@@ -194,7 +194,7 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib):
                 quibs.extend(iter_objects_of_type_in_object_shallowly(Quib, arg))
         return quibs
 
-    def get_inversals_for_assignment(self, assignment: Assignment):
+    def get_inversions_for_assignment(self, assignment: Assignment):
         return TranspositionalInverser.create_and_get_inversed_quibs_with_assignments(
             assignment=assignment,
             function_quib=self

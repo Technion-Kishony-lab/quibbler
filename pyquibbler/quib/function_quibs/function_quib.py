@@ -145,7 +145,7 @@ class FunctionQuib(Quib):
         """
         return call_func_with_quib_values(self.func, self.args, self.kwargs)
 
-    def get_inversals_for_assignment(self, assignment: Assignment):
+    def get_inversions_for_assignment(self, assignment: Assignment):
         return []
 
     @cached_property

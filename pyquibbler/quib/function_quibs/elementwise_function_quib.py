@@ -61,7 +61,7 @@ class ElementWiseFunctionQuib(DefaultFunctionQuib):
         ]
         return new_path
 
-    def get_inversals_for_assignment(self, assignment: 'Assignment'):
+    def get_inversions_for_assignment(self, assignment: 'Assignment'):
         return ElementWiseInverser(
             assignment=assignment,
             function_quib=self

@@ -80,7 +80,7 @@ class Inverser(ABC):
     @abstractmethod
     def get_inversed_quibs_with_assignments(self) -> List[QuibWithAssignment]:
         """
-        Get all inversals that need to be applied for the inversal to be complete
+        Get all inversions that need to be applied for the inversion to be complete
         (This can potentially contain multiple quibs with multiple assignments)
         """
         pass

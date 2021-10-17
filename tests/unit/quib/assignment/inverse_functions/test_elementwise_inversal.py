@@ -12,9 +12,9 @@ from pyquibbler.quib.assignment.inverse_assignment.elementwise_inverser import C
 
 def inverse(function_quib: FunctionQuib, value, path):
     assignment = Assignment(value, path)
-    inversals = function_quib.get_inversals_for_assignment(assignment=assignment)
-    for inversal in inversals:
-        inversal.apply()
+    inversions = function_quib.get_inversions_for_assignment(assignment=assignment)
+    for inversion in inversions:
+        inversion.apply()
 
 
 @pytest.mark.parametrize("function_quib,indices,value,quib_arg_index,expected_value", [

@@ -14,7 +14,7 @@ class ChoiceCache:
     A choice can be reused in the context of a new assignment,
     if the inversed quib (the quib that was originally assigned to) is the same, and the options are the same.
     The override options for a inversed quib might change because when different indices are assigned to, the
-    inversal tree might change (for example if one of the quib's parents is concat).
+    inversion tree might change (for example if one of the quib's parents is concat).
     """
 
     def __init__(self):
