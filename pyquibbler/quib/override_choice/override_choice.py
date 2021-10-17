@@ -22,9 +22,9 @@ class AssignmentNotPossibleException(PyQuibblerException):
 
     def __str__(self):
         return f'Cannot perform {self.assignment} on {self.quib}, because it cannot ' \
-               f'be overridden and we could not find an overridable parent quib to inverse assign into.\n' \
-               f'Don\'t forget that non-input quibs are not overridable by default.\n' \
-               f'To allow overriding {self.quib}, try using "{self.quib}.allow_overriding = True"'
+               f'be overridden and an overridable parent quib to inverse assign into was not found.\n' \
+               f'Note that functional quibs are not overridable by default.\n' \
+               f'To allow overriding, try using "{self.quib}.allow_overriding = True"'
 
 
 @dataclass

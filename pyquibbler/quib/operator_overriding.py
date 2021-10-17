@@ -40,9 +40,9 @@ ARITHMETIC_OVERRIDES = [
 ]
 
 UNARY_OVERRIDES = [
-    operator_override('__neg__'),
-    operator_override('__pos__'),
-    operator_override('__abs__'),
+    operator_override('__neg__',ElementWiseFunctionQuib),
+    operator_override('__pos__',ElementWiseFunctionQuib),
+    operator_override('__abs__',ElementWiseFunctionQuib),
     operator_override('__invert__'),
 ]
 
