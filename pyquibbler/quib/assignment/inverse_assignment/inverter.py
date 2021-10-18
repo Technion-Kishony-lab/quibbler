@@ -43,11 +43,18 @@ class Inverter(ABC):
         return quibs
 
     @property
-    def _working_indices(self):
+    def _working_np_indices(self):
         """
-        Our working indices, ie the ones that need to be either squashed
-        :return:
+        Our working indices for a numpy array,
+        representing the indices in our input value that we're inverting (but only
+        the first step of this path- as this will be
+        the only step we'll logically be able to deal with- as if there's a dict within us we won't be reverting
+        that path component as well)
+        If the path is empty, we want to invert the whole input, so we return True, as doing getitem on an nparray
+        with True will give back the result
         """
+        if len(self._assignment.path) == 0:
+            return True
         return self._assignment.path[0].component
 
     @property
@@ -73,7 +80,7 @@ class Inverter(ABC):
         """
         return create_empty_array_with_values_at_indices(
             self._function_quib.get_shape().get_value(),
-            indices=self._working_indices,
+            indices=self._working_np_indices,
             value=self._value,
         )
 
@@ -88,9 +95,9 @@ class Inverter(ABC):
     @classmethod
     def create_and_get_inversed_quibs_with_assignments(cls, function_quib: 'FunctionQuib', assignment: Assignment):
         components_at_end = assignment.path[1:]
-        current_path = assignment.path[0]
+        current_components = assignment.path[0:1]
 
-        # There is a specific scenario in which we have a numpy function that returns an numpy array which is
+        # There is a specific scenario in which we have a numpy function that returns a numpy array which is
         # referenced by fields- this cannot happen with PyObject arrays, only with field arrays, as a PyObject array
         # cannot be immediately referenced by an inner attribute/indexing method without first accessing the numpy array
         #
@@ -98,11 +105,11 @@ class Inverter(ABC):
         # referenced field (so we can do any index + quib choosing games);
         # then when we add in the field in the path after it the overrider will create the desired affect
         # of only changing the referenced field
-        if assignment.path[0].references_field_in_field_array():
+        if len(assignment.path) > 0 and assignment.path[0].references_field_in_field_array():
             components_at_end = [assignment.path[0], *components_at_end]
-            current_path = PathComponent(indexed_cls=np.ndarray, component=...)
+            current_components = []
 
-        inverser = cls(function_quib, Assignment(assignment.value, [current_path]))
+        inverser = cls(function_quib, Assignment(assignment.value, current_components))
         quibs_with_assignments = inverser.get_inversed_quibs_with_assignments()
 
         for quib_with_assignment in quibs_with_assignments:

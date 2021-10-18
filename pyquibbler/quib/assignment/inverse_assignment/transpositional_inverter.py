@@ -75,7 +75,8 @@ class TranspositionalInverter(Inverter):
         same shape as the result
         """
         return create_empty_array_with_values_at_indices(self._function_quib.get_shape().get_value(),
-                                                     indices=self._working_indices, value=True, empty_value=False)
+                                                         indices=self._working_np_indices, value=True,
+                                                         empty_value=False)
 
     def _get_quibs_to_index_grids(self) -> Dict[Quib, np.ndarray]:
         """
@@ -137,20 +138,20 @@ class TranspositionalInverter(Inverter):
                                 for quib in quibs]) if len(quibs) > 0 else 0
         # Default is to set all - if we have a shape we'll change this
         quibs_to_indices_in_quibs = {
-            quib: ... for quib in quibs
+            quib: None for quib in quibs
         }
         for i in range(max_shape_length):
             quibs_to_indices_at_dimension = self._get_quibs_to_indices_at_dimension(i)
 
             for quib, index in quibs_to_indices_at_dimension.items():
-                if quibs_to_indices_in_quibs[quib] is ...:
+                if quibs_to_indices_in_quibs[quib] is None:
                     quibs_to_indices_in_quibs[quib] = tuple()
                 quibs_to_indices_in_quibs[quib] = (*quibs_to_indices_in_quibs[quib], index)
 
         return {
             quib: indices
             for quib, indices in quibs_to_indices_in_quibs.items()
-            if indices is ... or all(
+            if indices is None or all(
                 len(dim) > 0
                 for dim in indices
             )
@@ -195,10 +196,12 @@ class TranspositionalInverter(Inverter):
 
         quibs_with_assignments = []
         for quib in quibs_to_indices_in_quibs:
+            new_indices = quibs_to_indices_in_quibs[quib]
+            prepended_paths = [PathComponent(indexed_cls=np.ndarray,
+                                             component=new_indices)] if new_indices is not None else []
             quibs_with_assignments.append(QuibWithAssignment(
                 quib=quib,
-                assignment=Assignment(path=[PathComponent(indexed_cls=np.ndarray,
-                                                          component=quibs_to_indices_in_quibs[quib]),
+                assignment=Assignment(path=[*prepended_paths,
                                             *self._assignment.path[1:]],
                                       value=quibs_to_results[quib])
             ))
@@ -206,15 +209,18 @@ class TranspositionalInverter(Inverter):
 
     def _next_path_component_has_translatable_np_indices(self):
         """
-        Check's whether we have at hand a function quib which represents a __getitem__ with the indices being fancy
-        indexes [and the resulting type being an ndarray]
+        Checks whether the next path component is translatable with our indices (ie that it's referencing regular
+        non-field np indices)
         """
         return (issubclass(self._function_quib.get_type(), np.ndarray)
-                and not self._assignment.path[0].references_field_in_field_array())
+                and len(self._assignment.path) > 0
+                and not self._assignment.path[0].references_field_in_field_array()
+                )
 
     def _is_getitem_with_field(self):
         return \
-            PathComponent(indexed_cls=self._function_quib.get_type(), component=self._args[1]).references_field_in_field_array()
+            PathComponent(indexed_cls=self._function_quib.get_type(),
+                          component=self._args[1]).references_field_in_field_array()
 
     def get_inversed_quibs_with_assignments(self) -> List[QuibWithAssignment]:
         if (self._func == getitem and
