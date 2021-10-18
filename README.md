@@ -12,10 +12,9 @@
 
 ### Debugging
 
-- `FunctionQuib._func`
-- `FunctionQuib._args`
-- `FunctionQuib._kwargs`
-- `FunctionQuib._get_dependencies()`
+- `FunctionQuib.func`
+- `FunctionQuib.args`
+- `FunctionQuib.kwargs`
 - `FunctionQuib.get_cache_behavior()`
 
 ### Deepcopy
