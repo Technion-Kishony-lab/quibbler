@@ -47,17 +47,17 @@ UNARY_OVERRIDES = [
 ]
 
 COMPARISON_OVERRIDES = [
-    operator_override('__lt__'),
-    operator_override('__gt__'),
-    operator_override('__ge__'),
-    operator_override('__le__'),
+    operator_override('__lt__',ElementWiseFunctionQuib),
+    operator_override('__gt__',ElementWiseFunctionQuib),
+    operator_override('__ge__',ElementWiseFunctionQuib),
+    operator_override('__le__',ElementWiseFunctionQuib),
 ]
 
 ROUNDING_OVERRIDES = [
-    (DefaultFunctionQuib, '__round__', round),
-    (DefaultFunctionQuib, '__trunc__', trunc),
-    (DefaultFunctionQuib, '__floor__', floor),
-    (DefaultFunctionQuib, '__ceil__', ceil),
+    (ElementWiseFunctionQuib, '__round__', round),
+    (ElementWiseFunctionQuib, '__trunc__', trunc),
+    (ElementWiseFunctionQuib, '__floor__', floor),
+    (ElementWiseFunctionQuib, '__ceil__', ceil),
 ]
 
 

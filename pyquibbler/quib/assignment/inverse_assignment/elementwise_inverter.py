@@ -46,7 +46,7 @@ class ElementWiseInverter(Inverter):
                     0: np.subtract,
                     1: np.subtract
                 }
-            ) for func in [__add__, np.add]},
+            ) for func in [np.add, __add__]},
         **{
             func: create_inverse_func_from_indexes_to_funcs(
                 {
