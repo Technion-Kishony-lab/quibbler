@@ -2,9 +2,9 @@ import logging
 
 import numpy as np
 from dataclasses import dataclass
-from typing import Any, List, Optional, Iterable, Union
+from typing import Any, List, Optional, Iterable, Union, Dict, Hashable
 
-from .assignment import Assignment, PathComponent, PathComponent
+from .assignment import Assignment, PathComponent, PathComponent, get_hashable_path
 from .assignment_template import AssignmentTemplate
 from ..utils import deep_copy_without_quibs_or_artists, recursively_run_func_on_object
 from ...env import DEBUG
@@ -67,21 +67,27 @@ class Overrider:
     Gathers overriding assignments performed on a quib in order to apply them on a quib value.
     """
 
-    def __init__(self, assignments: Iterable[Assignment] = ()):
-        self._assignments: List[Union[Assignment, AssignmentRemoval]] = list(assignments)
+    def __init__(self):
+        self._paths_to_assignments: Dict[Hashable, Union[Assignment, AssignmentRemoval]] = {}
+
+    def _add_to_paths_to_assignments(self, assignment: Union[Assignment, AssignmentRemoval]):
+        hashable_path = get_hashable_path(assignment.path)
+        if hashable_path in self._paths_to_assignments:
+            self._paths_to_assignments.pop(hashable_path)
+        self._paths_to_assignments[hashable_path] = assignment
 
     def add_assignment(self, assignment: Assignment):
         """
         Adds an override to the overrider - data[key] = value.
         """
-        self._assignments.append(assignment)
+        self._add_to_paths_to_assignments(assignment)
 
     def remove_assignment(self, path: List[PathComponent]):
         """
         Remove overriding in a specific path.
         """
-        if self._assignments:
-            self._assignments.append(AssignmentRemoval(path))
+        if self._paths_to_assignments:
+            self._add_to_paths_to_assignments(AssignmentRemoval(path))
 
     def override(self, data: Any, assignment_template: Optional[AssignmentTemplate] = None):
         """
@@ -91,7 +97,7 @@ class Overrider:
         original_data = data
         with timer("quib_overriding"):
             data = deep_copy_without_quibs_or_artists(data)
-            for assignment in self._assignments:
+            for assignment in self._paths_to_assignments.values():
                 if isinstance(assignment, AssignmentRemoval):
                     value = get_sub_data_from_object_in_path(original_data, assignment.path)
                     path = assignment.path
@@ -124,7 +130,7 @@ class Overrider:
         return mask
 
     def __getitem__(self, item) -> Assignment:
-        return self._assignments[item]
+        return list(self._paths_to_assignments.values())[item]
 
     def __repr__(self):
-        return repr(self._assignments)
+        return repr(self._paths_to_assignments.values())
