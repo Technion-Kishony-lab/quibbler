@@ -102,6 +102,15 @@ def test_inverse_elementwise_on_int():
     assert q.get_value() == 4
 
 
+def test_inverse_on_neg_operator():
+    q = iquib(3)
+    function_quib: FunctionQuib = -q
+
+    inverse(function_quib, 7, path=[PathComponent(component=..., indexed_cls=function_quib.get_type())])
+
+    assert q.get_value() == -7
+
+
 @pytest.mark.regression
 @pytest.mark.assignment_restrictions(True)
 def test_quib_raises_exception_when_reversing_with_common_parent_in_multiple_args():
