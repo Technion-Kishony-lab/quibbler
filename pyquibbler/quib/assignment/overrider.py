@@ -72,6 +72,7 @@ class Overrider:
 
     def _add_to_paths_to_assignments(self, assignment: Union[Assignment, AssignmentRemoval]):
         hashable_path = get_hashable_path(assignment.path)
+        # We need to first remove and then add to make sure the new key value pair are now first in the dict
         if hashable_path in self._paths_to_assignments:
             self._paths_to_assignments.pop(hashable_path)
         self._paths_to_assignments[hashable_path] = assignment

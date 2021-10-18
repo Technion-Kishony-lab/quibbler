@@ -69,3 +69,14 @@ def test_overrider_doesnt_raise_exception_when_out_of_bounds(overrider):
     new_data = overrider.override([])
 
     assert new_data == []
+
+
+def test_overrider_keeps_order(overrider):
+    overrider.add_assignment(Assignment(value=[5], path=[PathComponent(component=..., indexed_cls=list)]))
+    overrider.remove_assignment(path=[PathComponent(component=0, indexed_cls=list)])
+    overrider.add_assignment(Assignment(value=[10], path=[PathComponent(component=..., indexed_cls=list)]))
+
+    # We only truly want to make sure the above assignment didn't cause an exception
+    new_data = overrider.override([20])
+
+    assert new_data == [10]
