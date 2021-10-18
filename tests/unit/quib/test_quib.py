@@ -303,8 +303,7 @@ def test_quib_assign_value(example_quib):
 
     example_quib.assign_value(mock_value)
 
-    example_quib.assign.assert_called_once_with(Assignment(path=[PathComponent(component=...,
-                                                                               indexed_cls=example_quib.get_type())],
+    example_quib.assign.assert_called_once_with(Assignment(path=[],
                                                            value=mock_value))
 
 

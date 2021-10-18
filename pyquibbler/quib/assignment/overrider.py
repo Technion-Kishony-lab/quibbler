@@ -31,6 +31,9 @@ def deep_assign_data_with_paths(data: Any, path: List[PathComponent], value: Any
     We don't do this recursively for performance reasons- there could potentially be a very long string of
     assignments given to the user's whims
     """
+    if len(path) == 0:
+        return value
+
     *pre_components, last_component = path
 
     elements = [data]
@@ -41,22 +44,16 @@ def deep_assign_data_with_paths(data: Any, path: List[PathComponent], value: Any
     last_element = value
     for i, component in enumerate(reversed(path)):
         new_element = elements[-(i + 1)]
-        if component.component is ...:
-            # We manually do this even though numpy would have supported this (ie x[...] = v would
-            # have set all values to x, even in a zero dimension array (which any type in numpy represents)),
-            # but since we might not be with a numpy type we need to do it ourselves- we simply switch last_element
-            # to be the new element and by this we set the whole thing
-            new_element = last_element
-        else:
-            if isinstance(component.component, tuple) and not isinstance(new_element, np.ndarray):
-                # We can't access a regular list with a tuple, so we're forced to convert to a numpy array
-                new_element = np.array(new_element)
 
-            try:
-                new_element[component.component] = last_element
-            except IndexError as e:
-                if DEBUG:
-                    logging.warning(f"Attempted out of range assignment- {component.component}, exception: {e}")
+        if isinstance(component.component, tuple) and not isinstance(new_element, np.ndarray):
+            # We can't access a regular list with a tuple, so we're forced to convert to a numpy array
+            new_element = np.array(new_element)
+
+        try:
+            new_element[component.component] = last_element
+        except IndexError as e:
+            if DEBUG:
+                logging.warning(f"Attempted out of range assignment- {component.component}, exception: {e}")
 
         last_element = new_element
     return last_element

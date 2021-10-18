@@ -192,9 +192,8 @@ class Quib(ABC):
         """
         Helper method to assign a single value and override the whole value of the quib
         """
-        from .assignment.assignment import PathComponent
         self.assign(Assignment(value=value,
-                               path=[PathComponent(component=..., indexed_cls=self.get_type())]))
+                               path=[]))
 
     def assign_value_to_key(self, key: Any, value: Any) -> None:
         """

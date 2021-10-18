@@ -60,8 +60,8 @@ def inverse(function_quib: FunctionQuib, value, path):
                                            iquib(np.array([5, 5, 5])))),
      ([0]), 5, 1, np.array([4, 5, 5]),
      ),
-    (ElementWiseFunctionQuib.create(func=__pow__, func_args=(iquib(10), 2)), ..., 10_000, 0, 100),
-    (ElementWiseFunctionQuib.create(func=__pow__, func_args=(10, iquib(1))), ..., 100, 1, 2)
+    (ElementWiseFunctionQuib.create(func=__pow__, func_args=(iquib(10), 2)), None, 10_000, 0, 100),
+    (ElementWiseFunctionQuib.create(func=__pow__, func_args=(10, iquib(1))), None, 100, 1, 2)
 
 ], ids=[
     "add: simple",
@@ -75,7 +75,11 @@ def inverse(function_quib: FunctionQuib, value, path):
     "power: first arg is quib",
     "power: second arg is quib"])
 def test_inverse_elementwise(function_quib: FunctionQuib, indices, value, quib_arg_index, expected_value):
-    inverse(function_quib, value, [PathComponent(component=indices, indexed_cls=function_quib.get_type())])
+    if indices is None:
+        path = []
+    else:
+        path = [PathComponent(component=indices, indexed_cls=function_quib.get_type())]
+    inverse(function_quib, value, path)
 
     value = function_quib.args[quib_arg_index].get_value()
     if isinstance(expected_value, Iterable):
@@ -97,7 +101,7 @@ def test_inverse_elementwise_on_int():
     q = iquib(5)
     function_quib: FunctionQuib = q + 3
 
-    inverse(function_quib, 7, path=[PathComponent(component=..., indexed_cls=function_quib.get_type())])
+    inverse(function_quib, 7, path=[])
 
     assert q.get_value() == 4
 
