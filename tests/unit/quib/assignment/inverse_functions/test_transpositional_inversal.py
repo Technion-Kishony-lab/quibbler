@@ -130,7 +130,7 @@ def test_inverse_assign_pyobject_array():
     new_mock = mock.Mock()
     b = a[0]
 
-    b.assign(Assignment(value=new_mock, path=[PathComponent(component=..., indexed_cls=b.get_type())]))
+    b.assign(Assignment(value=new_mock, path=[]))
 
     assert a.get_value() == [new_mock]
 
@@ -140,7 +140,7 @@ def test_inverse_assign_to_single_element():
     a = iquib(np.array([0, 1, 2]))
     b = a[1]
 
-    b.assign(Assignment(value=3, path=[PathComponent(b.get_type(), ...)]))
+    b.assign(Assignment(value=3, path=[]))
 
     assert np.array_equal(a.get_value(), [0, 3, 2])
 
