@@ -94,7 +94,7 @@ class ElementWiseInverter(Inverter):
                 (np.log,        np.exp),
                 (np.log2,       np.exp2),
                 (np.log1p,      np.expm1),
-                (np.log10,      lambda x: 10 ** x),
+                (np.log10, lambda x: 10 ** x),
                 (np.sqrt,       np.square),
                 (np.square,     np.sqrt),
                 (np.int,        identity),
@@ -116,7 +116,7 @@ class ElementWiseInverter(Inverter):
         broadcasted_grid = np.broadcast_to(index_grid,
                                            (index_grid.shape[0], *self._function_quib.get_shape().get_value()))
         return tuple([
-            dimension[self._working_indices]
+            dimension[self._working_np_indices]
             for dimension in broadcasted_grid
         ])
 
@@ -142,16 +142,17 @@ class ElementWiseInverter(Inverter):
         Create all quibs with assignments after having calculated which quib to change and new value of quib
         """
         changed_indices = self._get_indices_to_change(quib_to_change)
-        if len(changed_indices) == 0:
-            changed_indices = ...
 
-        # We can't subscribe with ellipsis on `new_value_for_quib` because it might not be a numpy type
-        value_to_set = new_value_for_quib if self._working_indices is ... else new_value_for_quib[self._working_indices]
+        value_to_set = new_value_for_quib if len(self._assignment.path) == 0 else new_value_for_quib[self._working_np_indices]
+
+        if len(changed_indices) == 0:
+            new_path = []
+        else:
+            new_path = [PathComponent(indexed_cls=self._function_quib.get_type(), component=changed_indices)]
 
         return [QuibWithAssignment(
             quib=quib_to_change,
-            assignment=Assignment(path=[PathComponent(indexed_cls=self._function_quib.get_type(),
-                                                      component=changed_indices)],
+            assignment=Assignment(path=new_path,
                                   value=value_to_set)
         )]
 
