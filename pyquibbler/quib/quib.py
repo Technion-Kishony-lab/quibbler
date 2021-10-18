@@ -138,7 +138,6 @@ class Quib(ABC):
         This method should be overriden if there is any 'special' implementation for either invalidating oneself
         or for translating a path for invalidation
         """
-        from .assignment.assignment import PathComponent
         if len(path) == 0:
             new_path = []
         else:
