@@ -80,9 +80,9 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib):
             if not np.all(boolean_mask) and issubclass(self.get_type(), np.ndarray):
                 new_path = [PathComponent(indexed_cls=self.get_type(), component=boolean_mask), *path[1:]]
             else:
-                new_path = [PathComponent(indexed_cls=self.get_type(), component=...), *path[1:]]
+                new_path = path[1:]
             return new_path
-        return []
+        return None
 
     def _get_path_for_invalidation_on_get_item(self, invalidator_quib: 'Quib',
                                                path_to_invalidate: List[PathComponent]):
@@ -139,12 +139,10 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib):
         # If so, invalidate. This is true for field arrays as well (We do need to
         # add support for indexing multiple fields).
         if self.args[1] == working_component.component:
-            rest_of_path = path_to_invalidate[1:]
-            if len(rest_of_path) == 0:
-                return [PathComponent(indexed_cls=self.get_type(), component=...)]
             return path_to_invalidate[1:]
 
-        return []
+        # The item in our getitem was not equal to the path to invalidate
+        return None
 
     def _quib_in_data_quibs(self, quib: 'Quib'):
         """
@@ -173,7 +171,7 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib):
             if not self._quib_in_data_quibs(invalidator_quib):
                 # Any param quib should invalidate ALL children- it is not simply the data being changed, but how the
                 # data is processed by the transpositional function
-                return [PathComponent(indexed_cls=self.get_type(), component=...)]
+                return []
             return self._get_translated_path(invalidator_quib, path)
 
     @functools.lru_cache()

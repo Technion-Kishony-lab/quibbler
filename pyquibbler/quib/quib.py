@@ -121,7 +121,7 @@ class Quib(ABC):
         paths to new invalidation paths.
         If not, invalidate all children all over; as you have no more specific way to invalidate them
         """
-        return [PathComponent(component=..., indexed_cls=self.get_type())]
+        return []
 
     def _invalidate_self(self):
         """
@@ -139,13 +139,11 @@ class Quib(ABC):
         or for translating a path for invalidation
         """
         from .assignment.assignment import PathComponent
-        if all([c.component is Ellipsis for c in path]):
-            new_path = [PathComponent(indexed_cls=self.get_type(), component=...)]
+        if len(path) == 0:
+            new_path = []
         else:
-            # We expect the given path to be fully squashed; it will be as long as we don't have ellipsis's
-            path = [c for c in path if c.component is not Ellipsis]
             new_path = self._get_path_for_children_invalidation(invalidator_quib, path)
-        if new_path:
+        if new_path is not None:
             self._invalidate_self()
             self._invalidate_children_at_path(new_path)
 
