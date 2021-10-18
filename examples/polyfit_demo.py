@@ -6,8 +6,9 @@ from pyquibbler import iquib, override_all, q
 override_all()
 plt.figure(figsize=[10, 7])
 
-x = iquib(np.arange(0., 10))
-y = iquib(100. - np.power(np.arange(1, 11), 2) + 5 * np.random.randn(10))
+points = 10
+x = iquib(np.arange(0., points))
+y = iquib(100. - np.power(np.arange(1, points + 1), 2) + 5 * np.random.randn(points))
 
 n = iquib(2)
 
@@ -21,16 +22,10 @@ freq_slider = widgets.Slider(
     valinit=n
 )
 
-ax = plt.axes([0.2, 0.2, 0.7, .6])
-
-
-def plot_point(i):
-    ax.plot(x[i], y[i],
-            marker='o', markersize=12, markerfacecolor='y',
-            linestyle='None', picker=True, pickradius=15)
-
-
-res = np.apply_along_axis(plot_point, 0, np.arange(q(len, x)))
+plt.axes([0.2, 0.2, 0.7, .6])
+plt.plot(x, y,
+         marker='o', markersize=12, markerfacecolor='y',
+         linestyle='None', picker=True, pickradius=15)
 
 pf = np.polyfit(x, y, n)
 x0 = np.linspace(q(min, x), q(max, x), 30)
