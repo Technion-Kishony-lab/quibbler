@@ -2,10 +2,9 @@ import numpy as np
 import pytest
 from unittest import mock
 
-from pyquibbler import CacheBehavior, iquib
+from pyquibbler import iquib
 from pyquibbler.quib.assignment.assignment import PathComponent
 from pyquibbler.quib.graphics import GraphicsFunctionQuib, global_collecting
-from pyquibbler.quib.graphics.global_collecting import QuibDependencyCollector
 
 
 class MockArtistsCollector:
@@ -71,13 +70,3 @@ def test_graphics_function_quib_rerun_removes_artists_created(monkeypatch, mock_
 
     assert len(mock_artists_collector.all_mock_artists_created) == 2
     assert len(mock_axes.artists) == 1
-
-
-def test_graphics_quib_depends_on_collected_quibs():
-    quib_mock = mock.Mock()
-    graphics_quib = get_graphics_quib(lambda: QuibDependencyCollector.add_dependency(quib_mock))
-
-    graphics_quib.get_value()
-
-    quib_mock.add_child.assert_called_once_with(graphics_quib)
-    assert quib_mock in graphics_quib.parents

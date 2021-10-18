@@ -2,13 +2,10 @@ from __future__ import annotations
 import contextlib
 import functools
 import threading
-from typing import List, Callable, Set, TYPE_CHECKING
+from typing import List, Callable
 from matplotlib.artist import Artist
 
 from pyquibbler.exceptions import PyQuibblerException
-
-if TYPE_CHECKING:
-    from pyquibbler.quib import Quib
 
 ORIGINAL_ARTIST_INIT = Artist.__init__
 
@@ -89,27 +86,3 @@ class classproperty:
 
     def __get__(self, instance, owner):
         return self.function(owner)
-
-
-class QuibDependencyCollector:
-    """
-    A global recursive collector for dependent quibs.
-    It needs to be recursive in case a graphics quib depends on another graphics quib.
-    """
-    _collection_stack: List[Set[Quib]] = []
-
-    @classmethod
-    @contextlib.contextmanager
-    def collect(cls):
-        cls._collection_stack.append(set())
-        yield cls._top
-        cls._collection_stack.pop()
-
-    @classproperty
-    def _top(cls):
-        return cls._collection_stack[-1]
-
-    @classmethod
-    def add_dependency(cls, quib: Quib):
-        if cls._collection_stack:
-            cls._top.add(quib)
