@@ -67,11 +67,6 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
                  assignment_template: Optional[AssignmentTemplate] = None):
         super().__init__(func, args, kwargs, cache_behavior, assignment_template=assignment_template)
         self._artists = artists
-        self._non_arg_parents = set()
-
-    @property
-    def parents(self) -> Set[Quib]:
-        return super().parents | self._non_arg_parents
 
     @classmethod
     def create(cls, func, func_args=(), func_kwargs=None, cache_behavior=None, lazy=False, **kwargs):
@@ -199,12 +194,7 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
             previous_axeses_to_array_names_to_indices_and_artists or {}
 
         with global_collecting.ArtistsCollector() as collector:
-            # Graphics function quibs support user functions that might use quibs they did not receive as arguments
-            with global_collecting.QuibDependencyCollector.collect() as deps:
-                func_res = call_func_with_quib_values(self.func, self.args, self.kwargs)
-        for dep in deps:
-            dep.add_child(self)
-            self._non_arg_parents.add(dep)
+            func_res = call_func_with_quib_values(self.func, self.args, self.kwargs)
         self._artists = collector.artists_collected
 
         save_func_and_args_on_artists(self._artists, func=self.func, args=self.args)
@@ -253,7 +243,6 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         The main entrypoint- this reruns the function that created the artists in the first place,
         and replaces the current artists with the new ones
         """
-
         # Get the *current* artists together with their starting indices (per axes per artists array) so we can
         # place the new artists we create in their correct locations
         axeses_to_array_names_to_indices_and_artists = self._get_axeses_to_array_names_to_starting_indices_and_artists()

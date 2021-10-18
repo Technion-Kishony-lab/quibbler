@@ -260,8 +260,6 @@ class Quib(ABC):
         The value will necessarily return in the shape of the actual result, but only the values at the given path
         are guaranteed to be valid
         """
-        from pyquibbler.quib.graphics.global_collecting import QuibDependencyCollector
-        QuibDependencyCollector.add_dependency(self)
         return self._overrider.override(self._get_inner_value_valid_at_path(path), self._assignment_template)
 
     def get_value(self) -> Any:

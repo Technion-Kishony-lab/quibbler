@@ -27,7 +27,6 @@ def redraw_axes(axes: Axes, force: bool = False):
     """
     if IN_AGGREGATE_REDRAW_MODE and not force:
         AXESES_TO_REDRAW.add(axes)
-        return
-
-    with timer(name="redraw"):
-        axes.figure.canvas.draw()
+    else:
+        with timer(name="redraw"):
+            axes.figure.canvas.draw()
