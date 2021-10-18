@@ -248,13 +248,13 @@ class Quib(ABC):
         self._assignment_template = template
 
     @abstractmethod
-    def _get_inner_value_valid_at_path(self, path: List[PathComponent]) -> Any:
+    def _get_inner_value_valid_at_path(self, path: Optional[List[PathComponent]]) -> Any:
         """
         Get the data this quib represents valid at the pat given, before applying quib features like overrides.
         Perform calculations if needed.
         """
 
-    def get_value_valid_at_path(self, path: List[PathComponent]) -> Any:
+    def get_value_valid_at_path(self, path: Optional[List[PathComponent]]) -> Any:
         """
         Get the actual data that this quib represents, valid at the path given in the argument.
         The value will necessarily return in the shape of the actual result, but only the values at the given path
@@ -271,8 +271,7 @@ class Quib(ABC):
         are lazy, so a function quib might need to calculate uncached values and might
         even have to calculate the values of its dependencies.
         """
-        from .assignment.assignment import PathComponent
-        return self.get_value_valid_at_path([PathComponent(indexed_cls=self.get_type(), component=...)])
+        return self.get_value_valid_at_path(None)
 
     def get_override_list(self) -> Overrider:
         """
@@ -284,7 +283,7 @@ class Quib(ABC):
         """
         Get the type of wrapped value
         """
-        return type(self.get_value_valid_at_path([]))
+        return type(self.get_value_valid_at_path(None))
 
     @quib_method
     def get_shape(self) -> Tuple[int, ...]:
