@@ -42,7 +42,7 @@ class ChooseOverrideDialogMockSideEffect:
 
 @fixture
 def assignment():
-    return Assignment(5, [PathComponent(component=..., indexed_cls=int)])
+    return Assignment(5, [])
 
 
 @fixture(autouse=True)
@@ -77,11 +77,8 @@ def parent_and_child(assignment):
     child: Quib = parent + add
     child_override = OverrideGroup([QuibWithAssignment(child, assignment)])
 
-    parent_override = OverrideGroup([QuibWithAssignment(parent, Assignment(assignment.value - add, [
-        PathComponent(component=..., indexed_cls=parent.get_type())
-    ]))],
-                                    [OverrideRemoval(child, [PathComponent(component=...,
-                                                                           indexed_cls=child.get_type())])])
+    parent_override = OverrideGroup([QuibWithAssignment(parent, Assignment(assignment.value - add, []))],
+                                    [OverrideRemoval(child, [])])
     return parent, child, parent_override, child_override
 
 
