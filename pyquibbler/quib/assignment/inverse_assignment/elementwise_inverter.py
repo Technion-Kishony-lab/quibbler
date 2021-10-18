@@ -1,7 +1,7 @@
 from __future__ import annotations
 import math
 import numpy as np
-from operator import __add__, __pow__, __sub__, __mul__
+from operator import __add__, __pow__, __sub__, __mul__, __neg__, __pos__
 from typing import Any, List, Dict, Callable, TYPE_CHECKING
 
 from pyquibbler.env import ASSIGNMENT_RESTRICTIONS
@@ -46,7 +46,7 @@ class ElementWiseInverter(Inverter):
                     0: np.subtract,
                     1: np.subtract
                 }
-            ) for func in [__add__, np.add]},
+            ) for func in [np.add, __add__]},
         **{
             func: create_inverse_func_from_indexes_to_funcs(
                 {
@@ -73,6 +73,8 @@ class ElementWiseInverter(Inverter):
             func: create_inverse_func_from_indexes_to_funcs({0: invfunc})
             for func,invfunc in
             [
+                (__neg__,       __neg__),
+                (__pos__,       __pos__),
                 (np.sin,        np.arcsin),
                 (np.cos,        np.arccos),
                 (np.tan,        np.arctan),
