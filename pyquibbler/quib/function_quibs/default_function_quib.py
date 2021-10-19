@@ -1,15 +1,22 @@
+from enum import Enum
 from sys import getsizeof
 from time import perf_counter
 from typing import Callable, Any, Mapping, Tuple, Optional, List, TYPE_CHECKING
 
-from .cache import ShallowCache
+from .cache import ShallowCache, create_cache
 from .function_quib import FunctionQuib, CacheBehavior
 from ..assignment import AssignmentTemplate
-
+from ..assignment.utils import get_sub_data_from_object_in_path
 
 if TYPE_CHECKING:
     from ..assignment.assignment import PathComponent, Assignment, PathComponent
     from ..quib import Quib
+
+
+class CacheStatus(Enum):
+    FALSE = 0
+    TRUE = 1
+    PARTIAL = 2
 
 
 class DefaultFunctionQuib(FunctionQuib):
@@ -20,27 +27,35 @@ class DefaultFunctionQuib(FunctionQuib):
     """
 
     @property
-    def is_cache_valid(self):
+    def cache_status(self):
         """
         User interface to check cache validity.
         """
-        return self._is_cache_valid
+        if self._cache.is_valid_at_path([]):
+            return CacheStatus.TRUE
+        elif not self._cache.is_valid_at_path(None):
+            return CacheStatus.FALSE
+        else:
+            return CacheStatus.PARTIAL
 
     def __init__(self,
                  func: Callable,
                  args: Tuple[Any, ...],
                  kwargs: Mapping[str, Any],
                  cache_behavior: Optional[CacheBehavior],
-                 assignment_template: Optional[AssignmentTemplate] = None,
-                 is_cache_valid: bool = False,
-                 cached_result: Any = None):
+                 assignment_template: Optional[AssignmentTemplate] = None):
         super().__init__(func, args, kwargs, cache_behavior, assignment_template=assignment_template)
-        self._is_cache_valid = is_cache_valid
-        self._cached_result = cached_result
-        self._cache = ShallowCache()
+        self._cache = None
+
+    def _ensure_cache_matches_result(self, new_result: Any):
+        if self._cache is None or not self._cache.matches_result(new_result):
+            self._cache = create_cache(new_result)
+        return self._cache
 
     def _invalidate_self(self, path: List['PathComponent']):
-        self._cache.set_invalid_at_path_component(path[0])
+        if len(path) == 0:
+            self._cache.set_invalid_at_key()
+        self._cache.set_valid_value_at_key(path[0])
 
     def _should_cache(self, result: Any, elapsed_seconds: float):
         """
@@ -62,10 +77,6 @@ class DefaultFunctionQuib(FunctionQuib):
         If the cached result is still valid, return it.
         Otherwise, calculate the value, store it in the cache and return it.
         """
-        if self._is_cache_valid:
-            return self._cached_result
-
-        start_time = perf_counter()
         # Because we have a shallow cache, we want the result valid at the first component
         if path is None:
             new_path = None
@@ -73,10 +84,16 @@ class DefaultFunctionQuib(FunctionQuib):
             new_path = []
         else:
             new_path = [path[0]]
-        result = self._call_func(new_path)
-        elapsed_seconds = perf_counter() - start_time
-        if self._should_cache(result, elapsed_seconds):
-            self._cache.set_valid_value_at_path_component(new_path, result)
-            self._cached_result = result
-            self._is_cache_valid = True
-        return result
+
+        uncached_paths = self._cache.get_uncached_paths(new_path)
+        start_time = perf_counter()
+        # TODO: what if we don't store cache??
+        for uncached_path in uncached_paths:
+            result = self._call_func(uncached_path)
+
+            elapsed_seconds = perf_counter() - start_time
+            if new_path is not None and self._should_cache(result, elapsed_seconds):
+                self._ensure_cache_matches_result(result)
+                self._cache.set_valid_value_at_path(new_path, get_sub_data_from_object_in_path(result,
+                                                                                               new_path))
+        return self._cache.get_value()
