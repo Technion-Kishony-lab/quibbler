@@ -28,26 +28,43 @@ class ShallowCache:
     def __init__(self, value: Any):
         self._value = value
 
+    @classmethod
+    def create_from_result(cls, result):
+        return cls(result)
+
     def matches_result(self, result):
         return isinstance(result, type(self._value))
 
     def set_valid_value_at_path(self, path: List[PathComponent], value: Any) -> None:
-        self._value = deep_assign_data_with_paths(self._value, path, value)
+        if len(path) != 0:
+            raise Exception("Doesnt support partial etc")
+        self._value = value
+
+    def set_invalid_at_path(self, path: List[PathComponent]) -> None:
+        if len(path) != 0:
+            raise Exception("Doesnt support partial etc")
+        self._value = invalid
+
+    def get_uncached_paths(self, path):
+        if self._value is invalid:
+            return [path]
+        return []
+
+    def get_value(self) -> Any:
+        return self._value
+
+
+class ListShallowCache(ShallowCache):
+
+    def matches_result(self, result):
+        return super(ListShallowCache, self).matches_result(result) \
+               and len(result) == len(self.get_value())
 
     def set_invalid_at_path(self, path: List[PathComponent]) -> None:
         self._value = deep_assign_data_with_paths(self._value, path, invalid)
 
-    def get_uncached_path(self, path):
-        val = get_sub_data_from_object_in_path(self._value, path)
-        if val is invalid:
-            return path
-
-    def is_valid_at_path(self, path) -> bool:
-        val = get_sub_data_from_object_in_path(self._value, path)
-        return val is not invalid
-
-    def get_value(self) -> Any:
-        return self._value
+    def set_valid_value_at_path(self, path: List[PathComponent], value: Any) -> None:
+        self._value = deep_assign_data_with_paths(self._value, path, value)
 
 
 class NdShallowCache(ShallowCache):
@@ -105,6 +122,8 @@ class NdShallowCache(ShallowCache):
 def create_cache(result: Any):
     if isinstance(result, np.ndarray):
         return NdShallowCache.create_from_result(result)
+    elif isinstance(result, list):
+        return ListShallowCache.create_from_result(result)
     return ShallowCache(result)
 
 

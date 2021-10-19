@@ -111,3 +111,20 @@ def test_second_level_nested_argument_quib_is_replaced():
 
     # We are checking this doesn't raise an exception
     assert np.array_equal(a[1, iquib(1):1].get_value(), np.array([]))
+
+
+def test_get_value_with_cache_requesting_all_valid_caches_result():
+    mock_func = mock.Mock()
+    mock_func.return_value = [1, 2, 3]
+    quib = DefaultFunctionQuib.create(
+        func=mock_func,
+        func_args=tuple()
+    )
+    quib.get_value_valid_at_path([])
+    current_call_count = mock_func.call_count
+
+    quib.get_value_valid_at_path([PathComponent(indexed_cls=list, component=0)])
+    quib.get_value_valid_at_path([PathComponent(indexed_cls=list, component=1)])
+    quib.get_value_valid_at_path([PathComponent(indexed_cls=list, component=2)])
+
+    assert mock_func.call_count == current_call_count
