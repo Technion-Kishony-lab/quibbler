@@ -287,13 +287,7 @@ class Quib(ABC):
         """
         Assuming this quib represents a numpy ndarray, returns a quib of its shape.
         """
-        value = self.get_value_valid_at_path([])
-        if not isinstance(value, np.ndarray):
-            if isinstance(value, list):
-                return np.array(value, dtype=object).shape
-            # We, like numpy, consider this a zero dimensional array
-            return tuple()
-        return value.shape
+        return np.shape(self.get_value_valid_at_path([]))
 
     @quib_method
     def _get_override_mask(self, shape: Tuple[int, ...]) -> np.ndarray:

@@ -1,10 +1,9 @@
-import logging
-
 import numpy as np
+from warnings import warn
 from dataclasses import dataclass
-from typing import Any, List, Optional, Iterable, Union, Dict, Hashable
+from typing import Any, List, Optional, Union, Dict, Hashable
 
-from .assignment import Assignment, PathComponent, PathComponent, get_hashable_path
+from .assignment import Assignment, PathComponent, get_hashable_path
 from .assignment_template import AssignmentTemplate
 from ..utils import deep_copy_without_quibs_or_artists, recursively_run_func_on_object
 from ...env import DEBUG
@@ -53,7 +52,11 @@ def deep_assign_data_with_paths(data: Any, path: List[PathComponent], value: Any
             new_element[component.component] = last_element
         except IndexError as e:
             if DEBUG:
-                logging.warning(f"Attempted out of range assignment- {component.component}, exception: {e}")
+                warn(f"Attempted out of range assignment:"
+                     f"\n\tdata: {data}"
+                     f"\n\tpath: {path}"
+                     f"\n\tfailed path component: {component.component}"
+                     f"\n\texception: {e}")
 
         last_element = new_element
     return last_element

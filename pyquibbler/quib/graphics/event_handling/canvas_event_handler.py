@@ -4,6 +4,7 @@ from typing import Optional
 from matplotlib.artist import Artist
 from matplotlib.backend_bases import MouseEvent, PickEvent
 
+from pyquibbler.env import END_DRAG_IMMEDIATELY
 from pyquibbler.performance_utils import timer
 from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
 from pyquibbler.quib.graphics.event_handling import graphics_inverse_assigner
@@ -49,8 +50,8 @@ class CanvasEventHandler:
         """
         Reverse any relevant quibs in artists creation args
         """
-        drawing_func = getattr(artist, '_quibbler_drawing_func', None)
-        args = getattr(artist, '_quibbler_args', tuple())
+        drawing_func = getattr(artist, '_quibbler_drawing_func')
+        args = getattr(artist, '_quibbler_args')
         with timer(name="motion_notify"), aggregate_redraw_mode():
             graphics_inverse_assigner.inverse_assign_drawing_func(drawing_func=drawing_func,
                                                                   args=args,
@@ -79,6 +80,8 @@ class CanvasEventHandler:
                         # If not locked, there is already another motion handler running, we just drop this one.
                         # This could happen if changes are slow or if a dialog is open
                         self._inverse_assign_graphics(self.current_pick_event.artist, mouse_event)
+                        if END_DRAG_IMMEDIATELY:
+                            self.current_pick_event = None
 
     def initialize(self):
         """
