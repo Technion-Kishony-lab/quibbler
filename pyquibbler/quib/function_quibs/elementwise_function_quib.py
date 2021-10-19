@@ -34,11 +34,9 @@ class ElementWiseFunctionQuib(DefaultFunctionQuib):
         sum_ = invalidator_quib + [[1], [2], [3]]
         ```
         and we invalidate at (0, 0), we need to create a mask broadcasted like the argument was, ie
-        [
-        [True, False, False],
-        [True, False, False],
-        [True, False, False]
-        ]
+        [[True, False, False],
+         [True, False, False],
+         [True, False, False]]
         """
         return np.broadcast_to(create_empty_array_with_values_at_indices(
             value=True,
@@ -53,12 +51,7 @@ class ElementWiseFunctionQuib(DefaultFunctionQuib):
         new_component = self._create_bool_mask_representing_invalidator_quib_at_indices_in_result(invalidator_quib,
                                                                                                   working_component.
                                                                                                   component)
-
-        new_path = [
-            PathComponent(component=new_component, indexed_cls=self.get_type()),
-            *path[1:]
-        ]
-        return new_path
+        return [PathComponent(self.get_type(), new_component), *path[1:]]
 
     def get_inversions_for_assignment(self, assignment: 'Assignment'):
         return ElementWiseInverter(

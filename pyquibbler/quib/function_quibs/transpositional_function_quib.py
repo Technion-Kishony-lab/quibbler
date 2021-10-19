@@ -1,7 +1,7 @@
 import numpy as np
 import functools
 from operator import getitem
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, List, Optional, Callable
 
 from pyquibbler.quib.assignment import Assignment
 from .default_function_quib import DefaultFunctionQuib
@@ -20,8 +20,6 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib):
     A quib that represents any transposition function- a function that moves elements (but commits no operation on
     them)
     """
-
-    # A mapping between functions and indices of args that can change
     SUPPORTED_FUNCTIONS_TO_POTENTIALLY_CHANGED_QUIB_INDICES = {
         np.rot90: {0},
         np.concatenate: {0},
@@ -32,11 +30,19 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib):
         np.ravel: {0}
     }
 
-    def _get_boolean_mask_representing_new_indices_of_quib(self, quib: 'Quib', path_component: PathComponent) -> np.ndarray:
+    @classmethod
+    def create_wrapper(cls, func: Callable):
+        assert func in cls.SUPPORTED_FUNCTIONS_TO_POTENTIALLY_CHANGED_QUIB_INDICES, \
+            f'Tried to create a wrapper for function {func} which is not supported'
+        return super().create_wrapper(func)
+
+    def _get_boolean_mask_representing_new_indices_of_quib(self, quib: 'Quib',
+                                                           path_component: PathComponent) -> np.ndarray:
         """
         Get a boolean mask representing all new indices of the quib after having passed through the function.
         The boolean mask will be in the shape of the final result of the function
         """
+
         def _replace_arg_with_corresponding_mask_or_arg(q):
             if q in self.get_quibs_which_can_change():
                 if q is quib:
