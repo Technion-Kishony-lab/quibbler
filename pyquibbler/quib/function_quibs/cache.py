@@ -70,6 +70,33 @@ class ListShallowCache(ShallowCache):
         self._value = deep_assign_data_with_paths(self._value, path, value)
 
     def get_uncached_paths(self, path):
+        mask = [(i, obj) for i, obj in enumerate(self._value)]
+        data = get_sub_data_from_object_in_path(mask, path)
+        if not isinstance(data, list):
+            data = [data]
+
+        return [
+            [PathComponent(indexed_cls=list, component=i)]
+            for i, value in data
+            if value is invalid
+        ]
+
+class DictShallowCache(ShallowCache):
+
+    def matches_result(self, result):
+        return super(DictShallowCache, self).matches_result(result) \
+               and list(result.keys()) == list(self._value.keys())
+
+    def set_invalid_at_path(self, path: List[PathComponent]) -> None:
+        if len(path) == 0:
+            self._value = {k: invalid for k, _ in self._value.items()}
+        else:
+            self._value = deep_assign_data_with_paths(self._value, path, invalid)
+
+    def set_valid_value_at_path(self, path: List[PathComponent], value: Any) -> None:
+        self._value = deep_assign_data_with_paths(self._value, path, value)
+
+    def get_uncached_paths(self, path):
         data = get_sub_data_from_object_in_path(self._value, path)
         return [
             [PathComponent(indexed_cls=list, component=i)]
@@ -130,14 +157,16 @@ class NdShallowCache(ShallowCache):
             return paths
 
     def set_valid_value_at_path(self, path, value):
-        # TODO; make indexable cache
         self._value = deep_assign_data_with_paths(self._value, path, value)
 
 
 def create_cache(result: Any) -> ShallowCache:
+    # TODO; make indexable cache (we have dupcode)
+
     types_to_caches = {
         np.ndarray: NdShallowCache,
         list: ListShallowCache,
+        dict: DictShallowCache
     }
     for type_, cache_class in types_to_caches.items():
         if isinstance(result, type_):
