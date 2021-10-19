@@ -12,6 +12,7 @@ from pyquibbler.quib import ImpureFunctionQuib, DefaultFunctionQuib, FunctionQui
 from pyquibbler.quib.function_quibs.elementwise_function_quib import ElementWiseFunctionQuib
 from pyquibbler.quib.function_quibs.transpositional_function_quib import TranspositionalFunctionQuib
 from pyquibbler.quib.graphics import global_collecting
+from pyquibbler.quib.graphics.plot_graphics_function_quib import PlotGraphicsFunctionQuib
 from pyquibbler.quib.graphics.widgets import SliderGraphicsFunctionQuib, CheckButtonsGraphicsFunctionQuib, \
     RadioButtonsGraphicsFunctionQuib, RectangleSelectorGraphicsFunctionQuib, QRadioButtons, QRectangleSelector
 from pyquibbler.quib.graphics.replacing_graphics_function_quib import ReplacingGraphicsFunctionQuib
@@ -30,11 +31,9 @@ NUMPY_OVERRIDES = [
         (GraphicsFunctionQuib, {'apply_along_axis', 'apply_over_axes'}),
         (TranspositionalFunctionQuib, {'reshape', 'rot90', 'ravel', 'concatenate', 'repeat', 'full', 'concatenate'}),
         (ElementWiseFunctionQuib, {'add', 'square', "sin", "cos", "tan", "sinh", "cosh", "tanh", "real", "imag",
-                           "arcsin", "arccos", "arctan", "arcsinh", "arccosh", "arctanh",
-                           "exp", "exp2", "expm1",
-                           "log", "log2", "log1p", "log10",
-                           "sqrt", "int", "float", "ceil", "floor", "round", 'around'
-                           })
+                                   "arcsin", "arccos", "arctan", "arcsinh", "arccosh", "arctanh",
+                                   "exp", "exp2", "expm1", "log", "log2", "log1p", "log10",
+                                   "sqrt", "int", "float", "ceil", "floor", "round", 'around'})
     ]),
     (np.random, [
         (ImpureFunctionQuib, {'rand', 'randn', 'randint'})
@@ -43,11 +42,12 @@ NUMPY_OVERRIDES = [
 
 MPL_OVERRIDES = [
     (Axes, [
-        (GraphicsFunctionQuib, {'plot', 'imshow', 'text', 'bar', 'hist', 'pie', 'legend'})
+        (GraphicsFunctionQuib, {'imshow', 'text', 'bar', 'hist', 'pie', 'legend'}),
+        (PlotGraphicsFunctionQuib, {'plot'}),
     ]),
     (Axes, [
-        (ReplacingGraphicsFunctionQuib,
-         {'set_xlim', 'set_ylim', 'set_title', 'set_xlabel', 'set_ylabel', 'set_visible', 'set_facecolor'})
+        (ReplacingGraphicsFunctionQuib, {'set_xlim', 'set_ylim', 'set_title',
+                                         'set_xlabel', 'set_ylabel', 'set_visible', 'set_facecolor'})
     ]),
     (widgets, [
         (SliderGraphicsFunctionQuib, {'Slider'}),

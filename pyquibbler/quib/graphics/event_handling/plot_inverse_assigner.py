@@ -3,8 +3,7 @@ from typing import Tuple, Any, List, Iterable
 from matplotlib.backend_bases import PickEvent, MouseEvent
 
 from .graphics_inverse_assigner import graphics_inverse_assigner
-from ...assignment import Assignment, QuibWithAssignment
-from ...assignment.assignment import PathComponent
+from ...assignment import Assignment, QuibWithAssignment, PathComponent
 
 
 def get_xdata_arg_indices_and_ydata_arg_indices(args: Tuple[Any, ...]):
@@ -48,7 +47,8 @@ def get_xdata_arg_indices_and_ydata_arg_indices(args: Tuple[Any, ...]):
 
 def get_quibs_with_assignments_for_axes(args: List[Any],
                                         arg_indices: List[int],
-                                        indices_to_set: Any,
+                                        artist_index: int,
+                                        data_indices: Any,
                                         value: Any):
     """
     Assign data for an axes (x or y) to all relevant quib args
@@ -62,24 +62,28 @@ def get_quibs_with_assignments_for_axes(args: List[Any],
     for arg_index in arg_indices:
         quib = args[arg_index]
         if isinstance(quib, Quib):
-            # We want to support both single values and arrays, so we need to inverse assign
-            # appropriately (not use index if it was a single number, index will be zero but that's irrelevant to us)
-            path = [PathComponent(component=indices_to_set,
-                                  indexed_cls=quib.get_type())] if issubclass(quib.get_type(), Iterable) else []
-            assignment = Assignment(value=value, path=path)
-            quibs_with_assignments.append(QuibWithAssignment(quib=quib,
-                                                             assignment=assignment))
+            # Support indexing of lists when more than one marker is dragged
+            for data_index in data_indices:
+                shape = quib.get_shape().get_value()
+                if len(shape) == 0:
+                    path = []
+                elif len(shape) == 1:
+                    path = [PathComponent(quib.get_type(), data_index)]
+                else:
+                    assert len(shape) == 2, 'Matplotlib is not supposed to support plotting 3d data'
+                    path = [PathComponent(quib[0].get_type(), data_index),
+                            # Plot args should be array-like, so quib[0].get_type() should be representative
+                            PathComponent(quib.get_type(), artist_index)]
+                assignment = Assignment(value=value, path=path)
+                quibs_with_assignments.append(QuibWithAssignment(quib, assignment))
     return quibs_with_assignments
 
 
 @graphics_inverse_assigner('Axes.plot')
 def get_quibs_with_assignments_for_axes_plot(pick_event: PickEvent, mouse_event: MouseEvent,
                                              args: List[Any]) -> List[QuibWithAssignment]:
-    # It's deprecated to use a non-tuple as a per-dimension index
     indices = pick_event.ind
-    if isinstance(indices, np.ndarray):
-        indices = tuple(indices)
     x_arg_indices, y_arg_indices = get_xdata_arg_indices_and_ydata_arg_indices(tuple(args))
-    quibs_with_assignments = get_quibs_with_assignments_for_axes(args, x_arg_indices, indices, mouse_event.xdata)
-    quibs_with_assignments.extend(get_quibs_with_assignments_for_axes(args, y_arg_indices, indices, mouse_event.ydata))
-    return quibs_with_assignments
+    artist_index = pick_event.artist._index_in_plot
+    return [*get_quibs_with_assignments_for_axes(args, x_arg_indices, artist_index, indices, mouse_event.xdata),
+            *get_quibs_with_assignments_for_axes(args, y_arg_indices, artist_index, indices, mouse_event.ydata)]
