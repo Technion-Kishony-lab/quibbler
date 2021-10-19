@@ -243,10 +243,11 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
             if artist not in self._get_artist_array(artist):
                 self._artists.remove(artist)
 
-    def _call_func(self):
+    def _call_func(self, valid_path):
         """
         The main entrypoint- this reruns the function that created the artists in the first place,
         and replaces the current artists with the new ones
+        :param valid_path:
         """
         self._remove_artists_from_self_that_were_removed_from_axes()
         if self._had_artists_on_last_run and len(self._artists) == 0 and len(self.children) == 0:

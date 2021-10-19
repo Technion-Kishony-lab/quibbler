@@ -81,10 +81,10 @@ class RectangleSelectorGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
             # We only need to invalidate children if we didn't assign
             self.invalidate_and_redraw_at_path()
 
-    def _call_func(self):
+    def _call_func(self, valid_path):
         if self._cached_result is not None:
             self._cached_result.set_visible(False)
-        selector = super()._call_func()
+        selector = super()._call_func(None)
         selector.changed_callback = self._on_changed
         return selector
 

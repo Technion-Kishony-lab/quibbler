@@ -123,7 +123,7 @@ class Quib(ABC):
         """
         return []
 
-    def _invalidate_self(self):
+    def _invalidate_self(self, path: List[PathComponent]):
         """
         This method is called whenever a quib itself is invalidated; subclasses will override this with their
         implementations for invalidations.
@@ -140,7 +140,7 @@ class Quib(ABC):
         """
         new_path = self._get_path_for_children_invalidation(invalidator_quib, path) if path else []
         if new_path is not None:
-            self._invalidate_self()
+            self._invalidate_self(new_path)
             self._invalidate_children_at_path(new_path)
 
     def add_child(self, quib: Quib) -> None:

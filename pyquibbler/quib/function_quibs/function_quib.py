@@ -166,10 +166,11 @@ class FunctionQuib(Quib):
     def set_cache_behavior(self, cache_behavior: CacheBehavior):
         self._cache_behavior = cache_behavior
 
-    def _call_func(self):
+    def _call_func(self, valid_path):
         """
         Call the function wrapped by this FunctionQuib with the
         given arguments after replacing quib with their values.
+        :param valid_path:
         """
         return call_func_with_quib_values(self.func, self.args, self.kwargs)
 

@@ -2,7 +2,7 @@ from sys import getsizeof
 from time import perf_counter
 from typing import Callable, Any, Mapping, Tuple, Optional, List, TYPE_CHECKING
 
-
+from .cache import ShallowCache
 from .function_quib import FunctionQuib, CacheBehavior
 from ..assignment import AssignmentTemplate
 
@@ -37,9 +37,10 @@ class DefaultFunctionQuib(FunctionQuib):
         super().__init__(func, args, kwargs, cache_behavior, assignment_template=assignment_template)
         self._is_cache_valid = is_cache_valid
         self._cached_result = cached_result
+        self._cache = ShallowCache()
 
-    def _invalidate_self(self):
-        self._is_cache_valid = False
+    def _invalidate_self(self, path: List[PathComponent]):
+        self._cache.set_invalid_at_path_component(path[0])
 
     def _should_cache(self, result: Any, elapsed_seconds: float):
         """
@@ -65,9 +66,11 @@ class DefaultFunctionQuib(FunctionQuib):
             return self._cached_result
 
         start_time = perf_counter()
-        result = self._call_func()
+        # Because we have a shallow cache, we want the result valid at the first component
+        result = self._call_func(path[0])
         elapsed_seconds = perf_counter() - start_time
         if self._should_cache(result, elapsed_seconds):
+            self._cache.set_valid_value_at_path_component(path[0], result)
             self._cached_result = result
             self._is_cache_valid = True
         return result
