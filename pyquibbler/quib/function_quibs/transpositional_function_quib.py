@@ -157,7 +157,7 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib):
         return quib in self.get_quibs_which_can_change()
 
     def _get_path_for_children_invalidation(self, invalidator_quib: 'Quib',
-                                            path: List[PathComponent]) -> Optional[List[PathComponent]]:
+                                            path: List[PathComponent]) -> List[PathComponent]:
         """
         There are three things we can potentially do:
         1. Translate the invalidation path given the current function quib (eg if this function quib is rotate,

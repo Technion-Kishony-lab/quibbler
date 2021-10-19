@@ -1,5 +1,6 @@
+from __future__ import annotations
 import numpy as np
-from typing import TYPE_CHECKING, List, Any, Optional
+from typing import TYPE_CHECKING, List, Any
 
 from pyquibbler.quib.assignment.inverse_assignment import ElementWiseInverter
 
@@ -45,8 +46,8 @@ class ElementWiseFunctionQuib(DefaultFunctionQuib):
             shape=invalidator_quib.get_shape().get_value()
         ), self.get_shape().get_value())
 
-    def _get_path_for_children_invalidation(self, invalidator_quib: 'Quib',
-                                            path: List['PathComponent']) -> Optional[List['PathComponent']]:
+    def _get_path_for_children_invalidation(self, invalidator_quib: Quib,
+                                            path: List[PathComponent]) -> List[PathComponent]:
         working_component = path[0]
         new_component = self._create_bool_mask_representing_invalidator_quib_at_indices_in_result(invalidator_quib,
                                                                                                   working_component.

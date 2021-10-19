@@ -103,7 +103,7 @@ class Quib(ABC):
         If path is not given, the whole quib is invalidated.
         """
         if path is None:
-            path = [PathComponent(component=..., indexed_cls=self.get_type())]
+            path = []
         self._invalidate_children_at_path(path)
         self.__redraw()
 
@@ -114,8 +114,8 @@ class Quib(ABC):
         for child in self.children:
             child._invalidate_quib_with_children_at_path(self, path)
 
-    def _get_path_for_children_invalidation(self, invalidator_quib: 'Quib',
-                                            path: List['PathComponent']) -> List['PathComponent']:
+    def _get_path_for_children_invalidation(self, invalidator_quib: Quib,
+                                            path: List[PathComponent]) -> List[PathComponent]:
         """
         Get the new path for invalidating children- a quib overrides this method if it has a specific way to translate
         paths to new invalidation paths.
@@ -287,7 +287,7 @@ class Quib(ABC):
         """
         Assuming this quib represents a numpy ndarray, returns a quib of its shape.
         """
-        return np.shape(self.get_value_valid_at_path([]))
+        return np.shape(self.get_value_valid_at_path(None))
 
     @quib_method
     def _get_override_mask(self, shape: Tuple[int, ...]) -> np.ndarray:
