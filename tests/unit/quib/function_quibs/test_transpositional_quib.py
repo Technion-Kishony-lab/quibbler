@@ -3,8 +3,9 @@ import pytest
 from operator import getitem
 
 from pyquibbler import iquib
-from pyquibbler.quib.assignment.assignment import PathComponent
 from pyquibbler.quib.function_quibs.transpositional_function_quib import TranspositionalFunctionQuib
+
+from ..utils import PathBuilder
 
 
 @pytest.fixture()
@@ -31,13 +32,13 @@ def getitem_quib(rot90_quib):
 
 
 def test_invalidate_and_redraw_invalidates_that_which_should_be_invalidated(rot90_quib, getitem_quib):
-    rot90_quib.invalidate_and_redraw_at_path(path=[PathComponent(component=(0, 0), indexed_cls=rot90_quib.get_type())])
+    rot90_quib.invalidate_and_redraw_at_path(PathBuilder(rot90_quib)[0, 0].path)
 
     assert not getitem_quib.is_cache_valid
 
 
 def test_invalidate_and_redraw_does_not_invalidate_that_which_should_not_be_invalidated(rot90_quib, getitem_quib):
-    rot90_quib.invalidate_and_redraw_at_path(path=[PathComponent(component=(1, 0), indexed_cls=rot90_quib.get_type())])
+    rot90_quib.invalidate_and_redraw_at_path(PathBuilder(rot90_quib)[1, 0].path)
 
     assert getitem_quib.is_cache_valid
 
@@ -46,7 +47,7 @@ def test_invalidate_and_redraw_invalidates_that_which_should_be_invalidated_with
         input_quib,
         getitem_quib
 ):
-    input_quib.invalidate_and_redraw_at_path(path=[PathComponent(component=(0, 1), indexed_cls=input_quib.get_type())])
+    input_quib.invalidate_and_redraw_at_path(PathBuilder(input_quib)[0, 1].path)
 
     assert getitem_quib.is_cache_valid
 
@@ -55,7 +56,7 @@ def test_invalidate_and_redraw_does_not_invalidate_that_which_should_be_invalida
         input_quib,
         getitem_quib
 ):
-    input_quib.invalidate_and_redraw_at_path(path=[PathComponent(component=(0, 2), indexed_cls=input_quib.get_type())])
+    input_quib.invalidate_and_redraw_at_path(PathBuilder(input_quib)[0, 2].path)
 
     assert not getitem_quib.is_cache_valid
 
@@ -64,7 +65,7 @@ def test_invalidate_and_redraw_on_dict_invalidates_child():
     quib = iquib({"maor": 1})
     second_quib = quib["maor"]
 
-    quib.invalidate_and_redraw_at_path(path=[PathComponent(component="maor", indexed_cls=quib.get_type())])
+    quib.invalidate_and_redraw_at_path(PathBuilder(quib)['maor'].path)
 
     assert not second_quib.is_cache_valid
 
@@ -74,30 +75,28 @@ def test_invalidate_and_redraw_on_dict_doesnt_invalidate_irrelevant_child():
     second_quib = quib["maor"]
     second_quib.get_value()
 
-    quib.invalidate_and_redraw_at_path(path=[PathComponent(indexed_cls=quib.get_type(), component="y")])
+    quib.invalidate_and_redraw_at_path(PathBuilder(quib)['y'].path)
 
     assert second_quib.is_cache_valid
 
 
-def test_invalidate_and_redraw_on_inner_list(
-):
+def test_invalidate_and_redraw_on_inner_list():
     quib = iquib({"a": np.array([[0, 2]])})
     second_quib = quib["a"]
     third_quib = second_quib[(0, 0)]
     third_quib.get_value()
 
-    quib.invalidate_and_redraw_at_path(path=[PathComponent(indexed_cls=quib.get_type(), component="a")])
+    quib.invalidate_and_redraw_at_path(PathBuilder(quib)['a'].path)
 
     assert not third_quib.is_cache_valid
 
 
-def test_invalidate_and_redraw_on_dict_after_index(
-):
+def test_invalidate_and_redraw_on_dict_after_index():
     quib = iquib([1, 2, {'MAOR': '^'}])
     second_quib = quib[2]
     third_quib = second_quib['MAOR']
 
-    quib.invalidate_and_redraw_at_path(path=[PathComponent(component=2, indexed_cls=quib.get_type())])
+    quib.invalidate_and_redraw_at_path(PathBuilder(quib)[2].path)
 
     assert not third_quib.is_cache_valid
 
@@ -112,8 +111,7 @@ def test_invalidate_embedded_dicts_shouldnt_invalidate(quib_dict):
     third_quib = second_quib['b']
     third_quib.get_value()
 
-    quib_dict.invalidate_and_redraw_at_path(path=[PathComponent(component='a', indexed_cls=dict),
-                                                  PathComponent(component='c', indexed_cls=dict)])
+    quib_dict.invalidate_and_redraw_at_path(PathBuilder(quib_dict)['a']['c'].path)
 
     assert third_quib.is_cache_valid
 
@@ -122,8 +120,7 @@ def test_invalidate_embedded_dicts_should_invalidate(quib_dict):
     second_quib = quib_dict['a']['b']
     second_quib.get_value()
 
-    quib_dict.invalidate_and_redraw_at_path(path=[PathComponent(component='a', indexed_cls=dict),
-                                                  PathComponent(component='b', indexed_cls=dict)])
+    quib_dict.invalidate_and_redraw_at_path(PathBuilder(quib_dict)['a']['b'].path)
 
     assert not second_quib.is_cache_valid
 
@@ -144,8 +141,7 @@ def test_invalidate_and_redraw_with_expanding_shape_shouldnt_invalidate(quib_wit
     child = first_row[0]
     child.get_value()
 
-    quib_with_nested_arr.invalidate_and_redraw_at_path(path=[PathComponent(component=0,
-                                                                           indexed_cls=quib_with_nested_arr.get_type())])
+    quib_with_nested_arr.invalidate_and_redraw_at_path(PathBuilder(quib_with_nested_arr)[0].path)
 
     assert child.is_cache_valid
 
@@ -155,8 +151,7 @@ def test_invalidate_and_redraw_with_expanding_shape_should_invalidate(quib_with_
     child = first_row[0]
     child.get_value()
 
-    quib_with_nested_arr.invalidate_and_redraw_at_path(
-        path=[PathComponent(component=0, indexed_cls=quib_with_nested_arr.get_type())])
+    quib_with_nested_arr.invalidate_and_redraw_at_path(PathBuilder(quib_with_nested_arr)[0].path)
 
     assert not child.is_cache_valid
 
@@ -165,10 +160,8 @@ def test_invalidate_and_redraw_with_double_field_keys_invalidates(quib_with_nest
     first_row = children[0]
     child = first_row[0]
     child.get_value()
-    quib_type = quib_with_nested_arr.get_type()
 
-    quib_with_nested_arr.invalidate_and_redraw_at_path(path=[PathComponent(quib_type, "nested"),
-                                                             PathComponent(quib_type, "child_name")])
+    quib_with_nested_arr.invalidate_and_redraw_at_path(PathBuilder(quib_with_nested_arr)["nested"]["child_name"].path)
 
     assert not child.is_cache_valid
 
@@ -178,8 +171,7 @@ def test_invalidate_and_redraw_multiple_getitems():
     child = quib[1:4][2:3]
     child.get_value()
 
-    quib.invalidate_and_redraw_at_path(path=[PathComponent(component=3,
-                                                           indexed_cls=np.ndarray), ])
+    quib.invalidate_and_redraw_at_path(PathBuilder(quib)[3].path)
 
     assert not child.is_cache_valid
 
@@ -193,15 +185,7 @@ def test_invalidate_and_redraw_with_dict_and_ndarrays_within():
     child = quib['a'][0]['c']
     child.get_value()
 
-    quib.invalidate_and_redraw_at_path(path=[PathComponent(component="a",
-                                                           indexed_cls=dict),
-                                             PathComponent(component=0,
-                                                           indexed_cls=np.ndarray),
-                                             PathComponent(
-                                                 component='c',
-                                                 indexed_cls=dict
-                                             )
-                                             ])
+    quib.invalidate_and_redraw_at_path(PathBuilder(quib)['a'][0]['c'].path)
 
     assert not child.is_cache_valid
 
@@ -215,15 +199,7 @@ def test_invalidate_and_redraw_with_dict_and_ndarrays_within_does_not_invalidate
     child = quib['a'][0]['c']
     child.get_value()
 
-    quib.invalidate_and_redraw_at_path(path=[PathComponent(component="a",
-                                                           indexed_cls=dict),
-                                             PathComponent(component=0,
-                                                           indexed_cls=np.ndarray),
-                                             PathComponent(
-                                                 component='e',
-                                                 indexed_cls=dict
-                                             )
-                                             ])
+    quib.invalidate_and_redraw_at_path(PathBuilder(quib)['a'][0]['e'].path)
 
     assert child.is_cache_valid
 
@@ -235,7 +211,6 @@ def test_invalidate_and_redraw_invalidates_all_when_minor_parameter_changes():
     child = repeated[6]
     child.get_value()
 
-    param.invalidate_and_redraw_at_path(path=[PathComponent(component=...,
-                                                            indexed_cls=int), ])
+    param.invalidate_and_redraw_at_path(PathBuilder(param)[...].path)
 
     assert not child.is_cache_valid
