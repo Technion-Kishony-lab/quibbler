@@ -2,7 +2,7 @@ from __future__ import annotations
 import numpy as np
 import types
 from enum import Enum
-from functools import wraps, cached_property
+from functools import wraps, cached_property, lru_cache
 from typing import Callable, Any, Mapping, Tuple, Optional, Set
 
 from ..override_choice import get_overrides_for_assignment
@@ -171,10 +171,11 @@ class FunctionQuib(Quib):
     def get_inversions_for_assignment(self, assignment: Assignment):
         return []
 
-    @cached_property
-    def _all_args_dict(self):
+    @lru_cache()
+    def _get_all_args_dict(self, default_to_args_kwargs_on_no_signature=True, include_defaults=True):
         try:
-            return dict(iter_args_and_names_in_function_call(self.func, self.args, self.kwargs, True))
+            return dict(iter_args_and_names_in_function_call(self.func, self.args, self.kwargs, include_defaults))
         except ValueError:
-            # Some functions don't have signatures, let's say they receive *args, **kwargs
-            return {'args': self.args, 'kwargs': self.kwargs}
+            if default_to_args_kwargs_on_no_signature:
+                return {'args': self.args, 'kwargs': self.kwargs}
+            raise

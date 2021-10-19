@@ -1,6 +1,5 @@
-from functools import wraps, cached_property
 from itertools import chain
-from typing import List, Callable, Tuple, Any, Mapping, Dict, Optional, Iterable, Set
+from typing import List, Callable, Tuple, Any, Mapping, Dict, Optional, Iterable
 
 from matplotlib.artist import Artist
 from matplotlib.axes import Axes
@@ -14,7 +13,6 @@ from matplotlib.text import Text
 
 from . import global_collecting
 from .event_handling import CanvasEventHandler
-from ..quib import Quib
 from ..assignment import AssignmentTemplate
 from ..function_quibs import DefaultFunctionQuib, CacheBehavior
 from ..utils import call_func_with_quib_values, iter_object_type_in_args

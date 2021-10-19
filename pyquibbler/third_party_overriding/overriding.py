@@ -35,7 +35,7 @@ NUMPY_OVERRIDES = [
                                    "arcsin", "arccos", "arctan", "arcsinh", "arccosh", "arctanh",
                                    "exp", "exp2", "expm1", "log", "log2", "log1p", "log10",
                                    "sqrt", "int", "float", "ceil", "floor", "round", 'around'}),
-        (AxisWiseGraphicsFunctionQuib, {"max", "min", "sum", "cumsum"}),
+        (AxisWiseGraphicsFunctionQuib, {"max", "min", "sum"}),
     ]),
     (np.random, [
         (ImpureFunctionQuib, {'rand', 'randn', 'randint'})
