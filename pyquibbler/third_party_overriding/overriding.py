@@ -12,9 +12,10 @@ from pyquibbler.quib import ImpureFunctionQuib, DefaultFunctionQuib, FunctionQui
 from pyquibbler.quib.function_quibs.elementwise_function_quib import ElementWiseFunctionQuib
 from pyquibbler.quib.function_quibs.transpositional_function_quib import TranspositionalFunctionQuib
 from pyquibbler.quib.graphics import global_collecting
+from pyquibbler.quib.graphics.axiswise_function_quib import AxisWiseGraphicsFunctionQuib
 from pyquibbler.quib.graphics.plot_graphics_function_quib import PlotGraphicsFunctionQuib
 from pyquibbler.quib.graphics.widgets import SliderGraphicsFunctionQuib, CheckButtonsGraphicsFunctionQuib, \
-    RadioButtonsGraphicsFunctionQuib, RectangleSelectorGraphicsFunctionQuib, QRadioButtons, QRectangleSelector
+    RadioButtonsGraphicsFunctionQuib, RectangleSelectorGraphicsFunctionQuib
 from pyquibbler.quib.graphics.replacing_graphics_function_quib import ReplacingGraphicsFunctionQuib
 from pyquibbler.utils import ensure_only_run_once_globally
 
@@ -26,14 +27,15 @@ __eq__
 
 NUMPY_OVERRIDES = [
     (np, [
-        (DefaultFunctionQuib, {"abs", "average", "max", "min", "arange", "polyfit",
+        (DefaultFunctionQuib, {"abs", "average", "arange", "polyfit",
                                "linspace", "polyval", "array", "genfromtxt", 'prod'}),
         (GraphicsFunctionQuib, {'apply_along_axis', 'apply_over_axes'}),
         (TranspositionalFunctionQuib, {'reshape', 'rot90', 'ravel', 'concatenate', 'repeat', 'full', 'concatenate'}),
         (ElementWiseFunctionQuib, {'add', 'square', "sin", "cos", "tan", "sinh", "cosh", "tanh", "real", "imag",
                                    "arcsin", "arccos", "arctan", "arcsinh", "arccosh", "arctanh",
                                    "exp", "exp2", "expm1", "log", "log2", "log1p", "log10",
-                                   "sqrt", "int", "float", "ceil", "floor", "round", 'around'})
+                                   "sqrt", "int", "float", "ceil", "floor", "round", 'around'}),
+        (AxisWiseGraphicsFunctionQuib, {"max", "min", "sum"}),
     ]),
     (np.random, [
         (ImpureFunctionQuib, {'rand', 'randn', 'randint'})

@@ -32,9 +32,9 @@ class RadioButtonsGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
     REPLACEMENT_CLS = QRadioButtons
 
     def _on_change(self, new_value: str):
-        valindex = self._all_args_dict.get('active')
+        valindex = self._get_all_args_dict().get('active')
         if isinstance(valindex, Quib):
-            valindex.assign_value(self._all_args_dict.get('labels').index(new_value))
+            valindex.assign_value(self._get_all_args_dict().get('labels').index(new_value))
         else:
             # We only need to invalidate children if we didn't assign
             self.invalidate_and_redraw_at_path()

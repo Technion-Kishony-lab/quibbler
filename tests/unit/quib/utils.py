@@ -1,4 +1,9 @@
 from unittest.mock import Mock
+from dataclasses import dataclass, field
+from typing import List
+
+from pyquibbler.quib import Quib
+from pyquibbler.quib.assignment import PathComponent
 
 
 def get_mock_with_repr(repr_value: str):
@@ -8,3 +13,12 @@ def get_mock_with_repr(repr_value: str):
 
 
 slicer = type('Slicer', (), dict(__getitem__=lambda self, item: item))()
+
+
+@dataclass
+class PathBuilder:
+    quib: Quib
+    path: List[PathComponent] = field(default_factory=list)
+
+    def __getitem__(self, item):
+        return PathBuilder(self.quib[item], [*self.path, PathComponent(self.quib.get_type(), item)])

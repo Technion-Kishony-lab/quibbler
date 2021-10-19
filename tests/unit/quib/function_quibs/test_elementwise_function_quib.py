@@ -1,7 +1,7 @@
 import numpy as np
-
 from pyquibbler import iquib
-from pyquibbler.quib.assignment.assignment import PathComponent
+
+from ..utils import PathBuilder
 
 
 def test_elementwise_function_quib_invalidation_with_flat_list():
@@ -12,10 +12,7 @@ def test_elementwise_function_quib_invalidation_with_flat_list():
     d = b[1]
     d.get_value()
 
-    a.invalidate_and_redraw_at_path(path=[PathComponent(
-        component=0,
-        indexed_cls=list
-    )])
+    a.invalidate_and_redraw_at_path(PathBuilder(a)[0].path)
 
     assert not c.is_cache_valid
     assert d.is_cache_valid
@@ -31,10 +28,7 @@ def test_elementwise_function_quib_invalidation_with_broadcast_numpy_array():
     for quib in quibs:
         quib.get_value()
 
-    a.invalidate_and_redraw_at_path(path=[PathComponent(
-        component=(0, 0),
-        indexed_cls=np.ndarray
-    )])
+    a.invalidate_and_redraw_at_path(PathBuilder(a)[0, 0].path)
 
     for quib, should_be_invalidated in zip(quibs, should_be_invalidated_list):
         assert quib.is_cache_valid == (not should_be_invalidated)

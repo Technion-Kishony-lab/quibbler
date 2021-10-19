@@ -1,6 +1,5 @@
-from functools import wraps, cached_property
 from itertools import chain
-from typing import List, Callable, Tuple, Any, Mapping, Dict, Optional, Iterable, Set
+from typing import List, Callable, Tuple, Any, Mapping, Dict, Optional, Iterable
 
 from matplotlib.artist import Artist
 from matplotlib.axes import Axes
@@ -14,7 +13,6 @@ from matplotlib.text import Text
 
 from . import global_collecting
 from .event_handling import CanvasEventHandler
-from ..quib import Quib
 from ..assignment import AssignmentTemplate
 from ..function_quibs import DefaultFunctionQuib, CacheBehavior
 from ..utils import call_func_with_quib_values, iter_object_type_in_args
@@ -76,21 +74,15 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         return self
 
     @classmethod
-    def create_wrapper(cls, func: Callable):
-        quib_creator = super().create_wrapper(func)
-
-        @wraps(quib_creator)
-        def wrapper(*args, **kwargs):
-            # We never want to create a quib if someone else is creating artists- those artists belong to him/her,
-            # not us
-            if global_collecting.is_within_artists_collector():
-                with global_collecting.ArtistsCollector() as collector:
-                    res = call_func_with_quib_values(func, args, kwargs)
-                save_func_and_args_on_artists(artists=collector.artists_collected, func=func, args=args)
-                return res
-            return quib_creator(*args, **kwargs)
-
-        return wrapper
+    def _wrapper_call(cls, func, args, kwargs):
+        # We never want to create a quib if someone else is creating artists- those artists belong to him/her,
+        # not us
+        if global_collecting.is_within_artists_collector():
+            with global_collecting.ArtistsCollector() as collector:
+                res = call_func_with_quib_values(func, args, kwargs)
+            save_func_and_args_on_artists(artists=collector.artists_collected, func=func, args=args)
+            return res
+        return super()._wrapper_call(func, args, kwargs)
 
     def persist_self_on_artists(self):
         """
