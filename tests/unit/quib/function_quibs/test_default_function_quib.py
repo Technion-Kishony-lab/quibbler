@@ -125,6 +125,7 @@ def test_get_value_with_cache_requesting_all_valid_caches_result():
 
     quib.get_value_valid_at_path([PathComponent(indexed_cls=list, component=0)])
     quib.get_value_valid_at_path([PathComponent(indexed_cls=list, component=1)])
-    quib.get_value_valid_at_path([PathComponent(indexed_cls=list, component=2)])
+    result = quib.get_value_valid_at_path([PathComponent(indexed_cls=list, component=2)])
 
     assert mock_func.call_count == current_call_count
+    assert result == [1, 2, 3]
