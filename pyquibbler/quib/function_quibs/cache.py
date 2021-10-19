@@ -105,6 +105,6 @@ class NdShallowCache(ShallowCache):
 def create_cache(result: Any):
     if isinstance(result, np.ndarray):
         return NdShallowCache.create_from_result(result)
-    raise Exception()
+    return ShallowCache(result)
 
 

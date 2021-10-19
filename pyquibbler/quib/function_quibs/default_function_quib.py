@@ -86,16 +86,17 @@ class DefaultFunctionQuib(FunctionQuib):
             new_path = [path[0]]
 
         # TODO: comment explaining
-        uncached_paths = self._cache.get_uncached_paths(new_path) if self._cache else [[]]
-
+        uncached_paths = self._cache.get_uncached_paths(new_path) if self._cache else [new_path]
         start_time = perf_counter()
         # TODO: what if we don't store cache??
         for uncached_path in uncached_paths:
             result = self._call_func(uncached_path)
 
             elapsed_seconds = perf_counter() - start_time
-            if new_path is not None and self._should_cache(result, elapsed_seconds):
-                self._ensure_cache_matches_result(result)
+            self._ensure_cache_matches_result(result)
+
+            if new_path is not None: #$and self._should_cache(result, elapsed_seconds):
+
                 self._cache.set_valid_value_at_path(new_path, get_sub_data_from_object_in_path(result,
-                                                                                               new_path))
+                                                                                           new_path))
         return self._cache.get_value()

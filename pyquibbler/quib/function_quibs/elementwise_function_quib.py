@@ -9,8 +9,8 @@ from .indices_translator_function_quib import IndicesTranslatorFunctionQuib
 from ..assignment.inverse_assignment.utils import create_empty_array_with_values_at_indices
 from ..utils import call_func_with_quib_values
 
+from pyquibbler.quib.assignment import Assignment, PathComponent
 if TYPE_CHECKING:
-    from pyquibbler.quib.assignment import Assignment, PathComponent
     from pyquibbler.quib import Quib
 
 
