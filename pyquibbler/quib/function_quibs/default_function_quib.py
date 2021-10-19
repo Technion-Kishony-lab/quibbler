@@ -39,7 +39,7 @@ class DefaultFunctionQuib(FunctionQuib):
         self._cached_result = cached_result
         self._cache = ShallowCache()
 
-    def _invalidate_self(self, path: List[PathComponent]):
+    def _invalidate_self(self, path: List['PathComponent']):
         self._cache.set_invalid_at_path_component(path[0])
 
     def _should_cache(self, result: Any, elapsed_seconds: float):
