@@ -48,14 +48,12 @@ class DefaultFunctionQuib(FunctionQuib):
         self._cache = None
 
     def _ensure_cache_matches_result(self, new_result: Any):
-        if self._cache is None or not self._cache.matches_result(new_result):
+        if self._cache is None: # or not self._cache.matches_result(new_result):
             self._cache = create_cache(new_result)
         return self._cache
 
     def _invalidate_self(self, path: List['PathComponent']):
-        if len(path) == 0:
-            self._cache.set_invalid_at_key()
-        self._cache.set_valid_value_at_key(path[0])
+        self._cache.set_invalid_at_path(path)
 
     def _should_cache(self, result: Any, elapsed_seconds: float):
         """
@@ -89,7 +87,6 @@ class DefaultFunctionQuib(FunctionQuib):
         uncached_paths = self._cache.get_uncached_paths(new_path) if self._cache else [new_path]
         start_time = perf_counter()
 
-        # TODO: what if we don't store cache??
         if len(uncached_paths) == 0:
             return self._cache.get_value()
 

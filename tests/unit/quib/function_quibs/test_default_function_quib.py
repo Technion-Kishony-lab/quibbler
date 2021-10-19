@@ -130,3 +130,19 @@ def test_get_value_with_cache_requesting_all_valid_caches_result():
 
     assert mock_func.call_count == current_call_count
     assert result1 == result2 == result3 == [1, 2, 3]
+
+
+def test_get_value_with_cache_with_changing_type():
+    parent = iquib(1)
+    mock_func = mock.Mock()
+    mock_func.side_effect = [[1, 2, 3], {"a": 1}]
+    quib = DefaultFunctionQuib.create(
+        func=mock_func,
+        func_args=(parent,)
+    )
+
+    quib.get_value_valid_at_path([PathComponent(indexed_cls=list, component=1)])
+    parent.invalidate_and_redraw_at_path([])
+    new_value = quib.get_value_valid_at_path([PathComponent(indexed_cls=dict, component="a")])
+
+    assert new_value == {"a": 1}

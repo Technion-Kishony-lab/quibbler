@@ -61,10 +61,21 @@ class ListShallowCache(ShallowCache):
                and len(result) == len(self.get_value())
 
     def set_invalid_at_path(self, path: List[PathComponent]) -> None:
-        self._value = deep_assign_data_with_paths(self._value, path, invalid)
+        if len(path) == 0:
+            self._value = [invalid for _ in self._value]
+        else:
+            self._value = deep_assign_data_with_paths(self._value, path, invalid)
 
     def set_valid_value_at_path(self, path: List[PathComponent], value: Any) -> None:
         self._value = deep_assign_data_with_paths(self._value, path, value)
+
+    def get_uncached_paths(self, path):
+        data = get_sub_data_from_object_in_path(self._value, path)
+        return [
+            [PathComponent(indexed_cls=list, component=i)]
+            for i, value in data
+            if value is invalid
+        ]
 
 
 class NdShallowCache(ShallowCache):
@@ -123,7 +134,7 @@ class NdShallowCache(ShallowCache):
         self._value = deep_assign_data_with_paths(self._value, path, value)
 
 
-def create_cache(result: Any):
+def create_cache(result: Any) -> ShallowCache:
     types_to_caches = {
         np.ndarray: NdShallowCache,
         list: ListShallowCache,
