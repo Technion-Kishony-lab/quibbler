@@ -48,7 +48,7 @@ class DefaultFunctionQuib(FunctionQuib):
         self._cache = None
 
     def _ensure_cache_matches_result(self, new_result: Any):
-        if self._cache is None: # or not self._cache.matches_result(new_result):
+        if self._cache is None or not self._cache.matches_result(new_result):
             self._cache = create_cache(new_result)
         return self._cache
 
@@ -83,8 +83,13 @@ class DefaultFunctionQuib(FunctionQuib):
         else:
             new_path = [path[0]]
 
-        # TODO: comment explaining
-        uncached_paths = self._cache.get_uncached_paths(new_path) if self._cache else [new_path]
+        try:
+            # TODO: comment explaining the `if` here
+            uncached_paths = self._cache.get_uncached_paths(new_path) if self._cache else [new_path]
+        except (TypeError, IndexError):
+            # TODO: do we really want to do this??
+            uncached_paths = [[]]
+
         start_time = perf_counter()
 
         if len(uncached_paths) == 0:
@@ -101,4 +106,7 @@ class DefaultFunctionQuib(FunctionQuib):
                 self._ensure_cache_matches_result(result)
                 self._cache.set_valid_value_at_path(new_path, get_sub_data_from_object_in_path(result,
                                                                                            new_path))
+                # sanity
+                assert len(self._cache.get_uncached_paths(new_path)) == 0
+
         return result
