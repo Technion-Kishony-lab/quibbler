@@ -61,8 +61,7 @@ def test_invalidate_and_redraw_does_not_invalidate_that_which_should_be_invalida
     assert not getitem_quib.is_cache_valid
 
 
-def test_invalidate_and_redraw_on_dict(
-):
+def test_invalidate_and_redraw_on_dict_invalidates_child():
     quib = iquib({"maor": 1})
     second_quib = quib["maor"]
 
@@ -71,8 +70,7 @@ def test_invalidate_and_redraw_on_dict(
     assert not second_quib.is_cache_valid
 
 
-def test_invalidate_and_redraw_on_dict2(
-):
+def test_invalidate_and_redraw_on_dict_doesnt_invalidate_irrelevant_child():
     quib = iquib({"maor": 1, 'y': 2})
     second_quib = quib["maor"]
     second_quib.get_value()

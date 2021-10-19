@@ -4,32 +4,40 @@ from pyquibbler import iquib
 from pyquibbler.quib.assignment.assignment import PathComponent
 
 
-def test_elementwise_function_quib_invalidation_when_should_invalidate():
-    a = iquib(np.array([1, 2, 3]))
-    b = a + 1
-    b.get_value()
+def test_elementwise_function_quib_invalidation_with_flat_list():
+    a = iquib([1, 2])
+    b = np.add(a, 1)
+    c = b[0]
+    c.get_value()
+    d = b[1]
+    d.get_value()
 
     a.invalidate_and_redraw_at_path(path=[PathComponent(
         component=0,
         indexed_cls=list
     )])
 
-    assert not b.is_cache_valid
+    assert not c.is_cache_valid
+    assert d.is_cache_valid
 
 
-def test_elementwise_function_quib_invalidation_when_should_not_invalidate():
-    a = iquib(np.array([[1, 2, 3]]))
-    b = iquib(np.array([[1], [2], [3]]))
+def test_elementwise_function_quib_invalidation_with_broadcast_numpy_array():
+    a = iquib(np.array([[1, 2]]))
+    b = iquib(np.array([[1], [2]]))
     sum_ = a + b
-    item = sum_[(2, 0)]
-    item.get_value()
+    indices = [(0, 0), (0, 1), (1, 0), (1, 1)]
+    should_be_invalidated_list = [True, False, True, False]
+    quibs = [sum_[i] for i in indices]
+    for quib in quibs:
+        quib.get_value()
 
     a.invalidate_and_redraw_at_path(path=[PathComponent(
         component=(0, 0),
-        indexed_cls=list
+        indexed_cls=np.ndarray
     )])
 
-    assert not item.is_cache_valid
+    for quib, should_be_invalidated in zip(quibs, should_be_invalidated_list):
+        assert quib.is_cache_valid == (not should_be_invalidated)
 
 
 def test_elementwise_function_quib_invalidation_at_field_invalidates():

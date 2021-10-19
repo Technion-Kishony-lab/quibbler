@@ -1,10 +1,9 @@
-from typing import TYPE_CHECKING, List, Tuple, Any, Optional
-
 import numpy as np
+from typing import TYPE_CHECKING, List, Any, Optional
 
-from .default_function_quib import DefaultFunctionQuib
 from pyquibbler.quib.assignment.inverse_assignment import ElementWiseInverter
 
+from .default_function_quib import DefaultFunctionQuib
 from ..assignment.assignment import PathComponent
 from ..assignment.inverse_assignment.utils import create_empty_array_with_values_at_indices
 
