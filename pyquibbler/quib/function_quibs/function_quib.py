@@ -4,9 +4,10 @@ from itertools import islice
 
 import numpy as np
 import types
+from abc import abstractmethod
 from enum import Enum
-from functools import wraps, cached_property
-from typing import Callable, Any, Mapping, Tuple, Optional, Set, List
+from functools import wraps, cached_property, partial
+from typing import Callable, Any, Mapping, Tuple, Optional, Set, List, Union
 
 from ..override_choice import get_overrides_for_assignment
 from ..assignment import AssignmentTemplate, Assignment, PathComponent
@@ -14,6 +15,7 @@ from ..quib import Quib
 from ..utils import is_there_a_quib_in_args, iter_quibs_in_args, call_func_with_quib_values, \
     deep_copy_without_quibs_or_artists, copy_and_convert_args_to_values, iter_args_and_names_in_function_call
 from ...env import LAZY, PRETTY_REPR
+from ...env import LAZY
 
 
 class CacheBehavior(Enum):
@@ -166,6 +168,9 @@ class FunctionQuib(Quib):
     def set_cache_behavior(self, cache_behavior: CacheBehavior):
         self._cache_behavior = cache_behavior
 
+    def _get_translated_argument_quib_path_at_path(self, quib: Quib, arg_index: int, path: List[PathComponent]):
+        return []
+
     def _call_func(self, valid_path: Optional[List[PathComponent]]):
         """
         Call the function wrapped by this FunctionQuib with the
@@ -176,7 +181,19 @@ class FunctionQuib(Quib):
         This function can and should be overriden if there is a more specific implementation for getting a value only
         valid at valid_path
         """
-        return call_func_with_quib_values(self.func, self.args, self.kwargs)
+        new_args = []
+        for i, arg in enumerate(self.args):
+            def _replace_potential_quib_with_value(arg_index: int, inner_arg: Union[Quib, Any]):
+                if not isinstance(inner_arg, Quib):
+                    return inner_arg
+                if isinstance(inner_arg, QuibRef):
+                    return inner_arg.quib
+                path = self._get_translated_argument_quib_path_at_path(inner_arg, arg_index, path=valid_path)
+                return inner_arg.get_value_valid_at_path(path)
+
+            new_args.append(recursively_run_func_on_object(partial(_replace_potential_quib_with_value, i), arg))
+
+        return call_func_with_quib_values(self.func, new_args, self.kwargs)
 
     def get_inversions_for_assignment(self, assignment: Assignment):
         return []

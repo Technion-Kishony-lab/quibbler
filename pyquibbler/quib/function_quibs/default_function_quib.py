@@ -67,7 +67,13 @@ class DefaultFunctionQuib(FunctionQuib):
 
         start_time = perf_counter()
         # Because we have a shallow cache, we want the result valid at the first component
-        result = self._call_func(path[0])
+        if path is None:
+            new_path = None
+        elif len(path) == 0:
+            new_path = []
+        else:
+            new_path = [path[0]]
+        result = self._call_func(new_path)
         elapsed_seconds = perf_counter() - start_time
         if self._should_cache(result, elapsed_seconds):
             self._cache.set_valid_value_at_path_component(path[0], result)
