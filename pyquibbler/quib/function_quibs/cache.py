@@ -120,10 +120,13 @@ class NdShallowCache(ShallowCache):
 
 
 def create_cache(result: Any):
-    if isinstance(result, np.ndarray):
-        return NdShallowCache.create_from_result(result)
-    elif isinstance(result, list):
-        return ListShallowCache.create_from_result(result)
-    return ShallowCache(result)
+    types_to_caches = {
+        np.ndarray: NdShallowCache,
+        list: ListShallowCache,
+    }
+    for type_, cache_class in types_to_caches.items():
+        if isinstance(result, type_):
+            return cache_class.create_from_result(result)
+    return ShallowCache.create_from_result(result)
 
 
