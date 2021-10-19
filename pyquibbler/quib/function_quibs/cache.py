@@ -29,7 +29,7 @@ class ShallowCache:
         self._value = value
 
     def matches_result(self, result):
-        return type(result) == type(self._value)
+        return isinstance(result, type(self._value))
 
     def set_valid_value_at_path(self, path: List[PathComponent], value: Any) -> None:
         self._value = deep_assign_data_with_paths(self._value, path, value)
