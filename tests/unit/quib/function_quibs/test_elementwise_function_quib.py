@@ -39,16 +39,4 @@ def test_elementwise_function_quib_invalidation_with_broadcast_numpy_array():
     for quib, should_be_invalidated in zip(quibs, should_be_invalidated_list):
         assert quib.is_cache_valid == (not should_be_invalidated)
 
-
-def test_elementwise_function_quib_invalidation_at_field_invalidates():
-    dtype = [('inteliggence', np.int_), ('age', np.int_)]
-    a = iquib(np.array([(100, 24)], dtype=dtype))
-    b = a['age'] + 1
-    b.get_value()
-
-    a.invalidate_and_redraw_at_path(path=[PathComponent(
-        component='age',
-        indexed_cls=np.ndarray
-    )])
-
-    assert not b.is_cache_valid
+# There is no need to test for support of field arrays, as elementwise functions don't work on field arrays
