@@ -85,7 +85,9 @@ class DefaultFunctionQuib(FunctionQuib):
         else:
             new_path = [path[0]]
 
-        uncached_paths = self._cache.get_uncached_paths(new_path)
+        # TODO: comment explaining
+        uncached_paths = self._cache.get_uncached_paths(new_path) if self._cache else [[]]
+
         start_time = perf_counter()
         # TODO: what if we don't store cache??
         for uncached_path in uncached_paths:

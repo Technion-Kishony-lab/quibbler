@@ -1,3 +1,4 @@
+from __future__ import annotations
 import logging
 from typing import Any, List, TYPE_CHECKING
 
@@ -16,7 +17,6 @@ def get_sub_data_from_object_in_path(obj: Any, path: List['PathComponent']):
     for component in path:
         obj = obj[component.component]
     return obj
-
 
 
 def deep_assign_data_with_paths(data: Any, path: List[PathComponent], value: Any):
