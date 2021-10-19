@@ -76,7 +76,7 @@ class DefaultFunctionQuib(FunctionQuib):
         result = self._call_func(new_path)
         elapsed_seconds = perf_counter() - start_time
         if self._should_cache(result, elapsed_seconds):
-            self._cache.set_valid_value_at_path_component(path[0], result)
+            self._cache.set_valid_value_at_path_component(new_path, result)
             self._cached_result = result
             self._is_cache_valid = True
         return result

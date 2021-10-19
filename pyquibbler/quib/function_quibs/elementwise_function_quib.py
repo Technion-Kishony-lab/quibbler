@@ -6,6 +6,8 @@ from pyquibbler.quib.assignment.inverse_assignment import ElementWiseInverter
 
 from .default_function_quib import DefaultFunctionQuib
 from .indices_translator_function_quib import IndicesTranslatorFunctionQuib
+from ..assignment.inverse_assignment.utils import create_empty_array_with_values_at_indices
+from ..utils import call_func_with_quib_values
 
 if TYPE_CHECKING:
     from pyquibbler.quib.assignment import Assignment
@@ -55,7 +57,7 @@ class ElementWiseFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunctionQuib
 
     def _get_translated_argument_quib_path_at_path(self, quib: 'Quib', arg_index: int, path: List[PathComponent]):
         if path is None:
-            working_component = False
+            return None
         else:
             working_component = path[0].component if len(path) > 0 else True
         bool_mask = self._create_bool_mask_representing_quib_at_indices_in_result(indices=working_component, quib=quib)

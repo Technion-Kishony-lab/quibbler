@@ -52,8 +52,11 @@ def test_elementwise_function_quib_does_not_request_unneeded_indices_on_get_valu
         component=1
     )])  # -> [x, 3]
 
-    fake_quib.get_value_valid_at_path.assert_called_once_with(path=[PathComponent(
-        indexed_cls=np.ndarray,
-        component=1
-    )])
+    # fake_quib.get_value_valid_at_path.assert_any_call(args=(None,))
+
     assert result[1] == 3
+    assert len(fake_quib.get_value_valid_at_path.mock_calls) == 2
+    second_call = fake_quib.get_value_valid_at_path.mock_calls[1]
+    assert isinstance(second_call.args[0][0], PathComponent)
+    component = second_call.args[0][0]
+    assert np.array_equal(component.component, np.array([False, True]))
