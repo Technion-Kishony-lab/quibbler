@@ -94,6 +94,16 @@ class FunctionQuib(Quib):
                 setattr(quib_supporting_func_wrapper, member, val)
 
     @classmethod
+    def _wrapper_call(cls, func, args, kwargs):
+        """
+        The actual code that runs when a quib-supporting function wrapper is called.
+        """
+        if is_there_a_quib_in_args(args, kwargs):
+            return cls.create(func=func, func_args=args, func_kwargs=kwargs)
+
+        return func(*args, **kwargs)
+
+    @classmethod
     def create_wrapper(cls, func: Callable):
         """
         Given an original function, return a new function (a "wrapper") to be used instead of the original.
@@ -104,10 +114,7 @@ class FunctionQuib(Quib):
 
         @wraps(func)
         def quib_supporting_func_wrapper(*args, **kwargs):
-            if is_there_a_quib_in_args(args, kwargs):
-                return cls.create(func=func, func_args=args, func_kwargs=kwargs)
-
-            return func(*args, **kwargs)
+            return cls._wrapper_call(func, args, kwargs)
 
         quib_supporting_func_wrapper.__annotations__['return'] = cls
         quib_supporting_func_wrapper.__quib_wrapper__ = cls

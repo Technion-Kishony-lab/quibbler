@@ -76,21 +76,15 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         return self
 
     @classmethod
-    def create_wrapper(cls, func: Callable):
-        quib_creator = super().create_wrapper(func)
-
-        @wraps(quib_creator)
-        def wrapper(*args, **kwargs):
-            # We never want to create a quib if someone else is creating artists- those artists belong to him/her,
-            # not us
-            if global_collecting.is_within_artists_collector():
-                with global_collecting.ArtistsCollector() as collector:
-                    res = call_func_with_quib_values(func, args, kwargs)
-                save_func_and_args_on_artists(artists=collector.artists_collected, func=func, args=args)
-                return res
-            return quib_creator(*args, **kwargs)
-
-        return wrapper
+    def _wrapper_call(cls, func, args, kwargs):
+        # We never want to create a quib if someone else is creating artists- those artists belong to him/her,
+        # not us
+        if global_collecting.is_within_artists_collector():
+            with global_collecting.ArtistsCollector() as collector:
+                res = call_func_with_quib_values(func, args, kwargs)
+            save_func_and_args_on_artists(artists=collector.artists_collected, func=func, args=args)
+            return res
+        return super()._wrapper_call(func, args, kwargs)
 
     def persist_self_on_artists(self):
         """
