@@ -1,17 +1,15 @@
 from __future__ import annotations
 import numpy as np
 from operator import getitem
-from typing import Dict, List, TYPE_CHECKING, Union, Callable, Any
+from typing import Dict, List, Union, Callable, Any
 
+from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.assignment import Assignment
 from pyquibbler.quib.assignment.inverse_assignment.utils import create_empty_array_with_values_at_indices
 from pyquibbler.quib.utils import recursively_run_func_on_object, call_func_with_quib_values
 
 from .inverter import Inverter
 from ..assignment import QuibWithAssignment, PathComponent
-
-if TYPE_CHECKING:
-    from pyquibbler.quib import Quib
 
 
 class TranspositionalInverter(Inverter):
@@ -22,11 +20,14 @@ class TranspositionalInverter(Inverter):
 
     def _get_quibs_which_can_change(self):
         """
-        Helper method to get quibs which can change (are "data" quibs)
-        from function quib- see docs of TranspositionalFunctionQuib's `get_quibs_which_can_change`
-         to understand functionality
+        Return a list of quibs that can potentially change as a result of the transpositional function- this does NOT
+        necessarily mean these quibs will in fact be changed.
+
+        For example, in `np.repeat(q1, q2)`, where q1 is a numpy array quib
+        and q2 is a number quib with amount of times to repeat, q2 cannot in any
+        situation be changed by a change in `np.repeat`'s result. So only `q1` would be returned.
         """
-        return self._function_quib.get_quibs_which_can_change()
+        return self._function_quib.get_data_source_quibs()
 
     def _replace_quibs_in_arguments_which_can_potentially_change(self, replace_func: Callable[['Quib'], Any]):
         """
@@ -58,7 +59,7 @@ class TranspositionalInverter(Inverter):
         quibs_to_ids = self._get_quibs_to_ids()
 
         def replace_quib_with_id(obj):
-            if obj in self._get_quibs_which_can_change():
+            if isinstance(obj, Quib) and obj in self._get_quibs_which_can_change():
                 return np.full(obj.get_shape().get_value(), quibs_to_ids[obj])
             return obj
 
@@ -112,7 +113,7 @@ class TranspositionalInverter(Inverter):
         quibs_to_masks = self._get_quibs_to_masks()
 
         def replace_quib_with_index_at_dimension(q):
-            if q in self._get_quibs_which_can_change():
+            if isinstance(q, Quib) and q in self._get_quibs_which_can_change():
                 return quibs_to_index_grids[q][dimension]
             return q
 

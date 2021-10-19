@@ -1,9 +1,8 @@
-from operator import getitem
-
 import numpy as np
 import pytest
+from operator import getitem
 
-from pyquibbler import iquib, Assignment, q
+from pyquibbler import iquib
 from pyquibbler.quib.assignment.assignment import PathComponent
 from pyquibbler.quib.function_quibs.transpositional_function_quib import TranspositionalFunctionQuib
 
@@ -94,9 +93,7 @@ def test_invalidate_and_redraw_on_inner_list(
 
 def test_invalidate_and_redraw_on_dict_after_index(
 ):
-    quib = iquib([1, 2, {
-        'MAOR': 'YELED EFES'
-    }])
+    quib = iquib([1, 2, {'MAOR': '^'}])
     second_quib = quib[2]
     third_quib = second_quib['MAOR']
 
@@ -107,11 +104,7 @@ def test_invalidate_and_redraw_on_dict_after_index(
 
 @pytest.fixture()
 def quib_dict():
-    return iquib({
-        'a': {
-            'b': 1
-        }
-    })
+    return iquib({'a': {'b': 1}})
 
 
 def test_invalidate_embedded_dicts_shouldnt_invalidate(quib_dict):
@@ -162,7 +155,8 @@ def test_invalidate_and_redraw_with_expanding_shape_should_invalidate(quib_with_
     child = first_row[0]
     child.get_value()
 
-    quib_with_nested_arr.invalidate_and_redraw_at_path(path=[PathComponent(component=0, indexed_cls=quib_with_nested_arr.get_type())])
+    quib_with_nested_arr.invalidate_and_redraw_at_path(
+        path=[PathComponent(component=0, indexed_cls=quib_with_nested_arr.get_type())])
 
     assert not child.is_cache_valid
 
@@ -171,12 +165,10 @@ def test_invalidate_and_redraw_with_double_field_keys_invalidates(quib_with_nest
     first_row = children[0]
     child = first_row[0]
     child.get_value()
+    quib_type = quib_with_nested_arr.get_type()
 
-    quib_with_nested_arr.invalidate_and_redraw_at_path(path=[PathComponent(component="nested",
-                                                                           indexed_cls=quib_with_nested_arr.get_type()),
-                                                             PathComponent(component="child_name",
-                                                                   indexed_cls=quib_with_nested_arr.get_type())
-                                                             ])
+    quib_with_nested_arr.invalidate_and_redraw_at_path(path=[PathComponent(quib_type, "nested"),
+                                                             PathComponent(quib_type, "child_name")])
 
     assert not child.is_cache_valid
 
@@ -204,11 +196,11 @@ def test_invalidate_and_redraw_with_dict_and_ndarrays_within():
     quib.invalidate_and_redraw_at_path(path=[PathComponent(component="a",
                                                            indexed_cls=dict),
                                              PathComponent(component=0,
-                                                   indexed_cls=np.ndarray),
+                                                           indexed_cls=np.ndarray),
                                              PathComponent(
-                                         component='c',
-                                         indexed_cls=dict
-                                     )
+                                                 component='c',
+                                                 indexed_cls=dict
+                                             )
                                              ])
 
     assert not child.is_cache_valid
@@ -226,11 +218,11 @@ def test_invalidate_and_redraw_with_dict_and_ndarrays_within_does_not_invalidate
     quib.invalidate_and_redraw_at_path(path=[PathComponent(component="a",
                                                            indexed_cls=dict),
                                              PathComponent(component=0,
-                                                   indexed_cls=np.ndarray),
+                                                           indexed_cls=np.ndarray),
                                              PathComponent(
-                                         component='e',
-                                         indexed_cls=dict
-                                     )
+                                                 component='e',
+                                                 indexed_cls=dict
+                                             )
                                              ])
 
     assert child.is_cache_valid

@@ -1,11 +1,11 @@
 from __future__ import annotations
 import numpy as np
-from typing import TYPE_CHECKING, List, Any
+from typing import TYPE_CHECKING, Any
 
 from pyquibbler.quib.assignment.inverse_assignment import ElementWiseInverter
 
 from .default_function_quib import DefaultFunctionQuib
-from ..assignment.assignment import PathComponent
+from .indices_translator_function_quib import IndicesTranslatorFunctionQuib
 from ..assignment.inverse_assignment.utils import create_empty_array_with_values_at_indices
 
 if TYPE_CHECKING:
@@ -13,15 +13,14 @@ if TYPE_CHECKING:
     from pyquibbler.quib import Quib
 
 
-class ElementWiseFunctionQuib(DefaultFunctionQuib):
+class ElementWiseFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunctionQuib):
     """
     A quib representing an element wise mathematical operation- this includes any op that can map an output element
     back to an input element, and the operation can be inversed per element
     """
+    SUPPORTED_FUNCTIONS = None
 
-    def _create_bool_mask_representing_invalidator_quib_at_indices_in_result(self,
-                                                                             invalidator_quib: 'Quib',
-                                                                             indices: Any):
+    def _forward_translate_indices_to_bool_mask(self, invalidator_quib: Quib, indices: Any) -> Any:
         """
         Create a boolean mask representing the invalidator quib at certain indices in the result.
         For a simple operation (eg `invalidator=[1, 2, 3]`, `invalidator + [2, 3, 4]`, and we invalidate `(0, 0)`),
@@ -45,14 +44,6 @@ class ElementWiseFunctionQuib(DefaultFunctionQuib):
             indices=indices,
             shape=invalidator_quib.get_shape().get_value()
         ), self.get_shape().get_value())
-
-    def _get_path_for_children_invalidation(self, invalidator_quib: Quib,
-                                            path: List[PathComponent]) -> List[PathComponent]:
-        working_component = path[0]
-        new_component = self._create_bool_mask_representing_invalidator_quib_at_indices_in_result(invalidator_quib,
-                                                                                                  working_component.
-                                                                                                  component)
-        return [PathComponent(self.get_type(), new_component), *path[1:]]
 
     def get_inversions_for_assignment(self, assignment: 'Assignment'):
         return ElementWiseInverter(
