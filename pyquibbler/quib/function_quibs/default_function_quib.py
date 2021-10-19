@@ -88,6 +88,7 @@ class DefaultFunctionQuib(FunctionQuib):
         # TODO: comment explaining
         uncached_paths = self._cache.get_uncached_paths(new_path) if self._cache else [new_path]
         start_time = perf_counter()
+
         # TODO: what if we don't store cache??
         for uncached_path in uncached_paths:
             result = self._call_func(uncached_path)

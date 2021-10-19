@@ -43,17 +43,6 @@ class ElementWiseFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunctionQuib
         bool_mask = self._get_source_shaped_bool_mask(invalidator_quib, indices)
         return np.broadcast_to(bool_mask, self.get_shape().get_value())
 
-    def _get_translated_argument_quib_path_at_path(self, quib: 'Quib', arg_index: int, path: List[PathComponent]):
-        if path is None:
-            return None
-        else:
-            working_component = path[0].component if len(path) > 0 else True
-        bool_mask = self._forward_translate_indices_to_bool_mask(indices=working_component, quib=quib)
-        return [PathComponent(
-            component=bool_mask,
-            indexed_cls=quib.get_type()
-        )]
-
     def get_inversions_for_assignment(self, assignment: 'Assignment'):
         return ElementWiseInverter(
             assignment=assignment,
