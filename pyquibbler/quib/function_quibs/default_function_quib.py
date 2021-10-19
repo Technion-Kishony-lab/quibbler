@@ -53,7 +53,8 @@ class DefaultFunctionQuib(FunctionQuib):
         return self._cache
 
     def _invalidate_self(self, path: List['PathComponent']):
-        self._cache.set_invalid_at_path(path)
+        if self._cache is not None:
+            self._cache.set_invalid_at_path(path)
 
     def _should_cache(self, result: Any, elapsed_seconds: float):
         """
@@ -85,7 +86,7 @@ class DefaultFunctionQuib(FunctionQuib):
 
         try:
             # TODO: comment explaining the `if` here
-            uncached_paths = self._cache.get_uncached_paths(new_path) if self._cache else [new_path]
+            uncached_paths = self._cache.get_uncached_paths(new_path) if self._cache is not None else [new_path]
         except (TypeError, IndexError):
             # TODO: do we really want to do this??
             uncached_paths = [[]]

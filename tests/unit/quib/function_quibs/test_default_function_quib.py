@@ -146,3 +146,16 @@ def test_get_value_with_cache_with_changing_type():
     new_value = quib.get_value_valid_at_path([PathComponent(indexed_cls=dict, component="a")])
 
     assert new_value == {"a": 1}
+
+
+def test_invalidate_before_cache_exists():
+    parent = iquib(1)
+    _ = DefaultFunctionQuib.create(
+        func=mock.Mock(),
+        func_args=(parent,)
+    )
+
+    # simply make sure we don't throw an exception
+    parent.invalidate_and_redraw_at_path([])
+
+    # todo: check we're invalid?
