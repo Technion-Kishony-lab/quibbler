@@ -1,5 +1,9 @@
+from unittest import mock
+
 import numpy as np
 from pyquibbler import iquib
+from pyquibbler.quib import ElementWiseFunctionQuib, Quib
+from pyquibbler.quib.assignment.assignment import PathComponent
 
 from ..utils import PathBuilder
 
@@ -33,4 +37,22 @@ def test_elementwise_function_quib_invalidation_with_broadcast_numpy_array():
     for quib, should_be_invalidated in zip(quibs, should_be_invalidated_list):
         assert quib.is_cache_valid == (not should_be_invalidated)
 
-# There is no need to test for support of field arrays, as elementwise functions don't work on field arrays
+
+def test_elementwise_function_quib_does_not_request_unneeded_indices_on_get_value():
+    fake_quib = mock.Mock(spec=Quib)
+    fake_quib.get_value_valid_at_path.return_value = np.array([1, 2])
+    b = ElementWiseFunctionQuib.create(
+        func=np.add,
+        func_args=(fake_quib, 1)
+    )
+
+    result = b.get_value_valid_at_path([PathComponent(
+        indexed_cls=np.ndarray,
+        component=1
+    )])  # -> [x, 3]
+
+    fake_quib.get_value_valid_at_path.assert_called_once_with(path=[PathComponent(
+        indexed_cls=np.ndarray,
+        component=1
+    )])
+    assert result[1] == 3
