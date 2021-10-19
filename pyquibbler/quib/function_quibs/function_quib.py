@@ -5,11 +5,11 @@ from itertools import islice
 import numpy as np
 import types
 from enum import Enum
-from functools import wraps, cached_property, lru_cache
-from typing import Callable, Any, Mapping, Tuple, Optional, Set
+from functools import wraps, cached_property
+from typing import Callable, Any, Mapping, Tuple, Optional, Set, List
 
 from ..override_choice import get_overrides_for_assignment
-from ..assignment import AssignmentTemplate, Assignment
+from ..assignment import AssignmentTemplate, Assignment, PathComponent
 from ..quib import Quib
 from ..utils import is_there_a_quib_in_args, iter_quibs_in_args, call_func_with_quib_values, \
     deep_copy_without_quibs_or_artists, copy_and_convert_args_to_values, iter_args_and_names_in_function_call
@@ -166,11 +166,15 @@ class FunctionQuib(Quib):
     def set_cache_behavior(self, cache_behavior: CacheBehavior):
         self._cache_behavior = cache_behavior
 
-    def _call_func(self, valid_path):
+    def _call_func(self, valid_path: Optional[List[PathComponent]]):
         """
         Call the function wrapped by this FunctionQuib with the
         given arguments after replacing quib with their values.
-        :param valid_path:
+
+        The result should be valid at valid_path- the default implementation is to always get a result that's value
+        for all paths (not diverged), which will necessarily be also valid at `valid_path`.
+        This function can and should be overriden if there is a more specific implementation for getting a value only
+        valid at valid_path
         """
         return call_func_with_quib_values(self.func, self.args, self.kwargs)
 
