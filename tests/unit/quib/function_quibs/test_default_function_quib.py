@@ -6,7 +6,7 @@ import pytest
 from pytest import fixture, mark
 
 from pyquibbler import iquib, CacheBehavior, Assignment
-from pyquibbler.quib import DefaultFunctionQuib
+from pyquibbler.quib import DefaultFunctionQuib, Quib
 from pyquibbler.quib.assignment.assignment import PathComponent
 
 
@@ -121,11 +121,12 @@ def test_get_value_with_cache_requesting_all_valid_caches_result():
         func_args=tuple()
     )
     quib.get_value_valid_at_path([])
+    # We want to make sure we don't call our mock_func anymore, so we save the number here
     current_call_count = mock_func.call_count
 
-    quib.get_value_valid_at_path([PathComponent(indexed_cls=list, component=0)])
-    quib.get_value_valid_at_path([PathComponent(indexed_cls=list, component=1)])
-    result = quib.get_value_valid_at_path([PathComponent(indexed_cls=list, component=2)])
+    result1 = quib.get_value_valid_at_path([PathComponent(indexed_cls=list, component=0)])
+    result2 = quib.get_value_valid_at_path([PathComponent(indexed_cls=list, component=1)])
+    result3 = quib.get_value_valid_at_path([PathComponent(indexed_cls=list, component=2)])
 
     assert mock_func.call_count == current_call_count
-    assert result == [1, 2, 3]
+    assert result1 == result2 == result3 == [1, 2, 3]

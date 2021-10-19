@@ -118,6 +118,10 @@ class NdShallowCache(ShallowCache):
 
             return paths
 
+    def set_valid_value_at_path(self, path, value):
+        # TODO; make indexable cache
+        self._value = deep_assign_data_with_paths(self._value, path, value)
+
 
 def create_cache(result: Any):
     types_to_caches = {
