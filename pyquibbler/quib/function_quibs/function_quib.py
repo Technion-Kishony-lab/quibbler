@@ -1,4 +1,5 @@
 from __future__ import annotations
+import numpy as np
 import types
 from enum import Enum
 from functools import wraps, cached_property
@@ -80,6 +81,19 @@ class FunctionQuib(Quib):
         return self
 
     @classmethod
+    def _add_ufunc_members_to_wrapper(cls, func: Callable, quib_supporting_func_wrapper: Callable):
+        """
+        Numpy ufuncs have members used internally by numpy and could also be used by users.
+        This function members attributes to ufunc wrappers so they could be used as ufuncs.
+        """
+        for member in dir(func):
+            if not member.startswith('_'):
+                val = getattr(func, member)
+                if callable(val):
+                    val = cls.create_wrapper(val)
+                setattr(quib_supporting_func_wrapper, member, val)
+
+    @classmethod
     def create_wrapper(cls, func: Callable):
         """
         Given an original function, return a new function (a "wrapper") to be used instead of the original.
@@ -97,6 +111,8 @@ class FunctionQuib(Quib):
 
         quib_supporting_func_wrapper.__annotations__['return'] = cls
         quib_supporting_func_wrapper.__quib_wrapper__ = cls
+        if isinstance(func, np.ufunc):
+            cls._add_ufunc_members_to_wrapper(func, quib_supporting_func_wrapper)
         return quib_supporting_func_wrapper
 
     @property
@@ -150,4 +166,8 @@ class FunctionQuib(Quib):
 
     @cached_property
     def _all_args_dict(self):
-        return dict(iter_args_and_names_in_function_call(self.func, self.args, self.kwargs, True))
+        try:
+            return dict(iter_args_and_names_in_function_call(self.func, self.args, self.kwargs, True))
+        except ValueError:
+            # Some functions don't have signatures, let's say they receive *args, **kwargs
+            return {'args': self.args, 'kwargs': self.kwargs}
