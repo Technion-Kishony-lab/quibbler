@@ -151,7 +151,8 @@ class NdShallowCache(ShallowCache):
                     ]
                 )
 
-            return paths
+            # TODO: do we really want this filter?
+            return list(filter(lambda p: all([np.any(c.component) for c in p]), paths))
 
     def set_valid_value_at_path(self, path, value):
         self._value = deep_assign_data_with_paths(self._value, path, value)
