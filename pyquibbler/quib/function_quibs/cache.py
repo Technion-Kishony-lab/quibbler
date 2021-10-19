@@ -81,6 +81,7 @@ class ListShallowCache(ShallowCache):
             if value is invalid
         ]
 
+
 class DictShallowCache(ShallowCache):
 
     def matches_result(self, result):
@@ -98,11 +99,7 @@ class DictShallowCache(ShallowCache):
 
     def get_uncached_paths(self, path):
         data = get_sub_data_from_object_in_path(self._value, path)
-        return [
-            [PathComponent(indexed_cls=list, component=i)]
-            for i, value in data
-            if value is invalid
-        ]
+        return [path] if data is invalid else []
 
 
 class NdShallowCache(ShallowCache):
