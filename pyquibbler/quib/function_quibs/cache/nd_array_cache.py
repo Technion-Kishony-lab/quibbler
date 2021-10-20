@@ -13,9 +13,10 @@ class NdShallowCache(ShallowCache):
 
     SUPPORTING_TYPES = (np.ndarray,)
 
-    def __init__(self, value: Any, mask):
+    def __init__(self, value: Any, mask, whole_object_is_invalidated=False):
         super(NdShallowCache, self).__init__(value)
         self._invalid_mask = mask
+        self._whole_object_is_invalidated = whole_object_is_invalidated
 
     def matches_result(self, result):
         return super(NdShallowCache, self).matches_result(result) \
@@ -39,10 +40,11 @@ class NdShallowCache(ShallowCache):
         if result.dtype.names is not None:
             dtype = [(name, np.bool_) for name in result.dtype.names]
         mask = np.full(result.shape, True, dtype=dtype)
-        return cls(result, mask)
+        return cls(result, mask, True)
 
     def set_invalid_at_path(self, path: List[PathComponent]) -> None:
         if len(path) == 0:
+            self._whole_object_is_invalidated = True
             component = PathComponent(component=True, indexed_cls=np.ndarray)
         else:
             component = path[0]
@@ -54,6 +56,9 @@ class NdShallowCache(ShallowCache):
                 self._invalid_mask[name] = True
 
     def get_uncached_paths(self, path: List[PathComponent]):
+        if self._whole_object_is_invalidated:
+            return [[]]
+
         if len(path) > 0 and path[0].references_field_in_field_array():
             return [PathComponent(indexed_cls=np.ndarray, component=path[0].component),
                     PathComponent(indexed_cls=np.ndarray, component=self._invalid_mask[path[0].component])]
@@ -85,6 +90,7 @@ class NdShallowCache(ShallowCache):
             return list(filter(lambda p: np.any(p[-1].component), paths))
 
     def set_valid_value_at_path(self, path, value):
+        self._whole_object_is_invalidated = False
         self._value = deep_assign_data_with_paths(self._value, path, value)
         self._invalid_mask = deep_assign_data_with_paths(self._invalid_mask, path, False)
 

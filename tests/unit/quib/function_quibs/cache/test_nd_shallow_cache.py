@@ -82,6 +82,8 @@ def test_nd_cache_invalidate_empty_nd():
     uncached_paths = nd_shallow_cache.get_uncached_paths([])
 
     assert len(uncached_paths) == 1
+    assert uncached_paths[0] == []
+
 
 @pytest.fixture()
 def nd_array_cache_with_field_array():
