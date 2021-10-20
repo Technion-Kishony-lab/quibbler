@@ -202,6 +202,8 @@ def iter_objects_of_type_in_object_recursively(object_type: Type,
             yield obj
     elif max_depth is None or max_depth > 0:
         # Recurse into composite objects
+        if isinstance(obj, slice):
+            obj = (obj.start, obj.stop, obj.step)
         if isinstance(obj, (tuple, list, set)):
             # This is a fixed-size collection
             if max_length is None or len(obj) <= max_length:
