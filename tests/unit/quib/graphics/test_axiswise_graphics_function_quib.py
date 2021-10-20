@@ -5,6 +5,12 @@ from pyquibbler import iquib
 
 
 def check_invalidation(func, kwargs, data_kwarg, indices_to_invalidate):
+    """
+    Run func with the given kwargs (and data_kwarg=iquib), change the iquib in the given indices,
+    and verify that the invalidated indices were also the ones that changed values.
+    Make sure that func works in a way that guarantees that when a value in the input changes,
+    all affected values in the result also change.
+    """
     arr = np.array([[[1, 2, 3], [4, 5, 6]]])
     data = iquib(arr)
     result = func(**{data_kwarg: data}, **kwargs)
