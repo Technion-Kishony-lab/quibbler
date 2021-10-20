@@ -4,6 +4,7 @@ from time import perf_counter
 from typing import Callable, Any, Mapping, Tuple, Optional, List, TYPE_CHECKING
 
 from pyquibbler.quib.function_quibs.cache import create_cache
+from .cache.shallow_cache import CacheStatus
 from .function_quib import FunctionQuib, CacheBehavior
 from ..assignment import AssignmentTemplate
 from ..assignment.utils import get_sub_data_from_object_in_path
@@ -25,7 +26,7 @@ class DefaultFunctionQuib(FunctionQuib):
         """
         User interface to check cache validity.
         """
-        return self._cache.get_cache_status()
+        return self._cache.get_cache_status() if self._cache is not None else CacheStatus.ALL_INVALID
 
     def __init__(self,
                  func: Callable,

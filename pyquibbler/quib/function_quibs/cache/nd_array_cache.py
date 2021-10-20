@@ -42,7 +42,16 @@ class NdShallowCache(ShallowCache):
         return cls(result, mask)
 
     def set_invalid_at_path(self, path: List[PathComponent]) -> None:
-        self._invalid_mask = deep_assign_data_with_paths(self._invalid_mask, path, True)
+        if len(path) == 0:
+            component = PathComponent(component=True, indexed_cls=np.ndarray)
+        else:
+            component = path[0]
+
+        if self._invalid_mask.dtype.names is None:
+            self._invalid_mask[component.component] = True
+        elif self._invalid_mask.dtype is not None and not component.references_field_in_field_array():
+            for name in self._invalid_mask.dtype.names:
+                self._invalid_mask[name] = True
 
     def get_uncached_paths(self, path: List[PathComponent]):
         if len(path) > 0 and path[0].references_field_in_field_array():

@@ -2,6 +2,7 @@ import numpy as np
 from pytest import mark
 
 from pyquibbler import iquib
+from pyquibbler.quib.function_quibs.cache.shallow_cache import CacheStatus
 
 
 def check_invalidation(func, kwargs, data_kwarg, indices_to_invalidate):
@@ -19,7 +20,7 @@ def check_invalidation(func, kwargs, data_kwarg, indices_to_invalidate):
     values = {idx: child.get_value() for idx, child in children.items()}
     data[indices_to_invalidate] = 999
 
-    invalidated_result_indices = {idx for idx, child in children.items() if not child.is_cache_valid}
+    invalidated_result_indices = {idx for idx, child in children.items() if child.cache_status == CacheStatus.ALL_INVALID}
     new_values = {idx: child.get_value() for idx, child in children.items()}
     changed_result_indices = {idx for idx in new_values if not np.array_equal(values[idx], new_values[idx])}
     assert invalidated_result_indices == changed_result_indices

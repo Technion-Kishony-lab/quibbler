@@ -103,3 +103,9 @@ def test_list_cache_get_cache_status_on_partial(list_cache):
     list_cache.set_valid_value_at_path([PathComponent(indexed_cls=list, component=slice(1, None, None))], [10, 10])
 
     assert list_cache.get_cache_status() == CacheStatus.PARTIAL
+
+
+def test_list_cache_set_invalid_on_all_on_empty_list():
+    lst = ListShallowCache.create_from_result([])
+
+    assert list_cache.get_cache_status() == CacheStatus.PARTIAL

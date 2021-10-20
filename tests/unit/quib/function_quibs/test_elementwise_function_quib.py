@@ -4,7 +4,6 @@ import numpy as np
 from pyquibbler import iquib
 from pyquibbler.quib import ElementWiseFunctionQuib, Quib
 from pyquibbler.quib.assignment.assignment import PathComponent
-from pyquibbler.quib.function_quibs.default_function_quib import CacheStatus
 
 from ..utils import PathBuilder
 

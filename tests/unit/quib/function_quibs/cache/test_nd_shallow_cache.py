@@ -84,6 +84,16 @@ def nd_array_cache_with_field_array():
     )
 
 
+def test_nd_cache_field_array_set_invalid_all(nd_array_cache_with_field_array):
+    nd_array_cache_with_field_array.set_invalid_at_path([])
+
+    paths = nd_array_cache_with_field_array.get_uncached_paths([])
+
+    assert len(paths) == 2
+    for i, component_name in enumerate(['name', 'age']):
+        assert np.all(np.full((3,), True)[paths[i][1].component])
+
+
 def test_nd_cache_field_array_set_valid_on_field(nd_array_cache_with_field_array):
     nd_array_cache_with_field_array.set_valid_value_at_path([PathComponent(component="name", indexed_cls=np.ndarray)],
                                                             5)
