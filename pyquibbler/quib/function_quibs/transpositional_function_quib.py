@@ -27,7 +27,7 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
         np.ravel: SupportedFunction({0}),
     }
 
-    def _forward_translate_indices_to_bool_mask(self, invalidator_quib: Quib, indices: Any) -> Any:
+    def _forward_translate_indices_to_bool_mask(self, quib: Quib, indices: Any) -> Any:
         """
         Translate the invalidation path to it's location after passing through the current function quib.
         If that path represents anything (ie any indices intersecting with the invalidation exist in the result),
@@ -41,8 +41,8 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
 
         def _replace_arg_with_corresponding_mask_or_arg(q):
             if isinstance(q, Quib) and q in self.get_data_source_quibs():
-                if q is invalidator_quib:
-                    return self._get_source_shaped_bool_mask(invalidator_quib, indices)
+                if q is quib:
+                    return self._get_source_shaped_bool_mask(q, indices)
                 else:
                     return np.full(q.get_shape().get_value(), False)
             return q

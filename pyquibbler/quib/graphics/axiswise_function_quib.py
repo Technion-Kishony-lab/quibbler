@@ -48,10 +48,10 @@ class AxisWiseGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFuncti
             kwargs[translator_kwarg_name] = self._get_all_args_dict(include_defaults=True)[original_kwarg_name]
         return kwargs
 
-    def _forward_translate_indices_to_bool_mask(self, invalidator_quib: Quib, indices: Any) -> Any:
-        source_bool_mask = self._get_source_shaped_bool_mask(invalidator_quib, indices)
+    def _forward_translate_indices_to_bool_mask(self, quib: Quib, indices: Any) -> Any:
+        source_bool_mask = self._get_source_shaped_bool_mask(quib, indices)
         kwargs = self._get_forward_index_translator_kwargs()
-        return self._call_forward_index_translator(kwargs, source_bool_mask, invalidator_quib)
+        return self._call_forward_index_translator(kwargs, source_bool_mask, quib)
 
 
 class ReductionAxisWiseGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
@@ -93,3 +93,4 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         expanded = np.expand_dims(applied, tuple(dims_to_expand))
         broadcast = np.broadcast_to(expanded, result_shape)
         return broadcast
+

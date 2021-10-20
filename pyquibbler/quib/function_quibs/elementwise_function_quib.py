@@ -32,8 +32,8 @@ class ElementWiseFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunctionQuib
 
         For example- if we have
         ```
-        invalidator_quib = [[1, 2, 3]]
-        sum_ = invalidator_quib + [[1], [2], [3]]
+        quib = [[1, 2, 3]]
+        sum_ = quib + [[1], [2], [3]]
         ```
         and we invalidate at (0, 0), we need to create a mask broadcasted like the argument was, ie
         [[True, False, False],

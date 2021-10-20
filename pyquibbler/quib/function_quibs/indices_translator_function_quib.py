@@ -22,7 +22,7 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
 
     def _get_source_shaped_bool_mask(self, invalidator_quib: Quib, indices: Any) -> Any:
         """
-        Return a boolean mask in the shape of the given invalidator_quib, in which only the given indices are set to
+        Return a boolean mask in the shape of the given quib, in which only the given indices are set to
         True.
         """
         return create_empty_array_with_values_at_indices(
@@ -64,10 +64,10 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
             indexed_cls=quib.get_type()
         )]
 
-    def _forward_translate_invalidation_path(self, invalidator_quib: Quib,
+    def _forward_translate_invalidation_path(self, quib: Quib,
                                              path: List[PathComponent]) -> Optional[List[PathComponent]]:
         working_component, *rest_of_path = path
-        bool_mask_in_output_array = self._forward_translate_indices_to_bool_mask(invalidator_quib,
+        bool_mask_in_output_array = self._forward_translate_indices_to_bool_mask(quib,
                                                                                  working_component.component)
         if DEBUG:
             # Make sure the bool mask fits our result shape
