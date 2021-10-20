@@ -52,7 +52,11 @@ def show_fig(fig):
     fig.canvas.mpl_connect('close_event', lambda _event: closed.set(True))
     fig.show()
     while not closed:
-        plt.pause(0.1)
+        try:
+            plt.pause(0.1)
+        except Exception:
+            # TK throws if the windows was closed during pause
+            pass
 
 
 def choose_override_dialog(options: List[Quib], can_diverge: bool) -> OverrideChoice:
