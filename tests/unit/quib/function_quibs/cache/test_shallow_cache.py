@@ -37,6 +37,11 @@ def test_shallow_cache_set_invalid_makes_uncached_paths_return_all(shallow_cache
     assert uncached_paths == [[]]
 
 
+def test_shallow_cache_get_value_when_valid(shallow_cache):
+    shallow_cache.set_valid_value_at_path([], 10)
+    assert shallow_cache.get_value() == 10
+
+
 def test_shallow_cache_does_not_allow_specifying_paths_in_invalidate(shallow_cache):
     with pytest.raises(PathCannotHaveComponentsException):
         shallow_cache.set_invalid_at_path([mock.Mock()])

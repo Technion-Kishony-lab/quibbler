@@ -104,3 +104,4 @@ def test_nd_cache_field_array_set_valid_on_indices(nd_array_cache_with_field_arr
         assert np.all(np.array([False, True, True])[path[1].component])
 
 # todo: add more tests for returning partials
+# todo: add test for get_value
