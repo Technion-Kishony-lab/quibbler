@@ -19,9 +19,16 @@ class ListShallowCache(ShallowCache):
 
     def set_invalid_at_path(self, path: List[PathComponent]) -> None:
         if len(path) == 0:
-            self._value = [invalid for _ in self._value]
+            range_to_set_invalid = (len(self._value),)
         else:
-            self._value = deep_assign_data_with_paths(self._value, path, invalid)
+            component = path[0].component
+            if isinstance(component, slice):
+                range_to_set_invalid = (component.start, component.stop, component.step or 1)
+            else:
+                range_to_set_invalid = (component, component + 1)
+
+        for i in range(*range_to_set_invalid):
+            self._value[i] = invalid
 
     def set_valid_value_at_path(self, path: List[PathComponent], value: Any) -> None:
         self._value = deep_assign_data_with_paths(self._value, path, value)
