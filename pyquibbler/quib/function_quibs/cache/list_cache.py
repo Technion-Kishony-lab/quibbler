@@ -23,7 +23,7 @@ class ListShallowCache(ShallowCache):
         else:
             component = path[0].component
             if isinstance(component, slice):
-                range_to_set_invalid = (component.start, component.stop, component.step or 1)
+                range_to_set_invalid = (component.start or 0, component.stop or len(self._value), component.step or 1)
             else:
                 range_to_set_invalid = (component, component + 1)
 

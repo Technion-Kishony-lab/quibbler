@@ -66,3 +66,19 @@ def test_list_cache_set_invalid_on_slice_makes_uncached_paths_return_slice(list_
     uncached_paths = list_cache.get_uncached_paths([])
 
     assert_uncached_paths_popped_out_falses_in_list(uncached_paths, [True, False, False])
+
+
+def test_list_cache_set_invalid_on_slice_with_end_none_makes_uncached_paths_return_slice(list_cache):
+    list_cache.set_valid_value_at_path([], [2, 3, 4])
+    list_cache.set_invalid_at_path([PathComponent(indexed_cls=list, component=slice(1, None, None))])
+    uncached_paths = list_cache.get_uncached_paths([])
+
+    assert_uncached_paths_popped_out_falses_in_list(uncached_paths, [True, False, False])
+
+
+def test_list_cache_set_invalid_on_slice_with_start_none_makes_uncached_paths_return_slice(list_cache):
+    list_cache.set_valid_value_at_path([], [2, 3, 4])
+    list_cache.set_invalid_at_path([PathComponent(indexed_cls=list, component=slice(None, 2, None))])
+    uncached_paths = list_cache.get_uncached_paths([])
+
+    assert_uncached_paths_popped_out_falses_in_list(uncached_paths, [False, False, True])
