@@ -4,16 +4,16 @@ from pytest import mark
 from pyquibbler import iquib
 
 
-def check_invalidation(func, kwargs, data_kwarg, indices_to_invalidate):
+def check_invalidation(func, indices_to_invalidate):
     """
-    Run func with the given kwargs (and data_kwarg=iquib), change the iquib in the given indices,
+    Run func on an ndarray iquib, change the iquib in the given indices,
     and verify that the invalidated indices were also the ones that changed values.
     Make sure that func works in a way that guarantees that when a value in the input changes,
     all affected values in the result also change.
     """
     arr = np.array([[[1, 2, 3], [4, 5, 6]]])
     data = iquib(arr)
-    result = func(**{data_kwarg: data}, **kwargs)
+    result = func(data)
     children = {idx: result[idx] for idx in np.ndindex(result.get_shape().get_value())}
 
     values = {idx: child.get_value() for idx, child in children.items()}
@@ -35,7 +35,7 @@ def test_axiswise_invalidation_with_sum(indices_to_invalidate, axis, keepdims, w
         kwargs['keepdims'] = keepdims
     if where is not None:
         kwargs['where'] = where
-    check_invalidation(np.sum, kwargs, 'a', indices_to_invalidate)
+    check_invalidation(lambda data: np.sum(data, **kwargs), indices_to_invalidate)
 
 
 @mark.parametrize('indices_to_invalidate', [-1, 0, (0, 0), (0, 1, 2), ...])
@@ -43,4 +43,9 @@ def test_axiswise_invalidation_with_sum(indices_to_invalidate, axis, keepdims, w
 @mark.parametrize('func_out_dims', [0, 1, 2])
 def test_axiswise_invalidation_with_apply_along_axis(indices_to_invalidate, axis, func_out_dims):
     func1d = lambda slice: np.sum(slice).reshape((1,) * func_out_dims)
-    check_invalidation(np.apply_along_axis, dict(func1d=func1d, axis=axis), 'arr', indices_to_invalidate)
+    check_invalidation(lambda data: np.apply_along_axis(func1d, axis, data), indices_to_invalidate)
+
+
+@mark.parametrize('indices_to_invalidate', [-1, 0, (0, 0), (0, 1, 2), ...])
+def test_axiswise_invalidation_with_vectorize(indices_to_invalidate):
+    check_invalidation(lambda data: np.vectorize(lambda x: x)(data), indices_to_invalidate)

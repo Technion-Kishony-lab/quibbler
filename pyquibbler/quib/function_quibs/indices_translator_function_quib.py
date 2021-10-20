@@ -14,7 +14,8 @@ from pyquibbler.quib.utils import iter_objects_of_type_in_object_shallowly
 
 @dataclass
 class SupportedFunction:
-    data_source_indices: Set[int]
+    # None means that all args are data sources
+    data_source_indices: Optional[Set[int]]
 
 
 class IndicesTranslatorFunctionQuib(FunctionQuib):
@@ -41,10 +42,12 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
 
     @lru_cache()
     def get_data_source_quibs(self) -> Set:
-        if self.SUPPORTED_FUNCTIONS is None:
-            return self.parents
-        return {quib for i in self.SUPPORTED_FUNCTIONS[self._func].data_source_indices
-                for quib in iter_objects_of_type_in_object_shallowly(Quib, self._get_arg_value_at_position(i))}
+        if self.SUPPORTED_FUNCTIONS is not None:
+            data_source_indices = self.SUPPORTED_FUNCTIONS[self._func].data_source_indices
+            if data_source_indices is not None:
+                return {quib for i in data_source_indices
+                        for quib in iter_objects_of_type_in_object_shallowly(Quib, self._get_arg_value_at_position(i))}
+        return self.parents
 
     def _is_quib_a_data_source(self, quib: Quib):
         return quib in self.get_data_source_quibs()
