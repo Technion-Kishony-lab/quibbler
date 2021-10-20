@@ -52,11 +52,7 @@ class NestedQuibException(DebugException):
 
     def __str__(self):
         return 'PyQuibbler does not support calling functions with arguments that contain deeply nested quibs.\n' \
-               f'The quibs {self.nested_quibs} are nested within {self.obj}.'
-
-    @classmethod
-    def create_from_object(cls, obj: Any):
-        return cls(obj, set(iter_quibs_in_object_recursively(obj)))
+               f'The quibs {self.nested_quibs} are deeply nested within {self.obj}.'
 
 
 @dataclass
@@ -146,27 +142,10 @@ def shallow_copy_and_replace_quibs_with_vals(obj: Any):
 
 def copy_and_replace_quibs_with_vals(obj: Any):
     result = shallow_copy_and_replace_quibs_with_vals(obj)
-    if DEBUG:
-        expected = deep_copy_and_replace_quibs_with_vals(obj)
-        try:
-            # instead of doing expected == result we do a "not not" so as to evaluate the result as truthy,
-            # and so throw an exception here if we evaluated the equalness of two numpy arrays
-            # (in which case we need to do array_equal).
-            # We also can't check isinstance as the arrays may be embedded in tuples etc
-            equal = not (expected != result)
-        except ValueError as e:
-            if "The truth value of an array" in str(e):
-                try:
-                    np.testing.assert_equal(expected, result)
-                except AssertionError:
-                    equal = False
-                else:
-                    equal = True
-            else:
-                equal = False
-
-        if not equal:
-            raise NestedQuibException.create_from_object(obj)
+    if DEBUG and not isinstance(obj, QuibRef):
+        nested_quibs = set(iter_quibs_in_object_recursively(result))
+        if nested_quibs:
+            raise NestedQuibException(obj, nested_quibs)
     return result
 
 
@@ -231,7 +210,7 @@ def iter_objects_of_type_in_object(object_type: Type, obj: Any, force_recursive:
         result = iter(collected_result)
         expected = set(iter_objects_of_type_in_object_recursively(object_type, obj))
         if collected_result != expected:
-            raise NestedQuibException(obj, set(expected))
+            raise NestedQuibException(obj, expected - collected_result)
     return result
 
 
