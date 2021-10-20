@@ -6,7 +6,6 @@ from pyquibbler.quib.assignment.inverse_assignment import ElementWiseInverter
 
 from .default_function_quib import DefaultFunctionQuib
 from .indices_translator_function_quib import IndicesTranslatorFunctionQuib
-from ..assignment.inverse_assignment.utils import create_empty_array_with_values_at_indices
 
 if TYPE_CHECKING:
     from pyquibbler.quib.assignment import Assignment
@@ -38,12 +37,8 @@ class ElementWiseFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunctionQuib
          [True, False, False],
          [True, False, False]]
         """
-        return np.broadcast_to(create_empty_array_with_values_at_indices(
-            value=True,
-            empty_value=False,
-            indices=indices,
-            shape=invalidator_quib.get_shape().get_value()
-        ), self.get_shape().get_value())
+        bool_mask = self._get_source_shaped_bool_mask(invalidator_quib, indices)
+        return np.broadcast_to(bool_mask, self.get_shape().get_value())
 
     def get_inversions_for_assignment(self, assignment: 'Assignment'):
         return ElementWiseInverter(

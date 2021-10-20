@@ -5,7 +5,6 @@ from typing import List, Optional, Any
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.assignment import Assignment
 from pyquibbler.quib.assignment.inverse_assignment import TranspositionalInverter
-from pyquibbler.quib.assignment.inverse_assignment.utils import create_empty_array_with_values_at_indices
 from pyquibbler.quib.utils import recursively_run_func_on_object, call_func_with_quib_values
 
 from .default_function_quib import DefaultFunctionQuib
@@ -43,12 +42,7 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
         def _replace_arg_with_corresponding_mask_or_arg(q):
             if isinstance(q, Quib) and q in self.get_data_source_quibs():
                 if q is invalidator_quib:
-                    return create_empty_array_with_values_at_indices(
-                        invalidator_quib.get_shape().get_value(),
-                        indices=indices,
-                        value=True,
-                        empty_value=False
-                    )
+                    return self._get_source_shaped_bool_mask(invalidator_quib, indices)
                 else:
                     return np.full(q.get_shape().get_value(), False)
             return q

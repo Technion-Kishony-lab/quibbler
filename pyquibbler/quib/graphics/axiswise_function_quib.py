@@ -5,7 +5,6 @@ from typing import Any, Dict
 from pyquibbler.quib.quib import Quib
 
 from .graphics_function_quib import GraphicsFunctionQuib
-from ..assignment.inverse_assignment.utils import create_empty_array_with_values_at_indices
 from ..function_quibs.indices_translator_function_quib import IndicesTranslatorFunctionQuib, SupportedFunction
 
 
@@ -30,18 +29,6 @@ class AxisWiseGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFuncti
     """
     SUPPORTED_KWARGS: Dict[str, str] = {}
     REQUIRED_KWARGS: Dict[str, str] = {}
-
-    def _get_source_shaped_bool_mask(self, invalidator_quib: Quib, indices: Any) -> Any:
-        """
-        Return a boolean mask in the shape of the given invalidator_quib, in which only the given indices are set to
-        True.
-        """
-        return create_empty_array_with_values_at_indices(
-            value=True,
-            empty_value=False,
-            indices=indices,
-            shape=invalidator_quib.get_shape().get_value()
-        )
 
     @abstractmethod
     def _call_forward_index_translator(self, kwargs, boolean_mask, invalidator_quib: Quib):

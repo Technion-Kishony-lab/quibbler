@@ -5,6 +5,7 @@ from functools import lru_cache
 from typing import Set, Optional, Dict, Callable, List, Any
 
 from pyquibbler.env import DEBUG
+from pyquibbler.quib.assignment.inverse_assignment.utils import create_empty_array_with_values_at_indices
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.function_quibs import FunctionQuib
 from pyquibbler.quib.assignment import PathComponent
@@ -18,6 +19,18 @@ class SupportedFunction:
 
 class IndicesTranslatorFunctionQuib(FunctionQuib):
     SUPPORTED_FUNCTIONS: Optional[Dict[Callable, SupportedFunction]]
+
+    def _get_source_shaped_bool_mask(self, invalidator_quib: Quib, indices: Any) -> Any:
+        """
+        Return a boolean mask in the shape of the given invalidator_quib, in which only the given indices are set to
+        True.
+        """
+        return create_empty_array_with_values_at_indices(
+            value=True,
+            empty_value=False,
+            indices=indices,
+            shape=invalidator_quib.get_shape().get_value()
+        )
 
     @classmethod
     def create_wrapper(cls, func: Callable):
