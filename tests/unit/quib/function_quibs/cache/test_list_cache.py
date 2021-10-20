@@ -2,6 +2,7 @@ import pytest
 
 from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.quib.function_quibs.cache import ListShallowCache
+from pyquibbler.quib.function_quibs.cache.shallow_cache import CacheStatus
 
 
 @pytest.fixture
@@ -98,9 +99,7 @@ def test_list_cache_set_valid_partial_slice_returns_correct_paths(list_cache):
     assert_uncached_paths_popped_out_falses_in_list(uncached_paths, [False, True, True])
 
 
-def test_list_cache_set_valid_partial_slice_returns_correct_paths(list_cache):
+def test_list_cache_get_cache_status_on_partial(list_cache):
     list_cache.set_valid_value_at_path([PathComponent(indexed_cls=list, component=slice(1, None, None))], [10, 10])
-    uncached_paths = list_cache.get_uncached_paths([])
 
-    assert_uncached_paths_popped_out_falses_in_list(uncached_paths, [False, True, True])
-
+    assert list_cache.get_cache_status() == CacheStatus.PARTIAL

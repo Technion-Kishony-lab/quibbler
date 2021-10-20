@@ -2,7 +2,7 @@ from typing import List, Any
 
 from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.quib.assignment.utils import deep_assign_data_with_paths, get_sub_data_from_object_in_path
-from pyquibbler.quib.function_quibs.cache.shallow_cache import ShallowCache, invalid
+from pyquibbler.quib.function_quibs.cache.shallow_cache import ShallowCache, invalid, CacheStatus
 
 
 class ListShallowCache(ShallowCache):
@@ -12,6 +12,13 @@ class ListShallowCache(ShallowCache):
     @classmethod
     def create_from_result(cls, result):
         return cls([invalid for _ in result])
+
+    def get_cache_status(self):
+        if all(x is not invalid for x in self._value):
+            return CacheStatus.ALL_VALID
+        elif all(x is invalid for x in self._value):
+            return CacheStatus.ALL_INVALID
+        return CacheStatus.PARTIAL
 
     def matches_result(self, result):
         return super(ListShallowCache, self).matches_result(result) \
