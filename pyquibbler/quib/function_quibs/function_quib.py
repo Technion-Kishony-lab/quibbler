@@ -10,7 +10,7 @@ from ..assignment import AssignmentTemplate, Assignment
 from ..quib import Quib
 from ..utils import is_there_a_quib_in_args, iter_quibs_in_args, call_func_with_quib_values, \
     deep_copy_without_quibs_or_artists, copy_and_convert_args_to_values, iter_args_and_names_in_function_call
-from ...env import LAZY
+from ...env import LAZY, PRETTY_REPR
 
 
 class CacheBehavior(Enum):
@@ -146,6 +146,8 @@ class FunctionQuib(Quib):
         get_overrides_for_assignment(self, assignment).apply()
 
     def __repr__(self):
+        if PRETTY_REPR:
+            return self.pretty_repr()
         return f"<{self.__class__.__name__} - {getattr(self.func, '__name__', repr(self.func))}>"
 
     def pretty_repr(self):

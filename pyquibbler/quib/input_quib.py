@@ -6,7 +6,7 @@ from .assignment import AssignmentTemplate
 from .assignment.assignment import PathComponent
 from .quib import Quib
 from .utils import is_there_a_quib_in_object
-from ..env import DEBUG
+from ..env import DEBUG, PRETTY_REPR
 from ..exceptions import DebugException
 
 
@@ -46,6 +46,8 @@ class InputQuib(Quib):
         return path
 
     def __repr__(self):
+        if PRETTY_REPR:
+            return self.pretty_repr()
         return f'<{self.__class__.__name__} ({self.get_value()})>'
 
     def pretty_repr(self):
