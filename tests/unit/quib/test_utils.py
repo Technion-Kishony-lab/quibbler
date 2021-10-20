@@ -1,6 +1,5 @@
 from operator import add
 from unittest.mock import Mock
-
 from pytest import mark, raises, fixture
 
 from pyquibbler import iquib
@@ -9,6 +8,8 @@ from pyquibbler.quib.utils import is_iterator_empty, deep_copy_and_replace_quibs
     iter_objects_of_type_in_object_recursively, call_func_with_quib_values, iter_quibs_in_args, \
     is_there_a_quib_in_args, NestedQuibException, copy_and_replace_quibs_with_vals, iter_quibs_in_object, \
     FunctionCalledWithNestedQuibException, QuibRef, Unpacker
+
+from .utils import slicer
 
 iquib1 = iquib(1)
 iquib2 = iquib(2)
@@ -75,6 +76,7 @@ def test_deep_copy_and_replace_quibs_with_vals(to_copy, depth, length, expected_
     ([1, [iquib1, [iquib2]]], None, 1, set()),
     ([1, [iquib1, [iquib2]]], None, 2, {iquib1, iquib2}),
     ([QuibRef(iquib1)], None, None, {iquib1}),
+    (slicer[iquib1:, iquib1:iquib2], 2, None, {iquib1, iquib2}),
 ])
 def test_iter_quibs_in_object(to_iter, depth, length, expected_result):
     assert set(iter_objects_of_type_in_object_recursively(Quib, to_iter, depth, length)) == expected_result
