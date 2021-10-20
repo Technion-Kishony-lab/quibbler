@@ -1,4 +1,7 @@
 from __future__ import annotations
+
+from itertools import islice
+
 import numpy as np
 import types
 from enum import Enum
@@ -181,3 +184,10 @@ class FunctionQuib(Quib):
             if default_to_args_kwargs_on_no_signature:
                 return {'args': self.args, 'kwargs': self.kwargs}
             raise
+
+    def _get_arg_value_at_position(self, i: int) -> Any:
+        try:
+            args_iterable = self._get_all_args_dict(False, False).values()
+        except ValueError:
+            args_iterable = self.args
+        return next(islice(args_iterable, i, i + 1))

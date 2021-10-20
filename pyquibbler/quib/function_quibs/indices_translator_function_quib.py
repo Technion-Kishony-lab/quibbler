@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from functools import lru_cache
 from typing import Set, Optional, Dict, Callable, List, Any
 
+from pyquibbler.env import DEBUG
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.function_quibs import FunctionQuib
 from pyquibbler.quib.assignment import PathComponent
@@ -30,7 +31,7 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
         if self.SUPPORTED_FUNCTIONS is None:
             return self.parents
         return {quib for i in self.SUPPORTED_FUNCTIONS[self._func].data_source_indices
-                for quib in iter_objects_of_type_in_object_shallowly(Quib, self.args[i])}
+                for quib in iter_objects_of_type_in_object_shallowly(Quib, self._get_arg_value_at_position(i))}
 
     def _is_quib_a_data_source(self, quib: Quib):
         return quib in self.get_data_source_quibs()
@@ -44,6 +45,14 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
         working_component, *rest_of_path = path
         bool_mask_in_output_array = self._forward_translate_indices_to_bool_mask(invalidator_quib,
                                                                                  working_component.component)
+        if DEBUG:
+            # Make sure the bool mask fits our result shape
+            if issubclass(self.get_type(), np.ndarray):
+                try:
+                    self.get_value()[bool_mask_in_output_array]
+                except IndexError as e:
+                    raise IndexError(f'Value: {self.get_value()}\nMask: {bool_mask_in_output_array}'
+                                     f'\nShapes: {self.get_shape().get_value()}, {bool_mask_in_output_array.shape}') from e
         if np.any(bool_mask_in_output_array):
             # If there exist both True's and False's in the boolean mask,
             # this function's quib result must be an ndarray- if it were a single item (say a PyObj, int, dict, list)
