@@ -31,7 +31,7 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
         if self.SUPPORTED_FUNCTIONS is None:
             return self.parents
         return {quib for i in self.SUPPORTED_FUNCTIONS[self._func].data_source_indices
-                for quib in iter_objects_of_type_in_object_shallowly(Quib, self.args[i])}
+                for quib in iter_objects_of_type_in_object_shallowly(Quib, self._get_arg_value_at_position(i))}
 
     def _is_quib_a_data_source(self, quib: Quib):
         return quib in self.get_data_source_quibs()
