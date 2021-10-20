@@ -16,6 +16,9 @@ from pyquibbler.exceptions import DebugException, PyQuibblerException
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib
 
+# Most common use-cases require one level of scanning - for example a quib inside a shape tuple.
+# But there is also the case of indexing with quibs, like so: arr[q1:,q2:] which creates a quib inside a slice inside a
+# tuple, which requires two levels of scanning.
 SHALLOW_MAX_DEPTH = 2
 SHALLOW_MAX_LENGTH = 100
 
