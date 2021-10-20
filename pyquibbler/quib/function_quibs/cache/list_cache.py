@@ -9,15 +9,19 @@ class ListShallowCache(ShallowCache):
 
     SUPPORTING_TYPES = (list,)
 
+    def __init__(self, value: Any, whole_object_is_invalidated=False):
+        super().__init__(value)
+        self._whole_object_is_invalidated = whole_object_is_invalidated
+
     @classmethod
     def create_from_result(cls, result):
-        return cls([invalid for _ in result])
+        return cls([invalid for _ in result], True)
 
     def get_cache_status(self):
+        if self._whole_object_is_invalidated or all(x is invalid for x in self._value):
+            return CacheStatus.ALL_INVALID
         if all(x is not invalid for x in self._value):
             return CacheStatus.ALL_VALID
-        elif all(x is invalid for x in self._value):
-            return CacheStatus.ALL_INVALID
         return CacheStatus.PARTIAL
 
     def matches_result(self, result):
@@ -26,6 +30,7 @@ class ListShallowCache(ShallowCache):
 
     def set_invalid_at_path(self, path: List[PathComponent]) -> None:
         if len(path) == 0:
+            self._whole_object_is_invalidated = True
             range_to_set_invalid = (len(self._value),)
         else:
             component = path[0].component
@@ -38,9 +43,13 @@ class ListShallowCache(ShallowCache):
             self._value[i] = invalid
 
     def set_valid_value_at_path(self, path: List[PathComponent], value: Any) -> None:
+        self._whole_object_is_invalidated = False
         self._value = deep_assign_data_with_paths(self._value, path, value)
 
     def get_uncached_paths(self, path):
+        if self._whole_object_is_invalidated:
+            return [[]]
+
         mask = [(i, obj) for i, obj in enumerate(self._value)]
         data = get_sub_data_from_object_in_path(mask, path)
         if not isinstance(data, list):

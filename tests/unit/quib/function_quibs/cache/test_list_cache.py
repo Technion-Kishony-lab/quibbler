@@ -11,6 +11,10 @@ def list_cache():
 
 
 def assert_uncached_paths_popped_out_falses_in_list(uncached_paths, lst):
+    # todo: add comment
+    if any([len(path) == 0 for path in uncached_paths]):
+        return all([o is False for o in lst])
+
     for path in uncached_paths:
         assert len(path) == 1
         component = path[0]
@@ -108,4 +112,4 @@ def test_list_cache_get_cache_status_on_partial(list_cache):
 def test_list_cache_set_invalid_on_all_on_empty_list():
     lst = ListShallowCache.create_from_result([])
 
-    assert list_cache.get_cache_status() == CacheStatus.PARTIAL
+    assert lst.get_cache_status() == CacheStatus.ALL_INVALID
