@@ -19,6 +19,7 @@ def aggregate_redraw_mode():
     IN_AGGREGATE_REDRAW_MODE = False
     for axes in AXESES_TO_REDRAW:
         redraw_axes(axes)
+    AXESES_TO_REDRAW.clear()
 
 
 def redraw_axes(axes: Axes, force: bool = False):
