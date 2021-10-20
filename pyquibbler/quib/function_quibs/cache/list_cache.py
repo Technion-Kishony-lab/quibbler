@@ -7,6 +7,12 @@ from pyquibbler.quib.function_quibs.cache.shallow_cache import ShallowCache, inv
 
 class ListShallowCache(ShallowCache):
 
+    SUPPORTING_TYPES = (list,)
+
+    @classmethod
+    def create_from_result(cls, result):
+        return cls([invalid for _ in result])
+
     def matches_result(self, result):
         return super(ListShallowCache, self).matches_result(result) \
                and len(result) == len(self.get_value())
