@@ -11,7 +11,7 @@ def curve_function(v):
 
 
 point_x = iquib(3)
-point_y = curve_function(point_x)
+point_y = q(curve_function,point_x)
 
 graph_xs = np.arange(0, 4, .2)
 graph_ys = curve_function(graph_xs)
