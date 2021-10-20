@@ -76,6 +76,13 @@ def test_nd_cache_get_uncached_paths_on_partial_returns_partial(nd_array_cache):
     assert np.all(np.array([[True, False, False], [False, False, False]])[component.component])
 
 
+def test_nd_cache_invalidate_empty_nd():
+    nd_shallow_cache = NdShallowCache.create_from_result(np.array([]))
+
+    uncached_paths = nd_shallow_cache.get_uncached_paths([])
+
+    assert len(uncached_paths) == 1
+
 @pytest.fixture()
 def nd_array_cache_with_field_array():
     dtype = [("name", np.str_, 20), ("age", np.int_, 64)]
