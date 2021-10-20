@@ -3,14 +3,13 @@ from sys import getsizeof
 from time import perf_counter
 from typing import Callable, Any, Mapping, Tuple, Optional, List, TYPE_CHECKING
 
-from .cache import ShallowCache, create_cache
+from pyquibbler.quib.function_quibs.cache import create_cache
 from .function_quib import FunctionQuib, CacheBehavior
 from ..assignment import AssignmentTemplate
 from ..assignment.utils import get_sub_data_from_object_in_path
 
 if TYPE_CHECKING:
-    from ..assignment.assignment import PathComponent, Assignment, PathComponent
-    from ..quib import Quib
+    from ..assignment.assignment import PathComponent, PathComponent
 
 
 class CacheStatus(Enum):
