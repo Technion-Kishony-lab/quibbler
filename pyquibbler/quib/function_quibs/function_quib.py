@@ -6,7 +6,7 @@ import numpy as np
 import types
 from abc import abstractmethod
 from enum import Enum
-from functools import wraps, cached_property, partial
+from functools import wraps, cached_property, partial, lru_cache
 from typing import Callable, Any, Mapping, Tuple, Optional, Set, List, Union
 
 from ..override_choice import get_overrides_for_assignment

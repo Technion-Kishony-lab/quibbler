@@ -76,6 +76,7 @@ class DefaultFunctionQuib(FunctionQuib):
         Otherwise, calculate the value, store it in the cache and return it.
         """
         # Because we have a shallow cache, we want the result valid at the first component
+        # TODO move to func
         if path is None:
             new_path = None
         elif len(path) == 0:
