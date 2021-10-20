@@ -12,11 +12,6 @@ if TYPE_CHECKING:
     from ..assignment.assignment import PathComponent, PathComponent
 
 
-class CacheStatus(Enum):
-    FALSE = 0
-    TRUE = 1
-    PARTIAL = 2
-
 
 class DefaultFunctionQuib(FunctionQuib):
     """
@@ -30,12 +25,7 @@ class DefaultFunctionQuib(FunctionQuib):
         """
         User interface to check cache validity.
         """
-        if self._cache.is_valid_at_path([]):
-            return CacheStatus.TRUE
-        elif not self._cache.is_valid_at_path(None):
-            return CacheStatus.FALSE
-        else:
-            return CacheStatus.PARTIAL
+        return self._cache.get_cache_status()
 
     def __init__(self,
                  func: Callable,

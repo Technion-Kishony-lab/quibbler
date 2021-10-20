@@ -5,7 +5,7 @@ import numpy as np
 from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.quib.assignment.inverse_assignment.utils import create_empty_array_with_values_at_indices
 from pyquibbler.quib.assignment.utils import deep_assign_data_with_paths
-from pyquibbler.quib.function_quibs.cache.shallow_cache import ShallowCache
+from pyquibbler.quib.function_quibs.cache.shallow_cache import ShallowCache, CacheStatus
 
 
 class NdShallowCache(ShallowCache):
@@ -20,6 +20,18 @@ class NdShallowCache(ShallowCache):
     def matches_result(self, result):
         return super(NdShallowCache, self).matches_result(result) \
                and result.shape == self.get_value().shape and result.dtype == self.get_value().dtype
+
+    def _is_completely_invalid(self):
+        if self._invalid_mask.dtype.names:
+            return all(np.all(self._invalid_mask[name]) for name in self._invalid_mask.dtype.names)
+        return np.all(self._invalid_mask)
+
+    def get_cache_status(self):
+        if len(self.get_uncached_paths([])) == 0:
+            return CacheStatus.ALL_VALID
+        elif self._is_completely_invalid():
+            return CacheStatus.ALL_INVALID
+        return CacheStatus.PARTIAL
 
     @classmethod
     def create_from_result(cls, result):

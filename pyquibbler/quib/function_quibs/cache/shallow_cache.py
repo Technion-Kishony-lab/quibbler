@@ -1,3 +1,4 @@
+from enum import Enum
 from functools import wraps
 from typing import List, Any, Optional, Type
 
@@ -14,6 +15,12 @@ class Invalid:
 
 
 invalid = Invalid()
+
+
+class CacheStatus(Enum):
+    ALL_INVALID = 0
+    ALL_VALID = 1
+    PARTIAL = 2
 
 
 class PathCannotHaveComponentsException(PyQuibblerException):
@@ -33,6 +40,9 @@ class ShallowCache:
     def create_from_result(cls, result):
         # We always start completely invalid
         return cls(invalid)
+
+    def get_cache_status(self):
+        return CacheStatus.ALL_VALID if len(self.get_uncached_paths([])) == 0 else CacheStatus.ALL_INVALID
 
     def matches_result(self, result):
         return isinstance(result, self.SUPPORTING_TYPES)

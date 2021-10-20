@@ -3,6 +3,7 @@ import pytest
 
 from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.quib.function_quibs.cache import NdShallowCache
+from pyquibbler.quib.function_quibs.cache.shallow_cache import CacheStatus
 
 
 @pytest.fixture
@@ -57,6 +58,12 @@ def test_nd_cache_set_valid_partial_returns_correct_paths(nd_array_cache):
 
     component = assert_and_get_single_uncached_path_component(uncached_paths)
     assert np.all(np.array([[True, True, True], [True, False, True]])[component.component])
+
+
+def test_nd_cache_cache_status_on_partial_validity(nd_array_cache):
+    nd_array_cache.set_valid_value_at_path([PathComponent(component=(1, 1), indexed_cls=np.ndarray)], 5)
+
+    assert nd_array_cache.get_cache_status() == CacheStatus.PARTIAL
 
 
 def test_nd_cache_get_uncached_paths_on_partial_returns_partial(nd_array_cache):
