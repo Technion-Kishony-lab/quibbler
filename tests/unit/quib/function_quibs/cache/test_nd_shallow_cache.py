@@ -19,7 +19,7 @@ def test_nd_cache_does_not_match_nd_array_of_different_shape(nd_array_cache):
 
 
 def test_nd_cache_does_not_match_different_type(nd_array_cache):
-    assert not nd_array_cache.matches_result(tuple())
+    assert not nd_array_cache.matches_result(23)
 
 
 def test_nd_cache_does_not_match_nd_array_of_different_dtype(nd_array_cache):

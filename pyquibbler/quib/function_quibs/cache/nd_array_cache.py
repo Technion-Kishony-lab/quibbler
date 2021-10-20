@@ -11,6 +11,8 @@ from pyquibbler.quib.function_quibs.cache.shallow_cache import ShallowCache
 class NdShallowCache(ShallowCache):
     # TODO: Maybe change name to match module?
 
+    SUPPORTING_TYPES = (np.ndarray,)
+
     def __init__(self, value: Any, mask):
         super(NdShallowCache, self).__init__(value)
         self._invalid_mask = mask
