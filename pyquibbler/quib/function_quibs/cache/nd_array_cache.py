@@ -61,10 +61,9 @@ class NdShallowCache(ShallowCache):
                 )
 
             # TODO: do we really want this filter?
-            return list(filter(lambda p: all([np.any(c.component) for c in p]), paths))
+            return list(filter(lambda p: np.any(p[-1].component), paths))
 
     def set_valid_value_at_path(self, path, value):
-        # todo: add test for validating...
         self._value = deep_assign_data_with_paths(self._value, path, value)
         self._invalid_mask = deep_assign_data_with_paths(self._invalid_mask, path, False)
 
