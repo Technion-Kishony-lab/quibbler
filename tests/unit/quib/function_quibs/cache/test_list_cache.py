@@ -109,6 +109,23 @@ def test_list_cache_get_cache_status_on_partial(list_cache):
     assert list_cache.get_cache_status() == CacheStatus.PARTIAL
 
 
+def test_list_cache_get_cache_status_when_completely_invalid_piece_by_piece(list_cache):
+    list_cache.set_valid_value_at_path([], [10, 10])
+
+    list_cache.set_invalid_at_path([PathComponent(component=0, indexed_cls=list)])
+    list_cache.set_invalid_at_path([PathComponent(component=1, indexed_cls=list)])
+
+    assert list_cache.get_cache_status() == CacheStatus.ALL_INVALID
+
+
+def test_list_cache_get_cache_status_when_completely_invalid_by_whole(list_cache):
+    list_cache.set_valid_value_at_path([], [10, 10])
+
+    list_cache.set_invalid_at_path([])
+
+    assert list_cache.get_cache_status() == CacheStatus.ALL_INVALID
+
+
 def test_list_cache_set_invalid_on_all_on_empty_list():
     lst = ListShallowCache.create_from_result([])
 

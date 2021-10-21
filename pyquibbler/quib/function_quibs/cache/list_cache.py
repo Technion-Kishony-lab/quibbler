@@ -51,3 +51,7 @@ class ListShallowCache(ShallowCache):
 
         for i in range(*range_to_set_invalid):
             self._value[i] = invalid
+    
+    def _is_completely_invalid(self):
+        return super(ListShallowCache, self)._is_completely_invalid() or all(x is invalid for x in self._value)
+    
