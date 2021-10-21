@@ -40,7 +40,7 @@ class ElementWiseFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunctionQuib
          [True, False, False],
          [True, False, False]]
         """
-        bool_mask = self._get_source_shaped_bool_mask(invalidator_quib, indices)
+        bool_mask = self._get_source_shaped_bool_mask(quib, indices)
         return np.broadcast_to(bool_mask, self.get_shape().get_value())
 
     def get_inversions_for_assignment(self, assignment: 'Assignment'):
