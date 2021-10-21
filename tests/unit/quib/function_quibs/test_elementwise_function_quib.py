@@ -4,6 +4,7 @@ import numpy as np
 from pyquibbler import iquib
 from pyquibbler.quib import ElementWiseFunctionQuib, Quib
 from pyquibbler.quib.assignment.assignment import PathComponent
+from pyquibbler.quib.function_quibs.cache.shallow_cache import CacheStatus
 
 from ..utils import PathBuilder
 
@@ -18,8 +19,8 @@ def test_elementwise_function_quib_invalidation_with_flat_list():
 
     a.invalidate_and_redraw_at_path(PathBuilder(a)[0].path)
 
-    assert not c.is_cache_valid
-    assert d.is_cache_valid
+    assert c.cache_status == CacheStatus.ALL_INVALID
+    assert d.cache_status == CacheStatus.ALL_VALID
 
 
 def test_elementwise_function_quib_invalidation_with_broadcast_numpy_array():
@@ -35,7 +36,7 @@ def test_elementwise_function_quib_invalidation_with_broadcast_numpy_array():
     a.invalidate_and_redraw_at_path(PathBuilder(a)[0, 0].path)
 
     for quib, should_be_invalidated in zip(quibs, should_be_invalidated_list):
-        assert quib.is_cache_valid == (not should_be_invalidated)
+        assert quib.cache_status == (CacheStatus.ALL_INVALID if should_be_invalidated else CacheStatus.ALL_VALID)
 
 
 def test_elementwise_function_quib_does_not_request_unneeded_indices_on_get_value():

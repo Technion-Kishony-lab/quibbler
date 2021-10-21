@@ -75,7 +75,7 @@ def test_invalidation_invalidates_quib_when_needed():
     function_quib.invalidate_and_redraw_at_path(path=[PathComponent(indexed_cls=function_quib.get_type(),
                                                                     component=(0, 0))])
 
-    assert not mock_dependant_quib.is_cache_valid
+    assert mock_dependant_quib.cache_status == CacheStatus.ALL_INVALID
 
 
 @pytest.mark.regression
