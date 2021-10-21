@@ -31,9 +31,7 @@ def test_nd_cache_starts_invalid(nd_array_cache):
     uncached_paths = nd_array_cache.get_uncached_paths([])
 
     assert len(uncached_paths) == 1
-    # we try not to check actual path as there could potentially be differnt ways to portray a path of everything
-    # (all Trues, indexes of everything, a single True, etc)
-    assert np.all(np.logical_and(np.full((2, 3), True), uncached_paths[0][0].component))
+    assert uncached_paths == [[]]
 
 
 def test_nd_cache_set_valid_all_returns_no_uncached_paths(nd_array_cache):
@@ -98,9 +96,7 @@ def test_nd_cache_field_array_set_invalid_all(nd_array_cache_with_field_array):
 
     paths = nd_array_cache_with_field_array.get_uncached_paths([])
 
-    assert len(paths) == 2
-    for i, component_name in enumerate(['name', 'age']):
-        assert np.all(np.full((3,), True)[paths[i][1].component])
+    assert paths == [[]]
 
 
 def test_nd_cache_field_array_set_valid_on_field(nd_array_cache_with_field_array):

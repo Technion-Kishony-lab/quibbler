@@ -91,10 +91,13 @@ class ShallowCache(Cache):
         if len(path) != 0:
             self._set_valid_value_at_path_component(path[0], value)
         else:
-            self._value = value
+            self._set_valid_value_all_paths(value)
 
     def _set_valid_value_at_path_component(self, path_component: PathComponent, value: Any):
         raise PathCannotHaveComponentsException()
+
+    def _set_valid_value_all_paths(self, value):
+        self._value = value
 
     def set_invalid_at_path(self, path: List[PathComponent]) -> None:
         if len(path) != 0:
