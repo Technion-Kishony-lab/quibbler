@@ -69,14 +69,7 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
         working_component, *rest_of_path = path
         bool_mask_in_output_array = self._forward_translate_indices_to_bool_mask(quib,
                                                                                  working_component.component)
-        if DEBUG:
-            # Make sure the bool mask fits our result shape
-            if issubclass(self.get_type(), np.ndarray):
-                try:
-                    self.get_value()[bool_mask_in_output_array]
-                except IndexError as e:
-                    raise IndexError(f'Value: {self.get_value()}\nMask: {bool_mask_in_output_array}'
-                                     f'\nShapes: {self.get_shape().get_value()}, {bool_mask_in_output_array.shape}') from e
+
         if np.any(bool_mask_in_output_array):
             # If there exist both True's and False's in the boolean mask,
             # this function's quib result must be an ndarray- if it were a single item (say a PyObj, int, dict, list)
