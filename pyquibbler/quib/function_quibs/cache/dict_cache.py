@@ -22,3 +22,20 @@ class DictShallowCache(ShallowCache):
         return super(DictShallowCache, self).matches_result(result) \
                and list(result.keys()) == list(self._value.keys())
 
+    def _set_valid_value_at_path_component(self, path_component: PathComponent, value: Any):
+        self._value[path_component.component] = value
+
+    # def _get_uncached_paths_at_path_component(self,
+    #                                           path_component: PathComponent) -> List[List[PathComponent]]:
+    #     return [
+    #         [PathComponent(component=k, indexed_cls=dict)]
+    #         for k, v in self._value.items()
+    #         if v is invalid
+    #     ]
+
+    def _get_all_uncached_paths(self) -> List[List[PathComponent]]:
+        return [
+            [PathComponent(component=k, indexed_cls=dict)]
+            for k, v in self._value.items()
+            if v is invalid
+        ]
