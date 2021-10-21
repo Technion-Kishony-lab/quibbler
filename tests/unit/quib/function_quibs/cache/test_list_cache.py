@@ -1,8 +1,11 @@
+from unittest import mock
+
 import pytest
 
 from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.quib.function_quibs.cache import ListShallowCache
 from pyquibbler.quib.function_quibs.cache.shallow_cache import CacheStatus
+from tests.unit.quib.function_quibs.cache.abc_test_cache import ABCTestCache, ABCTestIndexableCache
 
 
 @pytest.fixture
@@ -24,109 +27,50 @@ def assert_uncached_paths_popped_out_falses_in_list(uncached_paths, lst):
     assert all([o is True for o in lst])
 
 
-def test_list_cache_matches_result_of_list_type_and_same_length(list_cache):
-    assert list_cache.matches_result([1, 2, 3])
+class TestListCache(ABCTestIndexableCache):
 
+    cls = ListShallowCache
+    result = [1, 2, 3]
+    empty_result = []
+    unsupported_type_result = {1, 2, 3}
 
-def test_list_cache_does_not_match_result_of_list_type_and_different_length(list_cache):
-    assert not list_cache.matches_result([1, 2, 3, 4])
+    def test_list_cache_does_not_match_result_of_list_type_and_different_length(self, cache):
+        assert not cache.matches_result([1, 2, 3, 4])
 
+    @pytest.mark.parametrize("component,expected_valids", [
+        (1, [True, False, True]),
+        (slice(1, 3, None), [True, False, False]),
+        (slice(None, 2, None), [False, False, True]),
+        (slice(0, 3, 2), [False, True, False]),
+        (slice(None, 3, 2), [False, True, False]),
+        (slice(0, None, 2), [False, True, False]),
+    ])
+    def test_cache_set_invalid_partial(self, cache, component, expected_valids):
+        cache.set_valid_value_at_path([], [2, 3, 4])
+        cache.set_invalid_at_path([PathComponent(indexed_cls=list, component=component)])
+        uncached_paths = cache.get_uncached_paths([])
 
-def test_list_cache_does_not_match_result_of_non_list_type(list_cache):
-    assert not list_cache.matches_result({1, 2, 3})
+        assert_uncached_paths_popped_out_falses_in_list(uncached_paths, expected_valids)
 
+    @pytest.mark.parametrize("component,value,expected_valids", [
+        (0, mock.Mock(), [True, False, False]),
+        (slice(1, None, None), [mock.Mock(), mock.Mock()], [False, True, True]),
+    ])
+    def test_cache_set_valid_partial(self, cache, component, value, expected_valids):
+        cache.set_valid_value_at_path([PathComponent(indexed_cls=list, component=component)], value)
+        uncached_paths = cache.get_uncached_paths([])
+    
+        assert_uncached_paths_popped_out_falses_in_list(uncached_paths, expected_valids)
 
-def test_list_cache_starts_invalid(list_cache):
-    uncached_paths = list_cache.get_uncached_paths([])
+    def test_cache_get_cache_status_on_partial(self, cache):
+        cache.set_valid_value_at_path([PathComponent(indexed_cls=list, component=slice(1, None, None))], [10, 10])
+    
+        assert cache.get_cache_status() == CacheStatus.PARTIAL
 
-    assert_uncached_paths_popped_out_falses_in_list(uncached_paths, [False, False, False])
-
-
-def test_list_cache_set_valid_makes_uncached_paths_empty(list_cache):
-    list_cache.set_valid_value_at_path([], [2, 3, 4])
-    uncached_paths = list_cache.get_uncached_paths([])
-
-    assert len(uncached_paths) == 0
-
-
-def test_list_cache_set_invalid_all_makes_uncached_paths_return_all(list_cache):
-    list_cache.set_valid_value_at_path([], [2, 3, 4])
-    list_cache.set_invalid_at_path([])
-    uncached_paths = list_cache.get_uncached_paths([])
-
-    assert_uncached_paths_popped_out_falses_in_list(uncached_paths, [False, False, False])
-
-
-def test_list_cache_set_invalid_on_index_makes_uncached_paths_return_index(list_cache):
-    list_cache.set_valid_value_at_path([], [2, 3, 4])
-    list_cache.set_invalid_at_path([PathComponent(indexed_cls=list, component=1)])
-    uncached_paths = list_cache.get_uncached_paths([])
-
-    assert_uncached_paths_popped_out_falses_in_list(uncached_paths, [True, False, True])
-
-
-def test_list_cache_set_invalid_on_slice_makes_uncached_paths_return_slice(list_cache):
-    list_cache.set_valid_value_at_path([], [2, 3, 4])
-    list_cache.set_invalid_at_path([PathComponent(indexed_cls=list, component=slice(1, 3))])
-    uncached_paths = list_cache.get_uncached_paths([])
-
-    assert_uncached_paths_popped_out_falses_in_list(uncached_paths, [True, False, False])
-
-
-def test_list_cache_set_invalid_on_slice_with_end_none_makes_uncached_paths_return_slice(list_cache):
-    list_cache.set_valid_value_at_path([], [2, 3, 4])
-    list_cache.set_invalid_at_path([PathComponent(indexed_cls=list, component=slice(1, None, None))])
-    uncached_paths = list_cache.get_uncached_paths([])
-
-    assert_uncached_paths_popped_out_falses_in_list(uncached_paths, [True, False, False])
-
-
-def test_list_cache_set_invalid_on_slice_with_start_none_makes_uncached_paths_return_slice(list_cache):
-    list_cache.set_valid_value_at_path([], [2, 3, 4])
-    list_cache.set_invalid_at_path([PathComponent(indexed_cls=list, component=slice(None, 2, None))])
-    uncached_paths = list_cache.get_uncached_paths([])
-
-    assert_uncached_paths_popped_out_falses_in_list(uncached_paths, [False, False, True])
-
-
-def test_list_cache_set_valid_partial_returns_correct_paths(list_cache):
-    list_cache.set_valid_value_at_path([PathComponent(indexed_cls=list, component=0)], 10)
-    uncached_paths = list_cache.get_uncached_paths([])
-
-    assert_uncached_paths_popped_out_falses_in_list(uncached_paths, [True, False, False])
-
-
-def test_list_cache_set_valid_partial_slice_returns_correct_paths(list_cache):
-    list_cache.set_valid_value_at_path([PathComponent(indexed_cls=list, component=slice(1, None, None))], [10, 10])
-    uncached_paths = list_cache.get_uncached_paths([])
-
-    assert_uncached_paths_popped_out_falses_in_list(uncached_paths, [False, True, True])
-
-
-def test_list_cache_get_cache_status_on_partial(list_cache):
-    list_cache.set_valid_value_at_path([PathComponent(indexed_cls=list, component=slice(1, None, None))], [10, 10])
-
-    assert list_cache.get_cache_status() == CacheStatus.PARTIAL
-
-
-def test_list_cache_get_cache_status_when_completely_invalid_piece_by_piece(list_cache):
-    list_cache.set_valid_value_at_path([], [10, 10])
-
-    list_cache.set_invalid_at_path([PathComponent(component=0, indexed_cls=list)])
-    list_cache.set_invalid_at_path([PathComponent(component=1, indexed_cls=list)])
-
-    assert list_cache.get_cache_status() == CacheStatus.ALL_INVALID
-
-
-def test_list_cache_get_cache_status_when_completely_invalid_by_whole(list_cache):
-    list_cache.set_valid_value_at_path([], [10, 10])
-
-    list_cache.set_invalid_at_path([])
-
-    assert list_cache.get_cache_status() == CacheStatus.ALL_INVALID
-
-
-def test_list_cache_set_invalid_on_all_on_empty_list():
-    lst = ListShallowCache.create_from_result([])
-
-    assert lst.get_cache_status() == CacheStatus.ALL_INVALID
+    def test_list_cache_get_cache_status_when_completely_invalid_piece_by_piece(self, cache):
+        cache.set_valid_value_at_path([], [10, 10])
+    
+        cache.set_invalid_at_path([PathComponent(component=0, indexed_cls=list)])
+        cache.set_invalid_at_path([PathComponent(component=1, indexed_cls=list)])
+    
+        assert cache.get_cache_status() == CacheStatus.ALL_INVALID
