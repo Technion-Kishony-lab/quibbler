@@ -24,7 +24,7 @@ class ABCTestCache(ABC):
     def test_cache_starts_invalid(self, cache):
         uncached_paths = cache.get_uncached_paths([])
 
-        assert uncached_paths == [[]]
+        assert uncached_paths == [[]], f"{uncached_paths=}"
 
     def test_cache_set_valid_makes_uncached_paths_empty(self, cache):
         cache.set_valid_value_at_path([], self.result)
@@ -32,7 +32,7 @@ class ABCTestCache(ABC):
 
         assert len(uncached_paths) == 0
 
-    def test_cache_set_invalid_makes_uncached_paths_return_all(self, cache):
+    def test_cache_set_invalid_all_makes_uncached_paths_return_all(self, cache):
         cache.set_valid_value_at_path([], self.result)
         cache.set_invalid_at_path([])
 
@@ -130,3 +130,4 @@ class ABCTestIndexableCache(ABCTestCache):
     @abstractmethod
     def test_cache_get_cache_status_on_partial(self, cache):
         pass
+
