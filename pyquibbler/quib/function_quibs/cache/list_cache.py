@@ -9,54 +9,45 @@ class ListShallowCache(ShallowCache):
 
     SUPPORTING_TYPES = (list,)
 
-    def __init__(self, value: Any, whole_object_is_invalidated=False):
-        super().__init__(value)
-        self._whole_object_is_invalidated = whole_object_is_invalidated
-
     @classmethod
     def create_from_result(cls, result):
         return cls([invalid for _ in result], True)
-
-    def get_cache_status(self):
-        if self._whole_object_is_invalidated or all(x is invalid for x in self._value):
-            return CacheStatus.ALL_INVALID
-        if all(x is not invalid for x in self._value):
-            return CacheStatus.ALL_VALID
-        return CacheStatus.PARTIAL
 
     def matches_result(self, result):
         return super(ListShallowCache, self).matches_result(result) \
                and len(result) == len(self.get_value())
 
-    def set_invalid_at_path(self, path: List[PathComponent]) -> None:
-        if len(path) == 0:
-            self._whole_object_is_invalidated = True
-            range_to_set_invalid = (len(self._value),)
-        else:
-            component = path[0].component
-            if isinstance(component, slice):
-                range_to_set_invalid = (component.start or 0, component.stop or len(self._value), component.step or 1)
-            else:
-                range_to_set_invalid = (component, component + 1)
-
-        for i in range(*range_to_set_invalid):
-            self._value[i] = invalid
-
-    def set_valid_value_at_path(self, path: List[PathComponent], value: Any) -> None:
-        self._whole_object_is_invalidated = False
-        self._value = deep_assign_data_with_paths(self._value, path, value)
-
-    def get_uncached_paths(self, path):
-        if self._whole_object_is_invalidated:
-            return [[]]
-
+    def _get_uncached_paths_at_path_component(self,
+                                              path_component: PathComponent) -> List[List[PathComponent]]:
         mask = [(i, obj) for i, obj in enumerate(self._value)]
-        data = get_sub_data_from_object_in_path(mask, path)
+        data = mask[path_component.component]
+
         if not isinstance(data, list):
+            # We need to take care of slices
             data = [data]
 
-        return [
+        return super(ListShallowCache, self)._get_uncached_paths_at_path_component(path_component) or [
             [PathComponent(indexed_cls=list, component=i)]
             for i, value in data
             if value is invalid
         ]
+
+    def _get_all_uncached_paths(self) -> List[List[PathComponent]]:
+        return super(ListShallowCache, self)._get_all_uncached_paths() or [
+            [PathComponent(indexed_cls=list, component=i)]
+            for i, value in enumerate(self._value)
+            if value is invalid
+        ]
+
+    def _set_valid_value_at_path_component(self, path_component: PathComponent, value):
+        self._value[path_component.component] = value
+
+    def _set_invalid_at_path_component(self, path_component: PathComponent):
+        component = path_component.component
+        if isinstance(component, slice):
+            range_to_set_invalid = (component.start or 0, component.stop or len(self._value), component.step or 1)
+        else:
+            range_to_set_invalid = (component, component + 1)
+
+        for i in range(*range_to_set_invalid):
+            self._value[i] = invalid

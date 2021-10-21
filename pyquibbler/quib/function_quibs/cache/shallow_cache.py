@@ -1,6 +1,7 @@
+from abc import ABC, abstractmethod, ABCMeta
 from enum import Enum
 from functools import wraps
-from typing import List, Any, Optional, Type
+from typing import List, Any, Optional, Type, Tuple
 
 import numpy as np
 
@@ -29,41 +30,94 @@ class PathCannotHaveComponentsException(PyQuibblerException):
         return "This shallow cache does not support specifying paths that are not `all` (ie `[]`)"
 
 
-class ShallowCache:
+class Cache(ABC):
 
-    SUPPORTING_TYPES = (object,)
+    SUPPORTING_TYPES: Tuple[Type] = NotImplemented
 
-    def __init__(self, value: Any):
+    def __init__(self, value):
         self._value = value
 
     @classmethod
     def create_from_result(cls, result):
-        # We always start completely invalid
-        return cls(invalid)
+        raise NotImplementedError()
 
-    def get_cache_status(self):
-        return CacheStatus.ALL_VALID if len(self.get_uncached_paths([])) == 0 else CacheStatus.ALL_INVALID
-
-    def matches_result(self, result):
+    def matches_result(self, result) -> bool:
         return isinstance(result, self.SUPPORTING_TYPES)
 
+    @abstractmethod
     def set_valid_value_at_path(self, path: List[PathComponent], value: Any) -> None:
-        if len(path) != 0:
-            raise PathCannotHaveComponentsException()
-        self._value = value
+        pass
 
+    @abstractmethod
     def set_invalid_at_path(self, path: List[PathComponent]) -> None:
-        if len(path) != 0:
-            raise PathCannotHaveComponentsException()
-        self._value = invalid
+        pass
 
-    def get_uncached_paths(self, path):
-        if self._value is invalid:
-            return [path]
-        return []
+    @abstractmethod
+    def get_uncached_paths(self, path: List[PathComponent]) -> List[List[PathComponent]]:
+        pass
+
+    @abstractmethod
+    def get_cache_status(self) -> CacheStatus:
+        pass
 
     def get_value(self) -> Any:
         return self._value
 
 
+class ShallowCache(Cache):
 
+    SUPPORTING_TYPES = (object,)
+
+    def __init__(self, value: Any, object_is_invalidated_as_a_whole: bool):
+        super().__init__(value)
+        self._object_is_invalidated_as_a_whole = object_is_invalidated_as_a_whole
+
+    @classmethod
+    def create_from_result(cls, result):
+        # We always start completely invalid
+        return cls(invalid, True)
+
+    def get_cache_status(self):
+        uncached_paths = self.get_uncached_paths([])
+        if len(uncached_paths) == 0:
+            return CacheStatus.ALL_VALID
+        elif self._is_completely_invalid():
+            return CacheStatus.ALL_INVALID
+        else:
+            return CacheStatus.PARTIAL
+
+    def set_valid_value_at_path(self, path: List[PathComponent], value: Any) -> None:
+        self._object_is_invalidated_as_a_whole = False
+        if len(path) != 0:
+            self._set_valid_value_at_path_component(path[0], value)
+        else:
+            self._value = value
+
+    def _set_valid_value_at_path_component(self, path_component: PathComponent, value: Any):
+        raise PathCannotHaveComponentsException()
+
+    def set_invalid_at_path(self, path: List[PathComponent]) -> None:
+        if len(path) != 0:
+            self._set_invalid_at_path_component(path[0])
+        else:
+            self._object_is_invalidated_as_a_whole = True
+
+    def _set_invalid_at_path_component(self, path_component: PathComponent):
+        raise PathCannotHaveComponentsException()
+
+    def get_uncached_paths(self, path: List[PathComponent]):
+        if len(path) == 0:
+            return self._get_all_uncached_paths()
+        else:
+            return self._get_uncached_paths_at_path_component(path[0])
+
+    def _get_all_uncached_paths(self) -> List[List[PathComponent]]:
+        return [[]] if self._object_is_invalidated_as_a_whole else []
+
+    def _get_uncached_paths_at_path_component(self,
+                                              path_component: PathComponent)\
+            -> List[List[PathComponent]]:
+        return [[path_component]] if self._object_is_invalidated_as_a_whole else []
+
+    def _is_completely_invalid(self):
+        return self._object_is_invalidated_as_a_whole
