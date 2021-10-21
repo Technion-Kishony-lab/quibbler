@@ -230,11 +230,21 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         for artist in self._artists:
             CanvasEventHandler.get_or_create_initialized_event_handler(artist.figure.canvas)
 
+    def _remove_artists_from_self_that_were_removed_from_axes(self):
+        """
+        We want to remove any artists that we created from self._artists that were removed by another means
+        other than us (for example, cla())
+        """
+        for artist in self._artists[:]:
+            if artist not in self._get_artist_array(artist):
+                self._artists.remove(artist)
+
     def _call_func(self):
         """
         The main entrypoint- this reruns the function that created the artists in the first place,
         and replaces the current artists with the new ones
         """
+        self._remove_artists_from_self_that_were_removed_from_axes()
         # Get the *current* artists together with their starting indices (per axes per artists array) so we can
         # place the new artists we create in their correct locations
         axeses_to_array_names_to_indices_and_artists = self._get_axeses_to_array_names_to_starting_indices_and_artists()

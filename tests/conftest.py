@@ -1,3 +1,4 @@
+import pytest
 from pytest import fixture
 
 from pyquibbler import CacheBehavior, override_all
@@ -60,3 +61,11 @@ def setup_lazy(request):
 @fixture(autouse=True)
 def setup_assignment_restrictions(request):
     yield from setup_flag(ASSIGNMENT_RESTRICTIONS, DEFAULT_ASSIGNMENT_RESTRICTIONS, request)
+
+
+@pytest.fixture
+def axes():
+    from matplotlib import pyplot as plt
+    plt.close("all")
+    plt.gcf().set_size_inches(8, 6)
+    return plt.gca()
