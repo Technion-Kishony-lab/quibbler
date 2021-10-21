@@ -62,9 +62,12 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
                  kwargs: Mapping[str, Any],
                  cache_behavior: Optional[CacheBehavior],
                  artists: List[Artist],
-                 assignment_template: Optional[AssignmentTemplate] = None):
+                 assignment_template: Optional[AssignmentTemplate] = None,
+                 had_artists_on_last_run: bool = False
+                 ):
         super().__init__(func, args, kwargs, cache_behavior, assignment_template=assignment_template)
         self._artists = artists
+        self._had_artists_on_last_run = had_artists_on_last_run
 
     @classmethod
     def create(cls, func, func_args=(), func_kwargs=None, cache_behavior=None, lazy=False, **kwargs):
@@ -188,6 +191,7 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         with global_collecting.ArtistsCollector() as collector:
             func_res = super()._call_func()
         self._artists = collector.artists_collected
+        self._had_artists_on_last_run = len(self._artists) > 0
 
         save_func_and_args_on_artists(self._artists, func=self.func, args=self.args)
         self.persist_self_on_artists()
@@ -245,6 +249,12 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         and replaces the current artists with the new ones
         """
         self._remove_artists_from_self_that_were_removed_from_axes()
+        if self._had_artists_on_last_run and len(self._artists) == 0 and len(self.children) == 0:
+            # If we both do not have artists and do not have children, we do not want to run, as in this situation
+            # our artists have been cleared (by someone other than us)
+            # and nothing is actually pointing to us- we could have just as well been garbage collected
+            return
+
         # Get the *current* artists together with their starting indices (per axes per artists array) so we can
         # place the new artists we create in their correct locations
         axeses_to_array_names_to_indices_and_artists = self._get_axeses_to_array_names_to_starting_indices_and_artists()
