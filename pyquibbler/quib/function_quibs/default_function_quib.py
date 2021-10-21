@@ -80,8 +80,10 @@ class DefaultFunctionQuib(FunctionQuib):
             uncached_paths = self._cache.get_uncached_paths(new_path) if self._cache is not None else [new_path]
         except (TypeError, IndexError):
             # TODO: do we really want to do this??
-            uncached_paths = [[]]
-
+            if new_path is not None:
+                uncached_paths = [[]]
+            else:
+                uncached_paths = []
         start_time = perf_counter()
 
         if len(uncached_paths) == 0:
