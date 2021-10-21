@@ -70,11 +70,11 @@ class ABCTestIndexableCache(ABCTestCache):
         assert cache.get_cache_status() == CacheStatus.ALL_INVALID
 
     @abstractmethod
-    def test_cache_set_valid_partial(self, cache):
+    def test_cache_set_valid_partial_and_get_uncached_paths(self, cache):
         pass
 
     @abstractmethod
-    def test_cache_set_invalid_partial(self, cache):
+    def test_cache_set_invalid_partial_and_get_uncached_paths(self, cache):
         pass
 
     @abstractmethod
