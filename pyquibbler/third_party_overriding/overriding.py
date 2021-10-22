@@ -41,6 +41,7 @@ NUMPY_OVERRIDES = [
                                         "any", "all", "cumprod",
                                         "cumproduct", "cumsum", "diff", "average", "mean", "prod",
                                         "sort", "var", "median",
+                                        "argmin","argmax","nanargmin","nanargmax",
                                         }),
     ]),
     (np.random, [
