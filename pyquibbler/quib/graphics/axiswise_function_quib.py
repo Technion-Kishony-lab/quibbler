@@ -10,11 +10,11 @@ from ..function_quibs.indices_translator_function_quib import IndicesTranslatorF
 
 class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunctionQuib):
     SUPPORTED_FUNCTIONS = {
-        np.vectorize.__call__: SupportedFunction(None)
+        np.vectorize.__call__: SupportedFunction(slice(1, None))
     }
 
     def _forward_translate_indices_to_bool_mask(self, invalidator_quib: Quib, indices: Any) -> Any:
-        vectorize_obj = self._get_arg_value_at_position(0)
+        vectorize_obj = self._get_arg_values_by_position()[0]
         translator = np.vectorize(np.any, vectorize_obj.otypes, vectorize_obj.__doc__, vectorize_obj.excluded,
                                   vectorize_obj.cache, vectorize_obj.signature)
         source_bool_mask = self._get_source_shaped_bool_mask(invalidator_quib, indices)

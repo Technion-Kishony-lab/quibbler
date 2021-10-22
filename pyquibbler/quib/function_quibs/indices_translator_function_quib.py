@@ -2,7 +2,7 @@ import numpy as np
 from abc import abstractmethod
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import Set, Optional, Dict, Callable, List, Any
+from typing import Set, Optional, Dict, Callable, List, Any, Union
 
 from pyquibbler.env import DEBUG
 from pyquibbler.quib.assignment.inverse_assignment.utils import create_empty_array_with_values_at_indices
@@ -15,7 +15,12 @@ from pyquibbler.quib.utils import iter_objects_of_type_in_object_shallowly
 @dataclass
 class SupportedFunction:
     # None means that all args are data sources
-    data_source_indices: Optional[Set[int]]
+    data_source_indices: Union[Set[int], slice]
+
+    def get_data_source_args(self, args: List[Any]) -> List[Any]:
+        if isinstance(self.data_source_indices, slice):
+            return args[self.data_source_indices]
+        return [args[i] for i in self.data_source_indices]
 
 
 class IndicesTranslatorFunctionQuib(FunctionQuib):
@@ -43,10 +48,9 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
     @lru_cache()
     def get_data_source_quibs(self) -> Set:
         if self.SUPPORTED_FUNCTIONS is not None:
-            data_source_indices = self.SUPPORTED_FUNCTIONS[self._func].data_source_indices
-            if data_source_indices is not None:
-                return {quib for i in data_source_indices
-                        for quib in iter_objects_of_type_in_object_shallowly(Quib, self._get_arg_value_at_position(i))}
+            supported_function = self.SUPPORTED_FUNCTIONS[self._func]
+            data_source_args = supported_function.get_data_source_args(self._get_arg_values_by_position())
+            return set(iter_objects_of_type_in_object_shallowly(Quib, data_source_args))
         return self.parents
 
     def _is_quib_a_data_source(self, quib: Quib):
