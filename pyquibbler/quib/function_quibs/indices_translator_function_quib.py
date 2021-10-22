@@ -11,16 +11,19 @@ from pyquibbler.quib.function_quibs import FunctionQuib
 from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.quib.utils import iter_objects_of_type_in_object_shallowly
 
+Args = List[Any]
+Kwargs = Dict[str, Any]
+
 
 @dataclass
 class SupportedFunction:
-    # None means that all args are data sources
-    data_source_indices: Union[Set[int], slice]
+    data_source_indices: Union[Set[Union[int, str]],
+                               Callable[[Args, Kwargs], List[Any]]]
 
-    def get_data_source_args(self, args: List[Any]) -> List[Any]:
-        if isinstance(self.data_source_indices, slice):
-            return args[self.data_source_indices]
-        return [args[i] for i in self.data_source_indices]
+    def get_data_source_args(self, args: Args, kwargs: Kwargs) -> List[Any]:
+        if callable(self.data_source_indices):
+            return self.data_source_indices(args, kwargs)
+        return [args[i] if isinstance(i, int) else kwargs[i] for i in self.data_source_indices]
 
 
 class IndicesTranslatorFunctionQuib(FunctionQuib):
@@ -49,7 +52,7 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
     def get_data_source_quibs(self) -> Set:
         if self.SUPPORTED_FUNCTIONS is not None:
             supported_function = self.SUPPORTED_FUNCTIONS[self._func]
-            data_source_args = supported_function.get_data_source_args(self._get_arg_values_by_position())
+            data_source_args = supported_function.get_data_source_args(self.args, self.kwargs)
             return set(iter_objects_of_type_in_object_shallowly(Quib, data_source_args))
         return self.parents
 
