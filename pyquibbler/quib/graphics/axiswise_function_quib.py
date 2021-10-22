@@ -35,6 +35,7 @@ class AxisWiseGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFuncti
         np.cumsum: SupportedFunction({0}),
         np.min: SupportedFunction({0}),
         np.max: SupportedFunction({0}),
+        np.std: SupportedFunction({0}),
     }
 
     def _forward_translate_indices_to_bool_mask(self, invalidator_quib: Quib, indices: Any) -> Any:
