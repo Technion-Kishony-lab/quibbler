@@ -31,11 +31,22 @@ from ..function_quibs.indices_translator_function_quib import IndicesTranslatorF
 
 class AxisWiseGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunctionQuib):
     SUPPORTED_FUNCTIONS = {
-        np.sum: SupportedFunction({0}),
-        np.cumsum: SupportedFunction({0}),
-        np.min: SupportedFunction({0}),
-        np.max: SupportedFunction({0}),
-        np.std: SupportedFunction({0}),
+        np.sum:         SupportedFunction({0}),
+        np.cumsum:      SupportedFunction({0}),
+        np.min:         SupportedFunction({0}),
+        np.max:         SupportedFunction({0}),
+        np.std:         SupportedFunction({0}),
+        np.any:         SupportedFunction({0}),
+        np.all:         SupportedFunction({0}),
+        np.prod:        SupportedFunction({0}),
+        np.cumprod:     SupportedFunction({0}),
+        np.cumproduct:  SupportedFunction({0}),
+        np.diff:        SupportedFunction({0}),
+        np.average:     SupportedFunction({0}),
+        np.mean:        SupportedFunction({0}),
+        np.median:      SupportedFunction({0}),
+        np.var:         SupportedFunction({0}),
+        np.sort:        SupportedFunction({0}),
     }
 
     def _forward_translate_indices_to_bool_mask(self, invalidator_quib: Quib, indices: Any) -> Any:
