@@ -1,14 +1,13 @@
-from operator import getitem
 from unittest import mock
 
 import numpy as np
 import pytest
 from pytest import fixture, mark
 
-from pyquibbler import iquib, CacheBehavior, Assignment
-from pyquibbler.quib import DefaultFunctionQuib, Quib
+from pyquibbler import iquib, CacheBehavior
+from pyquibbler.quib import DefaultFunctionQuib
 from pyquibbler.quib.assignment.assignment import PathComponent
-from pyquibbler.quib.function_quibs.cache.shallow_cache import CacheStatus
+from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import CacheStatus
 
 
 @fixture

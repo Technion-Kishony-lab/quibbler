@@ -1,11 +1,10 @@
-from typing import List, Any
+from typing import List
 
 from pyquibbler.quib.assignment import PathComponent
-from pyquibbler.quib.assignment.utils import deep_assign_data_with_paths, get_sub_data_from_object_in_path
-from pyquibbler.quib.function_quibs.cache.shallow_cache import ShallowCache, invalid, CacheStatus
+from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import ShallowCache, invalid
 
 
-class ListShallowCache(ShallowCache):
+class ListCache(ShallowCache):
 
     SUPPORTING_TYPES = (list,)
 
@@ -14,7 +13,7 @@ class ListShallowCache(ShallowCache):
         return cls([invalid for _ in result], True)
 
     def matches_result(self, result):
-        return super(ListShallowCache, self).matches_result(result) \
+        return super(ListCache, self).matches_result(result) \
                and len(result) == len(self.get_value())
 
     def _get_uncached_paths_at_path_component(self,
@@ -26,14 +25,14 @@ class ListShallowCache(ShallowCache):
             # We need to take care of slices
             data = [data]
 
-        return super(ListShallowCache, self)._get_uncached_paths_at_path_component(path_component) or [
+        return super(ListCache, self)._get_uncached_paths_at_path_component(path_component) or [
             [PathComponent(indexed_cls=list, component=i)]
             for i, value in data
             if value is invalid
         ]
 
     def _get_all_uncached_paths(self) -> List[List[PathComponent]]:
-        return super(ListShallowCache, self)._get_all_uncached_paths() or [
+        return super(ListCache, self)._get_all_uncached_paths() or [
             [PathComponent(indexed_cls=list, component=i)]
             for i, value in enumerate(self._value)
             if value is invalid
@@ -53,5 +52,5 @@ class ListShallowCache(ShallowCache):
             self._value[i] = invalid
     
     def _is_completely_invalid(self):
-        return super(ListShallowCache, self)._is_completely_invalid() or all(x is invalid for x in self._value)
+        return super(ListCache, self)._is_completely_invalid() or all(x is invalid for x in self._value)
     

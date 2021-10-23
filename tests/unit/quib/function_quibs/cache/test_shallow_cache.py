@@ -1,10 +1,9 @@
-from abc import ABC
 from unittest import mock
 
 import pytest
 
 from pyquibbler.quib.function_quibs.cache import ShallowCache
-from pyquibbler.quib.function_quibs.cache.shallow_cache import PathCannotHaveComponentsException
+from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import PathCannotHaveComponentsException
 from tests.unit.quib.function_quibs.cache.cache_test import CacheTest
 
 

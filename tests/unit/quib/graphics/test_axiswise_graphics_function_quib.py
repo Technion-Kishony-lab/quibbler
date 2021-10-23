@@ -2,7 +2,7 @@ import numpy as np
 from pytest import mark
 
 from pyquibbler import iquib
-from pyquibbler.quib.function_quibs.cache.shallow_cache import CacheStatus
+from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import CacheStatus
 
 
 def check_invalidation(func, kwargs, data_kwarg, indices_to_invalidate):

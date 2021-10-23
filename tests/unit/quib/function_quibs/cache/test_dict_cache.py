@@ -1,10 +1,8 @@
 from unittest import mock
 
-import pytest
-
 from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.quib.function_quibs.cache import DictShallowCache
-from pyquibbler.quib.function_quibs.cache.shallow_cache import CacheStatus
+from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import CacheStatus
 from tests.unit.quib.function_quibs.cache.cache_test import IndexableCacheTest, SetValidTestCase, \
     SetInvalidTestCase
 

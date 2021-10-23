@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 from pyquibbler.quib.assignment import PathComponent
-from pyquibbler.quib.function_quibs.cache.shallow_cache import CacheStatus
+from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import CacheStatus
 from pyquibbler.quib.utils import deep_copy_without_quibs_or_artists
 
 

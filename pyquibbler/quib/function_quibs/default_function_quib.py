@@ -1,10 +1,9 @@
-from enum import Enum
 from sys import getsizeof
 from time import perf_counter
 from typing import Callable, Any, Mapping, Tuple, Optional, List, TYPE_CHECKING
 
 from pyquibbler.quib.function_quibs.cache import create_cache
-from .cache.shallow_cache import CacheStatus
+from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import CacheStatus
 from .function_quib import FunctionQuib, CacheBehavior
 from ..assignment import AssignmentTemplate
 from ..assignment.utils import get_sub_data_from_object_in_path

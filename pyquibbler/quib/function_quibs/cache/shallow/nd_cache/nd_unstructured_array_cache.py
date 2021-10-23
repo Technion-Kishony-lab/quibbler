@@ -1,56 +1,37 @@
-from typing import Any, List
+from typing import List
 
 import numpy as np
 
 from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.quib.assignment.inverse_assignment.utils import create_empty_array_with_values_at_indices
-from pyquibbler.quib.assignment.utils import deep_assign_data_with_paths
-from pyquibbler.quib.function_quibs.cache.shallow_cache import ShallowCache, CacheStatus
+from pyquibbler.quib.function_quibs.cache.shallow.nd_cache.nd_array_cache import NdArrayCache
 
 
-class NdShallowCache(ShallowCache):
+class NdUnstructuredArrayCache(NdArrayCache):
     # TODO: Maybe change name to match module?
 
     SUPPORTING_TYPES = (np.ndarray,)
 
-    def __init__(self, value: Any, whole_object_is_invalidated, mask):
-        super(NdShallowCache, self).__init__(value, whole_object_is_invalidated)
-        self._invalid_mask = mask
-        self._whole_object_is_invalidated = whole_object_is_invalidated
-
-    def matches_result(self, result):
-        return super(NdShallowCache, self).matches_result(result) \
-               and result.shape == self.get_value().shape and result.dtype == self.get_value().dtype
+    @classmethod
+    def supports_result(cls, result):
+        return super(NdUnstructuredArrayCache, cls).supports_result(result) and result.dtype.names is None
 
     def _is_completely_invalid(self):
         if self._invalid_mask.dtype.names:
             invalid = all(np.all(self._invalid_mask[name]) for name in self._invalid_mask.dtype.names)
         else:
             invalid = np.all(self._invalid_mask)
-        return super(NdShallowCache, self)._is_completely_invalid() or invalid
+        return super(NdUnstructuredArrayCache, self)._is_completely_invalid() or invalid
 
     @classmethod
     def create_from_result(cls, result):
-        dtype = np.bool_
-        if result.dtype.names is not None:
-            dtype = [(name, np.bool_) for name in result.dtype.names]
-        mask = np.full(result.shape, True, dtype=dtype)
+        mask = np.full(result.shape, True, dtype=np.bool_)
         return cls(result, True, mask)
-
-    def _set_valid_value_all_paths(self, value):
-        super(NdShallowCache, self)._set_valid_value_all_paths(value)
-
-        dtype = np.bool_
-        if value.dtype.names is not None:
-            dtype = [(name, np.bool_) for name in value.dtype.names]
-        mask = np.full(value.shape, False, dtype=dtype)
-
-        self._invalid_mask = mask
 
     def _set_invalid_at_path_component(self, path_component: PathComponent):
         if self._invalid_mask.dtype.names is None:
             self._invalid_mask[path_component.component] = True
-        elif self._invalid_mask.dtype is not None and not path_component.references_field_in_field_array():
+        elif not path_component.references_field_in_field_array():
             for name in self._invalid_mask.dtype.names:
                 self._invalid_mask[name] = True
 
@@ -82,11 +63,11 @@ class NdShallowCache(ShallowCache):
         return list(filter(lambda p: np.any(p[-1].component), paths))
 
     def _get_all_uncached_paths(self) -> List[List[PathComponent]]:
-        return super(NdShallowCache, self)._get_all_uncached_paths() or self._get_uncached_paths_at_indices(True)
+        return super(NdUnstructuredArrayCache, self)._get_all_uncached_paths() or self._get_uncached_paths_at_indices(True)
 
     def _get_uncached_paths_at_path_component(self,
                                               path_component: PathComponent) -> List[List[PathComponent]]:
-        paths = super(NdShallowCache, self)._get_uncached_paths_at_path_component(path_component)
+        paths = super(NdUnstructuredArrayCache, self)._get_uncached_paths_at_path_component(path_component)
         if paths:
             return paths
 
@@ -97,7 +78,3 @@ class NdShallowCache(ShallowCache):
             return []
         else:
             return self._get_uncached_paths_at_indices(path_component.component)
-
-    def _set_valid_value_at_path_component(self, path_component: PathComponent, value: Any):
-        self._value[path_component.component] = value
-        self._invalid_mask[path_component.component] = False

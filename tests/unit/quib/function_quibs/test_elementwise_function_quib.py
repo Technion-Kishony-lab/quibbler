@@ -1,11 +1,10 @@
-from typing import Set, Optional, List, Any
 from unittest import mock
 
 import numpy as np
 from pyquibbler import iquib
 from pyquibbler.quib import ElementWiseFunctionQuib, Quib
 from pyquibbler.quib.assignment.assignment import PathComponent
-from pyquibbler.quib.function_quibs.cache.shallow_cache import CacheStatus
+from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import CacheStatus
 
 from ..utils import PathBuilder
 
