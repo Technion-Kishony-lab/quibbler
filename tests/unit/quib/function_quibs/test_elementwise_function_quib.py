@@ -1,3 +1,4 @@
+from typing import Set, Optional, List, Any
 from unittest import mock
 
 import numpy as np
@@ -54,8 +55,9 @@ def test_elementwise_function_quib_does_not_request_unneeded_indices_on_get_valu
     )])
 
     assert result[1] == 3
-    assert len(fake_quib.get_value_valid_at_path.mock_calls) == 2
-    second_call = fake_quib.get_value_valid_at_path.mock_calls[1]
+    calls_requesting_values = [c for c in fake_quib.get_value_valid_at_path.mock_calls if c.args != (None,)]
+    assert len(calls_requesting_values) == 1
+    second_call = calls_requesting_values[0]
     assert isinstance(second_call.args[0][0], PathComponent)
     component = second_call.args[0][0]
-    assert np.array_equal(component.component, np.array([False, True]))
+    assert bool(np.array([False, True])[component.component]) is True
