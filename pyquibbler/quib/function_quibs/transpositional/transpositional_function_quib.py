@@ -236,8 +236,3 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
             for quib in self.get_data_source_quibs()
         }
 
-    def _get_translated_argument_quib_path_at_path(self, quib: Quib, arg_index: int, path: List[PathComponent]):
-        if path is None:
-            return None
-        quibs_to_paths = self._get_quibs_to_paths_in_result(path)
-        return quibs_to_paths.get(quib)

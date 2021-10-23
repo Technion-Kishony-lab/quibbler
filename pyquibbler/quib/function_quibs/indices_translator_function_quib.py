@@ -33,6 +33,13 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
             shape=invalidator_quib.get_shape().get_value()
         )
 
+    def _get_representative_result(self, working_component, value):
+        return create_empty_array_with_values_at_indices(
+                self.get_shape().get_value(),
+                indices=working_component,
+                value=value,
+            )
+
     @classmethod
     def create_wrapper(cls, func: Callable):
         if cls.SUPPORTED_FUNCTIONS is not None:
@@ -60,42 +67,6 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
     def _get_quibs_to_relevant_result_values(self, assignment: Assignment):
         return {}
 
-    def get_inversions_for_assignment(self, assignment: Assignment):
-        components_at_end = assignment.path[1:]
-        current_components = assignment.path[0:1]
-        if len(assignment.path) > 0 and assignment.path[0].references_field_in_field_array():
-            components_at_end = [assignment.path[0], *components_at_end]
-            current_components = []
-
-        quibs_to_paths = self._get_quibs_to_paths_in_result(current_components)
-        quibs_to_values = self._get_quibs_to_relevant_result_values(assignment)
-
-        quibs_with_assignments = []
-        for quib, path in quibs_to_paths.items():
-            values = quibs_to_values[quib]
-            quibs_with_assignments.append(
-                QuibWithAssignment(
-                    quib=quib,
-                    assignment=Assignment(
-                        path=[*path, *components_at_end],
-                        value=values
-                    )
-                )
-            )
-
-        return quibs_with_assignments
-
-    def _get_translated_argument_quib_path_at_path(self, quib: Quib, arg_index: int, path: List[PathComponent]):
-        if path is None:
-            return None
-        else:
-            working_component = path[0].component if len(path) > 0 else True
-        bool_mask = self._forward_translate_indices_to_bool_mask(indices=working_component, quib=quib)
-        return [PathComponent(
-            component=bool_mask,
-            indexed_cls=quib.get_type()
-        )]
-
     def _forward_translate_invalidation_path(self, quib: Quib,
                                              path: List[PathComponent]) -> Optional[List[PathComponent]]:
         working_component, *rest_of_path = path
@@ -120,3 +91,30 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
         if not self._is_quib_a_data_source(invalidator_quib):
             return []
         return self._forward_translate_invalidation_path(invalidator_quib, path)
+
+    def _get_translated_argument_quib_path_at_path(self, quib: Quib, arg_index: int, path: List[PathComponent]):
+        if path is None:
+            return None
+        quibs_to_paths = self._get_quibs_to_paths_in_result(path)
+        return quibs_to_paths.get(quib)
+
+    def get_inversions_for_assignment(self, assignment: Assignment):
+        components_at_end = assignment.path[1:]
+        current_components = assignment.path[0:1]
+        if len(assignment.path) > 0 and assignment.path[0].references_field_in_field_array():
+            components_at_end = [assignment.path[0], *components_at_end]
+            current_components = []
+
+        quibs_to_paths = self._get_quibs_to_paths_in_result(current_components)
+        quibs_to_values = self._get_quibs_to_relevant_result_values(assignment)
+
+        return [
+            QuibWithAssignment(
+                quib=quib,
+                assignment=Assignment(
+                    path=[*path, *components_at_end],
+                    value=quibs_to_values[quib]
+                )
+            )
+            for quib, path in quibs_to_paths.items()
+        ]

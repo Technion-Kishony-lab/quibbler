@@ -7,6 +7,12 @@ if TYPE_CHECKING:
     from ..quib import Quib
 
 
+def get_working_component_value_from_path(path: List[PathComponent], raise_on_empty_path: bool = False):
+    if len(path) == 0 and raise_on_empty_path:
+        raise Exception()
+    return path[0].component if len(path) > 0 else True
+
+
 @dataclass
 class PathComponent:
     indexed_cls: Type

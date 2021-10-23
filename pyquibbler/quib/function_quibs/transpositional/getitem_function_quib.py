@@ -68,7 +68,7 @@ class GetItemFunctionQuib(TranspositionalFunctionQuib):
         return PathComponent(indexed_cls=self.get_type(), component=self._args[1])
 
     def _can_squash_start_of_path(self, filtered_path_in_result):
-        return isinstance(self.get_type(), np.ndarray) \
+        return issubclass(self.get_type(), np.ndarray) \
                 and not self._getitem_path_component.references_field_in_field_array() \
                 and len(filtered_path_in_result) > 0 \
                 and not filtered_path_in_result[0].references_field_in_field_array()
