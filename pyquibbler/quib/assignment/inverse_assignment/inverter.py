@@ -26,9 +26,10 @@ class Inverter(ABC):
 
     SUPPORTED_FUNCTIONS: List[Callable] = NotImplemented
 
-    def __init__(self, function_quib, assignment: Assignment):
+    def __init__(self, function_quib, working_indices, value):
         self._function_quib = function_quib
-        self._assignment = assignment
+        self._working_np_indices = working_indices
+        self._value = value
 
     @lru_cache()
     def _get_quibs_in_args(self) -> List[Quib]:
@@ -42,24 +43,24 @@ class Inverter(ABC):
 
         return quibs
 
-    @property
-    def _working_np_indices(self):
-        """
-        Our working indices for a numpy array,
-        representing the indices in our input value that we're inverting (but only
-        the first step of this path- as this will be
-        the only step we'll logically be able to deal with- as if there's a dict within us we won't be reverting
-        that path component as well)
-        If the path is empty, we want to invert the whole input, so we return True, as doing getitem on an nparray
-        with True will give back the result
-        """
-        if len(self._assignment.path) == 0:
-            return True
-        return self._assignment.path[0].component
+    # @property
+    # def _working_np_indices(self):
+    #     """
+    #     Our working indices for a numpy array,
+    #     representing the indices in our input value that we're inverting (but only
+    #     the first step of this path- as this will be
+    #     the only step we'll logically be able to deal with- as if there's a dict within us we won't be reverting
+    #     that path component as well)
+    #     If the path is empty, we want to invert the whole input, so we return True, as doing getitem on an nparray
+    #     with True will give back the result
+    #     """
+    #     if len(self._assignment.path) == 0:
+    #         return True
+    #     return self._assignment.path[0].component
 
-    @property
-    def _value(self):
-        return self._assignment.value
+    # @property
+    # def _value(self):
+    #     return self._assignment.value
 
     @property
     def _func(self):
@@ -109,7 +110,8 @@ class Inverter(ABC):
             components_at_end = [assignment.path[0], *components_at_end]
             current_components = []
 
-        inverser = cls(function_quib, Assignment(assignment.value, current_components))
+        inverser = cls(function_quib, current_components[0].component if len(current_components) > 0 else True,
+                       assignment.value)
         quibs_with_assignments = inverser.get_inversed_quibs_with_assignments()
 
         for quib_with_assignment in quibs_with_assignments:

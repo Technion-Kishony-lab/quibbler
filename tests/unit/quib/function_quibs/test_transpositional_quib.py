@@ -4,7 +4,7 @@ from operator import getitem
 
 from pyquibbler import iquib
 from pyquibbler.quib.function_quibs.cache.shallow_cache import CacheStatus
-from pyquibbler.quib.function_quibs.transpositional_function_quib import TranspositionalFunctionQuib
+from pyquibbler.quib.function_quibs.transpositional.transpositional_function_quib import TranspositionalFunctionQuib
 
 from ..utils import PathBuilder
 

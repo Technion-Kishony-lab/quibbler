@@ -10,7 +10,7 @@ from matplotlib.axes import Axes
 
 from pyquibbler.quib import ImpureFunctionQuib, DefaultFunctionQuib, FunctionQuib, GraphicsFunctionQuib
 from pyquibbler.quib.function_quibs.elementwise_function_quib import ElementWiseFunctionQuib
-from pyquibbler.quib.function_quibs.transpositional_function_quib import TranspositionalFunctionQuib
+from pyquibbler.quib.function_quibs.transpositional.transpositional_function_quib import TranspositionalFunctionQuib
 from pyquibbler.quib.graphics import global_collecting, ReductionAxisWiseGraphicsFunctionQuib, \
     AlongAxisGraphicsFunctionQuib
 from pyquibbler.quib.graphics.plot_graphics_function_quib import PlotGraphicsFunctionQuib

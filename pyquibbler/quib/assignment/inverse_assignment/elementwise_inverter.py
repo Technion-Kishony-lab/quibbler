@@ -135,7 +135,7 @@ class ElementWiseInverter(Inverter):
                 arg_and_ancestors |= arg.ancestors
 
             if all_ancestors & arg_and_ancestors:
-                raise CommonAncestorBetweenArgumentsException(self._function_quib, self._assignment)
+                raise CommonAncestorBetweenArgumentsException(self._function_quib, None)
 
             all_ancestors |= arg_and_ancestors
 
@@ -145,7 +145,7 @@ class ElementWiseInverter(Inverter):
         """
         changed_indices = self._get_indices_to_change(quib_to_change)
 
-        value_to_set = new_value_for_quib if len(self._assignment.path) == 0 else new_value_for_quib[self._working_np_indices]
+        value_to_set = new_value_for_quib if self._working_np_indices is True else new_value_for_quib[self._working_np_indices]
 
         if len(changed_indices) == 0:
             new_path = []

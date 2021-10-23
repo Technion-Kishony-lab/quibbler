@@ -129,7 +129,7 @@ class TranspositionalInverter(Inverter):
             for quib in self._get_quibs_which_can_change()
         }
 
-    def _get_quibs_to_indices_in_quibs(self) -> Dict[Quib, np.ndarray]:
+    def get_quibs_to_indices_in_quibs(self) -> Dict[Quib, np.ndarray]:
         """
         Get a mapping of quibs to the quib's indices that were referenced in `self._indices` (ie after inversion of the
         indices relevant to the particular quib)
@@ -180,7 +180,9 @@ class TranspositionalInverter(Inverter):
         return [QuibWithAssignment(
             quib=self._args[0],
             assignment=Assignment(path=[PathComponent(indexed_cls=self._args[0].get_type(),
-                                                      component=self._args[1]), *self._assignment.path],
+                                                      component=self._args[1]),
+                                        PathComponent(indexed_cls=np.ndarray,
+                                                      component=self._working_np_indices)],
                                   value=self._value)
         )]
 
@@ -192,7 +194,7 @@ class TranspositionalInverter(Inverter):
         meaning our self.indices will always be True (as we're not dividing that last 'dimension').
         Because of this, we need to add self.field to the paths.
         """
-        quibs_to_indices_in_quibs = self._get_quibs_to_indices_in_quibs()
+        quibs_to_indices_in_quibs = self.get_quibs_to_indices_in_quibs()
         quibs_to_results = self._get_quibs_to_relevant_result_values()
 
         quibs_with_assignments = []
@@ -202,8 +204,7 @@ class TranspositionalInverter(Inverter):
                                              component=new_indices)] if new_indices is not None else []
             quibs_with_assignments.append(QuibWithAssignment(
                 quib=quib,
-                assignment=Assignment(path=[*prepended_paths,
-                                            *self._assignment.path[1:]],
+                assignment=Assignment(path=[*prepended_paths],
                                       value=quibs_to_results[quib])
             ))
         return quibs_with_assignments
@@ -213,10 +214,7 @@ class TranspositionalInverter(Inverter):
         Checks whether the next path component is translatable with our indices (ie that it's referencing regular
         non-field np indices)
         """
-        return (issubclass(self._function_quib.get_type(), np.ndarray)
-                and len(self._assignment.path) > 0
-                and not self._assignment.path[0].references_field_in_field_array()
-                )
+        return issubclass(self._function_quib.get_type(), np.ndarray)
 
     def _is_getitem_with_field(self):
         return \

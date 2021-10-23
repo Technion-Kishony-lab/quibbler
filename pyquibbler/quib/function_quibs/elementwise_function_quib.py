@@ -44,7 +44,5 @@ class ElementWiseFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunctionQuib
         return np.broadcast_to(bool_mask, self.get_shape().get_value())
 
     def get_inversions_for_assignment(self, assignment: 'Assignment'):
-        return ElementWiseInverter(
-            assignment=assignment,
-            function_quib=self
-        ).get_inversed_quibs_with_assignments()
+        return ElementWiseInverter.create_and_get_inversed_quibs_with_assignments(function_quib=self,
+                                                                                  assignment=assignment)
