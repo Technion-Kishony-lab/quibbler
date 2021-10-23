@@ -162,7 +162,7 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
                                                          indices=indices, value=True,
                                                          empty_value=False)
 
-    def get_quibs_to_paths_in_result(self, filtered_path_in_result) -> Dict[Quib, List[PathComponent]]:
+    def _get_quibs_to_paths_in_result(self, filtered_path_in_result) -> Dict[Quib, List[PathComponent]]:
         working_component = filtered_path_in_result[0].component if len(filtered_path_in_result) > 0 else True
         quibs_to_indices = self.get_quibs_to_indices_in_quibs(working_component)
         return {
@@ -235,31 +235,6 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
             quib: representative_result_value[np.logical_and(quibs_to_masks[quib], result_bool_mask)]
             for quib in self.get_data_source_quibs()
         }
-
-    def get_inversions_for_assignment(self, assignment: Assignment):
-        components_at_end = assignment.path[1:]
-        current_components = assignment.path[0:1]
-        if len(assignment.path) > 0 and assignment.path[0].references_field_in_field_array():
-            components_at_end = [assignment.path[0], *components_at_end]
-            current_components = []
-
-        quibs_to_paths = self.get_quibs_to_paths_in_result(current_components)
-        quibs_to_values = self._get_quibs_to_relevant_result_values(assignment)
-
-        quibs_with_assignments = []
-        for quib, path in quibs_to_paths.items():
-            values = quibs_to_values[quib]
-            quibs_with_assignments.append(
-                QuibWithAssignment(
-                    quib=quib,
-                    assignment=Assignment(
-                        path=[*path, *components_at_end],
-                        value=values
-                    )
-                )
-            )
-
-        return quibs_with_assignments
 
     def _get_translated_argument_quib_path_at_path(self, quib: Quib, arg_index: int, path: List[PathComponent]):
         if path is None:

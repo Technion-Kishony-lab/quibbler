@@ -13,7 +13,6 @@ if TYPE_CHECKING:
     from ..assignment.assignment import PathComponent, PathComponent
 
 
-
 class DefaultFunctionQuib(FunctionQuib):
     """
     The default implementation for a function quib, when no specific function quib type can be used.

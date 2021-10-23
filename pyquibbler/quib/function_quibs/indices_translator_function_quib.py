@@ -4,11 +4,12 @@ from dataclasses import dataclass
 from functools import lru_cache
 from typing import Set, Optional, Dict, Callable, List, Any
 
+from pyquibbler.quib.assignment import Assignment
 from pyquibbler.env import DEBUG
 from pyquibbler.quib.assignment.inverse_assignment.utils import create_empty_array_with_values_at_indices
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.function_quibs import FunctionQuib
-from pyquibbler.quib.assignment import PathComponent
+from pyquibbler.quib.assignment import PathComponent, QuibWithAssignment
 from pyquibbler.quib.utils import iter_objects_of_type_in_object_shallowly
 
 
@@ -52,6 +53,37 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
     @abstractmethod
     def _forward_translate_indices_to_bool_mask(self, quib: Quib, indices: Any) -> Any:
         pass
+
+    def _get_quibs_to_paths_in_result(self, filtered_path_in_result):
+        return {}
+
+    def _get_quibs_to_relevant_result_values(self, assignment: Assignment):
+        return {}
+
+    def get_inversions_for_assignment(self, assignment: Assignment):
+        components_at_end = assignment.path[1:]
+        current_components = assignment.path[0:1]
+        if len(assignment.path) > 0 and assignment.path[0].references_field_in_field_array():
+            components_at_end = [assignment.path[0], *components_at_end]
+            current_components = []
+
+        quibs_to_paths = self._get_quibs_to_paths_in_result(current_components)
+        quibs_to_values = self._get_quibs_to_relevant_result_values(assignment)
+
+        quibs_with_assignments = []
+        for quib, path in quibs_to_paths.items():
+            values = quibs_to_values[quib]
+            quibs_with_assignments.append(
+                QuibWithAssignment(
+                    quib=quib,
+                    assignment=Assignment(
+                        path=[*path, *components_at_end],
+                        value=values
+                    )
+                )
+            )
+
+        return quibs_with_assignments
 
     def _get_translated_argument_quib_path_at_path(self, quib: Quib, arg_index: int, path: List[PathComponent]):
         if path is None:
