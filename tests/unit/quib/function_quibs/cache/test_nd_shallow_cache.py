@@ -4,41 +4,51 @@ import pytest
 from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.quib.function_quibs.cache import NdShallowCache
 from pyquibbler.quib.function_quibs.cache.shallow_cache import CacheStatus
+from tests.unit.quib.function_quibs.cache.cache_test import IndexableCacheTest, SetValidTestCase
 
 
-@pytest.fixture
-def nd_array_cache() -> NdShallowCache:
-    return NdShallowCache.create_from_result(np.array([[1, 2, 3], [4, 5, 6]]))
+class TestNdArrayCache(IndexableCacheTest):
+    cls = NdShallowCache
+    result = np.array([[1, 2, 3], [4, 5, 6]])
 
+    unsupported_type_result = [1, 2, 3]
+    empty_result = np.array([])
+    set_valid_test_cases = [
+        SetValidTestCase(
+            name="set valid with index, get uncached without",
+            uncached_path_components=[],
+            valid_components=[(1, 1)],
+            valid_value=5,
+            expected_value=[[True, True, True], [True, False, True]]
+        ),
+        SetValidTestCase(
+            name="set valid with index, get uncached with",
+            uncached_path_components=[([0, 0], [0, 1])],
+            valid_components=[(0, 1)],
+            valid_value=5,
+            expected_value=[[True, False, False], [False, False, False]]
+        ),
+    ]
+    set_invalid_test_cases = []
 
-def test_nd_cache_matches_nd_array_of_same_shape(nd_array_cache):
-    assert nd_array_cache.matches_result(np.arange(6).reshape((2, 3)))
+    def assert_uncached_paths_match_expected_value(self, uncached_paths, expected_value):
+        assert len(uncached_paths) == 1
+        component = uncached_paths[0][0].component
+        assert np.all(np.array(expected_value)[component])
 
+    def test_nd_cache_does_not_match_nd_array_of_different_shape(self, cache):
+        assert not cache.matches_result(np.arange(6).reshape((3, 2)))
 
-def test_nd_cache_does_not_match_nd_array_of_different_shape(nd_array_cache):
-    assert not nd_array_cache.matches_result(np.arange(6).reshape((3, 2)))
+    def test_nd_cache_does_not_match_nd_array_of_different_dtype(self, cache):
+        assert not cache.matches_result(np.full((2, 3), "hello mike"))
+    
+    def test_cache_set_valid_partial_and_get_uncached_paths(self, cache, set_valid_test_case: SetValidTestCase):
+        super(TestNdArrayCache, self).test_cache_set_valid_partial_and_get_uncached_paths(cache, set_valid_test_case)
 
+    def test_cache_get_cache_status_on_partial(self, cache):
+        cache.set_valid_value_at_path([PathComponent(component=(1, 1), indexed_cls=np.ndarray)], 5)
 
-def test_nd_cache_does_not_match_different_type(nd_array_cache):
-    assert not nd_array_cache.matches_result(23)
-
-
-def test_nd_cache_does_not_match_nd_array_of_different_dtype(nd_array_cache):
-    assert not nd_array_cache.matches_result(np.full((2, 3), "hello mike"))
-
-
-def test_nd_cache_starts_invalid(nd_array_cache):
-    uncached_paths = nd_array_cache.get_uncached_paths([])
-
-    assert len(uncached_paths) == 1
-    assert uncached_paths == [[]]
-
-
-def test_nd_cache_set_valid_all_returns_no_uncached_paths(nd_array_cache):
-    nd_array_cache.set_valid_value_at_path([], np.full((2, 3), 1))
-    uncached_paths = nd_array_cache.get_uncached_paths([])
-
-    assert len(uncached_paths) == 0
+        assert cache.get_cache_status() == CacheStatus.PARTIAL
 
 
 def assert_and_get_single_uncached_path_component(uncached_paths):
@@ -48,39 +58,6 @@ def assert_and_get_single_uncached_path_component(uncached_paths):
     component = uncached_path[0]
     return component
 
-
-def test_nd_cache_set_valid_partial_returns_correct_paths(nd_array_cache):
-    nd_array_cache.set_valid_value_at_path([PathComponent(component=(1, 1), indexed_cls=np.ndarray)],
-                                           5)
-    uncached_paths = nd_array_cache.get_uncached_paths([])
-
-    component = assert_and_get_single_uncached_path_component(uncached_paths)
-    assert np.all(np.array([[True, True, True], [True, False, True]])[component.component])
-
-
-def test_nd_cache_cache_status_on_partial_validity(nd_array_cache):
-    nd_array_cache.set_valid_value_at_path([PathComponent(component=(1, 1), indexed_cls=np.ndarray)], 5)
-
-    assert nd_array_cache.get_cache_status() == CacheStatus.PARTIAL
-
-
-def test_nd_cache_get_uncached_paths_on_partial_returns_partial(nd_array_cache):
-    nd_array_cache.set_valid_value_at_path([PathComponent(component=(0, 1), indexed_cls=np.ndarray)], 5)
-
-    uncached_paths = nd_array_cache.get_uncached_paths([PathComponent(component=([0, 0], [0, 1]),
-                                                                      indexed_cls=np.ndarray)])
-
-    component = assert_and_get_single_uncached_path_component(uncached_paths)
-    assert np.all(np.array([[True, False, False], [False, False, False]])[component.component])
-
-
-def test_nd_cache_invalidate_empty_nd():
-    nd_shallow_cache = NdShallowCache.create_from_result(np.array([]))
-
-    uncached_paths = nd_shallow_cache.get_uncached_paths([])
-
-    assert len(uncached_paths) == 1
-    assert uncached_paths[0] == []
 
 
 @pytest.fixture()

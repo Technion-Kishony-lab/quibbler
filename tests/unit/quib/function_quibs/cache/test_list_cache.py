@@ -5,7 +5,7 @@ import pytest
 from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.quib.function_quibs.cache import ListShallowCache
 from pyquibbler.quib.function_quibs.cache.shallow_cache import CacheStatus
-from tests.unit.quib.function_quibs.cache.abc_test_cache import ABCTestCache, ABCTestIndexableCache, SetValidTestCase, \
+from tests.unit.quib.function_quibs.cache.cache_test import CacheTest, IndexableCacheTest, SetValidTestCase, \
     SetInvalidTestCase
 
 
@@ -28,7 +28,7 @@ def assert_uncached_paths_matches_valid_mask(uncached_paths, lst):
     assert all([o is True for o in lst])
 
 
-class TestListCache(ABCTestIndexableCache):
+class TestListCache(IndexableCacheTest):
 
     cls = ListShallowCache
     result = [1, 2, 3]

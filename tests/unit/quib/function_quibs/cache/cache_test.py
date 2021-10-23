@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any
 
+import numpy as np
 import pytest
 
 from pyquibbler.quib.assignment import PathComponent
@@ -9,7 +10,7 @@ from pyquibbler.quib.function_quibs.cache.shallow_cache import CacheStatus
 from pyquibbler.quib.utils import deep_copy_without_quibs_or_artists
 
 
-class ABCTestCache(ABC):
+class CacheTest(ABC):
 
     cls = NotImplemented
     result = NotImplemented
@@ -43,7 +44,10 @@ class ABCTestCache(ABC):
     def test_cache_get_value_when_valid(self, cache):
         cache.set_valid_value_at_path([], self.result)
 
-        assert cache.get_value() == self.result
+        if isinstance(self.result, np.ndarray):
+            assert np.array_equal(cache.get_value(), self.result)
+        else:
+            assert cache.get_value() == self.result
 
     def test_cache_get_cache_status_when_valid(self, cache):
         cache.set_valid_value_at_path([], self.result)
@@ -79,7 +83,7 @@ class SetInvalidTestCase:
     expected_value: Any
 
 
-class ABCTestIndexableCache(ABCTestCache):
+class IndexableCacheTest(CacheTest):
 
     unsupported_type_result = NotImplemented
     empty_result = NotImplemented

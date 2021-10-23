@@ -5,11 +5,11 @@ import pytest
 from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.quib.function_quibs.cache import DictShallowCache
 from pyquibbler.quib.function_quibs.cache.shallow_cache import CacheStatus
-from tests.unit.quib.function_quibs.cache.abc_test_cache import ABCTestIndexableCache, SetValidTestCase, \
+from tests.unit.quib.function_quibs.cache.cache_test import IndexableCacheTest, SetValidTestCase, \
     SetInvalidTestCase
 
 
-class TestDictCache(ABCTestIndexableCache):
+class TestDictCache(IndexableCacheTest):
 
     cls = DictShallowCache
     result = {"a": 1, "b": 2, "c": 3}
