@@ -239,14 +239,5 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
     def _get_translated_argument_quib_path_at_path(self, quib: Quib, arg_index: int, path: List[PathComponent]):
         if path is None:
             return None
-        else:
-            working_component = path[0].component if len(path) > 0 else True
-
-        quibs_to_indices = TranspositionalInverter(function_quib=self, working_indices=working_component, value=None).get_quibs_to_indices_in_quibs()
-        indices = quibs_to_indices.get(quib, None)
-        if indices:
-            return [PathComponent(
-                component=indices,
-                indexed_cls=np.ndarray
-            )]
-        return None
+        quibs_to_paths = self._get_quibs_to_paths_in_result(path)
+        return quibs_to_paths.get(quib)

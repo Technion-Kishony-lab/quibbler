@@ -91,49 +91,12 @@ class NdShallowCache(ShallowCache):
             return paths
 
         if path_component.references_field_in_field_array():
-            return [[PathComponent(indexed_cls=np.ndarray, component=path_component.component),
-                    PathComponent(indexed_cls=np.ndarray, component=self._invalid_mask[path_component.component])]]
+            if np.any(self._invalid_mask[path_component.component]):
+                return [[PathComponent(indexed_cls=np.ndarray, component=path_component.component),
+                        PathComponent(indexed_cls=np.ndarray, component=self._invalid_mask[path_component.component])]]
+            return []
         else:
             return self._get_uncached_paths_at_indices(path_component.component)
-
-    # def get_uncached_paths(self, path: List[PathComponent]):
-    #     if self._whole_object_is_invalidated:
-    #         return [[]]
-    #
-    #     if len(path) > 0 and path[0].references_field_in_field_array():
-    #         return [PathComponent(indexed_cls=np.ndarray, component=path[0].component),
-    #                 PathComponent(indexed_cls=np.ndarray, component=self._invalid_mask[path[0].component])]
-    #     else:
-    #         paths = []
-    #         boolean_mask_of_indices = create_empty_array_with_values_at_indices(
-    #             self._value.shape,
-    #             indices=path[0].component if len(path) > 0 else True,
-    #             value=True,
-    #             empty_value=False
-    #         )
-    #
-    #         if self._value.dtype.names:
-    #             for name in self._value.dtype.names:
-    #                 paths.append([PathComponent(indexed_cls=np.ndarray, component=name),
-    #                               PathComponent(indexed_cls=np.ndarray, component=np.logical_and(
-    #                                   boolean_mask_of_indices,
-    #                                   self._invalid_mask[name]
-    #                               ))])
-    #         else:
-    #             paths.append(
-    #                 [
-    #                     PathComponent(indexed_cls=np.ndarray,
-    #                                   component=np.logical_and(boolean_mask_of_indices, self._invalid_mask))
-    #                 ]
-    #             )
-    #
-    #         # TODO: do we really want this filter?
-    #         return list(filter(lambda p: np.any(p[-1].component), paths))
-    #
-    # def set_valid_value_at_path(self, path, value):
-    #     self._whole_object_is_invalidated = False
-    #     self._value = deep_assign_data_with_paths(self._value, path, value)
-    #     self._invalid_mask = deep_assign_data_with_paths(self._invalid_mask, path, False)
 
     def _set_valid_value_at_path_component(self, path_component: PathComponent, value: Any):
         self._value[path_component.component] = value
