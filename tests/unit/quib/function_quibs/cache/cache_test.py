@@ -116,7 +116,7 @@ class IndexableCacheTest(CacheTest):
                       for v in set_valid_test_case.valid_components]
         cache.set_valid_value_at_path(valid_path, set_valid_test_case.valid_value)
 
-        paths = cache.get_uncached_paths([PathComponent(component=u, indexed_cls=list) for u in
+        paths = cache.get_uncached_paths([PathComponent(component=u, indexed_cls=type(self.result)) for u in
                                           set_valid_test_case.uncached_path_components])
 
         self.assert_uncached_paths_match_expected_value(paths, set_valid_test_case.expected_value)
@@ -126,7 +126,7 @@ class IndexableCacheTest(CacheTest):
         invalid_path = [PathComponent(component=v, indexed_cls=type(self.result))
                       for v in set_invalid_test_case.invalid_components]
         cache.set_invalid_at_path(invalid_path)
-        uncached_paths = cache.get_uncached_paths([PathComponent(component=u, indexed_cls=list) for u in
+        uncached_paths = cache.get_uncached_paths([PathComponent(component=u, indexed_cls=type(self.result)) for u in
                                           set_invalid_test_case.uncached_path_components])
 
         self.assert_uncached_paths_match_expected_value(uncached_paths, set_invalid_test_case.expected_value)
