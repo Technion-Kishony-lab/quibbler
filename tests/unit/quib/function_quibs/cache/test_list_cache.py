@@ -3,34 +3,17 @@ from unittest import mock
 import pytest
 
 from pyquibbler.quib.assignment import PathComponent
-from pyquibbler.quib.function_quibs.cache import ListShallowCache
+from pyquibbler.quib.function_quibs.cache import ListCache
 from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import CacheStatus
 from tests.unit.quib.function_quibs.cache.cache_test import IndexableCacheTest, SetValidTestCase, \
     SetInvalidTestCase
 
 
-@pytest.fixture
-def list_cache():
-    return ListShallowCache.create_from_result([1, 2, 3])
-
-
-def assert_uncached_paths_matches_valid_mask(uncached_paths, lst):
-    # todo: add comment
-    # if any([len(path) == 0 for path in uncached_paths]):
-    #     return all([o is False for o in lst])
-
-    for path in uncached_paths:
-        assert len(path) == 1
-        component = path[0]
-        assert lst[component.component] is False
-        lst[component.component] = True
-
-    assert all([o is True for o in lst])
 
 
 class TestListCache(IndexableCacheTest):
 
-    cls = ListShallowCache
+    cls = ListCache
     result = [1, 2, 3]
     empty_result = []
     unsupported_type_result = {1, 2, 3}

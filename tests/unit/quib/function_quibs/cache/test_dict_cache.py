@@ -1,7 +1,7 @@
 from unittest import mock
 
 from pyquibbler.quib.assignment import PathComponent
-from pyquibbler.quib.function_quibs.cache import DictShallowCache
+from pyquibbler.quib.function_quibs.cache.shallow import DictCache
 from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import CacheStatus
 from tests.unit.quib.function_quibs.cache.cache_test import IndexableCacheTest, SetValidTestCase, \
     SetInvalidTestCase
@@ -9,7 +9,7 @@ from tests.unit.quib.function_quibs.cache.cache_test import IndexableCacheTest, 
 
 class TestDictCache(IndexableCacheTest):
 
-    cls = DictShallowCache
+    cls = DictCache
     result = {"a": 1, "b": 2, "c": 3}
     unsupported_type_result = [1, 2, 3]
     empty_result = {}
