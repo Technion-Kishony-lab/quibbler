@@ -97,6 +97,22 @@ def test_inverse_elementwise_operator():
     assert np.array_equal(q.get_value(), [4, 5, 5])
 
 
+def test_inverse_many_to_one_functions():
+    q = iquib(np.array([4, -5, 5]))
+    function_quib: FunctionQuib = np.square(q)
+    inverse(function_quib, [36, 36], [PathComponent(component=[1, 2], indexed_cls=function_quib.get_type())])
+    assert np.array_equal(q.get_value(), [4, -6, 6])
+
+
+def test_periodic_functions():
+    q = iquib(np.array([2., -0.2, -4.2, -4.8, 5.2, 4.])*np.pi)
+    function_quib: FunctionQuib = np.sin(q)
+    inverse(function_quib, np.sin(np.array([-0.3, -0.3, -0.3, -0.3])*np.pi), [PathComponent(component=[1, 2, 3, 4], indexed_cls=function_quib.get_type())])
+    result = q.get_value()/np.pi
+    correct_result = np.array([2., -0.3, -4.3, -4.7, 5.3, 4.])
+    assert np.all(np.abs(result-correct_result) < 0.0001)
+
+
 def test_inverse_elementwise_on_int():
     q = iquib(5)
     function_quib: FunctionQuib = q + 3
