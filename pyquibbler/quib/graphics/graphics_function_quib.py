@@ -89,7 +89,7 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
 
     def persist_self_on_artists(self):
         """
-        Persist self on on all artists we're connected to, making sure we won't be garbage collected until they are
+        Persist self on all artists we're connected to, making sure we won't be garbage collected until they are
         off the screen
         We need to also go over args as there may be a situation in which the function did not create new artists, but
         did perform an action on an existing one, such as Axes.set_xlim
@@ -140,7 +140,8 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         if len(new_artists) == len(previous_artists):
             for previous_artist, new_artist in zip(previous_artists, new_artists):
                 for attribute in self.ATTRIBUTES_TO_COPY_FROM_ARTIST_TO_ARTIST:
-                    if hasattr(previous_artist, attribute):
+                    if hasattr(previous_artist, attribute) \
+                        and attribute[1:] not in self.kwargs.keys():
                         setattr(new_artist, attribute, getattr(previous_artist, attribute))
 
     def _update_new_artists_from_previous_artists(self,
