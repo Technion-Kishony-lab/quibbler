@@ -5,11 +5,12 @@ from typing import Callable, Any, Mapping, Tuple, Optional, List, TYPE_CHECKING
 
 from .function_quib import FunctionQuib, CacheBehavior
 from ..assignment import AssignmentTemplate
-
+from ..assignment import QuibWithAssignment
+from ..quib import Quib
+from ..assignment.assignment import Assignment
 
 if TYPE_CHECKING:
-    from ..assignment.assignment import PathComponent, Assignment, PathComponent
-    from ..quib import Quib
+    from ..assignment.assignment import PathComponent, PathComponent
 
 
 class DefaultFunctionQuib(FunctionQuib):
@@ -71,3 +72,27 @@ class DefaultFunctionQuib(FunctionQuib):
             self._cached_result = result
             self._is_cache_valid = True
         return result
+
+    def get_inversions_for_assignment(self, assignment: 'Assignment'):
+        if assignment.path != []:
+            return []
+        if self.func not in [str, int, float]:
+            return []
+        if len(self.args) != 1:
+            return []
+
+        quib_to_change = self.args[0]
+        if not isinstance(quib_to_change, Quib):
+            return []
+
+        # inverse casting functions:
+        quib_to_change_value = quib_to_change.get_value()
+        quib_to_change_value_type = type(quib_to_change_value)
+        if quib_to_change_value_type not in [str, int, float]:
+            return []
+
+        value_to_set = quib_to_change_value_type(assignment.value)
+        return [QuibWithAssignment(
+            quib=quib_to_change,
+            assignment=Assignment(path=[], value=value_to_set)
+        )]
