@@ -60,9 +60,7 @@ class Quib(ABC):
         children = set()
         refs_to_remove = set()
         for child_ref in self._children:
-            print('Before child = child_ref()')
             child = child_ref()
-            print('After child = child_ref()')
             if child is None:
                 refs_to_remove.add(child_ref)
             else:
@@ -154,7 +152,9 @@ class Quib(ABC):
         self._children.add(weakref(quib))
 
     def __len__(self):
-        return len(self.get_value())
+        raise TypeError('len(Q), where Q is q quib, is not allowed. '
+                        'To get a functional quib, use q(len,Q). '
+                        'To get the len of the current value of Q, use len(Q.get_value()).')
 
     def __iter__(self):
         raise TypeError('Cannot iterate over quibs, as their size can vary. '
