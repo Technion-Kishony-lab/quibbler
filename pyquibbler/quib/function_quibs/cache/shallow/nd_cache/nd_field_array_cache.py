@@ -19,6 +19,23 @@ class NdFieldArrayShallowCache(NdArrayCache):
         mask = np.full(result.shape, True, dtype=[(name, np.bool_) for name in result.dtype.names])
         return cls(result, True, mask)
 
+    def _create_paths_for_indices(self, indices):
+        boolean_mask_of_indices = create_empty_array_with_values_at_indices(
+            self._value.shape,
+            indices=indices,
+            value=True,
+            empty_value=False
+        )
+
+        return [
+            [PathComponent(indexed_cls=np.ndarray, component=name),
+             PathComponent(indexed_cls=np.ndarray, component=np.logical_and(
+                 boolean_mask_of_indices,
+                 self._invalid_mask[name]
+             ))]
+            for name in self._invalid_mask.dtype.names
+        ]
+
     def _get_uncached_paths_at_path_component(self,
                                               path_component):
         paths = super(NdFieldArrayShallowCache, self)._get_uncached_paths_at_path_component(path_component)
@@ -29,19 +46,7 @@ class NdFieldArrayShallowCache(NdArrayCache):
             paths = [[PathComponent(indexed_cls=np.ndarray, component=path_component.component),
                       PathComponent(indexed_cls=np.ndarray, component=self._invalid_mask[path_component.component])]]
         else:
-            paths = []
-            boolean_mask_of_indices = create_empty_array_with_values_at_indices(
-                self._value.shape,
-                indices=path_component.component,
-                value=True,
-                empty_value=False
-            )
-            for name in self._value.dtype.names:
-                paths.append([PathComponent(indexed_cls=np.ndarray, component=name),
-                              PathComponent(indexed_cls=np.ndarray, component=np.logical_and(
-                                  boolean_mask_of_indices,
-                                  self._invalid_mask[name]
-                              ))])
+            paths = self._create_paths_for_indices(path_component.component)
 
         return self._filter_empty_paths(paths)
 
