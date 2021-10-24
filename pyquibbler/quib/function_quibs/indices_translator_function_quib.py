@@ -5,8 +5,7 @@ from functools import lru_cache
 from typing import Set, Optional, Dict, Callable, List, Any
 
 from pyquibbler.quib.assignment import Assignment
-from pyquibbler.env import DEBUG
-from pyquibbler.quib.assignment.inverse_assignment.utils import create_empty_array_with_values_at_indices
+from pyquibbler.quib.function_quibs.utils import create_empty_array_with_values_at_indices
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.function_quibs import FunctionQuib
 from pyquibbler.quib.assignment import PathComponent, QuibWithAssignment

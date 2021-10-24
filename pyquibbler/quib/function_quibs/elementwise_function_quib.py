@@ -6,13 +6,11 @@ from operator import __neg__, __pos__, __sub__, __pow__, __mul__, __add__
 import numpy as np
 from typing import TYPE_CHECKING, Any, List
 
-from pyquibbler.quib.assignment.inverse_assignment import ElementWiseInverter
 
 from .default_function_quib import DefaultFunctionQuib
 from .indices_translator_function_quib import IndicesTranslatorFunctionQuib
 from ..assignment.assignment import get_working_component_value_from_path
-from ..assignment.inverse_assignment.exceptions import CommonAncestorBetweenArgumentsException
-from ..assignment.inverse_assignment.utils import create_empty_array_with_values_at_indices
+from ..assignment.exceptions import CommonAncestorBetweenArgumentsException
 from ..utils import call_func_with_quib_values, iter_quibs_in_object_recursively
 
 from pyquibbler.quib.assignment import Assignment, PathComponent

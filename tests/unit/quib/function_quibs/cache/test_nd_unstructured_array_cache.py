@@ -68,4 +68,3 @@ class TestNdUnstructuredArrayCache(IndexableCacheTest):
 
         assert cache.get_cache_status() == CacheStatus.PARTIAL
 
-

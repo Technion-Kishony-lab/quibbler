@@ -7,8 +7,6 @@ import numpy as np
 
 from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.quib.assignment import PathComponent
-from pyquibbler.quib.assignment.inverse_assignment.utils import create_empty_array_with_values_at_indices
-from pyquibbler.quib.assignment.utils import deep_assign_data_with_paths, get_sub_data_from_object_in_path
 from pyquibbler.quib.function_quibs.cache.cache import Cache, CacheStatus
 from pyquibbler.quib.utils import deep_copy_without_quibs_or_artists
 
