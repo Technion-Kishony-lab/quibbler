@@ -9,7 +9,11 @@ from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import ShallowCa
 
 
 def create_cache(result: Any) -> ShallowCache:
-    # TODO; make indexable cache (we have dupcode)
+    """
+    Create a new cache object matching the result- if no cache is found that specifically supports the requested
+    object, a shallow cache will be created which does not support partial invalidation (paths must be whole in
+    validation and invalidation)
+    """
 
     cache_classes = {
         NdFieldArrayShallowCache,
