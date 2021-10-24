@@ -47,7 +47,9 @@ class TestNdUnstructuredArrayCache(IndexableCacheTest):
     def assert_uncached_paths_match_expected_value(self, uncached_paths, expected_value):
         assert len(uncached_paths) == 1
         component = uncached_paths[0][0].component
-        assert np.all(np.array(expected_value)[component])
+        expected_value_arr = np.array(expected_value)
+        assert np.all(expected_value_arr[component])
+        assert not np.any(expected_value_arr[np.logical_not(component)])
 
     def test_nd_cache_does_not_match_nd_array_of_different_shape(self, cache):
         assert not cache.matches_result(np.arange(6).reshape((3, 2)))
