@@ -1,11 +1,140 @@
 import numpy as np
+from itertools import chain
+from functools import lru_cache, cached_property
 from abc import abstractmethod
-from typing import Any, Dict
+from typing import Any, Dict, Optional, List
 
 from pyquibbler.quib.quib import Quib
+from pyquibbler.quib.utils import shallow_copy_and_replace_quibs_with_vals
 
 from .graphics_function_quib import GraphicsFunctionQuib
+from ..assignment import PathComponent
 from ..function_quibs.indices_translator_function_quib import IndicesTranslatorFunctionQuib, SupportedFunction
+from ..utils import iter_args_and_names_in_function_call
+
+
+def get_vectorize_call_data_args(args, kwargs) -> List[Any]:
+    """
+    Given a call to a vectorized function, return the arguments which act as data sources.
+    """
+    vectorize, *args = args
+    return [val for key, val in chain(enumerate(args), kwargs.items()) if key not in vectorize.excluded]
+
+
+class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunctionQuib):
+    """
+    np.vectorize, without the signature parameter, turns normal python functions into elementwise functions.
+    The signature parameter allows specifying the amount of core dimensions each argument has (and the result)
+    and thereby turns the function into an axiswise function. When a vectorized function is called,
+    the loop dimensions of all non-excluded arguments are broadcast together.
+    The dimension of the result will be the broadcast loop dimension, plus the result core dimension specified
+    in the signature, () be default.
+    """
+    SUPPORTED_FUNCTIONS = {
+        np.vectorize.__call__: SupportedFunction(get_vectorize_call_data_args)
+    }
+
+    @cached_property
+    def _arg_values_in_wrapped_function(self):
+        return list(dict(iter_args_and_names_in_function_call(self._vectorize.pyfunc,
+                                                              self.args[1:], self.kwargs, False)).values())
+
+    @cached_property
+    def _vectorize(self) -> np.vectorize:
+        """
+        Get the vectorize object we were called with
+        """
+        return self.args[0]
+
+    @lru_cache()
+    def _get_arg_core_dims(self, arg_index: int) -> int:
+        """
+        Return the core dimensions of a given argument, which are 0 by default.
+        """
+        core_dims = 0
+        in_and_out_core_dims = self._vectorize._in_and_out_core_dims
+        if in_and_out_core_dims is not None:
+            core_dims = len(in_and_out_core_dims[0][arg_index])
+        return core_dims
+
+    @property
+    def _loop_shape(self):
+        """
+        Get the shape of the vectorize loop.
+        This could also be done be broadcasting together the loop dimensions of all arguments.
+        """
+        if self._get_tuple_output_len():
+            result_shape = self.get_value()[0].shape
+        else:
+            result_shape = self.get_shape().get_value()
+        in_and_out_core_dims = self._vectorize._in_and_out_core_dims
+        if in_and_out_core_dims is None:
+            out_core_dims = 0
+        else:
+            out_core_dims = len(in_and_out_core_dims[1][0])
+        return result_shape[:-out_core_dims] if out_core_dims else result_shape
+
+    def _get_sample_elementwise_func_result(self):
+        """
+        Assuming no argument has core dimensions (and therefore the vectorized function must be elementwise),
+        run the vectorized function on one set of arguments and return the result.
+        """
+        args = [np.asarray(shallow_copy_and_replace_quibs_with_vals(arg)).flat[0] for arg in self.args[1:]]
+        kwargs = {key: np.asarray(shallow_copy_and_replace_quibs_with_vals(val)).flat[0] for key, val in
+                  self.kwargs.items()}
+        return self._vectorize.pyfunc(*args, **kwargs)
+
+    def _get_tuple_output_len(self) -> Optional[int]:
+        """
+        If this vectorize function returns a tuple, return its length. Otherwise, return None.
+        """
+        in_and_out_core_dims = self._vectorize._in_and_out_core_dims
+        if in_and_out_core_dims is not None:
+            out_core_dims_len = len(in_and_out_core_dims[1])
+            return None if out_core_dims_len == 1 else out_core_dims_len
+
+        # If no signature is given, args core dimensions are all () so we can just flatten them.
+        result = self._get_sample_elementwise_func_result()
+        if isinstance(result, tuple):
+            return len(result)
+        return None
+
+    def _forward_translate_indices_to_bool_mask(self, invalidator_quib: Quib, indices: Any) -> Any:
+        source_bool_mask = self._get_source_shaped_bool_mask(invalidator_quib, indices)
+        core_dims = self._get_arg_core_dims(self._arg_values_in_wrapped_function.index(invalidator_quib))
+        if core_dims > 0:
+            source_bool_mask = np.any(source_bool_mask, axis=tuple(range(source_bool_mask.ndim)[-core_dims:]))
+        return np.broadcast_to(source_bool_mask, self._loop_shape)
+
+    def _forward_translate_invalidation_path(self, invalidator_quib: Quib,
+                                             path: List[PathComponent]) -> Optional[List[PathComponent]]:
+        working_component, *rest_of_path = path
+        bool_mask_in_output_array = self._forward_translate_indices_to_bool_mask(invalidator_quib,
+                                                                                 working_component.component)
+        if np.any(bool_mask_in_output_array):
+            if len(self.args) + len(self.kwargs) - 1 == len(self._vectorize.excluded):
+                return rest_of_path
+            return [PathComponent(self.get_type(), bool_mask_in_output_array), *rest_of_path]
+        return None
+
+
+    def _get_path_for_children_invalidation(self, invalidator_quib: Quib,
+                                            path: List[PathComponent]) -> Optional[List[PathComponent]]:
+        if not self._is_quib_a_data_source(invalidator_quib):
+            return [[]]
+        invalidation_path = self._forward_translate_invalidation_path(invalidator_quib, path)
+        tuple_len = self._get_tuple_output_len()
+        if tuple_len is None:
+            return [invalidation_path]
+        else:
+            return [[PathComponent(tuple, i), *invalidation_path] for i in range(tuple_len)]
+
+    def _invalidate_quib_with_children_at_path(self, invalidator_quib, path: List[PathComponent]):
+        new_paths = self._get_path_for_children_invalidation(invalidator_quib, path) if path else [[]]
+        if new_paths is not None:
+            self._invalidate_self()
+            for new_path in new_paths:
+                self._invalidate_children_at_path(new_path)
 
 
 class AxisWiseGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunctionQuib):

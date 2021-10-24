@@ -2,7 +2,7 @@ import numpy as np
 from abc import abstractmethod
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import Set, Optional, Dict, Callable, List, Any
+from typing import Set, Optional, Dict, Callable, List, Any, Union
 
 from pyquibbler.env import DEBUG
 from pyquibbler.quib.assignment.inverse_assignment.utils import create_empty_array_with_values_at_indices
@@ -11,10 +11,19 @@ from pyquibbler.quib.function_quibs import FunctionQuib
 from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.quib.utils import iter_objects_of_type_in_object_shallowly
 
+Args = List[Any]
+Kwargs = Dict[str, Any]
+
 
 @dataclass
 class SupportedFunction:
-    data_source_indices: Set[int]
+    data_source_indices: Union[Set[Union[int, str]],
+                               Callable[[Args, Kwargs], List[Any]]]
+
+    def get_data_source_args(self, args: Args, kwargs: Kwargs) -> List[Any]:
+        if callable(self.data_source_indices):
+            return self.data_source_indices(args, kwargs)
+        return [args[i] if isinstance(i, int) else kwargs[i] for i in self.data_source_indices]
 
 
 class IndicesTranslatorFunctionQuib(FunctionQuib):
@@ -41,10 +50,11 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
 
     @lru_cache()
     def get_data_source_quibs(self) -> Set:
-        if self.SUPPORTED_FUNCTIONS is None:
-            return self.parents
-        return {quib for i in self.SUPPORTED_FUNCTIONS[self._func].data_source_indices
-                for quib in iter_objects_of_type_in_object_shallowly(Quib, self._get_arg_value_at_position(i))}
+        if self.SUPPORTED_FUNCTIONS is not None:
+            supported_function = self.SUPPORTED_FUNCTIONS[self._func]
+            data_source_args = supported_function.get_data_source_args(self.args, self.kwargs)
+            return set(iter_objects_of_type_in_object_shallowly(Quib, data_source_args))
+        return self.parents
 
     def _is_quib_a_data_source(self, quib: Quib):
         return quib in self.get_data_source_quibs()
