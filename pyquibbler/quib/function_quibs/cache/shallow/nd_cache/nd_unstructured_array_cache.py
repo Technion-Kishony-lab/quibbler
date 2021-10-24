@@ -8,7 +8,9 @@ from pyquibbler.quib.function_quibs.utils import create_empty_array_with_values_
 
 
 class NdUnstructuredArrayCache(NdArrayCache):
-    # TODO: Maybe change name to match module?
+    """
+    A cache for an ndarray which is NOT structured (rec/field)
+    """
 
     SUPPORTING_TYPES = (np.ndarray,)
 

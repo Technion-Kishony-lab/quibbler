@@ -6,6 +6,9 @@ from pyquibbler.quib.function_quibs.utils import create_empty_array_with_values_
 
 
 class NdFieldArrayShallowCache(NdArrayCache):
+    """
+    A cache for any ndarray which has dtype names (ie a "field array")
+    """
 
     @classmethod
     def supports_result(cls, result):

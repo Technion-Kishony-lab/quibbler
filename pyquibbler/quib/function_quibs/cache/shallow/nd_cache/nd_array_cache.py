@@ -1,3 +1,4 @@
+from abc import ABCMeta, abstractmethod
 from typing import Any, List
 
 import numpy as np
@@ -7,6 +8,9 @@ from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import ShallowCa
 
 
 class NdArrayCache(ShallowCache):
+    """
+    A base class for an ndarray cache (both unstructured and field array)
+    """
 
     SUPPORTING_TYPES = (np.ndarray,)
 

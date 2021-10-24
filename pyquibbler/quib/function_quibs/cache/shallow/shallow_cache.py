@@ -25,6 +25,12 @@ class PathCannotHaveComponentsException(PyQuibblerException):
 
 
 class ShallowCache(Cache):
+    """
+    A base class for any "shallow" caches- a shallow cache is a cache which only supports validation and invalidation
+    one component in.
+    This base class only supports entire validations/invalidations without any specificity, but provides the functions
+    to override in order to support this
+    """
 
     SUPPORTING_TYPES = (object,)
 
@@ -34,7 +40,6 @@ class ShallowCache(Cache):
 
     @classmethod
     def create_from_result(cls, result):
-        # We always start completely invalid
         return cls(invalid, True)
 
     def get_cache_status(self):
@@ -54,6 +59,9 @@ class ShallowCache(Cache):
             self._set_valid_value_all_paths(value)
 
     def _set_valid_value_at_path_component(self, path_component: PathComponent, value: Any):
+        """
+        Override this function in a subclass given an implementation to set valid at specific components
+        """
         raise PathCannotHaveComponentsException()
 
     def _set_valid_value_all_paths(self, value):
@@ -66,6 +74,9 @@ class ShallowCache(Cache):
             self._object_is_invalidated_as_a_whole = True
 
     def _set_invalid_at_path_component(self, path_component: PathComponent):
+        """
+        Override this function in a subclass given an implementation to invalidate at specific components
+        """
         raise PathCannotHaveComponentsException()
 
     def get_uncached_paths(self, path: List[PathComponent]):
