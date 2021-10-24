@@ -12,4 +12,4 @@ ASSIGNMENT_RESTRICTIONS = Flag(False)
 # Can be useful when debugging graphics inverse assignment
 END_DRAG_IMMEDIATELY = Flag(False)
 
-PRETTY_REPR = Flag(True)
+PRETTY_REPR = Flag(False)

@@ -60,7 +60,9 @@ class Quib(ABC):
         children = set()
         refs_to_remove = set()
         for child_ref in self._children:
+            print('Before child = child_ref()')
             child = child_ref()
+            print('After child = child_ref()')
             if child is None:
                 refs_to_remove.add(child_ref)
             else:
