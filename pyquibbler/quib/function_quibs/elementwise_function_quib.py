@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any, List
 
 from .default_function_quib import DefaultFunctionQuib
 from .indices_translator_function_quib import IndicesTranslatorFunctionQuib
-from ..assignment.assignment import get_working_component_value_from_path
+from ..assignment.assignment import get_nd_working_component_value_from_path
 from ..assignment.exceptions import CommonAncestorBetweenArgumentsException
 from ..utils import call_func_with_quib_values, iter_quibs_in_object_recursively
 
@@ -170,7 +170,7 @@ class ElementWiseFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunctionQuib
     def _get_quibs_to_paths_in_result(self, filtered_path_in_result):
         quib_to_change = self._get_quibs_in_args()[0]
         changed_indices = self._get_indices_to_change(quib_to_change,
-                                                      get_working_component_value_from_path(filtered_path_in_result))
+                                                      get_nd_working_component_value_from_path(filtered_path_in_result))
 
         if len(changed_indices) == 0:
             new_path = []
@@ -196,7 +196,7 @@ class ElementWiseFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunctionQuib
         if ASSIGNMENT_RESTRICTIONS:
             self.raise_if_multiple_args_have_common_ancestor()
 
-        working_component = get_working_component_value_from_path(assignment.path)
+        working_component = get_nd_working_component_value_from_path(assignment.path)
         quib_to_change = self._get_quibs_in_args()[0]
 
         inverse_function = self.FUNCTIONS_TO_INVERSE_FUNCTIONS[self._func]
