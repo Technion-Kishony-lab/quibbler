@@ -112,8 +112,6 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
         bool_mask_in_output_array = self._forward_translate_indices_to_bool_mask(invalidator_quib,
                                                                                  working_component.component)
         if np.any(bool_mask_in_output_array):
-            if len(self.args) + len(self.kwargs) - 1 == len(self._vectorize.excluded):
-                return rest_of_path
             return [PathComponent(self.get_type(), bool_mask_in_output_array), *rest_of_path]
         return None
 
