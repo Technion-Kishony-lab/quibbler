@@ -2,7 +2,7 @@ from __future__ import annotations
 import math
 import numpy as np
 from operator import __add__, __pow__, __sub__, __mul__, __neg__, __pos__
-from typing import Any, List, Dict, Callable, TYPE_CHECKING
+from typing import Any, List, Dict, Callable, TYPE_CHECKING, Tuple
 
 from pyquibbler.env import ASSIGNMENT_RESTRICTIONS
 from pyquibbler.quib.assignment import Assignment
@@ -32,12 +32,48 @@ def create_inverse_func_from_indexes_to_funcs(quib_argument_indexes_to_inverse_f
     return _inverse
 
 
+def create_inverse_single_arg_func(inverse_func: Callable):
+    """
+    Create an inverse function that will call actual inverse functions for single argument functions
+    """
+
+    def _inverse(representative_result: Any, args, kwargs, quib_to_change: Quib):
+        new_args = []
+        return call_func_with_quib_values(inverse_func, [representative_result, *new_args], kwargs)
+
+    return _inverse
+
+
+def create_inverse_single_arg_many_to_one(invfunc_period_tuple: Tuple[Tuple[Callable,Any]]):
+    """
+    Create an inverse function that will call actual inverse functions for single argument
+    many-to-one functions and choose the solution closest to the original value.
+    """
+
+    def _inverse(representative_result: Any, args, kwargs, quib_to_change: Quib):
+        new_args = []
+        quib_to_change_value = quib_to_change.get_value() # need to change to get value at specific index
+        base_values = [
+            (call_func_with_quib_values(inverse_func, [representative_result, *new_args], kwargs), period)
+            for inverse_func,period in invfunc_period_tuple]
+        closest_values = [value if period is None
+                          else value + np.round((quib_to_change_value-value)/period)*period
+                          for value, period in base_values]
+        closest_values_array = np.concatenate([np.expand_dims(x, axis=0) for x in closest_values])
+        imin = np.argmin(np.abs(closest_values_array-quib_to_change_value), axis=0)
+        return np.take_along_axis(closest_values_array,np.expand_dims(imin, 0), 0)[0]
+
+    return _inverse
+
+
 class ElementWiseInverter(Inverter):
     """
     In charge of reversing all element-wise mathematical operation functions
     """
 
-    identity = lambda x : x
+    identity = lambda x: x
+    pi = np.pi
+
     # We use indexes instead of arg names because you cannot get signature from ufuncs (numpy functions)
     FUNCTIONS_TO_INVERSE_FUNCTIONS = {
         **{
@@ -70,40 +106,48 @@ class ElementWiseInverter(Inverter):
             1: lambda result, other: math.log(result, other)
         }),
         **{
-            func: create_inverse_func_from_indexes_to_funcs({0: invfunc})
-            for func,invfunc in
+            func: create_inverse_single_arg_func(invfunc)
+            for func, invfunc in
             [
                 (__neg__,       __neg__),
                 (__pos__,       __pos__),
-                (np.sin,        np.arcsin),
-                (np.cos,        np.arccos),
-                (np.tan,        np.arctan),
-                (np.sinh,       np.arcsinh),
-                (np.cosh,       np.arccosh),
-                (np.tanh,       np.arctanh),
+                (np.sqrt,       np.square),
                 (np.arcsin,     np.sin),
                 (np.arccos,     np.cos),
                 (np.arctan,     np.tan),
                 (np.arcsinh,    np.sinh),
                 (np.arccosh,    np.cosh),
-                (np.arctanh, np.tanh),
-                (np.ceil, identity),
-                (np.floor, identity),
-                (np.round, identity),
-                (np.exp, np.log),
-                (np.exp2, np.log2),
-                (np.expm1, np.log1p),
-                (np.log, np.exp),
-                (np.log2, np.exp2),
-                (np.log1p, np.expm1),
-                (np.log10, lambda x: 10 ** x),
-                (np.sqrt, np.square),
-                (np.square, np.sqrt),
-                (np.int, identity),
-                (np.float, identity),
+                (np.arctanh,    np.tanh),
+                (np.ceil,       identity),
+                (np.floor,      identity),
+                (np.round,      identity),
+                (np.exp,        np.log),
+                (np.exp2,       np.log2),
+                (np.expm1,      np.log1p),
+                (np.log,        np.exp),
+                (np.log2,       np.exp2),
+                (np.log1p,      np.expm1),
+                (np.log10,      lambda x: 10 ** x),
+                (np.int,        identity),
+                (np.float,      identity),
+                ]
+        },
+        **{
+            # Assuming real arguments:
+            func: create_inverse_single_arg_many_to_one(invfunc)
+            for func, invfunc in
+            [
+                (np.sin,    ((np.arcsin,  2*pi), (lambda x: -np.arcsin(x)+np.pi, 2*pi))),
+                (np.cos,    ((np.arccos,  2*pi), (lambda x: -np.arccos(x),       2*pi))),
+                (np.tan,    ((np.arctan,    pi),                                      )),
+                (np.sinh,   ((np.arcsinh, None),                                      )),
+                (np.cosh,   ((np.arccosh, None), (lambda x: -np.arccosh(x)      ,None))),
+                (np.tanh,   ((np.arctanh, None),                                      )),
+                (np.square, ((np.sqrt,    None), (lambda x: -np.sqrt(x)         ,None))),
             ]
         },
     }
+
 
     def _get_indices_to_change(self, argument_quib: Quib) -> Any:
         """
@@ -163,7 +207,6 @@ class ElementWiseInverter(Inverter):
             self.raise_if_multiple_args_have_common_ancestor()
 
         quib_to_change = self._get_quibs_in_args()[0]
-
         inverse_function = self.FUNCTIONS_TO_INVERSE_FUNCTIONS[self._func]
         new_quib_argument_value = inverse_function(self._get_representative_function_quib_result_with_value(),
                                                    self._args,
