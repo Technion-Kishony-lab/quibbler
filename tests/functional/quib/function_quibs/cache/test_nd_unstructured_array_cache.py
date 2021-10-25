@@ -4,7 +4,7 @@ import pytest
 from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.quib.function_quibs.cache.shallow.nd_cache import NdUnstructuredArrayCache
 from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import CacheStatus
-from tests.unit.quib.function_quibs.cache.cache_test import IndexableCacheTest, SetValidTestCase, SetInvalidTestCase
+from tests.functional.quib.function_quibs.cache.cache_test import IndexableCacheTest, SetValidTestCase, SetInvalidTestCase
 
 
 class TestNdUnstructuredArrayCache(IndexableCacheTest):

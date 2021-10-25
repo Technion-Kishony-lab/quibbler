@@ -5,7 +5,7 @@ from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.quib.assignment.utils import get_sub_data_from_object_in_path, deep_assign_data_with_paths
 from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
 from pyquibbler.quib.function_quibs.cache.shallow.nd_cache import NdFieldArrayShallowCache
-from tests.unit.quib.function_quibs.cache.cache_test import IndexableCacheTest, SetValidTestCase, SetInvalidTestCase
+from tests.functional.quib.function_quibs.cache.cache_test import IndexableCacheTest, SetValidTestCase, SetInvalidTestCase
 
 
 class TestNdFieldArrayCache(IndexableCacheTest):
