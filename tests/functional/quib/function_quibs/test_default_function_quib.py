@@ -130,4 +130,3 @@ def test_invalidate_before_cache_exists():
     # simply make sure we don't throw an exception
     parent.invalidate_and_redraw_at_path([])
 
-    # todo: check we're invalid?
