@@ -116,4 +116,5 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
                 )
             )
             for quib, path in quibs_to_paths.items()
+            if quib in quibs_to_values
         ]
