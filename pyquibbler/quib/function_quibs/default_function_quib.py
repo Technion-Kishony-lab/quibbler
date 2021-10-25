@@ -2,6 +2,8 @@ from sys import getsizeof
 from time import perf_counter
 from typing import Callable, Any, Mapping, Tuple, Optional, List, TYPE_CHECKING
 
+import numpy as np
+
 from pyquibbler.quib.function_quibs.cache import create_cache
 from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import CacheStatus
 from .function_quib import FunctionQuib, CacheBehavior
@@ -34,6 +36,7 @@ class DefaultFunctionQuib(FunctionQuib):
                  assignment_template: Optional[AssignmentTemplate] = None):
         super().__init__(func, args, kwargs, cache_behavior, assignment_template=assignment_template)
         self._cache = None
+        self._caching = True if cache_behavior == CacheBehavior.ON else False
 
     def _ensure_cache_matches_result(self, new_result: Any):
         """
@@ -92,37 +95,54 @@ class DefaultFunctionQuib(FunctionQuib):
         if path is None:
             new_path = None
         else:
-            new_path = [*path[0:1]]
+            first_two_components = path[0:2]
+            if (len(first_two_components) == 2
+                and first_two_components[0].references_field_in_field_array()
+                and not first_two_components[1].references_field_in_field_array()
+                and first_two_components[1].indexed_cls == np.ndarray
+            ):
+                # We are in a situation in which we have a field, and then indexes- these are always interchangable
+                # by definition, so we switch them to get the indexes in order to behave in the same fashion-
+                # e.g.
+                # ["a"][0] or [0]["a"] should cache in the same fashion (for an ndarray)
+                new_path = [first_two_components[1]]
+            else:
+                new_path = [*first_two_components[0:1]]
         return new_path
+
+    def _run_func_on_uncached_paths(self, truncated_path: List[PathComponent],
+                                    uncached_paths: List[List[PathComponent]]):
+        """
+        Run the function a list of uncached paths, given an original truncated path, storing it in our cache
+        """
+        for uncached_path in uncached_paths:
+            result = self._call_func(uncached_path)
+
+            self._ensure_cache_matches_result(result)
+            if uncached_path is not None:
+                self._cache.set_valid_value_at_path(truncated_path, get_sub_data_from_object_in_path(result,
+                                                                                                     truncated_path))
+                # sanity
+                assert len(self._cache.get_uncached_paths(truncated_path)) == 0
 
     def _get_inner_value_valid_at_path(self, path: Optional[List['PathComponent']]):
         """
         If the cached result is still valid, return it.
         Otherwise, calculate the value, store it in the cache and return it.
         """
-        new_path = self._truncate_path_to_match_shallow_caches(path)
-        uncached_paths = self._get_uncached_paths_matching_path(new_path)
+        truncated_path = self._truncate_path_to_match_shallow_caches(path)
+        uncached_paths = self._get_uncached_paths_matching_path(truncated_path)
 
         start_time = perf_counter()
-
         if len(uncached_paths) == 0:
             return self._cache.get_value()
-
-        for uncached_path in uncached_paths:
-            result = self._call_func(uncached_path)
-
-            self._ensure_cache_matches_result(result)
-            if new_path is not None:
-
-                self._cache.set_valid_value_at_path(new_path, get_sub_data_from_object_in_path(result,
-                                                                                           new_path))
-                # sanity
-                assert len(self._cache.get_uncached_paths(new_path)) == 0
-
+        self._run_func_on_uncached_paths(truncated_path, uncached_paths)
         result = self._cache.get_value()
-
         elapsed_seconds = perf_counter() - start_time
-        if not self._should_cache(result, elapsed_seconds):
+
+        if self._should_cache(result, elapsed_seconds):
+            self._caching = True
+        if not self._caching:
             self._cache = None
 
         return result
