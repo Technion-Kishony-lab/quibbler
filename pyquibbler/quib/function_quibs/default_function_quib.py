@@ -36,13 +36,22 @@ class DefaultFunctionQuib(FunctionQuib):
         self._cache = None
 
     def _ensure_cache_matches_result(self, new_result: Any):
+        """
+        Ensure there exists a current cache matching the given result; if the held cache does not match,
+        this function will now recreate the cache to match it
+        """
         if self._cache is None or not self._cache.matches_result(new_result):
             self._cache = create_cache(new_result)
         return self._cache
 
     def _invalidate_self(self, path: List['PathComponent']):
         if self._cache is not None:
-            self._cache.set_invalid_at_path(path)
+            try:
+                self._cache.set_invalid_at_path(path)
+            except (IndexError, TypeError):
+                # If we were unable to set at the given path, we presume something "essential" changed in our cache,
+                # so we set it to None and will rebuild our cache when next called get value
+                self._cache = None
 
     def _should_cache(self, result: Any, elapsed_seconds: float):
         """
@@ -99,18 +108,21 @@ class DefaultFunctionQuib(FunctionQuib):
         if len(uncached_paths) == 0:
             return self._cache.get_value()
 
-        result = None
         for uncached_path in uncached_paths:
             result = self._call_func(uncached_path)
 
-            elapsed_seconds = perf_counter() - start_time
+            self._ensure_cache_matches_result(result)
+            if new_path is not None:
 
-            if new_path is not None and self._should_cache(result, elapsed_seconds):
-
-                self._ensure_cache_matches_result(result)
                 self._cache.set_valid_value_at_path(new_path, get_sub_data_from_object_in_path(result,
                                                                                            new_path))
                 # sanity
                 assert len(self._cache.get_uncached_paths(new_path)) == 0
+
+        result = self._cache.get_value()
+
+        elapsed_seconds = perf_counter() - start_time
+        if not self._should_cache(result, elapsed_seconds):
+            self._cache = None
 
         return result

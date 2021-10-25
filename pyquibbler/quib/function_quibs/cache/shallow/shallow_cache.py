@@ -11,13 +11,6 @@ from pyquibbler.quib.function_quibs.cache.cache import Cache, CacheStatus
 from pyquibbler.quib.utils import deep_copy_without_quibs_or_artists
 
 
-class Invalid:
-    pass
-
-
-invalid = Invalid()
-
-
 class PathCannotHaveComponentsException(PyQuibblerException):
 
     def __str__(self):
@@ -40,7 +33,7 @@ class ShallowCache(Cache):
 
     @classmethod
     def create_from_result(cls, result):
-        return cls(invalid, True)
+        return cls(result, True)
 
     def get_cache_status(self):
         uncached_paths = self.get_uncached_paths([])
