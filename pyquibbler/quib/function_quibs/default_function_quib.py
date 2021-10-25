@@ -59,29 +59,41 @@ class DefaultFunctionQuib(FunctionQuib):
         return elapsed_seconds > self.MIN_SECONDS_FOR_CACHE \
                and getsizeof(result) / elapsed_seconds < self.MAX_BYTES_PER_SECOND
 
+    def _get_uncached_paths_matching_path(self, path: Optional[List['PathComponent']]):
+        if self._cache is not None:
+            try:
+                uncached_paths = self._cache.get_uncached_paths(path)
+            except (TypeError, IndexError):
+                # It's possible the user is requesting a value at index which our current cache does not have but which
+                # will exist after rerunning the function- in that case, return that nothing is cached
+                if path is not None:
+                    uncached_paths = [[]]
+                else:
+                    uncached_paths = []
+        else:
+            uncached_paths = [path]
+
+        return uncached_paths
+
+    def _truncate_path_to_match_shallow_caches(self, path: Optional[List['PathComponent']]):
+        """
+        Truncate a path so it can be used by shallow caches- we only want to cache and store elements at their first
+        component in their path
+        """
+        if path is None:
+            new_path = None
+        else:
+            new_path = [*path[0:1]]
+        return new_path
+
     def _get_inner_value_valid_at_path(self, path: Optional[List['PathComponent']]):
         """
         If the cached result is still valid, return it.
         Otherwise, calculate the value, store it in the cache and return it.
         """
-        # Because we have a shallow cache, we want the result valid at the first component
-        # TODO move to func
-        if path is None:
-            new_path = None
-        elif len(path) == 0:
-            new_path = []
-        else:
-            new_path = [path[0]]
+        new_path = self._truncate_path_to_match_shallow_caches(path)
+        uncached_paths = self._get_uncached_paths_matching_path(new_path)
 
-        try:
-            # TODO: comment explaining the `if` here
-            uncached_paths = self._cache.get_uncached_paths(new_path) if self._cache is not None else [new_path]
-        except (TypeError, IndexError):
-            # TODO: do we really want to do this??
-            if new_path is not None:
-                uncached_paths = [[]]
-            else:
-                uncached_paths = []
         start_time = perf_counter()
 
         if len(uncached_paths) == 0:
