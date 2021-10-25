@@ -1,7 +1,7 @@
 from typing import List, Any, Union
 
 from pyquibbler.quib.assignment import PathComponent
-from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import ShallowCache, invalid
+from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import ShallowCache
 
 
 class ListCache(ShallowCache):
