@@ -142,3 +142,9 @@ class TestListCache(IndexableCacheTest):
         cache.set_invalid_at_path([PathComponent(component=1, indexed_cls=list)])
     
         assert cache.get_cache_status() == CacheStatus.ALL_INVALID
+
+    def test_cache_set_valid_makes_uncached_paths_empty(self, cache):
+        cache.set_valid_value_at_path([], self.result)
+        uncached_paths = cache.get_uncached_paths([])
+
+        assert len(uncached_paths) == 0
