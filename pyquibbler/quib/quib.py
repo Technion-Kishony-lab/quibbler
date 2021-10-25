@@ -283,7 +283,13 @@ class Quib(ABC):
         """
         Assuming this quib represents a numpy ndarray, returns a quib of its shape.
         """
-        return np.shape(self.get_value_valid_at_path(None))
+        res = self.get_value_valid_at_path(None)
+        try:
+            return np.shape(res)
+        except ValueError:
+            if hasattr(res, '__len__'):
+                return len(res),
+            raise
 
     @quib_method
     def _get_override_mask(self, shape: Tuple[int, ...]) -> np.ndarray:

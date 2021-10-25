@@ -12,7 +12,7 @@ from pyquibbler.quib import ImpureFunctionQuib, DefaultFunctionQuib, FunctionQui
 from pyquibbler.quib.function_quibs.elementwise_function_quib import ElementWiseFunctionQuib
 from pyquibbler.quib.function_quibs.transpositional.transpositional_function_quib import TranspositionalFunctionQuib
 from pyquibbler.quib.graphics import global_collecting, ReductionAxisWiseGraphicsFunctionQuib, \
-    AlongAxisGraphicsFunctionQuib
+    AlongAxisGraphicsFunctionQuib, VectorizeGraphicsFunctionQuib
 from pyquibbler.quib.graphics.plot_graphics_function_quib import PlotGraphicsFunctionQuib
 from pyquibbler.quib.graphics.widgets import SliderGraphicsFunctionQuib, CheckButtonsGraphicsFunctionQuib, \
     RadioButtonsGraphicsFunctionQuib, RectangleSelectorGraphicsFunctionQuib
@@ -40,6 +40,9 @@ NUMPY_OVERRIDES = [
     ]),
     (np.random, [
         (ImpureFunctionQuib, {'rand', 'randn', 'randint'})
+    ]),
+    (np.vectorize, [
+        (VectorizeGraphicsFunctionQuib, {'__call__'})
     ])
 ]
 

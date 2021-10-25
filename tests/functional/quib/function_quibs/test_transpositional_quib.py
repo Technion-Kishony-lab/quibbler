@@ -215,3 +215,11 @@ def test_invalidate_and_redraw_invalidates_all_when_minor_parameter_changes():
     param.invalidate_and_redraw_at_path(PathBuilder(param)[...].path)
 
     assert child.cache_status == CacheStatus.ALL_INVALID
+
+
+def test_fun():
+    quib = iquib((np.array([1, 2]), np.array([[3, 4, 5, 6]])))
+    f = quib[1]
+    tt = f[0:2]
+    tt.get_value()
+    # f.assign_value(10)

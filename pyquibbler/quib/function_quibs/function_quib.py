@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from itertools import islice
 
 import numpy as np
 import types
-from abc import abstractmethod
 from enum import Enum
 from functools import wraps, cached_property, partial, lru_cache
 from typing import Callable, Any, Mapping, Tuple, Optional, Set, List, Union
+from functools import wraps, cached_property, lru_cache
+from typing import Callable, Any, Mapping, Tuple, Optional, Set, List
 
 from ..override_choice import get_overrides_for_assignment
 from ..assignment import AssignmentTemplate, Assignment, PathComponent
@@ -208,9 +208,12 @@ class FunctionQuib(Quib):
                 return {'args': self.args, 'kwargs': self.kwargs}
             raise
 
-    def _get_arg_value_at_position(self, i: int) -> Any:
+    def _get_arg_values_by_position(self) -> List[Any]:
+        """
+        Try to return all args values by position, including kwargs. If the signature is unknown, just return the args.
+        """
         try:
             args_iterable = self._get_all_args_dict(False, False).values()
         except ValueError:
             args_iterable = self.args
-        return next(islice(args_iterable, i, i + 1))
+        return list(args_iterable)
