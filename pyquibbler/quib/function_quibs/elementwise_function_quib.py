@@ -113,11 +113,10 @@ class ElementWiseFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunctionQuib
 
     def _forward_translate_indices_to_bool_mask(self, quib: Quib, indices: Any) -> Any:
         """
-        # TODO change comment
         Create a boolean mask representing the quib at certain indices in the result.
-        For a simple operation (eg `invalidator=[1, 2, 3]`, `invalidator + [2, 3, 4]`, and we invalidate `(0, 0)`),
+        For a simple operation (eg `quib=[1, 2, 3]`, `quib + [2, 3, 4]`, and we forward path `(0, 0)`),
         the `True`'s will be in the location of the indices (`[True, False, False]`)- but if
-        the invalidator quib was broadcasted, we need to make sure we get a boolean mask representing where the indices
+        the quib was broadcasted, we need to make sure we get a boolean mask representing where the indices
         were in the entire result.
 
         For example- if we have
@@ -125,7 +124,7 @@ class ElementWiseFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunctionQuib
         quib = [[1, 2, 3]]
         sum_ = quib + [[1], [2], [3]]
         ```
-        and we invalidate at (0, 0), we need to create a mask broadcasted like the argument was, ie
+        and we forward at (0, 0), we need to create a mask broadcasted like the argument was, ie
         [[True, False, False],
          [True, False, False],
          [True, False, False]]

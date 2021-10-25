@@ -1,3 +1,4 @@
+from __future__ import annotations
 from sys import getsizeof
 from time import perf_counter
 from typing import Callable, Any, Mapping, Tuple, Optional, List, TYPE_CHECKING
