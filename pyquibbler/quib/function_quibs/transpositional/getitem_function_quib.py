@@ -81,10 +81,10 @@ class GetItemFunctionQuib(TranspositionalFunctionQuib):
             self._args[0]: assignment.value
         }
 
-    def _get_quibs_to_paths_in_quibs(self, filtered_path_in_result):
+    def _get_source_paths_of_quibs_given_path(self, filtered_path_in_result):
         if self._can_squash_start_of_path(filtered_path_in_result):
             # Translate the indices
-            return super(GetItemFunctionQuib, self)._get_quibs_to_paths_in_quibs(filtered_path_in_result)
+            return super(GetItemFunctionQuib, self)._get_source_paths_of_quibs_given_path(filtered_path_in_result)
         return {
             self._args[0]: [self._getitem_path_component, *filtered_path_in_result]
         }

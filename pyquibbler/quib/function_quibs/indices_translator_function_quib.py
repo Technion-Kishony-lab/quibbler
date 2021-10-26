@@ -70,7 +70,7 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
     def _forward_translate_indices_to_bool_mask(self, quib: Quib, indices: Any) -> Any:
         pass
 
-    def _get_quibs_to_paths_in_quibs(self, filtered_path_in_result):
+    def _get_source_paths_of_quibs_given_path(self, filtered_path_in_result):
         return {}
 
     def _get_quibs_to_relevant_result_values(self, assignment: Assignment):
@@ -101,14 +101,14 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
             return []
         return self._forward_translate_invalidation_path(invalidator_quib, path)
 
-    def get_inversions_for_assignment(self, assignment: Assignment):
+    def get_inversions_for_assignment(self, assignment: Assignment) -> List[QuibWithAssignment]:
         components_at_end = assignment.path[1:]
         current_components = assignment.path[0:1]
         if len(assignment.path) > 0 and assignment.path[0].references_field_in_field_array():
             components_at_end = [assignment.path[0], *components_at_end]
             current_components = []
 
-        quibs_to_paths = self._get_quibs_to_paths_in_quibs(current_components)
+        quibs_to_paths = self._get_source_paths_of_quibs_given_path(current_components)
         quibs_to_values = self._get_quibs_to_relevant_result_values(assignment)
 
         return [
