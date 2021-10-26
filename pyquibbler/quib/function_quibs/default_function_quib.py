@@ -12,7 +12,7 @@ from ..assignment import AssignmentTemplate
 from ..assignment.utils import get_sub_data_from_object_in_path
 
 if TYPE_CHECKING:
-    from ..assignment.assignment import PathComponent, PathComponent
+    from ..assignment.assignment import PathComponent
 
 
 class DefaultFunctionQuib(FunctionQuib):
@@ -73,7 +73,7 @@ class DefaultFunctionQuib(FunctionQuib):
         assert self._cache_behavior is CacheBehavior.AUTO, \
             f'self._cache_behavior has unexpected value: "{self._cache_behavior}"'
         return elapsed_seconds > self.MIN_SECONDS_FOR_CACHE \
-               and getsizeof(result) / elapsed_seconds < self.MAX_BYTES_PER_SECOND
+            and getsizeof(result) / elapsed_seconds < self.MAX_BYTES_PER_SECOND
 
     def _get_uncached_paths_matching_path(self, path: Optional[List['PathComponent']]):
         """
@@ -104,10 +104,11 @@ class DefaultFunctionQuib(FunctionQuib):
             new_path = None
         else:
             first_two_components = path[0:2]
-            if (len(first_two_components) == 2
-                and first_two_components[0].references_field_in_field_array()
-                and not first_two_components[1].references_field_in_field_array()
-                and first_two_components[1].indexed_cls == np.ndarray
+            if (
+                    len(first_two_components) == 2
+                    and first_two_components[0].references_field_in_field_array()
+                    and not first_two_components[1].references_field_in_field_array()
+                    and first_two_components[1].indexed_cls == np.ndarray
             ):
                 # We are in a situation in which we have a field, and then indexes- these are always interchangable
                 # by definition, so we switch them to get the indexes in order to behave in the same fashion-
@@ -130,8 +131,8 @@ class DefaultFunctionQuib(FunctionQuib):
             self._ensure_cache_matches_result(result)
             if uncached_path is not None:
                 try:
-                    self._cache.set_valid_value_at_path(truncated_path, get_sub_data_from_object_in_path(result,
-                                                                                                     truncated_path))
+                    valid_value = get_sub_data_from_object_in_path(result, truncated_path)
+                    self._cache.set_valid_value_at_path(truncated_path, valid_value)
                     # We need to get the result from the cache (as opposed to simply using the last run), since we
                     # don't want to only take the last run
                     result = self._cache.get_value()

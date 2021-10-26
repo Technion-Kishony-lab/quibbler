@@ -9,7 +9,8 @@ from .widget_graphics_function_quib import WidgetGraphicsFunctionQuib
 
 class CheckButtonsGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
     """
-    A quib representing a matplotlib.widgets.CheckButtons. Will automatically add a listener and update the relevant quib
+    A quib representing a matplotlib.widgets.CheckButtons. Will automatically add a listener and update the relevant
+    quib
     """
     WIDGET_CLS = CheckButtons
 

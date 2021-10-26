@@ -1,14 +1,15 @@
+from __future__ import annotations
 from typing import List, Optional
 
 import numpy as np
 
-from pyquibbler.quib import TranspositionalFunctionQuib
+from pyquibbler.quib import TranspositionalFunctionQuib, Quib
 from pyquibbler.quib.assignment import PathComponent
 
 
 class GetItemFunctionQuib(TranspositionalFunctionQuib):
 
-    def _get_path_for_children_invalidation(self, invalidator_quib: 'Quib',
+    def _get_path_for_children_invalidation(self, invalidator_quib: Quib,
                                             path: List[PathComponent]) -> Optional[List[PathComponent]]:
         """
         Handle invalidation on a getitem quib, correctly choosing whether or not and at what indices to invalidate

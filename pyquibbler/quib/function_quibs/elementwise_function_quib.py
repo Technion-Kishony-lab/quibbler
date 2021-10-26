@@ -4,8 +4,7 @@ import math
 from operator import __neg__, __pos__, __sub__, __pow__, __mul__, __add__
 
 import numpy as np
-from typing import TYPE_CHECKING, Any, List
-
+from typing import TYPE_CHECKING, Any, List, Dict, Callable
 
 from .default_function_quib import DefaultFunctionQuib
 from .indices_translator_function_quib import IndicesTranslatorFunctionQuib

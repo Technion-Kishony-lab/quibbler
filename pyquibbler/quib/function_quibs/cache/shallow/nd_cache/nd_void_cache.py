@@ -42,4 +42,3 @@ class NdVoidCache(NdIndexableCache):
             return [[path_component]]
 
         return []
-

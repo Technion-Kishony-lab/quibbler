@@ -7,7 +7,8 @@ from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.utils import recursively_run_func_on_object, call_func_with_quib_values
 
 from pyquibbler.quib.function_quibs.default_function_quib import DefaultFunctionQuib
-from pyquibbler.quib.function_quibs.indices_translator_function_quib import IndicesTranslatorFunctionQuib, SupportedFunction
+from pyquibbler.quib.function_quibs.indices_translator_function_quib import IndicesTranslatorFunctionQuib, \
+    SupportedFunction
 from pyquibbler.quib.assignment.assignment import PathComponent
 
 
@@ -230,4 +231,3 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
             quib: representative_result_value[np.logical_and(quibs_to_masks[quib], result_bool_mask)]
             for quib in self.get_data_source_quibs()
         }
-

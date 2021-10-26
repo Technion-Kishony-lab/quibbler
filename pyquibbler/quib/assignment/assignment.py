@@ -30,11 +30,11 @@ class PathComponent:
         special PathComponent for it, as the interface for setting an attribute is different.
         """
         return (
-                issubclass(self.indexed_cls, np.ndarray) and
-                (
-                        isinstance(self.component, str) or
-                        (isinstance(self.component, list) and isinstance(self.component[0], str))
+            issubclass(self.indexed_cls, np.ndarray) and (
+                isinstance(self.component, str) or (
+                    isinstance(self.component, list) and isinstance(self.component[0], str)
                 )
+            )
         )
 
 

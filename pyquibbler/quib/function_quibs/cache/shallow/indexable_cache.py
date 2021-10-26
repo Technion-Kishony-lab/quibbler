@@ -62,7 +62,7 @@ class IndexableCache(ShallowCache):
 
     def _set_invalid_at_path_component(self, path_component: PathComponent):
         self._set_invalid_mask_at_path_component(path_component.component, True)
-    
+
     def _is_completely_invalid(self):
         return super(IndexableCache, self)._is_completely_invalid() or all(self._invalid_mask)
 

@@ -22,7 +22,7 @@ from pyquibbler.utils import ensure_only_run_once_globally
 '''
 Functions that should not be overridden as they cause certain issue:
 np.maximum, np.minimum
-__eq__  
+__eq__
 '''
 
 NUMPY_OVERRIDES = [

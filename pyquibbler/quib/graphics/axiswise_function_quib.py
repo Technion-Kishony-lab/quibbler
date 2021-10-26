@@ -149,9 +149,10 @@ class AxisWiseGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFuncti
      - t (a tuple of integers): the core dimensions are t
 
     In axiswise function, we could also separate the result ndarrays into loop dimensions and core dimensions.
-    In reduction functions like min, max and sum, the loop dimensions will be the outer dimensions in the resulting array.
-    In functions applied along an axis, like cumsum and apply_along_axis, the loop dimensions remains the same, but the core
-    dimension is potentially expanded to multiple dimensions, depending on the calculation result dimensions.
+    In reduction functions like min, max and sum, the loop dimensions will be the outer dimensions in the resulting
+     array.
+    In functions applied along an axis, like cumsum and apply_along_axis, the loop dimensions remains the same, but the
+    core dimension is potentially expanded to multiple dimensions, depending on the calculation result dimensions.
     """
     SUPPORTED_KWARGS: Dict[str, str] = {}
     REQUIRED_KWARGS: Dict[str, str] = {}
@@ -219,4 +220,3 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         expanded = np.expand_dims(applied, tuple(dims_to_expand))
         broadcast = np.broadcast_to(expanded, result_shape)
         return broadcast
-

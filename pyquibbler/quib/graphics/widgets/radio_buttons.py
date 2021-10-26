@@ -25,7 +25,8 @@ class QRadioButtons(RadioButtons):
 
 class RadioButtonsGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
     """
-    A quib representing a matplotlib.widgets.RadioButtons. Will automatically add a listener and update the relevant quib
+    A quib representing a matplotlib.widgets.RadioButtons. Will automatically add a listener and update the
+    relevant quib
     """
     WIDGET_CLS = RadioButtons
     REPLACEMENT_CLS = QRadioButtons

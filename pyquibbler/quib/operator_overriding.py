@@ -38,17 +38,17 @@ ARITHMETIC_OVERRIDES = [
 ]
 
 UNARY_OVERRIDES = [
-    operator_override('__neg__',ElementWiseFunctionQuib),
-    operator_override('__pos__',ElementWiseFunctionQuib),
-    operator_override('__abs__',ElementWiseFunctionQuib),
+    operator_override('__neg__', ElementWiseFunctionQuib),
+    operator_override('__pos__', ElementWiseFunctionQuib),
+    operator_override('__abs__', ElementWiseFunctionQuib),
     operator_override('__invert__'),
 ]
 
 COMPARISON_OVERRIDES = [
-    operator_override('__lt__',ElementWiseFunctionQuib),
-    operator_override('__gt__',ElementWiseFunctionQuib),
-    operator_override('__ge__',ElementWiseFunctionQuib),
-    operator_override('__le__',ElementWiseFunctionQuib),
+    operator_override('__lt__', ElementWiseFunctionQuib),
+    operator_override('__gt__', ElementWiseFunctionQuib),
+    operator_override('__ge__', ElementWiseFunctionQuib),
+    operator_override('__le__', ElementWiseFunctionQuib),
 ]
 
 ROUNDING_OVERRIDES = [
@@ -59,8 +59,7 @@ ROUNDING_OVERRIDES = [
 ]
 
 
-ALL_OVERRIDES = ARITHMETIC_OVERRIDES + UNARY_OVERRIDES + ROUNDING_OVERRIDES + \
-                COMPARISON_OVERRIDES
+ALL_OVERRIDES = ARITHMETIC_OVERRIDES + UNARY_OVERRIDES + ROUNDING_OVERRIDES + COMPARISON_OVERRIDES
 
 
 def _create_inverse_operator_wrapper(cls, forward_operator: Callable):

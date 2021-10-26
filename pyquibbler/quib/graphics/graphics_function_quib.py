@@ -131,8 +131,8 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         for a particular axes and array name
         """
         array = getattr(axes, array_name)
-        complete_artists_array = array[:starting_index] + new_artists + array[starting_index:len(array)
-                                                                                             - len(new_artists)]
+        end_index = len(array) - len(new_artists)
+        complete_artists_array = array[:starting_index] + new_artists + array[starting_index:end_index]
         # insert new artists at correct location
         setattr(axes, array_name, complete_artists_array)
         # We only want to update from the previous artists if their lengths are equal (if so, we assume they're
@@ -169,9 +169,9 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
 
     def save_drawing_func_on_artists(self):
         """
-        Set the drawing func on the artists- this will be used later on when tracking artists, in order to know how to 
+        Set the drawing func on the artists- this will be used later on when tracking artists, in order to know how to
         inverse and handle events.
-        If there's already a creating func, we assume the lower func that already created the artist is the actual 
+        If there's already a creating func, we assume the lower func that already created the artist is the actual
         drawing func (such as a user func that called plt.plot)
         """
         for artist in self._artists:
