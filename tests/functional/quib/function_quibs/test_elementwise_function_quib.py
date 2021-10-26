@@ -1,12 +1,13 @@
-from unittest import mock
-
 import numpy as np
+from unittest import mock
+from pytest import mark
+
 from pyquibbler import iquib
 from pyquibbler.quib import ElementWiseFunctionQuib, Quib
 from pyquibbler.quib.assignment.assignment import PathComponent
 from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import CacheStatus
 
-from ..utils import PathBuilder
+from ..utils import PathBuilder, check_get_value_valid_at_path
 
 
 def test_elementwise_function_quib_invalidation_with_flat_list():
@@ -60,3 +61,10 @@ def test_elementwise_function_quib_does_not_request_unneeded_indices_on_get_valu
     assert isinstance(second_call.args[0][0], PathComponent)
     component = second_call.args[0][0]
     assert bool(np.array([False, True])[component.component]) is True
+
+
+@mark.parametrize('data', [np.arange(24).reshape((2, 3, 4))])
+@mark.parametrize('indices_to_get_value_at', [-1, 0, (1, 1), (1, 2, 3), [True, False], (0, ...)])
+def test_elementwise_get_value(data, indices_to_get_value_at):
+    path_to_get_value_at = [PathComponent(np.ndarray, indices_to_get_value_at)]
+    check_get_value_valid_at_path(lambda x: np.add(x, 1), data, path_to_get_value_at)
