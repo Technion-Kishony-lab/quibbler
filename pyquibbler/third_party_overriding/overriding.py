@@ -35,7 +35,7 @@ NUMPY_OVERRIDES = [
                                    "arcsin", "arccos", "arctan", "arcsinh", "arccosh", "arctanh",
                                    "exp", "exp2", "expm1", "log", "log2", "log1p", "log10",
                                    "sqrt", "int", "float", "ceil", "floor", "round", 'around'}),
-        (ReductionAxisWiseGraphicsFunctionQuib, {"max", "min", "sum"}),
+        (ReductionAxisWiseGraphicsFunctionQuib, {"max", "amax", "min", "amin", "sum"}),
         (AlongAxisGraphicsFunctionQuib, {'apply_along_axis'}),
     ]),
     (np.random, [

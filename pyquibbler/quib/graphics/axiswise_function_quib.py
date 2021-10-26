@@ -185,7 +185,9 @@ class ReductionAxisWiseGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
     SUPPORTED_FUNCTIONS = {
         np.sum: SupportedFunction({0}),
         np.min: SupportedFunction({0}),
+        np.amin: SupportedFunction({0}),
         np.max: SupportedFunction({0}),
+        np.amax: SupportedFunction({0}),
     }
     SUPPORTED_KWARGS = {'keepdims': 'keepdims', 'where': 'where'}
     REQUIRED_KWARGS = {'axis': 'axis'}
