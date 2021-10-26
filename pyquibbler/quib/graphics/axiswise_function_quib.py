@@ -1,4 +1,5 @@
 import numpy as np
+from dataclasses import dataclass
 from itertools import chain
 from functools import lru_cache, cached_property
 from abc import abstractmethod
@@ -35,7 +36,7 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
     }
 
     @cached_property
-    def _arg_values_in_wrapped_function(self):
+    def _arg_dict_in_wrapped_function(self):
         return list(dict(iter_args_and_names_in_function_call(self._vectorize.pyfunc,
                                                               self.args[1:], self.kwargs, False)).values())
 
@@ -101,7 +102,7 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
 
     def _forward_translate_indices_to_bool_mask(self, invalidator_quib: Quib, indices: Any) -> Any:
         source_bool_mask = self._get_source_shaped_bool_mask(invalidator_quib, indices)
-        core_dims = self._get_arg_core_dims(self._arg_values_in_wrapped_function.index(invalidator_quib))
+        core_dims = self._get_arg_core_dims(self._arg_dict_in_wrapped_function.index(invalidator_quib))
         if core_dims > 0:
             source_bool_mask = np.any(source_bool_mask, axis=tuple(range(source_bool_mask.ndim)[-core_dims:]))
         return np.broadcast_to(source_bool_mask, self._loop_shape)
@@ -134,6 +135,22 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
                 self._invalidate_children_at_path(new_path)
 
 
+@dataclass
+class Arg:
+    name: str
+
+    def get_value(self, arg_dict: Dict[str, Any]) -> Any:
+        return arg_dict[self.name]
+
+
+@dataclass
+class ArgWithDefault(Arg):
+    default: Any
+
+    def get_value(self, arg_dict: Dict[str, Any]) -> Any:
+        return arg_dict.get(self.name, self.default)
+
+
 class AxisWiseGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunctionQuib):
     """
     Axiswise functions are functions that loop over an input array,
@@ -154,31 +171,50 @@ class AxisWiseGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFuncti
     In functions applied along an axis, like cumsum and apply_along_axis, the loop dimensions remains the same, but the
     core dimension is potentially expanded to multiple dimensions, depending on the calculation result dimensions.
     """
-    SUPPORTED_KWARGS: Dict[str, str] = {}
-    REQUIRED_KWARGS: Dict[str, str] = {}
+    # Some numpy functions that allow not passing a keyword argument don't actually have a default value for it.
+    # The default value is an instance of _NoValueType, and it is passed to an underlying function that
+    # actually calculates the default value. In the future we could try and get the default value per
+    # data type and function, but right now we assume we can know the default in advance.
+    TRANSLATION_RELATED_ARGS: List[Arg]
 
     @abstractmethod
-    def _call_forward_index_translator(self, kwargs, boolean_mask, invalidator_quib: Quib):
+    def _forward_translate_bool_mask(self, args_dict, boolean_mask, invalidator_quib: Quib):
         """
-        Do the actual forward index translation using a translator function with the given kwargs.
+        Do the actual forward index translation.
         """
 
-    def _get_forward_index_translator_kwargs(self):
-        """
-        Prepare kwargs to call the translator function with according to self.SUPPORTED_KWARGS and self.REQUIRED_KWARGS.
-        """
-        kwargs = {}
-        for original_kwarg_name, translator_kwarg_name in self.SUPPORTED_KWARGS.items():
-            if original_kwarg_name in self._get_all_args_dict(include_defaults=False):
-                kwargs[translator_kwarg_name] = self._get_all_args_dict(include_defaults=False)[original_kwarg_name]
-        for original_kwarg_name, translator_kwarg_name in self.REQUIRED_KWARGS.items():
-            kwargs[translator_kwarg_name] = self._get_all_args_dict(include_defaults=True)[original_kwarg_name]
-        return kwargs
+    @lru_cache()
+    def _get_translation_related_arg_dict(self):
+        arg_dict = {key: val for key, val in self._get_all_args_dict(include_defaults=True).items()
+                    if not isinstance(val, np._globals._NoValueType)}
+        return {arg.name: arg.get_value(arg_dict) for arg in self.TRANSLATION_RELATED_ARGS}
 
     def _forward_translate_indices_to_bool_mask(self, quib: Quib, indices: Any) -> Any:
         source_bool_mask = self._get_source_shaped_bool_mask(quib, indices)
-        kwargs = self._get_forward_index_translator_kwargs()
-        return self._call_forward_index_translator(kwargs, source_bool_mask, quib)
+        args_dict = self._get_translation_related_arg_dict()
+        return self._forward_translate_bool_mask(args_dict, source_bool_mask, quib)
+
+    @abstractmethod
+    def _backward_translate_bool_mask(self, args_dict, bool_mask, quib: Quib):
+        pass
+
+    def _backward_translate_indices_to_bool_mask(self, quib: Quib, indices: Any) -> Any:
+        result_bool_mask = self._get_bool_mask_representing_indices_in_result(indices)
+        args_dict = self._get_translation_related_arg_dict()
+        return self._backward_translate_bool_mask(args_dict, result_bool_mask, quib)
+
+    def _get_quibs_to_paths_in_quibs(self, filtered_path_in_result):
+        data_source_quibs = self.get_data_source_quibs()
+        non_data_source_quibs = self.parents - data_source_quibs
+        data_source_quib, = data_source_quibs
+        if len(filtered_path_in_result) == 0:
+            path_in_data_source = []
+        else:
+            working_component, *rest_of_path = filtered_path_in_result
+            indices_in_data_source = self._backward_translate_indices_to_bool_mask(data_source_quib,
+                                                                                   working_component.component)
+            path_in_data_source = [PathComponent(self.get_type(), indices_in_data_source)]
+        return {data_source_quib: path_in_data_source, **{quib: [] for quib in non_data_source_quibs}}
 
 
 class ReductionAxisWiseGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
@@ -189,24 +225,32 @@ class ReductionAxisWiseGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         np.max: SupportedFunction({0}),
         np.amax: SupportedFunction({0}),
     }
-    SUPPORTED_KWARGS = {'keepdims': 'keepdims', 'where': 'where'}
-    REQUIRED_KWARGS = {'axis': 'axis'}
+    TRANSLATION_RELATED_ARGS = [Arg('axis'), ArgWithDefault('keepdims', False), ArgWithDefault('where', True)]
 
-    def _call_forward_index_translator(self, kwargs, boolean_mask, invalidator_quib: Quib):
+    def _forward_translate_bool_mask(self, args_dict, boolean_mask, invalidator_quib: Quib):
         """
         Calculate forward index translation for reduction functions by reducing the boolean arrays
         with the same reduction params.
         """
-        return np.logical_or.reduce(boolean_mask, **kwargs)
+        return np.logical_or.reduce(boolean_mask, **args_dict)
+
+    def _backward_translate_bool_mask(self, args_dict, bool_mask, quib: Quib):
+        keepdims = args_dict['keepdims']
+        if not keepdims:
+            input_core_dims = args_dict['axis']
+            if input_core_dims is not None:
+                bool_mask = np.expand_dims(bool_mask, input_core_dims)
+        bool_mask = np.broadcast_to(bool_mask, quib.get_shape().get_value())
+        return np.logical_and(bool_mask, args_dict['where'])
 
 
 class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
     SUPPORTED_FUNCTIONS = {
         np.apply_along_axis: SupportedFunction({2}),
     }
-    REQUIRED_KWARGS = {'axis': 'axis'}
+    TRANSLATION_RELATED_ARGS = [Arg('axis')]
 
-    def _call_forward_index_translator(self, kwargs, boolean_mask, invalidator_quib: Quib):
+    def _forward_translate_bool_mask(self, args_dict, boolean_mask, invalidator_quib: Quib):
         """
         Calculate forward index translation for apply_along_axis by applying np.any on the boolean mask.
         After that we expand and broadcast the reduced mask to match the actual result shape, which is dependent
@@ -215,10 +259,13 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         result_shape = self.get_shape().get_value()
         func_result_ndim = len(result_shape) - len(invalidator_quib.get_shape().get_value()) + 1
         assert func_result_ndim >= 0, func_result_ndim
-        axis = kwargs.pop('axis')
-        applied = np.apply_along_axis(np.any, axis, boolean_mask, **kwargs)
+        axis = args_dict.pop('axis')
+        applied = np.apply_along_axis(np.any, axis, boolean_mask, **args_dict)
         dims_to_expand = range(axis, axis + func_result_ndim) if axis >= 0 else \
             range(axis, axis - func_result_ndim, -1)
         expanded = np.expand_dims(applied, tuple(dims_to_expand))
         broadcast = np.broadcast_to(expanded, result_shape)
         return broadcast
+
+    def _backward_translate_bool_mask(self, args_dict, bool_mask, quib: Quib):
+        return self._get_source_shaped_bool_mask(quib, [])
