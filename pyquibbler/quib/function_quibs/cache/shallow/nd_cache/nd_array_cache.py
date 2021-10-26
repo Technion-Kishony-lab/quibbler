@@ -33,7 +33,10 @@ class NdArrayCache(ShallowCache):
     def _set_valid_value_all_paths(self, value):
         super(NdArrayCache, self)._set_valid_value_all_paths(value)
         mask = np.full(value.shape, False, dtype=self._invalid_mask.dtype)
-        self._invalid_mask = mask
+        if isinstance(self._invalid_mask, np.void):
+            self._invalid_mask = np.void(mask)
+        else:
+            self._invalid_mask = mask
 
     def _set_valid_value_at_path_component(self, path_component: PathComponent, value: Any):
         self._value[path_component.component] = value
@@ -41,7 +44,7 @@ class NdArrayCache(ShallowCache):
 
     def _get_all_uncached_paths(self) -> List[List[PathComponent]]:
         return super(NdArrayCache, self)._get_all_uncached_paths() \
-               or self._get_uncached_paths_at_path_component(PathComponent(component=True, indexed_cls=np.ndarray))
+               or self._get_uncached_paths_at_path_component(PathComponent(component=True, indexed_cls=type(self._value)))
 
     @staticmethod
     def _filter_empty_paths(paths):
