@@ -1,5 +1,4 @@
-from typing import TYPE_CHECKING, Any, Callable, Iterable, List
-
+from typing import Callable, TYPE_CHECKING, List, Any, Iterable
 from matplotlib.backend_bases import MouseEvent, PickEvent
 
 from pyquibbler.quib.assignment.assignment import QuibWithAssignment

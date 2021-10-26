@@ -1,20 +1,15 @@
-from operator import getitem
-from typing import Any, Callable, Dict, List, Optional, Union
-
 import numpy as np
+from operator import getitem
+from typing import List, Optional, Any, Callable, Dict, Union
 
-from pyquibbler.quib.assignment import Assignment
-from pyquibbler.quib.assignment.assignment import (PathComponent,
-                                                   QuibWithAssignment)
-from pyquibbler.quib.function_quibs.default_function_quib import \
-    DefaultFunctionQuib
-from pyquibbler.quib.function_quibs.indices_translator_function_quib import (
-    IndicesTranslatorFunctionQuib, SupportedFunction)
-from pyquibbler.quib.function_quibs.utils import \
-    create_empty_array_with_values_at_indices
+from pyquibbler.quib.function_quibs.utils import create_empty_array_with_values_at_indices
 from pyquibbler.quib.quib import Quib
-from pyquibbler.quib.utils import (call_func_with_quib_values,
-                                   recursively_run_func_on_object)
+from pyquibbler.quib.assignment import Assignment
+from pyquibbler.quib.utils import recursively_run_func_on_object, call_func_with_quib_values
+
+from pyquibbler.quib.function_quibs.default_function_quib import DefaultFunctionQuib
+from pyquibbler.quib.function_quibs.indices_translator_function_quib import IndicesTranslatorFunctionQuib, SupportedFunction
+from pyquibbler.quib.assignment.assignment import PathComponent, QuibWithAssignment
 
 
 class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunctionQuib):

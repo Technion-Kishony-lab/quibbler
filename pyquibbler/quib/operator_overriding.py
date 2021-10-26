@@ -8,8 +8,8 @@ We have to use the operator functions in order to allow builtin operator functio
 import functools
 import operator
 from functools import wraps
-from math import ceil, floor, trunc
-from typing import Callable, Optional, Tuple, Type
+from math import trunc, floor, ceil
+from typing import Callable, Tuple, Optional, Type
 
 from .function_quibs import DefaultFunctionQuib
 from .function_quibs.elementwise_function_quib import ElementWiseFunctionQuib

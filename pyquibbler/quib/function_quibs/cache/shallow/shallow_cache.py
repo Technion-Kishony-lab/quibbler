@@ -1,7 +1,7 @@
-from abc import ABC, ABCMeta, abstractmethod
+from abc import ABC, abstractmethod, ABCMeta
 from enum import Enum
 from functools import wraps
-from typing import Any, List, Optional, Tuple, Type
+from typing import List, Any, Optional, Type, Tuple
 
 import numpy as np
 

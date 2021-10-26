@@ -1,10 +1,8 @@
 from __future__ import annotations
-
 import contextlib
 import functools
 import threading
-from typing import Callable, List
-
+from typing import List, Callable
 from matplotlib.artist import Artist
 
 from pyquibbler.exceptions import PyQuibblerException

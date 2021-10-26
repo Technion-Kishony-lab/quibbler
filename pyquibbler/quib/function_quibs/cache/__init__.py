@@ -4,12 +4,9 @@ import numpy as np
 
 from pyquibbler.quib.function_quibs.cache.shallow import NdVoidCache
 from pyquibbler.quib.function_quibs.cache.shallow.dict_cache import DictCache
-from pyquibbler.quib.function_quibs.cache.shallow.indexable_cache import \
-    IndexableCache
-from pyquibbler.quib.function_quibs.cache.shallow.nd_cache import (
-    NdFieldArrayShallowCache, NdUnstructuredArrayCache)
-from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import \
-    ShallowCache
+from pyquibbler.quib.function_quibs.cache.shallow.indexable_cache import IndexableCache
+from pyquibbler.quib.function_quibs.cache.shallow.nd_cache import NdFieldArrayShallowCache, NdUnstructuredArrayCache
+from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import ShallowCache
 
 
 def create_cache(result: Any) -> ShallowCache:

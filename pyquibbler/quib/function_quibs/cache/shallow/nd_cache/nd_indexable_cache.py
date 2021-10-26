@@ -4,8 +4,7 @@ from typing import Any, List
 import numpy as np
 
 from pyquibbler.quib.assignment import PathComponent
-from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import \
-    ShallowCache
+from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import ShallowCache
 
 
 class NdIndexableCache(ShallowCache):

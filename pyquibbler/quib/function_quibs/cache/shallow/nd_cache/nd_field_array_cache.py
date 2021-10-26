@@ -1,10 +1,8 @@
 import numpy as np
 
 from pyquibbler.quib.assignment import PathComponent
-from pyquibbler.quib.function_quibs.cache.shallow.nd_cache.nd_indexable_cache import \
-    NdIndexableCache
-from pyquibbler.quib.function_quibs.utils import \
-    create_empty_array_with_values_at_indices
+from pyquibbler.quib.function_quibs.cache.shallow.nd_cache.nd_indexable_cache import NdIndexableCache
+from pyquibbler.quib.function_quibs.utils import create_empty_array_with_values_at_indices
 
 
 class NdFieldArrayShallowCache(NdIndexableCache):

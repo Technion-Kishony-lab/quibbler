@@ -1,7 +1,7 @@
-import contextlib
 import time
+import contextlib
 from dataclasses import dataclass
-from typing import Callable, Optional
+from typing import Optional, Callable
 
 from pyquibbler.exceptions import PyQuibblerException
 

@@ -1,20 +1,18 @@
 from __future__ import annotations
-
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, List, Optional
+from typing import List, TYPE_CHECKING, Optional
 
 from pyquibbler.exceptions import PyQuibblerException
-from pyquibbler.quib.assignment import (Assignment, CannotReverseException,
-                                        QuibWithAssignment)
+from pyquibbler.quib.assignment import QuibWithAssignment, CannotReverseException, \
+    Assignment
 
-from ...env import ASSIGNMENT_RESTRICTIONS
+from .override_dialog import OverrideChoiceType, OverrideChoice, choose_override_dialog
+from .types import OverrideRemoval, OverrideGroup, OverrideWithOverrideRemovals
 from .choice_cache import ChoiceCache
-from .override_dialog import (OverrideChoice, OverrideChoiceType,
-                              choose_override_dialog)
-from .types import OverrideGroup, OverrideRemoval, OverrideWithOverrideRemovals
+from ...env import ASSIGNMENT_RESTRICTIONS
 
 if TYPE_CHECKING:
-    from pyquibbler.quib import FunctionQuib, Quib
+    from pyquibbler.quib import Quib, FunctionQuib
 
 
 @dataclass

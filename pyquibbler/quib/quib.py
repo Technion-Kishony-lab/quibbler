@@ -1,20 +1,17 @@
 from __future__ import annotations
-
+import numpy as np
+from functools import cached_property
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from functools import cached_property
 from operator import getitem
-from typing import TYPE_CHECKING, Any, List, Optional, Set, Tuple, Type
+from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List
 from weakref import ref as weakref
-
-import numpy as np
 
 from pyquibbler.exceptions import PyQuibblerException
 
-from .assignment import (Assignment, AssignmentTemplate,
-                         BoundAssignmentTemplate, Overrider, PathComponent,
-                         RangeAssignmentTemplate)
-from .utils import Unpacker, quib_method, recursively_run_func_on_object
+from .assignment import AssignmentTemplate, RangeAssignmentTemplate, BoundAssignmentTemplate, Overrider, Assignment
+from .utils import quib_method, Unpacker, recursively_run_func_on_object
+from .assignment import PathComponent
 
 if TYPE_CHECKING:
     from pyquibbler.quib.graphics import GraphicsFunctionQuib
@@ -208,8 +205,7 @@ class Quib(ABC):
         # getitem and will issue a warning)
         # 2. We need the function to not be created dynamically as it needs to be in the inverser's supported functions
         # in order to be inversed correctly (and not simply override)
-        from pyquibbler.quib.function_quibs.transpositional.getitem_function_quib import \
-            GetItemFunctionQuib
+        from pyquibbler.quib.function_quibs.transpositional.getitem_function_quib import GetItemFunctionQuib
         return GetItemFunctionQuib.create(func=getitem, func_args=[self, item])
 
     def __setitem__(self, key, value):

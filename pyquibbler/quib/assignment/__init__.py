@@ -1,7 +1,5 @@
-from .assignment import Assignment, PathComponent, QuibWithAssignment
-from .assignment_template import (AssignmentTemplate, BoundAssignmentTemplate,
-                                  BoundMaxBelowMinException,
-                                  RangeAssignmentTemplate,
-                                  RangeStopBelowStartException)
-from .exceptions import CannotReverseException
 from .overrider import Overrider
+from .assignment import Assignment, QuibWithAssignment, PathComponent
+from .assignment_template import AssignmentTemplate, RangeAssignmentTemplate, BoundAssignmentTemplate, \
+    BoundMaxBelowMinException, RangeStopBelowStartException
+from .exceptions import CannotReverseException

@@ -1,7 +1,7 @@
 import contextlib
 import functools
+from typing import Callable, Any
 from dataclasses import dataclass
-from typing import Any, Callable
 
 
 def ensure_only_run_once_globally(func: Callable):

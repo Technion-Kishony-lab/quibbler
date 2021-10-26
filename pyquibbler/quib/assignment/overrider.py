@@ -1,16 +1,13 @@
-from dataclasses import dataclass
-from typing import Any, Dict, Hashable, List, Optional, Union
-from warnings import warn
-
 import numpy as np
+from warnings import warn
+from dataclasses import dataclass
+from typing import Any, List, Optional, Union, Dict, Hashable
 
-from ...env import DEBUG
-from ..utils import (deep_copy_without_quibs_or_artists,
-                     recursively_run_func_on_object)
 from .assignment import Assignment, PathComponent, get_hashable_path
 from .assignment_template import AssignmentTemplate
-from .utils import (deep_assign_data_with_paths,
-                    get_sub_data_from_object_in_path)
+from .utils import get_sub_data_from_object_in_path, deep_assign_data_with_paths
+from ..utils import deep_copy_without_quibs_or_artists, recursively_run_func_on_object
+from ...env import DEBUG
 
 
 @dataclass

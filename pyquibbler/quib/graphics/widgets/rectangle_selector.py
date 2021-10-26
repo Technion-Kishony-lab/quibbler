@@ -2,14 +2,14 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 from threading import RLock
 from typing import Any
-
 from matplotlib.widgets import RectangleSelector
 
-from pyquibbler.quib import Quib
 from pyquibbler.quib.utils import quib_method
 from pyquibbler.utils import Mutable
 
 from .widget_graphics_function_quib import WidgetGraphicsFunctionQuib
+
+from pyquibbler.quib import Quib
 
 
 @dataclass

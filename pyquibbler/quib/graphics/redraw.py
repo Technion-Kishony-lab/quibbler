@@ -1,5 +1,4 @@
 import contextlib
-
 from matplotlib.axes import Axes
 
 from pyquibbler.performance_utils import timer

@@ -1,18 +1,16 @@
-from abc import abstractmethod
-from functools import cached_property, lru_cache
-from itertools import chain
-from typing import Any, Dict, List, Optional
-
 import numpy as np
+from itertools import chain
+from functools import lru_cache, cached_property
+from abc import abstractmethod
+from typing import Any, Dict, Optional, List
 
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.utils import shallow_copy_and_replace_quibs_with_vals
 
-from ..assignment import PathComponent
-from ..function_quibs.indices_translator_function_quib import (
-    IndicesTranslatorFunctionQuib, SupportedFunction)
-from ..utils import iter_args_and_names_in_function_call
 from .graphics_function_quib import GraphicsFunctionQuib
+from ..assignment import PathComponent
+from ..function_quibs.indices_translator_function_quib import IndicesTranslatorFunctionQuib, SupportedFunction
+from ..utils import iter_args_and_names_in_function_call
 
 
 def get_vectorize_call_data_args(args, kwargs) -> List[Any]:

@@ -1,16 +1,14 @@
 from __future__ import annotations
-
+import numpy as np
 import functools
 from copy import copy
 from dataclasses import dataclass
 from dis import opname
 from functools import wraps
-from inspect import currentframe, signature
+from inspect import currentframe
+from inspect import signature
 from itertools import chain
-from typing import (TYPE_CHECKING, Any, Callable, Dict, Mapping, Optional, Set,
-                    Tuple, Type)
-
-import numpy as np
+from typing import Any, Optional, Set, TYPE_CHECKING, Callable, Tuple, Dict, Type, Mapping
 
 from pyquibbler.env import DEBUG
 from pyquibbler.exceptions import DebugException, PyQuibblerException
@@ -96,9 +94,8 @@ def recursively_run_func_on_object(func: Callable, obj: Any,
 
 
 def deep_copy_without_quibs_or_artists(obj: Any, max_depth: Optional[int] = None, max_length: Optional[int] = None):
-    from matplotlib.artist import Artist
-
     from pyquibbler.quib import Quib
+    from matplotlib.artist import Artist
 
     def copy_if_not_quib_or_artist(o):
         if isinstance(o, (Quib, Artist)):
@@ -117,9 +114,8 @@ def deep_copy_and_replace_quibs_with_vals(obj: Any, max_depth: Optional[int] = N
     `max_depth=1` means `obj` and all objects it directly references, and so on.
     When `max_length` is given, does not recurse into iterables larger than `max_length`.
     """
-    from matplotlib.artist import Artist
-
     from pyquibbler.quib import Quib
+    from matplotlib.artist import Artist
 
     def replace_with_value_if_quib_or_copy(o):
         if isinstance(o, QuibRef):

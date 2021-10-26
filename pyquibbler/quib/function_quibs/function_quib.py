@@ -1,25 +1,23 @@
 from __future__ import annotations
 
-import types
-from enum import Enum
-from functools import cached_property, lru_cache, partial, wraps
-from typing import (Any, Callable, Dict, List, Mapping, Optional, Set, Tuple,
-                    Union)
 
 import numpy as np
+import types
+from enum import Enum
+from functools import wraps, cached_property, partial, lru_cache
+from typing import Callable, Any, Mapping, Tuple, Optional, Set, List, Union, Dict
+from functools import wraps, cached_property, lru_cache
+from typing import Callable, Any, Mapping, Tuple, Optional, Set, List
 
-from ...env import LAZY, PRETTY_REPR
-from ..assignment import (Assignment, AssignmentTemplate, PathComponent,
-                          QuibWithAssignment)
 from ..override_choice import get_overrides_for_assignment
+from ..assignment import AssignmentTemplate, Assignment, PathComponent, QuibWithAssignment
 from ..quib import Quib
-from ..utils import (QuibRef, call_func_with_quib_values,
-                     copy_and_convert_args_and_kwargs_to_values,
-                     copy_and_convert_kwargs_to_values,
-                     deep_copy_without_quibs_or_artists,
-                     is_there_a_quib_in_args,
-                     iter_args_and_names_in_function_call, iter_quibs_in_args,
-                     recursively_run_func_on_object)
+from ..utils import is_there_a_quib_in_args, iter_quibs_in_args, call_func_with_quib_values, \
+    deep_copy_without_quibs_or_artists, copy_and_convert_args_and_kwargs_to_values, \
+    iter_args_and_names_in_function_call, \
+    recursively_run_func_on_object, QuibRef, copy_and_convert_kwargs_to_values
+from ...env import LAZY, PRETTY_REPR
+from ...env import LAZY
 
 
 class CacheBehavior(Enum):
