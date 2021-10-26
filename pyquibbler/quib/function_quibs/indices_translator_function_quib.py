@@ -42,6 +42,10 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
         )
 
     def _get_representative_result(self, working_component, value):
+        """
+        Get a result representing the result of this quib (same shape) with the given component (directly indexable,
+        not a `PathComponent`) set to a value
+        """
         return create_empty_array_with_values_at_indices(
                 self.get_shape().get_value(),
                 indices=working_component,

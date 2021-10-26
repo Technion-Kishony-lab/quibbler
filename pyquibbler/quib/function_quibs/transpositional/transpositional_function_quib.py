@@ -217,13 +217,6 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
             return path
         return super()._get_path_for_children_invalidation(invalidator_quib, path)
 
-    def _get_representative_result(self, working_component, value):
-        return create_empty_array_with_values_at_indices(
-                self.get_shape().get_value(),
-                indices=working_component,
-                value=value,
-            )
-
     def _get_quibs_to_relevant_result_values(self, assignment) -> Dict[Quib, np.ndarray]:
         """
         Get a mapping of quibs to values that were both referenced in `self._indices` and came from the
