@@ -21,6 +21,9 @@ class Cache(ABC):
     def __init__(self, value):
         self._value = value
 
+    def __repr__(self):
+        return f"<{self.__class__.__name__} - (type: {self._value.__class__.__name__})>"
+
     @classmethod
     def supports_result(cls, result):
         """
