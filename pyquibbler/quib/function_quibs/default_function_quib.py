@@ -76,6 +76,10 @@ class DefaultFunctionQuib(FunctionQuib):
                and getsizeof(result) / elapsed_seconds < self.MAX_BYTES_PER_SECOND
 
     def _get_uncached_paths_matching_path(self, path: Optional[List['PathComponent']]):
+        """
+        Get a list of paths that are uncached within the given path- these paths must be a subset of the given path
+        (or the path itself)
+        """
         if self._cache is not None:
             try:
                 uncached_paths = self._cache.get_uncached_paths(path)
