@@ -65,7 +65,7 @@ class GetItemFunctionQuib(TranspositionalFunctionQuib):
 
     @property
     def _getitem_path_component(self):
-        return PathComponent(indexed_cls=self.get_type(), component=self._args[1])
+        return PathComponent(indexed_cls=self._args[0].get_type(), component=self._args[1])
 
     def _can_squash_start_of_path(self, filtered_path_in_result):
         return issubclass(self.get_type(), np.ndarray) \

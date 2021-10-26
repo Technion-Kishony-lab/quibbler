@@ -66,8 +66,9 @@ def breakdown_path(data: Any, path: List[PathComponent]):
             assert second_is_field != first_is_field
         else:
             second_components = get_indices_at_path(data.shape, []) if first_is_field else data.dtype.names
-        return [[PathComponent(np.ndarray, first_component), PathComponent(np.ndarray, second_component)]
-                for first_component in first_components for second_component in second_components]
+        return [[PathComponent(np.ndarray, tuple(first_component)), PathComponent(np.ndarray, second_component)]
+                for first_component in first_components
+                for second_component in second_components]
     return [[PathComponent(np.ndarray, tuple(index))] for index in get_indices_at_path(data.shape, path)]
 
 
@@ -85,7 +86,9 @@ def check_get_value_valid_at_path(func, data, path_to_get_value_at):
     input_quib = MockQuib(data)
     result_quib = func(input_quib)
     result_quib.set_cache_behavior(CacheBehavior.OFF)
+
     result = result_quib.get_value()
+
     with input_quib.collect_valid_paths() as requested_paths:
         result_quib.get_value_valid_at_path(path_to_get_value_at)
 

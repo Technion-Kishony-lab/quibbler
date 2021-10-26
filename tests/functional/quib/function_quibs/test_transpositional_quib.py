@@ -235,14 +235,11 @@ def test_transpositional_get_value(data, indices_to_get_value_at):
     check_get_value_valid_at_path(np.rot90, data, path_to_get_value_at)
 
 
-@pytest.mark.parametrize('data', [np.array([('a', 23, 1), ('b', 24, 10), ('c', 25, 100)],
+@pytest.mark.parametrize('data', [np.array([[('a', 23, 1), ('b', 24, 10), ('c', 25, 100)]],
                                            dtype=[('name', '|S21'), ('age', 'i8'), ('random', 'i4')])])
-@pytest.mark.parametrize('indices_list_to_get_value_at', [
-    (0,), ([0, 2]), ('name',), (['name', 'age']),
-    (0, 'name'), (0, ['name', 'age']),
-    ('name', 0), (['name', 'age'], 0), (['name', 'age'], [0, 1])
+@pytest.mark.parametrize('indices_to_get_value_at', [
+    (0,), (slice(0, 2)), 'name', slice(None), slice(None, 2)
 ])
-def test_transpositional_get_value_with_fields(data, indices_list_to_get_value_at):
-    path_to_get_value_at = [PathComponent(np.ndarray, indices_to_get_value_at)
-                            for indices_to_get_value_at in indices_list_to_get_value_at]
+def test_transpositional_get_value_with_fields(data, indices_to_get_value_at):
+    path_to_get_value_at = [PathComponent(np.ndarray, indices_to_get_value_at)]
     check_get_value_valid_at_path(lambda x: x[0], data, path_to_get_value_at)
