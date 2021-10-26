@@ -4,7 +4,7 @@ from __future__ import annotations
 import numpy as np
 import types
 from enum import Enum
-from functools import wraps, cached_property, partial, lru_cache
+from functools import cached_property, lru_cache, wraps
 from typing import Callable, Any, Mapping, Tuple, Optional, Set, List, Union, Dict
 from functools import wraps, cached_property, lru_cache
 from typing import Callable, Any, Mapping, Tuple, Optional, Set, List
@@ -12,10 +12,10 @@ from typing import Callable, Any, Mapping, Tuple, Optional, Set, List
 from ..override_choice import get_overrides_for_assignment
 from ..assignment import AssignmentTemplate, Assignment, PathComponent, QuibWithAssignment
 from ..quib import Quib
-from ..utils import is_there_a_quib_in_args, iter_quibs_in_args, call_func_with_quib_values, \
-    deep_copy_without_quibs_or_artists, copy_and_convert_args_and_kwargs_to_values, \
-    iter_args_and_names_in_function_call, \
-    recursively_run_func_on_object, QuibRef, copy_and_convert_kwargs_to_values
+from ..utils import is_there_a_quib_in_args, iter_quibs_in_args, deep_copy_without_quibs_or_artists, \
+    copy_and_convert_args_and_kwargs_to_values, iter_args_and_names_in_function_call, \
+    recursively_run_func_on_object, \
+    QuibRef, copy_and_convert_kwargs_to_values
 from ...env import LAZY, PRETTY_REPR
 from ...env import LAZY
 

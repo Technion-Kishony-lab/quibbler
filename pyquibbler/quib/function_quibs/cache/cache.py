@@ -51,14 +51,12 @@ class Cache(ABC):
         """
         Store a valid value at a given path within the cache
         """
-        pass
 
     @abstractmethod
     def set_invalid_at_path(self, path: List[PathComponent]) -> None:
         """
         Set any values found at these paths to invalid
         """
-        pass
 
     @abstractmethod
     def get_uncached_paths(self, path: List[PathComponent]) -> List[List[PathComponent]]:
@@ -67,14 +65,12 @@ class Cache(ABC):
         For example, if `path` were to be an empty list `[]` (meaning "everything"), then all uncached paths would be
         returned (anything invalid)
         """
-        pass
 
     @abstractmethod
     def get_cache_status(self) -> CacheStatus:
         """
         Get the current status of the cache, options of which are marked by the enum `CacheStatus`
         """
-        pass
 
     def get_value(self) -> Any:
         """

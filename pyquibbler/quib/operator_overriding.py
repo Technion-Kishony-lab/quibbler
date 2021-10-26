@@ -5,11 +5,9 @@ We have to use the operator functions in order to allow builtin operator functio
 1. Calling inverse arithmetic operations when the normal ones return NotImplemented
 2. Cases where a magic method is not present on a built-in type but the operator works anyway (e.g. float.__ceil__).
 """
-import functools
 import operator
-from functools import wraps
 from math import trunc, floor, ceil
-from typing import Callable, Tuple, Optional, Type
+from typing import Callable, Tuple, Type
 
 from .function_quibs import DefaultFunctionQuib
 from .function_quibs.elementwise_function_quib import ElementWiseFunctionQuib

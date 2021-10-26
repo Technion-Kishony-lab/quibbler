@@ -1,14 +1,9 @@
-from abc import ABC, abstractmethod, ABCMeta
-from enum import Enum
-from functools import wraps
-from typing import List, Any, Optional, Type, Tuple
+from typing import Any, List
 
-import numpy as np
 
 from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.quib.function_quibs.cache.cache import Cache, CacheStatus
-from pyquibbler.quib.utils import deep_copy_without_quibs_or_artists
 
 
 class PathCannotHaveComponentsException(PyQuibblerException):

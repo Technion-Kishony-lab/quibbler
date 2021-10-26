@@ -130,7 +130,6 @@ class Quib(ABC):
         For example, a simple implementation for a quib which is a function could be setting a boolean to true or
         false signifying validity
         """
-        pass
 
     def _invalidate_quib_with_children_at_path(self, invalidator_quib, path: List[PathComponent]):
         """

@@ -1,5 +1,4 @@
 from __future__ import annotations
-import numpy as np
 import functools
 from copy import copy
 from dataclasses import dataclass

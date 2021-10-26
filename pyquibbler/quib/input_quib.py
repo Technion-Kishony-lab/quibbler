@@ -1,6 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Any, Optional, Set, TYPE_CHECKING, List
+from typing import Any, List, Optional, Set
 
 from .assignment import AssignmentTemplate
 from .assignment.assignment import PathComponent

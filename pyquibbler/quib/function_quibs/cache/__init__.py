@@ -1,6 +1,5 @@
 from typing import Any
 
-import numpy as np
 
 from pyquibbler.quib.function_quibs.cache.shallow import NdVoidCache
 from pyquibbler.quib.function_quibs.cache.shallow.dict_cache import DictCache
