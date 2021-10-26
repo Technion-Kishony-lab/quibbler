@@ -3,11 +3,11 @@ from typing import Any, List
 import numpy as np
 
 from pyquibbler.quib.assignment import PathComponent
-from pyquibbler.quib.function_quibs.cache.shallow.nd_cache.nd_array_cache import NdArrayCache
+from pyquibbler.quib.function_quibs.cache.shallow.nd_cache.nd_array_cache import NdIndexableCache
 from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import ShallowCache
 
 
-class NdVoidCache(NdArrayCache):
+class NdVoidCache(NdIndexableCache):
     SUPPORTING_TYPES = (np.void,)
 
     def __init__(self, value: Any, whole_object_is_invalidated, mask):
