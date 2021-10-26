@@ -1,5 +1,4 @@
-from pyquibbler.quib import GraphicsFunctionQuib
-from pyquibbler.quib import DefaultFunctionQuib
+from pyquibbler.quib import DefaultFunctionQuib, GraphicsFunctionQuib
 
 
 def q(func, *args, **kwargs):

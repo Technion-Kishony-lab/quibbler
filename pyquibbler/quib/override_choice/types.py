@@ -1,6 +1,7 @@
 from __future__ import annotations
+
 from dataclasses import dataclass, field
-from typing import List, TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, List, Union
 
 from pyquibbler.quib.assignment import QuibWithAssignment
 from pyquibbler.quib.assignment.assignment import PathComponent

@@ -1,18 +1,21 @@
 from __future__ import annotations
+
 from sys import getsizeof
 from time import perf_counter
-from typing import Callable, Any, Mapping, Tuple, Optional, List, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Callable, List, Mapping, Optional, Tuple
 
 import numpy as np
 
 from pyquibbler.quib.function_quibs.cache import create_cache
-from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import CacheStatus, PathCannotHaveComponentsException
-from .function_quib import FunctionQuib, CacheBehavior
+from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import (
+    CacheStatus, PathCannotHaveComponentsException)
+
 from ..assignment import AssignmentTemplate
 from ..assignment.utils import get_sub_data_from_object_in_path
+from .function_quib import CacheBehavior, FunctionQuib
 
 if TYPE_CHECKING:
-    from ..assignment.assignment import PathComponent, PathComponent
+    from ..assignment.assignment import PathComponent
 
 
 class DefaultFunctionQuib(FunctionQuib):

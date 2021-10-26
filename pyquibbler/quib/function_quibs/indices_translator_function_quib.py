@@ -1,14 +1,16 @@
-import numpy as np
 from abc import abstractmethod
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import Set, Optional, Dict, Callable, List, Any, Union
+from typing import Any, Callable, Dict, List, Optional, Set, Union
 
-from pyquibbler.quib.assignment import Assignment
-from pyquibbler.quib.function_quibs.utils import create_empty_array_with_values_at_indices
-from pyquibbler.quib.quib import Quib
+import numpy as np
+
+from pyquibbler.quib.assignment import (Assignment, PathComponent,
+                                        QuibWithAssignment)
 from pyquibbler.quib.function_quibs import FunctionQuib
-from pyquibbler.quib.assignment import PathComponent, QuibWithAssignment
+from pyquibbler.quib.function_quibs.utils import \
+    create_empty_array_with_values_at_indices
+from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.utils import iter_objects_of_type_in_object_shallowly
 
 Args = List[Any]

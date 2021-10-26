@@ -1,7 +1,8 @@
-from typing import List, Any, Dict
+from typing import Any, Dict, List
 
 from pyquibbler.quib.assignment import PathComponent
-from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import ShallowCache
+from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import \
+    ShallowCache
 
 
 class DictCache(ShallowCache):

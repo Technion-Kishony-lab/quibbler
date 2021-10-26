@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Tuple, Type, List, Any
+from typing import Any, List, Tuple, Type
 
 from pyquibbler.quib.assignment import PathComponent
 

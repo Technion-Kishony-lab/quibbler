@@ -1,5 +1,6 @@
 from itertools import chain
 from typing import Optional
+
 from matplotlib.artist import Artist
 
 from pyquibbler.quib import GraphicsFunctionQuib

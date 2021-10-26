@@ -2,21 +2,30 @@
 Override 3rd party library functions to return quibs (each function and its respective quib type)
 when called with quib arguments.
 """
-import numpy as np
 from functools import wraps
-from typing import Type, Any, Callable, Optional, List, Tuple, Set
+from typing import Any, Callable, List, Optional, Set, Tuple, Type
+
+import numpy as np
 from matplotlib import widgets
 from matplotlib.axes import Axes
 
-from pyquibbler.quib import ImpureFunctionQuib, DefaultFunctionQuib, FunctionQuib, GraphicsFunctionQuib
-from pyquibbler.quib.function_quibs.elementwise_function_quib import ElementWiseFunctionQuib
-from pyquibbler.quib.function_quibs.transpositional.transpositional_function_quib import TranspositionalFunctionQuib
-from pyquibbler.quib.graphics import global_collecting, ReductionAxisWiseGraphicsFunctionQuib, \
-    AlongAxisGraphicsFunctionQuib, VectorizeGraphicsFunctionQuib
-from pyquibbler.quib.graphics.plot_graphics_function_quib import PlotGraphicsFunctionQuib
-from pyquibbler.quib.graphics.widgets import SliderGraphicsFunctionQuib, CheckButtonsGraphicsFunctionQuib, \
-    RadioButtonsGraphicsFunctionQuib, RectangleSelectorGraphicsFunctionQuib
-from pyquibbler.quib.graphics.replacing_graphics_function_quib import ReplacingGraphicsFunctionQuib
+from pyquibbler.quib import (DefaultFunctionQuib, FunctionQuib,
+                             GraphicsFunctionQuib, ImpureFunctionQuib)
+from pyquibbler.quib.function_quibs.elementwise_function_quib import \
+    ElementWiseFunctionQuib
+from pyquibbler.quib.function_quibs.transpositional.transpositional_function_quib import \
+    TranspositionalFunctionQuib
+from pyquibbler.quib.graphics import (AlongAxisGraphicsFunctionQuib,
+                                      ReductionAxisWiseGraphicsFunctionQuib,
+                                      VectorizeGraphicsFunctionQuib,
+                                      global_collecting)
+from pyquibbler.quib.graphics.plot_graphics_function_quib import \
+    PlotGraphicsFunctionQuib
+from pyquibbler.quib.graphics.replacing_graphics_function_quib import \
+    ReplacingGraphicsFunctionQuib
+from pyquibbler.quib.graphics.widgets import (
+    CheckButtonsGraphicsFunctionQuib, RadioButtonsGraphicsFunctionQuib,
+    RectangleSelectorGraphicsFunctionQuib, SliderGraphicsFunctionQuib)
 from pyquibbler.utils import ensure_only_run_once_globally
 
 '''

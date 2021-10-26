@@ -1,5 +1,6 @@
 from itertools import chain
-from typing import List, Callable, Tuple, Any, Mapping, Dict, Optional, Iterable
+from typing import (Any, Callable, Dict, Iterable, List, Mapping, Optional,
+                    Tuple)
 
 from matplotlib.artist import Artist
 from matplotlib.axes import Axes
@@ -11,11 +12,11 @@ from matplotlib.spines import Spine
 from matplotlib.table import Table
 from matplotlib.text import Text
 
+from ..assignment import AssignmentTemplate
+from ..function_quibs import CacheBehavior, DefaultFunctionQuib
+from ..utils import call_func_with_quib_values, iter_object_type_in_args
 from . import global_collecting
 from .event_handling import CanvasEventHandler
-from ..assignment import AssignmentTemplate
-from ..function_quibs import DefaultFunctionQuib, CacheBehavior
-from ..utils import call_func_with_quib_values, iter_object_type_in_args
 
 
 def save_func_and_args_on_artists(artists: List[Artist], func: Callable, args: Iterable[Any]):

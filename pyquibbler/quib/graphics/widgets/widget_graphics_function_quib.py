@@ -1,4 +1,5 @@
-from typing import Type, Optional, Callable
+from typing import Callable, Optional, Type
+
 from matplotlib.widgets import Widget
 
 from pyquibbler.quib import GraphicsFunctionQuib

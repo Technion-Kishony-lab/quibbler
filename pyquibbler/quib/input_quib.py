@@ -1,13 +1,14 @@
 from __future__ import annotations
-from dataclasses import dataclass
-from typing import Any, Optional, Set, TYPE_CHECKING, List
 
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any, List, Optional, Set
+
+from ..env import DEBUG, PRETTY_REPR
+from ..exceptions import DebugException
 from .assignment import AssignmentTemplate
 from .assignment.assignment import PathComponent
 from .quib import Quib
 from .utils import is_there_a_quib_in_object
-from ..env import DEBUG, PRETTY_REPR
-from ..exceptions import DebugException
 
 
 @dataclass

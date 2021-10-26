@@ -1,8 +1,9 @@
-import numpy as np
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from math import floor
 from typing import Any
-from dataclasses import dataclass
+
+import numpy as np
 
 from pyquibbler.exceptions import DebugException
 

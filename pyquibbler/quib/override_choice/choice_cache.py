@@ -1,10 +1,12 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Optional, Dict, Any
+
+from typing import TYPE_CHECKING, Any, Dict, Optional
 
 from .override_dialog import OverrideChoice
 
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib
+
     from .override_choice import OverrideOptionsTree
 
 

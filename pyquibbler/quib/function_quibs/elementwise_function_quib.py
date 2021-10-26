@@ -1,20 +1,20 @@
 from __future__ import annotations
 
 import math
-from operator import __neg__, __pos__, __sub__, __pow__, __mul__, __add__
-
-import numpy as np
+from operator import __add__, __mul__, __neg__, __pos__, __pow__, __sub__
 from typing import TYPE_CHECKING, Any, List
 
-
-from .default_function_quib import DefaultFunctionQuib
-from .indices_translator_function_quib import IndicesTranslatorFunctionQuib
-from ..assignment.assignment import get_nd_working_component_value_from_path
-from ..assignment.exceptions import CommonAncestorBetweenArgumentsException
-from ..utils import call_func_with_quib_values, iter_quibs_in_object_recursively
+import numpy as np
 
 from pyquibbler.quib.assignment import Assignment, PathComponent
+
 from ...env import ASSIGNMENT_RESTRICTIONS
+from ..assignment.assignment import get_nd_working_component_value_from_path
+from ..assignment.exceptions import CommonAncestorBetweenArgumentsException
+from ..utils import (call_func_with_quib_values,
+                     iter_quibs_in_object_recursively)
+from .default_function_quib import DefaultFunctionQuib
+from .indices_translator_function_quib import IndicesTranslatorFunctionQuib
 
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib

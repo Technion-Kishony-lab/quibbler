@@ -1,9 +1,10 @@
-import numpy as np
-from typing import Tuple, Any, List, Iterable
-from matplotlib.backend_bases import PickEvent, MouseEvent
+from typing import Any, Iterable, List, Tuple
 
+import numpy as np
+from matplotlib.backend_bases import MouseEvent, PickEvent
+
+from ...assignment import Assignment, PathComponent, QuibWithAssignment
 from .graphics_inverse_assigner import graphics_inverse_assigner
-from ...assignment import Assignment, QuibWithAssignment, PathComponent
 
 
 def get_xdata_arg_indices_and_ydata_arg_indices(args: Tuple[Any, ...]):
@@ -54,6 +55,7 @@ def get_quibs_with_assignments_for_axes(args: List[Any],
     Assign data for an axes (x or y) to all relevant quib args
     """
     from pyquibbler.quib import Quib
+
     # mouse_event.xdata and mouse_event.ydata can be None if the mouse is outside the figure
     if value is None:
         return []

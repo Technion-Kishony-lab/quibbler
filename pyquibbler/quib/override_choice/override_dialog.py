@@ -1,11 +1,13 @@
 from __future__ import annotations
+
 from dataclasses import dataclass
+from enum import Enum
 from functools import partial
+from typing import TYPE_CHECKING, Callable, List, Optional
+
 from matplotlib.axes import Axes
 from matplotlib.backend_bases import Event
 from matplotlib.widgets import Button
-from typing import List, Callable, Optional, TYPE_CHECKING
-from enum import Enum
 
 from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.utils import Flag, Mutable
@@ -65,7 +67,9 @@ def choose_override_dialog(options: List[Quib], can_diverge: bool) -> OverrideCh
     If can_diverge is true, offer the user to diverge the override instead of choosing an override option.
     """
     import matplotlib.pyplot as plt
+
     from pyquibbler.quib.graphics.widgets import QRadioButtons
+
     # Used to keep references to the widgets so they won't be garbage collected
     widgets = []
     fig = plt.figure()

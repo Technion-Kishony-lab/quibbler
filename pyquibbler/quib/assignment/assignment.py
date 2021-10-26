@@ -1,7 +1,9 @@
 from __future__ import annotations
-import numpy as np
+
 from dataclasses import dataclass, field
-from typing import Any, TYPE_CHECKING, List, Type
+from typing import TYPE_CHECKING, Any, List, Type
+
+import numpy as np
 
 if TYPE_CHECKING:
     from ..quib import Quib

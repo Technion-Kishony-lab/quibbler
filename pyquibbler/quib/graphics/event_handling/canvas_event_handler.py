@@ -1,13 +1,14 @@
 from contextlib import contextmanager
 from threading import Lock
 from typing import Optional
+
 from matplotlib.artist import Artist
 from matplotlib.backend_bases import MouseEvent, PickEvent
 
 from pyquibbler.env import END_DRAG_IMMEDIATELY
 from pyquibbler.performance_utils import timer
-from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
 from pyquibbler.quib.graphics.event_handling import graphics_inverse_assigner
+from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
 
 
 class CanvasEventHandler:

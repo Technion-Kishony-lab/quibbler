@@ -1,6 +1,7 @@
+from typing import Callable, List
+
 from matplotlib.axes import Axes
 from matplotlib.widgets import RadioButtons
-from typing import List, Callable
 
 from pyquibbler.quib import Quib
 from pyquibbler.quib.assignment.assignment import PathComponent
