@@ -220,5 +220,3 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         expanded = np.expand_dims(applied, tuple(dims_to_expand))
         broadcast = np.broadcast_to(expanded, result_shape)
         return broadcast
-
-
