@@ -4,7 +4,6 @@ from copy import deepcopy
 from typing import Any, Optional, List
 
 from pyquibbler import CacheBehavior, Assignment
-from pyquibbler.quib import Quib
 from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.quib.assignment.overrider import get_sub_data_from_object_in_path, deep_assign_data_with_paths
 from pyquibbler.quib.input_quib import InputQuib
