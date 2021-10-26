@@ -5,8 +5,7 @@ import pytest
 from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.quib.function_quibs.cache.shallow import DictCache
 from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import CacheStatus
-from tests.functional.quib.function_quibs.cache.cache_test import IndexableCacheTest, SetValidTestCase, \
-    SetInvalidTestCase
+from tests.functional.quib.function_quibs.cache.cache_test import IndexableCacheTest
 
 
 class TestDictCache(IndexableCacheTest):
@@ -20,40 +19,6 @@ class TestDictCache(IndexableCacheTest):
     unsupported_type_result = [1, 2, 3]
     empty_result = {}
 
-    set_valid_test_cases = [
-        SetValidTestCase(
-            name="validate key, request all uncached",
-            valid_components=["a"],
-            valid_value=mock.Mock(),
-            uncached_path_components=[],
-        ),
-        SetValidTestCase(
-            name="validate key, request single uncached",
-            valid_components=["a"],
-            valid_value=mock.Mock(),
-            uncached_path_components=["b"],
-        ),
-        SetValidTestCase(
-            name="validate key, request same key uncached",
-            valid_components=["a"],
-            valid_value=mock.Mock(),
-            uncached_path_components=["a"],
-        )
-    ]
-
-    set_invalid_test_cases = [
-        SetInvalidTestCase(
-            name="invalidate key, request same key uncached",
-            invalid_components=["a"],
-            uncached_path_components=["a"],
-        ),
-        SetInvalidTestCase(
-            name="invalidate key, request different key uncached",
-            invalid_components=["a"],
-            uncached_path_components=["b"],
-        )
-    ]
-
     def get_result_with_all_values_set_to_value(self, result, value):
         return {
             k: value
@@ -61,6 +26,11 @@ class TestDictCache(IndexableCacheTest):
         }
 
     def get_result_with_value_broadcasted_to_path(self, obj, path, value):
+        if len(path) == 0:
+            return {
+                k: value
+                for k in obj
+            }
         working = path[0].component
         obj[working] = value
         return obj
@@ -77,3 +47,38 @@ class TestDictCache(IndexableCacheTest):
         cache.set_valid_value_at_path([PathComponent(indexed_cls=dict, component="a")], mock.Mock())
 
         assert cache.get_cache_status() == CacheStatus.PARTIAL
+
+    @pytest.mark.parametrize("valid_components", [
+        ["a"],
+        ["b"],
+    ])
+    @pytest.mark.parametrize("uncached_path_components", [
+        [],
+        ["a"],
+        ["b"]
+    ])
+    @pytest.mark.parametrize("valid_value", [
+        "a",
+        [1, 2, 3]
+    ])
+    def test_cache_set_valid_partial_and_get_uncached_paths(self, cache, result, valid_components,
+                                                              uncached_path_components, valid_value):
+        super(TestDictCache, self).test_cache_set_valid_partial_and_get_uncached_paths(cache, result, valid_components,
+                                                                                       uncached_path_components,
+                                                                                       valid_value)
+
+    @pytest.mark.parametrize("invalid_components", [
+        ["a"],
+        ["b"],
+        []
+    ])
+    @pytest.mark.parametrize("uncached_path_components", [
+        [],
+        ["a"],
+        ["b"]
+    ])
+    def test_cache_set_invalid_partial_and_get_uncached_paths(self,  cache, result, invalid_components,
+                                                              uncached_path_components):
+        super(TestDictCache, self).test_cache_set_invalid_partial_and_get_uncached_paths(cache, result,
+                                                                                         invalid_components,
+                                                                                         uncached_path_components)

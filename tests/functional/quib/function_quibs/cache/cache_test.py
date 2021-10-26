@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from copy import copy
 from dataclasses import dataclass
 from typing import Any
 
@@ -65,38 +66,12 @@ class CacheTest(ABC):
         assert cache.get_cache_status() == CacheStatus.ALL_INVALID
 
 
-@dataclass
-class SetValidTestCase:
-
-    name: str
-    valid_components: list
-    valid_value: Any
-    uncached_path_components: list
-
-
-@dataclass
-class SetInvalidTestCase:
-
-    name: str
-    invalid_components: list
-    uncached_path_components: list
 
 
 class IndexableCacheTest(CacheTest):
 
     unsupported_type_result = NotImplemented
     empty_result = NotImplemented
-    set_valid_test_cases = NotImplemented
-    set_invalid_test_cases = NotImplemented
-
-    def __init_subclass__(cls, **kwargs):
-        parametrized_valid = pytest.mark.parametrize("set_valid_test_case", cls.set_valid_test_cases)\
-            (cls.test_cache_set_valid_partial_and_get_uncached_paths)
-        cls.test_cache_set_valid_partial_and_get_uncached_paths = parametrized_valid
-
-        parametrized_invalid = pytest.mark.parametrize("set_invalid_test_case", cls.set_invalid_test_cases) \
-            (cls.test_cache_set_invalid_partial_and_get_uncached_paths)
-        cls.test_cache_set_invalid_partial_and_get_uncached_paths = parametrized_invalid
 
     @abstractmethod
     def get_values_from_result(self, result):
@@ -129,7 +104,7 @@ class IndexableCacheTest(CacheTest):
 
         for path in uncached_paths:
             data = get_sub_data_from_object_in_path(checking_result, path)
-            for x in np.nditer(data):
+            for x in self.get_values_from_result(data):
                 assert str(x) == str(invalid_value)
 
             checking_result = self.get_result_with_value_broadcasted_to_path(checking_result, path, checked_invalid)
@@ -146,24 +121,31 @@ class IndexableCacheTest(CacheTest):
 
         assert cache.get_cache_status() == CacheStatus.ALL_INVALID
 
-    def test_cache_set_valid_partial_and_get_uncached_paths(self, cache, result, set_valid_test_case: SetValidTestCase):
+    def test_cache_set_valid_partial_and_get_uncached_paths(self, cache, result, valid_components,
+                                                              uncached_path_components, valid_value):
         valid_path = [PathComponent(component=v, indexed_cls=type(result))
-                      for v in set_valid_test_case.valid_components]
-        cache.set_valid_value_at_path(valid_path, set_valid_test_case.valid_value)
+                      for v in valid_components]
+
+        result_with_valid_value = self.get_result_with_value_broadcasted_to_path(copy(result),
+                                                                                 valid_path, valid_value)
+        broadcasted_value = get_sub_data_from_object_in_path(result_with_valid_value, valid_path)
+
+        cache.set_valid_value_at_path(valid_path, broadcasted_value)
 
         uncached_path = [PathComponent(component=u, indexed_cls=type(result)) for u in
-                                          set_valid_test_case.uncached_path_components]
+                                          uncached_path_components]
         paths = cache.get_uncached_paths(uncached_path)
 
         self.assert_uncached_paths_match_expected_value(result, valid_path, paths, uncached_path, False)
 
-    def test_cache_set_invalid_partial_and_get_uncached_paths(self, cache, result, set_invalid_test_case: SetInvalidTestCase):
+    def test_cache_set_invalid_partial_and_get_uncached_paths(self,  cache, result, invalid_components,
+                                                              uncached_path_components):
         cache.set_valid_value_at_path([], deep_copy_without_quibs_or_artists(result))
         invalid_path = [PathComponent(component=v, indexed_cls=type(result))
-                      for v in set_invalid_test_case.invalid_components]
+                      for v in invalid_components]
         cache.set_invalid_at_path(invalid_path)
         filter_path = [PathComponent(component=u, indexed_cls=type(result)) for u in
-                                          set_invalid_test_case.uncached_path_components]
+                                          uncached_path_components]
         uncached_paths = cache.get_uncached_paths(filter_path)
 
         self.assert_uncached_paths_match_expected_value(result, invalid_path, uncached_paths,

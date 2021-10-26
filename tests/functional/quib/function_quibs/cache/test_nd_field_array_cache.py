@@ -9,7 +9,7 @@ from pyquibbler.quib.assignment.utils import get_sub_data_from_object_in_path, d
 from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
 from pyquibbler.quib.function_quibs.cache.shallow.nd_cache import NdFieldArrayShallowCache
 from pyquibbler.quib.utils import deep_copy_without_quibs_or_artists
-from tests.functional.quib.function_quibs.cache.cache_test import IndexableCacheTest, SetValidTestCase, SetInvalidTestCase
+from tests.functional.quib.function_quibs.cache.cache_test import IndexableCacheTest
 
 arr = np.array([[("Maor", 24), ("Yossi", 15), ("Danahellilililili", 32)]], dtype=[("name", np.str_, 20), ("age", np.int_)])
 
@@ -25,69 +25,9 @@ class TestNdFieldArrayCache(IndexableCacheTest):
 
     unsupported_type_result = [1, 2, 3]
     empty_result = np.array([], dtype=dtype)
-    set_valid_test_cases = [
-        SetValidTestCase(
-            name="set single field, get all uncached",
-            valid_components=["name"],
-            valid_value="Jony",
-            uncached_path_components=[],
-        ),
-        SetValidTestCase(
-            name="set single field, get same field uncached",
-            valid_components=["name"],
-            valid_value="Jony",
-            uncached_path_components=["name"],
-        ),
-        SetValidTestCase(
-            name="set single field, get indices uncached",
-            valid_components=["name"],
-            valid_value="Jony",
-            uncached_path_components=[(0, 0)],
-        ),
-        SetValidTestCase(
-            name="set indices, get all uncached",
-            valid_components=[(0, 0)],
-            valid_value="1",
-            uncached_path_components=[],
-        ),
-        SetValidTestCase(
-            name="set indices, get field uncached",
-            valid_components=[(0, 0)],
-            valid_value="1",
-            uncached_path_components=["name"],
-        ),
-        SetValidTestCase(
-            name="set indices, get field uncached",
-            valid_components=[(0, 0)],
-            valid_value="1",
-            uncached_path_components=["name"],
-        )
-    ]
-    set_invalid_test_cases = [
-        SetInvalidTestCase(
-            name="set indices",
-            invalid_components=[(0, 0)],
-            uncached_path_components=[],
-        ),
-        SetInvalidTestCase(
-            name="set field",
-            invalid_components=["name"],
-            uncached_path_components=[],
-        ),
-        SetInvalidTestCase(
-            name="set indices, get field",
-            invalid_components=[(0, 0)],
-            uncached_path_components=["name"],
-        ),
-        SetInvalidTestCase(
-            name="set field, get indices",
-            invalid_components=["age"],
-            uncached_path_components=[(0, 0)],
-        )
-    ]
 
     def get_values_from_result(self, result):
-        if result.dtype.names is not None:
+        if isinstance(result, (np.ndarray, np.void)) and result.dtype.names is not None:
             result = structured_to_unstructured(result)
         return np.ravel(result)
 
@@ -96,7 +36,10 @@ class TestNdFieldArrayCache(IndexableCacheTest):
         return result
 
     def get_result_with_value_broadcasted_to_path(self, obj, path, value):
-        deep_assign_data_with_paths(obj, path, value)
+        if len(path) == 0:
+            obj[:] = value
+        else:
+            obj = deep_assign_data_with_paths(obj, path, value)
         return obj
 
     @pytest.mark.parametrize("component", [
@@ -108,11 +51,36 @@ class TestNdFieldArrayCache(IndexableCacheTest):
 
         assert cache.get_cache_status() == CacheStatus.PARTIAL
 
-    def test_cache_set_valid_partial_and_get_uncached_paths(self, cache, result, set_valid_test_case: SetValidTestCase):
+    @pytest.mark.parametrize("valid_components", [
+        ["name"],
+        [(0, 0)]
+    ])
+    @pytest.mark.parametrize("uncached_path_components", [
+        [(0, 0)],
+        [],
+        ["name"]
+    ])
+    def test_cache_set_valid_partial_and_get_uncached_paths(self, cache, result, valid_components,
+                                                              uncached_path_components):
         super(TestNdFieldArrayCache, self).test_cache_set_valid_partial_and_get_uncached_paths(cache, result,
-                                                                                            set_valid_test_case)
+                                                                                               valid_components,
+                                                                                               uncached_path_components,
+                                                                                               "1")
 
-    def test_cache_set_invalid_partial_and_get_uncached_paths(self, cache, result,
-                                                              set_invalid_test_case: SetInvalidTestCase):
+    @pytest.mark.parametrize("invalid_components", [
+        [(0, 0)],
+        [0],
+        ["name"],
+        []
+    ])
+    @pytest.mark.parametrize("uncached_path_components", [
+        [],
+        ["name"],
+        [(0, 0)],
+        [(0, 1)]
+    ])
+    def test_cache_set_invalid_partial_and_get_uncached_paths(self, cache, result, invalid_components,
+                                                              uncached_path_components):
         super(TestNdFieldArrayCache, self).test_cache_set_invalid_partial_and_get_uncached_paths(cache, result,
-                                                                                              set_invalid_test_case)
+                                                                                              invalid_components,
+                                                                                                 uncached_path_components)
