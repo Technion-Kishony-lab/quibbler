@@ -36,8 +36,11 @@ class DefaultFunctionQuib(FunctionQuib):
                  cache_behavior: Optional[CacheBehavior],
                  assignment_template: Optional[AssignmentTemplate] = None):
         super().__init__(func, args, kwargs, cache_behavior, assignment_template=assignment_template)
+        self._reset_cache()
+
+    def _reset_cache(self):
         self._cache = None
-        self._caching = True if cache_behavior == CacheBehavior.ON else False
+        self._caching = True if self._cache_behavior == CacheBehavior.ON else False
 
     def _ensure_cache_matches_result(self, new_result: Any):
         """
@@ -54,8 +57,8 @@ class DefaultFunctionQuib(FunctionQuib):
                 self._cache.set_invalid_at_path(path)
             except (IndexError, TypeError):
                 # If we were unable to set at the given path, we presume something "essential" changed in our cache,
-                # so we set it to None and will rebuild our cache when next called get value
-                self._cache = None
+                # so we reset our cache
+                self._reset_cache()
 
     def _should_cache(self, result: Any, elapsed_seconds: float):
         """
@@ -164,5 +167,4 @@ class DefaultFunctionQuib(FunctionQuib):
     def set_cache_behavior(self, cache_behavior: CacheBehavior):
         super(DefaultFunctionQuib, self).set_cache_behavior(cache_behavior)
         if cache_behavior == CacheBehavior.OFF:
-            self._caching = False
-            self._cache = None
+            self._reset_cache()

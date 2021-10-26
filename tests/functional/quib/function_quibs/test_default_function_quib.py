@@ -130,3 +130,17 @@ def test_invalidate_before_cache_exists():
     # simply make sure we don't throw an exception
     parent.invalidate_and_redraw_at_path([])
 
+
+@pytest.mark.regression
+def test_default_function_quib_set_cache_resets_cache():
+    mock_func = mock.Mock()
+    mock_func.side_effect = [1, 2]
+    quib = DefaultFunctionQuib.create(
+        func=mock_func,
+    )
+    quib.get_value()
+
+    quib.set_cache_behavior(CacheBehavior.OFF)
+    result = quib.get_value()
+
+    assert result == 2
