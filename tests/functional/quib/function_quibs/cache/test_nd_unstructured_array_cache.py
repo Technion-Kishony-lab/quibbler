@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.quib.function_quibs.cache.shallow.nd_cache import NdUnstructuredArrayCache
@@ -9,6 +10,10 @@ from tests.functional.quib.function_quibs.cache.cache_test import IndexableCache
 class TestNdUnstructuredArrayCache(IndexableCacheTest):
     cls = NdUnstructuredArrayCache
     result = np.array([[1, 2, 3], [4, 5, 6]])
+
+    @pytest.fixture
+    def result(self):
+        return np.array([[1, 2, 3], [4, 5, 6]])
 
     unsupported_type_result = [1, 2, 3]
     empty_result = np.array([])
@@ -55,15 +60,17 @@ class TestNdUnstructuredArrayCache(IndexableCacheTest):
 
     def test_nd_cache_does_not_match_nd_array_of_different_dtype(self, cache):
         assert not cache.matches_result(np.full((2, 3), "hello mike"))
-    
-    def test_cache_set_valid_partial_and_get_uncached_paths(self, cache, set_valid_test_case: SetValidTestCase):
-        super(TestNdUnstructuredArrayCache, self).test_cache_set_valid_partial_and_get_uncached_paths(cache, set_valid_test_case)
-    
-    def test_cache_set_invalid_partial_and_get_uncached_paths(self, cache, set_invalid_test_case: SetInvalidTestCase):
-        super(TestNdUnstructuredArrayCache, self).test_cache_set_invalid_partial_and_get_uncached_paths(cache, set_invalid_test_case)
 
     def test_cache_get_cache_status_on_partial(self, cache):
         cache.set_valid_value_at_path([PathComponent(component=(1, 1), indexed_cls=np.ndarray)], 5)
 
         assert cache.get_cache_status() == CacheStatus.PARTIAL
 
+    def test_cache_set_valid_partial_and_get_uncached_paths(self, cache, result, set_valid_test_case: SetValidTestCase):
+        super(TestNdUnstructuredArrayCache, self).test_cache_set_valid_partial_and_get_uncached_paths(cache, result,
+                                                                                            set_valid_test_case)
+
+    def test_cache_set_invalid_partial_and_get_uncached_paths(self, cache, result,
+                                                              set_invalid_test_case: SetInvalidTestCase):
+        super(TestNdUnstructuredArrayCache, self).test_cache_set_invalid_partial_and_get_uncached_paths(cache, result,
+                                                                                              set_invalid_test_case)

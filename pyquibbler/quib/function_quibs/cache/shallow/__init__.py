@@ -1,3 +1,3 @@
 from .dict_cache import DictCache
-from .list_cache import ListCache
+from .indexable_cache import IndexableCache
 from .nd_cache import NdUnstructuredArrayCache, NdFieldArrayShallowCache

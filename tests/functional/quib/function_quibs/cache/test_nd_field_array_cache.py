@@ -13,7 +13,10 @@ class TestNdFieldArrayCache(IndexableCacheTest):
     cls = NdFieldArrayShallowCache
     dtype = [("name", np.str_, 20), ("age", np.int_)]
     boolean_dtype = [("name", np.bool_), ("age", np.bool_)]
-    result = np.array([[("Maor", 24), ("Yossi", 15), ("Danahellilililili", 32)]], dtype=dtype)
+
+    @pytest.fixture()
+    def result(self):
+        return np.array([[("Maor", 24), ("Yossi", 15), ("Danahellilililili", 32)]], dtype=self.dtype)
 
     unsupported_type_result = [1, 2, 3]
     empty_result = np.array([], dtype=dtype)
@@ -104,8 +107,11 @@ class TestNdFieldArrayCache(IndexableCacheTest):
 
         assert cache.get_cache_status() == CacheStatus.PARTIAL
 
-    def test_cache_set_valid_partial_and_get_uncached_paths(self, cache, set_valid_test_case: SetValidTestCase):
-        super(TestNdFieldArrayCache, self).test_cache_set_valid_partial_and_get_uncached_paths(cache, set_valid_test_case)
-    
-    def test_cache_set_invalid_partial_and_get_uncached_paths(self, cache, set_invalid_test_case: SetInvalidTestCase):
-        super(TestNdFieldArrayCache, self).test_cache_set_invalid_partial_and_get_uncached_paths(cache, set_invalid_test_case)
+    def test_cache_set_valid_partial_and_get_uncached_paths(self, cache, result, set_valid_test_case: SetValidTestCase):
+        super(TestNdFieldArrayCache, self).test_cache_set_valid_partial_and_get_uncached_paths(cache, result,
+                                                                                            set_valid_test_case)
+
+    def test_cache_set_invalid_partial_and_get_uncached_paths(self, cache, result,
+                                                              set_invalid_test_case: SetInvalidTestCase):
+        super(TestNdFieldArrayCache, self).test_cache_set_invalid_partial_and_get_uncached_paths(cache, result,
+                                                                                              set_invalid_test_case)

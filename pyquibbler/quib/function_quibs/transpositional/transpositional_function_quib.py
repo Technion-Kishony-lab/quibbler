@@ -77,7 +77,7 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
             for quib in self.get_data_source_quibs()
         }
 
-    def _get_quibs_to_masks(self, relevant_indices_mask):
+    def _get_quibs_to_masks(self):
         """
         Get a mapping between quibs and a bool mask representing all the elements that are relevant to them in the
         result
@@ -86,7 +86,7 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
         quibs_mask = self._get_quib_ids_mask()
 
         def _build_quib_mask(quib: Quib):
-            return np.logical_and(np.equal(quibs_mask, quibs_to_ids[quib]), relevant_indices_mask)
+            return np.equal(quibs_mask, quibs_to_ids[quib])
 
         return {
             quib: _build_quib_mask(quib)
@@ -98,7 +98,7 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
         Get a mapping of quibs to their referenced indices at a *specific dimension*
         """
         quibs_to_index_grids = self._get_quibs_to_index_grids()
-        quibs_to_masks = self._get_quibs_to_masks(relevant_indices_mask)
+        quibs_to_masks = self._get_quibs_to_masks()
 
         def replace_quib_with_index_at_dimension(q):
             if isinstance(q, Quib) and q in self.get_data_source_quibs():
@@ -114,7 +114,7 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
 
         try:
             return {
-                quib: indices_res[quibs_to_masks[quib]]
+                quib: indices_res[np.logical_and(quibs_to_masks[quib], relevant_indices_mask)]
                 for quib in self.get_data_source_quibs()
             }
         except Exception:

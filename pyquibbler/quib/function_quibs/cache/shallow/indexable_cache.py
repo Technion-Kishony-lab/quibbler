@@ -1,24 +1,26 @@
-from typing import List, Any, Union
+from typing import List, Any, Union, Type
 
 from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import ShallowCache
 
 
-class ListCache(ShallowCache):
+class IndexableCache(ShallowCache):
 
-    SUPPORTING_TYPES = (list,)
+    SUPPORTING_TYPES = (list, tuple,)
 
-    def __init__(self, value: Any, object_is_invalidated_as_a_whole: bool, invalid_mask: List):
+    def __init__(self, value: Any, object_is_invalidated_as_a_whole: bool, invalid_mask: List, original_type: Type):
         super().__init__(value, object_is_invalidated_as_a_whole)
         self._invalid_mask = invalid_mask
+        self._original_type = original_type
 
     @classmethod
     def create_from_result(cls, result):
-        return cls(result, True, [True for _ in result])
+        return cls(list(result), True, [True for _ in result], type(result))
 
     def matches_result(self, result):
-        return super(ListCache, self).matches_result(result) \
-               and len(result) == len(self.get_value())
+        return super(IndexableCache, self).matches_result(result) \
+               and len(result) == len(self.get_value()) \
+               and self._original_type == type(result)
 
     def _get_uncached_paths_at_path_component(self,
                                               path_component: PathComponent) -> List[List[PathComponent]]:
@@ -29,14 +31,14 @@ class ListCache(ShallowCache):
             # We need to take care of slices
             data = [data]
 
-        return super(ListCache, self)._get_uncached_paths_at_path_component(path_component) or [
+        return super(IndexableCache, self)._get_uncached_paths_at_path_component(path_component) or [
             [PathComponent(indexed_cls=list, component=i)]
             for i, value in data
             if self._invalid_mask[i] is True
         ]
 
     def _get_all_uncached_paths(self) -> List[List[PathComponent]]:
-        return super(ListCache, self)._get_all_uncached_paths() or [
+        return super(IndexableCache, self)._get_all_uncached_paths() or [
             [PathComponent(indexed_cls=list, component=i)]
             for i, value in enumerate(self._value)
             if self._invalid_mask[i] is True
@@ -59,8 +61,11 @@ class ListCache(ShallowCache):
         self._set_invalid_mask_at_path_component(path_component.component, True)
     
     def _is_completely_invalid(self):
-        return super(ListCache, self)._is_completely_invalid() or all(self._invalid_mask)
+        return super(IndexableCache, self)._is_completely_invalid() or all(self._invalid_mask)
 
     def _set_valid_value_all_paths(self, value):
-        super(ListCache, self)._set_valid_value_all_paths(value)
+        super(IndexableCache, self)._set_valid_value_all_paths(value)
         self._invalid_mask = [False for _ in value]
+
+    def get_value(self) -> Any:
+        return self._original_type(super(IndexableCache, self).get_value())

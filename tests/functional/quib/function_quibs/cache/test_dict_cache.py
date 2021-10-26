@@ -1,5 +1,7 @@
 from unittest import mock
 
+import pytest
+
 from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.quib.function_quibs.cache.shallow import DictCache
 from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import CacheStatus
@@ -10,7 +12,11 @@ from tests.functional.quib.function_quibs.cache.cache_test import IndexableCache
 class TestDictCache(IndexableCacheTest):
 
     cls = DictCache
-    result = {"a": 1, "b": 2, "c": 3}
+
+    @pytest.fixture()
+    def result(self):
+        return {"a": 1, "b": 2, "c": 3}
+
     unsupported_type_result = [1, 2, 3]
     empty_result = {}
 
@@ -65,16 +71,6 @@ class TestDictCache(IndexableCacheTest):
 
     def test_dict_cache_does_not_match_result_of_dict_type_and_different_keys(self, cache):
         assert not cache.matches_result({"a": 1})
-
-    # We have this here to allow easy running from pycharm
-    def test_cache_set_invalid_partial_and_get_uncached_paths(self, cache,
-                                                              set_invalid_test_case: SetInvalidTestCase):
-        super(TestDictCache, self).test_cache_set_invalid_partial_and_get_uncached_paths(cache,
-                                                                                         set_invalid_test_case)
-
-    # We have this here to allow easy running from pycharm
-    def test_cache_set_valid_partial_and_get_uncached_paths(self, cache, set_valid_test_case: SetValidTestCase):
-        super(TestDictCache, self).test_cache_set_valid_partial_and_get_uncached_paths(cache, set_valid_test_case)
 
     def test_cache_get_cache_status_on_partial(self, cache):
         cache.set_valid_value_at_path([PathComponent(indexed_cls=dict, component="a")], mock.Mock())

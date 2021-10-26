@@ -10,7 +10,10 @@ from tests.functional.quib.function_quibs.cache.cache_test import CacheTest
 class TestShallowCache(CacheTest):
 
     cls = ShallowCache
-    result = 1
+
+    @pytest.fixture()
+    def result(self):
+        return 1
 
     def test_shallow_cache_matches_all(self, cache):
         assert cache.matches_result(object)

@@ -3,18 +3,19 @@ from unittest import mock
 import pytest
 
 from pyquibbler.quib.assignment import PathComponent
-from pyquibbler.quib.function_quibs.cache import ListCache
+from pyquibbler.quib.function_quibs.cache import IndexableCache
 from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import CacheStatus
 from tests.functional.quib.function_quibs.cache.cache_test import IndexableCacheTest, SetValidTestCase, \
     SetInvalidTestCase
 
 
+@pytest.mark.parametrize("result", [
+    (1, 2, 3),
+    [1, 2, 3],
+])
+class TestIndexableCache(IndexableCacheTest):
 
-
-class TestListCache(IndexableCacheTest):
-
-    cls = ListCache
-    result = [1, 2, 3]
+    cls = IndexableCache
     empty_result = []
     unsupported_type_result = {1, 2, 3}
 
@@ -122,14 +123,6 @@ class TestListCache(IndexableCacheTest):
     def test_list_cache_does_not_match_result_of_list_type_and_different_length(self, cache):
         assert not cache.matches_result([1, 2, 3, 4])
 
-    # We have this here to allow easy running from pycharm
-    def test_cache_set_invalid_partial_and_get_uncached_paths(self, cache, set_invalid_test_case: SetInvalidTestCase):
-        super(TestListCache, self).test_cache_set_invalid_partial_and_get_uncached_paths(cache, set_invalid_test_case)
-
-    # We have this here to allow easy running from pycharm
-    def test_cache_set_valid_partial_and_get_uncached_paths(self, cache, set_valid_test_case: SetValidTestCase):
-        super(TestListCache, self).test_cache_set_valid_partial_and_get_uncached_paths(cache, set_valid_test_case)
-
     def test_cache_get_cache_status_on_partial(self, cache):
         cache.set_valid_value_at_path([PathComponent(indexed_cls=list, component=slice(1, None, None))], [10, 10])
     
@@ -143,8 +136,14 @@ class TestListCache(IndexableCacheTest):
     
         assert cache.get_cache_status() == CacheStatus.ALL_INVALID
 
-    def test_cache_set_valid_makes_uncached_paths_empty(self, cache):
-        cache.set_valid_value_at_path([], self.result)
+    def test_cache_set_valid_makes_uncached_paths_empty(self, result, cache):
+        cache.set_valid_value_at_path([], result)
         uncached_paths = cache.get_uncached_paths([])
 
         assert len(uncached_paths) == 0
+    
+    def test_cache_set_valid_partial_and_get_uncached_paths(self, cache, result, set_valid_test_case: SetValidTestCase):
+        super(TestIndexableCache, self).test_cache_set_valid_partial_and_get_uncached_paths(cache, result, set_valid_test_case)
+        
+    def test_cache_set_invalid_partial_and_get_uncached_paths(self, cache, result, set_invalid_test_case: SetInvalidTestCase):
+        super(TestIndexableCache, self).test_cache_set_invalid_partial_and_get_uncached_paths(cache, result, set_invalid_test_case)

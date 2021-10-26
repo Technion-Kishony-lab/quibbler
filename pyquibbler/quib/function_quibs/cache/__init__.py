@@ -3,7 +3,7 @@ from typing import Any
 import numpy as np
 
 from pyquibbler.quib.function_quibs.cache.shallow.dict_cache import DictCache
-from pyquibbler.quib.function_quibs.cache.shallow.list_cache import ListCache
+from pyquibbler.quib.function_quibs.cache.shallow.indexable_cache import IndexableCache
 from pyquibbler.quib.function_quibs.cache.shallow.nd_cache import NdFieldArrayShallowCache, NdUnstructuredArrayCache
 from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import ShallowCache
 
@@ -18,7 +18,7 @@ def create_cache(result: Any) -> ShallowCache:
     cache_classes = {
         NdFieldArrayShallowCache,
         NdUnstructuredArrayCache,
-        ListCache,
+        IndexableCache,
         DictCache
     }
     for cache_class in cache_classes:
