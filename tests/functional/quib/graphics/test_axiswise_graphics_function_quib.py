@@ -73,8 +73,7 @@ def test_apply_along_axis_get_value_valid_at_path(indices_to_get_value_at, axis,
 @parametrize_indices_to_invalidate
 @parametrize_data
 @mark.parametrize('excluded', [{0}, set(), None])
-@mark.parametrize('func', [lambda x: np.sum(x), ])
-# lambda x: (np.sum(x), np.sum(x))])
+@mark.parametrize('func', [lambda x: np.sum(x), lambda x: (np.sum(x), np.sum(x))])
 def test_vectorize_invalidation(indices_to_invalidate, data, excluded, func):
     kwargs = {}
     if excluded is not None:

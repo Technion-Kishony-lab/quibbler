@@ -29,7 +29,7 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
     and thereby turns the function into an axiswise function. When a vectorized function is called,
     the loop dimensions of all non-excluded arguments are broadcast together.
     The dimension of the result will be the broadcast loop dimension, plus the result core dimension specified
-    in the signature, () be default.
+    in the signature, () by default.
     """
     SUPPORTED_FUNCTIONS = {
         np.vectorize.__call__: SupportedFunction(get_vectorize_call_data_args)
