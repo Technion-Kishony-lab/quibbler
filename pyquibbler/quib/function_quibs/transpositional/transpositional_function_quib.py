@@ -165,7 +165,7 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
                                                          indices=indices, value=True,
                                                          empty_value=False)
 
-    def _get_quibs_to_paths_in_result(self, filtered_path_in_result) -> Dict[Quib, List[PathComponent]]:
+    def _get_quibs_to_paths_in_quibs(self, filtered_path_in_result) -> Dict[Quib, List[PathComponent]]:
         working_component = filtered_path_in_result[0].component if len(filtered_path_in_result) > 0 else True
         quibs_to_indices = self.get_quibs_to_indices_in_quibs(working_component)
         return {
