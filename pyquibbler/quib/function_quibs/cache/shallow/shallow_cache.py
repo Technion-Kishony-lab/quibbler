@@ -58,6 +58,10 @@ class ShallowCache(Cache):
         raise PathCannotHaveComponentsException()
 
     def _set_valid_value_all_paths(self, value):
+        """
+        Set the cache to be completely valid.
+        Override this in order to update anything other you have which represents validity (such as a mask)
+        """
         self._value = value
 
     def set_invalid_at_path(self, path: List[PathComponent]) -> None:
@@ -84,7 +88,15 @@ class ShallowCache(Cache):
     def _get_uncached_paths_at_path_component(self,
                                               path_component: PathComponent)\
             -> List[List[PathComponent]]:
+        """
+        Get all uncached paths that derive from a given path component (this must be a subset of the path component
+        or the path component itself)
+        """
         return [[path_component]] if self._object_is_invalidated_as_a_whole else []
 
     def _is_completely_invalid(self):
+        """
+        Is this cache completely invalid?
+        Override this in order to add an implementation for partial invalidation that led to complete invalidation
+        """
         return self._object_is_invalidated_as_a_whole

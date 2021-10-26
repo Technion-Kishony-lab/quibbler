@@ -5,6 +5,9 @@ from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import ShallowCa
 
 
 class IndexableCache(ShallowCache):
+    """
+    Represents a cache that can be indexed (integer-indexed), for example lists and tuples
+    """
 
     SUPPORTING_TYPES = (list, tuple,)
 

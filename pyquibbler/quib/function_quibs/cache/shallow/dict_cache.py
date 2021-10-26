@@ -5,6 +5,9 @@ from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import ShallowCa
 
 
 class DictCache(ShallowCache):
+    """
+    A cache for a dictionary at a shallow level (by keys)
+    """
 
     SUPPORTING_TYPES = (dict,)
 
