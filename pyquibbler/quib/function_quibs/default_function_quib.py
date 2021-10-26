@@ -160,3 +160,9 @@ class DefaultFunctionQuib(FunctionQuib):
             self._cache = None
 
         return result
+
+    def set_cache_behavior(self, cache_behavior: CacheBehavior):
+        super(DefaultFunctionQuib, self).set_cache_behavior(cache_behavior)
+        if cache_behavior == CacheBehavior.OFF:
+            self._caching = False
+            self._cache = None
