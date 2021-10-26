@@ -39,8 +39,8 @@ class RadioButtonsGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
             # We only need to invalidate children if we didn't assign
             self.invalidate_and_redraw_at_path()
 
-    def _call_func(self):
-        radiobuttons = super()._call_func()
+    def _call_func(self, valid_path):
+        radiobuttons = super()._call_func(None)
         radiobuttons.on_clicked(self._on_change)
         return radiobuttons
 

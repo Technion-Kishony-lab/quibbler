@@ -1,5 +1,4 @@
 from __future__ import annotations
-import matplotlib.pyplot as plt
 from dataclasses import dataclass
 from functools import partial
 from matplotlib.axes import Axes
@@ -48,6 +47,7 @@ def show_fig(fig):
     """
     Show the given figure and wait until it is closed.
     """
+    import matplotlib.pyplot as plt
     closed = Flag(False)
     fig.canvas.mpl_connect('close_event', lambda _event: closed.set(True))
     fig.show()
@@ -64,6 +64,7 @@ def choose_override_dialog(options: List[Quib], can_diverge: bool) -> OverrideCh
     Open a popup dialog to offer the user a choice between override options.
     If can_diverge is true, offer the user to diverge the override instead of choosing an override option.
     """
+    import matplotlib.pyplot as plt
     from pyquibbler.quib.graphics.widgets import QRadioButtons
     # Used to keep references to the widgets so they won't be garbage collected
     widgets = []

@@ -7,7 +7,7 @@ from pyquibbler import iquib
 from pyquibbler.quib import ElementWiseFunctionQuib, FunctionQuib
 from pyquibbler.quib.assignment import Assignment
 from pyquibbler.quib.assignment.assignment import PathComponent
-from pyquibbler.quib.assignment.inverse_assignment.elementwise_inverter import CommonAncestorBetweenArgumentsException
+from pyquibbler.quib.assignment.exceptions import CommonAncestorBetweenArgumentsException
 
 
 def inverse(function_quib: FunctionQuib, value, path):
@@ -110,7 +110,7 @@ def test_inverse_on_neg_operator():
     q = iquib(3)
     function_quib: FunctionQuib = -q
 
-    inverse(function_quib, 7, path=[PathComponent(component=..., indexed_cls=function_quib.get_type())])
+    inverse(function_quib, 7, path=[])
 
     assert q.get_value() == -7
 
@@ -124,7 +124,7 @@ def test_quib_raises_exception_when_reversing_with_common_parent_in_multiple_arg
     function_quib: FunctionQuib = y + z
 
     with pytest.raises(CommonAncestorBetweenArgumentsException):
-        inverse(function_quib, 20, [PathComponent(component=..., indexed_cls=function_quib.get_type())])
+        inverse(function_quib, 20, [])
 
 
 @pytest.mark.regression
@@ -132,7 +132,7 @@ def test_add_second_argument_is_quib():
     quib = iquib(np.array(9))
     sum_ = 3 + quib
 
-    inverse(sum_, 10, [PathComponent(component=..., indexed_cls=sum_.get_type())])
+    inverse(sum_, 10, [])
 
     assert np.array_equal(quib.get_value(), np.array(7))
 
@@ -142,10 +142,10 @@ def test_elementwise_always_picks_first_quib():
     first_quib = iquib(1)
     second_quib = iquib(2)
 
-    inverse(first_quib + second_quib, 5, [PathComponent(component=..., indexed_cls=int)])
+    inverse(first_quib + second_quib, 5, [])
     assert first_quib.get_value() == 3
 
-    inverse(second_quib + first_quib, 7, [PathComponent(component=..., indexed_cls=int)])
+    inverse(second_quib + first_quib, 7, [])
     assert second_quib.get_value() == 4
 
 

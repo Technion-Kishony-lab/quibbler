@@ -123,7 +123,7 @@ class Quib(ABC):
         """
         return []
 
-    def _invalidate_self(self):
+    def _invalidate_self(self, path: List[PathComponent]):
         """
         This method is called whenever a quib itself is invalidated; subclasses will override this with their
         implementations for invalidations.
@@ -140,7 +140,7 @@ class Quib(ABC):
         """
         new_path = self._get_path_for_children_invalidation(invalidator_quib, path) if path else []
         if new_path is not None:
-            self._invalidate_self()
+            self._invalidate_self(new_path)
             self._invalidate_children_at_path(new_path)
 
     def add_child(self, quib: Quib) -> None:
@@ -205,9 +205,8 @@ class Quib(ABC):
         # getitem and will issue a warning)
         # 2. We need the function to not be created dynamically as it needs to be in the inverser's supported functions
         # in order to be inversed correctly (and not simply override)
-        from pyquibbler.quib import DefaultFunctionQuib
-        from pyquibbler.quib.function_quibs.transpositional_function_quib import TranspositionalFunctionQuib
-        return TranspositionalFunctionQuib.create(func=getitem, func_args=[self, item])
+        from pyquibbler.quib.function_quibs.transpositional.getitem_function_quib import GetItemFunctionQuib
+        return GetItemFunctionQuib.create(func=getitem, func_args=[self, item])
 
     def __setitem__(self, key, value):
         from .assignment.assignment import PathComponent
@@ -284,7 +283,13 @@ class Quib(ABC):
         """
         Assuming this quib represents a numpy ndarray, returns a quib of its shape.
         """
-        return np.shape(self.get_value_valid_at_path(None))
+        res = self.get_value_valid_at_path(None)
+        try:
+            return np.shape(res)
+        except ValueError:
+            if hasattr(res, '__len__'):
+                return len(res),
+            raise
 
     @quib_method
     def _get_override_mask(self, shape: Tuple[int, ...]) -> np.ndarray:

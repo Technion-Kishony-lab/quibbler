@@ -7,20 +7,18 @@ from pyquibbler import iquib
 from pyquibbler.quib import TranspositionalFunctionQuib
 from pyquibbler.quib.assignment import Assignment
 from pyquibbler.quib.assignment.assignment import PathComponent
+from pyquibbler.quib.function_quibs.transpositional.getitem_function_quib import GetItemFunctionQuib
 
 
 def inverse(func, indices, value, args, kwargs=None):
-    quib = TranspositionalFunctionQuib.create(
+    cls = TranspositionalFunctionQuib if func != getitem else GetItemFunctionQuib
+    quib = cls.create(
         func=func,
         func_args=args,
         func_kwargs=kwargs
     )
-    inversions = TranspositionalFunctionQuib.create(
-        func=func,
-        func_args=args,
-        func_kwargs=kwargs
-    ).get_inversions_for_assignment(assignment=Assignment(value=value, path=[PathComponent(indexed_cls=quib.get_type(),
-                                                                                          component=indices)]))
+    inversions = quib.get_inversions_for_assignment(assignment=Assignment(value=value,
+                                                                          path=[PathComponent(indexed_cls=quib.get_type(), component=indices)]))
     for inversion in inversions:
         inversion.apply()
 
@@ -290,3 +288,5 @@ def test_inverse_with_resulting_int_and_changing_value_shape():
     b[:, :] = 0
 
     assert np.array_equal(a.get_value(), np.full((2, 3), fill_value=0))
+
+

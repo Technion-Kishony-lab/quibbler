@@ -1,19 +1,23 @@
 from __future__ import annotations
 
-from itertools import islice
 
 import numpy as np
 import types
 from enum import Enum
+from functools import wraps, cached_property, partial, lru_cache
+from typing import Callable, Any, Mapping, Tuple, Optional, Set, List, Union, Dict
 from functools import wraps, cached_property, lru_cache
 from typing import Callable, Any, Mapping, Tuple, Optional, Set, List
 
 from ..override_choice import get_overrides_for_assignment
-from ..assignment import AssignmentTemplate, Assignment
+from ..assignment import AssignmentTemplate, Assignment, PathComponent, QuibWithAssignment
 from ..quib import Quib
 from ..utils import is_there_a_quib_in_args, iter_quibs_in_args, call_func_with_quib_values, \
-    deep_copy_without_quibs_or_artists, copy_and_convert_args_to_values, iter_args_and_names_in_function_call
+    deep_copy_without_quibs_or_artists, copy_and_convert_args_and_kwargs_to_values, \
+    iter_args_and_names_in_function_call, \
+    recursively_run_func_on_object, QuibRef, copy_and_convert_kwargs_to_values
 from ...env import LAZY, PRETTY_REPR
+from ...env import LAZY
 
 
 class CacheBehavior(Enum):
@@ -155,7 +159,7 @@ class FunctionQuib(Quib):
 
     def pretty_repr(self):
         func_name = getattr(self.func, '__name__', str(self.func))
-        args, kwargs = copy_and_convert_args_to_values(self.args, self.kwargs)
+        args, kwargs = copy_and_convert_args_and_kwargs_to_values(self.args, self.kwargs)
         posarg_reprs = map(str, args)
         kwarg_reprs = (f'{key}={val}' for key, val in kwargs.items())
         return f'{func_name}({", ".join([*posarg_reprs, *kwarg_reprs])})'
@@ -166,14 +170,44 @@ class FunctionQuib(Quib):
     def set_cache_behavior(self, cache_behavior: CacheBehavior):
         self._cache_behavior = cache_behavior
 
-    def _call_func(self):
+    def _get_source_paths_of_quibs_given_path(self, path: List[PathComponent]) -> Dict[Quib, str]:
+        """
+        Get a mapping of argument data source quibs to their respective paths that influenced the given path (`path`)
+        """
+        return {}
+
+    def _call_func(self, valid_path: Optional[List[PathComponent]]):
         """
         Call the function wrapped by this FunctionQuib with the
         given arguments after replacing quib with their values.
-        """
-        return call_func_with_quib_values(self.func, self.args, self.kwargs)
 
-    def get_inversions_for_assignment(self, assignment: Assignment):
+        The result should be valid at valid_path- the default implementation is to always get a result that's value
+        for all paths (not diverged), which will necessarily be also valid at `valid_path`.
+        This function can and should be overriden if there is a more specific implementation for getting a value only
+        valid at valid_path
+        """
+        new_args = []
+        if valid_path is None:
+            quibs_to_paths = {}
+        else:
+            quibs_to_paths = self._get_source_paths_of_quibs_given_path(valid_path)
+        for i, arg in enumerate(self.args):
+            def _replace_potential_quib_with_value(inner_arg: Union[Quib, Any]):
+                if isinstance(inner_arg, QuibRef):
+                    return inner_arg.quib
+                if not isinstance(inner_arg, Quib):
+                    return inner_arg
+                path = quibs_to_paths.get(inner_arg, None if valid_path is None else [])
+                return inner_arg.get_value_valid_at_path(path)
+
+            new_args.append(recursively_run_func_on_object(_replace_potential_quib_with_value, arg))
+
+        return self._func(*new_args, **copy_and_convert_kwargs_to_values(self.kwargs))
+
+    def get_inversions_for_assignment(self, assignment: Assignment) -> List[QuibWithAssignment]:
+        """
+        Get a list of inversions to parent quibs for a given assignment
+        """
         return []
 
     @lru_cache()

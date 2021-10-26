@@ -14,7 +14,7 @@ class ExampleFunctionQuib(FunctionQuib):
         pass
 
     def _get_inner_value_valid_at_path(self, path):
-        return self._call_func()
+        return self._call_func(None)
 
 
 @fixture

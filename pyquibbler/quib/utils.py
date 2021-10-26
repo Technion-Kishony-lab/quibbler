@@ -234,13 +234,20 @@ def iter_quibs_in_args(args: Tuple[Any, ...], kwargs: Mapping[str, Any]):
     return iter_object_type_in_args(Quib, args, kwargs)
 
 
-def copy_and_convert_args_to_values(args: Tuple[Any, ...], kwargs: Mapping[str, Any]):
+def copy_and_convert_args_and_kwargs_to_values(args: Tuple[Any, ...], kwargs: Mapping[str, Any]):
     """
     Copy and convert args and kwargs to their respective values- if an arg is a quib it will be replaced with a value,
     elsewise it will just be copied
     """
-    return (tuple(copy_and_replace_quibs_with_vals(arg) for arg in args),
-            {name: copy_and_replace_quibs_with_vals(val) for name, val in kwargs.items()})
+    return tuple(copy_and_replace_quibs_with_vals(arg) for arg in args), copy_and_convert_kwargs_to_values(kwargs)
+
+
+def copy_and_convert_kwargs_to_values(kwargs: Mapping[str, Any]):
+    """
+    Copy and convert kwargs to their respective values, if a kwarg is a quib it will be replaced with a value,
+    elsewise it will just be copied
+    """
+    return {name: copy_and_replace_quibs_with_vals(val) for name, val in kwargs.items()}
 
 
 def get_nested_quibs_by_arg_names_in_function_call(func: Callable, args: Tuple[Any, ...], kwargs: Dict[str, Any]):
@@ -260,7 +267,7 @@ def call_func_with_quib_values(func, args, kwargs):
     """
     Calls a function with the specified args and kwargs while replacing quibs with their values.
     """
-    new_args, new_kwargs = copy_and_convert_args_to_values(args, kwargs)
+    new_args, new_kwargs = copy_and_convert_args_and_kwargs_to_values(args, kwargs)
     try:
         return func(*new_args, **new_kwargs)
     except TypeError as e:

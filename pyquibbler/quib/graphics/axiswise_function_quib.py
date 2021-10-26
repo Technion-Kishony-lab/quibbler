@@ -115,7 +115,6 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
             return [PathComponent(self.get_type(), bool_mask_in_output_array), *rest_of_path]
         return None
 
-
     def _get_path_for_children_invalidation(self, invalidator_quib: Quib,
                                             path: List[PathComponent]) -> Optional[List[PathComponent]]:
         if not self._is_quib_a_data_source(invalidator_quib):
@@ -130,8 +129,8 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
     def _invalidate_quib_with_children_at_path(self, invalidator_quib, path: List[PathComponent]):
         new_paths = self._get_path_for_children_invalidation(invalidator_quib, path) if path else [[]]
         if new_paths is not None:
-            self._invalidate_self()
             for new_path in new_paths:
+                self._invalidate_self(new_path)
                 self._invalidate_children_at_path(new_path)
 
 
@@ -175,10 +174,10 @@ class AxisWiseGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFuncti
             kwargs[translator_kwarg_name] = self._get_all_args_dict(include_defaults=True)[original_kwarg_name]
         return kwargs
 
-    def _forward_translate_indices_to_bool_mask(self, invalidator_quib: Quib, indices: Any) -> Any:
-        source_bool_mask = self._get_source_shaped_bool_mask(invalidator_quib, indices)
+    def _forward_translate_indices_to_bool_mask(self, quib: Quib, indices: Any) -> Any:
+        source_bool_mask = self._get_source_shaped_bool_mask(quib, indices)
         kwargs = self._get_forward_index_translator_kwargs()
-        return self._call_forward_index_translator(kwargs, source_bool_mask, invalidator_quib)
+        return self._call_forward_index_translator(kwargs, source_bool_mask, quib)
 
 
 class ReductionAxisWiseGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
@@ -220,3 +219,4 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         expanded = np.expand_dims(applied, tuple(dims_to_expand))
         broadcast = np.broadcast_to(expanded, result_shape)
         return broadcast
+

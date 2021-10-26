@@ -20,8 +20,8 @@ class SliderGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
             # We only need to invalidate children if we didn't assign
             self.invalidate_and_redraw_at_path()
 
-    def _call_func(self):
-        slider = super()._call_func()
+    def _call_func(self, valid_path):
+        slider = super()._call_func(None)
         slider.on_changed(self._on_change)
         return slider
 

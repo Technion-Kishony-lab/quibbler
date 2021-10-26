@@ -179,6 +179,7 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
                 artist._quibbler_drawing_func = self._func
 
     def _create_new_artists(self,
+                            valid_path,
                             previous_axeses_to_array_names_to_indices_and_artists:
                             Dict[Axes, Dict[str, Tuple[int, List[Artist]]]] = None):
         """
@@ -189,7 +190,7 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
             previous_axeses_to_array_names_to_indices_and_artists or {}
 
         with global_collecting.ArtistsCollector() as collector:
-            func_res = super()._call_func()
+            func_res = super()._call_func(valid_path)
         self._artists = collector.artists_collected
         self._had_artists_on_last_run = len(self._artists) > 0
 
@@ -243,10 +244,11 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
             if artist not in self._get_artist_array(artist):
                 self._artists.remove(artist)
 
-    def _call_func(self):
+    def _call_func(self, valid_path):
         """
         The main entrypoint- this reruns the function that created the artists in the first place,
         and replaces the current artists with the new ones
+        :param valid_path:
         """
         self._remove_artists_from_self_that_were_removed_from_axes()
         if self._had_artists_on_last_run and len(self._artists) == 0 and len(self.children) == 0:
@@ -259,4 +261,4 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         # place the new artists we create in their correct locations
         axeses_to_array_names_to_indices_and_artists = self._get_axeses_to_array_names_to_starting_indices_and_artists()
         self._remove_current_artists()
-        return self._create_new_artists(axeses_to_array_names_to_indices_and_artists)
+        return self._create_new_artists(valid_path, axeses_to_array_names_to_indices_and_artists)
