@@ -194,7 +194,7 @@ class FunctionQuib(Quib):
                     return inner_arg.quib
                 if not isinstance(inner_arg, Quib):
                     return inner_arg
-                path = quibs_to_paths.get(inner_arg)
+                path = quibs_to_paths.get(inner_arg, None if valid_path is None else [])
                 return inner_arg.get_value_valid_at_path(path)
 
             new_args.append(recursively_run_func_on_object(_replace_potential_quib_with_value, arg))
