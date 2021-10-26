@@ -1,7 +1,9 @@
 import numpy as np
 import pytest
 
+from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.quib.assignment.utils import deep_assign_data_with_paths
+from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
 from pyquibbler.quib.function_quibs.cache.shallow.nd_cache.nd_void_cache import NdVoidCache
 from tests.functional.quib.function_quibs.cache.cache_test import IndexableCacheTest
 
@@ -41,18 +43,11 @@ class TestNdVoidCache(IndexableCacheTest):
             return np.array([(value, value)], dtype=obj.dtype)[0]
         obj = deep_assign_data_with_paths(obj, path, value)
         return obj
-    #
-    # def test_nd_cache_does_not_match_nd_array_of_different_shape(self, cache):
-    #     assert not cache.matches_result(np.arange(6).reshape((3, 2)))
-    #
-    # def test_nd_cache_does_not_match_nd_array_of_different_dtype(self, cache):
-    #     assert not cache.matches_result(np.full((2, 3), "hello mike"))
 
     def test_cache_get_cache_status_on_partial(self, cache):
-        pass
-        # cache.set_valid_value_at_path([PathComponent(component=(1, 1), indexed_cls=np.ndarray)], 5)
-        #
-        # assert cache.get_cache_status() == CacheStatus.PARTIAL
+        cache.set_valid_value_at_path([PathComponent(component=0, indexed_cls=np.void)], 5)
+
+        assert cache.get_cache_status() == CacheStatus.PARTIAL
 
     def test_cache_set_valid_partial_and_get_uncached_paths(self, cache, result, valid_components,
                                                             uncached_path_components, valid_value):
