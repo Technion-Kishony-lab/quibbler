@@ -1,22 +1,27 @@
+import operator
+
 import numpy as np
 import pytest
+from numpy.lib.recfunctions import structured_to_unstructured
 
 from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.quib.assignment.utils import get_sub_data_from_object_in_path, deep_assign_data_with_paths
 from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
 from pyquibbler.quib.function_quibs.cache.shallow.nd_cache import NdFieldArrayShallowCache
+from pyquibbler.quib.utils import deep_copy_without_quibs_or_artists
 from tests.functional.quib.function_quibs.cache.cache_test import IndexableCacheTest, SetValidTestCase, SetInvalidTestCase
 
+arr = np.array([[("Maor", 24), ("Yossi", 15), ("Danahellilililili", 32)]], dtype=[("name", np.str_, 20), ("age", np.int_)])
 
+
+@pytest.mark.parametrize("result", [
+    arr,
+])
 class TestNdFieldArrayCache(IndexableCacheTest):
 
     cls = NdFieldArrayShallowCache
     dtype = [("name", np.str_, 20), ("age", np.int_)]
     boolean_dtype = [("name", np.bool_), ("age", np.bool_)]
-
-    @pytest.fixture()
-    def result(self):
-        return np.array([[("Maor", 24), ("Yossi", 15), ("Danahellilililili", 32)]], dtype=self.dtype)
 
     unsupported_type_result = [1, 2, 3]
     empty_result = np.array([], dtype=dtype)
@@ -26,42 +31,36 @@ class TestNdFieldArrayCache(IndexableCacheTest):
             valid_components=["name"],
             valid_value="Jony",
             uncached_path_components=[],
-            expected_value=np.array([[(False, True), (False, True), (False, True)]], dtype=boolean_dtype)
         ),
         SetValidTestCase(
             name="set single field, get same field uncached",
             valid_components=["name"],
             valid_value="Jony",
             uncached_path_components=["name"],
-            expected_value=np.array([[(False, False), (False, False), (False, False)]], dtype=boolean_dtype)
         ),
         SetValidTestCase(
             name="set single field, get indices uncached",
             valid_components=["name"],
             valid_value="Jony",
             uncached_path_components=[(0, 0)],
-            expected_value=np.array([[(False, True), (False, False), (False, False)]], dtype=boolean_dtype)
         ),
         SetValidTestCase(
             name="set indices, get all uncached",
             valid_components=[(0, 0)],
             valid_value="1",
             uncached_path_components=[],
-            expected_value=np.array([[(False, False), (True, True), (True, True)]], dtype=boolean_dtype)
         ),
         SetValidTestCase(
             name="set indices, get field uncached",
             valid_components=[(0, 0)],
             valid_value="1",
             uncached_path_components=["name"],
-            expected_value=np.array([[(False, False), (True, False), (True, False)]], dtype=boolean_dtype)
         ),
         SetValidTestCase(
             name="set indices, get field uncached",
             valid_components=[(0, 0)],
             valid_value="1",
             uncached_path_components=["name"],
-            expected_value=np.array([[(False, False), (True, False), (True, False)]], dtype=boolean_dtype)
         )
     ]
     set_invalid_test_cases = [
@@ -69,34 +68,36 @@ class TestNdFieldArrayCache(IndexableCacheTest):
             name="set indices",
             invalid_components=[(0, 0)],
             uncached_path_components=[],
-            expected_value=np.array([[(True, True), (False, False), (False, False)]], dtype=boolean_dtype)
         ),
         SetInvalidTestCase(
             name="set field",
             invalid_components=["name"],
             uncached_path_components=[],
-            expected_value=np.array([[(True, False), (True, False), (True, False)]], dtype=boolean_dtype)
         ),
         SetInvalidTestCase(
             name="set indices, get field",
             invalid_components=[(0, 0)],
             uncached_path_components=["name"],
-            expected_value=np.array([[(True, False), (False, False), (False, False)]], dtype=boolean_dtype)
         ),
         SetInvalidTestCase(
             name="set field, get indices",
             invalid_components=["age"],
             uncached_path_components=[(0, 0)],
-            expected_value=np.array([[(False, True), (False, False), (False, False)]], dtype=boolean_dtype)
         )
     ]
 
-    def assert_uncached_paths_match_expected_value(self, uncached_paths, expected_value):
-        expected_value_arr = expected_value[:]
-        for path in uncached_paths:
-            assert np.all(get_sub_data_from_object_in_path(expected_value_arr, path))
-            deep_assign_data_with_paths(expected_value_arr, path, False)
-        assert not any(np.any(expected_value_arr[field]) for field in expected_value.dtype.names)
+    def get_values_from_result(self, result):
+        if result.dtype.names is not None:
+            result = structured_to_unstructured(result)
+        return np.ravel(result)
+
+    def get_result_with_all_values_set_to_value(self, result, value):
+        result[:] = value
+        return result
+
+    def get_result_with_value_broadcasted_to_path(self, obj, path, value):
+        deep_assign_data_with_paths(obj, path, value)
+        return obj
 
     @pytest.mark.parametrize("component", [
         (0, 1),

@@ -220,7 +220,7 @@ def test_invalidate_and_redraw_invalidates_all_when_minor_parameter_changes():
 
 def test_can_getitem_on_object_without_diverged_cache():
     """
-    If the function doesn't have a diverged cache it should request full validity from its children,
+    If the function doesn't have a diverged cache it should request full validity from its parents,
     so it won't try to update the cache in a specific path component
     """
     obj = type('TypeACacheIsNotImplementedFor', (), dict(__getitem__=lambda self, item: item))()

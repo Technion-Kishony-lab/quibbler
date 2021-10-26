@@ -26,21 +26,18 @@ class TestDictCache(IndexableCacheTest):
             valid_components=["a"],
             valid_value=mock.Mock(),
             uncached_path_components=[],
-            expected_value=["b", "c"]
         ),
         SetValidTestCase(
             name="validate key, request single uncached",
             valid_components=["a"],
             valid_value=mock.Mock(),
             uncached_path_components=["b"],
-            expected_value=["b"]
         ),
         SetValidTestCase(
             name="validate key, request same key uncached",
             valid_components=["a"],
             valid_value=mock.Mock(),
             uncached_path_components=["a"],
-            expected_value=[]
         )
     ]
 
@@ -49,25 +46,29 @@ class TestDictCache(IndexableCacheTest):
             name="invalidate key, request same key uncached",
             invalid_components=["a"],
             uncached_path_components=["a"],
-            expected_value=["a"]
         ),
         SetInvalidTestCase(
             name="invalidate key, request different key uncached",
             invalid_components=["a"],
             uncached_path_components=["b"],
-            expected_value=[]
         )
     ]
 
-    def assert_uncached_paths_match_expected_value(self, uncached_paths, expected_value):
-        keys_to_pop = set(expected_value)
-        for path in uncached_paths:
-            assert len(path) == 1
-            inner_component = path[0].component
-            assert inner_component in keys_to_pop, f"The key {inner_component} was in the paths but was not expected"
-            keys_to_pop.remove(inner_component)
+    def get_result_with_all_values_set_to_value(self, result, value):
+        return {
+            k: value
+            for k in result
+        }
 
-        assert len(keys_to_pop) == 0, f"The keys {keys_to_pop} were expected but not in the paths"
+    def get_result_with_value_broadcasted_to_path(self, obj, path, value):
+        working = path[0].component
+        obj[working] = value
+        return obj
+
+    def get_values_from_result(self, result):
+        if isinstance(result, dict):
+            return list(result.values())
+        return [result]
 
     def test_dict_cache_does_not_match_result_of_dict_type_and_different_keys(self, cache):
         assert not cache.matches_result({"a": 1})

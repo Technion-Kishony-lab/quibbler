@@ -10,6 +10,8 @@ class NdFieldArrayShallowCache(NdArrayCache):
     A cache for any ndarray which has dtype names (ie a "field array")
     """
 
+    SUPPORTING_TYPES = (np.ndarray, np.void)
+
     @classmethod
     def supports_result(cls, result):
         return super(NdFieldArrayShallowCache, cls).supports_result(result) and result.dtype.names is not None

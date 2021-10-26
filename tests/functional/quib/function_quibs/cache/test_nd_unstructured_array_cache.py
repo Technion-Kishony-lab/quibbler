@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 
 from pyquibbler.quib.assignment import PathComponent
+from pyquibbler.quib.assignment.utils import deep_assign_data_with_paths
 from pyquibbler.quib.function_quibs.cache.shallow.nd_cache import NdUnstructuredArrayCache
 from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import CacheStatus
 from tests.functional.quib.function_quibs.cache.cache_test import IndexableCacheTest, SetValidTestCase, SetInvalidTestCase
@@ -23,14 +24,12 @@ class TestNdUnstructuredArrayCache(IndexableCacheTest):
             uncached_path_components=[],
             valid_components=[(1, 1)],
             valid_value=5,
-            expected_value=[[True, True, True], [True, False, True]]
         ),
         SetValidTestCase(
             name="set valid with fancy indexing, get uncached without",
             uncached_path_components=[([0, 0], [0, 1])],
             valid_components=[(0, 1)],
             valid_value=5,
-            expected_value=[[True, False, False], [False, False, False]]
         ),
     ]
     set_invalid_test_cases = [
@@ -38,22 +37,24 @@ class TestNdUnstructuredArrayCache(IndexableCacheTest):
             name="invalidate single, get all uncached",
             invalid_components=[(0, 1)],
             uncached_path_components=[],
-            expected_value=[[False, True, False], [False, False, False]],
         ),
         SetInvalidTestCase(
             name="invalidate with index and slice, get all uncached",
             invalid_components=[(0, slice(0, 2))],
             uncached_path_components=[],
-            expected_value=[[True, True, False], [False, False, False]],
         )
     ]
 
-    def assert_uncached_paths_match_expected_value(self, uncached_paths, expected_value):
-        assert len(uncached_paths) == 1
-        component = uncached_paths[0][0].component
-        expected_value_arr = np.array(expected_value)
-        assert np.all(expected_value_arr[component])
-        assert not np.any(expected_value_arr[np.logical_not(component)])
+    def get_values_from_result(self, result):
+        return list(np.ravel(result))
+
+    def get_result_with_all_values_set_to_value(self, result, value):
+        result[:] = value
+        return result
+
+    def get_result_with_value_broadcasted_to_path(self, obj, path, value):
+        deep_assign_data_with_paths(obj, path, value)
+        return obj
 
     def test_nd_cache_does_not_match_nd_array_of_different_shape(self, cache):
         assert not cache.matches_result(np.arange(6).reshape((3, 2)))
