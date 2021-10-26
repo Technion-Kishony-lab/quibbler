@@ -43,6 +43,27 @@ jobs:
           name: Test results (Python ${{ matrix.python-version }})
           path: pytest.xml
 
+  linting:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install tox tox-gh-actions
+
+          - name: Run tox
+            run: |
+              python -m tox -- --junit-xml pytest.xml
+
+      - name: Run tox flake8
+        run: |
+          python -m tox -e flake8
+
   publish-test-results:
     name: "Publish test results"
     needs: tests
