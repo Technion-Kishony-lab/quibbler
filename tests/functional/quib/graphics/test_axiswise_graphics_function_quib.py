@@ -41,7 +41,7 @@ def test_reduction_axiswise_invalidation(indices_to_invalidate, axis, keepdims, 
 ])
 @parametrize_keepdims
 @parametrize_where
-def test_reduction_axiswise_get_value_at_path(axis, data, keepdims, where, indices_to_get_value_at):
+def test_reduction_axiswise_get_value_valid_at_path(axis, data, keepdims, where, indices_to_get_value_at):
     kwargs = dict(axis=axis)
     if keepdims is not None:
         kwargs['keepdims'] = keepdims
@@ -58,6 +58,16 @@ def test_reduction_axiswise_get_value_at_path(axis, data, keepdims, where, indic
 def test_apply_along_axis_invalidation(indices_to_invalidate, axis, func_out_dims, data):
     func1d = lambda slice: np.sum(slice).reshape((1,) * func_out_dims)
     check_invalidation(lambda iq: np.apply_along_axis(func1d, axis, iq), data, indices_to_invalidate)
+
+
+@parametrize_data
+@mark.parametrize('axis', [0, 1, 2, -1, -2])
+@mark.parametrize('func_out_dims', [0, 1, 2])
+@mark.parametrize('indices_to_get_value_at', [0, (0, 0), (-1, ...)])
+def test_apply_along_axis_get_value_valid_at_path(indices_to_get_value_at, axis, func_out_dims, data):
+    func1d = lambda slice: np.sum(slice).reshape((1,) * func_out_dims)
+    path_to_get_value_at = [PathComponent(np.ndarray, indices_to_get_value_at)]
+    check_get_value_valid_at_path(lambda iq: np.apply_along_axis(func1d, axis, iq), data, path_to_get_value_at)
 
 
 @parametrize_indices_to_invalidate

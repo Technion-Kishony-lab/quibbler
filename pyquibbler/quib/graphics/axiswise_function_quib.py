@@ -1,7 +1,7 @@
 import numpy as np
 from dataclasses import dataclass
 from itertools import chain
-from functools import lru_cache, cached_property
+from functools import cached_property
 from abc import abstractmethod
 from typing import Any, Dict, Optional, List
 
@@ -47,7 +47,6 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
         """
         return self.args[0]
 
-    @lru_cache()
     def _get_arg_core_dims(self, arg_index: int) -> int:
         """
         Return the core dimensions of a given argument, which are 0 by default.
@@ -183,7 +182,6 @@ class AxisWiseGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFuncti
         Do the actual forward index translation.
         """
 
-    @lru_cache()
     def _get_translation_related_arg_dict(self):
         arg_dict = {key: val for key, val in self._get_all_args_dict(include_defaults=True).items()
                     if not isinstance(val, np._globals._NoValueType)}
@@ -250,22 +248,29 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
     }
     TRANSLATION_RELATED_ARGS = [Arg('axis')]
 
+    def _get_expanded_dims(self, axis, result_shape, source_shape):
+        func_result_ndim = len(result_shape) - len(source_shape) + 1
+        assert func_result_ndim >= 0, func_result_ndim
+        return tuple(range(axis, axis + func_result_ndim) if axis >= 0 else \
+                         range(axis, axis - func_result_ndim, -1))
+
     def _forward_translate_bool_mask(self, args_dict, boolean_mask, invalidator_quib: Quib):
         """
         Calculate forward index translation for apply_along_axis by applying np.any on the boolean mask.
         After that we expand and broadcast the reduced mask to match the actual result shape, which is dependent
         on the applied function return type.
         """
-        result_shape = self.get_shape().get_value()
-        func_result_ndim = len(result_shape) - len(invalidator_quib.get_shape().get_value()) + 1
-        assert func_result_ndim >= 0, func_result_ndim
         axis = args_dict.pop('axis')
+        result_shape = self.get_shape().get_value()
+        dims_to_expand = self._get_expanded_dims(axis, result_shape, invalidator_quib.get_shape().get_value())
         applied = np.apply_along_axis(np.any, axis, boolean_mask, **args_dict)
-        dims_to_expand = range(axis, axis + func_result_ndim) if axis >= 0 else \
-            range(axis, axis - func_result_ndim, -1)
-        expanded = np.expand_dims(applied, tuple(dims_to_expand))
+        expanded = np.expand_dims(applied, dims_to_expand)
         broadcast = np.broadcast_to(expanded, result_shape)
         return broadcast
 
     def _backward_translate_bool_mask(self, args_dict, bool_mask, quib: Quib):
-        return self._get_source_shaped_bool_mask(quib, [])
+        axis = args_dict.pop('axis')
+        source_shape = quib.get_shape().get_value()
+        expanded_dims = self._get_expanded_dims(axis, bool_mask.shape, source_shape)
+        mask = np.expand_dims(np.any(bool_mask, axis=expanded_dims), axis)
+        return np.broadcast_to(mask, source_shape)
