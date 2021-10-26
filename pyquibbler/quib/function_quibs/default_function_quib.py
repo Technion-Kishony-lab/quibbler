@@ -6,7 +6,7 @@ from typing import Callable, Any, Mapping, Tuple, Optional, List, TYPE_CHECKING
 import numpy as np
 
 from pyquibbler.quib.function_quibs.cache import create_cache
-from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import CacheStatus
+from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import CacheStatus, PathCannotHaveComponentsException
 from .function_quib import FunctionQuib, CacheBehavior
 from ..assignment import AssignmentTemplate
 from ..assignment.utils import get_sub_data_from_object_in_path
@@ -116,15 +116,29 @@ class DefaultFunctionQuib(FunctionQuib):
         """
         Run the function a list of uncached paths, given an original truncated path, storing it in our cache
         """
+        result = None
         for uncached_path in uncached_paths:
             result = self._call_func(uncached_path)
 
             self._ensure_cache_matches_result(result)
             if uncached_path is not None:
-                self._cache.set_valid_value_at_path(truncated_path, get_sub_data_from_object_in_path(result,
+                try:
+                    self._cache.set_valid_value_at_path(truncated_path, get_sub_data_from_object_in_path(result,
                                                                                                      truncated_path))
+                    # We need to get the result from the cache (as opposed to simply using the last run), since we
+                    # don't want to only take the last run
+                    result = self._cache.get_value()
+                except PathCannotHaveComponentsException:
+                    # We do not have a diverged cache for this type, we can't store the value; this is not a problem as
+                    # everything will work as expected, but we will simply not cache
+                    assert len(uncached_paths) == 1, "There should never be a situation in which we have multiple " \
+                                                     "uncached paths but our cache can't handle setting a value at a " \
+                                                     "specific component"
+
                 # sanity
                 assert len(self._cache.get_uncached_paths(truncated_path)) == 0
+
+        return result
 
     def _get_inner_value_valid_at_path(self, path: Optional[List['PathComponent']]):
         """
@@ -137,8 +151,7 @@ class DefaultFunctionQuib(FunctionQuib):
         start_time = perf_counter()
         if len(uncached_paths) == 0:
             return self._cache.get_value()
-        self._run_func_on_uncached_paths(truncated_path, uncached_paths)
-        result = self._cache.get_value()
+        result = self._run_func_on_uncached_paths(truncated_path, uncached_paths)
         elapsed_seconds = perf_counter() - start_time
 
         if self._should_cache(result, elapsed_seconds):
