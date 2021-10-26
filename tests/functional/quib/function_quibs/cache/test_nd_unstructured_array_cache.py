@@ -10,14 +10,26 @@ from tests.functional.quib.function_quibs.cache.cache_test import IndexableCache
 
 class TestNdUnstructuredArrayCache(IndexableCacheTest):
     cls = NdUnstructuredArrayCache
-    result = np.array([[1, 2, 3], [4, 5, 6]])
+
+    paths = [
+        [([0, 0], [0, 1])],
+        [slice(0)],
+        [slice(0, 2, None)],
+        [slice(None, 1, 2)],
+        [(0, 1)],
+        []
+    ]
+
+    unsupported_type_result = [1, 2, 3]
+    empty_result = np.array([])
 
     @pytest.fixture
     def result(self):
         return np.array([[1, 2, 3], [4, 5, 6]])
 
-    unsupported_type_result = [1, 2, 3]
-    empty_result = np.array([])
+    @pytest.fixture
+    def valid_value(self):
+        return 1
 
     def get_values_from_result(self, result):
         return np.ravel(result)
@@ -44,36 +56,12 @@ class TestNdUnstructuredArrayCache(IndexableCacheTest):
 
         assert cache.get_cache_status() == CacheStatus.PARTIAL
 
-    @pytest.mark.parametrize("valid_components", [
-        [(0, 1)],
-        [(1, 1)],
-        [slice(0)],
-        []
-    ])
-    @pytest.mark.parametrize("uncached_path_components", [
-        [([0, 0], [0, 1])],
-        [slice(0)],
-        []
-    ])
-    @pytest.mark.parametrize("valid_value", [
-        5
-    ])
     def test_cache_set_valid_partial_and_get_uncached_paths(self, cache, result, valid_components,
                                                             uncached_path_components, valid_value):
         super(TestNdUnstructuredArrayCache, self).test_cache_set_valid_partial_and_get_uncached_paths(cache, result,
                                                                                             valid_components, uncached_path_components,
                                                                                                       valid_value)
 
-    @pytest.mark.parametrize("invalid_components", [
-        [(0, 1)],
-        [(0, slice(0, 2))],
-        []
-    ])
-    @pytest.mark.parametrize("uncached_path_components", [
-        [],
-        [(0, 1)],
-        [0, slice(0, 2)]
-    ])
     def test_cache_set_invalid_partial_and_get_uncached_paths(self, cache, result, invalid_components,
                                                               uncached_path_components):
         super(TestNdUnstructuredArrayCache, self).test_cache_set_invalid_partial_and_get_uncached_paths(cache, result,

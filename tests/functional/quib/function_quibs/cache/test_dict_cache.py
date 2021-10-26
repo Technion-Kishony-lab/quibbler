@@ -8,16 +8,23 @@ from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import CacheStat
 from tests.functional.quib.function_quibs.cache.cache_test import IndexableCacheTest
 
 
+
 class TestDictCache(IndexableCacheTest):
 
     cls = DictCache
 
+    unsupported_type_result = [1, 2, 3]
+    empty_result = {}
+
+    paths = [
+        [],
+        ["a"],
+        ["b"]
+    ]
+
     @pytest.fixture()
     def result(self):
         return {"a": 1, "b": 2, "c": 3}
-
-    unsupported_type_result = [1, 2, 3]
-    empty_result = {}
 
     def get_result_with_all_values_set_to_value(self, result, value):
         return {
@@ -48,18 +55,9 @@ class TestDictCache(IndexableCacheTest):
 
         assert cache.get_cache_status() == CacheStatus.PARTIAL
 
-    @pytest.mark.parametrize("valid_components", [
-        ["a"],
-        ["b"],
-    ])
-    @pytest.mark.parametrize("uncached_path_components", [
-        [],
-        ["a"],
-        ["b"]
-    ])
     @pytest.mark.parametrize("valid_value", [
-        "a",
-        [1, 2, 3]
+        1,
+        [1, 2, 3],
     ])
     def test_cache_set_valid_partial_and_get_uncached_paths(self, cache, result, valid_components,
                                                               uncached_path_components, valid_value):
@@ -67,16 +65,6 @@ class TestDictCache(IndexableCacheTest):
                                                                                        uncached_path_components,
                                                                                        valid_value)
 
-    @pytest.mark.parametrize("invalid_components", [
-        ["a"],
-        ["b"],
-        []
-    ])
-    @pytest.mark.parametrize("uncached_path_components", [
-        [],
-        ["a"],
-        ["b"]
-    ])
     def test_cache_set_invalid_partial_and_get_uncached_paths(self,  cache, result, invalid_components,
                                                               uncached_path_components):
         super(TestDictCache, self).test_cache_set_invalid_partial_and_get_uncached_paths(cache, result,

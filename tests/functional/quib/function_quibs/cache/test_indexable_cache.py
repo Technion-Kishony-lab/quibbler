@@ -18,7 +18,7 @@ class TestIndexableCache(IndexableCacheTest):
     empty_result = []
     unsupported_type_result = {1, 2, 3}
 
-    types_of_paths_to_try = [
+    paths = [
         [],
         [0],
         [1],
@@ -27,6 +27,10 @@ class TestIndexableCache(IndexableCacheTest):
         [slice(1, 3, None)],
         [slice(None, 2, 3)]
     ]
+
+    @pytest.fixture()
+    def valid_value(self):
+        return 1
 
     def get_values_from_result(self, result):
         return result if isinstance(result, (list, tuple)) else [result]
@@ -69,15 +73,11 @@ class TestIndexableCache(IndexableCacheTest):
 
         assert len(uncached_paths) == 0
 
-    @pytest.mark.parametrize("valid_components", types_of_paths_to_try)
-    @pytest.mark.parametrize("uncached_path_components", types_of_paths_to_try)
-    def test_cache_set_valid_partial_and_get_uncached_paths(self, cache, result, valid_components, uncached_path_components):
+    def test_cache_set_valid_partial_and_get_uncached_paths(self, cache, result, valid_components, uncached_path_components, valid_value):
         super(TestIndexableCache, self).test_cache_set_valid_partial_and_get_uncached_paths(cache, result, valid_components,
                                                                                             uncached_path_components,
-                                                                                            5)
+                                                                                            valid_value)
 
-    @pytest.mark.parametrize("invalid_components", types_of_paths_to_try)
-    @pytest.mark.parametrize("uncached_path_components", types_of_paths_to_try)
     def test_cache_set_invalid_partial_and_get_uncached_paths(self, cache, result, invalid_components,
                                                               uncached_path_components):
         super(TestIndexableCache, self).test_cache_set_invalid_partial_and_get_uncached_paths(cache, result,

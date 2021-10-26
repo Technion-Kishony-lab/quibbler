@@ -66,12 +66,23 @@ class CacheTest(ABC):
         assert cache.get_cache_status() == CacheStatus.ALL_INVALID
 
 
-
-
 class IndexableCacheTest(CacheTest):
 
     unsupported_type_result = NotImplemented
     empty_result = NotImplemented
+
+    paths = NotImplemented
+
+    def __init_subclass__(cls, **kwargs):
+        parametrized_invalid = pytest.mark.parametrize("invalid_components", cls.paths ) \
+            (cls.test_cache_set_invalid_partial_and_get_uncached_paths)
+        parametrized_invalid = pytest.mark.parametrize("uncached_path_components", cls.paths)(parametrized_invalid)
+        cls.test_cache_set_invalid_partial_and_get_uncached_paths = parametrized_invalid
+
+        parametrized_valid = pytest.mark.parametrize("valid_components", cls.paths) \
+            (cls.test_cache_set_valid_partial_and_get_uncached_paths)
+        parametrized_valid = pytest.mark.parametrize("uncached_path_components", cls.paths)(parametrized_valid)
+        cls.test_cache_set_valid_partial_and_get_uncached_paths = parametrized_valid
 
     @abstractmethod
     def get_values_from_result(self, result):
