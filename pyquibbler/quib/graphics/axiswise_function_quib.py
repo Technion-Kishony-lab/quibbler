@@ -282,8 +282,8 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
     def _get_expanded_dims(self, axis, result_shape, source_shape):
         func_result_ndim = len(result_shape) - len(source_shape) + 1
         assert func_result_ndim >= 0, func_result_ndim
-        return tuple(range(axis, axis + func_result_ndim) if axis >= 0 else \
-                         range(axis, axis - func_result_ndim, -1))
+        return tuple(range(axis, axis + func_result_ndim) if axis >= 0 else
+                     range(axis, axis - func_result_ndim, -1))
 
     def _forward_translate_bool_mask(self, args_dict, boolean_mask, invalidator_quib: Quib):
         """

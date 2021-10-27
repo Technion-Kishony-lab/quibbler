@@ -1,6 +1,6 @@
 import numpy as np
 from operator import getitem
-from typing import List, Optional, Any, Callable, Dict, Union
+from typing import List, Optional, Any, Callable, Dict
 
 from pyquibbler.quib.function_quibs.utils import create_empty_array_with_values_at_indices
 from pyquibbler.quib.quib import Quib
@@ -156,8 +156,8 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
             )
         }
 
-    def _get_source_paths_of_quibs_given_path(self, filtered_path_in_result: List[PathComponent]) -> Dict[
-        Quib, List[PathComponent]]:
+    def _get_source_paths_of_quibs_given_path(self, filtered_path_in_result: List[PathComponent]) \
+            -> Dict[Quib, List[PathComponent]]:
         working_component = filtered_path_in_result[0].component if len(filtered_path_in_result) > 0 else True
         quibs_to_indices = self.get_quibs_to_indices_in_quibs(working_component)
         return {
