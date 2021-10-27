@@ -201,7 +201,7 @@ class AxisWiseGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFuncti
         args_dict = self._get_translation_related_arg_dict()
         return self._backward_translate_bool_mask(args_dict, result_bool_mask, quib)
 
-    def _get_quibs_to_paths_in_quibs(self, filtered_path_in_result):
+    def _get_source_paths_of_quibs_given_path(self, filtered_path_in_result):
         data_source_quibs = self.get_data_source_quibs()
         non_data_source_quibs = self.parents - data_source_quibs
         data_source_quib, = data_source_quibs
