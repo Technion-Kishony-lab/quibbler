@@ -1,7 +1,7 @@
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from threading import RLock
-from typing import Any
+from typing import Any, Optional, List
 from matplotlib.widgets import RectangleSelector
 
 from pyquibbler.quib.utils import quib_method
@@ -10,6 +10,7 @@ from pyquibbler.utils import Mutable
 from .widget_graphics_function_quib import WidgetGraphicsFunctionQuib
 
 from pyquibbler.quib import Quib
+from ...assignment import PathComponent
 
 
 @dataclass
@@ -81,7 +82,7 @@ class RectangleSelectorGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
             # We only need to invalidate children if we didn't assign
             self.invalidate_and_redraw_at_path()
 
-    def _call_func(self, valid_path):
+    def _call_func(self, valid_path: Optional[List[PathComponent]]) -> Any:
         if self._cached_result is not None:
             self._cached_result.set_visible(False)
         selector = super()._call_func(None)

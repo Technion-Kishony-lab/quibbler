@@ -13,7 +13,7 @@ from matplotlib.text import Text
 
 from . import global_collecting
 from .event_handling import CanvasEventHandler
-from ..assignment import AssignmentTemplate
+from ..assignment import AssignmentTemplate, PathComponent
 from ..function_quibs import DefaultFunctionQuib, CacheBehavior
 from ..utils import call_func_with_quib_values, iter_object_type_in_args
 
@@ -244,7 +244,7 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
             if artist not in self._get_artist_array(artist):
                 self._artists.remove(artist)
 
-    def _call_func(self, valid_path):
+    def _call_func(self, valid_path: Optional[List[PathComponent]]) -> Any:
         """
         The main entrypoint- this reruns the function that created the artists in the first place,
         and replaces the current artists with the new ones
