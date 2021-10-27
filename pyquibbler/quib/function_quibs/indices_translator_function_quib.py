@@ -5,7 +5,7 @@ from functools import lru_cache
 from typing import Set, Optional, Dict, Callable, List, Any, Union
 
 from pyquibbler.quib.assignment import Assignment
-from pyquibbler.quib.function_quibs.utils import create_empty_array_with_values_at_indices
+from pyquibbler.quib.function_quibs.utils import create_empty_array_with_values_at_indices, ArgsValues
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.function_quibs import FunctionQuib
 from pyquibbler.quib.assignment import PathComponent, QuibWithAssignment
@@ -17,13 +17,13 @@ Kwargs = Dict[str, Any]
 
 @dataclass
 class SupportedFunction:
-    data_source_indices: Union[Set[Union[int, str]],
-                               Callable[[Args, Kwargs], List[Any]]]
+    data_source_indices: Union[Set[Union[int, str, slice]],
+                               Callable[[Args, Kwargs, Kwargs], List[Any]]]
 
-    def get_data_source_args(self, args: Args, kwargs: Kwargs) -> List[Any]:
+    def get_data_source_args(self, args_values: ArgsValues) -> List[Any]:
         if callable(self.data_source_indices):
-            return self.data_source_indices(args, kwargs)
-        return [args[i] if isinstance(i, int) else kwargs[i] for i in self.data_source_indices]
+            return self.data_source_indices(args_values)
+        return [args_values[item] for item in self.data_source_indices]
 
 
 class IndicesTranslatorFunctionQuib(FunctionQuib):
@@ -72,7 +72,7 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
     def get_data_source_quibs(self) -> Set:
         if self.SUPPORTED_FUNCTIONS is not None:
             supported_function = self.SUPPORTED_FUNCTIONS[self._func]
-            data_source_args = supported_function.get_data_source_args(self.args, self.kwargs)
+            data_source_args = supported_function.get_data_source_args(self._get_args_values(include_defaults=False))
             return set(iter_objects_of_type_in_object_shallowly(Quib, data_source_args))
         return self.parents
 

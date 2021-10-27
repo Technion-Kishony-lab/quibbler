@@ -6,13 +6,13 @@ from typing import Union, Dict
 from functools import wraps, cached_property, lru_cache
 from typing import Callable, Any, Mapping, Tuple, Optional, Set, List
 
+from .utils import ArgsValues
 from ..override_choice import get_overrides_for_assignment
 from ..assignment import AssignmentTemplate, Assignment, PathComponent, QuibWithAssignment
 from ..quib import Quib
 from ..utils import is_there_a_quib_in_args, iter_quibs_in_args, deep_copy_without_quibs_or_artists, \
-    copy_and_convert_args_and_kwargs_to_values, iter_args_and_names_in_function_call, \
-    recursively_run_func_on_object, \
-    QuibRef, copy_and_convert_kwargs_to_values
+    copy_and_convert_args_and_kwargs_to_values, recursively_run_func_on_object, QuibRef, \
+    copy_and_convert_kwargs_to_values
 from ...env import LAZY, PRETTY_REPR
 
 
@@ -207,20 +207,5 @@ class FunctionQuib(Quib):
         return []
 
     @lru_cache()
-    def _get_all_args_dict(self, default_to_args_kwargs_on_no_signature=True, include_defaults=True):
-        try:
-            return dict(iter_args_and_names_in_function_call(self.func, self.args, self.kwargs, include_defaults))
-        except ValueError:
-            if default_to_args_kwargs_on_no_signature:
-                return {'args': self.args, 'kwargs': self.kwargs}
-            raise
-
-    def _get_arg_values_by_position(self) -> List[Any]:
-        """
-        Try to return all args values by position, including kwargs. If the signature is unknown, just return the args.
-        """
-        try:
-            args_iterable = self._get_all_args_dict(False, False).values()
-        except ValueError:
-            args_iterable = self.args
-        return list(args_iterable)
+    def _get_args_values(self, include_defaults=True):
+        return ArgsValues.from_function_call(self.func, self.args, self.kwargs, include_defaults)

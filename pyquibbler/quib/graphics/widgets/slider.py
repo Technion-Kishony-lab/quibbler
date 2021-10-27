@@ -13,7 +13,7 @@ class SliderGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
     WIDGET_CLS = Slider
 
     def _on_change(self, new_value: float):
-        val = self._get_all_args_dict().get('valinit')
+        val = self._get_args_values().get('valinit')
         if isinstance(val, Quib):
             val.assign_value(new_value)
         else:
