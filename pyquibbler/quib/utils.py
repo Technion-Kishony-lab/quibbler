@@ -105,13 +105,9 @@ def deep_copy_without_quibs_or_artists(obj: Any, max_depth: Optional[int] = None
                                           max_depth=max_depth, obj=obj)
 
 
-def deep_copy_and_replace_quibs_with_vals(obj: Any, max_depth: Optional[int] = None, max_length: Optional[int] = None):
+def copy_and_replace_quibs_with_vals(obj: Any):
     """
-    Deep copy an object while replacing quibs with their values.
-    When `max_depth` is given, limits the depth in which quibs are looked for.
-    `max_depth=0` means only `obj` itself will be checked and replaced,
-    `max_depth=1` means `obj` and all objects it directly references, and so on.
-    When `max_length` is given, does not recurse into iterables larger than `max_length`.
+    Copy `obj` while replacing quibs with their values, with a limited depth and length.
     """
     from pyquibbler.quib import Quib
     from matplotlib.artist import Artist
@@ -128,19 +124,8 @@ def deep_copy_and_replace_quibs_with_vals(obj: Any, max_depth: Optional[int] = N
         except NotImplementedError:
             return o
 
-    return recursively_run_func_on_object(func=replace_with_value_if_quib_or_copy, max_depth=max_depth,
-                                          max_length=max_length, obj=obj)
-
-
-def shallow_copy_and_replace_quibs_with_vals(obj: Any):
-    """
-    Deep copy `obj` while replacing quibs with their values, with a limited depth and length.
-    """
-    return deep_copy_and_replace_quibs_with_vals(obj, SHALLOW_MAX_DEPTH, SHALLOW_MAX_LENGTH)
-
-
-def copy_and_replace_quibs_with_vals(obj: Any):
-    result = shallow_copy_and_replace_quibs_with_vals(obj)
+    result = recursively_run_func_on_object(func=replace_with_value_if_quib_or_copy, max_depth=SHALLOW_MAX_DEPTH,
+                                            max_length=SHALLOW_MAX_LENGTH, obj=obj)
     if DEBUG and not isinstance(obj, QuibRef):
         nested_quibs = set(iter_quibs_in_object_recursively(result))
         if nested_quibs:
@@ -268,13 +253,6 @@ def call_func_with_quib_values(func, args, kwargs):
             if nested_quibs_by_arg_names:
                 raise FunctionCalledWithNestedQuibException(func, nested_quibs_by_arg_names) from e
         raise
-
-
-def call_method_with_quib_values(func, self, args, kwargs):
-    """
-    Calls an instance method with the specified args and kwargs while replacing quibs with their values.
-    """
-    return call_func_with_quib_values(func, [self, *args], kwargs)
 
 
 def is_there_a_quib_in_object(obj, force_recursive: bool = False):

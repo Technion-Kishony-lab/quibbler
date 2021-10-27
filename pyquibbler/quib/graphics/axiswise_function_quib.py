@@ -6,7 +6,7 @@ from abc import abstractmethod
 from typing import Any, Dict, Optional, List
 
 from pyquibbler.quib.quib import Quib
-from pyquibbler.quib.utils import shallow_copy_and_replace_quibs_with_vals
+from pyquibbler.quib.utils import copy_and_replace_quibs_with_vals
 
 from .graphics_function_quib import GraphicsFunctionQuib
 from ..assignment import PathComponent
@@ -91,8 +91,8 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
         Assuming no argument has core dimensions (and therefore the vectorized function must be elementwise),
         run the vectorized function on one set of arguments and return the result.
         """
-        args = [np.asarray(shallow_copy_and_replace_quibs_with_vals(arg)).flat[0] for arg in self.args[1:]]
-        kwargs = {key: np.asarray(shallow_copy_and_replace_quibs_with_vals(val)).flat[0] for key, val in
+        args = [np.asarray(copy_and_replace_quibs_with_vals(arg)).flat[0] for arg in self.args[1:]]
+        kwargs = {key: np.asarray(copy_and_replace_quibs_with_vals(val)).flat[0] for key, val in
                   self.kwargs.items()}
         return self._vectorize.pyfunc(*args, **kwargs)
 
