@@ -28,6 +28,27 @@ def test_reduction_axiswise_invalidation(indices_to_invalidate, axis, keepdims, 
     check_invalidation(lambda iq: np.sum(iq, **kwargs), data, indices_to_invalidate)
 
 
+def test_reduction_function_gets_whole_value_of_non_data_source_parents():
+    # This is also a regression to handling 0 data source quibs
+    non_data = MockQuib(0)
+    fquib = np.sum([1, 2, 3], axis=non_data)
+    fquib.set_cache_behavior(CacheBehavior.OFF)
+    with non_data.collect_valid_paths() as valid_paths:
+        fquib.get_value()
+
+    assert valid_paths == [[]]
+
+
+def test_reduction_function_gets_whole_value_of_data_source_parents_when_whole_value_changed():
+    data = MockQuib([1, 2, 3])
+    fquib = np.sum(data)
+    fquib.set_cache_behavior(CacheBehavior.OFF)
+    with data.collect_valid_paths() as valid_paths:
+        fquib.get_value()
+
+    assert valid_paths == [[]]
+
+
 @parametrize_data
 @mark.parametrize(['axis', 'indices_to_get_value_at'], [
     (-1, 0),

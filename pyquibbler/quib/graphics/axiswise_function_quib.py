@@ -201,18 +201,16 @@ class AxisWiseGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFuncti
         args_dict = self._get_translation_related_arg_dict()
         return self._backward_translate_bool_mask(args_dict, result_bool_mask, quib)
 
-    def _get_source_paths_of_quibs_given_path(self, filtered_path_in_result):
-        data_source_quibs = self.get_data_source_quibs()
-        non_data_source_quibs = self.parents - data_source_quibs
-        data_source_quib, = data_source_quibs
+    def _get_source_path_in_quib(self, quib: Quib, filtered_path_in_result):
         if len(filtered_path_in_result) == 0:
-            path_in_data_source = []
-        else:
-            working_component, *rest_of_path = filtered_path_in_result
-            indices_in_data_source = self._backward_translate_indices_to_bool_mask(data_source_quib,
-                                                                                   working_component.component)
-            path_in_data_source = [PathComponent(self.get_type(), indices_in_data_source)]
-        return {data_source_quib: path_in_data_source, **{quib: [] for quib in non_data_source_quibs}}
+            return []
+        working_component, *rest_of_path = filtered_path_in_result
+        indices_in_data_source = self._backward_translate_indices_to_bool_mask(quib, working_component.component)
+        return [PathComponent(self.get_type(), indices_in_data_source)]
+
+    def _get_source_paths_of_quibs_given_path(self, filtered_path_in_result):
+        return {quib: self._get_source_path_in_quib(quib, filtered_path_in_result)
+                for quib in self.get_data_source_quibs()}
 
 
 class ReductionAxisWiseGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
