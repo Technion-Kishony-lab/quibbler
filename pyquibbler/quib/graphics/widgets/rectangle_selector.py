@@ -74,7 +74,7 @@ class RectangleSelectorGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
     REPLACEMENT_CLS = QRectangleSelector
 
     def _on_changed(self, extents):
-        init_val = self._get_all_args_dict().get('extents')
+        init_val = self._get_args_values().get('extents')
         if isinstance(init_val, Quib):
             init_val[:] = extents
         else:

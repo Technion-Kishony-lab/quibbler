@@ -6,13 +6,12 @@ from typing import Union, Dict
 from functools import wraps, cached_property, lru_cache
 from typing import Callable, Any, Mapping, Tuple, Optional, Set, List
 
+from .utils import ArgsValues
 from ..override_choice import get_overrides_for_assignment
 from ..assignment import AssignmentTemplate, Assignment, PathComponent, QuibWithAssignment
 from ..quib import Quib
 from ..utils import is_there_a_quib_in_args, iter_quibs_in_args, deep_copy_without_quibs_or_artists, \
-    copy_and_convert_args_and_kwargs_to_values, iter_args_and_names_in_function_call, \
-    recursively_run_func_on_object, \
-    QuibRef, copy_and_convert_kwargs_to_values
+    copy_and_convert_args_and_kwargs_to_values, recursively_run_func_on_object, QuibRef
 from ...env import LAZY, PRETTY_REPR
 
 
@@ -182,23 +181,20 @@ class FunctionQuib(Quib):
         This function can and should be overriden if there is a more specific implementation for getting a value only
         valid at valid_path
         """
-        new_args = []
-        if valid_path is None:
-            quibs_to_paths = {}
-        else:
-            quibs_to_paths = self._get_source_paths_of_quibs_given_path(valid_path)
-        for i, arg in enumerate(self.args):
-            def _replace_potential_quib_with_value(inner_arg: Union[Quib, Any]):
-                if isinstance(inner_arg, QuibRef):
-                    return inner_arg.quib
-                if not isinstance(inner_arg, Quib):
-                    return inner_arg
-                path = quibs_to_paths.get(inner_arg, None if valid_path is None else [])
-                return inner_arg.get_value_valid_at_path(path)
+        quibs_to_paths = {} if valid_path is None else self._get_source_paths_of_quibs_given_path(valid_path)
 
-            new_args.append(recursively_run_func_on_object(_replace_potential_quib_with_value, arg))
+        def _replace_potential_quib_with_value(inner_arg: Union[Quib, Any]):
+            if isinstance(inner_arg, QuibRef):
+                return inner_arg.quib
+            if not isinstance(inner_arg, Quib):
+                return inner_arg
+            path = quibs_to_paths.get(inner_arg, None if valid_path is None else [])
+            return inner_arg.get_value_valid_at_path(path)
 
-        return self._func(*new_args, **copy_and_convert_kwargs_to_values(self.kwargs))
+        new_args = [recursively_run_func_on_object(_replace_potential_quib_with_value, arg) for arg in self.args]
+        new_kwargs = {key: recursively_run_func_on_object(_replace_potential_quib_with_value, val)
+                      for key, val in self.kwargs.items()}
+        return self._func(*new_args, **new_kwargs)
 
     def get_inversions_for_assignment(self, assignment: Assignment) -> List[QuibWithAssignment]:
         """
@@ -207,20 +203,5 @@ class FunctionQuib(Quib):
         return []
 
     @lru_cache()
-    def _get_all_args_dict(self, default_to_args_kwargs_on_no_signature=True, include_defaults=True):
-        try:
-            return dict(iter_args_and_names_in_function_call(self.func, self.args, self.kwargs, include_defaults))
-        except ValueError:
-            if default_to_args_kwargs_on_no_signature:
-                return {'args': self.args, 'kwargs': self.kwargs}
-            raise
-
-    def _get_arg_values_by_position(self) -> List[Any]:
-        """
-        Try to return all args values by position, including kwargs. If the signature is unknown, just return the args.
-        """
-        try:
-            args_iterable = self._get_all_args_dict(False, False).values()
-        except ValueError:
-            args_iterable = self.args
-        return list(args_iterable)
+    def _get_args_values(self, include_defaults=True):
+        return ArgsValues.from_function_call(self.func, self.args, self.kwargs, include_defaults)

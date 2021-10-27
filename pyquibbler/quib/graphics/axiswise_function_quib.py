@@ -11,15 +11,18 @@ from pyquibbler.quib.utils import shallow_copy_and_replace_quibs_with_vals
 from .graphics_function_quib import GraphicsFunctionQuib
 from ..assignment import PathComponent
 from ..function_quibs.indices_translator_function_quib import IndicesTranslatorFunctionQuib, SupportedFunction
+from ..function_quibs.utils import ArgsValues
 from ..utils import iter_args_and_names_in_function_call
 
 
-def get_vectorize_call_data_args(args, kwargs) -> List[Any]:
+def get_vectorize_call_data_args(args_values: ArgsValues) -> List[Any]:
     """
     Given a call to a vectorized function, return the arguments which act as data sources.
+    We are using args_values.args and args_values.kwargs instead of the full args dict on purpose,
+    to match vectorize function behavior.
     """
-    vectorize, *args = args
-    return [val for key, val in chain(enumerate(args), kwargs.items()) if key not in vectorize.excluded]
+    vectorize, *args = args_values.args
+    return [val for key, val in chain(enumerate(args), args_values.kwargs.items()) if key not in vectorize.excluded]
 
 
 class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunctionQuib):
@@ -216,7 +219,7 @@ class AxisWiseGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFuncti
         """
 
     def _get_translation_related_arg_dict(self):
-        arg_dict = {key: val for key, val in self._get_all_args_dict(include_defaults=True).items()
+        arg_dict = {key: val for key, val in self._get_args_values(include_defaults=True).arg_values_by_name.items()
                     if not isinstance(val, np._globals._NoValueType)}
         return {arg.name: arg.get_value(arg_dict) for arg in self.TRANSLATION_RELATED_ARGS}
 

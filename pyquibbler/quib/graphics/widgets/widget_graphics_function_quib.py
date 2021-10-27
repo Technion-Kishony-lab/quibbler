@@ -14,4 +14,4 @@ class WidgetGraphicsFunctionQuib(GraphicsFunctionQuib):
         return super().create_wrapper(cls.REPLACEMENT_CLS if cls.REPLACEMENT_CLS is not None else func)
 
     def get_axeses(self):
-        return {self._get_all_args_dict()['ax']}
+        return {self._get_args_values()['ax']}
