@@ -80,16 +80,19 @@ class DefaultFunctionQuib(FunctionQuib):
         Get a list of paths that are uncached within the given path- these paths must be a subset of the given path
         (or the path itself)
         """
+
         if self._cache is not None:
+
+            if path is None:
+                # We need to be valid at no paths, so by definitions we also have no uncached paths that match no paths
+                return []
+
             try:
                 uncached_paths = self._cache.get_uncached_paths(path)
             except (TypeError, IndexError):
                 # It's possible the user is requesting a value at index which our current cache does not have but which
-                # will exist after rerunning the function- in that case, return that nothing is cached
-                if path is not None:
-                    uncached_paths = [[]]
-                else:
-                    uncached_paths = []
+                # will exist after rerunning the function- in that case, return that the given path is not cached
+                uncached_paths = [path]
         else:
             uncached_paths = [path]
 
@@ -156,9 +159,10 @@ class DefaultFunctionQuib(FunctionQuib):
         truncated_path = self._truncate_path_to_match_shallow_caches(path)
         uncached_paths = self._get_uncached_paths_matching_path(truncated_path)
 
-        start_time = perf_counter()
         if len(uncached_paths) == 0:
             return self._cache.get_value()
+
+        start_time = perf_counter()
         result = self._run_func_on_uncached_paths(truncated_path, uncached_paths)
         elapsed_seconds = perf_counter() - start_time
 
