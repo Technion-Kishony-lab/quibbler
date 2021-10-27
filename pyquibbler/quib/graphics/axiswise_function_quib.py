@@ -59,32 +59,37 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
             return len(self._vectorize._in_and_out_core_dims[0][arg_index])
         return 0
 
-    def _get_result_core_ndim(self):
+    def _get_result_core_ndim(self, tuple_index: Optional[int]):
         """
         Assuming the result is not a tuple, return the core ndim in the result.
         """
         if self._vectorize._in_and_out_core_dims is not None:
             out_core_dims = self._vectorize._in_and_out_core_dims[1]
-            assert len(out_core_dims) == 1
-            return len(out_core_dims[0])
+            if tuple_index is None:
+                assert len(out_core_dims) == 1
+                out_index = 0
+            else:
+                out_index = tuple_index
+            return len(out_core_dims[out_index])
         return 0
 
-    @property
-    def _loop_shape(self):
+    def _get_result_shape(self, tuple_index: Optional[int]):
+        if tuple_index is not None:
+            return self.get_value_valid_at_path(None)[tuple_index].shape
+        return self.get_shape().get_value()
+
+    def _get_loop_shape(self):
         """
         Get the shape of the vectorize loop.
         This could also be done be broadcasting together the loop dimensions of all arguments.
         """
-        if self._get_tuple_output_len():
-            result_shape = self.get_value()[0].shape
-        else:
-            result_shape = self.get_shape().get_value()
-        in_and_out_core_dims = self._vectorize._in_and_out_core_dims
-        if in_and_out_core_dims is None:
-            out_core_dims = 0
-        else:
-            out_core_dims = len(in_and_out_core_dims[1][0])
-        return result_shape[:-out_core_dims] if out_core_dims else result_shape
+        tuple_index = None if self._get_tuple_output_len() is None else 0
+        result_shape = self._get_result_shape(tuple_index)
+        out_core_ndim = self._get_result_core_ndim(tuple_index)
+        return result_shape[:-out_core_ndim] if out_core_ndim else result_shape
+
+    def _get_core_shape(self):
+        pass
 
     def _get_sample_elementwise_func_result(self):
         """
@@ -138,10 +143,13 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
         else:
             return [[PathComponent(tuple, i), *invalidation_path] for i in range(tuple_len)]
 
+    def _get_result_core_axes(self, tuple_index: Optional[int]):
+        return tuple(range(-1, -1 - self._get_result_core_ndim(tuple_index), -1))
+
     def _backward_translate_indices_to_bool_mask(self, quib: Quib, indices: Any) -> Any:
         quib_loop_shape = quib.get_shape().get_value()[:-self._get_arg_core_ndim(quib) or None]
         result_bool_mask = self._get_bool_mask_representing_indices_in_result(indices)
-        result_core_axes = tuple(range(-1, -1 - self._get_result_core_ndim(), -1))
+        result_core_axes = self._get_result_core_axes(None)
         quib_result_loop_ndim_before_broadcast = result_bool_mask.ndim - len(quib_loop_shape) - len(result_core_axes)
         broadcast_loop_dimensions_to_remove = tuple(range(0, quib_result_loop_ndim_before_broadcast))
         reduced_bool_mask = np.any(result_bool_mask, axis=result_core_axes + broadcast_loop_dimensions_to_remove)
