@@ -251,6 +251,7 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         :param valid_path:
         """
         self._remove_artists_from_self_that_were_removed_from_axes()
+        # TODO: fix
         if self._had_artists_on_last_run and len(self._artists) == 0 and len(self.children) == 0:
             # If we both do not have artists and do not have children, we do not want to run, as in this situation
             # our artists have been cleared (by someone other than us)

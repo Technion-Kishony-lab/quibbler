@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import pytest
 from unittest import mock
@@ -38,9 +39,16 @@ def mock_axes():
     return axes
 
 
-def get_graphics_quib(func):
+@pytest.fixture
+def mock_artists_collector(monkeypatch, mock_axes):
+    mock = MockArtistsCollector(mock_axes)
+    monkeypatch.setattr(global_collecting, "ArtistsCollector", lambda: mock)
+    return mock
+
+
+def get_graphics_quib(func, args=()):
     return GraphicsFunctionQuib(
-        args=tuple(),
+        args=args,
         kwargs={},
         cache_behavior=None,
         func=func,
@@ -57,10 +65,23 @@ def test_graphics_function_quib_get_value_returns_value():
     assert res == mock_func.return_value
 
 
-def test_graphics_function_quib_rerun_removes_artists_created(monkeypatch, mock_axes):
-    mock_artists_collector = MockArtistsCollector(mock_axes)
-    monkeypatch.setattr(global_collecting, "ArtistsCollector", lambda: mock_artists_collector)
+@pytest.mark.regression
+def test_graphics_function_quib_calculates_even_if_it_has_graphics_that_were_removed():
+    parent = iquib(10)
 
+    def func(x):
+        plt.plot(x)
+        return x + 1
+
+    quib = GraphicsFunctionQuib.create_wrapper(func)(parent)
+    first_value = quib.get_value()
+    plt.cla()
+    parent.invalidate_and_redraw_at_path([])
+
+    assert quib.get_value() == first_value
+
+
+def test_graphics_function_quib_rerun_removes_artists_created(mock_axes, mock_artists_collector):
     father_quib = iquib(1)
     quib = get_graphics_quib(mock.Mock())
     father_quib.add_child(quib)
