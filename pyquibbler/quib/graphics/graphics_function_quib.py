@@ -51,10 +51,18 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         AxesImage: "images"
     }
 
-    ATTRIBUTES_TO_COPY_FROM_ARTIST_TO_ARTIST = {
-        '_color',
-        '_facecolor'
+    # Some attributes, like 'color', are chosen by matplotlib automatically if not specified.
+    # Therefore, if these attributes were not specified, we need to copy them
+    # from old artists to new artists.
+    #
+    # (attribute_to_copy_unless_included_in: {list of kwards})
+    ATTRIBUTES_TO_COPY_FROM_ARTIST_TO_ARTIST_UNLESS_SPECIFED = {
+        '_color': {'color'},
+        '_facecolor': {'facecolor'},
     }
+    # Note that this current implementation does not account for implicit color specification,
+    # such as with plot(x,y,c), where c = iquib('r').
+    # also it does not account for artiststs created within user-defined functions.
 
     def __init__(self,
                  func: Callable,
@@ -139,10 +147,10 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         # referencing the same artists)
         if len(new_artists) == len(previous_artists):
             for previous_artist, new_artist in zip(previous_artists, new_artists):
-                for attribute in self.ATTRIBUTES_TO_COPY_FROM_ARTIST_TO_ARTIST:
+                for attribute in self.ATTRIBUTES_TO_COPY_FROM_ARTIST_TO_ARTIST_UNLESS_SPECIFED.keys():
                     if hasattr(previous_artist, attribute) \
-                        and attribute[1:] not in self.kwargs.keys():
-                        setattr(new_artist, attribute, getattr(previous_artist, attribute))
+                        and not (self.kwargs.keys() & self.ATTRIBUTES_TO_COPY_FROM_ARTIST_TO_ARTIST_UNLESS_SPECIFED[attribute]):
+                            setattr(new_artist, attribute, getattr(previous_artist, attribute))
 
     def _update_new_artists_from_previous_artists(self,
                                                   previous_axeses_to_array_names_to_indices_and_artists: Dict[
