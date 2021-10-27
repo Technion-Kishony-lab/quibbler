@@ -165,7 +165,7 @@ class ElementWiseFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunctionQuib
             for dimension in broadcasted_grid
         ])
 
-    def _get_source_paths_of_quibs_given_path(self, filtered_path_in_result):
+    def _get_source_paths_of_quibs_given_path(self, filtered_path_in_result: List[PathComponent]):
         quib_to_change = self._get_quibs_in_args()[0]
         changed_indices = self._get_indices_to_change(quib_to_change,
                                                       get_nd_working_component_value_from_path(filtered_path_in_result))

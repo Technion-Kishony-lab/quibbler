@@ -4,7 +4,6 @@ from copy import deepcopy
 from typing import Any, Optional, List
 
 from pyquibbler import CacheBehavior, Assignment
-from pyquibbler.quib import Quib
 from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.quib.assignment.overrider import get_sub_data_from_object_in_path, deep_assign_data_with_paths
 from pyquibbler.quib.input_quib import InputQuib
@@ -92,6 +91,7 @@ def check_get_value_valid_at_path(func, data, path_to_get_value_at):
     with input_quib.collect_valid_paths() as requested_paths:
         result_quib.get_value_valid_at_path(path_to_get_value_at)
 
+    # Check that every index in the data requested from the parent actually affects the result
     faulty_sub_paths = []
     for path in requested_paths:
         for sub_path in breakdown_path(data, path):
@@ -101,6 +101,7 @@ def check_get_value_valid_at_path(func, data, path_to_get_value_at):
                 faulty_sub_paths.append(sub_path)
     assert not faulty_sub_paths, faulty_sub_paths
 
+    # Check that if any other paths in the parent change, the result doesn't change
     input_quib.assign(Assignment(999, PathBuilder(input_quib)[...].path))
     for path in requested_paths:
         value = get_sub_data_from_object_in_path(data, path)

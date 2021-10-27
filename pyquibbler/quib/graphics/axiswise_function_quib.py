@@ -1,6 +1,7 @@
 import numpy as np
+from dataclasses import dataclass
 from itertools import chain
-from functools import lru_cache, cached_property
+from functools import cached_property
 from abc import abstractmethod
 from typing import Any, Dict, Optional, List
 
@@ -28,7 +29,7 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
     and thereby turns the function into an axiswise function. When a vectorized function is called,
     the loop dimensions of all non-excluded arguments are broadcast together.
     The dimension of the result will be the broadcast loop dimension, plus the result core dimension specified
-    in the signature, () be default.
+    in the signature, () by default.
     """
     SUPPORTED_FUNCTIONS = {
         np.vectorize.__call__: SupportedFunction(get_vectorize_call_data_args)
@@ -46,16 +47,24 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
         """
         return self.args[0]
 
-    @lru_cache()
-    def _get_arg_core_dims(self, arg_index: int) -> int:
+    def _get_arg_core_ndim(self, arg: Any) -> int:
         """
-        Return the core dimensions of a given argument, which are 0 by default.
+        Return the core ndim of the argument in the given index.
         """
-        core_dims = 0
-        in_and_out_core_dims = self._vectorize._in_and_out_core_dims
-        if in_and_out_core_dims is not None:
-            core_dims = len(in_and_out_core_dims[0][arg_index])
-        return core_dims
+        arg_index = next(i for i, val in enumerate(self._arg_values_in_wrapped_function) if val is arg)
+        if self._vectorize._in_and_out_core_dims is not None:
+            return len(self._vectorize._in_and_out_core_dims[0][arg_index])
+        return 0
+
+    def _get_result_core_ndim(self):
+        """
+        Assuming the result is not a tuple, return the core ndim in the result.
+        """
+        if self._vectorize._in_and_out_core_dims is not None:
+            out_core_dims = self._vectorize._in_and_out_core_dims[1]
+            assert len(out_core_dims) == 1
+            return len(out_core_dims[0])
+        return 0
 
     @property
     def _loop_shape(self):
@@ -101,7 +110,7 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
 
     def _forward_translate_indices_to_bool_mask(self, invalidator_quib: Quib, indices: Any) -> Any:
         source_bool_mask = self._get_source_shaped_bool_mask(invalidator_quib, indices)
-        core_dims = self._get_arg_core_dims(self._arg_values_in_wrapped_function.index(invalidator_quib))
+        core_dims = self._get_arg_core_ndim(invalidator_quib)
         if core_dims > 0:
             source_bool_mask = np.any(source_bool_mask, axis=tuple(range(source_bool_mask.ndim)[-core_dims:]))
         return np.broadcast_to(source_bool_mask, self._loop_shape)
@@ -133,6 +142,46 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
                 self._invalidate_self(new_path)
                 self._invalidate_children_at_path(new_path)
 
+    def _backward_translate_indices_to_bool_mask(self, quib: Quib, indices: Any) -> Any:
+        quib_loop_shape = quib.get_shape().get_value()[:-self._get_arg_core_ndim(quib) or None]
+        result_bool_mask = self._get_bool_mask_representing_indices_in_result(indices)
+        result_core_axes = tuple(range(-1, -1 - self._get_result_core_ndim(), -1))
+        quib_result_loop_ndim_before_broadcast = result_bool_mask.ndim - len(quib_loop_shape) - len(result_core_axes)
+        broadcast_loop_dimensions_to_remove = tuple(range(0, quib_result_loop_ndim_before_broadcast))
+        reduced_bool_mask = np.any(result_bool_mask, axis=result_core_axes + broadcast_loop_dimensions_to_remove)
+        broadcast_loop_dimensions_to_reduce = tuple(i for i, (result_len, quib_len) in
+                                                    enumerate(zip(reduced_bool_mask.shape, quib_loop_shape))
+                                                    if result_len != quib_len)
+        reduced_bool_mask = np.any(reduced_bool_mask, axis=broadcast_loop_dimensions_to_reduce, keepdims=True)
+        return np.broadcast_to(reduced_bool_mask, quib_loop_shape)
+
+    def _get_source_path_in_quib(self, quib: Quib, filtered_path_in_result: List[PathComponent]):
+        if len(filtered_path_in_result) == 0 or filtered_path_in_result[0].indexed_cls is tuple:
+            return []
+        working_component, *rest_of_path = filtered_path_in_result
+        indices_in_data_source = self._backward_translate_indices_to_bool_mask(quib, working_component.component)
+        return [PathComponent(self.get_type(), indices_in_data_source)]
+
+    def _get_source_paths_of_quibs_given_path(self, filtered_path_in_result: List[PathComponent]):
+        return {quib: self._get_source_path_in_quib(quib, filtered_path_in_result)
+                for quib in self.get_data_source_quibs()}
+
+
+@dataclass
+class Arg:
+    name: str
+
+    def get_value(self, arg_dict: Dict[str, Any]) -> Any:
+        return arg_dict[self.name]
+
+
+@dataclass
+class ArgWithDefault(Arg):
+    default: Any
+
+    def get_value(self, arg_dict: Dict[str, Any]) -> Any:
+        return arg_dict.get(self.name, self.default)
+
 
 class AxisWiseGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunctionQuib):
     """
@@ -154,69 +203,105 @@ class AxisWiseGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFuncti
     In functions applied along an axis, like cumsum and apply_along_axis, the loop dimensions remains the same, but the
     core dimension is potentially expanded to multiple dimensions, depending on the calculation result dimensions.
     """
-    SUPPORTED_KWARGS: Dict[str, str] = {}
-    REQUIRED_KWARGS: Dict[str, str] = {}
+    # Some numpy functions that allow not passing a keyword argument don't actually have a default value for it.
+    # The default value is an instance of _NoValueType, and it is passed to an underlying function that
+    # actually calculates the default value. In the future we could try and get the default value per
+    # data type and function, but right now we assume we can know the default in advance.
+    TRANSLATION_RELATED_ARGS: List[Arg]
 
     @abstractmethod
-    def _call_forward_index_translator(self, kwargs, boolean_mask, invalidator_quib: Quib):
+    def _forward_translate_bool_mask(self, args_dict, boolean_mask, invalidator_quib: Quib):
         """
-        Do the actual forward index translation using a translator function with the given kwargs.
+        Do the actual forward index translation.
         """
 
-    def _get_forward_index_translator_kwargs(self):
-        """
-        Prepare kwargs to call the translator function with according to self.SUPPORTED_KWARGS and self.REQUIRED_KWARGS.
-        """
-        kwargs = {}
-        for original_kwarg_name, translator_kwarg_name in self.SUPPORTED_KWARGS.items():
-            if original_kwarg_name in self._get_all_args_dict(include_defaults=False):
-                kwargs[translator_kwarg_name] = self._get_all_args_dict(include_defaults=False)[original_kwarg_name]
-        for original_kwarg_name, translator_kwarg_name in self.REQUIRED_KWARGS.items():
-            kwargs[translator_kwarg_name] = self._get_all_args_dict(include_defaults=True)[original_kwarg_name]
-        return kwargs
+    def _get_translation_related_arg_dict(self):
+        arg_dict = {key: val for key, val in self._get_all_args_dict(include_defaults=True).items()
+                    if not isinstance(val, np._globals._NoValueType)}
+        return {arg.name: arg.get_value(arg_dict) for arg in self.TRANSLATION_RELATED_ARGS}
 
     def _forward_translate_indices_to_bool_mask(self, quib: Quib, indices: Any) -> Any:
         source_bool_mask = self._get_source_shaped_bool_mask(quib, indices)
-        kwargs = self._get_forward_index_translator_kwargs()
-        return self._call_forward_index_translator(kwargs, source_bool_mask, quib)
+        args_dict = self._get_translation_related_arg_dict()
+        return self._forward_translate_bool_mask(args_dict, source_bool_mask, quib)
+
+    @abstractmethod
+    def _backward_translate_bool_mask(self, args_dict, bool_mask, quib: Quib):
+        pass
+
+    def _backward_translate_indices_to_bool_mask(self, quib: Quib, indices: Any) -> Any:
+        result_bool_mask = self._get_bool_mask_representing_indices_in_result(indices)
+        args_dict = self._get_translation_related_arg_dict()
+        return self._backward_translate_bool_mask(args_dict, result_bool_mask, quib)
+
+    def _get_source_path_in_quib(self, quib: Quib, filtered_path_in_result: List[PathComponent]):
+        if len(filtered_path_in_result) == 0:
+            return []
+        working_component, *rest_of_path = filtered_path_in_result
+        indices_in_data_source = self._backward_translate_indices_to_bool_mask(quib, working_component.component)
+        return [PathComponent(self.get_type(), indices_in_data_source)]
+
+    def _get_source_paths_of_quibs_given_path(self, filtered_path_in_result: List[PathComponent]):
+        return {quib: self._get_source_path_in_quib(quib, filtered_path_in_result)
+                for quib in self.get_data_source_quibs()}
 
 
 class ReductionAxisWiseGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
     SUPPORTED_FUNCTIONS = {
         np.sum: SupportedFunction({0}),
         np.min: SupportedFunction({0}),
+        np.amin: SupportedFunction({0}),
         np.max: SupportedFunction({0}),
+        np.amax: SupportedFunction({0}),
     }
-    SUPPORTED_KWARGS = {'keepdims': 'keepdims', 'where': 'where'}
-    REQUIRED_KWARGS = {'axis': 'axis'}
+    TRANSLATION_RELATED_ARGS = [Arg('axis'), ArgWithDefault('keepdims', False), ArgWithDefault('where', True)]
 
-    def _call_forward_index_translator(self, kwargs, boolean_mask, invalidator_quib: Quib):
+    def _forward_translate_bool_mask(self, args_dict, boolean_mask, invalidator_quib: Quib):
         """
         Calculate forward index translation for reduction functions by reducing the boolean arrays
         with the same reduction params.
         """
-        return np.logical_or.reduce(boolean_mask, **kwargs)
+        return np.logical_or.reduce(boolean_mask, **args_dict)
+
+    def _backward_translate_bool_mask(self, args_dict, bool_mask, quib: Quib):
+        keepdims = args_dict['keepdims']
+        if not keepdims:
+            input_core_dims = args_dict['axis']
+            if input_core_dims is not None:
+                bool_mask = np.expand_dims(bool_mask, input_core_dims)
+        bool_mask = np.broadcast_to(bool_mask, quib.get_shape().get_value())
+        return np.logical_and(bool_mask, args_dict['where'])
 
 
 class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
     SUPPORTED_FUNCTIONS = {
         np.apply_along_axis: SupportedFunction({2}),
     }
-    REQUIRED_KWARGS = {'axis': 'axis'}
+    TRANSLATION_RELATED_ARGS = [Arg('axis')]
 
-    def _call_forward_index_translator(self, kwargs, boolean_mask, invalidator_quib: Quib):
+    def _get_expanded_dims(self, axis, result_shape, source_shape):
+        func_result_ndim = len(result_shape) - len(source_shape) + 1
+        assert func_result_ndim >= 0, func_result_ndim
+        return tuple(range(axis, axis + func_result_ndim) if axis >= 0 else
+                     range(axis, axis - func_result_ndim, -1))
+
+    def _forward_translate_bool_mask(self, args_dict, boolean_mask, invalidator_quib: Quib):
         """
         Calculate forward index translation for apply_along_axis by applying np.any on the boolean mask.
         After that we expand and broadcast the reduced mask to match the actual result shape, which is dependent
         on the applied function return type.
         """
+        axis = args_dict.pop('axis')
         result_shape = self.get_shape().get_value()
-        func_result_ndim = len(result_shape) - len(invalidator_quib.get_shape().get_value()) + 1
-        assert func_result_ndim >= 0, func_result_ndim
-        axis = kwargs.pop('axis')
-        applied = np.apply_along_axis(np.any, axis, boolean_mask, **kwargs)
-        dims_to_expand = range(axis, axis + func_result_ndim) if axis >= 0 else \
-            range(axis, axis - func_result_ndim, -1)
-        expanded = np.expand_dims(applied, tuple(dims_to_expand))
+        dims_to_expand = self._get_expanded_dims(axis, result_shape, invalidator_quib.get_shape().get_value())
+        applied = np.apply_along_axis(np.any, axis, boolean_mask, **args_dict)
+        expanded = np.expand_dims(applied, dims_to_expand)
         broadcast = np.broadcast_to(expanded, result_shape)
         return broadcast
+
+    def _backward_translate_bool_mask(self, args_dict, bool_mask, quib: Quib):
+        axis = args_dict.pop('axis')
+        source_shape = quib.get_shape().get_value()
+        expanded_dims = self._get_expanded_dims(axis, bool_mask.shape, source_shape)
+        mask = np.expand_dims(np.any(bool_mask, axis=expanded_dims), axis)
+        return np.broadcast_to(mask, source_shape)

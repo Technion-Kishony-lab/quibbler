@@ -41,16 +41,25 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
             shape=invalidator_quib.get_shape().get_value()
         )
 
+    def _get_bool_mask_representing_indices_in_result(self, indices) -> Union[np.ndarray, bool]:
+        """
+        Get a boolean mask representing where the indices that were changed are in the result- this will be in
+        same shape as the result
+        """
+        return create_empty_array_with_values_at_indices(self.get_shape().get_value(),
+                                                         indices=indices, value=True,
+                                                         empty_value=False)
+
     def _get_representative_result(self, working_component, value):
         """
         Get a result representing the result of this quib (same shape) with the given component (directly indexable,
         not a `PathComponent`) set to a value
         """
         return create_empty_array_with_values_at_indices(
-                self.get_shape().get_value(),
-                indices=working_component,
-                value=value,
-            )
+            self.get_shape().get_value(),
+            indices=working_component,
+            value=value,
+        )
 
     @classmethod
     def create_wrapper(cls, func: Callable):
@@ -74,7 +83,7 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
     def _forward_translate_indices_to_bool_mask(self, quib: Quib, indices: Any) -> Any:
         pass
 
-    def _get_source_paths_of_quibs_given_path(self, filtered_path_in_result):
+    def _get_source_paths_of_quibs_given_path(self, filtered_path_in_result: List[PathComponent]):
         return {}
 
     def _get_quibs_to_relevant_result_values(self, assignment: Assignment):
