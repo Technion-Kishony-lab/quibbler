@@ -16,6 +16,7 @@ from .event_handling import CanvasEventHandler
 from ..assignment import AssignmentTemplate, PathComponent
 from ..function_quibs import DefaultFunctionQuib, CacheBehavior
 from ..utils import call_func_with_quib_values, iter_object_type_in_args
+from ...env import LAZY
 
 
 def save_func_and_args_on_artists(artists: List[Artist], func: Callable, args: Iterable[Any]):
@@ -78,8 +79,10 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         self._had_artists_on_last_run = had_artists_on_last_run
 
     @classmethod
-    def create(cls, func, func_args=(), func_kwargs=None, cache_behavior=None, lazy=False, **kwargs):
+    def create(cls, func, func_args=(), func_kwargs=None, cache_behavior=None, lazy=None, **kwargs):
         self = super().create(func, func_args, func_kwargs, cache_behavior, artists=[], **kwargs)
+        if lazy is None:
+            lazy = LAZY
         if not lazy:
             self.get_value()
         return self
