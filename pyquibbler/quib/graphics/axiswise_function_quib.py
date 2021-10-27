@@ -74,32 +74,26 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
         return 0
 
     def _get_result_shape(self, tuple_index: Optional[int]):
-        if tuple_index is not None:
-            return self.get_value_valid_at_path(None)[tuple_index].shape
-        return self.get_shape().get_value()
+        # TODO: run sample function
+        if tuple_index is None:
+            return self.get_shape().get_value()
+        return self.get_value_valid_at_path(None)[tuple_index].shape
 
-    def _get_loop_shape(self):
+    def _get_result_loop_shape(self):
         """
         Get the shape of the vectorize loop.
         This could also be done be broadcasting together the loop dimensions of all arguments.
         """
         tuple_index = None if self._get_tuple_output_len() is None else 0
-        result_shape = self._get_result_shape(tuple_index)
         out_core_ndim = self._get_result_core_ndim(tuple_index)
+        result_shape = self._get_result_shape(tuple_index)
         return result_shape[:-out_core_ndim] if out_core_ndim else result_shape
 
-    def _get_core_shape(self):
-        pass
-
-    def _get_sample_elementwise_func_result(self):
-        """
-        Assuming no argument has core dimensions (and therefore the vectorized function must be elementwise),
-        run the vectorized function on one set of arguments and return the result.
-        """
-        args = [np.asarray(copy_and_replace_quibs_with_vals(arg)).flat[0] for arg in self.args[1:]]
-        kwargs = {key: np.asarray(copy_and_replace_quibs_with_vals(val)).flat[0] for key, val in
-                  self.kwargs.items()}
-        return self._vectorize.pyfunc(*args, **kwargs)
+    def _get_result_core_shape(self, tuple_index: Optional[int]):
+        out_core_ndim = self._get_result_core_ndim(tuple_index)
+        if out_core_ndim == 0:
+            return ()
+        return self._get_result_shape(tuple_index)[-out_core_ndim:]
 
     def _get_tuple_output_len(self) -> Optional[int]:
         """
@@ -111,9 +105,8 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
             return None if out_core_dims_len == 1 else out_core_dims_len
 
         # If no signature is given, args core dimensions are all () so we can just flatten them.
-        result = self._get_sample_elementwise_func_result()
-        if isinstance(result, tuple):
-            return len(result)
+        if self.get_type() is tuple:
+            return self.get_shape().get_value()
         return None
 
     def _forward_translate_indices_to_bool_mask(self, invalidator_quib: Quib, indices: Any) -> Any:
@@ -121,7 +114,7 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
         core_dims = self._get_arg_core_ndim(invalidator_quib)
         if core_dims > 0:
             source_bool_mask = np.any(source_bool_mask, axis=tuple(range(source_bool_mask.ndim)[-core_dims:]))
-        return np.broadcast_to(source_bool_mask, self._loop_shape)
+        return np.broadcast_to(source_bool_mask, self._get_result_loop_shape())
 
     def _forward_translate_invalidation_path(self, invalidator_quib: Quib,
                                              path: List[PathComponent]) -> Optional[List[PathComponent]]:
@@ -169,6 +162,51 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
     def _get_source_paths_of_quibs_given_path(self, filtered_path_in_result: List[PathComponent]):
         return {quib: self._get_source_path_in_quib(quib, filtered_path_in_result)
                 for quib in self.get_data_source_quibs()}
+
+    def _call_func(self, valid_path: Optional[List[PathComponent]]) -> Any:
+        """
+        To run only the required user function, we:
+        1. Create a bool mask with the same shape as the broadcast loop dimensions
+        2. Create a wrapper for the pyfunc that receives the same arguments, and an additional boolean that
+           instructs it to run the user function or return an empty result.
+        3. Vectorize the wrapper and run it with the boolean mask in addition to the original arguments
+        """
+        tuple_index = None
+        vectorize = self._vectorize
+        empty_result = np.zeros(self._get_result_core_shape(tuple_index))  # TODO: dtype, tuple if needed
+        if valid_path is None:
+            # TODO: replace with broadcasting of loop dimensions?
+            wrapper_vectorize = np.vectorize(lambda *args, **kwargs: empty_result,
+                                             otypes=vectorize.otypes,
+                                             doc=vectorize.__doc__,
+                                             excluded=vectorize.excluded,
+                                             cache=False, signature=vectorize.signature)
+            (_original_vectorize, *args), kwargs = self._prepare_args_for_call(valid_path)
+            return wrapper_vectorize(*args, **kwargs)
+
+        if len(valid_path) == 0:
+            return super()._call_func(valid_path)
+        indices = valid_path[0].component
+        bool_mask = self._get_bool_mask_representing_indices_in_result(indices)
+        bool_mask = np.any(bool_mask, self._get_result_core_axes(tuple_index))
+        pyfunc = vectorize.pyfunc
+
+        def wrapper(should_run, *args, **kwargs):
+            """
+            The logic in this wrapper should be as minimal as possible (including attribute access, etc.)
+            as it is run for every index in the loop.
+            """
+            if should_run:
+                return pyfunc(*args, **kwargs)
+            return empty_result
+
+        wrapper_excluded = {i + 1 if isinstance(i, int) else i for i in self._vectorize.excluded}
+        wrapper_signature = vectorize.signature if vectorize.signature is None else '(),' + vectorize.signature
+        wrapper_vectorize = np.vectorize(wrapper, otypes=vectorize.otypes,
+                                         doc=vectorize.__doc__, excluded=wrapper_excluded,
+                                         cache=False, signature=wrapper_signature)
+        (_original_vectorize, *args), kwargs = self._prepare_args_for_call(valid_path)
+        return wrapper_vectorize(bool_mask, *args, **kwargs)
 
 
 @dataclass

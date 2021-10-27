@@ -2,6 +2,7 @@ import numpy as np
 from pytest import mark
 
 from pyquibbler import iquib, CacheBehavior
+from pyquibbler.env import LAZY
 from pyquibbler.quib.assignment import PathComponent
 
 from ..utils import check_invalidation, check_get_value_valid_at_path, MockQuib, PathBuilder
@@ -178,3 +179,19 @@ def test_vectorize_invalidation_with_different_core_dims(data, indices_to_invali
     func = lambda a, b: (np.array([np.sum(a) + np.sum(b)] * 4), np.sum(a) + np.sum(b))
     vec = np.vectorize(func, signature='(a,b),(c)->(d),()')
     check_invalidation(lambda quib: vec(quib, data2), data, indices_to_invalidate)
+
+
+def test_vectorize_partial_calculation():
+    from unittest import mock
+    def func(x):
+        return x
+
+    func_mock = mock.create_autospec(func, side_effect=func)
+    with LAZY.temporary_set(True):
+        quib = np.vectorize(func_mock)(iquib([1, 2, 3]))
+    assert quib.get_value_valid_at_path(PathBuilder(quib)[0].path)[0] == 1
+    # TODO: 2 is because vectorize calls first. Learn to use that call and call vectorize with otypes.
+    assert func_mock.call_count == 2
+
+def test_vectorize_get_value_valid_at_path_none():
+    assert len(np.vectorize(lambda x: x)(iquib([1, 2, 3])).get_value_valid_at_path(None)) == 3
