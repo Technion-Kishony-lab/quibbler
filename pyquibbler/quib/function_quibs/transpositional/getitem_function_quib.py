@@ -68,12 +68,12 @@ class GetItemFunctionQuib(TranspositionalFunctionQuib):
     def _getitem_path_component(self):
         return PathComponent(indexed_cls=self._args[0].get_type(), component=self._args[1])
 
-    def _can_squash_start_of_path(self, filtered_path_in_result):
+    def _can_squash_start_of_path(self, filtered_path_in_result: List[PathComponent]):
         return issubclass(self.get_type(), np.ndarray) \
-                and not self._getitem_path_component.references_field_in_field_array() \
-                and len(filtered_path_in_result) > 0 \
-                and not filtered_path_in_result[0].references_field_in_field_array() \
-                and issubclass(self._args[0].get_type(), np.ndarray)
+               and not self._getitem_path_component.references_field_in_field_array() \
+               and len(filtered_path_in_result) > 0 \
+               and not filtered_path_in_result[0].references_field_in_field_array() \
+               and issubclass(self._args[0].get_type(), np.ndarray)
 
     def _get_quibs_to_relevant_result_values(self, assignment):
         if self._can_squash_start_of_path(assignment.path):
@@ -82,7 +82,7 @@ class GetItemFunctionQuib(TranspositionalFunctionQuib):
             self._args[0]: assignment.value
         }
 
-    def _get_source_paths_of_quibs_given_path(self, filtered_path_in_result):
+    def _get_source_paths_of_quibs_given_path(self, filtered_path_in_result: List[PathComponent]):
         if self._can_squash_start_of_path(filtered_path_in_result):
             # Translate the indices
             return super(GetItemFunctionQuib, self)._get_source_paths_of_quibs_given_path(filtered_path_in_result)
