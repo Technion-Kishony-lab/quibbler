@@ -36,7 +36,7 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
     }
 
     @cached_property
-    def _arg_dict_in_wrapped_function(self):
+    def _arg_values_in_wrapped_function(self):
         return list(dict(iter_args_and_names_in_function_call(self._vectorize.pyfunc,
                                                               self.args[1:], self.kwargs, False)).values())
 
@@ -47,15 +47,24 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
         """
         return self.args[0]
 
-    def _get_arg_core_dims(self, arg_index: int) -> int:
+    def _get_arg_core_ndim(self, arg: Any) -> int:
         """
-        Return the core dimensions of a given argument, which are 0 by default.
+        Return the core ndim of the argument in the given index.
         """
-        core_dims = 0
-        in_and_out_core_dims = self._vectorize._in_and_out_core_dims
-        if in_and_out_core_dims is not None:
-            core_dims = len(in_and_out_core_dims[0][arg_index])
-        return core_dims
+        arg_index = next(i for i, val in enumerate(self._arg_values_in_wrapped_function) if val is arg)
+        if self._vectorize._in_and_out_core_dims is not None:
+            return len(self._vectorize._in_and_out_core_dims[0][arg_index])
+        return 0
+
+    def _get_result_core_ndim(self):
+        """
+        Assuming the result is not a tuple, return the core ndim in the result.
+        """
+        if self._vectorize._in_and_out_core_dims is not None:
+            out_core_dims = self._vectorize._in_and_out_core_dims[1]
+            assert len(out_core_dims) == 1
+            return len(out_core_dims[0])
+        return 0
 
     @property
     def _loop_shape(self):
@@ -101,7 +110,7 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
 
     def _forward_translate_indices_to_bool_mask(self, invalidator_quib: Quib, indices: Any) -> Any:
         source_bool_mask = self._get_source_shaped_bool_mask(invalidator_quib, indices)
-        core_dims = self._get_arg_core_dims(self._arg_dict_in_wrapped_function.index(invalidator_quib))
+        core_dims = self._get_arg_core_ndim(invalidator_quib)
         if core_dims > 0:
             source_bool_mask = np.any(source_bool_mask, axis=tuple(range(source_bool_mask.ndim)[-core_dims:]))
         return np.broadcast_to(source_bool_mask, self._loop_shape)
@@ -132,6 +141,30 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
             for new_path in new_paths:
                 self._invalidate_self(new_path)
                 self._invalidate_children_at_path(new_path)
+
+    def _backward_translate_indices_to_bool_mask(self, quib: Quib, indices: Any) -> Any:
+        quib_loop_shape = quib.get_shape().get_value()[:-self._get_arg_core_ndim(quib) or None]
+        result_bool_mask = self._get_bool_mask_representing_indices_in_result(indices)
+        result_core_axes = tuple(range(-1, -1 - self._get_result_core_ndim(), -1))
+        quib_result_loop_ndim_before_broadcast = result_bool_mask.ndim - len(quib_loop_shape) - len(result_core_axes)
+        broadcast_loop_dimensions_to_remove = tuple(range(0, quib_result_loop_ndim_before_broadcast))
+        reduced_bool_mask = np.any(result_bool_mask, axis=result_core_axes + broadcast_loop_dimensions_to_remove)
+        broadcast_loop_dimensions_to_reduce = tuple(i for i, (result_len, quib_len) in
+                                                    enumerate(zip(reduced_bool_mask.shape, quib_loop_shape))
+                                                    if result_len != quib_len)
+        reduced_bool_mask = np.any(reduced_bool_mask, axis=broadcast_loop_dimensions_to_reduce, keepdims=True)
+        return np.broadcast_to(reduced_bool_mask, quib_loop_shape)
+
+    def _get_source_path_in_quib(self, quib: Quib, filtered_path_in_result: List[PathComponent]):
+        if len(filtered_path_in_result) == 0 or filtered_path_in_result[0].indexed_cls is tuple:
+            return []
+        working_component, *rest_of_path = filtered_path_in_result
+        indices_in_data_source = self._backward_translate_indices_to_bool_mask(quib, working_component.component)
+        return [PathComponent(self.get_type(), indices_in_data_source)]
+
+    def _get_source_paths_of_quibs_given_path(self, filtered_path_in_result: List[PathComponent]):
+        return {quib: self._get_source_path_in_quib(quib, filtered_path_in_result)
+                for quib in self.get_data_source_quibs()}
 
 
 @dataclass
@@ -201,14 +234,14 @@ class AxisWiseGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFuncti
         args_dict = self._get_translation_related_arg_dict()
         return self._backward_translate_bool_mask(args_dict, result_bool_mask, quib)
 
-    def _get_source_path_in_quib(self, quib: Quib, filtered_path_in_result):
+    def _get_source_path_in_quib(self, quib: Quib, filtered_path_in_result: List[PathComponent]):
         if len(filtered_path_in_result) == 0:
             return []
         working_component, *rest_of_path = filtered_path_in_result
         indices_in_data_source = self._backward_translate_indices_to_bool_mask(quib, working_component.component)
         return [PathComponent(self.get_type(), indices_in_data_source)]
 
-    def _get_source_paths_of_quibs_given_path(self, filtered_path_in_result):
+    def _get_source_paths_of_quibs_given_path(self, filtered_path_in_result: List[PathComponent]):
         return {quib: self._get_source_path_in_quib(quib, filtered_path_in_result)
                 for quib in self.get_data_source_quibs()}
 

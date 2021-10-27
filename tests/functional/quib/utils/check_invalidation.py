@@ -14,7 +14,7 @@ def breakdown_quib(quib: Quib) -> Set[Quib]:
         return {quib[idx] for idx in np.ndindex(quib.get_shape().get_value())}
     if issubclass(quib_type, (np.generic, int)):
         return set()
-    if issubclass(quib_type, tuple):
+    if issubclass(quib_type, (tuple, list)):
         return reduce(or_, (breakdown_quib(sub_quib) for sub_quib in quib.iter_first(len(quib.get_value()))))
     raise TypeError(f'Unsupported quib type: {quib_type}')
 

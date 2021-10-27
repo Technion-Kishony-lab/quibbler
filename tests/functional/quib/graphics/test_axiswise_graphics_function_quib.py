@@ -1,10 +1,10 @@
 import numpy as np
 from pytest import mark
 
-from pyquibbler import iquib
+from pyquibbler import iquib, CacheBehavior
 from pyquibbler.quib.assignment import PathComponent
 
-from ..utils import check_invalidation, check_get_value_valid_at_path
+from ..utils import check_invalidation, check_get_value_valid_at_path, MockQuib, PathBuilder
 
 # A 3d array in which every dimension has a different size
 parametrize_data = mark.parametrize('data', [np.arange(24).reshape((2, 3, 4))])
@@ -25,7 +25,7 @@ def test_reduction_axiswise_invalidation(indices_to_invalidate, axis, keepdims, 
         kwargs['keepdims'] = keepdims
     if where is not None:
         kwargs['where'] = where
-    check_invalidation(lambda iq: np.sum(iq, **kwargs), data, indices_to_invalidate)
+    check_invalidation(lambda quib: np.sum(quib, **kwargs), data, indices_to_invalidate)
 
 
 def test_reduction_function_gets_whole_value_of_non_data_source_parents():
@@ -69,7 +69,7 @@ def test_reduction_axiswise_get_value_valid_at_path(axis, data, keepdims, where,
     if where is not None:
         kwargs['where'] = where
     path_to_get_value_at = [PathComponent(np.ndarray, indices_to_get_value_at)]
-    check_get_value_valid_at_path(lambda iq: np.sum(iq, **kwargs), data, path_to_get_value_at)
+    check_get_value_valid_at_path(lambda quib: np.sum(quib, **kwargs), data, path_to_get_value_at)
 
 
 @parametrize_indices_to_invalidate
@@ -78,7 +78,7 @@ def test_reduction_axiswise_get_value_valid_at_path(axis, data, keepdims, where,
 @mark.parametrize('func_out_dims', [0, 1, 2])
 def test_apply_along_axis_invalidation(indices_to_invalidate, axis, func_out_dims, data):
     func1d = lambda slice: np.sum(slice).reshape((1,) * func_out_dims)
-    check_invalidation(lambda iq: np.apply_along_axis(func1d, axis, iq), data, indices_to_invalidate)
+    check_invalidation(lambda quib: np.apply_along_axis(func1d, axis, quib), data, indices_to_invalidate)
 
 
 @parametrize_data
@@ -88,7 +88,7 @@ def test_apply_along_axis_invalidation(indices_to_invalidate, axis, func_out_dim
 def test_apply_along_axis_get_value_valid_at_path(indices_to_get_value_at, axis, func_out_dims, data):
     func1d = lambda slice: np.sum(slice).reshape((1,) * func_out_dims)
     path_to_get_value_at = [PathComponent(np.ndarray, indices_to_get_value_at)]
-    check_get_value_valid_at_path(lambda iq: np.apply_along_axis(func1d, axis, iq), data, path_to_get_value_at)
+    check_get_value_valid_at_path(lambda quib: np.apply_along_axis(func1d, axis, quib), data, path_to_get_value_at)
 
 
 @parametrize_indices_to_invalidate
@@ -99,12 +99,53 @@ def test_vectorize_invalidation(indices_to_invalidate, data, excluded, func):
     kwargs = {}
     if excluded is not None:
         kwargs['excluded'] = excluded
-    check_invalidation(lambda iq: np.vectorize(func, **kwargs)(iq), data, indices_to_invalidate)
+    check_invalidation(np.vectorize(func, **kwargs), data, indices_to_invalidate)
 
 
-def test_vectorize_invalidation_with_non_numpy_func():
+@parametrize_data
+@mark.parametrize('func', [lambda x: np.sum(x)])
+@mark.parametrize('indices_to_get_value_at', [0, (0, 0), (-1, ...)])
+def test_vectorize_get_value_valid_at_path(data, func, indices_to_get_value_at):
+    path_to_get_value_at = [PathComponent(np.ndarray, indices_to_get_value_at)]
+    check_get_value_valid_at_path(np.vectorize(func), data, path_to_get_value_at)
+
+
+def test_vectorize_get_value_valid_at_path_with_excluded_quib():
+    excluded = MockQuib([1, 2, 3])
+    func = np.vectorize(lambda a, b: np.array([1, 2, 3]), excluded={1}, signature='(n)->(m)')
+    fquib = func([0, 1], excluded)
+    fquib.set_cache_behavior(CacheBehavior.OFF)
+
+    with excluded.collect_valid_paths() as valid_paths:
+        fquib.get_value_valid_at_path(PathBuilder(fquib)[0].path)
+
+    assert valid_paths == [[]]
+
+
+@mark.parametrize(['quib_data', 'non_quib_data'], [
+    (np.zeros((2, 3)), np.zeros((4, 2, 3))),
+    (np.zeros((3, 3)), np.zeros((1, 3))),
+    (np.zeros((1, 3, 3)), np.zeros((4, 1, 3))),
+    (np.zeros((4, 2, 3)), np.zeros((2, 3))),
+])
+def test_vectorize_get_value_valid_at_path_when_args_have_different_loop_dimensions(quib_data, non_quib_data):
+    func = lambda quib: np.vectorize(lambda x, y: x + y)(quib, quib_data)
+    check_get_value_valid_at_path(func, non_quib_data, [PathComponent(np.ndarray, 0)])
+
+
+@mark.parametrize('indices_to_get_value_at', [0, (1, 1), (1, ..., 2)])
+def test_vectorize_get_value_at_path_with_core_dims(indices_to_get_value_at):
+    quib_data = np.zeros((2, 2, 3, 4))
+    non_quib_data = np.zeros((2, 3, 4, 5))
+    func = lambda a, b: np.array([np.sum(a) + np.sum(b)] * 6)
+    vec = np.vectorize(func, signature='(a,b),(c)->(d)')
+    check_get_value_valid_at_path(lambda quib: vec(non_quib_data, quib), quib_data,
+                                  [PathComponent(np.ndarray, indices_to_get_value_at)])
+
+
+def test_vectorize_invalidation_with_non_numpy_return_value():
     vec = np.vectorize(lambda a: int(np.sum(a)), signature='(a)->()')
-    check_invalidation(lambda iq: vec(iq), [1, 2, 3], 0)
+    check_invalidation(lambda quib: vec(quib), [1, 2, 3], 0)
 
 
 @parametrize_indices_to_invalidate
@@ -116,7 +157,7 @@ def test_vectorize_invalidation_with_multiple_params(data, indices_to_invalidate
     non_quib_kwarg = np.arange(3).reshape((3, 1))
 
     vec = np.vectorize(lambda a, b, c, d, e=0: a + b + c + d + e)
-    check_invalidation(lambda iq: vec(iq, quib_arg, non_quib_arg, d=quib_kwarg, e=non_quib_kwarg),
+    check_invalidation(lambda quib: vec(quib, quib_arg, non_quib_arg, d=quib_kwarg, e=non_quib_kwarg),
                        data, indices_to_invalidate)
 
 
@@ -126,7 +167,7 @@ def test_vectorize_invalidation_with_quib_as_kwarg(excluded):
     if excluded is not None:
         kwargs['excluded'] = excluded
     vec = np.vectorize(lambda a, b: a + b)
-    check_invalidation(lambda iq: vec(5, b=iq), [1, 2, 3], 0)
+    check_invalidation(lambda quib: vec(5, b=quib), [1, 2, 3], 0)
 
 
 @parametrize_indices_to_invalidate
@@ -135,4 +176,4 @@ def test_vectorize_invalidation_with_different_core_dims(data, indices_to_invali
     data2 = np.arange(100, 122).reshape(1, 22)
     func = lambda a, b: (np.array([np.sum(a) + np.sum(b)] * 4), np.sum(a) + np.sum(b))
     vec = np.vectorize(func, signature='(a,b),(c)->(d),()')
-    check_invalidation(lambda iq: vec(iq, data2), data, indices_to_invalidate)
+    check_invalidation(lambda quib: vec(quib, data2), data, indices_to_invalidate)
