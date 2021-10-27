@@ -13,6 +13,8 @@ from .assignment import AssignmentTemplate, RangeAssignmentTemplate, BoundAssign
 from .utils import quib_method, Unpacker, recursively_run_func_on_object
 from .assignment import PathComponent
 
+from ..env import LEN_RAISE_EXCEPTION
+
 if TYPE_CHECKING:
     from pyquibbler.quib.graphics import GraphicsFunctionQuib
 
@@ -152,7 +154,12 @@ class Quib(ABC):
         self._children.add(weakref(quib))
 
     def __len__(self):
-        return len(self.get_value())
+        if LEN_RAISE_EXCEPTION:
+            raise TypeError('len(Q), where Q is q quib, is not allowed. '
+                            'To get a functional quib, use q(len,Q). '
+                            'To get the len of the current value of Q, use len(Q.get_value()).')
+        else:
+            return len(self.get_value())
 
     def __iter__(self):
         raise TypeError('Cannot iterate over quibs, as their size can vary. '
