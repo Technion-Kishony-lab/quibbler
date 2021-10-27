@@ -161,7 +161,6 @@ class Quib(ABC):
         else:
             return len(self.get_value())
 
-
     def __iter__(self):
         raise TypeError('Cannot iterate over quibs, as their size can vary. '
                         'Try Quib.iter_first() to iterate over the n-first items of the quib.')

@@ -149,8 +149,9 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
             for previous_artist, new_artist in zip(previous_artists, new_artists):
                 for attribute in self.ATTRIBUTES_TO_COPY_FROM_ARTIST_TO_ARTIST_UNLESS_SPECIFED.keys():
                     if hasattr(previous_artist, attribute) \
-                        and not (self.kwargs.keys() & self.ATTRIBUTES_TO_COPY_FROM_ARTIST_TO_ARTIST_UNLESS_SPECIFED[attribute]):
-                            setattr(new_artist, attribute, getattr(previous_artist, attribute))
+                        and not (self.kwargs.keys() &
+                                 self.ATTRIBUTES_TO_COPY_FROM_ARTIST_TO_ARTIST_UNLESS_SPECIFED[attribute]):
+                        setattr(new_artist, attribute, getattr(previous_artist, attribute))
 
     def _update_new_artists_from_previous_artists(self,
                                                   previous_axeses_to_array_names_to_indices_and_artists: Dict[
