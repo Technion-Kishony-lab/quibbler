@@ -1,11 +1,12 @@
 from matplotlib.axes import Axes
 from matplotlib.widgets import RadioButtons
-from typing import List
+from typing import List, Optional, Any
 
 from pyquibbler.quib import Quib
 from pyquibbler.quib.utils import quib_method
 
 from .widget_graphics_function_quib import WidgetGraphicsFunctionQuib
+from ...assignment import PathComponent
 
 
 class QRadioButtons(RadioButtons):
@@ -39,7 +40,7 @@ class RadioButtonsGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
             # We only need to invalidate children if we didn't assign
             self.invalidate_and_redraw_at_path()
 
-    def _call_func(self, valid_path):
+    def _call_func(self, valid_path: Optional[List[PathComponent]]) -> Any:
         radiobuttons = super()._call_func(None)
         radiobuttons.on_clicked(self._on_change)
         return radiobuttons

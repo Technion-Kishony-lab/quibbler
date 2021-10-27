@@ -1,9 +1,12 @@
+from typing import Optional, List, Any
+
 from matplotlib.widgets import Slider
 
 from pyquibbler.quib import Quib
 from pyquibbler.quib.utils import quib_method
 
 from .widget_graphics_function_quib import WidgetGraphicsFunctionQuib
+from ...assignment import PathComponent
 
 
 class SliderGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
@@ -20,7 +23,7 @@ class SliderGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
             # We only need to invalidate children if we didn't assign
             self.invalidate_and_redraw_at_path()
 
-    def _call_func(self, valid_path):
+    def _call_func(self, valid_path: Optional[List[PathComponent]]) -> Any:
         slider = super()._call_func(None)
         slider.on_changed(self._on_change)
         return slider

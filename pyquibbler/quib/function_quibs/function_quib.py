@@ -171,15 +171,10 @@ class FunctionQuib(Quib):
         """
         return {}
 
-    def _call_func(self, valid_path: Optional[List[PathComponent]]):
+    def _prepare_args_for_call(self, valid_path: Optional[List[PathComponent]]):
         """
-        Call the function wrapped by this FunctionQuib with the
-        given arguments after replacing quib with their values.
-
-        The result should be valid at valid_path- the default implementation is to always get a result that's value
-        for all paths (not diverged), which will necessarily be also valid at `valid_path`.
-        This function can and should be overriden if there is a more specific implementation for getting a value only
-        valid at valid_path
+        Prepare arguments to call self.func with - replace quibs with values valid at the given path,
+        and QuibRefs with quibs.
         """
         quibs_to_paths = {} if valid_path is None else self._get_source_paths_of_quibs_given_path(valid_path)
 
@@ -194,6 +189,19 @@ class FunctionQuib(Quib):
         new_args = [recursively_run_func_on_object(_replace_potential_quib_with_value, arg) for arg in self.args]
         new_kwargs = {key: recursively_run_func_on_object(_replace_potential_quib_with_value, val)
                       for key, val in self.kwargs.items()}
+        return new_args, new_kwargs
+
+    def _call_func(self, valid_path: Optional[List[PathComponent]]):
+        """
+        Call the function wrapped by this FunctionQuib with the
+        given arguments after replacing quib with their values.
+
+        The result should be valid at valid_path- the default implementation is to always get a result that's value
+        for all paths (not diverged), which will necessarily be also valid at `valid_path`.
+        This function can and should be overriden if there is a more specific implementation for getting a value only
+        valid at valid_path
+        """
+        new_args, new_kwargs = self._prepare_args_for_call(valid_path)
         return self._func(*new_args, **new_kwargs)
 
     def get_inversions_for_assignment(self, assignment: Assignment) -> List[QuibWithAssignment]:

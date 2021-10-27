@@ -1,3 +1,4 @@
+from typing import Optional, List, Any
 from matplotlib.widgets import CheckButtons
 
 from pyquibbler.quib import Quib
@@ -27,7 +28,7 @@ class CheckButtonsGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
             # We only need to invalidate children if we didn't assign
             self.invalidate_and_redraw_at_path()
 
-    def _call_func(self, valid_path):
+    def _call_func(self, valid_path: Optional[List[PathComponent]]) -> Any:
         checkbuttons = super()._call_func(None)
         checkbuttons.on_clicked(self._on_change)
         return checkbuttons
