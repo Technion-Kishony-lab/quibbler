@@ -57,13 +57,13 @@ def create_inverse_single_arg_many_to_one(invfunc_period_tuple: Tuple[Tuple[Call
         quib_to_change_value = quib_to_change.get_value_valid_at_path(relevant_path_in_quib)
         base_values = [
             (call_func_with_quib_values(inverse_func, [representative_result, *new_args], kwargs), period)
-            for inverse_func,period in invfunc_period_tuple]
+            for inverse_func, period in invfunc_period_tuple]
         closest_values = [value if period is None
-                          else value + np.round((quib_to_change_value-value) / period) * period
+                          else value + np.round((quib_to_change_value - value) / period) * period
                           for value, period in base_values]
         closest_values_array = np.concatenate([np.expand_dims(x, axis=0) for x in closest_values])
-        imin = np.argmin(np.abs(closest_values_array-quib_to_change_value), axis=0)
-        return np.take_along_axis(closest_values_array,np.expand_dims(imin, 0), 0)[0]
+        imin = np.argmin(np.abs(closest_values_array - quib_to_change_value), axis=0)
+        return np.take_along_axis(closest_values_array, np.expand_dims(imin, 0), 0)[0]
 
     return _inverse
 
