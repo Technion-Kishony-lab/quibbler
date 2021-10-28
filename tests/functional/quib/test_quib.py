@@ -360,3 +360,11 @@ def test_remove_child_while_invalidating():
     child = RemoveOnInvalidateQuib(parent)
 
     parent[0] = 1
+
+
+def test_quib_doesnt_invalidate_children_on_paths_which_are_overriden(example_quib):
+    example_quib.assign_value_to_key(key=0, value=100)
+    mock_quib_child = mock.Mock()
+    example_quib.add_child(mock_quib_child)
+
+    example_quib.invalidate_and_redraw_at_path()

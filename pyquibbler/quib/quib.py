@@ -113,17 +113,18 @@ class Quib(ABC):
         """
         Change this quib's state according to a change in a dependency.
         """
+        # non_overriden_paths = self._get_non_overridden_paths(new_path)
         for child in self.children:
             child._invalidate_quib_with_children_at_path(self, path)
 
-    def _get_path_for_children_invalidation(self, invalidator_quib: Quib,
-                                            path: List[PathComponent]) -> Optional[List[PathComponent]]:
+    def _get_paths_for_children_invalidation(self, invalidator_quib: Quib,
+                                             path: List[PathComponent]) -> List[Optional[List[PathComponent]]]:
         """
         Get the new path for invalidating children- a quib overrides this method if it has a specific way to translate
         paths to new invalidation paths.
         If not, invalidate all children all over; as you have no more specific way to invalidate them
         """
-        return []
+        return [[]]
 
     def _invalidate_self(self, path: List[PathComponent]):
         """
@@ -133,16 +134,20 @@ class Quib(ABC):
         false signifying validity
         """
 
+    def _get_non_overridden_paths(self, new_path) -> List:
+        pass
+
     def _invalidate_quib_with_children_at_path(self, invalidator_quib, path: List[PathComponent]):
         """
         Invalidate a quib and it's children at a given path.
         This method should be overriden if there is any 'special' implementation for either invalidating oneself
         or for translating a path for invalidation
         """
-        new_path = self._get_path_for_children_invalidation(invalidator_quib, path) if path else []
-        if new_path is not None:
-            self._invalidate_self(new_path)
-            self._invalidate_children_at_path(new_path)
+        new_paths = self._get_paths_for_children_invalidation(invalidator_quib, path) if path else [[]]
+        for path in new_paths:
+            if path is not None:
+                self._invalidate_self(path)
+                self._invalidate_children_at_path(path)
 
     def add_child(self, quib: Quib) -> None:
         """

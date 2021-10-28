@@ -37,13 +37,13 @@ class InputQuib(Quib):
         """
         return self._value
 
-    def _get_path_for_children_invalidation(self, invalidator_quib: 'Quib',
-                                            path: List['PathComponent']) -> Optional[List[PathComponent]]:
+    def _get_paths_for_children_invalidation(self, invalidator_quib: 'Quib',
+                                             path: List['PathComponent']) -> List[Optional[List[PathComponent]]]:
         """
         If an input quib is invalidated at a certain path, we want to invalidate our children at that path- as we are
         not performing any change on it (as opposed to a transpositional quib)
         """
-        return path
+        return [path]
 
     def __repr__(self):
         if PRETTY_REPR:
