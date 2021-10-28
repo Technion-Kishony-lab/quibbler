@@ -5,6 +5,7 @@ import numpy as np
 
 from pyquibbler.quib import TranspositionalFunctionQuib, Quib
 from pyquibbler.quib.assignment import PathComponent
+from pyquibbler.quib.utils import copy_and_replace_quibs_with_vals
 
 
 class GetItemFunctionQuib(TranspositionalFunctionQuib):
@@ -69,8 +70,7 @@ class GetItemFunctionQuib(TranspositionalFunctionQuib):
         component = self._args[1]
         # We can't have a quib in our path, as this would mean we wouldn't be able to understand where it's necessary
         # to get_value's/reverse assign
-        if isinstance(component, Quib):
-            component = component.get_value()
+        component = copy_and_replace_quibs_with_vals(component)
         return PathComponent(indexed_cls=self._args[0].get_type(), component=component)
 
     def _can_squash_start_of_path(self, filtered_path_in_result: List[PathComponent]):
