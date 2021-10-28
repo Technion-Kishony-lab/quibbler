@@ -71,10 +71,10 @@ class Quib(ABC):
             self._children.remove(ref)
         return children
 
-    def __get_children_recursively(self) -> Set[Quib]:
+    def _get_children_recursively(self) -> Set[Quib]:
         children = self.children
         for child in self.children:
-            children |= child.__get_children_recursively()
+            children |= child._get_children_recursively()
         return children
 
     def _get_graphics_function_quibs_recursively(self) -> Set[GraphicsFunctionQuib]:
@@ -82,7 +82,7 @@ class Quib(ABC):
         Get all artists that directly or indirectly depend on this quib.
         """
         from pyquibbler.quib.graphics import GraphicsFunctionQuib
-        return {child for child in self.__get_children_recursively() if isinstance(child, GraphicsFunctionQuib)}
+        return {child for child in self._get_children_recursively() if isinstance(child, GraphicsFunctionQuib)}
 
     def __redraw(self) -> None:
         """
