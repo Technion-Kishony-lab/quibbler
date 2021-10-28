@@ -10,6 +10,7 @@ from weakref import ref as weakref
 from pyquibbler.exceptions import PyQuibblerException
 
 from .assignment import AssignmentTemplate, RangeAssignmentTemplate, BoundAssignmentTemplate, Overrider, Assignment
+from .function_quibs.cache import create_cache
 from .utils import quib_method, Unpacker, recursively_run_func_on_object
 from .assignment import PathComponent
 
@@ -113,9 +114,10 @@ class Quib(ABC):
         """
         Change this quib's state according to a change in a dependency.
         """
-        # non_overriden_paths = self._get_non_overridden_paths(new_path)
-        for child in self.children:
-            child._invalidate_quib_with_children_at_path(self, path)
+        non_overridden_paths = self._get_non_overridden_paths(path)
+        for path in non_overridden_paths:
+            for child in self.children:
+                child._invalidate_quib_with_children_at_path(self, path)
 
     def _get_paths_for_children_invalidation(self, invalidator_quib: Quib,
                                              path: List[PathComponent]) -> List[Optional[List[PathComponent]]]:
@@ -135,7 +137,15 @@ class Quib(ABC):
         """
 
     def _get_non_overridden_paths(self, new_path) -> List:
-        pass
+        value = self._get_inner_value_valid_at_path(None)
+        cache = create_cache(value)
+        for assignment in self._overrider:
+            if isinstance(assignment, Assignment):
+                cache.set_valid_value_at_path(assignment.path, assignment.value)
+            else:
+                cache.set_invalid_at_path(assignment.path)
+
+        return cache.get_uncached_paths(new_path)
 
     def _invalidate_quib_with_children_at_path(self, invalidator_quib, path: List[PathComponent]):
         """
