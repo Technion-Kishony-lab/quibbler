@@ -127,8 +127,8 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
             return [PathComponent(self.get_type(), bool_mask_in_output_array), *rest_of_path]
         return None
 
-    def _get_path_for_children_invalidation(self, invalidator_quib: Quib,
-                                            path: List[PathComponent]) -> Optional[List[PathComponent]]:
+    def _get_paths_for_children_invalidation(self, invalidator_quib: Quib,
+                                             path: List[PathComponent]) -> Optional[List[PathComponent]]:
         if not self._is_quib_a_data_source(invalidator_quib):
             return [[]]
         invalidation_path = self._forward_translate_invalidation_path(invalidator_quib, path)
@@ -137,13 +137,6 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
             return [invalidation_path]
         else:
             return [[PathComponent(tuple, i), *invalidation_path] for i in range(tuple_len)]
-
-    def _invalidate_quib_with_children_at_path(self, invalidator_quib, path: List[PathComponent]):
-        new_paths = self._get_path_for_children_invalidation(invalidator_quib, path) if path else [[]]
-        if new_paths is not None:
-            for new_path in new_paths:
-                self._invalidate_self(new_path)
-                self._invalidate_children_at_path(new_path)
 
     def _backward_translate_indices_to_bool_mask(self, quib: Quib, indices: Any) -> Any:
         quib_loop_shape = quib.get_shape().get_value()[:-self._get_arg_core_ndim(quib) or None]

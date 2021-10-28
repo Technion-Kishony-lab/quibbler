@@ -10,6 +10,8 @@ from weakref import ref as weakref
 from pyquibbler.exceptions import PyQuibblerException
 
 from .assignment import AssignmentTemplate, RangeAssignmentTemplate, BoundAssignmentTemplate, Overrider, Assignment
+from .function_quibs.cache import create_cache
+from .function_quibs.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
 from .utils import quib_method, Unpacker, recursively_run_func_on_object
 from .assignment import PathComponent
 
@@ -71,10 +73,10 @@ class Quib(ABC):
             self._children.remove(ref)
         return children
 
-    def __get_children_recursively(self) -> Set[Quib]:
+    def _get_children_recursively(self) -> Set[Quib]:
         children = self.children
         for child in self.children:
-            children |= child.__get_children_recursively()
+            children |= child._get_children_recursively()
         return children
 
     def _get_graphics_function_quibs_recursively(self) -> Set[GraphicsFunctionQuib]:
@@ -82,7 +84,7 @@ class Quib(ABC):
         Get all artists that directly or indirectly depend on this quib.
         """
         from pyquibbler.quib.graphics import GraphicsFunctionQuib
-        return {child for child in self.__get_children_recursively() if isinstance(child, GraphicsFunctionQuib)}
+        return {child for child in self._get_children_recursively() if isinstance(child, GraphicsFunctionQuib)}
 
     def __redraw(self) -> None:
         """
@@ -116,14 +118,14 @@ class Quib(ABC):
         for child in self.children:
             child._invalidate_quib_with_children_at_path(self, path)
 
-    def _get_path_for_children_invalidation(self, invalidator_quib: Quib,
-                                            path: List[PathComponent]) -> Optional[List[PathComponent]]:
+    def _get_paths_for_children_invalidation(self, invalidator_quib: Quib,
+                                             path: List[PathComponent]) -> List[Optional[List[PathComponent]]]:
         """
         Get the new path for invalidating children- a quib overrides this method if it has a specific way to translate
         paths to new invalidation paths.
         If not, invalidate all children all over; as you have no more specific way to invalidate them
         """
-        return []
+        return [[]]
 
     def _invalidate_self(self, path: List[PathComponent]):
         """
@@ -133,16 +135,50 @@ class Quib(ABC):
         false signifying validity
         """
 
+    def _get_paths_not_completely_overridden_at_first_component(self, new_path) -> List:
+        """
+        Get a list of all the non overriden paths (at t)
+        """
+        new_path = new_path[:1]
+        value = self._get_inner_value_valid_at_path(None)
+        cache = create_cache(value)
+        cache = transform_cache_to_nd_if_necessary_given_path(cache, new_path)
+        for assignment in self._overrider:
+            cache = transform_cache_to_nd_if_necessary_given_path(cache, new_path)
+            try:
+                if isinstance(assignment, Assignment):
+                    # Our cache only accepts shallow paths, so any validation to a non-shallow path is not necessarily
+                    # overridden at the first component completely- so we ignore it
+                    if len(assignment.path) <= 1:
+                        cache.set_valid_value_at_path(assignment.path, assignment.value)
+                else:
+                    # Our cache only accepts shallow paths, so we need to consider any invalidation to a path deeper
+                    # than one component as an invalidation to the entire first component of that path
+                    cache.set_invalid_at_path(assignment.path[:1])
+            except (IndexError, TypeError):
+                # it's very possible there's an old assignment that doesn't match our new "shape" (not specifically np)-
+                # if so we don't care about it
+                pass
+        return cache.get_uncached_paths(new_path)
+
     def _invalidate_quib_with_children_at_path(self, invalidator_quib, path: List[PathComponent]):
         """
         Invalidate a quib and it's children at a given path.
         This method should be overriden if there is any 'special' implementation for either invalidating oneself
         or for translating a path for invalidation
         """
-        new_path = self._get_path_for_children_invalidation(invalidator_quib, path) if path else []
-        if new_path is not None:
-            self._invalidate_self(new_path)
-            self._invalidate_children_at_path(new_path)
+        new_paths = self._get_paths_for_children_invalidation(invalidator_quib, path) if path else [[]]
+        for path in new_paths:
+            if path is not None:
+                if len(path) > 0:
+                    _, *last_components = path
+                else:
+                    last_components = []
+                non_overridden_paths = self._get_paths_not_completely_overridden_at_first_component(path)
+                for non_overridden_path in non_overridden_paths:
+                    new_path = [*non_overridden_path, *last_components]
+                    self._invalidate_self(new_path)
+                    self._invalidate_children_at_path(new_path)
 
     def add_child(self, quib: Quib) -> None:
         """

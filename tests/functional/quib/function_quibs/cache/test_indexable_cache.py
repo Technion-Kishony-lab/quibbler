@@ -1,5 +1,3 @@
-from unittest import mock
-
 import pytest
 
 from pyquibbler.quib.assignment import PathComponent

@@ -108,11 +108,11 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
             return rest_of_path
         return None
 
-    def _get_path_for_children_invalidation(self, invalidator_quib: Quib,
-                                            path: List[PathComponent]) -> Optional[List[PathComponent]]:
+    def _get_paths_for_children_invalidation(self, invalidator_quib: Quib,
+                                             path: List[PathComponent]) -> List[Optional[List[PathComponent]]]:
         if not self._is_quib_a_data_source(invalidator_quib):
-            return []
-        return self._forward_translate_invalidation_path(invalidator_quib, path)
+            return [[]]
+        return [self._forward_translate_invalidation_path(invalidator_quib, path)]
 
     def get_inversions_for_assignment(self, assignment: Assignment) -> List[QuibWithAssignment]:
         components_at_end = assignment.path[1:]

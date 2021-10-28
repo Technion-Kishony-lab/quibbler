@@ -7,6 +7,7 @@ import numpy as np
 
 from pyquibbler.quib.function_quibs.cache import create_cache
 from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import CacheStatus, PathCannotHaveComponentsException
+from .cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
 from .function_quib import FunctionQuib, CacheBehavior
 from ..assignment import AssignmentTemplate
 from ..assignment.utils import get_sub_data_from_object_in_path
@@ -53,6 +54,7 @@ class DefaultFunctionQuib(FunctionQuib):
 
     def _invalidate_self(self, path: List['PathComponent']):
         if self._cache is not None:
+            self._cache = transform_cache_to_nd_if_necessary_given_path(self._cache, path)
             try:
                 self._cache.set_invalid_at_path(path)
             except (IndexError, TypeError):
@@ -135,6 +137,7 @@ class DefaultFunctionQuib(FunctionQuib):
             if uncached_path is not None:
                 try:
                     valid_value = get_sub_data_from_object_in_path(result, truncated_path)
+                    self._cache = transform_cache_to_nd_if_necessary_given_path(self._cache, truncated_path)
                     self._cache.set_valid_value_at_path(truncated_path, valid_value)
                     # We need to get the result from the cache (as opposed to simply using the last run), since we
                     # don't want to only take the last run

@@ -1,7 +1,26 @@
 from typing import List, Any, Union, Type
 
+import numpy as np
+
 from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import ShallowCache
+
+
+def transform_cache_to_nd_if_necessary_given_path(cache, path: List[PathComponent]):
+    """
+    If a path is attempting to access a cache as though it were an ndarray, we can attempt to transform into an ndarray
+    so that it will be accessable as such.
+
+    We mainly do this because a quib which represents a list may be transformed into an ndarray down the road
+    (by putting it through any np function for example), and thereafter changed. If so, any paths created will be to an
+    ndarray, and reverse assignment as well as invalidation will fail on the original list cache
+    """
+    from pyquibbler.quib.function_quibs.cache import create_cache
+    if (len(path) > 0
+            and path[0].indexed_cls == np.ndarray
+            and isinstance(cache, IndexableCache)):
+        cache = create_cache(np.array(cache.get_value()))
+    return cache
 
 
 class IndexableCache(ShallowCache):

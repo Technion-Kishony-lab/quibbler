@@ -9,8 +9,8 @@ from pyquibbler.quib.assignment import PathComponent
 
 class GetItemFunctionQuib(TranspositionalFunctionQuib):
 
-    def _get_path_for_children_invalidation(self, invalidator_quib: Quib,
-                                            path: List[PathComponent]) -> Optional[List[PathComponent]]:
+    def _get_paths_for_children_invalidation(self, invalidator_quib: Quib,
+                                             path: List[PathComponent]) -> List[Optional[List[PathComponent]]]:
         """
         Handle invalidation on a getitem quib, correctly choosing whether or not and at what indices to invalidate
         child quibs
@@ -27,7 +27,7 @@ class GetItemFunctionQuib(TranspositionalFunctionQuib):
                 # Therefore, we translate the indices and invalidate our children with the new indices (which are an
                 # intersection between our getitem and the path to invalidate- if this intersections yields nothing,
                 # we do NOT invalidate our children)
-                return self._forward_translate_invalidation_path(invalidator_quib, path)
+                return [self._forward_translate_invalidation_path(invalidator_quib, path)]
             elif (
                     getitem_path_component.references_field_in_field_array()
                     !=
@@ -41,7 +41,7 @@ class GetItemFunctionQuib(TranspositionalFunctionQuib):
                 #
                 # Therefore, we want to pass on this invalidation path to our children since indices and field names are
                 # interchangeable when indexing structured ndarrays
-                return path
+                return [path]
 
         # We come to our default scenario- if
         # 1. The invalidator quib is not an ndarray
@@ -59,10 +59,10 @@ class GetItemFunctionQuib(TranspositionalFunctionQuib):
         # If so, invalidate. This is true for field arrays as well (We do need to
         # add support for indexing multiple fields).
         if self.args[1] == working_component.component:
-            return rest_of_path
+            return [rest_of_path]
 
         # The item in our getitem was not equal to the path to invalidate
-        return None
+        return [None]
 
     @property
     def _getitem_path_component(self):
