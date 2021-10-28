@@ -8,6 +8,7 @@ from typing import Type, Any, Callable, Optional, List, Tuple, Set
 from matplotlib import widgets
 from matplotlib.axes import Axes
 
+from pyquibbler.general_graphics import QRectangleSelector
 from pyquibbler.quib import ImpureFunctionQuib, DefaultFunctionQuib, FunctionQuib, GraphicsFunctionQuib
 from pyquibbler.quib.function_quibs.elementwise_function_quib import ElementWiseFunctionQuib
 from pyquibbler.quib.function_quibs.transpositional.transpositional_function_quib import TranspositionalFunctionQuib
