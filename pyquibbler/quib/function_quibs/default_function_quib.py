@@ -53,14 +53,11 @@ class DefaultFunctionQuib(FunctionQuib):
         return self._cache
 
     def _invalidate_self(self, path: List['PathComponent']):
+        if len(path) == 0:
+            self._reset_cache()
         if self._cache is not None:
             self._cache = transform_cache_to_nd_if_necessary_given_path(self._cache, path)
-            try:
-                self._cache.set_invalid_at_path(path)
-            except (IndexError, TypeError):
-                # If we were unable to set at the given path, we presume something "essential" changed in our cache,
-                # so we reset our cache
-                self._reset_cache()
+            self._cache.set_invalid_at_path(path)
 
     def _should_cache(self, result: Any, elapsed_seconds: float):
         """
