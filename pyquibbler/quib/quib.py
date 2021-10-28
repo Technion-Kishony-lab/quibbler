@@ -121,7 +121,7 @@ class Quib(ABC):
     def _get_paths_for_children_invalidation(self, invalidator_quib: Quib,
                                              path: List[PathComponent]) -> List[Optional[List[PathComponent]]]:
         """
-        Get the new path for invalidating children- a quib overrides this method if it has a specific way to translate
+        Get the new paths for invalidating children- a quib overrides this method if it has a specific way to translate
         paths to new invalidation paths.
         If not, invalidate all children all over; as you have no more specific way to invalidate them
         """
