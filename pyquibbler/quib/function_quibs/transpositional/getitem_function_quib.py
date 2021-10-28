@@ -66,7 +66,12 @@ class GetItemFunctionQuib(TranspositionalFunctionQuib):
 
     @property
     def _getitem_path_component(self):
-        return PathComponent(indexed_cls=self._args[0].get_type(), component=self._args[1])
+        component = self._args[1]
+        # We can't have a quib in our path, as this would mean we wouldn't be able to understand where it's necessary
+        # to get_value's/reverse assign
+        if isinstance(component, Quib):
+            component = component.get_value()
+        return PathComponent(indexed_cls=self._args[0].get_type(), component=component)
 
     def _can_squash_start_of_path(self, filtered_path_in_result: List[PathComponent]):
         return issubclass(self.get_type(), np.ndarray) \
