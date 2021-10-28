@@ -32,7 +32,7 @@ def test_plot_inverse_assigner_happy_flow(mock_plot):
 
     inverse_assign_drawing_func(
         drawing_func=mock_plot,
-        args=(None, q),
+        args_dict={'args': [q]},
         mouse_event=mouse_event,
         pick_event=pick_event
     )
@@ -66,7 +66,7 @@ def test_plot_inverse_assigner(mock_plot, indices, artist_index, xdata, ydata, a
 
     inverse_assign_drawing_func(
         drawing_func=mock_plot,
-        args=(None, *args),
+        args_dict={'args': args},
         mouse_event=mouse_event,
         pick_event=pick_event
     )

@@ -15,10 +15,13 @@ from . import global_collecting
 from .event_handling import CanvasEventHandler
 from ..assignment import AssignmentTemplate, PathComponent
 from ..function_quibs import DefaultFunctionQuib, CacheBehavior
-from ..utils import call_func_with_quib_values, iter_object_type_in_args
+from ..utils import call_func_with_quib_values, iter_object_type_in_args, iter_args_and_names_in_function_call
 
 
-def save_func_and_args_on_artists(artists: List[Artist], func: Callable, args: Iterable[Any]):
+def save_func_and_args_on_artists(artists: List[Artist],
+                                  func: Callable,
+                                  args: Tuple[Any],
+                                  kwargs: Mapping[str, Any]):
     """
     Set the drawing func and on the artists- this will be used later on when tracking artists, in order to know how to
     inverse and handle events.
@@ -28,7 +31,7 @@ def save_func_and_args_on_artists(artists: List[Artist], func: Callable, args: I
     for artist in artists:
         if getattr(artist, '_quibbler_drawing_func', None) is None:
             artist._quibbler_drawing_func = func
-            artist._quibbler_args = args
+            artist._quibbler_args_dict = dict(iter_args_and_names_in_function_call(func, args, kwargs, True))
 
 
 class GraphicsFunctionQuib(DefaultFunctionQuib):
@@ -91,7 +94,10 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         if global_collecting.is_within_artists_collector():
             with global_collecting.ArtistsCollector() as collector:
                 res = call_func_with_quib_values(func, args, kwargs)
-            save_func_and_args_on_artists(artists=collector.artists_collected, func=func, args=args)
+            save_func_and_args_on_artists(artists=collector.artists_collected,
+                                          func=func,
+                                          args=args,
+                                          kwargs=kwargs)
             return res
         return super()._wrapper_call(func, args, kwargs)
 
@@ -204,7 +210,7 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         self._artists = collector.artists_collected
         self._had_artists_on_last_run = len(self._artists) > 0
 
-        save_func_and_args_on_artists(self._artists, func=self.func, args=self.args)
+        save_func_and_args_on_artists(self._artists, func=self.func, args=self.args, kwargs=self.kwargs)
         self.persist_self_on_artists()
         self.track_artists()
 
@@ -271,4 +277,5 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         # place the new artists we create in their correct locations
         axeses_to_array_names_to_indices_and_artists = self._get_axeses_to_array_names_to_starting_indices_and_artists()
         self._remove_current_artists()
-        return self._create_new_artists(valid_path, axeses_to_array_names_to_indices_and_artists)
+        return self._create_new_artists(valid_path,
+                                        axeses_to_array_names_to_indices_and_artists)

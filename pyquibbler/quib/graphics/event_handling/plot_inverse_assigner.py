@@ -23,14 +23,14 @@ def get_xdata_arg_indices_and_ydata_arg_indices(args: Tuple[Any, ...]):
 
     # We have `self` (Axes) as arg 0
 
+    if len(args) == 1:
+        return [], [0]
+
     if len(args) == 2:
-        return [], [1]
+        if isinstance(args[1], str):
+            return [], [0]
 
-    if len(args) == 3:
-        if isinstance(args[2], str):
-            return [], [1]
-
-    i = 1
+    i = 0
     while i < len(args):
         step = 2
         potential_fmt_index = i + 2

@@ -51,10 +51,10 @@ class CanvasEventHandler:
         Reverse any relevant quibs in artists creation args
         """
         drawing_func = getattr(artist, '_quibbler_drawing_func')
-        args = getattr(artist, '_quibbler_args')
+        args_dict = getattr(artist, '_quibbler_args_dict')
         with timer(name="motion_notify"), aggregate_redraw_mode():
             graphics_inverse_assigner.inverse_assign_drawing_func(drawing_func=drawing_func,
-                                                                  args=args,
+                                                                  args_dict=args_dict,
                                                                   mouse_event=mouse_event,
                                                                   pick_event=self.current_pick_event)
 

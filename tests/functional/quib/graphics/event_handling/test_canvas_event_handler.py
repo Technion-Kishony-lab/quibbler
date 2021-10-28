@@ -42,13 +42,13 @@ def test_canvas_event_handler_plot_drag(canvas_event_handler, mock_inverse_graph
     pick_event = mock.Mock()
     drawing_func = mock.Mock()
     pick_event.artist._quibbler_drawing_func = drawing_func
-    pick_event.artist._quibbler_args = [mock.Mock()]
+    pick_event.artist._quibbler_args_dict = {'args': mock.Mock()}
     canvas_event_handler._handle_pick_event(pick_event)
     mouse_event = mock.Mock()
     canvas_event_handler._handle_motion_notify(mouse_event)
 
     mock_inverse_graphics_function.assert_called_once_with(drawing_func=drawing_func,
-                                                           args=pick_event.artist._quibbler_args,
+                                                           args_dict=pick_event.artist._quibbler_args_dict,
                                                            mouse_event=mouse_event,
                                                            pick_event=pick_event)
 

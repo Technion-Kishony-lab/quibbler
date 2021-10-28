@@ -37,6 +37,10 @@ class QRectangleSelector(RectangleSelector):
         if extents is not None:
             self.extents = extents
 
+        selectors = getattr(ax, 'selectors', [])
+        selectors.append(self)
+        setattr(ax, 'selectors', selectors)
+
     def event_is_relevant_to_current_selector(self) -> bool:
         return (self.active_handle and self.active_handle != 'C') or (
             (('move' in self.state or self.active_handle == 'C')))
@@ -55,16 +59,32 @@ class QRectangleSelector(RectangleSelector):
                 current_selector.val = None
                 return release_result
 
+    def _on_changed(self, extents):
+        args_dict = getattr(self, '_quibbler_args_dict')
+        init_val = args_dict.get('extents')
+        if isinstance(init_val, Quib):
+            init_val[:] = extents
+        else:
+            raise Exception()
+
     @property
     def extents(self):
         return super().extents
 
+    def get_extents_quib(self):
+        args_dict = getattr(self, '_quibbler_args_dict')
+        return args_dict['extents']
+
     @extents.setter
     def extents(self, extents):
         super(type(self), type(self)).extents.fset(self, extents)
-        if self.changed_callback is not None:
-            # Important to use self.extents and not extents because it sorts the coordinates
-            self.changed_callback(self.extents)
+
+        # Important to use self.extents and not extents because it sorts the coordinates
+        try:
+            init_val = self.get_extents_quib()
+            init_val[:] = self.extents
+        except AttributeError:
+            pass
 
 
 class RectangleSelectorGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
@@ -90,4 +110,4 @@ class RectangleSelectorGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
     @property
     @quib_method
     def extents(self):
-        return self.get_value().extents
+        return self.get_value().extents # self.get_value().get_extents_quib()

@@ -1,4 +1,4 @@
-from typing import Callable, TYPE_CHECKING, List, Any, Iterable
+from typing import Callable, TYPE_CHECKING, List, Any, Iterable, Mapping
 from matplotlib.backend_bases import MouseEvent, PickEvent
 
 from pyquibbler.quib.assignment.assignment import QuibWithAssignment
@@ -23,13 +23,14 @@ def graphics_inverse_assigner(graphics_func_name_to_handle: str):
 
 
 def inverse_assign_drawing_func(drawing_func: Callable,
-                                args: Iterable[Any],
+                                args_dict: Mapping[Any, str],
                                 pick_event: PickEvent,
                                 mouse_event: MouseEvent):
     """
     Reverse a graphics function quib, assigning to all it's arguments values based on pick event and mouse event
     """
     from pyquibbler.quib import get_overrides_for_assignment_group
+    args = args_dict['args']
     inverse_assigner_func = GRAPHICS_REVERSE_ASSIGNERS.get(drawing_func.__qualname__)
     if inverse_assigner_func is not None:
         quibs_with_assignments = inverse_assigner_func(pick_event=pick_event, mouse_event=mouse_event, args=args)
