@@ -364,7 +364,10 @@ def test_remove_child_while_invalidating():
 
 def test_quib_doesnt_invalidate_children_on_paths_which_are_overriden(example_quib):
     example_quib.assign_value_to_key(key=0, value=100)
-    mock_quib_child = mock.Mock()
+    mock_quib_child = mock.Mock(spec=Quib)
+    mock_quib_child._get_children_recursively.return_value = set()
     example_quib.add_child(mock_quib_child)
 
-    example_quib.invalidate_and_redraw_at_path()
+    example_quib.invalidate_and_redraw_at_path(path=[PathComponent(component=0, indexed_cls=list)])
+
+    mock_quib_child._invalidate_quib_with_children_at_path.assert_not_called()
