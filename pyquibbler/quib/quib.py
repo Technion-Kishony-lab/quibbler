@@ -11,6 +11,7 @@ from pyquibbler.exceptions import PyQuibblerException
 
 from .assignment import AssignmentTemplate, RangeAssignmentTemplate, BoundAssignmentTemplate, Overrider, Assignment
 from .function_quibs.cache import create_cache
+from .function_quibs.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
 from .utils import quib_method, Unpacker, recursively_run_func_on_object
 from .assignment import PathComponent
 
@@ -134,15 +135,30 @@ class Quib(ABC):
         false signifying validity
         """
 
-    def _get_non_overridden_paths(self, new_path) -> List:
+    def _get_paths_not_completely_overridden_at_first_component(self, new_path) -> List:
+        """
+        Get a list of all the non overriden paths (at t)
+        """
+        new_path = new_path[:1]
         value = self._get_inner_value_valid_at_path(None)
         cache = create_cache(value)
+        cache = transform_cache_to_nd_if_necessary_given_path(cache, new_path)
         for assignment in self._overrider:
-            if isinstance(assignment, Assignment):
-                cache.set_valid_value_at_path(assignment.path, assignment.value)
-            else:
-                cache.set_invalid_at_path(assignment.path)
-
+            cache = transform_cache_to_nd_if_necessary_given_path(cache, new_path)
+            try:
+                if isinstance(assignment, Assignment):
+                    # Our cache only accepts shallow paths, so any validation to a non-shallow path is not necessarily
+                    # overridden at the first component completely- so we ignore it
+                    if len(assignment.path) <= 1:
+                        cache.set_valid_value_at_path(assignment.path, assignment.value)
+                else:
+                    # Our cache only accepts shallow paths, so we need to consider any invalidation to a path deeper
+                    # than one component as an invalidation to the entire first component of that path
+                    cache.set_invalid_at_path(assignment.path[:1])
+            except (IndexError, TypeError):
+                # it's very possible there's an old assignment that doesn't match our new "shape" (not specifically np)-
+                # if so we don't care about it
+                pass
         return cache.get_uncached_paths(new_path)
 
     def _invalidate_quib_with_children_at_path(self, invalidator_quib, path: List[PathComponent]):
@@ -151,13 +167,18 @@ class Quib(ABC):
         This method should be overriden if there is any 'special' implementation for either invalidating oneself
         or for translating a path for invalidation
         """
-        non_overridden_paths = self._get_non_overridden_paths(path)
-        for path in non_overridden_paths:
-            new_paths = self._get_paths_for_children_invalidation(invalidator_quib, path) if path else [[]]
-            for path in new_paths:
-                if path is not None:
-                    self._invalidate_self(path)
-                    self._invalidate_children_at_path(path)
+        new_paths = self._get_paths_for_children_invalidation(invalidator_quib, path) if path else [[]]
+        for path in new_paths:
+            if path is not None:
+                if len(path) > 0:
+                    _, *last_components = path
+                else:
+                    last_components = []
+                non_overridden_paths = self._get_paths_not_completely_overridden_at_first_component(path)
+                for non_overridden_path in non_overridden_paths:
+                    new_path = [*non_overridden_path, *last_components]
+                    self._invalidate_self(new_path)
+                    self._invalidate_children_at_path(new_path)
 
     def add_child(self, quib: Quib) -> None:
         """

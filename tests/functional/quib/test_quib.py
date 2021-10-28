@@ -4,6 +4,7 @@ from typing import Set
 from unittest import mock
 from unittest.mock import Mock
 import numpy as np
+import pytest
 from pytest import mark, raises, fixture
 
 from pyquibbler.quib import Quib, OverridingNotAllowedException
@@ -32,6 +33,10 @@ class ExampleQuib(Quib):
     @property
     def parents(self) -> Set[Quib]:
         return set()
+
+    def _get_paths_for_children_invalidation(self, quib, path):
+        return [path]
+
 
 
 @fixture
@@ -362,15 +367,37 @@ def test_remove_child_while_invalidating():
     parent[0] = 1
 
 
-def test_quib_doesnt_invalidate_children_on_paths_which_are_overriden(example_quib):
-    parent = ExampleQuib(['the', 'quib', 'value'])
+@pytest.fixture
+def parent(example_quib):
+    parent = ExampleQuib(['parent', 'paren', 'par'])
     parent.add_child(example_quib)
-    parent.assign_value_to_key(key=0, value=100)
-    example_quib.assign_value_to_key(key=0, value=100)
+    return parent
+
+
+@pytest.fixture
+def mock_child_of_example_quib(example_quib):
     mock_quib_child = mock.Mock(spec=Quib)
     mock_quib_child._get_children_recursively.return_value = set()
     example_quib.add_child(mock_quib_child)
+    return mock_quib_child
 
-    parent.invalidate_and_redraw_at_path(path=[PathComponent(component=0, indexed_cls=list)])
 
-    mock_quib_child._invalidate_quib_with_children_at_path.assert_not_called()
+@pytest.mark.parametrize("assigned_path,invalidate_path,expected_to_have_invalidated_child", [
+    ([0, 1], [0], True),
+    ([0], [0], False),
+    ([1], [0], True),
+    ([0], [0, 1], False),
+    ([1], [0, 1], True),
+])
+def test_quib_should_invalidate_children_when_overrides(example_quib, parent,
+                                                                           mock_child_of_example_quib,
+                                                                           assigned_path, invalidate_path,
+                                                                           expected_to_have_invalidated_child):
+    example_quib.assign(Assignment(path=[PathComponent(component=i, indexed_cls=list) for i in assigned_path],
+                                   value=100))
+    current_call_count = mock_child_of_example_quib._invalidate_quib_with_children_at_path.call_count
+
+    parent.invalidate_and_redraw_at_path(path=[PathComponent(component=i, indexed_cls=list) for i in invalidate_path])
+
+    new_expected_count = current_call_count if not expected_to_have_invalidated_child else current_call_count + 1
+    assert mock_child_of_example_quib._invalidate_quib_with_children_at_path.call_count == new_expected_count
