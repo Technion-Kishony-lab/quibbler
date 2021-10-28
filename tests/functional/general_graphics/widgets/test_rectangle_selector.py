@@ -3,8 +3,7 @@ import pytest
 from matplotlib import pyplot as plt, widgets
 
 from pyquibbler import iquib
-from pyquibbler.quib.graphics import global_collecting
-from pyquibbler.quib.graphics.widgets import QRectangleSelector
+from pyquibbler.general_graphics import QRectangleSelector
 
 
 @pytest.fixture()
@@ -13,17 +12,14 @@ def quib():
 
 
 @pytest.fixture
-def rectangle_selector_within_another_collector(axes, quib):
-    with global_collecting.GraphicsCollector():
-        return widgets.RectangleSelector(ax=axes, extents=quib)
+def rectangle_selector_widget(axes, quib):
+    selector = QRectangleSelector(ax=axes, extents=quib.get_value())
+    selector._quibbler_args_dict = {'extents': quib}
+    return selector
 
 
-def test_rectangle_selector_within_artists_collector_creates_widget(rectangle_selector_within_another_collector):
-    assert isinstance(rectangle_selector_within_another_collector, QRectangleSelector)
-
-
-def test_rectangle_selector_changes_quib(quib, rectangle_selector_within_another_collector):
+def test_rectangle_selector_changes_quib(quib, rectangle_selector_widget):
     new_value = np.array([1, 1, 1, 1])
-    rectangle_selector_within_another_collector.extents = new_value
+    rectangle_selector_widget.extents = new_value
 
     assert np.array_equal(quib.get_value(), new_value)

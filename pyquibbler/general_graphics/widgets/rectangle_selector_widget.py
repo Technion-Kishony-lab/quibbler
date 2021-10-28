@@ -75,4 +75,3 @@ class QRectangleSelector(RectangleSelector):
 
         if self.extents_quib is not None:
             self.extents_quib[:] = self.extents
-

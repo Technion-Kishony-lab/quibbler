@@ -2,8 +2,9 @@ from __future__ import annotations
 import contextlib
 import functools
 import threading
-from typing import List, Callable
+from typing import List, Callable, Union
 from matplotlib.artist import Artist
+from matplotlib.widgets import Widget, AxesWidget
 
 from pyquibbler.exceptions import PyQuibblerException
 
@@ -14,7 +15,7 @@ GLOBAL_ARTIST_COLLECTORS = 0
 OVERRIDDEN_GRAPHICS_FUNCTIONS_RUNNING = 0
 
 
-def is_within_artists_collector():
+def is_within_graphics_collector():
     """
     Returns whether there's an active artists collector at this moment
     """
@@ -25,29 +26,40 @@ class AlreadyCollectingArtistsException(PyQuibblerException):
     pass
 
 
-class ArtistsCollector:
+class GraphicsCollector:
     """
     A context manager to begin global collecting of artists.
     After exiting the context manager use `get_artists_collected` to get a list of artists created during this time
     """
 
-    def __init__(self, artists_collected: List[Artist] = None, thread_id: int = None,
-                 raise_if_within_collector: bool = False, previous_init: Callable = None):
+    def __init__(self, artists_collected: List[Artist] = None, widgets_collected: List[AxesWidget] = None,
+                 thread_id: int = None,
+                 raise_if_within_collector: bool = False):
         self._artists_collected = artists_collected or []
+        self._widgets_collected = widgets_collected or []
         self._thread_id = thread_id or threading.get_ident()
         self._raise_if_within_collector = raise_if_within_collector
-        self._previous_init = previous_init
+        self._previous_artists_init = None
+        self._previous_widgets_init = None
+
+    @property
+    def graphics_collected(self):
+        return [*self._artists_collected, *self._widgets_collected]
 
     @property
     def artists_collected(self):
         return self._artists_collected
 
-    def wrap_artist_creation(self, func):
+    @property
+    def widgets_collected(self):
+        return self._widgets_collected
+
+    def wrap_graphics_creation(self, func, arr_to_add):
         @functools.wraps(func)
-        def wrapped_init(artist, *args, **kwargs):
-            res = func(artist, *args, **kwargs)
+        def wrapped_init(graphic: Union[Artist, AxesWidget], *args, **kwargs):
+            res = func(graphic, *args, **kwargs)
             if threading.get_ident() == self._thread_id and OVERRIDDEN_GRAPHICS_FUNCTIONS_RUNNING:
-                self._artists_collected.append(artist)
+                arr_to_add.append(graphic)
             return res
 
         return wrapped_init
@@ -57,14 +69,17 @@ class ArtistsCollector:
         if self._raise_if_within_collector and GLOBAL_ARTIST_COLLECTORS:
             raise AlreadyCollectingArtistsException()
         GLOBAL_ARTIST_COLLECTORS += 1
-        self._previous_init = Artist.__init__
-        Artist.__init__ = self.wrap_artist_creation(Artist.__init__)
+        self._previous_artists_init = Artist.__init__
+        self._previous_widgets_init = AxesWidget.__init__
+        Artist.__init__ = self.wrap_graphics_creation(Artist.__init__, self._artists_collected)
+        AxesWidget.__init__ = self.wrap_graphics_creation(AxesWidget.__init__, self._widgets_collected)
         return self
 
     def __exit__(self, *_, **__):
         global GLOBAL_ARTIST_COLLECTORS
         GLOBAL_ARTIST_COLLECTORS -= 1
-        Artist.__init__ = self._previous_init
+        Artist.__init__ = self._previous_artists_init
+        AxesWidget.__init__ = self._previous_widgets_init
 
 
 @contextlib.contextmanager

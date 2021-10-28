@@ -1,5 +1,5 @@
 from itertools import chain
-from typing import List, Callable, Tuple, Any, Mapping, Dict, Optional, Iterable
+from typing import List, Callable, Tuple, Any, Mapping, Dict, Optional, Iterable, Union
 
 from matplotlib.artist import Artist
 from matplotlib.axes import Axes
@@ -10,6 +10,7 @@ from matplotlib.patches import Patch
 from matplotlib.spines import Spine
 from matplotlib.table import Table
 from matplotlib.text import Text
+from matplotlib.widgets import AxesWidget
 
 from . import global_collecting
 from .event_handling import CanvasEventHandler
@@ -18,20 +19,20 @@ from ..function_quibs import DefaultFunctionQuib, CacheBehavior
 from ..utils import call_func_with_quib_values, iter_object_type_in_args, iter_args_and_names_in_function_call
 
 
-def save_func_and_args_on_artists(artists: List[Artist],
-                                  func: Callable,
-                                  args: Tuple[Any],
-                                  kwargs: Mapping[str, Any]):
+def save_func_and_args_on_graphics(graphics: List[Union[Artist, AxesWidget]],
+                                   func: Callable,
+                                   args: Tuple[Any],
+                                   kwargs: Mapping[str, Any]):
     """
     Set the drawing func and on the artists- this will be used later on when tracking artists, in order to know how to
     inverse and handle events.
     If there's already a creating func, we assume the lower func that already created the artist is the actual
     drawing func (such as a user func that called plt.plot)
     """
-    for artist in artists:
-        if getattr(artist, '_quibbler_drawing_func', None) is None:
-            artist._quibbler_drawing_func = func
-            artist._quibbler_args_dict = dict(iter_args_and_names_in_function_call(func, args, kwargs, True))
+    for graphic in graphics:
+        if getattr(graphic, '_quibbler_drawing_func', None) is None:
+            graphic._quibbler_drawing_func = func
+            graphic._quibbler_args_dict = dict(iter_args_and_names_in_function_call(func, args, kwargs, True))
 
 
 class GraphicsFunctionQuib(DefaultFunctionQuib):
@@ -91,13 +92,14 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
     def _wrapper_call(cls, func, args, kwargs):
         # We never want to create a quib if someone else is creating artists- those artists belong to him/her,
         # not us
-        if global_collecting.is_within_artists_collector():
-            with global_collecting.ArtistsCollector() as collector:
+        if global_collecting.is_within_graphics_collector():
+            with global_collecting.GraphicsCollector() as collector:
                 res = call_func_with_quib_values(func, args, kwargs)
-            save_func_and_args_on_artists(artists=collector.artists_collected,
-                                          func=func,
-                                          args=args,
-                                          kwargs=kwargs)
+
+            save_func_and_args_on_graphics(graphics=collector.graphics_collected,
+                                           func=func,
+                                           args=args,
+                                           kwargs=kwargs)
             return res
         return super()._wrapper_call(func, args, kwargs)
 
@@ -205,12 +207,13 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         previous_axeses_to_array_names_to_indices_and_artists = \
             previous_axeses_to_array_names_to_indices_and_artists or {}
 
-        with global_collecting.ArtistsCollector() as collector:
+        with global_collecting.GraphicsCollector() as collector:
             func_res = super()._call_func(valid_path)
+        save_func_and_args_on_graphics(collector.graphics_collected,
+                                       func=self.func, args=self.args, kwargs=self.kwargs)
+
         self._artists = collector.artists_collected
         self._had_artists_on_last_run = len(self._artists) > 0
-
-        save_func_and_args_on_artists(self._artists, func=self.func, args=self.args, kwargs=self.kwargs)
         self.persist_self_on_artists()
         self.track_artists()
 

@@ -1,0 +1,1 @@
+from .rectangle_selector_widget import QRectangleSelector

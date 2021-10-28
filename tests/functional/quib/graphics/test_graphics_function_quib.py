@@ -59,7 +59,7 @@ def test_graphics_function_quib_get_value_returns_value():
 
 def test_graphics_function_quib_rerun_removes_artists_created(monkeypatch, mock_axes):
     mock_artists_collector = MockArtistsCollector(mock_axes)
-    monkeypatch.setattr(global_collecting, "ArtistsCollector", lambda: mock_artists_collector)
+    monkeypatch.setattr(global_collecting, "GraphicsCollector", lambda: mock_artists_collector)
 
     father_quib = iquib(1)
     quib = get_graphics_quib(mock.Mock())

@@ -15,6 +15,6 @@ default_ext.allow_overriding = False
 exts = np.repeat([default_ext], rois, 0)
 exts.allow_overriding = True
 for i, ext in enumerate(exts.iter_first(rois)):
-    r = q(widgets.RectangleSelector, plt.gca(), extents=ext)
-    plt.text(0, (i + 0.5) * h / rois, q(str, r.extents))
+    r = widgets.RectangleSelector(ax=plt.gca(), extents=ext)
+    plt.text(0, (i + 0.5) * h / rois, q(str, r.extents_quib))
 plt.show()

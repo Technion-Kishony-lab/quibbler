@@ -14,7 +14,7 @@ from pyquibbler.quib.graphics.global_collecting import AlreadyCollectingArtistsE
     iquib([1, 2, 3])
 ])
 def test_global_graphics_collecting_mode_happy_flow(axes, data):
-    with global_collecting.ArtistsCollector() as collector:
+    with global_collecting.GraphicsCollector() as collector:
         plt.plot(data)
 
     assert len(collector.artists_collected) == 1
@@ -23,25 +23,25 @@ def test_global_graphics_collecting_mode_happy_flow(axes, data):
 
 def test_global_graphics_collecting_raises_exception_when_within_collector():
     with pytest.raises(AlreadyCollectingArtistsException):
-        with global_collecting.ArtistsCollector(), global_collecting.ArtistsCollector(raise_if_within_collector=True):
+        with global_collecting.GraphicsCollector(), global_collecting.GraphicsCollector(raise_if_within_collector=True):
             pass
 
 
 def test_global_graphics_collecting_when_within_collector():
-    with global_collecting.ArtistsCollector():
-        assert global_collecting.is_within_artists_collector()
+    with global_collecting.GraphicsCollector():
+        assert global_collecting.is_within_graphics_collector()
 
 
 def test_global_graphics_collecting_when_not_within_collector():
-    with global_collecting.ArtistsCollector():
+    with global_collecting.GraphicsCollector():
         pass
 
-    assert global_collecting.is_within_artists_collector() is False
+    assert global_collecting.is_within_graphics_collector() is False
 
 
 def test_global_graphics_collecting_within_collecting(axes):
-    with global_collecting.ArtistsCollector() as collector, \
-            global_collecting.ArtistsCollector() as nested_collector:
+    with global_collecting.GraphicsCollector() as collector, \
+            global_collecting.GraphicsCollector() as nested_collector:
         plt.plot([1, 2, 3])
     assert len(collector.artists_collected) == 1
     assert len(nested_collector.artists_collected) == 1
@@ -49,15 +49,15 @@ def test_global_graphics_collecting_within_collecting(axes):
 
 @pytest.mark.regression
 def test_global_graphics_collecting_within_collecting_is_within_collector(axes):
-    with global_collecting.ArtistsCollector():
-        with global_collecting.ArtistsCollector():
+    with global_collecting.GraphicsCollector():
+        with global_collecting.GraphicsCollector():
             pass
-        assert global_collecting.is_within_artists_collector()
+        assert global_collecting.is_within_graphics_collector()
 
 
 @pytest.mark.regression
 def test_overridden_graphics_function_within_overridden_graphics_function(axes):
-    with global_collecting.ArtistsCollector() as collector, global_collecting.overridden_graphics_function():
+    with global_collecting.GraphicsCollector() as collector, global_collecting.overridden_graphics_function():
         with global_collecting.overridden_graphics_function():
             pass
         artist = Artist()

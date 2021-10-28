@@ -1,7 +1,7 @@
 from .event_handling import CanvasEventHandler
 from .graphics_function_quib import GraphicsFunctionQuib
 from .redraw import redraw_axes
-from .global_collecting import ArtistsCollector, is_within_artists_collector
+from .global_collecting import GraphicsCollector, is_within_graphics_collector
 from .plot_graphics_function_quib import PlotGraphicsFunctionQuib
 from .axiswise_function_quib import ReductionAxisWiseGraphicsFunctionQuib, AlongAxisGraphicsFunctionQuib, \
     VectorizeGraphicsFunctionQuib
