@@ -15,7 +15,7 @@ from pyquibbler.quib.graphics import global_collecting, ReductionAxisWiseGraphic
     AlongAxisGraphicsFunctionQuib, VectorizeGraphicsFunctionQuib
 from pyquibbler.quib.graphics.plot_graphics_function_quib import PlotGraphicsFunctionQuib
 from pyquibbler.quib.graphics.widgets import SliderGraphicsFunctionQuib, CheckButtonsGraphicsFunctionQuib, \
-    RadioButtonsGraphicsFunctionQuib, RectangleSelectorGraphicsFunctionQuib
+    RadioButtonsGraphicsFunctionQuib, RectangleSelectorGraphicsFunctionQuib, QRectangleSelector, QRadioButtons
 from pyquibbler.quib.graphics.replacing_graphics_function_quib import ReplacingGraphicsFunctionQuib
 from pyquibbler.utils import ensure_only_run_once_globally
 
@@ -24,6 +24,11 @@ Functions that should not be overridden as they cause certain issue:
 np.maximum, np.minimum
 __eq__
 '''
+
+WIDGET_OVERRIDES = {
+    'RectangleSelector': QRectangleSelector,
+    'RadioButtons': QRadioButtons
+}
 
 NUMPY_OVERRIDES = [
     (np, [
@@ -85,15 +90,21 @@ def override_func(obj: Any, name: str, quib_type: Type[FunctionQuib],
     if function_wrapper is not None:
         func = function_wrapper(func)
     func = quib_type.create_wrapper(func)
+
     setattr(obj, name, func)
 
 
-def apply_overrides(override_list: List[Tuple[Any, List[Tuple[Type[FunctionQuib], Set[str]]]]],
-                    function_wrapper: Optional[Callable[[Callable], Callable]] = None):
+def apply_quib_creating_overrides(override_list: List[Tuple[Any, List[Tuple[Type[FunctionQuib], Set[str]]]]],
+                                  function_wrapper: Optional[Callable[[Callable], Callable]] = None):
     for obj, overrides_per_quib_type in override_list:
         for quib_type, func_names in overrides_per_quib_type:
             for func_name in func_names:
                 override_func(obj, func_name, quib_type, function_wrapper)
+
+
+def override_widgets():
+    for name, new_cls in WIDGET_OVERRIDES.items():
+        setattr(widgets, name, wrap_overridden_graphics_function(new_cls))
 
 
 @ensure_only_run_once_globally
@@ -101,5 +112,6 @@ def override_all():
     """
     Overrides all modules (such as numpy and matplotlib) to support quibs
     """
-    apply_overrides(NUMPY_OVERRIDES)
-    apply_overrides(MPL_OVERRIDES, wrap_overridden_graphics_function)
+    override_widgets()
+    apply_quib_creating_overrides(NUMPY_OVERRIDES)
+    apply_quib_creating_overrides(MPL_OVERRIDES, wrap_overridden_graphics_function)

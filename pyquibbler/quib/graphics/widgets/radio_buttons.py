@@ -30,7 +30,6 @@ class RadioButtonsGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
     relevant quib
     """
     WIDGET_CLS = RadioButtons
-    REPLACEMENT_CLS = QRadioButtons
 
     def _on_change(self, new_value: str):
         valindex = self._get_args_values().get('active')

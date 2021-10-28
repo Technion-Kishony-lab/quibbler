@@ -83,8 +83,6 @@ class RectangleSelectorGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
             self.invalidate_and_redraw_at_path()
 
     def _call_func(self, valid_path: Optional[List[PathComponent]]) -> Any:
-        if self._cached_result is not None:
-            self._cached_result.set_visible(False)
         selector = super()._call_func(None)
         selector.changed_callback = self._on_changed
         return selector
