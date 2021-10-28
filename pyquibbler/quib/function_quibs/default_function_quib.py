@@ -1,14 +1,14 @@
 from __future__ import annotations
+import numpy as np
 from sys import getsizeof
 from time import perf_counter
 from typing import Callable, Any, Mapping, Tuple, Optional, List, TYPE_CHECKING
-
-import numpy as np
 
 from pyquibbler.quib.function_quibs.cache import create_cache
 from .cache.cache import CacheStatus
 from .cache.holistic_cache import PathCannotHaveComponentsException
 from .cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
+
 from .function_quib import FunctionQuib, CacheBehavior
 from ..assignment import AssignmentTemplate
 from ..assignment.utils import get_sub_data_from_object_in_path
@@ -53,7 +53,7 @@ class DefaultFunctionQuib(FunctionQuib):
             self._cache = create_cache(new_result)
         return self._cache
 
-    def _invalidate_self(self, path: List['PathComponent']):
+    def _invalidate_self(self, path: List[PathComponent]):
         if len(path) == 0:
             self._reset_cache()
 

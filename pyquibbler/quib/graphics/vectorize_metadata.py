@@ -1,0 +1,153 @@
+from __future__ import annotations
+import numpy as np
+from dataclasses import dataclass
+from itertools import chain
+from typing import Any, Dict, Optional, List, Tuple, Union
+
+from ..function_quibs.indices_translator_function_quib import Args, Kwargs
+
+Shape = Tuple[int, ...]
+
+
+def get_core_axes(core_ndim):
+    return tuple(range(-1, -1 - core_ndim, -1))
+
+
+@dataclass
+class VectorizeArgMetadata:
+    shape: Shape
+    core_shape: Shape
+    loop_shape: Shape
+
+    @classmethod
+    def from_arg_and_core_ndim(cls, arg: Any, core_ndim: int) -> VectorizeArgMetadata:
+        shape = np.shape(arg)
+        if core_ndim == 0:
+            return cls(shape, (), shape)
+        return cls(shape, shape[-core_ndim:], shape[:-core_ndim])
+
+    @property
+    def core_ndim(self) -> int:
+        return len(self.core_shape)
+
+
+@dataclass
+class VectorizeMetadata:
+    _vectorize: np.vectorize
+    _args: Args
+    _kwargs: Kwargs
+
+    args_metadata: Dict[Union[int, str], Optional[VectorizeArgMetadata]]
+    result_loop_shape: Shape
+
+    _is_result_a_tuple: Optional[bool]
+    _result_core_ndims: Optional[Union[int, List[int]]]
+    _result_core_shapes: Optional[Union[Shape, List[Shape]]] = None
+
+    def _get_sample_arg_core(self, arg_id: Union[str, int], arg_value: Any) -> Any:
+        meta = self.args_metadata.get(arg_id)
+        if meta is None:
+            return arg_value
+        return np.reshape(arg_value, (-1, *meta.core_shape))[0]
+
+    def _get_sample_result(self):
+        args = [self._get_sample_arg_core(i, arg) for i, arg in enumerate(self._args)]
+        kwargs = {name: self._get_sample_arg_core(name, arg) for name, arg in self._kwargs.items()}
+        return self._vectorize.pyfunc(*args, **kwargs)
+
+    def _run_sample_and_update_metadata(self):
+        sample_result = self._get_sample_result()
+
+        is_tuple = isinstance(sample_result, tuple)
+        if self._is_result_a_tuple is None:
+            self._is_result_a_tuple = is_tuple
+        else:
+            assert self._is_result_a_tuple == is_tuple
+
+        assert self._result_core_shapes is None
+        self._result_core_shapes = list(map(np.shape, sample_result)) if is_tuple else np.shape(sample_result)
+
+        result_core_ndims = list(map(len, self._result_core_shapes)) if is_tuple else len(self._result_core_shapes)
+        if self._result_core_ndims is None:
+            self._result_core_ndims = result_core_ndims
+        else:
+            assert self._result_core_ndims == result_core_ndims
+
+    @property
+    def is_result_a_tuple(self) -> bool:
+        if self._is_result_a_tuple is None:
+            self._run_sample_and_update_metadata()
+        return self._is_result_a_tuple
+
+    @property
+    def results_core_ndims(self) -> List[int]:
+        if self._result_core_ndims is None:
+            self._run_sample_and_update_metadata()
+        assert self._is_result_a_tuple is True
+        return self._result_core_ndims
+
+    @property
+    def result_core_ndim(self) -> int:
+        if self._result_core_ndims is None:
+            self._run_sample_and_update_metadata()
+        assert self._is_result_a_tuple is False
+        return self._result_core_ndims
+
+    @property
+    def result_core_axes(self) -> Tuple[int, ...]:
+        return get_core_axes(self.result_core_ndim)
+
+    @property
+    def result_core_shape(self) -> Shape:
+        ndim = self.result_core_ndim
+        if ndim == 0:
+            return ()
+        if self._result_core_shapes is None:
+            self._run_sample_and_update_metadata()
+        assert not self.is_result_a_tuple
+        return self._result_core_shapes
+
+    @property
+    def result_shape(self) -> Shape:
+        return self.result_loop_shape + self.result_core_shape
+
+    @property
+    def tuple_length(self):
+        # TODO: use otypes
+        return len(self.results_core_ndims)
+
+    @classmethod
+    def _get_args_and_result_core_ndims(cls, vectorize: np.vectorize, args: Args, kwargs: Kwargs):
+        num_not_excluded = len((set(range(len(args))) | set(kwargs)) - vectorize.excluded)
+        if vectorize._in_and_out_core_dims is None:
+            args_core_ndims = [0] * num_not_excluded
+            result_core_ndims = None
+            is_tuple = None
+        else:
+            in_core_dims, out_core_dims = vectorize._in_and_out_core_dims
+            args_core_ndims = list(map(len, in_core_dims))
+            assert len(args_core_ndims) == num_not_excluded
+            is_tuple = len(out_core_dims) > 1
+            result_core_ndims = list(map(len, out_core_dims)) if is_tuple else len(out_core_dims[0])
+        return args_core_ndims, result_core_ndims, is_tuple
+
+    @classmethod
+    def _get_args_metadata(cls, vectorize, args: Args, kwargs: Kwargs, args_core_ndims):
+        arg_index = 0
+        args_metadata = {}
+        for i, arg in chain(enumerate(args), kwargs.items()):
+            if i not in vectorize.excluded:
+                args_metadata[i] = VectorizeArgMetadata.from_arg_and_core_ndim(arg, args_core_ndims[arg_index])
+                arg_index += 1
+        assert arg_index == len(args_core_ndims)
+        return args_metadata
+
+    @classmethod
+    def from_vectorize_call(cls, vectorize: np.vectorize, args: Args, kwargs: Kwargs):
+        args_core_ndims, result_core_ndims, is_tuple = cls._get_args_and_result_core_ndims(vectorize, args, kwargs)
+        args_metadata = cls._get_args_metadata(vectorize, args, kwargs, args_core_ndims)
+        # Calculate the result shape like done in np.function_base._parse_input_dimensions
+        dummy_arrays = [np.lib.stride_tricks.as_strided(0, arg_metadata.loop_shape)
+                        for arg_metadata in args_metadata.values()]
+        result_loop_shape = np.lib.stride_tricks._broadcast_shape(*dummy_arrays)
+        return cls(vectorize, args, kwargs, args_metadata, result_loop_shape, is_tuple, result_core_ndims)

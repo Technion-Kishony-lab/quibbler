@@ -188,10 +188,12 @@ def test_vectorize_partial_calculation():
 
     func_mock = mock.create_autospec(func, side_effect=func)
     with LAZY.temporary_set(True):
-        quib = np.vectorize(func_mock)(iquib([1, 2, 3]))
+        quib = np.vectorize(func_mock)(iquib(np.arange(3)))
     assert quib.get_value_valid_at_path(PathBuilder(quib)[0].path)[0] == 1
     # TODO: 2 is because vectorize calls first. Learn to use that call and call vectorize with otypes.
     assert func_mock.call_count == 2
 
 def test_vectorize_get_value_valid_at_path_none():
-    assert len(np.vectorize(lambda x: x)(iquib([1, 2, 3])).get_value_valid_at_path(None)) == 3
+    quib = np.vectorize(lambda x: x)(iquib([1, 2, 3]))
+    value = quib.get_value_valid_at_path(None)
+    assert len(value) == 3

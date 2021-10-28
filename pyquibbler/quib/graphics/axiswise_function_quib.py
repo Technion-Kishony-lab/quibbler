@@ -1,3 +1,4 @@
+from __future__ import annotations
 import numpy as np
 from dataclasses import dataclass
 from itertools import chain
@@ -6,13 +7,12 @@ from abc import abstractmethod
 from typing import Any, Dict, Optional, List
 
 from pyquibbler.quib.quib import Quib
-from pyquibbler.quib.utils import copy_and_replace_quibs_with_vals
 
+from .vectorize_metadata import VectorizeMetadata, get_core_axes
 from .graphics_function_quib import GraphicsFunctionQuib
 from ..assignment import PathComponent
 from ..function_quibs.indices_translator_function_quib import IndicesTranslatorFunctionQuib, SupportedFunction
 from ..function_quibs.utils import ArgsValues
-from ..utils import iter_args_and_names_in_function_call
 
 
 def get_vectorize_call_data_args(args_values: ArgsValues) -> List[Any]:
@@ -39,87 +39,32 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
     }
 
     @cached_property
-    def _arg_values_in_wrapped_function(self):
-        return list(dict(iter_args_and_names_in_function_call(self._vectorize.pyfunc,
-                                                              self.args[1:], self.kwargs, False)).values())
-
-    @cached_property
     def _vectorize(self) -> np.vectorize:
         """
         Get the vectorize object we were called with
         """
         return self.args[0]
 
-    def _get_arg_core_ndim(self, arg: Any) -> int:
-        """
-        Return the core ndim of the argument in the given index.
-        """
-        arg_index = next(i for i, val in enumerate(self._arg_values_in_wrapped_function) if val is arg)
-        if self._vectorize._in_and_out_core_dims is not None:
-            return len(self._vectorize._in_and_out_core_dims[0][arg_index])
-        return 0
+    def _get_arg_ids_for_quib(self, quib: Quib):
+        return {arg_id for arg_id, arg in chain(enumerate(self.args[1:]), self.kwargs.items()) if quib is arg}
 
-    def _get_result_core_ndim(self, tuple_index: Optional[int]):
-        """
-        Assuming the result is not a tuple, return the core ndim in the result.
-        """
-        if self._vectorize._in_and_out_core_dims is not None:
-            out_core_dims = self._vectorize._in_and_out_core_dims[1]
-            if tuple_index is None:
-                assert len(out_core_dims) == 1
-                out_index = 0
-            else:
-                out_index = tuple_index
-            return len(out_core_dims[out_index])
-        return 0
+    def _get_vectorize_metadata(self):
+        (vectorize, *args), kwargs = self._prepare_args_for_call(None)
+        return VectorizeMetadata.from_vectorize_call(vectorize, args, kwargs)
 
-    def _get_result_shape(self, tuple_index: Optional[int]):
-        # TODO: run sample function
-        if tuple_index is None:
-            return self.get_shape().get_value()
-        return self.get_value_valid_at_path(None)[tuple_index].shape
-
-    def _get_result_loop_shape(self):
-        """
-        Get the shape of the vectorize loop.
-        This could also be done be broadcasting together the loop dimensions of all arguments.
-        """
-        tuple_index = None if self._get_tuple_output_len() is None else 0
-        out_core_ndim = self._get_result_core_ndim(tuple_index)
-        result_shape = self._get_result_shape(tuple_index)
-        return result_shape[:-out_core_ndim] if out_core_ndim else result_shape
-
-    def _get_result_core_shape(self, tuple_index: Optional[int]):
-        out_core_ndim = self._get_result_core_ndim(tuple_index)
-        if out_core_ndim == 0:
-            return ()
-        return self._get_result_shape(tuple_index)[-out_core_ndim:]
-
-    def _get_tuple_output_len(self) -> Optional[int]:
-        """
-        If this vectorize function returns a tuple, return its length. Otherwise, return None.
-        """
-        in_and_out_core_dims = self._vectorize._in_and_out_core_dims
-        if in_and_out_core_dims is not None:
-            out_core_dims_len = len(in_and_out_core_dims[1])
-            return None if out_core_dims_len == 1 else out_core_dims_len
-
-        # If no signature is given, args core dimensions are all () so we can just flatten them.
-        if self.get_type() is tuple:
-            return self.get_shape().get_value()
-        return None
-
-    def _forward_translate_indices_to_bool_mask(self, invalidator_quib: Quib, indices: Any) -> Any:
+    def _forward_translate_indices_to_bool_mask(self, vectorize_metadata: VectorizeMetadata, invalidator_quib: Quib,
+                                                indices: Any) -> Any:
         source_bool_mask = self._get_source_shaped_bool_mask(invalidator_quib, indices)
-        core_dims = self._get_arg_core_ndim(invalidator_quib)
-        if core_dims > 0:
-            source_bool_mask = np.any(source_bool_mask, axis=tuple(range(source_bool_mask.ndim)[-core_dims:]))
-        return np.broadcast_to(source_bool_mask, self._get_result_loop_shape())
+        core_ndim = max(vectorize_metadata.args_metadata[arg_id].core_ndim
+                        for arg_id in self._get_arg_ids_for_quib(invalidator_quib))
+        source_bool_mask = np.any(source_bool_mask, axis=get_core_axes(core_ndim))
+        return np.broadcast_to(source_bool_mask, vectorize_metadata.result_loop_shape)
 
-    def _forward_translate_invalidation_path(self, invalidator_quib: Quib,
+    def _forward_translate_invalidation_path(self, vectorize_metadata: VectorizeMetadata, invalidator_quib: Quib,
                                              path: List[PathComponent]) -> Optional[List[PathComponent]]:
         working_component, *rest_of_path = path
-        bool_mask_in_output_array = self._forward_translate_indices_to_bool_mask(invalidator_quib,
+        bool_mask_in_output_array = self._forward_translate_indices_to_bool_mask(vectorize_metadata,
+                                                                                 invalidator_quib,
                                                                                  working_component.component)
         if np.any(bool_mask_in_output_array):
             return [PathComponent(self.get_type(), bool_mask_in_output_array), *rest_of_path]
@@ -127,25 +72,28 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
 
     def _get_paths_for_children_invalidation(self, invalidator_quib: Quib,
                                              path: List[PathComponent]) -> Optional[List[PathComponent]]:
+        vectorize_metadata = self._get_vectorize_metadata()
         if not self._is_quib_a_data_source(invalidator_quib):
             return [[]]
-        invalidation_path = self._forward_translate_invalidation_path(invalidator_quib, path)
-        tuple_len = self._get_tuple_output_len()
-        if tuple_len is None:
-            return [invalidation_path]
+        invalidation_path = self._forward_translate_invalidation_path(vectorize_metadata, invalidator_quib, path)
+        if vectorize_metadata.is_result_a_tuple:
+            return [[PathComponent(tuple, i), *invalidation_path] for i in range(vectorize_metadata.tuple_length)]
         else:
-            return [[PathComponent(tuple, i), *invalidation_path] for i in range(tuple_len)]
+            return [invalidation_path]
 
     def _get_result_core_axes(self, tuple_index: Optional[int]):
         return tuple(range(-1, -1 - self._get_result_core_ndim(tuple_index), -1))
 
     def _backward_translate_indices_to_bool_mask(self, quib: Quib, indices: Any) -> Any:
-        quib_loop_shape = quib.get_shape().get_value()[:-self._get_arg_core_ndim(quib) or None]
+        vectorize_metadata = self._get_vectorize_metadata()
+        quib_arg_id = self._get_arg_ids_for_quib(quib).pop()
+        quib_loop_shape = vectorize_metadata.args_metadata[quib_arg_id].loop_shape
         result_bool_mask = self._get_bool_mask_representing_indices_in_result(indices)
-        result_core_axes = self._get_result_core_axes(None)
-        quib_result_loop_ndim_before_broadcast = result_bool_mask.ndim - len(quib_loop_shape) - len(result_core_axes)
-        broadcast_loop_dimensions_to_remove = tuple(range(0, quib_result_loop_ndim_before_broadcast))
-        reduced_bool_mask = np.any(result_bool_mask, axis=result_core_axes + broadcast_loop_dimensions_to_remove)
+        result_core_axes = vectorize_metadata.result_core_axes
+        new_broadcast_ndim = result_bool_mask.ndim - len(quib_loop_shape) - len(result_core_axes)
+        assert new_broadcast_ndim >= 0
+        new_broadcast_axes = tuple(range(0, new_broadcast_ndim))
+        reduced_bool_mask = np.any(result_bool_mask, axis=result_core_axes + new_broadcast_axes)
         broadcast_loop_dimensions_to_reduce = tuple(i for i, (result_len, quib_len) in
                                                     enumerate(zip(reduced_bool_mask.shape, quib_loop_shape))
                                                     if result_len != quib_len)
@@ -171,34 +119,25 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
            instructs it to run the user function or return an empty result.
         3. Vectorize the wrapper and run it with the boolean mask in addition to the original arguments
         """
-        tuple_index = None
-        vectorize = self._vectorize
-        empty_result = np.zeros(self._get_result_core_shape(tuple_index))  # TODO: dtype, tuple if needed
-        if valid_path is None:
-            # TODO: replace with broadcasting of loop dimensions?
-            wrapper_vectorize = np.vectorize(lambda *args, **kwargs: empty_result,
-                                             otypes=vectorize.otypes,
-                                             doc=vectorize.__doc__,
-                                             excluded=vectorize.excluded,
-                                             cache=False, signature=vectorize.signature)
-            (_original_vectorize, *args), kwargs = self._prepare_args_for_call(valid_path)
-            return wrapper_vectorize(*args, **kwargs)
-
-        if len(valid_path) == 0:
+        if valid_path is not None and len(valid_path) == 0:
             return super()._call_func(valid_path)
+        vectcorize_metadata = self._get_vectorize_metadata()
+        if vectcorize_metadata.is_result_a_tuple:
+            return super()._call_func(valid_path)
+        if valid_path is None:
+            return np.zeros(vectcorize_metadata.result_shape)  # TODO: dtype, tuple if needed
+
+        vectorize = self._vectorize
+
         indices = valid_path[0].component
         bool_mask = self._get_bool_mask_representing_indices_in_result(indices)
-        bool_mask = np.any(bool_mask, self._get_result_core_axes(tuple_index))
-        pyfunc = vectorize.pyfunc
+        bool_mask = np.any(bool_mask, axis=vectcorize_metadata.result_core_axes)
 
-        def wrapper(should_run, *args, **kwargs):
-            """
-            The logic in this wrapper should be as minimal as possible (including attribute access, etc.)
-            as it is run for every index in the loop.
-            """
-            if should_run:
-                return pyfunc(*args, **kwargs)
-            return empty_result
+        # The logic in this wrapper should be as minimal as possible (including attribute access, etc.)
+        # as it is run for every index in the loop.
+        pyfunc = vectorize.pyfunc
+        empty_result = np.zeros(vectcorize_metadata.result_core_shape)
+        wrapper = lambda should_run, *args, **kwargs: pyfunc(*args, **kwargs) if should_run else empty_result
 
         wrapper_excluded = {i + 1 if isinstance(i, int) else i for i in self._vectorize.excluded}
         wrapper_signature = vectorize.signature if vectorize.signature is None else '(),' + vectorize.signature

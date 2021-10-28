@@ -35,5 +35,5 @@ def check_invalidation(func, data, indices_to_invalidate):
     input_quib[indices_to_invalidate] = 999
 
     invalidated_children = {child for child in children if child.cache_status == CacheStatus.ALL_INVALID}
-    changed_children = {child for child in children if child.get_value() != original_values[child]}
+    changed_children = {child for child in children if not np.array_equal(child.get_value(), original_values[child])}
     assert invalidated_children == changed_children
