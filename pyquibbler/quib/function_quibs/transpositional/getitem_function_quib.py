@@ -17,6 +17,8 @@ class GetItemFunctionQuib(TranspositionalFunctionQuib):
         child quibs
         """
         if len(path) == 0:
+            # If the path is of zero length, then it's ireelevant if it were the item that completely changed or the
+            # value did- in either case, we need to completely invalidate ourselves and our children
             return [[]]
 
         working_component, *rest_of_path = path
