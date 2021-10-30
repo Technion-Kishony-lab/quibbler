@@ -3,7 +3,7 @@ from pytest import fixture, mark, raises
 
 from pyquibbler import iquib
 from pyquibbler.quib import DefaultFunctionQuib
-from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import CacheStatus
+from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
 from pyquibbler.quib.input_quib import CannotNestQuibInIQuibException
 
 

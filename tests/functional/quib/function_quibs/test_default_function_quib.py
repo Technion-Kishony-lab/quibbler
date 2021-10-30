@@ -7,7 +7,7 @@ from pytest import fixture, mark
 from pyquibbler import iquib, CacheBehavior
 from pyquibbler.quib import DefaultFunctionQuib
 from pyquibbler.quib.assignment.assignment import PathComponent
-from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import CacheStatus
+from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
 
 
 @fixture
@@ -107,6 +107,7 @@ def test_get_value_with_cache_requesting_all_valid_caches_result():
 def test_get_value_with_cache_with_changing_type():
     parent = iquib(1)
     mock_func = mock.Mock()
+
     mock_func.side_effect = [[1, 2, 3], {"a": 1}]
     quib = DefaultFunctionQuib.create(
         func=mock_func,

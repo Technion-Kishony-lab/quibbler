@@ -3,10 +3,9 @@ from unittest import mock
 import pytest
 
 from pyquibbler.quib.assignment import PathComponent
+from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
 from pyquibbler.quib.function_quibs.cache.shallow import DictCache
-from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import CacheStatus
 from tests.functional.quib.function_quibs.cache.cache_test import IndexableCacheTest
-
 
 
 class TestDictCache(IndexableCacheTest):
@@ -14,7 +13,6 @@ class TestDictCache(IndexableCacheTest):
     cls = DictCache
 
     unsupported_type_result = [1, 2, 3]
-    empty_result = {}
 
     paths = [
         [],
@@ -70,3 +68,7 @@ class TestDictCache(IndexableCacheTest):
         super(TestDictCache, self).test_cache_set_invalid_partial_and_get_uncached_paths(cache, result,
                                                                                          invalid_components,
                                                                                          uncached_path_components)
+
+    def set_completely_invalid(self, result, cache):
+        for k in result:
+            cache.set_invalid_at_path([PathComponent(component=k, indexed_cls=dict)])

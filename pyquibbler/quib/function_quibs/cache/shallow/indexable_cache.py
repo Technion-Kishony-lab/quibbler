@@ -19,7 +19,10 @@ def transform_cache_to_nd_if_necessary_given_path(cache, path: List[PathComponen
     if (len(path) > 0
             and path[0].indexed_cls == np.ndarray
             and isinstance(cache, IndexableCache)):
+        uncached_paths = cache.get_uncached_paths([])
         cache = create_cache(np.array(cache.get_value()))
+        for path in uncached_paths:
+            cache.set_invalid_at_path(path)
     return cache
 
 
@@ -30,14 +33,14 @@ class IndexableCache(ShallowCache):
 
     SUPPORTING_TYPES = (list, tuple,)
 
-    def __init__(self, value: Any, object_is_invalidated_as_a_whole: bool, invalid_mask: List, original_type: Type):
-        super().__init__(value, object_is_invalidated_as_a_whole)
+    def __init__(self, value: Any, original_type: Type, invalid_mask: List):
+        super().__init__(value)
         self._invalid_mask = invalid_mask
         self._original_type = original_type
 
     @classmethod
-    def create_from_result(cls, result):
-        return cls(list(result), True, [True for _ in result], type(result))
+    def create_invalid_cache_from_result(cls, result):
+        return cls(list(result), original_type=type(result), invalid_mask=[True for _ in result])
 
     def matches_result(self, result):
         return super(IndexableCache, self).matches_result(result) \
@@ -53,16 +56,9 @@ class IndexableCache(ShallowCache):
             # We need to take care of slices
             data = [data]
 
-        return super(IndexableCache, self)._get_uncached_paths_at_path_component(path_component) or [
+        return [
             [PathComponent(indexed_cls=list, component=i)]
             for i, value in data
-            if self._invalid_mask[i] is True
-        ]
-
-    def _get_all_uncached_paths(self) -> List[List[PathComponent]]:
-        return super(IndexableCache, self)._get_all_uncached_paths() or [
-            [PathComponent(indexed_cls=list, component=i)]
-            for i, value in enumerate(self._value)
             if self._invalid_mask[i] is True
         ]
 
@@ -83,11 +79,17 @@ class IndexableCache(ShallowCache):
         self._set_invalid_mask_at_path_component(path_component.component, True)
 
     def _is_completely_invalid(self):
-        return super(IndexableCache, self)._is_completely_invalid() or all(self._invalid_mask)
+        return all(self._invalid_mask)
 
-    def _set_valid_value_all_paths(self, value):
-        super(IndexableCache, self)._set_valid_value_all_paths(value)
-        self._invalid_mask = [False for _ in value]
+    def _set_valid_at_all_paths(self):
+        self._invalid_mask = [False for _ in self._value]
+
+    def _get_all_uncached_paths(self) -> List[List[PathComponent]]:
+        return [
+            [PathComponent(indexed_cls=list, component=i)]
+            for i, value in enumerate(self._value)
+            if self._invalid_mask[i] is True
+        ]
 
     def get_value(self) -> Any:
         return self._original_type(super(IndexableCache, self).get_value())

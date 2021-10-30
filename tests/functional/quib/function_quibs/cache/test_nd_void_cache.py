@@ -10,7 +10,6 @@ from tests.functional.quib.function_quibs.cache.cache_test import IndexableCache
 
 class TestNdVoidCache(IndexableCacheTest):
     cls = NdVoidCache
-    empty_result = np.array([()], dtype=[])[0]
 
     paths = [
         [0],
@@ -60,3 +59,7 @@ class TestNdVoidCache(IndexableCacheTest):
         super(TestNdVoidCache, self).test_cache_set_invalid_partial_and_get_uncached_paths(cache, result,
                                                                                                  invalid_components,
                                                                                                  uncached_path_components)
+
+    def set_completely_invalid(self, result, cache):
+        for name in result.dtype.names:
+            cache.set_invalid_at_path([PathComponent(indexed_cls=np.ndarray, component=name)])

@@ -9,7 +9,8 @@ from numpy.lib.recfunctions import structured_to_unstructured
 
 from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.quib.assignment.utils import deep_assign_data_with_paths, get_sub_data_from_object_in_path
-from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import CacheStatus
+from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
+from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import CannotInvalidateEntireCacheException
 from pyquibbler.quib.utils import deep_copy_without_quibs_or_artists
 
 
@@ -19,29 +20,16 @@ class CacheTest(ABC):
 
     @pytest.fixture()
     def cache(self, result):
-        return self.cls.create_from_result(result)
+        return self.cls.create_invalid_cache_from_result(result)
 
     def test_matches_result_of_same_value(self, cache):
         assert cache.matches_result(cache.get_value())
-
-    def test_cache_starts_invalid(self, cache):
-        uncached_paths = cache.get_uncached_paths([])
-
-        assert uncached_paths == [[]], f"{uncached_paths=}"
 
     def test_cache_set_valid_makes_uncached_paths_empty(self, cache, result):
         cache.set_valid_value_at_path([], result)
         uncached_paths = cache.get_uncached_paths([])
 
         assert len(uncached_paths) == 0
-
-    def test_cache_set_invalid_all_makes_uncached_paths_return_all(self, cache, result):
-        cache.set_valid_value_at_path([], result)
-        cache.set_invalid_at_path([])
-
-        uncached_paths = cache.get_uncached_paths([])
-
-        assert uncached_paths == [[]]
 
     def test_cache_get_value_when_valid(self, cache, result):
         cache.set_valid_value_at_path([], result)
@@ -56,25 +44,17 @@ class CacheTest(ABC):
 
         assert cache.get_cache_status() == CacheStatus.ALL_VALID
 
-    def test_cache_get_cache_status_when_invalid_at_start(self, cache):
-        assert cache.get_cache_status() == CacheStatus.ALL_INVALID
-
-    def test_cache_get_cache_status_when_invalid_after_valid(self, cache, result):
-        cache.set_valid_value_at_path([], result)
-        cache.set_invalid_at_path([])
-
-        assert cache.get_cache_status() == CacheStatus.ALL_INVALID
-
 
 class IndexableCacheTest(CacheTest):
 
+    starting_valid_path = None
+
     unsupported_type_result = NotImplemented
-    empty_result = NotImplemented
 
     paths = NotImplemented
 
     def __init_subclass__(cls, **kwargs):
-        parametrized_invalid = pytest.mark.parametrize("invalid_components", cls.paths ) \
+        parametrized_invalid = pytest.mark.parametrize("invalid_components", [p for p in cls.paths if p != []] ) \
             (cls.test_cache_set_invalid_partial_and_get_uncached_paths)
         parametrized_invalid = pytest.mark.parametrize("uncached_path_components", cls.paths)(parametrized_invalid)
         cls.test_cache_set_invalid_partial_and_get_uncached_paths = parametrized_invalid
@@ -124,13 +104,14 @@ class IndexableCacheTest(CacheTest):
         assert all(str(x) == str(checked_invalid) or str(x) == str(valid_value)
                    for x in self.get_values_from_result(items))
 
+    def test_cache_set_invalid_all_raises_exception(self, cache, result):
+        cache.set_valid_value_at_path([], result)
+
+        with pytest.raises(CannotInvalidateEntireCacheException):
+            cache.set_invalid_at_path([])
+
     def test_cache_does_not_match_result_of_unsupported_type(self, cache):
         assert not cache.matches_result(self.unsupported_type_result)
-
-    def test_cache_set_invalid_on_empty_result(self, result):
-        cache = self.cls.create_from_result(self.empty_result)
-
-        assert cache.get_cache_status() == CacheStatus.ALL_INVALID
 
     def test_cache_set_valid_partial_and_get_uncached_paths(self, cache, result, valid_components,
                                                               uncached_path_components, valid_value):
@@ -162,7 +143,15 @@ class IndexableCacheTest(CacheTest):
         self.assert_uncached_paths_match_expected_value(result, invalid_path, uncached_paths,
                                                                 filter_path, True)
 
+    def test_cache_get_cache_status_when_invalid(self, cache, result):
+        self.set_completely_invalid(result, cache)
+
+        assert cache.get_cache_status() == CacheStatus.ALL_INVALID
+
     @abstractmethod
-    def test_cache_get_cache_status_on_partial(self, cache):
+    def test_cache_get_cache_status_on_partial(self, result, cache):
         pass
 
+    @abstractmethod
+    def set_completely_invalid(self, result, cache):
+        pass

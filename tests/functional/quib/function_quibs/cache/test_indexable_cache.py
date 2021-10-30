@@ -2,7 +2,7 @@ import pytest
 
 from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.quib.function_quibs.cache import IndexableCache
-from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import CacheStatus
+from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
 from tests.functional.quib.function_quibs.cache.cache_test import IndexableCacheTest
 
 
@@ -13,7 +13,6 @@ from tests.functional.quib.function_quibs.cache.cache_test import IndexableCache
 class TestIndexableCache(IndexableCacheTest):
 
     cls = IndexableCache
-    empty_result = []
     unsupported_type_result = {1, 2, 3}
 
     paths = [
@@ -58,11 +57,12 @@ class TestIndexableCache(IndexableCacheTest):
         assert cache.get_cache_status() == CacheStatus.PARTIAL
 
     def test_list_cache_get_cache_status_when_completely_invalid_piece_by_piece(self, cache):
-        cache.set_valid_value_at_path([], [10, 10])
+        cache.set_valid_value_at_path([], [10, 10, 10])
     
         cache.set_invalid_at_path([PathComponent(component=0, indexed_cls=list)])
         cache.set_invalid_at_path([PathComponent(component=1, indexed_cls=list)])
-    
+        cache.set_invalid_at_path([PathComponent(component=2, indexed_cls=list)])
+
         assert cache.get_cache_status() == CacheStatus.ALL_INVALID
 
     def test_cache_set_valid_makes_uncached_paths_empty(self, result, cache):
@@ -72,7 +72,8 @@ class TestIndexableCache(IndexableCacheTest):
         assert len(uncached_paths) == 0
 
     def test_cache_set_valid_partial_and_get_uncached_paths(self, cache, result, valid_components, uncached_path_components, valid_value):
-        super(TestIndexableCache, self).test_cache_set_valid_partial_and_get_uncached_paths(cache, result, valid_components,
+        super(TestIndexableCache, self).test_cache_set_valid_partial_and_get_uncached_paths(cache,
+                                                                                            result, valid_components,
                                                                                             uncached_path_components,
                                                                                             valid_value)
 
@@ -81,3 +82,7 @@ class TestIndexableCache(IndexableCacheTest):
         super(TestIndexableCache, self).test_cache_set_invalid_partial_and_get_uncached_paths(cache, result,
                                                                                               invalid_components,
                                                                                               uncached_path_components)
+
+    def set_completely_invalid(self, result, cache):
+        for i in range(len(result)):
+            cache.set_invalid_at_path([PathComponent(component=i, indexed_cls=type(result))])

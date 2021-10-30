@@ -288,5 +288,3 @@ def test_inverse_with_resulting_int_and_changing_value_shape():
     b[:, :] = 0
 
     assert np.array_equal(a.get_value(), np.full((2, 3), fill_value=0))
-
-

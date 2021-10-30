@@ -1,8 +1,9 @@
-from typing import Any, List
+from typing import Any, List, Optional
 
 import numpy as np
 
 from pyquibbler.quib.assignment import PathComponent
+from pyquibbler.quib.function_quibs.cache.holistic_cache import HolisticCache
 from pyquibbler.quib.function_quibs.cache.shallow import NdVoidCache
 from pyquibbler.quib.function_quibs.cache.shallow.dict_cache import DictCache
 from pyquibbler.quib.function_quibs.cache.shallow.indexable_cache import IndexableCache
@@ -26,5 +27,5 @@ def create_cache(result: Any) -> ShallowCache:
     }
     for cache_class in cache_classes:
         if cache_class.supports_result(result):
-            return cache_class.create_from_result(result)
-    return ShallowCache.create_from_result(result)
+            return cache_class.create_invalid_cache_from_result(result)
+    return HolisticCache.create_invalid_cache_from_result(result)

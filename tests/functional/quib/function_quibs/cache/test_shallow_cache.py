@@ -2,14 +2,13 @@ from unittest import mock
 
 import pytest
 
-from pyquibbler.quib.function_quibs.cache import ShallowCache
-from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import PathCannotHaveComponentsException
+from pyquibbler.quib.function_quibs.cache.holistic_cache import HolisticCache, PathCannotHaveComponentsException
 from tests.functional.quib.function_quibs.cache.cache_test import CacheTest
 
 
 class TestShallowCache(CacheTest):
 
-    cls = ShallowCache
+    cls = HolisticCache
 
     @pytest.fixture()
     def result(self):

@@ -3,8 +3,8 @@ import pytest
 
 from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.quib.assignment.utils import deep_assign_data_with_paths
+from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
 from pyquibbler.quib.function_quibs.cache.shallow.nd_cache import NdUnstructuredArrayCache
-from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import CacheStatus
 from tests.functional.quib.function_quibs.cache.cache_test import IndexableCacheTest
 
 
@@ -21,7 +21,6 @@ class TestNdUnstructuredArrayCache(IndexableCacheTest):
     ]
 
     unsupported_type_result = [1, 2, 3]
-    empty_result = np.array([])
 
     @pytest.fixture
     def result(self):
@@ -67,3 +66,6 @@ class TestNdUnstructuredArrayCache(IndexableCacheTest):
         super(TestNdUnstructuredArrayCache, self).test_cache_set_invalid_partial_and_get_uncached_paths(cache, result,
                                                                                                  invalid_components,
                                                                                                  uncached_path_components)
+
+    def set_completely_invalid(self, result, cache):
+        cache.set_invalid_at_path([PathComponent(indexed_cls=np.ndarray, component=True)])

@@ -32,10 +32,10 @@ class Cache(ABC):
         return isinstance(result, cls.SUPPORTING_TYPES)
 
     @classmethod
-    def create_from_result(cls, result):
+    def create_invalid_cache_from_result(cls, result):
         """
-        Create from a result- this result is considered interesting in shape only, and any cache should begin entirely
-        invalidated when called from this function
+        Create a completely invalid cache from a result- this result is considered interesting in shape only,
+        and any cache should begin entirely invalidated when called from this function
         """
         raise NotImplementedError()
 
@@ -66,11 +66,24 @@ class Cache(ABC):
         returned (anything invalid)
         """
 
-    @abstractmethod
     def get_cache_status(self) -> CacheStatus:
         """
         Get the current status of the cache, options of which are marked by the enum `CacheStatus`
         """
+        uncached_paths = self.get_uncached_paths([])
+        if len(uncached_paths) == 0:
+            return CacheStatus.ALL_VALID
+        elif self._is_completely_invalid():
+            return CacheStatus.ALL_INVALID
+        else:
+            return CacheStatus.PARTIAL
+
+    @abstractmethod
+    def _is_completely_invalid(self):
+        """
+        Is this cache completely invalid?
+        """
+        pass
 
     def get_value(self) -> Any:
         """

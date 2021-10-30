@@ -18,7 +18,6 @@ class TestNdFieldArrayCache(IndexableCacheTest):
     boolean_dtype = [("name", np.bool_), ("age", np.bool_)]
 
     unsupported_type_result = [1, 2, 3]
-    empty_result = np.array([], dtype=dtype)
 
     paths = [
         [],
@@ -76,3 +75,6 @@ class TestNdFieldArrayCache(IndexableCacheTest):
         super(TestNdFieldArrayCache, self).test_cache_set_invalid_partial_and_get_uncached_paths(cache, result,
                                                                                               invalid_components,
                                                                                                  uncached_path_components)
+
+    def set_completely_invalid(self, result, cache):
+        cache.set_invalid_at_path([PathComponent(indexed_cls=np.ndarray, component=True)])

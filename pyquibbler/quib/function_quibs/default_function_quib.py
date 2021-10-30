@@ -6,7 +6,8 @@ from typing import Callable, Any, Mapping, Tuple, Optional, List, TYPE_CHECKING
 import numpy as np
 
 from pyquibbler.quib.function_quibs.cache import create_cache
-from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import CacheStatus, PathCannotHaveComponentsException
+from .cache.cache import CacheStatus
+from .cache.holistic_cache import PathCannotHaveComponentsException
 from .cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
 from .function_quib import FunctionQuib, CacheBehavior
 from ..assignment import AssignmentTemplate
@@ -55,6 +56,7 @@ class DefaultFunctionQuib(FunctionQuib):
     def _invalidate_self(self, path: List['PathComponent']):
         if len(path) == 0:
             self._reset_cache()
+
         if self._cache is not None:
             self._cache = transform_cache_to_nd_if_necessary_given_path(self._cache, path)
             self._cache.set_invalid_at_path(path)
@@ -130,8 +132,8 @@ class DefaultFunctionQuib(FunctionQuib):
         for uncached_path in uncached_paths:
             result = self._call_func(uncached_path)
 
-            self._ensure_cache_matches_result(result)
             if uncached_path is not None:
+                self._ensure_cache_matches_result(result)
                 try:
                     valid_value = get_sub_data_from_object_in_path(result, truncated_path)
                     self._cache = transform_cache_to_nd_if_necessary_given_path(self._cache, truncated_path)
@@ -145,9 +147,10 @@ class DefaultFunctionQuib(FunctionQuib):
                     assert len(uncached_paths) == 1, "There should never be a situation in which we have multiple " \
                                                      "uncached paths but our cache can't handle setting a value at a " \
                                                      "specific component"
-
-                # sanity
-                assert len(self._cache.get_uncached_paths(truncated_path)) == 0
+                    break
+                else:
+                    # sanity
+                    assert len(self._cache.get_uncached_paths(truncated_path)) == 0
 
         return result
 
