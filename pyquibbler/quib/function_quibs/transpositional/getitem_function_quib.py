@@ -16,6 +16,11 @@ class GetItemFunctionQuib(TranspositionalFunctionQuib):
         Handle invalidation on a getitem quib, correctly choosing whether or not and at what indices to invalidate
         child quibs
         """
+        if len(path) == 0:
+            # If the path is of zero length, then it's ireelevant if it were the item that completely changed or the
+            # value did- in either case, we need to completely invalidate ourselves and our children
+            return [[]]
+
         working_component, *rest_of_path = path
         getitem_path_component = PathComponent(component=self._args[1], indexed_cls=invalidator_quib.get_type())
         if issubclass(invalidator_quib.get_type(), np.ndarray):
@@ -63,7 +68,7 @@ class GetItemFunctionQuib(TranspositionalFunctionQuib):
             return [rest_of_path]
 
         # The item in our getitem was not equal to the path to invalidate
-        return [None]
+        return []
 
     @property
     def _getitem_path_component(self):

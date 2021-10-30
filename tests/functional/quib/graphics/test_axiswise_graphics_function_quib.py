@@ -115,9 +115,10 @@ def test_vectorize_get_value_valid_at_path_with_excluded_quib():
     func = np.vectorize(lambda a, b: np.array([1, 2, 3]), excluded={1}, signature='(n)->(m)')
     fquib = func([0, 1], excluded)
     fquib.set_cache_behavior(CacheBehavior.OFF)
+    path = PathBuilder(fquib)[0].path
 
     with excluded.collect_valid_paths() as valid_paths:
-        fquib.get_value_valid_at_path(PathBuilder(fquib)[0].path)
+        fquib.get_value_valid_at_path(path)
 
     assert valid_paths == [[]]
 

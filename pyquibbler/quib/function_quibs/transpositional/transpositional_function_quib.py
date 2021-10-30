@@ -97,6 +97,7 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
         """
         Get a mapping of quibs to their referenced indices at a *specific dimension*
         """
+
         quibs_to_index_grids = self._get_quibs_to_index_grids()
         quibs_to_masks = self._get_quibs_to_masks()
 
@@ -109,17 +110,12 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
             func=replace_quib_with_index_at_dimension,
             obj=self._args
         )
-
         indices_res = call_func_with_quib_values(self._func, new_arguments, self._kwargs)
 
-        try:
-            return {
-                quib: indices_res[np.logical_and(quibs_to_masks[quib], relevant_indices_mask)]
-                for quib in self.get_data_source_quibs()
-            }
-        except Exception:
-            print(1)
-            raise
+        return {
+            quib: indices_res[np.logical_and(quibs_to_masks[quib], relevant_indices_mask)]
+            for quib in self.get_data_source_quibs()
+        }
 
     def get_quibs_to_indices_in_quibs(self, filtered_indices_in_result: Any) -> Dict[Quib, np.ndarray]:
         """
@@ -202,7 +198,7 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
            if so, continue with path[1:]
         3. Pass on the current path to all our children
         """
-        if path[0].references_field_in_field_array():
+        if len(path) > 0 and path[0].references_field_in_field_array():
             # The path at the first component references a field, and therefore we cannot translate it given a
             # normal transpositional function (neither does it make any difference, as transpositional functions
             # don't change fields)
