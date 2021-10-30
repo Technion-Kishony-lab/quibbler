@@ -63,9 +63,9 @@ class TestNdFieldArrayCache(IndexableCacheTest):
 
         assert cache.get_cache_status() == CacheStatus.PARTIAL
 
-    def test_cache_set_valid_partial_and_get_uncached_paths(self, cache, result, valid_components,
+    def test_cache_set_valid_partial_and_get_uncached_paths(self, result, valid_components,
                                                               uncached_path_components, valid_value):
-        super(TestNdFieldArrayCache, self).test_cache_set_valid_partial_and_get_uncached_paths(cache, result,
+        super(TestNdFieldArrayCache, self).test_cache_set_valid_partial_and_get_uncached_paths(result,
                                                                                                valid_components,
                                                                                                uncached_path_components,
                                                                                                valid_value)

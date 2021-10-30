@@ -28,14 +28,11 @@ class ShallowCache(Cache):
 
     SUPPORTING_TYPES = (object,)
 
-    def __init__(self, value: Any):
-        super().__init__(value)
-
     @classmethod
     def create_from_result(cls, result, valid_path, **kwargs):
         self = cls(result, **kwargs)
         if len(valid_path) > 0:
-            return self._set_valid_at_path_component(valid_path[0])
+            self._set_valid_at_path_component(valid_path[0])
         return self
 
     def get_cache_status(self):
