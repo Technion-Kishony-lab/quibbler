@@ -32,7 +32,7 @@ class Cache(ABC):
         return isinstance(result, cls.SUPPORTING_TYPES)
 
     @classmethod
-    def create_from_result(cls, result):
+    def create_from_result(cls, result, valid_path: List[PathComponent]):
         """
         Create from a result- this result is considered interesting in shape only, and any cache should begin entirely
         invalidated when called from this function
