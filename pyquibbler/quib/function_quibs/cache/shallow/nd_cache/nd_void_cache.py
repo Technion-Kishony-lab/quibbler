@@ -16,10 +16,10 @@ class NdVoidCache(NdIndexableCache):
         super(NdVoidCache, self).__init__(value, mask)
 
     @classmethod
-    def create_from_result(cls, result, valid_path, **kwargs):
+    def create_invalid_cache_from_result(cls, result):
         mask = np.full(result.shape, True, dtype=[(name, np.bool_) for name in result.dtype.names])
         mask = np.void(mask)
-        return super(NdVoidCache, cls).create_from_result(result, valid_path, mask=mask)
+        return cls(result, mask=mask)
 
     def _get_uncached_paths_at_path_component(self,
                                               path_component: PathComponent) -> List[List[PathComponent]]:
