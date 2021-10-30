@@ -22,6 +22,10 @@ def raise_if_path_is_not_empty(func):
 
 
 class HolisticCache(Cache):
+    """
+    A holistic cache cannot be referenced by a field or item within it- it's an all or nothing cache. This is ideal
+    for things which cannot be broken up into parts, like numbers (as opposed to lists)
+    """
 
     SUPPORTING_TYPES = (object,)
 

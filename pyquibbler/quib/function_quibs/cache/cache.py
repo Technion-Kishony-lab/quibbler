@@ -34,8 +34,8 @@ class Cache(ABC):
     @classmethod
     def create_invalid_cache_from_result(cls, result):
         """
-        Create from a result- this result is considered interesting in shape only, and any cache should begin entirely
-        invalidated when called from this function
+        Create a completely invalid cache from a result- this result is considered interesting in shape only,
+        and any cache should begin entirely invalidated when called from this function
         """
         raise NotImplementedError()
 
