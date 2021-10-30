@@ -248,6 +248,7 @@ def test_transpositional_get_value_with_fields(data, indices_to_get_value_at):
     check_get_value_valid_at_path(lambda x: x[0], data, path_to_get_value_at)
 
 
+@pytest.mark.regression
 def test_transpositional_concatenate_different_sizes():
     def filter_out_none_calls(mock_calls):
         return [
