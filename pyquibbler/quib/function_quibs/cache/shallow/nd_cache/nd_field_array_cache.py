@@ -48,7 +48,13 @@ class NdFieldArrayShallowCache(NdIndexableCache):
                       PathComponent(indexed_cls=np.ndarray, component=self._invalid_mask[path_component.component])]]
         else:
             paths = self._create_paths_for_indices(path_component.component)
-
+        #
+        # new_ = []
+        # for path in paths:
+        #     if len(path) > 1 and np.all(path[1].component):
+        #         new_.append([path[0]])
+        #     else:
+        #         new_.append(path)
         return self._filter_empty_paths(paths)
 
     def _is_completely_invalid(self):

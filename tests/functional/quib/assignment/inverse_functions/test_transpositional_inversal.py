@@ -290,3 +290,6 @@ def test_inverse_with_resulting_int_and_changing_value_shape():
     assert np.array_equal(a.get_value(), np.full((2, 3), fill_value=0))
 
 
+def test_inverse_wpe():
+    a = iquib(np.array([0, 1, 2]))
+    b = a[np.newaxis]

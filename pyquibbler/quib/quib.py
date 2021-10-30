@@ -135,7 +135,7 @@ class Quib(ABC):
         false signifying validity
         """
 
-    def _get_paths_not_completely_overridden_at_first_component(self, path) -> List:
+    def _is_completely_overridden_at_first_component(self, path) -> bool:
         """
         Get a list of all the non overridden paths (at the first component)
         """
@@ -163,7 +163,7 @@ class Quib(ABC):
                 # it's very possible there's an old assignment that doesn't match our new "shape" (not specifically np)-
                 # if so we don't care about it
                 pass
-        return cache.get_uncached_paths(path)
+        return len(cache.get_uncached_paths(path)) == 0
 
     def _invalidate_quib_with_children_at_path(self, invalidator_quib, path: List[PathComponent]):
         """
@@ -172,17 +172,12 @@ class Quib(ABC):
         or for translating a path for invalidation
         """
         new_paths = self._get_paths_for_children_invalidation(invalidator_quib, path) if path else [[]]
-        for path in new_paths:
-            if path is not None:
-                if len(path) > 0:
-                    _, *last_components = path
-                else:
-                    last_components = []
-                non_overridden_paths = self._get_paths_not_completely_overridden_at_first_component(path)
-                for non_overridden_path in non_overridden_paths:
-                    new_path = [*non_overridden_path, *last_components]
-                    self._invalidate_self(new_path)
-                    self._invalidate_children_at_path(new_path)
+        for new_path in new_paths:
+            if new_path is not None:
+                if not self._is_completely_overridden_at_first_component(new_path):
+                    path_to_invalidate = new_path
+                    self._invalidate_self(path_to_invalidate)
+                    self._invalidate_children_at_path(path_to_invalidate)
 
     def add_child(self, quib: Quib) -> None:
         """
