@@ -248,21 +248,25 @@ def test_transpositional_get_value_with_fields(data, indices_to_get_value_at):
     check_get_value_valid_at_path(lambda x: x[0], data, path_to_get_value_at)
 
 
+def filter_out_none_calls(mock_calls):
+    return [
+        mock_call
+        for mock_call in mock_calls
+        if mock_call.args[0] is not None
+    ]
+
+
+def create_mock_quib(shape, get_value_results):
+    mock_quib = mock.Mock(spec=Quib)
+    mock_quib.get_value_valid_at_path.side_effect = get_value_results
+    mock_quib.get_shape.return_value.get_value.return_value = shape
+    return mock_quib
+
+
 @pytest.mark.regression
 def test_transpositional_concatenate_does_diverge():
-    def filter_out_none_calls(mock_calls):
-        return [
-            mock_call
-            for mock_call in mock_calls
-            if mock_call.args[0] is not None
-        ]
-
-    first = mock.Mock(spec=Quib)
-    first.get_value_valid_at_path.return_value = [[1, 2, 3]]
-    first.get_shape.return_value.get_value.return_value = (1, 3)
-    second = mock.Mock(spec=Quib)
-    second.get_shape.return_value.get_value.return_value = (1, 3)
-    second.get_value_valid_at_path.return_value = [[1, 2, 3]]
+    first = create_mock_quib((1, 3), ([[1, 2, 3]]))
+    second = create_mock_quib((1, 3), ([[1, 2, 3]]))
 
     quib = np.concatenate((first, second))
     quib[1].get_value()
