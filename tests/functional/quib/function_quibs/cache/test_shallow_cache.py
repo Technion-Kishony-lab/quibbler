@@ -2,10 +2,7 @@ from unittest import mock
 
 import pytest
 
-from pyquibbler.quib.function_quibs.cache import ShallowCache
 from pyquibbler.quib.function_quibs.cache.holistic_cache import HolisticCache, PathCannotHaveComponentsException
-from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import \
-    InvalidationNotSupportedInNonPartialCacheException
 from tests.functional.quib.function_quibs.cache.cache_test import CacheTest
 
 

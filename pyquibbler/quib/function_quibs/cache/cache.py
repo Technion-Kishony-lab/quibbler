@@ -80,6 +80,9 @@ class Cache(ABC):
 
     @abstractmethod
     def _is_completely_invalid(self):
+        """
+        Is this cache completely invalid?
+        """
         pass
 
     def get_value(self) -> Any:
