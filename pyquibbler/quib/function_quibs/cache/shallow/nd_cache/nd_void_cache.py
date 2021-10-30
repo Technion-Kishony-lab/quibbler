@@ -16,17 +16,13 @@ class NdVoidCache(NdIndexableCache):
         super(NdVoidCache, self).__init__(value, mask)
 
     @classmethod
-    def create_from_result(cls, result):
+    def create_from_result(cls, result, valid_path, **kwargs):
         mask = np.full(result.shape, True, dtype=[(name, np.bool_) for name in result.dtype.names])
         mask = np.void(mask)
-        return cls(result, mask)
+        return super(NdVoidCache, cls).create_from_result(result, valid_path, mask=mask)
 
     def _get_uncached_paths_at_path_component(self,
                                               path_component: PathComponent) -> List[List[PathComponent]]:
-        paths = super(NdVoidCache, self)._get_uncached_paths_at_path_component(path_component)
-        if paths:
-            return paths
-
         # np.void's are interesting- although they can be indexed, they are still zero dimensional, and therefore
         # certain indexing methods work and certain don't:
         # You can reference np.void by `True`, `...`, or indexes (but not slices)
@@ -42,3 +38,6 @@ class NdVoidCache(NdIndexableCache):
             return [[path_component]]
 
         return []
+
+    def _is_completely_invalid(self):
+        return all(np.all(self._invalid_mask[name]) for name in self._invalid_mask.dtype.names)

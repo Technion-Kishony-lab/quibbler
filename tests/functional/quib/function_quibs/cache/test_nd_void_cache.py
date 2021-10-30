@@ -10,7 +10,6 @@ from tests.functional.quib.function_quibs.cache.cache_test import IndexableCache
 
 class TestNdVoidCache(IndexableCacheTest):
     cls = NdVoidCache
-    empty_result = np.array([()], dtype=[])[0]
 
     paths = [
         [0],
