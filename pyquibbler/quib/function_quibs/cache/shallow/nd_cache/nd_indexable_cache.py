@@ -21,10 +21,6 @@ class NdIndexableCache(ShallowCache):
         return super(NdIndexableCache, self).matches_result(result) \
                and result.shape == self.get_value().shape and result.dtype == self.get_value().dtype
 
-    @classmethod
-    def create_from_result(cls, result):
-        raise NotImplementedError()
-
     def _set_invalid_at_path_component(self, path_component: PathComponent):
         self._invalid_mask[path_component.component] = True
 
@@ -36,9 +32,11 @@ class NdIndexableCache(ShallowCache):
         else:
             self._invalid_mask = mask
 
+    def _set_valid_at_path_component(self, path_component: PathComponent):
+        self._invalid_mask[path_component.component] = False
+
     def _set_value_at_path_component(self, path_component: PathComponent, value: Any):
         self._value[path_component.component] = value
-        self._invalid_mask[path_component.component] = False
 
     @staticmethod
     def _filter_empty_paths(paths):

@@ -19,9 +19,12 @@ class NdUnstructuredArrayCache(NdIndexableCache):
         return super(NdUnstructuredArrayCache, cls).supports_result(result) and result.dtype.names is None
 
     @classmethod
-    def create_from_result(cls, result):
+    def create_from_result(cls, result, valid_path, **kwargs):
         mask = np.full(result.shape, True, dtype=np.bool_)
-        return cls(result, mask)
+        return super(NdUnstructuredArrayCache, cls).create_from_result(result, valid_path, mask=mask)
+
+    def _get_all_uncached_paths(self) -> List[List[PathComponent]]:
+        return self._get_uncached_paths_at_path_component(PathComponent(component=True, indexed_cls=type(self._value)))
 
     def _is_completely_invalid(self):
         return np.all(self._invalid_mask)

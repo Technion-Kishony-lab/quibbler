@@ -50,9 +50,6 @@ class CacheTest(ABC):
 
         assert cache.get_cache_status() == CacheStatus.ALL_VALID
 
-    def test_cache_get_cache_status_when_invalid_at_start(self, cache):
-        assert cache.get_cache_status() == CacheStatus.ALL_INVALID
-
 
 class IndexableCacheTest(CacheTest):
 
@@ -146,6 +143,9 @@ class IndexableCacheTest(CacheTest):
 
         self.assert_uncached_paths_match_expected_value(result, invalid_path, uncached_paths,
                                                                 filter_path, True)
+
+    def test_cache_get_cache_status_when_invalid_at_start(self, cache):
+        assert cache.get_cache_status() == CacheStatus.ALL_INVALID
 
     @abstractmethod
     def test_cache_get_cache_status_on_partial(self, cache):
