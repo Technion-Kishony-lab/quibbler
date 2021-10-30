@@ -41,3 +41,6 @@ class NdIndexableCache(ShallowCache):
     @staticmethod
     def _filter_empty_paths(paths):
         return list(filter(lambda p: np.any(p[-1].component), paths))
+
+    def _get_all_uncached_paths(self) -> List[List[PathComponent]]:
+        return self._get_uncached_paths_at_path_component(PathComponent(component=True, indexed_cls=type(self._value)))

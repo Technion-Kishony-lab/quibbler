@@ -18,7 +18,6 @@ class TestNdFieldArrayCache(IndexableCacheTest):
     boolean_dtype = [("name", np.bool_), ("age", np.bool_)]
 
     unsupported_type_result = [1, 2, 3]
-    empty_result = np.array([], dtype=dtype)
 
     paths = [
         [],

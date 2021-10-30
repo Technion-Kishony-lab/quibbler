@@ -17,9 +17,13 @@ class NdFieldArrayShallowCache(NdIndexableCache):
         return super(NdFieldArrayShallowCache, cls).supports_result(result) and result.dtype.names is not None
 
     @classmethod
-    def create_from_result(cls, result):
+    def create_from_result(cls, result, valid_path, **kwargs):
         mask = np.full(result.shape, True, dtype=[(name, np.bool_) for name in result.dtype.names])
-        return cls(result, True, mask)
+        return super(NdFieldArrayShallowCache, cls).create_from_result(
+            result,
+            valid_path,
+            mask=mask
+        )
 
     def _create_paths_for_indices(self, indices):
         boolean_mask_of_indices = create_empty_array_with_values_at_indices(
