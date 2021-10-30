@@ -59,13 +59,13 @@ class TestNdFieldArrayCache(IndexableCacheTest):
         "age"
     ])
     def test_cache_get_cache_status_on_partial(self, cache, component):
-        cache.set_value_at_path([PathComponent(component=component, indexed_cls=np.ndarray)], 5)
+        cache.set_valid_value_at_path([PathComponent(component=component, indexed_cls=np.ndarray)], 5)
 
         assert cache.get_cache_status() == CacheStatus.PARTIAL
 
-    def test_cache_set_valid_partial_and_get_uncached_paths(self, result, valid_components,
+    def test_cache_set_valid_partial_and_get_uncached_paths(self, cache, result, valid_components,
                                                               uncached_path_components, valid_value):
-        super(TestNdFieldArrayCache, self).test_cache_set_valid_partial_and_get_uncached_paths(result,
+        super(TestNdFieldArrayCache, self).test_cache_set_valid_partial_and_get_uncached_paths(cache, result,
                                                                                                valid_components,
                                                                                                uncached_path_components,
                                                                                                valid_value)
