@@ -51,25 +51,3 @@ class HolisticCache(Cache):
 
     def _is_completely_invalid(self):
         return self._invalid
-    #
-    # def _set_valid_at_path_component(self, path_component: PathComponent):
-    #     raise PathCannotHaveComponentsException()
-    #
-    # def _set_valid_at_all_paths(self):
-    #     self._invalid = False
-    #
-    # def _set_value_at_path_component(self, path_component: PathComponent, value: Any):
-    #     raise PathCannotHaveComponentsException()
-    #
-    # def _set_invalid_at_path_component(self, path_component: PathComponent):
-    #     raise PathCannotHaveComponentsException()
-    #
-    # def _get_all_uncached_paths(self) -> List[List[PathComponent]]:
-    #     return [[]] if self._invalid else []
-    #
-    # def _get_uncached_paths_at_path_component(self, path_component: PathComponent) -> List[List[PathComponent]]:
-    #     raise PathCannotHaveComponentsException()
-    #
-    # def _is_completely_invalid(self):
-    #     return self._invalid
-    #
