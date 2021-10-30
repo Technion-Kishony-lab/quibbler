@@ -17,7 +17,7 @@ class GetItemFunctionQuib(TranspositionalFunctionQuib):
         child quibs
         """
         if len(path) == 0:
-            path = [PathComponent(component=True, indexed_cls=np.ndarray)]
+            return [[]]
 
         working_component, *rest_of_path = path
         getitem_path_component = PathComponent(component=self._args[1], indexed_cls=invalidator_quib.get_type())
@@ -66,7 +66,7 @@ class GetItemFunctionQuib(TranspositionalFunctionQuib):
             return [rest_of_path]
 
         # The item in our getitem was not equal to the path to invalidate
-        return [None]
+        return []
 
     @property
     def _getitem_path_component(self):
