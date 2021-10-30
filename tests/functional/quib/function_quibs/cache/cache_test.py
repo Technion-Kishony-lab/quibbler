@@ -53,7 +53,7 @@ class CacheTest(ABC):
 
 class IndexableCacheTest(CacheTest):
 
-    starting_valid_path = []
+    starting_valid_path = None
 
     unsupported_type_result = NotImplemented
     empty_result = NotImplemented

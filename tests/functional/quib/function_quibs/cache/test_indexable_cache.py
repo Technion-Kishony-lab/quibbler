@@ -13,7 +13,6 @@ from tests.functional.quib.function_quibs.cache.cache_test import IndexableCache
 class TestIndexableCache(IndexableCacheTest):
 
     cls = IndexableCache
-    empty_result = []
     unsupported_type_result = {1, 2, 3}
 
     paths = [
@@ -58,11 +57,12 @@ class TestIndexableCache(IndexableCacheTest):
         assert cache.get_cache_status() == CacheStatus.PARTIAL
 
     def test_list_cache_get_cache_status_when_completely_invalid_piece_by_piece(self, cache):
-        cache.set_valid_value_at_path([], [10, 10])
+        cache.set_valid_value_at_path([], [10, 10, 10])
     
         cache.set_invalid_at_path([PathComponent(component=0, indexed_cls=list)])
         cache.set_invalid_at_path([PathComponent(component=1, indexed_cls=list)])
-    
+        cache.set_invalid_at_path([PathComponent(component=2, indexed_cls=list)])
+
         assert cache.get_cache_status() == CacheStatus.ALL_INVALID
 
     def test_cache_set_valid_makes_uncached_paths_empty(self, result, cache):

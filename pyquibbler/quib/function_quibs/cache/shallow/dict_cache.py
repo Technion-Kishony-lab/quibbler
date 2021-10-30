@@ -9,6 +9,7 @@ class DictCache(ShallowCache):
     A cache for a dictionary at a shallow level (by keys)
     """
 
+    SUPPORTS_INVALIDATION = True
     SUPPORTING_TYPES = (dict,)
 
     def __init__(self, value: Any, invalid_mask: Dict):
@@ -51,9 +52,8 @@ class DictCache(ShallowCache):
             if self._invalid_mask[k] is True
         ]
 
-    def _set_valid_value_all_paths(self, value):
-        super(DictCache, self)._set_valid_value_all_paths(value)
-        self._invalid_mask = {k: False for k in value}
+    def _set_valid_at_all_paths(self):
+        self._invalid_mask = {k: False for k in self._value}
 
     def _is_completely_invalid(self):
         return all(v is True for v in self._invalid_mask.values())

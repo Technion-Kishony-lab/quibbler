@@ -31,6 +31,7 @@ class IndexableCache(ShallowCache):
     Represents a cache that can be indexed (integer-indexed), for example lists and tuples
     """
 
+    SUPPORTS_INVALIDATION = True
     SUPPORTING_TYPES = (list, tuple,)
 
     def __init__(self, value: Any, original_type: Type, invalid_mask: List):
@@ -85,9 +86,8 @@ class IndexableCache(ShallowCache):
     def _is_completely_invalid(self):
         return all(self._invalid_mask)
 
-    def _set_valid_value_all_paths(self, value):
-        super(IndexableCache, self)._set_valid_value_all_paths(value)
-        self._invalid_mask = [False for _ in value]
+    def _set_valid_at_all_paths(self):
+        self._invalid_mask = [False for _ in self._value]
 
     def _get_all_uncached_paths(self) -> List[List[PathComponent]]:
         return [

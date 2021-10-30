@@ -8,7 +8,6 @@ from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import CacheStat
 from tests.functional.quib.function_quibs.cache.cache_test import IndexableCacheTest
 
 
-
 class TestDictCache(IndexableCacheTest):
 
     cls = DictCache

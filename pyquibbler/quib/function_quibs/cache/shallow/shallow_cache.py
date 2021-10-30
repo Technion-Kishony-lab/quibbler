@@ -9,6 +9,12 @@ from pyquibbler.quib.function_quibs.cache.cache import Cache, CacheStatus
 class InvalidationNotSupportedInNonPartialCacheException(PyQuibblerException):
 
     def __str__(self):
+        return "You cannot invalidate a non partial cache (eg a whole number)"
+
+
+class PathCannotHaveComponentsException(PyQuibblerException):
+
+    def __str__(self):
         return "This shallow cache does not support specifying paths that are not `all` (ie `[]`)"
 
 
@@ -16,6 +22,12 @@ class CannotInvalidateEntireCacheException(PyQuibblerException):
 
     def __str__(self):
         return "It is not possible to invalidate an entire cache"
+
+
+class NonPartialShallowCacheCannotBeInvalidException(PyQuibblerException):
+
+    def __str__(self):
+        return "A shallow cache which is not partial cannot ever be invalid"
 
 
 class ShallowCache(Cache):
@@ -26,13 +38,19 @@ class ShallowCache(Cache):
     to override in order to support this
     """
 
+    SUPPORTS_INVALIDATION = False
     SUPPORTING_TYPES = (object,)
 
     @classmethod
     def create_from_result(cls, result, valid_path, **kwargs):
         self = cls(result, **kwargs)
-        if len(valid_path) > 0:
-            self._set_valid_at_path_component(valid_path[0])
+        if valid_path is None and not cls.SUPPORTS_INVALIDATION:
+            raise NonPartialShallowCacheCannotBeInvalidException()
+        if valid_path is not None:
+            if len(valid_path) > 0:
+                self._set_valid_at_path_component(valid_path[0])
+            else:
+                self._set_valid_at_all_paths()
         return self
 
     def get_cache_status(self):
@@ -45,6 +63,9 @@ class ShallowCache(Cache):
             return CacheStatus.PARTIAL
 
     def _set_valid_at_path_component(self, path_component: PathComponent):
+        pass
+
+    def _set_valid_at_all_paths(self):
         pass
 
     def set_valid_value_at_path(self, path: List[PathComponent], value: Any) -> None:
@@ -65,6 +86,7 @@ class ShallowCache(Cache):
         Set the cache to be completely valid.
         Override this in order to update anything other you have which represents validity (such as a mask)
         """
+        self._set_valid_at_all_paths()
         self._value = value
 
     def set_invalid_at_path(self, path: List[PathComponent]) -> None:

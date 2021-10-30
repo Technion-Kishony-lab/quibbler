@@ -141,7 +141,7 @@ class Quib(ABC):
         """
         path = path[:1]
         value = self._get_inner_value_valid_at_path(None)
-        cache = create_cache(value, )
+        cache = create_cache(value, None)
         cache = transform_cache_to_nd_if_necessary_given_path(cache, path)
         for assignment in self._overrider:
             cache = transform_cache_to_nd_if_necessary_given_path(cache, path)
@@ -154,6 +154,8 @@ class Quib(ABC):
                 else:
                     # Our cache only accepts shallow paths, so we need to consider any invalidation to a path deeper
                     # than one component as an invalidation to the entire first component of that path
+                    if len(assignment.path) == 0:
+                        cache = create_cache()
                     cache.set_invalid_at_path(assignment.path[:1])
             except (IndexError, TypeError):
                 # it's very possible there's an old assignment that doesn't match our new "shape" (not specifically np)-
