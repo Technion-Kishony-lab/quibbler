@@ -2,7 +2,7 @@ import pytest
 
 from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.quib.function_quibs.cache import IndexableCache
-from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import CacheStatus
+from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
 from tests.functional.quib.function_quibs.cache.cache_test import IndexableCacheTest
 
 

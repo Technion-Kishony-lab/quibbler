@@ -1,5 +1,5 @@
 from functools import wraps
-from typing import List, Any
+from typing import List
 
 from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.quib.assignment import PathComponent

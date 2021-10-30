@@ -6,7 +6,7 @@ from typing import Callable, Any, Mapping, Tuple, Optional, List, TYPE_CHECKING
 import numpy as np
 
 from pyquibbler.quib.function_quibs.cache import create_cache
-from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import CacheStatus
+from .cache.cache import CacheStatus
 from .cache.holistic_cache import PathCannotHaveComponentsException
 from .cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
 from .function_quib import FunctionQuib, CacheBehavior

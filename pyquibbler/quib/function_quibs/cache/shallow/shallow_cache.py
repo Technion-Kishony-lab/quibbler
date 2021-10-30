@@ -4,7 +4,7 @@ from typing import Any, List
 
 from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.quib.assignment import PathComponent
-from pyquibbler.quib.function_quibs.cache.cache import Cache, CacheStatus
+from pyquibbler.quib.function_quibs.cache.cache import Cache
 
 
 class CannotInvalidateEntireCacheException(PyQuibblerException):
@@ -77,4 +77,3 @@ class ShallowCache(Cache):
         if len(path) == 0:
             return self._get_all_uncached_paths()
         return self._get_uncached_paths_at_path_component(path[0])
-

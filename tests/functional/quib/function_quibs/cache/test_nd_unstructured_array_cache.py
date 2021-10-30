@@ -3,8 +3,8 @@ import pytest
 
 from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.quib.assignment.utils import deep_assign_data_with_paths
+from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
 from pyquibbler.quib.function_quibs.cache.shallow.nd_cache import NdUnstructuredArrayCache
-from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import CacheStatus
 from tests.functional.quib.function_quibs.cache.cache_test import IndexableCacheTest
 
 
