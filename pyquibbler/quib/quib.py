@@ -174,10 +174,9 @@ class Quib(ABC):
         new_paths = self._get_paths_for_children_invalidation(invalidator_quib, path) if path else [[]]
         for new_path in new_paths:
             if new_path is not None:
-                if not self._is_completely_overridden_at_first_component(new_path):
-                    path_to_invalidate = new_path
-                    self._invalidate_self(path_to_invalidate)
-                    self._invalidate_children_at_path(path_to_invalidate)
+                self._invalidate_self(new_path)
+                if len(self.children) > 0 and not self._is_completely_overridden_at_first_component(new_path):
+                    self._invalidate_children_at_path(new_path)
 
     def add_child(self, quib: Quib) -> None:
         """

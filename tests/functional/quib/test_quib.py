@@ -38,7 +38,6 @@ class ExampleQuib(Quib):
         return [path]
 
 
-
 @fixture
 def example_quib(assignment_template_mock):
     return ExampleQuib(['the', 'quib', 'value'], assignment_template=assignment_template_mock)
