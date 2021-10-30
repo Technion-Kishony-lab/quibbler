@@ -16,6 +16,9 @@ class GetItemFunctionQuib(TranspositionalFunctionQuib):
         Handle invalidation on a getitem quib, correctly choosing whether or not and at what indices to invalidate
         child quibs
         """
+        if len(path) == 0:
+            path = [PathComponent(component=True, indexed_cls=np.ndarray)]
+
         working_component, *rest_of_path = path
         getitem_path_component = PathComponent(component=self._args[1], indexed_cls=invalidator_quib.get_type())
         if issubclass(invalidator_quib.get_type(), np.ndarray):
@@ -94,3 +97,7 @@ class GetItemFunctionQuib(TranspositionalFunctionQuib):
         return {
             self._args[0]: [self._getitem_path_component, *filtered_path_in_result]
         }
+
+    def get_value(self):
+        res = super(GetItemFunctionQuib, self).get_value()
+        return res

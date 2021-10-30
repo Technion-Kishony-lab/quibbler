@@ -101,7 +101,8 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
             # we'd expect it to be completely True (as it is ONE single object). If it is not a single item, it is by
             # definitely an ndarray
             assert issubclass(self.get_type(), np.ndarray) or np.all(bool_mask_in_output_array)
-            assert issubclass(self.get_type(), np.ndarray) or isinstance(bool_mask_in_output_array, np.bool_)
+            assert issubclass(self.get_type(), np.ndarray) or isinstance(bool_mask_in_output_array, np.bool_) \
+                   or (bool_mask_in_output_array.shape == () and bool_mask_in_output_array.dtype == np.bool_)
 
             if not np.all(bool_mask_in_output_array) and issubclass(self.get_type(), np.ndarray):
                 return [PathComponent(self.get_type(), bool_mask_in_output_array), *rest_of_path]
@@ -110,6 +111,8 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
 
     def _get_paths_for_children_invalidation(self, invalidator_quib: Quib,
                                              path: List[PathComponent]) -> List[Optional[List[PathComponent]]]:
+        if len(path) == 0:
+            path = [PathComponent(component=True, indexed_cls=np.ndarray)]
         if not self._is_quib_a_data_source(invalidator_quib):
             return [[]]
         return [self._forward_translate_invalidation_path(invalidator_quib, path)]
