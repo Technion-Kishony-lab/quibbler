@@ -6,7 +6,7 @@ from typing import Callable, Any, Mapping, Tuple, Optional, List, TYPE_CHECKING
 import numpy as np
 
 from pyquibbler.quib.function_quibs.cache import create_cache
-from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import CacheStatus, PathCannotHaveComponentsException
+from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import CacheStatus, InvalidationNotSupportedInNonPartialCacheException
 from .cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
 from .function_quib import FunctionQuib, CacheBehavior
 from ..assignment import AssignmentTemplate
@@ -55,6 +55,7 @@ class DefaultFunctionQuib(FunctionQuib):
     def _invalidate_self(self, path: List['PathComponent']):
         if len(path) == 0:
             self._reset_cache()
+
         if self._cache is not None:
             self._cache = transform_cache_to_nd_if_necessary_given_path(self._cache, path)
             self._cache.set_invalid_at_path(path)
@@ -139,7 +140,7 @@ class DefaultFunctionQuib(FunctionQuib):
                     # We need to get the result from the cache (as opposed to simply using the last run), since we
                     # don't want to only take the last run
                     result = self._cache.get_value()
-                except PathCannotHaveComponentsException:
+                except InvalidationNotSupportedInNonPartialCacheException:
                     # We do not have a diverged cache for this type, we can't store the value; this is not a problem as
                     # everything will work as expected, but we will simply not cache
                     assert len(uncached_paths) == 1, "There should never be a situation in which we have multiple " \

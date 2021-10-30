@@ -11,35 +11,33 @@ class DictCache(ShallowCache):
 
     SUPPORTING_TYPES = (dict,)
 
-    def __init__(self, value: Any, object_is_invalidated_as_a_whole: bool, invalid_mask: Dict):
-        super().__init__(value, object_is_invalidated_as_a_whole)
+    def __init__(self, value: Any, invalid_mask: Dict):
+        super().__init__(value)
         self._invalid_mask = invalid_mask
 
     @classmethod
-    def create_from_result(cls, result):
-        return cls(
-            result,
-            True,
-            invalid_mask={
+    def create_from_result(cls, result, valid_path, **kwargs):
+        return super(DictCache, cls).create_from_result(result, valid_path, invalid_mask={
                 k: True
                 for k in result
-            }
-        )
+            })
 
     def matches_result(self, result):
         return super(DictCache, self).matches_result(result) \
                and list(result.keys()) == list(self._value.keys())
 
-    def _set_valid_value_at_path_component(self, path_component: PathComponent, value: Any):
-        self._value[path_component.component] = value
+    def _set_valid_at_path_component(self, path_component: PathComponent):
         self._invalid_mask[path_component.component] = False
+
+    def _set_value_at_path_component(self, path_component: PathComponent, value: Any):
+        self._value[path_component.component] = value
 
     def _set_invalid_at_path_component(self, path_component: PathComponent):
         self._invalid_mask[path_component.component] = True
 
     def _get_uncached_paths_at_path_component(self,
                                               path_component: PathComponent) -> List[List[PathComponent]]:
-        return super(DictCache, self)._get_uncached_paths_at_path_component(path_component) or [
+        return [
             [PathComponent(component=k, indexed_cls=dict)]
             for k, v in self._value.items()
             if self._invalid_mask[k] is True
@@ -47,7 +45,7 @@ class DictCache(ShallowCache):
         ]
 
     def _get_all_uncached_paths(self) -> List[List[PathComponent]]:
-        return super(DictCache, self)._get_all_uncached_paths() or [
+        return [
             [PathComponent(component=k, indexed_cls=dict)]
             for k, v in self._value.items()
             if self._invalid_mask[k] is True
@@ -56,3 +54,6 @@ class DictCache(ShallowCache):
     def _set_valid_value_all_paths(self, value):
         super(DictCache, self)._set_valid_value_all_paths(value)
         self._invalid_mask = {k: False for k in value}
+
+    def _is_completely_invalid(self):
+        return all(v is True for v in self._invalid_mask.values())

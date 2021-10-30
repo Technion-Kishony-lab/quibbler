@@ -13,10 +13,9 @@ class NdIndexableCache(ShallowCache):
 
     SUPPORTING_TYPES = (np.ndarray,)
 
-    def __init__(self, value: Any, whole_object_is_invalidated, mask):
-        super(NdIndexableCache, self).__init__(value, whole_object_is_invalidated)
+    def __init__(self, value: Any, mask):
+        super(NdIndexableCache, self).__init__(value)
         self._invalid_mask = mask
-        self._whole_object_is_invalidated = whole_object_is_invalidated
 
     def matches_result(self, result) -> bool:
         return super(NdIndexableCache, self).matches_result(result) \
@@ -37,14 +36,9 @@ class NdIndexableCache(ShallowCache):
         else:
             self._invalid_mask = mask
 
-    def _set_valid_value_at_path_component(self, path_component: PathComponent, value: Any):
+    def _set_value_at_path_component(self, path_component: PathComponent, value: Any):
         self._value[path_component.component] = value
         self._invalid_mask[path_component.component] = False
-
-    def _get_all_uncached_paths(self) -> List[List[PathComponent]]:
-        return super(NdIndexableCache, self)._get_all_uncached_paths() \
-               or self._get_uncached_paths_at_path_component(PathComponent(component=True,
-                                                                           indexed_cls=type(self._value)))
 
     @staticmethod
     def _filter_empty_paths(paths):

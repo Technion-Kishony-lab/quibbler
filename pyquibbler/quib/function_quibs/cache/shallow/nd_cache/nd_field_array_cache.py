@@ -40,10 +40,6 @@ class NdFieldArrayShallowCache(NdIndexableCache):
 
     def _get_uncached_paths_at_path_component(self,
                                               path_component):
-        paths = super(NdFieldArrayShallowCache, self)._get_uncached_paths_at_path_component(path_component)
-        if paths:
-            return paths
-
         if path_component.references_field_in_field_array():
             paths = [[PathComponent(indexed_cls=np.ndarray, component=path_component.component),
                       PathComponent(indexed_cls=np.ndarray, component=self._invalid_mask[path_component.component])]]
@@ -53,5 +49,4 @@ class NdFieldArrayShallowCache(NdIndexableCache):
         return self._filter_empty_paths(paths)
 
     def _is_completely_invalid(self):
-        return super(NdFieldArrayShallowCache, self)._is_completely_invalid() \
-               or all(np.all(self._invalid_mask[name]) for name in self._invalid_mask.dtype.names)
+        return all(np.all(self._invalid_mask[name]) for name in self._invalid_mask.dtype.names)

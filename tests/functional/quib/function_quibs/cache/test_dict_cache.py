@@ -14,7 +14,6 @@ class TestDictCache(IndexableCacheTest):
     cls = DictCache
 
     unsupported_type_result = [1, 2, 3]
-    empty_result = {}
 
     paths = [
         [],

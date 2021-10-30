@@ -12,14 +12,14 @@ class NdVoidCache(NdIndexableCache):
     """
     SUPPORTING_TYPES = (np.void,)
 
-    def __init__(self, value: Any, whole_object_is_invalidated, mask):
-        super(NdVoidCache, self).__init__(value, whole_object_is_invalidated, mask)
+    def __init__(self, value: Any, mask):
+        super(NdVoidCache, self).__init__(value, mask)
 
     @classmethod
     def create_from_result(cls, result):
         mask = np.full(result.shape, True, dtype=[(name, np.bool_) for name in result.dtype.names])
         mask = np.void(mask)
-        return cls(result, True, mask)
+        return cls(result, mask)
 
     def _get_uncached_paths_at_path_component(self,
                                               path_component: PathComponent) -> List[List[PathComponent]]:
