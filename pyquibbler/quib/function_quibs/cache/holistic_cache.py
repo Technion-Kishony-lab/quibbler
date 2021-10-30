@@ -1,0 +1,72 @@
+from functools import wraps
+from typing import List, Any
+
+from pyquibbler.exceptions import PyQuibblerException
+from pyquibbler.quib.assignment import PathComponent
+from pyquibbler.quib.function_quibs.cache.cache import Cache
+
+
+class PathCannotHaveComponentsException(PyQuibblerException):
+
+    def __str__(self):
+        return "This shallow cache does not support specifying paths that are not `all` (ie `[]`)"
+
+
+def raise_if_path_is_not_empty(func):
+    @wraps(func)
+    def _wrapper(self, path, *args, **kwargs):
+        if len(path) > 0:
+            raise PathCannotHaveComponentsException()
+        return func(self, path, *args, **kwargs)
+    return _wrapper
+
+
+class HolisticCache(Cache):
+
+    SUPPORTING_TYPES = (object,)
+
+    def __init__(self, value, invalid):
+        super(HolisticCache, self).__init__(value)
+        self._invalid = invalid
+
+    @classmethod
+    def create_invalid_cache_from_result(cls, result):
+        return cls(value=result, invalid=True)
+
+    @raise_if_path_is_not_empty
+    def set_valid_value_at_path(self, path: List[PathComponent], value) -> None:
+        self._invalid = False
+        self._value = value
+
+    @raise_if_path_is_not_empty
+    def set_invalid_at_path(self, path: List[PathComponent]) -> None:
+        self._invalid = True
+
+    @raise_if_path_is_not_empty
+    def get_uncached_paths(self, path: List[PathComponent]) -> List[List[PathComponent]]:
+        return [[]] if self._invalid else []
+
+    def _is_completely_invalid(self):
+        return self._invalid
+    #
+    # def _set_valid_at_path_component(self, path_component: PathComponent):
+    #     raise PathCannotHaveComponentsException()
+    #
+    # def _set_valid_at_all_paths(self):
+    #     self._invalid = False
+    #
+    # def _set_value_at_path_component(self, path_component: PathComponent, value: Any):
+    #     raise PathCannotHaveComponentsException()
+    #
+    # def _set_invalid_at_path_component(self, path_component: PathComponent):
+    #     raise PathCannotHaveComponentsException()
+    #
+    # def _get_all_uncached_paths(self) -> List[List[PathComponent]]:
+    #     return [[]] if self._invalid else []
+    #
+    # def _get_uncached_paths_at_path_component(self, path_component: PathComponent) -> List[List[PathComponent]]:
+    #     raise PathCannotHaveComponentsException()
+    #
+    # def _is_completely_invalid(self):
+    #     return self._invalid
+    #

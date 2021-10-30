@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from typing import Any, List
 
 
@@ -12,16 +13,11 @@ class InvalidationNotSupportedInNonPartialCacheException(PyQuibblerException):
         return "You cannot invalidate a non partial cache (eg a whole number)"
 
 
-class PathCannotHaveComponentsException(PyQuibblerException):
-
-    def __str__(self):
-        return "This shallow cache does not support specifying paths that are not `all` (ie `[]`)"
-
-
 class CannotInvalidateEntireCacheException(PyQuibblerException):
 
     def __str__(self):
-        return "It is not possible to invalidate an entire cache"
+        return "It is not possible to invalidate an entire shallow cache- as we are shallow, our size may have " \
+               "changed given a complete invalidation"
 
 
 class NonPartialShallowCacheCannotBeInvalidException(PyQuibblerException):
@@ -38,56 +34,30 @@ class ShallowCache(Cache):
     to override in order to support this
     """
 
-    SUPPORTS_INVALIDATION = False
     SUPPORTING_TYPES = (object,)
 
-    @classmethod
-    def create_from_result(cls, result, valid_path, **kwargs):
-        self = cls(result, **kwargs)
-        if valid_path is None and not cls.SUPPORTS_INVALIDATION:
-            raise NonPartialShallowCacheCannotBeInvalidException()
-        if valid_path is not None:
-            if len(valid_path) > 0:
-                self._set_valid_at_path_component(valid_path[0])
-            else:
-                self._set_valid_at_all_paths()
-        return self
-
-    def get_cache_status(self):
-        uncached_paths = self.get_uncached_paths([])
-        if len(uncached_paths) == 0:
-            return CacheStatus.ALL_VALID
-        elif self._is_completely_invalid():
-            return CacheStatus.ALL_INVALID
-        else:
-            return CacheStatus.PARTIAL
-
+    @abstractmethod
     def _set_valid_at_path_component(self, path_component: PathComponent):
         pass
 
+    @abstractmethod
     def _set_valid_at_all_paths(self):
         pass
 
-    def set_valid_value_at_path(self, path: List[PathComponent], value: Any) -> None:
+    def set_value_at_path(self, path: List[PathComponent], value: Any) -> None:
         if len(path) != 0:
             self._set_valid_at_path_component(path[0])
             self._set_value_at_path_component(path[0], value)
         else:
-            self._set_valid_value_all_paths(value)
+            self._set_valid_at_all_paths()
+            self._value = value
 
+    @abstractmethod
     def _set_value_at_path_component(self, path_component: PathComponent, value: Any):
         """
         Override this function in a subclass given an implementation to set valid at specific components
         """
-        raise InvalidationNotSupportedInNonPartialCacheException()
-
-    def _set_valid_value_all_paths(self, value):
-        """
-        Set the cache to be completely valid.
-        Override this in order to update anything other you have which represents validity (such as a mask)
-        """
-        self._set_valid_at_all_paths()
-        self._value = value
+        pass
 
     def set_invalid_at_path(self, path: List[PathComponent]) -> None:
         if len(path) == 0:
@@ -95,20 +65,23 @@ class ShallowCache(Cache):
 
         self._set_invalid_at_path_component(path[0])
 
+    @abstractmethod
     def _set_invalid_at_path_component(self, path_component: PathComponent):
         """
         Override this function in a subclass given an implementation to invalidate at specific components
         """
-        raise InvalidationNotSupportedInNonPartialCacheException()
+        pass
 
+    @abstractmethod
     def _get_all_uncached_paths(self) -> List[List[PathComponent]]:
-        return []
+        pass
 
     def get_uncached_paths(self, path: List[PathComponent]):
         if len(path) == 0:
             return self._get_all_uncached_paths()
         return self._get_uncached_paths_at_path_component(path[0])
 
+    @abstractmethod
     def _get_uncached_paths_at_path_component(self,
                                               path_component: PathComponent)\
             -> List[List[PathComponent]]:
@@ -120,9 +93,8 @@ class ShallowCache(Cache):
         """
         return []
 
+    @abstractmethod
     def _is_completely_invalid(self):
         """
         Is this cache completely invalid?
-        Override this in order to add an implementation for partial invalidation that led to complete invalidation
         """
-        return False

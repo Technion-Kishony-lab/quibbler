@@ -3,13 +3,15 @@ from unittest import mock
 import pytest
 
 from pyquibbler.quib.function_quibs.cache import ShallowCache
-from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import InvalidationNotSupportedInNonPartialCacheException
+from pyquibbler.quib.function_quibs.cache.holistic_cache import HolisticCache, PathCannotHaveComponentsException
+from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import \
+    InvalidationNotSupportedInNonPartialCacheException
 from tests.functional.quib.function_quibs.cache.cache_test import CacheTest
 
 
 class TestShallowCache(CacheTest):
 
-    cls = ShallowCache
+    cls = HolisticCache
 
     @pytest.fixture()
     def result(self):
@@ -19,9 +21,9 @@ class TestShallowCache(CacheTest):
         assert cache.matches_result(object)
 
     def test_shallow_cache_does_not_allow_specifying_paths_in_invalidate(self, cache):
-        with pytest.raises(InvalidationNotSupportedInNonPartialCacheException):
+        with pytest.raises(PathCannotHaveComponentsException):
             cache.set_invalid_at_path([mock.Mock()])
 
     def test_shallow_cache_does_not_allow_specifying_paths_in_set_valid(self, cache):
-        with pytest.raises(InvalidationNotSupportedInNonPartialCacheException):
+        with pytest.raises(PathCannotHaveComponentsException):
             cache.set_valid_value_at_path([mock.Mock()], 1)

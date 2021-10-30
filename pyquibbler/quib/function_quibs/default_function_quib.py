@@ -136,7 +136,7 @@ class DefaultFunctionQuib(FunctionQuib):
                 try:
                     valid_value = get_sub_data_from_object_in_path(result, uncached_path)
                     self._cache = transform_cache_to_nd_if_necessary_given_path(self._cache, uncached_path)
-                    self._cache.set_valid_value_at_path(uncached_path, valid_value)
+                    self._cache.set_value_at_path(uncached_path, valid_value)
                     # We need to get the result from the cache (as opposed to simply using the last run), since we
                     # don't want to only take the last run
                     result = self._cache.get_value()

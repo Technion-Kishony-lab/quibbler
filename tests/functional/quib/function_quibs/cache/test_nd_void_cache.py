@@ -44,7 +44,7 @@ class TestNdVoidCache(IndexableCacheTest):
         return obj
 
     def test_cache_get_cache_status_on_partial(self, cache):
-        cache.set_valid_value_at_path([PathComponent(component=0, indexed_cls=np.void)], 5)
+        cache.set_value_at_path([PathComponent(component=0, indexed_cls=np.void)], 5)
 
         assert cache.get_cache_status() == CacheStatus.PARTIAL
 

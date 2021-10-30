@@ -49,7 +49,7 @@ class TestDictCache(IndexableCacheTest):
         assert not cache.matches_result({"a": 1})
 
     def test_cache_get_cache_status_on_partial(self, cache):
-        cache.set_valid_value_at_path([PathComponent(indexed_cls=dict, component="a")], mock.Mock())
+        cache.set_value_at_path([PathComponent(indexed_cls=dict, component="a")], mock.Mock())
 
         assert cache.get_cache_status() == CacheStatus.PARTIAL
 

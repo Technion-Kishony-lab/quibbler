@@ -52,12 +52,12 @@ class TestIndexableCache(IndexableCacheTest):
         assert not cache.matches_result([1, 2, 3, 4])
 
     def test_cache_get_cache_status_on_partial(self, cache):
-        cache.set_valid_value_at_path([PathComponent(indexed_cls=list, component=slice(1, None, None))], [10, 10])
+        cache.set_value_at_path([PathComponent(indexed_cls=list, component=slice(1, None, None))], [10, 10])
     
         assert cache.get_cache_status() == CacheStatus.PARTIAL
 
     def test_list_cache_get_cache_status_when_completely_invalid_piece_by_piece(self, cache):
-        cache.set_valid_value_at_path([], [10, 10, 10])
+        cache.set_value_at_path([], [10, 10, 10])
     
         cache.set_invalid_at_path([PathComponent(component=0, indexed_cls=list)])
         cache.set_invalid_at_path([PathComponent(component=1, indexed_cls=list)])
@@ -66,7 +66,7 @@ class TestIndexableCache(IndexableCacheTest):
         assert cache.get_cache_status() == CacheStatus.ALL_INVALID
 
     def test_cache_set_valid_makes_uncached_paths_empty(self, result, cache):
-        cache.set_valid_value_at_path([], result)
+        cache.set_value_at_path([], result)
         uncached_paths = cache.get_uncached_paths([])
 
         assert len(uncached_paths) == 0

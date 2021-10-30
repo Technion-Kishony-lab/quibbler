@@ -150,7 +150,7 @@ class Quib(ABC):
                     # Our cache only accepts shallow paths, so any validation to a non-shallow path is not necessarily
                     # overridden at the first component completely- so we ignore it
                     if len(assignment.path) <= 1:
-                        cache.set_valid_value_at_path(assignment.path, assignment.value)
+                        cache.set_value_at_path(assignment.path, assignment.value)
                 else:
                     # Our cache only accepts shallow paths, so we need to consider any invalidation to a path deeper
                     # than one component as an invalidation to the entire first component of that path

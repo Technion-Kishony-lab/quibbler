@@ -16,11 +16,10 @@ from pyquibbler.quib.utils import deep_copy_without_quibs_or_artists
 class CacheTest(ABC):
 
     cls = NotImplemented
-    starting_valid_path = []
 
     @pytest.fixture()
     def cache(self, result):
-        return self.cls.create_from_result(result, self.starting_valid_path)
+        return self.cls.create_invalid_cache_from_result(result)
 
     def test_matches_result_of_same_value(self, cache):
         assert cache.matches_result(cache.get_value())
@@ -30,12 +29,6 @@ class CacheTest(ABC):
         uncached_paths = cache.get_uncached_paths([])
 
         assert len(uncached_paths) == 0
-
-    def test_cache_set_invalid_all_raises_exception(self, cache, result):
-        cache.set_valid_value_at_path([], result)
-
-        with pytest.raises(CannotInvalidateEntireCacheException):
-            cache.set_invalid_at_path([])
 
     def test_cache_get_value_when_valid(self, cache, result):
         cache.set_valid_value_at_path([], result)
@@ -110,6 +103,12 @@ class IndexableCacheTest(CacheTest):
         items = get_sub_data_from_object_in_path(checking_result, filter_path)
         assert all(str(x) == str(checked_invalid) or str(x) == str(valid_value)
                    for x in self.get_values_from_result(items))
+
+    def test_cache_set_invalid_all_raises_exception(self, cache, result):
+        cache.set_valid_value_at_path([], result)
+
+        with pytest.raises(CannotInvalidateEntireCacheException):
+            cache.set_invalid_at_path([])
 
     def test_cache_does_not_match_result_of_unsupported_type(self, cache):
         assert not cache.matches_result(self.unsupported_type_result)
