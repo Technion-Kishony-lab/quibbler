@@ -9,7 +9,6 @@ class DictCache(ShallowCache):
     A cache for a dictionary at a shallow level (by keys)
     """
 
-    SUPPORTS_INVALIDATION = True
     SUPPORTING_TYPES = (dict,)
 
     def __init__(self, value: Any, invalid_mask: Dict):

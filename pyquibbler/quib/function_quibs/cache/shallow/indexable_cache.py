@@ -31,7 +31,6 @@ class IndexableCache(ShallowCache):
     Represents a cache that can be indexed (integer-indexed), for example lists and tuples
     """
 
-    SUPPORTS_INVALIDATION = True
     SUPPORTING_TYPES = (list, tuple,)
 
     def __init__(self, value: Any, original_type: Type, invalid_mask: List):
