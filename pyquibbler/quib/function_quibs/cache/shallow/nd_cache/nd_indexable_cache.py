@@ -11,7 +11,6 @@ class NdIndexableCache(ShallowCache):
     A base class for an ndarray cache (both unstructured and field array)
     """
 
-    SUPPORTS_INVALIDATION = True
     SUPPORTING_TYPES = (np.ndarray,)
 
     def __init__(self, value: Any, mask):
@@ -32,10 +31,8 @@ class NdIndexableCache(ShallowCache):
         else:
             self._invalid_mask = mask
 
-    def _set_valid_at_path_component(self, path_component: PathComponent):
+    def _set_valid_value_at_path_component(self, path_component: PathComponent, value):
         self._invalid_mask[path_component.component] = False
-
-    def _set_value_at_path_component(self, path_component: PathComponent, value: Any):
         self._value[path_component.component] = value
 
     @staticmethod
