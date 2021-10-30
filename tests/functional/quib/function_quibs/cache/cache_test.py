@@ -142,11 +142,15 @@ class IndexableCacheTest(CacheTest):
         self.assert_uncached_paths_match_expected_value(result, invalid_path, uncached_paths,
                                                                 filter_path, True)
 
-    # @abstractmethod
-    def test_cache_get_cache_status_when_invalid(self, cache):
+    def test_cache_get_cache_status_when_invalid(self, cache, result):
+        self.set_completely_invalid(result, cache)
+
+        assert cache.get_cache_status() == CacheStatus.ALL_INVALID
+
+    @abstractmethod
+    def test_cache_get_cache_status_on_partial(self, result, cache):
         pass
 
     @abstractmethod
-    def test_cache_get_cache_status_on_partial(self, cache):
+    def set_completely_invalid(self, result, cache):
         pass
-

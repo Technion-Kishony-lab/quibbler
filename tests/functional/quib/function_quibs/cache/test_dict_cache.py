@@ -68,3 +68,7 @@ class TestDictCache(IndexableCacheTest):
         super(TestDictCache, self).test_cache_set_invalid_partial_and_get_uncached_paths(cache, result,
                                                                                          invalid_components,
                                                                                          uncached_path_components)
+
+    def set_completely_invalid(self, result, cache):
+        for k in result:
+            cache.set_invalid_at_path([PathComponent(component=k, indexed_cls=dict)])

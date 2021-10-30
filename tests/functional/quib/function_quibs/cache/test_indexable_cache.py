@@ -82,3 +82,7 @@ class TestIndexableCache(IndexableCacheTest):
         super(TestIndexableCache, self).test_cache_set_invalid_partial_and_get_uncached_paths(cache, result,
                                                                                               invalid_components,
                                                                                               uncached_path_components)
+
+    def set_completely_invalid(self, result, cache):
+        for i in range(len(result)):
+            cache.set_invalid_at_path([PathComponent(component=i, indexed_cls=type(result))])

@@ -66,3 +66,6 @@ class TestNdUnstructuredArrayCache(IndexableCacheTest):
         super(TestNdUnstructuredArrayCache, self).test_cache_set_invalid_partial_and_get_uncached_paths(cache, result,
                                                                                                  invalid_components,
                                                                                                  uncached_path_components)
+
+    def set_completely_invalid(self, result, cache):
+        cache.set_invalid_at_path([PathComponent(indexed_cls=np.ndarray, component=True)])
