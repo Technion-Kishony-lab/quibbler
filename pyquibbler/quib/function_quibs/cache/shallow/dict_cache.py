@@ -17,8 +17,8 @@ class DictCache(ShallowCache):
         self._invalid_mask = invalid_mask
 
     @classmethod
-    def create_from_result(cls, result, valid_path, **kwargs):
-        return super(DictCache, cls).create_from_result(result, valid_path, invalid_mask={
+    def create_invalid_cache_from_result(cls, result):
+        return cls(result, invalid_mask={
                 k: True
                 for k in result
             })

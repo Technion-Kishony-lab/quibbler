@@ -17,11 +17,10 @@ class NdFieldArrayShallowCache(NdIndexableCache):
         return super(NdFieldArrayShallowCache, cls).supports_result(result) and result.dtype.names is not None
 
     @classmethod
-    def create_from_result(cls, result, valid_path, **kwargs):
+    def create_invalid_cache_from_result(cls, result):
         mask = np.full(result.shape, True, dtype=[(name, np.bool_) for name in result.dtype.names])
-        return super(NdFieldArrayShallowCache, cls).create_from_result(
+        return cls(
             result,
-            valid_path,
             mask=mask
         )
 

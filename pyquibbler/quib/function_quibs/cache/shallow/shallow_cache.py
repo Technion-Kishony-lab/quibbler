@@ -37,23 +37,18 @@ class ShallowCache(Cache):
     SUPPORTING_TYPES = (object,)
 
     @abstractmethod
-    def _set_valid_at_path_component(self, path_component: PathComponent):
-        pass
-
-    @abstractmethod
     def _set_valid_at_all_paths(self):
         pass
 
-    def set_value_at_path(self, path: List[PathComponent], value: Any) -> None:
+    def set_valid_value_at_path(self, path: List[PathComponent], value: Any) -> None:
         if len(path) != 0:
-            self._set_valid_at_path_component(path[0])
-            self._set_value_at_path_component(path[0], value)
+            self._set_valid_value_at_path_component(path[0], value)
         else:
             self._set_valid_at_all_paths()
             self._value = value
 
     @abstractmethod
-    def _set_value_at_path_component(self, path_component: PathComponent, value: Any):
+    def _set_valid_value_at_path_component(self, path_component: PathComponent, value: Any):
         """
         Override this function in a subclass given an implementation to set valid at specific components
         """

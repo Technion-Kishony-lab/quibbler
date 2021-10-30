@@ -40,10 +40,8 @@ class IndexableCache(ShallowCache):
         self._original_type = original_type
 
     @classmethod
-    def create_from_result(cls, result, valid_path, **kwargs):
-        return super(IndexableCache, cls).create_from_result(list(result), valid_path,
-                                                             original_type=type(result),
-                                                             invalid_mask=[True for _ in result])
+    def create_invalid_cache_from_result(cls, result):
+        return cls(list(result), original_type=type(result), invalid_mask=[True for _ in result])
 
     def matches_result(self, result):
         return super(IndexableCache, self).matches_result(result) \
@@ -74,11 +72,9 @@ class IndexableCache(ShallowCache):
         for i in range(*range_to_set_invalid):
             self._invalid_mask[i] = value
 
-    def _set_valid_at_path_component(self, path_component: PathComponent):
-        self._set_invalid_mask_at_path_component(path_component.component, False)
-
-    def _set_value_at_path_component(self, path_component: PathComponent, value):
+    def _set_valid_value_at_path_component(self, path_component: PathComponent, value):
         self._value[path_component.component] = value
+        self._set_invalid_mask_at_path_component(path_component.component, False)
 
     def _set_invalid_at_path_component(self, path_component: PathComponent):
         self._set_invalid_mask_at_path_component(path_component.component, True)

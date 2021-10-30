@@ -113,11 +113,10 @@ class IndexableCacheTest(CacheTest):
     def test_cache_does_not_match_result_of_unsupported_type(self, cache):
         assert not cache.matches_result(self.unsupported_type_result)
 
-    def test_cache_set_valid_partial_and_get_uncached_paths(self, result, valid_components,
+    def test_cache_set_valid_partial_and_get_uncached_paths(self, cache, result, valid_components,
                                                               uncached_path_components, valid_value):
         valid_path = [PathComponent(component=v, indexed_cls=type(result))
                       for v in valid_components]
-        cache = self.cls.create_from_result(result, valid_path)
 
         result_with_valid_value = self.get_result_with_value_broadcasted_to_path(copy(result),
                                                                                  valid_path, valid_value)
