@@ -249,7 +249,7 @@ def test_transpositional_get_value_with_fields(data, indices_to_get_value_at):
 
 
 @pytest.mark.regression
-def test_transpositional_concatenate_different_sizes():
+def test_transpositional_concatenate_does_diverge():
     def filter_out_none_calls(mock_calls):
         return [
             mock_call
