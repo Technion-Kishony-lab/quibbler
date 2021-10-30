@@ -97,7 +97,3 @@ class GetItemFunctionQuib(TranspositionalFunctionQuib):
         return {
             self._args[0]: [self._getitem_path_component, *filtered_path_in_result]
         }
-
-    def get_value(self):
-        res = super(GetItemFunctionQuib, self).get_value()
-        return res
