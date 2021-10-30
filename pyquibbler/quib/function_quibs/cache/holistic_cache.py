@@ -42,9 +42,8 @@ class HolisticCache(Cache):
     def set_invalid_at_path(self, path: List[PathComponent]) -> None:
         self._invalid = True
 
-    @raise_if_path_is_not_empty
     def get_uncached_paths(self, path: List[PathComponent]) -> List[List[PathComponent]]:
-        return [[]] if self._invalid else []
+        return [path] if self._invalid else []
 
     def _is_completely_invalid(self):
         return self._invalid

@@ -140,8 +140,8 @@ class Quib(ABC):
         Get a list of all the non overridden paths (at the first component)
         """
         path = path[:1]
-        value = self._get_inner_value_valid_at_path(None)
-        cache = create_cache(value, None)
+        original_value = self._get_inner_value_valid_at_path(None)
+        cache = create_cache(original_value)
         cache = transform_cache_to_nd_if_necessary_given_path(cache, path)
         for assignment in self._overrider:
             cache = transform_cache_to_nd_if_necessary_given_path(cache, path)
@@ -150,13 +150,15 @@ class Quib(ABC):
                     # Our cache only accepts shallow paths, so any validation to a non-shallow path is not necessarily
                     # overridden at the first component completely- so we ignore it
                     if len(assignment.path) <= 1:
-                        cache.set_value_at_path(assignment.path, assignment.value)
+                        cache.set_valid_value_at_path(assignment.path, assignment.value)
                 else:
                     # Our cache only accepts shallow paths, so we need to consider any invalidation to a path deeper
                     # than one component as an invalidation to the entire first component of that path
                     if len(assignment.path) == 0:
-                        cache = create_cache()
-                    cache.set_invalid_at_path(assignment.path[:1])
+                        cache = create_cache(original_value)
+                    else:
+                        cache.set_invalid_at_path(assignment.path[:1])
+
             except (IndexError, TypeError):
                 # it's very possible there's an old assignment that doesn't match our new "shape" (not specifically np)-
                 # if so we don't care about it

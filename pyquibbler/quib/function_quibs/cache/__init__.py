@@ -11,7 +11,7 @@ from pyquibbler.quib.function_quibs.cache.shallow.nd_cache import NdFieldArraySh
 from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import ShallowCache
 
 
-def create_cache(result: Any, valid_path: Optional[List[PathComponent]]) -> ShallowCache:
+def create_cache(result: Any) -> ShallowCache:
     """
     Create a new cache object matching the result- if no cache is found that specifically supports the requested
     object, a shallow cache will be created which does not support partial invalidation (paths must be whole in
