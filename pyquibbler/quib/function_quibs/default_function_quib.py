@@ -43,13 +43,13 @@ class DefaultFunctionQuib(FunctionQuib):
         self._cache = None
         self._caching = True if self._cache_behavior == CacheBehavior.ON else False
 
-    def _ensure_cache_matches_result(self, new_result: Any):
+    def _ensure_cache_matches_result(self, new_result: Any, valid_path: List[PathComponent]):
         """
         Ensure there exists a current cache matching the given result; if the held cache does not match,
         this function will now recreate the cache to match it
         """
         if self._cache is None or not self._cache.matches_result(new_result):
-            self._cache = create_cache(new_result)
+            self._cache = create_cache(new_result, valid_path)
         return self._cache
 
     def _invalidate_self(self, path: List['PathComponent']):
@@ -131,12 +131,12 @@ class DefaultFunctionQuib(FunctionQuib):
         for uncached_path in uncached_paths:
             result = self._call_func(uncached_path)
 
-            self._ensure_cache_matches_result(result)
+            self._ensure_cache_matches_result(result, uncached_path)
             if uncached_path is not None:
                 try:
-                    valid_value = get_sub_data_from_object_in_path(result, truncated_path)
-                    self._cache = transform_cache_to_nd_if_necessary_given_path(self._cache, truncated_path)
-                    self._cache.set_valid_value_at_path(truncated_path, valid_value)
+                    valid_value = get_sub_data_from_object_in_path(result, uncached_path)
+                    self._cache = transform_cache_to_nd_if_necessary_given_path(self._cache, uncached_path)
+                    self._cache.set_valid_value_at_path(uncached_path, valid_value)
                     # We need to get the result from the cache (as opposed to simply using the last run), since we
                     # don't want to only take the last run
                     result = self._cache.get_value()

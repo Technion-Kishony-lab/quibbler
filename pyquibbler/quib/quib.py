@@ -135,16 +135,16 @@ class Quib(ABC):
         false signifying validity
         """
 
-    def _get_paths_not_completely_overridden_at_first_component(self, new_path) -> List:
+    def _get_paths_not_completely_overridden_at_first_component(self, path) -> List:
         """
-        Get a list of all the non overriden paths (at t)
+        Get a list of all the non overridden paths (at the first component)
         """
-        new_path = new_path[:1]
+        path = path[:1]
         value = self._get_inner_value_valid_at_path(None)
-        cache = create_cache(value)
-        cache = transform_cache_to_nd_if_necessary_given_path(cache, new_path)
+        cache = create_cache(value, )
+        cache = transform_cache_to_nd_if_necessary_given_path(cache, path)
         for assignment in self._overrider:
-            cache = transform_cache_to_nd_if_necessary_given_path(cache, new_path)
+            cache = transform_cache_to_nd_if_necessary_given_path(cache, path)
             try:
                 if isinstance(assignment, Assignment):
                     # Our cache only accepts shallow paths, so any validation to a non-shallow path is not necessarily
@@ -159,7 +159,7 @@ class Quib(ABC):
                 # it's very possible there's an old assignment that doesn't match our new "shape" (not specifically np)-
                 # if so we don't care about it
                 pass
-        return cache.get_uncached_paths(new_path)
+        return cache.get_uncached_paths(path)
 
     def _invalidate_quib_with_children_at_path(self, invalidator_quib, path: List[PathComponent]):
         """
