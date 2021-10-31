@@ -11,7 +11,7 @@ from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
 def breakdown_quib(quib: Quib) -> Set[Quib]:
     quib_type = quib.get_type()
     if issubclass(quib_type, np.ndarray):
-        return {quib[idx] for idx in np.ndindex(quib.get_shape().get_value())}
+        return {quib[idx] for idx in np.ndindex(quib.get_shape())}
     if issubclass(quib_type, (np.generic, int)):
         return set()
     if issubclass(quib_type, (tuple, list)):

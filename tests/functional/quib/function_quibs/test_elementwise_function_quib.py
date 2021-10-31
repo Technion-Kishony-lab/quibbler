@@ -43,7 +43,7 @@ def test_elementwise_function_quib_invalidation_with_broadcast_numpy_array():
 def test_elementwise_function_quib_does_not_request_unneeded_indices_on_get_value():
     fake_quib = mock.Mock(spec=Quib)
     fake_quib.get_value_valid_at_path.return_value = np.array([1, 2])
-    fake_quib.get_shape.return_value.get_value.return_value = (2,)
+    fake_quib.get_shape.return_value = (2,)
     b = ElementWiseFunctionQuib.create(
         func=np.add,
         func_args=(fake_quib, 1)

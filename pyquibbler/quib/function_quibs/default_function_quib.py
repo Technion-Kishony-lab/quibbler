@@ -55,8 +55,8 @@ class DefaultFunctionQuib(FunctionQuib):
 
     def _invalidate_self(self, path: Optional[List[PathComponent]]):
         if len(path) == 0:
+            self._on_type_change()
             self._reset_cache()
-            self.method_cache.clear()
 
         if self._cache is not None:
             self._cache = transform_cache_to_nd_if_necessary_given_path(self._cache, path)
@@ -75,7 +75,7 @@ class DefaultFunctionQuib(FunctionQuib):
         assert self._cache_behavior is CacheBehavior.AUTO, \
             f'self._cache_behavior has unexpected value: "{self._cache_behavior}"'
         return elapsed_seconds > self.MIN_SECONDS_FOR_CACHE \
-            and getsizeof(result) / elapsed_seconds < self.MAX_BYTES_PER_SECOND
+               and getsizeof(result) / elapsed_seconds < self.MAX_BYTES_PER_SECOND
 
     def _get_uncached_paths_matching_path(self, path: Optional[List['PathComponent']]):
         """
@@ -84,7 +84,6 @@ class DefaultFunctionQuib(FunctionQuib):
         """
 
         if self._cache is not None:
-
             if path is None:
                 # We need to be valid at no paths, so by definitions we also have no uncached paths that match no paths
                 return []

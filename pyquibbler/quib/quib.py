@@ -154,6 +154,9 @@ class Quib(ABC):
         """
         return [[]]
 
+    def _on_type_change(self):
+        self.method_cache.clear()
+
     def _invalidate_self(self, path: Optional[List[PathComponent]]):
         """
         This method is called whenever a quib itself is invalidated; subclasses will override this with their
@@ -244,6 +247,8 @@ class Quib(ABC):
         if not self.allow_overriding:
             raise OverridingNotAllowedException(self, assignment)
         self._overrider.add_assignment(assignment)
+        if len(assignment.path) == 0:
+            self._on_type_change()
 
         self.invalidate_and_redraw_at_path(assignment.path)
 
@@ -252,6 +257,8 @@ class Quib(ABC):
         Remove overriding in a specific path in the quib.
         """
         self._overrider.remove_assignment(path)
+        if len(path) == 0:
+            self._on_type_change()
         self.invalidate_and_redraw_at_path(path=path)
 
     def assign(self, assignment: Assignment) -> None:
@@ -355,7 +362,7 @@ class Quib(ABC):
         """
         return type(self.get_value_valid_at_path(None))
 
-    @quib_method
+    @cache_method_until_full_invalidation
     def get_shape(self) -> Tuple[int, ...]:
         """
         Assuming this quib represents a numpy ndarray, returns a quib of its shape.
@@ -376,7 +383,7 @@ class Quib(ABC):
         set to True if the matching value in the array is overridden, and False otherwise.
         """
         if issubclass(self.get_type(), np.ndarray):
-            mask = np.zeros(self.get_shape().get_value(), dtype=np.bool)
+            mask = np.zeros(self.get_shape(), dtype=np.bool)
         else:
             mask = recursively_run_func_on_object(func=lambda x: False, obj=self.get_value())
         return self._overrider.fill_override_mask(mask)

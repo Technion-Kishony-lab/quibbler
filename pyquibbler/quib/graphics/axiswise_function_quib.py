@@ -250,7 +250,7 @@ class ReductionAxisWiseGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
             input_core_dims = args_dict['axis']
             if input_core_dims is not None:
                 bool_mask = np.expand_dims(bool_mask, input_core_dims)
-        bool_mask = np.broadcast_to(bool_mask, quib.get_shape().get_value())
+        bool_mask = np.broadcast_to(bool_mask, quib.get_shape())
         return np.logical_and(bool_mask, args_dict['where'])
 
 
@@ -273,8 +273,8 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         on the applied function return type.
         """
         axis = args_dict.pop('axis')
-        result_shape = self.get_shape().get_value()
-        dims_to_expand = self._get_expanded_dims(axis, result_shape, invalidator_quib.get_shape().get_value())
+        result_shape = self.get_shape()
+        dims_to_expand = self._get_expanded_dims(axis, result_shape, invalidator_quib.get_shape())
         applied = np.apply_along_axis(np.any, axis, boolean_mask, **args_dict)
         expanded = np.expand_dims(applied, dims_to_expand)
         broadcast = np.broadcast_to(expanded, result_shape)
@@ -282,7 +282,7 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
 
     def _backward_translate_bool_mask(self, args_dict, bool_mask, quib: Quib):
         axis = args_dict.pop('axis')
-        source_shape = quib.get_shape().get_value()
+        source_shape = quib.get_shape()
         expanded_dims = self._get_expanded_dims(axis, bool_mask.shape, source_shape)
         mask = np.expand_dims(np.any(bool_mask, axis=expanded_dims), axis)
         return np.broadcast_to(mask, source_shape)

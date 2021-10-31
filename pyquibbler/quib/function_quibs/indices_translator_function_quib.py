@@ -38,7 +38,7 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
             value=True,
             empty_value=False,
             indices=indices,
-            shape=invalidator_quib.get_shape().get_value()
+            shape=invalidator_quib.get_shape()
         )
 
     def _get_bool_mask_representing_indices_in_result(self, indices) -> Union[np.ndarray, bool]:
@@ -46,7 +46,7 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
         Get a boolean mask representing where the indices that were changed are in the result- this will be in
         same shape as the result
         """
-        return create_empty_array_with_values_at_indices(self.get_shape().get_value(),
+        return create_empty_array_with_values_at_indices(self.get_shape(),
                                                          indices=indices, value=True,
                                                          empty_value=False)
 
@@ -56,7 +56,7 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
         not a `PathComponent`) set to a value
         """
         return create_empty_array_with_values_at_indices(
-            self.get_shape().get_value(),
+            self.get_shape(),
             indices=working_component,
             value=value,
         )

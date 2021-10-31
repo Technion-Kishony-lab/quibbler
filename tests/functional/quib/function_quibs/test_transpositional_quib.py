@@ -259,7 +259,7 @@ def filter_out_none_calls(mock_calls):
 def create_mock_quib(shape, get_value_result):
     mock_quib = mock.Mock(spec=Quib)
     mock_quib.get_value_valid_at_path.return_value = get_value_result
-    mock_quib.get_shape.return_value.get_value.return_value = shape
+    mock_quib.get_shape.return_value = shape
     return mock_quib
 
 

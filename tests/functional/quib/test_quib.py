@@ -231,7 +231,7 @@ def test_quib_get_shape():
     arr = np.array([1, 2, 3])
     quib = ExampleQuib(arr)
 
-    assert quib.get_shape().get_value() == arr.shape
+    assert quib.get_shape() == arr.shape
 
 
 @mark.parametrize(['data', 'overrides', 'expected_mask'], [
