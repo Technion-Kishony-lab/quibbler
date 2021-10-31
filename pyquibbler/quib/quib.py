@@ -323,6 +323,9 @@ class Quib(ABC):
         are lazy, so a function quib might need to calculate uncached values and might
         even have to calculate the values of its dependencies.
         """
+        from .graphics.quib_guard import QUIB_GUARD
+        if QUIB_GUARD:
+            QUIB_GUARD.raise_if_accessing_global_quib(self)
         return self.get_value_valid_at_path([])
 
     def get_override_list(self) -> Overrider:
