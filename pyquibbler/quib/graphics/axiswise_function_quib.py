@@ -6,7 +6,7 @@ from functools import cached_property
 from abc import abstractmethod
 from typing import Any, Dict, Optional, List
 
-from pyquibbler.quib.quib import Quib
+from pyquibbler.quib.quib import Quib, cache_method_until_full_invalidation
 
 from .vectorize_metadata import VectorizeMetadata, get_core_axes
 from .graphics_function_quib import GraphicsFunctionQuib
@@ -48,23 +48,24 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
     def _get_arg_ids_for_quib(self, quib: Quib):
         return {arg_id for arg_id, arg in chain(enumerate(self.args[1:]), self.kwargs.items()) if quib is arg}
 
-    def _get_vectorize_metadata(self):
+    @property
+    @cache_method_until_full_invalidation
+    def _vectorize_metadata(self) -> VectorizeMetadata:
         (vectorize, *args), kwargs = self._prepare_args_for_call(None)
         return VectorizeMetadata.from_vectorize_call(vectorize, args, kwargs)
 
-    def _forward_translate_indices_to_bool_mask(self, vectorize_metadata: VectorizeMetadata, invalidator_quib: Quib,
-                                                indices: Any) -> Any:
+    def _forward_translate_indices_to_bool_mask(self, invalidator_quib: Quib, indices: Any) -> Any:
+        vectorize_metadata = self._vectorize_metadata
         source_bool_mask = self._get_source_shaped_bool_mask(invalidator_quib, indices)
         core_ndim = max(vectorize_metadata.args_metadata[arg_id].core_ndim
                         for arg_id in self._get_arg_ids_for_quib(invalidator_quib))
         source_bool_mask = np.any(source_bool_mask, axis=get_core_axes(core_ndim))
         return np.broadcast_to(source_bool_mask, vectorize_metadata.result_loop_shape)
 
-    def _forward_translate_invalidation_path(self, vectorize_metadata: VectorizeMetadata, invalidator_quib: Quib,
+    def _forward_translate_invalidation_path(self, invalidator_quib: Quib,
                                              path: List[PathComponent]) -> Optional[List[PathComponent]]:
         working_component, *rest_of_path = path
-        bool_mask_in_output_array = self._forward_translate_indices_to_bool_mask(vectorize_metadata,
-                                                                                 invalidator_quib,
+        bool_mask_in_output_array = self._forward_translate_indices_to_bool_mask(invalidator_quib,
                                                                                  working_component.component)
         if np.any(bool_mask_in_output_array):
             return [PathComponent(self.get_type(), bool_mask_in_output_array), *rest_of_path]
@@ -72,20 +73,17 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
 
     def _get_paths_for_children_invalidation(self, invalidator_quib: Quib,
                                              path: List[PathComponent]) -> Optional[List[PathComponent]]:
-        vectorize_metadata = self._get_vectorize_metadata()
+        vectorize_metadata = self._vectorize_metadata
         if not self._is_quib_a_data_source(invalidator_quib):
             return [[]]
-        invalidation_path = self._forward_translate_invalidation_path(vectorize_metadata, invalidator_quib, path)
+        invalidation_path = self._forward_translate_invalidation_path(invalidator_quib, path)
         if vectorize_metadata.is_result_a_tuple:
             return [[PathComponent(tuple, i), *invalidation_path] for i in range(vectorize_metadata.tuple_length)]
         else:
             return [invalidation_path]
 
-    def _get_result_core_axes(self, tuple_index: Optional[int]):
-        return tuple(range(-1, -1 - self._get_result_core_ndim(tuple_index), -1))
-
     def _backward_translate_indices_to_bool_mask(self, quib: Quib, indices: Any) -> Any:
-        vectorize_metadata = self._get_vectorize_metadata()
+        vectorize_metadata = self._vectorize_metadata
         quib_arg_id = self._get_arg_ids_for_quib(quib).pop()
         quib_loop_shape = vectorize_metadata.args_metadata[quib_arg_id].loop_shape
         result_bool_mask = self._get_bool_mask_representing_indices_in_result(indices)
@@ -121,7 +119,7 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
         """
         if valid_path is not None and len(valid_path) == 0:
             return super()._call_func(valid_path)
-        vectcorize_metadata = self._get_vectorize_metadata()
+        vectcorize_metadata = self._vectorize_metadata
         if vectcorize_metadata.is_result_a_tuple:
             return super()._call_func(valid_path)
         if valid_path is None:
