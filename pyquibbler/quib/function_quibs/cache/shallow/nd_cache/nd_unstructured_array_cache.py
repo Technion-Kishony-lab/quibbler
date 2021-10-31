@@ -21,7 +21,7 @@ class NdUnstructuredArrayCache(NdIndexableCache):
     @classmethod
     def create_invalid_cache_from_result(cls, result):
         mask = np.full(result.shape, True, dtype=np.bool_)
-        return cls(result, mask=mask)
+        return cls(result, invalid_mask=mask)
 
     def _get_all_uncached_paths(self) -> List[List[PathComponent]]:
         return self._get_uncached_paths_at_path_component(PathComponent(component=True, indexed_cls=type(self._value)))

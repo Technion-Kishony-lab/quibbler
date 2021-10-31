@@ -69,3 +69,4 @@ class TestNdUnstructuredArrayCache(IndexableCacheTest):
 
     def set_completely_invalid(self, result, cache):
         cache.set_invalid_at_path([PathComponent(indexed_cls=np.ndarray, component=True)])
+

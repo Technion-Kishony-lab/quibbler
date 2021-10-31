@@ -145,3 +145,17 @@ def test_default_function_quib_set_cache_resets_cache():
     result = quib.get_value()
 
     assert result == 2
+
+
+def test_default_function_quib():
+    mock_func = mock.Mock()
+    mock_func.return_value = np.array([1, 2, 3])
+    quib = DefaultFunctionQuib.create(
+        func=mock_func,
+    )
+
+    v1 = quib.get_value_valid_at_path([PathComponent(component=0, indexed_cls=np.ndarray)])
+    v2 = quib.get_value_valid_at_path([PathComponent(component=1, indexed_cls=np.ndarray)])
+    v3 = quib.get_value_valid_at_path([PathComponent(component=0, indexed_cls=np.ndarray)])
+
+    assert mock_func.call_count == 2

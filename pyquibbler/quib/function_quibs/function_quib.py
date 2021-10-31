@@ -15,7 +15,7 @@ from ..assignment import AssignmentTemplate, Assignment, PathComponent, QuibWith
 from ..quib import Quib
 from ..utils import is_there_a_quib_in_args, iter_quibs_in_args, deep_copy_without_quibs_or_artists, \
     copy_and_convert_args_and_kwargs_to_values, recursively_run_func_on_object, QuibRef
-from ...env import LAZY, PRETTY_REPR
+from ...env import LAZY, PRETTY_REPR, IS_IN_INVALIDATION
 
 
 class CacheBehavior(Enum):
@@ -53,6 +53,10 @@ class FunctionQuib(Quib):
         if cache_behavior is None:
             cache_behavior = self._DEFAULT_CACHE_BEHAVIOR
         self.set_cache_behavior(cache_behavior)
+
+        self._none_cache = None
+
+        self._was_invalidated = False
 
     @cached_property
     def parents(self) -> Set[Quib]:
@@ -219,8 +223,29 @@ class FunctionQuib(Quib):
         This function can and should be overriden if there is a more specific implementation for getting a value only
         valid at valid_path
         """
-        new_args, new_kwargs = self._prepare_args_for_call(valid_path)
-        return self._func(*new_args, **new_kwargs)
+        if IS_IN_INVALIDATION:
+            if self._was_invalidated is not False:
+                # print(1)
+                pass
+            else:
+                self._was_invalidated = valid_path
+
+        if IS_IN_INVALIDATION:
+            timer_name = f"invalidation_{self.func.__name__}"
+        else:
+            timer_name = f"reg_{self.func.__name__}"
+
+        if valid_path is None:
+            timer_name = f"{timer_name}_none"
+        # if valid_path is None and self._none_cache is not None:
+        #     return self._none_cache
+        from pyquibbler import timer
+        with timer(timer_name):
+            new_args, new_kwargs = self._prepare_args_for_call(valid_path)
+            res = self._func(*new_args, **new_kwargs)
+            # if valid_path is None:
+            #     self._none_cache = res
+            return res
 
     def get_inversions_for_assignment(self, assignment: Assignment) -> List[QuibWithAssignment]:
         """

@@ -15,3 +15,5 @@ END_DRAG_IMMEDIATELY = Flag(False)
 PRETTY_REPR = Flag(False)
 
 LEN_RAISE_EXCEPTION = Flag(True)
+
+IS_IN_INVALIDATION = Flag(False)

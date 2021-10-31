@@ -12,6 +12,7 @@ from .cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_gi
 from .function_quib import FunctionQuib, CacheBehavior
 from ..assignment import AssignmentTemplate
 from ..assignment.utils import get_sub_data_from_object_in_path
+from ...env import IS_IN_INVALIDATION
 
 if TYPE_CHECKING:
     from ..assignment.assignment import PathComponent
@@ -39,9 +40,12 @@ class DefaultFunctionQuib(FunctionQuib):
                  assignment_template: Optional[AssignmentTemplate] = None):
         super().__init__(func, args, kwargs, cache_behavior, assignment_template=assignment_template)
         self._reset_cache()
+        self._was_invalidated = False
 
     def _reset_cache(self):
         self._cache = None
+        self._shape = None
+        self._type = None
         self._caching = True if self._cache_behavior == CacheBehavior.ON else False
 
     def _ensure_cache_matches_result(self, new_result: Any):
@@ -67,6 +71,7 @@ class DefaultFunctionQuib(FunctionQuib):
         Note that there is no accurate way (and no efficient way to even approximate) the complete size of composite
         types in python, so we only measure the outer size of the object.
         """
+        return True
         if self._cache_behavior is CacheBehavior.ON:
             return True
         if self._cache_behavior is CacheBehavior.OFF:
@@ -132,8 +137,8 @@ class DefaultFunctionQuib(FunctionQuib):
         for uncached_path in uncached_paths:
             result = self._call_func(uncached_path)
 
+            self._ensure_cache_matches_result(result)
             if uncached_path is not None:
-                self._ensure_cache_matches_result(result)
                 try:
                     valid_value = get_sub_data_from_object_in_path(result, truncated_path)
                     self._cache = transform_cache_to_nd_if_necessary_given_path(self._cache, truncated_path)

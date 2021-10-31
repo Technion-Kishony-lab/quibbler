@@ -21,7 +21,7 @@ class NdFieldArrayShallowCache(NdIndexableCache):
         mask = np.full(result.shape, True, dtype=[(name, np.bool_) for name in result.dtype.names])
         return cls(
             result,
-            mask=mask
+            invalid_mask=mask
         )
 
     def _create_paths_for_indices(self, indices):

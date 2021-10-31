@@ -15,7 +15,8 @@ from .function_quibs.cache.shallow.indexable_cache import transform_cache_to_nd_
 from .utils import quib_method, Unpacker, recursively_run_func_on_object
 from .assignment import PathComponent
 
-from ..env import LEN_RAISE_EXCEPTION
+
+from ..env import LEN_RAISE_EXCEPTION, IS_IN_INVALIDATION
 
 if TYPE_CHECKING:
     from pyquibbler.quib.graphics import GraphicsFunctionQuib
@@ -55,6 +56,9 @@ class Quib(ABC):
         if allow_overriding is None:
             allow_overriding = self._DEFAULT_ALLOW_OVERRIDING
         self.allow_overriding = allow_overriding
+
+        self._shape = None
+        self._type = None
 
     @property
     def children(self) -> Set[Quib]:
@@ -108,8 +112,15 @@ class Quib(ABC):
         """
         if path is None:
             path = []
-        self._invalidate_children_at_path(path)
-        self.__redraw()
+
+        from pyquibbler import timer
+        with timer("quib_invalidation"):
+            IS_IN_INVALIDATION.set(True)
+            self._invalidate_children_at_path(path)
+        IS_IN_INVALIDATION.set(False)
+        # import ipdb; ipdb.set_trace()
+        with timer("quib_redraw"):
+            self.__redraw()
 
     def _invalidate_children_at_path(self, path: List[PathComponent]) -> None:
         """
@@ -184,8 +195,12 @@ class Quib(ABC):
         for new_path in new_paths:
             if new_path is not None:
                 self._invalidate_self(new_path)
-                if len(self.children) > 0 and not self._is_completely_overridden_at_first_component(new_path):
+                from pyquibbler.quib.graphics import GraphicsFunctionQuib
+                if len(self.children) > 0:
                     self._invalidate_children_at_path(new_path)
+
+    def _should_continue_invalidation(self, path):
+        return True
 
     def add_child(self, quib: Quib) -> None:
         """
@@ -304,7 +319,13 @@ class Quib(ABC):
         The value will necessarily return in the shape of the actual result, but only the values at the given path
         are guaranteed to be valid
         """
-        return self._overrider.override(self._get_inner_value_valid_at_path(path), self._assignment_template)
+        if path is None:
+            timer_name = 'none_timer'
+        else:
+            timer_name = 'path_timer'
+        from pyquibbler import timer
+        with timer(timer_name):
+            return self._overrider.override(self._get_inner_value_valid_at_path(path), self._assignment_template)
 
     def get_value(self) -> Any:
         """
@@ -325,16 +346,23 @@ class Quib(ABC):
         """
         Get the type of wrapped value
         """
-        return type(self.get_value_valid_at_path(None))
+        if self._type is None:
+            self._type = type(self.get_value_valid_at_path(None))
+        return self._type
 
     @quib_method
     def get_shape(self) -> Tuple[int, ...]:
         """
         Assuming this quib represents a numpy ndarray, returns a quib of its shape.
         """
+        if self._shape is not None:
+            return self._shape
+
         res = self.get_value_valid_at_path(None)
         try:
-            return np.shape(res)
+            shape = np.shape(res)
+            self._shape = shape
+            return shape
         except ValueError:
             if hasattr(res, '__len__'):
                 return len(res),

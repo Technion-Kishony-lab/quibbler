@@ -13,10 +13,6 @@ class NdIndexableCache(ShallowCache):
 
     SUPPORTING_TYPES = (np.ndarray,)
 
-    def __init__(self, value: Any, mask):
-        super(NdIndexableCache, self).__init__(value)
-        self._invalid_mask = mask
-
     def matches_result(self, result) -> bool:
         return super(NdIndexableCache, self).matches_result(result) \
                and result.shape == self.get_value().shape and result.dtype == self.get_value().dtype

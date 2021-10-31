@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from copy import deepcopy, copy
 from typing import Any, List
 
 
@@ -21,6 +22,10 @@ class ShallowCache(Cache):
     """
 
     SUPPORTING_TYPES = (object,)
+
+    def __init__(self, value, invalid_mask):
+        super(ShallowCache, self).__init__(value)
+        self._invalid_mask = invalid_mask
 
     @abstractmethod
     def _set_valid_at_all_paths(self):
@@ -77,3 +82,19 @@ class ShallowCache(Cache):
         if len(path) == 0:
             return self._get_all_uncached_paths()
         return self._get_uncached_paths_at_path_component(path[0])
+
+    @abstractmethod
+    def _is_completely_invalid(self):
+        pass
+
+    def is_completely_invalid_at_path(self, path: List[PathComponent]):
+        if len(path) == 0:
+            return self._is_completely_invalid()
+
+        previous_invalid_mask = self._invalid_mask
+        fake_invalid_mask = copy(self._invalid_mask)
+        self._invalid_mask = fake_invalid_mask
+        self.set_invalid_at_path(path)
+        is_invalid = fake_invalid_mask == self._invalid_mask
+        self._invalid_mask = previous_invalid_mask
+        return is_invalid

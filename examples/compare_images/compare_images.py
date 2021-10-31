@@ -1,6 +1,10 @@
+import time
+
 import numpy as np
 from matplotlib import pyplot as plt, widgets
 from mpl_toolkits.axes_grid1 import ImageGrid
+from pycallgraph import PyCallGraph
+from pycallgraph.output import GraphvizOutput
 
 from pyquibbler import iquib, q, override_all, CacheBehavior
 
@@ -17,9 +21,10 @@ def cut_image(roi):
 
 
 def image_distance(img1, img2):
-    rgb1 = np.mean(img1, axis=(1, 2))
-    rgb2 = np.mean(img2, axis=(1, 2))
-    return 1 - np.corrcoef(rgb1, rgb2)
+    # rgb1 = np.mean(img1, axis=(1, 2))
+    # rgb2 = np.mean(img2, axis=(1, 2))
+    # return 1 - np.corrcoef(rgb1, rgb2)
+    return np.average(img1) - np.average(img2)
 
 
 file_name = iquib('/Users/maor/Documents/pyquibbler/examples/compare_images/pipes.jpg')
@@ -62,9 +67,9 @@ for ax, im in zip(grid, cut_images_lst):
 
 
 # Compare sub images
-image_distances = np.array([image_distance(img1, img2) for img1, img2 in zip(cut_images_lst, cut_images_lst)])
+image_distances = np.array([[image_distance(img1, img2) for img2 in cut_images_lst] for img1 in cut_images_lst])
 threshold = iquib(.1)
-is_adjacent = image_distances < threshold
+adjacents = image_distances < threshold
 
 
 # Plot distance matrix
@@ -75,7 +80,12 @@ plt.xlabel('Image number')
 plt.ylabel('Image number')
 
 for i in range(1, images_count.get_value() + 1):
-    plt.scatter(list(range(1, images_count.get_value() + 1)), [i] * 6, s=[100, 100, 100, 100, 100, 100], marker='x', color='r',
+    adjacents_for_image = adjacents[i - 1]
+    ss = [(adjacents_for_image[i] * 100 + 1) for i in range(images_count.get_value())]
+    plt.scatter(list(range(1, images_count.get_value() + 1)), [i] * 6,
+                s=ss,
+                marker='x',
+                color='r',
                 linewidths=2)
 
 # arrayfun(@plot,gca,1:nImages,(1:nImages)',"rx","markersize",isAdjacent.*18+1,"linewidth",3 ,EvalNow);
@@ -107,7 +117,16 @@ del r
 """
 
 
-plt.show(block=True)
+plt.show(block=False)
+plt.pause(0.1)
+roi = rois[0]
+
+start = time.time()
+with PyCallGraph(output=GraphvizOutput()):
+    roi[:] = [100, 200, 100, 200]
+
+print(f"Took {time.time() - start}")
+
 # ROIs = repmat(ROIdefault,nImages,1, 'AssignmentTemplate',{[0 1000 1]}, 'AssignmentPermission','open');
 #
 # % Plot ROIs on main image:
