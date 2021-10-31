@@ -185,16 +185,14 @@ def test_vectorize_partial_calculation():
     func_mock = get_func_mock(lambda x: x)
     with GRAPHICS_LAZY.temporary_set(True):
         quib = np.vectorize(func_mock)(iquib(np.arange(3)))
-    # Should call func_mock three times
-    # One call to get the actual value, one call for vectorize to gather metadata, one call for us to gather metadata.
-    # This could be reduced by passing otypes to vectorize after gathering our own metadata, and by caching the result.
+    # Should call func_mock twice
     quib.get_value_valid_at_path(PathBuilder(quib)[0].path)
     # Should call func_mock one time
     quib.get_value_valid_at_path(PathBuilder(quib)[1].path)
     # Should not call func_mock
     quib.get_value_valid_at_path(PathBuilder(quib)[0].path)
 
-    assert func_mock.call_count == 4
+    assert func_mock.call_count == 3
 
 
 def test_vectorize_get_value_valid_at_path_none():

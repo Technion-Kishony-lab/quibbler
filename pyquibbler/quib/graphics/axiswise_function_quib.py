@@ -119,27 +119,27 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
         """
         if valid_path is not None and len(valid_path) == 0:
             return super()._call_func(valid_path)
-        vectcorize_metadata = self._vectorize_metadata
-        if vectcorize_metadata.is_result_a_tuple:
+        vectorize_metadata = self._vectorize_metadata
+        if vectorize_metadata.is_result_a_tuple:
             return super()._call_func(valid_path)
         if valid_path is None:
-            return np.zeros(vectcorize_metadata.result_shape)  # TODO: dtype, tuple if needed
+            return np.zeros(vectorize_metadata.result_shape, dtype=vectorize_metadata.result_dtype)
 
         vectorize = self._vectorize
 
         indices = valid_path[0].component
         bool_mask = self._get_bool_mask_representing_indices_in_result(indices)
-        bool_mask = np.any(bool_mask, axis=vectcorize_metadata.result_core_axes)
+        bool_mask = np.any(bool_mask, axis=vectorize_metadata.result_core_axes)
 
         # The logic in this wrapper should be as minimal as possible (including attribute access, etc.)
         # as it is run for every index in the loop.
         pyfunc = vectorize.pyfunc
-        empty_result = np.zeros(vectcorize_metadata.result_core_shape)
+        empty_result = np.zeros(vectorize_metadata.result_core_shape, dtype=vectorize_metadata.result_dtype)
         wrapper = lambda should_run, *args, **kwargs: pyfunc(*args, **kwargs) if should_run else empty_result
 
         wrapper_excluded = {i + 1 if isinstance(i, int) else i for i in self._vectorize.excluded}
         wrapper_signature = vectorize.signature if vectorize.signature is None else '(),' + vectorize.signature
-        wrapper_vectorize = np.vectorize(wrapper, otypes=vectorize.otypes,
+        wrapper_vectorize = np.vectorize(wrapper, otypes=vectorize_metadata.otypes,
                                          doc=vectorize.__doc__, excluded=wrapper_excluded,
                                          cache=False, signature=wrapper_signature)
         (_original_vectorize, *args), kwargs = self._prepare_args_for_call(valid_path)
