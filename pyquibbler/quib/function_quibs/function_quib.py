@@ -197,20 +197,15 @@ class FunctionQuib(Quib):
 
         return inner_arg
 
-    def _prepare_args_for_call(self, valid_path: Optional[List[PathComponent]], args=None, kwargs=None):
+    def _prepare_args_for_call(self, valid_path: Optional[List[PathComponent]]):
         """
         Prepare arguments to call self.func with - replace quibs with values valid at the given path,
         and QuibRefs with quibs.
         """
-        if args is None:
-            args = self.args
-        if kwargs is None:
-            kwargs = self.kwargs
         quibs_to_paths = {} if valid_path is None else self._get_source_paths_of_quibs_given_path(valid_path)
         replace_func = functools.partial(self._replace_potential_quib_with_value, quibs_to_paths)
-        new_args = [recursively_run_func_on_object(replace_func, arg) for arg in args]
-        new_kwargs = {key: recursively_run_func_on_object(replace_func, val)
-                      for key, val in kwargs.items()}
+        new_args = [recursively_run_func_on_object(replace_func, arg) for arg in self.args]
+        new_kwargs = {key: recursively_run_func_on_object(replace_func, val) for key, val in self.kwargs.items()}
         return new_args, new_kwargs
 
     def _call_func(self, valid_path: Optional[List[PathComponent]]):

@@ -182,7 +182,10 @@ def test_vectorize_invalidation_with_different_core_dims(data, indices_to_invali
 
 
 def test_vectorize_partial_calculation():
-    func_mock = get_func_mock(lambda x: x)
+    def f(x):
+        return x
+
+    func_mock = get_func_mock(f)
     with GRAPHICS_LAZY.temporary_set(True):
         quib = np.vectorize(func_mock)(iquib(np.arange(3)))
     # Should call func_mock twice
@@ -199,3 +202,12 @@ def test_vectorize_get_value_valid_at_path_none():
     quib = np.vectorize(lambda x: x)(iquib([1, 2, 3]))
     value = quib.get_value_valid_at_path(None)
     assert len(value) == 3
+
+
+def test_vectorize_with_pass_quibs():
+    def f(x):
+        return iquib(x.get_value() + 1)
+
+    vectorize = np.vectorize(f, pass_quibs=True)
+    result = vectorize(iquib(np.arange(2)))
+    assert np.array_equal(result.get_value(), [1, 2])
