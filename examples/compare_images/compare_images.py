@@ -58,6 +58,15 @@ def create_figure_1():
         valinit=similiarity_threshold
     )
 
+    axfreq = plt.axes([0.25, 0.05, 0.65, 0.03])
+    widgets.Slider(
+        ax=axfreq,
+        label=q("Image count ".format, images_count),
+        valmin=1,
+        valmax=6,
+        valstep=.1,
+        valinit=images_count
+    )
 
 create_figure_1()
 
@@ -95,7 +104,7 @@ plt.ylabel('Image number')
 for i in range(1, images_count.get_value() + 1):
     adjacents_for_image = adjacents[i - 1]
     ss = [(adjacents_for_image[i] * 100 + 1) for i in range(images_count.get_value())]
-    plt.scatter(list(range(1, images_count.get_value() + 1)), [i] * 6,
+    plt.scatter(list(range(1, images_count.get_value() + 1)), np.repeat([i], images_count),
                 s=ss,
                 marker='x',
                 color='r',
