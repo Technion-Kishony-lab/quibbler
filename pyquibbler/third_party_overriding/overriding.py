@@ -13,7 +13,7 @@ from pyquibbler.quib.function_quibs.elementwise_function_quib import ElementWise
 from pyquibbler.quib.function_quibs.transpositional.transpositional_function_quib import TranspositionalFunctionQuib
 from pyquibbler.quib.graphics import global_collecting, ReductionAxisWiseGraphicsFunctionQuib, \
     AlongAxisGraphicsFunctionQuib
-from pyquibbler.quib.graphics.axiswise_function_quib import QVectorize
+from pyquibbler.quib.graphics import QVectorize
 from pyquibbler.quib.graphics.plot_graphics_function_quib import PlotGraphicsFunctionQuib
 from pyquibbler.quib.graphics.widgets import SliderGraphicsFunctionQuib, CheckButtonsGraphicsFunctionQuib, \
     RadioButtonsGraphicsFunctionQuib, RectangleSelectorGraphicsFunctionQuib, QRectangleSelector, QRadioButtons

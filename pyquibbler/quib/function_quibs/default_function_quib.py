@@ -75,7 +75,7 @@ class DefaultFunctionQuib(FunctionQuib):
         assert self._cache_behavior is CacheBehavior.AUTO, \
             f'self._cache_behavior has unexpected value: "{self._cache_behavior}"'
         return elapsed_seconds > self.MIN_SECONDS_FOR_CACHE \
-               and getsizeof(result) / elapsed_seconds < self.MAX_BYTES_PER_SECOND
+            and getsizeof(result) / elapsed_seconds < self.MAX_BYTES_PER_SECOND
 
     def _get_uncached_paths_matching_path(self, path: List[Optional[List['PathComponent']]]):
         """

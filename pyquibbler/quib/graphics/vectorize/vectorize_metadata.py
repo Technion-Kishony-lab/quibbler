@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from itertools import chain
 from typing import Any, Dict, Optional, List, Tuple, Union
 
-from ..function_quibs.indices_translator_function_quib import Args, Kwargs
+from pyquibbler.quib.function_quibs.indices_translator_function_quib import Args, Kwargs
 
 Shape = Tuple[int, ...]
 
