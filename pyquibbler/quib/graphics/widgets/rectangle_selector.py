@@ -77,12 +77,12 @@ class RectangleSelectorGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
 
     def _on_changed(self, extents):
         init_val = self._get_args_values().get('extents')
-        if isinstance(init_val, Quib):
-            with timer(name="selector_change"):
-                init_val[:] = extents
-        else:
-            # We only need to invalidate children if we didn't assign
-            self.invalidate_and_redraw_at_path()
+        with timer("selector_change", lambda x: print(f"selector change {x}")):
+            if isinstance(init_val, Quib):
+                    init_val[:] = extents
+            else:
+                # We only need to invalidate children if we didn't assign
+                self.invalidate_and_redraw_at_path()
 
     def _call_func(self, valid_path: Optional[List[PathComponent]]) -> Any:
         selector = super()._call_func(None)

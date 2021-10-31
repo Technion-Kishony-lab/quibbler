@@ -223,34 +223,8 @@ class FunctionQuib(Quib):
         This function can and should be overriden if there is a more specific implementation for getting a value only
         valid at valid_path
         """
-        # print(f"{id(self)} call func {self.__class__.__name__} {self.func.__name__} {self.args} - {valid_path}")
-        # if valid_path is not None and len(valid_path) == 0:
-            # print(44)
-        # if valid_path is None:
-        #     print(1)
-        if IS_IN_INVALIDATION:
-            if self._was_invalidated is not False:
-                # print(1)
-                pass
-            else:
-                self._was_invalidated = valid_path
-
-        if IS_IN_INVALIDATION:
-            timer_name = f"invalidation_{self.func.__name__}"
-        else:
-            timer_name = f"reg_{self.func.__name__}"
-
-        if valid_path is None:
-            timer_name = f"{timer_name}_none"
-        # if valid_path is None and self._none_cache is not None:
-        #     return self._none_cache
-        from pyquibbler import timer
-        with timer(timer_name):
-            new_args, new_kwargs = self._prepare_args_for_call(valid_path)
-            res = self._func(*new_args, **new_kwargs)
-            # if valid_path is None:
-            #     self._none_cache = res
-            return res
+        new_args, new_kwargs = self._prepare_args_for_call(valid_path)
+        return self._func(*new_args, **new_kwargs)
 
     def get_inversions_for_assignment(self, assignment: Assignment) -> List[QuibWithAssignment]:
         """

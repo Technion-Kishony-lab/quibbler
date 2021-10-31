@@ -116,7 +116,6 @@ class Quib(ABC):
         from pyquibbler import timer
         with timer("quib_invalidation", lambda x: print(f"invalidation {x}")):
             self._invalidate_children_at_path(path)
-        # import ipdb; ipdb.set_trace()
         with timer("quib_redraw", lambda x: print(f"redraw {x}")):
             self.__redraw()
 
@@ -176,12 +175,15 @@ class Quib(ABC):
         Get a list of all the non overridden paths (at the first component)
         """
         path = path[:1]
-        original_value = self._get_inner_value_valid_at_path(None)
-        cache = create_cache(original_value)
-        cache = transform_cache_to_nd_if_necessary_given_path(cache, path)
-        for assignment in self._overrider:
-            cache = self._apply_assignment_to_cache(original_value, cache, assignment)
-        return len(cache.get_uncached_paths(path)) == 0
+        assignments = list(self._overrider)
+        if assignments:
+            original_value = self._get_inner_value_valid_at_path(None)
+            cache = create_cache(original_value)
+            cache = transform_cache_to_nd_if_necessary_given_path(cache, path)
+            for assignment in assignments:
+                cache = self._apply_assignment_to_cache(original_value, cache, assignment)
+            return len(cache.get_uncached_paths(path)) == 0
+        return False
 
     def _invalidate_quib_with_children_at_path(self, invalidator_quib, path: List[PathComponent]):
         """
@@ -193,12 +195,8 @@ class Quib(ABC):
         for new_path in new_paths:
             if new_path is not None:
                 self._invalidate_self(new_path)
-                from pyquibbler.quib.graphics import GraphicsFunctionQuib
-                if len(self.children) > 0:
+                if not self._is_completely_overridden_at_first_component(new_path):
                     self._invalidate_children_at_path(new_path)
-
-    def _should_continue_invalidation(self, path):
-        return True
 
     def add_child(self, quib: Quib) -> None:
         """
