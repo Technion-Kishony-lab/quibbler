@@ -53,9 +53,10 @@ class DefaultFunctionQuib(FunctionQuib):
             self._cache = create_cache(new_result)
         return self._cache
 
-    def _invalidate_self(self, path: List[PathComponent]):
+    def _invalidate_self(self, path: Optional[List[PathComponent]]):
         if len(path) == 0:
             self._reset_cache()
+            self.method_cache.clear()
 
         if self._cache is not None:
             self._cache = transform_cache_to_nd_if_necessary_given_path(self._cache, path)

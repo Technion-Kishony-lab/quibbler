@@ -1,10 +1,11 @@
 from __future__ import annotations
 import numpy as np
+from functools import wraps
 from functools import cached_property
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from operator import getitem
-from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List
+from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Callable, Dict
 from weakref import ref as weakref
 
 from pyquibbler.exceptions import PyQuibblerException
@@ -39,6 +40,31 @@ class OverridingNotAllowedException(PyQuibblerException):
         return f'Cannot override {self.quib} with {self.override} as it does not allow overriding.'
 
 
+@dataclass(frozen=True)
+class FunctionCall:
+    func: Callable
+    args: Tuple[Any, ...]
+    kwargs: Tuple[Tuple[str, Any], ...]
+
+    @classmethod
+    def create(cls, func: Callable, args: Tuple[Any, ...], kwargs: Dict[str, Any]):
+        return cls(func, args, tuple(kwargs.items()))
+
+
+def cache_method_until_full_invalidation(func):
+    @wraps(func)
+    def wrapper(self: Quib, *args, **kwargs):
+        call = FunctionCall.create(func, (self, *args), kwargs)
+        try:
+            return self.method_cache[call]
+        except KeyError:
+            result = func(self, *args, **kwargs)
+            self.method_cache[call] = result
+            return result
+
+    return wrapper
+
+
 class Quib(ABC):
     """
     An abstract class to describe the common methods and attributes of all quib types.
@@ -55,6 +81,7 @@ class Quib(ABC):
         if allow_overriding is None:
             allow_overriding = self._DEFAULT_ALLOW_OVERRIDING
         self.allow_overriding = allow_overriding
+        self.method_cache = {}
 
     @property
     def children(self) -> Set[Quib]:
@@ -321,6 +348,7 @@ class Quib(ABC):
         """
         return self._overrider
 
+    @cache_method_until_full_invalidation
     def get_type(self) -> Type:
         """
         Get the type of wrapped value
