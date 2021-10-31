@@ -51,4 +51,3 @@ class HolisticCache(Cache):
 
     def _is_completely_invalid(self):
         return self._invalid
-

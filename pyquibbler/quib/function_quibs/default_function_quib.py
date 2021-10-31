@@ -58,8 +58,6 @@ class DefaultFunctionQuib(FunctionQuib):
             self._reset_cache()
 
         if self._cache is not None:
-            if len(path) > 0 and isinstance(path[0], list):
-                print(1)
             self._cache = transform_cache_to_nd_if_necessary_given_path(self._cache, path)
             self._cache.set_invalid_at_path(path)
 

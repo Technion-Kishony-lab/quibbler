@@ -161,7 +161,7 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
             if quibs_to_indices[quib] is not None else []
             for quib in quibs_to_indices
         }
-    
+
     def _forward_translate_invalidation_path(self, quib: Quib,
                                              path: List[PathComponent]) -> List[Optional[List[PathComponent]]]:
         """

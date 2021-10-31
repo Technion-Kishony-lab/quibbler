@@ -79,7 +79,7 @@ class RectangleSelectorGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
         init_val = self._get_args_values().get('extents')
         with timer("selector_change", lambda x: print(f"selector change {x}")):
             if isinstance(init_val, Quib):
-                    init_val[:] = extents
+                init_val[:] = extents
             else:
                 # We only need to invalidate children if we didn't assign
                 self.invalidate_and_redraw_at_path()

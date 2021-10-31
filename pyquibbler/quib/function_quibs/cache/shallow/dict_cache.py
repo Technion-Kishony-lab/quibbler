@@ -1,4 +1,4 @@
-from typing import List, Any, Dict
+from typing import List
 
 from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import ShallowCache
