@@ -152,7 +152,7 @@ class FunctionQuib(Quib):
         When there is only one override option, it will be automatically performed.
         When there are no override options, AssignmentNotPossibleException is raised.
         """
-        get_overrides_for_assignment(self, assignment).apply()
+        get_overrides_for_assignment(self, assignment).apply(invalidate_and_redraw_override_removals=False)
 
     def __repr__(self):
         if PRETTY_REPR:

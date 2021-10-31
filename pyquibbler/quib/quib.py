@@ -114,16 +114,11 @@ class Quib(ABC):
             path = []
 
         from pyquibbler import timer
-        print("STARTING INVALIDATION")
-        with timer("quib_invalidation"):
-            IS_IN_INVALIDATION.set(True)
+        with timer("quib_invalidation", lambda x: print(f"invalidation {x}")):
             self._invalidate_children_at_path(path)
-        IS_IN_INVALIDATION.set(False)
-        print("STARTING REDRAW")
         # import ipdb; ipdb.set_trace()
-        with timer("quib_redraw"):
+        with timer("quib_redraw", lambda x: print(f"redraw {x}")):
             self.__redraw()
-        print("ENDED REDRAW")
 
     def _invalidate_children_at_path(self, path: List[PathComponent]) -> None:
         """
@@ -238,14 +233,13 @@ class Quib(ABC):
 
         self.invalidate_and_redraw_at_path(assignment.path)
 
-    def remove_override(self, path: List[PathComponent]):
+    def remove_override(self, path: List[PathComponent], invalidate_and_redraw: bool = True):
         """
         Remove overriding in a specific path in the quib.
         """
         self._overrider.remove_assignment(path)
-        if len(path) == 0:
-            self._on_type_change()
-        # self.invalidate_and_redraw_at_path(path=path)
+        if invalidate_and_redraw:
+            self.invalidate_and_redraw_at_path(path=path)
 
     def assign(self, assignment: Assignment) -> None:
         """

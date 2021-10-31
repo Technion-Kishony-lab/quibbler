@@ -93,14 +93,7 @@ for i in range(1, images_count.get_value() + 1):
                 color='r',
                 linewidths=2)
 
-plt.show(block=False)
-plt.pause(0.1)
-
-start = time.time()
-rois[0] = [100, 200, 100, 200]
-
-print(f"Took {time.time() - start}")
-exit()
+plt.show(block=True)
 
 # arrayfun(@plot,gca,1:nImages,(1:nImages)',"rx","markersize",isAdjacent.*18+1,"linewidth",3 ,EvalNow);
 
