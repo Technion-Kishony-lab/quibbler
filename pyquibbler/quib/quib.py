@@ -341,25 +341,17 @@ class Quib(ABC):
             raise
 
     @quib_method
-    def _get_override_mask(self, shape: Tuple[int, ...]) -> np.ndarray:
-        """
-        Return an override mask based on assignments in self._overrider, in the given shape.
-        This is an internal method so when called with a quib instead of the shape, the resulting quib
-        will be dependent on both self and the shape quib.
-        """
-        if issubclass(self.get_type(), np.ndarray):
-            mask = np.zeros(shape, dtype=np.bool)
-        else:
-            mask = recursively_run_func_on_object(func=lambda x: False, obj=self.get_value())
-        return self._overrider.fill_override_mask(mask)
-
-    def get_override_mask(self) -> Quib:
+    def get_override_mask(self):
         """
         Assuming this quib represents a numpy ndarray, return a quib representing its override mask.
         The override mask is a boolean array of the same shape, in which every value is
         set to True if the matching value in the array is overridden, and False otherwise.
         """
-        return self._get_override_mask(self.get_shape())
+        if issubclass(self.get_type(), np.ndarray):
+            mask = np.zeros(self.get_shape().get_value(), dtype=np.bool)
+        else:
+            mask = recursively_run_func_on_object(func=lambda x: False, obj=self.get_value())
+        return self._overrider.fill_override_mask(mask)
 
     def iter_first(self, amount: Optional[int] = None):
         """
