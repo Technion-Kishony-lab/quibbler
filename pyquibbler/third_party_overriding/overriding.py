@@ -55,7 +55,7 @@ NUMPY_OVERRIDES = [
 
 MPL_OVERRIDES = [
     (Axes, [
-        (GraphicsFunctionQuib, {'imshow', 'text', 'bar', 'hist', 'pie', 'legend', '_sci', 'matshow'}),
+        (GraphicsFunctionQuib, {'imshow', 'text', 'bar', 'hist', 'pie', 'legend', '_sci', 'matshow', 'scatter'}),
         (PlotGraphicsFunctionQuib, {'plot'}),
     ]),
     (Axes, [

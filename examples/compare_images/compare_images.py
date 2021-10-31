@@ -73,9 +73,10 @@ plt.axis([0.5, images_count+0.5, 0.5, images_count+0.5 ])
 plt.title('pairwise distance between images')
 plt.xlabel('Image number')
 plt.ylabel('Image number')
-#
-# for i in range(images_count.get_value()):
-#     plt.plot(list(range(images_count.get_value())), 'rx', markersize=np.array([10, 0, 0, 10, 0, 10]), linewidth=3)
+
+for i in range(1, images_count.get_value() + 1):
+    plt.scatter(list(range(1, images_count.get_value() + 1)), [i] * 6, s=[100, 100, 100, 100, 100, 100], marker='x', color='r',
+                linewidths=2)
 
 # arrayfun(@plot,gca,1:nImages,(1:nImages)',"rx","markersize",isAdjacent.*18+1,"linewidth",3 ,EvalNow);
 
