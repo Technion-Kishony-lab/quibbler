@@ -4,6 +4,7 @@ from threading import RLock
 from typing import Any, Optional, List
 from matplotlib.widgets import RectangleSelector
 
+from pyquibbler import timer
 from pyquibbler.quib.utils import quib_method
 from pyquibbler.utils import Mutable
 
@@ -77,7 +78,8 @@ class RectangleSelectorGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
     def _on_changed(self, extents):
         init_val = self._get_args_values().get('extents')
         if isinstance(init_val, Quib):
-            init_val[:] = extents
+            with timer(name="selector_change"):
+                init_val[:] = extents
         else:
             # We only need to invalidate children if we didn't assign
             self.invalidate_and_redraw_at_path()

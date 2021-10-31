@@ -2,6 +2,8 @@
 Override 3rd party library functions to return quibs (each function and its respective quib type)
 when called with quib arguments.
 """
+import matplotlib
+import matplotlib.image
 import numpy as np
 from functools import wraps
 from typing import Type, Any, Callable, Optional, List, Tuple, Set
@@ -33,13 +35,13 @@ WIDGET_OVERRIDES = {
 NUMPY_OVERRIDES = [
     (np, [
         (DefaultFunctionQuib, {"abs", "average", "arange", "polyfit",
-                               "linspace", "polyval", "array", "genfromtxt", 'prod'}),
+                               "linspace", "polyval", "array", "genfromtxt", 'prod', 'corrcoef', 'mean'}),
         (GraphicsFunctionQuib, {'apply_over_axes'}),
         (TranspositionalFunctionQuib, {'reshape', 'rot90', 'ravel', 'concatenate', 'repeat', 'full', 'concatenate'}),
         (ElementWiseFunctionQuib, {'add', 'square', "sin", "cos", "tan", "sinh", "cosh", "tanh", "real", "imag",
                                    "arcsin", "arccos", "arctan", "arcsinh", "arccosh", "arctanh",
                                    "exp", "exp2", "expm1", "log", "log2", "log1p", "log10",
-                                   "sqrt", "int", "float", "ceil", "floor", "round", 'around'}),
+                                   "sqrt", "int", "float", "ceil", "floor", "round", 'around', 'hypot'}),
         (ReductionAxisWiseGraphicsFunctionQuib, {"max", "amax", "min", "amin", "sum"}),
         (AlongAxisGraphicsFunctionQuib, {'apply_along_axis'}),
     ]),
@@ -53,7 +55,7 @@ NUMPY_OVERRIDES = [
 
 MPL_OVERRIDES = [
     (Axes, [
-        (GraphicsFunctionQuib, {'imshow', 'text', 'bar', 'hist', 'pie', 'legend'}),
+        (GraphicsFunctionQuib, {'imshow', 'text', 'bar', 'hist', 'pie', 'legend', '_sci', 'matshow'}),
         (PlotGraphicsFunctionQuib, {'plot'}),
     ]),
     (Axes, [
@@ -65,6 +67,9 @@ MPL_OVERRIDES = [
         (CheckButtonsGraphicsFunctionQuib, {'CheckButtons'}),
         (RadioButtonsGraphicsFunctionQuib, {'RadioButtons'}),
         (RectangleSelectorGraphicsFunctionQuib, {'RectangleSelector'})
+    ]),
+    (matplotlib.image, [
+        (ImpureFunctionQuib, {'imread'})
     ])
 ]
 
