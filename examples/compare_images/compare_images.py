@@ -47,11 +47,13 @@ rois = np.repeat(roi_default, images_count, axis=0)
 rois.set_assignment_template(0, 1000, 1)
 rois.allow_overriding = True
 
+rois_itered = list(rois.iter_first(images_count.get_value()))
+
 # Plot ROIs on main image:
-for roi in rois.iter_first(images_count.get_value()):
+for roi in rois_itered:
     create_roi(roi, plt.gca())
 
-cut_images_lst = [cut_image(roi) for roi in rois.iter_first(images_count.get_value())]
+cut_images_lst = [cut_image(roi) for roi in rois_itered]
 
 
 # Plot images
@@ -72,6 +74,7 @@ threshold = iquib(.1)
 adjacents = image_distances < threshold
 
 
+
 # Plot distance matrix
 plt.figure(3)
 plt.axis([0.5, images_count+0.5, 0.5, images_count+0.5 ])
@@ -79,6 +82,8 @@ plt.title('pairwise distance between images')
 plt.xlabel('Image number')
 plt.ylabel('Image number')
 
+
+#
 for i in range(1, images_count.get_value() + 1):
     adjacents_for_image = adjacents[i - 1]
     ss = [(adjacents_for_image[i] * 100 + 1) for i in range(images_count.get_value())]
@@ -87,6 +92,15 @@ for i in range(1, images_count.get_value() + 1):
                 marker='x',
                 color='r',
                 linewidths=2)
+
+plt.show(block=False)
+plt.pause(0.1)
+
+start = time.time()
+rois[0] = [100, 200, 100, 200]
+
+print(f"Took {time.time() - start}")
+exit()
 
 # arrayfun(@plot,gca,1:nImages,(1:nImages)',"rx","markersize",isAdjacent.*18+1,"linewidth",3 ,EvalNow);
 
@@ -116,16 +130,6 @@ del r
 
 """
 
-
-plt.show(block=False)
-plt.pause(0.1)
-roi = rois[0]
-
-start = time.time()
-with PyCallGraph(output=GraphvizOutput()):
-    roi[:] = [100, 200, 100, 200]
-
-print(f"Took {time.time() - start}")
 
 # ROIs = repmat(ROIdefault,nImages,1, 'AssignmentTemplate',{[0 1000 1]}, 'AssignmentPermission','open');
 #

@@ -223,6 +223,11 @@ class FunctionQuib(Quib):
         This function can and should be overriden if there is a more specific implementation for getting a value only
         valid at valid_path
         """
+        # print(f"{id(self)} call func {self.__class__.__name__} {self.func.__name__} {self.args} - {valid_path}")
+        # if valid_path is not None and len(valid_path) == 0:
+            # print(44)
+        # if valid_path is None:
+        #     print(1)
         if IS_IN_INVALIDATION:
             if self._was_invalidated is not False:
                 # print(1)

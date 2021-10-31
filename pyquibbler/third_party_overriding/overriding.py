@@ -34,7 +34,7 @@ WIDGET_OVERRIDES = {
 
 NUMPY_OVERRIDES = [
     (np, [
-        (DefaultFunctionQuib, {"abs", "average", "arange", "polyfit",
+        (DefaultFunctionQuib, {"abs", "arange", "polyfit",
                                "linspace", "polyval", "array", "genfromtxt", 'prod', 'corrcoef', 'mean'}),
         (GraphicsFunctionQuib, {'apply_over_axes'}),
         (TranspositionalFunctionQuib, {'reshape', 'rot90', 'ravel', 'concatenate', 'repeat', 'full', 'concatenate'}),
@@ -42,7 +42,7 @@ NUMPY_OVERRIDES = [
                                    "arcsin", "arccos", "arctan", "arcsinh", "arccosh", "arctanh",
                                    "exp", "exp2", "expm1", "log", "log2", "log1p", "log10",
                                    "sqrt", "int", "float", "ceil", "floor", "round", 'around', 'hypot'}),
-        (ReductionAxisWiseGraphicsFunctionQuib, {"max", "amax", "min", "amin", "sum"}),
+        (ReductionAxisWiseGraphicsFunctionQuib, {"max", "amax", "min", "amin", "sum", "average"}),
         (AlongAxisGraphicsFunctionQuib, {'apply_along_axis'}),
     ]),
     (np.random, [

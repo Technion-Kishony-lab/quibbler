@@ -64,8 +64,12 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
     @classmethod
     def create_wrapper(cls, func: Callable):
         if cls.SUPPORTED_FUNCTIONS is not None:
-            assert func in cls.SUPPORTED_FUNCTIONS, \
-                f'Tried to create a wrapper for function {func} which is not supported'
+            try:
+                assert func in cls.SUPPORTED_FUNCTIONS, \
+                    f'Tried to create a wrapper for function {func} which is not supported'
+            except Exception:
+                print(1)
+                raise
         return super().create_wrapper(func)
 
     @lru_cache()
@@ -111,8 +115,6 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
 
     def _get_paths_for_children_invalidation(self, invalidator_quib: Quib,
                                              path: List[PathComponent]) -> List[Optional[List[PathComponent]]]:
-        if len(path) == 0:
-            path = [PathComponent(component=True, indexed_cls=np.ndarray)]
         if not self._is_quib_a_data_source(invalidator_quib):
             return [[]]
         return [self._forward_translate_invalidation_path(invalidator_quib, path)]
