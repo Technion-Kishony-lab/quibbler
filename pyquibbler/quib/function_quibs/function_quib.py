@@ -194,9 +194,11 @@ class FunctionQuib(Quib):
                 path = quibs_to_paths[inner_arg]
             elif self._is_quib_a_data_source(inner_arg):
                 # If the quib is a data source, and we didn't see it in the result, we don't need it to be valid at any
-                # paths (it did not appear in quibs to paths)
+                # paths (it did not appear in quibs_to_paths)
                 path = None
             else:
+                # This is a paramater quib- we always need a parameter quib to be completely valid regardless of where
+                # we need ourselves (this quib) to be valid
                 path = []
 
             return inner_arg.get_value_valid_at_path(path)
