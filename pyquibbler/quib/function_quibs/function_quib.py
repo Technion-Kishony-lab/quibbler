@@ -54,10 +54,6 @@ class FunctionQuib(Quib):
             cache_behavior = self._DEFAULT_CACHE_BEHAVIOR
         self.set_cache_behavior(cache_behavior)
 
-        self._none_cache = None
-
-        self._was_invalidated = False
-
     @cached_property
     def parents(self) -> Set[Quib]:
         return set(iter_quibs_in_args(self.args, self.kwargs))

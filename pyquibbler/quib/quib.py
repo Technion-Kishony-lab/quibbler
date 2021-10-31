@@ -57,9 +57,6 @@ class Quib(ABC):
             allow_overriding = self._DEFAULT_ALLOW_OVERRIDING
         self.allow_overriding = allow_overriding
 
-        self._shape = None
-        self._type = None
-
     @property
     def children(self) -> Set[Quib]:
         """
@@ -337,23 +334,16 @@ class Quib(ABC):
         """
         Get the type of wrapped value
         """
-        if self._type is None:
-            self._type = type(self.get_value_valid_at_path(None))
-        return self._type
+        return type(self.get_value_valid_at_path(None))
 
     @quib_method
     def get_shape(self) -> Tuple[int, ...]:
         """
         Assuming this quib represents a numpy ndarray, returns a quib of its shape.
         """
-        if self._shape is not None:
-            return self._shape
-
         res = self.get_value_valid_at_path(None)
         try:
-            shape = np.shape(res)
-            self._shape = shape
-            return shape
+            return np.shape(res)
         except ValueError:
             if hasattr(res, '__len__'):
                 return len(res),

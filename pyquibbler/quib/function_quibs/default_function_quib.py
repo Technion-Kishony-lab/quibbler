@@ -39,12 +39,9 @@ class DefaultFunctionQuib(FunctionQuib):
                  assignment_template: Optional[AssignmentTemplate] = None):
         super().__init__(func, args, kwargs, cache_behavior, assignment_template=assignment_template)
         self._reset_cache()
-        self._was_invalidated = False
 
     def _reset_cache(self):
         self._cache = None
-        self._shape = None
-        self._type = None
         self._caching = True if self._cache_behavior == CacheBehavior.ON else False
 
     def _ensure_cache_matches_result(self, new_result: Any):
