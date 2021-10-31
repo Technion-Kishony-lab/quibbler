@@ -33,9 +33,9 @@ class VectorizeArgMetadata:
 
 @dataclass
 class VectorizeMetadata:
-    _vectorize: np.vectorize
-    _args: Args
-    _kwargs: Kwargs
+    vectorize: np.vectorize
+    args: Args
+    kwargs: Kwargs
 
     args_metadata: Dict[Union[int, str], Optional[VectorizeArgMetadata]]
     result_loop_shape: Shape
@@ -52,9 +52,9 @@ class VectorizeMetadata:
         return np.reshape(arg_value, (-1, *meta.core_shape))[0]
 
     def _get_sample_result(self):
-        args = [self._get_sample_arg_core(i, arg) for i, arg in enumerate(self._args)]
-        kwargs = {name: self._get_sample_arg_core(name, arg) for name, arg in self._kwargs.items()}
-        return self._vectorize.pyfunc(*args, **kwargs)
+        args = [self._get_sample_arg_core(i, arg) for i, arg in enumerate(self.args)]
+        kwargs = {name: self._get_sample_arg_core(name, arg) for name, arg in self.kwargs.items()}
+        return self.vectorize.pyfunc(*args, **kwargs)
 
     def _run_sample_and_update_metadata(self):
         sample_result = self._get_sample_result()
