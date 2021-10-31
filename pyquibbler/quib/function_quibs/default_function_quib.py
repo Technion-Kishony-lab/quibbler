@@ -77,7 +77,7 @@ class DefaultFunctionQuib(FunctionQuib):
         return elapsed_seconds > self.MIN_SECONDS_FOR_CACHE \
                and getsizeof(result) / elapsed_seconds < self.MAX_BYTES_PER_SECOND
 
-    def _get_uncached_paths_matching_path(self, path: Optional[List['PathComponent']]):
+    def _get_uncached_paths_matching_path(self, path: List[Optional[List['PathComponent']]]):
         """
         Get a list of paths that are uncached within the given path- these paths must be a subset of the given path
         (or the path itself)
@@ -124,7 +124,7 @@ class DefaultFunctionQuib(FunctionQuib):
         return new_path
 
     def _run_func_on_uncached_paths(self, truncated_path: List[PathComponent],
-                                    uncached_paths: List[List[PathComponent]]):
+                                    uncached_paths: List[Optional[List[PathComponent]]]):
         """
         Run the function a list of uncached paths, given an original truncated path, storing it in our cache
         """
