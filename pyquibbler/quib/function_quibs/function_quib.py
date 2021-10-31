@@ -15,7 +15,7 @@ from ..assignment import AssignmentTemplate, Assignment, PathComponent, QuibWith
 from ..quib import Quib
 from ..utils import is_there_a_quib_in_args, iter_quibs_in_args, deep_copy_without_quibs_or_artists, \
     copy_and_convert_args_and_kwargs_to_values, recursively_run_func_on_object, QuibRef
-from ...env import LAZY, PRETTY_REPR, IS_IN_INVALIDATION
+from ...env import LAZY, PRETTY_REPR
 
 
 class CacheBehavior(Enum):

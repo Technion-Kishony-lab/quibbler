@@ -73,16 +73,17 @@ class Cache(ABC):
         uncached_paths = self.get_uncached_paths([])
         if len(uncached_paths) == 0:
             return CacheStatus.ALL_VALID
-        elif self.is_completely_invalid_at_path([]):
+        elif self._is_completely_invalid():
             return CacheStatus.ALL_INVALID
         else:
             return CacheStatus.PARTIAL
 
-    def is_completely_invalid_at_path(self, path: List[PathComponent]):
+    @abstractmethod
+    def _is_completely_invalid(self):
         """
         Is this cache completely invalid?
         """
-        get_sub
+        pass
 
     def get_value(self) -> Any:
         """

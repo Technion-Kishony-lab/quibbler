@@ -1,3 +1,4 @@
+# THIS DEMO DOES NOT WORK 100%
 
 import numpy as np
 from matplotlib import pyplot as plt, widgets
@@ -67,6 +68,7 @@ def create_figure_1():
         valstep=.1,
         valinit=images_count
     )
+
 
 create_figure_1()
 

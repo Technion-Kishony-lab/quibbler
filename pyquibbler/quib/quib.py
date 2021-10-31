@@ -16,7 +16,7 @@ from .utils import quib_method, Unpacker, recursively_run_func_on_object
 from .assignment import PathComponent
 
 
-from ..env import LEN_RAISE_EXCEPTION, IS_IN_INVALIDATION
+from ..env import LEN_RAISE_EXCEPTION
 
 if TYPE_CHECKING:
     from pyquibbler.quib.graphics import GraphicsFunctionQuib

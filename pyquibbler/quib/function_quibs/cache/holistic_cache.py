@@ -52,7 +52,3 @@ class HolisticCache(Cache):
     def _is_completely_invalid(self):
         return self._invalid
 
-    @raise_if_path_is_not_empty
-    def is_completely_invalid_at_path(self, path: List[PathComponent]):
-        return self._invalid
-

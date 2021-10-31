@@ -86,15 +86,3 @@ class ShallowCache(Cache):
     @abstractmethod
     def _is_completely_invalid(self):
         pass
-
-    def is_completely_invalid_at_path(self, path: List[PathComponent]):
-        if len(path) == 0:
-            return self._is_completely_invalid()
-
-        previous_invalid_mask = self._invalid_mask
-        fake_invalid_mask = copy(self._invalid_mask)
-        self._invalid_mask = fake_invalid_mask
-        self.set_invalid_at_path(path)
-        is_invalid = fake_invalid_mask == self._invalid_mask
-        self._invalid_mask = previous_invalid_mask
-        return is_invalid

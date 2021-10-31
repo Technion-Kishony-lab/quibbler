@@ -12,7 +12,6 @@ from .cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_gi
 from .function_quib import FunctionQuib, CacheBehavior
 from ..assignment import AssignmentTemplate
 from ..assignment.utils import get_sub_data_from_object_in_path
-from ...env import IS_IN_INVALIDATION
 
 if TYPE_CHECKING:
     from ..assignment.assignment import PathComponent
