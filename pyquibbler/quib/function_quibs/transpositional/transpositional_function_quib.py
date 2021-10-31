@@ -161,6 +161,21 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
             if quibs_to_indices[quib] is not None else []
             for quib in quibs_to_indices
         }
+    
+    def _forward_translate_invalidation_path(self, quib: Quib,
+                                             path: List[PathComponent]) -> List[Optional[List[PathComponent]]]:
+        """
+        There are two things we can potentially do:
+        1. Translate the invalidation path given the current function quib (eg if this function quib is rotate,
+        take the invalidated indices, rotate them and invalidate children with the resulting indices)
+        3. Pass on the current path to all our children
+        """
+        if len(path) > 0 and path[0].references_field_in_field_array():
+            # The path at the first component references a field, and therefore we cannot translate it given a
+            # normal transpositional function (neither does it make any difference, as transpositional functions
+            # don't change fields)
+            return [path]
+        return super(TranspositionalFunctionQuib, self)._forward_translate_invalidation_path(quib, path)
 
     def _forward_translate_indices_to_bool_mask(self, quib: Quib, indices: Any) -> Any:
         """
@@ -173,7 +188,6 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
         If any indices exist in the result, invalidate all children with the resulting indices (or, in this
         implementation, a boolean mask representing them)
         """
-
         def _replace_arg_with_corresponding_mask_or_arg(q):
             if isinstance(q, Quib) and q in self._get_data_source_quibs():
                 if q is quib:
@@ -187,23 +201,6 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
             obj=self._args
         )
         return call_func_with_quib_values(self._func, new_arguments, self._kwargs)
-
-    def _get_paths_for_children_invalidation(self, invalidator_quib: 'Quib',
-                                             path: List[PathComponent]) -> List[Optional[List[PathComponent]]]:
-        """
-        There are three things we can potentially do:
-        1. Translate the invalidation path given the current function quib (eg if this function quib is rotate,
-        take the invalidated indices, rotate them and invalidate children with the resulting indices)
-        2. In getitem, if the source quib is a list or a dict, check equality of indices and invalidation path-
-           if so, continue with path[1:]
-        3. Pass on the current path to all our children
-        """
-        if len(path) > 0 and path[0].references_field_in_field_array():
-            # The path at the first component references a field, and therefore we cannot translate it given a
-            # normal transpositional function (neither does it make any difference, as transpositional functions
-            # don't change fields)
-            return [path]
-        return super()._get_paths_for_children_invalidation(invalidator_quib, path)
 
     def _get_quibs_to_relevant_result_values(self, assignment) -> Dict[Quib, np.ndarray]:
         """

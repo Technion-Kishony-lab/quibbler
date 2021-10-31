@@ -136,17 +136,6 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
         else:
             return [[PathComponent(tuple, i), *starting_path] for i in range(tuple_len)]
 
-    # def _get_paths_for_children_invalidation(self, invalidator_quib: Quib,
-    #                                          path: List[PathComponent]) -> List[Optional[List[PathComponent]]]:
-    #     if not self._is_quib_a_data_source(invalidator_quib):
-    #         return [[]]
-    #     invalidation_paths = self._forward_translate_invalidation_path(invalidator_quib, path)
-    #     tuple_len = self._get_tuple_output_len()
-    #     if tuple_len is None:
-    #         return invalidation_paths
-    #     else:
-    #         return [[PathComponent(tuple, i), *invalidation_paths] for i in range(tuple_len)]
-
     def _backward_translate_indices_to_bool_mask(self, quib: Quib, indices: Any) -> Any:
         quib_loop_shape = quib.get_shape().get_value()[:-self._get_arg_core_ndim(quib) or None]
         result_bool_mask = self._get_bool_mask_representing_indices_in_result(indices)
