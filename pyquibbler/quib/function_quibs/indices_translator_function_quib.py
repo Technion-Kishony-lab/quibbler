@@ -18,7 +18,7 @@ Kwargs = Dict[str, Any]
 @dataclass
 class SupportedFunction:
     data_source_indices: Union[Set[Union[int, str, slice]],
-                               Callable[[Args, Kwargs, Kwargs], List[Any]]]
+                               Callable[[ArgsValues], List[Any]]]
 
     def get_data_source_args(self, args_values: ArgsValues) -> List[Any]:
         if callable(self.data_source_indices):
@@ -69,15 +69,12 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
         return super().create_wrapper(func)
 
     @lru_cache()
-    def get_data_source_quibs(self) -> Set:
+    def _get_data_source_quib_parents(self) -> Set:
         if self.SUPPORTED_FUNCTIONS is not None:
             supported_function = self.SUPPORTED_FUNCTIONS[self._func]
             data_source_args = supported_function.get_data_source_args(self._get_args_values(include_defaults=False))
             return set(iter_objects_of_type_in_object_shallowly(Quib, data_source_args))
         return self.parents
-
-    def _is_quib_a_data_source(self, quib: Quib):
-        return quib in self.get_data_source_quibs()
 
     @abstractmethod
     def _forward_translate_indices_to_bool_mask(self, quib: Quib, indices: Any) -> Any:
@@ -90,7 +87,7 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
         return {}
 
     def _forward_translate_invalidation_path(self, quib: Quib,
-                                             path: List[PathComponent]) -> Optional[List[PathComponent]]:
+                                             path: List[PathComponent]) -> List[Optional[List[PathComponent]]]:
         working_component, *rest_of_path = path
         bool_mask_in_output_array = self._forward_translate_indices_to_bool_mask(quib,
                                                                                  working_component.component)
@@ -105,17 +102,9 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
                    or (bool_mask_in_output_array.shape == () and bool_mask_in_output_array.dtype == np.bool_)
 
             if not np.all(bool_mask_in_output_array) and issubclass(self.get_type(), np.ndarray):
-                return [PathComponent(self.get_type(), bool_mask_in_output_array), *rest_of_path]
-            return rest_of_path
-        return None
-
-    def _get_paths_for_children_invalidation(self, invalidator_quib: Quib,
-                                             path: List[PathComponent]) -> List[Optional[List[PathComponent]]]:
-        if len(path) == 0:
-            path = [PathComponent(component=True, indexed_cls=np.ndarray)]
-        if not self._is_quib_a_data_source(invalidator_quib):
-            return [[]]
-        return [self._forward_translate_invalidation_path(invalidator_quib, path)]
+                return [[PathComponent(self.get_type(), bool_mask_in_output_array), *rest_of_path]]
+            return [rest_of_path]
+        return []
 
     def get_inversions_for_assignment(self, assignment: Assignment) -> List[QuibWithAssignment]:
         components_at_end = assignment.path[1:]

@@ -23,8 +23,8 @@ class OverrideRemoval:
     quib: Quib
     path: List[PathComponent]
 
-    def apply(self):
-        self.quib.remove_override(self.path)
+    def apply(self, invalidate_and_redraw: bool = True):
+        self.quib.remove_override(self.path, invalidate_and_redraw=invalidate_and_redraw)
 
     @classmethod
     def from_inversion(cls, inversion: QuibWithAssignment):
@@ -42,11 +42,11 @@ class OverrideGroup:
     overrides: List[QuibWithAssignment] = field(default_factory=list)
     override_removals: List[OverrideRemoval] = field(default_factory=list)
 
-    def apply(self):
+    def apply(self, invalidate_and_redraw_override_removals: bool = True):
         for override in self.overrides:
             override.override()
         for override_removal in self.override_removals:
-            override_removal.apply()
+            override_removal.apply(invalidate_and_redraw=invalidate_and_redraw_override_removals)
 
     def __bool__(self):
         return len(self.overrides) > 0 or len(self.override_removals) > 0

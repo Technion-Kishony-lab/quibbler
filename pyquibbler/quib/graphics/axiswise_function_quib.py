@@ -87,7 +87,7 @@ class AxisWiseGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFuncti
 
     def _get_source_paths_of_quibs_given_path(self, filtered_path_in_result: List[PathComponent]):
         return {quib: self._get_source_path_in_quib(quib, filtered_path_in_result)
-                for quib in self.get_data_source_quibs()}
+                for quib in self._get_data_source_quib_parents()}
 
 
 class ReductionAxisWiseGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
@@ -97,6 +97,8 @@ class ReductionAxisWiseGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         np.amin: SupportedFunction({0}),
         np.max: SupportedFunction({0}),
         np.amax: SupportedFunction({0}),
+        np.mean: SupportedFunction({0}),
+        np.average: SupportedFunction({0})
     }
     TRANSLATION_RELATED_ARGS = [Arg('axis'), ArgWithDefault('keepdims', False), ArgWithDefault('where', True)]
 

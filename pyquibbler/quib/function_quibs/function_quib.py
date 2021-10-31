@@ -148,7 +148,7 @@ class FunctionQuib(Quib):
         When there is only one override option, it will be automatically performed.
         When there are no override options, AssignmentNotPossibleException is raised.
         """
-        get_overrides_for_assignment(self, assignment).apply()
+        get_overrides_for_assignment(self, assignment).apply(invalidate_and_redraw_override_removals=False)
 
     def __repr__(self):
         if PRETTY_REPR:
@@ -179,9 +179,13 @@ class FunctionQuib(Quib):
         Returns whether this quib is considered a data source or not. This defaults to false, as a parameter (our
         current other option) is unknown in what it does to the result.
         """
-        return False
+        return quib in self._get_data_source_quib_parents()
 
-    def _replace_potential_quib_with_value(self, quibs_to_paths, inner_arg: Union[Quib, Any]):
+    def _replace_sub_argument_with_value(self, quibs_to_paths, inner_arg: Union[Quib, Any]):
+        """
+        Replace an argument, potentially a quib, with it's relevant value, given a map of quibs_to_paths, which
+        describes for each quib what path it needs to be valid at
+        """
         if isinstance(inner_arg, QuibRef):
             return inner_arg.quib
 
@@ -189,8 +193,12 @@ class FunctionQuib(Quib):
             if inner_arg in quibs_to_paths:
                 path = quibs_to_paths[inner_arg]
             elif self._is_quib_a_data_source(inner_arg):
+                # If the quib is a data source, and we didn't see it in the result, we don't need it to be valid at any
+                # paths (it did not appear in quibs_to_paths)
                 path = None
             else:
+                # This is a paramater quib- we always need a parameter quib to be completely valid regardless of where
+                # we need ourselves (this quib) to be valid
                 path = []
 
             return inner_arg.get_value_valid_at_path(path)
@@ -203,7 +211,7 @@ class FunctionQuib(Quib):
         and QuibRefs with quibs.
         """
         quibs_to_paths = {} if valid_path is None else self._get_source_paths_of_quibs_given_path(valid_path)
-        replace_func = functools.partial(self._replace_potential_quib_with_value, quibs_to_paths)
+        replace_func = functools.partial(self._replace_sub_argument_with_value, quibs_to_paths)
         new_args = [recursively_run_func_on_object(replace_func, arg) for arg in self.args]
         new_kwargs = {key: recursively_run_func_on_object(replace_func, val) for key, val in self.kwargs.items()}
         return new_args, new_kwargs
@@ -220,6 +228,30 @@ class FunctionQuib(Quib):
         """
         new_args, new_kwargs = self._prepare_args_for_call(valid_path)
         return self._func(*new_args, **new_kwargs)
+
+    def _forward_translate_invalidation_path(self, invalidator_quib: Quib, path: List[PathComponent]) -> \
+            List[List[PathComponent]]:
+        """
+        Forward and translate the invalidation path in order to get a list of paths
+        """
+        return [[]]
+
+    def _get_data_source_quib_parents(self) -> Set:
+        """
+        Get all the data source quib parents of this function quib
+        """
+        return set()
+
+    def _get_paths_for_children_invalidation(self, invalidator_quib: Quib,
+                                             path: List[PathComponent]) -> List[Optional[List[PathComponent]]]:
+        """
+        Get all the paths for invalidation of children
+        """
+        if len(path) == 0 or not self._is_quib_a_data_source(invalidator_quib):
+            # We want to completely invalidate our children
+            # if either a parameter changed or a data quib changed completely (at entire path)
+            return [[]]
+        return self._forward_translate_invalidation_path(invalidator_quib, path)
 
     def get_inversions_for_assignment(self, assignment: Assignment) -> List[QuibWithAssignment]:
         """

@@ -132,8 +132,8 @@ class DefaultFunctionQuib(FunctionQuib):
         for uncached_path in uncached_paths:
             result = self._call_func(uncached_path)
 
+            self._ensure_cache_matches_result(result)
             if uncached_path is not None:
-                self._ensure_cache_matches_result(result)
                 try:
                     valid_value = get_sub_data_from_object_in_path(result, truncated_path)
                     self._cache = transform_cache_to_nd_if_necessary_given_path(self._cache, truncated_path)

@@ -22,6 +22,10 @@ class ShallowCache(Cache):
 
     SUPPORTING_TYPES = (object,)
 
+    def __init__(self, value, invalid_mask):
+        super(ShallowCache, self).__init__(value)
+        self._invalid_mask = invalid_mask
+
     @abstractmethod
     def _set_valid_at_all_paths(self):
         """
@@ -77,3 +81,7 @@ class ShallowCache(Cache):
         if len(path) == 0:
             return self._get_all_uncached_paths()
         return self._get_uncached_paths_at_path_component(path[0])
+
+    @abstractmethod
+    def _is_completely_invalid(self):
+        pass

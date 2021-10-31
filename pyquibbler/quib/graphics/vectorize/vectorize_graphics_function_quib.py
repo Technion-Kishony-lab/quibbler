@@ -77,24 +77,19 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
         return np.broadcast_to(source_bool_mask, vectorize_metadata.result_loop_shape)
 
     def _forward_translate_invalidation_path(self, invalidator_quib: Quib,
-                                             path: List[PathComponent]) -> Optional[List[PathComponent]]:
+                                             path: List[PathComponent]) -> List[Optional[List[PathComponent]]]:
         working_component, *rest_of_path = path
         bool_mask_in_output_array = self._forward_translate_indices_to_bool_mask(invalidator_quib,
                                                                                  working_component.component)
-        if np.any(bool_mask_in_output_array):
-            return [PathComponent(self.get_type(), bool_mask_in_output_array), *rest_of_path]
-        return None
+        if not np.any(bool_mask_in_output_array):
+            return []
+        starting_path = [PathComponent(self.get_type(), bool_mask_in_output_array), *rest_of_path]
 
-    def _get_paths_for_children_invalidation(self, invalidator_quib: Quib,
-                                             path: List[PathComponent]) -> List[Optional[List[PathComponent]]]:
         vectorize_metadata = self._vectorize_metadata
-        if not self._is_quib_a_data_source(invalidator_quib):
-            return [[]]
-        invalidation_path = self._forward_translate_invalidation_path(invalidator_quib, path)
         if vectorize_metadata.is_result_a_tuple:
-            return [[PathComponent(tuple, i), *invalidation_path] for i in range(vectorize_metadata.tuple_length)]
+            return [[PathComponent(tuple, i), *starting_path] for i in range(vectorize_metadata.tuple_length)]
         else:
-            return [invalidation_path]
+            return [starting_path]
 
     def _backward_translate_indices_to_bool_mask(self, quib: Quib, indices: Any) -> Any:
         vectorize_metadata = self._vectorize_metadata
@@ -121,7 +116,7 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
 
     def _get_source_paths_of_quibs_given_path(self, filtered_path_in_result: List[PathComponent]):
         return {quib: self._get_source_path_in_quib(quib, filtered_path_in_result)
-                for quib in self.get_data_source_quibs()}
+                for quib in self._get_data_source_quib_parents()}
 
     def _copy_vectorize(self, vectorize, func=None, otypes=None, excluded=None, signature=None) -> np.vectorize:
         if func is None:

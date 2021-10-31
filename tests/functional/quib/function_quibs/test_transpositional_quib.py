@@ -264,7 +264,7 @@ def create_mock_quib(shape, get_value_result):
 
 
 @pytest.mark.regression
-def test_transpositional_concatenate_does_diverge():
+def test_transpositional_concatenate_does_diverge(create_mock_quib):
     first = create_mock_quib((1, 3), ([[1, 2, 3]]))
     second = create_mock_quib((1, 3), ([[1, 2, 3]]))
 
@@ -273,3 +273,14 @@ def test_transpositional_concatenate_does_diverge():
 
     assert len(filter_out_none_calls(first.get_value_valid_at_path.mock_calls)) == 0
     assert len(filter_out_none_calls(second.get_value_valid_at_path.mock_calls)) == 1
+
+
+@pytest.mark.regression
+def test_function_quib_forward_invalidation_path_with_changing_shapes(create_mock_quib):
+    parent = DefaultFunctionQuib.create(func=mock.Mock())
+    mock_quib = create_mock_quib(shape=(3, 1), get_value_result=[[1, 2, 3]])
+    parent.add_child(mock_quib)
+
+    parent.invalidate_and_redraw_at_path([])
+
+    mock_quib._invalidate_quib_with_children_at_path.assert_called_with(parent, [])
