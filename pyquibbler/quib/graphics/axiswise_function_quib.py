@@ -119,24 +119,22 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
         return np.broadcast_to(source_bool_mask, self._loop_shape)
 
     def _forward_translate_invalidation_path(self, invalidator_quib: Quib,
-                                             path: List[PathComponent]) -> Optional[List[PathComponent]]:
+                                             path: List[PathComponent]) -> List[Optional[List[PathComponent]]]:
         working_component, *rest_of_path = path
         bool_mask_in_output_array = self._forward_translate_indices_to_bool_mask(invalidator_quib,
                                                                                  working_component.component)
         if np.any(bool_mask_in_output_array):
-            return [PathComponent(self.get_type(), bool_mask_in_output_array), *rest_of_path]
-        return None
-
-    def _get_paths_for_children_invalidation(self, invalidator_quib: Quib,
-                                             path: List[PathComponent]) -> Optional[List[PathComponent]]:
-        if not self._is_quib_a_data_source(invalidator_quib):
-            return [[]]
-        invalidation_path = self._forward_translate_invalidation_path(invalidator_quib, path)
-        tuple_len = self._get_tuple_output_len()
-        if tuple_len is None:
-            return [invalidation_path]
+            starting_path = [PathComponent(self.get_type(), bool_mask_in_output_array), *rest_of_path]
         else:
-            return [[PathComponent(tuple, i), *invalidation_path] for i in range(tuple_len)]
+            starting_path = None
+
+        tuple_len = self._get_tuple_output_len()
+        if starting_path is None:
+            return []
+        elif tuple_len is None:
+            return [starting_path]
+        else:
+            return [[PathComponent(tuple, i), *starting_path] for i in range(tuple_len)]
 
     def _backward_translate_indices_to_bool_mask(self, quib: Quib, indices: Any) -> Any:
         quib_loop_shape = quib.get_shape().get_value()[:-self._get_arg_core_ndim(quib) or None]
@@ -160,7 +158,7 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
 
     def _get_source_paths_of_quibs_given_path(self, filtered_path_in_result: List[PathComponent]):
         return {quib: self._get_source_path_in_quib(quib, filtered_path_in_result)
-                for quib in self.get_data_source_quibs()}
+                for quib in self._get_data_source_quib_parents()}
 
 
 @dataclass
@@ -239,7 +237,7 @@ class AxisWiseGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFuncti
 
     def _get_source_paths_of_quibs_given_path(self, filtered_path_in_result: List[PathComponent]):
         return {quib: self._get_source_path_in_quib(quib, filtered_path_in_result)
-                for quib in self.get_data_source_quibs()}
+                for quib in self._get_data_source_quib_parents()}
 
 
 class ReductionAxisWiseGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
@@ -249,6 +247,8 @@ class ReductionAxisWiseGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         np.amin: SupportedFunction({0}),
         np.max: SupportedFunction({0}),
         np.amax: SupportedFunction({0}),
+        np.mean: SupportedFunction({0}),
+        np.average: SupportedFunction({0})
     }
     TRANSLATION_RELATED_ARGS = [Arg('axis'), ArgWithDefault('keepdims', False), ArgWithDefault('where', True)]
 

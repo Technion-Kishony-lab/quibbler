@@ -1,4 +1,4 @@
-from typing import List, Any, Dict
+from typing import List
 
 from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import ShallowCache
@@ -10,10 +10,6 @@ class DictCache(ShallowCache):
     """
 
     SUPPORTING_TYPES = (dict,)
-
-    def __init__(self, value: Any, invalid_mask: Dict):
-        super().__init__(value)
-        self._invalid_mask = invalid_mask
 
     @classmethod
     def create_invalid_cache_from_result(cls, result):

@@ -15,7 +15,9 @@ from .function_quibs.cache.shallow.indexable_cache import transform_cache_to_nd_
 from .utils import quib_method, Unpacker, recursively_run_func_on_object
 from .assignment import PathComponent
 
+
 from ..env import LEN_RAISE_EXCEPTION
+from ..logger import logger
 
 if TYPE_CHECKING:
     from pyquibbler.quib.graphics import GraphicsFunctionQuib
@@ -106,10 +108,14 @@ class Quib(ABC):
         Perform all actions needed after the quib was mutated (whether by overriding or inverse assignment).
         If path is not given, the whole quib is invalidated.
         """
+        from pyquibbler import timer
         if path is None:
             path = []
-        self._invalidate_children_at_path(path)
-        self.__redraw()
+
+        with timer("quib_invalidation", lambda x: logger.info(f"invalidation {x}")):
+            self._invalidate_children_at_path(path)
+        with timer("quib_redraw", lambda x: logger.info(f"redraw {x}")):
+            self.__redraw()
 
     def _invalidate_children_at_path(self, path: List[PathComponent]) -> None:
         """
@@ -167,12 +173,15 @@ class Quib(ABC):
         Get a list of all the non overridden paths (at the first component)
         """
         path = path[:1]
-        original_value = self._get_inner_value_valid_at_path(None)
-        cache = create_cache(original_value)
-        cache = transform_cache_to_nd_if_necessary_given_path(cache, path)
-        for assignment in self._overrider:
-            cache = self._apply_assignment_to_cache(original_value, cache, assignment)
-        return len(cache.get_uncached_paths(path)) == 0
+        assignments = list(self._overrider)
+        if assignments:
+            original_value = self._get_inner_value_valid_at_path(None)
+            cache = create_cache(original_value)
+            cache = transform_cache_to_nd_if_necessary_given_path(cache, path)
+            for assignment in assignments:
+                cache = self._apply_assignment_to_cache(original_value, cache, assignment)
+            return len(cache.get_uncached_paths(path)) == 0
+        return False
 
     def _invalidate_quib_with_children_at_path(self, invalidator_quib, path: List[PathComponent]):
         """
@@ -184,7 +193,7 @@ class Quib(ABC):
         for new_path in new_paths:
             if new_path is not None:
                 self._invalidate_self(new_path)
-                if len(self.children) > 0 and not self._is_completely_overridden_at_first_component(new_path):
+                if not self._is_completely_overridden_at_first_component(new_path):
                     self._invalidate_children_at_path(new_path)
 
     def add_child(self, quib: Quib) -> None:
@@ -220,12 +229,13 @@ class Quib(ABC):
 
         self.invalidate_and_redraw_at_path(assignment.path)
 
-    def remove_override(self, path: List[PathComponent]):
+    def remove_override(self, path: List[PathComponent], invalidate_and_redraw: bool = True):
         """
         Remove overriding in a specific path in the quib.
         """
         self._overrider.remove_assignment(path)
-        self.invalidate_and_redraw_at_path(path=path)
+        if invalidate_and_redraw:
+            self.invalidate_and_redraw_at_path(path=path)
 
     def assign(self, assignment: Assignment) -> None:
         """

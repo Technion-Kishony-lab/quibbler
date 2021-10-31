@@ -10,20 +10,15 @@ from pyquibbler.quib.utils import copy_and_replace_quibs_with_vals
 
 class GetItemFunctionQuib(TranspositionalFunctionQuib):
 
-    def _get_paths_for_children_invalidation(self, invalidator_quib: Quib,
+    def _forward_translate_invalidation_path(self, quib: Quib,
                                              path: List[PathComponent]) -> List[Optional[List[PathComponent]]]:
         """
         Handle invalidation on a getitem quib, correctly choosing whether or not and at what indices to invalidate
         child quibs
         """
-        if len(path) == 0:
-            # If the path is of zero length, then it's ireelevant if it were the item that completely changed or the
-            # value did- in either case, we need to completely invalidate ourselves and our children
-            return [[]]
-
         working_component, *rest_of_path = path
-        getitem_path_component = PathComponent(component=self._args[1], indexed_cls=invalidator_quib.get_type())
-        if issubclass(invalidator_quib.get_type(), np.ndarray):
+        getitem_path_component = PathComponent(component=self._args[1], indexed_cls=quib.get_type())
+        if issubclass(quib.get_type(), np.ndarray):
             if (not getitem_path_component.references_field_in_field_array()
                     and not working_component.references_field_in_field_array()):
                 # This means:
@@ -33,7 +28,7 @@ class GetItemFunctionQuib(TranspositionalFunctionQuib):
                 # Therefore, we translate the indices and invalidate our children with the new indices (which are an
                 # intersection between our getitem and the path to invalidate- if this intersections yields nothing,
                 # we do NOT invalidate our children)
-                return [self._forward_translate_invalidation_path(invalidator_quib, path)]
+                return super(GetItemFunctionQuib, self)._forward_translate_invalidation_path(quib, path)
             elif (
                     getitem_path_component.references_field_in_field_array()
                     !=

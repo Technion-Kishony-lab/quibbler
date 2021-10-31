@@ -34,8 +34,7 @@ class IndexableCache(ShallowCache):
     SUPPORTING_TYPES = (list, tuple,)
 
     def __init__(self, value: Any, original_type: Type, invalid_mask: List):
-        super().__init__(value)
-        self._invalid_mask = invalid_mask
+        super().__init__(value, invalid_mask)
         self._original_type = original_type
 
     @classmethod
