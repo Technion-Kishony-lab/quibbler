@@ -42,6 +42,7 @@ class VectorizeMetadata:
 
     _is_result_a_tuple: Optional[bool]
     _result_core_ndims: Optional[Union[int, List[int]]]
+    _result_dtypes: Optional[List[np.dtype]]
     _result_core_shapes: Optional[Union[Shape, List[Shape]]] = None
 
     def _get_sample_arg_core(self, arg_id: Union[str, int], arg_value: Any) -> Any:
@@ -58,20 +59,30 @@ class VectorizeMetadata:
     def _run_sample_and_update_metadata(self):
         sample_result = self._get_sample_result()
 
+        # update _is_result_a_tuple
         is_tuple = isinstance(sample_result, tuple)
         if self._is_result_a_tuple is None:
             self._is_result_a_tuple = is_tuple
         else:
             assert self._is_result_a_tuple == is_tuple
 
+        # update _result_core_shapes
         assert self._result_core_shapes is None
         self._result_core_shapes = list(map(np.shape, sample_result)) if is_tuple else np.shape(sample_result)
 
+        # update _result_core_ndims
         result_core_ndims = list(map(len, self._result_core_shapes)) if is_tuple else len(self._result_core_shapes)
         if self._result_core_ndims is None:
             self._result_core_ndims = result_core_ndims
         else:
             assert self._result_core_ndims == result_core_ndims
+
+        # update _result_dtypes
+        result_dtypes = [np.asarray(result).dtype for result in (sample_result if is_tuple else (sample_result,))]
+        if self._result_dtypes is None:
+            self._result_dtypes = result_dtypes
+        else:
+            assert self._result_dtypes == result_dtypes
 
     @property
     def is_result_a_tuple(self) -> bool:
@@ -112,9 +123,28 @@ class VectorizeMetadata:
         return self.result_loop_shape + self.result_core_shape
 
     @property
+    def result_dtype(self) -> np.dtype:
+        if self._result_dtypes is None:
+            self._run_sample_and_update_metadata()
+        assert not self.is_result_a_tuple
+        return self._result_dtypes[0]
+
+    @property
+    def result_dtypes(self) -> List[np.dtype]:
+        if self._result_dtypes is None:
+            self._run_sample_and_update_metadata()
+        assert self.is_result_a_tuple
+        return self._result_dtypes
+
+    @property
+    def otypes(self) -> str:
+        if self._result_dtypes is None:
+            self._run_sample_and_update_metadata()
+        return ''.join(dtype.char for dtype in self._result_dtypes)
+
+    @property
     def tuple_length(self):
-        # TODO: use otypes
-        return len(self.results_core_ndims)
+        return len(self.result_dtypes)
 
     @classmethod
     def _get_args_and_result_core_ndims(cls, vectorize: np.vectorize, args: Args, kwargs: Kwargs):
@@ -150,4 +180,6 @@ class VectorizeMetadata:
         dummy_arrays = [np.lib.stride_tricks.as_strided(0, arg_metadata.loop_shape)
                         for arg_metadata in args_metadata.values()]
         result_loop_shape = np.lib.stride_tricks._broadcast_shape(*dummy_arrays)
-        return cls(vectorize, args, kwargs, args_metadata, result_loop_shape, is_tuple, result_core_ndims)
+        result_dtypes = None if vectorize.otypes is None else list(map(np.dtype, vectorize.otypes))
+        return cls(vectorize, args, kwargs, args_metadata, result_loop_shape, is_tuple, result_core_ndims,
+                   result_dtypes)
