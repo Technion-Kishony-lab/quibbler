@@ -2,7 +2,7 @@ import numpy as np
 from pytest import mark
 
 from pyquibbler import iquib, CacheBehavior
-from pyquibbler.env import LAZY
+from pyquibbler.env import GRAPHICS_LAZY
 from pyquibbler.quib.assignment import PathComponent
 
 from ..utils import check_invalidation, check_get_value_valid_at_path, MockQuib, PathBuilder
@@ -187,7 +187,7 @@ def test_vectorize_partial_calculation():
         return x
 
     func_mock = mock.create_autospec(func, side_effect=func)
-    with LAZY.temporary_set(True):
+    with GRAPHICS_LAZY.temporary_set(True):
         quib = np.vectorize(func_mock)(iquib(np.arange(3)))
     assert quib.get_value_valid_at_path(PathBuilder(quib)[0].path)[0] == 1
     # TODO: 2 is because vectorize calls first. Learn to use that call and call vectorize with otypes.

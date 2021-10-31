@@ -4,6 +4,8 @@ DEBUG = Flag(True)
 
 LAZY = Flag(True)
 
+GRAPHICS_LAZY = Flag(False)
+
 # Assignment restrictions are incomplete at the moment -
 # they consider changes to the same quib contradictory, while
 # only changes to the same paths should be.
