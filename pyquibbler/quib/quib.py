@@ -188,7 +188,7 @@ class Quib(ABC):
         This method should be overriden if there is any 'special' implementation for either invalidating oneself
         or for translating a path for invalidation
         """
-        new_paths = self._get_paths_for_children_invalidation(invalidator_quib, path) if path else [[]]
+        new_paths = self._get_paths_for_children_invalidation(invalidator_quib, path)
         for new_path in new_paths:
             if new_path is not None:
                 self._invalidate_self(new_path)

@@ -158,7 +158,7 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
 
     def _get_source_paths_of_quibs_given_path(self, filtered_path_in_result: List[PathComponent]):
         return {quib: self._get_source_path_in_quib(quib, filtered_path_in_result)
-                for quib in self._get_data_source_quibs()}
+                for quib in self._get_data_source_quib_parents()}
 
 
 @dataclass
@@ -237,7 +237,7 @@ class AxisWiseGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFuncti
 
     def _get_source_paths_of_quibs_given_path(self, filtered_path_in_result: List[PathComponent]):
         return {quib: self._get_source_path_in_quib(quib, filtered_path_in_result)
-                for quib in self._get_data_source_quibs()}
+                for quib in self._get_data_source_quib_parents()}
 
 
 class ReductionAxisWiseGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):

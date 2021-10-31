@@ -73,7 +73,7 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
         return super().create_wrapper(func)
 
     @lru_cache()
-    def _get_data_source_quibs(self) -> Set:
+    def _get_data_source_quib_parents(self) -> Set:
         if self.SUPPORTED_FUNCTIONS is not None:
             supported_function = self.SUPPORTED_FUNCTIONS[self._func]
             data_source_args = supported_function.get_data_source_args(self._get_args_values(include_defaults=False))

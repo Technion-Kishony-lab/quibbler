@@ -272,9 +272,9 @@ def test_transpositional_concatenate_does_diverge(create_mock_quib):
 def test_function_quib_forward_invalidation_path_with_changing_shapes():
     mock_func = mock.Mock()
     mock_func.side_effect = [np.array([1, 2, 3]), np.array([1, 2, 3, 4])]
-    # second_mock_func = mock.Mock()
     parent = DefaultFunctionQuib.create(func=mock_func)
     _ = np.rot90(parent)
 
+    # assert we don't fail
     parent.invalidate_and_redraw_at_path([])
     parent.invalidate_and_redraw_at_path([])
