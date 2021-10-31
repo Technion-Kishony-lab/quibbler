@@ -356,7 +356,7 @@ def test_remove_child_while_invalidating():
         def parents(self) -> Set[Quib]:
             return {self._parent}
 
-        def _invalidate_self(self, path: Optional[List[PathComponent]]):
+        def _invalidate_self(self, path: List[PathComponent]):
             for parent in self.parents:
                 parent.remove_child(self)
 

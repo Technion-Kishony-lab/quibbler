@@ -157,7 +157,7 @@ class Quib(ABC):
     def _on_type_change(self):
         self.method_cache.clear()
 
-    def _invalidate_self(self, path: Optional[List[PathComponent]]):
+    def _invalidate_self(self, path: List[PathComponent]):
         """
         This method is called whenever a quib itself is invalidated; subclasses will override this with their
         implementations for invalidations.
