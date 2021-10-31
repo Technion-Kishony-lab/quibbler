@@ -51,7 +51,7 @@ class FunctionCall:
         return cls(func, args, tuple(kwargs.items()))
 
 
-def cache_method_until_full_invalidation(func):
+def cache_method_until_full_invalidation(func: Callable) -> Callable:
     @wraps(func)
     def wrapper(self: Quib, *args, **kwargs):
         call = FunctionCall.create(func, (self, *args), kwargs)
@@ -355,14 +355,12 @@ class Quib(ABC):
         """
         return self._overrider
 
-    @cache_method_until_full_invalidation
     def get_type(self) -> Type:
         """
         Get the type of wrapped value
         """
         return type(self.get_value_valid_at_path(None))
 
-    @cache_method_until_full_invalidation
     def get_shape(self) -> Tuple[int, ...]:
         """
         Assuming this quib represents a numpy ndarray, returns a quib of its shape.
