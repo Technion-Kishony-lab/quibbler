@@ -256,15 +256,8 @@ def filter_out_none_calls(mock_calls):
     ]
 
 
-def create_mock_quib(shape, get_value_result):
-    mock_quib = mock.Mock(spec=Quib)
-    mock_quib.get_value_valid_at_path.return_value = get_value_result
-    mock_quib.get_shape.return_value.get_value.return_value = shape
-    return mock_quib
-
-
 @pytest.mark.regression
-def test_transpositional_concatenate_does_diverge():
+def test_transpositional_concatenate_does_diverge(create_mock_quib):
     first = create_mock_quib((1, 3), ([[1, 2, 3]]))
     second = create_mock_quib((1, 3), ([[1, 2, 3]]))
 
@@ -273,3 +266,15 @@ def test_transpositional_concatenate_does_diverge():
 
     assert len(filter_out_none_calls(first.get_value_valid_at_path.mock_calls)) == 0
     assert len(filter_out_none_calls(second.get_value_valid_at_path.mock_calls)) == 1
+
+
+@pytest.mark.regression
+def test_function_quib_forward_invalidation_path_with_changing_shapes():
+    mock_func = mock.Mock()
+    mock_func.side_effect = [np.array([1, 2, 3]), np.array([1, 2, 3, 4])]
+    # second_mock_func = mock.Mock()
+    parent = DefaultFunctionQuib.create(func=mock_func)
+    _ = np.rot90(parent)
+
+    parent.invalidate_and_redraw_at_path([])
+    parent.invalidate_and_redraw_at_path([])
