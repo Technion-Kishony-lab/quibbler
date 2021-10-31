@@ -5,7 +5,7 @@ from pyquibbler import iquib, CacheBehavior
 from pyquibbler.env import GRAPHICS_LAZY
 from pyquibbler.quib.assignment import PathComponent
 
-from ..utils import check_invalidation, check_get_value_valid_at_path, MockQuib, PathBuilder
+from ..utils import check_invalidation, check_get_value_valid_at_path, MockQuib, PathBuilder, get_func_mock
 
 # A 3d array in which every dimension has a different size
 parametrize_data = mark.parametrize('data', [np.arange(24).reshape((2, 3, 4))])
@@ -182,16 +182,20 @@ def test_vectorize_invalidation_with_different_core_dims(data, indices_to_invali
 
 
 def test_vectorize_partial_calculation():
-    from unittest import mock
-    def func(x):
-        return x
-
-    func_mock = mock.create_autospec(func, side_effect=func)
+    func_mock = get_func_mock(lambda x: x)
     with GRAPHICS_LAZY.temporary_set(True):
         quib = np.vectorize(func_mock)(iquib(np.arange(3)))
-    assert quib.get_value_valid_at_path(PathBuilder(quib)[0].path)[0] == 1
-    # TODO: 2 is because vectorize calls first. Learn to use that call and call vectorize with otypes.
-    assert func_mock.call_count == 2
+    # Should call func_mock three times
+    # One call to get the actual value, one call for vectorize to gather metadata, one call for us to gather metadata.
+    # This could be reduced by passing otypes to vectorize after gathering our own metadata, and by caching the result.
+    quib.get_value_valid_at_path(PathBuilder(quib)[0].path)
+    # Should call func_mock one time
+    quib.get_value_valid_at_path(PathBuilder(quib)[1].path)
+    # Should not call func_mock
+    quib.get_value_valid_at_path(PathBuilder(quib)[0].path)
+
+    assert func_mock.call_count == 4
+
 
 def test_vectorize_get_value_valid_at_path_none():
     quib = np.vectorize(lambda x: x)(iquib([1, 2, 3]))
