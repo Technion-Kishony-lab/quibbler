@@ -1,6 +1,6 @@
 import operator
 from math import trunc, floor, ceil
-from typing import Set
+from typing import Set, Optional, List
 from unittest import mock
 from unittest.mock import Mock
 import numpy as np
@@ -356,7 +356,7 @@ def test_remove_child_while_invalidating():
         def parents(self) -> Set[Quib]:
             return {self._parent}
 
-        def _invalidate_self(self, path):
+        def _invalidate_self(self, path: Optional[List[PathComponent]]):
             for parent in self.parents:
                 parent.remove_child(self)
 

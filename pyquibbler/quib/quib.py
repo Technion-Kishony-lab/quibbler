@@ -127,7 +127,7 @@ class Quib(ABC):
         """
         return [[]]
 
-    def _invalidate_self(self, path: List[PathComponent]):
+    def _invalidate_self(self, path: Optional[List[PathComponent]]):
         """
         This method is called whenever a quib itself is invalidated; subclasses will override this with their
         implementations for invalidations.
