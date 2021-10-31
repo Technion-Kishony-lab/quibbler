@@ -108,10 +108,10 @@ class Quib(ABC):
         Perform all actions needed after the quib was mutated (whether by overriding or inverse assignment).
         If path is not given, the whole quib is invalidated.
         """
+        from pyquibbler import timer
         if path is None:
             path = []
 
-        from pyquibbler import timer
         with timer("quib_invalidation", lambda x: logger.info(f"invalidation {x}")):
             self._invalidate_children_at_path(path)
         with timer("quib_redraw", lambda x: logger.info(f"redraw {x}")):
