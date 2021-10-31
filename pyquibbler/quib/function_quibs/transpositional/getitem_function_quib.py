@@ -28,7 +28,7 @@ class GetItemFunctionQuib(TranspositionalFunctionQuib):
                 # Therefore, we translate the indices and invalidate our children with the new indices (which are an
                 # intersection between our getitem and the path to invalidate- if this intersections yields nothing,
                 # we do NOT invalidate our children)
-                return [self._forward_translate_invalidation_path(invalidator_quib, path)]
+                return self._forward_translate_invalidation_path(invalidator_quib, path)
             elif (
                     getitem_path_component.references_field_in_field_array()
                     !=

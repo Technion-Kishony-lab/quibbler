@@ -183,7 +183,7 @@ class FunctionQuib(Quib):
         Returns whether this quib is considered a data source or not. This defaults to false, as a parameter (our
         current other option) is unknown in what it does to the result.
         """
-        return False
+        return quib in self._get_data_source_quibs()
 
     def _replace_potential_quib_with_value(self, quibs_to_paths, inner_arg: Union[Quib, Any]):
         if isinstance(inner_arg, QuibRef):
@@ -225,6 +225,18 @@ class FunctionQuib(Quib):
         """
         new_args, new_kwargs = self._prepare_args_for_call(valid_path)
         return self._func(*new_args, **new_kwargs)
+
+    def _forward_translate_invalidation_path(self, invalidator_quib: Quib, path: List[PathComponent]):
+        return [[]]
+
+    def _get_data_source_quibs(self) -> Set:
+        return set()
+
+    def _get_paths_for_children_invalidation(self, invalidator_quib: Quib,
+                                             path: List[PathComponent]) -> List[Optional[List[PathComponent]]]:
+        if not self._is_quib_a_data_source(invalidator_quib):
+            return [[]]
+        return self._forward_translate_invalidation_path(invalidator_quib, path)
 
     def get_inversions_for_assignment(self, assignment: Assignment) -> List[QuibWithAssignment]:
         """
