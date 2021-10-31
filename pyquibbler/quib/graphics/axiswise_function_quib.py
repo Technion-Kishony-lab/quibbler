@@ -72,7 +72,7 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
         return None
 
     def _get_paths_for_children_invalidation(self, invalidator_quib: Quib,
-                                             path: List[PathComponent]) -> Optional[List[PathComponent]]:
+                                             path: List[PathComponent]) -> List[Optional[List[PathComponent]]]:
         vectorize_metadata = self._vectorize_metadata
         if not self._is_quib_a_data_source(invalidator_quib):
             return [[]]
