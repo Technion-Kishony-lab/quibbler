@@ -1,13 +1,14 @@
 import pytest
 
 from pyquibbler import iquib
-from pyquibbler.quib.graphics.quib_guard import QuibGuard, CannotAccessQuibInScopeException
+from pyquibbler.quib.graphics.quib_guard import QuibGuard, CannotAccessQuibInScopeException, \
+    AnotherQuibGuardIsAlreadyActiveException
 
 
 def test_doesnt_allow_global_access():
     quib = iquib([49])
     with pytest.raises(CannotAccessQuibInScopeException):
-        with QuibGuard(set()):
+        with QuibGuard.create(set()):
             quib[0].get_value()
 
 
@@ -15,20 +16,27 @@ def test_doesnt_allow_global_access_when_given_quibs():
     quib = iquib([49])
     other_quib = iquib([48])
     with pytest.raises(CannotAccessQuibInScopeException):
-        with QuibGuard({other_quib}):
+        with QuibGuard.create({other_quib}):
             quib[0].get_value()
 
 
 def test_does_allow_children_of_allowed_quibs():
     quib = iquib([49])
-    with QuibGuard({quib}):
+    with QuibGuard.create({quib}):
         assert quib[0].get_value() == 49
 
 
 def test_resets_quib_guard_after_user():
     quib = iquib([49])
-    with QuibGuard(set()):
+    with QuibGuard.create(set()):
         pass
 
     # sanity, make sure doesn't raise exception
     assert quib.get_value() == [49]
+
+
+def test_cannot_quib_guard_within_quib_guard():
+    with pytest.raises(AnotherQuibGuardIsAlreadyActiveException):
+        with QuibGuard.create(set()):
+            with QuibGuard.create(set()):
+                pass
