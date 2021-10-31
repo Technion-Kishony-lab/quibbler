@@ -406,3 +406,11 @@ class Quib(ABC):
             ancestors.add(parent)
             ancestors |= parent.ancestors
         return ancestors
+
+    def make_proxy(self) -> None:
+        """
+        Make this quib a proxy- no invalidation from any of it's parents should affect it it, rendering it as a proxy
+        to all it's children (no invalidations SHALL PASS). However, it will still be able to reverse assign
+        """
+        for parent in self.parents:
+            parent.remove_child(self)

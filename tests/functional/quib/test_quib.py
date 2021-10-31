@@ -22,6 +22,10 @@ class ExampleQuib(Quib):
         super().__init__(assignment_template=assignment_template)
         self.value = value
         self.invalidate_count = 0
+        self._parents = set()
+
+    def add_parent(self, parent):
+        self._parents.add(parent)
 
     def _invalidate_quib_with_children_at_path(self, invalidator_quib, path_component):
         self.invalidate_count += 1
@@ -32,7 +36,7 @@ class ExampleQuib(Quib):
 
     @property
     def parents(self) -> Set[Quib]:
-        return set()
+        return self._parents
 
     def _get_paths_for_children_invalidation(self, quib, path):
         return [path]
@@ -370,6 +374,7 @@ def test_remove_child_while_invalidating():
 def parent(example_quib):
     parent = ExampleQuib(['parent', 'paren', 'par'])
     parent.add_child(example_quib)
+    example_quib.add_parent(parent)
     return parent
 
 
@@ -400,3 +405,12 @@ def test_quib_should_invalidate_children_when_overrides(example_quib, parent,
 
     new_expected_count = current_call_count if not expected_to_have_invalidated_child else current_call_count + 1
     assert mock_child_of_example_quib._invalidate_quib_with_children_at_path.call_count == new_expected_count
+
+
+def test_quib_make_proxy(parent, example_quib):
+    # sanity
+    assert example_quib in parent.children
+
+    example_quib.make_proxy()
+
+    assert example_quib not in parent.children
