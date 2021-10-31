@@ -13,9 +13,9 @@ class GetItemFunctionQuib(TranspositionalFunctionQuib):
     def _forward_translate_invalidation_path(self, quib: Quib,
                                              path: List[PathComponent]) -> List[Optional[List[PathComponent]]]:
         """
-                Handle invalidation on a getitem quib, correctly choosing whether or not and at what indices to invalidate
-                child quibs
-                """
+        Handle invalidation on a getitem quib, correctly choosing whether or not and at what indices to invalidate
+        child quibs
+        """
         working_component, *rest_of_path = path
         getitem_path_component = PathComponent(component=self._args[1], indexed_cls=quib.get_type())
         if issubclass(quib.get_type(), np.ndarray):
