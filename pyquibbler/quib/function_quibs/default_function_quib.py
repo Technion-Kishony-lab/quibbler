@@ -71,7 +71,6 @@ class DefaultFunctionQuib(FunctionQuib):
         Note that there is no accurate way (and no efficient way to even approximate) the complete size of composite
         types in python, so we only measure the outer size of the object.
         """
-        return True
         if self._cache_behavior is CacheBehavior.ON:
             return True
         if self._cache_behavior is CacheBehavior.OFF:
