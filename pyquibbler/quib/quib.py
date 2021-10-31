@@ -17,6 +17,7 @@ from .assignment import PathComponent
 
 
 from ..env import LEN_RAISE_EXCEPTION
+from ..logger import logger
 
 if TYPE_CHECKING:
     from pyquibbler.quib.graphics import GraphicsFunctionQuib
@@ -111,9 +112,9 @@ class Quib(ABC):
             path = []
 
         from pyquibbler import timer
-        with timer("quib_invalidation", lambda x: print(f"invalidation {x}")):
+        with timer("quib_invalidation", lambda x: logger.info(f"invalidation {x}")):
             self._invalidate_children_at_path(path)
-        with timer("quib_redraw", lambda x: print(f"redraw {x}")):
+        with timer("quib_redraw", lambda x: logger.info(f"redraw {x}")):
             self.__redraw()
 
     def _invalidate_children_at_path(self, path: List[PathComponent]) -> None:

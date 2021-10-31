@@ -5,6 +5,7 @@ from typing import Any, Optional, List
 from matplotlib.widgets import RectangleSelector
 
 from pyquibbler import timer
+from pyquibbler.logger import logger
 from pyquibbler.quib.utils import quib_method
 from pyquibbler.utils import Mutable
 
@@ -77,7 +78,7 @@ class RectangleSelectorGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
 
     def _on_changed(self, extents):
         init_val = self._get_args_values().get('extents')
-        with timer("selector_change", lambda x: print(f"selector change {x}")):
+        with timer("selector_change", lambda x: logger.info(f"selector change {x}")):
             if isinstance(init_val, Quib):
                 init_val[:] = extents
             else:
