@@ -198,8 +198,9 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
             return arg
 
         args = recursively_run_func_on_object(_replace_quibs_with_proxy_quibs, self.args)
+        kwargs = {k: recursively_run_func_on_object(_replace_quibs_with_proxy_quibs, v) for k, v in self.kwargs.items()}
         with QuibGuard(proxy_quibs):
-            return self.func(*args, **self.kwargs)
+            return self.func(*args, **kwargs)
 
     def _create_new_artists(self,
                             valid_path,
@@ -216,6 +217,7 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
             if self._receive_quibs:
                 func_res = self._run_function_on_quibs()
             else:
+                # the function should access no quibs from the global scope
                 with QuibGuard(set()):
                     func_res = super()._call_func(valid_path)
 
