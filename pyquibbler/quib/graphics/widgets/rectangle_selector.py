@@ -2,6 +2,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 from threading import RLock
 from typing import Any, Optional, List
+
 from matplotlib.widgets import RectangleSelector
 
 from pyquibbler import timer
