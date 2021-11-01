@@ -75,7 +75,6 @@ class RectangleSelectorGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
     A quib representing a rectangle selector. Will automatically add a listener and update the relevant quib
     """
     WIDGET_CLS = RectangleSelector
-    REPLACEMENT_CLS = QRectangleSelector
 
     def _on_changed(self, extents):
         init_val = self._get_args_values().get('extents')
