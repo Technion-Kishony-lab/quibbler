@@ -217,8 +217,7 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
             if self._receive_quibs:
                 func_res = self._run_function_on_quibs()
             else:
-                # the function should access no quibs from the global scope
-                with QuibGuard(set()):
+                with QuibGuard(self.parents):
                     func_res = super()._call_func(valid_path)
 
         self._artists = collector.artists_collected

@@ -405,12 +405,3 @@ def test_quib_should_invalidate_children_when_overrides(example_quib, parent,
 
     new_expected_count = current_call_count if not expected_to_have_invalidated_child else current_call_count + 1
     assert mock_child_of_example_quib._invalidate_quib_with_children_at_path.call_count == new_expected_count
-
-
-def test_quib_make_proxy(parent, example_quib):
-    # sanity
-    assert example_quib in parent.children
-
-    example_quib.make_proxy()
-
-    assert example_quib not in parent.children
