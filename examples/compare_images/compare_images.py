@@ -30,7 +30,7 @@ def image_distance(img1, img2):
     return res
 
 
-file_name = iquib('/Users/maor/Documents/pyquibbler/examples/compare_images/pipes.jpg')
+file_name = iquib('./pipes.jpg')
 image = plt.imread(file_name)
 
 images_count = iquib(6)
