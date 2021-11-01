@@ -1,4 +1,5 @@
 # THIS DEMO DOES NOT WORK 100%
+import weakref
 
 import numpy as np
 from matplotlib import pyplot as plt, widgets
@@ -9,17 +10,22 @@ from pyquibbler import iquib, override_all, q, quibbler_user_function
 override_all()
 
 
+@quibbler_user_function(lazy=False, receive_quibs=True)
 def create_roi(roi, axes):
+    print("Creating ROI")
     widgets.RectangleSelector(axes, extents=roi)
 
 
-def cut_image(roi):
+@quibbler_user_function(lazy=False)
+def cut_image(image, roi):
+    print("Cutting image")
     im = image[roi[2]:roi[3], roi[0]:roi[1]]
     return im
 
 
-@quibbler_user_function()
+@quibbler_user_function(lazy=False)
 def image_distance(img1, img2):
+    print("Comparing images")
     return np.average(img1) - np.average(img2)
 
 
@@ -73,7 +79,7 @@ def create_figure_1():
 create_figure_1()
 
 
-cut_images_lst = [cut_image(roi) for roi in rois_itered]
+cut_images_lst = [cut_image(image, roi) for roi in rois_itered]
 
 
 # Plot images

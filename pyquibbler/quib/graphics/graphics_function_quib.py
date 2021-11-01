@@ -1,6 +1,4 @@
-from itertools import chain
 from typing import List, Callable, Tuple, Any, Mapping, Dict, Optional, Iterable
-
 from matplotlib.artist import Artist
 from matplotlib.axes import Axes
 from matplotlib.collections import Collection
@@ -13,9 +11,10 @@ from matplotlib.text import Text
 
 from . import global_collecting
 from .event_handling import CanvasEventHandler
+from .quib_guard import QuibGuard
 from ..assignment import AssignmentTemplate, PathComponent
 from ..function_quibs import DefaultFunctionQuib, CacheBehavior
-from ..utils import call_func_with_quib_values, iter_object_type_in_args
+from ..utils import iter_object_type_in_args, recursively_run_func_on_object
 
 
 def save_func_and_args_on_artists(artists: List[Artist], func: Callable, args: Iterable[Any]):
@@ -71,11 +70,13 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
                  cache_behavior: Optional[CacheBehavior],
                  artists: List[Artist],
                  assignment_template: Optional[AssignmentTemplate] = None,
-                 had_artists_on_last_run: bool = False
+                 had_artists_on_last_run: bool = False,
+                 receive_quibs: bool = False
                  ):
         super().__init__(func, args, kwargs, cache_behavior, assignment_template=assignment_template)
         self._artists = artists
         self._had_artists_on_last_run = had_artists_on_last_run
+        self._receive_quibs = receive_quibs
 
     @classmethod
     def create(cls, func, func_args=(), func_kwargs=None, cache_behavior=None, lazy=False, **kwargs):
@@ -84,17 +85,6 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
             self.get_value()
         return self
 
-    @classmethod
-    def _wrapper_call(cls, func, args, kwargs):
-        # We never want to create a quib if someone else is creating artists- those artists belong to him/her,
-        # not us
-        if global_collecting.is_within_artists_collector():
-            with global_collecting.ArtistsCollector() as collector:
-                res = call_func_with_quib_values(func, args, kwargs)
-            save_func_and_args_on_artists(artists=collector.artists_collected, func=func, args=args)
-            return res
-        return super()._wrapper_call(func, args, kwargs)
-
     def persist_self_on_artists(self):
         """
         Persist self on all artists we're connected to, making sure we won't be garbage collected until they are
@@ -102,7 +92,9 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         We need to also go over args as there may be a situation in which the function did not create new artists, but
         did perform an action on an existing one, such as Axes.set_xlim
         """
-        for artist in chain(self._artists, iter_object_type_in_args(Artist, self.args, self.kwargs)):
+        artists_to_persist_on = self._artists if len(self._artists) > 0 else iter_object_type_in_args(Artist, self.args,
+                                                                                                      self.kwargs)
+        for artist in artists_to_persist_on:
             quibs = getattr(artist, '_quibbler_graphics_function_quibs', set())
             quibs.add(self)
             artist._quibbler_graphics_function_quibs = quibs
@@ -188,6 +180,23 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
             if getattr(artist, '_quibbler_drawing_func', None) is None:
                 artist._quibbler_drawing_func = self._func
 
+    def _run_function_on_quibs(self):
+        proxy_quibs = set()
+
+        def _replace_quibs_with_proxy_quibs(arg):
+            from pyquibbler.quib import Quib
+            from pyquibbler.quib.proxy_quib import ProxyQuib
+            if isinstance(arg, Quib):
+                proxy_quib = ProxyQuib(quib=arg)
+                proxy_quibs.add(proxy_quib)
+                return proxy_quib
+            return arg
+
+        args = recursively_run_func_on_object(_replace_quibs_with_proxy_quibs, self.args)
+        kwargs = {k: recursively_run_func_on_object(_replace_quibs_with_proxy_quibs, v) for k, v in self.kwargs.items()}
+        with QuibGuard(proxy_quibs):
+            return self.func(*args, **kwargs)
+
     def _create_new_artists(self,
                             valid_path,
                             previous_axeses_to_array_names_to_indices_and_artists:
@@ -200,7 +209,12 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
             previous_axeses_to_array_names_to_indices_and_artists or {}
 
         with global_collecting.ArtistsCollector() as collector:
-            func_res = super()._call_func(valid_path)
+            if self._receive_quibs:
+                func_res = self._run_function_on_quibs()
+            else:
+                with QuibGuard(self.parents):
+                    func_res = super()._call_func(valid_path)
+
         self._artists = collector.artists_collected
         self._had_artists_on_last_run = len(self._artists) > 0
 
