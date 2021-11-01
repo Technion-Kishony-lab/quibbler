@@ -32,9 +32,9 @@ class QuibGuard:
     A quib guard allows you to specify places in which only certain quibs (and their recursive children)
     are allowed to be accessed
     """
-    def __init__(self, quibs_allowed: Set, is_within_allowed_quib_get_value: bool = False):
+    def __init__(self, quibs_allowed: Set, allowed_quib_get_values_count: int = 0):
         self._quibs_allowed = quibs_allowed
-        self._is_within_allowed_quib_get_value = is_within_allowed_quib_get_value
+        self._allowed_quib_get_values_count = allowed_quib_get_values_count
 
     def __enter__(self):
         QUIB_GUARDS.append(self)
@@ -43,11 +43,11 @@ class QuibGuard:
     @contextlib.contextmanager
     def get_value_context_manager(self, quib):
         all_allowed_quibs = set().union(*[{quib, *quib._get_children_recursively()} for quib in self._quibs_allowed])
-        if self._is_within_allowed_quib_get_value or quib not in all_allowed_quibs:
+        if self._allowed_quib_get_values_count == 0 and quib not in all_allowed_quibs:
             raise CannotAccessQuibInScopeException()
-        self._is_within_allowed_quib_get_value = True
+        self._allowed_quib_get_values_count += 1
         yield
-        self._is_within_allowed_quib_get_value = False
+        self._allowed_quib_get_values_count -= 1
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         QUIB_GUARDS.pop()

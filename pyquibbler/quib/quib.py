@@ -14,6 +14,7 @@ from pyquibbler.exceptions import PyQuibblerException
 
 from .assignment import AssignmentTemplate, RangeAssignmentTemplate, BoundAssignmentTemplate, Overrider, Assignment
 from .function_quibs.cache import create_cache
+from .function_quibs.cache.cache import CacheStatus
 from .function_quibs.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
 from .utils import quib_method, Unpacker, recursively_run_func_on_object
 from .assignment import PathComponent
@@ -97,14 +98,17 @@ class Quib(ABC):
         """
         from pyquibbler.quib.graphics import redraw_axes
         quibs = self._get_graphics_function_quibs_recursively()
-        logger.info(f"redrawing {len(quibs)} quibs")
-        for graphics_function_quib in quibs:
+        quibs_that_are_invalid = [quib for quib in quibs if quib.cache_status != CacheStatus.ALL_VALID]
+        logger.info(f"redrawing {len(quibs_that_are_invalid)} quibs")
+        for graphics_function_quib in quibs_that_are_invalid:
             graphics_function_quib.get_value()
 
         axeses = set()
-        for graphics_function_quib in quibs:
+        for graphics_function_quib in quibs_that_are_invalid:
             for axes in graphics_function_quib.get_axeses():
                 axeses.add(axes)
+
+        logger.info(f"redrawing {len(axeses)} axeses")
         for axes in axeses:
             redraw_axes(axes)
 
@@ -319,7 +323,14 @@ class Quib(ABC):
         The value will necessarily return in the shape of the actual result, but only the values at the given path
         are guaranteed to be valid
         """
-        return self._overrider.override(self._get_inner_value_valid_at_path(path), self._assignment_template)
+        from .graphics.quib_guard import get_current_quib_guard, is_within_quib_guard
+        if is_within_quib_guard():
+            context = get_current_quib_guard().get_value_context_manager(self)
+        else:
+            context = contextlib.nullcontext()
+
+        with context:
+            return self._overrider.override(self._get_inner_value_valid_at_path(path), self._assignment_template)
 
     def get_value(self) -> Any:
         """
@@ -328,14 +339,7 @@ class Quib(ABC):
         are lazy, so a function quib might need to calculate uncached values and might
         even have to calculate the values of its dependencies.
         """
-        from .graphics.quib_guard import get_current_quib_guard, is_within_quib_guard
-        if is_within_quib_guard():
-            context = get_current_quib_guard().get_value_context_manager(self)
-        else:
-            context = contextlib.nullcontext()
-
-        with context:
-            return self.get_value_valid_at_path([])
+        return self.get_value_valid_at_path([])
 
     def get_override_list(self) -> Overrider:
         """
