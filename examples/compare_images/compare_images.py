@@ -25,8 +25,9 @@ def cut_image(image, roi):
 
 @quibbler_user_function(lazy=False)
 def image_distance(img1, img2):
-    print("Comparing images")
-    return np.average(img1) - np.average(img2)
+    res = np.linalg.norm(np.average(img1, axis=(0, 1)) - np.average(img2, axis=(0, 1))) / 255
+    print("Comparing images", res)
+    return res
 
 
 file_name = iquib('/Users/maor/Documents/pyquibbler/examples/compare_images/pipes.jpg')
