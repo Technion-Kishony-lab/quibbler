@@ -174,13 +174,6 @@ class FunctionQuib(Quib):
         """
         return {}
 
-    def _is_quib_a_data_source(self, quib: Quib):
-        """
-        Returns whether this quib is considered a data source or not. This defaults to false, as a parameter (our
-        current other option) is unknown in what it does to the result.
-        """
-        return quib in self._get_data_source_quib_parents()
-
     def _replace_sub_argument_with_value(self, quibs_to_paths, inner_arg: Union[Quib, Any]):
         """
         Replace an argument, potentially a quib, with it's relevant value, given a map of quibs_to_paths, which
@@ -236,11 +229,18 @@ class FunctionQuib(Quib):
         """
         return [[]]
 
-    def _get_data_source_quib_parents(self) -> Set:
+    def _get_data_source_quibs(self) -> Set:
         """
         Get all the data source quib parents of this function quib
         """
         return set()
+
+    def _is_quib_a_data_source(self, quib: Quib):
+        """
+        Returns whether this quib is considered a data source or not. This defaults to false, as a parameter (our
+        current other option) is unknown in what it does to the result.
+        """
+        return quib in self._get_data_source_quibs()
 
     def _get_paths_for_children_invalidation(self, invalidator_quib: Quib,
                                              path: List[PathComponent]) -> List[Optional[List[PathComponent]]]:

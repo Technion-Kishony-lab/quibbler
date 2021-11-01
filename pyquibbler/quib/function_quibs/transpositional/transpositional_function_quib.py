@@ -38,7 +38,7 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
                 func=replace_func,
                 obj=arg
             )
-            if isinstance(arg, Quib) and arg in self._get_data_source_quib_parents() else arg
+            if isinstance(arg, Quib) and arg in self._get_data_source_quibs() else arg
             for arg in self._args
         ]
 
@@ -48,7 +48,7 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
         instance of the transpositional inverser)
         """
         return {potential_quib: i
-                for i, potential_quib in enumerate(self._get_data_source_quib_parents())}
+                for i, potential_quib in enumerate(self._get_data_source_quibs())}
 
     def _get_quib_ids_mask(self) -> np.ndarray:
         """
@@ -57,7 +57,7 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
         quibs_to_ids = self._get_quibs_to_ids()
 
         def replace_quib_with_id(obj):
-            if isinstance(obj, Quib) and obj in self._get_data_source_quib_parents():
+            if isinstance(obj, Quib) and obj in self._get_data_source_quibs():
                 return np.full(obj.get_shape(), quibs_to_ids[obj])
             return obj
 
@@ -74,7 +74,7 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
         """
         return {
             quib: np.indices(quib.get_shape())
-            for quib in self._get_data_source_quib_parents()
+            for quib in self._get_data_source_quibs()
         }
 
     def _get_quibs_to_masks(self):
@@ -90,7 +90,7 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
 
         return {
             quib: _build_quib_mask(quib)
-            for quib in self._get_data_source_quib_parents()
+            for quib in self._get_data_source_quibs()
         }
 
     def _get_quibs_to_indices_at_dimension(self, dimension: int, relevant_indices_mask) -> Dict[Quib, np.ndarray]:
@@ -102,7 +102,7 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
         quibs_to_masks = self._get_quibs_to_masks()
 
         def replace_quib_with_index_at_dimension(q):
-            if isinstance(q, Quib) and q in self._get_data_source_quib_parents():
+            if isinstance(q, Quib) and q in self._get_data_source_quibs():
                 return quibs_to_index_grids[q][dimension]
             return q
 
@@ -114,7 +114,7 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
 
         return {
             quib: indices_res[np.logical_and(quibs_to_masks[quib], relevant_indices_mask)]
-            for quib in self._get_data_source_quib_parents()
+            for quib in self._get_data_source_quibs()
         }
 
     def get_quibs_to_indices_in_quibs(self, filtered_indices_in_result: Any) -> Dict[Quib, np.ndarray]:
@@ -128,7 +128,7 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
             value=True,
             empty_value=False
         )
-        quibs = self._get_data_source_quib_parents()
+        quibs = self._get_data_source_quibs()
         max_shape_length = max([len(quib.get_shape())
                                 for quib in quibs]) if len(quibs) > 0 else 0
         # Default is to set all - if we have a shape we'll change this
@@ -189,7 +189,7 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
         implementation, a boolean mask representing them)
         """
         def _replace_arg_with_corresponding_mask_or_arg(q):
-            if isinstance(q, Quib) and q in self._get_data_source_quib_parents():
+            if isinstance(q, Quib) and q in self._get_data_source_quibs():
                 if q is quib:
                     return self._get_source_shaped_bool_mask(q, indices)
                 else:
@@ -214,5 +214,5 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
 
         return {
             quib: representative_result_value[np.logical_and(quibs_to_masks[quib], result_bool_mask)]
-            for quib in self._get_data_source_quib_parents()
+            for quib in self._get_data_source_quibs()
         }

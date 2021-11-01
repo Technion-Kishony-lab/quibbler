@@ -116,7 +116,7 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
 
     def _get_source_paths_of_quibs_given_path(self, filtered_path_in_result: List[PathComponent]):
         return {quib: self._get_source_path_in_quib(quib, filtered_path_in_result)
-                for quib in self._get_data_source_quib_parents()}
+                for quib in self._get_data_source_quibs()}
 
     def _copy_vectorize(self, vectorize, func=None, otypes=None, excluded=None, signature=None) -> np.vectorize:
         if func is None:

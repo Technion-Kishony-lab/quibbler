@@ -1,3 +1,4 @@
+from typing import Optional, List, Any
 from unittest import mock
 
 import numpy as np
@@ -139,3 +140,72 @@ def test_function_quib_get_value_valid_at_path_with_data_source_kwarg():
 
     assert len(paths) == 1
     assert [] not in paths
+
+
+class InvalidatingFunctionQuib(FunctionQuib):
+
+    def __init__(self, func, args, kwargs,
+                 cache_behavior: Optional[CacheBehavior], data_source_quibs=None):
+        super().__init__(func, args, kwargs, cache_behavior)
+        self.data_source_quibs = data_source_quibs or []
+
+    def _get_data_source_quibs(self):
+        return self.data_source_quibs
+
+    def _get_inner_value_valid_at_path(self, path: Optional[List[PathComponent]]) -> Any:
+        return self._call_func(path)
+
+    def _forward_translate_invalidation_path(self, invalidator_quib, path: List[PathComponent]) -> \
+            List[List[PathComponent]]:
+        return [path]
+
+
+def test_function_quib_invalidates_all_when_invalidated_at_all_in_data_source(create_mock_quib):
+    grandparent = InvalidatingFunctionQuib.create(func=mock.Mock())
+    parent = InvalidatingFunctionQuib.create(func=mock.Mock(), func_args=(grandparent,),
+                                             data_source_quibs=[grandparent])
+    mock_quib = create_mock_quib()
+    parent.add_child(mock_quib)
+
+    grandparent.invalidate_and_redraw_at_path([])
+
+    mock_quib._invalidate_quib_with_children_at_path.assert_called_with(parent, [])
+    assert mock_quib._invalidate_quib_with_children_at_path.call_count == 1
+    assert mock_quib.get_value_valid_at_path.call_count == 0
+
+
+def test_function_quib_does_not_invalidate_all_when_invalidated_at_path_in_data_source(create_mock_quib):
+    grandparent = InvalidatingFunctionQuib.create(func=mock.Mock())
+    parent = InvalidatingFunctionQuib.create(func=mock.Mock(), func_args=(grandparent,),
+                                             data_source_quibs=[grandparent])
+    mock_quib = create_mock_quib()
+    parent.add_child(mock_quib)
+    path = [PathComponent(component=0, indexed_cls=list)]
+
+    grandparent.invalidate_and_redraw_at_path(path)
+
+    # Our default implementation for InvalidatingFunctionQuib is to forward by simply returning the path
+    mock_quib._invalidate_quib_with_children_at_path.assert_called_with(parent, path)
+
+
+def test_function_quib_does_invalidate_all_when_invalidated_partially_at_path_in_paramater(create_mock_quib):
+    grandparent = InvalidatingFunctionQuib.create(func=mock.Mock())
+    parent = InvalidatingFunctionQuib.create(func=mock.Mock(), func_args=(grandparent,))
+    mock_quib = create_mock_quib()
+    parent.add_child(mock_quib)
+    path = [PathComponent(component=0, indexed_cls=list)]
+
+    grandparent.invalidate_and_redraw_at_path(path)
+
+    mock_quib._invalidate_quib_with_children_at_path.assert_called_with(parent, [])
+
+
+def test_function_quib_does_invalidate_all_when_invalidated_all_at_path_in_parameter(create_mock_quib):
+    grandparent = InvalidatingFunctionQuib.create(func=mock.Mock())
+    parent = InvalidatingFunctionQuib.create(func=mock.Mock(), func_args=(grandparent,))
+    mock_quib = create_mock_quib()
+    parent.add_child(mock_quib)
+
+    grandparent.invalidate_and_redraw_at_path([])
+
+    mock_quib._invalidate_quib_with_children_at_path.assert_called_with(parent, [])

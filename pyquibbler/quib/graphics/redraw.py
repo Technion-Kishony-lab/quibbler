@@ -1,6 +1,7 @@
 import contextlib
 from matplotlib.axes import Axes
 
+from pyquibbler.logger import logger
 from pyquibbler.performance_utils import timer
 
 AXESES_TO_REDRAW = set()
@@ -29,5 +30,5 @@ def redraw_axes(axes: Axes, force: bool = False):
     if IN_AGGREGATE_REDRAW_MODE and not force:
         AXESES_TO_REDRAW.add(axes)
     else:
-        with timer(name="redraw"):
+        with timer(name="redraw", callback=lambda t: logger.info(f"redraw canvas {t}")):
             axes.figure.canvas.draw()

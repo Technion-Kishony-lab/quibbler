@@ -1,4 +1,7 @@
 from __future__ import annotations
+
+import contextlib
+
 import numpy as np
 from functools import wraps
 from functools import cached_property
@@ -12,6 +15,7 @@ from pyquibbler.exceptions import PyQuibblerException
 
 from .assignment import AssignmentTemplate, RangeAssignmentTemplate, BoundAssignmentTemplate, Overrider, Assignment
 from .function_quibs.cache import create_cache
+from .function_quibs.cache.cache import CacheStatus
 from .function_quibs.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
 from .utils import quib_method, Unpacker, recursively_run_func_on_object
 from .assignment import PathComponent
@@ -120,13 +124,18 @@ class Quib(ABC):
         Redraw all artists that directly or indirectly depend on this quib.
         """
         from pyquibbler.quib.graphics import redraw_axes
-        for graphics_function_quib in self._get_graphics_function_quibs_recursively():
+        quibs = self._get_graphics_function_quibs_recursively()
+        quibs_that_are_invalid = [quib for quib in quibs if quib.cache_status != CacheStatus.ALL_VALID]
+        logger.info(f"redrawing {len(quibs_that_are_invalid)} quibs")
+        for graphics_function_quib in quibs_that_are_invalid:
             graphics_function_quib.get_value()
 
         axeses = set()
-        for graphics_function_quib in self._get_graphics_function_quibs_recursively():
+        for graphics_function_quib in quibs_that_are_invalid:
             for axes in graphics_function_quib.get_axeses():
                 axeses.add(axes)
+
+        logger.info(f"redrawing {len(axeses)} axeses")
         for axes in axeses:
             redraw_axes(axes)
 
@@ -348,7 +357,14 @@ class Quib(ABC):
         The value will necessarily return in the shape of the actual result, but only the values at the given path
         are guaranteed to be valid
         """
-        return self._overrider.override(self._get_inner_value_valid_at_path(path), self._assignment_template)
+        from .graphics.quib_guard import get_current_quib_guard, is_within_quib_guard
+        if is_within_quib_guard():
+            context = get_current_quib_guard().get_value_context_manager(self)
+        else:
+            context = contextlib.nullcontext()
+
+        with context:
+            return self._overrider.override(self._get_inner_value_valid_at_path(path), self._assignment_template)
 
     def get_value(self) -> Any:
         """
@@ -431,11 +447,3 @@ class Quib(ABC):
             ancestors.add(parent)
             ancestors |= parent.ancestors
         return ancestors
-
-    def make_proxy(self) -> None:
-        """
-        Make this quib a proxy- no invalidation from any of it's parents should affect it it, rendering it as a proxy
-        to all it's children (no invalidations SHALL PASS). However, it will still be able to reverse assign
-        """
-        for parent in self.parents:
-            parent.remove_child(self)
