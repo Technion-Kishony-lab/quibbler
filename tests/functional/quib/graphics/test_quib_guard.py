@@ -8,7 +8,7 @@ from pyquibbler.quib.graphics.quib_guard import QuibGuard, CannotAccessQuibInSco
 def test_doesnt_allow_global_access():
     quib = iquib([49])
     with pytest.raises(CannotAccessQuibInScopeException):
-        with QuibGuard.create(set()):
+        with QuibGuard(set()):
             quib[0].get_value()
 
 
@@ -16,19 +16,19 @@ def test_doesnt_allow_global_access_when_given_quibs():
     quib = iquib([49])
     other_quib = iquib([48])
     with pytest.raises(CannotAccessQuibInScopeException):
-        with QuibGuard.create({other_quib}):
+        with QuibGuard({other_quib}):
             quib[0].get_value()
 
 
 def test_does_allow_children_of_allowed_quibs():
     quib = iquib([49])
-    with QuibGuard.create({quib}):
+    with QuibGuard({quib}):
         assert quib[0].get_value() == 49
 
 
 def test_resets_quib_guard_after_user():
     quib = iquib([49])
-    with QuibGuard.create(set()):
+    with QuibGuard(set()):
         pass
 
     # sanity, make sure doesn't raise exception
@@ -37,6 +37,6 @@ def test_resets_quib_guard_after_user():
 
 def test_cannot_quib_guard_within_quib_guard():
     with pytest.raises(AnotherQuibGuardIsAlreadyActiveException):
-        with QuibGuard.create(set()):
-            with QuibGuard.create(set()):
+        with QuibGuard(set()):
+            with QuibGuard(set()):
                 pass

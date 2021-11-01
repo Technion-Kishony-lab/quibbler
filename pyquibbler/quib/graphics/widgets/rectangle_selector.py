@@ -2,6 +2,8 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 from threading import RLock
 from typing import Any, Optional, List
+
+import objgraph
 from matplotlib.widgets import RectangleSelector
 
 from pyquibbler import timer
@@ -87,6 +89,7 @@ class RectangleSelectorGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
 
     def _call_func(self, valid_path: Optional[List[PathComponent]]) -> Any:
         selector = super()._call_func(None)
+        # if selector is not None:
         selector.changed_callback = self._on_changed
         return selector
 

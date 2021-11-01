@@ -1,4 +1,7 @@
 from __future__ import annotations
+
+import contextlib
+
 import numpy as np
 from functools import cached_property
 from abc import ABC, abstractmethod
@@ -93,11 +96,13 @@ class Quib(ABC):
         Redraw all artists that directly or indirectly depend on this quib.
         """
         from pyquibbler.quib.graphics import redraw_axes
-        for graphics_function_quib in self._get_graphics_function_quibs_recursively():
+        quibs = self._get_graphics_function_quibs_recursively()
+        logger.info(f"redrawing {len(quibs)} quibs")
+        for graphics_function_quib in quibs:
             graphics_function_quib.get_value()
 
         axeses = set()
-        for graphics_function_quib in self._get_graphics_function_quibs_recursively():
+        for graphics_function_quib in quibs:
             for axes in graphics_function_quib.get_axeses():
                 axeses.add(axes)
         for axes in axeses:
@@ -323,10 +328,14 @@ class Quib(ABC):
         are lazy, so a function quib might need to calculate uncached values and might
         even have to calculate the values of its dependencies.
         """
-        from .graphics.quib_guard import QUIB_GUARD
-        if QUIB_GUARD:
-            QUIB_GUARD.raise_if_accessing_global_quib(self)
-        return self.get_value_valid_at_path([])
+        from .graphics.quib_guard import get_current_quib_guard, is_within_quib_guard
+        if is_within_quib_guard():
+            context = get_current_quib_guard()
+        else:
+            context = contextlib.nullcontext()
+
+        with context:
+            return self.get_value_valid_at_path([])
 
     def get_override_list(self) -> Overrider:
         """
@@ -409,11 +418,3 @@ class Quib(ABC):
             ancestors.add(parent)
             ancestors |= parent.ancestors
         return ancestors
-
-    def make_proxy(self) -> None:
-        """
-        Make this quib a proxy- no invalidation from any of it's parents should affect it it, rendering it as a proxy
-        to all it's children (no invalidations SHALL PASS). However, it will still be able to reverse assign
-        """
-        for parent in self.parents:
-            parent.remove_child(self)

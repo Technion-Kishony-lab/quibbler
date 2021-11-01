@@ -1,11 +1,22 @@
+from __future__ import annotations
+
 import contextlib
-from functools import reduce
-from typing import Set, Optional
+from typing import Set, TYPE_CHECKING
 
 from pyquibbler.exceptions import PyQuibblerException
-from pyquibbler.quib import Quib
 
-QUIB_GUARD = None
+if TYPE_CHECKING:
+    from pyquibbler.quib import Quib
+
+QUIB_GUARDS = []
+
+
+def is_within_quib_guard():
+    return len(QUIB_GUARDS) > 0
+
+
+def get_current_quib_guard():
+    return QUIB_GUARDS[-1]
 
 
 class CannotAccessQuibInScopeException(PyQuibblerException):
@@ -20,28 +31,28 @@ class AnotherQuibGuardIsAlreadyActiveException(PyQuibblerException):
 
 
 class QuibGuard:
-
-    @classmethod
-    def create(cls, quibs_allowed: Set[Quib]):
-        if QUIB_GUARD is not None:
-            raise AnotherQuibGuardIsAlreadyActiveException()
-        return cls(quibs_allowed)
-
-    def __init__(self, quibs_allowed: Set):
+    """
+    A quib guard allows you to specify places in which only certain quibs (and their recursive children)
+    are allowed to be accessed
+    """
+    def __init__(self, quibs_allowed: Set, is_within_allowed_quib_get_value: bool = False):
         self._quibs_allowed = quibs_allowed
+        self._is_within_allowed_quib_get_value = is_within_allowed_quib_get_value
 
     def __enter__(self):
-        global QUIB_GUARD
-        QUIB_GUARD = self
+        QUIB_GUARDS.append(self)
         return self
 
-    def raise_if_accessing_global_quib(self, quib: Quib):
+    @contextlib.contextmanager
+    def get_value_context_manager(self, quib):
         all_allowed_quibs = set().union(*[{quib, *quib._get_children_recursively()} for quib in self._quibs_allowed])
-        if quib not in all_allowed_quibs:
+        if self._is_within_allowed_quib_get_value or quib not in all_allowed_quibs:
             raise CannotAccessQuibInScopeException()
+        self._is_within_allowed_quib_get_value = True
+        yield
+        self._is_within_allowed_quib_get_value = False
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        global QUIB_GUARD
-        QUIB_GUARD = None
+        QUIB_GUARDS.pop()
 
 

@@ -3,7 +3,7 @@ import functools
 from pyquibbler.quib.graphics import GraphicsFunctionQuib
 
 
-def quibbler_user_function(lazy=True):
+def quibbler_user_function(lazy=True, receive_quibs=False):
     """
     Decorate your function with this in order for quibbler to automatically unpack quibs sent as arguments to this
     function, while reruninng this function every time any argument quib changes.
@@ -16,7 +16,8 @@ def quibbler_user_function(lazy=True):
     def _decorator(func):
         @functools.wraps(func)
         def _wrapper(*args, **kwargs):
-            return GraphicsFunctionQuib.create(func=func, func_args=args, func_kwargs=kwargs, lazy=lazy)
+            return GraphicsFunctionQuib.create(func=func, func_args=args, func_kwargs=kwargs, lazy=lazy,
+                                               receive_quibs=receive_quibs)
 
         return _wrapper
     return _decorator
