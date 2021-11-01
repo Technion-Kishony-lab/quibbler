@@ -381,12 +381,16 @@ class Quib(ABC):
         """
         return self._overrider
 
+    # We cache the type, so quibs without cache will still remember their types.
+    @cache_method_until_full_invalidation
     def get_type(self) -> Type:
         """
-        Get the type of wrapped value
+        Get the type of wrapped value.
         """
         return type(self.get_value_valid_at_path(None))
 
+    # We cache the shape, so quibs without cache will still remember their shape.
+    @cache_method_until_full_invalidation
     def get_shape(self) -> Tuple[int, ...]:
         """
         Assuming this quib represents a numpy ndarray, returns a quib of its shape.
