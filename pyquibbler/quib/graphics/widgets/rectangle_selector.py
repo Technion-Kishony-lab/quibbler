@@ -3,7 +3,6 @@ from dataclasses import dataclass, field
 from threading import RLock
 from typing import Any, Optional, List
 
-import objgraph
 from matplotlib.widgets import RectangleSelector
 
 from pyquibbler import timer

@@ -1,12 +1,9 @@
 from __future__ import annotations
 
 import contextlib
-from typing import Set, TYPE_CHECKING
+from typing import Set
 
 from pyquibbler.exceptions import PyQuibblerException
-
-if TYPE_CHECKING:
-    from pyquibbler.quib import Quib
 
 QUIB_GUARDS = []
 
@@ -54,5 +51,3 @@ class QuibGuard:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         QUIB_GUARDS.pop()
-
-

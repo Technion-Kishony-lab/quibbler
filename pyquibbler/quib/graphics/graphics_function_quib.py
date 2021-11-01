@@ -1,9 +1,4 @@
-import gc
-import sys
-from itertools import chain
 from typing import List, Callable, Tuple, Any, Mapping, Dict, Optional, Iterable
-
-import objgraph
 from matplotlib.artist import Artist
 from matplotlib.axes import Axes
 from matplotlib.collections import Collection
@@ -19,7 +14,7 @@ from .event_handling import CanvasEventHandler
 from .quib_guard import QuibGuard
 from ..assignment import AssignmentTemplate, PathComponent
 from ..function_quibs import DefaultFunctionQuib, CacheBehavior
-from ..utils import call_func_with_quib_values, iter_object_type_in_args, recursively_run_func_on_object
+from ..utils import iter_object_type_in_args, recursively_run_func_on_object
 
 
 def save_func_and_args_on_artists(artists: List[Artist], func: Callable, args: Iterable[Any]):
