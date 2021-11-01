@@ -6,6 +6,12 @@ from pyquibbler.quib.assignment import PathComponent
 
 
 class ProxyQuib(Quib):
+    """
+    A proxy quib wraps another quib allowing only and ensures that no invalidations go through it. This is useful when
+    attempting to separate a quib from it's children.
+    If the proxy quib is assigned to it DOES reverse assign- meaning a proxy quib works backwards in every manner,
+    but never forwards (ie invalidation)
+    """
 
     def __init__(self, quib):
         super().__init__()
@@ -23,4 +29,5 @@ class ProxyQuib(Quib):
 
     def _get_paths_for_children_invalidation(self, invalidator_quib: Quib,
                                              path: List[PathComponent]) -> List[Optional[List[PathComponent]]]:
+        # We never invalidate our children
         return []
