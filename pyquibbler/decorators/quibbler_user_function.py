@@ -12,6 +12,7 @@ def quibbler_user_function(lazy=True, receive_quibs=False):
 
     :param lazy: Should this function be run immediately (lazy=False), or only when it's needed down the line?
     (lazy=False) - if you do any graphics in this function you should probably set lazy=False
+    :param receive_quibs: Should this function receive quibs or their values?
     """
     def _decorator(func):
         @functools.wraps(func)
