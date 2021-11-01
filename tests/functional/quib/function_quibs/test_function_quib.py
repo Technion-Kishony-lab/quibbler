@@ -149,7 +149,7 @@ class InvalidatingFunctionQuib(FunctionQuib):
         super().__init__(func, args, kwargs, cache_behavior)
         self.data_source_quibs = data_source_quibs or []
 
-    def _get_data_source_quib_parents(self):
+    def _get_data_source_quibs(self):
         return self.data_source_quibs
 
     def _get_inner_value_valid_at_path(self, path: Optional[List[PathComponent]]) -> Any:
