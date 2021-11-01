@@ -330,7 +330,7 @@ class Quib(ABC):
         """
         from .graphics.quib_guard import get_current_quib_guard, is_within_quib_guard
         if is_within_quib_guard():
-            context = get_current_quib_guard()
+            context = get_current_quib_guard().get_value_context_manager(self)
         else:
             context = contextlib.nullcontext()
 

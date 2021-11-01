@@ -35,8 +35,9 @@ def test_resets_quib_guard_after_user():
     assert quib.get_value() == [49]
 
 
-def test_cannot_quib_guard_within_quib_guard():
-    with pytest.raises(AnotherQuibGuardIsAlreadyActiveException):
+def test_quib_guard_within_quib_guard_gives_last_quib_guard():
+    quib = iquib(3)
+    with QuibGuard({quib}):
         with QuibGuard(set()):
-            with QuibGuard(set()):
-                pass
+            with pytest.raises(CannotAccessQuibInScopeException):
+                quib.get_value()
