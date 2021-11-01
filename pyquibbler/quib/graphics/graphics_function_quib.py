@@ -97,9 +97,8 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         We need to also go over args as there may be a situation in which the function did not create new artists, but
         did perform an action on an existing one, such as Axes.set_xlim
         """
-        artists_to_persist_on = self._artists if len(self._artists) > 0 else iter_object_type_in_args(self.args,
-                                                                                                      self.kwargs,
-                                                                                                      Artist)
+        artists_to_persist_on = self._artists if len(self._artists) > 0 else iter_object_type_in_args(Artist, self.args,
+                                                                                                      self.kwargs)
         for artist in artists_to_persist_on:
             quibs = getattr(artist, '_quibbler_graphics_function_quibs', set())
             quibs.add(self)

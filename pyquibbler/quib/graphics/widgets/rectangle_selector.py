@@ -89,7 +89,6 @@ class RectangleSelectorGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
 
     def _call_func(self, valid_path: Optional[List[PathComponent]]) -> Any:
         selector = super()._call_func(None)
-        # if selector is not None:
         selector.changed_callback = self._on_changed
         return selector
 
