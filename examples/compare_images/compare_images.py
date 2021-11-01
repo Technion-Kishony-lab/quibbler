@@ -25,8 +25,8 @@ def cut_image(image, roi):
 
 @quibbler_user_function(lazy=False)
 def image_distance(img1, img2):
+    print("Comparing images")
     res = np.linalg.norm(np.average(img1, axis=(0, 1)) - np.average(img2, axis=(0, 1))) / 255
-    print("Comparing images", res)
     return res
 
 
@@ -44,8 +44,8 @@ rois.set_assignment_template(0, 1000, 1)
 rois.allow_overriding = True
 
 rois_itered = list(rois.iter_first(images_count.get_value()))
-
 similiarity_threshold = iquib(.1)
+cut_images_lst = [cut_image(image, roi) for roi in rois_itered]
 
 
 def create_figure_1():
@@ -77,46 +77,47 @@ def create_figure_1():
     )
 
 
+def create_figure_2():
+
+    # Plot images
+    fig = plt.figure(2)
+    grid = ImageGrid(fig, 111,  # similar to subplot(111)
+                     nrows_ncols=(3, 3),  # creates 2x2 grid of axes
+                     axes_pad=0.1,  # pad between axes in inch.
+                     )
+
+    for ax, im in zip(grid, cut_images_lst):
+        # Iterating over the grid returns the Axes.
+        ax.imshow(im)
+
+
+def create_figure_3():
+    # Compare sub images
+    image_distances = np.array([[image_distance(img1, img2) for img2 in cut_images_lst] for img1 in cut_images_lst])
+    adjacents = image_distances < similiarity_threshold
+
+    # Plot distance matrix
+    plt.figure(3)
+    plt.axis([0.5, images_count+0.5, 0.5, images_count+0.5 ])
+    plt.title('pairwise distance between images')
+    plt.xlabel('Image number')
+    plt.ylabel('Image number')
+
+
+    #
+    for i in range(1, images_count.get_value() + 1):
+        adjacents_for_image = adjacents[i - 1]
+        ss = [(adjacents_for_image[i] * 100 + 1) for i in range(images_count.get_value())]
+        plt.scatter(list(range(1, images_count.get_value() + 1)), np.repeat([i], images_count),
+                    s=ss,
+                    marker='x',
+                    color='r',
+                    linewidths=2)
+
+
 create_figure_1()
+create_figure_2()
+create_figure_3()
 
-
-cut_images_lst = [cut_image(image, roi) for roi in rois_itered]
-
-
-# Plot images
-fig = plt.figure(2)
-grid = ImageGrid(fig, 111,  # similar to subplot(111)
-                 nrows_ncols=(3, 3),  # creates 2x2 grid of axes
-                 axes_pad=0.1,  # pad between axes in inch.
-                 )
-
-for ax, im in zip(grid, cut_images_lst):
-    # Iterating over the grid returns the Axes.
-    ax.imshow(im)
-
-
-# Compare sub images
-image_distances = np.array([[image_distance(img1, img2) for img2 in cut_images_lst] for img1 in cut_images_lst])
-adjacents = image_distances < similiarity_threshold
-
-
-
-# Plot distance matrix
-plt.figure(3)
-plt.axis([0.5, images_count+0.5, 0.5, images_count+0.5 ])
-plt.title('pairwise distance between images')
-plt.xlabel('Image number')
-plt.ylabel('Image number')
-
-
-#
-for i in range(1, images_count.get_value() + 1):
-    adjacents_for_image = adjacents[i - 1]
-    ss = [(adjacents_for_image[i] * 100 + 1) for i in range(images_count.get_value())]
-    plt.scatter(list(range(1, images_count.get_value() + 1)), np.repeat([i], images_count),
-                s=ss,
-                marker='x',
-                color='r',
-                linewidths=2)
 
 plt.show(block=True)
