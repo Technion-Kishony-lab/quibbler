@@ -1,7 +1,5 @@
 import functools
 
-from pyquibbler.quib.graphics import GraphicsFunctionQuib
-
 
 def quibbler_user_function(lazy=True, receive_quibs=False):
     """
@@ -14,6 +12,8 @@ def quibbler_user_function(lazy=True, receive_quibs=False):
     (lazy=False) - if you do any graphics in this function you should probably set lazy=False
     :param receive_quibs: Should this function receive quibs or their values?
     """
+    from pyquibbler.quib.graphics import GraphicsFunctionQuib
+
     def _decorator(func):
         @functools.wraps(func)
         def _wrapper(*args, **kwargs):
@@ -21,4 +21,5 @@ def quibbler_user_function(lazy=True, receive_quibs=False):
                                                receive_quibs=receive_quibs)
 
         return _wrapper
+
     return _decorator

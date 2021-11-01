@@ -220,7 +220,7 @@ class FunctionQuib(Quib):
         valid at valid_path
         """
         new_args, new_kwargs = self._prepare_args_for_call(valid_path)
-        return self._func(*new_args, **new_kwargs)
+        return self.func(*new_args, **new_kwargs)
 
     def _forward_translate_invalidation_path(self, invalidator_quib: Quib, path: List[PathComponent]) -> \
             List[List[PathComponent]]:

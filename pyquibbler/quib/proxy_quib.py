@@ -1,8 +1,6 @@
 from typing import Set, Optional, List, Any
 
-from pyquibbler import Assignment
-from pyquibbler.quib import Quib
-from pyquibbler.quib.assignment import PathComponent
+from pyquibbler.quib import Quib, Assignment, PathComponent
 
 
 class ProxyQuib(Quib):
