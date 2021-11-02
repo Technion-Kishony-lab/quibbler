@@ -112,12 +112,13 @@ def test_vectorize_partial_calculation():
         quib = np.vectorize(func_mock)(iquib(np.arange(3)))
     # Should call func_mock twice
     quib.get_value_valid_at_path(PathBuilder(quib)[0].path)
+    assert func_mock.call_count == 2, func_mock.mock_calls
     # Should call func_mock one time
     quib.get_value_valid_at_path(PathBuilder(quib)[1].path)
+    assert func_mock.call_count == 3, func_mock.mock_calls[2:]
     # Should not call func_mock
     quib.get_value_valid_at_path(PathBuilder(quib)[0].path)
-
-    assert func_mock.call_count == 3
+    assert func_mock.call_count == 3, func_mock.mock_calls[3:]
 
 
 def test_vectorize_get_value_valid_at_path_none():

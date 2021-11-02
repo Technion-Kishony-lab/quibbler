@@ -10,6 +10,8 @@ from matplotlib.spines import Spine
 from matplotlib.table import Table
 from matplotlib.text import Text
 
+from .event_handling import CanvasEventHandler
+
 ArrayNameToArtists = Dict[str, List[Artist]]
 
 TYPES_TO_ARTIST_ARRAY_NAMES = {
@@ -81,3 +83,7 @@ def save_func_and_args_on_artists(artist: Artist, func: Callable, args: Iterable
     if getattr(artist, '_quibbler_drawing_func', None) is None:
         artist._quibbler_drawing_func = func
         artist._quibbler_args = args
+
+
+def track_artist(artist: Artist):
+    CanvasEventHandler.get_or_create_initialized_event_handler(artist.figure.canvas)

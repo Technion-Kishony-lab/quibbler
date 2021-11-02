@@ -58,11 +58,52 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
     def _get_arg_ids_for_quib(self, quib: Quib):
         return {arg_id for arg_id, arg in iter_arg_ids_and_values(self.args[1:], self.kwargs) if quib is arg}
 
+    def _wrap_vectorize_call_to_pass_quibs(self, vectorize_metadata: VectorizeMetadata) -> VectorizeMetadata:
+        vectorize, args, kwargs = vectorize_metadata.vectorize, vectorize_metadata.args, vectorize_metadata.kwargs
+        # We convert quibs to numpy arrays so we can slice them with tuples even if they are originally lists
+        quib_args = {arg_id: np.array(val) for arg_id, val in iter_arg_ids_and_values(self.args[1:], self.kwargs)
+                     if isinstance(val, Quib)}
+        # TODO: support
+        assert not set(quib_args) & self._vectorize.excluded, 'Excluded quibs not supported on pass quibs'
+
+        def convert_quibs_to_indices(arg_id, arg_val):
+            if arg_id in quib_args:
+                return get_indices_array(vectorize_metadata.args_metadata[arg_id].loop_shape)
+            return arg_val
+
+        args, kwargs = convert_args_and_kwargs(convert_quibs_to_indices, self.args[1:], self.kwargs)
+        # Indices arrays have 0 core dimensions, so if the signature is None, it just stays None.
+        # Otherwise, we need to construct a new signature in which the core dimensions of the quib
+        # args are zero.
+        # If indices core dimensions were one, then we couldn't keep using an empty signature when calling
+        # vectorize - and that means we would have needed to call the original function to get the tuple
+        # length - which is bad because we need to call it with quibs.
+        # To solve that we make sure our core dimensions are always 0 by using the Indices class.
+        signature = None if vectorize.signature is None else \
+            vectorize_metadata.construct_signature({arg_id: 0 for arg_id in quib_args})
+
+        def convert_indices_to_quibs(arg_id, arg_val):
+            quib = quib_args.get(arg_id)
+            if quib is None:
+                return arg_val
+            return quib[arg_val.indices]
+
+        def wrapper(*args, **kwargs):
+            args, kwargs = convert_args_and_kwargs(convert_indices_to_quibs, args, kwargs)
+            result = vectorize.pyfunc(*args, **kwargs)
+            return copy_and_replace_quibs_with_vals(result)
+
+        new_vectorize = copy_vectorize(vectorize, func=wrapper, signature=signature)
+        return VectorizeMetadata.from_vectorize_call(new_vectorize, args, kwargs)
+
     @property
     @cache_method_until_full_invalidation
     def _vectorize_metadata(self) -> VectorizeMetadata:
         (vectorize, *args), kwargs = self._prepare_args_for_call(None)
-        return VectorizeMetadata.from_vectorize_call(vectorize, args, kwargs)
+        meta = VectorizeMetadata.from_vectorize_call(vectorize, args, kwargs)
+        if self._vectorize.pass_quibs:
+            meta = self._wrap_vectorize_call_to_pass_quibs(meta)
+        return meta
 
     def _forward_translate_indices_to_bool_mask(self, invalidator_quib: Quib, indices: Any) -> Any:
         vectorize_metadata = self._vectorize_metadata
@@ -114,46 +155,8 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
         return {quib: self._get_source_path_in_quib(quib, filtered_path_in_result)
                 for quib in self._get_data_source_quibs()}
 
-    def _wrap_vectorize_call_to_pass_quibs(self, vectorize_metadata: VectorizeMetadata) -> VectorizeMetadata:
-        vectorize, args, kwargs = vectorize_metadata.vectorize, vectorize_metadata.args, vectorize_metadata.kwargs
-        # We convert quibs to numpy arrays so we can slice them with tuples even if they are originally lists
-        quib_args = {arg_id: np.array(val) for arg_id, val in iter_arg_ids_and_values(self.args[1:], self.kwargs)
-                     if isinstance(val, Quib)}
-        # TODO: support
-        assert not set(quib_args) & self._vectorize.excluded, 'Excluded quibs not supported on pass quibs'
-
-        def convert_quibs_to_indices(arg_id, arg_val):
-            if arg_id in quib_args:
-                return get_indices_array(vectorize_metadata.args_metadata[arg_id].loop_shape)
-            return arg_val
-
-        args, kwargs = convert_args_and_kwargs(convert_quibs_to_indices, self.args[1:], self.kwargs)
-        # Indices arrays have 0 core dimensions, so if the signature is None, it just stays None.
-        # Otherwise, we need to construct a new signature in which the core dimensions of the quib
-        # args are zero.
-        # If indices core dimensions were one, then we couldn't keep using an empty signature when calling
-        # vectorize - and that means we would have needed to call the original function to get the tuple
-        # length - which is bad because we need to call it with quibs.
-        # To solve that we make sure our core dimensions are always 0 by using the Indices class.
-        signature = None if vectorize.signature is None else \
-            vectorize_metadata.construct_signature({arg_id: 0 for arg_id in quib_args})
-
-        def convert_indices_to_quibs(arg_id, arg_val):
-            quib = quib_args.get(arg_id)
-            if quib is None:
-                return arg_val
-            return quib[arg_val.indices]
-
-        def wrapper(*args, **kwargs):
-            args, kwargs = convert_args_and_kwargs(convert_indices_to_quibs, args, kwargs)
-            result = vectorize.pyfunc(*args, **kwargs)
-            return copy_and_replace_quibs_with_vals(result)
-
-        new_vectorize = copy_vectorize(vectorize, func=wrapper, signature=signature)
-        return VectorizeMetadata.from_vectorize_call(new_vectorize, args, kwargs)
-
     def _wrap_vectorize_call_to_calc_only_needed(self, vectorize_metadata: VectorizeMetadata,
-                                                 valid_path) -> VectorizeMetadata:
+                                                 valid_path, otypes) -> VectorizeMetadata:
         """
         1. Create a bool mask with the same shape as the broadcast loop dimensions
         2. Create a wrapper for the pyfunc that receives the same arguments, and an additional boolean that
@@ -163,8 +166,6 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
         vectorize, args, kwargs = vectorize_metadata.vectorize, vectorize_metadata.args, vectorize_metadata.kwargs
         bool_mask = np.any(self._get_bool_mask_representing_indices_in_result(valid_path[0].component),
                            axis=vectorize_metadata.result_core_axes)
-        if not vectorize.pass_quibs:
-            (_old_vectorize, *args), kwargs = self._prepare_args_for_call(valid_path)
         args = (bool_mask, *args)
         # The logic in this wrapper should be as minimal as possible (including attribute access, etc.)
         # as it is run for every index in the loop.
@@ -174,22 +175,20 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
 
         wrapper_excluded = {i + 1 if isinstance(i, int) else i for i in self._vectorize.excluded}
         wrapper_signature = vectorize.signature if vectorize.signature is None else '(),' + vectorize.signature
-        vectorize = copy_vectorize(vectorize, func=wrapper, excluded=wrapper_excluded, signature=wrapper_signature)
+        vectorize = copy_vectorize(vectorize, func=wrapper, excluded=wrapper_excluded, signature=wrapper_signature,
+                                   otypes=otypes)
         return VectorizeMetadata.from_vectorize_call(vectorize, args, kwargs)
 
-    def _call_func(self, valid_path: Optional[List[PathComponent]]) -> Any:
+    def _call_func(self, valid_path: Optional[List[PathComponent]]):
         vectorize_metadata = self._vectorize_metadata
-        if self._vectorize.pass_quibs:
-            vectorize_metadata = self._wrap_vectorize_call_to_pass_quibs(vectorize_metadata)
         if vectorize_metadata.is_result_a_tuple:
             return super()._call_func(valid_path)
-        otypes = vectorize_metadata.otypes
         if valid_path is None:
             return np.zeros(vectorize_metadata.result_shape, dtype=vectorize_metadata.result_dtype)
         if len(valid_path) > 0:
-            vectorize_metadata = self._wrap_vectorize_call_to_calc_only_needed(vectorize_metadata, valid_path)
-        vectorize = copy_vectorize(vectorize_metadata.vectorize, otypes=otypes)
-        return vectorize(*vectorize_metadata.args, **vectorize_metadata.kwargs)
+            vectorize_metadata = self._wrap_vectorize_call_to_calc_only_needed(vectorize_metadata, valid_path,
+                                                                               vectorize_metadata.otypes)
+        return vectorize_metadata.vectorize(*vectorize_metadata.args, **vectorize_metadata.kwargs)
 
 
 class QVectorize(np.vectorize):

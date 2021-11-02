@@ -4,15 +4,22 @@ from typing import List, Callable, Tuple, Any, Mapping, Dict, Optional, Iterable
 from matplotlib.artist import Artist
 from matplotlib.axes import Axes
 
-from . import global_collecting
-from .event_handling import CanvasEventHandler
+from .global_collecting import ArtistsCollector
 from .quib_guard import QuibGuard
 from .graphics_utils import save_func_and_args_on_artists, get_axeses_to_array_names_to_starting_indices_and_artists, \
-    remove_artist, get_axeses_to_array_names_to_artists, get_artist_array, ArrayNameToArtists
+    remove_artist, get_axeses_to_array_names_to_artists, get_artist_array, ArrayNameToArtists, track_artist
 from ..assignment import AssignmentTemplate, PathComponent
 from ..function_quibs import DefaultFunctionQuib, CacheBehavior
-from ..utils import recursively_run_func_on_object, iter_object_type_in_args
+from ..utils import recursively_run_func_on_object, iter_object_type_in_args, iter_quibs_in_args
 from ...env import GRAPHICS_LAZY
+
+
+def proxify_args(args, kwargs):
+    from pyquibbler.quib import Quib, ProxyQuib
+    replace_quibs_with_proxy_quibs = lambda arg: ProxyQuib(arg) if isinstance(arg, Quib) else arg
+    args = recursively_run_func_on_object(replace_quibs_with_proxy_quibs, args)
+    kwargs = {k: recursively_run_func_on_object(replace_quibs_with_proxy_quibs, v) for k, v in kwargs.items()}
+    return args, kwargs
 
 
 class GraphicsFunctionQuib(DefaultFunctionQuib):
@@ -51,7 +58,7 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         super().__init__(func, args, kwargs, cache_behavior, assignment_template=assignment_template)
         self._had_artists_on_last_run = had_artists_on_last_run
         self._receive_quibs = receive_quibs
-        self._artists_ndarr = np.array(set())
+        self._artists_ndarr = None
 
     @classmethod
     def create(cls, func, func_args=(), func_kwargs=None, cache_behavior=None, lazy=None, **kwargs):
@@ -125,20 +132,10 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
                 # If the array name isn't in previous_array_names_to_indices_and_artists,
                 # we don't need to update positions, etc
 
-    def _get_args_for_call_with_quibs(self):
-        proxy_quibs = set()
-
-        def _replace_quibs_with_proxy_quibs(arg):
-            from pyquibbler.quib import Quib, ProxyQuib
-            if isinstance(arg, Quib):
-                proxy_quib = ProxyQuib(quib=arg)
-                proxy_quibs.add(proxy_quib)
-                return proxy_quib
-            return arg
-
-        args = recursively_run_func_on_object(_replace_quibs_with_proxy_quibs, self.args)
-        kwargs = {k: recursively_run_func_on_object(_replace_quibs_with_proxy_quibs, v) for k, v in self.kwargs.items()}
-        return args, kwargs, proxy_quibs
+    def _remove_artists(self, artist_set: Set[Artist]):
+        for artist in artist_set:
+            remove_artist(artist)
+        artist_set.clear()
 
     @contextmanager
     def _handle_new_artists(self, artist_set: Set[Artist]):
@@ -147,11 +144,9 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         # place the new artists we create in their correct locations
         previous_axeses_to_array_names_to_indices_and_artists = \
             get_axeses_to_array_names_to_starting_indices_and_artists(artist_set)
-        for artist in artist_set:
-            remove_artist(artist)
-        artist_set.clear()
+        self._remove_artists(artist_set)
 
-        with global_collecting.ArtistsCollector() as collector:
+        with ArtistsCollector() as collector:
             yield
 
         artist_set.update(collector.artists_collected)
@@ -159,16 +154,12 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
 
         for artist in artist_set:
             save_func_and_args_on_artists(artist, func=self.func, args=self.args)
-            self.track_artist(artist)
+            track_artist(artist)
         self.persist_self_on_artists(artist_set)
 
         current_axeses_to_array_names_to_artists = get_axeses_to_array_names_to_artists(artist_set)
         self._update_new_artists_from_previous_artists(previous_axeses_to_array_names_to_indices_and_artists,
                                                        current_axeses_to_array_names_to_artists)
-
-    @classmethod
-    def track_artist(cls, artist: Artist):
-        CanvasEventHandler.get_or_create_initialized_event_handler(artist.figure.canvas)
 
     def _remove_artists_that_were_removed_from_axes(self, artist_set: Set[Artist]):
         """
@@ -176,11 +167,32 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         """
         artist_set.difference_update([artist for artist in artist_set if artist not in get_artist_array(artist)])
 
+    def _iter_artist_sets(self) -> Iterable[Set[Artist]]:
+        return [] if self._artists_ndarr is None else self._artists_ndarr.flat
+
     def _iter_artists(self) -> Iterable[Artist]:
-        return (artist for artists in self._artists_ndarr.flat for artist in artists)
+        return (artist for artists in self._iter_artist_sets() for artist in artists)
 
     def get_axeses(self) -> List[Axes]:
         return list(get_axeses_to_array_names_to_artists(self._iter_artists()).keys())
+
+    def _get_loop_shape(self) -> Tuple[int, ...]:
+        return ()
+
+    def _initialize_artists_ndarr(self):
+        loop_shape = self._get_loop_shape()
+        if self._artists_ndarr is not None and self._artists_ndarr.shape != loop_shape:
+            for artist_set in self._iter_artist_sets():
+                self._remove_artists(artist_set)
+            self._artists_ndarr = None
+        if self._artists_ndarr is None:
+            self._artists_ndarr = np.vectorize(lambda _: set())(np.empty(loop_shape))
+        return self._artists_ndarr
+
+    def _prepare_args_for_call(self, valid_path: Optional[List[PathComponent]]):
+        if self._receive_quibs:
+            return proxify_args(self.args, self.kwargs)
+        return super()._prepare_args_for_call(valid_path)
 
     def _call_func(self, valid_path: Optional[List[PathComponent]]) -> Any:
         """
@@ -188,15 +200,9 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         in the same place they were in their axes.
         Return the function's result.
         """
-        assert self._artists_ndarr.ndim == 0
-        artist_set = self._artists_ndarr[()]
-
-        if self._receive_quibs:
-            args, kwargs, quibs_for_guard = self._get_args_for_call_with_quibs()
-        else:
-            quibs_for_guard = self.parents
-            args, kwargs = self._prepare_args_for_call(valid_path)
-
-        with self._handle_new_artists(artist_set):
-            with QuibGuard(quibs_for_guard):
+        artists_ndarr = self._initialize_artists_ndarr()
+        assert artists_ndarr.ndim == 0
+        args, kwargs = self._prepare_args_for_call(valid_path)
+        with self._handle_new_artists(artists_ndarr[()]):
+            with QuibGuard(iter_quibs_in_args(args, kwargs)):
                 return self.func(*args, **kwargs)
