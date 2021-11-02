@@ -1,11 +1,13 @@
+import matplotlib.pyplot as plt
 import numpy as np
+from functools import partial
 from pytest import mark
 
 from pyquibbler import iquib, CacheBehavior
 from pyquibbler.env import GRAPHICS_LAZY
 from pyquibbler.quib.assignment import PathComponent
 
-from ..utils import check_invalidation, check_get_value_valid_at_path, MockQuib, PathBuilder, get_func_mock
+from ...utils import check_invalidation, check_get_value_valid_at_path, MockQuib, PathBuilder, get_func_mock
 
 parametrize_data = mark.parametrize('data', [np.arange(24).reshape((2, 3, 4))])
 parametrize_indices_to_invalidate = mark.parametrize('indices_to_invalidate',
@@ -125,9 +127,18 @@ def test_vectorize_get_value_valid_at_path_none():
 
 
 def test_vectorize_with_pass_quibs():
-    def f(x):
+    @partial(np.vectorize, pass_quibs=True)
+    def vectorized(x):
         return iquib(x.get_value() + 1)
 
-    vectorize = np.vectorize(f, pass_quibs=True)
-    result = vectorize(iquib(np.arange(2)))
+    result = vectorized(iquib(np.arange(2)))
     assert np.array_equal(result.get_value(), [1, 2])
+
+
+def test_vectorize_with_pass_quibs_and_core_dims():
+    @partial(np.vectorize, pass_quibs=True, signature='(a)->(x)')
+    def vectorized(x):
+        return iquib(x.get_value() + 1)[:-1]
+
+    result = vectorized(iquib(np.zeros((2, 3))))
+    assert np.array_equal(result.get_value(), np.ones((2, 2)))

@@ -364,7 +364,8 @@ class Quib(ABC):
             context = contextlib.nullcontext()
 
         with context:
-            return self._overrider.override(self._get_inner_value_valid_at_path(path), self._assignment_template)
+            inner_value = self._get_inner_value_valid_at_path(path)
+            return self._overrider.override(inner_value, self._assignment_template)
 
     def get_value(self) -> Any:
         """

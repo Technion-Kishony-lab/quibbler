@@ -6,11 +6,7 @@ from typing import Any, Dict, Optional, List, Tuple, Union
 
 from pyquibbler.quib.function_quibs.indices_translator_function_quib import Args, Kwargs
 
-Shape = Tuple[int, ...]
-
-
-def get_core_axes(core_ndim):
-    return tuple(range(-1, -1 - core_ndim, -1))
+from .utils import Shape, get_core_axes, construct_signature
 
 
 @dataclass
@@ -22,6 +18,7 @@ class VectorizeArgMetadata:
     @classmethod
     def from_arg_and_core_ndim(cls, arg: Any, core_ndim: int) -> VectorizeArgMetadata:
         shape = np.shape(arg)
+        assert len(shape) >= core_ndim  # TODO: exception
         if core_ndim == 0:
             return cls(shape, (), shape)
         return cls(shape, shape[-core_ndim:], shape[:-core_ndim])
@@ -37,7 +34,7 @@ class VectorizeMetadata:
     args: Args
     kwargs: Kwargs
 
-    args_metadata: Dict[Union[int, str], Optional[VectorizeArgMetadata]]
+    args_metadata: Dict[Union[int, str], VectorizeArgMetadata]
     result_loop_shape: Shape
 
     _is_result_a_tuple: Optional[bool]
@@ -146,6 +143,15 @@ class VectorizeMetadata:
     def tuple_length(self):
         return len(self.result_dtypes)
 
+    def construct_signature(self, arg_ids_to_new_core_ndims: Optional[Dict[Union[str, int], int]] = None) -> str:
+        if arg_ids_to_new_core_ndims is None:
+            arg_ids_to_new_core_ndims = {}
+        args_core_ndims = [arg_ids_to_new_core_ndims.pop(arg_id, arg_meta.core_ndim)
+                           for arg_id, arg_meta in self.args_metadata.items()]
+        results_core_ndims = self.results_core_ndims if self.is_result_a_tuple else [self.result_core_ndim]
+        assert not arg_ids_to_new_core_ndims, f'Invalid arg ids: {set(arg_ids_to_new_core_ndims.keys())}'
+        return construct_signature(args_core_ndims, results_core_ndims)
+
     @classmethod
     def _get_args_and_result_core_ndims(cls, vectorize: np.vectorize, args: Args, kwargs: Kwargs):
         num_not_excluded = len((set(range(len(args))) | set(kwargs)) - vectorize.excluded)
@@ -156,7 +162,7 @@ class VectorizeMetadata:
         else:
             in_core_dims, out_core_dims = vectorize._in_and_out_core_dims
             args_core_ndims = list(map(len, in_core_dims))
-            assert len(args_core_ndims) == num_not_excluded
+            assert len(args_core_ndims) == num_not_excluded  # TODO: exception
             is_tuple = len(out_core_dims) > 1
             result_core_ndims = list(map(len, out_core_dims)) if is_tuple else len(out_core_dims[0])
         return args_core_ndims, result_core_ndims, is_tuple

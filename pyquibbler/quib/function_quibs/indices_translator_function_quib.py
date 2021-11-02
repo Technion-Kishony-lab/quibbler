@@ -2,7 +2,7 @@ import numpy as np
 from abc import abstractmethod
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import Set, Optional, Dict, Callable, List, Any, Union
+from typing import Set, Optional, Dict, Callable, List, Any, Union, Tuple
 
 from pyquibbler.quib.assignment import Assignment
 from pyquibbler.quib.function_quibs.utils import create_empty_array_with_values_at_indices, ArgsValues
@@ -11,7 +11,7 @@ from pyquibbler.quib.function_quibs import FunctionQuib
 from pyquibbler.quib.assignment import PathComponent, QuibWithAssignment
 from pyquibbler.quib.utils import iter_objects_of_type_in_object_shallowly
 
-Args = List[Any]
+Args = Tuple[Any, ...]
 Kwargs = Dict[str, Any]
 
 
