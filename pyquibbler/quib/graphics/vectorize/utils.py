@@ -32,3 +32,14 @@ def copy_vectorize(vectorize, func=None, otypes=None, excluded=None, signature=N
         signature = vectorize.signature
     return np.vectorize(func, otypes=otypes, doc=vectorize.__doc__, excluded=excluded, cache=False,
                         signature=signature, pass_quibs=vectorize.pass_quibs)
+
+
+class Indices:
+    __slots__ = ['indices']
+
+    def __init__(self, indices):
+        self.indices = tuple(indices)
+
+
+def get_indices_array(shape):
+    return np.apply_along_axis(Indices, -1, np.moveaxis(np.indices(shape), 0, -1))

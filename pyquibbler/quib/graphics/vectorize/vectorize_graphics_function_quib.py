@@ -6,7 +6,7 @@ from typing import Any, Optional, List, Callable
 
 from pyquibbler.quib.quib import Quib, cache_method_until_full_invalidation
 
-from .utils import copy_vectorize, get_core_axes
+from .utils import copy_vectorize, get_core_axes, get_indices_array
 from .vectorize_metadata import VectorizeMetadata
 from ..graphics_function_quib import GraphicsFunctionQuib
 from ...assignment import PathComponent
@@ -14,13 +14,6 @@ from ...function_quibs.indices_translator_function_quib import IndicesTranslator
     Kwargs, Args
 from ...function_quibs.utils import ArgsValues
 from ...utils import copy_and_replace_quibs_with_vals
-
-
-class Indices:
-    __slots__ = ['indices']
-
-    def __init__(self, indices):
-        self.indices = tuple(indices)
 
 
 def iter_arg_ids_and_values(args, kwargs):
@@ -123,13 +116,15 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
 
     def _wrap_vectorize_call_to_pass_quibs(self, vectorize_metadata: VectorizeMetadata) -> VectorizeMetadata:
         vectorize, args, kwargs = vectorize_metadata.vectorize, vectorize_metadata.args, vectorize_metadata.kwargs
-        quib_args = {arg_id: val for arg_id, val in iter_arg_ids_and_values(self.args[1:], self.kwargs)
+        # We convert quibs to numpy arrays so we can slice them with tuples even if they are originally lists
+        quib_args = {arg_id: np.array(val) for arg_id, val in iter_arg_ids_and_values(self.args[1:], self.kwargs)
                      if isinstance(val, Quib)}
+        # TODO: support
+        assert not set(quib_args) & self._vectorize.excluded, 'Excluded quibs not supported on pass quibs'
 
         def convert_quibs_to_indices(arg_id, arg_val):
             if arg_id in quib_args:
-                indices = np.indices(vectorize_metadata.args_metadata[arg_id].loop_shape)
-                return np.apply_along_axis(Indices, -1, np.moveaxis(indices, 0, -1))
+                return get_indices_array(vectorize_metadata.args_metadata[arg_id].loop_shape)
             return arg_val
 
         args, kwargs = convert_args_and_kwargs(convert_quibs_to_indices, self.args[1:], self.kwargs)

@@ -3,36 +3,16 @@ from contextlib import contextmanager
 from typing import List, Callable, Tuple, Any, Mapping, Dict, Optional, Iterable, Set
 from matplotlib.artist import Artist
 from matplotlib.axes import Axes
-from matplotlib.collections import Collection
-from matplotlib.image import AxesImage
-from matplotlib.lines import Line2D
-from matplotlib.patches import Patch
-from matplotlib.spines import Spine
-from matplotlib.table import Table
-from matplotlib.text import Text
 
 from . import global_collecting
 from .event_handling import CanvasEventHandler
 from .quib_guard import QuibGuard
+from .graphics_utils import save_func_and_args_on_artists, get_axeses_to_array_names_to_starting_indices_and_artists, \
+    remove_artist, get_axeses_to_array_names_to_artists, get_artist_array, ArrayNameToArtists
 from ..assignment import AssignmentTemplate, PathComponent
 from ..function_quibs import DefaultFunctionQuib, CacheBehavior
 from ..utils import recursively_run_func_on_object, iter_object_type_in_args
 from ...env import GRAPHICS_LAZY
-
-Indices = Any
-ArrayNameToArtists = Dict[str, List[Artist]]
-
-
-def save_func_and_args_on_artists(artist: Artist, func: Callable, args: Iterable[Any]):
-    """
-    Set the drawing func and on the artist- this will be used later on when tracking an artist, in order to know how to
-    inverse and handle events.
-    If there's already a creating func, we assume the lower func that already created the artist is the actual
-    drawing func (such as a user func that called plt.plot)
-    """
-    if getattr(artist, '_quibbler_drawing_func', None) is None:
-        artist._quibbler_drawing_func = func
-        artist._quibbler_args = args
 
 
 class GraphicsFunctionQuib(DefaultFunctionQuib):
@@ -44,16 +24,6 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
 
     # Avoid unnecessary repaints
     _DEFAULT_CACHE_BEHAVIOR = CacheBehavior.ON
-
-    TYPES_TO_ARTIST_ARRAY_NAMES = {
-        Line2D: "lines",
-        Collection: "collections",
-        Patch: "patches",
-        Text: "texts",
-        Spine: "spines",
-        Table: "tables",
-        AxesImage: "images"
-    }
 
     # Some attributes, like 'color', are chosen by matplotlib automatically if not specified.
     # Therefore, if these attributes were not specified, we need to copy them
@@ -74,19 +44,18 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
                  args: Tuple[Any, ...],
                  kwargs: Mapping[str, Any],
                  cache_behavior: Optional[CacheBehavior],
-                 artists: Iterable[Artist],
                  assignment_template: Optional[AssignmentTemplate] = None,
                  had_artists_on_last_run: bool = False,
                  receive_quibs: bool = False
                  ):
         super().__init__(func, args, kwargs, cache_behavior, assignment_template=assignment_template)
-        self._artists_ndarr = np.array(set(artists))
         self._had_artists_on_last_run = had_artists_on_last_run
         self._receive_quibs = receive_quibs
+        self._artists_ndarr = np.array(set())
 
     @classmethod
     def create(cls, func, func_args=(), func_kwargs=None, cache_behavior=None, lazy=None, **kwargs):
-        self = super().create(func, func_args, func_kwargs, cache_behavior, artists=[], **kwargs)
+        self = super().create(func, func_args, func_kwargs, cache_behavior, **kwargs)
         if lazy is None:
             lazy = GRAPHICS_LAZY
         if not lazy:
@@ -105,26 +74,6 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
             quibs = getattr(artist, '_quibbler_graphics_function_quibs', set())
             quibs.add(self)
             artist._quibbler_graphics_function_quibs = quibs
-
-    def _get_artist_array_name(self, artist: Artist):
-        return next((
-            array_name
-            for type_, array_name in self.TYPES_TO_ARTIST_ARRAY_NAMES.items()
-            if isinstance(artist, type_)
-        ), "artists")
-
-    def _get_artist_array(self, artist: Artist):
-        return getattr(artist.axes, self._get_artist_array_name(artist))
-
-    def _get_axeses_to_array_names_to_artists(self, artists: Iterable[Artist]) -> Dict[Axes, ArrayNameToArtists]:
-        """
-        Creates a mapping of axes -> artist_array_name (e.g. `lines`) -> artists
-        """
-        axeses_to_array_names_to_artists = {}
-        for artist in artists:
-            array_names_to_artists = axeses_to_array_names_to_artists.setdefault(artist.axes, {})
-            array_names_to_artists.setdefault(self._get_artist_array_name(artist), []).append(artist)
-        return axeses_to_array_names_to_artists
 
     def _update_position_and_attributes_of_created_artists(
             self,
@@ -197,9 +146,9 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         # Get the *current* artists together with their starting indices (per axes per artists array) so we can
         # place the new artists we create in their correct locations
         previous_axeses_to_array_names_to_indices_and_artists = \
-            self._get_axeses_to_array_names_to_starting_indices_and_artists(artist_set)
+            get_axeses_to_array_names_to_starting_indices_and_artists(artist_set)
         for artist in artist_set:
-            self._remove_artist(artist)
+            remove_artist(artist)
         artist_set.clear()
 
         with global_collecting.ArtistsCollector() as collector:
@@ -213,45 +162,25 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
             self.track_artist(artist)
         self.persist_self_on_artists(artist_set)
 
-        current_axeses_to_array_names_to_artists = self._get_axeses_to_array_names_to_artists(artist_set)
+        current_axeses_to_array_names_to_artists = get_axeses_to_array_names_to_artists(artist_set)
         self._update_new_artists_from_previous_artists(previous_axeses_to_array_names_to_indices_and_artists,
                                                        current_axeses_to_array_names_to_artists)
 
-    def _remove_artist(self, artist: Artist):
-        """
-        Remove an artist from its artist array (does NOT redraw)
-        """
-        self._get_artist_array(artist).remove(artist)
-
-    def _get_axeses_to_array_names_to_starting_indices_and_artists(self, artists: Set[Artist]) \
-            -> Dict[Axes, Dict[str, Tuple[int, List[Artist]]]]:
-        """
-        Creates a mapping of axes -> artists_array_name -> (starting_index, artists)
-        """
-        axeses_to_array_names_to_indices_and_artists = {}
-        for axes, array_names_to_artists in self._get_axeses_to_array_names_to_artists(artists).items():
-            array_names_to_indices_and_artists = {}
-            axeses_to_array_names_to_indices_and_artists[axes] = array_names_to_indices_and_artists
-
-            for array_name, array_artists in array_names_to_artists.items():
-                exemplifying_artist = array_artists[0]
-                array = getattr(exemplifying_artist.axes, array_name)
-                array_names_to_indices_and_artists[array_name] = (array.index(exemplifying_artist), array_artists)
-
-        return axeses_to_array_names_to_indices_and_artists
-
-    def get_axeses(self) -> List[Axes]:
-        artists = (artist for artists in self._artists_ndarr.flat for artist in artists)
-        return list(self._get_axeses_to_array_names_to_artists(artists).keys())
-
-    def track_artist(self, artist: Artist):
+    @classmethod
+    def track_artist(cls, artist: Artist):
         CanvasEventHandler.get_or_create_initialized_event_handler(artist.figure.canvas)
 
     def _remove_artists_that_were_removed_from_axes(self, artist_set: Set[Artist]):
         """
         Remove any artists that we created that were removed by another means other than us (for example, cla())
         """
-        artist_set.difference_update([artist for artist in artist_set if artist not in self._get_artist_array(artist)])
+        artist_set.difference_update([artist for artist in artist_set if artist not in get_artist_array(artist)])
+
+    def _iter_artists(self) -> Iterable[Artist]:
+        return (artist for artists in self._artists_ndarr.flat for artist in artists)
+
+    def get_axeses(self) -> List[Axes]:
+        return list(get_axeses_to_array_names_to_artists(self._iter_artists()).keys())
 
     def _call_func(self, valid_path: Optional[List[PathComponent]]) -> Any:
         """

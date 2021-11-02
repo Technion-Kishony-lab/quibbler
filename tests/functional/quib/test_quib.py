@@ -58,7 +58,7 @@ def test_quib_invalidate_and_redraw_calls_graphics_function_quib_children(exampl
     mock_func = mock.Mock()
     mock_func.return_value = []
 
-    quib = GraphicsFunctionQuib(func=mock_func, args=tuple(), kwargs={}, artists=[], cache_behavior=None)
+    quib = GraphicsFunctionQuib(func=mock_func, args=tuple(), kwargs={}, cache_behavior=None)
     example_quib.add_child(quib)
     quib.get_value()  # we want to set cache to valid
 

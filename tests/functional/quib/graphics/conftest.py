@@ -31,6 +31,7 @@ class MockArtistsCollector:
 @pytest.fixture()
 def mock_axes():
     axes = mock.Mock()
+    axes.figure.canvas.supports_blit = False
     axes.artists = []
     return axes
 

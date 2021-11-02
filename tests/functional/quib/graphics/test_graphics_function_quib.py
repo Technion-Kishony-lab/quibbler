@@ -12,8 +12,7 @@ def get_graphics_quib(func):
         args=tuple(),
         kwargs={},
         cache_behavior=None,
-        func=func,
-        artists=[]
+        func=func
     )
 
 
