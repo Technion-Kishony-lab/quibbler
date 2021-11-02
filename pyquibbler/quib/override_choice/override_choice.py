@@ -142,12 +142,10 @@ class OverrideOptionsTree:
         Try to inverse the given assignment and return the resulting assignments.
         Return an empty list if cannot inverse.
         """
-        from pyquibbler.quib import FunctionQuib
-        if isinstance(quib_with_assignment.quib, FunctionQuib):
-            try:
-                return quib_with_assignment.quib.get_inversions_for_assignment(quib_with_assignment.assignment)
-            except CannotReverseException:
-                pass
+        try:
+            return quib_with_assignment.quib.get_inversions_for_assignment(quib_with_assignment.assignment)
+        except CannotReverseException:
+            pass
         return []
 
     @classmethod

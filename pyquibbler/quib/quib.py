@@ -12,7 +12,8 @@ from weakref import ref as weakref
 
 from pyquibbler.exceptions import PyQuibblerException
 
-from .assignment import AssignmentTemplate, RangeAssignmentTemplate, BoundAssignmentTemplate, Overrider, Assignment
+from .assignment import AssignmentTemplate, RangeAssignmentTemplate, BoundAssignmentTemplate, Overrider, Assignment, \
+    QuibWithAssignment
 from .function_quibs.cache import create_cache
 from .function_quibs.cache.cache import CacheStatus
 from .function_quibs.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
@@ -422,3 +423,9 @@ class Quib(ABC):
             ancestors.add(parent)
             ancestors |= parent.ancestors
         return ancestors
+
+    def get_inversions_for_assignment(self, assignment: Assignment) -> List[QuibWithAssignment]:
+        """
+        Get a list of inversions to parent quibs for a given assignment
+        """
+        return []

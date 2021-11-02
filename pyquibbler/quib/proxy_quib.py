@@ -2,7 +2,7 @@ from typing import Set, Optional, List, Any
 
 from pyquibbler import Assignment
 from pyquibbler.quib import Quib
-from pyquibbler.quib.assignment import PathComponent
+from pyquibbler.quib.assignment import PathComponent, QuibWithAssignment
 
 
 class ProxyQuib(Quib):
@@ -31,3 +31,6 @@ class ProxyQuib(Quib):
                                              path: List[PathComponent]) -> List[Optional[List[PathComponent]]]:
         # We never invalidate our children
         return []
+
+    def get_inversions_for_assignment(self, assignment: Assignment) -> List[QuibWithAssignment]:
+        return [QuibWithAssignment(quib=self._quib, assignment=assignment)]
