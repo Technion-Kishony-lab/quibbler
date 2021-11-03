@@ -102,8 +102,10 @@ def test_apply_along_axis_only_calculates_once_with_sample_on_get_shape():
         quib = np.apply_along_axis(func, axis=0, arr=arr)
     res = quib.get_shape()
 
-    assert res == (2, 2)
     assert func.call_count == 1
+    call = func.mock_calls[0]
+    assert np.array_equal(call.args[0], np.array([0, 4]))
+    assert res == (2, 2)
 
 
 def test_apply_along_axis_only_calculates_what_is_needed():

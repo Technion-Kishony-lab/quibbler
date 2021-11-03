@@ -2,7 +2,7 @@ import pytest
 from unittest import mock
 
 from pyquibbler.quib.graphics import graphics_function_quib
-from pyquibbler.quib.graphics.vectorize import vectorize_graphics_function_quib
+from pyquibbler.quib.graphics.axiswise_function_quibs.vectorize import vectorize_graphics_function_quib
 
 
 class MockArtistsCollector:

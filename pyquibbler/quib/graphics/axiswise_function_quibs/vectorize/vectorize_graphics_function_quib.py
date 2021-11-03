@@ -8,14 +8,14 @@ from pyquibbler.quib.proxy_quib import ProxyQuib
 
 from .utils import copy_vectorize, get_core_axes, get_indices_array, iter_arg_ids_and_values, alter_signature
 from .vectorize_metadata import VectorizeMetadata
-from ..global_collecting import ArtistsCollector
-from ..graphics_utils import remove_artist
-from ..graphics_function_quib import GraphicsFunctionQuib
-from ...assignment import PathComponent
-from ...function_quibs.indices_translator_function_quib import IndicesTranslatorFunctionQuib, SupportedFunction, \
+from pyquibbler.quib.graphics.global_collecting import ArtistsCollector
+from pyquibbler.quib.graphics.graphics_utils import remove_artist
+from pyquibbler.quib.graphics.graphics_function_quib import GraphicsFunctionQuib
+from pyquibbler.quib.assignment import PathComponent
+from pyquibbler.quib.function_quibs.indices_translator_function_quib import IndicesTranslatorFunctionQuib, SupportedFunction, \
     Kwargs, Args
-from ...function_quibs.utils import ArgsValues
-from ...utils import copy_and_replace_quibs_with_vals
+from pyquibbler.quib.function_quibs.utils import ArgsValues
+from pyquibbler.quib.utils import copy_and_replace_quibs_with_vals
 
 
 def get_vectorize_call_data_args(args_values: ArgsValues) -> List[Any]:
