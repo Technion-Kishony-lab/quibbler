@@ -1,10 +1,13 @@
+from unittest import mock
+
 import numpy as np
 from pytest import mark
 
-from pyquibbler import CacheBehavior
+from pyquibbler import CacheBehavior, iquib
+from pyquibbler.env import GRAPHICS_LAZY
 from pyquibbler.quib.assignment import PathComponent
 
-from ..utils import check_invalidation, check_get_value_valid_at_path, MockQuib
+from ..utils import check_invalidation, check_get_value_valid_at_path, MockQuib, get_func_mock
 
 # A 3d array in which every dimension has a different size
 parametrize_data = mark.parametrize('data', [np.arange(24).reshape((2, 3, 4))])
@@ -89,3 +92,19 @@ def test_apply_along_axis_get_value_valid_at_path(indices_to_get_value_at, axis,
     func1d = lambda slice: np.sum(slice).reshape((1,) * func_out_dims)
     path_to_get_value_at = [PathComponent(np.ndarray, indices_to_get_value_at)]
     check_get_value_valid_at_path(lambda quib: np.apply_along_axis(func1d, axis, quib), data, path_to_get_value_at)
+
+
+def test_apply_along_axis_only_calculates_what_is_needed():
+    func = get_func_mock(lambda x: 1)
+    arr = iquib(np.arange(8).reshape((2, 2, 2)))
+
+    with GRAPHICS_LAZY.temporary_set(True):
+        quib = np.apply_along_axis(func, axis=0, arr=arr)
+    # This is referencing one specific call of the function
+    res = quib[0][0].get_value()
+
+    assert res == 1
+    assert func.call_count == 1
+
+
+
