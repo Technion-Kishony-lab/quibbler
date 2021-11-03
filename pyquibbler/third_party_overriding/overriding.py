@@ -32,7 +32,7 @@ NUMPY_OVERRIDES = [
         (DefaultFunctionQuib, {"arange", "polyfit", "shape",
                                "linspace", "polyval", "array", "genfromtxt"}),
         (GraphicsFunctionQuib, {'apply_along_axis', 'apply_over_axes'}),
-        (TranspositionalFunctionQuib, {'reshape', 'rot90', 'ravel', 'concatenate', 'repeat', 'full', 'concatenate'}),
+        (TranspositionalFunctionQuib, {'reshape', 'rot90', 'ravel', 'concatenate', 'repeat', 'full', 'tile'}),
         (ElementWiseFunctionQuib, {'add', 'square', "sin", "cos", "tan", "sinh", "cosh", "tanh", "real", "imag", "abs",
                                    "arcsin", "arccos", "arctan", "arcsinh", "arccosh", "arctanh",
                                    "exp", "exp2", "expm1", "log", "log2", "log1p", "log10",

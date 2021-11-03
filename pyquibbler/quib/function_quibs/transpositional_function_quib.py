@@ -26,6 +26,7 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
         getitem: SupportedFunction({0}),
         np.reshape: SupportedFunction({0}),
         np.ravel: SupportedFunction({0}),
+        np.tile: SupportedFunction({0}),
     }
 
     def _forward_translate_indices_to_bool_mask(self, invalidator_quib: Quib, indices: Any) -> Any:
