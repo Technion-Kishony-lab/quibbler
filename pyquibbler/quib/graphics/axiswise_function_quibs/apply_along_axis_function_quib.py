@@ -54,27 +54,25 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
     @cache_method_until_full_invalidation
     def _get_empty_value_at_correct_shape_and_dtype(self):
 
+        # TODO: support returned quib
         # TODO: support pass quibs
         # TODO: support kwargs args
-
-        sample_result_arr = np.asarray(self._get_sample_result())
-        input_array_shape = self.arr.get_shape()
-        # expanded = np.expand_dims(sample_result_arr, tuple([r for r in range(len(self.arr.get_shape()) - 1)]))
-        # expanded = sample_result_arr[tuple([*[np.newaxis for r in range(len(self.arr.get_shape()) - 1)]])]
-        expanded = np.expand_dims(sample_result_arr, tuple(-i for i in range(1, len(self.arr.get_shape()))))
-
         # TODO: test ndarray returned
-        # TODO: support returned quib
-        expanded_shape = [*sample_result_arr.shape]
-        for i in range(len(expanded.shape) - len(sample_result_arr.shape)):
-            if i < self.looping_axis:
-                expanded_shape.append(input_array_shape[i])
-            elif self.looping_axis <= i:
-                expanded_shape.append(input_array_shape[i + 1])
-            else:
-                raise Exception()
 
-        return np.array(np.broadcast_to(expanded, tuple(expanded_shape)))
+        input_array_shape = self.arr.get_shape()
+        sample_result_arr = np.asarray(self._get_sample_result())
+        positive_looping_axis = self.looping_axis if self.looping_axis >= 0 else len(input_array_shape) + \
+                                                                                 self.looping_axis
+        total_shape_size = len(input_array_shape) + len(sample_result_arr.shape)
+
+
+        dims_to_expand = list(range(0, positive_looping_axis))
+        dims_to_expand += list(range(-1, -(len(input_array_shape) - positive_looping_axis), -1))
+        expanded = np.expand_dims(sample_result_arr, dims_to_expand)
+        new_shape = [dim
+                     for i, d in enumerate(input_array_shape)
+                     for dim in ([d] if i != positive_looping_axis else sample_result_arr.shape)]
+        return np.array(np.broadcast_to(expanded, new_shape))
 
     @property
     def looping_axis(self):
@@ -100,6 +98,7 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
             return super(AlongAxisGraphicsFunctionQuib, self)._call_func(valid_path)
 
         self._initialize_artists_ndarr()  # TODO
+
         # Our underlying assumption is that apply_along_axis always runs in the same order
         # Therefore, we need to run the result bool mask backwards and then forwards through apply_along_axis in order
         # to get a list representing which function calls should go through and which should not
