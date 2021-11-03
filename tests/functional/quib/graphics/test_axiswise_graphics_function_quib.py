@@ -1,6 +1,8 @@
+import itertools
 from unittest import mock
 
 import numpy as np
+import pytest
 from pytest import mark
 
 from pyquibbler import CacheBehavior, iquib
@@ -94,18 +96,27 @@ def test_apply_along_axis_get_value_valid_at_path(indices_to_get_value_at, axis,
     check_get_value_valid_at_path(lambda quib: np.apply_along_axis(func1d, axis, quib), data, path_to_get_value_at)
 
 
-def test_apply_along_axis_only_calculates_once_with_sample_on_get_shape():
+@pytest.mark.parametrize('shape, axis', [
+    *[
+        (tuple(dimensions), axis)
+        for shape_size in range(0, 4)
+        for axis in range(shape_size)
+        for dimensions in itertools.product(*[range(1, 4) for i in range(shape_size)])
+    ]
+])
+def test_apply_along_axis_only_calculates_once_with_sample_on_get_shape(shape, axis):
     func = get_func_mock(lambda x: 1)
-    arr = iquib(np.arange(8).reshape((2, 2, 2)))
-
+    arr = np.arange(np.prod(shape)).reshape(shape)
+    quib = iquib(arr)
+    expected_input_arr = arr[tuple([slice(None) if i == axis else 0 for i in range(len(arr.shape))])]
     with GRAPHICS_LAZY.temporary_set(True):
-        quib = np.apply_along_axis(func, axis=0, arr=arr)
+        quib = np.apply_along_axis(func, axis=axis, arr=quib)
     res = quib.get_shape()
 
     assert func.call_count == 1
     call = func.mock_calls[0]
-    assert np.array_equal(call.args[0], np.array([0, 4]))
-    assert res == (2, 2)
+    assert np.array_equal(call.args[0], expected_input_arr)
+    assert res == quib.get_value().shape
 
 
 def test_apply_along_axis_only_calculates_what_is_needed():
