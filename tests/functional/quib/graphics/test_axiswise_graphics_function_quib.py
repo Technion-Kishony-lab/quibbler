@@ -94,6 +94,18 @@ def test_apply_along_axis_get_value_valid_at_path(indices_to_get_value_at, axis,
     check_get_value_valid_at_path(lambda quib: np.apply_along_axis(func1d, axis, quib), data, path_to_get_value_at)
 
 
+def test_apply_along_axis_only_calculates_once_with_sample_on_get_shape():
+    func = get_func_mock(lambda x: 1)
+    arr = iquib(np.arange(8).reshape((2, 2, 2)))
+
+    with GRAPHICS_LAZY.temporary_set(True):
+        quib = np.apply_along_axis(func, axis=0, arr=arr)
+    res = quib.get_shape()
+
+    assert res == (2, 2)
+    assert func.call_count == 1
+
+
 def test_apply_along_axis_only_calculates_what_is_needed():
     func = get_func_mock(lambda x: 1)
     arr = iquib(np.arange(8).reshape((2, 2, 2)))
