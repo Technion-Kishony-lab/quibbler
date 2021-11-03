@@ -188,9 +188,9 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
             self._artists_ndarr = np.vectorize(lambda _: set())(np.empty(loop_shape))
 
     @contextmanager
-    def _call_func_context(self, artists_set, args, kwargs):
+    def _call_func_context(self, artists_set):
         with self._handle_new_artists(artists_set):
-            with QuibGuard(iter_quibs_in_args(args, kwargs)):
+            with QuibGuard(set(iter_quibs_in_args(self.args, self.kwargs))):
                 yield
 
     def _call_func(self, valid_path: Optional[List[PathComponent]]) -> Any:
@@ -203,5 +203,5 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         assert self._artists_ndarr.ndim == 0
         args, kwargs = proxify_args(self.args, self.kwargs) if self._receive_quibs \
             else self._prepare_args_for_call(valid_path)
-        with self._call_func_context(self._artists_ndarr[()], args, kwargs):
+        with self._call_func_context(self._artists_ndarr[()]):
             return self.func(*args, **kwargs)

@@ -18,6 +18,7 @@ class ProxyQuib(Quib):
     def __init__(self, quib):
         super().__init__()
         self._quib: Quib = quib
+        quib.add_child(self)
 
     def _get_inner_value_valid_at_path(self, path: Optional[List[PathComponent]]) -> Any:
         return self._quib.get_value_valid_at_path(path=path)

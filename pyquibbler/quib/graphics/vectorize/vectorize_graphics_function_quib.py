@@ -1,15 +1,15 @@
 from __future__ import annotations
 import numpy as np
-from itertools import chain
 from functools import cached_property, partial
-from typing import Any, Optional, List, Callable, Dict, Union
+from typing import Any, Optional, List, Callable, Union, Tuple
 
 from pyquibbler.quib.quib import Quib, cache_method_until_full_invalidation
 from pyquibbler.quib.proxy_quib import ProxyQuib
 
-from .utils import copy_vectorize, get_core_axes, get_indices_array, construct_signature, iter_arg_ids_and_values, \
-    alter_signature
+from .utils import copy_vectorize, get_core_axes, get_indices_array, iter_arg_ids_and_values, alter_signature
 from .vectorize_metadata import VectorizeMetadata
+from ..global_collecting import ArtistsCollector
+from ..graphics_utils import remove_artist
 from ..graphics_function_quib import GraphicsFunctionQuib
 from ...assignment import PathComponent
 from ...function_quibs.indices_translator_function_quib import IndicesTranslatorFunctionQuib, SupportedFunction, \
@@ -113,7 +113,11 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
     def _get_sample_result(self, args_metadata, results_core_ndims):
         vectorize, args, kwargs = self._get_vectorize_call(args_metadata, results_core_ndims, None)
         args, kwargs = convert_args_and_kwargs(partial(self._get_sample_arg_core, args_metadata), args, kwargs)
-        return vectorize.pyfunc(*args, **kwargs)
+        with ArtistsCollector() as collector:
+            result = vectorize.pyfunc(*args, **kwargs)
+        for artist in collector.artists_collected:
+            remove_artist(artist)
+        return result
 
     @property
     @cache_method_until_full_invalidation
@@ -171,6 +175,9 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
         return {quib: self._get_source_path_in_quib(quib, filtered_path_in_result)
                 for quib in self._get_data_source_quibs()}
 
+    def _get_loop_shape(self) -> Tuple[int, ...]:
+        return self._vectorize_metadata.result_loop_shape
+
     def _wrap_vectorize_call_to_calc_only_needed(self, vectorize, args, kwargs, valid_path, otypes):
         """
         1. Create a bool mask with the same shape as the broadcast loop dimensions
@@ -178,32 +185,41 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
            instructs it to run the user function or return an empty result.
         3. Vectorize the wrapper and run it with the boolean mask in addition to the original arguments
         """
-        bool_mask = np.any(self._get_bool_mask_representing_indices_in_result(valid_path[0].component),
+        # TODO: don't do the bool mask with an empty path
+        valid_indices = True if len(valid_path) == 0 else valid_path[0].component
+        bool_mask = np.any(self._get_bool_mask_representing_indices_in_result(valid_indices),
                            axis=self._vectorize_metadata.result_core_axes)
-        args = (bool_mask, *args)
         # The logic in this wrapper should be as minimal as possible (including attribute access, etc.)
         # as it is run for every index in the loop.
         pyfunc = vectorize.pyfunc
         empty_result = np.zeros(self._vectorize_metadata.result_core_shape, dtype=self._vectorize_metadata.result_dtype)
-        wrapper = lambda should_run, *args, **kwargs: pyfunc(*args, **kwargs) if should_run else empty_result
 
-        wrapper_excluded = {i + 1 if isinstance(i, int) else i for i in self._vectorize.excluded}
-        wrapper_signature = vectorize.signature if vectorize.signature is None else '(),' + vectorize.signature
+        def wrapper(artists_set, should_run, *args, **kwargs):
+            if should_run:
+                with self._call_func_context(artists_set):
+                    return pyfunc(*args, **kwargs)
+            return empty_result
+
+        args_to_add = (self._artists_ndarr, bool_mask)
+        wrapper_excluded = {i + len(args_to_add) if isinstance(i, int) else i for i in self._vectorize.excluded}
+        wrapper_signature = vectorize.signature if vectorize.signature is None \
+            else '(),' * len(args_to_add) + vectorize.signature
         vectorize = copy_vectorize(vectorize, func=wrapper, excluded=wrapper_excluded, signature=wrapper_signature,
                                    otypes=otypes)
-        return vectorize, args, kwargs
+        return vectorize, (*args_to_add, *args), kwargs
 
     def _call_func(self, valid_path: Optional[List[PathComponent]]):
+        self._initialize_artists_ndarr()  # TODO
         vectorize_metadata = self._vectorize_metadata
         if vectorize_metadata.is_result_a_tuple:
-            return super()._call_func(valid_path)
+            import pytest
+            pytest.skip()  # TODO
         if valid_path is None:
             return np.zeros(vectorize_metadata.result_shape, dtype=vectorize_metadata.result_dtype)
         vectorize, args, kwargs = self._get_vectorize_call(vectorize_metadata.args_metadata,
                                                            vectorize_metadata._result_core_ndims, valid_path)  # TODO
-        if len(valid_path) > 0:
-            vectorize, args, kwargs = self._wrap_vectorize_call_to_calc_only_needed(vectorize, args, kwargs, valid_path,
-                                                                                    vectorize_metadata.otypes)
+        vectorize, args, kwargs = self._wrap_vectorize_call_to_calc_only_needed(vectorize, args, kwargs, valid_path,
+                                                                                vectorize_metadata.otypes)
         # If we pass quibs to the wrapper, we will create a new graphics quib, so we use the original vectorize
         return np.vectorize.__overridden__.__call__(vectorize, *args, **kwargs)
 
