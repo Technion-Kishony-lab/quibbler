@@ -57,20 +57,22 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         # TODO: support pass quibs
         # TODO: support kwargs args
 
-        arr = np.asarray(self._get_sample_result())
+        sample_result_arr = np.asarray(self._get_sample_result())
         input_array_shape = self.arr.get_shape()
-        expanded = arr[tuple([np.newaxis for r in range(len(self.arr.get_shape()) - 1)])]
+        # expanded = np.expand_dims(sample_result_arr, tuple([r for r in range(len(self.arr.get_shape()) - 1)]))
+        # expanded = sample_result_arr[tuple([*[np.newaxis for r in range(len(self.arr.get_shape()) - 1)]])]
+        expanded = np.expand_dims(sample_result_arr, tuple(-i for i in range(1, len(self.arr.get_shape()))))
 
         # TODO: test ndarray returned
         # TODO: support returned quib
-        expanded_shape = []
-        for i in range(len(expanded.shape)):
+        expanded_shape = [*sample_result_arr.shape]
+        for i in range(len(expanded.shape) - len(sample_result_arr.shape)):
             if i < self.looping_axis:
                 expanded_shape.append(input_array_shape[i])
-            elif self.looping_axis <= i < len(input_array_shape) - 1:
+            elif self.looping_axis <= i:
                 expanded_shape.append(input_array_shape[i + 1])
             else:
-                expanded_shape.append(expanded.shape[i])
+                raise Exception()
 
         return np.array(np.broadcast_to(expanded, tuple(expanded_shape)))
 
@@ -88,7 +90,7 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
 
     def _wrapped_func1d_call(self, arr, should_run_func_list, *args, **kwargs):
         if should_run_func_list.pop(0):
-            self.func1d(arr, *args, **kwargs)
+            return self.func1d(arr, *args, **kwargs)
         return self._get_sample_result()
 
     def _call_func(self, valid_path: Optional[List[PathComponent]]) -> Any:

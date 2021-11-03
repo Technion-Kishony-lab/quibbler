@@ -97,12 +97,10 @@ def test_apply_along_axis_get_value_valid_at_path(indices_to_get_value_at, axis,
 
 
 @pytest.mark.parametrize('shape, axis', [
-    *[
         (tuple(dimensions), axis)
         for shape_size in range(0, 4)
         for axis in range(shape_size)
         for dimensions in itertools.product(*[range(1, 4) for i in range(shape_size)])
-    ]
 ])
 def test_apply_along_axis_only_calculates_once_with_sample_on_get_shape(shape, axis):
     func = get_func_mock(lambda x: 1)
@@ -132,7 +130,24 @@ def test_apply_along_axis_only_calculates_once_with_sample_on_get_shape_with_nda
     assert func.call_count == 1
     call = func.mock_calls[0]
     assert np.array_equal(call.args[0], [0, 4])
-    assert res == (2, 2, 3, 3)
+    assert res == (3, 3, 2, 2)
+
+
+def test_apply_along_axis_only_calculates_needed_with_returned_nd_array():
+    func = get_func_mock(lambda x: np.full((3, 3), x[0]))
+    arr = iquib(np.arange(8).reshape((2, 2, 2)))
+    with GRAPHICS_LAZY.temporary_set(True):
+        quib = np.apply_along_axis(func, axis=0, arr=arr)
+    quib.get_shape()
+    current_call_count = func.call_count
+
+    # This is referencing one specific call of the function
+    res = quib.get_value_valid_at_path([PathComponent(component=(0, 0, 0, 1), indexed_cls=np.ndarray)])
+
+    assert func.call_count == current_call_count + 1
+    last_call = func.mock_calls[-1]
+    assert np.array_equal(last_call.args[0], [1, 5])
+    assert res[0][0][0][1] == 1
 
 
 def test_apply_along_axis_only_calculates_what_is_needed():
