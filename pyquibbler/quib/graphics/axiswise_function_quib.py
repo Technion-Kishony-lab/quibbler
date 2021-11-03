@@ -98,7 +98,8 @@ class ReductionAxisWiseGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         np.max: SupportedFunction({0}),
         np.amax: SupportedFunction({0}),
         np.mean: SupportedFunction({0}),
-        np.average: SupportedFunction({0})
+        np.average: SupportedFunction({0}),
+        np.linalg.norm: SupportedFunction({0})
     }
     TRANSLATION_RELATED_ARGS = [Arg('axis'), ArgWithDefault('keepdims', False), ArgWithDefault('where', True)]
 

@@ -9,7 +9,7 @@ from typing import Callable, Any, Mapping, Tuple, Optional, Set, List
 
 from .utils import ArgsValues
 from ..override_choice import get_overrides_for_assignment
-from ..assignment import AssignmentTemplate, Assignment, PathComponent, QuibWithAssignment
+from ..assignment import AssignmentTemplate, Assignment, PathComponent
 from ..quib import Quib
 from ..utils import is_there_a_quib_in_args, iter_quibs_in_args, deep_copy_without_quibs_or_artists, \
     copy_and_convert_args_and_kwargs_to_values, recursively_run_func_on_object, QuibRef
@@ -250,12 +250,6 @@ class FunctionQuib(Quib):
             # if either a parameter changed or a data quib changed completely (at entire path)
             return [[]]
         return self._forward_translate_invalidation_path(invalidator_quib, path)
-
-    def get_inversions_for_assignment(self, assignment: Assignment) -> List[QuibWithAssignment]:
-        """
-        Get a list of inversions to parent quibs for a given assignment
-        """
-        return []
 
     @lru_cache()
     def _get_args_values(self, include_defaults=True):

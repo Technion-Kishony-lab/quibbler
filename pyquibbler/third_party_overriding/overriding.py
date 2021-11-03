@@ -55,7 +55,8 @@ NUMPY_OVERRIDES = [
         (DefaultFunctionQuib, {"abs", "arange", "polyfit",
                                "linspace", "polyval", "array", "genfromtxt", 'prod', 'corrcoef', 'mean'}),
         (GraphicsFunctionQuib, {'apply_over_axes'}),
-        (TranspositionalFunctionQuib, {'reshape', 'rot90', 'ravel', 'concatenate', 'repeat', 'full', 'concatenate'}),
+        (TranspositionalFunctionQuib, {'reshape', 'rot90', 'ravel', 'concatenate', 'repeat', 'full', 'concatenate',
+                                       'squeeze'}),
         (ElementWiseFunctionQuib, {'add', 'square', "sin", "cos", "tan", "sinh", "cosh", "tanh", "real", "imag",
                                    "arcsin", "arccos", "arctan", "arcsinh", "arccosh", "arctanh",
                                    "exp", "exp2", "expm1", "log", "log2", "log1p", "log10",
@@ -65,6 +66,9 @@ NUMPY_OVERRIDES = [
     ]),
     (np.random, [
         (ImpureFunctionQuib, {'rand', 'randn', 'randint'})
+    ]),
+    (np.linalg, [
+        (ReductionAxisWiseGraphicsFunctionQuib, {'norm'})
     ])
 ]
 
