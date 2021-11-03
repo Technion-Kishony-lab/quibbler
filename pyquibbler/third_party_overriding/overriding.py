@@ -110,11 +110,12 @@ def apply_quib_creating_overrides(override_list: List[Tuple[Any, List[Tuple[Type
                 override_func(obj, func_name, quib_type, function_wrapper)
 
 
-def override_widgets():
+def apply_non_quib_overrides():
     for module, overrides in NON_QUIB_OVERRIDES:
         for name, replacement in overrides.items():
-            assert hasattr(module, name)
+            overridden = getattr(module, name)
             setattr(module, name, replacement)
+            replacement.__overridden__ = overridden
 
 
 @ensure_only_run_once_globally
@@ -122,6 +123,6 @@ def override_all():
     """
     Overrides all modules (such as numpy and matplotlib) to support quibs
     """
-    override_widgets()
+    apply_non_quib_overrides()
     apply_quib_creating_overrides(NUMPY_OVERRIDES)
     apply_quib_creating_overrides(MPL_OVERRIDES, wrap_overridden_graphics_function)

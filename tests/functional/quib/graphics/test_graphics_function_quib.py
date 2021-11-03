@@ -25,13 +25,13 @@ def test_graphics_function_quib_get_value_returns_value():
     assert res == mock_func.return_value
 
 
-def test_graphics_function_quib_rerun_removes_artists_created(monkeypatch, mock_axes, mock_artists_collector):
+def test_graphics_function_quib_rerun_removes_artists_created(mock_axes, mock_artists_collector):
     father_quib = iquib(1)
     quib = get_graphics_quib(mock.Mock())
     father_quib.add_child(quib)
 
     quib.get_value()
-    father_quib.invalidate_and_redraw_at_path(path=[PathComponent(component=..., indexed_cls=np.ndarray)])
+    father_quib.invalidate_and_redraw_at_path()
 
     assert len(mock_artists_collector.all_mock_artists_created) == 2
     assert len(mock_axes.artists) == 1

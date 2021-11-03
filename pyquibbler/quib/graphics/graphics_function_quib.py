@@ -53,16 +53,15 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
                  cache_behavior: Optional[CacheBehavior],
                  assignment_template: Optional[AssignmentTemplate] = None,
                  had_artists_on_last_run: bool = False,
-                 receive_quibs: bool = False
-                 ):
+                 receive_quibs: bool = False):
         super().__init__(func, args, kwargs, cache_behavior, assignment_template=assignment_template)
         self._had_artists_on_last_run = had_artists_on_last_run
         self._receive_quibs = receive_quibs
         self._artists_ndarr = None
 
     @classmethod
-    def create(cls, func, func_args=(), func_kwargs=None, cache_behavior=None, lazy=None, **kwargs):
-        self = super().create(func, func_args, func_kwargs, cache_behavior, **kwargs)
+    def create(cls, func, func_args=(), func_kwargs=None, cache_behavior=None, lazy=None, **init_kwargs):
+        self = super().create(func, func_args, func_kwargs, cache_behavior, **init_kwargs)
         if lazy is None:
             lazy = GRAPHICS_LAZY
         if not lazy:
@@ -187,12 +186,12 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
             self._artists_ndarr = None
         if self._artists_ndarr is None:
             self._artists_ndarr = np.vectorize(lambda _: set())(np.empty(loop_shape))
-        return self._artists_ndarr
 
-    def _prepare_args_for_call(self, valid_path: Optional[List[PathComponent]]):
-        if self._receive_quibs:
-            return proxify_args(self.args, self.kwargs)
-        return super()._prepare_args_for_call(valid_path)
+    @contextmanager
+    def _call_func_context(self, artists_set, args, kwargs):
+        with self._handle_new_artists(artists_set):
+            with QuibGuard(iter_quibs_in_args(args, kwargs)):
+                yield
 
     def _call_func(self, valid_path: Optional[List[PathComponent]]) -> Any:
         """
@@ -200,9 +199,9 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         in the same place they were in their axes.
         Return the function's result.
         """
-        artists_ndarr = self._initialize_artists_ndarr()
-        assert artists_ndarr.ndim == 0
-        args, kwargs = self._prepare_args_for_call(valid_path)
-        with self._handle_new_artists(artists_ndarr[()]):
-            with QuibGuard(iter_quibs_in_args(args, kwargs)):
-                return self.func(*args, **kwargs)
+        self._initialize_artists_ndarr()
+        assert self._artists_ndarr.ndim == 0
+        args, kwargs = proxify_args(self.args, self.kwargs) if self._receive_quibs \
+            else self._prepare_args_for_call(valid_path)
+        with self._call_func_context(self._artists_ndarr[()], args, kwargs):
+            return self.func(*args, **kwargs)

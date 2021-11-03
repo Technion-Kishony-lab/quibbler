@@ -147,8 +147,10 @@ def test_vectorize_with_pass_quibs_and_core_dims():
 
 def test_vectorize_does_not_redraw_valid_artists(mock_artists_collector, mock_axes):
     # TODO: parametrize pass/not pass quibs
+    def f(x):
+        return plt.plot(x)
     parent = iquib([[1, 2], [3, 4]])
-    vectorized_plot = np.vectorize(plt.plot, signature='(x)->()', otypes=[np.object], pass_quibs=True)
+    vectorized_plot = np.vectorize(f, signature='(x)->()', otypes=[np.object], pass_quibs=True)
     result = vectorized_plot(parent)
     assert len(mock_artists_collector.all_mock_artists_created) == 2
     assert len(mock_axes.artists) == 2

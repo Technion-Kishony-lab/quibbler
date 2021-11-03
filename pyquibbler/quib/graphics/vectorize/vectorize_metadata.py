@@ -2,11 +2,11 @@ from __future__ import annotations
 import numpy as np
 from dataclasses import dataclass
 from itertools import chain
-from typing import Any, Dict, Optional, List, Tuple, Union
+from typing import Any, Dict, Optional, List, Tuple, Union, Callable
 
 from pyquibbler.quib.function_quibs.indices_translator_function_quib import Args, Kwargs
 
-from .utils import Shape, get_core_axes, construct_signature
+from .utils import Shape, get_core_axes, alter_signature
 
 
 @dataclass
@@ -30,9 +30,7 @@ class VectorizeArgMetadata:
 
 @dataclass
 class VectorizeMetadata:
-    vectorize: np.vectorize
-    args: Args
-    kwargs: Kwargs
+    _get_sample_result: Callable
 
     args_metadata: Dict[Union[int, str], VectorizeArgMetadata]
     result_loop_shape: Shape
@@ -42,19 +40,8 @@ class VectorizeMetadata:
     _result_dtypes: Optional[List[np.dtype]]
     _result_core_shapes: Optional[Union[Shape, List[Shape]]] = None
 
-    def _get_sample_arg_core(self, arg_id: Union[str, int], arg_value: Any) -> Any:
-        meta = self.args_metadata.get(arg_id)
-        if meta is None:
-            return arg_value
-        return np.reshape(arg_value, (-1, *meta.core_shape))[0]
-
-    def _get_sample_result(self):
-        args = [self._get_sample_arg_core(i, arg) for i, arg in enumerate(self.args)]
-        kwargs = {name: self._get_sample_arg_core(name, arg) for name, arg in self.kwargs.items()}
-        return self.vectorize.pyfunc(*args, **kwargs)
-
     def _run_sample_and_update_metadata(self):
-        sample_result = self._get_sample_result()
+        sample_result = self._get_sample_result(self.args_metadata, self._result_core_ndims)
 
         # update _is_result_a_tuple
         is_tuple = isinstance(sample_result, tuple)
@@ -143,15 +130,6 @@ class VectorizeMetadata:
     def tuple_length(self):
         return len(self.result_dtypes)
 
-    def construct_signature(self, arg_ids_to_new_core_ndims: Optional[Dict[Union[str, int], int]] = None) -> str:
-        if arg_ids_to_new_core_ndims is None:
-            arg_ids_to_new_core_ndims = {}
-        args_core_ndims = [arg_ids_to_new_core_ndims.pop(arg_id, arg_meta.core_ndim)
-                           for arg_id, arg_meta in self.args_metadata.items()]
-        results_core_ndims = self.results_core_ndims if self.is_result_a_tuple else [self.result_core_ndim]
-        assert not arg_ids_to_new_core_ndims, f'Invalid arg ids: {set(arg_ids_to_new_core_ndims.keys())}'
-        return construct_signature(args_core_ndims, results_core_ndims)
-
     @classmethod
     def _get_args_and_result_core_ndims(cls, vectorize: np.vectorize, args: Args, kwargs: Kwargs):
         num_not_excluded = len((set(range(len(args))) | set(kwargs)) - vectorize.excluded)
@@ -179,7 +157,7 @@ class VectorizeMetadata:
         return args_metadata
 
     @classmethod
-    def from_vectorize_call(cls, vectorize: np.vectorize, args: Args, kwargs: Kwargs):
+    def from_vectorize_call(cls, vectorize: np.vectorize, args: Args, kwargs: Kwargs, get_sample_result):
         args_core_ndims, result_core_ndims, is_tuple = cls._get_args_and_result_core_ndims(vectorize, args, kwargs)
         args_metadata = cls._get_args_metadata(vectorize, args, kwargs, args_core_ndims)
         # Calculate the result shape like done in np.function_base._parse_input_dimensions
@@ -187,5 +165,4 @@ class VectorizeMetadata:
                         for arg_metadata in args_metadata.values()]
         result_loop_shape = np.lib.stride_tricks._broadcast_shape(*dummy_arrays)
         result_dtypes = None if vectorize.otypes is None else list(map(np.dtype, vectorize.otypes))
-        return cls(vectorize, args, kwargs, args_metadata, result_loop_shape, is_tuple, result_core_ndims,
-                   result_dtypes)
+        return cls(get_sample_result, args_metadata, result_loop_shape, is_tuple, result_core_ndims, result_dtypes)

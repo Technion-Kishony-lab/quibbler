@@ -1,7 +1,5 @@
 from __future__ import annotations
-
 import functools
-
 import numpy as np
 import types
 from enum import Enum
@@ -59,7 +57,7 @@ class FunctionQuib(Quib):
         return set(iter_quibs_in_args(self.args, self.kwargs))
 
     @classmethod
-    def create(cls, func, func_args=(), func_kwargs=None, cache_behavior=None, **kwargs):
+    def create(cls, func, func_args=(), func_kwargs=None, cache_behavior=None, **init_kwargs):
         """
         Public constructor for FunctionQuib.
         """
@@ -78,7 +76,7 @@ class FunctionQuib(Quib):
                        for k, v in func_kwargs.items()}
         func_args = deep_copy_without_quibs_or_artists(func_args)
         self = cls(func=func, args=func_args, kwargs=func_kwargs,
-                   cache_behavior=cache_behavior, **kwargs)
+                   cache_behavior=cache_behavior, **init_kwargs)
         for arg in iter_quibs_in_args(func_args, func_kwargs):
             arg.add_child(self)
         if not LAZY:
@@ -99,12 +97,12 @@ class FunctionQuib(Quib):
                 setattr(quib_supporting_func_wrapper, member, val)
 
     @classmethod
-    def _wrapper_call(cls, func, args, kwargs):
+    def _wrapper_call(cls, func, args, kwargs, **create_kwargs):
         """
         The actual code that runs when a quib-supporting function wrapper is called.
         """
         if is_there_a_quib_in_args(args, kwargs):
-            return cls.create(func=func, func_args=args, func_kwargs=kwargs)
+            return cls.create(func, args, kwargs, **create_kwargs)
 
         return func(*args, **kwargs)
 

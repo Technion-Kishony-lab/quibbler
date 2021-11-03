@@ -1,7 +1,7 @@
 import pytest
 from unittest import mock
 
-from pyquibbler.quib.graphics import global_collecting
+from pyquibbler.quib.graphics import graphics_function_quib
 
 
 class MockArtistsCollector:
@@ -39,5 +39,5 @@ def mock_axes():
 @pytest.fixture()
 def mock_artists_collector(mock_axes, monkeypatch):
     collector = MockArtistsCollector(mock_axes)
-    monkeypatch.setattr(global_collecting, "ArtistsCollector", lambda: collector)
+    monkeypatch.setattr(graphics_function_quib, "ArtistsCollector", lambda: collector)
     return collector

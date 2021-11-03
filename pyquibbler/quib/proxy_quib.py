@@ -1,6 +1,10 @@
-from typing import Set, Optional, List, Any
+from __future__ import annotations
+from typing import Set, Optional, List, Any, TYPE_CHECKING
 
-from pyquibbler.quib import Quib, Assignment, PathComponent
+from pyquibbler.quib.quib import Quib
+
+if TYPE_CHECKING:
+    from pyquibbler.quib import Assignment, PathComponent
 
 
 class ProxyQuib(Quib):
