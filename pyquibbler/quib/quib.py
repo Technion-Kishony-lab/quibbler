@@ -90,6 +90,11 @@ class Quib(ABC):
         self.allow_overriding = allow_overriding
         self.method_cache = {}
 
+        from .graphics.quib_guard import is_within_quib_guard, get_current_quib_guard
+        if is_within_quib_guard():
+            quib_guard = get_current_quib_guard()
+            quib_guard.add_allowed_quib(self)
+
     @property
     def children(self) -> Set[Quib]:
         """

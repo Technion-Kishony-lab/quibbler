@@ -15,7 +15,7 @@ def is_within_quib_guard():
     return len(QUIB_GUARDS) > 0
 
 
-def get_current_quib_guard():
+def get_current_quib_guard() -> QuibGuard:
     return QUIB_GUARDS[-1]
 
 
@@ -54,6 +54,9 @@ class QuibGuard:
         self._allowed_quib_get_values_count += 1
         yield
         self._allowed_quib_get_values_count -= 1
+
+    def add_allowed_quib(self, quib: Quib):
+        self._quibs_allowed.add(quib)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         QUIB_GUARDS.pop()

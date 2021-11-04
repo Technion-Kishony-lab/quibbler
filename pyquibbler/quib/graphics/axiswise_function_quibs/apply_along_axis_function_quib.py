@@ -6,6 +6,8 @@ from numpy import ndindex, s_
 
 from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.quib.function_quibs.utils import ArgsValues
+from pyquibbler.quib.graphics import ArtistsCollector
+from pyquibbler.quib.graphics.graphics_utils import remove_artist
 from pyquibbler.quib.proxy_quib import ProxyQuib
 from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.quib.quib import Quib
@@ -25,7 +27,7 @@ def get_shape(arr):
     return arr.shape
 
 
-class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
+class ApplyAlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
     SUPPORTED_FUNCTIONS = {
         np.apply_along_axis: SupportedFunction({2}),
     }
@@ -35,12 +37,12 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
     def create(cls, func, func_args=(), func_kwargs=None, cache_behavior=None, lazy=None, **init_kwargs):
         func_kwargs = func_kwargs or {}
         pass_quibs = func_kwargs.pop('pass_quibs', False)
-        return super(AlongAxisGraphicsFunctionQuib, cls).create(func=func, func_args=func_args,
-                                                                cache_behavior=cache_behavior,
-                                                                lazy=lazy,
-                                                                func_kwargs=func_kwargs,
-                                                                pass_quibs=pass_quibs,
-                                                                **init_kwargs)
+        return super(ApplyAlongAxisGraphicsFunctionQuib, cls).create(func=func, func_args=func_args,
+                                                                     cache_behavior=cache_behavior,
+                                                                     lazy=lazy,
+                                                                     func_kwargs=func_kwargs,
+                                                                     pass_quibs=pass_quibs,
+                                                                     **init_kwargs)
 
     def _get_expanded_dims(self, axis, result_shape, source_shape):
         func_result_ndim = len(result_shape) - len(source_shape) + 1
@@ -49,7 +51,7 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
                      range(axis, axis - func_result_ndim, -1))
 
     def _get_loop_shape(self) -> Tuple[int, ...]:
-        return tuple([s for i, s in enumerate(self.get_shape()) if i != self.looping_axis])
+        return tuple([s for i, s in enumerate(self.arr.get_shape()) if i != self.looping_axis])
 
     def _forward_translate_bool_mask(self, args_dict, boolean_mask, invalidator_quib: Quib):
         """
@@ -79,18 +81,21 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         if self._pass_quibs:
             input_array = ProxyQuib(self.arr)
         else:
-            input_array = self.arr.get_value_valid_at_path([PathComponent(component=item,
-                                                                             indexed_cls=np.ndarray)])
+            input_array = self.arr.get_value_valid_at_path([PathComponent(component=item, indexed_cls=np.ndarray)])
 
         oned_slice = input_array[item]
         args, kwargs = self._prepare_args_for_call(None)
         args_values = ArgsValues.from_function_call(func=self.func, args=args, kwargs=kwargs, include_defaults=False)
 
-        return copy_and_replace_quibs_with_vals(self._run_func1d(
-             oned_slice,
-             *args_values.arg_values_by_name.get('args', []),
-             **args_values.arg_values_by_name.get('kwargs', {})
-        ))
+        with ArtistsCollector() as collector:
+            res = copy_and_replace_quibs_with_vals(self._run_func1d(
+                 oned_slice,
+                 *args_values.arg_values_by_name.get('args', []),
+                 **args_values.arg_values_by_name.get('kwargs', {})
+            ))
+        for artist in collector.artists_collected:
+            remove_artist(artist)
+        return res
 
     @cache_method_until_full_invalidation
     def _get_empty_value_at_correct_shape_and_dtype(self):
@@ -116,8 +121,6 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
     def arr(self) -> Quib:
         from pyquibbler import q
         arr_ = self._get_args_values()['arr']
-        if not isinstance(arr_, Quib):
-            raise InputArrToApplyAlongAxisQuibMustBeQuibException()
         # ensure we're dealing with an ndarray- because we're not always running apply_along_axis which takes care of
         # this for us (for example, when getting a sample result) we do this on any access to the array to ensure no
         # issues if we were passed a list
@@ -127,29 +130,39 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
     def func1d(self) -> Callable:
         return self._get_args_values()['func1d']
 
-    def _wrapped_func1d_call(self, arr, should_run_func_list, args=None, kwargs=None):
-        if should_run_func_list.pop(0):
-            return self._run_func1d(arr, *(args or []), **(kwargs or {}))
-        return self._get_sample_result()
+    def _get_oned_slice_for_running_func1d(self, indices):
+        return ProxyQuib(self.arr[indices]) if self._pass_quibs else self.arr[indices].get_value()
 
-    def _run_with_pass_quibs(self, component):
+    def _get_result_for_component(self,
+                                  bool_mask,
+                                  indices_before_axis,
+                                  indices_after_axis,
+                                  func1d_args, func1d_kwargs):
+        indices = indices_before_axis + s_[..., ] + indices_after_axis
+        if np.any(bool_mask[indices]):
+            with self._call_func_context(self._artists_ndarr[indices_before_axis + indices_after_axis]):
+                res = self._run_func1d(self._get_oned_slice_for_running_func1d(indices),
+                                       *func1d_args,
+                                       **func1d_kwargs)
+        else:
+            res = self._get_sample_result()
+        return res
+
+    def _apply_along_axis(self, valid_path):
+        indices = True if len(valid_path) == 0 else valid_path[0].component
         ni, nk = self.arr.get_shape()[:self.looping_axis], self.arr.get_shape()[self.looping_axis + 1:]
         out = self.get_value_valid_at_path(None)
         args_values = ArgsValues.from_function_call(func=self.func, args=self.args, kwargs=self.kwargs,
                                                     include_defaults=False)
         args_by_name = args_values.arg_values_by_name
-        bool_mask = self._get_bool_mask_representing_indices_in_result(component)
+        bool_mask = self._get_bool_mask_representing_indices_in_result(indices)
         for ii in ndindex(ni):
             for kk in ndindex(nk):
-                component = ii + s_[..., ] + kk
-                if np.any(bool_mask[component]):
-                    res = self._run_func1d(ProxyQuib(self.arr[ii + s_[:, ] + kk]),
-                                           *args_by_name.get('args', []),
-                                           **args_by_name.get('kwargs', {}))
-                else:
-                    res = self._get_sample_result()
-
-                out[component] = res
+                out[ii + s_[..., ] + kk] = self._get_result_for_component(bool_mask,
+                                                                          indices_before_axis=ii,
+                                                                          indices_after_axis=kk,
+                                                                          func1d_args=args_by_name.get('args', []),
+                                                                          func1d_kwargs=args_by_name.get('kwargs', {}))
 
         return out
 
@@ -157,28 +170,8 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         if valid_path is None:
             return self._get_empty_value_at_correct_shape_and_dtype()
 
-        # TODO: how to kill artists correctly..
-
         self._initialize_artists_ndarr()  # TODO
-
-        # Our underlying assumption is that apply_along_axis always runs in the same order
-        # Therefore, we need to run the result bool mask backwards and then forwards through apply_along_axis in order
-        # to get a list representing which function calls should go through and which should not
-        indices = True if len(valid_path) == 0 else valid_path[0].component
-        bool_mask = self._backward_translate_indices_to_bool_mask(indices=indices, quib=self.arr)
-        func_calls = []
-        np.apply_along_axis(lambda x: func_calls.append(np.any(x)), axis=self.looping_axis, arr=bool_mask)
-
-        args, kwargs = self._prepare_args_for_call(valid_path)
-        args_values = ArgsValues.from_function_call(func=self.func, args=args, kwargs=kwargs, include_defaults=False)
-        values_by_name = args_values.arg_values_by_name
-        values_by_name['func1d'] = self._wrapped_func1d_call
-        values_by_name['should_run_func_list'] = func_calls
-
-        if self._pass_quibs:
-            return self._run_with_pass_quibs(indices)
-
-        return self.func(**values_by_name)
+        return self._apply_along_axis(valid_path)
 
     def _backward_translate_bool_mask(self, args_dict, bool_mask, quib: Quib):
         axis = args_dict.pop('axis')

@@ -2,6 +2,7 @@ import pytest
 from unittest import mock
 
 from pyquibbler.quib.graphics import graphics_function_quib
+from pyquibbler.quib.graphics.axiswise_function_quibs import apply_along_axis_function_quib
 from pyquibbler.quib.graphics.axiswise_function_quibs.vectorize import vectorize_graphics_function_quib
 
 
@@ -28,6 +29,10 @@ class MockArtistsCollector:
         self.all_mock_artists_created.append(artist)
         return [artist]
 
+    @property
+    def mock_artists_in_axes(self):
+        return [artist for artist in self.all_mock_artists_created if artist in artist.axes.artists]
+
 
 @pytest.fixture()
 def mock_axes():
@@ -42,4 +47,5 @@ def mock_artists_collector(mock_axes, monkeypatch):
     collector = MockArtistsCollector(mock_axes)
     monkeypatch.setattr(graphics_function_quib, "ArtistsCollector", lambda: collector) # TODO
     monkeypatch.setattr(vectorize_graphics_function_quib, "ArtistsCollector", lambda: collector)
+    monkeypatch.setattr(apply_along_axis_function_quib, "ArtistsCollector", lambda: collector)
     return collector

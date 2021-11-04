@@ -14,7 +14,7 @@ from pyquibbler.quib import ImpureFunctionQuib, DefaultFunctionQuib, FunctionQui
 from pyquibbler.quib.function_quibs.elementwise_function_quib import ElementWiseFunctionQuib
 from pyquibbler.quib.function_quibs.transpositional.transpositional_function_quib import TranspositionalFunctionQuib
 from pyquibbler.quib.graphics import global_collecting, ReductionAxisWiseGraphicsFunctionQuib, \
-    AlongAxisGraphicsFunctionQuib
+    ApplyAlongAxisGraphicsFunctionQuib
 from pyquibbler.quib.graphics import QVectorize
 from pyquibbler.quib.graphics.plot_graphics_function_quib import PlotGraphicsFunctionQuib
 from pyquibbler.quib.graphics.widgets import SliderGraphicsFunctionQuib, CheckButtonsGraphicsFunctionQuib, \
@@ -62,7 +62,7 @@ NUMPY_OVERRIDES = [
                                    "exp", "exp2", "expm1", "log", "log2", "log1p", "log10",
                                    "sqrt", "int", "float", "ceil", "floor", "round", 'around', 'hypot'}),
         (ReductionAxisWiseGraphicsFunctionQuib, {"max", "amax", "min", "amin", "sum", "average"}),
-        (AlongAxisGraphicsFunctionQuib, {'apply_along_axis'}),
+        (ApplyAlongAxisGraphicsFunctionQuib, {'apply_along_axis'}),
     ]),
     (np.random, [
         (ImpureFunctionQuib, {'rand', 'randn', 'randint'})

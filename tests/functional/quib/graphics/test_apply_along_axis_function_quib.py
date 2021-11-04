@@ -10,7 +10,7 @@ from pyquibbler import iquib
 from pyquibbler.env import GRAPHICS_LAZY
 from pyquibbler.quib import PathComponent, Quib
 from pyquibbler.quib.assignment.utils import get_sub_data_from_object_in_path
-from pyquibbler.quib.graphics import AlongAxisGraphicsFunctionQuib
+from pyquibbler.quib.graphics import ApplyAlongAxisGraphicsFunctionQuib
 from tests.functional.quib.graphics.test_axiswise_graphics_function_quib import parametrize_indices_to_invalidate, \
     parametrize_data
 from tests.functional.quib.utils import check_invalidation, check_get_value_valid_at_path, get_func_mock
@@ -95,8 +95,6 @@ def assert_all_apply_calls_with_slices_were_relevant(func, axis, input_arr, path
             new_result = np.apply_along_axis(func, axis=axis, arr=new_arr)
             new_result_at_path = get_sub_data_from_object_in_path(new_result, path)
             assert not np.array_equal(new_result_at_path, current_result )
-
-
 
 
 @mark.parametrize('input_shape, apply_result_shape, axis, components', [
@@ -231,20 +229,47 @@ def test_apply_along_axis_get_shape_with_list():
     assert quib.get_shape() == (2,)
 
 
-def test_apply_along_axis_get_shape_with_passing_quibs():
-    arr_quib = iquib([[1], [2]])
-    func_mock = get_func_mock(lambda x: 1)
+def test_apply_along_axis_get_shape_does_not_create_artists(mock_artists_collector):
     quib = create_lazy_apply_along_axis_quib(
-        arr=arr_quib,
+        arr=np.array([[1, 2], [3, 4]]),
         axis=0,
-        func=func_mock,
-        pass_quibs=True
+        func=lambda x: 1
     )
 
-    shape = quib.get_shape()
+    quib.get_shape()
 
-    assert shape == (1,)
-    assert len(func_mock.mock_calls) == 1
-    mock_call = func_mock.mock_calls[0]
-    assert isinstance(mock_call.args[0], Quib)
-    assert np.array_equal(mock_call.args[0].get_value(), [1, 2])
+    assert len(mock_artists_collector.mock_artists_in_axes) == 0
+
+
+def test_apply_along_axis_removes_and_recreates_artists(mock_artists_collector):
+    parent = iquib([[1, 2], [3, 4]])
+    quib = create_lazy_apply_along_axis_quib(
+        arr=parent,
+        axis=0,
+        func=lambda x: 1
+    )
+
+    quib.get_value()
+    mock_artists = mock_artists_collector.mock_artists_in_axes
+    parent.invalidate_and_redraw_at_path([PathComponent(component=0, indexed_cls=np.ndarray)])
+    quib.get_value()
+
+    assert len(mock_artists_collector.mock_artists_in_axes) == 2
+    assert set(mock_artists_collector.mock_artists_in_axes) != set(mock_artists)
+
+
+def test_apply_along_axis_does_not_remove_artists_that_are_not_his(mock_artists_collector):
+    quib = create_lazy_apply_along_axis_quib(
+        arr=np.array([[1, 2], [3, 4]]),
+        axis=0,
+        func=lambda x: 1
+    )
+    quib.get_value_valid_at_path([PathComponent(component=0, indexed_cls=np.ndarray)])
+    artists = mock_artists_collector.mock_artists_in_axes
+    assert len(artists) == 1, "Sanity check"
+
+    quib.get_value_valid_at_path([PathComponent(component=1, indexed_cls=np.ndarray)])
+
+    assert len(mock_artists_collector.mock_artists_in_axes) == 2
+    assert len(set(artists) & set(mock_artists_collector.mock_artists_in_axes)) == 1
+
