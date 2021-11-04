@@ -143,7 +143,6 @@ def test_vectorize_with_pass_quibs():
     assert np.array_equal(result.get_value(), [1, 2])
 
 
-@mark.xfail
 def test_vectorize_with_pass_quibs_and_core_dims():
     @partial(np.vectorize, pass_quibs=True, signature='(a)->(x)')
     def vectorized(x):
@@ -155,7 +154,7 @@ def test_vectorize_with_pass_quibs_and_core_dims():
 
 @mark.parametrize('pass_quibs', [True, False])
 def test_vectorize_does_not_redraw_valid_artists(temp_axes, pass_quibs):
-    # TODO: parametrize pass/not pass quibs, remove otypes
+    # TODO: parametrize otypes
     parent = iquib([[1, 2], [3, 4]])
     vectorized_plot = np.vectorize(plt.plot, signature='(x)->()', otypes=[np.object], pass_quibs=pass_quibs)
     vectorized_plot(parent)

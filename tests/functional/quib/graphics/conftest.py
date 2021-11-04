@@ -1,7 +1,7 @@
 import pytest
 from unittest import mock
 
-from pyquibbler.quib.graphics import graphics_function_quib
+from pyquibbler.quib.graphics import graphics_function_quib, utils
 from pyquibbler.quib.graphics.axiswise_function_quibs import apply_along_axis_function_quib
 from pyquibbler.quib.graphics.axiswise_function_quibs.vectorize import vectorize_graphics_function_quib
 
@@ -46,6 +46,5 @@ def mock_axes():
 def mock_artists_collector(mock_axes, monkeypatch):
     collector = MockArtistsCollector(mock_axes)
     monkeypatch.setattr(graphics_function_quib, "ArtistsCollector", lambda: collector) # TODO
-    monkeypatch.setattr(vectorize_graphics_function_quib, "ArtistsCollector", lambda: collector)
-    monkeypatch.setattr(apply_along_axis_function_quib, "ArtistsCollector", lambda: collector)
+    monkeypatch.setattr(utils, "ArtistsCollector", lambda: collector)
     return collector

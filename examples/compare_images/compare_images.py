@@ -78,7 +78,6 @@ def create_figure_1():
 
 
 def create_figure_2():
-
     # Plot images
     fig = plt.figure(2)
     grid = ImageGrid(fig, 111,  # similar to subplot(111)

@@ -1,4 +1,5 @@
 from typing import List, Callable, Tuple, Any, Dict, Iterable, Set
+from contextlib import contextmanager
 
 from matplotlib.axes import Axes
 from matplotlib.artist import Artist
@@ -11,6 +12,7 @@ from matplotlib.table import Table
 from matplotlib.text import Text
 
 from .event_handling import CanvasEventHandler
+from .global_collecting import ArtistsCollector
 
 ArrayNameToArtists = Dict[str, List[Artist]]
 
@@ -87,3 +89,11 @@ def save_func_and_args_on_artists(artist: Artist, func: Callable, args: Iterable
 
 def track_artist(artist: Artist):
     CanvasEventHandler.get_or_create_initialized_event_handler(artist.figure.canvas)
+
+
+@contextmanager
+def remove_created_artists():
+    with ArtistsCollector() as collector:
+        yield
+    for artist in collector.artists_collected:
+        remove_artist(artist)

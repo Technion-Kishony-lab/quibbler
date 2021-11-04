@@ -6,7 +6,7 @@ from matplotlib.axes import Axes
 
 from .global_collecting import ArtistsCollector
 from .quib_guard import QuibGuard
-from .graphics_utils import save_func_and_args_on_artists, get_axeses_to_array_names_to_starting_indices_and_artists, \
+from .utils import save_func_and_args_on_artists, get_axeses_to_array_names_to_starting_indices_and_artists, \
     remove_artist, get_axeses_to_array_names_to_artists, get_artist_array, ArrayNameToArtists, track_artist
 from ..assignment import AssignmentTemplate, PathComponent
 from ..function_quibs import DefaultFunctionQuib, CacheBehavior

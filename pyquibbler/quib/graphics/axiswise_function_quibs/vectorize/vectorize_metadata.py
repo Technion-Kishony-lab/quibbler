@@ -27,6 +27,10 @@ class VectorizeArgMetadata:
     def core_ndim(self) -> int:
         return len(self.core_shape)
 
+    @property
+    def loop_ndim(self) -> int:
+        return len(self.loop_shape)
+
 
 @dataclass
 class VectorizeMetadata:

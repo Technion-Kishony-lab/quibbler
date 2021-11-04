@@ -3,10 +3,8 @@ from typing import Optional, List, Any, Callable, Tuple, Mapping
 import numpy as np
 from numpy import ndindex, s_
 
-
 from pyquibbler.quib.function_quibs.utils import ArgsValues
-from pyquibbler.quib.graphics import ArtistsCollector
-from pyquibbler.quib.graphics.graphics_utils import remove_artist
+from pyquibbler.quib.graphics.utils import remove_created_artists
 from pyquibbler.quib.proxy_quib import ProxyQuib
 from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.quib.quib import Quib
@@ -82,15 +80,12 @@ class ApplyAlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         args, kwargs = self._prepare_args_for_call(None)
         args_values = ArgsValues.from_function_call(func=self.func, args=args, kwargs=kwargs, include_defaults=False)
 
-        with ArtistsCollector() as collector:
-            res = self._run_func1d(
-                 oned_slice,
-                 *args_values.arg_values_by_name.get('args', []),
-                 **args_values.arg_values_by_name.get('kwargs', {})
+        with remove_created_artists():
+            return self._run_func1d(
+                oned_slice,
+                *args_values.arg_values_by_name.get('args', []),
+                **args_values.arg_values_by_name.get('kwargs', {})
             )
-        for artist in collector.artists_collected:
-            remove_artist(artist)
-        return res
 
     @cache_method_until_full_invalidation
     def _get_invalid_value_at_correct_shape_and_dtype(self) -> np.ndarray:
@@ -149,7 +144,7 @@ class ApplyAlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         bool mask is not True within the given indices, then the result of this iteration was not requested (at
         valid_path), and so we will simply return the sample result as a placeholder
         """
-        indices = indices_before_axis + s_[..., ] + indices_after_axis
+        indices = indices_before_axis + s_[...,] + indices_after_axis
         if np.any(requested_indices_bool_mask[indices]):
             with self._call_func_context(self._artists_ndarr[indices_before_axis + indices_after_axis]):
                 res = self._run_func1d(self._get_oned_slice_for_running_func1d(indices),
@@ -176,11 +171,11 @@ class ApplyAlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         bool_mask = self._get_bool_mask_representing_indices_in_result(indices)
         for ii in ndindex(ni):
             for kk in ndindex(nk):
-                out[ii + s_[..., ] + kk] = self._get_result_at_indices(bool_mask,
-                                                                       indices_before_axis=ii,
-                                                                       indices_after_axis=kk,
-                                                                       func1d_args=args_by_name.get('args', []),
-                                                                       func1d_kwargs=args_by_name.get('kwargs', {}))
+                out[ii + s_[...,] + kk] = self._get_result_at_indices(bool_mask,
+                                                                      indices_before_axis=ii,
+                                                                      indices_after_axis=kk,
+                                                                      func1d_args=args_by_name.get('args', []),
+                                                                      func1d_kwargs=args_by_name.get('kwargs', {}))
 
         return out
 
