@@ -178,7 +178,7 @@ def test_apply_along_axis_get_value_with_args_and_kwargs(quib_with_args_and_kwar
 
     mock_call = mock_func_for_args_kwargs.mock_calls[-1]
     assert mock_call.kwargs == kwargs
-    assert mock_call.args == args
+    assert mock_call.args[1:] == tuple(args)
 
 
 def test_apply_along_axis_get_shape_with_args_and_kwargs(quib_with_args_and_kwargs, mock_func_for_args_kwargs,

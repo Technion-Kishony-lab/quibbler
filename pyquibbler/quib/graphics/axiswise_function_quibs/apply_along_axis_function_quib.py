@@ -99,7 +99,7 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
     def func1d(self):
         return self._get_args_values()['func1d']
 
-    def _wrapped_func1d_call(self, arr, should_run_func_list, *args, **kwargs):
+    def _wrapped_func1d_call(self, arr, should_run_func_list, args, kwargs):
         if should_run_func_list.pop(0):
             return self._run_func1d(arr, *args, **kwargs)
         return self._get_sample_result()
@@ -120,11 +120,10 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
 
         args, kwargs = self._prepare_args_for_call(valid_path)
         args_values = ArgsValues.from_function_call(func=self.func, args=args, kwargs=kwargs, include_defaults=False)
-        new_kwargs = args_values.arg_values_by_name
-        new_kwargs['func1d'] = self._wrapped_func1d_call
-        new_kwargs['should_run_func_list'] = func_calls
-
-        return self.func(**new_kwargs)
+        values_by_name = args_values.arg_values_by_name
+        values_by_name['func1d'] = self._wrapped_func1d_call
+        values_by_name['should_run_func_list'] = func_calls
+        return self.func(**values_by_name)
 
     def _backward_translate_bool_mask(self, args_dict, bool_mask, quib: Quib):
         axis = args_dict.pop('axis')
