@@ -1,4 +1,4 @@
-from typing import Optional, List, Any, Callable, Tuple
+from typing import Optional, List, Any, Callable, Tuple, Mapping
 
 import numpy as np
 from numpy import ndindex, s_
@@ -67,14 +67,21 @@ class ApplyAlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         broadcast = np.broadcast_to(expanded, result_shape)
         return broadcast
 
-    def _run_func1d(self, arr, *args, **kwargs):
+    def _run_func1d(self, arr: np.ndarray, *args, **kwargs) -> Any:
+        """
+        Run the one dimensional function on args and kwargs and potentially get value of the result if it's a quib
+        """
         res = self.func1d(arr, *args, **kwargs)
         if isinstance(res, Quib):
             return res.get_value()
         return res
 
     @cache_method_until_full_invalidation
-    def _get_sample_result(self):
+    def _get_sample_result(self) -> Any:
+        """
+        Get a result representing a possible return value of the user defined func1d.
+        In practice, we simply run on index 0 of every dimension and take the oned slice.
+        """
         input_array_shape = self.arr.get_shape()
         item = tuple([slice(None) if i == self.looping_axis else 0 for i in range(len(input_array_shape))])
         
@@ -88,17 +95,22 @@ class ApplyAlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         args_values = ArgsValues.from_function_call(func=self.func, args=args, kwargs=kwargs, include_defaults=False)
 
         with ArtistsCollector() as collector:
-            res = copy_and_replace_quibs_with_vals(self._run_func1d(
+            res = self._run_func1d(
                  oned_slice,
                  *args_values.arg_values_by_name.get('args', []),
                  **args_values.arg_values_by_name.get('kwargs', {})
-            ))
+            )
         for artist in collector.artists_collected:
             remove_artist(artist)
         return res
 
     @cache_method_until_full_invalidation
-    def _get_empty_value_at_correct_shape_and_dtype(self):
+    def _get_invalid_value_at_correct_shape_and_dtype(self) -> np.ndarray:
+        """
+        Get a value that represents the real result in both shape and dtype.
+        Because the returned value can potentially be an ndarray, this will potentially execute the func1d once in
+        order to get the results shape (but will remove any artists created by running it).
+        """
         input_array_shape = self.arr.get_shape()
         sample_result_arr = np.asarray(self._get_sample_result())
         dims_to_expand = list(range(0, self.looping_axis))
@@ -130,16 +142,27 @@ class ApplyAlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
     def func1d(self) -> Callable:
         return self._get_args_values()['func1d']
 
-    def _get_oned_slice_for_running_func1d(self, indices):
+    def _get_oned_slice_for_running_func1d(self, indices: Tuple):
+        """
+        Get the proper slice as a parameter for the func- this depends on whether the user specified that he wants a
+        quib representing the result (and if so, we create a proxy quib so as not to invalidate inner quibs he creates)
+        or the values themselves of the slice
+        """
         return ProxyQuib(self.arr[indices]) if self._pass_quibs else self.arr[indices].get_value()
 
-    def _get_result_for_component(self,
-                                  bool_mask,
-                                  indices_before_axis,
-                                  indices_after_axis,
-                                  func1d_args, func1d_kwargs):
+    def _get_result_at_indices(self,
+                               requested_indices_bool_mask: np.ndarray,
+                               indices_before_axis: Tuple,
+                               indices_after_axis: Tuple,
+                               func1d_args: Tuple[Any, ...],
+                               func1d_kwargs: Mapping[str, Any]):
+        """
+        Get a result at the indices given as arguments- this does not necessarily mean that func1d will be run; if the
+        bool mask is not True within the given indices, then the result of this iteration was not requested (at
+        valid_path), and so we will simply return the sample result as a placeholder
+        """
         indices = indices_before_axis + s_[..., ] + indices_after_axis
-        if np.any(bool_mask[indices]):
+        if np.any(requested_indices_bool_mask[indices]):
             with self._call_func_context(self._artists_ndarr[indices_before_axis + indices_after_axis]):
                 res = self._run_func1d(self._get_oned_slice_for_running_func1d(indices),
                                        *func1d_args,
@@ -149,6 +172,13 @@ class ApplyAlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         return res
 
     def _apply_along_axis(self, valid_path):
+        """
+        Run "apply_along_axis"- in reality, we need to map several different ndarrays, and so running apply_along_axis
+        itself would be problematic (as we need the indices themselves of the 1d slice). Given this, we simply run on
+        two loops of ndindex- the outer loop representing indices *before* the loop dimension, the inner loop
+        representing indices *after* the loop dimension. We then select everything in between the two index tuples,
+        which is a 1d slice.
+        """
         indices = True if len(valid_path) == 0 else valid_path[0].component
         ni, nk = self.arr.get_shape()[:self.looping_axis], self.arr.get_shape()[self.looping_axis + 1:]
         out = self.get_value_valid_at_path(None)
@@ -158,19 +188,19 @@ class ApplyAlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         bool_mask = self._get_bool_mask_representing_indices_in_result(indices)
         for ii in ndindex(ni):
             for kk in ndindex(nk):
-                out[ii + s_[..., ] + kk] = self._get_result_for_component(bool_mask,
-                                                                          indices_before_axis=ii,
-                                                                          indices_after_axis=kk,
-                                                                          func1d_args=args_by_name.get('args', []),
-                                                                          func1d_kwargs=args_by_name.get('kwargs', {}))
+                out[ii + s_[..., ] + kk] = self._get_result_at_indices(bool_mask,
+                                                                       indices_before_axis=ii,
+                                                                       indices_after_axis=kk,
+                                                                       func1d_args=args_by_name.get('args', []),
+                                                                       func1d_kwargs=args_by_name.get('kwargs', {}))
 
         return out
 
     def _call_func(self, valid_path: Optional[List[PathComponent]]) -> Any:
         if valid_path is None:
-            return self._get_empty_value_at_correct_shape_and_dtype()
+            return self._get_invalid_value_at_correct_shape_and_dtype()
 
-        self._initialize_artists_ndarr()  # TODO
+        self._initialize_artists_ndarr()
         return self._apply_along_axis(valid_path)
 
     def _backward_translate_bool_mask(self, args_dict, bool_mask, quib: Quib):
