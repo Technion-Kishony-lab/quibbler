@@ -1,10 +1,15 @@
+import itertools
+from unittest import mock
+
 import numpy as np
+import pytest
 from pytest import mark
 
-from pyquibbler import CacheBehavior
+from pyquibbler import CacheBehavior, iquib
+from pyquibbler.env import GRAPHICS_LAZY
 from pyquibbler.quib.assignment import PathComponent
 
-from ..utils import check_invalidation, check_get_value_valid_at_path, MockQuib
+from ..utils import check_invalidation, check_get_value_valid_at_path, MockQuib, get_func_mock
 
 # A 3d array in which every dimension has a different size
 parametrize_data = mark.parametrize('data', [np.arange(24).reshape((2, 3, 4))])
@@ -71,21 +76,3 @@ def test_reduction_axiswise_get_value_valid_at_path(axis, data, keepdims, where,
     path_to_get_value_at = [PathComponent(np.ndarray, indices_to_get_value_at)]
     check_get_value_valid_at_path(lambda quib: np.sum(quib, **kwargs), data, path_to_get_value_at)
 
-
-@parametrize_indices_to_invalidate
-@parametrize_data
-@mark.parametrize('axis', [0, 1, 2, -1, -2])
-@mark.parametrize('func_out_dims', [0, 1, 2])
-def test_apply_along_axis_invalidation(indices_to_invalidate, axis, func_out_dims, data):
-    func1d = lambda slice: np.sum(slice).reshape((1,) * func_out_dims)
-    check_invalidation(lambda quib: np.apply_along_axis(func1d, axis, quib), data, indices_to_invalidate)
-
-
-@parametrize_data
-@mark.parametrize('axis', [0, 1, 2, -1, -2])
-@mark.parametrize('func_out_dims', [0, 1, 2])
-@mark.parametrize('indices_to_get_value_at', [0, (0, 0), (-1, ...)])
-def test_apply_along_axis_get_value_valid_at_path(indices_to_get_value_at, axis, func_out_dims, data):
-    func1d = lambda slice: np.sum(slice).reshape((1,) * func_out_dims)
-    path_to_get_value_at = [PathComponent(np.ndarray, indices_to_get_value_at)]
-    check_get_value_valid_at_path(lambda quib: np.apply_along_axis(func1d, axis, quib), data, path_to_get_value_at)

@@ -3,6 +3,7 @@ import pytest
 from unittest import mock
 
 from pyquibbler import iquib
+from pyquibbler.env import GRAPHICS_LAZY
 from pyquibbler.quib.assignment.assignment import PathComponent
 from pyquibbler.quib.graphics import GraphicsFunctionQuib
 
@@ -68,3 +69,12 @@ def test_graphics_function_quib_does_not_copy_color(axes):
 
     assert artist_color_upon_creation == [1, 0, 0]
     assert artist_color_after_color_change == [1, 1, 0]
+
+
+def test_graphics_function_quib_does_not_run_when_lazy_flag_set_to_true():
+    func = mock.Mock()
+
+    with GRAPHICS_LAZY.temporary_set(True):
+        GraphicsFunctionQuib.create(func=func)
+
+    assert func.call_count == 0

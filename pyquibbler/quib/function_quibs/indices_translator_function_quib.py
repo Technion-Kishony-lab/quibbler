@@ -80,9 +80,6 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
     def _forward_translate_indices_to_bool_mask(self, quib: Quib, indices: Any) -> Any:
         pass
 
-    def _get_source_paths_of_quibs_given_path(self, filtered_path_in_result: List[PathComponent]):
-        return {}
-
     def _get_quibs_to_relevant_result_values(self, assignment: Assignment):
         return {}
 

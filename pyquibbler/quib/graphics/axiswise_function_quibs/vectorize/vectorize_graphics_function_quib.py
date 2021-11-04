@@ -8,14 +8,14 @@ from pyquibbler.quib.proxy_quib import ProxyQuib
 
 from .utils import copy_vectorize, get_core_axes, get_indices_array, iter_arg_ids_and_values, alter_signature
 from .vectorize_metadata import VectorizeMetadata
-from ..global_collecting import ArtistsCollector
-from ..graphics_utils import remove_artist
-from ..graphics_function_quib import GraphicsFunctionQuib
-from ...assignment import PathComponent
-from ...function_quibs.indices_translator_function_quib import IndicesTranslatorFunctionQuib, SupportedFunction, \
-    Kwargs, Args
-from ...function_quibs.utils import ArgsValues
-from ...utils import copy_and_replace_quibs_with_vals
+from pyquibbler.quib.graphics.global_collecting import ArtistsCollector
+from pyquibbler.quib.graphics.graphics_utils import remove_artist
+from pyquibbler.quib.graphics.graphics_function_quib import GraphicsFunctionQuib
+from pyquibbler.quib.assignment import PathComponent
+from pyquibbler.quib.function_quibs.indices_translator_function_quib import IndicesTranslatorFunctionQuib, \
+    SupportedFunction, Kwargs, Args
+from pyquibbler.quib.function_quibs.utils import ArgsValues
+from pyquibbler.quib.utils import copy_and_replace_quibs_with_vals
 
 
 def get_vectorize_call_data_args(args_values: ArgsValues) -> List[Any]:
@@ -48,7 +48,7 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
 
     @classmethod
     def _wrapper_call(cls, func, args, kwargs, **create_kwargs):
-        return super()._wrapper_call(func, args, kwargs, **create_kwargs, receive_quibs=args[0].pass_quibs)
+        return super()._wrapper_call(func, args, kwargs, **create_kwargs, pass_quibs=args[0].pass_quibs)
 
     @cached_property
     def _vectorize(self) -> np.vectorize:
@@ -103,7 +103,7 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
         return np.reshape(arg_value, (-1, *meta.core_shape))[0]
 
     def _get_vectorize_call(self, args_metadata, results_core_ndims, valid_path):
-        if self._receive_quibs:
+        if self._pass_quibs:
             (vectorize, *args), kwargs = self.args, self.kwargs
             return self._wrap_vectorize_call_to_pass_quibs(vectorize, args, kwargs,
                                                            args_metadata, results_core_ndims)
