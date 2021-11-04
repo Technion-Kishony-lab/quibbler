@@ -8,7 +8,7 @@ from pytest import mark
 
 from pyquibbler import iquib
 from pyquibbler.env import GRAPHICS_LAZY
-from pyquibbler.quib import PathComponent
+from pyquibbler.quib import PathComponent, Quib
 from pyquibbler.quib.assignment.utils import get_sub_data_from_object_in_path
 from pyquibbler.quib.graphics import AlongAxisGraphicsFunctionQuib
 from tests.functional.quib.graphics.test_axiswise_graphics_function_quib import parametrize_indices_to_invalidate, \
@@ -36,9 +36,10 @@ def test_apply_along_axis_get_value_valid_at_path(indices_to_get_value_at, axis,
     check_get_value_valid_at_path(lambda quib: np.apply_along_axis(func1d, axis, quib), data, path_to_get_value_at)
 
 
-def create_lazy_apply_along_axis_quib(func, arr, axis, args=None, kwargs=None):
+def create_lazy_apply_along_axis_quib(func, arr, axis, args=None, kwargs=None, pass_quibs=False):
     with GRAPHICS_LAZY.temporary_set(True):
-        return np.apply_along_axis(func, axis, iquib(arr), *(args or []), **(kwargs or {}))
+        return np.apply_along_axis(func, axis, iquib(arr) if not isinstance(arr, Quib) else arr,
+                                   *(args or []), **(kwargs or {}), pass_quibs=pass_quibs)
 
 
 @mark.parametrize('shape, axis, func1d_res', [
@@ -201,3 +202,35 @@ def test_apply_along_axis_get_shape_with_looping_axis_quib():
     shape = quib.get_shape()
 
     assert shape == (1,)
+
+
+def test_apply_along_axis_get_shape_with_list():
+    arr_quib = iquib([[1, 2], [3, 4]])
+    quib = create_lazy_apply_along_axis_quib(
+        arr=arr_quib,
+        axis=0,
+        func=lambda x: 1,
+    )
+
+    assert quib.get_shape() == (2,)
+
+
+def test_apply_along_axis_get_value_with_passing_quibs():
+    arr_quib = iquib([[1], [2]])
+    func_mock = get_func_mock(lambda x: 1)
+    quib = create_lazy_apply_along_axis_quib(
+        arr=arr_quib,
+        axis=0,
+        func=func_mock,
+        pass_quibs=True
+    )
+
+    quib.get_shape()
+
+    assert len(func_mock.mock_calls) == 1
+    mock_call = func_mock.mock_calls[0]
+    assert isinstance(mock_call.args[0], Quib)
+    assert mock_call.args[0].get_value() == arr_quib[0].get_value()
+
+
+

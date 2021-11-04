@@ -29,6 +29,17 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
     }
     TRANSLATION_RELATED_ARGS = [Arg('axis')]
 
+    @classmethod
+    def create(cls, func, func_args=(), func_kwargs=None, cache_behavior=None, lazy=None, **init_kwargs):
+        func_kwargs = func_kwargs or {}
+        receive_quibs = func_kwargs.pop('pass_quibs', False)
+        return super(AlongAxisGraphicsFunctionQuib, cls).create(func=func, func_args=func_args,
+                                                                cache_behavior=cache_behavior,
+                                                                lazy=lazy,
+                                                                func_kwargs=func_kwargs,
+                                                                receive_quibs=receive_quibs,
+                                                                **init_kwargs)
+
     def _get_expanded_dims(self, axis, result_shape, source_shape):
         func_result_ndim = len(result_shape) - len(source_shape) + 1
         assert func_result_ndim >= 0, func_result_ndim
@@ -61,14 +72,19 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         input_array = args_values['arr']
         input_array_shape = input_array.get_shape()
         item = tuple([slice(None) if i == self.looping_axis else 0 for i in range(len(input_array_shape))])
-        minimized_array = input_array[item]
+        input_array_value = input_array.get_value_valid_at_path([PathComponent(component=item,
+                                                                               indexed_cls=input_array.get_type())])
+        if not isinstance(input_array_value, np.ndarray):
+            input_array_value = np.array(input_array_value)
+
+        oned_slice = input_array_value[item]
         args, kwargs = self._prepare_args_for_call(None)
         args_values = ArgsValues.from_function_call(func=self.func, args=args, kwargs=kwargs, include_defaults=False)
 
         return copy_and_replace_quibs_with_vals(self._run_func1d(
-            minimized_array.get_value_valid_at_path(None),
-            *args_values.arg_values_by_name.get('args', []),
-            **args_values.arg_values_by_name.get('kwargs', {})
+             oned_slice,
+             *args_values.arg_values_by_name.get('args', []),
+             **args_values.arg_values_by_name.get('kwargs', {})
         ))
 
     @cache_method_until_full_invalidation
@@ -113,6 +129,9 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
             return self._run_func1d(arr, *(args or []), **(kwargs or {}))
         return self._get_sample_result()
 
+    def _run_with_pass_quibs(self):
+        pass
+
     def _call_func(self, valid_path: Optional[List[PathComponent]]) -> Any:
         if valid_path is None:
             return self._get_empty_value_at_correct_shape_and_dtype()
@@ -133,6 +152,9 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         values_by_name['func1d'] = self._wrapped_func1d_call
         values_by_name['should_run_func_list'] = func_calls
 
+        if self._receive_quibs:
+            # run yourself
+            pass
         return self.func(**values_by_name)
 
     def _backward_translate_bool_mask(self, args_dict, bool_mask, quib: Quib):
