@@ -32,12 +32,12 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
     @classmethod
     def create(cls, func, func_args=(), func_kwargs=None, cache_behavior=None, lazy=None, **init_kwargs):
         func_kwargs = func_kwargs or {}
-        receive_quibs = func_kwargs.pop('pass_quibs', False)
+        pass_quibs = func_kwargs.pop('pass_quibs', False)
         return super(AlongAxisGraphicsFunctionQuib, cls).create(func=func, func_args=func_args,
                                                                 cache_behavior=cache_behavior,
                                                                 lazy=lazy,
                                                                 func_kwargs=func_kwargs,
-                                                                receive_quibs=receive_quibs,
+                                                                pass_quibs=pass_quibs,
                                                                 **init_kwargs)
 
     def _get_expanded_dims(self, axis, result_shape, source_shape):
@@ -70,14 +70,17 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
     def _get_sample_result(self):
         args_values = self._get_args_values()
         input_array = args_values['arr']
+        input_array = np.array(input_array)
         input_array_shape = input_array.get_shape()
         item = tuple([slice(None) if i == self.looping_axis else 0 for i in range(len(input_array_shape))])
-        input_array_value = input_array.get_value_valid_at_path([PathComponent(component=item,
-                                                                               indexed_cls=input_array.get_type())])
-        if not isinstance(input_array_value, np.ndarray):
-            input_array_value = np.array(input_array_value)
+        
+        if self._pass_quibs:
+            input_array = ProxyQuib(input_array)
+        else:
+            input_array = input_array.get_value_valid_at_path([PathComponent(component=item,
+                                                                             indexed_cls=np.ndarray)])
 
-        oned_slice = input_array_value[item]
+        oned_slice = input_array[item]
         args, kwargs = self._prepare_args_for_call(None)
         args_values = ArgsValues.from_function_call(func=self.func, args=args, kwargs=kwargs, include_defaults=False)
 
@@ -152,7 +155,7 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         values_by_name['func1d'] = self._wrapped_func1d_call
         values_by_name['should_run_func_list'] = func_calls
 
-        if self._receive_quibs:
+        if self._pass_quibs:
             # run yourself
             pass
         return self.func(**values_by_name)

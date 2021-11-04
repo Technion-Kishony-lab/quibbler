@@ -10,7 +10,7 @@ from pyquibbler import iquib, override_all, q, quibbler_user_function
 override_all()
 
 
-@quibbler_user_function(lazy=False, receive_quibs=True)
+@quibbler_user_function(lazy=False, pass_quibs=True)
 def create_roi(roi, axes):
     print("Creating ROI")
     widgets.RectangleSelector(axes, extents=roi)

@@ -48,7 +48,7 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
 
     @classmethod
     def _wrapper_call(cls, func, args, kwargs, **create_kwargs):
-        return super()._wrapper_call(func, args, kwargs, **create_kwargs, receive_quibs=args[0].pass_quibs)
+        return super()._wrapper_call(func, args, kwargs, **create_kwargs, pass_quibs=args[0].pass_quibs)
 
     @cached_property
     def _vectorize(self) -> np.vectorize:
@@ -103,7 +103,7 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
         return np.reshape(arg_value, (-1, *meta.core_shape))[0]
 
     def _get_vectorize_call(self, args_metadata, results_core_ndims, valid_path):
-        if self._receive_quibs:
+        if self._pass_quibs:
             (vectorize, *args), kwargs = self.args, self.kwargs
             return self._wrap_vectorize_call_to_pass_quibs(vectorize, args, kwargs,
                                                            args_metadata, results_core_ndims)

@@ -225,12 +225,10 @@ def test_apply_along_axis_get_value_with_passing_quibs():
         pass_quibs=True
     )
 
-    quib.get_shape()
+    shape = quib.get_shape()
 
+    assert shape == (1,)
     assert len(func_mock.mock_calls) == 1
     mock_call = func_mock.mock_calls[0]
     assert isinstance(mock_call.args[0], Quib)
-    assert mock_call.args[0].get_value() == arr_quib[0].get_value()
-
-
-
+    assert np.array_equal(mock_call.args[0].get_value(), [1, 2])

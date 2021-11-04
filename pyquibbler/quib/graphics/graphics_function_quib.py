@@ -53,10 +53,10 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
                  cache_behavior: Optional[CacheBehavior],
                  assignment_template: Optional[AssignmentTemplate] = None,
                  had_artists_on_last_run: bool = False,
-                 receive_quibs: bool = False):
+                 pass_quibs: bool = False):
         super().__init__(func, args, kwargs, cache_behavior, assignment_template=assignment_template)
         self._had_artists_on_last_run = had_artists_on_last_run
-        self._receive_quibs = receive_quibs
+        self._pass_quibs = pass_quibs
         self._artists_ndarr = None
 
     @classmethod
@@ -201,7 +201,7 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         """
         self._initialize_artists_ndarr()
         assert self._artists_ndarr.ndim == 0
-        args, kwargs = proxify_args(self.args, self.kwargs) if self._receive_quibs \
+        args, kwargs = proxify_args(self.args, self.kwargs) if self._pass_quibs \
             else self._prepare_args_for_call(valid_path)
         with self._call_func_context(self._artists_ndarr[()]):
             return self.func(*args, **kwargs)
