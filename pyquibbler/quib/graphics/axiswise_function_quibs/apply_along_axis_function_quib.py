@@ -62,7 +62,14 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         input_array_shape = input_array.get_shape()
         item = tuple([slice(None) if i == self.looping_axis else 0 for i in range(len(input_array_shape))])
         minimized_array = input_array[item]
-        return copy_and_replace_quibs_with_vals(self._run_func1d(minimized_array.get_value_valid_at_path(None)))
+        args, kwargs = self._prepare_args_for_call(None)
+        args_values = ArgsValues.from_function_call(func=self.func, args=args, kwargs=kwargs, include_defaults=False)
+
+        return copy_and_replace_quibs_with_vals(self._run_func1d(
+            minimized_array.get_value_valid_at_path(None),
+            *args_values.arg_values_by_name.get('args', []),
+            **args_values.arg_values_by_name.get('kwargs', {})
+        ))
 
     @cache_method_until_full_invalidation
     def _get_empty_value_at_correct_shape_and_dtype(self):
@@ -70,6 +77,7 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         # TODO: support pass quibs
         # TODO: support kwargs args
         # TODO: test ndarray returned
+        # TODO: loop_axis is quib
 
         input_array_shape = self.arr.get_shape()
         sample_result_arr = np.asarray(self._get_sample_result())
@@ -99,9 +107,9 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
     def func1d(self):
         return self._get_args_values()['func1d']
 
-    def _wrapped_func1d_call(self, arr, should_run_func_list, args, kwargs):
+    def _wrapped_func1d_call(self, arr, should_run_func_list, args=None, kwargs=None):
         if should_run_func_list.pop(0):
-            return self._run_func1d(arr, *args, **kwargs)
+            return self._run_func1d(arr, *(args or []), **(kwargs or {}))
         return self._get_sample_result()
 
     def _call_func(self, valid_path: Optional[List[PathComponent]]) -> Any:
@@ -123,6 +131,7 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         values_by_name = args_values.arg_values_by_name
         values_by_name['func1d'] = self._wrapped_func1d_call
         values_by_name['should_run_func_list'] = func_calls
+
         return self.func(**values_by_name)
 
     def _backward_translate_bool_mask(self, args_dict, bool_mask, quib: Quib):
