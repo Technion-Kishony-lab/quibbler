@@ -1,4 +1,4 @@
-from typing import Optional, List, Any, Callable
+from typing import Optional, List, Any, Callable, Tuple
 
 import numpy as np
 from numpy import ndindex, s_
@@ -48,6 +48,9 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         return tuple(range(axis, axis + func_result_ndim) if axis >= 0 else
                      range(axis, axis - func_result_ndim, -1))
 
+    def _get_loop_shape(self) -> Tuple[int, ...]:
+        return tuple([s for i, s in enumerate(self.get_shape()) if i != self.looping_axis])
+
     def _forward_translate_bool_mask(self, args_dict, boolean_mask, invalidator_quib: Quib):
         """
         Calculate forward index translation for apply_along_axis by applying np.any on the boolean mask.
@@ -91,20 +94,14 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
 
     @cache_method_until_full_invalidation
     def _get_empty_value_at_correct_shape_and_dtype(self):
-
-        # TODO: support pass quibs
-
         input_array_shape = self.arr.get_shape()
         sample_result_arr = np.asarray(self._get_sample_result())
-        positive_looping_axis = self.looping_axis if self.looping_axis >= 0 else len(input_array_shape) + \
-                                                                                 self.looping_axis
-
-        dims_to_expand = list(range(0, positive_looping_axis))
-        dims_to_expand += list(range(-1, -(len(input_array_shape) - positive_looping_axis), -1))
+        dims_to_expand = list(range(0, self.looping_axis))
+        dims_to_expand += list(range(-1, -(len(input_array_shape) - self.looping_axis), -1))
         expanded = np.expand_dims(sample_result_arr, dims_to_expand)
         new_shape = [dim
                      for i, d in enumerate(input_array_shape)
-                     for dim in ([d] if i != positive_looping_axis else sample_result_arr.shape)]
+                     for dim in ([d] if i != self.looping_axis else sample_result_arr.shape)]
         return np.array(np.broadcast_to(expanded, new_shape))
 
     @property
@@ -112,8 +109,8 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         axis = self._get_args_values()['axis']
         if isinstance(axis, Quib):
             # since this is a parameter quib, we always need it completely valid in order to run anything
-            return axis.get_value()
-        return axis
+            axis = axis.get_value()
+        return axis if axis >= 0 else len(self.arr.get_shape()) + axis
 
     @property
     def arr(self) -> Quib:
@@ -136,8 +133,7 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         return self._get_sample_result()
 
     def _run_with_pass_quibs(self, component):
-        looping_axis = self.looping_axis if self.looping_axis >= 0 else len(self.arr.get_shape()) + self.looping_axis
-        ni, nk = self.arr.get_shape()[:looping_axis], self.arr.get_shape()[looping_axis + 1:]
+        ni, nk = self.arr.get_shape()[:self.looping_axis], self.arr.get_shape()[self.looping_axis + 1:]
         out = self.get_value_valid_at_path(None)
         args_values = ArgsValues.from_function_call(func=self.func, args=self.args, kwargs=self.kwargs,
                                                     include_defaults=False)
@@ -148,12 +144,13 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
                 component = ii + s_[..., ] + kk
                 if np.any(bool_mask[component]):
                     res = self._run_func1d(ProxyQuib(self.arr[ii + s_[:, ] + kk]),
-                                                            *args_by_name.get('args', []),
-                                                            **args_by_name.get('kwargs', {}))
+                                           *args_by_name.get('args', []),
+                                           **args_by_name.get('kwargs', {}))
                 else:
                     res = self._get_sample_result()
 
                 out[component] = res
+
         return out
 
     def _call_func(self, valid_path: Optional[List[PathComponent]]) -> Any:
