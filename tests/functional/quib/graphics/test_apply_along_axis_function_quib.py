@@ -8,6 +8,7 @@ from pytest import mark
 from pyquibbler import iquib
 from pyquibbler.env import GRAPHICS_LAZY
 from pyquibbler.quib import PathComponent
+from pyquibbler.quib.assignment.utils import get_sub_data_from_object_in_path
 from pyquibbler.quib.graphics import AlongAxisGraphicsFunctionQuib
 from tests.functional.quib.graphics.test_axiswise_graphics_function_quib import parametrize_indices_to_invalidate, \
     parametrize_data
@@ -60,17 +61,31 @@ def test_apply_along_axis_get_shape(shape, axis, func1d_res):
     assert res == np.apply_along_axis(func, axis=axis, arr=arr).shape
 
 
-@mark.parametrize('input_shape, apply_result_shape, axis, component', [
-        (tuple(input_dimensions), tuple(apply_dimensions), axis, component)
+def get_sample_indexing_paths(input_shape, apply_shape, axis):
+    res = np.apply_along_axis(func1d=lambda _: np.zeros(apply_shape), arr=np.zeros(input_shape), axis=axis)
+
+    paths = [[()], []]
+
+    if len(res.shape) > 0:
+        paths.append([np.array([0 for _ in res.shape])])
+
+    if len(res.shape) > 1:
+        paths.append([(0, np.arange(res.shape[1]))])
+        paths.append([(0, res.shape[1] - 1)])
+    return paths
+
+
+@mark.parametrize('input_shape, apply_result_shape, axis, components', [
+        (tuple(input_dimensions), tuple(apply_dimensions), axis, components)
         for input_shape_size in range(0, 3)
         for axis in range(-input_shape_size, input_shape_size)
         for apply_result_shape_size in range(0, 3)
-        for input_dimensions in itertools.product(*[range(1, 4) for _ in range(input_shape_size)])
+        for input_dimensions in itertools.product(*[range(1, 3) for _ in range(input_shape_size)])
         for apply_dimensions in [[], *itertools.product(*[range(1, 3) for _ in range(apply_result_shape_size)])]
-        for component in [()]
+        for components in get_sample_indexing_paths(tuple(input_dimensions), tuple(apply_dimensions), axis)
 ])
-def test_apply_along_axis_get_value(input_shape, apply_result_shape, axis, component):
-
+def test_apply_along_axis_get_value(input_shape, apply_result_shape, axis, components):
+    assert len(components) <= 1, "Sanity: No support for testing multiple components (also irrelevant)"
     slices = []
     collecting = False
 
@@ -82,26 +97,37 @@ def test_apply_along_axis_get_value(input_shape, apply_result_shape, axis, compo
     func = get_func_mock(apply)
     arr = np.arange(np.prod(input_shape)).reshape(input_shape)
     quib = create_lazy_apply_along_axis_quib(arr=arr, func=func, axis=axis)
+    quib.get_shape()  # We need to call get_shape as get_shape is a zero cost operation overall and is allowed to be
+    # called without consequence by the quib
+    path = [PathComponent(component=component, indexed_cls=np.ndarray) for component in components]
 
     collecting = True
-    res = quib.get_value_valid_at_path([PathComponent(component=component, indexed_cls=np.ndarray)])
+    res = quib.get_value_valid_at_path(path)
     collecting = False
 
-    current_result = np.apply_along_axis(func, axis=axis, arr=arr)[component]
-    assert np.array_equal(res[component], current_result)
+    whole_apply_axis_result = np.apply_along_axis(func, axis=axis, arr=arr)
+    expected_result = get_sub_data_from_object_in_path(whole_apply_axis_result, path)
+    res_at_components = get_sub_data_from_object_in_path(res, path)
+    assert np.array_equal(res_at_components, expected_result)
 
     # make sure all slices gotten were relevant
     for slice_ in slices:
         for num in np.ravel(slice_):
             new_arr = np.array(arr)
             new_arr[new_arr == num] = 999
-            assert not np.array_equal(np.apply_along_axis(func, axis=axis, arr=new_arr)[component], current_result)
+            new_result = np.apply_along_axis(func, axis=axis, arr=new_arr)
+            new_result_at_path = get_sub_data_from_object_in_path(new_result, path)
+            assert not np.array_equal(new_result_at_path, expected_result)
 
 
 def test_apply_along_axis_returning_quib():
-    func = lambda x: iquib(100)
-    quib = create_lazy_apply_along_axis_quib(func=func, arr=np.array([[1]]), axis=0)
+    res_arr = np.array([100])
+    func = lambda x: iquib(res_arr)
+    arr = np.array([[1]])
+    axis = 0
+    quib = create_lazy_apply_along_axis_quib(func=func, arr=arr, axis=axis)
+    expected_res = np.apply_along_axis(lambda _: np.array([100]), arr=arr, axis=axis)
 
     res = quib.get_value()
 
-    assert res == [100]
+    assert np.array_equal(res, expected_res)

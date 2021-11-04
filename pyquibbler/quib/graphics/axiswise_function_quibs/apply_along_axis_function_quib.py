@@ -49,6 +49,12 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         broadcast = np.broadcast_to(expanded, result_shape)
         return broadcast
 
+    def _run_func1d(self, arr, *args, **kwargs):
+        res = self.func1d(arr, *args, **kwargs)
+        if isinstance(res, Quib):
+            return res.get_value()
+        return res
+
     @cache_method_until_full_invalidation
     def _get_sample_result(self):
         args_values = self._get_args_values()
@@ -56,7 +62,7 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         input_array_shape = input_array.get_shape()
         item = tuple([slice(None) if i == self.looping_axis else 0 for i in range(len(input_array_shape))])
         minimized_array = input_array[item]
-        return copy_and_replace_quibs_with_vals(self.func1d(minimized_array.get_value_valid_at_path(None)))
+        return copy_and_replace_quibs_with_vals(self._run_func1d(minimized_array.get_value_valid_at_path(None)))
 
     @cache_method_until_full_invalidation
     def _get_empty_value_at_correct_shape_and_dtype(self):
@@ -96,21 +102,20 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
 
     def _wrapped_func1d_call(self, arr, should_run_func_list, *args, **kwargs):
         if should_run_func_list.pop(0):
-            return self.func1d(arr, *args, **kwargs)
+            return self._run_func1d(arr, *args, **kwargs)
         return self._get_sample_result()
 
     def _call_func(self, valid_path: Optional[List[PathComponent]]) -> Any:
         if valid_path is None:
             return self._get_empty_value_at_correct_shape_and_dtype()
-        elif len(valid_path) == 0:
-            return super(AlongAxisGraphicsFunctionQuib, self)._call_func(valid_path)
 
         self._initialize_artists_ndarr()  # TODO
 
         # Our underlying assumption is that apply_along_axis always runs in the same order
         # Therefore, we need to run the result bool mask backwards and then forwards through apply_along_axis in order
         # to get a list representing which function calls should go through and which should not
-        bool_mask = self._backward_translate_indices_to_bool_mask(indices=valid_path[0].component, quib=self.arr)
+        indices = True if len(valid_path) == 0 else valid_path[0].component
+        bool_mask = self._backward_translate_indices_to_bool_mask(indices=indices, quib=self.arr)
         func_calls = []
         np.apply_along_axis(lambda x: func_calls.append(np.any(x)), axis=self.looping_axis, arr=bool_mask)
 
