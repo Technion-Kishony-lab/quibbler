@@ -1,8 +1,8 @@
 import numpy as np
 from pytest import mark
 
+from pyquibbler.quib.graphics.axiswise_function_quibs.vectorize.utils import copy_vectorize
 from pyquibbler.quib.graphics.axiswise_function_quibs.vectorize.vectorize_metadata import VectorizeMetadata
-from pyquibbler.quib.graphics.axiswise_function_quibs.vectorize import copy_vectorize
 
 
 @mark.parametrize(['args', 'kwargs'], [((np.zeros((2, 2, 2)),), dict(y=np.zeros((2, 1, 2))))])
