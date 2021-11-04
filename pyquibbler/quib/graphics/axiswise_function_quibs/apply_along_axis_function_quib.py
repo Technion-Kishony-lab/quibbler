@@ -39,7 +39,7 @@ class ApplyAlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
                      range(axis, axis - func_result_ndim, -1))
 
     def _get_loop_shape(self) -> Tuple[int, ...]:
-        return tuple([s for i, s in enumerate(self.arr.get_shape()) if i != self.looping_axis])
+        return tuple([s for i, s in enumerate(self.arr.get_shape()) if i != self.core_axis])
 
     def _forward_translate_bool_mask(self, args_dict, boolean_mask, invalidator_quib: Quib):
         """
@@ -71,7 +71,7 @@ class ApplyAlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         In practice, we simply run on index 0 of every dimension and take the oned slice.
         """
         input_array_shape = self.arr.get_shape()
-        item = tuple([slice(None) if i == self.looping_axis else 0 for i in range(len(input_array_shape))])
+        item = tuple([slice(None) if i == self.core_axis else 0 for i in range(len(input_array_shape))])
 
         if self._pass_quibs:
             input_array = ProxyQuib(self.arr)
@@ -101,16 +101,16 @@ class ApplyAlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         """
         input_array_shape = self.arr.get_shape()
         sample_result_arr = np.asarray(self._get_sample_result())
-        dims_to_expand = list(range(0, self.looping_axis))
-        dims_to_expand += list(range(-1, -(len(input_array_shape) - self.looping_axis), -1))
+        dims_to_expand = list(range(0, self.core_axis))
+        dims_to_expand += list(range(-1, -(len(input_array_shape) - self.core_axis), -1))
         expanded = np.expand_dims(sample_result_arr, dims_to_expand)
         new_shape = [dim
                      for i, d in enumerate(input_array_shape)
-                     for dim in ([d] if i != self.looping_axis else sample_result_arr.shape)]
+                     for dim in ([d] if i != self.core_axis else sample_result_arr.shape)]
         return np.array(np.broadcast_to(expanded, new_shape))
 
     @property
-    def looping_axis(self) -> int:
+    def core_axis(self) -> int:
         axis = self._get_args_values()['axis']
         if isinstance(axis, Quib):
             # since this is a parameter quib, we always need it completely valid in order to run anything
@@ -168,7 +168,7 @@ class ApplyAlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         which is a 1d slice.
         """
         indices = True if len(valid_path) == 0 else valid_path[0].component
-        ni, nk = self.arr.get_shape()[:self.looping_axis], self.arr.get_shape()[self.looping_axis + 1:]
+        ni, nk = self.arr.get_shape()[:self.core_axis], self.arr.get_shape()[self.core_axis + 1:]
         out = self.get_value_valid_at_path(None)
         args_values = ArgsValues.from_function_call(func=self.func, args=self.args, kwargs=self.kwargs,
                                                     include_defaults=False)
