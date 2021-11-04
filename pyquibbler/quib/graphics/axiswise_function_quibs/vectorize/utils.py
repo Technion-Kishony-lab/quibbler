@@ -30,8 +30,6 @@ def construct_signature(core_ndims: Iterable[int], result_ndims: Iterable[int]) 
 
 def alter_signature(args_metadata, results_core_ndims,
                     arg_ids_to_new_core_ndims: Optional[Dict[Union[str, int], int]]) -> str:
-    assert results_core_ndims is not None  # TODO
-    results_core_ndims = results_core_ndims if isinstance(results_core_ndims, list) else [results_core_ndims]  # TODO
     args_core_ndims = [arg_ids_to_new_core_ndims.pop(arg_id, arg_meta.core_ndim)
                        for arg_id, arg_meta in args_metadata.items()]
     assert not arg_ids_to_new_core_ndims, f'Invalid arg ids: {set(arg_ids_to_new_core_ndims.keys())}'

@@ -5,6 +5,7 @@ from pytest import mark, fixture
 
 from pyquibbler import iquib, CacheBehavior
 from pyquibbler.env import GRAPHICS_LAZY
+from pyquibbler.quib import ProxyQuib
 from pyquibbler.quib.assignment import PathComponent
 
 from ...utils import check_invalidation, check_get_value_valid_at_path, MockQuib, PathBuilder, get_func_mock
@@ -40,9 +41,16 @@ def test_vectorize_get_value_valid_at_path(data, func, indices_to_get_value_at):
     check_get_value_valid_at_path(np.vectorize(func), data, path_to_get_value_at)
 
 
-def test_vectorize_get_value_valid_at_path_with_excluded_quib():
-    excluded = MockQuib([1, 2, 3])
-    func = np.vectorize(lambda a, b: np.array([1, 2, 3]), excluded={1}, signature='(n)->(m)')
+@mark.parametrize('pass_quibs', [True, False])
+def test_vectorize_get_value_valid_at_path_with_excluded_quib(pass_quibs):
+    excluded = MockQuib(np.array([1, 2, 3]))
+
+    @partial(np.vectorize, excluded={1}, signature='(n)->(m)', pass_quibs=pass_quibs)
+    def func(_a, b):
+        if pass_quibs:
+            assert isinstance(b, ProxyQuib) and b._quib is excluded
+        return b
+
     fquib = func([0, 1], excluded)
     fquib.set_cache_behavior(CacheBehavior.OFF)
     path = PathBuilder(fquib)[0].path
@@ -137,7 +145,7 @@ def test_vectorize_get_value_valid_at_path_none():
 def test_vectorize_with_pass_quibs():
     @partial(np.vectorize, pass_quibs=True)
     def vectorized(x):
-        return x.get_value() + 1  # TODO: iquib()
+        return iquib(x.get_value() + 1)
 
     result = vectorized(iquib(np.arange(2)))
     assert np.array_equal(result.get_value(), [1, 2])
@@ -154,7 +162,6 @@ def test_vectorize_with_pass_quibs_and_core_dims():
 
 @mark.parametrize('pass_quibs', [True, False])
 def test_vectorize_does_not_redraw_valid_artists(temp_axes, pass_quibs):
-    # TODO: parametrize otypes
     parent = iquib([[1, 2], [3, 4]])
     vectorized_plot = np.vectorize(plt.plot, signature='(x)->()', otypes=[np.object], pass_quibs=pass_quibs)
     vectorized_plot(parent)

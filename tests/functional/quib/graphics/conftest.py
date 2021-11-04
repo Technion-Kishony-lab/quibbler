@@ -45,6 +45,6 @@ def mock_axes():
 @pytest.fixture()
 def mock_artists_collector(mock_axes, monkeypatch):
     collector = MockArtistsCollector(mock_axes)
-    monkeypatch.setattr(graphics_function_quib, "ArtistsCollector", lambda: collector) # TODO
+    monkeypatch.setattr(graphics_function_quib, "ArtistsCollector", lambda: collector)
     monkeypatch.setattr(utils, "ArtistsCollector", lambda: collector)
     return collector

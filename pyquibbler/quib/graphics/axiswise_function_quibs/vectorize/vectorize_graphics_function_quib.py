@@ -58,13 +58,13 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
     def _wrap_vectorize_call_to_pass_quibs(self, vectorize, args, kwargs, args_metadata, results_core_ndims):
         # We convert quibs to numpy arrays so we can slice them with tuples even if they are originally lists
         quib_args = {arg_id: ProxyQuib(np.array(val)) for arg_id, val in iter_arg_ids_and_values(args, kwargs)
-                     if isinstance(val, Quib)}
-        # TODO: support
-        assert not set(quib_args) & self._vectorize.excluded, 'Excluded quibs not supported on pass quibs'
+                     if isinstance(val, Quib) and arg_id not in vectorize.excluded}
 
         def convert_quibs_to_indices(arg_id, arg_val):
             if arg_id in quib_args:
                 return get_indices_array(args_metadata[arg_id].loop_shape)
+            elif isinstance(arg_val, Quib):
+                return ProxyQuib(arg_val)
             return arg_val
 
         args, kwargs = convert_args_and_kwargs(convert_quibs_to_indices, args, kwargs)
@@ -173,7 +173,6 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
            instructs it to run the user function or return an empty result.
         3. Vectorize the wrapper and run it with the boolean mask in addition to the original arguments
         """
-        # TODO: don't do the bool mask with an empty path
         valid_indices = True if len(valid_path) == 0 else valid_path[0].component
         bool_mask = np.any(self._get_bool_mask_representing_indices_in_result(valid_indices),
                            axis=self._vectorize_metadata.result_core_axes)

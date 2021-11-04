@@ -18,7 +18,7 @@ class VectorizeArgMetadata:
     @classmethod
     def from_arg_and_core_ndim(cls, arg: Any, core_ndim: int) -> VectorizeArgMetadata:
         shape = np.shape(arg)
-        assert len(shape) >= core_ndim  # TODO: exception
+        assert len(shape) >= core_ndim
         if core_ndim == 0:
             return cls(shape, (), shape)
         return cls(shape, shape[-core_ndim:], shape[:-core_ndim])
@@ -149,7 +149,7 @@ class VectorizeMetadata:
         else:
             in_core_dims, out_core_dims = vectorize._in_and_out_core_dims
             args_core_ndims = list(map(len, in_core_dims))
-            assert len(args_core_ndims) == num_not_excluded  # TODO: exception
+            assert len(args_core_ndims) == num_not_excluded
             is_tuple = len(out_core_dims) > 1
             results_core_ndims = list(map(len, out_core_dims))
         return args_core_ndims, results_core_ndims, is_tuple
