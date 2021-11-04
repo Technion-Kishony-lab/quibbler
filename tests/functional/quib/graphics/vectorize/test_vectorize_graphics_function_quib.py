@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from functools import partial
-from pytest import mark
+from pytest import mark, fixture
 
 from pyquibbler import iquib, CacheBehavior
 from pyquibbler.env import GRAPHICS_LAZY
@@ -12,6 +12,13 @@ from ...utils import check_invalidation, check_get_value_valid_at_path, MockQuib
 parametrize_data = mark.parametrize('data', [np.arange(24).reshape((2, 3, 4))])
 parametrize_indices_to_invalidate = mark.parametrize('indices_to_invalidate',
                                                      [-1, 0, (0, 0), (0, 1, 2), (0, ...), [True, False]])
+
+
+@fixture
+def temp_axes():
+    ax = plt.gca()
+    yield ax
+    ax.clear()
 
 
 @parametrize_indices_to_invalidate
@@ -146,13 +153,16 @@ def test_vectorize_with_pass_quibs_and_core_dims():
     assert np.array_equal(result.get_value(), np.ones((2, 2)))
 
 
-@mark.xfail
-def test_vectorize_does_not_redraw_valid_artists(mock_artists_collector, mock_axes):
-    # TODO: parametrize pass/not pass quibs
+@mark.parametrize('pass_quibs', [True, False])
+def test_vectorize_does_not_redraw_valid_artists(temp_axes, pass_quibs):
+    # TODO: parametrize pass/not pass quibs, remove otypes
     parent = iquib([[1, 2], [3, 4]])
-    vectorized_plot = np.vectorize(plt.plot, signature='(x)->()', otypes=[np.object], pass_quibs=True)
+    vectorized_plot = np.vectorize(plt.plot, signature='(x)->()', otypes=[np.object], pass_quibs=pass_quibs)
     vectorized_plot(parent)
-    assert len(mock_axes.artists) == 2
+    assert len(temp_axes.lines) == 2
+    ids = list(map(id, temp_axes.lines))
 
     parent[0] = [5, 6]
-    assert len(mock_axes.artists) == 2
+    assert len(temp_axes.lines) == 2
+    assert id(temp_axes.lines[0]) != ids[0]
+    assert id(temp_axes.lines[1]) == ids[1]
