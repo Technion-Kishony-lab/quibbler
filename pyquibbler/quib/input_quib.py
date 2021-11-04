@@ -31,6 +31,11 @@ class InputQuib(Quib):
             if is_there_a_quib_in_object(value, force_recursive=True):
                 raise CannotNestQuibInIQuibException(self)
 
+        from .graphics.quib_guard import is_within_quib_guard, get_current_quib_guard
+        if is_within_quib_guard():
+            quib_guard = get_current_quib_guard()
+            quib_guard.add_allowed_quib(self)
+
     def _get_inner_value_valid_at_path(self, path: List[PathComponent]) -> Any:
         """
         No need to do any calculation, this is an input quib.
