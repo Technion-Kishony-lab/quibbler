@@ -2,18 +2,26 @@ from typing import Optional, List, Any
 
 import numpy as np
 
+from pyquibbler.exceptions import PyQuibblerException
+from pyquibbler.quib.function_quibs.utils import ArgsValues
 from pyquibbler.quib.proxy_quib import ProxyQuib
 from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.function_quibs.indices_translator_function_quib import SupportedFunction
 from pyquibbler.quib.graphics.axiswise_function_quibs.axiswise_function_quib import AxisWiseGraphicsFunctionQuib, Arg
 from pyquibbler.quib.quib import cache_method_until_full_invalidation
+from pyquibbler.quib.utils import copy_and_replace_quibs_with_vals
+
+
+class InputArrToApplyAlongAxisQuibMustBeQuibException(PyQuibblerException):
+    pass
 
 
 def get_shape(arr):
     if isinstance(arr, Quib):
         return arr.get_shape()
     return arr.shape
+
 
 class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
     SUPPORTED_FUNCTIONS = {
@@ -45,11 +53,10 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
     def _get_sample_result(self):
         args_values = self._get_args_values()
         input_array = args_values['arr']
-        # TODO: test when input array isn't quib
         input_array_shape = input_array.get_shape()
         item = tuple([slice(None) if i == self.looping_axis else 0 for i in range(len(input_array_shape))])
         minimized_array = input_array[item]
-        return self.func1d(minimized_array.get_value())
+        return copy_and_replace_quibs_with_vals(self.func1d(minimized_array.get_value_valid_at_path(None)))
 
     @cache_method_until_full_invalidation
     def _get_empty_value_at_correct_shape_and_dtype(self):
@@ -63,8 +70,6 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         sample_result_arr = np.asarray(self._get_sample_result())
         positive_looping_axis = self.looping_axis if self.looping_axis >= 0 else len(input_array_shape) + \
                                                                                  self.looping_axis
-        total_shape_size = len(input_array_shape) + len(sample_result_arr.shape)
-
 
         dims_to_expand = list(range(0, positive_looping_axis))
         dims_to_expand += list(range(-1, -(len(input_array_shape) - positive_looping_axis), -1))
@@ -80,7 +85,10 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
 
     @property
     def arr(self):
-        return self._get_args_values()['arr']
+        arr_ = self._get_args_values()['arr']
+        if not isinstance(arr_, Quib):
+            raise InputArrToApplyAlongAxisQuibMustBeQuibException()
+        return arr_
 
     @property
     def func1d(self):
@@ -106,10 +114,13 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         func_calls = []
         np.apply_along_axis(lambda x: func_calls.append(np.any(x)), axis=self.looping_axis, arr=bool_mask)
 
-        return self.func(self._wrapped_func1d_call,
-                         axis=self.looping_axis,
-                         arr=self.arr.get_value(),
-                         should_run_func_list=func_calls)
+        args, kwargs = self._prepare_args_for_call(valid_path)
+        args_values = ArgsValues.from_function_call(func=self.func, args=args, kwargs=kwargs, include_defaults=False)
+        new_kwargs = args_values.arg_values_by_name
+        new_kwargs['func1d'] = self._wrapped_func1d_call
+        new_kwargs['should_run_func_list'] = func_calls
+
+        return self.func(**new_kwargs)
 
     def _backward_translate_bool_mask(self, args_dict, bool_mask, quib: Quib):
         axis = args_dict.pop('axis')
