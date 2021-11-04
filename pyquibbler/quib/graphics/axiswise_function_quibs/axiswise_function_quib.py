@@ -8,7 +8,8 @@ from pyquibbler.quib.quib import Quib
 
 from pyquibbler.quib.graphics.graphics_function_quib import GraphicsFunctionQuib
 from pyquibbler.quib.assignment import PathComponent
-from pyquibbler.quib.function_quibs.indices_translator_function_quib import IndicesTranslatorFunctionQuib, SupportedFunction
+from pyquibbler.quib.function_quibs.indices_translator_function_quib import IndicesTranslatorFunctionQuib, \
+    SupportedFunction
 
 
 @dataclass

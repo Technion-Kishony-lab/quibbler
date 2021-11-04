@@ -1,4 +1,3 @@
 from .vectorize import VectorizeGraphicsFunctionQuib, QVectorize
 from .apply_along_axis_function_quib import ApplyAlongAxisGraphicsFunctionQuib
 from .axiswise_function_quib import ReductionAxisWiseGraphicsFunctionQuib
-

@@ -12,8 +12,8 @@ from pyquibbler.quib.graphics.global_collecting import ArtistsCollector
 from pyquibbler.quib.graphics.graphics_utils import remove_artist
 from pyquibbler.quib.graphics.graphics_function_quib import GraphicsFunctionQuib
 from pyquibbler.quib.assignment import PathComponent
-from pyquibbler.quib.function_quibs.indices_translator_function_quib import IndicesTranslatorFunctionQuib, SupportedFunction, \
-    Kwargs, Args
+from pyquibbler.quib.function_quibs.indices_translator_function_quib import IndicesTranslatorFunctionQuib, \
+    SupportedFunction, Kwargs, Args
 from pyquibbler.quib.function_quibs.utils import ArgsValues
 from pyquibbler.quib.utils import copy_and_replace_quibs_with_vals
 

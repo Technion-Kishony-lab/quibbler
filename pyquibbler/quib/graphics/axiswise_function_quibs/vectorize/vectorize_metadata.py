@@ -6,7 +6,7 @@ from typing import Any, Dict, Optional, List, Tuple, Union, Callable
 
 from pyquibbler.quib.function_quibs.indices_translator_function_quib import Args, Kwargs
 
-from .utils import Shape, get_core_axes, alter_signature
+from .utils import Shape, get_core_axes
 
 
 @dataclass

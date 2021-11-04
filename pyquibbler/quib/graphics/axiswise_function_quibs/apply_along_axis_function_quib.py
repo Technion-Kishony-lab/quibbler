@@ -4,7 +4,6 @@ import numpy as np
 from numpy import ndindex, s_
 
 
-from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.quib.function_quibs.utils import ArgsValues
 from pyquibbler.quib.graphics import ArtistsCollector
 from pyquibbler.quib.graphics.graphics_utils import remove_artist
@@ -14,17 +13,6 @@ from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.function_quibs.indices_translator_function_quib import SupportedFunction
 from pyquibbler.quib.graphics.axiswise_function_quibs.axiswise_function_quib import AxisWiseGraphicsFunctionQuib, Arg
 from pyquibbler.quib.quib import cache_method_until_full_invalidation
-from pyquibbler.quib.utils import copy_and_replace_quibs_with_vals
-
-
-class InputArrToApplyAlongAxisQuibMustBeQuibException(PyQuibblerException):
-    pass
-
-
-def get_shape(arr):
-    if isinstance(arr, Quib):
-        return arr.get_shape()
-    return arr.shape
 
 
 class ApplyAlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
@@ -84,7 +72,7 @@ class ApplyAlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         """
         input_array_shape = self.arr.get_shape()
         item = tuple([slice(None) if i == self.looping_axis else 0 for i in range(len(input_array_shape))])
-        
+
         if self._pass_quibs:
             input_array = ProxyQuib(self.arr)
         else:
