@@ -189,3 +189,16 @@ def test_apply_along_axis_get_shape_with_args_and_kwargs(quib_with_args_and_kwar
     mock_call = mock_func_for_args_kwargs.mock_calls[0]
     assert mock_call.kwargs == kwargs
     assert mock_call.args[1:] == tuple(args)
+
+
+def test_apply_along_axis_get_shape_with_looping_axis_quib():
+    axis_quib = iquib(0)
+    quib = create_lazy_apply_along_axis_quib(
+        arr=np.array([[1]]),
+        axis=axis_quib,
+        func=lambda x: 1
+    )
+
+    shape = quib.get_shape()
+
+    assert shape == (1,)
