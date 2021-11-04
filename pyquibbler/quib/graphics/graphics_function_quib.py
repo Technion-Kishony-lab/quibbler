@@ -200,6 +200,7 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         Return the function's result.
         """
         self._initialize_artists_ndarr()
+        # This implementation does not support partial calculation
         assert self._artists_ndarr.ndim == 0
         args, kwargs = proxify_args(self.args, self.kwargs) if self._pass_quibs \
             else self._prepare_args_for_call(valid_path)

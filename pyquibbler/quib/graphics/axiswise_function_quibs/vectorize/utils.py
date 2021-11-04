@@ -1,8 +1,11 @@
 from __future__ import annotations
 import numpy as np
-from typing import Tuple, Iterable, Optional, Dict, Union
+from functools import partial
+from typing import Tuple, Iterable, Optional, Dict, Union, Any, Callable
 from string import ascii_letters
 from itertools import islice, chain
+
+from pyquibbler.quib.function_quibs.indices_translator_function_quib import Args, Kwargs
 
 Shape = Tuple[int, ...]
 
@@ -26,11 +29,9 @@ def construct_signature(core_ndims: Iterable[int], result_ndims: Iterable[int]) 
 
 
 def alter_signature(args_metadata, results_core_ndims,
-                    arg_ids_to_new_core_ndims: Optional[Dict[Union[str, int], int]] = None) -> str:
-    assert results_core_ndims is not None
+                    arg_ids_to_new_core_ndims: Optional[Dict[Union[str, int], int]]) -> str:
+    assert results_core_ndims is not None  # TODO
     results_core_ndims = results_core_ndims if isinstance(results_core_ndims, list) else [results_core_ndims]  # TODO
-    if arg_ids_to_new_core_ndims is None:
-        arg_ids_to_new_core_ndims = {}
     args_core_ndims = [arg_ids_to_new_core_ndims.pop(arg_id, arg_meta.core_ndim)
                        for arg_id, arg_meta in args_metadata.items()]
     assert not arg_ids_to_new_core_ndims, f'Invalid arg ids: {set(arg_ids_to_new_core_ndims.keys())}'
@@ -59,3 +60,21 @@ class Indices:
 
 def get_indices_array(shape):
     return np.apply_along_axis(Indices, -1, np.moveaxis(np.indices(shape), 0, -1))
+
+
+def get_sample_arg_core(args_metadata, arg_id: Union[str, int], arg_value: Any) -> Any:
+    meta = args_metadata.get(arg_id)
+    if meta is None:
+        return arg_value
+    # We should only use the loop shape and not the core shape, as the core shape changes with pass_quibs=True
+    return np.asarray(arg_value)[(0,) * meta.loop_ndim]
+
+
+def convert_args_and_kwargs(converter: Callable, args: Args, kwargs: Kwargs):
+    return (tuple(converter(i, val) for i, val in enumerate(args)),
+            {name: converter(name, val) for name, val in kwargs.items()})
+
+
+def get_sample_result(vectorize, args, kwargs, args_metadata):
+    args, kwargs = convert_args_and_kwargs(partial(get_sample_arg_core, args_metadata), args, kwargs)
+    return vectorize.pyfunc(*args, **kwargs)

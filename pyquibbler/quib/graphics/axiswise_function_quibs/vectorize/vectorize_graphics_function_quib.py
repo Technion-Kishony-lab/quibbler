@@ -1,20 +1,21 @@
 from __future__ import annotations
 import numpy as np
-from functools import cached_property, partial
-from typing import Any, Optional, List, Callable, Union, Tuple
+from functools import cached_property
+from typing import Any, Optional, List, Tuple
 
 from pyquibbler.quib.quib import Quib, cache_method_until_full_invalidation
 from pyquibbler.quib.proxy_quib import ProxyQuib
-from pyquibbler.quib.graphics.utils import remove_created_artists
 from pyquibbler.quib.graphics.graphics_function_quib import GraphicsFunctionQuib
 from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.quib.function_quibs.indices_translator_function_quib import IndicesTranslatorFunctionQuib, \
-    SupportedFunction, Kwargs, Args
+    SupportedFunction
 from pyquibbler.quib.function_quibs.utils import ArgsValues
 from pyquibbler.quib.utils import copy_and_replace_quibs_with_vals
 
-from .utils import copy_vectorize, get_core_axes, get_indices_array, iter_arg_ids_and_values, alter_signature
+from .utils import copy_vectorize, get_core_axes, get_indices_array, iter_arg_ids_and_values, alter_signature, \
+    get_sample_result, convert_args_and_kwargs
 from .vectorize_metadata import VectorizeMetadata
+from ...utils import remove_created_artists
 
 
 def get_vectorize_call_data_args(args_values: ArgsValues) -> List[Any]:
@@ -25,11 +26,6 @@ def get_vectorize_call_data_args(args_values: ArgsValues) -> List[Any]:
     """
     vectorize, *args = args_values.args
     return [val for key, val in iter_arg_ids_and_values(args, args_values.kwargs) if key not in vectorize.excluded]
-
-
-def convert_args_and_kwargs(converter: Callable, args: Args, kwargs: Kwargs):
-    return (tuple(converter(i, val) for i, val in enumerate(args)),
-            {name: converter(name, val) for name, val in kwargs.items()})
 
 
 class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunctionQuib):
@@ -95,13 +91,6 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
 
         return copy_vectorize(vectorize, func=wrapper, signature=signature), args, kwargs
 
-    def _get_sample_arg_core(self, args_metadata, arg_id: Union[str, int], arg_value: Any) -> Any:
-        meta = args_metadata.get(arg_id)
-        if meta is None:
-            return arg_value
-        # We should only use the loop shape and not the core shape, as the core shape changes with pass_quibs=True
-        return np.asarray(arg_value)[(0,) * meta.loop_ndim]
-
     def _get_vectorize_call(self, args_metadata, results_core_ndims, valid_path):
         if self._pass_quibs:
             (vectorize, *args), kwargs = self.args, self.kwargs
@@ -113,9 +102,8 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
 
     def _get_sample_result(self, args_metadata, results_core_ndims):
         vectorize, args, kwargs = self._get_vectorize_call(args_metadata, results_core_ndims, None)
-        args, kwargs = convert_args_and_kwargs(partial(self._get_sample_arg_core, args_metadata), args, kwargs)
         with remove_created_artists():
-            return vectorize.pyfunc(*args, **kwargs)
+            return get_sample_result(vectorize, args, kwargs, args_metadata)
 
     @property
     @cache_method_until_full_invalidation
@@ -174,6 +162,8 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
                 for quib in self._get_data_source_quibs()}
 
     def _get_loop_shape(self) -> Tuple[int, ...]:
+        if self._vectorize_metadata.is_result_a_tuple:
+            return ()
         return self._vectorize_metadata.result_loop_shape
 
     def _wrap_vectorize_call_to_calc_only_needed(self, vectorize, args, kwargs, valid_path, otypes):
@@ -207,15 +197,14 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
         return vectorize, (*args_to_add, *args), kwargs
 
     def _call_func(self, valid_path: Optional[List[PathComponent]]):
-        self._initialize_artists_ndarr()  # TODO
+        self._initialize_artists_ndarr()
         vectorize_metadata = self._vectorize_metadata
         if vectorize_metadata.is_result_a_tuple:
-            import pytest
-            pytest.skip()  # TODO
+            return super()._call_func(valid_path)
         if valid_path is None:
             return np.zeros(vectorize_metadata.result_shape, dtype=vectorize_metadata.result_dtype)
         vectorize, args, kwargs = self._get_vectorize_call(vectorize_metadata.args_metadata,
-                                                           vectorize_metadata._result_core_ndims, valid_path)  # TODO _
+                                                           vectorize_metadata.result_or_results_core_ndims, valid_path)
         vectorize, args, kwargs = self._wrap_vectorize_call_to_calc_only_needed(vectorize, args, kwargs, valid_path,
                                                                                 vectorize_metadata.otypes)
         # If we pass quibs to the wrapper, we will create a new graphics quib, so we use the original vectorize

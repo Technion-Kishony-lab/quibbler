@@ -6,7 +6,7 @@ from typing import Any, Dict, Optional, List, Tuple, Union, Callable
 
 from pyquibbler.quib.function_quibs.indices_translator_function_quib import Args, Kwargs
 
-from .utils import Shape, get_core_axes
+from .utils import Shape, get_core_axes, get_sample_result
 
 
 @dataclass
@@ -40,12 +40,12 @@ class VectorizeMetadata:
     result_loop_shape: Shape
 
     _is_result_a_tuple: Optional[bool]
-    _result_core_ndims: Optional[Union[int, List[int]]]
+    _results_core_ndims: Optional[List[int]]
     _result_dtypes: Optional[List[np.dtype]]
-    _result_core_shapes: Optional[Union[Shape, List[Shape]]] = None
+    _results_core_shapes: Optional[List[Shape]] = None
 
     def _run_sample_and_update_metadata(self):
-        sample_result = self._get_sample_result(self.args_metadata, self._result_core_ndims)
+        sample_result = self._get_sample_result(self.args_metadata, self._results_core_ndims)
 
         # update _is_result_a_tuple
         is_tuple = isinstance(sample_result, tuple)
@@ -54,16 +54,16 @@ class VectorizeMetadata:
         else:
             assert self._is_result_a_tuple == is_tuple
 
-        # update _result_core_shapes
-        assert self._result_core_shapes is None
-        self._result_core_shapes = list(map(np.shape, sample_result)) if is_tuple else np.shape(sample_result)
+        # update _results_core_shapes
+        assert self._results_core_shapes is None
+        self._results_core_shapes = list(map(np.shape, sample_result)) if is_tuple else [np.shape(sample_result)]
 
-        # update _result_core_ndims
-        result_core_ndims = list(map(len, self._result_core_shapes)) if is_tuple else len(self._result_core_shapes)
-        if self._result_core_ndims is None:
-            self._result_core_ndims = result_core_ndims
+        # update _results_core_ndims
+        results_core_ndims = list(map(len, self._results_core_shapes))
+        if self._results_core_ndims is None:
+            self._results_core_ndims = results_core_ndims
         else:
-            assert self._result_core_ndims == result_core_ndims
+            assert self._results_core_ndims == results_core_ndims
 
         # update _result_dtypes
         result_dtypes = [np.asarray(result).dtype for result in (sample_result if is_tuple else (sample_result,))]
@@ -80,17 +80,23 @@ class VectorizeMetadata:
 
     @property
     def results_core_ndims(self) -> List[int]:
-        if self._result_core_ndims is None:
+        if self._results_core_ndims is None:
             self._run_sample_and_update_metadata()
         assert self._is_result_a_tuple is True
-        return self._result_core_ndims
+        return self._results_core_ndims
 
     @property
     def result_core_ndim(self) -> int:
-        if self._result_core_ndims is None:
+        if self._results_core_ndims is None:
             self._run_sample_and_update_metadata()
         assert self._is_result_a_tuple is False
-        return self._result_core_ndims
+        return self._results_core_ndims[0]
+
+    @property
+    def result_or_results_core_ndims(self) -> List[int]:
+        if self._results_core_ndims is None:
+            self._run_sample_and_update_metadata()
+        return self._results_core_ndims
 
     @property
     def result_core_axes(self) -> Tuple[int, ...]:
@@ -98,13 +104,12 @@ class VectorizeMetadata:
 
     @property
     def result_core_shape(self) -> Shape:
-        ndim = self.result_core_ndim
-        if ndim == 0:
+        if self.result_core_ndim == 0:
             return ()
-        if self._result_core_shapes is None:
+        if self._results_core_shapes is None:
             self._run_sample_and_update_metadata()
         assert not self.is_result_a_tuple
-        return self._result_core_shapes
+        return self._results_core_shapes[0]
 
     @property
     def result_shape(self) -> Shape:
@@ -135,19 +140,19 @@ class VectorizeMetadata:
         return len(self.result_dtypes)
 
     @classmethod
-    def _get_args_and_result_core_ndims(cls, vectorize: np.vectorize, args: Args, kwargs: Kwargs):
+    def _get_args_and_results_core_ndims(cls, vectorize: np.vectorize, args: Args, kwargs: Kwargs):
         num_not_excluded = len((set(range(len(args))) | set(kwargs)) - vectorize.excluded)
         if vectorize._in_and_out_core_dims is None:
             args_core_ndims = [0] * num_not_excluded
-            result_core_ndims = None
+            results_core_ndims = None
             is_tuple = None
         else:
             in_core_dims, out_core_dims = vectorize._in_and_out_core_dims
             args_core_ndims = list(map(len, in_core_dims))
             assert len(args_core_ndims) == num_not_excluded  # TODO: exception
             is_tuple = len(out_core_dims) > 1
-            result_core_ndims = list(map(len, out_core_dims)) if is_tuple else len(out_core_dims[0])
-        return args_core_ndims, result_core_ndims, is_tuple
+            results_core_ndims = list(map(len, out_core_dims))
+        return args_core_ndims, results_core_ndims, is_tuple
 
     @classmethod
     def _get_args_metadata(cls, vectorize, args: Args, kwargs: Kwargs, args_core_ndims):
@@ -161,12 +166,16 @@ class VectorizeMetadata:
         return args_metadata
 
     @classmethod
-    def from_vectorize_call(cls, vectorize: np.vectorize, args: Args, kwargs: Kwargs, get_sample_result):
-        args_core_ndims, result_core_ndims, is_tuple = cls._get_args_and_result_core_ndims(vectorize, args, kwargs)
+    def from_vectorize_call(cls, vectorize: np.vectorize, args: Args, kwargs: Kwargs, sample_result_callback=None):
+        args_core_ndims, results_core_ndims, is_tuple = cls._get_args_and_results_core_ndims(vectorize, args, kwargs)
         args_metadata = cls._get_args_metadata(vectorize, args, kwargs, args_core_ndims)
         # Calculate the result shape like done in np.function_base._parse_input_dimensions
         dummy_arrays = [np.lib.stride_tricks.as_strided(0, arg_metadata.loop_shape)
                         for arg_metadata in args_metadata.values()]
         result_loop_shape = np.lib.stride_tricks._broadcast_shape(*dummy_arrays)
         result_dtypes = None if vectorize.otypes is None else list(map(np.dtype, vectorize.otypes))
-        return cls(get_sample_result, args_metadata, result_loop_shape, is_tuple, result_core_ndims, result_dtypes)
+        if sample_result_callback is None:
+            sample_result_callback = lambda args_metadata, results_core_ndims: get_sample_result(vectorize, args,
+                                                                                                 kwargs, args_metadata)
+        return cls(sample_result_callback, args_metadata, result_loop_shape, is_tuple, results_core_ndims,
+                   result_dtypes)
