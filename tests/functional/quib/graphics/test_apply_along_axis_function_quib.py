@@ -104,5 +104,4 @@ def test_apply_along_axis_returning_quib():
 
     res = quib.get_value()
 
-    assert res == 1
-    assert func.call_count == current_call_count + 1
+    assert res == [100]
