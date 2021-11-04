@@ -1,4 +1,4 @@
-from typing import Optional, List, Any
+from typing import Optional, List, Any, Callable
 
 import numpy as np
 
@@ -75,9 +75,6 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
     def _get_empty_value_at_correct_shape_and_dtype(self):
 
         # TODO: support pass quibs
-        # TODO: support kwargs args
-        # TODO: test ndarray returned
-        # TODO: loop_axis is quib
 
         input_array_shape = self.arr.get_shape()
         sample_result_arr = np.asarray(self._get_sample_result())
@@ -93,22 +90,22 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         return np.array(np.broadcast_to(expanded, new_shape))
 
     @property
-    def looping_axis(self):
+    def looping_axis(self) -> int:
         axis = self._get_args_values()['axis']
         if isinstance(axis, Quib):
-            # since this is a Parameter quib, we always need it valid
+            # since this is a parameter quib, we always need it completely valid in order to run anything
             return axis.get_value()
         return axis
 
     @property
-    def arr(self):
+    def arr(self) -> Quib:
         arr_ = self._get_args_values()['arr']
         if not isinstance(arr_, Quib):
             raise InputArrToApplyAlongAxisQuibMustBeQuibException()
         return arr_
 
     @property
-    def func1d(self):
+    def func1d(self) -> Callable:
         return self._get_args_values()['func1d']
 
     def _wrapped_func1d_call(self, arr, should_run_func_list, args=None, kwargs=None):

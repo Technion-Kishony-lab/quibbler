@@ -111,8 +111,8 @@ def test_apply_along_axis_get_value(input_shape, apply_result_shape, axis, compo
     func = get_func_mock(apply)
     arr = np.arange(np.prod(input_shape)).reshape(input_shape)
     quib = create_lazy_apply_along_axis_quib(arr=arr, func=func, axis=axis)
-    quib.get_shape()  # We need to call get_shape as get_shape is a zero cost operation overall and is allowed to be
-    # called without consequence by the quib
+    quib.get_shape()  # We need to call get_shape to cache it as get_shape is a zero cost operation in overall scheme
+    # and is allowed to be called without consequence by the quib
     path = [PathComponent(component=component, indexed_cls=np.ndarray) for component in components]
 
     collecting = True
@@ -123,7 +123,6 @@ def test_apply_along_axis_get_value(input_shape, apply_result_shape, axis, compo
     expected_result = get_sub_data_from_object_in_path(whole_apply_axis_result, path)
     res_at_components = get_sub_data_from_object_in_path(res, path)
     assert np.array_equal(res_at_components, expected_result)
-
     assert_all_apply_calls_with_slices_were_relevant(
         func=func,
         axis=axis,
