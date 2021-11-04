@@ -53,10 +53,10 @@ NON_QUIB_OVERRIDES = [
 NUMPY_OVERRIDES = [
     (np, [
         (DefaultFunctionQuib, {"abs", "arange", "polyfit",
-                               "linspace", "polyval", "array", "genfromtxt", 'prod', 'corrcoef', 'mean'}),
+                               "linspace", "polyval", "genfromtxt", 'prod', 'corrcoef', 'mean'}),
         (GraphicsFunctionQuib, {'apply_over_axes'}),
         (TranspositionalFunctionQuib, {'reshape', 'rot90', 'ravel', 'concatenate', 'repeat', 'full', 'concatenate',
-                                       'squeeze'}),
+                                       'squeeze', 'array', 'swapaxes'}),
         (ElementWiseFunctionQuib, {'add', 'square', "sin", "cos", "tan", "sinh", "cosh", "tanh", "real", "imag",
                                    "arcsin", "arccos", "arctan", "arcsinh", "arccosh", "arctanh",
                                    "exp", "exp2", "expm1", "log", "log2", "log1p", "log10",

@@ -288,3 +288,12 @@ def test_inverse_with_resulting_int_and_changing_value_shape():
     b[:, :] = 0
 
     assert np.array_equal(a.get_value(), np.full((2, 3), fill_value=0))
+
+
+def test_inverse_np_array():
+    a = iquib([[1, 2, 3, 4]])
+    b = np.array(a)
+
+    b[(0, 0)] = 20
+
+    assert a[0][0].get_value() == 20

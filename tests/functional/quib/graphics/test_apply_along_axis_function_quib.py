@@ -49,17 +49,24 @@ def create_lazy_apply_along_axis_quib(func, arr, axis, args=None, kwargs=None, p
         for dimensions in itertools.product(*[range(1, 4) for _ in range(shape_size)])
         for res in [1, np.arange(9).reshape((3, 3)), None]
 ])
-def test_apply_along_axis_get_shape(shape, axis, func1d_res):
+@mark.parametrize('pass_quibs', [True, False])
+def test_apply_along_axis_get_shape(shape, axis, func1d_res, pass_quibs):
     func = get_func_mock(lambda x: func1d_res)
     arr = np.arange(np.prod(shape)).reshape(shape)
-    quib = create_lazy_apply_along_axis_quib(func=func, arr=arr, axis=axis)
+    quib = create_lazy_apply_along_axis_quib(func=func, arr=arr, axis=axis, pass_quibs=pass_quibs)
     expected_input_arr = arr[tuple([slice(None) if i == axis else 0 for i in range(len(arr.shape))])]
 
     res = quib.get_shape()
 
     assert func.call_count == 1
     call = func.mock_calls[0]
-    assert np.array_equal(call.args[0], expected_input_arr)
+    oned_slice = call.args[0]
+    if pass_quibs:
+        assert isinstance(oned_slice, Quib)
+        oned_slice = oned_slice.get_value()
+    else:
+        assert not isinstance(oned_slice, Quib)
+    assert np.array_equal(oned_slice, expected_input_arr)
     assert res == np.apply_along_axis(func, axis=axis, arr=arr).shape
 
 
@@ -90,6 +97,8 @@ def assert_all_apply_calls_with_slices_were_relevant(func, axis, input_arr, path
             assert not np.array_equal(new_result_at_path, current_result )
 
 
+
+
 @mark.parametrize('input_shape, apply_result_shape, axis, components', [
         (tuple(input_dimensions), tuple(apply_dimensions), axis, components)
         for input_shape_size in range(0, 3)
@@ -99,27 +108,34 @@ def assert_all_apply_calls_with_slices_were_relevant(func, axis, input_arr, path
         for apply_dimensions in [[], *itertools.product(*[range(1, 3) for _ in range(apply_result_shape_size)])]
         for components in get_sample_indexing_paths(tuple(input_dimensions), tuple(apply_dimensions), axis)
 ])
-def test_apply_along_axis_get_value(input_shape, apply_result_shape, axis, components):
+@mark.parametrize('pass_quibs', [True, False])
+def test_apply_along_axis_get_value(input_shape, apply_result_shape, axis, components, pass_quibs):
     assert len(components) <= 1, "Sanity: No support for testing multiple components (also irrelevant)"
     slices = []
-    collecting = False
+    running_in_quib = False
 
     def apply(oned_slice):
-        if collecting:
+        if running_in_quib:
+            if pass_quibs:
+                assert isinstance(oned_slice, Quib)
+                oned_slice = oned_slice.get_value()
+            else:
+                assert not isinstance(oned_slice, Quib)
+
             slices.append(oned_slice)
         return np.full(apply_result_shape, np.sum(oned_slice))
 
     func = get_func_mock(apply)
     arr = np.arange(np.prod(input_shape)).reshape(input_shape)
-    quib = create_lazy_apply_along_axis_quib(arr=arr, func=func, axis=axis)
+    quib = create_lazy_apply_along_axis_quib(arr=arr, func=func, axis=axis, pass_quibs=pass_quibs)
     quib.get_shape()  # We need to call get_shape to cache it as get_shape is a zero cost operation in overall scheme
     # and is allowed to be called without consequence by the quib
     path = [PathComponent(component=component, indexed_cls=np.ndarray) for component in components]
+    running_in_quib = True
 
-    collecting = True
     res = quib.get_value_valid_at_path(path)
-    collecting = False
 
+    running_in_quib = False
     whole_apply_axis_result = np.apply_along_axis(func, axis=axis, arr=arr)
     expected_result = get_sub_data_from_object_in_path(whole_apply_axis_result, path)
     res_at_components = get_sub_data_from_object_in_path(res, path)
@@ -215,7 +231,7 @@ def test_apply_along_axis_get_shape_with_list():
     assert quib.get_shape() == (2,)
 
 
-def test_apply_along_axis_get_value_with_passing_quibs():
+def test_apply_along_axis_get_shape_with_passing_quibs():
     arr_quib = iquib([[1], [2]])
     func_mock = get_func_mock(lambda x: 1)
     quib = create_lazy_apply_along_axis_quib(

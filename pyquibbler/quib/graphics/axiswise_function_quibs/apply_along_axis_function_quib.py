@@ -1,6 +1,8 @@
 from typing import Optional, List, Any, Callable
 
 import numpy as np
+from numpy import ndindex, s_
+
 
 from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.quib.function_quibs.utils import ArgsValues
@@ -68,16 +70,13 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
 
     @cache_method_until_full_invalidation
     def _get_sample_result(self):
-        args_values = self._get_args_values()
-        input_array = args_values['arr']
-        input_array = np.array(input_array)
-        input_array_shape = input_array.get_shape()
+        input_array_shape = self.arr.get_shape()
         item = tuple([slice(None) if i == self.looping_axis else 0 for i in range(len(input_array_shape))])
         
         if self._pass_quibs:
-            input_array = ProxyQuib(input_array)
+            input_array = ProxyQuib(self.arr)
         else:
-            input_array = input_array.get_value_valid_at_path([PathComponent(component=item,
+            input_array = self.arr.get_value_valid_at_path([PathComponent(component=item,
                                                                              indexed_cls=np.ndarray)])
 
         oned_slice = input_array[item]
@@ -118,10 +117,14 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
 
     @property
     def arr(self) -> Quib:
+        from pyquibbler import q
         arr_ = self._get_args_values()['arr']
         if not isinstance(arr_, Quib):
             raise InputArrToApplyAlongAxisQuibMustBeQuibException()
-        return arr_
+        # ensure we're dealing with an ndarray- because we're not always running apply_along_axis which takes care of
+        # this for us (for example, when getting a sample result) we do this on any access to the array to ensure no
+        # issues if we were passed a list
+        return q(np.array, arr_)
 
     @property
     def func1d(self) -> Callable:
@@ -132,12 +135,32 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
             return self._run_func1d(arr, *(args or []), **(kwargs or {}))
         return self._get_sample_result()
 
-    def _run_with_pass_quibs(self):
-        pass
+    def _run_with_pass_quibs(self, component):
+        looping_axis = self.looping_axis if self.looping_axis >= 0 else len(self.arr.get_shape()) + self.looping_axis
+        ni, nk = self.arr.get_shape()[:looping_axis], self.arr.get_shape()[looping_axis + 1:]
+        out = self.get_value_valid_at_path(None)
+        args_values = ArgsValues.from_function_call(func=self.func, args=self.args, kwargs=self.kwargs,
+                                                    include_defaults=False)
+        args_by_name = args_values.arg_values_by_name
+        bool_mask = self._get_bool_mask_representing_indices_in_result(component)
+        for ii in ndindex(ni):
+            for kk in ndindex(nk):
+                component = ii + s_[..., ] + kk
+                if np.any(bool_mask[component]):
+                    res = self._run_func1d(ProxyQuib(self.arr[ii + s_[:, ] + kk]),
+                                                            *args_by_name.get('args', []),
+                                                            **args_by_name.get('kwargs', {}))
+                else:
+                    res = self._get_sample_result()
+
+                out[component] = res
+        return out
 
     def _call_func(self, valid_path: Optional[List[PathComponent]]) -> Any:
         if valid_path is None:
             return self._get_empty_value_at_correct_shape_and_dtype()
+
+        # TODO: how to kill artists correctly..
 
         self._initialize_artists_ndarr()  # TODO
 
@@ -156,8 +179,8 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         values_by_name['should_run_func_list'] = func_calls
 
         if self._pass_quibs:
-            # run yourself
-            pass
+            return self._run_with_pass_quibs(indices)
+
         return self.func(**values_by_name)
 
     def _backward_translate_bool_mask(self, args_dict, bool_mask, quib: Quib):
