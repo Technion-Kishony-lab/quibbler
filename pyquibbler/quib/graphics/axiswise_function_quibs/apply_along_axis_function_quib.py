@@ -94,7 +94,11 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
 
     @property
     def looping_axis(self):
-        return self._get_args_values()['axis']
+        axis = self._get_args_values()['axis']
+        if isinstance(axis, Quib):
+            # since this is a Parameter quib, we always need it valid
+            return axis.get_value()
+        return axis
 
     @property
     def arr(self):
