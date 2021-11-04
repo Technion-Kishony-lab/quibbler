@@ -75,6 +75,19 @@ def get_sample_indexing_paths(input_shape, apply_shape, axis):
     return paths
 
 
+def assert_all_apply_calls_with_slices_were_relevant(func, axis, input_arr, path, applied_slices):
+    whole_result = np.apply_along_axis(func, axis=axis, arr=input_arr)
+    current_result = get_sub_data_from_object_in_path(whole_result, path)
+
+    for slice_ in applied_slices:
+        for num in np.ravel(slice_):
+            new_arr = np.array(input_arr)
+            new_arr[new_arr == num] = 999
+            new_result = np.apply_along_axis(func, axis=axis, arr=new_arr)
+            new_result_at_path = get_sub_data_from_object_in_path(new_result, path)
+            assert not np.array_equal(new_result_at_path, current_result )
+
+
 @mark.parametrize('input_shape, apply_result_shape, axis, components', [
         (tuple(input_dimensions), tuple(apply_dimensions), axis, components)
         for input_shape_size in range(0, 3)
@@ -110,14 +123,13 @@ def test_apply_along_axis_get_value(input_shape, apply_result_shape, axis, compo
     res_at_components = get_sub_data_from_object_in_path(res, path)
     assert np.array_equal(res_at_components, expected_result)
 
-    # make sure all slices gotten were relevant
-    for slice_ in slices:
-        for num in np.ravel(slice_):
-            new_arr = np.array(arr)
-            new_arr[new_arr == num] = 999
-            new_result = np.apply_along_axis(func, axis=axis, arr=new_arr)
-            new_result_at_path = get_sub_data_from_object_in_path(new_result, path)
-            assert not np.array_equal(new_result_at_path, expected_result)
+    assert_all_apply_calls_with_slices_were_relevant(
+        func=func,
+        axis=axis,
+        input_arr=arr,
+        applied_slices=slices,
+        path=path
+    )
 
 
 def test_apply_along_axis_returning_quib():

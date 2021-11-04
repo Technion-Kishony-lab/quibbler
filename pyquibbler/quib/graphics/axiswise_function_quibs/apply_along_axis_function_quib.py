@@ -67,7 +67,6 @@ class AlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
     @cache_method_until_full_invalidation
     def _get_empty_value_at_correct_shape_and_dtype(self):
 
-        # TODO: support returned quib
         # TODO: support pass quibs
         # TODO: support kwargs args
         # TODO: test ndarray returned
