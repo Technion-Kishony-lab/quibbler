@@ -3,6 +3,7 @@ import itertools
 from typing import Callable, Any
 
 import numpy as np
+import pytest
 from pytest import mark
 
 from pyquibbler import iquib
@@ -35,9 +36,9 @@ def test_apply_along_axis_get_value_valid_at_path(indices_to_get_value_at, axis,
     check_get_value_valid_at_path(lambda quib: np.apply_along_axis(func1d, axis, quib), data, path_to_get_value_at)
 
 
-def create_lazy_apply_along_axis_quib(func, arr, axis):
+def create_lazy_apply_along_axis_quib(func, arr, axis, args=None, kwargs=None):
     with GRAPHICS_LAZY.temporary_set(True):
-        return np.apply_along_axis(func, axis=axis, arr=iquib(arr))
+        return np.apply_along_axis(func, axis, iquib(arr), *(args or []), **(kwargs or {}))
 
 
 @mark.parametrize('shape, axis, func1d_res', [
@@ -143,3 +144,48 @@ def test_apply_along_axis_returning_quib():
     res = quib.get_value()
 
     assert np.array_equal(res, expected_res)
+
+
+@pytest.fixture
+def mock_func_for_args_kwargs():
+    return get_func_mock(lambda x, *_, **__: 1)
+
+
+@pytest.fixture
+def args():
+    return [11, 1, 1]
+
+
+@pytest.fixture
+def kwargs():
+    return {
+        'funtimes': 1
+    }
+
+
+@pytest.fixture
+def quib_with_args_and_kwargs(mock_func_for_args_kwargs, args, kwargs):
+    return create_lazy_apply_along_axis_quib(func=mock_func_for_args_kwargs,
+                                             arr=np.array([[1]]),
+                                             axis=0,
+                                             args=args,
+                                             kwargs=kwargs)
+
+
+def test_apply_along_axis_get_value_with_args_and_kwargs(quib_with_args_and_kwargs, mock_func_for_args_kwargs,
+                                                         args, kwargs):
+    quib_with_args_and_kwargs.get_value()
+
+    mock_call = mock_func_for_args_kwargs.mock_calls[-1]
+    assert mock_call.kwargs == kwargs
+    assert mock_call.args == args
+
+
+def test_apply_along_axis_get_shape_with_args_and_kwargs(quib_with_args_and_kwargs, mock_func_for_args_kwargs,
+                                                         args, kwargs):
+    quib_with_args_and_kwargs.get_shape()
+
+    assert len(mock_func_for_args_kwargs.mock_calls) == 1
+    mock_call = mock_func_for_args_kwargs.mock_calls[0]
+    assert mock_call.kwargs == kwargs
+    assert mock_call.args == args
