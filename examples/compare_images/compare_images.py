@@ -1,7 +1,6 @@
 # THIS DEMO DOES NOT WORK 100%
-import weakref
-
 import numpy as np
+from functools import partial
 from matplotlib import pyplot as plt, widgets
 from mpl_toolkits.axes_grid1 import ImageGrid
 
@@ -10,24 +9,32 @@ from pyquibbler import iquib, override_all, q, quibbler_user_function
 override_all()
 
 
-@quibbler_user_function(lazy=False, pass_quibs=True)
+@partial(np.vectorize, signature='(extents),()->()', pass_quibs=True)
 def create_roi(roi, axes):
     print("Creating ROI")
-    widgets.RectangleSelector(axes, extents=roi)
+    widgets.RectangleSelector(axes, extents=roi, allow_resize=False)
 
 
-@quibbler_user_function(lazy=False)
+@partial(np.vectorize, signature='(w,h,c),(extents)->(w2,h2,c)')
 def cut_image(image, roi):
     print("Cutting image")
-    im = image[roi[2]:roi[3], roi[0]:roi[1]]
-    return im
+    return image[roi[2]:roi[3], roi[0]:roi[1]]
 
 
-@quibbler_user_function(lazy=False)
+@partial(np.vectorize, signature='(w,h,c),(w,h,c)->()')
 def image_distance(img1, img2):
     print("Comparing images")
-    res = np.linalg.norm(np.average(img1, axis=(0, 1)) - np.average(img2, axis=(0, 1))) / 255
-    return res
+    return np.linalg.norm(np.average(img1, axis=(0, 1)) - np.average(img2, axis=(0, 1))) / 255
+
+
+@np.vectorize
+def show_adjacency(x, y, adjacent):
+    print(x, y, adjacent)
+    plt.scatter(x, y,
+                s=adjacent * 100 + 1,
+                marker='x',
+                color='r',
+                linewidths=2)
 
 
 file_name = iquib('./pipes.jpg')
@@ -43,9 +50,8 @@ rois = np.repeat(roi_default, images_count, axis=0)
 rois.set_assignment_template(0, 1000, 1)
 rois.allow_overriding = True
 
-rois_itered = list(rois.iter_first(images_count.get_value()))
 similiarity_threshold = iquib(.1)
-cut_images_lst = [cut_image(image, roi) for roi in rois_itered]
+cut_images = cut_image(image, rois)
 
 
 def create_figure_1():
@@ -53,8 +59,7 @@ def create_figure_1():
     plt.axes([.1, .2, .8, .7])
     plt.imshow(image, aspect="auto")
 
-    for roi in rois_itered:
-        create_roi(roi, plt.gca())
+    create_roi(rois, plt.gca())
 
     axfreq = plt.axes([0.25, 0.1, 0.65, 0.03])
     widgets.Slider(
@@ -80,43 +85,32 @@ def create_figure_1():
 def create_figure_2():
     # Plot images
     fig = plt.figure(2)
-    grid = ImageGrid(fig, 111,  # similar to subplot(111)
-                     nrows_ncols=(3, 3),  # creates 2x2 grid of axes
-                     axes_pad=0.1,  # pad between axes in inch.
-                     )
+    # TODO: support list
+    grid_axes = iquib(np.array(list(ImageGrid(fig, 111,  # similar to subplot(111)
+                                              nrows_ncols=(2, 3),  # creates 2x2 grid of axes
+                                              axes_pad=0.1,  # pad between axes in inch.
+                                              ))))
 
-    for ax, im in zip(grid, cut_images_lst):
-        # Iterating over the grid returns the Axes.
-        ax.imshow(im)
+    np.vectorize(lambda ax, im: ax.imshow(im), signature='(),(w,h,c)->()')(grid_axes[:images_count], cut_images)
 
 
 def create_figure_3():
     # Compare sub images
-    image_distances = np.array([[image_distance(img1, img2) for img2 in cut_images_lst] for img1 in cut_images_lst])
+    image_distances = image_distance(np.expand_dims(cut_images, 1), cut_images)
     adjacents = image_distances < similiarity_threshold
 
     # Plot distance matrix
     plt.figure(3)
-    plt.axis([0.5, images_count+0.5, 0.5, images_count+0.5 ])
+    plt.axis([-0.5, images_count - 0.5, -0.5, images_count - 0.5])
     plt.title('pairwise distance between images')
     plt.xlabel('Image number')
     plt.ylabel('Image number')
 
-
-    #
-    for i in range(1, images_count.get_value() + 1):
-        adjacents_for_image = adjacents[i - 1]
-        ss = [(adjacents_for_image[i] * 100 + 1) for i in range(images_count.get_value())]
-        plt.scatter(list(range(1, images_count.get_value() + 1)), np.repeat([i], images_count),
-                    s=ss,
-                    marker='x',
-                    color='r',
-                    linewidths=2)
+    show_adjacency(np.expand_dims(np.arange(images_count), 1), np.arange(images_count), adjacents)
 
 
 create_figure_1()
 create_figure_2()
 create_figure_3()
-
 
 plt.show(block=True)
