@@ -1,14 +1,29 @@
 # THIS DEMO DOES NOT WORK 100%
 import math
+import weakref
 
 import numpy as np
 from functools import partial
+
+import objgraph
 from matplotlib import pyplot as plt, widgets
+from matplotlib.widgets import AxesWidget
 from mpl_toolkits.axes_grid1 import ImageGrid
 
 from pyquibbler import iquib, override_all, q, quibbler_user_function
 
 override_all()
+
+axes_widgets = []
+prev = AxesWidget.__init__
+
+
+def wrap_and_save(obj, *args, **kwargs):
+    axes_widgets.append(weakref.ref(obj))
+    return prev(obj, *args, **kwargs)
+
+
+AxesWidget.__init__ = wrap_and_save
 
 
 @partial(np.vectorize, signature='(extents),()->()', pass_quibs=True)
@@ -113,4 +128,7 @@ create_figure_1()
 create_figure_2()
 create_figure_3()
 
-plt.show(block=True)
+def save():
+    objgraph.show_backrefs(axes_widgets[0](), filename='aa.png', max_depth=10)
+
+plt.show(block=False)

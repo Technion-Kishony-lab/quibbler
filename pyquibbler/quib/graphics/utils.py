@@ -92,10 +92,12 @@ def track_artist(artist: Artist):
 
 
 @contextmanager
-def remove_created_artists():
+def remove_created_graphics():
     with ArtistsCollector() as collector, AxesWidgetsCollector() as widgets_collector:
         yield
     for artist in collector.objects_collected:
         remove_artist(artist)
+
     for widget in widgets_collector.objects_collected:
         widget.set_active(False)
+        widget.set_visible(False)

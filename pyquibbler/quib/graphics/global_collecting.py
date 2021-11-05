@@ -2,6 +2,7 @@ from __future__ import annotations
 import contextlib
 import functools
 import threading
+import weakref
 from abc import ABCMeta, ABC
 from typing import List, Callable, Type
 from matplotlib.artist import Artist

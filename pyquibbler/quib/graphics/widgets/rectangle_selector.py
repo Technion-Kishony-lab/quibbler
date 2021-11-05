@@ -37,9 +37,13 @@ class QRectangleSelector(RectangleSelector):
         if onselect is None:
             onselect = lambda *args, **kwargs: None
         super().__init__(ax, onselect, interactive=interactive, **kwargs)
+        self.allow_resize = allow_resize
         if extents is not None:
             self.extents = extents
-        self.allow_resize = allow_resize
+        self._should_deactivate_after_release = False
+
+    def set_should_deactivate_after_release(self):
+        self._should_deactivate_after_release = True
 
     def is_current_event_a_move_event(self):
         return 'move' in self.state or self.active_handle == 'C'
@@ -60,6 +64,11 @@ class QRectangleSelector(RectangleSelector):
             if self.event_is_relevant_to_current_selector() and current_selector.val is self:
                 release_result = super()._release(event)
                 current_selector.val = None
+
+                if self._should_deactivate_after_release:
+                    self.set_active(False)
+                    self.set_visible(False)
+
                 return release_result
 
     @property
@@ -80,10 +89,31 @@ class RectangleSelectorGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
     """
     WIDGET_CLS = RectangleSelector
 
+    def _widget_is_attempting_to_resize_when_not_allowed(self, extents):
+        """
+        There is a bug in the matplotlib widget that causes it to sometimes give incorrect extents,
+        and attempt to resize even when the user did not request to resize- we here check if the widget attempted to
+        resize when it should not have been able to
+        """
+        init_val = self._get_args_values().get('extents')
+        allow_resize = self._get_args_values().get('allow_resize')
+        if isinstance(init_val, Quib):
+            previous_value = init_val.get_value()
+        else:
+            previous_value = self.get_value().extents
+
+        return not allow_resize and (
+                previous_value[1] - previous_value[0] != extents[1] - extents[0] or
+                previous_value[3] - previous_value[2] != extents[3] - extents[2]
+        )
+
     def _on_changed(self, extents):
         init_val = self._get_args_values().get('extents')
+
         with timer("selector_change", lambda x: logger.info(f"selector change {x}")):
             if isinstance(init_val, Quib):
+                if self._widget_is_attempting_to_resize_when_not_allowed(extents):
+                    return
                 init_val[:] = extents
             else:
                 # We only need to invalidate children if we didn't assign

@@ -15,7 +15,7 @@ from pyquibbler.quib.utils import copy_and_replace_quibs_with_vals
 from .utils import copy_vectorize, get_core_axes, get_indices_array, iter_arg_ids_and_values, alter_signature, \
     get_sample_result, convert_args_and_kwargs
 from .vectorize_metadata import VectorizeMetadata
-from ...utils import remove_created_artists
+from ...utils import remove_created_graphics
 
 
 def get_vectorize_call_data_args(args_values: ArgsValues) -> List[Any]:
@@ -102,7 +102,7 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
 
     def _get_sample_result(self, args_metadata, results_core_ndims):
         vectorize, args, kwargs = self._get_vectorize_call(args_metadata, results_core_ndims, None)
-        with remove_created_artists():
+        with remove_created_graphics():
             return get_sample_result(vectorize, args, kwargs, args_metadata)
 
     @property
@@ -181,13 +181,13 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
         pyfunc = vectorize.pyfunc
         empty_result = np.zeros(self._vectorize_metadata.result_core_shape, dtype=self._vectorize_metadata.result_dtype)
 
-        def wrapper(artists_set, should_run, *args, **kwargs):
+        def wrapper(graphics_collection, should_run, *args, **kwargs):
             if should_run:
-                with self._call_func_context(artists_set):
+                with self._call_func_context(graphics_collection):
                     return pyfunc(*args, **kwargs)
             return empty_result
 
-        args_to_add = (self._artists_ndarr, bool_mask)
+        args_to_add = (self._graphics_collection_ndarr, bool_mask)
         wrapper_excluded = {i + len(args_to_add) if isinstance(i, int) else i for i in self._vectorize.excluded}
         wrapper_signature = vectorize.signature if vectorize.signature is None \
             else '(),' * len(args_to_add) + vectorize.signature
@@ -196,7 +196,7 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
         return vectorize, (*args_to_add, *args), kwargs
 
     def _call_func(self, valid_path: Optional[List[PathComponent]]):
-        self._initialize_artists_ndarr()
+        self._initialize_graphics_ndarr()
         vectorize_metadata = self._vectorize_metadata
         if vectorize_metadata.is_result_a_tuple:
             return super()._call_func(valid_path)

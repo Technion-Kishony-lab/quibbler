@@ -3,8 +3,10 @@ from contextlib import contextmanager
 from typing import List, Callable, Tuple, Any, Mapping, Dict, Optional, Iterable, Set
 from matplotlib.artist import Artist
 from matplotlib.axes import Axes
+from matplotlib.widgets import AxesWidget
 
-from .global_collecting import ArtistsCollector
+from .global_collecting import ArtistsCollector, AxesWidgetsCollector
+from .graphics_collection import GraphicsCollection
 from .quib_guard import QuibGuard
 from .utils import save_func_and_args_on_artists, get_axeses_to_array_names_to_starting_indices_and_artists, \
     remove_artist, get_axeses_to_array_names_to_artists, get_artist_array, ArrayNameToArtists, track_artist
@@ -57,7 +59,7 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         super().__init__(func, args, kwargs, cache_behavior, assignment_template=assignment_template)
         self._had_artists_on_last_run = had_artists_on_last_run
         self._pass_quibs = pass_quibs
-        self._artists_ndarr = None
+        self._graphics_collection_ndarr = None
 
     @classmethod
     def create(cls, func, func_args=(), func_kwargs=None, cache_behavior=None, lazy=None, **init_kwargs):
@@ -136,27 +138,46 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
             remove_artist(artist)
         artist_set.clear()
 
+    def _disable_widgets(self, widget_set: Set[AxesWidget], always_disable=False):
+        from pyquibbler.quib.graphics.widgets import QRectangleSelector
+
+        for widget in widget_set:
+            if isinstance(widget, QRectangleSelector):
+                if not always_disable and widget.event_is_relevant_to_current_selector():
+                    widget.set_should_deactivate_after_release()
+                    continue
+                else:
+                    widget.set_active(False)
+                    widget.set_visible(False)
+            else:
+                widget.set_active(False)
+
+        widget_set.clear()
+
     @contextmanager
-    def _handle_new_artists(self, artist_set: Set[Artist]):
-        self._remove_artists_that_were_removed_from_axes(artist_set)
+    def _handle_new_graphics_collection(self, graphics_collection: GraphicsCollection):
+        self._remove_artists_that_were_removed_from_axes(graphics_collection.artists)
         # Get the *current* artists together with their starting indices (per axes per artists array) so we can
         # place the new artists we create in their correct locations
         previous_axeses_to_array_names_to_indices_and_artists = \
-            get_axeses_to_array_names_to_starting_indices_and_artists(artist_set)
-        self._remove_artists(artist_set)
+            get_axeses_to_array_names_to_starting_indices_and_artists(graphics_collection.artists)
+        self._remove_artists(graphics_collection.artists)
+        self._disable_widgets(graphics_collection.widgets)
 
-        with ArtistsCollector() as collector:
+        with ArtistsCollector() as artists_collector, AxesWidgetsCollector() as widgets_collector:
             yield
 
-        artist_set.update(collector.objects_collected)
-        self._had_artists_on_last_run = len(artist_set) > 0
+        graphics_collection.artists.update(artists_collector.objects_collected)
+        graphics_collection.widgets.update(widgets_collector.objects_collected)
 
-        for artist in artist_set:
+        self._had_artists_on_last_run = len(graphics_collection.artists) > 0
+
+        for artist in graphics_collection.artists:
             save_func_and_args_on_artists(artist, func=self.func, args=self.args)
             track_artist(artist)
-        self.persist_self_on_artists(artist_set)
+        self.persist_self_on_artists(graphics_collection.artists)
 
-        current_axeses_to_array_names_to_artists = get_axeses_to_array_names_to_artists(artist_set)
+        current_axeses_to_array_names_to_artists = get_axeses_to_array_names_to_artists(graphics_collection.artists)
         self._update_new_artists_from_previous_artists(previous_axeses_to_array_names_to_indices_and_artists,
                                                        current_axeses_to_array_names_to_artists)
 
@@ -167,7 +188,12 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         artist_set.difference_update([artist for artist in artist_set if artist not in get_artist_array(artist)])
 
     def _iter_artist_sets(self) -> Iterable[Set[Artist]]:
-        return [] if self._artists_ndarr is None else self._artists_ndarr.flat
+        return [] if self._graphics_collection_ndarr is None else map(lambda g: g.artists,
+                                                                      self._graphics_collection_ndarr.flat)
+
+    def _iter_widget_sets(self) -> Iterable[Set[AxesWidget]]:
+        return [] if self._graphics_collection_ndarr is None else map(lambda g: g.widgets,
+                                                                      self._graphics_collection_ndarr.flat)
 
     def _iter_artists(self) -> Iterable[Artist]:
         return (artist for artists in self._iter_artist_sets() for artist in artists)
@@ -178,18 +204,21 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
     def _get_loop_shape(self) -> Tuple[int, ...]:
         return ()
 
-    def _initialize_artists_ndarr(self):
+    def _initialize_graphics_ndarr(self):
         loop_shape = self._get_loop_shape()
-        if self._artists_ndarr is not None and self._artists_ndarr.shape != loop_shape:
+        if self._graphics_collection_ndarr is not None and self._graphics_collection_ndarr.shape != loop_shape:
             for artist_set in self._iter_artist_sets():
                 self._remove_artists(artist_set)
-            self._artists_ndarr = None
-        if self._artists_ndarr is None:
-            self._artists_ndarr = np.vectorize(lambda _: set())(np.empty(loop_shape))
+            for widget_set in self._iter_widget_sets():
+                self._disable_widgets(widget_set, always_disable=True)
+            self._graphics_collection_ndarr = None
+        if self._graphics_collection_ndarr is None:
+            self._graphics_collection_ndarr = np.vectorize(lambda _: GraphicsCollection(set(), set()))\
+                (np.empty(loop_shape))
 
     @contextmanager
-    def _call_func_context(self, artists_set):
-        with self._handle_new_artists(artists_set):
+    def _call_func_context(self, graphics_collection):
+        with self._handle_new_graphics_collection(graphics_collection):
             with QuibGuard(set(iter_quibs_in_args(self.args, self.kwargs))):
                 yield
 
@@ -199,10 +228,10 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         in the same place they were in their axes.
         Return the function's result.
         """
-        self._initialize_artists_ndarr()
+        self._initialize_graphics_ndarr()
         # This implementation does not support partial calculation
-        assert self._artists_ndarr.ndim == 0
+        assert self._graphics_collection_ndarr.ndim == 0
         args, kwargs = proxify_args(self.args, self.kwargs) if self._pass_quibs \
             else self._prepare_args_for_call(valid_path)
-        with self._call_func_context(self._artists_ndarr[()]):
+        with self._call_func_context(self._graphics_collection_ndarr[()]):
             return self.func(*args, **kwargs)

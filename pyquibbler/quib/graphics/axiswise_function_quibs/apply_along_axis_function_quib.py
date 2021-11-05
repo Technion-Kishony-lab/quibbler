@@ -4,7 +4,7 @@ import numpy as np
 from numpy import ndindex, s_
 
 from pyquibbler.quib.function_quibs.utils import ArgsValues
-from pyquibbler.quib.graphics.utils import remove_created_artists
+from pyquibbler.quib.graphics.utils import remove_created_graphics
 from pyquibbler.quib.proxy_quib import ProxyQuib
 from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.quib.quib import Quib
@@ -80,7 +80,7 @@ class ApplyAlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         args, kwargs = self._prepare_args_for_call(None)
         args_values = ArgsValues.from_function_call(func=self.func, args=args, kwargs=kwargs, include_defaults=False)
 
-        with remove_created_artists():
+        with remove_created_graphics():
             return self._run_func1d(
                 oned_slice,
                 *args_values.arg_values_by_name.get('args', []),
@@ -144,9 +144,9 @@ class ApplyAlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         bool mask is not True within the given indices, then the result of this iteration was not requested (at
         valid_path), and so we will simply return the sample result as a placeholder
         """
-        indices = indices_before_axis + s_[...,] + indices_after_axis
+        indices = indices_before_axis + s_[..., ] + indices_after_axis
         if np.any(requested_indices_bool_mask[indices]):
-            with self._call_func_context(self._artists_ndarr[indices_before_axis + indices_after_axis]):
+            with self._call_func_context(self._graphics_collection_ndarr[indices_before_axis + indices_after_axis]):
                 res = self._run_func1d(self._get_oned_slice_for_running_func1d(indices),
                                        *func1d_args,
                                        **func1d_kwargs)
@@ -183,7 +183,7 @@ class ApplyAlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         if valid_path is None:
             return self._get_invalid_value_at_correct_shape_and_dtype()
 
-        self._initialize_artists_ndarr()
+        self._initialize_graphics_ndarr()
         return self._apply_along_axis(valid_path)
 
     def _backward_translate_bool_mask(self, args_dict, bool_mask, quib: Quib):
