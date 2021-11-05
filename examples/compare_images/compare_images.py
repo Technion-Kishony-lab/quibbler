@@ -1,4 +1,6 @@
 # THIS DEMO DOES NOT WORK 100%
+import math
+
 import numpy as np
 from functools import partial
 from matplotlib import pyplot as plt, widgets
@@ -29,7 +31,6 @@ def image_distance(img1, img2):
 
 @np.vectorize
 def show_adjacency(x, y, adjacent):
-    print(x, y, adjacent)
     plt.scatter(x, y,
                 s=adjacent * 100 + 1,
                 marker='x',
@@ -40,7 +41,7 @@ def show_adjacency(x, y, adjacent):
 file_name = iquib('./pipes.jpg')
 image = plt.imread(file_name)
 
-images_count = iquib(6)
+images_count = iquib(3)
 images_count.set_assignment_template(0, 10, 1)
 
 roi_default = iquib([[10, 110, 10, 110]])
@@ -76,8 +77,8 @@ def create_figure_1():
         ax=axfreq,
         label=q("Image count ".format, images_count),
         valmin=1,
-        valmax=6,
-        valstep=.1,
+        valmax=9,
+        valstep=1,
         valinit=images_count
     )
 
@@ -85,13 +86,12 @@ def create_figure_1():
 def create_figure_2():
     # Plot images
     fig = plt.figure(2)
-    # TODO: support list
-    grid_axes = iquib(np.array(list(ImageGrid(fig, 111,  # similar to subplot(111)
-                                              nrows_ncols=(2, 3),  # creates 2x2 grid of axes
-                                              axes_pad=0.1,  # pad between axes in inch.
+    grid_axes = iquib(np.array(list(ImageGrid(fig, 111,
+                                              nrows_ncols=(3, 3),
+                                              axes_pad=0.1,
                                               ))))
 
-    np.vectorize(lambda ax, im: ax.imshow(im), signature='(),(w,h,c)->()')(grid_axes[:images_count], cut_images)
+    np.vectorize(lambda ax, im: ax.imshow(im), signature='(),(w,h,c)->()')(grid_axes[:q(int, images_count)], cut_images)
 
 
 def create_figure_3():

@@ -24,7 +24,7 @@ class MockArtistsCollector:
         return artist
 
     @property
-    def artists_collected(self):
+    def objects_collected(self):
         artist = self._create_mock_artist()
         self.all_mock_artists_created.append(artist)
         return [artist]

@@ -148,7 +148,7 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         with ArtistsCollector() as collector:
             yield
 
-        artist_set.update(collector.artists_collected)
+        artist_set.update(collector.objects_collected)
         self._had_artists_on_last_run = len(artist_set) > 0
 
         for artist in artist_set:

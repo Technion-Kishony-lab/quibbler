@@ -169,6 +169,7 @@ def test_vectorize_does_not_redraw_valid_artists(temp_axes, pass_quibs):
     ids = list(map(id, temp_axes.lines))
 
     parent[0] = [5, 6]
+
     assert len(temp_axes.lines) == 2
     assert id(temp_axes.lines[0]) != ids[0]
     assert id(temp_axes.lines[1]) == ids[1]

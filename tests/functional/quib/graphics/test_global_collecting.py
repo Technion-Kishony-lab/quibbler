@@ -6,7 +6,6 @@ from matplotlib.lines import Line2D
 
 from pyquibbler import iquib
 from pyquibbler.quib.graphics import global_collecting
-from pyquibbler.quib.graphics.global_collecting import AlreadyCollectingArtistsException
 
 
 @pytest.mark.parametrize("data", [
@@ -17,42 +16,16 @@ def test_global_graphics_collecting_mode_happy_flow(axes, data):
     with global_collecting.ArtistsCollector() as collector:
         plt.plot(data)
 
-    assert len(collector.artists_collected) == 1
-    assert isinstance(collector.artists_collected[0], Line2D)
-
-
-def test_global_graphics_collecting_raises_exception_when_within_collector():
-    with pytest.raises(AlreadyCollectingArtistsException):
-        with global_collecting.ArtistsCollector(), global_collecting.ArtistsCollector(raise_if_within_collector=True):
-            pass
-
-
-def test_global_graphics_collecting_when_within_collector():
-    with global_collecting.ArtistsCollector():
-        assert global_collecting.is_within_artists_collector()
-
-
-def test_global_graphics_collecting_when_not_within_collector():
-    with global_collecting.ArtistsCollector():
-        pass
-
-    assert global_collecting.is_within_artists_collector() is False
+    assert len(collector.objects_collected) == 1
+    assert isinstance(collector.objects_collected[0], Line2D)
 
 
 def test_global_graphics_collecting_within_collecting(axes):
     with global_collecting.ArtistsCollector() as collector, \
             global_collecting.ArtistsCollector() as nested_collector:
         plt.plot([1, 2, 3])
-    assert len(collector.artists_collected) == 1
-    assert len(nested_collector.artists_collected) == 1
-
-
-@pytest.mark.regression
-def test_global_graphics_collecting_within_collecting_is_within_collector(axes):
-    with global_collecting.ArtistsCollector():
-        with global_collecting.ArtistsCollector():
-            pass
-        assert global_collecting.is_within_artists_collector()
+    assert len(collector.objects_collected) == 1
+    assert len(nested_collector.objects_collected) == 1
 
 
 @pytest.mark.regression
@@ -62,4 +35,4 @@ def test_overridden_graphics_function_within_overridden_graphics_function(axes):
             pass
         artist = Artist()
 
-    assert collector.artists_collected == [artist]
+    assert collector.objects_collected == [artist]

@@ -12,7 +12,7 @@ from matplotlib.table import Table
 from matplotlib.text import Text
 
 from .event_handling import CanvasEventHandler
-from .global_collecting import ArtistsCollector
+from .global_collecting import ArtistsCollector, AxesWidgetsCollector
 
 ArrayNameToArtists = Dict[str, List[Artist]]
 
@@ -93,7 +93,9 @@ def track_artist(artist: Artist):
 
 @contextmanager
 def remove_created_artists():
-    with ArtistsCollector() as collector:
+    with ArtistsCollector() as collector, AxesWidgetsCollector() as widgets_collector:
         yield
-    for artist in collector.artists_collected:
+    for artist in collector.objects_collected:
         remove_artist(artist)
+    for widget in widgets_collector.objects_collected:
+        widget.set_active(False)
