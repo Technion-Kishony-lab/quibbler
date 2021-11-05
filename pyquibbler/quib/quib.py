@@ -233,7 +233,7 @@ class Quib(ABC):
         for new_path in new_paths:
             if new_path is not None:
                 self._invalidate_self(new_path)
-                if not self._is_completely_overridden_at_first_component(new_path):
+                if len(path) == 0 or not self._is_completely_overridden_at_first_component(new_path):
                     self._invalidate_children_at_path(new_path)
 
     def add_child(self, quib: Quib) -> None:
