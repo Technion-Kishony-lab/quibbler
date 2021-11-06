@@ -8,6 +8,9 @@ from pyquibbler.quib.function_quibs.indices_translator_function_quib import Args
 
 from .utils import Shape, get_core_axes, get_sample_result
 
+ArgId = Union[int, str]
+ArgsMetadata: Dict[ArgId, VectorizeArgMetadata]
+
 
 @dataclass
 class VectorizeArgMetadata:
@@ -36,7 +39,7 @@ class VectorizeArgMetadata:
 class VectorizeMetadata:
     _get_sample_result: Callable
 
-    args_metadata: Dict[Union[int, str], VectorizeArgMetadata]
+    args_metadata: ArgsMetadata
     result_loop_shape: Shape
 
     _is_result_a_tuple: Optional[bool]

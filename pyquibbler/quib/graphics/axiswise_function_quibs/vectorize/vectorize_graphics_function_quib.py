@@ -211,8 +211,9 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
 
 
 class QVectorize(np.vectorize):
-    def __init__(self, *args, pass_quibs=False, signature=None, **kwargs):
+    def __init__(self, *args, pass_quibs=False, signature=None, cache=False, **kwargs):
+        # We don't need the underlying vectorize object to cache, we are doing that ourselves.
+        super().__init__(*args, signature=signature, cache=False, **kwargs)
         self.pass_quibs = pass_quibs
-        super().__init__(*args, signature=signature, **kwargs)
 
     __call__ = VectorizeGraphicsFunctionQuib.create_wrapper(np.vectorize.__call__)

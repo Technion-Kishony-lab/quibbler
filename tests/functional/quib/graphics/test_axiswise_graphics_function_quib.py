@@ -75,4 +75,3 @@ def test_reduction_axiswise_get_value_valid_at_path(axis, data, keepdims, where,
         kwargs['where'] = where
     path_to_get_value_at = [PathComponent(np.ndarray, indices_to_get_value_at)]
     check_get_value_valid_at_path(lambda quib: np.sum(quib, **kwargs), data, path_to_get_value_at)
-
