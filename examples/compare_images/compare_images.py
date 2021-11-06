@@ -1,6 +1,5 @@
 # THIS DEMO DOES NOT WORK 100%
 import weakref
-
 import numpy as np
 from functools import partial
 
@@ -9,7 +8,7 @@ from matplotlib import pyplot as plt, widgets
 from matplotlib.widgets import AxesWidget
 from mpl_toolkits.axes_grid1 import ImageGrid
 
-from pyquibbler import iquib, override_all, q, quibbler_user_function
+from pyquibbler import iquib, override_all, q
 
 override_all()
 
@@ -44,12 +43,12 @@ def image_distance(img1, img2):
 
 
 @np.vectorize
-def show_adjacency(x, y, adjacent):
-    plt.scatter(x, y,
-                s=adjacent * 100 + 1,
-                marker='x',
-                color='r',
-                linewidths=2)
+def show_adjacency(axes, x, y, adjacent):
+    axes.scatter(x, y,
+                 s=adjacent * 100 + 1,
+                 marker='x',
+                 color='r',
+                 linewidths=2)
 
 
 file_name = iquib('./pipes.jpg')
@@ -120,7 +119,7 @@ def create_figure_3():
     plt.xlabel('Image number')
     plt.ylabel('Image number')
 
-    show_adjacency(np.expand_dims(np.arange(images_count), 1), np.arange(images_count), adjacents)
+    show_adjacency(plt.gca(), np.expand_dims(np.arange(images_count), 1), np.arange(images_count), adjacents)
 
 
 create_figure_1()
@@ -131,4 +130,4 @@ create_figure_3()
 #     objgraph.show_backrefs(axes_widgets[0](), filename='aa.png', max_depth=10)
 # TODO: fix slider
 # TODO: fix scatter
-plt.show(block=False)
+plt.show()
