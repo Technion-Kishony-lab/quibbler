@@ -1,6 +1,6 @@
 import operator
 from math import trunc, floor, ceil
-from typing import Set
+from typing import Set, Optional, List
 from unittest import mock
 from unittest.mock import Mock
 import numpy as np
@@ -58,7 +58,7 @@ def test_quib_invalidate_and_redraw_calls_graphics_function_quib_children(exampl
     mock_func = mock.Mock()
     mock_func.return_value = []
 
-    quib = GraphicsFunctionQuib(func=mock_func, args=tuple(), kwargs={}, artists=[], cache_behavior=None)
+    quib = GraphicsFunctionQuib(func=mock_func, args=tuple(), kwargs={}, cache_behavior=None)
     example_quib.add_child(quib)
     quib.get_value()  # we want to set cache to valid
 
@@ -235,7 +235,7 @@ def test_quib_get_shape():
     arr = np.array([1, 2, 3])
     quib = ExampleQuib(arr)
 
-    assert quib.get_shape().get_value() == arr.shape
+    assert quib.get_shape() == arr.shape
 
 
 @mark.parametrize(['data', 'overrides', 'expected_mask'], [
@@ -360,7 +360,7 @@ def test_remove_child_while_invalidating():
         def parents(self) -> Set[Quib]:
             return {self._parent}
 
-        def _invalidate_self(self, path):
+        def _invalidate_self(self, path: List[PathComponent]):
             for parent in self.parents:
                 parent.remove_child(self)
 

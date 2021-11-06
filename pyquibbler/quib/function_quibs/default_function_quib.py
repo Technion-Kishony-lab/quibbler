@@ -1,14 +1,14 @@
 from __future__ import annotations
+import numpy as np
 from sys import getsizeof
 from time import perf_counter
 from typing import Callable, Any, Mapping, Tuple, Optional, List, TYPE_CHECKING
-
-import numpy as np
 
 from pyquibbler.quib.function_quibs.cache import create_cache
 from .cache.cache import CacheStatus
 from .cache.holistic_cache import PathCannotHaveComponentsException
 from .cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
+
 from .function_quib import FunctionQuib, CacheBehavior
 from ..assignment import AssignmentTemplate
 from ..assignment.utils import get_sub_data_from_object_in_path
@@ -53,8 +53,9 @@ class DefaultFunctionQuib(FunctionQuib):
             self._cache = create_cache(new_result)
         return self._cache
 
-    def _invalidate_self(self, path: List['PathComponent']):
+    def _invalidate_self(self, path: List[PathComponent]):
         if len(path) == 0:
+            self._on_type_change()
             self._reset_cache()
 
         if self._cache is not None:
@@ -76,14 +77,13 @@ class DefaultFunctionQuib(FunctionQuib):
         return elapsed_seconds > self.MIN_SECONDS_FOR_CACHE \
             and getsizeof(result) / elapsed_seconds < self.MAX_BYTES_PER_SECOND
 
-    def _get_uncached_paths_matching_path(self, path: Optional[List['PathComponent']]):
+    def _get_uncached_paths_matching_path(self, path: List[Optional[List['PathComponent']]]):
         """
         Get a list of paths that are uncached within the given path- these paths must be a subset of the given path
         (or the path itself)
         """
 
         if self._cache is not None:
-
             if path is None:
                 # We need to be valid at no paths, so by definitions we also have no uncached paths that match no paths
                 return []
@@ -124,7 +124,7 @@ class DefaultFunctionQuib(FunctionQuib):
         return new_path
 
     def _run_func_on_uncached_paths(self, truncated_path: List[PathComponent],
-                                    uncached_paths: List[List[PathComponent]]):
+                                    uncached_paths: List[Optional[List[PathComponent]]]):
         """
         Run the function a list of uncached paths, given an original truncated path, storing it in our cache
         """

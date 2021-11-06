@@ -25,7 +25,10 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
         getitem: SupportedFunction({0}),
         np.reshape: SupportedFunction({0}),
         np.ravel: SupportedFunction({0}),
-        np.squeeze: SupportedFunction({0})
+        np.squeeze: SupportedFunction({0}),
+        np.array: SupportedFunction({0}),
+        np.swapaxes: SupportedFunction({0}),
+        np.expand_dims: SupportedFunction({0})
     }
 
     def _replace_quibs_in_arguments_which_can_potentially_change(self, replace_func: Callable[['Quib'], Any]):
@@ -59,7 +62,7 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
 
         def replace_quib_with_id(obj):
             if isinstance(obj, Quib) and obj in self._get_data_source_quibs():
-                return np.full(obj.get_shape().get_value(), quibs_to_ids[obj])
+                return np.full(obj.get_shape(), quibs_to_ids[obj])
             return obj
 
         new_arguments = recursively_run_func_on_object(
@@ -74,7 +77,7 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
         Get a mapping between quibs and their indices grid
         """
         return {
-            quib: np.indices(quib.get_shape().get_value())
+            quib: np.indices(quib.get_shape())
             for quib in self._get_data_source_quibs()
         }
 
@@ -125,12 +128,12 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
         """
         relevant_indices_mask = create_empty_array_with_values_at_indices(
             indices=filtered_indices_in_result,
-            shape=self.get_shape().get_value(),
+            shape=self.get_shape(),
             value=True,
             empty_value=False
         )
         quibs = self._get_data_source_quibs()
-        max_shape_length = max([len(quib.get_shape().get_value())
+        max_shape_length = max([len(quib.get_shape())
                                 for quib in quibs]) if len(quibs) > 0 else 0
         # Default is to set all - if we have a shape we'll change this
         quibs_to_indices_in_quibs = {
@@ -194,7 +197,7 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
                 if q is quib:
                     return self._get_source_shaped_bool_mask(q, indices)
                 else:
-                    return np.full(q.get_shape().get_value(), False)
+                    return np.full(q.get_shape(), False)
             return q
 
         new_arguments = recursively_run_func_on_object(

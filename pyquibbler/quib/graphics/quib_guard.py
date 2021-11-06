@@ -1,9 +1,12 @@
 from __future__ import annotations
-
 import contextlib
-from typing import Set
+from dataclasses import dataclass
+from typing import Set, TYPE_CHECKING
 
 from pyquibbler.exceptions import PyQuibblerException
+
+if TYPE_CHECKING:
+    from pyquibbler.quib import Quib
 
 QUIB_GUARDS = []
 
@@ -12,14 +15,16 @@ def is_within_quib_guard():
     return len(QUIB_GUARDS) > 0
 
 
-def get_current_quib_guard():
+def get_current_quib_guard() -> QuibGuard:
     return QUIB_GUARDS[-1]
 
 
+@dataclass
 class CannotAccessQuibInScopeException(PyQuibblerException):
+    quib: Quib
 
     def __str__(self):
-        return "You cannot access quibs from the global scope within a user function"
+        return f"Illegal access to {self.quib}. Note that access to quibs from the global scope is not allowed"
 
 
 class AnotherQuibGuardIsAlreadyActiveException(PyQuibblerException):
@@ -32,6 +37,7 @@ class QuibGuard:
     A quib guard allows you to specify places in which only certain quibs (and their recursive children)
     are allowed to be accessed
     """
+
     def __init__(self, quibs_allowed: Set, allowed_quib_get_values_count: int = 0):
         self._quibs_allowed = quibs_allowed
         self._allowed_quib_get_values_count = allowed_quib_get_values_count
@@ -44,10 +50,13 @@ class QuibGuard:
     def get_value_context_manager(self, quib):
         all_allowed_quibs = set().union(*[{quib, *quib._get_children_recursively()} for quib in self._quibs_allowed])
         if self._allowed_quib_get_values_count == 0 and quib not in all_allowed_quibs:
-            raise CannotAccessQuibInScopeException()
+            raise CannotAccessQuibInScopeException(quib)
         self._allowed_quib_get_values_count += 1
         yield
         self._allowed_quib_get_values_count -= 1
+
+    def add_allowed_quib(self, quib: Quib):
+        self._quibs_allowed.add(quib)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         QUIB_GUARDS.pop()

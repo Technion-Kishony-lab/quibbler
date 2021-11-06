@@ -1,7 +1,5 @@
 from __future__ import annotations
-
 import functools
-
 import numpy as np
 import types
 from enum import Enum
@@ -59,7 +57,7 @@ class FunctionQuib(Quib):
         return set(iter_quibs_in_args(self.args, self.kwargs))
 
     @classmethod
-    def create(cls, func, func_args=(), func_kwargs=None, cache_behavior=None, **kwargs):
+    def create(cls, func, func_args=(), func_kwargs=None, cache_behavior=None, **init_kwargs):
         """
         Public constructor for FunctionQuib.
         """
@@ -78,7 +76,7 @@ class FunctionQuib(Quib):
                        for k, v in func_kwargs.items()}
         func_args = deep_copy_without_quibs_or_artists(func_args)
         self = cls(func=func, args=func_args, kwargs=func_kwargs,
-                   cache_behavior=cache_behavior, **kwargs)
+                   cache_behavior=cache_behavior, **init_kwargs)
         for arg in iter_quibs_in_args(func_args, func_kwargs):
             arg.add_child(self)
         if not LAZY:
@@ -99,12 +97,12 @@ class FunctionQuib(Quib):
                 setattr(quib_supporting_func_wrapper, member, val)
 
     @classmethod
-    def _wrapper_call(cls, func, args, kwargs):
+    def _wrapper_call(cls, func, args, kwargs, **create_kwargs):
         """
         The actual code that runs when a quib-supporting function wrapper is called.
         """
         if is_there_a_quib_in_args(args, kwargs):
-            return cls.create(func=func, func_args=args, func_kwargs=kwargs)
+            return cls.create(func, args, kwargs, **create_kwargs)
 
         return func(*args, **kwargs)
 
@@ -206,8 +204,7 @@ class FunctionQuib(Quib):
         quibs_to_paths = {} if valid_path is None else self._get_source_paths_of_quibs_given_path(valid_path)
         replace_func = functools.partial(self._replace_sub_argument_with_value, quibs_to_paths)
         new_args = [recursively_run_func_on_object(replace_func, arg) for arg in self.args]
-        new_kwargs = {key: recursively_run_func_on_object(replace_func, val)
-                      for key, val in self.kwargs.items()}
+        new_kwargs = {key: recursively_run_func_on_object(replace_func, val) for key, val in self.kwargs.items()}
         return new_args, new_kwargs
 
     def _call_func(self, valid_path: Optional[List[PathComponent]]):
@@ -221,7 +218,7 @@ class FunctionQuib(Quib):
         valid at valid_path
         """
         new_args, new_kwargs = self._prepare_args_for_call(valid_path)
-        return self._func(*new_args, **new_kwargs)
+        return self.func(*new_args, **new_kwargs)
 
     def _forward_translate_invalidation_path(self, invalidator_quib: Quib, path: List[PathComponent]) -> \
             List[List[PathComponent]]:

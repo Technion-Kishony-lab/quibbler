@@ -172,7 +172,7 @@ class ElementWiseFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunctionQuib
          [True, False, False]]
         """
         bool_mask = self._get_source_shaped_bool_mask(quib, indices)
-        return np.broadcast_to(bool_mask, self.get_shape().get_value())
+        return np.broadcast_to(bool_mask, self.get_shape())
 
     def raise_if_multiple_args_have_common_ancestor(self):
         """
@@ -200,9 +200,9 @@ class ElementWiseFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunctionQuib
         and broadcast it's index grid to the shape of the result, so we can see the corresponding quib indices for the
         result indices
         """
-        index_grid = np.indices(argument_quib.get_shape().get_value())
+        index_grid = np.indices(argument_quib.get_shape())
         broadcasted_grid = np.broadcast_to(index_grid,
-                                           (index_grid.shape[0], *self.get_shape().get_value()))
+                                           (index_grid.shape[0], *self.get_shape()))
         return tuple([
             dimension[working_indices]
             for dimension in broadcasted_grid

@@ -1,7 +1,5 @@
-from unittest import mock
-
 import pytest
-from matplotlib.artist import Artist
+from unittest import mock
 from matplotlib.axes import Axes
 
 from pyquibbler import iquib

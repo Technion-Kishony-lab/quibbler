@@ -256,6 +256,13 @@ def filter_out_none_calls(mock_calls):
     ]
 
 
+def create_mock_quib(shape, get_value_result):
+    mock_quib = mock.Mock(spec=Quib)
+    mock_quib.get_value_valid_at_path.return_value = get_value_result
+    mock_quib.get_shape.return_value = shape
+    return mock_quib
+
+
 @pytest.mark.regression
 def test_transpositional_concatenate_does_diverge(create_mock_quib):
     first = create_mock_quib((1, 3), ([[1, 2, 3]]))

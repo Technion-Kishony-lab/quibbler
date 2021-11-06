@@ -59,6 +59,7 @@ class GetItemFunctionQuib(TranspositionalFunctionQuib):
         # we simply want to check if our getitem's item is equal to the invalidations item (ie it's path).
         # If so, invalidate. This is true for field arrays as well (We do need to
         # add support for indexing multiple fields).
+        assert not isinstance(working_component.component, np.ndarray)
         if self.args[1] == working_component.component:
             return [rest_of_path]
 

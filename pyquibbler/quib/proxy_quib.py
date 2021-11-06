@@ -1,8 +1,11 @@
-from typing import Set, Optional, List, Any
+from __future__ import annotations
+from typing import Set, Optional, List, Any, TYPE_CHECKING
 
-from pyquibbler import Assignment
-from pyquibbler.quib import Quib
-from pyquibbler.quib.assignment import PathComponent, QuibWithAssignment
+from pyquibbler.quib.assignment import QuibWithAssignment
+from pyquibbler.quib.quib import Quib
+
+if TYPE_CHECKING:
+    from pyquibbler.quib import Assignment, PathComponent
 
 
 class ProxyQuib(Quib):
@@ -16,6 +19,7 @@ class ProxyQuib(Quib):
     def __init__(self, quib):
         super().__init__()
         self._quib: Quib = quib
+        quib.add_child(self)
 
     def _get_inner_value_valid_at_path(self, path: Optional[List[PathComponent]]) -> Any:
         return self._quib.get_value_valid_at_path(path=path)

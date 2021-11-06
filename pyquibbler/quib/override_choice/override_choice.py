@@ -1,14 +1,14 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import List, TYPE_CHECKING, Optional
+from typing import List, TYPE_CHECKING, Optional, Dict, ClassVar
 
 from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.quib.assignment import QuibWithAssignment, CannotReverseException, \
     Assignment
 
+from .choice_context import ChoiceContext
 from .override_dialog import OverrideChoiceType, OverrideChoice, choose_override_dialog
 from .types import OverrideRemoval, OverrideGroup, OverrideWithOverrideRemovals
-from .choice_cache import ChoiceCache
 from ...env import ASSIGNMENT_RESTRICTIONS
 
 if TYPE_CHECKING:
@@ -47,7 +47,7 @@ class OverrideOptionsTree:
     - override_removals: all the override removals that will have to be applied if we
                          diverge and use children overrides
     """
-    _CHOICE_CACHE = ChoiceCache()
+    _CHOICE_CACHE: ClassVar[Dict[ChoiceContext, OverrideChoice]] = {}
 
     inversed_quib: FunctionQuib
     options: List[OverrideWithOverrideRemovals]
@@ -76,17 +76,23 @@ class OverrideOptionsTree:
         """
         return len(self.options) > 0 or self.can_diverge
 
+    @property
+    def choice_context(self):
+        return ChoiceContext(self.inversed_quib,
+                             tuple(option.override.quib for option in self.options),
+                             self.can_diverge)
+
     def _try_load_choice(self) -> Optional[OverrideChoice]:
         """
         If a choice fitting the current options has been cached, return it. Otherwise return None.
         """
-        return self._CHOICE_CACHE.load(self.inversed_quib, self)
+        return self._CHOICE_CACHE.get(self.choice_context)
 
     def _store_choice(self, choice: OverrideChoice):
         """
         Store a user override choice in the cache for future use.
         """
-        self._CHOICE_CACHE.store(choice, self.inversed_quib, self)
+        self._CHOICE_CACHE[self.choice_context] = choice
 
     def get_override_choice(self) -> OverrideChoice:
         """

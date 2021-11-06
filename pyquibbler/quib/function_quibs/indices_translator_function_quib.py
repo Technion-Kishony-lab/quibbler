@@ -2,7 +2,7 @@ import numpy as np
 from abc import abstractmethod
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import Set, Optional, Dict, Callable, List, Any, Union
+from typing import Set, Optional, Dict, Callable, List, Any, Union, Tuple
 
 from pyquibbler.quib.assignment import Assignment
 from pyquibbler.quib.function_quibs.utils import create_empty_array_with_values_at_indices, ArgsValues
@@ -11,14 +11,14 @@ from pyquibbler.quib.function_quibs import FunctionQuib
 from pyquibbler.quib.assignment import PathComponent, QuibWithAssignment
 from pyquibbler.quib.utils import iter_objects_of_type_in_object_shallowly
 
-Args = List[Any]
+Args = Tuple[Any, ...]
 Kwargs = Dict[str, Any]
 
 
 @dataclass
 class SupportedFunction:
     data_source_indices: Union[Set[Union[int, str, slice]],
-                               Callable[[Args, Kwargs, Kwargs], List[Any]]]
+                               Callable[[ArgsValues], List[Any]]]
 
     def get_data_source_args(self, args_values: ArgsValues) -> List[Any]:
         if callable(self.data_source_indices):
@@ -38,7 +38,7 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
             value=True,
             empty_value=False,
             indices=indices,
-            shape=invalidator_quib.get_shape().get_value()
+            shape=invalidator_quib.get_shape()
         )
 
     def _get_bool_mask_representing_indices_in_result(self, indices) -> Union[np.ndarray, bool]:
@@ -46,7 +46,7 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
         Get a boolean mask representing where the indices that were changed are in the result- this will be in
         same shape as the result
         """
-        return create_empty_array_with_values_at_indices(self.get_shape().get_value(),
+        return create_empty_array_with_values_at_indices(self.get_shape(),
                                                          indices=indices, value=True,
                                                          empty_value=False)
 
@@ -56,7 +56,7 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
         not a `PathComponent`) set to a value
         """
         return create_empty_array_with_values_at_indices(
-            self.get_shape().get_value(),
+            self.get_shape(),
             indices=working_component,
             value=value,
         )
@@ -79,9 +79,6 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
     @abstractmethod
     def _forward_translate_indices_to_bool_mask(self, quib: Quib, indices: Any) -> Any:
         pass
-
-    def _get_source_paths_of_quibs_given_path(self, filtered_path_in_result: List[PathComponent]):
-        return {}
 
     def _get_quibs_to_relevant_result_values(self, assignment: Assignment):
         return {}

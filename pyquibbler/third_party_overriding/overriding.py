@@ -14,7 +14,8 @@ from pyquibbler.quib import ImpureFunctionQuib, DefaultFunctionQuib, FunctionQui
 from pyquibbler.quib.function_quibs.elementwise_function_quib import ElementWiseFunctionQuib
 from pyquibbler.quib.function_quibs.transpositional.transpositional_function_quib import TranspositionalFunctionQuib
 from pyquibbler.quib.graphics import global_collecting, ReductionAxisWiseGraphicsFunctionQuib, \
-    AlongAxisGraphicsFunctionQuib, VectorizeGraphicsFunctionQuib
+    ApplyAlongAxisGraphicsFunctionQuib
+from pyquibbler.quib.graphics import QVectorize
 from pyquibbler.quib.graphics.plot_graphics_function_quib import PlotGraphicsFunctionQuib
 from pyquibbler.quib.graphics.widgets import SliderGraphicsFunctionQuib, CheckButtonsGraphicsFunctionQuib, \
     RadioButtonsGraphicsFunctionQuib, RectangleSelectorGraphicsFunctionQuib, QRectangleSelector, QRadioButtons
@@ -27,35 +28,48 @@ np.maximum, np.minimum
 __eq__
 '''
 
-WIDGET_OVERRIDES = {
-    'RectangleSelector': QRectangleSelector,
-    'RadioButtons': QRadioButtons
-}
+
+def wrap_overridden_graphics_function(func: Callable) -> Callable:
+    @wraps(func)
+    def _wrapper(*args, **kwargs):
+        # We need overridden funcs to be run in `overridden_graphics_function` context manager
+        # so artists will be collected
+        with global_collecting.overridden_graphics_function():
+            return func(*args, **kwargs)
+
+    return _wrapper
+
+
+NON_QUIB_OVERRIDES = [
+    (widgets, {
+        'RectangleSelector': wrap_overridden_graphics_function(QRectangleSelector),
+        'RadioButtons': wrap_overridden_graphics_function(QRadioButtons)
+    }),
+    (np, {
+        'vectorize': QVectorize
+    })
+]
 
 NUMPY_OVERRIDES = [
     (np, [
         (DefaultFunctionQuib, {"abs", "arange", "polyfit",
-                               "linspace", "polyval", "array", "genfromtxt", 'prod', 'corrcoef', 'mean'}),
+                               "linspace", "polyval", "genfromtxt", 'prod', 'corrcoef', 'mean'}),
         (GraphicsFunctionQuib, {'apply_over_axes'}),
         (TranspositionalFunctionQuib, {'reshape', 'rot90', 'ravel', 'concatenate', 'repeat', 'full', 'concatenate',
-                                       'squeeze'}),
+                                       'squeeze', 'array', 'swapaxes', 'expand_dims'}),
         (ElementWiseFunctionQuib, {'add', 'square', "sin", "cos", "tan", "sinh", "cosh", "tanh", "real", "imag",
                                    "arcsin", "arccos", "arctan", "arcsinh", "arccosh", "arctanh",
                                    "exp", "exp2", "expm1", "log", "log2", "log1p", "log10",
                                    "sqrt", "int", "float", "ceil", "floor", "round", 'around', 'hypot'}),
         (ReductionAxisWiseGraphicsFunctionQuib, {"max", "amax", "min", "amin", "sum", "average"}),
-        (AlongAxisGraphicsFunctionQuib, {'apply_along_axis'}),
+        (ApplyAlongAxisGraphicsFunctionQuib, {'apply_along_axis'}),
     ]),
     (np.random, [
         (ImpureFunctionQuib, {'rand', 'randn', 'randint'})
     ]),
-    (np.vectorize, [
-        (VectorizeGraphicsFunctionQuib, {'__call__'})
-    ]),
     (np.linalg, [
         (ReductionAxisWiseGraphicsFunctionQuib, {'norm'})
-    ]
-    )
+    ])
 ]
 
 MPL_OVERRIDES = [
@@ -79,17 +93,6 @@ MPL_OVERRIDES = [
 ]
 
 
-def wrap_overridden_graphics_function(func: Callable) -> Callable:
-    @wraps(func)
-    def _wrapper(*args, **kwargs):
-        # We need overridden funcs to be run in `overridden_graphics_function` context manager
-        # so artists will be collected
-        with global_collecting.overridden_graphics_function():
-            return func(*args, **kwargs)
-
-    return _wrapper
-
-
 def override_func(obj: Any, name: str, quib_type: Type[FunctionQuib],
                   function_wrapper: Optional[Callable[[Callable], Callable]] = None):
     """
@@ -100,7 +103,6 @@ def override_func(obj: Any, name: str, quib_type: Type[FunctionQuib],
     if function_wrapper is not None:
         func = function_wrapper(func)
     func = quib_type.create_wrapper(func)
-
     setattr(obj, name, func)
 
 
@@ -112,9 +114,12 @@ def apply_quib_creating_overrides(override_list: List[Tuple[Any, List[Tuple[Type
                 override_func(obj, func_name, quib_type, function_wrapper)
 
 
-def override_widgets():
-    for name, new_cls in WIDGET_OVERRIDES.items():
-        setattr(widgets, name, wrap_overridden_graphics_function(new_cls))
+def apply_non_quib_overrides():
+    for module, overrides in NON_QUIB_OVERRIDES:
+        for name, replacement in overrides.items():
+            overridden = getattr(module, name)
+            setattr(module, name, replacement)
+            replacement.__overridden__ = overridden
 
 
 @ensure_only_run_once_globally
@@ -122,6 +127,6 @@ def override_all():
     """
     Overrides all modules (such as numpy and matplotlib) to support quibs
     """
-    override_widgets()
+    apply_non_quib_overrides()
     apply_quib_creating_overrides(NUMPY_OVERRIDES)
     apply_quib_creating_overrides(MPL_OVERRIDES, wrap_overridden_graphics_function)

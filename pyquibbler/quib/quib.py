@@ -1,13 +1,12 @@
 from __future__ import annotations
-
 import contextlib
-
 import numpy as np
+from functools import wraps
 from functools import cached_property
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from operator import getitem
-from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List
+from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Callable, Dict
 from weakref import ref as weakref
 
 from pyquibbler.exceptions import PyQuibblerException
@@ -19,7 +18,6 @@ from .function_quibs.cache.cache import CacheStatus
 from .function_quibs.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
 from .utils import quib_method, Unpacker, recursively_run_func_on_object
 from .assignment import PathComponent
-
 
 from ..env import LEN_RAISE_EXCEPTION
 from ..logger import logger
@@ -46,6 +44,31 @@ class OverridingNotAllowedException(PyQuibblerException):
         return f'Cannot override {self.quib} with {self.override} as it does not allow overriding.'
 
 
+@dataclass(frozen=True)
+class FunctionCall:
+    func: Callable
+    args: Tuple[Any, ...]
+    kwargs: Tuple[Tuple[str, Any], ...]
+
+    @classmethod
+    def create(cls, func: Callable, args: Tuple[Any, ...], kwargs: Dict[str, Any]):
+        return cls(func, args, tuple(kwargs.items()))
+
+
+def cache_method_until_full_invalidation(func: Callable) -> Callable:
+    @wraps(func)
+    def wrapper(self: Quib, *args, **kwargs):
+        call = FunctionCall.create(func, (self, *args), kwargs)
+        try:
+            return self.method_cache[call]
+        except KeyError:
+            result = func(self, *args, **kwargs)
+            self.method_cache[call] = result
+            return result
+
+    return wrapper
+
+
 class Quib(ABC):
     """
     An abstract class to describe the common methods and attributes of all quib types.
@@ -62,6 +85,7 @@ class Quib(ABC):
         if allow_overriding is None:
             allow_overriding = self._DEFAULT_ALLOW_OVERRIDING
         self.allow_overriding = allow_overriding
+        self.method_cache = {}
 
     @property
     def children(self) -> Set[Quib]:
@@ -97,21 +121,18 @@ class Quib(ABC):
         """
         Redraw all artists that directly or indirectly depend on this quib.
         """
-        from pyquibbler.quib.graphics import redraw_axes
+        from pyquibbler.quib.graphics import redraw_axeses
         quibs = self._get_graphics_function_quibs_recursively()
         quibs_that_are_invalid = [quib for quib in quibs if quib.cache_status != CacheStatus.ALL_VALID]
         logger.info(f"redrawing {len(quibs_that_are_invalid)} quibs")
         for graphics_function_quib in quibs_that_are_invalid:
             graphics_function_quib.get_value()
 
-        axeses = set()
-        for graphics_function_quib in quibs_that_are_invalid:
-            for axes in graphics_function_quib.get_axeses():
-                axeses.add(axes)
+        axeses = {axes for graphics_function_quib in quibs_that_are_invalid
+                  for axes in graphics_function_quib.get_axeses()}
 
         logger.info(f"redrawing {len(axeses)} axeses")
-        for axes in axeses:
-            redraw_axes(axes)
+        redraw_axeses(axeses)
 
     def invalidate_and_redraw_at_path(self, path: Optional[List[PathComponent]] = None) -> None:
         """
@@ -142,6 +163,9 @@ class Quib(ABC):
         If not, invalidate all children all over; as you have no more specific way to invalidate them
         """
         return [[]]
+
+    def _on_type_change(self):
+        self.method_cache.clear()
 
     def _invalidate_self(self, path: List[PathComponent]):
         """
@@ -203,7 +227,7 @@ class Quib(ABC):
         for new_path in new_paths:
             if new_path is not None:
                 self._invalidate_self(new_path)
-                if not self._is_completely_overridden_at_first_component(new_path):
+                if len(path) == 0 or not self._is_completely_overridden_at_first_component(new_path):
                     self._invalidate_children_at_path(new_path)
 
     def add_child(self, quib: Quib) -> None:
@@ -236,6 +260,8 @@ class Quib(ABC):
         if not self.allow_overriding:
             raise OverridingNotAllowedException(self, assignment)
         self._overrider.add_assignment(assignment)
+        if len(assignment.path) == 0:
+            self._on_type_change()
 
         self.invalidate_and_redraw_at_path(assignment.path)
 
@@ -244,6 +270,8 @@ class Quib(ABC):
         Remove overriding in a specific path in the quib.
         """
         self._overrider.remove_assignment(path)
+        if len(path) == 0:
+            self._on_type_change()
         if invalidate_and_redraw:
             self.invalidate_and_redraw_at_path(path=path)
 
@@ -331,7 +359,8 @@ class Quib(ABC):
             context = contextlib.nullcontext()
 
         with context:
-            return self._overrider.override(self._get_inner_value_valid_at_path(path), self._assignment_template)
+            inner_value = self._get_inner_value_valid_at_path(path)
+            return self._overrider.override(inner_value, self._assignment_template)
 
     def get_value(self) -> Any:
         """
@@ -348,13 +377,16 @@ class Quib(ABC):
         """
         return self._overrider
 
+    # We cache the type, so quibs without cache will still remember their types.
+    @cache_method_until_full_invalidation
     def get_type(self) -> Type:
         """
-        Get the type of wrapped value
+        Get the type of wrapped value.
         """
         return type(self.get_value_valid_at_path(None))
 
-    @quib_method
+    # We cache the shape, so quibs without cache will still remember their shape.
+    @cache_method_until_full_invalidation
     def get_shape(self) -> Tuple[int, ...]:
         """
         Assuming this quib represents a numpy ndarray, returns a quib of its shape.
@@ -368,25 +400,17 @@ class Quib(ABC):
             raise
 
     @quib_method
-    def _get_override_mask(self, shape: Tuple[int, ...]) -> np.ndarray:
-        """
-        Return an override mask based on assignments in self._overrider, in the given shape.
-        This is an internal method so when called with a quib instead of the shape, the resulting quib
-        will be dependent on both self and the shape quib.
-        """
-        if issubclass(self.get_type(), np.ndarray):
-            mask = np.zeros(shape, dtype=np.bool)
-        else:
-            mask = recursively_run_func_on_object(func=lambda x: False, obj=self.get_value())
-        return self._overrider.fill_override_mask(mask)
-
-    def get_override_mask(self) -> Quib:
+    def get_override_mask(self):
         """
         Assuming this quib represents a numpy ndarray, return a quib representing its override mask.
         The override mask is a boolean array of the same shape, in which every value is
         set to True if the matching value in the array is overridden, and False otherwise.
         """
-        return self._get_override_mask(self.get_shape())
+        if issubclass(self.get_type(), np.ndarray):
+            mask = np.zeros(self.get_shape(), dtype=np.bool)
+        else:
+            mask = recursively_run_func_on_object(func=lambda x: False, obj=self.get_value())
+        return self._overrider.fill_override_mask(mask)
 
     def iter_first(self, amount: Optional[int] = None):
         """

@@ -1,5 +1,5 @@
 from itertools import chain
-from typing import Optional
+from typing import Optional, Set
 from matplotlib.artist import Artist
 
 from pyquibbler.quib import GraphicsFunctionQuib
@@ -15,8 +15,8 @@ class ReplacingGraphicsFunctionQuib(GraphicsFunctionQuib):
         for parent in previous_quib.parents:
             parent.remove_child(previous_quib)
 
-    def persist_self_on_artists(self):
-        for artist in chain(self._artists, iter_object_type_in_args(Artist, self.args, self.kwargs)):
+    def persist_self_on_artists(self, artists: Set[Artist]):
+        for artist in chain(artists, iter_object_type_in_args(Artist, self.args, self.kwargs)):
             name = f'_quibbler_{self.func.__name__}'
             current_quib: Optional['ReplacingGraphicsFunctionQuib'] = getattr(artist, name, None)
             if current_quib is not self and current_quib is not None:

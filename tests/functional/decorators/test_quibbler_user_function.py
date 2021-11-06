@@ -27,7 +27,7 @@ def test_quibbler_user_function_non_lazy():
 
 def test_quibbler_user_function_with_quibs():
     mock_func = mock.Mock()
-    user_function = quibbler_user_function(receive_quibs=True, lazy=False)(mock_func)
+    user_function = quibbler_user_function(pass_quibs=True, lazy=False)(mock_func)
     quib = iquib(6)
 
     res = user_function(quib)

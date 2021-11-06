@@ -4,7 +4,7 @@ from importlib import import_module
 from matplotlib.testing.decorators import image_comparison
 
 from pyquibbler import iquib
-from pyquibbler.quib.graphics import PlotGraphicsFunctionQuib, redraw_axes
+from pyquibbler.quib.graphics import PlotGraphicsFunctionQuib, redraw_axeses
 
 # This import is critical!! Do not delete!!
 # This imports a fixture (it has autouse=True) that cleans up matplotlib stuffs our tests do
@@ -13,8 +13,7 @@ mpl_test_settings = import_module('matplotlib.testing.conftest').mpl_test_settin
 
 def run_graphics_function_quib_and_redraw(q: PlotGraphicsFunctionQuib):
     q.get_value()
-    for axes in q.get_axeses():
-        redraw_axes(axes)
+    redraw_axeses(q.get_axeses())
 
 
 quibbler_image_comparison = functools.partial(image_comparison, remove_text=True, extensions=['png'],
