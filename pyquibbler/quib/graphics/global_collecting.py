@@ -2,13 +2,10 @@ from __future__ import annotations
 import contextlib
 import functools
 import threading
-import weakref
-from abc import ABCMeta, ABC
+from abc import ABC
 from typing import List, Callable, Type
 from matplotlib.artist import Artist
-from matplotlib.widgets import Widget, AxesWidget
-
-from pyquibbler.exceptions import PyQuibblerException
+from matplotlib.widgets import AxesWidget
 
 ORIGINAL_ARTIST_INIT = Artist.__init__
 

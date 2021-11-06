@@ -213,8 +213,7 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
                 self._disable_widgets(widget_set, always_disable=True)
             self._graphics_collection_ndarr = None
         if self._graphics_collection_ndarr is None:
-            self._graphics_collection_ndarr = np.vectorize(lambda _: GraphicsCollection(set(), set()))\
-                (np.empty(loop_shape))
+            self._graphics_collection_ndarr = np.vectorize(lambda _: GraphicsCollection())(np.empty(loop_shape))
 
     @contextmanager
     def _call_func_context(self, graphics_collection):

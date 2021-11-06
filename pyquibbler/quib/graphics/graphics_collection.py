@@ -1,12 +1,8 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Set
-
-from matplotlib.artist import Artist
-from matplotlib.widgets import AxesWidget
 
 
 @dataclass
 class GraphicsCollection:
-
-    widgets: Set
-    artists: Set
+    widgets: Set = field(default_factory=set)
+    artists: Set = field(default_factory=set)

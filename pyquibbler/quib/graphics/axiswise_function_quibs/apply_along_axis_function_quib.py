@@ -144,7 +144,7 @@ class ApplyAlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         bool mask is not True within the given indices, then the result of this iteration was not requested (at
         valid_path), and so we will simply return the sample result as a placeholder
         """
-        indices = indices_before_axis + s_[..., ] + indices_after_axis
+        indices = indices_before_axis + s_[(...,)] + indices_after_axis
         if np.any(requested_indices_bool_mask[indices]):
             with self._call_func_context(self._graphics_collection_ndarr[indices_before_axis + indices_after_axis]):
                 res = self._run_func1d(self._get_oned_slice_for_running_func1d(indices),
@@ -171,11 +171,11 @@ class ApplyAlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         bool_mask = self._get_bool_mask_representing_indices_in_result(indices)
         for ii in ndindex(ni):
             for kk in ndindex(nk):
-                out[ii + s_[...,] + kk] = self._get_result_at_indices(bool_mask,
-                                                                      indices_before_axis=ii,
-                                                                      indices_after_axis=kk,
-                                                                      func1d_args=args_by_name.get('args', []),
-                                                                      func1d_kwargs=args_by_name.get('kwargs', {}))
+                out[ii + s_[(...,)] + kk] = self._get_result_at_indices(bool_mask,
+                                                                        indices_before_axis=ii,
+                                                                        indices_after_axis=kk,
+                                                                        func1d_args=args_by_name.get('args', []),
+                                                                        func1d_kwargs=args_by_name.get('kwargs', {}))
 
         return out
 
