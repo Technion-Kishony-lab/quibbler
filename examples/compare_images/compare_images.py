@@ -1,11 +1,10 @@
 # THIS DEMO DOES NOT WORK 100%
-import math
 import weakref
 
 import numpy as np
 from functools import partial
 
-import objgraph
+# import objgraph
 from matplotlib import pyplot as plt, widgets
 from matplotlib.widgets import AxesWidget
 from mpl_toolkits.axes_grid1 import ImageGrid
@@ -128,7 +127,8 @@ create_figure_1()
 create_figure_2()
 create_figure_3()
 
-def save():
-    objgraph.show_backrefs(axes_widgets[0](), filename='aa.png', max_depth=10)
-
+# def save():
+#     objgraph.show_backrefs(axes_widgets[0](), filename='aa.png', max_depth=10)
+# TODO: fix slider
+# TODO: fix scatter
 plt.show(block=False)

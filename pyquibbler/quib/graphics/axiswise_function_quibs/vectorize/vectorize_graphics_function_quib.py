@@ -29,6 +29,10 @@ def get_vectorize_call_data_args(args_values: ArgsValues) -> List[Any]:
 
 
 class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunctionQuib):
+    """
+    A Quib for wrapping np.vectorize.__call__.
+    Support forward and backwards translation, and partial calculation.
+    """
     SUPPORTED_FUNCTIONS = {
         np.vectorize.__call__: SupportedFunction(get_vectorize_call_data_args)
     }
@@ -98,6 +102,10 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
         return VectorizeCall(copy_vectorize(call.vectorize, func=wrapper, signature=signature), args, kwargs)
 
     def _get_vectorize_call(self, args_metadata, results_core_ndims, valid_path) -> VectorizeCall:
+        """
+        Get a VectorizeCall object to actually call vectorize with.
+        If asked to pass quibs, return a modified call that passes quibs.
+        """
         if self._pass_quibs:
             (vectorize, *args), kwargs = self.args, self.kwargs
             call = VectorizeCall(vectorize, args, kwargs)
@@ -108,6 +116,10 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
         return call
 
     def _get_sample_result(self, args_metadata, results_core_ndims):
+        """
+        Run the vectorized function on sample arguments to get s single sample result.
+        Remove any graphics that were created during the call.
+        """
         call = self._get_vectorize_call(args_metadata, results_core_ndims, None)
         with remove_created_graphics():
             return call.get_sample_result(args_metadata)
@@ -115,10 +127,17 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
     @property
     @cache_method_until_full_invalidation
     def _vectorize_metadata(self) -> VectorizeMetadata:
+        """
+        Get and cache metadata for the vectorize call.
+        """
         (vectorize, *args), kwargs = self._prepare_args_for_call(None)
         return VectorizeCall(vectorize, args, kwargs).get_metadata(self._get_sample_result)
 
     def _forward_translate_indices_to_bool_mask(self, invalidator_quib: Quib, indices: Any) -> Any:
+        """
+        Translate source bool mask to result bool mask by calling any on the source core dimensions,
+        and broadcasting the result to the loop shape.
+        """
         vectorize_metadata = self._vectorize_metadata
         source_bool_mask = self._get_source_shaped_bool_mask(invalidator_quib, indices)
         core_ndim = max(vectorize_metadata.args_metadata[arg_id].core_ndim
@@ -142,6 +161,10 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
             return [starting_path]
 
     def _backward_translate_indices_to_bool_mask(self, quib: Quib, indices: Any) -> Any:
+        """
+        Translate indices in result backwards to indices in a data source quib, by calling any on result
+        core dimensions and de-broadcasting the loop dimensions into the argument loop dimension.
+        """
         vectorize_metadata = self._vectorize_metadata
         quib_arg_id = self._get_arg_ids_for_quib(quib).pop()
         quib_loop_shape = vectorize_metadata.args_metadata[quib_arg_id].loop_shape
@@ -158,6 +181,9 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
         return np.broadcast_to(reduced_bool_mask, quib_loop_shape)
 
     def _get_source_path_in_quib(self, quib: Quib, filtered_path_in_result: List[PathComponent]):
+        """
+        Given a path in the result, return the path in the given quib on which the result path depends.
+        """
         if len(filtered_path_in_result) == 0 or filtered_path_in_result[0].indexed_cls is tuple:
             return []
         working_component, *rest_of_path = filtered_path_in_result
@@ -203,6 +229,9 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
         return VectorizeCall(vectorize, (*args_to_add, *call.args), call.kwargs)
 
     def _call_func(self, valid_path: Optional[List[PathComponent]]):
+        """
+        Call vectoriz, but call the internal function only when required by the given valid_path.
+        """
         self._initialize_graphics_ndarr()
         vectorize_metadata = self._vectorize_metadata
         if vectorize_metadata.is_result_a_tuple:
@@ -216,6 +245,11 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
 
 
 class QVectorize(np.vectorize):
+    """
+    A small wrapper to the np.vectorize class, adding options to __init__ and wrapping __call__
+    with a quib function wrapper.
+    """
+
     def __init__(self, *args, pass_quibs=False, signature=None, cache=False, **kwargs):
         # We don't need the underlying vectorize object to cache, we are doing that ourselves.
         super().__init__(*args, signature=signature, cache=False, **kwargs)
