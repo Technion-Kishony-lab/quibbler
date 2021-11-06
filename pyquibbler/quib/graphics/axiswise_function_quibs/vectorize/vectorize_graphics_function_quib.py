@@ -1,7 +1,7 @@
 from __future__ import annotations
 import numpy as np
 from functools import cached_property
-from typing import Any, Optional, List, Tuple
+from typing import Any, Optional, List, Tuple, Set
 
 from pyquibbler.quib.quib import Quib, cache_method_until_full_invalidation
 from pyquibbler.quib.proxy_quib import ProxyQuib
@@ -13,8 +13,8 @@ from pyquibbler.quib.function_quibs.utils import ArgsValues
 from pyquibbler.quib.utils import copy_and_replace_quibs_with_vals
 
 from .utils import copy_vectorize, get_core_axes, get_indices_array, iter_arg_ids_and_values, alter_signature, \
-    get_sample_result, convert_args_and_kwargs
-from .vectorize_metadata import VectorizeMetadata
+    convert_args_and_kwargs
+from .vectorize_metadata import VectorizeMetadata, ArgId, VectorizeCall
 from ...utils import remove_created_graphics
 
 
@@ -35,22 +35,36 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
 
     @classmethod
     def _wrapper_call(cls, func, args, kwargs, **create_kwargs):
+        """
+        When create a quib function wrapper for np.vectorize.__call__, pass the QVectorize pass_quibs
+        attribute as a kwargs to create().
+        """
         return super()._wrapper_call(func, args, kwargs, **create_kwargs, pass_quibs=args[0].pass_quibs)
 
     @cached_property
     def _vectorize(self) -> np.vectorize:
         """
-        Get the vectorize object we were called with
+        Get the vectorize object we were called with.
         """
         return self.args[0]
 
-    def _get_arg_ids_for_quib(self, quib: Quib):
+    def _get_arg_ids_for_quib(self, quib: Quib) -> Set[ArgId]:
+        """
+        Given a parent quib, get all arg_ids it is given with.
+        For example, in the call `f(q, x=q)`, `_get_arg_ids_for_quib(q)` will return `{0, 'x'}`
+        """
         return {arg_id for arg_id, arg in iter_arg_ids_and_values(self.args[1:], self.kwargs) if quib is arg}
 
-    def _wrap_vectorize_call_to_pass_quibs(self, vectorize, args, kwargs, args_metadata, results_core_ndims):
+    def _wrap_vectorize_call_to_pass_quibs(self, call: VectorizeCall, args_metadata,
+                                           results_core_ndims) -> VectorizeCall:
+        """
+        Given a vectorize call and some metadata, return a new vectorize call that passes quibs to the vectorize pyfunc.
+        This is done by wrapping the original pyfunc. The quibs in args and kwargs are replaced with
+        indices arrays, and when the wrapper receives an index it uses it to get a GetItemQuib from the passed quib.
+        """
         # We convert quibs to numpy arrays so we can slice them with tuples even if they are originally lists
-        quib_args = {arg_id: ProxyQuib(np.array(val)) for arg_id, val in iter_arg_ids_and_values(args, kwargs)
-                     if isinstance(val, Quib) and arg_id not in vectorize.excluded}
+        quib_args = {arg_id: ProxyQuib(np.array(val)) for arg_id, val in iter_arg_ids_and_values(call.args, call.kwargs)
+                     if isinstance(val, Quib) and arg_id not in call.vectorize.excluded}
 
         def convert_quibs_to_indices(arg_id, arg_val):
             if arg_id in quib_args:
@@ -59,7 +73,7 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
                 return ProxyQuib(arg_val)
             return arg_val
 
-        args, kwargs = convert_args_and_kwargs(convert_quibs_to_indices, args, kwargs)
+        args, kwargs = convert_args_and_kwargs(convert_quibs_to_indices, call.args, call.kwargs)
         # Indices arrays have 0 core dimensions, so if the signature is None, it just stays None.
         # Otherwise, we need to construct a new signature in which the core dimensions of the quib
         # args are zero.
@@ -67,7 +81,7 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
         # vectorize - and that means we would have needed to call the original function to get the tuple
         # length - which is bad because we need to call it with quibs.
         # To solve that we make sure our core dimensions are always 0 by using the Indices class.
-        signature = None if vectorize.signature is None else \
+        signature = None if call.vectorize.signature is None else \
             alter_signature(args_metadata, results_core_ndims, {arg_id: 0 for arg_id in quib_args})
 
         def convert_indices_to_quibs(arg_id, arg_val):
@@ -78,30 +92,31 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
 
         def wrapper(*args, **kwargs):
             args, kwargs = convert_args_and_kwargs(convert_indices_to_quibs, args, kwargs)
-            result = vectorize.pyfunc(*args, **kwargs)
+            result = call.vectorize.pyfunc(*args, **kwargs)
             return copy_and_replace_quibs_with_vals(result)
 
-        return copy_vectorize(vectorize, func=wrapper, signature=signature), args, kwargs
+        return VectorizeCall(copy_vectorize(call.vectorize, func=wrapper, signature=signature), args, kwargs)
 
-    def _get_vectorize_call(self, args_metadata, results_core_ndims, valid_path):
+    def _get_vectorize_call(self, args_metadata, results_core_ndims, valid_path) -> VectorizeCall:
         if self._pass_quibs:
             (vectorize, *args), kwargs = self.args, self.kwargs
-            vectorize, args, kwargs = self._wrap_vectorize_call_to_pass_quibs(vectorize, args, kwargs, args_metadata,
-                                                                              results_core_ndims)
+            call = VectorizeCall(vectorize, args, kwargs)
+            call = self._wrap_vectorize_call_to_pass_quibs(call, args_metadata, results_core_ndims)
         else:
             (vectorize, *args), kwargs = self._prepare_args_for_call(valid_path)
-        return vectorize, args, kwargs
+            call = VectorizeCall(vectorize, args, kwargs)
+        return call
 
     def _get_sample_result(self, args_metadata, results_core_ndims):
-        vectorize, args, kwargs = self._get_vectorize_call(args_metadata, results_core_ndims, None)
+        call = self._get_vectorize_call(args_metadata, results_core_ndims, None)
         with remove_created_graphics():
-            return get_sample_result(vectorize, args, kwargs, args_metadata)
+            return call.get_sample_result(args_metadata)
 
     @property
     @cache_method_until_full_invalidation
     def _vectorize_metadata(self) -> VectorizeMetadata:
         (vectorize, *args), kwargs = self._prepare_args_for_call(None)
-        return VectorizeMetadata.from_vectorize_call(vectorize, args, kwargs, self._get_sample_result)
+        return VectorizeCall(vectorize, args, kwargs).get_metadata(self._get_sample_result)
 
     def _forward_translate_indices_to_bool_mask(self, invalidator_quib: Quib, indices: Any) -> Any:
         vectorize_metadata = self._vectorize_metadata
@@ -158,7 +173,7 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
             return ()
         return self._vectorize_metadata.result_loop_shape
 
-    def _wrap_vectorize_call_to_calc_only_needed(self, vectorize, args, kwargs, valid_path, otypes):
+    def _wrap_vectorize_call_to_calc_only_needed(self, call: VectorizeCall, valid_path, otypes):
         """
         1. Create a bool mask with the same shape as the broadcast loop dimensions
         2. Create a wrapper for the pyfunc that receives the same arguments, and an additional boolean that
@@ -170,7 +185,7 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
                            axis=self._vectorize_metadata.result_core_axes)
         # The logic in this wrapper should be as minimal as possible (including attribute access, etc.)
         # as it is run for every index in the loop.
-        pyfunc = vectorize.pyfunc
+        pyfunc = call.vectorize.pyfunc
         empty_result = np.zeros(self._vectorize_metadata.result_core_shape, dtype=self._vectorize_metadata.result_dtype)
 
         def wrapper(graphics_collection, should_run, *args, **kwargs):
@@ -181,11 +196,11 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
 
         args_to_add = (self._graphics_collection_ndarr, bool_mask)
         wrapper_excluded = {i + len(args_to_add) if isinstance(i, int) else i for i in self._vectorize.excluded}
-        wrapper_signature = vectorize.signature if vectorize.signature is None \
-            else '(),' * len(args_to_add) + vectorize.signature
-        vectorize = copy_vectorize(vectorize, func=wrapper, excluded=wrapper_excluded, signature=wrapper_signature,
+        wrapper_signature = call.vectorize.signature if call.vectorize.signature is None \
+            else '(),' * len(args_to_add) + call.vectorize.signature
+        vectorize = copy_vectorize(call.vectorize, func=wrapper, excluded=wrapper_excluded, signature=wrapper_signature,
                                    otypes=otypes)
-        return vectorize, (*args_to_add, *args), kwargs
+        return VectorizeCall(vectorize, (*args_to_add, *call.args), call.kwargs)
 
     def _call_func(self, valid_path: Optional[List[PathComponent]]):
         self._initialize_graphics_ndarr()
@@ -194,12 +209,10 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
             return super()._call_func(valid_path)
         if valid_path is None:
             return np.zeros(vectorize_metadata.result_shape, dtype=vectorize_metadata.result_dtype)
-        vectorize, args, kwargs = self._get_vectorize_call(vectorize_metadata.args_metadata,
-                                                           vectorize_metadata.result_or_results_core_ndims, valid_path)
-        vectorize, args, kwargs = self._wrap_vectorize_call_to_calc_only_needed(vectorize, args, kwargs, valid_path,
-                                                                                vectorize_metadata.otypes)
-        # If we pass quibs to the wrapper, we will create a new graphics quib, so we use the original vectorize
-        return np.vectorize.__overridden__.__call__(vectorize, *args, **kwargs)
+        call = self._get_vectorize_call(vectorize_metadata.args_metadata,
+                                        vectorize_metadata.result_or_results_core_ndims, valid_path)
+        call = self._wrap_vectorize_call_to_calc_only_needed(call, valid_path, vectorize_metadata.otypes)
+        return call()
 
 
 class QVectorize(np.vectorize):

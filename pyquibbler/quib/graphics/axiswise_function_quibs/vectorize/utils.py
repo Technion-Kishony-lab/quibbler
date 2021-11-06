@@ -1,6 +1,5 @@
 from __future__ import annotations
 import numpy as np
-from functools import partial
 from typing import Tuple, Iterable, Optional, Dict, Union, Any, Callable, TYPE_CHECKING
 from string import ascii_letters
 from itertools import islice, chain
@@ -87,28 +86,9 @@ def get_indices_array(shape: Shape) -> np.ndarray:
     return np.apply_along_axis(Indices, -1, np.moveaxis(np.indices(shape), 0, -1))
 
 
-def get_sample_arg_core(args_metadata: ArgsMetadata, arg_id: Union[str, int], arg_value: Any) -> Any:
-    """
-    Get a sample core value from an array to call a non-vectorized function with.
-    """
-    meta = args_metadata.get(arg_id)
-    if meta is None:
-        return arg_value
-    # We should only use the loop shape and not the core shape, as the core shape changes with pass_quibs=True
-    return np.asarray(arg_value)[(0,) * meta.loop_ndim]
-
-
 def convert_args_and_kwargs(converter: Callable, args: Args, kwargs: Kwargs):
     """
     Apply the given converter on all given arg and kwarg values.
     """
     return (tuple(converter(i, val) for i, val in enumerate(args)),
             {name: converter(name, val) for name, val in kwargs.items()})
-
-
-def get_sample_result(vectorize: np.vectorize, args: Args, kwargs: Kwargs, args_metadata: ArgsMetadata) -> Any:
-    """
-    Get one sample result from the inner function of a vectorize
-    """
-    args, kwargs = convert_args_and_kwargs(partial(get_sample_arg_core, args_metadata), args, kwargs)
-    return vectorize.pyfunc(*args, **kwargs)

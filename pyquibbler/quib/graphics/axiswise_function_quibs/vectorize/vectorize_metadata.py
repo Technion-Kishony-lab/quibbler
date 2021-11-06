@@ -1,12 +1,14 @@
 from __future__ import annotations
+
+from functools import partial
+
 import numpy as np
 from dataclasses import dataclass
-from itertools import chain
 from typing import Any, Dict, Optional, List, Tuple, Union, Callable
 
 from pyquibbler.quib.function_quibs.indices_translator_function_quib import Args, Kwargs
 
-from .utils import Shape, get_core_axes, get_sample_result
+from .utils import Shape, get_core_axes, iter_arg_ids_and_values, convert_args_and_kwargs
 
 ArgId = Union[int, str]
 ArgsMetadata: Dict[ArgId, VectorizeArgMetadata]
@@ -164,54 +166,79 @@ class VectorizeMetadata:
         """
         return len(self.results_dtypes)
 
-    @classmethod
-    def _get_args_and_results_core_ndims(cls, vectorize: np.vectorize, args: Args, kwargs: Kwargs):
+
+@dataclass
+class VectorizeCall:
+    vectorize: np.vectorize
+    args: Args
+    kwargs: Kwargs
+
+    @staticmethod
+    def get_sample_arg_core(args_metadata: ArgsMetadata, arg_id: Union[str, int], arg_value: Any) -> Any:
+        """
+        Get a sample core value from an array to call a non-vectorized function with.
+        """
+        meta = args_metadata.get(arg_id)
+        if meta is None:
+            return arg_value
+        # We should only use the loop shape and not the core shape, as the core shape changes with pass_quibs=True
+        return np.asarray(arg_value)[(0,) * meta.loop_ndim]
+
+    def get_sample_result(self, args_metadata: ArgsMetadata) -> Any:
+        """
+        Get one sample result from the inner function of a vectorize
+        """
+        args, kwargs = convert_args_and_kwargs(partial(self.get_sample_arg_core, args_metadata), self.args, self.kwargs)
+        return self.vectorize.pyfunc(*args, **kwargs)
+
+    def __call__(self):
+        # If we pass quibs to the wrapper, we will create a new graphics quib, so we use the original vectorize
+        return np.vectorize.__overridden__.__call__(self.vectorize, *self.args, **self.kwargs)
+
+    def _get_args_and_results_core_ndims(self):
         """
         Get the args and results core dimensions in a vectorize call.
         """
-        num_not_excluded = len((set(range(len(args))) | set(kwargs)) - vectorize.excluded)
-        if vectorize._in_and_out_core_dims is None:
+        num_not_excluded = len((set(range(len(self.args))) | set(self.kwargs)) - self.vectorize.excluded)
+        if self.vectorize._in_and_out_core_dims is None:
             args_core_ndims = [0] * num_not_excluded
             results_core_ndims = None
             is_tuple = None
         else:
-            in_core_dims, out_core_dims = vectorize._in_and_out_core_dims
+            in_core_dims, out_core_dims = self.vectorize._in_and_out_core_dims
             args_core_ndims = list(map(len, in_core_dims))
             assert len(args_core_ndims) == num_not_excluded
             is_tuple = len(out_core_dims) > 1
             results_core_ndims = list(map(len, out_core_dims))
         return args_core_ndims, results_core_ndims, is_tuple
 
-    @classmethod
-    def _get_args_metadata(cls, vectorize: np.vectorize, args: Args, kwargs: Kwargs, args_core_ndims) -> ArgsMetadata:
+    def _get_args_metadata(self, args_core_ndims) -> ArgsMetadata:
         """
         Get the args metadata in a vectorize call.
         """
         arg_index = 0
         args_metadata = {}
-        for i, arg in chain(enumerate(args), kwargs.items()):
-            if i not in vectorize.excluded:
+        for i, arg in iter_arg_ids_and_values(self.args, self.kwargs):
+            if i not in self.vectorize.excluded:
                 args_metadata[i] = VectorizeArgMetadata.from_arg_and_core_ndim(arg, args_core_ndims[arg_index])
                 arg_index += 1
         assert arg_index == len(args_core_ndims)
         return args_metadata
 
-    @classmethod
-    def from_vectorize_call(cls, vectorize: np.vectorize, args: Args, kwargs: Kwargs, sample_result_callback=None):
+    def get_metadata(self, sample_result_callback=None):
         """
         Create a metadata object from a vectorize call.
         If sample_result_callback is given, use it to get a sample result instead of calling vectorize.pyfunc
         directly.
         """
-        args_core_ndims, results_core_ndims, is_tuple = cls._get_args_and_results_core_ndims(vectorize, args, kwargs)
-        args_metadata = cls._get_args_metadata(vectorize, args, kwargs, args_core_ndims)
+        args_core_ndims, results_core_ndims, is_tuple = self._get_args_and_results_core_ndims()
+        args_metadata = self._get_args_metadata(args_core_ndims)
         # Calculate the result shape like done in np.function_base._parse_input_dimensions
         dummy_arrays = [np.lib.stride_tricks.as_strided(0, arg_metadata.loop_shape)
                         for arg_metadata in args_metadata.values()]
         result_loop_shape = np.lib.stride_tricks._broadcast_shape(*dummy_arrays)
-        results_dtypes = None if vectorize.otypes is None else list(map(np.dtype, vectorize.otypes))
+        results_dtypes = None if self.vectorize.otypes is None else list(map(np.dtype, self.vectorize.otypes))
         if sample_result_callback is None:
-            sample_result_callback = lambda args_metadata, results_core_ndims: get_sample_result(vectorize, args,
-                                                                                                 kwargs, args_metadata)
-        return cls(sample_result_callback, args_metadata, result_loop_shape, is_tuple, results_core_ndims,
-                   results_dtypes)
+            sample_result_callback = lambda args_metadata, results_core_ndims: self.get_sample_result(args_metadata)
+        return VectorizeMetadata(sample_result_callback, args_metadata, result_loop_shape, is_tuple, results_core_ndims,
+                                 results_dtypes)

@@ -2,7 +2,7 @@ import numpy as np
 from pytest import mark
 
 from pyquibbler.quib.graphics.axiswise_function_quibs.vectorize.utils import copy_vectorize, alter_signature
-from pyquibbler.quib.graphics.axiswise_function_quibs.vectorize.vectorize_metadata import VectorizeMetadata
+from pyquibbler.quib.graphics.axiswise_function_quibs.vectorize.vectorize_metadata import VectorizeCall
 
 
 @mark.parametrize(['args', 'kwargs'], [((np.zeros((2, 2, 2)),), dict(y=np.zeros((2, 1, 2))))])
@@ -21,11 +21,11 @@ from pyquibbler.quib.graphics.axiswise_function_quibs.vectorize.vectorize_metada
 def test_alter_signature(func, signature, args, kwargs, expected_core_ndims, expected_result_ndims,
                          arg_ids_to_new_core_ndims):
     vectorize = np.vectorize(func, signature=signature)
-    metadata = VectorizeMetadata.from_vectorize_call(vectorize, args, kwargs)
+    metadata = VectorizeCall(vectorize, args, kwargs).get_metadata()
     altered_signature = alter_signature(metadata.args_metadata, metadata.result_or_results_core_ndims,
                                         arg_ids_to_new_core_ndims)
     vectorize_with_new_signature = copy_vectorize(vectorize, signature=altered_signature)
-    metadata_with_new_signature = VectorizeMetadata.from_vectorize_call(vectorize_with_new_signature, args, kwargs)
+    metadata_with_new_signature = VectorizeCall(vectorize_with_new_signature, args, kwargs).get_metadata()
 
     assert metadata_with_new_signature.is_result_a_tuple == metadata.is_result_a_tuple
     assert [meta.core_ndim for meta in metadata_with_new_signature.args_metadata.values()] == expected_core_ndims
