@@ -198,8 +198,8 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
     def _iter_artists(self) -> Iterable[Artist]:
         return (artist for artists in self._iter_artist_sets() for artist in artists)
 
-    def get_axeses(self) -> List[Axes]:
-        return list(get_axeses_to_array_names_to_artists(self._iter_artists()).keys())
+    def get_axeses(self) -> Set[Axes]:
+        return {artist.axes for artist in self._iter_artists()}
 
     def _get_loop_shape(self) -> Tuple[int, ...]:
         return ()

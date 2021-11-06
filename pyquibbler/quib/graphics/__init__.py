@@ -1,6 +1,6 @@
 from .event_handling import CanvasEventHandler
 from .graphics_function_quib import GraphicsFunctionQuib
-from .redraw import redraw_axes
+from .redraw import redraw_axeses
 from .global_collecting import ArtistsCollector, AxesWidgetsCollector
 from .plot_graphics_function_quib import PlotGraphicsFunctionQuib
 from .axiswise_function_quibs import ReductionAxisWiseGraphicsFunctionQuib

@@ -1,7 +1,5 @@
 from __future__ import annotations
-
 import contextlib
-
 import numpy as np
 from functools import wraps
 from functools import cached_property
@@ -20,7 +18,6 @@ from .function_quibs.cache.cache import CacheStatus
 from .function_quibs.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
 from .utils import quib_method, Unpacker, recursively_run_func_on_object
 from .assignment import PathComponent
-
 
 from ..env import LEN_RAISE_EXCEPTION
 from ..logger import logger
@@ -124,21 +121,18 @@ class Quib(ABC):
         """
         Redraw all artists that directly or indirectly depend on this quib.
         """
-        from pyquibbler.quib.graphics import redraw_axes
+        from pyquibbler.quib.graphics import redraw_axeses
         quibs = self._get_graphics_function_quibs_recursively()
         quibs_that_are_invalid = [quib for quib in quibs if quib.cache_status != CacheStatus.ALL_VALID]
         logger.info(f"redrawing {len(quibs_that_are_invalid)} quibs")
         for graphics_function_quib in quibs_that_are_invalid:
             graphics_function_quib.get_value()
 
-        axeses = set()
-        for graphics_function_quib in quibs_that_are_invalid:
-            for axes in graphics_function_quib.get_axeses():
-                axeses.add(axes)
+        axeses = {axes for graphics_function_quib in quibs_that_are_invalid
+                  for axes in graphics_function_quib.get_axeses()}
 
         logger.info(f"redrawing {len(axeses)} axeses")
-        for axes in axeses:
-            redraw_axes(axes)
+        redraw_axeses(axeses)
 
     def invalidate_and_redraw_at_path(self, path: Optional[List[PathComponent]] = None) -> None:
         """
