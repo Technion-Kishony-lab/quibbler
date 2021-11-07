@@ -19,7 +19,12 @@ from ...env import LAZY, PRETTY_REPR
 
 
 def _replace_value_with_name(val: Any):
-    return val.name if isinstance(val, Quib) else val
+    if not isinstance(val, Quib):
+        return repr(val)
+
+    if val.name is not None:
+        return val.name
+    return val.get_pretty_value()
 
 
 class CacheBehavior(Enum):

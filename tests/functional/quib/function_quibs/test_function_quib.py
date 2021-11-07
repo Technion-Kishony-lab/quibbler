@@ -217,6 +217,6 @@ def test_function_quib_pretty_repr_with_name():
 def test_function_quib_pretty_repr_with_multiple_args():
     a = iquib(1)
     b = iquib(2)
-    c = (a * b) + 2
+    c = a * b + 2
 
-    assert c.pretty_repr() == 'c = add(mul(a, b) + 2)'
+    assert c.pretty_repr() == 'c = add(mul(a, b), 2)'
