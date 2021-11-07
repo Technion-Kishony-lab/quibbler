@@ -55,8 +55,8 @@ class InputQuib(Quib):
             return self.pretty_repr()
         return f'<{self.__class__.__name__} ({self.get_value()})>'
 
-    def pretty_repr(self):
-        return f'iquib({self.get_value()})'
+    def get_pretty_value(self):
+        return f'iquib({self._value})'
 
     @property
     def parents(self) -> Set[Quib]:

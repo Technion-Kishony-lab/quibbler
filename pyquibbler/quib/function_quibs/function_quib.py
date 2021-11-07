@@ -1,5 +1,7 @@
 from __future__ import annotations
 import functools
+
+import itertools
 import numpy as np
 import types
 from enum import Enum
@@ -12,8 +14,12 @@ from ..override_choice import get_overrides_for_assignment
 from ..assignment import AssignmentTemplate, Assignment, PathComponent
 from ..quib import Quib
 from ..utils import is_there_a_quib_in_args, iter_quibs_in_args, deep_copy_without_quibs_or_artists, \
-    copy_and_convert_args_and_kwargs_to_values, recursively_run_func_on_object, QuibRef
+    recursively_run_func_on_object, QuibRef
 from ...env import LAZY, PRETTY_REPR
+
+
+def _replace_value_with_name(val: Any):
+    return val.name if isinstance(val, Quib) else val
 
 
 class CacheBehavior(Enum):
@@ -153,12 +159,14 @@ class FunctionQuib(Quib):
             return self.pretty_repr()
         return f"<{self.__class__.__name__} - {getattr(self.func, '__name__', repr(self.func))}>"
 
+    def get_pretty_value(self):
+        return None
+
     def pretty_repr(self):
         func_name = getattr(self.func, '__name__', str(self.func))
-        args, kwargs = copy_and_convert_args_and_kwargs_to_values(self.args, self.kwargs)
-        posarg_reprs = map(str, args)
-        kwarg_reprs = (f'{key}={val}' for key, val in kwargs.items())
-        return f'{func_name}({", ".join([*posarg_reprs, *kwarg_reprs])})'
+        arg_names = [_replace_value_with_name(arg) for arg in self.args]
+        kwarg_names = (f'{key}={_replace_value_with_name(val)}' for key, val in self.kwargs.items())
+        return f'{func_name}({", ".join([*arg_names, *kwarg_names])})'
 
     def get_cache_behavior(self):
         return self._cache_behavior

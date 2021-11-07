@@ -215,4 +215,4 @@ def test_function_quib_name():
     a = iquib(1)
     b = iquib(2)
 
-    assert (a + b).name == 'add(a, b)'
+    assert (a + b).pretty_repr() == 'add(a, b)'

@@ -56,3 +56,10 @@ def test_cant_create_an_input_quib_that_contains_a_quib():
 
 def test_iquib_repr_doesnt_fail():
     repr(iquib([10]))
+
+
+def test_iquib_pretty_repr():
+    a = iquib(10)
+
+    assert a.pretty_repr() == 'a = iquib(10)'
+
