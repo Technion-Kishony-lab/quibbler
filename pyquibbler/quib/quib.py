@@ -18,7 +18,7 @@ from .function_quibs.cache.cache import CacheStatus
 from .function_quibs.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
 from .utils import quib_method, Unpacker, recursively_run_func_on_object
 from .assignment import PathComponent
-
+from varname import varname, ImproperUseError, VarnameException
 from ..env import LEN_RAISE_EXCEPTION
 from ..logger import logger
 
@@ -86,6 +86,15 @@ class Quib(ABC):
             allow_overriding = self._DEFAULT_ALLOW_OVERRIDING
         self.allow_overriding = allow_overriding
         self.method_cache = {}
+        self._given_name = None
+
+        try:
+            import pyquibbler
+            # We need to set frame to 0 as we're already skipping pyquibbler, so no need to go up a frame further
+            # than that
+            self._var_name = varname(ignore=pyquibbler, frame=0)
+        except VarnameException:
+            self._var_name = None
 
     @property
     def children(self) -> Set[Quib]:
@@ -308,6 +317,17 @@ class Quib(ABC):
     def __setitem__(self, key, value):
         from .assignment.assignment import PathComponent
         self.assign(Assignment(value=value, path=[PathComponent(component=key, indexed_cls=self.get_type())]))
+
+    def set_name(self, name: str):
+        self._given_name = name
+
+    @property
+    def name(self):
+        if self._given_name is not None:
+            return self._given_name
+        elif self._var_name is not None:
+            return self._var_name
+        return self.pretty_repr()
 
     def pretty_repr(self):
         """
