@@ -11,17 +11,6 @@ from pyquibbler import iquib, override_all, q
 
 override_all()
 
-axes_widgets = []
-prev = AxesWidget.__init__
-
-
-def wrap_and_save(obj, *args, **kwargs):
-    axes_widgets.append(weakref.ref(obj))
-    return prev(obj, *args, **kwargs)
-
-
-AxesWidget.__init__ = wrap_and_save
-
 
 @partial(np.vectorize, signature='(extents),()->()', pass_quibs=True)
 def create_roi(roi, axes):
