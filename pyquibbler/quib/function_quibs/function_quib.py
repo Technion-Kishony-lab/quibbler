@@ -1,7 +1,6 @@
 from __future__ import annotations
 import functools
 
-import itertools
 import numpy as np
 import types
 from enum import Enum
@@ -18,7 +17,13 @@ from ..utils import is_there_a_quib_in_args, iter_quibs_in_args, deep_copy_witho
 from ...env import LAZY, PRETTY_REPR
 
 
-def _replace_value_with_name(val: Any):
+def _replace_arg_with_pretty_repr(val: Any):
+    """
+    Replace an argument with a pretty representation- note that this does NOT mean actually calling .pretty_repr(), as
+    we don't want to get a full pretty repr (x = pasten), but just a name, and if not then a pretty value
+
+    If it's not a quib, just return it's repr
+    """
     if not isinstance(val, Quib):
         return repr(val)
 
@@ -166,8 +171,8 @@ class FunctionQuib(Quib):
 
     def get_pretty_value(self):
         func_name = getattr(self.func, '__name__', str(self.func))
-        arg_names = [_replace_value_with_name(arg) for arg in self.args]
-        kwarg_names = [f'{key}={_replace_value_with_name(val)}' for key, val in self.kwargs.items()]
+        arg_names = [_replace_arg_with_pretty_repr(arg) for arg in self.args]
+        kwarg_names = [f'{key}={_replace_arg_with_pretty_repr(val)}' for key, val in self.kwargs.items()]
         return f'{func_name}({", ".join(map(str, [*arg_names, *kwarg_names]))})'
 
     def get_cache_behavior(self):
