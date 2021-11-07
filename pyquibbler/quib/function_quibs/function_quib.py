@@ -18,7 +18,6 @@ from ..utils import is_there_a_quib_in_args, iter_quibs_in_args, deep_copy_witho
 from ...env import LAZY, PRETTY_REPR
 
 
-
 class CacheBehavior(Enum):
     """
     The different modes in which the caching of a FunctionQuib can operate:

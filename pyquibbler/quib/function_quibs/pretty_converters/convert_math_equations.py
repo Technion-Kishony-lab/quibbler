@@ -1,8 +1,7 @@
 import operator
-from typing import List, Callable, Any
+from typing import List, Callable
 
 import numpy as np
-from pyquibbler.quib import Quib
 
 
 def convert_to_mathematical_notation(func: Callable, pretty_args: List[str]):
