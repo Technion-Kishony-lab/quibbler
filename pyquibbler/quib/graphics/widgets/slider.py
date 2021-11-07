@@ -23,6 +23,14 @@ class SliderGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
             # We only need to invalidate children if we didn't assign
             self.invalidate_and_redraw_at_path()
 
+    def _invalidate_self(self, path: List[PathComponent]):
+        # We don't want to invalidate a slider that is within dragging as we don't want to recreate the slider the user
+        # is currently using (so as to allow dragging and so on)
+        # Note that this fix will not work when the slider is within another graphicsfunctionquib
+        if self._cache is not None and self._cache.get_value().drag_active:
+            return
+        return super(SliderGraphicsFunctionQuib, self)._invalidate_self(path)
+
     def _call_func(self, valid_path: Optional[List[PathComponent]]) -> Any:
         slider = super()._call_func(None)
         slider.on_changed(self._on_change)
