@@ -18,7 +18,7 @@ from .function_quibs.cache.cache import CacheStatus
 from .function_quibs.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
 from .utils import quib_method, Unpacker, recursively_run_func_on_object
 from .assignment import PathComponent
-from varname import varname, ImproperUseError, VarnameException
+from varname import varname, VarnameException
 from ..env import LEN_RAISE_EXCEPTION
 from ..logger import logger
 
