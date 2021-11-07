@@ -5,6 +5,7 @@ import numpy as np
 from unittest.mock import Mock
 from pytest import fixture, mark
 from pyquibbler import iquib, CacheBehavior, q
+from pyquibbler.env import PRETTY_REPR
 from pyquibbler.quib import FunctionQuib, Assignment
 from pyquibbler.quib.assignment.assignment import PathComponent
 
@@ -214,6 +215,18 @@ def test_function_quib_pretty_repr_with_name():
     assert c.pretty_repr() == 'c = join(a, b)'
 
 
+@fixture()
+def a():
+    a = iquib(1)
+    return a
+
+
+@fixture()
+def b():
+    b = iquib(1)
+    return b
+
+
 def test_function_quib_pretty_repr_math():
     a = iquib(1)
     b = iquib(2)
@@ -222,10 +235,14 @@ def test_function_quib_pretty_repr_math():
     assert c.pretty_repr() == 'c = a + b'
 
 
-
-def test_function_quib_pretty_repr_math_holds_pemdas():
-    a = iquib(1)
-    b = iquib(2)
-    c = (a + b) * 3
-
-    assert c.pretty_repr() == 'c = (a + b) * 3'
+@mark.parametrize("statement,expected", [
+    ("a * b + b", "a * b + b"),
+    ("a * (b + b)", "a * (b + b)"),
+    ("(a * b) + b", "a * b + b"),
+    ("a / (b * b) * a", "a / (b * b) * a"),
+    ("a + a + a", "a + a + a"),
+    ("a ** (a / (a + b))", "a ^ (a / (a + b))")
+])
+def test_function_quib_pretty_repr_math_holds_pemdas(a, b, statement, expected):
+    with PRETTY_REPR.temporary_set(True):
+        assert repr(eval(statement)) == expected

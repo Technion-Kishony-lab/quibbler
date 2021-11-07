@@ -8,7 +8,7 @@ from typing import Union, Dict
 from functools import wraps, cached_property, lru_cache
 from typing import Callable, Any, Mapping, Tuple, Optional, Set, List
 
-
+from .pretty_converters import MathExpression
 from .utils import ArgsValues
 from ..override_choice import get_overrides_for_assignment
 from ..assignment import AssignmentTemplate, Assignment, PathComponent
@@ -155,7 +155,7 @@ class FunctionQuib(Quib):
             return self.pretty_repr()
         return f"<{self.__class__.__name__} - {getattr(self.func, '__name__', repr(self.func))}>"
 
-    def get_pretty_value(self):
+    def get_pretty_value(self) -> Union[MathExpression, str]:
         from pyquibbler.quib.function_quibs.pretty_converters import pretty_convert
         return pretty_convert.get_pretty_value_of_func_with_args_and_kwargs(self.func, self.args, self.kwargs)
 

@@ -6,7 +6,7 @@ from functools import cached_property
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from operator import getitem
-from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Callable, Dict
+from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Callable, Dict, Union
 from weakref import ref as weakref
 
 from pyquibbler.exceptions import PyQuibblerException
@@ -16,6 +16,7 @@ from .assignment import AssignmentTemplate, RangeAssignmentTemplate, BoundAssign
 from .function_quibs.cache import create_cache
 from .function_quibs.cache.cache import CacheStatus
 from .function_quibs.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
+from .function_quibs.pretty_converters import MathExpression
 from .utils import quib_method, Unpacker, recursively_run_func_on_object
 from .assignment import PathComponent
 from varname import varname, VarnameException
@@ -330,7 +331,7 @@ class Quib(ABC):
         return None
 
     @abstractmethod
-    def get_pretty_value(self):
+    def get_pretty_value(self) -> Union[MathExpression, str]:
         pass
 
     def pretty_repr(self):
@@ -338,7 +339,7 @@ class Quib(ABC):
         Returns a pretty representation of the quib. Might calculate values of parent quibs.
         """
         pretty_value = self.get_pretty_value()
-        return f"{self.name} = {pretty_value}" if self.name is not None else pretty_value
+        return f"{self.name} = {pretty_value}" if self.name is not None else str(pretty_value)
 
     def get_assignment_template(self) -> AssignmentTemplate:
         return self._assignment_template

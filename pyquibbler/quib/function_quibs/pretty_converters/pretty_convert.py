@@ -1,9 +1,8 @@
 import operator
-from typing import Callable, List
+from typing import Callable, List, Union
 from typing import Tuple, Any, Mapping
 
-from pyquibbler.quib import Quib
-from pyquibbler.quib.function_quibs.pretty_converters.convert_math_equations import MATH_FUNCS_TO_CONVERTERS
+from pyquibbler.quib.function_quibs.pretty_converters.convert_math_equations import MATH_FUNCS_TO_CONVERTERS, MathExpression
 
 
 def replace_arg_with_pretty_repr(val: Any):
@@ -13,6 +12,7 @@ def replace_arg_with_pretty_repr(val: Any):
 
     If it's not a quib, just return it's repr
     """
+    from pyquibbler.quib import Quib
     if not isinstance(val, Quib):
         return repr(val)
 
@@ -28,7 +28,7 @@ def getitem_converter(func, pretty_arg_names: List[str]):
 
 def get_pretty_value_of_func_with_args_and_kwargs(func: Callable,
                                                   args: Tuple[Any, ...],
-                                                  kwargs: Mapping[str, Any]):
+                                                  kwargs: Mapping[str, Any]) -> Union[MathExpression, str]:
     """
     Get the pretty value of a function, using a special converter if possible (eg for math notation) and defaulting
     to a standard func(xxx) if not
