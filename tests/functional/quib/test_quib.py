@@ -35,6 +35,9 @@ class ExampleQuib(Quib):
     def _get_inner_value_valid_at_path(self, path):
         return self.value
 
+    def get_pretty_value(self):
+        return self.value
+
     @property
     def parents(self) -> Set[Quib]:
         return self._parents

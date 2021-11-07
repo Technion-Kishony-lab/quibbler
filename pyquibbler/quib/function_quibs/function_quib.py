@@ -8,6 +8,7 @@ from typing import Union, Dict
 from functools import wraps, cached_property, lru_cache
 from typing import Callable, Any, Mapping, Tuple, Optional, Set, List
 
+
 from .utils import ArgsValues
 from ..override_choice import get_overrides_for_assignment
 from ..assignment import AssignmentTemplate, Assignment, PathComponent
@@ -16,20 +17,6 @@ from ..utils import is_there_a_quib_in_args, iter_quibs_in_args, deep_copy_witho
     recursively_run_func_on_object, QuibRef
 from ...env import LAZY, PRETTY_REPR
 
-
-def _replace_arg_with_pretty_repr(val: Any):
-    """
-    Replace an argument with a pretty representation- note that this does NOT mean actually calling .pretty_repr(), as
-    we don't want to get a full pretty repr (x = pasten), but just a name, and if not then a pretty value
-
-    If it's not a quib, just return it's repr
-    """
-    if not isinstance(val, Quib):
-        return repr(val)
-
-    if val.name is not None:
-        return val.name
-    return val.get_pretty_value()
 
 
 class CacheBehavior(Enum):
@@ -170,10 +157,8 @@ class FunctionQuib(Quib):
         return f"<{self.__class__.__name__} - {getattr(self.func, '__name__', repr(self.func))}>"
 
     def get_pretty_value(self):
-        func_name = getattr(self.func, '__name__', str(self.func))
-        arg_names = [_replace_arg_with_pretty_repr(arg) for arg in self.args]
-        kwarg_names = [f'{key}={_replace_arg_with_pretty_repr(val)}' for key, val in self.kwargs.items()]
-        return f'{func_name}({", ".join(map(str, [*arg_names, *kwarg_names]))})'
+        from pyquibbler.quib.function_quibs.pretty_converters import pretty_convert
+        return pretty_convert.get_pretty_value_of_func_with_args_and_kwargs(self.func, self.args, self.kwargs)
 
     def get_cache_behavior(self):
         return self._cache_behavior

@@ -4,7 +4,7 @@ from unittest import mock
 import numpy as np
 from unittest.mock import Mock
 from pytest import fixture, mark
-from pyquibbler import iquib, CacheBehavior
+from pyquibbler import iquib, CacheBehavior, q
 from pyquibbler.quib import FunctionQuib, Assignment
 from pyquibbler.quib.assignment.assignment import PathComponent
 
@@ -203,20 +203,29 @@ def test_function_quib_pretty_repr_without_name():
     a = iquib(1)
     b = iquib(2)
 
-    assert (a + b).pretty_repr() == 'add(a, b)'
+    assert q("".join, a, b).pretty_repr() == 'join(a, b)'
 
 
 def test_function_quib_pretty_repr_with_name():
     a = iquib(1)
     b = iquib(2)
-    c = a + b
+    c = q("".join, a, b)
 
-    assert c.pretty_repr() == 'c = add(a, b)'
+    assert c.pretty_repr() == 'c = join(a, b)'
 
 
-def test_function_quib_pretty_repr_with_multiple_args():
+def test_function_quib_pretty_repr_math():
     a = iquib(1)
     b = iquib(2)
-    c = a * b + 2
+    c = a + b
 
-    assert c.pretty_repr() == 'c = add(mul(a, b), 2)'
+    assert c.pretty_repr() == 'c = a + b'
+
+
+
+def test_function_quib_pretty_repr_math_holds_pemdas():
+    a = iquib(1)
+    b = iquib(2)
+    c = (a + b) * 3
+
+    assert c.pretty_repr() == 'c = (a + b) * 3'
