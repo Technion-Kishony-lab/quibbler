@@ -160,13 +160,10 @@ class FunctionQuib(Quib):
         return f"<{self.__class__.__name__} - {getattr(self.func, '__name__', repr(self.func))}>"
 
     def get_pretty_value(self):
-        return None
-
-    def pretty_repr(self):
         func_name = getattr(self.func, '__name__', str(self.func))
         arg_names = [_replace_value_with_name(arg) for arg in self.args]
-        kwarg_names = (f'{key}={_replace_value_with_name(val)}' for key, val in self.kwargs.items())
-        return f'{func_name}({", ".join([*arg_names, *kwarg_names])})'
+        kwarg_names = [f'{key}={_replace_value_with_name(val)}' for key, val in self.kwargs.items()]
+        return f'{func_name}({", ".join(map(str, [*arg_names, *kwarg_names]))})'
 
     def get_cache_behavior(self):
         return self._cache_behavior

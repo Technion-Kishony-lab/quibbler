@@ -118,18 +118,6 @@ def function_quib_create_calculates_when_not_lazy(function_mock):
     function_mock.assert_called_once()
 
 
-def test_pretty_repr():
-    function_repr = 'woohoo'
-    function = get_mock_with_repr(function_repr)
-    parent = iquib('lolol')
-    fquib = ExampleFunctionQuib.create(function, (parent,))
-
-    string = fquib.pretty_repr()
-
-    assert function_repr in string
-    assert parent.get_value() in string
-
-
 @mark.regression
 def test_function_quib_get_value_valid_at_path_with_data_source_kwarg():
     parent = MockQuib([[1]])
@@ -211,8 +199,24 @@ def test_function_quib_does_invalidate_all_when_invalidated_all_at_path_in_param
     mock_quib._invalidate_quib_with_children_at_path.assert_called_with(parent, [])
 
 
-def test_function_quib_name():
+def test_function_quib_pretty_repr_without_name():
     a = iquib(1)
     b = iquib(2)
 
     assert (a + b).pretty_repr() == 'add(a, b)'
+
+
+def test_function_quib_pretty_repr_with_name():
+    a = iquib(1)
+    b = iquib(2)
+    c = a + b
+
+    assert c.pretty_repr() == 'c = add(a, b)'
+
+
+def test_function_quib_pretty_repr_with_multiple_args():
+    a = iquib(1)
+    b = iquib(2)
+    c = (a * b) + 2
+
+    assert c.pretty_repr() == 'c = add(mul(a, b) + 2)'

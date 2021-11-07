@@ -338,7 +338,7 @@ class Quib(ABC):
         Returns a pretty representation of the quib. Might calculate values of parent quibs.
         """
         pretty_value = self.get_pretty_value()
-        return f"{self.name} = {pretty_value}" if self.name is not None else {pretty_value}
+        return f"{self.name} = {pretty_value}" if self.name is not None else pretty_value
 
     def get_assignment_template(self) -> AssignmentTemplate:
         return self._assignment_template
