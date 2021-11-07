@@ -126,7 +126,7 @@ class Quib(ABC):
         from pyquibbler.quib.graphics import GraphicsFunctionQuib
         return {child for child in self._get_children_recursively() if isinstance(child, GraphicsFunctionQuib)}
 
-    def __redraw(self) -> None:
+    def _redraw(self) -> None:
         """
         Redraw all artists that directly or indirectly depend on this quib.
         """
@@ -155,7 +155,7 @@ class Quib(ABC):
         with timer("quib_invalidation", lambda x: logger.info(f"invalidation {x}")):
             self._invalidate_children_at_path(path)
         with timer("quib_redraw", lambda x: logger.info(f"redraw {x}")):
-            self.__redraw()
+            self._redraw()
 
     def _invalidate_children_at_path(self, path: List[PathComponent]) -> None:
         """
