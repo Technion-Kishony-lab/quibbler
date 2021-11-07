@@ -209,3 +209,10 @@ def test_function_quib_does_invalidate_all_when_invalidated_all_at_path_in_param
     grandparent.invalidate_and_redraw_at_path([])
 
     mock_quib._invalidate_quib_with_children_at_path.assert_called_with(parent, [])
+
+
+def test_function_quib_name():
+    a = iquib(1)
+    b = iquib(2)
+
+    assert (a + b).name == 'add(a, b)'
