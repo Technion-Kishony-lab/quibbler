@@ -18,7 +18,7 @@ from .function_quibs.cache.cache import CacheStatus
 from .function_quibs.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
 from .utils import quib_method, Unpacker, recursively_run_func_on_object
 from .assignment import PathComponent
-
+from varname import varname, VarnameException
 from ..env import LEN_RAISE_EXCEPTION
 from ..logger import logger
 
@@ -86,6 +86,15 @@ class Quib(ABC):
             allow_overriding = self._DEFAULT_ALLOW_OVERRIDING
         self.allow_overriding = allow_overriding
         self.method_cache = {}
+        self._given_name = None
+
+        try:
+            import pyquibbler
+            # We need to set frame to 0 as we're already skipping pyquibbler, so no need to go up a frame further
+            # than that
+            self._var_name = varname(ignore=pyquibbler, frame=0)
+        except VarnameException:
+            self._var_name = None
 
     @property
     def children(self) -> Set[Quib]:
@@ -117,7 +126,7 @@ class Quib(ABC):
         from pyquibbler.quib.graphics import GraphicsFunctionQuib
         return {child for child in self._get_children_recursively() if isinstance(child, GraphicsFunctionQuib)}
 
-    def __redraw(self) -> None:
+    def _redraw(self) -> None:
         """
         Redraw all artists that directly or indirectly depend on this quib.
         """
@@ -146,7 +155,7 @@ class Quib(ABC):
         with timer("quib_invalidation", lambda x: logger.info(f"invalidation {x}")):
             self._invalidate_children_at_path(path)
         with timer("quib_redraw", lambda x: logger.info(f"redraw {x}")):
-            self.__redraw()
+            self._redraw()
 
     def _invalidate_children_at_path(self, path: List[PathComponent]) -> None:
         """
@@ -309,11 +318,27 @@ class Quib(ABC):
         from .assignment.assignment import PathComponent
         self.assign(Assignment(value=value, path=[PathComponent(component=key, indexed_cls=self.get_type())]))
 
+    def set_name(self, name: str):
+        self._given_name = name
+
+    @property
+    def name(self):
+        if self._given_name is not None:
+            return self._given_name
+        elif self._var_name is not None:
+            return self._var_name
+        return None
+
+    @abstractmethod
+    def get_pretty_value(self):
+        pass
+
     def pretty_repr(self):
         """
         Returns a pretty representation of the quib. Might calculate values of parent quibs.
         """
-        return repr(self)
+        pretty_value = self.get_pretty_value()
+        return f"{self.name} = {pretty_value}" if self.name is not None else pretty_value
 
     def get_assignment_template(self) -> AssignmentTemplate:
         return self._assignment_template

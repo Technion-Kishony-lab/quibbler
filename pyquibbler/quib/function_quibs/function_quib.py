@@ -1,5 +1,6 @@
 from __future__ import annotations
 import functools
+
 import numpy as np
 import types
 from enum import Enum
@@ -7,12 +8,13 @@ from typing import Union, Dict
 from functools import wraps, cached_property, lru_cache
 from typing import Callable, Any, Mapping, Tuple, Optional, Set, List
 
+
 from .utils import ArgsValues
 from ..override_choice import get_overrides_for_assignment
 from ..assignment import AssignmentTemplate, Assignment, PathComponent
 from ..quib import Quib
 from ..utils import is_there_a_quib_in_args, iter_quibs_in_args, deep_copy_without_quibs_or_artists, \
-    copy_and_convert_args_and_kwargs_to_values, recursively_run_func_on_object, QuibRef
+    recursively_run_func_on_object, QuibRef
 from ...env import LAZY, PRETTY_REPR
 
 
@@ -153,12 +155,9 @@ class FunctionQuib(Quib):
             return self.pretty_repr()
         return f"<{self.__class__.__name__} - {getattr(self.func, '__name__', repr(self.func))}>"
 
-    def pretty_repr(self):
-        func_name = getattr(self.func, '__name__', str(self.func))
-        args, kwargs = copy_and_convert_args_and_kwargs_to_values(self.args, self.kwargs)
-        posarg_reprs = map(str, args)
-        kwarg_reprs = (f'{key}={val}' for key, val in kwargs.items())
-        return f'{func_name}({", ".join([*posarg_reprs, *kwarg_reprs])})'
+    def get_pretty_value(self):
+        from pyquibbler.quib.function_quibs.pretty_converters import pretty_convert
+        return pretty_convert.get_pretty_value_of_func_with_args_and_kwargs(self.func, self.args, self.kwargs)
 
     def get_cache_behavior(self):
         return self._cache_behavior

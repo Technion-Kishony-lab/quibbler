@@ -5,6 +5,7 @@ from unittest import mock
 from unittest.mock import Mock
 import numpy as np
 import pytest
+from pyquibbler import iquib
 from pytest import mark, raises, fixture
 
 from pyquibbler.quib import Quib, OverridingNotAllowedException
@@ -32,6 +33,9 @@ class ExampleQuib(Quib):
         super()._invalidate_quib_with_children_at_path(invalidator_quib, path_component)
 
     def _get_inner_value_valid_at_path(self, path):
+        return self.value
+
+    def get_pretty_value(self):
         return self.value
 
     @property
@@ -405,3 +409,18 @@ def test_quib_should_invalidate_children_when_overrides(example_quib, parent,
 
     new_expected_count = current_call_count if not expected_to_have_invalidated_child else current_call_count + 1
     assert mock_child_of_example_quib._invalidate_quib_with_children_at_path.call_count == new_expected_count
+
+
+def test_quib_var_name():
+    # we can't use examplequib as it's not a part of pyquibbler, and we only filter out pyquibbler frames
+    my_quib = iquib(1)
+    assert my_quib.name == "my_quib"
+
+
+def test_quib_with_set_name():
+    my_quib = iquib(1)
+    name = "hello quib"
+
+    my_quib.set_name(name)
+
+    assert my_quib.name == name
