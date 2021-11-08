@@ -10,7 +10,7 @@ from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Callabl
 from weakref import ref as weakref
 
 from .function_quibs.quib_call_failed_exception_handling import raise_quib_call_exceptions_as_own, \
-    QuibCallFailedException
+    QuibCallFailedException, add_quib_to_fail_trace_if_raises_quib_call_exception
 from .quib_varname import get_var_name_being_set_outside_of_pyquibbler, get_file_name_and_line_number_of_quib
 
 from pyquibbler.exceptions import PyQuibblerException
@@ -398,11 +398,10 @@ class Quib(ABC):
             context = contextlib.nullcontext()
 
         with context:
-            try:
+            with add_quib_to_fail_trace_if_raises_quib_call_exception(quib=self,
+                                                                      call=f'get_value_valid_at_path({path})',
+                                                                      replace_last=False):
                 inner_value = self._get_inner_value_valid_at_path(path)
-            except QuibCallFailedException as e:
-                raise QuibCallFailedException(quibs_with_paths=[*e.quibs_with_paths, (self, path)],
-                                              exception=e.exception)
 
         return self._overrider.override(inner_value, self._assignment_template)
 
@@ -414,7 +413,8 @@ class Quib(ABC):
         are lazy, so a function quib might need to calculate uncached values and might
         even have to calculate the values of its dependencies.
         """
-        return self.get_value_valid_at_path([])
+        with add_quib_to_fail_trace_if_raises_quib_call_exception(quib=self, call='get_value()', replace_last=True):
+            return self.get_value_valid_at_path([])
 
     def get_override_list(self) -> Overrider:
         """
@@ -428,7 +428,8 @@ class Quib(ABC):
         """
         Get the type of wrapped value.
         """
-        return type(self.get_value_valid_at_path(None))
+        with add_quib_to_fail_trace_if_raises_quib_call_exception(quib=self, call='get_type()', replace_last=True):
+            return type(self.get_value_valid_at_path(None))
 
     # We cache the shape, so quibs without cache will still remember their shape.
     @cache_method_until_full_invalidation
@@ -436,13 +437,16 @@ class Quib(ABC):
         """
         Assuming this quib represents a numpy ndarray, returns a quib of its shape.
         """
-        res = self.get_value_valid_at_path(None)
+        with add_quib_to_fail_trace_if_raises_quib_call_exception(quib=self, call='get_shape()', replace_last=True):
+            res = self.get_value_valid_at_path(None)
+
         try:
             return np.shape(res)
         except ValueError:
             if hasattr(res, '__len__'):
                 return len(res),
             raise
+
 
     @quib_method
     def get_override_mask(self):

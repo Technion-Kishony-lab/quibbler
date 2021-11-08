@@ -69,3 +69,4 @@ def test_iquib_pretty_repr_str():
     a = iquib('a')
 
     assert a.pretty_repr() == 'a = iquib(\'a\')'
+

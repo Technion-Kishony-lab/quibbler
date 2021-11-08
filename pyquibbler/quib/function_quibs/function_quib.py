@@ -9,7 +9,7 @@ from functools import wraps, cached_property, lru_cache
 from typing import Callable, Any, Mapping, Tuple, Optional, Set, List
 
 from .pretty_converters import MathExpression
-from .quib_call_failed_exception_handling import quib_call_failed_exception_handling, \
+from .quib_call_failed_exception_handling import external_call_failed_exception_handling, \
     raise_quib_call_exceptions_as_own
 from .utils import ArgsValues
 from ..override_choice import get_overrides_for_assignment
@@ -220,7 +220,7 @@ class FunctionQuib(Quib):
         valid at valid_path
         """
         new_args, new_kwargs = self._prepare_args_for_call(valid_path)
-        with quib_call_failed_exception_handling(self):
+        with external_call_failed_exception_handling():
             return self.func(*new_args, **new_kwargs)
 
     def _forward_translate_invalidation_path(self, invalidator_quib: Quib, path: List[PathComponent]) -> \
