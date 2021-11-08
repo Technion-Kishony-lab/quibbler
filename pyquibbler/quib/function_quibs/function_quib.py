@@ -10,7 +10,7 @@ from typing import Callable, Any, Mapping, Tuple, Optional, Set, List
 
 from .pretty_converters import MathExpression
 from .quib_call_failed_exception_handling import quib_call_failed_exception_handling, \
-    raise_quib_call_exceptions_as_own, QuibCallFailedException
+    raise_quib_call_exceptions_as_own
 from .utils import ArgsValues
 from ..override_choice import get_overrides_for_assignment
 from ..assignment import AssignmentTemplate, Assignment, PathComponent
@@ -194,10 +194,7 @@ class FunctionQuib(Quib):
                 # we need ourselves (this quib) to be valid
                 path = []
 
-            try:
-                return inner_arg.get_value_valid_at_path(path)
-            except QuibCallFailedException as e:
-                raise QuibCallFailedException(quibs=[*e.quibs, self], exception=e.exception)
+            return inner_arg.get_value_valid_at_path(path)
 
         return inner_arg
 

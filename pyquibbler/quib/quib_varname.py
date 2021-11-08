@@ -34,7 +34,8 @@ def lookfor_parent_assign(node: ast.AST) -> AssignType:
 
 def get_quib_node_being_set_outside_of_pyquibbler():
     import pyquibbler
-    return get_node(frame=1, ignore=pyquibbler, raise_exc=False)
+    import matplotlib
+    return get_node(frame=1, ignore=[pyquibbler, matplotlib], raise_exc=False)
 
 
 def get_file_name_and_line_number_of_quib():

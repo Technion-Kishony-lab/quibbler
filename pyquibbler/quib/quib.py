@@ -141,7 +141,6 @@ class Quib(ABC):
         logger.info(f"redrawing {len(quibs_that_are_invalid)} quibs")
         for graphics_function_quib in quibs_that_are_invalid:
             graphics_function_quib.get_value()
-
         axeses = {axes for graphics_function_quib in quibs_that_are_invalid
                   for axes in graphics_function_quib.get_axeses()}
 
@@ -296,6 +295,7 @@ class Quib(ABC):
         """
         self.override(assignment, allow_overriding_from_now_on=False)
 
+    @raise_quib_call_exceptions_as_own
     def assign_value(self, value: Any) -> None:
         """
         Helper method to assign a single value and override the whole value of the quib
@@ -303,6 +303,7 @@ class Quib(ABC):
         self.assign(Assignment(value=value,
                                path=[]))
 
+    @raise_quib_call_exceptions_as_own
     def assign_value_to_key(self, key: Any, value: Any) -> None:
         """
         Helper method to assign a value at a specific key
@@ -376,6 +377,7 @@ class Quib(ABC):
         Perform calculations if needed.
         """
 
+    @raise_quib_call_exceptions_as_own
     def get_value_valid_at_path(self, path: Optional[List[PathComponent]]) -> Any:
         """
         Get the actual data that this quib represents, valid at the path given in the argument.
@@ -392,7 +394,8 @@ class Quib(ABC):
             try:
                 inner_value = self._get_inner_value_valid_at_path(path)
             except QuibCallFailedException as e:
-                raise QuibCallFailedException(exception=e.exception, quibs=e.quibs) from None
+                raise QuibCallFailedException(quibs_with_paths=[*e.quibs_with_paths, (self, path)],
+                                              exception=e.exception)
 
         return self._overrider.override(inner_value, self._assignment_template)
 
