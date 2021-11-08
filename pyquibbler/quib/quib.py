@@ -8,6 +8,8 @@ from dataclasses import dataclass
 from operator import getitem
 from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Callable, Dict, Union
 from weakref import ref as weakref
+
+from .function_quibs.exceptions import QuibCallFailedException
 from .quib_varname import get_var_name_being_set_outside_of_pyquibbler
 
 from pyquibbler.exceptions import PyQuibblerException
@@ -20,7 +22,7 @@ from .function_quibs.cache.shallow.indexable_cache import transform_cache_to_nd_
 from .function_quibs.pretty_converters import MathExpression
 from .utils import quib_method, Unpacker, recursively_run_func_on_object
 from .assignment import PathComponent
-from ..env import LEN_RAISE_EXCEPTION
+from ..env import LEN_RAISE_EXCEPTION, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS
 from ..logger import logger
 
 if TYPE_CHECKING:
@@ -383,7 +385,8 @@ class Quib(ABC):
 
         with context:
             inner_value = self._get_inner_value_valid_at_path(path)
-            return self._overrider.override(inner_value, self._assignment_template)
+
+        return self._overrider.override(inner_value, self._assignment_template)
 
     def get_value(self) -> Any:
         """
@@ -392,7 +395,11 @@ class Quib(ABC):
         are lazy, so a function quib might need to calculate uncached values and might
         even have to calculate the values of its dependencies.
         """
-        return self.get_value_valid_at_path([])
+        try:
+            return self.get_value_valid_at_path([])
+        except QuibCallFailedException as e:
+            # We do this to clear the get_value_valid_at_path from traceback
+            raise QuibCallFailedException(exception=e.exception, quibs=e.quibs) from None
 
     def get_override_list(self) -> Overrider:
         """

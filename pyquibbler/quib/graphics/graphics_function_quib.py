@@ -221,6 +221,11 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
             with QuibGuard(set(iter_quibs_in_args(self.args, self.kwargs))):
                 yield
 
+    def _prepare_args_for_call(self, valid_path: Optional[List[PathComponent]]):
+        if self._pass_quibs:
+            return proxify_args(self.args, self.kwargs)
+        return super(GraphicsFunctionQuib, self)._prepare_args_for_call(valid_path)
+
     def _call_func(self, valid_path: Optional[List[PathComponent]]) -> Any:
         """
         Create the new artists, then update them (if appropriate) with correct attributes (such as color) and place them
@@ -230,7 +235,6 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         self._initialize_graphics_ndarr()
         # This implementation does not support partial calculation
         assert self._graphics_collection_ndarr.ndim == 0
-        args, kwargs = proxify_args(self.args, self.kwargs) if self._pass_quibs \
-            else self._prepare_args_for_call(valid_path)
+
         with self._call_func_context(self._graphics_collection_ndarr[()]):
-            return self.func(*args, **kwargs)
+            return super(GraphicsFunctionQuib, self)._call_func(valid_path)

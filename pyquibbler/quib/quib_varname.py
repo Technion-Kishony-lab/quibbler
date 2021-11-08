@@ -47,6 +47,7 @@ def get_var_name_being_set_outside_of_pyquibbler() -> Optional[str]:
     if not node:
         return None
 
+    # import ipdb; ipdb.set_trace()
     if isinstance(node, ast.Assign):
         # there could be a = b = iquib(1) -> in this case, we take the last
         target = node.targets[-1]
