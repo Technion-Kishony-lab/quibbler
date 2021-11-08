@@ -331,7 +331,11 @@ class Quib(ABC):
         self._given_name = name
 
     @property
-    def name(self):
+    def name(self) -> Optional[str]:
+        """
+        Get the name of the quib- this can either be an automatic name if created (the var name), a given name if given,
+        and None if neither
+        """
         if self._given_name is not None:
             return self._given_name
         elif self._var_name is not None:
