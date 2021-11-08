@@ -6,6 +6,12 @@ from pyquibbler.quib.function_quibs.pretty_converters.convert_math_equations imp
     MathExpression
 
 
+ITEMS_WITH_PRETTY_REPRS = [
+    (slice(None, None, None), ':'),
+    (Ellipsis, '...')
+]
+
+
 def replace_arg_with_pretty_repr(val: Any):
     """
     Replace an argument with a pretty representation- note that this does NOT mean actually calling .pretty_repr(), as
@@ -15,7 +21,9 @@ def replace_arg_with_pretty_repr(val: Any):
     """
     from pyquibbler.quib import Quib
     if not isinstance(val, Quib):
-        return repr(val)
+        pretty_value = next((pretty_value
+                             for it, pretty_value in ITEMS_WITH_PRETTY_REPRS if it == val), repr(val))
+        return pretty_value
 
     if val.name is not None:
         return val.name

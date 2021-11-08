@@ -474,4 +474,3 @@ def test_quib_pretty_repr_with_repr_throwing_exception():
 
     quib = iquib(A())
     assert quib.pretty_repr() == "quib = [exception during repr]"
-

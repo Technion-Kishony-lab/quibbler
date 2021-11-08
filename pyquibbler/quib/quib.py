@@ -364,7 +364,8 @@ class Quib(ABC):
         """
         try:
             pretty_value = self.get_pretty_value()
-        except Exception:
+        except Exception as e:
+            logger.warning(f"Failed to get repr {e}")
             pretty_value = "[exception during repr]"
         return f"{self.name} = {pretty_value}" if self.name is not None else str(pretty_value)
 

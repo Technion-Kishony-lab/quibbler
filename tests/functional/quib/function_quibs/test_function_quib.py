@@ -215,6 +215,27 @@ def test_function_quib_pretty_repr_with_name():
     assert c.pretty_repr() == 'c = join(a, b)'
 
 
+def test_function_quib_pretty_repr_getitem_colon():
+    a = iquib(np.array([1, 2, 3]))
+    b = a[:]
+
+    assert b.pretty_repr() == "b = a[:]"
+
+
+def test_function_quib_pretty_repr_getitem_ellipsis():
+    a = iquib(np.array([1, 2, 3]))
+    b = a[...]
+
+    assert b.pretty_repr() == "b = a[...]"
+
+
+def test_function_quib_pretty_repr_getitem_index():
+    a = iquib(np.array([1, 2, 3]))
+    b = a[1]
+
+    assert b.pretty_repr() == "b = a[1]"
+
+
 @fixture()
 def a():
     a = iquib(1)
