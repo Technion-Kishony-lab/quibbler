@@ -179,7 +179,7 @@ class FunctionQuib(Quib):
             return self.pretty_repr()
         return f"<{self.__class__.__name__} - {getattr(self.func, '__name__', repr(self.func))}>"
 
-    def _get_inner_pretty_functional_representation(self) -> Union[MathExpression, str]:
+    def _get_inner_functional_representation_expression(self) -> Union[MathExpression, str]:
         from pyquibbler.quib.function_quibs.pretty_converters import pretty_convert
         return pretty_convert.get_pretty_value_of_func_with_args_and_kwargs(self.func, self.args, self.kwargs)
 

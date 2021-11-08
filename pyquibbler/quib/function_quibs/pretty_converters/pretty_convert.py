@@ -37,7 +37,7 @@ def replace_arg_with_pretty_repr(val: Any):
 
     if val.name is not None:
         return val.name
-    return val.get_pretty_functional_representation()
+    return val.get_functional_representation_expression()
 
 
 def getitem_converter(func, pretty_arg_names: List[str]):

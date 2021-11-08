@@ -36,7 +36,7 @@ class ExampleQuib(Quib):
     def _get_inner_value_valid_at_path(self, path):
         return self.value
 
-    def _get_inner_pretty_functional_representation(self):
+    def _get_inner_functional_representation_expression(self):
         return self.value
 
     @property

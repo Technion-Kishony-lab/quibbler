@@ -376,25 +376,37 @@ class Quib(ABC):
         return self._allow_overriding
 
     @abstractmethod
-    def _get_inner_pretty_functional_representation(self) -> Union[MathExpression, str]:
+    def _get_inner_functional_representation_expression(self) -> Union[MathExpression, str]:
         pass
 
-    def get_pretty_functional_representation(self):
+    def get_functional_representation_expression(self) -> Union[MathExpression, str]:
         try:
-            return self._get_inner_pretty_functional_representation()
+            return self._get_inner_functional_representation_expression()
         except Exception as e:
             logger.warning(f"Failed to get repr {e}")
             return "[exception during repr]"
+
+    @property
+    def functional_representation(self) -> str:
+        """
+        Get a string representing a functional representation of the quib.
+        For example, in
+        ```
+        a = iquib(4)
+        ```
+        "iquib(4)" would be the functional representation
+        """
+        return str(self.get_functional_representation_expression())
 
     def pretty_repr(self):
         """
         Returns a pretty representation of the quib. Might calculate values of parent quibs.
         """
-        return f"{self.name} = {self.get_pretty_functional_representation()}" \
-            if self.name is not None else str(self.get_pretty_functional_representation())
+        return f"{self.name} = {self.functional_representation}" \
+            if self.name is not None else self.functional_representation
 
     def __str__(self):
-        return self.name if self.name is not None else str(self.get_pretty_functional_representation())
+        return self.name if self.name is not None else self.functional_representation
 
     def get_assignment_template(self) -> AssignmentTemplate:
         return self._assignment_template
