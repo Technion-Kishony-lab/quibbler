@@ -2,7 +2,7 @@ import pytest
 from pytest import fixture
 
 from pyquibbler import CacheBehavior, override_all
-from pyquibbler.env import DEBUG, LAZY, ASSIGNMENT_RESTRICTIONS, PRETTY_REPR
+from pyquibbler.env import DEBUG, LAZY, ASSIGNMENT_RESTRICTIONS, PRETTY_REPR, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS
 from pyquibbler.quib import FunctionQuib
 from pyquibbler.utils import Flag
 
@@ -10,6 +10,7 @@ DEFAULT_DEBUG = True
 DEFAULT_LAZY = True
 DEFAULT_ASSIGNMENT_RESTRICTIONS = False
 DEFAULT_PRETTY_REPR = False
+DEFAULT_SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACK = False
 
 
 @fixture(scope="session", autouse=True)
@@ -64,6 +65,12 @@ def setup_lazy(request):
 @fixture(autouse=True)
 def setup_pretty_repr(request):
     yield from setup_flag(PRETTY_REPR, DEFAULT_PRETTY_REPR, request)
+
+
+@fixture(autouse=True)
+def setup_show_quib_exceptions_as_quib_traceback(request):
+    yield from setup_flag(SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS, DEFAULT_SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACK,
+                          request)
 
 
 @fixture(autouse=True)
