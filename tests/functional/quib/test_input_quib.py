@@ -63,3 +63,9 @@ def test_iquib_pretty_repr():
 
     assert a.pretty_repr() == 'a = iquib(10)'
 
+
+@mark.regression
+def test_iquib_pretty_repr_str():
+    a = iquib('a')
+
+    assert a.pretty_repr() == 'a = iquib(\'a\')'
