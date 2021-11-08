@@ -424,3 +424,18 @@ def test_quib_with_set_name():
     my_quib.set_name(name)
 
     assert my_quib.name == name
+
+
+def test_quib_with_multiple_in_same_line():
+    a, b = iquib(1), iquib(2)
+
+    assert a.name == 'a'
+    assert b.name == 'b'
+
+
+def test_quib_pretty_repr_with_quibs_being_created_inline():
+    a = iquib([1, 2, 3])
+    b, c = a[0], iquib(2)
+
+    assert b.pretty_repr() == 'b = a[0]'
+    assert c.pretty_repr() == 'c = iquib(2)'

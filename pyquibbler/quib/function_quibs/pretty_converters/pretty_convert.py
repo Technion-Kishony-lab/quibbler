@@ -2,7 +2,8 @@ import operator
 from typing import Callable, List, Union
 from typing import Tuple, Any, Mapping
 
-from pyquibbler.quib.function_quibs.pretty_converters.convert_math_equations import MATH_FUNCS_TO_CONVERTERS, MathExpression
+from pyquibbler.quib.function_quibs.pretty_converters.convert_math_equations import MATH_FUNCS_TO_CONVERTERS, \
+    MathExpression
 
 
 def replace_arg_with_pretty_repr(val: Any):

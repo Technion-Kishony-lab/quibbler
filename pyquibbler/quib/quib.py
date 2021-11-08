@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from operator import getitem
 from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Callable, Dict, Union
 from weakref import ref as weakref
+from .quib_varname import get_var_name_being_set_outside_of_pyquibbler
 
 from pyquibbler.exceptions import PyQuibblerException
 
@@ -19,7 +20,6 @@ from .function_quibs.cache.shallow.indexable_cache import transform_cache_to_nd_
 from .function_quibs.pretty_converters import MathExpression
 from .utils import quib_method, Unpacker, recursively_run_func_on_object
 from .assignment import PathComponent
-from varname import varname, VarnameException
 from ..env import LEN_RAISE_EXCEPTION
 from ..logger import logger
 
@@ -89,13 +89,7 @@ class Quib(ABC):
         self.method_cache = {}
         self._given_name = None
 
-        try:
-            import pyquibbler
-            # We need to set frame to 0 as we're already skipping pyquibbler, so no need to go up a frame further
-            # than that
-            self._var_name = varname(ignore=pyquibbler, frame=0)
-        except VarnameException:
-            self._var_name = None
+        self._var_name = get_var_name_being_set_outside_of_pyquibbler()
 
     @property
     def children(self) -> Set[Quib]:
