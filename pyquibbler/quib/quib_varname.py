@@ -32,6 +32,21 @@ def lookfor_parent_assign(node: ast.AST) -> AssignType:
     return None
 
 
+def get_quib_node_being_set_outside_of_pyquibbler():
+    import pyquibbler
+    return get_node(frame=1, ignore=pyquibbler, raise_exc=False)
+
+
+def get_file_name_and_line_number_of_quib():
+    refnode = get_quib_node_being_set_outside_of_pyquibbler()
+    if refnode is None:
+        return None, None
+    frame = refnode.__frame__
+    file_name = frame.f_code.co_filename
+    line_number = frame.f_lineno
+    return file_name, line_number
+
+
 def get_var_name_being_set_outside_of_pyquibbler() -> Optional[str]:
     """
     Get the current variable name being set outside of pyquibbler.
@@ -39,8 +54,7 @@ def get_var_name_being_set_outside_of_pyquibbler() -> Optional[str]:
     This is not thread safe, as it keeps track of the current line being accessed and which variable is being set in
     that line (eg a, b = iquib(1), iquib(2))
     """
-    import pyquibbler
-    refnode = get_node(frame=1, ignore=pyquibbler, raise_exc=False)
+    refnode = get_quib_node_being_set_outside_of_pyquibbler()
     if not refnode:
         return None
     node = lookfor_parent_assign(refnode)

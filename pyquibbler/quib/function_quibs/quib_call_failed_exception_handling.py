@@ -17,12 +17,11 @@ class QuibCallFailedException(PyQuibblerException):
         self.exception = exception
 
     def __str__(self):
-        quib_reprs = list(map(repr, self.quibs))
         quibs_formatted = ""
-        indent_level = "  "
-        for quib_repr in quib_reprs[::-1]:
-            quibs_formatted += "\n" + indent_level + quib_repr
-            indent_level += "  "
+        for quib in self.quibs[::-1]:
+            file_info = f"File \"{quib.file_name}\", line {quib.line_no}" if quib.file_name else "Unnamed quib"
+            quibs_formatted += "\n  " + file_info
+            quibs_formatted += f"\n\t{repr(quib)}"
         last_quib = self.quibs[-1]
         return f"Failed to execute {last_quib}, " \
                f"the following quibs were in the stack of the exception: {quibs_formatted} " \

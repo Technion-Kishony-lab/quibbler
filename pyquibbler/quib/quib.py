@@ -11,7 +11,7 @@ from weakref import ref as weakref
 
 from .function_quibs.quib_call_failed_exception_handling import raise_quib_call_exceptions_as_own, \
     QuibCallFailedException
-from .quib_varname import get_var_name_being_set_outside_of_pyquibbler
+from .quib_varname import get_var_name_being_set_outside_of_pyquibbler, get_file_name_and_line_number_of_quib
 
 from pyquibbler.exceptions import PyQuibblerException
 
@@ -94,8 +94,12 @@ class Quib(ABC):
 
         try:
             self._var_name = get_var_name_being_set_outside_of_pyquibbler()
+            self.file_name, self.line_no = get_file_name_and_line_number_of_quib()
         except Exception as e:
             logger.warning(f"Failed to get name, exception {e}")
+            self._var_name = None
+            self.file_name = None
+            self.line_no = None
 
     @property
     def children(self) -> Set[Quib]:
