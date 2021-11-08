@@ -464,3 +464,14 @@ def test_quib_pretty_repr_with_quibs_with_quib_creation_with_name_in_inner_func(
 
     assert a.pretty_repr() == 'a = inner_func()'
     assert b.pretty_repr() == 'b = another_inner_func()'
+
+
+@mark.regression
+def test_quib_pretty_repr_with_repr_throwing_exception():
+    class A:
+        def __repr__(self):
+            raise Exception()
+
+    quib = iquib(A())
+    assert quib.pretty_repr() == "quib = [exception during repr]"
+
