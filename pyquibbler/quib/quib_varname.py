@@ -1,3 +1,4 @@
+
 import ast
 from dataclasses import dataclass
 from typing import Optional
@@ -11,13 +12,13 @@ class CannotFindNodeException(PyQuibblerException):
     pass
 
 
+AST_ASSIGNMENTS_TO_VAR_NAME_STATES = {}
+
+
 @dataclass
 class VarNameState:
     total_var_count: int
     current_var_count: int
-
-
-var_name_state = None
 
 
 def lookfor_parent_assign(node: ast.AST) -> AssignType:
@@ -38,8 +39,6 @@ def get_var_name_being_set_outside_of_pyquibbler() -> Optional[str]:
     This is not thread safe, as it keeps track of the current line being accessed and which variable is being set in
     that line (eg a, b = iquib(1), iquib(2))
     """
-    global var_name_state
-
     import pyquibbler
     refnode = get_node(frame=1, ignore=pyquibbler, raise_exc=False)
     if not refnode:
@@ -49,24 +48,22 @@ def get_var_name_being_set_outside_of_pyquibbler() -> Optional[str]:
         return None
 
     if isinstance(node, ast.Assign):
+        # there could be a = b = iquib(1) -> in this case, we take the last
         target = node.targets[-1]
     else:
         target = node.target
 
     names = node_name(target)
 
+    # node_name can return a list or a string depending on whether there were multiple assignments in the line
     if not isinstance(names, tuple):
         names = (names,)
 
-    if var_name_state is None:
-        var_name_state = VarNameState(
-            current_var_count=0,
-            total_var_count=len(names)
-        )
-
+    AST_ASSIGNMENTS_TO_VAR_NAME_STATES.setdefault(node, VarNameState(current_var_count=0, total_var_count=len(names)))
+    var_name_state = AST_ASSIGNMENTS_TO_VAR_NAME_STATES.get(node)
     current_name = names[var_name_state.current_var_count]
     var_name_state.current_var_count += 1
     if var_name_state.current_var_count == var_name_state.total_var_count:
-        var_name_state = None
+        AST_ASSIGNMENTS_TO_VAR_NAME_STATES.pop(node)
 
     return current_name

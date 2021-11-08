@@ -5,7 +5,7 @@ from unittest import mock
 from unittest.mock import Mock
 import numpy as np
 import pytest
-from pyquibbler import iquib
+from pyquibbler import iquib, quibbler_user_function
 from pytest import mark, raises, fixture
 
 from pyquibbler.quib import Quib, OverridingNotAllowedException
@@ -439,3 +439,28 @@ def test_quib_pretty_repr_with_quibs_being_created_inline():
 
     assert b.pretty_repr() == 'b = a[0]'
     assert c.pretty_repr() == 'c = iquib(2)'
+
+
+@mark.regression
+def test_quib_pretty_repr_with_quibs_with_quib_creation_with_name_in_inner_func():
+
+    @quibbler_user_function(lazy=False)
+    def inner_func():
+        d = iquib(4)
+
+        assert d.pretty_repr() == 'd = iquib(4)'
+
+        return d
+
+    @quibbler_user_function(lazy=False)
+    def another_inner_func():
+        e = iquib(4)
+
+        assert e.pretty_repr() == 'e = iquib(4)'
+
+        return e
+
+    a, b = inner_func(), another_inner_func()
+
+    assert a.pretty_repr() == 'a = inner_func()'
+    assert b.pretty_repr() == 'b = another_inner_func()'
