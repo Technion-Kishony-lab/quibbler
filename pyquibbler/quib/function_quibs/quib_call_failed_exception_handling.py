@@ -25,7 +25,7 @@ class QuibCallFailedException(PyQuibblerException):
         last_quib = self.quibs[-1]
         return f"Failed to execute {last_quib}, " \
                f"the following quibs were in the stack of the exception: {quibs_formatted} " \
-               f"failed with:\n{type(self.exception).__name__}: {self.exception}"
+               f"\n{type(self.exception).__name__}: {self.exception}"
 
 
 @contextlib.contextmanager
