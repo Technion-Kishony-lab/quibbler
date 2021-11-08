@@ -84,7 +84,7 @@ def raise_quib_call_exceptions_as_own(func):
         try:
             return func(*args, **kwargs)
         except ExternalCallFailedException as e:
-            # We do this to clear the get_value_valid_at_path from traceback
+            # We want to remove any context
             raise ExternalCallFailedException(exception=e.exception,
                                               quibs_with_calls=e.quibs_with_calls,
                                               tb=e.traceback) from None
