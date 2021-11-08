@@ -6,10 +6,21 @@ from pyquibbler.quib.function_quibs.pretty_converters.convert_math_equations imp
     MathExpression
 
 
-ITEMS_WITH_PRETTY_REPRS = [
-    (slice(None, None, None), ':'),
-    (Ellipsis, '...')
-]
+def _convert_slice(slice_: slice):
+    pretty = ':'
+    if slice_.start:
+        pretty = f"{slice_.start}{pretty}"
+    if slice_.stop:
+        pretty = f"{pretty}{slice_.stop}"
+    if slice_.step:
+        pretty = f"{pretty}:{slice_.step}"
+    return pretty
+
+
+ITEMS_TO_CONVERTERS = {
+    slice: _convert_slice,
+    type(...): lambda *_: '...'
+}
 
 
 def replace_arg_with_pretty_repr(val: Any):
@@ -21,13 +32,12 @@ def replace_arg_with_pretty_repr(val: Any):
     """
     from pyquibbler.quib import Quib
     if not isinstance(val, Quib):
-        pretty_value = next((pretty_value
-                             for it, pretty_value in ITEMS_WITH_PRETTY_REPRS if it == val), repr(val))
-        return pretty_value
+        converter = ITEMS_TO_CONVERTERS.get(type(val), repr)
+        return converter(val)
 
     if val.name is not None:
         return val.name
-    return val._get_inner_pretty_functional_representation()
+    return val.get_pretty_functional_representation()
 
 
 def getitem_converter(func, pretty_arg_names: List[str]):

@@ -219,11 +219,19 @@ def test_function_quib_pretty_repr_with_name():
     assert c.pretty_repr() == 'c = join(a, b)'
 
 
-def test_function_quib_pretty_repr_getitem_colon():
+@mark.parametrize("statement", [
+    "a[:]",
+    "a[1:2:3]",
+    "a[1::2]",
+    "a[::2]",
+    "a[:2]",
+    "a[1:]"
+])
+def test_function_quib_pretty_repr_getitem_colon(statement):
     a = iquib(np.array([1, 2, 3]))
-    b = a[:]
+    b = eval(statement)
 
-    assert b.pretty_repr() == "b = a[:]"
+    assert b.pretty_repr() == statement
 
 
 def test_function_quib_pretty_repr_getitem_ellipsis():
