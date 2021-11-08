@@ -3,7 +3,8 @@ import numpy as np
 from functools import cached_property
 from typing import Any, Optional, List, Tuple, Set
 
-from pyquibbler.quib.function_quibs.quib_call_failed_exception_handling import quib_call_failed_exception_handling
+from pyquibbler.quib.function_quibs.external_call_failed_exception_handling \
+    import external_call_failed_exception_handling
 from pyquibbler.quib.quib import Quib, cache_method_until_full_invalidation
 from pyquibbler.quib.proxy_quib import ProxyQuib
 from pyquibbler.quib.graphics.graphics_function_quib import GraphicsFunctionQuib
@@ -122,7 +123,7 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
         Remove any graphics that were created during the call.
         """
         call = self._get_vectorize_call(args_metadata, results_core_ndims, None)
-        with remove_created_graphics(), quib_call_failed_exception_handling(self):
+        with remove_created_graphics(), external_call_failed_exception_handling():
             return call.get_sample_result(args_metadata)
 
     @property
@@ -243,7 +244,7 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
                                         vectorize_metadata.result_or_results_core_ndims, valid_path)
         call = self._wrap_vectorize_call_to_calc_only_needed(call, valid_path, vectorize_metadata.otypes)
 
-        with quib_call_failed_exception_handling(self):
+        with external_call_failed_exception_handling():
             return call()
 
 
