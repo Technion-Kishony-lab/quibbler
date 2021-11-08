@@ -384,7 +384,10 @@ class Quib(ABC):
             context = contextlib.nullcontext()
 
         with context:
-            inner_value = self._get_inner_value_valid_at_path(path)
+            try:
+                inner_value = self._get_inner_value_valid_at_path(path)
+            except QuibCallFailedException as e:
+                raise QuibCallFailedException(exception=e.exception, quibs=e.quibs) from None
 
         return self._overrider.override(inner_value, self._assignment_template)
 

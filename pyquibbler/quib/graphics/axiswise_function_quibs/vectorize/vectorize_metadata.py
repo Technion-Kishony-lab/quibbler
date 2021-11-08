@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, Optional, List, Tuple, Union, Callable
 
 from pyquibbler.quib.function_quibs.indices_translator_function_quib import Args, Kwargs
+from pyquibbler.quib.function_quibs.quib_call_failed_exception_handling import quib_call_failed_exception_handling
 
 from .utils import Shape, get_core_axes, iter_arg_ids_and_values, convert_args_and_kwargs
 
@@ -189,7 +190,8 @@ class VectorizeCall:
         Get one sample result from the inner function of a vectorize
         """
         args, kwargs = convert_args_and_kwargs(partial(self.get_sample_arg_core, args_metadata), self.args, self.kwargs)
-        return self.vectorize.pyfunc(*args, **kwargs)
+        with quib_call_failed_exception_handling(self):
+            return self.vectorize.pyfunc(*args, **kwargs)
 
     def __call__(self):
         # If we pass quibs to the wrapper, we will create a new graphics quib, so we use the original vectorize

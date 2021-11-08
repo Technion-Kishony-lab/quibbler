@@ -10,6 +10,7 @@ from typing import Callable, Any, Mapping, Tuple, Optional, Set, List
 
 from .exceptions import QuibCallFailedException
 from .pretty_converters import MathExpression
+from .quib_call_failed_exception_handling import quib_call_failed_exception_handling
 from .utils import ArgsValues
 from ..override_choice import get_overrides_for_assignment
 from ..assignment import AssignmentTemplate, Assignment, PathComponent
@@ -192,7 +193,10 @@ class FunctionQuib(Quib):
                 # we need ourselves (this quib) to be valid
                 path = []
 
-            return inner_arg.get_value_valid_at_path(path)
+            try:
+                return inner_arg.get_value_valid_at_path(path)
+            except QuibCallFailedException as e:
+                raise QuibCallFailedException(quibs=[*e.quibs, self], exception=e.exception)
 
         return inner_arg
 
@@ -217,20 +221,9 @@ class FunctionQuib(Quib):
         This function can and should be overriden if there is a more specific implementation for getting a value only
         valid at valid_path
         """
-        try:
-            new_args, new_kwargs = self._prepare_args_for_call(valid_path)
-        except QuibCallFailedException as e:
-            raise QuibCallFailedException(quibs=[*e.quibs, self], exception=e.exception) from None
-
-        return self._run_func(new_args, new_kwargs)
-
-    def _run_func(self, args, kwargs):
-        try:
-            return self.func(*args, **kwargs)
-        except Exception as e:
-            if SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS:
-                raise QuibCallFailedException(quibs=[self], exception=e) from None
-            raise
+        new_args, new_kwargs = self._prepare_args_for_call(valid_path)
+        with quib_call_failed_exception_handling(self):
+            return self.func(*new_args, **new_kwargs)
 
     def _forward_translate_invalidation_path(self, invalidator_quib: Quib, path: List[PathComponent]) -> \
             List[List[PathComponent]]:
