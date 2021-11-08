@@ -46,7 +46,7 @@ def external_call_failed_exception_handling():
         while cached_getmodule(tb.tb_frame.f_code).__name__.startswith("pyquibbler"):
             tb = tb.tb_next
             if tb is None:
-                formatted_tb = ''.join(traceback.format_exception_only(e))
+                formatted_tb = ''.join(traceback.format_exception_only(type_, value=exc))
                 break
             else:
                 traceback_lines = traceback.format_exception(type_, exc, tb)
