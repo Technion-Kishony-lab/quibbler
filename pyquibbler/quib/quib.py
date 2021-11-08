@@ -325,6 +325,9 @@ class Quib(ABC):
         self.assign(Assignment(value=value, path=[PathComponent(component=key, indexed_cls=self.get_type())]))
 
     def set_name(self, name: str):
+        """
+        Set the quib's name- this will override any name automatically created if it exists.
+        """
         self._given_name = name
 
     @property
