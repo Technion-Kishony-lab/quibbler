@@ -23,7 +23,7 @@ from .function_quibs.cache.shallow.indexable_cache import transform_cache_to_nd_
 from .function_quibs.pretty_converters import MathExpression
 from .utils import quib_method, Unpacker, recursively_run_func_on_object
 from .assignment import PathComponent
-from ..env import LEN_RAISE_EXCEPTION, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS
+from ..env import LEN_RAISE_EXCEPTION
 from ..logger import logger
 
 if TYPE_CHECKING:

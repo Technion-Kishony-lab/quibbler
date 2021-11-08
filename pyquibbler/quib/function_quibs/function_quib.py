@@ -9,15 +9,15 @@ from functools import wraps, cached_property, lru_cache
 from typing import Callable, Any, Mapping, Tuple, Optional, Set, List
 
 from .pretty_converters import MathExpression
-from .quib_call_failed_exception_handling import quib_call_failed_exception_handling, raise_quib_call_exceptions_as_own, \
-    QuibCallFailedException
+from .quib_call_failed_exception_handling import quib_call_failed_exception_handling, \
+    raise_quib_call_exceptions_as_own, QuibCallFailedException
 from .utils import ArgsValues
 from ..override_choice import get_overrides_for_assignment
 from ..assignment import AssignmentTemplate, Assignment, PathComponent
 from ..quib import Quib
 from ..utils import is_there_a_quib_in_args, iter_quibs_in_args, deep_copy_without_quibs_or_artists, \
     recursively_run_func_on_object, QuibRef
-from ...env import LAZY, PRETTY_REPR, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS
+from ...env import LAZY, PRETTY_REPR
 
 
 class CacheBehavior(Enum):
