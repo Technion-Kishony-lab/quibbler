@@ -44,11 +44,13 @@ class MathExpression:
         right_side = self.right_side
         if isinstance(self.right_side, MathExpression) and (
                 self.right_side.order < self.order
+                # in subtract and divide order matters- this means the right side must be paranthesized if it's a
+                # different symbol
                 or (
-                    # in multiply and divide order matters- this means the right side must be paranthesized if it's a
-                    # different symbol
-                    self.order == 1 and self.right_side.order == 1
-                    and self.symbol != self.right_side.symbol
+                    self.symbol == Symbol.SUB and self.right_side.order == self.order
+                )
+                or (
+                    self.symbol == Symbol.DIV != self.right_side.symbol and self.right_side.order == self.order
                 )
         ):
             right_side = f"({right_side})"
