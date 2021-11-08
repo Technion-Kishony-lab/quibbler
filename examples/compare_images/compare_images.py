@@ -46,11 +46,11 @@ images_count = iquib(3)
 images_count.set_assignment_template(0, 10, 1)
 
 roi_default = iquib([[10, 110, 10, 110]])
-roi_default.allow_overriding = False
+roi_default._allow_overriding = False
 
 rois = np.repeat(roi_default, images_count, axis=0)
 rois.set_assignment_template(0, 1000, 1)
-rois.allow_overriding = True
+rois.set_allow_overriding(True)
 
 similiarity_threshold = iquib(.1)
 cut_images = cut_image(image, rois)

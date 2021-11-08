@@ -182,7 +182,7 @@ class OverrideOptionsTree:
         last_inversion = None
         while len(inversions) == 1:
             inversion = inversions[0]
-            if inversion.quib.allow_overriding:
+            if inversion.quib._allow_overriding:
                 options.append(OverrideWithOverrideRemovals(inversion, override_removals[:]))
             override_removals.append(OverrideRemoval.from_inversion(inversion))
             inversions = cls._inverse_assignment(inversion)

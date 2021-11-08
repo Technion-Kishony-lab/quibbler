@@ -8,6 +8,7 @@ import pytest
 from pyquibbler import iquib, quibbler_user_function
 from pytest import mark, raises, fixture
 
+from pyquibbler.input_validation_utils import InvalidArgumentException
 from pyquibbler.quib import Quib, OverridingNotAllowedException
 from pyquibbler.quib.assignment import RangeAssignmentTemplate, BoundAssignmentTemplate, Assignment
 from pyquibbler.quib.assignment.assignment import PathComponent
@@ -35,7 +36,7 @@ class ExampleQuib(Quib):
     def _get_inner_value_valid_at_path(self, path):
         return self.value
 
-    def get_pretty_value(self):
+    def _get_inner_pretty_functional_representation(self):
         return self.value
 
     @property
@@ -331,7 +332,7 @@ def test_quib_assign_value_to_key(example_quib):
 
 
 def test_quib_override_when_overriding_not_allowed(example_quib):
-    example_quib.allow_overriding = False
+    example_quib.set_allow_overriding(False)
     override = Mock()
 
     with raises(OverridingNotAllowedException) as exc_info:
@@ -343,13 +344,13 @@ def test_quib_override_when_overriding_not_allowed(example_quib):
 
 
 def test_quib_override_allow_overriding_from_now_on(example_quib):
-    example_quib.allow_overriding = False
+    example_quib.set_allow_overriding(False)
     override = Mock()
     override.path = [PathComponent(component=..., indexed_cls=example_quib.get_type())]
 
     example_quib.override(override, allow_overriding_from_now_on=True)
 
-    assert example_quib.allow_overriding
+    assert example_quib._allow_overriding
 
 
 @mark.regression
@@ -474,3 +475,34 @@ def test_quib_pretty_repr_with_repr_throwing_exception():
 
     quib = iquib(A())
     assert quib.pretty_repr() == "quib = [exception during repr]"
+
+
+def test_quib_must_assign_bool_to_overriding(example_quib):
+    with pytest.raises(InvalidArgumentException):
+        example_quib.set_allow_overriding(1)
+
+
+def test_quib_cannot_assign_int_to_name(example_quib):
+    with pytest.raises(InvalidArgumentException):
+        example_quib.set_name(1)
+
+
+def test_quib_can_assign_none_to_name(example_quib):
+    a = iquib(["val"])
+    assert a.name == 'a', "Sanity check"
+
+    example_quib.set_name(None)
+
+    assert example_quib.name is None
+
+
+def test_quib_configure(example_quib):
+    quib = example_quib.config(allow_overriding=True, name="pasten")
+
+    assert quib.name == 'pasten'
+    assert quib.allow_overriding is True
+
+
+def test_quib_configure_with_invalid_value(example_quib):
+    with pytest.raises(InvalidArgumentException):
+        example_quib.config(allow_overriding=3, name="pasten")

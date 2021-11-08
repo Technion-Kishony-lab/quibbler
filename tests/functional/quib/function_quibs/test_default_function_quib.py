@@ -5,6 +5,7 @@ import pytest
 from pytest import fixture, mark
 
 from pyquibbler import iquib, CacheBehavior
+from pyquibbler.input_validation_utils import InvalidArgumentException
 from pyquibbler.quib import DefaultFunctionQuib
 from pyquibbler.quib.assignment.assignment import PathComponent
 from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
@@ -23,7 +24,7 @@ def parent_quib():
 @fixture
 def default_function_quib(function_mock):
     fquib = DefaultFunctionQuib.create(function_mock, cache_behavior=CacheBehavior.ON)
-    fquib.allow_overriding = True
+    fquib.set_allow_overriding(True)
     return fquib
 
 
@@ -159,3 +160,8 @@ def test_default_function_quib():
     v3 = quib.get_value_valid_at_path([PathComponent(component=0, indexed_cls=np.ndarray)])
 
     assert mock_func.call_count == 2
+
+
+def test_default_function_quib_set_cache_behaviour_forces_correct_type(default_function_quib):
+    with pytest.raises(InvalidArgumentException):
+        default_function_quib.set_cache_behavior(1)

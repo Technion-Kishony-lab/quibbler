@@ -1,5 +1,6 @@
 from __future__ import annotations
 import functools
+from dataclasses import dataclass
 
 import numpy as np
 import types
@@ -18,6 +19,8 @@ from ..quib import Quib
 from ..utils import is_there_a_quib_in_args, iter_quibs_in_args, deep_copy_without_quibs_or_artists, \
     recursively_run_func_on_object, QuibRef
 from ...env import LAZY, PRETTY_REPR
+from ...exceptions import PyQuibblerException
+from ...input_validation_utils import validate_user_input
 
 
 class CacheBehavior(Enum):
@@ -30,6 +33,14 @@ class CacheBehavior(Enum):
     AUTO = 'auto'
     OFF = 'off'
     ON = 'on'
+
+
+@dataclass
+class UnknownCacheBehaviorException(PyQuibblerException):
+    attempted_value: str
+
+    def __str__(self):
+        return f"{self.attempted_value} is not a valid value for a cache behavior"
 
 
 class FunctionQuib(Quib):
@@ -55,6 +66,16 @@ class FunctionQuib(Quib):
         if cache_behavior is None:
             cache_behavior = self._DEFAULT_CACHE_BEHAVIOR
         self.set_cache_behavior(cache_behavior)
+
+    def config(self, allow_overriding: bool = None, cache_behavior: CacheBehavior = None, **kwargs):
+        """
+        Configure a quib with certain attributes- because this function is expected to be used by users, we never
+        setattr to anything before checking the types.
+        """
+        super(FunctionQuib, self).config(allow_overriding, **kwargs)
+        if cache_behavior is not None:
+            self.set_cache_behavior(cache_behavior)
+        return self
 
     @cached_property
     def parents(self) -> Set[Quib]:
@@ -158,14 +179,20 @@ class FunctionQuib(Quib):
             return self.pretty_repr()
         return f"<{self.__class__.__name__} - {getattr(self.func, '__name__', repr(self.func))}>"
 
-    def get_pretty_value(self) -> Union[MathExpression, str]:
+    def _get_inner_pretty_functional_representation(self) -> Union[MathExpression, str]:
         from pyquibbler.quib.function_quibs.pretty_converters import pretty_convert
         return pretty_convert.get_pretty_value_of_func_with_args_and_kwargs(self.func, self.args, self.kwargs)
 
     def get_cache_behavior(self):
         return self._cache_behavior
 
+    @validate_user_input(cache_behavior=(str, CacheBehavior))
     def set_cache_behavior(self, cache_behavior: CacheBehavior):
+        if isinstance(cache_behavior, str):
+            try:
+                cache_behavior = CacheBehavior[cache_behavior.upper()]
+            except KeyError:
+                raise UnknownCacheBehaviorException(cache_behavior)
         self._cache_behavior = cache_behavior
 
     def _get_source_paths_of_quibs_given_path(self, path: List[PathComponent]) -> Dict[Quib, str]:

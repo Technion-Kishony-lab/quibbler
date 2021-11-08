@@ -1,5 +1,7 @@
 from __future__ import annotations
 import contextlib
+from types import NoneType
+
 import numpy as np
 from functools import wraps
 from functools import cached_property
@@ -24,6 +26,7 @@ from .function_quibs.pretty_converters import MathExpression
 from .utils import quib_method, Unpacker, recursively_run_func_on_object
 from .assignment import PathComponent
 from ..env import LEN_RAISE_EXCEPTION
+from ..input_validation_utils import validate_user_input
 from ..logger import logger
 
 if TYPE_CHECKING:
@@ -100,18 +103,35 @@ class Quib(ABC):
         self._overrider = Overrider()
         if allow_overriding is None:
             allow_overriding = self._DEFAULT_ALLOW_OVERRIDING
-        self.allow_overriding = allow_overriding
+        self._allow_overriding = allow_overriding
         self.method_cache = {}
-        self._given_name = None
 
         try:
-            self._var_name = get_var_name_being_set_outside_of_pyquibbler()
+            self._name = get_var_name_being_set_outside_of_pyquibbler()
             self.file_name, self.line_no = get_file_name_and_line_number_of_quib()
         except Exception as e:
             logger.warning(f"Failed to get name, exception {e}")
-            self._var_name = None
+            self._name = None
             self.file_name = None
             self.line_no = None
+
+    def config(self, allow_overriding: bool = None, **kwargs):
+        """
+        Configure a quib with certain attributes- because this function is expected to be used by users, we never
+        setattr to anything before checking the types.
+        """
+        if allow_overriding is not None:
+            self.set_allow_overriding(allow_overriding)
+        if 'name' in kwargs:
+            self.set_name(kwargs.pop('name'))
+        return self
+
+    @validate_user_input(allow_overriding=bool)
+    def set_allow_overriding(self, allow_overriding: bool):
+        """
+        Set whether the quib can be overridden- this defaults to True in iquibs and False in function quibs
+        """
+        self._allow_overriding = allow_overriding
 
     @property
     def children(self) -> Set[Quib]:
@@ -281,8 +301,8 @@ class Quib(ABC):
         Overrides a part of the data the quib represents.
         """
         if allow_overriding_from_now_on:
-            self.allow_overriding = True
-        if not self.allow_overriding:
+            self._allow_overriding = True
+        if not self._allow_overriding:
             raise OverridingNotAllowedException(self, assignment)
         self._overrider.add_assignment(assignment)
         if len(assignment.path) == 0:
@@ -336,11 +356,12 @@ class Quib(ABC):
         from .assignment.assignment import PathComponent
         self.assign(Assignment(value=value, path=[PathComponent(component=key, indexed_cls=self.get_type())]))
 
-    def set_name(self, name: str):
+    @validate_user_input(name=(str, NoneType))
+    def set_name(self, name: Optional[str]):
         """
         Set the quib's name- this will override any name automatically created if it exists.
         """
-        self._given_name = name
+        self._name = name
 
     @property
     def name(self) -> Optional[str]:
@@ -348,26 +369,32 @@ class Quib(ABC):
         Get the name of the quib- this can either be an automatic name if created (the var name), a given name if given,
         and None if neither
         """
-        if self._given_name is not None:
-            return self._given_name
-        elif self._var_name is not None:
-            return self._var_name
-        return None
+        return self._name
+
+    @property
+    def allow_overriding(self) -> bool:
+        return self._allow_overriding
 
     @abstractmethod
-    def get_pretty_value(self) -> Union[MathExpression, str]:
+    def _get_inner_pretty_functional_representation(self) -> Union[MathExpression, str]:
         pass
+
+    def get_pretty_functional_representation(self):
+        try:
+            return self._get_inner_pretty_functional_representation()
+        except Exception as e:
+            logger.warning(f"Failed to get repr {e}")
+            return "[exception during repr]"
 
     def pretty_repr(self):
         """
         Returns a pretty representation of the quib. Might calculate values of parent quibs.
         """
-        try:
-            pretty_value = self.get_pretty_value()
-        except Exception as e:
-            logger.warning(f"Failed to get repr {e}")
-            pretty_value = "[exception during repr]"
-        return f"{self.name} = {pretty_value}" if self.name is not None else str(pretty_value)
+        return f"{self.name} = {self.get_pretty_functional_representation()}" \
+            if self.name is not None else str(self.get_pretty_functional_representation())
+
+    def __str__(self):
+        return self.name if self.name is not None else str(self.get_pretty_functional_representation())
 
     def get_assignment_template(self) -> AssignmentTemplate:
         return self._assignment_template

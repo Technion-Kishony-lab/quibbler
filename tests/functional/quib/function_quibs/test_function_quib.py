@@ -3,11 +3,15 @@ from unittest import mock
 
 import numpy as np
 from unittest.mock import Mock
+
+import pytest
 from pytest import fixture, mark
 from pyquibbler import iquib, CacheBehavior, q
 from pyquibbler.env import PRETTY_REPR
+from pyquibbler.input_validation_utils import InvalidArgumentException
 from pyquibbler.quib import FunctionQuib, Assignment
 from pyquibbler.quib.assignment.assignment import PathComponent
+from pyquibbler.quib.function_quibs.function_quib import UnknownCacheBehaviorException
 
 from ..utils import get_mock_with_repr, MockQuib
 
@@ -83,7 +87,7 @@ def test_func_get_value_returns_inner_value(function_wrapper, function_mock_retu
 
 def test_assign_with_unknown_function_overrides(function_wrapper, function_mock_return_val):
     q = function_wrapper(iquib(np.array([1])))
-    q.allow_overriding = True
+    q.set_allow_overriding(True)
     new_value = 420
     index = 2
     expected_value = np.array(function_mock_return_val)
@@ -269,3 +273,19 @@ def test_function_quib_pretty_repr_math():
 def test_function_quib_pretty_repr_math_holds_pemdas(a, b, statement, expected):
     with PRETTY_REPR.temporary_set(True):
         assert repr(eval(statement)) == expected
+
+
+def test_function_quib_set_cache_behaviour_forces_correct_type(example_function_quib):
+    with pytest.raises(InvalidArgumentException):
+        example_function_quib.set_cache_behavior(1)
+
+
+def test_function_quib_config(example_function_quib):
+    example_function_quib.config(cache_behavior='on')
+
+    assert example_function_quib.get_cache_behavior() == CacheBehavior.ON
+
+
+def test_function_quib_config_with_invalid_cache_behavior(example_function_quib):
+    with pytest.raises(UnknownCacheBehaviorException):
+        example_function_quib.config(cache_behavior='ondfdd')

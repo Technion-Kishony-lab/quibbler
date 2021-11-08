@@ -21,8 +21,8 @@ class ProxyQuib(Quib):
         self._quib: Quib = quib
         quib.add_child(self)
 
-    def get_pretty_value(self):
-        return f"proxy({self._quib.get_pretty_value()})"
+    def _get_inner_pretty_functional_representation(self):
+        return f"proxy({self._quib._get_inner_pretty_functional_representation()})"
 
     def _get_inner_value_valid_at_path(self, path: Optional[List[PathComponent]]) -> Any:
         return self._quib.get_value_valid_at_path(path=path)
