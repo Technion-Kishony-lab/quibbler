@@ -93,7 +93,7 @@ class Quib(ABC):
             self._var_name = get_var_name_being_set_outside_of_pyquibbler()
         except Exception as e:
             logger.warning(f"Failed to get name, exception {e}")
-            
+
     @property
     def children(self) -> Set[Quib]:
         """
