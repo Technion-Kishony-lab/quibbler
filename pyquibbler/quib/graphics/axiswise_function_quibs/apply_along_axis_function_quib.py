@@ -3,6 +3,7 @@ from typing import Optional, List, Any, Callable, Tuple, Mapping
 import numpy as np
 from numpy import ndindex, s_
 
+from pyquibbler.quib.function_quibs.quib_call_failed_exception_handling import quib_call_failed_exception_handling
 from pyquibbler.quib.function_quibs.utils import ArgsValues
 from pyquibbler.quib.graphics.utils import remove_created_graphics
 from pyquibbler.quib.proxy_quib import ProxyQuib
@@ -81,11 +82,12 @@ class ApplyAlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         args_values = ArgsValues.from_function_call(func=self.func, args=args, kwargs=kwargs, include_defaults=False)
 
         with remove_created_graphics():
-            return self._run_func1d(
-                oned_slice,
-                *args_values.arg_values_by_name.get('args', []),
-                **args_values.arg_values_by_name.get('kwargs', {})
-            )
+            with quib_call_failed_exception_handling(self):
+                return self._run_func1d(
+                    oned_slice,
+                    *args_values.arg_values_by_name.get('args', []),
+                    **args_values.arg_values_by_name.get('kwargs', {})
+                )
 
     @cache_method_until_full_invalidation
     def _get_invalid_value_at_correct_shape_and_dtype(self) -> np.ndarray:
@@ -146,7 +148,8 @@ class ApplyAlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         """
         indices = indices_before_axis + s_[(...,)] + indices_after_axis
         if np.any(requested_indices_bool_mask[indices]):
-            with self._call_func_context(self._graphics_collection_ndarr[indices_before_axis + indices_after_axis]):
+            with quib_call_failed_exception_handling(self),\
+                    self._call_func_context(self._graphics_collection_ndarr[indices_before_axis + indices_after_axis]):
                 res = self._run_func1d(self._get_oned_slice_for_running_func1d(indices),
                                        *func1d_args,
                                        **func1d_kwargs)

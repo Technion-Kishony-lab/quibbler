@@ -8,7 +8,10 @@ from dataclasses import dataclass
 from operator import getitem
 from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Callable, Dict, Union
 from weakref import ref as weakref
-from .quib_varname import get_var_name_being_set_outside_of_pyquibbler
+
+from .function_quibs.quib_call_failed_exception_handling import raise_quib_call_exceptions_as_own, \
+    QuibCallFailedException
+from .quib_varname import get_var_name_being_set_outside_of_pyquibbler, get_file_name_and_line_number_of_quib
 
 from pyquibbler.exceptions import PyQuibblerException
 
@@ -91,8 +94,12 @@ class Quib(ABC):
 
         try:
             self._var_name = get_var_name_being_set_outside_of_pyquibbler()
+            self.file_name, self.line_no = get_file_name_and_line_number_of_quib()
         except Exception as e:
             logger.warning(f"Failed to get name, exception {e}")
+            self._var_name = None
+            self.file_name = None
+            self.line_no = None
 
     @property
     def children(self) -> Set[Quib]:
@@ -134,7 +141,6 @@ class Quib(ABC):
         logger.info(f"redrawing {len(quibs_that_are_invalid)} quibs")
         for graphics_function_quib in quibs_that_are_invalid:
             graphics_function_quib.get_value()
-
         axeses = {axes for graphics_function_quib in quibs_that_are_invalid
                   for axes in graphics_function_quib.get_axeses()}
 
@@ -289,6 +295,7 @@ class Quib(ABC):
         """
         self.override(assignment, allow_overriding_from_now_on=False)
 
+    @raise_quib_call_exceptions_as_own
     def assign_value(self, value: Any) -> None:
         """
         Helper method to assign a single value and override the whole value of the quib
@@ -296,6 +303,7 @@ class Quib(ABC):
         self.assign(Assignment(value=value,
                                path=[]))
 
+    @raise_quib_call_exceptions_as_own
     def assign_value_to_key(self, key: Any, value: Any) -> None:
         """
         Helper method to assign a value at a specific key
@@ -369,6 +377,7 @@ class Quib(ABC):
         Perform calculations if needed.
         """
 
+    @raise_quib_call_exceptions_as_own
     def get_value_valid_at_path(self, path: Optional[List[PathComponent]]) -> Any:
         """
         Get the actual data that this quib represents, valid at the path given in the argument.
@@ -382,9 +391,15 @@ class Quib(ABC):
             context = contextlib.nullcontext()
 
         with context:
-            inner_value = self._get_inner_value_valid_at_path(path)
-            return self._overrider.override(inner_value, self._assignment_template)
+            try:
+                inner_value = self._get_inner_value_valid_at_path(path)
+            except QuibCallFailedException as e:
+                raise QuibCallFailedException(quibs_with_paths=[*e.quibs_with_paths, (self, path)],
+                                              exception=e.exception)
 
+        return self._overrider.override(inner_value, self._assignment_template)
+
+    @raise_quib_call_exceptions_as_own
     def get_value(self) -> Any:
         """
         Get the entire actual data that this quib represents, all valid.
