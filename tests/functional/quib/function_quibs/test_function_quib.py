@@ -243,7 +243,7 @@ def test_function_quib_pretty_repr_math():
     ("a + a + a", "a + a + a"),
     ("a ** (a / (a + b))", "a ^ (a / (a + b))"),
     ("a - (a + a)", "a - (a + a)"),
-    ("a / (a / a)", "a / a / a")
+    ("a / (a / a)", "a / (a / a)")
 ])
 def test_function_quib_pretty_repr_math_holds_pemdas(a, b, statement, expected):
     with PRETTY_REPR.temporary_set(True):

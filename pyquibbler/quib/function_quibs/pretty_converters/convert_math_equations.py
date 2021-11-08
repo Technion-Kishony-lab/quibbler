@@ -50,7 +50,7 @@ class MathExpression:
                     self.symbol == Symbol.SUB and self.right_side.order == self.order
                 )
                 or (
-                    self.symbol == Symbol.DIV != self.right_side.symbol and self.right_side.order == self.order
+                    self.symbol == Symbol.DIV and self.right_side.order == self.order
                 )
         ):
             right_side = f"({right_side})"
