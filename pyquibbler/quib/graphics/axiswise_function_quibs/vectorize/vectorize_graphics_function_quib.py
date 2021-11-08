@@ -122,7 +122,7 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
         Remove any graphics that were created during the call.
         """
         call = self._get_vectorize_call(args_metadata, results_core_ndims, None)
-        with remove_created_graphics():
+        with remove_created_graphics(), quib_call_failed_exception_handling(self):
             return call.get_sample_result(args_metadata)
 
     @property
@@ -258,4 +258,6 @@ class QVectorize(np.vectorize):
         super().__init__(*args, signature=signature, cache=False, **kwargs)
         self.pass_quibs = pass_quibs
 
+    def __repr__(self):
+        return f"<{self.__class__.__name__} {self.signature}>"
     __call__ = VectorizeGraphicsFunctionQuib.create_wrapper(np.vectorize.__call__)

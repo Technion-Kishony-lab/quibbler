@@ -9,7 +9,8 @@ from operator import getitem
 from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Callable, Dict, Union
 from weakref import ref as weakref
 
-from .function_quibs.exceptions import QuibCallFailedException
+from .function_quibs.quib_call_failed_exception_handling import raise_quib_call_exceptions_as_own, \
+    QuibCallFailedException
 from .quib_varname import get_var_name_being_set_outside_of_pyquibbler
 
 from pyquibbler.exceptions import PyQuibblerException
@@ -391,6 +392,7 @@ class Quib(ABC):
 
         return self._overrider.override(inner_value, self._assignment_template)
 
+    @raise_quib_call_exceptions_as_own
     def get_value(self) -> Any:
         """
         Get the entire actual data that this quib represents, all valid.
@@ -398,11 +400,7 @@ class Quib(ABC):
         are lazy, so a function quib might need to calculate uncached values and might
         even have to calculate the values of its dependencies.
         """
-        try:
-            return self.get_value_valid_at_path([])
-        except QuibCallFailedException as e:
-            # We do this to clear the get_value_valid_at_path from traceback
-            raise QuibCallFailedException(exception=e.exception, quibs=e.quibs) from None
+        return self.get_value_valid_at_path([])
 
     def get_override_list(self) -> Overrider:
         """

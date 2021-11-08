@@ -8,9 +8,9 @@ from typing import Union, Dict
 from functools import wraps, cached_property, lru_cache
 from typing import Callable, Any, Mapping, Tuple, Optional, Set, List
 
-from .exceptions import QuibCallFailedException
 from .pretty_converters import MathExpression
-from .quib_call_failed_exception_handling import quib_call_failed_exception_handling
+from .quib_call_failed_exception_handling import quib_call_failed_exception_handling, raise_quib_call_exceptions_as_own, \
+    QuibCallFailedException
 from .utils import ArgsValues
 from ..override_choice import get_overrides_for_assignment
 from ..assignment import AssignmentTemplate, Assignment, PathComponent
@@ -120,6 +120,7 @@ class FunctionQuib(Quib):
         """
 
         @wraps(func)
+        @raise_quib_call_exceptions_as_own
         def quib_supporting_func_wrapper(*args, **kwargs):
             return cls._wrapper_call(func, args, kwargs)
 
