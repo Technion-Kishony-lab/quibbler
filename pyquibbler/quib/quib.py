@@ -9,8 +9,8 @@ from operator import getitem
 from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Callable, Dict, Union
 from weakref import ref as weakref
 
-from .function_quibs.quib_call_failed_exception_handling import raise_quib_call_exceptions_as_own, \
-    QuibCallFailedException, add_quib_to_fail_trace_if_raises_quib_call_exception
+from .function_quibs.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own, \
+    add_quib_to_fail_trace_if_raises_quib_call_exception
 from .quib_varname import get_var_name_being_set_outside_of_pyquibbler, get_file_name_and_line_number_of_quib
 
 from pyquibbler.exceptions import PyQuibblerException
@@ -28,6 +28,18 @@ from ..logger import logger
 
 if TYPE_CHECKING:
     from pyquibbler.quib.graphics import GraphicsFunctionQuib
+
+
+def get_user_friendly_name_for_requested_valid_path(valid_path: Optional[List[PathComponent]]):
+    """
+    Get a user-friendly name representing the call to get_value_valid_at_path
+    """
+    if valid_path is None:
+        return 'get_blank_value()'
+    elif len(valid_path) == 0:
+        return 'get_value()'
+    else:
+        return f'get_value_valid_at_path({valid_path})'
 
 
 @dataclass
@@ -398,8 +410,9 @@ class Quib(ABC):
             context = contextlib.nullcontext()
 
         with context:
+            name_for_call = get_user_friendly_name_for_requested_valid_path(path)
             with add_quib_to_fail_trace_if_raises_quib_call_exception(quib=self,
-                                                                      call=f'get_value_valid_at_path({path})',
+                                                                      call=name_for_call,
                                                                       replace_last=False):
                 inner_value = self._get_inner_value_valid_at_path(path)
 
@@ -413,8 +426,7 @@ class Quib(ABC):
         are lazy, so a function quib might need to calculate uncached values and might
         even have to calculate the values of its dependencies.
         """
-        with add_quib_to_fail_trace_if_raises_quib_call_exception(quib=self, call='get_value()', replace_last=True):
-            return self.get_value_valid_at_path([])
+        return self.get_value_valid_at_path([])
 
     def get_override_list(self) -> Overrider:
         """
@@ -446,7 +458,6 @@ class Quib(ABC):
             if hasattr(res, '__len__'):
                 return len(res),
             raise
-
 
     @quib_method
     def get_override_mask(self):

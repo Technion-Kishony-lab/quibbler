@@ -12,7 +12,7 @@ from .utils import save_func_and_args_on_artists, get_axeses_to_array_names_to_s
     remove_artist, get_axeses_to_array_names_to_artists, get_artist_array, ArrayNameToArtists, track_artist
 from ..assignment import AssignmentTemplate, PathComponent
 from ..function_quibs import DefaultFunctionQuib, CacheBehavior
-from ..function_quibs.quib_call_failed_exception_handling import external_call_failed_exception_handling
+from ..function_quibs.external_call_failed_exception_handling import external_call_failed_exception_handling
 from ..utils import recursively_run_func_on_object, iter_object_type_in_args, iter_quibs_in_args
 from ...env import GRAPHICS_LAZY
 

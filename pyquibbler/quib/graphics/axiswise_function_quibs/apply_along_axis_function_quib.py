@@ -2,8 +2,8 @@ from typing import Optional, List, Any, Callable, Tuple, Mapping
 
 import numpy as np
 from numpy import ndindex, s_
-
-from pyquibbler.quib.function_quibs.quib_call_failed_exception_handling import external_call_failed_exception_handling
+from pyquibbler.quib.function_quibs.external_call_failed_exception_handling \
+    import external_call_failed_exception_handling
 from pyquibbler.quib.function_quibs.utils import ArgsValues
 from pyquibbler.quib.graphics.utils import remove_created_graphics
 from pyquibbler.quib.proxy_quib import ProxyQuib

@@ -1,27 +1,33 @@
 from __future__ import annotations
 import contextlib
 import functools
+import sys
+import traceback
+
+from varname.utils import cached_getmodule
 
 from pyquibbler.env import SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS
 from pyquibbler.exceptions import PyQuibblerException
 
 
-class QuibCallFailedException(PyQuibblerException):
+class ExternalCallFailedException(PyQuibblerException):
 
-    def __init__(self, quibs_with_calls, exception):
+    def __init__(self, quibs_with_calls, exception, tb):
         self.quibs_with_calls = quibs_with_calls
         self.exception = exception
+        self.traceback = tb
 
     def __str__(self):
         quibs_formatted = ""
         for quib, call in self.quibs_with_calls[::-1]:
             file_info = f"File \"{quib.file_name}\", line {quib.line_no}" if quib.file_name else "Unnamed quib"
             quibs_formatted += "\n  " + file_info
-            quibs_formatted += f"\n\t{repr(quib)} -------> {call}"
+            quibs_formatted += f"\n\t{repr(quib)} -> {call} "
+
         last_quib, _ = self.quibs_with_calls[-1]
         return f"Failed to execute {last_quib}\n\n" \
                f"The following quibs were in the stack of the exception: {quibs_formatted} " \
-               f"\n{type(self.exception).__name__}: {self.exception}"
+               f"\n\n{self.traceback}"
 
 
 @contextlib.contextmanager
@@ -34,8 +40,22 @@ def external_call_failed_exception_handling():
     try:
         yield
     except Exception as e:
+        # get traceback outside of pyquibbler
+        type_, exc, tb = sys.exc_info()
+        formatted_tb = ""
+        while cached_getmodule(tb.tb_frame.f_code).__name__.startswith("pyquibbler"):
+            tb = tb.tb_next
+            if tb is None:
+                formatted_tb = ''.join(traceback.format_exception_only(e))
+                break
+            else:
+                traceback_lines = traceback.format_exception(type_, exc, tb)
+                formatted_tb = "".join(traceback_lines)
+
         if SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS:
-            raise QuibCallFailedException(quibs_with_calls=[], exception=e) from None
+            raise ExternalCallFailedException(quibs_with_calls=[],
+                                              exception=e,
+                                              tb=formatted_tb) from None
         raise
 
 
@@ -43,7 +63,7 @@ def external_call_failed_exception_handling():
 def add_quib_to_fail_trace_if_raises_quib_call_exception(quib, call: str, replace_last: bool = False):
     try:
         yield
-    except QuibCallFailedException as e:
+    except ExternalCallFailedException as e:
         new_quib_with_call = (quib, call)
         quibs_with_calls = e.quibs_with_calls
         if replace_last:
@@ -51,8 +71,8 @@ def add_quib_to_fail_trace_if_raises_quib_call_exception(quib, call: str, replac
             assert quib == previous_quib
             quibs_with_calls = quibs_with_calls[:-1]
 
-        raise QuibCallFailedException(quibs_with_calls=[*quibs_with_calls, new_quib_with_call],
-                                      exception=e.exception)
+        raise ExternalCallFailedException(quibs_with_calls=[*quibs_with_calls, new_quib_with_call],
+                                          exception=e.exception, tb=e.traceback)
 
 
 def raise_quib_call_exceptions_as_own(func):
@@ -63,8 +83,10 @@ def raise_quib_call_exceptions_as_own(func):
     def _wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
-        except QuibCallFailedException as e:
+        except ExternalCallFailedException as e:
             # We do this to clear the get_value_valid_at_path from traceback
-            raise QuibCallFailedException(exception=e.exception, quibs_with_calls=e.quibs_with_calls) from None
+            raise ExternalCallFailedException(exception=e.exception,
+                                              quibs_with_calls=e.quibs_with_calls,
+                                              tb=e.traceback) from None
 
     return _wrapper

@@ -3,7 +3,8 @@ import numpy as np
 from functools import cached_property
 from typing import Any, Optional, List, Tuple, Set
 
-from pyquibbler.quib.function_quibs.quib_call_failed_exception_handling import external_call_failed_exception_handling
+from pyquibbler.quib.function_quibs.external_call_failed_exception_handling \
+    import external_call_failed_exception_handling
 from pyquibbler.quib.quib import Quib, cache_method_until_full_invalidation
 from pyquibbler.quib.proxy_quib import ProxyQuib
 from pyquibbler.quib.graphics.graphics_function_quib import GraphicsFunctionQuib

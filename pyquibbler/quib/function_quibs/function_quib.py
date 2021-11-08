@@ -9,7 +9,7 @@ from functools import wraps, cached_property, lru_cache
 from typing import Callable, Any, Mapping, Tuple, Optional, Set, List
 
 from .pretty_converters import MathExpression
-from .quib_call_failed_exception_handling import external_call_failed_exception_handling, \
+from .external_call_failed_exception_handling import external_call_failed_exception_handling, \
     raise_quib_call_exceptions_as_own
 from .utils import ArgsValues
 from ..override_choice import get_overrides_for_assignment
