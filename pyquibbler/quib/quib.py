@@ -1,6 +1,5 @@
 from __future__ import annotations
 import contextlib
-from types import NoneType
 
 import numpy as np
 from functools import wraps
@@ -360,7 +359,7 @@ class Quib(ABC):
         from .assignment.assignment import PathComponent
         self.assign(Assignment(value=value, path=[PathComponent(component=key, indexed_cls=self.get_type())]))
 
-    @validate_user_input(name=(str, NoneType))
+    @validate_user_input(name=(str, type(None)))
     def set_name(self, name: Optional[str]):
         """
         Set the quib's name- this will override any name automatically created if it exists.
