@@ -5,11 +5,9 @@ We have to use the operator functions in order to allow builtin operator functio
 1. Calling inverse arithmetic operations when the normal ones return NotImplemented
 2. Cases where a magic method is not present on a built-in type but the operator works anyway (e.g. float.__ceil__).
 """
-import functools
 import operator
-from functools import wraps
 from math import trunc, floor, ceil
-from typing import Callable, Tuple, Optional, Type
+from typing import Callable, Tuple, Type
 
 from .function_quibs import DefaultFunctionQuib
 from .function_quibs.elementwise_function_quib import ElementWiseFunctionQuib
@@ -40,17 +38,17 @@ ARITHMETIC_OVERRIDES = [
 ]
 
 UNARY_OVERRIDES = [
-    operator_override('__neg__',ElementWiseFunctionQuib),
-    operator_override('__pos__',ElementWiseFunctionQuib),
-    operator_override('__abs__',ElementWiseFunctionQuib),
+    operator_override('__neg__', ElementWiseFunctionQuib),
+    operator_override('__pos__', ElementWiseFunctionQuib),
+    operator_override('__abs__', ElementWiseFunctionQuib),
     operator_override('__invert__'),
 ]
 
 COMPARISON_OVERRIDES = [
-    operator_override('__lt__',ElementWiseFunctionQuib),
-    operator_override('__gt__',ElementWiseFunctionQuib),
-    operator_override('__ge__',ElementWiseFunctionQuib),
-    operator_override('__le__',ElementWiseFunctionQuib),
+    operator_override('__lt__', ElementWiseFunctionQuib),
+    operator_override('__gt__', ElementWiseFunctionQuib),
+    operator_override('__ge__', ElementWiseFunctionQuib),
+    operator_override('__le__', ElementWiseFunctionQuib),
 ]
 
 ROUNDING_OVERRIDES = [
@@ -61,8 +59,7 @@ ROUNDING_OVERRIDES = [
 ]
 
 
-ALL_OVERRIDES = ARITHMETIC_OVERRIDES + UNARY_OVERRIDES + ROUNDING_OVERRIDES + \
-                COMPARISON_OVERRIDES
+ALL_OVERRIDES = ARITHMETIC_OVERRIDES + UNARY_OVERRIDES + ROUNDING_OVERRIDES + COMPARISON_OVERRIDES
 
 
 def _create_inverse_operator_wrapper(cls, forward_operator: Callable):

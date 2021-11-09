@@ -1,3 +1,4 @@
+from typing import Optional, List, Any
 from matplotlib.widgets import CheckButtons
 
 from pyquibbler.quib import Quib
@@ -9,16 +10,17 @@ from .widget_graphics_function_quib import WidgetGraphicsFunctionQuib
 
 class CheckButtonsGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
     """
-    A quib representing a matplotlib.widgets.CheckButtons. Will automatically add a listener and update the relevant quib
+    A quib representing a matplotlib.widgets.CheckButtons. Will automatically add a listener and update the relevant
+    quib
     """
     WIDGET_CLS = CheckButtons
 
     def _on_change(self, new_value: str):
-        actives = self._get_all_args_dict().get('actives')
+        actives = self._get_args_values().get('actives')
         if isinstance(actives, Quib):
             widget = self.get_value()
             buttons_checked = widget.get_status()
-            labels = self._get_all_args_dict().get('labels')
+            labels = self._get_args_values().get('labels')
             new_value_index = labels.index(new_value)
             actives.assign(Assignment(value=buttons_checked[new_value_index],
                                       path=[PathComponent(indexed_cls=list, component=new_value_index)]))
@@ -26,8 +28,8 @@ class CheckButtonsGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
             # We only need to invalidate children if we didn't assign
             self.invalidate_and_redraw_at_path()
 
-    def _call_func(self):
-        checkbuttons = super()._call_func()
+    def _call_func(self, valid_path: Optional[List[PathComponent]]) -> Any:
+        checkbuttons = super()._call_func(None)
         checkbuttons.on_clicked(self._on_change)
         return checkbuttons
 

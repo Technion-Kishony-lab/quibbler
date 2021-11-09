@@ -1,5 +1,4 @@
 from __future__ import annotations
-import numpy as np
 import functools
 from copy import copy
 from dataclasses import dataclass
@@ -16,6 +15,9 @@ from pyquibbler.exceptions import DebugException, PyQuibblerException
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib
 
+# Most common use-cases require one level of scanning - for example a quib inside a shape tuple.
+# But there is also the case of indexing with quibs, like so: arr[q1:,q2:] which creates a quib inside a slice inside a
+# tuple, which requires two levels of scanning.
 SHALLOW_MAX_DEPTH = 2
 SHALLOW_MAX_LENGTH = 100
 
@@ -49,11 +51,7 @@ class NestedQuibException(DebugException):
 
     def __str__(self):
         return 'PyQuibbler does not support calling functions with arguments that contain deeply nested quibs.\n' \
-               f'The quibs {self.nested_quibs} are nested within {self.obj}.'
-
-    @classmethod
-    def create_from_object(cls, obj: Any):
-        return cls(obj, set(iter_quibs_in_object_recursively(obj)))
+               f'The quibs {self.nested_quibs} are deeply nested within {self.obj}.'
 
 
 @dataclass
@@ -107,13 +105,9 @@ def deep_copy_without_quibs_or_artists(obj: Any, max_depth: Optional[int] = None
                                           max_depth=max_depth, obj=obj)
 
 
-def deep_copy_and_replace_quibs_with_vals(obj: Any, max_depth: Optional[int] = None, max_length: Optional[int] = None):
+def copy_and_replace_quibs_with_vals(obj: Any):
     """
-    Deep copy an object while replacing quibs with their values.
-    When `max_depth` is given, limits the depth in which quibs are looked for.
-    `max_depth=0` means only `obj` itself will be checked and replaced,
-    `max_depth=1` means `obj` and all objects it directly references, and so on.
-    When `max_length` is given, does not recurse into iterables larger than `max_length`.
+    Copy `obj` while replacing quibs with their values, with a limited depth and length.
     """
     from pyquibbler.quib import Quib
     from matplotlib.artist import Artist
@@ -130,40 +124,12 @@ def deep_copy_and_replace_quibs_with_vals(obj: Any, max_depth: Optional[int] = N
         except NotImplementedError:
             return o
 
-    return recursively_run_func_on_object(func=replace_with_value_if_quib_or_copy, max_depth=max_depth,
-                                          max_length=max_length, obj=obj)
-
-
-def shallow_copy_and_replace_quibs_with_vals(obj: Any):
-    """
-    Deep copy `obj` while replacing quibs with their values, with a limited depth and length.
-    """
-    return deep_copy_and_replace_quibs_with_vals(obj, SHALLOW_MAX_DEPTH, SHALLOW_MAX_LENGTH)
-
-
-def copy_and_replace_quibs_with_vals(obj: Any):
-    result = shallow_copy_and_replace_quibs_with_vals(obj)
-    if DEBUG:
-        expected = deep_copy_and_replace_quibs_with_vals(obj)
-        try:
-            # instead of doing expected == result we do a "not not" so as to evaluate the result as truthy,
-            # and so throw an exception here if we evaluated the equalness of two numpy arrays
-            # (in which case we need to do array_equal).
-            # We also can't check isinstance as the arrays may be embedded in tuples etc
-            equal = not (expected != result)
-        except ValueError as e:
-            if "The truth value of an array" in str(e):
-                try:
-                    np.testing.assert_equal(expected, result)
-                except AssertionError:
-                    equal = False
-                else:
-                    equal = True
-            else:
-                equal = False
-
-        if not equal:
-            raise NestedQuibException.create_from_object(obj)
+    result = recursively_run_func_on_object(func=replace_with_value_if_quib_or_copy, max_depth=SHALLOW_MAX_DEPTH,
+                                            max_length=SHALLOW_MAX_LENGTH, obj=obj)
+    if DEBUG and not isinstance(obj, QuibRef):
+        nested_quibs = set(iter_quibs_in_object_recursively(result))
+        if nested_quibs:
+            raise NestedQuibException(obj, nested_quibs)
     return result
 
 
@@ -228,7 +194,7 @@ def iter_objects_of_type_in_object(object_type: Type, obj: Any, force_recursive:
         result = iter(collected_result)
         expected = set(iter_objects_of_type_in_object_recursively(object_type, obj))
         if collected_result != expected:
-            raise NestedQuibException(obj, set(expected))
+            raise NestedQuibException(obj, expected - collected_result)
     return result
 
 
@@ -252,7 +218,7 @@ def iter_quibs_in_args(args: Tuple[Any, ...], kwargs: Mapping[str, Any]):
     return iter_object_type_in_args(Quib, args, kwargs)
 
 
-def copy_and_convert_args_to_values(args: Tuple[Any, ...], kwargs: Mapping[str, Any]):
+def copy_and_convert_args_and_kwargs_to_values(args: Tuple[Any, ...], kwargs: Mapping[str, Any]):
     """
     Copy and convert args and kwargs to their respective values- if an arg is a quib it will be replaced with a value,
     elsewise it will just be copied
@@ -278,7 +244,7 @@ def call_func_with_quib_values(func, args, kwargs):
     """
     Calls a function with the specified args and kwargs while replacing quibs with their values.
     """
-    new_args, new_kwargs = copy_and_convert_args_to_values(args, kwargs)
+    new_args, new_kwargs = copy_and_convert_args_and_kwargs_to_values(args, kwargs)
     try:
         return func(*new_args, **new_kwargs)
     except TypeError as e:
@@ -287,13 +253,6 @@ def call_func_with_quib_values(func, args, kwargs):
             if nested_quibs_by_arg_names:
                 raise FunctionCalledWithNestedQuibException(func, nested_quibs_by_arg_names) from e
         raise
-
-
-def call_method_with_quib_values(func, self, args, kwargs):
-    """
-    Calls an instance method with the specified args and kwargs while replacing quibs with their values.
-    """
-    return call_func_with_quib_values(func, [self, *args], kwargs)
 
 
 def is_there_a_quib_in_object(obj, force_recursive: bool = False):

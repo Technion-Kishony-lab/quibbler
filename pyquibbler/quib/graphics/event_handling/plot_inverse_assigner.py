@@ -1,5 +1,4 @@
-import numpy as np
-from typing import Tuple, Any, List, Iterable
+from typing import Any, List, Tuple
 from matplotlib.backend_bases import PickEvent, MouseEvent
 
 from .graphics_inverse_assigner import graphics_inverse_assigner
@@ -64,7 +63,7 @@ def get_quibs_with_assignments_for_axes(args: List[Any],
         if isinstance(quib, Quib):
             # Support indexing of lists when more than one marker is dragged
             for data_index in data_indices:
-                shape = quib.get_shape().get_value()
+                shape = quib.get_shape()
                 if len(shape) == 0:
                     path = []
                 elif len(shape) == 1:

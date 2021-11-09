@@ -87,5 +87,12 @@ class CanvasEventHandler:
         """
         Initializes the canvas events handler to receive events from the canvas
         """
+        handler_ids = []
         for event_type, handler in self.EVENT_HANDLERS.items():
-            self.canvas.mpl_connect(event_type, handler)
+            handler_ids.append(self.canvas.mpl_connect(event_type, handler))
+
+        def disconnect(event):
+            for handler_id in handler_ids:
+                self.canvas.mpl_disconnect(handler_id)
+
+        handler_ids.append(self.canvas.mpl_connect('close_event', disconnect))

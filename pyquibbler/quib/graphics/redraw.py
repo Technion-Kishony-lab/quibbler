@@ -1,6 +1,9 @@
 import contextlib
+from typing import Set
+
 from matplotlib.axes import Axes
 
+from pyquibbler.logger import logger
 from pyquibbler.performance_utils import timer
 
 AXESES_TO_REDRAW = set()
@@ -17,17 +20,18 @@ def aggregate_redraw_mode():
     IN_AGGREGATE_REDRAW_MODE = True
     yield
     IN_AGGREGATE_REDRAW_MODE = False
-    for axes in AXESES_TO_REDRAW:
-        redraw_axes(axes)
+    redraw_axeses(AXESES_TO_REDRAW)
     AXESES_TO_REDRAW.clear()
 
 
-def redraw_axes(axes: Axes, force: bool = False):
+def redraw_axeses(axeses: Set[Axes], force: bool = False):
     """
     Actual redrawing of axes- this should be WITHOUT rendering anything except for the new artists
     """
     if IN_AGGREGATE_REDRAW_MODE and not force:
-        AXESES_TO_REDRAW.add(axes)
+        AXESES_TO_REDRAW.update(axeses)
     else:
-        with timer(name="redraw"):
-            axes.figure.canvas.draw()
+        canvases = {axes.figure.canvas for axes in axeses}
+        with timer(name="redraw", callback=lambda t: logger.info(f"redraw canvas {t}")):
+            for canvas in canvases:
+                canvas.draw()

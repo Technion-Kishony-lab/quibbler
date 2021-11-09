@@ -7,6 +7,16 @@ if TYPE_CHECKING:
     from ..quib import Quib
 
 
+def get_nd_working_component_value_from_path(path: List[PathComponent], raise_on_empty_path: bool = False):
+    """
+    Get the first working component value you can from the path- this will always be entirely "squashed", so you will
+    get a component that expresses everything possible before needing to go another step "deeper" in
+
+    If no component is found (path is empty), the path expresses getting "everything"- so we give a true value
+    """
+    return path[0].component if len(path) > 0 else True
+
+
 @dataclass
 class PathComponent:
     indexed_cls: Type
@@ -20,11 +30,11 @@ class PathComponent:
         special PathComponent for it, as the interface for setting an attribute is different.
         """
         return (
-                issubclass(self.indexed_cls, np.ndarray) and
-                (
-                        isinstance(self.component, str) or
-                        (isinstance(self.component, list) and isinstance(self.component[0], str))
+            issubclass(self.indexed_cls, np.ndarray) and (
+                isinstance(self.component, str) or (
+                    isinstance(self.component, list) and isinstance(self.component[0], str)
                 )
+            )
         )
 
 
