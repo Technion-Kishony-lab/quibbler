@@ -1,14 +1,22 @@
 import numpy as np
 from abc import ABC, abstractmethod
 from math import floor
-from typing import Any
+from typing import Any, Type
 from dataclasses import dataclass
 
-from pyquibbler.exceptions import DebugException
+from pyquibbler.exceptions import DebugException, PyQuibblerException
 
 CONSTRUCTORS = {
     np.ndarray: np.array
 }
+
+
+@dataclass
+class InvalidTypeException(PyQuibblerException):
+    type_: Type
+
+    def __str__(self):
+        return f"The type {repr(self.type_)} is incompatible with the given assignment template "
 
 
 @dataclass
@@ -51,9 +59,16 @@ class AssignmentTemplate(ABC):
         iquib(np.zeros((2, 2)))[0] = [1, 1]
         ```
         """
+        # we need to be careful of strings, as they are iterators but not valid values
+        if isinstance(data, str):
+            raise InvalidTypeException(str)
+
         try:
             iterator = iter(data)
         except TypeError:
+            if not np.isreal(data):
+                raise InvalidTypeException(type(data))
+
             return self._convert_number(data)
         else:
             return [self.convert(item) for item in iterator]

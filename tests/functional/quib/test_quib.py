@@ -12,6 +12,7 @@ from pyquibbler.input_validation_utils import InvalidArgumentException
 from pyquibbler.quib import Quib, OverridingNotAllowedException
 from pyquibbler.quib.assignment import RangeAssignmentTemplate, BoundAssignmentTemplate, Assignment
 from pyquibbler.quib.assignment.assignment import PathComponent
+from pyquibbler.quib.assignment.assignment_template import InvalidTypeException
 from pyquibbler.quib.assignment.utils import FailedToDeepAssignException
 from pyquibbler.quib.graphics import GraphicsFunctionQuib
 from pyquibbler.quib.operator_overriding import ARITHMETIC_OVERRIDES, UNARY_OVERRIDES
@@ -514,6 +515,15 @@ def test_quib_fails_when_given_invalid_assignment_on_first_get_value(example_qui
 
     with pytest.raises(FailedToDeepAssignException):
         example_quib.get_value()
+
+
+def test_quib_fails_when_not_matching_assignment_template():
+    quib = ExampleQuib([1, 2, 3])
+    quib.set_assignment_template(1, 3)
+    quib.assign_value_to_key(key=2, value="hello johnny")
+
+    with pytest.raises(InvalidTypeException):
+        quib.get_value()
 
 
 def test_iquib_does_not_fail_when_assignment_fails_on_second_get_value(example_quib):

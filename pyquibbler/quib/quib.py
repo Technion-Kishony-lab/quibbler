@@ -10,6 +10,7 @@ from operator import getitem
 from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Callable, Dict, Union
 from weakref import ref as weakref
 
+from .assignment.assignment_template import InvalidTypeException
 from .assignment.utils import FailedToDeepAssignException
 from .function_quibs.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own, \
     add_quib_to_fail_trace_if_raises_quib_call_exception
@@ -329,6 +330,8 @@ class Quib(ABC):
             self.override(assignment, allow_overriding_from_now_on=False)
         except FailedToDeepAssignException as e:
             raise FailedToDeepAssignException(exception=e.exception, path=e.path) from None
+        except InvalidTypeException as e:
+            raise InvalidTypeException(e.type_) from None
 
     @raise_quib_call_exceptions_as_own
     def assign_value(self, value: Any) -> None:
