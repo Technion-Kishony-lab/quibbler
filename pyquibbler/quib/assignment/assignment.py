@@ -46,9 +46,6 @@ class Assignment:
     value: Any
     path: List[PathComponent] = field(default_factory=list)
 
-    def __str__(self):
-        return ".".join([p.component for p in self.path]) + f" = {self.value}"
-
     def __eq__(self, other):
         if not isinstance(other, Assignment):
             return NotImplemented
