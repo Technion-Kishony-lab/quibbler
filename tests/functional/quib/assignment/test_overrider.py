@@ -4,6 +4,7 @@ from pytest import fixture
 
 from pyquibbler.quib.assignment import Overrider, Assignment
 from pyquibbler.quib.assignment.assignment import PathComponent
+from pyquibbler.quib.assignment.utils import FailedToDeepAssignException
 
 
 @fixture
@@ -61,14 +62,23 @@ def test_overrider_remove_assignment(overrider):
     assert new_data == [1, 0]
 
 
-@pytest.mark.regression
-def test_overrider_doesnt_raise_exception_when_out_of_bounds(overrider):
+def test_overrider_raises_exception_when_out_of_bounds_on_active_assignment(overrider):
     overrider.add_assignment(Assignment(value=10, path=[PathComponent(component=10, indexed_cls=list)]))
+
+    with pytest.raises(FailedToDeepAssignException):
+        overrider.override([])
+
+
+@pytest.mark.regression
+def test_overrider_doesnt_raise_exception_when_out_of_bounds_on_non_active_assignment(overrider):
+    overrider.add_assignment(Assignment(value=10, path=[PathComponent(component=10, indexed_cls=list)]))
+    # we create another assignment to make the previous not the active assignment
+    overrider.add_assignment(Assignment(value=0, path=[]))
 
     # We only truly want to make sure the above assignment didn't cause an exception
     new_data = overrider.override([])
 
-    assert new_data == []
+    assert new_data == 0
 
 
 def test_overrider_keeps_order(overrider):

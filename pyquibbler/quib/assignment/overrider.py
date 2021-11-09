@@ -20,6 +20,7 @@ class Overrider:
 
     def __init__(self):
         self._paths_to_assignments: Dict[Hashable, Union[Assignment, AssignmentRemoval]] = {}
+        self._active_assignment = None
 
     def _add_to_paths_to_assignments(self, assignment: Union[Assignment, AssignmentRemoval]):
         hashable_path = get_hashable_path(assignment.path)
@@ -32,6 +33,7 @@ class Overrider:
         """
         Adds an override to the overrider - data[key] = value.
         """
+        self._active_assignment = assignment
         self._add_to_paths_to_assignments(assignment)
 
     def remove_assignment(self, path: List[PathComponent]):
@@ -39,7 +41,9 @@ class Overrider:
         Remove overriding in a specific path.
         """
         if self._paths_to_assignments:
-            self._add_to_paths_to_assignments(AssignmentRemoval(path))
+            assignment_removal = AssignmentRemoval(path)
+            self._active_assignment = assignment_removal
+            self._add_to_paths_to_assignments(assignment_removal)
 
     def override(self, data: Any, assignment_template: Optional[AssignmentTemplate] = None):
         """
@@ -57,8 +61,11 @@ class Overrider:
                     value = assignment.value if assignment_template is None \
                         else assignment_template.convert(assignment.value)
                     path = assignment.path
-                data = deep_assign_data_with_paths(data, path, value)
 
+                data = deep_assign_data_with_paths(data, path, value,
+                                                   raise_on_failure=assignment == self._active_assignment)
+
+        self._active_assignment = None
         return data
 
     def fill_override_mask(self, false_mask):

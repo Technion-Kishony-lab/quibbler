@@ -11,6 +11,7 @@ from operator import getitem
 from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Callable, Dict, Union
 from weakref import ref as weakref
 
+from .assignment.utils import FailedToDeepAssignException
 from .function_quibs.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own, \
     add_quib_to_fail_trace_if_raises_quib_call_exception
 from .quib_varname import get_var_name_being_set_outside_of_pyquibbler, get_file_name_and_line_number_of_quib
@@ -325,7 +326,10 @@ class Quib(ABC):
         Create an assignment with an Assignment object, overriding the current values at the assignment's paths with the
         assignment's value
         """
-        self.override(assignment, allow_overriding_from_now_on=False)
+        try:
+            self.override(assignment, allow_overriding_from_now_on=False)
+        except FailedToDeepAssignException as e:
+            raise FailedToDeepAssignException(exception=e.exception, path=e.path) from None
 
     @raise_quib_call_exceptions_as_own
     def assign_value(self, value: Any) -> None:

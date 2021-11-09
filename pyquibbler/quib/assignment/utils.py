@@ -1,13 +1,27 @@
 from __future__ import annotations
 import logging
+from dataclasses import dataclass
 from typing import Any, List, TYPE_CHECKING
 
 import numpy as np
 
 from pyquibbler.env import DEBUG
+from pyquibbler.exceptions import PyQuibblerException
 
 if TYPE_CHECKING:
     from pyquibbler.quib.assignment import PathComponent
+
+
+@dataclass
+class FailedToDeepAssignException(PyQuibblerException):
+
+    path: List[PathComponent]
+    exception: IndexError
+
+    def __str__(self):
+        return f"The path {''.join([f'[{p.component}]' for p in self.path])} " \
+               f"was invalid in the data, and therefore could not be assigned with- " \
+               f"failed on {self.exception}"
 
 
 def get_sub_data_from_object_in_path(obj: Any, path: List['PathComponent']):
@@ -19,7 +33,7 @@ def get_sub_data_from_object_in_path(obj: Any, path: List['PathComponent']):
     return obj
 
 
-def deep_assign_data_with_paths(data: Any, path: List[PathComponent], value: Any):
+def deep_assign_data_with_paths(data: Any, path: List[PathComponent], value: Any, raise_on_failure: bool = False):
     """
     Go path by path setting value, each time ensuring we don't lost copied values (for example if there was
     fancy indexing) by making sure to set recursively back anything that made an assignment/
@@ -47,6 +61,9 @@ def deep_assign_data_with_paths(data: Any, path: List[PathComponent], value: Any
         try:
             new_element[component.component] = last_element
         except IndexError as e:
+            if raise_on_failure:
+                raise FailedToDeepAssignException(path=path, exception=e)
+
             if DEBUG:
                 logging.warning(
                     (f"Attempted out of range assignment:"
