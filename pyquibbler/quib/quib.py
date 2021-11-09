@@ -115,7 +115,7 @@ class Quib(ABC):
             self.file_name = None
             self.line_no = None
 
-    def config(self, allow_overriding: bool = None, **kwargs):
+    def setp(self, allow_overriding: bool = None, **kwargs):
         """
         Configure a quib with certain attributes- because this function is expected to be used by users, we never
         setattr to anything before checking the types.

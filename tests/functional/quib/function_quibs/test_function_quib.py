@@ -289,11 +289,11 @@ def test_function_quib_set_cache_behaviour_forces_correct_type(example_function_
 
 
 def test_function_quib_config(example_function_quib):
-    example_function_quib.config(cache_behavior='on')
+    example_function_quib.setp(cache_behavior='on')
 
     assert example_function_quib.get_cache_behavior() == CacheBehavior.ON
 
 
 def test_function_quib_config_with_invalid_cache_behavior(example_function_quib):
     with pytest.raises(UnknownCacheBehaviorException):
-        example_function_quib.config(cache_behavior='ondfdd')
+        example_function_quib.setp(cache_behavior='ondfdd')

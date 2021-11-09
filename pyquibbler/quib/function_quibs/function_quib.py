@@ -67,12 +67,12 @@ class FunctionQuib(Quib):
             cache_behavior = self._DEFAULT_CACHE_BEHAVIOR
         self.set_cache_behavior(cache_behavior)
 
-    def config(self, allow_overriding: bool = None, cache_behavior: CacheBehavior = None, **kwargs):
+    def setp(self, allow_overriding: bool = None, cache_behavior: CacheBehavior = None, **kwargs):
         """
         Configure a quib with certain attributes- because this function is expected to be used by users, we never
         setattr to anything before checking the types.
         """
-        super(FunctionQuib, self).config(allow_overriding, **kwargs)
+        super(FunctionQuib, self).setp(allow_overriding, **kwargs)
         if cache_behavior is not None:
             self.set_cache_behavior(cache_behavior)
         return self

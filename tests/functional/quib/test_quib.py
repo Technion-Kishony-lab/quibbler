@@ -498,7 +498,7 @@ def test_quib_can_assign_none_to_name(example_quib):
 
 
 def test_quib_configure(example_quib):
-    quib = example_quib.config(allow_overriding=True, name="pasten")
+    quib = example_quib.setp(allow_overriding=True, name="pasten")
 
     assert quib.name == 'pasten'
     assert quib.allow_overriding is True
@@ -506,7 +506,7 @@ def test_quib_configure(example_quib):
 
 def test_quib_configure_with_invalid_value(example_quib):
     with pytest.raises(InvalidArgumentException):
-        example_quib.config(allow_overriding=3, name="pasten")
+        example_quib.setp(allow_overriding=3, name="pasten")
 
 
 def test_quib_fails_when_given_invalid_assignment_on_first_get_value(example_quib):
