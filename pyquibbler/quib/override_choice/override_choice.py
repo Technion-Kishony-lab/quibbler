@@ -24,7 +24,7 @@ class AssignmentNotPossibleException(PyQuibblerException):
         return f'Cannot perform {self.assignment} on {self.quib}, because it cannot ' \
                f'be overridden and an overridable parent quib to inverse assign into was not found.\n' \
                f'Note that functional quibs are not overridable by default.\n' \
-               f'To allow overriding, try using "{self.quib}.allow_overriding = True"'
+               f'To allow overriding, try using "{self.quib}.set_allow_overriding(True)"'
 
 
 @dataclass
