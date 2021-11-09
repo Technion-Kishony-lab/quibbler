@@ -37,6 +37,13 @@ class RangeStopBelowStartException(DebugException):
         return f'Stop ({self.stop} is smaller than start ({self.start})'
 
 
+@dataclass
+class TypesMustBeSameInAssignmentTemplateException(DebugException):
+
+    def __str__(self):
+        return 'You cannot have different types in your assignment template'
+
+
 def get_number_in_bounds(number, minimum, maximum):
     return min(max(number, minimum), maximum)
 
@@ -48,6 +55,10 @@ class AssignmentTemplate(ABC):
         """
         Convert the given object to match the template.
         """
+
+    @abstractmethod
+    def _get_number_type(self) -> Type:
+        pass
 
     def convert(self, data: Any):
         """
@@ -66,10 +77,9 @@ class AssignmentTemplate(ABC):
         try:
             iterator = iter(data)
         except TypeError:
-            if not np.isreal(data):
-                raise InvalidTypeException(type(data))
-
-            return self._convert_number(data)
+            constructor = CONSTRUCTORS.get(self._get_number_type(), self._get_number_type())
+            casted_data = constructor(data)
+            return self._convert_number(casted_data)
         else:
             return [self.convert(item) for item in iterator]
 
@@ -85,6 +95,12 @@ class BoundAssignmentTemplate(AssignmentTemplate):
     def __post_init__(self):
         if self.maximum < self.minimum:
             raise BoundMaxBelowMinException(self.minimum, self.maximum)
+
+        if type(self.minimum) != type(self.maximum): # noqa
+            raise TypesMustBeSameInAssignmentTemplateException()
+
+    def _get_number_type(self) -> Type:
+        return type(self.minimum)
 
     def _convert_number(self, number):
         return get_number_in_bounds(number, self.minimum, self.maximum)
@@ -103,6 +119,11 @@ class RangeAssignmentTemplate(AssignmentTemplate):
     def __post_init__(self):
         if self.stop < self.start:
             raise RangeStopBelowStartException(self.start, self.stop)
+        if (type(self.start) != type(self.stop)) or (type(self.start) != type(self.step)): # noqa
+            raise TypesMustBeSameInAssignmentTemplateException()
+
+    def _get_number_type(self) -> Type:
+        return type(self.start)
 
     def _convert_number(self, number: Any):
         rounded = round((number - self.start) / self.step)

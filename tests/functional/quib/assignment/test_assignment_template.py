@@ -1,14 +1,17 @@
 import numpy as np
-from typing import Any
+from typing import Any, Type
 from pytest import mark, raises
 
 from pyquibbler.quib.assignment import AssignmentTemplate, BoundAssignmentTemplate, RangeAssignmentTemplate, \
-    BoundMaxBelowMinException, RangeStopBelowStartException
+    BoundMaxBelowMinException, RangeStopBelowStartException, TypesMustBeSameInAssignmentTemplateException
 
 
 class ExampleAssignmentTemplate(AssignmentTemplate):
     def _convert_number(self, number: Any):
         return -number
+
+    def _get_number_type(self) -> Type:
+        return int
 
 
 @mark.parametrize(['data', 'expected'], [
@@ -81,6 +84,9 @@ def test_assignment_template_convert(data, expected):
 
     # Regression - range ndarray
     (RangeAssignmentTemplate(np.array(-0.3), np.array(-0.3), np.array(0.3)), np.array(1.), np.array(-0.3)),
+
+    # Regression- casts float
+    (BoundAssignmentTemplate(1, 10), 1.7, 1),
 ])
 def test_casting_assignment_template(template, data, expected):
     result = template.convert(data)
@@ -96,3 +102,13 @@ def test_cant_create_bound_assignment_template_with_max_smaller_than_min():
 def test_cant_create_range_assignment_template_with_stop_smaller_than_start():
     with raises(RangeStopBelowStartException):
         RangeAssignmentTemplate(1., 0.9, 3.)
+
+
+def test_cant_create_bound_assignment_template_with_different_types():
+    with raises(TypesMustBeSameInAssignmentTemplateException):
+        BoundAssignmentTemplate(0, 1.)
+
+
+def test_cant_create_range_assignment_template_with_different_types():
+    with raises(TypesMustBeSameInAssignmentTemplateException):
+        RangeAssignmentTemplate(0, 1, .1)
