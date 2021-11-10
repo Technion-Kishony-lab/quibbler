@@ -29,6 +29,7 @@ from .assignment import PathComponent
 from ..env import LEN_RAISE_EXCEPTION
 from ..input_validation_utils import validate_user_input
 from ..logger import logger
+from ..project import Project
 
 if TYPE_CHECKING:
     from pyquibbler.quib.graphics import GraphicsFunctionQuib
@@ -115,6 +116,8 @@ class Quib(ABC):
             self._name = None
             self.file_name = None
             self.line_no = None
+
+        Project.get_or_create().register_quib(self)
 
     def setp(self, allow_overriding: bool = None, **kwargs):
         """
