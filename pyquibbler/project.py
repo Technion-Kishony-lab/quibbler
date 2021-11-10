@@ -10,6 +10,10 @@ if TYPE_CHECKING:
 
 
 class Project:
+    """
+    A "quibbler" project, giving an interface to get globally collected information (such as all quibs created) and
+    performing actions aggregatively on many quibs
+    """
 
     current_project = None
 
@@ -27,6 +31,9 @@ class Project:
 
     @property
     def quibs(self):
+        """
+        Get all quibs in the project that are still alive
+        """
         refs_to_remove = set()
         for quib_weakref in self._quib_weakrefs:
             if quib_weakref() is None:
@@ -37,9 +44,16 @@ class Project:
         return [quib_weakref() for quib_weakref in self._quib_weakrefs]
 
     def register_quib(self, quib: Quib):
+        """
+        Register a quib to the project
+        """
         self._quib_weakrefs.add(weakref.ref(quib))
 
     def reset_invalidate_and_redraw_all_impure_function_quibs(self):
+        """
+        Reset and then invalidate_redraw all impure function quibs in the project.
+        We do this aggregatively so as to ensure we don't redraw axes more than once
+        """
         from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
         from pyquibbler.quib import ImpureFunctionQuib
         impure_function_quibs = [quib for quib in self.quibs if isinstance(quib, ImpureFunctionQuib)]
