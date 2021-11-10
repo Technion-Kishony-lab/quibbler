@@ -38,9 +38,11 @@ class DefaultFunctionQuib(FunctionQuib):
                  cache_behavior: Optional[CacheBehavior],
                  assignment_template: Optional[AssignmentTemplate] = None):
         super().__init__(func, args, kwargs, cache_behavior, assignment_template=assignment_template)
-        self._reset_cache()
+        self._cache = None
+        self._caching = False
+        self.reset_cache()
 
-    def _reset_cache(self):
+    def reset_cache(self):
         self._cache = None
         self._caching = True if self._cache_behavior == CacheBehavior.ON else False
 
@@ -56,7 +58,7 @@ class DefaultFunctionQuib(FunctionQuib):
     def _invalidate_self(self, path: List[PathComponent]):
         if len(path) == 0:
             self._on_type_change()
-            self._reset_cache()
+            self.reset_cache()
 
         if self._cache is not None:
             self._cache = transform_cache_to_nd_if_necessary_given_path(self._cache, path)
@@ -179,4 +181,4 @@ class DefaultFunctionQuib(FunctionQuib):
     def set_cache_behavior(self, cache_behavior: CacheBehavior):
         super(DefaultFunctionQuib, self).set_cache_behavior(cache_behavior)
         if cache_behavior == CacheBehavior.OFF:
-            self._reset_cache()
+            self.reset_cache()
