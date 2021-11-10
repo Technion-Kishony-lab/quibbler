@@ -24,7 +24,6 @@ from pyquibbler.exceptions import PyQuibblerException
 from .assignment import AssignmentTemplate, RangeAssignmentTemplate, BoundAssignmentTemplate, Overrider, Assignment, \
     QuibWithAssignment
 from .function_quibs.cache import create_cache
-from .function_quibs.cache.cache import CacheStatus
 from .function_quibs.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
 from .function_quibs.pretty_converters import MathExpression
 from .utils import quib_method, Unpacker, recursively_run_func_on_object
