@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 import weakref
 from _weakref import ReferenceType
 from pathlib import Path

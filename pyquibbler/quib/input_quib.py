@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-import os.path
-import pickle
 from dataclasses import dataclass
-from typing import Any, List, Optional, Set, BinaryIO
+from typing import Any, List, Optional, Set
 import pathlib
 
 from .assignment import AssignmentTemplate
@@ -12,7 +10,6 @@ from .quib import Quib
 from .utils import is_there_a_quib_in_object
 from ..env import DEBUG, PRETTY_REPR
 from ..exceptions import DebugException
-from ..project import Project
 
 
 @dataclass

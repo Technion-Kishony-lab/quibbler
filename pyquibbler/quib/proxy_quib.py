@@ -45,6 +45,7 @@ class ProxyQuib(Quib):
         return [QuibWithAssignment(quib=self._quib, assignment=assignment)]
 
     @property
-    def _save_directory(self) -> pathlib.Path:
-        # todo..
+    def _save_directory(self) -> Optional[pathlib.Path]:
+        # there should never be any situation where we want to save a proxy quib, as overrides should never be made on
+        # it
         return None

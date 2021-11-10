@@ -10,7 +10,7 @@ from functools import cached_property
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from operator import getitem
-from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Callable, Dict, Union, BinaryIO
+from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Callable, Dict, Union
 from weakref import ref as weakref
 
 from .assignment.assignment_template import InvalidTypeException
