@@ -50,8 +50,8 @@ def load_quibs():
     Project.get_or_create().load_quibs()
 
 
-def save_quibs():
+def save_quibs(save_iquibs_as_txt_where_possible: bool = True):
     """
     Save all the quibs to files (if relevant- ie if they have overrides)
     """
-    Project.get_or_create().save_quibs()
+    Project.get_or_create().save_quibs(save_iquibs_as_txt_where_possible=save_iquibs_as_txt_where_possible)

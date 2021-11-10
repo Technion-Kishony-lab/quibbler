@@ -1,12 +1,15 @@
 import os
+from unittest import mock
 from unittest.mock import Mock
 
+import numpy as np
+import pytest
 from pytest import fixture, mark, raises
 
 from pyquibbler import iquib
 from pyquibbler.quib import DefaultFunctionQuib
 from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
-from pyquibbler.quib.input_quib import CannotNestQuibInIQuibException
+from pyquibbler.quib.input_quib import CannotNestQuibInIQuibException, CannotSaveAsTextException
 
 
 @fixture
@@ -107,3 +110,25 @@ def test_iquib_does_not_save_if_irrelevant(project):
     a.save_if_relevant()
 
     assert len(os.listdir(project.input_quib_directory)) == 0
+
+
+@mark.parametrize("obj", [
+    np.array([1, 2, 3]),
+    [1, 2, 3],
+    {"a": "b"},
+    (1, 2, 3),
+])
+def test_save_txt_and_load_iquib_ndarray(obj):
+    a = iquib(obj)
+
+    a.save_as_txt()
+    a.load()
+
+    assert np.array_equal(a.get_value(), obj)
+
+
+def test_save_txt_raises_correct_exception_when_cannot_save():
+    a = iquib(np.array([mock.Mock()]))
+
+    with pytest.raises(CannotSaveAsTextException):
+        a.save_as_txt()

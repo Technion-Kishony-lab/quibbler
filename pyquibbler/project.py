@@ -85,10 +85,19 @@ class Project:
                 function_quib.reset_cache()
                 function_quib.invalidate_and_redraw_at_path([])
 
-    def save_quibs(self):
+    def save_quibs(self, save_iquibs_as_txt_where_possible: bool = True):
+        from pyquibbler.quib.input_quib import InputQuib, CannotSaveAsTextException
         if self.path is None:
             raise CannotSaveWithoutProjectPathException()
         for quib in self.quibs:
+            if save_iquibs_as_txt_where_possible and isinstance(quib, InputQuib) and quib.allow_overriding:
+                try:
+                    quib.save_as_txt()
+                except CannotSaveAsTextException:
+                    pass
+                else:
+                    continue
+
             quib.save_if_relevant()
 
     def load_quibs(self):

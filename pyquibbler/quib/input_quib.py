@@ -1,15 +1,19 @@
 from __future__ import annotations
 
+import json
+import os
 from dataclasses import dataclass
 from typing import Any, List, Optional, Set
 import pathlib
+
+import numpy as np
 
 from .assignment import AssignmentTemplate
 from .assignment.assignment import PathComponent
 from .quib import Quib
 from .utils import is_there_a_quib_in_object
 from ..env import DEBUG, PRETTY_REPR
-from ..exceptions import DebugException
+from ..exceptions import DebugException, PyQuibblerException
 
 
 @dataclass
@@ -18,6 +22,11 @@ class CannotNestQuibInIQuibException(DebugException):
 
     def __str__(self):
         return 'Cannot create an input quib that contains another quib'
+
+
+@dataclass
+class CannotSaveAsTextException(PyQuibblerException):
+    pass
 
 
 class InputQuib(Quib):
@@ -65,8 +74,51 @@ class InputQuib(Quib):
         return set()
 
     @property
-    def _save_directory(self) -> pathlib.Path:
+    def _save_directory(self) -> Optional[pathlib.Path]:
         return self.project.input_quib_directory
+
+    @property
+    def _save_txt_path(self) -> Optional[pathlib.Path]:
+        return self._save_directory / f"{self.name}.txt" if self._save_directory else None
+
+    def save_as_txt(self):
+        """
+        Save the iquib as a text file- this WILL fail with CannotSaveAsTextException in situations where the iquib
+        cannot be represented textually.
+        The normal iquib's save() will still work in these situations
+        """
+        value = self.get_value()
+        os.makedirs(self._save_directory, exist_ok=True)
+        try:
+            if isinstance(value, np.ndarray):
+                np.savetxt(str(self._save_txt_path), value)
+            else:
+                with open(self._save_txt_path, 'w') as f:
+                    json.dump(value, f)
+        except TypeError:
+            if os.path.exists(self._save_txt_path):
+                os.remove(self._save_txt_path)
+            raise CannotSaveAsTextException()
+
+    def load(self):
+        """
+        Load the quib- this will attempt to load from a text file if possible and if not attempt a load from a binary
+        file
+        """
+        if os.path.exists(self._save_txt_path):
+            self._load_from_txt()
+        return super(InputQuib, self).load()
+
+    def _load_from_txt(self):
+        """
+        Load the quib from the corresponding text file is possible
+        """
+        if self._save_txt_path and os.path.exists(self._save_txt_path):
+            if issubclass(self.get_type(), np.ndarray):
+                self.assign_value(np.array(np.loadtxt(str(self._save_txt_path)), dtype=self.get_value().dtype))
+            else:
+                with open(self._save_txt_path, 'r') as f:
+                    self.assign_value(json.load(f))
 
 
 iquib = InputQuib

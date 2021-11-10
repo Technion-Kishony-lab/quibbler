@@ -121,7 +121,6 @@ class Quib(ABC):
             self.line_no = None
 
         self.project.register_quib(self)
-        self.load()
 
     @property
     def project(self):
