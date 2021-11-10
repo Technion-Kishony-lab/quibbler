@@ -575,6 +575,9 @@ class Quib(ABC):
         return self._save_directory / f"{self.name}.quib" if self._save_directory else None
 
     def save_if_relevant(self):
+        """
+        Save the quib if relevant- this will NOT save if the quib does not have overrides, as there is nothing to save
+        """
         if self._save_directory:
             os.makedirs(self._save_directory, exist_ok=True)
         if len(list(self._overrider)) > 0:

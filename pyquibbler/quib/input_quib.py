@@ -83,9 +83,12 @@ class InputQuib(Quib):
 
     def save_as_txt(self):
         """
-        Save the iquib as a text file- this WILL fail with CannotSaveAsTextException in situations where the iquib
+        Save the iquib as a text file. In contrast to the normal save, this will save the value of the quib regardless
+        of whether the quib has overrides, as a txt file is used for the user to be able to see the quib and change it
+        in a textual manner.
+        Note that this WILL fail with CannotSaveAsTextException in situations where the iquib
         cannot be represented textually.
-        The normal iquib's save() will still work in these situations
+        The normal iquib's save_if_relevant() will still work in these situations
         """
         value = self.get_value()
         os.makedirs(self._save_directory, exist_ok=True)
