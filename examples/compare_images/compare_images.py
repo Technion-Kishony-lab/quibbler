@@ -1,13 +1,9 @@
-# THIS DEMO DOES NOT WORK 100%
-import weakref
 import numpy as np
 from functools import partial
-
 from matplotlib import pyplot as plt, widgets
-from matplotlib.widgets import AxesWidget
 from mpl_toolkits.axes_grid1 import ImageGrid
 
-from pyquibbler import iquib, override_all, q
+from pyquibbler import iquib, override_all, q, q_graphics
 
 override_all()
 
@@ -27,7 +23,8 @@ def cut_image(image, roi):
 @partial(np.vectorize, signature='(w,h,c),(w,h,c)->()')
 def image_distance(img1, img2):
     print("Comparing images")
-    return np.linalg.norm(np.average(img1, axis=(0, 1)) - np.average(img2, axis=(0, 1))) / 255
+    averages = np.average(img1, axis=(0, 1)) - np.average(img2, axis=(0, 1))
+    return np.linalg.norm(averages) / np.linalg.norm(np.full(averages.shape, 255))
 
 
 @np.vectorize
@@ -69,7 +66,7 @@ def create_figure_1():
         label=q("Similiarity threshold {:.1f}".format, similiarity_threshold),
         valmin=.1,
         valmax=1,
-        valstep=.1,
+        valstep=.05,
         valinit=similiarity_threshold
     )
 
@@ -102,6 +99,7 @@ def create_figure_3():
 
     # Plot distance matrix
     plt.figure(3)
+    plt.imshow(1 - image_distances, cmap='gray', vmin=0, vmax=1)
     plt.axis([-0.5, images_count - 0.5, -0.5, images_count - 0.5])
     plt.title('pairwise distance between images')
     plt.xlabel('Image number')
