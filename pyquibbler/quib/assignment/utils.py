@@ -33,7 +33,7 @@ def get_sub_data_from_object_in_path(obj: Any, path: List['PathComponent']):
     return obj
 
 
-def deep_assign_data_with_paths(data: Any, path: List[PathComponent], value: Any, raise_on_failure: bool = False):
+def deep_assign_data_in_path(data: Any, path: List[PathComponent], value: Any, raise_on_failure: bool = False):
     """
     Go path by path setting value, each time ensuring we don't lost copied values (for example if there was
     fancy indexing) by making sure to set recursively back anything that made an assignment/
@@ -54,7 +54,8 @@ def deep_assign_data_with_paths(data: Any, path: List[PathComponent], value: Any
     for i, component in enumerate(reversed(path)):
         new_element = elements[-(i + 1)]
 
-        if isinstance(component.component, tuple) and not isinstance(new_element, np.ndarray):
+        if (isinstance(component.component, tuple) and not isinstance(new_element, np.ndarray)) or \
+                (isinstance(new_element, np.ndarray) and hasattr(new_element, 'base')):
             # We can't access a regular list with a tuple, so we're forced to convert to a numpy array
             new_element = np.array(new_element)
 

@@ -8,7 +8,7 @@ import pytest
 from numpy.lib.recfunctions import structured_to_unstructured
 
 from pyquibbler.quib.assignment import PathComponent
-from pyquibbler.quib.assignment.utils import deep_assign_data_with_paths, get_sub_data_from_object_in_path
+from pyquibbler.quib.assignment.utils import deep_assign_data_in_path, get_sub_data_from_object_in_path
 from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
 from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import CannotInvalidateEntireCacheException
 from pyquibbler.quib.utils import deep_copy_without_quibs_or_artists
