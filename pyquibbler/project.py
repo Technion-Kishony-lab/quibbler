@@ -6,8 +6,22 @@ from pathlib import Path
 import sys
 from typing import Optional, Set, TYPE_CHECKING
 
+from pyquibbler.exceptions import PyQuibblerException
+
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib
+
+
+class CannotSaveWithoutProjectPathException(PyQuibblerException):
+
+    def __str__(self):
+        return "The current project does not have a path. Set one in order to save."
+
+
+class CannotLoadWithoutProjectPathException(PyQuibblerException):
+
+    def __str__(self):
+        return "The current project does not have a path. Set one in order to load."
 
 
 class Project:
@@ -19,7 +33,7 @@ class Project:
     current_project = None
 
     def __init__(self, path: Optional[Path], quib_weakrefs: Set[ReferenceType[Quib]]):
-        self._path = path
+        self.path = path
         self._quib_weakrefs = quib_weakrefs
 
     @classmethod
@@ -45,16 +59,12 @@ class Project:
         return {quib_weakref() for quib_weakref in self._quib_weakrefs}
 
     @property
-    def path(self):
-        return self._path
-
-    @property
     def input_quib_directory(self) -> Optional[Path]:
-        return self._path / "input_quibs" if self._path else None
+        return self.path / "input_quibs" if self.path else None
 
     @property
     def function_quib_directory(self) -> Optional[Path]:
-        return self._path / "function_quibs" if self._path else None
+        return self.path / "function_quibs" if self.path else None
 
     def register_quib(self, quib: Quib):
         """
@@ -76,5 +86,15 @@ class Project:
                 function_quib.invalidate_and_redraw_at_path([])
 
     def save_quibs(self):
+        if self.path is None:
+            raise CannotSaveWithoutProjectPathException()
         for quib in self.quibs:
             quib.save_if_relevant()
+
+    def load_quibs(self):
+        if self.path is None:
+            raise CannotLoadWithoutProjectPathException()
+        from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
+        with aggregate_redraw_mode():
+            for quib in self.quibs:
+                quib.load()

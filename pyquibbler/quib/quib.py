@@ -179,17 +179,9 @@ class Quib(ABC):
         """
         Redraw all artists that directly or indirectly depend on this quib.
         """
-        from pyquibbler.quib.graphics import redraw_axeses
+        from pyquibbler.quib.graphics.redraw import redraw_graphics_function_quibs_or_add_in_aggregate_mode
         quibs = self._get_graphics_function_quibs_recursively()
-        quibs_that_are_invalid = [quib for quib in quibs if quib.cache_status != CacheStatus.ALL_VALID]
-        logger.info(f"redrawing {len(quibs_that_are_invalid)} quibs")
-        for graphics_function_quib in quibs_that_are_invalid:
-            graphics_function_quib.get_value()
-        axeses = {axes for graphics_function_quib in quibs_that_are_invalid
-                  for axes in graphics_function_quib.get_axeses()}
-
-        logger.info(f"redrawing {len(axeses)} axeses")
-        redraw_axeses(axeses)
+        redraw_graphics_function_quibs_or_add_in_aggregate_mode(quibs)
 
     def invalidate_and_redraw_at_path(self, path: Optional[List[PathComponent]] = None) -> None:
         """
@@ -584,7 +576,8 @@ class Quib(ABC):
         return self._save_directory / f"{self.name}.quib" if self._save_directory else None
 
     def save_if_relevant(self):
-        os.makedirs(self._save_directory, exist_ok=True)
+        if self._save_directory:
+            os.makedirs(self._save_directory, exist_ok=True)
         if len(list(self._overrider)) > 0:
             with open(self._save_path, 'wb') as f:
                 pickle.dump(self._overrider, f)
@@ -593,3 +586,4 @@ class Quib(ABC):
         if self._save_path and os.path.exists(self._save_path):
             with open(self._save_path, 'rb') as f:
                 self._overrider = pickle.load(f)
+                self.invalidate_and_redraw_at_path([])
