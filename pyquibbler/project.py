@@ -92,9 +92,9 @@ class Project:
             quib.save_if_relevant()
 
     def load_quibs(self):
+        from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
         if self.path is None:
             raise CannotLoadWithoutProjectPathException()
-        from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
         with aggregate_redraw_mode():
             for quib in self.quibs:
                 quib.load()
