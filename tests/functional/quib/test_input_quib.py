@@ -91,7 +91,7 @@ def test_iquib_save_and_load():
     assert a.get_value() == b.get_value()
 
 
-def test_iquib_auto_loads_if_same_name():
+def test_iquib_loads_if_same_name():
     save_name = "example_quib"
     original_value = [1, 2, 3]
     a = iquib(original_value)
@@ -101,6 +101,7 @@ def test_iquib_auto_loads_if_same_name():
     a.save_if_relevant()
     # the name "example_quib" is critical here! it must be the same as save_name for the quib to actually load
     example_quib = iquib(original_value)
+    example_quib.load()
 
     assert a.get_value() == example_quib.get_value()
 
