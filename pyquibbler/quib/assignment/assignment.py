@@ -50,7 +50,7 @@ class Assignment:
         if not isinstance(other, Assignment):
             return NotImplemented
         # array_equal works for all objects, and our value and paths might contain ndarrays
-        return np.array_equal((self.value, self.path), (other.value, other.path))
+        return np.array_equal(self.value, other.value) and np.array_equal(self.path, other.path)
 
 
 @dataclass(frozen=True)
