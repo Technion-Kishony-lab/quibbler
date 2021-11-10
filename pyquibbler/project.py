@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+import os
 import weakref
 from _weakref import ReferenceType
 from pathlib import Path
@@ -22,15 +24,15 @@ class Project:
         self._quib_weakrefs = quib_weakrefs
 
     @classmethod
-    def get_or_create(cls):
+    def get_or_create(cls, path: Optional[Path] = None):
         if cls.current_project is None:
             main_module = sys.modules['__main__']
-            path = Path(main_module.__file__) if hasattr(main_module, '__file__') else None
+            path = path or (Path(main_module.__file__).parent if hasattr(main_module, '__file__') else None)
             cls.current_project = cls(path=path, quib_weakrefs=set())
         return cls.current_project
 
     @property
-    def quibs(self):
+    def quibs(self) -> Set[Quib]:
         """
         Get all quibs in the project that are still alive
         """
@@ -41,7 +43,19 @@ class Project:
         for ref in refs_to_remove:
             self._quib_weakrefs.remove(ref)
 
-        return [quib_weakref() for quib_weakref in self._quib_weakrefs]
+        return {quib_weakref() for quib_weakref in self._quib_weakrefs}
+
+    @property
+    def path(self):
+        return self._path
+
+    @property
+    def input_quib_directory(self) -> Optional[Path]:
+        return self._path / "input_quibs" if self._path else None
+
+    @property
+    def function_quib_directory(self) -> Optional[Path]:
+        return self._path / "function_quibs" if self._path else None
 
     def register_quib(self, quib: Quib):
         """
@@ -61,3 +75,7 @@ class Project:
             for function_quib in impure_function_quibs:
                 function_quib.reset_cache()
                 function_quib.invalidate_and_redraw_at_path([])
+
+    def save_quibs(self):
+        for quib in self.quibs:
+            quib.save_if_relevant()

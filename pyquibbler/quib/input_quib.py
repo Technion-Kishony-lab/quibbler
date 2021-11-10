@@ -1,6 +1,10 @@
 from __future__ import annotations
+
+import os.path
+import pickle
 from dataclasses import dataclass
-from typing import Any, List, Optional, Set
+from typing import Any, List, Optional, Set, BinaryIO
+import pathlib
 
 from .assignment import AssignmentTemplate
 from .assignment.assignment import PathComponent
@@ -8,6 +12,7 @@ from .quib import Quib
 from .utils import is_there_a_quib_in_object
 from ..env import DEBUG, PRETTY_REPR
 from ..exceptions import DebugException
+from ..project import Project
 
 
 @dataclass
@@ -61,6 +66,10 @@ class InputQuib(Quib):
     @property
     def parents(self) -> Set[Quib]:
         return set()
+
+    @property
+    def _save_directory(self) -> pathlib.Path:
+        return self.project.input_quib_directory
 
 
 iquib = InputQuib

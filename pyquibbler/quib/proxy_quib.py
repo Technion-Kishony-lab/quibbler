@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+import pathlib
 from typing import Set, Optional, List, Any, TYPE_CHECKING
 
 from pyquibbler.quib.assignment import QuibWithAssignment
@@ -41,3 +43,8 @@ class ProxyQuib(Quib):
 
     def get_inversions_for_assignment(self, assignment: Assignment) -> List[QuibWithAssignment]:
         return [QuibWithAssignment(quib=self._quib, assignment=assignment)]
+
+    @property
+    def _save_directory(self) -> pathlib.Path:
+        # todo..
+        return None

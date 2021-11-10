@@ -1,8 +1,12 @@
+import shutil
+from pathlib import Path
+
 import pytest
 from pytest import fixture
 
 from pyquibbler import CacheBehavior, override_all
 from pyquibbler.env import DEBUG, LAZY, ASSIGNMENT_RESTRICTIONS, PRETTY_REPR, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS
+from pyquibbler.project import Project
 from pyquibbler.quib import FunctionQuib
 from pyquibbler.utils import Flag
 
@@ -84,3 +88,11 @@ def axes():
     plt.close("all")
     plt.gcf().set_size_inches(8, 6)
     return plt.gca()
+
+
+@pytest.fixture(autouse=True)
+def project(tmpdir):
+    path = tmpdir.strpath
+    yield Project.get_or_create(path=Path(path))
+    Project.current_project = None
+    shutil.rmtree(path)

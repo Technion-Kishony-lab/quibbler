@@ -27,3 +27,10 @@ def reset_impure_function_quibs():
     mean they will run
     """
     Project.get_or_create().reset_invalidate_and_redraw_all_impure_function_quibs()
+
+
+def save_quibs_with_overrides():
+    """
+    Save all the quibs to files (if relevant- ie if they have overrides)
+    """
+    Project.get_or_create().save_quibs()

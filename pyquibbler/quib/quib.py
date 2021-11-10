@@ -1,5 +1,8 @@
 from __future__ import annotations
 import contextlib
+import os
+import pathlib
+import pickle
 
 import numpy as np
 from functools import wraps
@@ -7,7 +10,7 @@ from functools import cached_property
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from operator import getitem
-from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Callable, Dict, Union
+from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Callable, Dict, Union, BinaryIO
 from weakref import ref as weakref
 
 from .assignment.assignment_template import InvalidTypeException
@@ -117,7 +120,12 @@ class Quib(ABC):
             self.file_name = None
             self.line_no = None
 
-        Project.get_or_create().register_quib(self)
+        self.project.register_quib(self)
+        self.load()
+
+    @property
+    def project(self):
+        return Project.get_or_create()
 
     def setp(self, allow_overriding: bool = None, **kwargs):
         """
@@ -565,3 +573,23 @@ class Quib(ABC):
         Get a list of inversions to parent quibs for a given assignment
         """
         return []
+
+    @property
+    @abstractmethod
+    def _save_directory(self) -> Optional[pathlib.Path]:
+        pass
+
+    @property
+    def _save_path(self) -> Optional[pathlib.Path]:
+        return self._save_directory / f"{self.name}.quib" if self._save_directory else None
+
+    def save_if_relevant(self):
+        os.makedirs(self._save_directory, exist_ok=True)
+        if len(list(self._overrider)) > 0:
+            with open(self._save_path, 'wb') as f:
+                pickle.dump(self._overrider, f)
+
+    def load(self):
+        if self._save_path and os.path.exists(self._save_path):
+            with open(self._save_path, 'rb') as f:
+                self._overrider = pickle.load(f)

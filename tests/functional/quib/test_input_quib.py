@@ -1,3 +1,4 @@
+import os
 from unittest.mock import Mock
 
 import pytest
@@ -73,3 +74,38 @@ def test_iquib_pretty_repr_str():
 
     assert a.pretty_repr() == 'a = iquib(\'a\')'
 
+
+def test_iquib_save_and_load():
+    save_name = "example_quib"
+    original_value = [1, 2, 3]
+    a = iquib(original_value)
+    a.set_name(save_name)
+    a.assign_value_to_key(key=1, value=10)
+    b = iquib(original_value)
+    b.set_name(save_name)
+
+    a.save_if_relevant()
+    b.load()
+
+    assert a.get_value() == b.get_value()
+
+
+def test_iquib_auto_loads_if_same_name():
+    save_name = "example_quib"
+    original_value = [1, 2, 3]
+    a = iquib(original_value)
+    a.set_name(save_name)
+    a.assign_value_to_key(key=1, value=10)
+
+    a.save_if_relevant()
+    # the name "example_quib" is critical here! it must be the same as save_name for the quib to actually load
+    example_quib = iquib(original_value)
+
+    assert a.get_value() == example_quib.get_value()
+
+
+def test_iquib_does_not_save_if_irrelevant(project):
+    a = iquib(1)
+    a.save_if_relevant()
+
+    assert len(os.listdir(project.input_quib_directory)) == 0

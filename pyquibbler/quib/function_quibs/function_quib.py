@@ -1,11 +1,13 @@
 from __future__ import annotations
 import functools
+import pathlib
+import pickle
 from dataclasses import dataclass
 
 import numpy as np
 import types
 from enum import Enum
-from typing import Union, Dict
+from typing import Union, Dict, BinaryIO
 from functools import wraps, cached_property, lru_cache
 from typing import Callable, Any, Mapping, Tuple, Optional, Set, List
 
@@ -284,3 +286,7 @@ class FunctionQuib(Quib):
     @lru_cache()
     def _get_args_values(self, include_defaults=True):
         return ArgsValues.from_function_call(self.func, self.args, self.kwargs, include_defaults)
+
+    @property
+    def _save_directory(self) -> pathlib.Path:
+        return self.project.function_quib_directory
