@@ -412,7 +412,7 @@ class Quib(ABC):
             if self.name is not None else self.functional_representation
 
     def __str__(self):
-        return self.name if self.name is not None else self.functional_representation
+        return self.functional_representation
 
     def get_assignment_template(self) -> AssignmentTemplate:
         return self._assignment_template
