@@ -68,6 +68,9 @@ class VectorizeMetadata:
         this function calls the pyfunc using the given _get_sample_result and updates all
         relevant metadata, while asserting new details don't contradict previously known ones.
         """
+        if any(0 in arg.loop_shape for arg in self.args_metadata.values()):
+            # The same exception thrown by np.vectorize in this case
+            raise ValueError('cannot call `vectorize` on size 0 inputs unless `otypes` is set')
         sample_result = self._get_sample_result(self.args_metadata, self._results_core_ndims)
 
         # update _is_result_a_tuple
@@ -206,7 +209,9 @@ class VectorizeCall:
         else:
             in_core_dims, out_core_dims = self.vectorize._in_and_out_core_dims
             args_core_ndims = list(map(len, in_core_dims))
-            assert len(args_core_ndims) == num_not_excluded
+            if len(args_core_ndims) != num_not_excluded:
+                raise ValueError(f'Signature references {len(args_core_ndims)} arguments '
+                                 f'but there are only {num_not_excluded} non-excluded arguments.')
             is_tuple = len(out_core_dims) > 1
             results_core_ndims = list(map(len, out_core_dims))
         return args_core_ndims, results_core_ndims, is_tuple

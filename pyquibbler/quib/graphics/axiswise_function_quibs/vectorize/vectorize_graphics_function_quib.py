@@ -214,7 +214,7 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
         # The logic in this wrapper should be as minimal as possible (including attribute access, etc.)
         # as it is run for every index in the loop.
         pyfunc = call.vectorize.pyfunc
-        empty_result = np.zeros(self._vectorize_metadata.result_core_shape, dtype=self._vectorize_metadata.result_dtype)
+        empty_result = np.empty(self._vectorize_metadata.result_core_shape, dtype=self._vectorize_metadata.result_dtype)
 
         def wrapper(graphics_collection, should_run, *args, **kwargs):
             if should_run:

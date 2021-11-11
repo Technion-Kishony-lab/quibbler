@@ -3,7 +3,7 @@ from functools import partial
 from matplotlib import pyplot as plt, widgets
 from mpl_toolkits.axes_grid1 import ImageGrid
 
-from pyquibbler import iquib, override_all, q, q_graphics
+from pyquibbler import iquib, override_all, q
 
 override_all()
 
@@ -86,8 +86,7 @@ def create_figure_2():
     fig = plt.figure(2)
     grid_axes = iquib(np.array(list(ImageGrid(fig, 111,
                                               nrows_ncols=(3, 3),
-                                              axes_pad=0.1,
-                                              ))))
+                                              axes_pad=0.1))))
 
     np.vectorize(lambda ax, im: ax.imshow(im), signature='(),(w,h,c)->()')(grid_axes[:q(int, images_count)], cut_images)
 
@@ -99,12 +98,12 @@ def create_figure_3():
 
     # Plot distance matrix
     plt.figure(3)
-    plt.imshow(1 - image_distances, cmap='gray', vmin=0, vmax=1)
     plt.axis([-0.5, images_count - 0.5, -0.5, images_count - 0.5])
     plt.title('pairwise distance between images')
     plt.xlabel('Image number')
     plt.ylabel('Image number')
 
+    plt.imshow(1 - image_distances, cmap='gray', vmin=0, vmax=1)
     show_adjacency(plt.gca(), np.expand_dims(np.arange(images_count), 1), np.arange(images_count), adjacents)
 
 

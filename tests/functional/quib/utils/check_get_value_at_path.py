@@ -5,7 +5,7 @@ from typing import Any, Optional, List
 
 from pyquibbler import CacheBehavior, Assignment
 from pyquibbler.quib.assignment import PathComponent
-from pyquibbler.quib.assignment.overrider import get_sub_data_from_object_in_path, deep_assign_data_with_paths
+from pyquibbler.quib.assignment.overrider import get_sub_data_from_object_in_path, deep_assign_data_in_path
 from pyquibbler.quib.input_quib import InputQuib
 
 from .utils import PathBuilder
@@ -95,7 +95,7 @@ def check_get_value_valid_at_path(func, data, path_to_get_value_at):
     faulty_sub_paths = []
     for path in requested_paths:
         for sub_path in breakdown_path(data, path):
-            changed_data = deep_assign_data_with_paths(deepcopy(data), sub_path, 999)
+            changed_data = deep_assign_data_in_path(deepcopy(data), sub_path, 999)
             result_with_change = func(changed_data)
             if equals_at_path(result_with_change, result, path_to_get_value_at):
                 faulty_sub_paths.append(sub_path)

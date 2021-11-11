@@ -63,6 +63,7 @@ def test_iquib_repr_doesnt_fail():
     repr(iquib([10]))
 
 
+@pytest.mark.get_variable_names(True)
 def test_iquib_pretty_repr():
     a = iquib(10)
 
@@ -70,6 +71,7 @@ def test_iquib_pretty_repr():
 
 
 @mark.regression
+@pytest.mark.get_variable_names(True)
 def test_iquib_pretty_repr_str():
     a = iquib('a')
 
@@ -91,6 +93,7 @@ def test_iquib_save_and_load():
     assert a.get_value() == b.get_value()
 
 
+@pytest.mark.get_variable_names(True)
 def test_iquib_loads_if_same_name():
     save_name = "example_quib"
     original_value = [1, 2, 3]

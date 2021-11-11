@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from functools import partial
-from pytest import mark, fixture
+from pytest import mark, fixture, raises
 
 from pyquibbler import iquib, CacheBehavior
 from pyquibbler.env import GRAPHICS_LAZY
@@ -173,3 +173,15 @@ def test_vectorize_does_not_redraw_valid_artists(temp_axes, pass_quibs):
     assert len(temp_axes.lines) == 2
     assert id(temp_axes.lines[0]) != ids[0]
     assert id(temp_axes.lines[1]) == ids[1]
+
+
+@mark.parametrize('data', [[], [[]]])
+# The tests without quibs are for sanity
+@mark.parametrize('use_quib', [True, False])
+def test_vectorize_with_empty_data_and_no_otypes(data, use_quib):
+    data = iquib(data) if use_quib else data
+    vectorized = np.vectorize(lambda x: x)
+    with raises(ValueError) as exc_info:
+        vectorized(data)
+
+    assert exc_info.value.args[0] == 'cannot call `vectorize` on size 0 inputs unless `otypes` is set'

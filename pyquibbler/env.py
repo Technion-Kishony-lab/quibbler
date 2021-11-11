@@ -16,6 +16,8 @@ END_DRAG_IMMEDIATELY = Flag(False)
 
 PRETTY_REPR = Flag(True)
 
+GET_VARIABLE_NAMES = Flag(True)
+
 LEN_RAISE_EXCEPTION = Flag(True)
 
 LOG_TO_STDOUT = Flag(False)
