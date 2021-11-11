@@ -42,8 +42,9 @@ class CanvasEventHandler:
 
     def _handle_button_release(self, _mouse_event: MouseEvent):
         from pyquibbler.quib.graphics.widgets.drag_context_manager import releasing
-        with releasing():
-            self._inverse_from_mouse_event(mouse_event=self._last_mouse_event_with_overrides)
+        if self._last_mouse_event_with_overrides:
+            with releasing():
+                self._inverse_from_mouse_event(mouse_event=self._last_mouse_event_with_overrides)
         self._last_mouse_event_with_overrides = None
         self.current_pick_event = None
 
@@ -58,9 +59,9 @@ class CanvasEventHandler:
         args = getattr(artist, '_quibbler_args')
         with timer(name="motion_notify"), aggregate_redraw_mode():
             override_group = graphics_inverse_assigner.inverse_assign_drawing_func(drawing_func=drawing_func,
-                                                                  args=args,
-                                                                  mouse_event=mouse_event,
-                                                                  pick_event=self.current_pick_event)
+                                                                                   args=args,
+                                                                                   mouse_event=mouse_event,
+                                                                                   pick_event=self.current_pick_event)
             if override_group is not None and len(override_group.overrides) > 0:
                 self._last_mouse_event_with_overrides = mouse_event
 
@@ -79,17 +80,8 @@ class CanvasEventHandler:
 
     def _handle_motion_notify(self, mouse_event: MouseEvent):
         from pyquibbler.quib.graphics.widgets.drag_context_manager import dragging
-        if self.current_pick_event is not None:
-            drawing_func = getattr(self.current_pick_event.artist, '_quibbler_drawing_func', None)
-            if drawing_func is not None:
-                with self._try_acquire_assignment_lock() as locked:
-                    if locked:
-                        # If not locked, there is already another motion handler running, we just drop this one.
-                        # This could happen if changes are slow or if a dialog is open
-                        with dragging():
-                            self._inverse_assign_graphics(self.current_pick_event.artist, mouse_event)
-                        if END_DRAG_IMMEDIATELY:
-                            self.current_pick_event = None
+        with dragging():
+            self._inverse_from_mouse_event(mouse_event)
 
     def _inverse_from_mouse_event(self, mouse_event):
         if self.current_pick_event is not None:

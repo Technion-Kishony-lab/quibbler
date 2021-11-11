@@ -28,6 +28,7 @@ def canvas_event_handler():
 def mock_inverse_graphics_function(monkeypatch):
     mock_inverse = mock.Mock()
     monkeypatch.setattr(graphics_inverse_assigner, 'inverse_assign_drawing_func', mock_inverse)
+    mock_inverse.return_value.overrides = [mock.Mock()]
     return mock_inverse
 
 
@@ -61,8 +62,8 @@ def test_canvas_event_handler_plot_drag_after_releasing(canvas_event_handler, mo
     mock_inverse_graphics_function.assert_not_called()
 
 
-def test_canvas_event_handler_raises_exception(canvas_event_handler,
-                                                                        mock_inverse_graphics_function):
+def test_canvas_event_handler_does_not_call_inverse_without_picking(canvas_event_handler,
+                                                                    mock_inverse_graphics_function):
     canvas_event_handler._handle_motion_notify(mock.Mock())
 
     mock_inverse_graphics_function.assert_not_called()
