@@ -8,16 +8,11 @@ from pyquibbler.quib import Quib
 from pyquibbler.quib.assignment.overrider import AssignmentRemoval, Overrider
 
 
-class NothingToUndoException(PyQuibblerException):
-
-    def __str__(self):
-        return "There are no actions left to undo"
-
 
 class Action(ABC):
 
     @abstractmethod
-    def commit(self):
+    def undo(self):
         pass
 
 
@@ -30,26 +25,44 @@ class AssignmentAction(Action):
     previous_assignment: Optional[Union[Assignment, AssignmentRemoval]]
     new_assignment: Union[Assignment, AssignmentRemoval]
 
-    def commit(self):
+    def undo(self):
         self.overrider.undo_assignment(assignment_to_return=self.previous_assignment,
                                        previous_path=self.new_assignment.path,
                                        previous_index=self.previous_index)
         self.quib.invalidate_and_redraw_at_path(self.new_assignment.path)
 
+    def redo(self):
+        self.overrider.redo_assignment(previous_index=self.previous_index,
+                                       assignment_to_return=self.new_assignment)
+
 
 @dataclass
-class ActionStack:
+class ActionStack(ABC):
     actions: List[Action]
 
     def push(self, action: Action):
         self.actions.append(action)
 
-    def pop_and_commit(self):
+    @abstractmethod
+    def commit_action(self, action):
+        pass
+
+    def pop_and_undo(self):
         try:
             last_action = self.actions.pop(-1)
         except IndexError:
             raise NothingToUndoException() from None
-        last_action.commit()
+        self.commit_action(last_action)
         return last_action
 
 
+class UndoStack(ActionStack):
+
+    def commit_action(self, action):
+        action.undo()
+
+
+class UndoStack(ActionStack):
+
+    def commit_action(self, action):
+        action.undo()

@@ -13,6 +13,18 @@ if TYPE_CHECKING:
     from pyquibbler.quib import Quib
 
 
+class NothingToUndoException(PyQuibblerException):
+
+    def __str__(self):
+        return "There are no actions left to undo"
+
+
+class NothingToRedoException(PyQuibblerException):
+
+    def __str__(self):
+        return "There are no actions left to redo"
+
+
 class CannotSaveWithoutProjectPathException(PyQuibblerException):
 
     def __str__(self):
@@ -34,11 +46,10 @@ class Project:
     current_project = None
 
     def __init__(self, path: Optional[Path], quib_weakrefs: Set[ReferenceType[Quib]]):
-        from pyquibbler.quib.action_stack import ActionStack
         self.path = path
         self._quib_weakrefs = quib_weakrefs
-        self._undo_stack = ActionStack([])
-        self._redo_stack = ActionStack([])
+        self._undos = []
+        self._redos = []
 
     @classmethod
     def get_or_create(cls, path: Optional[Path] = None):
@@ -113,14 +124,24 @@ class Project:
                 quib.load()
 
     def undo(self):
-        self._undo_stack.pop_and_commit()
+        try:
+            action = self._undos.pop(-1)
+        except IndexError:
+            raise NothingToUndoException() from None
+        action.undo()
+        self._redos.append(action)
 
     def redo(self):
-        pass
+        try:
+            action = self._redos.pop(-1)
+        except IndexError:
+            raise NothingToRedoException() from None
+        action.redo()
+        self._undos.append(action)
 
     def push_assignment_to_undo_stack(self, quib, overrider, previous_assignment, assignment, index):
         from pyquibbler.quib.action_stack import AssignmentAction
-        self._undo_stack.push(AssignmentAction(
+        self._undos.append(AssignmentAction(
             quib=quib,
             overrider=overrider,
             previous_index=index,

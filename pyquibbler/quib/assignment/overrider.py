@@ -59,6 +59,18 @@ class Overrider:
 
         return previous_assignment
 
+    def redo_assignment(self,
+                        previous_index: int,
+                        assignment_to_return: Union[Assignment, AssignmentRemoval]):
+        # There may not be anything where the assignment we removed was, so we pop with None so as not to raise
+        self._paths_to_assignments.pop(get_hashable_path(assignment_to_return.path), None)
+
+        new_paths_with_assignments = list(self._paths_to_assignments.items())
+        new_paths_with_assignments.insert(previous_index, (get_hashable_path(assignment_to_return.path),
+                                                           assignment_to_return))
+        self._paths_to_assignments = dict(new_paths_with_assignments)
+
+
     def override(self, data: Any, assignment_template: Optional[AssignmentTemplate] = None):
         """
         Deep copies the argument and returns said data with applied overrides

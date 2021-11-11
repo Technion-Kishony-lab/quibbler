@@ -3,9 +3,8 @@ from unittest import mock
 import pytest
 
 from pyquibbler import iquib
-from pyquibbler.project import Project
+from pyquibbler.project import Project, NothingToUndoException
 from pyquibbler.quib import ImpureFunctionQuib, GraphicsFunctionQuib
-from pyquibbler.quib.action_stack import NothingToUndoException
 
 
 def test_get_or_create_only_creates_one_instance():
