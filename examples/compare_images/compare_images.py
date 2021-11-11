@@ -112,4 +112,4 @@ create_figure_1()
 create_figure_2()
 create_figure_3()
 
-plt.show(block=False)
+plt.show(block=True)
