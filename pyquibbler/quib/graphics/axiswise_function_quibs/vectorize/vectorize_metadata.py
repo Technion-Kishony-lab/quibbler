@@ -209,7 +209,9 @@ class VectorizeCall:
         else:
             in_core_dims, out_core_dims = self.vectorize._in_and_out_core_dims
             args_core_ndims = list(map(len, in_core_dims))
-            assert len(args_core_ndims) == num_not_excluded
+            if len(args_core_ndims) != num_not_excluded:
+                raise ValueError(f'Signature references {len(args_core_ndims)} arguments '
+                                 f'but there are only {num_not_excluded} non-excluded arguments.')
             is_tuple = len(out_core_dims) > 1
             results_core_ndims = list(map(len, out_core_dims))
         return args_core_ndims, results_core_ndims, is_tuple
