@@ -1,8 +1,11 @@
 from unittest import mock
 
+import pytest
+
 from pyquibbler import iquib
 from pyquibbler.project import Project
 from pyquibbler.quib import ImpureFunctionQuib, GraphicsFunctionQuib
+from pyquibbler.quib.action_stack import NothingToUndoException
 
 
 def test_get_or_create_only_creates_one_instance():
@@ -53,4 +56,25 @@ def test_undo_assignment_with_multiple_assignments_in_same_path(project):
     project.undo()
 
     assert a.get_value() == 1
+
+
+def test_undo_multiple_assignments(project):
+    a = iquib(10)
+    a.assign_value(1)
+    a.assign_value(2)
+    assert a.get_value() == 2, "sanity"
+
+    project.undo()
+    project.undo()
+
+    assert a.get_value() == 10
+
+
+def test_undo_too_much_raises_exception(project):
+    a = iquib(10)
+    a.assign_value(1)
+
+    project.undo()
+    with pytest.raises(NothingToUndoException):
+        project.undo()
 
