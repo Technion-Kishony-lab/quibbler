@@ -78,3 +78,13 @@ def test_undo_too_much_raises_exception(project):
     with pytest.raises(NothingToUndoException):
         project.undo()
 
+
+def test_undo_redo(project):
+    a = iquib(5)
+    a.assign_value(1)
+
+    project.undo()
+    assert a.get_value() == 5, "sanity"
+    project.redo()
+
+    assert a.get_value() == 1
