@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from pyquibbler.quib.assignment import PathComponent
-from pyquibbler.quib.assignment.utils import deep_assign_data_with_paths
+from pyquibbler.quib.assignment.utils import deep_assign_data_in_path
 from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
 from pyquibbler.quib.function_quibs.cache.shallow.nd_cache.nd_void_cache import NdVoidCache
 from tests.functional.quib.function_quibs.cache.cache_test import IndexableCacheTest
@@ -40,7 +40,7 @@ class TestNdVoidCache(IndexableCacheTest):
     def get_result_with_value_broadcasted_to_path(self, obj, path, value):
         if len(path) == 0:
             return np.array([(value, value)], dtype=obj.dtype)[0]
-        obj = deep_assign_data_with_paths(obj, path, value)
+        obj = deep_assign_data_in_path(obj, path, value)
         return obj
 
     def test_cache_get_cache_status_on_partial(self, cache):
