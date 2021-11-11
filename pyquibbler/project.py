@@ -154,4 +154,3 @@ class Project:
             new_assignment=assignment,
             previous_assignment=previous_assignment
         ))
-
