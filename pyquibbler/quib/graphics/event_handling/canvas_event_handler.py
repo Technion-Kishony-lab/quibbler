@@ -41,6 +41,7 @@ class CanvasEventHandler:
         }
 
     def _handle_button_release(self, _mouse_event: MouseEvent):
+        self._handle_motion_notify(mouse_event=_mouse_event)
         self.current_pick_event = None
 
     def _handle_pick_event(self, pick_event: PickEvent):
@@ -72,6 +73,7 @@ class CanvasEventHandler:
                 self._assignment_lock.release()
 
     def _handle_motion_notify(self, mouse_event: MouseEvent):
+        from pyquibbler.quib.graphics.widgets.drag_context_manager import dragging
         if self.current_pick_event is not None:
             drawing_func = getattr(self.current_pick_event.artist, '_quibbler_drawing_func', None)
             if drawing_func is not None:
@@ -79,7 +81,8 @@ class CanvasEventHandler:
                     if locked:
                         # If not locked, there is already another motion handler running, we just drop this one.
                         # This could happen if changes are slow or if a dialog is open
-                        self._inverse_assign_graphics(self.current_pick_event.artist, mouse_event)
+                        with dragging():
+                            self._inverse_assign_graphics(self.current_pick_event.artist, mouse_event)
                         if END_DRAG_IMMEDIATELY:
                             self.current_pick_event = None
 
