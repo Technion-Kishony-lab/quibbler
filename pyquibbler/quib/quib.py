@@ -317,7 +317,14 @@ class Quib(ABC):
         """
         Remove overriding in a specific path in the quib.
         """
-        self._overrider.remove_assignment(path)
+        previous_assignment = self._overrider.get(path)
+        assignment_removal = self._overrider.remove_assignment(path)
+        if assignment_removal is not None:
+            self.project.push_assignment_to_undo_stack(assignment=assignment_removal,
+                                                       previous_assignment=previous_assignment,
+                                                       index=len(list(self._overrider)) - 1,
+                                                       overrider=self._overrider,
+                                                       quib=self)
         if len(path) == 0:
             self._on_type_change()
         if invalidate_and_redraw:

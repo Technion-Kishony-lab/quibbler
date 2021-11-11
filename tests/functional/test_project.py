@@ -87,3 +87,27 @@ def test_undo_redo(project):
     project.redo()
 
     assert a.get_value() == 1
+
+
+def test_undo_redo_undo(project):
+    a = iquib(5)
+    a.assign_value(1)
+    a.assign_value(2)
+
+    project.undo()
+    project.redo()
+    project.undo()
+
+    assert a.get_value() == 1
+
+
+def test_undo_assignment_removal(project):
+    a = iquib(5)
+    a.assign_value(10)
+    a.remove_override([])
+    assert a.get_value() == 5, "sanity"
+
+    project.undo()
+
+    assert a.get_value() == 10
+

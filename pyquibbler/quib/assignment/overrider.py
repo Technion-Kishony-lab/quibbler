@@ -44,6 +44,7 @@ class Overrider:
             assignment_removal = AssignmentRemoval(path)
             self._active_assignment = assignment_removal
             self._add_to_paths_to_assignments(assignment_removal)
+            return assignment_removal
 
     def undo_assignment(self,
                         previous_index: int,
