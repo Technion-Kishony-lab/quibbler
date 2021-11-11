@@ -38,3 +38,4 @@ class AssignmentAction(Action):
         """
         self.overrider.redo_assignment(previous_index=self.previous_index,
                                        assignment_to_return=self.new_assignment)
+        self.quib.invalidate_and_redraw_at_path(self.new_assignment.path)

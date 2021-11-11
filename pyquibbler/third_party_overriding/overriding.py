@@ -22,6 +22,7 @@ from pyquibbler.quib.graphics.widgets import SliderGraphicsFunctionQuib, CheckBu
     RadioButtonsGraphicsFunctionQuib, RectangleSelectorGraphicsFunctionQuib, QRadioButtons, QRectangleSelector, \
     TextBoxGraphicsFunctionQuib
 from pyquibbler.quib.graphics.replacing_graphics_function_quib import ReplacingGraphicsFunctionQuib
+from pyquibbler.quib.graphics.widgets.slider import QSlider
 from pyquibbler.utils import ensure_only_run_once_globally
 
 '''
@@ -45,7 +46,8 @@ def wrap_overridden_graphics_function(func: Callable) -> Callable:
 NON_QUIB_OVERRIDES = [
     (widgets, {
         'RectangleSelector': wrap_overridden_graphics_function(QRectangleSelector),
-        'RadioButtons': wrap_overridden_graphics_function(QRadioButtons)
+        'RadioButtons': wrap_overridden_graphics_function(QRadioButtons),
+        'Slider': wrap_overridden_graphics_function(QSlider)
     }),
     (np, {
         'vectorize': QVectorize

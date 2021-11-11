@@ -1,15 +1,15 @@
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from threading import RLock
-from typing import Any, Optional, List
+from typing import Any, Optional, List, Callable, Tuple, Mapping
 
 from matplotlib.widgets import RectangleSelector
 
-from pyquibbler import timer
+from pyquibbler import timer, CacheBehavior
 from pyquibbler.logger import logger
 from pyquibbler.quib.utils import quib_method
 from pyquibbler.utils import Mutable
-from .drag_context_manager import dragging
+from .drag_context_manager import dragging, releasing
 
 from .widget_graphics_function_quib import WidgetGraphicsFunctionQuib
 
@@ -42,6 +42,7 @@ class QRectangleSelector(RectangleSelector):
         if extents is not None:
             self.extents = extents
         self._should_deactivate_after_release = False
+        self.release_callback = None
 
     def set_should_deactivate_after_release(self):
         self._should_deactivate_after_release = True
@@ -70,7 +71,8 @@ class QRectangleSelector(RectangleSelector):
                 if self._should_deactivate_after_release:
                     self.set_active(False)
                     self.set_visible(False)
-
+                if self.release_callback:
+                    self.release_callback()
                 return release_result
 
     @property
@@ -91,6 +93,11 @@ class RectangleSelectorGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
     """
     WIDGET_CLS = RectangleSelector
 
+    def __init__(self, func: Callable, args: Tuple[Any, ...], kwargs: Mapping[str, Any],
+                 cache_behavior: Optional[CacheBehavior]):
+        super().__init__(func, args, kwargs, cache_behavior)
+        self._last_extents_change = None
+
     def _widget_is_attempting_to_resize_when_not_allowed(self, extents):
         """
         There is a bug in the matplotlib widget that causes it to sometimes give incorrect extents,
@@ -110,6 +117,7 @@ class RectangleSelectorGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
         )
 
     def _on_changed(self, extents):
+        self._last_extents_change = extents
         init_val = self._get_args_values().get('extents')
 
         with timer("selector_change", lambda x: logger.info(f"selector change {x}")):
@@ -121,9 +129,19 @@ class RectangleSelectorGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
                 # We only need to invalidate children if we didn't assign
                 self.invalidate_and_redraw_at_path()
 
+    def _on_release(self):
+        if self._last_extents_change:
+            # we unfortunately ALSO need this concept of releasing because _on_release can be called while still within
+            # dragging (this appears to be matplotlib internal implementation)
+            # By saying `releasing` we ensure this will be recorded for undo/redo
+            with releasing():
+                self._on_changed(self._last_extents_change)
+            self._last_extents_change = None
+
     def _call_func(self, valid_path: Optional[List[PathComponent]]) -> Any:
         selector = super()._call_func(None)
         selector.changed_callback = self._on_changed
+        selector.release_callback = self._on_release
         return selector
 
     @property
