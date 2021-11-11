@@ -50,7 +50,20 @@ class Overrider:
                         previous_index: int,
                         previous_path: List[PathComponent],
                         assignment_to_return: Optional[Union[Assignment, AssignmentRemoval]]):
+        """
+        Undo an assignment, returning the overrider to the previous state before the assignment.
+        Note that this is essentially different than simply adding an AssignmentRemoval ->
+        if I do
 
+        ```
+        q = iquib(0)
+        q.assign_value(1)
+        q.assign_value(2)
+        ```
+
+        and then do remove_assignment, the value will go back to 0 (the original value).
+        if I do undo_assignment, the value will go back to 1 (the previous value)
+        """
         previous_assignment = self._paths_to_assignments.pop(get_hashable_path(previous_path))
 
         if assignment_to_return is not None:
@@ -63,6 +76,10 @@ class Overrider:
     def redo_assignment(self,
                         previous_index: int,
                         assignment_to_return: Union[Assignment, AssignmentRemoval]):
+        """
+        Redo an assignment that was undone- this is different than simply creating an assignment as it will put the
+        assignment in the correct location in the dict
+        """
         # There may not be anything where the assignment we removed was, so we pop with None so as not to raise
         self._paths_to_assignments.pop(get_hashable_path(assignment_to_return.path), None)
 
@@ -70,7 +87,6 @@ class Overrider:
         new_paths_with_assignments.insert(previous_index, (get_hashable_path(assignment_to_return.path),
                                                            assignment_to_return))
         self._paths_to_assignments = dict(new_paths_with_assignments)
-
 
     def override(self, data: Any, assignment_template: Optional[AssignmentTemplate] = None):
         """
@@ -115,7 +131,10 @@ class Overrider:
             mask = deep_assign_data_with_paths(mask, path, val)
         return mask
 
-    def get(self, path, default_value = None) -> Assignment:
+    def get(self, path: List[PathComponent], default_value: bool = None) -> Assignment:
+        """
+        Get the assignment at the given path
+        """
         return self._paths_to_assignments.get(get_hashable_path(path), default_value)
 
     def __getitem__(self, item) -> Assignment:

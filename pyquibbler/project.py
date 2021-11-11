@@ -124,6 +124,9 @@ class Project:
                 quib.load()
 
     def undo(self):
+        """
+        Undo the last action committed (see overrider docs for more information)
+        """
         try:
             action = self._undos.pop(-1)
         except IndexError:
@@ -132,6 +135,9 @@ class Project:
         self._redos.append(action)
 
     def redo(self):
+        """
+        Redo the last action committed
+        """
         try:
             action = self._redos.pop(-1)
         except IndexError:
