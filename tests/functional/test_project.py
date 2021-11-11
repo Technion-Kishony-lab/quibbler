@@ -111,3 +111,14 @@ def test_undo_assignment_removal(project):
 
     assert a.get_value() == 10
 
+
+def test_undo_assignment_removal_and_assignment(project):
+    a = iquib(5)
+    a.assign_value(10)
+    a.remove_override([])
+    assert a.get_value() == 5, "sanity"
+
+    project.undo()
+    project.undo()
+
+    assert a.get_value() == 5
