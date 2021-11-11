@@ -1,5 +1,8 @@
 from __future__ import annotations
 import contextlib
+import os
+import pathlib
+import pickle
 
 import numpy as np
 from functools import wraps
@@ -21,7 +24,6 @@ from pyquibbler.exceptions import PyQuibblerException
 from .assignment import AssignmentTemplate, RangeAssignmentTemplate, BoundAssignmentTemplate, Overrider, Assignment, \
     QuibWithAssignment
 from .function_quibs.cache import create_cache
-from .function_quibs.cache.cache import CacheStatus
 from .function_quibs.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
 from .function_quibs.pretty_converters import MathExpression
 from .utils import quib_method, Unpacker, recursively_run_func_on_object
@@ -117,7 +119,11 @@ class Quib(ABC):
             self.file_name = None
             self.line_no = None
 
-        Project.get_or_create().register_quib(self)
+        self.project.register_quib(self)
+
+    @property
+    def project(self):
+        return Project.get_or_create()
 
     def setp(self, allow_overriding: bool = None, **kwargs):
         """
@@ -171,17 +177,9 @@ class Quib(ABC):
         """
         Redraw all artists that directly or indirectly depend on this quib.
         """
-        from pyquibbler.quib.graphics import redraw_axeses
+        from pyquibbler.quib.graphics.redraw import redraw_graphics_function_quibs_or_add_in_aggregate_mode
         quibs = self._get_graphics_function_quibs_recursively()
-        quibs_that_are_invalid = [quib for quib in quibs if quib.cache_status != CacheStatus.ALL_VALID]
-        logger.info(f"redrawing {len(quibs_that_are_invalid)} quibs")
-        for graphics_function_quib in quibs_that_are_invalid:
-            graphics_function_quib.get_value()
-        axeses = {axes for graphics_function_quib in quibs_that_are_invalid
-                  for axes in graphics_function_quib.get_axeses()}
-
-        logger.info(f"redrawing {len(axeses)} axeses")
-        redraw_axeses(axeses)
+        redraw_graphics_function_quibs_or_add_in_aggregate_mode(quibs)
 
     def invalidate_and_redraw_at_path(self, path: Optional[List[PathComponent]] = None) -> None:
         """
@@ -565,3 +563,28 @@ class Quib(ABC):
         Get a list of inversions to parent quibs for a given assignment
         """
         return []
+
+    @property
+    @abstractmethod
+    def _save_directory(self) -> Optional[pathlib.Path]:
+        pass
+
+    @property
+    def _save_path(self) -> Optional[pathlib.Path]:
+        return self._save_directory / f"{self.name}.quib" if self._save_directory else None
+
+    def save_if_relevant(self):
+        """
+        Save the quib if relevant- this will NOT save if the quib does not have overrides, as there is nothing to save
+        """
+        if self._save_directory:
+            os.makedirs(self._save_directory, exist_ok=True)
+        if len(list(self._overrider)) > 0:
+            with open(self._save_path, 'wb') as f:
+                pickle.dump(self._overrider, f)
+
+    def load(self):
+        if self._save_path and os.path.exists(self._save_path):
+            with open(self._save_path, 'rb') as f:
+                self._overrider = pickle.load(f)
+                self.invalidate_and_redraw_at_path([])

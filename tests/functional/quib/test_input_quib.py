@@ -1,13 +1,15 @@
+import os
+from unittest import mock
 from unittest.mock import Mock
 
+import numpy as np
 import pytest
 from pytest import fixture, mark, raises
 
 from pyquibbler import iquib
 from pyquibbler.quib import DefaultFunctionQuib
-from pyquibbler.quib.assignment.utils import FailedToDeepAssignException
 from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
-from pyquibbler.quib.input_quib import CannotNestQuibInIQuibException
+from pyquibbler.quib.input_quib import CannotNestQuibInIQuibException, CannotSaveAsTextException
 
 
 @fixture
@@ -73,3 +75,61 @@ def test_iquib_pretty_repr_str():
 
     assert a.pretty_repr() == 'a = iquib(\'a\')'
 
+
+def test_iquib_save_and_load():
+    save_name = "example_quib"
+    original_value = [1, 2, 3]
+    a = iquib(original_value)
+    a.set_name(save_name)
+    a.assign_value_to_key(key=1, value=10)
+    b = iquib(original_value)
+    b.set_name(save_name)
+
+    a.save_if_relevant()
+    b.load()
+
+    assert a.get_value() == b.get_value()
+
+
+def test_iquib_loads_if_same_name():
+    save_name = "example_quib"
+    original_value = [1, 2, 3]
+    a = iquib(original_value)
+    a.set_name(save_name)
+    a.assign_value_to_key(key=1, value=10)
+
+    a.save_if_relevant()
+    # the name "example_quib" is critical here! it must be the same as save_name for the quib to actually load
+    example_quib = iquib(original_value)
+    example_quib.load()
+
+    assert a.get_value() == example_quib.get_value()
+
+
+def test_iquib_does_not_save_if_irrelevant(project):
+    a = iquib(1)
+    a.save_if_relevant()
+
+    assert len(os.listdir(project.input_quib_directory)) == 0
+
+
+@mark.parametrize("obj", [
+    np.array([1, 2, 3]),
+    [1, 2, 3],
+    {"a": "b"},
+    (1, 2, 3),
+])
+def test_save_txt_and_load_iquib_ndarray(obj):
+    a = iquib(obj)
+
+    a.save_as_txt()
+    a.load()
+
+    assert np.array_equal(a.get_value(), obj)
+
+
+def test_save_txt_raises_correct_exception_when_cannot_save():
+    a = iquib(np.array([mock.Mock()]))
+
+    with pytest.raises(CannotSaveAsTextException):
+        a.save_as_txt()

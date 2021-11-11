@@ -1,5 +1,6 @@
 from __future__ import annotations
 import functools
+import pathlib
 from dataclasses import dataclass
 
 import numpy as np
@@ -284,3 +285,7 @@ class FunctionQuib(Quib):
     @lru_cache()
     def _get_args_values(self, include_defaults=True):
         return ArgsValues.from_function_call(self.func, self.args, self.kwargs, include_defaults)
+
+    @property
+    def _save_directory(self) -> pathlib.Path:
+        return self.project.function_quib_directory

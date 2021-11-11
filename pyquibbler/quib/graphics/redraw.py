@@ -1,12 +1,19 @@
+from __future__ import annotations
 import contextlib
-from typing import Set
+from typing import Set, TYPE_CHECKING
 
 from matplotlib.axes import Axes
 
 from pyquibbler.logger import logger
 from pyquibbler.performance_utils import timer
 
-AXESES_TO_REDRAW = set()
+from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
+
+if TYPE_CHECKING:
+    from pyquibbler.quib import GraphicsFunctionQuib
+
+
+QUIBS_TO_REDRAW = set()
 IN_AGGREGATE_REDRAW_MODE = False
 
 
@@ -20,18 +27,36 @@ def aggregate_redraw_mode():
     IN_AGGREGATE_REDRAW_MODE = True
     yield
     IN_AGGREGATE_REDRAW_MODE = False
-    redraw_axeses(AXESES_TO_REDRAW)
-    AXESES_TO_REDRAW.clear()
+    _redraw_graphics_function_quibs()
 
 
-def redraw_axeses(axeses: Set[Axes], force: bool = False):
+def _redraw_graphics_function_quibs():
+    quibs_that_are_invalid = [quib for quib in QUIBS_TO_REDRAW if quib.cache_status != CacheStatus.ALL_VALID]
+    logger.info(f"redrawing {len(quibs_that_are_invalid)} quibs")
+    for graphics_function_quib in quibs_that_are_invalid:
+        graphics_function_quib.get_value()
+    axeses = {axes for graphics_function_quib in quibs_that_are_invalid
+              for axes in graphics_function_quib.get_axeses()}
+
+    logger.info(f"redrawing {len(axeses)} axeses")
+    redraw_axeses(axeses)
+    QUIBS_TO_REDRAW.clear()
+
+
+def redraw_graphics_function_quibs_or_add_in_aggregate_mode(graphics_function_quibs: Set[GraphicsFunctionQuib]):
+    global QUIBS_TO_REDRAW
+    if IN_AGGREGATE_REDRAW_MODE:
+        QUIBS_TO_REDRAW |= graphics_function_quibs
+    else:
+        QUIBS_TO_REDRAW = graphics_function_quibs
+        _redraw_graphics_function_quibs()
+
+
+def redraw_axeses(axeses: Set[Axes]):
     """
     Actual redrawing of axes- this should be WITHOUT rendering anything except for the new artists
     """
-    if IN_AGGREGATE_REDRAW_MODE and not force:
-        AXESES_TO_REDRAW.update(axeses)
-    else:
-        canvases = {axes.figure.canvas for axes in axeses}
-        with timer(name="redraw", callback=lambda t: logger.info(f"redraw canvas {t}")):
-            for canvas in canvases:
-                canvas.draw()
+    canvases = {axes.figure.canvas for axes in axeses}
+    with timer(name="redraw", callback=lambda t: logger.info(f"redraw canvas {t}")):
+        for canvas in canvases:
+            canvas.draw()

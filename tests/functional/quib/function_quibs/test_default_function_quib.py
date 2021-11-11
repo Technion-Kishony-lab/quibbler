@@ -94,7 +94,7 @@ def test_get_value_with_cache_requesting_all_valid_caches_result():
         func_args=tuple()
     )
     quib.get_value_valid_at_path([])
-    # We want to make sure we don't call our mock_func anymore, so we save the number here
+    # We want to make sure we don't call our mock_func anymore, so we save_if_relevant the number here
     current_call_count = mock_func.call_count
 
     result1 = quib.get_value_valid_at_path([PathComponent(indexed_cls=list, component=0)])

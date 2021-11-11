@@ -4,3 +4,5 @@ exclude_lines =
     if TYPE_CHECKING:
     raise AssertionError
     raise NotImplementedError
+omit =
+    pyquibbler/user_utils.py

@@ -48,6 +48,10 @@ class ExampleQuib(Quib):
     def _get_paths_for_children_invalidation(self, quib, path):
         return [path]
 
+    @property
+    def _save_directory(self):
+        return None
+
 
 @fixture
 def example_quib(assignment_template_mock):
