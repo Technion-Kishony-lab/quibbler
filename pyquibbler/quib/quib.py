@@ -82,12 +82,11 @@ def cache_method_until_full_invalidation(func: Callable) -> Callable:
     @wraps(func)
     def wrapper(self: Quib, *args, **kwargs):
         call = FunctionCall.create(func, (self, *args), kwargs)
-        try:
+        if call in self.method_cache:
             return self.method_cache[call]
-        except KeyError:
-            result = func(self, *args, **kwargs)
-            self.method_cache[call] = result
-            return result
+        result = func(self, *args, **kwargs)
+        self.method_cache[call] = result
+        return result
 
     return wrapper
 
