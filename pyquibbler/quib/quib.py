@@ -28,7 +28,7 @@ from .function_quibs.cache.shallow.indexable_cache import transform_cache_to_nd_
 from .function_quibs.pretty_converters import MathExpression
 from .utils import quib_method, Unpacker, recursively_run_func_on_object
 from .assignment import PathComponent
-from ..env import LEN_RAISE_EXCEPTION
+from ..env import LEN_RAISE_EXCEPTION, GET_VARIABLE_NAMES, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS
 from ..input_validation_utils import validate_user_input
 from ..logger import logger
 from ..project import Project
@@ -111,8 +111,9 @@ class Quib(ABC):
         self.method_cache = {}
 
         try:
-            self._name = get_var_name_being_set_outside_of_pyquibbler()
-            self.file_name, self.line_no = get_file_name_and_line_number_of_quib()
+            self._name = get_var_name_being_set_outside_of_pyquibbler() if GET_VARIABLE_NAMES else None
+            self.file_name, self.line_no = get_file_name_and_line_number_of_quib() \
+                if SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS else None, None
         except Exception as e:
             logger.warning(f"Failed to get name, exception {e}")
             self._name = None

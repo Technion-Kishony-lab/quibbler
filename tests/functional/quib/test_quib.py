@@ -418,6 +418,7 @@ def test_quib_should_invalidate_children_when_overrides(example_quib, parent,
     assert mock_child_of_example_quib._invalidate_quib_with_children_at_path.call_count == new_expected_count
 
 
+@pytest.mark.get_variable_names(True)
 def test_quib_var_name():
     # we can't use examplequib as it's not a part of pyquibbler, and we only filter out pyquibbler frames
     my_quib = iquib(1)
@@ -433,6 +434,7 @@ def test_quib_with_set_name():
     assert my_quib.name == name
 
 
+@pytest.mark.get_variable_names(True)
 def test_quib_with_multiple_in_same_line():
     a, b = iquib(1), iquib(2)
 
@@ -440,6 +442,7 @@ def test_quib_with_multiple_in_same_line():
     assert b.name == 'b'
 
 
+@pytest.mark.get_variable_names(True)
 def test_quib_pretty_repr_with_quibs_being_created_inline():
     a = iquib([1, 2, 3])
     b, c = a[0], iquib(2)
@@ -449,6 +452,7 @@ def test_quib_pretty_repr_with_quibs_being_created_inline():
 
 
 @mark.regression
+@pytest.mark.get_variable_names(True)
 def test_quib_pretty_repr_with_quibs_with_quib_creation_with_name_in_inner_func():
 
     @quibbler_user_function(lazy=False)
@@ -474,6 +478,7 @@ def test_quib_pretty_repr_with_quibs_with_quib_creation_with_name_in_inner_func(
 
 
 @mark.regression
+@pytest.mark.get_variable_names(True)
 def test_quib_pretty_repr_with_repr_throwing_exception():
     class A:
         def __repr__(self):
@@ -493,6 +498,7 @@ def test_quib_cannot_assign_int_to_name(example_quib):
         example_quib.set_name(1)
 
 
+@pytest.mark.get_variable_names(True)
 def test_quib_can_assign_none_to_name(example_quib):
     a = iquib(["val"])
     assert a.name == 'a', "Sanity check"

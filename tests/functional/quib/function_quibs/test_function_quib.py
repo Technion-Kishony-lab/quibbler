@@ -204,6 +204,7 @@ def test_function_quib_does_invalidate_all_when_invalidated_all_at_path_in_param
     mock_quib._invalidate_quib_with_children_at_path.assert_called_with(parent, [])
 
 
+@pytest.mark.get_variable_names(True)
 def test_function_quib_pretty_repr_without_name():
     a = iquib(1)
     b = iquib(2)
@@ -211,6 +212,7 @@ def test_function_quib_pretty_repr_without_name():
     assert q("".join, a, b).pretty_repr() == 'join(a, b)'
 
 
+@pytest.mark.get_variable_names(True)
 def test_function_quib_pretty_repr_with_name():
     a = iquib(1)
     b = iquib(2)
@@ -227,6 +229,7 @@ def test_function_quib_pretty_repr_with_name():
     "a[:2]",
     "a[1:]"
 ])
+@pytest.mark.get_variable_names(True)
 def test_function_quib_pretty_repr_getitem_colon(statement):
     a = iquib(np.array([1, 2, 3]))
     b = eval(statement)
@@ -234,6 +237,7 @@ def test_function_quib_pretty_repr_getitem_colon(statement):
     assert b.pretty_repr() == statement
 
 
+@pytest.mark.get_variable_names(True)
 def test_function_quib_pretty_repr_getitem_ellipsis():
     a = iquib(np.array([1, 2, 3]))
     b = a[...]
@@ -241,6 +245,7 @@ def test_function_quib_pretty_repr_getitem_ellipsis():
     assert b.pretty_repr() == "b = a[...]"
 
 
+@pytest.mark.get_variable_names(True)
 def test_function_quib_pretty_repr_getitem_index():
     a = iquib(np.array([1, 2, 3]))
     b = a[1]
@@ -260,6 +265,7 @@ def b():
     return b
 
 
+@pytest.mark.get_variable_names(True)
 def test_function_quib_pretty_repr_math():
     a = iquib(1)
     b = iquib(2)
@@ -278,6 +284,7 @@ def test_function_quib_pretty_repr_math():
     ("a - (a + a)", "a - (a + a)"),
     ("a / (a / a)", "a / (a / a)")
 ])
+@pytest.mark.get_variable_names(True)
 def test_function_quib_pretty_repr_math_holds_pemdas(a, b, statement, expected):
     with PRETTY_REPR.temporary_set(True):
         assert repr(eval(statement)) == expected
