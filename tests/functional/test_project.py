@@ -42,3 +42,15 @@ def test_undo_assignment(project):
     project.undo()
 
     assert a.get_value() == 10
+
+
+def test_undo_assignment_with_multiple_assignments_in_same_path(project):
+    a = iquib(10)
+    a.assign_value(1)
+    a.assign_value(2)
+    assert a.get_value() == 2, "sanity"
+
+    project.undo()
+
+    assert a.get_value() == 1
+

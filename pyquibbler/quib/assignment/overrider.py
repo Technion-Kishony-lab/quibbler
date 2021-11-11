@@ -49,15 +49,13 @@ class Overrider:
                         previous_index: int,
                         previous_path: List[PathComponent],
                         assignment_to_return: Optional[Union[Assignment, AssignmentRemoval]]):
+
         previous_assignment = self._paths_to_assignments.pop(get_hashable_path(previous_path))
 
         if assignment_to_return is not None:
-            new_paths_to_assignments = {}
-            for i, (k, v) in enumerate(self._paths_to_assignments):
-                if i == previous_index:
-                    self._paths_to_assignments[get_hashable_path(previous_path)] = assignment_to_return
-                self._paths_to_assignments[k] = v
-            self._paths_to_assignments = new_paths_to_assignments
+            new_paths_with_assignments = list(self._paths_to_assignments.items())
+            new_paths_with_assignments.insert(previous_index, (get_hashable_path(previous_path), assignment_to_return))
+            self._paths_to_assignments = dict(new_paths_with_assignments)
 
         return previous_assignment
 
