@@ -1,10 +1,13 @@
+from __future__ import annotations
 from abc import abstractmethod, ABC
 from dataclasses import dataclass
-from typing import Optional, Union
+from typing import Optional, Union, TYPE_CHECKING
 
 from pyquibbler.quib.assignment import Assignment
-from pyquibbler.quib import Quib
 from pyquibbler.quib.assignment.overrider import AssignmentRemoval, Overrider
+
+if TYPE_CHECKING:
+    from pyquibbler.quib import Quib
 
 
 class Action(ABC):
@@ -13,6 +16,9 @@ class Action(ABC):
     def undo(self):
         pass
 
+    @abstractmethod
+    def redo(self):
+        pass
 
 @dataclass
 class AssignmentAction(Action):

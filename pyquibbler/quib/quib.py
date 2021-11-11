@@ -325,19 +325,15 @@ class Quib(ABC):
             self.project.push_assignment_to_undo_stack(quib=self,
                                                        assignment=assignment,
                                                        index=len(list(self._overrider)) - 1,
-                                                       overrider=self._overrider,
-                                                       previous_assignment=self._previous_assignment_while_released)
-            self._previous_assignment_while_released = assignment
+                                                       overrider=self._overrider)
 
     def remove_override(self, path: List[PathComponent], invalidate_and_redraw: bool = True):
         """
         Remove overriding in a specific path in the quib.
         """
-        previous_assignment = self._overrider.get(path)
         assignment_removal = self._overrider.remove_assignment(path)
         if assignment_removal is not None:
             self.project.push_assignment_to_undo_stack(assignment=assignment_removal,
-                                                       previous_assignment=previous_assignment,
                                                        index=len(list(self._overrider)) - 1,
                                                        overrider=self._overrider,
                                                        quib=self)
@@ -590,7 +586,8 @@ class Quib(ABC):
 
     @property
     def _save_path(self) -> Optional[pathlib.Path]:
-        return self._save_directory / f"{self.name}.quib" if self._save_directory else None
+        save_name = self.name if self.name else self.functional_representation
+        return self._save_directory / f"{save_name}.quib" if self._save_directory else None
 
     def save_if_relevant(self):
         """

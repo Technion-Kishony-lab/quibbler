@@ -297,3 +297,20 @@ def test_function_quib_config(example_function_quib):
 def test_function_quib_config_with_invalid_cache_behavior(example_function_quib):
     with pytest.raises(UnknownCacheBehaviorException):
         example_function_quib.setp(cache_behavior='ondfdd')
+
+
+def test_multiple_function_quib_save_without_given_name(example_function_quib):
+    example_function_quib.set_allow_overriding(True)
+    example_function_quib.assign_value(10)
+    another_quib = ExampleFunctionQuib.create(mock.Mock()).setp(allow_overriding=True)
+    another_quib.assign_value(8)
+
+    another_quib.save_if_relevant()
+    example_function_quib.save_if_relevant()
+    another_quib.load()
+    example_function_quib.load()
+
+    assert example_function_quib.get_value() == 10
+    assert another_quib.get_value() == 8
+
+

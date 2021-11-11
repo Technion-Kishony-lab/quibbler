@@ -132,3 +132,52 @@ def test_doesnt_record_when_dragging(project):
 
     with pytest.raises(NothingToUndoException):
         project.undo()
+
+
+def test_project_undo_group_doesnt_add_on_dragging(project):
+    a = iquib(5)
+    with dragging():
+        with project.start_undo_group():
+            a.assign_value(10)
+            a.assign_value(8)
+
+    with pytest.raises(NothingToUndoException):
+        project.undo()
+
+
+def test_project_undo_with_group_reverts_back_to_before_group_and_runs_graphics_quib_once(project):
+    a = iquib(5)
+    mock_func = mock.Mock()
+    _ = GraphicsFunctionQuib.create(func=mock_func, func_args=(a,), lazy=True)
+    with project.start_undo_group():
+        a.assign_value(10)
+        a.assign_value(8)
+    count = mock_func.call_count
+
+    project.undo()
+
+    assert a.get_value() == 5
+    assert mock_func.call_count == count + 1
+
+
+def test_project_has_undo_when_not(project):
+    assert project.has_undo() is False
+
+
+def test_project_has_redo_when_not(project):
+    assert project.has_redo() is False
+
+
+def test_project_has_undo_when_true(project):
+    a = iquib(1)
+    a.assign_value(1)
+
+    assert project.has_undo()
+
+
+def test_project_has_redo_when_true(project):
+    a = iquib(1)
+    a.assign_value(1)
+    project.undo()
+
+    assert project.has_redo()

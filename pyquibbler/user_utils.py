@@ -69,3 +69,17 @@ def redo():
     Redo the last action undone
     """
     Project.get_or_create().redo()
+
+
+def has_undos():
+    """
+    Whether or not any undos exist
+    """
+    return Project.get_or_create().has_undo()
+
+
+def has_redos():
+    """
+    Whether or not any redos exist
+    """
+    return Project.get_or_create().has_redo()
