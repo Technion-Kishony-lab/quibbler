@@ -9,6 +9,7 @@ from pyquibbler import timer
 from pyquibbler.logger import logger
 from pyquibbler.quib.utils import quib_method
 from pyquibbler.utils import Mutable
+from .drag_context_manager import dragging
 
 from .widget_graphics_function_quib import WidgetGraphicsFunctionQuib
 
@@ -57,7 +58,8 @@ class QRectangleSelector(RectangleSelector):
                 with self.CURRENT_SELECTOR.unlock() as current_selector:
                     if current_selector.val is None or current_selector.val is self:
                         current_selector.val = self
-                        return super()._onmove(event)
+                        with dragging():
+                            return super()._onmove(event)
 
     def _release(self, event):
         with self.CURRENT_SELECTOR.unlock() as current_selector:

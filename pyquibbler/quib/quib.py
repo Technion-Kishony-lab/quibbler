@@ -335,6 +335,7 @@ class Quib(ABC):
         Create an assignment with an Assignment object, overriding the current values at the assignment's paths with the
         assignment's value
         """
+        from pyquibbler.quib.graphics.widgets import is_within_drag
         try:
             previous_assignment = self._overrider.get(assignment.path)
             self.override(assignment, allow_overriding_from_now_on=False)
@@ -343,11 +344,12 @@ class Quib(ABC):
         except InvalidTypeException as e:
             raise InvalidTypeException(e.type_) from None
         else:
-            self.project.push_assignment_to_undo_stack(quib=self,
-                                                       assignment=assignment,
-                                                       index=len(list(self._overrider)) - 1,
-                                                       overrider=self._overrider,
-                                                       previous_assignment=previous_assignment)
+            if not is_within_drag():
+                self.project.push_assignment_to_undo_stack(quib=self,
+                                                           assignment=assignment,
+                                                           index=len(list(self._overrider)) - 1,
+                                                           overrider=self._overrider,
+                                                           previous_assignment=previous_assignment)
 
     @raise_quib_call_exceptions_as_own
     def assign_value(self, value: Any) -> None:

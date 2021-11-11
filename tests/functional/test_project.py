@@ -5,6 +5,7 @@ import pytest
 from pyquibbler import iquib
 from pyquibbler.project import Project, NothingToUndoException
 from pyquibbler.quib import ImpureFunctionQuib, GraphicsFunctionQuib
+from pyquibbler.quib.graphics.widgets.drag_context_manager import dragging
 
 
 def test_get_or_create_only_creates_one_instance():
@@ -122,3 +123,12 @@ def test_undo_assignment_removal_and_assignment(project):
     project.undo()
 
     assert a.get_value() == 5
+
+
+def test_doesnt_record_when_dragging(project):
+    a = iquib(5)
+    with dragging():
+        a.assign_value(10)
+
+    with pytest.raises(NothingToUndoException):
+        project.undo()

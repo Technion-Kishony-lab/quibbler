@@ -8,7 +8,6 @@ from typing import Optional, Set, TYPE_CHECKING
 
 from pyquibbler.exceptions import PyQuibblerException
 
-
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib
 
