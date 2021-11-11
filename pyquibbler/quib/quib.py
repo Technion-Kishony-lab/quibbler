@@ -122,7 +122,7 @@ class Quib(ABC):
         self.project.register_quib(self)
 
     @property
-    def project(self):
+    def project(self) -> Project:
         return Project.get_or_create()
 
     def setp(self, allow_overriding: bool = None, **kwargs):
@@ -306,11 +306,12 @@ class Quib(ABC):
             self._allow_overriding = True
         if not self._allow_overriding:
             raise OverridingNotAllowedException(self, assignment)
-        self._overrider.add_assignment(assignment)
+        previous_assignment = self._overrider.add_assignment(assignment)
         if len(assignment.path) == 0:
             self._on_type_change()
 
         self.invalidate_and_redraw_at_path(assignment.path)
+        return previous_assignment
 
     def remove_override(self, path: List[PathComponent], invalidate_and_redraw: bool = True):
         """
@@ -328,11 +329,18 @@ class Quib(ABC):
         assignment's value
         """
         try:
+            previous_assignment = self._overrider.get(assignment.path)
             self.override(assignment, allow_overriding_from_now_on=False)
         except FailedToDeepAssignException as e:
             raise FailedToDeepAssignException(exception=e.exception, path=e.path) from None
         except InvalidTypeException as e:
             raise InvalidTypeException(e.type_) from None
+        else:
+            self.project.push_assignment_to_undo_stack(quib=self,
+                                                       assignment=assignment,
+                                                       index=len(list(self._overrider)) - 1,
+                                                       overrider=self._overrider,
+                                                       previous_assignment=previous_assignment)
 
     @raise_quib_call_exceptions_as_own
     def assign_value(self, value: Any) -> None:

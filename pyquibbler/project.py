@@ -8,6 +8,7 @@ from typing import Optional, Set, TYPE_CHECKING
 
 from pyquibbler.exceptions import PyQuibblerException
 
+
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib
 
@@ -33,8 +34,11 @@ class Project:
     current_project = None
 
     def __init__(self, path: Optional[Path], quib_weakrefs: Set[ReferenceType[Quib]]):
+        from pyquibbler.quib.action_stack import ActionStack
         self.path = path
         self._quib_weakrefs = quib_weakrefs
+        self._undo_stack = ActionStack([])
+        self._redo_stack = ActionStack([])
 
     @classmethod
     def get_or_create(cls, path: Optional[Path] = None):
@@ -109,7 +113,18 @@ class Project:
                 quib.load()
 
     def undo(self):
-        pass
+        self._undo_stack.pop_and_commit()
 
     def redo(self):
         pass
+
+    def push_assignment_to_undo_stack(self, quib, overrider, previous_assignment, assignment, index):
+        from pyquibbler.quib.action_stack import AssignmentAction
+        self._undo_stack.push(AssignmentAction(
+            quib=quib,
+            overrider=overrider,
+            previous_index=index,
+            new_assignment=assignment,
+            previous_assignment=previous_assignment
+        ))
+

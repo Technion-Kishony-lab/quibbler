@@ -45,6 +45,22 @@ class Overrider:
             self._active_assignment = assignment_removal
             self._add_to_paths_to_assignments(assignment_removal)
 
+    def undo_assignment(self,
+                        previous_index: int,
+                        previous_path: List[PathComponent],
+                        assignment_to_return: Optional[Union[Assignment, AssignmentRemoval]]):
+        previous_assignment = self._paths_to_assignments.pop(get_hashable_path(previous_path))
+
+        if assignment_to_return is not None:
+            new_paths_to_assignments = {}
+            for i, (k, v) in enumerate(self._paths_to_assignments):
+                if i == previous_index:
+                    self._paths_to_assignments[get_hashable_path(previous_path)] = assignment_to_return
+                self._paths_to_assignments[k] = v
+            self._paths_to_assignments = new_paths_to_assignments
+
+        return previous_assignment
+
     def override(self, data: Any, assignment_template: Optional[AssignmentTemplate] = None):
         """
         Deep copies the argument and returns said data with applied overrides
@@ -87,6 +103,9 @@ class Overrider:
                     val = recursively_run_func_on_object(lambda x: val, inner_data)
             mask = deep_assign_data_with_paths(mask, path, val)
         return mask
+
+    def get(self, path, default_value = None) -> Assignment:
+        return self._paths_to_assignments.get(get_hashable_path(path), default_value)
 
     def __getitem__(self, item) -> Assignment:
         return list(self._paths_to_assignments.values())[item]
