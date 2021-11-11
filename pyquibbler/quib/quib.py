@@ -322,15 +322,12 @@ class Quib(ABC):
 
         from pyquibbler.quib.graphics.widgets import is_within_drag
         if not is_within_drag():
-            print("pushing...")
             self.project.push_assignment_to_undo_stack(quib=self,
                                                        assignment=assignment,
                                                        index=len(list(self._overrider)) - 1,
                                                        overrider=self._overrider,
                                                        previous_assignment=self._previous_assignment_while_released)
             self._previous_assignment_while_released = assignment
-        else:
-            print("not pushing")
 
     def remove_override(self, path: List[PathComponent], invalidate_and_redraw: bool = True):
         """
@@ -354,7 +351,6 @@ class Quib(ABC):
         Create an assignment with an Assignment object, overriding the current values at the assignment's paths with the
         assignment's value
         """
-        print("what whar")
         self.override(assignment, allow_overriding_from_now_on=False)
 
     @raise_quib_call_exceptions_as_own
