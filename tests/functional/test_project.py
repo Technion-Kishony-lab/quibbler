@@ -1,5 +1,6 @@
 from unittest import mock
 
+from pyquibbler import iquib
 from pyquibbler.project import Project
 from pyquibbler.quib import ImpureFunctionQuib, GraphicsFunctionQuib
 
@@ -31,3 +32,13 @@ def test_reset_impure_function_quibs_invalidates_and_redraws():
     Project.get_or_create().reset_invalidate_and_redraw_all_impure_function_quibs()
 
     graphics_function_mock.assert_called_once_with(2)
+
+
+def test_undo_assignment(project):
+    a = iquib(10)
+    a.assign_value(1)
+    assert a.get_value() == 1, "sanity"
+
+    project.undo()
+
+    assert a.get_value() == 10

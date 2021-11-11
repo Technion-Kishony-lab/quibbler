@@ -107,3 +107,9 @@ class Project:
         with aggregate_redraw_mode():
             for quib in self.quibs:
                 quib.load()
+
+    def undo(self):
+        pass
+
+    def redo(self):
+        pass
