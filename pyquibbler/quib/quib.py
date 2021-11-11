@@ -121,9 +121,6 @@ class Quib(ABC):
 
         self.project.register_quib(self)
 
-        # used for undo/redo
-        self._previous_assignment_while_released = None
-
     @property
     def project(self) -> Project:
         return Project.get_or_create()
