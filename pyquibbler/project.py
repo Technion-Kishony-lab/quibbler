@@ -140,7 +140,7 @@ class Project:
         self._undos.append(action)
 
     def push_assignment_to_undo_stack(self, quib, overrider, previous_assignment, assignment, index):
-        from pyquibbler.quib.action_stack import AssignmentAction
+        from pyquibbler.quib.undo_redo import AssignmentAction
         self._undos.append(AssignmentAction(
             quib=quib,
             overrider=overrider,
