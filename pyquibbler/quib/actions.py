@@ -20,6 +20,7 @@ class Action(ABC):
     def redo(self):
         pass
 
+
 @dataclass
 class AssignmentAction(Action):
 

@@ -6,7 +6,7 @@ from matplotlib.widgets import Slider
 from pyquibbler import CacheBehavior
 from pyquibbler.quib import Quib
 from pyquibbler.quib.utils import quib_method
-from .drag_context_manager import dragging, is_within_drag
+from .drag_context_manager import dragging
 
 from .widget_graphics_function_quib import WidgetGraphicsFunctionQuib
 from ...assignment import PathComponent

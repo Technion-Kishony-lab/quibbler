@@ -91,8 +91,6 @@ class CanvasEventHandler:
                     if locked:
                         # If not locked, there is already another motion handler running, we just drop this one.
                         # This could happen if changes are slow or if a dialog is open
-                        from pyquibbler.quib.graphics.widgets import is_within_drag
-                        print("inversing as expected", is_within_drag())
                         self._inverse_assign_graphics(self.current_pick_event.artist, mouse_event)
                         if END_DRAG_IMMEDIATELY:
                             self.current_pick_event = None
