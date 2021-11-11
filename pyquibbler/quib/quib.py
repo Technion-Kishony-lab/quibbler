@@ -586,7 +586,7 @@ class Quib(ABC):
 
     @property
     def _save_path(self) -> Optional[pathlib.Path]:
-        save_name = self.name if self.name else self.functional_representation
+        save_name = self.name if self.name else hash(self.functional_representation)
         return self._save_directory / f"{save_name}.quib" if self._save_directory else None
 
     def save_if_relevant(self):
