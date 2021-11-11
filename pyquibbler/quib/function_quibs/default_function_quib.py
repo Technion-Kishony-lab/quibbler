@@ -6,12 +6,12 @@ from typing import Callable, Any, Mapping, Tuple, Optional, List, TYPE_CHECKING
 
 from pyquibbler.quib.function_quibs.cache import create_cache
 from .cache.cache import CacheStatus
-from .cache.holistic_cache import PathCannotHaveComponentsException
+from .cache.holistic_cache import PathCannotHaveComponentsException, HolisticCache
 from .cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
 
 from .function_quib import FunctionQuib, CacheBehavior
 from ..assignment import AssignmentTemplate
-from ..assignment.utils import get_sub_data_from_object_in_path
+from ..assignment.utils import get_sub_data_from_object_in_path, deep_assign_data_with_paths
 
 if TYPE_CHECKING:
     from ..assignment.assignment import PathComponent
@@ -137,9 +137,13 @@ class DefaultFunctionQuib(FunctionQuib):
             self._ensure_cache_matches_result(result)
             if uncached_path is not None:
                 try:
-                    valid_value = get_sub_data_from_object_in_path(result, truncated_path)
                     self._cache = transform_cache_to_nd_if_necessary_given_path(self._cache, truncated_path)
-                    self._cache.set_valid_value_at_path(truncated_path, valid_value)
+                    value = self.get_cached_data_at_truncated_path_given_result_at_uncached_path(result,
+                                                                                                 truncated_path,
+                                                                                                 uncached_path)
+
+                    self._cache.set_valid_value_at_path(truncated_path, value)
+
                     # We need to get the result from the cache (as opposed to simply using the last run), since we
                     # don't want to only take the last run
                     result = self._cache.get_value()
@@ -155,6 +159,28 @@ class DefaultFunctionQuib(FunctionQuib):
                     assert len(self._cache.get_uncached_paths(truncated_path)) == 0
 
         return result
+
+    def get_cached_data_at_truncated_path_given_result_at_uncached_path(self, result, truncated_path,
+                                                                        uncached_path):
+        data = self._cache.get_value()
+        valid_value = get_sub_data_from_object_in_path(result, uncached_path)
+
+        # Need to refactor this so that the cache itself takes care of these edge cases- for example,
+        # indexablecache already knows how to take care of tuples, and holisticache knows not to try setting values at
+        # specific paths.
+        # Perhaps get_value(with_data_at_component)?
+        # Or perhaps simply wait for deep caches...
+        if isinstance(data, tuple):
+            new_data = deep_assign_data_with_paths(list(data), uncached_path, valid_value)
+            value = get_sub_data_from_object_in_path(tuple(new_data), truncated_path)
+        else:
+            if isinstance(self._cache, HolisticCache):
+                value = valid_value
+            else:
+                new_data = deep_assign_data_with_paths(data, uncached_path, valid_value)
+                value = get_sub_data_from_object_in_path(new_data, truncated_path)
+
+        return value
 
     def _get_inner_value_valid_at_path(self, path: Optional[List['PathComponent']]):
         """
