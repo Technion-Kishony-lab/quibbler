@@ -2,6 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import List, TYPE_CHECKING, Union
 
+from pyquibbler.project import Project
 from pyquibbler.quib.assignment import QuibWithAssignment
 from pyquibbler.quib.assignment.assignment import PathComponent
 
@@ -43,10 +44,11 @@ class OverrideGroup:
     override_removals: List[OverrideRemoval] = field(default_factory=list)
 
     def apply(self, invalidate_and_redraw_override_removals: bool = True):
-        for override in self.overrides:
-            override.override()
-        for override_removal in self.override_removals:
-            override_removal.apply(invalidate_and_redraw=invalidate_and_redraw_override_removals)
+        with Project.get_or_create().start_undo_group():
+            for override in self.overrides:
+                override.override()
+            for override_removal in self.override_removals:
+                override_removal.apply(invalidate_and_redraw=invalidate_and_redraw_override_removals)
 
     def __bool__(self):
         return len(self.overrides) > 0 or len(self.override_removals) > 0

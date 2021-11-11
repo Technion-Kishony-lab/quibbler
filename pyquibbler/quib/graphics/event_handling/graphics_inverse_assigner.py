@@ -34,8 +34,9 @@ def inverse_assign_drawing_func(drawing_func: Callable,
     if inverse_assigner_func is not None:
         quibs_with_assignments = inverse_assigner_func(pick_event=pick_event, mouse_event=mouse_event, args=args)
         try:
-            override_groups = get_overrides_for_assignment_group(quibs_with_assignments)
+            override_group = get_overrides_for_assignment_group(quibs_with_assignments)
         except AssignmentCancelledByUserException:
             pass
         else:
-            override_groups.apply()
+            override_group.apply()
+            return override_group

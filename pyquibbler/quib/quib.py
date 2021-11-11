@@ -122,7 +122,7 @@ class Quib(ABC):
         self.project.register_quib(self)
 
     @property
-    def project(self):
+    def project(self) -> Project:
         return Project.get_or_create()
 
     def setp(self, allow_overriding: bool = None, **kwargs):
@@ -310,13 +310,30 @@ class Quib(ABC):
         if len(assignment.path) == 0:
             self._on_type_change()
 
-        self.invalidate_and_redraw_at_path(assignment.path)
+        try:
+            self.invalidate_and_redraw_at_path(assignment.path)
+        except FailedToDeepAssignException as e:
+            raise FailedToDeepAssignException(exception=e.exception, path=e.path) from None
+        except InvalidTypeException as e:
+            raise InvalidTypeException(e.type_) from None
+
+        from pyquibbler.quib.graphics.widgets import is_within_drag
+        if not is_within_drag():
+            self.project.push_assignment_to_undo_stack(quib=self,
+                                                       assignment=assignment,
+                                                       index=len(list(self._overrider)) - 1,
+                                                       overrider=self._overrider)
 
     def remove_override(self, path: List[PathComponent], invalidate_and_redraw: bool = True):
         """
         Remove overriding in a specific path in the quib.
         """
-        self._overrider.remove_assignment(path)
+        assignment_removal = self._overrider.remove_assignment(path)
+        if assignment_removal is not None:
+            self.project.push_assignment_to_undo_stack(assignment=assignment_removal,
+                                                       index=len(list(self._overrider)) - 1,
+                                                       overrider=self._overrider,
+                                                       quib=self)
         if len(path) == 0:
             self._on_type_change()
         if invalidate_and_redraw:
@@ -327,12 +344,7 @@ class Quib(ABC):
         Create an assignment with an Assignment object, overriding the current values at the assignment's paths with the
         assignment's value
         """
-        try:
-            self.override(assignment, allow_overriding_from_now_on=False)
-        except FailedToDeepAssignException as e:
-            raise FailedToDeepAssignException(exception=e.exception, path=e.path) from None
-        except InvalidTypeException as e:
-            raise InvalidTypeException(e.type_) from None
+        self.override(assignment, allow_overriding_from_now_on=False)
 
     @raise_quib_call_exceptions_as_own
     def assign_value(self, value: Any) -> None:
@@ -571,7 +583,8 @@ class Quib(ABC):
 
     @property
     def _save_path(self) -> Optional[pathlib.Path]:
-        return self._save_directory / f"{self.name}.quib" if self._save_directory else None
+        save_name = self.name if self.name else hash(self.functional_representation)
+        return self._save_directory / f"{save_name}.quib" if self._save_directory else None
 
     def save_if_relevant(self):
         """

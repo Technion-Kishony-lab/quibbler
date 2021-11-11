@@ -55,3 +55,31 @@ def save_quibs(save_iquibs_as_txt_where_possible: bool = True):
     Save all the quibs to files (if relevant- ie if they have overrides)
     """
     Project.get_or_create().save_quibs(save_iquibs_as_txt_where_possible=save_iquibs_as_txt_where_possible)
+
+
+def undo():
+    """
+    Undo the last action commited (an assignment or assignment removal)
+    """
+    Project.get_or_create().undo()
+
+
+def redo():
+    """
+    Redo the last action undone
+    """
+    Project.get_or_create().redo()
+
+
+def has_undos():
+    """
+    Whether or not any undos exist
+    """
+    return Project.get_or_create().has_undo()
+
+
+def has_redos():
+    """
+    Whether or not any redos exist
+    """
+    return Project.get_or_create().has_redo()
