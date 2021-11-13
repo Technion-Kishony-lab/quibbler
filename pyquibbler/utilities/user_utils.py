@@ -3,6 +3,7 @@ from typing import Union, List, Callable, Type
 from types import ModuleType
 
 from pyquibbler.project import Project
+from pyquibbler.quibapp import QuibApp
 
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.factory import create_quib
@@ -142,3 +143,10 @@ def is_func_quiby(func: Callable) -> bool:
         q, q_eager
     """
     return hasattr(func, '__quibbler_wrapped__')
+
+
+def quibapp():
+    """
+    Open the Quibbler App
+    """
+    return QuibApp.get_or_create()
