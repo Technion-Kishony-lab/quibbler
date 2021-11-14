@@ -6,7 +6,7 @@ from functools import partial
 from pytest import mark, fixture, raises
 
 from pyquibbler import iquib, CacheBehavior
-from pyquibbler.env import GRAPHICS_LAZY
+from pyquibbler.env import GRAPHICS_EVALUATE_NOW
 from pyquibbler.quib import ProxyQuib
 from pyquibbler.quib.assignment import PathComponent
 
@@ -125,7 +125,7 @@ def test_vectorize_partial_calculation():
         return x
 
     func_mock = get_func_mock(f)
-    with GRAPHICS_LAZY.temporary_set(True):
+    with GRAPHICS_EVALUATE_NOW.temporary_set(True):
         quib = np.vectorize(func_mock)(iquib(np.arange(3)))
     # Should call func_mock twice
     quib.get_value_valid_at_path(PathBuilder(quib)[0].path)
@@ -166,7 +166,7 @@ def test_vectorize_with_pass_quibs_and_core_dims():
 def test_vectorize_does_not_redraw_valid_artists(temp_axes, pass_quibs):
     parent = iquib([[1, 2], [3, 4]])
     vectorized_plot = np.vectorize(plt.plot, signature='(x)->()', otypes=[np.object], pass_quibs=pass_quibs,
-                                   update_type="drag")
+                                   evaluate_now=True)
     vectorized_plot(parent)
     assert len(temp_axes.lines) == 2
     ids = list(map(id, temp_axes.lines))
@@ -183,7 +183,7 @@ def test_vectorize_does_not_redraw_valid_artists(temp_axes, pass_quibs):
 @mark.parametrize('use_quib', [True, False])
 def test_vectorize_with_empty_data_and_no_otypes(data, use_quib):
     data = iquib(data) if use_quib else data
-    vectorized = np.vectorize(lambda x: x, lazy=False)
+    vectorized = np.vectorize(lambda x: x, evaluate_now=True)
     with raises(ValueError) as exc_info:
         vectorized(data)
 
@@ -193,7 +193,7 @@ def test_vectorize_with_empty_data_and_no_otypes(data, use_quib):
 def test_lazy_vectorize():
     func_mock = Mock(return_value=5)
     parent = iquib([0, 1, 2, 3])
-    reference_to_vectorize = np.vectorize(func_mock, lazy=True)(parent)
+    reference_to_vectorize = np.vectorize(func_mock, update_type="never")(parent)
     func_mock.assert_not_called()
 
     parent[0] = 100

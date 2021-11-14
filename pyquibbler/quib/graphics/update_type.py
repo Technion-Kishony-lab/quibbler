@@ -6,4 +6,4 @@ class UpdateType(Enum):
     DRAG = 'drag'
     DROP = 'drop'
     CENTRAL = 'central'
-    LAZY = 'lazy'
+    NEVER = 'never'

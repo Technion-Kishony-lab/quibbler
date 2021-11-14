@@ -6,7 +6,7 @@ import pytest
 from pytest import mark
 
 from pyquibbler import CacheBehavior, iquib
-from pyquibbler.env import GRAPHICS_LAZY
+from pyquibbler.env import GRAPHICS_EVALUATE_NOW
 from pyquibbler.quib.assignment import PathComponent
 
 from ..utils import check_invalidation, check_get_value_valid_at_path, MockQuib, get_func_mock

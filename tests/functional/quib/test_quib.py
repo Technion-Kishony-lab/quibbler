@@ -455,7 +455,7 @@ def test_quib_pretty_repr_with_quibs_being_created_inline():
 @pytest.mark.get_variable_names(True)
 def test_quib_pretty_repr_with_quibs_with_quib_creation_with_name_in_inner_func():
 
-    @quibbler_user_function(lazy=False)
+    @quibbler_user_function(evaluate_now=True)
     def inner_func():
         d = iquib(4)
 
@@ -463,7 +463,7 @@ def test_quib_pretty_repr_with_quibs_with_quib_creation_with_name_in_inner_func(
 
         return d
 
-    @quibbler_user_function(lazy=False)
+    @quibbler_user_function(evaluate_now=True)
     def another_inner_func():
         e = iquib(4)
 

@@ -5,7 +5,7 @@ import pytest
 from pytest import fixture
 
 from pyquibbler import CacheBehavior, override_all
-from pyquibbler.env import DEBUG, LAZY, ASSIGNMENT_RESTRICTIONS, PRETTY_REPR, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS, \
+from pyquibbler.env import DEBUG, EVALUATE_NOW, ASSIGNMENT_RESTRICTIONS, PRETTY_REPR, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS, \
     GET_VARIABLE_NAMES
 from pyquibbler.project import Project
 from pyquibbler.quib import FunctionQuib
@@ -66,7 +66,7 @@ def setup_debug(request):
 
 @fixture(autouse=True)
 def setup_lazy(request):
-    yield from setup_flag(LAZY, DEFAULT_LAZY, request)
+    yield from setup_flag(EVALUATE_NOW, DEFAULT_LAZY, request)
 
 
 @fixture(autouse=True)

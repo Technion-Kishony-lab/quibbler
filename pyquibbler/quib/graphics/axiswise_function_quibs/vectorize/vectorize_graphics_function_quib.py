@@ -39,6 +39,9 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
     A Quib for wrapping np.vectorize.__call__.
     Support forward and backwards translation, and partial calculation.
     """
+
+    _DEFAULT_EVALUATE_NOW = False
+
     SUPPORTED_FUNCTIONS = {
         np.vectorize.__call__: SupportedFunction(get_vectorize_call_data_args)
     }
@@ -50,7 +53,8 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
         attribute as a kwargs to create().
         """
         return super()._wrapper_call(func, args, kwargs, **create_kwargs,
-                                     pass_quibs=args[0].pass_quibs, update_type=args[0].update_type)
+                                     pass_quibs=args[0].pass_quibs, update_type=args[0].update_type,
+                                     evaluate_now=args[0].evaluate_now)
 
     @cached_property
     def _vectorize(self) -> np.vectorize:
@@ -259,12 +263,14 @@ class QVectorize(np.vectorize):
     with a quib function wrapper.
     """
 
-    def __init__(self, *args, pass_quibs=False, update_type: Union[str, UpdateType] = None, signature=None, cache=False, **kwargs):
+    def __init__(self, *args, pass_quibs=False, update_type: Union[str, UpdateType] = None,
+                 evaluate_now: bool = None, signature=None, cache=False, **kwargs):
         from pyquibbler.quib import UpdateType
         # We don't need the underlying vectorize object to cache, we are doing that ourselves.
         super().__init__(*args, signature=signature, cache=False, **kwargs)
         self.pass_quibs = pass_quibs
-        self.update_type = update_type or UpdateType.LAZY
+        self.update_type = update_type or UpdateType.DRAG
+        self.evaluate_now = evaluate_now or False
 
     def __repr__(self):
         return f"<{self.__class__.__name__} {self.signature}>"

@@ -15,7 +15,7 @@ from ..assignment import AssignmentTemplate, PathComponent
 from ..function_quibs import DefaultFunctionQuib, CacheBehavior
 from ..function_quibs.external_call_failed_exception_handling import external_call_failed_exception_handling
 from ..utils import recursively_run_func_on_object, iter_object_type_in_args, iter_quibs_in_args
-from ...env import GRAPHICS_LAZY
+from ...env import GRAPHICS_EVALUATE_NOW
 from ...input_validation_utils import InvalidArgumentException
 
 
@@ -34,7 +34,9 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
     attributes, such as color.
     """
 
-    _DEFAULT_LAZY = GRAPHICS_LAZY
+    _DEFAULT_EVALUATE_NOW = GRAPHICS_EVALUATE_NOW
+
+    _DEFAULT_REDRAW_UPDATE_TYPE = UpdateType.DRAG
 
     # Avoid unnecessary repaints
     _DEFAULT_CACHE_BEHAVIOR = CacheBehavior.ON
@@ -70,8 +72,8 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
 
     @classmethod
     def create(cls, func, func_args=(), func_kwargs=None, cache_behavior=None,
-               update_type: Union[UpdateType, str] = None, **init_kwargs):
-        update_type = update_type or UpdateType.DRAG
+               update_type: Union[UpdateType, str] = None, evaluate_now: bool = None, **init_kwargs):
+        update_type = update_type or cls._DEFAULT_REDRAW_UPDATE_TYPE
         if isinstance(update_type, str):
             try:
                 update_type = UpdateType[update_type.upper()]
@@ -81,11 +83,13 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
                                                        cache_behavior=cache_behavior, update_type=update_type,
                                                        **init_kwargs)
 
-        if update_type != UpdateType.LAZY:
+        if evaluate_now is None:
+            evaluate_now = cls._DEFAULT_EVALUATE_NOW
+
+        if evaluate_now:
             self.get_value()
 
         return self
-
 
     def persist_self_on_artists(self, artists: Set[Artist]):
         """
@@ -255,7 +259,7 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
 
     def redraw_if_relevant(self):
         from .widgets import is_within_drag
-        if self._update_type in [UpdateType.LAZY, UpdateType.CENTRAL] \
+        if self._update_type in [UpdateType.NEVER, UpdateType.CENTRAL] \
                 or (self._update_type == UpdateType.DROP and is_within_drag()):
             return
 

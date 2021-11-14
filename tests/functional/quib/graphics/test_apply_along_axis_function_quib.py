@@ -7,7 +7,7 @@ import pytest
 from pytest import mark
 
 from pyquibbler import iquib
-from pyquibbler.env import GRAPHICS_LAZY
+from pyquibbler.env import GRAPHICS_EVALUATE_NOW
 from pyquibbler.quib import PathComponent, Quib
 from pyquibbler.quib.assignment.utils import get_sub_data_from_object_in_path
 from pyquibbler.quib.graphics import ApplyAlongAxisGraphicsFunctionQuib
@@ -37,7 +37,7 @@ def test_apply_along_axis_get_value_valid_at_path(indices_to_get_value_at, axis,
 
 
 def create_lazy_apply_along_axis_quib(func, arr, axis, args=None, kwargs=None, pass_quibs=False):
-    with GRAPHICS_LAZY.temporary_set(True):
+    with GRAPHICS_EVALUATE_NOW.temporary_set(True):
         return np.apply_along_axis(func, axis, iquib(arr) if not isinstance(arr, Quib) else arr,
                                    *(args or []), **(kwargs or {}), pass_quibs=pass_quibs)
 
