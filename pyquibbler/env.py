@@ -2,7 +2,7 @@ from .utils import Flag
 
 DEBUG = Flag(True)
 
-EVALUATE_NOW = Flag(True)
+EVALUATE_NOW = Flag(False)
 
 GRAPHICS_EVALUATE_NOW = Flag(True)
 
