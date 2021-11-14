@@ -68,3 +68,7 @@ def test_elementwise_function_quib_does_not_request_unneeded_indices_on_get_valu
 def test_elementwise_get_value(data, indices_to_get_value_at):
     path_to_get_value_at = [PathComponent(np.ndarray, indices_to_get_value_at)]
     check_get_value_valid_at_path(lambda x: np.add(x, 1), data, path_to_get_value_at)
+
+
+def test_elementwise_with_no_parents():
+    assert ElementWiseFunctionQuib.create(np.sin, (0,)).get_value() == 0

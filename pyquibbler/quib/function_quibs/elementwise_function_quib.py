@@ -209,18 +209,13 @@ class ElementWiseFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunctionQuib
         ])
 
     def _get_source_paths_of_quibs_given_path(self, filtered_path_in_result: List[PathComponent]):
-        quib_to_change = self._get_quibs_in_args()[0]
-        changed_indices = self._get_indices_to_change(quib_to_change,
-                                                      get_nd_working_component_value_from_path(filtered_path_in_result))
-
-        if len(changed_indices) == 0:
-            new_path = []
-        else:
-            new_path = [PathComponent(indexed_cls=self.get_type(), component=changed_indices)]
-
-        return {
-            quib_to_change: new_path
-        }
+        result = {}
+        for quib_to_change in self._get_data_source_quibs():
+            working_component = get_nd_working_component_value_from_path(filtered_path_in_result)
+            changed_indices = self._get_indices_to_change(quib_to_change, working_component)
+            new_path = [] if len(changed_indices) == 0 else [PathComponent(self.get_type(), changed_indices)]
+            result[quib_to_change] = new_path
+        return result
 
     def _get_quibs_in_args(self) -> List[Quib]:
         """

@@ -20,6 +20,7 @@ parametrize_indices_to_invalidate = mark.parametrize('indices_to_invalidate',
 @fixture
 def temp_axes():
     ax = plt.gca()
+    ax.clear()
     yield ax
     ax.clear()
 
