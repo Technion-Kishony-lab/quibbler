@@ -62,7 +62,12 @@ class ArgsValues:
         return cls(args, kwargs, arg_values_by_position, arg_values_by_name)
 
 
-def unbroadcast_bool_mask(bool_mask, original_shape):
+def unbroadcast_bool_mask(bool_mask: np.ndarray, original_shape: Tuple[int, ...]) -> np.ndarray:
+    """
+    Given a bool mask representing changes in an array which is a result of a broadcast, return an "un-broadcast"
+    array in the given original shape (the shape before broadcasting) in which each boolean is true
+    if any of its broadcast bools was true.
+    """
     new_broadcast_ndim = bool_mask.ndim - len(original_shape)
     assert new_broadcast_ndim >= 0
     new_broadcast_axes = tuple(range(0, new_broadcast_ndim))

@@ -61,8 +61,6 @@ def deep_assign_data_in_path(data: Any, path: List[PathComponent], value: Any, r
 
         try:
             new_element[component.component] = last_element
-        except TypeError:
-            print
         except IndexError as e:
             if raise_on_failure:
                 raise FailedToDeepAssignException(path=path, exception=e)
