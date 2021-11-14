@@ -17,6 +17,10 @@ from ..utils import recursively_run_func_on_object, iter_object_type_in_args, it
 from ...env import GRAPHICS_LAZY
 
 
+def create_array_from_func(func, shape):
+    return np.vectorize(lambda _: func(), otypes=[object])(np.empty(shape))
+
+
 def proxify_args(args, kwargs):
     from pyquibbler.quib import Quib, ProxyQuib
     replace_quibs_with_proxy_quibs = lambda arg: ProxyQuib(arg) if isinstance(arg, Quib) else arg
@@ -208,7 +212,7 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
                 self._disable_widgets(widget_set, always_disable=True)
             self._graphics_collection_ndarr = None
         if self._graphics_collection_ndarr is None:
-            self._graphics_collection_ndarr = np.vectorize(lambda _: GraphicsCollection())(np.empty(loop_shape))
+            self._graphics_collection_ndarr = create_array_from_func(GraphicsCollection, loop_shape)
 
     @contextmanager
     def _call_func_context(self, graphics_collection):

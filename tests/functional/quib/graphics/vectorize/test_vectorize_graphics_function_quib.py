@@ -209,3 +209,13 @@ def test_vectorize_doesnt_evaluate_sample_when_getting_value():
     result[1].get_value()
 
     func_mock.assert_called_once_with(1)
+
+
+def test_vectorize_with_data_with_zero_dims():
+    data = iquib(np.array(np.zeros((3, 0, 2))))
+    mock_func = Mock()
+
+    result = np.vectorize(mock_func, otypes=[np.int32])(data).get_value()
+
+    assert np.array_equal(result, np.empty((3, 0, 2), dtype=np.int32))
+    mock_func.assert_not_called()
