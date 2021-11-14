@@ -257,7 +257,10 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         with self._call_func_context(self._graphics_collection_ndarr[()]), external_call_failed_exception_handling():
             return self.func(*args, **kwargs)
 
-    def redraw_if_relevant(self):
+    def redraw_if_appropriate(self):
+        """
+        Redraws the quib if it's appropriate
+        """
         from .widgets import is_within_drag
         if self._update_type in [UpdateType.NEVER, UpdateType.CENTRAL] \
                 or (self._update_type == UpdateType.DROP and is_within_drag()):

@@ -34,7 +34,7 @@ def _redraw_graphics_function_quibs():
     quibs_that_are_invalid = [quib for quib in QUIBS_TO_REDRAW if quib.cache_status != CacheStatus.ALL_VALID]
     logger.info(f"redrawing {len(quibs_that_are_invalid)} quibs")
     for graphics_function_quib in quibs_that_are_invalid:
-        graphics_function_quib.redraw_if_relevant()
+        graphics_function_quib.redraw_if_appropriate()
     axeses = {axes for graphics_function_quib in quibs_that_are_invalid
               for axes in graphics_function_quib.get_axeses()}
 
