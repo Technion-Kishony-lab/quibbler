@@ -49,6 +49,8 @@ class ArgsValues:
 
     @classmethod
     def from_function_call(cls, func: Callable, args: Tuple[Any, ...], kwargs: Mapping[str, Any], include_defaults):
+        # We use external_call_failed_exception_handling here as if the user provided the wrong arguments to the
+        # function we'll fail here
         with external_call_failed_exception_handling():
             try:
                 arg_values_by_name = dict(iter_args_and_names_in_function_call(func, args, kwargs, include_defaults))
