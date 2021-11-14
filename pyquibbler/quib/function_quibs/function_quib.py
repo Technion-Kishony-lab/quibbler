@@ -83,7 +83,7 @@ class FunctionQuib(Quib):
         return set(iter_quibs_in_args(self.args, self.kwargs))
 
     @classmethod
-    def create(cls, func, func_args=(), func_kwargs=None, cache_behavior=None, **init_kwargs):
+    def create(cls, func, func_args=(), func_kwargs=None, cache_behavior=None, lazy=None, **init_kwargs):
         """
         Public constructor for FunctionQuib.
         """
@@ -105,7 +105,9 @@ class FunctionQuib(Quib):
                    cache_behavior=cache_behavior, **init_kwargs)
         for arg in iter_quibs_in_args(func_args, func_kwargs):
             arg.add_child(self)
-        if not LAZY:
+        if lazy is None:
+            lazy = LAZY
+        if not lazy:
             self.get_value()
         return self
 

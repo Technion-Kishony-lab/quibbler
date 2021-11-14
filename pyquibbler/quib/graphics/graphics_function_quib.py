@@ -64,12 +64,9 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
 
     @classmethod
     def create(cls, func, func_args=(), func_kwargs=None, cache_behavior=None, lazy=None, **init_kwargs):
-        self = super().create(func, func_args, func_kwargs, cache_behavior, **init_kwargs)
         if lazy is None:
-            lazy = GRAPHICS_LAZY
-        if not lazy:
-            self.get_value()
-        return self
+            lazy = bool(GRAPHICS_LAZY)
+        return super().create(func, func_args, func_kwargs, cache_behavior, lazy=lazy, **init_kwargs)
 
     def persist_self_on_artists(self, artists: Set[Artist]):
         """

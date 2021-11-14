@@ -4,7 +4,6 @@ from typing import Union
 from pyquibbler.input_validation_utils import validate_user_input
 from pyquibbler.project import Project
 from pyquibbler.quib import GraphicsFunctionQuib
-from pyquibbler.quib import DefaultFunctionQuib
 
 
 def q(func, *args, **kwargs):
@@ -12,17 +11,17 @@ def q(func, *args, **kwargs):
     Creates a function quib from the given function call.
     """
     # In case the given function is already a wrapper for a specific quib type, we use it.
-    quib_type = getattr(func, '__quib_wrapper__', DefaultFunctionQuib)
-    return quib_type.create(func=func, func_args=args, func_kwargs=kwargs)
+    quib_type = getattr(func, '__quib_wrapper__', GraphicsFunctionQuib)
+    return quib_type.create(func=func, func_args=args, func_kwargs=kwargs, lazy=True)
 
 
-def q_graphics(func, *args, **kwargs):
+def q_eager(func, *args, **kwargs):
     """
     Creates a graphical function quib from the given function call.
     """
     # In case the given function is already a wrapper for a specific quib type, we use it.
     quib_type = getattr(func, '__quib_wrapper__', GraphicsFunctionQuib)
-    return quib_type.create(func=func, func_args=args, func_kwargs=kwargs)
+    return quib_type.create(func=func, func_args=args, func_kwargs=kwargs, lazy=False)
 
 
 def reset_impure_function_quibs():
