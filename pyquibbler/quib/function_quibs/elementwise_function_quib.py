@@ -147,6 +147,7 @@ class ElementWiseFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunctionQuib
                 (np.cosh, ((np.arccosh, None), (lambda x: -np.arccosh(x), None))),
                 (np.tanh, ((np.arctanh, None),)),
                 (np.square, ((np.sqrt, None), (lambda x: -np.sqrt(x), None))),
+                (np.abs, ((identity, None), (lambda x: -x, None))),
             ]
         },
     }
