@@ -72,7 +72,7 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         self._had_artists_on_last_run = had_artists_on_last_run
         self._pass_quibs = pass_quibs
         self._graphics_collection_ndarr = None
-        self._update_type = update_type or UpdateType.DRAG
+        self.update_type = update_type or UpdateType.DRAG
 
     @classmethod
     def create(cls, func, func_args=(), func_kwargs=None, cache_behavior=None,
@@ -266,8 +266,8 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         Redraws the quib if it's appropriate
         """
         from .widgets import is_within_drag
-        if self._update_type in [UpdateType.NEVER, UpdateType.CENTRAL] \
-                or (self._update_type == UpdateType.DROP and is_within_drag()):
+        if self.update_type in [UpdateType.NEVER, UpdateType.CENTRAL] \
+                or (self.update_type == UpdateType.DROP and is_within_drag()):
             return
 
         return self.get_value()

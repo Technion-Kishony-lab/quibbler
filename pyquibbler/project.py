@@ -200,3 +200,12 @@ class Project:
             self._pushing_undo_group.insert(0, assignment_action)
         else:
             self._undo_action_groups.append([assignment_action])
+
+    def redraw_central_refresh_graphics_function_quibs(self):
+        """
+        Redraw all graphics function quibs which only redraw when set to UpdateType.CENTRAL
+        """
+        from pyquibbler.quib import GraphicsFunctionQuib, UpdateType
+        for quib in self.quibs:
+            if isinstance(quib, GraphicsFunctionQuib) and quib.update_type == UpdateType.CENTRAL:
+                quib.get_value()

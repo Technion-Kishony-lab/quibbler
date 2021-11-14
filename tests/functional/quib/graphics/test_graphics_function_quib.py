@@ -1,11 +1,9 @@
-import numpy as np
 import pytest
 from unittest import mock
 
 from pyquibbler import iquib
 from pyquibbler.env import GRAPHICS_EVALUATE_NOW
-from pyquibbler.quib import UpdateType, Quib
-from pyquibbler.quib.assignment.assignment import PathComponent
+from pyquibbler.quib import UpdateType
 from pyquibbler.quib.graphics import GraphicsFunctionQuib
 from pyquibbler.quib.graphics.widgets.drag_context_manager import dragging
 
@@ -110,10 +108,11 @@ def test_graphics_function_quib_update_on_drop():
     assert len(func.mock_calls) == 1
 
 
-def test_graphics_function_quib_with_str_in_update_type():
+@pytest.mark.parametrize("update_type", ["never", "central"])
+def test_graphics_function_quib_which_should_never_update(update_type):
     func = mock.Mock()
     parent = iquib(7)
-    _ = GraphicsFunctionQuib.create(func=func, func_args=(parent,), update_type='never', evaluate_now=False)
+    _ = GraphicsFunctionQuib.create(func=func, func_args=(parent,), update_type=update_type, evaluate_now=False)
 
     parent.invalidate_and_redraw_at_path([])
 

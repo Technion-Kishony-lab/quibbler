@@ -181,3 +181,13 @@ def test_project_has_redo_when_true(project):
     project.undo()
 
     assert project.has_redo()
+
+
+def test_project_redraw_central_graphics_function_quibs(project):
+    func = mock.Mock()
+    _ = GraphicsFunctionQuib.create(func=func, update_type='central', evaluate_now=False)
+
+    project.redraw_central_refresh_graphics_function_quibs()
+
+    func.assert_called_once()
+
