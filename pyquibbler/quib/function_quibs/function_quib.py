@@ -57,16 +57,12 @@ class FunctionQuib(Quib):
                  args: Tuple[Any, ...],
                  kwargs: Mapping[str, Any],
                  cache_behavior: Optional[CacheBehavior],
-                 assignment_template: Optional[AssignmentTemplate] = None,
-                 lazy: Optional[bool] = None):
-        if lazy is None:
-            lazy = self._DEFAULT_LAZY
+                 assignment_template: Optional[AssignmentTemplate] = None):
         super().__init__(assignment_template=assignment_template)
         self._func = func
         self._args = args
         self._kwargs = kwargs
         self._cache_behavior = None
-        self.lazy = lazy
 
         if cache_behavior is None:
             cache_behavior = self._DEFAULT_CACHE_BEHAVIOR
@@ -87,7 +83,7 @@ class FunctionQuib(Quib):
         return set(iter_quibs_in_args(self.args, self.kwargs))
 
     @classmethod
-    def create(cls, func, func_args=(), func_kwargs=None, cache_behavior=None, lazy=None, **init_kwargs):
+    def create(cls, func, func_args=(), func_kwargs=None, cache_behavior=None, **init_kwargs):
         """
         Public constructor for FunctionQuib.
         """
@@ -106,11 +102,9 @@ class FunctionQuib(Quib):
                        for k, v in func_kwargs.items()}
         func_args = deep_copy_without_quibs_or_artists(func_args)
         self = cls(func=func, args=func_args, kwargs=func_kwargs,
-                   cache_behavior=cache_behavior, lazy=lazy, **init_kwargs)
+                   cache_behavior=cache_behavior, **init_kwargs)
         for arg in iter_quibs_in_args(func_args, func_kwargs):
             arg.add_child(self)
-        if not self.lazy:
-            self.get_value()
         return self
 
     @classmethod

@@ -21,13 +21,13 @@ class ApplyAlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
     TRANSLATION_RELATED_ARGS = [Arg('axis')]
 
     @classmethod
-    def create(cls, func, func_args=(), func_kwargs=None, cache_behavior=None, lazy=None, **init_kwargs):
+    def create(cls, func, func_args=(), func_kwargs=None, cache_behavior=None, **init_kwargs):
         func_kwargs = func_kwargs or {}
         pass_quibs = func_kwargs.pop('pass_quibs', False)
-        lazy = func_kwargs.pop('lazy', lazy)
+        update_type = func_kwargs.pop('update_type')
         return super(ApplyAlongAxisGraphicsFunctionQuib, cls).create(func=func, func_args=func_args,
                                                                      cache_behavior=cache_behavior,
-                                                                     lazy=lazy,
+                                                                     update_type=update_type,
                                                                      func_kwargs=func_kwargs,
                                                                      pass_quibs=pass_quibs,
                                                                      **init_kwargs)

@@ -83,13 +83,30 @@ def test_graphics_function_quib_does_not_run_when_lazy_flag_set_to_true():
     assert func.call_count == 0
 
 
-def test_graphics_function_quib_does_not_update_on_drag_if_update_type_is_drop():
+@pytest.mark.parametrize("update_type,should_have_called", [
+    (UpdateType.DRAG, True),
+    (UpdateType.DROP, False),
+    (UpdateType.LAZY, False),
+    (UpdateType.CENTRAL, False)
+])
+def test_graphics_function_quib_update_on_drag(update_type, should_have_called):
     func = mock.Mock()
     parent = iquib(7)
-    _ = GraphicsFunctionQuib.create(func=func, func_args=(parent,), lazy=True, update_type=UpdateType.DROP)
+    _ = GraphicsFunctionQuib.create(func=func, func_args=(parent,), update_type=update_type)
 
     with dragging():
         parent.invalidate_and_redraw_at_path([])
 
-    func.assert_not_called()
+    assert len(func.mock_calls) == (1 if should_have_called else 0)
+
+
+def test_graphics_function_quib_update_on_drop():
+    func = mock.Mock()
+    parent = iquib(7)
+    _ = GraphicsFunctionQuib.create(func=func, func_args=(parent,), update_type=UpdateType.DROP)
+
+    parent.invalidate_and_redraw_at_path([])
+
+    assert len(func.mock_calls) == 1
+
 

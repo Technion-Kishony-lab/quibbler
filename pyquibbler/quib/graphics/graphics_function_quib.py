@@ -58,15 +58,22 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
                  kwargs: Mapping[str, Any],
                  cache_behavior: Optional[CacheBehavior],
                  assignment_template: Optional[AssignmentTemplate] = None,
-                 lazy: Optional[bool] = None,
                  had_artists_on_last_run: bool = False,
                  pass_quibs: bool = False,
                  update_type: UpdateType = None):
-        super().__init__(func, args, kwargs, cache_behavior, assignment_template, lazy)
+        super().__init__(func, args, kwargs, cache_behavior, assignment_template)
         self._had_artists_on_last_run = had_artists_on_last_run
         self._pass_quibs = pass_quibs
         self._graphics_collection_ndarr = None
         self._update_type = update_type or UpdateType.DRAG
+
+    @classmethod
+    def create(cls, func, func_args=(), func_kwargs=None, cache_behavior=None,
+               update_type: UpdateType = None, **init_kwargs):
+        update_type = update_type or UpdateType.DRAG
+        return super(GraphicsFunctionQuib, cls).create(func=func, func_args=func_args, func_kwargs=func_kwargs,
+                                                       cache_behavior=cache_behavior, update_type=update_type,
+                                                       **init_kwargs)
 
     def persist_self_on_artists(self, artists: Set[Artist]):
         """
@@ -236,7 +243,8 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
 
     def redraw_if_relevant(self):
         from .widgets import is_within_drag
-        if self.lazy or (self._update_type == UpdateType.DROP and is_within_drag()):
+        if self._update_type in [UpdateType.LAZY, UpdateType.CENTRAL] \
+                or (self._update_type == UpdateType.DROP and is_within_drag()):
             return
 
         return self.get_value()
