@@ -116,7 +116,7 @@ def test_parents():
     assert fquib.parents == {parent1, parent2}
 
 
-@mark.lazy(False)
+@mark.evaluate_now(True)
 def function_quib_create_calculates_when_not_lazy(function_mock):
     ExampleFunctionQuib.create(function_mock)
 

@@ -18,7 +18,7 @@ from ..assignment import AssignmentTemplate, Assignment, PathComponent
 from ..quib import Quib
 from ..utils import is_there_a_quib_in_args, iter_quibs_in_args, deep_copy_without_quibs_or_artists, \
     recursively_run_func_on_object, QuibRef
-from ...env import LAZY, PRETTY_REPR
+from ...env import EVALUATE_NOW, PRETTY_REPR
 from ...exceptions import PyQuibblerException
 from ...input_validation_utils import validate_user_input
 
@@ -47,7 +47,7 @@ class FunctionQuib(Quib):
     """
     An abstract class for quibs that represent the result of a computation.
     """
-    _DEFAULT_LAZY = LAZY
+    _DEFAULT_EVALUATE_NOW = EVALUATE_NOW
     _DEFAULT_CACHE_BEHAVIOR = CacheBehavior.AUTO
     MAX_BYTES_PER_SECOND = 2 ** 30
     MIN_SECONDS_FOR_CACHE = 1e-3
@@ -57,16 +57,12 @@ class FunctionQuib(Quib):
                  args: Tuple[Any, ...],
                  kwargs: Mapping[str, Any],
                  cache_behavior: Optional[CacheBehavior],
-                 assignment_template: Optional[AssignmentTemplate] = None,
-                 lazy: Optional[bool] = None):
-        if lazy is None:
-            lazy = self._DEFAULT_LAZY
+                 assignment_template: Optional[AssignmentTemplate] = None):
         super().__init__(assignment_template=assignment_template)
         self._func = func
         self._args = args
         self._kwargs = kwargs
         self._cache_behavior = None
-        self.lazy = lazy
 
         if cache_behavior is None:
             cache_behavior = self._DEFAULT_CACHE_BEHAVIOR
@@ -87,7 +83,7 @@ class FunctionQuib(Quib):
         return set(iter_quibs_in_args(self.args, self.kwargs))
 
     @classmethod
-    def create(cls, func, func_args=(), func_kwargs=None, cache_behavior=None, lazy=None, **init_kwargs):
+    def create(cls, func, func_args=(), func_kwargs=None, cache_behavior=None, evaluate_now=False, **init_kwargs):
         """
         Public constructor for FunctionQuib.
         """
@@ -106,11 +102,13 @@ class FunctionQuib(Quib):
                        for k, v in func_kwargs.items()}
         func_args = deep_copy_without_quibs_or_artists(func_args)
         self = cls(func=func, args=func_args, kwargs=func_kwargs,
-                   cache_behavior=cache_behavior, lazy=lazy, **init_kwargs)
+                   cache_behavior=cache_behavior, **init_kwargs)
         for arg in iter_quibs_in_args(func_args, func_kwargs):
             arg.add_child(self)
-        if not self.lazy:
+
+        if evaluate_now:
             self.get_value()
+
         return self
 
     @classmethod

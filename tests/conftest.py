@@ -5,14 +5,14 @@ import pytest
 from pytest import fixture
 
 from pyquibbler import CacheBehavior, override_all
-from pyquibbler.env import DEBUG, LAZY, ASSIGNMENT_RESTRICTIONS, PRETTY_REPR, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS, \
+from pyquibbler.env import DEBUG, EVALUATE_NOW, ASSIGNMENT_RESTRICTIONS, PRETTY_REPR, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS, \
     GET_VARIABLE_NAMES
 from pyquibbler.project import Project
 from pyquibbler.quib import FunctionQuib
 from pyquibbler.utils import Flag
 
 DEFAULT_DEBUG = True
-DEFAULT_LAZY = True
+DEFAULT_EVALUATE_NOW = False
 DEFAULT_ASSIGNMENT_RESTRICTIONS = False
 DEFAULT_PRETTY_REPR = False
 DEFAULT_SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACK = False
@@ -28,7 +28,7 @@ def setup_environment_for_tests():
 def pytest_configure(config):
     # register additional markers
     config.addinivalue_line("markers", "debug(on): mark test to run with or without debug mode")
-    config.addinivalue_line("markers", "lazy(on): mark test to run with or without lazy mode")
+    config.addinivalue_line("markers", "evaluate_now(off): mark test to run with or without evaluate now mode")
     config.addinivalue_line("markers", "regression: mark test as regression test")
     config.addinivalue_line("markers", "assignment_restrictions(on): mark test to run with or without assignment "
                                        "restrictions mode")
@@ -47,7 +47,7 @@ def parametrize_flag_fixture(metafunc, name, fixture_name):
 
 def pytest_generate_tests(metafunc):
     parametrize_flag_fixture(metafunc, 'debug', 'setup_debug')
-    parametrize_flag_fixture(metafunc, 'lazy', 'setup_lazy')
+    parametrize_flag_fixture(metafunc, 'evaluate', 'setup_evaluate_now')
     parametrize_flag_fixture(metafunc, 'assignment_restrictions', 'setup_assignment_restrictions')
     parametrize_flag_fixture(metafunc, 'pretty_repr', 'setup_pretty_repr')
     parametrize_flag_fixture(metafunc, 'get_variable_names', 'setup_get_variable_names')
@@ -65,8 +65,8 @@ def setup_debug(request):
 
 
 @fixture(autouse=True)
-def setup_lazy(request):
-    yield from setup_flag(LAZY, DEFAULT_LAZY, request)
+def setup_evaluate_now(request):
+    yield from setup_flag(EVALUATE_NOW, DEFAULT_EVALUATE_NOW, request)
 
 
 @fixture(autouse=True)

@@ -7,7 +7,7 @@ from pyquibbler.quib.graphics import GraphicsFunctionQuib
 
 def test_quibbler_user_function_lazy():
     mock_func = mock.Mock()
-    user_function = quibbler_user_function(lazy=True)(mock_func)
+    user_function = quibbler_user_function(evaluate_now=False)(mock_func)
 
     res = user_function()
 
@@ -17,7 +17,7 @@ def test_quibbler_user_function_lazy():
 
 def test_quibbler_user_function_non_lazy():
     mock_func = mock.Mock()
-    user_function = quibbler_user_function(lazy=False)(mock_func)
+    user_function = quibbler_user_function(evaluate_now=True)(mock_func)
 
     res = user_function()
 
@@ -27,7 +27,7 @@ def test_quibbler_user_function_non_lazy():
 
 def test_quibbler_user_function_with_quibs():
     mock_func = mock.Mock()
-    user_function = quibbler_user_function(pass_quibs=True, lazy=False)(mock_func)
+    user_function = quibbler_user_function(pass_quibs=True, evaluate_now=True)(mock_func)
     quib = iquib(6)
 
     res = user_function(quib)

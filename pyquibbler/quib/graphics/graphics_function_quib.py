@@ -1,6 +1,6 @@
 import numpy as np
 from contextlib import contextmanager
-from typing import List, Callable, Tuple, Any, Mapping, Dict, Optional, Iterable, Set
+from typing import List, Callable, Tuple, Any, Mapping, Dict, Optional, Iterable, Set, Union
 from matplotlib.artist import Artist
 from matplotlib.axes import Axes
 from matplotlib.widgets import AxesWidget
@@ -8,13 +8,15 @@ from matplotlib.widgets import AxesWidget
 from .global_collecting import ArtistsCollector, AxesWidgetsCollector
 from .graphics_collection import GraphicsCollection
 from .quib_guard import QuibGuard
+from .update_type import UpdateType
 from .utils import save_func_and_args_on_artists, get_axeses_to_array_names_to_starting_indices_and_artists, \
     remove_artist, get_axeses_to_array_names_to_artists, get_artist_array, ArrayNameToArtists, track_artist
 from ..assignment import AssignmentTemplate, PathComponent
 from ..function_quibs import DefaultFunctionQuib, CacheBehavior
 from ..function_quibs.external_call_failed_exception_handling import external_call_failed_exception_handling
 from ..utils import recursively_run_func_on_object, iter_object_type_in_args, iter_quibs_in_args
-from ...env import GRAPHICS_LAZY
+from ...env import GRAPHICS_EVALUATE_NOW
+from ...input_validation_utils import InvalidArgumentException
 
 
 def create_array_from_func(func, shape):
@@ -36,7 +38,9 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
     attributes, such as color.
     """
 
-    _DEFAULT_LAZY = GRAPHICS_LAZY
+    _DEFAULT_EVALUATE_NOW = GRAPHICS_EVALUATE_NOW
+
+    _DEFAULT_REDRAW_UPDATE_TYPE = UpdateType.DRAG
 
     # Avoid unnecessary repaints
     _DEFAULT_CACHE_BEHAVIOR = CacheBehavior.ON
@@ -61,13 +65,35 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
                  kwargs: Mapping[str, Any],
                  cache_behavior: Optional[CacheBehavior],
                  assignment_template: Optional[AssignmentTemplate] = None,
-                 lazy: Optional[bool] = None,
                  had_artists_on_last_run: bool = False,
-                 pass_quibs: bool = False):
-        super().__init__(func, args, kwargs, cache_behavior, assignment_template, lazy)
+                 pass_quibs: bool = False,
+                 update_type: UpdateType = None):
+        super().__init__(func, args, kwargs, cache_behavior, assignment_template)
         self._had_artists_on_last_run = had_artists_on_last_run
         self._pass_quibs = pass_quibs
         self._graphics_collection_ndarr = None
+        self._update_type = update_type or UpdateType.DRAG
+
+    @classmethod
+    def create(cls, func, func_args=(), func_kwargs=None, cache_behavior=None,
+               update_type: Union[UpdateType, str] = None, evaluate_now: bool = None, **init_kwargs):
+        update_type = update_type or cls._DEFAULT_REDRAW_UPDATE_TYPE
+        if isinstance(update_type, str):
+            try:
+                update_type = UpdateType[update_type.upper()]
+            except KeyError:
+                raise InvalidArgumentException(var_name="updated_type", expected_type=UpdateType) from None
+        self = super(GraphicsFunctionQuib, cls).create(func=func, func_args=func_args, func_kwargs=func_kwargs,
+                                                       cache_behavior=cache_behavior, update_type=update_type,
+                                                       **init_kwargs)
+
+        if evaluate_now is None:
+            evaluate_now = cls._DEFAULT_EVALUATE_NOW
+
+        if evaluate_now:
+            self.get_value()
+
+        return self
 
     def persist_self_on_artists(self, artists: Set[Artist]):
         """
@@ -234,3 +260,14 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
             else self._prepare_args_for_call(valid_path)
         with self._call_func_context(self._graphics_collection_ndarr[()]), external_call_failed_exception_handling():
             return self.func(*args, **kwargs)
+
+    def redraw_if_appropriate(self):
+        """
+        Redraws the quib if it's appropriate
+        """
+        from .widgets import is_within_drag
+        if self._update_type in [UpdateType.NEVER, UpdateType.CENTRAL] \
+                or (self._update_type == UpdateType.DROP and is_within_drag()):
+            return
+
+        return self.get_value()
