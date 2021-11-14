@@ -136,10 +136,8 @@ def test_function_quib_get_value_valid_at_path_with_data_source_kwarg():
 
 
 class InvalidatingFunctionQuib(FunctionQuib):
-
-    def __init__(self, func, args, kwargs,
-                 cache_behavior: Optional[CacheBehavior], data_source_quibs=None):
-        super().__init__(func, args, kwargs, cache_behavior)
+    def __init__(self, *args, data_source_quibs=None, **kwargs):
+        super().__init__(*args, **kwargs)
         self.data_source_quibs = data_source_quibs or []
 
     def _get_data_source_quibs(self):

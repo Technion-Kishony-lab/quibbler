@@ -1,10 +1,9 @@
 from __future__ import annotations
 import functools
 import pathlib
-from dataclasses import dataclass
-
 import numpy as np
 import types
+from dataclasses import dataclass
 from enum import Enum
 from typing import Union, Dict
 from functools import wraps, cached_property, lru_cache
@@ -48,6 +47,7 @@ class FunctionQuib(Quib):
     """
     An abstract class for quibs that represent the result of a computation.
     """
+    _DEFAULT_LAZY = LAZY
     _DEFAULT_CACHE_BEHAVIOR = CacheBehavior.AUTO
     MAX_BYTES_PER_SECOND = 2 ** 30
     MIN_SECONDS_FOR_CACHE = 1e-3
@@ -57,12 +57,16 @@ class FunctionQuib(Quib):
                  args: Tuple[Any, ...],
                  kwargs: Mapping[str, Any],
                  cache_behavior: Optional[CacheBehavior],
-                 assignment_template: Optional[AssignmentTemplate] = None):
+                 assignment_template: Optional[AssignmentTemplate] = None,
+                 lazy: Optional[bool] = None):
+        if lazy is None:
+            lazy = self._DEFAULT_LAZY
         super().__init__(assignment_template=assignment_template)
         self._func = func
         self._args = args
         self._kwargs = kwargs
         self._cache_behavior = None
+        self.lazy = lazy
 
         if cache_behavior is None:
             cache_behavior = self._DEFAULT_CACHE_BEHAVIOR
@@ -102,12 +106,10 @@ class FunctionQuib(Quib):
                        for k, v in func_kwargs.items()}
         func_args = deep_copy_without_quibs_or_artists(func_args)
         self = cls(func=func, args=func_args, kwargs=func_kwargs,
-                   cache_behavior=cache_behavior, **init_kwargs)
+                   cache_behavior=cache_behavior, lazy=lazy, **init_kwargs)
         for arg in iter_quibs_in_args(func_args, func_kwargs):
             arg.add_child(self)
-        if lazy is None:
-            lazy = LAZY
-        if not lazy:
+        if not self.lazy:
             self.get_value()
         return self
 

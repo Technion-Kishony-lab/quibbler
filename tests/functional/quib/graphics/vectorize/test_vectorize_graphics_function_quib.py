@@ -1,3 +1,5 @@
+from unittest.mock import Mock
+
 import matplotlib.pyplot as plt
 import numpy as np
 from functools import partial
@@ -185,3 +187,15 @@ def test_vectorize_with_empty_data_and_no_otypes(data, use_quib):
         vectorized(data)
 
     assert exc_info.value.args[0] == 'cannot call `vectorize` on size 0 inputs unless `otypes` is set'
+
+
+def test_lazy_vectorize():
+    func_mock = Mock(return_value=5)
+    parent = iquib([0, 1, 2, 3])
+    reference_to_vectorize = np.vectorize(func_mock, lazy=True)(parent)
+    func_mock.assert_not_called()
+
+    parent[0] = 100
+    parent[1] = 101
+    parent[2] = 102
+    func_mock.assert_called_once()

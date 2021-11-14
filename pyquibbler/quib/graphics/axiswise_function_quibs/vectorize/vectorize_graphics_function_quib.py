@@ -3,7 +3,6 @@ import numpy as np
 from functools import cached_property
 from typing import Any, Optional, List, Tuple, Set
 
-from pyquibbler.env import GRAPHICS_LAZY
 from pyquibbler.quib.function_quibs.external_call_failed_exception_handling \
     import external_call_failed_exception_handling
 from pyquibbler.quib.quib import Quib, cache_method_until_full_invalidation
@@ -260,8 +259,6 @@ class QVectorize(np.vectorize):
         # We don't need the underlying vectorize object to cache, we are doing that ourselves.
         super().__init__(*args, signature=signature, cache=False, **kwargs)
         self.pass_quibs = pass_quibs
-        if lazy is None:
-            lazy = bool(GRAPHICS_LAZY)
         self.lazy = lazy
 
     def __repr__(self):

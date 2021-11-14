@@ -72,9 +72,9 @@ def test_quib_invalidate_and_redraw_calls_graphics_function_quib_children(exampl
     quib = GraphicsFunctionQuib(func=mock_func, args=tuple(), kwargs={}, cache_behavior=None)
     example_quib.add_child(quib)
     quib.get_value()  # we want to set cache to valid
+    assert mock_func.call_count == 1
 
     example_quib.invalidate_and_redraw_at_path(path=[])
-
     assert mock_func.call_count == 2  # once for our original get_value, once for the redraw after invalidation
 
 

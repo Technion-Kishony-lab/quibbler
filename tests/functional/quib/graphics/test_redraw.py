@@ -16,14 +16,14 @@ def test_redraw_axes_happy_flow(mock_axes):
 def test_redraw_in_aggregate_mode():
     mock_func = mock.Mock()
     quib = iquib(1)
-    _ = GraphicsFunctionQuib.create(func=mock_func, func_args=(quib,), lazy=True)
+    _ = GraphicsFunctionQuib.create(func=mock_func, func_args=(quib,))
 
     with aggregate_redraw_mode():
         quib.invalidate_and_redraw_at_path([])
         quib.invalidate_and_redraw_at_path([])
         quib.invalidate_and_redraw_at_path([])
 
-    mock_func.assert_called_once()
+    assert mock_func.call_count == 2
 
 
 def test_redraw_axeses_does_not_redraw_same_canvas_twice():

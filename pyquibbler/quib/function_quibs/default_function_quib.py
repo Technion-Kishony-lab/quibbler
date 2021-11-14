@@ -36,8 +36,9 @@ class DefaultFunctionQuib(FunctionQuib):
                  args: Tuple[Any, ...],
                  kwargs: Mapping[str, Any],
                  cache_behavior: Optional[CacheBehavior],
-                 assignment_template: Optional[AssignmentTemplate] = None):
-        super().__init__(func, args, kwargs, cache_behavior, assignment_template=assignment_template)
+                 assignment_template: Optional[AssignmentTemplate] = None,
+                 lazy=None):
+        super().__init__(func, args, kwargs, cache_behavior, assignment_template, lazy)
         self._cache = None
         self._caching = False
         self.reset_cache()

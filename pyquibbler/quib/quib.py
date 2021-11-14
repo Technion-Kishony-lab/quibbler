@@ -168,19 +168,20 @@ class Quib(ABC):
             children |= child._get_children_recursively()
         return children
 
-    def _get_graphics_function_quibs_recursively(self) -> Set[GraphicsFunctionQuib]:
+    def _get_non_lazy_graphics_function_quibs_recursively(self) -> Set[GraphicsFunctionQuib]:
         """
         Get all artists that directly or indirectly depend on this quib.
         """
         from pyquibbler.quib.graphics import GraphicsFunctionQuib
-        return {child for child in self._get_children_recursively() if isinstance(child, GraphicsFunctionQuib)}
+        return {child for child in self._get_children_recursively()
+                if isinstance(child, GraphicsFunctionQuib) and not child.lazy}
 
     def _redraw(self) -> None:
         """
         Redraw all artists that directly or indirectly depend on this quib.
         """
         from pyquibbler.quib.graphics.redraw import redraw_graphics_function_quibs_or_add_in_aggregate_mode
-        quibs = self._get_graphics_function_quibs_recursively()
+        quibs = self._get_non_lazy_graphics_function_quibs_recursively()
         redraw_graphics_function_quibs_or_add_in_aggregate_mode(quibs)
 
     def invalidate_and_redraw_at_path(self, path: Optional[List[PathComponent]] = None) -> None:
