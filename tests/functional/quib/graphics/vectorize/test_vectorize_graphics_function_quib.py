@@ -165,7 +165,7 @@ def test_vectorize_with_pass_quibs_and_core_dims():
 @mark.parametrize('pass_quibs', [True, False])
 def test_vectorize_does_not_redraw_valid_artists(temp_axes, pass_quibs):
     parent = iquib([[1, 2], [3, 4]])
-    vectorized_plot = np.vectorize(plt.plot, signature='(x)->()', otypes=[np.object], pass_quibs=pass_quibs)
+    vectorized_plot = np.vectorize(plt.plot, signature='(x)->()', otypes=[np.object], pass_quibs=pass_quibs, lazy=False)
     vectorized_plot(parent)
     assert len(temp_axes.lines) == 2
     ids = list(map(id, temp_axes.lines))
@@ -182,7 +182,7 @@ def test_vectorize_does_not_redraw_valid_artists(temp_axes, pass_quibs):
 @mark.parametrize('use_quib', [True, False])
 def test_vectorize_with_empty_data_and_no_otypes(data, use_quib):
     data = iquib(data) if use_quib else data
-    vectorized = np.vectorize(lambda x: x)
+    vectorized = np.vectorize(lambda x: x, lazy=False)
     with raises(ValueError) as exc_info:
         vectorized(data)
 
