@@ -29,7 +29,7 @@ from .function_quibs.pretty_converters import MathExpression
 from .utils import quib_method, Unpacker, recursively_run_func_on_object
 from .assignment import PathComponent
 from ..env import LEN_RAISE_EXCEPTION, GET_VARIABLE_NAMES, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS
-from ..input_validation_utils import validate_user_input
+from ..input_validation_utils import validate_user_input, InvalidArgumentException
 from ..logger import logger
 from ..project import Project
 
@@ -125,13 +125,15 @@ class Quib(ABC):
     def project(self) -> Project:
         return Project.get_or_create()
 
-    def setp(self, allow_overriding: bool = None, **kwargs):
+    def setp(self, allow_overriding: bool = None, assignment_template=None, **kwargs):
         """
         Configure a quib with certain attributes- because this function is expected to be used by users, we never
         setattr to anything before checking the types.
         """
         if allow_overriding is not None:
             self.set_allow_overriding(allow_overriding)
+        if assignment_template is not None:
+            self.set_assignment_template(assignment_template)
         if 'name' in kwargs:
             self.set_name(kwargs.pop('name'))
         return self
@@ -439,7 +441,13 @@ class Quib(ABC):
         - quib.set_assignment_template(min, max): set the template to a bound template between min and max.
         - quib.set_assignment_template(start, stop, step): set the template to a bound template between min and max.
         """
+        if len(args) == 1 and isinstance(args[0], tuple):
+            args = args[0]
+
         if len(args) == 1:
+            if not isinstance(args[0], AssignmentTemplate):
+                raise InvalidArgumentException(expected_type=(AssignmentTemplate, tuple),
+                                               var_name="assignment template")
             template, = args
         elif len(args) == 2:
             minimum, maximum = args

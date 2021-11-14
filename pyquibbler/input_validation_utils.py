@@ -1,6 +1,6 @@
 import functools
 from dataclasses import dataclass
-from typing import Type
+from typing import Type, Union, Tuple
 
 from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.quib.function_quibs.utils import ArgsValues
@@ -10,7 +10,7 @@ from pyquibbler.quib.function_quibs.utils import ArgsValues
 class InvalidArgumentException(PyQuibblerException):
 
     var_name: str
-    expected_type: Type
+    expected_type: Union[Type, Tuple[Type, ...]]
 
     def __str__(self):
         types = self.expected_type if isinstance(self.expected_type, tuple) else (self.expected_type,)

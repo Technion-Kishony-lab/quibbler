@@ -210,7 +210,7 @@ def test_quib_override_with_assignment_template(example_quib, assignment_templat
 def test_quib_updates_override_after_assignment_template_changed(example_quib, assignment_template_mock):
     example_quib[0] = 'val'
     item = example_quib[0]
-    new_assignment_template = Mock()
+    new_assignment_template = Mock(spec=RangeAssignmentTemplate)
     new_assignment_template.convert.return_value = 'new_assignment_template.convert.return_value'
     example_quib.set_assignment_template(new_assignment_template)
 
