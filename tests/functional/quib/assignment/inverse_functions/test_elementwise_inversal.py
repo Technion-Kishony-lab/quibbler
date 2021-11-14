@@ -28,6 +28,7 @@ def inverse(function_quib: FunctionQuib, value, path):
     (np.divide, (np.array([20, 20, 20]), iquib(np.array([5, 5, 5]))), ([0],), 5, 1, np.array([4, 5, 5])),
     (__pow__, (iquib(10), 2), None, 10_000, 0, 100),
     (__pow__, (10, iquib(1)), None, 100, 1, 2),
+    (np.abs, (iquib(10),), None, 15, 0, 15),
 ], ids=[
     "add: simple",
     "add: multiple dimensions",
@@ -38,7 +39,8 @@ def inverse(function_quib: FunctionQuib, value, path):
     "divide: first arg is quib",
     "divide: second arg is quib",
     "power: first arg is quib",
-    "power: second arg is quib"])
+    "power: second arg is quib",
+    "abs: positive-to-positive"])
 def test_inverse_elementwise(func, func_args, indices, value, quib_arg_index, expected_value):
     function_quib = ElementWiseFunctionQuib.create(func=func, func_args=func_args)
     if indices is None:
