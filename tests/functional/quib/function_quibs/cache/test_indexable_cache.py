@@ -86,3 +86,10 @@ class TestIndexableCache(IndexableCacheTest):
     def set_completely_invalid(self, result, cache):
         for i in range(len(result)):
             cache.set_invalid_at_path([PathComponent(component=i, indexed_cls=type(result))])
+
+    @pytest.mark.regression
+    def test_set_valid_out_of_bounds_doesnt_raise_exception(self, cache, result):
+        cache.set_valid_value_at_path([PathComponent(component=slice(4, 5), indexed_cls=type(result))], [])
+
+        # we're really asserting the above doesn't raise an exception- but let's make sure nothing changed
+        assert cache.get_cache_status() == CacheStatus.ALL_INVALID

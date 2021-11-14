@@ -68,7 +68,12 @@ class IndexableCache(ShallowCache):
             range_to_set_invalid = (component, component + 1)
 
         for i in range(*range_to_set_invalid):
-            self._invalid_mask[i] = value
+            if i < len(self._invalid_mask):
+                self._invalid_mask[i] = value
+            # If the user attempts to set valid out of bounds, we don't need to do anything-
+            # this can arise if:
+            # `a = iquib([1, 2, 3]); b = a[4:5]; b.get_value();
+            # as python allows accessing slices out of bounds
 
     def _set_valid_value_at_path_component(self, path_component: PathComponent, value):
         self._value[path_component.component] = value
