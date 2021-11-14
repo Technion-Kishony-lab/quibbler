@@ -5,6 +5,8 @@ from .project import Project, CannotLoadWithoutProjectPathException, CannotSaveW
 from matplotlib.pyplot import figure
 from matplotlib.widgets import Button
 
+APP_TITLE = 'Data Quibbler'
+
 class QuibApp:
     """
     An app to control quibbler project functionalities such as save/load undo/redo
@@ -15,7 +17,7 @@ class QuibApp:
     current_project = None
 
     def __init__(self):
-        fig = figure(num='Data Quibbler', figsize=(1.7, 1))
+        fig = figure(num=APP_TITLE, figsize=(1.7, 1))
         fig.canvas.mpl_connect('close_event', self.on_close)
         self.app_figure = fig
 
