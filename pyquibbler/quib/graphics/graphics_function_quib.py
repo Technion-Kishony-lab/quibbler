@@ -1,6 +1,6 @@
 import numpy as np
 from contextlib import contextmanager
-from typing import List, Callable, Tuple, Any, Mapping, Dict, Optional, Iterable, Set
+from typing import List, Callable, Tuple, Any, Mapping, Dict, Optional, Iterable, Set, Union
 from matplotlib.artist import Artist
 from matplotlib.axes import Axes
 from matplotlib.widgets import AxesWidget
@@ -16,6 +16,7 @@ from ..function_quibs import DefaultFunctionQuib, CacheBehavior
 from ..function_quibs.external_call_failed_exception_handling import external_call_failed_exception_handling
 from ..utils import recursively_run_func_on_object, iter_object_type_in_args, iter_quibs_in_args
 from ...env import GRAPHICS_LAZY
+from ...input_validation_utils import InvalidArgumentException
 
 
 def proxify_args(args, kwargs):
@@ -69,8 +70,13 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
 
     @classmethod
     def create(cls, func, func_args=(), func_kwargs=None, cache_behavior=None,
-               update_type: UpdateType = None, **init_kwargs):
+               update_type: Union[UpdateType, str] = None, **init_kwargs):
         update_type = update_type or UpdateType.DRAG
+        if isinstance(update_type, str):
+            try:
+                update_type = UpdateType[update_type.upper()]
+            except KeyError:
+                raise InvalidArgumentException(var_name="updated_type", expected_type=UpdateType) from None
         return super(GraphicsFunctionQuib, cls).create(func=func, func_args=func_args, func_kwargs=func_kwargs,
                                                        cache_behavior=cache_behavior, update_type=update_type,
                                                        **init_kwargs)

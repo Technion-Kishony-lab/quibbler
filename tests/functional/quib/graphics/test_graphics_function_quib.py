@@ -110,3 +110,11 @@ def test_graphics_function_quib_update_on_drop():
     assert len(func.mock_calls) == 1
 
 
+def test_graphics_function_quib_with_str_in_update_type():
+    func = mock.Mock()
+    parent = iquib(7)
+    _ = GraphicsFunctionQuib.create(func=func, func_args=(parent,), update_type='lazy')
+
+    parent.invalidate_and_redraw_at_path([])
+
+    assert len(func.mock_calls) == 0
