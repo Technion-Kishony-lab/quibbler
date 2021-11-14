@@ -3,6 +3,7 @@ from typing import Any, Mapping, Callable, Tuple, Optional
 
 import numpy as np
 
+from .external_call_failed_exception_handling import external_call_failed_exception_handling
 from ..utils import iter_args_and_names_in_function_call
 
 
@@ -48,12 +49,14 @@ class ArgsValues:
 
     @classmethod
     def from_function_call(cls, func: Callable, args: Tuple[Any, ...], kwargs: Mapping[str, Any], include_defaults):
-        try:
-            arg_values_by_name = dict(iter_args_and_names_in_function_call(func, args, kwargs, include_defaults))
-            arg_values_by_position = tuple(arg_values_by_name.values())
-        except ValueError:
-            arg_values_by_name = kwargs
-            arg_values_by_position = args
+        with external_call_failed_exception_handling():
+            try:
+                arg_values_by_name = dict(iter_args_and_names_in_function_call(func, args, kwargs, include_defaults))
+                arg_values_by_position = tuple(arg_values_by_name.values())
+            except ValueError:
+                arg_values_by_name = kwargs
+                arg_values_by_position = args
+
         return cls(args, kwargs, arg_values_by_position, arg_values_by_name)
 
 
