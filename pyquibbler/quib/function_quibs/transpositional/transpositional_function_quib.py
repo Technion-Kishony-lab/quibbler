@@ -30,6 +30,7 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
         np.swapaxes: SupportedFunction({0}),
         np.expand_dims: SupportedFunction({0}),
         np.tile: SupportedFunction({0}),
+        np.transpose: SupportedFunction({0}),
     }
 
     def _replace_quibs_in_arguments_which_can_potentially_change(self, replace_func: Callable[['Quib'], Any]):

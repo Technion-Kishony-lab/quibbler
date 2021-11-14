@@ -60,7 +60,7 @@ NUMPY_OVERRIDES = [
                                "linspace", "polyval", "genfromtxt", 'corrcoef'}),
         (GraphicsFunctionQuib, {'apply_over_axes'}),
         (TranspositionalFunctionQuib, {'reshape', 'rot90', 'ravel', 'concatenate', 'repeat', 'full', 'concatenate',
-                                       'squeeze', 'array', 'swapaxes', 'expand_dims', 'tile'}),
+                                       'squeeze', 'array', 'swapaxes', 'expand_dims', 'tile', 'transpose'}),
         (ElementWiseFunctionQuib, {'add', 'square', "sin", "cos", "tan", "sinh", "cosh", "tanh", "real", "imag",
                                    "arcsin", "arccos", "arctan", "arcsinh", "arccosh", "arctanh",
                                    "exp", "exp2", "expm1", "log", "log2", "log1p", "log10",
