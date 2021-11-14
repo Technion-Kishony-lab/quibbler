@@ -131,3 +131,36 @@ class ReductionAxisWiseGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
                 bool_mask = np.expand_dims(bool_mask, input_core_dims)
         bool_mask = np.broadcast_to(bool_mask, quib.get_shape())
         return np.logical_and(bool_mask, args_dict['where'])
+
+
+class AccumulationAxisWiseGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
+    SUPPORTED_FUNCTIONS = {
+        np.cumsum: SupportedFunction({0}),
+        np.cumprod: SupportedFunction({0}),
+        np.cumproduct: SupportedFunction({0}),
+    }
+    TRANSLATION_RELATED_ARGS = [Arg('axis')]
+
+    def _forward_translate_bool_mask(self, args_dict, boolean_mask, invalidator_quib: Quib):
+        """
+        Calculate forward index translation for reduction functions by accumulating the boolean arrays
+        with the same accumulation params.
+        """
+        axis = args_dict.pop('axis')
+        if axis is None:
+            boolean_mask = boolean_mask.flat
+            axis = 0
+        return np.logical_or.accumulate(boolean_mask, axis=axis, **args_dict)
+
+    def _backward_translate_bool_mask(self, args_dict, bool_mask, quib: Quib):
+        result_core_axis = args_dict.pop('axis')
+        need_reshape = False
+        if result_core_axis is None:
+            result_core_axis = 0
+            need_reshape = True
+        bool_mask = np.flip(bool_mask, axis=result_core_axis)
+        bool_mask = np.logical_or.accumulate(bool_mask, axis=result_core_axis, **args_dict)
+        bool_mask = np.flip(bool_mask, axis=result_core_axis)
+        if need_reshape:
+            bool_mask = np.reshape(bool_mask, quib.get_shape())
+        return bool_mask

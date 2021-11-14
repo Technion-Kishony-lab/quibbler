@@ -75,3 +75,24 @@ def test_reduction_axiswise_get_value_valid_at_path(axis, data, keepdims, where,
         kwargs['where'] = where
     path_to_get_value_at = [PathComponent(np.ndarray, indices_to_get_value_at)]
     check_get_value_valid_at_path(lambda quib: np.sum(quib, **kwargs), data, path_to_get_value_at)
+
+
+@parametrize_indices_to_invalidate
+@parametrize_data
+@mark.parametrize('axis', [-1, 0, 1, 2, None])
+def test_accumulation_axiswise_invalidation(indices_to_invalidate, axis, data):
+    check_invalidation(lambda quib: np.cumsum(quib, axis=axis), data, indices_to_invalidate)
+
+
+@parametrize_data
+@mark.parametrize(['axis', 'indices_to_get_value_at'], [
+    (-1, 0),
+    (0, 0),
+    (1, (1, 0)),
+    (2, (0, 0)),
+    (None, ...),
+    (None, 4),
+])
+def test_reduction_axiswise_get_value_valid_at_path(axis, data, indices_to_get_value_at):
+    path_to_get_value_at = [PathComponent(np.ndarray, indices_to_get_value_at)]
+    check_get_value_valid_at_path(lambda quib: np.cumsum(quib, axis=axis), data, path_to_get_value_at)

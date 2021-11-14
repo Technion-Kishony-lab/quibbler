@@ -17,6 +17,8 @@ from pyquibbler.quib.function_quibs.transpositional.transpositional_function_qui
 from pyquibbler.quib.graphics import global_collecting, ReductionAxisWiseGraphicsFunctionQuib, \
     ApplyAlongAxisGraphicsFunctionQuib
 from pyquibbler.quib.graphics import QVectorize
+from pyquibbler.quib.graphics.axiswise_function_quibs.axiswise_function_quib import \
+    AccumulationAxisWiseGraphicsFunctionQuib
 from pyquibbler.quib.graphics.plot_graphics_function_quib import PlotGraphicsFunctionQuib
 from pyquibbler.quib.graphics.widgets import SliderGraphicsFunctionQuib, CheckButtonsGraphicsFunctionQuib, \
     RadioButtonsGraphicsFunctionQuib, RectangleSelectorGraphicsFunctionQuib, QRadioButtons, QRectangleSelector, \
@@ -68,10 +70,9 @@ NUMPY_OVERRIDES = [
         (ApplyAlongAxisGraphicsFunctionQuib, {'apply_along_axis'}),
         (ReductionAxisWiseGraphicsFunctionQuib, {"max", "amax", "min", "amin", "sum", "std",
                                                  "any", "all", "diff", "average", "mean", "prod",
-                                                 "sort", "var", "median",
-                                                 "argmin", "argmax", "nanargmin", "nanargmax",
-                                                 }),
-
+                                                 "sort", "var", "median", "argmin", "argmax", "nanargmin",
+                                                 "nanargmax"}),
+        (AccumulationAxisWiseGraphicsFunctionQuib, {"cumsum", "cumprod", "cumproduct"}),
     ]),
     (np.random, [
         (ImpureFunctionQuib, {'rand', 'randn', 'randint'})
