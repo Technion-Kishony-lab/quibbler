@@ -1,19 +1,17 @@
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from threading import RLock
-from typing import Any, Optional, List, Callable, Tuple, Mapping
-
+from typing import Any, Optional, List
 from matplotlib.widgets import RectangleSelector
 
-from pyquibbler import timer, CacheBehavior
+from pyquibbler import timer
 from pyquibbler.logger import logger
 from pyquibbler.quib.utils import quib_method
 from pyquibbler.utils import Mutable
-from .drag_context_manager import dragging, releasing
-
-from .widget_graphics_function_quib import WidgetGraphicsFunctionQuib
-
 from pyquibbler.quib import Quib
+
+from .drag_context_manager import dragging, releasing
+from .widget_graphics_function_quib import WidgetGraphicsFunctionQuib
 from ...assignment import PathComponent
 
 
@@ -93,9 +91,8 @@ class RectangleSelectorGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
     """
     WIDGET_CLS = RectangleSelector
 
-    def __init__(self, func: Callable, args: Tuple[Any, ...], kwargs: Mapping[str, Any],
-                 cache_behavior: Optional[CacheBehavior]):
-        super().__init__(func, args, kwargs, cache_behavior)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self._last_extents_change = None
 
     def _widget_is_attempting_to_resize_when_not_allowed(self, extents):

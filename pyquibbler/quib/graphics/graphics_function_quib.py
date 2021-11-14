@@ -32,6 +32,8 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
     attributes, such as color.
     """
 
+    _DEFAULT_LAZY = GRAPHICS_LAZY
+
     # Avoid unnecessary repaints
     _DEFAULT_CACHE_BEHAVIOR = CacheBehavior.ON
 
@@ -55,18 +57,13 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
                  kwargs: Mapping[str, Any],
                  cache_behavior: Optional[CacheBehavior],
                  assignment_template: Optional[AssignmentTemplate] = None,
+                 lazy: Optional[bool] = None,
                  had_artists_on_last_run: bool = False,
                  pass_quibs: bool = False):
-        super().__init__(func, args, kwargs, cache_behavior, assignment_template=assignment_template)
+        super().__init__(func, args, kwargs, cache_behavior, assignment_template, lazy)
         self._had_artists_on_last_run = had_artists_on_last_run
         self._pass_quibs = pass_quibs
         self._graphics_collection_ndarr = None
-
-    @classmethod
-    def create(cls, func, func_args=(), func_kwargs=None, cache_behavior=None, lazy=None, **init_kwargs):
-        if lazy is None:
-            lazy = bool(GRAPHICS_LAZY)
-        return super().create(func, func_args, func_kwargs, cache_behavior, lazy=lazy, **init_kwargs)
 
     def persist_self_on_artists(self, artists: Set[Artist]):
         """

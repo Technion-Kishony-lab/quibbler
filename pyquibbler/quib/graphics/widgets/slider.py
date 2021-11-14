@@ -1,9 +1,7 @@
 import contextlib
-from typing import Optional, List, Any, Callable, Tuple, Mapping
-
+from typing import Optional, List, Any
 from matplotlib.widgets import Slider
 
-from pyquibbler import CacheBehavior
 from pyquibbler.quib import Quib
 from pyquibbler.quib.utils import quib_method
 from .drag_context_manager import dragging
@@ -13,7 +11,6 @@ from ...assignment import PathComponent
 
 
 class QSlider(Slider):
-
     def __init__(self, ax, label, valmin, valmax, valinit, **kwargs):
         self.on_release = None
         self._drag_active = False
@@ -36,9 +33,8 @@ class SliderGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
     """
     WIDGET_CLS = QSlider
 
-    def __init__(self, func: Callable, args: Tuple[Any, ...], kwargs: Mapping[str, Any],
-                 cache_behavior: Optional[CacheBehavior]):
-        super().__init__(func, args, kwargs, cache_behavior)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self._previous_set_value = None
 
     def _on_change(self, new_value: float):

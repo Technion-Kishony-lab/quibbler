@@ -30,11 +30,11 @@ def test_reset_impure_function_quibs_invalidates_and_redraws():
     quib = ImpureFunctionQuib.create(func=func)
     quib.get_value()
     graphics_function_mock = mock.Mock()
-    _ = GraphicsFunctionQuib.create(func=graphics_function_mock, func_args=(quib,), lazy=True)
+    _ = GraphicsFunctionQuib.create(func=graphics_function_mock, func_args=(quib,))
 
     Project.get_or_create().reset_invalidate_and_redraw_all_impure_function_quibs()
 
-    graphics_function_mock.assert_called_once_with(2)
+    assert graphics_function_mock.call_count == 2
 
 
 def test_undo_assignment(project):
@@ -148,7 +148,7 @@ def test_project_undo_group_doesnt_add_on_dragging(project):
 def test_project_undo_with_group_reverts_back_to_before_group_and_runs_graphics_quib_once(project):
     a = iquib(5)
     mock_func = mock.Mock()
-    _ = GraphicsFunctionQuib.create(func=mock_func, func_args=(a,), lazy=True)
+    _ = GraphicsFunctionQuib.create(func=mock_func, func_args=(a,))
     with project.start_undo_group():
         a.assign_value(10)
         a.assign_value(8)
