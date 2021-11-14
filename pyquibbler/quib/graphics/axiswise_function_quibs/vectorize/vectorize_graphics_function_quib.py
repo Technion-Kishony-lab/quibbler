@@ -11,7 +11,7 @@ from pyquibbler.quib.graphics.graphics_function_quib import GraphicsFunctionQuib
 from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.quib.function_quibs.indices_translator_function_quib import IndicesTranslatorFunctionQuib, \
     SupportedFunction
-from pyquibbler.quib.function_quibs.utils import ArgsValues
+from pyquibbler.quib.function_quibs.utils import ArgsValues, unbroadcast_bool_mask
 from pyquibbler.quib.utils import copy_and_replace_quibs_with_vals
 
 from .utils import copy_vectorize, get_core_axes, get_indices_array, iter_arg_ids_and_values, alter_signature, \
@@ -174,22 +174,16 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
     def _backward_translate_indices_to_bool_mask(self, quib: Quib, indices: Any) -> Any:
         """
         Translate indices in result backwards to indices in a data source quib, by calling any on result
-        core dimensions and de-broadcasting the loop dimensions into the argument loop dimension.
+        core dimensions and un-broadcasting the loop dimensions into the argument loop dimension.
         """
         vectorize_metadata = self._vectorize_metadata
         quib_arg_id = self._get_arg_ids_for_quib(quib).pop()
         quib_loop_shape = vectorize_metadata.args_metadata[quib_arg_id].loop_shape
         result_bool_mask = self._get_bool_mask_representing_indices_in_result(indices)
         result_core_axes = vectorize_metadata.result_core_axes
-        new_broadcast_ndim = result_bool_mask.ndim - len(quib_loop_shape) - len(result_core_axes)
-        assert new_broadcast_ndim >= 0
-        new_broadcast_axes = tuple(range(0, new_broadcast_ndim))
-        reduced_bool_mask = np.any(result_bool_mask, axis=result_core_axes + new_broadcast_axes)
-        broadcast_loop_dimensions_to_reduce = tuple(i for i, (result_len, quib_len) in
-                                                    enumerate(zip(reduced_bool_mask.shape, quib_loop_shape))
-                                                    if result_len != quib_len)
-        reduced_bool_mask = np.any(reduced_bool_mask, axis=broadcast_loop_dimensions_to_reduce, keepdims=True)
-        return np.broadcast_to(reduced_bool_mask, quib_loop_shape)
+        # Reduce result core dimensions
+        reduced_bool_mask = np.any(result_bool_mask, axis=result_core_axes)
+        return unbroadcast_bool_mask(reduced_bool_mask, quib_loop_shape)
 
     def _get_source_path_in_quib(self, quib: Quib, filtered_path_in_result: List[PathComponent]):
         """

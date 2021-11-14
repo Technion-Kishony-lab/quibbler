@@ -55,3 +55,15 @@ class ArgsValues:
             arg_values_by_name = kwargs
             arg_values_by_position = args
         return cls(args, kwargs, arg_values_by_position, arg_values_by_name)
+
+
+def unbroadcast_bool_mask(bool_mask, original_shape):
+    new_broadcast_ndim = bool_mask.ndim - len(original_shape)
+    assert new_broadcast_ndim >= 0
+    new_broadcast_axes = tuple(range(0, new_broadcast_ndim))
+    reduced_bool_mask = np.any(bool_mask, axis=new_broadcast_axes)
+    broadcast_loop_dimensions_to_reduce = tuple(i for i, (result_len, quib_len) in
+                                                enumerate(zip(reduced_bool_mask.shape, original_shape))
+                                                if result_len != quib_len)
+    reduced_bool_mask = np.any(reduced_bool_mask, axis=broadcast_loop_dimensions_to_reduce, keepdims=True)
+    return np.broadcast_to(reduced_bool_mask, original_shape)
