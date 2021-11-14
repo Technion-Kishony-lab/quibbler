@@ -8,12 +8,12 @@ from pyquibbler.quib.function_quibs.pretty_converters.convert_math_equations imp
 
 def _convert_slice(slice_: slice):
     pretty = ':'
-    if slice_.start:
-        pretty = f"{slice_.start}{pretty}"
-    if slice_.stop:
-        pretty = f"{pretty}{slice_.stop}"
-    if slice_.step:
-        pretty = f"{pretty}:{slice_.step}"
+    if slice_.start is not None:
+        pretty = f"{replace_arg_with_pretty_repr(slice_.start)}{pretty}"
+    if slice_.stop is not None:
+        pretty = f"{pretty}{replace_arg_with_pretty_repr(slice_.stop)}"
+    if slice_.step is not None:
+        pretty = f"{pretty}:{replace_arg_with_pretty_repr(slice_.step)}"
     return pretty
 
 

@@ -312,3 +312,12 @@ def test_getitem_quib_and_setting_with_iquib_proper_invalidation():
     res = c.get_value()
 
     assert res == 'bye'
+
+
+@pytest.mark.regression
+@pytest.mark.get_variable_names(True)
+def test_getitem_pretty_repr_with_quib_as_item():
+    a = iquib([1, 2, 3])
+    b = iquib(1)
+
+    assert a[:b].pretty_repr() == 'a[:b]'
