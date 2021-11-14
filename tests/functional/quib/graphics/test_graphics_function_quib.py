@@ -4,8 +4,10 @@ from unittest import mock
 
 from pyquibbler import iquib
 from pyquibbler.env import GRAPHICS_LAZY
+from pyquibbler.quib import UpdateType, Quib
 from pyquibbler.quib.assignment.assignment import PathComponent
 from pyquibbler.quib.graphics import GraphicsFunctionQuib
+from pyquibbler.quib.graphics.widgets.drag_context_manager import dragging
 
 
 def get_graphics_quib(func):
@@ -13,7 +15,8 @@ def get_graphics_quib(func):
         args=tuple(),
         kwargs={},
         cache_behavior=None,
-        func=func
+        func=func,
+        lazy=False
     )
 
 
@@ -78,3 +81,15 @@ def test_graphics_function_quib_does_not_run_when_lazy_flag_set_to_true():
         GraphicsFunctionQuib.create(func=func)
 
     assert func.call_count == 0
+
+
+def test_graphics_function_quib_does_not_update_on_drag_if_update_type_is_drop():
+    func = mock.Mock()
+    parent = iquib(7)
+    _ = GraphicsFunctionQuib.create(func=func, func_args=(parent,), lazy=True, update_type=UpdateType.DROP)
+
+    with dragging():
+        parent.invalidate_and_redraw_at_path([])
+
+    func.assert_not_called()
+

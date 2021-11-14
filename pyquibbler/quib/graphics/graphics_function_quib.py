@@ -8,6 +8,7 @@ from matplotlib.widgets import AxesWidget
 from .global_collecting import ArtistsCollector, AxesWidgetsCollector
 from .graphics_collection import GraphicsCollection
 from .quib_guard import QuibGuard
+from .update_type import UpdateType
 from .utils import save_func_and_args_on_artists, get_axeses_to_array_names_to_starting_indices_and_artists, \
     remove_artist, get_axeses_to_array_names_to_artists, get_artist_array, ArrayNameToArtists, track_artist
 from ..assignment import AssignmentTemplate, PathComponent
@@ -59,11 +60,13 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
                  assignment_template: Optional[AssignmentTemplate] = None,
                  lazy: Optional[bool] = None,
                  had_artists_on_last_run: bool = False,
-                 pass_quibs: bool = False):
+                 pass_quibs: bool = False,
+                 update_type: UpdateType = None):
         super().__init__(func, args, kwargs, cache_behavior, assignment_template, lazy)
         self._had_artists_on_last_run = had_artists_on_last_run
         self._pass_quibs = pass_quibs
         self._graphics_collection_ndarr = None
+        self._update_type = update_type or UpdateType.DRAG
 
     def persist_self_on_artists(self, artists: Set[Artist]):
         """
@@ -230,3 +233,10 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
             else self._prepare_args_for_call(valid_path)
         with self._call_func_context(self._graphics_collection_ndarr[()]), external_call_failed_exception_handling():
             return self.func(*args, **kwargs)
+
+    def redraw_if_relevant(self):
+        from .widgets import is_within_drag
+        if self.lazy or (self._update_type == UpdateType.DROP and is_within_drag()):
+            return
+
+        return self.get_value()
