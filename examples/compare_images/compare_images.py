@@ -8,7 +8,7 @@ from pyquibbler import iquib, override_all, q
 override_all()
 
 
-@partial(np.vectorize, signature='(extents),()->()', pass_quibs=True)
+@partial(np.vectorize, signature='(extents),()->()', pass_quibs=True, lazy=False)
 def create_roi(roi, axes):
     print("Creating ROI")
     widgets.RectangleSelector(axes, extents=roi, allow_resize=False)
@@ -28,7 +28,7 @@ def image_distance(img1, img2):
 
 
 @np.vectorize
-def show_adjacency(axes, x, y, adjacent):
+def show_adjacency(axes, x, y, adjacent, lazy=False):
     axes.scatter(x, y,
                  s=adjacent * 100 + 1,
                  marker='x',
@@ -111,4 +111,4 @@ create_figure_1()
 create_figure_2()
 create_figure_3()
 
-plt.show(block=False)
+plt.show(block=True)
