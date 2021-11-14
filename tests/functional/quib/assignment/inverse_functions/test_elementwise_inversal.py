@@ -28,7 +28,6 @@ def inverse(function_quib: FunctionQuib, value, path):
     (np.divide, (np.array([20, 20, 20]), iquib(np.array([5, 5, 5]))), ([0],), 5, 1, np.array([4, 5, 5])),
     (__pow__, (iquib(10), 2), None, 10_000, 0, 100),
     (__pow__, (10, iquib(1)), None, 100, 1, 2),
-    (np.abs, (iquib(10),), None, 15, 0, 15),
 ], ids=[
     "add: simple",
     "add: multiple dimensions",
@@ -40,8 +39,8 @@ def inverse(function_quib: FunctionQuib, value, path):
     "divide: second arg is quib",
     "power: first arg is quib",
     "power: second arg is quib",
-    "abs: positive-to-positive"])
-def test_inverse_elementwise(func, func_args, indices, value, quib_arg_index, expected_value):
+])
+def test_inverse_elementwise_two_arguments(func, func_args, indices, value, quib_arg_index, expected_value):
     function_quib = ElementWiseFunctionQuib.create(func=func, func_args=func_args)
     if indices is None:
         path = []
@@ -50,6 +49,29 @@ def test_inverse_elementwise(func, func_args, indices, value, quib_arg_index, ex
     inverse(function_quib, value, path)
 
     value = function_quib.args[quib_arg_index].get_value()
+    if isinstance(expected_value, Iterable):
+        assert np.array_equal(value, expected_value)
+    else:
+        assert value == expected_value
+
+
+
+@pytest.mark.parametrize("func,func_arg,indices,value,expected_value", [
+    (np.abs, iquib(10), None, 15, 15),
+    (np.int, iquib(1.8), None, 3, 3.),
+], ids=[
+    "abs: positive-to-positive",
+    "int: float-to-int",
+])
+def test_inverse_elementwise_single_argument(func, func_arg, indices, value, expected_value):
+    function_quib = ElementWiseFunctionQuib.create(func=func, func_args=(func_arg,))
+    if indices is None:
+        path = []
+    else:
+        path = [PathComponent(component=indices, indexed_cls=function_quib.get_type())]
+    inverse(function_quib, value, path)
+
+    value = function_quib.args[0].get_value()
     if isinstance(expected_value, Iterable):
         assert np.array_equal(value, expected_value)
     else:
