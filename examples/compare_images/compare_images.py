@@ -8,7 +8,7 @@ from pyquibbler import iquib, override_all, q
 override_all()
 
 
-@partial(np.vectorize, signature='(extents),()->()', pass_quibs=True, lazy=False)
+@partial(np.vectorize, signature='(extents),()->()', pass_quibs=True, evaluate_now=True)
 def create_roi(roi, axes):
     print("Creating ROI")
     widgets.RectangleSelector(axes, extents=roi, allow_resize=False)
@@ -28,7 +28,7 @@ def image_distance(img1, img2):
 
 
 @np.vectorize
-def show_adjacency(axes, x, y, adjacent, lazy=False):
+def show_adjacency(axes, x, y, adjacent, evaluate_now=True):
     axes.scatter(x, y,
                  s=adjacent * 100 + 1,
                  marker='x',
@@ -88,7 +88,12 @@ def create_figure_2():
                                               nrows_ncols=(3, 3),
                                               axes_pad=0.1))))
 
-    np.vectorize(lambda ax, im: ax.imshow(im), signature='(),(w,h,c)->()')(grid_axes[:q(int, images_count)], cut_images)
+    def show_image(ax, im):
+        print("showing image")
+        ax.imshow(im)
+
+    return np.vectorize(show_image, signature='(),(w,h,c)->()', update_type="drop")(grid_axes[:q(int, images_count)],
+                                                                                    cut_images)
 
 
 def create_figure_3():
@@ -108,7 +113,7 @@ def create_figure_3():
 
 
 create_figure_1()
-create_figure_2()
+quib = create_figure_2()
 create_figure_3()
 
 plt.show(block=True)
