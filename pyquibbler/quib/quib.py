@@ -376,6 +376,8 @@ class Quib(ABC):
 
     def __setitem__(self, key, value):
         from .assignment.assignment import PathComponent
+        if isinstance(key, Quib):
+            key = key.get_value()
         self.assign(Assignment(value=value, path=[PathComponent(component=key, indexed_cls=self.get_type())]))
 
     @validate_user_input(name=(str, type(None)))

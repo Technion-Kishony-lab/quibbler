@@ -289,13 +289,26 @@ def test_function_quib_forward_invalidation_path_with_changing_shapes(create_moc
 
 
 @pytest.mark.regression
-def test_getitem_quib_with_iquib_representing_item():
+def test_getitem_quib_with_getitem_iquib_and_setting_non_iquib():
     a = iquib({'name': 'hello'})
     b = iquib('name')
     c = a[b]
     c.get_value()
 
     a['name'] = 'bye'
+    res = c.get_value()
+
+    assert res == 'bye'
+
+
+@pytest.mark.regression
+def test_getitem_quib_and_setting_with_iquib_proper_invalidation():
+    a = iquib({'name': 'hello'})
+    b = iquib('name')
+    c = a[b]
+    c.get_value()
+
+    a[b] = 'bye'
     res = c.get_value()
 
     assert res == 'bye'
