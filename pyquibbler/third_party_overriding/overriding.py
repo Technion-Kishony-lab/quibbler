@@ -58,21 +58,34 @@ NON_QUIB_OVERRIDES = [
 
 NUMPY_OVERRIDES = [
     (np, [
-        (DefaultFunctionQuib, {"arange", "polyfit",
-                               "linspace", "polyval", "genfromtxt", 'corrcoef'}),
+        (DefaultFunctionQuib, {'arange', 'polyfit',
+                               'linspace', 'polyval', 'genfromtxt', 'corrcoef'}),
         (GraphicsFunctionQuib, {'apply_over_axes'}),
         (TranspositionalFunctionQuib, {'reshape', 'rot90', 'ravel', 'concatenate', 'repeat', 'full', 'concatenate',
                                        'squeeze', 'array', 'swapaxes', 'expand_dims', 'tile', 'transpose'}),
-        (ElementWiseFunctionQuib, {'abs', 'add', 'square', "sin", "cos", "tan", "sinh", "cosh", "tanh", "real", "imag",
-                                   "arcsin", "arccos", "arctan", "arcsinh", "arccosh", "arctanh",
-                                   "exp", "exp2", "expm1", "log", "log2", "log1p", "log10",
-                                   "sqrt", "int", "float", "ceil", "floor", "round", 'around', 'hypot'}),
+        (ElementWiseFunctionQuib, {
+            'sin', 'cos', 'tan',                                # trigonometric
+            'arcsin', 'arccos', 'arctan',                       # inverse-trigonometric
+            'sinh', 'cosh', 'tanh',                             # hyperbolic
+            'arcsinh', 'arccosh', 'arctanh',                    # inverse-hyperbolic
+            'real', 'imag', 'abs',                              # complex numbers
+            'exp', 'exp2', 'expm1',                             # powers
+            'log', 'log2', 'log1p', 'log10',                    # logs
+            'add', 'hypot',                                     # two-element arithmetics
+            'ceil', 'floor', 'round', 'around',                 # rounding
+            'square', 'sqrt',                                   # square, sqrt
+            'int', 'float',                                     # casting
+        }),
         (ApplyAlongAxisGraphicsFunctionQuib, {'apply_along_axis'}),
-        (ReductionAxisWiseGraphicsFunctionQuib, {"max", "amax", "min", "amin", "sum", "std",
-                                                 "any", "all", "diff", "average", "mean", "prod",
-                                                 "sort", "var", "median", "argmin", "argmax", "nanargmin",
-                                                 "nanargmax"}),
-        (AccumulationAxisWiseGraphicsFunctionQuib, {"cumsum", "cumprod", "cumproduct"}),
+        (ReductionAxisWiseGraphicsFunctionQuib, {
+            'min', 'amin', 'max', 'amax',                       # min/max
+            'argmin', 'argmax', 'nanargmin', 'nanargmax' ,      # arg-min/max
+            'sum', 'prod',                                      # sum/prod
+            'any', 'all',                                       # logical
+            'average', 'mean', 'var', 'std', 'median',          # statistics
+            'diff', 'sort',                                     # other
+        }),
+        (AccumulationAxisWiseGraphicsFunctionQuib, {'cumsum', 'cumprod', 'cumproduct'}),
     ]),
     (np.random, [
         (ImpureFunctionQuib, {'rand', 'randn', 'randint'})
