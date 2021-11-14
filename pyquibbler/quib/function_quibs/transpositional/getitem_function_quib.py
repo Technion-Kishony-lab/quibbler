@@ -17,9 +17,8 @@ class GetItemFunctionQuib(TranspositionalFunctionQuib):
         child quibs
         """
         working_component, *rest_of_path = path
-        getitem_path_component = PathComponent(component=self._args[1], indexed_cls=quib.get_type())
         if issubclass(quib.get_type(), np.ndarray):
-            if (not getitem_path_component.references_field_in_field_array()
+            if (not self._getitem_path_component.references_field_in_field_array()
                     and not working_component.references_field_in_field_array()):
                 # This means:
                 # 1. The invalidator quib's result is an ndarray, (We're a getitem on that said ndarray)
@@ -30,7 +29,7 @@ class GetItemFunctionQuib(TranspositionalFunctionQuib):
                 # we do NOT invalidate our children)
                 return super(GetItemFunctionQuib, self)._forward_translate_invalidation_path(quib, path)
             elif (
-                    getitem_path_component.references_field_in_field_array()
+                    self._getitem_path_component.references_field_in_field_array()
                     !=
                     working_component.references_field_in_field_array()
                     and
@@ -60,7 +59,7 @@ class GetItemFunctionQuib(TranspositionalFunctionQuib):
         # If so, invalidate. This is true for field arrays as well (We do need to
         # add support for indexing multiple fields).
         assert not isinstance(working_component.component, np.ndarray)
-        if self.args[1] == working_component.component:
+        if self._getitem_path_component.component == working_component.component:
             return [rest_of_path]
 
         # The item in our getitem was not equal to the path to invalidate
