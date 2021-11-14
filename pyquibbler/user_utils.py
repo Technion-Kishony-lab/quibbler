@@ -86,7 +86,7 @@ def has_redos() -> bool:
     return Project.get_or_create().has_redo()
 
 
-def redraw_central_refresh_graphics_function_quibs():
+def redraw_central_refresh_graphics_function_quibs() -> None:
     """
     Redraw all graphics function quibs which only redraw when set to UpdateType.CENTRAL
     """
