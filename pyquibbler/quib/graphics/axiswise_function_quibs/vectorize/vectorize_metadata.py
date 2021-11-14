@@ -197,15 +197,19 @@ class VectorizeCall:
         # If we pass quibs to the wrapper, we will create a new graphics quib, so we use the original vectorize
         return np.vectorize.__overridden__.__call__(self.vectorize, *self.args, **self.kwargs)
 
-    def _get_args_and_results_core_ndims(self):
+    def _get_args_and_results_core_ndims(self, results_dtypes):
         """
         Get the args and results core dimensions in a vectorize call.
         """
         num_not_excluded = len((set(range(len(self.args))) | set(self.kwargs)) - self.vectorize.excluded)
         if self.vectorize._in_and_out_core_dims is None:
             args_core_ndims = [0] * num_not_excluded
-            results_core_ndims = None
-            is_tuple = None
+            if results_dtypes is None:
+                results_core_ndims = None
+                is_tuple = None
+            else:
+                results_core_ndims = [0] * len(results_dtypes)
+                is_tuple = len(results_dtypes) > 1
         else:
             in_core_dims, out_core_dims = self.vectorize._in_and_out_core_dims
             args_core_ndims = list(map(len, in_core_dims))
@@ -235,13 +239,14 @@ class VectorizeCall:
         If sample_result_callback is given, use it to get a sample result instead of calling vectorize.pyfunc
         directly.
         """
-        args_core_ndims, results_core_ndims, is_tuple = self._get_args_and_results_core_ndims()
+        results_dtypes = None if self.vectorize.otypes is None else list(map(np.dtype, self.vectorize.otypes))
+        args_core_ndims, results_core_ndims, is_tuple = self._get_args_and_results_core_ndims(results_dtypes)
         args_metadata = self._get_args_metadata(args_core_ndims)
         # Calculate the result shape like done in np.function_base._parse_input_dimensions
         dummy_arrays = [np.lib.stride_tricks.as_strided(0, arg_metadata.loop_shape)
                         for arg_metadata in args_metadata.values()]
         result_loop_shape = np.lib.stride_tricks._broadcast_shape(*dummy_arrays)
-        results_dtypes = None if self.vectorize.otypes is None else list(map(np.dtype, self.vectorize.otypes))
+
         if sample_result_callback is None:
             sample_result_callback = lambda args_metadata, results_core_ndims: self.get_sample_result(args_metadata)
         return VectorizeMetadata(sample_result_callback, args_metadata, result_loop_shape, is_tuple, results_core_ndims,

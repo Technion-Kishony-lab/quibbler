@@ -199,3 +199,13 @@ def test_lazy_vectorize():
     parent[1] = 101
     parent[2] = 102
     func_mock.assert_called_once()
+
+
+def test_vectorize_doesnt_evaluate_sample_when_getting_value():
+    func_mock = Mock(return_value=5)
+    parent = iquib([0, 1, 2])
+    result = np.vectorize(func_mock, otypes=[np.int32])(parent)
+
+    result[1].get_value()
+
+    func_mock.assert_called_once_with(1)
