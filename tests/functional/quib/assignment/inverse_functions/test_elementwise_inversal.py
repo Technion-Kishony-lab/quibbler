@@ -17,52 +17,17 @@ def inverse(function_quib: FunctionQuib, value, path):
         inversion.apply()
 
 
-@pytest.mark.parametrize("function_quib,indices,value,quib_arg_index,expected_value", [
-    (ElementWiseFunctionQuib.create(func=np.add,
-                                func_args=(iquib(np.array([2, 2, 2])),
-                                           np.array([5, 5, 5]))),
-     0, 10, 0, np.array([5, 2, 2])
-     ),
-    (ElementWiseFunctionQuib.create(func=np.add,
-                                func_args=(iquib(np.array([[1, 2, 3], [4, 5, 6]])),
-                                           np.array([5, 5, 5]))),
-     ([1], [2]), 100, 0, np.array([[1, 2, 3], [4, 5, 95]])
-     ),
-    (ElementWiseFunctionQuib.create(func=np.add,
-                                func_args=(iquib(np.array([5, 5, 5])),
-                                           np.array([[1, 2, 3]]))),
-     ([0], [0]), 100, 0, np.array([99, 5, 5])
-     ),
-    (ElementWiseFunctionQuib.create(func=np.subtract,
-                                func_args=(iquib(np.array([5, 5, 5])),
-                                           np.array([1, 1, 1]))),
-     ([0]), 0, 0, np.array([1, 5, 5])
-     ),
-    (ElementWiseFunctionQuib.create(func=np.subtract,
-                                func_args=(
-                                        np.array([10, 10, 10]),
-                                        iquib(np.array([1, 1, 1])),
-                                )),
-     ([0]), 0, 1, np.array([10, 1, 1])
-     ),
-    (ElementWiseFunctionQuib.create(func=np.multiply,
-                                func_args=(iquib(np.array([1, 1, 1])),
-                                           np.array([10, 10, 10]))),
-     ([0]), 100, 0, np.array([10, 1, 1])
-     ),
-    (ElementWiseFunctionQuib.create(func=np.divide,
-                                func_args=(iquib(np.array([20, 20, 20])),
-                                           np.array([5, 5, 5]))),
-     ([0]), 5, 0, np.array([25, 20, 20])
-     ),
-    (ElementWiseFunctionQuib.create(func=np.divide,
-                                func_args=(np.array([20, 20, 20]),
-                                           iquib(np.array([5, 5, 5])))),
-     ([0]), 5, 1, np.array([4, 5, 5]),
-     ),
-    (ElementWiseFunctionQuib.create(func=__pow__, func_args=(iquib(10), 2)), None, 10_000, 0, 100),
-    (ElementWiseFunctionQuib.create(func=__pow__, func_args=(10, iquib(1))), None, 100, 1, 2)
-
+@pytest.mark.parametrize("func,func_args,indices,value,quib_arg_index,expected_value", [
+    (np.add, (iquib(np.array([2, 2, 2])), np.array([5, 5, 5])), 0, 10, 0, np.array([5, 2, 2])),
+    (np.add, (iquib(np.array([[1, 2, 3], [4, 5, 6]])), np.array([5, 5, 5])), ([1], [2]), 100, 0, np.array([[1, 2, 3], [4, 5, 95]])),
+    (np.add, (iquib(np.array([5, 5, 5])), np.array([[1, 2, 3]])), ([0], [0]), 100, 0, np.array([99, 5, 5])),
+    (np.subtract, (iquib(np.array([5, 5, 5])), np.array([1, 1, 1])), ([0]), 0, 0, np.array([1, 5, 5])),
+    (np.subtract, (np.array([10, 10, 10]), iquib(np.array([1, 1, 1]))),  ([0]), 0, 1, np.array([10, 1, 1])),
+    (np.multiply, (iquib(np.array([1, 1, 1])), np.array([10, 10, 10])), ([0]), 100, 0, np.array([10, 1, 1])),
+    (np.divide, (iquib(np.array([20, 20, 20])), np.array([5, 5, 5])), ([0]), 5, 0, np.array([25, 20, 20])),
+    (np.divide, (np.array([20, 20, 20]), iquib(np.array([5, 5, 5]))), ([0]), 5, 1, np.array([4, 5, 5])),
+    (__pow__, (iquib(10), 2), None, 10_000, 0, 100),
+    (__pow__, (10, iquib(1)), None, 100, 1, 2),
 ], ids=[
     "add: simple",
     "add: multiple dimensions",
@@ -74,7 +39,8 @@ def inverse(function_quib: FunctionQuib, value, path):
     "divide: second arg is quib",
     "power: first arg is quib",
     "power: second arg is quib"])
-def test_inverse_elementwise(function_quib: FunctionQuib, indices, value, quib_arg_index, expected_value):
+def test_inverse_elementwise(func, func_args, indices, value, quib_arg_index, expected_value):
+    function_quib = ElementWiseFunctionQuib.create(func=func, func_args=func_args)
     if indices is None:
         path = []
     else:
