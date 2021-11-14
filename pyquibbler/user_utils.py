@@ -7,6 +7,7 @@ from pyquibbler.quib import GraphicsFunctionQuib
 
 from pyquibbler.quib import Quib
 
+
 def q(func, *args, **kwargs) -> Quib:
     """
     Creates a function quib from the given function call.
