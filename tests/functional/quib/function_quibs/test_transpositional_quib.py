@@ -286,3 +286,16 @@ def test_function_quib_forward_invalidation_path_with_changing_shapes(create_moc
     grandparent.invalidate_and_redraw_at_path([])
 
     mock_quib._invalidate_quib_with_children_at_path.assert_called_with(parent, [])
+
+
+@pytest.mark.regression
+def test_getitem_quib_with_iquib_representing_item():
+    a = iquib({'name': 'hello'})
+    b = iquib('name')
+    c = a[b]
+    c.get_value()
+
+    a['name'] = 'bye'
+    res = c.get_value()
+
+    assert res == 'bye'
