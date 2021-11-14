@@ -226,7 +226,6 @@ def test_vectorize_with_data_with_zero_dims():
 
 
 def test_qvectorize_pretty_repr():
-
     @np.vectorize
     def my_func():
         pass
@@ -250,7 +249,6 @@ def vectorized_func_with_signature(signature):
 
 
 def test_qvectorize_pretty_repr_with_signature(vectorized_func_with_signature, signature):
-
     with PRETTY_REPR.temporary_set(True):
         assert repr(vectorized_func_with_signature) == f"np.vectorize(my_func, {signature})"
 
@@ -263,4 +261,3 @@ def test_vectorize_pretty_repr(vectorized_func_with_signature, signature):
 
     with PRETTY_REPR.temporary_set(True):
         assert quib.pretty_repr() == f"quib = np.vectorize(my_func, {signature})(a, b)"
-

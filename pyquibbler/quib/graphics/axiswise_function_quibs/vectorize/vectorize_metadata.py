@@ -95,8 +95,8 @@ class VectorizeMetadata:
         results_dtypes = [np.asarray(result).dtype for result in (sample_result if is_tuple else (sample_result,))]
         if self._results_dtypes is None:
             self._results_dtypes = results_dtypes
-        else:
-            assert self._results_dtypes == results_dtypes
+        # Not checking if the sample dtype is the same as our declared dtype, as numpy just casts data:
+        # https://github.com/Technion-Kishony-lab/pyquibbler/issues/198
 
     @property
     def is_result_a_tuple(self) -> bool:
