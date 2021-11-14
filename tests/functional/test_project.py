@@ -31,7 +31,6 @@ def test_reset_impure_function_quibs_invalidates_and_redraws():
     quib.get_value()
     graphics_function_mock = mock.Mock()
     _ = GraphicsFunctionQuib.create(func=graphics_function_mock, func_args=(quib,))
-    call_count = graphics_function_mock.call_count
 
     Project.get_or_create().reset_invalidate_and_redraw_all_impure_function_quibs()
 
