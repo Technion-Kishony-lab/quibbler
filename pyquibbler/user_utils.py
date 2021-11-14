@@ -5,8 +5,9 @@ from pyquibbler.input_validation_utils import validate_user_input
 from pyquibbler.project import Project
 from pyquibbler.quib import GraphicsFunctionQuib
 
+from pyquibbler.quib import Quib
 
-def q(func, *args, **kwargs):
+def q(func, *args, **kwargs) -> Quib:
     """
     Creates a function quib from the given function call.
     """
@@ -15,7 +16,7 @@ def q(func, *args, **kwargs):
     return quib_type.create(func=func, func_args=args, func_kwargs=kwargs, evaluate_now=False)
 
 
-def q_eager(func, *args, **kwargs):
+def q_eager(func, *args, **kwargs) -> Quib:
     """
     Creates a graphical function quib from the given function call.
     """
@@ -24,7 +25,7 @@ def q_eager(func, *args, **kwargs):
     return quib_type.create(func=func, func_args=args, func_kwargs=kwargs, evaluate_now=True)
 
 
-def reset_impure_function_quibs():
+def reset_impure_function_quibs() -> None:
     """
     Resets all impure function quib caches and invalidates and redraws with them- note that this does NOT necessarily
     mean they will run
@@ -33,7 +34,7 @@ def reset_impure_function_quibs():
 
 
 @validate_user_input(path=(str, Path))
-def set_project_path(path: Union[str, Path]):
+def set_project_path(path: Union[str, Path]) -> None:
     """
     Set the current project's path
     """
@@ -42,7 +43,7 @@ def set_project_path(path: Union[str, Path]):
     Project.get_or_create().path = path
 
 
-def load_quibs():
+def load_quibs() -> None:
     """
     Load quibs from files of project if existing
     """
@@ -56,28 +57,28 @@ def save_quibs(save_iquibs_as_txt_where_possible: bool = True):
     Project.get_or_create().save_quibs(save_iquibs_as_txt_where_possible=save_iquibs_as_txt_where_possible)
 
 
-def undo():
+def undo() -> None:
     """
     Undo the last action commited (an assignment or assignment removal)
     """
     Project.get_or_create().undo()
 
 
-def redo():
+def redo() -> None:
     """
     Redo the last action undone
     """
     Project.get_or_create().redo()
 
 
-def has_undos():
+def has_undos() -> bool:
     """
     Whether or not any undos exist
     """
     return Project.get_or_create().has_undo()
 
 
-def has_redos():
+def has_redos() -> bool:
     """
     Whether or not any redos exist
     """
