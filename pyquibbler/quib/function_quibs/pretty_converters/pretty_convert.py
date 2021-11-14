@@ -45,6 +45,13 @@ def getitem_converter(func, pretty_arg_names: List[str]):
     return f"{pretty_arg_names[0]}[{pretty_arg_names[1]}]"
 
 
+def get_pretty_args_and_kwargs(args: Tuple[Any, ...], kwargs: Mapping[str, Any]):
+    pretty_args = [replace_arg_with_pretty_repr(arg) for arg in args]
+    pretty_kwargs = [f'{key}={replace_arg_with_pretty_repr(val)}' for key, val in kwargs.items()]
+
+    return pretty_args, pretty_kwargs
+
+
 def get_pretty_value_of_func_with_args_and_kwargs(func: Callable,
                                                   args: Tuple[Any, ...],
                                                   kwargs: Mapping[str, Any]) -> Union[MathExpression, str]:
@@ -52,15 +59,14 @@ def get_pretty_value_of_func_with_args_and_kwargs(func: Callable,
     Get the pretty value of a function, using a special converter if possible (eg for math notation) and defaulting
     to a standard func(xxx) if not
     """
-    # For now, no ability to special convert if kwargs exist
-    arg_names = [replace_arg_with_pretty_repr(arg) for arg in args]
-    kwarg_names = [f'{key}={replace_arg_with_pretty_repr(val)}' for key, val in kwargs.items()]
+    pretty_args, pretty_kwargs = get_pretty_args_and_kwargs(args, kwargs)
 
-    if not kwarg_names and func in CONVERTERS:
-        pretty_value = CONVERTERS[func](func, arg_names)
+    # For now, no ability to special convert if kwargs exist
+    if not pretty_kwargs and func in CONVERTERS:
+        pretty_value = CONVERTERS[func](func, pretty_args)
     else:
         func_name = getattr(func, '__name__', str(func))
-        pretty_value = f'{func_name}({", ".join(map(str, [*arg_names, *kwarg_names]))})'
+        pretty_value = f'{func_name}({", ".join(map(str, [*pretty_args, *pretty_kwargs]))})'
 
     return pretty_value
 

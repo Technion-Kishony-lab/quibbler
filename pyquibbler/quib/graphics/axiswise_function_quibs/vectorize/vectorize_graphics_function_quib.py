@@ -3,8 +3,10 @@ import numpy as np
 from functools import cached_property
 from typing import Any, Optional, List, Tuple, Set, Union, TYPE_CHECKING
 
+from pyquibbler.env import PRETTY_REPR
 from pyquibbler.quib.function_quibs.external_call_failed_exception_handling \
     import external_call_failed_exception_handling
+from pyquibbler.quib.function_quibs.pretty_converters import pretty_convert
 from pyquibbler.quib.quib import Quib, cache_method_until_full_invalidation
 from pyquibbler.quib.proxy_quib import ProxyQuib
 from pyquibbler.quib.graphics.graphics_function_quib import GraphicsFunctionQuib
@@ -45,6 +47,10 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
     SUPPORTED_FUNCTIONS = {
         np.vectorize.__call__: SupportedFunction(get_vectorize_call_data_args)
     }
+
+    def _get_inner_functional_representation_expression(self):
+        pretty_args, pretty_kwargs = pretty_convert.get_pretty_args_and_kwargs(self.args[1:], self.kwargs)
+        return f'{repr(self._vectorize)}({", ".join(map(str, [*pretty_args, *pretty_kwargs]))})'
 
     @classmethod
     def _wrapper_call(cls, func, args, kwargs, **create_kwargs):
@@ -267,6 +273,8 @@ class QVectorize(np.vectorize):
         self.evaluate_now = evaluate_now or False
 
     def __repr__(self):
+        if PRETTY_REPR:
+            return f"np.vectorize({self.pyfunc.__name__}{'' if self.signature is None else ', ' + self.signature})"
         return f"<{self.__class__.__name__} {self.signature}>"
 
     __call__ = VectorizeGraphicsFunctionQuib.create_wrapper(np.vectorize.__call__)
