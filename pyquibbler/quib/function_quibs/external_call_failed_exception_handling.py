@@ -42,15 +42,15 @@ def external_call_failed_exception_handling():
     except Exception as e:
         # get traceback outside of pyquibbler
         type_, exc, tb = sys.exc_info()
-        formatted_tb = ""
-        while cached_getmodule(tb.tb_frame.f_code).__name__.startswith("pyquibbler"):
+        while tb is not None and cached_getmodule(tb.tb_frame.f_code) is not None \
+                and cached_getmodule(tb.tb_frame.f_code).__name__.startswith("pyquibbler"):
             tb = tb.tb_next
-            if tb is None:
-                formatted_tb = ''.join(traceback.format_exception_only(type_, value=exc))
-                break
-            else:
-                traceback_lines = traceback.format_exception(type_, exc, tb)
-                formatted_tb = "".join(traceback_lines)
+
+        if tb is None:
+            formatted_tb = ''.join(traceback.format_exception_only(type_, value=exc))
+        else:
+            traceback_lines = traceback.format_exception(type_, exc, tb)
+            formatted_tb = "".join(traceback_lines)
 
         if SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS:
             raise ExternalCallFailedException(quibs_with_calls=[],
