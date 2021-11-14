@@ -77,9 +77,15 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
                 update_type = UpdateType[update_type.upper()]
             except KeyError:
                 raise InvalidArgumentException(var_name="updated_type", expected_type=UpdateType) from None
-        return super(GraphicsFunctionQuib, cls).create(func=func, func_args=func_args, func_kwargs=func_kwargs,
+        self = super(GraphicsFunctionQuib, cls).create(func=func, func_args=func_args, func_kwargs=func_kwargs,
                                                        cache_behavior=cache_behavior, update_type=update_type,
                                                        **init_kwargs)
+
+        if update_type != UpdateType.LAZY:
+            self.get_value()
+
+        return self
+
 
     def persist_self_on_artists(self, artists: Set[Artist]):
         """

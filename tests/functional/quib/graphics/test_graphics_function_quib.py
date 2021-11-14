@@ -16,7 +16,7 @@ def get_graphics_quib(func):
         kwargs={},
         cache_behavior=None,
         func=func,
-        lazy=False
+        update_type=UpdateType.DRAG
     )
 
 

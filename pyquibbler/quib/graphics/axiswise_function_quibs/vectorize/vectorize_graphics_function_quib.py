@@ -1,7 +1,7 @@
 from __future__ import annotations
 import numpy as np
 from functools import cached_property
-from typing import Any, Optional, List, Tuple, Set
+from typing import Any, Optional, List, Tuple, Set, Union, TYPE_CHECKING
 
 from pyquibbler.quib.function_quibs.external_call_failed_exception_handling \
     import external_call_failed_exception_handling
@@ -18,6 +18,10 @@ from .utils import copy_vectorize, get_core_axes, get_indices_array, iter_arg_id
     convert_args_and_kwargs
 from .vectorize_metadata import VectorizeMetadata, ArgId, VectorizeCall
 from ...utils import remove_created_graphics
+
+
+if TYPE_CHECKING:
+    from pyquibbler.quib import UpdateType
 
 
 def get_vectorize_call_data_args(args_values: ArgsValues) -> List[Any]:
@@ -46,7 +50,7 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
         attribute as a kwargs to create().
         """
         return super()._wrapper_call(func, args, kwargs, **create_kwargs,
-                                     pass_quibs=args[0].pass_quibs, lazy=args[0].lazy)
+                                     pass_quibs=args[0].pass_quibs, update_type=args[0].update_type)
 
     @cached_property
     def _vectorize(self) -> np.vectorize:
@@ -255,11 +259,12 @@ class QVectorize(np.vectorize):
     with a quib function wrapper.
     """
 
-    def __init__(self, *args, pass_quibs=False, lazy=True, signature=None, cache=False, **kwargs):
+    def __init__(self, *args, pass_quibs=False, update_type: Union[str, UpdateType] = None, signature=None, cache=False, **kwargs):
+        from pyquibbler.quib import UpdateType
         # We don't need the underlying vectorize object to cache, we are doing that ourselves.
         super().__init__(*args, signature=signature, cache=False, **kwargs)
         self.pass_quibs = pass_quibs
-        self.lazy = lazy
+        self.update_type = update_type or UpdateType.LAZY
 
     def __repr__(self):
         return f"<{self.__class__.__name__} {self.signature}>"
