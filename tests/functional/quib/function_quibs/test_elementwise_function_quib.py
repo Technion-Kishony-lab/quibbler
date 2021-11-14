@@ -70,5 +70,15 @@ def test_elementwise_get_value(data, indices_to_get_value_at):
     check_get_value_valid_at_path(lambda x: np.add(x, 1), data, path_to_get_value_at)
 
 
+@mark.regression
 def test_elementwise_with_no_parents():
+    # https://github.com/Technion-Kishony-lab/pyquibbler/issues/191
     assert ElementWiseFunctionQuib.create(np.sin, (0,)).get_value() == 0
+
+
+@mark.regression
+def test_elementwise_on_scalar_quib_and_array():
+    # https://github.com/Technion-Kishony-lab/pyquibbler/issues/178
+    a = iquib(3)
+    b = a + np.array([0, 1])
+    b.get_value()

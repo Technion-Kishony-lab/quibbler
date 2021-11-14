@@ -1,13 +1,12 @@
 from __future__ import annotations
-
 import math
-from operator import __neg__, __pos__, __sub__, __pow__, __mul__, __add__
-
 import numpy as np
+from operator import __neg__, __pos__, __sub__, __pow__, __mul__, __add__
 from typing import TYPE_CHECKING, Any, List, Tuple, Callable, Dict
 
 from .default_function_quib import DefaultFunctionQuib
 from .indices_translator_function_quib import IndicesTranslatorFunctionQuib
+from .utils import unbroadcast_bool_mask
 from ..assignment.assignment import get_nd_working_component_value_from_path
 from ..assignment.exceptions import CommonAncestorBetweenArgumentsException
 from ..utils import call_func_with_quib_values, iter_quibs_in_object_recursively
@@ -200,20 +199,15 @@ class ElementWiseFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunctionQuib
         and broadcast it's index grid to the shape of the result, so we can see the corresponding quib indices for the
         result indices
         """
-        index_grid = np.indices(argument_quib.get_shape())
-        broadcasted_grid = np.broadcast_to(index_grid,
-                                           (index_grid.shape[0], *self.get_shape()))
-        return tuple([
-            dimension[working_indices]
-            for dimension in broadcasted_grid
-        ])
+        result_bool_mask = self._get_bool_mask_representing_indices_in_result(working_indices)
+        return unbroadcast_bool_mask(result_bool_mask, argument_quib.get_shape())
 
     def _get_source_paths_of_quibs_given_path(self, filtered_path_in_result: List[PathComponent]):
         result = {}
         for quib_to_change in self._get_data_source_quibs():
             working_component = get_nd_working_component_value_from_path(filtered_path_in_result)
             changed_indices = self._get_indices_to_change(quib_to_change, working_component)
-            new_path = [] if len(changed_indices) == 0 else [PathComponent(self.get_type(), changed_indices)]
+            new_path = [] if changed_indices.ndim == 0 else [PathComponent(self.get_type(), changed_indices)]
             result[quib_to_change] = new_path
         return result
 

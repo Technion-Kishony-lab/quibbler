@@ -54,13 +54,15 @@ def deep_assign_data_in_path(data: Any, path: List[PathComponent], value: Any, r
     for i, component in enumerate(reversed(path)):
         new_element = elements[-(i + 1)]
 
-        if (isinstance(component.component, tuple) and not isinstance(new_element, np.ndarray)) or \
+        if (isinstance(component.component, (tuple, np.ndarray)) and not isinstance(new_element, np.ndarray)) or \
                 (isinstance(new_element, np.ndarray) and hasattr(new_element, 'base')):
             # We can't access a regular list with a tuple, so we're forced to convert to a numpy array
             new_element = np.array(new_element)
 
         try:
             new_element[component.component] = last_element
+        except TypeError:
+            print
         except IndexError as e:
             if raise_on_failure:
                 raise FailedToDeepAssignException(path=path, exception=e)
