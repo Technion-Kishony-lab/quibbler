@@ -132,6 +132,7 @@ class ElementWiseFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunctionQuib
                 (np.log10, lambda x: 10 ** x),
                 (np.int, identity),
                 (np.float, identity),
+                (np.ndarray.astype, identity)
             ]
         },
         **{
