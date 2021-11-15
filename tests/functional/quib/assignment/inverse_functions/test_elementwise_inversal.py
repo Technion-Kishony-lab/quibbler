@@ -58,9 +58,11 @@ def test_inverse_elementwise_two_arguments(func, func_args, indices, value, quib
 
 @pytest.mark.parametrize("func,func_arg,indices,value,expected_value", [
     (np.abs, iquib(10), None, 15, 15),
-    (np.int, iquib(1.8), None, 3, 3.),
+    (np.abs, iquib(-10), None, 15, -15),
+    (np.int, iquib(1.8), None, 3,  3),
 ], ids=[
-    "abs: positive-to-positive",
+    "abs: positive",
+    "abs: negative",
     "int: float-to-int",
 ])
 def test_inverse_elementwise_single_argument(func, func_arg, indices, value, expected_value):
