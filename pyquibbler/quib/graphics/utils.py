@@ -1,3 +1,4 @@
+from collections import defaultdict
 from typing import List, Callable, Tuple, Any, Dict, Iterable, Set
 from contextlib import contextmanager
 
@@ -43,10 +44,9 @@ def get_axeses_to_array_names_to_artists(artists: Iterable[Artist]) -> Dict[Axes
     """
     Creates a mapping of axes -> artist_array_name (e.g. `lines`) -> artists
     """
-    axeses_to_array_names_to_artists = {}
+    axeses_to_array_names_to_artists = defaultdict(lambda: defaultdict(list))
     for artist in artists:
-        array_names_to_artists = axeses_to_array_names_to_artists.setdefault(artist.axes, {})
-        array_names_to_artists.setdefault(get_artist_array_name(artist), []).append(artist)
+        axeses_to_array_names_to_artists[artist.axes][get_artist_array_name(artist)].append(artist)
     return axeses_to_array_names_to_artists
 
 
@@ -68,9 +68,11 @@ def get_axeses_to_array_names_to_starting_indices_and_artists(artists: Set[Artis
         axeses_to_array_names_to_indices_and_artists[axes] = array_names_to_indices_and_artists
 
         for array_name, array_artists in array_names_to_artists.items():
-            exemplifying_artist = array_artists[0]
-            array = getattr(exemplifying_artist.axes, array_name)
-            array_names_to_indices_and_artists[array_name] = (array.index(exemplifying_artist), array_artists)
+            array = getattr(array_artists[0].axes, array_name)
+            artists_set = set(array_artists)
+            # Get the index of the artist that appears first in the array
+            index = next(i for i, artist in enumerate(array) if artist in artists_set)
+            array_names_to_indices_and_artists[array_name] = (index, array_artists)
 
     return axeses_to_array_names_to_indices_and_artists
 
