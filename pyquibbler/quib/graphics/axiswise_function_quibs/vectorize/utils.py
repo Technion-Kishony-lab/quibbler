@@ -1,10 +1,10 @@
 from __future__ import annotations
 import numpy as np
-from typing import Tuple, Iterable, Optional, Dict, Union, Any, Callable, TYPE_CHECKING
+from typing import Tuple, Iterable, Optional, Dict, Union, Any, TYPE_CHECKING
 from string import ascii_letters
 from itertools import islice, chain
 
-from pyquibbler.quib.function_quibs.indices_translator_function_quib import Args, Kwargs
+from pyquibbler.quib.function_quibs.utils import Args, Kwargs
 
 if TYPE_CHECKING:
     from .vectorize_metadata import ArgsMetadata, ArgId
@@ -84,11 +84,3 @@ def get_indices_array(shape: Shape) -> np.ndarray:
     indices pointing to that cell.
     """
     return np.apply_along_axis(Indices, -1, np.moveaxis(np.indices(shape), 0, -1))
-
-
-def convert_args_and_kwargs(converter: Callable, args: Args, kwargs: Kwargs):
-    """
-    Apply the given converter on all given arg and kwarg values.
-    """
-    return (tuple(converter(i, val) for i, val in enumerate(args)),
-            {name: converter(name, val) for name, val in kwargs.items()})

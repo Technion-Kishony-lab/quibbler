@@ -2,7 +2,7 @@ import numpy as np
 from abc import abstractmethod
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import Set, Optional, Dict, Callable, List, Any, Union, Tuple
+from typing import Set, Optional, Dict, Callable, List, Any, Union, Iterable
 
 from pyquibbler.quib.assignment import Assignment
 from pyquibbler.quib.function_quibs.utils import create_empty_array_with_values_at_indices, ArgsValues
@@ -10,9 +10,6 @@ from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.function_quibs import FunctionQuib
 from pyquibbler.quib.assignment import PathComponent, QuibWithAssignment
 from pyquibbler.quib.utils import iter_objects_of_type_in_object_shallowly
-
-Args = Tuple[Any, ...]
-Kwargs = Dict[str, Any]
 
 
 @dataclass
@@ -69,12 +66,15 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
         return super().create_wrapper(func)
 
     @lru_cache()
-    def _get_data_source_quibs(self) -> Set:
+    def _get_data_source_args(self) -> Iterable:
         if self.SUPPORTED_FUNCTIONS is not None:
             supported_function = self.SUPPORTED_FUNCTIONS[self._func]
-            data_source_args = supported_function.get_data_source_args(self._get_args_values(include_defaults=False))
-            return set(iter_objects_of_type_in_object_shallowly(Quib, data_source_args))
-        return self.parents
+            return supported_function.get_data_source_args(self._get_args_values(include_defaults=False))
+        return [*self.args, *self.kwargs.values()]
+
+    @lru_cache()
+    def _get_data_source_quibs(self) -> Set:
+        return set(iter_objects_of_type_in_object_shallowly(Quib, self._get_data_source_args()))
 
     @abstractmethod
     def _forward_translate_indices_to_bool_mask(self, quib: Quib, indices: Any) -> Any:

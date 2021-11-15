@@ -1,10 +1,13 @@
 from dataclasses import dataclass
-from typing import Any, Mapping, Callable, Tuple, Optional
+from typing import Any, Mapping, Callable, Tuple, Optional, Dict
 
 import numpy as np
 
 from .external_call_failed_exception_handling import external_call_failed_exception_handling
 from ..utils import iter_args_and_names_in_function_call
+
+Args = Tuple[Any, ...]
+Kwargs = Dict[str, Any]
 
 
 def create_empty_array_with_values_at_indices(shape: tuple, indices: Any, value: Any,
@@ -77,3 +80,11 @@ def unbroadcast_bool_mask(bool_mask: np.ndarray, original_shape: Tuple[int, ...]
                                                 if result_len != quib_len)
     reduced_bool_mask = np.any(reduced_bool_mask, axis=broadcast_loop_dimensions_to_reduce, keepdims=True)
     return np.broadcast_to(reduced_bool_mask, original_shape)
+
+
+def convert_args_and_kwargs(converter: Callable, args: Args, kwargs: Kwargs):
+    """
+    Apply the given converter on all given arg and kwarg values.
+    """
+    return (tuple(converter(i, val) for i, val in enumerate(args)),
+            {name: converter(name, val) for name, val in kwargs.items()})

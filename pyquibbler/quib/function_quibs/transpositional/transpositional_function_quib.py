@@ -1,11 +1,11 @@
 import numpy as np
+from functools import partial
 from operator import getitem
 from typing import List, Optional, Any, Callable, Dict
 
-from pyquibbler.quib.function_quibs.utils import create_empty_array_with_values_at_indices
+from pyquibbler.quib.function_quibs.utils import create_empty_array_with_values_at_indices, convert_args_and_kwargs
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.utils import recursively_run_func_on_object, call_func_with_quib_values
-
 from pyquibbler.quib.function_quibs.default_function_quib import DefaultFunctionQuib
 from pyquibbler.quib.function_quibs.indices_translator_function_quib import IndicesTranslatorFunctionQuib, \
     SupportedFunction
@@ -194,19 +194,23 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
         If any indices exist in the result, invalidate all children with the resulting indices (or, in this
         implementation, a boolean mask representing them)
         """
-        def _replace_arg_with_corresponding_mask_or_arg(q):
-            if isinstance(q, Quib) and q in self._get_data_source_quibs():
-                if q is quib:
-                    return self._get_source_shaped_bool_mask(q, indices)
-                else:
-                    return np.full(q.get_shape(), False)
-            return q
+        data_source_args = self._get_data_source_args()
 
-        new_arguments = recursively_run_func_on_object(
-            func=_replace_arg_with_corresponding_mask_or_arg,
-            obj=self._args
-        )
-        return call_func_with_quib_values(self._func, new_arguments, self._kwargs)
+        def _replace_arg_with_corresponding_mask_or_arg(is_data_source, arg):
+            if is_data_source:
+                if isinstance(arg, Quib):
+                    if arg is quib:
+                        return self._get_source_shaped_bool_mask(arg, indices)
+                    else:
+                        return np.full(arg.get_shape(), False)
+                return np.full(np.shape(arg), False)
+            return arg
+
+        def _convert_arg(_i, arg):
+            return recursively_run_func_on_object(partial(_replace_arg_with_corresponding_mask_or_arg,
+                                                          arg in data_source_args), arg)
+        args, kwargs = convert_args_and_kwargs(_convert_arg, self.args, self.kwargs)
+        return call_func_with_quib_values(self.func, args, kwargs)
 
     def _get_quibs_to_relevant_result_values(self, assignment) -> Dict[Quib, np.ndarray]:
         """

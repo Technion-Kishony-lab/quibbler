@@ -10,7 +10,7 @@ from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
 from pyquibbler.quib.function_quibs.transpositional.transpositional_function_quib import TranspositionalFunctionQuib
 
-from ..utils import PathBuilder, check_get_value_valid_at_path
+from ..utils import PathBuilder, check_get_value_valid_at_path, check_invalidation
 
 
 @pytest.fixture()
@@ -273,6 +273,16 @@ def test_transpositional_concatenate_does_diverge(create_mock_quib):
 
     assert len(filter_out_none_calls(first.get_value_valid_at_path.mock_calls)) == 0
     assert len(filter_out_none_calls(second.get_value_valid_at_path.mock_calls)) == 1
+
+
+@pytest.mark.regression
+@pytest.mark.parametrize('direction', [-1, 1])
+@pytest.mark.parametrize('concat_with_quib', [True, False])
+def test_concatenate_invalidation(direction, concat_with_quib):
+    to_concat = [2, 3]
+    if concat_with_quib:
+        to_concat = iquib(to_concat)
+    check_invalidation(lambda q: np.concatenate((q, to_concat)[::direction]), [0, 1], 0)
 
 
 @pytest.mark.regression
