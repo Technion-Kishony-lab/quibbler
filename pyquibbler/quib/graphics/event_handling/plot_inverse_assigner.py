@@ -1,11 +1,13 @@
+from collections import defaultdict
 from typing import Any, List, Tuple
-from matplotlib.backend_bases import PickEvent, MouseEvent
+from matplotlib.backend_bases import PickEvent, MouseEvent, MouseButton
 
 from .graphics_inverse_assigner import graphics_inverse_assigner
 from ...assignment import Assignment, QuibWithAssignment, PathComponent
+from ...override_choice import OverrideRemoval, OverrideGroup, get_overrides_for_assignment_group
 
 
-def get_xdata_arg_indices_and_ydata_arg_indices(args: Tuple[Any, ...]):
+def get_xdata_arg_indices_and_ydata_arg_indices(args: Tuple[List, List]):
     """
     Gets a list of indices of arguments referencing `xdata`s, and a list of indices of arguments referencing `ydata`
 
@@ -44,20 +46,9 @@ def get_xdata_arg_indices_and_ydata_arg_indices(args: Tuple[Any, ...]):
     return x_data_arg_indexes, y_data_arg_indexes
 
 
-def get_quibs_with_assignments_for_axes(args: List[Any],
-                                        arg_indices: List[int],
-                                        artist_index: int,
-                                        data_indices: Any,
-                                        value: Any):
-    """
-    Assign data for an axes (x or y) to all relevant quib args
-    """
+def get_quibs_to_paths_affected_by_event(args: List[Any], arg_indices: List[int], artist_index: int, data_indices: Any):
     from pyquibbler.quib import Quib
-    # mouse_event.xdata and mouse_event.ydata can be None if the mouse is outside the figure
-    if value is None:
-        return []
-
-    quibs_with_assignments = []
+    quibs_to_paths = defaultdict(list)
     for arg_index in arg_indices:
         quib = args[arg_index]
         if isinstance(quib, Quib):
@@ -73,16 +64,42 @@ def get_quibs_with_assignments_for_axes(args: List[Any],
                     path = [PathComponent(quib[0].get_type(), data_index),
                             # Plot args should be array-like, so quib[0].get_type() should be representative
                             PathComponent(quib.get_type(), artist_index)]
-                assignment = Assignment(value=value, path=path)
-                quibs_with_assignments.append(QuibWithAssignment(quib, assignment))
-    return quibs_with_assignments
+                quibs_to_paths[quib].append(path)
+    return quibs_to_paths
+
+
+def get_overrides_for_event(args: List[Any], arg_indices: List[int], artist_index: int, data_indices: Any, value: Any):
+    """
+    Assign data for an axes (x or y) to all relevant quib args
+    """
+    # mouse_event.xdata and mouse_event.ydata can be None if the mouse is outside the figure
+    if value is None:
+        return []
+
+    quibs_to_paths = get_quibs_to_paths_affected_by_event(args, arg_indices, artist_index, data_indices)
+    return [QuibWithAssignment(quib, Assignment(value=value, path=path))
+            for quib, paths in quibs_to_paths.items() for path in paths]
+
+
+def get_override_removals_for_event(args: List[Any], arg_indices: List[int], artist_index: int, data_indices: Any):
+    """
+    Assign data for an axes (x or y) to all relevant quib args
+    """
+    quibs_to_paths = get_quibs_to_paths_affected_by_event(args, arg_indices, artist_index, data_indices)
+    return [OverrideRemoval(quib, path)
+            for quib, paths in quibs_to_paths.items() for path in paths]
 
 
 @graphics_inverse_assigner('Axes.plot')
-def get_quibs_with_assignments_for_axes_plot(pick_event: PickEvent, mouse_event: MouseEvent,
-                                             args: List[Any]) -> List[QuibWithAssignment]:
+def get_override_group_for_axes_plot(pick_event: PickEvent, mouse_event: MouseEvent, args: List[Any]) -> OverrideGroup:
     indices = pick_event.ind
     x_arg_indices, y_arg_indices = get_xdata_arg_indices_and_ydata_arg_indices(tuple(args))
     artist_index = pick_event.artist._index_in_plot
-    return [*get_quibs_with_assignments_for_axes(args, x_arg_indices, artist_index, indices, mouse_event.xdata),
-            *get_quibs_with_assignments_for_axes(args, y_arg_indices, artist_index, indices, mouse_event.ydata)]
+    if pick_event.mouseevent.button is MouseButton.RIGHT:
+        arg_indices = x_arg_indices + y_arg_indices
+        return OverrideGroup([], get_override_removals_for_event(args, arg_indices, artist_index, indices))
+    else:
+        return get_overrides_for_assignment_group([
+            *get_overrides_for_event(args, x_arg_indices, artist_index, indices, mouse_event.xdata),
+            *get_overrides_for_event(args, y_arg_indices, artist_index, indices, mouse_event.ydata)
+        ])

@@ -2,7 +2,7 @@ from contextlib import contextmanager
 from threading import Lock
 from typing import Optional
 from matplotlib.artist import Artist
-from matplotlib.backend_bases import MouseEvent, PickEvent
+from matplotlib.backend_bases import MouseEvent, PickEvent, MouseButton
 
 from pyquibbler.env import END_DRAG_IMMEDIATELY
 from pyquibbler.performance_utils import timer
@@ -50,6 +50,8 @@ class CanvasEventHandler:
 
     def _handle_pick_event(self, pick_event: PickEvent):
         self.current_pick_event = pick_event
+        if pick_event.mouseevent.button is MouseButton.RIGHT:
+            self._inverse_from_mouse_event(pick_event.mouseevent)
 
     def _inverse_assign_graphics(self, artist: Artist, mouse_event: MouseEvent):
         """
