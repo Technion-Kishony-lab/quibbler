@@ -94,6 +94,7 @@ class AxisWiseGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFuncti
 class ReductionAxisWiseGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
     SUPPORTED_FUNCTIONS = {
         np.sum: SupportedFunction({0}),
+        np.nansum: SupportedFunction({0}),
         np.min: SupportedFunction({0}),
         np.amin: SupportedFunction({0}),
         np.max: SupportedFunction({0}),
@@ -105,6 +106,7 @@ class ReductionAxisWiseGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         np.any: SupportedFunction({0}),
         np.all: SupportedFunction({0}),
         np.prod: SupportedFunction({0}),
+        np.nanprod: SupportedFunction({0}),
         np.diff: SupportedFunction({0}),
         np.median: SupportedFunction({0}),
         np.var: SupportedFunction({0}),
@@ -138,6 +140,8 @@ class AccumulationAxisWiseGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         np.cumsum: SupportedFunction({0}),
         np.cumprod: SupportedFunction({0}),
         np.cumproduct: SupportedFunction({0}),
+        np.nancumsum: SupportedFunction({0}),
+        np.nancumprod: SupportedFunction({0}),
     }
     TRANSLATION_RELATED_ARGS = [Arg('axis')]
 
