@@ -1,8 +1,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
-
 from pyquibbler import iquib, override_all, q
-plt.plot
+
 override_all()
 
 default_factor = iquib(np.array([70]))

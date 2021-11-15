@@ -28,7 +28,7 @@ def image_distance(img1, img2):
 
 
 @np.vectorize
-def show_adjacency(axes, x, y, adjacent, evaluate_now=True):
+def show_adjacency(axes, x, y, adjacent):
     axes.scatter(x, y,
                  s=adjacent * 100 + 1,
                  marker='x',

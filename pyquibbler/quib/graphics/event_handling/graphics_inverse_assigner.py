@@ -29,12 +29,10 @@ def inverse_assign_drawing_func(drawing_func: Callable,
     """
     Reverse a graphics function quib, assigning to all it's arguments values based on pick event and mouse event
     """
-    from pyquibbler.quib import get_overrides_for_assignment_group
     inverse_assigner_func = GRAPHICS_REVERSE_ASSIGNERS.get(drawing_func.__qualname__)
     if inverse_assigner_func is not None:
-        quibs_with_assignments = inverse_assigner_func(pick_event=pick_event, mouse_event=mouse_event, args=args)
         try:
-            override_group = get_overrides_for_assignment_group(quibs_with_assignments)
+            override_group = inverse_assigner_func(pick_event=pick_event, mouse_event=mouse_event, args=args)
         except AssignmentCancelledByUserException:
             pass
         else:
