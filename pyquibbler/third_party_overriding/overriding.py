@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 
 from pyquibbler.quib import ImpureFunctionQuib, DefaultFunctionQuib, FunctionQuib, GraphicsFunctionQuib
 from pyquibbler.quib.function_quibs.elementwise_function_quib import ElementWiseFunctionQuib
-from pyquibbler.quib.function_quibs.transpositional.transpositional_function_quib import TranspositionalFunctionQuib
+from pyquibbler.quib.function_quibs.transpositional import TranspositionalFunctionQuib, ConcatenateFunctionQuib
 from pyquibbler.quib.graphics import global_collecting, ReductionAxisWiseGraphicsFunctionQuib, \
     ApplyAlongAxisGraphicsFunctionQuib
 from pyquibbler.quib.graphics import QVectorize
@@ -64,9 +64,10 @@ NUMPY_OVERRIDES = [
         }),
         (GraphicsFunctionQuib, {'apply_over_axes'}),
         (TranspositionalFunctionQuib, {
-            'reshape', 'rot90', 'ravel', 'concatenate', 'repeat', 'full', 'concatenate',
+            'reshape', 'rot90', 'ravel', 'repeat', 'full',
             'squeeze', 'array', 'swapaxes', 'expand_dims', 'tile', 'transpose',
         }),
+        (ConcatenateFunctionQuib, {'concatenate'}),
         (ElementWiseFunctionQuib, {
             'sin', 'cos', 'tan',                                # trigonometric
             'arcsin', 'arccos', 'arctan',                       # inverse-trigonometric

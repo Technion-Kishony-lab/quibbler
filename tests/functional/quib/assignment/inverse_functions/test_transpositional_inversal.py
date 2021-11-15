@@ -4,21 +4,21 @@ from unittest import mock
 from operator import getitem
 
 from pyquibbler import iquib
-from pyquibbler.quib import TranspositionalFunctionQuib
+from pyquibbler.quib import TranspositionalFunctionQuib, AssignmentNotPossibleException
 from pyquibbler.quib.assignment import Assignment
 from pyquibbler.quib.assignment.assignment import PathComponent
 from pyquibbler.quib.function_quibs.transpositional.getitem_function_quib import GetItemFunctionQuib
 
 
 def inverse(func, indices, value, args, kwargs=None):
-    cls = TranspositionalFunctionQuib if func != getitem else GetItemFunctionQuib
+    cls = func.__quib_wrapper__ if func != getitem else GetItemFunctionQuib
     quib = cls.create(
         func=func,
         func_args=args,
         func_kwargs=kwargs
     )
-    inversions = quib.get_inversions_for_assignment(assignment=Assignment(value=value,
-                                                                          path=[PathComponent(indexed_cls=quib.get_type(), component=indices)]))
+    path = [PathComponent(indexed_cls=quib.get_type(), component=indices)]
+    inversions = quib.get_inversions_for_assignment(assignment=Assignment(value=value, path=path))
     for inversion in inversions:
         inversion.apply()
 
@@ -44,6 +44,14 @@ def test_inverse_concat():
     assert np.array_equal(second_quib_arg.get_value(), np.array([[8, 12, 14]]))
 
 
+@pytest.mark.regression
+def test_inverse_concat_second_arg_non_quib():
+    q = iquib([1])
+    concat = np.concatenate([q, [0]])
+    with pytest.raises(AssignmentNotPossibleException):
+        concat[1] = 999
+
+
 def test_inverse_concat_in_both_arguments():
     first_quib_arg = iquib(np.array([[1, 2, 3]]))
     second_quib_arg = iquib(np.array([[8, 12, 14]]))
@@ -63,13 +71,10 @@ def test_inverse_concat_does_not_return_empty_assignments():
     second_quib_arg = iquib(np.array([[8, 12, 14]]))
     new_value = 20
 
-    quib = TranspositionalFunctionQuib.create(
-        func=np.concatenate,
-        func_args=((first_quib_arg, second_quib_arg),),
-    )
+    quib = np.concatenate((first_quib_arg, second_quib_arg))
     inversions = quib.get_inversions_for_assignment(assignment=Assignment(value=np.array([new_value]),
-                                                                        path=[PathComponent(component=(0, 0),
-                                                                                           indexed_cls=quib.get_type())]))
+                                                                          path=[PathComponent(component=(0, 0),
+                                                                                              indexed_cls=quib.get_type())]))
 
     assert len(inversions) == 1
     assignment = inversions[0].assignment
@@ -181,7 +186,8 @@ def test_inverse_assign_field_array_with_function_and_fancy_indexing_and_field_n
     rotation_quib = TranspositionalFunctionQuib.create(func=np.rot90, func_args=(arr,))
     first_value = rotation_quib[[0], [1]]
 
-    first_value.assign(Assignment(value="heisenberg", path=[PathComponent(indexed_cls=arr.get_type(), component='name')]))
+    first_value.assign(
+        Assignment(value="heisenberg", path=[PathComponent(indexed_cls=arr.get_type(), component='name')]))
 
     assert np.array_equal(arr.get_value(), np.array([[("shlomi", 9)], [("heisenberg", 3)]], dtype=basic_dtype))
 
@@ -190,7 +196,8 @@ def test_inverse_assign_field_with_multiple_field_values(basic_dtype):
     name_1 = 'heisenberg'
     name_2 = 'john'
     arr = iquib(np.array([[('', 9)], [('', 3)]], dtype=basic_dtype))
-    arr.assign(Assignment(value=[[name_1], [name_2]], path=[PathComponent(indexed_cls=arr.get_type(), component='name')]))
+    arr.assign(
+        Assignment(value=[[name_1], [name_2]], path=[PathComponent(indexed_cls=arr.get_type(), component='name')]))
 
     assert np.array_equal(arr.get_value(), np.array([[(name_1, 9)], [(name_2, 3)]], dtype=basic_dtype))
 

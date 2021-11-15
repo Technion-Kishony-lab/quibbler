@@ -62,7 +62,7 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
     def create_wrapper(cls, func: Callable):
         if cls.SUPPORTED_FUNCTIONS is not None:
             assert func in cls.SUPPORTED_FUNCTIONS, \
-                f'Tried to create a wrapper for function {func} which is not supported'
+                f'Tried to create a wrapper for function {func} which is not supported by {cls}'
         return super().create_wrapper(func)
 
     @lru_cache()
