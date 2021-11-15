@@ -1,5 +1,4 @@
 import numpy as np
-from functools import partial
 from operator import getitem
 from typing import List, Optional, Any, Callable, Dict
 
@@ -19,7 +18,6 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
     """
     SUPPORTED_FUNCTIONS = {
         np.rot90: SupportedFunction({0}),
-        np.concatenate: SupportedFunction({0}),
         np.repeat: SupportedFunction({0}),
         np.full: SupportedFunction({1}),
         getitem: SupportedFunction({0}),
@@ -48,75 +46,38 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
             for arg in self._args
         ]
 
-    def _get_quibs_to_ids(self) -> Dict[Quib, int]:
-        """
-        Get a mapping between quibs and their unique ids (these ids are only constant for the particular
-        instance of the transpositional inverser)
-        """
-        return {potential_quib: i
-                for i, potential_quib in enumerate(self._get_data_source_quibs())}
-
     def _get_quib_ids_mask(self) -> np.ndarray:
         """
         Runs the function with each quib's ids instead of it's values
         """
-        quibs_to_ids = self._get_quibs_to_ids()
 
         def replace_quib_with_id(obj):
-            if isinstance(obj, Quib) and obj in self._get_data_source_quibs():
-                return np.full(obj.get_shape(), quibs_to_ids[obj])
+            if isinstance(obj, Quib):
+                return np.full(obj.get_shape(), id(obj))
             return obj
 
-        new_arguments = recursively_run_func_on_object(
-            func=replace_quib_with_id,
-            obj=self._args
-        )
-
-        return call_func_with_quib_values(self._func, new_arguments, self._kwargs)
-
-    def _get_quibs_to_index_grids(self) -> Dict[Quib, np.ndarray]:
-        """
-        Get a mapping between quibs and their indices grid
-        """
-        return {
-            quib: np.indices(quib.get_shape())
-            for quib in self._get_data_source_quibs()
-        }
+        args, kwargs = self._convert_data_sources_in_args(replace_quib_with_id)
+        return call_func_with_quib_values(self.func, args, kwargs)
 
     def _get_quibs_to_masks(self):
         """
         Get a mapping between quibs and a bool mask representing all the elements that are relevant to them in the
         result
         """
-        quibs_to_ids = self._get_quibs_to_ids()
         quibs_mask = self._get_quib_ids_mask()
-
-        def _build_quib_mask(quib: Quib):
-            return np.equal(quibs_mask, quibs_to_ids[quib])
-
-        return {
-            quib: _build_quib_mask(quib)
-            for quib in self._get_data_source_quibs()
-        }
+        return {quib: np.equal(quibs_mask, id(quib)) for quib in self._get_data_source_quibs()}
 
     def _get_quibs_to_indices_at_dimension(self, dimension: int, relevant_indices_mask) -> Dict[Quib, np.ndarray]:
         """
         Get a mapping of quibs to their referenced indices at a *specific dimension*
         """
-
-        quibs_to_index_grids = self._get_quibs_to_index_grids()
         quibs_to_masks = self._get_quibs_to_masks()
 
         def replace_quib_with_index_at_dimension(q):
-            if isinstance(q, Quib) and q in self._get_data_source_quibs():
-                return quibs_to_index_grids[q][dimension]
-            return q
+            return np.indices(q.get_shape() if isinstance(q, Quib) else np.shape(q))[dimension]
 
-        new_arguments = recursively_run_func_on_object(
-            func=replace_quib_with_index_at_dimension,
-            obj=self._args
-        )
-        indices_res = call_func_with_quib_values(self._func, new_arguments, self._kwargs)
+        args, kwargs = self._convert_data_sources_in_args(replace_quib_with_index_at_dimension)
+        indices_res = call_func_with_quib_values(self._func, args, kwargs)
 
         return {
             quib: indices_res[np.logical_and(quibs_to_masks[quib], relevant_indices_mask)]
@@ -183,6 +144,20 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
             return [path]
         return super(TranspositionalFunctionQuib, self)._forward_translate_invalidation_path(quib, path)
 
+    def _convert_data_sources_in_args(self, convert_data_source: Callable):
+        """
+        Return self.args and self.kwargs with all data source args converted with the given convert_data_source
+        callback.
+        """
+        data_source_ids = set(map(id, self._get_data_source_args()))
+
+        def _replace_arg_with_corresponding_mask_or_arg(_i, arg):
+            if id(arg) in data_source_ids:
+                return convert_data_source(arg)
+            return arg
+
+        return convert_args_and_kwargs(_replace_arg_with_corresponding_mask_or_arg, self.args, self.kwargs)
+
     def _forward_translate_indices_to_bool_mask(self, quib: Quib, indices: Any) -> Any:
         """
         Translate the invalidation path to it's location after passing through the current function quib.
@@ -194,22 +169,16 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
         If any indices exist in the result, invalidate all children with the resulting indices (or, in this
         implementation, a boolean mask representing them)
         """
-        data_source_args = self._get_data_source_args()
 
-        def _replace_arg_with_corresponding_mask_or_arg(is_data_source, arg):
-            if is_data_source:
-                if isinstance(arg, Quib):
-                    if arg is quib:
-                        return self._get_source_shaped_bool_mask(arg, indices)
-                    else:
-                        return np.full(arg.get_shape(), False)
-                return np.full(np.shape(arg), False)
-            return arg
+        def _convert_data_source(arg):
+            if isinstance(arg, Quib):
+                if arg is quib:
+                    return self._get_source_shaped_bool_mask(arg, indices)
+                else:
+                    return np.full(arg.get_shape(), False)
+            return np.full(np.shape(arg), False)
 
-        def _convert_arg(_i, arg):
-            return recursively_run_func_on_object(partial(_replace_arg_with_corresponding_mask_or_arg,
-                                                          arg in data_source_args), arg)
-        args, kwargs = convert_args_and_kwargs(_convert_arg, self.args, self.kwargs)
+        args, kwargs = self._convert_data_sources_in_args(_convert_data_source)
         return call_func_with_quib_values(self.func, args, kwargs)
 
     def _get_quibs_to_relevant_result_values(self, assignment) -> Dict[Quib, np.ndarray]:

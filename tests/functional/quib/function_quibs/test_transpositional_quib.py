@@ -278,11 +278,25 @@ def test_transpositional_concatenate_does_diverge(create_mock_quib):
 @pytest.mark.regression
 @pytest.mark.parametrize('direction', [-1, 1])
 @pytest.mark.parametrize('concat_with_quib', [True, False])
-def test_concatenate_invalidation(direction, concat_with_quib):
+@pytest.mark.parametrize('indices_to_invalidate', [0, 1])
+def test_concatenate_invalidation(direction, concat_with_quib, indices_to_invalidate):
     to_concat = [2, 3]
     if concat_with_quib:
         to_concat = iquib(to_concat)
-    check_invalidation(lambda q: np.concatenate((q, to_concat)[::direction]), [0, 1], 0)
+    check_invalidation(lambda q: np.concatenate((q, to_concat)[::direction]), [0, 1], indices_to_invalidate)
+
+
+@pytest.mark.regression
+@pytest.mark.parametrize('direction', [-1, 1])
+@pytest.mark.parametrize('concat_with_quib', [True, False])
+@pytest.mark.parametrize('indices_to_get_value_at', [0, 1, 2, -1])
+def test_concatenate_get_value_valid_at_path(direction, concat_with_quib, indices_to_get_value_at):
+    # It's important for the regression that one of the elements here is zero
+    to_concat = np.array([0, 1])
+    if concat_with_quib:
+        to_concat = iquib(to_concat)
+    path = [PathComponent(np.ndarray, indices_to_get_value_at)]
+    check_get_value_valid_at_path(lambda q: np.concatenate((q, to_concat)[::direction]), np.array([0, 1]), path)
 
 
 @pytest.mark.regression

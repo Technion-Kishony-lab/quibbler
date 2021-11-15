@@ -1,11 +1,11 @@
 from __future__ import annotations
 from typing import List, Optional
-
 import numpy as np
 
-from pyquibbler.quib import TranspositionalFunctionQuib, Quib
 from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.quib.utils import copy_and_replace_quibs_with_vals
+
+from .transpositional_function_quib import TranspositionalFunctionQuib, Quib
 
 
 class GetItemFunctionQuib(TranspositionalFunctionQuib):
