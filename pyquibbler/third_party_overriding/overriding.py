@@ -58,21 +58,50 @@ NON_QUIB_OVERRIDES = [
 
 NUMPY_OVERRIDES = [
     (np, [
-        (DefaultFunctionQuib, {"abs", "arange", "polyfit",
-                               "linspace", "polyval", "genfromtxt", 'corrcoef'}),
+        (DefaultFunctionQuib, {
+            'arange', 'polyfit', 'interp',
+            'linspace', 'polyval', 'genfromtxt', 'corrcoef',
+        }),
         (GraphicsFunctionQuib, {'apply_over_axes'}),
-        (TranspositionalFunctionQuib, {'reshape', 'rot90', 'ravel', 'concatenate', 'repeat', 'full', 'concatenate',
-                                       'squeeze', 'array', 'swapaxes', 'expand_dims', 'tile', 'transpose'}),
-        (ElementWiseFunctionQuib, {'add', 'square', "sin", "cos", "tan", "sinh", "cosh", "tanh", "real", "imag",
-                                   "arcsin", "arccos", "arctan", "arcsinh", "arccosh", "arctanh",
-                                   "exp", "exp2", "expm1", "log", "log2", "log1p", "log10",
-                                   "sqrt", "int", "float", "ceil", "floor", "round", 'around', 'hypot'}),
+        (TranspositionalFunctionQuib, {
+            'reshape', 'rot90', 'ravel', 'concatenate', 'repeat', 'full', 'concatenate',
+            'squeeze', 'array', 'swapaxes', 'expand_dims', 'tile', 'transpose',
+        }),
+        (ElementWiseFunctionQuib, {
+            'sin', 'cos', 'tan',                                # trigonometric
+            'arcsin', 'arccos', 'arctan',                       # inverse-trigonometric
+            'sinh', 'cosh', 'tanh',                             # hyperbolic
+            'arcsinh', 'arccosh', 'arctanh',                    # inverse-hyperbolic
+            'hypot', 'arctan2',                                 # trigonometric 2-arguments
+            'degrees', 'radians', 'deg2rad', 'rad2deg',         # angles
+            'real', 'imag', 'abs', 'absolute', 'angle',         # complex numbers
+            'conj', 'conjugate',                                #
+            'exp', 'exp2', 'expm1',                             # exponentials
+            'log', 'log2', 'log1p', 'log10',                    # logs
+            'add', 'subtract', 'multiply', 'divide', 'power',   # two-element arithmetics
+            'true_divide', 'floor_divide', 'float_power',       #
+            'fmod', 'mod', 'remainder', 'divmod',               #
+            'reciprocal', 'positive', 'negative', 'modf',       # one-element arithmetics
+            'ceil', 'floor', 'round', 'around', 'rint',         # rounding
+            'fix', 'trunc',                                     #
+            'square', 'sqrt',                                   # square, sqrt
+            'fmax', 'fmin',                                     # min/max
+            'lcm', 'gcd',                                       # rational
+            'int', 'float',                                     # casting
+            'i0', 'sinc', 'sign'                                # other
+        }),
         (ApplyAlongAxisGraphicsFunctionQuib, {'apply_along_axis'}),
-        (ReductionAxisWiseGraphicsFunctionQuib, {"max", "amax", "min", "amin", "sum", "std",
-                                                 "any", "all", "diff", "average", "mean", "prod",
-                                                 "sort", "var", "median", "argmin", "argmax", "nanargmin",
-                                                 "nanargmax"}),
-        (AccumulationAxisWiseGraphicsFunctionQuib, {"cumsum", "cumprod", "cumproduct"}),
+        (ReductionAxisWiseGraphicsFunctionQuib, {
+            'min', 'amin', 'max', 'amax',                       # min/max
+            'argmin', 'argmax', 'nanargmin', 'nanargmax',       # arg-min/max
+            'sum', 'prod', 'nanprod', 'nansum',                 # sum/prod
+            'any', 'all',                                       # logical
+            'average', 'mean', 'var', 'std', 'median',          # statistics
+            'diff', 'sort',                                     # other
+        }),
+        (AccumulationAxisWiseGraphicsFunctionQuib, {
+            'cumsum', 'cumprod', 'cumproduct', 'nancumsum', 'nancumprod'
+        }),
     ]),
     (np.random, [
         (ImpureFunctionQuib, {'rand', 'randn', 'randint'})
