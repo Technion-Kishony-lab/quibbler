@@ -21,6 +21,7 @@ def ensure_only_run_once_globally(func: Callable):
 
     return _wrapper
 
+
 @dataclass
 class Mutable:
     val: Any
@@ -29,15 +30,17 @@ class Mutable:
         self.val = val
 
     @contextlib.contextmanager
-    def temporary_set(self, val: Any):
+    def temporary_set(self, val):
         current = self.val
         self.set(val)
-        yield
-        self.set(current)
+        try:
+            yield
+        finally:
+            self.set(current)
+
 
 @dataclass
 class Flag(Mutable):
+
     def __bool__(self):
         return self.val
-
-

@@ -110,3 +110,9 @@ venv.bak/
 
 # mac crap
 *.DSTORE
+pyquibbler/quib/.DS_Store
+*/node_modules/
+
+.DS_Store
+
+examples/recorded_videos/Camtasia/

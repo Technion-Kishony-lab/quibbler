@@ -1,9 +1,22 @@
+import numpy as np
 from abc import ABC, abstractmethod
 from math import floor
-from typing import Any
+from typing import Any, Type
 from dataclasses import dataclass
 
-from pyquibbler.exceptions import DebugException
+from pyquibbler.exceptions import DebugException, PyQuibblerException
+
+CONSTRUCTORS = {
+    np.ndarray: np.array
+}
+
+
+@dataclass
+class InvalidTypeException(PyQuibblerException):
+    type_: Type
+
+    def __str__(self):
+        return f"The type {repr(self.type_)} is incompatible with the given assignment template "
 
 
 @dataclass
@@ -24,6 +37,13 @@ class RangeStopBelowStartException(DebugException):
         return f'Stop ({self.stop} is smaller than start ({self.start})'
 
 
+@dataclass
+class TypesMustBeSameInAssignmentTemplateException(DebugException):
+
+    def __str__(self):
+        return 'You cannot have different types in your assignment template'
+
+
 def get_number_in_bounds(number, minimum, maximum):
     return min(max(number, minimum), maximum)
 
@@ -36,6 +56,10 @@ class AssignmentTemplate(ABC):
         Convert the given object to match the template.
         """
 
+    @abstractmethod
+    def _get_number_type(self) -> Type:
+        pass
+
     def convert(self, data: Any):
         """
         Convert the given data according to the assignment template.
@@ -46,10 +70,16 @@ class AssignmentTemplate(ABC):
         iquib(np.zeros((2, 2)))[0] = [1, 1]
         ```
         """
+        # we need to be careful of strings, as they are iterators but not valid values
+        if isinstance(data, str):
+            raise InvalidTypeException(str)
+
         try:
             iterator = iter(data)
         except TypeError:
-            return self._convert_number(data)
+            constructor = CONSTRUCTORS.get(self._get_number_type(), self._get_number_type())
+            casted_data = constructor(data)
+            return self._convert_number(casted_data)
         else:
             return [self.convert(item) for item in iterator]
 
@@ -65,6 +95,12 @@ class BoundAssignmentTemplate(AssignmentTemplate):
     def __post_init__(self):
         if self.maximum < self.minimum:
             raise BoundMaxBelowMinException(self.minimum, self.maximum)
+
+        if type(self.minimum) != type(self.maximum): # noqa
+            raise TypesMustBeSameInAssignmentTemplateException()
+
+    def _get_number_type(self) -> Type:
+        return type(self.minimum)
 
     def _convert_number(self, number):
         return get_number_in_bounds(number, self.minimum, self.maximum)
@@ -83,8 +119,14 @@ class RangeAssignmentTemplate(AssignmentTemplate):
     def __post_init__(self):
         if self.stop < self.start:
             raise RangeStopBelowStartException(self.start, self.stop)
+        if (type(self.start) != type(self.stop)) or (type(self.start) != type(self.step)): # noqa
+            raise TypesMustBeSameInAssignmentTemplateException()
+
+    def _get_number_type(self) -> Type:
+        return type(self.start)
 
     def _convert_number(self, number: Any):
         rounded = round((number - self.start) / self.step)
         bound = get_number_in_bounds(rounded, 0, floor((self.stop - self.start) / self.step))
-        return type(number)(self.start + bound * self.step)
+        constructor = CONSTRUCTORS.get(type(number), type(number))
+        return constructor(self.start + bound * self.step)

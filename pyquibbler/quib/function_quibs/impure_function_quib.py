@@ -18,6 +18,10 @@ class InvalidCacheBehaviorForImpureFunctionQuibException(PyQuibblerException):
 
 
 class ImpureFunctionQuib(DefaultFunctionQuib):
+    """
+    An impure function is any function that can potentially return different results when run multiple times
+    """
+
     _DEFAULT_CACHE_BEHAVIOR = CacheBehavior.ON
 
     def set_cache_behavior(self, cache_behavior: CacheBehavior):

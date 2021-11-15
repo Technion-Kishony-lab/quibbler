@@ -1,10 +1,19 @@
+from __future__ import annotations
 import contextlib
+from typing import Set, TYPE_CHECKING
+
 from matplotlib.axes import Axes
 
+from pyquibbler.logger import logger
 from pyquibbler.performance_utils import timer
 
+from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
 
-AXESES_TO_REDRAW = set()
+if TYPE_CHECKING:
+    from pyquibbler.quib import GraphicsFunctionQuib
+
+
+QUIBS_TO_REDRAW: Set[GraphicsFunctionQuib] = set()
 IN_AGGREGATE_REDRAW_MODE = False
 
 
@@ -18,29 +27,36 @@ def aggregate_redraw_mode():
     IN_AGGREGATE_REDRAW_MODE = True
     yield
     IN_AGGREGATE_REDRAW_MODE = False
-    for axes in AXESES_TO_REDRAW:
-        redraw_axes(axes)
+    _redraw_graphics_function_quibs()
 
 
-def redraw_axes(axes: Axes, force: bool = False):
+def _redraw_graphics_function_quibs():
+    quibs_that_are_invalid = [quib for quib in QUIBS_TO_REDRAW if quib.cache_status != CacheStatus.ALL_VALID]
+    logger.info(f"redrawing {len(quibs_that_are_invalid)} quibs")
+    for graphics_function_quib in quibs_that_are_invalid:
+        graphics_function_quib.redraw_if_appropriate()
+    axeses = {axes for graphics_function_quib in quibs_that_are_invalid
+              for axes in graphics_function_quib.get_axeses()}
+
+    logger.info(f"redrawing {len(axeses)} axeses")
+    redraw_axeses(axeses)
+    QUIBS_TO_REDRAW.clear()
+
+
+def redraw_graphics_function_quibs_or_add_in_aggregate_mode(graphics_function_quibs: Set[GraphicsFunctionQuib]):
+    global QUIBS_TO_REDRAW
+    if IN_AGGREGATE_REDRAW_MODE:
+        QUIBS_TO_REDRAW |= graphics_function_quibs
+    else:
+        QUIBS_TO_REDRAW = graphics_function_quibs
+        _redraw_graphics_function_quibs()
+
+
+def redraw_axeses(axeses: Set[Axes]):
     """
     Actual redrawing of axes- this should be WITHOUT rendering anything except for the new artists
     """
-    if IN_AGGREGATE_REDRAW_MODE and not force:
-        AXESES_TO_REDRAW.add(axes)
-        return
-
-    with timer(name="redraw"):
-        # if the renderer cache is None, we've never done an initial draw- which means we can just wait for the
-        # initial draw to happen which will naturally use our updated artists
-        if axes.get_renderer_cache() is not None:
-            if axes.figure.canvas.supports_blit:
-                # redraw_in_frame is supposed to be a quick way to redraw all artists in an axes- the expectation is
-                # that the renderer will not rerender any artists that already exist.
-                # We saw that the performance matched the performance of what automatically happens when pausing
-                # (which causes a the event loop to run)
-                axes.redraw_in_frame()
-                # # After redrawing to the canvas, we now need to blit the bitmap to the GUI
-                axes.figure.canvas.blit(axes.bbox)
-            else:
-                axes.figure.canvas.draw()
+    canvases = {axes.figure.canvas for axes in axeses}
+    with timer(name="redraw", callback=lambda t: logger.info(f"redraw canvas {t}")):
+        for canvas in canvases:
+            canvas.draw()

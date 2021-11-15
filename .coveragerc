@@ -1,3 +1,8 @@
-[run]
+[report]
+exclude_lines =
+    pragma: no cover
+    if TYPE_CHECKING:
+    raise AssertionError
+    raise NotImplementedError
 omit =
-    pyquibbler/graphics/*
+    pyquibbler/user_utils.py
