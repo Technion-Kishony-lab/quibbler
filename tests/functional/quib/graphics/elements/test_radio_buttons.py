@@ -34,6 +34,6 @@ def test_radiobuttons_graphics_quib_get_value(radibuttons_quib):
 
 
 def test_radiobuttons_graphics_on_change(radibuttons_quib, mock_quib):
-    radibuttons_quib._did_set_on_change("hello")
+    radibuttons_quib._on_change("hello")
 
     assert mock_quib.get_value() == 1
