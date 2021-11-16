@@ -1,5 +1,4 @@
 import matplotlib.pyplot as plt
-import objgraph
 import pytest
 from matplotlib import widgets
 
