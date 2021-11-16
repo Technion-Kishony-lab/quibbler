@@ -62,7 +62,6 @@ class FunctionQuib(Quib):
         self._func = func
         self._args = args
         self._kwargs = kwargs
-        self._cache_behavior = None
 
         if cache_behavior is None:
             cache_behavior = self._DEFAULT_CACHE_BEHAVIOR

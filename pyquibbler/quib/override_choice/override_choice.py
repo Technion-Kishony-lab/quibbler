@@ -138,14 +138,14 @@ class OverrideOptionsTree:
         return override_group
 
     @classmethod
-    def _get_children_from_diverged_inversions(cls, inversions: List[AssignmentToQuib]):
+    def _get_children_from_diverged_inversions(cls, inversions: List[AssignmentToQuib], top_quib: FunctionQuib):
         """
         For each diverged inversion, create a new OverrideOptionsTree instance, and return a list of all instances.
         If any inversion cannot be translated into an override, return an empty list.
         """
         children = []
         for inversion in inversions:
-            child = cls.from_quib_change(inversion)
+            child = cls.from_quib_change(inversion, top_quib)
             if not child:
                 # If one of the diverged options does not allow overriding,
                 # then we can't inverse assign through the diverger, because
@@ -155,17 +155,20 @@ class OverrideOptionsTree:
         return children
 
     @classmethod
-    def from_quib_change(cls, quib_change: Union[AssignmentToQuib, OverrideRemoval]) -> OverrideOptionsTree:
+    def from_quib_change(cls, quib_change: Union[AssignmentToQuib, OverrideRemoval],
+                         top_quib: Optional[FunctionQuib] = None) -> OverrideOptionsTree:
         """
         Build an OverrideOptionsTree representing all the override options for the given assignment.
         """
+        if top_quib is None:
+            top_quib = quib_change.quib
         options: List[QuibChangeWithOverrideRemovals] = []
         inversions = [quib_change]
         override_removals = []
         last_inversion = None
         while len(inversions) == 1:
             inversion = inversions[0]
-            if inversion.quib._allow_overriding:
+            if inversion.quib._allow_overriding and top_quib.allows_assignment_to(inversion.quib):
                 override = inversion.to_override() if isinstance(inversion, AssignmentToQuib) else inversion
                 options.append(QuibChangeWithOverrideRemovals(override, override_removals[:]))
             override_removals.append(OverrideRemoval.from_quib_change(inversion))
@@ -173,7 +176,7 @@ class OverrideOptionsTree:
             if inversions:
                 last_inversion = inversion
 
-        children = cls._get_children_from_diverged_inversions(inversions)
+        children = cls._get_children_from_diverged_inversions(inversions, top_quib)
         diverged_quib = None if not children else last_inversion.quib
         return OverrideOptionsTree(quib_change.quib, options, diverged_quib, children, override_removals)
 

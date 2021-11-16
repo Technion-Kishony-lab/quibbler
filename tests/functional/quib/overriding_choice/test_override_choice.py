@@ -295,3 +295,25 @@ def test_get_overrides_for_assignment_does_not_use_cache_when_options_change(ass
     second_override_group = get_overrides_for_assignment(child, assignment2)
 
     assert second_override_group == OverrideGroup([Override(child, assignment2)])
+
+
+def test_get_overrides_for_assignment_when_can_assign_to_self(diverged_quib_graph, assignment):
+    grandparent1, parent1, grandparent2, parent2, child, parent1_override = diverged_quib_graph
+    parent1.set_allow_overriding(True)
+    child.set_allow_overriding(True)
+    child.set_assigned_quibs([child])
+    assignment = AssignmentToQuib(child, assignment)
+    override_group = get_override_group_for_change(assignment)
+
+    assert override_group.quib_changes == [assignment.to_override()]
+
+
+def test_get_overrides_for_assignment_when_can_assign_to_parents(diverged_quib_graph, assignment):
+    grandparent1, parent1, grandparent2, parent2, child, parent1_override = diverged_quib_graph
+    parent1.set_allow_overriding(True)
+    parent2.set_allow_overriding(True)
+    child.set_assigned_quibs([parent1, parent2])
+    assignment = AssignmentToQuib(child, assignment)
+    override_group = get_override_group_for_change(assignment)
+
+    assert len(override_group.quib_changes) == 3  # Two overrides and one override removal

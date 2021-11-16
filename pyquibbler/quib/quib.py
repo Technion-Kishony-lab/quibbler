@@ -10,7 +10,7 @@ from functools import cached_property
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from operator import getitem
-from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Callable, Dict, Union
+from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Callable, Dict, Union, Iterable
 from weakref import ref as weakref
 
 from .assignment.assignment_template import InvalidTypeException
@@ -109,6 +109,7 @@ class Quib(ABC):
             allow_overriding = self._DEFAULT_ALLOW_OVERRIDING
         self._allow_overriding = allow_overriding
         self.method_cache = {}
+        self._quibs_allowed_to_assign_to = None
 
         try:
             self._name = get_var_name_being_set_outside_of_pyquibbler() if GET_VARIABLE_NAMES else None
@@ -183,6 +184,20 @@ class Quib(ABC):
         from pyquibbler.quib.graphics.redraw import redraw_graphics_function_quibs_or_add_in_aggregate_mode
         quibs = self._get_graphics_function_quibs_recursively()
         redraw_graphics_function_quibs_or_add_in_aggregate_mode(quibs)
+
+    def set_assigned_quibs(self, quibs: Optional[Iterable[Quib]]) -> None:
+        """
+        Set the quibs to which assignments to this quib could translate to overrides in.
+        When None is given, a dialog will be used to choose between options.
+        """
+        self._quibs_allowed_to_assign_to = quibs if quibs is None else set(quibs)
+
+    def allows_assignment_to(self, quib: Quib) -> bool:
+        """
+        Returns True if this quib allows assignments to it to be translated into assignments to the given quib,
+        and False otherwise.
+        """
+        return True if self._quibs_allowed_to_assign_to is None else quib in self._quibs_allowed_to_assign_to
 
     def invalidate_and_redraw_at_path(self, path: Optional[List[PathComponent]] = None) -> None:
         """
