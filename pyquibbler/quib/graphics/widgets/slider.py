@@ -5,6 +5,7 @@ from matplotlib.widgets import Slider
 from pyquibbler.quib import Quib
 from pyquibbler.quib.utils import quib_method
 from .drag_context_manager import dragging
+from .single_on_change import set_func_callback_on_widget_one_time
 
 from .widget_graphics_function_quib import WidgetGraphicsFunctionQuib
 from ...assignment import PathComponent
@@ -14,14 +15,7 @@ class QSlider(Slider):
     def __init__(self, ax, label, valmin, valmax, valinit, **kwargs):
         self.on_release = None
         self._drag_active = False
-        self._did_set_on_change = False
         super().__init__(ax, label, valmin, valmax, valinit, **kwargs)
-
-        # It could have seemed that another implementation would be to call `on_changed` in the init with a
-        # private method and just call that with a supplied function (instead of the _did_set_on_change design)
-        # It's CRITICAL not to set `on_changed` here but only when necessary, as there is a memory leak in matplotlib-
-        # When calling disconnect_events() you expect anything you connected to be disconnected, but there is an
-        # "observers" in the slider that does not disconnect your "on_changed" event
 
     @property
     def drag_active(self):
@@ -32,15 +26,6 @@ class QSlider(Slider):
         self._drag_active = value
         if value is False and self.on_release:
             self.on_release()
-
-    def set_single_on_change(self, func):
-        """
-        We call this instead on_changed(...) to ensure we're only setting a callback *once*. If you call on_changed on
-        the same widget multiple times,  you'll create multiple callbacks
-        """
-        if not self._did_set_on_change:
-            self.on_changed(func)
-        self._did_set_on_change = True
 
 
 class SliderGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
@@ -71,7 +56,12 @@ class SliderGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
 
     def _call_func(self, valid_path: Optional[List[PathComponent]]) -> Any:
         slider = super()._call_func(None)
-        slider.set_single_on_change(self._on_change)
+        set_func_callback_on_widget_one_time(
+            event_name="changed",
+            func=self._on_change,
+            set_method_callback=slider.on_changed,
+            widget=slider
+        )
         slider.on_release = self._on_release
         return slider
 

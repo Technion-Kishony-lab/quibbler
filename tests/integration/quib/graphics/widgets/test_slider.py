@@ -54,7 +54,7 @@ def test_slider_graphics_function_quib_press_and_motion_notify_changes_and_keeps
 
 
 @pytest.mark.regression
-def test_slider_graphics_function_quib_calls_on_change_once(axes, get_live_widgets, input_quib,
+def test_slider_graphics_function_quib_calls_multiple_times(axes, get_live_widgets, input_quib,
                                                             create_button_press_event,
                                                             create_motion_notify_event,
                                                             create_button_release_event, get_axes_start,

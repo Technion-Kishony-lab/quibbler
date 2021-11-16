@@ -165,32 +165,6 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
             remove_artist(artist)
         artist_set.clear()
 
-    @contextmanager
-    def _handle_new_graphics_collection(self, graphics_collection: GraphicsCollection):
-        self._remove_artists_that_were_removed_from_axes(graphics_collection.artists)
-        # Get the *current* artists together with their starting indices (per axes per artists array) so we can
-        # place the new artists we create in their correct locations
-        previous_axeses_to_array_names_to_indices_and_artists = \
-            get_axeses_to_array_names_to_starting_indices_and_artists(graphics_collection.artists)
-        self._remove_artists(graphics_collection.artists)
-
-        with ArtistsCollector() as artists_collector, AxesWidgetsCollector() as widgets_collector:
-            yield
-
-        graphics_collection.artists.update(artists_collector.objects_collected)
-        graphics_collection.widgets.update(widgets_collector.objects_collected)
-
-        self._had_artists_on_last_run = len(graphics_collection.artists) > 0
-
-        for artist in graphics_collection.artists:
-            save_func_and_args_on_artists(artist, func=self.func, args=self.args)
-            track_artist(artist)
-        self.persist_self_on_artists(graphics_collection.artists)
-
-        current_axeses_to_array_names_to_artists = get_axeses_to_array_names_to_artists(graphics_collection.artists)
-        self._update_new_artists_from_previous_artists(previous_axeses_to_array_names_to_indices_and_artists,
-                                                       current_axeses_to_array_names_to_artists)
-
     def _remove_artists_that_were_removed_from_axes(self, artist_set: Set[Artist]):
         """
         Remove any artists that we created that were removed by another means other than us (for example, cla())
@@ -223,12 +197,6 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         if self._graphics_collection_ndarr is None:
             self._graphics_collection_ndarr = create_array_from_func(GraphicsCollection, loop_shape)
 
-    @contextmanager
-    def _call_func_context(self, graphics_collection):
-        with self._handle_new_graphics_collection(graphics_collection):
-            with QuibGuard(set(iter_quibs_in_args(self.args, self.kwargs))):
-                yield
-
     def _run_single_call(self, func, graphics_collection: GraphicsCollection, args, kwargs):
         self._remove_artists_that_were_removed_from_axes(graphics_collection.artists)
         # Get the *current* artists together with their starting indices (per axes per artists array) so we can
@@ -237,9 +205,9 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
             get_axeses_to_array_names_to_starting_indices_and_artists(graphics_collection.artists)
         self._remove_artists(graphics_collection.artists)
 
-        with ArtistsCollector() as artists_collector, AxesWidgetsCollector() as widgets_collector:
-            with external_call_failed_exception_handling():
-                ret_val = func(*args, **kwargs)
+        with ArtistsCollector() as artists_collector, AxesWidgetsCollector() as widgets_collector, \
+                external_call_failed_exception_handling(), QuibGuard(set(iter_quibs_in_args(self.args, self.kwargs))):
+            ret_val = func(*args, **kwargs)
 
         graphics_collection.artists.update(artists_collector.objects_collected)
         if len(graphics_collection.widgets) > 0:
@@ -265,6 +233,11 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         current_axeses_to_array_names_to_artists = get_axeses_to_array_names_to_artists(graphics_collection.artists)
         self._update_new_artists_from_previous_artists(previous_axeses_to_array_names_to_indices_and_artists,
                                                        current_axeses_to_array_names_to_artists)
+
+        # We don't allow returning quibs as results from functions
+        from pyquibbler.quib import Quib
+        if isinstance(ret_val, Quib):
+            ret_val = ret_val.get_value()
 
         return ret_val
 
