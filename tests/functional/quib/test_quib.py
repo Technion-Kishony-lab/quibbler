@@ -425,13 +425,25 @@ def test_quib_var_name():
     assert my_quib.name == "my_quib"
 
 
-def test_quib_with_set_name():
+def test_quib_with_valid_set_name():
     my_quib = iquib(1)
-    name = "hello quib"
+    name = "hello_quib"
 
     my_quib.set_name(name)
 
     assert my_quib.name == name
+
+
+def test_quib_with_invalid_set_name():
+    my_quib = iquib(1)
+    name = "hello quib"
+
+    try:
+        my_quib.set_name(name)
+    except ValueError:
+        pass
+    else:
+        assert False
 
 
 @pytest.mark.get_variable_names(True)

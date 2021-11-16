@@ -384,7 +384,10 @@ class Quib(ABC):
         """
         Set the quib's name- this will override any name automatically created if it exists.
         """
-        self._name = name
+        if name is None or name.isidentifier():
+            self._name = name
+        else:
+            raise ValueError('name must be None or a valid alphanumeic python identifier')
 
     @property
     def name(self) -> Optional[str]:
