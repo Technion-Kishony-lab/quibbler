@@ -2,6 +2,7 @@ import pytest
 from matplotlib import widgets, pyplot as plt
 
 from pyquibbler import iquib
+from tests.integration.quib.graphics.widgets.utils import count_redraws
 
 
 @pytest.fixture
@@ -22,13 +23,17 @@ def radio_buttons(axes, active_quib):
 
 def test_radio_buttons_set_active_multiple_times(get_only_live_widget, radio_buttons, active_quib, get_live_widgets):
     widget = get_only_live_widget()
-    get_only_live_widget().set_active(0)
-    get_only_live_widget().set_active(1)
-    get_only_live_widget().set_active(2)
-    get_only_live_widget().set_active(1)
+
+    with count_redraws(radio_buttons) as redraw_count:
+        widget.set_active(0)
+        widget.set_active(1)
+        widget.set_active(2)
+        widget.set_active(1)
 
     assert active_quib.get_value() == 1
     assert len(get_live_widgets()) == 1
     assert get_only_live_widget() is widget
+    assert redraw_count.count == 4
+
 
 
