@@ -11,6 +11,8 @@ from .quib_guard import QuibGuard
 from .update_type import UpdateType
 from .utils import save_func_and_args_on_artists, get_axeses_to_array_names_to_starting_indices_and_artists, \
     remove_artist, get_axeses_to_array_names_to_artists, get_artist_array, ArrayNameToArtists, track_artist
+from .widget_utils import destroy_widgets, transfer_data_from_new_widgets_to_previous_widgets, \
+    update_previous_widget_from_new_widget
 from ..assignment import AssignmentTemplate, PathComponent
 from ..function_quibs import DefaultFunctionQuib, CacheBehavior
 from ..function_quibs.external_call_failed_exception_handling import external_call_failed_exception_handling
@@ -163,22 +165,6 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
             remove_artist(artist)
         artist_set.clear()
 
-    def _disable_widgets(self, widget_set: Set[AxesWidget], always_disable=False):
-        from pyquibbler.quib.graphics.widgets import QRectangleSelector
-
-        for widget in widget_set:
-            if isinstance(widget, QRectangleSelector):
-                if not always_disable and widget.event_is_relevant_to_current_selector():
-                    widget.set_should_deactivate_after_release()
-                    continue
-                else:
-                    widget.set_active(False)
-                    widget.set_visible(False)
-            else:
-                widget.set_active(False)
-
-        widget_set.clear()
-
     @contextmanager
     def _handle_new_graphics_collection(self, graphics_collection: GraphicsCollection):
         self._remove_artists_that_were_removed_from_axes(graphics_collection.artists)
@@ -187,7 +173,6 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         previous_axeses_to_array_names_to_indices_and_artists = \
             get_axeses_to_array_names_to_starting_indices_and_artists(graphics_collection.artists)
         self._remove_artists(graphics_collection.artists)
-        self._disable_widgets(graphics_collection.widgets)
 
         with ArtistsCollector() as artists_collector, AxesWidgetsCollector() as widgets_collector:
             yield
@@ -234,8 +219,6 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         if self._graphics_collection_ndarr is not None and self._graphics_collection_ndarr.shape != loop_shape:
             for artist_set in self._iter_artist_sets():
                 self._remove_artists(artist_set)
-            for widget_set in self._iter_widget_sets():
-                self._disable_widgets(widget_set, always_disable=True)
             self._graphics_collection_ndarr = None
         if self._graphics_collection_ndarr is None:
             self._graphics_collection_ndarr = create_array_from_func(GraphicsCollection, loop_shape)
@@ -245,6 +228,45 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         with self._handle_new_graphics_collection(graphics_collection):
             with QuibGuard(set(iter_quibs_in_args(self.args, self.kwargs))):
                 yield
+
+    def _run_single_call(self, func, graphics_collection: GraphicsCollection, args, kwargs):
+        self._remove_artists_that_were_removed_from_axes(graphics_collection.artists)
+        # Get the *current* artists together with their starting indices (per axes per artists array) so we can
+        # place the new artists we create in their correct locations
+        previous_axeses_to_array_names_to_indices_and_artists = \
+            get_axeses_to_array_names_to_starting_indices_and_artists(graphics_collection.artists)
+        self._remove_artists(graphics_collection.artists)
+
+        with ArtistsCollector() as artists_collector, AxesWidgetsCollector() as widgets_collector:
+            with external_call_failed_exception_handling():
+                ret_val = func(*args, **kwargs)
+
+        graphics_collection.artists.update(artists_collector.objects_collected)
+        if len(graphics_collection.widgets) > 0:
+
+            if isinstance(ret_val, AxesWidget):
+                assert len(widgets_collector.objects_collected) == 1
+                assert len(graphics_collection.widgets) == 1
+                ret_val = list(graphics_collection.widgets)[0]
+
+            destroy_widgets(widgets_collector.objects_collected)
+            transfer_data_from_new_widgets_to_previous_widgets(previous_widgets=graphics_collection.widgets,
+                                                               new_widgets=widgets_collector.objects_collected)
+        else:
+            graphics_collection.widgets.update(widgets_collector.objects_collected)
+
+        self._had_artists_on_last_run = len(graphics_collection.artists) > 0
+
+        for artist in graphics_collection.artists:
+            save_func_and_args_on_artists(artist, func=self.func, args=self.args)
+            track_artist(artist)
+        self.persist_self_on_artists(graphics_collection.artists)
+
+        current_axeses_to_array_names_to_artists = get_axeses_to_array_names_to_artists(graphics_collection.artists)
+        self._update_new_artists_from_previous_artists(previous_axeses_to_array_names_to_indices_and_artists,
+                                                       current_axeses_to_array_names_to_artists)
+
+        return ret_val
 
     def _call_func(self, valid_path: Optional[List[PathComponent]]) -> Any:
         """
@@ -258,8 +280,8 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
 
         args, kwargs = proxify_args(self.args, self.kwargs) if self._pass_quibs \
             else self._prepare_args_for_call(valid_path)
-        with self._call_func_context(self._graphics_collection_ndarr[()]), external_call_failed_exception_handling():
-            return self.func(*args, **kwargs)
+
+        return self._run_single_call(self.func, self._graphics_collection_ndarr[()], args, kwargs)
 
     def redraw_if_appropriate(self):
         """

@@ -34,6 +34,6 @@ def test_textbox_graphics_quib_get_value(textbox_quib):
 
 
 def test_textbox_graphics_on_change(textbox_quib, mock_quib):
-    textbox_quib._on_change("bye")
+    textbox_quib._did_set_on_change("bye")
 
     assert mock_quib.get_value() == "bye"

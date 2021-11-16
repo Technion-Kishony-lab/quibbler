@@ -36,7 +36,7 @@ def test_checkbuttons_graphics_on_change(checkbuttons_quib, mock_quib, func_mock
     new_value = 'hello'
 
     func_mock.return_value.get_status.return_value = [True, True]
-    checkbuttons_quib._on_change(new_value)
+    checkbuttons_quib._did_set_on_change(new_value)
 
     # I have a problem implementing this test:
     assert mock_quib.get_value() == [True, True]

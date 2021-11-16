@@ -5,7 +5,7 @@ from typing import Any, List, Optional, Union, Dict, Hashable
 from .assignment import Assignment, PathComponent, get_hashable_path
 from .assignment_template import AssignmentTemplate
 from .utils import get_sub_data_from_object_in_path, deep_assign_data_in_path
-from ..utils import deep_copy_without_quibs_or_artists, recursively_run_func_on_object
+from ..utils import deep_copy_without_quibs_or_graphics, recursively_run_func_on_object
 
 
 @dataclass
@@ -95,7 +95,7 @@ class Overrider:
         from pyquibbler import timer
         original_data = data
         with timer("quib_overriding"):
-            data = deep_copy_without_quibs_or_artists(data)
+            data = deep_copy_without_quibs_or_graphics(data)
             for assignment in self._paths_to_assignments.values():
                 if isinstance(assignment, AssignmentRemoval):
                     value = get_sub_data_from_object_in_path(original_data, assignment.path)

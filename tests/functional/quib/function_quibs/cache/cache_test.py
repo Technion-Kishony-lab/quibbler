@@ -11,7 +11,7 @@ from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.quib.assignment.utils import deep_assign_data_in_path, get_sub_data_from_object_in_path
 from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
 from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import CannotInvalidateEntireCacheException
-from pyquibbler.quib.utils import deep_copy_without_quibs_or_artists
+from pyquibbler.quib.utils import deep_copy_without_quibs_or_graphics
 
 
 class CacheTest(ABC):
@@ -81,7 +81,7 @@ class IndexableCacheTest(CacheTest):
         invalid_value = 7070
         valid_value = 6969
         checked_invalid = 7171
-        checking_result = deep_copy_without_quibs_or_artists(result)
+        checking_result = deep_copy_without_quibs_or_graphics(result)
 
         starting = invalid_value
         setting = valid_value
@@ -132,7 +132,7 @@ class IndexableCacheTest(CacheTest):
 
     def test_cache_set_invalid_partial_and_get_uncached_paths(self,  cache, result, invalid_components,
                                                               uncached_path_components):
-        cache.set_valid_value_at_path([], deep_copy_without_quibs_or_artists(result))
+        cache.set_valid_value_at_path([], deep_copy_without_quibs_or_graphics(result))
         invalid_path = [PathComponent(component=v, indexed_cls=type(result))
                       for v in invalid_components]
         cache.set_invalid_at_path(invalid_path)

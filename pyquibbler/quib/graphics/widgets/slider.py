@@ -14,6 +14,7 @@ class QSlider(Slider):
     def __init__(self, ax, label, valmin, valmax, valinit, **kwargs):
         self.on_release = None
         self._drag_active = False
+        self._did_set_on_change = False
         super().__init__(ax, label, valmin, valmax, valinit, **kwargs)
 
     @property
@@ -25,6 +26,11 @@ class QSlider(Slider):
         self._drag_active = value
         if value is False and self.on_release:
             self.on_release()
+
+    def set_single_on_change(self, func):
+        if not self._did_set_on_change:
+            self.on_changed(func)
+        self._did_set_on_change = True
 
 
 class SliderGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
@@ -53,17 +59,9 @@ class SliderGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
             self._on_change(self._previous_set_value)
             self._previous_set_value = None
 
-    def _invalidate_self(self, path: List[PathComponent]):
-        # We don't want to invalidate a slider that is within dragging as we don't want to recreate the slider the user
-        # is currently using (so as to allow dragging and so on)
-        # Note that this fix will not work when the slider is within another graphicsfunctionquib
-        if self._cache is not None and self._cache.get_value().drag_active:
-            return
-        return super(SliderGraphicsFunctionQuib, self)._invalidate_self(path)
-
     def _call_func(self, valid_path: Optional[List[PathComponent]]) -> Any:
         slider = super()._call_func(None)
-        slider.on_changed(self._on_change)
+        slider.set_single_on_change(self._on_change)
         slider.on_release = self._on_release
         return slider
 

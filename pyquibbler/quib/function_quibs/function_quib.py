@@ -16,7 +16,7 @@ from .utils import ArgsValues
 from ..override_choice import get_overrides_for_assignment
 from ..assignment import AssignmentTemplate, Assignment, PathComponent
 from ..quib import Quib
-from ..utils import is_there_a_quib_in_args, iter_quibs_in_args, deep_copy_without_quibs_or_artists, \
+from ..utils import is_there_a_quib_in_args, iter_quibs_in_args, deep_copy_without_quibs_or_graphics, \
     recursively_run_func_on_object, QuibRef
 from ...env import EVALUATE_NOW, PRETTY_REPR
 from ...exceptions import PyQuibblerException
@@ -98,9 +98,9 @@ class FunctionQuib(Quib):
 
         if func_kwargs is None:
             func_kwargs = {}
-        func_kwargs = {k: deep_copy_without_quibs_or_artists(v)
+        func_kwargs = {k: deep_copy_without_quibs_or_graphics(v)
                        for k, v in func_kwargs.items()}
-        func_args = deep_copy_without_quibs_or_artists(func_args)
+        func_args = deep_copy_without_quibs_or_graphics(func_args)
         self = cls(func=func, args=func_args, kwargs=func_kwargs,
                    cache_behavior=cache_behavior, **init_kwargs)
         for arg in iter_quibs_in_args(func_args, func_kwargs):

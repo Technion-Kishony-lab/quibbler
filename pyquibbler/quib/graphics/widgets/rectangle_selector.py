@@ -39,11 +39,7 @@ class QRectangleSelector(RectangleSelector):
         self.allow_resize = allow_resize
         if extents is not None:
             self.extents = extents
-        self._should_deactivate_after_release = False
         self.release_callback = None
-
-    def set_should_deactivate_after_release(self):
-        self._should_deactivate_after_release = True
 
     def is_current_event_a_move_event(self):
         return 'move' in self.state or self.active_handle == 'C'
@@ -66,9 +62,6 @@ class QRectangleSelector(RectangleSelector):
                 release_result = super()._release(event)
                 current_selector.val = None
 
-                if self._should_deactivate_after_release:
-                    self.set_active(False)
-                    self.set_visible(False)
                 if self.release_callback:
                     self.release_callback()
                 return release_result
