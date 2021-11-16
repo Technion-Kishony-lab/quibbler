@@ -64,7 +64,7 @@ class CanvasEventHandler:
                                                                                    args=args,
                                                                                    mouse_event=mouse_event,
                                                                                    pick_event=self.current_pick_event)
-            if override_group is not None and len(override_group.quib_changes) > 0:
+            if override_group is not None and override_group:
                 self._last_mouse_event_with_overrides = mouse_event
 
     @contextmanager

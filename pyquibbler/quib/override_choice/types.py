@@ -54,11 +54,6 @@ class OverrideGroup:
     """
     quib_changes: List[Union[Override, OverrideRemoval]] = field(default_factory=list)
 
-    def __post_init__(self):
-        for q in self.quib_changes:
-            if isinstance(q, AssignmentToQuib):
-                print
-
     def apply(self):
         from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
         with Project.get_or_create().start_undo_group():

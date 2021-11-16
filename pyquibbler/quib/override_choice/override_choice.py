@@ -56,10 +56,6 @@ class OverrideOptionsTree:
     def __post_init__(self):
         assert (len(self.children) > 0) is (self.diverged_quib is not None)
 
-        for q in self.options:
-            if isinstance(q.change, AssignmentToQuib):
-                print
-
     @property
     def can_diverge(self):
         """
@@ -195,16 +191,16 @@ def get_override_group_for_change(quib_change: Union[AssignmentToQuib, OverrideR
     return options_tree.choose_overrides()
 
 
-def get_overrides_for_assignment_group(quibs_with_assignments: List[AssignmentToQuib]) -> OverrideGroup:
+def get_overrides_for_quib_change_group(quib_changes: List[Union[AssignmentToQuib, OverrideRemoval]]) -> OverrideGroup:
     """
     Get all overrides for a group of assignments, filter them to leave out contradictory assignments
     (assignments that cause overrides in the same quibs) and return the remaining overrides.
     """
     all_overridden_quibs = set()
     result = OverrideGroup()
-    for quib_with_assignment in quibs_with_assignments:
+    for quib_change in quib_changes:
         try:
-            override_group = get_override_group_for_change(quib_with_assignment)
+            override_group = get_override_group_for_change(quib_change)
         except CannotChangeQuibAtPathException:
             continue
         current_overridden_quibs = set(override.quib for override in override_group.quib_changes)
