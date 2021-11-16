@@ -188,7 +188,7 @@ class ApplyAlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         if valid_path is None:
             return self._get_invalid_value_at_correct_shape_and_dtype()
 
-        self._initialize_graphics_ndarr()
+        self._initialize_graphics_collection_ndarr()
         return self._apply_along_axis(valid_path)
 
     def _backward_translate_bool_mask(self, args_dict, bool_mask, quib: Quib):

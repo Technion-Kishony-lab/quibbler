@@ -2,7 +2,8 @@ import pytest
 from matplotlib.backend_bases import MouseEvent
 from matplotlib.widgets import AxesWidget
 
-from pyquibbler.performance_utils import track_class, TRACKED_CLASSES_TO_WEAKREFS
+from pyquibbler.performance_utils import track_instances_of_class, TRACKED_CLASSES_TO_WEAKREFS, \
+    get_all_instances_in_tracked_class
 
 
 @pytest.fixture
@@ -67,13 +68,10 @@ def get_only_live_widget(get_live_widgets):
 
 @pytest.fixture()
 def get_live_widgets():
-    track_class(AxesWidget)
+    track_instances_of_class(AxesWidget)
 
     def _get():
-        return [
-            a() for a in TRACKED_CLASSES_TO_WEAKREFS.get(AxesWidget, [])
-            if a() is not None
-        ]
+        return list(get_all_instances_in_tracked_class(AxesWidget))
 
     yield _get
 
