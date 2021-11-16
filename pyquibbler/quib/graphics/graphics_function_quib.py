@@ -1,5 +1,4 @@
 import numpy as np
-from contextlib import contextmanager
 from typing import List, Callable, Tuple, Any, Mapping, Dict, Optional, Iterable, Set, Union
 from matplotlib.artist import Artist
 from matplotlib.axes import Axes
@@ -11,8 +10,7 @@ from .quib_guard import QuibGuard
 from .update_type import UpdateType
 from .utils import save_func_and_args_on_artists, get_axeses_to_array_names_to_starting_indices_and_artists, \
     remove_artist, get_axeses_to_array_names_to_artists, get_artist_array, ArrayNameToArtists, track_artist
-from .widget_utils import destroy_widgets, transfer_data_from_new_widgets_to_previous_widgets, \
-    update_previous_widget_from_new_widget
+from .widget_utils import destroy_widgets, transfer_data_from_new_widgets_to_previous_widgets
 from ..assignment import AssignmentTemplate, PathComponent
 from ..function_quibs import DefaultFunctionQuib, CacheBehavior
 from ..function_quibs.external_call_failed_exception_handling import external_call_failed_exception_handling

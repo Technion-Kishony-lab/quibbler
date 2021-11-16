@@ -57,5 +57,4 @@ def transfer_data_from_new_widgets_to_previous_widgets(previous_widgets: Set[Axe
 def destroy_widgets(widgets: Set[AxesWidget]):
     for widget in widgets:
         widget.disconnect_events()
-        widget.disconnected = True
 
