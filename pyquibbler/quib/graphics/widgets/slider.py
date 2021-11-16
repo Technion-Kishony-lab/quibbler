@@ -17,6 +17,12 @@ class QSlider(Slider):
         self._did_set_on_change = False
         super().__init__(ax, label, valmin, valmax, valinit, **kwargs)
 
+        # It could have seemed that another implementation would be to call `on_changed` in the init with a
+        # private method and just call that with a supplied function (instead of the _did_set_on_change design)
+        # It's CRITICAL not to set `on_changed` here but only when necessary, as there is a memory leak in matplotlib-
+        # When calling disconnect_events() you expect anything you connected to be disconnected, but there is an
+        # "observers" in the slider that does not disconnect your "on_changed" event
+
     @property
     def drag_active(self):
         return self._drag_active
@@ -28,6 +34,10 @@ class QSlider(Slider):
             self.on_release()
 
     def set_single_on_change(self, func):
+        """
+        We call this instead on_changed(...) to ensure we're only setting a callback *once*. If you call on_changed on
+        the same widget multiple times,  you'll create multiple callbacks
+        """
         if not self._did_set_on_change:
             self.on_changed(func)
         self._did_set_on_change = True

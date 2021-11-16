@@ -4,6 +4,7 @@ import pytest
 from matplotlib import widgets
 
 from pyquibbler import iquib
+from tests.integration.quib.graphics.widgets.utils import count_redraws
 
 
 @pytest.fixture()
@@ -58,24 +59,14 @@ def test_slider_graphics_function_quib_calls_on_change_once(axes, get_live_widge
                                                             create_motion_notify_event,
                                                             create_button_release_event, get_axes_start,
                                                             slider_quib, get_axes_end):
-    previous_redraw = slider_quib.redraw_if_appropriate
-    redraw_count = 0
+    with count_redraws(slider_quib) as redraw_count:
+        create_button_press_event(*get_axes_start())
+        create_motion_notify_event(*get_axes_end())
+        create_button_release_event(*get_axes_end())
 
-    def redraw(*args, **kwargs):
-        nonlocal redraw_count
-        redraw_count += 1
-        return previous_redraw(*args, **kwargs)
+        create_button_press_event(*get_axes_start())
+        create_motion_notify_event(*get_axes_end())
+        create_button_release_event(*get_axes_end())
 
-    slider_quib.redraw_if_appropriate = redraw
-
-    create_button_press_event(*get_axes_start())
-    create_motion_notify_event(*get_axes_end())
-    create_button_release_event(*get_axes_end())
-
-    create_button_press_event(*get_axes_start())
-    create_motion_notify_event(*get_axes_end())
-    create_button_release_event(*get_axes_end())
-
-    assert redraw_count == 6  # press * 2 + motion * 2 + release * 2
-    # import ipdb; ipdb.set_trace()
+    assert redraw_count.count == 6  # press * 2 + motion * 2 + release * 2
     assert len(get_live_widgets()) == 1
