@@ -3,8 +3,9 @@ from typing import Any, List, Tuple
 from matplotlib.backend_bases import PickEvent, MouseEvent, MouseButton
 
 from .graphics_inverse_assigner import graphics_inverse_assigner
-from ...assignment import Assignment, QuibWithAssignment, PathComponent
-from ...override_choice import OverrideRemoval, OverrideGroup, get_overrides_for_assignment_group
+from ...assignment import Assignment, AssignmentToQuib, PathComponent
+from ...override_choice import OverrideRemoval, OverrideGroup
+from ...override_choice.override_choice import get_overrides_for_assignment_group
 
 
 def get_xdata_arg_indices_and_ydata_arg_indices(args: Tuple[List, List]):
@@ -77,7 +78,7 @@ def get_overrides_for_event(args: List[Any], arg_indices: List[int], artist_inde
         return []
 
     quibs_to_paths = get_quibs_to_paths_affected_by_event(args, arg_indices, artist_index, data_indices)
-    return [QuibWithAssignment(quib, Assignment(value=value, path=path))
+    return [AssignmentToQuib(quib, Assignment(value=value, path=path))
             for quib, paths in quibs_to_paths.items() for path in paths]
 
 
@@ -97,7 +98,7 @@ def get_override_group_for_axes_plot(pick_event: PickEvent, mouse_event: MouseEv
     artist_index = pick_event.artist._index_in_plot
     if pick_event.mouseevent.button is MouseButton.RIGHT:
         arg_indices = x_arg_indices + y_arg_indices
-        return OverrideGroup([], get_override_removals_for_event(args, arg_indices, artist_index, indices))
+        return OverrideGroup(get_override_removals_for_event(args, arg_indices, artist_index, indices))
     else:
         return get_overrides_for_assignment_group([
             *get_overrides_for_event(args, x_arg_indices, artist_index, indices, mouse_event.xdata),

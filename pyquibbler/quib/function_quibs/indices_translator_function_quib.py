@@ -6,9 +6,10 @@ from typing import Set, Optional, Dict, Callable, List, Any, Union, Iterable
 
 from pyquibbler.quib.assignment import Assignment
 from pyquibbler.quib.function_quibs.utils import create_empty_array_with_values_at_indices, ArgsValues
+from pyquibbler.quib.override_choice import OverrideRemoval
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.function_quibs import FunctionQuib
-from pyquibbler.quib.assignment import PathComponent, QuibWithAssignment
+from pyquibbler.quib.assignment import PathComponent, AssignmentToQuib
 from pyquibbler.quib.utils import iter_objects_of_type_in_object_shallowly
 
 
@@ -103,18 +104,26 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
             return [rest_of_path]
         return []
 
-    def get_inversions_for_assignment(self, assignment: Assignment) -> List[QuibWithAssignment]:
-        components_at_end = assignment.path[1:]
-        current_components = assignment.path[0:1]
-        if len(assignment.path) > 0 and assignment.path[0].references_field_in_field_array():
-            components_at_end = [assignment.path[0], *components_at_end]
+    @staticmethod
+    def _split_path(path: List[PathComponent]):
+        components_at_end = path[1:]
+        current_components = path[0:1]
+        if len(path) > 0 and path[0].references_field_in_field_array():
+            components_at_end = [path[0], *components_at_end]
             current_components = []
+        return current_components, components_at_end
 
+    def get_inversions_for_override_removal(self, override_removal: OverrideRemoval) -> List[OverrideRemoval]:
+        current_components, components_at_end = self._split_path(override_removal.path)
+        quibs_to_paths = self._get_source_paths_of_quibs_given_path(current_components)
+        return [OverrideRemoval(quib, [*path, *components_at_end]) for quib, path in quibs_to_paths.items()]
+
+    def get_inversions_for_assignment(self, assignment: Assignment) -> List[AssignmentToQuib]:
+        current_components, components_at_end = self._split_path(assignment.path)
         quibs_to_paths = self._get_source_paths_of_quibs_given_path(current_components)
         quibs_to_values = self._get_quibs_to_relevant_result_values(assignment)
-
         return [
-            QuibWithAssignment(
+            AssignmentToQuib(
                 quib=quib,
                 assignment=Assignment(
                     path=[*path, *components_at_end],

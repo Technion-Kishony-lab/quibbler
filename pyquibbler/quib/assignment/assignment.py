@@ -1,7 +1,12 @@
 from __future__ import annotations
+
+from abc import ABC, abstractmethod
+
 import numpy as np
 from dataclasses import dataclass, field
 from typing import Any, TYPE_CHECKING, List, Type
+
+from .exceptions import CannotReverseException
 
 if TYPE_CHECKING:
     from ..quib import Quib
@@ -29,13 +34,9 @@ class PathComponent:
         assignment is a field assignment or not. This is in contrast to setattr for example where we could have had a
         special PathComponent for it, as the interface for setting an attribute is different.
         """
-        return (
-            issubclass(self.indexed_cls, np.ndarray) and (
-                isinstance(self.component, str) or (
-                    isinstance(self.component, list) and isinstance(self.component[0], str)
-                )
-            )
-        )
+        return (issubclass(self.indexed_cls, np.ndarray) and (
+            isinstance(self.component, str) or (
+                isinstance(self.component, list) and isinstance(self.component[0], str))))
 
 
 @dataclass
@@ -54,17 +55,61 @@ class Assignment:
 
 
 @dataclass(frozen=True)
-class QuibWithAssignment:
+class QuibChange(ABC):
+    quib: Quib
+
+    @property
+    @abstractmethod
+    def path(self):
+        """
+        The path in which the quib is changed
+        """
+
+    @abstractmethod
+    def apply(self) -> None:
+        """
+        Apply the change
+        """
+
+
+class Invertible(ABC):
+    @abstractmethod
+    def get_inversions(self, return_empty_list_instead_of_raising=False) -> List[QuibChange]:
+        """
+        Get changes to the quib's parents that produce the same change made to the quib.
+        """
+
+
+@dataclass(frozen=True)
+class QuibWithAssignment(QuibChange, ABC):
     """
     An assignment to be performed on a specific quib.
     """
-    quib: Quib
     assignment: Assignment
 
+    @property
+    def path(self):
+        return self.assignment.path
+
+
+class AssignmentToQuib(QuibWithAssignment, Invertible):
     def apply(self) -> None:
         self.quib.assign(self.assignment)
 
-    def override(self):
+    def to_override(self) -> Override:
+        return Override(self.quib, self.assignment)
+
+    def get_inversions(self, return_empty_list_instead_of_raising=False) -> List[AssignmentToQuib]:
+        try:
+            return self.quib.get_inversions_for_assignment(self.assignment)
+        except CannotReverseException:
+            if return_empty_list_instead_of_raising:
+                return []
+            raise
+
+
+class Override(QuibWithAssignment):
+    def apply(self) -> None:
         self.quib.override(self.assignment, allow_overriding_from_now_on=False)
 
 

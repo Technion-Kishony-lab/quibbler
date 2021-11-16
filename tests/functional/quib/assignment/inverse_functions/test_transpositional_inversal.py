@@ -4,7 +4,7 @@ from unittest import mock
 from operator import getitem
 
 from pyquibbler import iquib
-from pyquibbler.quib import TranspositionalFunctionQuib, AssignmentNotPossibleException
+from pyquibbler.quib import TranspositionalFunctionQuib, CannotChangeQuibAtPathException
 from pyquibbler.quib.assignment import Assignment
 from pyquibbler.quib.assignment.assignment import PathComponent
 from pyquibbler.quib.function_quibs.transpositional.getitem_function_quib import GetItemFunctionQuib
@@ -48,7 +48,7 @@ def test_inverse_concat():
 def test_inverse_concat_second_arg_non_quib():
     q = iquib([1])
     concat = np.concatenate([q, [0]])
-    with pytest.raises(AssignmentNotPossibleException):
+    with pytest.raises(CannotChangeQuibAtPathException):
         concat[1] = 999
 
 

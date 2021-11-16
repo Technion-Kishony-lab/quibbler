@@ -13,8 +13,8 @@ from .pretty_converters import MathExpression
 from .external_call_failed_exception_handling import external_call_failed_exception_handling, \
     raise_quib_call_exceptions_as_own
 from .utils import ArgsValues
-from ..override_choice import get_overrides_for_assignment
-from ..assignment import AssignmentTemplate, Assignment, PathComponent
+from ..override_choice import get_override_group_for_change
+from ..assignment import AssignmentTemplate, Assignment, PathComponent, AssignmentToQuib
 from ..quib import Quib
 from ..utils import is_there_a_quib_in_args, iter_quibs_in_args, deep_copy_without_quibs_or_artists, \
     recursively_run_func_on_object, QuibRef
@@ -173,9 +173,9 @@ class FunctionQuib(Quib):
         and collect possible overrides.
         When more than one override can be performed, the user will be asked to choose one.
         When there is only one override option, it will be automatically performed.
-        When there are no override options, AssignmentNotPossibleException is raised.
+        When there are no override options, CannotChangeQuibAtPathException is raised.
         """
-        get_overrides_for_assignment(self, assignment).apply(invalidate_and_redraw_override_removals=False)
+        get_override_group_for_change(AssignmentToQuib(self, assignment)).apply()
 
     def __repr__(self):
         if PRETTY_REPR:

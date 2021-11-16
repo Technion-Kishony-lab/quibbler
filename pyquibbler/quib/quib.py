@@ -17,12 +17,13 @@ from .assignment.assignment_template import InvalidTypeException
 from .assignment.utils import FailedToDeepAssignException
 from .function_quibs.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own, \
     add_quib_to_fail_trace_if_raises_quib_call_exception
+from .override_choice import OverrideRemoval
 from .quib_varname import get_var_name_being_set_outside_of_pyquibbler, get_file_name_and_line_number_of_quib
 
 from pyquibbler.exceptions import PyQuibblerException
 
 from .assignment import AssignmentTemplate, RangeAssignmentTemplate, BoundAssignmentTemplate, Overrider, Assignment, \
-    QuibWithAssignment
+    AssignmentToQuib
 from .function_quibs.cache import create_cache
 from .function_quibs.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
 from .function_quibs.pretty_converters import MathExpression
@@ -353,8 +354,7 @@ class Quib(ABC):
         """
         Helper method to assign a single value and override the whole value of the quib
         """
-        self.assign(Assignment(value=value,
-                               path=[]))
+        self.assign(Assignment(value=value, path=[]))
 
     @raise_quib_call_exceptions_as_own
     def assign_value_to_key(self, key: Any, value: Any) -> None:
@@ -583,9 +583,17 @@ class Quib(ABC):
             ancestors |= parent.ancestors
         return ancestors
 
-    def get_inversions_for_assignment(self, assignment: Assignment) -> List[QuibWithAssignment]:
+    def get_inversions_for_override_removal(self, override_removal: OverrideRemoval) -> List[OverrideRemoval]:
         """
-        Get a list of inversions to parent quibs for a given assignment
+        Get a list of overide removals to parent quibs which could be applied instead of the given override removal
+        and produce the same change in the value of this quib.
+        """
+        return []
+
+    def get_inversions_for_assignment(self, assignment: Assignment) -> List[AssignmentToQuib]:
+        """
+        Get a list of assignments to parent quibs which could be applied instead of the given assignment
+        and produce the same change in the value of this quib.
         """
         return []
 

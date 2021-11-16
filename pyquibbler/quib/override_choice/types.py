@@ -1,35 +1,47 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
-from typing import List, TYPE_CHECKING, Union
+from typing import List, Union
 
 from pyquibbler.project import Project
-from pyquibbler.quib.assignment import QuibWithAssignment
-from pyquibbler.quib.assignment.assignment import PathComponent
-
-if TYPE_CHECKING:
-    from pyquibbler.quib import Quib
+from pyquibbler.quib.assignment import AssignmentToQuib, PathComponent, QuibChange, CannotReverseException
+from pyquibbler.quib.assignment.assignment import Override
 
 
 @dataclass
-class OverrideWithOverrideRemovals:
-    override: QuibWithAssignment
+class QuibChangeWithOverrideRemovals:
+    change: QuibChange
     override_removals: List[OverrideRemoval]
 
+    @property
+    def quib(self):
+        return self.change.quib
 
-@dataclass
-class OverrideRemoval:
+
+@dataclass(frozen=True)
+class OverrideRemoval(QuibChange):
     """
     Removal of overrides in a specific path on a specific quib.
     """
-    quib: Quib
-    path: List[PathComponent]
+    _path: List[PathComponent]
+
+    @property
+    def path(self):
+        return self._path
 
     def apply(self, invalidate_and_redraw: bool = True):
         self.quib.remove_override(self.path, invalidate_and_redraw=invalidate_and_redraw)
 
     @classmethod
-    def from_inversion(cls, inversion: QuibWithAssignment):
-        return cls(inversion.quib, inversion.assignment.path)
+    def from_quib_change(cls, change: QuibChange):
+        return cls(change.quib, change.path)
+
+    def get_inversions(self, return_empty_list_instead_of_raising=False) -> List[OverrideRemoval]:
+        try:
+            return self.quib.get_inversions_for_override_removal(self)
+        except CannotReverseException:
+            if return_empty_list_instead_of_raising:
+                return []
+            raise
 
 
 @dataclass
@@ -40,27 +52,31 @@ class OverrideGroup:
     we remove overrides in all the indices that lead to the chosen override,
     so the override will actually cause the desired effect on the upstream quib.
     """
-    overrides: List[QuibWithAssignment] = field(default_factory=list)
-    override_removals: List[OverrideRemoval] = field(default_factory=list)
+    quib_changes: List[Union[Override, OverrideRemoval]] = field(default_factory=list)
 
-    def apply(self, invalidate_and_redraw_override_removals: bool = True):
+    def __post_init__(self):
+        for q in self.quib_changes:
+            if isinstance(q, AssignmentToQuib):
+                print
+
+    def apply(self):
+        from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
         with Project.get_or_create().start_undo_group():
-            for override in self.overrides:
-                override.override()
-            for override_removal in self.override_removals:
-                override_removal.apply(invalidate_and_redraw=invalidate_and_redraw_override_removals)
+            with aggregate_redraw_mode():
+                for quib_change in self.quib_changes:
+                    assert not isinstance(quib_change, AssignmentToQuib)
+                    quib_change.apply()
 
     def __bool__(self):
-        return len(self.overrides) > 0 or len(self.override_removals) > 0
+        return len(self.quib_changes) > 0
 
     def extend(self, extension: Union[OverrideGroup, List[OverrideRemoval]]):
         """
-        Add overrides and override removals.
+        Add quib changes from a list or another override group.
         """
         if isinstance(extension, OverrideGroup):
-            self.overrides.extend(extension.overrides)
-            self.override_removals.extend(extension.override_removals)
-        elif isinstance(extension, list) and extension and isinstance(extension[0], OverrideRemoval):
-            self.override_removals.extend(extension)
+            self.quib_changes.extend(extension.quib_changes)
+        elif isinstance(extension, list):
+            self.quib_changes.extend(extension)
         else:
-            raise TypeError()
+            raise TypeError(type(extension))

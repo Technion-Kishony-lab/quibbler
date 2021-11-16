@@ -1,30 +1,28 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import List, TYPE_CHECKING, Optional, Dict, ClassVar
+from typing import List, TYPE_CHECKING, Optional, Dict, ClassVar, Union
 
 from pyquibbler.exceptions import PyQuibblerException
-from pyquibbler.quib.assignment import QuibWithAssignment, CannotReverseException, \
-    Assignment
+from pyquibbler.quib.assignment import AssignmentToQuib, QuibChange
 
 from .choice_context import ChoiceContext
 from .override_dialog import OverrideChoiceType, OverrideChoice, choose_override_dialog
-from .types import OverrideRemoval, OverrideGroup, OverrideWithOverrideRemovals
+from .types import OverrideRemoval, OverrideGroup, QuibChangeWithOverrideRemovals
 from ...env import ASSIGNMENT_RESTRICTIONS
 
 if TYPE_CHECKING:
-    from pyquibbler.quib import Quib, FunctionQuib
+    from pyquibbler.quib import FunctionQuib
 
 
 @dataclass
-class AssignmentNotPossibleException(PyQuibblerException):
-    quib: Quib
-    assignment: Assignment
+class CannotChangeQuibAtPathException(PyQuibblerException):
+    quib_change: QuibChange
 
     def __str__(self):
-        return f'Cannot perform {self.assignment} on {self.quib}, because it cannot ' \
+        return f'Cannot perform {self.quib_change} on {self.quib_change.quib}, because it cannot ' \
                f'be overridden and an overridable parent quib to inverse assign into was not found.\n' \
                f'Note that functional quibs are not overridable by default.\n' \
-               f'To allow overriding, try using "{self.quib}.set_allow_overriding(True)"'
+               f'To allow overriding, try using "{self.quib_change.quib}.set_allow_overriding(True)"'
 
 
 @dataclass
@@ -50,16 +48,17 @@ class OverrideOptionsTree:
     _CHOICE_CACHE: ClassVar[Dict[ChoiceContext, OverrideChoice]] = {}
 
     inversed_quib: FunctionQuib
-    options: List[OverrideWithOverrideRemovals]
+    options: List[QuibChangeWithOverrideRemovals]
     diverged_quib: Optional[FunctionQuib]
     children: List[OverrideOptionsTree]
     override_removals: List[OverrideRemoval]
 
     def __post_init__(self):
-        if self.children:
-            assert self.diverged_quib is not None
-        else:
-            assert self.diverged_quib is None
+        assert (len(self.children) > 0) is (self.diverged_quib is not None)
+
+        for q in self.options:
+            if isinstance(q.change, AssignmentToQuib):
+                print
 
     @property
     def can_diverge(self):
@@ -79,7 +78,7 @@ class OverrideOptionsTree:
     @property
     def choice_context(self):
         return ChoiceContext(self.inversed_quib,
-                             tuple(option.override.quib for option in self.options),
+                             tuple(option.quib for option in self.options),
                              self.can_diverge)
 
     def _try_load_choice(self) -> Optional[OverrideChoice]:
@@ -105,7 +104,7 @@ class OverrideOptionsTree:
             return OverrideChoice(OverrideChoiceType.OVERRIDE, 0)
         choice = self._try_load_choice()
         if choice is None:
-            choice = choose_override_dialog([override.override.quib for override in self.options], self.can_diverge)
+            choice = choose_override_dialog([override.quib for override in self.options], self.can_diverge)
             self._store_choice(choice)
         return choice
 
@@ -134,7 +133,7 @@ class OverrideOptionsTree:
             if choice_type is OverrideChoiceType.OVERRIDE:
                 # if override_choice is OverrideChoiceType.OVERRIDE, metadata is the choice index
                 chosen_override = self.options[choice.chosen_index]
-                return OverrideGroup([chosen_override.override], chosen_override.override_removals)
+                return OverrideGroup([chosen_override.change, *chosen_override.override_removals])
 
         assert self.can_diverge
         assert choice_type is OverrideChoiceType.DIVERGE
@@ -143,26 +142,14 @@ class OverrideOptionsTree:
         return override_group
 
     @classmethod
-    def _inverse_assignment(cls, quib_with_assignment: QuibWithAssignment) -> List[QuibWithAssignment]:
-        """
-        Try to inverse the given assignment and return the resulting assignments.
-        Return an empty list if cannot inverse.
-        """
-        try:
-            return quib_with_assignment.quib.get_inversions_for_assignment(quib_with_assignment.assignment)
-        except CannotReverseException:
-            pass
-        return []
-
-    @classmethod
-    def _get_children_from_diverged_inversions(cls, inversions: List[QuibWithAssignment]):
+    def _get_children_from_diverged_inversions(cls, inversions: List[AssignmentToQuib]):
         """
         For each diverged inversion, create a new OverrideOptionsTree instance, and return a list of all instances.
         If any inversion cannot be translated into an override, return an empty list.
         """
         children = []
         for inversion in inversions:
-            child = cls.from_assignment(inversion)
+            child = cls.from_quib_change(inversion)
             if not child:
                 # If one of the diverged options does not allow overriding,
                 # then we can't inverse assign through the diverger, because
@@ -172,42 +159,43 @@ class OverrideOptionsTree:
         return children
 
     @classmethod
-    def from_assignment(cls, quib_with_assignment: QuibWithAssignment) -> OverrideOptionsTree:
+    def from_quib_change(cls, quib_change: Union[AssignmentToQuib, OverrideRemoval]) -> OverrideOptionsTree:
         """
         Build an OverrideOptionsTree representing all the override options for the given assignment.
         """
-        options: List[OverrideWithOverrideRemovals] = []
-        inversions = [quib_with_assignment]
+        options: List[QuibChangeWithOverrideRemovals] = []
+        inversions = [quib_change]
         override_removals = []
         last_inversion = None
         while len(inversions) == 1:
             inversion = inversions[0]
             if inversion.quib._allow_overriding:
-                options.append(OverrideWithOverrideRemovals(inversion, override_removals[:]))
-            override_removals.append(OverrideRemoval.from_inversion(inversion))
-            inversions = cls._inverse_assignment(inversion)
+                override = inversion.to_override() if isinstance(inversion, AssignmentToQuib) else inversion
+                options.append(QuibChangeWithOverrideRemovals(override, override_removals[:]))
+            override_removals.append(OverrideRemoval.from_quib_change(inversion))
+            inversions = inversion.get_inversions(True)
             if inversions:
                 last_inversion = inversion
 
         children = cls._get_children_from_diverged_inversions(inversions)
         diverged_quib = None if not children else last_inversion.quib
-        return OverrideOptionsTree(quib_with_assignment.quib, options, diverged_quib, children, override_removals)
+        return OverrideOptionsTree(quib_change.quib, options, diverged_quib, children, override_removals)
 
 
-def get_overrides_for_assignment(quib: Quib, assignment: Assignment) -> OverrideGroup:
+def get_override_group_for_change(quib_change: Union[AssignmentToQuib, OverrideRemoval]) -> OverrideGroup:
     """
     Every assignment to a quib is translated at the end to a list of overrides to quibs in the graph.
     This function determines those overrides and returns them.
-    When the assignment cannot be translated, AssignmentNotPossibleException is raised.
+    When the assignment cannot be translated, CannotChangeQuibAtPathException is raised.
     Might raise AssignmentCancelledByUserException if a user cancels an override choice dialog.
     """
-    options_tree = OverrideOptionsTree.from_assignment(QuibWithAssignment(quib, assignment))
+    options_tree = OverrideOptionsTree.from_quib_change(quib_change)
     if not options_tree:
-        raise AssignmentNotPossibleException(quib, assignment)
+        raise CannotChangeQuibAtPathException(quib_change)
     return options_tree.choose_overrides()
 
 
-def get_overrides_for_assignment_group(quibs_with_assignments: List[QuibWithAssignment]) -> OverrideGroup:
+def get_overrides_for_assignment_group(quibs_with_assignments: List[AssignmentToQuib]) -> OverrideGroup:
     """
     Get all overrides for a group of assignments, filter them to leave out contradictory assignments
     (assignments that cause overrides in the same quibs) and return the remaining overrides.
@@ -216,10 +204,10 @@ def get_overrides_for_assignment_group(quibs_with_assignments: List[QuibWithAssi
     result = OverrideGroup()
     for quib_with_assignment in quibs_with_assignments:
         try:
-            override_group = get_overrides_for_assignment(quib_with_assignment.quib, quib_with_assignment.assignment)
-        except AssignmentNotPossibleException:
+            override_group = get_override_group_for_change(quib_with_assignment)
+        except CannotChangeQuibAtPathException:
             continue
-        current_overridden_quibs = set(override.quib for override in override_group.overrides)
+        current_overridden_quibs = set(override.quib for override in override_group.quib_changes)
         if not ASSIGNMENT_RESTRICTIONS or not current_overridden_quibs.intersection(all_overridden_quibs):
             all_overridden_quibs.update(current_overridden_quibs)
             result.extend(override_group)

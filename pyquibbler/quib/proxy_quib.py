@@ -3,7 +3,7 @@ from __future__ import annotations
 import pathlib
 from typing import Set, Optional, List, Any, TYPE_CHECKING
 
-from pyquibbler.quib.assignment import QuibWithAssignment
+from pyquibbler.quib.assignment import AssignmentToQuib
 from pyquibbler.quib.quib import Quib
 
 if TYPE_CHECKING:
@@ -41,8 +41,8 @@ class ProxyQuib(Quib):
         # We never invalidate our children
         return []
 
-    def get_inversions_for_assignment(self, assignment: Assignment) -> List[QuibWithAssignment]:
-        return [QuibWithAssignment(quib=self._quib, assignment=assignment)]
+    def get_inversions_for_assignment(self, assignment: Assignment) -> List[AssignmentToQuib]:
+        return [AssignmentToQuib(quib=self._quib, assignment=assignment)]
 
     @property
     def _save_directory(self) -> Optional[pathlib.Path]:
