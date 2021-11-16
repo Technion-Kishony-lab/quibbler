@@ -7,6 +7,7 @@ from matplotlib.widgets import Button
 
 APP_TITLE = 'Data Quibbler'
 
+
 class QuibApp:
     """
     An app to control quibbler project functionalities such as save/load undo/redo
@@ -21,23 +22,23 @@ class QuibApp:
         fig.canvas.mpl_connect('close_event', self.on_close)
         self.app_figure = fig
 
-        H = 0.18 # button height
-        W = 0.25 # Button width
+        h = 0.18  # button height
+        w = 0.25  # Button width
 
         # Undo:
-        self.undo_button = Button(ax=fig.add_axes([0.4, 0.7, W, H]), label='Undo')
+        self.undo_button = Button(ax=fig.add_axes([0.4, 0.7, w, h]), label='Undo')
         self.undo_button.on_clicked(self.undo)
 
         # Redo:
-        self.redo_button = Button(ax=fig.add_axes([0.7, 0.7, W, H]), label='Redo')
+        self.redo_button = Button(ax=fig.add_axes([0.7, 0.7, w, h]), label='Redo')
         self.redo_button.on_clicked(self.redo)
 
         # Save:
-        self.save_button = Button(ax=fig.add_axes([0.4, 0.2, W, H]), label='Save')
+        self.save_button = Button(ax=fig.add_axes([0.4, 0.2, w, h]), label='Save')
         self.save_button.on_clicked(self.save)
 
         # Load:
-        self.load_button = Button(ax=fig.add_axes([0.7, 0.2, W, H]), label='Load')
+        self.load_button = Button(ax=fig.add_axes([0.7, 0.2, w, h]), label='Load')
         self.load_button.on_clicked(self.load)
 
     @classmethod
@@ -48,7 +49,7 @@ class QuibApp:
         return cls.current_quibapp
 
     @classmethod
-    def on_close(cls,*args) -> None:
+    def on_close(cls, *args) -> None:
         cls.current_quibapp = None
         cls.current_project = None
 
@@ -76,5 +77,5 @@ class QuibApp:
         except CannotLoadWithoutProjectPathException:
             self.display_message(CannotLoadWithoutProjectPathException())
 
-    def display_message(self,msg):
+    def display_message(self, msg):
         print(msg)
