@@ -4,6 +4,7 @@ from matplotlib.widgets import TextBox
 
 from pyquibbler.quib import Quib, PathComponent
 from pyquibbler.quib.utils import quib_method
+from .single_on_change import set_func_callback_on_widget_one_time
 
 from .widget_graphics_function_quib import WidgetGraphicsFunctionQuib
 
@@ -24,7 +25,12 @@ class TextBoxGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
 
     def _call_func(self, valid_path: List[PathComponent]):
         textbox = super()._call_func(None)
-        textbox.on_submit(self._on_change)
+        set_func_callback_on_widget_one_time(
+            widget=textbox,
+            event_name="submit",
+            func=self._on_change,
+            set_method_callback=textbox.on_submit
+        )
         return textbox
 
     @property

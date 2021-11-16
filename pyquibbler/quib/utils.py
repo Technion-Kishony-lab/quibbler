@@ -92,12 +92,13 @@ def recursively_run_func_on_object(func: Callable, obj: Any,
     return func(obj)
 
 
-def deep_copy_without_quibs_or_artists(obj: Any, max_depth: Optional[int] = None, max_length: Optional[int] = None):
+def deep_copy_without_quibs_or_graphics(obj: Any, max_depth: Optional[int] = None, max_length: Optional[int] = None):
     from pyquibbler.quib import Quib
     from matplotlib.artist import Artist
 
     def copy_if_not_quib_or_artist(o):
-        if isinstance(o, (Quib, Artist)):
+        from matplotlib.widgets import AxesWidget
+        if isinstance(o, (Quib, Artist, AxesWidget)):
             return o
         return copy(o)
 

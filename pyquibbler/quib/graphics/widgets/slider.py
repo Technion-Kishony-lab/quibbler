@@ -5,6 +5,7 @@ from matplotlib.widgets import Slider
 from pyquibbler.quib import Quib
 from pyquibbler.quib.utils import quib_method
 from .drag_context_manager import dragging
+from .single_on_change import set_func_callback_on_widget_one_time
 
 from .widget_graphics_function_quib import WidgetGraphicsFunctionQuib
 from ...assignment import PathComponent
@@ -53,17 +54,14 @@ class SliderGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
             self._on_change(self._previous_set_value)
             self._previous_set_value = None
 
-    def _invalidate_self(self, path: List[PathComponent]):
-        # We don't want to invalidate a slider that is within dragging as we don't want to recreate the slider the user
-        # is currently using (so as to allow dragging and so on)
-        # Note that this fix will not work when the slider is within another graphicsfunctionquib
-        if self._cache is not None and self._cache.get_value().drag_active:
-            return
-        return super(SliderGraphicsFunctionQuib, self)._invalidate_self(path)
-
     def _call_func(self, valid_path: Optional[List[PathComponent]]) -> Any:
         slider = super()._call_func(None)
-        slider.on_changed(self._on_change)
+        set_func_callback_on_widget_one_time(
+            event_name="changed",
+            func=self._on_change,
+            set_method_callback=slider.on_changed,
+            widget=slider
+        )
         slider.on_release = self._on_release
         return slider
 

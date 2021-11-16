@@ -224,8 +224,10 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
 
         def wrapper(graphics_collection, should_run, *args, **kwargs):
             if should_run:
-                with self._call_func_context(graphics_collection):
-                    return pyfunc(*args, **kwargs)
+                return self._run_single_call(func=pyfunc,
+                                             args=args,
+                                             kwargs=kwargs,
+                                             graphics_collection=graphics_collection)
             return empty_result
 
         args_to_add = (self._graphics_collection_ndarr, bool_mask)
@@ -240,7 +242,7 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
         """
         Call vectoriz, but call the internal function only when required by the given valid_path.
         """
-        self._initialize_graphics_ndarr()
+        self._initialize_graphics_collection_ndarr()
         vectorize_metadata = self._vectorize_metadata
         if vectorize_metadata.is_result_a_tuple:
             return super()._call_func(valid_path)

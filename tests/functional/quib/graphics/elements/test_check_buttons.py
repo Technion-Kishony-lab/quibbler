@@ -38,5 +38,4 @@ def test_checkbuttons_graphics_on_change(checkbuttons_quib, mock_quib, func_mock
     func_mock.return_value.get_status.return_value = [True, True]
     checkbuttons_quib._on_change(new_value)
 
-    # I have a problem implementing this test:
     assert mock_quib.get_value() == [True, True]

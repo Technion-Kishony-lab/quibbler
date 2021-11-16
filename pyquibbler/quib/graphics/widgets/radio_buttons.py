@@ -4,6 +4,7 @@ from typing import List, Optional, Any
 
 from pyquibbler.quib import Quib
 from pyquibbler.quib.utils import quib_method
+from .single_on_change import set_func_callback_on_widget_one_time
 
 from .widget_graphics_function_quib import WidgetGraphicsFunctionQuib
 from ...assignment import PathComponent
@@ -41,7 +42,12 @@ class RadioButtonsGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
 
     def _call_func(self, valid_path: Optional[List[PathComponent]]) -> Any:
         radiobuttons = super()._call_func(None)
-        radiobuttons.on_clicked(self._on_change)
+        set_func_callback_on_widget_one_time(
+            event_name="clicked",
+            widget=radiobuttons,
+            func=self._on_change,
+            set_method_callback=radiobuttons.on_clicked
+        )
         return radiobuttons
 
     @property

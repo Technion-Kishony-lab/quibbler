@@ -28,10 +28,3 @@ def test_slider_graphics_quib_get_value(slider_quib):
 
     res.on_changed.assert_called_once()
 
-
-def test_slider_graphics_on_change(slider_quib, mock_quib):
-    new_value = 4
-
-    slider_quib._on_change(new_value)
-
-    assert mock_quib.get_value() == new_value

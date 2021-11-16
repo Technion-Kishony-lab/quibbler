@@ -149,11 +149,12 @@ class ApplyAlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         """
         indices = indices_before_axis + s_[(...,)] + indices_after_axis
         if np.any(requested_indices_bool_mask[indices]):
-            with external_call_failed_exception_handling(),\
-                    self._call_func_context(self._graphics_collection_ndarr[indices_before_axis + indices_after_axis]):
-                res = self._run_func1d(self._get_oned_slice_for_running_func1d(indices),
-                                       *func1d_args,
-                                       **func1d_kwargs)
+            res = self._run_single_call(
+                func=self.func1d,
+                graphics_collection=self._graphics_collection_ndarr[indices_before_axis + indices_after_axis],
+                args=(self._get_oned_slice_for_running_func1d(indices), *func1d_args),
+                kwargs=func1d_kwargs
+            )
         else:
             res = self._get_sample_result()
         return res
@@ -187,7 +188,7 @@ class ApplyAlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         if valid_path is None:
             return self._get_invalid_value_at_correct_shape_and_dtype()
 
-        self._initialize_graphics_ndarr()
+        self._initialize_graphics_collection_ndarr()
         return self._apply_along_axis(valid_path)
 
     def _backwards_translate_bool_mask(self, args_dict, bool_mask, quib: Quib):

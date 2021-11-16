@@ -4,6 +4,7 @@ from matplotlib.widgets import CheckButtons
 from pyquibbler.quib import Quib
 from pyquibbler.quib.assignment import Assignment, PathComponent
 from pyquibbler.quib.utils import quib_method
+from .single_on_change import set_func_callback_on_widget_one_time
 
 from .widget_graphics_function_quib import WidgetGraphicsFunctionQuib
 
@@ -30,7 +31,12 @@ class CheckButtonsGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
 
     def _call_func(self, valid_path: Optional[List[PathComponent]]) -> Any:
         checkbuttons = super()._call_func(None)
-        checkbuttons.on_clicked(self._on_change)
+        set_func_callback_on_widget_one_time(
+            widget=checkbuttons,
+            event_name="clicked",
+            func=self._on_change,
+            set_method_callback=checkbuttons.on_clicked
+        )
         return checkbuttons
 
     @property

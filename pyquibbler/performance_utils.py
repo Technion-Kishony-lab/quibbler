@@ -1,7 +1,9 @@
+import functools
 import time
 import contextlib
+from weakref import ref
 from dataclasses import dataclass
-from typing import Optional, Callable
+from typing import Optional, Callable, Type
 
 from pyquibbler.exceptions import PyQuibblerException
 
@@ -63,3 +65,28 @@ def timer(name: str, callback: Optional[Callable] = None):
     new_timer = Timer(name=name)
     TIMERS[name] = new_timer
     return new_timer.timing(callback=callback)
+
+
+TRACKED_CLASSES_TO_WEAKREFS = {}
+
+
+def track_instances_of_class(cls: Type):
+    """
+    Track all instances of a class (weak pointers)
+    """
+    prev_init = cls.__init__
+
+    @functools.wraps(prev_init)
+    def _wrapped_init(self, *args, **kwargs):
+        res = prev_init(self, *args, **kwargs)
+        TRACKED_CLASSES_TO_WEAKREFS.setdefault(cls, set()).add(ref(self))
+        return res
+
+    cls.__init__ = _wrapped_init
+
+
+def get_all_instances_in_tracked_class(cls: Type):
+    """
+    Get all the instances of a tracked class
+    """
+    return {inst() for inst in TRACKED_CLASSES_TO_WEAKREFS.get(cls, set()) if inst() is not None}

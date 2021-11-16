@@ -49,7 +49,7 @@ NON_QUIB_OVERRIDES = [
     (widgets, {
         'RectangleSelector': wrap_overridden_graphics_function(QRectangleSelector),
         'RadioButtons': wrap_overridden_graphics_function(QRadioButtons),
-        'Slider': wrap_overridden_graphics_function(QSlider)
+        'Slider': wrap_overridden_graphics_function(QSlider),
     }),
     (np, {
         'vectorize': QVectorize
