@@ -200,9 +200,12 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
             self._graphics_collection_ndarr = create_array_from_func(GraphicsCollection, loop_shape)
 
     def _handle_new_artists(self,
-                            graphics_collection,
+                            graphics_collection: GraphicsCollection,
                             previous_axeses_to_array_names_to_indices_and_artists,
-                            new_artists):
+                            new_artists: Set[Artist]):
+        """
+        Handle new artists and update graphics collection appropriately
+        """
         graphics_collection.artists.update(new_artists)
         for artist in new_artists:
             save_func_and_args_on_artists(artist, func=self.func, args=self.args)
@@ -213,7 +216,10 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         self._update_new_artists_from_previous_artists(previous_axeses_to_array_names_to_indices_and_artists,
                                                        current_axeses_to_array_names_to_artists)
 
-    def _handle_new_widgets(self, graphics_collection, new_widgets):
+    def _handle_new_widgets(self, graphics_collection: GraphicsCollection, new_widgets: Set[AxesWidget]):
+        """
+        Handle new widgets and update the graphics collection appropriately
+        """
         if len(graphics_collection.widgets) > 0:
             destroy_widgets(new_widgets)
             transfer_data_from_new_widgets_to_previous_widgets(previous_widgets=graphics_collection.widgets,
@@ -221,7 +227,13 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         else:
             graphics_collection.widgets.update(new_widgets)
 
-    def _run_single_call(self, func, graphics_collection: GraphicsCollection, args, kwargs):
+    def _run_single_call(self, func: Callable,
+                         graphics_collection: GraphicsCollection,
+                         args: Tuple[Any, ...],
+                         kwargs: Mapping[str, Any]):
+        """
+        Run a single iteration of the function quib
+        """
         self._remove_artists_that_were_removed_from_axes(graphics_collection.artists)
         # Get the *current* artists together with their starting indices (per axes per artists array) so we can
         # place the new artists we create in their correct locations
