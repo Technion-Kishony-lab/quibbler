@@ -20,15 +20,6 @@ def radio_buttons(axes, active_quib):
     return buttons
 
 
-@pytest.fixture()
-def get_only_live_widget(get_live_widgets):
-    def _get():
-        live = get_live_widgets()
-        assert len(live) == 1
-        return live[0]
-    return _get
-
-
 def test_radio_buttons_set_active_multiple_times(get_only_live_widget, radio_buttons, active_quib, get_live_widgets):
     widget = get_only_live_widget()
     get_only_live_widget().set_active(0)

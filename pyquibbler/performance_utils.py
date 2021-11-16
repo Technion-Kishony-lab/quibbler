@@ -76,7 +76,7 @@ def track_class(cls: Type):
     @functools.wraps(prev_init)
     def _wrapped_init(self, *args, **kwargs):
         res = prev_init(self, *args, **kwargs)
-        TRACKED_CLASSES_TO_WEAKREFS.setdefault(cls, []).append(ref(self))
+        TRACKED_CLASSES_TO_WEAKREFS.setdefault(cls, set()).add(ref(self))
         return res
 
     cls.__init__ = _wrapped_init

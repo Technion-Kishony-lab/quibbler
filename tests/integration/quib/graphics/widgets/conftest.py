@@ -57,6 +57,15 @@ def get_axes_middle(axes):
 
 
 @pytest.fixture()
+def get_only_live_widget(get_live_widgets):
+    def _get():
+        live = get_live_widgets()
+        assert len(live) == 1
+        return live[0]
+    return _get
+
+
+@pytest.fixture()
 def get_live_widgets():
     track_class(AxesWidget)
 
@@ -68,4 +77,4 @@ def get_live_widgets():
 
     yield _get
 
-    TRACKED_CLASSES_TO_WEAKREFS[AxesWidget] = []
+    TRACKED_CLASSES_TO_WEAKREFS[AxesWidget] = set()
