@@ -197,7 +197,7 @@ class FunctionQuib(Quib):
                 raise UnknownCacheBehaviorException(cache_behavior)
         self._cache_behavior = cache_behavior
 
-    def _get_source_paths_of_quibs_given_path(self, path: List[PathComponent]) -> Dict[Quib, str]:
+    def _backwards_translate_path(self, path: List[PathComponent]) -> Dict[Quib, str]:
         """
         Get a mapping of argument data source quibs to their respective paths that influenced the given path (`path`)
         """
@@ -232,7 +232,7 @@ class FunctionQuib(Quib):
         Prepare arguments to call self.func with - replace quibs with values valid at the given path,
         and QuibRefs with quibs.
         """
-        quibs_to_paths = {} if valid_path is None else self._get_source_paths_of_quibs_given_path(valid_path)
+        quibs_to_paths = {} if valid_path is None else self._backwards_translate_path(valid_path)
         replace_func = functools.partial(self._replace_sub_argument_with_value, quibs_to_paths)
         new_args = [recursively_run_func_on_object(replace_func, arg) for arg in self.args]
         new_kwargs = {key: recursively_run_func_on_object(replace_func, val) for key, val in self.kwargs.items()}
@@ -252,8 +252,7 @@ class FunctionQuib(Quib):
         with external_call_failed_exception_handling():
             return self.func(*new_args, **new_kwargs)
 
-    def _forward_translate_invalidation_path(self, invalidator_quib: Quib, path: List[PathComponent]) -> \
-            List[List[PathComponent]]:
+    def _forward_translate_path(self, invalidator_quib: Quib, path: List[PathComponent]) -> List[List[PathComponent]]:
         """
         Forward and translate the invalidation path in order to get a list of paths
         """
@@ -281,7 +280,7 @@ class FunctionQuib(Quib):
             # We want to completely invalidate our children
             # if either a parameter changed or a data quib changed completely (at entire path)
             return [[]]
-        return self._forward_translate_invalidation_path(invalidator_quib, path)
+        return self._forward_translate_path(invalidator_quib, path)
 
     @lru_cache()
     def get_args_values(self, include_defaults=True):

@@ -90,15 +90,13 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
     def _tailored_forward_translate_indices(self, quib: Quib, indices: Any) -> Any:
         raise NotImplementedError()
 
-    def _tailored_forward_translate_invalidation_path(self, quib: Quib, working_component: PathComponent,
-                                                      rest_of_path: List[PathComponent]) \
-            -> List[Optional[List[PathComponent]]]:
+    def _tailored_forward_translate_path(self, quib: Quib, working_component: PathComponent,
+                                         rest_of_path: List[PathComponent]) -> List[Optional[List[PathComponent]]]:
         translated = self._tailored_forward_translate_indices(quib, working_component.component)
         return [[PathComponent(self.get_type(), translated), *rest_of_path]]
 
-    def _generic_forward_translate_invalidation_path(self, quib: Quib, working_component: PathComponent,
-                                                     rest_of_path: List[PathComponent]) \
-            -> List[Optional[List[PathComponent]]]:
+    def _generic_forward_translate_path(self, quib: Quib, working_component: PathComponent,
+                                        rest_of_path: List[PathComponent]) -> List[Optional[List[PathComponent]]]:
         bool_mask_in_output_array = self._forward_translate_indices_to_bool_mask(quib, working_component.component)
         if np.any(bool_mask_in_output_array):
             # If there exist both True's and False's in the boolean mask,
@@ -114,13 +112,12 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
             return [rest_of_path]
         return []
 
-    def _forward_translate_invalidation_path(self, quib: Quib,
-                                             path: List[PathComponent]) -> List[Optional[List[PathComponent]]]:
+    def _forward_translate_path(self, quib: Quib, path: List[PathComponent]) -> List[Optional[List[PathComponent]]]:
         working_component, *rest_of_path = path
         try:
-            return self._tailored_forward_translate_invalidation_path(quib, working_component, rest_of_path)
+            return self._tailored_forward_translate_path(quib, working_component, rest_of_path)
         except NotImplementedError:
-            return self._generic_forward_translate_invalidation_path(quib, working_component, rest_of_path)
+            return self._generic_forward_translate_path(quib, working_component, rest_of_path)
 
     @staticmethod
     def _split_path(path: List[PathComponent]):
@@ -133,12 +130,12 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
 
     def get_inversions_for_override_removal(self, override_removal: OverrideRemoval) -> List[OverrideRemoval]:
         current_components, components_at_end = self._split_path(override_removal.path)
-        quibs_to_paths = self._get_source_paths_of_quibs_given_path(current_components)
+        quibs_to_paths = self._backwards_translate_path(current_components)
         return [OverrideRemoval(quib, [*path, *components_at_end]) for quib, path in quibs_to_paths.items()]
 
     def get_inversions_for_assignment(self, assignment: Assignment) -> List[AssignmentToQuib]:
         current_components, components_at_end = self._split_path(assignment.path)
-        quibs_to_paths = self._get_source_paths_of_quibs_given_path(current_components)
+        quibs_to_paths = self._backwards_translate_path(current_components)
         quibs_to_values = self._get_quibs_to_relevant_result_values(assignment)
         return [
             AssignmentToQuib(

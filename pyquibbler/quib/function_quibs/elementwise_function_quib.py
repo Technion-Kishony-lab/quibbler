@@ -209,7 +209,7 @@ class ElementWiseFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunctionQuib
         result_bool_mask = self._get_bool_mask_representing_indices_in_result(working_indices)
         return unbroadcast_bool_mask(result_bool_mask, argument_quib.get_shape())
 
-    def _get_source_paths_of_quibs_given_path(self, filtered_path_in_result: List[PathComponent]):
+    def _backwards_translate_path(self, filtered_path_in_result: List[PathComponent]):
         result = {}
         for quib_to_change in self._get_data_source_quibs():
             working_component = get_nd_working_component_value_from_path(filtered_path_in_result)
@@ -237,7 +237,7 @@ class ElementWiseFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunctionQuib
         quib_to_change = self._get_quibs_in_args()[0]
 
         inverse_function = self.FUNCTIONS_TO_INVERSE_FUNCTIONS[self._func]
-        relevant_path_in_quib = self._get_source_paths_of_quibs_given_path(assignment.path)[quib_to_change]
+        relevant_path_in_quib = self._backwards_translate_path(assignment.path)[quib_to_change]
         new_quib_argument_value = inverse_function(self._get_representative_result(working_component, assignment.value),
                                                    self._args,
                                                    self._kwargs,

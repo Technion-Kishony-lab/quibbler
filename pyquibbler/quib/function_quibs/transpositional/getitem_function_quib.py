@@ -10,8 +10,7 @@ from .transpositional_function_quib import TranspositionalFunctionQuib, Quib
 
 class GetItemFunctionQuib(TranspositionalFunctionQuib):
 
-    def _forward_translate_invalidation_path(self, quib: Quib,
-                                             path: List[PathComponent]) -> List[Optional[List[PathComponent]]]:
+    def _forward_translate_path(self, quib: Quib, path: List[PathComponent]) -> List[Optional[List[PathComponent]]]:
         """
         Handle invalidation on a getitem quib, correctly choosing whether or not and at what indices to invalidate
         child quibs
@@ -27,7 +26,7 @@ class GetItemFunctionQuib(TranspositionalFunctionQuib):
                 # Therefore, we translate the indices and invalidate our children with the new indices (which are an
                 # intersection between our getitem and the path to invalidate- if this intersections yields nothing,
                 # we do NOT invalidate our children)
-                return super(GetItemFunctionQuib, self)._forward_translate_invalidation_path(quib, path)
+                return super(GetItemFunctionQuib, self)._forward_translate_path(quib, path)
             elif (
                     self._getitem_path_component.references_field_in_field_array()
                     !=
@@ -87,10 +86,10 @@ class GetItemFunctionQuib(TranspositionalFunctionQuib):
             self._args[0]: assignment.value
         }
 
-    def _get_source_paths_of_quibs_given_path(self, filtered_path_in_result: List[PathComponent]):
+    def _backwards_translate_path(self, filtered_path_in_result: List[PathComponent]):
         if self._can_squash_start_of_path(filtered_path_in_result):
             # Translate the indices
-            return super(GetItemFunctionQuib, self)._get_source_paths_of_quibs_given_path(filtered_path_in_result)
+            return super(GetItemFunctionQuib, self)._backwards_translate_path(filtered_path_in_result)
         return {
             self._args[0]: [self._getitem_path_component, *filtered_path_in_result]
         }

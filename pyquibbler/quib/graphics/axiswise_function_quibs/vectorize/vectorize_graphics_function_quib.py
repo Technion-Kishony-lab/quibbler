@@ -161,11 +161,9 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
         source_bool_mask = np.any(source_bool_mask, axis=get_core_axes(core_ndim))
         return np.broadcast_to(source_bool_mask, vectorize_metadata.result_loop_shape)
 
-    def _forward_translate_invalidation_path(self, invalidator_quib: Quib,
-                                             path: List[PathComponent]) -> List[Optional[List[PathComponent]]]:
+    def _forward_translate_path(self, quib: Quib, path: List[PathComponent]) -> List[Optional[List[PathComponent]]]:
         working_component, *rest_of_path = path
-        bool_mask_in_output_array = self._forward_translate_indices_to_bool_mask(invalidator_quib,
-                                                                                 working_component.component)
+        bool_mask_in_output_array = self._forward_translate_indices_to_bool_mask(quib, working_component.component)
         if not np.any(bool_mask_in_output_array):
             return []
         starting_path = [PathComponent(self.get_type(), bool_mask_in_output_array), *rest_of_path]
@@ -176,7 +174,7 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
         else:
             return [starting_path]
 
-    def _backward_translate_indices_to_bool_mask(self, quib: Quib, indices: Any) -> Any:
+    def _backwards_translate_indices_to_bool_mask(self, quib: Quib, indices: Any) -> Any:
         """
         Translate indices in result backwards to indices in a data source quib, by calling any on result
         core dimensions and un-broadcasting the loop dimensions into the argument loop dimension.
@@ -197,10 +195,10 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
         if len(filtered_path_in_result) == 0 or filtered_path_in_result[0].indexed_cls is tuple:
             return []
         working_component, *rest_of_path = filtered_path_in_result
-        indices_in_data_source = self._backward_translate_indices_to_bool_mask(quib, working_component.component)
+        indices_in_data_source = self._backwards_translate_indices_to_bool_mask(quib, working_component.component)
         return [PathComponent(self.get_type(), indices_in_data_source)]
 
-    def _get_source_paths_of_quibs_given_path(self, filtered_path_in_result: List[PathComponent]):
+    def _backwards_translate_path(self, filtered_path_in_result: List[PathComponent]):
         return {quib: self._get_source_path_in_quib(quib, filtered_path_in_result)
                 for quib in self._get_data_source_quibs()}
 

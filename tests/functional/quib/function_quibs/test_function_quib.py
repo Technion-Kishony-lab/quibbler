@@ -146,7 +146,7 @@ class InvalidatingFunctionQuib(FunctionQuib):
     def _get_inner_value_valid_at_path(self, path: Optional[List[PathComponent]]) -> Any:
         return self._call_func(path)
 
-    def _forward_translate_invalidation_path(self, invalidator_quib, path: List[PathComponent]) -> \
+    def _forward_translate_path(self, invalidator_quib, path: List[PathComponent]) -> \
             List[List[PathComponent]]:
         return [path]
 

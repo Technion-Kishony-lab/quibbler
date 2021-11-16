@@ -133,7 +133,7 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
             )
         }
 
-    def _get_source_paths_of_quibs_given_path(self, filtered_path_in_result: List[PathComponent]) \
+    def _backwards_translate_path(self, filtered_path_in_result: List[PathComponent]) \
             -> Dict[Quib, List[PathComponent]]:
         working_component = filtered_path_in_result[0].component if len(filtered_path_in_result) > 0 else True
         quibs_to_indices = self.get_quibs_to_indices_in_quibs(working_component)
@@ -143,8 +143,7 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
             for quib in quibs_to_indices
         }
 
-    def _forward_translate_invalidation_path(self, quib: Quib,
-                                             path: List[PathComponent]) -> List[Optional[List[PathComponent]]]:
+    def _forward_translate_path(self, quib: Quib, path: List[PathComponent]) -> List[Optional[List[PathComponent]]]:
         """
         There are two things we can potentially do:
         1. Translate the invalidation path given the current function quib (eg if this function quib is rotate,
@@ -156,7 +155,7 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
             # normal transpositional function (neither does it make any difference, as transpositional functions
             # don't change fields)
             return [path]
-        return super(TranspositionalFunctionQuib, self)._forward_translate_invalidation_path(quib, path)
+        return super(TranspositionalFunctionQuib, self)._forward_translate_path(quib, path)
 
     def _tailored_forward_translate_indices(self, _quib: Quib, indices: Any) -> Any:
         if not (isinstance(indices, tuple) and len(indices) == self.get_ndim()):

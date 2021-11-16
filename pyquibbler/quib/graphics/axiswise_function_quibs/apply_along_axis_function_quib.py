@@ -190,7 +190,7 @@ class ApplyAlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         self._initialize_graphics_ndarr()
         return self._apply_along_axis(valid_path)
 
-    def _backward_translate_bool_mask(self, args_dict, bool_mask, quib: Quib):
+    def _backwards_translate_bool_mask(self, args_dict, bool_mask, quib: Quib):
         axis = args_dict.pop('axis')
         source_shape = quib.get_shape()
         expanded_dims = self._get_expanded_dims(axis, bool_mask.shape, source_shape)

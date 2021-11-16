@@ -71,22 +71,22 @@ class AxisWiseGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFuncti
         return self._forward_translate_bool_mask(args_dict, source_bool_mask, quib)
 
     @abstractmethod
-    def _backward_translate_bool_mask(self, args_dict, bool_mask, quib: Quib):
+    def _backwards_translate_bool_mask(self, args_dict, bool_mask, quib: Quib):
         pass
 
-    def _backward_translate_indices_to_bool_mask(self, quib: Quib, indices: Any) -> Any:
+    def _backwards_translate_indices_to_bool_mask(self, quib: Quib, indices: Any) -> Any:
         result_bool_mask = self._get_bool_mask_representing_indices_in_result(indices)
         args_dict = self._get_translation_related_arg_dict()
-        return self._backward_translate_bool_mask(args_dict, result_bool_mask, quib)
+        return self._backwards_translate_bool_mask(args_dict, result_bool_mask, quib)
 
     def _get_source_path_in_quib(self, quib: Quib, filtered_path_in_result: List[PathComponent]):
         if len(filtered_path_in_result) == 0:
             return []
         working_component, *rest_of_path = filtered_path_in_result
-        indices_in_data_source = self._backward_translate_indices_to_bool_mask(quib, working_component.component)
+        indices_in_data_source = self._backwards_translate_indices_to_bool_mask(quib, working_component.component)
         return [PathComponent(self.get_type(), indices_in_data_source)]
 
-    def _get_source_paths_of_quibs_given_path(self, filtered_path_in_result: List[PathComponent]):
+    def _backwards_translate_path(self, filtered_path_in_result: List[PathComponent]):
         return {quib: self._get_source_path_in_quib(quib, filtered_path_in_result)
                 for quib in self._get_data_source_quibs()}
 
@@ -125,7 +125,7 @@ class ReductionAxisWiseGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         """
         return np.logical_or.reduce(boolean_mask, **args_dict)
 
-    def _backward_translate_bool_mask(self, args_dict, bool_mask, quib: Quib):
+    def _backwards_translate_bool_mask(self, args_dict, bool_mask, quib: Quib):
         keepdims = args_dict['keepdims']
         if not keepdims:
             input_core_dims = args_dict['axis']
@@ -156,7 +156,7 @@ class AccumulationAxisWiseGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
             axis = 0
         return np.logical_or.accumulate(boolean_mask, axis=axis, **args_dict)
 
-    def _backward_translate_bool_mask(self, args_dict, bool_mask, quib: Quib):
+    def _backwards_translate_bool_mask(self, args_dict, bool_mask, quib: Quib):
         result_core_axis = args_dict.pop('axis')
         need_reshape = False
         if result_core_axis is None:
