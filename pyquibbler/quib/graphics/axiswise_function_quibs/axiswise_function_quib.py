@@ -61,7 +61,7 @@ class AxisWiseGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFuncti
         """
 
     def _get_translation_related_arg_dict(self):
-        arg_dict = {key: val for key, val in self._get_args_values(include_defaults=True).arg_values_by_name.items()
+        arg_dict = {key: val for key, val in self.get_args_values(include_defaults=True).arg_values_by_name.items()
                     if not isinstance(val, np._globals._NoValueType)}
         return {arg.name: arg.get_value(arg_dict) for arg in self.TRANSLATION_RELATED_ARGS}
 

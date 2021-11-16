@@ -109,7 +109,7 @@ class ApplyAlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
 
     @property
     def core_axis(self) -> int:
-        axis = self._get_args_values()['axis']
+        axis = self.get_args_values()['axis']
         if isinstance(axis, Quib):
             # since this is a parameter quib, we always need it completely valid in order to run anything
             axis = axis.get_value()
@@ -118,7 +118,7 @@ class ApplyAlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
     @property
     def arr(self) -> Quib:
         from pyquibbler import q
-        arr_ = self._get_args_values()['arr']
+        arr_ = self.get_args_values()['arr']
         # ensure we're dealing with an ndarray- because we're not always running apply_along_axis which takes care of
         # this for us (for example, when getting a sample result) we do this on any access to the array to ensure no
         # issues if we were passed a list
@@ -126,7 +126,7 @@ class ApplyAlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
 
     @property
     def func1d(self) -> Callable:
-        return self._get_args_values()['func1d']
+        return self.get_args_values()['func1d']
 
     def _get_oned_slice_for_running_func1d(self, indices: Tuple):
         """

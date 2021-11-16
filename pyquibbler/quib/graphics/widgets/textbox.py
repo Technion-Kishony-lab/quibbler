@@ -15,7 +15,7 @@ class TextBoxGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
     WIDGET_CLS = TextBox
 
     def _on_change(self, new_value: float):
-        val = self._get_args_values().get('initial')
+        val = self.get_args_values().get('initial')
         if isinstance(val, Quib):
             val.assign_value(new_value)
         else:

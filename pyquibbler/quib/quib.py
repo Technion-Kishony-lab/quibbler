@@ -560,6 +560,21 @@ class Quib(ABC):
                 return len(res),
             raise
 
+    @cache_method_until_full_invalidation
+    def get_ndim(self) -> int:
+        """
+        Assuming this quib represents a numpy ndarray, returns a quib of its shape.
+        """
+        with add_quib_to_fail_trace_if_raises_quib_call_exception(quib=self, call='get_ndim()', replace_last=True):
+            res = self.get_value_valid_at_path(None)
+
+        try:
+            return np.ndim(res)
+        except ValueError:
+            if hasattr(res, '__len__'):
+                return 1
+            raise
+
     @quib_method
     def get_override_mask(self):
         """

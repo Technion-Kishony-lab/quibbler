@@ -66,11 +66,14 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
                 f'Tried to create a wrapper for function {func} which is not supported by {cls}'
         return super().create_wrapper(func)
 
+    @property
+    def _function_metadata(self) -> SupportedFunction:
+        return self.SUPPORTED_FUNCTIONS[self.func]
+
     @lru_cache()
     def _get_data_source_args(self) -> Iterable:
         if self.SUPPORTED_FUNCTIONS is not None:
-            supported_function = self.SUPPORTED_FUNCTIONS[self._func]
-            return supported_function.get_data_source_args(self._get_args_values(include_defaults=False))
+            return self._function_metadata.get_data_source_args(self.get_args_values(include_defaults=False))
         return [*self.args, *self.kwargs.values()]
 
     @lru_cache()
@@ -84,12 +87,19 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
     def _get_quibs_to_relevant_result_values(self, assignment: Assignment):
         return {}
 
-    def _forward_translate_invalidation_path(self, quib: Quib,
-                                             path: List[PathComponent]) -> List[Optional[List[PathComponent]]]:
-        working_component, *rest_of_path = path
-        bool_mask_in_output_array = self._forward_translate_indices_to_bool_mask(quib,
-                                                                                 working_component.component)
+    def _tailored_forward_translate_indices(self, quib: Quib, indices: Any) -> Any:
+        raise NotImplementedError()
 
+    def _tailored_forward_translate_invalidation_path(self, quib: Quib, working_component: PathComponent,
+                                                      rest_of_path: List[PathComponent]) \
+            -> List[Optional[List[PathComponent]]]:
+        translated = self._tailored_forward_translate_indices(quib, working_component.component)
+        return [[PathComponent(self.get_type(), translated), *rest_of_path]]
+
+    def _generic_forward_translate_invalidation_path(self, quib: Quib, working_component: PathComponent,
+                                                     rest_of_path: List[PathComponent]) \
+            -> List[Optional[List[PathComponent]]]:
+        bool_mask_in_output_array = self._forward_translate_indices_to_bool_mask(quib, working_component.component)
         if np.any(bool_mask_in_output_array):
             # If there exist both True's and False's in the boolean mask,
             # this function's quib result must be an ndarray- if it were a single item (say a PyObj, int, dict, list)
@@ -103,6 +113,14 @@ class IndicesTranslatorFunctionQuib(FunctionQuib):
                 return [[PathComponent(self.get_type(), bool_mask_in_output_array), *rest_of_path]]
             return [rest_of_path]
         return []
+
+    def _forward_translate_invalidation_path(self, quib: Quib,
+                                             path: List[PathComponent]) -> List[Optional[List[PathComponent]]]:
+        working_component, *rest_of_path = path
+        try:
+            return self._tailored_forward_translate_invalidation_path(quib, working_component, rest_of_path)
+        except NotImplementedError:
+            return self._generic_forward_translate_invalidation_path(quib, working_component, rest_of_path)
 
     @staticmethod
     def _split_path(path: List[PathComponent]):

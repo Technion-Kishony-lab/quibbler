@@ -47,8 +47,8 @@ class ArgsValues:
             return self.arg_values_by_name[item]
         return self.arg_values_by_position[item]
 
-    def get(self, keyword: str) -> Optional[Any]:
-        return self.arg_values_by_name.get(keyword)
+    def get(self, keyword: str, default: Optional = None) -> Optional[Any]:
+        return self.arg_values_by_name.get(keyword, default)
 
     @classmethod
     def from_function_call(cls, func: Callable, args: Tuple[Any, ...], kwargs: Mapping[str, Any], include_defaults):

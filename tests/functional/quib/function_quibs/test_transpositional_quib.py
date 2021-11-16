@@ -345,3 +345,17 @@ def test_getitem_pretty_repr_with_quib_as_item():
     b = iquib(1)
 
     assert a[:b].pretty_repr() == 'a[:b]'
+
+
+@pytest.mark.regression
+@pytest.mark.parametrize(['data', 'indices_to_invalidate', 'axes'], [
+    (np.arange(24).reshape((2, 3, 4)), 0, None),
+    (np.arange(24).reshape((2, 3, 4)), (1, 0, 3), None),
+    (np.arange(24).reshape((2, 3, 4)), 0, (2, 0, 1)),
+    (np.arange(24).reshape((2, 3, 4)), (1, 0, 3), (2, 0, 1)),
+    (np.arange(5), 2, None),
+    (np.arange(5), 2, 0),
+    (np.array([]), ..., None),
+])
+def test_transpose_invalidation(data, indices_to_invalidate, axes):
+    check_invalidation(lambda q: np.transpose(q, axes=axes), data, indices_to_invalidate)

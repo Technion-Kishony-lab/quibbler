@@ -284,7 +284,7 @@ class FunctionQuib(Quib):
         return self._forward_translate_invalidation_path(invalidator_quib, path)
 
     @lru_cache()
-    def _get_args_values(self, include_defaults=True):
+    def get_args_values(self, include_defaults=True):
         return ArgsValues.from_function_call(self.func, self.args, self.kwargs, include_defaults)
 
     @property

@@ -32,9 +32,9 @@ class PathComponent:
         assignment is a field assignment or not. This is in contrast to setattr for example where we could have had a
         special PathComponent for it, as the interface for setting an attribute is different.
         """
-        return (issubclass(self.indexed_cls, np.ndarray) and (
-            isinstance(self.component, str) or (
-                isinstance(self.component, list) and isinstance(self.component[0], str))))
+        return (issubclass(self.indexed_cls, np.ndarray) and
+                (isinstance(self.component, str) or
+                 (isinstance(self.component, list) and isinstance(self.component[0], str))))
 
 
 @dataclass

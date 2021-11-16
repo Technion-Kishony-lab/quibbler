@@ -41,7 +41,7 @@ class SliderGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
         self._previous_set_value = new_value
         context = dragging() if self.get_value().drag_active else contextlib.nullcontext()
         with context:
-            val = self._get_args_values().get('valinit')
+            val = self.get_args_values().get('valinit')
             if isinstance(val, Quib):
                 val.assign_value(new_value)
             else:

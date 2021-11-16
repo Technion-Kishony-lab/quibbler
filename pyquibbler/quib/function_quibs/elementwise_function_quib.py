@@ -154,6 +154,11 @@ class ElementWiseFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunctionQuib
 
     SUPPORTED_FUNCTIONS = None
 
+    def _tailored_forward_translate_indices(self, quib: Quib, indices: Any) -> Any:
+        if quib.get_shape() != self.get_shape():
+            raise NotImplementedError()
+        return indices
+
     def _forward_translate_indices_to_bool_mask(self, quib: Quib, indices: Any) -> Any:
         """
         Create a boolean mask representing the quib at certain indices in the result.

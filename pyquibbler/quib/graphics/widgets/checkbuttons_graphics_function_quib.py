@@ -16,11 +16,11 @@ class CheckButtonsGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
     WIDGET_CLS = CheckButtons
 
     def _on_change(self, new_value: str):
-        actives = self._get_args_values().get('actives')
+        actives = self.get_args_values().get('actives')
         if isinstance(actives, Quib):
             widget = self.get_value()
             buttons_checked = widget.get_status()
-            labels = self._get_args_values().get('labels')
+            labels = self.get_args_values().get('labels')
             new_value_index = labels.index(new_value)
             actives.assign(Assignment(value=buttons_checked[new_value_index],
                                       path=[PathComponent(indexed_cls=list, component=new_value_index)]))

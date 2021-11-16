@@ -1,14 +1,29 @@
+from dataclasses import dataclass
+
 import numpy as np
 from operator import getitem
-from typing import List, Optional, Any, Callable, Dict
+from typing import List, Optional, Any, Callable, Dict, Tuple
 
-from pyquibbler.quib.function_quibs.utils import create_empty_array_with_values_at_indices, convert_args_and_kwargs
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.utils import recursively_run_func_on_object, call_func_with_quib_values
+from pyquibbler.quib.function_quibs import FunctionQuib
+from pyquibbler.quib.function_quibs.utils import create_empty_array_with_values_at_indices, convert_args_and_kwargs
 from pyquibbler.quib.function_quibs.default_function_quib import DefaultFunctionQuib
 from pyquibbler.quib.function_quibs.indices_translator_function_quib import IndicesTranslatorFunctionQuib, \
     SupportedFunction
-from pyquibbler.quib.assignment.assignment import PathComponent
+from pyquibbler.quib.assignment import PathComponent
+
+
+def transpose_forward_translate(indices: Tuple[Any, ...], quib: FunctionQuib) -> Any:
+    axes = quib.get_args_values().get('axes')
+    if axes is None:
+        axes = range(quib.get_ndim())[::-1]
+    return tuple(indices[axis] for axis in axes)
+
+
+@dataclass
+class SupportedFunctionWithSimpleTranslation(SupportedFunction):
+    forward_translate: Callable[[Tuple[Any, ...], FunctionQuib], Any]
 
 
 class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunctionQuib):
@@ -28,7 +43,7 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
         np.swapaxes: SupportedFunction({0}),
         np.expand_dims: SupportedFunction({0}),
         np.tile: SupportedFunction({0}),
-        np.transpose: SupportedFunction({0}),
+        np.transpose: SupportedFunctionWithSimpleTranslation({0}, transpose_forward_translate),
     }
 
     def _replace_quibs_in_arguments_which_can_potentially_change(self, replace_func: Callable[['Quib'], Any]):
@@ -96,8 +111,7 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
             empty_value=False
         )
         quibs = self._get_data_source_quibs()
-        max_shape_length = max([len(quib.get_shape())
-                                for quib in quibs]) if len(quibs) > 0 else 0
+        max_shape_length = max([quib.get_ndim() for quib in quibs]) if len(quibs) > 0 else 0
         # Default is to set all - if we have a shape we'll change this
         quibs_to_indices_in_quibs = {
             quib: None for quib in quibs
@@ -143,6 +157,14 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
             # don't change fields)
             return [path]
         return super(TranspositionalFunctionQuib, self)._forward_translate_invalidation_path(quib, path)
+
+    def _tailored_forward_translate_indices(self, _quib: Quib, indices: Any) -> Any:
+        if not (isinstance(indices, tuple) and len(indices) == self.get_ndim()):
+            raise NotImplementedError()
+        meta = self._function_metadata
+        if not isinstance(meta, SupportedFunctionWithSimpleTranslation):
+            raise NotImplementedError()
+        return meta.forward_translate(indices, self)
 
     def _convert_data_sources_in_args(self, convert_data_source: Callable):
         """

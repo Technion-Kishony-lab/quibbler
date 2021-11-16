@@ -101,8 +101,8 @@ class RectangleSelectorGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
         and attempt to resize even when the user did not request to resize- we here check if the widget attempted to
         resize when it should not have been able to
         """
-        init_val = self._get_args_values().get('extents')
-        allow_resize = self._get_args_values().get('allow_resize')
+        init_val = self.get_args_values().get('extents')
+        allow_resize = self.get_args_values().get('allow_resize')
         if isinstance(init_val, Quib):
             previous_value = init_val.get_value()
         else:
@@ -115,7 +115,7 @@ class RectangleSelectorGraphicsFunctionQuib(WidgetGraphicsFunctionQuib):
 
     def _on_changed(self, extents):
         self._last_extents_change = extents
-        init_val = self._get_args_values().get('extents')
+        init_val = self.get_args_values().get('extents')
 
         with timer("selector_change", lambda x: logger.info(f"selector change {x}")):
             if isinstance(init_val, Quib):
