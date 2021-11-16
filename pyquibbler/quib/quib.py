@@ -3,7 +3,6 @@ import contextlib
 import os
 import pathlib
 import pickle
-
 import numpy as np
 from functools import wraps
 from functools import cached_property
@@ -19,9 +18,6 @@ from .function_quibs.external_call_failed_exception_handling import raise_quib_c
     add_quib_to_fail_trace_if_raises_quib_call_exception
 from .override_choice import OverrideRemoval
 from .quib_varname import get_var_name_being_set_outside_of_pyquibbler, get_file_name_and_line_number_of_quib
-
-from pyquibbler.exceptions import PyQuibblerException
-
 from .assignment import AssignmentTemplate, RangeAssignmentTemplate, BoundAssignmentTemplate, Overrider, Assignment, \
     AssignmentToQuib
 from .function_quibs.cache import create_cache
@@ -29,13 +25,15 @@ from .function_quibs.cache.shallow.indexable_cache import transform_cache_to_nd_
 from .function_quibs.pretty_converters import MathExpression
 from .utils import quib_method, Unpacker, recursively_run_func_on_object
 from .assignment import PathComponent
+from ..exceptions import PyQuibblerException
 from ..env import LEN_RAISE_EXCEPTION, GET_VARIABLE_NAMES, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS
 from ..input_validation_utils import validate_user_input, InvalidArgumentException
 from ..logger import logger
 from ..project import Project
 
 if TYPE_CHECKING:
-    from pyquibbler.quib.graphics import GraphicsFunctionQuib
+    from .graphics import GraphicsFunctionQuib
+    from .override_choice import ChoiceContext, OverrideChoice
 
 
 def get_user_friendly_name_for_requested_valid_path(valid_path: Optional[List[PathComponent]]):
@@ -110,6 +108,7 @@ class Quib(ABC):
         self._allow_overriding = allow_overriding
         self.method_cache = {}
         self._quibs_allowed_to_assign_to = None
+        self._override_choice_cache = {}
 
         try:
             self._name = get_var_name_being_set_outside_of_pyquibbler() if GET_VARIABLE_NAMES else None
@@ -163,6 +162,18 @@ class Quib(ABC):
         for ref in refs_to_remove:
             self._children.remove(ref)
         return children
+
+    def store_override_choice(self, context: ChoiceContext, choice: OverrideChoice) -> None:
+        """
+        Store a user override choice in the cache for future use.
+        """
+        self._override_choice_cache[context] = choice
+
+    def try_load_override_choice(self, context: ChoiceContext) -> Optional[OverrideChoice]:
+        """
+        If a choice fitting the current options has been cached, return it. Otherwise return None.
+        """
+        return self._override_choice_cache.get(context)
 
     def _get_children_recursively(self) -> Set[Quib]:
         children = self.children
@@ -306,7 +317,7 @@ class Quib(ABC):
 
     def __len__(self):
         if LEN_RAISE_EXCEPTION:
-            raise TypeError('len(Q), where Q is q quib, is not allowed. '
+            raise TypeError('len(Q), where Q is a quib, is not allowed. '
                             'To get a functional quib, use q(len,Q). '
                             'To get the len of the current value of Q, use len(Q.get_value()).')
         else:

@@ -4,7 +4,8 @@ from unittest.mock import Mock
 from pytest import raises, fixture, mark
 
 from pyquibbler import iquib
-from pyquibbler.quib import get_override_group_for_change, CannotChangeQuibAtPathException, DefaultFunctionQuib, Quib
+from pyquibbler.quib import get_override_group_for_change, CannotChangeQuibAtPathException, DefaultFunctionQuib, Quib, \
+    ProxyQuib
 from pyquibbler.quib.assignment import Assignment, AssignmentToQuib
 from pyquibbler.quib.assignment.assignment import Override
 from pyquibbler.quib.override_choice import override_choice as override_choice_module, OverrideGroup, OverrideRemoval
@@ -207,9 +208,12 @@ def test_override_choice_when_diverged_and_all_diverged_inversions_are_overridde
     assert len([o for o in override_group.quib_changes if isinstance(o, OverrideRemoval)]) == 3
 
 
-@mark.parametrize('parent_chosen', [True, False])
+@mark.parametrize('parent_chosen', [True, False], ids=['parent_chosen', 'child_chosen'])
+@mark.parametrize('proxy_first_time', [True, False])
+@mark.parametrize('proxy_second_time', [True, False])
 def test_get_overrides_for_assignment_caches_override_choice(assignment, parent_and_child,
-                                                             choose_override_dialog_mock, parent_chosen):
+                                                             choose_override_dialog_mock, parent_chosen,
+                                                             proxy_first_time, proxy_second_time):
     parent, child, parent_override, child_override = parent_and_child
     child.set_allow_overriding(True)
     choose_override_dialog_mock.side_effect.add_choices(
@@ -218,12 +222,12 @@ def test_get_overrides_for_assignment_caches_override_choice(assignment, parent_
          False)
     )
 
-    override_group = get_overrides_for_assignment(child, assignment)
+    override_group = get_overrides_for_assignment(ProxyQuib(child) if proxy_first_time else child, assignment)
     # If this invokes a dialog, the dialog mock will fail the test
+    second_override_group = get_overrides_for_assignment(ProxyQuib(child) if proxy_second_time else child,
+                                                         Assignment(assignment.value + 1, assignment.path))
 
-    second_override_group = get_overrides_for_assignment(child, Assignment(assignment.value + 1, assignment.path))
-
-    assert override_group == parent_override if parent_chosen else child_override
+    assert override_group == (parent_override if parent_chosen else child_override)
     assert second_override_group != override_group
 
 

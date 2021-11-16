@@ -1,13 +1,14 @@
 from __future__ import annotations
-
 import pathlib
 from typing import Set, Optional, List, Any, TYPE_CHECKING
 
 from pyquibbler.quib.assignment import AssignmentToQuib
+from pyquibbler.quib.override_choice import OverrideRemoval
 from pyquibbler.quib.quib import Quib
 
 if TYPE_CHECKING:
-    from pyquibbler.quib import Assignment, PathComponent
+    from .quib import Assignment, PathComponent
+    from .override_choice import ChoiceContext, OverrideChoice
 
 
 class ProxyQuib(Quib):
@@ -44,8 +45,24 @@ class ProxyQuib(Quib):
     def get_inversions_for_assignment(self, assignment: Assignment) -> List[AssignmentToQuib]:
         return [AssignmentToQuib(quib=self._quib, assignment=assignment)]
 
+    def get_inversions_for_override_removal(self, override_removal: OverrideRemoval) -> List[OverrideRemoval]:
+        return [OverrideRemoval(self._quib, override_removal.path)]
+
     @property
     def _save_directory(self) -> Optional[pathlib.Path]:
         # there should never be any situation where we want to save a proxy quib, as overrides should never be made on
         # it
         return None
+
+    def store_override_choice(self, context: ChoiceContext, choice: OverrideChoice) -> None:
+        self._quib.store_override_choice(context, choice)
+
+    def try_load_override_choice(self, context: ChoiceContext) -> Optional[OverrideChoice]:
+        return self._quib.try_load_override_choice(context)
+
+    @property
+    def allow_overriding(self) -> bool:
+        return False
+
+    def set_allow_overriding(self, allow_overriding: bool):
+        self._quib.set_allow_overriding(allow_overriding)

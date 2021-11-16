@@ -73,21 +73,7 @@ class OverrideOptionsTree:
 
     @property
     def choice_context(self):
-        return ChoiceContext(self.inversed_quib,
-                             tuple(option.quib for option in self.options),
-                             self.can_diverge)
-
-    def _try_load_choice(self) -> Optional[OverrideChoice]:
-        """
-        If a choice fitting the current options has been cached, return it. Otherwise return None.
-        """
-        return self._CHOICE_CACHE.get(self.choice_context)
-
-    def _store_choice(self, choice: OverrideChoice):
-        """
-        Store a user override choice in the cache for future use.
-        """
-        self._CHOICE_CACHE[self.choice_context] = choice
+        return ChoiceContext(tuple(option.quib for option in self.options), self.can_diverge)
 
     def get_override_choice(self) -> OverrideChoice:
         """
@@ -98,10 +84,10 @@ class OverrideOptionsTree:
         """
         if len(self.options) == 1 and not self.can_diverge:
             return OverrideChoice(OverrideChoiceType.OVERRIDE, 0)
-        choice = self._try_load_choice()
+        choice = self.inversed_quib.try_load_override_choice(self.choice_context)
         if choice is None:
             choice = choose_override_dialog([override.quib for override in self.options], self.can_diverge)
-            self._store_choice(choice)
+            self.inversed_quib.store_override_choice(self.choice_context, choice)
         return choice
 
     def choose_overrides_from_diverged_inverse_assignment(self) -> OverrideGroup:
@@ -160,6 +146,7 @@ class OverrideOptionsTree:
         """
         Build an OverrideOptionsTree representing all the override options for the given assignment.
         """
+        from pyquibbler.quib import ProxyQuib
         if top_quib is None:
             top_quib = quib_change.quib
         options: List[QuibChangeWithOverrideRemovals] = []
@@ -168,10 +155,11 @@ class OverrideOptionsTree:
         last_inversion = None
         while len(inversions) == 1:
             inversion = inversions[0]
-            if inversion.quib._allow_overriding and top_quib.allows_assignment_to(inversion.quib):
+            if inversion.quib.allow_overriding and top_quib.allows_assignment_to(inversion.quib):
                 override = inversion.to_override() if isinstance(inversion, AssignmentToQuib) else inversion
                 options.append(QuibChangeWithOverrideRemovals(override, override_removals[:]))
-            override_removals.append(OverrideRemoval.from_quib_change(inversion))
+            if not isinstance(inversion.quib, ProxyQuib):
+                override_removals.append(OverrideRemoval.from_quib_change(inversion))
             inversions = inversion.get_inversions(True)
             if inversions:
                 last_inversion = inversion
