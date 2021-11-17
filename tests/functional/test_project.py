@@ -125,6 +125,19 @@ def test_undo_assignment_removal_and_assignment(project):
     assert a.get_value() == 5
 
 
+@pytest.mark.regression
+def test_undo_with_multiple_paths(project):
+    a = iquib([1, 2, 3, 4])
+    a[0] = 5
+    a[1] = 7
+
+    project.undo()
+    project.undo()
+
+    assert a[0].get_value() == 1
+    assert a[1].get_value() == 2
+
+
 def test_doesnt_record_when_dragging(project):
     a = iquib(5)
     with dragging():
