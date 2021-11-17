@@ -1,5 +1,4 @@
 from __future__ import annotations
-import logging
 from dataclasses import dataclass
 from typing import Any, List, TYPE_CHECKING
 
@@ -7,6 +6,7 @@ import numpy as np
 
 from pyquibbler.env import DEBUG
 from pyquibbler.exceptions import PyQuibblerException
+from pyquibbler.logger import logger
 
 if TYPE_CHECKING:
     from pyquibbler.quib.assignment import PathComponent
@@ -66,7 +66,7 @@ def deep_assign_data_in_path(data: Any, path: List[PathComponent], value: Any, r
                 raise FailedToDeepAssignException(path=path, exception=e)
 
             if DEBUG:
-                logging.warning(
+                logger.warning(
                     (f"Attempted out of range assignment:"
                      f"\n\tdata: {data}"
                      f"\n\tpath: {path}"

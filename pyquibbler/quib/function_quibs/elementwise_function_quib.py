@@ -1,5 +1,7 @@
 from __future__ import annotations
 import math
+import warnings
+
 import numpy as np
 from operator import __neg__, __pos__, __sub__, __pow__, __mul__, __add__
 from typing import TYPE_CHECKING, Any, List, Tuple, Callable, Dict
@@ -238,11 +240,14 @@ class ElementWiseFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunctionQuib
 
         inverse_function = self.FUNCTIONS_TO_INVERSE_FUNCTIONS[self._func]
         relevant_path_in_quib = self._backwards_translate_path(assignment.path)[quib_to_change]
-        new_quib_argument_value = inverse_function(self._get_representative_result(working_component, assignment.value),
-                                                   self._args,
-                                                   self._kwargs,
-                                                   quib_to_change,
-                                                   relevant_path_in_quib)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            new_quib_argument_value = inverse_function(self._get_representative_result(working_component,
+                                                                                       assignment.value),
+                                                       self._args,
+                                                       self._kwargs,
+                                                       quib_to_change,
+                                                       relevant_path_in_quib)
         value_to_set = new_quib_argument_value \
             if working_component is True \
             else new_quib_argument_value[working_component]
