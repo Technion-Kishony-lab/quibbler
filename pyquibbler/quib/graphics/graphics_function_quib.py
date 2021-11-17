@@ -123,6 +123,9 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         complete_artists_array = array[:starting_index] + new_artists + array[starting_index:end_index]
         # insert new artists at correct location
         setattr(axes, array_name, complete_artists_array)
+        self._copy_attributes(new_artists, previous_artists)
+
+    def _copy_attributes(self, new_artists: List[Artist], previous_artists: List[Artist]):
         # We only want to update from the previous artists if their lengths are equal (if so, we assume they're
         # referencing the same artists)
         if len(new_artists) == len(previous_artists):
@@ -157,18 +160,17 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
                 # If the array name isn't in previous_array_names_to_indices_and_artists,
                 # we don't need to update positions, etc
 
-    def _remove_artists(self, artist_set: Set[Artist]):
-        for artist in artist_set:
+    def _remove_artists(self, artists: List[Artist]):
+        for artist in artists:
             remove_artist(artist)
-        artist_set.clear()
 
-    def _remove_artists_that_were_removed_from_axes(self, artist_set: Set[Artist]):
+    def _get_artists_still_in_axes(self, artists: List[Artist]):
         """
         Remove any artists that we created that were removed by another means other than us (for example, cla())
         """
-        artist_set.difference_update([artist for artist in artist_set if artist not in get_artist_array(artist)])
+        return [artist for artist in artists if artist in get_artist_array(artist)]
 
-    def _iter_artist_sets(self) -> Iterable[Set[Artist]]:
+    def _iter_artist_lists(self) -> Iterable[List[Artist]]:
         return [] if self._graphics_collection_ndarr is None else map(lambda g: g.artists,
                                                                       self._graphics_collection_ndarr.flat)
 
@@ -177,7 +179,7 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
                                                                       self._graphics_collection_ndarr.flat)
 
     def _iter_artists(self) -> Iterable[Artist]:
-        return (artist for artists in self._iter_artist_sets() for artist in artists)
+        return (artist for artists in self._iter_artist_lists() for artist in artists)
 
     def get_axeses(self) -> Set[Axes]:
         return {artist.axes for artist in self._iter_artists()}
@@ -191,8 +193,8 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         """
         loop_shape = self._get_loop_shape()
         if self._graphics_collection_ndarr is not None and self._graphics_collection_ndarr.shape != loop_shape:
-            for artist_set in self._iter_artist_sets():
-                self._remove_artists(artist_set)
+            for artist_list in self._iter_artist_lists():
+                self._remove_artists(artist_list)
             self._graphics_collection_ndarr = None
         if self._graphics_collection_ndarr is None:
             self._graphics_collection_ndarr = create_array_from_func(GraphicsCollection, loop_shape)
@@ -204,7 +206,7 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         """
         Handle new artists and update graphics collection appropriately
         """
-        graphics_collection.artists.update(new_artists)
+        graphics_collection.artists = new_artists
         for artist in new_artists:
             save_func_and_args_on_artists(artist, func=self.func, args=self.args)
             track_artist(artist)
@@ -214,7 +216,7 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         self._update_new_artists_from_previous_artists(previous_axeses_to_array_names_to_indices_and_artists,
                                                        current_axeses_to_array_names_to_artists)
 
-    def _handle_new_widgets(self, graphics_collection: GraphicsCollection, new_widgets: Set[AxesWidget]):
+    def _handle_new_widgets(self, graphics_collection: GraphicsCollection, new_widgets: List[AxesWidget]):
         """
         Handle new widgets and update the graphics collection appropriately
         """
@@ -223,7 +225,7 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
             transfer_data_from_new_widgets_to_previous_widgets(previous_widgets=graphics_collection.widgets,
                                                                new_widgets=new_widgets)
         else:
-            graphics_collection.widgets.update(new_widgets)
+            graphics_collection.widgets = new_widgets
 
     def _run_single_call(self, func: Callable,
                          graphics_collection: GraphicsCollection,
@@ -232,12 +234,13 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         """
         Run a single iteration of the function quib
         """
-        self._remove_artists_that_were_removed_from_axes(graphics_collection.artists)
+        graphics_collection.artists = self._get_artists_still_in_axes(graphics_collection.artists)
         # Get the *current* artists together with their starting indices (per axes per artists array) so we can
         # place the new artists we create in their correct locations
         previous_axeses_to_array_names_to_indices_and_artists = \
             get_axeses_to_array_names_to_starting_indices_and_artists(graphics_collection.artists)
         self._remove_artists(graphics_collection.artists)
+        graphics_collection.artists = []
 
         with ArtistsCollector() as artists_collector, AxesWidgetsCollector() as widgets_collector, \
                 external_call_failed_exception_handling(), QuibGuard(set(iter_quibs_in_args(self.args, self.kwargs))):

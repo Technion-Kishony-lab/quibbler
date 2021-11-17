@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Set
+from typing import List
 
 from matplotlib.widgets import AxesWidget, Button, Slider
 
@@ -46,7 +46,8 @@ def update_previous_widget_from_new_widget(previous_widget, new_widget):
         setattr(previous_widget, attr, getattr(new_widget, attr))
 
 
-def transfer_data_from_new_widgets_to_previous_widgets(previous_widgets: Set[AxesWidget], new_widgets: Set[AxesWidget]):
+def transfer_data_from_new_widgets_to_previous_widgets(previous_widgets: List[AxesWidget],
+                                                       new_widgets: List[AxesWidget]):
     if len(previous_widgets) != len(new_widgets):
         raise DifferentNumberOfWidgetsException()
 
@@ -54,6 +55,6 @@ def transfer_data_from_new_widgets_to_previous_widgets(previous_widgets: Set[Axe
         update_previous_widget_from_new_widget(previous_widget, new_widget)
 
 
-def destroy_widgets(widgets: Set[AxesWidget]):
+def destroy_widgets(widgets: List[AxesWidget]):
     for widget in widgets:
         widget.disconnect_events()

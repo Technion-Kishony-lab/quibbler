@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import List, Callable, Tuple, Any, Dict, Iterable, Set
+from typing import List, Callable, Tuple, Any, Dict, Iterable
 from contextlib import contextmanager
 
 from matplotlib.axes import Axes
@@ -57,7 +57,7 @@ def remove_artist(artist: Artist):
     get_artist_array(artist).remove(artist)
 
 
-def get_axeses_to_array_names_to_starting_indices_and_artists(artists: Set[Artist]) \
+def get_axeses_to_array_names_to_starting_indices_and_artists(artists: List[Artist]) \
         -> Dict[Axes, Dict[str, Tuple[int, List[Artist]]]]:
     """
     Creates a mapping of axes -> artists_array_name -> (starting_index, artists)
