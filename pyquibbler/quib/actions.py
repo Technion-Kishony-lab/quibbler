@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+from weakref import ReferenceType
 from abc import abstractmethod, ABC
 from dataclasses import dataclass
 from typing import Optional, Union, TYPE_CHECKING
@@ -24,11 +26,15 @@ class Action(ABC):
 @dataclass
 class AssignmentAction(Action):
 
-    quib: Quib
+    quib_ref: ReferenceType[Quib]
     overrider: Overrider
     previous_index: int
     previous_assignment: Optional[Union[Assignment, AssignmentRemoval]]
     new_assignment: Union[Assignment, AssignmentRemoval]
+
+    @property
+    def quib(self):
+        return self.quib_ref()
 
     def undo(self):
         """

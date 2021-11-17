@@ -1,3 +1,4 @@
+import weakref
 from unittest import mock
 
 import pytest
@@ -215,3 +216,25 @@ def test_project_redraw_central_graphics_function_quibs(project):
 
     func.assert_called_once()
 
+
+@pytest.mark.regression
+def test_undo_redo_does_not_hold_strong_ref():
+    a = iquib(7)
+    mock_weakref_callback = mock.Mock()
+    _ = weakref.ref(a, mock_weakref_callback)
+    a.assign_value(10)
+
+    del a
+
+    mock_weakref_callback.assert_called_once()
+
+
+@pytest.mark.regression
+def test_undo_redos_clear_from_stack_on_removal(project):
+    a = iquib(7)
+    a.assign_value(10)
+    assert project.has_undo(), "sanity"
+
+    del a
+
+    assert not project.has_undo()
