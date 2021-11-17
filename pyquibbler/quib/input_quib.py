@@ -14,6 +14,7 @@ from .quib import Quib
 from .utils import is_there_a_quib_in_object
 from ..env import DEBUG, PRETTY_REPR
 from ..exceptions import DebugException, PyQuibblerException
+from ..logger import logger
 
 
 @dataclass
@@ -79,6 +80,8 @@ class InputQuib(Quib):
 
     @property
     def _save_txt_path(self) -> Optional[pathlib.Path]:
+        if self._user_defined_save_path is not None:
+            return self._user_defined_save_path
         return self._save_directory / f"{self.name}.txt" if self._save_directory else None
 
     def save_as_txt(self):
@@ -109,7 +112,11 @@ class InputQuib(Quib):
         file
         """
         if os.path.exists(self._save_txt_path):
-            self._load_from_txt()
+            try:
+                self._load_from_txt()
+            except Exception as e:
+                if DEBUG:
+                    logger.warning(f"Failed to load as text, attempting to load binary {e}")
         return super(InputQuib, self).load()
 
     def _load_from_txt(self):

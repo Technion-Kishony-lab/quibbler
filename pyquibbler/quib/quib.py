@@ -121,6 +121,7 @@ class Quib(ABC):
             self.line_no = None
 
         self.project.register_quib(self)
+        self._user_defined_save_path = None
 
     @property
     def project(self) -> Project:
@@ -645,15 +646,25 @@ class Quib(ABC):
 
     @property
     def _save_path(self) -> Optional[pathlib.Path]:
+        if self._user_defined_save_path is not None:
+            return self._user_defined_save_path
         save_name = self.name if self.name else hash(self.functional_representation)
         return self._save_directory / f"{save_name}.quib" if self._save_directory else None
+
+    @validate_user_input(path=(str, pathlib.Path))
+    def set_save_path(self, path: Union[str, pathlib.Path]):
+        """
+        Set the save path of the quib (where it will be loaded/saved)
+        """
+        if isinstance(path, str):
+            path = pathlib.Path(path)
+        self._user_defined_save_path = path.resolve()
 
     def save_if_relevant(self):
         """
         Save the quib if relevant- this will NOT save if the quib does not have overrides, as there is nothing to save
         """
-        if self._save_directory:
-            os.makedirs(self._save_directory, exist_ok=True)
+        os.makedirs(self._save_path.parent, exist_ok=True)
         if len(list(self._overrider)) > 0:
             with open(self._save_path, 'wb') as f:
                 pickle.dump(self._overrider, f)

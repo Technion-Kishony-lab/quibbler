@@ -46,7 +46,7 @@ def set_project_path(path: Union[str, Path]) -> None:
     """
     if isinstance(path, str):
         path = Path(path)
-    Project.get_or_create().path = path
+    Project.get_or_create().path = path.resolve()
 
 
 def load_quibs() -> None:

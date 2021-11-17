@@ -136,3 +136,16 @@ def test_save_txt_raises_correct_exception_when_cannot_save():
 
     with pytest.raises(CannotSaveAsTextException):
         a.save_as_txt()
+
+
+def test_save_iquib_with_save_path(tmpdir):
+    a = iquib(10)
+    a.assign_value(11)
+    tmp_path = f"{tmpdir.strpath}/hello.quib"
+    a.set_save_path(tmp_path)
+
+    a.save_if_relevant()
+    a.load()
+
+    assert os.path.exists(tmp_path)
+    assert a.get_value() == 11
