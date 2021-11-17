@@ -54,7 +54,7 @@ class Project:
         self._pushing_undo_group = None
         self._undo_action_groups: List[List[Action]] = []
         self._redo_action_groups: List[List[Action]] = []
-        self._quibs_to_paths_to_released_assignments = defaultdict(dict)
+        self._quib_refs_to_paths_to_released_assignments = defaultdict(dict)
 
     @classmethod
     def get_or_create(cls, path: Optional[Path] = None):
@@ -156,7 +156,8 @@ class Project:
 
     def _set_released_assignment_for_quib(self, quib, assignment):
         if assignment is not None:
-            paths_to_released_assignments = self._quibs_to_paths_to_released_assignments[quib]
+            weak_ref = weakref.ref(quib, lambda k: self._quib_refs_to_paths_to_released_assignments.pop(k))
+            paths_to_released_assignments = self._quib_refs_to_paths_to_released_assignments[weak_ref]
             paths_to_released_assignments[get_hashable_path(assignment.path)] = assignment
 
     def undo(self):
@@ -194,12 +195,18 @@ class Project:
 
         self._undo_action_groups.append(actions)
 
+    def _clear_undo_and_redo_stacks(self):
+        self._undo_action_groups = []
+        self._redo_action_groups = []
+
     def push_assignment_to_undo_stack(self, quib, overrider, assignment, index):
         from pyquibbler.quib.actions import AssignmentAction
         assignment_hashable_path = get_hashable_path(assignment.path)
-        previous_assignment = self._quibs_to_paths_to_released_assignments.get(quib, {}).get(assignment_hashable_path)
+        previous_assignment = self._quib_refs_to_paths_to_released_assignments.get(weakref.ref(quib), {}).get(
+            assignment_hashable_path
+        )
         assignment_action = AssignmentAction(
-            quib=quib,
+            quib_ref=weakref.ref(quib, self._clear_undo_and_redo_stacks),
             overrider=overrider,
             previous_index=index,
             new_assignment=assignment,
