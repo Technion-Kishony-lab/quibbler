@@ -171,7 +171,6 @@ class Project:
         with aggregate_redraw_mode():
             for action in actions:
                 action.undo()
-
                 if isinstance(action, AssignmentAction):
                     self._set_released_assignment_for_quib(action.quib, action.previous_assignment)
 

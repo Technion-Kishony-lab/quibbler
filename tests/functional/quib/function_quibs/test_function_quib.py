@@ -319,3 +319,9 @@ def test_multiple_function_quib_save_without_given_name(example_function_quib):
     assert another_quib.get_value() == 8
 
 
+@pytest.mark.regression
+@pytest.mark.get_variable_names(True)
+def test_function_quib_pretty_repr():
+    x = iquib(3)
+
+    assert q(dict, ('num', x)).pretty_repr() == "dict(('num', x))"

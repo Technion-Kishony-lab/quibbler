@@ -4,22 +4,29 @@ from typing import Tuple, Any, Mapping
 
 from pyquibbler.quib.function_quibs.pretty_converters.convert_math_equations import MATH_FUNCS_TO_CONVERTERS, \
     MathExpression
+from pyquibbler.quib.utils import recursively_run_func_on_object
 
 
 def _convert_slice(slice_: slice):
     pretty = ':'
     if slice_.start is not None:
-        pretty = f"{replace_arg_with_pretty_repr(slice_.start)}{pretty}"
+        pretty = f"{slice_.start}{pretty}"
     if slice_.stop is not None:
-        pretty = f"{pretty}{replace_arg_with_pretty_repr(slice_.stop)}"
+        pretty = f"{pretty}{slice_.stop}"
     if slice_.step is not None:
-        pretty = f"{pretty}:{replace_arg_with_pretty_repr(slice_.step)}"
+        pretty = f"{pretty}:{slice_.step}"
     return pretty
+
+
+def _convert_iterable(itr):
+    iterable_rep = repr(type(itr)())
+    return f"{iterable_rep[0]}{', '.join(itr)}{iterable_rep[1]}"
 
 
 ITEMS_TO_CONVERTERS = {
     slice: _convert_slice,
-    type(...): lambda *_: '...'
+    type(...): lambda *_: '...',
+    type(None): lambda *_: None
 }
 
 
@@ -46,7 +53,9 @@ def getitem_converter(func, pretty_arg_names: List[str]):
 
 
 def get_pretty_args_and_kwargs(args: Tuple[Any, ...], kwargs: Mapping[str, Any]):
-    pretty_args = [replace_arg_with_pretty_repr(arg) for arg in args]
+    pretty_args = [recursively_run_func_on_object(replace_arg_with_pretty_repr, arg,
+                                                  iterable_func=_convert_iterable,
+                                                  slice_func=_convert_slice) for arg in args]
     pretty_kwargs = [f'{key}={replace_arg_with_pretty_repr(val)}' for key, val in kwargs.items()]
 
     return pretty_args, pretty_kwargs
@@ -60,7 +69,6 @@ def get_pretty_value_of_func_with_args_and_kwargs(func: Callable,
     to a standard func(xxx) if not
     """
     pretty_args, pretty_kwargs = get_pretty_args_and_kwargs(args, kwargs)
-
     # For now, no ability to special convert if kwargs exist
     if not pretty_kwargs and func in CONVERTERS:
         pretty_value = CONVERTERS[func](func, pretty_args)
