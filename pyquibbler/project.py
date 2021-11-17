@@ -195,7 +195,7 @@ class Project:
 
         self._undo_action_groups.append(actions)
 
-    def _clear_undo_and_redo_stacks(self):
+    def _clear_undo_and_redo_stacks(self, *_, **__):
         self._undo_action_groups = []
         self._redo_action_groups = []
 
