@@ -3,6 +3,7 @@ from __future__ import annotations
 import contextlib
 import weakref
 from _weakref import ReferenceType
+from collections import defaultdict
 from pathlib import Path
 import sys
 from typing import Optional, Set, TYPE_CHECKING, List
@@ -53,7 +54,7 @@ class Project:
         self._pushing_undo_group = None
         self._undo_action_groups: List[List[Action]] = []
         self._redo_action_groups: List[List[Action]] = []
-        self._quibs_to_paths_to_released_assignments = {}
+        self._quibs_to_paths_to_released_assignments = defaultdict(dict)
 
     @classmethod
     def get_or_create(cls, path: Optional[Path] = None):
@@ -153,10 +154,10 @@ class Project:
         """
         return len(self._redo_action_groups) > 0
 
-    def _set_quib(self, action):
-        self._quibs_to_paths_to_released_assignments.setdefault(action.quib, {})
-        self._quibs_to_paths_to_released_assignments[action.quib][get_hashable_path(action.previous_assignment.path)] = \
-            action.previous_assignment
+    def _set_released_assignment_for_quib(self, quib, assignment):
+        if assignment is not None:
+            paths_to_released_assignments = self._quibs_to_paths_to_released_assignments[quib]
+            paths_to_released_assignments[get_hashable_path(assignment.path)] = assignment
 
     def undo(self):
         """
@@ -172,10 +173,8 @@ class Project:
                 action.undo()
 
                 if isinstance(action, AssignmentAction):
-                    if action.previous_assignment:
-                        self._quibs_to_paths_to_released_assignments.setdefault(action.quib, {})
-                        self._quibs_to_paths_to_released_assignments[action.quib][get_hashable_path(action.previous_assignment.path)] = \
-                            action.previous_assignment
+                    self._set_released_assignment_for_quib(action.quib, action.previous_assignment)
+
         self._redo_action_groups.append(actions)
 
     def redo(self):
@@ -192,9 +191,7 @@ class Project:
             for action in actions:
                 action.redo()
                 if isinstance(action, AssignmentAction):
-                    self._quibs_to_paths_to_released_assignments.setdefault(action.quib, {})
-                    self._quibs_to_paths_to_released_assignments[action.quib][get_hashable_path(action.new_assignment.path)] = \
-                        action.new_assignment
+                    self._set_released_assignment_for_quib(action.quib, action.new_assignment)
 
         self._undo_action_groups.append(actions)
 
@@ -207,8 +204,7 @@ class Project:
             new_assignment=assignment,
             previous_assignment=self._quibs_to_paths_to_released_assignments.get(quib, {}).get(get_hashable_path(assignment.path))
         )
-        self._quibs_to_paths_to_released_assignments.setdefault(quib, {})[get_hashable_path(assignment.path)] = assignment
-        # self._quibs_to_paths_to_released_assignments[quib] = assignment
+        self._set_released_assignment_for_quib(quib, assignment)
         if self._pushing_undo_group is not None:
             self._pushing_undo_group.insert(0, assignment_action)
         else:
