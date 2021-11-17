@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import pytest
 from unittest import mock
 
@@ -90,7 +91,8 @@ def test_graphics_function_quib_does_not_run_when_evaluate_now_flag_set_to_false
 def test_graphics_function_quib_update_on_drag(update_type, should_have_called):
     func = mock.Mock()
     parent = iquib(7)
-    _ = GraphicsFunctionQuib.create(func=func, func_args=(parent,), update_type=update_type, evaluate_now=False)
+    quib = GraphicsFunctionQuib.create(func=func, func_args=(parent,), evaluate_now=False)
+    quib.set_redraw_update_type(update_type)
 
     with dragging():
         parent.invalidate_and_redraw_at_path([])

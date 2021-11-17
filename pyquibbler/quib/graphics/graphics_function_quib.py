@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 import numpy as np
 from typing import List, Callable, Tuple, Any, Mapping, Dict, Optional, Iterable, Set, Union
 from matplotlib.artist import Artist
@@ -16,7 +18,8 @@ from ..function_quibs import DefaultFunctionQuib, CacheBehavior
 from ..function_quibs.external_call_failed_exception_handling import external_call_failed_exception_handling
 from ..utils import recursively_run_func_on_object, iter_object_type_in_args, iter_quibs_in_args
 from ...env import GRAPHICS_EVALUATE_NOW
-from ...input_validation_utils import InvalidArgumentException
+from ...exceptions import PyQuibblerException
+from ...input_validation_utils import InvalidArgumentException, validate_user_input
 
 
 def create_array_from_func(func, shape):
@@ -29,6 +32,15 @@ def proxify_args(args, kwargs):
     args = recursively_run_func_on_object(replace_quibs_with_proxy_quibs, args)
     kwargs = {k: recursively_run_func_on_object(replace_quibs_with_proxy_quibs, v) for k, v in kwargs.items()}
     return args, kwargs
+
+
+@dataclass
+class UnknownUpdateTypeException(PyQuibblerException):
+
+    attempted_update_type: str
+
+    def __str__(self):
+        return f"{self.attempted_update_type} is not a valid update type"
 
 
 class GraphicsFunctionQuib(DefaultFunctionQuib):
@@ -65,7 +77,6 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
                  kwargs: Mapping[str, Any],
                  cache_behavior: Optional[CacheBehavior],
                  assignment_template: Optional[AssignmentTemplate] = None,
-                 had_artists_on_last_run: bool = False,
                  pass_quibs: bool = False,
                  update_type: UpdateType = None):
         super().__init__(func, args, kwargs, cache_behavior, assignment_template)
@@ -93,6 +104,26 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
             self.get_value()
 
         return self
+
+    def setp(self, allow_overriding: bool = None, cache_behavior: CacheBehavior = None,
+             update_type: Union[str, UpdateType] = None, **kwargs):
+        super(GraphicsFunctionQuib, self).setp(allow_overriding=allow_overriding, cache_behavior=cache_behavior,
+                                               **kwargs)
+        if update_type is not None:
+            self.set_redraw_update_type(update_type)
+        return self
+
+    @validate_user_input(update_type=(str, UpdateType))
+    def set_redraw_update_type(self, update_type: Union[str, UpdateType]):
+        """
+        Set when to redraw a quib- on "drag", on "drop", on "central" refresh, or "never" (see UpdateType enum)
+        """
+        if isinstance(update_type, str):
+            try:
+                update_type = UpdateType[update_type.upper()]
+            except KeyError:
+                raise UnknownUpdateTypeException(update_type)
+        self.update_type = update_type
 
     def persist_self_on_artists(self, artists: Set[Artist]):
         """
