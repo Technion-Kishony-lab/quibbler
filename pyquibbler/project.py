@@ -212,6 +212,8 @@ class Project:
         else:
             self._undo_action_groups.append([assignment_action])
 
+        self._redo_action_groups.clear()
+
     def redraw_central_refresh_graphics_function_quibs(self):
         """
         Redraw all graphics function quibs which only redraw when set to UpdateType.CENTRAL

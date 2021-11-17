@@ -3,7 +3,7 @@ from unittest import mock
 import pytest
 
 from pyquibbler import iquib
-from pyquibbler.project import Project, NothingToUndoException
+from pyquibbler.project import Project, NothingToUndoException, NothingToRedoException
 from pyquibbler.quib import ImpureFunctionQuib, GraphicsFunctionQuib
 from pyquibbler.quib.graphics.widgets.drag_context_manager import dragging
 
@@ -136,6 +136,17 @@ def test_undo_with_multiple_paths(project):
 
     assert a[0].get_value() == 1
     assert a[1].get_value() == 2
+
+
+@pytest.mark.regression
+def test_undo_redo_with_assignment_in_the_middle(project):
+    a = iquib(10)
+    a.assign_value(11)
+    project.undo()
+    a.assign_value(12)
+
+    with pytest.raises(NothingToRedoException):
+        project.redo()
 
 
 def test_doesnt_record_when_dragging(project):
