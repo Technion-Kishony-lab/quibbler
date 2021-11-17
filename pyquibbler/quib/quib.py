@@ -127,7 +127,9 @@ class Quib(ABC):
     def project(self) -> Project:
         return Project.get_or_create()
 
-    def setp(self, allow_overriding: bool = None, assignment_template=None, **kwargs):
+    def setp(self, allow_overriding: bool = None, assignment_template=None,
+             save_directory: Union[str, pathlib.Path] = None,
+             **kwargs):
         """
         Configure a quib with certain attributes- because this function is expected to be used by users, we never
         setattr to anything before checking the types.
@@ -136,6 +138,8 @@ class Quib(ABC):
             self.set_allow_overriding(allow_overriding)
         if assignment_template is not None:
             self.set_assignment_template(assignment_template)
+        if save_directory is not None:
+            self.set_save_directory(save_directory)
         if 'name' in kwargs:
             self.set_name(kwargs.pop('name'))
         return self
