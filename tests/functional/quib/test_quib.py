@@ -49,7 +49,7 @@ class ExampleQuib(Quib):
         return [path]
 
     @property
-    def _save_directory(self):
+    def _default_save_directory(self):
         return None
 
 

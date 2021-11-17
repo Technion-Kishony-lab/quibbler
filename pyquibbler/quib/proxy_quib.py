@@ -49,7 +49,7 @@ class ProxyQuib(Quib):
         return [OverrideRemoval(self._quib, override_removal.path)]
 
     @property
-    def _save_directory(self) -> Optional[pathlib.Path]:
+    def _default_save_directory(self) -> Optional[pathlib.Path]:
         # there should never be any situation where we want to save a proxy quib, as overrides should never be made on
         # it
         return None

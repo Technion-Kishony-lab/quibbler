@@ -121,7 +121,7 @@ class Quib(ABC):
             self.line_no = None
 
         self.project.register_quib(self)
-        self._user_defined_save_path = None
+        self._user_defined_save_directory = None
 
     @property
     def project(self) -> Project:
@@ -641,24 +641,27 @@ class Quib(ABC):
 
     @property
     @abstractmethod
-    def _save_directory(self) -> Optional[pathlib.Path]:
+    def _default_save_directory(self) -> Optional[pathlib.Path]:
         pass
 
     @property
     def _save_path(self) -> Optional[pathlib.Path]:
-        if self._user_defined_save_path is not None:
-            return self._user_defined_save_path
         save_name = self.name if self.name else hash(self.functional_representation)
-        return self._save_directory / f"{save_name}.quib" if self._save_directory else None
+        return self._save_directory / f"{save_name}.quib" if self._default_save_directory else None
+
+    @property
+    def _save_directory(self):
+        return self._user_defined_save_directory\
+            if self._user_defined_save_directory is not None else self._default_save_directory
 
     @validate_user_input(path=(str, pathlib.Path))
-    def set_save_path(self, path: Union[str, pathlib.Path]):
+    def set_save_directory(self, path: Union[str, pathlib.Path]):
         """
         Set the save path of the quib (where it will be loaded/saved)
         """
         if isinstance(path, str):
             path = pathlib.Path(path)
-        self._user_defined_save_path = path.resolve()
+        self._user_defined_save_directory = path.resolve()
 
     def save_if_relevant(self):
         """

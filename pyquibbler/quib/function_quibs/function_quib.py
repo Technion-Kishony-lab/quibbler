@@ -287,5 +287,5 @@ class FunctionQuib(Quib):
         return ArgsValues.from_function_call(self.func, self.args, self.kwargs, include_defaults)
 
     @property
-    def _save_directory(self) -> pathlib.Path:
+    def _default_save_directory(self) -> pathlib.Path:
         return self.project.function_quib_directory

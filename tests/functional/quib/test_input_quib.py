@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from unittest import mock
 from unittest.mock import Mock
 
@@ -141,11 +142,11 @@ def test_save_txt_raises_correct_exception_when_cannot_save():
 def test_save_iquib_with_save_path(tmpdir):
     a = iquib(10)
     a.assign_value(11)
-    tmp_path = f"{tmpdir.strpath}/hello.quib"
-    a.set_save_path(tmp_path)
+    path = Path(tmpdir.strpath) / "whatever"
+    a.set_save_directory(path)
 
     a.save_if_relevant()
     a.load()
 
-    assert os.path.exists(tmp_path)
+    assert os.path.exists(path)
     assert a.get_value() == 11
