@@ -197,12 +197,14 @@ class Project:
 
     def push_assignment_to_undo_stack(self, quib, overrider, assignment, index):
         from pyquibbler.quib.actions import AssignmentAction
+        assignment_hashable_path = get_hashable_path(assignment.path)
+        previous_assignment = self._quibs_to_paths_to_released_assignments.get(quib, {}).get(assignment_hashable_path)
         assignment_action = AssignmentAction(
             quib=quib,
             overrider=overrider,
             previous_index=index,
             new_assignment=assignment,
-            previous_assignment=self._quibs_to_paths_to_released_assignments.get(quib, {}).get(get_hashable_path(assignment.path))
+            previous_assignment=previous_assignment
         )
         self._set_released_assignment_for_quib(quib, assignment)
         if self._pushing_undo_group is not None:
