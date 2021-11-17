@@ -4,6 +4,7 @@ from typing import List
 from matplotlib.widgets import AxesWidget, Button, Slider
 
 from pyquibbler.exceptions import PyQuibblerException
+from . import QRectangleSelector
 
 ATTRIBUTES_TO_TRANSFER_PER_WIDGET = {
     Button: {
@@ -18,7 +19,12 @@ ATTRIBUTES_TO_TRANSFER_PER_WIDGET = {
         'valstep',
         'valfmt'
     },
-
+    QRectangleSelector: {
+        '_corner_handles',
+        '_edge_handles',
+        '_center_handle',
+        'to_draw'
+    }
 }
 
 
@@ -41,7 +47,7 @@ def update_previous_widget_from_new_widget(previous_widget, new_widget):
     if type(previous_widget) is not type(new_widget):
         raise WidgetsDontMatchException(previous_widget=previous_widget, new_widget=new_widget)
 
-    attributes = ATTRIBUTES_TO_TRANSFER_PER_WIDGET.get(previous_widget, set())
+    attributes = ATTRIBUTES_TO_TRANSFER_PER_WIDGET.get(type(previous_widget), set())
     for attr in attributes:
         setattr(previous_widget, attr, getattr(new_widget, attr))
 
