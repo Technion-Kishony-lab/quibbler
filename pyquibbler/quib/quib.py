@@ -10,7 +10,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from operator import getitem
 from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Callable, Dict, Union, Iterable
-from weakref import ref as weakref
+from weakref import WeakSet
 
 from .quib_guard import get_current_quib_guard, is_within_quib_guard
 from .assignment.assignment_template import InvalidTypeException
@@ -101,7 +101,7 @@ class Quib(ABC):
                  allow_overriding: Optional[bool] = None):
         self._assignment_template = assignment_template
         # Can't use WeakSet because it can change during iteration
-        self._children = set()
+        self._children = WeakSet()
         self._overrider = Overrider()
         if allow_overriding is None:
             allow_overriding = self._DEFAULT_ALLOW_OVERRIDING
@@ -155,19 +155,10 @@ class Quib(ABC):
     @property
     def children(self) -> Set[Quib]:
         """
-        Return all valid children and clean up dead refs.
+        Return a copy of the current children weakset.
         """
-        children = set()
-        refs_to_remove = set()
-        for child_ref in self._children:
-            child = child_ref()
-            if child is None:
-                refs_to_remove.add(child_ref)
-            else:
-                children.add(child)
-        for ref in refs_to_remove:
-            self._children.remove(ref)
-        return children
+        # We return a copy of the set because self._children can change size during iteration
+        return set(self._children)
 
     def store_override_choice(self, context: ChoiceContext, choice: OverrideChoice) -> None:
         """
@@ -315,10 +306,7 @@ class Quib(ABC):
         """
         Add the given quib to the list of quibs that are dependent on this quib.
         """
-        # We used to give the ref a destruction callback that removed it from the children set,
-        # but it could sometimes cause the set to change size during iteration.
-        # So now we cleanup dead refs in the children property.
-        self._children.add(weakref(quib))
+        self._children.add(quib)
 
     def __len__(self):
         if LEN_RAISE_EXCEPTION:
@@ -608,7 +596,7 @@ class Quib(ABC):
         """
         Removes a child from the quib, no longer sending invalidations to it
         """
-        self._children.remove(weakref(quib_to_remove))
+        self._children.remove(quib_to_remove)
 
     @property
     @abstractmethod

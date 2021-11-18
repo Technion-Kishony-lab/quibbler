@@ -13,7 +13,7 @@ from pyquibbler.env import DEBUG
 from pyquibbler.exceptions import DebugException, PyQuibblerException
 
 if TYPE_CHECKING:
-    from pyquibbler.quib import Quib
+    from pyquibbler.quib import Quib, FunctionQuib
 
 # Most common use-cases require one level of scanning - for example a quib inside a shape tuple.
 # But there is also the case of indexing with quibs, like so: arr[q1:,q2:] which creates a quib inside a slice inside a
@@ -281,7 +281,7 @@ def get_quib_type_by_name(name: str) -> Type[FunctionQuib]:
         from .function_quibs import ElementWiseFunctionQuib
         return ElementWiseFunctionQuib
     else:
-        raise ValueError(f'Unknown quib type name: func_or_quib_type_name')
+        raise ValueError(f'Unknown quib type name: {func_or_quib_type_name}')
 
 
 def quib_method(func_or_quib_type_name: Union[Callable, str]) -> Callable:
