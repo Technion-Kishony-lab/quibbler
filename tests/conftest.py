@@ -5,8 +5,8 @@ import pytest
 from pytest import fixture
 
 from pyquibbler import CacheBehavior, override_all
-from pyquibbler.env import DEBUG, EVALUATE_NOW, ASSIGNMENT_RESTRICTIONS, PRETTY_REPR, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS, \
-    GET_VARIABLE_NAMES
+from pyquibbler.env import DEBUG, EVALUATE_NOW, ASSIGNMENT_RESTRICTIONS, PRETTY_REPR, \
+    SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS, GET_VARIABLE_NAMES
 from pyquibbler.project import Project
 from pyquibbler.quib import FunctionQuib
 from pyquibbler.utils import Flag
@@ -89,6 +89,13 @@ def setup_get_variable_names(request):
 @fixture(autouse=True)
 def setup_assignment_restrictions(request):
     yield from setup_flag(ASSIGNMENT_RESTRICTIONS, DEFAULT_ASSIGNMENT_RESTRICTIONS, request)
+
+
+@pytest.fixture(scope='session', autouse=True)
+def set_backend():
+    import matplotlib
+    # A backend that doesn't do anything. We use it because some tests failed in the TK backend because of tk bugs
+    matplotlib.use("template")
 
 
 @pytest.fixture

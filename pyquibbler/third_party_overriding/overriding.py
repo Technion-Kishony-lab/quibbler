@@ -65,7 +65,7 @@ NUMPY_OVERRIDES = [
         (GraphicsFunctionQuib, {'apply_over_axes'}),
         (TranspositionalFunctionQuib, {
             'reshape', 'rot90', 'ravel', 'repeat', 'full',
-            'squeeze', 'array', 'swapaxes', 'expand_dims', 'tile', 'transpose',
+            'squeeze', 'array', 'swapaxes', 'expand_dims', 'tile', 'transpose', 'asarray'
         }),
         (ConcatenateFunctionQuib, {'concatenate'}),
         (ElementWiseFunctionQuib, {

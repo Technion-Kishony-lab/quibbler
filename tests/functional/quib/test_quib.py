@@ -5,17 +5,18 @@ from unittest import mock
 from unittest.mock import Mock
 import numpy as np
 import pytest
-from pyquibbler import iquib, quibbler_user_function
 from pytest import mark, raises, fixture
 
+from pyquibbler import iquib, quibbler_user_function
 from pyquibbler.input_validation_utils import InvalidArgumentException
-from pyquibbler.quib import Quib, OverridingNotAllowedException
+from pyquibbler.quib import Quib, OverridingNotAllowedException, QuibGuard
 from pyquibbler.quib.assignment import RangeAssignmentTemplate, BoundAssignmentTemplate, Assignment
 from pyquibbler.quib.assignment.assignment import PathComponent
 from pyquibbler.quib.assignment.assignment_template import InvalidTypeException
 from pyquibbler.quib.assignment.utils import FailedToDeepAssignException
 from pyquibbler.quib.graphics import GraphicsFunctionQuib
 from pyquibbler.quib.operator_overriding import ARITHMETIC_OVERRIDES, UNARY_OVERRIDES
+
 from .utils import get_mock_with_repr, slicer
 
 
@@ -405,9 +406,9 @@ def mock_child_of_example_quib(example_quib):
     ([1], [0, 1], True),
 ])
 def test_quib_should_invalidate_children_when_overrides(example_quib, parent,
-                                                                           mock_child_of_example_quib,
-                                                                           assigned_path, invalidate_path,
-                                                                           expected_to_have_invalidated_child):
+                                                        mock_child_of_example_quib,
+                                                        assigned_path, invalidate_path,
+                                                        expected_to_have_invalidated_child):
     example_quib.assign(Assignment(path=[PathComponent(component=i, indexed_cls=list) for i in assigned_path],
                                    value=100))
     current_call_count = mock_child_of_example_quib._invalidate_quib_with_children_at_path.call_count
@@ -466,7 +467,6 @@ def test_quib_pretty_repr_with_quibs_being_created_inline():
 @mark.regression
 @pytest.mark.get_variable_names(True)
 def test_quib_pretty_repr_with_quibs_with_quib_creation_with_name_in_inner_func():
-
     @quibbler_user_function(evaluate_now=True)
     def inner_func():
         d = iquib(4)
@@ -555,3 +555,8 @@ def test_iquib_does_not_fail_when_assignment_fails_on_second_get_value(example_q
 
     # just make sure we don't fail
     example_quib.get_value()
+
+
+def test_quib_knows_it_is_created_in_a_context():
+    with QuibGuard([]):
+        assert ExampleQuib(0).created_in_quib_context

@@ -20,7 +20,6 @@ from .utils import copy_vectorize, get_core_axes, get_indices_array, iter_arg_id
 from .vectorize_metadata import VectorizeMetadata, ArgId, VectorizeCall
 from ...utils import remove_created_graphics
 
-
 if TYPE_CHECKING:
     from pyquibbler.quib import UpdateType
 
@@ -82,15 +81,15 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
         This is done by wrapping the original pyfunc. The quibs in args and kwargs are replaced with
         indices arrays, and when the wrapper receives an index it uses it to get a GetItemQuib from the passed quib.
         """
-        # We convert quibs to numpy arrays so we can slice them with tuples even if they are originally lists
-        quib_args = {arg_id: ProxyQuib(np.array(val)) for arg_id, val in iter_arg_ids_and_values(call.args, call.kwargs)
-                     if isinstance(val, Quib) and arg_id not in call.vectorize.excluded}
+        args_ids_and_values = list(iter_arg_ids_and_values(call.args, call.kwargs))
+        non_excluded_quib_args = {arg_id: val for arg_id, val in args_ids_and_values
+                                  if isinstance(val, Quib) and arg_id not in call.vectorize.excluded}
+        excluded_quib_args = {arg_id: val for arg_id, val in args_ids_and_values
+                              if isinstance(val, Quib) and arg_id in call.vectorize.excluded}
 
         def convert_quibs_to_indices(arg_id, arg_val):
-            if arg_id in quib_args:
+            if arg_id in non_excluded_quib_args:
                 return get_indices_array(args_metadata[arg_id].loop_shape)
-            elif isinstance(arg_val, Quib):
-                return ProxyQuib(arg_val)
             return arg_val
 
         args, kwargs = convert_args_and_kwargs(convert_quibs_to_indices, call.args, call.kwargs)
@@ -102,13 +101,17 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
         # length - which is bad because we need to call it with quibs.
         # To solve that we make sure our core dimensions are always 0 by using the Indices class.
         signature = None if call.vectorize.signature is None else \
-            alter_signature(args_metadata, results_core_ndims, {arg_id: 0 for arg_id in quib_args})
+            alter_signature(args_metadata, results_core_ndims, {arg_id: 0 for arg_id in non_excluded_quib_args})
 
         def convert_indices_to_quibs(arg_id, arg_val):
-            quib = quib_args.get(arg_id)
-            if quib is None:
-                return arg_val
-            return quib[arg_val.indices]
+            non_excluded_quib = non_excluded_quib_args.get(arg_id)
+            if non_excluded_quib is not None:
+                # We convert quibs to numpy arrays so we can slice them with tuples even if they are originally lists
+                return ProxyQuib(np.asarray(non_excluded_quib)[arg_val.indices])
+            excluded_quib = excluded_quib_args.get(arg_id)
+            if excluded_quib is not None:
+                return ProxyQuib(excluded_quib)
+            return arg_val
 
         def wrapper(*args, **kwargs):
             args, kwargs = convert_args_and_kwargs(convert_indices_to_quibs, args, kwargs)
