@@ -1,6 +1,7 @@
+from __future__ import annotations
 import numpy as np
 from dataclasses import dataclass
-from typing import List, Callable, Tuple, Any, Mapping, Dict, Optional, Iterable, Set, Union
+from typing import List, Callable, Tuple, Any, Mapping, Dict, Optional, Iterable, Set, Union, TYPE_CHECKING
 from matplotlib.artist import Artist
 from matplotlib.axes import Axes
 from matplotlib.widgets import AxesWidget
@@ -14,10 +15,13 @@ from ..quib_guard import QuibGuard
 from ..assignment import AssignmentTemplate, PathComponent
 from ..function_quibs import DefaultFunctionQuib, CacheBehavior
 from ..function_quibs.external_call_failed_exception_handling import external_call_failed_exception_handling
-from ..utils import recursively_run_func_on_object, iter_object_type_in_args, iter_quibs_in_args
+from ..utils import recursively_run_func_on_object, iter_object_type_in_args
 from ...env import GRAPHICS_EVALUATE_NOW
 from ...exceptions import PyQuibblerException
 from ...input_validation_utils import InvalidArgumentException, validate_user_input
+
+if TYPE_CHECKING:
+    from pyquibbler.quib import Quib
 
 
 def create_array_from_func(func, shape):
@@ -26,15 +30,22 @@ def create_array_from_func(func, shape):
 
 def proxify_args(args, kwargs):
     from pyquibbler.quib import Quib, ProxyQuib
-    replace_quibs_with_proxy_quibs = lambda arg: ProxyQuib(arg) if isinstance(arg, Quib) else arg
-    args = recursively_run_func_on_object(replace_quibs_with_proxy_quibs, args)
-    kwargs = {k: recursively_run_func_on_object(replace_quibs_with_proxy_quibs, v) for k, v in kwargs.items()}
-    return args, kwargs
+    quibs_to_guard = set()
+
+    def _replace_quibs_with_proxy_quibs(arg):
+        if isinstance(arg, Quib):
+            proxy = ProxyQuib(arg)
+            quibs_to_guard.add(proxy)
+            return proxy
+        return arg
+
+    args = recursively_run_func_on_object(_replace_quibs_with_proxy_quibs, args)
+    kwargs = {k: recursively_run_func_on_object(_replace_quibs_with_proxy_quibs, v) for k, v in kwargs.items()}
+    return args, kwargs, quibs_to_guard
 
 
 @dataclass
 class UnknownUpdateTypeException(PyQuibblerException):
-
     attempted_update_type: str
 
     def __str__(self):
@@ -260,7 +271,8 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
     def _run_single_call(self, func: Callable,
                          graphics_collection: GraphicsCollection,
                          args: Tuple[Any, ...],
-                         kwargs: Mapping[str, Any]):
+                         kwargs: Mapping[str, Any],
+                         quibs_to_guard: Set[Quib]):
         """
         Run a single iteration of the function quib
         """
@@ -273,7 +285,7 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         graphics_collection.artists = []
 
         with ArtistsCollector() as artists_collector, AxesWidgetsCollector() as widgets_collector, \
-                external_call_failed_exception_handling(), QuibGuard(set(iter_quibs_in_args(self.args, self.kwargs))):
+                external_call_failed_exception_handling(), QuibGuard(quibs_to_guard):
             ret_val = func(*args, **kwargs)
 
         if len(graphics_collection.widgets) > 0 and isinstance(ret_val, AxesWidget):
@@ -303,10 +315,13 @@ class GraphicsFunctionQuib(DefaultFunctionQuib):
         # This implementation does not support partial calculation
         assert self._graphics_collection_ndarr.ndim == 0
 
-        args, kwargs = proxify_args(self.args, self.kwargs) if self._pass_quibs \
-            else self._prepare_args_for_call(valid_path)
+        if self._pass_quibs:
+            args, kwargs, quibs_to_guard = proxify_args(self.args, self.kwargs)
+        else:
+            args, kwargs = self._prepare_args_for_call(valid_path)
+            quibs_to_guard = set()
 
-        return self._run_single_call(self.func, self._graphics_collection_ndarr[()], args, kwargs)
+        return self._run_single_call(self.func, self._graphics_collection_ndarr[()], args, kwargs, quibs_to_guard)
 
     def redraw_if_appropriate(self):
         """

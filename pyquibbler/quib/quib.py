@@ -1,5 +1,4 @@
 from __future__ import annotations
-import contextlib
 import os
 import pathlib
 import pickle
@@ -10,9 +9,10 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from operator import getitem
 from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Callable, Dict, Union, Iterable
-from weakref import ref as weakref
+from weakref import WeakSet
+from contextlib import contextmanager
 
-from .quib_guard import get_current_quib_guard, is_within_quib_guard
+from .quib_guard import add_new_quib_to_guard_if_exists, guard_get_value
 from .assignment.assignment_template import InvalidTypeException
 from .assignment.utils import FailedToDeepAssignException
 from .function_quibs.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own, \
@@ -96,12 +96,13 @@ class Quib(ABC):
     An abstract class to describe the common methods and attributes of all quib types.
     """
     _DEFAULT_ALLOW_OVERRIDING = False
+    _IS_WITHIN_GET_VALUE_CONTEXT = False
 
     def __init__(self, assignment_template: Optional[AssignmentTemplate] = None,
                  allow_overriding: Optional[bool] = None):
         self._assignment_template = assignment_template
         # Can't use WeakSet because it can change during iteration
-        self._children = set()
+        self._children = WeakSet()
         self._overrider = Overrider()
         if allow_overriding is None:
             allow_overriding = self._DEFAULT_ALLOW_OVERRIDING
@@ -122,7 +123,8 @@ class Quib(ABC):
 
         self.project.register_quib(self)
         self._user_defined_save_directory = None
-        self.created_in_quib_context = is_within_quib_guard()
+        self.created_in_get_value_context = self._IS_WITHIN_GET_VALUE_CONTEXT
+        add_new_quib_to_guard_if_exists(self)
 
     @property
     def project(self) -> Project:
@@ -155,19 +157,10 @@ class Quib(ABC):
     @property
     def children(self) -> Set[Quib]:
         """
-        Return all valid children and clean up dead refs.
+        Return a copy of the current children weakset.
         """
-        children = set()
-        refs_to_remove = set()
-        for child_ref in self._children:
-            child = child_ref()
-            if child is None:
-                refs_to_remove.add(child_ref)
-            else:
-                children.add(child)
-        for ref in refs_to_remove:
-            self._children.remove(ref)
-        return children
+        # We return a copy of the set because self._children can change size during iteration
+        return set(self._children)
 
     def store_override_choice(self, context: ChoiceContext, choice: OverrideChoice) -> None:
         """
@@ -227,8 +220,7 @@ class Quib(ABC):
 
         with timer("quib_invalidation", lambda x: logger.info(f"invalidation {x}")):
             self._invalidate_children_at_path(path)
-        with timer("quib_redraw", lambda x: logger.info(f"redraw {x}")):
-            self._redraw()
+        self._redraw()
 
     def _invalidate_children_at_path(self, path: List[PathComponent]) -> None:
         """
@@ -316,10 +308,7 @@ class Quib(ABC):
         """
         Add the given quib to the list of quibs that are dependent on this quib.
         """
-        # We used to give the ref a destruction callback that removed it from the children set,
-        # but it could sometimes cause the set to change size during iteration.
-        # So now we cleanup dead refs in the children property.
-        self._children.add(weakref(quib))
+        self._children.add(quib)
 
     def __len__(self):
         if LEN_RAISE_EXCEPTION:
@@ -327,7 +316,7 @@ class Quib(ABC):
                             'To get a functional quib, use q(len,Q). '
                             'To get the len of the current value of Q, use len(Q.get_value()).')
         else:
-            return len(self.get_value())
+            return len(self.get_value_valid_at_path(None))
 
     def __iter__(self):
         raise TypeError('Cannot iterate over quibs, as their size can vary. '
@@ -510,19 +499,28 @@ class Quib(ABC):
         The value will necessarily return in the shape of the actual result, but only the values at the given path
         are guaranteed to be valid
         """
-        if is_within_quib_guard():
-            context = get_current_quib_guard().get_value_context_manager(self)
-        else:
-            context = contextlib.nullcontext()
-
-        with context:
-            name_for_call = get_user_friendly_name_for_requested_valid_path(path)
-            with add_quib_to_fail_trace_if_raises_quib_call_exception(quib=self,
-                                                                      call=name_for_call,
-                                                                      replace_last=False):
-                inner_value = self._get_inner_value_valid_at_path(path)
+        guard_get_value(self)
+        name_for_call = get_user_friendly_name_for_requested_valid_path(path)
+        with add_quib_to_fail_trace_if_raises_quib_call_exception(self, name_for_call, False):
+            inner_value = self._get_inner_value_valid_at_path(path)
 
         return self._overrider.override(inner_value, self._assignment_template)
+
+    @staticmethod
+    @contextmanager
+    def _get_value_context():
+        """
+        Change cls._IS_WITHIN_GET_VALUE_CONTEXT while in the process of running get_value.
+        This has to be a static method as the _IS_WITHIN_GET_VALUE_CONTEXT is a global state for all quib types
+        """
+        if Quib._IS_WITHIN_GET_VALUE_CONTEXT:
+            yield
+        else:
+            Quib._IS_WITHIN_GET_VALUE_CONTEXT = True
+            try:
+                yield
+            finally:
+                Quib._IS_WITHIN_GET_VALUE_CONTEXT = False
 
     @raise_quib_call_exceptions_as_own
     def get_value(self) -> Any:
@@ -532,7 +530,8 @@ class Quib(ABC):
         are lazy, so a function quib might need to calculate uncached values and might
         even have to calculate the values of its dependencies.
         """
-        return self.get_value_valid_at_path([])
+        with self._get_value_context():
+            return self.get_value_valid_at_path([])
 
     def get_override_list(self) -> Overrider:
         """
@@ -580,7 +579,7 @@ class Quib(ABC):
                 return 1
             raise
 
-    @quib_method
+    @quib_method('elementwise')
     def get_override_mask(self):
         """
         Assuming this quib represents a numpy ndarray, return a quib representing its override mask.
@@ -609,7 +608,7 @@ class Quib(ABC):
         """
         Removes a child from the quib, no longer sending invalidations to it
         """
-        self._children.remove(weakref(quib_to_remove))
+        self._children.remove(quib_to_remove)
 
     @property
     @abstractmethod

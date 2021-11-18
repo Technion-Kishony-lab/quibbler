@@ -1,6 +1,5 @@
-from typing import Optional, List, Any, Callable, Tuple, Mapping
-
 import numpy as np
+from typing import Optional, List, Any, Callable, Tuple, Mapping
 from numpy import ndindex, s_
 from pyquibbler.quib.function_quibs.external_call_failed_exception_handling \
     import external_call_failed_exception_handling
@@ -149,11 +148,13 @@ class ApplyAlongAxisGraphicsFunctionQuib(AxisWiseGraphicsFunctionQuib):
         """
         indices = indices_before_axis + s_[(...,)] + indices_after_axis
         if np.any(requested_indices_bool_mask[indices]):
+            oned_slice = self._get_oned_slice_for_running_func1d(indices)
             res = self._run_single_call(
                 func=self.func1d,
                 graphics_collection=self._graphics_collection_ndarr[indices_before_axis + indices_after_axis],
-                args=(self._get_oned_slice_for_running_func1d(indices), *func1d_args),
-                kwargs=func1d_kwargs
+                args=(oned_slice, *func1d_args),
+                kwargs=func1d_kwargs,
+                quibs_to_guard={oned_slice} if isinstance(oned_slice, Quib) else set()
             )
         else:
             res = self._get_sample_result()

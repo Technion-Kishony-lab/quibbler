@@ -37,6 +37,8 @@ class ExampleQuib(Quib):
         super()._invalidate_quib_with_children_at_path(invalidator_quib, path_component)
 
     def _get_inner_value_valid_at_path(self, path):
+        if callable(self.value):
+            return self.value()
         return self.value
 
     def _get_inner_functional_representation_expression(self):
@@ -558,5 +560,8 @@ def test_iquib_does_not_fail_when_assignment_fails_on_second_get_value(example_q
 
 
 def test_quib_knows_it_is_created_in_a_context():
-    with QuibGuard([]):
-        assert ExampleQuib(0).created_in_quib_context
+    def func():
+        assert ExampleQuib(0).created_in_get_value_context
+        return 'yay'
+
+    assert ExampleQuib(func).get_value() == 'yay'

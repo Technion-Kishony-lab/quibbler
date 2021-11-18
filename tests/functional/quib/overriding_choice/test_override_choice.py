@@ -4,8 +4,8 @@ from unittest.mock import Mock
 from pytest import raises, fixture, mark
 
 from pyquibbler import iquib, q
-from pyquibbler.quib import get_override_group_for_change, CannotChangeQuibAtPathException, DefaultFunctionQuib, Quib, \
-    ProxyQuib, QuibGuard
+from pyquibbler.quib.proxy_quib import ProxyQuib
+from pyquibbler.quib import get_override_group_for_change, CannotChangeQuibAtPathException, DefaultFunctionQuib, Quib
 from pyquibbler.quib.assignment import Assignment, AssignmentToQuib
 from pyquibbler.quib.assignment.assignment import Override
 from pyquibbler.quib.override_choice import override_choice as override_choice_module, OverrideGroup, OverrideRemoval
@@ -209,13 +209,14 @@ def test_override_choice_when_diverged_and_all_diverged_inversions_are_overridde
 
 
 def create_proxy(quib):
-    with QuibGuard(set()):
-        return ProxyQuib(quib)
+    proxy = ProxyQuib(quib)
+    proxy.created_in_get_value_context = True
+    return proxy
 
 
 @mark.parametrize('parent_chosen', [True, False], ids=['parent_chosen', 'child_chosen'])
-@mark.parametrize('proxy_first_time', [True, False])
-@mark.parametrize('proxy_second_time', [True, False])
+@mark.parametrize('proxy_first_time', [True, False], ids=['proxy_first_time', 'not_proxy_first_time'])
+@mark.parametrize('proxy_second_time', [True, False], ids=['proxy_second_time', 'not_proxy_second_time'])
 def test_get_overrides_for_assignment_caches_override_choice(assignment, parent_and_child,
                                                              choose_override_dialog_mock, parent_chosen,
                                                              proxy_first_time, proxy_second_time):
@@ -330,7 +331,7 @@ def test_get_overrides_for_assignment_when_can_assign_to_parents(diverged_quib_g
 
 def test_raises_cannot_change_when_context_quib_cannot_be_inverted():
     parent = iquib(0)
-    with QuibGuard(set()):
+    with Quib._get_value_context():
         # A function we don't know to invert
         child = q(lambda x: x)
     with raises(CannotChangeQuibAtPathException):
@@ -339,7 +340,7 @@ def test_raises_cannot_change_when_context_quib_cannot_be_inverted():
 
 def test_get_override_group_on_context_quibs():
     non_context_parent = iquib(0)
-    with QuibGuard(set()):
+    with Quib._get_value_context():
         context_parent = iquib(1)
         child = non_context_parent + context_parent
         child.set_allow_overriding(True)

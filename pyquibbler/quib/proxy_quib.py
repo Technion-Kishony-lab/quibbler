@@ -8,7 +8,6 @@ from pyquibbler.quib.quib import Quib
 
 if TYPE_CHECKING:
     from .quib import Assignment, PathComponent
-    from .override_choice import ChoiceContext, OverrideChoice
 
 
 class ProxyQuib(Quib):
@@ -20,8 +19,8 @@ class ProxyQuib(Quib):
     """
 
     def __init__(self, quib):
-        super().__init__()
         self._quib: Quib = quib
+        super().__init__()
         quib.add_child(self)
 
     def _get_inner_functional_representation_expression(self):
@@ -32,7 +31,7 @@ class ProxyQuib(Quib):
 
     @property
     def parents(self) -> Set[Quib]:
-        return self._quib.parents
+        return {self._quib}
 
     def assign(self, assignment: Assignment) -> None:
         self._quib.assign(assignment)
@@ -53,16 +52,3 @@ class ProxyQuib(Quib):
         # there should never be any situation where we want to save a proxy quib, as overrides should never be made on
         # it
         return None
-
-    def store_override_choice(self, context: ChoiceContext, choice: OverrideChoice) -> None:
-        self._quib.store_override_choice(context, choice)
-
-    def try_load_override_choice(self, context: ChoiceContext) -> Optional[OverrideChoice]:
-        return self._quib.try_load_override_choice(context)
-
-    @property
-    def allow_overriding(self) -> bool:
-        return False
-
-    def set_allow_overriding(self, allow_overriding: bool):
-        self._quib.set_allow_overriding(allow_overriding)
