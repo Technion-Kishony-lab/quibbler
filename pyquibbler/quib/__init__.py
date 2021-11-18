@@ -7,5 +7,6 @@ from .quib import Quib, OverridingNotAllowedException, QuibIsNotNdArrayException
 from .assignment import Assignment, PathComponent
 from .override_choice import CannotChangeQuibAtPathException, get_override_group_for_change
 from .proxy_quib import ProxyQuib
+from .quib_guard import QuibGuard
 
 override_quib_operators()

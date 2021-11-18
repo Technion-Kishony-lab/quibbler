@@ -12,6 +12,7 @@ from operator import getitem
 from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Callable, Dict, Union, Iterable
 from weakref import ref as weakref
 
+from .quib_guard import get_current_quib_guard, is_within_quib_guard, QuibGuard
 from .assignment.assignment_template import InvalidTypeException
 from .assignment.utils import FailedToDeepAssignException
 from .function_quibs.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own, \
@@ -96,8 +97,7 @@ class Quib(ABC):
     """
     _DEFAULT_ALLOW_OVERRIDING = False
 
-    def __init__(self,
-                 assignment_template: Optional[AssignmentTemplate] = None,
+    def __init__(self, assignment_template: Optional[AssignmentTemplate] = None,
                  allow_overriding: Optional[bool] = None):
         self._assignment_template = assignment_template
         # Can't use WeakSet because it can change during iteration
@@ -122,6 +122,7 @@ class Quib(ABC):
 
         self.project.register_quib(self)
         self._user_defined_save_directory = None
+        self.created_in_quib_context = is_within_quib_guard()
 
     @property
     def project(self) -> Project:
@@ -509,7 +510,6 @@ class Quib(ABC):
         The value will necessarily return in the shape of the actual result, but only the values at the given path
         are guaranteed to be valid
         """
-        from .graphics.quib_guard import get_current_quib_guard, is_within_quib_guard
         if is_within_quib_guard():
             context = get_current_quib_guard().get_value_context_manager(self)
         else:
@@ -655,7 +655,7 @@ class Quib(ABC):
 
     @property
     def _save_directory(self):
-        return self._user_defined_save_directory\
+        return self._user_defined_save_directory \
             if self._user_defined_save_directory is not None else self._default_save_directory
 
     @validate_user_input(path=(str, pathlib.Path))

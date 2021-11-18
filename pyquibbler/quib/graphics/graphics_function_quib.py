@@ -1,6 +1,5 @@
-from dataclasses import dataclass
-
 import numpy as np
+from dataclasses import dataclass
 from typing import List, Callable, Tuple, Any, Mapping, Dict, Optional, Iterable, Set, Union
 from matplotlib.artist import Artist
 from matplotlib.axes import Axes
@@ -8,10 +7,10 @@ from matplotlib.widgets import AxesWidget
 
 from .global_collecting import ArtistsCollector, AxesWidgetsCollector
 from .graphics_collection import GraphicsCollection
-from .quib_guard import QuibGuard
 from .update_type import UpdateType
 from .utils import save_func_and_args_on_artists, get_axeses_to_array_names_to_starting_indices_and_artists, \
     remove_artist, get_axeses_to_array_names_to_artists, get_artist_array, ArrayNameToArtists, track_artist
+from ..quib_guard import QuibGuard
 from ..assignment import AssignmentTemplate, PathComponent
 from ..function_quibs import DefaultFunctionQuib, CacheBehavior
 from ..function_quibs.external_call_failed_exception_handling import external_call_failed_exception_handling

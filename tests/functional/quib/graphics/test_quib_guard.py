@@ -1,7 +1,7 @@
 import pytest
 
 from pyquibbler import iquib
-from pyquibbler.quib.graphics.quib_guard import QuibGuard, CannotAccessQuibInScopeException, \
+from pyquibbler.quib.quib_guard import QuibGuard, CannotAccessQuibInScopeException, \
     AnotherQuibGuardIsAlreadyActiveException
 
 
