@@ -82,9 +82,9 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
         indices arrays, and when the wrapper receives an index it uses it to get a GetItemQuib from the passed quib.
         """
         args_ids_and_values = list(iter_arg_ids_and_values(call.args, call.kwargs))
-        non_excluded_quib_args = {arg_id: val for arg_id, val in args_ids_and_values
+        non_excluded_quib_args = {arg_id: ProxyQuib(np.asarray(val)) for arg_id, val in args_ids_and_values
                                   if isinstance(val, Quib) and arg_id not in call.vectorize.excluded}
-        excluded_quib_args = {arg_id: val for arg_id, val in args_ids_and_values
+        excluded_quib_args = {arg_id: ProxyQuib(val) for arg_id, val in args_ids_and_values
                               if isinstance(val, Quib) and arg_id in call.vectorize.excluded}
 
         def convert_quibs_to_indices(arg_id, arg_val):
@@ -107,10 +107,10 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
             non_excluded_quib = non_excluded_quib_args.get(arg_id)
             if non_excluded_quib is not None:
                 # We convert quibs to numpy arrays so we can slice them with tuples even if they are originally lists
-                return ProxyQuib(np.asarray(non_excluded_quib)[arg_val.indices])
+                return non_excluded_quib[arg_val.indices]
             excluded_quib = excluded_quib_args.get(arg_id)
             if excluded_quib is not None:
-                return ProxyQuib(excluded_quib)
+                return excluded_quib
             return arg_val
 
         def wrapper(*args, **kwargs):
@@ -118,7 +118,9 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
             result = call.vectorize.pyfunc(*args, **kwargs)
             return copy_and_replace_quibs_with_vals(result)
 
-        return VectorizeCall(copy_vectorize(call.vectorize, func=wrapper, signature=signature), args, kwargs)
+        quibs_to_guard = {*non_excluded_quib_args.values(), *excluded_quib_args.values()}
+        new_vectorize = copy_vectorize(call.vectorize, func=wrapper, signature=signature)
+        return VectorizeCall(new_vectorize, args, kwargs, quibs_to_guard)
 
     def _get_vectorize_call(self, args_metadata, results_core_ndims, valid_path) -> VectorizeCall:
         """
@@ -227,10 +229,9 @@ class VectorizeGraphicsFunctionQuib(GraphicsFunctionQuib, IndicesTranslatorFunct
 
         def wrapper(graphics_collection, should_run, *args, **kwargs):
             if should_run:
-                return self._run_single_call(func=pyfunc,
-                                             args=args,
-                                             kwargs=kwargs,
-                                             graphics_collection=graphics_collection)
+                return self._run_single_call(func=pyfunc, args=args, kwargs=kwargs,
+                                             graphics_collection=graphics_collection,
+                                             quibs_to_guard=call.quibs_to_guard)
             return empty_result
 
         args_to_add = (self._graphics_collection_ndarr, bool_mask)

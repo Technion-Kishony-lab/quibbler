@@ -6,7 +6,6 @@ import pathlib
 from dataclasses import dataclass
 from typing import Any, List, Optional, Set
 
-from .quib_guard import is_within_quib_guard, get_current_quib_guard
 from .assignment import AssignmentTemplate
 from .assignment.assignment import PathComponent
 from .quib import Quib
@@ -40,10 +39,6 @@ class InputQuib(Quib):
         if DEBUG:
             if is_there_a_quib_in_object(value, force_recursive=True):
                 raise CannotNestQuibInIQuibException(self)
-
-        if is_within_quib_guard():
-            quib_guard = get_current_quib_guard()
-            quib_guard.add_allowed_quib(self)
 
     def _get_inner_value_valid_at_path(self, path: List[PathComponent]) -> Any:
         """

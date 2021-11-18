@@ -1,5 +1,4 @@
 from __future__ import annotations
-import contextlib
 import os
 import pathlib
 import pickle
@@ -13,7 +12,7 @@ from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Callabl
 from weakref import WeakSet
 from contextlib import contextmanager
 
-from .quib_guard import get_current_quib_guard, is_within_quib_guard
+from .quib_guard import add_new_quib_to_guard_if_exists, guard_get_value
 from .assignment.assignment_template import InvalidTypeException
 from .assignment.utils import FailedToDeepAssignException
 from .function_quibs.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own, \
@@ -125,6 +124,7 @@ class Quib(ABC):
         self.project.register_quib(self)
         self._user_defined_save_directory = None
         self.created_in_get_value_context = self._IS_WITHIN_GET_VALUE_CONTEXT
+        add_new_quib_to_guard_if_exists(self)
 
     @property
     def project(self) -> Project:
@@ -499,17 +499,10 @@ class Quib(ABC):
         The value will necessarily return in the shape of the actual result, but only the values at the given path
         are guaranteed to be valid
         """
-        if is_within_quib_guard():
-            context = get_current_quib_guard().get_value_context_manager(self)
-        else:
-            context = contextlib.nullcontext()
-
-        with context:
-            name_for_call = get_user_friendly_name_for_requested_valid_path(path)
-            with add_quib_to_fail_trace_if_raises_quib_call_exception(quib=self,
-                                                                      call=name_for_call,
-                                                                      replace_last=False):
-                inner_value = self._get_inner_value_valid_at_path(path)
+        guard_get_value(self)
+        name_for_call = get_user_friendly_name_for_requested_valid_path(path)
+        with add_quib_to_fail_trace_if_raises_quib_call_exception(self, name_for_call, False):
+            inner_value = self._get_inner_value_valid_at_path(path)
 
         return self._overrider.override(inner_value, self._assignment_template)
 

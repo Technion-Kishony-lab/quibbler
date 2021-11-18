@@ -1,11 +1,15 @@
 from __future__ import annotations
 import numpy as np
 from functools import partial
-from dataclasses import dataclass
-from typing import Any, Dict, Optional, List, Tuple, Union, Callable
+from dataclasses import dataclass, field
+from typing import Any, Dict, Optional, List, Tuple, Union, Callable, Set, TYPE_CHECKING
 
 from pyquibbler.quib.function_quibs.utils import Args, Kwargs, convert_args_and_kwargs
+
 from .utils import Shape, get_core_axes, iter_arg_ids_and_values
+
+if TYPE_CHECKING:
+    from pyquibbler.quib import Quib
 
 ArgId = Union[int, str]
 ArgsMetadata: Dict[ArgId, VectorizeArgMetadata]
@@ -172,6 +176,7 @@ class VectorizeCall:
     vectorize: np.vectorize
     args: Args
     kwargs: Kwargs
+    quibs_to_guard: Set[Quib] = field(default_factory=set)
 
     @staticmethod
     def get_sample_arg_core(args_metadata: ArgsMetadata, arg_id: Union[str, int], arg_value: Any) -> Any:
