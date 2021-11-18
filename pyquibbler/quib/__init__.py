@@ -9,4 +9,5 @@ from .override_choice import CannotChangeQuibAtPathException, get_override_group
 from .proxy_quib import ProxyQuib
 from .quib_guard import QuibGuard
 
+# When the quib tree is falttened, this could be done within the quib module.
 override_quib_operators()

@@ -3,11 +3,11 @@ import functools
 from copy import copy
 from dataclasses import dataclass
 from dis import opname
-from functools import wraps
+from functools import wraps, partial
 from inspect import currentframe
 from inspect import signature
 from itertools import chain
-from typing import Any, Optional, Set, TYPE_CHECKING, Callable, Tuple, Dict, Type, Mapping
+from typing import Any, Optional, Set, TYPE_CHECKING, Callable, Tuple, Dict, Type, Mapping, Union
 
 from pyquibbler.env import DEBUG
 from pyquibbler.exceptions import DebugException, PyQuibblerException
@@ -276,7 +276,15 @@ def is_there_a_quib_in_args(args, kwargs):
     return not is_iterator_empty(iter_quibs_in_args(args, kwargs))
 
 
-def quib_method(func: Callable) -> Callable:
+def get_quib_type_by_name(name: str) -> Type[FunctionQuib]:
+    if name == 'elementwise':
+        from .function_quibs import ElementWiseFunctionQuib
+        return ElementWiseFunctionQuib
+    else:
+        raise ValueError(f'Unknown quib type name: func_or_quib_type_name')
+
+
+def quib_method(func_or_quib_type_name: Union[Callable, str]) -> Callable:
     """
     A decorator for methods of Quib classes that should return quibs that depend on self.
     For example:
@@ -292,13 +300,25 @@ def quib_method(func: Callable) -> Callable:
     ```
     """
 
-    @wraps(func)
-    def quib_supporting_method_wrapper(self, *args, **kwargs):
-        from pyquibbler.quib import DefaultFunctionQuib
-        args = (QuibRef(self), *args)
-        return DefaultFunctionQuib.create(func=func, func_args=args, func_kwargs=kwargs)
+    def decorator(func: Callable, quib_type_name: Optional[str] = None):
+        @wraps(func)
+        def quib_supporting_method_wrapper(self, *args, **kwargs):
+            if quib_type_name is None:
+                from .function_quibs import DefaultFunctionQuib
+                quib_type = DefaultFunctionQuib
+            else:
+                # We use names and not type objects because classes might want to use subclasses.
+                # This will be solved when the quib tree will be flattened.
+                quib_type = get_quib_type_by_name(func_or_quib_type_name)
+            args = (QuibRef(self), *args)
+            return quib_type.create(func=func, func_args=args, func_kwargs=kwargs)
 
-    return quib_supporting_method_wrapper
+        return quib_supporting_method_wrapper
+
+    if isinstance(func_or_quib_type_name, str):
+        return partial(decorator, quib_type_name=func_or_quib_type_name)
+
+    return decorator(func_or_quib_type_name)
 
 
 def get_unpack_amount(frame: Optional = None, raise_if_no_unpack=False) -> Optional[int]:

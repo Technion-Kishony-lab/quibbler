@@ -5,6 +5,7 @@ from matplotlib.artist import Artist
 from matplotlib.backend_bases import MouseEvent, PickEvent, MouseButton
 
 from pyquibbler.env import END_DRAG_IMMEDIATELY
+from pyquibbler.logger import logger
 from pyquibbler.performance_utils import timer
 from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
 from pyquibbler.quib.graphics.event_handling import graphics_inverse_assigner
@@ -59,12 +60,12 @@ class CanvasEventHandler:
         """
         # We record the current pick_event to avoid a race condition when calling inverse_assign_drawing_func
         pick_event = self.current_pick_event
-        if self.current_pick_event is None:
+        if pick_event is None:
             # This case was observed in the wild
             return
         drawing_func = getattr(artist, '_quibbler_drawing_func')
         args = getattr(artist, '_quibbler_args')
-        with timer(name="motion_notify"), aggregate_redraw_mode():
+        with timer("motion_notify", lambda x: logger.info(f"motion notify {x}")), aggregate_redraw_mode():
             override_group = graphics_inverse_assigner.inverse_assign_drawing_func(drawing_func=drawing_func,
                                                                                    args=args,
                                                                                    mouse_event=mouse_event,

@@ -227,8 +227,7 @@ class Quib(ABC):
 
         with timer("quib_invalidation", lambda x: logger.info(f"invalidation {x}")):
             self._invalidate_children_at_path(path)
-        with timer("quib_redraw", lambda x: logger.info(f"redraw {x}")):
-            self._redraw()
+        self._redraw()
 
     def _invalidate_children_at_path(self, path: List[PathComponent]) -> None:
         """
@@ -580,7 +579,7 @@ class Quib(ABC):
                 return 1
             raise
 
-    @quib_method
+    @quib_method('elementwise')
     def get_override_mask(self):
         """
         Assuming this quib represents a numpy ndarray, return a quib representing its override mask.
