@@ -1,12 +1,10 @@
 from __future__ import annotations
 import contextlib
 from typing import Set, TYPE_CHECKING
-
 from matplotlib.axes import Axes
 
 from pyquibbler.logger import logger
 from pyquibbler.performance_utils import timer
-
 from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
 
 if TYPE_CHECKING:
@@ -24,10 +22,13 @@ def aggregate_redraw_mode():
     was used when redrawing)
     """
     global IN_AGGREGATE_REDRAW_MODE
-    IN_AGGREGATE_REDRAW_MODE = True
-    yield
-    IN_AGGREGATE_REDRAW_MODE = False
-    _redraw_graphics_function_quibs()
+    if IN_AGGREGATE_REDRAW_MODE:
+        yield
+    else:
+        IN_AGGREGATE_REDRAW_MODE = True
+        yield
+        IN_AGGREGATE_REDRAW_MODE = False
+        _redraw_graphics_function_quibs()
 
 
 def _redraw_graphics_function_quibs():
