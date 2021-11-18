@@ -29,6 +29,7 @@ def inverse_assign_drawing_func(drawing_func: Callable,
     """
     Reverse a graphics function quib, assigning to all it's arguments values based on pick event and mouse event
     """
+    assert pick_event is not None
     inverse_assigner_func = GRAPHICS_REVERSE_ASSIGNERS.get(drawing_func.__qualname__)
     if inverse_assigner_func is not None:
         try:

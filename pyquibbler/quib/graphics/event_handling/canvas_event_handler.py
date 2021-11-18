@@ -57,13 +57,18 @@ class CanvasEventHandler:
         """
         Reverse any relevant quibs in artists creation args
         """
+        # We record the current pick_event to avoid a race condition when calling inverse_assign_drawing_func
+        pick_event = self.current_pick_event
+        if self.current_pick_event is None:
+            # This case was observed in the wild
+            return
         drawing_func = getattr(artist, '_quibbler_drawing_func')
         args = getattr(artist, '_quibbler_args')
         with timer(name="motion_notify"), aggregate_redraw_mode():
             override_group = graphics_inverse_assigner.inverse_assign_drawing_func(drawing_func=drawing_func,
                                                                                    args=args,
                                                                                    mouse_event=mouse_event,
-                                                                                   pick_event=self.current_pick_event)
+                                                                                   pick_event=pick_event)
             if override_group is not None and override_group:
                 self._last_mouse_event_with_overrides = mouse_event
 
