@@ -33,13 +33,11 @@ def aggregate_redraw_mode():
 
 def _redraw_graphics_function_quibs():
     quibs_that_are_invalid = [quib for quib in QUIBS_TO_REDRAW if quib.cache_status != CacheStatus.ALL_VALID]
-    logger.info(f"redrawing {len(quibs_that_are_invalid)} quibs")
-    for graphics_function_quib in quibs_that_are_invalid:
-        graphics_function_quib.redraw_if_appropriate()
+    with timer("quib redraw", lambda x: logger.info(f"redrawing {len(quibs_that_are_invalid)} quibs: {x}s")):
+        for graphics_function_quib in quibs_that_are_invalid:
+            graphics_function_quib.redraw_if_appropriate()
     axeses = {axes for graphics_function_quib in quibs_that_are_invalid
               for axes in graphics_function_quib.get_axeses()}
-
-    logger.info(f"redrawing {len(axeses)} axeses")
     redraw_axeses(axeses)
     QUIBS_TO_REDRAW.clear()
 
@@ -58,6 +56,6 @@ def redraw_axeses(axeses: Set[Axes]):
     Actual redrawing of axes- this should be WITHOUT rendering anything except for the new artists
     """
     canvases = {axes.figure.canvas for axes in axeses}
-    with timer(name="redraw", callback=lambda t: logger.info(f"redraw canvas {t}")):
+    with timer("redraw", lambda x: logger.info(f"redraw {len(axeses)} axeses, {len(canvases)} canvases {x}s")):
         for canvas in canvases:
             canvas.draw()
