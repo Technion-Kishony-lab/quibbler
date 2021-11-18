@@ -12,7 +12,7 @@ from operator import getitem
 from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Callable, Dict, Union, Iterable
 from weakref import ref as weakref
 
-from .quib_guard import get_current_quib_guard, is_within_quib_guard, QuibGuard
+from .quib_guard import get_current_quib_guard, is_within_quib_guard
 from .assignment.assignment_template import InvalidTypeException
 from .assignment.utils import FailedToDeepAssignException
 from .function_quibs.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own, \
