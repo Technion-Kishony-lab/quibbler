@@ -141,12 +141,39 @@ class OverrideOptionsTree:
         return children
 
     @classmethod
+    def _convert_quib_change_to_change_in_context_quib(cls, quib_change: Union[AssignmentToQuib, OverrideRemoval]):
+        """
+        Invert the given change until we get a change to a non-context quib.
+        This is used to treat an assignment to a context-quib as an assignment to a non-context quib when building
+        an override choice tree.
+        Solves a few problems when a user function is run in context of a quib, such as when vectorize is used with
+        pass_quibs=True:
+
+        - We don't want to allow overrides to quibs created in a context (the overrides will disappear in the next
+          evaluation
+        - We want to cache level choices made on an assignment to a quib which was created in a context
+        - Overrides and override removals to quibs in a context will cause the context quibs to be redrawn, which is
+          incorrect behavior as the context quib is supposed to do the redrawing
+        """
+        inversions = [quib_change]
+        while True:
+            if not inversions:
+                raise CannotChangeQuibAtPathException(quib_change)
+            non_context_inversions = [inversion for inversion in inversions
+                                      if not inversion.quib.created_in_quib_context]
+            assert len(non_context_inversions) < 2
+            if non_context_inversions:
+                return non_context_inversions[0]
+            inversions = [new_inversion for inversion in inversions
+                          for new_inversion in inversion.get_inversions(True)]
+
+    @classmethod
     def from_quib_change(cls, quib_change: Union[AssignmentToQuib, OverrideRemoval],
                          top_quib: Optional[FunctionQuib] = None) -> OverrideOptionsTree:
         """
         Build an OverrideOptionsTree representing all the override options for the given assignment.
         """
-        from pyquibbler.quib import ProxyQuib
+        quib_change = cls._convert_quib_change_to_change_in_context_quib(quib_change)
         if top_quib is None:
             top_quib = quib_change.quib
         options: List[QuibChangeWithOverrideRemovals] = []
@@ -158,8 +185,7 @@ class OverrideOptionsTree:
             if inversion.quib.allow_overriding and top_quib.allows_assignment_to(inversion.quib):
                 override = inversion.to_override() if isinstance(inversion, AssignmentToQuib) else inversion
                 options.append(QuibChangeWithOverrideRemovals(override, override_removals[:]))
-            if not isinstance(inversion.quib, ProxyQuib):
-                override_removals.append(OverrideRemoval.from_quib_change(inversion))
+            override_removals.append(OverrideRemoval.from_quib_change(inversion))
             inversions = inversion.get_inversions(True)
             if inversions:
                 last_inversion = inversion

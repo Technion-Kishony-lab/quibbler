@@ -1,16 +1,13 @@
-from unittest.mock import Mock
-
 import matplotlib.pyplot as plt
 import numpy as np
-from functools import partial
-
-import pytest
 from pytest import mark, fixture, raises
+from unittest.mock import Mock
+from functools import partial
 
 from pyquibbler import iquib, CacheBehavior
 from pyquibbler.env import GRAPHICS_EVALUATE_NOW, PRETTY_REPR
-from pyquibbler.quib import ProxyQuib
-from pyquibbler.quib.assignment import PathComponent
+from pyquibbler.quib import ProxyQuib, get_override_group_for_change
+from pyquibbler.quib.assignment import PathComponent, AssignmentToQuib, Assignment, Override
 
 from ...utils import check_invalidation, check_get_value_valid_at_path, MockQuib, PathBuilder, get_func_mock
 
@@ -234,12 +231,12 @@ def test_qvectorize_pretty_repr():
         assert repr(my_func) == "np.vectorize(my_func)"
 
 
-@pytest.fixture
+@fixture
 def signature():
     return '(w,h,c),(x)->(w2,h2,c)'
 
 
-@pytest.fixture
+@fixture
 def vectorized_func_with_signature(signature):
     @partial(np.vectorize, signature=signature)
     def my_func():
@@ -253,7 +250,7 @@ def test_qvectorize_pretty_repr_with_signature(vectorized_func_with_signature, s
         assert repr(vectorized_func_with_signature) == f"np.vectorize(my_func, {signature})"
 
 
-@pytest.mark.get_variable_names(True)
+@mark.get_variable_names(True)
 def test_vectorize_pretty_repr(vectorized_func_with_signature, signature):
     a = iquib("pasten")
     b = iquib(np.array([42, 42, 42]))
@@ -261,3 +258,17 @@ def test_vectorize_pretty_repr(vectorized_func_with_signature, signature):
 
     with PRETTY_REPR.temporary_set(True):
         assert quib.pretty_repr() == f"quib = np.vectorize(my_func, {signature})(a, b)"
+
+
+def test_assignment_to_quib_within_vectorize_is_translated_to_override_on_vectorize():
+    parent = iquib(0)
+
+    @partial(np.vectorize, pass_quibs=True, excluded={0}, otypes=[object])
+    def get_override_group_for_assignment_to_child(quib):
+        child = quib + iquib(1)
+        child.set_allow_overriding(True)
+        return get_override_group_for_change(AssignmentToQuib(child, Assignment(2, [])))
+
+    override_group = get_override_group_for_assignment_to_child(parent).get_value()[()]
+
+    assert override_group.quib_changes == [Override(parent, Assignment(1, []))]

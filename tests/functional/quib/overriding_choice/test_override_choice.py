@@ -3,9 +3,9 @@ from typing import List, Tuple, Union
 from unittest.mock import Mock
 from pytest import raises, fixture, mark
 
-from pyquibbler import iquib
+from pyquibbler import iquib, q
 from pyquibbler.quib import get_override_group_for_change, CannotChangeQuibAtPathException, DefaultFunctionQuib, Quib, \
-    ProxyQuib
+    ProxyQuib, QuibGuard
 from pyquibbler.quib.assignment import Assignment, AssignmentToQuib
 from pyquibbler.quib.assignment.assignment import Override
 from pyquibbler.quib.override_choice import override_choice as override_choice_module, OverrideGroup, OverrideRemoval
@@ -208,6 +208,11 @@ def test_override_choice_when_diverged_and_all_diverged_inversions_are_overridde
     assert len([o for o in override_group.quib_changes if isinstance(o, OverrideRemoval)]) == 3
 
 
+def create_proxy(quib):
+    with QuibGuard(set()):
+        return ProxyQuib(quib)
+
+
 @mark.parametrize('parent_chosen', [True, False], ids=['parent_chosen', 'child_chosen'])
 @mark.parametrize('proxy_first_time', [True, False])
 @mark.parametrize('proxy_second_time', [True, False])
@@ -222,9 +227,9 @@ def test_get_overrides_for_assignment_caches_override_choice(assignment, parent_
          False)
     )
 
-    override_group = get_overrides_for_assignment(ProxyQuib(child) if proxy_first_time else child, assignment)
+    override_group = get_overrides_for_assignment(create_proxy(child) if proxy_first_time else child, assignment)
     # If this invokes a dialog, the dialog mock will fail the test
-    second_override_group = get_overrides_for_assignment(ProxyQuib(child) if proxy_second_time else child,
+    second_override_group = get_overrides_for_assignment(create_proxy(child) if proxy_second_time else child,
                                                          Assignment(assignment.value + 1, assignment.path))
 
     assert override_group == (parent_override if parent_chosen else child_override)
@@ -321,3 +326,23 @@ def test_get_overrides_for_assignment_when_can_assign_to_parents(diverged_quib_g
     override_group = get_override_group_for_change(assignment)
 
     assert len(override_group.quib_changes) == 3  # Two overrides and one override removal
+
+
+def test_raises_cannot_change_when_context_quib_cannot_be_inverted():
+    parent = iquib(0)
+    with QuibGuard(set()):
+        # A function we don't know to invert
+        child = q(lambda x: x)
+    with raises(CannotChangeQuibAtPathException):
+        get_override_group_for_change(AssignmentToQuib(child, Assignment(1, [])))
+
+
+def test_get_override_group_on_context_quibs():
+    non_context_parent = iquib(0)
+    with QuibGuard(set()):
+        context_parent = iquib(1)
+        child = non_context_parent + context_parent
+        child.set_allow_overriding(True)
+
+    override_group = get_override_group_for_change(AssignmentToQuib(child, Assignment(2, [])))
+    assert override_group.quib_changes == [Override(non_context_parent, Assignment(1, []))]
