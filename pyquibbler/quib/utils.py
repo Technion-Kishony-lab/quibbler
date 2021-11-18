@@ -281,7 +281,7 @@ def get_quib_type_by_name(name: str) -> Type[FunctionQuib]:
         from .function_quibs import ElementWiseFunctionQuib
         return ElementWiseFunctionQuib
     else:
-        raise ValueError(f'Unknown quib type name: {func_or_quib_type_name}')
+        raise ValueError(f'Unknown quib type name: {name}')
 
 
 def quib_method(func_or_quib_type_name: Union[Callable, str]) -> Callable:
