@@ -40,6 +40,7 @@ class TranspositionalFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunction
         np.ravel: SupportedFunction({0}),
         np.squeeze: SupportedFunction({0}),
         np.array: SupportedFunction({0}),
+        np.asarray: SupportedFunction({0}),
         np.swapaxes: SupportedFunction({0}),
         np.expand_dims: SupportedFunction({0}),
         np.tile: SupportedFunction({0}),
