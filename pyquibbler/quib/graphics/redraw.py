@@ -26,8 +26,10 @@ def aggregate_redraw_mode():
         yield
     else:
         IN_AGGREGATE_REDRAW_MODE = True
-        yield
-        IN_AGGREGATE_REDRAW_MODE = False
+        try:
+            yield
+        finally:
+            IN_AGGREGATE_REDRAW_MODE = False
         _redraw_graphics_function_quibs()
 
 
