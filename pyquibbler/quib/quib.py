@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from operator import getitem
 from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Callable, Dict, Union, Iterable
 from weakref import WeakSet
+from contextlib import contextmanager
 
 from .quib_guard import get_current_quib_guard, is_within_quib_guard
 from .assignment.assignment_template import InvalidTypeException
@@ -96,6 +97,7 @@ class Quib(ABC):
     An abstract class to describe the common methods and attributes of all quib types.
     """
     _DEFAULT_ALLOW_OVERRIDING = False
+    _IS_WITHIN_GET_VALUE_CONTEXT = False
 
     def __init__(self, assignment_template: Optional[AssignmentTemplate] = None,
                  allow_overriding: Optional[bool] = None):
@@ -122,7 +124,7 @@ class Quib(ABC):
 
         self.project.register_quib(self)
         self._user_defined_save_directory = None
-        self.created_in_quib_context = is_within_quib_guard()
+        self.created_in_get_value_context = self._IS_WITHIN_GET_VALUE_CONTEXT
 
     @property
     def project(self) -> Project:
@@ -511,6 +513,22 @@ class Quib(ABC):
 
         return self._overrider.override(inner_value, self._assignment_template)
 
+    @staticmethod
+    @contextmanager
+    def _get_value_context():
+        """
+        Change cls._IS_WITHIN_GET_VALUE_CONTEXT while in the process of running get_value.
+        This has to be a static method as the _IS_WITHIN_GET_VALUE_CONTEXT is a global state for all quib types
+        """
+        if Quib._IS_WITHIN_GET_VALUE_CONTEXT:
+            yield
+        else:
+            Quib._IS_WITHIN_GET_VALUE_CONTEXT = True
+            try:
+                yield
+            finally:
+                Quib._IS_WITHIN_GET_VALUE_CONTEXT = False
+
     @raise_quib_call_exceptions_as_own
     def get_value(self) -> Any:
         """
@@ -519,7 +537,8 @@ class Quib(ABC):
         are lazy, so a function quib might need to calculate uncached values and might
         even have to calculate the values of its dependencies.
         """
-        return self.get_value_valid_at_path([])
+        with self._get_value_context():
+            return self.get_value_valid_at_path([])
 
     def get_override_list(self) -> Overrider:
         """
