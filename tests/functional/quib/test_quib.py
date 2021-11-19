@@ -472,17 +472,11 @@ def test_quib_pretty_repr_with_quibs_with_quib_creation_with_name_in_inner_func(
     @quibbler_user_function(evaluate_now=True)
     def inner_func():
         d = iquib(4)
-
-        assert d.pretty_repr() == 'd = iquib(4)'
-
         return d
 
     @quibbler_user_function(evaluate_now=True)
     def another_inner_func():
         e = iquib(4)
-
-        assert e.pretty_repr() == 'e = iquib(4)'
-
         return e
 
     a, b = inner_func(), another_inner_func()
@@ -565,3 +559,12 @@ def test_quib_knows_it_is_created_in_a_context():
         return 'yay'
 
     assert ExampleQuib(func).get_value() == 'yay'
+
+
+@pytest.mark.get_variable_names(True)
+def test_quib_doesnt_get_name_if_it_is_created_in_context():
+    def func():
+        noname = iquib(0)
+        assert noname.name is None
+
+    ExampleQuib(func).get_value()

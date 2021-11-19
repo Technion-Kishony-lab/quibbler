@@ -110,11 +110,15 @@ class Quib(ABC):
         self.method_cache = {}
         self._quibs_allowed_to_assign_to = None
         self._override_choice_cache = {}
+        self.created_in_get_value_context = self._IS_WITHIN_GET_VALUE_CONTEXT
 
+        should_get_variable_names = GET_VARIABLE_NAMES and not self.created_in_get_value_context
+        should_get_file_name_and_line = SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS and not \
+            self.created_in_get_value_context
         try:
-            self._name = get_var_name_being_set_outside_of_pyquibbler() if GET_VARIABLE_NAMES else None
-            self.file_name, self.line_no = get_file_name_and_line_number_of_quib() \
-                if SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS else None, None
+            self._name = get_var_name_being_set_outside_of_pyquibbler() if should_get_variable_names else None
+            self.file_name, self.line_no = (get_file_name_and_line_number_of_quib()
+                                            if should_get_file_name_and_line else None, None)
         except Exception as e:
             logger.warning(f"Failed to get name, exception {e}")
             self._name = None
@@ -123,7 +127,6 @@ class Quib(ABC):
 
         self.project.register_quib(self)
         self._user_defined_save_directory = None
-        self.created_in_get_value_context = self._IS_WITHIN_GET_VALUE_CONTEXT
         add_new_quib_to_guard_if_exists(self)
 
     @property
