@@ -121,8 +121,10 @@ MPL_OVERRIDES = [
         (DefaultFunctionQuib, {'imread'})
     ]),
     (Axes, [
-        (ReplacingGraphicsFunctionQuib, {'set_xlim', 'set_ylim', 'set_title',
-                                         'set_xlabel', 'set_ylabel', 'set_visible', 'set_facecolor'})
+        (ReplacingGraphicsFunctionQuib, {'set_xlim', 'set_ylim',
+                                         'set_xticks', 'set_yticks',
+                                         'set_xlabel', 'set_ylabel',
+                                         'set_title', 'set_visible', 'set_facecolor'})
     ]),
     (widgets, [
         (SliderGraphicsFunctionQuib, {'Slider'}),
