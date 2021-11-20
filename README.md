@@ -1,4 +1,4 @@
-![Quibbler](quib.png)
+![Quibbler](quib_transparent.png)
 # Data Quibbler
 **Building interactive, traceable, transparent, and efficient data analysis pipelines.** 
 
