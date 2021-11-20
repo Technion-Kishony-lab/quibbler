@@ -1,12 +1,15 @@
 import os
 import glob
 
-notebooks_path = '../examples/notebooks'
-wiki_examples_path = '../../pyquibbler.wiki/examples'
-wiki_gif_path = '../../pyquibbler.wiki/images/demo_gif'
+demo_notebooks_path = '../examples/notebooks'
+docs_notebooks_path = '../docs'
+wiki_path = '../../pyquibbler.wiki'
+wiki_examples_path = wiki_path + '/examples'
+wiki_gif_path = wiki_path + '/images/demo_gif'
 
-os.system("jupyter nbconvert --to markdown " + notebooks_path + "/quibdemo*.ipynb")
-os.system("mv " + notebooks_path + "/quibdemo*.md " + wiki_examples_path)
+# examples
+os.system("jupyter nbconvert --to markdown " + demo_notebooks_path + "/quibdemo*.ipynb")
+os.system("mv " + demo_notebooks_path + "/quibdemo*.md " + wiki_examples_path)
 
 full_files = glob.glob(wiki_examples_path + '/*.md')
 print(full_files)
@@ -19,4 +22,9 @@ for full_file in full_files:
             print(file)
             myfile.write("[[/images/demo_gif/" + file + ".gif]]")
             myfile.write("")
+
+# docs
+os.system("jupyter nbconvert --to markdown " + docs_notebooks_path + "/*.ipynb")
+os.system("mv " + docs_notebooks_path + "/*.md " + wiki_path)
+
 
