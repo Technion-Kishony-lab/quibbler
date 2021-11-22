@@ -7,19 +7,37 @@ import numpy as np
 
 
 class Symbol(enum.Enum):
+    LT = '<'
+    GT = '>'
+    LE = '<='
+    GE = '>='
+    EQ = '=='
+    NE = '!='
     ADD = '+'
     SUB = '-'
     MUL = '*'
+    MATMUL = '@'
     DIV = '/'
-    EXP = '^'
+    FLRDIV = '//'
+    MOD = '%'
+    PWR = '^'
 
 
 SYMBOLS_TO_ORDER = {
-    Symbol.ADD: 0,
-    Symbol.SUB: 0,
-    Symbol.MUL: 1,
-    Symbol.DIV: 1,
-    Symbol.EXP: 2
+    Symbol.LT: 0,
+    Symbol.GT: 0,
+    Symbol.LE: 0,
+    Symbol.GE: 0,
+    Symbol.EQ: 0,
+    Symbol.NE: 0,
+    Symbol.ADD: 1,
+    Symbol.SUB: 1,
+    Symbol.MUL: 2,
+    Symbol.MATMUL: 2,
+    Symbol.DIV: 2,
+    Symbol.FLRDIV: 2,
+    Symbol.MOD: 2,
+    Symbol.PWR: 3
 }
 
 
@@ -38,20 +56,24 @@ class MathExpression:
 
     def __str__(self):
         left_side = self.left_side
-        if isinstance(self.left_side, MathExpression) and self.left_side.order < self.order:
+        if isinstance(self.left_side, MathExpression) and (
+                self.left_side.order < self.order
+                # in equality operations, need parenthesis even when same order:
+                # "(a < b) < c" is not "a < b < c"
+                or (self.left_side.order == 0 and self.order == 0)
+        ):
             left_side = f"({left_side})"
 
         right_side = self.right_side
         if isinstance(self.right_side, MathExpression) and (
                 self.right_side.order < self.order
+                # in equality operations, need parenthesis even when same order:
+                # "a < (b < c)" is not "a < b < c"
+                or (self.right_side.order == 0 and self.order == 0)
                 # in subtract and divide order matters- this means the right side must be paranthesized if it's a
                 # different symbol
-                or (
-                    self.symbol == Symbol.SUB and self.right_side.order == self.order
-                )
-                or (
-                    self.symbol == Symbol.DIV and self.right_side.order == self.order
-                )
+                or (self.symbol in {Symbol.SUB, Symbol.DIV, Symbol.FLRDIV, Symbol.MOD} and
+                    self.right_side.order == self.order)
         ):
             right_side = f"({right_side})"
 
@@ -67,16 +89,47 @@ def convert_to_mathematical_notation(func: Callable, args: List[Union[MathExpres
 
 
 MATH_FUNCS_TO_SYMBOLS = {
+    operator.lt: Symbol.LT,
+    np.less: Symbol.LT,
+
+    operator.gt: Symbol.GT,
+    np.greater: Symbol.GT,
+
+    operator.le: Symbol.LE,
+    np.less_equal: Symbol.LE,
+
+    operator.ge: Symbol.GE,
+    np.greater_equal: Symbol.GE,
+
+    operator.eq: Symbol.EQ,
+    np.equal: Symbol.EQ,
+
+    operator.ne: Symbol.NE,
+    np.not_equal: Symbol.NE,
+
     operator.add: Symbol.ADD,
     np.add: Symbol.ADD,
+
     operator.mul: Symbol.MUL,
     np.multiply: Symbol.MUL,
+
+    operator.matmul: Symbol.MATMUL,
+    np.matmul: Symbol.MATMUL,
+
     operator.truediv: Symbol.DIV,
     np.divide: Symbol.DIV,
+
+    operator.floordiv: Symbol.FLRDIV,
+    np.floor_divide: Symbol.FLRDIV,
+
+    operator.mod: Symbol.MOD,
+    np.remainder: Symbol.MOD,
+
     operator.sub: Symbol.SUB,
     np.subtract: Symbol.SUB,
-    operator.pow: Symbol.EXP,
-    np.power: Symbol.EXP
+
+    operator.pow: Symbol.PWR,
+    np.power: Symbol.PWR
 }
 
 MATH_FUNCS_TO_CONVERTERS = {
