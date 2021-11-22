@@ -263,6 +263,12 @@ def b():
     return b
 
 
+@fixture()
+def c():
+    c = iquib(1)
+    return c
+
+
 @pytest.mark.get_variable_names(True)
 def test_function_quib_pretty_repr_math():
     a = iquib(1)
@@ -273,17 +279,23 @@ def test_function_quib_pretty_repr_math():
 
 
 @mark.parametrize("statement,expected", [
-    ("a * b + b", "a * b + b"),
-    ("a * (b + b)", "a * (b + b)"),
-    ("(a * b) + b", "a * b + b"),
-    ("a / (b * b) * a", "a / (b * b) * a"),
-    ("a + a + a", "a + a + a"),
-    ("a ** (a / (a + b))", "a ^ (a / (a + b))"),
-    ("a - (a + a)", "a - (a + a)"),
-    ("a / (a / a)", "a / (a / a)")
+    ("a * b + c", "a * b + c"),
+    ("a * (b + c)", "a * (b + c)"),
+    ("(a * b) + c", "a * b + c"),
+    ("a / (b * c) * a", "a / (b * c) * a"),
+    ("a + b + c", "a + b + c"),
+    ("a ** (b / (c + a))", "a ^ (b / (c + a))"),
+    ("a - (b + c)", "a - (b + c)"),
+    ("a / (b / c)", "a / (b / c)"),
+    ("a // (b // c)", "a // (b // c)"),
+    ("a @ (b + c)", "a @ (b + c)"),
+    ("a < b + c", "a < b + c"),
+    ("a + b <= c", "a + b <= c"),
+    ("(a < b) < c", "(a < b) < c"),
+    ("a < (b < c)", "a < (b < c)"),
 ])
 @pytest.mark.get_variable_names(True)
-def test_function_quib_pretty_repr_math_holds_pemdas(a, b, statement, expected):
+def test_function_quib_pretty_repr_math_holds_pemdas(a, b, c, statement, expected):
     with PRETTY_REPR.temporary_set(True):
         assert repr(eval(statement)) == expected
 
