@@ -284,7 +284,7 @@ def test_function_quib_pretty_repr_math():
     ("(a * b) + c", "a * b + c"),
     ("a / (b * c) * a", "a / (b * c) * a"),
     ("a + b + c", "a + b + c"),
-    ("a ** (b / (c + a))", "a ^ (b / (c + a))"),
+    ("a ** (b / (c + a))", "a ** (b / (c + a))"),
     ("a - (b + c)", "a - (b + c)"),
     ("a / (b / c)", "a / (b / c)"),
     ("a // (b // c)", "a // (b // c)"),

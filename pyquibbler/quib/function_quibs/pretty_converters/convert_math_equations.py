@@ -20,7 +20,7 @@ class Symbol(enum.Enum):
     DIV = '/'
     FLRDIV = '//'
     MOD = '%'
-    PWR = '^'
+    PWR = '**'
 
 
 SYMBOLS_TO_ORDER = {
