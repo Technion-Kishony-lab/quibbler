@@ -89,6 +89,15 @@ def test_inverse_elementwise_operator():
     assert np.array_equal(q.get_value(), [4, 5, 5])
 
 
+def test_inverse_elementwise_operator_truediv():
+    q = iquib(np.array([15, 15, 15]))
+    function_quib: FunctionQuib = q / 3
+
+    inverse(function_quib, 4, [PathComponent(component=0, indexed_cls=function_quib.get_type())])
+
+    assert np.array_equal(q.get_value(), [12, 15, 15])
+
+
 def test_inverse_elementwise_on_int():
     q = iquib(5)
     function_quib: FunctionQuib = q + 3

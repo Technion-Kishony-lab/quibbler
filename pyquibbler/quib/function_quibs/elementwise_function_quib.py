@@ -3,7 +3,7 @@ import math
 import warnings
 
 import numpy as np
-from operator import __neg__, __pos__, __sub__, __pow__, __mul__, __add__
+from operator import __neg__, __pos__, __sub__, __pow__, __mul__, __add__, __truediv__
 from typing import TYPE_CHECKING, Any, List, Tuple, Callable, Dict
 
 from .default_function_quib import DefaultFunctionQuib
@@ -101,10 +101,13 @@ class ElementWiseFunctionQuib(DefaultFunctionQuib, IndicesTranslatorFunctionQuib
                     1: lambda result, other: np.subtract(other, result)
                 }
             ) for func in [np.subtract, __sub__]},
-        np.divide: create_inverse_func_from_indexes_to_funcs({
-            0: np.multiply,
-            1: lambda result, other: np.divide(other, result)
-        }),
+        **{
+            func: create_inverse_func_from_indexes_to_funcs(
+                {
+                    0: np.multiply,
+                    1: lambda result, other: np.divide(other, result)
+                }
+            ) for func in [np.divide, __truediv__]},
         __pow__: create_inverse_func_from_indexes_to_funcs({
             0: lambda x, n: x ** (1 / n),
             1: lambda result, other: math.log(result, other)
