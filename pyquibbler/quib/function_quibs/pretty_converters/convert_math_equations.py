@@ -5,6 +5,7 @@ from typing import List, Callable, Union
 
 import numpy as np
 
+CONVERT_FUNCTIONS_TO_MATH_EXPRESSIONS = True
 
 class Operator(enum.Enum):
     LT = ('<', 0)
@@ -146,13 +147,16 @@ BINARY_FUNCS_TO_OPERATORS = {
     np.power: Operator.PWR
 }
 
-MATH_FUNCS_TO_CONVERTERS = {
-    **{
-        func: convert_binary_func_to_mathematical_notation
-        for func, _ in BINARY_FUNCS_TO_OPERATORS.items()
-    },
-    **{
-        func: convert_unary_right_func_to_mathematical_notation
-        for func, _ in UNARY_RIGHT_FUNCS_TO_OPERATORS.items()
-    },
-}
+if CONVERT_FUNCTIONS_TO_MATH_EXPRESSIONS:
+    MATH_FUNCS_TO_CONVERTERS = {
+        **{
+            func: convert_binary_func_to_mathematical_notation
+            for func, _ in BINARY_FUNCS_TO_OPERATORS.items()
+        },
+        **{
+            func: convert_unary_right_func_to_mathematical_notation
+            for func, _ in UNARY_RIGHT_FUNCS_TO_OPERATORS.items()
+        },
+    }
+else:
+    MATH_FUNCS_TO_CONVERTERS = {}
