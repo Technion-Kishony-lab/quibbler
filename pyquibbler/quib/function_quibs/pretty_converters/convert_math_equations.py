@@ -94,6 +94,14 @@ def convert_unary_right_func_to_mathematical_notation(func: Callable,
     return MathExpression(operator=operator, right_side=args[0])
 
 
+UNARY_RIGHT_FUNCS_TO_OPERATORS = {
+    operator.pos: Operator.POS,
+    np.positive: Operator.POS,
+
+    operator.neg: Operator.NEG,
+    np.negative: Operator.NEG,
+}
+
 BINARY_FUNCS_TO_OPERATORS = {
     operator.lt: Operator.LT,
     np.less: Operator.LT,
@@ -140,7 +148,11 @@ BINARY_FUNCS_TO_OPERATORS = {
 
 MATH_FUNCS_TO_CONVERTERS = {
     **{
-        func: convert_to_mathematical_notation
-        for func, symbol in MATH_FUNCS_TO_SYMBOLS.items()
-    }
+        func: convert_binary_func_to_mathematical_notation
+        for func, _ in BINARY_FUNCS_TO_OPERATORS.items()
+    },
+    **{
+        func: convert_unary_right_func_to_mathematical_notation
+        for func, _ in UNARY_RIGHT_FUNCS_TO_OPERATORS.items()
+    },
 }
