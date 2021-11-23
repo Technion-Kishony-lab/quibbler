@@ -305,6 +305,9 @@ def test_function_quib_pretty_repr_math_unary_operator():
     ("--a", "--a"),
     ("-a * b", "-a * b"),
     ("-b + a", "-b + a"),
+    ("a | b & c", "a | b & c"),
+    ("(a | b) & c", "(a | b) & c"),
+    ("a | b | c", "a | b | c"),
 ])
 @pytest.mark.get_variable_names(True)
 def test_function_quib_pretty_repr_math_holds_pemdas(a, b, c, statement, expected):
