@@ -7,6 +7,7 @@ import numpy as np
 
 CONVERT_FUNCTIONS_TO_MATH_EXPRESSIONS = True
 
+
 class Operator(enum.Enum):
     LT = ('<', 0)
     GT = ('>', 0)
@@ -14,16 +15,20 @@ class Operator(enum.Enum):
     GE = ('>=', 0)
     EQ = ('==', 0)
     NE = ('!=', 0)
-    ADD = ('+', 1)
-    SUB = ('-', 1)
-    MUL = ('*', 2)
-    MATMUL = ('@', 2)
-    DIV = ('/', 2)
-    FLRDIV = ('//', 2)
-    MOD = ('%', 2)
-    NEG = ('-', 3)
-    POS = ('+', 3)
-    PWR = ('**', 4)
+    OR = ('|', 1)
+    XOR = ('^', 1)
+    AND = ('&', 2)
+    NOT = ('~', 3)
+    ADD = ('+', 4)
+    SUB = ('-', 4)
+    MUL = ('*', 5)
+    MATMUL = ('@', 5)
+    DIV = ('/', 5)
+    FLRDIV = ('//', 5)
+    MOD = ('%', 5)
+    NEG = ('-', 6)
+    POS = ('+', 6)
+    PWR = ('**', 7)
 
 
 @dataclass
@@ -101,9 +106,21 @@ UNARY_RIGHT_FUNCS_TO_OPERATORS = {
 
     operator.neg: Operator.NEG,
     np.negative: Operator.NEG,
+
+    operator.not_: Operator.NOT,
+    np.logical_not: Operator.NOT,
 }
 
 BINARY_FUNCS_TO_OPERATORS = {
+    operator.and_: Operator.AND,
+    np.logical_and: Operator.AND,
+
+    operator.or_: Operator.OR,
+    np.logical_or: Operator.OR,
+
+    operator.xor: Operator.XOR,
+    np.logical_xor: Operator.XOR,
+
     operator.lt: Operator.LT,
     np.less: Operator.LT,
 
