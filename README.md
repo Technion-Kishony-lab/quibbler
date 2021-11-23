@@ -24,16 +24,16 @@ Here are a few of the things that Quibbler does:
 * Easily build powerful GUI-like interaction with data, without a need for callbacks 
 and listeners. 
 
-* Easy manual specification of overrides and exceptions to default functionalities.
+* Interactive specification of inputs and exceptions to default functionalities.
 
-* Calculate, cache and validate/invalidate focal sub-slices of heavy-to-calculate arrays. 
+* Calculate, cache and validate/invalidate sub-slices of heavy-to-calculate arrays. 
 
 * Track a dependency graph between raw data and downstream results.  
 
 * Track and maintain a human-readable record of user interventions and parameter
 specifications (TBD).
 
-* Inherent undo/redo functionality (TBD).
+* Inherent undo/redo functionality.
 
 ## Rationale
 Traceability, transparency, interactivity and efficiency are becoming increasingly
