@@ -278,13 +278,21 @@ def test_function_quib_pretty_repr_math():
     assert c.pretty_repr() == 'c = a + b'
 
 
+@pytest.mark.get_variable_names(True)
+def test_function_quib_pretty_repr_math_unary_operator():
+    a = iquib(1)
+    c = -a
+
+    assert c.pretty_repr() == 'c = -a'
+
+
 @mark.parametrize("statement,expected", [
     ("a * b + c", "a * b + c"),
     ("a * (b + c)", "a * (b + c)"),
     ("(a * b) + c", "a * b + c"),
     ("a / (b * c) * a", "a / (b * c) * a"),
     ("a + b + c", "a + b + c"),
-    ("a ** (b / (c + a))", "a ^ (b / (c + a))"),
+    ("a ** (b / (c + a))", "a ** (b / (c + a))"),
     ("a - (b + c)", "a - (b + c)"),
     ("a / (b / c)", "a / (b / c)"),
     ("a // (b // c)", "a // (b // c)"),
@@ -293,6 +301,13 @@ def test_function_quib_pretty_repr_math():
     ("a + b <= c", "a + b <= c"),
     ("(a < b) < c", "(a < b) < c"),
     ("a < (b < c)", "a < (b < c)"),
+    ("-a", "-a"),
+    ("--a", "--a"),
+    ("-a * b", "-a * b"),
+    ("-b + a", "-b + a"),
+    ("a | b & c", "a | b & c"),
+    ("(a | b) & c", "(a | b) & c"),
+    ("a | b | c", "a | b | c"),
 ])
 @pytest.mark.get_variable_names(True)
 def test_function_quib_pretty_repr_math_holds_pemdas(a, b, c, statement, expected):
