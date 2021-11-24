@@ -29,7 +29,6 @@ from pyquibbler.quib.assignment import AssignmentTemplate, RangeAssignmentTempla
 from pyquibbler.quib.function_quibs.cache import create_cache
 from pyquibbler.quib.function_quibs.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
 from pyquibbler.quib.function_quibs.pretty_converters import MathExpression
-from pyquibbler.quib.refactor import factory
 from pyquibbler.quib.refactor.cache_behavior import CacheBehavior
 from pyquibbler.quib.refactor.exceptions import OverridingNotAllowedException
 from pyquibbler.quib.refactor.iterators import iter_quibs_in_args

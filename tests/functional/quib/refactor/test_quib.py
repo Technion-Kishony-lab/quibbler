@@ -54,3 +54,13 @@ def test_quib_removes_dead_children_automatically(quib):
     mock_func.assert_not_called()
 
 
+@pytest.mark.regression
+def test_quib_invalidates_children_recursively(quib, create_mock_quib):
+    child = create_quib(func=mock.Mock(), args=(quib,), kwargs={})
+    grandchild = create_mock_quib()
+    child.add_child(grandchild)
+
+    quib.invalidate_and_redraw_at_path([])
+
+    grandchild._invalidate_quib_with_children_at_path.assert_called_once()
+
