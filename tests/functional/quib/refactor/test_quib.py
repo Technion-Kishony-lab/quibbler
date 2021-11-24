@@ -19,7 +19,7 @@ def quib():
 
 
 @pytest.fixture()
-def graphics_quib():
+def graphics_quib(quib):
     return Quib.create(
         func=mock.Mock(),
         args=(quib,),

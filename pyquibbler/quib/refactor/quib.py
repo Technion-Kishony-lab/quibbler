@@ -145,7 +145,6 @@ class Quib:
     def project(self) -> Project:
         return Project.get_or_create()
 
-
     def setp(self, allow_overriding: bool = None, assignment_template=None,
              save_directory: Union[str, pathlib.Path] = None,
              **kwargs):
