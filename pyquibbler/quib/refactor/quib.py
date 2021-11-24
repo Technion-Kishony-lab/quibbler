@@ -29,6 +29,7 @@ from pyquibbler.quib.assignment import AssignmentTemplate, RangeAssignmentTempla
 from pyquibbler.quib.function_quibs.cache import create_cache
 from pyquibbler.quib.function_quibs.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
 from pyquibbler.quib.function_quibs.pretty_converters import MathExpression
+from pyquibbler.quib.refactor import factory
 from pyquibbler.quib.refactor.cache_behavior import CacheBehavior
 from pyquibbler.quib.refactor.exceptions import OverridingNotAllowedException
 from pyquibbler.quib.refactor.iterators import iter_quibs_in_args
@@ -106,36 +107,6 @@ class Quib:
         self.project.register_quib(self)
         self._user_defined_save_directory = None
         add_new_quib_to_guard_if_exists(self)
-
-    @classmethod
-    def create(cls, func, args=(), kwargs=None, cache_behavior=None, evaluate_now=False, is_known_graphics_func=False,
-               **init_kwargs):
-        """
-        Public constructor for FunctionQuib.
-        """
-        # If we received a function that was already wrapped with a function quib, we want want to unwrap it
-        while hasattr(func, '__quib_wrapper__'):
-            assert func.__quib_wrapper__ is cls, "This function was wrapped previously with a different class"
-            previous_func = func
-            func = func.__wrapped__
-            # If it was a bound method we need to recreate it
-            if hasattr(previous_func, '__self__'):
-                func = types.MethodType(func, previous_func.__self__)
-
-        if kwargs is None:
-            kwargs = {}
-        kwargs = {k: deep_copy_without_quibs_or_graphics(v) for k, v in kwargs.items()}
-        args = deep_copy_without_quibs_or_graphics(args)
-        self = cls(func=func, args=args, kwargs=kwargs,
-                   cache_behavior=cache_behavior, assignment_template=None, allow_overriding=False,
-                   is_known_graphics_func=is_known_graphics_func, **init_kwargs)
-        for arg in iter_quibs_in_args(args, kwargs):
-            arg.add_child(self)
-
-        if evaluate_now:
-            self.get_value()
-
-        return self
 
     @property
     def func(self):
@@ -763,3 +734,7 @@ class Quib:
             with open(self._save_path, 'rb') as f:
                 self._overrider = pickle.load(f)
                 self.invalidate_and_redraw_at_path([])
+
+
+Quib.create = classmethod(factory.create_quib)
+
