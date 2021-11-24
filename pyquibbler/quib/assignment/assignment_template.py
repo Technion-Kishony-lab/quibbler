@@ -5,6 +5,7 @@ from typing import Any, Type
 from dataclasses import dataclass
 
 from pyquibbler.exceptions import DebugException, PyQuibblerException
+from pyquibbler.input_validation_utils import InvalidArgumentException
 
 CONSTRUCTORS = {
     np.ndarray: np.array
@@ -130,3 +131,24 @@ class RangeAssignmentTemplate(AssignmentTemplate):
         bound = get_number_in_bounds(rounded, 0, floor((self.stop - self.start) / self.step))
         constructor = CONSTRUCTORS.get(type(number), type(number))
         return constructor(self.start + bound * self.step)
+
+
+def create_assignment_template(*args):
+    if len(args) == 1 and isinstance(args[0], tuple):
+        args = args[0]
+
+    if len(args) == 1:
+        if not isinstance(args[0], AssignmentTemplate):
+            raise InvalidArgumentException(expected_type=(AssignmentTemplate, tuple),
+                                           var_name="assignment template")
+        template, = args
+    elif len(args) == 2:
+        minimum, maximum = args
+        template = BoundAssignmentTemplate(minimum, maximum)
+    elif len(args) == 3:
+        start, stop, step = args
+        template = RangeAssignmentTemplate(start, stop, step)
+    else:
+        raise TypeError('Unsupported number of arguments, see docstring for usage')
+
+    return template

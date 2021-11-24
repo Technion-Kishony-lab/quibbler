@@ -18,7 +18,7 @@ from contextlib import contextmanager
 
 from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
 from pyquibbler.quib.quib_guard import add_new_quib_to_guard_if_exists, guard_get_value
-from pyquibbler.quib.assignment.assignment_template import InvalidTypeException
+from pyquibbler.quib.assignment.assignment_template import InvalidTypeException, create_assignment_template
 from pyquibbler.quib.assignment.utils import FailedToDeepAssignException
 from pyquibbler.quib.function_quibs.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own, \
     add_quib_to_fail_trace_if_raises_quib_call_exception, external_call_failed_exception_handling
@@ -507,23 +507,7 @@ class Quib:
         - quib.set_assignment_template(min, max): set the template to a bound template between min and max.
         - quib.set_assignment_template(start, stop, step): set the template to a bound template between min and max.
         """
-        if len(args) == 1 and isinstance(args[0], tuple):
-            args = args[0]
-
-        if len(args) == 1:
-            if not isinstance(args[0], AssignmentTemplate):
-                raise InvalidArgumentException(expected_type=(AssignmentTemplate, tuple),
-                                               var_name="assignment template")
-            template, = args
-        elif len(args) == 2:
-            minimum, maximum = args
-            template = BoundAssignmentTemplate(minimum, maximum)
-        elif len(args) == 3:
-            start, stop, step = args
-            template = RangeAssignmentTemplate(start, stop, step)
-        else:
-            raise TypeError('Unsupported number of arguments, see docstring for usage')
-        self._assignment_template = template
+        self._assignment_template = create_assignment_template(args)
 
     def _backwards_translate_path(self, valid_path: List[PathComponent]):
         return []

@@ -160,8 +160,6 @@ def test_quib_removes_dead_children_automatically():
     child_invalidate.assert_not_called()
 
 
-## MAOR: FINISHED MOVING TILL HERE
-
 @mark.regression
 def test_quib_invalidates_children_recursively(example_quib):
     child = ExampleQuib(mock.Mock())
@@ -173,7 +171,6 @@ def test_quib_invalidates_children_recursively(example_quib):
 
     assert child.invalidate_count == 1
     assert grandchild.invalidate_count == 1
-
 
 @mark.parametrize(['args', 'expected_template'], [
     ((BoundAssignmentTemplate(2, 4),), BoundAssignmentTemplate(2, 4)),
@@ -198,6 +195,10 @@ def test_set_assignment_template_with_range(example_quib):
     template = example_quib.get_assignment_template()
 
     assert template == RangeAssignmentTemplate(1, 2, 3)
+
+
+
+## MAOR: FINISHED MOVING TILL HERE
 
 
 def test_quib_override_without_assignment_template():
