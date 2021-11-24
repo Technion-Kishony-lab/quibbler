@@ -16,6 +16,7 @@ from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Callabl
 from weakref import WeakSet
 from contextlib import contextmanager
 
+from pyquibbler.quib import get_override_group_for_change
 from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
 from pyquibbler.quib.quib_guard import add_new_quib_to_guard_if_exists, guard_get_value
 from pyquibbler.quib.assignment.assignment_template import InvalidTypeException, create_assignment_template
@@ -33,6 +34,7 @@ from pyquibbler.quib.refactor.cache_behavior import CacheBehavior
 from pyquibbler.quib.refactor.exceptions import OverridingNotAllowedException
 from pyquibbler.quib.refactor.iterators import iter_quibs_in_args
 from pyquibbler.quib.refactor.method_caching import cache_method_until_full_invalidation
+from pyquibbler.quib.refactor.repr.repr_mixin import ReprMixin
 from pyquibbler.quib.utils import quib_method, Unpacker, recursively_run_func_on_object, \
     deep_copy_without_quibs_or_graphics, QuibRef
 from pyquibbler.quib.assignment import PathComponent
@@ -408,7 +410,9 @@ class Quib:
         Create an assignment with an Assignment object, overriding the current values at the assignment's paths with the
         assignment's value
         """
-        self.override(assignment, allow_overriding_from_now_on=False)
+        get_override_group_for_change(AssignmentToQuib(self, assignment)).apply()
+
+        # self.override(assignment, allow_overriding_from_now_on=False)
 
     @raise_quib_call_exceptions_as_own
     def assign_value(self, value: Any) -> None:
@@ -431,8 +435,8 @@ class Quib:
         # getitem and will issue a warning)
         # 2. We need the function to not be created dynamically as it needs to be in the inverser's supported functions
         # in order to be inversed correctly (and not simply override)
-        from pyquibbler.quib.function_quibs.transpositional.getitem_function_quib import GetItemFunctionQuib
-        return GetItemFunctionQuib.create(func=getitem, func_args=[self, item])
+        from pyquibbler.quib.refactor.factory import create_quib
+        return create_quib(func=getitem, args=[self, item])
 
     def __setitem__(self, key, value):
         from ..assignment.assignment import PathComponent
@@ -462,13 +466,10 @@ class Quib:
     def allow_overriding(self) -> bool:
         return self._allow_overriding
 
-    @abstractmethod
-    def _get_inner_functional_representation_expression(self) -> Union[MathExpression, str]:
-        pass
-
     def get_functional_representation_expression(self) -> Union[MathExpression, str]:
+        from pyquibbler.quib.function_quibs.pretty_converters import pretty_convert
         try:
-            return self._get_inner_functional_representation_expression()
+            return pretty_convert.get_pretty_value_of_func_with_args_and_kwargs(self.func, self.args, self.kwargs)
         except Exception as e:
             logger.warning(f"Failed to get repr {e}")
             return "[exception during repr]"
@@ -647,11 +648,11 @@ class Quib:
         self._children.remove(quib_to_remove)
 
     @property
-    @abstractmethod
     def parents(self) -> Set[Quib]:
         """
         Returns a list of quibs that this quib depends on.
         """
+        return set(iter_quibs_in_args(self.args, self.kwargs))
 
     @cached_property
     def ancestors(self) -> Set[Quib]:
@@ -679,7 +680,6 @@ class Quib:
         return []
 
     @property
-    @abstractmethod
     def _default_save_directory(self) -> Optional[pathlib.Path]:
         pass
 

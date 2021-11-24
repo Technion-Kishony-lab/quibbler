@@ -198,9 +198,6 @@ def test_set_assignment_template_with_range(example_quib):
 
 
 
-## MAOR: FINISHED MOVING TILL HERE
-
-
 def test_quib_override_without_assignment_template():
     quib = ExampleQuib(['old item'])
     new_item = 'new item'
@@ -216,6 +213,11 @@ def test_quib_override_with_assignment_template(example_quib, assignment_templat
     assignment_template_mock.convert.assert_called_with('val')
     assert result == assignment_template_mock.convert.return_value
 
+
+
+
+
+## MAOR: FINISHED MOVING TILL HERE
 
 def test_quib_updates_override_after_assignment_template_changed(example_quib, assignment_template_mock):
     example_quib[0] = 'val'
@@ -276,6 +278,7 @@ def test_quib_get_inversed_quibs_with_assignments(data, overrides, expected_mask
     assert np.array_equal(quib.get_override_mask().get_value(), expected_mask)
 
 
+# TODO: Convert when done with translation
 @mark.regression
 def test_quib_get_override_mask_with_list():
     quib = ExampleQuib([10, [21, 22], 30])
@@ -286,6 +289,7 @@ def test_quib_get_override_mask_with_list():
     assert mask.get_value() == [False, [False, True], False]
 
 
+# TODO: Convert when done with translation
 @mark.regression
 def test_quib_get_override_mask_with_override_removal():
     quib = ExampleQuib([0, [1, 2], 3])
@@ -296,6 +300,7 @@ def test_quib_get_override_mask_with_override_removal():
     mask = quib.get_override_mask().get_value()
 
     assert mask == [True, [False, True], True]
+
 
 
 def test_quib_iter_first(example_quib):
@@ -310,7 +315,7 @@ def test_quib_getitem(example_quib):
     assert function_quib.func == operator.getitem
     assert function_quib.get_value() == example_quib.value[0]
 
-
+# TODO MAOR: I am here..
 @mark.regression
 def test_quib_add_with_float_does_not_return_not_implemented():
     function_quib = ExampleQuib(1)
