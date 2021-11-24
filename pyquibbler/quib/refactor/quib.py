@@ -733,7 +733,3 @@ class Quib:
             with open(self._save_path, 'rb') as f:
                 self._overrider = pickle.load(f)
                 self.invalidate_and_redraw_at_path([])
-
-
-Quib.create = classmethod(factory.create_quib)
-

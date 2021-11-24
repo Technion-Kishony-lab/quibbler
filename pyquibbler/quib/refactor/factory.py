@@ -1,10 +1,11 @@
 import types
 
 from pyquibbler.quib.refactor.iterators import iter_quibs_in_args
+from pyquibbler.quib.refactor.quib import Quib
 from pyquibbler.quib.utils import deep_copy_without_quibs_or_graphics
 
 
-def create_quib(cls, func, args=(), kwargs=None, cache_behavior=None, evaluate_now=False, is_known_graphics_func=False,
+def create_quib(func, args=(), kwargs=None, cache_behavior=None, evaluate_now=False, is_known_graphics_func=False,
                 **init_kwargs):
     """
     Public constructor for creating a quib.
@@ -21,9 +22,9 @@ def create_quib(cls, func, args=(), kwargs=None, cache_behavior=None, evaluate_n
         kwargs = {}
     kwargs = {k: deep_copy_without_quibs_or_graphics(v) for k, v in kwargs.items()}
     args = deep_copy_without_quibs_or_graphics(args)
-    quib = cls(func=func, args=args, kwargs=kwargs,
-               cache_behavior=cache_behavior, assignment_template=None, allow_overriding=False,
-               is_known_graphics_func=is_known_graphics_func, **init_kwargs)
+    quib = Quib(func=func, args=args, kwargs=kwargs,
+                cache_behavior=cache_behavior, assignment_template=None, allow_overriding=False,
+                is_known_graphics_func=is_known_graphics_func, **init_kwargs)
     for arg in iter_quibs_in_args(args, kwargs):
         arg.add_child(quib)
 

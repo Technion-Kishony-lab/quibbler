@@ -81,6 +81,7 @@ def test_quib_invalidate_and_redraw_calls_graphics_function_quib_children(exampl
     assert mock_func.call_count == 2  # once for our original get_value, once for the redraw after invalidation
 
 
+# TODO: Move as part of operators
 @mark.parametrize(['val1', 'val2'], [
     (1, 2),
     (1., 2.),
@@ -108,6 +109,7 @@ def test_quib_forward_and_inverse_arithmetic_operators(operator_name: str, val1,
         assert op(val1, quib2).get_value() == op(val1, val2)
 
 
+# TODO: Move as part of operators
 def test_quib_divmod():
     quib1 = ExampleQuib(1)
     quib2 = ExampleQuib(2)
@@ -119,6 +121,7 @@ def test_quib_divmod():
     assert divmod(quib1.value, quib2).get_value() == divmod(quib1.value, quib2.value)
 
 
+# TODO: Move as part of operators
 @mark.parametrize('val', [1, 1., -1, -1.])
 @mark.parametrize('operator_name', [override[1] for override in UNARY_OVERRIDES])
 def test_quib_unary_operators(operator_name, val):
@@ -134,6 +137,7 @@ def test_quib_unary_operators(operator_name, val):
         assert result_quib.get_value() == op(val)
 
 
+# TODO: Move as part of operators
 @mark.parametrize('val', [1, 1., -1, -1.])
 @mark.parametrize('op', [round, trunc, floor, ceil])
 def test_quib_rounding_operators(op, val):
@@ -155,6 +159,8 @@ def test_quib_removes_dead_children_automatically():
 
     child_invalidate.assert_not_called()
 
+
+## MAOR: FINISHED MOVING TILL HERE
 
 @mark.regression
 def test_quib_invalidates_children_recursively(example_quib):

@@ -2,6 +2,7 @@ from unittest import mock
 
 import pytest
 
+from pyquibbler.quib.refactor.factory import create_quib
 from pyquibbler.quib.refactor.quib import Quib
 
 
@@ -20,7 +21,7 @@ def quib():
 
 @pytest.fixture()
 def graphics_quib(quib):
-    return Quib.create(
+    return create_quib(
         func=mock.Mock(),
         args=(quib,),
         kwargs={},
@@ -35,8 +36,21 @@ def test_quib_invalidate_and_redraw_calls_children_with_graphics(quib, graphics_
 
 
 def test_quib_does_not_redraw_when_child_is_not_graphics_quib(quib):
-    non_graphics_quib = Quib.create(func=mock.Mock(), args=(quib,), kwargs={})
+    non_graphics_quib = create_quib(func=mock.Mock(), args=(quib,), kwargs={})
 
     quib.invalidate_and_redraw_at_path()
 
     non_graphics_quib.func.assert_not_called()
+
+
+def test_quib_removes_dead_children_automatically(quib):
+    mock_func = mock.Mock()
+    child = create_quib(func=mock_func, args=(quib,), kwargs={}, is_known_graphics_func=True)
+    quib.add_child(child)
+
+    del child
+    quib.invalidate_and_redraw_at_path(path=[])
+
+    mock_func.assert_not_called()
+
+
