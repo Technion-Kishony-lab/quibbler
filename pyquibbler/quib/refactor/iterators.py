@@ -56,6 +56,18 @@ def iter_objects_of_type_in_object_recursively(object_type: Type,
                                                                           sub_obj, next_max_depth, max_length)
 
 
+def is_iterator_empty(iterator):
+    """
+    Check if a given iterator is empty by getting one item from it.
+    Note that this item will be lost!
+    """
+    try:
+        next(iterator)
+        return False
+    except StopIteration:
+        return True
+
+
 def iter_objects_of_type_in_object_shallowly(object_type: Type, obj: Any):
     """
     Returns an iterator for quib objects nested within the given python object,

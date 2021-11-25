@@ -10,7 +10,7 @@ from pyquibbler.quib.refactor.quib import Quib
 
 
 # TODO: should iquib simply be a function that is overridden? How would we handle all flags etc?
-from pyquibbler.quib.utils import is_there_a_quib_in_object
+from pyquibbler.quib.refactor.utils import is_there_a_quib_in_object
 
 
 @dataclass
@@ -30,6 +30,7 @@ identity_function.__name__ = 'iquib'
 
 
 def iquib(value: Any):
+    # TODO: add docs
     if DEBUG:
         if is_there_a_quib_in_object(value, force_recursive=True):
             raise CannotNestQuibInIQuibException(value)
