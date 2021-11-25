@@ -5,7 +5,6 @@ from matplotlib.artist import Artist
 
 from pyquibbler.graphics import global_collecting
 from pyquibbler.quib.refactor.factory import create_quib
-from pyquibbler.quib.refactor.iquib import iquib
 
 
 @pytest.fixture()
@@ -55,3 +54,24 @@ def test_quib_removes_artists_on_rerun(parent_quib, graphics_quib, mock_axes):
     parent_quib.invalidate_and_redraw_at_path()
 
     assert len(mock_axes.artists) == 1
+
+
+@pytest.mark.regression
+def test_graphics_function_quib_doesnt_fail_on_removal_of_artists(create_quib_with_return_value, axes):
+    quib = create_quib_with_return_value([1, 2, 3], allow_overriding=True)
+    assert quib.get_value() == [1, 2, 3]
+    axes.plot(quib)
+    axes.cla()
+
+    quib[0] = 10
+
+
+def test_graphics_function_quib_copy_color(axes, create_quib_with_return_value):
+    quib = create_quib_with_return_value([1., 2., 3.])
+    plot_quib = axes.plot(quib)
+    artist_color_upon_creation = plot_quib.get_value()[0].get_color()
+
+    quib.invalidate_and_redraw_at_path()
+
+    artist_color_after_redraw = plot_quib.get_value()[0].get_color()
+    assert artist_color_upon_creation == artist_color_after_redraw
