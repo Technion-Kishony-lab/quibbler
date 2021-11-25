@@ -23,8 +23,7 @@ from pyquibbler.quib.assignment.utils import FailedToDeepAssignException
 from pyquibbler.quib.function_quibs.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own, \
     add_quib_to_fail_trace_if_raises_quib_call_exception, external_call_failed_exception_handling
 from pyquibbler.quib.override_choice import OverrideRemoval
-from pyquibbler.quib.quib_varname import get_var_name_being_set_outside_of_pyquibbler, get_file_name_and_line_number_of_quib
-from pyquibbler.quib.assignment import AssignmentTemplate, RangeAssignmentTemplate, BoundAssignmentTemplate, Overrider, Assignment, \
+from pyquibbler.quib.assignment import AssignmentTemplate, Overrider, Assignment, \
     AssignmentToQuib
 from pyquibbler.quib.function_quibs.cache import create_cache
 from pyquibbler.quib.function_quibs.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
@@ -60,7 +59,7 @@ def get_user_friendly_name_for_requested_valid_path(valid_path: Optional[List[Pa
         return f'get_value_valid_at_path({valid_path})'
 
 
-class Quib:
+class Quib(ReprMixin):
     """
     An abstract class to describe the common methods and attributes of all quib types.
     """
@@ -462,36 +461,6 @@ class Quib:
     @property
     def allow_overriding(self) -> bool:
         return self._allow_overriding
-
-    def get_functional_representation_expression(self) -> Union[MathExpression, str]:
-        from pyquibbler.quib.refactor.repr.pretty_converters import pretty_convert
-        try:
-            return pretty_convert.get_pretty_value_of_func_with_args_and_kwargs(self.func, self.args, self.kwargs)
-        except Exception as e:
-            logger.warning(f"Failed to get repr {e}")
-            return "[exception during repr]"
-
-    @property
-    def functional_representation(self) -> str:
-        """
-        Get a string representing a functional representation of the quib.
-        For example, in
-        ```
-        a = iquib(4)
-        ```
-        "iquib(4)" would be the functional representation
-        """
-        return str(self.get_functional_representation_expression())
-
-    def pretty_repr(self):
-        """
-        Returns a pretty representation of the quib. Might calculate values of parent quibs.
-        """
-        return f"{self.name} = {self.functional_representation}" \
-            if self.name is not None else self.functional_representation
-
-    def __str__(self):
-        return self.pretty_repr()
 
     def get_assignment_template(self) -> AssignmentTemplate:
         return self._assignment_template

@@ -1,3 +1,4 @@
+from pyquibbler.iterators import is_iterator_empty
 from pyquibbler.quib.refactor.iterators import iter_quibs_in_object, iter_quibs_in_args
 
 
