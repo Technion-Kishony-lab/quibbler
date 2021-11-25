@@ -7,18 +7,17 @@ import pickle
 import types
 
 import numpy as np
-from functools import wraps
 from functools import cached_property
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
 from operator import getitem
 from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Callable, Dict, Union, Iterable, Mapping
 from weakref import WeakSet
 from contextlib import contextmanager
 
+from pyquibbler.graphics.graphics_collection import GraphicsCollection
 from pyquibbler.quib import get_override_group_for_change
 from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
-from pyquibbler.quib.quib_guard import add_new_quib_to_guard_if_exists, guard_get_value
+from pyquibbler.quib.graphics.graphics_function_quib import create_array_from_func
+from pyquibbler.quib.quib_guard import add_new_quib_to_guard_if_exists, guard_get_value, QuibGuard
 from pyquibbler.quib.assignment.assignment_template import InvalidTypeException, create_assignment_template
 from pyquibbler.quib.assignment.utils import FailedToDeepAssignException
 from pyquibbler.quib.function_quibs.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own, \
@@ -85,6 +84,7 @@ class Quib:
         self._is_known_graphics_func = is_known_graphics_func
         self._cache = None
         self._name = name
+        self._graphics_collections: Optional[np.array] = None
 
         # Can't use WeakSet because it can change during iteration
         self._children = WeakSet()
@@ -115,12 +115,12 @@ class Quib:
         return self._kwargs
 
     @property
-    def is_graphics_func(self):
+    def func_creates_graphics(self):
         return self._is_known_graphics_func or self._did_create_graphics
 
     @property
     def _did_create_graphics(self) -> bool:
-        return False
+        return any(graphics_collection.artists for graphics_collection in self._flat_graphics_collections())
 
     @property
     def cache_status(self):
@@ -134,6 +134,9 @@ class Quib:
 
     def redraw_if_appropriate(self):
         self.get_value()
+
+    def _flat_graphics_collections(self):
+        return list(self._graphics_collections.flat) if self._graphics_collections else []
 
     @property
     def project(self) -> Project:
@@ -193,7 +196,7 @@ class Quib:
         """
         Get all artists that directly or indirectly depend on this quib.
         """
-        return {child for child in self._get_children_recursively() if child.is_graphics_func}
+        return {child for child in self._get_children_recursively() if child.func_creates_graphics}
 
     def _redraw(self) -> None:
         """
@@ -256,6 +259,9 @@ class Quib:
         For example, a simple implementation for a quib which is a function could be setting a boolean to true or
         false signifying validity
         """
+
+    def _get_loop_shape(self) -> Tuple[int, ...]:
+        return ()
 
     @staticmethod
     def _apply_assignment_to_cache(original_value, cache, assignment):
@@ -515,10 +521,31 @@ class Quib:
         new_kwargs = {key: recursively_run_func_on_object(replace_func, val) for key, val in self.kwargs.items()}
         return new_args, new_kwargs
 
+    def _initialize_graphics_collections(self):
+        """
+        Initialize the array representing all the graphics_collection objects for all iterations of the function
+        """
+        loop_shape = self._get_loop_shape()
+        if self._graphics_collections is not None and self._graphics_collections.shape != loop_shape:
+            for graphics_collection in self._flat_graphics_collections():
+                graphics_collection.remove_artists()
+            self._graphics_collections = None
+        if self._graphics_collections is None:
+            self._graphics_collections = create_array_from_func(GraphicsCollection, loop_shape)
+
     def _call_func(self, valid_path: List[PathComponent]):
-        new_args, new_kwargs = self._prepare_args_for_call(valid_path)
-        with external_call_failed_exception_handling():
-            return self.func(*new_args, **new_kwargs)
+        self._initialize_graphics_collections()
+
+        # TODO: how do we choose correct indexes for graphics collection?
+        graphics_collection: GraphicsCollection = self._graphics_collections[()]
+
+        # TODO: pass_quibs
+        # TODO: quib_guard
+
+        with graphics_collection.track(kwargs_specified_in_artists_creation=set(self.kwargs.keys())):
+            new_args, new_kwargs = self._prepare_args_for_call(valid_path)
+            with external_call_failed_exception_handling():
+                return self.func(*new_args, **new_kwargs)
 
     @raise_quib_call_exceptions_as_own
     def get_value_valid_at_path(self, path: Optional[List[PathComponent]]) -> Any:
