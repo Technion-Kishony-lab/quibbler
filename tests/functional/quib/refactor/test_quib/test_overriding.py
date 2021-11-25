@@ -1,83 +1,28 @@
-import operator
 from unittest import mock
 
 import numpy as np
 import pytest
 
-from pyquibbler.quib.assignment import BoundAssignmentTemplate, RangeAssignmentTemplate
+from pyquibbler.input_validation_utils import InvalidArgumentException
+from pyquibbler.quib.assignment import BoundAssignmentTemplate, RangeAssignmentTemplate, InvalidTypeException
+from pyquibbler.quib.assignment.utils import FailedToDeepAssignException
+from pyquibbler.quib.refactor.exceptions import OverridingNotAllowedException
 from pyquibbler.quib.refactor.factory import create_quib
-from pyquibbler.quib.refactor.quib import Quib
 from tests.functional.quib.utils import get_mock_with_repr, slicer
 
 
-@pytest.fixture()
-def quib():
-    return Quib(
-        func=mock.Mock(),
-        args=tuple(),
-        kwargs={},
-        allow_overriding=False,
-        assignment_template=None,
-        cache_behavior=None,
-        is_known_graphics_func=False
-    )
+def test_quib_must_assign_bool_to_overriding(quib):
+    with pytest.raises(InvalidArgumentException):
+        quib.set_allow_overriding(1)
 
 
-@pytest.fixture()
-def graphics_quib(quib):
-    return create_quib(
-        func=mock.Mock(),
-        args=(quib,),
-        kwargs={},
-        is_known_graphics_func=True
-    )
+def test_quib_fails_when_not_matching_assignment_template():
+    quib = create_quib(mock.Mock(return_value=[1, 2, 3]), allow_overriding=True)
+    quib.set_assignment_template(1, 3)
+    quib.assign_value_to_key(key=2, value="hello johnny")
 
-
-def test_quib_invalidate_and_redraw_calls_children_with_graphics(quib, graphics_quib):
-    quib.invalidate_and_redraw_at_path()
-
-    graphics_quib.func.assert_called_once()
-
-
-def test_quib_does_not_redraw_when_child_is_not_graphics_quib(quib):
-    non_graphics_quib = create_quib(func=mock.Mock(), args=(quib,), kwargs={})
-
-    quib.invalidate_and_redraw_at_path()
-
-    non_graphics_quib.func.assert_not_called()
-
-
-def test_quib_removes_dead_children_automatically(quib):
-    mock_func = mock.Mock()
-    child = create_quib(func=mock_func, args=(quib,), kwargs={}, is_known_graphics_func=True)
-    quib.add_child(child)
-
-    del child
-    quib.invalidate_and_redraw_at_path(path=[])
-
-    mock_func.assert_not_called()
-
-
-@pytest.mark.regression
-def test_quib_invalidates_children_recursively(quib, create_mock_quib):
-    child = create_quib(func=mock.Mock(), args=(quib,), kwargs={})
-    grandchild = create_mock_quib()
-    child.add_child(grandchild)
-
-    quib.invalidate_and_redraw_at_path([])
-
-    grandchild._invalidate_quib_with_children_at_path.assert_called_once()
-
-
-@pytest.mark.regression
-def test_quib_invalidates_children_recursively(quib, create_mock_quib):
-    child = create_quib(func=mock.Mock(), args=(quib,), kwargs={})
-    grandchild = create_mock_quib()
-    child.add_child(grandchild)
-
-    quib.invalidate_and_redraw_at_path([])
-
-    grandchild._invalidate_quib_with_children_at_path.assert_called_once()
+    with pytest.raises(InvalidTypeException):
+        quib.get_value()
 
 
 @pytest.mark.parametrize(['args', 'expected_template'], [
@@ -152,16 +97,6 @@ def test_quib_get_override_list_shows_user_friendly_information_about_overrides(
     assert value_repr in overrides_repr
 
 
-### TODO: END OVERRIDING TESTS
-
-
-def test_quib_get_shape():
-    arr = np.array([1, 2, 3])
-    quib = create_quib(mock.Mock(return_value=arr))
-
-    assert quib.get_shape() == arr.shape
-
-
 @pytest.mark.parametrize(['data', 'overrides', 'expected_mask'], [
     ([], [], []),
     ([0], [], [False]),
@@ -172,37 +107,49 @@ def test_quib_get_shape():
     ([[0, 1], [2, 3]], [((0, 0), 5)], [[True, False], [False, False]]),
     ([[0, 1], [2, 3]], [(slicer[:], 5)], [[True, True], [True, True]]),
 ])
-def test_quib_get_inversed_quibs_with_assignments(data, overrides, expected_mask):
+def test_quib_get_override_mask(data, overrides, expected_mask):
     quib = create_quib(func=mock.Mock(return_value=np.array(data)), allow_overriding=True)
     for key, value in overrides:
         quib[key] = value
     assert np.array_equal(quib.get_override_mask().get_value(), expected_mask)
 
+
+def test_quib_override_when_overriding_not_allowed(quib):
+    override = mock.Mock()
+
+    with pytest.raises(OverridingNotAllowedException) as exc_info:
+        quib.override(override, allow_overriding_from_now_on=False)
+
+    assert exc_info.value.quib is quib
+    assert exc_info.value.override is override
+    assert isinstance(str(exc_info.value), str)
+
+
 # TODO: when done with translation...
-# @pytest.mark.regression
-# def test_quib_get_override_mask_with_list():
-#     quib = create_quib(func=mock.Mock(return_value=[10, [21, 22], 30]), allow_overriding=True)
-#     quib[1][1] = 222
-#
-#     mask = quib.get_override_mask()
-#
-#     assert mask.get_value() == [False, [False, True], False]
-#
-#
+@pytest.mark.regression
+def test_quib_get_override_mask_with_list():
+    quib = create_quib(func=mock.Mock(return_value=[10, [21, 22], 30]), allow_overriding=True)
+    quib[1][1] = 222
+
+    mask = quib.get_override_mask()
+
+    assert mask.get_value() == [False, [False, True], False]
 
 
-# TODO: Where should iter tests be? Is this ok?
-def test_quib_iter_first(quib):
-    quib.func.return_value = [1, 2, 3]
-    first, second = quib.iter_first()
+def test_quib_does_not_fail_when_assignment_fails_on_second_get_value():
+    quib = create_quib(mock.Mock(return_value=[1, 2, 3]), allow_overriding=True)
+    quib.assign_value_to_key(key=2, value=1)
+    quib.get_value()
+    quib.assign_value([1])
 
-    assert (first.get_value(), second.get_value()) == tuple(quib.func.return_value[:2])
+    # just make sure we don't fail
+    quib.get_value()
 
 
-def test_quib_getitem(quib):
-    quib.func.return_value = [1, 2, 3]
+def test_quib_fails_when_given_invalid_assignment_on_first_get_value():
+    quib = create_quib(mock.Mock(return_value=[1, 2, 3]), allow_overriding=True)
+    quib.assign_value_to_key(key=4, value=1)
 
-    getitem_quib = quib[0]
+    with pytest.raises(FailedToDeepAssignException):
+        quib.get_value()
 
-    assert getitem_quib.func == operator.getitem
-    assert getitem_quib.get_value() == quib.func.return_value[0]

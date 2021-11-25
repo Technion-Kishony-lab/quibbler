@@ -29,11 +29,11 @@ from pyquibbler.quib.assignment import AssignmentTemplate, RangeAssignmentTempla
     AssignmentToQuib
 from pyquibbler.quib.function_quibs.cache import create_cache
 from pyquibbler.quib.function_quibs.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
-from pyquibbler.quib.function_quibs.pretty_converters import MathExpression
 from pyquibbler.quib.refactor.cache_behavior import CacheBehavior
 from pyquibbler.quib.refactor.exceptions import OverridingNotAllowedException
 from pyquibbler.quib.refactor.iterators import iter_quibs_in_args
 from pyquibbler.quib.refactor.method_caching import cache_method_until_full_invalidation
+from pyquibbler.quib.refactor.repr.pretty_converters import MathExpression
 from pyquibbler.quib.refactor.repr.repr_mixin import ReprMixin
 from pyquibbler.quib.utils import quib_method, Unpacker, recursively_run_func_on_object, \
     deep_copy_without_quibs_or_graphics, QuibRef
@@ -458,7 +458,7 @@ class Quib:
         return self._allow_overriding
 
     def get_functional_representation_expression(self) -> Union[MathExpression, str]:
-        from pyquibbler.quib.function_quibs.pretty_converters import pretty_convert
+        from pyquibbler.quib.refactor.repr.pretty_converters import pretty_convert
         try:
             return pretty_convert.get_pretty_value_of_func_with_args_and_kwargs(self.func, self.args, self.kwargs)
         except Exception as e:
