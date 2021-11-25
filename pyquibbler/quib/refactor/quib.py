@@ -73,7 +73,10 @@ class Quib:
                  cache_behavior: Optional[CacheBehavior],
                  assignment_template: AssignmentTemplate,
                  allow_overriding: bool,
-                 is_known_graphics_func: bool):
+                 is_known_graphics_func: bool,
+                 name: Optional[str],
+                 file_name: Optional[str],
+                 line_no: Optional[str]):
         self._func = func
         self._args = args
         self._kwargs = kwargs
@@ -81,6 +84,7 @@ class Quib:
         self._assignment_template = assignment_template
         self._is_known_graphics_func = is_known_graphics_func
         self._cache = None
+        self._name = name
 
         # Can't use WeakSet because it can change during iteration
         self._children = WeakSet()
@@ -91,19 +95,8 @@ class Quib:
         self._quibs_allowed_to_assign_to = None
         self._override_choice_cache = {}
         self.created_in_get_value_context = self._IS_WITHIN_GET_VALUE_CONTEXT
-
-        should_get_variable_names = GET_VARIABLE_NAMES and not self.created_in_get_value_context
-        should_get_file_name_and_line = SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS and not \
-            self.created_in_get_value_context
-        try:
-            self._name = get_var_name_being_set_outside_of_pyquibbler() if should_get_variable_names else None
-            self.file_name, self.line_no = (get_file_name_and_line_number_of_quib()
-                                            if should_get_file_name_and_line else None, None)
-        except Exception as e:
-            logger.warning(f"Failed to get name, exception {e}")
-            self._name = None
-            self.file_name = None
-            self.line_no = None
+        self.file_name = file_name
+        self.line_no = line_no
 
         self.project.register_quib(self)
         self._user_defined_save_directory = None
@@ -411,8 +404,6 @@ class Quib:
         assignment's value
         """
         get_override_group_for_change(AssignmentToQuib(self, assignment)).apply()
-
-        # self.override(assignment, allow_overriding_from_now_on=False)
 
     @raise_quib_call_exceptions_as_own
     def assign_value(self, value: Any) -> None:
