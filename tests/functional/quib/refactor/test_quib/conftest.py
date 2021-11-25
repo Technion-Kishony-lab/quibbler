@@ -37,3 +37,11 @@ def graphics_quib(quib):
         kwargs={},
         is_known_graphics_func=True
     )
+
+
+@pytest.fixture()
+def mock_axes():
+    axes = mock.Mock()
+    axes.figure.canvas.supports_blit = False
+    axes.artists = []
+    return axes

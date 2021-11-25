@@ -14,6 +14,7 @@ from matplotlib.text import Text
 
 from pyquibbler.graphics.global_collecting import ArtistsCollector, AxesWidgetsCollector
 
+
 ArrayNameToArtists = Dict[str, List[Artist]]
 
 TYPES_TO_ARTIST_ARRAY_NAMES = {

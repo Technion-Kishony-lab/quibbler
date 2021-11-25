@@ -19,6 +19,7 @@ def get_graphics_quib(func):
     )
 
 
+# NOPE: Shitty test
 def test_graphics_function_quib_get_value_returns_value():
     mock_func = mock.Mock(return_value='mock_func.return_value')
     quib = get_graphics_quib(mock_func)

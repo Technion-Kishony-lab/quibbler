@@ -1,4 +1,4 @@
-from pyquibbler.quib.refactor.iterators import is_iterator_empty, iter_quibs_in_object, iter_quibs_in_args
+from pyquibbler.quib.refactor.iterators import iter_quibs_in_object, iter_quibs_in_args
 
 
 def is_there_a_quib_in_object(obj, force_recursive: bool = False):
