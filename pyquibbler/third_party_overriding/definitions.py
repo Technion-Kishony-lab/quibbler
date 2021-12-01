@@ -5,6 +5,7 @@ from types import ModuleType
 from typing import Callable, Any, Dict, Union, Type, Optional
 
 from pyquibbler.quib.refactor.factory import create_quib
+from pyquibbler.quib.refactor.utils import is_there_a_quib_in_args
 
 
 @dataclass
@@ -29,11 +30,13 @@ class OverrideDefinition:
 
         @functools.wraps(previous_func)
         def _create_quib(*args, **kwargs):
-            return create_quib(
-                func=previous_func,
-                args=args,
-                kwargs=kwargs,
-                **self._flags
-            )
+            if is_there_a_quib_in_args(args, kwargs):
+                return create_quib(
+                    func=previous_func,
+                    args=args,
+                    kwargs=kwargs,
+                    **self._flags
+                )
+            return previous_func(*args, **kwargs)
 
         setattr(self.module_or_cls, self.func_name, _create_quib)
