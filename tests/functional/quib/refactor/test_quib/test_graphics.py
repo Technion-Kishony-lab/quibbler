@@ -105,3 +105,20 @@ def test_graphics_quib_update_on_drag(update_type, should_have_called, quib, gra
         quib.invalidate_and_redraw_at_path([])
 
     assert len(graphics_quib.func.mock_calls) == (1 if should_have_called else 0)
+
+
+def test_graphics_quib_update_on_drop(quib, graphics_quib):
+    graphics_quib.set_redraw_update_type(UpdateType.DROP)
+
+    quib.invalidate_and_redraw_at_path([])
+
+    assert len(graphics_quib.func.mock_calls) == 1
+
+
+@pytest.mark.parametrize("update_type", ["never", "central"])
+def test_graphics_quib_which_should_never_update(update_type, quib, graphics_quib):
+    graphics_quib.set_redraw_update_type(update_type)
+
+    quib.invalidate_and_redraw_at_path([])
+
+    assert len(graphics_quib.func.mock_calls) == 0
