@@ -6,6 +6,7 @@ from typing import Dict, Any
 import matplotlib
 from matplotlib.axes import Axes
 
+from pyquibbler.env import GRAPHICS_EVALUATE_NOW
 from pyquibbler.third_party_overriding.definitions import OverrideDefinition
 
 
@@ -16,7 +17,7 @@ class GraphicsOverrideDefinition(OverrideDefinition):
     def _default_creation_flags(self) -> Dict[str, Any]:
         return dict(
             is_known_graphics_func=True,
-            evaluate_now=True
+            evaluate_now=GRAPHICS_EVALUATE_NOW
         )
 
 

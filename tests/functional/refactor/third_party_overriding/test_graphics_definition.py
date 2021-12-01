@@ -6,22 +6,22 @@ from pyquibbler.env import GRAPHICS_EVALUATE_NOW
 from pyquibbler.third_party_overriding.graphics_overriding import GraphicsOverrideDefinition
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 def mock_module():
     return mock.Mock()
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 def func_name_to_override():
     return "hello_my_good_good_friend"
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 def func_mock_on_module(mock_module, func_name_to_override):
     return getattr(mock_module, func_name_to_override)
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(autouse=True)
 def graphics_definition(mock_module, func_name_to_override, func_mock_on_module):
     definition = GraphicsOverrideDefinition(func_name=func_name_to_override, module_or_cls=mock_module)
     definition.override()
