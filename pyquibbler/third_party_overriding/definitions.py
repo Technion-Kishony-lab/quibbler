@@ -4,6 +4,7 @@ from types import ModuleType
 
 from typing import Callable, Any, Dict, Union, Type, Optional
 
+from pyquibbler.env import EVALUATE_NOW
 from pyquibbler.quib.refactor.factory import create_quib
 from pyquibbler.quib.refactor.utils import is_there_a_quib_in_args
 
@@ -31,11 +32,14 @@ class OverrideDefinition:
         @functools.wraps(previous_func)
         def _create_quib(*args, **kwargs):
             if is_there_a_quib_in_args(args, kwargs):
+                flags = self._flags
+                evaluate_now = flags.pop('evaluate_now', EVALUATE_NOW)
                 return create_quib(
                     func=previous_func,
                     args=args,
                     kwargs=kwargs,
-                    **self._flags
+                    evaluate_now=evaluate_now,
+                    **flags
                 )
             return previous_func(*args, **kwargs)
 

@@ -5,9 +5,9 @@ from pyquibbler.env import GET_VARIABLE_NAMES, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRAC
 from pyquibbler.logger import logger
 from pyquibbler.quib.refactor.iterators import iter_quibs_in_args
 from pyquibbler.quib.refactor.quib import Quib
+from pyquibbler.quib.refactor.utils import deep_copy_without_quibs_or_graphics
 from pyquibbler.quib.refactor.variable_metadata import get_var_name_being_set_outside_of_pyquibbler, \
     get_file_name_and_line_number_of_quib
-from pyquibbler.quib.utils import deep_copy_without_quibs_or_graphics
 
 
 def unwrap_func_if_quib_class(func):

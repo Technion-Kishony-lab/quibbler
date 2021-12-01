@@ -55,6 +55,7 @@ def test_create_wrapper_with_regular_args(function_wrapper, function_mock):
     function_mock.assert_called_once_with(*args, **kwargs)
 
 
+# moved to overriding tests
 def test_create_wrapper_with_quib_args(function_wrapper, function_mock, function_mock_return_val):
     quib_val1 = 'ayy'
     quib_val2 = 'yo'
@@ -80,11 +81,12 @@ def test_cant_mutate_function_quib_args_after_creation(function_wrapper, functio
 
     function_mock.assert_called_once_with([], 'cool', a=[])
 
-
+# no need to move
 def test_func_get_value_returns_inner_value(function_wrapper, function_mock_return_val):
     assert function_wrapper(iquib(1)).get_value() == function_mock_return_val
 
 
+# no need to move
 def test_assign_with_unknown_function_overrides(function_wrapper, function_mock_return_val):
     q = function_wrapper(iquib(np.array([1])))
     q.set_allow_overriding(True)
@@ -133,6 +135,8 @@ def test_function_quib_get_value_valid_at_path_with_data_source_kwarg():
 
     assert len(paths) == 1
     assert [] not in paths
+
+# TODO: maor here
 
 
 class InvalidatingFunctionQuib(FunctionQuib):

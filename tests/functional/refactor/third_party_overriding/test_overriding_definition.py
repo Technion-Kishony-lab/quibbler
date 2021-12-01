@@ -1,5 +1,6 @@
 import pytest
 
+from pyquibbler.env import EVALUATE_NOW
 from pyquibbler.third_party_overriding.definitions import OverrideDefinition
 
 
@@ -33,3 +34,13 @@ def test_overriding_definition_does_call_func_when_no_quib_args(overriden_func, 
     overriden_func()
 
     func_mock_on_module.assert_called_once()
+
+
+def test_overriding_definition_defaults_to_evaluate_now_when_flag_set_to_true(overriden_func,
+                                                                              func_mock_on_module,
+                                                                              override, quib):
+    with EVALUATE_NOW.temporary_set(True):
+        override()
+        overriden_func(quib)
+
+        func_mock_on_module.assert_called_once()

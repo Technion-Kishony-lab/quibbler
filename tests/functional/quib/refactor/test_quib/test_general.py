@@ -54,3 +54,35 @@ def test_quib_knows_it_is_created_in_a_context():
         return 'yay'
 
     assert create_quib(func).get_value() == 'yay'
+
+
+def test_cant_mutate_function_quib_args_after_creation():
+    args = [[], 'cool']
+    kwargs = dict(a=[])
+    function_quib = create_quib(func=mock.Mock(), args=args, kwargs=kwargs)
+    args[0].append(1)
+    args.append(1)
+    kwargs['b'] = 1
+    kwargs['a'].append(1)
+
+    function_quib.get_value()
+
+    function_quib.func.assert_called_once_with([], 'cool', a=[])
+
+
+def test_parents(create_quib_with_return_value):
+    grandparent = create_quib_with_return_value(2)
+    parent1 = create_quib_with_return_value(1)
+    parent2 = create_quib(func=mock.Mock(), args=(grandparent,))
+    me = create_quib(func=mock.Mock(), args=(0, parent1, 2), kwargs=dict(a=parent2, b=3))
+
+    assert me.parents == {parent1, parent2}
+
+
+def test_quib_ancestors(create_quib_with_return_value):
+    great_grandparent = create_quib_with_return_value(1)
+    grandparent = create_quib(func=mock.Mock(), args=(great_grandparent,))
+    parent = create_quib(func=mock.Mock(), args=(grandparent,))
+    me = create_quib(func=mock.Mock(), args=(parent,))
+
+    assert me.ancestors == {great_grandparent, grandparent, parent}
