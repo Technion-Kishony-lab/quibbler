@@ -49,8 +49,6 @@ def test_graphics_function_quib_doesnt_fail_on_removal_of_artists(axes):
 
     input_quib[0] = 10
 
-# TODO: Maor here
-
 def test_graphics_function_quib_copy_color(axes):
     input_quib = iquib([1., 2., 3.])
     plot_quib = axes.plot(input_quib)
@@ -75,6 +73,7 @@ def test_graphics_function_quib_does_not_copy_color(axes):
     assert artist_color_after_color_change == [1, 1, 0]
 
 
+# Moved to test_graphics_definition
 def test_graphics_function_quib_does_not_run_when_evaluate_now_flag_set_to_false():
     func = mock.Mock()
 

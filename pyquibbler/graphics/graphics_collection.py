@@ -86,5 +86,3 @@ class GraphicsCollection:
         self._handle_new_artists(kwargs_specified_in_artists_creation,
                                  previous_axeses_to_array_names_to_indices_and_artists,
                                  new_artists=artists_collector.objects_collected)
-
-

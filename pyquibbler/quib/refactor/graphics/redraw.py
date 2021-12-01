@@ -28,10 +28,10 @@ def aggregate_redraw_mode():
             yield
         finally:
             IN_AGGREGATE_REDRAW_MODE = False
-        _redraw_graphics_function_quibs()
+        _redraw_quibs_with_graphics()
 
 
-def _redraw_graphics_function_quibs():
+def _redraw_quibs_with_graphics():
     quibs_that_are_invalid = [quib for quib in QUIBS_TO_REDRAW if quib.cache_status != CacheStatus.ALL_VALID]
     with timer("quib redraw", lambda x: logger.info(f"redrawing {len(quibs_that_are_invalid)} quibs: {x}s")):
         for graphics_function_quib in quibs_that_are_invalid:
@@ -42,13 +42,13 @@ def _redraw_graphics_function_quibs():
     QUIBS_TO_REDRAW.clear()
 
 
-def redraw_graphics_function_quibs_or_add_in_aggregate_mode(quibs: Set[Quib]):
+def redraw_quibs_with_graphics_or_add_in_aggregate_mode(quibs: Set[Quib]):
     global QUIBS_TO_REDRAW
     if IN_AGGREGATE_REDRAW_MODE:
         QUIBS_TO_REDRAW |= quibs
     else:
         QUIBS_TO_REDRAW = quibs
-        _redraw_graphics_function_quibs()
+        _redraw_quibs_with_graphics()
 
 
 def redraw_axeses(axeses: Set[Axes]):

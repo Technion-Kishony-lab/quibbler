@@ -28,7 +28,8 @@ from pyquibbler.quib.assignment import AssignmentTemplate, Overrider, Assignment
 from pyquibbler.quib.function_quibs.cache import create_cache
 from pyquibbler.quib.function_quibs.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
 from pyquibbler.quib.refactor.cache_behavior import CacheBehavior
-from pyquibbler.quib.refactor.exceptions import OverridingNotAllowedException
+from pyquibbler.quib.refactor.exceptions import OverridingNotAllowedException, UnknownUpdateTypeException
+from pyquibbler.quib.refactor.graphics import UpdateType
 from pyquibbler.quib.refactor.iterators import iter_quibs_in_args
 from pyquibbler.quib.refactor.method_caching import cache_method_until_full_invalidation
 from pyquibbler.quib.refactor.repr.pretty_converters import MathExpression
@@ -85,7 +86,6 @@ class Quib(ReprMixin):
         self._name = name
         self._graphics_collections: Optional[np.array] = None
 
-        # Can't use WeakSet because it can change during iteration
         self._children = WeakSet()
         self._overrider = Overrider()
         # TODO: For iquibs this needs to be true
@@ -96,7 +96,9 @@ class Quib(ReprMixin):
         self.created_in_get_value_context = self._IS_WITHIN_GET_VALUE_CONTEXT
         self.file_name = file_name
         self.line_no = line_no
+        self._redraw_update_type = UpdateType.DRAG
 
+        # TODO: Move to factory
         self.project.register_quib(self)
         self._user_defined_save_directory = None
         add_new_quib_to_guard_if_exists(self)
@@ -132,7 +134,15 @@ class Quib(ReprMixin):
         return []
 
     def redraw_if_appropriate(self):
-        self.get_value()
+        """
+        Redraws the quib if it's appropriate
+        """
+        from pyquibbler.quib.refactor.graphics import is_within_drag
+        if self._redraw_update_type in [UpdateType.NEVER, UpdateType.CENTRAL] \
+                or (self._redraw_update_type == UpdateType.DROP and is_within_drag()):
+            return
+
+        return self.get_value()
 
     def _flat_graphics_collections(self):
         return list(self._graphics_collections.flat) if self._graphics_collections else []
@@ -157,6 +167,18 @@ class Quib(ReprMixin):
         if 'name' in kwargs:
             self.set_name(kwargs.pop('name'))
         return self
+
+    @validate_user_input(update_type=(str, UpdateType))
+    def set_redraw_update_type(self, update_type: Union[str, UpdateType]):
+        """
+        Set when to redraw a quib- on "drag", on "drop", on "central" refresh, or "never" (see UpdateType enum)
+        """
+        if isinstance(update_type, str):
+            try:
+                update_type = UpdateType[update_type.upper()]
+            except KeyError:
+                raise UnknownUpdateTypeException(update_type)
+        self._redraw_update_type = update_type
 
     @validate_user_input(allow_overriding=bool)
     def set_allow_overriding(self, allow_overriding: bool):
@@ -191,7 +213,7 @@ class Quib(ReprMixin):
             children |= child._get_children_recursively()
         return children
 
-    def _get_graphics_function_quibs_recursively(self) -> Set[GraphicsFunctionQuib]:
+    def _get_graphics_function_quibs_recursively(self) -> Set[Quib]:
         """
         Get all artists that directly or indirectly depend on this quib.
         """
@@ -201,9 +223,9 @@ class Quib(ReprMixin):
         """
         Redraw all artists that directly or indirectly depend on this quib.
         """
-        from pyquibbler.quib.graphics.redraw import redraw_graphics_function_quibs_or_add_in_aggregate_mode
+        from pyquibbler.quib.refactor.graphics.redraw import redraw_quibs_with_graphics_or_add_in_aggregate_mode
         quibs = self._get_graphics_function_quibs_recursively()
-        redraw_graphics_function_quibs_or_add_in_aggregate_mode(quibs)
+        redraw_quibs_with_graphics_or_add_in_aggregate_mode(quibs)
 
     def set_assigned_quibs(self, quibs: Optional[Iterable[Quib]]) -> None:
         """

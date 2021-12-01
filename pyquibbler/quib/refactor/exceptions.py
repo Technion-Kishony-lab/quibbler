@@ -16,3 +16,12 @@ class OverridingNotAllowedException(PyQuibblerException):
 
     def __str__(self):
         return f'Cannot override {self.quib} with {self.override} as it does not allow overriding.'
+
+
+@dataclass
+class UnknownUpdateTypeException(PyQuibblerException):
+    attempted_update_type: str
+
+    def __str__(self):
+        return f"{self.attempted_update_type} is not a valid update type"
+

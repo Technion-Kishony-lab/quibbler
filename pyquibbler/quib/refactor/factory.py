@@ -46,7 +46,7 @@ def get_file_name_and_line_no() -> Tuple[Optional[str], Optional[str]]:
     should_get_file_name_and_line = SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS and not Quib._IS_WITHIN_GET_VALUE_CONTEXT
 
     try:
-        return (get_file_name_and_line_number_of_quib() if should_get_file_name_and_line else None, None)
+        return get_file_name_and_line_number_of_quib() if should_get_file_name_and_line else None, None
     except Exception as e:
         logger.warning(f"Failed to get file name + lineno, exception {e}")
 
