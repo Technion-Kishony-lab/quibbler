@@ -2,7 +2,7 @@ import pytest
 from matplotlib import pyplot as plt, widgets
 
 from pyquibbler import iquib
-from tests.integration.quib.graphics.widgets.utils import count_redraws
+from tests.integration.quib.graphics.widgets.utils import count_redraws, quibbler_image_comparison
 
 
 @pytest.fixture
@@ -22,6 +22,7 @@ def checkbox_quib(axes, actives_quib):
 
 
 @pytest.mark.regression
+@quibbler_image_comparison(baseline_images=['multiple_sets'])
 def test_checkbox_multiple_sets(get_only_live_widget, checkbox_quib, actives_quib):
     widget = get_only_live_widget()
 
@@ -32,3 +33,15 @@ def test_checkbox_multiple_sets(get_only_live_widget, checkbox_quib, actives_qui
 
     assert actives_quib.get_value() == [True, True, True]
     assert redraw_count.count == 3
+
+
+@quibbler_image_comparison(baseline_images=['unset'])
+def test_checkbox_unset(get_only_live_widget, checkbox_quib, actives_quib):
+    widget = get_only_live_widget()
+
+    with count_redraws(checkbox_quib) as redraw_count:
+        widget.set_active(0)
+        widget.set_active(0)
+
+    assert actives_quib.get_value() == [False, False, False]
+    assert redraw_count.count == 2

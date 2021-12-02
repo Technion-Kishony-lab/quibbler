@@ -1,3 +1,5 @@
+import gc
+
 import pytest
 from matplotlib.backend_bases import MouseEvent, FigureCanvasBase
 from matplotlib.widgets import AxesWidget
@@ -78,6 +80,7 @@ def get_live_widgets():
     track_instances_of_class(AxesWidget)
 
     def _get():
+        gc.collect()
         return list(get_all_instances_in_tracked_class(AxesWidget))
 
     yield _get

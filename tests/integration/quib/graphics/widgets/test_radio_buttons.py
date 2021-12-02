@@ -1,4 +1,5 @@
 import functools
+import gc
 
 import pytest
 from matplotlib import widgets, pyplot as plt
