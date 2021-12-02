@@ -6,6 +6,7 @@ import numpy as np
 import pytest
 
 from pyquibbler.input_validation_utils import InvalidArgumentException
+from pyquibbler.quib.refactor.cache_behavior import CacheBehavior
 from pyquibbler.quib.refactor.factory import create_quib
 
 
@@ -86,3 +87,4 @@ def test_quib_ancestors(create_quib_with_return_value):
     me = create_quib(func=mock.Mock(), args=(parent,))
 
     assert me.ancestors == {great_grandparent, grandparent, parent}
+

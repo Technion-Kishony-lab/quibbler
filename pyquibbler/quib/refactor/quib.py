@@ -29,7 +29,7 @@ from pyquibbler.quib.assignment import AssignmentTemplate, Overrider, Assignment
     AssignmentToQuib
 from pyquibbler.quib.function_quibs.cache import create_cache
 from pyquibbler.quib.function_quibs.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
-from pyquibbler.quib.refactor.cache_behavior import CacheBehavior
+from pyquibbler.quib.refactor.cache_behavior import CacheBehavior, UnknownCacheBehaviorException
 from pyquibbler.quib.refactor.exceptions import OverridingNotAllowedException, UnknownUpdateTypeException
 from pyquibbler.quib.refactor.graphics import UpdateType
 from pyquibbler.quib.refactor.iterators import iter_quibs_in_args
@@ -153,8 +153,20 @@ class Quib(ReprMixin):
     def project(self) -> Project:
         return Project.get_or_create()
 
+    def get_cache_behavior(self):
+        return self._cache_behavior
+
+    @validate_user_input(cache_behavior=(str, CacheBehavior))
+    def set_cache_behavior(self, cache_behavior: CacheBehavior):
+        if isinstance(cache_behavior, str):
+            try:
+                cache_behavior = CacheBehavior[cache_behavior.upper()]
+            except KeyError:
+                raise UnknownCacheBehaviorException(cache_behavior)
+        self._cache_behavior = cache_behavior
+
     def setp(self, allow_overriding: bool = None, assignment_template=None,
-             save_directory: Union[str, pathlib.Path] = None,
+             save_directory: Union[str, pathlib.Path] = None, cache_behavior: CacheBehavior = None,
              **kwargs):
         """
         Configure a quib with certain attributes- because this function is expected to be used by users, we never
@@ -166,6 +178,8 @@ class Quib(ReprMixin):
             self.set_assignment_template(assignment_template)
         if save_directory is not None:
             self.set_save_directory(save_directory)
+        if cache_behavior is not None:
+            self.set_cache_behavior(cache_behavior)
         if 'name' in kwargs:
             self.set_name(kwargs.pop('name'))
         return self
