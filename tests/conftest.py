@@ -100,7 +100,7 @@ def setup_assignment_restrictions(request):
 def set_backend():
     import matplotlib
     # A backend that doesn't do anything. We use it because some tests failed in the TK backend because of tk bugs
-    matplotlib.use("template")
+    matplotlib.use("TkAgg")
 
 
 @pytest.fixture

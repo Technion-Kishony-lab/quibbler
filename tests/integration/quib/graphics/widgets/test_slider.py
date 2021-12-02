@@ -36,6 +36,7 @@ def test_slider_graphics_function_quib_press_and_release_changes(axes, get_live_
     assert len(get_live_widgets()) == 1
 
 
+@quibbler_image_comparison(baseline_images=['keeps_same_widget'])
 def test_slider_graphics_function_quib_press_and_motion_notify_changes_and_keeps_same_widget(axes,
                                                                                              get_live_widgets,
                                                                                              create_button_press_event,
@@ -54,11 +55,12 @@ def test_slider_graphics_function_quib_press_and_motion_notify_changes_and_keeps
 
 
 @pytest.mark.regression
+@quibbler_image_comparison(baseline_images=['multiple_times'])
 def test_slider_graphics_function_quib_calls_multiple_times(axes, get_live_widgets, input_quib,
                                                             create_button_press_event,
                                                             create_motion_notify_event,
                                                             create_button_release_event, get_axes_start,
-                                                            slider_quib, get_axes_end):
+                                                            slider_quib, get_axes_end, get_axes_middle):
     with count_redraws(slider_quib) as redraw_count:
         create_button_press_event(*get_axes_start())
         create_motion_notify_event(*get_axes_end())

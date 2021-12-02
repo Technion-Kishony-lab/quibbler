@@ -21,6 +21,11 @@ def on_change_slider(args_values, new_value):
         val.assign_value(new_value)
 
 
+def set_change_slider(res, callback):
+    res.on_changed(callback)
+    res.on_release = callback
+
+
 @dataclass
 class WidgetOverrideDefinition(GraphicsOverrideDefinition):
 
@@ -45,7 +50,7 @@ widgets = [
     WidgetOverrideDefinition(
         func_name="Slider",
         on_change=on_change_slider,
-        set_on_change=lambda res, callback: res.on_changed(callback)
+        set_on_change=set_change_slider
     )
 ]
 

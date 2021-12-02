@@ -15,4 +15,4 @@ class QSlider(Slider):
     def drag_active(self, value):
         self._drag_active = value
         if value is False and self.on_release:
-            self.on_release()
+            self.on_release(self.val)
