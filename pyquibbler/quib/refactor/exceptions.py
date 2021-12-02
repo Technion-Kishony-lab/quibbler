@@ -2,11 +2,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from pyquibbler import Assignment
 from pyquibbler.exceptions import PyQuibblerException
 
 if TYPE_CHECKING:
     from pyquibbler.quib.refactor.quib import Quib
+    from pyquibbler import Assignment
 
 
 @dataclass

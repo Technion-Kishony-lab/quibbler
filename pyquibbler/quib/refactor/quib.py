@@ -550,6 +550,9 @@ class Quib(ReprMixin):
         with add_quib_to_fail_trace_if_raises_quib_call_exception(self, name_for_call, False):
             inner_value = self._call_func(path)
 
+        # TODO: change to create_cache etc
+        self._cache = create_cache(inner_value)
+
         return self._overrider.override(inner_value, self._assignment_template)
 
     @staticmethod

@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Dict, Any
 
 import matplotlib
+from matplotlib import widgets
 from matplotlib.axes import Axes
 
 from pyquibbler.env import GRAPHICS_EVALUATE_NOW
@@ -22,7 +23,6 @@ class GraphicsOverrideDefinition(OverrideDefinition):
 
 
 AxesOverrideDefinition = functools.partial(GraphicsOverrideDefinition, module_or_cls=Axes)
-
 
 GRAPHICS_DEFINITIONS = [
     AxesOverrideDefinition(

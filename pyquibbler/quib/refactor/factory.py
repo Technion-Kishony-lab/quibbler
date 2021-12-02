@@ -81,4 +81,3 @@ def create_quib(func, args=(), kwargs=None, cache_behavior=None, evaluate_now=Fa
         quib.get_value()
 
     return quib
-
