@@ -1,12 +1,10 @@
 import operator
-import unittest.mock
 from unittest import mock
 
 import numpy as np
 import pytest
 
 from pyquibbler.input_validation_utils import InvalidArgumentException
-from pyquibbler.quib.refactor.cache_behavior import CacheBehavior
 from pyquibbler.quib.refactor.factory import create_quib
 
 

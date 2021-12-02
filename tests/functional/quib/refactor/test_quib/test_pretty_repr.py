@@ -83,3 +83,11 @@ def test_quib_pretty_repr_getitem_index():
     b = a[1]
 
     assert b.pretty_repr() == "b = a[1]"
+
+
+@pytest.mark.regression
+@pytest.mark.get_variable_names(True)
+def test_quib_pretty_repr_on_q_with_dict():
+    x = iquib(3)
+
+    assert q(dict, ('num', x)).pretty_repr() == "dict(('num', x))"

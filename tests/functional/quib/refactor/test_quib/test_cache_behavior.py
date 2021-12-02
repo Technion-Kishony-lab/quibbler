@@ -1,7 +1,7 @@
 import pytest
 
 from pyquibbler.input_validation_utils import InvalidArgumentException
-from pyquibbler.quib.refactor.cache_behavior import CacheBehavior
+from pyquibbler.quib.refactor.cache_behavior import CacheBehavior, UnknownCacheBehaviorException
 
 
 def test_quib_set_cache_behaviour_forces_correct_type(quib):
@@ -9,7 +9,12 @@ def test_quib_set_cache_behaviour_forces_correct_type(quib):
         quib.set_cache_behavior(1)
 
 
-def test_quib_config(quib):
+def test_quib_setp(quib):
     quib.setp(cache_behavior='on')
 
     assert quib.get_cache_behavior() == CacheBehavior.ON
+
+
+def test_quib_setp_with_invalid_cache_behavior(quib):
+    with pytest.raises(UnknownCacheBehaviorException):
+        quib.setp(cache_behavior='ondfdd')
