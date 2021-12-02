@@ -34,7 +34,8 @@ class GraphicsCollection:
     def _handle_new_artists(self,
                             kwargs_specified_in_artists_creation,
                             previous_axeses_to_array_names_to_indices_and_artists,
-                            new_artists: Set[Artist]):
+                            new_artists: Set[Artist],
+                            should_copy_artist_attributes: bool):
         """
         Handle new artists and update graphics collection appropriately
         """
@@ -42,7 +43,8 @@ class GraphicsCollection:
         current_axeses_to_array_names_to_artists = get_axeses_to_array_names_to_artists(new_artists)
         update_new_artists_from_previous_artists(kwargs_specified_in_artists_creation,
                                                  previous_axeses_to_array_names_to_indices_and_artists,
-                                                 current_axeses_to_array_names_to_artists)
+                                                 current_axeses_to_array_names_to_artists,
+                                                 should_copy_artist_attributes)
 
     def _handle_new_widgets(self, new_widgets: List[AxesWidget]):
         """
@@ -71,18 +73,8 @@ class GraphicsCollection:
                 external_call_failed_exception_handling():
             yield
 
-        # TODO: Move this logic somewhere else
-        # if len(self.widgets) > 0 and isinstance(ret_val, AxesWidget):
-        #     assert len(widgets_collector.objects_collected) == 1
-        #     assert len(graphics_collection.widgets) == 1
-        #     ret_val = list(graphics_collection.widgets)[0]
-        # We don't allow returning quibs as results from functions
-        # from pyquibbler.quib import Quib
-        # if isinstance(ret_val, Quib):
-        #     ret_val = ret_val.get_value()
-        #
-
         self._handle_new_widgets(new_widgets=widgets_collector.objects_collected)
         self._handle_new_artists(kwargs_specified_in_artists_creation,
                                  previous_axeses_to_array_names_to_indices_and_artists,
-                                 new_artists=artists_collector.objects_collected)
+                                 new_artists=artists_collector.objects_collected,
+                                 should_copy_artist_attributes=len(widgets_collector.objects_collected) == 0)

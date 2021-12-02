@@ -34,7 +34,8 @@ def _update_position_and_attributes_of_created_artists(
         array_name: str,
         new_artists: List[Artist],
         previous_artists: List[Artist],
-        starting_index: int):
+        starting_index: int,
+        should_copy_artist_attributes: bool):
     """
     Updates the positions and attributes of the new artists from old ones (together with the given starting index)
     for a particular axes and array name
@@ -44,7 +45,9 @@ def _update_position_and_attributes_of_created_artists(
     complete_artists_array = array[:starting_index] + new_artists + array[starting_index:end_index]
     # insert new artists at correct location
     setattr(axes, array_name, complete_artists_array)
-    _copy_attributes(kwargs_specified_in_artists_creation, new_artists, previous_artists)
+
+    if should_copy_artist_attributes:
+        _copy_attributes(kwargs_specified_in_artists_creation, new_artists, previous_artists)
 
 
 def update_new_artists_from_previous_artists(kwargs_specified_in_artists_creation: Set[str],
@@ -53,7 +56,8 @@ def update_new_artists_from_previous_artists(kwargs_specified_in_artists_creatio
                                               ],
                                               current_axeses_to_array_names_to_artists: Dict[
                                                   Axes, ArrayNameToArtists
-                                              ]):
+                                              ],
+                                              should_copy_artist_attributes):
     """
     Updates the positions and attributes of the new artists from old ones
     """
@@ -68,6 +72,7 @@ def update_new_artists_from_previous_artists(kwargs_specified_in_artists_creatio
                     array_name=array_name,
                     new_artists=artists,
                     previous_artists=previous_artists,
-                    starting_index=starting_index)
+                    starting_index=starting_index,
+                    should_copy_artist_attributes=should_copy_artist_attributes)
             # If the array name isn't in previous_array_names_to_indices_and_artists,
             # we don't need to update positions, etc
