@@ -12,7 +12,7 @@ from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Callabl
 from weakref import WeakSet
 from contextlib import contextmanager
 
-from .quib_guard import add_new_quib_to_guard_if_exists, guard_get_value
+from .quib_guard import add_new_quib_to_guard_if_exists, guard_raise_if_not_allowed_access_to_quib
 from .assignment.assignment_template import InvalidTypeException
 from .assignment.utils import FailedToDeepAssignException
 from .function_quibs.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own, \
@@ -502,7 +502,7 @@ class Quib(ABC):
         The value will necessarily return in the shape of the actual result, but only the values at the given path
         are guaranteed to be valid
         """
-        guard_get_value(self)
+        guard_raise_if_not_allowed_access_to_quib(self)
         name_for_call = get_user_friendly_name_for_requested_valid_path(path)
         with add_quib_to_fail_trace_if_raises_quib_call_exception(self, name_for_call, False):
             inner_value = self._get_inner_value_valid_at_path(path)

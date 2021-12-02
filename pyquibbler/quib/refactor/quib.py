@@ -19,7 +19,7 @@ from pyquibbler.graphics.graphics_collection import GraphicsCollection
 from pyquibbler.quib import get_override_group_for_change
 from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
 from pyquibbler.quib.graphics.graphics_function_quib import create_array_from_func
-from pyquibbler.quib.quib_guard import add_new_quib_to_guard_if_exists, guard_get_value, QuibGuard
+from pyquibbler.quib.quib_guard import add_new_quib_to_guard_if_exists, guard_raise_if_not_allowed_access_to_quib, QuibGuard
 from pyquibbler.quib.assignment.assignment_template import InvalidTypeException, create_assignment_template
 from pyquibbler.quib.assignment.utils import FailedToDeepAssignException
 from pyquibbler.quib.function_quibs.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own, \
@@ -92,7 +92,6 @@ class Quib(ReprMixin):
 
         self._children = WeakSet()
         self._overrider = Overrider()
-        # TODO: For iquibs this needs to be true
         self._allow_overriding = allow_overriding
         self.method_cache = {}
         self._quibs_allowed_to_assign_to = None
@@ -108,6 +107,10 @@ class Quib(ReprMixin):
         self._user_defined_save_directory = None
         add_new_quib_to_guard_if_exists(self)
 
+    """
+    Func metadata funcs
+    """
+
     @property
     def func(self):
         return self._func
@@ -120,6 +123,10 @@ class Quib(ReprMixin):
     def kwargs(self):
         return self._kwargs
 
+    """
+    Graphics related funcs
+    """
+
     @property
     def func_can_create_graphics(self):
         return self._is_known_graphics_func or self._did_create_graphics
@@ -127,17 +134,6 @@ class Quib(ReprMixin):
     @property
     def _did_create_graphics(self) -> bool:
         return any(graphics_collection.artists for graphics_collection in self._flat_graphics_collections())
-
-    @property
-    def cache_status(self):
-        """
-        User interface to check cache validity.
-        """
-        return self._cache.get_cache_status() if self._cache is not None else CacheStatus.ALL_INVALID
-
-    def get_axeses(self):
-        # TODO: need to implement... What about tests
-        return []
 
     def redraw_if_appropriate(self):
         """
@@ -152,6 +148,102 @@ class Quib(ReprMixin):
 
     def _flat_graphics_collections(self):
         return list(self._graphics_collections.flat) if self._graphics_collections else []
+
+    def get_axeses(self):
+        # TODO: need to implement... What about tests
+        return []
+
+    def _redraw(self) -> None:
+        """
+        Redraw all artists that directly or indirectly depend on this quib.
+        """
+        from pyquibbler.quib.refactor.graphics.redraw import redraw_quibs_with_graphics_or_add_in_aggregate_mode
+        quibs = self._get_graphics_function_quibs_recursively()
+        redraw_quibs_with_graphics_or_add_in_aggregate_mode(quibs)
+
+    """
+    Assignment
+    """
+
+    def override(self, assignment: Assignment, allow_overriding_from_now_on=True):
+        """
+        Overrides a part of the data the quib represents.
+        """
+        if allow_overriding_from_now_on:
+            self._allow_overriding = True
+        if not self._allow_overriding:
+            raise OverridingNotAllowedException(self, assignment)
+        self._overrider.add_assignment(assignment)
+        if len(assignment.path) == 0:
+            self._on_type_change()
+
+        try:
+            self.invalidate_and_redraw_at_path(assignment.path)
+        except FailedToDeepAssignException as e:
+            raise FailedToDeepAssignException(exception=e.exception, path=e.path) from None
+        except InvalidTypeException as e:
+            raise InvalidTypeException(e.type_) from None
+
+        from pyquibbler.quib.graphics.widgets import is_within_drag
+        if not is_within_drag():
+            self.project.push_assignment_to_undo_stack(quib=self,
+                                                       assignment=assignment,
+                                                       index=len(list(self._overrider)) - 1,
+                                                       overrider=self._overrider)
+
+    def remove_override(self, path: List[PathComponent], invalidate_and_redraw: bool = True):
+        """
+        Remove overriding in a specific path in the quib.
+        """
+        assignment_removal = self._overrider.remove_assignment(path)
+        if assignment_removal is not None:
+            self.project.push_assignment_to_undo_stack(assignment=assignment_removal,
+                                                       index=len(list(self._overrider)) - 1,
+                                                       overrider=self._overrider,
+                                                       quib=self)
+        if len(path) == 0:
+            self._on_type_change()
+        if invalidate_and_redraw:
+            self.invalidate_and_redraw_at_path(path=path)
+
+    def assign(self, assignment: Assignment) -> None:
+        """
+        Create an assignment with an Assignment object, overriding the current values at the assignment's paths with the
+        assignment's value
+        """
+        get_override_group_for_change(AssignmentToQuib(self, assignment)).apply()
+
+    @raise_quib_call_exceptions_as_own
+    def assign_value(self, value: Any) -> None:
+        """
+        Helper method to assign a single value and override the whole value of the quib
+        """
+        self.assign(Assignment(value=value, path=[]))
+
+    @raise_quib_call_exceptions_as_own
+    def assign_value_to_key(self, key: Any, value: Any) -> None:
+        """
+        Helper method to assign a value at a specific key
+        """
+        from ..assignment.assignment import PathComponent
+        self.assign(Assignment(path=[PathComponent(component=key, indexed_cls=self.get_type())], value=value))
+
+    def __setitem__(self, key, value):
+        from ..assignment.assignment import PathComponent
+        if isinstance(key, Quib):
+            key = key.get_value()
+        self.assign(Assignment(value=value, path=[PathComponent(component=key, indexed_cls=self.get_type())]))
+
+    """
+    Misc
+    """
+
+    @property
+    def cache_status(self):
+        """
+        User interface to check cache validity.
+        """
+        return self._cache.get_cache_status() if self._cache is not None else CacheStatus.ALL_INVALID
 
     @property
     def project(self) -> Project:
@@ -242,14 +334,6 @@ class Quib(ReprMixin):
         Get all artists that directly or indirectly depend on this quib.
         """
         return {child for child in self._get_children_recursively() if child.func_can_create_graphics}
-
-    def _redraw(self) -> None:
-        """
-        Redraw all artists that directly or indirectly depend on this quib.
-        """
-        from pyquibbler.quib.refactor.graphics.redraw import redraw_quibs_with_graphics_or_add_in_aggregate_mode
-        quibs = self._get_graphics_function_quibs_recursively()
-        redraw_quibs_with_graphics_or_add_in_aggregate_mode(quibs)
 
     def set_assigned_quibs(self, quibs: Optional[Iterable[Quib]]) -> None:
         """
@@ -408,69 +492,6 @@ class Quib(ReprMixin):
         raise TypeError('Cannot iterate over quibs, as their size can vary. '
                         'Try Quib.iter_first() to iterate over the n-first items of the quib.')
 
-    def override(self, assignment: Assignment, allow_overriding_from_now_on=True):
-        """
-        Overrides a part of the data the quib represents.
-        """
-        if allow_overriding_from_now_on:
-            self._allow_overriding = True
-        if not self._allow_overriding:
-            raise OverridingNotAllowedException(self, assignment)
-        self._overrider.add_assignment(assignment)
-        if len(assignment.path) == 0:
-            self._on_type_change()
-
-        try:
-            self.invalidate_and_redraw_at_path(assignment.path)
-        except FailedToDeepAssignException as e:
-            raise FailedToDeepAssignException(exception=e.exception, path=e.path) from None
-        except InvalidTypeException as e:
-            raise InvalidTypeException(e.type_) from None
-
-        from pyquibbler.quib.graphics.widgets import is_within_drag
-        if not is_within_drag():
-            self.project.push_assignment_to_undo_stack(quib=self,
-                                                       assignment=assignment,
-                                                       index=len(list(self._overrider)) - 1,
-                                                       overrider=self._overrider)
-
-    def remove_override(self, path: List[PathComponent], invalidate_and_redraw: bool = True):
-        """
-        Remove overriding in a specific path in the quib.
-        """
-        assignment_removal = self._overrider.remove_assignment(path)
-        if assignment_removal is not None:
-            self.project.push_assignment_to_undo_stack(assignment=assignment_removal,
-                                                       index=len(list(self._overrider)) - 1,
-                                                       overrider=self._overrider,
-                                                       quib=self)
-        if len(path) == 0:
-            self._on_type_change()
-        if invalidate_and_redraw:
-            self.invalidate_and_redraw_at_path(path=path)
-
-    def assign(self, assignment: Assignment) -> None:
-        """
-        Create an assignment with an Assignment object, overriding the current values at the assignment's paths with the
-        assignment's value
-        """
-        get_override_group_for_change(AssignmentToQuib(self, assignment)).apply()
-
-    @raise_quib_call_exceptions_as_own
-    def assign_value(self, value: Any) -> None:
-        """
-        Helper method to assign a single value and override the whole value of the quib
-        """
-        self.assign(Assignment(value=value, path=[]))
-
-    @raise_quib_call_exceptions_as_own
-    def assign_value_to_key(self, key: Any, value: Any) -> None:
-        """
-        Helper method to assign a value at a specific key
-        """
-        from ..assignment.assignment import PathComponent
-        self.assign(Assignment(path=[PathComponent(component=key, indexed_cls=self.get_type())], value=value))
-
     def __getitem__(self, item):
         # We don't use the normal operator_overriding interface for two reasons:
         # 1. It can create issues with hinting in IDEs (for example, Pycharm will not recognize that Quibs have a
@@ -479,12 +500,6 @@ class Quib(ReprMixin):
         # in order to be inversed correctly (and not simply override)
         from pyquibbler.quib.refactor.factory import create_quib
         return create_quib(func=getitem, args=[self, item])
-
-    def __setitem__(self, key, value):
-        from ..assignment.assignment import PathComponent
-        if isinstance(key, Quib):
-            key = key.get_value()
-        self.assign(Assignment(value=value, path=[PathComponent(component=key, indexed_cls=self.get_type())]))
 
     @validate_user_input(name=(str, type(None)))
     def set_name(self, name: Optional[str]):
@@ -557,7 +572,9 @@ class Quib(ReprMixin):
         # TODO: pass_quibs
         # TODO: quib_guard
 
-        with graphics_collection.track_and_handle_new_graphics(kwargs_specified_in_artists_creation=set(self.kwargs.keys())):
+        with graphics_collection.track_and_handle_new_graphics(
+                kwargs_specified_in_artists_creation=set(self.kwargs.keys())
+        ):
             new_args, new_kwargs = self._prepare_args_for_call(valid_path)
             with external_call_failed_exception_handling():
                 res = self.func(*new_args, **new_kwargs)
@@ -582,9 +599,9 @@ class Quib(ReprMixin):
         The value will necessarily return in the shape of the actual result, but only the values at the given path
         are guaranteed to be valid
         """
-        guard_get_value(self)
+        guard_raise_if_not_allowed_access_to_quib(self)
         name_for_call = get_user_friendly_name_for_requested_valid_path(path)
-        with add_quib_to_fail_trace_if_raises_quib_call_exception(self, name_for_call, False):
+        with add_quib_to_fail_trace_if_raises_quib_call_exception(self, name_for_call):
             inner_value = self._call_func(path)
 
         # TODO: change to create_cache etc
@@ -727,6 +744,10 @@ class Quib(ReprMixin):
         and produce the same change in the value of this quib.
         """
         return []
+
+    """
+    File saving
+    """
 
     @property
     def _default_save_directory(self) -> Optional[pathlib.Path]:
