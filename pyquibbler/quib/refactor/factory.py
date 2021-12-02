@@ -54,7 +54,7 @@ def get_file_name_and_line_no() -> Tuple[Optional[str], Optional[str]]:
 
 
 def create_quib(func, args=(), kwargs=None, cache_behavior=None, evaluate_now=False, is_known_graphics_func=False,
-            allow_overriding=False,
+                allow_overriding=False, pass_quibs: bool = False,
                 **init_kwargs):
     """
     Public constructor for creating a quib.

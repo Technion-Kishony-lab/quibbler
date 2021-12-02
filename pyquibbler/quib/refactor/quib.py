@@ -544,6 +544,7 @@ class Quib(ReprMixin):
                 if len(graphics_collection.widgets) > 0 and isinstance(res, AxesWidget):
                     assert len(graphics_collection.widgets) == 1
                     res = list(graphics_collection.widgets)[0]
+
                 # We don't allow returning quibs as results from functions
                 from pyquibbler.quib import Quib
                 if isinstance(res, Quib):

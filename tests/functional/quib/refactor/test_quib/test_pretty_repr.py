@@ -1,7 +1,9 @@
+import numpy as np
 import pytest
 
-from pyquibbler import quibbler_user_function
 from pyquibbler.quib.refactor.iquib import iquib
+from pyquibbler.refactor.decorators import quibbler_user_function
+from pyquibbler.refactor.user_utils import q
 
 
 @pytest.mark.get_variable_names(True)
@@ -42,3 +44,42 @@ def test_quib_pretty_repr_with_repr_throwing_exception():
     quib = iquib(A())
     assert quib.pretty_repr() == "quib = [exception during repr]"
 
+
+@pytest.mark.get_variable_names(True)
+def test_quib_pretty_repr_without_name():
+    a = iquib(1)
+    b = iquib(2)
+
+    assert q("".join, a, b).pretty_repr() == 'join(a, b)'
+
+
+@pytest.mark.parametrize("statement", [
+    "a[:]",
+    "a[1:2:3]",
+    "a[1::2]",
+    "a[::2]",
+    "a[:2]",
+    "a[1:]"
+])
+@pytest.mark.get_variable_names(True)
+def test_quib_pretty_repr_getitem_colon(statement):
+    a = iquib(np.array([1, 2, 3]))
+    b = eval(statement)
+
+    assert b.pretty_repr() == statement
+
+
+@pytest.mark.get_variable_names(True)
+def test_quib_pretty_repr_getitem_ellipsis():
+    a = iquib(np.array([1, 2, 3]))
+    b = a[...]
+
+    assert b.pretty_repr() == "b = a[...]"
+
+
+@pytest.mark.get_variable_names(True)
+def test_quib_pretty_repr_getitem_index():
+    a = iquib(np.array([1, 2, 3]))
+    b = a[1]
+
+    assert b.pretty_repr() == "b = a[1]"

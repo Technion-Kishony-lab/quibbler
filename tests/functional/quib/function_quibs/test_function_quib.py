@@ -81,6 +81,7 @@ def test_cant_mutate_function_quib_args_after_creation(function_wrapper, functio
 
     function_mock.assert_called_once_with([], 'cool', a=[])
 
+
 # no need to move
 def test_func_get_value_returns_inner_value(function_wrapper, function_mock_return_val):
     assert function_wrapper(iquib(1)).get_value() == function_mock_return_val
@@ -156,6 +157,7 @@ class InvalidatingFunctionQuib(FunctionQuib):
         return [path]
 
 
+# TODO: move when moving translation
 def test_function_quib_invalidates_all_when_invalidated_at_all_in_data_source(create_mock_quib):
     grandparent = InvalidatingFunctionQuib.create(func=mock.Mock())
     parent = InvalidatingFunctionQuib.create(func=mock.Mock(),
@@ -171,6 +173,7 @@ def test_function_quib_invalidates_all_when_invalidated_at_all_in_data_source(cr
     assert mock_quib.get_value_valid_at_path.call_count == 0
 
 
+# TODO: move when moving translation
 def test_function_quib_does_not_invalidate_all_when_invalidated_at_path_in_data_source(create_mock_quib):
     grandparent = InvalidatingFunctionQuib.create(func=mock.Mock())
     parent = InvalidatingFunctionQuib.create(func=mock.Mock(), func_args=(grandparent,),
@@ -185,6 +188,7 @@ def test_function_quib_does_not_invalidate_all_when_invalidated_at_path_in_data_
     mock_quib._invalidate_quib_with_children_at_path.assert_called_with(parent, path)
 
 
+# TODO: move when moving translation
 def test_function_quib_does_invalidate_all_when_invalidated_partially_at_path_in_paramater(create_mock_quib):
     grandparent = InvalidatingFunctionQuib.create(func=mock.Mock())
     parent = InvalidatingFunctionQuib.create(func=mock.Mock(), func_args=(grandparent,))
@@ -197,6 +201,7 @@ def test_function_quib_does_invalidate_all_when_invalidated_partially_at_path_in
     mock_quib._invalidate_quib_with_children_at_path.assert_called_with(parent, [])
 
 
+# TODO: move when moving translation
 def test_function_quib_does_invalidate_all_when_invalidated_all_at_path_in_parameter(create_mock_quib):
     grandparent = InvalidatingFunctionQuib.create(func=mock.Mock())
     parent = InvalidatingFunctionQuib.create(func=mock.Mock(), func_args=(grandparent,))
@@ -216,6 +221,7 @@ def test_function_quib_pretty_repr_without_name():
     assert q("".join, a, b).pretty_repr() == 'join(a, b)'
 
 
+# No need to move
 @pytest.mark.get_variable_names(True)
 def test_function_quib_pretty_repr_with_name():
     a = iquib(1)
@@ -275,6 +281,7 @@ def c():
     return c
 
 
+# TODO: move when we have operators
 @pytest.mark.get_variable_names(True)
 def test_function_quib_pretty_repr_math():
     a = iquib(1)
@@ -284,6 +291,7 @@ def test_function_quib_pretty_repr_math():
     assert c.pretty_repr() == 'c = a + b'
 
 
+# TODO: move when we have operators
 @pytest.mark.get_variable_names(True)
 def test_function_quib_pretty_repr_math_unary_operator():
     a = iquib(1)
@@ -292,6 +300,7 @@ def test_function_quib_pretty_repr_math_unary_operator():
     assert c.pretty_repr() == 'c = -a'
 
 
+# TODO: move when we have operators
 @mark.parametrize("statement,expected", [
     ("a * b + c", "a * b + c"),
     ("a * (b + c)", "a * (b + c)"),
@@ -320,6 +329,9 @@ def test_function_quib_pretty_repr_math_holds_pemdas(a, b, c, statement, expecte
     with PRETTY_REPR.temporary_set(True):
         assert repr(eval(statement)) == expected
 
+
+
+# TODO: maor here
 
 def test_function_quib_set_cache_behaviour_forces_correct_type(example_function_quib):
     with pytest.raises(InvalidArgumentException):
