@@ -3,8 +3,6 @@ from dataclasses import dataclass
 
 from typing import Dict, Any
 
-import matplotlib
-from matplotlib import widgets
 from matplotlib.axes import Axes
 
 from pyquibbler.env import GRAPHICS_EVALUATE_NOW

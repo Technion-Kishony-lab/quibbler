@@ -2,8 +2,6 @@ from matplotlib.axes import Axes
 from matplotlib.widgets import RadioButtons
 from typing import List
 
-from pyquibbler.quib.refactor.quib import Quib
-
 
 class QRadioButtons(RadioButtons):
     """

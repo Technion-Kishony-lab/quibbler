@@ -1,9 +1,7 @@
-from unittest import mock
-
 import pytest
 
 from pyquibbler.env import GRAPHICS_EVALUATE_NOW
-from pyquibbler.third_party_overriding.graphics_overriding import GraphicsOverrideDefinition
+from pyquibbler.third_party_overriding.graphics.graphics_overriding import GraphicsOverrideDefinition
 
 
 @pytest.fixture(autouse=True)
