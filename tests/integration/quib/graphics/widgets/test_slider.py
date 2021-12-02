@@ -3,7 +3,7 @@ import pytest
 from matplotlib import widgets
 
 from pyquibbler import iquib
-from tests.integration.quib.graphics.widgets.utils import count_redraws
+from tests.integration.quib.graphics.widgets.utils import count_redraws, quibbler_image_comparison
 
 
 @pytest.fixture()
@@ -25,6 +25,7 @@ def slider_quib(axes, input_quib):
     return slider
 
 
+@quibbler_image_comparison(baseline_images=['press_and_release_changes'])
 def test_slider_graphics_function_quib_press_and_release_changes(axes, get_live_widgets, slider_quib, input_quib,
                                                                  create_button_press_event,
                                                                  create_button_release_event, get_axes_start):

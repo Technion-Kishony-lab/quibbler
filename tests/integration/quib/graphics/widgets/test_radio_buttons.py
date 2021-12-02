@@ -5,7 +5,7 @@ from matplotlib import widgets, pyplot as plt
 from matplotlib.testing.decorators import image_comparison
 
 from pyquibbler import iquib
-from tests.integration.quib.graphics.widgets.utils import count_redraws
+from tests.integration.quib.graphics.widgets.utils import count_redraws, quibbler_image_comparison
 
 
 @pytest.fixture
@@ -22,10 +22,6 @@ def radio_buttons(axes, active_quib):
     )
     plt.pause(0.01)
     return buttons
-
-
-quibbler_image_comparison = functools.partial(image_comparison, remove_text=True, extensions=['png'],
-                                              savefig_kwarg=dict(dpi=100))
 
 
 @quibbler_image_comparison(baseline_images=['set_active_multiple_times'])
