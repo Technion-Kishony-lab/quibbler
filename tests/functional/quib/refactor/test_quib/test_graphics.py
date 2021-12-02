@@ -38,10 +38,10 @@ def artist_graphics_quib(parent_quib, create_artist):
 
 
 def test_quib_func_creates_graphics_returns_true_if_created_graphics(parent_quib, artist_graphics_quib):
-    assert artist_graphics_quib.func_creates_graphics is False, "Sanity"
+    assert artist_graphics_quib.func_can_create_graphics is False, "Sanity"
     artist_graphics_quib.get_value()  # We should now know we create graphics
 
-    assert artist_graphics_quib.func_creates_graphics
+    assert artist_graphics_quib.func_can_create_graphics
 
 
 def test_quib_func_creates_artist(parent_quib, artist_graphics_quib, mock_axes):

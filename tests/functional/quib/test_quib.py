@@ -332,9 +332,7 @@ def test_quib_get_type(example_quib):
 
 
 
-# TODO MAOR: I am here..
-
-# TODO: bad test...
+# bad test...
 def test_quib_assign_value(example_quib):
     example_quib.assign = mock.Mock()
     mock_value = mock.Mock()
@@ -345,7 +343,7 @@ def test_quib_assign_value(example_quib):
                                                            value=mock_value))
 
 
-# TODO: bad test...
+# not moving, bad test...
 def test_quib_assign_value_to_key(example_quib):
     example_quib.assign = mock.Mock()
     mock_value = mock.Mock()
@@ -419,8 +417,6 @@ def mock_child_of_example_quib(example_quib):
     example_quib.add_child(mock_quib_child)
     return mock_quib_child
 
-
-# TODO: Maor stopped here
 
 # TODO: move
 @pytest.mark.parametrize("assigned_path,invalidate_path,expected_to_have_invalidated_child", [
@@ -552,7 +548,6 @@ def test_quib_configure_with_invalid_value(example_quib):
     with pytest.raises(InvalidArgumentException):
         example_quib.setp(allow_overriding=3, name="pasten")
 
-# TODO: MAOR Continue here
 
 def test_quib_fails_when_given_invalid_assignment_on_first_get_value(example_quib):
     example_quib.assign_value_to_key(key=4, value=1)

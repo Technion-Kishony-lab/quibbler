@@ -31,7 +31,8 @@ def quib():
         is_known_graphics_func=False,
         name=None,
         line_no=None,
-        file_name=None
+        file_name=None,
+        is_random_func=False
     )
 
 

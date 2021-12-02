@@ -30,7 +30,8 @@ from pyquibbler.quib.assignment import AssignmentTemplate, Overrider, Assignment
 from pyquibbler.quib.function_quibs.cache import create_cache
 from pyquibbler.quib.function_quibs.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
 from pyquibbler.quib.refactor.cache_behavior import CacheBehavior, UnknownCacheBehaviorException
-from pyquibbler.quib.refactor.exceptions import OverridingNotAllowedException, UnknownUpdateTypeException
+from pyquibbler.quib.refactor.exceptions import OverridingNotAllowedException, UnknownUpdateTypeException, \
+    InvalidCacheBehaviorForQuibException
 from pyquibbler.quib.refactor.graphics import UpdateType
 from pyquibbler.quib.refactor.iterators import iter_quibs_in_args
 from pyquibbler.quib.refactor.method_caching import cache_method_until_full_invalidation
@@ -77,11 +78,12 @@ class Quib(ReprMixin):
                  is_known_graphics_func: bool,
                  name: Optional[str],
                  file_name: Optional[str],
-                 line_no: Optional[str]):
+                 line_no: Optional[str],
+                 is_random_func: bool):
         self._func = func
         self._args = args
         self._kwargs = kwargs
-        self._cache_behavior = cache_behavior
+        self._default_cache_behavior = cache_behavior or CacheBehavior.AUTO
         self._assignment_template = assignment_template
         self._is_known_graphics_func = is_known_graphics_func
         self._cache = None
@@ -99,6 +101,7 @@ class Quib(ReprMixin):
         self.file_name = file_name
         self.line_no = line_no
         self._redraw_update_type = UpdateType.DRAG
+        self._is_random_func = is_random_func
 
         # TODO: Move to factory
         self.project.register_quib(self)
@@ -118,7 +121,7 @@ class Quib(ReprMixin):
         return self._kwargs
 
     @property
-    def func_creates_graphics(self):
+    def func_can_create_graphics(self):
         return self._is_known_graphics_func or self._did_create_graphics
 
     @property
@@ -133,6 +136,7 @@ class Quib(ReprMixin):
         return self._cache.get_cache_status() if self._cache is not None else CacheStatus.ALL_INVALID
 
     def get_axeses(self):
+        # TODO: need to implement... What about tests
         return []
 
     def redraw_if_appropriate(self):
@@ -154,7 +158,9 @@ class Quib(ReprMixin):
         return Project.get_or_create()
 
     def get_cache_behavior(self):
-        return self._cache_behavior
+        if self._is_random_func or self.func_can_create_graphics:
+            return CacheBehavior.ON
+        return self._default_cache_behavior
 
     @validate_user_input(cache_behavior=(str, CacheBehavior))
     def set_cache_behavior(self, cache_behavior: CacheBehavior):
@@ -163,7 +169,9 @@ class Quib(ReprMixin):
                 cache_behavior = CacheBehavior[cache_behavior.upper()]
             except KeyError:
                 raise UnknownCacheBehaviorException(cache_behavior)
-        self._cache_behavior = cache_behavior
+        if self._is_random_func and cache_behavior != CacheBehavior.ON:
+            raise InvalidCacheBehaviorForQuibException(self._default_cache_behavior)
+        self._default_cache_behavior = cache_behavior
 
     def setp(self, allow_overriding: bool = None, assignment_template=None,
              save_directory: Union[str, pathlib.Path] = None, cache_behavior: CacheBehavior = None,
@@ -233,7 +241,7 @@ class Quib(ReprMixin):
         """
         Get all artists that directly or indirectly depend on this quib.
         """
-        return {child for child in self._get_children_recursively() if child.func_creates_graphics}
+        return {child for child in self._get_children_recursively() if child.func_can_create_graphics}
 
     def _redraw(self) -> None:
         """

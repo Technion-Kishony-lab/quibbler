@@ -1,4 +1,4 @@
-from typing import Set
+from typing import Set, Callable, Iterable, Any
 
 from matplotlib.artist import Artist
 

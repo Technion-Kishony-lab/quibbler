@@ -3,6 +3,7 @@ from typing import Optional, Tuple
 
 from pyquibbler.env import GET_VARIABLE_NAMES, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS
 from pyquibbler.logger import logger
+from pyquibbler.quib.refactor.cache_behavior import CacheBehavior
 from pyquibbler.quib.refactor.iterators import iter_quibs_in_args
 from pyquibbler.quib.refactor.quib import Quib
 from pyquibbler.quib.refactor.utils import deep_copy_without_quibs_or_graphics
@@ -54,10 +55,11 @@ def get_file_name_and_line_no() -> Tuple[Optional[str], Optional[str]]:
 
 
 def create_quib(func, args=(), kwargs=None, cache_behavior=None, evaluate_now=False, is_known_graphics_func=False,
-                allow_overriding=False, pass_quibs: bool = False,
+                allow_overriding=False, pass_quibs: bool = False, is_random_func: bool = False,
                 **init_kwargs):
     """
     Public constructor for creating a quib.
+    # TODO: serious docs
     """
     args, kwargs = get_deep_copied_args_and_kwargs(args, kwargs)
     file_name, line_no = get_file_name_and_line_no()
@@ -72,6 +74,7 @@ def create_quib(func, args=(), kwargs=None, cache_behavior=None, evaluate_now=Fa
                 name=get_quib_name(),
                 file_name=file_name,
                 line_no=line_no,
+                is_random_func=is_random_func,
                 **init_kwargs)
 
     for arg in iter_quibs_in_args(args, kwargs):
