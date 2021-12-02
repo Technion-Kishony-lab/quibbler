@@ -52,7 +52,7 @@ def get_var_name_being_set_outside_of_pyquibbler() -> Optional[str]:
     """
     Get the current variable name being set outside of pyquibbler.
     If none is found, return None.
-    This is not thread safe, as it keeps track of the current line being accessed and which variable is being set in
+    This is not thread safe, as it keeps track_and_handle_new_graphics of the current line being accessed and which variable is being set in
     that line (eg a, b = iquib(1), iquib(2))
     """
     refnode = get_quib_node_being_set_outside_of_pyquibbler()

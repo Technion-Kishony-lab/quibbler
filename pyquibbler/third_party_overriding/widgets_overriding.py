@@ -3,13 +3,26 @@ import functools
 import matplotlib.widgets
 from typing import Callable
 
+from pyquibbler.graphics import global_collecting
 from pyquibbler.quib.function_quibs.utils import ArgsValues
 from pyquibbler.quib.refactor.graphics.widgets.q_radio_buttons import QRadioButtons
 from pyquibbler.third_party_overriding.definitions import OverrideDefinition
 from pyquibbler.third_party_overriding.graphics_overriding import GraphicsOverrideDefinition
 
+
+def wrap_overridden_graphics_function(func: Callable) -> Callable:
+    @functools.wraps(func)
+    def _wrapper(*args, **kwargs):
+        # We need overridden funcs to be run in `overridden_graphics_function` context manager
+        # so artists will be collected
+        with global_collecting.overridden_graphics_function():
+            return func(*args, **kwargs)
+
+    return _wrapper
+
+
 widget_class_names_to_quib_supporting_widget = {
-    'RadioButtons': QRadioButtons
+    'RadioButtons': wrap_overridden_graphics_function(QRadioButtons)
 }
 
 

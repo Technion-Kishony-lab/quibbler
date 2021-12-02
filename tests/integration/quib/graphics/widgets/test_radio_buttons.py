@@ -32,7 +32,4 @@ def test_radio_buttons_set_active_multiple_times(get_only_live_widget, radio_but
     assert active_quib.get_value() == 2
     assert len(get_live_widgets()) == 1
     assert get_only_live_widget() is widget
-    assert redraw_count.count == 4
-
-
-
+    assert redraw_count.count == 3

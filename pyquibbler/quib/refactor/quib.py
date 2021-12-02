@@ -13,6 +13,8 @@ from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Callabl
 from weakref import WeakSet
 from contextlib import contextmanager
 
+from matplotlib.widgets import AxesWidget
+
 from pyquibbler.graphics.graphics_collection import GraphicsCollection
 from pyquibbler.quib import get_override_group_for_change
 from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
@@ -533,10 +535,22 @@ class Quib(ReprMixin):
         # TODO: pass_quibs
         # TODO: quib_guard
 
-        with graphics_collection.track(kwargs_specified_in_artists_creation=set(self.kwargs.keys())):
+        with graphics_collection.track_and_handle_new_graphics(kwargs_specified_in_artists_creation=set(self.kwargs.keys())):
             new_args, new_kwargs = self._prepare_args_for_call(valid_path)
             with external_call_failed_exception_handling():
-                return self.func(*new_args, **new_kwargs)
+                res = self.func(*new_args, **new_kwargs)
+
+                # TODO: Move this logic somewhere else
+                if len(graphics_collection.widgets) > 0 and isinstance(res, AxesWidget):
+                    assert len(graphics_collection.widgets) == 1
+                    res = list(graphics_collection.widgets)[0]
+                # We don't allow returning quibs as results from functions
+                from pyquibbler.quib import Quib
+                if isinstance(res, Quib):
+                    res = res.get_value()
+                ####
+
+                return res
 
     @raise_quib_call_exceptions_as_own
     def get_value_valid_at_path(self, path: Optional[List[PathComponent]]) -> Any:

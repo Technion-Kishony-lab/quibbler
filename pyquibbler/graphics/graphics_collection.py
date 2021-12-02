@@ -57,7 +57,7 @@ class GraphicsCollection:
             self.widgets = new_widgets
 
     @contextlib.contextmanager
-    def track(self, kwargs_specified_in_artists_creation: Set[str]):
+    def track_and_handle_new_graphics(self, kwargs_specified_in_artists_creation: Set[str]):
         self.artists = self._get_artists_still_in_axes()
 
         # Get the *current* artists together with their starting indices (per axes per artists array) so we can
