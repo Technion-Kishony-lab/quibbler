@@ -4,12 +4,11 @@ import functools
 import os
 import pathlib
 import pickle
-import types
 
 import numpy as np
 from functools import cached_property
 from operator import getitem
-from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Callable, Dict, Union, Iterable, Mapping
+from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Callable, Union, Iterable, Mapping
 from weakref import WeakSet
 from contextlib import contextmanager
 
@@ -19,12 +18,12 @@ from pyquibbler.graphics.graphics_collection import GraphicsCollection
 from pyquibbler.quib import get_override_group_for_change
 from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
 from pyquibbler.quib.graphics.graphics_function_quib import create_array_from_func
-from pyquibbler.quib.quib_guard import add_new_quib_to_guard_if_exists, guard_raise_if_not_allowed_access_to_quib, QuibGuard
+from pyquibbler.quib.quib_guard import add_new_quib_to_guard_if_exists, guard_raise_if_not_allowed_access_to_quib
 from pyquibbler.quib.assignment.assignment_template import InvalidTypeException, create_assignment_template
 from pyquibbler.quib.assignment.utils import FailedToDeepAssignException
 from pyquibbler.quib.function_quibs.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own, \
     add_quib_to_fail_trace_if_raises_quib_call_exception, external_call_failed_exception_handling
-from pyquibbler.quib.override_choice import OverrideRemoval
+from pyquibbler.quib.assignment.override_choice import OverrideRemoval
 from pyquibbler.quib.assignment import AssignmentTemplate, Overrider, Assignment, \
     AssignmentToQuib
 from pyquibbler.quib.function_quibs.cache import create_cache
@@ -35,20 +34,17 @@ from pyquibbler.quib.refactor.exceptions import OverridingNotAllowedException, U
 from pyquibbler.quib.refactor.graphics import UpdateType
 from pyquibbler.quib.refactor.iterators import iter_quibs_in_args
 from pyquibbler.quib.refactor.method_caching import cache_method_until_full_invalidation
-from pyquibbler.quib.refactor.repr.pretty_converters import MathExpression
 from pyquibbler.quib.refactor.repr.repr_mixin import ReprMixin
 from pyquibbler.quib.utils import quib_method, Unpacker, recursively_run_func_on_object, \
-    deep_copy_without_quibs_or_graphics, QuibRef
+    QuibRef
 from pyquibbler.quib.assignment import PathComponent
-from pyquibbler.exceptions import PyQuibblerException
-from pyquibbler.env import LEN_RAISE_EXCEPTION, GET_VARIABLE_NAMES, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS
-from pyquibbler.input_validation_utils import validate_user_input, InvalidArgumentException
+from pyquibbler.env import LEN_RAISE_EXCEPTION
+from pyquibbler.input_validation_utils import validate_user_input
 from pyquibbler.logger import logger
 from pyquibbler.project import Project
 
 if TYPE_CHECKING:
-    from pyquibbler.quib.graphics import GraphicsFunctionQuib
-    from pyquibbler.quib.override_choice import ChoiceContext, OverrideChoice
+    from pyquibbler.quib.assignment.override_choice import ChoiceContext, OverrideChoice
 
 
 def get_user_friendly_name_for_requested_valid_path(valid_path: Optional[List[PathComponent]]):
@@ -165,6 +161,13 @@ class Quib(ReprMixin):
     Assignment
     """
 
+    @validate_user_input(allow_overriding=bool)
+    def set_allow_overriding(self, allow_overriding: bool):
+        """
+        Set whether the quib can be overridden- this defaults to True in iquibs and False in function quibs
+        """
+        self._allow_overriding = allow_overriding
+
     def override(self, assignment: Assignment, allow_overriding_from_now_on=True):
         """
         Overrides a part of the data the quib represents.
@@ -234,6 +237,64 @@ class Quib(ReprMixin):
             key = key.get_value()
         self.assign(Assignment(value=value, path=[PathComponent(component=key, indexed_cls=self.get_type())]))
 
+    def get_inversions_for_override_removal(self, override_removal: OverrideRemoval) -> List[OverrideRemoval]:
+        """
+        Get a list of overide removals to parent quibs which could be applied instead of the given override removal
+        and produce the same change in the value of this quib.
+        """
+        return []
+
+    def get_inversions_for_assignment(self, assignment: Assignment) -> List[AssignmentToQuib]:
+        """
+        Get a list of assignments to parent quibs which could be applied instead of the given assignment
+        and produce the same change in the value of this quib.
+        """
+        return []
+
+    def store_override_choice(self, context: ChoiceContext, choice: OverrideChoice) -> None:
+        """
+        Store a user override choice in the cache for future use.
+        """
+        self._override_choice_cache[context] = choice
+
+    def try_load_override_choice(self, context: ChoiceContext) -> Optional[OverrideChoice]:
+        """
+        If a choice fitting the current options has been cached, return it. Otherwise return None.
+        """
+        return self._override_choice_cache.get(context)
+
+    def set_assigned_quibs(self, quibs: Optional[Iterable[Quib]]) -> None:
+        """
+        Set the quibs to which assignments to this quib could translate to overrides in.
+        When None is given, a dialog will be used to choose between options.
+        """
+        self._quibs_allowed_to_assign_to = quibs if quibs is None else set(quibs)
+
+    def allows_assignment_to(self, quib: Quib) -> bool:
+        """
+        Returns True if this quib allows assignments to it to be translated into assignments to the given quib,
+        and False otherwise.
+        """
+        return True if self._quibs_allowed_to_assign_to is None else quib in self._quibs_allowed_to_assign_to
+
+    @property
+    def allow_overriding(self) -> bool:
+        return self._allow_overriding
+
+    def get_assignment_template(self) -> AssignmentTemplate:
+        return self._assignment_template
+
+    def set_assignment_template(self, *args) -> None:
+        """
+        Sets an assignment template for the quib.
+        Usage:
+
+        - quib.set_assignment_template(assignment_template): set a specific AssignmentTemplate object.
+        - quib.set_assignment_template(min, max): set the template to a bound template between min and max.
+        - quib.set_assignment_template(start, stop, step): set the template to a bound template between min and max.
+        """
+        self._assignment_template = create_assignment_template(args)
+
     """
     Misc
     """
@@ -296,13 +357,6 @@ class Quib(ReprMixin):
                 raise UnknownUpdateTypeException(update_type)
         self._redraw_update_type = update_type
 
-    @validate_user_input(allow_overriding=bool)
-    def set_allow_overriding(self, allow_overriding: bool):
-        """
-        Set whether the quib can be overridden- this defaults to True in iquibs and False in function quibs
-        """
-        self._allow_overriding = allow_overriding
-
     @property
     def children(self) -> Set[Quib]:
         """
@@ -310,18 +364,6 @@ class Quib(ReprMixin):
         """
         # We return a copy of the set because self._children can change size during iteration
         return set(self._children)
-
-    def store_override_choice(self, context: ChoiceContext, choice: OverrideChoice) -> None:
-        """
-        Store a user override choice in the cache for future use.
-        """
-        self._override_choice_cache[context] = choice
-
-    def try_load_override_choice(self, context: ChoiceContext) -> Optional[OverrideChoice]:
-        """
-        If a choice fitting the current options has been cached, return it. Otherwise return None.
-        """
-        return self._override_choice_cache.get(context)
 
     def _get_children_recursively(self) -> Set[Quib]:
         children = self.children
@@ -334,20 +376,6 @@ class Quib(ReprMixin):
         Get all artists that directly or indirectly depend on this quib.
         """
         return {child for child in self._get_children_recursively() if child.func_can_create_graphics}
-
-    def set_assigned_quibs(self, quibs: Optional[Iterable[Quib]]) -> None:
-        """
-        Set the quibs to which assignments to this quib could translate to overrides in.
-        When None is given, a dialog will be used to choose between options.
-        """
-        self._quibs_allowed_to_assign_to = quibs if quibs is None else set(quibs)
-
-    def allows_assignment_to(self, quib: Quib) -> bool:
-        """
-        Returns True if this quib allows assignments to it to be translated into assignments to the given quib,
-        and False otherwise.
-        """
-        return True if self._quibs_allowed_to_assign_to is None else quib in self._quibs_allowed_to_assign_to
 
     def invalidate_and_redraw_at_path(self, path: Optional[List[PathComponent]] = None) -> None:
         """
@@ -518,24 +546,6 @@ class Quib(ReprMixin):
         and None if neither
         """
         return self._name
-
-    @property
-    def allow_overriding(self) -> bool:
-        return self._allow_overriding
-
-    def get_assignment_template(self) -> AssignmentTemplate:
-        return self._assignment_template
-
-    def set_assignment_template(self, *args) -> None:
-        """
-        Sets an assignment template for the quib.
-        Usage:
-
-        - quib.set_assignment_template(assignment_template): set a specific AssignmentTemplate object.
-        - quib.set_assignment_template(min, max): set the template to a bound template between min and max.
-        - quib.set_assignment_template(start, stop, step): set the template to a bound template between min and max.
-        """
-        self._assignment_template = create_assignment_template(args)
 
     def _backwards_translate_path(self, valid_path: List[PathComponent]):
         return []
@@ -731,19 +741,6 @@ class Quib(ReprMixin):
             ancestors |= parent.ancestors
         return ancestors
 
-    def get_inversions_for_override_removal(self, override_removal: OverrideRemoval) -> List[OverrideRemoval]:
-        """
-        Get a list of overide removals to parent quibs which could be applied instead of the given override removal
-        and produce the same change in the value of this quib.
-        """
-        return []
-
-    def get_inversions_for_assignment(self, assignment: Assignment) -> List[AssignmentToQuib]:
-        """
-        Get a list of assignments to parent quibs which could be applied instead of the given assignment
-        and produce the same change in the value of this quib.
-        """
-        return []
 
     """
     File saving

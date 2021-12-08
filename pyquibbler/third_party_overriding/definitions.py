@@ -1,13 +1,15 @@
 import functools
-from dataclasses import dataclass
+import inspect
+from dataclasses import dataclass, field
 from types import ModuleType
 
-from typing import Callable, Any, Dict, Union, Type, Optional
+from typing import Callable, Any, Dict, Union, Type, Optional, Set
 
 from pyquibbler.env import EVALUATE_NOW
 from pyquibbler.quib.function_quibs.utils import ArgsValues
 from pyquibbler.quib.refactor.factory import create_quib
 from pyquibbler.quib.refactor.utils import is_there_a_quib_in_args
+from pyquibbler.third_party_overriding.types import Argument
 
 
 @dataclass
@@ -15,6 +17,7 @@ class OverrideDefinition:
     func_name: str
     module_or_cls: Union[ModuleType, Type]
     quib_creation_flags: Optional[Dict[str, Any]] = None
+    data_source_arguments: Set[Argument] = field(default_factory=set)
 
     @property
     def _default_creation_flags(self) -> Dict[str, Any]:
@@ -52,3 +55,4 @@ class OverrideDefinition:
             return previous_func(*args, **kwargs)
 
         setattr(self.module_or_cls, self.func_name, _create_quib)
+

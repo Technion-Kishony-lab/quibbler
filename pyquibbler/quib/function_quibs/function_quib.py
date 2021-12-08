@@ -13,7 +13,7 @@ from .pretty_converters import MathExpression
 from .external_call_failed_exception_handling import external_call_failed_exception_handling, \
     raise_quib_call_exceptions_as_own
 from .utils import ArgsValues
-from ..override_choice import get_override_group_for_change
+from pyquibbler.quib.assignment.override_choice import get_override_group_for_change
 from ..assignment import AssignmentTemplate, Assignment, PathComponent, AssignmentToQuib
 from ..quib import Quib
 from ..utils import is_there_a_quib_in_args, iter_quibs_in_args, deep_copy_without_quibs_or_graphics, \

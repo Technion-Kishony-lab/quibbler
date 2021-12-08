@@ -8,9 +8,10 @@ from pyquibbler.quib.proxy_quib import ProxyQuib
 from pyquibbler.quib import get_override_group_for_change, CannotChangeQuibAtPathException, DefaultFunctionQuib, Quib
 from pyquibbler.quib.assignment import Assignment, AssignmentToQuib
 from pyquibbler.quib.assignment.assignment import Override
-from pyquibbler.quib.override_choice import override_choice as override_choice_module, OverrideGroup, OverrideRemoval
-from pyquibbler.quib.override_choice.override_choice import OverrideOptionsTree
-from pyquibbler.quib.override_choice.override_dialog import OverrideChoice, OverrideChoiceType, \
+from pyquibbler.quib.assignment.override_choice import OverrideGroup, OverrideRemoval
+from pyquibbler.quib.assignment.override_choice import override_choice as override_choice_module
+from pyquibbler.quib.assignment.override_choice import OverrideOptionsTree
+from pyquibbler.quib.assignment.override_choice import OverrideChoice, OverrideChoiceType, \
     AssignmentCancelledByUserException
 
 

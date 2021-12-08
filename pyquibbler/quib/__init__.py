@@ -5,7 +5,7 @@ from .input_quib import iquib
 from .operator_overriding import override_quib_operators
 from .quib import Quib, OverridingNotAllowedException, QuibIsNotNdArrayException
 from .assignment import Assignment, PathComponent
-from .override_choice import CannotChangeQuibAtPathException, get_override_group_for_change
+from pyquibbler.quib.assignment.override_choice import CannotChangeQuibAtPathException, get_override_group_for_change
 from .proxy_quib import ProxyQuib
 from .quib_guard import QuibGuard
 

@@ -17,7 +17,7 @@ from .assignment.assignment_template import InvalidTypeException
 from .assignment.utils import FailedToDeepAssignException
 from .function_quibs.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own, \
     add_quib_to_fail_trace_if_raises_quib_call_exception
-from .override_choice import OverrideRemoval
+from pyquibbler.quib.assignment.override_choice import OverrideRemoval
 from .quib_varname import get_var_name_being_set_outside_of_pyquibbler, get_file_name_and_line_number_of_quib
 from .assignment import AssignmentTemplate, RangeAssignmentTemplate, BoundAssignmentTemplate, Overrider, Assignment, \
     AssignmentToQuib
@@ -34,7 +34,7 @@ from ..project import Project
 
 if TYPE_CHECKING:
     from .graphics import GraphicsFunctionQuib
-    from .override_choice import ChoiceContext, OverrideChoice
+    from pyquibbler.quib.assignment.override_choice import ChoiceContext, OverrideChoice
 
 
 def get_user_friendly_name_for_requested_valid_path(valid_path: Optional[List[PathComponent]]):

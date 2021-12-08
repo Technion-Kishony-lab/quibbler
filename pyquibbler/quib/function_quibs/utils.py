@@ -43,6 +43,14 @@ class ArgsValues:
     arg_values_by_name: Mapping[str, Any]
 
     def __getitem__(self, item):
+        from ...third_party_overriding.types import KeywordArgument, IndexArgument
+
+        if isinstance(item, KeywordArgument):
+            return self.arg_values_by_name[item.keyword]
+        elif isinstance(item, IndexArgument):
+            return self.arg_values_by_position[item.index]
+
+        # TODO: Is following necessary? Primitive obssession..
         if isinstance(item, str):
             return self.arg_values_by_name[item]
         return self.arg_values_by_position[item]
@@ -63,6 +71,16 @@ class ArgsValues:
                 arg_values_by_position = args
 
         return cls(args, kwargs, arg_values_by_position, arg_values_by_name)
+
+
+@dataclass
+class FuncWithArgsValues:
+    args_values: ArgsValues
+    func: Callable
+
+    @classmethod
+    def from_function_call(cls, func: Callable, args: Tuple[Any, ...], kwargs: Mapping[str, Any], include_defaults):
+        return cls(args_values=ArgsValues.from_function_call(func, args, kwargs, include_defaults), func=func)
 
 
 def unbroadcast_bool_mask(bool_mask: np.ndarray, original_shape: Tuple[int, ...]) -> np.ndarray:

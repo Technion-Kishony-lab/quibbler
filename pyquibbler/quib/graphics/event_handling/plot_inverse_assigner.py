@@ -4,8 +4,8 @@ from matplotlib.backend_bases import PickEvent, MouseEvent, MouseButton
 
 from .graphics_inverse_assigner import graphics_inverse_assigner
 from ...assignment import Assignment, AssignmentToQuib, PathComponent
-from ...override_choice import OverrideRemoval, OverrideGroup
-from ...override_choice.override_choice import get_overrides_for_quib_change_group
+from pyquibbler.quib.assignment.override_choice import OverrideRemoval, OverrideGroup
+from pyquibbler.quib.assignment.override_choice.override_choice import get_overrides_for_quib_change_group
 
 
 def get_xdata_arg_indices_and_ydata_arg_indices(args: Tuple[List, List]):

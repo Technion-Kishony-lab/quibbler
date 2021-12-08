@@ -2,7 +2,6 @@ from typing import Any, List, Optional
 
 import numpy as np
 
-from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.quib.function_quibs.cache.holistic_cache import HolisticCache
 from pyquibbler.quib.function_quibs.cache.shallow import NdVoidCache
 from pyquibbler.quib.function_quibs.cache.shallow.dict_cache import DictCache

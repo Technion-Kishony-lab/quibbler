@@ -8,7 +8,7 @@ from pyquibbler.quib.assignment import AssignmentToQuib, QuibChange
 from .choice_context import ChoiceContext
 from .override_dialog import OverrideChoiceType, OverrideChoice, choose_override_dialog
 from .types import OverrideRemoval, OverrideGroup, QuibChangeWithOverrideRemovals
-from ...env import ASSIGNMENT_RESTRICTIONS
+from pyquibbler.env import ASSIGNMENT_RESTRICTIONS
 
 if TYPE_CHECKING:
     from pyquibbler.quib import FunctionQuib

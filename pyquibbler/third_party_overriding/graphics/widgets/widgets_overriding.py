@@ -56,7 +56,7 @@ class WidgetOverrideDefinition(GraphicsOverrideDefinition):
 
 WidgetOverrideDefinition = functools.partial(WidgetOverrideDefinition, module_or_cls=matplotlib.widgets)
 
-widgets = [
+WIDGET_DEFINITIONS = [
     WidgetOverrideDefinition(
         func_name="RadioButtons",
         on_change=on_change_radio_buttons,
@@ -74,7 +74,3 @@ widgets = [
     )
 ]
 
-
-def override_widgets_with_quib_creators():
-    for widget_definition in widgets:
-        widget_definition.override()

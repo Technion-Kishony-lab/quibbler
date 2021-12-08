@@ -1,6 +1,6 @@
 import contextlib
 import functools
-from typing import Callable, Any
+from typing import Callable, Any, Tuple, Mapping
 from dataclasses import dataclass
 
 
@@ -44,3 +44,11 @@ class Flag(Mutable):
 
     def __bool__(self):
         return self.val
+
+
+def convert_args_and_kwargs(converter: Callable, args: Tuple[Any, ...], kwargs: Mapping[str, Any]):
+    """
+    Apply the given converter on all given arg and kwarg values.
+    """
+    return (tuple(converter(i, val) for i, val in enumerate(args)),
+            {name: converter(name, val) for name, val in kwargs.items()})

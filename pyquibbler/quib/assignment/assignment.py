@@ -37,6 +37,8 @@ class PathComponent:
                  (isinstance(self.component, list) and isinstance(self.component[0], str))))
 
 
+Path = List[PathComponent]
+
 @dataclass
 class Assignment:
     """
@@ -70,14 +72,6 @@ class QuibChange(ABC):
         """
 
 
-class Invertible(ABC):
-    @abstractmethod
-    def get_inversions(self, return_empty_list_instead_of_raising=False) -> List[QuibChange]:
-        """
-        Get changes to the quib's parents that produce the same change made to the quib.
-        """
-
-
 @dataclass(frozen=True)
 class QuibWithAssignment(QuibChange, ABC):
     """
@@ -90,7 +84,7 @@ class QuibWithAssignment(QuibChange, ABC):
         return self.assignment.path
 
 
-class AssignmentToQuib(QuibWithAssignment, Invertible):
+class AssignmentToQuib(QuibWithAssignment):
     def apply(self) -> None:
         self.quib.assign(self.assignment)
 

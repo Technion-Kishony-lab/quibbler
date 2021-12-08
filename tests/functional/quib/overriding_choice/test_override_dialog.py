@@ -1,8 +1,9 @@
-from typing import Any, Callable, Dict
+from typing import Callable, Dict
 from unittest.mock import Mock
 from pytest import fixture, mark, raises
 
-from pyquibbler.quib.override_choice import override_dialog, AssignmentCancelledByUserException
+from pyquibbler.quib.assignment.override_choice import AssignmentCancelledByUserException
+from pyquibbler.quib.assignment.override_choice import override_dialog
 
 
 @fixture

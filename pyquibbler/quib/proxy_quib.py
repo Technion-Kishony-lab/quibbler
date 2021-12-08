@@ -3,7 +3,7 @@ import pathlib
 from typing import Set, Optional, List, Any, TYPE_CHECKING
 
 from pyquibbler.quib.assignment import AssignmentToQuib
-from pyquibbler.quib.override_choice import OverrideRemoval
+from pyquibbler.quib.assignment.override_choice import OverrideRemoval
 from pyquibbler.quib.quib import Quib
 
 if TYPE_CHECKING:
