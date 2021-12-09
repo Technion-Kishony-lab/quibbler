@@ -3,7 +3,7 @@ from typing import Set, Any, List, Dict, Callable, Union
 
 from pyquibbler import Assignment
 from pyquibbler.path_translators.inversal_types import Source, Inversal
-from pyquibbler.path_translators.path_translator import PathTranslator
+from pyquibbler.path_translators.path_translator import Inverter
 from pyquibbler.path_translators.utils import call_func_with_values
 from pyquibbler.quib import PathComponent
 from pyquibbler.quib.assignment.assignment import Path
@@ -15,7 +15,7 @@ from pyquibbler.quib.refactor.utils import deep_copy_without_quibs_or_graphics
 from pyquibbler.utils import convert_args_and_kwargs
 
 
-class TranspositionalPathTranslator(PathTranslator):
+class TranspositionalInverter(Inverter):
 
     def _get_data_source_ids_mask(self) -> np.ndarray:
         """
@@ -72,14 +72,14 @@ class TranspositionalPathTranslator(PathTranslator):
             for data_source in self._get_data_sources()
         }
 
-    def _get_data_sources_to_indices_in_quibs(self, previous_value, indices) -> Dict[Source, np.ndarray]:
+    def _get_data_sources_to_indices_in_quibs(self) -> Dict[Source, np.ndarray]:
         """
         Get a mapping of quibs to the quib's indices that were referenced in `self._indices` (ie after inversion of the
         indices relevant to the particular quib)
         """
         relevant_indices_mask = create_empty_array_with_values_at_indices(
-            indices=indices,
-            shape=np.shape(previous_value),
+            indices=self._working_component,
+            shape=np.shape(self._previous_result),
             value=True,
             empty_value=False
         )
@@ -109,29 +109,28 @@ class TranspositionalPathTranslator(PathTranslator):
             )
         }
 
-    def _get_data_sources_to_inverted_paths(self, previous_value, indices) -> Dict[Source, Path]:
-        data_sources_to_indices = self._get_data_sources_to_indices_in_quibs(previous_value, indices)
+    def _get_data_sources_to_inverted_paths(self) -> Dict[Source, Path]:
+        data_sources_to_indices = self._get_data_sources_to_indices_in_quibs()
         return {
             data_source: [PathComponent(component=data_sources_to_indices[data_source], indexed_cls=np.ndarray)]
             if data_sources_to_indices[data_source] is not None else []
             for data_source in data_sources_to_indices
         }
 
-    def _get_result_with_assignment_set(self, previous_result, assignment: Assignment):
-        new_result = deep_copy_without_quibs_or_graphics(previous_result)
-        return deep_assign_data_in_path(new_result, assignment.path, assignment.value)
+    def _get_result_with_assignment_set(self):
+        new_result = deep_copy_without_quibs_or_graphics(self._previous_result)
+        return deep_assign_data_in_path(new_result, self._assignment.path, self._assignment.value)
 
-    def _get_relevant_result_values(self, previous_value, assignment) -> Dict[Source, np.ndarray]:
+    def _get_relevant_result_values(self) -> Dict[Source, np.ndarray]:
         """
         Get a mapping of quibs to values that were both referenced in `self._indices` and came from the
         corresponding quib
         """
-        working_component = self._get_working_component(assignment.path)
-        result_bool_mask = create_empty_array_with_values_at_indices(np.shape(previous_value),
-                                                                     indices=working_component,
+        result_bool_mask = create_empty_array_with_values_at_indices(np.shape(self._previous_result),
+                                                                     indices=self._working_component,
                                                                      value=True,
                                                                      empty_value=False)
-        representative_result_value = self._get_result_with_assignment_set(previous_value, assignment)
+        representative_result_value = self._get_result_with_assignment_set()
         sources_to_masks = self._get_data_sources_to_masks()
 
         return {
@@ -139,12 +138,12 @@ class TranspositionalPathTranslator(PathTranslator):
             for data_source in self._get_data_sources()
         }
 
-    def _get_working_component(self, path: Path):
-        return path[0].component if len(path) > 0 else True
+    @property
+    def _working_component(self):
+        return self._assignment.path[0].component if len(self._assignment.path) > 0 else True
 
-    def get_inversals(self, assignment, previous_value):
-        working_component = self._get_working_component(assignment.path)
-        sources_to_values = self._get_relevant_result_values(assignment=assignment, previous_value=previous_value)
+    def get_inversals(self):
+        sources_to_values = self._get_relevant_result_values()
         return [
             Inversal(
                 source=data_source,
@@ -153,7 +152,6 @@ class TranspositionalPathTranslator(PathTranslator):
                     value=sources_to_values[data_source]  # TODO
                 )
             )
-            for data_source, path in self._get_data_sources_to_inverted_paths(previous_value,
-                                                                              working_component).items()
+            for data_source, path in self._get_data_sources_to_inverted_paths().items()
             if data_source in sources_to_values
         ]

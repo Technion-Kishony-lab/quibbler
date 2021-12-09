@@ -9,7 +9,7 @@ from pyquibbler.quib.function_quibs.utils import ArgsValues, FuncWithArgsValues
 from pyquibbler.third_party_overriding.overriding import get_definition_for_function
 
 
-class PathTranslator(ABC):
+class Inverter(ABC):
 
     SUPPORTING_FUNCS: Set[Callable] = set()
     PRIORITY = 0
@@ -17,10 +17,14 @@ class PathTranslator(ABC):
     def __init__(self, keyword_arguments_which_can_be_inverted: List[str],
                  index_arguments_which_can_be_inverted: List[int],
                  func_with_args_values: FuncWithArgsValues,
+                 assignment: Assignment,
+                 previous_value: Any
                  ):
         self._keyword_arguments_which_can_be_inverted = keyword_arguments_which_can_be_inverted
         self._index_arguments_which_can_be_inverted = index_arguments_which_can_be_inverted
         self._func_with_args_values = func_with_args_values
+        self._assignment = assignment
+        self._previous_result = previous_value
 
     def supports_func(self, func: Callable):
         return func in self.SUPPORTING_FUNCS
@@ -50,5 +54,5 @@ class PathTranslator(ABC):
         ]))
 
     @abstractmethod
-    def get_inversals(self, assignment: Assignment, previous_value: Any):
+    def get_inversals(self):
         pass
