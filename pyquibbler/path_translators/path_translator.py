@@ -14,14 +14,11 @@ class Inverter(ABC):
     SUPPORTING_FUNCS: Set[Callable] = set()
     PRIORITY = 0
 
-    def __init__(self, keyword_arguments_which_can_be_inverted: List[str],
-                 index_arguments_which_can_be_inverted: List[int],
+    def __init__(self,
                  func_with_args_values: FuncWithArgsValues,
                  assignment: Assignment,
                  previous_value: Any
                  ):
-        self._keyword_arguments_which_can_be_inverted = keyword_arguments_which_can_be_inverted
-        self._index_arguments_which_can_be_inverted = index_arguments_which_can_be_inverted
         self._func_with_args_values = func_with_args_values
         self._assignment = assignment
         self._previous_result = previous_value

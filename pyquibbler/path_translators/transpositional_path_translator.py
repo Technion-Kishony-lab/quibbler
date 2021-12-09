@@ -10,7 +10,7 @@ from pyquibbler.quib.assignment.assignment import Path
 from pyquibbler.quib.assignment.utils import deep_assign_data_in_path
 from pyquibbler.quib.function_quibs.utils import ArgsValues, FuncWithArgsValues, \
     create_empty_array_with_values_at_indices
-from pyquibbler.quib.refactor.iterators import recursively_run_func_on_object
+from pyquibbler.quib.refactor.iterators import recursively_run_func_on_object, SHALLOW_MAX_DEPTH, SHALLOW_MAX_LENGTH
 from pyquibbler.quib.refactor.utils import deep_copy_without_quibs_or_graphics
 from pyquibbler.utils import convert_args_and_kwargs
 
@@ -44,14 +44,17 @@ class TranspositionalInverter(Inverter):
         Return self.args and self.kwargs with all data source args converted with the given convert_data_source
         callback.
         """
-        data_source_ids = set(map(id, self._get_data_sources()))
+        def _convert_arg(_i, arg):
+            def _convert_object(o):
+                if isinstance(o, Source):
+                    return convert_data_source(o)
+                return o
+            return recursively_run_func_on_object(func=_convert_object,
+                                                  obj=arg,
+                                                  max_depth=SHALLOW_MAX_DEPTH,
+                                                  max_length=SHALLOW_MAX_LENGTH)
 
-        def _replace_arg_with_corresponding_mask_or_arg(_i, arg):
-            if id(arg) in data_source_ids:
-                return convert_data_source(arg)
-            return arg
-
-        return convert_args_and_kwargs(_replace_arg_with_corresponding_mask_or_arg,
+        return convert_args_and_kwargs(_convert_arg,
                                        self.args_values.args,
                                        self.args_values.kwargs)
 
@@ -144,6 +147,7 @@ class TranspositionalInverter(Inverter):
 
     def get_inversals(self):
         sources_to_values = self._get_relevant_result_values()
+        sources_to_paths = self._get_data_sources_to_inverted_paths()
         return [
             Inversal(
                 source=data_source,
@@ -152,6 +156,6 @@ class TranspositionalInverter(Inverter):
                     value=sources_to_values[data_source]  # TODO
                 )
             )
-            for data_source, path in self._get_data_sources_to_inverted_paths().items()
+            for data_source, path in sources_to_paths.items()
             if data_source in sources_to_values
         ]

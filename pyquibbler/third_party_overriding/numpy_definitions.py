@@ -19,5 +19,9 @@ NUMPY_DEFINITIONS = [
     NumpyOverrideDefinition.from_func(
         func=np.rot90,
         data_source_arguments={KeywordArgument(keyword="m")}
+    ),
+    NumpyOverrideDefinition.from_func(
+        func=np.concatenate,
+        data_source_arguments={IndexArgument(index=0)}
     )
 ]
