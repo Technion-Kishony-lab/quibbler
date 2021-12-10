@@ -3,7 +3,7 @@ from typing import Callable, Any, Tuple, Mapping
 import numpy as np
 
 from pyquibbler import Assignment
-from pyquibbler.path_translators.inverter import invert
+from pyquibbler.path_translators import invert
 from pyquibbler.path_translators.utils import call_func_with_values
 from pyquibbler.quib import PathComponent
 from pyquibbler.quib.assignment.utils import deep_assign_data_in_path
@@ -11,6 +11,8 @@ from pyquibbler.quib.assignment.utils import deep_assign_data_in_path
 
 def inverse(func: Callable, indices: Any, value: Any, args: Tuple[Any, ...] = None, kwargs: Mapping[str, Any] = None,
             empty_path: bool = False):
+    if hasattr(func, '__wrapped__') and func.__wrapped__:
+        func = func.__wrapped__
     if indices is not None and empty_path is True:
         raise Exception("The indices cannot be set if empty path is True")
 

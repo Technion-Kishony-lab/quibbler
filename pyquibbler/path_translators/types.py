@@ -2,14 +2,13 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Union
 
-from pyquibbler.overriding.types import Argument
+from pyquibbler.overriding import Argument
 
 
 @dataclass(frozen=True)
 class ArgumentWithValue:
     argument: Argument
     value: Any
-
 
 
 class SourceType(Enum):

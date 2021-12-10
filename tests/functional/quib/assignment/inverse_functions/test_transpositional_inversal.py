@@ -188,7 +188,7 @@ def test_inverse_assign_field_array(basic_dtype):
     assert np.array_equal(b.get_value(), np.array([('maor2', 23)], dtype=basic_dtype))
 
 
-# TODO: move to quib test
+# MOved: move to quib test
 def test_inverse_assign_field_array_with_function_and_fancy_indexing_and_field_name(basic_dtype):
     arr = iquib(np.array([[('shlomi', 9)], [('maor', 3)]], dtype=basic_dtype))
     rotation_quib = TranspositionalFunctionQuib.create(func=np.rot90, func_args=(arr,))
@@ -211,7 +211,7 @@ def test_inverse_assign_field_with_multiple_field_values(basic_dtype):
     assert np.array_equal(arr.get_value(), np.array([[(name_1, 9)], [(name_2, 3)]], dtype=basic_dtype))
 
 
-# TODO: move to integration
+# MOVED: move to integration
 def test_inverse_assign_nested_with_fancy_rot90_fancy_and_replace():
     dtype = [('name', '|S10'), ('nested', [('child_name', np.unicode, 30)], (3,))]
     name_1 = 'Maor'
@@ -244,7 +244,7 @@ def test_inverse_setitem_on_non_ndarray():
     assert np.array_equal(first_quib_arg.get_value(), [[10, 2, 3]])
 
 
-# TODO: move to perhaps at quib level
+# MOVED: move to perhaps at quib level
 @pytest.mark.regression
 def test_inverse_setitem_on_non_ndarray_after_rotation():
     first_quib_arg = iquib([[[1, 2, 3]]])
@@ -280,7 +280,7 @@ def test_inverse_getitem_on_non_view_slice():
     assert np.array_equal(a.get_value(), [3, 1, 2])
 
 
-# TODO: move to quib level
+# MOVED: move to quib level
 def test_inverse_getitem_on_dict_and_rot90():
     quib = iquib({'a': [[1, 2, 3]]})
     get_item = quib['a']
@@ -291,7 +291,7 @@ def test_inverse_getitem_on_dict_and_rot90():
     assert np.array_equal(quib['a'].get_value(), [[1, 2, 20]])
 
 
-# TODO: move to quib level
+# MOVED: move to quib level
 def test_inverse_with_int_as_result_of_function_quib_after_slicing():
     a = iquib(np.array([1, 2, 3]))
     b = a[0:1]

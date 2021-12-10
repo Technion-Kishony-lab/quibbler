@@ -11,7 +11,6 @@ from operator import getitem
 from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Callable, Union, Iterable, Mapping
 from weakref import WeakSet
 from contextlib import contextmanager
-from pyquibbler.path_translators import invert, CannotInvertException
 from matplotlib.widgets import AxesWidget
 
 from pyquibbler.graphics.graphics_collection import GraphicsCollection
@@ -251,6 +250,7 @@ class Quib(ReprMixin):
         Get a list of assignments to parent quibs which could be applied instead of the given assignment
         and produce the same change in the value of this quib.
         """
+
         sources_to_quibs = {}
 
         def _replace_quib_with_source(_, arg):
@@ -263,6 +263,8 @@ class Quib(ReprMixin):
             return recursively_run_func_on_object(_replace, arg, max_depth=SHALLOW_MAX_DEPTH)
         args, kwargs = convert_args_and_kwargs(_replace_quib_with_source, self.args, self.kwargs)
         func = self.func.func_to_invert if hasattr(self.func, 'func_to_invert') else self.func
+        from pyquibbler.path_translators import invert, CannotInvertException
+
         try:
             inversals = invert(func=func,
                            args=args,

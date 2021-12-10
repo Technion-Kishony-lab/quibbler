@@ -7,8 +7,7 @@ from pyquibbler.iterators import iter_objects_of_type_in_object_shallowly
 from .exceptions import CannotInvertException, NoInvertersFoundException
 from .types import ArgumentWithValue, Source, SourceType
 from pyquibbler.quib.function_quibs.utils import ArgsValues, FuncWithArgsValues
-from pyquibbler.overriding.overriding import get_definition_for_function
-
+from ..overriding import get_definition_for_function
 
 if TYPE_CHECKING:
     from pyquibbler import Assignment

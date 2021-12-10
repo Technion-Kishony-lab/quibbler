@@ -54,23 +54,21 @@ class WidgetOverrideDefinition(GraphicsOverrideDefinition):
             return widget
 
 
-WidgetOverrideDefinition = functools.partial(WidgetOverrideDefinition, module_or_cls=matplotlib.widgets)
+def widget_definition(func, on_change=None, set_on_change=None):
+    return WidgetOverrideDefinition.from_func(func,
+                                              module_or_cls=matplotlib.widgets,
+                                              on_change=on_change, set_on_change=set_on_change)
+
 
 WIDGET_DEFINITIONS = [
-    WidgetOverrideDefinition(
-        func_name="RadioButtons",
-        on_change=on_change_radio_buttons,
-        set_on_change=lambda res, callback: res.on_clicked(callback)
-    ),
-    WidgetOverrideDefinition(
-        func_name="Slider",
-        on_change=on_change_slider,
-        set_on_change=set_change_slider
-    ),
-    WidgetOverrideDefinition(
-        func_name="CheckButtons",
-        on_change=on_change_checkbuttons,
-        set_on_change=lambda res, callback: res.on_clicked(callback)
-    )
+    widget_definition(matplotlib.widgets.RadioButtons,
+                      on_change=on_change_radio_buttons,
+                      set_on_change=lambda res, callback: res.on_clicked(callback)),
+    widget_definition(matplotlib.widgets.Slider,
+                      on_change=on_change_slider,
+                      set_on_change=set_change_slider),
+    widget_definition(matplotlib.widgets.CheckButtons,
+                      on_change=on_change_checkbuttons,
+                      set_on_change=lambda res, callback: res.on_clicked(callback)),
 ]
 

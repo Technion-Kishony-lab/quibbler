@@ -1,4 +1,4 @@
-from typing import Callable, Set
+from typing import Callable, Set, List
 
 import numpy as np
 
@@ -6,38 +6,15 @@ from pyquibbler.overriding.definitions import OverrideDefinition
 from pyquibbler.overriding.types import Argument, KeywordArgument, IndexArgument
 
 
-class NumpyOverrideDefinition(OverrideDefinition):
-
-    @classmethod
-    def from_func(cls, func: Callable, data_source_arguments: Set[Argument]):
-        return cls(func_name=func.__name__,
-                   module_or_cls=np,
-                   data_source_arguments=data_source_arguments or set())
+def numpy_definition(func, data_source_arguments: List = None):
+    return OverrideDefinition.from_func(func=func, module_or_cls=np, data_source_arguments=data_source_arguments)
 
 
 NUMPY_DEFINITIONS = [
-    NumpyOverrideDefinition.from_func(
-        func=np.rot90,
-        data_source_arguments={KeywordArgument(keyword="m")}
-    ),
-    NumpyOverrideDefinition.from_func(
-        func=np.concatenate,
-        data_source_arguments={IndexArgument(index=0)}
-    ),
-    NumpyOverrideDefinition.from_func(
-        func=np.repeat,
-        data_source_arguments={KeywordArgument(keyword="a")}
-    ),
-    NumpyOverrideDefinition.from_func(
-        func=np.full,
-        data_source_arguments={KeywordArgument(keyword="fill_value")}
-    ),
-    NumpyOverrideDefinition.from_func(
-        func=np.reshape,
-        data_source_arguments={KeywordArgument(keyword="a")}
-    ),
-    NumpyOverrideDefinition.from_func(
-        func=np.array,
-        data_source_arguments={IndexArgument(0)}
-    )
+    numpy_definition(np.rot90, data_source_arguments=['m']),
+    numpy_definition(np.concatenate, data_source_arguments=[0]),
+    numpy_definition(np.repeat, data_source_arguments=['a']),
+    numpy_definition(np.full, data_source_arguments=['fill_value']),
+    numpy_definition(np.reshape, data_source_arguments=['a']),
+    numpy_definition(np.array, data_source_arguments=[0]),
 ]

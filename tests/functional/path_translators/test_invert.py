@@ -3,7 +3,7 @@ from unittest import mock
 import pytest
 
 from pyquibbler.path_translators.exceptions import NoInvertersFoundException
-from pyquibbler.path_translators.inverter import invert
+from pyquibbler.path_translators import invert
 
 
 def test_invert_raises_exception_on_unknown_func():

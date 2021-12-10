@@ -4,7 +4,6 @@ from typing import Callable, Tuple, Any, Mapping
 
 from pyquibbler import Assignment
 from pyquibbler.path_translators.types import Source
-from pyquibbler.path_translators.inverter import invert
 from pyquibbler.path_translators.utils import call_func_with_values
 from pyquibbler.quib import PathComponent
 from pyquibbler.quib.assignment.utils import deep_assign_data_in_path
