@@ -3,9 +3,9 @@ from operator import getitem
 import numpy as np
 from typing import Set, Any, List, Dict, Callable, Union
 
-from pyquibbler import Assignment
-from pyquibbler.path_translators.inversal_types import Source, Inversal
 from pyquibbler.path_translators.inverter import Inverter
+from pyquibbler.quib.assignment import Assignment
+from pyquibbler.path_translators.types import Source, Inversal
 from pyquibbler.path_translators.utils import call_func_with_values
 from pyquibbler.quib import PathComponent
 from pyquibbler.quib.assignment.assignment import Path

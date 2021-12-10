@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 
 from pyquibbler import Assignment
-from pyquibbler.path_translators.inversal_types import Source
+from pyquibbler.path_translators.types import Source
 from pyquibbler.quib import PathComponent
 from pyquibbler.quib.refactor.quib import Quib
 from tests.functional.path_translators.utils import inverse

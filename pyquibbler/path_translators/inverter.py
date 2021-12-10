@@ -1,13 +1,17 @@
+from __future__ import annotations
 from abc import ABC, abstractmethod
 from functools import lru_cache
-from typing import Optional, Callable, Any, Set, Mapping, List, Tuple, Type
+from typing import Optional, Callable, Any, Set, Mapping, List, Tuple, Type, TYPE_CHECKING
 
-from pyquibbler import Assignment
 from pyquibbler.iterators import iter_objects_of_type_in_object_shallowly
-from pyquibbler.path_translators.exceptions import CannotInvertException, NoInvertersFoundException
-from pyquibbler.path_translators.inversal_types import ArgumentWithValue, Source, SourceType
+from .exceptions import CannotInvertException, NoInvertersFoundException
+from .types import ArgumentWithValue, Source, SourceType
 from pyquibbler.quib.function_quibs.utils import ArgsValues, FuncWithArgsValues
 from pyquibbler.overriding.overriding import get_definition_for_function
+
+
+if TYPE_CHECKING:
+    from pyquibbler import Assignment
 
 
 class Inverter(ABC):
@@ -62,28 +66,3 @@ class Inverter(ABC):
     @abstractmethod
     def get_inversals(self):
         pass
-
-
-def invert(func: Callable, args: Tuple[Any, ...], kwargs: Mapping[str, Any], assignment: Assignment, previous_result):
-    from pyquibbler.path_translators.translators import INVERTERS
-    # TODO test multiple scenarios with choosing inverters
-    potential_inverter_classes = [cls for cls in INVERTERS if func.__name__ in [f.__name__ for f in cls.SUPPORTING_FUNCS]]
-    potential_inverter_classes = list(sorted(potential_inverter_classes, key=lambda c: c.PRIORITY))
-    if len(potential_inverter_classes) == 0:
-        raise NoInvertersFoundException(func)
-    while True:
-        cls = potential_inverter_classes.pop()
-        inverter = cls(
-            func_with_args_values=FuncWithArgsValues.from_function_call(
-                func=func,
-                args=args,
-                kwargs=kwargs,
-                include_defaults=True
-            ),
-            assignment=assignment,
-            previous_result=previous_result
-        )
-        try:
-            return inverter.get_inversals()
-        except CannotInvertException:
-            pass

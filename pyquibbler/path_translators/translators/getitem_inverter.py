@@ -5,8 +5,7 @@ from typing import List
 import numpy as np
 
 from .transpositional_inverter import TranspositionalInverter
-from ..inversal_types import Inversal
-from ... import Assignment
+from ..types import Inversal
 from ...quib import PathComponent
 
 
@@ -29,6 +28,7 @@ class GetItemInverter(TranspositionalInverter):
                and isinstance(self._args[0], np.ndarray)
 
     def get_inversals(self):
+        from pyquibbler import Assignment
         if self._can_squash_start_of_path():
             return super(GetItemInverter, self).get_inversals()
         return [

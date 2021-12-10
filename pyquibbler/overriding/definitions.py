@@ -7,7 +7,6 @@ from typing import Callable, Any, Dict, Union, Type, Optional, Set
 
 from pyquibbler.env import EVALUATE_NOW
 from pyquibbler.quib.function_quibs.utils import ArgsValues
-from pyquibbler.quib.refactor.factory import create_quib
 from pyquibbler.quib.refactor.utils import is_there_a_quib_in_args
 from pyquibbler.overriding.types import Argument
 
@@ -38,6 +37,7 @@ class OverrideDefinition:
 
         @functools.wraps(previous_func)
         def _create_quib(*args, **kwargs):
+            from pyquibbler.quib.refactor.factory import create_quib
             if is_there_a_quib_in_args(args, kwargs):
                 flags = self._flags
                 evaluate_now = flags.pop('evaluate_now', EVALUATE_NOW)
@@ -45,8 +45,10 @@ class OverrideDefinition:
                                                             args=args,
                                                             kwargs=kwargs,
                                                             include_defaults=False)
+                wrapped_func = functools.partial(self._run_previous_func, previous_func, args_values)
+                wrapped_func.func_to_invert = previous_func
                 return create_quib(
-                    func=functools.partial(self._run_previous_func, previous_func, args_values),
+                    func=wrapped_func,
                     args=args,
                     kwargs=kwargs,
                     evaluate_now=evaluate_now,
@@ -54,5 +56,6 @@ class OverrideDefinition:
                 )
             return previous_func(*args, **kwargs)
 
+        _create_quib.quibbler = True
         setattr(self.module_or_cls, self.func_name, _create_quib)
 

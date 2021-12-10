@@ -1,7 +1,7 @@
 from copy import copy
 from typing import Callable, Any
 
-from pyquibbler.path_translators.inversal_types import Source
+from pyquibbler.path_translators.types import Source
 from pyquibbler.quib.refactor.iterators import SHALLOW_MAX_DEPTH, SHALLOW_MAX_LENGTH, recursively_run_func_on_object
 
 

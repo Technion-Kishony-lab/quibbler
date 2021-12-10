@@ -3,7 +3,7 @@ import pytest
 from typing import Callable, Tuple, Any, Mapping
 
 from pyquibbler import Assignment
-from pyquibbler.path_translators.inversal_types import Source
+from pyquibbler.path_translators.types import Source
 from pyquibbler.path_translators.inverter import invert
 from pyquibbler.path_translators.utils import call_func_with_values
 from pyquibbler.quib import PathComponent

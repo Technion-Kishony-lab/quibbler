@@ -11,10 +11,11 @@ from operator import getitem
 from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Callable, Union, Iterable, Mapping
 from weakref import WeakSet
 from contextlib import contextmanager
-
+from pyquibbler.path_translators import invert, CannotInvertException
 from matplotlib.widgets import AxesWidget
 
 from pyquibbler.graphics.graphics_collection import GraphicsCollection
+from pyquibbler.path_translators.types import Source
 from pyquibbler.quib import get_override_group_for_change
 from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
 from pyquibbler.quib.graphics.graphics_function_quib import create_array_from_func
@@ -32,16 +33,17 @@ from pyquibbler.quib.refactor.cache_behavior import CacheBehavior, UnknownCacheB
 from pyquibbler.quib.refactor.exceptions import OverridingNotAllowedException, UnknownUpdateTypeException, \
     InvalidCacheBehaviorForQuibException
 from pyquibbler.quib.refactor.graphics import UpdateType
-from pyquibbler.quib.refactor.iterators import iter_quibs_in_args
+from pyquibbler.quib.refactor.iterators import iter_quibs_in_args, SHALLOW_MAX_DEPTH, recursively_run_func_on_object
 from pyquibbler.quib.refactor.method_caching import cache_method_until_full_invalidation
 from pyquibbler.quib.refactor.repr.repr_mixin import ReprMixin
-from pyquibbler.quib.utils import quib_method, Unpacker, recursively_run_func_on_object, \
+from pyquibbler.quib.utils import quib_method, Unpacker, \
     QuibRef
 from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.env import LEN_RAISE_EXCEPTION
 from pyquibbler.input_validation_utils import validate_user_input
 from pyquibbler.logger import logger
 from pyquibbler.project import Project
+from pyquibbler.utils import convert_args_and_kwargs
 
 if TYPE_CHECKING:
     from pyquibbler.quib.assignment.override_choice import ChoiceContext, OverrideChoice
@@ -249,7 +251,35 @@ class Quib(ReprMixin):
         Get a list of assignments to parent quibs which could be applied instead of the given assignment
         and produce the same change in the value of this quib.
         """
-        return []
+        sources_to_quibs = {}
+
+        def _replace_quib_with_source(_, arg):
+            def _replace(q):
+                if isinstance(q, Quib):
+                    source = Source(q.get_value_valid_at_path(None))
+                    sources_to_quibs[source] = q
+                    return source
+                return q
+            return recursively_run_func_on_object(_replace, arg, max_depth=SHALLOW_MAX_DEPTH)
+        args, kwargs = convert_args_and_kwargs(_replace_quib_with_source, self.args, self.kwargs)
+        func = self.func.func_to_invert if hasattr(self.func, 'func_to_invert') else self.func
+        try:
+            inversals = invert(func=func,
+                           args=args,
+                           kwargs=kwargs,
+                           assignment=assignment,
+                           previous_result=self.get_value())
+        except CannotInvertException:
+            return []
+
+        return [
+            AssignmentToQuib(
+                quib=sources_to_quibs[inversal.source],
+                assignment=inversal.assignment
+            )
+            for inversal in inversals
+        ]
+
 
     def store_override_choice(self, context: ChoiceContext, choice: OverrideChoice) -> None:
         """

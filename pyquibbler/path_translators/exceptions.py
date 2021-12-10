@@ -13,7 +13,7 @@ class CannotInvertException(TranslationException):
 
 
 @dataclass
-class NoInvertersFoundException(TranslationException):
+class NoInvertersFoundException(CannotInvertException):
 
     func: Callable
 
