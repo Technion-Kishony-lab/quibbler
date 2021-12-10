@@ -9,7 +9,7 @@ from pyquibbler.env import EVALUATE_NOW
 from pyquibbler.quib.function_quibs.utils import ArgsValues
 from pyquibbler.quib.refactor.factory import create_quib
 from pyquibbler.quib.refactor.utils import is_there_a_quib_in_args
-from pyquibbler.third_party_overriding.types import Argument
+from pyquibbler.overriding.types import Argument
 
 
 @dataclass

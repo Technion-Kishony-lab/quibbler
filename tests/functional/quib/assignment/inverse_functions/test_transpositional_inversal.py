@@ -64,9 +64,6 @@ def test_inverse_concat_in_both_arguments():
     assert np.array_equal(first_quib_arg.get_value(), np.array([[first_new_value, 2, 3]]))
     assert np.array_equal(second_quib_arg.get_value(), np.array([[second_new_value, 12, 14]]))
 
-
-# TODO: maor here
-
 # MAOR: BAD TEST, basically same as test_inverse_concat
 @pytest.mark.regression
 def test_inverse_concat_does_not_return_empty_assignments():
@@ -85,7 +82,7 @@ def test_inverse_concat_does_not_return_empty_assignments():
     assert assignment.value == [20]
 
 
-# TODO: move to getitem
+# GETITEM: DONE
 def test_inverse_getitem():
     quib_arg = iquib(np.array([[1, 2, 3], [4, 5, 6]]))
 
@@ -123,7 +120,7 @@ def test_inverse_repeat_with_quib_as_repeat_count_and_quib_as_arr():
     ]))
 
 
-# TODO: getitem
+# MOVED: getitem
 def test_inverse_assign_to_sub_array():
     a = iquib(np.array([0, 1, 2]))
     b = a[:2]
@@ -133,7 +130,7 @@ def test_inverse_assign_to_sub_array():
     assert np.array_equal(a.get_value(), [3, 4, 2])
 
 
-# TODO: getitem
+# MOVED: getitem
 def test_inverse_assign_pyobject_array():
     a = iquib(np.array([mock.Mock()]))
     new_mock = mock.Mock()
@@ -144,7 +141,7 @@ def test_inverse_assign_pyobject_array():
     assert a.get_value() == [new_mock]
 
 
-# TODO: getitem
+# MOVED: getitem
 @pytest.mark.regression
 def test_inverse_assign_to_single_element():
     a = iquib(np.array([0, 1, 2]))
@@ -180,7 +177,7 @@ def basic_dtype():
     return [('name', '|S21'), ('age', 'i4')]
 
 
-# TODO: getitem
+# MOVED: getitem
 def test_inverse_assign_field_array(basic_dtype):
     a = iquib(np.array([[("maor", 24)], [("maor2", 22)]], dtype=basic_dtype))
     b = a[[1], [0]]
@@ -191,7 +188,7 @@ def test_inverse_assign_field_array(basic_dtype):
     assert np.array_equal(b.get_value(), np.array([('maor2', 23)], dtype=basic_dtype))
 
 
-# TODO: getitem
+# TODO: move to quib test
 def test_inverse_assign_field_array_with_function_and_fancy_indexing_and_field_name(basic_dtype):
     arr = iquib(np.array([[('shlomi', 9)], [('maor', 3)]], dtype=basic_dtype))
     rotation_quib = TranspositionalFunctionQuib.create(func=np.rot90, func_args=(arr,))
@@ -203,7 +200,7 @@ def test_inverse_assign_field_array_with_function_and_fancy_indexing_and_field_n
     assert np.array_equal(arr.get_value(), np.array([[("shlomi", 9)], [("heisenberg", 3)]], dtype=basic_dtype))
 
 
-# TODO: getitem
+# BAD TEST: Didn't check anything...
 def test_inverse_assign_field_with_multiple_field_values(basic_dtype):
     name_1 = 'heisenberg'
     name_2 = 'john'
@@ -214,7 +211,7 @@ def test_inverse_assign_field_with_multiple_field_values(basic_dtype):
     assert np.array_equal(arr.get_value(), np.array([[(name_1, 9)], [(name_2, 3)]], dtype=basic_dtype))
 
 
-# TODO: getitem
+# TODO: move to integration
 def test_inverse_assign_nested_with_fancy_rot90_fancy_and_replace():
     dtype = [('name', '|S10'), ('nested', [('child_name', np.unicode, 30)], (3,))]
     name_1 = 'Maor'
@@ -236,7 +233,7 @@ def test_inverse_assign_nested_with_fancy_rot90_fancy_and_replace():
                                                           [(name_2, [*second_children[:-1], new_name])]], dtype=dtype))
 
 
-# TODO: getitem
+# Moved: getitem
 @pytest.mark.regression
 def test_inverse_setitem_on_non_ndarray():
     first_quib_arg = iquib([[1, 2, 3]])
@@ -274,7 +271,7 @@ def test_inverse_assign_list_within_list():
     assert np.array_equal(quib_arg.get_value(), np.array([10, 1, 2, 3, 4, 5, 6, 7, 8]))
 
 
-# TODO: getitem
+# MOVED: getitem
 def test_inverse_getitem_on_non_view_slice():
     a = iquib(np.array([0, 1, 2]))
 
@@ -283,7 +280,7 @@ def test_inverse_getitem_on_non_view_slice():
     assert np.array_equal(a.get_value(), [3, 1, 2])
 
 
-# TODO: getitem
+# TODO: move to quib level
 def test_inverse_getitem_on_dict_and_rot90():
     quib = iquib({'a': [[1, 2, 3]]})
     get_item = quib['a']
@@ -294,7 +291,7 @@ def test_inverse_getitem_on_dict_and_rot90():
     assert np.array_equal(quib['a'].get_value(), [[1, 2, 20]])
 
 
-# TODO: getitem
+# TODO: move to quib level
 def test_inverse_with_int_as_result_of_function_quib_after_slicing():
     a = iquib(np.array([1, 2, 3]))
     b = a[0:1]
@@ -305,7 +302,7 @@ def test_inverse_with_int_as_result_of_function_quib_after_slicing():
     assert np.array_equal(a.get_value(), np.array([3, 2, 3]))
 
 
-# TODO: getitem
+# MOVED: getitem
 @pytest.mark.regression
 def test_inverse_with_resulting_int_and_changing_value_shape():
     a = iquib(np.arange(6).reshape(2, 3))

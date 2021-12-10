@@ -5,31 +5,11 @@ from typing import Callable, Tuple, Any, Mapping
 from pyquibbler import Assignment
 from pyquibbler.path_translators.inversal_types import Source
 from pyquibbler.path_translators.inverter import invert
-from pyquibbler.path_translators.translators.transpositional_inverter import TranspositionalInverter
 from pyquibbler.path_translators.utils import call_func_with_values
 from pyquibbler.quib import PathComponent
 from pyquibbler.quib.assignment.utils import deep_assign_data_in_path
 from pyquibbler.quib.function_quibs.utils import FuncWithArgsValues
-
-
-def inverse(func: Callable, indices: Any, value: Any, args: Tuple[Any, ...] = None, kwargs: Mapping[str, Any] = None):
-    args = args or tuple()
-    kwargs = kwargs or {}
-    previous_value = call_func_with_values(func, args, kwargs)
-    inversals = invert(
-        func=func,
-        args=args,
-        kwargs=kwargs,
-        previous_result=previous_value,
-        assignment=Assignment(path=[PathComponent(indexed_cls=np.ndarray, component=indices)], value=value)
-    )
-
-    return {
-        inversal.source: deep_assign_data_in_path(inversal.source.value,
-                                                  inversal.assignment.path,
-                                                  inversal.assignment.value)
-        for inversal in inversals
-    }
+from tests.functional.path_translators.utils import inverse
 
 
 def test_inverse_rot90():

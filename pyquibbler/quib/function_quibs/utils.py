@@ -43,7 +43,7 @@ class ArgsValues:
     arg_values_by_name: Mapping[str, Any]
 
     def __getitem__(self, item):
-        from ...third_party_overriding.types import KeywordArgument, IndexArgument
+        from ...overriding.types import KeywordArgument, IndexArgument
 
         if isinstance(item, KeywordArgument):
             return self.arg_values_by_name[item.keyword]

@@ -4,17 +4,16 @@ from typing import Optional, Callable, Any, Set, Mapping, List, Tuple, Type
 
 from pyquibbler import Assignment
 from pyquibbler.iterators import iter_objects_of_type_in_object_shallowly
-from pyquibbler.path_translators.exceptions import CannotInvertException
+from pyquibbler.path_translators.exceptions import CannotInvertException, NoInvertersFoundException
 from pyquibbler.path_translators.inversal_types import ArgumentWithValue, Source, SourceType
 from pyquibbler.quib.function_quibs.utils import ArgsValues, FuncWithArgsValues
-from pyquibbler.third_party_overriding.overriding import get_definition_for_function
+from pyquibbler.overriding.overriding import get_definition_for_function
 
 
 class Inverter(ABC):
 
     SUPPORTING_FUNCS: Set[Callable] = set()
     PRIORITY = 0
-    INVERTERS: Set[Type['Inverter']] = set()
 
     def __init__(self,
                  func_with_args_values: FuncWithArgsValues,
@@ -24,10 +23,6 @@ class Inverter(ABC):
         self._func_with_args_values = func_with_args_values
         self._assignment = assignment
         self._previous_result = previous_result
-
-    def __init_subclass__(cls, **kwargs):
-        super(Inverter, cls).__init_subclass__(**kwargs)
-        Inverter.INVERTERS.add(cls)
 
     def supports_func(self, func: Callable):
         return func in self.SUPPORTING_FUNCS
@@ -39,6 +34,14 @@ class Inverter(ABC):
     @property
     def args_values(self):
         return self._func_with_args_values.args_values
+
+    @property
+    def _args(self):
+        return self.args_values.args
+
+    @property
+    def _kwargs(self):
+        return self.args_values.kwargs
 
     @property
     def func_definition(self):
@@ -62,11 +65,12 @@ class Inverter(ABC):
 
 
 def invert(func: Callable, args: Tuple[Any, ...], kwargs: Mapping[str, Any], assignment: Assignment, previous_result):
+    from pyquibbler.path_translators.translators import INVERTERS
     # TODO test multiple scenarios with choosing inverters
-    potential_inverter_classes = [cls for cls in Inverter.INVERTERS if func.__wrapped__ in cls.SUPPORTING_FUNCS]
+    potential_inverter_classes = [cls for cls in INVERTERS if func.__name__ in [f.__name__ for f in cls.SUPPORTING_FUNCS]]
     potential_inverter_classes = list(sorted(potential_inverter_classes, key=lambda c: c.PRIORITY))
     if len(potential_inverter_classes) == 0:
-        raise Exception("TODO")
+        raise NoInvertersFoundException(func)
     while True:
         cls = potential_inverter_classes.pop()
         inverter = cls(

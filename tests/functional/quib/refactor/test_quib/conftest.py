@@ -4,7 +4,7 @@ import pytest
 
 from pyquibbler.quib.refactor.factory import create_quib
 from pyquibbler.quib.refactor.quib import Quib
-from pyquibbler.third_party_overriding.overriding import override_third_party_funcs
+from pyquibbler.overriding.overriding import override_third_party_funcs
 
 
 @pytest.fixture(autouse=True)

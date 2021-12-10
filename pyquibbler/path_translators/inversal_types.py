@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Union
 
-from pyquibbler.third_party_overriding.types import Argument
+from pyquibbler.overriding.types import Argument
 
 
 @dataclass(frozen=True)

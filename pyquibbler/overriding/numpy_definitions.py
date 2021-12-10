@@ -2,12 +2,11 @@ from typing import Callable, Set
 
 import numpy as np
 
-from pyquibbler.third_party_overriding.definitions import OverrideDefinition
-from pyquibbler.third_party_overriding.types import Argument, KeywordArgument, IndexArgument
+from pyquibbler.overriding.definitions import OverrideDefinition
+from pyquibbler.overriding.types import Argument, KeywordArgument, IndexArgument
 
 
 class NumpyOverrideDefinition(OverrideDefinition):
-
 
     @classmethod
     def from_func(cls, func: Callable, data_source_arguments: Set[Argument]):

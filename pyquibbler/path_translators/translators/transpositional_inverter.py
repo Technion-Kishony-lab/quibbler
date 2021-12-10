@@ -1,3 +1,5 @@
+from operator import getitem
+
 import numpy as np
 from typing import Set, Any, List, Dict, Callable, Union
 
@@ -17,7 +19,7 @@ from pyquibbler.utils import convert_args_and_kwargs
 
 class TranspositionalInverter(Inverter):
 
-    SUPPORTING_FUNCS = {np.transpose, np.rot90, np.full, np.concatenate, np.repeat, np.reshape, np.array}
+    SUPPORTING_FUNCS = {np.transpose, np.rot90, np.full, np.concatenate, np.repeat, np.reshape, np.array, getitem}
 
     def _get_data_source_ids_mask(self) -> np.ndarray:
         """

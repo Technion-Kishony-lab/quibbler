@@ -22,6 +22,7 @@ def test_quib_iter_first(quib):
     assert (first.get_value(), second.get_value()) == tuple(quib.func.return_value[:2])
 
 
+# TODO: when operators are in motion
 def test_quib_getitem(quib):
     quib.func.return_value = [1, 2, 3]
 

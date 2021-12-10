@@ -9,7 +9,7 @@ from pyquibbler.env import DEBUG, EVALUATE_NOW, ASSIGNMENT_RESTRICTIONS, PRETTY_
     SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS, GET_VARIABLE_NAMES
 from pyquibbler.project import Project
 from pyquibbler.quib import FunctionQuib
-from pyquibbler.third_party_overriding.overriding import override_third_party_funcs
+from pyquibbler.overriding.overriding import override_third_party_funcs
 from pyquibbler.utils import Flag
 
 DEFAULT_DEBUG = True
