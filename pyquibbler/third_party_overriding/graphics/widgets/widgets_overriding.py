@@ -4,7 +4,6 @@ from dataclasses import dataclass
 import matplotlib.widgets
 from typing import Callable
 
-from pyquibbler import Assignment
 from pyquibbler.graphics import global_collecting
 from pyquibbler.quib import PathComponent
 from pyquibbler.quib.refactor.quib import Quib
@@ -26,6 +25,7 @@ def on_change_slider(widget, args_values, new_value):
 
 
 def on_change_checkbuttons(widget, args_values, new_value):
+    from pyquibbler import Assignment
     actives = args_values.get('actives')
     if isinstance(actives, Quib):
         buttons_checked = widget.get_status()

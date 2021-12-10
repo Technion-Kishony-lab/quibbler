@@ -30,6 +30,6 @@ def call_func_with_values(func: Callable, args, kwargs):
     """
     Calls a function with the specified args and kwargs while replacing quibs with their values.
     """
-    new_args = (tuple(copy_and_replace_sources_with_vals(arg)) for arg in args)
+    new_args = (tuple(copy_and_replace_sources_with_vals(arg) for arg in args))
     new_kwargs = {name: copy_and_replace_sources_with_vals(val) for name, val in kwargs.items()}
     return func(*new_args, **new_kwargs)

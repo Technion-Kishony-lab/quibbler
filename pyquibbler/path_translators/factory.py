@@ -1,3 +1,3 @@
 from typing import Set, Callable
 
-from pyquibbler.path_translators.path_translator import Inverter
+from pyquibbler.path_translators.inverter import Inverter

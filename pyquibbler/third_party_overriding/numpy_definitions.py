@@ -8,6 +8,7 @@ from pyquibbler.third_party_overriding.types import Argument, KeywordArgument, I
 
 class NumpyOverrideDefinition(OverrideDefinition):
 
+
     @classmethod
     def from_func(cls, func: Callable, data_source_arguments: Set[Argument]):
         return cls(func_name=func.__name__,
@@ -23,5 +24,21 @@ NUMPY_DEFINITIONS = [
     NumpyOverrideDefinition.from_func(
         func=np.concatenate,
         data_source_arguments={IndexArgument(index=0)}
+    ),
+    NumpyOverrideDefinition.from_func(
+        func=np.repeat,
+        data_source_arguments={KeywordArgument(keyword="a")}
+    ),
+    NumpyOverrideDefinition.from_func(
+        func=np.full,
+        data_source_arguments={KeywordArgument(keyword="fill_value")}
+    ),
+    NumpyOverrideDefinition.from_func(
+        func=np.reshape,
+        data_source_arguments={KeywordArgument(keyword="a")}
+    ),
+    NumpyOverrideDefinition.from_func(
+        func=np.array,
+        data_source_arguments={IndexArgument(0)}
     )
 ]

@@ -3,7 +3,7 @@ from typing import Set, Any, List, Dict, Callable, Union
 
 from pyquibbler import Assignment
 from pyquibbler.path_translators.inversal_types import Source, Inversal
-from pyquibbler.path_translators.path_translator import Inverter
+from pyquibbler.path_translators.inverter import Inverter
 from pyquibbler.path_translators.utils import call_func_with_values
 from pyquibbler.quib import PathComponent
 from pyquibbler.quib.assignment.assignment import Path
@@ -16,6 +16,8 @@ from pyquibbler.utils import convert_args_and_kwargs
 
 
 class TranspositionalInverter(Inverter):
+
+    SUPPORTING_FUNCS = {np.transpose, np.rot90, np.full, np.concatenate, np.repeat, np.reshape, np.array}
 
     def _get_data_source_ids_mask(self) -> np.ndarray:
         """
@@ -47,8 +49,11 @@ class TranspositionalInverter(Inverter):
         def _convert_arg(_i, arg):
             def _convert_object(o):
                 if isinstance(o, Source):
-                    return convert_data_source(o)
+                    if o in self._get_data_sources():
+                        return convert_data_source(o)
+                    return o.value
                 return o
+
             return recursively_run_func_on_object(func=_convert_object,
                                                   obj=arg,
                                                   max_depth=SHALLOW_MAX_DEPTH,
@@ -153,7 +158,7 @@ class TranspositionalInverter(Inverter):
                 source=data_source,
                 assignment=Assignment(
                     path=path,
-                    value=sources_to_values[data_source]  # TODO
+                    value=sources_to_values[data_source]
                 )
             )
             for data_source, path in sources_to_paths.items()
