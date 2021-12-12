@@ -1,8 +1,7 @@
-'''
-run this file to convert all notebooks to wiki md files.
-
-the crerated md files are saved to pyquibbler.wiki, which is a seperare repository
-'''
+"""
+run this file to convert all examples and doc notebooks to wiki md files.
+the created md files are saved to pyquibbler.wiki, which is a separate repository
+"""
 
 
 import os
