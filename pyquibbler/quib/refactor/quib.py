@@ -282,7 +282,6 @@ class Quib(ReprMixin):
             for inversal in inversals
         ]
 
-
     def store_override_choice(self, context: ChoiceContext, choice: OverrideChoice) -> None:
         """
         Store a user override choice in the cache for future use.

@@ -11,7 +11,7 @@ from .cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_gi
 
 from .function_quib import FunctionQuib, CacheBehavior
 from ..assignment import AssignmentTemplate
-from ..assignment.utils import get_sub_data_from_object_in_path, deep_assign_data_in_path
+from ..assignment.utils import deep_get_data, deep_assign_data_in_path
 
 if TYPE_CHECKING:
     from ..assignment.assignment import PathComponent
@@ -172,17 +172,17 @@ class DefaultFunctionQuib(FunctionQuib):
         if isinstance(result, list) and isinstance(self._cache, NdUnstructuredArrayCache):
             result = np.array(result)
 
-        valid_value = get_sub_data_from_object_in_path(result, uncached_path)
+        valid_value = deep_get_data(result, uncached_path)
 
         if isinstance(data, tuple):
             new_data = deep_assign_data_in_path(list(data), uncached_path, valid_value)
-            value = get_sub_data_from_object_in_path(tuple(new_data), truncated_path)
+            value = deep_get_data(tuple(new_data), truncated_path)
         else:
             if isinstance(self._cache, HolisticCache):
                 value = valid_value
             else:
                 new_data = deep_assign_data_in_path(data, uncached_path, valid_value)
-                value = get_sub_data_from_object_in_path(new_data, truncated_path)
+                value = deep_get_data(new_data, truncated_path)
 
         return value
 

@@ -4,3 +4,4 @@ from .assignment_template import AssignmentTemplate, RangeAssignmentTemplate, Bo
     BoundMaxBelowMinException, RangeStopBelowStartException, InvalidTypeException, \
     TypesMustBeSameInAssignmentTemplateException
 from .exceptions import CannotReverseException
+from .assignment import Path

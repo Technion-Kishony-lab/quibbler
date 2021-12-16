@@ -1,10 +1,8 @@
 import operator
 
-from typing import List
-
 import numpy as np
 
-from .transpositional_inverter import TranspositionalInverter
+from pyquibbler.path_translators.translators.transpositional.transpositional_inverter import TranspositionalInverter
 from ..types import Inversal
 from ...quib import PathComponent
 

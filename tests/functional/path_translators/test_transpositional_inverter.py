@@ -7,7 +7,6 @@ from pyquibbler.path_translators.types import Source
 from pyquibbler.path_translators.utils import call_func_with_values
 from pyquibbler.quib import PathComponent
 from pyquibbler.quib.assignment.utils import deep_assign_data_in_path
-from pyquibbler.quib.function_quibs.utils import FuncWithArgsValues
 from tests.functional.path_translators.utils import inverse
 
 

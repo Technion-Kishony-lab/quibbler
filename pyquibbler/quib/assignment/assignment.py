@@ -39,6 +39,11 @@ class PathComponent:
 
 Path = List[PathComponent]
 
+
+def working_component(path: Path):
+    return path[0].component if len(path) > 0 else True
+
+
 @dataclass
 class Assignment:
     """

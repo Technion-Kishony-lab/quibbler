@@ -24,7 +24,7 @@ class FailedToDeepAssignException(PyQuibblerException):
                f"failed on {self.exception}"
 
 
-def get_sub_data_from_object_in_path(obj: Any, path: List['PathComponent']):
+def deep_get_data(obj: Any, path: List['PathComponent']):
     """
     Get the data from an object in a given path.
     """

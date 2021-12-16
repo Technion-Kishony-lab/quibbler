@@ -9,7 +9,7 @@ from pytest import mark
 from pyquibbler import iquib
 from pyquibbler.env import GRAPHICS_EVALUATE_NOW
 from pyquibbler.quib import PathComponent, Quib
-from pyquibbler.quib.assignment.utils import get_sub_data_from_object_in_path
+from pyquibbler.quib.assignment.utils import deep_get_data
 from pyquibbler.quib.graphics import ApplyAlongAxisGraphicsFunctionQuib
 from tests.functional.quib.graphics.test_axiswise_graphics_function_quib import parametrize_indices_to_invalidate, \
     parametrize_data
@@ -86,14 +86,14 @@ def get_sample_indexing_paths(input_shape, apply_shape, axis):
 
 def assert_all_apply_calls_with_slices_were_relevant(func, axis, input_arr, path, applied_slices):
     whole_result = np.apply_along_axis(func, axis=axis, arr=input_arr)
-    current_result = get_sub_data_from_object_in_path(whole_result, path)
+    current_result = deep_get_data(whole_result, path)
 
     for slice_ in applied_slices:
         for num in np.ravel(slice_):
             new_arr = np.array(input_arr)
             new_arr[new_arr == num] = 999
             new_result = np.apply_along_axis(func, axis=axis, arr=new_arr)
-            new_result_at_path = get_sub_data_from_object_in_path(new_result, path)
+            new_result_at_path = deep_get_data(new_result, path)
             assert not np.array_equal(new_result_at_path, current_result )
 
 
@@ -135,8 +135,8 @@ def test_apply_along_axis_get_value(input_shape, apply_result_shape, axis, compo
 
     running_in_quib = False
     whole_apply_axis_result = np.apply_along_axis(func, axis=axis, arr=arr)
-    expected_result = get_sub_data_from_object_in_path(whole_apply_axis_result, path)
-    res_at_components = get_sub_data_from_object_in_path(res, path)
+    expected_result = deep_get_data(whole_apply_axis_result, path)
+    res_at_components = deep_get_data(res, path)
     assert np.array_equal(res_at_components, expected_result)
     assert_all_apply_calls_with_slices_were_relevant(
         func=func,
