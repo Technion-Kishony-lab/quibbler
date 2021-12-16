@@ -3,8 +3,8 @@ from typing import Dict, Optional, Tuple
 
 import numpy as np
 
-from pyquibbler.path_translators.path_translator import Translator
-from pyquibbler.path_translators.types import Source
+from pyquibbler.translation.path_translator import Translator
+from pyquibbler.translation.types import Source
 from pyquibbler.quib.assignment import Path
 from pyquibbler.quib.assignment.assignment import working_component
 from pyquibbler.quib.function_quibs.utils import create_empty_array_with_values_at_indices

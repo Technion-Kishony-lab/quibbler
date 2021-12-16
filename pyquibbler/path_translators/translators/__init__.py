@@ -1,4 +1,0 @@
-from .getitem_inverter import GetItemInverter
-from pyquibbler.path_translators.translators.transpositional.transpositional_inverter import TranspositionalInverter
-
-INVERTERS = {GetItemInverter, TranspositionalInverter}

@@ -1,14 +1,15 @@
 import numpy as np
 
-from pyquibbler.path_translators.inverter import Inverter
-from pyquibbler.path_translators.translators.transpositional.transpositional_path_translator import BackwardsTranspositionalTranslator, \
+from pyquibbler.inversion.inverter import Inverter
+from pyquibbler.translation.translators.transpositional.transpositional_path_translator import BackwardsTranspositionalTranslator, \
     ForwardsTranspositionalTranslator
 from pyquibbler.quib.assignment import Assignment
-from pyquibbler.path_translators.types import Inversal
+from pyquibbler.translation.types import Inversal
 from pyquibbler.quib.assignment.assignment import working_component
 from pyquibbler.quib.assignment.utils import deep_assign_data_in_path
 from pyquibbler.quib.function_quibs.utils import create_empty_array_with_values_at_indices
 from pyquibbler.quib.refactor.utils import deep_copy_without_quibs_or_graphics
+from pyquibbler.translation.translate import backwards_translate
 
 
 class TranspositionalInverter(Inverter):
@@ -29,11 +30,14 @@ class TranspositionalInverter(Inverter):
         return deep_assign_data_in_path(new_result, self._assignment.path, self._assignment.value)
 
     def get_inversals(self):
-        sources_to_paths_in_sources = BackwardsTranspositionalTranslator(
-            func_with_args_values=self._func_with_args_values,
+        sources_to_paths_in_sources = backwards_translate(
+            func=self._func_with_args_values.func,
+            args=self._func_with_args_values.args_values.args,
+            kwargs=self._func_with_args_values.args_values.kwargs,
             path=self._assignment.path,
-            shape=np.shape(self._previous_result)
-        ).translate()
+            shape=np.shape(self._previous_result),
+            type_=np.ndarray
+        )
         sources_to_paths_in_result = ForwardsTranspositionalTranslator(
             func_with_args_values=self._func_with_args_values,
             sources_to_paths=sources_to_paths_in_sources,

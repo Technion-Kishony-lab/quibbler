@@ -12,6 +12,7 @@ from pyquibbler.overriding.types import Argument, IndexArgument, KeywordArgument
 
 # TODO: Docs!
 
+
 @dataclass
 class OverrideDefinition:
     func_name: str

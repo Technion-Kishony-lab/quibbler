@@ -2,9 +2,9 @@ import operator
 
 import numpy as np
 
-from pyquibbler.path_translators.translators.transpositional.transpositional_inverter import TranspositionalInverter
-from ..types import Inversal
-from ...quib import PathComponent
+from pyquibbler.inversion.inverters.transpositional_inverter import TranspositionalInverter
+from pyquibbler.translation.types import Inversal
+from pyquibbler.quib import PathComponent
 
 
 class GetItemInverter(TranspositionalInverter):

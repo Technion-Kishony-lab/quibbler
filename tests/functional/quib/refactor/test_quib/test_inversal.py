@@ -1,6 +1,6 @@
 import numpy as np
 
-# Note that tests per specific types of inversal are in path_translators/
+# Note that tests per specific types of inversal are in translation/
 # As a general rule- any specific scenario of a translation should be a test there, and any checking of surrounding
 # should be here
 import pytest
@@ -83,4 +83,3 @@ def test_inverse_with_int_as_result_of_function_quib_after_slicing(create_quib_w
     c.assign_value(3)
 
     assert np.array_equal(a.get_value(), np.array([3, 2, 3]))
-

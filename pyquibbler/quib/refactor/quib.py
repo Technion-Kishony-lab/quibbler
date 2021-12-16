@@ -14,9 +14,12 @@ from contextlib import contextmanager
 from matplotlib.widgets import AxesWidget
 
 from pyquibbler.graphics.graphics_collection import GraphicsCollection
-from pyquibbler.path_translators.types import Source
+from pyquibbler.iterators import iter_objects_of_type_in_object_shallowly
+from pyquibbler.overriding.definitions import OverrideDefinition
+from pyquibbler.translation.types import Source
 from pyquibbler.quib import get_override_group_for_change
 from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
+from pyquibbler.quib.function_quibs.utils import ArgsValues
 from pyquibbler.quib.graphics.graphics_function_quib import create_array_from_func
 from pyquibbler.quib.quib_guard import add_new_quib_to_guard_if_exists, guard_raise_if_not_allowed_access_to_quib
 from pyquibbler.quib.assignment.assignment_template import InvalidTypeException, create_assignment_template
@@ -245,25 +248,43 @@ class Quib(ReprMixin):
         """
         return []
 
+    @property
+    def _args_values(self):
+        return ArgsValues.from_function_call(self._func, self.args, self.kwargs, include_defaults=True)
+
+    @property
+    def _func_definition(self) -> OverrideDefinition:
+        from pyquibbler.overriding import get_definition_for_function
+        return get_definition_for_function(self.func)
+
     def get_inversions_for_assignment(self, assignment: Assignment) -> List[AssignmentToQuib]:
         """
         Get a list of assignments to parent quibs which could be applied instead of the given assignment
         and produce the same change in the value of this quib.
         """
 
-        sources_to_quibs = {}
+        data_sources_to_quibs = {}
+
+        data_source_quibs = set(iter_objects_of_type_in_object_shallowly(Quib, [
+            self._args_values[argument] for argument in self._func_definition.data_source_arguments
+        ]))
 
         def _replace_quib_with_source(_, arg):
             def _replace(q):
+                # TODO: Maybe add test if we accidentally got param at None?
                 if isinstance(q, Quib):
-                    source = Source(q.get_value_valid_at_path(None))
-                    sources_to_quibs[source] = q
+                    if q in data_source_quibs:
+                        source = Source(q.get_value_valid_at_path(None))
+                        data_sources_to_quibs[source] = q
+                    else:
+                        source = Source(q.get_value_valid_at_path([]))
                     return source
                 return q
             return recursively_run_func_on_object(_replace, arg, max_depth=SHALLOW_MAX_DEPTH)
+
         args, kwargs = convert_args_and_kwargs(_replace_quib_with_source, self.args, self.kwargs)
         func = self.func.func_to_invert if hasattr(self.func, 'func_to_invert') else self.func
-        from pyquibbler.path_translators import invert, CannotInvertException
+        from pyquibbler.translation import invert, CannotInvertException
 
         try:
             inversals = invert(func=func,
@@ -276,7 +297,7 @@ class Quib(ReprMixin):
 
         return [
             AssignmentToQuib(
-                quib=sources_to_quibs[inversal.source],
+                quib=data_sources_to_quibs[inversal.source],
                 assignment=inversal.assignment
             )
             for inversal in inversals

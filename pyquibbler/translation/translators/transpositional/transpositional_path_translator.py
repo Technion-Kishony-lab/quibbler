@@ -4,12 +4,11 @@ from operator import getitem
 import numpy as np
 from typing import Dict, Callable, Any, List, Set
 
-from pyquibbler.iterators import iter_objects_of_type_in_object_shallowly
-from pyquibbler.path_translators.backwards_path_translator import BackwardsPathTranslator
-from pyquibbler.path_translators.forwards_path_translator import ForwardsPathTranslator
-from pyquibbler.path_translators.translators.transpositional.utils import get_data_source_ids_mask
-from pyquibbler.path_translators.types import Source
-from pyquibbler.path_translators.utils import call_func_with_values
+from pyquibbler.translation.backwards_path_translator import BackwardsPathTranslator
+from pyquibbler.translation.forwards_path_translator import ForwardsPathTranslator
+from pyquibbler.translation.translators.transpositional.utils import get_data_source_ids_mask
+from pyquibbler.translation.types import Source
+from pyquibbler.translation.utils import call_func_with_values
 from pyquibbler.quib import PathComponent
 from pyquibbler.quib.assignment import Path
 from pyquibbler.quib.assignment.assignment import working_component
@@ -143,10 +142,7 @@ class ForwardsTranspositionalTranslator(ForwardsPathTranslator):
             # normal transpositional function (neither does it make any difference, as transpositional functions
             # don't change fields)
             return path
-        # bool_mask = create_empty_array_with_values_at_indices(self._shape,
-        #                                                       indices=working_component(path),
-        #                                                       value=True,
-        #                                                       empty_value=False)
+
         return [PathComponent(component=np.equal(source_ids_mask, id(source)),
                               indexed_cls=np.ndarray), *path[1:]]
 

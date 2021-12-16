@@ -1,8 +1,8 @@
 from __future__ import annotations
 from typing import Callable, Tuple, Any, Mapping, TYPE_CHECKING
 
-from pyquibbler.path_translators.exceptions import NoInvertersFoundException, CannotInvertException
-from pyquibbler.path_translators.translators import INVERTERS
+from pyquibbler.translation.exceptions import NoInvertersFoundException, CannotInvertException
+from pyquibbler.inversion import INVERTERS
 from pyquibbler.quib.function_quibs.utils import FuncWithArgsValues
 
 if TYPE_CHECKING:

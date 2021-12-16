@@ -3,8 +3,8 @@ from typing import Callable, Any, Tuple, Mapping
 import numpy as np
 
 from pyquibbler import Assignment
-from pyquibbler.path_translators import invert
-from pyquibbler.path_translators.utils import call_func_with_values
+from pyquibbler.inversion.invert import invert
+from pyquibbler.translation.utils import call_func_with_values
 from pyquibbler.quib import PathComponent
 from pyquibbler.quib.assignment.utils import deep_assign_data_in_path
 

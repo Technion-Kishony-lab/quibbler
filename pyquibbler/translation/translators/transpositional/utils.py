@@ -3,8 +3,8 @@ from typing import Callable, Iterable, Set, Dict
 
 from pyquibbler.iterators import iter_objects_of_type_in_object_shallowly
 from pyquibbler.overriding import get_definition_for_function
-from pyquibbler.path_translators.types import Source
-from pyquibbler.path_translators.utils import call_func_with_values
+from pyquibbler.translation.types import Source
+from pyquibbler.translation.utils import call_func_with_values
 from pyquibbler.quib.function_quibs.utils import FuncWithArgsValues
 from pyquibbler.quib.refactor.iterators import recursively_run_func_on_object, SHALLOW_MAX_DEPTH, SHALLOW_MAX_LENGTH
 from pyquibbler.utils import convert_args_and_kwargs
