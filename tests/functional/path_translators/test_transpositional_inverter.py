@@ -8,7 +8,6 @@ from pyquibbler.quib import PathComponent
 from pyquibbler.quib.assignment.utils import deep_assign_data_in_path
 from tests.functional.path_translators.utils import inverse
 
-
 def test_inverse_rot90():
     source = Source(np.array([[1, 2, 3]]))
     new_value = 200

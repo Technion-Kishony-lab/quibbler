@@ -16,15 +16,6 @@ class TranspositionalInverter(Inverter):
 
     SUPPORTING_FUNCS = BackwardsTranspositionalTranslator.SUPPORTING_FUNCS
 
-    def __init__(self, func_with_args_values, assignment, previous_result):
-        self._func_with_args_values = func_with_args_values
-        self._assignment = assignment
-        self._previous_result = previous_result
-
-    @classmethod
-    def from_(cls, func_with_args_values, assignment, previous_result):
-        return cls(func_with_args_values, assignment, previous_result)
-
     def _get_result_with_assignment_set(self):
         new_result = deep_copy_without_quibs_or_graphics(self._previous_result)
         return deep_assign_data_in_path(new_result, self._assignment.path, self._assignment.value)

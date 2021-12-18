@@ -3,7 +3,6 @@ from functools import lru_cache
 from typing import Optional, Tuple, Set, List, Dict, Any
 
 from pyquibbler.iterators import iter_objects_of_type_in_object_shallowly
-from pyquibbler.overriding import get_definition_for_function
 from pyquibbler.translation.types import Source, ArgumentWithValue
 from pyquibbler.quib.assignment import Path
 from pyquibbler.quib.function_quibs.utils import FuncWithArgsValues
@@ -32,6 +31,7 @@ class Translator(ABC):
 
     @property
     def func_definition(self):
+        from pyquibbler.overriding import get_definition_for_function
         return get_definition_for_function(self.func)
 
     def _get_data_source_arguments_with_values(self) -> List[ArgumentWithValue]:

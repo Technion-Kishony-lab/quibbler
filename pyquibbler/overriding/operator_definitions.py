@@ -13,57 +13,82 @@ from pyquibbler.quib.refactor.quib import Quib
 from pyquibbler.quib.utils import iter_args_and_names_in_function_call
 
 
+# TODO: Make order here- why is it one class for mathematical operations that have reversed, etc
+
+def get_reversed_func(func: Callable):
+    def _reversed(q, o):
+        return func(o, q)
+    return _reversed
+
+
 @dataclass
 class OperatorOverrideDefinition(OverrideDefinition):
     SPECIAL_FUNCS = {
         '__round__': round,
         '__ceil__': math.ceil,
         '__trunc__': math.trunc,
-        '__floor__': math.floor
+        '__floor__': math.floor,
+        '__getitem__': operator.getitem
     }
-    override_reverse_operator: bool = False
+    is_reversed: bool = False
 
     def _get_wrapped_func(self):
         if self.func_name in self.SPECIAL_FUNCS:
             return self.SPECIAL_FUNCS[self.func_name]
+
+        if self.is_reversed:
+            regular_func_name = f'__{self.func_name[3:]}'
+            return get_reversed_func(getattr(operator, regular_func_name))
+
         return getattr(operator, self.func_name)
 
-    def override(self):
-        super(OperatorOverrideDefinition, self).override()
-        if self.override_reverse_operator:
-            reverse_func = self._create_func_to_maybe_create_quib(
-                lambda quib, other: self._get_wrapped_func()(other, quib)
-            )
-            rname = '__r' + self.func_name[2:]
-            setattr(self.module_or_cls, rname, reverse_func)
+    #
+    # def override(self):
+    #     super(OperatorOverrideDefinition, self).override()
+    #     if self.override_reverse_operator:
+    #         reverse_func = self.quib_supporting_func(
+    #             lambda quib, other: self._get_wrapped_func()(other, quib)
+    #         )
+    #         rname = '__r' + self.func_name[2:]
+    #         setattr(self.module_or_cls, rname, reverse_func)
 
 
-def operator_definition(name, data_source_indexes: List = None, override_reverse_operator: bool = False):
+def operator_definition(name, data_source_indexes: List = None):
     data_source_indexes = data_source_indexes or list(signature(getattr(operator, name)).parameters.keys())
     return OperatorOverrideDefinition(
         func_name=name,
         data_source_arguments={IndexArgument(i) for i in (data_source_indexes or [])},
         module_or_cls=Quib,
-        override_reverse_operator=override_reverse_operator
     )
 
 
-with_reverse_operator_definition = functools.partial(operator_definition, override_reverse_operator=True)
+def with_reverse_operator_definition(name, data_source_indexes: List = None):
+    rname = '__r' + name[2:]
+
+    return [operator_definition(name, data_source_indexes), OperatorOverrideDefinition(
+        func_name=rname,
+        data_source_arguments={IndexArgument(i) for i in (data_source_indexes or [])},
+        module_or_cls=Quib,
+        is_reversed=True
+    )]
+
+    # setattr(self.module_or_cls, rname, reverse_func)
+
 
 ARITHMETIC_OPERATORS_DEFINITIONS = [
-    with_reverse_operator_definition('__add__'),
-    with_reverse_operator_definition('__sub__'),
-    with_reverse_operator_definition('__mul__'),
+    *with_reverse_operator_definition('__add__'),
+    *with_reverse_operator_definition('__sub__'),
+    *with_reverse_operator_definition('__mul__'),
     operator_definition('__matmul__', []),
-    with_reverse_operator_definition('__truediv__'),
-    with_reverse_operator_definition('__floordiv__'),
-    with_reverse_operator_definition('__mod__'),
-    with_reverse_operator_definition('__pow__'),
-    with_reverse_operator_definition('__lshift__'),
-    with_reverse_operator_definition('__rshift__'),
-    with_reverse_operator_definition('__and__'),
-    with_reverse_operator_definition('__xor__'),
-    with_reverse_operator_definition('__or__'),
+    *with_reverse_operator_definition('__truediv__'),
+    *with_reverse_operator_definition('__floordiv__'),
+    *with_reverse_operator_definition('__mod__'),
+    *with_reverse_operator_definition('__pow__'),
+    *with_reverse_operator_definition('__lshift__'),
+    *with_reverse_operator_definition('__rshift__'),
+    *with_reverse_operator_definition('__and__'),
+    *with_reverse_operator_definition('__xor__'),
+    *with_reverse_operator_definition('__or__'),
 ]
 
 UNARY_OPERATORS_DEFINITIONS = [
@@ -89,4 +114,7 @@ ROUNDING_OVERRIDES = [
 ]
 
 OPERATOR_DEFINITIONS = [*ARITHMETIC_OPERATORS_DEFINITIONS, *UNARY_OPERATORS_DEFINITIONS, *COMPARISON_OVERRIDES,
-                        *ROUNDING_OVERRIDES]
+                        *ROUNDING_OVERRIDES, operator_definition(
+        '__getitem__',
+        data_source_indexes=[0]
+    )]

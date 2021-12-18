@@ -14,8 +14,10 @@ from contextlib import contextmanager
 from matplotlib.widgets import AxesWidget
 
 from pyquibbler.graphics.graphics_collection import GraphicsCollection
+from pyquibbler.inversion.invert import invert
 from pyquibbler.iterators import iter_objects_of_type_in_object_shallowly
 from pyquibbler.overriding.definitions import OverrideDefinition
+from pyquibbler.translation import CannotInvertException
 from pyquibbler.translation.types import Source
 from pyquibbler.quib import get_override_group_for_change
 from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
@@ -283,11 +285,10 @@ class Quib(ReprMixin):
             return recursively_run_func_on_object(_replace, arg, max_depth=SHALLOW_MAX_DEPTH)
 
         args, kwargs = convert_args_and_kwargs(_replace_quib_with_source, self.args, self.kwargs)
-        func = self.func.func_to_invert if hasattr(self.func, 'func_to_invert') else self.func
-        from pyquibbler.translation import invert, CannotInvertException
+        # func = self.func.func_to_invert if hasattr(self.func, 'func_to_invert') else self.func
 
         try:
-            inversals = invert(func=func,
+            inversals = invert(func=self.func,
                            args=args,
                            kwargs=kwargs,
                            assignment=assignment,
@@ -572,14 +573,14 @@ class Quib(ReprMixin):
         raise TypeError('Cannot iterate over quibs, as their size can vary. '
                         'Try Quib.iter_first() to iterate over the n-first items of the quib.')
 
-    def __getitem__(self, item):
-        # We don't use the normal operator_overriding interface for two reasons:
-        # 1. It can create issues with hinting in IDEs (for example, Pycharm will not recognize that Quibs have a
-        # getitem and will issue a warning)
-        # 2. We need the function to not be created dynamically as it needs to be in the inverser's supported functions
-        # in order to be inversed correctly (and not simply override)
-        from pyquibbler.quib.refactor.factory import create_quib
-        return create_quib(func=getitem, args=[self, item])
+    # def __getitem__(self, item):
+    #     # We don't use the normal operator_overriding interface for two reasons:
+    #     # 1. It can create issues with hinting in IDEs (for example, Pycharm will not recognize that Quibs have a
+    #     # getitem and will issue a warning)
+    #     # 2. We need the function to not be created dynamically as it needs to be in the inverser's supported functions
+    #     # in order to be inversed correctly (and not simply override)
+    #     from pyquibbler.quib.refactor.factory import create_quib
+    #     return create_quib(func=getitem, args=[self, item])
 
     @validate_user_input(name=(str, type(None)))
     def set_name(self, name: Optional[str]):

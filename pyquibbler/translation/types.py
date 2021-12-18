@@ -1,8 +1,10 @@
+from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Union
+from typing import Any, Union, TYPE_CHECKING
 
-from pyquibbler.overriding import Argument
+if TYPE_CHECKING:
+    from pyquibbler.overriding import Argument
 
 
 @dataclass(frozen=True)

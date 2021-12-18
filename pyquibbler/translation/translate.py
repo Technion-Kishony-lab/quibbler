@@ -19,11 +19,13 @@ def backwards_translate(func: Callable, args: Tuple[Any, ...], kwargs: Mapping[s
                         path, shape=None, type_=None):
 
     # TODO test multiple scenarios with choosing inverters
-    potential_translator_classes = [cls for cls in BACKWARDS_TRANSLATORS if func in cls.SUPPORTING_FUNCS]
+    from pyquibbler.overriding import get_definition_for_function
+    potential_translator_classes = get_definition_for_function(func).backwards_path_translators
     potential_translator_classes = list(sorted(potential_translator_classes, key=lambda c: c.PRIORITY))
     if len(potential_translator_classes) == 0:
         raise NoTranslatorsFoundException()
     while True:
+        # TODO: What if there's none left?
         cls: Type[BackwardsPathTranslator] = potential_translator_classes.pop()
         translator = cls(
             func_with_args_values=FuncWithArgsValues.from_function_call(
