@@ -5,7 +5,7 @@ from typing import Any, Optional, List
 
 from pyquibbler import CacheBehavior, Assignment
 from pyquibbler.quib.assignment import PathComponent
-from pyquibbler.quib.assignment.overrider import deep_get_data, deep_assign_data_in_path
+from pyquibbler.quib.assignment.overrider import deep_get, deep_assign_data_in_path
 from pyquibbler.quib.input_quib import InputQuib
 
 from .utils import PathBuilder
@@ -31,7 +31,7 @@ class MockQuib(InputQuib):
 def get_indices_at_path(shape, path):
     assert len(path) <= 1
     all_indices = np.moveaxis(np.indices(shape), 0, -1)
-    return deep_get_data(all_indices, path).reshape(-1, len(shape))
+    return deep_get(all_indices, path).reshape(-1, len(shape))
 
 
 def is_field_index(index):
@@ -72,8 +72,8 @@ def breakdown_path(data: Any, path: List[PathComponent]):
 
 
 def equals_at_path(data1, data2, path):
-    return np.array_equal(deep_get_data(data1, path),
-                          deep_get_data(data2, path))
+    return np.array_equal(deep_get(data1, path),
+                          deep_get(data2, path))
 
 
 def check_get_value_valid_at_path(func, data, path_to_get_value_at):
@@ -104,7 +104,7 @@ def check_get_value_valid_at_path(func, data, path_to_get_value_at):
     # Check that if any other paths in the parent change, the result doesn't change
     input_quib.assign(Assignment(999, PathBuilder(input_quib)[...].path))
     for path in requested_paths:
-        value = deep_get_data(data, path)
+        value = deep_get(data, path)
         input_quib.assign(Assignment(value, path))
     result_with_everything_else_changed = result_quib.get_value()
     assert equals_at_path(result_with_everything_else_changed, result, path_to_get_value_at)

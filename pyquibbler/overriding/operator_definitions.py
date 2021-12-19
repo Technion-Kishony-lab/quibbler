@@ -7,14 +7,18 @@ from operator import getitem
 
 from typing import Callable, Set, List
 
+from pyquibbler.inversion import TranspositionalInverter
+from pyquibbler.inversion.inverters.getitem_inverter import GetItemInverter
 from pyquibbler.overriding.definitions import OverrideDefinition
 from pyquibbler.overriding.types import IndexArgument, KeywordArgument
 from pyquibbler.quib.refactor.quib import Quib
 from pyquibbler.quib.utils import iter_args_and_names_in_function_call
 
+from pyquibbler.translation.translators import BackwardsGetItemTranslator
+from pyquibbler.translation.translators.transpositional.getitem_translator import ForwardsGetItemTranslator
+
 
 # TODO: Make order here- why is it one class for mathematical operations that have reversed, etc
-
 def get_reversed_func(func: Callable):
     def _reversed(q, o):
         return func(o, q)
@@ -53,12 +57,16 @@ class OperatorOverrideDefinition(OverrideDefinition):
     #         setattr(self.module_or_cls, rname, reverse_func)
 
 
-def operator_definition(name, data_source_indexes: List = None):
+def operator_definition(name, data_source_indexes: List = None, inverters: List = None,
+                        backwards_path_translators: List = None, forwards_path_translators: List = None):
     data_source_indexes = data_source_indexes or list(signature(getattr(operator, name)).parameters.keys())
     return OperatorOverrideDefinition(
         func_name=name,
         data_source_arguments={IndexArgument(i) for i in (data_source_indexes or [])},
         module_or_cls=Quib,
+        inverters=inverters,
+        backwards_path_translators=backwards_path_translators,
+        forwards_path_translators=forwards_path_translators
     )
 
 
@@ -116,5 +124,8 @@ ROUNDING_OVERRIDES = [
 OPERATOR_DEFINITIONS = [*ARITHMETIC_OPERATORS_DEFINITIONS, *UNARY_OPERATORS_DEFINITIONS, *COMPARISON_OVERRIDES,
                         *ROUNDING_OVERRIDES, operator_definition(
         '__getitem__',
-        data_source_indexes=[0]
+        data_source_indexes=[0],
+        inverters=[GetItemInverter],
+        backwards_path_translators=[BackwardsGetItemTranslator],
+        forwards_path_translators=[ForwardsGetItemTranslator]
     )]

@@ -9,12 +9,10 @@ from pyquibbler.quib.assignment.assignment import working_component
 from pyquibbler.quib.assignment.utils import deep_assign_data_in_path
 from pyquibbler.quib.function_quibs.utils import create_empty_array_with_values_at_indices
 from pyquibbler.quib.refactor.utils import deep_copy_without_quibs_or_graphics
-from pyquibbler.translation.translate import backwards_translate
+from pyquibbler.translation.translate import backwards_translate, forwards_translate
 
 
 class TranspositionalInverter(Inverter):
-
-    SUPPORTING_FUNCS = BackwardsTranspositionalTranslator.SUPPORTING_FUNCS
 
     def _get_result_with_assignment_set(self):
         new_result = deep_copy_without_quibs_or_graphics(self._previous_result)
@@ -27,13 +25,16 @@ class TranspositionalInverter(Inverter):
             kwargs=self._func_with_args_values.args_values.kwargs,
             path=self._assignment.path,
             shape=np.shape(self._previous_result),
-            type_=np.ndarray
+            type_=type(self._previous_result)
         )
-        sources_to_paths_in_result = ForwardsTranspositionalTranslator(
-            func_with_args_values=self._func_with_args_values,
+        sources_to_paths_in_result = forwards_translate(
+            func=self._func_with_args_values.func,
+            args=self._func_with_args_values.args_values.args,
+            kwargs=self._func_with_args_values.args_values.kwargs,
             sources_to_paths=sources_to_paths_in_sources,
-            shape=np.shape(self._previous_result)
-        ).translate()
+            shape=np.shape(self._previous_result),
+            type_=type(self._previous_result)
+        )
 
         boolean_mask = create_empty_array_with_values_at_indices(
             indices=working_component(self._assignment.path),
@@ -46,7 +47,6 @@ class TranspositionalInverter(Inverter):
         sources_to_paths_in_result = {
             source: [np.logical_and(working_component(paths[0]), boolean_mask), *paths[0][1:]]
             for source, paths in sources_to_paths_in_result.items()
-
         }
 
         representative_result_value = self._get_result_with_assignment_set()

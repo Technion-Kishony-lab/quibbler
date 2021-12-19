@@ -10,7 +10,6 @@ from pyquibbler.quib.assignment.assignment import working_component
 
 class BackwardsPathTranslator(Translator):
 
-    SUPPORTING_FUNCS = NotImplemented
     PRIORITY = 0
 
     def __init__(self, func_with_args_values, shape: Optional[Tuple[int, ...]], type_: Optional[Type], path):
@@ -24,5 +23,8 @@ class BackwardsPathTranslator(Translator):
         return working_component(self._path)
 
     @abstractmethod
-    def translate(self) -> Dict[Source, Path]:
+    def translate_in_order(self) -> Dict[Source, Path]:
         pass
+
+    def translate_without_order(self) -> Dict[Source, Path]:
+        return self.translate_in_order()

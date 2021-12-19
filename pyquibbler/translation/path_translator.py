@@ -10,6 +10,8 @@ from pyquibbler.quib.function_quibs.utils import FuncWithArgsValues
 
 class Translator(ABC):
 
+    PRIORITY = 0
+
     def __init__(self, func_with_args_values: FuncWithArgsValues):
         self._func_with_args_values = func_with_args_values
 

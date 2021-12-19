@@ -4,7 +4,7 @@ from typing import Any, List, Optional, Union, Dict, Hashable
 
 from .assignment import Assignment, PathComponent, get_hashable_path
 from .assignment_template import AssignmentTemplate
-from .utils import deep_get_data, deep_assign_data_in_path
+from .utils import deep_get, deep_assign_data_in_path
 from ..utils import deep_copy_without_quibs_or_graphics, recursively_run_func_on_object
 
 
@@ -98,7 +98,7 @@ class Overrider:
             data = deep_copy_without_quibs_or_graphics(data)
             for assignment in self._paths_to_assignments.values():
                 if isinstance(assignment, AssignmentRemoval):
-                    value = deep_get_data(original_data, assignment.path)
+                    value = deep_get(original_data, assignment.path)
                     path = assignment.path
                 else:
                     value = assignment.value if assignment_template is None \
@@ -125,7 +125,7 @@ class Overrider:
                 path = assignment.path
                 val = True
             if isinstance(path[-1].component, slice):
-                inner_data = deep_get_data(mask, path[:-1])
+                inner_data = deep_get(mask, path[:-1])
                 if not isinstance(inner_data, np.ndarray):
                     val = recursively_run_func_on_object(lambda x: val, inner_data)
             mask = deep_assign_data_in_path(mask, path, val)

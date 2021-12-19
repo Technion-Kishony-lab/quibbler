@@ -1,5 +1,5 @@
 from abc import abstractmethod, ABC
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional, Tuple, Type
 
 import numpy as np
 
@@ -12,10 +12,14 @@ from pyquibbler.quib.function_quibs.utils import create_empty_array_with_values_
 
 class ForwardsPathTranslator(Translator):
 
-    def __init__(self, func_with_args_values, sources_to_paths: Dict[Source, Path], shape: Optional[Tuple[int, ...]]):
+    def __init__(self,
+                 func_with_args_values, sources_to_paths: Dict[Source, Path],
+                 shape: Optional[Tuple[int, ...]],
+                 type_: Optional[Type]):
         super(ForwardsPathTranslator, self).__init__(func_with_args_values)
         self._sources_to_paths = sources_to_paths
         self._shape = shape
+        self._type = type_
 
     @abstractmethod
     def translate(self) -> Dict[Source, Path]:

@@ -1,12 +1,9 @@
 import numpy as np
 import pytest
-from typing import Callable, Tuple, Any, Mapping
 
-from pyquibbler import Assignment
 from pyquibbler.translation.types import Source
-from pyquibbler.quib import PathComponent
-from pyquibbler.quib.assignment.utils import deep_assign_data_in_path
-from tests.functional.path_translators.utils import inverse
+from tests.functional.inversion.inverters.utils import inverse
+
 
 def test_inverse_rot90():
     source = Source(np.array([[1, 2, 3]]))

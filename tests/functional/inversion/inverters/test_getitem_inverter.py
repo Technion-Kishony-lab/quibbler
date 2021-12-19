@@ -1,16 +1,13 @@
 from dataclasses import dataclass
-from operator import getitem
 from typing import Any
 from unittest import mock
 
 import numpy as np
 import pytest
 
-from pyquibbler import Assignment
+from pyquibbler.overriding.overriding import NAMES_TO_DEFINITIONS
 from pyquibbler.translation.types import Source
-from pyquibbler.quib import PathComponent
-from pyquibbler.quib.refactor.quib import Quib
-from tests.functional.translation.utils import inverse
+from tests.functional.inversion.inverters.utils import inverse
 
 
 @dataclass
@@ -24,7 +21,8 @@ class GetItemTestCase:
 
 
 def inverse_getitem(a, b, indices, value, empty_path: bool = False):
-    return inverse(func=getitem, args=(a, b), indices=indices, value=value, empty_path=empty_path)
+    getitem = NAMES_TO_DEFINITIONS['__getitem__']
+    return inverse(func=getitem.quib_supporting_func, args=(a, b), indices=indices, value=value, empty_path=empty_path)
 
 
 @pytest.mark.parametrize("getitem_test_case", [

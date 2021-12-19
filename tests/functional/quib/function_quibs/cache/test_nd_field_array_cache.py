@@ -5,7 +5,7 @@ import pytest
 from numpy.lib.recfunctions import structured_to_unstructured
 
 from pyquibbler.quib.assignment import PathComponent
-from pyquibbler.quib.assignment.utils import deep_get_data, deep_assign_data_in_path
+from pyquibbler.quib.assignment.utils import deep_get, deep_assign_data_in_path
 from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
 from pyquibbler.quib.function_quibs.cache.shallow.nd_cache import NdFieldArrayShallowCache
 from tests.functional.quib.function_quibs.cache.cache_test import IndexableCacheTest

@@ -24,7 +24,8 @@ def inverse(func: Callable, indices: Any, value: Any, args: Tuple[Any, ...] = No
         args=args,
         kwargs=kwargs,
         previous_result=previous_value,
-        assignment=Assignment(path=[PathComponent(indexed_cls=np.ndarray, component=indices)] if not empty_path else [],
+        assignment=Assignment(path=[PathComponent(indexed_cls=type(previous_value),
+                                                  component=indices)] if not empty_path else [],
                               value=value)
     )
 

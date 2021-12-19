@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from functools import lru_cache
 from operator import getitem
 
 import numpy as np
@@ -18,8 +19,6 @@ from pyquibbler.utils import convert_args_and_kwargs
 
 
 class BackwardsTranspositionalTranslator(BackwardsPathTranslator):
-
-    SUPPORTING_FUNCS = {np.transpose, np.rot90, np.full, np.concatenate, np.repeat, np.reshape, np.array, getitem}
 
     def _get_data_source_ids_mask(self) -> np.ndarray:
         """
@@ -119,7 +118,7 @@ class BackwardsTranspositionalTranslator(BackwardsPathTranslator):
             )
         }
 
-    def translate(self) -> Dict[Source, Path]:
+    def translate_in_order(self) -> Dict[Source, Path]:
         data_sources_to_indices = self._get_data_sources_to_indices_in_data_sources()
         return {
             data_source: [PathComponent(component=data_sources_to_indices[data_source], indexed_cls=np.ndarray)]
@@ -130,7 +129,14 @@ class BackwardsTranspositionalTranslator(BackwardsPathTranslator):
 
 class ForwardsTranspositionalTranslator(ForwardsPathTranslator):
 
-    def _translate_forwards_source_with_path(self, source_ids_mask, source: Source, path: Path) -> Path:
+    @lru_cache()
+    def _get_source_ids_mask(self):
+        return get_data_source_ids_mask(self._func_with_args_values, {
+            source: working_component(path)
+            for source, path in self._sources_to_paths.items()
+        })
+
+    def _translate_forwards_source_with_path(self, source: Source, path: Path) -> Path:
         """
         There are two things we can potentially do:
         1. Translate the invalidation path given the current function quib (eg if this function quib is rotate,
@@ -143,15 +149,11 @@ class ForwardsTranspositionalTranslator(ForwardsPathTranslator):
             # don't change fields)
             return path
 
-        return [PathComponent(component=np.equal(source_ids_mask, id(source)),
+        return [PathComponent(component=np.equal(self._get_source_ids_mask(), id(source)),
                               indexed_cls=np.ndarray), *path[1:]]
 
     def translate(self) -> Dict[Source, List[Path]]:
-        source_ids_mask = get_data_source_ids_mask(self._func_with_args_values, {
-            source: working_component(path)
-            for source, path in self._sources_to_paths.items()
-        })
         return {
-            source: [self._translate_forwards_source_with_path(source_ids_mask, source, path)]
+            source: [self._translate_forwards_source_with_path(source, path)]
             for source, path in self._sources_to_paths.items()
         }

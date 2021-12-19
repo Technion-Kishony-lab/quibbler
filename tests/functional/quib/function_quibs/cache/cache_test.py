@@ -8,7 +8,7 @@ import pytest
 from numpy.lib.recfunctions import structured_to_unstructured
 
 from pyquibbler.quib.assignment import PathComponent
-from pyquibbler.quib.assignment.utils import deep_assign_data_in_path, deep_get_data
+from pyquibbler.quib.assignment.utils import deep_assign_data_in_path, deep_get
 from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
 from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import CannotInvalidateEntireCacheException
 from pyquibbler.quib.utils import deep_copy_without_quibs_or_graphics
@@ -94,13 +94,13 @@ class IndexableCacheTest(CacheTest):
         checking_result = self.get_result_with_value_broadcasted_to_path(checking_result, path, setting)
 
         for path in uncached_paths:
-            data = deep_get_data(checking_result, path)
+            data = deep_get(checking_result, path)
             for x in self.get_values_from_result(data):
                 assert str(x) == str(invalid_value)
 
             checking_result = self.get_result_with_value_broadcasted_to_path(checking_result, path, checked_invalid)
 
-        items = deep_get_data(checking_result, filter_path)
+        items = deep_get(checking_result, filter_path)
         assert all(str(x) == str(checked_invalid) or str(x) == str(valid_value)
                    for x in self.get_values_from_result(items))
 
@@ -120,7 +120,7 @@ class IndexableCacheTest(CacheTest):
 
         result_with_valid_value = self.get_result_with_value_broadcasted_to_path(copy(result),
                                                                                  valid_path, valid_value)
-        broadcasted_value = deep_get_data(result_with_valid_value, valid_path)
+        broadcasted_value = deep_get(result_with_valid_value, valid_path)
 
         cache.set_valid_value_at_path(valid_path, broadcasted_value)
 

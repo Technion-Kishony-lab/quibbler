@@ -6,7 +6,6 @@ from typing import Optional, Callable, Any, Set, Mapping, List, Tuple, Type, TYP
 
 class Inverter(ABC):
 
-    SUPPORTING_FUNCS: Set[Callable] = set()
     PRIORITY = 0
 
     def __init__(self, func_with_args_values, assignment, previous_result):
@@ -17,9 +16,6 @@ class Inverter(ABC):
     @classmethod
     def from_(cls, func_with_args_values, assignment, previous_result):
         return cls(func_with_args_values, assignment, previous_result)
-
-    def supports_func(self, func: Callable):
-        return func in self.SUPPORTING_FUNCS
 
     @abstractmethod
     def get_inversals(self):

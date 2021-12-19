@@ -13,6 +13,7 @@ from pyquibbler.overriding.types import Argument, IndexArgument, KeywordArgument
 
 # TODO: Docs!
 from pyquibbler.translation.backwards_path_translator import BackwardsPathTranslator
+from pyquibbler.translation.forwards_path_translator import ForwardsPathTranslator
 
 
 @dataclass
@@ -23,6 +24,7 @@ class OverrideDefinition:
     data_source_arguments: Set[Argument] = field(default_factory=set)
     inverters: List[Type[Inverter]] = None
     backwards_path_translators: List[Type[BackwardsPathTranslator]] = field(default_factory=list)
+    forwards_path_translators: List[Type[ForwardsPathTranslator]] = field(default_factory=list)
 
     _quib_supporting_func: Callable = None
 
