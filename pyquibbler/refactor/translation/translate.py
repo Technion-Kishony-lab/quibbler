@@ -44,11 +44,11 @@ def backwards_translate(func: Callable, args: Tuple[Any, ...], kwargs: Mapping[s
             pass
 
 
-def forwards_translate(func: Callable, args: Tuple[Any, ...], kwargs: Mapping[str, Any],
+def forwards_translate(func_with_args_values: FuncWithArgsValues,
                        sources_to_paths, shape=None, type_=None):
     # TODO test multiple scenarios with choosing inverters
     from pyquibbler.refactor.overriding import get_definition_for_function
-    potential_translator_classes = get_definition_for_function(func).forwards_path_translators
+    potential_translator_classes = get_definition_for_function(func_with_args_values.func).forwards_path_translators
     potential_translator_classes = list(sorted(potential_translator_classes, key=lambda c: c.PRIORITY))
     if len(potential_translator_classes) == 0:
         raise NoTranslatorsFoundException()
@@ -56,12 +56,7 @@ def forwards_translate(func: Callable, args: Tuple[Any, ...], kwargs: Mapping[st
         # TODO: What if there's none left?
         cls: Type[ForwardsPathTranslator] = potential_translator_classes.pop()
         translator = cls(
-            func_with_args_values=FuncWithArgsValues.from_function_call(
-                func=func,
-                args=args,
-                kwargs=kwargs,
-                include_defaults=True
-            ),
+            func_with_args_values=func_with_args_values,
             shape=shape,
             type_=type_,
             sources_to_paths=sources_to_paths

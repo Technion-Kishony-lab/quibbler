@@ -134,7 +134,7 @@ class ForwardsTranspositionalTranslator(ForwardsPathTranslator):
             for source, path in self._sources_to_paths.items()
         })
 
-    def _translate_forwards_source_with_path(self, source: Source, path: Path) -> Path:
+    def _translate_forwards_source_with_path(self, source: Source, path: Path) -> List[Path]:
         """
         There are two things we can potentially do:
         1. Translate the invalidation path given the current function quib (eg if this function quib is rotate,
@@ -145,13 +145,26 @@ class ForwardsTranspositionalTranslator(ForwardsPathTranslator):
             # The path at the first component references a field, and therefore we cannot translate it given a
             # normal transpositional function (neither does it make any difference, as transpositional functions
             # don't change fields)
-            return path
+            return [path]
 
-        return [PathComponent(component=np.equal(self._get_source_ids_mask(), id(source)),
-                              indexed_cls=np.ndarray), *path[1:]]
+        bool_mask = np.equal(self._get_source_ids_mask(), id(source))
+
+        if np.any(bool_mask):
+            # If there exist both True's and False's in the boolean mask,
+            # this function's quib result must be an ndarray- if it were a single item (say a PyObj, int, dict, list)
+            # we'd expect it to be completely True (as it is ONE single object). If it is not a single item, it is by
+            # definitely an ndarray
+            assert issubclass(self._type, np.ndarray) or np.all(bool_mask)
+            assert issubclass(self._type, np.ndarray) or isinstance(bool_mask, np.bool_) \
+                   or (bool_mask.shape == () and bool_mask.dtype == np.bool_)
+
+            if not np.all(bool_mask) and issubclass(self._type, np.ndarray):
+                return [[PathComponent(self._type, bool_mask), *path[1:]]]
+            return [path[1:]]
+        return []
 
     def translate(self) -> Dict[Source, List[Path]]:
         return {
-            source: [self._translate_forwards_source_with_path(source, path)]
+            source: self._translate_forwards_source_with_path(source, path)
             for source, path in self._sources_to_paths.items()
         }

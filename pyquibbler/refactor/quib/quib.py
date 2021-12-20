@@ -4,10 +4,12 @@ import functools
 import os
 import pathlib
 import pickle
+from sys import getsizeof
+from time import perf_counter
 
 import numpy as np
 from functools import cached_property
-from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Callable, Union, Iterable, Mapping
+from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Callable, Union, Iterable, Mapping, Dict
 from weakref import WeakSet
 from contextlib import contextmanager
 from matplotlib.widgets import AxesWidget
@@ -16,12 +18,15 @@ from pyquibbler.refactor.graphics.graphics_collection import GraphicsCollection
 from pyquibbler.refactor.inversion.invert import invert
 from pyquibbler.refactor.iterators import iter_objects_of_type_in_object_shallowly
 from pyquibbler.refactor.overriding.override_definition import OverrideDefinition
+from pyquibbler.refactor.quib import consts
+from pyquibbler.refactor.quib.function_call import get_cache_value_valid_at_path
 from pyquibbler.refactor.quib.graphics import UpdateType
 from pyquibbler.refactor.translation import CannotInvertException
+from pyquibbler.refactor.translation.translate import forwards_translate
 from pyquibbler.refactor.translation.types import Source
 from pyquibbler.quib import get_override_group_for_change
 from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
-from pyquibbler.quib.function_quibs.utils import ArgsValues
+from pyquibbler.quib.function_quibs.utils import ArgsValues, FuncWithArgsValues
 from pyquibbler.quib.graphics.graphics_function_quib import create_array_from_func
 from pyquibbler.quib.quib_guard import add_new_quib_to_guard_if_exists, guard_raise_if_not_allowed_access_to_quib
 from pyquibbler.quib.assignment.assignment_template import InvalidTypeException, create_assignment_template
@@ -30,7 +35,7 @@ from pyquibbler.quib.function_quibs.external_call_failed_exception_handling impo
     add_quib_to_fail_trace_if_raises_quib_call_exception, external_call_failed_exception_handling
 from pyquibbler.quib.assignment.override_choice import OverrideRemoval
 from pyquibbler.quib.assignment import AssignmentTemplate, Overrider, Assignment, \
-    AssignmentToQuib
+    AssignmentToQuib, Path
 from pyquibbler.quib.function_quibs.cache import create_cache
 from pyquibbler.quib.function_quibs.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
 from pyquibbler.refactor.quib.cache_behavior import CacheBehavior, UnknownCacheBehaviorException
@@ -69,6 +74,7 @@ class Quib(ReprMixin):
     An abstract class to describe the common methods and attributes of all quib types.
     """
     _IS_WITHIN_GET_VALUE_CONTEXT = False
+    _DEFAULT_CACHE_BEHAVIOR = CacheBehavior.AUTO
 
     def __init__(self, func: Callable,
                  args: Tuple[Any, ...],
@@ -85,10 +91,11 @@ class Quib(ReprMixin):
         self._func = func
         self._args = args
         self._kwargs = kwargs
-        self._default_cache_behavior = cache_behavior or CacheBehavior.AUTO
+        self._default_cache_behavior = cache_behavior or self._DEFAULT_CACHE_BEHAVIOR
         self._assignment_template = assignment_template
         self._is_known_graphics_func = is_known_graphics_func
         self._cache = None
+        self._caching = False
         self._name = name
         self._graphics_collections: Optional[np.array] = None
         self._call_func_with_quibs = call_func_with_quibs
@@ -125,6 +132,36 @@ class Quib(ReprMixin):
     @property
     def kwargs(self):
         return self._kwargs
+
+    def _get_data_source_quibs(self):
+        return set(iter_objects_of_type_in_object_shallowly(Quib, [
+            self._args_values[argument] for argument in self._func_definition.data_source_arguments
+        ]))
+
+    def _get_func_with_args_values_for_translation(self, data_source_quibs_to_paths: Dict[Quib, Path]):
+
+        data_source_quibs = self._get_data_source_quibs()
+        data_sources_to_quibs = {}
+
+        def _replace_quib_with_source(_, arg):
+            def _replace(q):
+                if isinstance(q, Quib):
+                    if q in data_source_quibs:
+                        source = Source(q.get_value_valid_at_path(data_source_quibs_to_paths.get(q)))
+                        data_sources_to_quibs[source] = q
+                    else:
+                        source = Source(q.get_value_valid_at_path([]))
+                    return source
+                return q
+            return recursively_run_func_on_object(_replace, arg, max_depth=SHALLOW_MAX_DEPTH)
+
+        args, kwargs = convert_args_and_kwargs(_replace_quib_with_source, self.args, self.kwargs)
+        return FuncWithArgsValues.from_function_call(
+            func=self.func,
+            args=args,
+            kwargs=kwargs,
+            include_defaults=False
+        ), data_sources_to_quibs
 
     """
     Graphics related funcs
@@ -263,33 +300,17 @@ class Quib(ReprMixin):
         Get a list of assignments to parent quibs which could be applied instead of the given assignment
         and produce the same change in the value of this quib.
         """
-
-        data_sources_to_quibs = {}
-
-        def _replace_quib_with_source(_, arg):
-            def _replace(q):
-                # TODO: Maybe add test if we accidentally got param at None?
-                if isinstance(q, Quib):
-                    if q in data_source_quibs:
-                        source = Source(q.get_value_valid_at_path(None))
-                        data_sources_to_quibs[source] = q
-                    else:
-                        source = Source(q.get_value_valid_at_path([]))
-                    return source
-                return q
-            return recursively_run_func_on_object(_replace, arg, max_depth=SHALLOW_MAX_DEPTH)
-
         from pyquibbler.refactor.overriding import CannotFindDefinitionForFunctionException
+
         try:
-            data_source_quibs = set(iter_objects_of_type_in_object_shallowly(Quib, [
-                self._args_values[argument] for argument in self._func_definition.data_source_arguments
-            ]))
-            args, kwargs = convert_args_and_kwargs(_replace_quib_with_source, self.args, self.kwargs)
-            inversals = invert(func=self.func,
-                           args=args,
-                           kwargs=kwargs,
-                           assignment=assignment,
-                           previous_result=self.get_value())
+            func_with_args_values, data_sources_to_quibs = self._get_func_with_args_values_for_translation({})
+        except CannotFindDefinitionForFunctionException:
+            return []
+
+        try:
+            inversals = invert(func_with_args_values=func_with_args_values,
+                               previous_result=self.get_value(),
+                               assignment=assignment)
         except CannotInvertException:
             return []
         except CannotFindDefinitionForFunctionException:
@@ -346,6 +367,95 @@ class Quib(ReprMixin):
         - quib.set_assignment_template(start, stop, step): set the template to a bound template between min and max.
         """
         self._assignment_template = create_assignment_template(args)
+
+    """
+    Invalidation
+    """
+
+    def invalidate_and_redraw_at_path(self, path: Optional[List[PathComponent]] = None) -> None:
+        """
+        Perform all actions needed after the quib was mutated (whether by overriding or inverse assignment).
+        If path is not given, the whole quib is invalidated.
+        """
+        from pyquibbler import timer
+        if path is None:
+            path = []
+
+        with timer("quib_invalidation", lambda x: logger.info(f"invalidation {x}")):
+            self._invalidate_children_at_path(path)
+        self._redraw()
+
+    def _invalidate_children_at_path(self, path: List[PathComponent]) -> None:
+        """
+        Change this quib's state according to a change in a dependency.
+        """
+        for child in self.children:
+            child._invalidate_quib_with_children_at_path(self, path)
+
+    def _invalidate_quib_with_children_at_path(self, invalidator_quib, path: List[PathComponent]):
+        """
+        Invalidate a quib and it's children at a given path.
+        This method should be overriden if there is any 'special' implementation for either invalidating oneself
+        or for translating a path for invalidation
+        """
+        new_paths = self._get_paths_for_children_invalidation(invalidator_quib, path)
+        for new_path in new_paths:
+            if new_path is not None:
+                self._invalidate_self(new_path)
+                if len(path) == 0 or not self._is_completely_overridden_at_first_component(new_path):
+                    self._invalidate_children_at_path(new_path)
+
+    def _get_paths_for_children_invalidation(self, invalidator_quib: Quib,
+                                             path: List[PathComponent]) -> List[Optional[List[PathComponent]]]:
+        """
+        Get the new paths for invalidating children- a quib overrides this method if it has a specific way to translate
+        paths to new invalidation paths.
+        If not, invalidate all children all over; as you have no more specific way to invalidate them
+        """
+
+        if len(path) == 0 or not self._is_quib_a_data_source(invalidator_quib):
+            # We want to completely invalidate our children
+            # if either a parameter changed or a data quib changed completely (at entire path)
+            return [[]]
+
+        func_with_args_values, sources_to_quibs = self._get_func_with_args_values_for_translation({})
+        quibs_to_sources = {quib: source for source, quib in sources_to_quibs.items()}
+
+        if invalidator_quib not in quibs_to_sources:
+            return []
+
+        sources_to_new_paths = forwards_translate(
+            func_with_args_values=func_with_args_values,
+            sources_to_paths={
+                quibs_to_sources[invalidator_quib]: path
+            },
+            shape=self.get_shape(),
+            type_=self.get_type()
+        )
+
+        source = quibs_to_sources[invalidator_quib]
+
+        return sources_to_new_paths[source] if source in sources_to_new_paths else []
+
+    def reset_cache(self):
+        self._cache = None
+        self._caching = True if self.get_cache_behavior() == CacheBehavior.ON else False
+
+    def _invalidate_self(self, path: List[PathComponent]):
+        """
+        This method is called whenever a quib itself is invalidated; subclasses will override this with their
+        implementations for invalidations.
+        For example, a simple implementation for a quib which is a function could be setting a boolean to true or
+        false signifying validity
+        """
+        if len(path) == 0:
+            self._on_type_change()
+            self.reset_cache()
+
+        if self._cache is not None:
+            self._cache = transform_cache_to_nd_if_necessary_given_path(self._cache, path)
+            self._cache.set_invalid_at_path(path)
+
 
     """
     Misc
@@ -429,45 +539,8 @@ class Quib(ReprMixin):
         """
         return {child for child in self._get_children_recursively() if child.func_can_create_graphics}
 
-    def invalidate_and_redraw_at_path(self, path: Optional[List[PathComponent]] = None) -> None:
-        """
-        Perform all actions needed after the quib was mutated (whether by overriding or inverse assignment).
-        If path is not given, the whole quib is invalidated.
-        """
-        from pyquibbler import timer
-        if path is None:
-            path = []
-
-        with timer("quib_invalidation", lambda x: logger.info(f"invalidation {x}")):
-            self._invalidate_children_at_path(path)
-        self._redraw()
-
-    def _invalidate_children_at_path(self, path: List[PathComponent]) -> None:
-        """
-        Change this quib's state according to a change in a dependency.
-        """
-        for child in self.children:
-            child._invalidate_quib_with_children_at_path(self, path)
-
-    def _get_paths_for_children_invalidation(self, invalidator_quib: Quib,
-                                             path: List[PathComponent]) -> List[Optional[List[PathComponent]]]:
-        """
-        Get the new paths for invalidating children- a quib overrides this method if it has a specific way to translate
-        paths to new invalidation paths.
-        If not, invalidate all children all over; as you have no more specific way to invalidate them
-        """
-        return [[]]
-
     def _on_type_change(self):
         self.method_cache.clear()
-
-    def _invalidate_self(self, path: List[PathComponent]):
-        """
-        This method is called whenever a quib itself is invalidated; subclasses will override this with their
-        implementations for invalidations.
-        For example, a simple implementation for a quib which is a function could be setting a boolean to true or
-        false signifying validity
-        """
 
     def _get_loop_shape(self) -> Tuple[int, ...]:
         return ()
@@ -524,7 +597,7 @@ class Quib(ReprMixin):
         return inner_arg
 
     def _is_quib_a_data_source(self, quib):
-        return False
+        return quib in self._get_data_source_quibs()
 
     def _is_completely_overridden_at_first_component(self, path) -> bool:
         """
@@ -540,19 +613,6 @@ class Quib(ReprMixin):
                 cache = self._apply_assignment_to_cache(original_value, cache, assignment)
             return len(cache.get_uncached_paths(path)) == 0
         return False
-
-    def _invalidate_quib_with_children_at_path(self, invalidator_quib, path: List[PathComponent]):
-        """
-        Invalidate a quib and it's children at a given path.
-        This method should be overriden if there is any 'special' implementation for either invalidating oneself
-        or for translating a path for invalidation
-        """
-        new_paths = self._get_paths_for_children_invalidation(invalidator_quib, path)
-        for new_path in new_paths:
-            if new_path is not None:
-                self._invalidate_self(new_path)
-                if len(path) == 0 or not self._is_completely_overridden_at_first_component(new_path):
-                    self._invalidate_children_at_path(new_path)
 
     def add_child(self, quib: Quib) -> None:
         """
@@ -658,6 +718,22 @@ class Quib(ReprMixin):
 
                 return res
 
+    def _should_cache(self, result: Any, elapsed_seconds: float):
+        """
+        Decide if the result of the calculation is worth caching according to its size and the calculation time.
+        Note that there is no accurate way (and no efficient way to even approximate) the complete size of composite
+        types in python, so we only measure the outer size of the object.
+        """
+        cache_behavior = self.get_cache_behavior()
+        if cache_behavior is CacheBehavior.ON:
+            return True
+        if cache_behavior is CacheBehavior.OFF:
+            return False
+        assert cache_behavior is CacheBehavior.AUTO, \
+            f'self._cache_behavior has unexpected value: "{cache_behavior}"'
+        return elapsed_seconds > consts.MIN_SECONDS_FOR_CACHE \
+            and getsizeof(result) / elapsed_seconds < consts.MAX_BYTES_PER_SECOND
+
     @raise_quib_call_exceptions_as_own
     def get_value_valid_at_path(self, path: Optional[List[PathComponent]]) -> Any:
         """
@@ -667,13 +743,29 @@ class Quib(ReprMixin):
         """
         guard_raise_if_not_allowed_access_to_quib(self)
         name_for_call = get_user_friendly_name_for_requested_valid_path(path)
+
+        start_time = perf_counter()
+
         with add_quib_to_fail_trace_if_raises_quib_call_exception(self, name_for_call):
-            inner_value = self._call_func(path)
+            cache = get_cache_value_valid_at_path(
+                current_cache=self._cache,
+                func_with_args_values=FuncWithArgsValues.from_function_call(
+                    func=self._func,
+                    args=self._args,
+                    kwargs=self._kwargs,
+                    include_defaults=False
+                ),
+                path=path
+            )
 
-        # TODO: change to create_cache etc
-        self._cache = create_cache(inner_value)
+        elapsed_seconds = perf_counter() - start_time
 
-        return self._overrider.override(inner_value, self._assignment_template)
+        if self._should_cache(cache.get_value(), elapsed_seconds):
+            self._caching = True
+        if self._caching:
+            self._cache = cache
+
+        return self._overrider.override(cache.get_value(), self._assignment_template)
 
     @staticmethod
     @contextmanager

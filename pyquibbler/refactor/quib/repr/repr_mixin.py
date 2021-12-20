@@ -58,4 +58,5 @@ class ReprMixin(ABC):
         return f"<{self.__class__.__name__} - {self.func}"
 
     def __str__(self):
+
         return self.pretty_repr()

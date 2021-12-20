@@ -7,6 +7,7 @@ from pyquibbler.refactor.translation.translators.transpositional.transpositional
 from pyquibbler.refactor.translation.types import Source
 from pyquibbler.quib import PathComponent
 from pyquibbler.quib.assignment import Path
+from pyquibbler.refactor.translation.utils import copy_and_replace_sources_with_vals
 
 
 class BackwardsGetItemTranslator(BackwardsTranspositionalTranslator):
@@ -44,6 +45,9 @@ class ForwardsGetItemTranslator(ForwardsTranspositionalTranslator):
     @property
     def _getitem_path_component(self):
         component = self._args[1]
+        # We can't have a quib in our path, as this would mean we wouldn't be able to understand where it's necessary
+        # to get_value's/reverse assign
+        component = copy_and_replace_sources_with_vals(component)
         return PathComponent(indexed_cls=self._type, component=component)
 
     def _forward_translate_path(self, source: Source, path: Path):
@@ -58,8 +62,8 @@ class ForwardsGetItemTranslator(ForwardsTranspositionalTranslator):
                 # Therefore, we translate the indices and invalidate our children with the new indices (which are an
                 # intersection between our getitem and the path to invalidate- if this intersections yields nothing,
                 # we do NOT invalidate our children)
-                return [super(ForwardsGetItemTranslator, self)._translate_forwards_source_with_path(source=source,
-                                                                                                   path=path)]
+                return super(ForwardsGetItemTranslator, self)._translate_forwards_source_with_path(source=source,
+                                                                                                   path=path)
             elif (
                     self._getitem_path_component.references_field_in_field_array()
                     !=

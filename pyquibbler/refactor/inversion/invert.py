@@ -9,27 +9,17 @@ if TYPE_CHECKING:
     from pyquibbler import Assignment
 
 
-def invert(func: Callable, args: Tuple[Any, ...], kwargs: Mapping[str, Any], assignment: Assignment, previous_result):
-    from pyquibbler.refactor.overriding import get_definition_for_function, CannotFindDefinitionForFunctionException
-    print(f"Inverting func {func}")
-    # TODO test multiple scenarios with choosing inverters
-    try:
-        definition = get_definition_for_function(func)
-    except CannotFindDefinitionForFunctionException:
-        return []
+def invert(func_with_args_values: FuncWithArgsValues, assignment: Assignment, previous_result):
+    from pyquibbler.refactor.overriding import get_definition_for_function
+    definition = get_definition_for_function(func_with_args_values.func)
 
     potential_inverter_classes = list(definition.inverters)
     while True:
         if potential_inverter_classes is None or len(potential_inverter_classes) == 0:
-            raise NoInvertersFoundException(func)
+            raise NoInvertersFoundException(func_with_args_values.func)
         cls = potential_inverter_classes.pop()
         inverter = cls(
-            func_with_args_values=FuncWithArgsValues.from_function_call(
-                func=func,
-                args=args,
-                kwargs=kwargs,
-                include_defaults=True
-            ),
+            func_with_args_values=func_with_args_values,
             assignment=assignment,
             previous_result=previous_result
         )

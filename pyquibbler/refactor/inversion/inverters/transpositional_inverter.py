@@ -26,9 +26,7 @@ class TranspositionalInverter(Inverter):
             type_=type(self._previous_result)
         )
         sources_to_paths_in_result = forwards_translate(
-            func=self._func_with_args_values.func,
-            args=self._func_with_args_values.args_values.args,
-            kwargs=self._func_with_args_values.args_values.kwargs,
+            func_with_args_values=self._func_with_args_values,
             sources_to_paths=sources_to_paths_in_sources,
             shape=np.shape(self._previous_result),
             type_=type(self._previous_result)

@@ -32,5 +32,6 @@ def create_numpy_definitions():
         transpositional(np.repeat, data_source_arguments=['a']),
         transpositional(np.full, data_source_arguments=['fill_value']),
         transpositional(np.reshape, data_source_arguments=['a']),
+        transpositional(np.transpose, data_source_arguments=[0]),
         transpositional(np.array, data_source_arguments=[0]),
     ]
