@@ -1,7 +1,7 @@
 import pytest
 
 from pyquibbler.env import EVALUATE_NOW
-from pyquibbler.overriding.override_definition import OverrideDefinition
+from pyquibbler.refactor.overriding.override_definition import OverrideDefinition
 
 
 @pytest.fixture(autouse=True)

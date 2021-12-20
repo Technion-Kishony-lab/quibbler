@@ -43,7 +43,7 @@ class ArgsValues:
     arg_values_by_name: Mapping[str, Any]
 
     def __getitem__(self, item):
-        from ...overriding.types import KeywordArgument, IndexArgument
+        from pyquibbler.refactor.overriding.types import KeywordArgument, IndexArgument
 
         if isinstance(item, KeywordArgument):
             return self.arg_values_by_name[item.keyword]
@@ -62,10 +62,6 @@ class ArgsValues:
     def from_function_call(cls, func: Callable, args: Tuple[Any, ...], kwargs: Mapping[str, Any], include_defaults):
         # We use external_call_failed_exception_handling here as if the user provided the wrong arguments to the
         # function we'll fail here
-
-        from pyquibbler.overriding.utils import get_original_func_from_partialled_func
-        func = get_original_func_from_partialled_func(func)
-
         with external_call_failed_exception_handling():
             try:
                 arg_values_by_name = dict(iter_args_and_names_in_function_call(func, args, kwargs, include_defaults))

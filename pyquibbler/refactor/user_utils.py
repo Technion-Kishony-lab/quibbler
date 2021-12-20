@@ -1,12 +1,11 @@
-import numpy as np
 from pathlib import Path
 from typing import Union
 
 from pyquibbler.input_validation_utils import validate_user_input
 from pyquibbler.project import Project
 
-from pyquibbler.quib.refactor.quib import Quib
-from pyquibbler.quib.refactor.factory import create_quib
+from pyquibbler.refactor.quib.quib import Quib
+from pyquibbler.refactor.quib.factory import create_quib
 
 
 def q(func, *args, **kwargs) -> Quib:

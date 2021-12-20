@@ -1,6 +1,6 @@
 import functools
 
-from pyquibbler.quib.refactor.factory import create_quib
+from pyquibbler.refactor.quib.factory import create_quib
 
 
 def quibbler_user_function(evaluate_now=True, pass_quibs=False):
@@ -19,7 +19,7 @@ def quibbler_user_function(evaluate_now=True, pass_quibs=False):
         @functools.wraps(func)
         def _wrapper(*args, **kwargs):
             return create_quib(func=func, args=args, kwargs=kwargs, evaluate_now=evaluate_now,
-                               pass_quibs=pass_quibs)
+                               call_func_with_quibs=pass_quibs)
 
         return _wrapper
 
