@@ -4,7 +4,7 @@ from typing import Callable, List
 
 from pyquibbler.overriding.graphics.graphics_overriding import GRAPHICS_DEFINITIONS
 from pyquibbler.overriding.graphics.widgets.switch_widgets_with_q_widgets import switch_widgets_to_quib_supporting_widgets
-from .definitions import OverrideDefinition
+from .override_definition import OverrideDefinition
 from .graphics.widgets.widgets_overriding import WIDGET_DEFINITIONS
 from .numpy_definitions import NUMPY_DEFINITIONS
 from .operator_definitions import OPERATOR_DEFINITIONS
@@ -21,7 +21,7 @@ NAMES_TO_DEFINITIONS = {
 }
 
 FUNCS_TO_DEFINITIONS = {
-    definition.quib_supporting_func: definition
+    definition.original_func: definition
     for definition in ALL_DEFINITIONS
 }
 

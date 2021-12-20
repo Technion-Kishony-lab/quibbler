@@ -16,7 +16,8 @@ from matplotlib.widgets import AxesWidget
 from pyquibbler.graphics.graphics_collection import GraphicsCollection
 from pyquibbler.inversion.invert import invert
 from pyquibbler.iterators import iter_objects_of_type_in_object_shallowly
-from pyquibbler.overriding.definitions import OverrideDefinition
+from pyquibbler.overriding import CannotFindDefinitionForFunctionException
+from pyquibbler.overriding.override_definition import OverrideDefinition
 from pyquibbler.translation import CannotInvertException
 from pyquibbler.translation.types import Source
 from pyquibbler.quib import get_override_group_for_change
@@ -81,7 +82,8 @@ class Quib(ReprMixin):
                  name: Optional[str],
                  file_name: Optional[str],
                  line_no: Optional[str],
-                 is_random_func: bool):
+                 is_random_func: bool,
+                 call_func_with_quibs: bool):
         self._func = func
         self._args = args
         self._kwargs = kwargs
@@ -91,6 +93,7 @@ class Quib(ReprMixin):
         self._cache = None
         self._name = name
         self._graphics_collections: Optional[np.array] = None
+        self._call_func_with_quibs = call_func_with_quibs
 
         self._children = WeakSet()
         self._overrider = Overrider()
@@ -267,10 +270,6 @@ class Quib(ReprMixin):
 
         data_sources_to_quibs = {}
 
-        data_source_quibs = set(iter_objects_of_type_in_object_shallowly(Quib, [
-            self._args_values[argument] for argument in self._func_definition.data_source_arguments
-        ]))
-
         def _replace_quib_with_source(_, arg):
             def _replace(q):
                 # TODO: Maybe add test if we accidentally got param at None?
@@ -284,16 +283,19 @@ class Quib(ReprMixin):
                 return q
             return recursively_run_func_on_object(_replace, arg, max_depth=SHALLOW_MAX_DEPTH)
 
-        args, kwargs = convert_args_and_kwargs(_replace_quib_with_source, self.args, self.kwargs)
-        # func = self.func.func_to_invert if hasattr(self.func, 'func_to_invert') else self.func
-
         try:
+            data_source_quibs = set(iter_objects_of_type_in_object_shallowly(Quib, [
+                self._args_values[argument] for argument in self._func_definition.data_source_arguments
+            ]))
+            args, kwargs = convert_args_and_kwargs(_replace_quib_with_source, self.args, self.kwargs)
             inversals = invert(func=self.func,
                            args=args,
                            kwargs=kwargs,
                            assignment=assignment,
                            previous_result=self.get_value())
         except CannotInvertException:
+            return []
+        except CannotFindDefinitionForFunctionException:
             return []
 
         return [
@@ -638,7 +640,11 @@ class Quib(ReprMixin):
         with graphics_collection.track_and_handle_new_graphics(
                 kwargs_specified_in_artists_creation=set(self.kwargs.keys())
         ):
-            new_args, new_kwargs = self._prepare_args_for_call(valid_path)
+            if self._call_func_with_quibs:
+                new_args, new_kwargs = self._args, self._kwargs
+            else:
+                new_args, new_kwargs = self._prepare_args_for_call(valid_path)
+
             with external_call_failed_exception_handling():
                 res = self.func(*new_args, **new_kwargs)
 

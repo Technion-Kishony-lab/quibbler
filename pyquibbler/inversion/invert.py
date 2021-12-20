@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Callable, Tuple, Any, Mapping, TYPE_CHECKING
 
-from pyquibbler.overriding import get_definition_for_function
+from pyquibbler.overriding import get_definition_for_function, CannotFindDefinitionForFunctionException
 from pyquibbler.translation.exceptions import NoInvertersFoundException, CannotInvertException
 from pyquibbler.inversion import INVERTERS
 from pyquibbler.quib.function_quibs.utils import FuncWithArgsValues
@@ -13,7 +13,11 @@ if TYPE_CHECKING:
 def invert(func: Callable, args: Tuple[Any, ...], kwargs: Mapping[str, Any], assignment: Assignment, previous_result):
     print(f"Inverting func {func}")
     # TODO test multiple scenarios with choosing inverters
-    definition = get_definition_for_function(func)
+    try:
+        definition = get_definition_for_function(func)
+    except CannotFindDefinitionForFunctionException:
+        return []
+    
     potential_inverter_classes = list(definition.inverters)
     while True:
         if potential_inverter_classes is None or len(potential_inverter_classes) == 0:
@@ -33,4 +37,4 @@ def invert(func: Callable, args: Tuple[Any, ...], kwargs: Mapping[str, Any], ass
             return inverter.get_inversals()
         except CannotInvertException:
             # TODO: don't raise
-            raise
+            pass

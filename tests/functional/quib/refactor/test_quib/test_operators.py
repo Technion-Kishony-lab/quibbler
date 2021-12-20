@@ -12,7 +12,8 @@ from pyquibbler.overriding.operator_definitions import ARITHMETIC_OPERATORS_DEFI
     (1., 2),
     (1, 2.)
 ])
-@pytest.mark.parametrize('operator_name', {a.func_name for a in ARITHMETIC_OPERATORS_DEFINITIONS} - {'__matmul__', '__divmod__'})
+@pytest.mark.parametrize('operator_name', {a.func_name for a in ARITHMETIC_OPERATORS_DEFINITIONS
+                                           if not a.func_name.startswith('__r')} - {'__matmul__', '__divmod__'})
 def test_quib_forward_and_inverse_arithmetic_operators(create_quib_with_return_value, operator_name: str, val1, val2):
     op = getattr(operator, operator_name)
     quib1 = create_quib_with_return_value(val1)

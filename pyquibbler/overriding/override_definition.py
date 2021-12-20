@@ -26,7 +26,7 @@ class OverrideDefinition:
     backwards_path_translators: List[Type[BackwardsPathTranslator]] = field(default_factory=list)
     forwards_path_translators: List[Type[ForwardsPathTranslator]] = field(default_factory=list)
 
-    _quib_supporting_func: Callable = None
+    _original_func: Callable = None
 
     @classmethod
     def from_func(cls, func: Callable, data_source_arguments: Set[Union[int, str]] = None, *args, **kwargs):
@@ -50,14 +50,11 @@ class OverrideDefinition:
             **(self.quib_creation_flags or {})
         }
 
-    def _run_previous_func(self, previous_func: Callable, args_values, *args, **kwargs):
-        return previous_func(*args, **kwargs)
-
-    def _get_wrapped_func(self):
+    def _get_func_from_module_or_cls(self):
         return getattr(self.module_or_cls, self.func_name)
 
     def _create_quib_supporting_func(self):
-        wrapped_func = self._get_wrapped_func()
+        wrapped_func = self._get_func_from_module_or_cls()
 
         @functools.wraps(wrapped_func)
         def _maybe_create_quib(*args, **kwargs):
@@ -65,15 +62,8 @@ class OverrideDefinition:
             if is_there_a_quib_in_args(args, kwargs):
                 flags = self._flags
                 evaluate_now = flags.pop('evaluate_now', EVALUATE_NOW)
-                args_values = ArgsValues.from_function_call(func=wrapped_func,
-                                                            args=args,
-                                                            kwargs=kwargs,
-                                                            include_defaults=False)
-                partial_wrapped_func = functools.partial(self._run_previous_func, wrapped_func, args_values)
-                # partial_wrapped_func.func_to_invert = wrapped_func
-                partial_wrapped_func.end_func = wrapped_func
                 return create_quib(
-                    func=partial_wrapped_func,
+                    func=wrapped_func,
                     args=args,
                     kwargs=kwargs,
                     evaluate_now=evaluate_now,
@@ -81,14 +71,15 @@ class OverrideDefinition:
                 )
             return wrapped_func(*args, **kwargs)
 
-        _maybe_create_quib.funtimes = 1
         return _maybe_create_quib
 
     @property
-    def quib_supporting_func(self):
-        if self._quib_supporting_func is None:
-            self._quib_supporting_func = self._create_quib_supporting_func()
-        return self._quib_supporting_func
+    def original_func(self):
+        if self._original_func is None:
+            # not overridden yet
+            return self._get_func_from_module_or_cls()
+        return self._original_func
 
     def override(self):
-        setattr(self.module_or_cls, self.func_name, self.quib_supporting_func)
+        self._original_func = self._get_func_from_module_or_cls()
+        setattr(self.module_or_cls, self.func_name, self._create_quib_supporting_func())

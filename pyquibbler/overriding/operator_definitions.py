@@ -9,7 +9,7 @@ from typing import Callable, Set, List
 
 from pyquibbler.inversion import TranspositionalInverter
 from pyquibbler.inversion.inverters.getitem_inverter import GetItemInverter
-from pyquibbler.overriding.definitions import OverrideDefinition
+from pyquibbler.overriding.override_definition import OverrideDefinition
 from pyquibbler.overriding.types import IndexArgument, KeywordArgument
 from pyquibbler.quib.refactor.quib import Quib
 from pyquibbler.quib.utils import iter_args_and_names_in_function_call
@@ -36,7 +36,7 @@ class OperatorOverrideDefinition(OverrideDefinition):
     }
     is_reversed: bool = False
 
-    def _get_wrapped_func(self):
+    def _get_func_from_module_or_cls(self):
         if self.func_name in self.SPECIAL_FUNCS:
             return self.SPECIAL_FUNCS[self.func_name]
 
@@ -51,7 +51,7 @@ class OperatorOverrideDefinition(OverrideDefinition):
     #     super(OperatorOverrideDefinition, self).override()
     #     if self.override_reverse_operator:
     #         reverse_func = self.quib_supporting_func(
-    #             lambda quib, other: self._get_wrapped_func()(other, quib)
+    #             lambda quib, other: self._get_func_from_module_or_cls()(other, quib)
     #         )
     #         rname = '__r' + self.func_name[2:]
     #         setattr(self.module_or_cls, rname, reverse_func)

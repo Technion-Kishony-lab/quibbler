@@ -1,6 +1,7 @@
 import functools
 import itertools
-from typing import Tuple, Any, Mapping, Type, Optional
+from inspect import signature
+from typing import Tuple, Any, Mapping, Type, Optional, Callable
 
 from pyquibbler.env import DEBUG
 from pyquibbler.quib.utils import NestedQuibException, SHALLOW_MAX_DEPTH, SHALLOW_MAX_LENGTH, QuibRef
@@ -70,7 +71,6 @@ def iter_objects_of_type_in_object(object_type: Type, obj: Any, force_recursive:
     return result
 
 
-
 def iter_object_type_in_args(object_type, args: Tuple[Any, ...], kwargs: Mapping[str, Any]):
     """
     Returns an iterator for all objects of a type nested in the given args and kwargs.
@@ -78,3 +78,15 @@ def iter_object_type_in_args(object_type, args: Tuple[Any, ...], kwargs: Mapping
     return itertools.chain(*map(functools.partial(iter_objects_of_type_in_object, object_type),
                                 itertools.chain(args, kwargs.values())))
 
+
+def iter_args_and_names_in_function_call(func: Callable, args: Tuple[Any, ...], kwargs: Mapping[str, Any],
+                                         apply_defaults: bool):
+    """
+    Given a specific function call - func, args, kwargs - return an iterator to (name, val) tuples
+    of all arguments that would have been passed to the function.
+    If apply_defaults is True, add the default values from the function to the iterator.
+    """
+    bound_args = signature(func).bind(*args, **kwargs)
+    if apply_defaults:
+        bound_args.apply_defaults()
+    return bound_args.arguments.items()

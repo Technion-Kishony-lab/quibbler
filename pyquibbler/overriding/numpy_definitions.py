@@ -4,7 +4,7 @@ from typing import Callable, Set, List
 import numpy as np
 
 from pyquibbler.inversion import TranspositionalInverter
-from pyquibbler.overriding.definitions import OverrideDefinition
+from pyquibbler.overriding.override_definition import OverrideDefinition
 from pyquibbler.overriding.types import Argument, KeywordArgument, IndexArgument
 from pyquibbler.translation.translators import BackwardsTranspositionalTranslator, ForwardsTranspositionalTranslator
 

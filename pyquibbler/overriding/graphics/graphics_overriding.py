@@ -6,7 +6,7 @@ from typing import Dict, Any
 from matplotlib.axes import Axes
 
 from pyquibbler.env import GRAPHICS_EVALUATE_NOW
-from pyquibbler.overriding.definitions import OverrideDefinition
+from pyquibbler.overriding.override_definition import OverrideDefinition
 
 
 @dataclass
