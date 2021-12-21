@@ -36,12 +36,6 @@ class BackwardsGetItemTranslator(BackwardsTranspositionalTranslator):
 
 class ForwardsGetItemTranslator(ForwardsTranspositionalTranslator):
 
-    def translate(self) -> Dict[Source, Path]:
-        return {
-            source: self._forward_translate_path(path=path, source=source)
-            for source, path in self._sources_to_paths.items()
-        }
-
     @property
     def _getitem_path_component(self):
         component = self._args[1]
@@ -50,7 +44,7 @@ class ForwardsGetItemTranslator(ForwardsTranspositionalTranslator):
         component = copy_and_replace_sources_with_vals(component)
         return PathComponent(indexed_cls=self._type, component=component)
 
-    def _forward_translate_path(self, source: Source, path: Path):
+    def _translate_forwards_source_with_path(self, source: Source, path: Path):
         working_component, *rest_of_path = path
         if isinstance(source.value, np.ndarray):
             if (not self._getitem_path_component.references_field_in_field_array()

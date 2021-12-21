@@ -14,12 +14,16 @@ from weakref import WeakSet
 from contextlib import contextmanager
 from matplotlib.widgets import AxesWidget
 
+from pyquibbler.quib.function_quibs.cache.holistic_cache import PathCannotHaveComponentsException
 from pyquibbler.refactor.graphics.graphics_collection import GraphicsCollection
 from pyquibbler.refactor.inversion.invert import invert
 from pyquibbler.refactor.iterators import iter_objects_of_type_in_object_shallowly
+from pyquibbler.refactor.overriding import CannotFindDefinitionForFunctionException
 from pyquibbler.refactor.overriding.override_definition import OverrideDefinition
 from pyquibbler.refactor.quib import consts
-from pyquibbler.refactor.quib.function_call import get_cache_value_valid_at_path
+from pyquibbler.refactor.quib.function_call import get_cache_value_valid_at_path, _get_uncached_paths_matching_path, \
+    _truncate_path_to_match_shallow_caches, _ensure_cache_matches_result, \
+    get_cached_data_at_truncated_path_given_result_at_uncached_path
 from pyquibbler.refactor.quib.graphics import UpdateType
 from pyquibbler.refactor.translation import CannotInvertException
 from pyquibbler.refactor.translation.translate import forwards_translate
@@ -134,9 +138,12 @@ class Quib(ReprMixin):
         return self._kwargs
 
     def _get_data_source_quibs(self):
-        return set(iter_objects_of_type_in_object_shallowly(Quib, [
-            self._args_values[argument] for argument in self._func_definition.data_source_arguments
-        ]))
+        try:
+            return set(iter_objects_of_type_in_object_shallowly(Quib, [
+                self._args_values[argument] for argument in self._func_definition.data_source_arguments
+            ]))
+        except CannotFindDefinitionForFunctionException:
+            return set()
 
     def _get_func_with_args_values_for_translation(self, data_source_quibs_to_paths: Dict[Quib, Path]):
 
@@ -734,6 +741,44 @@ class Quib(ReprMixin):
         return elapsed_seconds > consts.MIN_SECONDS_FOR_CACHE \
             and getsizeof(result) / elapsed_seconds < consts.MAX_BYTES_PER_SECOND
 
+    def _run_on_uncached_paths(self, valid_path: Path):
+        uncached_paths = _get_uncached_paths_matching_path(cache=self._cache, path=valid_path)
+
+        if len(uncached_paths) == 0:
+            return self._cache.get_value()
+
+        result = None
+
+        for uncached_path in uncached_paths:
+            result = self._call_func(uncached_path)
+
+            truncated_path = _truncate_path_to_match_shallow_caches(uncached_path)
+            self._cache = _ensure_cache_matches_result(self._cache, result)
+
+            if truncated_path is not None:
+                self._cache = transform_cache_to_nd_if_necessary_given_path(self._cache, truncated_path)
+                value = get_cached_data_at_truncated_path_given_result_at_uncached_path(self._cache,
+                                                                                        result,
+                                                                                        truncated_path,
+                                                                                        uncached_path)
+                try:
+                    self._cache.set_valid_value_at_path(truncated_path, value)
+                except PathCannotHaveComponentsException:
+                    # We do not have a diverged cache for this type, we can't store the value; this is not a problem as
+                    # everything will work as expected, but we will simply not cache
+                    assert len(uncached_paths) == 1, "There should never be a situation in which we have multiple " \
+                                                     "uncached paths but our cache can't handle setting a value at a " \
+                                                     "specific component"
+                else:
+                    # We need to get the result from the cache (as opposed to simply using the last run), since we
+                    # don't want to only take the last run
+                    result = self._cache.get_value()
+
+                    # sanity
+                    assert len(self._cache.get_uncached_paths(truncated_path)) == 0
+
+        return result
+
     @raise_quib_call_exceptions_as_own
     def get_value_valid_at_path(self, path: Optional[List[PathComponent]]) -> Any:
         """
@@ -747,25 +792,16 @@ class Quib(ReprMixin):
         start_time = perf_counter()
 
         with add_quib_to_fail_trace_if_raises_quib_call_exception(self, name_for_call):
-            cache = get_cache_value_valid_at_path(
-                current_cache=self._cache,
-                func_with_args_values=FuncWithArgsValues.from_function_call(
-                    func=self._func,
-                    args=self._args,
-                    kwargs=self._kwargs,
-                    include_defaults=False
-                ),
-                path=path
-            )
+            result = self._run_on_uncached_paths(path)
 
         elapsed_seconds = perf_counter() - start_time
 
-        if self._should_cache(cache.get_value(), elapsed_seconds):
+        if self._should_cache(result, elapsed_seconds):
             self._caching = True
-        if self._caching:
-            self._cache = cache
+        if not self._caching:
+            self._cache = None
 
-        return self._overrider.override(cache.get_value(), self._assignment_template)
+        return self._overrider.override(result, self._assignment_template)
 
     @staticmethod
     @contextmanager

@@ -7,7 +7,7 @@ from typing import Callable, List
 
 from pyquibbler.refactor.inversion.inverters.getitem_inverter import GetItemInverter
 from pyquibbler.refactor.overriding.override_definition import OverrideDefinition
-from pyquibbler.refactor.overriding.types import IndexArgument
+from pyquibbler.refactor.overriding.types import IndexArgument, KeywordArgument
 
 from pyquibbler.refactor.translation.translators import BackwardsGetItemTranslator
 from pyquibbler.refactor.translation.translators.transpositional.getitem_translator import ForwardsGetItemTranslator
@@ -58,7 +58,8 @@ def operator_definition(name, data_source_indexes: List = None, inverters: List 
     from pyquibbler.refactor.quib.quib import Quib
     return OperatorOverrideDefinition(
         func_name=name,
-        data_source_arguments={IndexArgument(i) for i in (data_source_indexes or [])},
+        data_source_arguments={IndexArgument(i) if isinstance(i, int) else KeywordArgument(i)
+                               for i in (data_source_indexes or [])},
         module_or_cls=Quib,
         inverters=inverters,
         backwards_path_translators=backwards_path_translators,
@@ -79,7 +80,7 @@ def with_reverse_operator_definition(name, data_source_indexes: List = None):
 
 
 def get_arithmetic_definitions():
-    return  [
+    return [
         *with_reverse_operator_definition('__add__'),
         *with_reverse_operator_definition('__sub__'),
         *with_reverse_operator_definition('__mul__'),
