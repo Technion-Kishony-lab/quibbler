@@ -28,6 +28,7 @@ def deep_get(obj: Any, path: List['PathComponent']):
     """
     Get the data from an object in a given path.
     """
+    el = obj
     for component in path:
         obj = obj[component.component]
     return obj
@@ -73,6 +74,5 @@ def deep_assign_data_in_path(data: Any, path: List[PathComponent], value: Any, r
                      f"\n\tfailed path component: {component.component}"
                      f"\n\texception: {e}")
                 )
-
         last_element = new_element
     return last_element

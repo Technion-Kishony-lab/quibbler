@@ -14,8 +14,9 @@ def override_all():
 
 @pytest.fixture
 def create_quib_with_return_value():
-    def _create(ret_val, allow_overriding=False):
-        return create_quib(mock.Mock(return_value=ret_val), allow_overriding=allow_overriding)
+    def _create(ret_val, allow_overriding=False, evaluate_now=False):
+        return create_quib(mock.Mock(return_value=ret_val), allow_overriding=allow_overriding,
+                           evaluate_now=evaluate_now)
     return _create
 
 

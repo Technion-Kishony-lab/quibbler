@@ -26,7 +26,8 @@ from pyquibbler.refactor.quib.function_call import get_cache_value_valid_at_path
     get_cached_data_at_truncated_path_given_result_at_uncached_path
 from pyquibbler.refactor.quib.graphics import UpdateType
 from pyquibbler.refactor.translation import CannotInvertException
-from pyquibbler.refactor.translation.translate import forwards_translate, backwards_translate
+from pyquibbler.refactor.translation.translate import forwards_translate, backwards_translate, \
+    NoTranslatorsFoundException
 from pyquibbler.refactor.translation.types import Source
 from pyquibbler.quib import get_override_group_for_change
 from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
@@ -315,8 +316,10 @@ class Quib(ReprMixin):
             return []
 
         try:
+            value = self.get_value()
+
             inversals = invert(func_with_args_values=func_with_args_values,
-                               previous_result=self.get_value(),
+                               previous_result=value,
                                assignment=assignment)
         except CannotInvertException:
             return []
@@ -670,6 +673,9 @@ class Quib(ReprMixin):
         # TODO: try without shape/type + args
         func_with_args_values, sources_to_quibs = self._get_func_with_args_values_for_translation({})
 
+        if not sources_to_quibs:
+            return {}
+
         try:
             sources_to_paths = backwards_translate(
                 func_with_args_values=func_with_args_values,
@@ -679,6 +685,12 @@ class Quib(ReprMixin):
             )
         except CannotFindDefinitionForFunctionException:
             return {}
+        # TODO: make these try excepts singular
+        except NoTranslatorsFoundException:
+            return {}
+        except Exception as e:
+            print(1)
+            raise
 
         return {
             quib: sources_to_paths.get(source, None)
@@ -756,7 +768,7 @@ class Quib(ReprMixin):
         return elapsed_seconds > consts.MIN_SECONDS_FOR_CACHE \
             and getsizeof(result) / elapsed_seconds < consts.MAX_BYTES_PER_SECOND
 
-    def _run_on_uncached_paths(self, valid_path: Path):
+    def _run_on_path(self, valid_path: Path):
         uncached_paths = _get_uncached_paths_matching_path(cache=self._cache, path=valid_path)
 
         if len(uncached_paths) == 0:
@@ -815,7 +827,7 @@ class Quib(ReprMixin):
         start_time = perf_counter()
 
         with add_quib_to_fail_trace_if_raises_quib_call_exception(self, name_for_call):
-            result = self._run_on_uncached_paths(path)
+            result = self._run_on_path(path)
 
         elapsed_seconds = perf_counter() - start_time
 

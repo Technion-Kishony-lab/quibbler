@@ -14,12 +14,22 @@ class TodoExceptionFailedToTranslateExpected(PyQuibblerException):
     pass
 
 
+def split_path(path):
+    components_at_end = path[1:]
+    current_components = path[0:1]
+    if len(path) > 0 and path[0].references_field_in_field_array():
+        components_at_end = [path[0], *components_at_end]
+        current_components = []
+    return current_components, components_at_end
+
+
 def backwards_translate(func_with_args_values: FuncWithArgsValues,
                         path, shape=None, type_=None):
 
-    # TODO test multiple scenarios with choosing inverters
     from pyquibbler.refactor.overriding import get_definition_for_function
     potential_translator_classes = get_definition_for_function(func_with_args_values.func).backwards_path_translators
+    # TODO: below should be in init of definition
+    potential_translator_classes = potential_translator_classes or []
     potential_translator_classes = list(sorted(potential_translator_classes, key=lambda c: c.PRIORITY))
     if len(potential_translator_classes) == 0:
         raise NoTranslatorsFoundException()

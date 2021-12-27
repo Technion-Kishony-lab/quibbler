@@ -25,8 +25,9 @@ def basic_dtype():
 def test_inverse_assign_field_array_with_function_and_fancy_indexing_and_field_name(basic_dtype,
                                                                                     create_quib_with_return_value):
     arr = create_quib_with_return_value(np.array([[('shlomi', 9)], [('maor', 3)]], dtype=basic_dtype),
-                                        allow_overriding=True)
+                                        allow_overriding=True, evaluate_now=True)
     rotation_quib = np.rot90(arr)
+
     first_value: Quib = rotation_quib[[0], [1]]
 
     first_value.assign_value_to_key(value="heisenberg", key='name')
@@ -83,3 +84,13 @@ def test_inverse_with_int_as_result_of_function_quib_after_slicing(create_quib_w
     c.assign_value(3)
 
     assert np.array_equal(a.get_value(), np.array([3, 2, 3]))
+
+
+def test_inverse_with_dict_inside_rotated_array(create_quib_with_return_value):
+    a = create_quib_with_return_value(np.array([[{"a": 1}, {"b": 1}]]), allow_overriding=True)
+    rotated = np.rot90(a)
+    b = rotated[(0, 0)]
+
+    b["b"] = 2
+
+    print(1)

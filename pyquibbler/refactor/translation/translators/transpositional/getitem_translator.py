@@ -17,7 +17,7 @@ class BackwardsGetItemTranslator(BackwardsTranspositionalTranslator):
     @property
     def _getitem_path_component(self):
         component = self._args[1]
-        return PathComponent(indexed_cls=self._type, component=component)
+        return PathComponent(indexed_cls=type(self._args[0].value), component=component)
 
     def _can_squash_start_of_path(self):
         return issubclass(self._type, np.ndarray) \

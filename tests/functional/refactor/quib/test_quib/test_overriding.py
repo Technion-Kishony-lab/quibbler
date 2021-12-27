@@ -97,6 +97,7 @@ def test_quib_get_override_list_shows_user_friendly_information_about_overrides(
     assert value_repr in overrides_repr
 
 
+@pytest.mark.skip("Do override mask")
 @pytest.mark.parametrize(['data', 'overrides', 'expected_mask'], [
     ([], [], []),
     ([0], [], [False]),
@@ -125,7 +126,7 @@ def test_quib_override_when_overriding_not_allowed(quib):
     assert isinstance(str(exc_info.value), str)
 
 
-# TODO: when done with translation...
+@pytest.mark.skip("Do override mask")
 @pytest.mark.regression
 def test_quib_get_override_mask_with_list():
     quib = create_quib(func=mock.Mock(return_value=[10, [21, 22], 30]), allow_overriding=True)

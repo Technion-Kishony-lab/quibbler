@@ -116,7 +116,23 @@ class BackwardsTranspositionalTranslator(BackwardsPathTranslator):
             )
         }
 
+    @property
+    def _working_component(self):
+        # TODO: this is a bug in the previous version as well: Is this the solution we want?
+        # This bug is when a string is our first arg - for example, if we have a field array.
+        # What if we have indices right after field?
+        component = super(BackwardsTranspositionalTranslator, self)._working_component
+        if isinstance(component, str):
+            return True
+        return component
+
+
     def translate_in_order(self) -> Dict[Source, Path]:
+        # if len(self._path) > 0 and isinstance(self._path[0].component, str):
+        #     rest_of_components = self._path
+        # else:
+        #     rest_of_components = self._path[1:]
+
         data_sources_to_indices = self._get_data_sources_to_indices_in_data_sources()
         return {
             data_source: [PathComponent(component=data_sources_to_indices[data_source], indexed_cls=np.ndarray)]

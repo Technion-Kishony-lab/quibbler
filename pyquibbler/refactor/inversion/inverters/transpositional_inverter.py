@@ -3,8 +3,8 @@ import numpy as np
 from pyquibbler.refactor.inversion.inverter import Inverter
 from pyquibbler.quib.assignment import Assignment
 from pyquibbler.refactor.translation.types import Inversal
-from pyquibbler.quib.assignment.assignment import working_component
-from pyquibbler.quib.assignment.utils import deep_assign_data_in_path
+from pyquibbler.quib.assignment.assignment import working_component, PathComponent
+from pyquibbler.quib.assignment.utils import deep_assign_data_in_path, deep_get
 from pyquibbler.quib.function_quibs.utils import create_empty_array_with_values_at_indices
 from pyquibbler.refactor.quib.utils import deep_copy_without_quibs_or_graphics
 from pyquibbler.refactor.translation.translate import backwards_translate, forwards_translate
@@ -39,7 +39,8 @@ class TranspositionalInverter(Inverter):
         assert all(len(paths) == 1 for paths in sources_to_paths_in_result.values())
 
         sources_to_paths_in_result = {
-            source: [np.logical_and(working_component(paths[0]), boolean_mask), *paths[0][1:]]
+            source: [PathComponent(component=np.logical_and(working_component(paths[0]), boolean_mask),
+                                   indexed_cls=np.ndarray), *paths[0][1:]]
             for source, paths in sources_to_paths_in_result.items()
         }
 
@@ -51,7 +52,7 @@ class TranspositionalInverter(Inverter):
                 assignment=Assignment(
                     path=path,
                     # we asserted above there is only one path per forwards translation
-                    value=representative_result_value[sources_to_paths_in_result[data_source][0]]
+                    value=deep_get(representative_result_value, sources_to_paths_in_result[data_source])
                 )
             )
             for data_source, path in sources_to_paths_in_sources.items()

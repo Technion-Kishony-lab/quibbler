@@ -8,7 +8,7 @@ from pyquibbler.refactor.inversion.invert import invert
 
 # TODO: Do we want to raise an exception on unknown func?
 
-@pytest.mark.skip
+@pytest.mark.skip("Make order in how this shit should fail")
 def test_invert_raises_exception_on_unknown_func():
     with pytest.raises(PyQuibblerException):
         invert(
