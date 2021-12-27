@@ -18,7 +18,7 @@ from pyquibbler.quib.function_quibs.cache.holistic_cache import PathCannotHaveCo
 from pyquibbler.refactor.graphics.graphics_collection import GraphicsCollection
 from pyquibbler.refactor.inversion.invert import invert
 from pyquibbler.refactor.iterators import iter_objects_of_type_in_object_shallowly
-from pyquibbler.refactor.overriding import CannotFindDefinitionForFunctionException
+from pyquibbler.refactor.overriding import CannotFindDefinitionForFunctionException, get_definition_for_function
 from pyquibbler.refactor.overriding.override_definition import OverrideDefinition
 from pyquibbler.refactor.quib import consts
 from pyquibbler.refactor.quib.function_call import get_cache_value_valid_at_path, _get_uncached_paths_matching_path, \
@@ -26,7 +26,7 @@ from pyquibbler.refactor.quib.function_call import get_cache_value_valid_at_path
     get_cached_data_at_truncated_path_given_result_at_uncached_path
 from pyquibbler.refactor.quib.graphics import UpdateType
 from pyquibbler.refactor.translation import CannotInvertException
-from pyquibbler.refactor.translation.translate import forwards_translate
+from pyquibbler.refactor.translation.translate import forwards_translate, backwards_translate
 from pyquibbler.refactor.translation.types import Source
 from pyquibbler.quib import get_override_group_for_change
 from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
@@ -666,8 +666,24 @@ class Quib(ReprMixin):
         """
         return self._name
 
-    def _backwards_translate_path(self, valid_path: List[PathComponent]):
-        return []
+    def _backwards_translate_path(self, valid_path: List[PathComponent]) -> Dict[Quib, Path]:
+        # TODO: try without shape/type + args
+        func_with_args_values, sources_to_quibs = self._get_func_with_args_values_for_translation({})
+
+        try:
+            sources_to_paths = backwards_translate(
+                func_with_args_values=func_with_args_values,
+                path=valid_path,
+                shape=self.get_shape(),
+                type_=self.get_type()
+            )
+        except CannotFindDefinitionForFunctionException:
+            return {}
+
+        return {
+            quib: sources_to_paths.get(source, None)
+            for source, quib in sources_to_quibs.items()
+        }
 
     def _prepare_args_for_call(self, valid_path: Optional[List[PathComponent]]):
         """
@@ -698,7 +714,6 @@ class Quib(ReprMixin):
         # TODO: how do we choose correct indexes for graphics collection?
         graphics_collection: GraphicsCollection = self._graphics_collections[()]
 
-        # TODO: pass_quibs
         # TODO: quib_guard
 
         with graphics_collection.track_and_handle_new_graphics(
@@ -761,6 +776,7 @@ class Quib(ReprMixin):
                                                                                         result,
                                                                                         truncated_path,
                                                                                         uncached_path)
+
                 try:
                     self._cache.set_valid_value_at_path(truncated_path, value)
                 except PathCannotHaveComponentsException:
@@ -769,6 +785,13 @@ class Quib(ReprMixin):
                     assert len(uncached_paths) == 1, "There should never be a situation in which we have multiple " \
                                                      "uncached paths but our cache can't handle setting a value at a " \
                                                      "specific component"
+                except Exception:
+                    # value = get_cached_data_at_truncated_path_given_result_at_uncached_path(self._cache,
+                    #                                                                         result,
+                    #                                                                         truncated_path,
+                    #                                                                         uncached_path)
+                    print(1)
+                    raise
                 else:
                     # We need to get the result from the cache (as opposed to simply using the last run), since we
                     # don't want to only take the last run

@@ -45,7 +45,8 @@ class NdFieldArrayShallowCache(NdIndexableCache):
                                               path_component):
         if path_component.references_field_in_field_array():
             paths = [[PathComponent(indexed_cls=np.ndarray, component=path_component.component),
-                      PathComponent(indexed_cls=np.ndarray, component=self._invalid_mask[path_component.component])]]
+                      PathComponent(indexed_cls=np.ndarray,
+                                    component=np.array(self._invalid_mask[path_component.component]))]]
         else:
             paths = self._create_paths_for_indices(path_component.component)
 

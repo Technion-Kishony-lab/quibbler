@@ -14,6 +14,7 @@ def create_mock_quib():
         mock_quib.get_value_valid_at_path.return_value = get_value_result
         mock_quib.get_shape.return_value = shape
         mock_quib.get_ndim.return_value = len(shape)
+        mock_quib.get_axeses.return_value = []
         mock_quib._get_children_recursively.return_value = children or set()
         return mock_quib
     return _create

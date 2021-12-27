@@ -24,7 +24,7 @@ class BackwardsGetItemTranslator(BackwardsTranspositionalTranslator):
                and not self._getitem_path_component.references_field_in_field_array() \
                and len(self._path) > 0 \
                and not self._path[0].references_field_in_field_array() \
-               and isinstance(self._args[0], np.ndarray)
+               and isinstance(self._args[0].value, np.ndarray)
 
     def translate_in_order(self) -> Dict[Source, Path]:
         if self._can_squash_start_of_path():

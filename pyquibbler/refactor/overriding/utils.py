@@ -11,5 +11,4 @@ def get_definition_for_function(func: Callable) -> OverrideDefinition:
             raise CannotFindDefinitionForFunctionException(func)
         return FUNCS_TO_DEFINITIONS[func]
     except Exception:
-        print(1)
         raise

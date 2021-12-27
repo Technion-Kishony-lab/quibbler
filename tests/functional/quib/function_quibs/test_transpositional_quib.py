@@ -221,7 +221,6 @@ def test_invalidate_and_redraw_invalidates_all_when_minor_parameter_changes():
     assert child.cache_status == CacheStatus.ALL_INVALID
 
 
-# TODO: move
 def test_can_getitem_on_object_without_diverged_cache():
     """
     If the function doesn't have a diverged cache it should request full validity from its parents,
@@ -232,7 +231,6 @@ def test_can_getitem_on_object_without_diverged_cache():
     quib[0][0].get_value()
 
 
-# TODO: move
 @pytest.mark.parametrize('data', [np.arange(24).reshape((2, 3, 4))])
 @pytest.mark.parametrize('indices_to_get_value_at', [-1, 0, (1, 1), (2, 1, 3), [True, False, False], (0, ...)])
 def test_transpositional_get_value(data, indices_to_get_value_at):
@@ -240,7 +238,6 @@ def test_transpositional_get_value(data, indices_to_get_value_at):
     check_get_value_valid_at_path(np.rot90, data, path_to_get_value_at)
 
 
-# TODO: move
 @pytest.mark.parametrize('data', [np.array([[('a', 23, 1), ('b', 24, 10), ('c', 25, 100)]],
                                            dtype=[('name', '|S21'), ('age', 'i8'), ('random', 'i4')])])
 @pytest.mark.parametrize('indices_to_get_value_at', [
@@ -266,7 +263,6 @@ def create_mock_quib(shape, get_value_result):
     return mock_quib
 
 
-# TODO: move
 @pytest.mark.regression
 def test_transpositional_concatenate_does_diverge(create_mock_quib):
     first = create_mock_quib((1, 3), ([[1, 2, 3]]))
@@ -290,7 +286,6 @@ def test_concatenate_invalidation(direction, concat_with_quib, indices_to_invali
     check_invalidation(lambda q: np.concatenate((q, to_concat)[::direction]), [0, 1], indices_to_invalidate)
 
 
-# TODO: move
 @pytest.mark.regression
 @pytest.mark.parametrize('direction', [-1, 1])
 @pytest.mark.parametrize('concat_with_quib', [True, False])
