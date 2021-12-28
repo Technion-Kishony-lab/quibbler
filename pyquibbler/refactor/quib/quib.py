@@ -1,59 +1,50 @@
 from __future__ import annotations
 
-import functools
 import os
 import pathlib
 import pickle
+from contextlib import contextmanager
+from functools import cached_property
 from sys import getsizeof
 from time import perf_counter
+from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Union, Iterable
+from weakref import WeakSet
 
 import numpy as np
-from functools import cached_property
-from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Callable, Union, Iterable, Mapping, Dict
-from weakref import WeakSet
-from contextlib import contextmanager
-from matplotlib.widgets import AxesWidget
 
-from pyquibbler.quib.function_quibs.cache.holistic_cache import PathCannotHaveComponentsException
-from pyquibbler.refactor.graphics.graphics_collection import GraphicsCollection
-from pyquibbler.refactor.inversion.invert import invert
-from pyquibbler.refactor.iterators import iter_objects_of_type_in_object_shallowly
-from pyquibbler.refactor.quib import consts
-from pyquibbler.refactor.quib.function_call import get_cache_value_valid_at_path, _get_uncached_paths_matching_path, \
-    _truncate_path_to_match_shallow_caches, _ensure_cache_matches_result, \
-    get_cached_data_at_truncated_path_given_result_at_uncached_path
-from pyquibbler.refactor.quib.graphics import UpdateType
-from pyquibbler.refactor.translation import CannotInvertException
-from pyquibbler.refactor.translation.translate import forwards_translate, backwards_translate, \
-    NoTranslatorsFoundException
-from pyquibbler.refactor.translation.types import Source
-from pyquibbler.quib import get_override_group_for_change
-from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
-from pyquibbler.quib.function_quibs.utils import ArgsValues, FuncWithArgsValues
-from pyquibbler.quib.graphics.graphics_function_quib import create_array_from_func
-from pyquibbler.quib.quib_guard import add_new_quib_to_guard_if_exists, guard_raise_if_not_allowed_access_to_quib
-from pyquibbler.quib.assignment.assignment_template import InvalidTypeException, create_assignment_template
-from pyquibbler.quib.assignment.utils import FailedToDeepAssignException
-from pyquibbler.quib.function_quibs.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own, \
-    add_quib_to_fail_trace_if_raises_quib_call_exception, external_call_failed_exception_handling
-from pyquibbler.quib.assignment.override_choice import OverrideRemoval
-from pyquibbler.quib.assignment import AssignmentTemplate, Overrider, Assignment, \
-    AssignmentToQuib, Path
-from pyquibbler.quib.function_quibs.cache import create_cache
-from pyquibbler.quib.function_quibs.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
-from pyquibbler.refactor.quib.cache_behavior import CacheBehavior, UnknownCacheBehaviorException
-from pyquibbler.refactor.quib.exceptions import OverridingNotAllowedException, UnknownUpdateTypeException, \
-    InvalidCacheBehaviorForQuibException
-from pyquibbler.refactor.quib.iterators import iter_quibs_in_args, SHALLOW_MAX_DEPTH, recursively_run_func_on_object
-from pyquibbler.refactor.quib.repr.repr_mixin import ReprMixin
-from pyquibbler.quib.utils import quib_method, Unpacker, \
-    QuibRef
-from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.env import LEN_RAISE_EXCEPTION
 from pyquibbler.input_validation_utils import validate_user_input
 from pyquibbler.logger import logger
 from pyquibbler.project import Project
-from pyquibbler.utils import convert_args_and_kwargs
+from pyquibbler.quib import get_override_group_for_change
+from pyquibbler.quib.assignment import AssignmentTemplate, Overrider, Assignment, \
+    AssignmentToQuib, Path
+from pyquibbler.quib.assignment import PathComponent
+from pyquibbler.quib.assignment.assignment_template import InvalidTypeException, create_assignment_template
+from pyquibbler.quib.assignment.override_choice import OverrideRemoval
+from pyquibbler.quib.assignment.utils import FailedToDeepAssignException
+from pyquibbler.quib.function_quibs.cache import create_cache
+from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
+from pyquibbler.quib.function_quibs.cache.holistic_cache import PathCannotHaveComponentsException
+from pyquibbler.quib.function_quibs.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
+from pyquibbler.quib.function_quibs.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own, \
+    add_quib_to_fail_trace_if_raises_quib_call_exception
+from pyquibbler.quib.function_quibs.utils import ArgsValues
+from pyquibbler.quib.quib_guard import add_new_quib_to_guard_if_exists, guard_raise_if_not_allowed_access_to_quib
+from pyquibbler.quib.utils import quib_method, Unpacker
+from pyquibbler.refactor.inversion.invert import invert
+from pyquibbler.refactor.quib import consts
+from pyquibbler.refactor.quib.cache_behavior import CacheBehavior, UnknownCacheBehaviorException
+from pyquibbler.refactor.quib.exceptions import OverridingNotAllowedException, UnknownUpdateTypeException, \
+    InvalidCacheBehaviorForQuibException
+from pyquibbler.refactor.quib.function_call import _get_uncached_paths_matching_path, \
+    _truncate_path_to_match_shallow_caches, _ensure_cache_matches_result, \
+    get_cached_data_at_truncated_path_given_result_at_uncached_path
+from pyquibbler.refactor.quib.graphics import UpdateType
+from pyquibbler.refactor.quib.iterators import iter_quibs_in_args, recursively_run_func_on_object
+from pyquibbler.refactor.quib.repr.repr_mixin import ReprMixin
+from pyquibbler.refactor.translation import CannotInvertException
+from pyquibbler.refactor.translation.translate import forwards_translate
 
 if TYPE_CHECKING:
     from pyquibbler.quib.assignment.override_choice import ChoiceContext, OverrideChoice
