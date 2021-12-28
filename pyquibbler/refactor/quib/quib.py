@@ -252,11 +252,8 @@ class Quib(ReprMixin):
         """
         from pyquibbler.refactor.overriding import CannotFindDefinitionForFunctionException
 
-        try:
-            func_with_args_values, data_sources_to_quibs = \
-                self._function_runner.get_func_with_args_values_for_translation({})
-        except CannotFindDefinitionForFunctionException:
-            return []
+        func_with_args_values, data_sources_to_quibs = \
+            self._function_runner.get_func_with_args_values_for_translation({})
 
         try:
             value = self.get_value()

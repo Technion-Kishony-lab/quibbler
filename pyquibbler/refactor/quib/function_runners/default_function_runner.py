@@ -7,15 +7,13 @@ from matplotlib.widgets import AxesWidget
 from pyquibbler.quib.assignment import Path
 from pyquibbler.quib.function_quibs.external_call_failed_exception_handling import \
     external_call_failed_exception_handling
-from pyquibbler.quib.function_quibs.utils import FuncWithArgsValues
-from pyquibbler.quib.function_runners.function_runner import FunctionRunner
+from pyquibbler.refactor.quib.function_runners.function_runner import FunctionRunner
 from pyquibbler.quib.utils import QuibRef
 from pyquibbler.refactor.graphics.graphics_collection import GraphicsCollection
-from pyquibbler.refactor.quib.iterators import recursively_run_func_on_object, SHALLOW_MAX_DEPTH
+from pyquibbler.refactor.quib.iterators import recursively_run_func_on_object
 from pyquibbler.refactor.quib.quib import Quib
 from pyquibbler.refactor.translation.translate import NoTranslatorsFoundException, backwards_translate
 from pyquibbler.refactor.translation.types import Source
-from pyquibbler.utils import convert_args_and_kwargs
 
 
 @dataclass

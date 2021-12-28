@@ -7,7 +7,7 @@ import numpy as np
 
 from pyquibbler.quib.assignment import Path
 from pyquibbler.quib.function_quibs.utils import FuncWithArgsValues
-from pyquibbler.quib.function_runners.utils import cache_method_until_full_invalidation
+from pyquibbler.refactor.quib.function_runners.utils import cache_method_until_full_invalidation
 from pyquibbler.quib.graphics.graphics_function_quib import create_array_from_func
 from pyquibbler.refactor.graphics.graphics_collection import GraphicsCollection
 from pyquibbler.refactor.iterators import iter_objects_of_type_in_object_shallowly

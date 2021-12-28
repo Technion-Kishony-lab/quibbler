@@ -4,7 +4,7 @@ from functools import wraps
 from typing import Callable, Tuple, Any, Dict, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from pyquibbler.quib.function_runners.function_runner import FunctionRunner
+    from pyquibbler.refactor.quib.function_runners.function_runner import FunctionRunner
 
 
 @dataclass(frozen=True)

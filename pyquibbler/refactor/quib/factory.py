@@ -1,10 +1,9 @@
-import types
 from typing import Optional, Tuple, Type
 
 from pyquibbler.env import GET_VARIABLE_NAMES, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS
 from pyquibbler.logger import logger
 from pyquibbler.quib.function_quibs.utils import FuncWithArgsValues
-from pyquibbler.quib.function_runners import FunctionRunner, DefaultFunctionRunner
+from pyquibbler.refactor.quib.function_runners import FunctionRunner, DefaultFunctionRunner
 from pyquibbler.refactor.overriding import get_definition_for_function, CannotFindDefinitionForFunctionException
 from pyquibbler.refactor.quib.iterators import iter_quibs_in_args
 from pyquibbler.refactor.quib.quib import Quib

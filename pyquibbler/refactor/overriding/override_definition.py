@@ -2,10 +2,10 @@ import functools
 from dataclasses import dataclass, field
 from types import ModuleType
 
-from typing import Callable, Any, Dict, Union, Type, Optional, Set, List, TYPE_CHECKING
+from typing import Callable, Any, Dict, Union, Type, Optional, Set, List
 
 from pyquibbler.env import EVALUATE_NOW
-from pyquibbler.quib.function_runners import FunctionRunner, DefaultFunctionRunner
+from pyquibbler.refactor.quib.function_runners import FunctionRunner, DefaultFunctionRunner
 from pyquibbler.refactor.inversion.inverter import Inverter
 from pyquibbler.refactor.quib.utils import is_there_a_quib_in_args
 from pyquibbler.refactor.overriding.types import Argument, IndexArgument, KeywordArgument
