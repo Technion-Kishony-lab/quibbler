@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Callable, Tuple, Any, Mapping, Type
 
 from pyquibbler.exceptions import PyQuibblerException
@@ -6,8 +7,13 @@ from pyquibbler.refactor.translation.backwards_path_translator import BackwardsP
 from pyquibbler.refactor.translation.forwards_path_translator import ForwardsPathTranslator
 
 
+@dataclass
 class NoTranslatorsFoundException(PyQuibblerException):
-    pass
+
+    func: Callable
+
+    def __str__(self):
+        return f"No translator was found for {self.func}"
 
 
 class TodoExceptionFailedToTranslateExpected(PyQuibblerException):
@@ -32,7 +38,7 @@ def backwards_translate(func_with_args_values: FuncWithArgsValues,
     potential_translator_classes = potential_translator_classes or []
     potential_translator_classes = list(sorted(potential_translator_classes, key=lambda c: c.PRIORITY))
     if len(potential_translator_classes) == 0:
-        raise NoTranslatorsFoundException()
+        raise NoTranslatorsFoundException(NoTranslatorsFoundException)
     while True:
         # TODO: What if there's none left?
         cls: Type[BackwardsPathTranslator] = potential_translator_classes.pop()
@@ -56,7 +62,7 @@ def forwards_translate(func_with_args_values: FuncWithArgsValues,
     potential_translator_classes = get_definition_for_function(func_with_args_values.func).forwards_path_translators
     potential_translator_classes = list(sorted(potential_translator_classes, key=lambda c: c.PRIORITY))
     if len(potential_translator_classes) == 0:
-        raise NoTranslatorsFoundException()
+        raise NoTranslatorsFoundException(func_with_args_values.func)
     while True:
         # TODO: What if there's none left?
         cls: Type[ForwardsPathTranslator] = potential_translator_classes.pop()

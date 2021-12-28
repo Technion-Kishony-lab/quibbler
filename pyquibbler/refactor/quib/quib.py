@@ -122,6 +122,18 @@ class Quib(ReprMixin):
         self._user_defined_save_directory = None
         add_new_quib_to_guard_if_exists(self)
 
+        from pyquibbler.quib.function_runners.default_function_runner import DefaultFunctionRunner
+        self._function_runner = DefaultFunctionRunner(
+            func_with_args_values=FuncWithArgsValues.from_function_call(
+                func=self._func,
+                args=self._args,
+                kwargs=self._kwargs,
+                include_defaults=True
+            ),
+            call_func_with_quibs=self._call_func_with_quibs,
+            graphics_collections=None
+        )
+
     """
     Func metadata funcs
     """
@@ -195,7 +207,8 @@ class Quib(ReprMixin):
         return self.get_value()
 
     def _flat_graphics_collections(self):
-        return list(self._graphics_collections.flat) if self._graphics_collections else []
+        return list(self._function_runner.graphics_collections.flat) \
+            if self._function_runner.graphics_collections else []
 
     def get_axeses(self):
         # TODO: need to implement... What about tests
@@ -721,6 +734,9 @@ class Quib(ReprMixin):
             self._graphics_collections = create_array_from_func(GraphicsCollection, loop_shape)
 
     def _call_func(self, valid_path: List[PathComponent]):
+        return self._function_runner.initialize_and_run_on_path(valid_path)
+
+
         self._initialize_graphics_collections()
 
         # TODO: how do we choose correct indexes for graphics collection?
@@ -797,13 +813,6 @@ class Quib(ReprMixin):
                     assert len(uncached_paths) == 1, "There should never be a situation in which we have multiple " \
                                                      "uncached paths but our cache can't handle setting a value at a " \
                                                      "specific component"
-                except Exception:
-                    # value = get_cached_data_at_truncated_path_given_result_at_uncached_path(self._cache,
-                    #                                                                         result,
-                    #                                                                         truncated_path,
-                    #                                                                         uncached_path)
-                    print(1)
-                    raise
                 else:
                     # We need to get the result from the cache (as opposed to simply using the last run), since we
                     # don't want to only take the last run

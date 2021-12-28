@@ -6,6 +6,8 @@ import numpy as np
 from pyquibbler.refactor.inversion import TranspositionalInverter
 from pyquibbler.refactor.overriding.override_definition import OverrideDefinition
 from pyquibbler.refactor.translation.translators import BackwardsTranspositionalTranslator, ForwardsTranspositionalTranslator
+from pyquibbler.refactor.translation.translators.axeswise.apply_along_axis_translator import \
+    ApplyAlongAxisBackwardsTranslator, ApplyAlongAxisForwardsTranslator
 
 numpy_definition = functools.partial(OverrideDefinition.from_func, module_or_cls=np)
 # def numpy_definition(func, data_source_arguments: List = None, inverters=None,
@@ -34,4 +36,9 @@ def create_numpy_definitions():
         transpositional(np.reshape, data_source_arguments=['a']),
         transpositional(np.transpose, data_source_arguments=[0]),
         transpositional(np.array, data_source_arguments=[0]),
+        numpy_definition(np.sum, data_source_arguments=[0]),
+        numpy_definition(np.apply_along_axis,
+                         data_source_arguments=["arr"],
+                         backwards_path_translators=[ApplyAlongAxisBackwardsTranslator],
+                         forwards_path_translators=[ApplyAlongAxisForwardsTranslator])
     ]

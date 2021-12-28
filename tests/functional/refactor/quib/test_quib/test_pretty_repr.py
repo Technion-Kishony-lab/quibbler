@@ -50,7 +50,7 @@ def test_quib_pretty_repr_without_name():
     a = iquib(1)
     b = iquib(2)
 
-    assert q("".join, a, b).pretty_repr() == 'join(a, b)'
+    assert q("".join, [a, b]).pretty_repr() == 'join([a, b])'
 
 
 @pytest.mark.parametrize("statement", [
