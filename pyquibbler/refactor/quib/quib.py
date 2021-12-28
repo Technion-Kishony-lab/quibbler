@@ -47,7 +47,6 @@ from pyquibbler.refactor.quib.cache_behavior import CacheBehavior, UnknownCacheB
 from pyquibbler.refactor.quib.exceptions import OverridingNotAllowedException, UnknownUpdateTypeException, \
     InvalidCacheBehaviorForQuibException
 from pyquibbler.refactor.quib.iterators import iter_quibs_in_args, SHALLOW_MAX_DEPTH, recursively_run_func_on_object
-from pyquibbler.refactor.quib.method_caching import cache_method_until_full_invalidation
 from pyquibbler.refactor.quib.repr.repr_mixin import ReprMixin
 from pyquibbler.quib.utils import quib_method, Unpacker, \
     QuibRef
@@ -521,9 +520,6 @@ class Quib(ReprMixin):
     def _on_type_change(self):
         self.method_cache.clear()
 
-    def _get_loop_shape(self) -> Tuple[int, ...]:
-        return ()
-
     @staticmethod
     def _apply_assignment_to_cache(original_value, cache, assignment):
         """
@@ -726,8 +722,6 @@ class Quib(ReprMixin):
         """
         return self._overrider
 
-    # We cache the type, so quibs without cache will still remember their types.
-    @cache_method_until_full_invalidation
     def get_type(self) -> Type:
         """
         Get the type of wrapped value.
@@ -735,8 +729,6 @@ class Quib(ReprMixin):
         with add_quib_to_fail_trace_if_raises_quib_call_exception(quib=self, call='get_type()', replace_last=True):
             return self._function_runner.get_type()
 
-    # We cache the shape, so quibs without cache will still remember their shape.
-    @cache_method_until_full_invalidation
     def get_shape(self) -> Tuple[int, ...]:
         """
         Assuming this quib represents a numpy ndarray, returns a quib of its shape.
@@ -744,7 +736,6 @@ class Quib(ReprMixin):
         with add_quib_to_fail_trace_if_raises_quib_call_exception(quib=self, call='get_shape()', replace_last=True):
             return self._function_runner.get_shape()
 
-    @cache_method_until_full_invalidation
     def get_ndim(self) -> int:
         """
         Assuming this quib represents a numpy ndarray, returns a quib of its shape.

@@ -4,7 +4,7 @@ from functools import wraps
 from typing import Callable, Tuple, Any, Dict, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from pyquibbler.refactor.quib.quib import Quib
+    from pyquibbler.quib.function_runners.function_runner import FunctionRunner
 
 
 @dataclass(frozen=True)
@@ -20,8 +20,8 @@ class FunctionCall:
 
 def cache_method_until_full_invalidation(func: Callable) -> Callable:
     @wraps(func)
-    def wrapper(self: Quib, *args, **kwargs):
-        call = FunctionCall.create(func, (self, *args), kwargs)
+    def wrapper(self: FunctionRunner, *args, **kwargs):
+        call = FunctionCall.create(func, args, kwargs)
         if call in self.method_cache:
             return self.method_cache[call]
         result = func(self, *args, **kwargs)

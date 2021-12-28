@@ -1,11 +1,12 @@
 from abc import abstractmethod, ABC
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional, Type, Tuple, Dict
 
 import numpy as np
 
 from pyquibbler.quib.assignment import Path
 from pyquibbler.quib.function_quibs.utils import FuncWithArgsValues
+from pyquibbler.quib.function_runners.utils import cache_method_until_full_invalidation
 from pyquibbler.quib.graphics.graphics_function_quib import create_array_from_func
 from pyquibbler.refactor.graphics.graphics_collection import GraphicsCollection
 from pyquibbler.refactor.iterators import iter_objects_of_type_in_object_shallowly
@@ -23,6 +24,7 @@ class FunctionRunner(ABC):
     call_func_with_quibs: bool
     graphics_collections: Optional[np.array]
     is_known_graphics_func: bool
+    method_cache: Dict = field(default_factory=dict)
 
     @property
     def kwargs(self):
@@ -55,6 +57,7 @@ class FunctionRunner(ABC):
             self.graphics_collections = create_array_from_func(GraphicsCollection, loop_shape)
 
     # We cache the type, so quibs without cache will still remember their types.
+    @cache_method_until_full_invalidation
     def get_type(self) -> Type:
         """
         Get the type of wrapped value.
@@ -62,6 +65,7 @@ class FunctionRunner(ABC):
         return type(self.initialize_and_run_on_path(None))
 
     # We cache the shape, so quibs without cache will still remember their shape.
+    @cache_method_until_full_invalidation
     def get_shape(self) -> Tuple[int, ...]:
         """
         Assuming this quib represents a numpy ndarray, returns a quib of its shape.
@@ -75,6 +79,7 @@ class FunctionRunner(ABC):
                 return len(res),
             raise
 
+    @cache_method_until_full_invalidation
     def get_ndim(self) -> int:
         """
         Assuming this quib represents a numpy ndarray, returns a quib of its shape.
