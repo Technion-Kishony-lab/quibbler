@@ -2,18 +2,19 @@ import functools
 from dataclasses import dataclass, field
 from types import ModuleType
 
-from typing import Callable, Any, Dict, Union, Type, Optional, Set, List
+from typing import Callable, Any, Dict, Union, Type, Optional, Set, List, TYPE_CHECKING
 
 from pyquibbler.env import EVALUATE_NOW
+from pyquibbler.quib.function_runners import FunctionRunner, DefaultFunctionRunner
 from pyquibbler.refactor.inversion.inverter import Inverter
 from pyquibbler.refactor.quib.utils import is_there_a_quib_in_args
 from pyquibbler.refactor.overriding.types import Argument, IndexArgument, KeywordArgument
 
-# TODO: Docs!
 from pyquibbler.refactor.translation.backwards_path_translator import BackwardsPathTranslator
 from pyquibbler.refactor.translation.forwards_path_translator import ForwardsPathTranslator
 
 
+# TODO: Docs!
 @dataclass
 class OverrideDefinition:
     func_name: str
@@ -23,6 +24,7 @@ class OverrideDefinition:
     inverters: List[Type[Inverter]] = None
     backwards_path_translators: List[Type[BackwardsPathTranslator]] = field(default_factory=list)
     forwards_path_translators: List[Type[ForwardsPathTranslator]] = field(default_factory=list)
+    function_runner_cls: Type[FunctionRunner] = DefaultFunctionRunner
 
     _original_func: Callable = None
 

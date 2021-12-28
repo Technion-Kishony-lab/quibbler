@@ -10,14 +10,6 @@ from pyquibbler.refactor.translation.translators.axeswise.apply_along_axis_trans
     ApplyAlongAxisBackwardsTranslator, ApplyAlongAxisForwardsTranslator
 
 numpy_definition = functools.partial(OverrideDefinition.from_func, module_or_cls=np)
-# def numpy_definition(func, data_source_arguments: List = None, inverters=None,
-#                      backwards_path_translators: List = None):
-#     return OverrideDefinition.from_func(func=func,
-#                                         module_or_cls=np,
-#                                         data_source_arguments=data_source_arguments,
-#                                         inverters=inverters,
-#                                         backwards_path_translators=backwards_path_translators)
-#
 
 
 def transpositional(func, data_source_arguments: List = None):

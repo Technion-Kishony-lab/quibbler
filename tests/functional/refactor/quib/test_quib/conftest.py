@@ -22,20 +22,27 @@ def create_quib_with_return_value():
 
 @pytest.fixture()
 def quib():
-    return Quib(
+    return create_quib(
         func=mock.Mock(return_value=[1, 2, 3]),
         args=tuple(),
         kwargs={},
         allow_overriding=False,
-        assignment_template=None,
-        cache_behavior=None,
-        is_known_graphics_func=False,
-        name=None,
-        line_no=None,
-        file_name=None,
-        is_random_func=False,
-        call_func_with_quibs=False
+
     )
+    # return Quib(
+    #     func=mock.Mock(return_value=[1, 2, 3]),
+    #     args=tuple(),
+    #     kwargs={},
+    #     allow_overriding=False,
+    #     assignment_template=None,
+    #     cache_behavior=None,
+    #     is_known_graphics_func=False,
+    #     name=None,
+    #     line_no=None,
+    #     file_name=None,
+    #     is_random_func=False,
+    #     call_func_with_quibs=False
+    # )
 
 
 @pytest.fixture()

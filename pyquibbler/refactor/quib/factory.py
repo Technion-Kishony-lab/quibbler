@@ -1,26 +1,16 @@
 import types
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Type
 
 from pyquibbler.env import GET_VARIABLE_NAMES, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS
 from pyquibbler.logger import logger
+from pyquibbler.quib.function_quibs.utils import FuncWithArgsValues
+from pyquibbler.quib.function_runners import FunctionRunner, DefaultFunctionRunner
+from pyquibbler.refactor.overriding import get_definition_for_function, CannotFindDefinitionForFunctionException
 from pyquibbler.refactor.quib.iterators import iter_quibs_in_args
 from pyquibbler.refactor.quib.quib import Quib
 from pyquibbler.refactor.quib.utils import deep_copy_without_quibs_or_graphics
 from pyquibbler.refactor.quib.variable_metadata import get_var_name_being_set_outside_of_pyquibbler, \
     get_file_name_and_line_number_of_quib
-
-
-def unwrap_func_if_quib_class(func):
-    """
-    If we received a function that was already wrapped with a quib class, we want want to unwrap it
-    """
-    while hasattr(func, '__quib_wrapper__'):
-        previous_func = func
-        func = func.__wrapped__
-        # If it was a bound method we need to recreate it
-        if hasattr(previous_func, '__self__'):
-            func = types.MethodType(func, previous_func.__self__)
-    return func
 
 
 def get_deep_copied_args_and_kwargs(args, kwargs):
@@ -60,21 +50,37 @@ def create_quib(func, args=(), kwargs=None, cache_behavior=None, evaluate_now=Fa
     Public constructor for creating a quib.
     # TODO: serious docs
     """
+
     args, kwargs = get_deep_copied_args_and_kwargs(args, kwargs)
     file_name, line_no = get_file_name_and_line_no()
 
-    quib = Quib(func=unwrap_func_if_quib_class(func),
-                args=args,
-                kwargs=kwargs,
+    try:
+        definition = get_definition_for_function(func)
+    except CannotFindDefinitionForFunctionException:
+        function_runner_cls = DefaultFunctionRunner
+    else:
+        function_runner_cls: Type[FunctionRunner] = definition.function_runner_cls
+
+    runner = function_runner_cls(
+        func_with_args_values=FuncWithArgsValues.from_function_call(
+            func=func,
+            args=args,
+            kwargs=kwargs,
+            include_defaults=True
+        ),
+        call_func_with_quibs=call_func_with_quibs,
+        graphics_collections=None,
+        is_known_graphics_func=is_known_graphics_func
+    )
+
+    quib = Quib(function_runner=runner,
                 cache_behavior=cache_behavior,
                 assignment_template=None,
                 allow_overriding=allow_overriding,
-                is_known_graphics_func=is_known_graphics_func,
                 name=get_quib_name(),
                 file_name=file_name,
                 line_no=line_no,
                 is_random_func=is_random_func,
-                call_func_with_quibs=call_func_with_quibs,
                 **init_kwargs)
 
     for arg in iter_quibs_in_args(args, kwargs):

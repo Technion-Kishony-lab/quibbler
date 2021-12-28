@@ -11,7 +11,6 @@ from pyquibbler.quib.function_quibs.utils import FuncWithArgsValues
 from pyquibbler.quib.function_runners.function_runner import FunctionRunner
 from pyquibbler.quib.utils import QuibRef
 from pyquibbler.refactor.graphics.graphics_collection import GraphicsCollection
-from pyquibbler.refactor.overriding import CannotFindDefinitionForFunctionException
 from pyquibbler.refactor.quib.iterators import recursively_run_func_on_object, SHALLOW_MAX_DEPTH
 from pyquibbler.refactor.quib.quib import Quib
 from pyquibbler.refactor.translation.translate import NoTranslatorsFoundException, backwards_translate
@@ -29,6 +28,7 @@ class DefaultFunctionRunner(FunctionRunner):
         if not sources_to_quibs:
             return {}
 
+        from pyquibbler.refactor.overriding import CannotFindDefinitionForFunctionException
         try:
             sources_to_paths = backwards_translate(
                 func_with_args_values=func_with_args_values,

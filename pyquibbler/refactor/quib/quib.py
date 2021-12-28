@@ -18,8 +18,6 @@ from pyquibbler.quib.function_quibs.cache.holistic_cache import PathCannotHaveCo
 from pyquibbler.refactor.graphics.graphics_collection import GraphicsCollection
 from pyquibbler.refactor.inversion.invert import invert
 from pyquibbler.refactor.iterators import iter_objects_of_type_in_object_shallowly
-from pyquibbler.refactor.overriding import CannotFindDefinitionForFunctionException, get_definition_for_function
-from pyquibbler.refactor.overriding.override_definition import OverrideDefinition
 from pyquibbler.refactor.quib import consts
 from pyquibbler.refactor.quib.function_call import get_cache_value_valid_at_path, _get_uncached_paths_matching_path, \
     _truncate_path_to_match_shallow_caches, _ensure_cache_matches_result, \
@@ -59,6 +57,7 @@ from pyquibbler.utils import convert_args_and_kwargs
 
 if TYPE_CHECKING:
     from pyquibbler.quib.assignment.override_choice import ChoiceContext, OverrideChoice
+    from pyquibbler.refactor.overriding.override_definition import OverrideDefinition
 
 
 def get_user_friendly_name_for_requested_valid_path(valid_path: Optional[List[PathComponent]]):
@@ -80,18 +79,14 @@ class Quib(ReprMixin):
     _IS_WITHIN_GET_VALUE_CONTEXT = False
     _DEFAULT_CACHE_BEHAVIOR = CacheBehavior.AUTO
 
-    def __init__(self, func: Callable,
-                 args: Tuple[Any, ...],
-                 kwargs: Mapping[str, Any],
+    def __init__(self, function_runner,
                  cache_behavior: Optional[CacheBehavior],
                  assignment_template: AssignmentTemplate,
                  allow_overriding: bool,
-                 is_known_graphics_func: bool,
                  name: Optional[str],
                  file_name: Optional[str],
                  line_no: Optional[str],
-                 is_random_func: bool,
-                 call_func_with_quibs: bool):
+                 is_random_func: bool):
         self._default_cache_behavior = cache_behavior or self._DEFAULT_CACHE_BEHAVIOR
         self._assignment_template = assignment_template
         self._cache = None
@@ -116,18 +111,7 @@ class Quib(ReprMixin):
         self._user_defined_save_directory = None
         add_new_quib_to_guard_if_exists(self)
 
-        from pyquibbler.quib.function_runners.default_function_runner import DefaultFunctionRunner
-        self._function_runner = DefaultFunctionRunner(
-            func_with_args_values=FuncWithArgsValues.from_function_call(
-                func=func,
-                args=args,
-                kwargs=kwargs,
-                include_defaults=True
-            ),
-            call_func_with_quibs=call_func_with_quibs,
-            graphics_collections=None,
-            is_known_graphics_func=is_known_graphics_func
-        )
+        self._function_runner = function_runner
 
     """
     Func metadata funcs

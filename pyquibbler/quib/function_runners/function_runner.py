@@ -1,6 +1,7 @@
+from __future__ import annotations
 from abc import abstractmethod, ABC
 from dataclasses import dataclass, field
-from typing import Optional, Type, Tuple, Dict
+from typing import Optional, Type, Tuple, Dict, TYPE_CHECKING
 
 import numpy as np
 
@@ -10,12 +11,14 @@ from pyquibbler.quib.function_runners.utils import cache_method_until_full_inval
 from pyquibbler.quib.graphics.graphics_function_quib import create_array_from_func
 from pyquibbler.refactor.graphics.graphics_collection import GraphicsCollection
 from pyquibbler.refactor.iterators import iter_objects_of_type_in_object_shallowly
-from pyquibbler.refactor.overriding import CannotFindDefinitionForFunctionException
-from pyquibbler.refactor.overriding.override_definition import OverrideDefinition
 from pyquibbler.refactor.quib.iterators import recursively_run_func_on_object, SHALLOW_MAX_DEPTH
 from pyquibbler.refactor.quib.quib import Quib
 from pyquibbler.refactor.translation.types import Source
 from pyquibbler.utils import convert_args_and_kwargs
+
+
+if TYPE_CHECKING:
+    from pyquibbler.refactor.overriding.override_definition import OverrideDefinition
 
 
 @dataclass
@@ -103,6 +106,7 @@ class FunctionRunner(ABC):
         return get_definition_for_function(self.func)
 
     def _get_data_source_quibs(self):
+        from pyquibbler.refactor.overriding import CannotFindDefinitionForFunctionException
         try:
             return set(iter_objects_of_type_in_object_shallowly(Quib, [
                 self.func_with_args_values.args_values[argument]
