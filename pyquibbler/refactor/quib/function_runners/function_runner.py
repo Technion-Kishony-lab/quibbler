@@ -1,12 +1,21 @@
 from __future__ import annotations
 from abc import abstractmethod, ABC
 from dataclasses import dataclass, field
-from typing import Optional, Type, Tuple, Dict, TYPE_CHECKING
+from sys import getsizeof
+from time import perf_counter
+from typing import Optional, Type, Tuple, Dict, TYPE_CHECKING, Any, ClassVar
 
 import numpy as np
-
 from pyquibbler.quib.assignment import Path
+from pyquibbler.refactor.quib.cache_behavior import CacheBehavior
+from pyquibbler.quib.function_quibs.cache.cache import Cache
+from pyquibbler.quib.function_quibs.cache.holistic_cache import PathCannotHaveComponentsException
+from pyquibbler.quib.function_quibs.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
 from pyquibbler.quib.function_quibs.utils import FuncWithArgsValues
+from pyquibbler.refactor.quib import consts
+from pyquibbler.refactor.quib.function_call import _get_uncached_paths_matching_path, \
+    _truncate_path_to_match_shallow_caches, _ensure_cache_matches_result, \
+    get_cached_data_at_truncated_path_given_result_at_uncached_path
 from pyquibbler.refactor.quib.function_runners.utils import cache_method_until_full_invalidation
 from pyquibbler.quib.graphics.graphics_function_quib import create_array_from_func
 from pyquibbler.refactor.graphics.graphics_collection import GraphicsCollection
@@ -23,11 +32,18 @@ if TYPE_CHECKING:
 
 @dataclass
 class FunctionRunner(ABC):
+
+    DEFAULT_CACHE_BEHAVIOR: ClassVar[CacheBehavior] = CacheBehavior.AUTO
+
     func_with_args_values: FuncWithArgsValues
     call_func_with_quibs: bool
     graphics_collections: Optional[np.array]
     is_known_graphics_func: bool
+    is_random_func: bool
     method_cache: Dict = field(default_factory=dict)
+    caching: bool = False
+    cache: Optional[Cache] = None
+    default_cache_behavior: CacheBehavior = DEFAULT_CACHE_BEHAVIOR
 
     @property
     def kwargs(self):
@@ -59,13 +75,76 @@ class FunctionRunner(ABC):
         if self.graphics_collections is None:
             self.graphics_collections = create_array_from_func(GraphicsCollection, loop_shape)
 
+    def get_cache_behavior(self):
+        if self.is_random_func or self.func_can_create_graphics:
+            return CacheBehavior.ON
+        return self.default_cache_behavior
+
+    def _should_cache(self, result: Any, elapsed_seconds: float):
+        """
+        Decide if the result of the calculation is worth caching according to its size and the calculation time.
+        Note that there is no accurate way (and no efficient way to even approximate) the complete size of composite
+        types in python, so we only measure the outer size of the object.
+        """
+        cache_behavior = self.get_cache_behavior()
+        if cache_behavior is CacheBehavior.ON:
+            return True
+        if cache_behavior is CacheBehavior.OFF:
+            return False
+        assert cache_behavior is CacheBehavior.AUTO, \
+            f'self.cache_behavior has unexpected value: "{cache_behavior}"'
+        return elapsed_seconds > consts.MIN_SECONDS_FOR_CACHE \
+            and getsizeof(result) / elapsed_seconds < consts.MAX_BYTES_PER_SECOND
+
+    def _run_on_uncached_paths_within_path(self, valid_path: Path):
+        uncached_paths = _get_uncached_paths_matching_path(cache=self.cache, path=valid_path)
+
+        if len(uncached_paths) == 0:
+            return self.cache.get_value()
+
+        result = None
+
+        for uncached_path in uncached_paths:
+            result = self._run_on_path(uncached_path)
+
+            truncated_path = _truncate_path_to_match_shallow_caches(uncached_path)
+            self.cache = _ensure_cache_matches_result(self.cache, result)
+
+            if truncated_path is not None:
+                self.cache = transform_cache_to_nd_if_necessary_given_path(self.cache, truncated_path)
+                value = get_cached_data_at_truncated_path_given_result_at_uncached_path(self.cache,
+                                                                                        result,
+                                                                                        truncated_path,
+                                                                                        uncached_path)
+
+                try:
+                    self.cache.set_valid_value_at_path(truncated_path, value)
+                except PathCannotHaveComponentsException:
+                    # We do not have a diverged cache for this type, we can't store the value; this is not a problem as
+                    # everything will work as expected, but we will simply not cache
+                    assert len(uncached_paths) == 1, "There should never be a situation in which we have multiple " \
+                                                     "uncached paths but our cache can't handle setting a value at a " \
+                                                     "specific component"
+                else:
+                    # We need to get the result from the cache (as opposed to simply using the last run), since we
+                    # don't want to only take the last run
+                    result = self.cache.get_value()
+
+                    # sanity
+                    assert len(self.cache.get_uncached_paths(truncated_path)) == 0
+
+        return result
+
+    def _get_representative_value(self):
+        return self.get_value_valid_at_path(None)
+
     # We cache the type, so quibs without cache will still remember their types.
     @cache_method_until_full_invalidation
     def get_type(self) -> Type:
         """
         Get the type of wrapped value.
         """
-        return type(self.initialize_and_run_on_path(None))
+        return type(self._get_representative_value())
 
     # We cache the shape, so quibs without cache will still remember their shape.
     @cache_method_until_full_invalidation
@@ -73,7 +152,7 @@ class FunctionRunner(ABC):
         """
         Assuming this quib represents a numpy ndarray, returns a quib of its shape.
         """
-        res = self.initialize_and_run_on_path(None)
+        res = self._get_representative_value()
 
         try:
             return np.shape(res)
@@ -87,7 +166,7 @@ class FunctionRunner(ABC):
         """
         Assuming this quib represents a numpy ndarray, returns a quib of its shape.
         """
-        res = self.initialize_and_run_on_path(None)
+        res = self._get_representative_value()
 
         try:
             return np.ndim(res)
@@ -150,6 +229,26 @@ class FunctionRunner(ABC):
     def func_can_create_graphics(self):
         return self.is_known_graphics_func or self._did_create_graphics
 
-    def initialize_and_run_on_path(self, valid_path: Optional[Path]):
+    def reset_cache(self):
+        self.cache = None
+        self.caching = True if self.get_cache_behavior() == CacheBehavior.ON else False
+
+    def get_value_valid_at_path(self, path: Optional[Path]) -> Any:
+        """
+        Get the actual data that this quib represents, valid at the path given in the argument.
+        The value will necessarily return in the shape of the actual result, but only the values at the given path
+        are guaranteed to be valid
+        """
         self._initialize_graphics_collections()
-        return self._run_on_path(valid_path)
+        start_time = perf_counter()
+
+        result = self._run_on_uncached_paths_within_path(path)
+
+        elapsed_seconds = perf_counter() - start_time
+
+        if self._should_cache(result, elapsed_seconds):
+            self.caching = True
+        if not self.caching:
+            self.cache = None
+
+        return result

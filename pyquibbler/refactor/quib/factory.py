@@ -69,17 +69,17 @@ def create_quib(func, args=(), kwargs=None, cache_behavior=None, evaluate_now=Fa
         ),
         call_func_with_quibs=call_func_with_quibs,
         graphics_collections=None,
-        is_known_graphics_func=is_known_graphics_func
+        is_known_graphics_func=is_known_graphics_func,
+        is_random_func=is_random_func,
+        default_cache_behavior=cache_behavior or FunctionRunner.DEFAULT_CACHE_BEHAVIOR
     )
 
     quib = Quib(function_runner=runner,
-                cache_behavior=cache_behavior,
                 assignment_template=None,
                 allow_overriding=allow_overriding,
                 name=get_quib_name(),
                 file_name=file_name,
                 line_no=line_no,
-                is_random_func=is_random_func,
                 **init_kwargs)
 
     for arg in iter_quibs_in_args(args, kwargs):

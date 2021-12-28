@@ -49,6 +49,7 @@ from pyquibbler.refactor.translation.translate import forwards_translate
 if TYPE_CHECKING:
     from pyquibbler.quib.assignment.override_choice import ChoiceContext, OverrideChoice
     from pyquibbler.refactor.overriding.override_definition import OverrideDefinition
+    from pyquibbler.refactor.quib.function_runners import FunctionRunner
 
 
 def get_user_friendly_name_for_requested_valid_path(valid_path: Optional[List[PathComponent]]):
@@ -68,34 +69,25 @@ class Quib(ReprMixin):
     An abstract class to describe the common methods and attributes of all quib types.
     """
     _IS_WITHIN_GET_VALUE_CONTEXT = False
-    _DEFAULT_CACHE_BEHAVIOR = CacheBehavior.AUTO
 
-    def __init__(self, function_runner,
-                 cache_behavior: Optional[CacheBehavior],
+    def __init__(self, function_runner: FunctionRunner,
                  assignment_template: AssignmentTemplate,
                  allow_overriding: bool,
                  name: Optional[str],
                  file_name: Optional[str],
-                 line_no: Optional[str],
-                 is_random_func: bool):
-        self._default_cache_behavior = cache_behavior or self._DEFAULT_CACHE_BEHAVIOR
+                 line_no: Optional[str]):
         self._assignment_template = assignment_template
-        self._cache = None
-        self._caching = False
         self._name = name
-        self._graphics_collections: Optional[np.array] = None
 
         self._children = WeakSet()
         self._overrider = Overrider()
         self._allow_overriding = allow_overriding
-        self.method_cache = {}
         self._quibs_allowed_to_assign_to = None
         self._override_choice_cache = {}
         self.created_in_get_value_context = self._IS_WITHIN_GET_VALUE_CONTEXT
         self.file_name = file_name
         self.line_no = line_no
         self._redraw_update_type = UpdateType.DRAG
-        self._is_random_func = is_random_func
 
         # TODO: Move to factory
         self.project.register_quib(self)
@@ -387,10 +379,6 @@ class Quib(ReprMixin):
 
         return sources_to_new_paths[source] if source in sources_to_new_paths else []
 
-    def reset_cache(self):
-        self._cache = None
-        self._caching = True if self.get_cache_behavior() == CacheBehavior.ON else False
-
     def _invalidate_self(self, path: List[PathComponent]):
         """
         This method is called whenever a quib itself is invalidated; subclasses will override this with their
@@ -400,11 +388,12 @@ class Quib(ReprMixin):
         """
         if len(path) == 0:
             self._on_type_change()
-            self.reset_cache()
+            self._function_runner.reset_cache()
 
-        if self._cache is not None:
-            self._cache = transform_cache_to_nd_if_necessary_given_path(self._cache, path)
-            self._cache.set_invalid_at_path(path)
+        if self._function_runner.cache is not None:
+            self._function_runner.cache = transform_cache_to_nd_if_necessary_given_path(self._function_runner.cache,
+                                                                                        path)
+            self._function_runner.cache.set_invalid_at_path(path)
 
 
     """
@@ -416,16 +405,17 @@ class Quib(ReprMixin):
         """
         User interface to check cache validity.
         """
-        return self._cache.get_cache_status() if self._cache is not None else CacheStatus.ALL_INVALID
+        return self._function_runner.cache.get_cache_status()\
+            if self._function_runner.cache is not None else CacheStatus.ALL_INVALID
 
     @property
     def project(self) -> Project:
         return Project.get_or_create()
 
     def get_cache_behavior(self):
-        if self._is_random_func or self.func_can_create_graphics:
+        if self._function_runner.is_random_func or self.func_can_create_graphics:
             return CacheBehavior.ON
-        return self._default_cache_behavior
+        return self._function_runner.default_cache_behavior
 
     @validate_user_input(cache_behavior=(str, CacheBehavior))
     def set_cache_behavior(self, cache_behavior: CacheBehavior):
@@ -434,9 +424,9 @@ class Quib(ReprMixin):
                 cache_behavior = CacheBehavior[cache_behavior.upper()]
             except KeyError:
                 raise UnknownCacheBehaviorException(cache_behavior)
-        if self._is_random_func and cache_behavior != CacheBehavior.ON:
-            raise InvalidCacheBehaviorForQuibException(self._default_cache_behavior)
-        self._default_cache_behavior = cache_behavior
+        if self._function_runner.is_random_func and cache_behavior != CacheBehavior.ON:
+            raise InvalidCacheBehaviorForQuibException(self._function_runner.default_cache_behavior)
+        self._function_runner.default_cache_behavior = cache_behavior
 
     def setp(self, allow_overriding: bool = None, assignment_template=None,
              save_directory: Union[str, pathlib.Path] = None, cache_behavior: CacheBehavior = None,
@@ -490,7 +480,7 @@ class Quib(ReprMixin):
         return {child for child in self._get_children_recursively() if child.func_can_create_graphics}
 
     def _on_type_change(self):
-        self.method_cache.clear()
+        self._function_runner.method_cache.clear()
 
     @staticmethod
     def _apply_assignment_to_cache(original_value, cache, assignment):
@@ -582,61 +572,6 @@ class Quib(ReprMixin):
     def _call_func(self, valid_path: List[PathComponent]):
         return self._function_runner.initialize_and_run_on_path(valid_path)
 
-    def _should_cache(self, result: Any, elapsed_seconds: float):
-        """
-        Decide if the result of the calculation is worth caching according to its size and the calculation time.
-        Note that there is no accurate way (and no efficient way to even approximate) the complete size of composite
-        types in python, so we only measure the outer size of the object.
-        """
-        cache_behavior = self.get_cache_behavior()
-        if cache_behavior is CacheBehavior.ON:
-            return True
-        if cache_behavior is CacheBehavior.OFF:
-            return False
-        assert cache_behavior is CacheBehavior.AUTO, \
-            f'self._cache_behavior has unexpected value: "{cache_behavior}"'
-        return elapsed_seconds > consts.MIN_SECONDS_FOR_CACHE \
-            and getsizeof(result) / elapsed_seconds < consts.MAX_BYTES_PER_SECOND
-
-    def _run_on_path(self, valid_path: Path):
-        uncached_paths = _get_uncached_paths_matching_path(cache=self._cache, path=valid_path)
-
-        if len(uncached_paths) == 0:
-            return self._cache.get_value()
-
-        result = None
-
-        for uncached_path in uncached_paths:
-            result = self._call_func(uncached_path)
-
-            truncated_path = _truncate_path_to_match_shallow_caches(uncached_path)
-            self._cache = _ensure_cache_matches_result(self._cache, result)
-
-            if truncated_path is not None:
-                self._cache = transform_cache_to_nd_if_necessary_given_path(self._cache, truncated_path)
-                value = get_cached_data_at_truncated_path_given_result_at_uncached_path(self._cache,
-                                                                                        result,
-                                                                                        truncated_path,
-                                                                                        uncached_path)
-
-                try:
-                    self._cache.set_valid_value_at_path(truncated_path, value)
-                except PathCannotHaveComponentsException:
-                    # We do not have a diverged cache for this type, we can't store the value; this is not a problem as
-                    # everything will work as expected, but we will simply not cache
-                    assert len(uncached_paths) == 1, "There should never be a situation in which we have multiple " \
-                                                     "uncached paths but our cache can't handle setting a value at a " \
-                                                     "specific component"
-                else:
-                    # We need to get the result from the cache (as opposed to simply using the last run), since we
-                    # don't want to only take the last run
-                    result = self._cache.get_value()
-
-                    # sanity
-                    assert len(self._cache.get_uncached_paths(truncated_path)) == 0
-
-        return result
-
     @raise_quib_call_exceptions_as_own
     def get_value_valid_at_path(self, path: Optional[List[PathComponent]]) -> Any:
         """
@@ -647,17 +582,8 @@ class Quib(ReprMixin):
         guard_raise_if_not_allowed_access_to_quib(self)
         name_for_call = get_user_friendly_name_for_requested_valid_path(path)
 
-        start_time = perf_counter()
-
         with add_quib_to_fail_trace_if_raises_quib_call_exception(self, name_for_call):
-            result = self._run_on_path(path)
-
-        elapsed_seconds = perf_counter() - start_time
-
-        if self._should_cache(result, elapsed_seconds):
-            self._caching = True
-        if not self._caching:
-            self._cache = None
+            result = self._function_runner.get_value_valid_at_path(path)
 
         return self._overrider.override(result, self._assignment_template)
 
