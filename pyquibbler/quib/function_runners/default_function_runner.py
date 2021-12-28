@@ -22,33 +22,9 @@ from pyquibbler.utils import convert_args_and_kwargs
 @dataclass
 class DefaultFunctionRunner(FunctionRunner):
 
-    def _get_func_with_args_values_for_translation(self, data_source_quibs_to_paths: Dict[Quib, Path]):
-        data_source_quibs = self._get_data_source_quibs()
-        data_sources_to_quibs = {}
-
-        def _replace_quib_with_source(_, arg):
-            def _replace(q):
-                if isinstance(q, Quib):
-                    if q in data_source_quibs:
-                        source = Source(q.get_value_valid_at_path(data_source_quibs_to_paths.get(q)))
-                        data_sources_to_quibs[source] = q
-                    else:
-                        source = Source(q.get_value_valid_at_path([]))
-                    return source
-                return q
-            return recursively_run_func_on_object(_replace, arg, max_depth=SHALLOW_MAX_DEPTH)
-
-        args, kwargs = convert_args_and_kwargs(_replace_quib_with_source, self.args, self.kwargs)
-        return FuncWithArgsValues.from_function_call(
-            func=self.func,
-            args=args,
-            kwargs=kwargs,
-            include_defaults=False
-        ), data_sources_to_quibs
-
     def _backwards_translate_path(self, valid_path: Path) -> Dict[Quib, Path]:
         # TODO: try without shape/type + args
-        func_with_args_values, sources_to_quibs = self._get_func_with_args_values_for_translation({})
+        func_with_args_values, sources_to_quibs = self.get_func_with_args_values_for_translation({})
 
         if not sources_to_quibs:
             return {}
@@ -82,7 +58,7 @@ class DefaultFunctionRunner(FunctionRunner):
         if isinstance(inner_arg, Quib):
             if inner_arg in quibs_to_paths:
                 path = quibs_to_paths[inner_arg]
-            elif self._is_quib_a_data_source(inner_arg):
+            elif self.is_quib_a_data_source(inner_arg):
                 # If the quib is a data source, and we didn't see it in the result, we don't need it to be valid at any
                 # paths (it did not appear in quibs_to_paths)
                 path = None

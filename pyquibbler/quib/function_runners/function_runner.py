@@ -1,6 +1,6 @@
 from abc import abstractmethod, ABC
 from dataclasses import dataclass
-from typing import Optional, Type, Tuple
+from typing import Optional, Type, Tuple, Dict
 
 import numpy as np
 
@@ -11,7 +11,10 @@ from pyquibbler.refactor.graphics.graphics_collection import GraphicsCollection
 from pyquibbler.refactor.iterators import iter_objects_of_type_in_object_shallowly
 from pyquibbler.refactor.overriding import CannotFindDefinitionForFunctionException
 from pyquibbler.refactor.overriding.override_definition import OverrideDefinition
+from pyquibbler.refactor.quib.iterators import recursively_run_func_on_object, SHALLOW_MAX_DEPTH
 from pyquibbler.refactor.quib.quib import Quib
+from pyquibbler.refactor.translation.types import Source
+from pyquibbler.utils import convert_args_and_kwargs
 
 
 @dataclass
@@ -19,6 +22,7 @@ class FunctionRunner(ABC):
     func_with_args_values: FuncWithArgsValues
     call_func_with_quibs: bool
     graphics_collections: Optional[np.array]
+    is_known_graphics_func: bool
 
     @property
     def kwargs(self):
@@ -32,8 +36,8 @@ class FunctionRunner(ABC):
     def func(self):
         return self.func_with_args_values.func
 
-    def _flat_graphics_collections(self):
-        return list(self._graphics_collections.flat) if self._graphics_collections else []
+    def flat_graphics_collections(self):
+        return list(self.graphics_collections.flat) if self.graphics_collections else []
 
     def _get_loop_shape(self):
         return ()
@@ -44,7 +48,7 @@ class FunctionRunner(ABC):
         """
         loop_shape = self._get_loop_shape()
         if self.graphics_collections is not None and self.graphics_collections.shape != loop_shape:
-            for graphics_collection in self._flat_graphics_collections():
+            for graphics_collection in self.flat_graphics_collections():
                 graphics_collection.remove_artists()
             self.graphics_collections = None
         if self.graphics_collections is None:
@@ -55,14 +59,14 @@ class FunctionRunner(ABC):
         """
         Get the type of wrapped value.
         """
-        return type(self._run_on_path(None))
+        return type(self.initialize_and_run_on_path(None))
 
     # We cache the shape, so quibs without cache will still remember their shape.
     def get_shape(self) -> Tuple[int, ...]:
         """
         Assuming this quib represents a numpy ndarray, returns a quib of its shape.
         """
-        res = self._run_on_path(None)
+        res = self.initialize_and_run_on_path(None)
 
         try:
             return np.shape(res)
@@ -75,7 +79,7 @@ class FunctionRunner(ABC):
         """
         Assuming this quib represents a numpy ndarray, returns a quib of its shape.
         """
-        res = self._run_on_path(None)
+        res = self.initialize_and_run_on_path(None)
 
         try:
             return np.ndim(res)
@@ -102,9 +106,41 @@ class FunctionRunner(ABC):
         except CannotFindDefinitionForFunctionException:
             return set()
 
-    def _is_quib_a_data_source(self, quib):
+    def get_func_with_args_values_for_translation(self, data_source_quibs_to_paths: Dict[Quib, Path]):
+        data_source_quibs = self._get_data_source_quibs()
+        data_sources_to_quibs = {}
+
+        def _replace_quib_with_source(_, arg):
+            def _replace(q):
+                if isinstance(q, Quib):
+                    if q in data_source_quibs:
+                        source = Source(q.get_value_valid_at_path(data_source_quibs_to_paths.get(q)))
+                        data_sources_to_quibs[source] = q
+                    else:
+                        source = Source(q.get_value_valid_at_path([]))
+                    return source
+                return q
+            return recursively_run_func_on_object(_replace, arg, max_depth=SHALLOW_MAX_DEPTH)
+
+        args, kwargs = convert_args_and_kwargs(_replace_quib_with_source, self.args, self.kwargs)
+        return FuncWithArgsValues.from_function_call(
+            func=self.func,
+            args=args,
+            kwargs=kwargs,
+            include_defaults=False
+        ), data_sources_to_quibs
+
+    def is_quib_a_data_source(self, quib):
         return quib in self._get_data_source_quibs()
 
-    def initialize_and_run_on_path(self, valid_path: Path):
+    @property
+    def _did_create_graphics(self) -> bool:
+        return any(graphics_collection.artists for graphics_collection in self.flat_graphics_collections())
+
+    @property
+    def func_can_create_graphics(self):
+        return self.is_known_graphics_func or self._did_create_graphics
+
+    def initialize_and_run_on_path(self, valid_path: Optional[Path]):
         self._initialize_graphics_collections()
         return self._run_on_path(valid_path)

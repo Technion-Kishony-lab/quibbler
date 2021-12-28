@@ -131,7 +131,8 @@ class Quib(ReprMixin):
                 include_defaults=True
             ),
             call_func_with_quibs=self._call_func_with_quibs,
-            graphics_collections=None
+            graphics_collections=None,
+            is_known_graphics_func=self._is_known_graphics_func
         )
 
     """
@@ -150,50 +151,13 @@ class Quib(ReprMixin):
     def kwargs(self):
         return self._kwargs
 
-    def _get_data_source_quibs(self):
-        try:
-            return set(iter_objects_of_type_in_object_shallowly(Quib, [
-                self._args_values[argument] for argument in self._func_definition.data_source_arguments
-            ]))
-        except CannotFindDefinitionForFunctionException:
-            return set()
-
-    def _get_func_with_args_values_for_translation(self, data_source_quibs_to_paths: Dict[Quib, Path]):
-
-        data_source_quibs = self._get_data_source_quibs()
-        data_sources_to_quibs = {}
-
-        def _replace_quib_with_source(_, arg):
-            def _replace(q):
-                if isinstance(q, Quib):
-                    if q in data_source_quibs:
-                        source = Source(q.get_value_valid_at_path(data_source_quibs_to_paths.get(q)))
-                        data_sources_to_quibs[source] = q
-                    else:
-                        source = Source(q.get_value_valid_at_path([]))
-                    return source
-                return q
-            return recursively_run_func_on_object(_replace, arg, max_depth=SHALLOW_MAX_DEPTH)
-
-        args, kwargs = convert_args_and_kwargs(_replace_quib_with_source, self.args, self.kwargs)
-        return FuncWithArgsValues.from_function_call(
-            func=self.func,
-            args=args,
-            kwargs=kwargs,
-            include_defaults=False
-        ), data_sources_to_quibs
-
     """
     Graphics related funcs
     """
 
     @property
     def func_can_create_graphics(self):
-        return self._is_known_graphics_func or self._did_create_graphics
-
-    @property
-    def _did_create_graphics(self) -> bool:
-        return any(graphics_collection.artists for graphics_collection in self._flat_graphics_collections())
+        return self._function_runner.func_can_create_graphics
 
     def redraw_if_appropriate(self):
         """
@@ -205,10 +169,6 @@ class Quib(ReprMixin):
             return
 
         return self.get_value()
-
-    def _flat_graphics_collections(self):
-        return list(self._function_runner.graphics_collections.flat) \
-            if self._function_runner.graphics_collections else []
 
     def get_axeses(self):
         # TODO: need to implement... What about tests
@@ -324,7 +284,8 @@ class Quib(ReprMixin):
         from pyquibbler.refactor.overriding import CannotFindDefinitionForFunctionException
 
         try:
-            func_with_args_values, data_sources_to_quibs = self._get_func_with_args_values_for_translation({})
+            func_with_args_values, data_sources_to_quibs = \
+                self._function_runner.get_func_with_args_values_for_translation({})
         except CannotFindDefinitionForFunctionException:
             return []
 
@@ -436,12 +397,12 @@ class Quib(ReprMixin):
         If not, invalidate all children all over; as you have no more specific way to invalidate them
         """
 
-        if len(path) == 0 or not self._is_quib_a_data_source(invalidator_quib):
+        if len(path) == 0 or not self._function_runner.is_quib_a_data_source(invalidator_quib):
             # We want to completely invalidate our children
             # if either a parameter changed or a data quib changed completely (at entire path)
             return [[]]
 
-        func_with_args_values, sources_to_quibs = self._get_func_with_args_values_for_translation({})
+        func_with_args_values, sources_to_quibs = self._function_runner.get_func_with_args_values_for_translation({})
         quibs_to_sources = {quib: source for source, quib in sources_to_quibs.items()}
 
         if invalidator_quib not in quibs_to_sources:
@@ -595,33 +556,6 @@ class Quib(ReprMixin):
 
         return cache
 
-    def _replace_sub_argument_with_value(self, quibs_to_paths, inner_arg: Union[Quib, Any]):
-        """
-        Replace an argument, potentially a quib, with it's relevant value, given a map of quibs_to_paths, which
-        describes for each quib what path it needs to be valid at
-        """
-        if isinstance(inner_arg, QuibRef):
-            return inner_arg.quib
-
-        if isinstance(inner_arg, Quib):
-            if inner_arg in quibs_to_paths:
-                path = quibs_to_paths[inner_arg]
-            elif self._is_quib_a_data_source(inner_arg):
-                # If the quib is a data source, and we didn't see it in the result, we don't need it to be valid at any
-                # paths (it did not appear in quibs_to_paths)
-                path = None
-            else:
-                # This is a paramater quib- we always need a parameter quib to be completely valid regardless of where
-                # we need ourselves (this quib) to be valid
-                path = []
-
-            return inner_arg.get_value_valid_at_path(path)
-
-        return inner_arg
-
-    def _is_quib_a_data_source(self, quib):
-        return quib in self._get_data_source_quibs()
-
     def _is_completely_overridden_at_first_component(self, path) -> bool:
         """
         Get a list of all the non overridden paths (at the first component)
@@ -682,91 +616,8 @@ class Quib(ReprMixin):
         """
         return self._name
 
-    def _backwards_translate_path(self, valid_path: List[PathComponent]) -> Dict[Quib, Path]:
-        # TODO: try without shape/type + args
-        func_with_args_values, sources_to_quibs = self._get_func_with_args_values_for_translation({})
-
-        if not sources_to_quibs:
-            return {}
-
-        try:
-            sources_to_paths = backwards_translate(
-                func_with_args_values=func_with_args_values,
-                path=valid_path,
-                shape=self.get_shape(),
-                type_=self.get_type()
-            )
-        except CannotFindDefinitionForFunctionException:
-            return {}
-        # TODO: make these try excepts singular
-        except NoTranslatorsFoundException:
-            return {}
-        except Exception as e:
-            print(1)
-            raise
-
-        return {
-            quib: sources_to_paths.get(source, None)
-            for source, quib in sources_to_quibs.items()
-        }
-
-    def _prepare_args_for_call(self, valid_path: Optional[List[PathComponent]]):
-        """
-        Prepare arguments to call self.func with - replace quibs with values valid at the given path,
-        and QuibRefs with quibs.
-        """
-        quibs_to_paths = {} if valid_path is None else self._backwards_translate_path(valid_path)
-        replace_func = functools.partial(self._replace_sub_argument_with_value, quibs_to_paths)
-        new_args = [recursively_run_func_on_object(replace_func, arg) for arg in self.args]
-        new_kwargs = {key: recursively_run_func_on_object(replace_func, val) for key, val in self.kwargs.items()}
-        return new_args, new_kwargs
-
-    def _initialize_graphics_collections(self):
-        """
-        Initialize the array representing all the graphics_collection objects for all iterations of the function
-        """
-        loop_shape = self._get_loop_shape()
-        if self._graphics_collections is not None and self._graphics_collections.shape != loop_shape:
-            for graphics_collection in self._flat_graphics_collections():
-                graphics_collection.remove_artists()
-            self._graphics_collections = None
-        if self._graphics_collections is None:
-            self._graphics_collections = create_array_from_func(GraphicsCollection, loop_shape)
-
     def _call_func(self, valid_path: List[PathComponent]):
         return self._function_runner.initialize_and_run_on_path(valid_path)
-
-
-        self._initialize_graphics_collections()
-
-        # TODO: how do we choose correct indexes for graphics collection?
-        graphics_collection: GraphicsCollection = self._graphics_collections[()]
-
-        # TODO: quib_guard
-
-        with graphics_collection.track_and_handle_new_graphics(
-                kwargs_specified_in_artists_creation=set(self.kwargs.keys())
-        ):
-            if self._call_func_with_quibs:
-                new_args, new_kwargs = self._args, self._kwargs
-            else:
-                new_args, new_kwargs = self._prepare_args_for_call(valid_path)
-
-            with external_call_failed_exception_handling():
-                res = self.func(*new_args, **new_kwargs)
-
-                # TODO: Move this logic somewhere else
-                if len(graphics_collection.widgets) > 0 and isinstance(res, AxesWidget):
-                    assert len(graphics_collection.widgets) == 1
-                    res = list(graphics_collection.widgets)[0]
-
-                # We don't allow returning quibs as results from functions
-                from pyquibbler.quib import Quib
-                if isinstance(res, Quib):
-                    res = res.get_value()
-                ####
-
-                return res
 
     def _should_cache(self, result: Any, elapsed_seconds: float):
         """
@@ -887,7 +738,7 @@ class Quib(ReprMixin):
         Get the type of wrapped value.
         """
         with add_quib_to_fail_trace_if_raises_quib_call_exception(quib=self, call='get_type()', replace_last=True):
-            return type(self.get_value_valid_at_path(None))
+            return self._function_runner.get_type()
 
     # We cache the shape, so quibs without cache will still remember their shape.
     @cache_method_until_full_invalidation
@@ -896,14 +747,7 @@ class Quib(ReprMixin):
         Assuming this quib represents a numpy ndarray, returns a quib of its shape.
         """
         with add_quib_to_fail_trace_if_raises_quib_call_exception(quib=self, call='get_shape()', replace_last=True):
-            res = self.get_value_valid_at_path(None)
-
-        try:
-            return np.shape(res)
-        except ValueError:
-            if hasattr(res, '__len__'):
-                return len(res),
-            raise
+            return self._function_runner.get_shape()
 
     @cache_method_until_full_invalidation
     def get_ndim(self) -> int:
@@ -911,14 +755,7 @@ class Quib(ReprMixin):
         Assuming this quib represents a numpy ndarray, returns a quib of its shape.
         """
         with add_quib_to_fail_trace_if_raises_quib_call_exception(quib=self, call='get_ndim()', replace_last=True):
-            res = self.get_value_valid_at_path(None)
-
-        try:
-            return np.ndim(res)
-        except ValueError:
-            if hasattr(res, '__len__'):
-                return 1
-            raise
+            return self._function_runner.get_ndim()
 
     @quib_method('elementwise')
     def get_override_mask(self):
