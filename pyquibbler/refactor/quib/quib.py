@@ -93,17 +93,12 @@ class Quib(ReprMixin):
                  line_no: Optional[str],
                  is_random_func: bool,
                  call_func_with_quibs: bool):
-        self._func = func
-        self._args = args
-        self._kwargs = kwargs
         self._default_cache_behavior = cache_behavior or self._DEFAULT_CACHE_BEHAVIOR
         self._assignment_template = assignment_template
-        self._is_known_graphics_func = is_known_graphics_func
         self._cache = None
         self._caching = False
         self._name = name
         self._graphics_collections: Optional[np.array] = None
-        self._call_func_with_quibs = call_func_with_quibs
 
         self._children = WeakSet()
         self._overrider = Overrider()
@@ -125,14 +120,14 @@ class Quib(ReprMixin):
         from pyquibbler.quib.function_runners.default_function_runner import DefaultFunctionRunner
         self._function_runner = DefaultFunctionRunner(
             func_with_args_values=FuncWithArgsValues.from_function_call(
-                func=self._func,
-                args=self._args,
-                kwargs=self._kwargs,
+                func=func,
+                args=args,
+                kwargs=kwargs,
                 include_defaults=True
             ),
-            call_func_with_quibs=self._call_func_with_quibs,
+            call_func_with_quibs=call_func_with_quibs,
             graphics_collections=None,
-            is_known_graphics_func=self._is_known_graphics_func
+            is_known_graphics_func=is_known_graphics_func
         )
 
     """
@@ -141,15 +136,15 @@ class Quib(ReprMixin):
 
     @property
     def func(self):
-        return self._func
+        return self._function_runner.func
 
     @property
     def args(self):
-        return self._args
+        return self._function_runner.args
 
     @property
     def kwargs(self):
-        return self._kwargs
+        return self._function_runner.kwargs
 
     """
     Graphics related funcs
@@ -269,7 +264,7 @@ class Quib(ReprMixin):
 
     @property
     def _args_values(self):
-        return ArgsValues.from_function_call(self._func, self.args, self.kwargs, include_defaults=True)
+        return ArgsValues.from_function_call(self.func, self.args, self.kwargs, include_defaults=True)
 
     @property
     def _func_definition(self) -> OverrideDefinition:
