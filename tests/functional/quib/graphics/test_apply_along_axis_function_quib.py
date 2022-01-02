@@ -16,7 +16,7 @@ from tests.functional.quib.graphics.test_axiswise_graphics_function_quib import 
 from tests.functional.quib.utils import check_invalidation, check_get_value_valid_at_path, get_func_mock
 
 
-# TODO: Move on invalidation
+# MOVED
 @parametrize_indices_to_invalidate
 @parametrize_data
 @mark.parametrize('axis', [0, 1, 2, -1, -2])
