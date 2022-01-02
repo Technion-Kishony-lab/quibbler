@@ -15,16 +15,16 @@ from pyquibbler.refactor.translation.types import Source
 
 @dataclass
 class ApplyAlongAxis:
-    func_with_args_values: FuncCall
+    func_call: FuncCall
     result_shape: Tuple[int, ...]
 
     @property
     def arr(self):
-        return self.func_with_args_values.args_values['arr']
+        return self.func_call.args_values['arr']
 
     @property
     def axis(self):
-        return self.func_with_args_values.args_values['axis']
+        return self.func_call.args_values['axis']
 
     def get_expanded_dims(self):
         func_result_ndim = len(self.result_shape) - len(np.shape(self.arr)) + 1
@@ -37,14 +37,14 @@ class ApplyAlongAxisForwardsTranslator(ForwardsPathTranslator):
     TRANSLATION_RELATED_ARGS = [Arg('axis')]
 
     def _get_translation_related_arg_dict(self):
-        arg_dict = {key: val for key, val in self._func_with_args_values.args_values.arg_values_by_name.items()
+        arg_dict = {key: val for key, val in self._func_call.args_values.arg_values_by_name.items()
                     if not isinstance(val, np._globals._NoValueType)}
         return {arg.name: arg.get_value(arg_dict) for arg in self.TRANSLATION_RELATED_ARGS}
 
     @property
     def apply_along_axis(self):
         return ApplyAlongAxis(
-            func_with_args_values=self._func_with_args_values,
+            func_call=self._func_call,
             result_shape=self._shape
         )
 

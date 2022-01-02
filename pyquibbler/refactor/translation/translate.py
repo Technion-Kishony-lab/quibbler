@@ -29,11 +29,11 @@ def split_path(path):
     return current_components, components_at_end
 
 
-def backwards_translate(func_with_args_values: FuncCall,
+def backwards_translate(func_call: FuncCall,
                         path, shape=None, type_=None):
 
     from pyquibbler.refactor.overriding import get_definition_for_function
-    potential_translator_classes = get_definition_for_function(func_with_args_values.func).backwards_path_translators
+    potential_translator_classes = get_definition_for_function(func_call.func).backwards_path_translators
     # TODO: below should be in init of definition
     potential_translator_classes = potential_translator_classes or []
     potential_translator_classes = list(sorted(potential_translator_classes, key=lambda c: c.PRIORITY))
@@ -43,7 +43,7 @@ def backwards_translate(func_with_args_values: FuncCall,
         # TODO: What if there's none left?
         cls: Type[BackwardsPathTranslator] = potential_translator_classes.pop()
         translator = cls(
-            func_with_args_values=func_with_args_values,
+            func_call=func_call,
             path=path,
             shape=shape,
             type_=type_
@@ -55,19 +55,19 @@ def backwards_translate(func_with_args_values: FuncCall,
             pass
 
 
-def forwards_translate(func_with_args_values: FuncCall,
+def forwards_translate(func_call: FuncCall,
                        sources_to_paths, shape=None, type_=None):
     # TODO test multiple scenarios with choosing inverters
     from pyquibbler.refactor.overriding import get_definition_for_function
-    potential_translator_classes = get_definition_for_function(func_with_args_values.func).forwards_path_translators
+    potential_translator_classes = get_definition_for_function(func_call.func).forwards_path_translators
     potential_translator_classes = list(sorted(potential_translator_classes, key=lambda c: c.PRIORITY))
     if len(potential_translator_classes) == 0:
-        raise NoTranslatorsFoundException(func_with_args_values.func)
+        raise NoTranslatorsFoundException(func_call.func)
     while True:
         # TODO: What if there's none left?
         cls: Type[ForwardsPathTranslator] = potential_translator_classes.pop()
         translator = cls(
-            func_with_args_values=func_with_args_values,
+            func_call=func_call,
             shape=shape,
             type_=type_,
             sources_to_paths=sources_to_paths

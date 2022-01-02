@@ -244,13 +244,14 @@ class Quib(ReprMixin):
         """
         from pyquibbler.refactor.overriding import CannotFindDefinitionForFunctionException
 
-        func_with_args_values, data_sources_to_quibs = \
-            self._function_runner.get_func_with_args_values_for_translation({})
+        from pyquibbler.refactor.quib.translation_utils import get_func_call_for_translation
+        func_call, data_sources_to_quibs = \
+            get_func_call_for_translation(self._function_runner.func_call, {})
 
         try:
             value = self.get_value()
 
-            inversals = invert(func_with_args_values=func_with_args_values,
+            inversals = invert(func_call=func_call,
                                previous_result=value,
                                assignment=assignment)
         except CannotInvertException:
@@ -354,20 +355,22 @@ class Quib(ReprMixin):
         paths to new invalidation paths.
         If not, invalidate all children all over; as you have no more specific way to invalidate them
         """
+        from pyquibbler.refactor.quib.translation_utils import get_func_call_for_translation
+        from pyquibbler.refactor.quib.func_call_utils import is_quib_a_data_source
 
-        if len(path) == 0 or not self._function_runner.is_quib_a_data_source(invalidator_quib):
+        if len(path) == 0 or not is_quib_a_data_source(self._function_runner.func_call, invalidator_quib):
             # We want to completely invalidate our children
             # if either a parameter changed or a data quib changed completely (at entire path)
             return [[]]
 
-        func_with_args_values, sources_to_quibs = self._function_runner.get_func_with_args_values_for_translation({})
+        func_call, sources_to_quibs = get_func_call_for_translation(self._function_runner.func_call, {})
         quibs_to_sources = {quib: source for source, quib in sources_to_quibs.items()}
 
         if invalidator_quib not in quibs_to_sources:
             return []
 
         sources_to_new_paths = forwards_translate(
-            func_with_args_values=func_with_args_values,
+            func_call=func_call,
             sources_to_paths={
                 quibs_to_sources[invalidator_quib]: path
             },

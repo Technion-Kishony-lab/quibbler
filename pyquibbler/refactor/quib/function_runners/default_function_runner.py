@@ -12,7 +12,8 @@ from pyquibbler.quib.utils import QuibRef
 from pyquibbler.refactor.graphics.graphics_collection import GraphicsCollection
 from pyquibbler.refactor.quib.iterators import recursively_run_func_on_object
 from pyquibbler.refactor.quib.quib import Quib
-from pyquibbler.refactor.quib.translation_utils import get_func_with_args_values_for_translation
+from pyquibbler.refactor.quib.translation_utils import get_func_call_for_translation
+from pyquibbler.refactor.quib.func_call_utils import is_quib_a_data_source, get_func_call_with_quibs_valid_at_paths
 from pyquibbler.refactor.translation.translate import NoTranslatorsFoundException, backwards_translate
 from pyquibbler.refactor.translation.types import Source
 
@@ -22,7 +23,7 @@ class DefaultFunctionRunner(FunctionRunner):
 
     def _backwards_translate_path(self, valid_path: Path) -> Dict[Quib, Path]:
         # TODO: try without shape/type + args
-        func_with_args_values, sources_to_quibs = get_func_with_args_values_for_translation(self.func_with_args_values,
+        func_call, sources_to_quibs = get_func_call_for_translation(self.func_call,
                                                                                             {})
 
         if not sources_to_quibs:
@@ -31,7 +32,7 @@ class DefaultFunctionRunner(FunctionRunner):
         from pyquibbler.refactor.overriding import CannotFindDefinitionForFunctionException
         try:
             sources_to_paths = backwards_translate(
-                func_with_args_values=func_with_args_values,
+                func_call=func_call,
                 path=valid_path,
                 shape=self.get_shape(),
                 type_=self.get_type()
@@ -47,41 +48,6 @@ class DefaultFunctionRunner(FunctionRunner):
             for source, quib in sources_to_quibs.items()
         }
 
-    def _replace_sub_argument_with_value(self, quibs_to_paths, inner_arg: Union[Source, Any]):
-        """
-        Replace an argument, potentially a quib, with it's relevant value, given a map of quibs_to_paths, which
-        describes for each quib what path it needs to be valid at
-        """
-        if isinstance(inner_arg, QuibRef):
-            return inner_arg.quib
-
-        if isinstance(inner_arg, Quib):
-            if inner_arg in quibs_to_paths:
-                path = quibs_to_paths[inner_arg]
-            elif self.is_quib_a_data_source(inner_arg):
-                # If the quib is a data source, and we didn't see it in the result, we don't need it to be valid at any
-                # paths (it did not appear in quibs_to_paths)
-                path = None
-            else:
-                # This is a paramater quib- we always need a parameter quib to be completely valid regardless of where
-                # we need ourselves (this quib) to be valid
-                path = []
-
-            return inner_arg.get_value_valid_at_path(path)
-
-        return inner_arg
-
-    def _prepare_args_for_call(self, valid_path: Optional[Path]):
-        """
-        Prepare arguments to call self.func with - replace quibs with values valid at the given path,
-        and QuibRefs with quibs.
-        """
-        quibs_to_paths = {} if valid_path is None else self._backwards_translate_path(valid_path)
-        replace_func = functools.partial(self._replace_sub_argument_with_value, quibs_to_paths)
-        new_args = [recursively_run_func_on_object(replace_func, arg) for arg in self.args]
-        new_kwargs = {key: recursively_run_func_on_object(replace_func, val) for key, val in self.kwargs.items()}
-        return new_args, new_kwargs
-
     def _run_on_path(self, valid_path: Path):
 
         graphics_collection: GraphicsCollection = self.graphics_collections[()]
@@ -92,12 +58,13 @@ class DefaultFunctionRunner(FunctionRunner):
                 kwargs_specified_in_artists_creation=set(self.kwargs.keys())
         ):
             if self.call_func_with_quibs:
-                new_args, new_kwargs = self.args, self.kwargs
+                ready_to_run_func_call = self.func_call
             else:
-                new_args, new_kwargs = self._prepare_args_for_call(valid_path)
+                quibs_to_paths = {} if valid_path is None else self._backwards_translate_path(valid_path)
+                ready_to_run_func_call = get_func_call_with_quibs_valid_at_paths(self.func_call, quibs_to_paths)
 
             with external_call_failed_exception_handling():
-                res = self.func(*new_args, **new_kwargs)
+                res = self.func(*ready_to_run_func_call.args, **ready_to_run_func_call.kwargs)
 
                 # TODO: Move this logic somewhere else
                 if len(graphics_collection.widgets) > 0 and isinstance(res, AxesWidget):

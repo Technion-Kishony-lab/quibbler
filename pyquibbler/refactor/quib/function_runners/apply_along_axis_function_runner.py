@@ -11,12 +11,13 @@ from pyquibbler.quib.function_quibs.utils import create_empty_array_with_values_
 from pyquibbler.refactor.func_call import ArgsValues
 from pyquibbler.refactor.graphics.graphics_collection import GraphicsCollection
 from pyquibbler.refactor.graphics.utils import remove_created_graphics
-from pyquibbler.refactor.quib.function_runners import DefaultFunctionRunner
+from pyquibbler.refactor.quib.func_call_utils import get_func_call_with_quibs_valid_at_paths
+from pyquibbler.refactor.quib.function_runners import FunctionRunner
 from pyquibbler.refactor.quib.function_runners.utils import cache_method_until_full_invalidation
 from pyquibbler.refactor.quib.quib import Quib
 
 
-class ApplyAlongAxisFunctionRunner(DefaultFunctionRunner):
+class ApplyAlongAxisFunctionRunner(FunctionRunner):
 
     def _run_func1d(self, arr: np.ndarray, *args, **kwargs) -> Any:
         """
@@ -29,7 +30,7 @@ class ApplyAlongAxisFunctionRunner(DefaultFunctionRunner):
 
     # TODO: Move
     def get_args_values(self):
-        return self.func_with_args_values.args_values
+        return self.func_call.args_values
 
     @cache_method_until_full_invalidation
     def _get_sample_result(self) -> Any:
@@ -49,15 +50,14 @@ class ApplyAlongAxisFunctionRunner(DefaultFunctionRunner):
             input_array = self.arr.get_value_valid_at_path([PathComponent(component=item, indexed_cls=np.ndarray)])
 
         oned_slice = input_array[item]
-        args, kwargs = self._prepare_args_for_call(None)
-        args_values = ArgsValues.from_function_call(func=self.func, args=args, kwargs=kwargs, include_defaults=False)
+        func_call = get_func_call_with_quibs_valid_at_paths(self.func_call, quibs_to_valid_paths={})
 
         with remove_created_graphics():
             with external_call_failed_exception_handling():
                 return self._run_func1d(
                     oned_slice,
-                    *args_values.arg_values_by_name.get('args', []),
-                    **args_values.arg_values_by_name.get('kwargs', {})
+                    *func_call.args_values.arg_values_by_name.get('args', []),
+                    **func_call.args_values.arg_values_by_name.get('kwargs', {})
                 )
 
     @cache_method_until_full_invalidation

@@ -8,14 +8,14 @@ class Inverter(ABC):
 
     PRIORITY = 0
 
-    def __init__(self, func_with_args_values, assignment, previous_result):
-        self._func_with_args_values = func_with_args_values
+    def __init__(self, func_call, assignment, previous_result):
+        self._func_call = func_call
         self._assignment = assignment
         self._previous_result = previous_result
 
     @classmethod
-    def from_(cls, func_with_args_values, assignment, previous_result):
-        return cls(func_with_args_values, assignment, previous_result)
+    def from_(cls, func_call, assignment, previous_result):
+        return cls(func_call, assignment, previous_result)
 
     @abstractmethod
     def get_inversals(self):

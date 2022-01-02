@@ -9,17 +9,17 @@ if TYPE_CHECKING:
     from pyquibbler import Assignment
 
 
-def invert(func_with_args_values: FuncCall, assignment: Assignment, previous_result):
+def invert(func_call: FuncCall, assignment: Assignment, previous_result):
     from pyquibbler.refactor.overriding import get_definition_for_function
-    definition = get_definition_for_function(func_with_args_values.func)
+    definition = get_definition_for_function(func_call.func)
 
     potential_inverter_classes = list(definition.inverters)
     while True:
         if potential_inverter_classes is None or len(potential_inverter_classes) == 0:
-            raise NoInvertersFoundException(func_with_args_values.func)
+            raise NoInvertersFoundException(func_call.func)
         cls = potential_inverter_classes.pop()
         inverter = cls(
-            func_with_args_values=func_with_args_values,
+            func_call=func_call,
             assignment=assignment,
             previous_result=previous_result
         )

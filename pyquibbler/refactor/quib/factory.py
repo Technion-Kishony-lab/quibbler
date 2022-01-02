@@ -79,7 +79,7 @@ def create_quib(func, args=(), kwargs=None, cache_behavior=None, evaluate_now=Fa
         function_runner_cls: Type[FunctionRunner] = definition.function_runner_cls
 
     runner = function_runner_cls(
-        func_with_args_values=FuncCall.from_function_call(
+        func_call=FuncCall.from_function_call(
             func=func,
             args=args,
             kwargs=kwargs,

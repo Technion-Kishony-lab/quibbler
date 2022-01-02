@@ -35,7 +35,7 @@ class FunctionRunner(ABC):
 
     DEFAULT_CACHE_BEHAVIOR: ClassVar[CacheBehavior] = CacheBehavior.AUTO
 
-    func_with_args_values: FuncCall
+    func_call: FuncCall
     call_func_with_quibs: bool
     graphics_collections: Optional[np.array]
     is_known_graphics_func: bool
@@ -47,15 +47,15 @@ class FunctionRunner(ABC):
 
     @property
     def kwargs(self):
-        return self.func_with_args_values.args_values.kwargs
+        return self.func_call.args_values.kwargs
 
     @property
     def args(self):
-        return self.func_with_args_values.args_values.args
+        return self.func_call.args_values.args
 
     @property
     def func(self):
-        return self.func_with_args_values.func
+        return self.func_call.func
 
     def flat_graphics_collections(self):
         return list(self.graphics_collections.flat) if self.graphics_collections is not None else []
@@ -178,48 +178,6 @@ class FunctionRunner(ABC):
     @abstractmethod
     def _run_on_path(self, valid_path: Optional[Path]):
         pass
-
-    @property
-    def _func_definition(self) -> OverrideDefinition:
-        from pyquibbler.refactor.overriding import get_definition_for_function
-        return get_definition_for_function(self.func)
-
-    def _get_data_source_quibs(self):
-        from pyquibbler.refactor.overriding import CannotFindDefinitionForFunctionException
-        try:
-            return set(iter_objects_of_type_in_object_shallowly(Quib, [
-                self.func_with_args_values.args_values[argument]
-                for argument in self._func_definition.data_source_arguments
-            ]))
-        except CannotFindDefinitionForFunctionException:
-            return set()
-
-    def get_func_with_args_values_for_translation(self, data_source_quibs_to_paths: Dict[Quib, Path]):
-        data_source_quibs = self._get_data_source_quibs()
-        data_sources_to_quibs = {}
-
-        def _replace_quib_with_source(_, arg):
-            def _replace(q):
-                if isinstance(q, Quib):
-                    if q in data_source_quibs:
-                        source = Source(q.get_value_valid_at_path(data_source_quibs_to_paths.get(q)))
-                        data_sources_to_quibs[source] = q
-                    else:
-                        source = Source(q.get_value_valid_at_path([]))
-                    return source
-                return q
-            return recursively_run_func_on_object(_replace, arg, max_depth=SHALLOW_MAX_DEPTH)
-
-        args, kwargs = convert_args_and_kwargs(_replace_quib_with_source, self.args, self.kwargs)
-        return FuncCall.from_function_call(
-            func=self.func,
-            args=args,
-            kwargs=kwargs,
-            include_defaults=False
-        ), data_sources_to_quibs
-
-    def is_quib_a_data_source(self, quib):
-        return quib in self._get_data_source_quibs()
 
     @property
     def _did_create_graphics(self) -> bool:

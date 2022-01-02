@@ -13,10 +13,10 @@ from pyquibbler.quib.assignment import Path
 class ForwardsPathTranslator(Translator):
 
     def __init__(self,
-                 func_with_args_values, sources_to_paths: Dict[Source, Path],
+                 func_call, sources_to_paths: Dict[Source, Path],
                  shape: Optional[Tuple[int, ...]],
                  type_: Optional[Type]):
-        super(ForwardsPathTranslator, self).__init__(func_with_args_values)
+        super(ForwardsPathTranslator, self).__init__(func_call)
         self._sources_to_paths = sources_to_paths
         self._shape = shape
         self._type = type_

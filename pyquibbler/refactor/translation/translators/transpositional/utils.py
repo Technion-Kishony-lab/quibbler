@@ -10,14 +10,14 @@ from pyquibbler.refactor.quib.iterators import recursively_run_func_on_object, S
 from pyquibbler.utils import convert_args_and_kwargs
 
 
-def get_data_sources(func_with_args_values: FuncCall) -> Set[Source]:
+def get_data_sources(func_call: FuncCall) -> Set[Source]:
     return set(iter_objects_of_type_in_object_shallowly(Source, [
-        func_with_args_values.args_values[argument]
-        for argument in get_definition_for_function(func_with_args_values.func).data_source_arguments
+        func_call.args_values[argument]
+        for argument in get_definition_for_function(func_call.func).data_source_arguments
     ]))
 
 
-def _convert_data_sources_in_args(func_with_args_values: FuncCall, convert_data_source: Callable):
+def _convert_data_sources_in_args(func_call: FuncCall, convert_data_source: Callable):
     """
     Return self.args and self.kwargs with all data source args converted with the given convert_data_source
     callback.
@@ -26,7 +26,7 @@ def _convert_data_sources_in_args(func_with_args_values: FuncCall, convert_data_
     def _convert_arg(_i, arg):
         def _convert_object(o):
             if isinstance(o, Source):
-                if o in get_data_sources(func_with_args_values):
+                if o in get_data_sources(func_call):
                     return convert_data_source(o)
                 return o.value
             return o
@@ -37,11 +37,11 @@ def _convert_data_sources_in_args(func_with_args_values: FuncCall, convert_data_
                                               max_length=SHALLOW_MAX_LENGTH)
 
     return convert_args_and_kwargs(_convert_arg,
-                                   func_with_args_values.args_values.args,
-                                   func_with_args_values.args_values.kwargs)
+                                   func_call.args_values.args,
+                                   func_call.args_values.kwargs)
 
 
-def get_data_source_ids_mask(func_with_args_values, sources_to_indices: Dict[Source, np.ndarray] = None) -> np.ndarray:
+def get_data_source_ids_mask(func_call, sources_to_indices: Dict[Source, np.ndarray] = None) -> np.ndarray:
     """
     Runs the function with each quib's ids instead of it's values
     """
@@ -55,5 +55,5 @@ def get_data_source_ids_mask(func_with_args_values, sources_to_indices: Dict[Sou
             return res
         return obj
 
-    args, kwargs = _convert_data_sources_in_args(func_with_args_values, replace_source_with_id)
-    return call_func_with_values(func_with_args_values.func, args, kwargs)
+    args, kwargs = _convert_data_sources_in_args(func_call, replace_source_with_id)
+    return call_func_with_values(func_call.func, args, kwargs)

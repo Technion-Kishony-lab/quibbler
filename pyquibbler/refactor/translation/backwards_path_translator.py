@@ -12,8 +12,8 @@ class BackwardsPathTranslator(Translator):
 
     PRIORITY = 0
 
-    def __init__(self, func_with_args_values, shape: Optional[Tuple[int, ...]], type_: Optional[Type], path):
-        super(BackwardsPathTranslator, self).__init__(func_with_args_values)
+    def __init__(self, func_call, shape: Optional[Tuple[int, ...]], type_: Optional[Type], path):
+        super(BackwardsPathTranslator, self).__init__(func_call)
         self._shape = shape
         self._path = path
         self._type = type_

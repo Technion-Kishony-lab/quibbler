@@ -11,16 +11,16 @@ class Translator(ABC):
 
     PRIORITY = 0
 
-    def __init__(self, func_with_args_values: FuncCall):
-        self._func_with_args_values = func_with_args_values
+    def __init__(self, func_call: FuncCall):
+        self._func_call = func_call
 
     @property
     def func(self):
-        return self._func_with_args_values.func
+        return self._func_call.func
 
     @property
     def args_values(self):
-        return self._func_with_args_values.args_values
+        return self._func_call.args_values
 
     @property
     def _args(self):

@@ -77,16 +77,16 @@ def _get_cache_updated_with_result(result, uncached_path, cache):
 
 
 def run_func_on_uncached_paths(cache: Optional[Cache],
-                               func_with_args_values: FuncCall,
+                               func_call: FuncCall,
                                truncated_path: List[PathComponent],
                                uncached_paths: List[Optional[List[PathComponent]]]):
     """
     Run the function a list of uncached paths, given an original truncated path, storing it in our cache
     """
     for uncached_path in uncached_paths:
-        result = call_func_with_quib_values(func_with_args_values.func,
-                                            args=func_with_args_values.args_values.args,
-                                            kwargs=func_with_args_values.args_values.kwargs)
+        result = call_func_with_quib_values(func_call.func,
+                                            args=func_call.args_values.args,
+                                            kwargs=func_call.args_values.kwargs)
 
         cache = _ensure_cache_matches_result(cache, result)
 
@@ -161,7 +161,7 @@ def _get_uncached_paths_matching_path(cache: Optional[Cache], path: [List['PathC
     return uncached_paths
 
 
-def get_cache_value_valid_at_path(func_with_args_values: FuncCall,
+def get_cache_value_valid_at_path(func_call: FuncCall,
                                   current_cache: Cache,
                                   path: Path):
     truncated_path = _truncate_path_to_match_shallow_caches(path)
@@ -170,5 +170,5 @@ def get_cache_value_valid_at_path(func_with_args_values: FuncCall,
     if len(uncached_paths) == 0:
         return current_cache
 
-    return run_func_on_uncached_paths(current_cache, func_with_args_values, truncated_path, uncached_paths)
+    return run_func_on_uncached_paths(current_cache, func_call, truncated_path, uncached_paths)
 
