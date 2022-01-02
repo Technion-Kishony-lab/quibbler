@@ -82,10 +82,9 @@ class DefaultFunctionRunner(FunctionRunner):
 
     def _run_on_path(self, valid_path: Path):
 
-        # TODO: how do we choose correct indexes for graphics collection?
         graphics_collection: GraphicsCollection = self.graphics_collections[()]
 
-        # TODO: quib_guard
+        # TODO: quib_guard quib guard
 
         with graphics_collection.track_and_handle_new_graphics(
                 kwargs_specified_in_artists_creation=set(self.kwargs.keys())

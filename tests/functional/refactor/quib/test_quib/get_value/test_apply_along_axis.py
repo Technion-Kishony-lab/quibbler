@@ -12,7 +12,6 @@ parametrize_keepdims = pytest.mark.parametrize('keepdims', [True, False, None])
 parametrize_where = pytest.mark.parametrize('where', [True, False, [[[True], [False], [True]]], None])
 
 
-@pytest.mark.skip("Apply along axis")
 @parametrize_data
 @pytest.mark.parametrize('axis', [0, 1, 2, -1, -2])
 @pytest.mark.parametrize('func_out_dims', [0, 1, 2])

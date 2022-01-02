@@ -44,7 +44,7 @@ class ForwardsGetItemTranslator(ForwardsTranspositionalTranslator):
         component = copy_and_replace_sources_with_vals(component)
         return PathComponent(indexed_cls=self._type, component=component)
 
-    def _translate_forwards_source_with_path(self, source: Source, path: Path):
+    def _forward_translate_source(self, source: Source, path: Path):
         working_component, *rest_of_path = path
         if isinstance(source.value, np.ndarray):
             if (not self._getitem_path_component.references_field_in_field_array()
@@ -56,8 +56,7 @@ class ForwardsGetItemTranslator(ForwardsTranspositionalTranslator):
                 # Therefore, we translate the indices and invalidate our children with the new indices (which are an
                 # intersection between our getitem and the path to invalidate- if this intersections yields nothing,
                 # we do NOT invalidate our children)
-                return super(ForwardsGetItemTranslator, self)._translate_forwards_source_with_path(source=source,
-                                                                                                   path=path)
+                return super(ForwardsGetItemTranslator, self)._forward_translate_source(source=source, path=path)
             elif (
                     self._getitem_path_component.references_field_in_field_array()
                     !=

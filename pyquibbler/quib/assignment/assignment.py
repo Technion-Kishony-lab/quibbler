@@ -44,6 +44,10 @@ def working_component(path: Path):
     return path[0].component if len(path) > 0 else True
 
 
+def path_beyond_working_component(path: Path):
+    return path[1:]
+
+
 @dataclass
 class Assignment:
     """

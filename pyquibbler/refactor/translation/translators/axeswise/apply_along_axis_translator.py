@@ -1,10 +1,11 @@
 from dataclasses import dataclass
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Any
 
 import numpy as np
 
 from pyquibbler.quib.assignment import Path
-from pyquibbler.quib.function_quibs.utils import FuncWithArgsValues
+from pyquibbler.quib.function_quibs.utils import FuncWithArgsValues, create_empty_array_with_values_at_indices
+from pyquibbler.quib.graphics.axiswise_function_quibs.axiswise_function_quib import Arg
 from pyquibbler.refactor.translation.backwards_path_translator import BackwardsPathTranslator
 from pyquibbler.refactor.translation.forwards_path_translator import ForwardsPathTranslator
 from pyquibbler.refactor.translation.translators.axeswise.axiswise_translator import AxiswiseBackwardsTranslator
@@ -49,6 +50,12 @@ class ApplyAlongAxisBackwardsTranslator(AxiswiseBackwardsTranslator):
 
 
 class ApplyAlongAxisForwardsTranslator(ForwardsPathTranslator):
+    TRANSLATION_RELATED_ARGS = [Arg('axis')]
+
+    def _get_translation_related_arg_dict(self):
+        arg_dict = {key: val for key, val in self._func_with_args_values.args_values.arg_values_by_name.items()
+                    if not isinstance(val, np._globals._NoValueType)}
+        return {arg.name: arg.get_value(arg_dict) for arg in self.TRANSLATION_RELATED_ARGS}
 
     @property
     def apply_along_axis(self):
@@ -63,21 +70,25 @@ class ApplyAlongAxisForwardsTranslator(ForwardsPathTranslator):
         return tuple(range(axis, axis + func_result_ndim) if axis >= 0 else
                      range(axis, axis - func_result_ndim, -1))
 
-    def _forward_translate_bool_mask(self, source: Source, boolean_mask: np.ndarray):
+    def _forward_translate_indices_to_bool_mask(self, source: Source, indices: np.ndarray):
         """
         Calculate forward index translation for apply_along_axis by applying np.any on the boolean mask.
         After that we expand and broadcast the reduced mask to match the actual result shape, which is dependent
         on the applied function return type.
         """
-        axis = self._func_with_args_values.args_values['axis']
+        boolean_mask = create_empty_array_with_values_at_indices(
+            value=True,
+            empty_value=False,
+            indices=indices,
+            shape=np.shape(source.value)
+        )
+        args_dict = self._get_translation_related_arg_dict()
+        axis = args_dict.pop('axis')
         dims_to_expand = self._get_expanded_dims(axis, np.shape(source.value))
         applied = np.apply_along_axis(np.any,
                                       axis,
                                       boolean_mask,
-                                      **self._func_with_args_values.args_values.arg_values_by_name)
+                                      **args_dict)
         expanded = np.expand_dims(applied, dims_to_expand)
         broadcast = np.broadcast_to(expanded, self._shape)
         return broadcast
-
-    def translate(self) -> Dict[Source, Path]:
-        pass

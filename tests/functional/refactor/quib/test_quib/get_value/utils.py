@@ -35,27 +35,6 @@ def collecting_quib(data):
     return quib
 
 
-class MockQuib(Quib):
-    def __init__(self, func: Callable, args: Tuple[Any, ...], kwargs: Mapping[str, Any],
-                 cache_behavior: Optional[CacheBehavior], assignment_template: AssignmentTemplate,
-                 allow_overriding: bool, is_known_graphics_func: bool, name: Optional[str], file_name: Optional[str],
-                 line_no: Optional[str], is_random_func: bool, call_func_with_quibs: bool):
-        super().__init__(func, args, kwargs, cache_behavior, assignment_template, allow_overriding,
-                         is_known_graphics_func, name, file_name, line_no, is_random_func, call_func_with_quibs)
-        self._valid_paths = []
-
-    def get_value_valid_at_path(self, path: Optional[List[PathComponent]]) -> Any:
-        if path is not None:
-            self._valid_paths.append(path)
-        return super().get_value_valid_at_path(path)
-
-    @contextmanager
-    def collect_valid_paths(self):
-        self._valid_paths.clear()
-        yield self._valid_paths
-        self._valid_paths = []
-
-
 def get_indices_at_path(shape, path):
     assert len(path) <= 1
     all_indices = np.moveaxis(np.indices(shape), 0, -1)

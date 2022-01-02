@@ -58,7 +58,7 @@ class FunctionRunner(ABC):
         return self.func_with_args_values.func
 
     def flat_graphics_collections(self):
-        return list(self.graphics_collections.flat) if self.graphics_collections else []
+        return list(self.graphics_collections.flat) if self.graphics_collections is not None else []
 
     def _get_loop_shape(self):
         return ()
