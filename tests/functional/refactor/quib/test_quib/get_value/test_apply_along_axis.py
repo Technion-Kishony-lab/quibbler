@@ -152,3 +152,127 @@ def test_apply_along_axis_returning_quib():
     res = quib.get_value()
 
     assert np.array_equal(res, expected_res)
+
+
+
+@pytest.fixture
+def mock_func_for_args_kwargs():
+    return get_func_mock(lambda x, *_, **__: 1)
+
+
+@pytest.fixture
+def args():
+    return [11, 1, 1]
+
+
+@pytest.fixture
+def kwargs():
+    return {
+        'funtimes': 1
+    }
+
+
+@pytest.fixture
+def quib_with_args_and_kwargs(mock_func_for_args_kwargs, args, kwargs):
+    return create_lazy_apply_along_axis_quib(func=mock_func_for_args_kwargs,
+                                             arr=np.array([[1]]),
+                                             axis=0,
+                                             args=args,
+                                             kwargs=kwargs)
+
+
+def test_apply_along_axis_get_value_with_args_and_kwargs(quib_with_args_and_kwargs, mock_func_for_args_kwargs,
+                                                         args, kwargs):
+    quib_with_args_and_kwargs.get_value()
+
+    mock_call = mock_func_for_args_kwargs.mock_calls[-1]
+    assert mock_call.kwargs == kwargs
+    assert mock_call.args[1:] == tuple(args)
+
+
+def test_apply_along_axis_get_shape_with_args_and_kwargs(quib_with_args_and_kwargs, mock_func_for_args_kwargs,
+                                                         args, kwargs):
+    quib_with_args_and_kwargs.get_shape()
+
+    assert len(mock_func_for_args_kwargs.mock_calls) == 1
+    mock_call = mock_func_for_args_kwargs.mock_calls[0]
+    assert mock_call.kwargs == kwargs
+    assert mock_call.args[1:] == tuple(args)
+
+
+def test_apply_along_axis_get_shape_with_looping_axis_quib():
+    axis_quib = iquib(0)
+    quib = create_lazy_apply_along_axis_quib(
+        arr=np.array([[1]]),
+        axis=axis_quib,
+        func=lambda x: 1
+    )
+
+    shape = quib.get_shape()
+
+    assert shape == (1,)
+
+
+def test_apply_along_axis_get_shape_with_list():
+    arr_quib = iquib([[1, 2], [3, 4]])
+    quib = create_lazy_apply_along_axis_quib(
+        arr=arr_quib,
+        axis=0,
+        func=lambda x: 1,
+    )
+
+    assert quib.get_shape() == (2,)
+
+
+@pytest.fixture()
+def create_artist_and_return_1(create_artist):
+    def _func(x):
+        create_artist()
+        return 1
+    return _func
+
+
+def test_apply_along_axis_get_shape_does_not_create_artists(create_artist_and_return_1, mock_axes):
+
+    quib = create_lazy_apply_along_axis_quib(
+        arr=np.array([[1, 2], [3, 4]]),
+        axis=0,
+        func=create_artist_and_return_1
+    )
+
+    quib.get_shape()
+
+    assert len(mock_axes.artists) == 0
+
+
+def test_apply_along_axis_removes_and_recreates_artists(create_artist_and_return_1, mock_axes):
+    parent = iquib([[1, 2], [3, 4]])
+    quib = create_lazy_apply_along_axis_quib(
+        arr=parent,
+        axis=0,
+        func=create_artist_and_return_1
+    )
+
+    quib.get_value()
+    artists_before_invalidation = list(mock_axes.artists)
+    parent.invalidate_and_redraw_at_path([PathComponent(component=0, indexed_cls=np.ndarray)])
+    quib.get_value()
+
+    assert len(mock_axes.artists) == 2
+    assert set(mock_axes.artists) != set(artists_before_invalidation)
+
+
+def test_apply_along_axis_does_not_remove_artists_that_are_not_his(create_artist_and_return_1, mock_axes):
+    quib = create_lazy_apply_along_axis_quib(
+        arr=np.array([[1, 2], [3, 4]]),
+        axis=0,
+        func=create_artist_and_return_1
+    )
+    quib.get_value_valid_at_path([PathComponent(component=0, indexed_cls=np.ndarray)])
+    artists = list(mock_axes.artists)
+    assert len(artists) == 1, "Sanity check"
+
+    quib.get_value_valid_at_path([PathComponent(component=1, indexed_cls=np.ndarray)])
+
+    assert len(mock_axes.artists) == 2
+    assert len(set(artists) & set(mock_axes.artists)) == 1

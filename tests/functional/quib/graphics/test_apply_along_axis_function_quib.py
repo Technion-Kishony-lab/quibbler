@@ -191,6 +191,7 @@ def quib_with_args_and_kwargs(mock_func_for_args_kwargs, args, kwargs):
                                              kwargs=kwargs)
 
 
+# MOVED
 def test_apply_along_axis_get_value_with_args_and_kwargs(quib_with_args_and_kwargs, mock_func_for_args_kwargs,
                                                          args, kwargs):
     quib_with_args_and_kwargs.get_value()
@@ -200,6 +201,7 @@ def test_apply_along_axis_get_value_with_args_and_kwargs(quib_with_args_and_kwar
     assert mock_call.args[1:] == tuple(args)
 
 
+# MOVED
 def test_apply_along_axis_get_shape_with_args_and_kwargs(quib_with_args_and_kwargs, mock_func_for_args_kwargs,
                                                          args, kwargs):
     quib_with_args_and_kwargs.get_shape()
@@ -210,6 +212,7 @@ def test_apply_along_axis_get_shape_with_args_and_kwargs(quib_with_args_and_kwar
     assert mock_call.args[1:] == tuple(args)
 
 
+# MOVED
 def test_apply_along_axis_get_shape_with_looping_axis_quib():
     axis_quib = iquib(0)
     quib = create_lazy_apply_along_axis_quib(
@@ -223,6 +226,7 @@ def test_apply_along_axis_get_shape_with_looping_axis_quib():
     assert shape == (1,)
 
 
+# MOVED
 def test_apply_along_axis_get_shape_with_list():
     arr_quib = iquib([[1, 2], [3, 4]])
     quib = create_lazy_apply_along_axis_quib(
@@ -234,6 +238,7 @@ def test_apply_along_axis_get_shape_with_list():
     assert quib.get_shape() == (2,)
 
 
+# MOVED
 def test_apply_along_axis_get_shape_does_not_create_artists(mock_artists_collector):
     quib = create_lazy_apply_along_axis_quib(
         arr=np.array([[1, 2], [3, 4]]),
@@ -246,6 +251,7 @@ def test_apply_along_axis_get_shape_does_not_create_artists(mock_artists_collect
     assert len(mock_artists_collector.mock_artists_in_axes) == 0
 
 
+# MOVED
 def test_apply_along_axis_removes_and_recreates_artists(mock_artists_collector):
     parent = iquib([[1, 2], [3, 4]])
     quib = create_lazy_apply_along_axis_quib(
@@ -263,6 +269,7 @@ def test_apply_along_axis_removes_and_recreates_artists(mock_artists_collector):
     assert set(mock_artists_collector.mock_artists_in_axes) != set(mock_artists)
 
 
+# MOVED
 def test_apply_along_axis_does_not_remove_artists_that_are_not_his(mock_artists_collector):
     quib = create_lazy_apply_along_axis_quib(
         arr=np.array([[1, 2], [3, 4]]),

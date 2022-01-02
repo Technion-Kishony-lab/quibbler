@@ -9,21 +9,6 @@ from pyquibbler.refactor.quib.graphics import UpdateType, dragging
 
 
 @pytest.fixture()
-def create_artist(mock_axes):
-
-    def _create(*args):
-        # We need this in order for artist to be tracked
-        # TODO: is there a more canonical way?
-        global_collecting.OVERRIDDEN_GRAPHICS_FUNCTIONS_RUNNING = 1
-        artist = Artist()
-        artist.axes = mock_axes
-        mock_axes.artists.append(artist)
-        return artist
-
-    return _create
-
-
-@pytest.fixture()
 def parent_quib():
     return create_quib(func=mock.Mock())
 

@@ -1,7 +1,9 @@
 from unittest import mock
 
 import pytest
+from matplotlib.artist import Artist
 
+from pyquibbler.refactor.graphics import global_collecting
 from pyquibbler.refactor.quib.factory import create_quib
 from pyquibbler.refactor.quib.quib import Quib
 from pyquibbler.refactor.overriding import override_third_party_funcs
@@ -29,20 +31,6 @@ def quib():
         allow_overriding=False,
 
     )
-    # return Quib(
-    #     func=mock.Mock(return_value=[1, 2, 3]),
-    #     args=tuple(),
-    #     kwargs={},
-    #     allow_overriding=False,
-    #     assignment_template=None,
-    #     cache_behavior=None,
-    #     is_known_graphics_func=False,
-    #     name=None,
-    #     line_no=None,
-    #     file_name=None,
-    #     is_random_func=False,
-    #     call_func_with_quibs=False
-    # )
 
 
 @pytest.fixture()
@@ -84,3 +72,19 @@ def mock_axes():
     axes.figure.canvas.supports_blit = False
     axes.artists = []
     return axes
+
+
+@pytest.fixture()
+def create_artist(mock_axes):
+
+    def _create(*args):
+        # We need this in order for artist to be tracked
+        # TODO: is there a more canonical way?
+        global_collecting.OVERRIDDEN_GRAPHICS_FUNCTIONS_RUNNING = 1
+        artist = Artist()
+        artist.axes = mock_axes
+        mock_axes.artists.append(artist)
+        return artist
+
+    return _create
+
