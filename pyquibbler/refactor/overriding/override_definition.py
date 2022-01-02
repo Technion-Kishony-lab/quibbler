@@ -71,6 +71,7 @@ class OverrideDefinition:
                 )
             return wrapped_func(*args, **kwargs)
 
+        _maybe_create_quib.__quibbler_wrapped__ = wrapped_func
         return _maybe_create_quib
 
     @property

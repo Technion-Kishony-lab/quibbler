@@ -26,6 +26,7 @@ def test_apply_along_axis_invalidation(indices_to_invalidate, axis, func_out_dim
     check_invalidation(lambda quib: np.apply_along_axis(func1d, axis, quib), data, indices_to_invalidate)
 
 
+# MOVED
 @parametrize_data
 @mark.parametrize('axis', [0, 1, 2, -1, -2])
 @mark.parametrize('func_out_dims', [0, 1, 2])
@@ -43,6 +44,7 @@ def create_lazy_apply_along_axis_quib(func, arr, axis, args=None, kwargs=None, p
                                    *(args or []), **(kwargs or {}), pass_quibs=pass_quibs)
 
 
+# MOVED
 @mark.parametrize('shape, axis, func1d_res', [
         (tuple(dimensions), axis, res)
         for shape_size in range(0, 3)

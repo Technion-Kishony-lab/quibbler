@@ -1,4 +1,4 @@
-from typing import Optional, Tuple, Type
+from typing import Optional, Tuple, Type, Callable
 
 from pyquibbler.env import GET_VARIABLE_NAMES, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS
 from pyquibbler.logger import logger
@@ -10,6 +10,18 @@ from pyquibbler.refactor.quib.quib import Quib
 from pyquibbler.refactor.quib.utils import deep_copy_without_quibs_or_graphics
 from pyquibbler.refactor.quib.variable_metadata import get_var_name_being_set_outside_of_pyquibbler, \
     get_file_name_and_line_number_of_quib
+
+
+def get_original_func(func: Callable):
+    """
+    Get the original func- if this function is already overrided, get the original func it's overriding.
+
+    So for example, if the OVERLOADED np.array is given as `func`, then the ORIGINAL np.array will be returned
+    If the ORIGINAL np.array is given as `func`, then `func` will be returned
+    """
+    if hasattr(func, '__quibbler_wrapped__'):
+        return func.__quibbler_wrapped__
+    return func
 
 
 def get_deep_copied_args_and_kwargs(args, kwargs):
@@ -50,8 +62,14 @@ def create_quib(func, args=(), kwargs=None, cache_behavior=None, evaluate_now=Fa
     # TODO: serious docs
     """
 
+    kwargs = kwargs or {}
+
+    # TODO: how are we handling this situation overall
+    call_func_with_quibs = kwargs.pop('call_func_with_quibs', call_func_with_quibs)
+
     args, kwargs = get_deep_copied_args_and_kwargs(args, kwargs)
     file_name, line_no = get_file_name_and_line_no()
+    func = get_original_func(func)
 
     try:
         definition = get_definition_for_function(func)

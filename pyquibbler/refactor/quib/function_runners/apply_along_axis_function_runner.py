@@ -40,8 +40,10 @@ class ApplyAlongAxisFunctionRunner(DefaultFunctionRunner):
         item = tuple([slice(None) if i == self.core_axis else 0 for i in range(len(input_array_shape))])
 
         if self.call_func_with_quibs:
+            # TODO: Proxy quib!
             # input_array = ProxyQuib(self.arr)
-            raise Exception("Can't do this yet...")
+            input_array = self.arr
+            # raise Exception("Can't do this yet...")
         else:
             input_array = self.arr.get_value_valid_at_path([PathComponent(component=item, indexed_cls=np.ndarray)])
 
@@ -89,7 +91,6 @@ class ApplyAlongAxisFunctionRunner(DefaultFunctionRunner):
         # ensure we're dealing with an ndarray- because we're not always running apply_along_axis which takes care of
         # this for us (for example, when getting a sample result) we do this on any access to the array to ensure no
         # issues if we were passed a list
-        return np.array(arr_)
         return q(np.array, arr_)
 
     @property
