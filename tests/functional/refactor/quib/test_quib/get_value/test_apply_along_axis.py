@@ -139,3 +139,16 @@ def test_apply_along_axis_get_value(input_shape, apply_result_shape, axis, compo
         applied_slices=slices,
         path=path
     )
+
+
+def test_apply_along_axis_returning_quib():
+    res_arr = np.array([100])
+    func = lambda x: iquib(res_arr)
+    arr = np.array([[1]])
+    axis = 0
+    quib = create_lazy_apply_along_axis_quib(func=func, arr=arr, axis=axis)
+    expected_res = np.apply_along_axis(lambda _: np.array([100]), arr=arr, axis=axis)
+
+    res = quib.get_value()
+
+    assert np.array_equal(res, expected_res)

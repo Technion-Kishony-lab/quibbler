@@ -151,6 +151,7 @@ def test_apply_along_axis_get_value(input_shape, apply_result_shape, axis, compo
     )
 
 
+# MOVED
 def test_apply_along_axis_returning_quib():
     res_arr = np.array([100])
     func = lambda x: iquib(res_arr)

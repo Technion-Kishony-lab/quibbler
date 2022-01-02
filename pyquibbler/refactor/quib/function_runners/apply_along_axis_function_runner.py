@@ -123,7 +123,7 @@ class ApplyAlongAxisFunctionRunner(DefaultFunctionRunner):
             ret_val = func(*args, **kwargs)
 
         # We don't allow returning quibs as results from functions
-        from pyquibbler.quib import Quib
+        from pyquibbler.refactor.quib.quib import Quib
         if isinstance(ret_val, Quib):
             ret_val = ret_val.get_value()
 
