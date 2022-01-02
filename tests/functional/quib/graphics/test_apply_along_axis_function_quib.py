@@ -100,6 +100,7 @@ def assert_all_apply_calls_with_slices_were_relevant(func, axis, input_arr, path
             assert not np.array_equal(new_result_at_path, current_result )
 
 
+# MOVED
 @mark.parametrize('input_shape, apply_result_shape, axis, components', [
         (tuple(input_dimensions), tuple(apply_dimensions), axis, components)
         for input_shape_size in range(0, 3)

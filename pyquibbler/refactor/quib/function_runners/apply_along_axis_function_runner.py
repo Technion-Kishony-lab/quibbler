@@ -104,6 +104,8 @@ class ApplyAlongAxisFunctionRunner(DefaultFunctionRunner):
         or the values themselves of the slice
         """
         if self.call_func_with_quibs:
+            # TODO: Proxy quibs!
+            return self.arr[indices]
             raise Exception("can't")
         return self.arr[indices].get_value()
 
