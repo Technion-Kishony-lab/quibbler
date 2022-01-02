@@ -8,7 +8,7 @@ from pyquibbler.refactor.overriding.override_definition import OverrideDefinitio
 from pyquibbler.refactor.quib.function_runners.apply_along_axis_function_runner import ApplyAlongAxisFunctionRunner
 from pyquibbler.refactor.translation.translators import BackwardsTranspositionalTranslator, ForwardsTranspositionalTranslator
 from pyquibbler.refactor.translation.translators.axeswise.apply_along_axis_translator import \
-    ApplyAlongAxisBackwardsTranslator, ApplyAlongAxisForwardsTranslator
+    ApplyAlongAxisForwardsTranslator
 
 numpy_definition = functools.partial(OverrideDefinition.from_func, module_or_cls=np)
 
@@ -32,7 +32,6 @@ def create_numpy_definitions():
         numpy_definition(np.sum, data_source_arguments=[0]),
         numpy_definition(np.apply_along_axis,
                          data_source_arguments=["arr"],
-                         backwards_path_translators=[ApplyAlongAxisBackwardsTranslator],
                          forwards_path_translators=[ApplyAlongAxisForwardsTranslator],
                          function_runner_cls=ApplyAlongAxisFunctionRunner)
     ]

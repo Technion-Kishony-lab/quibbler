@@ -10,7 +10,7 @@ from pyquibbler.quib.function_quibs.cache import create_cache, HolisticCache, Nd
 from pyquibbler.quib.function_quibs.cache.cache import Cache
 from pyquibbler.quib.function_quibs.cache.holistic_cache import PathCannotHaveComponentsException
 from pyquibbler.quib.function_quibs.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
-from pyquibbler.quib.function_quibs.utils import FuncWithArgsValues
+from pyquibbler.refactor.func_call import FuncCall
 from pyquibbler.refactor.quib.utils import call_func_with_quib_values
 
 
@@ -77,7 +77,7 @@ def _get_cache_updated_with_result(result, uncached_path, cache):
 
 
 def run_func_on_uncached_paths(cache: Optional[Cache],
-                               func_with_args_values: FuncWithArgsValues,
+                               func_with_args_values: FuncCall,
                                truncated_path: List[PathComponent],
                                uncached_paths: List[Optional[List[PathComponent]]]):
     """
@@ -161,8 +161,8 @@ def _get_uncached_paths_matching_path(cache: Optional[Cache], path: [List['PathC
     return uncached_paths
 
 
-def get_cache_value_valid_at_path(func_with_args_values: FuncWithArgsValues, 
-                                  current_cache: Cache, 
+def get_cache_value_valid_at_path(func_with_args_values: FuncCall,
+                                  current_cache: Cache,
                                   path: Path):
     truncated_path = _truncate_path_to_match_shallow_caches(path)
     uncached_paths = _get_uncached_paths_matching_path(current_cache, truncated_path)

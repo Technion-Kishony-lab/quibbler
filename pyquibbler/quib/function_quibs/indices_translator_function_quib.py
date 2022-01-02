@@ -5,7 +5,8 @@ from functools import lru_cache
 from typing import Set, Optional, Dict, Callable, List, Any, Union, Iterable
 
 from pyquibbler.quib.assignment import Assignment
-from pyquibbler.quib.function_quibs.utils import create_empty_array_with_values_at_indices, ArgsValues
+from pyquibbler.quib.function_quibs.utils import create_empty_array_with_values_at_indices
+from pyquibbler.refactor.func_call import ArgsValues
 from pyquibbler.quib.assignment.override_choice import OverrideRemoval
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.function_quibs import FunctionQuib

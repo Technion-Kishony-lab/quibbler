@@ -29,7 +29,7 @@ from pyquibbler.quib.function_quibs.cache.holistic_cache import PathCannotHaveCo
 from pyquibbler.quib.function_quibs.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
 from pyquibbler.quib.function_quibs.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own, \
     add_quib_to_fail_trace_if_raises_quib_call_exception
-from pyquibbler.quib.function_quibs.utils import ArgsValues
+from pyquibbler.refactor.func_call import ArgsValues
 from pyquibbler.quib.quib_guard import add_new_quib_to_guard_if_exists, guard_raise_if_not_allowed_access_to_quib
 from pyquibbler.quib.utils import quib_method, Unpacker
 from pyquibbler.refactor.inversion.invert import invert

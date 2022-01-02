@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import Type, Union, Tuple
 
 from pyquibbler.exceptions import PyQuibblerException
-from pyquibbler.quib.function_quibs.utils import ArgsValues
+from pyquibbler.refactor.func_call import ArgsValues
 
 
 @dataclass

@@ -4,7 +4,8 @@ from typing import Dict, Tuple, Any
 import numpy as np
 
 from pyquibbler.quib.assignment import Path
-from pyquibbler.quib.function_quibs.utils import FuncWithArgsValues, create_empty_array_with_values_at_indices
+from pyquibbler.quib.function_quibs.utils import create_empty_array_with_values_at_indices
+from pyquibbler.refactor.func_call import FuncCall
 from pyquibbler.quib.graphics.axiswise_function_quibs.axiswise_function_quib import Arg
 from pyquibbler.refactor.translation.backwards_path_translator import BackwardsPathTranslator
 from pyquibbler.refactor.translation.forwards_path_translator import ForwardsPathTranslator
@@ -14,7 +15,7 @@ from pyquibbler.refactor.translation.types import Source
 
 @dataclass
 class ApplyAlongAxis:
-    func_with_args_values: FuncWithArgsValues
+    func_with_args_values: FuncCall
     result_shape: Tuple[int, ...]
 
     @property
@@ -30,23 +31,6 @@ class ApplyAlongAxis:
         assert func_result_ndim >= 0, func_result_ndim
         return tuple(range(self.axis, self.axis + func_result_ndim) if self.axis >= 0 else
                      range(self.axis, self.axis - func_result_ndim, -1))
-
-
-class ApplyAlongAxisBackwardsTranslator(AxiswiseBackwardsTranslator):
-
-    def _backwards_translate_bool_mask(self, source: Source, component: np.ndarray) -> np.ndarray:
-        expanded_dims = self.apply_along_axis.get_expanded_dims()
-        mask = np.expand_dims(np.any(component,
-                                     axis=expanded_dims),
-                              self.apply_along_axis.axis)
-        return np.broadcast_to(mask, np.shape(source.value))
-
-    @property
-    def apply_along_axis(self):
-        return ApplyAlongAxis(
-            func_with_args_values=self._func_with_args_values,
-            result_shape=self._shape
-        )
 
 
 class ApplyAlongAxisForwardsTranslator(ForwardsPathTranslator):

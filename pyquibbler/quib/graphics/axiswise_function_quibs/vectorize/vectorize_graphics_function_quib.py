@@ -13,7 +13,8 @@ from pyquibbler.quib.graphics.graphics_function_quib import GraphicsFunctionQuib
 from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.quib.function_quibs.indices_translator_function_quib import IndicesTranslatorFunctionQuib, \
     SupportedFunction
-from pyquibbler.quib.function_quibs.utils import ArgsValues, unbroadcast_bool_mask, convert_args_and_kwargs
+from pyquibbler.quib.function_quibs.utils import unbroadcast_bool_mask, convert_args_and_kwargs
+from pyquibbler.refactor.func_call import ArgsValues
 from pyquibbler.quib.utils import copy_and_replace_quibs_with_vals
 
 from .utils import copy_vectorize, get_core_axes, get_indices_array, iter_arg_ids_and_values, alter_signature

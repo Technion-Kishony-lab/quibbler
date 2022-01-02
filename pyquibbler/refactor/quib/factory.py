@@ -2,7 +2,7 @@ from typing import Optional, Tuple, Type, Callable
 
 from pyquibbler.env import GET_VARIABLE_NAMES, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS
 from pyquibbler.logger import logger
-from pyquibbler.quib.function_quibs.utils import FuncWithArgsValues
+from pyquibbler.refactor.func_call import FuncCall
 from pyquibbler.refactor.quib.function_runners import FunctionRunner, DefaultFunctionRunner
 from pyquibbler.refactor.overriding import get_definition_for_function, CannotFindDefinitionForFunctionException
 from pyquibbler.refactor.quib.iterators import iter_quibs_in_args
@@ -79,7 +79,7 @@ def create_quib(func, args=(), kwargs=None, cache_behavior=None, evaluate_now=Fa
         function_runner_cls: Type[FunctionRunner] = definition.function_runner_cls
 
     runner = function_runner_cls(
-        func_with_args_values=FuncWithArgsValues.from_function_call(
+        func_with_args_values=FuncCall.from_function_call(
             func=func,
             args=args,
             kwargs=kwargs,

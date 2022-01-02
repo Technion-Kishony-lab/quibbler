@@ -12,6 +12,7 @@ from pyquibbler.quib.utils import QuibRef
 from pyquibbler.refactor.graphics.graphics_collection import GraphicsCollection
 from pyquibbler.refactor.quib.iterators import recursively_run_func_on_object
 from pyquibbler.refactor.quib.quib import Quib
+from pyquibbler.refactor.quib.translation_utils import get_func_with_args_values_for_translation
 from pyquibbler.refactor.translation.translate import NoTranslatorsFoundException, backwards_translate
 from pyquibbler.refactor.translation.types import Source
 
@@ -21,7 +22,8 @@ class DefaultFunctionRunner(FunctionRunner):
 
     def _backwards_translate_path(self, valid_path: Path) -> Dict[Quib, Path]:
         # TODO: try without shape/type + args
-        func_with_args_values, sources_to_quibs = self.get_func_with_args_values_for_translation({})
+        func_with_args_values, sources_to_quibs = get_func_with_args_values_for_translation(self.func_with_args_values,
+                                                                                            {})
 
         if not sources_to_quibs:
             return {}

@@ -3,13 +3,13 @@ from typing import Callable, Tuple, Any, Mapping, TYPE_CHECKING
 
 
 from pyquibbler.refactor.translation.exceptions import NoInvertersFoundException, CannotInvertException
-from pyquibbler.quib.function_quibs.utils import FuncWithArgsValues
+from pyquibbler.refactor.func_call import FuncCall
 
 if TYPE_CHECKING:
     from pyquibbler import Assignment
 
 
-def invert(func_with_args_values: FuncWithArgsValues, assignment: Assignment, previous_result):
+def invert(func_with_args_values: FuncCall, assignment: Assignment, previous_result):
     from pyquibbler.refactor.overriding import get_definition_for_function
     definition = get_definition_for_function(func_with_args_values.func)
 

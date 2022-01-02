@@ -4,14 +4,14 @@ from typing import Set, List
 
 from pyquibbler.refactor.iterators import iter_objects_of_type_in_object_shallowly
 from pyquibbler.refactor.translation.types import Source, ArgumentWithValue
-from pyquibbler.quib.function_quibs.utils import FuncWithArgsValues
+from pyquibbler.refactor.func_call import FuncCall
 
 
 class Translator(ABC):
 
     PRIORITY = 0
 
-    def __init__(self, func_with_args_values: FuncWithArgsValues):
+    def __init__(self, func_with_args_values: FuncCall):
         self._func_with_args_values = func_with_args_values
 
     @property

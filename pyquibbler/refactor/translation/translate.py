@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Callable, Tuple, Any, Mapping, Type
 
 from pyquibbler.exceptions import PyQuibblerException
-from pyquibbler.quib.function_quibs.utils import FuncWithArgsValues
+from pyquibbler.refactor.func_call import FuncCall
 from pyquibbler.refactor.translation.backwards_path_translator import BackwardsPathTranslator
 from pyquibbler.refactor.translation.forwards_path_translator import ForwardsPathTranslator
 
@@ -29,7 +29,7 @@ def split_path(path):
     return current_components, components_at_end
 
 
-def backwards_translate(func_with_args_values: FuncWithArgsValues,
+def backwards_translate(func_with_args_values: FuncCall,
                         path, shape=None, type_=None):
 
     from pyquibbler.refactor.overriding import get_definition_for_function
@@ -55,7 +55,7 @@ def backwards_translate(func_with_args_values: FuncWithArgsValues,
             pass
 
 
-def forwards_translate(func_with_args_values: FuncWithArgsValues,
+def forwards_translate(func_with_args_values: FuncCall,
                        sources_to_paths, shape=None, type_=None):
     # TODO test multiple scenarios with choosing inverters
     from pyquibbler.refactor.overriding import get_definition_for_function

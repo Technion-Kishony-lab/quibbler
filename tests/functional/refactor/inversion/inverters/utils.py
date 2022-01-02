@@ -1,7 +1,7 @@
 from typing import Callable, Any, Tuple, Mapping
 
 from pyquibbler import Assignment
-from pyquibbler.quib.function_quibs.utils import FuncWithArgsValues
+from pyquibbler.refactor.func_call import FuncCall
 from pyquibbler.refactor.inversion.invert import invert
 from pyquibbler.refactor.translation.utils import call_func_with_values
 from pyquibbler.quib import PathComponent
@@ -18,7 +18,7 @@ def inverse(func: Callable, indices: Any, value: Any, args: Tuple[Any, ...] = No
     kwargs = kwargs or {}
     previous_value = call_func_with_values(func, args, kwargs)
     inversals = invert(
-        func_with_args_values=FuncWithArgsValues.from_function_call(
+        func_with_args_values=FuncCall.from_function_call(
             func=func,
             args=args,
             kwargs=kwargs,

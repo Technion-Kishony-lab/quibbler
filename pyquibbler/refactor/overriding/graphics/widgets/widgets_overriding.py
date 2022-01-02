@@ -7,7 +7,7 @@ from typing import Callable
 from pyquibbler.refactor.graphics import global_collecting
 from pyquibbler.quib import PathComponent
 from pyquibbler.refactor.overriding.graphics.graphics_overriding import GraphicsOverrideDefinition
-from pyquibbler.quib.function_quibs.utils import ArgsValues
+from pyquibbler.refactor.func_call import ArgsValues
 
 
 def on_change_radio_buttons(widget, args_values, new_value):

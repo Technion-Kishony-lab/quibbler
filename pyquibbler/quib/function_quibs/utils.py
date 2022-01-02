@@ -1,10 +1,10 @@
-from dataclasses import dataclass
-from typing import Any, Mapping, Callable, Tuple, Optional, Dict
+from __future__ import annotations
+from typing import Any, Callable, Tuple, Dict, TYPE_CHECKING
 
 import numpy as np
 
-from .external_call_failed_exception_handling import external_call_failed_exception_handling
-from ..utils import iter_args_and_names_in_function_call
+if TYPE_CHECKING:
+    pass
 
 Args = Tuple[Any, ...]
 Kwargs = Dict[str, Any]
@@ -23,64 +23,6 @@ def create_empty_array_with_values_at_indices(shape: tuple, indices: Any, value:
     res[indices] = value
 
     return res
-
-
-@dataclass
-class ArgsValues:
-    """
-    In a function call, when trying to understand what value an a specific parameter was given, looking at
-    args and kwargs isn't enough. We have to deal with:
-    - Positional arguments passed with a keyword
-    - Keyword arguments passed positionally
-    - Default arguments
-    This class uses the function signature to determine the values each parameter was given,
-    and can be indexed using ints, slices and keywords.
-    """
-
-    args: Tuple[Any, ...]
-    kwargs: Mapping[str, Any]
-    arg_values_by_position: Tuple[Any, ...]
-    arg_values_by_name: Mapping[str, Any]
-
-    def __getitem__(self, item):
-        from pyquibbler.refactor.overriding.types import KeywordArgument, IndexArgument
-
-        if isinstance(item, KeywordArgument):
-            return self.arg_values_by_name[item.keyword]
-        elif isinstance(item, IndexArgument):
-            return self.arg_values_by_position[item.index]
-
-        # TODO: Is following necessary? Primitive obssession..
-        if isinstance(item, str):
-            return self.arg_values_by_name[item]
-        return self.arg_values_by_position[item]
-
-    def get(self, keyword: str, default: Optional = None) -> Optional[Any]:
-        return self.arg_values_by_name.get(keyword, default)
-
-    @classmethod
-    def from_function_call(cls, func: Callable, args: Tuple[Any, ...], kwargs: Mapping[str, Any], include_defaults):
-        # We use external_call_failed_exception_handling here as if the user provided the wrong arguments to the
-        # function we'll fail here
-        with external_call_failed_exception_handling():
-            try:
-                arg_values_by_name = dict(iter_args_and_names_in_function_call(func, args, kwargs, include_defaults))
-                arg_values_by_position = tuple(arg_values_by_name.values())
-            except ValueError:
-                arg_values_by_name = kwargs
-                arg_values_by_position = args
-
-        return cls(args, kwargs, arg_values_by_position, arg_values_by_name)
-
-
-@dataclass
-class FuncWithArgsValues:
-    args_values: ArgsValues
-    func: Callable
-
-    @classmethod
-    def from_function_call(cls, func: Callable, args: Tuple[Any, ...], kwargs: Mapping[str, Any], include_defaults):
-        return cls(args_values=ArgsValues.from_function_call(func, args, kwargs, include_defaults), func=func)
 
 
 def unbroadcast_bool_mask(bool_mask: np.ndarray, original_shape: Tuple[int, ...]) -> np.ndarray:

@@ -11,7 +11,7 @@ from pyquibbler.refactor.quib.cache_behavior import CacheBehavior
 from pyquibbler.quib.function_quibs.cache.cache import Cache
 from pyquibbler.quib.function_quibs.cache.holistic_cache import PathCannotHaveComponentsException
 from pyquibbler.quib.function_quibs.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
-from pyquibbler.quib.function_quibs.utils import FuncWithArgsValues
+from pyquibbler.refactor.func_call import FuncCall
 from pyquibbler.refactor.quib import consts
 from pyquibbler.refactor.quib.function_call import _get_uncached_paths_matching_path, \
     _truncate_path_to_match_shallow_caches, _ensure_cache_matches_result, \
@@ -35,7 +35,7 @@ class FunctionRunner(ABC):
 
     DEFAULT_CACHE_BEHAVIOR: ClassVar[CacheBehavior] = CacheBehavior.AUTO
 
-    func_with_args_values: FuncWithArgsValues
+    func_with_args_values: FuncCall
     call_func_with_quibs: bool
     graphics_collections: Optional[np.array]
     is_known_graphics_func: bool
@@ -211,7 +211,7 @@ class FunctionRunner(ABC):
             return recursively_run_func_on_object(_replace, arg, max_depth=SHALLOW_MAX_DEPTH)
 
         args, kwargs = convert_args_and_kwargs(_replace_quib_with_source, self.args, self.kwargs)
-        return FuncWithArgsValues.from_function_call(
+        return FuncCall.from_function_call(
             func=self.func,
             args=args,
             kwargs=kwargs,
