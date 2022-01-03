@@ -183,6 +183,7 @@ class ApplyAlongAxisFunctionRunner(FunctionRunner):
 
         return out
 
+    @cache_method_until_full_invalidation
     def _get_loop_shape(self) -> Tuple[int, ...]:
         return tuple([s for i, s in enumerate(self.arr.get_shape()) if i != self.core_axis])
 

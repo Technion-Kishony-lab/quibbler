@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 from pytest import fixture
 
-from pyquibbler import CacheBehavior
+from pyquibbler import CacheBehavior, override_all
 from pyquibbler.env import DEBUG, EVALUATE_NOW, ASSIGNMENT_RESTRICTIONS, PRETTY_REPR, \
     SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS, GET_VARIABLE_NAMES
 from pyquibbler.project import Project
@@ -24,14 +24,15 @@ DEFAULT_GET_VARIABLE_NAMES = False
 
 @fixture(scope="session", autouse=True)
 def setup_environment_for_tests():
-    FunctionQuib._DEFAULT_CACHE_BEHAVIOR = CacheBehavior.ON
+    from pyquibbler.quib.function_quibs.function_quib import CacheBehavior as CT
+    FunctionQuib._DEFAULT_CACHE_BEHAVIOR = CT.ON
     FunctionRunner.DEFAULT_CACHE_BEHAVIOR = CacheBehavior.ON
 
 
 @pytest.fixture(autouse=True, scope="session")
-def override_all():
+def override_all_():
     override_third_party_funcs()
-
+    # override_all()
 
 def pytest_configure(config):
     # register additional markers

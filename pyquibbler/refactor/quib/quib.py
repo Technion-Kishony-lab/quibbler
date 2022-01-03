@@ -5,8 +5,6 @@ import pathlib
 import pickle
 from contextlib import contextmanager
 from functools import cached_property
-from sys import getsizeof
-from time import perf_counter
 from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Union, Iterable
 from weakref import WeakSet
 

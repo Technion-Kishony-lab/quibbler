@@ -173,7 +173,7 @@ def override_all():
     """
     Overrides all modules (such as numpy and matplotlib) to support quibs
     """
-    pass
-    # apply_non_quib_overrides()
-    # apply_quib_creating_overrides(NUMPY_OVERRIDES)
-    # apply_quib_creating_overrides(MPL_OVERRIDES, wrap_overridden_graphics_function)
+    # pass
+    apply_non_quib_overrides()
+    apply_quib_creating_overrides(NUMPY_OVERRIDES)
+    apply_quib_creating_overrides(MPL_OVERRIDES, wrap_overridden_graphics_function)

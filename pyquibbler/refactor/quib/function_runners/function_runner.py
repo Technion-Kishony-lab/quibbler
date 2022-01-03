@@ -198,6 +198,7 @@ class FunctionRunner(ABC):
         are guaranteed to be valid
         """
         self._initialize_graphics_collections()
+
         start_time = perf_counter()
 
         result = self._run_on_uncached_paths_within_path(path)
