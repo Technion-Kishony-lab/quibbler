@@ -18,20 +18,23 @@ def _replace_sub_argument_with_value(func_call: FuncCall, quibs_to_paths, inner_
     if isinstance(inner_arg, QuibRef):
         return inner_arg.quib
 
-    if isinstance(inner_arg, Quib):
-        if inner_arg in quibs_to_paths:
-            path = quibs_to_paths[inner_arg]
-        elif is_quib_a_data_source(func_call, inner_arg):
-            # If the quib is a data source, and we didn't see it in the result, we don't need it to be valid at any
-            # paths (it did not appear in quibs_to_paths)
-            path = None
-        else:
-            # This is a paramater quib- we always need a parameter quib to be completely valid regardless of where
-            # we need ourselves (this quib) to be valid
-            path = []
+    try:
+        if isinstance(inner_arg, Quib):
+            if inner_arg in quibs_to_paths:
+                path = quibs_to_paths[inner_arg]
+            elif is_quib_a_data_source(func_call, inner_arg):
+                # If the quib is a data source, and we didn't see it in the result, we don't need it to be valid at any
+                # paths (it did not appear in quibs_to_paths)
+                path = None
+            else:
+                # This is a paramater quib- we always need a parameter quib to be completely valid regardless of where
+                # we need ourselves (this quib) to be valid
+                path = []
 
-        return inner_arg.get_value_valid_at_path(path)
-
+            return inner_arg.get_value_valid_at_path(path)
+    except Exception:
+        print(1)
+        raise
     return inner_arg
 
 

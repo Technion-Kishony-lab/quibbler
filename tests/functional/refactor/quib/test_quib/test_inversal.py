@@ -86,11 +86,12 @@ def test_inverse_with_int_as_result_of_function_quib_after_slicing(create_quib_w
     assert np.array_equal(a.get_value(), np.array([3, 2, 3]))
 
 
-def test_inverse_with_dict_inside_rotated_array(create_quib_with_return_value):
-    a = create_quib_with_return_value(np.array([[{"a": 1}, {"b": 1}]]), allow_overriding=True)
-    rotated = np.rot90(a)
-    b = rotated[(0, 0)]
+def test_invert_elementwise_operator(create_quib_with_return_value):
+    a = create_quib_with_return_value(np.array([1, 2, 3]), allow_overriding=True)
+    b = create_quib_with_return_value(np.array([1, 2, 3]))
+    c = a + b
 
-    b["b"] = 2
+    c[0] = 40
 
-    print(1)
+    assert a[0].get_value() == 39
+

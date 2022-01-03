@@ -5,11 +5,17 @@ from inspect import signature
 
 from typing import Callable, List
 
+import numpy as np
+
 from pyquibbler.refactor.inversion.inverters.getitem_inverter import GetItemInverter
+from pyquibbler.refactor.overriding.numpy.elementwise_definitions import get_inverter_for_inverse_func, \
+    add_inverse_func, sub_inverse_func, mul_inverse_func, div_inverse_func, pow_inverse_func
 from pyquibbler.refactor.overriding.override_definition import OverrideDefinition
 from pyquibbler.refactor.overriding.types import IndexArgument, KeywordArgument
 
 from pyquibbler.refactor.translation.translators import BackwardsGetItemTranslator
+from pyquibbler.refactor.translation.translators.elementwise.elementwise_translator import \
+    BackwardsElementwisePathTranslator, ForwardsElementwisePathTranslator
 from pyquibbler.refactor.translation.translators.transpositional.getitem_translator import ForwardsGetItemTranslator
 
 
@@ -67,28 +73,44 @@ def operator_definition(name, data_source_indexes: List = None, inverters: List 
     )
 
 
-def with_reverse_operator_definition(name, data_source_indexes: List = None):
+def with_reverse_operator_definition(name, data_source_indexes: List = None, inverters=None,
+                                     backwards_path_translators: List = None, forwards_path_translators: List = None):
     rname = '__r' + name[2:]
 
     from pyquibbler.refactor.quib.quib import Quib
-    return [operator_definition(name, data_source_indexes), OperatorOverrideDefinition(
+    return [operator_definition(name, data_source_indexes, inverters=inverters,
+                                backwards_path_translators=backwards_path_translators,
+                                forwards_path_translators=forwards_path_translators), OperatorOverrideDefinition(
         func_name=rname,
         data_source_arguments={IndexArgument(i) for i in (data_source_indexes or [])},
         module_or_cls=Quib,
-        is_reversed=True
+        is_reversed=True,
+        inverters=inverters or [],
+        backwards_path_translators=backwards_path_translators,
+        forwards_path_translators=forwards_path_translators
     )]
 
 
 def get_arithmetic_definitions():
     return [
-        *with_reverse_operator_definition('__add__'),
-        *with_reverse_operator_definition('__sub__'),
-        *with_reverse_operator_definition('__mul__'),
+        *with_reverse_operator_definition('__add__', [0, 1], [get_inverter_for_inverse_func(add_inverse_func)],
+                                          backwards_path_translators=[BackwardsElementwisePathTranslator],
+                                          forwards_path_translators=[ForwardsElementwisePathTranslator]),
+        *with_reverse_operator_definition('__sub__', [0, 1], [get_inverter_for_inverse_func(sub_inverse_func)],
+                                          backwards_path_translators=[BackwardsElementwisePathTranslator],
+                                          forwards_path_translators=[ForwardsElementwisePathTranslator]),
+        *with_reverse_operator_definition('__mul__',  [0, 1], [get_inverter_for_inverse_func(mul_inverse_func)],
+                                          backwards_path_translators=[BackwardsElementwisePathTranslator],
+                                          forwards_path_translators=[ForwardsElementwisePathTranslator]),
         operator_definition('__matmul__', []),
-        *with_reverse_operator_definition('__truediv__'),
+        *with_reverse_operator_definition('__truediv__', [0, 1], [get_inverter_for_inverse_func(div_inverse_func)],
+                                          backwards_path_translators=[BackwardsElementwisePathTranslator],
+                                          forwards_path_translators=[ForwardsElementwisePathTranslator]),
         *with_reverse_operator_definition('__floordiv__'),
         *with_reverse_operator_definition('__mod__'),
-        *with_reverse_operator_definition('__pow__'),
+        *with_reverse_operator_definition('__pow__', [0, 1], [get_inverter_for_inverse_func(pow_inverse_func)],
+                                          backwards_path_translators=[BackwardsElementwisePathTranslator],
+                                          forwards_path_translators=[ForwardsElementwisePathTranslator]),
         *with_reverse_operator_definition('__lshift__'),
         *with_reverse_operator_definition('__rshift__'),
         *with_reverse_operator_definition('__and__'),

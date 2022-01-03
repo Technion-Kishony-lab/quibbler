@@ -70,8 +70,12 @@ class OverrideDefinition:
                     **flags
                 )
             return wrapped_func(*args, **kwargs)
-
         _maybe_create_quib.__quibbler_wrapped__ = wrapped_func
+
+        # TODO: obviously not good solution, how do we fix issue with `np.sum` referring to `np.add`'s attrs?
+        if hasattr(wrapped_func, 'reduce'):
+            _maybe_create_quib.reduce = wrapped_func.reduce
+
         return _maybe_create_quib
 
     @property

@@ -8,7 +8,8 @@ from pyquibbler import iquib, CacheBehavior
 from pyquibbler.quib import PathComponent
 from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
 from pyquibbler.refactor.quib.factory import create_quib
-from tests.functional.quib.utils import PathBuilder, check_get_value_valid_at_path, check_invalidation
+from tests.functional.quib.utils import PathBuilder
+from tests.functional.refactor.quib.test_quib.invalidation.utils import check_invalidation
 
 
 @pytest.fixture()
