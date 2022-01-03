@@ -110,26 +110,26 @@ class ApplyAlongAxisFunctionRunner(FunctionRunner):
             raise Exception("can't")
         return self.arr[indices].get_value()
 
-    def _run_single_call(self, func: Callable,
-                         graphics_collection: GraphicsCollection,
-                         args: Tuple[Any, ...],
-                         kwargs: Mapping[str, Any],
-                         quibs_to_guard: Set[Quib]):
-        """
-        Run a single iteration of the function quib
-        """
-        # TODO: quibguard
-        with graphics_collection.track_and_handle_new_graphics(
-                kwargs_specified_in_artists_creation=set(self.kwargs.keys())
-        ):
-            ret_val = func(*args, **kwargs)
-
-        # We don't allow returning quibs as results from functions
-        from pyquibbler.refactor.quib.quib import Quib
-        if isinstance(ret_val, Quib):
-            ret_val = ret_val.get_value()
-
-        return ret_val
+    # def _run_single_call(self, func: Callable,
+    #                      graphics_collection: GraphicsCollection,
+    #                      args: Tuple[Any, ...],
+    #                      kwargs: Mapping[str, Any],
+    #                      quibs_to_guard: Set[Quib]):
+    #     """
+    #     Run a single iteration of the function quib
+    #     """
+    #     # TODO: quibguard
+    #     with graphics_collection.track_and_handle_new_graphics(
+    #             kwargs_specified_in_artists_creation=set(self.kwargs.keys())
+    #     ):
+    #         ret_val = func(*args, **kwargs)
+    #
+    #     # We don't allow returning quibs as results from functions
+    #     from pyquibbler.refactor.quib.quib import Quib
+    #     if isinstance(ret_val, Quib):
+    #         ret_val = ret_val.get_value()
+    #
+    #     return ret_val
 
     def _get_result_at_indices(self,
                                requested_indices_bool_mask: np.ndarray,

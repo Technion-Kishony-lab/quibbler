@@ -154,7 +154,6 @@ def test_apply_along_axis_returning_quib():
     assert np.array_equal(res, expected_res)
 
 
-
 @pytest.fixture
 def mock_func_for_args_kwargs():
     return get_func_mock(lambda x, *_, **__: 1)

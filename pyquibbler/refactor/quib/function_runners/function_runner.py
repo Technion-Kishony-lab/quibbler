@@ -3,10 +3,14 @@ from abc import abstractmethod, ABC
 from dataclasses import dataclass, field
 from sys import getsizeof
 from time import perf_counter
-from typing import Optional, Type, Tuple, Dict, TYPE_CHECKING, Any, ClassVar
+from typing import Optional, Type, Tuple, Dict, TYPE_CHECKING, Any, ClassVar, Set, Mapping, Callable
 
 import numpy as np
+from matplotlib.widgets import AxesWidget
+
 from pyquibbler.quib.assignment import Path
+from pyquibbler.quib.function_quibs.external_call_failed_exception_handling import \
+    external_call_failed_exception_handling
 from pyquibbler.refactor.quib.cache_behavior import CacheBehavior
 from pyquibbler.quib.function_quibs.cache.cache import Cache
 from pyquibbler.quib.function_quibs.cache.holistic_cache import PathCannotHaveComponentsException
@@ -190,6 +194,30 @@ class FunctionRunner(ABC):
     def reset_cache(self):
         self.cache = None
         self.caching = True if self.get_cache_behavior() == CacheBehavior.ON else False
+
+    # TODO: Make this default implementation
+    def _run_single_call(self, func: Callable, graphics_collection: GraphicsCollection,
+                         args: Tuple[Any, ...], kwargs: Mapping[str, Any], quibs_to_guard: Set[Quib]):
+
+        # TODO: quib_guard quib guard
+        with graphics_collection.track_and_handle_new_graphics(
+                kwargs_specified_in_artists_creation=set(self.kwargs.keys())
+        ):
+            with external_call_failed_exception_handling():
+                res = func(*args, **kwargs)
+
+            # TODO: Move this logic somewhere else
+            if len(graphics_collection.widgets) > 0 and isinstance(res, AxesWidget):
+                assert len(graphics_collection.widgets) == 1
+                res = list(graphics_collection.widgets)[0]
+
+            # We don't allow returning quibs as results from functions
+            from pyquibbler.refactor.quib.quib import Quib
+            if isinstance(res, Quib):
+                res = res.get_value()
+            ####
+
+            return res
 
     def get_value_valid_at_path(self, path: Optional[Path]) -> Any:
         """

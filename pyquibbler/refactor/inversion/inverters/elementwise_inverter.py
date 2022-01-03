@@ -58,7 +58,7 @@ class ElementwiseInverter(Inverter):
 
         working_component = get_nd_working_component_value_from_path(self._assignment.path)
         source_to_change = list(iter_objects_of_type_in_object_shallowly(Source,
-                                                                         self._func_call.get_data_source_arguments()))[0]
+                                                                         self._func_call.get_data_source_argument_values()))[0]
 
         relevant_path_in_source = backwards_translate(func_call=self._func_call,
                                                       shape=np.shape(self._previous_result),

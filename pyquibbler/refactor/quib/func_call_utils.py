@@ -57,4 +57,4 @@ def is_quib_a_data_source(func_call: FuncCall, quib: Quib):
 
 
 def get_data_source_quibs(func_call: FuncCall):
-    return set(iter_objects_of_type_in_object_shallowly(Quib,  func_call.get_data_source_arguments()))
+    return set(iter_objects_of_type_in_object_shallowly(Quib,  func_call.get_data_source_argument_values()))

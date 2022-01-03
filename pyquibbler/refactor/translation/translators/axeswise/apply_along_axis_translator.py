@@ -9,7 +9,6 @@ from pyquibbler.refactor.func_call import FuncCall
 from pyquibbler.quib.graphics.axiswise_function_quibs.axiswise_function_quib import Arg
 from pyquibbler.refactor.translation.backwards_path_translator import BackwardsPathTranslator
 from pyquibbler.refactor.translation.forwards_path_translator import ForwardsPathTranslator
-from pyquibbler.refactor.translation.translators.axeswise.axiswise_translator import AxiswiseBackwardsTranslator
 from pyquibbler.refactor.translation.types import Source
 
 

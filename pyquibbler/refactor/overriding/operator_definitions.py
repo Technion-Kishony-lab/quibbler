@@ -11,7 +11,7 @@ from pyquibbler.refactor.inversion.inverters.getitem_inverter import GetItemInve
 from pyquibbler.refactor.overriding.numpy.elementwise_definitions import get_inverter_for_inverse_func, \
     add_inverse_func, sub_inverse_func, mul_inverse_func, div_inverse_func, pow_inverse_func
 from pyquibbler.refactor.overriding.override_definition import OverrideDefinition
-from pyquibbler.refactor.overriding.types import IndexArgument, KeywordArgument
+from pyquibbler.refactor.overriding.types import PositionalArgument, KeywordArgument
 
 from pyquibbler.refactor.translation.translators import BackwardsGetItemTranslator
 from pyquibbler.refactor.translation.translators.elementwise.elementwise_translator import \
@@ -64,7 +64,7 @@ def operator_definition(name, data_source_indexes: List = None, inverters: List 
     from pyquibbler.refactor.quib.quib import Quib
     return OperatorOverrideDefinition(
         func_name=name,
-        data_source_arguments={IndexArgument(i) if isinstance(i, int) else KeywordArgument(i)
+        data_source_arguments={PositionalArgument(i) if isinstance(i, int) else KeywordArgument(i)
                                for i in (data_source_indexes or [])},
         module_or_cls=Quib,
         inverters=inverters,
@@ -82,7 +82,7 @@ def with_reverse_operator_definition(name, data_source_indexes: List = None, inv
                                 backwards_path_translators=backwards_path_translators,
                                 forwards_path_translators=forwards_path_translators), OperatorOverrideDefinition(
         func_name=rname,
-        data_source_arguments={IndexArgument(i) for i in (data_source_indexes or [])},
+        data_source_arguments={PositionalArgument(i) for i in (data_source_indexes or [])},
         module_or_cls=Quib,
         is_reversed=True,
         inverters=inverters or [],

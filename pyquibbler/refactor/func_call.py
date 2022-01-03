@@ -28,11 +28,11 @@ class ArgsValues:
     arg_values_by_name: Mapping[str, Any]
 
     def __getitem__(self, item):
-        from pyquibbler.refactor.overriding.types import KeywordArgument, IndexArgument
+        from pyquibbler.refactor.overriding.types import KeywordArgument, PositionalArgument
 
         if isinstance(item, KeywordArgument):
             return self.arg_values_by_name[item.keyword]
-        elif isinstance(item, IndexArgument):
+        elif isinstance(item, PositionalArgument):
             return self.arg_values_by_position[item.index]
 
         # TODO: Is following necessary? Primitive obssession..
@@ -79,12 +79,9 @@ class FuncCall:
     def kwargs(self):
         return self.args_values.kwargs
 
-    def get_data_source_arguments(self) -> List[Any]:
+    def get_data_source_argument_values(self) -> List[Any]:
         from pyquibbler.refactor.overriding import CannotFindDefinitionForFunctionException
         try:
-            return [
-                self.args_values[argument]
-                for argument in self.get_func_definition().data_source_arguments
-            ]
+            return self.get_func_definition().get_data_source_argument_values(self.args_values)
         except CannotFindDefinitionForFunctionException:
             return []

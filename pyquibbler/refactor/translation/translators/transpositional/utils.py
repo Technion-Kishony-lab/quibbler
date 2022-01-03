@@ -11,10 +11,7 @@ from pyquibbler.utils import convert_args_and_kwargs
 
 
 def get_data_sources(func_call: FuncCall) -> Set[Source]:
-    return set(iter_objects_of_type_in_object_shallowly(Source, [
-        func_call.args_values[argument]
-        for argument in get_definition_for_function(func_call.func).data_source_arguments
-    ]))
+    return set(iter_objects_of_type_in_object_shallowly(Source, func_call.get_data_source_argument_values()))
 
 
 def _convert_data_sources_in_args(func_call: FuncCall, convert_data_source: Callable):

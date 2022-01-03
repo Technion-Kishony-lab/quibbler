@@ -5,10 +5,11 @@ from types import ModuleType
 from typing import Callable, Any, Dict, Union, Type, Optional, Set, List
 
 from pyquibbler.env import EVALUATE_NOW
+from pyquibbler.refactor.func_call import ArgsValues
 from pyquibbler.refactor.quib.function_runners import FunctionRunner, DefaultFunctionRunner
 from pyquibbler.refactor.inversion.inverter import Inverter
 from pyquibbler.refactor.quib.utils import is_there_a_quib_in_args
-from pyquibbler.refactor.overriding.types import Argument, IndexArgument, KeywordArgument
+from pyquibbler.refactor.overriding.types import Argument, PositionalArgument, KeywordArgument
 
 from pyquibbler.refactor.translation.backwards_path_translator import BackwardsPathTranslator
 from pyquibbler.refactor.translation.forwards_path_translator import ForwardsPathTranslator
@@ -32,7 +33,7 @@ class OverrideDefinition:
     def from_func(cls, func: Callable, data_source_arguments: Set[Union[int, str]] = None, *args, **kwargs):
         data_source_arguments = data_source_arguments or set()
         raw_data_source_arguments = {
-            IndexArgument(data_source_argument)
+            PositionalArgument(data_source_argument)
             if isinstance(data_source_argument, int)
             else KeywordArgument(data_source_argument)
             for data_source_argument in data_source_arguments
@@ -54,7 +55,7 @@ class OverrideDefinition:
         return getattr(self.module_or_cls, self.func_name)
 
     def _create_quib_supporting_func(self):
-        wrapped_func = self._get_func_from_module_or_cls()
+        wrapped_func = self.original_func
 
         @functools.wraps(wrapped_func)
         def _maybe_create_quib(*args, **kwargs):
@@ -84,6 +85,12 @@ class OverrideDefinition:
             # not overridden yet
             return self._get_func_from_module_or_cls()
         return self._original_func
+
+    def get_data_source_argument_values(self, args_values: ArgsValues):
+        return [
+            args_values[argument]
+            for argument in self.data_source_arguments
+        ]
 
     def override(self):
         self._original_func = self._get_func_from_module_or_cls()

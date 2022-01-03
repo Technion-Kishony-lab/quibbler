@@ -23,8 +23,7 @@ class DefaultFunctionRunner(FunctionRunner):
 
     def _backwards_translate_path(self, valid_path: Path) -> Dict[Quib, Path]:
         # TODO: try without shape/type + args
-        func_call, sources_to_quibs = get_func_call_for_translation(self.func_call,
-                                                                                            {})
+        func_call, sources_to_quibs = get_func_call_for_translation(self.func_call,  {})
 
         if not sources_to_quibs:
             return {}
@@ -52,29 +51,16 @@ class DefaultFunctionRunner(FunctionRunner):
 
         graphics_collection: GraphicsCollection = self.graphics_collections[()]
 
-        # TODO: quib_guard quib guard
+        if self.call_func_with_quibs:
+            ready_to_run_func_call = self.func_call
+        else:
+            quibs_to_paths = {} if valid_path is None else self._backwards_translate_path(valid_path)
+            ready_to_run_func_call = get_func_call_with_quibs_valid_at_paths(self.func_call, quibs_to_paths)
 
-        with graphics_collection.track_and_handle_new_graphics(
-                kwargs_specified_in_artists_creation=set(self.kwargs.keys())
-        ):
-            if self.call_func_with_quibs:
-                ready_to_run_func_call = self.func_call
-            else:
-                quibs_to_paths = {} if valid_path is None else self._backwards_translate_path(valid_path)
-                ready_to_run_func_call = get_func_call_with_quibs_valid_at_paths(self.func_call, quibs_to_paths)
-
-            with external_call_failed_exception_handling():
-                res = self.func(*ready_to_run_func_call.args, **ready_to_run_func_call.kwargs)
-
-                # TODO: Move this logic somewhere else
-                if len(graphics_collection.widgets) > 0 and isinstance(res, AxesWidget):
-                    assert len(graphics_collection.widgets) == 1
-                    res = list(graphics_collection.widgets)[0]
-
-                # We don't allow returning quibs as results from functions
-                from pyquibbler.quib import Quib
-                if isinstance(res, Quib):
-                    res = res.get_value()
-                ####
-
-                return res
+        return self._run_single_call(
+            func=ready_to_run_func_call.func,
+            args=ready_to_run_func_call.args,
+            kwargs=ready_to_run_func_call.kwargs,
+            graphics_collection=graphics_collection,
+            quibs_to_guard=set()
+        )

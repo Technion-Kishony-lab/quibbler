@@ -3,7 +3,7 @@ from typing import Union
 
 
 @dataclass(frozen=True)
-class IndexArgument:
+class PositionalArgument:
 
     index: int
 
@@ -14,4 +14,4 @@ class KeywordArgument:
     keyword: str
 
 
-Argument = Union[KeywordArgument, IndexArgument]
+Argument = Union[KeywordArgument, PositionalArgument]

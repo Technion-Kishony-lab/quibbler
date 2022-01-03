@@ -42,7 +42,7 @@ from pyquibbler.refactor.quib.graphics import UpdateType
 from pyquibbler.refactor.quib.iterators import iter_quibs_in_args, recursively_run_func_on_object
 from pyquibbler.refactor.quib.repr.repr_mixin import ReprMixin
 from pyquibbler.refactor.translation import CannotInvertException
-from pyquibbler.refactor.translation.translate import forwards_translate
+from pyquibbler.refactor.translation.translate import forwards_translate, NoTranslatorsFoundException
 
 if TYPE_CHECKING:
     from pyquibbler.quib.assignment.override_choice import ChoiceContext, OverrideChoice
@@ -367,15 +367,18 @@ class Quib(ReprMixin):
         if invalidator_quib not in quibs_to_sources:
             return []
 
-        sources_to_new_paths = forwards_translate(
-            func_call=func_call,
-            sources_to_paths={
-                quibs_to_sources[invalidator_quib]: path
-            },
-            shape=self.get_shape(),
-            type_=self.get_type()
-        )
-
+        try:
+            sources_to_new_paths = forwards_translate(
+                func_call=func_call,
+                sources_to_paths={
+                    quibs_to_sources[invalidator_quib]: path
+                },
+                shape=self.get_shape(),
+                type_=self.get_type()
+            )
+        except NoTranslatorsFoundException:
+            return []
+        
         source = quibs_to_sources[invalidator_quib]
 
         return sources_to_new_paths[source] if source in sources_to_new_paths else []

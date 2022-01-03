@@ -43,4 +43,4 @@ class Translator(ABC):
 
     @lru_cache()
     def get_data_sources(self) -> Set[Source]:
-        return set(iter_objects_of_type_in_object_shallowly(Source, self._func_call.get_data_source_arguments()))
+        return set(iter_objects_of_type_in_object_shallowly(Source, self._func_call.get_data_source_argument_values()))
