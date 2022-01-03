@@ -6,6 +6,7 @@ the created md files are saved to pyquibbler.wiki, which is a separate repositor
 
 import os
 import glob
+from remove_empty_lines_from_md import remove_empty_lines_from_md
 
 sep = os.path.sep
 
@@ -34,4 +35,7 @@ for full_file in full_files:
 
 # convert docs notebooks to md and move to wiki path:
 os.system("jupyter nbconvert --to markdown " + docs_notebooks_path + "/*.ipynb")
+full_files = glob.glob(docs_notebooks_path + sep + '*.md')
+for full_file in full_files:
+    remove_empty_lines_from_md(full_file)
 os.system("mv " + docs_notebooks_path + "/*.md " + wiki_path)
