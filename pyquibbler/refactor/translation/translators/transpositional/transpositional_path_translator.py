@@ -7,7 +7,7 @@ from pyquibbler.refactor.translation.backwards_path_translator import BackwardsP
 from pyquibbler.refactor.translation.forwards_path_translator import ForwardsPathTranslator
 from pyquibbler.refactor.translation.translators.transpositional.utils import get_data_source_ids_mask
 from pyquibbler.refactor.translation.types import Source
-from pyquibbler.refactor.translation.utils import call_func_with_values
+from pyquibbler.refactor.translation.utils import call_func_with_sources_values
 from pyquibbler.quib import PathComponent
 from pyquibbler.quib.assignment import Path
 from pyquibbler.quib.assignment.assignment import working_component
@@ -29,7 +29,7 @@ class BackwardsTranspositionalTranslator(BackwardsPathTranslator):
             return obj
 
         args, kwargs = self._convert_data_sources_in_args(replace_source_with_id)
-        return call_func_with_values(self.func, args, kwargs)
+        return call_func_with_sources_values(self.func, args, kwargs)
 
     def get_data_sources_to_masks_in_result(self) -> Dict[Source, Any]:
         """
@@ -72,7 +72,7 @@ class BackwardsTranspositionalTranslator(BackwardsPathTranslator):
             return np.indices(np.shape(d.value) if isinstance(d, Source) else np.shape(d))[dimension]
 
         args, kwargs = self._convert_data_sources_in_args(replace_data_source_with_index_at_dimension)
-        indices_res = call_func_with_values(self._func_call.func, args, kwargs)
+        indices_res = call_func_with_sources_values(self._func_call.func, args, kwargs)
 
         return {
             data_source: indices_res[np.logical_and(data_sources_to_masks[data_source], relevant_indices_mask)]

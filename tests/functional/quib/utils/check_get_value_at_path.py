@@ -3,10 +3,11 @@ from contextlib import contextmanager
 from copy import deepcopy
 from typing import Any, Optional, List
 
-from pyquibbler import CacheBehavior, Assignment
+from pyquibbler import Assignment
 from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.quib.assignment.overrider import deep_get, deep_assign_data_in_path
 from pyquibbler.quib.input_quib import InputQuib
+from pyquibbler.quib.function_quibs.function_quib import CacheBehavior
 
 from .utils import PathBuilder
 

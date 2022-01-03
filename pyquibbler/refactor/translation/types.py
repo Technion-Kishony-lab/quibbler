@@ -3,6 +3,9 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, TYPE_CHECKING
 
+from pyquibbler.refactor.func_call import FuncCall
+from pyquibbler.refactor.quib.utils import copy_and_convert_args_and_kwargs_to_values
+
 if TYPE_CHECKING:
     from pyquibbler.refactor.overriding import Argument
 

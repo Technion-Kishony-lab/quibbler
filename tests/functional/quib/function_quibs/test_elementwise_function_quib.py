@@ -10,6 +10,7 @@ from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
 from ..utils import PathBuilder, check_get_value_valid_at_path
 
 
+# MOVED
 def test_elementwise_function_quib_invalidation_with_flat_list():
     a = iquib([1, 2])
     b = np.add(a, 1)
@@ -24,6 +25,7 @@ def test_elementwise_function_quib_invalidation_with_flat_list():
     assert d.cache_status == CacheStatus.ALL_VALID
 
 
+# MOVED
 def test_elementwise_function_quib_invalidation_with_broadcast_numpy_array():
     a = iquib(np.array([[1, 2]]))
     b = iquib(np.array([[1], [2]]))
@@ -40,6 +42,7 @@ def test_elementwise_function_quib_invalidation_with_broadcast_numpy_array():
         assert quib.cache_status == (CacheStatus.ALL_INVALID if should_be_invalidated else CacheStatus.ALL_VALID)
 
 
+# MOVED
 def test_elementwise_function_quib_does_not_request_unneeded_indices_on_get_value():
     fake_quib = mock.Mock(spec=Quib)
     fake_quib.get_value_valid_at_path.return_value = np.array([1, 2])
@@ -63,6 +66,7 @@ def test_elementwise_function_quib_does_not_request_unneeded_indices_on_get_valu
     assert bool(np.array([False, True])[component.component]) is True
 
 
+# MOVED
 @mark.parametrize('data', [np.arange(24).reshape((2, 3, 4))])
 @mark.parametrize('indices_to_get_value_at', [-1, 0, (1, 1), (1, 2, 3), [True, False], (0, ...)])
 def test_elementwise_get_value(data, indices_to_get_value_at):
@@ -70,12 +74,14 @@ def test_elementwise_get_value(data, indices_to_get_value_at):
     check_get_value_valid_at_path(lambda x: np.add(x, 1), data, path_to_get_value_at)
 
 
+# TODO: move
 @mark.regression
 def test_elementwise_with_no_parents():
     # https://github.com/Technion-Kishony-lab/pyquibbler/issues/191
     assert ElementWiseFunctionQuib.create(np.sin, (0,)).get_value() == 0
 
 
+# TODO: move
 @mark.regression
 def test_elementwise_on_scalar_quib_and_array():
     # https://github.com/Technion-Kishony-lab/pyquibbler/issues/178

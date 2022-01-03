@@ -4,7 +4,7 @@ from typing import Callable, Set, Dict
 from pyquibbler.refactor.iterators import iter_objects_of_type_in_object_shallowly
 from pyquibbler.refactor.overriding import get_definition_for_function
 from pyquibbler.refactor.translation.types import Source
-from pyquibbler.refactor.translation.utils import call_func_with_values
+from pyquibbler.refactor.translation.utils import call_func_with_sources_values
 from pyquibbler.refactor.func_call import FuncCall
 from pyquibbler.refactor.quib.iterators import recursively_run_func_on_object, SHALLOW_MAX_DEPTH, SHALLOW_MAX_LENGTH
 from pyquibbler.utils import convert_args_and_kwargs
@@ -56,4 +56,4 @@ def get_data_source_ids_mask(func_call, sources_to_indices: Dict[Source, np.ndar
         return obj
 
     args, kwargs = _convert_data_sources_in_args(func_call, replace_source_with_id)
-    return call_func_with_values(func_call.func, args, kwargs)
+    return call_func_with_sources_values(func_call.func, args, kwargs)

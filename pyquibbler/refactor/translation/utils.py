@@ -26,7 +26,7 @@ def copy_and_replace_sources_with_vals(obj: Any):
     return result
 
 
-def call_func_with_values(func: Callable, args, kwargs):
+def call_func_with_sources_values(func: Callable, args, kwargs):
     """
     Calls a function with the specified args and kwargs while replacing quibs with their values.
     """

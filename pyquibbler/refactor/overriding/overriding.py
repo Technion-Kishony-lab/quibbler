@@ -1,10 +1,7 @@
-from typing import List
-
 from pyquibbler.refactor.overriding.graphics.graphics_overriding import create_graphics_definitions
 from pyquibbler.refactor.overriding.graphics.widgets.switch_widgets_with_q_widgets import switch_widgets_to_quib_supporting_widgets
-from .override_definition import OverrideDefinition
 from .graphics.widgets.widgets_overriding import create_widget_definitions
-from .numpy_definitions import create_numpy_definitions
+from pyquibbler.refactor.overriding.numpy.numpy_definitions import create_numpy_definitions
 from .operator_definitions import get_operator_definitions
 from pyquibbler.utils import ensure_only_run_once_globally
 
