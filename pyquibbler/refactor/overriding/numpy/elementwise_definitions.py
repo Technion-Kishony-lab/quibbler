@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import functools
+import math
 import operator
 from inspect import signature
 from operator import __truediv__, __sub__, __mul__, __add__
@@ -8,6 +10,7 @@ from typing import Any, TYPE_CHECKING, Dict, Callable, List
 import numpy as np
 from numpy.core import ufunc
 
+from pyquibbler.refactor.inversion.inverters.elementwise_inverter import ElementwiseInverter
 from pyquibbler.refactor.overriding.numpy.numpy_definition import numpy_definition
 from pyquibbler.refactor.overriding.override_definition import OverrideDefinition
 from pyquibbler.refactor.translation.translators import BackwardsTranspositionalTranslator
@@ -67,6 +70,17 @@ FUNCTIONS_TO_INVERSE_FUNCTIONS = {
                 1: lambda result, other: np.divide(other, result)
             }
         ) for func in [np.divide, __truediv__]},
+    **{
+        func: create_inverse_func_from_indexes_to_funcs(
+                {
+                    0: np.multiply,
+                    1: lambda result, other: np.divide(other, result)
+                }
+            ) for func in [np.divide, __truediv__]},
+        operator.__pow__: create_inverse_func_from_indexes_to_funcs({
+            0: lambda x, n: x ** (1 / n),
+            1: lambda result, other: math.log(result, other)
+        }),
 }
 
 
@@ -78,7 +92,8 @@ def elementwise(func, reverse_func: Callable):
         return numpy_definition(func,
                                 data_source_arguments,
                                 backwards_path_translators=[BackwardsElementwisePathTranslator],
-                                forwards_path_translators=[ForwardsElementwisePathTranslator]
+                                forwards_path_translators=[ForwardsElementwisePathTranslator],
+                                inverters=[functools.partial(ElementwiseInverter, inverse_func=reverse_func)]
                                 )
     else:
         data_source_arguments = list(signature(func).parameters)
@@ -87,7 +102,8 @@ def elementwise(func, reverse_func: Callable):
             func=func,
             data_source_arguments=set(data_source_arguments),
             backwards_path_translators=[BackwardsElementwisePathTranslator],
-            forwards_path_translators=[ForwardsElementwisePathTranslator]
+            forwards_path_translators=[ForwardsElementwisePathTranslator],
+            inverters=[functools.partial(ElementwiseInverter, inverse_func=reverse_func)]
         )
 
 

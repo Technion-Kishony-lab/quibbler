@@ -1,10 +1,12 @@
 from dataclasses import dataclass
-from typing import Callable, Tuple, Any, Mapping, Type
+from typing import Callable, Tuple, Any, Mapping, Type, Dict
 
 from pyquibbler.exceptions import PyQuibblerException
+from pyquibbler.quib.assignment import Path
 from pyquibbler.refactor.func_call import FuncCall
 from pyquibbler.refactor.translation.backwards_path_translator import BackwardsPathTranslator
 from pyquibbler.refactor.translation.forwards_path_translator import ForwardsPathTranslator
+from pyquibbler.refactor.translation.types import Source
 
 
 @dataclass
@@ -30,7 +32,7 @@ def split_path(path):
 
 
 def backwards_translate(func_call: FuncCall,
-                        path, shape=None, type_=None):
+                        path, shape=None, type_=None) -> Dict[Source, Path]:
 
     from pyquibbler.refactor.overriding import get_definition_for_function
     potential_translator_classes = get_definition_for_function(func_call.func).backwards_path_translators

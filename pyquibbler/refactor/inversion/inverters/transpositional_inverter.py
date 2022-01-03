@@ -12,10 +12,6 @@ from pyquibbler.refactor.translation.translate import backwards_translate, forwa
 
 class TranspositionalInverter(Inverter):
 
-    def _get_result_with_assignment_set(self):
-        new_result = deep_copy_without_quibs_or_graphics(self._previous_result)
-        return deep_assign_data_in_path(new_result, self._assignment.path, self._assignment.value)
-
     def get_inversals(self):
         sources_to_paths_in_sources = backwards_translate(
             func_call=self._func_call,

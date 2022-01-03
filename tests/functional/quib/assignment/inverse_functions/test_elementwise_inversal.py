@@ -17,6 +17,7 @@ def inverse(function_quib: FunctionQuib, value, path):
         inversion.apply()
 
 
+# MOVED
 @pytest.mark.parametrize("func,func_args,indices,value,quib_arg_index,expected_value", [
     (np.add, (iquib(np.array([2, 2, 2])), np.array([5, 5, 5])), 0, 10, 0, np.array([5, 2, 2])),
     (np.add, (iquib(np.array([[1, 2, 3], [4, 5, 6]])), np.array([5, 5, 5])), ([1], [2]), 100, 0, np.array([[1, 2, 3], [4, 5, 95]])),
