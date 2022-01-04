@@ -2,6 +2,8 @@ import operator
 from typing import Callable, List, Union
 from typing import Tuple, Any, Mapping
 
+import numpy as np
+
 from pyquibbler.quib.function_quibs.pretty_converters.convert_math_equations import MATH_FUNCS_TO_CONVERTERS, \
     MathExpression
 from pyquibbler.quib.utils import recursively_run_func_on_object
@@ -52,6 +54,11 @@ def getitem_converter(func, pretty_arg_names: List[str]):
     return f"{pretty_arg_names[0]}[{pretty_arg_names[1]}]"
 
 
+def call_converter(func, pretty_arg_names: List[str]):
+    func_being_called, *args = pretty_arg_names
+    return f"{func_being_called}({', '.join(args)})"
+
+
 def get_pretty_args_and_kwargs(args: Tuple[Any, ...], kwargs: Mapping[str, Any]):
     pretty_args = [recursively_run_func_on_object(replace_arg_with_pretty_repr, arg,
                                                   iterable_func=_convert_iterable,
@@ -81,5 +88,6 @@ def get_pretty_value_of_func_with_args_and_kwargs(func: Callable,
 
 CONVERTERS = {
     **MATH_FUNCS_TO_CONVERTERS,
-    operator.getitem: getitem_converter
+    operator.getitem: getitem_converter,
+    np.vectorize.__call__: call_converter
 }

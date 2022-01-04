@@ -49,6 +49,10 @@ class FunctionRunner(ABC):
     cache: Optional[Cache] = None
     default_cache_behavior: CacheBehavior = DEFAULT_CACHE_BEHAVIOR
 
+    @classmethod
+    def from_(cls, func_call: FuncCall, call_func_with_quibs: bool, *args, **kwargs):
+        return cls(func_call, call_func_with_quibs, *args, **kwargs)
+
     @property
     def kwargs(self):
         return self.func_call.args_values.kwargs

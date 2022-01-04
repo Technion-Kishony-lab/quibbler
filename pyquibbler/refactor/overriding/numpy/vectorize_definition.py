@@ -32,7 +32,6 @@ class VectorizeCallDefinition(OverrideDefinition):
                 for key, val in iter_arg_ids_and_values(args, args_values.kwargs) if key not in vectorize.excluded]
 
 
-
 class QVectorize(np.vectorize):
     """
     A small wrapper to the np.vectorize class, adding options to __init__ and wrapping __call__

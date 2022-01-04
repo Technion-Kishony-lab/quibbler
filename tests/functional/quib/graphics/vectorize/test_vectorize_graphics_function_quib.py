@@ -24,6 +24,7 @@ def temp_axes():
     ax.clear()
 
 
+# TODO: move on invalidation
 @parametrize_indices_to_invalidate
 @parametrize_data
 @mark.parametrize('excluded', [{0}, set(), None])
@@ -35,6 +36,7 @@ def test_vectorize_invalidation(indices_to_invalidate, data, excluded, func):
     check_invalidation(np.vectorize(func, **kwargs), data, indices_to_invalidate)
 
 
+# MOVED
 @parametrize_data
 @mark.parametrize('func', [lambda x: np.sum(x)])
 @mark.parametrize('indices_to_get_value_at', [0, (0, 0), (-1, ...)])
@@ -43,6 +45,7 @@ def test_vectorize_get_value_valid_at_path(data, func, indices_to_get_value_at):
     check_get_value_valid_at_path(np.vectorize(func), data, path_to_get_value_at)
 
 
+# TODO: fix
 @mark.parametrize('pass_quibs', [True, False])
 def test_vectorize_get_value_valid_at_path_with_excluded_quib(pass_quibs):
     excluded = MockQuib(np.array([1, 2, 3]))
@@ -63,6 +66,7 @@ def test_vectorize_get_value_valid_at_path_with_excluded_quib(pass_quibs):
     assert valid_paths == [[]]
 
 
+# MOVED
 @mark.parametrize(['quib_data', 'non_quib_data'], [
     (np.zeros((2, 3)), np.zeros((4, 2, 3))),
     (np.zeros((3, 3)), np.zeros((1, 3))),
@@ -74,6 +78,7 @@ def test_vectorize_get_value_valid_at_path_when_args_have_different_loop_dimensi
     check_get_value_valid_at_path(func, non_quib_data, [PathComponent(np.ndarray, 0)])
 
 
+# mOVED
 @mark.parametrize('indices_to_get_value_at', [0, (1, 1), (1, ..., 2)])
 def test_vectorize_get_value_at_path_with_core_dims(indices_to_get_value_at):
     quib_data = np.zeros((2, 2, 3, 4))
@@ -84,6 +89,7 @@ def test_vectorize_get_value_at_path_with_core_dims(indices_to_get_value_at):
                                   [PathComponent(np.ndarray, indices_to_get_value_at)])
 
 
+# TODO: move on invalidate
 def test_vectorize_invalidation_with_non_numpy_return_value():
     vec = np.vectorize(lambda a: int(np.sum(a)), signature='(a)->()')
     check_invalidation(lambda quib: vec(quib), [1, 2, 3], 0)
@@ -120,6 +126,7 @@ def test_vectorize_invalidation_with_different_core_dims(data, indices_to_invali
     check_invalidation(lambda quib: vec(quib, data2), data, indices_to_invalidate)
 
 
+# MOVED
 def test_vectorize_partial_calculation():
     def f(x):
         return x
@@ -138,12 +145,14 @@ def test_vectorize_partial_calculation():
     assert func_mock.call_count == 3, func_mock.mock_calls[3:]
 
 
+# MOVED
 def test_vectorize_get_value_valid_at_path_none():
     quib = np.vectorize(lambda x: x)(iquib([1, 2, 3]))
     value = quib.get_value_valid_at_path(None)
     assert len(value) == 3
 
 
+# MOVED
 def test_vectorize_with_pass_quibs():
     @partial(np.vectorize, pass_quibs=True)
     def vectorized(x):
@@ -153,6 +162,7 @@ def test_vectorize_with_pass_quibs():
     assert np.array_equal(result.get_value(), [1, 2])
 
 
+# MOVED
 def test_vectorize_with_pass_quibs_and_core_dims():
     @partial(np.vectorize, pass_quibs=True, signature='(a)->(x)')
     def vectorized(x):
@@ -162,6 +172,7 @@ def test_vectorize_with_pass_quibs_and_core_dims():
     assert np.array_equal(result.get_value(), np.ones((2, 2)))
 
 
+# TODO: move after doing plot or changing test
 @mark.parametrize('pass_quibs', [True, False])
 def test_vectorize_does_not_redraw_valid_artists(temp_axes, pass_quibs):
     parent = iquib([[1, 2], [3, 4]])
@@ -178,6 +189,7 @@ def test_vectorize_does_not_redraw_valid_artists(temp_axes, pass_quibs):
     assert id(temp_axes.lines[1]) == ids[1]
 
 
+# TODO: Move when figure out evaluate now
 @mark.parametrize('data', [[], [[]]])
 # The tests without quibs are for sanity
 @mark.parametrize('use_quib', [True, False])
@@ -190,6 +202,7 @@ def test_vectorize_with_empty_data_and_no_otypes(data, use_quib):
     assert exc_info.value.args[0] == 'cannot call `vectorize` on size 0 inputs unless `otypes` is set'
 
 
+# MOVED
 def test_lazy_vectorize():
     func_mock = Mock(return_value=5)
     parent = iquib([0, 1, 2, 3])
@@ -202,6 +215,7 @@ def test_lazy_vectorize():
     func_mock.assert_called_once()
 
 
+# MOVED
 def test_vectorize_doesnt_evaluate_sample_when_getting_value():
     func_mock = Mock(return_value=5)
     parent = iquib([0, 1, 2])
@@ -212,6 +226,7 @@ def test_vectorize_doesnt_evaluate_sample_when_getting_value():
     func_mock.assert_called_once_with(1)
 
 
+# MOVED
 def test_vectorize_with_data_with_zero_dims():
     data = iquib(np.array(np.zeros((3, 0, 2))))
     mock_func = Mock()
@@ -222,6 +237,7 @@ def test_vectorize_with_data_with_zero_dims():
     mock_func.assert_not_called()
 
 
+# MOVED
 def test_qvectorize_pretty_repr():
     @np.vectorize
     def my_func():
@@ -245,11 +261,13 @@ def vectorized_func_with_signature(signature):
     return my_func
 
 
+# MOVED
 def test_qvectorize_pretty_repr_with_signature(vectorized_func_with_signature, signature):
     with PRETTY_REPR.temporary_set(True):
         assert repr(vectorized_func_with_signature) == f"np.vectorize(my_func, {signature})"
 
 
+# MOVED
 @mark.get_variable_names(True)
 def test_vectorize_pretty_repr(vectorized_func_with_signature, signature):
     a = iquib("pasten")
@@ -260,6 +278,7 @@ def test_vectorize_pretty_repr(vectorized_func_with_signature, signature):
         assert quib.pretty_repr() == f"quib = np.vectorize(my_func, {signature})(a, b)"
 
 
+# TODO: move
 def test_assignment_to_quib_within_vectorize_is_translated_to_override_on_vectorize():
     parent = iquib(0)
 

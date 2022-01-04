@@ -8,6 +8,7 @@ from pyquibbler.quib.function_quibs.external_call_failed_exception_handling impo
     external_call_failed_exception_handling
 from pyquibbler.quib.function_quibs.utils import create_empty_array_with_values_at_indices
 from pyquibbler.quib.graphics.axiswise_function_quibs.vectorize.vectorize_metadata import VectorizeMetadata
+from pyquibbler.refactor.func_call import FuncCall
 from pyquibbler.refactor.graphics.utils import remove_created_graphics
 from pyquibbler.refactor.quib.func_call_utils import get_func_call_with_quibs_valid_at_paths
 from pyquibbler.refactor.quib.function_runners import FunctionRunner, DefaultFunctionRunner
@@ -24,6 +25,15 @@ from pyquibbler.utils import convert_args_and_kwargs
 
 
 class VectorizeCallFunctionRunner(DefaultFunctionRunner):
+
+    @classmethod
+    def from_(cls, func_call: FuncCall, call_func_with_quibs: bool, *args, **kwargs):
+        if not call_func_with_quibs:
+            vectorize = func_call.args[0]
+            call_func_with_quibs = vectorize.pass_quibs
+
+        return cls(func_call=func_call,
+                   call_func_with_quibs=call_func_with_quibs, *args, **kwargs)
 
     def _wrap_vectorize_call_to_pass_quibs(self, call: VectorizeCall, args_metadata,
                                            results_core_ndims) -> VectorizeCall:

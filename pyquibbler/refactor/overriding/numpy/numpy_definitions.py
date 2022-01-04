@@ -6,7 +6,7 @@ import numpy as np
 from pyquibbler.refactor.inversion import TranspositionalInverter
 from pyquibbler.refactor.overriding.numpy.elementwise_definitions import create_elementwise_definitions
 from pyquibbler.refactor.overriding.numpy.numpy_definition import numpy_definition
-from pyquibbler.refactor.overriding.numpy.vectorize import VectorizeDefinition, create_vectorize_definitions
+from pyquibbler.refactor.overriding.numpy.vectorize_definition import VectorizeDefinition, create_vectorize_definitions
 from pyquibbler.refactor.overriding.override_definition import OverrideDefinition
 from pyquibbler.refactor.quib.function_runners.apply_along_axis_function_runner import ApplyAlongAxisFunctionRunner
 from pyquibbler.refactor.translation.translators import BackwardsTranspositionalTranslator, ForwardsTranspositionalTranslator
