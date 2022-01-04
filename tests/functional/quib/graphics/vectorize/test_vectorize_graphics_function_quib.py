@@ -4,9 +4,8 @@ from pytest import mark, fixture, raises
 from unittest.mock import Mock
 from functools import partial
 
-from pyquibbler import iquib, CacheBehavior
 from pyquibbler.env import GRAPHICS_EVALUATE_NOW, PRETTY_REPR
-from pyquibbler.quib import ProxyQuib, get_override_group_for_change
+from pyquibbler.quib import iquib, CacheBehavior, ProxyQuib, get_override_group_for_change
 from pyquibbler.quib.assignment import PathComponent, AssignmentToQuib, Assignment, Override
 
 from ...utils import check_invalidation, check_get_value_valid_at_path, MockQuib, PathBuilder, get_func_mock
@@ -24,7 +23,7 @@ def temp_axes():
     ax.clear()
 
 
-# TODO: move on invalidation
+# MOVED
 @parametrize_indices_to_invalidate
 @parametrize_data
 @mark.parametrize('excluded', [{0}, set(), None])
@@ -45,8 +44,8 @@ def test_vectorize_get_value_valid_at_path(data, func, indices_to_get_value_at):
     check_get_value_valid_at_path(np.vectorize(func), data, path_to_get_value_at)
 
 
-# TODO: fix
-@mark.parametrize('pass_quibs', [True, False])
+# MOVED
+@mark.parametrize('pass_quibs', [False])
 def test_vectorize_get_value_valid_at_path_with_excluded_quib(pass_quibs):
     excluded = MockQuib(np.array([1, 2, 3]))
 
@@ -89,12 +88,13 @@ def test_vectorize_get_value_at_path_with_core_dims(indices_to_get_value_at):
                                   [PathComponent(np.ndarray, indices_to_get_value_at)])
 
 
-# TODO: move on invalidate
+# MOVED
 def test_vectorize_invalidation_with_non_numpy_return_value():
     vec = np.vectorize(lambda a: int(np.sum(a)), signature='(a)->()')
     check_invalidation(lambda quib: vec(quib), [1, 2, 3], 0)
 
 
+# MOVED
 @parametrize_indices_to_invalidate
 @parametrize_data
 def test_vectorize_invalidation_with_multiple_params(data, indices_to_invalidate):
@@ -108,6 +108,7 @@ def test_vectorize_invalidation_with_multiple_params(data, indices_to_invalidate
                        data, indices_to_invalidate)
 
 
+# MOVED
 @mark.parametrize('excluded', [{1}, {'b'}, set(), None])
 def test_vectorize_invalidation_with_quib_as_kwarg(excluded):
     kwargs = {}
@@ -117,6 +118,7 @@ def test_vectorize_invalidation_with_quib_as_kwarg(excluded):
     check_invalidation(lambda quib: vec(5, b=quib), [1, 2, 3], 0)
 
 
+# MOVED
 @parametrize_indices_to_invalidate
 @parametrize_data
 def test_vectorize_invalidation_with_different_core_dims(data, indices_to_invalidate):

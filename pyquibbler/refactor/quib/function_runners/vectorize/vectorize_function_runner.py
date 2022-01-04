@@ -10,7 +10,7 @@ from pyquibbler.quib.function_quibs.utils import create_empty_array_with_values_
 from pyquibbler.quib.graphics.axiswise_function_quibs.vectorize.vectorize_metadata import VectorizeMetadata
 from pyquibbler.refactor.func_call import FuncCall
 from pyquibbler.refactor.graphics.utils import remove_created_graphics
-from pyquibbler.refactor.quib.func_call_utils import get_func_call_with_quibs_valid_at_paths
+from pyquibbler.refactor.quib.func_call_utils import get_func_call_with_quibs_valid_at_paths, get_data_source_quibs
 from pyquibbler.refactor.quib.function_runners import FunctionRunner, DefaultFunctionRunner
 from pyquibbler.refactor.quib.function_runners.utils import cache_method_until_full_invalidation
 from pyquibbler.refactor.quib.function_runners.vectorize.utils import alter_signature, copy_vectorize, \
@@ -90,6 +90,10 @@ class VectorizeCallFunctionRunner(DefaultFunctionRunner):
         return VectorizeCall(new_vectorize, args, kwargs, quibs_to_guard)
 
     def _backwards_translate_path(self, valid_path: Path) -> Dict[Quib, Path]:
+        # TODO: nicer way?
+        if not get_data_source_quibs(self.func_call):
+            return {}
+
         # TODO: try without shape/type + args
         func_call, sources_to_quibs = get_func_call_for_translation(self.func_call,  {})
 
