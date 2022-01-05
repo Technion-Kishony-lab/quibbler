@@ -34,10 +34,6 @@ from pyquibbler.refactor.translation.types import Source
 from pyquibbler.utils import convert_args_and_kwargs
 
 
-if TYPE_CHECKING:
-    from pyquibbler.refactor.overriding.override_definition import OverrideDefinition
-
-
 @dataclass
 class FunctionRunner(ABC):
 
@@ -54,8 +50,11 @@ class FunctionRunner(ABC):
     default_cache_behavior: CacheBehavior = DEFAULT_CACHE_BEHAVIOR
 
     @classmethod
-    def from_(cls, func_call: FuncCall, call_func_with_quibs: bool, *args, **kwargs):
-        return cls(func_call, call_func_with_quibs, *args, **kwargs)
+    def from_(cls, evaluate_now, func_call: FuncCall, call_func_with_quibs: bool, *args, **kwargs):
+        self = cls(func_call, call_func_with_quibs, *args, **kwargs)
+        if evaluate_now:
+            self.get_value_valid_at_path([])
+        return self
 
     @property
     def kwargs(self):

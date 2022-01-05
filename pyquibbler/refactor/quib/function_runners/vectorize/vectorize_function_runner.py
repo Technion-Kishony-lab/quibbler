@@ -1,3 +1,4 @@
+import time
 from functools import cached_property
 from typing import Optional, Dict
 
@@ -27,13 +28,12 @@ from pyquibbler.utils import convert_args_and_kwargs
 class VectorizeCallFunctionRunner(DefaultFunctionRunner):
 
     @classmethod
-    def from_(cls, func_call: FuncCall, call_func_with_quibs: bool, *args, **kwargs):
+    def from_(cls, evaluate_now: bool, func_call: FuncCall, call_func_with_quibs: bool, *args, **kwargs):
         vectorize = func_call.args[0]
-        if not call_func_with_quibs:
-            call_func_with_quibs = vectorize.pass_quibs
+        call_func_with_quibs = call_func_with_quibs or vectorize.pass_quibs
         self = cls(func_call=func_call,
                    call_func_with_quibs=call_func_with_quibs, *args, **kwargs)
-        evaluate_now = vectorize.evaluate_now
+        evaluate_now = evaluate_now or vectorize.evaluate_now
         if evaluate_now:
             self.get_value_valid_at_path([])
         return self
@@ -100,9 +100,6 @@ class VectorizeCallFunctionRunner(DefaultFunctionRunner):
         # TODO: try without shape/type + args
         func_call, sources_to_quibs = get_func_call_for_translation(self.func_call,  {})
 
-        if not sources_to_quibs:
-            return {}
-
         sources_to_paths = VectorizeBackwardsPathTranslator(
             func_call=func_call,
             path=valid_path,
@@ -151,6 +148,7 @@ class VectorizeCallFunctionRunner(DefaultFunctionRunner):
         (vectorize, *args), kwargs = func_call.args, func_call.kwargs
         return VectorizeCall(vectorize, args, kwargs).get_metadata(self._get_sample_result)
 
+    @cache_method_until_full_invalidation
     def _get_loop_shape(self):
         if self._vectorize_metadata.is_result_a_tuple:
             return ()
@@ -194,6 +192,7 @@ class VectorizeCallFunctionRunner(DefaultFunctionRunner):
                                    otypes=otypes)
         return VectorizeCall(vectorize, (*args_to_add, *call.args), call.kwargs)
 
+    @cache_method_until_full_invalidation
     def get_result_metadata(self) -> Dict:
         return {
             **super(VectorizeCallFunctionRunner, self).get_result_metadata(),
@@ -206,6 +205,7 @@ class VectorizeCallFunctionRunner(DefaultFunctionRunner):
             return super()._run_on_path(valid_path)
         if valid_path is None:
             return np.zeros(vectorize_metadata.result_shape, dtype=vectorize_metadata.result_dtype)
+
         call = self._get_vectorize_call(vectorize_metadata.args_metadata,
                                         vectorize_metadata.result_or_results_core_ndims, valid_path)
         call = self._wrap_vectorize_call_to_calc_only_needed(call, valid_path, vectorize_metadata.otypes)

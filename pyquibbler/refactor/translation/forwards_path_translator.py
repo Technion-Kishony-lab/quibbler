@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Dict, Optional, Tuple, Type, Any
+from typing import Dict, Optional, Tuple, Type, Any, List
 
 import numpy as np
 
@@ -25,7 +25,7 @@ class ForwardsPathTranslator(Translator):
     def _forward_translate_indices_to_bool_mask(self, source: Source, indices: Any):
         pass
 
-    def _forward_translate_source(self, source: Source, path: Path):
+    def _forward_translate_source(self, source: Source, path: Path) -> List[Path]:
         bool_mask_in_output_array = self._forward_translate_indices_to_bool_mask(source, working_component(path))
         if np.any(bool_mask_in_output_array):
             # If there exist both True's and False's in the boolean mask,

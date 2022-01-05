@@ -89,7 +89,8 @@ def create_quib(func, args=(), kwargs=None, cache_behavior=None, evaluate_now=Fa
         graphics_collections=None,
         is_known_graphics_func=is_known_graphics_func,
         is_random_func=is_random_func,
-        default_cache_behavior=cache_behavior or FunctionRunner.DEFAULT_CACHE_BEHAVIOR
+        default_cache_behavior=cache_behavior or FunctionRunner.DEFAULT_CACHE_BEHAVIOR,
+        evaluate_now=evaluate_now
     )
 
     quib = Quib(function_runner=runner,
@@ -102,8 +103,5 @@ def create_quib(func, args=(), kwargs=None, cache_behavior=None, evaluate_now=Fa
 
     for arg in iter_quibs_in_args(args, kwargs):
         arg.add_child(quib)
-
-    if evaluate_now:
-        quib.get_value()
 
     return quib
