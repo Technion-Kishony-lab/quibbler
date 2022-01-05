@@ -35,7 +35,7 @@ class NumpyForwardsPathTranslator(ForwardsPathTranslator):
 
     def translate(self):
         return {
-            # TODO: THIS AUTO RETURNING OF [] IS INCORRECT IF PATH IS EMPTY, IN SOME EDGE CASES THIS DOESN'T HOLD
+            # TODO: THIS AUTO RETURNING OF [[]] IS INCORRECT IF PATH IS EMPTY, IN SOME EDGE CASES THIS DOESN'T HOLD
             source: self._forward_translate_source(source, path) if len(path) != 0 else [[]]
             for source, path in self._sources_to_paths.items()
         }

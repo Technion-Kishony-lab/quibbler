@@ -3,7 +3,7 @@ from __future__ import annotations
 import functools
 import math
 from inspect import signature
-from typing import Callable
+from typing import Callable, List, Union
 
 import numpy as np
 from numpy.core import ufunc
@@ -24,13 +24,22 @@ def get_inverter_for_func(func: Callable):
     return FUNCS_TO_INVERTERS[func]
 
 
-def elementwise(func, inverse_func: Callable, data_source_arguments=None, module_or_cls=np):
+def elementwise(func: Callable,
+                inverse_func: Callable = None,
+                data_source_arguments: List[Union[str, int]] = None,
+                module_or_cls=np):
+    """
+    Create an elementwise override together with it's function definition
+    """
     from pyquibbler.refactor.translation.translators.elementwise.elementwise_translator import \
         BackwardsElementwisePathTranslator
 
-    FUNCS_TO_INVERTERS[func] = functools.partial(ElementwiseInverter, inverse_func=inverse_func)
+    if inverse_func:
+        FUNCS_TO_INVERTERS[func] = functools.partial(ElementwiseInverter, inverse_func=inverse_func)
 
     if data_source_arguments is None:
+        # Our default is to consider all arguments data sources for elementwise functions- if this is not true for your
+        # particular case, specify data_source_arguments
         if isinstance(func, ufunc):
             data_source_arguments = list(range(func.nin))
         else:
@@ -43,7 +52,7 @@ def elementwise(func, inverse_func: Callable, data_source_arguments=None, module
             data_source_arguments=data_source_arguments,
             backwards_path_translators=[BackwardsElementwisePathTranslator],
             forwards_path_translators=[ForwardsElementwisePathTranslator],
-            inverters=[FUNCS_TO_INVERTERS[func]]
+            inverters=[FUNCS_TO_INVERTERS[func]] if inverse_func else []
         )
     )
 
@@ -125,8 +134,15 @@ def create_elementwise_overrides():
         single_arg_many_to_one(np.square, ((np.sqrt, None), (lambda x: -np.sqrt(x), None))),
         single_arg_many_to_one(np.abs, ((identity, None), (lambda x: -x, None))),
     ]
+
+    rounding_funcs = [
+        elementwise(func, data_source_arguments=[0])
+        for func in [np.around, np.ceil, np.round, np.rint]
+    ]
+
     return [
         *multi_arg_funcs,
         *single_arg_funcs,
         *single_arg_many_to_one_funcs,
+        *rounding_funcs
     ]
