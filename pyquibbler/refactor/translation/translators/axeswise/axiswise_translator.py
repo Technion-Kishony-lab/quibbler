@@ -3,8 +3,8 @@ from typing import Dict, List, Any
 
 import numpy as np
 
-from pyquibbler.quib import PathComponent
-from pyquibbler.refactor.path.path_component import Path
+from pyquibbler.refactor.path import PathComponent
+from pyquibbler.refactor.path import Path
 from pyquibbler.quib.function_quibs.utils import create_empty_array_with_values_at_indices
 from pyquibbler.quib.graphics.axiswise_function_quibs.axiswise_function_quib import Arg
 from pyquibbler.refactor.translation.backwards_path_translator import BackwardsPathTranslator

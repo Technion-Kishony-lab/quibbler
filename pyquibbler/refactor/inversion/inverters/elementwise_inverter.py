@@ -39,9 +39,9 @@ class ElementwiseInverter(Inverter):
         """
         all_ancestors = set()
         for arg in iter_objects_of_type_in_object_recursively(Source, self._func_call.args):
-            from pyquibbler.quib import FunctionQuib
             arg_and_ancestors = {arg}
-            if isinstance(arg, FunctionQuib):
+            from pyquibbler.refactor.quib import Quib
+            if isinstance(arg, Quib):
                 arg_and_ancestors |= arg.ancestors
 
             if all_ancestors & arg_and_ancestors:

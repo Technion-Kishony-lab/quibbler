@@ -2,9 +2,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Tuple, Any, Mapping, Optional, Callable, List, TYPE_CHECKING
 
-from pyquibbler.quib.function_quibs.external_call_failed_exception_handling import \
+from pyquibbler.refactor.quib.external_call_failed_exception_handling import \
     external_call_failed_exception_handling
-from pyquibbler.quib.utils import iter_args_and_names_in_function_call
+from pyquibbler.refactor.iterators import iter_args_and_names_in_function_call
 
 if TYPE_CHECKING:
     from pyquibbler.refactor.function_definitions import FunctionDefinition

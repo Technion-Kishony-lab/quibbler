@@ -6,7 +6,7 @@ from matplotlib.artist import Artist
 from matplotlib.widgets import AxesWidget
 
 from pyquibbler.refactor.graphics.attribute_copying import update_new_artists_from_previous_artists
-from pyquibbler.quib.function_quibs.external_call_failed_exception_handling import \
+from pyquibbler.refactor.quib.external_call_failed_exception_handling import \
     external_call_failed_exception_handling
 from pyquibbler.refactor.graphics.global_collecting import ArtistsCollector, AxesWidgetsCollector
 from pyquibbler.refactor.graphics.utils import get_artist_array, \

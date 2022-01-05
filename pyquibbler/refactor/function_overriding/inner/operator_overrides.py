@@ -11,15 +11,6 @@ from pyquibbler.refactor.function_definitions.function_definition import create_
 from pyquibbler.refactor.function_overriding.function_override import FunctionOverride
 from pyquibbler.refactor.function_overriding.third_party_overriding.numpy.elementwise_overrides import \
     get_inverter_for_func, create_elementwise_overrides
-from pyquibbler.refactor.inversion.inverters.getitem_inverter import GetItemInverter
-
-from pyquibbler.refactor.function_definitions.types import PositionalArgument, KeywordArgument
-
-
-from pyquibbler.refactor.translation.translators import BackwardsGetItemTranslator
-from pyquibbler.refactor.translation.translators.elementwise.elementwise_translator import \
-    BackwardsElementwisePathTranslator, ForwardsElementwisePathTranslator
-from pyquibbler.refactor.translation.translators.transpositional.getitem_translator import ForwardsGetItemTranslator
 
 
 # TODO: Make order here- why is it one class for mathematical operations that have reversed, etc
@@ -49,16 +40,6 @@ class OperatorOverride(FunctionOverride):
             return get_reversed_func(getattr(operator, regular_func_name))
 
         return getattr(operator, self.func_name)
-
-    #
-    # def override(self):
-    #     super(OperatorOverrideDefinition, self).override()
-    #     if self.override_reverse_operator:
-    #         reverse_func = self.quib_supporting_func(
-    #             lambda quib, other: self._get_func_from_module_or_cls()(other, quib)
-    #         )
-    #         rname = '__r' + self.func_name[2:]
-    #         setattr(self.module_or_cls, rname, reverse_func)
 
 
 def operator_definition(name, data_source_indexes: List = None, inverters: List = None,
@@ -101,6 +82,10 @@ def get_arithmetic_definitions():
     # We need to create elementwise overrides to make sure we have inverters for our elementwise operators
     create_elementwise_overrides()
 
+    from pyquibbler.refactor.translation.translators.elementwise.elementwise_translator import \
+        BackwardsElementwisePathTranslator
+    from pyquibbler.refactor.translation.translators.elementwise.elementwise_translator import \
+        ForwardsElementwisePathTranslator
     return [
         *with_reverse_operator_definition('__add__', [0, 1], [get_inverter_for_func(np.add)],
                                           backwards_path_translators=[BackwardsElementwisePathTranslator],
@@ -138,6 +123,9 @@ def get_unary_definitions():
 
 
 def get_operator_definitions():
+    from pyquibbler.refactor.inversion.inverters.getitem_inverter import GetItemInverter
+    from pyquibbler.refactor.translation.translators import BackwardsGetItemTranslator
+    from pyquibbler.refactor.translation.translators.transpositional.getitem_translator import ForwardsGetItemTranslator
 
     comparison_definitions = [
         operator_definition('__lt__'),

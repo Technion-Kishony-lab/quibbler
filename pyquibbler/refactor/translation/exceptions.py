@@ -1,8 +1,11 @@
+from __future__ import annotations
 from dataclasses import dataclass
-from typing import Callable
+from typing import Callable, TYPE_CHECKING
 
 from pyquibbler.exceptions import PyQuibblerException
-from pyquibbler.refactor.function_definitions.func_call import FuncCall
+
+if TYPE_CHECKING:
+    from pyquibbler.refactor.function_definitions.func_call import FuncCall
 
 
 class TranslationException(PyQuibblerException):

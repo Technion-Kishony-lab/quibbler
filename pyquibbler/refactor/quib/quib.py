@@ -34,8 +34,9 @@ from pyquibbler.quib.utils import quib_method, Unpacker
 from pyquibbler.refactor.quib.cache_behavior import CacheBehavior, UnknownCacheBehaviorException
 from pyquibbler.refactor.quib.exceptions import OverridingNotAllowedException, UnknownUpdateTypeException, \
     InvalidCacheBehaviorForQuibException
-from pyquibbler.refactor.quib.graphics import UpdateType
-from pyquibbler.refactor.quib.iterators import iter_quibs_in_args, recursively_run_func_on_object
+from pyquibbler.refactor.quib.graphics import UpdateType, is_within_drag
+from pyquibbler.refactor.quib.iterators import iter_quibs_in_args
+from pyquibbler.refactor.iterators import recursively_run_func_on_object
 from pyquibbler.refactor.quib.repr.repr_mixin import ReprMixin
 from pyquibbler.refactor.translation.translate import forwards_translate, NoTranslatorsFoundException
 
@@ -176,7 +177,6 @@ class Quib(ReprMixin):
         except InvalidTypeException as e:
             raise InvalidTypeException(e.type_) from None
 
-        from pyquibbler.quib.graphics.widgets import is_within_drag
         if not is_within_drag():
             self.project.push_assignment_to_undo_stack(quib=self,
                                                        assignment=assignment,

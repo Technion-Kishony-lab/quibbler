@@ -6,7 +6,7 @@ from typing import Callable
 
 from pyquibbler.refactor.function_overriding.third_party_overriding.graphics.graphics_overriding import GraphicsOverride
 from pyquibbler.refactor.graphics import global_collecting
-from pyquibbler.quib import PathComponent
+from pyquibbler.refactor.path import PathComponent
 from pyquibbler.refactor.function_definitions.func_call import ArgsValues
 
 

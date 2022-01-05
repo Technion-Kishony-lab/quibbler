@@ -2,9 +2,8 @@ from collections import defaultdict
 from typing import Any, List, Tuple
 from matplotlib.backend_bases import PickEvent, MouseEvent, MouseButton
 
-from pyquibbler import Assignment
 from pyquibbler.quib import PathComponent
-from pyquibbler.refactor.assignment import AssignmentToQuib
+from pyquibbler.refactor.assignment import AssignmentToQuib, Assignment
 from .graphics_inverse_assigner import graphics_inverse_assigner
 from pyquibbler.refactor.assignment.override_choice import OverrideRemoval, OverrideGroup
 from pyquibbler.refactor.assignment.override_choice.override_choice import get_overrides_for_quib_change_group

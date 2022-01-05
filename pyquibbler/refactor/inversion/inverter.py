@@ -1,7 +1,7 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 
-from pyquibbler.quib.utils import deep_copy_without_quibs_or_graphics
+from pyquibbler.refactor.quib.utils import deep_copy_without_quibs_or_graphics
 from pyquibbler.refactor.function_definitions.func_call import FuncCall
 from pyquibbler.refactor.path.data_accessing import deep_assign_data_in_path
 

@@ -49,32 +49,6 @@ def _ensure_cache_matches_result(cache: Optional[Cache], new_result: Any):
     return cache
 
 
-def _get_cache_updated_with_result(result, uncached_path, cache):
-    truncated_path = _truncate_path_to_match_shallow_caches(uncached_path)
-
-    cache = _ensure_cache_matches_result(cache, result)
-
-    if uncached_path is not None:
-        try:
-            cache = transform_cache_to_nd_if_necessary_given_path(cache, truncated_path)
-            value = get_cached_data_at_truncated_path_given_result_at_uncached_path(cache,
-                                                                                    result,
-                                                                                    truncated_path,
-                                                                                    uncached_path)
-
-            cache.set_valid_value_at_path(truncated_path, value)
-        except PathCannotHaveComponentsException:
-            # We do not have a diverged cache for this type, we can't store the value; this is not a problem as
-            # everything will work as expected, but we will simply not cache
-            assert len(uncached_paths) == 1, "There should never be a situation in which we have multiple " \
-                                             "uncached paths but our cache can't handle setting a value at a " \
-                                             "specific component"
-            return
-        else:
-            # sanity
-            assert len(cache.get_uncached_paths(truncated_path)) == 0
-
-
 def run_func_on_uncached_paths(cache: Optional[Cache],
                                func_call: FuncCall,
                                truncated_path: List[PathComponent],
@@ -158,16 +132,3 @@ def _get_uncached_paths_matching_path(cache: Optional[Cache], path: [List['PathC
         uncached_paths = [path]
 
     return uncached_paths
-
-
-def get_cache_value_valid_at_path(func_call: FuncCall,
-                                  current_cache: Cache,
-                                  path: Path):
-    truncated_path = _truncate_path_to_match_shallow_caches(path)
-    uncached_paths = _get_uncached_paths_matching_path(current_cache, truncated_path)
-
-    if len(uncached_paths) == 0:
-        return current_cache
-
-    return run_func_on_uncached_paths(current_cache, func_call, truncated_path, uncached_paths)
-

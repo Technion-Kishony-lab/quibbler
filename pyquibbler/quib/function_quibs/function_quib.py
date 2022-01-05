@@ -16,7 +16,8 @@ from pyquibbler.quib.assignment.override_choice import get_override_group_for_ch
 from ..assignment import AssignmentTemplate, Assignment, PathComponent, AssignmentToQuib
 from ..quib import Quib
 from ..utils import is_there_a_quib_in_args, iter_quibs_in_args, deep_copy_without_quibs_or_graphics, \
-    recursively_run_func_on_object, QuibRef
+    recursively_run_func_on_object
+from ...refactor.quib.quib_ref import QuibRef
 from ...env import EVALUATE_NOW, PRETTY_REPR
 from ...exceptions import PyQuibblerException
 from ...input_validation_utils import validate_user_input

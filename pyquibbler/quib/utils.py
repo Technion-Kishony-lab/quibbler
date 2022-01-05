@@ -11,6 +11,7 @@ from typing import Any, Optional, Set, TYPE_CHECKING, Callable, Tuple, Dict, Typ
 
 from pyquibbler.env import DEBUG
 from pyquibbler.exceptions import DebugException, PyQuibblerException
+from pyquibbler.refactor.quib.quib_ref import QuibRef
 
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib, FunctionQuib
@@ -20,15 +21,6 @@ if TYPE_CHECKING:
 # tuple, which requires two levels of scanning.
 SHALLOW_MAX_DEPTH = 2
 SHALLOW_MAX_LENGTH = 100
-
-
-@dataclass
-class QuibRef:
-    """
-    Wraps a quib when passed as an argument to a quib-supporting function,
-    in order to signal that the function expects the quib itself and not its value.
-    """
-    quib: Quib
 
 
 def iter_args_and_names_in_function_call(func: Callable, args: Tuple[Any, ...], kwargs: Mapping[str, Any],

@@ -5,7 +5,7 @@ import numpy as np
 from pyquibbler.refactor.translation.translators.transpositional.transpositional_path_translator import \
     BackwardsTranspositionalTranslator, ForwardsTranspositionalTranslator
 from pyquibbler.refactor.translation.types import Source
-from pyquibbler.quib import PathComponent
+from pyquibbler.refactor.path import PathComponent
 from pyquibbler.refactor.path.path_component import Path
 from pyquibbler.refactor.translation.utils import copy_and_replace_sources_with_vals
 

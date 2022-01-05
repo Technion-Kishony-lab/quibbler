@@ -9,8 +9,6 @@ import sys
 from typing import Optional, Set, TYPE_CHECKING, List
 
 from pyquibbler.exceptions import PyQuibblerException
-from pyquibbler.quib.actions import Action, AssignmentAction
-from pyquibbler.quib.assignment.assignment import get_hashable_path
 
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib
@@ -158,6 +156,7 @@ class Project:
         if assignment is not None:
             weak_ref = weakref.ref(quib, lambda k: self._quib_refs_to_paths_to_released_assignments.pop(k))
             paths_to_released_assignments = self._quib_refs_to_paths_to_released_assignments[weak_ref]
+            from pyquibbler.refactor.assignment.assignment import get_hashable_path
             paths_to_released_assignments[get_hashable_path(assignment.path)] = assignment
 
     def undo(self):
@@ -201,6 +200,7 @@ class Project:
 
     def push_assignment_to_undo_stack(self, quib, overrider, assignment, index):
         from pyquibbler.quib.actions import AssignmentAction
+        from pyquibbler.refactor.assignment.assignment import get_hashable_path
         assignment_hashable_path = get_hashable_path(assignment.path)
         previous_assignment = self._quib_refs_to_paths_to_released_assignments.get(weakref.ref(quib), {}).get(
             assignment_hashable_path

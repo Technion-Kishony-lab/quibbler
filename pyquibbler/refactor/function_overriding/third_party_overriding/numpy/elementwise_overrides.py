@@ -10,7 +10,6 @@ from numpy.core import ufunc
 
 from pyquibbler.refactor.function_definitions.function_definition import create_function_definition
 from pyquibbler.refactor.function_overriding.function_override import FunctionOverride
-from pyquibbler.refactor.inversion.inverters.elementwise_inverter import ElementwiseInverter
 from pyquibbler.refactor.translation.translators.elementwise.elementwise_translator import \
     ForwardsElementwisePathTranslator
 from pyquibbler.refactor.translation.translators.elementwise.generic_inverse_functions import \
@@ -33,7 +32,7 @@ def elementwise(func: Callable,
     """
     from pyquibbler.refactor.translation.translators.elementwise.elementwise_translator import \
         BackwardsElementwisePathTranslator
-
+    from pyquibbler.refactor.inversion.inverters.elementwise_inverter import ElementwiseInverter
     if inverse_func:
         FUNCS_TO_INVERTERS[func] = functools.partial(ElementwiseInverter, inverse_func=inverse_func)
 

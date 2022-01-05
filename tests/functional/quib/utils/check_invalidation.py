@@ -3,7 +3,8 @@ from operator import or_
 from functools import reduce
 from typing import Set
 
-from pyquibbler.quib import Quib, iquib, CacheBehavior
+from pyquibbler import CacheBehavior
+from pyquibbler.quib import Quib, iquib
 from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
 
 
