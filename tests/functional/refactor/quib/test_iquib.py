@@ -17,6 +17,14 @@ def test_iquib_is_overridable():
     assert quib.get_value() == 10
 
 
+def test_iquib_is_overridable():
+    quib = iquib(3)
+
+    quib.assign_value(10)
+
+    assert quib.get_value() == 10
+
+
 @pytest.mark.get_variable_names(True)
 def test_iquib_pretty_repr():
     quib = iquib(10)

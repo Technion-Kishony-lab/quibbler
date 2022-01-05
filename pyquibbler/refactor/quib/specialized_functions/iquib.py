@@ -1,8 +1,11 @@
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, List
 
 from pyquibbler.env import DEBUG
 from pyquibbler.exceptions import DebugException
+from pyquibbler.quib.assignment import Path
+from pyquibbler.refactor.function_definitions import add_definition_for_function
+from pyquibbler.refactor.function_definitions.function_definition import create_function_definition
 from pyquibbler.refactor.quib.cache_behavior import CacheBehavior
 from pyquibbler.refactor.quib.factory import create_quib
 
@@ -11,6 +14,8 @@ from pyquibbler.refactor.quib.quib import Quib
 
 # TODO: should iquib simply be a function that is overridden? How would we handle all flags etc?
 from pyquibbler.refactor.quib.utils import is_there_a_quib_in_object
+from pyquibbler.refactor.translation.forwards_path_translator import ForwardsPathTranslator
+from pyquibbler.refactor.translation.types import Source
 
 
 @dataclass
@@ -42,3 +47,16 @@ def iquib(value: Any):
         evaluate_now=True,
         cache_behavior=CacheBehavior.ON
     )
+
+
+class IQuibForwardsPathTranslator(ForwardsPathTranslator):
+    def _forward_translate_source(self, source: Source, path: Path) -> List[Path]:
+        return [path]
+
+
+iquib_definition = create_function_definition(
+    forwards_path_translators=[IQuibForwardsPathTranslator],
+    data_source_arguments=[0]
+)
+
+add_definition_for_function(func=identity_function, function_definition=iquib_definition)

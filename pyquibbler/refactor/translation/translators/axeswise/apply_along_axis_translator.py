@@ -9,6 +9,7 @@ from pyquibbler.refactor.func_call import FuncCall
 from pyquibbler.quib.graphics.axiswise_function_quibs.axiswise_function_quib import Arg
 from pyquibbler.refactor.translation.backwards_path_translator import BackwardsPathTranslator
 from pyquibbler.refactor.translation.forwards_path_translator import ForwardsPathTranslator
+from pyquibbler.refactor.translation.numpy_forwards_path_translator import NumpyForwardsPathTranslator
 from pyquibbler.refactor.translation.types import Source
 
 
@@ -32,7 +33,7 @@ class ApplyAlongAxis:
                      range(self.axis, self.axis - func_result_ndim, -1))
 
 
-class ApplyAlongAxisForwardsTranslator(ForwardsPathTranslator):
+class ApplyAlongAxisForwardsTranslator(NumpyForwardsPathTranslator):
     TRANSLATION_RELATED_ARGS = [Arg('axis')]
 
     def _get_translation_related_arg_dict(self):

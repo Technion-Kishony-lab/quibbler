@@ -7,6 +7,7 @@ from pyquibbler.refactor.quib.assignment.assignment import get_nd_working_compon
 from pyquibbler.quib.function_quibs.utils import create_empty_array_with_values_at_indices, unbroadcast_bool_mask
 from pyquibbler.refactor.translation.backwards_path_translator import BackwardsPathTranslator
 from pyquibbler.refactor.translation.forwards_path_translator import ForwardsPathTranslator
+from pyquibbler.refactor.translation.numpy_forwards_path_translator import NumpyForwardsPathTranslator
 from pyquibbler.refactor.translation.types import Source
 
 
@@ -37,7 +38,7 @@ class BackwardsElementwisePathTranslator(BackwardsPathTranslator):
         return result
 
 
-class ForwardsElementwisePathTranslator(ForwardsPathTranslator):
+class ForwardsElementwisePathTranslator(NumpyForwardsPathTranslator):
 
     def _forward_translate_indices_to_bool_mask(self, source: Source, indices: Any):
         """

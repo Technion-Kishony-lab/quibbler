@@ -361,16 +361,19 @@ class Quib(ReprMixin):
         from pyquibbler.refactor.quib.translation_utils import get_func_call_for_translation
         from pyquibbler.refactor.quib.func_call_utils import is_quib_a_data_source
 
-        if len(path) == 0 or not is_quib_a_data_source(self._function_runner.func_call, invalidator_quib):
-            # We want to completely invalidate our children
-            # if either a parameter changed or a data quib changed completely (at entire path)
+        # REMEMBER THE POTENTIAL ISSUES
+        # if len(path) == 0 or not is_quib_a_data_source(self._function_runner.func_call, invalidator_quib):
+        #     # We want to completely invalidate our children
+        #     # if either a parameter changed or a data quib changed completely (at entire path)
+        #     return [[]]
+        if not is_quib_a_data_source(self._function_runner.func_call, invalidator_quib):
             return [[]]
 
         func_call, sources_to_quibs = get_func_call_for_translation(self._function_runner.func_call, {})
         quibs_to_sources = {quib: source for source, quib in sources_to_quibs.items()}
-
-        if invalidator_quib not in quibs_to_sources:
-            return []
+        #
+        # if invalidator_quib not in quibs_to_sources:
+        #     return []
 
         try:
             sources_to_new_paths = forwards_translate(

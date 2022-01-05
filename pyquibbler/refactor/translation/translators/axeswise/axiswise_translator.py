@@ -12,9 +12,6 @@ from pyquibbler.refactor.translation.forwards_path_translator import ForwardsPat
 from pyquibbler.refactor.translation.types import Source
 
 
-class AxiswiseForwardsTranslator(ForwardsPathTranslator):
-    pass
-
 
 class AxiswiseBackwardsTranslator(BackwardsPathTranslator):
 

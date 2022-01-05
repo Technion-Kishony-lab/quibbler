@@ -74,8 +74,6 @@ class GraphicsCollection:
                 external_call_failed_exception_handling():
             yield
 
-        if artists_collector.objects_collected:
-            print(1)
         self._handle_new_widgets(new_widgets=widgets_collector.objects_collected)
         self._handle_new_artists(kwargs_specified_in_artists_creation,
                                  previous_axeses_to_array_names_to_indices_and_artists,

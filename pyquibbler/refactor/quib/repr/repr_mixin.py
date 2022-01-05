@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Union
 
+from pyquibbler.env import PRETTY_REPR
 from pyquibbler.logger import logger
 from pyquibbler.refactor.quib.repr.pretty_converters import MathExpression
 
@@ -47,6 +48,9 @@ class ReprMixin(ABC):
         """
         return str(self.get_functional_representation_expression())
 
+    def ugly_repr(self):
+        return f"<{self.__class__.__name__} - {self.func}"
+
     def pretty_repr(self):
         """
         Returns a pretty representation of the quib. Might calculate values of parent quibs.
@@ -55,8 +59,7 @@ class ReprMixin(ABC):
             if self.name is not None else self.functional_representation
 
     def __repr__(self):
-        return f"<{self.__class__.__name__} - {self.func}"
+        return str(self)
 
     def __str__(self):
-        return "QUIBSTR"
-        return self.pretty_repr()
+        return self.pretty_repr() if PRETTY_REPR else self.ugly_repr()

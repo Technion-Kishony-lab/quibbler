@@ -10,3 +10,4 @@ from .quib.assignment import Assignment
 from .refactor.quib import iquib
 from .refactor.quib import CacheBehavior
 from .refactor.user_utils import q
+from .refactor.function_overriding import override_new

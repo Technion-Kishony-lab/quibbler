@@ -17,6 +17,8 @@ from pyquibbler.refactor.quib.function_runners.vectorize.utils import alter_sign
     get_indices_array, iter_arg_ids_and_values
 from pyquibbler.refactor.quib.function_runners.vectorize.vectorize_metadata import VectorizeCall, VectorizeMetadata
 from pyquibbler.refactor.quib.quib import Quib
+from pyquibbler.refactor.quib.specialized_functions import proxy
+from pyquibbler.refactor.quib.specialized_functions.proxy import create_proxy
 from pyquibbler.refactor.quib.translation_utils import get_func_call_for_translation
 from pyquibbler.refactor.quib.utils import copy_and_replace_quibs_with_vals
 from pyquibbler.refactor.translation.translate import backwards_translate, NoTranslatorsFoundException
@@ -35,15 +37,15 @@ class VectorizeCallFunctionRunner(DefaultFunctionRunner):
         """
         args_ids_and_values = list(iter_arg_ids_and_values(call.args, call.kwargs))
         # TODO: Proxies...
-        # non_excluded_quib_args = {arg_id: ProxyQuib(np.asarray(val)) for arg_id, val in args_ids_and_values
-        #                           if isinstance(val, Quib) and arg_id not in call.vectorize.excluded}
-        # excluded_quib_args = {arg_id: ProxyQuib(val) for arg_id, val in args_ids_and_values
-        #                       if isinstance(val, Quib) and arg_id in call.vectorize.excluded}
-
-        non_excluded_quib_args = {arg_id: np.array(val) for arg_id, val in args_ids_and_values
+        non_excluded_quib_args = {arg_id: create_proxy(np.array(val)) for arg_id, val in args_ids_and_values
                                   if isinstance(val, Quib) and arg_id not in call.vectorize.excluded}
-        excluded_quib_args = {arg_id: val for arg_id, val in args_ids_and_values
+        excluded_quib_args = {arg_id: create_proxy(val) for arg_id, val in args_ids_and_values
                               if isinstance(val, Quib) and arg_id in call.vectorize.excluded}
+        #
+        # non_excluded_quib_args = {arg_id: np.array(val) for arg_id, val in args_ids_and_values
+        #                           if isinstance(val, Quib) and arg_id not in call.vectorize.excluded}
+        # excluded_quib_args = {arg_id: val for arg_id, val in args_ids_and_values
+        #                       if isinstance(val, Quib) and arg_id in call.vectorize.excluded}
 
         def convert_quibs_to_indices(arg_id, arg_val):
             if arg_id in non_excluded_quib_args:

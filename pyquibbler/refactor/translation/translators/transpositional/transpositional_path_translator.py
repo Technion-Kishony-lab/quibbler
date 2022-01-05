@@ -5,6 +5,7 @@ from typing import Dict, Callable, Any, List
 
 from pyquibbler.refactor.translation.backwards_path_translator import BackwardsPathTranslator
 from pyquibbler.refactor.translation.forwards_path_translator import ForwardsPathTranslator
+from pyquibbler.refactor.translation.numpy_forwards_path_translator import NumpyForwardsPathTranslator
 from pyquibbler.refactor.translation.translators.transpositional.utils import get_data_source_ids_mask
 from pyquibbler.refactor.translation.types import Source
 from pyquibbler.refactor.translation.utils import call_func_with_sources_values
@@ -135,7 +136,7 @@ class BackwardsTranspositionalTranslator(BackwardsPathTranslator):
         }
 
 
-class ForwardsTranspositionalTranslator(ForwardsPathTranslator):
+class ForwardsTranspositionalTranslator(NumpyForwardsPathTranslator):
 
     @lru_cache()
     def _get_source_ids_mask(self):

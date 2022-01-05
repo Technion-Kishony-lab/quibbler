@@ -22,16 +22,14 @@ def test_vectorize_get_value_valid_at_path(data, func, indices_to_get_value_at):
     check_get_value_valid_at_path(np.vectorize(func), data, path_to_get_value_at)
 
 
-@pytest.mark.parametrize('pass_quibs', [True, False])
+@pytest.mark.parametrize('pass_quibs', [True])
 def test_vectorize_get_value_valid_at_path_with_excluded_quib(pass_quibs):
     excluded = collecting_quib(np.array([1, 2, 3]))
 
     @functools.partial(np.vectorize, excluded={1}, signature='(n)->(m)', pass_quibs=pass_quibs)
     def func(_a, b):
         if pass_quibs:
-            # TODO: proxy_quib
-           # assert isinstance(b, ProxyQuib) and b._quib is excluded
-            assert b is excluded
+            assert b.args[0] is excluded
         return b
 
     fquib = func([0, 1], excluded)
@@ -149,16 +147,10 @@ def temp_axes():
     ax.clear()
 
 
-@pytest.mark.parametrize('pass_quibs', [True])
+@pytest.mark.parametrize('pass_quibs', [True, False])
 def test_vectorize_does_not_redraw_valid_artists(temp_axes, pass_quibs):
-
-    def ploty(*args, **kwargs):
-        print(1)
-        plt.plot(*args, **kwargs)
-        print(2)
-
     parent = iquib([[1, 2], [3, 4]])
-    vectorized_plot = np.vectorize(ploty, signature='(x)->()', otypes=[np.object], pass_quibs=pass_quibs,
+    vectorized_plot = np.vectorize(plt.plot, signature='(x)->()', otypes=[np.object], pass_quibs=pass_quibs,
                                    evaluate_now=True)
     boy = vectorized_plot(parent)
 

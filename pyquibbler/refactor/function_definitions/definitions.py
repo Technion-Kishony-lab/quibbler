@@ -11,9 +11,6 @@ def add_definition_for_function(func: Callable, function_definition: FunctionDef
 
 
 def get_definition_for_function(func: Callable) -> FunctionDefinition:
-    try:
-        if func not in FUNCS_TO_DEFINITIONS:
-            raise CannotFindDefinitionForFunctionException(func)
-        return FUNCS_TO_DEFINITIONS[func]
-    except Exception:
-        raise
+    if func not in FUNCS_TO_DEFINITIONS:
+        raise CannotFindDefinitionForFunctionException(func)
+    return FUNCS_TO_DEFINITIONS[func]
