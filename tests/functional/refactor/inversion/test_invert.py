@@ -3,18 +3,19 @@ from unittest import mock
 import pytest
 
 from pyquibbler.exceptions import PyQuibblerException
+from pyquibbler.refactor.function_definitions.func_call import FuncCall
+from pyquibbler.refactor.inversion.exceptions import NoInvertersFoundException
 from pyquibbler.refactor.inversion.invert import invert
 
 
-# TODO: Do we want to raise an exception on unknown func?
-
-@pytest.mark.skip("Make order in how this shit should fail")
 def test_invert_raises_exception_on_unknown_func():
-    with pytest.raises(PyQuibblerException):
+    with pytest.raises(NoInvertersFoundException):
         invert(
-            func=mock.MagicMock(__name__='unknown'),
-            args=tuple(),
-            kwargs={},
+            func_call=FuncCall.from_function_call(func=mock.MagicMock(__name__='unknown'),
+                args=tuple(),
+                kwargs={},
+                include_defaults=True
+            ),
             assignment=mock.Mock(),
             previous_result=0
         )
