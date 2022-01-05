@@ -9,8 +9,8 @@ from pyquibbler.refactor.translation.translators.transpositional.utils import ge
 from pyquibbler.refactor.translation.types import Source
 from pyquibbler.refactor.translation.utils import call_func_with_sources_values
 from pyquibbler.quib import PathComponent
-from pyquibbler.quib.assignment import Path
-from pyquibbler.quib.assignment.assignment import working_component
+from pyquibbler.refactor.quib.assignment import Path
+from pyquibbler.refactor.quib.assignment.assignment import working_component
 from pyquibbler.quib.function_quibs.utils import create_empty_array_with_values_at_indices
 from pyquibbler.refactor.quib.iterators import recursively_run_func_on_object, SHALLOW_MAX_DEPTH, SHALLOW_MAX_LENGTH
 from pyquibbler.utils import convert_args_and_kwargs

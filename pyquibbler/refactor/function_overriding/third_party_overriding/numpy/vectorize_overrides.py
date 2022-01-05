@@ -3,23 +3,22 @@ from typing import Union
 import numpy as np
 
 from pyquibbler.refactor.func_call import ArgsValues
-from pyquibbler.refactor.overriding import Argument
-from pyquibbler.refactor.overriding.override_definition import OverrideDefinition
-from pyquibbler.refactor.overriding.types import KeywordArgument, PositionalArgument
+from pyquibbler.refactor.function_definitions import FunctionDefinition
+from pyquibbler.refactor.function_overriding.function_override import FunctionOverride
 from pyquibbler.refactor.quib.function_runners.vectorize.vectorize_function_runner import VectorizeCallFunctionRunner
 from pyquibbler.refactor.quib.graphics import UpdateType
 from pyquibbler.env import PRETTY_REPR
 from pyquibbler.refactor.translation.translators.vectorize_translator import VectorizeForwardsPathTranslator
 
 
-class VectorizeDefinition(OverrideDefinition):
+class VectorizeOverride(FunctionOverride):
 
     def _create_quib_supporting_func(self):
         QVectorize.__quibbler_wrapped__ = self.original_func
         return QVectorize
 
 
-class VectorizeCallDefinition(OverrideDefinition):
+class VectorizeCallDefinition(FunctionDefinition):
 
     def get_data_source_argument_values(self, args_values: ArgsValues):
         """
@@ -31,6 +30,16 @@ class VectorizeCallDefinition(OverrideDefinition):
         vectorize, *args = args_values.args
         return [val
                 for key, val in iter_arg_ids_and_values(args, args_values.kwargs) if key not in vectorize.excluded]
+
+
+class VectorizeCallOverride(FunctionOverride):
+
+    def _get_creation_flags(self, args, kwargs):
+        vectorize, *_ = args
+        return {
+            'evaluate_now': vectorize.evaluate_now,
+            'call_func_with_quibs': vectorize.pass_quibs
+        }
 
 
 class QVectorize(np.vectorize):
@@ -54,10 +63,12 @@ class QVectorize(np.vectorize):
         return f"<{self.__class__.__name__} {self.signature}>"
 
 
-def create_vectorize_definitions():
+def create_vectorize_overrides():
     return [
-        VectorizeDefinition(func_name="vectorize", module_or_cls=np),
-        VectorizeCallDefinition(func_name="__call__", module_or_cls=QVectorize,
-                                function_runner_cls=VectorizeCallFunctionRunner,
-                                forwards_path_translators=[VectorizeForwardsPathTranslator])
+        VectorizeOverride(func_name="vectorize", module_or_cls=np),
+        VectorizeCallOverride(func_name="__call__", module_or_cls=QVectorize,
+                          function_definition=VectorizeCallDefinition(
+                              function_runner_cls=VectorizeCallFunctionRunner,
+                              forwards_path_translators=[VectorizeForwardsPathTranslator])
+                          )
     ]

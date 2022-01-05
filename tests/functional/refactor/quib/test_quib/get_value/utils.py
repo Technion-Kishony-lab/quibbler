@@ -6,8 +6,8 @@ from copy import deepcopy
 from typing import Any, Optional, List, Callable, Tuple, Mapping
 
 from pyquibbler import CacheBehavior, Assignment, iquib
-from pyquibbler.quib.assignment import PathComponent, AssignmentTemplate
-from pyquibbler.quib.assignment.overrider import deep_get, deep_assign_data_in_path
+from pyquibbler.refactor.quib.assignment import PathComponent, AssignmentTemplate
+from pyquibbler.refactor.quib.assignment.overrider import deep_get, deep_assign_data_in_path
 from pyquibbler.refactor.quib.quib import Quib
 from tests.functional.quib.utils import PathBuilder
 

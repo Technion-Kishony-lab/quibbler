@@ -21,7 +21,6 @@ class GetItemTestCase:
 
 
 def inverse_getitem(a, b, indices, value, empty_path: bool = False):
-    from pyquibbler.refactor.overriding.overriding import NAMES_TO_DEFINITIONS
     # getitem = NAMES_TO_DEFINITIONS['__getitem__']
     return inverse(func=Quib.__getitem__, args=(a, b), indices=indices, value=value, empty_path=empty_path)
 

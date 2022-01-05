@@ -7,7 +7,7 @@ from pyquibbler.quib.function_quibs.external_call_failed_exception_handling impo
 from pyquibbler.quib.utils import iter_args_and_names_in_function_call
 
 if TYPE_CHECKING:
-    from pyquibbler.refactor.overriding.override_definition import OverrideDefinition
+    from pyquibbler.refactor.function_definitions import FunctionDefinition
 
 
 @dataclass
@@ -28,7 +28,7 @@ class ArgsValues:
     arg_values_by_name: Mapping[str, Any]
 
     def __getitem__(self, item):
-        from pyquibbler.refactor.overriding.types import KeywordArgument, PositionalArgument
+        from pyquibbler.refactor.function_definitions import KeywordArgument, PositionalArgument
 
         if isinstance(item, KeywordArgument):
             return self.arg_values_by_name[item.keyword]
@@ -67,8 +67,8 @@ class FuncCall:
     def from_function_call(cls, func: Callable, args: Tuple[Any, ...], kwargs: Mapping[str, Any], include_defaults):
         return cls(args_values=ArgsValues.from_function_call(func, args, kwargs, include_defaults), func=func)
 
-    def get_func_definition(self) -> OverrideDefinition:
-        from pyquibbler.refactor.overriding import get_definition_for_function
+    def get_func_definition(self) -> FunctionDefinition:
+        from pyquibbler.refactor.function_definitions import get_definition_for_function
         return get_definition_for_function(self.func)
 
     @property
@@ -80,7 +80,7 @@ class FuncCall:
         return self.args_values.kwargs
 
     def get_data_source_argument_values(self) -> List[Any]:
-        from pyquibbler.refactor.overriding import CannotFindDefinitionForFunctionException
+        from pyquibbler.refactor.function_definitions import CannotFindDefinitionForFunctionException
         try:
             return self.get_func_definition().get_data_source_argument_values(self.args_values)
         except CannotFindDefinitionForFunctionException:

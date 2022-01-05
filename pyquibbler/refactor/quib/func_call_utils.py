@@ -1,7 +1,7 @@
 import functools
 from typing import Optional, Dict, Union, Any
 
-from pyquibbler.quib.assignment import Path
+from pyquibbler.refactor.quib.assignment import Path
 from pyquibbler.quib.utils import QuibRef
 from pyquibbler.refactor.func_call import FuncCall
 from pyquibbler.refactor.iterators import iter_objects_of_type_in_object_shallowly

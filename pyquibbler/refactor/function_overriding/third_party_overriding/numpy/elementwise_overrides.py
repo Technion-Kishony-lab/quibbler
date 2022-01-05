@@ -2,23 +2,19 @@ from __future__ import annotations
 
 import functools
 import math
-import operator
 from inspect import signature
-from operator import __truediv__, __sub__, __mul__, __add__, __neg__, __pos__
-from typing import Any, TYPE_CHECKING, Dict, Callable, List, Tuple
+from typing import Callable
 
 import numpy as np
 from numpy.core import ufunc
 
+from pyquibbler.refactor.function_definitions.function_definition import create_function_definition
+from pyquibbler.refactor.function_overriding.function_override import FunctionOverride
 from pyquibbler.refactor.inversion.inverters.elementwise_inverter import ElementwiseInverter
-from pyquibbler.refactor.overriding.numpy.numpy_definition import numpy_definition
-from pyquibbler.refactor.overriding.override_definition import OverrideDefinition
-from pyquibbler.refactor.translation.translators import BackwardsTranspositionalTranslator
 from pyquibbler.refactor.translation.translators.elementwise.elementwise_translator import \
     ForwardsElementwisePathTranslator
 from pyquibbler.refactor.translation.translators.elementwise.generic_inverse_functions import \
     create_inverse_func_from_indexes_to_funcs, create_inverse_single_arg_many_to_one, create_inverse_single_arg_func
-from pyquibbler.refactor.translation.utils import call_func_with_sources_values
 
 
 @functools.lru_cache()
@@ -39,13 +35,15 @@ def elementwise(func, inverse_func: Callable, data_source_arguments=None, module
         else:
             data_source_arguments = list(signature(func).parameters)
             
-    return OverrideDefinition.from_func(
+    return FunctionOverride.from_func(
         module_or_cls=module_or_cls,
         func=func,
-        data_source_arguments=set(data_source_arguments),
-        backwards_path_translators=[BackwardsElementwisePathTranslator],
-        forwards_path_translators=[ForwardsElementwisePathTranslator],
-        inverters=[get_inverter_for_inverse_func(inverse_func)]
+        function_definition=create_function_definition(
+            data_source_arguments=data_source_arguments,
+            backwards_path_translators=[BackwardsElementwisePathTranslator],
+            forwards_path_translators=[ForwardsElementwisePathTranslator],
+            inverters=[get_inverter_for_inverse_func(inverse_func)]
+        )
     )
 
 
@@ -99,7 +97,7 @@ pow_inverse_func = create_inverse_func_from_indexes_to_funcs({
 })
 
 
-def create_elementwise_definitions():
+def create_elementwise_overrides():
 
     multi_arg_funcs = [
         el(np.add, add_inverse_func),
@@ -110,8 +108,6 @@ def create_elementwise_definitions():
    ]
 
     single_arg_funcs = [
-            # single_arg(__neg__, __neg__, module_or_cls=operator),
-            # single_arg(__pos__, __pos__, module_or_cls=operator),
             single_arg(np.sqrt, np.square),
             single_arg(np.arcsin, np.sin),
             single_arg(np.arccos, np.cos),

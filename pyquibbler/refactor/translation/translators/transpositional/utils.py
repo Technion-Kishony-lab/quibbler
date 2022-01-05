@@ -2,7 +2,6 @@ import numpy as np
 from typing import Callable, Set, Dict
 
 from pyquibbler.refactor.iterators import iter_objects_of_type_in_object_shallowly
-from pyquibbler.refactor.overriding import get_definition_for_function
 from pyquibbler.refactor.translation.types import Source
 from pyquibbler.refactor.translation.utils import call_func_with_sources_values
 from pyquibbler.refactor.func_call import FuncCall

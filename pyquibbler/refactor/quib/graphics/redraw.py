@@ -40,7 +40,6 @@ def _redraw_quibs_with_graphics():
         axeses = {axes for graphics_function_quib in quibs_that_are_invalid
               for axes in graphics_function_quib.get_axeses()}
     except Exception:
-        print(1)
         raise
     redraw_axeses(axeses)
     QUIBS_TO_REDRAW.clear()

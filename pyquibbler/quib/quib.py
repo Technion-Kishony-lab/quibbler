@@ -64,7 +64,7 @@ class OverridingNotAllowedException(PyQuibblerException):
     override: Assignment
 
     def __str__(self):
-        return f'Cannot override {self.quib} with {self.override} as it does not allow overriding.'
+        return f'Cannot override {self.quib} with {self.override} as it does not allow function_definitions.'
 
 
 @dataclass(frozen=True)
@@ -214,7 +214,7 @@ class Quib(ABC):
 
     def invalidate_and_redraw_at_path(self, path: Optional[List[PathComponent]] = None) -> None:
         """
-        Perform all actions needed after the quib was mutated (whether by overriding or inverse assignment).
+        Perform all actions needed after the quib was mutated (whether by function_definitions or inverse assignment).
         If path is not given, the whole quib is invalidated.
         """
         from pyquibbler import timer
@@ -353,7 +353,7 @@ class Quib(ABC):
 
     def remove_override(self, path: List[PathComponent], invalidate_and_redraw: bool = True):
         """
-        Remove overriding in a specific path in the quib.
+        Remove function_definitions in a specific path in the quib.
         """
         assignment_removal = self._overrider.remove_assignment(path)
         if assignment_removal is not None:
@@ -368,7 +368,7 @@ class Quib(ABC):
 
     def assign(self, assignment: Assignment) -> None:
         """
-        Create an assignment with an Assignment object, overriding the current values at the assignment's paths with the
+        Create an assignment with an Assignment object, function_definitions the current values at the assignment's paths with the
         assignment's value
         """
         self.override(assignment, allow_overriding_from_now_on=False)

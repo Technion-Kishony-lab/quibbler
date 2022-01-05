@@ -5,13 +5,14 @@ from inspect import signature
 
 from typing import Callable, List
 
-import numpy as np
-
+from pyquibbler.refactor.function_definitions.function_definition import create_function_definition
+from pyquibbler.refactor.function_overriding.function_override import FunctionOverride
 from pyquibbler.refactor.inversion.inverters.getitem_inverter import GetItemInverter
-from pyquibbler.refactor.overriding.numpy.elementwise_definitions import get_inverter_for_inverse_func, \
-    add_inverse_func, sub_inverse_func, mul_inverse_func, div_inverse_func, pow_inverse_func
-from pyquibbler.refactor.overriding.override_definition import OverrideDefinition
-from pyquibbler.refactor.overriding.types import PositionalArgument, KeywordArgument
+
+from pyquibbler.refactor.function_definitions.types import PositionalArgument, KeywordArgument
+from pyquibbler.refactor.function_overriding.third_party_overriding.numpy.elementwise_overrides import \
+    get_inverter_for_inverse_func, sub_inverse_func, add_inverse_func, mul_inverse_func, div_inverse_func, \
+    pow_inverse_func
 
 from pyquibbler.refactor.translation.translators import BackwardsGetItemTranslator
 from pyquibbler.refactor.translation.translators.elementwise.elementwise_translator import \
@@ -27,7 +28,7 @@ def get_reversed_func(func: Callable):
 
 
 @dataclass
-class OperatorOverrideDefinition(OverrideDefinition):
+class OperatorOverride(FunctionOverride):
     SPECIAL_FUNCS = {
         '__round__': round,
         '__ceil__': math.ceil,
@@ -62,14 +63,15 @@ def operator_definition(name, data_source_indexes: List = None, inverters: List 
                         backwards_path_translators: List = None, forwards_path_translators: List = None):
     data_source_indexes = data_source_indexes or list(signature(getattr(operator, name)).parameters.keys())
     from pyquibbler.refactor.quib.quib import Quib
-    return OperatorOverrideDefinition(
+    return OperatorOverride(
         func_name=name,
-        data_source_arguments={PositionalArgument(i) if isinstance(i, int) else KeywordArgument(i)
-                               for i in (data_source_indexes or [])},
         module_or_cls=Quib,
-        inverters=inverters,
-        backwards_path_translators=backwards_path_translators,
-        forwards_path_translators=forwards_path_translators
+        function_definition=create_function_definition(
+            data_source_arguments=data_source_indexes,
+            inverters=inverters,
+            backwards_path_translators=backwards_path_translators,
+            forwards_path_translators=forwards_path_translators
+        )
     )
 
 
@@ -80,14 +82,16 @@ def with_reverse_operator_definition(name, data_source_indexes: List = None, inv
     from pyquibbler.refactor.quib.quib import Quib
     return [operator_definition(name, data_source_indexes, inverters=inverters,
                                 backwards_path_translators=backwards_path_translators,
-                                forwards_path_translators=forwards_path_translators), OperatorOverrideDefinition(
+                                forwards_path_translators=forwards_path_translators), OperatorOverride(
         func_name=rname,
-        data_source_arguments={PositionalArgument(i) for i in (data_source_indexes or [])},
         module_or_cls=Quib,
         is_reversed=True,
-        inverters=inverters or [],
-        backwards_path_translators=backwards_path_translators,
-        forwards_path_translators=forwards_path_translators
+        function_definition=create_function_definition(
+            data_source_arguments=data_source_indexes,
+            inverters=inverters or [],
+            backwards_path_translators=backwards_path_translators,
+            forwards_path_translators=forwards_path_translators
+        )
     )]
 
 

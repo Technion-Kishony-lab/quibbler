@@ -1,10 +1,11 @@
+import weakref
 from typing import Optional, Tuple, Type, Callable
 
 from pyquibbler.env import GET_VARIABLE_NAMES, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS
 from pyquibbler.logger import logger
 from pyquibbler.refactor.func_call import FuncCall
 from pyquibbler.refactor.quib.function_runners import FunctionRunner, DefaultFunctionRunner
-from pyquibbler.refactor.overriding import get_definition_for_function, CannotFindDefinitionForFunctionException
+from pyquibbler.refactor.function_definitions import get_definition_for_function, CannotFindDefinitionForFunctionException
 from pyquibbler.refactor.quib.iterators import iter_quibs_in_args
 from pyquibbler.refactor.quib.quib import Quib
 from pyquibbler.refactor.quib.utils import deep_copy_without_quibs_or_graphics
@@ -14,7 +15,7 @@ from pyquibbler.refactor.quib.variable_metadata import get_var_name_being_set_ou
 
 def get_original_func(func: Callable):
     """
-    Get the original func- if this function is already overrided, get the original func it's overriding.
+    Get the original func- if this function is already overrided, get the original func it's function_definitions.
 
     So for example, if the OVERLOADED np.array is given as `func`, then the ORIGINAL np.array will be returned
     If the ORIGINAL np.array is given as `func`, then `func` will be returned
@@ -101,7 +102,13 @@ def create_quib(func, args=(), kwargs=None, cache_behavior=None, evaluate_now=Fa
                 line_no=line_no,
                 **init_kwargs)
 
+    # TODO: get rid of this
+    runner.quib = weakref.ref(quib)
+
     for arg in iter_quibs_in_args(args, kwargs):
         arg.add_child(quib)
+
+    if evaluate_now:
+        quib.get_value()
 
     return quib

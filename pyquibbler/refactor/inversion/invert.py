@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Callable, Tuple, Any, Mapping, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 
 from pyquibbler.refactor.translation.exceptions import NoInvertersFoundException, CannotInvertException
@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 
 def invert(func_call: FuncCall, assignment: Assignment, previous_result):
-    from pyquibbler.refactor.overriding import get_definition_for_function
+    from pyquibbler.refactor.function_definitions import get_definition_for_function
     definition = get_definition_for_function(func_call.func)
 
     potential_inverter_classes = list(definition.inverters)

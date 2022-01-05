@@ -133,7 +133,7 @@ class OverrideOptionsTree:
         for inversion in inversions:
             child = cls.from_quib_change(inversion, top_quib)
             if not child:
-                # If one of the diverged options does not allow overriding,
+                # If one of the diverged options does not allow function_definitions,
                 # then we can't inverse assign through the diverger, because
                 # only one of the inverse assignment threads will be able to end with an override.
                 return []

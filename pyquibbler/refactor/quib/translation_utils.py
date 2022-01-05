@@ -1,6 +1,6 @@
 from typing import Dict
 
-from pyquibbler.quib.assignment import Path
+from pyquibbler.refactor.quib.assignment import Path
 from pyquibbler.refactor.func_call import FuncCall
 from pyquibbler.refactor.quib.func_call_utils import get_data_source_quibs
 from pyquibbler.refactor.quib.iterators import recursively_run_func_on_object, SHALLOW_MAX_DEPTH

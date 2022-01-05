@@ -2,8 +2,8 @@ from typing import Dict, Any, Optional, Tuple, Type, Callable
 
 import numpy as np
 
-from pyquibbler.quib.assignment import Path
-from pyquibbler.quib.assignment.assignment import get_nd_working_component_value_from_path, PathComponent
+from pyquibbler.refactor.quib.assignment import Path
+from pyquibbler.refactor.quib.assignment.assignment import get_nd_working_component_value_from_path, PathComponent
 from pyquibbler.quib.function_quibs.utils import create_empty_array_with_values_at_indices, unbroadcast_bool_mask
 from pyquibbler.refactor.translation.backwards_path_translator import BackwardsPathTranslator
 from pyquibbler.refactor.translation.forwards_path_translator import ForwardsPathTranslator

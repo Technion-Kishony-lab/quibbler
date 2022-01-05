@@ -1,31 +1,28 @@
 from __future__ import annotations
 
-import operator
 import os
 import pathlib
 import pickle
-import time
 from contextlib import contextmanager
 from functools import cached_property
 from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Union, Iterable
 from weakref import WeakSet
 
 import numpy as np
+from matplotlib.artist import Artist
 
 from pyquibbler.env import LEN_RAISE_EXCEPTION
 from pyquibbler.input_validation_utils import validate_user_input
 from pyquibbler.logger import logger
 from pyquibbler.project import Project
-from pyquibbler.quib import get_override_group_for_change
-from pyquibbler.quib.assignment import AssignmentTemplate, Overrider, Assignment, \
-    AssignmentToQuib, Path
-from pyquibbler.quib.assignment import PathComponent
-from pyquibbler.quib.assignment.assignment_template import InvalidTypeException, create_assignment_template
-from pyquibbler.quib.assignment.override_choice import OverrideRemoval
-from pyquibbler.quib.assignment.utils import FailedToDeepAssignException
+from pyquibbler.refactor.quib.assignment import AssignmentTemplate, Overrider, Assignment, \
+    AssignmentToQuib
+from pyquibbler.refactor.quib.assignment import PathComponent
+from pyquibbler.refactor.quib.assignment.assignment_template import InvalidTypeException, create_assignment_template
+from pyquibbler.refactor.quib.assignment.override_choice import OverrideRemoval, get_override_group_for_change
+from pyquibbler.refactor.quib.assignment.utils import FailedToDeepAssignException
 from pyquibbler.quib.function_quibs.cache import create_cache
 from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
-from pyquibbler.quib.function_quibs.cache.holistic_cache import PathCannotHaveComponentsException
 from pyquibbler.quib.function_quibs.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
 from pyquibbler.quib.function_quibs.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own, \
     add_quib_to_fail_trace_if_raises_quib_call_exception
@@ -33,13 +30,9 @@ from pyquibbler.refactor.func_call import ArgsValues
 from pyquibbler.quib.quib_guard import add_new_quib_to_guard_if_exists, guard_raise_if_not_allowed_access_to_quib
 from pyquibbler.quib.utils import quib_method, Unpacker
 from pyquibbler.refactor.inversion.invert import invert
-from pyquibbler.refactor.quib import consts
 from pyquibbler.refactor.quib.cache_behavior import CacheBehavior, UnknownCacheBehaviorException
 from pyquibbler.refactor.quib.exceptions import OverridingNotAllowedException, UnknownUpdateTypeException, \
     InvalidCacheBehaviorForQuibException
-from pyquibbler.refactor.quib.function_call import _get_uncached_paths_matching_path, \
-    _truncate_path_to_match_shallow_caches, _ensure_cache_matches_result, \
-    get_cached_data_at_truncated_path_given_result_at_uncached_path
 from pyquibbler.refactor.quib.graphics import UpdateType
 from pyquibbler.refactor.quib.iterators import iter_quibs_in_args, recursively_run_func_on_object
 from pyquibbler.refactor.quib.repr.repr_mixin import ReprMixin
@@ -47,8 +40,8 @@ from pyquibbler.refactor.translation import CannotInvertException
 from pyquibbler.refactor.translation.translate import forwards_translate, NoTranslatorsFoundException
 
 if TYPE_CHECKING:
-    from pyquibbler.quib.assignment.override_choice import ChoiceContext, OverrideChoice
-    from pyquibbler.refactor.overriding.override_definition import OverrideDefinition
+    from pyquibbler.refactor.quib.assignment.override_choice import ChoiceContext, OverrideChoice
+    from pyquibbler.refactor.function_definitions import FunctionDefinition
     from pyquibbler.refactor.quib.function_runners import FunctionRunner
 
 
@@ -132,9 +125,18 @@ class Quib(ReprMixin):
 
         return self.get_value()
 
+    def _iter_artist_lists(self) -> Iterable[List[Artist]]:
+        return [] if self._function_runner.graphics_collections is None else map(lambda g: g.artists,
+                                                                      self._function_runner.graphics_collections.flat)
+
+
+    def _iter_artists(self) -> Iterable[Artist]:
+        return (artist for artists in self._iter_artist_lists() for artist in artists)
+
     def get_axeses(self):
-        # TODO: need to implement... What about tests
-        return []
+        # TODO: What about tests
+
+        return {artist.axes for artist in self._iter_artists()}
 
     def _redraw(self) -> None:
         """
@@ -183,7 +185,7 @@ class Quib(ReprMixin):
 
     def remove_override(self, path: List[PathComponent], invalidate_and_redraw: bool = True):
         """
-        Remove overriding in a specific path in the quib.
+        Remove function_definitions in a specific path in the quib.
         """
         assignment_removal = self._overrider.remove_assignment(path)
         if assignment_removal is not None:
@@ -198,7 +200,7 @@ class Quib(ReprMixin):
 
     def assign(self, assignment: Assignment) -> None:
         """
-        Create an assignment with an Assignment object, overriding the current values at the assignment's paths with the
+        Create an assignment with an Assignment object, function_definitions the current values at the assignment's paths with the
         assignment's value
         """
         get_override_group_for_change(AssignmentToQuib(self, assignment)).apply()
@@ -234,8 +236,8 @@ class Quib(ReprMixin):
         return ArgsValues.from_function_call(self.func, self.args, self.kwargs, include_defaults=True)
 
     @property
-    def _func_definition(self) -> OverrideDefinition:
-        from pyquibbler.refactor.overriding import get_definition_for_function
+    def _func_definition(self) -> FunctionDefinition:
+        from pyquibbler.refactor.function_definitions import get_definition_for_function
         return get_definition_for_function(self.func)
 
     def get_inversions_for_assignment(self, assignment: Assignment) -> List[AssignmentToQuib]:
@@ -243,7 +245,7 @@ class Quib(ReprMixin):
         Get a list of assignments to parent quibs which could be applied instead of the given assignment
         and produce the same change in the value of this quib.
         """
-        from pyquibbler.refactor.overriding import CannotFindDefinitionForFunctionException
+        from pyquibbler.refactor.function_definitions import CannotFindDefinitionForFunctionException
 
         from pyquibbler.refactor.quib.translation_utils import get_func_call_for_translation
         func_call, data_sources_to_quibs = \
@@ -318,7 +320,7 @@ class Quib(ReprMixin):
 
     def invalidate_and_redraw_at_path(self, path: Optional[List[PathComponent]] = None) -> None:
         """
-        Perform all actions needed after the quib was mutated (whether by overriding or inverse assignment).
+        Perform all actions needed after the quib was mutated (whether by function_definitions or inverse assignment).
         If path is not given, the whole quib is invalidated.
         """
         from pyquibbler import timer

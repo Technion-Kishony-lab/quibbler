@@ -9,7 +9,7 @@ from pyquibbler.quib.function_quibs.utils import Args, Kwargs, convert_args_and_
 from .utils import Shape, get_core_axes, iter_arg_ids_and_values
 
 if TYPE_CHECKING:
-    from pyquibbler.quib import Quib
+    from pyquibbler.refactor.quib import Quib
 
 ArgId = Union[int, str]
 ArgsMetadata: Dict[ArgId, VectorizeArgMetadata]

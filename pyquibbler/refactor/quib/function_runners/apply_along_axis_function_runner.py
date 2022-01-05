@@ -4,7 +4,7 @@ import numpy as np
 from numpy import ndindex, s_
 
 from pyquibbler.quib import PathComponent, QuibGuard
-from pyquibbler.quib.assignment import Path
+from pyquibbler.refactor.quib.assignment import Path
 from pyquibbler.quib.function_quibs.external_call_failed_exception_handling import \
     external_call_failed_exception_handling
 from pyquibbler.quib.function_quibs.utils import create_empty_array_with_values_at_indices

@@ -1,8 +1,8 @@
 from dataclasses import dataclass
-from typing import Callable, Tuple, Any, Mapping, Type, Dict
+from typing import Callable, Type, Dict
 
 from pyquibbler.exceptions import PyQuibblerException
-from pyquibbler.quib.assignment import Path
+from pyquibbler.refactor.quib.assignment import Path
 from pyquibbler.refactor.func_call import FuncCall
 from pyquibbler.refactor.translation.backwards_path_translator import BackwardsPathTranslator
 from pyquibbler.refactor.translation.forwards_path_translator import ForwardsPathTranslator
@@ -34,7 +34,7 @@ def split_path(path):
 def backwards_translate(func_call: FuncCall,
                         path, shape=None, type_=None) -> Dict[Source, Path]:
 
-    from pyquibbler.refactor.overriding import get_definition_for_function
+    from pyquibbler.refactor.function_definitions import get_definition_for_function
     potential_translator_classes = get_definition_for_function(func_call.func).backwards_path_translators
     # TODO: below should be in init of definition
     potential_translator_classes = potential_translator_classes or []
@@ -60,7 +60,7 @@ def backwards_translate(func_call: FuncCall,
 def forwards_translate(func_call: FuncCall,
                        sources_to_paths, shape=None, type_=None, **kwargs):
     # TODO test multiple scenarios with choosing inverters
-    from pyquibbler.refactor.overriding import get_definition_for_function
+    from pyquibbler.refactor.function_definitions import get_definition_for_function
     potential_translator_classes = get_definition_for_function(func_call.func).forwards_path_translators
     potential_translator_classes = list(sorted(potential_translator_classes, key=lambda c: c.PRIORITY))
     if len(potential_translator_classes) == 0:

@@ -9,5 +9,4 @@ from .quib.assignment import Assignment
 # Refactor
 from .refactor.quib import iquib
 from .refactor.quib import CacheBehavior
-from .refactor.overriding import override_third_party_funcs
 from .refactor.user_utils import q

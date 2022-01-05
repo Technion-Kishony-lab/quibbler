@@ -4,8 +4,8 @@ from typing import Dict, Optional, Tuple, Type
 
 from pyquibbler.refactor.translation.path_translator import Translator
 from pyquibbler.refactor.translation.types import Source
-from pyquibbler.quib.assignment import Path
-from pyquibbler.quib.assignment.assignment import working_component
+from pyquibbler.refactor.quib.assignment import Path
+from pyquibbler.refactor.quib.assignment.assignment import working_component
 
 
 class BackwardsPathTranslator(Translator):

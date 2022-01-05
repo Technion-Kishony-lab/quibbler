@@ -11,7 +11,7 @@ from typing import Optional, Type, Tuple, Dict, TYPE_CHECKING, Any, ClassVar, Se
 import numpy as np
 from matplotlib.widgets import AxesWidget
 
-from pyquibbler.quib.assignment import Path
+from pyquibbler.refactor.quib.assignment import Path
 from pyquibbler.quib.function_quibs.external_call_failed_exception_handling import \
     external_call_failed_exception_handling
 from pyquibbler.refactor.graphics.global_collecting import overridden_graphics_function
@@ -28,6 +28,7 @@ from pyquibbler.refactor.quib.function_runners.utils import cache_method_until_f
 from pyquibbler.quib.graphics.graphics_function_quib import create_array_from_func
 from pyquibbler.refactor.graphics.graphics_collection import GraphicsCollection
 from pyquibbler.refactor.iterators import iter_objects_of_type_in_object_shallowly
+from pyquibbler.refactor.quib.graphics.persist import persist_relevant_info_on_new_artists_for_quib
 from pyquibbler.refactor.quib.iterators import recursively_run_func_on_object, SHALLOW_MAX_DEPTH
 from pyquibbler.refactor.quib.quib import Quib
 from pyquibbler.refactor.translation.types import Source
@@ -49,12 +50,13 @@ class FunctionRunner(ABC):
     cache: Optional[Cache] = None
     default_cache_behavior: CacheBehavior = DEFAULT_CACHE_BEHAVIOR
 
+    # TODO: get rid of this
+    quib = None
+
+
     @classmethod
     def from_(cls, evaluate_now, func_call: FuncCall, call_func_with_quibs: bool, *args, **kwargs):
-        self = cls(func_call, call_func_with_quibs, *args, **kwargs)
-        if evaluate_now:
-            self.get_value_valid_at_path([])
-        return self
+        return cls(func_call, call_func_with_quibs, *args, **kwargs)
 
     @property
     def kwargs(self):
@@ -224,7 +226,10 @@ class FunctionRunner(ABC):
                 res = res.get_value()
             ####
 
-            return res
+        # TODO: get rid of this
+        persist_relevant_info_on_new_artists_for_quib(quib=self.quib(), new_artists=set(graphics_collection.artists))
+
+        return res
 
     def get_result_metadata(self) -> Dict:
         return {}

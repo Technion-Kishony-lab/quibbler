@@ -1,12 +1,12 @@
 import pytest
 
 from pyquibbler.env import GRAPHICS_EVALUATE_NOW
-from pyquibbler.refactor.overriding.graphics.graphics_overriding import GraphicsOverrideDefinition
+from pyquibbler.refactor.function_overriding.third_party_overriding.graphics.graphics_overriding import GraphicsOverride
 
 
 @pytest.fixture(autouse=True)
 def graphics_definition(mock_module, func_name_to_override, func_mock_on_module):
-    definition = GraphicsOverrideDefinition(func_name=func_name_to_override, module_or_cls=mock_module)
+    definition = GraphicsOverride(func_name=func_name_to_override, module_or_cls=mock_module)
     definition.override()
     return definition
 

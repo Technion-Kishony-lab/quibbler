@@ -19,7 +19,7 @@ def iter_quibs_in_object_recursively(obj, max_depth: Optional[int] = None, max_l
     `max_depth=1` means `obj` and all objects it directly references, and so on.
     When `max_length` is given, does not recurse into iterables larger than `max_length`.
     """
-    from pyquibbler.quib import Quib
+    from pyquibbler.refactor.quib import Quib
     return iter_objects_of_type_in_object_recursively(Quib, obj, max_depth, max_length)
 
 

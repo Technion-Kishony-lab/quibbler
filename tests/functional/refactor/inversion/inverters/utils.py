@@ -6,7 +6,7 @@ from pyquibbler.refactor.inversion.invert import invert
 from pyquibbler.refactor.quib.factory import get_original_func
 from pyquibbler.refactor.translation.utils import call_func_with_sources_values
 from pyquibbler.quib import PathComponent
-from pyquibbler.quib.assignment.utils import deep_assign_data_in_path
+from pyquibbler.refactor.quib.assignment.utils import deep_assign_data_in_path
 
 
 def inverse(func: Callable, indices: Any, value: Any, args: Tuple[Any, ...] = None, kwargs: Mapping[str, Any] = None,

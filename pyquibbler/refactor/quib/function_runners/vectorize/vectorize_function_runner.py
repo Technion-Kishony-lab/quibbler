@@ -4,11 +4,10 @@ from typing import Optional, Dict
 
 import numpy as np
 
-from pyquibbler.quib.assignment import Path
+from pyquibbler.refactor.quib.assignment import Path
 from pyquibbler.quib.function_quibs.external_call_failed_exception_handling import \
     external_call_failed_exception_handling
 from pyquibbler.quib.function_quibs.utils import create_empty_array_with_values_at_indices
-from pyquibbler.quib.graphics.axiswise_function_quibs.vectorize.vectorize_metadata import VectorizeMetadata
 from pyquibbler.refactor.func_call import FuncCall
 from pyquibbler.refactor.graphics.utils import remove_created_graphics
 from pyquibbler.refactor.quib.func_call_utils import get_func_call_with_quibs_valid_at_paths, get_data_source_quibs
@@ -16,7 +15,7 @@ from pyquibbler.refactor.quib.function_runners import FunctionRunner, DefaultFun
 from pyquibbler.refactor.quib.function_runners.utils import cache_method_until_full_invalidation
 from pyquibbler.refactor.quib.function_runners.vectorize.utils import alter_signature, copy_vectorize, \
     get_indices_array, iter_arg_ids_and_values
-from pyquibbler.refactor.quib.function_runners.vectorize.vectorize_metadata import VectorizeCall
+from pyquibbler.refactor.quib.function_runners.vectorize.vectorize_metadata import VectorizeCall, VectorizeMetadata
 from pyquibbler.refactor.quib.quib import Quib
 from pyquibbler.refactor.quib.translation_utils import get_func_call_for_translation
 from pyquibbler.refactor.quib.utils import copy_and_replace_quibs_with_vals
@@ -26,17 +25,6 @@ from pyquibbler.utils import convert_args_and_kwargs
 
 
 class VectorizeCallFunctionRunner(DefaultFunctionRunner):
-
-    @classmethod
-    def from_(cls, evaluate_now: bool, func_call: FuncCall, call_func_with_quibs: bool, *args, **kwargs):
-        vectorize = func_call.args[0]
-        call_func_with_quibs = call_func_with_quibs or vectorize.pass_quibs
-        self = cls(func_call=func_call,
-                   call_func_with_quibs=call_func_with_quibs, *args, **kwargs)
-        evaluate_now = evaluate_now or vectorize.evaluate_now
-        if evaluate_now:
-            self.get_value_valid_at_path([])
-        return self
 
     def _wrap_vectorize_call_to_pass_quibs(self, call: VectorizeCall, args_metadata,
                                            results_core_ndims) -> VectorizeCall:

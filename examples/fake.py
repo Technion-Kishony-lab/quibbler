@@ -2,9 +2,9 @@ import matplotlib
 from matplotlib import widgets, pyplot as plt
 
 from pyquibbler import iquib
-from pyquibbler.refactor.overriding import override_third_party_funcs
+from pyquibbler.refactor.function_definitions import override_new
 
-override_third_party_funcs()
+override_new()
 matplotlib.use("TkAgg")
 if __name__ == '__main__':
     actives = iquib([False, False, False])

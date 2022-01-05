@@ -48,14 +48,14 @@ class OverrideRemoval(QuibChange):
 class OverrideGroup:
     """
     A group of overrides to be applied together, and the relevant override removals.
-    When overriding a quib as a result of an upstream assignment,
+    When function_definitions a quib as a result of an upstream assignment,
     we remove overrides in all the indices that lead to the chosen override,
     so the override will actually cause the desired effect on the upstream quib.
     """
     quib_changes: List[Union[Override, OverrideRemoval]] = field(default_factory=list)
 
     def apply(self):
-        from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
+        from pyquibbler.refactor.quib.graphics.redraw import aggregate_redraw_mode
         with Project.get_or_create().start_undo_group():
             with aggregate_redraw_mode():
                 for quib_change in self.quib_changes:

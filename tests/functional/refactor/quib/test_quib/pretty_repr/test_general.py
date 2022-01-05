@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from pyquibbler.refactor.quib.iquib import iquib
+from pyquibbler.refactor.quib.specialized_functions.iquib import iquib
 from pyquibbler.refactor.decorators import quibbler_user_function
 from pyquibbler.refactor.user_utils import q
 

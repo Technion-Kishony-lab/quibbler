@@ -32,7 +32,7 @@ class Translator(ABC):
 
     @property
     def func_definition(self):
-        from pyquibbler.refactor.overriding import get_definition_for_function
+        from pyquibbler.refactor.function_definitions import get_definition_for_function
         return get_definition_for_function(self.func)
 
     def _get_data_source_arguments_with_values(self) -> List[ArgumentWithValue]:

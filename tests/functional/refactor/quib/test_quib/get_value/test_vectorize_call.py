@@ -7,8 +7,8 @@ from matplotlib import pyplot as plt
 
 from pyquibbler import CacheBehavior, iquib, Assignment
 from pyquibbler.env import GRAPHICS_EVALUATE_NOW
-from pyquibbler.quib import PathComponent, get_override_group_for_change
-from pyquibbler.quib.assignment import AssignmentToQuib, Override
+from pyquibbler.refactor.quib.assignment import AssignmentToQuib, PathComponent, Override
+from pyquibbler.refactor.quib.assignment.override_choice import get_override_group_for_change
 from tests.functional.quib.utils import PathBuilder, get_func_mock
 from tests.functional.refactor.quib.test_quib.get_value.test_apply_along_axis import parametrize_data
 from tests.functional.refactor.quib.test_quib.get_value.utils import check_get_value_valid_at_path, collecting_quib
@@ -149,12 +149,19 @@ def temp_axes():
     ax.clear()
 
 
-@pytest.mark.parametrize('pass_quibs', [True, False])
+@pytest.mark.parametrize('pass_quibs', [True])
 def test_vectorize_does_not_redraw_valid_artists(temp_axes, pass_quibs):
+
+    def ploty(*args, **kwargs):
+        print(1)
+        plt.plot(*args, **kwargs)
+        print(2)
+
     parent = iquib([[1, 2], [3, 4]])
-    vectorized_plot = np.vectorize(plt.plot, signature='(x)->()', otypes=[np.object], pass_quibs=pass_quibs,
+    vectorized_plot = np.vectorize(ploty, signature='(x)->()', otypes=[np.object], pass_quibs=pass_quibs,
                                    evaluate_now=True)
     boy = vectorized_plot(parent)
+
     assert len(temp_axes.lines) == 2
     ids = list(map(id, temp_axes.lines))
 

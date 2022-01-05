@@ -7,7 +7,7 @@ from typing import Callable
 from pyquibbler import Assignment
 from pyquibbler.env import ASSIGNMENT_RESTRICTIONS
 from pyquibbler.exceptions import PyQuibblerException
-from pyquibbler.quib.assignment.assignment import get_nd_working_component_value_from_path
+from pyquibbler.refactor.quib.assignment.assignment import get_nd_working_component_value_from_path
 from pyquibbler.refactor.func_call import FuncCall
 from pyquibbler.refactor.inversion.inverter import Inverter
 from pyquibbler.refactor.iterators import iter_objects_of_type_in_object_shallowly, \

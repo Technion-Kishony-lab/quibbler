@@ -6,7 +6,7 @@ from pyquibbler.refactor.translation.translators.transpositional.transpositional
     BackwardsTranspositionalTranslator, ForwardsTranspositionalTranslator
 from pyquibbler.refactor.translation.types import Source
 from pyquibbler.quib import PathComponent
-from pyquibbler.quib.assignment import Path
+from pyquibbler.refactor.quib.assignment import Path
 from pyquibbler.refactor.translation.utils import copy_and_replace_sources_with_vals
 
 

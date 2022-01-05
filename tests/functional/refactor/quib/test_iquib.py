@@ -1,6 +1,6 @@
 import pytest
 
-from pyquibbler.refactor.quib.iquib import iquib, CannotNestQuibInIQuibException
+from pyquibbler.refactor.quib.specialized_functions.iquib import iquib, CannotNestQuibInIQuibException
 
 
 def test_iquib_get_value_returns_argument():

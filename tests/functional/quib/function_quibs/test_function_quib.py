@@ -55,7 +55,7 @@ def test_create_wrapper_with_regular_args(function_wrapper, function_mock):
     function_mock.assert_called_once_with(*args, **kwargs)
 
 
-# moved to overriding tests
+# moved to function_definitions tests
 def test_create_wrapper_with_quib_args(function_wrapper, function_mock, function_mock_return_val):
     quib_val1 = 'ayy'
     quib_val2 = 'yo'

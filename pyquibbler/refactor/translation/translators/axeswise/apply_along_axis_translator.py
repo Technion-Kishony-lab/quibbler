@@ -3,7 +3,7 @@ from typing import Dict, Tuple, Any
 
 import numpy as np
 
-from pyquibbler.quib.assignment import Path
+from pyquibbler.refactor.quib.assignment import Path
 from pyquibbler.quib.function_quibs.utils import create_empty_array_with_values_at_indices
 from pyquibbler.refactor.func_call import FuncCall
 from pyquibbler.quib.graphics.axiswise_function_quibs.axiswise_function_quib import Arg

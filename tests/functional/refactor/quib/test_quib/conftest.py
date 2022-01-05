@@ -3,16 +3,15 @@ from unittest import mock
 import pytest
 from matplotlib.artist import Artist
 
-from pyquibbler.refactor.graphics import global_collecting
+from pyquibbler.refactor.function_overriding import override_new
 from pyquibbler.refactor.graphics.global_collecting import overridden_graphics_function
 from pyquibbler.refactor.quib.factory import create_quib
 from pyquibbler.refactor.quib.quib import Quib
-from pyquibbler.refactor.overriding import override_third_party_funcs
 
 
 @pytest.fixture(autouse=True)
 def override_all():
-    override_third_party_funcs()
+    override_new()
 
 
 @pytest.fixture
@@ -83,6 +82,7 @@ def create_artist(mock_axes):
         with overridden_graphics_function():
             artist = Artist()
             artist.axes = mock_axes
+            artist.figure = mock.Mock()
             mock_axes.artists.append(artist)
         return artist
 
