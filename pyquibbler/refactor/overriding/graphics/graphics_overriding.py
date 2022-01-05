@@ -32,12 +32,11 @@ class GraphicsOverrideDefinition(OverrideDefinition):
         return super(GraphicsOverrideDefinition, self).override()
 
 
-AxesOverrideDefinition = functools.partial(GraphicsOverrideDefinition, module_or_cls=Axes)
+axes_definition = functools.partial(GraphicsOverrideDefinition, module_or_cls=Axes)
 
 
 def create_graphics_definitions():
     return [
-        AxesOverrideDefinition(
-            func_name="plot"
-        )
+        axes_definition(func_name="plot"),
+        axes_definition(func_name="text")
     ]
