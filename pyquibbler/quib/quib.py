@@ -26,11 +26,11 @@ from pyquibbler.refactor.cache import transform_cache_to_nd_if_necessary_given_p
 from .function_quibs.pretty_converters import MathExpression
 from .utils import quib_method, Unpacker, recursively_run_func_on_object
 from .assignment import PathComponent
-from ..exceptions import PyQuibblerException
-from ..env import LEN_RAISE_EXCEPTION, GET_VARIABLE_NAMES, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS
-from ..input_validation_utils import validate_user_input, InvalidArgumentException
-from ..logger import logger
-from ..project import Project
+from pyquibbler.refactor.exceptions import PyQuibblerException
+from pyquibbler.refactor.env import LEN_RAISE_EXCEPTION, GET_VARIABLE_NAMES, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS
+from pyquibbler.refactor.input_validation_utils import validate_user_input, InvalidArgumentException
+from pyquibbler.refactor.logger import logger
+from pyquibbler.refactor.project import Project
 
 if TYPE_CHECKING:
     from .graphics import GraphicsFunctionQuib

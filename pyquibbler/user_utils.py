@@ -2,8 +2,8 @@ import numpy as np
 from pathlib import Path
 from typing import Union
 
-from pyquibbler.input_validation_utils import validate_user_input
-from pyquibbler.project import Project
+from pyquibbler.refactor.input_validation_utils import validate_user_input
+from pyquibbler.refactor.project import Project
 from pyquibbler.quib import GraphicsFunctionQuib, ElementWiseFunctionQuib
 
 from pyquibbler.quib import Quib

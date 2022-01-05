@@ -6,7 +6,7 @@ import pytest
 from matplotlib import pyplot as plt
 
 from pyquibbler import CacheBehavior, iquib, Assignment
-from pyquibbler.env import GRAPHICS_EVALUATE_NOW
+from pyquibbler.refactor.env import GRAPHICS_EVALUATE_NOW
 from pyquibbler.refactor.assignment import AssignmentToQuib, Override
 from pyquibbler.refactor.path.path_component import PathComponent
 from pyquibbler.refactor.assignment.override_choice import get_override_group_for_change

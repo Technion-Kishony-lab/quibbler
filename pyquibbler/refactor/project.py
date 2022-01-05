@@ -8,7 +8,7 @@ from pathlib import Path
 import sys
 from typing import Optional, Set, TYPE_CHECKING, List
 
-from pyquibbler.exceptions import PyQuibblerException
+from pyquibbler.refactor.exceptions import PyQuibblerException
 
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib

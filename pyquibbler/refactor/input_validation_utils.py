@@ -2,7 +2,7 @@ import functools
 from dataclasses import dataclass
 from typing import Type, Union, Tuple
 
-from pyquibbler.exceptions import PyQuibblerException
+from pyquibbler.refactor.exceptions import PyQuibblerException
 
 
 @dataclass

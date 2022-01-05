@@ -2,7 +2,7 @@ from abc import abstractmethod
 from typing import Any, List
 
 
-from pyquibbler.exceptions import PyQuibblerException
+from pyquibbler.refactor.exceptions import PyQuibblerException
 from pyquibbler.refactor.cache.cache import Cache
 from pyquibbler.refactor.path import PathComponent
 

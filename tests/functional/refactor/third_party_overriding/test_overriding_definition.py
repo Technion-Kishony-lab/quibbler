@@ -1,6 +1,6 @@
 import pytest
 
-from pyquibbler.env import EVALUATE_NOW
+from pyquibbler.refactor.env import EVALUATE_NOW
 from pyquibbler.refactor.function_overriding.function_override import FunctionOverride
 
 

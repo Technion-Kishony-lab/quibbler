@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from pyquibbler import iquib
-from pyquibbler.env import PRETTY_REPR
+from pyquibbler.refactor.env import PRETTY_REPR
 
 
 def test_qvectorize_pretty_repr():

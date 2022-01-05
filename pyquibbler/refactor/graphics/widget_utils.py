@@ -3,7 +3,7 @@ from typing import List
 
 from matplotlib.widgets import AxesWidget, Button, Slider
 
-from pyquibbler.exceptions import PyQuibblerException
+from pyquibbler.refactor.exceptions import PyQuibblerException
 
 ATTRIBUTES_TO_TRANSFER_PER_WIDGET = {
     Button: {

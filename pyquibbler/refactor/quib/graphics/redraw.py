@@ -3,8 +3,8 @@ import contextlib
 from typing import Set
 from matplotlib.axes import Axes
 
-from pyquibbler.logger import logger
-from pyquibbler.performance_utils import timer
+from pyquibbler.refactor.logger import logger
+from pyquibbler.refactor.performance_utils import timer
 from pyquibbler.refactor.cache.cache import CacheStatus
 from pyquibbler.refactor.quib.quib import Quib
 

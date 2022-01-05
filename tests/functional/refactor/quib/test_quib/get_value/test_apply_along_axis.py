@@ -1,7 +1,7 @@
 import itertools
 
 from pyquibbler import iquib
-from pyquibbler.env import GRAPHICS_EVALUATE_NOW
+from pyquibbler.refactor.env import GRAPHICS_EVALUATE_NOW
 from pyquibbler.quib import PathComponent
 from pyquibbler.refactor.path.data_accessing import deep_get
 from pyquibbler.refactor.quib.quib import Quib

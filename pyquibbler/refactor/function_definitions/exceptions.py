@@ -1,7 +1,7 @@
 from typing import Callable
 from dataclasses import dataclass
 
-from pyquibbler.exceptions import PyQuibblerException
+from pyquibbler.refactor.exceptions import PyQuibblerException
 
 
 @dataclass

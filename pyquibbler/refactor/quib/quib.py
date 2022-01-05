@@ -11,10 +11,10 @@ from weakref import WeakSet
 import numpy as np
 from matplotlib.artist import Artist
 
-from pyquibbler.env import LEN_RAISE_EXCEPTION
-from pyquibbler.input_validation_utils import validate_user_input
-from pyquibbler.logger import logger
-from pyquibbler.project import Project
+from pyquibbler.refactor.env import LEN_RAISE_EXCEPTION
+from pyquibbler.refactor.input_validation_utils import validate_user_input
+from pyquibbler.refactor.logger import logger
+from pyquibbler.refactor.project import Project
 from pyquibbler.refactor.assignment.assignment_template import create_assignment_template
 from pyquibbler.refactor.inversion.exceptions import NoInvertersFoundException
 from pyquibbler.refactor.assignment import AssignmentTemplate, Overrider, Assignment, \

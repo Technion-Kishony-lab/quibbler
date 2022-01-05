@@ -5,7 +5,7 @@ from typing import Any, Optional, List
 from matplotlib.widgets import RectangleSelector
 
 from pyquibbler import timer
-from pyquibbler.logger import logger
+from pyquibbler.refactor.logger import logger
 from pyquibbler.quib.utils import quib_method
 from pyquibbler.utils import Mutable
 from pyquibbler.quib import Quib

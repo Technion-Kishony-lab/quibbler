@@ -3,9 +3,9 @@ from typing import List, Any
 
 import numpy as np
 
-from pyquibbler.env import DEBUG
-from pyquibbler.exceptions import PyQuibblerException
-from pyquibbler.logger import logger
+from pyquibbler.refactor.env import DEBUG
+from pyquibbler.refactor.exceptions import PyQuibblerException
+from pyquibbler.refactor.logger import logger
 from pyquibbler.refactor.path import PathComponent
 
 

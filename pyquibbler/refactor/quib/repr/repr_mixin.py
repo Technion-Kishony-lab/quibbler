@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Union
 
-from pyquibbler.env import PRETTY_REPR
-from pyquibbler.logger import logger
+from pyquibbler.refactor.env import PRETTY_REPR
+from pyquibbler.refactor.logger import logger
 from pyquibbler.refactor.quib.repr.pretty_converters import MathExpression
 
 

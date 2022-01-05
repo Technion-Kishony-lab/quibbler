@@ -4,9 +4,9 @@ from typing import Optional
 from matplotlib.artist import Artist
 from matplotlib.backend_bases import MouseEvent, PickEvent, MouseButton
 
-from pyquibbler.env import END_DRAG_IMMEDIATELY
-from pyquibbler.logger import logger
-from pyquibbler.performance_utils import timer
+from pyquibbler.refactor.env import END_DRAG_IMMEDIATELY
+from pyquibbler.refactor.logger import logger
+from pyquibbler.refactor.performance_utils import timer
 from pyquibbler.refactor.quib.graphics.redraw import aggregate_redraw_mode
 from pyquibbler.refactor.quib.graphics.event_handling import graphics_inverse_assigner
 

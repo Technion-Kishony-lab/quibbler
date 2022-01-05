@@ -1,6 +1,6 @@
 import operator
 from math import trunc, floor, ceil
-from typing import Set, Optional, List
+from typing import Set, List
 from unittest import mock
 from unittest.mock import Mock
 import numpy as np
@@ -8,8 +8,8 @@ import pytest
 from pytest import mark, raises, fixture
 
 from pyquibbler import iquib, quibbler_user_function
-from pyquibbler.input_validation_utils import InvalidArgumentException
-from pyquibbler.quib import Quib, OverridingNotAllowedException, QuibGuard
+from pyquibbler.refactor.input_validation_utils import InvalidArgumentException
+from pyquibbler.quib import Quib, OverridingNotAllowedException
 from pyquibbler.quib.assignment import RangeAssignmentTemplate, BoundAssignmentTemplate, Assignment
 from pyquibbler.quib.assignment.assignment import PathComponent
 from pyquibbler.quib.assignment.assignment_template import InvalidTypeException

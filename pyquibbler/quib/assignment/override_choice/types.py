@@ -2,7 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import List, Union
 
-from pyquibbler.project import Project
+from pyquibbler.refactor.project import Project
 from pyquibbler.quib.assignment import AssignmentToQuib, PathComponent, QuibChange, CannotReverseException
 from pyquibbler.quib.assignment.assignment import Override
 

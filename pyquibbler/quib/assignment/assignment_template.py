@@ -4,8 +4,8 @@ from math import floor
 from typing import Any, Type
 from dataclasses import dataclass
 
-from pyquibbler.exceptions import DebugException, PyQuibblerException
-from pyquibbler.input_validation_utils import InvalidArgumentException
+from pyquibbler.refactor.exceptions import DebugException, PyQuibblerException
+from pyquibbler.refactor.input_validation_utils import InvalidArgumentException
 
 CONSTRUCTORS = {
     np.ndarray: np.array

@@ -5,8 +5,8 @@ import numpy as np
 from typing import Callable
 
 from pyquibbler import Assignment
-from pyquibbler.env import ASSIGNMENT_RESTRICTIONS
-from pyquibbler.exceptions import PyQuibblerException
+from pyquibbler.refactor.env import ASSIGNMENT_RESTRICTIONS
+from pyquibbler.refactor.exceptions import PyQuibblerException
 from pyquibbler.refactor.path.utils import get_nd_working_component_value_from_path
 from pyquibbler.refactor.function_definitions.func_call import FuncCall
 from pyquibbler.refactor.inversion.inverter import Inverter

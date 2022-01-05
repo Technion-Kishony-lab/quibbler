@@ -10,8 +10,8 @@ from .assignment import AssignmentTemplate
 from .assignment.assignment import PathComponent
 from .quib import Quib
 from .utils import is_there_a_quib_in_object
-from ..env import DEBUG, PRETTY_REPR
-from ..exceptions import DebugException, PyQuibblerException
+from pyquibbler.refactor.env import DEBUG, PRETTY_REPR
+from pyquibbler.refactor.exceptions import DebugException, PyQuibblerException
 
 
 @dataclass

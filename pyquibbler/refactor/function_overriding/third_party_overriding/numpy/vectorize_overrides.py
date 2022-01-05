@@ -7,7 +7,7 @@ from pyquibbler.refactor.function_definitions.function_definition import Functio
 from pyquibbler.refactor.function_overriding.function_override import FunctionOverride
 from pyquibbler.refactor.quib.function_runners.vectorize.vectorize_function_runner import VectorizeCallFunctionRunner
 from pyquibbler.refactor.quib.graphics import UpdateType
-from pyquibbler.env import PRETTY_REPR
+from pyquibbler.refactor.env import PRETTY_REPR
 from pyquibbler.refactor.translation.translators.vectorize_translator import VectorizeForwardsPathTranslator, \
     VectorizeBackwardsPathTranslator
 

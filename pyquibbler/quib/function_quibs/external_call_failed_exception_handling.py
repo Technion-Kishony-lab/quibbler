@@ -6,8 +6,8 @@ import traceback
 
 from varname.utils import cached_getmodule
 
-from pyquibbler.env import SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS
-from pyquibbler.exceptions import PyQuibblerException
+from pyquibbler.refactor.env import SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS
+from pyquibbler.refactor.exceptions import PyQuibblerException
 
 
 class ExternalCallFailedException(PyQuibblerException):

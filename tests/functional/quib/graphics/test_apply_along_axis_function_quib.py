@@ -1,16 +1,13 @@
-import dataclasses
 import itertools
-from typing import Callable, Any
 
 import numpy as np
 import pytest
 from pytest import mark
 
 from pyquibbler import iquib
-from pyquibbler.env import GRAPHICS_EVALUATE_NOW
+from pyquibbler.refactor.env import GRAPHICS_EVALUATE_NOW
 from pyquibbler.quib import PathComponent, Quib
 from pyquibbler.quib.assignment.utils import deep_get
-from pyquibbler.quib.graphics import ApplyAlongAxisGraphicsFunctionQuib
 from tests.functional.quib.graphics.test_axiswise_graphics_function_quib import parametrize_indices_to_invalidate, \
     parametrize_data
 from tests.functional.quib.utils import check_invalidation, check_get_value_valid_at_path, get_func_mock

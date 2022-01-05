@@ -5,7 +5,7 @@ from typing import Optional
 
 from varname.utils import ASSIGN_TYPES, get_node, node_name, AssignType
 
-from pyquibbler.exceptions import PyQuibblerException
+from pyquibbler.refactor.exceptions import PyQuibblerException
 
 
 class CannotFindNodeException(PyQuibblerException):

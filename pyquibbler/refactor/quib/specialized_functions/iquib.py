@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from typing import Any, List
 
-from pyquibbler.env import DEBUG
-from pyquibbler.exceptions import DebugException
+from pyquibbler.refactor.env import DEBUG
+from pyquibbler.refactor.exceptions import DebugException
 from pyquibbler.refactor.function_definitions import add_definition_for_function
 from pyquibbler.refactor.function_definitions.function_definition import create_function_definition
 from pyquibbler.refactor.path.path_component import Path

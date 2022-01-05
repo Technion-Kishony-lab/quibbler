@@ -7,13 +7,13 @@ from unittest.mock import Mock
 import pytest
 from pytest import fixture, mark
 from pyquibbler import iquib, CacheBehavior, q
-from pyquibbler.env import PRETTY_REPR
-from pyquibbler.input_validation_utils import InvalidArgumentException
+from pyquibbler.refactor.env import PRETTY_REPR
+from pyquibbler.refactor.input_validation_utils import InvalidArgumentException
 from pyquibbler.quib import FunctionQuib, Assignment
 from pyquibbler.quib.assignment.assignment import PathComponent
 from pyquibbler.quib.function_quibs.function_quib import UnknownCacheBehaviorException
 
-from ..utils import get_mock_with_repr, MockQuib
+from ..utils import MockQuib
 
 
 class ExampleFunctionQuib(FunctionQuib):

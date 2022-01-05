@@ -1,15 +1,10 @@
-import itertools
-from unittest import mock
-
 import numpy as np
-import pytest
 from pytest import mark
 
-from pyquibbler import CacheBehavior, iquib
-from pyquibbler.env import GRAPHICS_EVALUATE_NOW
+from pyquibbler import CacheBehavior
 from pyquibbler.quib.assignment import PathComponent
 
-from ..utils import check_invalidation, check_get_value_valid_at_path, MockQuib, get_func_mock
+from ..utils import check_invalidation, check_get_value_valid_at_path, MockQuib
 
 # A 3d array in which every dimension has a different size
 parametrize_data = mark.parametrize('data', [np.arange(24).reshape((2, 3, 4))])

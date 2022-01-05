@@ -5,7 +5,7 @@ from typing import Dict, Any, Callable
 
 from matplotlib.axes import Axes
 
-from pyquibbler.env import GRAPHICS_EVALUATE_NOW
+from pyquibbler.refactor.env import GRAPHICS_EVALUATE_NOW
 from pyquibbler.refactor.function_definitions.function_definition import create_function_definition
 from pyquibbler.refactor.function_overriding.function_override import FunctionOverride
 from pyquibbler.refactor.graphics import global_collecting

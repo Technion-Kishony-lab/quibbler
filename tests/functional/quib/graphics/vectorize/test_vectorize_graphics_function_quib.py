@@ -1,12 +1,10 @@
-import time
-
 import matplotlib.pyplot as plt
 import numpy as np
 from pytest import mark, fixture, raises
 from unittest.mock import Mock
 from functools import partial
 
-from pyquibbler.env import GRAPHICS_EVALUATE_NOW, PRETTY_REPR
+from pyquibbler.refactor.env import GRAPHICS_EVALUATE_NOW, PRETTY_REPR
 from pyquibbler.quib import iquib, CacheBehavior, ProxyQuib, get_override_group_for_change
 from pyquibbler.quib.assignment import PathComponent, AssignmentToQuib, Assignment, Override
 

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from types import ModuleType
 from typing import Callable, Any, Dict, Union, Type, Optional
 
-from pyquibbler.env import EVALUATE_NOW
+from pyquibbler.refactor.env import EVALUATE_NOW
 from pyquibbler.refactor.function_definitions.function_definition import FunctionDefinition
 from pyquibbler.refactor.quib.utils import is_there_a_quib_in_args
 

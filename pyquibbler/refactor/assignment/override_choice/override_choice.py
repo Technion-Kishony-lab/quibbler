@@ -2,13 +2,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import List, TYPE_CHECKING, Optional, Dict, ClassVar, Union
 
-from pyquibbler.exceptions import PyQuibblerException
+from pyquibbler.refactor.exceptions import PyQuibblerException
 from pyquibbler.refactor.assignment import AssignmentToQuib, QuibChange
 
 from .choice_context import ChoiceContext
 from .override_dialog import OverrideChoiceType, OverrideChoice, choose_override_dialog
 from .types import OverrideRemoval, OverrideGroup, QuibChangeWithOverrideRemovals
-from pyquibbler.env import ASSIGNMENT_RESTRICTIONS
+from pyquibbler.refactor.env import ASSIGNMENT_RESTRICTIONS
 
 if TYPE_CHECKING:
     from pyquibbler.quib import FunctionQuib

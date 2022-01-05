@@ -2,7 +2,6 @@ from unittest import mock
 
 import pytest
 
-from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.refactor.function_definitions.func_call import FuncCall
 from pyquibbler.refactor.inversion.exceptions import NoInvertersFoundException
 from pyquibbler.refactor.inversion.invert import invert

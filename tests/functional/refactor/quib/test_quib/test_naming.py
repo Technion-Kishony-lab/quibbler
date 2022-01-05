@@ -2,7 +2,7 @@ from unittest import mock
 
 import pytest
 
-from pyquibbler.input_validation_utils import InvalidArgumentException
+from pyquibbler.refactor.input_validation_utils import InvalidArgumentException
 from pyquibbler.refactor.quib.factory import create_quib
 
 

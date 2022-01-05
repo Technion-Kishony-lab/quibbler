@@ -7,8 +7,8 @@ from matplotlib.widgets import Button
 from typing import List, Callable, Optional, TYPE_CHECKING
 from enum import Enum
 
-from pyquibbler.logger import logger
-from pyquibbler.exceptions import PyQuibblerException
+from pyquibbler.refactor.logger import logger
+from pyquibbler.refactor.exceptions import PyQuibblerException
 from pyquibbler.utils import Flag, Mutable
 
 if TYPE_CHECKING:

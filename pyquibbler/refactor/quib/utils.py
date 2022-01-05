@@ -1,7 +1,7 @@
 from copy import copy
 from typing import Any, Optional, Tuple, Mapping, Callable, Dict
 
-from pyquibbler.env import DEBUG
+from pyquibbler.refactor.env import DEBUG
 from pyquibbler.refactor.iterators import is_iterator_empty, iter_args_and_names_in_function_call, SHALLOW_MAX_LENGTH, \
     SHALLOW_MAX_DEPTH, recursively_run_func_on_object
 from pyquibbler.refactor.quib.iterators import iter_quibs_in_object, iter_quibs_in_args, \

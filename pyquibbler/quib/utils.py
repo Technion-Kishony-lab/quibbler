@@ -9,8 +9,8 @@ from inspect import signature
 from itertools import chain
 from typing import Any, Optional, Set, TYPE_CHECKING, Callable, Tuple, Dict, Type, Mapping, Union
 
-from pyquibbler.env import DEBUG
-from pyquibbler.exceptions import DebugException, PyQuibblerException
+from pyquibbler.refactor.env import DEBUG
+from pyquibbler.refactor.exceptions import DebugException, PyQuibblerException
 from pyquibbler.refactor.quib.quib_ref import QuibRef
 
 if TYPE_CHECKING:

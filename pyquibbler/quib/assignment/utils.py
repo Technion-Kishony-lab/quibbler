@@ -4,9 +4,9 @@ from typing import Any, List, TYPE_CHECKING
 
 import numpy as np
 
-from pyquibbler.env import DEBUG
-from pyquibbler.exceptions import PyQuibblerException
-from pyquibbler.logger import logger
+from pyquibbler.refactor.env import DEBUG
+from pyquibbler.refactor.exceptions import PyQuibblerException
+from pyquibbler.refactor.logger import logger
 
 if TYPE_CHECKING:
     from pyquibbler.quib.assignment import PathComponent

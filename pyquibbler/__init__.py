@@ -1,5 +1,5 @@
 from .decorators import quibbler_user_function
-from .performance_utils import timer, get_timer
+from pyquibbler.refactor.performance_utils import timer, get_timer
 # from .quib import CacheBehavior
 # from pyquibbler.overriding import override_all
 # from .user_utils import q_eager, reset_impure_function_quibs, save_quibs, set_project_path, load_quibs, undo, \

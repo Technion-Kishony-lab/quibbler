@@ -4,7 +4,7 @@ from unittest import mock
 import pytest
 
 from pyquibbler import iquib
-from pyquibbler.project import Project, NothingToUndoException, NothingToRedoException
+from pyquibbler.refactor.project import Project, NothingToUndoException, NothingToRedoException
 from pyquibbler.quib import ImpureFunctionQuib, GraphicsFunctionQuib
 from pyquibbler.quib.graphics.widgets.drag_context_manager import dragging
 

@@ -3,7 +3,7 @@ import itertools
 from inspect import signature
 from typing import Tuple, Any, Mapping, Type, Optional, Callable
 
-from pyquibbler.env import DEBUG
+from pyquibbler.refactor.env import DEBUG
 
 SHALLOW_MAX_DEPTH = 2
 SHALLOW_MAX_LENGTH = 100

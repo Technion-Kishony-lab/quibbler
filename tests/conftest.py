@@ -5,9 +5,9 @@ import pytest
 from pytest import fixture
 
 from pyquibbler import CacheBehavior
-from pyquibbler.env import DEBUG, EVALUATE_NOW, ASSIGNMENT_RESTRICTIONS, PRETTY_REPR, \
+from pyquibbler.refactor.env import DEBUG, EVALUATE_NOW, ASSIGNMENT_RESTRICTIONS, PRETTY_REPR, \
     SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS, GET_VARIABLE_NAMES
-from pyquibbler.project import Project
+from pyquibbler.refactor.project import Project
 from pyquibbler.refactor.function_overriding import override_new
 from pyquibbler.refactor.quib.function_runners import FunctionRunner
 from pyquibbler.utils import Flag

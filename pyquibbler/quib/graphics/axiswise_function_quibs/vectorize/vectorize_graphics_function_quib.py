@@ -3,7 +3,7 @@ import numpy as np
 from functools import cached_property
 from typing import Any, Optional, List, Tuple, Set, Union, TYPE_CHECKING
 
-from pyquibbler.env import PRETTY_REPR
+from pyquibbler.refactor.env import PRETTY_REPR
 from pyquibbler.quib.function_quibs.external_call_failed_exception_handling \
     import external_call_failed_exception_handling
 from pyquibbler.quib.function_quibs.pretty_converters import pretty_convert

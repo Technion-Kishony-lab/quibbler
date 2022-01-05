@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
 
-from pyquibbler.exceptions import PyQuibblerException
+from pyquibbler.refactor.exceptions import PyQuibblerException
 
 
 @dataclass

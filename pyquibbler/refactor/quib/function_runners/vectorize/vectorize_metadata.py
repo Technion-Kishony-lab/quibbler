@@ -4,8 +4,7 @@ from functools import partial
 from dataclasses import dataclass, field
 from typing import Any, Dict, Optional, List, Tuple, Union, Callable, Set, TYPE_CHECKING
 
-from pyquibbler.quib.function_quibs.utils import Args, Kwargs, convert_args_and_kwargs
-
+from pyquibbler.utils import convert_args_and_kwargs
 from .utils import Shape, get_core_axes, iter_arg_ids_and_values
 
 if TYPE_CHECKING:

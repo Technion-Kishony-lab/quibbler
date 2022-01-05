@@ -16,9 +16,9 @@ from ..assignment import AssignmentTemplate, PathComponent
 from ..function_quibs import DefaultFunctionQuib, CacheBehavior
 from ..function_quibs.external_call_failed_exception_handling import external_call_failed_exception_handling
 from ..utils import recursively_run_func_on_object, iter_object_type_in_args
-from ...env import GRAPHICS_EVALUATE_NOW
-from ...exceptions import PyQuibblerException
-from ...input_validation_utils import InvalidArgumentException, validate_user_input
+from pyquibbler.refactor.env import GRAPHICS_EVALUATE_NOW
+from pyquibbler.refactor.exceptions import PyQuibblerException
+from pyquibbler.refactor.input_validation_utils import InvalidArgumentException, validate_user_input
 
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib

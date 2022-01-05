@@ -14,7 +14,7 @@ from ..assignment.exceptions import CommonAncestorBetweenArgumentsException
 from ..utils import call_func_with_quib_values, iter_quibs_in_object_recursively
 
 from pyquibbler.quib.assignment import Assignment, PathComponent
-from ...env import ASSIGNMENT_RESTRICTIONS
+from pyquibbler.refactor.env import ASSIGNMENT_RESTRICTIONS
 
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib

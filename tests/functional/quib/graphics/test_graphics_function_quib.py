@@ -1,9 +1,8 @@
-import matplotlib.pyplot as plt
 import pytest
 from unittest import mock
 
 from pyquibbler import iquib
-from pyquibbler.env import GRAPHICS_EVALUATE_NOW
+from pyquibbler.refactor.env import GRAPHICS_EVALUATE_NOW
 from pyquibbler.quib import UpdateType
 from pyquibbler.quib.graphics import GraphicsFunctionQuib
 from pyquibbler.quib.graphics.widgets.drag_context_manager import dragging

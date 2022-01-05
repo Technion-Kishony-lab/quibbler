@@ -5,7 +5,7 @@ from weakref import ref
 from dataclasses import dataclass
 from typing import Optional, Callable, Type
 
-from pyquibbler.exceptions import PyQuibblerException
+from pyquibbler.refactor.exceptions import PyQuibblerException
 
 TIMERS = {}
 
