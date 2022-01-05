@@ -6,7 +6,7 @@ import numpy as np
 from pyquibbler.refactor.path.path_component import Path
 from pyquibbler.quib.function_quibs.external_call_failed_exception_handling import \
     external_call_failed_exception_handling
-from pyquibbler.quib.function_quibs.utils import create_empty_array_with_values_at_indices
+from pyquibbler.refactor.general_utils import create_empty_array_with_values_at_indices
 from pyquibbler.refactor.graphics.utils import remove_created_graphics
 from pyquibbler.refactor.quib.func_call_utils import get_func_call_with_quibs_valid_at_paths, get_data_source_quibs
 from pyquibbler.refactor.quib.function_runners import DefaultFunctionRunner

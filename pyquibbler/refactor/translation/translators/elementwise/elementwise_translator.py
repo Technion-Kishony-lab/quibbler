@@ -4,7 +4,7 @@ import numpy as np
 
 from pyquibbler.refactor.path.path_component import PathComponent, Path
 from pyquibbler.refactor.path.utils import get_nd_working_component_value_from_path
-from pyquibbler.quib.function_quibs.utils import create_empty_array_with_values_at_indices, unbroadcast_bool_mask
+from pyquibbler.refactor.general_utils import create_empty_array_with_values_at_indices, unbroadcast_bool_mask
 from pyquibbler.refactor.translation.backwards_path_translator import BackwardsPathTranslator
 from pyquibbler.refactor.translation.forwards_path_translator import ForwardsPathTranslator
 from pyquibbler.refactor.translation.numpy_forwards_path_translator import NumpyForwardsPathTranslator

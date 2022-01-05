@@ -11,7 +11,7 @@ from pyquibbler.refactor.translation.types import Source
 from pyquibbler.refactor.translation.utils import call_func_with_sources_values
 from pyquibbler.refactor.path.path_component import Path, PathComponent
 from pyquibbler.refactor.path.utils import working_component
-from pyquibbler.quib.function_quibs.utils import create_empty_array_with_values_at_indices
+from pyquibbler.refactor.general_utils import create_empty_array_with_values_at_indices
 from pyquibbler.refactor.iterators import recursively_run_func_on_object, SHALLOW_MAX_DEPTH, SHALLOW_MAX_LENGTH
 from pyquibbler.utils import convert_args_and_kwargs
 

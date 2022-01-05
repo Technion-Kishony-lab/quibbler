@@ -6,7 +6,7 @@ from pyquibbler.refactor.assignment import Assignment
 from pyquibbler.refactor.translation.types import Inversal
 from pyquibbler.refactor.path.path_component import PathComponent
 from pyquibbler.refactor.path.utils import working_component
-from pyquibbler.quib.function_quibs.utils import create_empty_array_with_values_at_indices
+from pyquibbler.refactor.general_utils import create_empty_array_with_values_at_indices
 from pyquibbler.refactor.translation.translate import backwards_translate, forwards_translate
 
 

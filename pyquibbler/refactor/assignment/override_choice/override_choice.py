@@ -11,7 +11,7 @@ from .types import OverrideRemoval, OverrideGroup, QuibChangeWithOverrideRemoval
 from pyquibbler.refactor.env import ASSIGNMENT_RESTRICTIONS
 
 if TYPE_CHECKING:
-    from pyquibbler.quib import FunctionQuib
+    from pyquibbler.refactor.quib import Quib
 
 
 @dataclass
@@ -47,9 +47,9 @@ class OverrideOptionsTree:
     """
     _CHOICE_CACHE: ClassVar[Dict[ChoiceContext, OverrideChoice]] = {}
 
-    inversed_quib: FunctionQuib
+    inversed_quib: Quib
     options: List[QuibChangeWithOverrideRemovals]
-    diverged_quib: Optional[FunctionQuib]
+    diverged_quib: Optional[Quib]
     children: List[OverrideOptionsTree]
     override_removals: List[OverrideRemoval]
 
@@ -124,7 +124,7 @@ class OverrideOptionsTree:
         return override_group
 
     @classmethod
-    def _get_children_from_diverged_inversions(cls, inversions: List[AssignmentToQuib], top_quib: FunctionQuib):
+    def _get_children_from_diverged_inversions(cls, inversions: List[AssignmentToQuib], top_quib: Quib):
         """
         For each diverged inversion, create a new OverrideOptionsTree instance, and return a list of all instances.
         If any inversion cannot be translated into an override, return an empty list.
@@ -169,7 +169,7 @@ class OverrideOptionsTree:
 
     @classmethod
     def from_quib_change(cls, quib_change: Union[AssignmentToQuib, OverrideRemoval],
-                         top_quib: Optional[FunctionQuib] = None) -> OverrideOptionsTree:
+                         top_quib: Optional[Quib] = None) -> OverrideOptionsTree:
         """
         Build an OverrideOptionsTree representing all the override options for the given assignment.
         """
