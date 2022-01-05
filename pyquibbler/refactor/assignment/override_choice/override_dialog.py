@@ -69,7 +69,7 @@ def choose_override_dialog(options: List[Quib], can_diverge: bool) -> OverrideCh
     Open a popup dialog to offer the user a choice between override options.
     If can_diverge is true, offer the user to diverge the override instead of choosing an override option.
     """
-    from pyquibbler.quib.graphics.widgets import QRadioButtons
+    from pyquibbler.refactor.graphics.widgets import QRadioButtons
     # Used to keep references to the widgets so they won't be garbage collected
     widgets = []
     axeses = []
