@@ -6,7 +6,7 @@ from pyquibbler.refactor.quib.function_runners.function_runner import FunctionRu
 from pyquibbler.refactor.graphics.graphics_collection import GraphicsCollection
 from pyquibbler.refactor.quib.quib import Quib
 from pyquibbler.refactor.quib.translation_utils import get_func_call_for_translation
-from pyquibbler.refactor.quib.func_call_utils import get_func_call_with_quibs_valid_at_paths
+from pyquibbler.refactor.quib.func_call_utils import get_func_call_with_quibs_valid_at_paths, get_data_source_quibs
 from pyquibbler.refactor.translation.translate import NoTranslatorsFoundException, backwards_translate
 
 
@@ -14,23 +14,20 @@ from pyquibbler.refactor.translation.translate import NoTranslatorsFoundExceptio
 class DefaultFunctionRunner(FunctionRunner):
 
     def _backwards_translate_path(self, valid_path: Path) -> Dict[Quib, Path]:
+        if not get_data_source_quibs(self.func_call):
+            return {}
+
         # TODO: try without shape/type + args
         func_call, sources_to_quibs = get_func_call_for_translation(self.func_call,  {})
 
-        if not sources_to_quibs:
-            return {}
-
-        from pyquibbler.refactor.function_definitions import CannotFindDefinitionForFunctionException
         try:
             sources_to_paths = backwards_translate(
                 func_call=func_call,
                 path=valid_path,
                 shape=self.get_shape(),
-                type_=self.get_type()
+                type_=self.get_type(),
+                **self.get_result_metadata()
             )
-        except CannotFindDefinitionForFunctionException:
-            return {}
-        # TODO: make these try excepts singular
         except NoTranslatorsFoundException:
             return {}
 
@@ -40,7 +37,6 @@ class DefaultFunctionRunner(FunctionRunner):
         }
 
     def _run_on_path(self, valid_path: Path):
-
         graphics_collection: GraphicsCollection = self.graphics_collections[()]
 
         if self.call_func_with_quibs:

@@ -1,12 +1,15 @@
+from __future__ import annotations
 from dataclasses import dataclass, field
-from typing import Set, Type, List, Union
+from typing import Set, Type, List, Union, TYPE_CHECKING
 
 from pyquibbler.refactor.function_definitions.func_call import ArgsValues
 from pyquibbler.refactor.function_definitions.types import Argument, PositionalArgument, KeywordArgument
-from pyquibbler.refactor.inversion.inverter import Inverter
-from pyquibbler.refactor.quib.function_runners import DefaultFunctionRunner, FunctionRunner
 from pyquibbler.refactor.translation.backwards_path_translator import BackwardsPathTranslator
 from pyquibbler.refactor.translation.forwards_path_translator import ForwardsPathTranslator
+
+if TYPE_CHECKING:
+    from pyquibbler.refactor.quib.function_runners import FunctionRunner
+    from pyquibbler.refactor.inversion.inverter import Inverter
 
 
 @dataclass
@@ -20,7 +23,7 @@ class FunctionDefinition:
     inverters: List[Type[Inverter]] = None
     backwards_path_translators: List[Type[BackwardsPathTranslator]] = field(default_factory=list)
     forwards_path_translators: List[Type[ForwardsPathTranslator]] = field(default_factory=list)
-    function_runner_cls: Type[FunctionRunner] = DefaultFunctionRunner
+    function_runner_cls: Type[FunctionRunner] = None
 
     def get_data_source_argument_values(self, args_values: ArgsValues):
         return [
@@ -33,12 +36,14 @@ def create_function_definition(data_source_arguments: List[Union[str, int]] = No
                                inverters: List[Type[Inverter]] = None,
                                backwards_path_translators: List[Type[BackwardsPathTranslator]] = None,
                                forwards_path_translators: List[Type[ForwardsPathTranslator]] = None,
-                               function_runner_cls: Type[FunctionRunner] = DefaultFunctionRunner
+                               function_runner_cls: Type[FunctionRunner] = None
                                ):
     """
     Create a definition for a function- this will allow quibbler to utilize Quibs with the function in a more
     specific manner (and not just use default behavior), for whichever parameters you give.
     """
+    from pyquibbler.refactor.quib.function_runners import DefaultFunctionRunner
+    function_runner_cls = function_runner_cls or DefaultFunctionRunner
     data_source_arguments = data_source_arguments or set()
     raw_data_source_arguments = {
         PositionalArgument(data_source_argument)

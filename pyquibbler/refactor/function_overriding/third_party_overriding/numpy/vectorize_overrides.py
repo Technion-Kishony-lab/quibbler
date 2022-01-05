@@ -8,7 +8,8 @@ from pyquibbler.refactor.function_overriding.function_override import FunctionOv
 from pyquibbler.refactor.quib.function_runners.vectorize.vectorize_function_runner import VectorizeCallFunctionRunner
 from pyquibbler.refactor.quib.graphics import UpdateType
 from pyquibbler.env import PRETTY_REPR
-from pyquibbler.refactor.translation.translators.vectorize_translator import VectorizeForwardsPathTranslator
+from pyquibbler.refactor.translation.translators.vectorize_translator import VectorizeForwardsPathTranslator, \
+    VectorizeBackwardsPathTranslator
 
 
 class VectorizeOverride(FunctionOverride):
@@ -69,6 +70,8 @@ def create_vectorize_overrides():
         VectorizeCallOverride(func_name="__call__", module_or_cls=QVectorize,
                               function_definition=VectorizeCallDefinition(
                                   function_runner_cls=VectorizeCallFunctionRunner,
-                                  forwards_path_translators=[VectorizeForwardsPathTranslator])
+                                  forwards_path_translators=[VectorizeForwardsPathTranslator],
+                                  backwards_path_translators=[VectorizeBackwardsPathTranslator]
+                              )
                               )
     ]

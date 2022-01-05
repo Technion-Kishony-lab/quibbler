@@ -24,9 +24,8 @@ class ForwardsPathTranslator(Translator):
     def _forward_translate_source(self, source: Source, path: Path) -> List[Path]:
         pass
 
-    def translate(self):
+    def translate(self) -> Dict[Source, List[Path]]:
         return {
             source: self._forward_translate_source(source, path)
             for source, path in self._sources_to_paths.items()
         }
-

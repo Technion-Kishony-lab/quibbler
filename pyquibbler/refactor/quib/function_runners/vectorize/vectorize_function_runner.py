@@ -32,16 +32,11 @@ class VectorizeCallFunctionRunner(DefaultFunctionRunner):
         indices arrays, and when the wrapper receives an index it uses it to get a GetItemQuib from the passed quib.
         """
         args_ids_and_values = list(iter_arg_ids_and_values(call.args, call.kwargs))
-        # TODO: Proxies...
+
         non_excluded_quib_args = {arg_id: create_proxy(np.array(val)) for arg_id, val in args_ids_and_values
                                   if isinstance(val, Quib) and arg_id not in call.vectorize.excluded}
         excluded_quib_args = {arg_id: create_proxy(val) for arg_id, val in args_ids_and_values
                               if isinstance(val, Quib) and arg_id in call.vectorize.excluded}
-        #
-        # non_excluded_quib_args = {arg_id: np.array(val) for arg_id, val in args_ids_and_values
-        #                           if isinstance(val, Quib) and arg_id not in call.vectorize.excluded}
-        # excluded_quib_args = {arg_id: val for arg_id, val in args_ids_and_values
-        #                       if isinstance(val, Quib) and arg_id in call.vectorize.excluded}
 
         def convert_quibs_to_indices(arg_id, arg_val):
             if arg_id in non_excluded_quib_args:
@@ -77,27 +72,27 @@ class VectorizeCallFunctionRunner(DefaultFunctionRunner):
         quibs_to_guard = {*non_excluded_quib_args.values(), *excluded_quib_args.values()}
         new_vectorize = copy_vectorize(call.vectorize, func=wrapper, signature=signature)
         return VectorizeCall(new_vectorize, args, kwargs, quibs_to_guard)
-
-    def _backwards_translate_path(self, valid_path: Path) -> Dict[Quib, Path]:
-        # TODO: nicer way?
-        if not get_data_source_quibs(self.func_call):
-            return {}
-
-        # TODO: try without shape/type + args
-        func_call, sources_to_quibs = get_func_call_for_translation(self.func_call,  {})
-
-        sources_to_paths = VectorizeBackwardsPathTranslator(
-            func_call=func_call,
-            path=valid_path,
-            shape=self.get_shape(),
-            type_=self.get_type(),
-            vectorize_metadata=self._vectorize_metadata
-        ).translate_in_order()
-
-        return {
-            quib: sources_to_paths.get(source, None)
-            for source, quib in sources_to_quibs.items()
-        }
+    #
+    # def _backwards_translate_path(self, valid_path: Path) -> Dict[Quib, Path]:
+    #     # TODO: nicer way?
+    #     if not get_data_source_quibs(self.func_call):
+    #         return {}
+    #
+    #     # TODO: try without shape/type + args
+    #     func_call, sources_to_quibs = get_func_call_for_translation(self.func_call,  {})
+    #
+    #     sources_to_paths = VectorizeBackwardsPathTranslator(
+    #         func_call=func_call,
+    #         path=valid_path,
+    #         shape=self.get_shape(),
+    #         type_=self.get_type(),
+    #         vectorize_metadata=self._vectorize_metadata
+    #     ).translate_in_order()
+    #
+    #     return {
+    #         quib: sources_to_paths.get(source, None)
+    #         for source, quib in sources_to_quibs.items()
+    #     }
 
     def _get_vectorize_call(self, args_metadata, results_core_ndims, valid_path) -> VectorizeCall:
         """
