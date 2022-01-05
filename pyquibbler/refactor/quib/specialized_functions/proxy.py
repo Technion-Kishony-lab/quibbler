@@ -1,11 +1,11 @@
 from __future__ import annotations
 from typing import Any, List, TYPE_CHECKING, Dict
 
-from pyquibbler.refactor.function_definitions import FunctionDefinition, add_definition_for_function
+from pyquibbler.refactor.function_definitions import add_definition_for_function
 from pyquibbler.refactor.function_definitions.function_definition import create_function_definition
 from pyquibbler.refactor.inversion import TranspositionalInverter
 from pyquibbler.refactor.inversion.inverter import Inverter
-from pyquibbler.refactor.quib.assignment import Path
+from pyquibbler.refactor.path.path_component import Path
 from pyquibbler.refactor.translation.backwards_path_translator import BackwardsPathTranslator
 from pyquibbler.refactor.translation.forwards_path_translator import ForwardsPathTranslator
 from pyquibbler.refactor.translation.types import Source, Inversal

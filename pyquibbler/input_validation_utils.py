@@ -3,7 +3,6 @@ from dataclasses import dataclass
 from typing import Type, Union, Tuple
 
 from pyquibbler.exceptions import PyQuibblerException
-from pyquibbler.refactor.func_call import ArgsValues
 
 
 @dataclass
@@ -21,11 +20,11 @@ def validate_user_input(**vars_to_expected_types):
     """
     Validate user input to ensure no arguments of unexpected types are given
     """
-
     def _decorator(func):
 
         @functools.wraps(func)
         def _wrapper(*args, **kwargs):
+            from pyquibbler.refactor.function_definitions.func_call import ArgsValues
             arg_values = ArgsValues.from_function_call(func, args, kwargs, False)
             for var_name, expected_types in vars_to_expected_types.items():
                 if not isinstance(arg_values[var_name], expected_types):

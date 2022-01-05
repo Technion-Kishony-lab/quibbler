@@ -2,8 +2,8 @@ from dataclasses import dataclass
 from typing import Callable, Type, Dict
 
 from pyquibbler.exceptions import PyQuibblerException
-from pyquibbler.refactor.quib.assignment import Path
-from pyquibbler.refactor.func_call import FuncCall
+from pyquibbler.refactor.path.path_component import Path
+from pyquibbler.refactor.function_definitions.func_call import FuncCall
 from pyquibbler.refactor.translation.backwards_path_translator import BackwardsPathTranslator
 from pyquibbler.refactor.translation.forwards_path_translator import ForwardsPathTranslator
 from pyquibbler.refactor.translation.types import Source

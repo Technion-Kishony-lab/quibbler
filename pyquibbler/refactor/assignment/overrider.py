@@ -2,10 +2,10 @@ import numpy as np
 from dataclasses import dataclass
 from typing import Any, List, Optional, Union, Dict, Hashable
 
-from .assignment import Assignment, PathComponent, get_hashable_path
+from .assignment import Assignment, get_hashable_path
+from pyquibbler.refactor.path.path_component import PathComponent
 from .assignment_template import AssignmentTemplate
-from .utils import deep_get, deep_assign_data_in_path
-from ..utils import deep_copy_without_quibs_or_graphics, recursively_run_func_on_object
+from ..path.data_accessing import deep_get, deep_assign_data_in_path
 
 
 @dataclass
@@ -92,6 +92,7 @@ class Overrider:
         """
         Deep copies the argument and returns said data with applied overrides
         """
+        from pyquibbler.refactor.quib.utils import deep_copy_without_quibs_or_graphics
         from pyquibbler import timer
         original_data = data
         with timer("quib_overriding"):
@@ -127,6 +128,7 @@ class Overrider:
             if isinstance(path[-1].component, slice):
                 inner_data = deep_get(mask, path[:-1])
                 if not isinstance(inner_data, np.ndarray):
+                    from ..quib.iterators import recursively_run_func_on_object
                     val = recursively_run_func_on_object(lambda x: val, inner_data)
             mask = deep_assign_data_in_path(mask, path, val)
         return mask

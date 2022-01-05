@@ -15,32 +15,32 @@ from pyquibbler.env import LEN_RAISE_EXCEPTION
 from pyquibbler.input_validation_utils import validate_user_input
 from pyquibbler.logger import logger
 from pyquibbler.project import Project
-from pyquibbler.refactor.quib.assignment import AssignmentTemplate, Overrider, Assignment, \
+from pyquibbler.refactor.assignment.assignment_template import create_assignment_template
+from pyquibbler.refactor.inversion.exceptions import NoInvertersFoundException
+from pyquibbler.refactor.assignment import AssignmentTemplate, Overrider, Assignment, \
     AssignmentToQuib
-from pyquibbler.refactor.quib.assignment import PathComponent
-from pyquibbler.refactor.quib.assignment.assignment_template import InvalidTypeException, create_assignment_template
-from pyquibbler.refactor.quib.assignment.override_choice import OverrideRemoval, get_override_group_for_change
-from pyquibbler.refactor.quib.assignment.utils import FailedToDeepAssignException
+from pyquibbler.refactor.path.data_accessing import FailedToDeepAssignException
+from pyquibbler.refactor.path.path_component import PathComponent
+from pyquibbler.refactor.assignment import InvalidTypeException
+from pyquibbler.refactor.assignment.override_choice import OverrideRemoval, get_override_group_for_change
 from pyquibbler.quib.function_quibs.cache import create_cache
 from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
 from pyquibbler.quib.function_quibs.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
 from pyquibbler.quib.function_quibs.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own, \
     add_quib_to_fail_trace_if_raises_quib_call_exception
-from pyquibbler.refactor.func_call import ArgsValues
+from pyquibbler.refactor.function_definitions.func_call import ArgsValues
 from pyquibbler.quib.quib_guard import add_new_quib_to_guard_if_exists, guard_raise_if_not_allowed_access_to_quib
 from pyquibbler.quib.utils import quib_method, Unpacker
-from pyquibbler.refactor.inversion.invert import invert
 from pyquibbler.refactor.quib.cache_behavior import CacheBehavior, UnknownCacheBehaviorException
 from pyquibbler.refactor.quib.exceptions import OverridingNotAllowedException, UnknownUpdateTypeException, \
     InvalidCacheBehaviorForQuibException
 from pyquibbler.refactor.quib.graphics import UpdateType
 from pyquibbler.refactor.quib.iterators import iter_quibs_in_args, recursively_run_func_on_object
 from pyquibbler.refactor.quib.repr.repr_mixin import ReprMixin
-from pyquibbler.refactor.translation import CannotInvertException
 from pyquibbler.refactor.translation.translate import forwards_translate, NoTranslatorsFoundException
 
 if TYPE_CHECKING:
-    from pyquibbler.refactor.quib.assignment.override_choice import ChoiceContext, OverrideChoice
+    from pyquibbler.refactor.assignment.override_choice import ChoiceContext, OverrideChoice
     from pyquibbler.refactor.function_definitions import FunctionDefinition
     from pyquibbler.refactor.quib.function_runners import FunctionRunner
 
@@ -245,21 +245,17 @@ class Quib(ReprMixin):
         Get a list of assignments to parent quibs which could be applied instead of the given assignment
         and produce the same change in the value of this quib.
         """
-        from pyquibbler.refactor.function_definitions import CannotFindDefinitionForFunctionException
-
         from pyquibbler.refactor.quib.translation_utils import get_func_call_for_translation
-        func_call, data_sources_to_quibs = \
-            get_func_call_for_translation(self._function_runner.func_call, {})
+        func_call, data_sources_to_quibs = get_func_call_for_translation(self._function_runner.func_call, {})
 
         try:
             value = self.get_value()
 
+            from pyquibbler.refactor.inversion.invert import invert
             inversals = invert(func_call=func_call,
                                previous_result=value,
                                assignment=assignment)
-        except CannotInvertException:
-            return []
-        except CannotFindDefinitionForFunctionException:
+        except NoInvertersFoundException:
             return []
 
         return [
@@ -361,19 +357,11 @@ class Quib(ReprMixin):
         from pyquibbler.refactor.quib.translation_utils import get_func_call_for_translation
         from pyquibbler.refactor.quib.func_call_utils import is_quib_a_data_source
 
-        # REMEMBER THE POTENTIAL ISSUES
-        # if len(path) == 0 or not is_quib_a_data_source(self._function_runner.func_call, invalidator_quib):
-        #     # We want to completely invalidate our children
-        #     # if either a parameter changed or a data quib changed completely (at entire path)
-        #     return [[]]
         if not is_quib_a_data_source(self._function_runner.func_call, invalidator_quib):
             return [[]]
 
         func_call, sources_to_quibs = get_func_call_for_translation(self._function_runner.func_call, {})
         quibs_to_sources = {quib: source for source, quib in sources_to_quibs.items()}
-        #
-        # if invalidator_quib not in quibs_to_sources:
-        #     return []
 
         try:
             sources_to_new_paths = forwards_translate(
@@ -581,9 +569,6 @@ class Quib(ReprMixin):
         and None if neither
         """
         return self._name
-
-    def _call_func(self, valid_path: List[PathComponent]):
-        return self._function_runner.initialize_and_run_on_path(valid_path)
 
     @raise_quib_call_exceptions_as_own
     def get_value_valid_at_path(self, path: Optional[List[PathComponent]]) -> Any:

@@ -12,7 +12,6 @@ from typing import Callable, Any, Mapping, Tuple, Optional, Set, List
 from .pretty_converters import MathExpression
 from .external_call_failed_exception_handling import external_call_failed_exception_handling, \
     raise_quib_call_exceptions_as_own
-from ...refactor.func_call import ArgsValues
 from pyquibbler.quib.assignment.override_choice import get_override_group_for_change
 from ..assignment import AssignmentTemplate, Assignment, PathComponent, AssignmentToQuib
 from ..quib import Quib

@@ -10,5 +10,5 @@ class CannotFindDefinitionForFunctionException(PyQuibblerException):
     func: Callable
 
     def __str__(self):
-        return f"There exists no overriding definition for `{self.func.__name__}`. Consider adding one!"
+        return f"There exists no overriding definition for `{self.func}`. Consider adding one!"
 

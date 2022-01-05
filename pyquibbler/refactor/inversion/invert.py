@@ -1,30 +1,34 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, List
 
-
-from pyquibbler.refactor.translation.exceptions import NoInvertersFoundException, CannotInvertException
-from pyquibbler.refactor.func_call import FuncCall
+from pyquibbler.refactor.function_definitions.function_definition import FunctionDefinition
+from pyquibbler.refactor.inversion.exceptions import NoInvertersFoundException
+from pyquibbler.refactor.multiple_instance_runner import MultipleInstanceRunner
+from pyquibbler.refactor.function_definitions.func_call import FuncCall
 
 if TYPE_CHECKING:
     from pyquibbler import Assignment
 
 
-def invert(func_call: FuncCall, assignment: Assignment, previous_result):
-    from pyquibbler.refactor.function_definitions import get_definition_for_function
-    definition = get_definition_for_function(func_call.func)
+class MultipleInverterRunner(MultipleInstanceRunner):
+    exception_to_raise_on_none_found = NoInvertersFoundException
 
-    potential_inverter_classes = list(definition.inverters)
-    while True:
-        if potential_inverter_classes is None or len(potential_inverter_classes) == 0:
-            raise NoInvertersFoundException(func_call.func)
-        cls = potential_inverter_classes.pop()
-        inverter = cls(
-            func_call=func_call,
-            assignment=assignment,
-            previous_result=previous_result
+    def __init__(self, func_call: FuncCall, assignment: Assignment, previous_result: Any):
+        super().__init__(func_call)
+        self._assignment = assignment
+        self._previous_result = previous_result
+
+    def _get_runners_from_definition(self, definition: FunctionDefinition) -> List:
+        return definition.inverters
+
+    def _run_runner(self, runner: Any):
+        inverter = runner(
+            func_call=self._func_call,
+            assignment=self._assignment,
+            previous_result=self._previous_result
         )
-        try:
-            return inverter.get_inversals()
-        except CannotInvertException:
-            # TODO: don't raise
-            pass
+        return inverter.get_inversals()
+
+
+def invert(func_call: FuncCall, assignment: Assignment, previous_result):
+    return MultipleInverterRunner(func_call, assignment, previous_result).run()

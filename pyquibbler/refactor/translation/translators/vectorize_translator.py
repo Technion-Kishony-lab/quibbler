@@ -4,7 +4,7 @@ from typing import Dict, Any, Set, TYPE_CHECKING, Optional, Tuple, Type, List
 import numpy as np
 
 from pyquibbler.quib import PathComponent
-from pyquibbler.refactor.quib.assignment import Path
+from pyquibbler.refactor.path.path_component import Path
 from pyquibbler.quib.function_quibs.utils import unbroadcast_bool_mask, create_empty_array_with_values_at_indices
 from pyquibbler.refactor.quib.function_runners.vectorize.utils import iter_arg_ids_and_values, get_core_axes
 from pyquibbler.refactor.translation.backwards_path_translator import BackwardsPathTranslator

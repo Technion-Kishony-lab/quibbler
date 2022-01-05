@@ -1,13 +1,12 @@
 import functools
 from typing import Optional, Dict, Union, Any
 
-from pyquibbler.refactor.quib.assignment import Path
+from pyquibbler.refactor.path.path_component import Path
 from pyquibbler.quib.utils import QuibRef
-from pyquibbler.refactor.func_call import FuncCall
+from pyquibbler.refactor.function_definitions.func_call import FuncCall
 from pyquibbler.refactor.iterators import iter_objects_of_type_in_object_shallowly
 from pyquibbler.refactor.quib.iterators import recursively_run_func_on_object
 from pyquibbler.refactor.quib.quib import Quib
-from pyquibbler.refactor.translation.types import Source
 
 
 def _replace_sub_argument_with_value(func_call: FuncCall, quibs_to_paths, inner_arg: Union[Quib, Any]):

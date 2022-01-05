@@ -2,8 +2,8 @@ from typing import Union
 
 import numpy as np
 
-from pyquibbler.refactor.func_call import ArgsValues
-from pyquibbler.refactor.function_definitions import FunctionDefinition
+from pyquibbler.refactor.function_definitions.func_call import ArgsValues
+from pyquibbler.refactor.function_definitions.function_definition import FunctionDefinition
 from pyquibbler.refactor.function_overriding.function_override import FunctionOverride
 from pyquibbler.refactor.quib.function_runners.vectorize.vectorize_function_runner import VectorizeCallFunctionRunner
 from pyquibbler.refactor.quib.graphics import UpdateType

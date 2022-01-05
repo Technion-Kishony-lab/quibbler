@@ -1,11 +1,9 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from functools import lru_cache
-from typing import Optional, Callable, Any, Set, Mapping, List, Tuple, Type, TYPE_CHECKING
 
-from pyquibbler.refactor.quib.assignment.utils import deep_assign_data_in_path
 from pyquibbler.quib.utils import deep_copy_without_quibs_or_graphics
-from pyquibbler.refactor.func_call import FuncCall
+from pyquibbler.refactor.function_definitions.func_call import FuncCall
+from pyquibbler.refactor.path.data_accessing import deep_assign_data_in_path
 
 
 class Inverter(ABC):

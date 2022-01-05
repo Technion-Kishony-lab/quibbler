@@ -3,11 +3,10 @@ from typing import Dict, Optional, Tuple, Type, Any, List
 
 import numpy as np
 
-from pyquibbler.quib import PathComponent
-from pyquibbler.refactor.quib.assignment.assignment import working_component, path_beyond_working_component
 from pyquibbler.refactor.translation.path_translator import Translator
 from pyquibbler.refactor.translation.types import Source
-from pyquibbler.refactor.quib.assignment import Path
+from pyquibbler.refactor.path.path_component import Path
+from pyquibbler.refactor.path.utils import working_component, path_beyond_working_component
 
 
 class ForwardsPathTranslator(Translator):

@@ -3,8 +3,9 @@ from dataclasses import dataclass, field
 from typing import List, Union
 
 from pyquibbler.project import Project
-from pyquibbler.refactor.quib.assignment import AssignmentToQuib, PathComponent, QuibChange, CannotReverseException
-from pyquibbler.refactor.quib.assignment.assignment import Override
+from pyquibbler.refactor.assignment import AssignmentToQuib, QuibChange, CannotReverseException
+from pyquibbler.refactor.path.path_component import PathComponent
+from pyquibbler.refactor.assignment.assignment import Override
 
 
 @dataclass

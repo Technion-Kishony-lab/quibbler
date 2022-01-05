@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Dict
 
-from pyquibbler.refactor.quib.assignment import Path
+from pyquibbler.refactor.path.path_component import Path
 from pyquibbler.refactor.quib.function_runners.function_runner import FunctionRunner
 from pyquibbler.refactor.graphics.graphics_collection import GraphicsCollection
 from pyquibbler.refactor.quib.quib import Quib

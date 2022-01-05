@@ -14,7 +14,6 @@ from pyquibbler.quib.assignment import PathComponent
 from pyquibbler.quib.function_quibs.indices_translator_function_quib import IndicesTranslatorFunctionQuib, \
     SupportedFunction
 from pyquibbler.quib.function_quibs.utils import unbroadcast_bool_mask, convert_args_and_kwargs
-from pyquibbler.refactor.func_call import ArgsValues
 from pyquibbler.quib.utils import copy_and_replace_quibs_with_vals
 
 from .utils import copy_vectorize, get_core_axes, get_indices_array, iter_arg_ids_and_values, alter_signature
@@ -25,7 +24,7 @@ if TYPE_CHECKING:
     from pyquibbler.quib import UpdateType
 
 
-def get_vectorize_call_data_args(args_values: ArgsValues) -> List[Any]:
+def get_vectorize_call_data_args(args_values) -> List[Any]:
     """
     Given a call to a vectorized function, return the arguments which act as data sources.
     We are using args_values.args and args_values.kwargs instead of the full args dict on purpose,

@@ -1,4 +1,4 @@
-from pyquibbler.refactor.quib.assignment import Path
+from pyquibbler.refactor.path.path_component import Path
 from pyquibbler.refactor.quib.function_runners import DefaultFunctionRunner
 
 

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import List, TYPE_CHECKING, Optional, Dict, ClassVar, Union
 
 from pyquibbler.exceptions import PyQuibblerException
-from pyquibbler.refactor.quib.assignment import AssignmentToQuib, QuibChange
+from pyquibbler.refactor.assignment import AssignmentToQuib, QuibChange
 
 from .choice_context import ChoiceContext
 from .override_dialog import OverrideChoiceType, OverrideChoice, choose_override_dialog

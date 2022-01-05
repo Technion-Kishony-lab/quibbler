@@ -1,5 +1,5 @@
 from pyquibbler import iquib
-from pyquibbler.refactor.quib.assignment import PathComponent
+from pyquibbler.refactor.path.path_component import PathComponent
 from pyquibbler.refactor.quib.specialized_functions.proxy import create_proxy
 from tests.functional.refactor.quib.test_quib.get_value.utils import collecting_quib
 

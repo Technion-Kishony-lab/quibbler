@@ -1,14 +1,11 @@
 from dataclasses import dataclass
-from typing import Dict, Tuple, Any
+from typing import Tuple
 
 import numpy as np
 
-from pyquibbler.refactor.quib.assignment import Path
 from pyquibbler.quib.function_quibs.utils import create_empty_array_with_values_at_indices
-from pyquibbler.refactor.func_call import FuncCall
+from pyquibbler.refactor.function_definitions.func_call import FuncCall
 from pyquibbler.quib.graphics.axiswise_function_quibs.axiswise_function_quib import Arg
-from pyquibbler.refactor.translation.backwards_path_translator import BackwardsPathTranslator
-from pyquibbler.refactor.translation.forwards_path_translator import ForwardsPathTranslator
 from pyquibbler.refactor.translation.numpy_forwards_path_translator import NumpyForwardsPathTranslator
 from pyquibbler.refactor.translation.types import Source
 

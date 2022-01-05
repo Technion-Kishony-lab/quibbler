@@ -2,50 +2,13 @@ from __future__ import annotations
 import numpy as np
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, TYPE_CHECKING, List, Type
+from typing import Any, TYPE_CHECKING, List
 
 from .exceptions import CannotReverseException
+from pyquibbler.refactor.path.path_component import PathComponent
 
 if TYPE_CHECKING:
-    from ..quib import Quib
-
-
-def get_nd_working_component_value_from_path(path: List[PathComponent], raise_on_empty_path: bool = False):
-    """
-    Get the first working component value you can from the path- this will always be entirely "squashed", so you will
-    get a component that expresses everything possible before needing to go another step "deeper" in
-
-    If no component is found (path is empty), the path expresses getting "everything"- so we give a true value
-    """
-    return path[0].component if len(path) > 0 else True
-
-
-@dataclass
-class PathComponent:
-    indexed_cls: Type
-    component: Any
-
-    def references_field_in_field_array(self):
-        """
-        Whether or not the component references a field in a field array
-        It's important to note that this method is necessary as we need to dynamically decide whether a __setitem__
-        assignment is a field assignment or not. This is in contrast to setattr for example where we could have had a
-        special PathComponent for it, as the interface for setting an attribute is different.
-        """
-        return (issubclass(self.indexed_cls, np.ndarray) and
-                (isinstance(self.component, str) or
-                 (isinstance(self.component, list) and isinstance(self.component[0], str))))
-
-
-Path = List[PathComponent]
-
-
-def working_component(path: Path):
-    return path[0].component if len(path) > 0 else True
-
-
-def path_beyond_working_component(path: Path):
-    return path[1:]
+    from pyquibbler.refactor.quib.quib import Quib
 
 
 @dataclass

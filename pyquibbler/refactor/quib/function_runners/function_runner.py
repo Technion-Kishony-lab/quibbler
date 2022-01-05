@@ -1,25 +1,22 @@
 from __future__ import annotations
 
-import contextlib
-import functools
 from abc import abstractmethod, ABC
 from dataclasses import dataclass, field
 from sys import getsizeof
 from time import perf_counter
-from typing import Optional, Type, Tuple, Dict, TYPE_CHECKING, Any, ClassVar, Set, Mapping, Callable
+from typing import Optional, Type, Tuple, Dict, Any, ClassVar, Set, Mapping, Callable
 
 import numpy as np
 from matplotlib.widgets import AxesWidget
 
-from pyquibbler.refactor.quib.assignment import Path
+from pyquibbler.refactor.path.path_component import Path
 from pyquibbler.quib.function_quibs.external_call_failed_exception_handling import \
     external_call_failed_exception_handling
-from pyquibbler.refactor.graphics.global_collecting import overridden_graphics_function
 from pyquibbler.refactor.quib.cache_behavior import CacheBehavior
 from pyquibbler.quib.function_quibs.cache.cache import Cache
 from pyquibbler.quib.function_quibs.cache.holistic_cache import PathCannotHaveComponentsException
 from pyquibbler.quib.function_quibs.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
-from pyquibbler.refactor.func_call import FuncCall
+from pyquibbler.refactor.function_definitions.func_call import FuncCall
 from pyquibbler.refactor.quib import consts
 from pyquibbler.refactor.quib.function_call import _get_uncached_paths_matching_path, \
     _truncate_path_to_match_shallow_caches, _ensure_cache_matches_result, \
@@ -27,12 +24,8 @@ from pyquibbler.refactor.quib.function_call import _get_uncached_paths_matching_
 from pyquibbler.refactor.quib.function_runners.utils import cache_method_until_full_invalidation
 from pyquibbler.quib.graphics.graphics_function_quib import create_array_from_func
 from pyquibbler.refactor.graphics.graphics_collection import GraphicsCollection
-from pyquibbler.refactor.iterators import iter_objects_of_type_in_object_shallowly
 from pyquibbler.refactor.quib.graphics.persist import persist_relevant_info_on_new_artists_for_quib
-from pyquibbler.refactor.quib.iterators import recursively_run_func_on_object, SHALLOW_MAX_DEPTH
 from pyquibbler.refactor.quib.quib import Quib
-from pyquibbler.refactor.translation.types import Source
-from pyquibbler.utils import convert_args_and_kwargs
 
 
 @dataclass

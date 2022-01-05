@@ -1,12 +1,12 @@
 import numpy as np
 
+from pyquibbler.refactor.path.data_accessing import deep_get
 from pyquibbler.refactor.inversion.inverter import Inverter
-from pyquibbler.refactor.quib.assignment import Assignment
+from pyquibbler.refactor.assignment import Assignment
 from pyquibbler.refactor.translation.types import Inversal
-from pyquibbler.refactor.quib.assignment.assignment import working_component, PathComponent
-from pyquibbler.refactor.quib.assignment.utils import deep_assign_data_in_path, deep_get
+from pyquibbler.refactor.path.path_component import PathComponent
+from pyquibbler.refactor.path.utils import working_component
 from pyquibbler.quib.function_quibs.utils import create_empty_array_with_values_at_indices
-from pyquibbler.refactor.quib.utils import deep_copy_without_quibs_or_graphics
 from pyquibbler.refactor.translation.translate import backwards_translate, forwards_translate
 
 

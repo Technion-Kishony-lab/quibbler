@@ -1,16 +1,15 @@
-from dataclasses import dataclass
 from typing import List, Optional, Any
 
 import numpy as np
 
 from pyquibbler.quib import PathComponent
-from pyquibbler.refactor.quib.assignment import Path
-from pyquibbler.refactor.quib.assignment.utils import deep_get, deep_assign_data_in_path
+from pyquibbler.refactor.path.data_accessing import deep_get, deep_assign_data_in_path
+from pyquibbler.refactor.path.path_component import Path
 from pyquibbler.quib.function_quibs.cache import create_cache, HolisticCache, NdUnstructuredArrayCache
 from pyquibbler.quib.function_quibs.cache.cache import Cache
 from pyquibbler.quib.function_quibs.cache.holistic_cache import PathCannotHaveComponentsException
 from pyquibbler.quib.function_quibs.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
-from pyquibbler.refactor.func_call import FuncCall
+from pyquibbler.refactor.function_definitions.func_call import FuncCall
 from pyquibbler.refactor.quib.utils import call_func_with_quib_values
 
 

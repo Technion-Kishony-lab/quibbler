@@ -1,15 +1,12 @@
-from __future__ import annotations
 from dataclasses import dataclass
-from typing import Any, List, TYPE_CHECKING
+from typing import List, Any
 
 import numpy as np
 
 from pyquibbler.env import DEBUG
 from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.logger import logger
-
-if TYPE_CHECKING:
-    from pyquibbler.refactor.quib.assignment import PathComponent
+from pyquibbler.refactor.path import PathComponent
 
 
 @dataclass

@@ -1,7 +1,11 @@
-from typing import Callable
+from __future__ import annotations
+from typing import Callable, TYPE_CHECKING
 
 from pyquibbler.refactor.function_definitions.exceptions import CannotFindDefinitionForFunctionException
-from pyquibbler.refactor.function_definitions.function_definition import FunctionDefinition
+
+
+if TYPE_CHECKING:
+    from pyquibbler.refactor.function_definitions.function_definition import FunctionDefinition
 
 FUNCS_TO_DEFINITIONS = {}
 

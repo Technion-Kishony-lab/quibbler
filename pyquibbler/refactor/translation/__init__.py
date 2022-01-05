@@ -1,1 +1,1 @@
-from .exceptions import CannotInvertException, TranslationException
+from .exceptions import TranslationException

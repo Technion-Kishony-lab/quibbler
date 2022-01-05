@@ -3,7 +3,7 @@ from typing import Optional, Tuple, Type, Callable
 
 from pyquibbler.env import GET_VARIABLE_NAMES, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS
 from pyquibbler.logger import logger
-from pyquibbler.refactor.func_call import FuncCall
+from pyquibbler.refactor.function_definitions.func_call import FuncCall
 from pyquibbler.refactor.quib.function_runners import FunctionRunner, DefaultFunctionRunner
 from pyquibbler.refactor.function_definitions import get_definition_for_function, CannotFindDefinitionForFunctionException
 from pyquibbler.refactor.quib.iterators import iter_quibs_in_args

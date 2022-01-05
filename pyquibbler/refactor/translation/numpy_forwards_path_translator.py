@@ -3,8 +3,8 @@ from typing import Any, List
 
 import numpy as np
 
-from pyquibbler.refactor.quib.assignment import PathComponent
-from pyquibbler.refactor.quib.assignment.assignment import path_beyond_working_component, Path, working_component
+from pyquibbler.refactor.path.path_component import PathComponent, Path
+from pyquibbler.refactor.path.utils import working_component, path_beyond_working_component
 from pyquibbler.refactor.translation.forwards_path_translator import ForwardsPathTranslator
 from pyquibbler.refactor.translation.path_translator import Translator
 from pyquibbler.refactor.translation.types import Source

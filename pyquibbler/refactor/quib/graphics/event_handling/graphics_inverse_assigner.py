@@ -1,8 +1,8 @@
 from typing import Callable, TYPE_CHECKING, List, Any, Iterable
 from matplotlib.backend_bases import MouseEvent, PickEvent
 
-from pyquibbler.refactor.quib.assignment.assignment import AssignmentToQuib
-from pyquibbler.refactor.quib.assignment.override_choice import AssignmentCancelledByUserException
+from pyquibbler.refactor.assignment.assignment import AssignmentToQuib
+from pyquibbler.refactor.assignment.override_choice import AssignmentCancelledByUserException
 
 if TYPE_CHECKING:
     from pyquibbler.refactor.quib.graphics import GraphicsFunctionQuib
