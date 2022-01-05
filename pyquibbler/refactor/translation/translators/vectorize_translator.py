@@ -1,13 +1,14 @@
 from __future__ import annotations
-from typing import Dict, Any, Set, TYPE_CHECKING, Optional, Tuple, Type
+from typing import Dict, Any, Set, TYPE_CHECKING, Optional, Tuple, Type, List
 
 import numpy as np
 
 from pyquibbler.quib import PathComponent
 from pyquibbler.quib.assignment import Path
 from pyquibbler.quib.function_quibs.utils import unbroadcast_bool_mask, create_empty_array_with_values_at_indices
-from pyquibbler.refactor.quib.function_runners.vectorize.utils import iter_arg_ids_and_values
+from pyquibbler.refactor.quib.function_runners.vectorize.utils import iter_arg_ids_and_values, get_core_axes
 from pyquibbler.refactor.translation.backwards_path_translator import BackwardsPathTranslator
+from pyquibbler.refactor.translation.forwards_path_translator import ForwardsPathTranslator
 from pyquibbler.refactor.translation.types import Source
 
 if TYPE_CHECKING:
@@ -58,3 +59,34 @@ class VectorizeBackwardsPathTranslator(BackwardsPathTranslator):
         return {source: self._get_source_path_in_source(source, self._path)
                 for source in self.get_data_sources()}
 
+
+class VectorizeForwardsPathTranslator(ForwardsPathTranslator):
+
+    def __init__(self, func_call, sources_to_paths: Dict[Source, Path],
+                 shape: Optional[Tuple[int, ...]], type_: Optional[Type], vectorize_metadata):
+        super().__init__(func_call, sources_to_paths, shape, type_)
+        self._vectorize_metadata = vectorize_metadata
+
+    def _forward_translate_indices_to_bool_mask(self, source: Source, indices: Any):
+        source_bool_mask = create_empty_array_with_values_at_indices(
+            value=True,
+            empty_value=False,
+            indices=indices,
+            shape=np.shape(source.value)
+        )
+        core_ndim = max(self._vectorize_metadata.args_metadata[arg_id].core_ndim
+                        for arg_id in _get_arg_ids_for_source(source, self.args_values.args, self.args_values.kwargs))
+        source_bool_mask = np.any(source_bool_mask, axis=get_core_axes(core_ndim))
+        return np.broadcast_to(source_bool_mask, self._vectorize_metadata.result_loop_shape)
+
+    def _forward_translate_source(self, source: Source, path: Path) -> List[Optional[Path]]:
+        working_component, *rest_of_path = path
+        bool_mask_in_output_array = self._forward_translate_indices_to_bool_mask(source, working_component.component)
+        if not np.any(bool_mask_in_output_array):
+            return []
+        starting_path = [PathComponent(self._type, bool_mask_in_output_array), *rest_of_path]
+
+        if self._vectorize_metadata.is_result_a_tuple:
+            return [[PathComponent(tuple, i), *starting_path] for i in range(self._vectorize_metadata.tuple_length)]
+        else:
+            return [starting_path]

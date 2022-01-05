@@ -9,6 +9,7 @@ from pyquibbler.refactor.overriding.types import KeywordArgument, PositionalArgu
 from pyquibbler.refactor.quib.function_runners.vectorize.vectorize_function_runner import VectorizeCallFunctionRunner
 from pyquibbler.refactor.quib.graphics import UpdateType
 from pyquibbler.env import PRETTY_REPR
+from pyquibbler.refactor.translation.translators.vectorize_translator import VectorizeForwardsPathTranslator
 
 
 class VectorizeDefinition(OverrideDefinition):
@@ -57,5 +58,6 @@ def create_vectorize_definitions():
     return [
         VectorizeDefinition(func_name="vectorize", module_or_cls=np),
         VectorizeCallDefinition(func_name="__call__", module_or_cls=QVectorize,
-                                function_runner_cls=VectorizeCallFunctionRunner)
+                                function_runner_cls=VectorizeCallFunctionRunner,
+                                forwards_path_translators=[VectorizeForwardsPathTranslator])
     ]

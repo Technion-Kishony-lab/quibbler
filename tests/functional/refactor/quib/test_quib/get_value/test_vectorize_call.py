@@ -5,9 +5,10 @@ import numpy as np
 import pytest
 from matplotlib import pyplot as plt
 
-from pyquibbler import CacheBehavior, iquib
+from pyquibbler import CacheBehavior, iquib, Assignment
 from pyquibbler.env import GRAPHICS_EVALUATE_NOW
-from pyquibbler.quib import PathComponent
+from pyquibbler.quib import PathComponent, get_override_group_for_change
+from pyquibbler.quib.assignment import AssignmentToQuib, Override
 from tests.functional.quib.utils import PathBuilder, get_func_mock
 from tests.functional.refactor.quib.test_quib.get_value.test_apply_along_axis import parametrize_data
 from tests.functional.refactor.quib.test_quib.get_value.utils import check_get_value_valid_at_path, collecting_quib
@@ -138,3 +139,54 @@ def test_vectorize_with_data_with_zero_dims():
 
     assert np.array_equal(result, np.empty((3, 0, 2), dtype=np.int32))
     mock_func.assert_not_called()
+
+
+@pytest.fixture
+def temp_axes():
+    ax = plt.gca()
+    ax.clear()
+    yield ax
+    ax.clear()
+
+
+@pytest.mark.parametrize('pass_quibs', [True, False])
+def test_vectorize_does_not_redraw_valid_artists(temp_axes, pass_quibs):
+    parent = iquib([[1, 2], [3, 4]])
+    vectorized_plot = np.vectorize(plt.plot, signature='(x)->()', otypes=[np.object], pass_quibs=pass_quibs,
+                                   evaluate_now=True)
+    boy = vectorized_plot(parent)
+    assert len(temp_axes.lines) == 2
+    ids = list(map(id, temp_axes.lines))
+
+    parent[0] = [5, 6]
+
+    assert len(temp_axes.lines) == 2
+    assert id(temp_axes.lines[0]) != ids[0]
+    assert id(temp_axes.lines[1]) == ids[1]
+
+
+@pytest.mark.parametrize('data', [[], [[]]])
+# The tests without quibs are for sanity
+@pytest.mark.parametrize('use_quib', [True, False])
+def test_vectorize_with_empty_data_and_no_otypes(data, use_quib):
+    data = iquib(data) if use_quib else data
+    vectorized = np.vectorize(lambda x: x, evaluate_now=True)
+    with pytest.raises(ValueError) as exc_info:
+        vectorized(data)
+
+    assert exc_info.value.args[0] == 'cannot call `vectorize` on size 0 inputs unless `otypes` is set'
+
+
+# TODO: Move to appropriate place
+def test_assignment_to_quib_within_vectorize_is_translated_to_override_on_vectorize():
+    parent = iquib(0)
+
+    @functools.partial(np.vectorize, pass_quibs=True, excluded={0}, otypes=[object])
+    def get_override_group_for_assignment_to_child(quib):
+        child = quib + iquib(1)
+        child.set_allow_overriding(True)
+        return get_override_group_for_change(AssignmentToQuib(child, Assignment(2, [])))
+
+    override_group = get_override_group_for_assignment_to_child(parent).get_value()[()]
+
+    assert override_group.quib_changes == [Override(parent, Assignment(1, []))]

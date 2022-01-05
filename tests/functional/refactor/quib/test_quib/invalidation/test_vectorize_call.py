@@ -1,3 +1,5 @@
+import time
+
 import numpy as np
 import pytest
 
@@ -15,6 +17,7 @@ def test_vectorize_invalidation(indices_to_invalidate, data, excluded, func):
     kwargs = {}
     if excluded is not None:
         kwargs['excluded'] = excluded
+
     check_invalidation(np.vectorize(func, **kwargs), data, indices_to_invalidate)
 
 

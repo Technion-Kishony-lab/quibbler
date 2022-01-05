@@ -6,6 +6,7 @@ from typing import Dict, Any
 from matplotlib.axes import Axes
 
 from pyquibbler.env import GRAPHICS_EVALUATE_NOW
+from pyquibbler.refactor.graphics.global_collecting import overridden_graphics_function
 from pyquibbler.refactor.overriding.override_definition import OverrideDefinition
 
 
@@ -18,6 +19,17 @@ class GraphicsOverrideDefinition(OverrideDefinition):
             is_known_graphics_func=True,
             evaluate_now=GRAPHICS_EVALUATE_NOW
         )
+
+    def override(self):
+        original_func = self.original_func
+
+        @functools.wraps(original_func)
+        def _run_within_known_graphics_ctx(*args, **kwargs):
+            with overridden_graphics_function():
+                return original_func(*args, **kwargs)
+
+        setattr(self.module_or_cls, self.func_name, _run_within_known_graphics_ctx)
+        return super(GraphicsOverrideDefinition, self).override()
 
 
 AxesOverrideDefinition = functools.partial(GraphicsOverrideDefinition, module_or_cls=Axes)

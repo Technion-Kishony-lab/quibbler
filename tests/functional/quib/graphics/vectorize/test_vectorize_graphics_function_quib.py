@@ -1,3 +1,5 @@
+import time
+
 import matplotlib.pyplot as plt
 import numpy as np
 from pytest import mark, fixture, raises
@@ -32,8 +34,8 @@ def test_vectorize_invalidation(indices_to_invalidate, data, excluded, func):
     kwargs = {}
     if excluded is not None:
         kwargs['excluded'] = excluded
-    check_invalidation(np.vectorize(func, **kwargs), data, indices_to_invalidate)
 
+    check_invalidation(np.vectorize(func, **kwargs), data, indices_to_invalidate)
 
 # MOVED
 @parametrize_data
@@ -174,7 +176,7 @@ def test_vectorize_with_pass_quibs_and_core_dims():
     assert np.array_equal(result.get_value(), np.ones((2, 2)))
 
 
-# TODO: move after doing plot or changing test
+# MOVED
 @mark.parametrize('pass_quibs', [True, False])
 def test_vectorize_does_not_redraw_valid_artists(temp_axes, pass_quibs):
     parent = iquib([[1, 2], [3, 4]])
@@ -191,7 +193,7 @@ def test_vectorize_does_not_redraw_valid_artists(temp_axes, pass_quibs):
     assert id(temp_axes.lines[1]) == ids[1]
 
 
-# TODO: Move when figure out evaluate now
+# MOVED
 @mark.parametrize('data', [[], [[]]])
 # The tests without quibs are for sanity
 @mark.parametrize('use_quib', [True, False])

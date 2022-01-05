@@ -1,4 +1,7 @@
 from __future__ import annotations
+
+import contextlib
+import functools
 from abc import abstractmethod, ABC
 from dataclasses import dataclass, field
 from sys import getsizeof
@@ -11,6 +14,7 @@ from matplotlib.widgets import AxesWidget
 from pyquibbler.quib.assignment import Path
 from pyquibbler.quib.function_quibs.external_call_failed_exception_handling import \
     external_call_failed_exception_handling
+from pyquibbler.refactor.graphics.global_collecting import overridden_graphics_function
 from pyquibbler.refactor.quib.cache_behavior import CacheBehavior
 from pyquibbler.quib.function_quibs.cache.cache import Cache
 from pyquibbler.quib.function_quibs.cache.holistic_cache import PathCannotHaveComponentsException
@@ -222,6 +226,9 @@ class FunctionRunner(ABC):
             ####
 
             return res
+
+    def get_result_metadata(self) -> Dict:
+        return {}
 
     def get_value_valid_at_path(self, path: Optional[Path]) -> Any:
         """

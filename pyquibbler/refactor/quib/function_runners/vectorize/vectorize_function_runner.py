@@ -28,12 +28,15 @@ class VectorizeCallFunctionRunner(DefaultFunctionRunner):
 
     @classmethod
     def from_(cls, func_call: FuncCall, call_func_with_quibs: bool, *args, **kwargs):
+        vectorize = func_call.args[0]
         if not call_func_with_quibs:
-            vectorize = func_call.args[0]
             call_func_with_quibs = vectorize.pass_quibs
-
-        return cls(func_call=func_call,
+        self = cls(func_call=func_call,
                    call_func_with_quibs=call_func_with_quibs, *args, **kwargs)
+        evaluate_now = vectorize.evaluate_now
+        if evaluate_now:
+            self.get_value_valid_at_path([])
+        return self
 
     def _wrap_vectorize_call_to_pass_quibs(self, call: VectorizeCall, args_metadata,
                                            results_core_ndims) -> VectorizeCall:
@@ -144,9 +147,7 @@ class VectorizeCallFunctionRunner(DefaultFunctionRunner):
         """
         Get and cache metadata for the vectorize call.
         """
-
-        func_call = get_func_call_with_quibs_valid_at_paths(func_call=self.func_call,
-                                                                             quibs_to_valid_paths={})
+        func_call = get_func_call_with_quibs_valid_at_paths(func_call=self.func_call, quibs_to_valid_paths={})
         (vectorize, *args), kwargs = func_call.args, func_call.kwargs
         return VectorizeCall(vectorize, args, kwargs).get_metadata(self._get_sample_result)
 
@@ -193,6 +194,12 @@ class VectorizeCallFunctionRunner(DefaultFunctionRunner):
                                    otypes=otypes)
         return VectorizeCall(vectorize, (*args_to_add, *call.args), call.kwargs)
 
+    def get_result_metadata(self) -> Dict:
+        return {
+            **super(VectorizeCallFunctionRunner, self).get_result_metadata(),
+            "vectorize_metadata": self._vectorize_metadata
+        }
+
     def _run_on_path(self, valid_path: Optional[Path]):
         vectorize_metadata = self._vectorize_metadata
         if vectorize_metadata.is_result_a_tuple:
@@ -205,3 +212,4 @@ class VectorizeCallFunctionRunner(DefaultFunctionRunner):
 
         with external_call_failed_exception_handling():
             return call()
+

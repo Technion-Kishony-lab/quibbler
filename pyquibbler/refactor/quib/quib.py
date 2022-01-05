@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import operator
 import os
 import pathlib
 import pickle
+import time
 from contextlib import contextmanager
 from functools import cached_property
 from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Union, Iterable
@@ -60,6 +62,7 @@ def get_user_friendly_name_for_requested_valid_path(valid_path: Optional[List[Pa
         return 'get_value()'
     else:
         return f'get_value_valid_at_path({valid_path})'
+
 
 
 class Quib(ReprMixin):
@@ -374,10 +377,11 @@ class Quib(ReprMixin):
                     quibs_to_sources[invalidator_quib]: path
                 },
                 shape=self.get_shape(),
-                type_=self.get_type()
+                type_=self.get_type(),
+                **self._function_runner.get_result_metadata()
             )
         except NoTranslatorsFoundException:
-            return []
+            return [[]]
         
         source = quibs_to_sources[invalidator_quib]
 

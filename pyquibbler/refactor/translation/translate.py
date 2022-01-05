@@ -58,7 +58,7 @@ def backwards_translate(func_call: FuncCall,
 
 
 def forwards_translate(func_call: FuncCall,
-                       sources_to_paths, shape=None, type_=None):
+                       sources_to_paths, shape=None, type_=None, **kwargs):
     # TODO test multiple scenarios with choosing inverters
     from pyquibbler.refactor.overriding import get_definition_for_function
     potential_translator_classes = get_definition_for_function(func_call.func).forwards_path_translators
@@ -72,7 +72,8 @@ def forwards_translate(func_call: FuncCall,
             func_call=func_call,
             shape=shape,
             type_=type_,
-            sources_to_paths=sources_to_paths
+            sources_to_paths=sources_to_paths,
+            **kwargs
         )
 
         try:
