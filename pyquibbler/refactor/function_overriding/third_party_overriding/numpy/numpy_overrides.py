@@ -17,12 +17,12 @@ from pyquibbler.refactor.translation.translators.axeswise.apply_along_axis_trans
 
 def transpositional(func, data_source_arguments: List = None):
     return numpy_override(func,
-                            function_definition=create_function_definition(
+                          function_definition=create_function_definition(
 
-                          data_source_arguments,
-                          inverters=[TranspositionalInverter],
-                          backwards_path_translators=[BackwardsTranspositionalTranslator],
-                          forwards_path_translators=[ForwardsTranspositionalTranslator])
+                              data_source_arguments,
+                              inverters=[TranspositionalInverter],
+                              backwards_path_translators=[BackwardsTranspositionalTranslator],
+                              forwards_path_translators=[ForwardsTranspositionalTranslator])
                           )
 
 

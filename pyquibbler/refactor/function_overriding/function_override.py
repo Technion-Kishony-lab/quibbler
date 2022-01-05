@@ -1,24 +1,20 @@
 import functools
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from types import ModuleType
-
-from typing import Callable, Any, Dict, Union, Type, Optional, Set, List
+from typing import Callable, Any, Dict, Union, Type, Optional
 
 from pyquibbler.env import EVALUATE_NOW
-from pyquibbler.refactor.func_call import ArgsValues
 from pyquibbler.refactor.function_definitions.function_definition import FunctionDefinition
-from pyquibbler.refactor.function_definitions.types import PositionalArgument, KeywordArgument
-from pyquibbler.refactor.quib.function_runners import FunctionRunner, DefaultFunctionRunner
-from pyquibbler.refactor.inversion.inverter import Inverter
 from pyquibbler.refactor.quib.utils import is_there_a_quib_in_args
 
-from pyquibbler.refactor.translation.backwards_path_translator import BackwardsPathTranslator
-from pyquibbler.refactor.translation.forwards_path_translator import ForwardsPathTranslator
 
-
-# TODO: Docs!
 @dataclass
 class FunctionOverride:
+    """
+    Represents an override of a function, a "replacement" of it in order to support Quibs.
+    The default implementation is to be completely transparent if no quibs are given as arguments.
+    """
+
     func_name: str
     module_or_cls: Union[ModuleType, Type]
     function_definition: Optional[FunctionDefinition] = None
@@ -32,9 +28,16 @@ class FunctionOverride:
 
     @property
     def _default_creation_flags(self) -> Dict[str, Any]:
+        """
+        What are the default flags for creating a Quib for this FunctionOverride?
+        If you subclass this, you can override this, the default is to use the default flags
+        """
         return {}
 
     def _get_creation_flags(self, args, kwargs):
+        """
+        Get all the creation flags for creating a quib
+        """
         return {
             **self._default_creation_flags,
             **(self.quib_creation_flags or {})
@@ -44,6 +47,11 @@ class FunctionOverride:
         return getattr(self.module_or_cls, self.func_name)
 
     def _create_quib_supporting_func(self):
+        """
+        Create a function which *can* support quibs (and return a quib as a result) if any argument is a quib
+        If not, the function will simply run and return it's result
+        """
+
         wrapped_func = self.original_func
 
         @functools.wraps(wrapped_func)
@@ -60,6 +68,7 @@ class FunctionOverride:
                     **flags
                 )
             return wrapped_func(*args, **kwargs)
+
         _maybe_create_quib.__quibbler_wrapped__ = wrapped_func
 
         # TODO: obviously not good solution, how do we fix issue with `np.sum` referring to `np.add`'s attrs?
@@ -76,5 +85,8 @@ class FunctionOverride:
         return self._original_func
 
     def override(self):
+        """
+        Override the original function and make it quibbler supporting
+        """
         self._original_func = self._get_func_from_module_or_cls()
         setattr(self.module_or_cls, self.func_name, self._create_quib_supporting_func())

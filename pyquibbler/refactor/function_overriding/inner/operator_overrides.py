@@ -5,14 +5,16 @@ from inspect import signature
 
 from typing import Callable, List
 
+import numpy as np
+
 from pyquibbler.refactor.function_definitions.function_definition import create_function_definition
 from pyquibbler.refactor.function_overriding.function_override import FunctionOverride
+from pyquibbler.refactor.function_overriding.third_party_overriding.numpy.elementwise_overrides import \
+    get_inverter_for_func, create_elementwise_overrides
 from pyquibbler.refactor.inversion.inverters.getitem_inverter import GetItemInverter
 
 from pyquibbler.refactor.function_definitions.types import PositionalArgument, KeywordArgument
-from pyquibbler.refactor.function_overriding.third_party_overriding.numpy.elementwise_overrides import \
-    get_inverter_for_inverse_func, sub_inverse_func, add_inverse_func, mul_inverse_func, div_inverse_func, \
-    pow_inverse_func
+
 
 from pyquibbler.refactor.translation.translators import BackwardsGetItemTranslator
 from pyquibbler.refactor.translation.translators.elementwise.elementwise_translator import \
@@ -96,23 +98,26 @@ def with_reverse_operator_definition(name, data_source_indexes: List = None, inv
 
 
 def get_arithmetic_definitions():
+    # We need to create elementwise overrides to make sure we have inverters for our elementwise operators
+    create_elementwise_overrides()
+
     return [
-        *with_reverse_operator_definition('__add__', [0, 1], [get_inverter_for_inverse_func(add_inverse_func)],
+        *with_reverse_operator_definition('__add__', [0, 1], [get_inverter_for_func(np.add)],
                                           backwards_path_translators=[BackwardsElementwisePathTranslator],
                                           forwards_path_translators=[ForwardsElementwisePathTranslator]),
-        *with_reverse_operator_definition('__sub__', [0, 1], [get_inverter_for_inverse_func(sub_inverse_func)],
+        *with_reverse_operator_definition('__sub__', [0, 1], [get_inverter_for_func(np.subtract)],
                                           backwards_path_translators=[BackwardsElementwisePathTranslator],
                                           forwards_path_translators=[ForwardsElementwisePathTranslator]),
-        *with_reverse_operator_definition('__mul__',  [0, 1], [get_inverter_for_inverse_func(mul_inverse_func)],
+        *with_reverse_operator_definition('__mul__',  [0, 1], [get_inverter_for_func(np.multiply)],
                                           backwards_path_translators=[BackwardsElementwisePathTranslator],
                                           forwards_path_translators=[ForwardsElementwisePathTranslator]),
         operator_definition('__matmul__', []),
-        *with_reverse_operator_definition('__truediv__', [0, 1], [get_inverter_for_inverse_func(div_inverse_func)],
+        *with_reverse_operator_definition('__truediv__', [0, 1], [get_inverter_for_func(np.divide)],
                                           backwards_path_translators=[BackwardsElementwisePathTranslator],
                                           forwards_path_translators=[ForwardsElementwisePathTranslator]),
         *with_reverse_operator_definition('__floordiv__'),
         *with_reverse_operator_definition('__mod__'),
-        *with_reverse_operator_definition('__pow__', [0, 1], [get_inverter_for_inverse_func(pow_inverse_func)],
+        *with_reverse_operator_definition('__pow__', [0, 1], [get_inverter_for_func(np.power)],
                                           backwards_path_translators=[BackwardsElementwisePathTranslator],
                                           forwards_path_translators=[ForwardsElementwisePathTranslator]),
         *with_reverse_operator_definition('__lshift__'),

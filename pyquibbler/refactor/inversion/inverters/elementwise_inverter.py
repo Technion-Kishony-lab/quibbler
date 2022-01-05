@@ -32,9 +32,6 @@ class ElementwiseInverter(Inverter):
         super().__init__(func_call, assignment, previous_result)
         self._inverse_func = inverse_func
 
-    def _get_value(self):
-        pass
-
     def raise_if_multiple_args_have_common_ancestor(self):
         """
         Raise an exception if we have multiple parents with a common ancestor- we do not know how to solve for x if

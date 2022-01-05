@@ -67,8 +67,8 @@ def create_vectorize_overrides():
     return [
         VectorizeOverride(func_name="vectorize", module_or_cls=np),
         VectorizeCallOverride(func_name="__call__", module_or_cls=QVectorize,
-                          function_definition=VectorizeCallDefinition(
-                              function_runner_cls=VectorizeCallFunctionRunner,
-                              forwards_path_translators=[VectorizeForwardsPathTranslator])
-                          )
+                              function_definition=VectorizeCallDefinition(
+                                  function_runner_cls=VectorizeCallFunctionRunner,
+                                  forwards_path_translators=[VectorizeForwardsPathTranslator])
+                              )
     ]

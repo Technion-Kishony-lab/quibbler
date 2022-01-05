@@ -13,14 +13,11 @@ from pyquibbler.refactor.function_overriding.third_party_overriding.numpy.numpy_
 from pyquibbler.utils import ensure_only_run_once_globally
 
 
-NAMES_TO_DEFINITIONS = {}
-
-FUNCS_TO_DEFINITIONS = {}
-
-
 @ensure_only_run_once_globally
 def override_new():
-    global FUNCS_TO_DEFINITIONS, NAMES_TO_DEFINITIONS
+    """
+    Override all relavent functions, both inner and third party, to support Quibs
+    """
 
     override_graphics_functions_to_be_within_known_func_ctx()
 

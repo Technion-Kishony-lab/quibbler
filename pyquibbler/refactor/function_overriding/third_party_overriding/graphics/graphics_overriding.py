@@ -9,7 +9,6 @@ from pyquibbler.env import GRAPHICS_EVALUATE_NOW
 from pyquibbler.refactor.function_definitions.function_definition import create_function_definition
 from pyquibbler.refactor.function_overriding.function_override import FunctionOverride
 from pyquibbler.refactor.graphics import global_collecting
-from pyquibbler.refactor.graphics.global_collecting import overridden_graphics_function
 from pyquibbler.refactor.quib.function_runners.known_graphics.plot_runner import PlotRunner
 
 
