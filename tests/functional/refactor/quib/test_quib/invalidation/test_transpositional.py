@@ -2,11 +2,9 @@ from unittest import mock
 
 import numpy as np
 import pytest
-from operator import getitem
 
-from pyquibbler import iquib, CacheBehavior
-from pyquibbler.quib import PathComponent
-from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
+from pyquibbler import iquib
+from pyquibbler.refactor.cache.cache import CacheStatus
 from pyquibbler.refactor.quib.factory import create_quib
 from tests.functional.quib.utils import PathBuilder
 from tests.functional.refactor.quib.test_quib.invalidation.utils import check_invalidation

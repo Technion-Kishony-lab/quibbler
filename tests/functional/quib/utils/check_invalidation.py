@@ -5,7 +5,7 @@ from typing import Set
 
 from pyquibbler import CacheBehavior
 from pyquibbler.quib import Quib, iquib
-from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
+from pyquibbler.refactor.cache.cache import CacheStatus
 
 
 def breakdown_quib(quib: Quib) -> Set[Quib]:

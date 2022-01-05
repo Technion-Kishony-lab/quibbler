@@ -1,10 +1,9 @@
-import copy
 from typing import List
 
 import numpy as np
 
-from pyquibbler.quib.assignment import PathComponent
-from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import ShallowCache
+from pyquibbler.refactor.path import PathComponent
+from pyquibbler.refactor.cache.shallow.shallow_cache import ShallowCache
 
 
 class NdIndexableCache(ShallowCache):

@@ -2,8 +2,8 @@ from typing import List, Any, Union, Type
 
 import numpy as np
 
-from pyquibbler.quib.assignment import PathComponent
-from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import ShallowCache
+from pyquibbler.refactor.path import PathComponent
+from pyquibbler.refactor.cache.shallow.shallow_cache import ShallowCache
 
 
 def transform_cache_to_nd_if_necessary_given_path(cache, path: List[PathComponent]):
@@ -15,7 +15,7 @@ def transform_cache_to_nd_if_necessary_given_path(cache, path: List[PathComponen
     (by putting it through any np function for example), and thereafter changed. If so, any paths created will be to an
     ndarray, and reverse assignment as well as invalidation will fail on the original list cache
     """
-    from pyquibbler.quib.function_quibs.cache import create_cache
+    from pyquibbler.refactor.cache import create_cache
     if (len(path) > 0
             and path[0].indexed_cls == np.ndarray
             and isinstance(cache, IndexableCache)):

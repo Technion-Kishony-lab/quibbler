@@ -3,8 +3,8 @@ from typing import Any, List
 
 
 from pyquibbler.exceptions import PyQuibblerException
-from pyquibbler.quib.assignment import PathComponent
-from pyquibbler.quib.function_quibs.cache.cache import Cache
+from pyquibbler.refactor.cache.cache import Cache
+from pyquibbler.refactor.path import PathComponent
 
 
 class CannotInvalidateEntireCacheException(PyQuibblerException):

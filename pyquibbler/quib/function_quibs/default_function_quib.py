@@ -4,10 +4,10 @@ from sys import getsizeof
 from time import perf_counter
 from typing import Callable, Any, Mapping, Tuple, Optional, List, TYPE_CHECKING
 
-from pyquibbler.quib.function_quibs.cache import create_cache, NdUnstructuredArrayCache
-from .cache.cache import CacheStatus
-from .cache.holistic_cache import PathCannotHaveComponentsException, HolisticCache
-from .cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
+from pyquibbler.refactor.cache import create_cache, NdUnstructuredArrayCache
+from pyquibbler.refactor.cache import CacheStatus
+from pyquibbler.refactor.cache import PathCannotHaveComponentsException, HolisticCache
+from pyquibbler.refactor.cache import transform_cache_to_nd_if_necessary_given_path
 
 from .function_quib import FunctionQuib, CacheBehavior
 from ..assignment import AssignmentTemplate

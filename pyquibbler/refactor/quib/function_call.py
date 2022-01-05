@@ -2,13 +2,12 @@ from typing import List, Optional, Any
 
 import numpy as np
 
-from pyquibbler.quib import PathComponent
+from pyquibbler.refactor.path import Path
 from pyquibbler.refactor.path.data_accessing import deep_get, deep_assign_data_in_path
-from pyquibbler.refactor.path.path_component import Path
-from pyquibbler.quib.function_quibs.cache import create_cache, HolisticCache, NdUnstructuredArrayCache
-from pyquibbler.quib.function_quibs.cache.cache import Cache
-from pyquibbler.quib.function_quibs.cache.holistic_cache import PathCannotHaveComponentsException
-from pyquibbler.quib.function_quibs.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
+from pyquibbler.refactor.cache import create_cache, HolisticCache, NdUnstructuredArrayCache
+from pyquibbler.refactor.cache.cache import Cache
+from pyquibbler.refactor.cache.holistic_cache import PathCannotHaveComponentsException
+from pyquibbler.refactor.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
 from pyquibbler.refactor.function_definitions.func_call import FuncCall
 from pyquibbler.refactor.quib.utils import call_func_with_quib_values
 
@@ -51,8 +50,8 @@ def _ensure_cache_matches_result(cache: Optional[Cache], new_result: Any):
 
 def run_func_on_uncached_paths(cache: Optional[Cache],
                                func_call: FuncCall,
-                               truncated_path: List[PathComponent],
-                               uncached_paths: List[Optional[List[PathComponent]]]):
+                               truncated_path: Path,
+                               uncached_paths: List[Optional[Path]]):
     """
     Run the function a list of uncached paths, given an original truncated path, storing it in our cache
     """

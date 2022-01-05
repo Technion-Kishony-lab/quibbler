@@ -5,7 +5,7 @@ from matplotlib.axes import Axes
 
 from pyquibbler.logger import logger
 from pyquibbler.performance_utils import timer
-from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
+from pyquibbler.refactor.cache.cache import CacheStatus
 from pyquibbler.refactor.quib.quib import Quib
 
 

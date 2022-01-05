@@ -21,8 +21,8 @@ from pyquibbler.quib.assignment.override_choice import OverrideRemoval
 from .quib_varname import get_var_name_being_set_outside_of_pyquibbler, get_file_name_and_line_number_of_quib
 from .assignment import AssignmentTemplate, RangeAssignmentTemplate, BoundAssignmentTemplate, Overrider, Assignment, \
     AssignmentToQuib
-from .function_quibs.cache import create_cache
-from .function_quibs.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
+from pyquibbler.refactor.cache import create_cache
+from pyquibbler.refactor.cache import transform_cache_to_nd_if_necessary_given_path
 from .function_quibs.pretty_converters import MathExpression
 from .utils import quib_method, Unpacker, recursively_run_func_on_object
 from .assignment import PathComponent

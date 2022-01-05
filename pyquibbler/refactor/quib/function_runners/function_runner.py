@@ -10,14 +10,13 @@ import numpy as np
 from matplotlib.widgets import AxesWidget
 
 from pyquibbler.refactor.path.path_component import Path
-from pyquibbler.quib.function_quibs.external_call_failed_exception_handling import \
-    external_call_failed_exception_handling
 from pyquibbler.refactor.quib.cache_behavior import CacheBehavior
-from pyquibbler.quib.function_quibs.cache.cache import Cache
-from pyquibbler.quib.function_quibs.cache.holistic_cache import PathCannotHaveComponentsException
-from pyquibbler.quib.function_quibs.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
+from pyquibbler.refactor.cache.cache import Cache
+from pyquibbler.refactor.cache.holistic_cache import PathCannotHaveComponentsException
+from pyquibbler.refactor.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
 from pyquibbler.refactor.function_definitions.func_call import FuncCall
 from pyquibbler.refactor.quib import consts
+from pyquibbler.refactor.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
 from pyquibbler.refactor.quib.function_call import _get_uncached_paths_matching_path, \
     _truncate_path_to_match_shallow_caches, _ensure_cache_matches_result, \
     get_cached_data_at_truncated_path_given_result_at_uncached_path

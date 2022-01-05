@@ -1,7 +1,7 @@
 import numpy as np
 
 from pyquibbler import iquib
-from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
+from pyquibbler.refactor.cache.cache import CacheStatus
 from tests.functional.quib.utils import PathBuilder
 
 

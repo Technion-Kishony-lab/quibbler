@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Tuple, Type, List, Any
 
-from pyquibbler.quib.assignment import PathComponent
+from pyquibbler.refactor.path import PathComponent
 
 
 class CacheStatus(Enum):

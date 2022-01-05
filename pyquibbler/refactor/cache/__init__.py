@@ -1,13 +1,13 @@
-from typing import Any, List, Optional
+from typing import Any
 
-import numpy as np
-
-from pyquibbler.quib.function_quibs.cache.holistic_cache import HolisticCache
-from pyquibbler.quib.function_quibs.cache.shallow import NdVoidCache
-from pyquibbler.quib.function_quibs.cache.shallow.dict_cache import DictCache
-from pyquibbler.quib.function_quibs.cache.shallow.indexable_cache import IndexableCache
-from pyquibbler.quib.function_quibs.cache.shallow.nd_cache import NdFieldArrayShallowCache, NdUnstructuredArrayCache
-from pyquibbler.quib.function_quibs.cache.shallow.shallow_cache import ShallowCache
+from .holistic_cache import HolisticCache
+from .shallow import NdVoidCache
+from .shallow.dict_cache import DictCache
+from .shallow.indexable_cache import IndexableCache, transform_cache_to_nd_if_necessary_given_path
+from .shallow.nd_cache import NdFieldArrayShallowCache, NdUnstructuredArrayCache
+from .shallow.shallow_cache import ShallowCache
+from .cache import Cache, CacheStatus
+from .holistic_cache import PathCannotHaveComponentsException
 
 
 def create_cache(result: Any) -> ShallowCache:

@@ -23,9 +23,9 @@ from pyquibbler.refactor.path.data_accessing import FailedToDeepAssignException
 from pyquibbler.refactor.path.path_component import PathComponent
 from pyquibbler.refactor.assignment import InvalidTypeException
 from pyquibbler.refactor.assignment.override_choice import OverrideRemoval, get_override_group_for_change
-from pyquibbler.quib.function_quibs.cache import create_cache
-from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
-from pyquibbler.quib.function_quibs.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
+from pyquibbler.refactor.cache import create_cache
+from pyquibbler.refactor.cache.cache import CacheStatus
+from pyquibbler.refactor.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
 from pyquibbler.quib.function_quibs.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own, \
     add_quib_to_fail_trace_if_raises_quib_call_exception
 from pyquibbler.refactor.function_definitions.func_call import ArgsValues

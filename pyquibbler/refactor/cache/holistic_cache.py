@@ -2,8 +2,8 @@ from functools import wraps
 from typing import List
 
 from pyquibbler.exceptions import PyQuibblerException
-from pyquibbler.quib.assignment import PathComponent
-from pyquibbler.quib.function_quibs.cache.cache import Cache
+from pyquibbler.refactor.cache.cache import Cache
+from pyquibbler.refactor.path import PathComponent
 
 
 class PathCannotHaveComponentsException(PyQuibblerException):

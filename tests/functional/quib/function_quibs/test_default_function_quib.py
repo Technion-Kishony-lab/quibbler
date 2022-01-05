@@ -8,7 +8,7 @@ from pyquibbler import iquib, CacheBehavior
 from pyquibbler.input_validation_utils import InvalidArgumentException
 from pyquibbler.quib import DefaultFunctionQuib
 from pyquibbler.quib.assignment.assignment import PathComponent
-from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
+from pyquibbler.refactor.cache.cache import CacheStatus
 
 
 @fixture

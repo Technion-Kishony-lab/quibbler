@@ -3,7 +3,7 @@ from unittest import mock
 import pytest
 
 from pyquibbler import CacheBehavior
-from pyquibbler.quib.function_quibs.cache.cache import CacheStatus
+from pyquibbler.refactor.cache.cache import CacheStatus
 from pyquibbler.refactor.quib.factory import create_quib
 
 
