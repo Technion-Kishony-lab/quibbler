@@ -17,7 +17,7 @@ from pyquibbler.refactor.cache.shallow.indexable_cache import transform_cache_to
 from pyquibbler.refactor.function_definitions.func_call import FuncCall
 from pyquibbler.refactor.quib import consts
 from pyquibbler.refactor.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
-from pyquibbler.refactor.quib.function_call import _get_uncached_paths_matching_path, \
+from pyquibbler.refactor.cache.cache_utils import get_uncached_paths_matching_path, \
     _truncate_path_to_match_shallow_caches, _ensure_cache_matches_result, \
     get_cached_data_at_truncated_path_given_result_at_uncached_path
 from pyquibbler.refactor.quib.function_runners.utils import cache_method_until_full_invalidation
@@ -102,7 +102,7 @@ class FunctionRunner(ABC):
             and getsizeof(result) / elapsed_seconds < consts.MAX_BYTES_PER_SECOND
 
     def _run_on_uncached_paths_within_path(self, valid_path: Path):
-        uncached_paths = _get_uncached_paths_matching_path(cache=self.cache, path=valid_path)
+        uncached_paths = get_uncached_paths_matching_path(cache=self.cache, path=valid_path)
 
         if len(uncached_paths) == 0:
             return self.cache.get_value()

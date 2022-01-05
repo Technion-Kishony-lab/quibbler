@@ -2,14 +2,9 @@ from typing import List, Optional, Any
 
 import numpy as np
 
-from pyquibbler.refactor.path import Path
 from pyquibbler.refactor.path.data_accessing import deep_get, deep_assign_data_in_path
 from pyquibbler.refactor.cache import create_cache, HolisticCache, NdUnstructuredArrayCache
 from pyquibbler.refactor.cache.cache import Cache
-from pyquibbler.refactor.cache.holistic_cache import PathCannotHaveComponentsException
-from pyquibbler.refactor.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
-from pyquibbler.refactor.function_definitions.func_call import FuncCall
-from pyquibbler.refactor.quib.utils import call_func_with_quib_values
 
 
 def get_cached_data_at_truncated_path_given_result_at_uncached_path(cache, result, truncated_path, uncached_path):
@@ -48,43 +43,6 @@ def _ensure_cache_matches_result(cache: Optional[Cache], new_result: Any):
     return cache
 
 
-def run_func_on_uncached_paths(cache: Optional[Cache],
-                               func_call: FuncCall,
-                               truncated_path: Path,
-                               uncached_paths: List[Optional[Path]]):
-    """
-    Run the function a list of uncached paths, given an original truncated path, storing it in our cache
-    """
-    for uncached_path in uncached_paths:
-        result = call_func_with_quib_values(func_call.func,
-                                            args=func_call.args_values.args,
-                                            kwargs=func_call.args_values.kwargs)
-
-        cache = _ensure_cache_matches_result(cache, result)
-
-        if uncached_path is not None:
-            try:
-                cache = transform_cache_to_nd_if_necessary_given_path(cache, truncated_path)
-                value = get_cached_data_at_truncated_path_given_result_at_uncached_path(cache, 
-                                                                                        result, 
-                                                                                        truncated_path, 
-                                                                                        uncached_path)
-
-                cache.set_valid_value_at_path(truncated_path, value)
-            except PathCannotHaveComponentsException:
-                # We do not have a diverged cache for this type, we can't store the value; this is not a problem as
-                # everything will work as expected, but we will simply not cache
-                assert len(uncached_paths) == 1, "There should never be a situation in which we have multiple " \
-                                                 "uncached paths but our cache can't handle setting a value at a " \
-                                                 "specific component"
-                break
-            else:
-                # sanity
-                assert len(cache.get_uncached_paths(truncated_path)) == 0
-
-    return cache
-
-
 def _truncate_path_to_match_shallow_caches(path: Optional[List['PathComponent']]):
     """
     Truncate a path so it can be used by shallow caches- we only want to cache and store elements at their first
@@ -110,7 +68,7 @@ def _truncate_path_to_match_shallow_caches(path: Optional[List['PathComponent']]
     return new_path
     
 
-def _get_uncached_paths_matching_path(cache: Optional[Cache], path: [List['PathComponent']]):
+def get_uncached_paths_matching_path(cache: Optional[Cache], path: [List['PathComponent']]):
     """
     Get a list of paths that are uncached within the given path- these paths must be a subset of the given path
     (or the path itself)
