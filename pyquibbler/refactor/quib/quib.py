@@ -12,7 +12,7 @@ import numpy as np
 from matplotlib.artist import Artist
 
 from pyquibbler.refactor.env import LEN_RAISE_EXCEPTION
-from pyquibbler.refactor.input_validation_utils import validate_user_input
+from pyquibbler.refactor.utilities.input_validation_utils import validate_user_input
 from pyquibbler.refactor.logger import logger
 from pyquibbler.refactor.project import Project
 from pyquibbler.refactor.assignment.assignment_template import create_assignment_template
@@ -26,19 +26,19 @@ from pyquibbler.refactor.assignment.override_choice import OverrideRemoval, get_
 from pyquibbler.refactor.cache import create_cache
 from pyquibbler.refactor.cache.cache import CacheStatus
 from pyquibbler.refactor.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
-from pyquibbler.quib.function_quibs.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own, \
-    add_quib_to_fail_trace_if_raises_quib_call_exception
 from pyquibbler.refactor.function_definitions.func_call import ArgsValues
-from pyquibbler.quib.quib_guard import add_new_quib_to_guard_if_exists, guard_raise_if_not_allowed_access_to_quib
-from pyquibbler.quib.utils import quib_method, Unpacker
 from pyquibbler.refactor.quib.cache_behavior import CacheBehavior, UnknownCacheBehaviorException
 from pyquibbler.refactor.quib.exceptions import OverridingNotAllowedException, UnknownUpdateTypeException, \
     InvalidCacheBehaviorForQuibException
+from pyquibbler.refactor.quib.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own, \
+    add_quib_to_fail_trace_if_raises_quib_call_exception
 from pyquibbler.refactor.quib.graphics import UpdateType, is_within_drag
 from pyquibbler.refactor.quib.iterators import iter_quibs_in_args
-from pyquibbler.refactor.iterators import recursively_run_func_on_object
+from pyquibbler.refactor.utilities.iterators import recursively_run_func_on_object
+from pyquibbler.refactor.quib.quib_method import quib_method
 from pyquibbler.refactor.quib.repr.repr_mixin import ReprMixin
 from pyquibbler.refactor.translation.translate import forwards_translate, NoTranslatorsFoundException
+from pyquibbler.refactor.utilities.unpacker import Unpacker
 
 if TYPE_CHECKING:
     from pyquibbler.refactor.assignment.override_choice import ChoiceContext, OverrideChoice
@@ -70,7 +70,8 @@ class Quib(ReprMixin):
                  allow_overriding: bool,
                  name: Optional[str],
                  file_name: Optional[str],
-                 line_no: Optional[str]):
+                 line_no: Optional[str],
+                 update_type: UpdateType):
         self._assignment_template = assignment_template
         self._name = name
 
@@ -82,12 +83,14 @@ class Quib(ReprMixin):
         self.created_in_get_value_context = self._IS_WITHIN_GET_VALUE_CONTEXT
         self.file_name = file_name
         self.line_no = line_no
-        self._redraw_update_type = UpdateType.DRAG
+        self._redraw_update_type = update_type
 
         # TODO: Move to factory
         self.project.register_quib(self)
         self._user_defined_save_directory = None
-        add_new_quib_to_guard_if_exists(self)
+
+        # TODO: quib guard
+        # add_new_quib_to_guard_if_exists(self)
 
         self._function_runner = function_runner
 
@@ -146,6 +149,10 @@ class Quib(ReprMixin):
         from pyquibbler.refactor.quib.graphics.redraw import redraw_quibs_with_graphics_or_add_in_aggregate_mode
         quibs = self._get_graphics_function_quibs_recursively()
         redraw_quibs_with_graphics_or_add_in_aggregate_mode(quibs)
+
+    @property
+    def redraw_update_type(self):
+        return self._redraw_update_type
 
     """
     Assignment
@@ -402,6 +409,10 @@ class Quib(ReprMixin):
     """
 
     @property
+    def is_random_func(self):
+        return self._function_runner.is_random_func
+
+    @property
     def cache_status(self):
         """
         User interface to check cache validity.
@@ -517,7 +528,7 @@ class Quib(ReprMixin):
         path = path[:1]
         assignments = list(self._overrider)
         if assignments:
-            original_value = self._get_inner_value_valid_at_path(None)
+            original_value = self.get_value_valid_at_path(None)
             cache = create_cache(original_value)
             cache = transform_cache_to_nd_if_necessary_given_path(cache, path)
             for assignment in assignments:
@@ -568,7 +579,8 @@ class Quib(ReprMixin):
         The value will necessarily return in the shape of the actual result, but only the values at the given path
         are guaranteed to be valid
         """
-        guard_raise_if_not_allowed_access_to_quib(self)
+        # TODO: quib guard
+        # guard_raise_if_not_allowed_access_to_quib(self)
         name_for_call = get_user_friendly_name_for_requested_valid_path(path)
 
         with add_quib_to_fail_trace_if_raises_quib_call_exception(self, name_for_call):
@@ -630,7 +642,7 @@ class Quib(ReprMixin):
         with add_quib_to_fail_trace_if_raises_quib_call_exception(quib=self, call='get_ndim()', replace_last=True):
             return self._function_runner.get_ndim()
 
-    @quib_method('elementwise')
+    @quib_method
     def get_override_mask(self):
         """
         Assuming this quib represents a numpy ndarray, return a quib representing its override mask.

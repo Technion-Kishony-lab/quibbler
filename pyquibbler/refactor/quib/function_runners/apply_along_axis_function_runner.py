@@ -7,7 +7,7 @@ from pyquibbler.refactor.path import PathComponent
 from pyquibbler.refactor.path import Path
 from pyquibbler.refactor.quib.external_call_failed_exception_handling import \
     external_call_failed_exception_handling
-from pyquibbler.refactor.general_utils import create_empty_array_with_values_at_indices
+from pyquibbler.refactor.utilities.general_utils import create_empty_array_with_values_at_indices
 from pyquibbler.refactor.function_definitions.func_call import ArgsValues
 from pyquibbler.refactor.graphics.utils import remove_created_graphics
 from pyquibbler.refactor.quib.func_call_utils import get_func_call_with_quibs_valid_at_paths
@@ -86,7 +86,7 @@ class ApplyAlongAxisFunctionRunner(FunctionRunner):
 
     @property
     def arr(self) -> Quib:
-        from pyquibbler.refactor.user_utils import q
+        from pyquibbler.refactor.utilities.user_utils import q
         arr_ = self.get_args_values()['arr']
         # ensure we're dealing with an ndarray- because we're not always running apply_along_axis which takes care of
         # this for us (for example, when getting a sample result) we do this on any access to the array to ensure no

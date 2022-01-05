@@ -2,7 +2,6 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import List, Union
 
-from pyquibbler.refactor.project import Project
 from pyquibbler.refactor.assignment import AssignmentToQuib, QuibChange, CannotReverseException
 from pyquibbler.refactor.path.path_component import PathComponent
 from pyquibbler.refactor.assignment.assignment import Override
@@ -57,6 +56,7 @@ class OverrideGroup:
 
     def apply(self):
         from pyquibbler.refactor.quib.graphics.redraw import aggregate_redraw_mode
+        from pyquibbler.refactor.project import Project
         with Project.get_or_create().start_undo_group():
             with aggregate_redraw_mode():
                 for quib_change in self.quib_changes:

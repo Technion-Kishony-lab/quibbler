@@ -8,7 +8,7 @@ import pytest
 from pytest import mark, raises, fixture
 
 from pyquibbler import iquib, quibbler_user_function
-from pyquibbler.refactor.input_validation_utils import InvalidArgumentException
+from pyquibbler.refactor.utilities.input_validation_utils import InvalidArgumentException
 from pyquibbler.quib import Quib, OverridingNotAllowedException
 from pyquibbler.quib.assignment import RangeAssignmentTemplate, BoundAssignmentTemplate, Assignment
 from pyquibbler.quib.assignment.assignment import PathComponent

@@ -1,7 +1,7 @@
 import numpy as np
 from typing import Callable, Set, Dict
 
-from pyquibbler.refactor.iterators import iter_objects_of_type_in_object_shallowly, recursively_run_func_on_object, \
+from pyquibbler.refactor.utilities.iterators import iter_objects_of_type_in_object_shallowly, recursively_run_func_on_object, \
     SHALLOW_MAX_DEPTH, SHALLOW_MAX_LENGTH
 from pyquibbler.refactor.translation.types import Source
 from pyquibbler.refactor.translation.utils import call_func_with_sources_values

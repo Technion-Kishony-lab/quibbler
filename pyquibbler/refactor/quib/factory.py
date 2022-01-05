@@ -6,6 +6,7 @@ from pyquibbler.refactor.logger import logger
 from pyquibbler.refactor.function_definitions.func_call import FuncCall
 from pyquibbler.refactor.quib.function_runners import FunctionRunner, DefaultFunctionRunner
 from pyquibbler.refactor.function_definitions import get_definition_for_function, CannotFindDefinitionForFunctionException
+from pyquibbler.refactor.quib.graphics import UpdateType
 from pyquibbler.refactor.quib.iterators import iter_quibs_in_args
 from pyquibbler.refactor.quib.quib import Quib
 from pyquibbler.refactor.quib.utils import deep_copy_without_quibs_or_graphics
@@ -57,6 +58,7 @@ def get_file_name_and_line_no() -> Tuple[Optional[str], Optional[str]]:
 
 def create_quib(func, args=(), kwargs=None, cache_behavior=None, evaluate_now=False, is_known_graphics_func=False,
                 allow_overriding=False, call_func_with_quibs: bool = False, is_random_func: bool = False,
+                is_file_loading: bool = False, update_type: UpdateType = None,
                 **init_kwargs):
     """
     Public constructor for creating a quib.
@@ -91,7 +93,6 @@ def create_quib(func, args=(), kwargs=None, cache_behavior=None, evaluate_now=Fa
         is_known_graphics_func=is_known_graphics_func,
         is_random_func=is_random_func,
         default_cache_behavior=cache_behavior or FunctionRunner.DEFAULT_CACHE_BEHAVIOR,
-        evaluate_now=evaluate_now
     )
 
     quib = Quib(function_runner=runner,
@@ -100,7 +101,10 @@ def create_quib(func, args=(), kwargs=None, cache_behavior=None, evaluate_now=Fa
                 name=get_quib_name(),
                 file_name=file_name,
                 line_no=line_no,
+                update_type=None,
                 **init_kwargs)
+    if update_type:
+        quib.set_redraw_update_type(update_type or UpdateType.DRAG)
 
     # TODO: get rid of this
     runner.quib = weakref.ref(quib)

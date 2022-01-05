@@ -3,20 +3,21 @@ from unittest import mock
 
 import pytest
 
-from pyquibbler import iquib
-from pyquibbler.refactor.project import Project, NothingToUndoException, NothingToRedoException
-from pyquibbler.quib import ImpureFunctionQuib, GraphicsFunctionQuib
-from pyquibbler.quib.graphics.widgets.drag_context_manager import dragging
+from pyquibbler import iquib, Assignment
+from pyquibbler.refactor.assignment.override_choice import OverrideGroup
+from pyquibbler.refactor.project.project import Project, NothingToUndoException, NothingToRedoException
+from pyquibbler.refactor.quib.factory import create_quib
+from pyquibbler.refactor.quib.graphics import dragging
 
 
 def test_get_or_create_only_creates_one_instance():
     assert Project.get_or_create() is Project.get_or_create()
 
 
-def test_reset_impure_function_quibs_clears_their_cache():
+def test_reset_impure_quibs_clears_their_cache():
     func = mock.Mock()
     func.side_effect = [1, 2]
-    quib = ImpureFunctionQuib.create(func=func)
+    quib = create_quib(func=func, is_random_func=True)
     assert quib.get_value() == 1, "sanity"
     assert quib.get_value() == 1, "sanity"
 
@@ -25,17 +26,17 @@ def test_reset_impure_function_quibs_clears_their_cache():
     assert quib.get_value() == 2
 
 
-def test_reset_impure_function_quibs_invalidates_and_redraws():
+def test_reset_impure_quibs_invalidates_and_redraws():
     func = mock.Mock()
     func.side_effect = [1, 2]
-    quib = ImpureFunctionQuib.create(func=func)
+    quib = create_quib(func=func, is_random_func=True)
     quib.get_value()
     graphics_function_mock = mock.Mock()
-    _ = GraphicsFunctionQuib.create(func=graphics_function_mock, func_args=(quib,))
+    _ = create_quib(func=graphics_function_mock, args=(quib,), is_known_graphics_func=True)
 
     Project.get_or_create().reset_invalidate_and_redraw_all_impure_function_quibs()
 
-    assert graphics_function_mock.call_count == 2
+    assert graphics_function_mock.call_count == 1
 
 
 def test_undo_assignment(project):
@@ -173,10 +174,16 @@ def test_project_undo_group_doesnt_add_on_dragging(project):
 def test_project_undo_with_group_reverts_back_to_before_group_and_runs_graphics_quib_once(project):
     a = iquib(5)
     mock_func = mock.Mock()
-    _ = GraphicsFunctionQuib.create(func=mock_func, func_args=(a,))
+    _ = create_quib(func=mock_func, args=(a,), is_known_graphics_func=True, evaluate_now=True)
     with project.start_undo_group():
-        a.assign_value(10)
-        a.assign_value(8)
+        a.override(Assignment(
+            path=[],
+            value=10
+        ))
+        a.override(Assignment(
+            path=[],
+            value=8
+        ))
     count = mock_func.call_count
 
     project.undo()
@@ -210,7 +217,7 @@ def test_project_has_redo_when_true(project):
 
 def test_project_redraw_central_graphics_function_quibs(project):
     func = mock.Mock()
-    _ = GraphicsFunctionQuib.create(func=func, update_type='central', evaluate_now=False)
+    _ = create_quib(func=func, update_type='central', evaluate_now=False)
 
     project.redraw_central_refresh_graphics_function_quibs()
 

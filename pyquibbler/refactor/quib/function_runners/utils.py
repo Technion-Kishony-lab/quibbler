@@ -3,6 +3,8 @@ from dataclasses import dataclass
 from functools import wraps
 from typing import Callable, Tuple, Any, Dict, TYPE_CHECKING
 
+import numpy as np
+
 if TYPE_CHECKING:
     from pyquibbler.refactor.quib.function_runners.function_runner import FunctionRunner
 
@@ -29,3 +31,7 @@ def cache_method_until_full_invalidation(func: Callable) -> Callable:
         return result
 
     return wrapper
+
+
+def create_array_from_func(func, shape):
+    return np.vectorize(lambda _: func(), otypes=[object])(np.empty(shape))

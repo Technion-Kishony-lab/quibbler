@@ -20,8 +20,7 @@ from pyquibbler.refactor.quib.external_call_failed_exception_handling import ext
 from pyquibbler.refactor.cache.cache_utils import get_uncached_paths_matching_path, \
     _truncate_path_to_match_shallow_caches, _ensure_cache_matches_result, \
     get_cached_data_at_truncated_path_given_result_at_uncached_path
-from pyquibbler.refactor.quib.function_runners.utils import cache_method_until_full_invalidation
-from pyquibbler.quib.graphics.graphics_function_quib import create_array_from_func
+from pyquibbler.refactor.quib.function_runners.utils import cache_method_until_full_invalidation, create_array_from_func
 from pyquibbler.refactor.graphics.graphics_collection import GraphicsCollection
 from pyquibbler.refactor.quib.graphics.persist import persist_relevant_info_on_new_artists_for_quib
 from pyquibbler.refactor.quib.quib import Quib
@@ -45,9 +44,8 @@ class FunctionRunner(ABC):
     # TODO: get rid of this
     quib = None
 
-
     @classmethod
-    def from_(cls, evaluate_now, func_call: FuncCall, call_func_with_quibs: bool, *args, **kwargs):
+    def from_(cls, func_call: FuncCall, call_func_with_quibs: bool, *args, **kwargs):
         return cls(func_call, call_func_with_quibs, *args, **kwargs)
 
     @property

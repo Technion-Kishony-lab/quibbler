@@ -9,9 +9,11 @@ import sys
 from typing import Optional, Set, TYPE_CHECKING, List
 
 from pyquibbler.refactor.exceptions import PyQuibblerException
+from pyquibbler.refactor.project.actions import Action, AssignmentAction
+from pyquibbler.refactor.quib.graphics import UpdateType
 
 if TYPE_CHECKING:
-    from pyquibbler.quib import Quib
+    from pyquibbler.refactor.quib import Quib
 
 
 class NothingToUndoException(PyQuibblerException):
@@ -103,37 +105,37 @@ class Project:
         Reset and then invalidate_redraw all impure function quibs in the project.
         We do this aggregatively so as to ensure we don't redraw axes more than once
         """
-        from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
-        from pyquibbler.quib import ImpureFunctionQuib
-        impure_function_quibs = [quib for quib in self.quibs if isinstance(quib, ImpureFunctionQuib)]
+        from pyquibbler.refactor.quib.graphics.redraw import aggregate_redraw_mode
+        impure_function_quibs = [quib for quib in self.quibs if quib.is_random_func]
         with aggregate_redraw_mode():
             for function_quib in impure_function_quibs:
-                function_quib.reset_cache()
+                function_quib._invalidate_self([])
                 function_quib.invalidate_and_redraw_at_path([])
 
     def save_quibs(self, save_iquibs_as_txt_where_possible: bool = True):
         """
         Save quibs (where relevant) to files in the current project directory
         """
-        from pyquibbler.quib.input_quib import InputQuib, CannotSaveAsTextException
-        if self.path is None:
-            raise CannotSaveWithoutProjectPathException()
-        for quib in self.quibs:
-            if save_iquibs_as_txt_where_possible and isinstance(quib, InputQuib) and quib.allow_overriding:
-                try:
-                    quib.save_as_txt()
-                except CannotSaveAsTextException:
-                    pass
-                else:
-                    continue
-
-            quib.save_if_relevant()
+        raise NotImplemented
+        # from pyquibbler.quib.input_quib import InputQuib, CannotSaveAsTextException
+        # if self.path is None:
+        #     raise CannotSaveWithoutProjectPathException()
+        # for quib in self.quibs:
+        #     if save_iquibs_as_txt_where_possible and isinstance(quib, InputQuib) and quib.allow_overriding:
+        #         try:
+        #             quib.save_as_txt()
+        #         except CannotSaveAsTextException:
+        #             pass
+        #         else:
+        #             continue
+        #
+        #     quib.save_if_relevant()
 
     def load_quibs(self):
         """
         Load quibs (where relevant) from files in the current project directory
         """
-        from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
+        from pyquibbler.refactor.quib.graphics.redraw import aggregate_redraw_mode
         if self.path is None:
             raise CannotLoadWithoutProjectPathException()
         with aggregate_redraw_mode():
@@ -163,7 +165,7 @@ class Project:
         """
         Undo the last action committed (see overrider docs for more information)
         """
-        from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
+        from pyquibbler.refactor.quib.graphics.redraw import aggregate_redraw_mode
         try:
             actions = self._undo_action_groups.pop(-1)
         except IndexError:
@@ -180,12 +182,12 @@ class Project:
         """
         Redo the last action committed
         """
-        from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
         try:
             actions = self._redo_action_groups.pop(-1)
         except IndexError:
             raise NothingToRedoException() from None
 
+        from pyquibbler.refactor.quib.graphics.redraw import aggregate_redraw_mode
         with aggregate_redraw_mode():
             for action in actions:
                 action.redo()
@@ -199,7 +201,7 @@ class Project:
         self._redo_action_groups = []
 
     def push_assignment_to_undo_stack(self, quib, overrider, assignment, index):
-        from pyquibbler.quib.actions import AssignmentAction
+        from pyquibbler.refactor.project.actions import AssignmentAction
         from pyquibbler.refactor.assignment.assignment import get_hashable_path
         assignment_hashable_path = get_hashable_path(assignment.path)
         previous_assignment = self._quib_refs_to_paths_to_released_assignments.get(weakref.ref(quib), {}).get(
@@ -224,7 +226,6 @@ class Project:
         """
         Redraw all graphics function quibs which only redraw when set to UpdateType.CENTRAL
         """
-        from pyquibbler.quib import GraphicsFunctionQuib, UpdateType
         for quib in self.quibs:
-            if isinstance(quib, GraphicsFunctionQuib) and quib.update_type == UpdateType.CENTRAL:
+            if quib.redraw_update_type == UpdateType.CENTRAL:
                 quib.get_value()

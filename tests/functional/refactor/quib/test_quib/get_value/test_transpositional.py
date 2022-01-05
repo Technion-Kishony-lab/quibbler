@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from pyquibbler import iquib
-from pyquibbler.quib import PathComponent
+from pyquibbler.refactor.path import PathComponent
 from pyquibbler.refactor.quib.quib import Quib
 from tests.functional.refactor.quib.test_quib.get_value.utils import check_get_value_valid_at_path
 

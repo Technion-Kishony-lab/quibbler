@@ -128,7 +128,7 @@ class Overrider:
             if isinstance(path[-1].component, slice):
                 inner_data = deep_get(mask, path[:-1])
                 if not isinstance(inner_data, np.ndarray):
-                    from ..iterators import recursively_run_func_on_object
+                    from pyquibbler.refactor.utilities.iterators import recursively_run_func_on_object
                     val = recursively_run_func_on_object(lambda x: val, inner_data)
             mask = deep_assign_data_in_path(mask, path, val)
         return mask

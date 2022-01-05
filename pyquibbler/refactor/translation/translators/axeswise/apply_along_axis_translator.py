@@ -3,10 +3,10 @@ from typing import Tuple
 
 import numpy as np
 
-from pyquibbler.refactor.general_utils import create_empty_array_with_values_at_indices
+from pyquibbler.refactor.utilities.general_utils import create_empty_array_with_values_at_indices
 from pyquibbler.refactor.function_definitions.func_call import FuncCall
-from pyquibbler.quib.graphics.axiswise_function_quibs.axiswise_function_quib import Arg
 from pyquibbler.refactor.translation.numpy_forwards_path_translator import NumpyForwardsPathTranslator
+from pyquibbler.refactor.translation.translators.axeswise.axiswise_translator import Arg
 from pyquibbler.refactor.translation.types import Source
 
 

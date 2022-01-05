@@ -4,7 +4,7 @@ from typing import Tuple, Any, Mapping
 
 import numpy as np
 
-from pyquibbler.quib.utils import recursively_run_func_on_object
+from pyquibbler.refactor.utilities.iterators import recursively_run_func_on_object
 from pyquibbler.refactor.quib.repr.pretty_converters.convert_math_equations import MATH_FUNCS_TO_CONVERTERS, \
     MathExpression
 

@@ -1,6 +1,6 @@
 import pytest
 
-from pyquibbler.quib.assignment import PathComponent
+from pyquibbler.refactor.path import PathComponent
 from pyquibbler.refactor.cache import IndexableCache
 from pyquibbler.refactor.cache.cache import CacheStatus
 from tests.functional.quib.function_quibs.cache.cache_test import IndexableCacheTest

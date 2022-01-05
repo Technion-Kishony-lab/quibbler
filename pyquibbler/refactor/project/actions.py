@@ -5,11 +5,12 @@ from abc import abstractmethod, ABC
 from dataclasses import dataclass
 from typing import Optional, Union, TYPE_CHECKING
 
-from pyquibbler.quib.assignment import Assignment
-from pyquibbler.quib.assignment.overrider import AssignmentRemoval, Overrider
+from pyquibbler.refactor.assignment import Assignment
+from pyquibbler.refactor.assignment import Overrider
+from pyquibbler.refactor.assignment.overrider import AssignmentRemoval
 
 if TYPE_CHECKING:
-    from pyquibbler.quib import Quib
+    from pyquibbler.refactor.quib import Quib
 
 
 class Action(ABC):

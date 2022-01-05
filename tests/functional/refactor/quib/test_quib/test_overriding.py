@@ -3,7 +3,7 @@ from unittest import mock
 import numpy as np
 import pytest
 
-from pyquibbler.refactor.input_validation_utils import InvalidArgumentException
+from pyquibbler.refactor.utilities.input_validation_utils import InvalidArgumentException
 from pyquibbler.refactor.assignment import InvalidTypeException, BoundAssignmentTemplate, RangeAssignmentTemplate
 from pyquibbler.refactor.path.data_accessing import FailedToDeepAssignException
 from pyquibbler.refactor.quib.exceptions import OverridingNotAllowedException

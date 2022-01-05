@@ -20,7 +20,7 @@ from ..utils import is_there_a_quib_in_args, iter_quibs_in_args, deep_copy_witho
 from ...refactor.quib.quib_ref import QuibRef
 from pyquibbler.refactor.env import EVALUATE_NOW, PRETTY_REPR
 from pyquibbler.refactor.exceptions import PyQuibblerException
-from pyquibbler.refactor.input_validation_utils import validate_user_input
+from pyquibbler.refactor.utilities.input_validation_utils import validate_user_input
 
 
 class CacheBehavior(Enum):

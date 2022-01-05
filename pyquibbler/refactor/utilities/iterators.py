@@ -66,7 +66,7 @@ def iter_objects_of_type_in_object(object_type: Type, obj: Any, force_recursive:
         return iter_objects_of_type_in_object_recursively(object_type, obj)
     result = iter_objects_of_type_in_object_shallowly(object_type, obj)
     if DEBUG:
-        from pyquibbler.quib.utils import NestedQuibException
+        from pyquibbler.refactor.quib.exceptions import NestedQuibException
         collected_result = set(result)
         result = iter(collected_result)
         expected = set(iter_objects_of_type_in_object_recursively(object_type, obj))

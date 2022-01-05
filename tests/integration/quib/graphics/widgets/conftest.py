@@ -4,7 +4,7 @@ import pytest
 from matplotlib.backend_bases import FigureCanvasBase
 from matplotlib.widgets import AxesWidget
 
-from pyquibbler.refactor.performance_utils import track_instances_of_class, TRACKED_CLASSES_TO_WEAKREFS, \
+from pyquibbler.refactor.utilities.performance_utils import track_instances_of_class, TRACKED_CLASSES_TO_WEAKREFS, \
     get_all_instances_in_tracked_class
 
 

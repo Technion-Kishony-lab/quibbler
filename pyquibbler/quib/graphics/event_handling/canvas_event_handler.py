@@ -6,7 +6,7 @@ from matplotlib.backend_bases import MouseEvent, PickEvent, MouseButton
 
 from pyquibbler.refactor.env import END_DRAG_IMMEDIATELY
 from pyquibbler.refactor.logger import logger
-from pyquibbler.refactor.performance_utils import timer
+from pyquibbler.refactor.utilities.performance_utils import timer
 from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
 from pyquibbler.quib.graphics.event_handling import graphics_inverse_assigner
 

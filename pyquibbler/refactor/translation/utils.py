@@ -1,7 +1,7 @@
 from copy import copy
 from typing import Callable, Any
 
-from pyquibbler.refactor.iterators import SHALLOW_MAX_LENGTH, SHALLOW_MAX_DEPTH, recursively_run_func_on_object
+from pyquibbler.refactor.utilities.iterators import SHALLOW_MAX_LENGTH, SHALLOW_MAX_DEPTH, recursively_run_func_on_object
 from pyquibbler.refactor.translation.types import Source
 
 

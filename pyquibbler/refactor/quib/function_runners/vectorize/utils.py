@@ -4,7 +4,7 @@ from typing import Tuple, Iterable, Optional, Dict, Union, Any, TYPE_CHECKING
 from string import ascii_letters
 from itertools import islice, chain
 
-from pyquibbler.quib.function_quibs.utils import Args, Kwargs
+from pyquibbler.refactor.utilities.general_utils import Args, Kwargs
 
 if TYPE_CHECKING:
     from .vectorize_metadata import ArgsMetadata, ArgId

@@ -4,15 +4,14 @@ import numpy as np
 from typing import Dict, Callable, Any, List
 
 from pyquibbler.refactor.translation.backwards_path_translator import BackwardsPathTranslator
-from pyquibbler.refactor.translation.forwards_path_translator import ForwardsPathTranslator
 from pyquibbler.refactor.translation.numpy_forwards_path_translator import NumpyForwardsPathTranslator
 from pyquibbler.refactor.translation.translators.transpositional.utils import get_data_source_ids_mask
 from pyquibbler.refactor.translation.types import Source
 from pyquibbler.refactor.translation.utils import call_func_with_sources_values
 from pyquibbler.refactor.path.path_component import Path, PathComponent
 from pyquibbler.refactor.path.utils import working_component
-from pyquibbler.refactor.general_utils import create_empty_array_with_values_at_indices
-from pyquibbler.refactor.iterators import recursively_run_func_on_object, SHALLOW_MAX_DEPTH, SHALLOW_MAX_LENGTH
+from pyquibbler.refactor.utilities.general_utils import create_empty_array_with_values_at_indices
+from pyquibbler.refactor.utilities.iterators import recursively_run_func_on_object, SHALLOW_MAX_DEPTH, SHALLOW_MAX_LENGTH
 from pyquibbler.utils import convert_args_and_kwargs
 
 

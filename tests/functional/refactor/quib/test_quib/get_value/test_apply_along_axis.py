@@ -2,7 +2,7 @@ import itertools
 
 from pyquibbler import iquib
 from pyquibbler.refactor.env import GRAPHICS_EVALUATE_NOW
-from pyquibbler.quib import PathComponent
+from pyquibbler.refactor.path import PathComponent
 from pyquibbler.refactor.path.data_accessing import deep_get
 from pyquibbler.refactor.quib.quib import Quib
 from tests.functional.quib.utils import get_func_mock

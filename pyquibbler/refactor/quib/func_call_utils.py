@@ -4,7 +4,7 @@ from typing import Optional, Dict, Union, Any
 from pyquibbler.refactor.path.path_component import Path
 from pyquibbler.refactor.quib.quib_ref import QuibRef
 from pyquibbler.refactor.function_definitions.func_call import FuncCall
-from pyquibbler.refactor.iterators import iter_objects_of_type_in_object_shallowly, recursively_run_func_on_object
+from pyquibbler.refactor.utilities.iterators import iter_objects_of_type_in_object_shallowly, recursively_run_func_on_object
 from pyquibbler.refactor.quib.quib import Quib
 
 

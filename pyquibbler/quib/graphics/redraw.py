@@ -4,7 +4,7 @@ from typing import Set, TYPE_CHECKING
 from matplotlib.axes import Axes
 
 from pyquibbler.refactor.logger import logger
-from pyquibbler.refactor.performance_utils import timer
+from pyquibbler.refactor.utilities.performance_utils import timer
 from pyquibbler.refactor.cache.cache import CacheStatus
 
 if TYPE_CHECKING:

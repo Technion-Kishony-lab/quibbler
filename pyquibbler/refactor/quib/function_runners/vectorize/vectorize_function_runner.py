@@ -4,11 +4,10 @@ from typing import Optional, Dict
 import numpy as np
 
 from pyquibbler.refactor.path.path_component import Path
-from pyquibbler.quib.function_quibs.external_call_failed_exception_handling import \
-    external_call_failed_exception_handling
-from pyquibbler.refactor.general_utils import create_empty_array_with_values_at_indices
+from pyquibbler.refactor.utilities.general_utils import create_empty_array_with_values_at_indices
 from pyquibbler.refactor.graphics.utils import remove_created_graphics
-from pyquibbler.refactor.quib.func_call_utils import get_func_call_with_quibs_valid_at_paths, get_data_source_quibs
+from pyquibbler.refactor.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
+from pyquibbler.refactor.quib.func_call_utils import get_func_call_with_quibs_valid_at_paths
 from pyquibbler.refactor.quib.function_runners import DefaultFunctionRunner
 from pyquibbler.refactor.quib.function_runners.utils import cache_method_until_full_invalidation
 from pyquibbler.refactor.quib.function_runners.vectorize.utils import alter_signature, copy_vectorize, \
@@ -16,9 +15,7 @@ from pyquibbler.refactor.quib.function_runners.vectorize.utils import alter_sign
 from pyquibbler.refactor.quib.function_runners.vectorize.vectorize_metadata import VectorizeCall, VectorizeMetadata
 from pyquibbler.refactor.quib.quib import Quib
 from pyquibbler.refactor.quib.specialized_functions.proxy import create_proxy
-from pyquibbler.refactor.quib.translation_utils import get_func_call_for_translation
 from pyquibbler.refactor.quib.utils import copy_and_replace_quibs_with_vals
-from pyquibbler.refactor.translation.translators.vectorize_translator import VectorizeBackwardsPathTranslator
 from pyquibbler.utils import convert_args_and_kwargs
 
 

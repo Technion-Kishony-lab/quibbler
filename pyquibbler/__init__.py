@@ -1,5 +1,5 @@
 from .decorators import quibbler_user_function
-from pyquibbler.refactor.performance_utils import timer, get_timer
+from pyquibbler.refactor.utilities.performance_utils import timer, get_timer
 # from .quib import CacheBehavior
 # from pyquibbler.overriding import override_all
 # from .user_utils import q_eager, reset_impure_function_quibs, save_quibs, set_project_path, load_quibs, undo, \
@@ -9,6 +9,6 @@ from pyquibbler.refactor.performance_utils import timer, get_timer
 # Refactor
 from .refactor.quib import iquib
 from .refactor.quib import CacheBehavior
-from .refactor.user_utils import q
+from pyquibbler.refactor.utilities.user_utils import q
 from .refactor.function_overriding import override_new
 from .refactor.assignment.assignment import Assignment

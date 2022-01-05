@@ -3,7 +3,7 @@ from typing import Optional, Any, Mapping, Tuple
 # Most common use-cases require one level of scanning - for example a quib inside a shape tuple.
 # But there is also the case of indexing with quibs, like so: arr[q1:,q2:] which creates a quib inside a slice inside a
 # tuple, which requires two levels of scanning.
-from pyquibbler.refactor.iterators import iter_objects_of_type_in_object_recursively, iter_objects_of_type_in_object, \
+from pyquibbler.refactor.utilities.iterators import iter_objects_of_type_in_object_recursively, iter_objects_of_type_in_object, \
     iter_object_type_in_args
 
 

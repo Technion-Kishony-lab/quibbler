@@ -1,7 +1,7 @@
 import numpy as np
 
 from pyquibbler.refactor.cache.shallow.nd_cache.nd_indexable_cache import NdIndexableCache
-from pyquibbler.refactor.general_utils import create_empty_array_with_values_at_indices
+from pyquibbler.refactor.utilities.general_utils import create_empty_array_with_values_at_indices
 from pyquibbler.refactor.path import PathComponent
 
 

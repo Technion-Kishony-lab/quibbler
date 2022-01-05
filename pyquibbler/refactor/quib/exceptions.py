@@ -1,8 +1,8 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable, Dict, Set, Any
 
-from pyquibbler.refactor.exceptions import PyQuibblerException
+from pyquibbler.refactor.exceptions import PyQuibblerException, DebugException
 from pyquibbler.refactor.quib.cache_behavior import CacheBehavior
 
 if TYPE_CHECKING:
@@ -36,3 +36,25 @@ class InvalidCacheBehaviorForQuibException(PyQuibblerException):
                'so they are not changed until they are refreshed. ' \
                f'Therefore, the cache behavior should be always set to {CacheBehavior.ON}, ' \
                f'and {self.invalid_cache_behavior} is invalid.'
+
+
+@dataclass
+class NestedQuibException(DebugException):
+    obj: Any
+    nested_quibs: Set[Quib]
+
+    def __str__(self):
+        return 'PyQuibbler does not support calling functions with arguments that contain deeply nested quibs.\n' \
+               f'The quibs {self.nested_quibs} are deeply nested within {self.obj}.'
+
+
+@dataclass
+class FunctionCalledWithNestedQuibException(PyQuibblerException):
+    func: Callable
+    nested_quibs_by_arg_names: Dict[str, Set[Quib]]
+
+    def __str__(self):
+        return f'The function {self.func} was called with nested Quib objects. This is not supported.\n' + \
+               '\n'.join(f'The argument "{arg}" contains the quibs: {quibs}'
+                         for arg, quibs in self.nested_quibs_by_arg_names.items())
+

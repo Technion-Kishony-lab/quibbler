@@ -10,7 +10,7 @@ from pyquibbler.refactor.exceptions import PyQuibblerException
 from pyquibbler.refactor.path.utils import get_nd_working_component_value_from_path
 from pyquibbler.refactor.function_definitions.func_call import FuncCall
 from pyquibbler.refactor.inversion.inverter import Inverter
-from pyquibbler.refactor.iterators import iter_objects_of_type_in_object_shallowly, \
+from pyquibbler.refactor.utilities.iterators import iter_objects_of_type_in_object_shallowly, \
     iter_objects_of_type_in_object_recursively
 from pyquibbler.refactor.translation.translate import backwards_translate
 from pyquibbler.refactor.translation.types import Source, Inversal
