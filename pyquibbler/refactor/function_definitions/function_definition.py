@@ -42,8 +42,8 @@ def create_function_definition(data_source_arguments: List[Union[str, int]] = No
     Create a definition for a function- this will allow quibbler to utilize Quibs with the function in a more
     specific manner (and not just use default behavior), for whichever parameters you give.
     """
-    from pyquibbler.refactor.quib.function_running import DefaultFunctionRunner
-    function_runner_cls = function_runner_cls or DefaultFunctionRunner
+    from pyquibbler.refactor.quib.function_running import FunctionRunner
+    function_runner_cls = function_runner_cls or FunctionRunner
     data_source_arguments = data_source_arguments or set()
     raw_data_source_arguments = {
         PositionalArgument(data_source_argument)

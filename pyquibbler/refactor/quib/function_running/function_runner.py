@@ -24,6 +24,11 @@ from pyquibbler.refactor.quib.function_running.utils import cache_method_until_f
 from pyquibbler.refactor.graphics.graphics_collection import GraphicsCollection
 from pyquibbler.refactor.quib.graphics.persist import persist_relevant_info_on_new_artists_for_quib
 from pyquibbler.refactor.quib.quib import Quib
+from pyquibbler.refactor.quib.utils.func_call_utils import get_func_call_with_quibs_valid_at_paths, \
+    get_data_source_quibs
+from pyquibbler.refactor.quib.utils.translation_utils import get_func_call_for_translation
+from pyquibbler.refactor.translation.exceptions import NoTranslatorsFoundException
+from pyquibbler.refactor.translation.translate import backwards_translate
 
 
 @dataclass
@@ -41,7 +46,7 @@ class FunctionRunner(ABC):
     cache: Optional[Cache] = None
     default_cache_behavior: CacheBehavior = DEFAULT_CACHE_BEHAVIOR
 
-    # TODO: get rid of this
+    # TODO: is there a better way to do this?
     quib = None
 
     @classmethod
@@ -178,9 +183,72 @@ class FunctionRunner(ABC):
                 return 1
             raise
 
-    @abstractmethod
-    def _run_on_path(self, valid_path: Optional[Path]):
-        pass
+    def _backwards_translate_source_func_call(self, source_func_call: FuncCall, valid_path: Path):
+        """
+        Backwards translate a path- first attempt without shape + type, and then if G-d's good graces fail us and we
+        find we are without the ability to do this, try with shape + type
+        """
+        try:
+            return backwards_translate(
+                func_call=source_func_call,
+                path=valid_path,
+            )
+        except NoTranslatorsFoundException:
+            try:
+                return backwards_translate(
+                    func_call=source_func_call,
+                    path=valid_path,
+                    shape=self.get_shape(),
+                    type_=self.get_type(),
+                    **self.get_result_metadata()
+                )
+            except NoTranslatorsFoundException:
+                return {}
+
+    def _backwards_translate_path(self, valid_path: Path) -> Dict[Quib, Path]:
+        if not get_data_source_quibs(self.func_call):
+            return {}
+
+        func_call, sources_to_quibs = get_func_call_for_translation(self.func_call, {})
+
+        try:
+            sources_to_paths = backwards_translate(
+                func_call=func_call,
+                path=valid_path,
+            )
+        except NoTranslatorsFoundException:
+            try:
+                sources_to_paths = backwards_translate(
+                    func_call=func_call,
+                    path=valid_path,
+                    shape=self.get_shape(),
+                    type_=self.get_type(),
+                    **self.get_result_metadata()
+                )
+            except NoTranslatorsFoundException:
+                return {}
+
+        return {
+            quib: sources_to_paths.get(source, None)
+            for source, quib in sources_to_quibs.items()
+        }
+
+    def _run_on_path(self, valid_path: Path):
+        graphics_collection: GraphicsCollection = self.graphics_collections[()]
+
+        if self.call_func_with_quibs:
+            ready_to_run_func_call = self.func_call
+        else:
+            quibs_to_paths = {} if valid_path is None else self._backwards_translate_path(valid_path)
+            ready_to_run_func_call = get_func_call_with_quibs_valid_at_paths(self.func_call, quibs_to_paths)
+
+        return self._run_single_call(
+            func=ready_to_run_func_call.func,
+            args=ready_to_run_func_call.args,
+            kwargs=ready_to_run_func_call.kwargs,
+            graphics_collection=graphics_collection,
+            quibs_to_guard=set()
+        )
 
     @property
     def _did_create_graphics(self) -> bool:

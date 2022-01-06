@@ -1,8 +1,8 @@
 from pyquibbler.refactor.path.path_component import Path
-from pyquibbler.refactor.quib.function_running import DefaultFunctionRunner
+from pyquibbler.refactor.quib.function_running import FunctionRunner
 
 
-class PlotRunner(DefaultFunctionRunner):
+class PlotRunner(FunctionRunner):
 
     def _run_on_path(self, valid_path: Path):
         res = super(PlotRunner, self)._run_on_path(valid_path)
