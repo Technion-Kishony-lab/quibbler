@@ -1,7 +1,8 @@
-# *Quibbler* 
-**Interactive, traceable and efficient data analysis pipelines.** 
+<img src="quibicon.gif" width=300 align='right'>
 
-![Quibbler](quibicon.gif)
+# Quibbler
+**Interactive, traceable and efficient data analytics**
+
 
 ## What is it?
 *Quibbler* is a toolset for building highly interactive, yet traceable, 
@@ -76,7 +77,7 @@ Through such an interactive process of parameter specifications, we ultimately r
 insights we gain from our analysis._ 
 <br/>
 <br/>
-### *Quibbler*: interactive, traceable, transparent, and efficient data analysis pipelines
+### *Quibbler*: interactive, traceable and efficient data analytics
 
 Addressing the above challenges, *Quibbler* offers a data analysis toolset built on three
 key principles:
@@ -106,4 +107,4 @@ of complex codes and make sure only the very necessary steps of the analysis and
 specifically affected data items are re-calculated upon any upstream parameter changes. 
 
 
-**See the wiki page for a Getting-started tour and the User manual.** 
+**See the Wiki pages for a Getting-started tour and Documentations.** 
