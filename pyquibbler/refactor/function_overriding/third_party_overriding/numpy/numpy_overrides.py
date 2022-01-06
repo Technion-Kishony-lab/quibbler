@@ -9,7 +9,7 @@ from pyquibbler.refactor.function_overriding.third_party_overriding.numpy.vector
     create_vectorize_overrides
 from pyquibbler.refactor.inversion import TranspositionalInverter
 from pyquibbler.refactor.function_overriding.third_party_overriding.numpy.numpy_override import numpy_override
-from pyquibbler.refactor.quib.function_runners.apply_along_axis_function_runner import ApplyAlongAxisFunctionRunner
+from pyquibbler.refactor.quib.function_running.function_runners.apply_along_axis_function_runner import ApplyAlongAxisFunctionRunner
 from pyquibbler.refactor.translation.translators import BackwardsTranspositionalTranslator, ForwardsTranspositionalTranslator
 from pyquibbler.refactor.translation.translators.axeswise.apply_along_axis_translator import \
     ApplyAlongAxisForwardsTranslator

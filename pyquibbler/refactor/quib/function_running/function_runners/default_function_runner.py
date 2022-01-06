@@ -2,11 +2,11 @@ from dataclasses import dataclass
 from typing import Dict
 
 from pyquibbler.refactor.path.path_component import Path
-from pyquibbler.refactor.quib.function_runners.function_runner import FunctionRunner
+from pyquibbler.refactor.quib.function_running.function_runner import FunctionRunner
 from pyquibbler.refactor.graphics.graphics_collection import GraphicsCollection
 from pyquibbler.refactor.quib.quib import Quib
-from pyquibbler.refactor.quib.translation_utils import get_func_call_for_translation
-from pyquibbler.refactor.quib.func_call_utils import get_func_call_with_quibs_valid_at_paths, get_data_source_quibs
+from pyquibbler.refactor.quib.utils.translation_utils import get_func_call_for_translation
+from pyquibbler.refactor.quib.utils.func_call_utils import get_func_call_with_quibs_valid_at_paths, get_data_source_quibs
 from pyquibbler.refactor.translation.translate import NoTranslatorsFoundException, backwards_translate
 
 

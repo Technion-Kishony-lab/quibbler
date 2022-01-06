@@ -10,9 +10,9 @@ from pyquibbler.refactor.quib.external_call_failed_exception_handling import \
 from pyquibbler.refactor.utilities.general_utils import create_empty_array_with_values_at_indices
 from pyquibbler.refactor.function_definitions.func_call import ArgsValues
 from pyquibbler.refactor.graphics.utils import remove_created_graphics
-from pyquibbler.refactor.quib.func_call_utils import get_func_call_with_quibs_valid_at_paths
-from pyquibbler.refactor.quib.function_runners import FunctionRunner
-from pyquibbler.refactor.quib.function_runners.utils import cache_method_until_full_invalidation
+from pyquibbler.refactor.quib.utils.func_call_utils import get_func_call_with_quibs_valid_at_paths
+from pyquibbler.refactor.quib.function_running import FunctionRunner
+from pyquibbler.refactor.quib.function_running.utils import cache_method_until_full_invalidation
 from pyquibbler.refactor.quib.quib import Quib
 
 

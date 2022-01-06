@@ -5,7 +5,7 @@ from typing import Callable, Any, Dict, Union, Type, Optional
 
 from pyquibbler.refactor.env import EVALUATE_NOW
 from pyquibbler.refactor.function_definitions.function_definition import FunctionDefinition
-from pyquibbler.refactor.quib.utils import is_there_a_quib_in_args
+from pyquibbler.refactor.quib.utils.miscellaneous import is_there_a_quib_in_args
 
 
 @dataclass

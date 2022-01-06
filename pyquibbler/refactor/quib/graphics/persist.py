@@ -3,7 +3,7 @@ from typing import Set, Callable, Iterable, Any
 from matplotlib.artist import Artist
 
 from pyquibbler.refactor.quib.graphics.event_handling import CanvasEventHandler
-from pyquibbler.refactor.quib.iterators import iter_object_type_in_args
+from pyquibbler.refactor.quib.utils.iterators import iter_object_type_in_args
 from pyquibbler.refactor.quib.quib import Quib
 
 

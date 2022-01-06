@@ -6,7 +6,7 @@ from typing import Callable, Tuple, Any, Dict, TYPE_CHECKING
 import numpy as np
 
 if TYPE_CHECKING:
-    from pyquibbler.refactor.quib.function_runners.function_runner import FunctionRunner
+    from pyquibbler.refactor.quib.function_running.function_runner import FunctionRunner
 
 
 @dataclass(frozen=True)

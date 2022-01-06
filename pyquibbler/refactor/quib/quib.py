@@ -27,13 +27,13 @@ from pyquibbler.refactor.cache import create_cache
 from pyquibbler.refactor.cache.cache import CacheStatus
 from pyquibbler.refactor.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
 from pyquibbler.refactor.function_definitions.func_call import ArgsValues
-from pyquibbler.refactor.quib.cache_behavior import CacheBehavior, UnknownCacheBehaviorException
+from pyquibbler.refactor.quib.function_running.cache_behavior import CacheBehavior, UnknownCacheBehaviorException
 from pyquibbler.refactor.quib.exceptions import OverridingNotAllowedException, UnknownUpdateTypeException, \
     InvalidCacheBehaviorForQuibException
 from pyquibbler.refactor.quib.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own, \
     add_quib_to_fail_trace_if_raises_quib_call_exception
 from pyquibbler.refactor.quib.graphics import UpdateType, is_within_drag
-from pyquibbler.refactor.quib.iterators import iter_quibs_in_args
+from pyquibbler.refactor.quib.utils.iterators import iter_quibs_in_args
 from pyquibbler.refactor.utilities.iterators import recursively_run_func_on_object
 from pyquibbler.refactor.quib.quib_method import quib_method
 from pyquibbler.refactor.quib.repr.repr_mixin import ReprMixin
@@ -43,7 +43,7 @@ from pyquibbler.refactor.utilities.unpacker import Unpacker
 if TYPE_CHECKING:
     from pyquibbler.refactor.assignment.override_choice import ChoiceContext, OverrideChoice
     from pyquibbler.refactor.function_definitions import FunctionDefinition
-    from pyquibbler.refactor.quib.function_runners import FunctionRunner
+    from pyquibbler.refactor.quib.function_running import FunctionRunner
 
 
 def get_user_friendly_name_for_requested_valid_path(valid_path: Optional[List[PathComponent]]):
@@ -252,7 +252,7 @@ class Quib(ReprMixin):
         Get a list of assignments to parent quibs which could be applied instead of the given assignment
         and produce the same change in the value of this quib.
         """
-        from pyquibbler.refactor.quib.translation_utils import get_func_call_for_translation
+        from pyquibbler.refactor.quib.utils.translation_utils import get_func_call_for_translation
         func_call, data_sources_to_quibs = get_func_call_for_translation(self._function_runner.func_call, {})
 
         try:
@@ -361,8 +361,8 @@ class Quib(ReprMixin):
         paths to new invalidation paths.
         If not, invalidate all children all over; as you have no more specific way to invalidate them
         """
-        from pyquibbler.refactor.quib.translation_utils import get_func_call_for_translation
-        from pyquibbler.refactor.quib.func_call_utils import is_quib_a_data_source
+        from pyquibbler.refactor.quib.utils.translation_utils import get_func_call_for_translation
+        from pyquibbler.refactor.quib.utils.func_call_utils import is_quib_a_data_source
 
         if not is_quib_a_data_source(self._function_runner.func_call, invalidator_quib):
             return [[]]

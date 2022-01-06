@@ -6,14 +6,13 @@ from pyquibbler.refactor.exceptions import DebugException
 from pyquibbler.refactor.function_definitions import add_definition_for_function
 from pyquibbler.refactor.function_definitions.function_definition import create_function_definition
 from pyquibbler.refactor.path.path_component import Path
-from pyquibbler.refactor.quib.cache_behavior import CacheBehavior
 from pyquibbler.refactor.quib.factory import create_quib
-
+from pyquibbler.refactor.quib.function_running.cache_behavior import CacheBehavior
+from pyquibbler.refactor.quib.utils.miscellaneous import is_there_a_quib_in_object
 from pyquibbler.refactor.quib.quib import Quib
 
 
 # TODO: should iquib simply be a function that is overridden? How would we handle all flags etc?
-from pyquibbler.refactor.quib.utils import is_there_a_quib_in_object
 from pyquibbler.refactor.translation.forwards_path_translator import ForwardsPathTranslator
 from pyquibbler.refactor.translation.types import Source
 

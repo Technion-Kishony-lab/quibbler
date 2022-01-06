@@ -4,8 +4,7 @@ from typing import Any, Optional, Tuple, Mapping, Callable, Dict
 from pyquibbler.refactor.env import DEBUG
 from pyquibbler.refactor.utilities.iterators import is_iterator_empty, iter_args_and_names_in_function_call, SHALLOW_MAX_LENGTH, \
     SHALLOW_MAX_DEPTH, recursively_run_func_on_object
-from pyquibbler.refactor.quib.utils.iterators import iter_quibs_in_object, iter_quibs_in_args, \
-    iter_quibs_in_object_recursively
+from .iterators import iter_quibs_in_object, iter_quibs_in_args, iter_quibs_in_object_recursively
 
 
 def is_there_a_quib_in_object(obj, force_recursive: bool = False):
@@ -102,7 +101,3 @@ def call_func_with_quib_values(func, args, kwargs):
                 # TODO: FunctionCalledWithNestedQuibException
                 raise Exception(func, nested_quibs_by_arg_names) from e
         raise
-
-
-
-

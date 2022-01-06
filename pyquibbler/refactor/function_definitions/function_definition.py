@@ -8,7 +8,7 @@ from pyquibbler.refactor.translation.backwards_path_translator import BackwardsP
 from pyquibbler.refactor.translation.forwards_path_translator import ForwardsPathTranslator
 
 if TYPE_CHECKING:
-    from pyquibbler.refactor.quib.function_runners import FunctionRunner
+    from pyquibbler.refactor.quib.function_running import FunctionRunner
     from pyquibbler.refactor.inversion.inverter import Inverter
 
 
@@ -42,7 +42,7 @@ def create_function_definition(data_source_arguments: List[Union[str, int]] = No
     Create a definition for a function- this will allow quibbler to utilize Quibs with the function in a more
     specific manner (and not just use default behavior), for whichever parameters you give.
     """
-    from pyquibbler.refactor.quib.function_runners import DefaultFunctionRunner
+    from pyquibbler.refactor.quib.function_running import DefaultFunctionRunner
     function_runner_cls = function_runner_cls or DefaultFunctionRunner
     data_source_arguments = data_source_arguments or set()
     raw_data_source_arguments = {

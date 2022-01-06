@@ -10,7 +10,6 @@ import numpy as np
 from matplotlib.widgets import AxesWidget
 
 from pyquibbler.refactor.path.path_component import Path
-from pyquibbler.refactor.quib.cache_behavior import CacheBehavior
 from pyquibbler.refactor.cache.cache import Cache
 from pyquibbler.refactor.cache.holistic_cache import PathCannotHaveComponentsException
 from pyquibbler.refactor.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
@@ -20,7 +19,8 @@ from pyquibbler.refactor.quib.external_call_failed_exception_handling import ext
 from pyquibbler.refactor.cache.cache_utils import get_uncached_paths_matching_path, \
     _truncate_path_to_match_shallow_caches, _ensure_cache_matches_result, \
     get_cached_data_at_truncated_path_given_result_at_uncached_path
-from pyquibbler.refactor.quib.function_runners.utils import cache_method_until_full_invalidation, create_array_from_func
+from pyquibbler.refactor.quib.function_running.cache_behavior import CacheBehavior
+from pyquibbler.refactor.quib.function_running.utils import cache_method_until_full_invalidation, create_array_from_func
 from pyquibbler.refactor.graphics.graphics_collection import GraphicsCollection
 from pyquibbler.refactor.quib.graphics.persist import persist_relevant_info_on_new_artists_for_quib
 from pyquibbler.refactor.quib.quib import Quib

@@ -9,7 +9,7 @@ from pyquibbler.refactor.env import DEBUG, EVALUATE_NOW, ASSIGNMENT_RESTRICTIONS
     SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS, GET_VARIABLE_NAMES
 from pyquibbler.refactor.project import Project
 from pyquibbler.refactor.function_overriding import override_new
-from pyquibbler.refactor.quib.function_runners import FunctionRunner
+from pyquibbler.refactor.quib.function_running import FunctionRunner
 from pyquibbler.utils import Flag
 
 DEFAULT_DEBUG = True

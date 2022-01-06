@@ -4,10 +4,10 @@ from typing import Optional, Tuple, Type, Callable
 from pyquibbler.refactor.env import GET_VARIABLE_NAMES, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS
 from pyquibbler.refactor.logger import logger
 from pyquibbler.refactor.function_definitions.func_call import FuncCall
-from pyquibbler.refactor.quib.function_runners import FunctionRunner, DefaultFunctionRunner
+from pyquibbler.refactor.quib.function_running import FunctionRunner, DefaultFunctionRunner
 from pyquibbler.refactor.function_definitions import get_definition_for_function, CannotFindDefinitionForFunctionException
 from pyquibbler.refactor.quib.graphics import UpdateType
-from pyquibbler.refactor.quib.iterators import iter_quibs_in_args
+from pyquibbler.refactor.quib.utils.iterators import iter_quibs_in_args
 from pyquibbler.refactor.quib.quib import Quib
 from pyquibbler.refactor.quib.utils import deep_copy_without_quibs_or_graphics
 from pyquibbler.refactor.quib.variable_metadata import get_var_name_being_set_outside_of_pyquibbler, \

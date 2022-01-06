@@ -1,5 +1,5 @@
 from pyquibbler.refactor.path.path_component import Path
-from pyquibbler.refactor.quib.function_runners import DefaultFunctionRunner
+from pyquibbler.refactor.quib.function_running import DefaultFunctionRunner
 
 
 class PlotRunner(DefaultFunctionRunner):

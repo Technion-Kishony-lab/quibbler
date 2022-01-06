@@ -6,13 +6,13 @@ import numpy as np
 from pyquibbler.refactor.utilities.general_utils import create_empty_array_with_values_at_indices, unbroadcast_bool_mask
 from pyquibbler.refactor.path import PathComponent
 from pyquibbler.refactor.path.path_component import Path
-from pyquibbler.refactor.quib.function_runners.vectorize.utils import iter_arg_ids_and_values, get_core_axes
+from pyquibbler.refactor.quib.function_running.function_runners.vectorize.utils import iter_arg_ids_and_values, get_core_axes
 from pyquibbler.refactor.translation.backwards_path_translator import BackwardsPathTranslator
 from pyquibbler.refactor.translation.forwards_path_translator import ForwardsPathTranslator
 from pyquibbler.refactor.translation.types import Source
 
 if TYPE_CHECKING:
-    from pyquibbler.refactor.quib.function_runners.vectorize.vectorize_metadata import ArgId
+    from pyquibbler.refactor.quib.function_running.function_runners.vectorize.vectorize_metadata import ArgId
 
 
 def _get_arg_ids_for_source(source: Source, args, kwargs) -> Set[ArgId]:

@@ -48,7 +48,7 @@ class WidgetOverride(GraphicsOverride):
     set_on_change: Callable = None
 
     def create_run_and_add_quib_supporting_callback(self, original_func: Callable):
-        from pyquibbler.refactor.quib.utils import call_func_with_quib_values
+        from pyquibbler.refactor.quib.utils.miscellaneous import call_func_with_quib_values
 
         def _run(*args, **kwargs):
             with global_collecting.overridden_graphics_function():
