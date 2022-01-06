@@ -70,27 +70,6 @@ class VectorizeCallFunctionRunner(FunctionRunner):
         quibs_to_guard = {*non_excluded_quib_args.values(), *excluded_quib_args.values()}
         new_vectorize = copy_vectorize(call.vectorize, func=wrapper, signature=signature)
         return VectorizeCall(new_vectorize, args, kwargs, quibs_to_guard)
-    #
-    # def _backwards_translate_path(self, valid_path: Path) -> Dict[Quib, Path]:
-    #     # TODO: nicer way?
-    #     if not get_data_source_quibs(self.func_call):
-    #         return {}
-    #
-    #     # TODO: try without shape/type + args
-    #     func_call, sources_to_quibs = get_func_call_for_translation(self.func_call,  {})
-    #
-    #     sources_to_paths = VectorizeBackwardsPathTranslator(
-    #         func_call=func_call,
-    #         path=valid_path,
-    #         shape=self.get_shape(),
-    #         type_=self.get_type(),
-    #         vectorize_metadata=self._vectorize_metadata
-    #     ).translate_in_order()
-    #
-    #     return {
-    #         quib: sources_to_paths.get(source, None)
-    #         for source, quib in sources_to_quibs.items()
-    #     }
 
     def _get_vectorize_call(self, args_metadata, results_core_ndims, valid_path) -> VectorizeCall:
         """
