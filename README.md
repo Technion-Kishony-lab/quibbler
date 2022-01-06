@@ -1,6 +1,5 @@
 # *Quibbler* 
-## Data analysis... and backward
-**Building interactive, traceable, transparent, and efficient data analysis pipelines.** 
+**Interactive, traceable and efficient data analysis pipelines.** 
 
 ![Quibbler](quibicon.gif)
 
