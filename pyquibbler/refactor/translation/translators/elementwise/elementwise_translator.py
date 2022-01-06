@@ -7,7 +7,7 @@ from pyquibbler.refactor.path.utils import get_nd_working_component_value_from_p
 from pyquibbler.refactor.translation.numpy_translator import NumpyBackwardsPathTranslator
 from pyquibbler.refactor.utilities.general_utils import create_empty_array_with_values_at_indices, unbroadcast_bool_mask
 from pyquibbler.refactor.translation.backwards_path_translator import BackwardsPathTranslator
-from pyquibbler.refactor.translation.numpy_forwards_path_translator import NumpyForwardsPathTranslator
+from pyquibbler.refactor.translation.numpy_translator import NumpyForwardsPathTranslator
 from pyquibbler.refactor.translation.types import Source
 
 

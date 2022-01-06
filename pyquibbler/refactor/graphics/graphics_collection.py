@@ -28,8 +28,6 @@ class GraphicsCollection:
     def remove_artists(self):
         for artist in self.artists:
             remove_artist(artist)
-
-        self._old_artists = self.artists
         self.artists = []
 
     def _handle_new_artists(self,

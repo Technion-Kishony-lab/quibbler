@@ -25,5 +25,5 @@ def get_definition_for_function(func: Callable) -> FunctionDefinition:
     from pyquibbler.refactor.function_definitions.function_definition import FunctionDefinition
     if func not in FUNCS_TO_DEFINITIONS:
         # Default function definition
-        return FunctionDefinition(function_runner_cls=FunctionRunner)
+        return FunctionDefinition()
     return FUNCS_TO_DEFINITIONS[func]

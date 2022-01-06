@@ -46,7 +46,8 @@ def create_graphics_overrides():
             axes_override(func_name=func_name) for func_name in [
                 'imshow', 'text', 'bar', 'hist', 'pie', 'legend', '_sci', 'matshow', 'scatter'
             ]
-        ]
+        ],
+
     ]
 
 
