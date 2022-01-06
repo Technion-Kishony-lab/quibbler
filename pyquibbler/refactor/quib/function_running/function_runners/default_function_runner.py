@@ -2,8 +2,8 @@ from dataclasses import dataclass
 from typing import Dict
 
 from pyquibbler.refactor.path.path_component import Path
-from pyquibbler.refactor.quib.function_running.function_runner import FunctionRunner
 from pyquibbler.refactor.graphics.graphics_collection import GraphicsCollection
+from pyquibbler.refactor.quib.function_running import FunctionRunner
 from pyquibbler.refactor.quib.quib import Quib
 from pyquibbler.refactor.quib.utils.translation_utils import get_func_call_for_translation
 from pyquibbler.refactor.quib.utils.func_call_utils import get_func_call_with_quibs_valid_at_paths, get_data_source_quibs
@@ -24,12 +24,18 @@ class DefaultFunctionRunner(FunctionRunner):
             sources_to_paths = backwards_translate(
                 func_call=func_call,
                 path=valid_path,
-                shape=self.get_shape(),
-                type_=self.get_type(),
-                **self.get_result_metadata()
             )
         except NoTranslatorsFoundException:
-            return {}
+            try:
+                sources_to_paths = backwards_translate(
+                    func_call=func_call,
+                    path=valid_path,
+                    shape=self.get_shape(),
+                    type_=self.get_type(),
+                    **self.get_result_metadata()
+                )
+            except NoTranslatorsFoundException:
+                return {}
 
         return {
             quib: sources_to_paths.get(source, None)

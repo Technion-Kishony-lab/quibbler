@@ -2,13 +2,13 @@ from abc import abstractmethod
 
 from typing import Dict, Optional, Tuple, Type
 
-from pyquibbler.refactor.translation.path_translator import Translator
+from pyquibbler.refactor.translation.path_translator import PathTranslator
 from pyquibbler.refactor.translation.types import Source
 from pyquibbler.refactor.path.path_component import Path
 from pyquibbler.refactor.path.utils import working_component
 
 
-class BackwardsPathTranslator(Translator):
+class BackwardsPathTranslator(PathTranslator):
 
     PRIORITY = 0
 

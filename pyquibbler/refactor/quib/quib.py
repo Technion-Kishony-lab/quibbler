@@ -12,6 +12,7 @@ import numpy as np
 from matplotlib.artist import Artist
 
 from pyquibbler.refactor.env import LEN_RAISE_EXCEPTION
+from pyquibbler.refactor.translation.types import Source
 from pyquibbler.refactor.utilities.input_validation_utils import validate_user_input
 from pyquibbler.refactor.logger import logger
 from pyquibbler.refactor.project import Project
@@ -20,13 +21,13 @@ from pyquibbler.refactor.inversion.exceptions import NoInvertersFoundException
 from pyquibbler.refactor.assignment import AssignmentTemplate, Overrider, Assignment, \
     AssignmentToQuib
 from pyquibbler.refactor.path.data_accessing import FailedToDeepAssignException
-from pyquibbler.refactor.path.path_component import PathComponent
+from pyquibbler.refactor.path.path_component import PathComponent, Path
 from pyquibbler.refactor.assignment import InvalidTypeException
 from pyquibbler.refactor.assignment.override_choice import OverrideRemoval, get_override_group_for_change
 from pyquibbler.refactor.cache import create_cache
 from pyquibbler.refactor.cache.cache import CacheStatus
 from pyquibbler.refactor.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
-from pyquibbler.refactor.function_definitions.func_call import ArgsValues
+from pyquibbler.refactor.function_definitions.func_call import ArgsValues, FuncCall
 from pyquibbler.refactor.quib.function_running.cache_behavior import CacheBehavior, UnknownCacheBehaviorException
 from pyquibbler.refactor.quib.exceptions import OverridingNotAllowedException, UnknownUpdateTypeException, \
     InvalidCacheBehaviorForQuibException
@@ -354,6 +355,32 @@ class Quib(ReprMixin):
                 if len(path) == 0 or not self._is_completely_overridden_at_first_component(new_path):
                     self._invalidate_children_at_path(new_path)
 
+    def _forward_translate_source_path(self, func_call: FuncCall, source: Source, path: Path):
+        """
+        Forward translate a path, first attempting to do it WITHOUT using getting the shape and type, and if/when
+        failure does grace us, we attempt again with shape and type
+        """
+        try:
+            return forwards_translate(
+                func_call=func_call,
+                sources_to_paths={
+                    source: path
+                },
+            )
+        except NoTranslatorsFoundException:
+            try:
+                return forwards_translate(
+                    func_call=func_call,
+                    sources_to_paths={
+                        source: path
+                    },
+                    shape=self.get_shape(),
+                    type_=self.get_type(),
+                    **self._function_runner.get_result_metadata()
+                )
+            except NoTranslatorsFoundException:
+                return [[]]
+
     def _get_paths_for_children_invalidation(self, invalidator_quib: Quib,
                                              path: List[PathComponent]) -> List[Optional[List[PathComponent]]]:
         """
@@ -370,18 +397,8 @@ class Quib(ReprMixin):
         func_call, sources_to_quibs = get_func_call_for_translation(self._function_runner.func_call, {})
         quibs_to_sources = {quib: source for source, quib in sources_to_quibs.items()}
 
-        try:
-            sources_to_new_paths = forwards_translate(
-                func_call=func_call,
-                sources_to_paths={
-                    quibs_to_sources[invalidator_quib]: path
-                },
-                shape=self.get_shape(),
-                type_=self.get_type(),
-                **self._function_runner.get_result_metadata()
-            )
-        except NoTranslatorsFoundException:
-            return [[]]
+        sources_to_new_paths = self._forward_translate_source_path(func_call, quibs_to_sources[invalidator_quib],
+                                                                   path)
         
         source = quibs_to_sources[invalidator_quib]
 

@@ -7,9 +7,9 @@ from pyquibbler.refactor.translation.types import Source, ArgumentWithValue
 from pyquibbler.refactor.function_definitions.func_call import FuncCall
 
 
-class Translator(ABC):
+class PathTranslator(ABC):
 
-    PRIORITY = 0
+    SHOULD_ATTEMPT_WITHOUT_SHAPE_AND_TYPE = False
 
     def __init__(self, func_call: FuncCall):
         self._func_call = func_call

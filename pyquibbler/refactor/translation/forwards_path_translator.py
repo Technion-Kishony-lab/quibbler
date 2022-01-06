@@ -3,13 +3,13 @@ from typing import Dict, Optional, Tuple, Type, Any, List
 
 import numpy as np
 
-from pyquibbler.refactor.translation.path_translator import Translator
+from pyquibbler.refactor.translation.path_translator import PathTranslator
 from pyquibbler.refactor.translation.types import Source
 from pyquibbler.refactor.path.path_component import Path
 from pyquibbler.refactor.path.utils import working_component, path_beyond_working_component
 
 
-class ForwardsPathTranslator(Translator):
+class ForwardsPathTranslator(PathTranslator):
 
     def __init__(self,
                  func_call, sources_to_paths: Dict[Source, Path],
