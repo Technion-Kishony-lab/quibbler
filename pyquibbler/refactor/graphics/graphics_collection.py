@@ -70,8 +70,7 @@ class GraphicsCollection:
         self.remove_artists()
 
         # TODO: move quibguard to outside quib
-        with ArtistsCollector() as artists_collector, AxesWidgetsCollector() as widgets_collector, \
-                external_call_failed_exception_handling():
+        with ArtistsCollector() as artists_collector, AxesWidgetsCollector() as widgets_collector:
             yield
 
         self._handle_new_widgets(new_widgets=widgets_collector.objects_collected)

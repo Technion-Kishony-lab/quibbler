@@ -22,7 +22,7 @@ def backwards_translate(func_call: FuncCall,
 
 
 def forwards_translate(func_call: FuncCall,
-                       sources_to_paths, shape=None, type_=None, **kwargs) -> Dict[Source, Path]:
+                       sources_to_paths, shape=None, type_=None, **kwargs) -> Dict[Source, List[Path]]:
     """
     Forwards translate a mapping of sources to paths through a function, giving for each source a list of paths that
     were affected by the given path for the source

@@ -43,6 +43,7 @@ def create_numpy_overrides():
         *create_transpositional_overrides(),
         *create_elementwise_overrides(),
         numpy_override(np.sum, function_definition=create_function_definition(data_source_arguments=[0])),
+        numpy_override(np.genfromtxt, function_definition=create_function_definition(is_file_loading_func=True)),
         numpy_override(np.apply_along_axis,
                        function_definition=create_function_definition(
                            data_source_arguments=["arr"],

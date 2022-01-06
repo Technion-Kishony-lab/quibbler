@@ -334,7 +334,7 @@ class Quib(ReprMixin):
         - quib.set_assignment_template(min, max): set the template to a bound template between min and max.
         - quib.set_assignment_template(start, stop, step): set the template to a bound template between min and max.
         """
-        self._assignment_template = create_assignment_template(args)
+        self._assignment_template = create_assignment_template(*args)
 
     """
     Invalidation
@@ -397,7 +397,9 @@ class Quib(ReprMixin):
                     **self._function_runner.get_result_metadata()
                 )
             except NoTranslatorsFoundException:
-                return [[]]
+                return {
+                    source: [[]]
+                }
 
     def _get_paths_for_children_invalidation(self, invalidator_quib: Quib,
                                              path: List[PathComponent]) -> List[Optional[List[PathComponent]]]:
@@ -419,7 +421,6 @@ class Quib(ReprMixin):
                                                                    path)
         
         source = quibs_to_sources[invalidator_quib]
-
         return sources_to_new_paths[source] if source in sources_to_new_paths else []
 
     def _invalidate_self(self, path: List[PathComponent]):
@@ -438,10 +439,13 @@ class Quib(ReprMixin):
                                                                                         path)
             self._function_runner.cache.set_invalid_at_path(path)
 
-
     """
     Misc
     """
+
+    @property
+    def is_impure(self):
+        return self._func_definition.is_random_func or self._func_definition.is_file_loading_func
 
     @property
     def is_random_func(self):
@@ -460,9 +464,7 @@ class Quib(ReprMixin):
         return Project.get_or_create()
 
     def get_cache_behavior(self):
-        if self._func_definition.is_random_func or self.func_can_create_graphics:
-            return CacheBehavior.ON
-        return self._function_runner.default_cache_behavior
+        return self._function_runner.get_cache_behavior()
 
     @validate_user_input(cache_behavior=(str, CacheBehavior))
     def set_cache_behavior(self, cache_behavior: CacheBehavior):

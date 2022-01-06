@@ -106,7 +106,7 @@ class Project:
         We do this aggregatively so as to ensure we don't redraw axes more than once
         """
         from pyquibbler.refactor.quib.graphics.redraw import aggregate_redraw_mode
-        impure_function_quibs = [quib for quib in self.quibs if quib.is_random_func]
+        impure_function_quibs = [quib for quib in self.quibs if quib.is_impure]
         with aggregate_redraw_mode():
             for function_quib in impure_function_quibs:
                 function_quib._invalidate_self([])

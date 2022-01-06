@@ -23,8 +23,8 @@ class BackwardsElementwisePathTranslator(NumpyBackwardsPathTranslator):
         result indices
         """
         result_bool_mask = create_empty_array_with_values_at_indices(self._shape,
-                                                                     indices=working_indices, value=True,
-                                                                     empty_value=False)
+                                                                 indices=working_indices, value=True,
+                                                                 empty_value=False)
 
         return unbroadcast_bool_mask(result_bool_mask, np.shape(source.value))
 

@@ -58,6 +58,16 @@ def operator_definition(name, data_source_indexes: List = None, inverters: List 
     )
 
 
+def elementwise_translators():
+    from pyquibbler.refactor.translation.translators.elementwise.elementwise_translator import \
+        BackwardsElementwisePathTranslator, ForwardsElementwisePathTranslator
+
+    return dict(
+        backwards_path_translators=[BackwardsElementwisePathTranslator],
+        forwards_path_translators=[ForwardsElementwisePathTranslator]
+    )
+
+
 def with_reverse_operator_definition(name, data_source_indexes: List = None, inverters=None,
                                      backwards_path_translators: List = None, forwards_path_translators: List = None):
     rname = '__r' + name[2:]
@@ -82,29 +92,20 @@ def get_arithmetic_definitions():
     # We need to create elementwise overrides to make sure we have inverters for our elementwise operators
     create_elementwise_overrides()
 
-    from pyquibbler.refactor.translation.translators.elementwise.elementwise_translator import \
-        BackwardsElementwisePathTranslator
-    from pyquibbler.refactor.translation.translators.elementwise.elementwise_translator import \
-        ForwardsElementwisePathTranslator
     return [
         *with_reverse_operator_definition('__add__', [0, 1], [get_inverter_for_func(np.add)],
-                                          backwards_path_translators=[BackwardsElementwisePathTranslator],
-                                          forwards_path_translators=[ForwardsElementwisePathTranslator]),
+                                          **elementwise_translators()),
         *with_reverse_operator_definition('__sub__', [0, 1], [get_inverter_for_func(np.subtract)],
-                                          backwards_path_translators=[BackwardsElementwisePathTranslator],
-                                          forwards_path_translators=[ForwardsElementwisePathTranslator]),
+                                          **elementwise_translators()),
         *with_reverse_operator_definition('__mul__',  [0, 1], [get_inverter_for_func(np.multiply)],
-                                          backwards_path_translators=[BackwardsElementwisePathTranslator],
-                                          forwards_path_translators=[ForwardsElementwisePathTranslator]),
+                                          **elementwise_translators()),
         operator_definition('__matmul__', []),
         *with_reverse_operator_definition('__truediv__', [0, 1], [get_inverter_for_func(np.divide)],
-                                          backwards_path_translators=[BackwardsElementwisePathTranslator],
-                                          forwards_path_translators=[ForwardsElementwisePathTranslator]),
+                                          **elementwise_translators()),
         *with_reverse_operator_definition('__floordiv__'),
         *with_reverse_operator_definition('__mod__'),
         *with_reverse_operator_definition('__pow__', [0, 1], [get_inverter_for_func(np.power)],
-                                          backwards_path_translators=[BackwardsElementwisePathTranslator],
-                                          forwards_path_translators=[ForwardsElementwisePathTranslator]),
+                                          **elementwise_translators()),
         *with_reverse_operator_definition('__lshift__'),
         *with_reverse_operator_definition('__rshift__'),
         *with_reverse_operator_definition('__and__'),
@@ -128,12 +129,10 @@ def get_operator_definitions():
     from pyquibbler.refactor.translation.translators.transpositional.getitem_translator import ForwardsGetItemTranslator
 
     comparison_definitions = [
-        operator_definition('__lt__'),
-        operator_definition('__gt__'),
-        operator_definition('__ge__'),
-        operator_definition('__le__'),
+        operator_definition('__lt__', **elementwise_translators()),
+        operator_definition('__gt__', **elementwise_translators()),
+        operator_definition('__ge__', **elementwise_translators()),
     ]
-
 
     rounding_definitions = [
         operator_definition('__round__', [0]),

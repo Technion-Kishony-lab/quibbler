@@ -42,7 +42,11 @@ def axes_override(func_name, function_definition_kwargs=None):
 def create_graphics_overrides():
     return [
         axes_override(func_name="plot", function_definition_kwargs=dict(function_runner_cls=PlotRunner)),
-        axes_override(func_name="text")
+        *[
+            axes_override(func_name=func_name) for func_name in [
+                'imshow', 'text', 'bar', 'hist', 'pie', 'legend', '_sci', 'matshow', 'scatter'
+            ]
+        ]
     ]
 
 

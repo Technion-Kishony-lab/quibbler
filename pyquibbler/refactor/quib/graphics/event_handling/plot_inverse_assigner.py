@@ -103,5 +103,4 @@ def get_override_group_for_axes_plot(pick_event: PickEvent, mouse_event: MouseEv
     else:
         changes = [*get_overrides_for_event(args, x_arg_indices, artist_index, indices, mouse_event.xdata),
                    *get_overrides_for_event(args, y_arg_indices, artist_index, indices, mouse_event.ydata)]
-    overrides = get_overrides_for_quib_change_group(changes)
     return get_overrides_for_quib_change_group(changes)
