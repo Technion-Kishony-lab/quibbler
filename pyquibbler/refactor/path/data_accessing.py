@@ -25,7 +25,6 @@ def deep_get(obj: Any, path: List['PathComponent']):
     """
     Get the data from an object in a given path.
     """
-    el = obj
     for component in path:
         obj = obj[component.component]
     return obj

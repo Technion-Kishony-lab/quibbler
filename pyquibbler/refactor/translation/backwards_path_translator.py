@@ -10,8 +10,6 @@ from pyquibbler.refactor.path.utils import working_component
 
 class BackwardsPathTranslator(PathTranslator):
 
-    PRIORITY = 0
-
     def __init__(self, func_call, shape: Optional[Tuple[int, ...]], type_: Optional[Type], path):
         super(BackwardsPathTranslator, self).__init__(func_call)
         self._shape = shape

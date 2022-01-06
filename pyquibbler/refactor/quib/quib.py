@@ -40,7 +40,8 @@ from pyquibbler.refactor.quib.utils.iterators import iter_quibs_in_args
 from pyquibbler.refactor.utilities.iterators import recursively_run_func_on_object
 from pyquibbler.refactor.quib.quib_method import quib_method
 from pyquibbler.refactor.quib.repr.repr_mixin import ReprMixin
-from pyquibbler.refactor.translation.translate import forwards_translate, NoTranslatorsFoundException
+from pyquibbler.refactor.translation.translate import forwards_translate, NoTranslatorsFoundException, \
+    backwards_translate
 from pyquibbler.refactor.utilities.unpacker import Unpacker
 
 if TYPE_CHECKING:
@@ -251,7 +252,10 @@ class Quib(ReprMixin):
         Get a list of overide removals to parent quibs which could be applied instead of the given override removal
         and produce the same change in the value of this quib.
         """
-        return []
+        from pyquibbler.refactor.quib.utils.translation_utils import get_func_call_for_translation
+        func_call, sources_to_quibs = get_func_call_for_translation(self._function_runner.func_call)
+        sources_to_paths = backwards_translate(func_call=func_call, path=override_removal.path)
+        return [OverrideRemoval(sources_to_quibs[source], path) for source, path in sources_to_paths.items()]
 
     @property
     def _args_values(self):
@@ -268,7 +272,7 @@ class Quib(ReprMixin):
         and produce the same change in the value of this quib.
         """
         from pyquibbler.refactor.quib.utils.translation_utils import get_func_call_for_translation
-        func_call, data_sources_to_quibs = get_func_call_for_translation(self._function_runner.func_call, {})
+        func_call, data_sources_to_quibs = get_func_call_for_translation(self._function_runner.func_call)
 
         try:
             value = self.get_value()
@@ -408,7 +412,7 @@ class Quib(ReprMixin):
         if not is_quib_a_data_source(self._function_runner.func_call, invalidator_quib):
             return [[]]
 
-        func_call, sources_to_quibs = get_func_call_for_translation(self._function_runner.func_call, {})
+        func_call, sources_to_quibs = get_func_call_for_translation(self._function_runner.func_call)
         quibs_to_sources = {quib: source for source, quib in sources_to_quibs.items()}
 
         sources_to_new_paths = self._forward_translate_source_path(func_call, quibs_to_sources[invalidator_quib],

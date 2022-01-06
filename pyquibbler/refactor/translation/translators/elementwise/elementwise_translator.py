@@ -4,13 +4,14 @@ import numpy as np
 
 from pyquibbler.refactor.path.path_component import PathComponent, Path
 from pyquibbler.refactor.path.utils import get_nd_working_component_value_from_path
+from pyquibbler.refactor.translation.numpy_translator import NumpyBackwardsPathTranslator
 from pyquibbler.refactor.utilities.general_utils import create_empty_array_with_values_at_indices, unbroadcast_bool_mask
 from pyquibbler.refactor.translation.backwards_path_translator import BackwardsPathTranslator
 from pyquibbler.refactor.translation.numpy_forwards_path_translator import NumpyForwardsPathTranslator
 from pyquibbler.refactor.translation.types import Source
 
 
-class BackwardsElementwisePathTranslator(BackwardsPathTranslator):
+class BackwardsElementwisePathTranslator(NumpyBackwardsPathTranslator):
 
     def _get_indices_to_change(self, source: Source, working_indices) -> Any:
         """
@@ -27,14 +28,11 @@ class BackwardsElementwisePathTranslator(BackwardsPathTranslator):
 
         return unbroadcast_bool_mask(result_bool_mask, np.shape(source.value))
 
-    def translate_in_order(self) -> Dict[Source, Path]:
-        result = {}
-        for source in self.get_data_sources():
-            working_component = get_nd_working_component_value_from_path(self._path)
-            changed_indices = self._get_indices_to_change(source, working_component)
-            new_path = [] if changed_indices.ndim == 0 else [PathComponent(self._type, changed_indices)]
-            result[source] = new_path
-        return result
+    def _get_path_in_source(self, source: Source, path_in_result: Path):
+        working_component = get_nd_working_component_value_from_path(self._path)
+        changed_indices = self._get_indices_to_change(source, working_component)
+        new_path = [] if changed_indices.ndim == 0 else [PathComponent(self._type, changed_indices)]
+        return new_path
 
 
 class ForwardsElementwisePathTranslator(NumpyForwardsPathTranslator):

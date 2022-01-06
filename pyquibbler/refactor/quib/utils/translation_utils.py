@@ -9,7 +9,7 @@ from pyquibbler.refactor.translation.types import Source
 from pyquibbler.utils import convert_args_and_kwargs
 
 
-def get_func_call_for_translation(func_call: FuncCall, data_source_quibs_to_paths: Dict[Quib, Path]):
+def get_func_call_for_translation(func_call: FuncCall):
     data_source_quibs = get_data_source_quibs(func_call)
     data_sources_to_quibs = {}
 
@@ -17,7 +17,7 @@ def get_func_call_for_translation(func_call: FuncCall, data_source_quibs_to_path
         def _replace(q):
             if isinstance(q, Quib):
                 if q in data_source_quibs:
-                    source = Source(q.get_value_valid_at_path(data_source_quibs_to_paths.get(q)))
+                    source = Source(q.get_value_valid_at_path(None))
                     data_sources_to_quibs[source] = q
                 else:
                     source = Source(q.get_value_valid_at_path([]))

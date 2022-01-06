@@ -12,8 +12,6 @@ from pyquibbler.refactor.translation.utils import copy_and_replace_sources_with_
 
 class BackwardsGetItemTranslator(BackwardsTranspositionalTranslator):
 
-    PRIORITY = 1
-
     @property
     def _getitem_path_component(self):
         component = self._args[1]

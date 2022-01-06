@@ -8,8 +8,6 @@ from pyquibbler.refactor.path.data_accessing import deep_assign_data_in_path
 
 class Inverter(ABC):
 
-    PRIORITY = 0
-
     def __init__(self, func_call: FuncCall, assignment, previous_result):
         self._func_call = func_call
         self._assignment = assignment

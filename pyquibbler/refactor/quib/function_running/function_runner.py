@@ -101,45 +101,6 @@ class FunctionRunner(ABC):
         return elapsed_seconds > consts.MIN_SECONDS_FOR_CACHE \
             and getsizeof(result) / elapsed_seconds < consts.MAX_BYTES_PER_SECOND
 
-    def _run_on_uncached_paths_within_path(self, valid_path: Path):
-        uncached_paths = get_uncached_paths_matching_path(cache=self.cache, path=valid_path)
-
-        if len(uncached_paths) == 0:
-            return self.cache.get_value()
-
-        result = None
-
-        for uncached_path in uncached_paths:
-            result = self._run_on_path(uncached_path)
-
-            truncated_path = _truncate_path_to_match_shallow_caches(uncached_path)
-            self.cache = _ensure_cache_matches_result(self.cache, result)
-
-            if truncated_path is not None:
-                self.cache = transform_cache_to_nd_if_necessary_given_path(self.cache, truncated_path)
-                value = get_cached_data_at_truncated_path_given_result_at_uncached_path(self.cache,
-                                                                                        result,
-                                                                                        truncated_path,
-                                                                                        uncached_path)
-
-                try:
-                    self.cache.set_valid_value_at_path(truncated_path, value)
-                except PathCannotHaveComponentsException:
-                    # We do not have a diverged cache for this type, we can't store the value; this is not a problem as
-                    # everything will work as expected, but we will simply not cache
-                    assert len(uncached_paths) == 1, "There should never be a situation in which we have multiple " \
-                                                     "uncached paths but our cache can't handle setting a value at a " \
-                                                     "specific component"
-                else:
-                    # We need to get the result from the cache (as opposed to simply using the last run), since we
-                    # don't want to only take the last run
-                    result = self.cache.get_value()
-
-                    # sanity
-                    assert len(self.cache.get_uncached_paths(truncated_path)) == 0
-
-        return result
-
     def _get_representative_value(self):
         return self.get_value_valid_at_path(None)
 
@@ -180,6 +141,44 @@ class FunctionRunner(ABC):
                 return 1
             raise
 
+    @property
+    def _did_create_graphics(self) -> bool:
+        return any(graphics_collection.artists for graphics_collection in self.flat_graphics_collections())
+
+    @property
+    def func_can_create_graphics(self):
+        return self.func_call.get_func_definition().is_known_graphics_func or self._did_create_graphics
+
+    def reset_cache(self):
+        self.cache = None
+        self.caching = True if self.get_cache_behavior() == CacheBehavior.ON else False
+
+    def _run_single_call(self, func: Callable, graphics_collection: GraphicsCollection,
+                         args: Tuple[Any, ...], kwargs: Mapping[str, Any], quibs_to_guard: Set[Quib]):
+
+        # TODO: quib_guard quib guard
+        with graphics_collection.track_and_handle_new_graphics(
+                kwargs_specified_in_artists_creation=set(self.kwargs.keys())
+        ):
+            with external_call_failed_exception_handling():
+                res = func(*args, **kwargs)
+
+            # TODO: Move this logic somewhere else
+            if len(graphics_collection.widgets) > 0 and isinstance(res, AxesWidget):
+                assert len(graphics_collection.widgets) == 1
+                res = list(graphics_collection.widgets)[0]
+
+            # We don't allow returning quibs as results from functions
+            from pyquibbler.refactor.quib.quib import Quib
+            if isinstance(res, Quib):
+                res = res.get_value()
+            ####
+
+        if self.artists_creation_callback:
+            self.artists_creation_callback(set(graphics_collection.artists))
+
+        return res
+
     def _backwards_translate_source_func_call(self, source_func_call: FuncCall, valid_path: Path):
         """
         Backwards translate a path- first attempt without shape + type, and then if G-d's good graces fail us and we
@@ -206,7 +205,7 @@ class FunctionRunner(ABC):
         if not get_data_source_quibs(self.func_call):
             return {}
 
-        func_call, sources_to_quibs = get_func_call_for_translation(self.func_call, {})
+        func_call, sources_to_quibs = get_func_call_for_translation(self.func_call)
 
         try:
             sources_to_paths = backwards_translate(
@@ -216,6 +215,7 @@ class FunctionRunner(ABC):
         except NoTranslatorsFoundException:
             try:
                 sources_to_paths = backwards_translate(
+                    in_order=False,
                     func_call=func_call,
                     path=valid_path,
                     shape=self.get_shape(),
@@ -247,44 +247,44 @@ class FunctionRunner(ABC):
             quibs_to_guard=set()
         )
 
-    @property
-    def _did_create_graphics(self) -> bool:
-        return any(graphics_collection.artists for graphics_collection in self.flat_graphics_collections())
+    def _run_on_uncached_paths_within_path(self, valid_path: Path):
+        uncached_paths = get_uncached_paths_matching_path(cache=self.cache, path=valid_path)
 
-    @property
-    def func_can_create_graphics(self):
-        return self.func_call.get_func_definition().is_known_graphics_func or self._did_create_graphics
+        if len(uncached_paths) == 0:
+            return self.cache.get_value()
 
-    def reset_cache(self):
-        self.cache = None
-        self.caching = True if self.get_cache_behavior() == CacheBehavior.ON else False
+        result = None
 
-    # TODO: Make this default implementation
-    def _run_single_call(self, func: Callable, graphics_collection: GraphicsCollection,
-                         args: Tuple[Any, ...], kwargs: Mapping[str, Any], quibs_to_guard: Set[Quib]):
+        for uncached_path in uncached_paths:
+            result = self._run_on_path(uncached_path)
 
-        # TODO: quib_guard quib guard
-        with graphics_collection.track_and_handle_new_graphics(
-                kwargs_specified_in_artists_creation=set(self.kwargs.keys())
-        ):
-            with external_call_failed_exception_handling():
-                res = func(*args, **kwargs)
+            truncated_path = _truncate_path_to_match_shallow_caches(uncached_path)
+            self.cache = _ensure_cache_matches_result(self.cache, result)
 
-            # TODO: Move this logic somewhere else
-            if len(graphics_collection.widgets) > 0 and isinstance(res, AxesWidget):
-                assert len(graphics_collection.widgets) == 1
-                res = list(graphics_collection.widgets)[0]
+            if truncated_path is not None:
+                self.cache = transform_cache_to_nd_if_necessary_given_path(self.cache, truncated_path)
+                value = get_cached_data_at_truncated_path_given_result_at_uncached_path(self.cache,
+                                                                                        result,
+                                                                                        truncated_path,
+                                                                                        uncached_path)
 
-            # We don't allow returning quibs as results from functions
-            from pyquibbler.refactor.quib.quib import Quib
-            if isinstance(res, Quib):
-                res = res.get_value()
-            ####
+                try:
+                    self.cache.set_valid_value_at_path(truncated_path, value)
+                except PathCannotHaveComponentsException:
+                    # We do not have a diverged cache for this type, we can't store the value; this is not a problem as
+                    # everything will work as expected, but we will simply not cache
+                    assert len(uncached_paths) == 1, "There should never be a situation in which we have multiple " \
+                                                     "uncached paths but our cache can't handle setting a value at a " \
+                                                     "specific component"
+                else:
+                    # We need to get the result from the cache (as opposed to simply using the last run), since we
+                    # don't want to only take the last run
+                    result = self.cache.get_value()
 
-        if self.artists_creation_callback:
-            self.artists_creation_callback(set(graphics_collection.artists))
+                    # sanity
+                    assert len(self.cache.get_uncached_paths(truncated_path)) == 0
 
-        return res
+        return result
 
     def get_result_metadata(self) -> Dict:
         return {}

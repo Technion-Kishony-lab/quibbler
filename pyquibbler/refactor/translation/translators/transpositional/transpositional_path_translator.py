@@ -1,3 +1,4 @@
+import functools
 from functools import lru_cache
 
 import numpy as np
@@ -5,6 +6,7 @@ from typing import Dict, Callable, Any, List
 
 from pyquibbler.refactor.translation.backwards_path_translator import BackwardsPathTranslator
 from pyquibbler.refactor.translation.numpy_forwards_path_translator import NumpyForwardsPathTranslator
+from pyquibbler.refactor.translation.numpy_translator import NumpyBackwardsPathTranslator
 from pyquibbler.refactor.translation.translators.transpositional.utils import get_data_source_ids_mask
 from pyquibbler.refactor.translation.types import Source
 from pyquibbler.refactor.translation.utils import call_func_with_sources_values
@@ -15,7 +17,7 @@ from pyquibbler.refactor.utilities.iterators import recursively_run_func_on_obje
 from pyquibbler.utils import convert_args_and_kwargs
 
 
-class BackwardsTranspositionalTranslator(BackwardsPathTranslator):
+class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
 
     def _get_data_source_ids_mask(self) -> np.ndarray:
         """
@@ -78,6 +80,7 @@ class BackwardsTranspositionalTranslator(BackwardsPathTranslator):
             for data_source in self.get_data_sources()
         }
 
+    @functools.lru_cache()
     def _get_data_sources_to_indices_in_data_sources(self) -> Dict[Source, np.ndarray]:
         """
         Get a mapping of quibs to the quib's indices that were referenced in `self._indices` (ie after inversion of the
@@ -125,13 +128,18 @@ class BackwardsTranspositionalTranslator(BackwardsPathTranslator):
             return True
         return component
 
-    def translate_in_order(self) -> Dict[Source, Path]:
+    def _get_path_in_source(self, source: Source, path_in_result: Path):
+        # This is cached, will only run once
         data_sources_to_indices = self._get_data_sources_to_indices_in_data_sources()
-        return {
-            data_source: [PathComponent(component=data_sources_to_indices[data_source], indexed_cls=np.ndarray)]
-            if data_sources_to_indices[data_source] is not None else []
-            for data_source in data_sources_to_indices
-        }
+
+        if source not in data_sources_to_indices:
+            return None
+
+        if data_sources_to_indices[source] is None:
+            # TODO: Is this really what we want?
+            return []
+
+        return [PathComponent(component=data_sources_to_indices[source], indexed_cls=np.ndarray)]
 
 
 class ForwardsTranspositionalTranslator(NumpyForwardsPathTranslator):
@@ -151,7 +159,7 @@ class ForwardsTranspositionalTranslator(NumpyForwardsPathTranslator):
         There are two things we can potentially do:
         1. Translate the invalidation path given the current function quib (eg if this function quib is rotate,
         take the invalidated indices, rotate them and invalidate children with the resulting indices)
-        3. Pass on the current path to all our children
+        2. Pass on the current path to all our children
         """
         if len(path) > 0 and path[0].references_field_in_field_array():
             # The path at the first component references a field, and therefore we cannot translate it given a
