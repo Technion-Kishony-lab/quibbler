@@ -3,6 +3,8 @@ from unittest import mock
 import pytest
 from matplotlib.artist import Artist
 
+from pyquibbler.refactor.function_definitions import add_definition_for_function
+from pyquibbler.refactor.function_definitions.function_definition import create_function_definition
 from pyquibbler.refactor.function_overriding import override_new
 from pyquibbler.refactor.graphics.global_collecting import overridden_graphics_function
 from pyquibbler.refactor.quib.factory import create_quib
@@ -29,7 +31,6 @@ def quib():
         args=tuple(),
         kwargs={},
         allow_overriding=False,
-
     )
 
 
@@ -50,11 +51,12 @@ def create_mock_quib():
 
 @pytest.fixture()
 def graphics_quib(quib):
+    func = mock.Mock()
+    add_definition_for_function(func=func, function_definition=create_function_definition(is_known_graphics_func=True))
     return create_quib(
-        func=mock.Mock(),
+        func=func,
         args=(quib,),
         kwargs={},
-        is_known_graphics_func=True
     )
 
 

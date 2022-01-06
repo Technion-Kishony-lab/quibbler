@@ -12,6 +12,11 @@ if TYPE_CHECKING:
     from pyquibbler.refactor.inversion.inverter import Inverter
 
 
+def get_function_runner():
+    from pyquibbler.refactor.quib.function_running import FunctionRunner
+    return FunctionRunner
+
+
 @dataclass
 class FunctionDefinition:
     """
@@ -20,10 +25,13 @@ class FunctionDefinition:
     """
 
     data_source_arguments: Set[Argument] = field(default_factory=set)
-    inverters: List[Type[Inverter]] = None
+    is_random_func: bool = False
+    is_file_loading_func: bool = False
+    is_known_graphics_func: bool = False
+    inverters: List[Type[Inverter]] = field(default_factory=list)
     backwards_path_translators: List[Type[BackwardsPathTranslator]] = field(default_factory=list)
     forwards_path_translators: List[Type[ForwardsPathTranslator]] = field(default_factory=list)
-    function_runner_cls: Type[FunctionRunner] = None
+    function_runner_cls: Type[FunctionRunner] = field(default_factory=get_function_runner)
 
     def get_data_source_argument_values(self, args_values: ArgsValues):
         return [
@@ -33,6 +41,9 @@ class FunctionDefinition:
 
 
 def create_function_definition(data_source_arguments: List[Union[str, int]] = None,
+                               is_random_func: bool = False,
+                               is_file_loading_func: bool = False,
+                               is_known_graphics_func: bool = False,
                                inverters: List[Type[Inverter]] = None,
                                backwards_path_translators: List[Type[BackwardsPathTranslator]] = None,
                                forwards_path_translators: List[Type[ForwardsPathTranslator]] = None,
@@ -51,8 +62,12 @@ def create_function_definition(data_source_arguments: List[Union[str, int]] = No
         else KeywordArgument(data_source_argument)
         for data_source_argument in data_source_arguments
     }
-    return FunctionDefinition(data_source_arguments=raw_data_source_arguments,
-                              inverters=inverters or [],
-                              backwards_path_translators=backwards_path_translators or [],
-                              forwards_path_translators=forwards_path_translators or [],
-                              function_runner_cls=function_runner_cls)
+    return FunctionDefinition(
+        is_random_func=is_random_func,
+        is_known_graphics_func=is_known_graphics_func,
+        is_file_loading_func=is_file_loading_func,
+        data_source_arguments=raw_data_source_arguments,
+        inverters=inverters or [],
+        backwards_path_translators=backwards_path_translators or [],
+        forwards_path_translators=forwards_path_translators or [],
+        function_runner_cls=function_runner_cls)

@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Callable, TYPE_CHECKING
 
 from pyquibbler.refactor.function_definitions.exceptions import CannotFindDefinitionForFunctionException
-
+from pyquibbler.refactor.quib.function_running import FunctionRunner
 
 if TYPE_CHECKING:
     from pyquibbler.refactor.function_definitions.function_definition import FunctionDefinition
@@ -22,6 +22,8 @@ def get_definition_for_function(func: Callable) -> FunctionDefinition:
     """
     Get a definition for the function
     """
+    from pyquibbler.refactor.function_definitions.function_definition import FunctionDefinition
     if func not in FUNCS_TO_DEFINITIONS:
-        raise CannotFindDefinitionForFunctionException(func)
+        # Default function definition
+        return FunctionDefinition(function_runner_cls=FunctionRunner)
     return FUNCS_TO_DEFINITIONS[func]

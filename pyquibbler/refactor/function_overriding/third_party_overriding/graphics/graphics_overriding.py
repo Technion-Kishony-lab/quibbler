@@ -6,7 +6,7 @@ from typing import Dict, Any, Callable
 from matplotlib.axes import Axes
 
 from pyquibbler.refactor.env import GRAPHICS_EVALUATE_NOW
-from pyquibbler.refactor.function_definitions.function_definition import create_function_definition
+from pyquibbler.refactor.function_definitions.function_definition import create_function_definition, FunctionDefinition
 from pyquibbler.refactor.function_overriding.function_override import FunctionOverride
 from pyquibbler.refactor.graphics import global_collecting
 from pyquibbler.refactor.quib.function_running.function_runners.known_graphics.plot_runner import PlotRunner
@@ -18,7 +18,6 @@ class GraphicsOverride(FunctionOverride):
     @property
     def _default_creation_flags(self) -> Dict[str, Any]:
         return dict(
-            is_known_graphics_func=True,
             evaluate_now=GRAPHICS_EVALUATE_NOW
         )
 
@@ -34,12 +33,15 @@ def wrap_overridden_graphics_function(func: Callable) -> Callable:
     return _wrapper
 
 
-axes_override = functools.partial(GraphicsOverride, module_or_cls=Axes)
+def axes_override(func_name, function_definition_kwargs=None):
+    function_definition_kwargs = function_definition_kwargs or {}
+    function_definition = create_function_definition(is_known_graphics_func=True, **function_definition_kwargs)
+    return GraphicsOverride(func_name=func_name, module_or_cls=Axes, function_definition=function_definition)
 
 
 def create_graphics_overrides():
     return [
-        axes_override(func_name="plot", function_definition=create_function_definition(function_runner_cls=PlotRunner)),
+        axes_override(func_name="plot", function_definition_kwargs=dict(function_runner_cls=PlotRunner)),
         axes_override(func_name="text")
     ]
 

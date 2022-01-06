@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import functools
 import os
 import pathlib
 import pickle
+import weakref
 from contextlib import contextmanager
 from functools import cached_property
 from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Union, Iterable
@@ -59,10 +61,21 @@ def get_user_friendly_name_for_requested_valid_path(valid_path: Optional[List[Pa
         return f'get_value_valid_at_path({valid_path})'
 
 
+def persist_artists_on_quib_weak_ref(weak_ref_quib, artists):
+    """
+    This method will be given as a callback to the function runner whenever it creates artists.
+
+    This can't be a method on the quib, because the callback has to be with a `weakref` so that we won't hold have a
+    circular reference between the quib and the FunctionRunner- The quib should hold the FunctionRunner, and the
+    functionrunner should have no knowledge of it
+    """
+    from pyquibbler.refactor.quib.graphics.persist import persist_relevant_info_on_new_artists_for_quib
+    persist_relevant_info_on_new_artists_for_quib(weak_ref_quib(), artists)
+
 
 class Quib(ReprMixin):
     """
-    An abstract class to describe the common methods and attributes of all quib types.
+    A Quib is a node representing a singular call of a function with it's arguments (it's parents in the graph)
     """
     _IS_WITHIN_GET_VALUE_CONTEXT = False
 
@@ -94,7 +107,8 @@ class Quib(ReprMixin):
         # add_new_quib_to_guard_if_exists(self)
 
         self._function_runner = function_runner
-
+        self._function_runner.artists_creation_callback = functools.partial(persist_artists_on_quib_weak_ref,
+                                                                            weakref.ref(self))
     """
     Func metadata funcs
     """
@@ -427,7 +441,7 @@ class Quib(ReprMixin):
 
     @property
     def is_random_func(self):
-        return self._function_runner.is_random_func
+        return self._func_definition.is_random_func
 
     @property
     def cache_status(self):
@@ -442,7 +456,7 @@ class Quib(ReprMixin):
         return Project.get_or_create()
 
     def get_cache_behavior(self):
-        if self._function_runner.is_random_func or self.func_can_create_graphics:
+        if self._func_definition.is_random_func or self.func_can_create_graphics:
             return CacheBehavior.ON
         return self._function_runner.default_cache_behavior
 
@@ -453,7 +467,7 @@ class Quib(ReprMixin):
                 cache_behavior = CacheBehavior[cache_behavior.upper()]
             except KeyError:
                 raise UnknownCacheBehaviorException(cache_behavior)
-        if self._function_runner.is_random_func and cache_behavior != CacheBehavior.ON:
+        if self._func_definition.is_random_func and cache_behavior != CacheBehavior.ON:
             raise InvalidCacheBehaviorForQuibException(self._function_runner.default_cache_behavior)
         self._function_runner.default_cache_behavior = cache_behavior
 

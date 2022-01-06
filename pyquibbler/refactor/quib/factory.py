@@ -1,3 +1,4 @@
+import functools
 import weakref
 from typing import Optional, Tuple, Type, Callable
 
@@ -21,8 +22,8 @@ def get_original_func(func: Callable):
     So for example, if the OVERLOADED np.array is given as `func`, then the ORIGINAL np.array will be returned
     If the ORIGINAL np.array is given as `func`, then `func` will be returned
     """
-    if hasattr(func, '__quibbler_wrapped__'):
-        return func.__quibbler_wrapped__
+    while hasattr(func, '__quibbler_wrapped__'):
+        func = func.__quibbler_wrapped__
     return func
 
 
@@ -56,9 +57,8 @@ def get_file_name_and_line_no() -> Tuple[Optional[str], Optional[str]]:
     return None, None
 
 
-def create_quib(func, args=(), kwargs=None, cache_behavior=None, evaluate_now=False, is_known_graphics_func=False,
-                allow_overriding=False, call_func_with_quibs: bool = False, is_random_func: bool = False,
-                is_file_loading: bool = False, update_type: UpdateType = None,
+def create_quib(func, args=(), kwargs=None, cache_behavior=None, evaluate_now=False,
+                allow_overriding=False, call_func_with_quibs: bool = False, update_type: UpdateType = None,
                 **init_kwargs):
     """
     Public constructor for creating a quib.
@@ -74,14 +74,9 @@ def create_quib(func, args=(), kwargs=None, cache_behavior=None, evaluate_now=Fa
     file_name, line_no = get_file_name_and_line_no()
     func = get_original_func(func)
 
-    try:
-        definition = get_definition_for_function(func)
-    except CannotFindDefinitionForFunctionException:
-        function_runner_cls = FunctionRunner
-    else:
-        function_runner_cls: Type[FunctionRunner] = definition.function_runner_cls
+    definition = get_definition_for_function(func)
 
-    runner = function_runner_cls.from_(
+    runner = definition.function_runner_cls.from_(
         func_call=FuncCall.from_function_call(
             func=func,
             args=args,
@@ -90,8 +85,6 @@ def create_quib(func, args=(), kwargs=None, cache_behavior=None, evaluate_now=Fa
         ),
         call_func_with_quibs=call_func_with_quibs,
         graphics_collections=None,
-        is_known_graphics_func=is_known_graphics_func,
-        is_random_func=is_random_func,
         default_cache_behavior=cache_behavior or FunctionRunner.DEFAULT_CACHE_BEHAVIOR,
     )
 
@@ -105,9 +98,6 @@ def create_quib(func, args=(), kwargs=None, cache_behavior=None, evaluate_now=Fa
                 **init_kwargs)
     if update_type:
         quib.set_redraw_update_type(update_type or UpdateType.DRAG)
-
-    # TODO: get rid of this
-    runner.quib = weakref.ref(quib)
 
     for arg in iter_quibs_in_args(args, kwargs):
         arg.add_child(quib)

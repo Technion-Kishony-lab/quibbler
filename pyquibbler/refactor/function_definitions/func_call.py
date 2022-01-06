@@ -80,8 +80,4 @@ class FuncCall:
         return self.args_values.kwargs
 
     def get_data_source_argument_values(self) -> List[Any]:
-        from pyquibbler.refactor.function_definitions import CannotFindDefinitionForFunctionException
-        try:
-            return self.get_func_definition().get_data_source_argument_values(self.args_values)
-        except CannotFindDefinitionForFunctionException:
-            return []
+        return self.get_func_definition().get_data_source_argument_values(self.args_values)

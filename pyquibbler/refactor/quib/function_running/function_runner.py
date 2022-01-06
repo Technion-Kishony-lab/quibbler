@@ -22,7 +22,6 @@ from pyquibbler.refactor.cache.cache_utils import get_uncached_paths_matching_pa
 from pyquibbler.refactor.quib.function_running.cache_behavior import CacheBehavior
 from pyquibbler.refactor.quib.function_running.utils import cache_method_until_full_invalidation, create_array_from_func
 from pyquibbler.refactor.graphics.graphics_collection import GraphicsCollection
-from pyquibbler.refactor.quib.graphics.persist import persist_relevant_info_on_new_artists_for_quib
 from pyquibbler.refactor.quib.quib import Quib
 from pyquibbler.refactor.quib.utils.func_call_utils import get_func_call_with_quibs_valid_at_paths, \
     get_data_source_quibs
@@ -39,19 +38,17 @@ class FunctionRunner(ABC):
     func_call: FuncCall
     call_func_with_quibs: bool
     graphics_collections: Optional[np.array]
-    is_known_graphics_func: bool
-    is_random_func: bool
     method_cache: Dict = field(default_factory=dict)
     caching: bool = False
     cache: Optional[Cache] = None
     default_cache_behavior: CacheBehavior = DEFAULT_CACHE_BEHAVIOR
 
     # TODO: is there a better way to do this?
-    quib = None
+    artists_creation_callback: Callable = None
 
     @classmethod
     def from_(cls, func_call: FuncCall, call_func_with_quibs: bool, *args, **kwargs):
-        return cls(func_call, call_func_with_quibs, *args, **kwargs)
+        return cls(func_call=func_call, call_func_with_quibs=call_func_with_quibs, *args, **kwargs)
 
     @property
     def kwargs(self):
@@ -84,7 +81,7 @@ class FunctionRunner(ABC):
             self.graphics_collections = create_array_from_func(GraphicsCollection, loop_shape)
 
     def get_cache_behavior(self):
-        if self.is_random_func or self.func_can_create_graphics:
+        if self.func_call.get_func_definition().is_random_func or self.func_can_create_graphics:
             return CacheBehavior.ON
         return self.default_cache_behavior
 
@@ -256,7 +253,7 @@ class FunctionRunner(ABC):
 
     @property
     def func_can_create_graphics(self):
-        return self.is_known_graphics_func or self._did_create_graphics
+        return self.func_call.get_func_definition().is_known_graphics_func or self._did_create_graphics
 
     def reset_cache(self):
         self.cache = None
@@ -284,8 +281,8 @@ class FunctionRunner(ABC):
                 res = res.get_value()
             ####
 
-        # TODO: get rid of this
-        persist_relevant_info_on_new_artists_for_quib(quib=self.quib(), new_artists=set(graphics_collection.artists))
+        if self.artists_creation_callback:
+            self.artists_creation_callback(set(graphics_collection.artists))
 
         return res
 

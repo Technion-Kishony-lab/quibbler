@@ -5,6 +5,8 @@ import pytest
 
 from pyquibbler import iquib, Assignment
 from pyquibbler.refactor.assignment.override_choice import OverrideGroup
+from pyquibbler.refactor.function_definitions import add_definition_for_function
+from pyquibbler.refactor.function_definitions.function_definition import create_function_definition
 from pyquibbler.refactor.project.project import Project, NothingToUndoException, NothingToRedoException
 from pyquibbler.refactor.quib.factory import create_quib
 from pyquibbler.refactor.quib.graphics import dragging
@@ -14,10 +16,16 @@ def test_get_or_create_only_creates_one_instance():
     assert Project.get_or_create() is Project.get_or_create()
 
 
-def test_reset_impure_quibs_clears_their_cache():
+@pytest.fixture()
+def random_func_with_side_effect():
     func = mock.Mock()
     func.side_effect = [1, 2]
-    quib = create_quib(func=func, is_random_func=True)
+    add_definition_for_function(func=func, function_definition=create_function_definition(is_random_func=True))
+    return func
+
+
+def test_reset_impure_quibs_clears_their_cache(random_func_with_side_effect):
+    quib = create_quib(func=random_func_with_side_effect)
     assert quib.get_value() == 1, "sanity"
     assert quib.get_value() == 1, "sanity"
 
@@ -26,13 +34,12 @@ def test_reset_impure_quibs_clears_their_cache():
     assert quib.get_value() == 2
 
 
-def test_reset_impure_quibs_invalidates_and_redraws():
-    func = mock.Mock()
-    func.side_effect = [1, 2]
-    quib = create_quib(func=func, is_random_func=True)
+def test_reset_impure_quibs_invalidates_and_redraws(random_func_with_side_effect):
+    quib = create_quib(func=random_func_with_side_effect)
     quib.get_value()
     graphics_function_mock = mock.Mock()
-    _ = create_quib(func=graphics_function_mock, args=(quib,), is_known_graphics_func=True)
+    add_definition_for_function(graphics_function_mock, create_function_definition(is_known_graphics_func=True))
+    _ = create_quib(func=graphics_function_mock, args=(quib,))
 
     Project.get_or_create().reset_invalidate_and_redraw_all_impure_function_quibs()
 
@@ -174,7 +181,8 @@ def test_project_undo_group_doesnt_add_on_dragging(project):
 def test_project_undo_with_group_reverts_back_to_before_group_and_runs_graphics_quib_once(project):
     a = iquib(5)
     mock_func = mock.Mock()
-    _ = create_quib(func=mock_func, args=(a,), is_known_graphics_func=True, evaluate_now=True)
+    add_definition_for_function(mock_func, create_function_definition(is_known_graphics_func=True))
+    _ = create_quib(func=mock_func, args=(a,), evaluate_now=True)
     with project.start_undo_group():
         a.override(Assignment(
             path=[],

@@ -4,6 +4,8 @@ import pytest
 
 from pyquibbler import CacheBehavior
 from pyquibbler.refactor.cache.cache import CacheStatus
+from pyquibbler.refactor.function_definitions import add_definition_for_function
+from pyquibbler.refactor.function_definitions.function_definition import create_function_definition
 from pyquibbler.refactor.quib.factory import create_quib
 
 
@@ -23,7 +25,9 @@ def test_quib_does_not_redraw_when_child_is_not_graphics_quib(quib):
 
 def test_quib_removes_dead_children_automatically(quib):
     mock_func = mock.Mock()
-    child = create_quib(func=mock_func, args=(quib,), kwargs={}, is_known_graphics_func=True)
+    add_definition_for_function(func=mock_func,
+                                function_definition=create_function_definition(is_known_graphics_func=True))
+    child = create_quib(func=mock_func, args=(quib,), kwargs={})
     quib.add_child(child)
 
     del child
