@@ -153,6 +153,7 @@ class FunctionRunner(ABC):
         self.cache = None
         self.caching = True if self.get_cache_behavior() == CacheBehavior.ON else False
 
+    # TODO: Use FuncCall instead of func, args, kwargs
     def _run_single_call(self, func: Callable, graphics_collection: GraphicsCollection,
                          args: Tuple[Any, ...], kwargs: Mapping[str, Any], quibs_to_guard: Set[Quib]):
 
@@ -237,7 +238,11 @@ class FunctionRunner(ABC):
             ready_to_run_func_call = self.func_call
         else:
             quibs_to_paths = {} if valid_path is None else self._backwards_translate_path(valid_path)
-            ready_to_run_func_call = get_func_call_with_quibs_valid_at_paths(self.func_call, quibs_to_paths)
+            try:
+                ready_to_run_func_call = get_func_call_with_quibs_valid_at_paths(self.func_call, quibs_to_paths)
+            except Exception:
+                print(1)
+                raise
 
         return self._run_single_call(
             func=ready_to_run_func_call.func,

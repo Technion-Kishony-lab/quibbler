@@ -26,7 +26,6 @@ class NumpyBackwardsPathTranslator(BackwardsPathTranslator):
             current_components = []
         return current_components, components_at_end
 
-    @property
     @cached_property
     def working_path(self):
         working, _ = self._split_path()

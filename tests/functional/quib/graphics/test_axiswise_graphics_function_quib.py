@@ -14,6 +14,7 @@ parametrize_keepdims = mark.parametrize('keepdims', [True, False, None])
 parametrize_where = mark.parametrize('where', [True, False, [[[True], [False], [True]]], None])
 
 
+# MOVED
 @parametrize_indices_to_invalidate
 @parametrize_data
 @mark.parametrize('axis', [-1, (-1, 1), 0, 1, 2, (0, 2), (0, 1), None])
@@ -28,6 +29,7 @@ def test_reduction_axiswise_invalidation(indices_to_invalidate, axis, keepdims, 
     check_invalidation(lambda quib: np.sum(quib, **kwargs), data, indices_to_invalidate)
 
 
+# MOVED
 def test_reduction_function_gets_whole_value_of_non_data_source_parents():
     # This is also a regression to handling 0 data source quibs
     non_data = MockQuib(0)
@@ -39,6 +41,7 @@ def test_reduction_function_gets_whole_value_of_non_data_source_parents():
     assert valid_paths == [[]]
 
 
+# MOVED
 def test_reduction_function_gets_whole_value_of_data_source_parents_when_whole_value_changed():
     data = MockQuib([1, 2, 3])
     fquib = np.sum(data)
@@ -49,6 +52,7 @@ def test_reduction_function_gets_whole_value_of_data_source_parents_when_whole_v
     assert valid_paths == [[]]
 
 
+# MOVED
 @parametrize_data
 @mark.parametrize(['axis', 'indices_to_get_value_at'], [
     (-1, 0),
@@ -79,6 +83,7 @@ def test_accumulation_axiswise_invalidation(indices_to_invalidate, axis, data):
     check_invalidation(lambda quib: np.cumsum(quib, axis=axis), data, indices_to_invalidate)
 
 
+# TODO: ACCUM
 @parametrize_data
 @mark.parametrize(['axis', 'indices_to_get_value_at'], [
     (-1, 0),
@@ -88,6 +93,6 @@ def test_accumulation_axiswise_invalidation(indices_to_invalidate, axis, data):
     (None, ...),
     (None, 4),
 ])
-def test_reduction_axiswise_get_value_valid_at_path(axis, data, indices_to_get_value_at):
+def test_accumulation_axiswise_get_value_valid_at_path(axis, data, indices_to_get_value_at):
     path_to_get_value_at = [PathComponent(np.ndarray, indices_to_get_value_at)]
     check_get_value_valid_at_path(lambda quib: np.cumsum(quib, axis=axis), data, path_to_get_value_at)

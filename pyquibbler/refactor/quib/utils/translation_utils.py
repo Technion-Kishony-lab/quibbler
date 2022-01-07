@@ -33,5 +33,5 @@ def get_func_call_for_translation(func_call: FuncCall):
         func=func_call.func,
         args=args,
         kwargs=kwargs,
-        include_defaults=False
+        include_defaults=True
     ), data_sources_to_quibs
