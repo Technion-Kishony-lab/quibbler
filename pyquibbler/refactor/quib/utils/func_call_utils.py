@@ -33,7 +33,7 @@ def _replace_sub_argument_with_value(func_call: FuncCall, quibs_to_paths, inner_
     return inner_arg
 
 
-def get_func_call_with_quibs_valid_at_paths(func_call: FuncCall, quibs_to_valid_paths: Dict[Quib, Optional[Path]]):
+def get_args_and_kwargs_valid_at_quibs_to_paths(func_call: FuncCall, quibs_to_valid_paths: Dict[Quib, Optional[Path]]):
     """
     Prepare arguments to call self.func with - replace quibs with values valid at the given path,
     and QuibRefs with quibs.
@@ -41,10 +41,7 @@ def get_func_call_with_quibs_valid_at_paths(func_call: FuncCall, quibs_to_valid_
     replace_func = functools.partial(_replace_sub_argument_with_value, func_call, quibs_to_valid_paths)
     new_args = [recursively_run_func_on_object(replace_func, arg) for arg in func_call.args]
     new_kwargs = {key: recursively_run_func_on_object(replace_func, val) for key, val in func_call.kwargs.items()}
-    return FuncCall.from_function_call(func_call.func,
-                                       args=tuple(new_args),
-                                       kwargs=new_kwargs,
-                                       include_defaults=False)
+    return new_args, new_kwargs
 
 
 def is_quib_a_data_source(func_call: FuncCall, quib: Quib):

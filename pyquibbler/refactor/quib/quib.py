@@ -7,6 +7,7 @@ import pickle
 import weakref
 from contextlib import contextmanager
 from functools import cached_property
+from itertools import chain
 from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Union, Iterable
 from weakref import WeakSet
 
@@ -37,7 +38,7 @@ from pyquibbler.refactor.quib.external_call_failed_exception_handling import rai
     add_quib_to_fail_trace_if_raises_quib_call_exception
 from pyquibbler.refactor.quib.graphics import UpdateType, is_within_drag
 from pyquibbler.refactor.quib.utils.iterators import iter_quibs_in_args
-from pyquibbler.refactor.utilities.iterators import recursively_run_func_on_object
+from pyquibbler.refactor.utilities.iterators import recursively_run_func_on_object, iter_object_type_in_args
 from pyquibbler.refactor.quib.quib_method import quib_method
 from pyquibbler.refactor.quib.repr.repr_mixin import ReprMixin
 from pyquibbler.refactor.translation.translate import forwards_translate, NoTranslatorsFoundException, \
@@ -60,18 +61,6 @@ def get_user_friendly_name_for_requested_valid_path(valid_path: Optional[List[Pa
         return 'get_value()'
     else:
         return f'get_value_valid_at_path({valid_path})'
-
-
-def persist_artists_on_quib_weak_ref(weak_ref_quib, artists):
-    """
-    This method will be given as a callback to the function runner whenever it creates artists.
-
-    This can't be a method on the quib, because the callback has to be with a `weakref` so that we won't hold have a
-    circular reference between the quib and the FunctionRunner- The quib should hold the FunctionRunner, and the
-    functionrunner should have no knowledge of it
-    """
-    from pyquibbler.refactor.quib.graphics.persist import persist_relevant_info_on_new_artists_for_quib
-    persist_relevant_info_on_new_artists_for_quib(weak_ref_quib(), artists)
 
 
 class Quib(ReprMixin):
@@ -108,6 +97,8 @@ class Quib(ReprMixin):
         # add_new_quib_to_guard_if_exists(self)
 
         self._function_runner = function_runner
+
+        from pyquibbler.refactor.quib.graphics.persist import persist_artists_on_quib_weak_ref
         self._function_runner.artists_creation_callback = functools.partial(persist_artists_on_quib_weak_ref,
                                                                             weakref.ref(self))
     """
@@ -258,10 +249,12 @@ class Quib(ReprMixin):
         return [OverrideRemoval(sources_to_quibs[source], path) for source, path in sources_to_paths.items()]
 
     @property
+    @functools.lru_cache()
     def _args_values(self):
         return ArgsValues.from_function_call(self.func, self.args, self.kwargs, include_defaults=True)
 
     @property
+    @functools.lru_cache()
     def _func_definition(self) -> FunctionDefinition:
         from pyquibbler.refactor.function_definitions import get_definition_for_function
         return get_definition_for_function(self.func)
@@ -411,6 +404,10 @@ class Quib(ReprMixin):
         from pyquibbler.refactor.quib.utils.translation_utils import get_func_call_for_translation
         from pyquibbler.refactor.quib.utils.func_call_utils import is_quib_a_data_source
 
+        # TODO: this is incorrect, but was like so in previous version.
+        if len(path) == 0:
+            return [[]]
+        
         if not is_quib_a_data_source(self._function_runner.func_call, invalidator_quib):
             return [[]]
 

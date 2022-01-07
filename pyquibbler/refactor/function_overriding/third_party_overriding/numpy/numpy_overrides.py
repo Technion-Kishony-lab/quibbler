@@ -3,6 +3,7 @@ from typing import List
 import numpy as np
 
 from pyquibbler.refactor.function_definitions.function_definition import create_function_definition
+from pyquibbler.refactor.function_overriding.function_override import FunctionOverride
 from pyquibbler.refactor.function_overriding.third_party_overriding.numpy.elementwise_overrides import \
     create_elementwise_overrides
 from pyquibbler.refactor.function_overriding.third_party_overriding.numpy.vectorize_overrides import \
@@ -45,21 +46,22 @@ def create_transpositional_overrides():
 
 
 def create_reduction_overrides():
-    reduction_funcs = [np.min, np.amin, np.max, np.amax,  # min/max
+    reduction_funcs = [np.amin, np.max, np.amax,  # min/max
                        np.argmin, np.argmax, np.nanargmin, np.nanargmax,  # arg-min/max
                        np.sum, np.prod, np.nanprod, np.nansum,  # sum/prod
                        np.any, np.all,  # logical
                        np.average, np.mean, np.var, np.std, np.median,  # statistics
                        np.diff, np.sort  # other
                        ]
+    reduction_definition = create_function_definition(
+        data_source_arguments=[0],
+        backwards_path_translators=[ReductionAxiswiseBackwardsPathTranslator],
+        forwards_path_translators=[ReductionAxiswiseForwardsPathTranslator]
+    )
     return [
-        numpy_override(reduction_func, function_definition=create_function_definition(
-            data_source_arguments=[0],
-            backwards_path_translators=[ReductionAxiswiseBackwardsPathTranslator],
-            forwards_path_translators=[ReductionAxiswiseForwardsPathTranslator]
-        ))
+        numpy_override(reduction_func, function_definition=reduction_definition)
         for reduction_func in reduction_funcs
-    ]
+    ] + [FunctionOverride(func_name='min', module_or_cls=np, function_definition=reduction_definition)]
 
 
 def create_numpy_overrides():

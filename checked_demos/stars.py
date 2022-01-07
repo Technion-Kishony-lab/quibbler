@@ -46,22 +46,22 @@ ax.text(x_center_movable, y_center_movable+np.min(y_star_circ)-0.2, 'Move me!',
 
 ax.plot(x_movable_star, y_movable_star, linewidth=2, color='m', picker=True);
 
-# #%%
-#
-# # Define and draw changeable star:
-# x_center_fixed = iquib(np.array([2.]));
-# y_center_fixed = iquib(np.array([8.]));
-#
-# # using x_star as the first argument:
-# x_changeable_star = x_star_circ + x_center_fixed;
-# y_changeable_star = y_star_circ + y_center_fixed;
-# ax.text(x_center_fixed, y_center_fixed+np.min(y_star_circ)-0.2,'Change me!',
-#         horizontalalignment='center', verticalalignment='top')
-# ax.plot(x_changeable_star, y_changeable_star, linewidth=2, color='c', picker=True);
-#
-# #%%
-#
-# ax.set_title(q('{:.1f},{:.1f}'.format, x_center_movable[0], y_center_movable[0]));
+#%%
+
+# Define and draw changeable star:
+x_center_fixed = iquib(np.array([2.]));
+y_center_fixed = iquib(np.array([8.]));
+
+# using x_star as the first argument:
+x_changeable_star = x_star_circ + x_center_fixed;
+y_changeable_star = y_star_circ + y_center_fixed;
+ax.text(x_center_fixed, y_center_fixed+np.min(y_star_circ)-0.2,'Change me!',
+        horizontalalignment='center', verticalalignment='top')
+aaa = ax.plot(x_changeable_star, y_changeable_star, linewidth=2, color='c', picker=True);
+
+#%%
+
+ax.set_title(q('{:.1f},{:.1f}'.format, x_center_movable[0], y_center_movable[0]));
 
 
 plt.show()

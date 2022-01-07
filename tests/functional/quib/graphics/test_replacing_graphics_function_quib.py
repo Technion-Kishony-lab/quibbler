@@ -7,6 +7,7 @@ from pyquibbler.quib.assignment.assignment import PathComponent
 from pyquibbler.quib.graphics.replacing_graphics_function_quib import ReplacingGraphicsFunctionQuib
 
 
+# MOVED
 def test_replacing_graphics_function_quib():
     first_quib = iquib(5)
     mock_artist = mock.Mock(spec=Axes)
@@ -28,6 +29,7 @@ def test_replacing_graphics_function_quib():
     assert mock_func.call_count == 2
 
 
+# MOVED
 @pytest.mark.regression
 def test_replacing_graphics_function_quib_doesnt_remove_quib_after_invalidation_three_times():
     first_quib = iquib(5)

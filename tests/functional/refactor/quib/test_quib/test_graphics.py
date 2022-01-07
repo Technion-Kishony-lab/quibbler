@@ -2,8 +2,12 @@ from unittest import mock
 
 import pytest
 from matplotlib.artist import Artist
+from matplotlib.axes import Axes
 
+from pyquibbler.refactor.function_definitions import add_definition_for_function
+from pyquibbler.refactor.function_definitions.function_definition import create_function_definition
 from pyquibbler.refactor.graphics import global_collecting
+from pyquibbler.refactor.path import PathComponent
 from pyquibbler.refactor.quib.factory import create_quib
 from pyquibbler.refactor.quib.graphics import UpdateType, dragging
 
@@ -106,3 +110,57 @@ def test_graphics_quib_which_should_never_update(update_type, quib, graphics_qui
     quib.invalidate_and_redraw_at_path([])
 
     assert len(graphics_quib.func.mock_calls) == 0
+
+
+@pytest.fixture()
+def replacing_func():
+    mock_func = mock.Mock()
+    mock_func.__name__ = "myfunc"
+    add_definition_for_function(func=mock_func, function_definition=create_function_definition(
+        replace_previous_quibs_on_artists=True,
+        is_known_graphics_func=True,
+    ))
+    return mock_func
+
+
+def test_replacing_graphics_function_quib(create_quib_with_return_value, replacing_func):
+    first_quib = create_quib_with_return_value(5)
+    mock_artist = mock.Mock(spec=Axes)
+    # Creating runs the quibs- it's also important to keep them as a local var so they don't get garbage collected
+    # if they are the test will pass regardless
+    _ = create_quib(
+        func=replacing_func,
+        args=(mock_artist, first_quib),
+        evaluate_now=True
+    )
+    __ = create_quib(
+        func=replacing_func,
+        args=(mock_artist,),
+        evaluate_now=True
+    )
+
+    first_quib.invalidate_and_redraw_at_path(path=[...])
+
+    assert replacing_func.call_count == 2
+
+
+@pytest.mark.regression
+def test_replacing_graphics_function_quib_doesnt_remove_quib_after_invalidation_three_times(
+        create_quib_with_return_value, replacing_func
+):
+    first_quib = create_quib_with_return_value(5)
+    mock_artist = mock.Mock(spec=Axes)
+    path = [PathComponent(component=..., indexed_cls=first_quib.get_type())]
+
+    # First time to create quib, attach to parent, attach to axes
+    _ = create_quib(
+        func=replacing_func,
+        args=(mock_artist, first_quib),
+        evaluate_now=True,
+    )
+    # Second time to potentially remove from axes (this was the bug)
+    first_quib.invalidate_and_redraw_at_path(path=path)
+    # Third time to make sure we DID stay attached to our parent
+    first_quib.invalidate_and_redraw_at_path(path=path)
+
+    assert replacing_func.call_count == 3

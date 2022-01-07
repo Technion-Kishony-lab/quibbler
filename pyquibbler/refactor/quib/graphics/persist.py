@@ -1,3 +1,4 @@
+from itertools import chain
 from typing import Set, Callable, Iterable, Any
 
 from matplotlib.artist import Artist
@@ -45,5 +46,27 @@ def persist_quib_on_artists(quib: Quib, new_artists: Set[Artist]):
 
 
 def persist_relevant_info_on_new_artists_for_quib(quib: Quib, new_artists):
-    persist_quib_on_artists(quib, new_artists)
     persist_func_on_artists(quib, new_artists)
+    persist_quib_on_artists(quib, new_artists)
+
+
+def persist_artists_on_quib_weak_ref(weak_ref_quib, artists):
+    """
+    This method will be given as a callback to the function runner whenever it creates artists.
+
+    This can't be a method on the quib, because the callback has to be with a `weakref` so that we won't hold have a
+    circular reference between the quib and the FunctionRunner- The quib should hold the FunctionRunner, and the
+    functionrunner should have no knowledge of it
+    """
+    quib: Quib = weak_ref_quib()
+    if quib._func_definition.replace_previous_quibs_on_artists:
+        persist_func_on_artists(quib, artists)
+        for artist in chain(artists, iter_object_type_in_args(Artist, quib.args, quib.kwargs)):
+            name = f'_quibbler_{quib.func.__name__}'
+            current_quib = getattr(artist, name, None)
+            if current_quib is not quib and current_quib is not None:
+                for parent in current_quib.parents:
+                    parent.remove_child(current_quib)
+            setattr(artist, name, quib)
+    else:
+        persist_relevant_info_on_new_artists_for_quib(weak_ref_quib(), artists)

@@ -47,6 +47,13 @@ def create_graphics_overrides():
                 'imshow', 'text', 'bar', 'hist', 'pie', 'legend', '_sci', 'matshow', 'scatter'
             ]
         ],
+        *[
+            axes_override(func_name=func_name, function_definition_kwargs=dict(replace_previous_quibs_on_artists=True))
+            for func_name in [
+                'set_xlim', 'set_ylim', 'set_xticks', 'set_yticks', 'set_xlabel', 'set_ylabel',
+                'set_title', 'set_visible', 'set_facecolor'
+            ]
+        ]
 
     ]
 

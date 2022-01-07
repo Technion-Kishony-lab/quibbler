@@ -23,7 +23,7 @@ from pyquibbler.refactor.quib.function_running.cache_behavior import CacheBehavi
 from pyquibbler.refactor.quib.function_running.utils import cache_method_until_full_invalidation, create_array_from_func
 from pyquibbler.refactor.graphics.graphics_collection import GraphicsCollection
 from pyquibbler.refactor.quib.quib import Quib
-from pyquibbler.refactor.quib.utils.func_call_utils import get_func_call_with_quibs_valid_at_paths, \
+from pyquibbler.refactor.quib.utils.func_call_utils import get_args_and_kwargs_valid_at_quibs_to_paths, \
     get_data_source_quibs
 from pyquibbler.refactor.quib.utils.translation_utils import get_func_call_for_translation
 from pyquibbler.refactor.translation.exceptions import NoTranslatorsFoundException
@@ -235,19 +235,15 @@ class FunctionRunner(ABC):
         graphics_collection: GraphicsCollection = self.graphics_collections[()]
 
         if self.call_func_with_quibs:
-            ready_to_run_func_call = self.func_call
+            args, kwargs = self.func_call.args, self.func_call.kwargs
         else:
             quibs_to_paths = {} if valid_path is None else self._backwards_translate_path(valid_path)
-            try:
-                ready_to_run_func_call = get_func_call_with_quibs_valid_at_paths(self.func_call, quibs_to_paths)
-            except Exception:
-                print(1)
-                raise
+            args, kwargs = get_args_and_kwargs_valid_at_quibs_to_paths(self.func_call, quibs_to_paths)
 
         return self._run_single_call(
-            func=ready_to_run_func_call.func,
-            args=ready_to_run_func_call.args,
-            kwargs=ready_to_run_func_call.kwargs,
+            func=self.func,
+            args=args,
+            kwargs=kwargs,
             graphics_collection=graphics_collection,
             quibs_to_guard=set()
         )

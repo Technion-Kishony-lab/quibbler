@@ -28,6 +28,7 @@ class FunctionDefinition:
     is_random_func: bool = False
     is_file_loading_func: bool = False
     is_known_graphics_func: bool = False
+    replace_previous_quibs_on_artists: bool = False
     inverters: List[Type[Inverter]] = field(default_factory=list)
     backwards_path_translators: List[Type[BackwardsPathTranslator]] = field(default_factory=list)
     forwards_path_translators: List[Type[ForwardsPathTranslator]] = field(default_factory=list)
@@ -44,6 +45,7 @@ def create_function_definition(data_source_arguments: List[Union[str, int]] = No
                                is_random_func: bool = False,
                                is_file_loading_func: bool = False,
                                is_known_graphics_func: bool = False,
+                                replace_previous_quibs_on_artists: bool = False,
                                inverters: List[Type[Inverter]] = None,
                                backwards_path_translators: List[Type[BackwardsPathTranslator]] = None,
                                forwards_path_translators: List[Type[ForwardsPathTranslator]] = None,
@@ -70,4 +72,6 @@ def create_function_definition(data_source_arguments: List[Union[str, int]] = No
         inverters=inverters or [],
         backwards_path_translators=backwards_path_translators or [],
         forwards_path_translators=forwards_path_translators or [],
-        function_runner_cls=function_runner_cls)
+        function_runner_cls=function_runner_cls,
+        replace_previous_quibs_on_artists=replace_previous_quibs_on_artists
+    )
