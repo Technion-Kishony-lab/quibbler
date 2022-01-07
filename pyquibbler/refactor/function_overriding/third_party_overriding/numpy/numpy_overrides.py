@@ -12,12 +12,13 @@ from pyquibbler.refactor.function_overriding.third_party_overriding.numpy.numpy_
 from pyquibbler.refactor.quib.function_running.function_runners.apply_along_axis_function_runner import ApplyAlongAxisFunctionRunner
 from pyquibbler.refactor.translation.translators import BackwardsTranspositionalTranslator, ForwardsTranspositionalTranslator
 from pyquibbler.refactor.translation.translators.apply_along_axis_translator import ApplyAlongAxisForwardsTranslator
+from pyquibbler.refactor.translation.translators.axeswise.reduction_axiswise_translator import \
+    ReductionAxiswiseBackwardsPathTranslator, ReductionAxiswiseForwardsPathTranslator
 
 
 def transpositional(func, data_source_arguments: List = None):
     return numpy_override(func,
                           function_definition=create_function_definition(
-
                               data_source_arguments,
                               inverters=[TranspositionalInverter],
                               backwards_path_translators=[BackwardsTranspositionalTranslator],
@@ -43,6 +44,24 @@ def create_transpositional_overrides():
     ]
 
 
+def create_reduction_overrides():
+    reduction_funcs = [np.min, np.amin, np.max, np.amax,  # min/max
+                       np.argmin, np.argmax, np.nanargmin, np.nanargmax,  # arg-min/max
+                       np.sum, np.prod, np.nanprod, np.nansum,  # sum/prod
+                       np.any, np.all,  # logical
+                       np.average, np.mean, np.var, np.std, np.median,  # statistics
+                       np.diff, np.sort  # other
+                       ]
+    return [
+        numpy_override(reduction_func, function_definition=create_function_definition(
+            data_source_arguments=[0],
+            backwards_path_translators=[ReductionAxiswiseBackwardsPathTranslator],
+            forwards_path_translators=[ReductionAxiswiseForwardsPathTranslator]
+        ))
+        for reduction_func in reduction_funcs
+    ]
+
+
 def create_numpy_overrides():
 
     default_behavior_numpy_overrides = [
@@ -54,6 +73,7 @@ def create_numpy_overrides():
         *default_behavior_numpy_overrides,
         *create_transpositional_overrides(),
         *create_elementwise_overrides(),
+        *create_reduction_overrides(),
         numpy_override(np.sum, function_definition=create_function_definition(data_source_arguments=[0])),
         numpy_override(np.genfromtxt, function_definition=create_function_definition(is_file_loading_func=True)),
         numpy_override(np.apply_along_axis,
