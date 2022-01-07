@@ -254,7 +254,6 @@ class Quib(ReprMixin):
         return ArgsValues.from_function_call(self.func, self.args, self.kwargs, include_defaults=True)
 
     @property
-    @functools.lru_cache()
     def _func_definition(self) -> FunctionDefinition:
         from pyquibbler.refactor.function_definitions import get_definition_for_function
         return get_definition_for_function(self.func)
@@ -404,10 +403,6 @@ class Quib(ReprMixin):
         from pyquibbler.refactor.quib.utils.translation_utils import get_func_call_for_translation
         from pyquibbler.refactor.quib.utils.func_call_utils import is_quib_a_data_source
 
-        # TODO: this is incorrect, but was like so in previous version.
-        if len(path) == 0:
-            return [[]]
-        
         if not is_quib_a_data_source(self._function_runner.func_call, invalidator_quib):
             return [[]]
 

@@ -81,6 +81,9 @@ class VectorizeForwardsPathTranslator(ForwardsPathTranslator):
         return np.broadcast_to(source_bool_mask, self._vectorize_metadata.result_loop_shape)
 
     def _forward_translate_source(self, source: Source, path: Path) -> List[Optional[Path]]:
+        if len(path) == 0:
+            return [[]]
+
         working_component, *rest_of_path = path
         bool_mask_in_output_array = self._forward_translate_indices_to_bool_mask(source, working_component.component)
         if not np.any(bool_mask_in_output_array):

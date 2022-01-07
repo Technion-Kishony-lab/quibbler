@@ -46,8 +46,8 @@ def persist_quib_on_artists(quib: Quib, new_artists: Set[Artist]):
 
 
 def persist_relevant_info_on_new_artists_for_quib(quib: Quib, new_artists):
-    persist_func_on_artists(quib, new_artists)
     persist_quib_on_artists(quib, new_artists)
+    persist_func_on_artists(quib, new_artists)
 
 
 def persist_artists_on_quib_weak_ref(weak_ref_quib, artists):
@@ -69,4 +69,4 @@ def persist_artists_on_quib_weak_ref(weak_ref_quib, artists):
                     parent.remove_child(current_quib)
             setattr(artist, name, quib)
     else:
-        persist_relevant_info_on_new_artists_for_quib(weak_ref_quib(), artists)
+        persist_relevant_info_on_new_artists_for_quib(quib, artists)
