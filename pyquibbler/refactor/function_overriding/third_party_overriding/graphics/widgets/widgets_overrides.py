@@ -10,6 +10,8 @@ from pyquibbler.refactor.path import PathComponent
 from pyquibbler.refactor.function_definitions.func_call import ArgsValues
 
 
+# TODO: MOVE ALL TO FUNCTION RUNNERS
+
 def on_change_radio_buttons(widget, args_values, new_value):
     from pyquibbler.refactor.quib.quib import Quib
     active = args_values.get('active')
