@@ -7,9 +7,9 @@ from typing import Callable
 from pyquibbler import Assignment
 from pyquibbler.refactor.env import ASSIGNMENT_RESTRICTIONS
 from pyquibbler.refactor.exceptions import PyQuibblerException
-from pyquibbler.refactor.path.utils import get_nd_working_component_value_from_path
 from pyquibbler.refactor.function_definitions.func_call import FuncCall
 from pyquibbler.refactor.inversion.inverter import Inverter
+from pyquibbler.refactor.path.utils import working_component
 from pyquibbler.refactor.utilities.iterators import iter_objects_of_type_in_object_shallowly, \
     iter_objects_of_type_in_object_recursively
 from pyquibbler.refactor.translation.translate import backwards_translate
@@ -53,7 +53,7 @@ class ElementwiseInverter(Inverter):
         if ASSIGNMENT_RESTRICTIONS:
             self.raise_if_multiple_args_have_common_ancestor()
 
-        working_component = get_nd_working_component_value_from_path(self._assignment.path)
+        component = working_component(self._assignment.path)
         source_to_change = list(iter_objects_of_type_in_object_shallowly(Source,
                                                                          self._func_call.get_data_source_argument_values()))[0]
 
@@ -70,8 +70,8 @@ class ElementwiseInverter(Inverter):
                                                          source_to_change,
                                                          relevant_path_in_source)
         value_to_set = new_quib_argument_value \
-            if working_component is True \
-            else new_quib_argument_value[working_component]
+            if component is True \
+            else new_quib_argument_value[component]
         return [
             Inversal(
                 source=source_to_change,

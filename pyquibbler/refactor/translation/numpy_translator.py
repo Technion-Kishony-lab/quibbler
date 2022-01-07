@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from functools import cached_property
 from typing import Any, List, Dict
 
 import numpy as np
@@ -14,7 +15,7 @@ from pyquibbler.refactor.translation.types import Source
 class NumpyBackwardsPathTranslator(BackwardsPathTranslator):
 
     @abstractmethod
-    def _get_path_in_source(self, source: Source, path_in_result: Path):
+    def _get_path_in_source(self, source: Source):
         pass
 
     def _split_path(self):
@@ -25,11 +26,17 @@ class NumpyBackwardsPathTranslator(BackwardsPathTranslator):
             current_components = []
         return current_components, components_at_end
 
+    @property
+    @cached_property
+    def working_path(self):
+        working, _ = self._split_path()
+        return working
+
     def translate_in_order(self) -> Dict[Source, Path]:
         sources_to_paths = {}
         working, rest = self._split_path()
         for source in self.get_data_sources():
-            new_path = self._get_path_in_source(source, [*working])
+            new_path = self._get_path_in_source(source)
             if new_path is not None:
                 sources_to_paths[source] = [*new_path, *rest]
         return sources_to_paths

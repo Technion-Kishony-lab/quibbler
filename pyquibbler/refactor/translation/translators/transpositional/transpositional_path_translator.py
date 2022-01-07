@@ -128,7 +128,7 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
             return True
         return component
 
-    def _get_path_in_source(self, source: Source, path_in_result: Path):
+    def _get_path_in_source(self, source: Source):
         # This is cached, will only run once
         data_sources_to_indices = self._get_data_sources_to_indices_in_data_sources()
 

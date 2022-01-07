@@ -3,7 +3,6 @@ from typing import Dict, Any
 import numpy as np
 
 from pyquibbler.refactor.path.path_component import PathComponent, Path
-from pyquibbler.refactor.path.utils import get_nd_working_component_value_from_path
 from pyquibbler.refactor.translation.numpy_translator import NumpyBackwardsPathTranslator
 from pyquibbler.refactor.utilities.general_utils import create_empty_array_with_values_at_indices, unbroadcast_bool_mask
 from pyquibbler.refactor.translation.backwards_path_translator import BackwardsPathTranslator
@@ -13,7 +12,7 @@ from pyquibbler.refactor.translation.types import Source
 
 class BackwardsElementwisePathTranslator(NumpyBackwardsPathTranslator):
 
-    def _get_indices_to_change(self, source: Source, working_indices) -> Any:
+    def _get_indices_to_change(self, source: Source) -> Any:
         """
         Get the relevant indices for the argument quib that will need to be changed
 
@@ -23,14 +22,13 @@ class BackwardsElementwisePathTranslator(NumpyBackwardsPathTranslator):
         result indices
         """
         result_bool_mask = create_empty_array_with_values_at_indices(self._shape,
-                                                                 indices=working_indices, value=True,
-                                                                 empty_value=False)
+                                                                     indices=self._working_component, value=True,
+                                                                     empty_value=False)
 
         return unbroadcast_bool_mask(result_bool_mask, np.shape(source.value))
 
-    def _get_path_in_source(self, source: Source, path_in_result: Path):
-        working_component = get_nd_working_component_value_from_path(self._path)
-        changed_indices = self._get_indices_to_change(source, working_component)
+    def _get_path_in_source(self, source: Source):
+        changed_indices = self._get_indices_to_change(source)
         new_path = [] if changed_indices.ndim == 0 else [PathComponent(self._type, changed_indices)]
         return new_path
 
