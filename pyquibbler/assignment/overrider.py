@@ -43,8 +43,7 @@ class Overrider:
         """
         if self._paths_to_assignments:
             assignment_removal = AssignmentRemoval(path)
-            self._active_assignment = assignment_removal
-            self._add_to_paths_to_assignments(assignment_removal)
+            self.add_assignment(assignment_removal)
             return assignment_removal
 
     def undo_assignment(self,
@@ -120,12 +119,8 @@ class Overrider:
         """
         mask = false_mask
         for assignment in self:
-            if isinstance(assignment, AssignmentRemoval):
-                path = assignment.path
-                val = False
-            else:
-                path = assignment.path
-                val = True
+            path = assignment.path
+            val = not isinstance(assignment, AssignmentRemoval)
             if isinstance(path[-1].component, slice):
                 inner_data = deep_get(mask, path[:-1])
                 if not isinstance(inner_data, np.ndarray):
