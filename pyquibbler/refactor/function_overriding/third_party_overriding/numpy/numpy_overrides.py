@@ -11,7 +11,8 @@ from pyquibbler.refactor.function_overriding.third_party_overriding.numpy.vector
 from pyquibbler.refactor.inversion import TranspositionalInverter
 from pyquibbler.refactor.function_overriding.third_party_overriding.numpy.numpy_override import numpy_override
 from pyquibbler.refactor.quib.function_running.function_runners.apply_along_axis_function_runner import ApplyAlongAxisFunctionRunner
-from pyquibbler.refactor.translation.translators import BackwardsTranspositionalTranslator, ForwardsTranspositionalTranslator
+from pyquibbler.refactor.translation.translators import BackwardsTranspositionalTranslator, \
+    ForwardsTranspositionalTranslator, AccumulationBackwardsPathTranslator, AccumulationForwardsPathTranslator
 from pyquibbler.refactor.translation.translators.apply_along_axis_translator import ApplyAlongAxisForwardsTranslator
 from pyquibbler.refactor.translation.translators.axeswise.reduction_axiswise_translator import \
     ReductionAxiswiseBackwardsPathTranslator, ReductionAxiswiseForwardsPathTranslator
@@ -64,6 +65,21 @@ def create_reduction_overrides():
     ] + [FunctionOverride(func_name='min', module_or_cls=np, function_definition=reduction_definition)]
 
 
+def create_accum_overrides():
+    accum_funcs = [
+        "cumsum", "cumprod", 'cumproduct', 'nancumsum', 'nancumprod'
+    ]
+    accum_definition = create_function_definition(
+        data_source_arguments=[0],
+        backwards_path_translators=[AccumulationBackwardsPathTranslator],
+        forwards_path_translators=[AccumulationForwardsPathTranslator]
+    )
+    return [
+               FunctionOverride(func_name=accum_func, module_or_cls=np, function_definition=accum_definition)
+               for accum_func in accum_funcs
+           ]
+
+
 def create_numpy_overrides():
 
     default_behavior_numpy_overrides = [
@@ -76,6 +92,7 @@ def create_numpy_overrides():
         *create_transpositional_overrides(),
         *create_elementwise_overrides(),
         *create_reduction_overrides(),
+        *create_accum_overrides(),
         numpy_override(np.sum, function_definition=create_function_definition(data_source_arguments=[0])),
         numpy_override(np.genfromtxt, function_definition=create_function_definition(is_file_loading_func=True)),
         numpy_override(np.apply_along_axis,
