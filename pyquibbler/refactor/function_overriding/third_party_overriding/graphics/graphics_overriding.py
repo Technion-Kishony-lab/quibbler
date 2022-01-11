@@ -40,6 +40,8 @@ def axes_override(func_name, function_definition_kwargs=None):
 
 
 def create_graphics_overrides():
+    from pyquibbler.refactor.function_overriding.third_party_overriding.graphics.widgets.widgets_overrides import \
+        create_widget_overrides
     return [
         axes_override(func_name="plot", function_definition_kwargs=dict(function_runner_cls=PlotRunner)),
         *[
@@ -53,8 +55,8 @@ def create_graphics_overrides():
                 'set_xlim', 'set_ylim', 'set_xticks', 'set_yticks', 'set_xlabel', 'set_ylabel',
                 'set_title', 'set_visible', 'set_facecolor'
             ]
-        ]
-
+        ],
+        *create_widget_overrides()
     ]
 
 

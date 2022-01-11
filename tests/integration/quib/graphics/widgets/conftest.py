@@ -8,6 +8,16 @@ from pyquibbler.refactor.utilities.performance_utils import track_instances_of_c
 
 
 @pytest.fixture()
+def get_only_live_widget(get_live_widgets):
+    def _get():
+        live = get_live_widgets()
+        assert len(live) == 1
+        return live[0]
+
+    return _get
+
+
+@pytest.fixture()
 def get_live_widgets():
     track_instances_of_class(AxesWidget)
 

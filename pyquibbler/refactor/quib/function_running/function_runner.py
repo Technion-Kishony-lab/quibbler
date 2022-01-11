@@ -46,6 +46,9 @@ class FunctionRunner(ABC):
     # TODO: is there a better way to do this?
     artists_creation_callback: Callable = None
 
+    def __hash__(self):
+        return id(self)
+
     @classmethod
     def from_(cls, func_call: FuncCall, call_func_with_quibs: bool, *args, **kwargs):
         return cls(func_call=func_call, call_func_with_quibs=call_func_with_quibs, *args, **kwargs)
@@ -180,29 +183,11 @@ class FunctionRunner(ABC):
 
         return res
 
-    def _backwards_translate_source_func_call(self, source_func_call: FuncCall, valid_path: Path):
+    def _backwards_translate_path(self, valid_path: Path) -> Dict[Quib, Path]:
         """
         Backwards translate a path- first attempt without shape + type, and then if G-d's good graces fail us and we
         find we are without the ability to do this, try with shape + type
         """
-        try:
-            return backwards_translate(
-                func_call=source_func_call,
-                path=valid_path,
-            )
-        except NoTranslatorsFoundException:
-            try:
-                return backwards_translate(
-                    func_call=source_func_call,
-                    path=valid_path,
-                    shape=self.get_shape(),
-                    type_=self.get_type(),
-                    **self.get_result_metadata()
-                )
-            except NoTranslatorsFoundException:
-                return {}
-
-    def _backwards_translate_path(self, valid_path: Path) -> Dict[Quib, Path]:
         if not get_data_source_quibs(self.func_call):
             return {}
 

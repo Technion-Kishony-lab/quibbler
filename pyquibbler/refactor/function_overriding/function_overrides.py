@@ -19,14 +19,12 @@ def override_new():
     Override all relavent functions, both inner and third party, to support Quibs
     """
 
-    override_graphics_functions_to_be_within_known_func_ctx()
-
     function_overrides: List[FunctionOverride] = [*get_operator_definitions(),
                                                   *create_graphics_overrides(),
-                                                  *create_widget_overrides(),
                                                   *create_numpy_overrides()]
 
     switch_widgets_to_quib_supporting_widgets()
+    override_graphics_functions_to_be_within_known_func_ctx()
     for func_override in function_overrides:
         if func_override.function_definition:
             add_definition_for_function(func_override.original_func, func_override.function_definition)
