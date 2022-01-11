@@ -92,7 +92,7 @@ def create_figure_2():
         print("showing image")
         ax.imshow(im)
 
-    return np.vectorize(show_image, signature='(),(w,h,c)->()', update_type="drop")(grid_axes[:q(int, images_count)],
+    return np.vectorize(show_image, signature='(),(w,h,c)->()', update_type="drop", evaluate_now=True)(grid_axes[:q(int, images_count)],
                                                                                     cut_images)
 
 

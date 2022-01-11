@@ -40,7 +40,8 @@ class VectorizeCallOverride(FunctionOverride):
         vectorize, *_ = args
         return {
             'evaluate_now': vectorize.evaluate_now,
-            'call_func_with_quibs': vectorize.pass_quibs
+            'call_func_with_quibs': vectorize.pass_quibs,
+            'update_type': vectorize.update_type
         }
 
 
