@@ -1,5 +1,5 @@
-from pyquibbler import iquib, override_new, q
-override_new()
+from pyquibbler import iquib, override_all, q
+override_all()
 import matplotlib.pyplot as plt
 import numpy as np
 

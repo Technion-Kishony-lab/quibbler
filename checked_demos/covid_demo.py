@@ -1,8 +1,8 @@
-from pyquibbler import iquib, q, override_new
+from pyquibbler import iquib, q, override_all
 from matplotlib import pyplot as plt
 import numpy as np
 
-override_new()
+override_all()
 
 
 # Load data file of COVID statistics per countries

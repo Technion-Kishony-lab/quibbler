@@ -8,7 +8,7 @@ from pyquibbler import CacheBehavior
 from pyquibbler.refactor.env import DEBUG, EVALUATE_NOW, ASSIGNMENT_RESTRICTIONS, PRETTY_REPR, \
     SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS, GET_VARIABLE_NAMES
 from pyquibbler.refactor.project import Project
-from pyquibbler.refactor.function_overriding import override_new
+from pyquibbler.refactor.function_overriding import override_all
 from pyquibbler.refactor.quib.function_running import FunctionRunner
 from pyquibbler.utils import Flag
 
@@ -27,7 +27,7 @@ def setup_environment_for_tests():
 
 @pytest.fixture(autouse=True, scope="session")
 def override_all_():
-    override_new()
+    override_all()
     # override_all()
 
 def pytest_configure(config):

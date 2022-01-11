@@ -4,11 +4,11 @@ from tests.utils import quibbler_image_comparison
 @quibbler_image_comparison(baseline_images=['covid_demo'])
 def test_covid_demo(get_axes_middle, create_button_press_event, create_motion_notify_event, create_button_release_event,
                     axes):
-    from pyquibbler import iquib, q, override_new
+    from pyquibbler import iquib, q, override_all
     from matplotlib import pyplot as plt
     import numpy as np
 
-    override_new()
+    override_all()
 
     # Load data file of COVID statistics per countries
     file_name = iquib('./COVID_Fatality.csv')

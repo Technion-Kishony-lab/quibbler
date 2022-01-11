@@ -10,5 +10,5 @@ from pyquibbler.refactor.utilities.performance_utils import timer, get_timer
 from .refactor.quib import iquib
 from .refactor.quib import CacheBehavior
 from pyquibbler.refactor.utilities.user_utils import q
-from .refactor.function_overriding import override_new
+from .refactor.function_overriding import override_all
 from .refactor.assignment.assignment import Assignment
