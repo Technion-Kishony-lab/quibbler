@@ -167,11 +167,6 @@ class FunctionRunner(ABC):
             with external_call_failed_exception_handling():
                 res = func(*args, **kwargs)
 
-            # TODO: Move this logic somewhere else
-            if len(graphics_collection.widgets) > 0 and isinstance(res, AxesWidget):
-                assert len(graphics_collection.widgets) == 1
-                res = list(graphics_collection.widgets)[0]
-
             # We don't allow returning quibs as results from functions
             from pyquibbler.refactor.quib.quib import Quib
             if isinstance(res, Quib):

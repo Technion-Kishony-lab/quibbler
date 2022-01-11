@@ -1,45 +1,32 @@
-from abc import abstractmethod
+from typing import Callable, Tuple, Any, Mapping, Set
 
-from pyquibbler.refactor.path import Path
+from matplotlib.widgets import AxesWidget
+
+from pyquibbler.refactor.graphics.graphics_collection import GraphicsCollection
+from pyquibbler.refactor.quib import Quib
 from pyquibbler.refactor.quib.function_running import FunctionRunner
-
-def on_change_radio_buttons(widget, args_values, new_value):
-    from pyquibbler.refactor.quib.quib import Quib
-    active = args_values.get('active')
-    if isinstance(active, Quib):
-        active.assign_value(args_values.get('labels').index(new_value))
-
-
-def on_change_slider(widget, args_values, new_value):
-    from pyquibbler.refactor.quib.quib import Quib
-    val = args_values.get('valinit')
-    if isinstance(val, Quib):
-        val.assign_value(new_value)
-
-
-def on_change_checkbuttons(widget, args_values, new_value):
-    from pyquibbler import Assignment
-    from pyquibbler.refactor.quib.quib import Quib
-    actives = args_values.get('actives')
-    if isinstance(actives, Quib):
-        buttons_checked = widget.get_status()
-        labels = args_values.get('labels')
-        new_value_index = labels.index(new_value)
-        actives.assign(Assignment(value=buttons_checked[new_value_index],
-                                  path=[PathComponent(indexed_cls=list, component=new_value_index)]))
-
-
-def set_change_slider(res, callback):
-    res.on_changed(callback)
-    res.on_release = callback
 
 
 class WidgetRunner(FunctionRunner):
 
-    @abstractmethod
-    def on_change(self, widget):
-        self.func_call.args_values
-
-    def set_callback(self):
+    def _connect_callbacks(self, widget: AxesWidget):
+        """
+        Add any logic here for connecting callbacks to your widget
+        """
         pass
 
+    def _run_single_call(self, func: Callable, graphics_collection: GraphicsCollection,
+                         args: Tuple[Any, ...], kwargs: Mapping[str, Any], quibs_to_guard: Set[Quib]):
+        previous_widgets = graphics_collection.widgets
+        res = super(WidgetRunner, self)._run_single_call(func, graphics_collection, args, kwargs, quibs_to_guard)
+
+        # We don't want to recreate the widget every time (and re-add callbacks)- if we already had a widget, just
+        # return that
+        if len(previous_widgets) > 0 and isinstance(res, AxesWidget):
+            assert len(previous_widgets) == 1
+            res = list(previous_widgets)[0]
+        else:
+            # This widget never existed- we're creating it for the first time, so we need to connect callbacks
+            self._connect_callbacks(res)
+
+        return res
