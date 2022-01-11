@@ -1,1 +1,2 @@
-from .known_graphics import PlotRunner, SliderRunner, RadioButtonsRunner
+from .known_graphics import PlotRunner, SliderRunner, RadioButtonsRunner, RectangleSelectorRunner
+

@@ -37,6 +37,9 @@ def get_artist_array_name(artist: Artist):
 
 
 def get_artist_array(artist: Artist):
+    if artist.axes is None:
+        return []
+
     return getattr(artist.axes, get_artist_array_name(artist))
 
 

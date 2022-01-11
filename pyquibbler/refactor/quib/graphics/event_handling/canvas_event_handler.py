@@ -87,7 +87,7 @@ class CanvasEventHandler:
                 self._assignment_lock.release()
 
     def _handle_motion_notify(self, mouse_event: MouseEvent):
-        from pyquibbler.refactor.quib.graphics import dragging
+        from pyquibbler.refactor.graphics import dragging
         with dragging():
             self._inverse_from_mouse_event(mouse_event)
 

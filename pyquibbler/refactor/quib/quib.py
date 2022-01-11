@@ -15,6 +15,7 @@ import numpy as np
 from matplotlib.artist import Artist
 
 from pyquibbler.refactor.env import LEN_RAISE_EXCEPTION
+from pyquibbler.refactor.graphics import is_within_drag
 from pyquibbler.refactor.translation.types import Source
 from pyquibbler.refactor.utilities.input_validation_utils import validate_user_input
 from pyquibbler.refactor.logger import logger
@@ -36,7 +37,7 @@ from pyquibbler.refactor.quib.exceptions import OverridingNotAllowedException, U
     InvalidCacheBehaviorForQuibException
 from pyquibbler.refactor.quib.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own, \
     add_quib_to_fail_trace_if_raises_quib_call_exception
-from pyquibbler.refactor.quib.graphics import UpdateType, is_within_drag
+from pyquibbler.refactor.quib.graphics import UpdateType
 from pyquibbler.refactor.quib.utils.iterators import iter_quibs_in_args
 from pyquibbler.refactor.utilities.iterators import recursively_run_func_on_object, iter_object_type_in_args
 from pyquibbler.refactor.quib.quib_method import quib_method
@@ -129,7 +130,6 @@ class Quib(ReprMixin):
         """
         Redraws the quib if it's appropriate
         """
-        from pyquibbler.refactor.quib.graphics import is_within_drag
         if self._redraw_update_type in [UpdateType.NEVER, UpdateType.CENTRAL] \
                 or (self._redraw_update_type == UpdateType.DROP and is_within_drag()):
             return

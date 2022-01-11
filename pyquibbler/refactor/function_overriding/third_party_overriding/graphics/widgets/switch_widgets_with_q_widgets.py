@@ -1,12 +1,12 @@
 import matplotlib.widgets
 
-from pyquibbler.refactor.graphics.widgets import QSlider
-from pyquibbler.refactor.graphics.widgets import QRadioButtons
+from pyquibbler.refactor.graphics.widgets import QSlider, QRectangleSelector, QRadioButtons
 
 
 widget_class_names_to_quib_supporting_widget = {
     'RadioButtons': QRadioButtons,
     'Slider': QSlider,
+    'RectangleSelector': QRectangleSelector
 }
 
 
