@@ -12,20 +12,6 @@ from pyquibbler.refactor.function_definitions.func_call import ArgsValues
 
 # # TODO: MOVE ALL TO FUNCTION RUNNERS
 #
-# def on_change_radio_buttons(widget, args_values, new_value):
-#     from pyquibbler.refactor.quib.quib import Quib
-#     active = args_values.get('active')
-#     if isinstance(active, Quib):
-#         active.assign_value(args_values.get('labels').index(new_value))
-#
-#
-# def on_change_slider(widget, args_values, new_value):
-#     from pyquibbler.refactor.quib.quib import Quib
-#     val = args_values.get('valinit')
-#     if isinstance(val, Quib):
-#         val.assign_value(new_value)
-#
-#
 # def on_change_checkbuttons(widget, args_values, new_value):
 #     from pyquibbler import Assignment
 #     from pyquibbler.refactor.quib.quib import Quib
@@ -38,28 +24,21 @@ from pyquibbler.refactor.function_definitions.func_call import ArgsValues
 #                                   path=[PathComponent(indexed_cls=list, component=new_value_index)]))
 #
 #
-# def set_change_slider(res, callback):
-#     res.on_changed(callback)
-#     res.on_release = callback
-#
 
-def widget_override(func, on_change=None, set_on_change=None):
+def widget_override(func_name, runner):
     from pyquibbler.refactor.function_definitions.function_definition import create_function_definition
-    from pyquibbler.refactor.quib.function_running.function_runners.known_graphics.widgets.radio_buttons_runner import \
-        RadioButtonsRunner
 
-    return GraphicsOverride("RadioButtons", module_or_cls=matplotlib.widgets,
+    return GraphicsOverride(func_name, module_or_cls=matplotlib.widgets,
                                     function_definition=create_function_definition(
-                                        function_runner_cls=RadioButtonsRunner
+                                        function_runner_cls=runner
                                     )
                                     )
 
 
 def create_widget_overrides():
+    from pyquibbler.refactor.quib.function_running.function_runners import RadioButtonsRunner, SliderRunner
     return [
-        widget_override(matplotlib.widgets.RadioButtons),
-        # widget_override(matplotlib.widgets.Slider,
-        #                 on_change=on_change_slider,
-        #                 set_on_change=set_change_slider),
+        widget_override("RadioButtons", RadioButtonsRunner),
+        widget_override("Slider", SliderRunner),
         # widget_override(matplotlib.widgets.CheckButtons),
     ]
