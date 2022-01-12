@@ -1,5 +1,6 @@
 from unittest import mock
 
+import numpy as np
 import pytest
 
 from pyquibbler import CacheBehavior
@@ -55,7 +56,6 @@ def create_child_with_valid_cache(parent):
     return child
 
 
-# TODO: Should work when caching is implemented
 @pytest.mark.regression
 def test_quib_invalidates_children_recursively(quib, create_mock_quib):
     child = create_child_with_valid_cache(quib)
@@ -65,3 +65,14 @@ def test_quib_invalidates_children_recursively(quib, create_mock_quib):
 
     assert child.cache_status == CacheStatus.ALL_INVALID
     assert grandchild.cache_status == CacheStatus.ALL_INVALID
+
+
+def test_quib_invalidates_all_when_invalidated_at_param_source(quib, create_quib_with_return_value):
+    param_source = create_quib_with_return_value(3, allow_overriding=True)
+    quib_with_param_source = create_quib(func=mock.Mock(), args=(param_source,))
+
+    # By default everything is considered a param source
+    param_source.assign_value(5)
+
+    assert quib_with_param_source.cache_status == CacheStatus.ALL_INVALID
+

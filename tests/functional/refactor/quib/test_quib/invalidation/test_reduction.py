@@ -18,3 +18,4 @@ def test_reduction_axiswise_invalidation(indices_to_invalidate, axis, keepdims, 
     if where is not None:
         kwargs['where'] = where
     check_invalidation(lambda quib: np.sum(quib, **kwargs), data, indices_to_invalidate)
+

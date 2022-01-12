@@ -57,14 +57,9 @@ def test_quib_knows_it_is_created_in_a_context():
 
 
 def test_cant_mutate_function_quib_args_after_creation():
-
-    def x(*_, **__):
-        print(1)
-        print(2)
-
     args = [[], 'cool']
     kwargs = dict(a=[])
-    function_quib = create_quib(func=mock.Mock(side_effect=x), args=args, kwargs=kwargs)
+    function_quib = create_quib(func=mock.Mock(), args=args, kwargs=kwargs)
     args[0].append(1)
     args.append(1)
     kwargs['b'] = 1

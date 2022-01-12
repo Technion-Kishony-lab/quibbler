@@ -47,6 +47,7 @@ def example_function_quib():
     return ExampleFunctionQuib.create(Mock())
 
 
+# MOVED
 def test_create_wrapper_with_regular_args(function_wrapper, function_mock):
     args = (1, {})
     kwargs = {'a': 5, 'b': 'hello'}
@@ -69,6 +70,7 @@ def test_create_wrapper_with_quib_args(function_wrapper, function_mock, function
     function_mock.assert_called_once_with(quib_val1, a=quib_val2)
 
 
+# MOVED
 def test_cant_mutate_function_quib_args_after_creation(function_wrapper, function_mock):
     args = [[], iquib('cool')]
     kwargs = dict(a=[])
@@ -101,6 +103,7 @@ def test_assign_with_unknown_function_overrides(function_wrapper, function_mock_
     assert np.array_equal(q.get_value(), expected_value)
 
 
+# MOVED
 def test_quib_ancestors(function_wrapper):
     great_grandparent = iquib(1)
     grandparent = function_wrapper(great_grandparent)
@@ -110,6 +113,7 @@ def test_quib_ancestors(function_wrapper):
     assert me.ancestors == {great_grandparent, parent, grandparent}
 
 
+# MOVED
 def test_parents():
     parent1 = iquib(1)
     grandparent = iquib(2)
@@ -119,6 +123,7 @@ def test_parents():
     assert fquib.parents == {parent1, parent2}
 
 
+# MOVED
 @mark.evaluate_now(True)
 def function_quib_create_calculates_when_not_lazy(function_mock):
     ExampleFunctionQuib.create(function_mock)
@@ -126,7 +131,7 @@ def function_quib_create_calculates_when_not_lazy(function_mock):
     function_mock.assert_called_once()
 
 
-# TODO: move when moving translation
+# MOVED
 @mark.regression
 def test_function_quib_get_value_valid_at_path_with_data_source_kwarg():
     parent = MockQuib([[1]])
@@ -157,7 +162,7 @@ class InvalidatingFunctionQuib(FunctionQuib):
         return [path]
 
 
-# TODO: move when moving translation
+# BAD TEST- SHOULD NOT ALWAYS BE TRUE
 def test_function_quib_invalidates_all_when_invalidated_at_all_in_data_source(create_mock_quib):
     grandparent = InvalidatingFunctionQuib.create(func=mock.Mock())
     parent = InvalidatingFunctionQuib.create(func=mock.Mock(),
@@ -173,7 +178,7 @@ def test_function_quib_invalidates_all_when_invalidated_at_all_in_data_source(cr
     assert mock_quib.get_value_valid_at_path.call_count == 0
 
 
-# TODO: move when moving translation
+# No need- we constantly check this when checking quibs with forward translation
 def test_function_quib_does_not_invalidate_all_when_invalidated_at_path_in_data_source(create_mock_quib):
     grandparent = InvalidatingFunctionQuib.create(func=mock.Mock())
     parent = InvalidatingFunctionQuib.create(func=mock.Mock(), func_args=(grandparent,),
@@ -188,7 +193,7 @@ def test_function_quib_does_not_invalidate_all_when_invalidated_at_path_in_data_
     mock_quib._invalidate_quib_with_children_at_path.assert_called_with(parent, path)
 
 
-# TODO: move when moving translation
+# MOVED
 def test_function_quib_does_invalidate_all_when_invalidated_partially_at_path_in_paramater(create_mock_quib):
     grandparent = InvalidatingFunctionQuib.create(func=mock.Mock())
     parent = InvalidatingFunctionQuib.create(func=mock.Mock(), func_args=(grandparent,))
@@ -201,7 +206,7 @@ def test_function_quib_does_invalidate_all_when_invalidated_partially_at_path_in
     mock_quib._invalidate_quib_with_children_at_path.assert_called_with(parent, [])
 
 
-# TODO: move when moving translation
+# MOVED - (and made into better test)
 def test_function_quib_does_invalidate_all_when_invalidated_all_at_path_in_parameter(create_mock_quib):
     grandparent = InvalidatingFunctionQuib.create(func=mock.Mock())
     parent = InvalidatingFunctionQuib.create(func=mock.Mock(), func_args=(grandparent,))
@@ -281,7 +286,7 @@ def c():
     return c
 
 
-# TODO: move when we have operators
+# MOVED
 @pytest.mark.get_variable_names(True)
 def test_function_quib_pretty_repr_math():
     a = iquib(1)
@@ -291,7 +296,7 @@ def test_function_quib_pretty_repr_math():
     assert c.pretty_repr() == 'c = a + b'
 
 
-# TODO: move when we have operators
+# MOVED
 @pytest.mark.get_variable_names(True)
 def test_function_quib_pretty_repr_math_unary_operator():
     a = iquib(1)
@@ -300,7 +305,7 @@ def test_function_quib_pretty_repr_math_unary_operator():
     assert c.pretty_repr() == 'c = -a'
 
 
-# TODO: move when we have operators
+# MOVED
 @mark.parametrize("statement,expected", [
     ("a * b + c", "a * b + c"),
     ("a * (b + c)", "a * (b + c)"),

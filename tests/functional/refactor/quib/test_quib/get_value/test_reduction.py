@@ -50,3 +50,15 @@ def test_reduction_axiswise_get_value_valid_at_path(axis, data, keepdims, where,
         kwargs['where'] = where
     path_to_get_value_at = [PathComponent(np.ndarray, indices_to_get_value_at)]
     check_get_value_valid_at_path(lambda quib: np.sum(quib, **kwargs), data, path_to_get_value_at)
+
+
+@pytest.mark.regression
+def test_quib_get_value_valid_at_path_with_data_source_kwarg():
+    parent = collecting_quib([[1]])
+    quib = np.sum(a=parent, axis=1)
+    quib.set_cache_behavior(CacheBehavior.OFF)
+    with parent.collect_valid_paths() as paths:
+        quib.get_value_valid_at_path([PathComponent(np.ndarray, 0)])
+
+    assert len(paths) == 1
+    assert [] not in paths
