@@ -80,8 +80,6 @@ def test_iquib_pretty_repr_str():
     assert a.pretty_repr() == 'a = iquib(\'a\')'
 
 
-# TODO: Maor got here
-
 def test_iquib_save_and_load():
     save_name = "example_quib"
     original_value = [1, 2, 3]

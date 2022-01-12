@@ -143,8 +143,6 @@ def test_function_quib_get_value_valid_at_path_with_data_source_kwarg():
     assert len(paths) == 1
     assert [] not in paths
 
-# TODO: maor here
-
 
 class InvalidatingFunctionQuib(FunctionQuib):
     def __init__(self, *args, data_source_quibs=None, **kwargs):
