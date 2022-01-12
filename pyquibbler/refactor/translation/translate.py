@@ -1,7 +1,7 @@
-from typing import Callable, Type, Dict, Any, List
+from typing import Type, Dict, List
 
 from pyquibbler.refactor.function_definitions.function_definition import FunctionDefinition
-from pyquibbler.refactor.multiple_instance_runner import MultipleInstanceRunner
+from pyquibbler.refactor.utilities.multiple_instance_runner import MultipleInstanceRunner
 from pyquibbler.refactor.path.path_component import Path
 from pyquibbler.refactor.function_definitions.func_call import FuncCall
 from pyquibbler.refactor.translation.backwards_path_translator import BackwardsPathTranslator

@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Any, List
 
 from pyquibbler.refactor.function_definitions.function_definition import FunctionDefinition
 from pyquibbler.refactor.inversion.exceptions import NoInvertersFoundException
-from pyquibbler.refactor.multiple_instance_runner import MultipleInstanceRunner
+from pyquibbler.refactor.utilities.multiple_instance_runner import MultipleInstanceRunner
 from pyquibbler.refactor.function_definitions.func_call import FuncCall
 
 if TYPE_CHECKING:
