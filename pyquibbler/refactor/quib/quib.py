@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import functools
+import json
 import os
 import pathlib
 import pickle
@@ -34,7 +35,7 @@ from pyquibbler.refactor.cache.shallow.indexable_cache import transform_cache_to
 from pyquibbler.refactor.function_definitions.func_call import ArgsValues, FuncCall
 from pyquibbler.refactor.quib.function_running.cache_behavior import CacheBehavior, UnknownCacheBehaviorException
 from pyquibbler.refactor.quib.exceptions import OverridingNotAllowedException, UnknownUpdateTypeException, \
-    InvalidCacheBehaviorForQuibException
+    InvalidCacheBehaviorForQuibException, CannotSaveAsTextException
 from pyquibbler.refactor.quib.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own, \
     add_quib_to_fail_trace_if_raises_quib_call_exception
 from pyquibbler.refactor.quib.graphics import UpdateType
@@ -76,7 +77,9 @@ class Quib(ReprMixin):
                  name: Optional[str],
                  file_name: Optional[str],
                  line_no: Optional[str],
-                 update_type: UpdateType):
+                 update_type: UpdateType,
+                 default_save_directory: pathlib.Path,
+                 can_save_as_txt: bool):
         self._assignment_template = assignment_template
         self._name = name
 
@@ -102,6 +105,10 @@ class Quib(ReprMixin):
         from pyquibbler.refactor.quib.graphics.persist import persist_artists_on_quib_weak_ref
         self._function_runner.artists_creation_callback = functools.partial(persist_artists_on_quib_weak_ref,
                                                                             weakref.ref(self))
+
+        self._default_save_directory = default_save_directory
+        self._can_save_as_txt = can_save_as_txt
+
     """
     Func metadata funcs
     """
@@ -140,13 +147,10 @@ class Quib(ReprMixin):
         return [] if self._function_runner.graphics_collections is None else map(lambda g: g.artists,
                                                                       self._function_runner.graphics_collections.flat)
 
-
     def _iter_artists(self) -> Iterable[Artist]:
         return (artist for artists in self._iter_artist_lists() for artist in artists)
 
     def get_axeses(self):
-        # TODO: What about tests
-
         return {artist.axes for artist in self._iter_artists()}
 
     def _redraw(self) -> None:
@@ -154,7 +158,7 @@ class Quib(ReprMixin):
         Redraw all artists that directly or indirectly depend on this quib.
         """
         from pyquibbler.refactor.quib.graphics.redraw import redraw_quibs_with_graphics_or_add_in_aggregate_mode
-        quibs = self._get_graphics_function_quibs_recursively()
+        quibs = self._get_descendant_graphics_quibs_recursively()
         redraw_quibs_with_graphics_or_add_in_aggregate_mode(quibs)
 
     @property
@@ -514,7 +518,7 @@ class Quib(ReprMixin):
             children |= child._get_children_recursively()
         return children
 
-    def _get_graphics_function_quibs_recursively(self) -> Set[Quib]:
+    def _get_descendant_graphics_quibs_recursively(self) -> Set[Quib]:
         """
         Get all artists that directly or indirectly depend on this quib.
         """
@@ -726,18 +730,18 @@ class Quib(ReprMixin):
     """
 
     @property
-    def _default_save_directory(self) -> Optional[pathlib.Path]:
-        pass
-
-    @property
     def _save_path(self) -> Optional[pathlib.Path]:
         save_name = self.name if self.name else hash(self.functional_representation)
-        return self._save_directory / f"{save_name}.quib" if self._default_save_directory else None
+        return self._save_directory / f"{save_name}.quib"
 
     @property
     def _save_directory(self):
         return self._user_defined_save_directory \
             if self._user_defined_save_directory is not None else self._default_save_directory
+
+    @property
+    def _save_txt_path(self) -> Optional[pathlib.Path]:
+        return self._save_directory / f"{self.name}.txt"
 
     @validate_user_input(path=(str, pathlib.Path))
     def set_save_directory(self, path: Union[str, pathlib.Path]):
@@ -748,17 +752,57 @@ class Quib(ReprMixin):
             path = pathlib.Path(path)
         self._user_defined_save_directory = path.resolve()
 
-    def save_if_relevant(self):
+    def save_if_relevant(self, save_as_txt_if_possible: bool = True):
         """
         Save the quib if relevant- this will NOT save if the quib does not have overrides, as there is nothing to save
         """
-        os.makedirs(self._save_path.parent, exist_ok=True)
+        os.makedirs(self._save_directory, exist_ok=True)
         if len(list(self._overrider)) > 0:
+            if save_as_txt_if_possible and self._can_save_as_txt:
+                try:
+                    return self._save_as_txt()
+                except CannotSaveAsTextException:
+                    # Continue on to normal save
+                    pass
+
             with open(self._save_path, 'wb') as f:
                 pickle.dump(self._overrider, f)
 
+    def _save_as_txt(self):
+        """
+        Save the quib as a text file. In contrast to the normal save, this will save the value of the quib regardless
+        of whether the quib has overrides, as a txt file is used for the user to be able to see the quib and change it
+        in a textual manner.
+        Note that this WILL fail with CannotSaveAsTextException in situations where the iquib
+        cannot be represented textually.
+        """
+        value = self.get_value()
+        try:
+            if isinstance(value, np.ndarray):
+                np.savetxt(str(self._save_txt_path), value)
+            else:
+                with open(self._save_txt_path, 'w') as f:
+                    json.dump(value, f)
+        except TypeError:
+            if os.path.exists(self._save_txt_path):
+                os.remove(self._save_txt_path)
+            raise CannotSaveAsTextException()
+
+    def _load_from_txt(self):
+        """
+        Load the quib from the corresponding text file is possible
+        """
+        if self._save_txt_path and os.path.exists(self._save_txt_path):
+            if issubclass(self.get_type(), np.ndarray):
+                self.assign_value(np.array(np.loadtxt(str(self._save_txt_path)), dtype=self.get_value().dtype))
+            else:
+                with open(self._save_txt_path, 'r') as f:
+                    self.assign_value(json.load(f))
+
     def load(self):
-        if self._save_path and os.path.exists(self._save_path):
+        if self._save_txt_path and os.path.exists(self._save_txt_path):
+            self._load_from_txt()
+        elif self._save_path and os.path.exists(self._save_path):
             with open(self._save_path, 'rb') as f:
                 self._overrider = pickle.load(f)
                 self.invalidate_and_redraw_at_path([])

@@ -37,8 +37,7 @@ def _redraw_quibs_with_graphics():
         for graphics_function_quib in quibs_that_are_invalid:
             graphics_function_quib.redraw_if_appropriate()
     try:
-        axeses = {axes for graphics_function_quib in quibs_that_are_invalid
-              for axes in graphics_function_quib.get_axeses()}
+        axeses = {axes for graphics_function_quib in quibs_that_are_invalid for axes in graphics_function_quib.get_axeses()}
     except Exception:
         raise
     redraw_axeses(axeses)

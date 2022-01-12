@@ -129,7 +129,7 @@ def test_iquib_does_not_save_if_irrelevant(project):
 def test_save_txt_and_load_iquib_ndarray(obj):
     a = iquib(obj)
 
-    a.save_as_txt()
+    a._save_as_txt()
     a.load()
 
     assert np.array_equal(a.get_value(), obj)
@@ -139,7 +139,7 @@ def test_save_txt_raises_correct_exception_when_cannot_save():
     a = iquib(np.array([mock.Mock()]))
 
     with pytest.raises(CannotSaveAsTextException):
-        a.save_as_txt()
+        a._save_as_txt()
 
 
 def test_save_iquib_with_save_path(tmpdir):

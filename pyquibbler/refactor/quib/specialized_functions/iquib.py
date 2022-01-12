@@ -6,6 +6,7 @@ from pyquibbler.refactor.exceptions import DebugException
 from pyquibbler.refactor.function_definitions import add_definition_for_function
 from pyquibbler.refactor.function_definitions.function_definition import create_function_definition
 from pyquibbler.refactor.path.path_component import Path
+from pyquibbler.refactor.project import Project
 from pyquibbler.refactor.quib.factory import create_quib
 from pyquibbler.refactor.quib.function_running.cache_behavior import CacheBehavior
 from pyquibbler.refactor.quib.utils.miscellaneous import is_there_a_quib_in_object
@@ -44,7 +45,9 @@ def iquib(value: Any):
         args=(value,),
         allow_overriding=True,
         evaluate_now=True,
-        cache_behavior=CacheBehavior.ON
+        cache_behavior=CacheBehavior.ON,
+        can_save_as_txt=True,
+        default_save_directory=Project.get_or_create().input_quib_directory
     )
 
 
@@ -55,7 +58,7 @@ class IQuibForwardsPathTranslator(ForwardsPathTranslator):
 
 iquib_definition = create_function_definition(
     forwards_path_translators=[IQuibForwardsPathTranslator],
-    data_source_arguments=[0]
+    data_source_arguments=[0],
 )
 
 add_definition_for_function(func=identity_function, function_definition=iquib_definition)

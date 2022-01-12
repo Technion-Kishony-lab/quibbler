@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import contextlib
+import os
 import weakref
 from _weakref import ReferenceType
 from collections import defaultdict
@@ -112,24 +113,14 @@ class Project:
                 function_quib._invalidate_self([])
                 function_quib.invalidate_and_redraw_at_path([])
 
-    def save_quibs(self, save_iquibs_as_txt_where_possible: bool = True):
+    def save_quibs(self, save_as_txt_where_possible: bool = True):
         """
         Save quibs (where relevant) to files in the current project directory
         """
-        raise NotImplemented
-        # from pyquibbler.quib.input_quib import InputQuib, CannotSaveAsTextException
-        # if self.path is None:
-        #     raise CannotSaveWithoutProjectPathException()
-        # for quib in self.quibs:
-        #     if save_iquibs_as_txt_where_possible and isinstance(quib, InputQuib) and quib.allow_overriding:
-        #         try:
-        #             quib.save_as_txt()
-        #         except CannotSaveAsTextException:
-        #             pass
-        #         else:
-        #             continue
-        #
-        #     quib.save_if_relevant()
+        if self.path is None:
+            raise CannotSaveWithoutProjectPathException()
+        for quib in self.quibs:
+            quib.save_if_relevant(save_as_txt_if_possible=save_as_txt_where_possible)
 
     def load_quibs(self):
         """

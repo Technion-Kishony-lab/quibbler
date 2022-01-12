@@ -1,10 +1,12 @@
 import functools
+import pathlib
 import weakref
 from typing import Optional, Tuple, Type, Callable
 
 from pyquibbler.refactor.env import GET_VARIABLE_NAMES, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS
 from pyquibbler.refactor.logger import logger
 from pyquibbler.refactor.function_definitions.func_call import FuncCall
+from pyquibbler.refactor.project import Project
 from pyquibbler.refactor.quib.function_running import FunctionRunner
 from pyquibbler.refactor.function_definitions import get_definition_for_function, CannotFindDefinitionForFunctionException
 from pyquibbler.refactor.quib.graphics import UpdateType
@@ -59,6 +61,7 @@ def get_file_name_and_line_no() -> Tuple[Optional[str], Optional[str]]:
 
 def create_quib(func, args=(), kwargs=None, cache_behavior=None, evaluate_now=False,
                 allow_overriding=False, call_func_with_quibs: bool = False, update_type: UpdateType = None,
+                can_save_as_txt: bool = False, default_save_directory: pathlib.Path = None,
                 **init_kwargs):
     """
     Public constructor for creating a quib.
@@ -95,6 +98,8 @@ def create_quib(func, args=(), kwargs=None, cache_behavior=None, evaluate_now=Fa
                 file_name=file_name,
                 line_no=line_no,
                 update_type=None,
+                can_save_as_txt=can_save_as_txt,
+                default_save_directory=default_save_directory or Project.get_or_create().function_quib_directory,
                 **init_kwargs)
     if update_type:
         quib.set_redraw_update_type(update_type or UpdateType.DRAG)

@@ -58,3 +58,8 @@ class FunctionCalledWithNestedQuibException(PyQuibblerException):
                '\n'.join(f'The argument "{arg}" contains the quibs: {quibs}'
                          for arg, quibs in self.nested_quibs_by_arg_names.items())
 
+
+@dataclass
+class CannotSaveAsTextException(PyQuibblerException):
+    pass
+
