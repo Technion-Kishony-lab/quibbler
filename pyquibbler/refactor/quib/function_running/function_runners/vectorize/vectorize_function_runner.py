@@ -82,9 +82,10 @@ class VectorizeCallFunctionRunner(FunctionRunner):
             call = self._wrap_vectorize_call_to_pass_quibs(call, args_metadata, results_core_ndims)
         else:
             quibs_to_paths = {} if valid_path is None else self._backwards_translate_path(valid_path)
-            new_args, new_kwargs = get_args_and_kwargs_valid_at_quibs_to_paths(self.func_call, quibs_to_paths)
+            new_args, new_kwargs, quibs_allowed = get_args_and_kwargs_valid_at_quibs_to_paths(self.func_call,
+                                                                                              quibs_to_paths)
             (vectorize, *args), kwargs = new_args, new_kwargs
-            call = VectorizeCall(vectorize, args, kwargs)
+            call = VectorizeCall(vectorize, args, kwargs, quibs_allowed)
         return call
 
     def _get_sample_result(self, args_metadata, results_core_ndims):
@@ -102,9 +103,9 @@ class VectorizeCallFunctionRunner(FunctionRunner):
         """
         Get and cache metadata for the vectorize call.
         """
-        new_args, new_kwargs = get_args_and_kwargs_valid_at_quibs_to_paths(func_call=self.func_call, quibs_to_valid_paths={})
+        new_args, new_kwargs, quibs_allowed = get_args_and_kwargs_valid_at_quibs_to_paths(func_call=self.func_call, quibs_to_valid_paths={})
         (vectorize, *args), kwargs = new_args, new_kwargs
-        return VectorizeCall(vectorize, args, kwargs).get_metadata(self._get_sample_result)
+        return VectorizeCall(vectorize, args, kwargs, quibs_allowed).get_metadata(self._get_sample_result)
 
     @cache_method_until_full_invalidation
     def _get_loop_shape(self):
@@ -139,7 +140,7 @@ class VectorizeCallFunctionRunner(FunctionRunner):
             if should_run:
                 return self._run_single_call(func=pyfunc, args=args, kwargs=kwargs,
                                              graphics_collection=graphics_collection,
-                                             quibs_to_guard=call.quibs_to_guard)
+                                             quibs_allowed_to_access=call.quibs_to_guard)
             return empty_result
 
         args_to_add = (self.graphics_collections, bool_mask)

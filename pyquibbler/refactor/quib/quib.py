@@ -17,6 +17,8 @@ from matplotlib.artist import Artist
 
 from pyquibbler.refactor.env import LEN_RAISE_EXCEPTION
 from pyquibbler.refactor.graphics import is_within_drag
+from pyquibbler.refactor.quib.quib_guard import guard_raise_if_not_allowed_access_to_quib, \
+    CannotAccessQuibInScopeException
 from pyquibbler.refactor.translation.types import Source
 from pyquibbler.refactor.utilities.input_validation_utils import validate_user_input
 from pyquibbler.refactor.logger import logger
@@ -612,8 +614,11 @@ class Quib(ReprMixin):
         The value will necessarily return in the shape of the actual result, but only the values at the given path
         are guaranteed to be valid
         """
-        # TODO: quib guard
-        # guard_raise_if_not_allowed_access_to_quib(self)
+        try:
+            guard_raise_if_not_allowed_access_to_quib(self)
+        except CannotAccessQuibInScopeException:
+            print(1)
+            raise
         name_for_call = get_user_friendly_name_for_requested_valid_path(path)
 
         with add_quib_to_fail_trace_if_raises_quib_call_exception(self, name_for_call):

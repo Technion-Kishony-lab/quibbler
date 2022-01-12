@@ -16,9 +16,9 @@ class WidgetRunner(FunctionRunner):
         pass
 
     def _run_single_call(self, func: Callable, graphics_collection: GraphicsCollection,
-                         args: Tuple[Any, ...], kwargs: Mapping[str, Any], quibs_to_guard: Set[Quib]):
+                         args: Tuple[Any, ...], kwargs: Mapping[str, Any], quibs_allowed_to_access: Set[Quib]):
         previous_widgets = graphics_collection.widgets
-        res = super(WidgetRunner, self)._run_single_call(func, graphics_collection, args, kwargs, quibs_to_guard)
+        res = super(WidgetRunner, self)._run_single_call(func, graphics_collection, args, kwargs, quibs_allowed_to_access)
 
         # We don't want to recreate the widget every time (and re-add callbacks)- if we already had a widget, just
         # return that

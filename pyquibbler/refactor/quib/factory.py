@@ -10,6 +10,7 @@ from pyquibbler.refactor.project import Project
 from pyquibbler.refactor.quib.function_running import FunctionRunner
 from pyquibbler.refactor.function_definitions import get_definition_for_function, CannotFindDefinitionForFunctionException
 from pyquibbler.refactor.quib.graphics import UpdateType
+from pyquibbler.refactor.quib.quib_guard import add_new_quib_to_guard_if_exists
 from pyquibbler.refactor.quib.utils.iterators import iter_quibs_in_args
 from pyquibbler.refactor.quib.quib import Quib
 from pyquibbler.refactor.quib.utils import deep_copy_without_quibs_or_graphics
@@ -101,6 +102,9 @@ def create_quib(func, args=(), kwargs=None, cache_behavior=None, evaluate_now=Fa
                 can_save_as_txt=can_save_as_txt,
                 default_save_directory=default_save_directory or Project.get_or_create().function_quib_directory,
                 **init_kwargs)
+
+    add_new_quib_to_guard_if_exists(quib)
+
     if update_type:
         quib.set_redraw_update_type(update_type or UpdateType.DRAG)
 

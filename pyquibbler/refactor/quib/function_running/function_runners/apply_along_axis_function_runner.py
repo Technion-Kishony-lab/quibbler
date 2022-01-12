@@ -7,6 +7,7 @@ from pyquibbler.refactor.path import PathComponent
 from pyquibbler.refactor.path import Path
 from pyquibbler.refactor.quib.external_call_failed_exception_handling import \
     external_call_failed_exception_handling
+from pyquibbler.refactor.quib.specialized_functions.proxy import create_proxy
 from pyquibbler.refactor.utilities.general_utils import create_empty_array_with_values_at_indices
 from pyquibbler.refactor.function_definitions.func_call import ArgsValues
 from pyquibbler.refactor.graphics.utils import remove_created_graphics
@@ -41,15 +42,13 @@ class ApplyAlongAxisFunctionRunner(FunctionRunner):
         item = tuple([slice(None) if i == self.core_axis else 0 for i in range(len(input_array_shape))])
 
         if self.call_func_with_quibs:
-            # TODO: Proxy quib!
-            # input_array = ProxyQuib(self.arr)
-            input_array = self.arr
-            # raise Exception("Can't do this yet...")
+            input_array = create_proxy(self.arr)
         else:
             input_array = self.arr.get_value_valid_at_path([PathComponent(component=item, indexed_cls=np.ndarray)])
 
         oned_slice = input_array[item]
-        new_args, new_kwargs = get_args_and_kwargs_valid_at_quibs_to_paths(self.func_call, quibs_to_valid_paths={})
+        new_args, new_kwargs, quibs_allowed = get_args_and_kwargs_valid_at_quibs_to_paths(self.func_call,
+                                                                                          quibs_to_valid_paths={})
 
         args_values = ArgsValues.from_function_call(func=self.func, args=new_args, kwargs=new_kwargs,
                                                     include_defaults=False)
@@ -59,7 +58,8 @@ class ApplyAlongAxisFunctionRunner(FunctionRunner):
                 return self._run_func1d(
                     oned_slice,
                     *args_values.arg_values_by_name.get('args', []),
-                    **args_values.arg_values_by_name.get('kwargs', {})
+                    **args_values.arg_values_by_name.get('kwargs', {}),
+
                 )
 
     @cache_method_until_full_invalidation
@@ -152,7 +152,7 @@ class ApplyAlongAxisFunctionRunner(FunctionRunner):
                 graphics_collection=self.graphics_collections[indices_before_axis + indices_after_axis],
                 args=(oned_slice, *func1d_args),
                 kwargs=func1d_kwargs,
-                quibs_to_guard={oned_slice} if isinstance(oned_slice, Quib) else set()
+                quibs_allowed_to_access={oned_slice} if isinstance(oned_slice, Quib) else set()
             )
         else:
             res = self._get_sample_result()

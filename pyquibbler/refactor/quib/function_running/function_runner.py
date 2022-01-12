@@ -20,9 +20,11 @@ from pyquibbler.refactor.cache.cache_utils import get_uncached_paths_matching_pa
     _truncate_path_to_match_shallow_caches, _ensure_cache_matches_result, \
     get_cached_data_at_truncated_path_given_result_at_uncached_path
 from pyquibbler.refactor.quib.function_running.cache_behavior import CacheBehavior
-from pyquibbler.refactor.quib.function_running.utils import cache_method_until_full_invalidation, create_array_from_func
+from pyquibbler.refactor.quib.function_running.utils import cache_method_until_full_invalidation, \
+    create_array_from_func, proxify_args
 from pyquibbler.refactor.graphics.graphics_collection import GraphicsCollection
 from pyquibbler.refactor.quib.quib import Quib
+from pyquibbler.refactor.quib.quib_guard import QuibGuard
 from pyquibbler.refactor.quib.utils.func_call_utils import get_args_and_kwargs_valid_at_quibs_to_paths, \
     get_data_source_quibs
 from pyquibbler.refactor.quib.utils.translation_utils import get_func_call_for_translation
@@ -158,12 +160,12 @@ class FunctionRunner(ABC):
 
     # TODO: Use FuncCall instead of func, args, kwargs
     def _run_single_call(self, func: Callable, graphics_collection: GraphicsCollection,
-                         args: Tuple[Any, ...], kwargs: Mapping[str, Any], quibs_to_guard: Set[Quib]):
+                         args: Tuple[Any, ...], kwargs: Mapping[str, Any], quibs_allowed_to_access: Set[Quib]):
 
         # TODO: quib_guard quib guard
         with graphics_collection.track_and_handle_new_graphics(
                 kwargs_specified_in_artists_creation=set(self.kwargs.keys())
-        ):
+        ), QuibGuard(quibs_allowed_to_access):
             with external_call_failed_exception_handling():
                 res = func(*args, **kwargs)
 
@@ -215,17 +217,18 @@ class FunctionRunner(ABC):
         graphics_collection: GraphicsCollection = self.graphics_collections[()]
 
         if self.call_func_with_quibs:
-            args, kwargs = self.func_call.args, self.func_call.kwargs
+            args, kwargs, quibs_allowed_to_access = proxify_args(self.func_call.args, self.func_call.kwargs)
         else:
             quibs_to_paths = {} if valid_path is None else self._backwards_translate_path(valid_path)
-            args, kwargs = get_args_and_kwargs_valid_at_quibs_to_paths(self.func_call, quibs_to_paths)
+            args, kwargs, quibs_allowed_to_access = get_args_and_kwargs_valid_at_quibs_to_paths(self.func_call,
+                                                                                                quibs_to_paths)
 
         return self._run_single_call(
             func=self.func,
             args=args,
             kwargs=kwargs,
             graphics_collection=graphics_collection,
-            quibs_to_guard=set()
+            quibs_allowed_to_access=quibs_allowed_to_access
         )
 
     def _run_on_uncached_paths_within_path(self, valid_path: Path):

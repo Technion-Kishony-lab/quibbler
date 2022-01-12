@@ -4,6 +4,7 @@ from functools import partial
 from dataclasses import dataclass, field
 from typing import Any, Dict, Optional, List, Tuple, Union, Callable, Set, TYPE_CHECKING
 
+from pyquibbler.refactor.utilities.general_utils import Args, Kwargs
 from pyquibbler.utils import convert_args_and_kwargs
 from .utils import Shape, get_core_axes, iter_arg_ids_and_values
 
