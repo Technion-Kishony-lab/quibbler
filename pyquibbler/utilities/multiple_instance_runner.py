@@ -33,11 +33,7 @@ class MultipleInstanceRunner(ABC):
 
     def run(self):
         definition = self._func_call.get_func_definition()
-        runners = list(self._get_runners_from_definition(definition=definition))
-
-        while True:
-            if len(runners) == 0:
-                raise self.exception_to_raise_on_none_found(self._func_call.func)
-            runner = runners.pop()
+        for runner in self._get_runners_from_definition(definition=definition):
             with self.exception_context():
                 return self._run_runner(runner)
+        raise self.exception_to_raise_on_none_found(self._func_call.func)
