@@ -70,6 +70,13 @@ def test_quib_pretty_repr_getitem_colon(statement):
 
 
 @pytest.mark.get_variable_names(True)
+def test_quib_pretty_repr_set():
+    a = iquib({0})
+
+    assert a.pretty_repr() == "a = iquib({0})"
+
+
+@pytest.mark.get_variable_names(True)
 def test_quib_pretty_repr_getitem_ellipsis():
     a = iquib(np.array([1, 2, 3]))
     b = a[...]

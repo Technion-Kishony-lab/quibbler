@@ -20,8 +20,15 @@ def _convert_slice(slice_: slice):
     return pretty
 
 
+ITERABLE_TYPES_TO_PARENTHESES_STR = {
+    list: '[]',
+    set: '{}',
+    tuple: '()'
+}
+
+
 def _convert_iterable(itr):
-    iterable_rep = repr(type(itr)())
+    iterable_rep = ITERABLE_TYPES_TO_PARENTHESES_STR[type(itr)]
     return f"{iterable_rep[0]}{', '.join(itr)}{iterable_rep[1]}"
 
 
