@@ -84,6 +84,14 @@ def test_quib_pretty_repr_none():
 
 
 @pytest.mark.get_variable_names(True)
+def test_quib_pretty_repr_dict():
+    a = iquib(1)
+    b = q(str, {'data': a, 'num': 2, 1.0: 'b'})
+
+    assert b.pretty_repr() == "b = str({'data': a, 'num': 2, 1.0: 'b'})"
+
+
+@pytest.mark.get_variable_names(True)
 def test_quib_pretty_repr_getitem_ellipsis():
     a = iquib(np.array([1, 2, 3]))
     b = a[...]
