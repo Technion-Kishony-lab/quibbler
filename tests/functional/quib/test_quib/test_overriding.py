@@ -114,6 +114,12 @@ def test_quib_get_override_mask(data, overrides, expected_mask):
     assert np.array_equal(quib.get_override_mask().get_value(), expected_mask)
 
 
+def test_quib_get_override_mask_whole_array_override():
+    quib = create_quib(func=mock.Mock(return_value=np.array([0, 1])), allow_overriding=True)
+    quib.assign_value(np.array([0, 1, 2]))
+    assert np.array_equal(quib.get_override_mask().get_value(), [True, True, True])
+
+
 def test_quib_override_when_overriding_not_allowed(quib):
     override = mock.Mock()
 
