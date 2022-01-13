@@ -77,6 +77,13 @@ def test_quib_pretty_repr_set():
 
 
 @pytest.mark.get_variable_names(True)
+def test_quib_pretty_repr_none():
+    a = iquib([None])
+
+    assert a.pretty_repr() == "a = iquib([None])"
+
+
+@pytest.mark.get_variable_names(True)
 def test_quib_pretty_repr_getitem_ellipsis():
     a = iquib(np.array([1, 2, 3]))
     b = a[...]
