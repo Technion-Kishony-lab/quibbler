@@ -99,6 +99,14 @@ def test_quib_pretty_repr_slice_as_objet():
 
 
 @pytest.mark.get_variable_names(True)
+def test_quib_pretty_repr_kwargs():
+    a = iquib(1)
+    b = np.sum([[1]], axis=(0, a))
+
+    assert b.pretty_repr() == "b = sum([[1]], axis=(0, a))"
+
+
+@pytest.mark.get_variable_names(True)
 def test_quib_pretty_repr_getitem_ellipsis():
     a = iquib(np.array([1, 2, 3]))
     b = a[...]
