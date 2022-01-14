@@ -115,6 +115,14 @@ def test_quib_pretty_repr_getitem_ellipsis():
 
 
 @pytest.mark.get_variable_names(True)
+def test_quib_pretty_repr_getitem_multiple_axes():
+    a = iquib(np.array([[1]]))
+    b = a[0, 0]
+
+    assert b.pretty_repr() == "b = a[0, 0]"
+
+
+@pytest.mark.get_variable_names(True)
 def test_quib_pretty_repr_getitem_index():
     a = iquib(np.array([1, 2, 3]))
     b = a[1]
