@@ -92,6 +92,13 @@ def test_quib_pretty_repr_dict():
 
 
 @pytest.mark.get_variable_names(True)
+def test_quib_pretty_repr_slice_as_objet():
+    a = iquib(slice(0, 4, 1))
+
+    assert a.pretty_repr() == "a = iquib(slice(0, 4, 1))"
+
+
+@pytest.mark.get_variable_names(True)
 def test_quib_pretty_repr_getitem_ellipsis():
     a = iquib(np.array([1, 2, 3]))
     b = a[...]
