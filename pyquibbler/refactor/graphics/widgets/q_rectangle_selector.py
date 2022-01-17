@@ -5,7 +5,6 @@ from typing import Any, Optional, List
 from matplotlib.widgets import RectangleSelector
 
 from pyquibbler.utils import Mutable
-from pyquibbler.quib import Quib
 
 # from ..drag_context_manager import dragging, releasing
 from .. import dragging

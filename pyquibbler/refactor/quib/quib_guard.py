@@ -5,7 +5,7 @@ from typing import Set, TYPE_CHECKING
 from pyquibbler.refactor.exceptions import PyQuibblerException
 
 if TYPE_CHECKING:
-    from pyquibbler.quib import Quib
+    from pyquibbler.refactor.quib import Quib
 
 
 @dataclass

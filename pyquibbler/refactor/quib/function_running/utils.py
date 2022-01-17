@@ -40,12 +40,13 @@ def create_array_from_func(func, shape):
 
 
 def proxify_args(args, kwargs):
-    from pyquibbler.quib import Quib, ProxyQuib
+    from pyquibbler.refactor.quib import Quib
     quibs_to_guard = set()
 
     def _replace_quibs_with_proxy_quibs(arg):
         if isinstance(arg, Quib):
-            proxy = ProxyQuib(arg)
+            from pyquibbler.refactor.quib.specialized_functions.proxy import create_proxy
+            proxy = create_proxy(arg)
             quibs_to_guard.add(proxy)
             return proxy
         return arg
