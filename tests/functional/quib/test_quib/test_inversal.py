@@ -76,6 +76,17 @@ def test_assignment_to_list_after_np_function(create_quib_with_return_value):
     assert np.array_equiv(first_quib_arg.get_value(), [[[1, 2, 4.1]]])
 
 
+@pytest.mark.regression
+def test_assignment_to_list_make_it_unarrayable_after_np_function(create_quib_with_return_value):
+    first_quib_arg = create_quib_with_return_value([[11, 12, 13], [21, 22, 23]], allow_overriding=True)
+    rotated: Quib = np.rot90(first_quib_arg)
+    rotated.get_value()
+    del(rotated)
+    first_quib_arg[0] = [41]
+
+    assert first_quib_arg.get_value() == [[41], [21, 22, 23]]
+
+
 def test_inverse_getitem_on_dict_and_rot90(create_quib_with_return_value):
     quib = create_quib_with_return_value({'a': [[1, 2, 3]]}, allow_overriding=True)
     get_item = quib['a']
