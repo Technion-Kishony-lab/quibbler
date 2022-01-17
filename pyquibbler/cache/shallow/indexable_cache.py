@@ -20,7 +20,7 @@ def transform_cache_to_nd_if_necessary_given_path(cache, path: List[PathComponen
             and path[0].indexed_cls == np.ndarray
             and isinstance(cache, IndexableCache)):
         uncached_paths = cache.get_uncached_paths([])
-        cache = create_cache(np.array(cache.get_value()))
+        cache = create_cache(np.array(cache.get_value(), dtype=object))
         for path in uncached_paths:
             cache.set_invalid_at_path(path)
     return cache
