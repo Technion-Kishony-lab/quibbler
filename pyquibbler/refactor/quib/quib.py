@@ -617,7 +617,6 @@ class Quib(ReprMixin):
         try:
             guard_raise_if_not_allowed_access_to_quib(self)
         except CannotAccessQuibInScopeException:
-            print(1)
             raise
         name_for_call = get_user_friendly_name_for_requested_valid_path(path)
 

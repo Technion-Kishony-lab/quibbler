@@ -5,11 +5,10 @@ from string import ascii_letters
 from itertools import islice, chain
 
 from pyquibbler.quib.function_quibs.utils import Args, Kwargs
+from pyquibbler.refactor.utilities.general_utils import Shape
 
 if TYPE_CHECKING:
     from .vectorize_metadata import ArgsMetadata, ArgId
-
-Shape = Tuple[int, ...]
 
 
 def get_core_axes(core_ndim: int) -> Tuple[int, ...]:

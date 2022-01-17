@@ -39,3 +39,6 @@ def unbroadcast_bool_mask(bool_mask: np.ndarray, original_shape: Tuple[int, ...]
                                                 if result_len != quib_len)
     reduced_bool_mask = np.any(reduced_bool_mask, axis=broadcast_loop_dimensions_to_reduce, keepdims=True)
     return np.broadcast_to(reduced_bool_mask, original_shape)
+
+
+Shape = Tuple[int, ...]

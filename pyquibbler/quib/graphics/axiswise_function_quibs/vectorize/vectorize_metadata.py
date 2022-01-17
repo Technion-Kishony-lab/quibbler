@@ -6,7 +6,8 @@ from typing import Any, Dict, Optional, List, Tuple, Union, Callable, Set, TYPE_
 
 from pyquibbler.quib.function_quibs.utils import Args, Kwargs, convert_args_and_kwargs
 
-from .utils import Shape, get_core_axes, iter_arg_ids_and_values
+from .utils import get_core_axes, iter_arg_ids_and_values
+from pyquibbler.refactor.utilities.general_utils import Shape
 
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib

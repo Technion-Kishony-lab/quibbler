@@ -20,6 +20,8 @@ from pyquibbler.refactor.cache.cache_utils import get_uncached_paths_matching_pa
     _truncate_path_to_match_shallow_caches, _ensure_cache_matches_result, \
     get_cached_data_at_truncated_path_given_result_at_uncached_path
 from pyquibbler.refactor.quib.function_running.cache_behavior import CacheBehavior
+from pyquibbler.refactor.quib.function_running.exceptions import CannotCalculateShapeException
+from pyquibbler.refactor.quib.function_running.result_metadata import ResultMetadata
 from pyquibbler.refactor.quib.function_running.utils import cache_method_until_full_invalidation, \
     create_array_from_func, proxify_args
 from pyquibbler.refactor.graphics.graphics_collection import GraphicsCollection
@@ -44,6 +46,7 @@ class FunctionRunner(ABC):
     caching: bool = False
     cache: Optional[Cache] = None
     default_cache_behavior: CacheBehavior = DEFAULT_CACHE_BEHAVIOR
+    _result_metadata: Optional[ResultMetadata] = None
 
     # TODO: is there a better way to do this?
     artists_creation_callback: Callable = None
@@ -106,45 +109,42 @@ class FunctionRunner(ABC):
         return elapsed_seconds > consts.MIN_SECONDS_FOR_CACHE \
             and getsizeof(result) / elapsed_seconds < consts.MAX_BYTES_PER_SECOND
 
+    def _run_shit(self):
+        pass
+
     def _get_representative_value(self):
         return self.get_value_valid_at_path(None)
 
-    # We cache the type, so quibs without cache will still remember their types.
-    @cache_method_until_full_invalidation
+    def _get_metadata(self):
+        if not self._result_metadata:
+            result = self.get_value_valid_at_path(None)
+            self._result_metadata = ResultMetadata.from_result(result)
+
+        return self._result_metadata
+
     def get_type(self) -> Type:
         """
         Get the type of wrapped value.
         """
-        return type(self._get_representative_value())
+        return self._get_metadata().type
 
-    # We cache the shape, so quibs without cache will still remember their shape.
-    @cache_method_until_full_invalidation
     def get_shape(self) -> Tuple[int, ...]:
         """
         Assuming this quib represents a numpy ndarray, returns a quib of its shape.
         """
-        res = self._get_representative_value()
+        metadata = self._get_metadata()
+        if metadata.shape is None:
+            raise CannotCalculateShapeException()
+        return metadata.shape
 
-        try:
-            return np.shape(res)
-        except ValueError:
-            if hasattr(res, '__len__'):
-                return len(res),
-            raise
-
-    @cache_method_until_full_invalidation
     def get_ndim(self) -> int:
         """
         Assuming this quib represents a numpy ndarray, returns a quib of its shape.
         """
-        res = self._get_representative_value()
-
-        try:
-            return np.ndim(res)
-        except ValueError:
-            if hasattr(res, '__len__'):
-                return 1
-            raise
+        metadata = self._get_metadata()
+        if metadata.ndim is None:
+            raise CannotCalculateShapeException()
+        return metadata.ndim
 
     @property
     def _did_create_graphics(self) -> bool:

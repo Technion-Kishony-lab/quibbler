@@ -4,12 +4,10 @@ from typing import Tuple, Iterable, Optional, Dict, Union, Any, TYPE_CHECKING
 from string import ascii_letters
 from itertools import islice, chain
 
-from pyquibbler.refactor.utilities.general_utils import Args, Kwargs
+from pyquibbler.refactor.utilities.general_utils import Args, Kwargs, Shape
 
 if TYPE_CHECKING:
     from .vectorize_metadata import ArgsMetadata, ArgId
-
-Shape = Tuple[int, ...]
 
 
 def get_core_axes(core_ndim: int) -> Tuple[int, ...]:
