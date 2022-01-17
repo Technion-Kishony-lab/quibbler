@@ -80,7 +80,7 @@ class Quib(ReprMixin):
                  file_name: Optional[str],
                  line_no: Optional[str],
                  update_type: UpdateType,
-                 default_save_directory: pathlib.Path,
+                 save_directory: pathlib.Path,
                  can_save_as_txt: bool):
         self._assignment_template = assignment_template
         self._name = name
@@ -95,12 +95,7 @@ class Quib(ReprMixin):
         self.line_no = line_no
         self._redraw_update_type = update_type
 
-        # TODO: Move to factory
-        self.project.register_quib(self)
-        self._user_defined_save_directory = None
-
-        # TODO: quib guard
-        # add_new_quib_to_guard_if_exists(self)
+        self._save_directory = save_directory
 
         self._function_runner = function_runner
 
@@ -108,7 +103,6 @@ class Quib(ReprMixin):
         self._function_runner.artists_creation_callback = functools.partial(persist_artists_on_quib_weak_ref,
                                                                             weakref.ref(self))
 
-        self._default_save_directory = default_save_directory
         self._can_save_as_txt = can_save_as_txt
 
     """
@@ -739,11 +733,6 @@ class Quib(ReprMixin):
         return self._save_directory / f"{save_name}.quib"
 
     @property
-    def _save_directory(self):
-        return self._user_defined_save_directory \
-            if self._user_defined_save_directory is not None else self._default_save_directory
-
-    @property
     def _save_txt_path(self) -> Optional[pathlib.Path]:
         return self._save_directory / f"{self.name}.txt"
 
@@ -754,7 +743,7 @@ class Quib(ReprMixin):
         """
         if isinstance(path, str):
             path = pathlib.Path(path)
-        self._user_defined_save_directory = path.resolve()
+        self._save_directory = path.resolve()
 
     def save_if_relevant(self, save_as_txt_if_possible: bool = True):
         """

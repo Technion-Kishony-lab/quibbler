@@ -1,7 +1,7 @@
-import functools
+from __future__ import annotations
 import pathlib
 import weakref
-from typing import Optional, Tuple, Type, Callable
+from typing import Optional, Tuple, Type, Callable, Any, Mapping, TYPE_CHECKING
 
 from pyquibbler.refactor.env import GET_VARIABLE_NAMES, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS
 from pyquibbler.refactor.logger import logger
@@ -18,6 +18,10 @@ from pyquibbler.refactor.quib.variable_metadata import get_var_name_being_set_ou
     get_file_name_and_line_number_of_quib
 
 
+if TYPE_CHECKING:
+    from pyquibbler import CacheBehavior
+
+
 def get_original_func(func: Callable):
     """
     Get the original func- if this function is already overrided, get the original func it's function_definitions.
@@ -30,15 +34,11 @@ def get_original_func(func: Callable):
     return func
 
 
-def get_deep_copied_args_and_kwargs(args, kwargs):
-    if kwargs is None:
-        kwargs = {}
-    kwargs = {k: deep_copy_without_quibs_or_graphics(v) for k, v in kwargs.items()}
-    args = deep_copy_without_quibs_or_graphics(args)
-    return args, kwargs
-
-
 def get_quib_name() -> Optional[str]:
+    """
+    Get the quib's name- this can potentially return None
+    if the context makes getting the file name and line no irrelevant
+    """
     should_get_variable_names = GET_VARIABLE_NAMES and not Quib._IS_WITHIN_GET_VALUE_CONTEXT
 
     try:
@@ -49,7 +49,11 @@ def get_quib_name() -> Optional[str]:
     return None
 
 
-def get_file_name_and_line_no() -> Tuple[Optional[str], Optional[str]]:
+def _get_file_name_and_line_no() -> Tuple[Optional[str], Optional[str]]:
+    """
+    Get the file name and line no where the quib was created (outside of pyquibbler)- this can potentially return Nones
+    if the context makes getting the file name and line no irrelevant
+    """
     should_get_file_name_and_line = SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS and not Quib._IS_WITHIN_GET_VALUE_CONTEXT
 
     try:
@@ -60,25 +64,58 @@ def get_file_name_and_line_no() -> Tuple[Optional[str], Optional[str]]:
     return None, None
 
 
-def create_quib(func, args=(), kwargs=None, cache_behavior=None, evaluate_now=False,
-                allow_overriding=False, call_func_with_quibs: bool = False, update_type: UpdateType = None,
-                can_save_as_txt: bool = False, default_save_directory: pathlib.Path = None,
+def _get_deep_copied_args_and_kwargs(args, kwargs):
+    """
+    Get deep copied args and kwargs- any manipulation of the returned values should not affect the parameter values.
+    """
+    if kwargs is None:
+        kwargs = {}
+    kwargs = {k: deep_copy_without_quibs_or_graphics(v) for k, v in kwargs.items()}
+    args = deep_copy_without_quibs_or_graphics(args)
+    return args, kwargs
+
+
+def create_quib(func, args: Tuple[Any, ...] = (), kwargs: Mapping[str, Any] = None,
+                cache_behavior: CacheBehavior = None,
+                evaluate_now: bool=False,
+                allow_overriding: bool=False,
+                call_func_with_quibs: bool = False,
+                update_type: UpdateType = None,
+                can_save_as_txt: bool = False,
+                save_directory: pathlib.Path = None,
                 **init_kwargs):
     """
-    Public constructor for creating a quib.
-    # TODO: serious docs
+    Public constructor for creating a quib- this takes care of retrieving all relevant info for the creation of the
+    quib as well as registering and performing any calculations.
+    Returns a Quib object.
+
+    :param args - Positional arguments of the quib's function
+    :param kwargs - Keyword arguments of the quib's function
+    :param cache_behavior - In what fashion should the quib cache? See CacheBehavior for options
+    :param evaluate_now - by default we are lazy- should the quib be evaluated immediately upon creation?
+    :param allow_overriding - can this quib be overridden, or does it always need to propogate assignments backwards?
+    :param call_func_with_quibs - by default, any quibs in the args will be translated to their values before being the
+    quib's function is run. If `call_func_with_quibs` is True, quibs will NOT be translated to their values, and the
+    func will be called with the quibs.
+    :param update_type - (Only relevant if the quib has graphics/is known graphics func) - when should the quib
+    "update"? See UpdateType for options
+    :param can_save_as_txt - whether this quib can be saved as a text file (default is to pickle)
+    :param save_directory - where to save the quib?
     """
 
     kwargs = kwargs or {}
 
-    # TODO: how are we handling this situation overall
+    # We have the possiblility of certain Quib parameters to be in the kwargs of the specific call.
+    # We may want to move this out per function- for now, we have generic handling for all funcs with
+    # `call_func_with_quibs`
     call_func_with_quibs = kwargs.pop('call_func_with_quibs', call_func_with_quibs)
 
-    args, kwargs = get_deep_copied_args_and_kwargs(args, kwargs)
-    file_name, line_no = get_file_name_and_line_no()
+    args, kwargs = _get_deep_copied_args_and_kwargs(args, kwargs)
+    file_name, line_no = _get_file_name_and_line_no()
     func = get_original_func(func)
 
     definition = get_definition_for_function(func)
+    project = Project.get_or_create()
 
     runner = definition.function_runner_cls.from_(
         func_call=FuncCall.from_function_call(
@@ -100,9 +137,10 @@ def create_quib(func, args=(), kwargs=None, cache_behavior=None, evaluate_now=Fa
                 line_no=line_no,
                 update_type=None,
                 can_save_as_txt=can_save_as_txt,
-                default_save_directory=default_save_directory or Project.get_or_create().function_quib_directory,
+                save_directory=save_directory or project.function_quib_directory,
                 **init_kwargs)
 
+    project.register_quib(quib)
     add_new_quib_to_guard_if_exists(quib)
 
     if update_type:
