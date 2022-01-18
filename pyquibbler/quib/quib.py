@@ -615,7 +615,7 @@ class Quib(ReprMixin):
         name_for_call = get_user_friendly_name_for_requested_valid_path(path)
 
         with add_quib_to_fail_trace_if_raises_quib_call_exception(self, name_for_call):
-            result = self._quib_function_call.get_value_valid_at_path(path)
+            result = self._quib_function_call.run(path)
 
         return self._overrider.override(result, self._assignment_template)
 

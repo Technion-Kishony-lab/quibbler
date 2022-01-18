@@ -2,8 +2,8 @@ from typing import Any, Tuple, Callable, Dict
 
 import numpy as np
 
+from pyquibbler.translation.source_func_call import SourceFuncCall
 from pyquibbler.translation.types import Source
-from pyquibbler.translation.utils import call_func_with_sources_values
 
 
 def create_inverse_func_from_indexes_to_funcs(data_source_argument_indexes_to_inverse_functions: Dict[int, Callable]):
@@ -16,8 +16,9 @@ def create_inverse_func_from_indexes_to_funcs(data_source_argument_indexes_to_in
         inverse_func = data_source_argument_indexes_to_inverse_functions[source_index]
         new_args = list(args)
         new_args.pop(source_index)
-        from pyquibbler.translation.utils import call_func_with_sources_values
-        return call_func_with_sources_values(inverse_func, [representative_result, *new_args], kwargs)
+        return SourceFuncCall.from_(func=inverse_func,
+                                     func_args=(representative_result, *new_args),
+                                     func_kwargs=kwargs).run()
 
     return _inverse
 
@@ -29,7 +30,7 @@ def create_inverse_single_arg_func(inverse_func: Callable):
 
     def _inverse(representative_result: Any, args, kwargs, source_to_change: Source, relevant_path_in_source):
         new_args = []
-        return call_func_with_sources_values(inverse_func, [representative_result, *new_args], kwargs)
+        return SourceFuncCall.from_(inverse_func, [representative_result, *new_args], kwargs).run()
 
     return _inverse
 
@@ -44,7 +45,8 @@ def create_inverse_single_arg_many_to_one(invfunc_period_tuple: Tuple[Tuple[Call
         new_args = []
         quib_to_change_value = source_to_change.value
         base_values = [
-            (call_func_with_sources_values(inverse_func, [representative_result, *new_args], kwargs), period)
+            (SourceFuncCall.from_(inverse_func, [representative_result, *new_args], kwargs).run(),
+             period)
             for inverse_func, period in invfunc_period_tuple]
         closest_values = [value if period is None
                           else value + np.round((quib_to_change_value - value) / period) * period

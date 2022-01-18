@@ -6,7 +6,6 @@ from pyquibbler.inversion.invert import invert
 from pyquibbler.path.data_accessing import deep_assign_data_in_path
 from pyquibbler.quib.factory import get_original_func
 from pyquibbler.translation.source_func_call import SourceFuncCall
-from pyquibbler.translation.utils import call_func_with_sources_values
 from pyquibbler.path import PathComponent
 
 
@@ -18,7 +17,7 @@ def inverse(func: Callable, indices: Any, value: Any, args: Tuple[Any, ...] = No
 
     args = args or tuple()
     kwargs = kwargs or {}
-    previous_value = call_func_with_sources_values(func, args, kwargs)
+    previous_value = SourceFuncCall.from_(func, args, kwargs).run()
     inversals = invert(
         func_call=SourceFuncCall.from_(
             func=func,

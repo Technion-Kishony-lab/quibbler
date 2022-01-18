@@ -93,11 +93,11 @@ class QuibFuncCall(FuncCall):
         pass
 
     def _get_representative_value(self):
-        return self.get_value_valid_at_path(None)
+        return self.run(valid_path=None)
 
     def _get_metadata(self):
         if not self._result_metadata:
-            result = self.get_value_valid_at_path(None)
+            result = self.run(valid_path=None)
             self._result_metadata = ResultMetadata.from_result(result)
 
         return self._result_metadata
@@ -253,7 +253,7 @@ class QuibFuncCall(FuncCall):
     def get_result_metadata(self) -> Dict:
         return {}
 
-    def get_value_valid_at_path(self, path: Optional[Path]) -> Any:
+    def run(self, valid_path: Optional[Path]) -> Any:
         """
         Get the actual data that this quib represents, valid at the path given in the argument.
         The value will necessarily return in the shape of the actual result, but only the values at the given path
@@ -263,7 +263,7 @@ class QuibFuncCall(FuncCall):
 
         start_time = perf_counter()
 
-        result = self._run_on_uncached_paths_within_path(path)
+        result = self._run_on_uncached_paths_within_path(valid_path)
 
         elapsed_seconds = perf_counter() - start_time
 

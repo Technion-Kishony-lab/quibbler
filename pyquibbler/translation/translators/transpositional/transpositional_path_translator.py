@@ -7,9 +7,9 @@ from typing import Dict, Callable, Any, List
 from pyquibbler.translation.backwards_path_translator import BackwardsPathTranslator
 from pyquibbler.translation.numpy_translator import NumpyForwardsPathTranslator
 from pyquibbler.translation.numpy_translator import NumpyBackwardsPathTranslator
+from pyquibbler.translation.source_func_call import SourceFuncCall
 from pyquibbler.translation.translators.transpositional.utils import get_data_source_ids_mask
 from pyquibbler.translation.types import Source
-from pyquibbler.translation.utils import call_func_with_sources_values
 from pyquibbler.path.path_component import Path, PathComponent
 from pyquibbler.path.utils import working_component
 from pyquibbler.utilities.general_utils import create_empty_array_with_values_at_indices
@@ -30,7 +30,7 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
             return obj
 
         args, kwargs = self._convert_data_sources_in_args(replace_source_with_id)
-        return call_func_with_sources_values(self.func, args, kwargs)
+        return SourceFuncCall.from_(self.func, args, kwargs).run()
 
     def get_data_sources_to_masks_in_result(self) -> Dict[Source, Any]:
         """
@@ -73,7 +73,7 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
             return np.indices(np.shape(d.value) if isinstance(d, Source) else np.shape(d))[dimension]
 
         args, kwargs = self._convert_data_sources_in_args(replace_data_source_with_index_at_dimension)
-        indices_res = call_func_with_sources_values(self._func_call.func, args, kwargs)
+        indices_res = SourceFuncCall.from_(self._func_call.func, args, kwargs).run()
 
         return {
             data_source: indices_res[np.logical_and(data_sources_to_masks[data_source], relevant_indices_mask)]

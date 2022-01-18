@@ -91,5 +91,5 @@ class FuncCall(ABC):
         return self.get_func_definition().get_data_source_argument_values(self.args_values)
 
     @abstractmethod
-    def get_value_valid_at_path(self, path: Path):
+    def run(self, *args, **kwargs):
         pass

@@ -20,7 +20,7 @@ class RectangleSelectorQuibFuncCall(WidgetQuibFuncCall):
             previous_value = init_val.get_value()
         else:
             # TODO: Is this ok? It was previously like  this
-            previous_value = self.get_value_valid_at_path([]).extents
+            previous_value = self.run([]).extents
 
         return not allow_resize and (
                 previous_value[1] - previous_value[0] != extents[1] - extents[0] or

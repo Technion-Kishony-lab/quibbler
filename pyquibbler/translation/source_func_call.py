@@ -5,7 +5,7 @@ from pyquibbler.translation.utils import copy_and_replace_sources_with_vals
 
 class SourceFuncCall(FuncCall):
 
-    def get_value_valid_at_path(self, path: Path):
+    def run(self):
         """
         Calls a function with the specified args and kwargs while replacing quibs with their values.
         """
