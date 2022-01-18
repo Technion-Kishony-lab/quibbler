@@ -9,7 +9,7 @@ from pyquibbler.env import GRAPHICS_EVALUATE_NOW
 from pyquibbler.function_definitions.function_definition import create_function_definition
 from pyquibbler.function_overriding.function_override import FunctionOverride
 from pyquibbler.graphics import global_collecting
-from pyquibbler.quib.function_running.function_runners.known_graphics.plot_runner import PlotRunner
+from pyquibbler.quib.function_calling.func_calls.known_graphics.plot_runner import PlotCallQuib
 
 
 @dataclass
@@ -43,7 +43,7 @@ def create_graphics_overrides():
     from pyquibbler.function_overriding.third_party_overriding.graphics.widgets.widgets_overrides import \
         create_widget_overrides
     return [
-        axes_override(func_name="plot", function_definition_kwargs=dict(function_runner_cls=PlotRunner)),
+        axes_override(func_name="plot", function_definition_kwargs=dict(function_runner_cls=PlotCallQuib)),
         *[
             axes_override(func_name=func_name) for func_name in [
                 'imshow', 'text', 'bar', 'hist', 'pie', 'legend', '_sci', 'matshow', 'scatter'

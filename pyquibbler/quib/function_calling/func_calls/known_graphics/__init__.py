@@ -1,2 +1,2 @@
 from .widgets import SliderRunner, RadioButtonsRunner, RectangleSelectorRunner
-from .plot_runner import PlotRunner
+from .plot_runner import PlotCallQuib

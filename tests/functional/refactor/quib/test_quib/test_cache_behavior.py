@@ -5,7 +5,7 @@ import pytest
 from pyquibbler.function_definitions import add_definition_for_function
 from pyquibbler.function_definitions.function_definition import FunctionDefinition
 from pyquibbler.utilities.input_validation_utils import InvalidArgumentException
-from pyquibbler.quib.function_running.cache_behavior import CacheBehavior, UnknownCacheBehaviorException
+from pyquibbler.quib.function_calling.cache_behavior import CacheBehavior, UnknownCacheBehaviorException
 from pyquibbler.quib.exceptions import InvalidCacheBehaviorForQuibException
 from pyquibbler.quib.factory import create_quib
 

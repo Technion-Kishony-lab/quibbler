@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, Any, List
 
 from pyquibbler.function_definitions.function_definition import FunctionDefinition
 from pyquibbler.inversion.exceptions import NoInvertersFoundException
+from pyquibbler.translation.source_func_call import SourceFuncCall
 from pyquibbler.utilities.multiple_instance_runner import MultipleInstanceRunner
 from pyquibbler.function_definitions.func_call import FuncCall
 
@@ -13,7 +14,7 @@ if TYPE_CHECKING:
 class MultipleInverterRunner(MultipleInstanceRunner):
     exception_to_raise_on_none_found = NoInvertersFoundException
 
-    def __init__(self, func_call: FuncCall, assignment: Assignment, previous_result: Any):
+    def __init__(self, func_call: SourceFuncCall, assignment: Assignment, previous_result: Any):
         super().__init__(func_call)
         self._assignment = assignment
         self._previous_result = previous_result
@@ -30,5 +31,5 @@ class MultipleInverterRunner(MultipleInstanceRunner):
         return inverter.get_inversals()
 
 
-def invert(func_call: FuncCall, assignment: Assignment, previous_result):
+def invert(func_call: SourceFuncCall, assignment: Assignment, previous_result):
     return MultipleInverterRunner(func_call, assignment, previous_result).run()

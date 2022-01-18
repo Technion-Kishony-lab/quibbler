@@ -5,14 +5,15 @@ from typing import Callable, Tuple, Any, Dict, TYPE_CHECKING
 
 import numpy as np
 
+from pyquibbler.path import Path
 from pyquibbler.utilities.iterators import recursively_run_func_on_object
 
 if TYPE_CHECKING:
-    from pyquibbler.quib.function_running.function_runner import FunctionRunner
+    from pyquibbler.quib.function_calling.quib_func_call import QuibFuncCall
 
 
 @dataclass(frozen=True)
-class FunctionCall:
+class CachedCall:
     func: Callable
     args: Tuple[Any, ...]
     kwargs: Tuple[Tuple[str, Any], ...]
@@ -24,8 +25,8 @@ class FunctionCall:
 
 def cache_method_until_full_invalidation(func: Callable) -> Callable:
     @wraps(func)
-    def wrapper(self: FunctionRunner, *args, **kwargs):
-        call = FunctionCall.create(func, args, kwargs)
+    def wrapper(self: QuibFuncCall, *args, **kwargs):
+        call = CachedCall.create(func, args, kwargs)
         if call in self.method_cache:
             return self.method_cache[call]
         result = func(self, *args, **kwargs)

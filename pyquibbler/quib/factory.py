@@ -6,7 +6,7 @@ from pyquibbler.env import GET_VARIABLE_NAMES, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRAC
 from pyquibbler.logger import logger
 from pyquibbler.function_definitions.func_call import FuncCall
 from pyquibbler.project import Project
-from pyquibbler.quib.function_running import FunctionRunner
+from pyquibbler.quib.function_calling import QuibFuncCall
 from pyquibbler.function_definitions import get_definition_for_function
 from pyquibbler.quib.graphics import UpdateType
 from pyquibbler.quib.quib_guard import add_new_quib_to_guard_if_exists
@@ -116,16 +116,14 @@ def create_quib(func, args: Tuple[Any, ...] = (), kwargs: Mapping[str, Any] = No
     definition = get_definition_for_function(func)
     project = Project.get_or_create()
 
-    runner = definition.function_runner_cls.from_(
-        func_call=FuncCall.from_function_call(
-            func=func,
-            args=args,
-            kwargs=kwargs,
-            include_defaults=True
-        ),
+    runner = definition.function_runner_cls.from_function_call(
+        func=func,
+        func_args=args,
+        func_kwargs=kwargs,
         call_func_with_quibs=call_func_with_quibs,
         graphics_collections=None,
-        default_cache_behavior=cache_behavior or FunctionRunner.DEFAULT_CACHE_BEHAVIOR,
+        default_cache_behavior=cache_behavior or QuibFuncCall.DEFAULT_CACHE_BEHAVIOR,
+        include_defaults=True
     )
 
     quib = Quib(function_runner=runner,

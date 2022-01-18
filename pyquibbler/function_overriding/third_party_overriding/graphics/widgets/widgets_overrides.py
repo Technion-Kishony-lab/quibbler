@@ -1,9 +1,9 @@
 import matplotlib.widgets
 
 from pyquibbler.function_overriding.third_party_overriding.graphics.graphics_overriding import GraphicsOverride
-from pyquibbler.quib.function_running.function_runners import RadioButtonsRunner, SliderRunner, \
+from pyquibbler.quib.function_calling.func_calls import RadioButtonsRunner, SliderRunner, \
     RectangleSelectorRunner
-from pyquibbler.quib.function_running.function_runners.known_graphics.widgets.checkbuttons_runner import \
+from pyquibbler.quib.function_calling.func_calls.known_graphics.widgets.checkbuttons_runner import \
     CheckButtonsRunner
 
 

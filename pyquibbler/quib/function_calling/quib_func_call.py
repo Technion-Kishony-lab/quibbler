@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-from abc import abstractmethod, ABC
 from dataclasses import dataclass, field
 from sys import getsizeof
 from time import perf_counter
 from typing import Optional, Type, Tuple, Dict, Any, ClassVar, Set, Mapping, Callable
 
 import numpy as np
-from matplotlib.widgets import AxesWidget
 
 from pyquibbler.path.path_component import Path
 from pyquibbler.cache.cache import Cache
@@ -19,10 +17,10 @@ from pyquibbler.quib.external_call_failed_exception_handling import external_cal
 from pyquibbler.cache.cache_utils import get_uncached_paths_matching_path, \
     _truncate_path_to_match_shallow_caches, _ensure_cache_matches_result, \
     get_cached_data_at_truncated_path_given_result_at_uncached_path
-from pyquibbler.quib.function_running.cache_behavior import CacheBehavior
-from pyquibbler.quib.function_running.exceptions import CannotCalculateShapeException
-from pyquibbler.quib.function_running.result_metadata import ResultMetadata
-from pyquibbler.quib.function_running.utils import cache_method_until_full_invalidation, \
+from pyquibbler.quib.function_calling.cache_behavior import CacheBehavior
+from pyquibbler.quib.function_calling.exceptions import CannotCalculateShapeException
+from pyquibbler.quib.function_calling.result_metadata import ResultMetadata
+from pyquibbler.quib.function_calling.utils import cache_method_until_full_invalidation, \
     create_array_from_func, proxify_args
 from pyquibbler.graphics.graphics_collection import GraphicsCollection
 from pyquibbler.quib.quib import Quib
@@ -35,10 +33,9 @@ from pyquibbler.translation.translate import backwards_translate
 
 
 @dataclass
-class FunctionRunner(ABC):
+class QuibFuncCall(FuncCall):
     DEFAULT_CACHE_BEHAVIOR: ClassVar[CacheBehavior] = CacheBehavior.AUTO
 
-    func_call: FuncCall
     call_func_with_quibs: bool
     graphics_collections: Optional[np.array]
     method_cache: Dict = field(default_factory=dict)
@@ -53,21 +50,10 @@ class FunctionRunner(ABC):
     def __hash__(self):
         return id(self)
 
+    # TODO: Remove
     @classmethod
-    def from_(cls, func_call: FuncCall, call_func_with_quibs: bool, *args, **kwargs):
-        return cls(func_call=func_call, call_func_with_quibs=call_func_with_quibs, *args, **kwargs)
-
-    @property
-    def kwargs(self):
-        return self.func_call.args_values.kwargs
-
-    @property
-    def args(self):
-        return self.func_call.args_values.args
-
-    @property
-    def func(self):
-        return self.func_call.func
+    def from_(cls, *args, **kwargs):
+        return cls.from_function_call(*args, **kwargs)
 
     def flat_graphics_collections(self):
         return list(self.graphics_collections.flat) if self.graphics_collections is not None else []
@@ -88,7 +74,7 @@ class FunctionRunner(ABC):
             self.graphics_collections = create_array_from_func(GraphicsCollection, loop_shape)
 
     def get_cache_behavior(self):
-        if self.func_call.get_func_definition().is_random_func or self.func_can_create_graphics:
+        if self.get_func_definition().is_random_func or self.func_can_create_graphics:
             return CacheBehavior.ON
         return self.default_cache_behavior
 
@@ -151,7 +137,7 @@ class FunctionRunner(ABC):
 
     @property
     def func_can_create_graphics(self):
-        return self.func_call.get_func_definition().is_known_graphics_func or self._did_create_graphics
+        return self.get_func_definition().is_known_graphics_func or self._did_create_graphics
 
     def reset_cache(self):
         self.cache = None
@@ -184,10 +170,10 @@ class FunctionRunner(ABC):
         Backwards translate a path- first attempt without shape + type, and then if G-d's good graces fail us and we
         find we are without the ability to do this, try with shape + type
         """
-        if not get_data_source_quibs(self.func_call):
+        if not get_data_source_quibs(self):
             return {}
 
-        func_call, sources_to_quibs = get_func_call_for_translation(self.func_call)
+        func_call, sources_to_quibs = get_func_call_for_translation(self)
 
         try:
             sources_to_paths = backwards_translate(
@@ -216,10 +202,10 @@ class FunctionRunner(ABC):
         graphics_collection: GraphicsCollection = self.graphics_collections[()]
 
         if self.call_func_with_quibs:
-            args, kwargs, quibs_allowed_to_access = proxify_args(self.func_call.args, self.func_call.kwargs)
+            args, kwargs, quibs_allowed_to_access = proxify_args(self.args, self.kwargs)
         else:
             quibs_to_paths = {} if valid_path is None else self._backwards_translate_path(valid_path)
-            args, kwargs, quibs_allowed_to_access = get_args_and_kwargs_valid_at_quibs_to_paths(self.func_call,
+            args, kwargs, quibs_allowed_to_access = get_args_and_kwargs_valid_at_quibs_to_paths(self,
                                                                                                 quibs_to_paths)
 
         return self._run_single_call(

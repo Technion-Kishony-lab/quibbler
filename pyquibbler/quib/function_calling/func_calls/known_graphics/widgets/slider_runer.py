@@ -1,14 +1,14 @@
 from matplotlib.widgets import Slider
 
 from pyquibbler.graphics.widgets import QSlider
-from pyquibbler.quib.function_running.function_runners.known_graphics.widgets.widget_runner import WidgetRunner
+from pyquibbler.quib.function_calling.func_calls.known_graphics.widgets.widget_runner import WidgetCallQuib
 
 
-class SliderRunner(WidgetRunner):
+class SliderRunner(WidgetCallQuib):
 
     def _on_change_slider(self, new_value):
         from pyquibbler.quib.quib import Quib
-        val = self.func_call.args_values.get('valinit')
+        val = self.args_values.get('valinit')
         if isinstance(val, Quib):
             val.assign_value(new_value)
 

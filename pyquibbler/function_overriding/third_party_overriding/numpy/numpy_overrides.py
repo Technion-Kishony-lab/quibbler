@@ -10,7 +10,7 @@ from pyquibbler.function_overriding.third_party_overriding.numpy.vectorize_overr
     create_vectorize_overrides
 from pyquibbler.inversion import TranspositionalInverter
 from pyquibbler.function_overriding.third_party_overriding.numpy.numpy_override import numpy_override
-from pyquibbler.quib.function_running.function_runners.apply_along_axis_function_runner import ApplyAlongAxisFunctionRunner
+from pyquibbler.quib.function_calling.func_calls.apply_along_axis_function_runner import ApplyAlongAxisQuibFunctionCall
 from pyquibbler.translation.translators import BackwardsTranspositionalTranslator, \
     ForwardsTranspositionalTranslator, AccumulationBackwardsPathTranslator, AccumulationForwardsPathTranslator
 from pyquibbler.translation.translators.apply_along_axis_translator import ApplyAlongAxisForwardsTranslator
@@ -99,7 +99,7 @@ def create_numpy_overrides():
                        function_definition=create_function_definition(
                            data_source_arguments=["arr"],
                            forwards_path_translators=[ApplyAlongAxisForwardsTranslator],
-                           function_runner_cls=ApplyAlongAxisFunctionRunner)
+                           function_runner_cls=ApplyAlongAxisQuibFunctionCall)
                        ),
         *create_vectorize_overrides()
     ]

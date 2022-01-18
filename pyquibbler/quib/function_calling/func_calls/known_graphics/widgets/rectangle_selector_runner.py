@@ -1,10 +1,10 @@
 from pyquibbler.graphics import releasing
 from pyquibbler.graphics.widgets import QRectangleSelector
 from pyquibbler.logger import logger
-from .widget_runner import WidgetRunner
+from .widget_runner import WidgetCallQuib
 
 
-class RectangleSelectorRunner(WidgetRunner):
+class RectangleSelectorRunner(WidgetCallQuib):
     _last_extents_change = None
 
     def _widget_is_attempting_to_resize_when_not_allowed(self, extents):
@@ -14,8 +14,8 @@ class RectangleSelectorRunner(WidgetRunner):
         resize when it should not have been able to
         """
         from pyquibbler.quib import Quib
-        init_val = self.func_call.args_values.get('extents')
-        allow_resize = self.func_call.args_values.get('allow_resize')
+        init_val = self.args_values.get('extents')
+        allow_resize = self.args_values.get('allow_resize')
         if isinstance(init_val, Quib):
             previous_value = init_val.get_value()
         else:
@@ -29,7 +29,7 @@ class RectangleSelectorRunner(WidgetRunner):
 
     def _on_changed(self, extents):
         self._last_extents_change = extents
-        init_val = self.func_call.args_values.get('extents')
+        init_val = self.args_values.get('extents')
 
         from pyquibbler import timer
         with timer("selector_change", lambda x: logger.info(f"selector change {x}")):

@@ -4,10 +4,10 @@ from matplotlib.widgets import AxesWidget
 
 from pyquibbler.graphics.graphics_collection import GraphicsCollection
 from pyquibbler.quib import Quib
-from pyquibbler.quib.function_running import FunctionRunner
+from pyquibbler.quib.function_calling import QuibFuncCall
 
 
-class WidgetRunner(FunctionRunner):
+class WidgetCallQuib(QuibFuncCall):
 
     def _connect_callbacks(self, widget: AxesWidget):
         """
@@ -18,7 +18,7 @@ class WidgetRunner(FunctionRunner):
     def _run_single_call(self, func: Callable, graphics_collection: GraphicsCollection,
                          args: Tuple[Any, ...], kwargs: Mapping[str, Any], quibs_allowed_to_access: Set[Quib]):
         previous_widgets = graphics_collection.widgets
-        res = super(WidgetRunner, self)._run_single_call(func, graphics_collection, args, kwargs, quibs_allowed_to_access)
+        res = super(WidgetCallQuib, self)._run_single_call(func, graphics_collection, args, kwargs, quibs_allowed_to_access)
 
         # We don't want to recreate the widget every time (and re-add callbacks)- if we already had a widget, just
         # return that

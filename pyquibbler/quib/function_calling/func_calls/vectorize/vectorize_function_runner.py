@@ -8,11 +8,11 @@ from pyquibbler.utilities.general_utils import create_empty_array_with_values_at
 from pyquibbler.graphics.utils import remove_created_graphics
 from pyquibbler.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
 from pyquibbler.quib.utils.func_call_utils import get_args_and_kwargs_valid_at_quibs_to_paths
-from pyquibbler.quib.function_running import FunctionRunner
-from pyquibbler.quib.function_running.utils import cache_method_until_full_invalidation
-from pyquibbler.quib.function_running.function_runners.vectorize.utils import alter_signature, copy_vectorize, \
+from pyquibbler.quib.function_calling import QuibFuncCall
+from pyquibbler.quib.function_calling.utils import cache_method_until_full_invalidation
+from pyquibbler.quib.function_calling.func_calls.vectorize.utils import alter_signature, copy_vectorize, \
     get_indices_array, iter_arg_ids_and_values
-from pyquibbler.quib.function_running.function_runners.vectorize.vectorize_metadata \
+from pyquibbler.quib.function_calling.func_calls.vectorize.vectorize_metadata \
     import VectorizeCall, VectorizeMetadata
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.specialized_functions.proxy import create_proxy
@@ -20,7 +20,7 @@ from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals
 from pyquibbler.utils import convert_args_and_kwargs
 
 
-class VectorizeCallFunctionRunner(FunctionRunner):
+class VectorizeQuibFuncCall(QuibFuncCall):
 
     def _wrap_vectorize_call_to_pass_quibs(self, call: VectorizeCall, args_metadata,
                                            results_core_ndims) -> VectorizeCall:
@@ -82,7 +82,7 @@ class VectorizeCallFunctionRunner(FunctionRunner):
             call = self._wrap_vectorize_call_to_pass_quibs(call, args_metadata, results_core_ndims)
         else:
             quibs_to_paths = {} if valid_path is None else self._backwards_translate_path(valid_path)
-            new_args, new_kwargs, quibs_allowed = get_args_and_kwargs_valid_at_quibs_to_paths(self.func_call,
+            new_args, new_kwargs, quibs_allowed = get_args_and_kwargs_valid_at_quibs_to_paths(self,
                                                                                               quibs_to_paths)
             (vectorize, *args), kwargs = new_args, new_kwargs
             call = VectorizeCall(vectorize, args, kwargs, quibs_allowed)
@@ -103,7 +103,8 @@ class VectorizeCallFunctionRunner(FunctionRunner):
         """
         Get and cache metadata for the vectorize call.
         """
-        new_args, new_kwargs, quibs_allowed = get_args_and_kwargs_valid_at_quibs_to_paths(func_call=self.func_call, quibs_to_valid_paths={})
+        new_args, new_kwargs, quibs_allowed = get_args_and_kwargs_valid_at_quibs_to_paths(func_call=self,
+                                                                                          quibs_to_valid_paths={})
         (vectorize, *args), kwargs = new_args, new_kwargs
         return VectorizeCall(vectorize, args, kwargs, quibs_allowed).get_metadata(self._get_sample_result)
 
@@ -154,7 +155,7 @@ class VectorizeCallFunctionRunner(FunctionRunner):
     @cache_method_until_full_invalidation
     def get_result_metadata(self) -> Dict:
         return {
-            **super(VectorizeCallFunctionRunner, self).get_result_metadata(),
+            **super(VectorizeQuibFuncCall, self).get_result_metadata(),
             "vectorize_metadata": self._vectorize_metadata
         }
 

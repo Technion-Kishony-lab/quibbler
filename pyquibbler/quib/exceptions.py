@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Callable, Dict, Set, Any
 
 from pyquibbler.exceptions import PyQuibblerException, DebugException
-from pyquibbler.quib.function_running.cache_behavior import CacheBehavior
+from pyquibbler.quib.function_calling.cache_behavior import CacheBehavior
 
 if TYPE_CHECKING:
     from pyquibbler.quib.quib import Quib

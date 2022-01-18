@@ -8,13 +8,13 @@ from pyquibbler.translation.backwards_path_translator import BackwardsPathTransl
 from pyquibbler.translation.forwards_path_translator import ForwardsPathTranslator
 
 if TYPE_CHECKING:
-    from pyquibbler.quib.function_running import FunctionRunner
+    from pyquibbler.quib.function_calling import QuibFuncCall
     from pyquibbler.inversion.inverter import Inverter
 
 
 def get_function_runner():
-    from pyquibbler.quib.function_running import FunctionRunner
-    return FunctionRunner
+    from pyquibbler.quib.function_calling import QuibFuncCall
+    return QuibFuncCall
 
 
 @dataclass
@@ -32,7 +32,7 @@ class FunctionDefinition:
     inverters: List[Type[Inverter]] = field(default_factory=list)
     backwards_path_translators: List[Type[BackwardsPathTranslator]] = field(default_factory=list)
     forwards_path_translators: List[Type[ForwardsPathTranslator]] = field(default_factory=list)
-    function_runner_cls: Type[FunctionRunner] = field(default_factory=get_function_runner)
+    function_runner_cls: Type[QuibFuncCall] = field(default_factory=get_function_runner)
 
     def get_data_source_argument_values(self, args_values: ArgsValues):
         return [
@@ -49,14 +49,14 @@ def create_function_definition(data_source_arguments: List[Union[str, int]] = No
                                inverters: List[Type[Inverter]] = None,
                                backwards_path_translators: List[Type[BackwardsPathTranslator]] = None,
                                forwards_path_translators: List[Type[ForwardsPathTranslator]] = None,
-                               function_runner_cls: Type[FunctionRunner] = None
+                               function_runner_cls: Type[QuibFuncCall] = None
                                ):
     """
     Create a definition for a function- this will allow quibbler to utilize Quibs with the function in a more
     specific manner (and not just use default behavior), for whichever parameters you give.
     """
-    from pyquibbler.quib.function_running import FunctionRunner
-    function_runner_cls = function_runner_cls or FunctionRunner
+    from pyquibbler.quib.function_calling import QuibFuncCall
+    function_runner_cls = function_runner_cls or QuibFuncCall
     data_source_arguments = data_source_arguments or set()
     raw_data_source_arguments = {
         PositionalArgument(data_source_argument)

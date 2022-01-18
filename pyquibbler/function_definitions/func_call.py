@@ -1,7 +1,10 @@
 from __future__ import annotations
+
+from abc import abstractmethod, ABC
 from dataclasses import dataclass
 from typing import Tuple, Any, Mapping, Optional, Callable, List, TYPE_CHECKING
 
+from pyquibbler.path import Path
 from pyquibbler.quib.external_call_failed_exception_handling import \
     external_call_failed_exception_handling
 from pyquibbler.utilities.iterators import iter_args_and_names_in_function_call
@@ -59,13 +62,18 @@ class ArgsValues:
 
 
 @dataclass
-class FuncCall:
+class FuncCall(ABC):
     args_values: ArgsValues
     func: Callable
 
     @classmethod
-    def from_function_call(cls, func: Callable, args: Tuple[Any, ...], kwargs: Mapping[str, Any], include_defaults):
-        return cls(args_values=ArgsValues.from_function_call(func, args, kwargs, include_defaults), func=func)
+    def from_function_call(cls, func: Callable,
+                           func_args: Tuple[Any, ...],
+                           func_kwargs: Mapping[str, Any],
+                           include_defaults: bool = False,
+                           *args, **kwargs):
+        return cls(args_values=ArgsValues.from_function_call(func, func_args, func_kwargs, include_defaults), func=func,
+                   *args, **kwargs)
 
     def get_func_definition(self) -> FunctionDefinition:
         from pyquibbler.function_definitions import get_definition_for_function
@@ -81,3 +89,7 @@ class FuncCall:
 
     def get_data_source_argument_values(self) -> List[Any]:
         return self.get_func_definition().get_data_source_argument_values(self.args_values)
+
+    @abstractmethod
+    def get_value_valid_at_path(self, path: Path):
+        pass

@@ -8,7 +8,7 @@ from pyquibbler.function_definitions.function_definition import create_function_
 from pyquibbler.path.path_component import Path
 from pyquibbler.project import Project
 from pyquibbler.quib.factory import create_quib
-from pyquibbler.quib.function_running.cache_behavior import CacheBehavior
+from pyquibbler.quib.function_calling.cache_behavior import CacheBehavior
 from pyquibbler.quib.utils.miscellaneous import is_there_a_quib_in_object
 from pyquibbler.quib.quib import Quib
 

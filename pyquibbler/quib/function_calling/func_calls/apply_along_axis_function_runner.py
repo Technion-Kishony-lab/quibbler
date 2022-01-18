@@ -12,12 +12,12 @@ from pyquibbler.utilities.general_utils import create_empty_array_with_values_at
 from pyquibbler.function_definitions.func_call import ArgsValues
 from pyquibbler.graphics.utils import remove_created_graphics
 from pyquibbler.quib.utils.func_call_utils import get_args_and_kwargs_valid_at_quibs_to_paths
-from pyquibbler.quib.function_running import FunctionRunner
-from pyquibbler.quib.function_running.utils import cache_method_until_full_invalidation
+from pyquibbler.quib.function_calling import QuibFuncCall
+from pyquibbler.quib.function_calling.utils import cache_method_until_full_invalidation
 from pyquibbler.quib.quib import Quib
 
 
-class ApplyAlongAxisFunctionRunner(FunctionRunner):
+class ApplyAlongAxisQuibFunctionCall(QuibFuncCall):
 
     def _run_func1d(self, arr: np.ndarray, *args, **kwargs) -> Any:
         """
@@ -30,7 +30,7 @@ class ApplyAlongAxisFunctionRunner(FunctionRunner):
 
     # TODO: Move
     def get_args_values(self):
-        return self.func_call.args_values
+        return self.args_values
 
     @cache_method_until_full_invalidation
     def _get_sample_result(self) -> Any:
@@ -47,7 +47,7 @@ class ApplyAlongAxisFunctionRunner(FunctionRunner):
             input_array = self.arr.get_value_valid_at_path([PathComponent(component=item, indexed_cls=np.ndarray)])
 
         oned_slice = input_array[item]
-        new_args, new_kwargs, quibs_allowed = get_args_and_kwargs_valid_at_quibs_to_paths(self.func_call,
+        new_args, new_kwargs, quibs_allowed = get_args_and_kwargs_valid_at_quibs_to_paths(self,
                                                                                           quibs_to_valid_paths={})
 
         args_values = ArgsValues.from_function_call(func=self.func, args=new_args, kwargs=new_kwargs,
