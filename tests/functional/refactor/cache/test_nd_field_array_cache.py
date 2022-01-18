@@ -2,10 +2,10 @@ import numpy as np
 import pytest
 from numpy.lib.recfunctions import structured_to_unstructured
 
-from pyquibbler.refactor.path import PathComponent
-from pyquibbler.refactor.path.data_accessing import deep_assign_data_in_path
-from pyquibbler.refactor.cache.cache import CacheStatus
-from pyquibbler.refactor.cache.shallow.nd_cache import NdFieldArrayShallowCache
+from pyquibbler.path import PathComponent
+from pyquibbler.path.data_accessing import deep_assign_data_in_path
+from pyquibbler.cache.cache import CacheStatus
+from pyquibbler.cache.shallow.nd_cache import NdFieldArrayShallowCache
 from tests.functional.quib.function_quibs.cache.cache_test import IndexableCacheTest
 
 

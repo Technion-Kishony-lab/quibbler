@@ -1,13 +1,12 @@
 from unittest import mock
 
-import numpy as np
 import pytest
 
 from pyquibbler import CacheBehavior
-from pyquibbler.refactor.cache.cache import CacheStatus
-from pyquibbler.refactor.function_definitions import add_definition_for_function
-from pyquibbler.refactor.function_definitions.function_definition import create_function_definition
-from pyquibbler.refactor.quib.factory import create_quib
+from pyquibbler.cache.cache import CacheStatus
+from pyquibbler.function_definitions import add_definition_for_function
+from pyquibbler.function_definitions.function_definition import create_function_definition
+from pyquibbler.quib.factory import create_quib
 
 
 def test_quib_invalidate_and_redraw_calls_children_with_graphics(quib, graphics_quib):

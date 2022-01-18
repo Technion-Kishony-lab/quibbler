@@ -2,7 +2,7 @@ from unittest import mock
 
 import pytest
 
-from pyquibbler.refactor.quib.quib import Quib
+from pyquibbler.quib.quib import Quib
 
 
 @pytest.fixture()

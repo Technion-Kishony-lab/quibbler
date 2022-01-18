@@ -2,7 +2,7 @@ from unittest import mock
 
 import pytest
 
-from pyquibbler.refactor.cache.holistic_cache import HolisticCache, PathCannotHaveComponentsException
+from pyquibbler.cache.holistic_cache import HolisticCache, PathCannotHaveComponentsException
 from tests.functional.quib.function_quibs.cache.cache_test import CacheTest
 
 

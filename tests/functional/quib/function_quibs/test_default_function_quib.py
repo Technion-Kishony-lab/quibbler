@@ -5,10 +5,10 @@ import pytest
 from pytest import fixture, mark
 
 from pyquibbler import iquib, CacheBehavior
-from pyquibbler.refactor.utilities.input_validation_utils import InvalidArgumentException
+from pyquibbler.utilities.input_validation_utils import InvalidArgumentException
 from pyquibbler.quib import DefaultFunctionQuib
 from pyquibbler.quib.assignment.assignment import PathComponent
-from pyquibbler.refactor.cache.cache import CacheStatus
+from pyquibbler.cache.cache import CacheStatus
 
 
 @fixture

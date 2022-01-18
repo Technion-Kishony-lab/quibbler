@@ -3,11 +3,11 @@ from unittest import mock
 import numpy as np
 import pytest
 
-from pyquibbler.refactor.utilities.input_validation_utils import InvalidArgumentException
-from pyquibbler.refactor.assignment import InvalidTypeException, BoundAssignmentTemplate, RangeAssignmentTemplate
-from pyquibbler.refactor.path.data_accessing import FailedToDeepAssignException
-from pyquibbler.refactor.quib.exceptions import OverridingNotAllowedException
-from pyquibbler.refactor.quib.factory import create_quib
+from pyquibbler.utilities.input_validation_utils import InvalidArgumentException
+from pyquibbler.assignment import InvalidTypeException, BoundAssignmentTemplate, RangeAssignmentTemplate
+from pyquibbler.path.data_accessing import FailedToDeepAssignException
+from pyquibbler.quib.exceptions import OverridingNotAllowedException
+from pyquibbler.quib.factory import create_quib
 from tests.functional.quib.utils import get_mock_with_repr, slicer
 
 

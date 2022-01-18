@@ -4,18 +4,18 @@ from unittest.mock import Mock
 from pytest import raises, fixture, mark
 
 from pyquibbler import iquib, q, Assignment
-from pyquibbler.refactor.assignment import AssignmentToQuib, Override
-from pyquibbler.refactor.assignment.override_choice import get_override_group_for_change, OverrideChoice, OverrideGroup, \
+from pyquibbler.assignment import AssignmentToQuib, Override
+from pyquibbler.assignment import get_override_group_for_change, OverrideChoice, OverrideGroup, \
     OverrideRemoval
-from pyquibbler.refactor.assignment.override_choice.override_choice import OverrideOptionsTree, \
+from pyquibbler.assignment import OverrideOptionsTree, \
     CannotChangeQuibAtPathException
-from pyquibbler.refactor.assignment.override_choice.override_dialog import OverrideChoiceType, \
+from pyquibbler.assignment import OverrideChoiceType, \
     AssignmentCancelledByUserException
-from pyquibbler.refactor.assignment.override_choice import override_choice as override_choice_module
-from pyquibbler.refactor.path import PathComponent
-from pyquibbler.refactor.quib import Quib
-from pyquibbler.refactor.quib.factory import create_quib
-from pyquibbler.refactor.quib.specialized_functions.proxy import create_proxy
+from pyquibbler.assignment import override_choice as override_choice_module
+from pyquibbler.path import PathComponent
+from pyquibbler.quib import Quib
+from pyquibbler.quib.factory import create_quib
+from pyquibbler.quib.specialized_functions.proxy import create_proxy
 
 
 def get_overrides_for_assignment(quib, assignment):

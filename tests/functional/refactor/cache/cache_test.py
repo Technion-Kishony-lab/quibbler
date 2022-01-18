@@ -4,11 +4,11 @@ from copy import copy
 import numpy as np
 import pytest
 
-from pyquibbler.refactor.path import PathComponent
-from pyquibbler.refactor.cache.cache import CacheStatus
-from pyquibbler.refactor.cache.shallow.shallow_cache import CannotInvalidateEntireCacheException
-from pyquibbler.refactor.path.data_accessing import deep_get
-from pyquibbler.refactor.quib.utils.miscellaneous import deep_copy_without_quibs_or_graphics
+from pyquibbler.path import PathComponent
+from pyquibbler.cache.cache import CacheStatus
+from pyquibbler.cache.shallow.shallow_cache import CannotInvalidateEntireCacheException
+from pyquibbler.path.data_accessing import deep_get
+from pyquibbler.quib.utils.miscellaneous import deep_copy_without_quibs_or_graphics
 
 
 class CacheTest(ABC):

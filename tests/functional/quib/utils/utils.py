@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from typing import List
 
 from pyquibbler.quib import Quib
-from pyquibbler.quib.assignment import PathComponent
+from pyquibbler.path import PathComponent
 
 
 def get_mock_with_repr(repr_value: str):

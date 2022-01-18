@@ -13,7 +13,7 @@ from pyquibbler.quib.assignment.override_choice import override_choice as overri
 from pyquibbler.quib.assignment.override_choice import OverrideOptionsTree
 from pyquibbler.quib.assignment.override_choice import OverrideChoice, OverrideChoiceType, \
     AssignmentCancelledByUserException
-from pyquibbler.refactor.path import PathComponent
+from pyquibbler.path import PathComponent
 
 
 def get_overrides_for_assignment(quib, assignment):

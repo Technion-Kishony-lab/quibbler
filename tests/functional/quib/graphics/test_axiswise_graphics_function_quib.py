@@ -2,7 +2,7 @@ import numpy as np
 from pytest import mark
 
 from pyquibbler import CacheBehavior
-from pyquibbler.quib.assignment import PathComponent
+from pyquibbler.path import PathComponent
 
 from ..utils import check_invalidation, check_get_value_valid_at_path, MockQuib
 

@@ -4,29 +4,11 @@ from copy import deepcopy
 from typing import Any, Optional, List
 
 from pyquibbler import Assignment
-from pyquibbler.quib.assignment import PathComponent
-from pyquibbler.quib.assignment.overrider import deep_get, deep_assign_data_in_path
-from pyquibbler.quib.input_quib import InputQuib
-from pyquibbler.quib.function_quibs.function_quib import CacheBehavior
+from pyquibbler.path import PathComponent
 
 from .utils import PathBuilder
 
-
-class MockQuib(InputQuib):
-    def __init__(self, value: Any):
-        super().__init__(value)
-        self._valid_paths = []
-
-    def get_value_valid_at_path(self, path: Optional[List[PathComponent]]) -> Any:
-        if path is not None:
-            self._valid_paths.append(path)
-        return super().get_value_valid_at_path(path)
-
-    @contextmanager
-    def collect_valid_paths(self):
-        self._valid_paths.clear()
-        yield self._valid_paths
-        self._valid_paths = []
+MockQuib = None
 
 
 def get_indices_at_path(shape, path):

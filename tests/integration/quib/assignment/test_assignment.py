@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from pyquibbler import iquib
-from pyquibbler.quib.assignment import PathComponent
+from pyquibbler.path import PathComponent
 from pyquibbler.quib.assignment.assignment import get_hashable_path
 
 

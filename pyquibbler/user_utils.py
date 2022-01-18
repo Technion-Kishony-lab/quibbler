@@ -1,34 +1,8 @@
-import numpy as np
 from pathlib import Path
 from typing import Union
 
-from pyquibbler.refactor.utilities.input_validation_utils import validate_user_input
-from pyquibbler.refactor.project import Project
-from pyquibbler.quib import GraphicsFunctionQuib, ElementWiseFunctionQuib
-
-from pyquibbler.quib import Quib
-
-DEFAULT_QUIB_TYPES = {
-    np.ndarray.astype: ElementWiseFunctionQuib
-}
-
-
-def q(func, *args, **kwargs) -> Quib:
-    """
-    Creates a function quib from the given function call.
-    """
-    # In case the given function is already a wrapper for a specific quib type, we use it.
-    quib_type = getattr(func, '__quib_wrapper__', DEFAULT_QUIB_TYPES.get(func, GraphicsFunctionQuib))
-    return quib_type.create(func=func, func_args=args, func_kwargs=kwargs, evaluate_now=False)
-
-
-def q_eager(func, *args, **kwargs) -> Quib:
-    """
-    Creates a graphical function quib from the given function call.
-    """
-    # In case the given function is already a wrapper for a specific quib type, we use it.
-    quib_type = getattr(func, '__quib_wrapper__', DEFAULT_QUIB_TYPES.get(func, GraphicsFunctionQuib))
-    return quib_type.create(func=func, func_args=args, func_kwargs=kwargs, evaluate_now=True)
+from pyquibbler.utilities.input_validation_utils import validate_user_input
+from pyquibbler.project import Project
 
 
 def reset_impure_function_quibs() -> None:

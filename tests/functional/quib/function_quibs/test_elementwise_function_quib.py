@@ -5,7 +5,7 @@ from pytest import mark
 from pyquibbler import iquib
 from pyquibbler.quib import ElementWiseFunctionQuib, Quib
 from pyquibbler.quib.assignment.assignment import PathComponent
-from pyquibbler.refactor.cache.cache import CacheStatus
+from pyquibbler.cache.cache import CacheStatus
 
 from ..utils import PathBuilder, check_get_value_valid_at_path
 

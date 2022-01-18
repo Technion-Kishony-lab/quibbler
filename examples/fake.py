@@ -2,7 +2,7 @@ import matplotlib
 from matplotlib import widgets, pyplot as plt
 
 from pyquibbler import iquib
-from pyquibbler.refactor.function_definitions import override_all
+from pyquibbler.function_definitions import override_all
 
 override_all()
 matplotlib.use("TkAgg")

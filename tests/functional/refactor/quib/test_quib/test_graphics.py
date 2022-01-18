@@ -1,15 +1,14 @@
 from unittest import mock
 
 import pytest
-from matplotlib.artist import Artist
 from matplotlib.axes import Axes
 
-from pyquibbler.refactor.function_definitions import add_definition_for_function
-from pyquibbler.refactor.function_definitions.function_definition import create_function_definition
-from pyquibbler.refactor.graphics import global_collecting, dragging
-from pyquibbler.refactor.path import PathComponent
-from pyquibbler.refactor.quib.factory import create_quib
-from pyquibbler.refactor.quib.graphics import UpdateType
+from pyquibbler.function_definitions import add_definition_for_function
+from pyquibbler.function_definitions.function_definition import create_function_definition
+from pyquibbler.graphics import dragging
+from pyquibbler.path import PathComponent
+from pyquibbler.quib.factory import create_quib
+from pyquibbler.quib.graphics import UpdateType
 
 
 @pytest.fixture()

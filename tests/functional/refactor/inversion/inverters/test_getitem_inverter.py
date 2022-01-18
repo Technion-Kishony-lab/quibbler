@@ -5,8 +5,8 @@ from unittest import mock
 import numpy as np
 import pytest
 
-from pyquibbler.refactor.quib.quib import Quib
-from pyquibbler.refactor.translation.types import Source
+from pyquibbler.quib.quib import Quib
+from pyquibbler.translation.types import Source
 from tests.functional.refactor.inversion.inverters.utils import inverse
 
 

@@ -2,10 +2,11 @@ from collections import defaultdict
 from typing import Any, List, Tuple
 from matplotlib.backend_bases import PickEvent, MouseEvent, MouseButton
 
+from pyquibbler.assignment.override_choice import get_overrides_for_quib_change_group
+from pyquibbler.path import PathComponent
+from pyquibbler.assignment import AssignmentToQuib, Assignment
 from .graphics_inverse_assigner import graphics_inverse_assigner
-from ...assignment import Assignment, AssignmentToQuib, PathComponent
-from pyquibbler.quib.assignment.override_choice import OverrideRemoval, OverrideGroup
-from pyquibbler.quib.assignment.override_choice.override_choice import get_overrides_for_quib_change_group
+from pyquibbler.assignment import OverrideRemoval, OverrideGroup
 
 
 def get_xdata_arg_indices_and_ydata_arg_indices(args: Tuple[List, List]):

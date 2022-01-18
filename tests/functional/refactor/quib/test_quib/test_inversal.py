@@ -5,7 +5,7 @@ import numpy as np
 # should be here
 import pytest
 
-from pyquibbler.refactor.quib.quib import Quib
+from pyquibbler.quib.quib import Quib
 
 
 def test_quib_inverse_getitem(create_quib_with_return_value):

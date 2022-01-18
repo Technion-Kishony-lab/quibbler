@@ -6,10 +6,10 @@ import pytest
 from matplotlib import pyplot as plt
 
 from pyquibbler import CacheBehavior, iquib, Assignment
-from pyquibbler.refactor.env import GRAPHICS_EVALUATE_NOW
-from pyquibbler.refactor.assignment import AssignmentToQuib, Override
-from pyquibbler.refactor.path.path_component import PathComponent
-from pyquibbler.refactor.assignment.override_choice import get_override_group_for_change
+from pyquibbler.env import GRAPHICS_EVALUATE_NOW
+from pyquibbler.assignment import AssignmentToQuib, Override
+from pyquibbler.path.path_component import PathComponent
+from pyquibbler.assignment import get_override_group_for_change
 from tests.functional.quib.utils import PathBuilder, get_func_mock
 from tests.functional.refactor.quib.test_quib.get_value.test_apply_along_axis import parametrize_data
 from tests.functional.refactor.quib.test_quib.get_value.utils import check_get_value_valid_at_path, collecting_quib

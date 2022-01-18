@@ -3,7 +3,7 @@ from math import trunc, floor, ceil
 
 import pytest
 
-from pyquibbler.refactor.function_overriding.inner.operator_overrides import get_arithmetic_definitions, get_unary_definitions
+from pyquibbler.function_overriding.inner.operator_overrides import get_arithmetic_definitions, get_unary_definitions
 
 
 @pytest.mark.parametrize(['val1', 'val2'], [

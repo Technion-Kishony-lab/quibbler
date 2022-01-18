@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from pyquibbler.refactor.path import PathComponent
+from pyquibbler.path import PathComponent
 from tests.functional.refactor.quib.test_quib.get_value.test_apply_along_axis import parametrize_data
 from tests.functional.refactor.quib.test_quib.get_value.utils import check_get_value_valid_at_path
 

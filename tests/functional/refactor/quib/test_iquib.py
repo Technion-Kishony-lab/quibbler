@@ -5,9 +5,9 @@ from unittest import mock
 import numpy as np
 import pytest
 
-from pyquibbler.refactor.env import GET_VARIABLE_NAMES
-from pyquibbler.refactor.quib.exceptions import CannotSaveAsTextException
-from pyquibbler.refactor.quib.specialized_functions.iquib import iquib, CannotNestQuibInIQuibException
+from pyquibbler.env import GET_VARIABLE_NAMES
+from pyquibbler.quib.exceptions import CannotSaveAsTextException
+from pyquibbler.quib.specialized_functions.iquib import iquib, CannotNestQuibInIQuibException
 
 
 def test_iquib_get_value_returns_argument():

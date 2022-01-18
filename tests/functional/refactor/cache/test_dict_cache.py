@@ -2,10 +2,10 @@ from unittest import mock
 
 import pytest
 
-from pyquibbler.refactor.path import PathComponent
-from pyquibbler.refactor.cache.cache import CacheStatus
-from pyquibbler.refactor.cache.shallow import DictCache
-from tests.functional.quib.function_quibs.cache.cache_test import IndexableCacheTest
+from pyquibbler.path import PathComponent
+from pyquibbler.cache.cache import CacheStatus
+from pyquibbler.cache.shallow import DictCache
+from tests.functional.refactor.cache.cache_test import IndexableCacheTest
 
 
 class TestDictCache(IndexableCacheTest):

@@ -4,9 +4,9 @@ from pytest import mark, fixture, raises
 from unittest.mock import Mock
 from functools import partial
 
-from pyquibbler.refactor.env import GRAPHICS_EVALUATE_NOW, PRETTY_REPR
+from pyquibbler.env import GRAPHICS_EVALUATE_NOW, PRETTY_REPR
 from pyquibbler.quib import iquib, CacheBehavior, ProxyQuib, get_override_group_for_change
-from pyquibbler.quib.assignment import PathComponent, AssignmentToQuib, Assignment, Override
+from pyquibbler.path import PathComponent, AssignmentToQuib, Assignment, Override
 
 from ...utils import check_invalidation, check_get_value_valid_at_path, MockQuib, PathBuilder, get_func_mock
 

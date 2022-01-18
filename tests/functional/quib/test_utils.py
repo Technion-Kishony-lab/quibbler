@@ -7,7 +7,7 @@ from pyquibbler.quib import Quib, utils
 from pyquibbler.quib.utils import is_iterator_empty, iter_objects_of_type_in_object_recursively, \
     call_func_with_quib_values, iter_quibs_in_args, is_there_a_quib_in_args, NestedQuibException, \
     copy_and_replace_quibs_with_vals, iter_quibs_in_object, FunctionCalledWithNestedQuibException, Unpacker
-from pyquibbler.refactor.quib.quib_ref import QuibRef
+from pyquibbler.quib.quib_ref import QuibRef
 
 from .utils import slicer
 

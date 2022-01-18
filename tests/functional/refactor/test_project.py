@@ -4,12 +4,11 @@ from unittest import mock
 import pytest
 
 from pyquibbler import iquib, Assignment
-from pyquibbler.refactor.assignment.override_choice import OverrideGroup
-from pyquibbler.refactor.function_definitions import add_definition_for_function
-from pyquibbler.refactor.function_definitions.function_definition import create_function_definition
-from pyquibbler.refactor.graphics import dragging
-from pyquibbler.refactor.project.project import Project, NothingToUndoException, NothingToRedoException
-from pyquibbler.refactor.quib.factory import create_quib
+from pyquibbler.function_definitions import add_definition_for_function
+from pyquibbler.function_definitions.function_definition import create_function_definition
+from pyquibbler.graphics import dragging
+from pyquibbler.project import Project, NothingToUndoException, NothingToRedoException
+from pyquibbler.quib.factory import create_quib
 
 
 def test_get_or_create_only_creates_one_instance():

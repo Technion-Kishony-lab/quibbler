@@ -2,8 +2,8 @@ from unittest import mock
 
 import pytest
 
-from pyquibbler.refactor.utilities.input_validation_utils import InvalidArgumentException
-from pyquibbler.refactor.quib.factory import create_quib
+from pyquibbler.utilities.input_validation_utils import InvalidArgumentException
+from pyquibbler.quib.factory import create_quib
 
 
 @pytest.mark.get_variable_names(True)

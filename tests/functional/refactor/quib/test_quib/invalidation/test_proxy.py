@@ -1,6 +1,6 @@
 from pyquibbler import iquib
-from pyquibbler.refactor.cache.cache import CacheStatus
-from pyquibbler.refactor.quib.specialized_functions.proxy import create_proxy
+from pyquibbler.cache.cache import CacheStatus
+from pyquibbler.quib.specialized_functions.proxy import create_proxy
 
 
 def test_proxy_never_invalidates():

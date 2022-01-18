@@ -4,9 +4,9 @@ import numpy as np
 import pytest
 
 from pyquibbler import iquib
-from pyquibbler.refactor.quib.factory import create_quib
-from pyquibbler.refactor.quib.quib import Quib
-from pyquibbler.refactor.path.path_component import PathComponent
+from pyquibbler.quib.factory import create_quib
+from pyquibbler.quib.quib import Quib
+from pyquibbler.path.path_component import PathComponent
 from tests.functional.refactor.quib.test_quib.get_value.utils import check_get_value_valid_at_path
 
 

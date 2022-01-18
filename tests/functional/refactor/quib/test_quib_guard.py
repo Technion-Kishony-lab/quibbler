@@ -1,7 +1,7 @@
 import pytest
 
 from pyquibbler import iquib
-from pyquibbler.refactor.quib.quib_guard import CannotAccessQuibInScopeException, QuibGuard
+from pyquibbler.quib.quib_guard import CannotAccessQuibInScopeException, QuibGuard
 
 
 def test_doesnt_allow_global_access():

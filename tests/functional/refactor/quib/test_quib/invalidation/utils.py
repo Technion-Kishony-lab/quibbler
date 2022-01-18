@@ -4,7 +4,7 @@ from functools import reduce
 from typing import Set
 
 from pyquibbler import iquib, CacheBehavior
-from pyquibbler.refactor.quib.quib import Quib, CacheStatus
+from pyquibbler.quib.quib import Quib, CacheStatus
 
 
 def breakdown_quib(quib: Quib) -> Set[Quib]:

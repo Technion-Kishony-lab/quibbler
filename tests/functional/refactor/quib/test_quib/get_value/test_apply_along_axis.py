@@ -1,10 +1,10 @@
 import itertools
 
 from pyquibbler import iquib
-from pyquibbler.refactor.env import GRAPHICS_EVALUATE_NOW
-from pyquibbler.refactor.path import PathComponent
-from pyquibbler.refactor.path.data_accessing import deep_get
-from pyquibbler.refactor.quib.quib import Quib
+from pyquibbler.env import GRAPHICS_EVALUATE_NOW
+from pyquibbler.path import PathComponent
+from pyquibbler.path.data_accessing import deep_get
+from pyquibbler.quib.quib import Quib
 from tests.functional.quib.utils import get_func_mock
 from tests.functional.refactor.quib.test_quib.get_value.utils import check_get_value_valid_at_path
 import numpy as np

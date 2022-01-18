@@ -4,8 +4,8 @@ import numpy as np
 import pytest
 
 from pyquibbler import iquib
-from pyquibbler.refactor.cache.cache import CacheStatus
-from pyquibbler.refactor.quib.factory import create_quib
+from pyquibbler.cache.cache import CacheStatus
+from pyquibbler.quib.factory import create_quib
 from tests.functional.quib.utils import PathBuilder
 from tests.functional.refactor.quib.test_quib.invalidation.utils import check_invalidation
 

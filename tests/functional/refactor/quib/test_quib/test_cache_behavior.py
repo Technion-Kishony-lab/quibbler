@@ -2,12 +2,12 @@ from unittest import mock
 
 import pytest
 
-from pyquibbler.refactor.function_definitions import add_definition_for_function
-from pyquibbler.refactor.function_definitions.function_definition import FunctionDefinition
-from pyquibbler.refactor.utilities.input_validation_utils import InvalidArgumentException
-from pyquibbler.refactor.quib.function_running.cache_behavior import CacheBehavior, UnknownCacheBehaviorException
-from pyquibbler.refactor.quib.exceptions import InvalidCacheBehaviorForQuibException
-from pyquibbler.refactor.quib.factory import create_quib
+from pyquibbler.function_definitions import add_definition_for_function
+from pyquibbler.function_definitions.function_definition import FunctionDefinition
+from pyquibbler.utilities.input_validation_utils import InvalidArgumentException
+from pyquibbler.quib.function_running.cache_behavior import CacheBehavior, UnknownCacheBehaviorException
+from pyquibbler.quib.exceptions import InvalidCacheBehaviorForQuibException
+from pyquibbler.quib.factory import create_quib
 
 
 def test_quib_set_cache_behaviour_forces_correct_type(quib):

@@ -3,7 +3,7 @@ from unittest import mock
 
 import pytest
 
-from pyquibbler.refactor.utilities.performance_utils import timer, get_timer, Timer, TimerNotFoundException
+from pyquibbler.utilities.performance_utils import timer, get_timer, Timer, TimerNotFoundException
 
 
 @pytest.fixture

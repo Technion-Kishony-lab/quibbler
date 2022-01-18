@@ -3,12 +3,11 @@ from unittest import mock
 import pytest
 from matplotlib.artist import Artist
 
-from pyquibbler.refactor.function_definitions import add_definition_for_function
-from pyquibbler.refactor.function_definitions.function_definition import create_function_definition
-from pyquibbler.refactor.function_overriding import override_all
-from pyquibbler.refactor.graphics.global_collecting import overridden_graphics_function
-from pyquibbler.refactor.quib.factory import create_quib
-from pyquibbler.refactor.quib.quib import Quib
+from pyquibbler.function_definitions import add_definition_for_function
+from pyquibbler.function_definitions.function_definition import create_function_definition
+from pyquibbler.graphics.global_collecting import overridden_graphics_function
+from pyquibbler.quib.factory import create_quib
+from pyquibbler.quib.quib import Quib
 
 
 @pytest.fixture

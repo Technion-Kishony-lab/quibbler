@@ -5,11 +5,11 @@ import pytest
 from pytest import fixture
 
 from pyquibbler import CacheBehavior
-from pyquibbler.refactor.env import DEBUG, EVALUATE_NOW, ASSIGNMENT_RESTRICTIONS, PRETTY_REPR, \
+from pyquibbler.env import DEBUG, EVALUATE_NOW, ASSIGNMENT_RESTRICTIONS, PRETTY_REPR, \
     SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS, GET_VARIABLE_NAMES
-from pyquibbler.refactor.project import Project
-from pyquibbler.refactor.function_overriding import override_all
-from pyquibbler.refactor.quib.function_running import FunctionRunner
+from pyquibbler.project import Project
+from pyquibbler.function_overriding import override_all
+from pyquibbler.quib.function_running import FunctionRunner
 from pyquibbler.utils import Flag
 
 DEFAULT_DEBUG = True

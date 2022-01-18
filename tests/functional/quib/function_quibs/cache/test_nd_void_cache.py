@@ -1,10 +1,10 @@
 import numpy as np
 import pytest
 
-from pyquibbler.quib.assignment import PathComponent
+from pyquibbler.path import PathComponent
 from pyquibbler.quib.assignment.utils import deep_assign_data_in_path
-from pyquibbler.refactor.cache.cache import CacheStatus
-from pyquibbler.refactor.cache.shallow.nd_cache.nd_void_cache import NdVoidCache
+from pyquibbler.cache.cache import CacheStatus
+from pyquibbler.cache.shallow.nd_cache.nd_void_cache import NdVoidCache
 from tests.functional.quib.function_quibs.cache.cache_test import IndexableCacheTest
 
 

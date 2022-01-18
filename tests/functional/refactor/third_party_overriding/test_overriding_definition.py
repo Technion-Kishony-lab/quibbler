@@ -1,7 +1,7 @@
 import pytest
 
-from pyquibbler.refactor.env import EVALUATE_NOW
-from pyquibbler.refactor.function_overriding.function_override import FunctionOverride
+from pyquibbler.env import EVALUATE_NOW
+from pyquibbler.function_overriding.function_override import FunctionOverride
 
 
 @pytest.fixture(autouse=True)

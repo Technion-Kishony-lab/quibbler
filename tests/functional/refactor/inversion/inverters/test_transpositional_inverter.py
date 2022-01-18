@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from pyquibbler.refactor.translation.types import Source
+from pyquibbler.translation.types import Source
 from tests.functional.refactor.inversion.inverters.utils import inverse
 
 

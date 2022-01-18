@@ -2,7 +2,7 @@ from typing import Callable, Dict
 from unittest.mock import Mock
 from pytest import fixture, mark, raises
 
-from pyquibbler.refactor.assignment.override_choice import override_dialog, AssignmentCancelledByUserException
+from pyquibbler.assignment import override_dialog, AssignmentCancelledByUserException
 
 
 @fixture

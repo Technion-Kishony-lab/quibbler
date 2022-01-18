@@ -4,8 +4,8 @@ from unittest import mock
 import numpy as np
 import pytest
 
-from pyquibbler.refactor.utilities.input_validation_utils import InvalidArgumentException
-from pyquibbler.refactor.quib.factory import create_quib
+from pyquibbler.utilities.input_validation_utils import InvalidArgumentException
+from pyquibbler.quib.factory import create_quib
 
 
 def test_quib_get_shape():
