@@ -5,7 +5,7 @@ from pyquibbler.assignment import AssignmentToQuib
 from pyquibbler.assignment import AssignmentCancelledByUserException
 
 if TYPE_CHECKING:
-    from pyquibbler.quib.graphics import GraphicsFunctionQuib
+    from pyquibbler.quib.graphics import GraphicsFuncQuib
 
 GRAPHICS_REVERSE_ASSIGNERS = {}
 
@@ -15,7 +15,7 @@ def graphics_inverse_assigner(graphics_func_name_to_handle: str):
     Decorate a function capable of inverse assigning to argument quibs given a mouse event
     """
 
-    def _decorator(func: Callable[[PickEvent, MouseEvent, 'GraphicsFunctionQuib'], List[AssignmentToQuib]]):
+    def _decorator(func: Callable[[PickEvent, MouseEvent, 'GraphicsFuncQuib'], List[AssignmentToQuib]]):
         GRAPHICS_REVERSE_ASSIGNERS[graphics_func_name_to_handle] = func
         return func
 

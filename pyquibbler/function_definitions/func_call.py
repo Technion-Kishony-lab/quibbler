@@ -10,7 +10,7 @@ from pyquibbler.quib.external_call_failed_exception_handling import \
 from pyquibbler.utilities.iterators import iter_args_and_names_in_function_call
 
 if TYPE_CHECKING:
-    from pyquibbler.function_definitions import FunctionDefinition
+    from pyquibbler.function_definitions import FuncDefinition
 
 
 @dataclass
@@ -47,7 +47,7 @@ class ArgsValues:
         return self.arg_values_by_name.get(keyword, default)
 
     @classmethod
-    def from_function_call(cls, func: Callable, args: Tuple[Any, ...], kwargs: Mapping[str, Any], include_defaults):
+    def from_func_args_kwargs(cls, func: Callable, args: Tuple[Any, ...], kwargs: Mapping[str, Any], include_defaults):
         # We use external_call_failed_exception_handling here as if the user provided the wrong arguments to the
         # function we'll fail here
         with external_call_failed_exception_handling():
@@ -72,10 +72,10 @@ class FuncCall(ABC):
                            func_kwargs: Mapping[str, Any],
                            include_defaults: bool = False,
                            *args, **kwargs):
-        return cls(args_values=ArgsValues.from_function_call(func, func_args, func_kwargs, include_defaults), func=func,
+        return cls(args_values=ArgsValues.from_func_args_kwargs(func, func_args, func_kwargs, include_defaults), func=func,
                    *args, **kwargs)
 
-    def get_func_definition(self) -> FunctionDefinition:
+    def get_func_definition(self) -> FuncDefinition:
         from pyquibbler.function_definitions import get_definition_for_function
         return get_definition_for_function(self.func)
 

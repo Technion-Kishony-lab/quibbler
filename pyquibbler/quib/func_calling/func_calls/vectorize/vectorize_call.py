@@ -8,11 +8,11 @@ from pyquibbler.utilities.general_utils import create_empty_array_with_values_at
 from pyquibbler.graphics.utils import remove_created_graphics
 from pyquibbler.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
 from pyquibbler.quib.utils.func_call_utils import get_args_and_kwargs_valid_at_quibs_to_paths
-from pyquibbler.quib.function_calling import QuibFuncCall
-from pyquibbler.quib.function_calling.utils import cache_method_until_full_invalidation
-from pyquibbler.quib.function_calling.func_calls.vectorize.utils import alter_signature, copy_vectorize, \
+from pyquibbler.quib.func_calling import QuibFuncCall
+from pyquibbler.quib.func_calling.utils import cache_method_until_full_invalidation
+from pyquibbler.quib.func_calling.func_calls.vectorize.utils import alter_signature, copy_vectorize, \
     get_indices_array, iter_arg_ids_and_values
-from pyquibbler.quib.function_calling.func_calls.vectorize.vectorize_metadata \
+from pyquibbler.quib.func_calling.func_calls.vectorize.vectorize_metadata \
     import VectorizeCall, VectorizeMetadata
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.specialized_functions.proxy import create_proxy

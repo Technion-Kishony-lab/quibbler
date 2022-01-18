@@ -1,6 +1,6 @@
 from typing import Type, Dict, List
 
-from pyquibbler.function_definitions.function_definition import FunctionDefinition
+from pyquibbler.function_definitions.func_definition import FuncDefinition
 from pyquibbler.utilities.multiple_instance_runner import MultipleInstanceRunner
 from pyquibbler.path.path_component import Path
 from pyquibbler.function_definitions.func_call import FuncCall
@@ -43,7 +43,7 @@ class MultipleBackwardsTranslatorRunner(MultipleInstanceRunner):
         self._in_order = in_order
         self._extra_kwargs_for_translator = extra_kwargs_for_translator
 
-    def _get_runners_from_definition(self, definition: FunctionDefinition) -> List:
+    def _get_runners_from_definition(self, definition: FuncDefinition) -> List:
         return definition.backwards_path_translators
 
     def _run_runner(self, runner: Type[BackwardsPathTranslator]):
@@ -83,5 +83,5 @@ class MultipleForwardsTranslatorRunner(MultipleInstanceRunner):
             **self._extra_kwargs_for_translator
         ).translate()
 
-    def _get_runners_from_definition(self, definition: FunctionDefinition) -> List:
+    def _get_runners_from_definition(self, definition: FuncDefinition) -> List:
         return definition.forwards_path_translators

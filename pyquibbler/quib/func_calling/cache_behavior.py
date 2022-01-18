@@ -14,7 +14,7 @@ class UnknownCacheBehaviorException(PyQuibblerException):
 
 class CacheBehavior(Enum):
     """
-    The different modes in which the caching of a FunctionQuib can operate:
+    The different modes in which the caching of a FuncQuib can operate:
      - `AUTO`: decide automatically according to the ratio between evaluation time and memory consumption.
      - `OFF`: never cache.
      - `ON`: always cache.

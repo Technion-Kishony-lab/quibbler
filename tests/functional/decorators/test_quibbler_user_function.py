@@ -2,7 +2,7 @@ from unittest import mock
 
 from pyquibbler import quibbler_user_function, iquib
 from pyquibbler.quib import Quib
-from pyquibbler.quib.graphics import GraphicsFunctionQuib
+from pyquibbler.quib.graphics import GraphicsFuncQuib
 
 
 def test_quibbler_user_function_lazy():
@@ -11,7 +11,7 @@ def test_quibbler_user_function_lazy():
 
     res = user_function()
 
-    assert isinstance(res, GraphicsFunctionQuib)
+    assert isinstance(res, GraphicsFuncQuib)
     assert mock_func.call_count == 0
 
 
@@ -21,7 +21,7 @@ def test_quibbler_user_function_non_lazy():
 
     res = user_function()
 
-    assert isinstance(res, GraphicsFunctionQuib)
+    assert isinstance(res, GraphicsFuncQuib)
     assert mock_func.call_count == 1
 
 
@@ -32,7 +32,7 @@ def test_quibbler_user_function_with_quibs():
 
     res = user_function(quib)
 
-    assert isinstance(res, GraphicsFunctionQuib)
+    assert isinstance(res, GraphicsFuncQuib)
     assert len(mock_func.mock_calls) == 1
     mock_call = mock_func.mock_calls[0]
     # It's not necessarily the quib itself- we just need to make sure it represents the quib

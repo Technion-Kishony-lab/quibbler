@@ -5,7 +5,7 @@ from pyquibbler.exceptions import PyQuibblerException
 
 
 @dataclass
-class CannotFindDefinitionForFunctionException(PyQuibblerException):
+class CannotFindDefinitionForFuncException(PyQuibblerException):
 
     func: Callable
 

@@ -4,12 +4,12 @@ from unittest import mock
 from pyquibbler import iquib
 from pyquibbler.env import GRAPHICS_EVALUATE_NOW
 from pyquibbler.quib import UpdateType
-from pyquibbler.quib.graphics import GraphicsFunctionQuib
+from pyquibbler.quib.graphics import GraphicsFuncQuib
 from pyquibbler.quib.graphics.widgets.drag_context_manager import dragging
 
 
 def get_graphics_quib(func):
-    return GraphicsFunctionQuib(
+    return GraphicsFuncQuib(
         args=tuple(),
         kwargs={},
         cache_behavior=None,
@@ -77,7 +77,7 @@ def test_graphics_function_quib_does_not_run_when_evaluate_now_flag_set_to_false
     func = mock.Mock()
 
     with GRAPHICS_EVALUATE_NOW.temporary_set(False):
-        GraphicsFunctionQuib.create(func=func)
+        GraphicsFuncQuib.create(func=func)
 
     assert func.call_count == 0
 
@@ -91,7 +91,7 @@ def test_graphics_function_quib_does_not_run_when_evaluate_now_flag_set_to_false
 def test_graphics_function_quib_update_on_drag(update_type, should_have_called):
     func = mock.Mock()
     parent = iquib(7)
-    quib = GraphicsFunctionQuib.create(func=func, func_args=(parent,), evaluate_now=False)
+    quib = GraphicsFuncQuib.create(func=func, func_args=(parent,), evaluate_now=False)
     quib.set_redraw_update_type(update_type)
 
     with dragging():
@@ -103,7 +103,7 @@ def test_graphics_function_quib_update_on_drag(update_type, should_have_called):
 def test_graphics_function_quib_update_on_drop():
     func = mock.Mock()
     parent = iquib(7)
-    _ = GraphicsFunctionQuib.create(func=func, func_args=(parent,), update_type=UpdateType.DROP, evaluate_now=False)
+    _ = GraphicsFuncQuib.create(func=func, func_args=(parent,), update_type=UpdateType.DROP, evaluate_now=False)
 
     parent.invalidate_and_redraw_at_path([])
 
@@ -114,7 +114,7 @@ def test_graphics_function_quib_update_on_drop():
 def test_graphics_function_quib_which_should_never_update(update_type):
     func = mock.Mock()
     parent = iquib(7)
-    _ = GraphicsFunctionQuib.create(func=func, func_args=(parent,), update_type=update_type, evaluate_now=False)
+    _ = GraphicsFuncQuib.create(func=func, func_args=(parent,), update_type=update_type, evaluate_now=False)
 
     parent.invalidate_and_redraw_at_path([])
 

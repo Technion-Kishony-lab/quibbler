@@ -14,7 +14,7 @@ from pyquibbler.quib.assignment import RangeAssignmentTemplate, BoundAssignmentT
 from pyquibbler.quib.assignment.assignment import PathComponent
 from pyquibbler.quib.assignment.assignment_template import InvalidTypeException
 from pyquibbler.quib.assignment.utils import FailedToDeepAssignException
-from pyquibbler.quib.graphics import GraphicsFunctionQuib
+from pyquibbler.quib.graphics import GraphicsFuncQuib
 from pyquibbler.quib.operator_overriding import ARITHMETIC_OVERRIDES, UNARY_OVERRIDES
 
 from .utils import get_mock_with_repr, slicer
@@ -72,7 +72,7 @@ def test_quib_invalidate_and_redraw_calls_graphics_function_quib_children(exampl
     mock_func = mock.Mock()
     mock_func.return_value = []
 
-    quib = GraphicsFunctionQuib(func=mock_func, args=tuple(), kwargs={}, cache_behavior=None)
+    quib = GraphicsFuncQuib(func=mock_func, args=tuple(), kwargs={}, cache_behavior=None)
     example_quib.add_child(quib)
     quib.get_value()  # we want to set cache to valid
     assert mock_func.call_count == 1

@@ -1,3 +1,0 @@
-from .slider_runer import SliderRunner
-from .radio_buttons_runner import RadioButtonsRunner
-from .rectangle_selector_runner import RectangleSelectorRunner

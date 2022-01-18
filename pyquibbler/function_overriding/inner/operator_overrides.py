@@ -7,8 +7,8 @@ from typing import Callable, List
 
 import numpy as np
 
-from pyquibbler.function_definitions.function_definition import create_function_definition
-from pyquibbler.function_overriding.function_override import FunctionOverride
+from pyquibbler.function_definitions.func_definition import create_func_definition
+from pyquibbler.function_overriding.function_override import FuncOverride
 from pyquibbler.function_overriding.third_party_overriding.numpy.elementwise_overrides import \
     get_inverter_for_func, create_elementwise_overrides
 
@@ -21,7 +21,7 @@ def get_reversed_func(func: Callable):
 
 
 @dataclass
-class OperatorOverride(FunctionOverride):
+class OperatorOverride(FuncOverride):
     SPECIAL_FUNCS = {
         '__round__': round,
         '__ceil__': math.ceil,
@@ -49,7 +49,7 @@ def operator_definition(name, data_source_indexes: List = None, inverters: List 
     return OperatorOverride(
         func_name=name,
         module_or_cls=Quib,
-        function_definition=create_function_definition(
+        function_definition=create_func_definition(
             data_source_arguments=data_source_indexes,
             inverters=inverters,
             backwards_path_translators=backwards_path_translators,
@@ -79,7 +79,7 @@ def with_reverse_operator_definition(name, data_source_indexes: List = None, inv
         func_name=rname,
         module_or_cls=Quib,
         is_reversed=True,
-        function_definition=create_function_definition(
+        function_definition=create_func_definition(
             data_source_arguments=data_source_indexes,
             inverters=inverters or [],
             backwards_path_translators=backwards_path_translators,

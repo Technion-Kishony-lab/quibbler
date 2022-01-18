@@ -4,14 +4,14 @@ from importlib import import_module
 from matplotlib.testing.decorators import image_comparison
 
 from pyquibbler import iquib
-from pyquibbler.quib.graphics import PlotGraphicsFunctionQuib, redraw_axeses
+from pyquibbler.quib.graphics import PlotGraphicsFuncQuib, redraw_axeses
 
 # This import is critical!! Do not delete!!
 # This imports a fixture (it has autouse=True) that cleans up matplotlib stuffs our tests do
 mpl_test_settings = import_module('matplotlib.testing.conftest').mpl_test_settings
 
 
-def run_graphics_function_quib_and_redraw(q: PlotGraphicsFunctionQuib):
+def run_graphics_function_quib_and_redraw(q: PlotGraphicsFuncQuib):
     q.get_value()
     redraw_axeses(q.get_axeses())
 
@@ -22,7 +22,7 @@ quibbler_image_comparison = functools.partial(image_comparison, remove_text=True
 
 @quibbler_image_comparison(baseline_images=['happy_flow'])
 def test_graphics_function_quib_happy_flow(axes):
-    q = PlotGraphicsFunctionQuib.create(
+    q = PlotGraphicsFuncQuib.create(
         func=axes.plot,
         func_args=([30 for _ in range(3)],),
         func_kwargs={},
@@ -34,7 +34,7 @@ def test_graphics_function_quib_happy_flow(axes):
 @image_comparison(baseline_images=["happy_flow"], remove_text=True,
                   extensions=['png'], savefig_kwarg=dict(dpi=100))
 def test_graphics_function_quib_uses_quib_value(axes):
-    q = PlotGraphicsFunctionQuib.create(
+    q = PlotGraphicsFuncQuib.create(
         func=axes.plot,
         func_args=([iquib(30) for _ in range(3)],),
         func_kwargs={}
@@ -46,7 +46,7 @@ def test_graphics_function_quib_uses_quib_value(axes):
 @image_comparison(baseline_images=["happy_flow"], remove_text=True,
                   extensions=['png'], savefig_kwarg=dict(dpi=100))
 def test_graphics_function_quib_does_not_change_on_redraw(axes):
-    q = PlotGraphicsFunctionQuib.create(
+    q = PlotGraphicsFuncQuib.create(
         func=axes.plot,
         func_args=([30 for _ in range(3)],),
         func_kwargs={}
@@ -58,7 +58,7 @@ def test_graphics_function_quib_does_not_change_on_redraw(axes):
 
 @quibbler_image_comparison(baseline_images=["layered"])
 def test_graphics_function_quib_does_not_change_artist_position(axes):
-    q = PlotGraphicsFunctionQuib.create(
+    q = PlotGraphicsFuncQuib.create(
         func=axes.plot,
         func_args=([iquib(30) for _ in range(3)],),
         func_kwargs=dict(linewidth=20, color="yellow"),

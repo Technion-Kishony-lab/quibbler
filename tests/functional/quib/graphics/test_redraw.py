@@ -2,7 +2,7 @@ from unittest import mock
 from unittest.mock import Mock
 
 from pyquibbler import iquib
-from pyquibbler.quib import GraphicsFunctionQuib
+from pyquibbler.quib import GraphicsFuncQuib
 from pyquibbler.quib.graphics import redraw_axeses
 from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
 
@@ -16,7 +16,7 @@ def test_redraw_axes_happy_flow(mock_axes):
 def test_redraw_in_aggregate_mode():
     mock_func = mock.Mock()
     quib = iquib(1)
-    _ = GraphicsFunctionQuib.create(func=mock_func, func_args=(quib,))
+    _ = GraphicsFuncQuib.create(func=mock_func, func_args=(quib,))
 
     with aggregate_redraw_mode():
         quib.invalidate_and_redraw_at_path([])

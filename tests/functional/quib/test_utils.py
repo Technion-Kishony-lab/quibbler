@@ -6,7 +6,7 @@ from pyquibbler import iquib
 from pyquibbler.quib import Quib, utils
 from pyquibbler.quib.utils import is_iterator_empty, iter_objects_of_type_in_object_recursively, \
     call_func_with_quib_values, iter_quibs_in_args, is_there_a_quib_in_args, NestedQuibException, \
-    copy_and_replace_quibs_with_vals, iter_quibs_in_object, FunctionCalledWithNestedQuibException, Unpacker
+    copy_and_replace_quibs_with_vals, iter_quibs_in_object, FuncCalledWithNestedQuibException, Unpacker
 from pyquibbler.quib.quib_ref import QuibRef
 
 from .utils import slicer
@@ -102,9 +102,9 @@ def test_call_func_with_quib_values(func, args, kwargs, result):
 def test_call_func_with_quib_values_raises_when_receives_nested_quib():
     obj = [[[iquib1]]]
     func = lambda x: open(x[0][0][0])
-    with raises(FunctionCalledWithNestedQuibException) as exc_info:
+    with raises(FuncCalledWithNestedQuibException) as exc_info:
         call_func_with_quib_values(func, (obj,), {})
-    assert exc_info.type is FunctionCalledWithNestedQuibException
+    assert exc_info.type is FuncCalledWithNestedQuibException
     assert exc_info.value.func == func
     assert exc_info.value.nested_quibs_by_arg_names == {'x': {iquib1}}
     assert isinstance(exc_info.value.__cause__, TypeError)

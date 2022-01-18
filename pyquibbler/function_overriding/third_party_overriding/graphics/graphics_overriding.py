@@ -6,14 +6,14 @@ from typing import Dict, Any, Callable
 from matplotlib.axes import Axes
 
 from pyquibbler.env import GRAPHICS_EVALUATE_NOW
-from pyquibbler.function_definitions.function_definition import create_function_definition
-from pyquibbler.function_overriding.function_override import FunctionOverride
+from pyquibbler.function_definitions.func_definition import create_func_definition
+from pyquibbler.function_overriding.function_override import FuncOverride
 from pyquibbler.graphics import global_collecting
-from pyquibbler.quib.function_calling.func_calls.known_graphics.plot_runner import PlotCallQuib
+from pyquibbler.quib.func_calling.func_calls.known_graphics.plot_call import PlotQuibFuncCall
 
 
 @dataclass
-class GraphicsOverride(FunctionOverride):
+class GraphicsOverride(FuncOverride):
 
     @property
     def _default_creation_flags(self) -> Dict[str, Any]:
@@ -35,7 +35,7 @@ def wrap_overridden_graphics_function(func: Callable) -> Callable:
 
 def axes_override(func_name, function_definition_kwargs=None):
     function_definition_kwargs = function_definition_kwargs or {}
-    function_definition = create_function_definition(is_known_graphics_func=True, **function_definition_kwargs)
+    function_definition = create_func_definition(is_known_graphics_func=True, **function_definition_kwargs)
     return GraphicsOverride(func_name=func_name, module_or_cls=Axes, function_definition=function_definition)
 
 
@@ -43,7 +43,7 @@ def create_graphics_overrides():
     from pyquibbler.function_overriding.third_party_overriding.graphics.widgets.widgets_overrides import \
         create_widget_overrides
     return [
-        axes_override(func_name="plot", function_definition_kwargs=dict(function_runner_cls=PlotCallQuib)),
+        axes_override(func_name="plot", function_definition_kwargs=dict(quib_function_call_cls=PlotQuibFuncCall)),
         *[
             axes_override(func_name=func_name) for func_name in [
                 'imshow', 'text', 'bar', 'hist', 'pie', 'legend', '_sci', 'matshow', 'scatter'

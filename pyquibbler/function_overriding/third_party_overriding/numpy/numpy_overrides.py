@@ -2,15 +2,15 @@ from typing import List
 
 import numpy as np
 
-from pyquibbler.function_definitions.function_definition import create_function_definition
-from pyquibbler.function_overriding.function_override import FunctionOverride
+from pyquibbler.function_definitions.func_definition import create_func_definition
+from pyquibbler.function_overriding.function_override import FuncOverride
 from pyquibbler.function_overriding.third_party_overriding.numpy.elementwise_overrides import \
     create_elementwise_overrides
 from pyquibbler.function_overriding.third_party_overriding.numpy.vectorize_overrides import \
     create_vectorize_overrides
 from pyquibbler.inversion import TranspositionalInverter
 from pyquibbler.function_overriding.third_party_overriding.numpy.numpy_override import numpy_override
-from pyquibbler.quib.function_calling.func_calls.apply_along_axis_function_runner import ApplyAlongAxisQuibFunctionCall
+from pyquibbler.quib.func_calling.func_calls.apply_along_axis_call import ApplyAlongAxisQuibFuncCall
 from pyquibbler.translation.translators import BackwardsTranspositionalTranslator, \
     ForwardsTranspositionalTranslator, AccumulationBackwardsPathTranslator, AccumulationForwardsPathTranslator
 from pyquibbler.translation.translators.apply_along_axis_translator import ApplyAlongAxisForwardsTranslator
@@ -20,7 +20,7 @@ from pyquibbler.translation.translators.axeswise.reduction_axiswise_translator i
 
 def transpositional(func, data_source_arguments: List = None):
     return numpy_override(func,
-                          function_definition=create_function_definition(
+                          function_definition=create_func_definition(
                               data_source_arguments,
                               inverters=[TranspositionalInverter],
                               backwards_path_translators=[BackwardsTranspositionalTranslator],
@@ -54,7 +54,7 @@ def create_reduction_overrides():
                        np.average, np.mean, np.var, np.std, np.median,  # statistics
                        np.diff, np.sort  # other
                        ]
-    reduction_definition = create_function_definition(
+    reduction_definition = create_func_definition(
         data_source_arguments=[0],
         backwards_path_translators=[ReductionAxiswiseBackwardsPathTranslator],
         forwards_path_translators=[ReductionAxiswiseForwardsPathTranslator]
@@ -62,20 +62,20 @@ def create_reduction_overrides():
     return [
         numpy_override(reduction_func, function_definition=reduction_definition)
         for reduction_func in reduction_funcs
-    ] + [FunctionOverride(func_name='min', module_or_cls=np, function_definition=reduction_definition)]
+    ] + [FuncOverride(func_name='min', module_or_cls=np, function_definition=reduction_definition)]
 
 
 def create_accum_overrides():
     accum_funcs = [
         "cumsum", "cumprod", 'cumproduct', 'nancumsum', 'nancumprod'
     ]
-    accum_definition = create_function_definition(
+    accum_definition = create_func_definition(
         data_source_arguments=[0],
         backwards_path_translators=[AccumulationBackwardsPathTranslator],
         forwards_path_translators=[AccumulationForwardsPathTranslator]
     )
     return [
-               FunctionOverride(func_name=accum_func, module_or_cls=np, function_definition=accum_definition)
+               FuncOverride(func_name=accum_func, module_or_cls=np, function_definition=accum_definition)
                for accum_func in accum_funcs
            ]
 
@@ -93,13 +93,13 @@ def create_numpy_overrides():
         *create_elementwise_overrides(),
         *create_reduction_overrides(),
         *create_accum_overrides(),
-        numpy_override(np.sum, function_definition=create_function_definition(data_source_arguments=[0])),
-        numpy_override(np.genfromtxt, function_definition=create_function_definition(is_file_loading_func=True)),
+        numpy_override(np.sum, function_definition=create_func_definition(data_source_arguments=[0])),
+        numpy_override(np.genfromtxt, function_definition=create_func_definition(is_file_loading_func=True)),
         numpy_override(np.apply_along_axis,
-                       function_definition=create_function_definition(
+                       function_definition=create_func_definition(
                            data_source_arguments=["arr"],
                            forwards_path_translators=[ApplyAlongAxisForwardsTranslator],
-                           function_runner_cls=ApplyAlongAxisQuibFunctionCall)
+                           quib_function_call_cls=ApplyAlongAxisQuibFuncCall)
                        ),
         *create_vectorize_overrides()
     ]

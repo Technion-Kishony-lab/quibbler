@@ -1,7 +1,7 @@
 import numpy as np
 
 from pyquibbler import iquib, q
-from pyquibbler.quib import FunctionQuib, ImpureFunctionQuib
+from pyquibbler.quib import FuncQuib, ImpureFuncQuib
 
 
 def test_overridden_np_function_called_with_quib_returns_function_quib():
@@ -9,8 +9,8 @@ def test_overridden_np_function_called_with_quib_returns_function_quib():
 
     res = np.average(quib)
 
-    assert isinstance(res, FunctionQuib)
-    # We assert the value of the result quib is 2 in order to ensure the FunctionQuib was created correctly
+    assert isinstance(res, FuncQuib)
+    # We assert the value of the result quib is 2 in order to ensure the FuncQuib was created correctly
     assert res.get_value() == 2
 
 
@@ -29,7 +29,7 @@ def test_overridden_impure_function_quib_with_quib_params_returns_quib():
     fquib = np.random.randint(1, quib)
     result = fquib.get_value()
 
-    assert isinstance(fquib, ImpureFunctionQuib)
+    assert isinstance(fquib, ImpureFuncQuib)
     assert result == 1
 
 
@@ -38,6 +38,6 @@ def test_can_use_q_on_parameterless_impure_function_quib():
     result1 = fquib.get_value()
     result2 = fquib.get_value()
 
-    assert isinstance(fquib, ImpureFunctionQuib)
+    assert isinstance(fquib, ImpureFuncQuib)
     assert isinstance(result1, float)
     assert result1 == result2

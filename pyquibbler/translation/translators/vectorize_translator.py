@@ -7,13 +7,13 @@ from pyquibbler.translation.numpy_translator import NumpyBackwardsPathTranslator
 from pyquibbler.utilities.general_utils import create_empty_array_with_values_at_indices, unbroadcast_bool_mask
 from pyquibbler.path import PathComponent
 from pyquibbler.path.path_component import Path
-from pyquibbler.quib.function_calling.func_calls.vectorize.utils import iter_arg_ids_and_values, get_core_axes
+from pyquibbler.quib.func_calling.func_calls.vectorize.utils import iter_arg_ids_and_values, get_core_axes
 from pyquibbler.translation.backwards_path_translator import BackwardsPathTranslator
 from pyquibbler.translation.forwards_path_translator import ForwardsPathTranslator
 from pyquibbler.translation.types import Source
 
 if TYPE_CHECKING:
-    from pyquibbler.quib.function_calling.func_calls.vectorize.vectorize_metadata import ArgId
+    from pyquibbler.quib.func_calling.func_calls.vectorize.vectorize_metadata import ArgId
 
 
 def _get_arg_ids_for_source(source: Source, args, kwargs) -> Set[ArgId]:

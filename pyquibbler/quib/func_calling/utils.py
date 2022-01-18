@@ -9,7 +9,7 @@ from pyquibbler.path import Path
 from pyquibbler.utilities.iterators import recursively_run_func_on_object
 
 if TYPE_CHECKING:
-    from pyquibbler.quib.function_calling.quib_func_call import QuibFuncCall
+    from pyquibbler.quib.func_calling.quib_func_call import QuibFuncCall
 
 
 @dataclass(frozen=True)

@@ -4,13 +4,13 @@ from typing import Iterable
 from operator import __pow__
 
 from pyquibbler import iquib
-from pyquibbler.quib import ElementWiseFunctionQuib, FunctionQuib
+from pyquibbler.quib import ElementWiseFuncQuib, FuncQuib
 from pyquibbler.quib.assignment import Assignment
 from pyquibbler.quib.assignment.assignment import PathComponent
 from pyquibbler.quib.assignment.exceptions import CommonAncestorBetweenArgumentsException
 
 
-def inverse(function_quib: FunctionQuib, value, path):
+def inverse(function_quib: FuncQuib, value, path):
     assignment = Assignment(value, path)
     inversions = function_quib.get_inversions_for_assignment(assignment=assignment)
     for inversion in inversions:
@@ -42,7 +42,7 @@ def inverse(function_quib: FunctionQuib, value, path):
     "power: second arg is quib",
 ])
 def test_inverse_elementwise_two_arguments(func, func_args, indices, value, quib_arg_index, expected_value):
-    function_quib = ElementWiseFunctionQuib.create(func=func, func_args=func_args)
+    function_quib = ElementWiseFuncQuib.create(func=func, func_args=func_args)
     if indices is None:
         path = []
     else:
@@ -67,7 +67,7 @@ def test_inverse_elementwise_two_arguments(func, func_args, indices, value, quib
     "int: float-to-int",
 ])
 def test_inverse_elementwise_single_argument(func, func_arg, indices, value, expected_value):
-    function_quib = ElementWiseFunctionQuib.create(func=func, func_args=(func_arg,))
+    function_quib = ElementWiseFuncQuib.create(func=func, func_args=(func_arg,))
     if indices is None:
         path = []
     else:
@@ -83,7 +83,7 @@ def test_inverse_elementwise_single_argument(func, func_arg, indices, value, exp
 
 def test_inverse_elementwise_operator():
     q = iquib(np.array([5, 5, 5]))
-    function_quib: FunctionQuib = q + 3
+    function_quib: FuncQuib = q + 3
 
     inverse(function_quib, 7, [PathComponent(component=0, indexed_cls=function_quib.get_type())])
 
@@ -92,7 +92,7 @@ def test_inverse_elementwise_operator():
 
 def test_inverse_elementwise_operator_truediv():
     q = iquib(np.array([15, 15, 15]))
-    function_quib: FunctionQuib = q / 3
+    function_quib: FuncQuib = q / 3
 
     inverse(function_quib, 4, [PathComponent(component=0, indexed_cls=function_quib.get_type())])
 
@@ -101,7 +101,7 @@ def test_inverse_elementwise_operator_truediv():
 
 def test_inverse_elementwise_on_int():
     q = iquib(5)
-    function_quib: FunctionQuib = q + 3
+    function_quib: FuncQuib = q + 3
 
     inverse(function_quib, 7, path=[])
 
@@ -110,7 +110,7 @@ def test_inverse_elementwise_on_int():
 
 def test_inverse_on_neg_operator():
     q = iquib(3)
-    function_quib: FunctionQuib = -q
+    function_quib: FuncQuib = -q
 
     inverse(function_quib, 7, path=[])
 
@@ -123,7 +123,7 @@ def test_quib_raises_exception_when_reversing_with_common_parent_in_multiple_arg
     x = iquib(5)
     y = x + 2
     z = x + 3
-    function_quib: FunctionQuib = y + z
+    function_quib: FuncQuib = y + z
 
     with pytest.raises(CommonAncestorBetweenArgumentsException):
         inverse(function_quib, 20, [])
@@ -153,7 +153,7 @@ def test_elementwise_always_picks_first_quib():
 
 def test_elementwise_with_deep_path():
     first_quib = iquib([[1, 2, 3]])
-    sum_quib = ElementWiseFunctionQuib.create(func=np.add, func_args=(first_quib, 1))
+    sum_quib = ElementWiseFuncQuib.create(func=np.add, func_args=(first_quib, 1))
     getitem_quib = sum_quib[0]
 
     inverse(getitem_quib, path=[PathComponent(component=0, indexed_cls=getitem_quib.get_type())], value=0)
@@ -173,7 +173,7 @@ def test_elementwise_doesnt_raise_exception_when_assignment_restrictions_off():
 
 def test_inverse_many_to_one_functions():
     q = iquib(np.array([4, -5, 5]))
-    function_quib: FunctionQuib = np.square(q)
+    function_quib: FuncQuib = np.square(q)
 
     inverse(function_quib, [36, 36], [PathComponent(component=[1, 2], indexed_cls=function_quib.get_type())])
     assert np.array_equal(q.get_value(), [4, -6, 6])
@@ -181,7 +181,7 @@ def test_inverse_many_to_one_functions():
 
 def test_periodic_functions():
     q = iquib(np.array([2., -0.2, -4.2, -4.8, 5.2, 4.]) * np.pi)
-    function_quib: FunctionQuib = np.sin(q)
+    function_quib: FuncQuib = np.sin(q)
 
     inverse(function_quib, np.sin(np.array([-0.3, -0.3, -0.3, -0.3]) * np.pi),
             [PathComponent(component=[1, 2, 3, 4], indexed_cls=function_quib.get_type())])

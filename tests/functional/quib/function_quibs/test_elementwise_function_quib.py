@@ -3,7 +3,7 @@ from unittest import mock
 from pytest import mark
 
 from pyquibbler import iquib
-from pyquibbler.quib import ElementWiseFunctionQuib, Quib
+from pyquibbler.quib import ElementWiseFuncQuib, Quib
 from pyquibbler.quib.assignment.assignment import PathComponent
 from pyquibbler.cache.cache import CacheStatus
 
@@ -47,7 +47,7 @@ def test_elementwise_function_quib_does_not_request_unneeded_indices_on_get_valu
     fake_quib = mock.Mock(spec=Quib)
     fake_quib.get_value_valid_at_path.return_value = np.array([1, 2])
     fake_quib.get_shape.return_value = (2,)
-    b = ElementWiseFunctionQuib.create(
+    b = ElementWiseFuncQuib.create(
         func=np.add,
         func_args=(fake_quib, 1)
     )
@@ -78,7 +78,7 @@ def test_elementwise_get_value(data, indices_to_get_value_at):
 @mark.regression
 def test_elementwise_with_no_parents():
     # https://github.com/Technion-Kishony-lab/pyquibbler/issues/191
-    assert ElementWiseFunctionQuib.create(np.sin, (0,)).get_value() == 0
+    assert ElementWiseFuncQuib.create(np.sin, (0,)).get_value() == 0
 
 
 # MOVED

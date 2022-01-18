@@ -6,7 +6,7 @@ from pyquibbler.env import GET_VARIABLE_NAMES, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRAC
 from pyquibbler.logger import logger
 from pyquibbler.function_definitions.func_call import FuncCall
 from pyquibbler.project import Project
-from pyquibbler.quib.function_calling import QuibFuncCall
+from pyquibbler.quib.func_calling import QuibFuncCall
 from pyquibbler.function_definitions import get_definition_for_function
 from pyquibbler.quib.graphics import UpdateType
 from pyquibbler.quib.quib_guard import add_new_quib_to_guard_if_exists
@@ -116,7 +116,7 @@ def create_quib(func, args: Tuple[Any, ...] = (), kwargs: Mapping[str, Any] = No
     definition = get_definition_for_function(func)
     project = Project.get_or_create()
 
-    runner = definition.function_runner_cls.from_function_call(
+    quib_func_call = definition.quib_function_call_cls.from_function_call(
         func=func,
         func_args=args,
         func_kwargs=kwargs,
@@ -126,7 +126,7 @@ def create_quib(func, args: Tuple[Any, ...] = (), kwargs: Mapping[str, Any] = No
         include_defaults=True
     )
 
-    quib = Quib(function_runner=runner,
+    quib = Quib(quib_function_call=quib_func_call,
                 assignment_template=None,
                 allow_overriding=allow_overriding,
                 name=get_quib_name(),

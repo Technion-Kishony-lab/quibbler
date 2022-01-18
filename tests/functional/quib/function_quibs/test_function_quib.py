@@ -9,14 +9,14 @@ from pytest import fixture, mark
 from pyquibbler import iquib, CacheBehavior, q
 from pyquibbler.env import PRETTY_REPR
 from pyquibbler.utilities.input_validation_utils import InvalidArgumentException
-from pyquibbler.quib import FunctionQuib, Assignment
+from pyquibbler.quib import FuncQuib, Assignment
 from pyquibbler.quib.assignment.assignment import PathComponent
 from pyquibbler.quib.function_quibs.function_quib import UnknownCacheBehaviorException
 
 from ..utils import MockQuib
 
 
-class ExampleFunctionQuib(FunctionQuib):
+class ExampleFuncQuib(FuncQuib):
     def _invalidate(self):
         pass
 
@@ -26,7 +26,7 @@ class ExampleFunctionQuib(FunctionQuib):
 
 @fixture
 def function_wrapper(function_mock):
-    return ExampleFunctionQuib.create_wrapper(function_mock)
+    return ExampleFuncQuib.create_wrapper(function_mock)
 
 
 @fixture
@@ -44,7 +44,7 @@ def mock_options_tree_with_options(mock_overrides):
 
 @fixture
 def example_function_quib():
-    return ExampleFunctionQuib.create(Mock())
+    return ExampleFuncQuib.create(Mock())
 
 
 # MOVED
@@ -62,7 +62,7 @@ def test_create_wrapper_with_quib_args(function_wrapper, function_mock, function
     quib_val2 = 'yo'
     function_quib = function_wrapper(iquib(quib_val1), a=iquib(quib_val2))
 
-    assert isinstance(function_quib, ExampleFunctionQuib)
+    assert isinstance(function_quib, ExampleFuncQuib)
     function_mock.assert_not_called()
     assert function_quib.get_value_valid_at_path([PathComponent(component=...,
                                                                 indexed_cls=np.ndarray)]) \
@@ -117,8 +117,8 @@ def test_quib_ancestors(function_wrapper):
 def test_parents():
     parent1 = iquib(1)
     grandparent = iquib(2)
-    parent2 = ExampleFunctionQuib.create(Mock(), (grandparent,))
-    fquib = ExampleFunctionQuib.create(Mock(), (0, parent1, 2), dict(a=parent2, b=3))
+    parent2 = ExampleFuncQuib.create(Mock(), (grandparent,))
+    fquib = ExampleFuncQuib.create(Mock(), (0, parent1, 2), dict(a=parent2, b=3))
 
     assert fquib.parents == {parent1, parent2}
 
@@ -126,7 +126,7 @@ def test_parents():
 # MOVED
 @mark.evaluate_now(True)
 def function_quib_create_calculates_when_not_lazy(function_mock):
-    ExampleFunctionQuib.create(function_mock)
+    ExampleFuncQuib.create(function_mock)
 
     function_mock.assert_called_once()
 
@@ -144,7 +144,7 @@ def test_function_quib_get_value_valid_at_path_with_data_source_kwarg():
     assert [] not in paths
 
 
-class InvalidatingFunctionQuib(FunctionQuib):
+class InvalidatingFuncQuib(FuncQuib):
     def __init__(self, *args, data_source_quibs=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.data_source_quibs = data_source_quibs or []
@@ -162,8 +162,8 @@ class InvalidatingFunctionQuib(FunctionQuib):
 
 # BAD TEST- SHOULD NOT ALWAYS BE TRUE
 def test_function_quib_invalidates_all_when_invalidated_at_all_in_data_source(create_mock_quib):
-    grandparent = InvalidatingFunctionQuib.create(func=mock.Mock())
-    parent = InvalidatingFunctionQuib.create(func=mock.Mock(),
+    grandparent = InvalidatingFuncQuib.create(func=mock.Mock())
+    parent = InvalidatingFuncQuib.create(func=mock.Mock(),
                                              func_args=(grandparent,),
                                              data_source_quibs=[grandparent])
     mock_quib = create_mock_quib()
@@ -178,8 +178,8 @@ def test_function_quib_invalidates_all_when_invalidated_at_all_in_data_source(cr
 
 # No need- we constantly check this when checking quibs with forward translation
 def test_function_quib_does_not_invalidate_all_when_invalidated_at_path_in_data_source(create_mock_quib):
-    grandparent = InvalidatingFunctionQuib.create(func=mock.Mock())
-    parent = InvalidatingFunctionQuib.create(func=mock.Mock(), func_args=(grandparent,),
+    grandparent = InvalidatingFuncQuib.create(func=mock.Mock())
+    parent = InvalidatingFuncQuib.create(func=mock.Mock(), func_args=(grandparent,),
                                              data_source_quibs=[grandparent])
     mock_quib = create_mock_quib()
     parent.add_child(mock_quib)
@@ -187,14 +187,14 @@ def test_function_quib_does_not_invalidate_all_when_invalidated_at_path_in_data_
 
     grandparent.invalidate_and_redraw_at_path(path)
 
-    # Our default implementation for InvalidatingFunctionQuib is to forward by simply returning the path
+    # Our default implementation for InvalidatingFuncQuib is to forward by simply returning the path
     mock_quib._invalidate_quib_with_children_at_path.assert_called_with(parent, path)
 
 
 # MOVED
 def test_function_quib_does_invalidate_all_when_invalidated_partially_at_path_in_paramater(create_mock_quib):
-    grandparent = InvalidatingFunctionQuib.create(func=mock.Mock())
-    parent = InvalidatingFunctionQuib.create(func=mock.Mock(), func_args=(grandparent,))
+    grandparent = InvalidatingFuncQuib.create(func=mock.Mock())
+    parent = InvalidatingFuncQuib.create(func=mock.Mock(), func_args=(grandparent,))
     mock_quib = create_mock_quib()
     parent.add_child(mock_quib)
     path = [PathComponent(component=0, indexed_cls=list)]
@@ -206,8 +206,8 @@ def test_function_quib_does_invalidate_all_when_invalidated_partially_at_path_in
 
 # MOVED - (and made into better test)
 def test_function_quib_does_invalidate_all_when_invalidated_all_at_path_in_parameter(create_mock_quib):
-    grandparent = InvalidatingFunctionQuib.create(func=mock.Mock())
-    parent = InvalidatingFunctionQuib.create(func=mock.Mock(), func_args=(grandparent,))
+    grandparent = InvalidatingFuncQuib.create(func=mock.Mock())
+    parent = InvalidatingFuncQuib.create(func=mock.Mock(), func_args=(grandparent,))
     mock_quib = create_mock_quib()
     parent.add_child(mock_quib)
 
@@ -355,7 +355,7 @@ def test_function_quib_config_with_invalid_cache_behavior(example_function_quib)
 def test_multiple_function_quib_save_without_given_name(example_function_quib):
     example_function_quib.set_allow_overriding(True)
     example_function_quib.assign_value(10)
-    another_quib = ExampleFunctionQuib.create(mock.Mock()).setp(allow_overriding=True)
+    another_quib = ExampleFuncQuib.create(mock.Mock()).setp(allow_overriding=True)
     another_quib.assign_value(8)
 
     another_quib.save_if_relevant()

@@ -5,10 +5,10 @@ import pytest
 from operator import getitem
 
 from pyquibbler import iquib
-from pyquibbler.quib import DefaultFunctionQuib, Quib
+from pyquibbler.quib import DefaultFuncQuib, Quib
 from pyquibbler.path import PathComponent
 from pyquibbler.cache.cache import CacheStatus
-from pyquibbler.quib.function_quibs.transpositional.transpositional_function_quib import TranspositionalFunctionQuib
+from pyquibbler.quib.function_quibs.transpositional.transpositional_function_quib import TranspositionalFuncQuib
 
 from ..utils import PathBuilder, check_get_value_valid_at_path, check_invalidation
 
@@ -20,7 +20,7 @@ def input_quib():
 
 @pytest.fixture()
 def rot90_quib(input_quib):
-    return TranspositionalFunctionQuib.create(
+    return TranspositionalFuncQuib.create(
         func=np.rot90,
         func_args=(input_quib,)
     )
@@ -28,7 +28,7 @@ def rot90_quib(input_quib):
 
 @pytest.fixture()
 def getitem_quib(rot90_quib):
-    getitem_quib_ = TranspositionalFunctionQuib.create(
+    getitem_quib_ = TranspositionalFuncQuib.create(
         func=getitem,
         func_args=(rot90_quib, (0, 0))
     )
@@ -301,8 +301,8 @@ def test_concatenate_get_value_valid_at_path(direction, concat_with_quib, indice
 
 @pytest.mark.regression
 def test_function_quib_forward_invalidation_path_with_changing_shapes(create_mock_quib):
-    grandparent = DefaultFunctionQuib.create(func=mock.Mock())
-    parent = DefaultFunctionQuib.create(func=mock.Mock())
+    grandparent = DefaultFuncQuib.create(func=mock.Mock())
+    parent = DefaultFuncQuib.create(func=mock.Mock())
     grandparent.add_child(parent)
     mock_quib = create_mock_quib(shape=(3, 1), get_value_result=[[1, 2, 3]])
     parent.add_child(mock_quib)

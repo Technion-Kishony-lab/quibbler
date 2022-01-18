@@ -5,7 +5,7 @@ import pytest
 
 from pyquibbler import iquib, Assignment
 from pyquibbler.function_definitions import add_definition_for_function
-from pyquibbler.function_definitions.function_definition import create_function_definition
+from pyquibbler.function_definitions.func_definition import create_func_definition
 from pyquibbler.graphics import dragging
 from pyquibbler.project import Project, NothingToUndoException, NothingToRedoException
 from pyquibbler.quib.factory import create_quib
@@ -19,7 +19,7 @@ def test_get_or_create_only_creates_one_instance():
 def random_func_with_side_effect():
     func = mock.Mock()
     func.side_effect = [1, 2]
-    add_definition_for_function(func=func, function_definition=create_function_definition(is_random_func=True))
+    add_definition_for_function(func=func, function_definition=create_func_definition(is_random_func=True))
     return func
 
 
@@ -37,7 +37,7 @@ def test_reset_impure_quibs_invalidates_and_redraws(random_func_with_side_effect
     quib = create_quib(func=random_func_with_side_effect)
     quib.get_value()
     graphics_function_mock = mock.Mock()
-    add_definition_for_function(graphics_function_mock, create_function_definition(is_known_graphics_func=True))
+    add_definition_for_function(graphics_function_mock, create_func_definition(is_known_graphics_func=True))
     _ = create_quib(func=graphics_function_mock, args=(quib,))
 
     Project.get_or_create().reset_invalidate_and_redraw_all_impure_function_quibs()
@@ -180,7 +180,7 @@ def test_project_undo_group_doesnt_add_on_dragging(project):
 def test_project_undo_with_group_reverts_back_to_before_group_and_runs_graphics_quib_once(project):
     a = iquib(5)
     mock_func = mock.Mock()
-    add_definition_for_function(mock_func, create_function_definition(is_known_graphics_func=True))
+    add_definition_for_function(mock_func, create_func_definition(is_known_graphics_func=True))
     _ = create_quib(func=mock_func, args=(a,), evaluate_now=True)
     with project.start_undo_group():
         a.override(Assignment(

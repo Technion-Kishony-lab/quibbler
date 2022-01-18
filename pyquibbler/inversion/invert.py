@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any, List
 
-from pyquibbler.function_definitions.function_definition import FunctionDefinition
+from pyquibbler.function_definitions.func_definition import FuncDefinition
 from pyquibbler.inversion.exceptions import NoInvertersFoundException
 from pyquibbler.translation.source_func_call import SourceFuncCall
 from pyquibbler.utilities.multiple_instance_runner import MultipleInstanceRunner
@@ -19,7 +19,7 @@ class MultipleInverterRunner(MultipleInstanceRunner):
         self._assignment = assignment
         self._previous_result = previous_result
 
-    def _get_runners_from_definition(self, definition: FunctionDefinition) -> List:
+    def _get_runners_from_definition(self, definition: FuncDefinition) -> List:
         return definition.inverters
 
     def _run_runner(self, runner: Any):

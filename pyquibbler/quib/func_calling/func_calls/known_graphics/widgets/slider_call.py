@@ -1,10 +1,10 @@
 from matplotlib.widgets import Slider
 
 from pyquibbler.graphics.widgets import QSlider
-from pyquibbler.quib.function_calling.func_calls.known_graphics.widgets.widget_runner import WidgetCallQuib
+from pyquibbler.quib.func_calling.func_calls.known_graphics.widgets.widget_call import WidgetQuibFuncCall
 
 
-class SliderRunner(WidgetCallQuib):
+class SliderQuibFuncCall(WidgetQuibFuncCall):
 
     def _on_change_slider(self, new_value):
         from pyquibbler.quib.quib import Quib

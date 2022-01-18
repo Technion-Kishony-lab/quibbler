@@ -3,10 +3,10 @@ import functools
 from matplotlib.widgets import CheckButtons
 
 from pyquibbler.path import PathComponent
-from .widget_runner import WidgetCallQuib
+from .widget_call import WidgetQuibFuncCall
 
 
-class CheckButtonsRunner(WidgetCallQuib):
+class CheckButtonsQuibFuncCall(WidgetQuibFuncCall):
 
     def on_change_checkbuttons(self, widget, new_value):
         from pyquibbler import Assignment

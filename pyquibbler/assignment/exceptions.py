@@ -16,7 +16,7 @@ class CannotReverseException(PyQuibblerException):
 
 
 @dataclass
-class CannotReverseUnknownFunctionException(CannotReverseException):
+class CannotReverseUnknownFuncException(CannotReverseException):
     def __str__(self):
         return f'Reverse assignment is not implemented for {self.function_quib.func}'
 

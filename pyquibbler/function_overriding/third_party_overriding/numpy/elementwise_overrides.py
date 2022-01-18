@@ -8,8 +8,8 @@ from typing import Callable, List, Union
 import numpy as np
 from numpy.core import ufunc
 
-from pyquibbler.function_definitions.function_definition import create_function_definition
-from pyquibbler.function_overriding.function_override import FunctionOverride
+from pyquibbler.function_definitions.func_definition import create_func_definition
+from pyquibbler.function_overriding.function_override import FuncOverride
 from pyquibbler.translation.translators.elementwise.elementwise_translator import \
     ForwardsElementwisePathTranslator
 from pyquibbler.translation.translators.elementwise.generic_inverse_functions import \
@@ -44,10 +44,10 @@ def elementwise(func: Callable,
         else:
             data_source_arguments = list(signature(func).parameters)
 
-    return FunctionOverride.from_func(
+    return FuncOverride.from_func(
         module_or_cls=module_or_cls,
         func=func,
-        function_definition=create_function_definition(
+        function_definition=create_func_definition(
             data_source_arguments=data_source_arguments,
             backwards_path_translators=[BackwardsElementwisePathTranslator],
             forwards_path_translators=[ForwardsElementwisePathTranslator],

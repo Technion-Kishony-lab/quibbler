@@ -1,7 +1,7 @@
 from typing import List
 
 from pyquibbler.function_definitions.definitions import add_definition_for_function
-from pyquibbler.function_overriding.function_override import FunctionOverride
+from pyquibbler.function_overriding.function_override import FuncOverride
 from pyquibbler.function_overriding.third_party_overriding.file_loading_overrides import \
     create_file_loading_overrides
 from pyquibbler.function_overriding.third_party_overriding.graphics.graphics_overriding import create_graphics_overrides, \
@@ -19,7 +19,7 @@ def override_all():
     Override all relavent functions, both inner and third party, to support Quibs
     """
 
-    function_overrides: List[FunctionOverride] = [*get_operator_definitions(),
+    function_overrides: List[FuncOverride] = [*get_operator_definitions(),
                                                   *create_graphics_overrides(),
                                                   *create_numpy_overrides(),
                                                   *create_file_loading_overrides()]

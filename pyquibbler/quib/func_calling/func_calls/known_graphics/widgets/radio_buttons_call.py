@@ -1,9 +1,9 @@
 from matplotlib.widgets import RadioButtons
 
-from pyquibbler.quib.function_calling.func_calls.known_graphics.widgets.widget_runner import WidgetCallQuib
+from pyquibbler.quib.func_calling.func_calls.known_graphics.widgets.widget_call import WidgetQuibFuncCall
 
 
-class RadioButtonsRunner(WidgetCallQuib):
+class RadioButtonsQuibFuncCall(WidgetQuibFuncCall):
 
     def _on_clicked(self, new_value):
         from pyquibbler.quib import Quib

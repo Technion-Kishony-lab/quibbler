@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Any, List, TYPE_CHECKING, Dict
 
 from pyquibbler.function_definitions import add_definition_for_function
-from pyquibbler.function_definitions.function_definition import create_function_definition
+from pyquibbler.function_definitions.func_definition import create_func_definition
 from pyquibbler.inversion.inverter import Inverter
 from pyquibbler.path.path_component import Path
 from pyquibbler.translation.backwards_path_translator import BackwardsPathTranslator
@@ -50,7 +50,7 @@ class ProxyInverter(Inverter):
         ]
 
 
-proxy_definition = create_function_definition(
+proxy_definition = create_func_definition(
     forwards_path_translators=[ProxyForwardsPathTranslator],
     backwards_path_translators=[ProxyBackwardsPathTranslator],
     data_source_arguments=[0],

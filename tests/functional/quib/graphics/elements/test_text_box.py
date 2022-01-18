@@ -2,7 +2,7 @@ import pytest
 from unittest import mock
 
 from pyquibbler import iquib
-from pyquibbler.quib.graphics.widgets import TextBoxGraphicsFunctionQuib
+from pyquibbler.quib.graphics.widgets import TextBoxGraphicsFuncQuib
 
 
 @pytest.fixture
@@ -12,8 +12,8 @@ def mock_quib():
 
 @pytest.fixture
 def textbox_quib(mock_quib, axes):
-    func_mock = mock.create_autospec(TextBoxGraphicsFunctionQuib.WIDGET_CLS)
-    return TextBoxGraphicsFunctionQuib.create(
+    func_mock = mock.create_autospec(TextBoxGraphicsFuncQuib.WIDGET_CLS)
+    return TextBoxGraphicsFuncQuib.create(
         func=func_mock,
         func_kwargs={
             'ax': axes,

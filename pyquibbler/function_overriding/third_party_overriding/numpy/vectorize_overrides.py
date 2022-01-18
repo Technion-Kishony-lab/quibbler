@@ -3,9 +3,9 @@ from typing import Union
 import numpy as np
 
 from pyquibbler.function_definitions.func_call import ArgsValues
-from pyquibbler.function_definitions.function_definition import FunctionDefinition
-from pyquibbler.function_overriding.function_override import FunctionOverride
-from pyquibbler.quib.function_calling.func_calls.vectorize.vectorize_function_runner \
+from pyquibbler.function_definitions.func_definition import FuncDefinition
+from pyquibbler.function_overriding.function_override import FuncOverride
+from pyquibbler.quib.func_calling.func_calls.vectorize.vectorize_call \
     import VectorizeQuibFuncCall
 from pyquibbler.quib.graphics import UpdateType
 from pyquibbler.env import PRETTY_REPR
@@ -13,14 +13,14 @@ from pyquibbler.translation.translators.vectorize_translator import VectorizeFor
     VectorizeBackwardsPathTranslator
 
 
-class VectorizeOverride(FunctionOverride):
+class VectorizeOverride(FuncOverride):
 
     def _create_quib_supporting_func(self):
         QVectorize.__quibbler_wrapped__ = self.original_func
         return QVectorize
 
 
-class VectorizeCallDefinition(FunctionDefinition):
+class VectorizeCallDefinition(FuncDefinition):
 
     def get_data_source_argument_values(self, args_values: ArgsValues):
         """
@@ -28,13 +28,13 @@ class VectorizeCallDefinition(FunctionDefinition):
         We are using args_values.args and args_values.kwargs instead of the full args dict on purpose,
         to match vectorize function behavior.
         """
-        from pyquibbler.quib.function_calling.func_calls.vectorize.utils import iter_arg_ids_and_values
+        from pyquibbler.quib.func_calling.func_calls.vectorize.utils import iter_arg_ids_and_values
         vectorize, *args = args_values.args
         return [val
                 for key, val in iter_arg_ids_and_values(args, args_values.kwargs) if key not in vectorize.excluded]
 
 
-class VectorizeCallOverride(FunctionOverride):
+class VectorizeCallOverride(FuncOverride):
 
     def _get_creation_flags(self, args, kwargs):
         vectorize, *_ = args
@@ -70,7 +70,7 @@ def create_vectorize_overrides():
         VectorizeOverride(func_name="vectorize", module_or_cls=np),
         VectorizeCallOverride(func_name="__call__", module_or_cls=QVectorize,
                               function_definition=VectorizeCallDefinition(
-                                  function_runner_cls=VectorizeQuibFuncCall,
+                                  quib_function_call_cls=VectorizeQuibFuncCall,
                                   forwards_path_translators=[VectorizeForwardsPathTranslator],
                                   backwards_path_translators=[VectorizeBackwardsPathTranslator]
                               )

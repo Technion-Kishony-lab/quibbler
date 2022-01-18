@@ -4,11 +4,11 @@ from typing import Any, List
 from pyquibbler.env import DEBUG
 from pyquibbler.exceptions import DebugException
 from pyquibbler.function_definitions import add_definition_for_function
-from pyquibbler.function_definitions.function_definition import create_function_definition
+from pyquibbler.function_definitions.func_definition import create_func_definition
 from pyquibbler.path.path_component import Path
 from pyquibbler.project import Project
 from pyquibbler.quib.factory import create_quib
-from pyquibbler.quib.function_calling.cache_behavior import CacheBehavior
+from pyquibbler.quib.func_calling.cache_behavior import CacheBehavior
 from pyquibbler.quib.utils.miscellaneous import is_there_a_quib_in_object
 from pyquibbler.quib.quib import Quib
 
@@ -56,7 +56,7 @@ class IQuibForwardsPathTranslator(ForwardsPathTranslator):
         return [path]
 
 
-iquib_definition = create_function_definition(
+iquib_definition = create_func_definition(
     forwards_path_translators=[IQuibForwardsPathTranslator],
     data_source_arguments=[0],
 )

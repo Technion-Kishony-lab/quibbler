@@ -17,10 +17,10 @@ from pyquibbler.quib.external_call_failed_exception_handling import external_cal
 from pyquibbler.cache.cache_utils import get_uncached_paths_matching_path, \
     _truncate_path_to_match_shallow_caches, _ensure_cache_matches_result, \
     get_cached_data_at_truncated_path_given_result_at_uncached_path
-from pyquibbler.quib.function_calling.cache_behavior import CacheBehavior
-from pyquibbler.quib.function_calling.exceptions import CannotCalculateShapeException
-from pyquibbler.quib.function_calling.result_metadata import ResultMetadata
-from pyquibbler.quib.function_calling.utils import cache_method_until_full_invalidation, \
+from pyquibbler.quib.func_calling.cache_behavior import CacheBehavior
+from pyquibbler.quib.func_calling.exceptions import CannotCalculateShapeException
+from pyquibbler.quib.func_calling.result_metadata import ResultMetadata
+from pyquibbler.quib.func_calling.utils import cache_method_until_full_invalidation, \
     create_array_from_func, proxify_args
 from pyquibbler.graphics.graphics_collection import GraphicsCollection
 from pyquibbler.quib.quib import Quib

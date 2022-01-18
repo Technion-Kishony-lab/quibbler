@@ -8,7 +8,7 @@ import pytest
 from pytest import fixture, mark, raises
 
 from pyquibbler import iquib
-from pyquibbler.quib import DefaultFunctionQuib
+from pyquibbler.quib import DefaultFuncQuib
 from pyquibbler.cache.cache import CacheStatus
 from pyquibbler.quib.input_quib import CannotNestQuibInIQuibException, CannotSaveAsTextException
 
@@ -24,7 +24,7 @@ def input_quib(input_quib_val):
 
 
 def create_child_with_valid_cache(input_quib):
-    child = DefaultFunctionQuib.create(Mock())
+    child = DefaultFuncQuib.create(Mock())
     child.get_value()
     assert child.cache_status == CacheStatus.ALL_VALID
     input_quib.add_child(child)

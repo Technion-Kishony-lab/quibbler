@@ -6,7 +6,7 @@ from pytest import fixture, mark
 
 from pyquibbler import iquib, CacheBehavior
 from pyquibbler.utilities.input_validation_utils import InvalidArgumentException
-from pyquibbler.quib import DefaultFunctionQuib
+from pyquibbler.quib import DefaultFuncQuib
 from pyquibbler.quib.assignment.assignment import PathComponent
 from pyquibbler.cache.cache import CacheStatus
 
@@ -23,14 +23,14 @@ def parent_quib():
 
 @fixture
 def default_function_quib(function_mock):
-    fquib = DefaultFunctionQuib.create(function_mock, cache_behavior=CacheBehavior.ON)
+    fquib = DefaultFuncQuib.create(function_mock, cache_behavior=CacheBehavior.ON)
     fquib.set_allow_overriding(True)
     return fquib
 
 
 @fixture
 def quib_with_valid_cache(parent_quib, function_mock, quib_cached_result):
-    quib = DefaultFunctionQuib(func=function_mock, args=(parent_quib,), kwargs={}, cache_behavior=CacheBehavior.ON,
+    quib = DefaultFuncQuib(func=function_mock, args=(parent_quib,), kwargs={}, cache_behavior=CacheBehavior.ON,
                                is_cache_valid=True, cached_result=quib_cached_result)
     parent_quib.add_child(quib)
     return quib
@@ -42,7 +42,7 @@ def test_calculation_is_lazy(default_function_quib, function_mock):
 
 
 def test_no_caching_is_done_when_cache_is_off(function_mock, function_mock_return_val):
-    function_quib = DefaultFunctionQuib.create(function_mock, cache_behavior=CacheBehavior.OFF)
+    function_quib = DefaultFuncQuib.create(function_mock, cache_behavior=CacheBehavior.OFF)
     path_to_get_value = []
 
     assert function_quib.get_value_valid_at_path(path_to_get_value) == function_mock_return_val
@@ -64,11 +64,11 @@ def test_invalidation_invalidates_quib_when_needed():
     quib = iquib(np.array([[1, 2, 3]]))
     mock_func = mock.Mock()
     mock_func.return_value = 1
-    function_quib = DefaultFunctionQuib.create(
+    function_quib = DefaultFuncQuib.create(
         func=mock_func,
         func_args=(quib, 1)
     )
-    mock_dependant_quib = DefaultFunctionQuib.create(
+    mock_dependant_quib = DefaultFuncQuib.create(
         func=mock_func,
         func_args=(function_quib,)
     )
@@ -89,7 +89,7 @@ def test_second_level_nested_argument_quib_is_replaced():
 def test_get_value_with_cache_requesting_all_valid_caches_result():
     mock_func = mock.Mock()
     mock_func.return_value = [1, 2, 3]
-    quib = DefaultFunctionQuib.create(
+    quib = DefaultFuncQuib.create(
         func=mock_func,
         func_args=tuple()
     )
@@ -110,7 +110,7 @@ def test_get_value_with_cache_with_changing_type():
     mock_func = mock.Mock()
 
     mock_func.side_effect = [[1, 2, 3], {"a": 1}]
-    quib = DefaultFunctionQuib.create(
+    quib = DefaultFuncQuib.create(
         func=mock_func,
         func_args=(parent,)
     )
@@ -124,7 +124,7 @@ def test_get_value_with_cache_with_changing_type():
 
 def test_invalidate_before_cache_exists():
     parent = iquib(1)
-    _ = DefaultFunctionQuib.create(
+    _ = DefaultFuncQuib.create(
         func=mock.Mock(),
         func_args=(parent,)
     )
@@ -137,7 +137,7 @@ def test_invalidate_before_cache_exists():
 def test_default_function_quib_set_cache_resets_cache():
     mock_func = mock.Mock()
     mock_func.side_effect = [1, 2]
-    quib = DefaultFunctionQuib.create(
+    quib = DefaultFuncQuib.create(
         func=mock_func,
     )
     quib.get_value()
@@ -151,7 +151,7 @@ def test_default_function_quib_set_cache_resets_cache():
 def test_default_function_quib():
     mock_func = mock.Mock()
     mock_func.return_value = np.array([1, 2, 3])
-    quib = DefaultFunctionQuib.create(
+    quib = DefaultFuncQuib.create(
         func=mock_func,
     )
 

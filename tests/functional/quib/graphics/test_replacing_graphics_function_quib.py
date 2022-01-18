@@ -4,7 +4,7 @@ from matplotlib.axes import Axes
 
 from pyquibbler import iquib
 from pyquibbler.quib.assignment.assignment import PathComponent
-from pyquibbler.quib.graphics.replacing_graphics_function_quib import ReplacingGraphicsFunctionQuib
+from pyquibbler.quib.graphics.replacing_graphics_function_quib import ReplacingGraphicsFuncQuib
 
 
 # MOVED
@@ -15,11 +15,11 @@ def test_replacing_graphics_function_quib():
     mock_func.__name__ = "myfunc"
     # Creating runs the quibs- it's also important to keep them as a local var so they don't get garbage collected
     # if they are the test will pass regardless
-    _ = ReplacingGraphicsFunctionQuib.create(
+    _ = ReplacingGraphicsFuncQuib.create(
         func=mock_func,
         func_args=(mock_artist, first_quib)
     )
-    __ = ReplacingGraphicsFunctionQuib.create(
+    __ = ReplacingGraphicsFuncQuib.create(
         func=mock_func,
         func_args=(mock_artist,)
     )
@@ -39,7 +39,7 @@ def test_replacing_graphics_function_quib_doesnt_remove_quib_after_invalidation_
     path = [PathComponent(component=..., indexed_cls=first_quib.get_type())]
 
     # First time to create quib, attach to parent, attach to axes
-    _ = ReplacingGraphicsFunctionQuib.create(
+    _ = ReplacingGraphicsFuncQuib.create(
         func=mock_func,
         func_args=(mock_artist, first_quib),
     )

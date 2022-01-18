@@ -5,7 +5,7 @@ from pytest import raises, fixture, mark
 
 from pyquibbler import iquib, q
 from pyquibbler.quib.proxy_quib import ProxyQuib
-from pyquibbler.quib import get_override_group_for_change, CannotChangeQuibAtPathException, DefaultFunctionQuib, Quib
+from pyquibbler.quib import get_override_group_for_change, CannotChangeQuibAtPathException, DefaultFuncQuib, Quib
 from pyquibbler.quib.assignment import Assignment, AssignmentToQuib
 from pyquibbler.quib.assignment.assignment import Override
 from pyquibbler.quib.assignment.override_choice import OverrideGroup, OverrideRemoval
@@ -112,7 +112,7 @@ def test_get_overrides_for_assignment_when_nothing_is_overridable(assignment, pa
 
 def test_get_overrides_for_assignment_when_inverse_assignment_not_implemented(assignment):
     parent = iquib(1)
-    child = DefaultFunctionQuib.create(lambda x: x, (parent,))
+    child = DefaultFuncQuib.create(lambda x: x, (parent,))
 
     assignment = AssignmentToQuib(child, assignment)
     with raises(CannotChangeQuibAtPathException) as exc_info:

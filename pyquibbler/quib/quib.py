@@ -34,7 +34,7 @@ from pyquibbler.cache import create_cache
 from pyquibbler.cache.cache import CacheStatus
 from pyquibbler.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
 from pyquibbler.function_definitions.func_call import ArgsValues, FuncCall
-from pyquibbler.quib.function_calling.cache_behavior import CacheBehavior, UnknownCacheBehaviorException
+from pyquibbler.quib.func_calling.cache_behavior import CacheBehavior, UnknownCacheBehaviorException
 from pyquibbler.quib.exceptions import OverridingNotAllowedException, UnknownUpdateTypeException, \
     InvalidCacheBehaviorForQuibException, CannotSaveAsTextException
 from pyquibbler.quib.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own, \
@@ -50,8 +50,8 @@ from pyquibbler.utilities.unpacker import Unpacker
 
 if TYPE_CHECKING:
     from pyquibbler.assignment import ChoiceContext, OverrideChoice
-    from pyquibbler.function_definitions import FunctionDefinition
-    from pyquibbler.quib.function_calling import QuibFuncCall
+    from pyquibbler.function_definitions import FuncDefinition
+    from pyquibbler.quib.func_calling import QuibFuncCall
 
 
 def get_user_friendly_name_for_requested_valid_path(valid_path: Optional[List[PathComponent]]):
@@ -72,7 +72,7 @@ class Quib(ReprMixin):
     """
     _IS_WITHIN_GET_VALUE_CONTEXT = False
 
-    def __init__(self, function_runner: QuibFuncCall,
+    def __init__(self, quib_function_call: QuibFuncCall,
                  assignment_template: AssignmentTemplate,
                  allow_overriding: bool,
                  name: Optional[str],
@@ -96,10 +96,10 @@ class Quib(ReprMixin):
 
         self._save_directory = save_directory
 
-        self._quib_func_call = function_runner
+        self._quib_function_call = quib_function_call
 
         from pyquibbler.quib.graphics.persist import persist_artists_on_quib_weak_ref
-        self._quib_func_call.artists_creation_callback = functools.partial(persist_artists_on_quib_weak_ref,
+        self._quib_function_call.artists_creation_callback = functools.partial(persist_artists_on_quib_weak_ref,
                                                                             weakref.ref(self))
 
         self._can_save_as_txt = can_save_as_txt
@@ -110,15 +110,15 @@ class Quib(ReprMixin):
 
     @property
     def func(self):
-        return self._quib_func_call.func
+        return self._quib_function_call.func
 
     @property
     def args(self):
-        return self._quib_func_call.args
+        return self._quib_function_call.args
 
     @property
     def kwargs(self):
-        return self._quib_func_call.kwargs
+        return self._quib_function_call.kwargs
 
     """
     Graphics related funcs
@@ -126,7 +126,7 @@ class Quib(ReprMixin):
 
     @property
     def func_can_create_graphics(self):
-        return self._quib_func_call.func_can_create_graphics
+        return self._quib_function_call.func_can_create_graphics
 
     def redraw_if_appropriate(self):
         """
@@ -139,8 +139,8 @@ class Quib(ReprMixin):
         return self.get_value()
 
     def _iter_artist_lists(self) -> Iterable[List[Artist]]:
-        return [] if self._quib_func_call.graphics_collections is None else map(lambda g: g.artists,
-                                                                      self._quib_func_call.graphics_collections.flat)
+        return [] if self._quib_function_call.graphics_collections is None else map(lambda g: g.artists,
+                                                                      self._quib_function_call.graphics_collections.flat)
 
     def _iter_artists(self) -> Iterable[Artist]:
         return (artist for artists in self._iter_artist_lists() for artist in artists)
@@ -243,17 +243,17 @@ class Quib(ReprMixin):
         and produce the same change in the value of this quib.
         """
         from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation
-        func_call, sources_to_quibs = get_func_call_for_translation(self._quib_func_call)
+        func_call, sources_to_quibs = get_func_call_for_translation(self._quib_function_call)
         sources_to_paths = backwards_translate(func_call=func_call, path=override_removal.path)
         return [OverrideRemoval(sources_to_quibs[source], path) for source, path in sources_to_paths.items()]
 
     @property
     @functools.lru_cache()
     def _args_values(self):
-        return ArgsValues.from_function_call(self.func, self.args, self.kwargs, include_defaults=True)
+        return ArgsValues.from_func_args_kwargs(self.func, self.args, self.kwargs, include_defaults=True)
 
     @property
-    def _func_definition(self) -> FunctionDefinition:
+    def _func_definition(self) -> FuncDefinition:
         from pyquibbler.function_definitions import get_definition_for_function
         return get_definition_for_function(self.func)
 
@@ -263,7 +263,7 @@ class Quib(ReprMixin):
         and produce the same change in the value of this quib.
         """
         from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation
-        func_call, data_sources_to_quibs = get_func_call_for_translation(self._quib_func_call)
+        func_call, data_sources_to_quibs = get_func_call_for_translation(self._quib_function_call)
 
         try:
             value = self.get_value()
@@ -385,7 +385,7 @@ class Quib(ReprMixin):
                     },
                     shape=self.get_shape(),
                     type_=self.get_type(),
-                    **self._quib_func_call.get_result_metadata()
+                    **self._quib_function_call.get_result_metadata()
                 )
             except NoTranslatorsFoundException:
                 return {
@@ -402,10 +402,10 @@ class Quib(ReprMixin):
         from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation
         from pyquibbler.quib.utils.func_call_utils import is_quib_a_data_source
 
-        if not is_quib_a_data_source(self._quib_func_call, invalidator_quib):
+        if not is_quib_a_data_source(self._quib_function_call, invalidator_quib):
             return [[]]
 
-        func_call, sources_to_quibs = get_func_call_for_translation(self._quib_func_call)
+        func_call, sources_to_quibs = get_func_call_for_translation(self._quib_function_call)
         quibs_to_sources = {quib: source for source, quib in sources_to_quibs.items()}
 
         sources_to_new_paths = self._forward_translate_source_path(func_call, quibs_to_sources[invalidator_quib],
@@ -423,13 +423,13 @@ class Quib(ReprMixin):
         """
         if len(path) == 0:
             self._on_type_change()
-            self._quib_func_call.reset_cache()
+            self._quib_function_call.reset_cache()
 
         # TODO: This should happen with quibcall
-        if self._quib_func_call.cache is not None:
-            self._quib_func_call.cache = transform_cache_to_nd_if_necessary_given_path(self._quib_func_call.cache,
+        if self._quib_function_call.cache is not None:
+            self._quib_function_call.cache = transform_cache_to_nd_if_necessary_given_path(self._quib_function_call.cache,
                                                                                         path)
-            self._quib_func_call.cache.set_invalid_at_path(path)
+            self._quib_function_call.cache.set_invalid_at_path(path)
 
     """
     Misc
@@ -448,15 +448,15 @@ class Quib(ReprMixin):
         """
         User interface to check cache validity.
         """
-        return self._quib_func_call.cache.get_cache_status()\
-            if self._quib_func_call.cache is not None else CacheStatus.ALL_INVALID
+        return self._quib_function_call.cache.get_cache_status()\
+            if self._quib_function_call.cache is not None else CacheStatus.ALL_INVALID
 
     @property
     def project(self) -> Project:
         return Project.get_or_create()
 
     def get_cache_behavior(self):
-        return self._quib_func_call.get_cache_behavior()
+        return self._quib_function_call.get_cache_behavior()
 
     @validate_user_input(cache_behavior=(str, CacheBehavior))
     def set_cache_behavior(self, cache_behavior: CacheBehavior):
@@ -466,8 +466,8 @@ class Quib(ReprMixin):
             except KeyError:
                 raise UnknownCacheBehaviorException(cache_behavior)
         if self._func_definition.is_random_func and cache_behavior != CacheBehavior.ON:
-            raise InvalidCacheBehaviorForQuibException(self._quib_func_call.default_cache_behavior)
-        self._quib_func_call.default_cache_behavior = cache_behavior
+            raise InvalidCacheBehaviorForQuibException(self._quib_function_call.default_cache_behavior)
+        self._quib_function_call.default_cache_behavior = cache_behavior
 
     def setp(self, allow_overriding: bool = None, assignment_template=None,
              save_directory: Union[str, pathlib.Path] = None, cache_behavior: CacheBehavior = None,
@@ -521,7 +521,7 @@ class Quib(ReprMixin):
         return {child for child in self._get_children_recursively() if child.func_can_create_graphics}
 
     def _on_type_change(self):
-        self._quib_func_call.method_cache.clear()
+        self._quib_function_call.method_cache.clear()
 
     @staticmethod
     def _apply_assignment_to_cache(original_value, cache, assignment):
@@ -615,7 +615,7 @@ class Quib(ReprMixin):
         name_for_call = get_user_friendly_name_for_requested_valid_path(path)
 
         with add_quib_to_fail_trace_if_raises_quib_call_exception(self, name_for_call):
-            result = self._quib_func_call.get_value_valid_at_path(path)
+            result = self._quib_function_call.get_value_valid_at_path(path)
 
         return self._overrider.override(result, self._assignment_template)
 
@@ -657,21 +657,21 @@ class Quib(ReprMixin):
         Get the type of wrapped value.
         """
         with add_quib_to_fail_trace_if_raises_quib_call_exception(quib=self, call='get_type()', replace_last=True):
-            return self._quib_func_call.get_type()
+            return self._quib_function_call.get_type()
 
     def get_shape(self) -> Tuple[int, ...]:
         """
         Assuming this quib represents a numpy ndarray, returns a quib of its shape.
         """
         with add_quib_to_fail_trace_if_raises_quib_call_exception(quib=self, call='get_shape()', replace_last=True):
-            return self._quib_func_call.get_shape()
+            return self._quib_function_call.get_shape()
 
     def get_ndim(self) -> int:
         """
         Assuming this quib represents a numpy ndarray, returns a quib of its shape.
         """
         with add_quib_to_fail_trace_if_raises_quib_call_exception(quib=self, call='get_ndim()', replace_last=True):
-            return self._quib_func_call.get_ndim()
+            return self._quib_function_call.get_ndim()
 
     @quib_method
     def get_override_mask(self):

@@ -3,9 +3,9 @@ from unittest import mock
 import pytest
 
 from pyquibbler.function_definitions import add_definition_for_function
-from pyquibbler.function_definitions.function_definition import FunctionDefinition
+from pyquibbler.function_definitions.func_definition import FuncDefinition
 from pyquibbler.utilities.input_validation_utils import InvalidArgumentException
-from pyquibbler.quib.function_calling.cache_behavior import CacheBehavior, UnknownCacheBehaviorException
+from pyquibbler.quib.func_calling.cache_behavior import CacheBehavior, UnknownCacheBehaviorException
 from pyquibbler.quib.exceptions import InvalidCacheBehaviorForQuibException
 from pyquibbler.quib.factory import create_quib
 
@@ -29,7 +29,7 @@ def test_quib_setp_with_invalid_cache_behavior(quib):
 @pytest.fixture()
 def random_quib():
     func = mock.Mock()
-    add_definition_for_function(func=func, function_definition=FunctionDefinition(is_random_func=True))
+    add_definition_for_function(func=func, function_definition=FuncDefinition(is_random_func=True))
     return create_quib(func=func)
 
 

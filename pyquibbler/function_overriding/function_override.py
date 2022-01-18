@@ -4,12 +4,12 @@ from types import ModuleType
 from typing import Callable, Any, Dict, Union, Type, Optional
 
 from pyquibbler.env import EVALUATE_NOW
-from pyquibbler.function_definitions.function_definition import FunctionDefinition
+from pyquibbler.function_definitions.func_definition import FuncDefinition
 from pyquibbler.quib.utils.miscellaneous import is_there_a_quib_in_args
 
 
 @dataclass
-class FunctionOverride:
+class FuncOverride:
     """
     Represents an override of a function, a "replacement" of it in order to support Quibs.
     The default implementation is to be completely transparent if no quibs are given as arguments.
@@ -17,7 +17,7 @@ class FunctionOverride:
 
     func_name: str
     module_or_cls: Union[ModuleType, Type]
-    function_definition: Optional[FunctionDefinition] = None
+    function_definition: Optional[FuncDefinition] = None
     quib_creation_flags: Optional[Dict[str, Any]] = None
     _original_func: Callable = None
 
@@ -29,7 +29,7 @@ class FunctionOverride:
     @property
     def _default_creation_flags(self) -> Dict[str, Any]:
         """
-        What are the default flags for creating a Quib for this FunctionOverride?
+        What are the default flags for creating a Quib for this FuncOverride?
         If you subclass this, you can override this, the default is to use the default flags
         """
         return {}

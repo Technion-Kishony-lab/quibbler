@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from typing import List, Any, Optional, Type
 
 from pyquibbler.function_definitions.func_call import FuncCall
-from pyquibbler.function_definitions.function_definition import FunctionDefinition
+from pyquibbler.function_definitions.func_definition import FuncDefinition
 
 
 class MultipleInstanceRunner(ABC):
@@ -14,7 +14,7 @@ class MultipleInstanceRunner(ABC):
         self._func_call = func_call
 
     @abstractmethod
-    def _get_runners_from_definition(self, definition: FunctionDefinition) -> List:
+    def _get_runners_from_definition(self, definition: FuncDefinition) -> List:
         pass
 
     @abstractmethod

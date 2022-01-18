@@ -55,7 +55,7 @@ def persist_artists_on_quib_weak_ref(weak_ref_quib, artists):
     This method will be given as a callback to the function runner whenever it creates artists.
 
     This can't be a method on the quib, because the callback has to be with a `weakref` so that we won't hold have a
-    circular reference between the quib and the FunctionRunner- The quib should hold the FunctionRunner, and the
+    circular reference between the quib and the FuncRunner- The quib should hold the FuncRunner, and the
     functionrunner should have no knowledge of it
     """
     quib: Quib = weak_ref_quib()

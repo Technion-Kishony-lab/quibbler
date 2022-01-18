@@ -99,7 +99,7 @@ def call_func_with_quib_values(func, args, kwargs):
         if len(e.args) == 1 and 'Quib' in e.args[0]:
             nested_quibs_by_arg_names = get_nested_quibs_by_arg_names_in_function_call(func, new_args, new_kwargs)
             if nested_quibs_by_arg_names:
-                # TODO: FunctionCalledWithNestedQuibException
+                # TODO: FuncCalledWithNestedQuibException
                 raise Exception(func, nested_quibs_by_arg_names) from e
         raise
 
