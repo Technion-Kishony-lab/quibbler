@@ -116,7 +116,7 @@ def create_quib(func, args: Tuple[Any, ...] = (), kwargs: Mapping[str, Any] = No
     definition = get_definition_for_function(func)
     project = Project.get_or_create()
 
-    quib_func_call = definition.quib_function_call_cls.from_function_call(
+    quib_func_call = definition.quib_function_call_cls.from_(
         func=func,
         func_args=args,
         func_kwargs=kwargs,

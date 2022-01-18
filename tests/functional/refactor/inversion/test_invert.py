@@ -11,11 +11,11 @@ from pyquibbler.translation.source_func_call import SourceFuncCall
 def test_invert_raises_exception_on_unknown_func():
     with pytest.raises(NoInvertersFoundException):
         invert(
-            func_call=SourceFuncCall.from_function_call(func=mock.MagicMock(__name__='unknown'),
-                                                            func_args=tuple(),
-                                                            func_kwargs={},
-                                                            include_defaults=True
-                                                            ),
+            func_call=SourceFuncCall.from_(func=mock.MagicMock(__name__='unknown'),
+                                           func_args=tuple(),
+                                           func_kwargs={},
+                                           include_defaults=True
+                                           ),
             assignment=mock.Mock(),
             previous_result=0
         )

@@ -27,7 +27,7 @@ def get_func_call_for_translation(func_call: FuncCall):
     args, kwargs = convert_args_and_kwargs(_replace_quib_with_source,
                                            func_call.args,
                                            func_call.kwargs)
-    return SourceFuncCall.from_function_call(
+    return SourceFuncCall.from_(
         func=func_call.func,
         func_args=args,
         func_kwargs=kwargs,

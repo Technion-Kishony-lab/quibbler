@@ -50,11 +50,6 @@ class QuibFuncCall(FuncCall):
     def __hash__(self):
         return id(self)
 
-    # TODO: Remove
-    @classmethod
-    def from_(cls, *args, **kwargs):
-        return cls.from_function_call(*args, **kwargs)
-
     def flat_graphics_collections(self):
         return list(self.graphics_collections.flat) if self.graphics_collections is not None else []
 

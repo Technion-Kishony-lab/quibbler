@@ -67,11 +67,11 @@ class FuncCall(ABC):
     func: Callable
 
     @classmethod
-    def from_function_call(cls, func: Callable,
-                           func_args: Tuple[Any, ...],
-                           func_kwargs: Mapping[str, Any],
-                           include_defaults: bool = False,
-                           *args, **kwargs):
+    def from_(cls, func: Callable,
+              func_args: Tuple[Any, ...],
+              func_kwargs: Mapping[str, Any],
+              include_defaults: bool = False,
+              *args, **kwargs):
         return cls(args_values=ArgsValues.from_func_args_kwargs(func, func_args, func_kwargs, include_defaults), func=func,
                    *args, **kwargs)
 
