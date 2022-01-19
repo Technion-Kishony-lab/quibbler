@@ -130,6 +130,16 @@ def test_vectorize_doesnt_evaluate_sample_when_getting_value():
     func_mock.assert_called_once_with(1)
 
 
+def test_vectorize_with_unknown_shape_doesnt_evaluate_sample_when_getting_value():
+    func_mock = mock.Mock(return_value=[4, 6])
+    parent = iquib([0, 1, 2])
+    result = np.vectorize(func_mock, signature='()->(n)', otypes=[np.int32])(parent)
+
+    result[1].get_value()
+
+    func_mock.assert_called_once_with(1)
+
+
 def test_vectorize_with_data_with_zero_dims():
     data = iquib(np.array(np.zeros((3, 0, 2))))
     mock_func = mock.Mock()
