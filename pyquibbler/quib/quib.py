@@ -20,7 +20,7 @@ from pyquibbler.env import LEN_RAISE_EXCEPTION, PRETTY_REPR
 from pyquibbler.graphics import is_within_drag
 from pyquibbler.quib.quib_guard import guard_raise_if_not_allowed_access_to_quib, \
     CannotAccessQuibInScopeException
-from pyquibbler.quib.repr.pretty_converters import MathExpression
+from pyquibbler.quib.pretty_converters import MathExpression, pretty_convert
 from pyquibbler.quib.utils.miscellaneous import get_user_friendly_name_for_requested_valid_path
 from pyquibbler.translation.types import Source
 from pyquibbler.utilities.input_validation_utils import validate_user_input
@@ -795,7 +795,6 @@ class Quib:
     Repr
     """
     def get_functional_representation_expression(self) -> Union[MathExpression, str]:
-        from pyquibbler.quib.repr.pretty_converters import pretty_convert
         try:
             return pretty_convert.get_pretty_value_of_func_with_args_and_kwargs(self.func, self.args, self.kwargs)
         except Exception as e:
