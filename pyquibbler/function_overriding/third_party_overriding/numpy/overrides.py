@@ -19,8 +19,6 @@ def identity(x):
 def create_numpy_overrides():
 
     return [
-        # NUMPY
-
         # Reduction
         reduction('amin'), reduction('max'), reduction('amax'), reduction('min'),  # min/max
         reduction('argmin'), reduction('argmax'), reduction('nanargmin'), reduction('nanargmax'),  # arg-min/max
