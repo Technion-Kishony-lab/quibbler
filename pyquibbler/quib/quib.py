@@ -419,11 +419,7 @@ class Quib:
             self._quib_function_call.on_type_change()
             self._quib_function_call.reset_cache()
 
-        # TODO: This should happen with quibcall
-        if self._quib_function_call.cache is not None:
-            self._quib_function_call.cache = transform_cache_to_nd_if_necessary_given_path(self._quib_function_call.cache,
-                                                                                        path)
-            self._quib_function_call.cache.set_invalid_at_path(path)
+        self._quib_function_call.invalidate_cache_at_path(path)
 
     """
     Misc
@@ -794,6 +790,7 @@ class Quib:
     """
     Repr
     """
+
     def get_functional_representation_expression(self) -> Union[MathExpression, str]:
         try:
             return pretty_convert.get_pretty_value_of_func_with_args_and_kwargs(self.func, self.args, self.kwargs)

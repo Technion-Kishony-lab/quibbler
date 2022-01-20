@@ -13,7 +13,6 @@ from pyquibbler.quib.utils.miscellaneous import is_there_a_quib_in_object
 from pyquibbler.quib.quib import Quib
 
 
-# TODO: should iquib simply be a function that is overridden? How would we handle all flags etc?
 from pyquibbler.translation.forwards_path_translator import ForwardsPathTranslator
 from pyquibbler.translation.types import Source
 
@@ -35,7 +34,12 @@ identity_function.__name__ = 'iquib'
 
 
 def iquib(value: Any):
-    # TODO: add docs
+    """
+    An "iquib" represents an input or parameter to your project.
+
+    It is implemented by being a quib with an identity function- it will simply return the value given to it when
+    called.
+    """
     if DEBUG:
         if is_there_a_quib_in_object(value, force_recursive=True):
             raise CannotNestQuibInIQuibException(value)

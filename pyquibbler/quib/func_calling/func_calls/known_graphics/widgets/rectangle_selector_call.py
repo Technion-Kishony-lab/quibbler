@@ -19,7 +19,6 @@ class RectangleSelectorQuibFuncCall(WidgetQuibFuncCall):
         if isinstance(init_val, Quib):
             previous_value = init_val.get_value()
         else:
-            # TODO: Is this ok? It was previously like  this
             previous_value = self.run([]).extents
 
         return not allow_resize and (

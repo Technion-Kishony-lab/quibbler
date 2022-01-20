@@ -95,7 +95,7 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
         max_shape_length = max([np.ndim(data_source_argument.value)
                                 for data_source_argument in data_sources]) if len(data_sources) > 0 else 0
 
-        # Default is to set all - if we have a shape we'll change this TODO: does this make sense??
+        # Default is to set all - if we have a shape we'll change this
         data_sources_to_indices = {
             data_source: None for data_source in data_sources
         }
@@ -135,7 +135,6 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
             return None
 
         if data_sources_to_indices[source] is None:
-            # TODO: Is this really what we want?
             return []
 
         return [PathComponent(component=data_sources_to_indices[source], indexed_cls=np.ndarray)]

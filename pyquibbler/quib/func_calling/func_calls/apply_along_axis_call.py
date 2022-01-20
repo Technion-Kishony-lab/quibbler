@@ -27,10 +27,6 @@ class ApplyAlongAxisQuibFuncCall(QuibFuncCall):
             return res.get_value()
         return res
 
-    # TODO: Move
-    def get_args_values(self):
-        return self.args_values
-
     @cache_method_until_full_invalidation
     def _get_sample_result(self) -> Any:
         """
@@ -79,7 +75,7 @@ class ApplyAlongAxisQuibFuncCall(QuibFuncCall):
 
     @property
     def core_axis(self) -> int:
-        axis = self.get_args_values()['axis']
+        axis = self.args_values['axis']
         if isinstance(axis, Quib):
             # since this is a parameter quib, we always need it completely valid in order to run anything
             axis = axis.get_value()
@@ -88,7 +84,7 @@ class ApplyAlongAxisQuibFuncCall(QuibFuncCall):
     @property
     def arr(self) -> Quib:
         from pyquibbler.utilities.user_utils import q
-        arr_ = self.get_args_values()['arr']
+        arr_ = self.args_values['arr']
         # ensure we're dealing with an ndarray- because we're not always running apply_along_axis which takes care of
         # this for us (for example, when getting a sample result) we do this on any access to the array to ensure no
         # issues if we were passed a list
@@ -96,7 +92,7 @@ class ApplyAlongAxisQuibFuncCall(QuibFuncCall):
 
     @property
     def func1d(self) -> Callable:
-        return self.get_args_values()['func1d']
+        return self.args_values['func1d']
 
     def _get_oned_slice_for_running_func1d(self, indices: Tuple):
         """
@@ -105,31 +101,8 @@ class ApplyAlongAxisQuibFuncCall(QuibFuncCall):
         or the values themselves of the slice
         """
         if self._call_func_with_quibs:
-            # TODO: Proxy quibs!
-            return self.arr[indices]
-            raise Exception("can't")
+            return create_proxy(self.arr[indices])
         return self.arr[indices].get_value()
-
-    # def _run_single_call(self, func: Callable,
-    #                      graphics_collection: GraphicsCollection,
-    #                      args: Tuple[Any, ...],
-    #                      kwargs: Mapping[str, Any],
-    #                      quibs_to_guard: Set[Quib]):
-    #     """
-    #     Run a single iteration of the function quib
-    #     """
-    #     # TODO: quibguard
-    #     with graphics_collection.track_and_handle_new_graphics(
-    #             kwargs_specified_in_artists_creation=set(self.kwargs.keys())
-    #     ):
-    #         ret_val = func(*args, **kwargs)
-    #
-    #     # We don't allow returning quibs as results from functions
-    #     from pyquibbler.quib.quib import Quib
-    #     if isinstance(ret_val, Quib):
-    #         ret_val = ret_val.get_value()
-    #
-    #     return ret_val
 
     def _get_result_at_indices(self,
                                requested_indices_bool_mask: np.ndarray,

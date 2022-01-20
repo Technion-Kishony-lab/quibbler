@@ -310,6 +310,11 @@ class QuibFuncCall(FuncCall):
 
         return new_args, new_kwargs, quibs_allowed_to_access
 
+    def invalidate_cache_at_path(self, path: Path):
+        if self.cache is not None:
+            self.cache = transform_cache_to_nd_if_necessary_given_path(self.cache, path)
+            self.cache.set_invalid_at_path(path)
+
     def get_result_metadata(self) -> Dict:
         return {}
 

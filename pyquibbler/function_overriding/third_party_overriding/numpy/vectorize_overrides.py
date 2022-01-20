@@ -31,7 +31,7 @@ class VectorizeCallDefinition(FuncDefinition):
         """
         from pyquibbler.quib.func_calling.func_calls.vectorize.utils import iter_arg_ids_and_values
         vectorize, *args = args_values.args
-        # TODO: why plus 1? A. Because `vectorize` was zero and we removed it.
+        # We do + 1 to positional arguments because `vectorize` was zero and we removed it.
         return [(KeywordArgument(key) if isinstance(key, str) else PositionalArgument(key + 1), val)
                 for key, val in iter_arg_ids_and_values(args, args_values.kwargs) if key not in vectorize.excluded]
 
