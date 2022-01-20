@@ -57,7 +57,7 @@ class VectorizeBackwardsPathTranslator(BackwardsPathTranslator):
 
     def translate_in_order(self) -> Dict[Source, Path]:
         return {source: self._get_source_path_in_source(source, self._path)
-                for source in self.get_data_sources()}
+                for source in self._func_call.get_data_sources()}
 
 
 class VectorizeForwardsPathTranslator(ForwardsPathTranslator):
@@ -75,7 +75,7 @@ class VectorizeForwardsPathTranslator(ForwardsPathTranslator):
             shape=np.shape(source.value)
         )
         core_ndim = max(self._vectorize_metadata.args_metadata[arg_id].core_ndim
-                        for arg_id in _get_arg_ids_for_source(source, self.args_values.args, self.args_values.kwargs))
+                        for arg_id in _get_arg_ids_for_source(source, self._func_call.args, self._func_call.kwargs))
         source_bool_mask = np.any(source_bool_mask, axis=get_core_axes(core_ndim))
         return np.broadcast_to(source_bool_mask, self._vectorize_metadata.result_loop_shape)
 

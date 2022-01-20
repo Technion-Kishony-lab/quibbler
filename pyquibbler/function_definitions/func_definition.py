@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from pyquibbler.inversion.inverter import Inverter
 
 
-def get_function_runner():
+def get_default_quib_func_call():
     from pyquibbler.quib.func_calling import QuibFuncCall
     return QuibFuncCall
 
@@ -35,7 +35,7 @@ class FuncDefinition:
     inverters: List[Type[Inverter]] = field(default_factory=list)
     backwards_path_translators: List[Type[BackwardsPathTranslator]] = field(default_factory=list)
     forwards_path_translators: List[Type[ForwardsPathTranslator]] = field(default_factory=list)
-    quib_function_call_cls: Type[QuibFuncCall] = field(default_factory=get_function_runner)
+    quib_function_call_cls: Type[QuibFuncCall] = field(default_factory=get_default_quib_func_call)
 
     def __hash__(self):
         return id(self)
@@ -131,6 +131,7 @@ def create_func_definition(data_source_arguments: List[Union[str, int]] = None,
     Create a definition for a function- this will allow quibbler to utilize Quibs with the function in a more
     specific manner (and not just use default behavior), for whichever parameters you give.
     """
+
     from pyquibbler.quib.func_calling import QuibFuncCall
     quib_function_call_cls = quib_function_call_cls or QuibFuncCall
     data_source_arguments = data_source_arguments or set()

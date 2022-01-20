@@ -6,7 +6,6 @@ from typing import Dict, Callable, Any, List
 
 from pyquibbler.translation.numpy_translator import NumpyForwardsPathTranslator
 from pyquibbler.translation.numpy_translator import NumpyBackwardsPathTranslator
-from pyquibbler.translation.source_func_call import SourceFuncCall
 from pyquibbler.translation.translators.transpositional.utils import get_data_source_ids_mask
 from pyquibbler.translation.types import Source
 from pyquibbler.path.path_component import Path, PathComponent
@@ -26,10 +25,8 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
                 return np.full(np.shape(obj.value), id(obj))
             return obj
 
-        args, kwargs = self._convert_data_sources_in_args(replace_source_with_id)
-        return SourceFuncCall.from_(self.func, args, kwargs,
-                                    data_source_locations=[],
-                                    parameter_source_locations=self._func_call.parameter_source_locations).run()
+        args, kwargs = self._convert_sources_in_args(replace_source_with_id)
+        return self._func_call.func(*args, **kwargs)
 
     def get_data_sources_to_masks_in_result(self) -> Dict[Source, Any]:
         """
@@ -38,12 +35,12 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
         """
         data_sources_ids_mask = self._get_data_source_ids_mask()
         return {data_source: np.equal(data_sources_ids_mask, id(data_source))
-                for data_source in self.get_data_sources()}
+                for data_source in self._func_call.get_data_sources()}
 
-    def _convert_data_sources_in_args(self, convert_data_source: Callable):
+    def _convert_sources_in_args(self, convert_data_source: Callable):
         """
         Return self.args and self.kwargs with all data source args converted with the given convert_data_source
-        callback.
+        callback
         """
         def _convert_data_source(o):
             return convert_data_source(o)
@@ -66,16 +63,12 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
         def replace_data_source_with_index_at_dimension(d):
             return np.indices(np.shape(d.value) if isinstance(d, Source) else np.shape(d))[dimension]
 
-        args, kwargs = self._convert_data_sources_in_args(replace_data_source_with_index_at_dimension)
-        indices_res = SourceFuncCall.from_(self._func_call.func,
-                                           args,
-                                           kwargs,
-                                           data_source_locations=[],
-                                           parameter_source_locations=self._func_call.parameter_source_locations).run()
+        args, kwargs = self._convert_sources_in_args(replace_data_source_with_index_at_dimension)
+        indices_res = self._func_call.func(*args, **kwargs)
 
         return {
             data_source: indices_res[np.logical_and(data_sources_to_masks[data_source], relevant_indices_mask)]
-            for data_source in self.get_data_sources()
+            for data_source in self._func_call.get_data_sources()
         }
 
     @functools.lru_cache()
@@ -90,7 +83,7 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
             value=True,
             empty_value=False
         )
-        data_sources = self.get_data_sources()
+        data_sources = self._func_call.get_data_sources()
         max_shape_length = max([np.ndim(data_source_argument.value)
                                 for data_source_argument in data_sources]) if len(data_sources) > 0 else 0
 

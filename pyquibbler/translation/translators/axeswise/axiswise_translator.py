@@ -50,7 +50,8 @@ class AxiswiseBackwardsPathTranslator(NumpyBackwardsPathTranslator):
         return self._backwards_translate_bool_mask(args_dict, source, result_bool_mask)
 
     def _get_path_in_source(self, source: Source):
-        if len(self.working_path) == 0:
+        working_path, _ = self._split_path()
+        if len(working_path) == 0:
             return []
         indices_in_data_source = self._backwards_translate_indices_to_bool_mask(source)
         return [PathComponent(np.ndarray, indices_in_data_source)]

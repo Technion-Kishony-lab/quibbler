@@ -38,7 +38,7 @@ class ProxyBackwardsPathTranslator(BackwardsPathTranslator):
     def translate_in_order(self) -> Dict[Source, Path]:
         return {
             source: self._path
-            for source in self.get_data_sources()
+            for source in self._func_call.get_data_sources()
         }
 
 

@@ -333,7 +333,7 @@ class Quib:
         if path is None:
             path = []
 
-        with timer("quib_invalidation", lambda x: logger.info(f"invalidation & redraw {x}")):
+        with timer("quib_invalidation", lambda x: logger.info(f"invalidation {x}")):
             self._invalidate_children_at_path(path)
         self._redraw()
 

@@ -3,7 +3,7 @@ import functools
 from pyquibbler.quib.factory import create_quib
 
 
-def quibbler_user_function(evaluate_now=True, pass_quibs=False):
+def quibbler_user_function(evaluate_now: bool = True, pass_quibs: bool = False):
     """
     Decorate your function with this in order for quibbler to automatically unpack quibs sent as arguments to this
     function, while reruninng this function every time any argument quib changes.

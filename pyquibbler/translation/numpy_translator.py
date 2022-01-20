@@ -1,5 +1,4 @@
 from abc import abstractmethod
-from functools import cached_property
 from typing import Any, List, Dict
 
 import numpy as np
@@ -12,6 +11,11 @@ from pyquibbler.translation.types import Source
 
 
 class NumpyBackwardsPathTranslator(BackwardsPathTranslator):
+    """
+    Holds basic logic for how to backwards translate a path for numpy functions- subclass this for any translator of a
+    numpy function.
+    Mainly concerns surrounding logic with deep paths
+    """
 
     @abstractmethod
     def _get_path_in_source(self, source: Source):
@@ -25,15 +29,10 @@ class NumpyBackwardsPathTranslator(BackwardsPathTranslator):
             current_components = []
         return current_components, components_at_end
 
-    @cached_property
-    def working_path(self):
-        working, _ = self._split_path()
-        return working
-
     def translate_in_order(self) -> Dict[Source, Path]:
         sources_to_paths = {}
         working, rest = self._split_path()
-        for source in self.get_data_sources():
+        for source in self._func_call.get_data_sources():
             new_path = self._get_path_in_source(source)
             if new_path is not None:
                 sources_to_paths[source] = [*new_path, *rest]
@@ -41,6 +40,10 @@ class NumpyBackwardsPathTranslator(BackwardsPathTranslator):
 
 
 class NumpyForwardsPathTranslator(ForwardsPathTranslator):
+    """
+    Holds basic logic for how to forwards translate a path for numpy functions- subclass this for any translator of a
+    numpy function.
+    """
 
     @abstractmethod
     def _forward_translate_indices_to_bool_mask(self, source: Source, indices: Any):
