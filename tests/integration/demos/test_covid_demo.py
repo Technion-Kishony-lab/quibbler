@@ -1,3 +1,5 @@
+import pathlib
+
 from tests.utils import quibbler_image_comparison
 
 
@@ -11,7 +13,7 @@ def test_covid_demo(get_axes_middle, create_button_press_event, create_motion_no
     override_all()
 
     # Load data file of COVID statistics per countries
-    file_name = iquib('./COVID_Fatality.csv')
+    file_name = iquib(pathlib.Path(__file__).parent.resolve() / 'COVID_Fatality.csv')
 
     dtype = [("Country", str, 32), ("ConfirmedCases", int), ("Deaths", int), ("Population", float)]
     fatality_table = np.genfromtxt(file_name, dtype=dtype, delimiter=',', names=True)
