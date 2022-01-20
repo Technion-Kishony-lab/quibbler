@@ -59,6 +59,7 @@ class Quib:
     """
     A Quib is a node representing a singular call of a function with it's arguments (it's parents in the graph)
     """
+
     _IS_WITHIN_GET_VALUE_CONTEXT = False
 
     PROFILER = cProfile.Profile()
