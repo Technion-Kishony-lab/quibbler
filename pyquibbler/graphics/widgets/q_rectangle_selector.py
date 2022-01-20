@@ -1,14 +1,12 @@
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from threading import RLock
-from typing import Any, Optional, List
+from typing import Any
 from matplotlib.widgets import RectangleSelector
 
 from pyquibbler.utils import Mutable
 
-# from ..drag_context_manager import dragging, releasing
 from .. import dragging
-from ...assignment import PathComponent
 
 
 @dataclass

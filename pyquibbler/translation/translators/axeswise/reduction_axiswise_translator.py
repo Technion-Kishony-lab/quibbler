@@ -31,4 +31,3 @@ class ReductionAxiswiseBackwardsPathTranslator(AxiswiseBackwardsPathTranslator):
                 bool_mask = np.expand_dims(bool_mask, input_core_dims)
         bool_mask = np.broadcast_to(bool_mask, np.shape(source.value))
         return np.logical_and(bool_mask, args_dict['where'])
-

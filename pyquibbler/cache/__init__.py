@@ -8,6 +8,8 @@ from .shallow.nd_cache import NdFieldArrayShallowCache, NdUnstructuredArrayCache
 from .shallow.shallow_cache import ShallowCache
 from .cache import Cache, CacheStatus
 from .holistic_cache import PathCannotHaveComponentsException
+from .cache_utils import get_uncached_paths_matching_path, \
+    get_cached_data_at_truncated_path_given_result_at_uncached_path
 
 
 def create_cache(result: Any) -> ShallowCache:

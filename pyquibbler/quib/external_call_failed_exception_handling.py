@@ -29,6 +29,7 @@ class ExternalCallFailedException(PyQuibblerException):
                f"The following quibs were in the stack of the exception: {quibs_formatted} " \
                f"\n\n{self.traceback}"
 
+
 @contextlib.contextmanager
 def external_call_failed_exception_handling():
     """

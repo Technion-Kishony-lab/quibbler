@@ -3,15 +3,14 @@ from __future__ import annotations
 import functools
 from abc import abstractmethod, ABC
 from dataclasses import dataclass
-from typing import Tuple, Any, Mapping, Optional, Callable, List, TYPE_CHECKING, Type, ClassVar, Dict
+from typing import Tuple, Any, Mapping, Optional, Callable, List, TYPE_CHECKING, Type, ClassVar
 
 from .location import SourceLocation, create_source_location
-from .types import Argument, PositionalArgument
-from pyquibbler.path import Path, PathComponent, deep_assign_data_in_path
+from .types import Argument
 from pyquibbler.quib.external_call_failed_exception_handling import \
     external_call_failed_exception_handling
 from pyquibbler.utilities.iterators import iter_args_and_names_in_function_call, \
-    get_paths_for_objects_of_type, iter_objects_of_type_in_object, iter_object_type_in_args
+    get_paths_for_objects_of_type, iter_object_type_in_args
 
 if TYPE_CHECKING:
     from pyquibbler.function_definitions import FuncDefinition

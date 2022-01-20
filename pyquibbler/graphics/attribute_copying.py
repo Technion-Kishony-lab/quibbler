@@ -51,13 +51,13 @@ def _update_position_and_attributes_of_created_artists(
 
 
 def update_new_artists_from_previous_artists(kwargs_specified_in_artists_creation: Set[str],
-                                              previous_axeses_to_array_names_to_indices_and_artists: Dict[
-                                                  Axes, Dict[str, Tuple[int, List[Artist]]]
-                                              ],
-                                              current_axeses_to_array_names_to_artists: Dict[
-                                                  Axes, ArrayNameToArtists
-                                              ],
-                                              should_copy_artist_attributes):
+                                             previous_axeses_to_array_names_to_indices_and_artists: Dict[
+                                                 Axes, Dict[str, Tuple[int, List[Artist]]]
+                                             ],
+                                             current_axeses_to_array_names_to_artists: Dict[
+                                                 Axes, ArrayNameToArtists
+                                             ],
+                                             should_copy_artist_attributes):
     """
     Updates the positions and attributes of the new artists from old ones
     """

@@ -28,4 +28,3 @@ def quib_method(func: Callable) -> Callable:
         return create_quib(func=func, args=args, kwargs=kwargs)
 
     return quib_supporting_method_wrapper
-

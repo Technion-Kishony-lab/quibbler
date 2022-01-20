@@ -8,7 +8,6 @@ from pyquibbler.path.path_component import PathComponent, Path
 from pyquibbler.path.utils import working_component, path_beyond_working_component
 from pyquibbler.translation.backwards_path_translator import BackwardsPathTranslator
 from pyquibbler.translation.forwards_path_translator import ForwardsPathTranslator
-from pyquibbler.translation.path_translator import PathTranslator
 from pyquibbler.translation.types import Source
 
 
@@ -70,4 +69,3 @@ class NumpyForwardsPathTranslator(ForwardsPathTranslator):
             source: self._forward_translate_source(source, path) if len(path) != 0 else [[]]
             for source, path in self._sources_to_paths.items()
         }
-

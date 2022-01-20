@@ -11,21 +11,23 @@ from pyquibbler.translation.translators.apply_along_axis_translator import Apply
 from pyquibbler.translation.translators.elementwise.generic_inverse_functions import \
     create_inverse_func_from_indexes_to_funcs
 
-identity = lambda x: x
+
+def identity(x):
+    return x
 
 
 def create_numpy_overrides():
-    
+
     return [
         # NUMPY
 
         # Reduction
         reduction('amin'), reduction('max'), reduction('amax'), reduction('min'),  # min/max
-        reduction('argmin'), reduction('argmax'), reduction('nanargmin'), reduction('nanargmax'), # arg-min/max
-        reduction('sum'), reduction('prod'), reduction('nanprod'), reduction('nansum'), #sum/prod
+        reduction('argmin'), reduction('argmax'), reduction('nanargmin'), reduction('nanargmax'),  # arg-min/max
+        reduction('sum'), reduction('prod'), reduction('nanprod'), reduction('nansum'),  # sum/prod
         reduction('any'), reduction('all'),  # logical
-        reduction('average'), reduction('mean'), reduction('var'), reduction('std'), reduction('median'), # statistics
-        reduction('diff'), reduction('sort'), # other
+        reduction('average'), reduction('mean'), reduction('var'), reduction('std'), reduction('median'),  # statistics
+        reduction('diff'), reduction('sort'),  # other
 
         # Accumulation
         accumulation('cumsum'), accumulation('cumprod'), accumulation('cumproduct'), accumulation('nancumsum'),

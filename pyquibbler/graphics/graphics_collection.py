@@ -6,8 +6,6 @@ from matplotlib.artist import Artist
 from matplotlib.widgets import AxesWidget
 
 from pyquibbler.graphics.attribute_copying import update_new_artists_from_previous_artists
-from pyquibbler.quib.external_call_failed_exception_handling import \
-    external_call_failed_exception_handling
 from pyquibbler.graphics.global_collecting import ArtistsCollector, AxesWidgetsCollector
 from pyquibbler.graphics.utils import get_artist_array, \
     get_axeses_to_array_names_to_starting_indices_and_artists, remove_artist,\

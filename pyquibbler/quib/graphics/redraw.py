@@ -36,10 +36,10 @@ def _redraw_quibs_with_graphics():
     with timer("quib redraw", lambda x: logger.info(f"redrawing {len(quibs_that_are_invalid)} quibs: {x}s")):
         for quib in quibs_that_are_invalid:
             quib.redraw_if_appropriate()
-    try:
-        axeses = {axes for graphics_function_quib in quibs_that_are_invalid for axes in graphics_function_quib.get_axeses()}
-    except Exception:
-        raise
+
+    axeses = {axes
+              for quib in quibs_that_are_invalid for axes in quib.get_axeses()}
+
     redraw_axeses(axeses)
     QUIBS_TO_REDRAW.clear()
 

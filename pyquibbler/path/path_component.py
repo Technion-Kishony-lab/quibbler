@@ -22,5 +22,3 @@ class PathComponent:
 
 
 Path = List[PathComponent]
-
-

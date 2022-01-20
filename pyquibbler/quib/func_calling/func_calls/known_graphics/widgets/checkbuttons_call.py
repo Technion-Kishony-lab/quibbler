@@ -21,5 +21,3 @@ class CheckButtonsQuibFuncCall(WidgetQuibFuncCall):
 
     def _connect_callbacks(self, widget: CheckButtons):
         widget.on_clicked(functools.partial(self.on_change_checkbuttons, widget))
-
-

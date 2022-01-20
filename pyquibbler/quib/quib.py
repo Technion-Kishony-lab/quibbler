@@ -41,7 +41,6 @@ from pyquibbler.quib.exceptions import OverridingNotAllowedException, UnknownUpd
 from pyquibbler.quib.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own, \
     add_quib_to_fail_trace_if_raises_quib_call_exception
 from pyquibbler.quib.graphics import UpdateType
-from pyquibbler.quib.utils.iterators import iter_quibs_in_args
 from pyquibbler.utilities.iterators import recursively_run_func_on_object
 from pyquibbler.quib.quib_method import quib_method
 from pyquibbler.translation.translate import forwards_translate, NoTranslatorsFoundException, \
@@ -94,7 +93,7 @@ class Quib:
 
         from pyquibbler.quib.graphics.persist import persist_artists_on_quib_weak_ref
         self._quib_function_call.artists_creation_callback = functools.partial(persist_artists_on_quib_weak_ref,
-                                                                            weakref.ref(self))
+                                                                               weakref.ref(self))
 
         self._can_save_as_txt = can_save_as_txt
         self._can_contain_graphics = can_contain_graphics
@@ -207,8 +206,8 @@ class Quib:
 
     def assign(self, assignment: Assignment) -> None:
         """
-        Create an assignment with an Assignment object, function_definitions the current values at the assignment's paths with the
-        assignment's value
+        Create an assignment with an Assignment object,
+        function_definitions the current values at the assignment's paths with the assignment's value
         """
         get_override_group_for_change(AssignmentToQuib(self, assignment)).apply()
 
@@ -405,7 +404,6 @@ class Quib:
         sources_to_new_paths = self._forward_translate_source_path(func_call,
                                                                    quibs_to_sources[invalidator_quib],
                                                                    path)
-        
         source = quibs_to_sources[invalidator_quib]
         return sources_to_new_paths[source] if source in sources_to_new_paths else []
 
@@ -709,7 +707,6 @@ class Quib:
             ancestors.add(parent)
             ancestors |= parent.ancestors
         return ancestors
-
 
     """
     File saving

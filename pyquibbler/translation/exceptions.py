@@ -28,4 +28,3 @@ class NoTranslatorsFoundException(PyQuibblerException):
 
     def __str__(self):
         return f"No translator was found for {self.func}"
-

@@ -97,7 +97,8 @@ class ApplyAlongAxisQuibFuncCall(QuibFuncCall):
     def _get_oned_slice_for_running_func1d(self, indices: Tuple):
         """
         Get the proper slice as a parameter for the func- this depends on whether the user specified that he wants a
-        quib representing the result (and if so, we create a proxy quib so as not to invalidate operators quibs he creates)
+        quib representing the result (and if so, we create a proxy quib so as not to invalidate operators quibs
+        he creates)
         or the values themselves of the slice
         """
         if self._call_func_with_quibs:
@@ -143,9 +144,8 @@ class ApplyAlongAxisQuibFuncCall(QuibFuncCall):
         args_values = ArgsValues.from_func_args_kwargs(func=self.func, args=self.args, kwargs=self.kwargs,
                                                        include_defaults=False)
         args_by_name = args_values.arg_values_by_name
-        bool_mask = create_empty_array_with_values_at_indices(self.get_shape(),
-                                                         indices=indices, value=True,
-                                                         empty_value=False)
+        bool_mask = create_empty_array_with_values_at_indices(self.get_shape(), indices=indices, value=True,
+                                                              empty_value=False)
         for ii in ndindex(ni):
             for kk in ndindex(nk):
                 out[ii + s_[(...,)] + kk] = self._get_result_at_indices(bool_mask,

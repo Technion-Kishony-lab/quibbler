@@ -4,7 +4,6 @@ from functools import lru_cache
 import numpy as np
 from typing import Dict, Callable, Any, List
 
-from pyquibbler.translation.backwards_path_translator import BackwardsPathTranslator
 from pyquibbler.translation.numpy_translator import NumpyForwardsPathTranslator
 from pyquibbler.translation.numpy_translator import NumpyBackwardsPathTranslator
 from pyquibbler.translation.source_func_call import SourceFuncCall
@@ -13,7 +12,6 @@ from pyquibbler.translation.types import Source
 from pyquibbler.path.path_component import Path, PathComponent
 from pyquibbler.path.utils import working_component
 from pyquibbler.utilities.general_utils import create_empty_array_with_values_at_indices
-from pyquibbler.utils import convert_args_and_kwargs
 
 
 class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
@@ -58,7 +56,8 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
             transform_parameter_func=_convert_param_source
         )
 
-    def _get_data_sources_to_indices_at_dimension(self, dimension: int, relevant_indices_mask) -> Dict[Source, np.ndarray]:
+    def _get_data_sources_to_indices_at_dimension(self, dimension: int,
+                                                  relevant_indices_mask) -> Dict[Source, np.ndarray]:
         """
         Get a mapping of quibs to their referenced indices at a *specific dimension*
         """
@@ -166,4 +165,3 @@ class ForwardsTranspositionalTranslator(NumpyForwardsPathTranslator):
             return [path]
 
         return super(ForwardsTranspositionalTranslator, self)._forward_translate_source(source, path)
-

@@ -5,13 +5,13 @@ from pyquibbler.function_definitions.func_definition import FuncDefinition
 from pyquibbler.inversion.exceptions import NoInvertersFoundException
 from pyquibbler.translation.source_func_call import SourceFuncCall
 from pyquibbler.utilities.multiple_instance_runner import MultipleInstanceRunner
-from pyquibbler.function_definitions.func_call import FuncCall
 
 if TYPE_CHECKING:
     from pyquibbler import Assignment
 
 
 class MultipleInverterRunner(MultipleInstanceRunner):
+
     exception_to_raise_on_none_found = NoInvertersFoundException
 
     def __init__(self, func_call: SourceFuncCall, assignment: Assignment, previous_result: Any):
@@ -32,4 +32,7 @@ class MultipleInverterRunner(MultipleInstanceRunner):
 
 
 def invert(func_call: SourceFuncCall, assignment: Assignment, previous_result):
+    """
+    Get all the inversions for a given assignment on the result of a funccall
+    """
     return MultipleInverterRunner(func_call, assignment, previous_result).run()

@@ -3,7 +3,6 @@ from typing import Dict, Any, Set, TYPE_CHECKING, Optional, Tuple, Type, List
 
 import numpy as np
 
-from pyquibbler.translation.numpy_translator import NumpyBackwardsPathTranslator
 from pyquibbler.utilities.general_utils import create_empty_array_with_values_at_indices, unbroadcast_bool_mask
 from pyquibbler.path import PathComponent
 from pyquibbler.path.path_component import Path

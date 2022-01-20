@@ -169,4 +169,3 @@ class VectorizeQuibFuncCall(QuibFuncCall):
 
         with external_call_failed_exception_handling():
             return call()
-

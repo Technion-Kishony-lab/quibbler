@@ -1,10 +1,7 @@
 import matplotlib.image
-from pyquibbler.function_definitions.func_definition import create_func_definition
-from pyquibbler.function_overriding.function_override import FuncOverride
 from pyquibbler.function_overriding.third_party_overriding.general_helpers import override
 from pyquibbler.function_overriding.third_party_overriding.graphics.helpers import axes_override, \
     replacing_axes_override, widget_override
-from pyquibbler.graphics import global_collecting
 from pyquibbler.quib.func_calling.func_calls import RadioButtonsQuibFuncCall, SliderQuibFuncCall, \
     RectangleSelectorQuibFuncCall
 from pyquibbler.quib.func_calling.func_calls.known_graphics.plot_call import PlotQuibFuncCall
@@ -32,4 +29,3 @@ def create_graphics_overrides():
 
         override(matplotlib.image, func_name='imread', is_file_loading_func=True)
     ]
-

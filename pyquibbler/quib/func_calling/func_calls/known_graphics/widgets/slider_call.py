@@ -1,5 +1,3 @@
-from matplotlib.widgets import Slider
-
 from pyquibbler.graphics.widgets import QSlider
 from pyquibbler.quib.func_calling.func_calls.known_graphics.widgets.widget_call import WidgetQuibFuncCall
 

@@ -22,4 +22,3 @@ class CacheBehavior(Enum):
     AUTO = 'auto'
     OFF = 'off'
     ON = 'on'
-

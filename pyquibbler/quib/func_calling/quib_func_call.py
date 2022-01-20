@@ -2,18 +2,18 @@ from __future__ import annotations
 
 from sys import getsizeof
 from time import perf_counter
-from typing import Optional, Type, Tuple, Dict, Any, ClassVar, Set, Mapping, Callable, List
+from typing import Optional, Type, Tuple, Dict, Any, Set, Mapping, Callable, List
 
-from pyquibbler.cache.cache_utils import get_uncached_paths_matching_path, \
-    _truncate_path_to_match_shallow_caches, _ensure_cache_matches_result, \
+from pyquibbler.cache.cache_utils import _truncate_path_to_match_shallow_caches, _ensure_cache_matches_result, \
     get_cached_data_at_truncated_path_given_result_at_uncached_path
-from pyquibbler.cache.holistic_cache import PathCannotHaveComponentsException
-from pyquibbler.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
+from pyquibbler.cache import PathCannotHaveComponentsException, transform_cache_to_nd_if_necessary_given_path, \
+    get_uncached_paths_matching_path
+
 from pyquibbler.function_definitions import FuncCall, PositionalSourceLocation, SourceLocation, KeywordSourceLocation, \
     load_source_locations_before_running, ArgsValues
 from pyquibbler.function_definitions.types import PositionalArgument, KeywordArgument
 from pyquibbler.graphics.graphics_collection import GraphicsCollection
-from pyquibbler.path.path_component import Path
+from pyquibbler.path import Path
 from pyquibbler.quib import consts
 from pyquibbler.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
 from pyquibbler.quib.func_calling.cache_behavior import CacheBehavior
@@ -24,7 +24,7 @@ from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.quib_guard import QuibGuard
 from pyquibbler.quib.quib_ref import QuibRef
 from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation
-from pyquibbler.translation.exceptions import NoTranslatorsFoundException
+from pyquibbler.translation import NoTranslatorsFoundException
 from pyquibbler.translation.translate import backwards_translate
 from pyquibbler.utilities.iterators import get_paths_for_objects_of_type
 

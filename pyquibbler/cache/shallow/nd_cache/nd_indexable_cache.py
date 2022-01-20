@@ -28,11 +28,8 @@ class NdIndexableCache(ShallowCache):
             self._invalid_mask = mask
 
     def _set_valid_value_at_path_component(self, path_component: PathComponent, value):
-        try:
-            self._invalid_mask[path_component.component] = False
-            self._value[path_component.component] = value
-        except Exception as e:
-            raise
+        self._invalid_mask[path_component.component] = False
+        self._value[path_component.component] = value
 
     @staticmethod
     def _filter_empty_paths(paths):

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import functools
-import inspect
 from dataclasses import dataclass, field
 from typing import Set, Type, List, Union, TYPE_CHECKING, Callable
 

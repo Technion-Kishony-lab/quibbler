@@ -2,9 +2,6 @@ from typing import Any, Tuple, Callable, Dict
 
 import numpy as np
 
-from pyquibbler.function_definitions import get_definition_for_function
-from pyquibbler.function_definitions.func_call import ArgsValues
-from pyquibbler.translation.source_func_call import SourceFuncCall
 from pyquibbler.translation.types import Source
 from pyquibbler.translation.utils import copy_and_replace_sources_with_vals
 
@@ -29,9 +26,8 @@ def create_inverse_func_from_indexes_to_funcs(data_source_argument_indexes_to_in
         new_args = list(args)
         new_args.pop(source_index)
         return call_func_with_sources_values(func=inverse_func,
-                                    args=(representative_result, *new_args),
-                                    kwargs=kwargs,
-                                    )
+                                             args=(representative_result, *new_args),
+                                             kwargs=kwargs)
 
     return _inverse
 

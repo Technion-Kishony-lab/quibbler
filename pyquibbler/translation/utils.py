@@ -1,5 +1,5 @@
 from copy import copy
-from typing import Callable, Any
+from typing import Any
 
 from pyquibbler.utilities.iterators import SHALLOW_MAX_LENGTH, SHALLOW_MAX_DEPTH, recursively_run_func_on_object
 from pyquibbler.translation.types import Source

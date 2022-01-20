@@ -1,8 +1,6 @@
 from abc import ABC
-from functools import lru_cache
 from typing import Set, List
 
-from pyquibbler.utilities.iterators import iter_objects_of_type_in_object_shallowly
 from pyquibbler.translation.types import Source, ArgumentWithValue
 from pyquibbler.function_definitions.func_call import FuncCall
 

@@ -62,4 +62,3 @@ class FuncCalledWithNestedQuibException(PyQuibblerException):
 @dataclass
 class CannotSaveAsTextException(PyQuibblerException):
     pass
-

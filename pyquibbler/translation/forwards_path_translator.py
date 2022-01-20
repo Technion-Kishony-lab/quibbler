@@ -1,12 +1,10 @@
 from abc import abstractmethod
-from typing import Dict, Optional, Tuple, Type, Any, List
+from typing import Dict, Optional, Tuple, Type, List
 
-import numpy as np
 
 from pyquibbler.translation.path_translator import PathTranslator
 from pyquibbler.translation.types import Source
 from pyquibbler.path.path_component import Path
-from pyquibbler.path.utils import working_component, path_beyond_working_component
 
 
 class ForwardsPathTranslator(PathTranslator):

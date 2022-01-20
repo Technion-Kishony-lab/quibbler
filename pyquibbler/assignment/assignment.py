@@ -75,5 +75,3 @@ class AssignmentToQuib(QuibWithAssignment):
 class Override(QuibWithAssignment):
     def apply(self) -> None:
         self.quib.override(self.assignment, allow_overriding_from_now_on=False)
-
-

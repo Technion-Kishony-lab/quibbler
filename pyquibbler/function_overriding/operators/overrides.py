@@ -40,8 +40,9 @@ def create_operator_overrides():
         operator_override('__floor__', [0]),
         operator_override('__ceil__', [0]),
 
-        operator_override('__getitem__', [0], inverters=[GetItemInverter],
-                          backwards_path_translators=[BackwardsGetItemTranslator],
-                          forwards_path_translators=[ForwardsGetItemTranslator]
+        operator_override(
+            '__getitem__', [0], inverters=[GetItemInverter],
+            backwards_path_translators=[BackwardsGetItemTranslator],
+            forwards_path_translators=[ForwardsGetItemTranslator]
         )
     ]

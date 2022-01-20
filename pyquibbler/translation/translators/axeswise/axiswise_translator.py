@@ -6,12 +6,8 @@ import numpy as np
 
 from pyquibbler.function_definitions.func_call import FuncCall
 from pyquibbler.path import PathComponent
-from pyquibbler.path import Path
-from pyquibbler.path.utils import working_component
-from pyquibbler.translation.forwards_path_translator import ForwardsPathTranslator
 from pyquibbler.translation.numpy_translator import NumpyForwardsPathTranslator, NumpyBackwardsPathTranslator
 from pyquibbler.utilities.general_utils import create_empty_array_with_values_at_indices
-from pyquibbler.translation.backwards_path_translator import BackwardsPathTranslator
 from pyquibbler.translation.types import Source
 
 
@@ -74,4 +70,3 @@ class AxiswiseForwardsPathTranslator(NumpyForwardsPathTranslator):
                                                                      value=True, empty_value=False)
         args_dict = _get_translation_related_arg_dict(self._func_call, self.TRANSLATION_RELATED_ARGS)
         return self._forward_translate_bool_mask(args_dict, source_bool_mask, source)
-

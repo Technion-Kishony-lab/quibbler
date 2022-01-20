@@ -10,8 +10,7 @@ from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.function_definitions.func_call import FuncCall
 from pyquibbler.inversion.inverter import Inverter
 from pyquibbler.path.utils import working_component
-from pyquibbler.utilities.iterators import iter_objects_of_type_in_object_shallowly, \
-    iter_objects_of_type_in_object_recursively
+from pyquibbler.utilities.iterators import iter_objects_of_type_in_object_shallowly
 from pyquibbler.translation.translate import backwards_translate
 from pyquibbler.translation.types import Source, Inversal
 
@@ -38,7 +37,7 @@ class ElementwiseInverter(Inverter):
         x is on both sides of the equation
         """
         all_ancestors = set()
-        for arg in iter_objects_of_type_in_object_recursively(Source, self._func_call.args):
+        for arg in iter_objects_of_type_in_object_shallowly(Source, self._func_call.args):
             arg_and_ancestors = {arg}
             from pyquibbler.quib import Quib
             if isinstance(arg, Quib):
@@ -54,8 +53,7 @@ class ElementwiseInverter(Inverter):
             self.raise_if_multiple_args_have_common_ancestor()
 
         component = working_component(self._assignment.path)
-        source_to_change = list(iter_objects_of_type_in_object_shallowly(Source,
-                                                                         self._func_call.get_data_source_argument_values()))[0]
+        source_to_change = list(self._func_call.get_data_sources())[0]
 
         relevant_path_in_source = backwards_translate(func_call=self._func_call,
                                                       shape=np.shape(self._previous_result),

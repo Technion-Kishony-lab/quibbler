@@ -1,12 +1,9 @@
 import numpy as np
-from typing import Callable, Set, Dict
+from typing import Dict
 
 from pyquibbler.translation.source_func_call import SourceFuncCall
-from pyquibbler.utilities.iterators import iter_objects_of_type_in_object_shallowly, recursively_run_func_on_object, \
-    SHALLOW_MAX_DEPTH, SHALLOW_MAX_LENGTH
 from pyquibbler.translation.types import Source
 from pyquibbler.function_definitions.func_call import FuncCall
-from pyquibbler.utils import convert_args_and_kwargs
 
 
 def get_data_source_ids_mask(func_call: FuncCall, sources_to_indices: Dict[Source, np.ndarray] = None) -> np.ndarray:

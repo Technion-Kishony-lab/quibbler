@@ -18,7 +18,8 @@ class TimerNotFoundException(PyQuibblerException):
 @dataclass
 class Timer:
     """
-    Represents a single global timer, keeping track_and_handle_new_graphics of it's total time run and total amount of times run
+    Represents a single global timer,
+    keeping track_and_handle_new_graphics of it's total time run and total amount of times run
     """
 
     name: str
