@@ -30,7 +30,7 @@ class VectorizeQuibFuncCall(QuibFuncCall):
         """
         args_ids_and_values = list(iter_arg_ids_and_values(call.args, call.kwargs))
 
-        non_excluded_quib_args = {arg_id: create_proxy(np.array(val)) for arg_id, val in args_ids_and_values
+        non_excluded_quib_args = {arg_id: np.array(create_proxy(val)) for arg_id, val in args_ids_and_values
                                   if isinstance(val, Quib) and arg_id not in call.vectorize.excluded}
         excluded_quib_args = {arg_id: create_proxy(val) for arg_id, val in args_ids_and_values
                               if isinstance(val, Quib) and arg_id in call.vectorize.excluded}
