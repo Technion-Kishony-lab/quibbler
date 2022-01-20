@@ -16,6 +16,7 @@ from pyquibbler.translation.translators.elementwise.elementwise_translator impor
 def get_reversed_func(func: Callable):
     def _reversed(q, o):
         return func(o, q)
+    _reversed.__name__ = f"{func.__name__}_reversed"
     return _reversed
 
 
