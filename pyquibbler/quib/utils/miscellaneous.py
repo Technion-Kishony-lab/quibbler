@@ -6,6 +6,7 @@ from pyquibbler.utilities.iterators import is_iterator_empty, iter_args_and_name
     SHALLOW_MAX_DEPTH, recursively_run_func_on_object
 from .iterators import iter_quibs_in_object, iter_quibs_in_args, iter_quibs_in_object_recursively
 from ..exceptions import NestedQuibException
+from ...path import Path
 
 
 def is_there_a_quib_in_object(obj, force_recursive: bool = False):
@@ -77,3 +78,15 @@ def copy_and_replace_quibs_with_vals(obj: Any):
         if nested_quibs:
             raise NestedQuibException(obj, nested_quibs)
     return result
+
+
+def get_user_friendly_name_for_requested_valid_path(valid_path: Optional[Path]):
+    """
+    Get a user-friendly name representing the call to get_value_valid_at_path
+    """
+    if valid_path is None:
+        return 'get_blank_value()'
+    elif len(valid_path) == 0:
+        return 'get_value()'
+    else:
+        return f'get_value_valid_at_path({valid_path})'

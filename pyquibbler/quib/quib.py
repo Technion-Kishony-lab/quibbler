@@ -15,10 +15,13 @@ from weakref import WeakSet
 import numpy as np
 from matplotlib.artist import Artist
 
-from pyquibbler.env import LEN_RAISE_EXCEPTION
+
+from pyquibbler.env import LEN_RAISE_EXCEPTION, PRETTY_REPR
 from pyquibbler.graphics import is_within_drag
 from pyquibbler.quib.quib_guard import guard_raise_if_not_allowed_access_to_quib, \
     CannotAccessQuibInScopeException
+from pyquibbler.quib.repr.pretty_converters import MathExpression
+from pyquibbler.quib.utils.miscellaneous import get_user_friendly_name_for_requested_valid_path
 from pyquibbler.translation.types import Source
 from pyquibbler.utilities.input_validation_utils import validate_user_input
 from pyquibbler.logger import logger
@@ -29,12 +32,9 @@ from pyquibbler.assignment import AssignmentTemplate, Overrider, Assignment, \
     AssignmentToQuib
 from pyquibbler.path.data_accessing import FailedToDeepAssignException
 from pyquibbler.path.path_component import PathComponent, Path
-from pyquibbler.assignment import InvalidTypeException
-from pyquibbler.assignment import OverrideRemoval, get_override_group_for_change
-from pyquibbler.cache import create_cache
-from pyquibbler.cache.cache import CacheStatus
-from pyquibbler.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
-from pyquibbler.function_definitions.func_call import ArgsValues, FuncCall
+from pyquibbler.assignment import InvalidTypeException, OverrideRemoval, get_override_group_for_change
+from pyquibbler.cache import create_cache, CacheStatus, transform_cache_to_nd_if_necessary_given_path
+from pyquibbler.function_definitions import ArgsValues, FuncCall
 from pyquibbler.quib.func_calling.cache_behavior import CacheBehavior, UnknownCacheBehaviorException
 from pyquibbler.quib.exceptions import OverridingNotAllowedException, UnknownUpdateTypeException, \
     InvalidCacheBehaviorForQuibException, CannotSaveAsTextException
@@ -44,30 +44,18 @@ from pyquibbler.quib.graphics import UpdateType
 from pyquibbler.quib.utils.iterators import iter_quibs_in_args
 from pyquibbler.utilities.iterators import recursively_run_func_on_object
 from pyquibbler.quib.quib_method import quib_method
-from pyquibbler.quib.repr.repr_mixin import ReprMixin
 from pyquibbler.translation.translate import forwards_translate, NoTranslatorsFoundException, \
     backwards_translate
 from pyquibbler.utilities.unpacker import Unpacker
 
 if TYPE_CHECKING:
-    from pyquibbler.assignment import ChoiceContext, OverrideChoice
-    from pyquibbler.function_definitions import FuncDefinition
+    from pyquibbler.assignment.override_choice import ChoiceContext
+    from pyquibbler.assignment import OverrideChoice
+    from pyquibbler.function_definitions.func_definition import FuncDefinition
     from pyquibbler.quib.func_calling import QuibFuncCall
 
 
-def get_user_friendly_name_for_requested_valid_path(valid_path: Optional[List[PathComponent]]):
-    """
-    Get a user-friendly name representing the call to get_value_valid_at_path
-    """
-    if valid_path is None:
-        return 'get_blank_value()'
-    elif len(valid_path) == 0:
-        return 'get_value()'
-    else:
-        return f'get_value_valid_at_path({valid_path})'
-
-
-class Quib(ReprMixin):
+class Quib:
     """
     A Quib is a node representing a singular call of a function with it's arguments (it's parents in the graph)
     """
@@ -802,3 +790,42 @@ class Quib(ReprMixin):
             with open(self._save_path, 'rb') as f:
                 self._overrider = pickle.load(f)
                 self.invalidate_and_redraw_at_path([])
+
+    """
+    Repr
+    """
+    def get_functional_representation_expression(self) -> Union[MathExpression, str]:
+        from pyquibbler.quib.repr.pretty_converters import pretty_convert
+        try:
+            return pretty_convert.get_pretty_value_of_func_with_args_and_kwargs(self.func, self.args, self.kwargs)
+        except Exception as e:
+            logger.warning(f"Failed to get repr {e}")
+            return "[exception during repr]"
+
+    @property
+    def functional_representation(self) -> str:
+        """
+        Get a string representing a functional representation of the quib.
+        For example, in
+        ```
+        a = iquib(4)
+        ```
+        "iquib(4)" would be the functional representation
+        """
+        return str(self.get_functional_representation_expression())
+
+    def ugly_repr(self):
+        return f"<{self.__class__.__name__} - {self.func}"
+
+    def pretty_repr(self):
+        """
+        Returns a pretty representation of the quib. Might calculate values of parent quibs.
+        """
+        return f"{self.name} = {self.functional_representation}" \
+            if self.name is not None else self.functional_representation
+
+    def __repr__(self):
+        return str(self)
+
+    def __str__(self):
+        return self.pretty_repr() if PRETTY_REPR else self.ugly_repr()
