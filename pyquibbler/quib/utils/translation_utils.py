@@ -1,35 +1,35 @@
-from pyquibbler.translation.source_func_call import SourceFuncCall
-from pyquibbler.utilities.iterators import SHALLOW_MAX_DEPTH, recursively_run_func_on_object
-from pyquibbler.function_definitions.func_call import FuncCall
-from pyquibbler.quib.utils.func_call_utils import get_data_source_quibs
-from pyquibbler.quib.quib import Quib
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
 from pyquibbler.translation.types import Source
-from pyquibbler.utils import convert_args_and_kwargs
+from pyquibbler.translation.source_func_call import SourceFuncCall
 
 
-def get_func_call_for_translation(func_call: FuncCall):
-    data_source_quibs = get_data_source_quibs(func_call)
+if TYPE_CHECKING:
+    from pyquibbler.quib.func_calling import QuibFuncCall
+
+
+def get_func_call_for_translation(func_call: QuibFuncCall):
     data_sources_to_quibs = {}
 
-    def _replace_quib_with_source(_, arg):
-        def _replace(q):
-            if isinstance(q, Quib):
-                if q in data_source_quibs:
-                    source = Source(q.get_value_valid_at_path(None))
-                    data_sources_to_quibs[source] = q
-                else:
-                    source = Source(q.get_value_valid_at_path([]))
-                return source
-            return q
+    def _transform_data_quib(quib):
+        source = Source(quib.get_value_valid_at_path(None))
+        data_sources_to_quibs[source] = quib
+        return source
 
-        return recursively_run_func_on_object(_replace, arg, max_depth=SHALLOW_MAX_DEPTH)
+    def _transform_parameter_quib(quib):
+        return Source(quib.get_value_valid_at_path([]))
 
-    args, kwargs = convert_args_and_kwargs(_replace_quib_with_source,
-                                           func_call.args,
-                                           func_call.kwargs)
+    new_args, new_kwargs = func_call.transform_sources_in_args_kwargs(
+        transform_data_source_func=_transform_data_quib,
+        transform_parameter_func=_transform_parameter_quib
+    )
+
     return SourceFuncCall.from_(
+        data_source_locations=func_call.data_source_locations,
+        parameter_source_locations=func_call.parameter_source_locations,
         func=func_call.func,
-        func_args=args,
-        func_kwargs=kwargs,
+        func_args=new_args,
+        func_kwargs=new_kwargs,
         include_defaults=True
     ), data_sources_to_quibs

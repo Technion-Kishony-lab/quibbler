@@ -1,9 +1,10 @@
 import functools
 import itertools
-from inspect import signature
 from typing import Tuple, Any, Mapping, Type, Optional, Callable
 
 from pyquibbler.env import DEBUG
+from pyquibbler.path import Path, PathComponent
+from pyquibbler.utils import get_signature_for_func
 
 SHALLOW_MAX_DEPTH = 2
 SHALLOW_MAX_LENGTH = 100
@@ -90,15 +91,20 @@ def iter_args_and_names_in_function_call(func: Callable, args: Tuple[Any, ...], 
     of all arguments that would have been passed to the function.
     If apply_defaults is True, add the default values from the function to the iterator.
     """
-    bound_args = signature(func).bind(*args, **kwargs)
+    sig = get_signature_for_func(func)
+    bound_args = sig.bind(*args, **kwargs)
     if apply_defaults:
         bound_args.apply_defaults()
     return bound_args.arguments.items()
 
 
 def recursively_run_func_on_object(func: Callable, obj: Any,
-                                   max_depth: Optional[int] = None, max_length: Optional[int] = None,
-                                   iterable_func: Callable = None, slice_func: Callable = None):
+                                   path: Optional[Path] = None, max_depth: Optional[int] = None,
+                                   max_length: Optional[int] = None, iterable_func: Callable = None,
+                                   slice_func: Callable = None,
+                                   with_path: bool = False,
+                                   ):
+    path = path or []
     iterable_func = iterable_func if iterable_func is not None else lambda l: l
     slice_func = slice_func if slice_func is not None else lambda s: s
     if max_depth is None or max_depth > 0:
@@ -107,10 +113,48 @@ def recursively_run_func_on_object(func: Callable, obj: Any,
 
         if isinstance(obj, (tuple, list, set)):
             if max_length is None or len(obj) <= max_length:
-                return iterable_func(type(obj)((recursively_run_func_on_object(func, sub_obj, next_max_depth)
-                                                for sub_obj in obj)))
+                return iterable_func(type(obj)((recursively_run_func_on_object(func, sub_obj,
+                                                                               [*path, PathComponent(component=i,
+                                                                                                     indexed_cls=type(
+                                                                                                         obj)
+                                                                                                     )],
+                                                                               next_max_depth,
+                                                                               with_path=with_path)
+                                                for i, sub_obj in enumerate(obj))))
         elif isinstance(obj, slice):
-            return slice_func(slice(recursively_run_func_on_object(func, obj.start, next_max_depth),
-                                    recursively_run_func_on_object(func, obj.stop, next_max_depth),
-                                    recursively_run_func_on_object(func, obj.step, next_max_depth)))
-    return func(obj)
+            return slice_func(slice(recursively_run_func_on_object(func, obj.start,
+                                                                   [*path, PathComponent(
+                                                                       component="start",
+                                                                       indexed_cls=slice
+                                                                   )],
+                                                                   next_max_depth,
+                                                                   with_path=with_path),
+                                    recursively_run_func_on_object(func, obj.stop,
+                                                                   [*path, PathComponent(
+                                                                       component="stop",
+                                                                       indexed_cls=slice
+                                                                   )],
+                                                                   next_max_depth,
+                                                                   with_path=with_path),
+                                    recursively_run_func_on_object(func, obj.step,
+                                                                   [*path, PathComponent(
+                                                                       component="step",
+                                                                       indexed_cls=slice
+                                                                   )],
+                                                                   next_max_depth,
+                                                                   with_path=with_path), ))
+    return func(path, obj) if with_path else func(obj)
+
+
+def get_paths_for_objects_of_type(obj: Any, type_: Type):
+    """
+    Get paths for all objects of a certain `type_` within an `obj`
+    """
+    paths = []
+
+    def add_path_if_isinstance(path, inner_obj):
+        if isinstance(inner_obj, type_):
+            paths.append(path)
+
+    recursively_run_func_on_object(func=add_path_if_isinstance, obj=obj, with_path=True)
+    return paths

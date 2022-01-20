@@ -5,8 +5,6 @@ from typing import Callable, Tuple, Any, Dict, TYPE_CHECKING
 
 import numpy as np
 
-from pyquibbler.path import Path
-from pyquibbler.utilities.iterators import recursively_run_func_on_object
 
 if TYPE_CHECKING:
     from pyquibbler.quib.func_calling.quib_func_call import QuibFuncCall
@@ -38,20 +36,3 @@ def cache_method_until_full_invalidation(func: Callable) -> Callable:
 
 def create_array_from_func(func, shape):
     return np.vectorize(lambda _: func(), otypes=[object])(np.empty(shape))
-
-
-def proxify_args(args, kwargs):
-    from pyquibbler.quib import Quib
-    quibs_to_guard = set()
-
-    def _replace_quibs_with_proxy_quibs(arg):
-        if isinstance(arg, Quib):
-            from pyquibbler.quib.specialized_functions.proxy import create_proxy
-            proxy = create_proxy(arg)
-            quibs_to_guard.add(proxy)
-            return proxy
-        return arg
-
-    args = recursively_run_func_on_object(_replace_quibs_with_proxy_quibs, args)
-    kwargs = {k: recursively_run_func_on_object(_replace_quibs_with_proxy_quibs, v) for k, v in kwargs.items()}
-    return args, kwargs, quibs_to_guard

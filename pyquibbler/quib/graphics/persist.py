@@ -37,8 +37,8 @@ def persist_quib_on_artists(quib: Quib, new_artists: Set[Artist]):
     We need to also go over args as there may be a situation in which the function did not create new artists, but
     did perform an action on an existing one, such as Axes.set_xlim
     """
-    artists_to_persist_on = new_artists if new_artists else \
-        iter_object_type_in_args(Artist, quib.args, quib.kwargs)
+
+    artists_to_persist_on = new_artists if new_artists else quib._quib_function_call.get_objects_of_type_in_args_kwargs(Artist)
     for artist in artists_to_persist_on:
         quibs = getattr(artist, '_quibbler_graphics_function_quibs', set())
         quibs.add(quib)

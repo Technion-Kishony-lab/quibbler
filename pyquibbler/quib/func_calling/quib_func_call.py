@@ -1,59 +1,63 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from sys import getsizeof
 from time import perf_counter
-from typing import Optional, Type, Tuple, Dict, Any, ClassVar, Set, Mapping, Callable
+from typing import Optional, Type, Tuple, Dict, Any, ClassVar, Set, Mapping, Callable, List
 
-import numpy as np
-
-from pyquibbler.path.path_component import Path
-from pyquibbler.cache.cache import Cache
-from pyquibbler.cache.holistic_cache import PathCannotHaveComponentsException
-from pyquibbler.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
-from pyquibbler.function_definitions.func_call import FuncCall
-from pyquibbler.quib import consts
-from pyquibbler.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
 from pyquibbler.cache.cache_utils import get_uncached_paths_matching_path, \
     _truncate_path_to_match_shallow_caches, _ensure_cache_matches_result, \
     get_cached_data_at_truncated_path_given_result_at_uncached_path
+from pyquibbler.cache.holistic_cache import PathCannotHaveComponentsException
+from pyquibbler.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
+from pyquibbler.function_definitions import FuncCall, PositionalSourceLocation, SourceLocation, KeywordSourceLocation, \
+    load_source_locations_before_running, ArgsValues
+from pyquibbler.function_definitions.types import PositionalArgument, KeywordArgument
+from pyquibbler.graphics.graphics_collection import GraphicsCollection
+from pyquibbler.path.path_component import Path
+from pyquibbler.quib import consts
+from pyquibbler.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
 from pyquibbler.quib.func_calling.cache_behavior import CacheBehavior
 from pyquibbler.quib.func_calling.exceptions import CannotCalculateShapeException
 from pyquibbler.quib.func_calling.result_metadata import ResultMetadata
-from pyquibbler.quib.func_calling.utils import cache_method_until_full_invalidation, \
-    create_array_from_func, proxify_args
-from pyquibbler.graphics.graphics_collection import GraphicsCollection
+from pyquibbler.quib.func_calling.utils import create_array_from_func
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.quib_guard import QuibGuard
-from pyquibbler.quib.utils.func_call_utils import get_args_and_kwargs_valid_at_quibs_to_paths, \
-    get_data_source_quibs
+from pyquibbler.quib.quib_ref import QuibRef
 from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation
 from pyquibbler.translation.exceptions import NoTranslatorsFoundException
 from pyquibbler.translation.translate import backwards_translate
+from pyquibbler.utilities.iterators import get_paths_for_objects_of_type
 
 
-@dataclass
 class QuibFuncCall(FuncCall):
-    DEFAULT_CACHE_BEHAVIOR: ClassVar[CacheBehavior] = CacheBehavior.AUTO
+    """
+    Represents a FuncCall with Quibs as argument sources- this will handle running a function with quibs as arguments,
+    by caching results and only asking for necessary values from argument quibs
+    """
 
-    call_func_with_quibs: bool
-    graphics_collections: Optional[np.array]
-    method_cache: Dict = field(default_factory=dict)
-    caching: bool = False
-    cache: Optional[Cache] = None
-    default_cache_behavior: CacheBehavior = DEFAULT_CACHE_BEHAVIOR
-    _result_metadata: Optional[ResultMetadata] = None
+    SOURCE_OBJECT_TYPE = Quib
+    DEFAULT_CACHE_BEHAVIOR = CacheBehavior.AUTO
 
-    # TODO: is there a better way to do this?
-    artists_creation_callback: Callable = None
-
-    def __hash__(self):
-        return id(self)
+    def __init__(self, func: Callable, args_values: ArgsValues, default_cache_behavior: CacheBehavior,
+                 call_func_with_quibs: bool, artists_creation_callback: Callable = None):
+        super(QuibFuncCall, self).__init__(func=func, args_values=args_values)
+        self.graphics_collections = None
+        self.method_cache = {}
+        self.cache = None
+        self.default_cache_behavior = default_cache_behavior
+        self.artists_creation_callback = artists_creation_callback
+        self._caching = False
+        self._call_func_with_quibs = call_func_with_quibs
+        self._result_metadata = None
+        self._quib_ref_locations: Optional[List[SourceLocation]] = None
 
     def flat_graphics_collections(self):
         return list(self.graphics_collections.flat) if self.graphics_collections is not None else []
 
     def _get_loop_shape(self):
+        """
+        Get the shape in which the function will loop (ie shape of iterations of the function)
+        """
         return ()
 
     def _initialize_graphics_collections(self):
@@ -88,9 +92,6 @@ class QuibFuncCall(FuncCall):
             f'self.cache_behavior has unexpected value: "{cache_behavior}"'
         return elapsed_seconds > consts.MIN_SECONDS_FOR_CACHE \
             and getsizeof(result) / elapsed_seconds < consts.MAX_BYTES_PER_SECOND
-
-    def _run_shit(self):
-        pass
 
     def _get_representative_value(self):
         return self.run(valid_path=None)
@@ -136,13 +137,14 @@ class QuibFuncCall(FuncCall):
 
     def reset_cache(self):
         self.cache = None
-        self.caching = True if self.get_cache_behavior() == CacheBehavior.ON else False
+        self._caching = True if self.get_cache_behavior() == CacheBehavior.ON else False
+        self._result_metadata = None
 
-    # TODO: Use FuncCall instead of func, args, kwargs
+    def on_type_change(self):
+        self.method_cache.clear()
+
     def _run_single_call(self, func: Callable, graphics_collection: GraphicsCollection,
                          args: Tuple[Any, ...], kwargs: Mapping[str, Any], quibs_allowed_to_access: Set[Quib]):
-
-        # TODO: quib_guard quib guard
         with graphics_collection.track_and_handle_new_graphics(
                 kwargs_specified_in_artists_creation=set(self.kwargs.keys())
         ), QuibGuard(quibs_allowed_to_access):
@@ -153,7 +155,6 @@ class QuibFuncCall(FuncCall):
             from pyquibbler.quib.quib import Quib
             if isinstance(res, Quib):
                 res = res.get_value()
-            ####
 
         if self.artists_creation_callback:
             self.artists_creation_callback(set(graphics_collection.artists))
@@ -165,7 +166,7 @@ class QuibFuncCall(FuncCall):
         Backwards translate a path- first attempt without shape + type, and then if G-d's good graces fail us and we
         find we are without the ability to do this, try with shape + type
         """
-        if not get_data_source_quibs(self):
+        if not self.get_data_sources():
             return {}
 
         func_call, sources_to_quibs = get_func_call_for_translation(self)
@@ -193,15 +194,27 @@ class QuibFuncCall(FuncCall):
             for source, quib in sources_to_quibs.items()
         }
 
+    def _proxify_args(self):
+        from pyquibbler.quib.specialized_functions.proxy import create_proxy
+        quibs_allowed_to_access = set()
+
+        def _proxify(arg):
+            proxy = create_proxy(arg)
+            quibs_allowed_to_access.add(proxy)
+            return proxy
+
+        args, kwargs = self.transform_sources_in_args_kwargs(transform_parameter_func=_proxify,
+                                                             transform_data_source_func=_proxify)
+        return args, kwargs, quibs_allowed_to_access
+
     def _run_on_path(self, valid_path: Path):
         graphics_collection: GraphicsCollection = self.graphics_collections[()]
 
-        if self.call_func_with_quibs:
-            args, kwargs, quibs_allowed_to_access = proxify_args(self.args, self.kwargs)
+        if self._call_func_with_quibs:
+            args, kwargs, quibs_allowed_to_access = self._proxify_args()
         else:
             quibs_to_paths = {} if valid_path is None else self._backwards_translate_path(valid_path)
-            args, kwargs, quibs_allowed_to_access = get_args_and_kwargs_valid_at_quibs_to_paths(self,
-                                                                                                quibs_to_paths)
+            args, kwargs, quibs_allowed_to_access = self.get_args_and_kwargs_valid_at_quibs_to_paths(quibs_to_paths)
 
         return self._run_single_call(
             func=self.func,
@@ -250,6 +263,53 @@ class QuibFuncCall(FuncCall):
 
         return result
 
+    def _load_source_locations(self):
+        super(QuibFuncCall, self)._load_source_locations()
+        if self._quib_ref_locations is None:
+            self._quib_ref_locations: List[SourceLocation] = [
+                PositionalSourceLocation(PositionalArgument(i), path)
+                for i, arg in enumerate(self.args)
+                for path in get_paths_for_objects_of_type(arg, type_=QuibRef)
+            ]
+            self._quib_ref_locations.extend([
+                KeywordSourceLocation(KeywordArgument(key), path)
+                for key, value in self.kwargs.items()
+                for path in get_paths_for_objects_of_type(value, type_=QuibRef)
+            ])
+
+    @load_source_locations_before_running
+    def get_args_and_kwargs_valid_at_quibs_to_paths(self,
+                                                    quibs_to_valid_paths: Dict[Quib, Optional[Path]]):
+        """
+        Prepare arguments to call self.func with - replace quibs with values valid at the given path,
+        and QuibRefs with quibs.
+        """
+
+        quibs_allowed_to_access = set()
+
+        def _transform_data_source_quib(quib):
+            # If the quib is a data source, and we didn't see it in the result, we don't need it to be valid at any
+            # paths (it did not appear in quibs_to_paths)
+            path = quibs_to_valid_paths.get(quib)
+            return quib.get_value_valid_at_path(path)
+
+        def _transform_parameter_source_quib(quib):
+            # This is a paramater quib- we always need a parameter quib to be completely valid regardless of where
+            # we need ourselves (this quib) to be valid
+            return quib.get_value_valid_at_path([])
+
+        new_args, new_kwargs = self.transform_sources_in_args_kwargs(
+            transform_data_source_func=_transform_data_source_quib,
+            transform_parameter_func=_transform_parameter_source_quib
+        )
+
+        for location in self._quib_ref_locations:
+            quib_ref = location.find_in_args_kwargs(args=new_args, kwargs=new_kwargs)
+            quibs_allowed_to_access.add(quib_ref.quib)
+            new_args, new_kwargs = location.set_in_args_kwargs(args=new_args, kwargs=new_kwargs, value=quib_ref.quib)
+
+        return new_args, new_kwargs, quibs_allowed_to_access
+
     def get_result_metadata(self) -> Dict:
         return {}
 
@@ -268,8 +328,8 @@ class QuibFuncCall(FuncCall):
         elapsed_seconds = perf_counter() - start_time
 
         if self._should_cache(result, elapsed_seconds):
-            self.caching = True
-        if not self.caching:
+            self._caching = True
+        if not self._caching:
             self.cache = None
 
         return result

@@ -1,3 +1,4 @@
+import copy
 from dataclasses import dataclass
 from typing import List, Any
 
@@ -26,11 +27,43 @@ def deep_get(obj: Any, path: List['PathComponent']):
     Get the data from an object in a given path.
     """
     for component in path:
-        obj = obj[component.component]
+        if component.indexed_cls == slice:
+            obj = getattr(obj, component.component)
+        else:
+            obj = obj[component.component]
     return obj
 
 
-def deep_assign_data_in_path(data: Any, path: List[PathComponent], value: Any, raise_on_failure: bool = False):
+def set_for_slice(sl_, attribute, value):
+    if attribute == "start":
+        return slice(value, sl_.stop, sl_.step)
+    elif attribute == "stop":
+        return slice(sl_.start, value, sl_.step)
+    else:
+        return slice(sl_.start, sl_.stop, value)
+
+
+def set_for_tuple(tpl, index, value):
+    lst = list(tpl)
+    lst[index] = value
+    return lst
+
+
+def set_key_to_value(obj, key, value):
+    obj[key] = value
+    return obj
+
+
+SETTERS = {
+    slice: set_for_slice,
+    tuple: set_for_tuple
+}
+
+
+def deep_assign_data_in_path(data: Any, path: List[PathComponent],
+                             value: Any,
+                             raise_on_failure: bool = False,
+                             should_copy_objects_referenced: bool = True):
     """
     Go path by path setting value, each time ensuring we don't lost copied values (for example if there was
     fancy indexing) by making sure to set recursively back anything that made an assignment/
@@ -50,6 +83,8 @@ def deep_assign_data_in_path(data: Any, path: List[PathComponent], value: Any, r
     last_element = value
     for i, component in enumerate(reversed(path)):
         new_element = elements[-(i + 1)]
+        if should_copy_objects_referenced:
+            new_element = copy.copy(new_element)
 
         if (isinstance(component.component, (tuple, np.ndarray)) and not isinstance(new_element, np.ndarray)) or \
                 (isinstance(new_element, np.ndarray) and hasattr(new_element, 'base')):
@@ -57,7 +92,8 @@ def deep_assign_data_in_path(data: Any, path: List[PathComponent], value: Any, r
             new_element = np.array(new_element)
 
         try:
-            new_element[component.component] = last_element
+            setter = SETTERS.get(component.indexed_cls, set_key_to_value)
+            new_element = setter(new_element, component.component, last_element)
         except IndexError as e:
             if raise_on_failure:
                 raise FailedToDeepAssignException(path=path, exception=e)
@@ -70,5 +106,6 @@ def deep_assign_data_in_path(data: Any, path: List[PathComponent], value: Any, r
                      f"\n\tfailed path component: {component.component}"
                      f"\n\texception: {e}")
                 )
+
         last_element = new_element
     return last_element

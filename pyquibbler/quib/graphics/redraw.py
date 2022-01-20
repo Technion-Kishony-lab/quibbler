@@ -34,8 +34,8 @@ def aggregate_redraw_mode():
 def _redraw_quibs_with_graphics():
     quibs_that_are_invalid = [quib for quib in QUIBS_TO_REDRAW if quib.cache_status != CacheStatus.ALL_VALID]
     with timer("quib redraw", lambda x: logger.info(f"redrawing {len(quibs_that_are_invalid)} quibs: {x}s")):
-        for graphics_function_quib in quibs_that_are_invalid:
-            graphics_function_quib.redraw_if_appropriate()
+        for quib in quibs_that_are_invalid:
+            quib.redraw_if_appropriate()
     try:
         axeses = {axes for graphics_function_quib in quibs_that_are_invalid for axes in graphics_function_quib.get_axeses()}
     except Exception:

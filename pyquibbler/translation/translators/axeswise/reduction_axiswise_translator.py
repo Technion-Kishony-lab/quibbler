@@ -1,5 +1,3 @@
-from typing import Any
-
 import numpy as np
 
 from pyquibbler.translation.translators.axeswise.axiswise_translator import AxiswiseForwardsPathTranslator, \

@@ -1,9 +1,12 @@
 from pyquibbler.function_definitions.func_call import FuncCall
 from pyquibbler.path import Path
+from pyquibbler.translation.types import Source
 from pyquibbler.translation.utils import copy_and_replace_sources_with_vals
 
 
 class SourceFuncCall(FuncCall):
+
+    SOURCE_OBJECT_TYPE = Source
 
     def run(self):
         """

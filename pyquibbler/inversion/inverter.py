@@ -1,7 +1,6 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 
-from pyquibbler.quib.utils import deep_copy_without_quibs_or_graphics
 from pyquibbler.function_definitions.func_call import FuncCall
 from pyquibbler.path.data_accessing import deep_assign_data_in_path
 
@@ -22,7 +21,7 @@ class Inverter(ABC):
         pass
 
     def _get_result_with_assignment_set(self):
-        # TODO: Implement a deep copy that is agnostic to quibs!
-        new_result = deep_copy_without_quibs_or_graphics(self._previous_result)
-        return deep_assign_data_in_path(new_result, self._assignment.path, self._assignment.value)
-
+        return deep_assign_data_in_path(self._previous_result,
+                                        self._assignment.path,
+                                        self._assignment.value,
+                                        should_copy_objects_referenced=True)

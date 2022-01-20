@@ -33,7 +33,7 @@ class VectorizeBackwardsPathTranslator(BackwardsPathTranslator):
 
     def _backwards_translate_indices_to_bool_mask(self, source: Source, indices: Any) -> Any:
         """
-        Translate indices in result backwards to indices in a data source quib, by calling any on result
+        Translate indices in result backwards to indices in a data source, by calling any on result
         core dimensions and un-broadcasting the loop dimensions into the argument loop dimension.
         """
         vectorize_metadata = self._vectorize_metadata

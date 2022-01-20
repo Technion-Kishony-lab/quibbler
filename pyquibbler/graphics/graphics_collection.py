@@ -67,7 +67,6 @@ class GraphicsCollection:
             get_axeses_to_array_names_to_starting_indices_and_artists(self.artists)
         self.remove_artists()
 
-        # TODO: move quibguard to outside quib
         with ArtistsCollector() as artists_collector, AxesWidgetsCollector() as widgets_collector:
             yield
 

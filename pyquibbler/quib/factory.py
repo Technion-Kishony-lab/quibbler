@@ -4,10 +4,11 @@ from typing import Optional, Tuple, Callable, Any, Mapping, TYPE_CHECKING
 
 from pyquibbler.env import GET_VARIABLE_NAMES, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS
 from pyquibbler.logger import logger
-from pyquibbler.function_definitions.func_call import FuncCall
+from pyquibbler.function_definitions.func_call import FuncCall, ArgsValues
+from pyquibbler.path import PathComponent
 from pyquibbler.project import Project
 from pyquibbler.quib.func_calling import QuibFuncCall
-from pyquibbler.function_definitions import get_definition_for_function
+from pyquibbler.function_definitions import get_definition_for_function, PositionalArgument
 from pyquibbler.quib.graphics import UpdateType
 from pyquibbler.quib.quib_guard import add_new_quib_to_guard_if_exists
 from pyquibbler.quib.utils.iterators import iter_quibs_in_args
@@ -15,7 +16,7 @@ from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.utils import deep_copy_without_quibs_or_graphics
 from pyquibbler.quib.variable_metadata import get_var_name_being_set_outside_of_pyquibbler, \
     get_file_name_and_line_number_of_quib
-
+from pyquibbler.utilities.iterators import get_paths_for_objects_of_type
 
 if TYPE_CHECKING:
     from pyquibbler import CacheBehavior
@@ -121,9 +122,8 @@ def create_quib(func, args: Tuple[Any, ...] = (), kwargs: Mapping[str, Any] = No
         func_args=args,
         func_kwargs=kwargs,
         call_func_with_quibs=call_func_with_quibs,
-        graphics_collections=None,
         default_cache_behavior=cache_behavior or QuibFuncCall.DEFAULT_CACHE_BEHAVIOR,
-        include_defaults=True
+        include_defaults=True,
     )
 
     quib = Quib(quib_function_call=quib_func_call,
@@ -135,6 +135,10 @@ def create_quib(func, args: Tuple[Any, ...] = (), kwargs: Mapping[str, Any] = No
                 update_type=None,
                 can_save_as_txt=can_save_as_txt,
                 save_directory=save_directory or project.function_quib_directory,
+                # If the update type isn't None, we presume the user wanted the quib to be redrawn on graphic changes;
+                # note that this isn't strictly necessary- a quib could, for example, have an update type while knowing
+                # that there is a chance it will never make artists, but if it did then this would be the update type
+                can_contain_graphics=update_type is not None,
                 **init_kwargs)
 
     project.register_quib(quib)

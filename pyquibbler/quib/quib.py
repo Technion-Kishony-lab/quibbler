@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import cProfile
 import functools
 import json
 import os
@@ -72,6 +73,8 @@ class Quib(ReprMixin):
     """
     _IS_WITHIN_GET_VALUE_CONTEXT = False
 
+    PROFILER = cProfile.Profile()
+
     def __init__(self, quib_function_call: QuibFuncCall,
                  assignment_template: AssignmentTemplate,
                  allow_overriding: bool,
@@ -80,7 +83,9 @@ class Quib(ReprMixin):
                  line_no: Optional[str],
                  update_type: UpdateType,
                  save_directory: pathlib.Path,
-                 can_save_as_txt: bool):
+                 can_save_as_txt: bool,
+                 can_contain_graphics: bool,
+                 ):
         self._assignment_template = assignment_template
         self._name = name
 
@@ -103,6 +108,7 @@ class Quib(ReprMixin):
                                                                             weakref.ref(self))
 
         self._can_save_as_txt = can_save_as_txt
+        self._can_contain_graphics = can_contain_graphics
 
     """
     Func metadata funcs
@@ -126,7 +132,7 @@ class Quib(ReprMixin):
 
     @property
     def func_can_create_graphics(self):
-        return self._quib_function_call.func_can_create_graphics
+        return self._quib_function_call.func_can_create_graphics or self._can_contain_graphics
 
     def redraw_if_appropriate(self):
         """
@@ -139,8 +145,7 @@ class Quib(ReprMixin):
         return self.get_value()
 
     def _iter_artist_lists(self) -> Iterable[List[Artist]]:
-        return [] if self._quib_function_call.graphics_collections is None else map(lambda g: g.artists,
-                                                                      self._quib_function_call.graphics_collections.flat)
+        return map(lambda g: g.artists, self._quib_function_call.flat_graphics_collections())
 
     def _iter_artists(self) -> Iterable[Artist]:
         return (artist for artists in self._iter_artist_lists() for artist in artists)
@@ -181,7 +186,7 @@ class Quib(ReprMixin):
             raise OverridingNotAllowedException(self, assignment)
         self._overrider.add_assignment(assignment)
         if len(assignment.path) == 0:
-            self._on_type_change()
+            self._quib_function_call.on_type_change()
 
         try:
             self.invalidate_and_redraw_at_path(assignment.path)
@@ -207,7 +212,7 @@ class Quib(ReprMixin):
                                                        overrider=self._overrider,
                                                        quib=self)
         if len(path) == 0:
-            self._on_type_change()
+            self._quib_function_call.on_type_change()
         if invalidate_and_redraw:
             self.invalidate_and_redraw_at_path(path=path)
 
@@ -340,7 +345,7 @@ class Quib(ReprMixin):
         if path is None:
             path = []
 
-        with timer("quib_invalidation", lambda x: logger.info(f"invalidation {x}")):
+        with timer("quib_invalidation", lambda x: logger.info(f"invalidation & redraw {x}")):
             self._invalidate_children_at_path(path)
         self._redraw()
 
@@ -400,15 +405,16 @@ class Quib(ReprMixin):
         If not, invalidate all children all over; as you have no more specific way to invalidate them
         """
         from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation
-        from pyquibbler.quib.utils.func_call_utils import is_quib_a_data_source
 
-        if not is_quib_a_data_source(self._quib_function_call, invalidator_quib):
+        # We always invalidate all if it's a parameter source quib
+        if invalidator_quib not in self._quib_function_call.get_data_sources():
             return [[]]
 
         func_call, sources_to_quibs = get_func_call_for_translation(self._quib_function_call)
         quibs_to_sources = {quib: source for source, quib in sources_to_quibs.items()}
 
-        sources_to_new_paths = self._forward_translate_source_path(func_call, quibs_to_sources[invalidator_quib],
+        sources_to_new_paths = self._forward_translate_source_path(func_call,
+                                                                   quibs_to_sources[invalidator_quib],
                                                                    path)
         
         source = quibs_to_sources[invalidator_quib]
@@ -422,7 +428,7 @@ class Quib(ReprMixin):
         false signifying validity
         """
         if len(path) == 0:
-            self._on_type_change()
+            self._quib_function_call.on_type_change()
             self._quib_function_call.reset_cache()
 
         # TODO: This should happen with quibcall
@@ -519,9 +525,6 @@ class Quib(ReprMixin):
         Get all artists that directly or indirectly depend on this quib.
         """
         return {child for child in self._get_children_recursively() if child.func_can_create_graphics}
-
-    def _on_type_change(self):
-        self._quib_function_call.method_cache.clear()
 
     @staticmethod
     def _apply_assignment_to_cache(original_value, cache, assignment):

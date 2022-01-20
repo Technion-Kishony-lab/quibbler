@@ -1,5 +1,6 @@
 import contextlib
 import functools
+import inspect
 from typing import Callable, Any, Tuple, Mapping
 from dataclasses import dataclass
 
@@ -52,3 +53,8 @@ def convert_args_and_kwargs(converter: Callable, args: Tuple[Any, ...], kwargs: 
     """
     return (tuple(converter(i, val) for i, val in enumerate(args)),
             {name: converter(name, val) for name, val in kwargs.items()})
+
+
+@functools.lru_cache()
+def get_signature_for_func(func):
+    return inspect.signature(func)
