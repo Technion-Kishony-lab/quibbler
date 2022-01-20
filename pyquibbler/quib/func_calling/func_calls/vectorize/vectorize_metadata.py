@@ -191,7 +191,7 @@ class VectorizeCall:
 
     def get_sample_result(self, args_metadata: ArgsMetadata) -> Any:
         """
-        Get one sample result from the inner function of a vectorize
+        Get one sample result from the operators function of a vectorize
         """
         args, kwargs = convert_args_and_kwargs(partial(self.get_sample_arg_core, args_metadata), self.args, self.kwargs)
         return self.vectorize.pyfunc(*args, **kwargs)

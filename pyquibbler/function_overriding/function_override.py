@@ -15,8 +15,8 @@ class FuncOverride:
     The default implementation is to be completely transparent if no quibs are given as arguments.
     """
 
-    func_name: str
     module_or_cls: Union[ModuleType, Type]
+    func_name: str
     function_definition: Optional[FuncDefinition] = None
     quib_creation_flags: Optional[Dict[str, Any]] = None
     _original_func: Callable = None

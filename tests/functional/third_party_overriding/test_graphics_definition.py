@@ -1,7 +1,7 @@
 import pytest
 
 from pyquibbler.env import GRAPHICS_EVALUATE_NOW
-from pyquibbler.function_overriding.third_party_overriding.graphics.graphics_overriding import GraphicsOverride
+from pyquibbler.function_overriding.third_party_overriding.graphics.helpers import GraphicsOverride
 
 
 @pytest.fixture(autouse=True)

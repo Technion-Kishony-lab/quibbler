@@ -97,7 +97,7 @@ class ApplyAlongAxisQuibFuncCall(QuibFuncCall):
     def _get_oned_slice_for_running_func1d(self, indices: Tuple):
         """
         Get the proper slice as a parameter for the func- this depends on whether the user specified that he wants a
-        quib representing the result (and if so, we create a proxy quib so as not to invalidate inner quibs he creates)
+        quib representing the result (and if so, we create a proxy quib so as not to invalidate operators quibs he creates)
         or the values themselves of the slice
         """
         if self._call_func_with_quibs:
@@ -133,7 +133,7 @@ class ApplyAlongAxisQuibFuncCall(QuibFuncCall):
         """
         Run "apply_along_axis"- in reality, we need to map several different ndarrays, and so running apply_along_axis
         itself would be problematic (as we need the indices themselves of the 1d slice). Given this, we simply run on
-        two loops of ndindex- the outer loop representing indices *before* the loop dimension, the inner loop
+        two loops of ndindex- the outer loop representing indices *before* the loop dimension, the operators loop
         representing indices *after* the loop dimension. We then select everything in between the two index tuples,
         which is a 1d slice.
         """

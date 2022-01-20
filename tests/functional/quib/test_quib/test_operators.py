@@ -3,8 +3,6 @@ from math import trunc, floor, ceil
 
 import pytest
 
-from pyquibbler.function_overriding.inner.operator_overrides import get_arithmetic_definitions, get_unary_definitions
-
 
 @pytest.mark.parametrize(['val1', 'val2'], [
     (1, 2),
@@ -12,8 +10,19 @@ from pyquibbler.function_overriding.inner.operator_overrides import get_arithmet
     (1., 2),
     (1, 2.)
 ])
-@pytest.mark.parametrize('operator_name', {a.func_name for a in get_arithmetic_definitions()
-                                           if not a.func_name.startswith('__r')} - {'__matmul__', '__divmod__'})
+@pytest.mark.parametrize('operator_name', {
+    '__add__',
+    '__sub__',
+    '__mul__',
+    '__truediv__',
+    '__floordiv__',
+    '__mod__',
+    '__pow__',
+    '__lshift__',
+    '__and__',
+    '__xor__',
+    '__or__'
+})
 def test_quib_forward_and_inverse_arithmetic_operators(create_quib_with_return_value, operator_name: str, val1, val2):
     op = getattr(operator, operator_name)
     quib1 = create_quib_with_return_value(val1)
@@ -35,7 +44,7 @@ def test_quib_forward_and_inverse_arithmetic_operators(create_quib_with_return_v
 
 
 @pytest.mark.parametrize('val', [1, 1., -1, -1.])
-@pytest.mark.parametrize('operator_name', [override.func_name for override in get_unary_definitions()])
+@pytest.mark.parametrize('operator_name', ['__neg__', '__pos__', '__abs__', '__invert__'])
 def test_quib_unary_operators(operator_name, val, create_quib_with_return_value):
     op = getattr(operator, operator_name)
     quib = create_quib_with_return_value(val)
