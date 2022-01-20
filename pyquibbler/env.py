@@ -1,4 +1,4 @@
-from .utils import Flag
+from pyquibbler.utils import Flag
 
 DEBUG = Flag(True)
 

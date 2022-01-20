@@ -1,6 +1,7 @@
 import contextlib
 import functools
-from typing import Callable, Any
+import inspect
+from typing import Callable, Any, Tuple, Mapping
 from dataclasses import dataclass
 
 
@@ -44,3 +45,20 @@ class Flag(Mutable):
 
     def __bool__(self):
         return self.val
+
+
+def convert_args_and_kwargs(converter: Callable, args: Tuple[Any, ...], kwargs: Mapping[str, Any]):
+    """
+    Apply the given converter on all given arg and kwarg values.
+    """
+    return (tuple(converter(i, val) for i, val in enumerate(args)),
+            {name: converter(name, val) for name, val in kwargs.items()})
+
+
+@functools.lru_cache()
+def get_signature_for_func(func):
+    """
+    Get the signature for a function- the reason we use this instead of immediately going to inspect is in order to
+    cache the result per function
+    """
+    return inspect.signature(func)

@@ -1,7 +1,9 @@
 import functools
 
+from pyquibbler.quib.factory import create_quib
 
-def quibbler_user_function(evaluate_now=True, pass_quibs=False):
+
+def quibbler_user_function(evaluate_now: bool = True, pass_quibs: bool = False):
     """
     Decorate your function with this in order for quibbler to automatically unpack quibs sent as arguments to this
     function, while reruninng this function every time any argument quib changes.
@@ -13,13 +15,11 @@ def quibbler_user_function(evaluate_now=True, pass_quibs=False):
     (evaluate_now=False) - if you do any graphics in this function you should probably set evaluate_now=False
     :param pass_quibs: Should this function receive quibs or their values?
     """
-    from pyquibbler.quib.graphics import GraphicsFunctionQuib
-
     def _decorator(func):
         @functools.wraps(func)
         def _wrapper(*args, **kwargs):
-            return GraphicsFunctionQuib.create(func=func, func_args=args, func_kwargs=kwargs, evaluate_now=evaluate_now,
-                                               pass_quibs=pass_quibs)
+            return create_quib(func=func, args=args, kwargs=kwargs, evaluate_now=evaluate_now,
+                               call_func_with_quibs=pass_quibs)
 
         return _wrapper
 

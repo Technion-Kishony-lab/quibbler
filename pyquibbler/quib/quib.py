@@ -1,154 +1,161 @@
 from __future__ import annotations
+
+import cProfile
+import functools
+import json
 import os
 import pathlib
 import pickle
-import numpy as np
-from functools import wraps
-from functools import cached_property
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from operator import getitem
-from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Callable, Dict, Union, Iterable
-from weakref import WeakSet
+import weakref
 from contextlib import contextmanager
+from functools import cached_property
+from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Union, Iterable
+from weakref import WeakSet
 
-from .quib_guard import add_new_quib_to_guard_if_exists, guard_get_value
-from .assignment.assignment_template import InvalidTypeException
-from .assignment.utils import FailedToDeepAssignException
-from .function_quibs.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own, \
-    add_quib_to_fail_trace_if_raises_quib_call_exception
-from .override_choice import OverrideRemoval
-from .quib_varname import get_var_name_being_set_outside_of_pyquibbler, get_file_name_and_line_number_of_quib
-from .assignment import AssignmentTemplate, RangeAssignmentTemplate, BoundAssignmentTemplate, Overrider, Assignment, \
+import numpy as np
+from matplotlib.artist import Artist
+
+
+from pyquibbler.env import LEN_RAISE_EXCEPTION, PRETTY_REPR
+from pyquibbler.graphics import is_within_drag
+from pyquibbler.quib.quib_guard import guard_raise_if_not_allowed_access_to_quib, \
+    CannotAccessQuibInScopeException
+from pyquibbler.quib.pretty_converters import MathExpression, pretty_convert
+from pyquibbler.quib.utils.miscellaneous import get_user_friendly_name_for_requested_valid_path
+from pyquibbler.translation.types import Source
+from pyquibbler.utilities.input_validation_utils import validate_user_input
+from pyquibbler.logger import logger
+from pyquibbler.project import Project
+from pyquibbler.assignment import create_assignment_template
+from pyquibbler.inversion.exceptions import NoInvertersFoundException
+from pyquibbler.assignment import AssignmentTemplate, Overrider, Assignment, \
     AssignmentToQuib
-from .function_quibs.cache import create_cache
-from .function_quibs.cache.shallow.indexable_cache import transform_cache_to_nd_if_necessary_given_path
-from .function_quibs.pretty_converters import MathExpression
-from .utils import quib_method, Unpacker, recursively_run_func_on_object
-from .assignment import PathComponent
-from ..exceptions import PyQuibblerException
-from ..env import LEN_RAISE_EXCEPTION, GET_VARIABLE_NAMES, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS
-from ..input_validation_utils import validate_user_input, InvalidArgumentException
-from ..logger import logger
-from ..project import Project
+from pyquibbler.path.data_accessing import FailedToDeepAssignException
+from pyquibbler.path.path_component import PathComponent, Path
+from pyquibbler.assignment import InvalidTypeException, OverrideRemoval, get_override_group_for_change
+from pyquibbler.cache import create_cache, CacheStatus, transform_cache_to_nd_if_necessary_given_path
+from pyquibbler.function_definitions import ArgsValues, FuncCall
+from pyquibbler.quib.func_calling.cache_behavior import CacheBehavior, UnknownCacheBehaviorException
+from pyquibbler.quib.exceptions import OverridingNotAllowedException, UnknownUpdateTypeException, \
+    InvalidCacheBehaviorForQuibException, CannotSaveAsTextException
+from pyquibbler.quib.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own, \
+    add_quib_to_fail_trace_if_raises_quib_call_exception
+from pyquibbler.quib.graphics import UpdateType
+from pyquibbler.utilities.iterators import recursively_run_func_on_object
+from pyquibbler.quib.quib_method import quib_method
+from pyquibbler.translation.translate import forwards_translate, NoTranslatorsFoundException, \
+    backwards_translate
+from pyquibbler.utilities.unpacker import Unpacker
 
 if TYPE_CHECKING:
-    from .graphics import GraphicsFunctionQuib
-    from .override_choice import ChoiceContext, OverrideChoice
+    from pyquibbler.assignment.override_choice import ChoiceContext
+    from pyquibbler.assignment import OverrideChoice
+    from pyquibbler.function_definitions.func_definition import FuncDefinition
+    from pyquibbler.quib.func_calling import QuibFuncCall
 
 
-def get_user_friendly_name_for_requested_valid_path(valid_path: Optional[List[PathComponent]]):
+class Quib:
     """
-    Get a user-friendly name representing the call to get_value_valid_at_path
+    A Quib is a node representing a singular call of a function with it's arguments (it's parents in the graph)
     """
-    if valid_path is None:
-        return 'get_blank_value()'
-    elif len(valid_path) == 0:
-        return 'get_value()'
-    else:
-        return f'get_value_valid_at_path({valid_path})'
 
-
-@dataclass
-class QuibIsNotNdArrayException(PyQuibblerException):
-    quib: Quib
-    value: Any
-
-    def __str__(self):
-        return f'The quib {self.quib} evaluates to {self.value}, which is not an ndarray, but a {type(self.value)}'
-
-
-@dataclass
-class OverridingNotAllowedException(PyQuibblerException):
-    quib: Quib
-    override: Assignment
-
-    def __str__(self):
-        return f'Cannot override {self.quib} with {self.override} as it does not allow overriding.'
-
-
-@dataclass(frozen=True)
-class FunctionCall:
-    func: Callable
-    args: Tuple[Any, ...]
-    kwargs: Tuple[Tuple[str, Any], ...]
-
-    @classmethod
-    def create(cls, func: Callable, args: Tuple[Any, ...], kwargs: Dict[str, Any]):
-        return cls(func, args, tuple(kwargs.items()))
-
-
-def cache_method_until_full_invalidation(func: Callable) -> Callable:
-    @wraps(func)
-    def wrapper(self: Quib, *args, **kwargs):
-        call = FunctionCall.create(func, (self, *args), kwargs)
-        if call in self.method_cache:
-            return self.method_cache[call]
-        result = func(self, *args, **kwargs)
-        self.method_cache[call] = result
-        return result
-
-    return wrapper
-
-
-class Quib(ABC):
-    """
-    An abstract class to describe the common methods and attributes of all quib types.
-    """
-    _DEFAULT_ALLOW_OVERRIDING = False
     _IS_WITHIN_GET_VALUE_CONTEXT = False
 
-    def __init__(self, assignment_template: Optional[AssignmentTemplate] = None,
-                 allow_overriding: Optional[bool] = None):
+    PROFILER = cProfile.Profile()
+
+    def __init__(self, quib_function_call: QuibFuncCall,
+                 assignment_template: AssignmentTemplate,
+                 allow_overriding: bool,
+                 name: Optional[str],
+                 file_name: Optional[str],
+                 line_no: Optional[str],
+                 update_type: UpdateType,
+                 save_directory: pathlib.Path,
+                 can_save_as_txt: bool,
+                 can_contain_graphics: bool,
+                 ):
         self._assignment_template = assignment_template
-        # Can't use WeakSet because it can change during iteration
+        self._name = name
+
         self._children = WeakSet()
         self._overrider = Overrider()
-        if allow_overriding is None:
-            allow_overriding = self._DEFAULT_ALLOW_OVERRIDING
         self._allow_overriding = allow_overriding
-        self.method_cache = {}
         self._quibs_allowed_to_assign_to = None
         self._override_choice_cache = {}
         self.created_in_get_value_context = self._IS_WITHIN_GET_VALUE_CONTEXT
+        self.file_name = file_name
+        self.line_no = line_no
+        self._redraw_update_type = update_type
 
-        should_get_variable_names = GET_VARIABLE_NAMES and not self.created_in_get_value_context
-        should_get_file_name_and_line = SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS and not \
-            self.created_in_get_value_context
-        try:
-            self._name = get_var_name_being_set_outside_of_pyquibbler() if should_get_variable_names else None
-            self.file_name, self.line_no = (get_file_name_and_line_number_of_quib()
-                                            if should_get_file_name_and_line else None, None)
-        except Exception as e:
-            logger.warning(f"Failed to get name, exception {e}")
-            self._name = None
-            self.file_name = None
-            self.line_no = None
+        self._save_directory = save_directory
 
-        self.project.register_quib(self)
-        self._user_defined_save_directory = None
-        add_new_quib_to_guard_if_exists(self)
+        self._quib_function_call = quib_function_call
+
+        from pyquibbler.quib.graphics.persist import persist_artists_on_quib_weak_ref
+        self._quib_function_call.artists_creation_callback = functools.partial(persist_artists_on_quib_weak_ref,
+                                                                               weakref.ref(self))
+
+        self._can_save_as_txt = can_save_as_txt
+        self._can_contain_graphics = can_contain_graphics
+
+    """
+    Func metadata funcs
+    """
 
     @property
-    def project(self) -> Project:
-        return Project.get_or_create()
+    def func(self):
+        return self._quib_function_call.func
 
-    def setp(self, allow_overriding: bool = None, assignment_template=None,
-             save_directory: Union[str, pathlib.Path] = None,
-             **kwargs):
+    @property
+    def args(self):
+        return self._quib_function_call.args
+
+    @property
+    def kwargs(self):
+        return self._quib_function_call.kwargs
+
+    """
+    Graphics related funcs
+    """
+
+    @property
+    def func_can_create_graphics(self):
+        return self._quib_function_call.func_can_create_graphics or self._can_contain_graphics
+
+    def redraw_if_appropriate(self):
         """
-        Configure a quib with certain attributes- because this function is expected to be used by users, we never
-        setattr to anything before checking the types.
+        Redraws the quib if it's appropriate
         """
-        if allow_overriding is not None:
-            self.set_allow_overriding(allow_overriding)
-        if assignment_template is not None:
-            self.set_assignment_template(assignment_template)
-        if save_directory is not None:
-            self.set_save_directory(save_directory)
-        if 'name' in kwargs:
-            self.set_name(kwargs.pop('name'))
-        return self
+        if self._redraw_update_type in [UpdateType.NEVER, UpdateType.CENTRAL] \
+                or (self._redraw_update_type == UpdateType.DROP and is_within_drag()):
+            return
+
+        return self.get_value()
+
+    def _iter_artist_lists(self) -> Iterable[List[Artist]]:
+        return map(lambda g: g.artists, self._quib_function_call.flat_graphics_collections())
+
+    def _iter_artists(self) -> Iterable[Artist]:
+        return (artist for artists in self._iter_artist_lists() for artist in artists)
+
+    def get_axeses(self):
+        return {artist.axes for artist in self._iter_artists()}
+
+    def _redraw(self) -> None:
+        """
+        Redraw all artists that directly or indirectly depend on this quib.
+        """
+        from pyquibbler.quib.graphics.redraw import redraw_quibs_with_graphics_or_add_in_aggregate_mode
+        quibs = self._get_descendant_graphics_quibs_recursively()
+        redraw_quibs_with_graphics_or_add_in_aggregate_mode(quibs)
+
+    @property
+    def redraw_update_type(self):
+        return self._redraw_update_type
+
+    """
+    Assignment
+    """
 
     @validate_user_input(allow_overriding=bool)
     def set_allow_overriding(self, allow_overriding: bool):
@@ -157,13 +164,117 @@ class Quib(ABC):
         """
         self._allow_overriding = allow_overriding
 
+    def override(self, assignment: Assignment, allow_overriding_from_now_on=True):
+        """
+        Overrides a part of the data the quib represents.
+        """
+        if allow_overriding_from_now_on:
+            self._allow_overriding = True
+        if not self._allow_overriding:
+            raise OverridingNotAllowedException(self, assignment)
+        self._overrider.add_assignment(assignment)
+        if len(assignment.path) == 0:
+            self._quib_function_call.on_type_change()
+
+        try:
+            self.invalidate_and_redraw_at_path(assignment.path)
+        except FailedToDeepAssignException as e:
+            raise FailedToDeepAssignException(exception=e.exception, path=e.path) from None
+        except InvalidTypeException as e:
+            raise InvalidTypeException(e.type_) from None
+
+        if not is_within_drag():
+            self.project.push_assignment_to_undo_stack(quib=self,
+                                                       assignment=assignment,
+                                                       index=len(list(self._overrider)) - 1,
+                                                       overrider=self._overrider)
+
+    def remove_override(self, path: List[PathComponent], invalidate_and_redraw: bool = True):
+        """
+        Remove function_definitions in a specific path in the quib.
+        """
+        assignment_removal = self._overrider.remove_assignment(path)
+        if assignment_removal is not None:
+            self.project.push_assignment_to_undo_stack(assignment=assignment_removal,
+                                                       index=len(list(self._overrider)) - 1,
+                                                       overrider=self._overrider,
+                                                       quib=self)
+        if len(path) == 0:
+            self._quib_function_call.on_type_change()
+        if invalidate_and_redraw:
+            self.invalidate_and_redraw_at_path(path=path)
+
+    def assign(self, assignment: Assignment) -> None:
+        """
+        Create an assignment with an Assignment object,
+        function_definitions the current values at the assignment's paths with the assignment's value
+        """
+        get_override_group_for_change(AssignmentToQuib(self, assignment)).apply()
+
+    @raise_quib_call_exceptions_as_own
+    def assign_value(self, value: Any) -> None:
+        """
+        Helper method to assign a single value and override the whole value of the quib
+        """
+        self.assign(Assignment(value=value, path=[]))
+
+    @raise_quib_call_exceptions_as_own
+    def assign_value_to_key(self, key: Any, value: Any) -> None:
+        """
+        Helper method to assign a value at a specific key
+        """
+        self.assign(Assignment(path=[PathComponent(component=key, indexed_cls=self.get_type())], value=value))
+
+    def __setitem__(self, key, value):
+        if isinstance(key, Quib):
+            key = key.get_value()
+        self.assign(Assignment(value=value, path=[PathComponent(component=key, indexed_cls=self.get_type())]))
+
+    def get_inversions_for_override_removal(self, override_removal: OverrideRemoval) -> List[OverrideRemoval]:
+        """
+        Get a list of overide removals to parent quibs which could be applied instead of the given override removal
+        and produce the same change in the value of this quib.
+        """
+        from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation
+        func_call, sources_to_quibs = get_func_call_for_translation(self._quib_function_call)
+        sources_to_paths = backwards_translate(func_call=func_call, path=override_removal.path)
+        return [OverrideRemoval(sources_to_quibs[source], path) for source, path in sources_to_paths.items()]
+
     @property
-    def children(self) -> Set[Quib]:
+    @functools.lru_cache()
+    def _args_values(self):
+        return ArgsValues.from_func_args_kwargs(self.func, self.args, self.kwargs, include_defaults=True)
+
+    @property
+    def _func_definition(self) -> FuncDefinition:
+        from pyquibbler.function_definitions import get_definition_for_function
+        return get_definition_for_function(self.func)
+
+    def get_inversions_for_assignment(self, assignment: Assignment) -> List[AssignmentToQuib]:
         """
-        Return a copy of the current children weakset.
+        Get a list of assignments to parent quibs which could be applied instead of the given assignment
+        and produce the same change in the value of this quib.
         """
-        # We return a copy of the set because self._children can change size during iteration
-        return set(self._children)
+        from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation
+        func_call, data_sources_to_quibs = get_func_call_for_translation(self._quib_function_call)
+
+        try:
+            value = self.get_value()
+
+            from pyquibbler.inversion.invert import invert
+            inversals = invert(func_call=func_call,
+                               previous_result=value,
+                               assignment=assignment)
+        except NoInvertersFoundException:
+            return []
+
+        return [
+            AssignmentToQuib(
+                quib=data_sources_to_quibs[inversal.source],
+                assignment=inversal.assignment
+            )
+            for inversal in inversals
+        ]
 
     def store_override_choice(self, context: ChoiceContext, choice: OverrideChoice) -> None:
         """
@@ -176,27 +287,6 @@ class Quib(ABC):
         If a choice fitting the current options has been cached, return it. Otherwise return None.
         """
         return self._override_choice_cache.get(context)
-
-    def _get_children_recursively(self) -> Set[Quib]:
-        children = self.children
-        for child in self.children:
-            children |= child._get_children_recursively()
-        return children
-
-    def _get_graphics_function_quibs_recursively(self) -> Set[GraphicsFunctionQuib]:
-        """
-        Get all artists that directly or indirectly depend on this quib.
-        """
-        from pyquibbler.quib.graphics import GraphicsFunctionQuib
-        return {child for child in self._get_children_recursively() if isinstance(child, GraphicsFunctionQuib)}
-
-    def _redraw(self) -> None:
-        """
-        Redraw all artists that directly or indirectly depend on this quib.
-        """
-        from pyquibbler.quib.graphics.redraw import redraw_graphics_function_quibs_or_add_in_aggregate_mode
-        quibs = self._get_graphics_function_quibs_recursively()
-        redraw_graphics_function_quibs_or_add_in_aggregate_mode(quibs)
 
     def set_assigned_quibs(self, quibs: Optional[Iterable[Quib]]) -> None:
         """
@@ -212,9 +302,31 @@ class Quib(ABC):
         """
         return True if self._quibs_allowed_to_assign_to is None else quib in self._quibs_allowed_to_assign_to
 
+    @property
+    def allow_overriding(self) -> bool:
+        return self._allow_overriding
+
+    def get_assignment_template(self) -> AssignmentTemplate:
+        return self._assignment_template
+
+    def set_assignment_template(self, *args) -> None:
+        """
+        Sets an assignment template for the quib.
+        Usage:
+
+        - quib.set_assignment_template(assignment_template): set a specific AssignmentTemplate object.
+        - quib.set_assignment_template(min, max): set the template to a bound template between min and max.
+        - quib.set_assignment_template(start, stop, step): set the template to a bound template between min and max.
+        """
+        self._assignment_template = create_assignment_template(*args)
+
+    """
+    Invalidation
+    """
+
     def invalidate_and_redraw_at_path(self, path: Optional[List[PathComponent]] = None) -> None:
         """
-        Perform all actions needed after the quib was mutated (whether by overriding or inverse assignment).
+        Perform all actions needed after the quib was mutated (whether by function_definitions or inverse assignment).
         If path is not given, the whole quib is invalidated.
         """
         from pyquibbler import timer
@@ -232,6 +344,47 @@ class Quib(ABC):
         for child in self.children:
             child._invalidate_quib_with_children_at_path(self, path)
 
+    def _invalidate_quib_with_children_at_path(self, invalidator_quib, path: List[PathComponent]):
+        """
+        Invalidate a quib and it's children at a given path.
+        This method should be overriden if there is any 'special' implementation for either invalidating oneself
+        or for translating a path for invalidation
+        """
+        new_paths = self._get_paths_for_children_invalidation(invalidator_quib, path)
+        for new_path in new_paths:
+            if new_path is not None:
+                self._invalidate_self(new_path)
+                if len(path) == 0 or not self._is_completely_overridden_at_first_component(new_path):
+                    self._invalidate_children_at_path(new_path)
+
+    def _forward_translate_source_path(self, func_call: FuncCall, source: Source, path: Path):
+        """
+        Forward translate a path, first attempting to do it WITHOUT using getting the shape and type, and if/when
+        failure does grace us, we attempt again with shape and type
+        """
+        try:
+            return forwards_translate(
+                func_call=func_call,
+                sources_to_paths={
+                    source: path
+                },
+            )
+        except NoTranslatorsFoundException:
+            try:
+                return forwards_translate(
+                    func_call=func_call,
+                    sources_to_paths={
+                        source: path
+                    },
+                    shape=self.get_shape(),
+                    type_=self.get_type(),
+                    **self._quib_function_call.get_result_metadata()
+                )
+            except NoTranslatorsFoundException:
+                return {
+                    source: [[]]
+                }
+
     def _get_paths_for_children_invalidation(self, invalidator_quib: Quib,
                                              path: List[PathComponent]) -> List[Optional[List[PathComponent]]]:
         """
@@ -239,10 +392,20 @@ class Quib(ABC):
         paths to new invalidation paths.
         If not, invalidate all children all over; as you have no more specific way to invalidate them
         """
-        return [[]]
+        from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation
 
-    def _on_type_change(self):
-        self.method_cache.clear()
+        # We always invalidate all if it's a parameter source quib
+        if invalidator_quib not in self._quib_function_call.get_data_sources():
+            return [[]]
+
+        func_call, sources_to_quibs = get_func_call_for_translation(self._quib_function_call)
+        quibs_to_sources = {quib: source for source, quib in sources_to_quibs.items()}
+
+        sources_to_new_paths = self._forward_translate_source_path(func_call,
+                                                                   quibs_to_sources[invalidator_quib],
+                                                                   path)
+        source = quibs_to_sources[invalidator_quib]
+        return sources_to_new_paths[source] if source in sources_to_new_paths else []
 
     def _invalidate_self(self, path: List[PathComponent]):
         """
@@ -251,6 +414,100 @@ class Quib(ABC):
         For example, a simple implementation for a quib which is a function could be setting a boolean to true or
         false signifying validity
         """
+        if len(path) == 0:
+            self._quib_function_call.on_type_change()
+            self._quib_function_call.reset_cache()
+
+        self._quib_function_call.invalidate_cache_at_path(path)
+
+    """
+    Misc
+    """
+
+    @property
+    def is_impure(self):
+        return self._func_definition.is_random_func or self._func_definition.is_file_loading_func
+
+    @property
+    def is_random_func(self):
+        return self._func_definition.is_random_func
+
+    @property
+    def cache_status(self):
+        """
+        User interface to check cache validity.
+        """
+        return self._quib_function_call.cache.get_cache_status()\
+            if self._quib_function_call.cache is not None else CacheStatus.ALL_INVALID
+
+    @property
+    def project(self) -> Project:
+        return Project.get_or_create()
+
+    def get_cache_behavior(self):
+        return self._quib_function_call.get_cache_behavior()
+
+    @validate_user_input(cache_behavior=(str, CacheBehavior))
+    def set_cache_behavior(self, cache_behavior: CacheBehavior):
+        if isinstance(cache_behavior, str):
+            try:
+                cache_behavior = CacheBehavior[cache_behavior.upper()]
+            except KeyError:
+                raise UnknownCacheBehaviorException(cache_behavior)
+        if self._func_definition.is_random_func and cache_behavior != CacheBehavior.ON:
+            raise InvalidCacheBehaviorForQuibException(self._quib_function_call.default_cache_behavior)
+        self._quib_function_call.default_cache_behavior = cache_behavior
+
+    def setp(self, allow_overriding: bool = None, assignment_template=None,
+             save_directory: Union[str, pathlib.Path] = None, cache_behavior: CacheBehavior = None,
+             **kwargs):
+        """
+        Configure a quib with certain attributes- because this function is expected to be used by users, we never
+        setattr to anything before checking the types.
+        """
+        if allow_overriding is not None:
+            self.set_allow_overriding(allow_overriding)
+        if assignment_template is not None:
+            self.set_assignment_template(assignment_template)
+        if save_directory is not None:
+            self.set_save_directory(save_directory)
+        if cache_behavior is not None:
+            self.set_cache_behavior(cache_behavior)
+        if 'name' in kwargs:
+            self.set_name(kwargs.pop('name'))
+        return self
+
+    @validate_user_input(update_type=(str, UpdateType))
+    def set_redraw_update_type(self, update_type: Union[str, UpdateType]):
+        """
+        Set when to redraw a quib- on "drag", on "drop", on "central" refresh, or "never" (see UpdateType enum)
+        """
+        if isinstance(update_type, str):
+            try:
+                update_type = UpdateType[update_type.upper()]
+            except KeyError:
+                raise UnknownUpdateTypeException(update_type)
+        self._redraw_update_type = update_type
+
+    @property
+    def children(self) -> Set[Quib]:
+        """
+        Return a copy of the current children weakset.
+        """
+        # We return a copy of the set because self._children can change size during iteration
+        return set(self._children)
+
+    def _get_children_recursively(self) -> Set[Quib]:
+        children = self.children
+        for child in self.children:
+            children |= child._get_children_recursively()
+        return children
+
+    def _get_descendant_graphics_quibs_recursively(self) -> Set[Quib]:
+        """
+        Get all artists that directly or indirectly depend on this quib.
+        """
+        return {child for child in self._get_children_recursively() if child.func_can_create_graphics}
 
     @staticmethod
     def _apply_assignment_to_cache(original_value, cache, assignment):
@@ -286,26 +543,13 @@ class Quib(ABC):
         path = path[:1]
         assignments = list(self._overrider)
         if assignments:
-            original_value = self._get_inner_value_valid_at_path(None)
+            original_value = self.get_value_valid_at_path(None)
             cache = create_cache(original_value)
             cache = transform_cache_to_nd_if_necessary_given_path(cache, path)
             for assignment in assignments:
                 cache = self._apply_assignment_to_cache(original_value, cache, assignment)
             return len(cache.get_uncached_paths(path)) == 0
         return False
-
-    def _invalidate_quib_with_children_at_path(self, invalidator_quib, path: List[PathComponent]):
-        """
-        Invalidate a quib and it's children at a given path.
-        This method should be overriden if there is any 'special' implementation for either invalidating oneself
-        or for translating a path for invalidation
-        """
-        new_paths = self._get_paths_for_children_invalidation(invalidator_quib, path)
-        for new_path in new_paths:
-            if new_path is not None:
-                self._invalidate_self(new_path)
-                if len(path) == 0 or not self._is_completely_overridden_at_first_component(new_path):
-                    self._invalidate_children_at_path(new_path)
 
     def add_child(self, quib: Quib) -> None:
         """
@@ -325,84 +569,6 @@ class Quib(ABC):
         raise TypeError('Cannot iterate over quibs, as their size can vary. '
                         'Try Quib.iter_first() to iterate over the n-first items of the quib.')
 
-    def override(self, assignment: Assignment, allow_overriding_from_now_on=True):
-        """
-        Overrides a part of the data the quib represents.
-        """
-        if allow_overriding_from_now_on:
-            self._allow_overriding = True
-        if not self._allow_overriding:
-            raise OverridingNotAllowedException(self, assignment)
-        self._overrider.add_assignment(assignment)
-        if len(assignment.path) == 0:
-            self._on_type_change()
-
-        try:
-            self.invalidate_and_redraw_at_path(assignment.path)
-        except FailedToDeepAssignException as e:
-            raise FailedToDeepAssignException(exception=e.exception, path=e.path) from None
-        except InvalidTypeException as e:
-            raise InvalidTypeException(e.type_) from None
-
-        from pyquibbler.quib.graphics.widgets import is_within_drag
-        if not is_within_drag():
-            self.project.push_assignment_to_undo_stack(quib=self,
-                                                       assignment=assignment,
-                                                       index=len(list(self._overrider)) - 1,
-                                                       overrider=self._overrider)
-
-    def remove_override(self, path: List[PathComponent], invalidate_and_redraw: bool = True):
-        """
-        Remove overriding in a specific path in the quib.
-        """
-        assignment_removal = self._overrider.remove_assignment(path)
-        if assignment_removal is not None:
-            self.project.push_assignment_to_undo_stack(assignment=assignment_removal,
-                                                       index=len(list(self._overrider)) - 1,
-                                                       overrider=self._overrider,
-                                                       quib=self)
-        if len(path) == 0:
-            self._on_type_change()
-        if invalidate_and_redraw:
-            self.invalidate_and_redraw_at_path(path=path)
-
-    def assign(self, assignment: Assignment) -> None:
-        """
-        Create an assignment with an Assignment object, overriding the current values at the assignment's paths with the
-        assignment's value
-        """
-        self.override(assignment, allow_overriding_from_now_on=False)
-
-    @raise_quib_call_exceptions_as_own
-    def assign_value(self, value: Any) -> None:
-        """
-        Helper method to assign a single value and override the whole value of the quib
-        """
-        self.assign(Assignment(value=value, path=[]))
-
-    @raise_quib_call_exceptions_as_own
-    def assign_value_to_key(self, key: Any, value: Any) -> None:
-        """
-        Helper method to assign a value at a specific key
-        """
-        from .assignment.assignment import PathComponent
-        self.assign(Assignment(path=[PathComponent(component=key, indexed_cls=self.get_type())], value=value))
-
-    def __getitem__(self, item):
-        # We don't use the normal operator_overriding interface for two reasons:
-        # 1. It can create issues with hinting in IDEs (for example, Pycharm will not recognize that Quibs have a
-        # getitem and will issue a warning)
-        # 2. We need the function to not be created dynamically as it needs to be in the inverser's supported functions
-        # in order to be inversed correctly (and not simply override)
-        from pyquibbler.quib.function_quibs.transpositional.getitem_function_quib import GetItemFunctionQuib
-        return GetItemFunctionQuib.create(func=getitem, func_args=[self, item])
-
-    def __setitem__(self, key, value):
-        from .assignment.assignment import PathComponent
-        if isinstance(key, Quib):
-            key = key.get_value()
-        self.assign(Assignment(value=value, path=[PathComponent(component=key, indexed_cls=self.get_type())]))
-
     @validate_user_input(name=(str, type(None)))
     def set_name(self, name: Optional[str]):
         """
@@ -421,80 +587,6 @@ class Quib(ABC):
         """
         return self._name
 
-    @property
-    def allow_overriding(self) -> bool:
-        return self._allow_overriding
-
-    @abstractmethod
-    def _get_inner_functional_representation_expression(self) -> Union[MathExpression, str]:
-        pass
-
-    def get_functional_representation_expression(self) -> Union[MathExpression, str]:
-        try:
-            return self._get_inner_functional_representation_expression()
-        except Exception as e:
-            logger.warning(f"Failed to get repr {e}")
-            return "[exception during repr]"
-
-    @property
-    def functional_representation(self) -> str:
-        """
-        Get a string representing a functional representation of the quib.
-        For example, in
-        ```
-        a = iquib(4)
-        ```
-        "iquib(4)" would be the functional representation
-        """
-        return str(self.get_functional_representation_expression())
-
-    def pretty_repr(self):
-        """
-        Returns a pretty representation of the quib. Might calculate values of parent quibs.
-        """
-        return f"{self.name} = {self.functional_representation}" \
-            if self.name is not None else self.functional_representation
-
-    def __str__(self):
-        return self.pretty_repr()
-
-    def get_assignment_template(self) -> AssignmentTemplate:
-        return self._assignment_template
-
-    def set_assignment_template(self, *args) -> None:
-        """
-        Sets an assignment template for the quib.
-        Usage:
-
-        - quib.set_assignment_template(assignment_template): set a specific AssignmentTemplate object.
-        - quib.set_assignment_template(min, max): set the template to a bound template between min and max.
-        - quib.set_assignment_template(start, stop, step): set the template to a bound template between min and max.
-        """
-        if len(args) == 1 and isinstance(args[0], tuple):
-            args = args[0]
-
-        if len(args) == 1:
-            if not isinstance(args[0], AssignmentTemplate):
-                raise InvalidArgumentException(expected_type=(AssignmentTemplate, tuple),
-                                               var_name="assignment template")
-            template, = args
-        elif len(args) == 2:
-            minimum, maximum = args
-            template = BoundAssignmentTemplate(minimum, maximum)
-        elif len(args) == 3:
-            start, stop, step = args
-            template = RangeAssignmentTemplate(start, stop, step)
-        else:
-            raise TypeError('Unsupported number of arguments, see docstring for usage')
-        self._assignment_template = template
-
-    @abstractmethod
-    def _get_inner_value_valid_at_path(self, path: Optional[List[PathComponent]]) -> Any:
-        """
-        Get the data this quib represents valid at the pat given, before applying quib features like overrides.
-        Perform calculations if needed.
-        """
-
     @raise_quib_call_exceptions_as_own
     def get_value_valid_at_path(self, path: Optional[List[PathComponent]]) -> Any:
         """
@@ -502,12 +594,16 @@ class Quib(ABC):
         The value will necessarily return in the shape of the actual result, but only the values at the given path
         are guaranteed to be valid
         """
-        guard_get_value(self)
+        try:
+            guard_raise_if_not_allowed_access_to_quib(self)
+        except CannotAccessQuibInScopeException:
+            raise
         name_for_call = get_user_friendly_name_for_requested_valid_path(path)
-        with add_quib_to_fail_trace_if_raises_quib_call_exception(self, name_for_call, False):
-            inner_value = self._get_inner_value_valid_at_path(path)
 
-        return self._overrider.override(inner_value, self._assignment_template)
+        with add_quib_to_fail_trace_if_raises_quib_call_exception(self, name_for_call):
+            result = self._quib_function_call.run(path)
+
+        return self._overrider.override(result, self._assignment_template)
 
     @staticmethod
     @contextmanager
@@ -542,47 +638,28 @@ class Quib(ABC):
         """
         return self._overrider
 
-    # We cache the type, so quibs without cache will still remember their types.
-    @cache_method_until_full_invalidation
     def get_type(self) -> Type:
         """
         Get the type of wrapped value.
         """
         with add_quib_to_fail_trace_if_raises_quib_call_exception(quib=self, call='get_type()', replace_last=True):
-            return type(self.get_value_valid_at_path(None))
+            return self._quib_function_call.get_type()
 
-    # We cache the shape, so quibs without cache will still remember their shape.
-    @cache_method_until_full_invalidation
     def get_shape(self) -> Tuple[int, ...]:
         """
         Assuming this quib represents a numpy ndarray, returns a quib of its shape.
         """
         with add_quib_to_fail_trace_if_raises_quib_call_exception(quib=self, call='get_shape()', replace_last=True):
-            res = self.get_value_valid_at_path(None)
+            return self._quib_function_call.get_shape()
 
-        try:
-            return np.shape(res)
-        except ValueError:
-            if hasattr(res, '__len__'):
-                return len(res),
-            raise
-
-    @cache_method_until_full_invalidation
     def get_ndim(self) -> int:
         """
         Assuming this quib represents a numpy ndarray, returns a quib of its shape.
         """
         with add_quib_to_fail_trace_if_raises_quib_call_exception(quib=self, call='get_ndim()', replace_last=True):
-            res = self.get_value_valid_at_path(None)
+            return self._quib_function_call.get_ndim()
 
-        try:
-            return np.ndim(res)
-        except ValueError:
-            if hasattr(res, '__len__'):
-                return 1
-            raise
-
-    @quib_method('elementwise')
+    @quib_method
     def get_override_mask(self):
         """
         Assuming this quib represents a numpy ndarray, return a quib representing its override mask.
@@ -614,11 +691,11 @@ class Quib(ABC):
         self._children.remove(quib_to_remove)
 
     @property
-    @abstractmethod
     def parents(self) -> Set[Quib]:
         """
         Returns a list of quibs that this quib depends on.
         """
+        return set(self._quib_function_call.get_objects_of_type_in_args_kwargs(Quib))
 
     @cached_property
     def ancestors(self) -> Set[Quib]:
@@ -631,34 +708,18 @@ class Quib(ABC):
             ancestors |= parent.ancestors
         return ancestors
 
-    def get_inversions_for_override_removal(self, override_removal: OverrideRemoval) -> List[OverrideRemoval]:
-        """
-        Get a list of overide removals to parent quibs which could be applied instead of the given override removal
-        and produce the same change in the value of this quib.
-        """
-        return []
-
-    def get_inversions_for_assignment(self, assignment: Assignment) -> List[AssignmentToQuib]:
-        """
-        Get a list of assignments to parent quibs which could be applied instead of the given assignment
-        and produce the same change in the value of this quib.
-        """
-        return []
-
-    @property
-    @abstractmethod
-    def _default_save_directory(self) -> Optional[pathlib.Path]:
-        pass
+    """
+    File saving
+    """
 
     @property
     def _save_path(self) -> Optional[pathlib.Path]:
         save_name = self.name if self.name else hash(self.functional_representation)
-        return self._save_directory / f"{save_name}.quib" if self._default_save_directory else None
+        return self._save_directory / f"{save_name}.quib"
 
     @property
-    def _save_directory(self):
-        return self._user_defined_save_directory \
-            if self._user_defined_save_directory is not None else self._default_save_directory
+    def _save_txt_path(self) -> Optional[pathlib.Path]:
+        return self._save_directory / f"{self.name}.txt"
 
     @validate_user_input(path=(str, pathlib.Path))
     def set_save_directory(self, path: Union[str, pathlib.Path]):
@@ -667,19 +728,98 @@ class Quib(ABC):
         """
         if isinstance(path, str):
             path = pathlib.Path(path)
-        self._user_defined_save_directory = path.resolve()
+        self._save_directory = path.resolve()
 
-    def save_if_relevant(self):
+    def save_if_relevant(self, save_as_txt_if_possible: bool = True):
         """
         Save the quib if relevant- this will NOT save if the quib does not have overrides, as there is nothing to save
         """
-        os.makedirs(self._save_path.parent, exist_ok=True)
+        os.makedirs(self._save_directory, exist_ok=True)
         if len(list(self._overrider)) > 0:
+            if save_as_txt_if_possible and self._can_save_as_txt:
+                try:
+                    return self._save_as_txt()
+                except CannotSaveAsTextException:
+                    # Continue on to normal save
+                    pass
+
             with open(self._save_path, 'wb') as f:
                 pickle.dump(self._overrider, f)
 
+    def _save_as_txt(self):
+        """
+        Save the quib as a text file. In contrast to the normal save, this will save the value of the quib regardless
+        of whether the quib has overrides, as a txt file is used for the user to be able to see the quib and change it
+        in a textual manner.
+        Note that this WILL fail with CannotSaveAsTextException in situations where the iquib
+        cannot be represented textually.
+        """
+        value = self.get_value()
+        try:
+            if isinstance(value, np.ndarray):
+                np.savetxt(str(self._save_txt_path), value)
+            else:
+                with open(self._save_txt_path, 'w') as f:
+                    json.dump(value, f)
+        except TypeError:
+            if os.path.exists(self._save_txt_path):
+                os.remove(self._save_txt_path)
+            raise CannotSaveAsTextException()
+
+    def _load_from_txt(self):
+        """
+        Load the quib from the corresponding text file is possible
+        """
+        if self._save_txt_path and os.path.exists(self._save_txt_path):
+            if issubclass(self.get_type(), np.ndarray):
+                self.assign_value(np.array(np.loadtxt(str(self._save_txt_path)), dtype=self.get_value().dtype))
+            else:
+                with open(self._save_txt_path, 'r') as f:
+                    self.assign_value(json.load(f))
+
     def load(self):
-        if self._save_path and os.path.exists(self._save_path):
+        if self._save_txt_path and os.path.exists(self._save_txt_path):
+            self._load_from_txt()
+        elif self._save_path and os.path.exists(self._save_path):
             with open(self._save_path, 'rb') as f:
                 self._overrider = pickle.load(f)
                 self.invalidate_and_redraw_at_path([])
+
+    """
+    Repr
+    """
+
+    def get_functional_representation_expression(self) -> Union[MathExpression, str]:
+        try:
+            return pretty_convert.get_pretty_value_of_func_with_args_and_kwargs(self.func, self.args, self.kwargs)
+        except Exception as e:
+            logger.warning(f"Failed to get repr {e}")
+            return "[exception during repr]"
+
+    @property
+    def functional_representation(self) -> str:
+        """
+        Get a string representing a functional representation of the quib.
+        For example, in
+        ```
+        a = iquib(4)
+        ```
+        "iquib(4)" would be the functional representation
+        """
+        return str(self.get_functional_representation_expression())
+
+    def ugly_repr(self):
+        return f"<{self.__class__.__name__} - {self.func}"
+
+    def pretty_repr(self):
+        """
+        Returns a pretty representation of the quib. Might calculate values of parent quibs.
+        """
+        return f"{self.name} = {self.functional_representation}" \
+            if self.name is not None else self.functional_representation
+
+    def __repr__(self):
+        return str(self)
+
+    def __str__(self):
+        return self.pretty_repr() if PRETTY_REPR else self.ugly_repr()

@@ -2,9 +2,10 @@ from unittest import mock
 from unittest.mock import Mock
 
 from pyquibbler import iquib
-from pyquibbler.quib import GraphicsFunctionQuib
-from pyquibbler.quib.graphics import redraw_axeses
-from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
+from pyquibbler.function_definitions import add_definition_for_function
+from pyquibbler.function_definitions.func_definition import create_func_definition
+from pyquibbler.quib.factory import create_quib
+from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode, redraw_axeses
 
 
 def test_redraw_axes_happy_flow(mock_axes):
@@ -16,14 +17,19 @@ def test_redraw_axes_happy_flow(mock_axes):
 def test_redraw_in_aggregate_mode():
     mock_func = mock.Mock()
     quib = iquib(1)
-    _ = GraphicsFunctionQuib.create(func=mock_func, func_args=(quib,))
+    add_definition_for_function(func=mock_func, function_definition=create_func_definition(
+        replace_previous_quibs_on_artists=True,
+        is_known_graphics_func=True,
+    ))
+    _ = create_quib(func=mock_func, args=(quib,))
+    assert mock_func.call_count == 0, "sanity"
 
     with aggregate_redraw_mode():
         quib.invalidate_and_redraw_at_path([])
         quib.invalidate_and_redraw_at_path([])
         quib.invalidate_and_redraw_at_path([])
 
-    assert mock_func.call_count == 2
+    assert mock_func.call_count == 1
 
 
 def test_redraw_axeses_does_not_redraw_same_canvas_twice():

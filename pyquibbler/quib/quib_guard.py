@@ -32,7 +32,7 @@ class QuibGuard:
         self._QUIB_GUARDS.append(self)
         return self
 
-    def guard_get_value(self, quib):
+    def raise_if_not_allowed_access_to_quib(self, quib):
         if quib not in self._quibs_allowed:
             raise CannotAccessQuibInScopeException(quib)
 
@@ -56,6 +56,6 @@ def add_new_quib_to_guard_if_exists(quib: Quib):
         QuibGuard.get_current_quib_guard().add_allowed_quib(quib)
 
 
-def guard_get_value(quib: Quib):
+def guard_raise_if_not_allowed_access_to_quib(quib: Quib):
     if QuibGuard.is_within_quib_guard():
-        QuibGuard.get_current_quib_guard().guard_get_value(quib)
+        QuibGuard.get_current_quib_guard().raise_if_not_allowed_access_to_quib(quib)

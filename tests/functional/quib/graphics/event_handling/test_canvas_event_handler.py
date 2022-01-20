@@ -2,11 +2,12 @@ from unittest import mock
 
 import pytest
 
-from pyquibbler.quib.graphics import CanvasEventHandler
-from pyquibbler.quib.graphics.event_handling import graphics_inverse_assigner
+from pyquibbler.quib.graphics.event_handling import graphics_inverse_assigner, CanvasEventHandler
 
 
 def test_canvas_event_handler_create_happy_flow():
+    from pyquibbler.quib.graphics.event_handling.canvas_event_handler import CanvasEventHandler
+
     canvas = mock.Mock()
 
     handler = CanvasEventHandler.get_or_create_initialized_event_handler(canvas=canvas)
