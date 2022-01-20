@@ -696,7 +696,7 @@ class Quib:
         """
         Returns a list of quibs that this quib depends on.
         """
-        return set(iter_quibs_in_args(self.args, self.kwargs))
+        return set(self._quib_function_call.get_objects_of_type_in_args_kwargs(Quib))
 
     @cached_property
     def ancestors(self) -> Set[Quib]:
