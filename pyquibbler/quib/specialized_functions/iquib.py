@@ -56,6 +56,9 @@ def iquib(value: Any):
 
 
 class IQuibForwardsPathTranslator(ForwardsPathTranslator):
+
+    SHOULD_ATTEMPT_WITHOUT_SHAPE_AND_TYPE = True
+
     def _forward_translate_source(self, source: Source, path: Path) -> List[Path]:
         return [path]
 

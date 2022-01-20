@@ -24,12 +24,16 @@ def proxy(quib_value: Any):
 
 class ProxyForwardsPathTranslator(ForwardsPathTranslator):
 
+    SHOULD_ATTEMPT_WITHOUT_SHAPE_AND_TYPE = True
+
     def _forward_translate_source(self, source: Source, path: Path) -> List[Path]:
         # We never invalidate as a proxy
         return []
 
 
 class ProxyBackwardsPathTranslator(BackwardsPathTranslator):
+
+    SHOULD_ATTEMPT_WITHOUT_SHAPE_AND_TYPE = True
 
     def translate_in_order(self) -> Dict[Source, Path]:
         return {
