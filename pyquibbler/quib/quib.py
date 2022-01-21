@@ -16,7 +16,7 @@ import numpy as np
 from matplotlib.artist import Artist
 
 
-from pyquibbler.env import LEN_RAISE_EXCEPTION, PRETTY_REPR
+from pyquibbler.env import LEN_RAISE_EXCEPTION, PRETTY_REPR, REPR_RETURNS_SHORT_NAME
 from pyquibbler.graphics import is_within_drag
 from pyquibbler.quib.quib_guard import guard_raise_if_not_allowed_access_to_quib, \
     CannotAccessQuibInScopeException
@@ -808,6 +808,9 @@ class Quib:
         """
         return str(self.get_functional_representation_expression())
 
+    def get_name_or_functional_representation_expression(self) -> Union[MathExpression, str]:
+        return self.name if self.name is not None else self.get_functional_representation_expression()
+
     def ugly_repr(self):
         return f"<{self.__class__.__name__} - {self.func}"
 
@@ -822,4 +825,9 @@ class Quib:
         return str(self)
 
     def __str__(self):
-        return self.pretty_repr() if PRETTY_REPR else self.ugly_repr()
+        if PRETTY_REPR:
+            if REPR_RETURNS_SHORT_NAME:
+                return str(self.get_name_or_functional_representation_expression())
+            return self.pretty_repr()
+        return self.ugly_repr()
+
