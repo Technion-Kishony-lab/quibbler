@@ -6,7 +6,7 @@ from pyquibbler.assignment import Assignment
 from pyquibbler.translation.types import Inversal
 from pyquibbler.path.path_component import PathComponent
 from pyquibbler.path.utils import working_component
-from pyquibbler.utilities.general_utils import create_empty_array_with_values_at_indices
+from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices
 from pyquibbler.translation.translate import backwards_translate, forwards_translate
 
 
@@ -26,12 +26,7 @@ class TranspositionalInverter(Inverter):
             type_=type(self._previous_result)
         )
 
-        boolean_mask = create_empty_array_with_values_at_indices(
-            indices=working_component(self._assignment.path),
-            shape=np.shape(self._previous_result),
-            value=True,
-            empty_value=False
-        )
+        boolean_mask = create_bool_mask_with_true_at_indices(np.shape(self._previous_result), working_component(self._assignment.path))
         assert all(len(paths) == 1 for paths in sources_to_paths_in_result.values())
 
         sources_to_paths_in_result = {

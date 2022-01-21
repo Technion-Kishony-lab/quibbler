@@ -7,7 +7,7 @@ import numpy as np
 from pyquibbler.function_definitions.func_call import FuncCall
 from pyquibbler.path import PathComponent
 from pyquibbler.translation.numpy_translator import NumpyForwardsPathTranslator, NumpyBackwardsPathTranslator
-from pyquibbler.utilities.general_utils import create_empty_array_with_values_at_indices
+from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices
 from pyquibbler.translation.types import Source
 
 
@@ -42,10 +42,7 @@ class AxiswiseBackwardsPathTranslator(NumpyBackwardsPathTranslator):
         pass
 
     def _backwards_translate_indices_to_bool_mask(self, source: Source) -> Any:
-        result_bool_mask = create_empty_array_with_values_at_indices(self._shape,
-                                                                     indices=self._working_component,
-                                                                     value=True,
-                                                                     empty_value=False)
+        result_bool_mask = create_bool_mask_with_true_at_indices(self._shape, self._working_component)
         args_dict = _get_translation_related_arg_dict(self._func_call, self.TRANSLATION_RELATED_ARGS)
         return self._backwards_translate_bool_mask(args_dict, source, result_bool_mask)
 
@@ -66,8 +63,6 @@ class AxiswiseForwardsPathTranslator(NumpyForwardsPathTranslator):
         pass
 
     def _forward_translate_indices_to_bool_mask(self, source: Source, indices: Any):
-        source_bool_mask = create_empty_array_with_values_at_indices(np.shape(source.value),
-                                                                     indices=indices,
-                                                                     value=True, empty_value=False)
+        source_bool_mask = create_bool_mask_with_true_at_indices(np.shape(source.value), indices)
         args_dict = _get_translation_related_arg_dict(self._func_call, self.TRANSLATION_RELATED_ARGS)
         return self._forward_translate_bool_mask(args_dict, source_bool_mask, source)

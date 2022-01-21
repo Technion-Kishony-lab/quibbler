@@ -3,7 +3,7 @@ from typing import Dict, Any, Set, TYPE_CHECKING, Optional, Tuple, Type, List
 
 import numpy as np
 
-from pyquibbler.utilities.general_utils import create_empty_array_with_values_at_indices, unbroadcast_bool_mask
+from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices, unbroadcast_bool_mask
 from pyquibbler.path import PathComponent
 from pyquibbler.path.path_component import Path
 from pyquibbler.quib.func_calling.func_calls.vectorize.utils import iter_arg_ids_and_values, get_core_axes
@@ -38,8 +38,7 @@ class VectorizeBackwardsPathTranslator(BackwardsPathTranslator):
         vectorize_metadata = self._vectorize_metadata
         quib_arg_id = _get_arg_ids_for_source(source, self._func_call.args, self._func_call.kwargs).pop()
         quib_loop_shape = vectorize_metadata.args_metadata[quib_arg_id].loop_shape
-        result_bool_mask = create_empty_array_with_values_at_indices(self._shape, indices=indices, value=True,
-                                                                     empty_value=False)
+        result_bool_mask = create_bool_mask_with_true_at_indices(self._shape, indices)
         result_core_axes = vectorize_metadata.result_core_axes
         # Reduce result core dimensions
         reduced_bool_mask = np.any(result_bool_mask, axis=result_core_axes)
@@ -68,12 +67,7 @@ class VectorizeForwardsPathTranslator(ForwardsPathTranslator):
         self._vectorize_metadata = vectorize_metadata
 
     def _forward_translate_indices_to_bool_mask(self, source: Source, indices: Any):
-        source_bool_mask = create_empty_array_with_values_at_indices(
-            value=True,
-            empty_value=False,
-            indices=indices,
-            shape=np.shape(source.value)
-        )
+        source_bool_mask = create_bool_mask_with_true_at_indices(np.shape(source.value), indices)
         core_ndim = max(self._vectorize_metadata.args_metadata[arg_id].core_ndim
                         for arg_id in _get_arg_ids_for_source(source, self._func_call.args, self._func_call.kwargs))
         source_bool_mask = np.any(source_bool_mask, axis=get_core_axes(core_ndim))

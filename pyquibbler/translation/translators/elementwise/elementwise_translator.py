@@ -4,7 +4,7 @@ import numpy as np
 
 from pyquibbler.path.path_component import PathComponent
 from pyquibbler.translation.numpy_translator import NumpyBackwardsPathTranslator
-from pyquibbler.utilities.general_utils import create_empty_array_with_values_at_indices, unbroadcast_bool_mask
+from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices, unbroadcast_bool_mask
 from pyquibbler.translation.numpy_translator import NumpyForwardsPathTranslator
 from pyquibbler.translation.types import Source
 
@@ -20,9 +20,7 @@ class BackwardsElementwisePathTranslator(NumpyBackwardsPathTranslator):
         and broadcast it's index grid to the shape of the result, so we can see the corresponding quib indices for the
         result indices
         """
-        result_bool_mask = create_empty_array_with_values_at_indices(self._shape,
-                                                                     indices=self._working_component, value=True,
-                                                                     empty_value=False)
+        result_bool_mask = create_bool_mask_with_true_at_indices(self._shape, self._working_component)
 
         return unbroadcast_bool_mask(result_bool_mask, np.shape(source.value))
 
@@ -52,11 +50,6 @@ class ForwardsElementwisePathTranslator(NumpyForwardsPathTranslator):
          [True, False, False],
          [True, False, False]]
                 """
-        bool_mask = create_empty_array_with_values_at_indices(
-            value=True,
-            empty_value=False,
-            indices=indices,
-            shape=np.shape(source.value)
-        )
+        bool_mask = create_bool_mask_with_true_at_indices(np.shape(source.value), indices)
 
         return np.broadcast_to(bool_mask, self._shape)

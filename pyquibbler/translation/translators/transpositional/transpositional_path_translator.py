@@ -10,7 +10,7 @@ from pyquibbler.translation.translators.transpositional.utils import get_data_so
 from pyquibbler.translation.types import Source
 from pyquibbler.path.path_component import Path, PathComponent
 from pyquibbler.path.utils import working_component
-from pyquibbler.utilities.general_utils import create_empty_array_with_values_at_indices
+from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices
 
 
 class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
@@ -77,12 +77,7 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
         Get a mapping of quibs to the quib's indices that were referenced in `self._indices` (ie after inversion of the
         indices relevant to the particular quib)
         """
-        relevant_indices_mask = create_empty_array_with_values_at_indices(
-            indices=self._working_component,
-            shape=self._shape,
-            value=True,
-            empty_value=False
-        )
+        relevant_indices_mask = create_bool_mask_with_true_at_indices(self._shape, self._working_component)
         data_sources = self._func_call.get_data_sources()
         max_shape_length = max([np.ndim(data_source_argument.value)
                                 for data_source_argument in data_sources]) if len(data_sources) > 0 else 0

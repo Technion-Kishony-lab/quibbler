@@ -8,7 +8,7 @@ from pyquibbler.path import Path
 from pyquibbler.quib.external_call_failed_exception_handling import \
     external_call_failed_exception_handling
 from pyquibbler.quib.specialized_functions.proxy import create_proxy
-from pyquibbler.utilities.general_utils import create_empty_array_with_values_at_indices
+from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices
 from pyquibbler.function_definitions.func_call import ArgsValues
 from pyquibbler.graphics.utils import remove_created_graphics
 from pyquibbler.quib.func_calling import QuibFuncCall
@@ -144,8 +144,7 @@ class ApplyAlongAxisQuibFuncCall(QuibFuncCall):
         args_values = ArgsValues.from_func_args_kwargs(func=self.func, args=self.args, kwargs=self.kwargs,
                                                        include_defaults=False)
         args_by_name = args_values.arg_values_by_name
-        bool_mask = create_empty_array_with_values_at_indices(self.get_shape(), indices=indices, value=True,
-                                                              empty_value=False)
+        bool_mask = create_bool_mask_with_true_at_indices(self.get_shape(), indices)
         for ii in ndindex(ni):
             for kk in ndindex(nk):
                 out[ii + s_[(...,)] + kk] = self._get_result_at_indices(bool_mask,
