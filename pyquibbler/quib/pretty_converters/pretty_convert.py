@@ -4,10 +4,9 @@ from typing import Tuple, Any, Mapping
 
 import numpy as np
 
-from pyquibbler.utilities.iterators import recursively_run_func_on_object
 from pyquibbler.quib.pretty_converters.convert_math_equations import MATH_FUNCS_TO_CONVERTERS, \
     MathExpression
-
+from pyquibbler.env import REPR_RETURNS_SHORT_NAME
 
 def _convert_slice(slice_: slice):
     pretty = ':'
@@ -67,10 +66,8 @@ def call_converter(func, pretty_arg_names: List[str]):
 
 
 def get_pretty_args_and_kwargs(args: Tuple[Any, ...], kwargs: Mapping[str, Any]):
-    pretty_args = [recursively_run_func_on_object(replace_arg_with_pretty_repr, arg,
-                                                  iterable_func=_convert_iterable,
-                                                  slice_func=_convert_slice) for arg in args]
-    pretty_kwargs = [f'{key}={replace_arg_with_pretty_repr(val)}' for key, val in kwargs.items()]
+    pretty_args = [repr(arg) for arg in args]
+    pretty_kwargs = [f'{key}={repr(val)}' for key, val in kwargs.items()]
 
     return pretty_args, pretty_kwargs
 
@@ -82,15 +79,17 @@ def get_pretty_value_of_func_with_args_and_kwargs(func: Callable,
     Get the pretty value of a function, using a special converter if possible (eg for math notation) and defaulting
     to a standard func(xxx) if not
     """
-    pretty_args, pretty_kwargs = get_pretty_args_and_kwargs(args, kwargs)
-    # For now, no ability to special convert if kwargs exist
-    if not pretty_kwargs and func in CONVERTERS:
-        pretty_value = CONVERTERS[func](func, pretty_args)
-    else:
-        func_name = getattr(func, '__name__', str(func))
-        pretty_value = f'{func_name}({", ".join(map(str, [*pretty_args, *pretty_kwargs]))})'
 
-    return pretty_value
+    with REPR_RETURNS_SHORT_NAME.temporary_set(True):
+        # For now, no ability to special convert if kwargs exist
+        if not kwargs and func in CONVERTERS:
+            pretty_value = CONVERTERS[func](func, args)
+        else:
+            func_name = getattr(func, '__name__', str(func))
+            pretty_args, pretty_kwargs = get_pretty_args_and_kwargs(args, kwargs)
+            pretty_value = f'{func_name}({", ".join(map(str, [*pretty_args, *pretty_kwargs]))})'
+
+        return pretty_value
 
 
 CONVERTERS = {
