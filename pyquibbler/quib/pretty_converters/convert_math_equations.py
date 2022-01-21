@@ -1,109 +1,164 @@
 import enum
 import operator
 from dataclasses import dataclass
-from typing import List, Callable, Union
+from typing import Callable, Tuple, Any
+from abc import ABC, abstractmethod
 
 import numpy as np
 
-CONVERT_FUNCTIONS_TO_MATH_EXPRESSIONS = True
+
+@dataclass
+class OperatorDefintion():
+    symbol: str
+    precedence: int
+    commutative: bool = True
+
+    def __str__(self):
+        return self.symbol
 
 
 class Operator(enum.Enum):
-    LT = ('<', 0)
-    GT = ('>', 0)
-    LE = ('<=', 0)
-    GE = ('>=', 0)
-    EQ = ('==', 0)
-    NE = ('!=', 0)
-    OR = ('|', 1)
-    XOR = ('^', 1)
-    AND = ('&', 2)
-    NOT = ('~', 3)
-    ADD = ('+', 4)
-    SUB = ('-', 4)
-    MUL = ('*', 5)
-    MATMUL = ('@', 5)
-    DIV = ('/', 5)
-    FLRDIV = ('//', 5)
-    MOD = ('%', 5)
-    NEG = ('-', 6)
-    POS = ('+', 6)
-    PWR = ('**', 7)
+    LT = OperatorDefintion('<', 0)
+    GT = OperatorDefintion('>', 0)
+    LE = OperatorDefintion('<=', 0)
+    GE = OperatorDefintion('>=', 0)
+    EQ = OperatorDefintion('==', 0)
+    NE = OperatorDefintion('!=', 0)
+    OR = OperatorDefintion('|', 1)
+    XOR = OperatorDefintion('^', 1)
+    AND = OperatorDefintion('&', 2)
+    NOT = OperatorDefintion('~', 3)
+    ADD = OperatorDefintion('+', 4)
+    SUB = OperatorDefintion('-', 4, False)
+    MUL = OperatorDefintion('*', 5)
+    MATMUL = OperatorDefintion('@', 5)
+    DIV = OperatorDefintion('/', 5, False)
+    FLRDIV = OperatorDefintion('//', 5, False)
+    MOD = OperatorDefintion('%', 5, False)
+    NEG = OperatorDefintion('-', 6)
+    POS = OperatorDefintion('+', 6)
+    PWR = OperatorDefintion('**', 7)
+
+
+TOP_PRECEDENCE = 100
+
+
+class MathExpression(ABC):
+    @abstractmethod
+    def __str__(self):
+        pass
+
+    @property
+    @abstractmethod
+    def precedence(self) -> int:
+        pass
+
+    def get_str(self, add_parentheses : bool = False):
+        return '(' + str(self) + ')' if add_parentheses \
+            else str(self)
+
+
+class TopPrecedenceMathExpression(MathExpression, ABC):
+
+    @property
+    def precedence(self) -> int:
+        return TOP_PRECEDENCE
 
 
 @dataclass
-class MathExpression:
-    operator: Operator
-    left_side: Union['MathExpression', 'Quib', str, type(None)] = None
-    right_side: Union['MathExpression', 'Quib', str, type(None)] = None
-
-    @property
-    def order(self):
-        return self.operator.value[1]
-
-    @property
-    def symbol(self):
-        return self.operator.value[0]
-
-    def __eq__(self, other):
-        return isinstance(self, MathExpression) and isinstance(other, MathExpression) \
-               and self.operator == other.operator
+class StringMathExpression(TopPrecedenceMathExpression):
+    label: str
 
     def __str__(self):
-        left_side = self.left_side
-        left_side = left_side.get_name_or_functional_representation_expression() \
-            if hasattr(left_side, 'get_name_or_functional_representation_expression') \
-            else left_side
-        right_side = self.right_side
-        right_side = right_side.get_name_or_functional_representation_expression() \
-            if hasattr(right_side, 'get_name_or_functional_representation_expression') \
-            else right_side
-        if isinstance(left_side, MathExpression) and (
-                left_side.order < self.order
-                # in equality operations, need parenthesis even when same order:
-                # "(a < b) < c" is not "a < b < c"
-                or (left_side.order == 0 and self.order == 0)
-        ):
-            left_side = f"({left_side})"
-
-        if isinstance(right_side, MathExpression) and (
-                right_side.order < self.order
-                # in equality operations, need parenthesis even when same order:
-                # "a < (b < c)" is not "a < b < c"
-                or (right_side.order == 0 and self.order == 0)
-                # in subtract and divide order matters- this means the right side must be paranthesized if it's a
-                # different symbol
-                or (self.operator in {Operator.SUB, Operator.DIV, Operator.FLRDIV, Operator.MOD} and
-                    right_side.order == self.order)
-        ):
-            right_side = f"({right_side})"
-
-        if left_side is not None and right_side is not None:
-            return f"{left_side} {self.symbol} {right_side}"
-        elif right_side is not None:
-            return f"{self.symbol}{right_side}"
-        elif left_side is not None:
-            return f"{left_side}{self.symbol}"
-        else:
-            assert False
+        return self.label
 
 
-def convert_binary_func_to_mathematical_notation(func: Callable,
-                                                 args: List[Union[MathExpression, str]]) -> MathExpression:
+class FailedMathExpression(StringMathExpression):
+    def __init__(self):
+        self.label = "[exception during repr]"
+
+
+@dataclass
+class ValueMathExpression(TopPrecedenceMathExpression):
+    value: Any
+
+    def __str__(self):
+        return repr(self.value)
+
+
+def object_to_math_expression(obj: Any):
+    return obj.get_math_expression() if hasattr(obj, 'get_math_expression') \
+            else ValueMathExpression(obj)
+
+
+@dataclass
+class OperatorExpression(MathExpression, ABC):
+    operator: Operator
+
+    @property
+    def precedence(self) -> int:
+        return self.operator.value.precedence
+
+    @property
+    def symbol(self) -> str:
+        return self.operator.value.symbol
+
+    @property
+    def commutative(self) -> bool:
+        return self.operator.value.commutative
+
+    def __eq__(self, other):
+        return isinstance(other, OperatorExpression) and self.operator == other.operator
+
+
+@dataclass
+class BinaryOperatorExpression(OperatorExpression):
+    left_side: Any = None
+    right_side: Any = None
+
+    def __str__(self):
+        left_side = object_to_math_expression(self.left_side)
+        left_side = left_side.get_str(left_side.precedence < self.precedence or
+                                      left_side.precedence == 0 and self.precedence == 0)
+        right_side = object_to_math_expression(self.right_side)
+        right_side = right_side.get_str(
+                right_side.precedence < self.precedence
+                or (right_side.precedence == 0 and self.precedence == 0)
+                or not self.commutative and right_side.precedence == self.precedence)
+
+        return f"{left_side} {self.symbol} {right_side}"
+
+
+@dataclass
+class UnaryOperatorExpression(OperatorExpression):
+    right_side: Any = None
+
+    def __str__(self):
+        right_side = object_to_math_expression(self.right_side)
+        right_side = right_side.get_str(
+                right_side.precedence < self.precedence
+                or (right_side.precedence == 0 and self.precedence == 0)
+                or not self.commutative and right_side.precedence == self.precedence)
+
+        return f"{self.symbol}{right_side}"
+
+
+def convert_binary_func_to_mathematical_expression(func: Callable,
+                                                   args: Tuple[Any, ...]) -> MathExpression:
     """
     Convert the binary func and pretty args to mathematical notation
     """
     operator = BINARY_FUNCS_TO_OPERATORS[func]
-    return MathExpression(operator=operator, left_side=args[0], right_side=args[1])
+    return BinaryOperatorExpression(operator=operator, left_side=args[0], right_side=args[1])
 
 
-def convert_unary_right_func_to_mathematical_notation(func: Callable,
-                                                      args: List[Union[MathExpression, str]]) -> MathExpression:
+def convert_unary_right_func_to_mathematical_expression(func: Callable,
+                                                        args: Tuple[Any, ...]) -> MathExpression:
     """
     Convert the unary func and pretty arg to mathematical notation
     """
     operator = UNARY_RIGHT_FUNCS_TO_OPERATORS[func]
-    return MathExpression(operator=operator, right_side=args[0])
+    return UnaryOperatorExpression(operator=operator, right_side=args[0])
 
 
 UNARY_RIGHT_FUNCS_TO_OPERATORS = {
@@ -170,16 +225,13 @@ BINARY_FUNCS_TO_OPERATORS = {
     np.power: Operator.PWR
 }
 
-if CONVERT_FUNCTIONS_TO_MATH_EXPRESSIONS:
-    MATH_FUNCS_TO_CONVERTERS = {
-        **{
-            func: convert_binary_func_to_mathematical_notation
-            for func in BINARY_FUNCS_TO_OPERATORS.keys()
-        },
-        **{
-            func: convert_unary_right_func_to_mathematical_notation
-            for func in UNARY_RIGHT_FUNCS_TO_OPERATORS.keys()
-        },
-    }
-else:
-    MATH_FUNCS_TO_CONVERTERS = {}
+OPERATOR_FUNCS_TO_MATH_CONVERTERS = {
+    **{
+        func: convert_binary_func_to_mathematical_expression
+        for func in BINARY_FUNCS_TO_OPERATORS.keys()
+    },
+    **{
+        func: convert_unary_right_func_to_mathematical_expression
+        for func in UNARY_RIGHT_FUNCS_TO_OPERATORS.keys()
+    },
+}

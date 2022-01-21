@@ -20,7 +20,7 @@ from pyquibbler.env import LEN_RAISE_EXCEPTION, PRETTY_REPR, REPR_RETURNS_SHORT_
 from pyquibbler.graphics import is_within_drag
 from pyquibbler.quib.quib_guard import guard_raise_if_not_allowed_access_to_quib, \
     CannotAccessQuibInScopeException
-from pyquibbler.quib.pretty_converters import MathExpression, pretty_convert
+from pyquibbler.quib.pretty_converters import MathExpression, FailedMathExpression, StringMathExpression, pretty_convert
 from pyquibbler.quib.utils.miscellaneous import get_user_friendly_name_for_requested_valid_path
 from pyquibbler.translation.types import Source
 from pyquibbler.utilities.input_validation_utils import validate_user_input
@@ -789,12 +789,12 @@ class Quib:
     Repr
     """
 
-    def get_functional_representation_expression(self) -> Union[MathExpression, str]:
+    def get_functional_representation_expression(self) -> MathExpression:
         try:
             return pretty_convert.get_pretty_value_of_func_with_args_and_kwargs(self.func, self.args, self.kwargs)
         except Exception as e:
             logger.warning(f"Failed to get repr {e}")
-            return "[exception during repr]"
+            return FailedMathExpression()
 
     @property
     def functional_representation(self) -> str:
@@ -808,8 +808,9 @@ class Quib:
         """
         return str(self.get_functional_representation_expression())
 
-    def get_name_or_functional_representation_expression(self) -> Union[MathExpression, str]:
-        return self.name if self.name is not None else self.get_functional_representation_expression()
+    def get_math_expression(self) -> MathExpression:
+        return StringMathExpression(self.name) if self.name is not None \
+            else self.get_functional_representation_expression()
 
     def ugly_repr(self):
         return f"<{self.__class__.__name__} - {self.func}"
@@ -827,7 +828,7 @@ class Quib:
     def __str__(self):
         if PRETTY_REPR:
             if REPR_RETURNS_SHORT_NAME:
-                return str(self.get_name_or_functional_representation_expression())
+                return str(self.get_math_expression())
             return self.pretty_repr()
         return self.ugly_repr()
 

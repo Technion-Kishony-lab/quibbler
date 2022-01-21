@@ -4,8 +4,8 @@ from typing import Tuple, Any, Mapping
 
 import numpy as np
 
-from pyquibbler.quib.pretty_converters.convert_math_equations import MATH_FUNCS_TO_CONVERTERS, \
-    MathExpression
+from pyquibbler.quib.pretty_converters.convert_math_equations import OPERATOR_FUNCS_TO_MATH_CONVERTERS, \
+    MathExpression, StringMathExpression
 from pyquibbler.env import REPR_RETURNS_SHORT_NAME
 
 
@@ -16,7 +16,8 @@ def _convert_sub_item(sub_item: Any) -> str:
         return '...'
     return repr(sub_item)
 
-def _convert_slice(slice_: slice):
+
+def _convert_slice(slice_: slice) -> str:
     pretty = ':'
     if slice_.start is not None:
         pretty = f"{slice_.start}{pretty}"
@@ -27,19 +28,28 @@ def _convert_slice(slice_: slice):
     return pretty
 
 
-def getitem_converter(func, args: List[str]):
+def getitem_converter(func: Callable, args: Tuple[Any, ...]) -> MathExpression:
+
     assert len(args) == 2
     obj, item = args
     if isinstance(item, tuple):
         item = ", ".join(_convert_sub_item(sub_item) for sub_item in item)
     else:
         item = _convert_sub_item(item)
-    return f"{obj}[{item}]"
+    return StringMathExpression(f"{obj}[{item}]")
 
 
-def call_converter(func, pretty_arg_names: List[str]):
+def vectorize_call_converter(func: Callable, pretty_arg_names: List[str]) -> MathExpression:
     func_being_called, *args = pretty_arg_names
-    return f"{func_being_called}({', '.join(repr(arg) for arg in args)})"
+    return StringMathExpression(f"{func_being_called}({', '.join(repr(arg) for arg in args)})")
+
+
+def function_call_converter(func: Callable,
+                            args: Tuple[Any, ...],
+                            kwargs: Mapping[str, Any]) -> MathExpression:
+    func_name = getattr(func, '__name__', str(func))
+    pretty_args, pretty_kwargs = get_pretty_args_and_kwargs(args, kwargs)
+    return StringMathExpression(f'{func_name}({", ".join(map(str, [*pretty_args, *pretty_kwargs]))})')
 
 
 def get_pretty_args_and_kwargs(args: Tuple[Any, ...], kwargs: Mapping[str, Any]):
@@ -51,7 +61,7 @@ def get_pretty_args_and_kwargs(args: Tuple[Any, ...], kwargs: Mapping[str, Any])
 
 def get_pretty_value_of_func_with_args_and_kwargs(func: Callable,
                                                   args: Tuple[Any, ...],
-                                                  kwargs: Mapping[str, Any]) -> Union[MathExpression, str]:
+                                                  kwargs: Mapping[str, Any]) -> MathExpression:
     """
     Get the pretty value of a function, using a special converter if possible (eg for math notation) and defaulting
     to a standard func(xxx) if not
@@ -62,15 +72,13 @@ def get_pretty_value_of_func_with_args_and_kwargs(func: Callable,
         if not kwargs and func in CONVERTERS:
             pretty_value = CONVERTERS[func](func, args)
         else:
-            func_name = getattr(func, '__name__', str(func))
-            pretty_args, pretty_kwargs = get_pretty_args_and_kwargs(args, kwargs)
-            pretty_value = f'{func_name}({", ".join(map(str, [*pretty_args, *pretty_kwargs]))})'
+            pretty_value = function_call_converter(func, args, kwargs)
 
         return pretty_value
 
 
 CONVERTERS = {
-    **MATH_FUNCS_TO_CONVERTERS,
+    **OPERATOR_FUNCS_TO_MATH_CONVERTERS,
     operator.getitem: getitem_converter,
-    np.vectorize.__call__: call_converter
+    np.vectorize.__call__: vectorize_call_converter
 }
