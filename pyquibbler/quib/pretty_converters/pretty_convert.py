@@ -27,42 +27,6 @@ def _convert_slice(slice_: slice):
     return pretty
 
 
-ITERABLE_TYPES_TO_PARENTHESES_STR = {
-    list: '[]',
-    set: '{}',
-    tuple: '()'
-}
-
-
-def _convert_iterable(itr):
-    iterable_rep = ITERABLE_TYPES_TO_PARENTHESES_STR[type(itr)]
-    return f"{iterable_rep[0]}{', '.join(itr)}{iterable_rep[1]}"
-
-
-ITEMS_TO_CONVERTERS = {
-    slice: _convert_slice,
-    type(...): lambda *_: '...',
-    type(None): lambda *_: None
-}
-
-
-def replace_arg_with_pretty_repr(val: Any):
-    """
-    Replace an argument with a pretty representation- note that this does NOT mean actually calling .pretty_repr(), as
-    we don't want to get a full pretty repr (x = pasten), but just a name, and if not then a pretty value
-
-    If it's not a quib, just return it's repr
-    """
-    from pyquibbler.quib.quib import Quib
-    if not isinstance(val, Quib):
-        converter = ITEMS_TO_CONVERTERS.get(type(val), repr)
-        return converter(val)
-
-    if val.name is not None:
-        return val.name
-    return val.get_functional_representation_expression()
-
-
 def getitem_converter(func, args: List[str]):
     assert len(args) == 2
     obj, item = args
