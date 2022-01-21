@@ -121,12 +121,19 @@ class Overrider:
         for assignment in self:
             path = assignment.path
             val = not isinstance(assignment, AssignmentRemoval)
-            if isinstance(path[-1].component, slice):
-                inner_data = deep_get(mask, path[:-1])
-                if not isinstance(inner_data, np.ndarray):
-                    from pyquibbler.utilities.iterators import recursively_run_func_on_object
-                    val = recursively_run_func_on_object(lambda x: val, inner_data)
-            mask = deep_assign_data_in_path(mask, path, val)
+            if path:
+                if isinstance(path[-1].component, slice):
+                    inner_data = deep_get(mask, path[:-1])
+                    if not isinstance(inner_data, np.ndarray):
+                        from pyquibbler.utilities.iterators import recursively_run_func_on_object
+                        val = recursively_run_func_on_object(lambda x: val, inner_data)
+                mask = deep_assign_data_in_path(mask, path, val)
+            else:
+                if val:
+                    mask = np.ones(np.shape(assignment.value), dtype=bool)
+                else:
+                    mask = false_mask
+
         return mask
 
     def get(self, path: List[PathComponent], default_value: bool = None) -> Assignment:
