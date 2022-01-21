@@ -49,3 +49,11 @@ def test_elementwise_on_scalar_quib_and_array():
     a = iquib(3)
     b = a + np.array([0, 1])
     b.get_value()
+
+
+def test_object_array():
+    a = iquib([1, 2])
+    b = np.array(['nothing here', a], dtype=object)
+
+    assert np.array_equal(b.get_value(), np.array(['nothing here', a.get_value()]))
+
