@@ -8,6 +8,14 @@ from pyquibbler.quib.pretty_converters.convert_math_equations import MATH_FUNCS_
     MathExpression
 from pyquibbler.env import REPR_RETURNS_SHORT_NAME
 
+
+def _convert_sub_item(sub_item: Any) -> str:
+    if isinstance(sub_item, slice):
+        return _convert_slice(sub_item)
+    if isinstance(sub_item, type(Ellipsis)):
+        return '...'
+    return repr(sub_item)
+
 def _convert_slice(slice_: slice):
     pretty = ':'
     if slice_.start is not None:
@@ -55,9 +63,14 @@ def replace_arg_with_pretty_repr(val: Any):
     return val.get_functional_representation_expression()
 
 
-def getitem_converter(func, pretty_arg_names: List[str]):
-    assert len(pretty_arg_names) == 2
-    return f"{pretty_arg_names[0]}[{pretty_arg_names[1]}]"
+def getitem_converter(func, args: List[str]):
+    assert len(args) == 2
+    obj, item = args
+    if isinstance(item, tuple):
+        item = ", ".join(_convert_sub_item(sub_item) for sub_item in item)
+    else:
+        item = _convert_sub_item(item)
+    return f"{obj}[{item}]"
 
 
 def call_converter(func, pretty_arg_names: List[str]):
