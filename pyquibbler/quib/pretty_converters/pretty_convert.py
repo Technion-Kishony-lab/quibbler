@@ -62,7 +62,7 @@ def getitem_converter(func, pretty_arg_names: List[str]):
 
 def call_converter(func, pretty_arg_names: List[str]):
     func_being_called, *args = pretty_arg_names
-    return f"{func_being_called}({', '.join(args)})"
+    return f"{func_being_called}({', '.join(repr(arg) for arg in args)})"
 
 
 def get_pretty_args_and_kwargs(args: Tuple[Any, ...], kwargs: Mapping[str, Any]):
