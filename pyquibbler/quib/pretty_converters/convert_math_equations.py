@@ -34,8 +34,8 @@ class Operator(enum.Enum):
 @dataclass
 class MathExpression:
     operator: Operator
-    left_side: Union['MathExpression', str, type(None)] = None
-    right_side: Union['MathExpression', str, type(None)] = None
+    left_side: Union['MathExpression', 'Quib', str, type(None)] = None
+    right_side: Union['MathExpression', 'Quib', str, type(None)] = None
 
     @property
     def order(self):
@@ -51,32 +51,38 @@ class MathExpression:
 
     def __str__(self):
         left_side = self.left_side
-        if isinstance(self.left_side, MathExpression) and (
-                self.left_side.order < self.order
+        left_side = left_side.get_name_or_functional_representation_expression() \
+            if hasattr(left_side, 'get_name_or_functional_representation_expression') \
+            else left_side
+        right_side = self.right_side
+        right_side = right_side.get_name_or_functional_representation_expression() \
+            if hasattr(right_side, 'get_name_or_functional_representation_expression') \
+            else right_side
+        if isinstance(left_side, MathExpression) and (
+                left_side.order < self.order
                 # in equality operations, need parenthesis even when same order:
                 # "(a < b) < c" is not "a < b < c"
-                or (self.left_side.order == 0 and self.order == 0)
+                or (left_side.order == 0 and self.order == 0)
         ):
             left_side = f"({left_side})"
 
-        right_side = self.right_side
-        if isinstance(self.right_side, MathExpression) and (
-                self.right_side.order < self.order
+        if isinstance(right_side, MathExpression) and (
+                right_side.order < self.order
                 # in equality operations, need parenthesis even when same order:
                 # "a < (b < c)" is not "a < b < c"
-                or (self.right_side.order == 0 and self.order == 0)
+                or (right_side.order == 0 and self.order == 0)
                 # in subtract and divide order matters- this means the right side must be paranthesized if it's a
                 # different symbol
                 or (self.operator in {Operator.SUB, Operator.DIV, Operator.FLRDIV, Operator.MOD} and
-                    self.right_side.order == self.order)
+                    right_side.order == self.order)
         ):
             right_side = f"({right_side})"
 
-        if left_side and right_side:
+        if left_side is not None and right_side is not None:
             return f"{left_side} {self.symbol} {right_side}"
-        elif right_side:
+        elif right_side is not None:
             return f"{self.symbol}{right_side}"
-        elif left_side:
+        elif left_side is not None:
             return f"{left_side}{self.symbol}"
         else:
             assert False
@@ -168,11 +174,11 @@ if CONVERT_FUNCTIONS_TO_MATH_EXPRESSIONS:
     MATH_FUNCS_TO_CONVERTERS = {
         **{
             func: convert_binary_func_to_mathematical_notation
-            for func, _ in BINARY_FUNCS_TO_OPERATORS.items()
+            for func in BINARY_FUNCS_TO_OPERATORS.keys()
         },
         **{
             func: convert_unary_right_func_to_mathematical_notation
-            for func, _ in UNARY_RIGHT_FUNCS_TO_OPERATORS.items()
+            for func in UNARY_RIGHT_FUNCS_TO_OPERATORS.keys()
         },
     }
 else:
