@@ -108,14 +108,20 @@ def recursively_run_func_on_object(func: Callable, obj: Any,
         # Recurse into composite objects
         next_max_depth = None if max_depth is None else max_depth - 1
 
-        if isinstance(obj, (tuple, list, set)):
-            if max_length is None or len(obj) <= max_length:
-                return type(obj)((recursively_run_func_on_object(func, sub_obj,
-                                                                 [*path, PathComponent(component=i,
-                                                                                       indexed_cls=type(obj))],
-                                                               next_max_depth,
-                                                               with_path=with_path)
-                                                for i, sub_obj in enumerate(obj)))
+        if isinstance(obj, (tuple, list, set)) and (max_length is None or len(obj) <= max_length):
+            return type(obj)((recursively_run_func_on_object(func, sub_obj,
+                                                             [*path, PathComponent(component=i,
+                                                                                   indexed_cls=type(obj))],
+                                                             next_max_depth,
+                                                             with_path=with_path)
+                              for i, sub_obj in enumerate(obj)))
+        elif isinstance(obj, dict) and (max_length is None or len(obj) <= max_length):
+            return type(obj)({key: recursively_run_func_on_object(func, sub_obj,
+                                                                  [*path, PathComponent(component=key,
+                                                                                        indexed_cls=type(obj))],
+                                                                  next_max_depth,
+                                                                  with_path=with_path)
+                              for key, sub_obj in obj.items()})
         elif isinstance(obj, slice):
             return slice(recursively_run_func_on_object(func, obj.start,
                                                        [*path, PathComponent(
