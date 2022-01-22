@@ -11,13 +11,7 @@ from pyquibbler.function_overriding.third_party_overriding.general_helpers impor
 from pyquibbler.quib import Quib
 from pyquibbler.translation.translators.elementwise.elementwise_translator import BackwardsElementwisePathTranslator, \
     ForwardsElementwisePathTranslator
-
-
-def get_reversed_func(func: Callable):
-    def _reversed(q, o):
-        return func(o, q)
-    _reversed.__name__ = f"{func.__name__}_reversed"
-    return _reversed
+from pyquibbler.utilities.operators_with_reverse import REVERSE_OPERATOR_NAMES_TO_FUNCS
 
 
 @dataclass
@@ -34,11 +28,8 @@ class OperatorOverride(FuncOverride):
     def _get_func_from_module_or_cls(self):
         if self.func_name in self.SPECIAL_FUNCS:
             return self.SPECIAL_FUNCS[self.func_name]
-
         if self.is_reversed:
-            regular_func_name = f'__{self.func_name[3:]}'
-            return get_reversed_func(getattr(operator, regular_func_name))
-
+            return REVERSE_OPERATOR_NAMES_TO_FUNCS[self.func_name]
         return getattr(operator, self.func_name)
 
 

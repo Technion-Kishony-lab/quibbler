@@ -70,11 +70,56 @@ def test_quib_pretty_repr_getitem_colon(statement):
 
 
 @pytest.mark.get_variable_names(True)
+def test_quib_pretty_repr_set():
+    a = iquib({0})
+
+    assert a.pretty_repr() == "a = iquib({0})"
+
+
+@pytest.mark.get_variable_names(True)
+def test_quib_pretty_repr_none():
+    a = iquib([None])
+
+    assert a.pretty_repr() == "a = iquib([None])"
+
+
+@pytest.mark.get_variable_names(True)
+def test_quib_pretty_repr_dict():
+    a = iquib(1)
+    b = q(str, {'data': a, 'num': 2, 1.0: 'b'})
+
+    assert b.pretty_repr() == "b = str({'data': a, 'num': 2, 1.0: 'b'})"
+
+
+@pytest.mark.get_variable_names(True)
+def test_quib_pretty_repr_slice_as_objet():
+    a = iquib(slice(0, 4, 1))
+
+    assert a.pretty_repr() == "a = iquib(slice(0, 4, 1))"
+
+
+@pytest.mark.get_variable_names(True)
+def test_quib_pretty_repr_kwargs():
+    a = iquib(1)
+    b = np.sum([[1]], axis=(0, a))
+
+    assert b.pretty_repr() == "b = sum([[1]], axis=(0, a))"
+
+
+@pytest.mark.get_variable_names(True)
 def test_quib_pretty_repr_getitem_ellipsis():
     a = iquib(np.array([1, 2, 3]))
     b = a[...]
 
     assert b.pretty_repr() == "b = a[...]"
+
+
+@pytest.mark.get_variable_names(True)
+def test_quib_pretty_repr_getitem_multiple_axes():
+    a = iquib(np.array([[1]]))
+    b = a[0, 0]
+
+    assert b.pretty_repr() == "b = a[0, 0]"
 
 
 @pytest.mark.get_variable_names(True)
