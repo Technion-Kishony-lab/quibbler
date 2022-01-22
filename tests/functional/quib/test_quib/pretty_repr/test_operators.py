@@ -52,7 +52,11 @@ def test_quib_pretty_repr_math_unary_operator():
     ("a | b & c", None),
     ("(a | b) & c", None),
     ("a | b | c", None),
-    ("a + None", None)
+    ("a + None", None),
+    ("a + 'hello'", None),
+    ("'hello' + a", None),
+    ("10 / a", None),
+    ("5 - (10 + a)", None),
 ])
 @pytest.mark.get_variable_names(True)
 def test_function_quib_pretty_repr_math_holds_pemdas(a, b, c, statement, expected):
