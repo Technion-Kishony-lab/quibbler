@@ -20,7 +20,8 @@ from pyquibbler.env import LEN_RAISE_EXCEPTION, PRETTY_REPR, REPR_RETURNS_SHORT_
 from pyquibbler.graphics import is_within_drag
 from pyquibbler.quib.quib_guard import guard_raise_if_not_allowed_access_to_quib, \
     CannotAccessQuibInScopeException
-from pyquibbler.quib.pretty_converters import MathExpression, FailedMathExpression, StringMathExpression, pretty_convert
+from pyquibbler.quib.pretty_converters import MathExpression, FailedMathExpression, \
+    StringMathExpression, NameMathExpression, pretty_convert
 from pyquibbler.quib.utils.miscellaneous import get_user_friendly_name_for_requested_valid_path
 from pyquibbler.translation.types import Source
 from pyquibbler.utilities.input_validation_utils import validate_user_input
@@ -574,7 +575,7 @@ class Quib:
         """
         Set the quib's name- this will override any name automatically created if it exists.
         """
-        if name is None or name.isidentifier():
+        if name is None or len(name) and name[0].isalpha() and all([c.isalnum() or c in ' _' for c in name]):
             self._name = name
         else:
             raise ValueError('name must be None or a valid alphanumeic python identifier')
@@ -809,7 +810,7 @@ class Quib:
         return str(self.get_functional_representation_expression())
 
     def get_math_expression(self) -> MathExpression:
-        return StringMathExpression(self.name) if self.name is not None \
+        return NameMathExpression(self.name) if self.name is not None \
             else self.get_functional_representation_expression()
 
     def ugly_repr(self):

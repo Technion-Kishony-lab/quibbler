@@ -8,10 +8,37 @@ from abc import ABC, abstractmethod
 import numpy as np
 
 
+SPACE = ' '
+
+
+class MathPrecedence(enum.IntEnum):
+    VAR_NAME = 20
+    PARENTHESIS = 19
+    FUNCTION_CALL = 18
+    SLICING = 17
+    SUBSCRIPTION = 16
+    ATTRIBUTE = 15
+    EXPONENTIATION = 14
+    BITWISE_NOT = 13
+    POSNEG = 12
+    MULDIV = 11
+    ADDSUB = 10
+    BITWISE_SHIFT = 9
+    BITWISE_AND = 8
+    BITWISE_XOR = 7
+    BITWISE_OR = 6
+    COMPARISON = 5
+    BOOL_NOT = 4
+    BOOL_AND = 3
+    BOOL_OR = 2
+    LAMBDA = 1
+    VAR_NAME_WITH_SPACES = 0
+
+
 @dataclass
 class OperatorDefintion():
     symbol: str
-    precedence: int
+    precedence: MathPrecedence
     commutative: bool = True
 
     def __str__(self):
@@ -19,39 +46,28 @@ class OperatorDefintion():
 
 
 class Operator(enum.Enum):
-    POW = OperatorDefintion('**', 8)
-
-    NEG = OperatorDefintion('-', 7)
-    POS = OperatorDefintion('+', 7)
-    NOT = OperatorDefintion('~', 7)
-
-    MUL = OperatorDefintion('*', 6)
-    MATMUL = OperatorDefintion('@', 6)
-    TRUEDIV = OperatorDefintion('/', 6, False)
-    FLOORDIV = OperatorDefintion('//', 6, False)
-    MOD = OperatorDefintion('%', 6, False)
-
-    ADD = OperatorDefintion('+', 5)
-    SUB = OperatorDefintion('-', 5, False)
-
-    LSHIFT = OperatorDefintion('<<', 4)
-    RSHIFT = OperatorDefintion('>>', 4)
-
-    AND = OperatorDefintion('&', 3)
-
-    XOR = OperatorDefintion('^', 2)
-
-    OR = OperatorDefintion('|', 1)
-
-    LT = OperatorDefintion('<', 0)
-    GT = OperatorDefintion('>', 0)
-    LE = OperatorDefintion('<=', 0)
-    GE = OperatorDefintion('>=', 0)
-    EQ = OperatorDefintion('==', 0)
-    NE = OperatorDefintion('!=', 0)
-
-
-TOP_PRECEDENCE = 100
+    POW = OperatorDefintion('**', MathPrecedence.EXPONENTIATION)
+    NEG = OperatorDefintion('-', MathPrecedence.POSNEG)
+    POS = OperatorDefintion('+', MathPrecedence.POSNEG)
+    NOT = OperatorDefintion('~', MathPrecedence.POSNEG)
+    MUL = OperatorDefintion('*', MathPrecedence.MULDIV)
+    MATMUL = OperatorDefintion('@', MathPrecedence.MULDIV)
+    TRUEDIV = OperatorDefintion('/', MathPrecedence.MULDIV, False)
+    FLOORDIV = OperatorDefintion('//', MathPrecedence.MULDIV, False)
+    MOD = OperatorDefintion('%', MathPrecedence.MULDIV, False)
+    ADD = OperatorDefintion('+', MathPrecedence.ADDSUB)
+    SUB = OperatorDefintion('-', MathPrecedence.ADDSUB, False)
+    LSHIFT = OperatorDefintion('<<', MathPrecedence.BITWISE_SHIFT)
+    RSHIFT = OperatorDefintion('>>', MathPrecedence.BITWISE_SHIFT)
+    AND = OperatorDefintion('&', MathPrecedence.BITWISE_AND)
+    XOR = OperatorDefintion('^', MathPrecedence.BITWISE_XOR)
+    OR = OperatorDefintion('|', MathPrecedence.BITWISE_OR)
+    LT = OperatorDefintion('<', MathPrecedence.COMPARISON)
+    GT = OperatorDefintion('>', MathPrecedence.COMPARISON)
+    LE = OperatorDefintion('<=', MathPrecedence.COMPARISON)
+    GE = OperatorDefintion('>=', MathPrecedence.COMPARISON)
+    EQ = OperatorDefintion('==', MathPrecedence.COMPARISON)
+    NE = OperatorDefintion('!=', MathPrecedence.COMPARISON)
 
 
 class MathExpression(ABC):
@@ -61,40 +77,49 @@ class MathExpression(ABC):
 
     @property
     @abstractmethod
-    def precedence(self) -> int:
+    def precedence(self) -> MathPrecedence:
         pass
-
-    def get_str(self, add_parentheses : bool = False):
-        return '(' + str(self) + ')' if add_parentheses \
-            else str(self)
-
-
-class TopPrecedenceMathExpression(MathExpression, ABC):
-
-    @property
-    def precedence(self) -> int:
-        return TOP_PRECEDENCE
 
 
 @dataclass
-class StringMathExpression(TopPrecedenceMathExpression):
+class StringMathExpression(MathExpression):
     label: str
+    label_precedence: MathPrecedence = None
 
     def __str__(self):
         return self.label
+
+    @property
+    def precedence(self) -> MathPrecedence:
+        return self.label_precedence
+
+
+class NameMathExpression(StringMathExpression):
+    @property
+    def precedence(self) -> int:
+        return MathPrecedence.VAR_NAME_WITH_SPACES if SPACE in self.label \
+            else MathPrecedence.VAR_NAME
 
 
 class FailedMathExpression(StringMathExpression):
     def __init__(self):
         self.label = "[exception during repr]"
+        self.label_precedence = MathPrecedence.PARENTHESIS
 
+
+def add_parenthesis_if_needed(expr : MathExpression, needed : bool = False):
+    return StringMathExpression(f'({expr})', MathPrecedence.PARENTHESIS) if needed else expr
 
 @dataclass
-class ValueMathExpression(TopPrecedenceMathExpression):
+class ValueMathExpression(MathExpression):
     value: Any
 
     def __str__(self):
         return repr(self.value)
+
+    @property
+    def precedence(self) -> MathPrecedence:
+        return MathPrecedence.VAR_NAME
 
 
 def object_to_math_expression(obj: Any):
@@ -129,13 +154,16 @@ class BinaryOperatorExpression(OperatorExpression):
 
     def __str__(self):
         left_side = object_to_math_expression(self.left_side)
-        left_side = left_side.get_str(left_side.precedence < self.precedence or
-                                      left_side.precedence == 0 and self.precedence == 0)
+        left_side = add_parenthesis_if_needed(left_side,
+                                              left_side.precedence < self.precedence
+                                              or left_side.precedence == MathPrecedence.COMPARISON
+                                              and self.precedence == MathPrecedence.COMPARISON)
         right_side = object_to_math_expression(self.right_side)
-        right_side = right_side.get_str(
-                right_side.precedence < self.precedence
-                or (right_side.precedence == 0 and self.precedence == 0)
-                or not self.commutative and right_side.precedence == self.precedence)
+        right_side = add_parenthesis_if_needed(right_side,
+                                               right_side.precedence < self.precedence
+                                               or (right_side.precedence == MathPrecedence.COMPARISON
+                                                   and self.precedence == MathPrecedence.COMPARISON)
+                                               or not self.commutative and right_side.precedence == self.precedence)
 
         return f"{left_side} {self.symbol} {right_side}"
 
@@ -146,10 +174,11 @@ class LeftUnaryOperatorExpression(OperatorExpression):
 
     def __str__(self):
         right_side = object_to_math_expression(self.right_side)
-        right_side = right_side.get_str(
-                right_side.precedence < self.precedence
-                or (right_side.precedence == 0 and self.precedence == 0)
-                or not self.commutative and right_side.precedence == self.precedence)
+        right_side = add_parenthesis_if_needed(right_side,
+                                               right_side.precedence < self.precedence
+                                               or (right_side.precedence == MathPrecedence.COMPARISON
+                                                   and self.precedence == MathPrecedence.COMPARISON)
+                                               or not self.commutative and right_side.precedence == self.precedence)
 
         return f"{self.symbol}{right_side}"
 
