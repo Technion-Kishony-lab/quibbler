@@ -42,7 +42,7 @@ def test_quib_pretty_repr_math_unary_operator():
     ("a // (b // c)", None),
     ("a @ (b + c)", None),
     ("a < b + c", None),
-    ("a + b <= c", "c >= a + b"),
+    ("a + b <= c", None),
     ("(a < b) < c", None),
     ("a < (b < c)", None),
     ("-a", None),

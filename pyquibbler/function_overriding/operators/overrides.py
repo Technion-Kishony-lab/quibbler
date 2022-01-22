@@ -34,6 +34,7 @@ def create_operator_overrides():
         elementwise_operator_override('__lt__'),
         elementwise_operator_override('__gt__'),
         elementwise_operator_override('__ge__'),
+        elementwise_operator_override('__le__'),
 
         operator_override('__round__', [0]),
         operator_override('__trunc__', [0]),
