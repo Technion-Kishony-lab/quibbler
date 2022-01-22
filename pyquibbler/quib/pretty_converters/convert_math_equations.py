@@ -1,4 +1,5 @@
 import enum
+from pyquibbler.utilities.operators_with_reverse import REVERSE_OPERATOR_NAMES_TO_FUNCS
 import operator
 from dataclasses import dataclass
 from typing import Callable, Tuple, Any
@@ -18,26 +19,36 @@ class OperatorDefintion():
 
 
 class Operator(enum.Enum):
+    POW = OperatorDefintion('**', 8)
+
+    NEG = OperatorDefintion('-', 7)
+    POS = OperatorDefintion('+', 7)
+    NOT = OperatorDefintion('~', 7)
+
+    MUL = OperatorDefintion('*', 6)
+    MATMUL = OperatorDefintion('@', 6)
+    TRUEDIV = OperatorDefintion('/', 6, False)
+    FLOORDIV = OperatorDefintion('//', 6, False)
+    MOD = OperatorDefintion('%', 6, False)
+
+    ADD = OperatorDefintion('+', 5)
+    SUB = OperatorDefintion('-', 5, False)
+
+    LSHIFT = OperatorDefintion('<<', 4)
+    RSHIFT = OperatorDefintion('>>', 4)
+
+    AND = OperatorDefintion('&', 3)
+
+    XOR = OperatorDefintion('^', 2)
+
+    OR = OperatorDefintion('|', 1)
+
     LT = OperatorDefintion('<', 0)
     GT = OperatorDefintion('>', 0)
     LE = OperatorDefintion('<=', 0)
     GE = OperatorDefintion('>=', 0)
     EQ = OperatorDefintion('==', 0)
     NE = OperatorDefintion('!=', 0)
-    OR = OperatorDefintion('|', 1)
-    XOR = OperatorDefintion('^', 1)
-    AND = OperatorDefintion('&', 2)
-    NOT = OperatorDefintion('~', 3)
-    ADD = OperatorDefintion('+', 4)
-    SUB = OperatorDefintion('-', 4, False)
-    MUL = OperatorDefintion('*', 5)
-    MATMUL = OperatorDefintion('@', 5)
-    DIV = OperatorDefintion('/', 5, False)
-    FLRDIV = OperatorDefintion('//', 5, False)
-    MOD = OperatorDefintion('%', 5, False)
-    NEG = OperatorDefintion('-', 6)
-    POS = OperatorDefintion('+', 6)
-    PWR = OperatorDefintion('**', 7)
 
 
 TOP_PRECEDENCE = 100
@@ -130,7 +141,7 @@ class BinaryOperatorExpression(OperatorExpression):
 
 
 @dataclass
-class UnaryOperatorExpression(OperatorExpression):
+class LeftUnaryOperatorExpression(OperatorExpression):
     right_side: Any = None
 
     def __str__(self):
@@ -146,19 +157,28 @@ class UnaryOperatorExpression(OperatorExpression):
 def convert_binary_func_to_mathematical_expression(func: Callable,
                                                    args: Tuple[Any, ...]) -> MathExpression:
     """
-    Convert the binary func and pretty args to mathematical notation
+    Convert the binary func and args to mathematical expression
     """
     operator = BINARY_FUNCS_TO_OPERATORS[func]
     return BinaryOperatorExpression(operator=operator, left_side=args[0], right_side=args[1])
 
 
+def convert_reverse_binary_func_to_mathematical_expression(func: Callable,
+                                                           args: Tuple[Any, ...]) -> MathExpression:
+    """
+    Convert the reverse binary func and args to mathematical expression
+    """
+    operator = REVERSE_BINARY_FUNCS_TO_OPERATORS[func]
+    return BinaryOperatorExpression(operator=operator, left_side=args[1], right_side=args[0])
+
+
 def convert_unary_right_func_to_mathematical_expression(func: Callable,
                                                         args: Tuple[Any, ...]) -> MathExpression:
     """
-    Convert the unary func and pretty arg to mathematical notation
+    Convert the unary func and pretty arg to mathematical expression
     """
     operator = UNARY_RIGHT_FUNCS_TO_OPERATORS[func]
-    return UnaryOperatorExpression(operator=operator, right_side=args[0])
+    return LeftUnaryOperatorExpression(operator=operator, right_side=args[0])
 
 
 UNARY_RIGHT_FUNCS_TO_OPERATORS = {
@@ -209,11 +229,11 @@ BINARY_FUNCS_TO_OPERATORS = {
     operator.matmul: Operator.MATMUL,
     np.matmul: Operator.MATMUL,
 
-    operator.truediv: Operator.DIV,
-    np.divide: Operator.DIV,
+    operator.truediv: Operator.TRUEDIV,
+    np.divide: Operator.TRUEDIV,
 
-    operator.floordiv: Operator.FLRDIV,
-    np.floor_divide: Operator.FLRDIV,
+    operator.floordiv: Operator.FLOORDIV,
+    np.floor_divide: Operator.FLOORDIV,
 
     operator.mod: Operator.MOD,
     np.remainder: Operator.MOD,
@@ -221,14 +241,22 @@ BINARY_FUNCS_TO_OPERATORS = {
     operator.sub: Operator.SUB,
     np.subtract: Operator.SUB,
 
-    operator.pow: Operator.PWR,
-    np.power: Operator.PWR
+    operator.pow: Operator.POW,
+    np.power: Operator.POW
 }
+
+REVERSE_BINARY_FUNCS_TO_OPERATORS = {func: Operator[name.upper()[3:-2]] for
+                                     name, func in REVERSE_OPERATOR_NAMES_TO_FUNCS.items()}
+
 
 OPERATOR_FUNCS_TO_MATH_CONVERTERS = {
     **{
         func: convert_binary_func_to_mathematical_expression
         for func in BINARY_FUNCS_TO_OPERATORS.keys()
+    },
+    **{
+        func: convert_reverse_binary_func_to_mathematical_expression
+        for func in REVERSE_BINARY_FUNCS_TO_OPERATORS.keys()
     },
     **{
         func: convert_unary_right_func_to_mathematical_expression
