@@ -12,14 +12,14 @@ def create_operator_overrides():
     create_numpy_overrides()
 
     return [
-        *with_reverse_elementwise_operator_overrides('__add__', [0, 1], [get_inverter_for_func('add')]),
-        *with_reverse_elementwise_operator_overrides('__sub__', [0, 1], [get_inverter_for_func('subtract')]),
-        *with_reverse_elementwise_operator_overrides('__mul__', [0, 1], [get_inverter_for_func('multiply')]),
+        *with_reverse_elementwise_operator_overrides('__add__', [0, 1], get_inverter_for_func('add')),
+        *with_reverse_elementwise_operator_overrides('__sub__', [0, 1], get_inverter_for_func('subtract')),
+        *with_reverse_elementwise_operator_overrides('__mul__', [0, 1], get_inverter_for_func('multiply')),
         operator_override('__matmul__', []),
-        *with_reverse_elementwise_operator_overrides('__truediv__', [0, 1], [get_inverter_for_func('divide')]),
+        *with_reverse_elementwise_operator_overrides('__truediv__', [0, 1], get_inverter_for_func('divide')),
         *with_reverse_operator_overrides('__floordiv__'),
         *with_reverse_operator_overrides('__mod__'),
-        *with_reverse_elementwise_operator_overrides('__pow__', [0, 1], [get_inverter_for_func('power')]),
+        *with_reverse_elementwise_operator_overrides('__pow__', [0, 1], get_inverter_for_func('power')),
         *with_reverse_elementwise_operator_overrides('__lshift__'),
         *with_reverse_elementwise_operator_overrides('__rshift__'),
         *with_reverse_operator_overrides('__and__'),
