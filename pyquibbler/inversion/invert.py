@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, List
 
 from pyquibbler.function_definitions.func_definition import FuncDefinition
-from pyquibbler.inversion.exceptions import NoInvertersFoundException
+from pyquibbler.inversion.exceptions import NoInvertersFoundException, FailedToInvertException
 from pyquibbler.translation.source_func_call import SourceFuncCall
 from pyquibbler.utilities.multiple_instance_runner import MultipleInstanceRunner
 
@@ -13,6 +13,7 @@ if TYPE_CHECKING:
 class MultipleInverterRunner(MultipleInstanceRunner):
 
     exception_to_raise_on_none_found = NoInvertersFoundException
+    expected_runner_exception = FailedToInvertException
 
     def __init__(self, func_call: SourceFuncCall, assignment: Assignment, previous_result: Any):
         super().__init__(func_call)
