@@ -464,8 +464,8 @@ class Quib:
             raise InvalidCacheBehaviorForQuibException(self._quib_function_call.default_cache_behavior)
         self._quib_function_call.default_cache_behavior = cache_behavior
 
-    def setp(self, allow_overriding: bool = None, assignment_template=None,
-             save_directory: Union[str, pathlib.Path] = None, cache_behavior: CacheBehavior = None,
+    def setp(self, allow_overriding: bool = None, assignment_template: Union[tuple, AssignmentTemplate] = None,
+             save_directory: Union[str, pathlib.Path] = None, cache_behavior: Union[str, CacheBehavior] = None,
              **kwargs):
         """
         Configure a quib with certain attributes- because this function is expected to be used by users, we never
