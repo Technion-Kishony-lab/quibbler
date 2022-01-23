@@ -47,6 +47,7 @@ from pyquibbler.quib.quib_method import quib_method
 from pyquibbler.translation.translate import forwards_translate, NoTranslatorsFoundException, \
     backwards_translate
 from pyquibbler.utilities.unpacker import Unpacker
+from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals
 
 if TYPE_CHECKING:
     from pyquibbler.assignment.override_choice import ChoiceContext
@@ -217,6 +218,7 @@ class Quib:
         """
         Helper method to assign a single value and override the whole value of the quib
         """
+        value = copy_and_replace_quibs_with_vals(value)
         self.assign(Assignment(value=value, path=[]))
 
     @raise_quib_call_exceptions_as_own
@@ -224,11 +226,13 @@ class Quib:
         """
         Helper method to assign a value at a specific key
         """
+        key = copy_and_replace_quibs_with_vals(key)
+        value = copy_and_replace_quibs_with_vals(value)
         self.assign(Assignment(path=[PathComponent(component=key, indexed_cls=self.get_type())], value=value))
 
     def __setitem__(self, key, value):
-        if isinstance(key, Quib):
-            key = key.get_value()
+        key = copy_and_replace_quibs_with_vals(key)
+        value = copy_and_replace_quibs_with_vals(value)
         self.assign(Assignment(value=value, path=[PathComponent(component=key, indexed_cls=self.get_type())]))
 
     def get_inversions_for_override_removal(self, override_removal: OverrideRemoval) -> List[OverrideRemoval]:
