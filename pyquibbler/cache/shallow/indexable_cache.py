@@ -7,26 +7,6 @@ from pyquibbler.cache.shallow.shallow_cache import ShallowCache
 from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices
 from pyquibbler.cache.cache_utils import is_path_component_nd
 
-# TODO: transform_cache_to_nd_if_necessary_given_path can now be deleted
-def transform_cache_to_nd_if_necessary_given_path(cache, path: List[PathComponent]):
-    """
-    If a path is attempting to access a cache as though it were an ndarray, we can attempt to transform into an ndarray
-    so that it will be accessable as such.
-
-    We mainly do this because a quib which represents a list may be transformed into an ndarray down the road
-    (by putting it through any np function for example), and thereafter changed. If so, any paths created will be to an
-    ndarray, and reverse assignment as well as invalidation will fail on the original list cache
-    """
-    from pyquibbler.cache import create_cache
-    if (len(path) > 0
-            and path[0].indexed_cls == np.ndarray
-            and isinstance(cache, IndexableCache)):
-        uncached_paths = cache.get_uncached_paths([])
-        cache = create_cache(np.array(cache.get_value(), dtype=object))
-        for path in uncached_paths:
-            cache.set_invalid_at_path(path)
-    return cache
-
 
 class IndexableCache(ShallowCache):
     """
