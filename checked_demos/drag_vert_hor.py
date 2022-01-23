@@ -1,5 +1,3 @@
-
-
 from pyquibbler import iquib, override_all, q
 override_all()
 import matplotlib.pyplot as plt
@@ -27,6 +25,6 @@ plt.plot(x, 0.2, '^', markerfacecolor='r', markersize=22, picker=True)
 plt.plot(0.2, y, '>', markerfacecolor='r', markersize=22, picker=True)
 
 # Draggable dot
-plt.plot(x, y, markerfacecolor='red', marker='o', markersize=20, picker=True, pickradius=25);
+plt.plot(x, y, markerfacecolor='red', marker='o', markersize=20, picker=True, pickradius=25)
 
 plt.show()

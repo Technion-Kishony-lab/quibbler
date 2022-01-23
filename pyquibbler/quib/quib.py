@@ -16,11 +16,12 @@ import numpy as np
 from matplotlib.artist import Artist
 
 
-from pyquibbler.env import LEN_RAISE_EXCEPTION, PRETTY_REPR
+from pyquibbler.env import LEN_RAISE_EXCEPTION, PRETTY_REPR, REPR_RETURNS_SHORT_NAME, REPR_WITH_OVERRIDES
 from pyquibbler.graphics import is_within_drag
 from pyquibbler.quib.quib_guard import guard_raise_if_not_allowed_access_to_quib, \
     CannotAccessQuibInScopeException
-from pyquibbler.quib.pretty_converters import MathExpression, pretty_convert
+from pyquibbler.quib.pretty_converters import MathExpression, FailedMathExpression, \
+    NameMathExpression, pretty_convert
 from pyquibbler.quib.utils.miscellaneous import get_user_friendly_name_for_requested_valid_path
 from pyquibbler.translation.types import Source
 from pyquibbler.utilities.input_validation_utils import validate_user_input
@@ -33,7 +34,6 @@ from pyquibbler.assignment import AssignmentTemplate, Overrider, Assignment, \
 from pyquibbler.path.data_accessing import FailedToDeepAssignException
 from pyquibbler.path.path_component import PathComponent, Path
 from pyquibbler.assignment import InvalidTypeException, OverrideRemoval, get_override_group_for_change
-from pyquibbler.cache import create_cache, CacheStatus, transform_cache_to_nd_if_necessary_given_path
 from pyquibbler.function_definitions import ArgsValues, FuncCall
 from pyquibbler.quib.func_calling.cache_behavior import CacheBehavior, UnknownCacheBehaviorException
 from pyquibbler.quib.exceptions import OverridingNotAllowedException, UnknownUpdateTypeException, \
@@ -46,6 +46,9 @@ from pyquibbler.quib.quib_method import quib_method
 from pyquibbler.translation.translate import forwards_translate, NoTranslatorsFoundException, \
     backwards_translate
 from pyquibbler.utilities.unpacker import Unpacker
+from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals
+from pyquibbler.cache.cache import CacheStatus
+from pyquibbler.cache import create_cache
 
 if TYPE_CHECKING:
     from pyquibbler.assignment.override_choice import ChoiceContext
@@ -186,7 +189,7 @@ class Quib:
         if not is_within_drag():
             self.project.push_assignment_to_undo_stack(quib=self,
                                                        assignment=assignment,
-                                                       index=len(list(self._overrider)) - 1,
+                                                       index=len(self._overrider) - 1,
                                                        overrider=self._overrider)
 
     def remove_override(self, path: List[PathComponent], invalidate_and_redraw: bool = True):
@@ -196,7 +199,7 @@ class Quib:
         assignment_removal = self._overrider.remove_assignment(path)
         if assignment_removal is not None:
             self.project.push_assignment_to_undo_stack(assignment=assignment_removal,
-                                                       index=len(list(self._overrider)) - 1,
+                                                       index=len(self._overrider) - 1,
                                                        overrider=self._overrider,
                                                        quib=self)
         if len(path) == 0:
@@ -216,6 +219,7 @@ class Quib:
         """
         Helper method to assign a single value and override the whole value of the quib
         """
+        value = copy_and_replace_quibs_with_vals(value)
         self.assign(Assignment(value=value, path=[]))
 
     @raise_quib_call_exceptions_as_own
@@ -223,11 +227,13 @@ class Quib:
         """
         Helper method to assign a value at a specific key
         """
+        key = copy_and_replace_quibs_with_vals(key)
+        value = copy_and_replace_quibs_with_vals(value)
         self.assign(Assignment(path=[PathComponent(component=key, indexed_cls=self.get_type())], value=value))
 
     def __setitem__(self, key, value):
-        if isinstance(key, Quib):
-            key = key.get_value()
+        key = copy_and_replace_quibs_with_vals(key)
+        value = copy_and_replace_quibs_with_vals(value)
         self.assign(Assignment(value=value, path=[PathComponent(component=key, indexed_cls=self.get_type())]))
 
     def get_inversions_for_override_removal(self, override_removal: OverrideRemoval) -> List[OverrideRemoval]:
@@ -260,6 +266,8 @@ class Quib:
 
         try:
             value = self.get_value()
+            # TODO: need to rake care of out-of-range assignments:
+            # value = self.get_value_valid_at_path(assignment.path)
 
             from pyquibbler.inversion.invert import invert
             inversals = invert(func_call=func_call,
@@ -458,8 +466,8 @@ class Quib:
             raise InvalidCacheBehaviorForQuibException(self._quib_function_call.default_cache_behavior)
         self._quib_function_call.default_cache_behavior = cache_behavior
 
-    def setp(self, allow_overriding: bool = None, assignment_template=None,
-             save_directory: Union[str, pathlib.Path] = None, cache_behavior: CacheBehavior = None,
+    def setp(self, allow_overriding: bool = None, assignment_template: Union[tuple, AssignmentTemplate] = None,
+             save_directory: Union[str, pathlib.Path] = None, cache_behavior: Union[str, CacheBehavior] = None,
              **kwargs):
         """
         Configure a quib with certain attributes- because this function is expected to be used by users, we never
@@ -514,7 +522,6 @@ class Quib:
         """
         Apply an assignment to a cache, setting valid if it was an assignment and invalid if it was an assignmentremoval
         """
-        cache = transform_cache_to_nd_if_necessary_given_path(cache, assignment.path)
         try:
             if isinstance(assignment, Assignment):
                 # Our cache only accepts shallow paths, so any validation to a non-shallow path is not necessarily
@@ -545,7 +552,6 @@ class Quib:
         if assignments:
             original_value = self.get_value_valid_at_path(None)
             cache = create_cache(original_value)
-            cache = transform_cache_to_nd_if_necessary_given_path(cache, path)
             for assignment in assignments:
                 cache = self._apply_assignment_to_cache(original_value, cache, assignment)
             return len(cache.get_uncached_paths(path)) == 0
@@ -574,7 +580,7 @@ class Quib:
         """
         Set the quib's name- this will override any name automatically created if it exists.
         """
-        if name is None or name.isidentifier():
+        if name is None or len(name) and name[0].isalpha() and all([c.isalnum() or c in ' _' for c in name]):
             self._name = name
         else:
             raise ValueError('name must be None or a valid alphanumeic python identifier')
@@ -735,7 +741,7 @@ class Quib:
         Save the quib if relevant- this will NOT save if the quib does not have overrides, as there is nothing to save
         """
         os.makedirs(self._save_directory, exist_ok=True)
-        if len(list(self._overrider)) > 0:
+        if len(self._overrider) > 0:
             if save_as_txt_if_possible and self._can_save_as_txt:
                 try:
                     return self._save_as_txt()
@@ -789,12 +795,12 @@ class Quib:
     Repr
     """
 
-    def get_functional_representation_expression(self) -> Union[MathExpression, str]:
+    def get_functional_representation_expression(self) -> MathExpression:
         try:
             return pretty_convert.get_pretty_value_of_func_with_args_and_kwargs(self.func, self.args, self.kwargs)
         except Exception as e:
             logger.warning(f"Failed to get repr {e}")
-            return "[exception during repr]"
+            return FailedMathExpression()
 
     @property
     def functional_representation(self) -> str:
@@ -807,6 +813,10 @@ class Quib:
         "iquib(4)" would be the functional representation
         """
         return str(self.get_functional_representation_expression())
+
+    def get_math_expression(self) -> MathExpression:
+        return NameMathExpression(self.name) if self.name is not None \
+            else self.get_functional_representation_expression()
 
     def ugly_repr(self):
         return f"<{self.__class__.__name__} - {self.func}"
@@ -822,4 +832,10 @@ class Quib:
         return str(self)
 
     def __str__(self):
-        return self.pretty_repr() if PRETTY_REPR else self.ugly_repr()
+        if PRETTY_REPR:
+            if REPR_RETURNS_SHORT_NAME:
+                return str(self.get_math_expression())
+            elif REPR_WITH_OVERRIDES and len(self._overrider):
+                return self.pretty_repr() + '\n' + self._overrider.pretty_repr(self.name)
+            return self.pretty_repr()
+        return self.ugly_repr()

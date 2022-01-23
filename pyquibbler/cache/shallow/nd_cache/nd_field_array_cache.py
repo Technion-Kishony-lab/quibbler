@@ -1,7 +1,7 @@
 import numpy as np
 
 from pyquibbler.cache.shallow.nd_cache.nd_indexable_cache import NdIndexableCache
-from pyquibbler.utilities.general_utils import create_empty_array_with_values_at_indices
+from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices
 from pyquibbler.path import PathComponent
 
 
@@ -25,12 +25,7 @@ class NdFieldArrayShallowCache(NdIndexableCache):
         )
 
     def _create_paths_for_indices(self, indices):
-        boolean_mask_of_indices = create_empty_array_with_values_at_indices(
-            self._value.shape,
-            indices=indices,
-            value=True,
-            empty_value=False
-        )
+        boolean_mask_of_indices = create_bool_mask_with_true_at_indices(self._value.shape, indices)
 
         return [
             [PathComponent(indexed_cls=np.ndarray, component=name),

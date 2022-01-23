@@ -46,13 +46,13 @@ def external_call_failed_exception_handling():
                 and cached_getmodule(tb.tb_frame.f_code).__name__.startswith("pyquibbler"):
             tb = tb.tb_next
 
-        if tb is None:
-            formatted_tb = ''.join(traceback.format_exception_only(type_, value=exc))
-        else:
-            traceback_lines = traceback.format_exception(type_, exc, tb)
-            formatted_tb = "".join(traceback_lines)
-
         if SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS:
+            if tb is None:
+                formatted_tb = ''.join(traceback.format_exception_only(type_, value=exc))
+            else:
+                traceback_lines = traceback.format_exception(type_, exc, tb)
+                formatted_tb = "".join(traceback_lines)
+
             raise ExternalCallFailedException(quibs_with_calls=[],
                                               exception=e,
                                               tb=formatted_tb) from None

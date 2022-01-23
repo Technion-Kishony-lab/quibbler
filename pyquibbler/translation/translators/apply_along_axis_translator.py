@@ -4,7 +4,7 @@ from typing import Tuple
 import numpy as np
 
 from pyquibbler.translation.numpy_translator import NumpyForwardsPathTranslator
-from pyquibbler.utilities.general_utils import create_empty_array_with_values_at_indices
+from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices
 from pyquibbler.function_definitions.func_call import FuncCall
 from pyquibbler.translation.translators.axeswise.axiswise_translator import Arg
 from pyquibbler.translation.types import Source
@@ -57,12 +57,7 @@ class ApplyAlongAxisForwardsTranslator(NumpyForwardsPathTranslator):
         After that we expand and broadcast the reduced mask to match the actual result shape, which is dependent
         on the applied function return type.
         """
-        boolean_mask = create_empty_array_with_values_at_indices(
-            value=True,
-            empty_value=False,
-            indices=indices,
-            shape=np.shape(source.value)
-        )
+        boolean_mask = create_bool_mask_with_true_at_indices(np.shape(source.value), indices)
         args_dict = self._get_translation_related_arg_dict()
         axis = args_dict.pop('axis')
         dims_to_expand = self._get_expanded_dims(axis, np.shape(source.value))

@@ -23,7 +23,7 @@ def test_quib_with_valid_set_name():
 
 def test_quib_with_invalid_set_name():
     my_quib = create_quib(func=mock.Mock(return_value=1))
-    name = "hello quib"
+    name = "hello quib!"
 
     try:
         my_quib.set_name(name)

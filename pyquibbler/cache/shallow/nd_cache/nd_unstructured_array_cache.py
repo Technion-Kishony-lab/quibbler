@@ -2,7 +2,7 @@ from typing import List
 
 import numpy as np
 
-from pyquibbler.utilities.general_utils import create_empty_array_with_values_at_indices
+from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices
 from pyquibbler.path import PathComponent
 from pyquibbler.cache.shallow.nd_cache.nd_indexable_cache import NdIndexableCache
 
@@ -30,12 +30,7 @@ class NdUnstructuredArrayCache(NdIndexableCache):
         return np.all(self._invalid_mask)
 
     def _get_uncached_paths_at_path_component(self, path_component: PathComponent) -> List[List[PathComponent]]:
-        boolean_mask_of_indices = create_empty_array_with_values_at_indices(
-            self._value.shape,
-            indices=path_component.component,
-            value=True,
-            empty_value=False
-        )
+        boolean_mask_of_indices = create_bool_mask_with_true_at_indices(self._value.shape, path_component.component)
 
         return self._filter_empty_paths([
                     [PathComponent(indexed_cls=np.ndarray,

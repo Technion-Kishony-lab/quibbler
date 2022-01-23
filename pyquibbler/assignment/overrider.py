@@ -1,3 +1,5 @@
+import copy
+
 import numpy as np
 from dataclasses import dataclass
 from typing import Any, List, Optional, Union, Dict, Hashable
@@ -30,12 +32,16 @@ class Overrider:
             self._paths_to_assignments.pop(hashable_path)
         self._paths_to_assignments[hashable_path] = assignment
 
-    def add_assignment(self, assignment: Assignment):
+    def add_assignment(self, assignment: Union[Assignment, AssignmentRemoval]):
         """
         Adds an override to the overrider - data[key] = value.
         """
-        self._active_assignment = assignment
-        self._add_to_paths_to_assignments(assignment)
+        assignment_without_indexed_cls = copy.deepcopy(assignment)
+        for component in assignment_without_indexed_cls.path:
+            assignment_without_indexed_cls.indexed_cls = None
+
+        self._active_assignment = assignment_without_indexed_cls
+        self._add_to_paths_to_assignments(assignment_without_indexed_cls)
 
     def remove_assignment(self, path: List[PathComponent]):
         """
@@ -43,8 +49,7 @@ class Overrider:
         """
         if self._paths_to_assignments:
             assignment_removal = AssignmentRemoval(path)
-            self._active_assignment = assignment_removal
-            self._add_to_paths_to_assignments(assignment_removal)
+            self.add_assignment(assignment_removal)
             return assignment_removal
 
     def undo_assignment(self,
@@ -120,18 +125,21 @@ class Overrider:
         """
         mask = false_mask
         for assignment in self:
-            if isinstance(assignment, AssignmentRemoval):
-                path = assignment.path
-                val = False
+            path = assignment.path
+            val = not isinstance(assignment, AssignmentRemoval)
+            if path:
+                if isinstance(path[-1].component, slice):
+                    inner_data = deep_get(mask, path[:-1])
+                    if not isinstance(inner_data, np.ndarray):
+                        from pyquibbler.utilities.iterators import recursively_run_func_on_object
+                        val = recursively_run_func_on_object(lambda x: val, inner_data)
+                mask = deep_assign_data_in_path(mask, path, val)
             else:
-                path = assignment.path
-                val = True
-            if isinstance(path[-1].component, slice):
-                inner_data = deep_get(mask, path[:-1])
-                if not isinstance(inner_data, np.ndarray):
-                    from pyquibbler.utilities.iterators import recursively_run_func_on_object
-                    val = recursively_run_func_on_object(lambda x: val, inner_data)
-            mask = deep_assign_data_in_path(mask, path, val)
+                if val:
+                    mask = np.ones(np.shape(assignment.value), dtype=bool)
+                else:
+                    mask = false_mask
+
         return mask
 
     def get(self, path: List[PathComponent], default_value: bool = None) -> Assignment:
@@ -143,5 +151,21 @@ class Overrider:
     def __getitem__(self, item) -> Assignment:
         return list(self._paths_to_assignments.values())[item]
 
+    def __len__(self):
+        return len(self._paths_to_assignments)
+
+    def pretty_repr(self, name: str = None):
+        name = 'quib' if name is None else name
+        from ..quib.pretty_converters.pretty_convert import getitem_converter
+        pretty = ''
+        for assignment in self._paths_to_assignments.values():
+            pretty = pretty + '\n' \
+                     + name \
+                     + ''.join([str(getitem_converter(None, ('', cmp.component))) for cmp in assignment.path]) \
+                     + ' = ' \
+                     + repr(assignment.value)
+        pretty = pretty[1:] if pretty else pretty
+        return pretty
+
     def __repr__(self):
-        return repr(self._paths_to_assignments.values())
+        return self.pretty_repr()

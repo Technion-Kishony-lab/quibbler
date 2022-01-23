@@ -24,6 +24,16 @@ def create_empty_array_with_values_at_indices(shape: tuple, indices: Any, value:
     return res
 
 
+def create_bool_mask_with_true_at_indices(shape: tuple, indices: Any) -> np.ndarray:
+    """
+    Create an array of False in a given shape with True at `indices`.
+    """
+    from pyquibbler.quib.factory import get_original_func
+    res = get_original_func(np.zeros)(shape, dtype=bool)
+    res[indices] = True
+    return res
+
+
 def unbroadcast_bool_mask(bool_mask: np.ndarray, original_shape: Tuple[int, ...]) -> np.ndarray:
     """
     Given a bool mask representing changes in an array which is a result of a broadcast, return an "un-broadcast"

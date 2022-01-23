@@ -4,7 +4,7 @@ from enum import Enum
 from typing import Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from pyquibbler.function_definitions import Argument
+    from pyquibbler.function_definitions.types import Argument
 
 
 @dataclass(frozen=True)

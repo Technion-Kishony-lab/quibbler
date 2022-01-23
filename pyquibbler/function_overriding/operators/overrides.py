@@ -20,8 +20,8 @@ def create_operator_overrides():
         *with_reverse_operator_overrides('__floordiv__'),
         *with_reverse_operator_overrides('__mod__'),
         *with_reverse_elementwise_operator_overrides('__pow__', [0, 1], [get_inverter_for_func('power')]),
-        *with_reverse_operator_overrides('__lshift__'),
-        *with_reverse_operator_overrides('__rshift__'),
+        *with_reverse_elementwise_operator_overrides('__lshift__'),
+        *with_reverse_elementwise_operator_overrides('__rshift__'),
         *with_reverse_operator_overrides('__and__'),
         *with_reverse_operator_overrides('__xor__'),
         *with_reverse_operator_overrides('__or__'),
@@ -34,6 +34,7 @@ def create_operator_overrides():
         elementwise_operator_override('__lt__'),
         elementwise_operator_override('__gt__'),
         elementwise_operator_override('__ge__'),
+        elementwise_operator_override('__le__'),
 
         operator_override('__round__', [0]),
         operator_override('__trunc__', [0]),
