@@ -263,6 +263,15 @@ def test_getitem_quib_and_setting_with_iquib_proper_invalidation():
 
 
 @pytest.mark.regression
+def test_assignments_with_quib_index():
+    a = iquib(np.arange(6).reshape((2, 3)))
+    b = iquib(1)
+    a[1, b] = 120
+
+    assert a.get_value()[1, 1] == 120
+
+
+@pytest.mark.regression
 @pytest.mark.parametrize(['data', 'indices_to_invalidate', 'axes'], [
     (np.arange(24).reshape((2, 3, 4)), 0, None),
     (np.arange(24).reshape((2, 3, 4)), (1, 0, 3), None),
