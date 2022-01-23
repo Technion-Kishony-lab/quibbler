@@ -261,6 +261,7 @@ class Quib:
 
         try:
             value = self.get_value()
+            # value = self.get_value_valid_at_path(assignment.path)  # TODO: need to rake care of out-of-range assignments
 
             from pyquibbler.inversion.invert import invert
             inversals = invert(func_call=func_call,
