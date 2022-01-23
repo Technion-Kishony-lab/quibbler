@@ -3,10 +3,17 @@ from typing import Optional, Any, TYPE_CHECKING
 
 import numpy as np
 
-from pyquibbler.path import deep_get, deep_assign_data_in_path, Path
+from pyquibbler.path import deep_get, deep_assign_data_in_path, Path, PathComponent
 
 if TYPE_CHECKING:
     from pyquibbler.cache import Cache
+
+
+def is_path_component_nd(component: PathComponent):
+    return component.indexed_cls == np.ndarray
+
+def is_path_nd(path: Path):
+    return len(path) and is_path_component_nd(path[0])
 
 
 def get_cached_data_at_truncated_path_given_result_at_uncached_path(cache, result, truncated_path, uncached_path):
@@ -17,9 +24,18 @@ def get_cached_data_at_truncated_path_given_result_at_uncached_path(cache, resul
     # specific paths.
     # Perhaps get_value(with_data_at_component)?
     # Or perhaps simply wait for deep caches...
-    from pyquibbler.cache import NdUnstructuredArrayCache
+    from pyquibbler.cache import NdUnstructuredArrayCache, IndexableCache
+
+    if isinstance(result, list) and isinstance(cache, IndexableCache) \
+        and is_path_nd(uncached_path):
+        result = np.array(result, dtype=object)
+
+    if isinstance(data, list) and isinstance(cache, IndexableCache) \
+        and is_path_nd(uncached_path):
+        data = np.array(data, dtype=object)
+
     if isinstance(result, list) and isinstance(cache, NdUnstructuredArrayCache):
-        result = np.array(result)
+        result = np.array(result, dtype=object)
 
     valid_value = deep_get(result, uncached_path)
 

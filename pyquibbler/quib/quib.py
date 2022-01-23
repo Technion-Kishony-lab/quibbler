@@ -34,7 +34,6 @@ from pyquibbler.assignment import AssignmentTemplate, Overrider, Assignment, \
 from pyquibbler.path.data_accessing import FailedToDeepAssignException
 from pyquibbler.path.path_component import PathComponent, Path
 from pyquibbler.assignment import InvalidTypeException, OverrideRemoval, get_override_group_for_change
-from pyquibbler.cache import create_cache, CacheStatus, transform_cache_to_nd_if_necessary_given_path
 from pyquibbler.function_definitions import ArgsValues, FuncCall
 from pyquibbler.quib.func_calling.cache_behavior import CacheBehavior, UnknownCacheBehaviorException
 from pyquibbler.quib.exceptions import OverridingNotAllowedException, UnknownUpdateTypeException, \
@@ -48,6 +47,7 @@ from pyquibbler.translation.translate import forwards_translate, NoTranslatorsFo
     backwards_translate
 from pyquibbler.utilities.unpacker import Unpacker
 from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals
+from pyquibbler.cache.cache import CacheStatus
 
 if TYPE_CHECKING:
     from pyquibbler.assignment.override_choice import ChoiceContext
@@ -520,7 +520,6 @@ class Quib:
         """
         Apply an assignment to a cache, setting valid if it was an assignment and invalid if it was an assignmentremoval
         """
-        cache = transform_cache_to_nd_if_necessary_given_path(cache, assignment.path)
         try:
             if isinstance(assignment, Assignment):
                 # Our cache only accepts shallow paths, so any validation to a non-shallow path is not necessarily
@@ -551,7 +550,6 @@ class Quib:
         if assignments:
             original_value = self.get_value_valid_at_path(None)
             cache = create_cache(original_value)
-            cache = transform_cache_to_nd_if_necessary_given_path(cache, path)
             for assignment in assignments:
                 cache = self._apply_assignment_to_cache(original_value, cache, assignment)
             return len(cache.get_uncached_paths(path)) == 0

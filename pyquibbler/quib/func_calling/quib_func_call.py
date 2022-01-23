@@ -6,8 +6,7 @@ from typing import Optional, Type, Tuple, Dict, Any, Set, Mapping, Callable, Lis
 
 from pyquibbler.cache.cache_utils import _truncate_path_to_match_shallow_caches, _ensure_cache_matches_result, \
     get_cached_data_at_truncated_path_given_result_at_uncached_path
-from pyquibbler.cache import PathCannotHaveComponentsException, transform_cache_to_nd_if_necessary_given_path, \
-    get_uncached_paths_matching_path
+from pyquibbler.cache import PathCannotHaveComponentsException, get_uncached_paths_matching_path
 
 from pyquibbler.function_definitions import FuncCall, PositionalSourceLocation, SourceLocation, KeywordSourceLocation, \
     load_source_locations_before_running, ArgsValues
@@ -239,7 +238,6 @@ class QuibFuncCall(FuncCall):
             self.cache = _ensure_cache_matches_result(self.cache, result)
 
             if truncated_path is not None:
-                self.cache = transform_cache_to_nd_if_necessary_given_path(self.cache, truncated_path)
                 value = get_cached_data_at_truncated_path_given_result_at_uncached_path(self.cache,
                                                                                         result,
                                                                                         truncated_path,
@@ -312,7 +310,6 @@ class QuibFuncCall(FuncCall):
 
     def invalidate_cache_at_path(self, path: Path):
         if self.cache is not None:
-            self.cache = transform_cache_to_nd_if_necessary_given_path(self.cache, path)
             self.cache.set_invalid_at_path(path)
 
     def get_result_metadata(self) -> Dict:

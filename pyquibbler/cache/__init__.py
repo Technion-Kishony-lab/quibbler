@@ -3,7 +3,7 @@ from typing import Any
 from .holistic_cache import HolisticCache
 from .shallow import NdVoidCache
 from .shallow.dict_cache import DictCache
-from .shallow.indexable_cache import IndexableCache, transform_cache_to_nd_if_necessary_given_path
+from .shallow.indexable_cache import IndexableCache
 from .shallow.nd_cache import NdFieldArrayShallowCache, NdUnstructuredArrayCache
 from .shallow.shallow_cache import ShallowCache
 from .cache import Cache, CacheStatus
