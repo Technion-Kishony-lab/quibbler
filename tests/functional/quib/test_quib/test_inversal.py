@@ -116,3 +116,12 @@ def test_invert_elementwise_operator(create_quib_with_return_value):
 
     assert a[0].get_value() == 39
 
+
+def test_invert_single_arg_elementwise_with_colon_slice(create_quib_with_return_value):
+    n = create_quib_with_return_value(3, allow_overriding=True)
+    a = np.arange(n).setp(allow_overriding=True)
+    b = np.log2(a)
+
+    b[:] = 3
+    n.assign_value(4)
+    assert np.array_equal(a.get_value(), [8, 8, 8, 8])
