@@ -28,7 +28,7 @@ def _convert_slice(slice_: slice) -> str:
     return pretty
 
 
-def getitem_converter(func: Callable, args: Tuple[Any, ...]) -> MathExpression:
+def getitem_converter(func: Union[Callable, type(None)], args: Tuple[Any, ...]) -> MathExpression:
 
     assert len(args) == 2
     obj, item = args

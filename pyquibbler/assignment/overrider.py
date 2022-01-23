@@ -30,7 +30,7 @@ class Overrider:
             self._paths_to_assignments.pop(hashable_path)
         self._paths_to_assignments[hashable_path] = assignment
 
-    def add_assignment(self, assignment: Assignment):
+    def add_assignment(self, assignment: Union[Assignment, AssignmentRemoval]):
         """
         Adds an override to the overrider - data[key] = value.
         """
@@ -145,5 +145,21 @@ class Overrider:
     def __getitem__(self, item) -> Assignment:
         return list(self._paths_to_assignments.values())[item]
 
+    def __len__(self):
+        return len(self._paths_to_assignments)
+
+    def pretty_repr(self, name : str = None):
+        name = 'quib' if name is None else name
+        from ..quib.pretty_converters.pretty_convert import getitem_converter
+        pretty = ''
+        for assignment in self._paths_to_assignments.values():
+            pretty = pretty + '\n' \
+                     + name \
+                     + ''.join([str(getitem_converter(None, ('', cmp.component))) for cmp in assignment.path]) \
+                     + ' = ' \
+                     + repr(assignment.value)
+        pretty = pretty[1:] if pretty else pretty
+        return pretty
+
     def __repr__(self):
-        return repr(self._paths_to_assignments.values())
+        return self.pretty_repr()

@@ -16,7 +16,7 @@ import numpy as np
 from matplotlib.artist import Artist
 
 
-from pyquibbler.env import LEN_RAISE_EXCEPTION, PRETTY_REPR, REPR_RETURNS_SHORT_NAME
+from pyquibbler.env import LEN_RAISE_EXCEPTION, PRETTY_REPR, REPR_RETURNS_SHORT_NAME, REPR_WITH_OVERRIDES
 from pyquibbler.graphics import is_within_drag
 from pyquibbler.quib.quib_guard import guard_raise_if_not_allowed_access_to_quib, \
     CannotAccessQuibInScopeException
@@ -187,7 +187,7 @@ class Quib:
         if not is_within_drag():
             self.project.push_assignment_to_undo_stack(quib=self,
                                                        assignment=assignment,
-                                                       index=len(list(self._overrider)) - 1,
+                                                       index=len(self._overrider) - 1,
                                                        overrider=self._overrider)
 
     def remove_override(self, path: List[PathComponent], invalidate_and_redraw: bool = True):
@@ -197,7 +197,7 @@ class Quib:
         assignment_removal = self._overrider.remove_assignment(path)
         if assignment_removal is not None:
             self.project.push_assignment_to_undo_stack(assignment=assignment_removal,
-                                                       index=len(list(self._overrider)) - 1,
+                                                       index=len(self._overrider) - 1,
                                                        overrider=self._overrider,
                                                        quib=self)
         if len(path) == 0:
@@ -736,7 +736,7 @@ class Quib:
         Save the quib if relevant- this will NOT save if the quib does not have overrides, as there is nothing to save
         """
         os.makedirs(self._save_directory, exist_ok=True)
-        if len(list(self._overrider)) > 0:
+        if len(self._overrider) > 0:
             if save_as_txt_if_possible and self._can_save_as_txt:
                 try:
                     return self._save_as_txt()
@@ -830,6 +830,9 @@ class Quib:
         if PRETTY_REPR:
             if REPR_RETURNS_SHORT_NAME:
                 return str(self.get_math_expression())
+            elif REPR_WITH_OVERRIDES and len(self._overrider):
+                pretty_overrider = self._overrider.pretty_repr(self.name)
+                return self.pretty_repr() + f'\n' + self._overrider.pretty_repr(self.name)
             return self.pretty_repr()
         return self.ugly_repr()
 
