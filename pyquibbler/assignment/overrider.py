@@ -1,3 +1,5 @@
+import copy
+
 import numpy as np
 from dataclasses import dataclass
 from typing import Any, List, Optional, Union, Dict, Hashable
@@ -34,8 +36,12 @@ class Overrider:
         """
         Adds an override to the overrider - data[key] = value.
         """
-        self._active_assignment = assignment
-        self._add_to_paths_to_assignments(assignment)
+        assignment_without_indexed_cls = copy.deepcopy(assignment)
+        for component in assignment_without_indexed_cls.path:
+            assignment_without_indexed_cls.indexed_cls = None
+
+        self._active_assignment = assignment_without_indexed_cls
+        self._add_to_paths_to_assignments(assignment_without_indexed_cls)
 
     def remove_assignment(self, path: List[PathComponent]):
         """
