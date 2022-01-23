@@ -41,7 +41,8 @@ def getitem_converter(func: Union[Callable, type(None)], args: Tuple[Any, ...]) 
 
 def vectorize_call_converter(func: Callable, pretty_arg_names: List[str]) -> MathExpression:
     func_being_called, *args = pretty_arg_names
-    return StringMathExpression(f"{func_being_called}({', '.join(repr(arg) for arg in args)})", MathPrecedence.FUNCTION_CALL)
+    return StringMathExpression(f"{func_being_called}({', '.join(repr(arg) for arg in args)})",
+                                MathPrecedence.FUNCTION_CALL)
 
 
 def function_call_converter(func: Callable,
@@ -49,7 +50,8 @@ def function_call_converter(func: Callable,
                             kwargs: Mapping[str, Any]) -> MathExpression:
     func_name = getattr(func, '__name__', str(func))
     pretty_args, pretty_kwargs = get_pretty_args_and_kwargs(args, kwargs)
-    return StringMathExpression(f'{func_name}({", ".join(map(str, [*pretty_args, *pretty_kwargs]))})', MathPrecedence.FUNCTION_CALL)
+    return StringMathExpression(f'{func_name}({", ".join(map(str, [*pretty_args, *pretty_kwargs]))})',
+                                MathPrecedence.FUNCTION_CALL)
 
 
 def get_pretty_args_and_kwargs(args: Tuple[Any, ...], kwargs: Mapping[str, Any]):

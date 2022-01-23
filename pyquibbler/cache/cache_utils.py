@@ -12,6 +12,7 @@ if TYPE_CHECKING:
 def is_path_component_nd(component: PathComponent):
     return component.indexed_cls == np.ndarray
 
+
 def is_path_nd(path: Path):
     return len(path) and is_path_component_nd(path[0])
 
@@ -27,11 +28,11 @@ def get_cached_data_at_truncated_path_given_result_at_uncached_path(cache, resul
     from pyquibbler.cache import NdUnstructuredArrayCache, IndexableCache
 
     if isinstance(result, list) and isinstance(cache, IndexableCache) \
-        and is_path_nd(uncached_path):
+            and is_path_nd(uncached_path):
         result = np.array(result, dtype=object)
 
     if isinstance(data, list) and isinstance(cache, IndexableCache) \
-        and is_path_nd(uncached_path):
+            and is_path_nd(uncached_path):
         data = np.array(data, dtype=object)
 
     if isinstance(result, list) and isinstance(cache, NdUnstructuredArrayCache):

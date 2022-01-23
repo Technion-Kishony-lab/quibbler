@@ -1,5 +1,3 @@
-
-
 from pyquibbler import iquib, override_all, q
 override_all()
 import matplotlib.pyplot as plt
@@ -26,7 +24,7 @@ plt.plot(point_x, point_y, marker='o', markerfacecolor='c',
 xy_str = q("X={:.2f}, Y={:.2f}".format, point_x, point_y)
 plt.text(point_x, point_y + .6, xy_str,
          horizontalalignment="center",
-         verticalalignment="bottom", fontsize=13);
+         verticalalignment="bottom", fontsize=13)
 
 
 plt.show()

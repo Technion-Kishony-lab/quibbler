@@ -3,7 +3,7 @@ import math
 import operator
 from dataclasses import dataclass
 
-from typing import Callable, List
+from typing import List
 
 from pyquibbler.function_definitions.func_definition import create_func_definition
 from pyquibbler.function_overriding.function_override import FuncOverride

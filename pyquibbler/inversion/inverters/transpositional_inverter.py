@@ -26,7 +26,8 @@ class TranspositionalInverter(Inverter):
             type_=type(self._previous_result)
         )
 
-        boolean_mask = create_bool_mask_with_true_at_indices(np.shape(self._previous_result), working_component(self._assignment.path))
+        boolean_mask = create_bool_mask_with_true_at_indices(np.shape(self._previous_result),
+                                                             working_component(self._assignment.path))
         assert all(len(paths) == 1 for paths in sources_to_paths_in_result.values())
 
         sources_to_paths_in_result = {

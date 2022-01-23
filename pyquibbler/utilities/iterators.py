@@ -124,26 +124,26 @@ def recursively_run_func_on_object(func: Callable, obj: Any,
                               for key, sub_obj in obj.items()})
         elif isinstance(obj, slice):
             return slice(recursively_run_func_on_object(func, obj.start,
-                                                       [*path, PathComponent(
-                                                           component="start",
-                                                           indexed_cls=slice
-                                                       )],
-                                                       next_max_depth,
-                                                       with_path=with_path),
-                        recursively_run_func_on_object(func, obj.stop,
-                                                       [*path, PathComponent(
-                                                           component="stop",
-                                                           indexed_cls=slice
-                                                       )],
-                                                       next_max_depth,
-                                                       with_path=with_path),
-                        recursively_run_func_on_object(func, obj.step,
-                                                       [*path, PathComponent(
-                                                           component="step",
-                                                           indexed_cls=slice
-                                                       )],
-                                                       next_max_depth,
-                                                       with_path=with_path), )
+                                                        [*path, PathComponent(
+                                                            component="start",
+                                                            indexed_cls=slice
+                                                        )],
+                                                        next_max_depth,
+                                                        with_path=with_path),
+                         recursively_run_func_on_object(func, obj.stop,
+                                                        [*path, PathComponent(
+                                                            component="stop",
+                                                            indexed_cls=slice
+                                                        )],
+                                                        next_max_depth,
+                                                        with_path=with_path),
+                         recursively_run_func_on_object(func, obj.step,
+                                                        [*path, PathComponent(
+                                                            component="step",
+                                                            indexed_cls=slice
+                                                        )],
+                                                        next_max_depth,
+                                                        with_path=with_path), )
     return func(path, obj) if with_path else func(obj)
 
 

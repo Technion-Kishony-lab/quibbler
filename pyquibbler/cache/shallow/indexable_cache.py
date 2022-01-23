@@ -1,4 +1,4 @@
-from typing import List, Any, Union, Type
+from typing import List, Any, Type
 
 import numpy as np
 
@@ -53,7 +53,6 @@ class IndexableCache(ShallowCache):
     def _set_invalid_mask_at_path_component(self, path_component: PathComponent, value: bool):
         component = path_component.component
         if is_path_component_nd(path_component):
-            shape = self._shape()
             nd_invalid_mask = self._invalid_mask_broadcasted()
             nd_invalid_mask[component] = value
             self._invalid_mask = self._unbroadcast_invalid_mask(nd_invalid_mask)
@@ -74,9 +73,16 @@ class IndexableCache(ShallowCache):
 
     def _set_valid_value_at_path_component(self, path_component: PathComponent, value):
         if is_path_component_nd(path_component):
-            _value = np.array(self._value, dtype=object)
-            _value[path_component.component] = value
-            self._value = _value.tolist()
+            array_value = np.array(self._value, dtype=object)
+            array_value[path_component.component] = value
+            self._value = array_value.tolist()
+
+            # TODO: the above solution does not correctly account for
+            #  a list containing lists and arrays.
+            # For example, if we have
+            # _value = [[1, 2], np.array([3, 4])]
+            # then it will change to:
+            # _value = [[1, 2], [3, 4]]
         else:
             self._value[path_component.component] = value
 
@@ -99,9 +105,10 @@ class IndexableCache(ShallowCache):
         ]
 
     def _shape(self):
-        return np.shape(np.array(self._value))
+        return np.shape(self._value)
 
     def _invalid_mask_broadcasted(self):
+        # e.g, value=[[1,2],[3,4],[5,6]]; invalid_mask=[1,0,1] -> [[1,1],[0,0],[1,1]]
         return np.tile(self._invalid_mask, self._shape()[-1:0:-1] + (1,)).T
 
     def get_value(self) -> Any:
@@ -109,8 +116,7 @@ class IndexableCache(ShallowCache):
 
     @staticmethod
     def _unbroadcast_invalid_mask(mask: np.ndarray) -> list:
-        l = list(np.any(mask, tuple(range(1, mask.ndim))))
-        return l
+        return list(np.any(mask, tuple(range(1, mask.ndim))))
 
     @staticmethod
     def _filter_empty_paths(paths):

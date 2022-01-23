@@ -1,6 +1,7 @@
 import operator
 from typing import Callable
 
+
 def get_reversed_func(func: Callable):
     def _reversed(q, o):
         return func(o, q)

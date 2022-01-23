@@ -154,7 +154,7 @@ class Overrider:
     def __len__(self):
         return len(self._paths_to_assignments)
 
-    def pretty_repr(self, name : str = None):
+    def pretty_repr(self, name: str = None):
         name = 'quib' if name is None else name
         from ..quib.pretty_converters.pretty_convert import getitem_converter
         pretty = ''

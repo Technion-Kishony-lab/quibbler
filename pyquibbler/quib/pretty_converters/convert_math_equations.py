@@ -107,8 +107,9 @@ class FailedMathExpression(StringMathExpression):
         self.label_precedence = MathPrecedence.PARENTHESIS
 
 
-def add_parenthesis_if_needed(expr : MathExpression, needed : bool = False):
+def add_parenthesis_if_needed(expr: MathExpression, needed: bool = False):
     return StringMathExpression(f'({expr})', MathPrecedence.PARENTHESIS) if needed else expr
+
 
 @dataclass
 class ValueMathExpression(MathExpression):

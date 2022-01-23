@@ -21,7 +21,7 @@ from pyquibbler.graphics import is_within_drag
 from pyquibbler.quib.quib_guard import guard_raise_if_not_allowed_access_to_quib, \
     CannotAccessQuibInScopeException
 from pyquibbler.quib.pretty_converters import MathExpression, FailedMathExpression, \
-    StringMathExpression, NameMathExpression, pretty_convert
+    NameMathExpression, pretty_convert
 from pyquibbler.quib.utils.miscellaneous import get_user_friendly_name_for_requested_valid_path
 from pyquibbler.translation.types import Source
 from pyquibbler.utilities.input_validation_utils import validate_user_input
@@ -48,6 +48,7 @@ from pyquibbler.translation.translate import forwards_translate, NoTranslatorsFo
 from pyquibbler.utilities.unpacker import Unpacker
 from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals
 from pyquibbler.cache.cache import CacheStatus
+from pyquibbler.cache import create_cache
 
 if TYPE_CHECKING:
     from pyquibbler.assignment.override_choice import ChoiceContext
@@ -265,7 +266,8 @@ class Quib:
 
         try:
             value = self.get_value()
-            # value = self.get_value_valid_at_path(assignment.path)  # TODO: need to rake care of out-of-range assignments
+            # TODO: need to rake care of out-of-range assignments:
+            # value = self.get_value_valid_at_path(assignment.path)
 
             from pyquibbler.inversion.invert import invert
             inversals = invert(func_call=func_call,
@@ -834,8 +836,6 @@ class Quib:
             if REPR_RETURNS_SHORT_NAME:
                 return str(self.get_math_expression())
             elif REPR_WITH_OVERRIDES and len(self._overrider):
-                pretty_overrider = self._overrider.pretty_repr(self.name)
-                return self.pretty_repr() + f'\n' + self._overrider.pretty_repr(self.name)
+                return self.pretty_repr() + '\n' + self._overrider.pretty_repr(self.name)
             return self.pretty_repr()
         return self.ugly_repr()
-
