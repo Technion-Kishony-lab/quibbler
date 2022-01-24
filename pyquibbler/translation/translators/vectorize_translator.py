@@ -81,7 +81,7 @@ class VectorizeForwardsPathTranslator(ForwardsPathTranslator):
         bool_mask_in_output_array = self._forward_translate_indices_to_bool_mask(source, working_component.component)
         if not np.any(bool_mask_in_output_array):
             return []
-        starting_path = [PathComponent(self._type, bool_mask_in_output_array), *rest_of_path]
+        starting_path = [PathComponent(np.ndarray, bool_mask_in_output_array), *rest_of_path]
 
         if self._vectorize_metadata.is_result_a_tuple:
             return [[PathComponent(tuple, i), *starting_path] for i in range(self._vectorize_metadata.tuple_length)]

@@ -3,8 +3,9 @@ from typing import Any, List, Dict
 
 import numpy as np
 
+from pyquibbler.path import deep_get
 from pyquibbler.path.path_component import PathComponent, Path
-from pyquibbler.path.utils import working_component, path_beyond_working_component
+from pyquibbler.path import working_component, path_beyond_working_component, path_beyond_nd_working_component
 from pyquibbler.translation.backwards_path_translator import BackwardsPathTranslator
 from pyquibbler.translation.forwards_path_translator import ForwardsPathTranslator
 from pyquibbler.translation.types import Source
@@ -39,6 +40,7 @@ class NumpyBackwardsPathTranslator(BackwardsPathTranslator):
         return sources_to_paths
 
 
+
 class NumpyForwardsPathTranslator(ForwardsPathTranslator):
     """
     Holds basic logic for how to forwards translate a path for numpy functions- subclass this for any translator of a
@@ -46,7 +48,7 @@ class NumpyForwardsPathTranslator(ForwardsPathTranslator):
     """
 
     @abstractmethod
-    def _forward_translate_indices_to_bool_mask(self, source: Source, indices: Any):
+    def _forward_translate_indices_to_bool_mask(self, source: Source, indices: Any) -> np.ndarray:
         pass
 
     def _forward_translate_source(self, source: Source, path: Path) -> List[Path]:
@@ -55,20 +57,12 @@ class NumpyForwardsPathTranslator(ForwardsPathTranslator):
             # If there exist both True's and False's in the boolean mask,
             # this function's quib result must be an ndarray- if it were a single item (say a PyObj, int, dict, list)
             # we'd expect it to be completely True (as it is ONE single object). If it is not a single item, it is by
-            # definitely an ndarray
+            # definition an ndarray
             assert issubclass(self._type, np.ndarray) or np.all(bool_mask_in_output_array)
             assert issubclass(self._type, np.ndarray) or isinstance(bool_mask_in_output_array, np.bool_) \
                    or (bool_mask_in_output_array.shape == () and bool_mask_in_output_array.dtype == np.bool_)
 
-            if not np.all(bool_mask_in_output_array) and issubclass(self._type, np.ndarray):
-                return [[PathComponent(self._type, bool_mask_in_output_array),
-                         *path_beyond_working_component(path)]]
-            return [path_beyond_working_component(path)]
-        return []
+            return [[PathComponent(self._type, bool_mask_in_output_array),
+                     *path_beyond_nd_working_component(path)]]
 
-    def translate(self):
-        return {
-            # TODO: THIS AUTO RETURNING OF [[]] IS INCORRECT IF PATH IS EMPTY, IN SOME EDGE CASES THIS DOESN'T HOLD
-            source: self._forward_translate_source(source, path) if len(path) != 0 else [[]]
-            for source, path in self._sources_to_paths.items()
-        }
+        return []

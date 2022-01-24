@@ -7,7 +7,7 @@ import numpy as np
 from pyquibbler.env import DEBUG
 from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.logger import logger
-from pyquibbler.path import PathComponent
+from pyquibbler.path import PathComponent, Path
 
 
 @dataclass
@@ -22,15 +22,32 @@ class FailedToDeepAssignException(PyQuibblerException):
                f"failed on {self.exception}"
 
 
-def deep_get(obj: Any, path: List['PathComponent']):
+def deep_get(obj: Any, path: Path):
     """
     Get the data from an object in a given path.
     """
     for component in path:
+        if isinstance(obj, np.ndarray) and component.indexed_cls != np.ndarray:
+            # We allow specifying a path component that can reference multiple places in the array - for example,
+            # if given a path
+            # [PathComponent(np.ndarray, [True, True]), PathComponent(dict, "name"])]
+            # This path would reference both names of the two dictionaries in the ndarray. This is very important when
+            # it comes to invalidation, as it negates the necessity of needing two paths.
+            # In deep get, this means we need to be able to get a field after an array - but there must necessarily be
+            # only one value in the array, otherwise we wouldn't know which to return (e.g. in the above example-
+            # which name?)
+            flattened = np.array(obj.flat)
+            assert len(flattened) == 1
+            obj = flattened[0]
+
         if component.indexed_cls == slice:
             obj = getattr(obj, component.component)
         else:
-            obj = obj[component.component]
+            try:
+                obj = obj[component.component]
+            except TypeError:
+                # We don't want to fail if it's a list that's being accessed as an nparray
+                obj = np.array(obj)[component.component]
     return obj
 
 
