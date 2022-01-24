@@ -65,7 +65,7 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
         data_sources_to_masks = self.get_data_sources_to_masks_in_result()
 
         def replace_data_source_with_index_at_dimension(d):
-            return np.indices(np.shape(d.value) if isinstance(d, Source) else np.shape(d))[dimension]
+            return np.indices(np.shape(d.value))[dimension]
 
         args, kwargs = self._convert_sources_in_args(replace_data_source_with_index_at_dimension)
         indices_res = self._func_call.func(*args, **kwargs)

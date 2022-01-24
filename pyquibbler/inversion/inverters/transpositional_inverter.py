@@ -3,6 +3,7 @@ import numpy as np
 from pyquibbler.path.data_accessing import deep_get
 from pyquibbler.inversion.inverter import Inverter
 from pyquibbler.assignment import Assignment
+from pyquibbler.translation.translators import BackwardsTranspositionalTranslator, ForwardsTranspositionalTranslator
 from pyquibbler.translation.types import Inversal, Source
 from pyquibbler.path.path_component import PathComponent, Path
 from pyquibbler.path.utils import working_component
@@ -48,18 +49,18 @@ class TranspositionalInverter(Inverter):
         return inversals
 
     def get_inversals(self):
-        sources_to_paths_in_sources = backwards_translate(
+        sources_to_paths_in_sources = BackwardsTranspositionalTranslator(
             func_call=self._func_call,
             path=self._assignment.path,
             shape=np.shape(self._previous_result),
             type_=type(self._previous_result)
-        )
-        sources_to_paths_in_result = forwards_translate(
+        ).translate()
+        sources_to_paths_in_result = ForwardsTranspositionalTranslator(
             func_call=self._func_call,
             sources_to_paths=sources_to_paths_in_sources,
             shape=np.shape(self._previous_result),
             type_=type(self._previous_result)
-        )
+        ).translate()
         assert all(len(paths) == 1 for paths in sources_to_paths_in_result.values())
 
         boolean_mask = create_bool_mask_with_true_at_indices(np.shape(self._previous_result),

@@ -35,7 +35,7 @@ class ProxyBackwardsPathTranslator(BackwardsPathTranslator):
 
     SHOULD_ATTEMPT_WITHOUT_SHAPE_AND_TYPE = True
 
-    def translate_in_order(self) -> Dict[Source, Path]:
+    def translate(self) -> Dict[Source, Path]:
         return {
             source: self._path
             for source in self._func_call.get_data_sources()

@@ -32,17 +32,9 @@ class BackwardsPathTranslator:
         return working_component(self._path)
 
     @abstractmethod
-    def translate_in_order(self) -> Dict[Source, Path]:
+    def translate(self) -> Dict[Source, Path]:
         """
         Translate the path back to a mapping between sources and their respective paths which have an equivalence to
         self._path
         """
         pass
-
-    def translate_without_order(self) -> Dict[Source, Path]:
-        """
-        Just like translate_in_order, but without any necessity to have the path in a specific order- the default
-        behavior is just to translate in order, but if you have the ability to translate out of order WITHOUT needing
-        shape or type, then override this method.
-        """
-        return self.translate_in_order()
