@@ -241,3 +241,22 @@ def test_invert_array_with_quib_elements(create_quib_with_return_value):
     ab[:] = 0
 
     assert np.array_equal(ab.get_value(), np.array([0, 0]))
+
+
+def test_invert_binary_elementwise_with_colon_slice(create_quib_with_return_value):
+    n = create_quib_with_return_value(2, allow_overriding=True)
+    a1 = np.arange(n)
+    a2 = np.reshape(a1, (1, n)).setp(allow_overriding=True)
+
+    b1 = np.arange(n)
+    b2 = np.reshape(b1, (n, 1)).setp(allow_overriding=True)
+
+    c = a2 + b2
+    assert np.array_equal(c.get_value(), [[0, 1], [1, 2]])  # sanity
+
+    c[1, :] = 10
+
+    assert np.array_equal(c.get_value(), [[9, 9], [10, 10]])  # sanity
+
+    n.assign_value(3)
+    assert np.array_equal(c.get_value(), [[9, 9, 9], [10, 10, 10], [11, 11, 11]])
