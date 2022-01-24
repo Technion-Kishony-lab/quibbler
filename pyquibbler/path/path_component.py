@@ -8,6 +8,7 @@ import numpy as np
 class PathComponent:
     indexed_cls: Type
     component: Any
+    debroadcast: bool = False
 
     def references_field_in_field_array(self):
         """
