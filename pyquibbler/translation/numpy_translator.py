@@ -29,7 +29,7 @@ class NumpyBackwardsPathTranslator(BackwardsPathTranslator):
             current_components = []
         return current_components, components_at_end
 
-    def translate_in_order(self) -> Dict[Source, Path]:
+    def translate(self) -> Dict[Source, Path]:
         sources_to_paths = {}
         working, rest = self._split_path()
         for source in self._func_call.get_data_sources():
