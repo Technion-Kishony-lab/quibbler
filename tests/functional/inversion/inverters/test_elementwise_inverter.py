@@ -42,10 +42,28 @@ def test_inverse_elementwise_two_arguments(func, func_args, indices, value, quib
 @pytest.mark.parametrize("func,func_arg,indices,value,expected_value", [
     (np.abs, Source(10), None, 15, 15),
     (np.abs, Source(-10), None, 15, -15),
+    (np.square, Source(10), None, 81, 9),
+    (np.square, Source(-10), None, 81, -9),
+    (np.square, Source(np.array([-3, 3, -4, 4])), slice(None, None, None), 81, np.array([9, 9, 9, 9])),
+    (np.square, Source(np.array([-3, 3, -4, 4])), slice(None, None, None), [81, 81, 81, 81], np.array([9, 9, 9, 9])),
+    (np.square, Source(np.array([-3, 3, -4, 4])), slice(None, -1, None), [81, 81, 81], np.array([9, 9, 9, 4])),
+    (np.square, Source(np.array([-3, 3, -4, 4])), slice(None, 3, None), [81, 81, 81], np.array([-9, 9, -9, 4])),
+    (np.square, Source(np.array([-3, 3, -4, 4])), 2, 81, np.array([-3, 3, -9, 4])),
+    (np.square, Source(np.array([-3, 3, -4, 4])), [0, 1, 2, 3], [81, 81, 81, 81], np.array([-9, 9, -9, 9])),
+    (np.square, Source(np.array([-3, 3, -4, 4])), [0, 1, 2, 3], 81, np.array([9, 9, 9, 9])),
     (np.int, Source(1.8), None, 3,  3),
 ], ids=[
     "abs: positive",
     "abs: negative",
+    "square: scalar, positive",
+    "square: scalar, negative",
+    "square: array[:] = scalar",
+    "square: array[:] = array",
+    "square: array[:-1] = array",
+    "square: array[:3] = array",
+    "square: array[2] = scalar",
+    "square: array[[0,1,2,3]] = array",
+    "square: array[[0,1,2,3]] = scalar",
     "int: float-to-int",
 ])
 def test_inverse_elementwise_single_argument(func, func_arg, indices, value, expected_value):

@@ -37,7 +37,9 @@ def get_inverter_for_func(func_name: str):
     return ELEMENTWISE_FUNCS_TO_INVERTERS[func_name]
 
 
-def elementwise(func_name: str, data_source_arguments: List[RawArgument], inverse_func: Optional[Callable] = None):
+def elementwise(func_name: str, data_source_arguments: List[RawArgument],
+                inverse_func: Optional[Callable] = None,
+                raw_inverse_func: Optional[Callable] = None):
     from pyquibbler.translation.translators.elementwise.elementwise_translator import \
         BackwardsElementwisePathTranslator
     from pyquibbler.translation.translators.elementwise.elementwise_translator import ForwardsElementwisePathTranslator
@@ -46,7 +48,7 @@ def elementwise(func_name: str, data_source_arguments: List[RawArgument], invers
 
     if inverse_func:
         ELEMENTWISE_FUNCS_TO_INVERTERS[func_name] = [
-            functools.partial(ElementwiseNoShapeInverter, inverse_func=inverse_func),
+            functools.partial(ElementwiseNoShapeInverter, inverse_func=inverse_func, raw_inverse_func=raw_inverse_func),
             functools.partial(ElementwiseInverter, inverse_func=inverse_func)
         ]
 
@@ -66,6 +68,7 @@ def single_arg_elementwise(func_name: str,
     if isinstance(inverse_func, Callable) or inverse_func is None:
         return elementwise(func_name,
                            inverse_func=create_inverse_single_arg_func(inverse_func) if inverse_func else None,
+                           raw_inverse_func=inverse_func,
                            data_source_arguments=[0])
     if isinstance(inverse_func, tuple):
         inverse_func = [inverse_func]
@@ -79,4 +82,5 @@ def many_to_one_periodic_elementwise(func_name: str, invfunc_period_tuple):
         create_inverse_single_arg_many_to_one
     return elementwise(func_name=func_name,
                        inverse_func=create_inverse_single_arg_many_to_one(invfunc_period_tuple),
+                       raw_inverse_func=invfunc_period_tuple[0][0],
                        data_source_arguments=[0])
