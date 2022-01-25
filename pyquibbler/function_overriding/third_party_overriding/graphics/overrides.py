@@ -3,9 +3,8 @@ from pyquibbler.function_overriding.third_party_overriding.general_helpers impor
 from pyquibbler.function_overriding.third_party_overriding.graphics.helpers import axes_override, \
     replacing_axes_override, widget_override
 from pyquibbler.quib.func_calling.func_calls import RadioButtonsQuibFuncCall, SliderQuibFuncCall, \
-    RectangleSelectorQuibFuncCall
+    RectangleSelectorQuibFuncCall,  CheckButtonsQuibFuncCall
 from pyquibbler.quib.func_calling.func_calls.known_graphics.plot_call import PlotQuibFuncCall
-from pyquibbler.quib.func_calling.func_calls.known_graphics.widgets.checkbuttons_call import CheckButtonsQuibFuncCall
 
 
 def create_graphics_overrides():
