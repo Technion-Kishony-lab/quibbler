@@ -1,5 +1,5 @@
 import functools
-from typing import List, Callable
+from typing import List, Callable, Tuple, Union, Optional
 
 import numpy as np
 
@@ -12,17 +12,21 @@ from pyquibbler.translation.translators import ForwardsTranspositionalTranslator
 
 numpy_override = functools.partial(override, np)
 
-transpositional = functools.partial(numpy_override, inverters=[TranspositionalInverter],
-                                    backwards_path_translators=[BackwardsTranspositionalTranslator],
-                                    forwards_path_translators=[ForwardsTranspositionalTranslator])
+numpy_override_random = functools.partial(override, np.random, is_random_func=True)
 
-accumulation = functools.partial(numpy_override, data_source_arguments=[0],
-                                 backwards_path_translators=[AccumulationBackwardsPathTranslator],
-                                 forwards_path_translators=[AccumulationForwardsPathTranslator])
+numpy_override_read_file = functools.partial(numpy_override, is_file_loading_func=True)
 
-reduction = functools.partial(numpy_override, data_source_arguments=[0],
-                              backwards_path_translators=[ReductionAxiswiseBackwardsPathTranslator],
-                              forwards_path_translators=[ReductionAxiswiseForwardsPathTranslator])
+numpu_override_transpositional = functools.partial(numpy_override, inverters=[TranspositionalInverter],
+                                                   backwards_path_translators=[BackwardsTranspositionalTranslator],
+                                                   forwards_path_translators=[ForwardsTranspositionalTranslator])
+
+numpy_override_accumulation = functools.partial(numpy_override, data_source_arguments=[0],
+                                                backwards_path_translators=[AccumulationBackwardsPathTranslator],
+                                                forwards_path_translators=[AccumulationForwardsPathTranslator])
+
+numpy_override_reduction = functools.partial(numpy_override, data_source_arguments=[0],
+                                             backwards_path_translators=[ReductionAxiswiseBackwardsPathTranslator],
+                                             forwards_path_translators=[ReductionAxiswiseForwardsPathTranslator])
 
 
 ELEMENTWISE_FUNCS_TO_INVERTERS = {}
@@ -33,7 +37,7 @@ def get_inverter_for_func(func_name: str):
     return ELEMENTWISE_FUNCS_TO_INVERTERS[func_name]
 
 
-def elementwise(func_name: str, data_source_arguments: List[RawArgument], inverse_func: Callable = None):
+def elementwise(func_name: str, data_source_arguments: List[RawArgument], inverse_func: Optional[Callable] = None):
     from pyquibbler.translation.translators.elementwise.elementwise_translator import \
         BackwardsElementwisePathTranslator
     from pyquibbler.translation.translators.elementwise.elementwise_translator import ForwardsElementwisePathTranslator
@@ -55,13 +59,22 @@ def elementwise(func_name: str, data_source_arguments: List[RawArgument], invers
     )
 
 
-def single_arg_elementwise(func_name: str, inverse_func: Callable):
+def single_arg_elementwise(func_name: str,
+                           inverse_func: Union[None, Callable, List[Union[Callable, Tuple[Callable, float]]]]):
     from pyquibbler.translation.translators.elementwise.generic_inverse_functions import create_inverse_single_arg_func
-    return elementwise(func_name, inverse_func=create_inverse_single_arg_func(inverse_func),
-                       data_source_arguments=[0])
+
+    if isinstance(inverse_func, Callable) or inverse_func is None:
+        return elementwise(func_name,
+                           inverse_func=create_inverse_single_arg_func(inverse_func) if inverse_func else None,
+                           data_source_arguments=[0])
+    if isinstance(inverse_func, tuple):
+        inverse_func = [inverse_func]
+    assert isinstance(inverse_func, list)
+    inverse_func = tuple(inv if isinstance(inv, tuple) else (inv, None) for inv in inverse_func)
+    return many_to_one_periodic_elementwise(func_name, inverse_func)
 
 
-def many_to_one_elementwise(func_name: str, invfunc_period_tuple):
+def many_to_one_periodic_elementwise(func_name: str, invfunc_period_tuple):
     from pyquibbler.translation.translators.elementwise.generic_inverse_functions import \
         create_inverse_single_arg_many_to_one
     return elementwise(func_name=func_name,

@@ -11,7 +11,7 @@ def override_with_cls(override_cls, module_or_cls,
                       func_name: str, data_source_arguments: List[RawArgument] = None,
                       forwards_path_translators: List = None, backwards_path_translators: List = None,
                       inverters: List = None,
-                      quib_function_call_cls=None, is_file_loading_func=False,
+                      quib_function_call_cls=None, is_file_loading_func=False, is_random_func=False,
                       replace_previous_quibs_on_artists: bool = False,
                       is_known_graphics_func: bool = False):
     return override_cls(
@@ -23,6 +23,7 @@ def override_with_cls(override_cls, module_or_cls,
             backwards_path_translators=backwards_path_translators,
             inverters=inverters,
             is_file_loading_func=is_file_loading_func,
+            is_random_func=is_random_func,
             quib_function_call_cls=quib_function_call_cls,
             replace_previous_quibs_on_artists=replace_previous_quibs_on_artists,
             is_known_graphics_func=is_known_graphics_func
