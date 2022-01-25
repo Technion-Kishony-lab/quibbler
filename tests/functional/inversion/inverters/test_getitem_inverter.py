@@ -54,8 +54,8 @@ def inverse_getitem(a, b, indices, value, empty_path: bool = False):
 def test_inverse(getitem_test_case):
     source = Source(getitem_test_case.source_value)
 
-    sources_to_results = inverse_getitem(source, getitem_test_case.item, indices=getitem_test_case.set_indices,
-                                         value=getitem_test_case.set_value)
+    sources_to_results, _ = inverse_getitem(source, getitem_test_case.item, indices=getitem_test_case.set_indices,
+                                            value=getitem_test_case.set_value)
 
     assert np.array_equal(sources_to_results[source], getitem_test_case.expected)
 
@@ -64,18 +64,18 @@ def test_inverse_assign_pyobject_array():
     a = Source(np.array([mock.Mock()]))
     new_mock = mock.Mock()
 
-    sources_to_result = inverse_getitem(a, 0, empty_path=True, indices=None, value=new_mock)
+    sources_to_results, _ = inverse_getitem(a, 0, empty_path=True, indices=None, value=new_mock)
 
-    assert sources_to_result[a] == [new_mock]
+    assert sources_to_results[a] == [new_mock]
 
 
 @pytest.mark.regression
 def test_inverse_assign_to_single_element():
     a = Source(np.array([0, 1, 2]))
 
-    sources_to_result = inverse_getitem(a, 1, empty_path=True, indices=None, value=3)
+    sources_to_results, _ = inverse_getitem(a, 1, empty_path=True, indices=None, value=3)
 
-    assert np.array_equal(sources_to_result[a], [0, 3, 2])
+    assert np.array_equal(sources_to_results[a], [0, 3, 2])
 
 
 @pytest.fixture()
@@ -86,25 +86,25 @@ def basic_dtype():
 def test_inverse_assign_field_array(basic_dtype):
     a = Source(np.array([[("maor", 24)], [("maor2", 22)]], dtype=basic_dtype))
 
-    sources_to_result = inverse_getitem(a, ([1], [0]), indices="age", value=23)
+    sources_to_results, _ = inverse_getitem(a, ([1], [0]), indices="age", value=23)
 
-    assert np.array_equal(sources_to_result[a], np.array([[("maor", 24)], [("maor2", 23)]], dtype=basic_dtype))
+    assert np.array_equal(sources_to_results[a], np.array([[("maor", 24)], [("maor2", 23)]], dtype=basic_dtype))
 
 
 @pytest.mark.regression
 def test_inverse_getitem_on_non_ndarray():
     source = Source([[1, 2, 3]])
 
-    sources_to_result = inverse_getitem(source, 0, indices=0, value=10)
+    sources_to_results, _ = inverse_getitem(source, 0, indices=0, value=10)
 
-    assert np.array_equal(sources_to_result[source], [[10, 2, 3]])
+    assert np.array_equal(sources_to_results[source], [[10, 2, 3]])
 
 
 @pytest.mark.regression
 def test_inverse_with_resulting_int_and_changing_value_shape():
     a = Source(np.arange(6).reshape(2, 3))
 
-    sources_to_result = inverse_getitem(a, (slice(None, None, None), slice(None, None, None)),
-                                        indices=(slice(None, None, None), slice(None, None, None)), value=0)
+    sources_to_results, _ = inverse_getitem(a, (slice(None, None, None), slice(None, None, None)),
+                                            indices=(slice(None, None, None), slice(None, None, None)), value=0)
 
-    assert np.array_equal(sources_to_result[a], np.full((2, 3), fill_value=0))
+    assert np.array_equal(sources_to_results[a], np.full((2, 3), fill_value=0))

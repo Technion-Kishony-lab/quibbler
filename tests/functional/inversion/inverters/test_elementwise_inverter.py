@@ -30,7 +30,7 @@ from tests.functional.inversion.inverters.utils import inverse
     "power: second arg is quib",
 ])
 def test_inverse_elementwise_two_arguments(func, func_args, indices, value, quib_arg_index, expected_value):
-    sources_to_results = inverse(func, indices=indices, value=value, args=func_args, empty_path=indices is None)
+    sources_to_results, _ = inverse(func, indices=indices, value=value, args=func_args, empty_path=indices is None)
 
     value = sources_to_results[func_args[quib_arg_index]]
     if isinstance(expected_value, Iterable):
@@ -49,7 +49,7 @@ def test_inverse_elementwise_two_arguments(func, func_args, indices, value, quib
     "int: float-to-int",
 ])
 def test_inverse_elementwise_single_argument(func, func_arg, indices, value, expected_value):
-    sources_to_results = inverse(func, indices=indices, value=value, args=(func_arg,), empty_path=indices is None)
+    sources_to_results, _ = inverse(func, indices=indices, value=value, args=(func_arg,), empty_path=indices is None)
 
     value = sources_to_results[func_arg]
     if isinstance(expected_value, Iterable):

@@ -53,9 +53,10 @@ def inverse(func: Callable, indices: Any, value: Any, args: Tuple[Any, ...] = No
                               value=value)
     )
 
-    return {
-        inversal.source: deep_assign_data_in_path(inversal.source.value,
-                                                  inversal.assignment.path,
-                                                  inversal.assignment.value)
-        for inversal in inversals
-    }
+    return ({
+                inversal.source: deep_assign_data_in_path(inversal.source.value,
+                                                          inversal.assignment.path,
+                                                          inversal.assignment.value)
+                for inversal in inversals
+            },
+            inversals)
