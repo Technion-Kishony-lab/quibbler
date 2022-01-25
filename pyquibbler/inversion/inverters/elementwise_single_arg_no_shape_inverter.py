@@ -13,7 +13,6 @@ from pyquibbler.inversion.exceptions import FailedToInvertException
 
 
 def is_path_component_open_ended(component: PathComponent):
-
     def is_sub_component_open_ended(sub_component) -> bool:
         return isinstance(sub_component, slice) and ((sub_component.stop is None) or (sub_component.stop < 0))
 
@@ -54,10 +53,10 @@ class ElementwiseNoShapeInverter(Inverter):
             else:
                 source_to_change_at_value_shape = Source(deep_get(source_to_change.value, assignment_path))
                 value_to_set = self._inverse_func(self._assignment.value,
-                                              self._func_call.args,
-                                              self._func_call.kwargs,
-                                              source_to_change_at_value_shape,
-                                              assignment_path)
+                                                  self._func_call.args,
+                                                  self._func_call.kwargs,
+                                                  source_to_change_at_value_shape,
+                                                  assignment_path)
         return [
             Inversal(
                 source=source_to_change,
