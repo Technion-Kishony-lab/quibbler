@@ -1,3 +1,5 @@
+# flake8: noqa
+
 import matplotlib.image
 from pyquibbler.function_overriding.third_party_overriding.general_helpers import override
 from pyquibbler.function_overriding.third_party_overriding.graphics.helpers import axes_override, \
@@ -9,22 +11,40 @@ from pyquibbler.quib.func_calling.func_calls.known_graphics.plot_call import Plo
 
 def create_graphics_overrides():
     return [
-        axes_override('plot', quib_function_call_cls=PlotQuibFuncCall),
+        axes_override(
+            'plot', quib_function_call_cls=PlotQuibFuncCall),
 
-        axes_override('imshow'), axes_override('text'), axes_override('bar'), axes_override('hist'),
-        axes_override('pie'), axes_override('legend'), axes_override('_sci'), axes_override('matshow'),
-        axes_override('scatter'),
+        *(axes_override(func_name) for func_name in (
+            'imshow',
+            'text',
+            'bar',
+            'hist',
+            'pie',
+            'legend',
+            '_sci',
+            'matshow',
+            'scatter',
+        )),
 
-        replacing_axes_override('set_xlim'), replacing_axes_override('set_ylim'),
-        replacing_axes_override('set_xticks'), replacing_axes_override('set_yticks'),
-        replacing_axes_override('set_xlabel'), replacing_axes_override('set_ylabel'),
-        replacing_axes_override('set_title'), replacing_axes_override('set_visible'),
-        replacing_axes_override('set_facecolor'),
+        *(replacing_axes_override(func_name) for func_name in (
+            'set_xlim',
+            'set_ylim',
+            'set_xticks',
+            'set_yticks',
+            'set_xlabel',
+            'set_ylabel',
+            'set_title',
+            'set_visible',
+            'set_facecolor',
+        )),
 
-        widget_override("RadioButtons", quib_function_call_cls=RadioButtonsQuibFuncCall),
-        widget_override("Slider", quib_function_call_cls=SliderQuibFuncCall),
-        widget_override("CheckButtons", quib_function_call_cls=CheckButtonsQuibFuncCall),
-        widget_override("RectangleSelector", quib_function_call_cls=RectangleSelectorQuibFuncCall),
+        *(widget_override(func_name, quib_function_call_cls=cls) for func_name, cls in (
+            ('RadioButtons',        RadioButtonsQuibFuncCall),
+            ('Slider',              SliderQuibFuncCall),
+            ('CheckButtons',        CheckButtonsQuibFuncCall),
+            ('RectangleSelector',   RectangleSelectorQuibFuncCall),
+            # TODO: add TextBox
+        )),
 
-        override(matplotlib.image, func_name='imread', is_file_loading_func=True)
+        override(matplotlib.image, 'imread', is_file_loading_func=True)
     ]
