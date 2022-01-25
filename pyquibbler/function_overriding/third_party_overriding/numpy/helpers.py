@@ -1,5 +1,5 @@
 import functools
-from typing import List, Callable, Tuple, Any, Union, Optional
+from typing import List, Callable, Tuple, Union, Optional
 
 import numpy as np
 
