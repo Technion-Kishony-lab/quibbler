@@ -5,8 +5,10 @@ import math
 import numpy as np
 from numpy import pi
 
-from pyquibbler.function_overriding.third_party_overriding.numpy.helpers import numpy_override, transpositional, \
-    elementwise, single_arg_elementwise, many_to_one_elementwise, reduction, accumulation
+from pyquibbler.function_overriding.third_party_overriding.numpy.helpers import numpy_override, \
+    numpy_override_random, numpy_override_read_file, \
+    numpu_override_transpositional, numpy_override_reduction, numpy_override_accumulation, \
+    elementwise, single_arg_elementwise
 from pyquibbler.function_overriding.third_party_overriding.numpy.vectorize_overrides import create_vectorize_overrides
 from pyquibbler.quib.func_calling.func_calls.apply_along_axis_call import ApplyAlongAxisQuibFuncCall
 from pyquibbler.translation.translators.apply_along_axis_translator import ApplyAlongAxisForwardsTranslator
@@ -22,20 +24,20 @@ def create_numpy_overrides():
 
     return [
         # Reduction
-        *(reduction(func_name) for func_name in (
-            # min/max:
-            'amin',
-            'max',
-            'amax',
+        *(numpy_override_reduction(func_name) for func_name in (
+            # min / max:
             'min',
+            'max',
+            'amin',
+            'amax',
 
-            # arg-min/max:
+            # arg-min / max:
             'argmin',
             'argmax',
             'nanargmin',
             'nanargmax',
 
-            # sum/prod:
+            # sum / prod:
             'sum',
             'prod',
             'nanprod',
@@ -58,7 +60,7 @@ def create_numpy_overrides():
         )),
 
         # Accumulation
-        *(accumulation(func_name) for func_name in (
+        *(numpy_override_accumulation(func_name) for func_name in (
             'cumsum',
             'cumprod',
             'cumproduct',
@@ -69,54 +71,99 @@ def create_numpy_overrides():
         # Binary
         *(elementwise(func_name, [0, 1], create_inverse_func_from_indexes_to_funcs({0: invs[0], 1: invs[1]}))
           for func_name, invs in (
-              ('add',       (np.subtract, np.subtract)),
-              ('subtract',  (np.add, lambda result, other: np.subtract(other, result))),
-              ('divide',    (np.multiply, lambda result, other: np.divide(other, result))),
-              ('multiply',  (np.divide, np.divide)),
-              ('power',     (lambda x, n: x ** (1 / n), lambda result, other: math.log(result, other))),
+              ('add',           (np.subtract, np.subtract)),
+              ('subtract',      (np.add, lambda result, other: np.subtract(other, result))),
+              ('divide',        (np.multiply, lambda result, other: np.divide(other, result))),
+              ('multiply',      (np.divide, np.divide)),
+              ('power',         (lambda x, n: x ** (1 / n), lambda result, other: math.log(result, other))),
+              ('true_divide',   (np.multiply, lambda result, other: np.divide(other, result))),
+              ('hypot',         (None, None)),  # TODO: write inverse
+              ('floor_divide',  (None, None)),  # TODO: write inverse
+              ('float_power',   (None, None)),  # TODO: write inverse
+              ('fmod',          (None, None)),  # TODO: write inverse
+              ('mod',           (None, None)),  # TODO: write inverse
+              ('remainder',     (None, None)),  # TODO: write inverse
+              ('divmod',        (None, None)),  # TODO: write inverse
+              ('fmin',          (None, None)),  # TODO: write inverse
+              ('fmax',          (None, None)),  # TODO: write inverse
+              ('lcm',           (None, None)),
+              ('gcd',           (None, None)),
+
           )),
 
         # Single argument
         *(single_arg_elementwise(func_name, inverse_func) for func_name, inverse_func in (
-            ('sqrt',    np.square),
-            ('arcsin',  np.sin),
-            ('arccos',  np.cos),
-            ('arctan',  np.tan),
-            ('arcsinh', np.sinh),
-            ('arccosh', np.cosh),
-            ('arctanh', np.tanh),
-            ('ceil',    identity),
-            ('floor',   identity),
-            ('round',   identity),
-            ('exp',     np.log),
-            ('exp2',    np.log2),
-            ('expm1',   np.log1p),
-            ('log',     np.exp),
-            ('log2',    np.exp2),
-            ('log1p',   np.expm1),
-            ('log10',   (lambda x: 10 ** x)),
-            ('int',     identity),
-            ('float',   identity),
-            ('around',  identity),
-            ('ceil',    identity),
-            ('round',   identity),
-            ('rint',    identity),
-        )),
+            # square, sqrt
+            ('sqrt',        np.square),
+            ('square',      [np.sqrt, lambda x: -np.sqrt(x)]),
 
-        # Periodic
-        *(many_to_one_elementwise(func_name, params) for func_name, params in (
-            ('sin',     ((np.arcsin,  2 * pi), (lambda x: -np.arcsin(x) + np.pi, 2 * pi))),
-            ('cos',     ((np.arccos,  2 * pi), (lambda x: -np.arccos(x), 2 * pi))),
-            ('tan',     ((np.arctan,  pi),)),
-            ('sinh',    ((np.arcsinh, None),)),
-            ('cosh',    ((np.arccosh, None),   (lambda x: -np.arccosh(x), None))),
-            ('tanh',    ((np.arctanh, None),)),
-            ('square',  ((np.sqrt,    None),   (lambda x: -np.sqrt(x), None))),
-            ('abs',     ((identity,   None),   (lambda x: -x, None))),
+            # trigonometric / inverse-trigonometric
+            ('sin',         [(np.arcsin,  2 * pi), (lambda x: -np.arcsin(x) + np.pi, 2 * pi)]),
+            ('cos',         [(np.arccos,  2 * pi), (lambda x: -np.arccos(x),         2 * pi)]),
+            ('tan',         (np.arctan,  pi)),
+            ('arcsin',      np.sin),
+            ('arccos',      np.cos),
+            ('arctan',      np.tan),
+
+            # angles
+            ('degrees',     np.radians),
+            ('radians',     np.degrees),
+            ('deg2rad',     np.deg2rad),
+            ('rad2deg',     np.deg2rad),
+
+            # complex numbers
+            ('abs',         [identity, lambda x: -x]),
+            ('real',        None),
+            ('imag',        None),
+            ('absolute',    [identity, lambda x: -x]),
+            ('angle',       None),
+            ('conj',        None),
+            ('conjugate',   None),
+            ('sign',        None),
+
+            # hyperbolic / inverse-hyperbolic
+            ('arcsinh',     np.sinh),
+            ('arccosh',     np.cosh),
+            ('arctanh',     np.tanh),
+            ('sinh',        np.arcsinh),
+            ('cosh',        [np.arccosh, lambda x: -np.arccosh(x)]),
+            ('tanh',        np.arctanh),
+
+            # arithmetics
+            ('reciprocal',  None),
+            ('positive',    None),
+            ('negative',    None),
+            ('modf',        None),
+
+            # exponentials / logs
+            ('exp',         np.log),
+            ('exp2',        np.log2),
+            ('expm1',       np.log1p),
+            ('log',         np.exp),
+            ('log2',        np.exp2),
+            ('log1p',       np.expm1),
+            ('log10',       (lambda x: 10 ** x)),
+
+            # rounding
+            ('ceil',        identity),
+            ('floor',       identity),
+            ('round',       identity),
+            ('around',      identity),
+            ('rint',        identity),
+            ('fix',         identity),
+            ('trunc',       identity),
+
+            # casting
+            ('int',         identity),
+            ('float',       identity),
+
+            # other
+            ('i0',          None),
+            ('sinc',        None),
         )),
 
         # Transpositional
-        *(transpositional(func_name, data_sources) for func_name, data_sources in (
+        *(numpu_override_transpositional(func_name, data_sources) for func_name, data_sources in (
             ("rot90",       [0]),
             ("concatenate", [0]),
             ("repeat",      [0]),
@@ -124,6 +171,7 @@ def create_numpy_overrides():
             ("reshape",     [0]),
             ("transpose",   [0]),
             ("array",       [0]),
+            ("swapaxes",    [0]),
             ("tile",        [0]),
             ("asarray",     [0]),
             ("squeeze",     [0]),
@@ -132,20 +180,49 @@ def create_numpy_overrides():
             ("squeeze",     [0]),
         )),
 
+        # Shape-only, data-independent
+        # TODO: need to implement correct translators
+        *(numpy_override(func_name) for func_name in (
+            'ones_like',
+            'zeros_like',
+            'shape',
+        )),
+
         # Data-less
-        *(numpy_override(func_name, []) for func_name in (
+        *(numpy_override(func_name) for func_name in (
             'arange',
             'polyfit',
             'interp',
             'linspace',
             'polyval',
-            'corrcoef'
+            'corrcoef',
+            'array2string',
+            'zeros',
+            'ones',
+            'eye',
+            'identity',
         )),
 
-        # Custom
-        numpy_override('genfromtxt', is_file_loading_func=True),
+        # Read from files
+        *(numpy_override_read_file(func_name) for func_name in (
+            'genfromtxt',
+            'load',
+            'loadtxt',
+        )),
+
+        # Random
+        *(numpy_override_random(func_name) for func_name in (
+            'rand',
+            'randn',
+            'randint'
+        )),
+
+        # Custom:
+        # apply_along_axis
         numpy_override('apply_along_axis', data_source_arguments=["arr"],
                        forwards_path_translators=[ApplyAlongAxisForwardsTranslator],
                        quib_function_call_cls=ApplyAlongAxisQuibFuncCall),
+
+        # vectorize
         *create_vectorize_overrides(),
     ]

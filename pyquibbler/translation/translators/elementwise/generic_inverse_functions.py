@@ -44,7 +44,7 @@ def create_inverse_single_arg_func(inverse_func: Callable):
     return _inverse
 
 
-def create_inverse_single_arg_many_to_one(invfunc_period_tuple: Tuple[Tuple[Callable, Any]]):
+def create_inverse_single_arg_many_to_one(invfunc_period_tuple: Tuple[Tuple[Callable, Any], ...]):
     """
     Create an inverse function that will call actual inverse functions for single argument
     many-to-one functions and choose the solution closest to the original value.
