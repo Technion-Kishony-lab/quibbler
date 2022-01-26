@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Any, List, Dict
+from typing import Any, List, Dict, Optional, Type, Tuple
 
 import numpy as np
 
@@ -45,11 +45,20 @@ class NumpyForwardsPathTranslator(ForwardsPathTranslator):
     numpy function.
     """
 
+    def __init__(self, func_call, sources_to_paths: Dict[Source, Path], shape: Optional[Tuple[int, ...]],
+                 type_: Optional[Type], should_forward_empty_paths_to_empty_paths: bool = True):
+        super().__init__(func_call, sources_to_paths, shape, type_)
+        self._should_forward_empty_paths_to_empty_paths = should_forward_empty_paths_to_empty_paths
+
     @abstractmethod
     def _forward_translate_indices_to_bool_mask(self, source: Source, indices: Any) -> np.ndarray:
         pass
 
     def _forward_translate_source(self, source: Source, path: Path) -> List[Path]:
+        # TODO: THIS AUTO RETURNING OF [[]] IS INCORRECT IF PATH IS EMPTY, IN SOME EDGE CASES THIS DOESN'T HOLD
+        if len(path) == 0 and self._should_forward_empty_paths_to_empty_paths:
+            return [[]]
+
         bool_mask_in_output_array = self._forward_translate_indices_to_bool_mask(source, working_component(path))
         if np.any(bool_mask_in_output_array):
             # If there exist both True's and False's in the boolean mask,
@@ -69,10 +78,3 @@ class NumpyForwardsPathTranslator(ForwardsPathTranslator):
                      *rest_of_path]]
 
         return []
-
-    def translate(self):
-        return {
-            # TODO: THIS AUTO RETURNING OF [[]] IS INCORRECT IF PATH IS EMPTY, IN SOME EDGE CASES THIS DOESN'T HOLD
-            source: self._forward_translate_source(source, path) if len(path) != 0 else [[]]
-            for source, path in self._sources_to_paths.items()
-        }

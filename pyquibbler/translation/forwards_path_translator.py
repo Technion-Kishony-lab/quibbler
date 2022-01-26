@@ -1,7 +1,6 @@
 from abc import abstractmethod
 from typing import Dict, Optional, Tuple, Type, List
 
-
 from pyquibbler.translation.types import Source
 from pyquibbler.path.path_component import Path
 

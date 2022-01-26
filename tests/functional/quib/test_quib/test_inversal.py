@@ -149,3 +149,18 @@ def test_change_minor_sources():
     b0.assign_value(5)
 
     assert b0.get_value() == 5
+
+
+@pytest.mark.regression
+def test_inverse_with_multiple_selections_and_colon():
+    a = iquib(1)
+    b = iquib(2)
+    c = np.array([a, b, 3])
+    d = c[0:2]
+
+    d[:] = 0
+
+    assert list(d.get_value()) == [0, 0]
+    assert np.array_equal(c.get_value(), [0, 0, 3])
+    assert a.get_value() == 0
+    assert b.get_value() == 0

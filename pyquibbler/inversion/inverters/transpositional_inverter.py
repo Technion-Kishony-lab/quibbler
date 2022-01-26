@@ -58,7 +58,8 @@ class TranspositionalInverter(Inverter):
             func_call=self._func_call,
             sources_to_paths=sources_to_paths_in_sources,
             shape=np.shape(self._previous_result),
-            type_=type(self._previous_result)
+            type_=type(self._previous_result),
+            should_forward_empty_paths_to_empty_paths=False
         ).translate()
         assert all(len(paths) == 1 for paths in sources_to_paths_in_result.values())
 
