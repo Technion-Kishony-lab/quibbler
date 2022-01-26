@@ -4,11 +4,10 @@ from pyquibbler.path.data_accessing import deep_get
 from pyquibbler.inversion.inverter import Inverter
 from pyquibbler.assignment import Assignment
 from pyquibbler.translation.translators import BackwardsTranspositionalTranslator, ForwardsTranspositionalTranslator
-from pyquibbler.translation.types import Inversal, Source
-from pyquibbler.path.path_component import PathComponent, Path
+from pyquibbler.translation.types import Inversal
+from pyquibbler.path.path_component import PathComponent
 from pyquibbler.path.utils import working_component
 from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices
-from pyquibbler.translation.translate import backwards_translate, forwards_translate
 
 
 class TranspositionalInverter(Inverter):

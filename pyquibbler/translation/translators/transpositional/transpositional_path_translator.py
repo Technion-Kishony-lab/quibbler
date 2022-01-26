@@ -1,5 +1,4 @@
 import functools
-import itertools
 from functools import lru_cache
 
 import numpy as np
@@ -10,10 +9,8 @@ from pyquibbler.translation.numpy_translator import NumpyBackwardsPathTranslator
 from pyquibbler.translation.translators.transpositional.utils import get_data_source_ids_mask
 from pyquibbler.translation.types import Source
 from pyquibbler.path.path_component import Path, PathComponent
-from pyquibbler.path.utils import working_component, working_component_of_type
+from pyquibbler.path.utils import working_component_of_type
 from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices
-from pyquibbler.path.utils import working_component, nd_working_component
-from pyquibbler.utilities.general_utils import create_empty_array_with_values_at_indices
 
 
 class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
@@ -78,8 +75,8 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
     @functools.lru_cache()
     def _get_data_sources_to_paths_in_data_sources(self) -> Dict[Source, np.ndarray]:
         """
-        Get a mapping of sources to the source's indices that were referenced in `self._indices` (ie after inversion of the
-        indices relevant to the particular source)
+        Get a mapping of sources to the source's indices that were referenced in `self._indices`
+         (ie after inversion of the indices relevant to the particular source)
         """
         relevant_indices_mask = create_bool_mask_with_true_at_indices(self._shape, self._working_component)
         data_sources = self._func_call.get_data_sources()

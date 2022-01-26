@@ -3,9 +3,8 @@ from typing import Any, List, Dict
 
 import numpy as np
 
-from pyquibbler.path import deep_get
 from pyquibbler.path.path_component import PathComponent, Path
-from pyquibbler.path import working_component, path_beyond_working_component, path_beyond_nd_working_component
+from pyquibbler.path import working_component
 from pyquibbler.translation.backwards_path_translator import BackwardsPathTranslator
 from pyquibbler.translation.forwards_path_translator import ForwardsPathTranslator
 from pyquibbler.translation.types import Source
@@ -62,12 +61,12 @@ class NumpyForwardsPathTranslator(ForwardsPathTranslator):
                    or (bool_mask_in_output_array.shape == () and bool_mask_in_output_array.dtype == np.bool_)
 
             if len(path) > 0 and issubclass(path[0].indexed_cls, (list, np.ndarray)):
-                new_path = path[1:]
+                rest_of_path = path[1:]
             else:
-                new_path = path
+                rest_of_path = path
 
             return [[PathComponent(self._type, bool_mask_in_output_array),
-                     *new_path]]
+                     *rest_of_path]]
 
         return []
 
