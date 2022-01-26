@@ -61,7 +61,19 @@ class NumpyForwardsPathTranslator(ForwardsPathTranslator):
             assert issubclass(self._type, np.ndarray) or isinstance(bool_mask_in_output_array, np.bool_) \
                    or (bool_mask_in_output_array.shape == () and bool_mask_in_output_array.dtype == np.bool_)
 
+            if len(path) > 0 and issubclass(path[0].indexed_cls, (list, np.ndarray)):
+                new_path = path[1:]
+            else:
+                new_path = path
+
             return [[PathComponent(self._type, bool_mask_in_output_array),
-                     *path_beyond_nd_working_component(path)]]
+                     *new_path]]
 
         return []
+
+    def translate(self):
+        return {
+            # TODO: THIS AUTO RETURNING OF [[]] IS INCORRECT IF PATH IS EMPTY, IN SOME EDGE CASES THIS DOESN'T HOLD
+            source: self._forward_translate_source(source, path) if len(path) != 0 else [[]]
+            for source, path in self._sources_to_paths.items()
+        }

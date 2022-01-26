@@ -10,7 +10,7 @@ from pyquibbler.translation.numpy_translator import NumpyBackwardsPathTranslator
 from pyquibbler.translation.translators.transpositional.utils import get_data_source_ids_mask
 from pyquibbler.translation.types import Source
 from pyquibbler.path.path_component import Path, PathComponent
-from pyquibbler.path.utils import working_component
+from pyquibbler.path.utils import working_component, working_component_of_type
 from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices
 from pyquibbler.path.utils import working_component, nd_working_component
 from pyquibbler.utilities.general_utils import create_empty_array_with_values_at_indices
@@ -135,7 +135,7 @@ class ForwardsTranspositionalTranslator(NumpyForwardsPathTranslator):
     @lru_cache()
     def _get_source_ids_mask(self):
         return get_data_source_ids_mask(self._func_call, {
-            source: nd_working_component(path)
+            source: working_component_of_type(path, (list, np.ndarray), True)
             for source, path in self._sources_to_paths.items()
         })
 
