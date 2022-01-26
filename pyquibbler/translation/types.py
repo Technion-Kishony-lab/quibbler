@@ -18,7 +18,7 @@ class SourceType(Enum):
     PARAMETER = 1
 
 
-@dataclass
+@dataclass(frozen=True)
 class Source:
     value: Any
 
