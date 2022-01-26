@@ -9,7 +9,7 @@ from pyquibbler.translation.numpy_translator import NumpyBackwardsPathTranslator
 from pyquibbler.translation.translators.transpositional.utils import get_data_source_ids_mask
 from pyquibbler.translation.types import Source
 from pyquibbler.path.path_component import Path, PathComponent
-from pyquibbler.path.utils import working_component
+from pyquibbler.path.utils import working_component_of_type
 from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices
 
 
@@ -17,7 +17,7 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
 
     def _get_data_source_ids_mask(self) -> np.ndarray:
         """
-        Runs the function with each quib's ids instead of it's values
+        Runs the function with each source's ids instead of it's values
         """
 
         def replace_source_with_id(obj):
@@ -28,9 +28,10 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
         args, kwargs = self._convert_sources_in_args(replace_source_with_id)
         return self._func_call.func(*args, **kwargs)
 
+    @functools.lru_cache()
     def get_data_sources_to_masks_in_result(self) -> Dict[Source, Any]:
         """
-        Get a mapping between quibs and a bool mask representing all the elements that are relevant to them in the
+        Get a mapping between sources and a bool mask representing all the elements that are relevant to them in the
         result
         """
         data_sources_ids_mask = self._get_data_source_ids_mask()
@@ -56,12 +57,12 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
     def _get_data_sources_to_indices_at_dimension(self, dimension: int,
                                                   relevant_indices_mask) -> Dict[Source, np.ndarray]:
         """
-        Get a mapping of quibs to their referenced indices at a *specific dimension*
+        Get a mapping of sources to their referenced indices at a *specific dimension*
         """
         data_sources_to_masks = self.get_data_sources_to_masks_in_result()
 
         def replace_data_source_with_index_at_dimension(d):
-            return np.indices(np.shape(d.value) if isinstance(d, Source) else np.shape(d))[dimension]
+            return np.indices(np.shape(d.value))[dimension]
 
         args, kwargs = self._convert_sources_in_args(replace_data_source_with_index_at_dimension)
         indices_res = self._func_call.func(*args, **kwargs)
@@ -72,36 +73,38 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
         }
 
     @functools.lru_cache()
-    def _get_data_sources_to_indices_in_data_sources(self) -> Dict[Source, np.ndarray]:
+    def _get_data_sources_to_paths_in_data_sources(self) -> Dict[Source, np.ndarray]:
         """
-        Get a mapping of quibs to the quib's indices that were referenced in `self._indices` (ie after inversion of the
-        indices relevant to the particular quib)
+        Get a mapping of sources to the source's indices that were referenced in `self._indices`
+         (ie after inversion of the indices relevant to the particular source)
         """
         relevant_indices_mask = create_bool_mask_with_true_at_indices(self._shape, self._working_component)
         data_sources = self._func_call.get_data_sources()
         max_shape_length = max([np.ndim(data_source_argument.value)
                                 for data_source_argument in data_sources]) if len(data_sources) > 0 else 0
 
-        # Default is to set all - if we have a shape we'll change this
-        data_sources_to_indices = {
-            data_source: None for data_source in data_sources
-        }
+        data_sources_to_masks = self.get_data_sources_to_masks_in_result()
+
+        # Default is to set all for any source that appears in result - if we have a shape we'll change this to be
+        # specific per dimension
+        data_sources_in_result = {data_source for data_source in data_sources
+                                  if np.any(np.logical_and(data_sources_to_masks[data_source], relevant_indices_mask))}
+        data_sources_to_indices = {}
+
         for i in range(max_shape_length):
             data_sources_to_indices_at_dimension = self._get_data_sources_to_indices_at_dimension(i,
                                                                                                   relevant_indices_mask)
 
-            for data_source, index in data_sources_to_indices_at_dimension.items():
-                if data_sources_to_indices[data_source] is None:
-                    data_sources_to_indices[data_source] = tuple()
-                data_sources_to_indices[data_source] = (*data_sources_to_indices[data_source], index)
+            for data_source, indices in data_sources_to_indices_at_dimension.items():
+                current_indices = data_sources_to_indices.get(data_source, tuple())
+                data_sources_to_indices[data_source] = (*current_indices, indices)
 
         return {
-            data_source: indices
-            for data_source, indices in data_sources_to_indices.items()
-            if indices is None or all(
-                len(dim) > 0
-                for dim in indices
-            )
+            data_source:
+                [PathComponent(indexed_cls=np.ndarray, component=data_sources_to_indices[data_source])]
+                if data_source in data_sources_to_indices else
+                []
+            for data_source in data_sources_in_result
         }
 
     @property
@@ -116,15 +119,12 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
 
     def _get_path_in_source(self, source: Source):
         # This is cached, will only run once
-        data_sources_to_indices = self._get_data_sources_to_indices_in_data_sources()
+        data_sources_to_paths = self._get_data_sources_to_paths_in_data_sources()
 
-        if source not in data_sources_to_indices:
+        if source not in data_sources_to_paths:
             return None
 
-        if data_sources_to_indices[source] is None:
-            return []
-
-        return [PathComponent(component=data_sources_to_indices[source], indexed_cls=np.ndarray)]
+        return data_sources_to_paths[source]
 
 
 class ForwardsTranspositionalTranslator(NumpyForwardsPathTranslator):
@@ -132,7 +132,7 @@ class ForwardsTranspositionalTranslator(NumpyForwardsPathTranslator):
     @lru_cache()
     def _get_source_ids_mask(self):
         return get_data_source_ids_mask(self._func_call, {
-            source: working_component(path)
+            source: working_component_of_type(path, (list, np.ndarray), True)
             for source, path in self._sources_to_paths.items()
         })
 
@@ -142,7 +142,7 @@ class ForwardsTranspositionalTranslator(NumpyForwardsPathTranslator):
     def _forward_translate_source(self, source: Source, path: Path) -> List[Path]:
         """
         There are two things we can potentially do:
-        1. Translate the invalidation path given the current function quib (eg if this function quib is rotate,
+        1. Translate the invalidation path given the current function source (eg if this function source is rotate,
         take the invalidated indices, rotate them and invalidate children with the resulting indices)
         2. Pass on the current path to all our children
         """

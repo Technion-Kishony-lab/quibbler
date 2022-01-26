@@ -60,3 +60,4 @@ def inverse(func: Callable, indices: Any, value: Any, args: Tuple[Any, ...] = No
                 for inversal in inversals
             },
             inversals)
+

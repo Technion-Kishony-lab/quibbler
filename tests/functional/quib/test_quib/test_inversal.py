@@ -5,6 +5,7 @@ import numpy as np
 # should be here
 import pytest
 
+from pyquibbler import iquib
 from pyquibbler.quib.quib import Quib
 
 
@@ -125,3 +126,26 @@ def test_invert_single_arg_elementwise_with_colon_slice(create_quib_with_return_
     b[:] = 3
     n.assign_value(4)
     assert np.array_equal(a.get_value(), [8, 8, 8, 8])
+
+
+@pytest.mark.regression
+def test_deep_assignment_with_object_ndarray():
+    a = iquib({'name': 'maor'})
+    b = np.array([a], dtype=object)
+    b0 = b[0]['name']
+
+    b0.assign_value('bobby')
+
+    assert b0.get_value() == 'bobby'
+
+
+@pytest.mark.regression
+def test_change_minor_sources():
+    a = iquib(1)
+    t = iquib(10)
+    b = np.array([a, t])
+    b0 = b[0]
+
+    b0.assign_value(5)
+
+    assert b0.get_value() == 5

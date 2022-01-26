@@ -54,7 +54,7 @@ class VectorizeBackwardsPathTranslator(BackwardsPathTranslator):
         indices_in_data_source = self._backwards_translate_indices_to_bool_mask(source, working_component.component)
         return [PathComponent(self._type, indices_in_data_source)]
 
-    def translate_in_order(self) -> Dict[Source, Path]:
+    def translate(self) -> Dict[Source, Path]:
         return {source: self._get_source_path_in_source(source, self._path)
                 for source in self._func_call.get_data_sources()}
 
@@ -81,7 +81,7 @@ class VectorizeForwardsPathTranslator(ForwardsPathTranslator):
         bool_mask_in_output_array = self._forward_translate_indices_to_bool_mask(source, working_component.component)
         if not np.any(bool_mask_in_output_array):
             return []
-        starting_path = [PathComponent(self._type, bool_mask_in_output_array), *rest_of_path]
+        starting_path = [PathComponent(np.ndarray, bool_mask_in_output_array), *rest_of_path]
 
         if self._vectorize_metadata.is_result_a_tuple:
             return [[PathComponent(tuple, i), *starting_path] for i in range(self._vectorize_metadata.tuple_length)]

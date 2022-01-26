@@ -4,7 +4,7 @@ from typing import Any, List, Dict
 import numpy as np
 
 from pyquibbler.path.path_component import PathComponent, Path
-from pyquibbler.path.utils import working_component, path_beyond_working_component
+from pyquibbler.path import working_component
 from pyquibbler.translation.backwards_path_translator import BackwardsPathTranslator
 from pyquibbler.translation.forwards_path_translator import ForwardsPathTranslator
 from pyquibbler.translation.types import Source
@@ -29,7 +29,7 @@ class NumpyBackwardsPathTranslator(BackwardsPathTranslator):
             current_components = []
         return current_components, components_at_end
 
-    def translate_in_order(self) -> Dict[Source, Path]:
+    def translate(self) -> Dict[Source, Path]:
         sources_to_paths = {}
         working, rest = self._split_path()
         for source in self._func_call.get_data_sources():
@@ -46,7 +46,7 @@ class NumpyForwardsPathTranslator(ForwardsPathTranslator):
     """
 
     @abstractmethod
-    def _forward_translate_indices_to_bool_mask(self, source: Source, indices: Any):
+    def _forward_translate_indices_to_bool_mask(self, source: Source, indices: Any) -> np.ndarray:
         pass
 
     def _forward_translate_source(self, source: Source, path: Path) -> List[Path]:
@@ -55,15 +55,19 @@ class NumpyForwardsPathTranslator(ForwardsPathTranslator):
             # If there exist both True's and False's in the boolean mask,
             # this function's quib result must be an ndarray- if it were a single item (say a PyObj, int, dict, list)
             # we'd expect it to be completely True (as it is ONE single object). If it is not a single item, it is by
-            # definitely an ndarray
+            # definition an ndarray
             assert issubclass(self._type, np.ndarray) or np.all(bool_mask_in_output_array)
             assert issubclass(self._type, np.ndarray) or isinstance(bool_mask_in_output_array, np.bool_) \
                    or (bool_mask_in_output_array.shape == () and bool_mask_in_output_array.dtype == np.bool_)
 
-            if not np.all(bool_mask_in_output_array) and issubclass(self._type, np.ndarray):
-                return [[PathComponent(self._type, bool_mask_in_output_array),
-                         *path_beyond_working_component(path)]]
-            return [path_beyond_working_component(path)]
+            if len(path) > 0 and issubclass(path[0].indexed_cls, (list, np.ndarray)):
+                rest_of_path = path[1:]
+            else:
+                rest_of_path = path
+
+            return [[PathComponent(self._type, bool_mask_in_output_array),
+                     *rest_of_path]]
+
         return []
 
     def translate(self):

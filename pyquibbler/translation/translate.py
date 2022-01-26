@@ -14,13 +14,12 @@ class MultipleBackwardsTranslatorRunner(MultipleInstanceRunner):
     expected_runner_exception = FailedToTranslateException
     exception_to_raise_on_none_found = NoTranslatorsFoundException
 
-    def __init__(self, func_call: FuncCall, path: Path, shape, type_: Type, in_order: bool,
+    def __init__(self, func_call: FuncCall, path: Path, shape, type_: Type,
                  extra_kwargs_for_translator):
         super().__init__(func_call)
         self._path = path
         self._shape = shape
         self._type = type_
-        self._in_order = in_order
         self._extra_kwargs_for_translator = extra_kwargs_for_translator
 
     def _get_runners_from_definition(self, definition: FuncDefinition) -> List:
@@ -36,7 +35,7 @@ class MultipleBackwardsTranslatorRunner(MultipleInstanceRunner):
             type_=self._type,
             **self._extra_kwargs_for_translator
         )
-        return translator.translate_in_order() if self._in_order else translator.translate_without_order()
+        return translator.translate()
 
 
 class MultipleForwardsTranslatorRunner(MultipleInstanceRunner):
@@ -68,13 +67,12 @@ class MultipleForwardsTranslatorRunner(MultipleInstanceRunner):
 
 
 def backwards_translate(func_call: FuncCall,
-                        path, shape=None, type_=None, in_order=True, **kwargs) -> Dict[Source, Path]:
+                        path, shape=None, type_=None, **kwargs) -> Dict[Source, Path]:
     """
     Backwards translate a path given a func_call
     This gives a mapping of sources to paths that were referenced in given path in the result of the function
     """
     return MultipleBackwardsTranslatorRunner(func_call=func_call, path=path, shape=shape, type_=type_,
-                                             in_order=in_order,
                                              extra_kwargs_for_translator=kwargs).run()
 
 

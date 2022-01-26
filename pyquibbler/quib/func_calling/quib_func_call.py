@@ -178,7 +178,6 @@ class QuibFuncCall(FuncCall):
         except NoTranslatorsFoundException:
             try:
                 sources_to_paths = backwards_translate(
-                    in_order=False,
                     func_call=func_call,
                     path=valid_path,
                     shape=self.get_shape(),

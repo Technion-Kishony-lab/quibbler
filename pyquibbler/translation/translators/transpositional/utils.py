@@ -8,7 +8,7 @@ from pyquibbler.function_definitions.func_call import FuncCall
 
 def get_data_source_ids_mask(func_call: FuncCall, sources_to_indices: Dict[Source, np.ndarray] = None) -> np.ndarray:
     """
-    Runs the function with each quib's ids instead of it's values
+    Runs the function with each source's id instead of it's values
     """
 
     sources_to_indices = sources_to_indices or {}
