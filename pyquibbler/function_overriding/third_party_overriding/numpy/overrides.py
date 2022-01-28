@@ -71,24 +71,44 @@ def create_numpy_overrides():
         # Binary
         *(elementwise(func_name, [0, 1], create_inverse_func_from_indexes_to_funcs({0: invs[0], 1: invs[1]}))
           for func_name, invs in (
+              # Arithmetic
               ('add',           (np.subtract, np.subtract)),
               ('subtract',      (np.add, lambda result, other: np.subtract(other, result))),
               ('divide',        (np.multiply, lambda result, other: np.divide(other, result))),
               ('multiply',      (np.divide, np.divide)),
               ('power',         (lambda x, n: x ** (1 / n), lambda result, other: math.log(result, other))),
               ('true_divide',   (np.multiply, lambda result, other: np.divide(other, result))),
-              ('hypot',         (None, None)),  # TODO: write inverse
+
+              # Integers
+              ('left_shift',    (None, None)),  # TODO: write inverse
+              ('right_shift',   (None, None)),  # TODO: write inverse
               ('floor_divide',  (None, None)),  # TODO: write inverse
+              ('mod',           (None, None)),  # TODO: write inverse
+
+              ('hypot',         (None, None)),  # TODO: write inverse
               ('float_power',   (None, None)),  # TODO: write inverse
               ('fmod',          (None, None)),  # TODO: write inverse
-              ('mod',           (None, None)),  # TODO: write inverse
               ('remainder',     (None, None)),  # TODO: write inverse
-              ('divmod',        (None, None)),  # TODO: write inverse
-              ('fmin',          (None, None)),  # TODO: write inverse
-              ('fmax',          (None, None)),  # TODO: write inverse
               ('lcm',           (None, None)),
               ('gcd',           (None, None)),
+              #('divmod',        (None, None)),  # TODO: return tuple, needs attention
 
+              # min / max
+              ('fmin',          (None, None)),  # TODO: write inverse
+              ('fmax',          (None, None)),  # TODO: write inverse
+
+              # logical
+              ('logical_and',   (None, None)),  # TODO: write inverse
+              ('logical_or',    (None, None)),  # TODO: write inverse
+              ('logical_xor',   (None, None)),  # TODO: write inverse
+
+              # comparison
+              ('equal',         (None, None)),
+              ('not_equal',     (None, None)),
+              ('greater',       (None, None)),
+              ('greater_equal', (None, None)),
+              ('less',          (None, None)),
+              ('less_equal',    (None, None)),
           )),
 
         # Single argument
