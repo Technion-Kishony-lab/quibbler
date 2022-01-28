@@ -23,12 +23,11 @@ class OperatorOverride(FuncOverride):
         '__floor__': math.floor,
         '__getitem__': operator.getitem
     }
-    is_reversed: bool = False
 
     def _get_func_from_module_or_cls(self):
         if self.func_name in self.SPECIAL_FUNCS:
             return self.SPECIAL_FUNCS[self.func_name]
-        if self.is_reversed:
+        if self.func_name in REVERSE_OPERATOR_NAMES_TO_FUNCS:
             return REVERSE_OPERATOR_NAMES_TO_FUNCS[self.func_name]
         return getattr(operator, self.func_name)
 
@@ -41,19 +40,15 @@ def with_reverse_operator_overrides(name, data_source_indexes: List = None, inve
     rname = '__r' + name[2:]
 
     from pyquibbler.quib.quib import Quib
-    return [operator_override(name, data_source_indexes, inverters=inverters,
+    return [operator_override(name, data_source_indexes,
+                              inverters=inverters,
                               backwards_path_translators=backwards_path_translators,
-                              forwards_path_translators=forwards_path_translators), OperatorOverride(
-        func_name=rname,
-        module_or_cls=Quib,
-        is_reversed=True,
-        function_definition=create_func_definition(
-            data_source_arguments=data_source_indexes,
-            inverters=inverters or [],
-            backwards_path_translators=backwards_path_translators,
-            forwards_path_translators=forwards_path_translators
-        )
-    )]
+                              forwards_path_translators=forwards_path_translators),
+            operator_override(rname, data_source_indexes,
+                              inverters=inverters,
+                              backwards_path_translators=backwards_path_translators,
+                              forwards_path_translators=forwards_path_translators)
+            ]
 
 
 elementwise_operator_override = functools.partial(operator_override,
