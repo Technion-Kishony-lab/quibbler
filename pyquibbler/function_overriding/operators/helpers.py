@@ -39,7 +39,6 @@ def with_reverse_operator_overrides(name, data_source_indexes: List = None, inve
                                     backwards_path_translators: List = None, forwards_path_translators: List = None):
     rname = '__r' + name[2:]
 
-    from pyquibbler.quib.quib import Quib
     return [operator_override(name, data_source_indexes,
                               inverters=inverters,
                               backwards_path_translators=backwards_path_translators,
@@ -51,17 +50,15 @@ def with_reverse_operator_overrides(name, data_source_indexes: List = None, inve
             ]
 
 
-elementwise_operator_override = functools.partial(operator_override,
-                                                  backwards_path_translators=[BackwardsElementwisePathTranslator],
-                                                  forwards_path_translators=[ForwardsElementwisePathTranslator])
+elementwise_operator_override = \
+    functools.partial(operator_override,
+                      backwards_path_translators=[BackwardsElementwisePathTranslator],
+                      forwards_path_translators=[ForwardsElementwisePathTranslator])
 
-with_reverse_elementwise_operator_overrides = functools.partial(with_reverse_operator_overrides,
-                                                                backwards_path_translators=[
-                                                                    BackwardsElementwisePathTranslator
-                                                                ],
-                                                                forwards_path_translators=[
-                                                                    ForwardsElementwisePathTranslator
-                                                                ])
+with_reverse_elementwise_operator_overrides = \
+    functools.partial(with_reverse_operator_overrides,
+                      backwards_path_translators=[BackwardsElementwisePathTranslator],
+                      forwards_path_translators=[ForwardsElementwisePathTranslator])
 
 
 def elementwise_translators():
