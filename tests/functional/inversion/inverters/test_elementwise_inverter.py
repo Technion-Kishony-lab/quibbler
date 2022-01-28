@@ -51,7 +51,7 @@ def test_inverse_elementwise_two_arguments(func, func_args, indices, value, quib
     (np.square, Source(np.array([-3, 3, -4, 4])), 2, 81, np.array([-3, 3, -9, 4])),
     (np.square, Source(np.array([-3, 3, -4, 4])), [0, 1, 2, 3], [81, 81, 81, 81], np.array([-9, 9, -9, 9])),
     (np.square, Source(np.array([-3, 3, -4, 4])), [0, 1, 2, 3], 81, np.array([9, 9, 9, 9])),
-    (np.int, Source(1.8), None, 3,  3),
+    (np.negative, Source(1.8), None, 3,  -3),
 ], ids=[
     "abs: positive",
     "abs: negative",

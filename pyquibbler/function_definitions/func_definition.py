@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import functools
 from dataclasses import dataclass, field
-from typing import Set, Type, List, Union, TYPE_CHECKING, Callable, Optional
+from typing import Set, Type, List, Union, TYPE_CHECKING, Callable, Optional, Tuple
 
 from pyquibbler.function_definitions.func_call import ArgsValues
 from pyquibbler.function_definitions.types import Argument, PositionalArgument, KeywordArgument
@@ -36,7 +36,7 @@ class FuncDefinition:
     backwards_path_translators: List[Type[BackwardsPathTranslator]] = field(default_factory=list)
     forwards_path_translators: List[Type[ForwardsPathTranslator]] = field(default_factory=list)
     quib_function_call_cls: Type[QuibFuncCall] = field(default_factory=get_default_quib_func_call)
-    inverse_func: Optional[Callable] = None
+    inverse_func_without_input: Optional[Callable] = None
     inverse_func_with_input: Optional[Callable] = None
 
     def __hash__(self):
@@ -128,8 +128,7 @@ def create_func_definition(data_source_arguments: List[Union[str, int]] = None,
                            backwards_path_translators: List[Type[BackwardsPathTranslator]] = None,
                            forwards_path_translators: List[Type[ForwardsPathTranslator]] = None,
                            quib_function_call_cls: Type[QuibFuncCall] = None,
-                           inverse_func: Optional[Callable] = None,
-                           inverse_func_with_input: Optional[Callable] = None,
+                           inverse_funcs: Optional[Tuple[Callable]] = None,
                            ):
     """
     Create a definition for a function- this will allow quibbler to utilize Quibs with the function in a more
@@ -154,7 +153,7 @@ def create_func_definition(data_source_arguments: List[Union[str, int]] = None,
         backwards_path_translators=backwards_path_translators or [],
         forwards_path_translators=forwards_path_translators or [],
         quib_function_call_cls=quib_function_call_cls,
-        inverse_func = inverse_func,
-        inverse_func_with_input = inverse_func_with_input,
+        inverse_func_with_input = None if not inverse_funcs else inverse_funcs[0],
+        inverse_func_without_input = None if not inverse_funcs else inverse_funcs[1],
         replace_previous_quibs_on_artists=replace_previous_quibs_on_artists
     )

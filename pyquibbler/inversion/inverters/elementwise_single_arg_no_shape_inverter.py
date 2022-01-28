@@ -26,11 +26,10 @@ def is_path_component_open_ended(component: PathComponent):
 
 class ElementwiseNoShapeInverter(Inverter):
 
-    def __init__(self, func_call: FuncCall, assignment, previous_result,
-                 inverse_func: Callable, raw_inverse_func: Callable):
+    def __init__(self, func_call: FuncCall, assignment, previous_result):
         super().__init__(func_call, assignment, previous_result)
-        self._inverse_func = inverse_func
-        self._raw_inverse_func = raw_inverse_func
+        self._inverse_func = func_call.get_func_definition().inverse_func_with_input
+        self._raw_inverse_func = func_call.get_func_definition().inverse_func_without_input
 
     def get_inversals(self):
         if len(self._func_call.args) != 1 \

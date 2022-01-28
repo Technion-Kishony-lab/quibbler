@@ -7,7 +7,7 @@ from numpy import pi
 
 from pyquibbler.function_overriding.third_party_overriding.numpy.helpers import numpy_override, \
     numpy_override_random, numpy_override_read_file, \
-    numpu_override_transpositional, numpy_override_reduction, numpy_override_accumulation, \
+    numpy_override_transpositional, numpy_override_reduction, numpy_override_accumulation, \
     elementwise, single_arg_elementwise
 from pyquibbler.function_overriding.third_party_overriding.numpy.vectorize_overrides import create_vectorize_overrides
 from pyquibbler.quib.func_calling.func_calls.apply_along_axis_call import ApplyAlongAxisQuibFuncCall
@@ -175,8 +175,10 @@ def create_numpy_overrides():
             ('trunc',       identity),
 
             # casting
-            ('int',         identity),
-            ('float',       identity),
+            #('int32',        identity),  # causes problems with specifying dtype=np.int32
+            #('int64',        identity),  # causes problems with specifying dtype=np.int64
+            #('int',         identity),  # DeprecationWarning: `np.int` is a deprecated alias for the builtin `int`.
+            #('float',       identity),  # DeprecationWarning: `np.float` is a deprecated alias for the builtin `float`.
 
             # other
             ('i0',          None),
@@ -184,7 +186,7 @@ def create_numpy_overrides():
         )),
 
         # Transpositional
-        *(numpu_override_transpositional(func_name, data_sources) for func_name, data_sources in (
+        *(numpy_override_transpositional(func_name, data_sources) for func_name, data_sources in (
             ("rot90",       [0]),
             ("concatenate", [0]),
             ("repeat",      [0]),

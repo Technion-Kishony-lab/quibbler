@@ -3,7 +3,7 @@ import math
 import operator
 from dataclasses import dataclass
 
-from typing import List, Optional, Callable
+from typing import List, Optional, Callable, Tuple
 
 from pyquibbler.function_overriding.function_override import FuncOverride
 from pyquibbler.function_overriding.third_party_overriding.general_helpers import override_with_cls
@@ -39,20 +39,16 @@ def with_reverse_operator_overrides(name,
                                     inverters: Optional[List] = None,
                                     backwards_path_translators: Optional[List] = None,
                                     forwards_path_translators: Optional[List] = None,
-                                    inverse_func: Optional[Callable] = None,
-                                    inverse_func_with_input: Optional[Callable] = None,
+                                    inverse_funcs: Optional[Tuple[Callable]] = None,
                                     ):
     rname = '__r' + name[2:]
 
-    return [operator_override(name, data_source_indexes,
+    return [operator_override(func_name, data_source_indexes,
                               inverters=inverters,
                               backwards_path_translators=backwards_path_translators,
-                              forwards_path_translators=forwards_path_translators),
-            operator_override(rname, data_source_indexes,
-                              inverters=inverters,
-                              backwards_path_translators=backwards_path_translators,
-                              forwards_path_translators=forwards_path_translators)
-            ]
+                              forwards_path_translators=forwards_path_translators,
+                              inverse_funcs=inverse_funcs)
+            for func_name in (name, rname)]
 
 
 elementwise_operator_override = \
