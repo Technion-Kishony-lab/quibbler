@@ -12,35 +12,52 @@ def create_operator_overrides():
     create_numpy_overrides()
 
     return [
-        *with_reverse_elementwise_operator_overrides('__add__', [0, 1], get_inverter_for_func('add')),
-        *with_reverse_elementwise_operator_overrides('__sub__', [0, 1], get_inverter_for_func('subtract')),
-        *with_reverse_elementwise_operator_overrides('__mul__', [0, 1], get_inverter_for_func('multiply')),
-        operator_override('__matmul__', []),
-        *with_reverse_elementwise_operator_overrides('__truediv__', [0, 1], get_inverter_for_func('divide')),
-        *with_reverse_operator_overrides('__floordiv__'),
-        *with_reverse_operator_overrides('__mod__'),
-        *with_reverse_elementwise_operator_overrides('__pow__', [0, 1], get_inverter_for_func('power')),
-        *with_reverse_elementwise_operator_overrides('__lshift__'),
-        *with_reverse_elementwise_operator_overrides('__rshift__'),
-        *with_reverse_operator_overrides('__and__'),
-        *with_reverse_operator_overrides('__xor__'),
-        *with_reverse_operator_overrides('__or__'),
 
+        # Binary operators with reverse
+        *(with_reverse_elementwise_operator_overrides(
+            operator_name, [0, 1], inverters=get_inverter_for_func(inverter_from))[is_rev] \
+          for is_rev in [0, 1] \
+          for operator_name, inverter_from in (
+            ('__add__',         'add'),
+            ('__sub__',         'subtract'),
+            ('__mul__',         'multiply'),
+            ('__truediv__',     'true_divide'),
+            ('__floordiv__',    'floor_divide'),
+            ('__mod__',         'mod'),
+            ('__pow__',         'power'),
+            ('__lshift__',      'left_shift'),
+            ('__rshift__',      'right_shift'),
+            ('__and__',         'logical_and'),
+            ('__xor__',         'logical_xor'),
+            ('__or__',          'logical_or'),
+          )),
+
+        # Binary operators without reverse:
+        *(elementwise_operator_override(
+            operator_name, [0, 1], inverters=get_inverter_for_func(inverter_from))
+          for operator_name, inverter_from in (
+              ('__ne__',        'not_equal'),
+              ('__lt__',        'less'),
+              ('__gt__',        'greater'),
+              ('__ge__',        'greater_equal'),
+              ('__le__',         'less_equal'),
+          )),
+
+        operator_override('__matmul__', []),
+
+        # Unary operators
         operator_override('__neg__'),
         operator_override('__pos__'),
         operator_override('__abs__'),
         operator_override('__invert__'),
 
-        elementwise_operator_override('__lt__'),
-        elementwise_operator_override('__gt__'),
-        elementwise_operator_override('__ge__'),
-        elementwise_operator_override('__le__'),
-
+        # Rounding operators
         operator_override('__round__', [0]),
         operator_override('__trunc__', [0]),
         operator_override('__floor__', [0]),
         operator_override('__ceil__', [0]),
 
+        # Get item
         operator_override(
             '__getitem__', [0], inverters=[GetItemInverter],
             backwards_path_translators=[BackwardsGetItemTranslator],
