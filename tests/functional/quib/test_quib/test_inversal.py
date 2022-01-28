@@ -164,3 +164,12 @@ def test_inverse_with_multiple_selections_and_colon():
     assert np.array_equal(c.get_value(), [0, 0, 3])
     assert a.get_value() == 0
     assert b.get_value() == 0
+
+
+@pytest.mark.regression
+def test_inverse_with_single_arg_operator():
+    a = iquib(np.array([1, 2, 3]))
+    b = -a
+    b[1:3] = 5
+
+    assert np.array_equal(a.get_value(), [1, -5, -5])

@@ -48,6 +48,8 @@ class TranspositionalInverter(Inverter):
         return inversals
 
     def get_inversals(self):
+        from pyquibbler.utilities.numpy_original_functions import np_logical_and
+
         sources_to_paths_in_sources = BackwardsTranspositionalTranslator(
             func_call=self._func_call,
             path=self._assignment.path,
@@ -72,7 +74,7 @@ class TranspositionalInverter(Inverter):
             if len(path) > 0 and path[0].indexed_cls == np.ndarray:
                 path[0] = PathComponent(
                     indexed_cls=np.ndarray,
-                    component=np.logical_and(working_component(path), boolean_mask)
+                    component=np_logical_and(working_component(path), boolean_mask)
                 )
             elif len(path) == 0:
                 path.insert(0, PathComponent(

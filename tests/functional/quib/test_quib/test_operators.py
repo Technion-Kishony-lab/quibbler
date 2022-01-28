@@ -1,16 +1,11 @@
 import operator
 from math import trunc, floor, ceil
+import numpy as np
 
 import pytest
 
 
-@pytest.mark.parametrize(['val1', 'val2'], [
-    (1, 2),
-    (1., 2.),
-    (1., 2),
-    (1, 2.)
-])
-@pytest.mark.parametrize('operator_name', {
+operator_names = {
     '__add__',
     '__sub__',
     '__mul__',
@@ -22,7 +17,16 @@ import pytest
     '__and__',
     '__xor__',
     '__or__'
-})
+}
+
+
+@pytest.mark.parametrize(['val1', 'val2'], [
+    (1, 2),
+    (1., 2.),
+    (1., 2),
+    (1, 2.)
+])
+@pytest.mark.parametrize('operator_name', operator_names)
 def test_quib_forward_and_inverse_arithmetic_operators(create_quib_with_return_value, operator_name: str, val1, val2):
     op = getattr(operator, operator_name)
     quib1 = create_quib_with_return_value(val1)
@@ -41,6 +45,20 @@ def test_quib_forward_and_inverse_arithmetic_operators(create_quib_with_return_v
         assert op(quib1, val2).get_value() == op(val1, val2)
         # Reverse operators
         assert op(val1, quib2).get_value() == op(val1, val2)
+
+
+@pytest.mark.parametrize('operator_name', operator_names)
+def test_binary_operators_elementwise_invalidation(create_quib_with_return_value, operator_name: str):
+    op = getattr(operator, operator_name)
+    a = create_quib_with_return_value(np.array([0, 1, 2]), allow_overriding=True)
+    b = op(a, 10).setp(cache_behavior='on')
+    b.get_value()
+
+    # sanity:
+    assert np.array_equal(b._quib_function_call.cache._invalid_mask, [False, False, False])
+
+    a[1] = 10
+    assert np.array_equal(b._quib_function_call.cache._invalid_mask, [False, True, False])
 
 
 @pytest.mark.parametrize('val', [1, 1., -1, -1.])
