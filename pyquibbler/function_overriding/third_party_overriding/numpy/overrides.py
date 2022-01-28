@@ -150,9 +150,10 @@ def create_numpy_overrides():
             ('tanh',        np.arctanh),
 
             # arithmetics
-            ('reciprocal',  None),
-            ('positive',    None),
-            ('negative',    None),
+            ('reciprocal',  np.reciprocal),
+            ('positive',    np.positive),
+            ('negative',    np.negative),
+            ('invert',      np.invert),
             ('modf',        None),
 
             # exponentials / logs

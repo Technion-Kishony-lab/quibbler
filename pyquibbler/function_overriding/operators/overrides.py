@@ -40,22 +40,28 @@ def create_operator_overrides():
               ('__lt__',        'less'),
               ('__gt__',        'greater'),
               ('__ge__',        'greater_equal'),
-              ('__le__',         'less_equal'),
+              ('__le__',        'less_equal'),
           )),
 
         operator_override('__matmul__', []),
 
         # Unary operators
-        operator_override('__neg__'),
-        operator_override('__pos__'),
-        operator_override('__abs__'),
-        operator_override('__invert__'),
+        *(elementwise_operator_override(
+            operator_name, [0], inverters=get_inverter_for_func(inverter_from))
+            for operator_name, inverter_from in (
 
-        # Rounding operators
-        operator_override('__round__', [0]),
-        operator_override('__trunc__', [0]),
-        operator_override('__floor__', [0]),
-        operator_override('__ceil__', [0]),
+            # arithmetics:
+            ('__neg__',         'negative'),
+            ('__pos__',         'positive'),
+            ('__abs__',         'abs'),
+            ('__invert__',      'invert'),
+
+            # Rounding operators
+            ('__round__',       'round'),
+            ('__trunc__',       'trunc'),
+            ('__floor__',       'floor'),
+            ('__ceil__',        'ceil'),
+        )),
 
         # Get item
         operator_override(
