@@ -1,4 +1,6 @@
-from pyquibbler.function_overriding.operators.helpers import with_reverse_operator_overrides, operator_override, \
+# flake8: noqa
+
+from pyquibbler.function_overriding.operators.helpers import operator_override, \
     with_reverse_elementwise_operator_overrides, elementwise_operator_override
 from pyquibbler.function_overriding.third_party_overriding.numpy.helpers import get_inverter_for_func
 from pyquibbler.function_overriding.third_party_overriding.numpy.overrides import create_numpy_overrides

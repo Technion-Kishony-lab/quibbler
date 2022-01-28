@@ -5,7 +5,6 @@ from dataclasses import dataclass
 
 from typing import List
 
-from pyquibbler.function_definitions.func_definition import create_func_definition
 from pyquibbler.function_overriding.function_override import FuncOverride
 from pyquibbler.function_overriding.third_party_overriding.general_helpers import override_with_cls
 from pyquibbler.quib import Quib
