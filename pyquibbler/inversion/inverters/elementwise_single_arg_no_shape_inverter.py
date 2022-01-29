@@ -1,12 +1,11 @@
 import warnings
-from typing import Callable
 
 import numpy as np
 
 from pyquibbler import Assignment
 from pyquibbler.path.path_component import PathComponent
 from pyquibbler.path.data_accessing import deep_get
-from pyquibbler.function_definitions.func_call import FuncCall
+from pyquibbler.translation.source_func_call import SourceFuncCall
 from pyquibbler.inversion.inverter import Inverter
 from pyquibbler.translation.types import Source, Inversal
 from pyquibbler.inversion.exceptions import FailedToInvertException
@@ -26,7 +25,7 @@ def is_path_component_open_ended(component: PathComponent):
 
 class ElementwiseNoShapeInverter(Inverter):
 
-    def __init__(self, func_call: FuncCall, assignment, previous_result):
+    def __init__(self, func_call: SourceFuncCall, assignment, previous_result):
         super().__init__(func_call, assignment, previous_result)
         self._inverse_func = func_call.get_func_definition().inverse_func_with_input
         self._raw_inverse_func = func_call.get_func_definition().inverse_func_without_input

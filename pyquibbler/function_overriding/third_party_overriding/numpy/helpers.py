@@ -8,6 +8,8 @@ from pyquibbler.inversion import TranspositionalInverter
 from pyquibbler.translation.translators import ForwardsTranspositionalTranslator, BackwardsTranspositionalTranslator, \
     AccumulationBackwardsPathTranslator, AccumulationForwardsPathTranslator, ReductionAxiswiseBackwardsPathTranslator, \
     ReductionAxiswiseForwardsPathTranslator
+from pyquibbler.inversion.inverters.elementwise_inverter import ElementwiseInverter
+from pyquibbler.inversion.inverters.elementwise_single_arg_no_shape_inverter import ElementwiseNoShapeInverter
 
 numpy_override = functools.partial(override, np)
 
@@ -28,6 +30,8 @@ numpy_override_reduction = functools.partial(numpy_override, data_source_argumen
                                              forwards_path_translators=[ReductionAxiswiseForwardsPathTranslator])
 
 ELEMENTWISE_FUNCS_TO_INVERSE_FUNCS = {}
+
+ELEMENTWISE_INVERTERS = [ElementwiseNoShapeInverter, ElementwiseInverter]
 
 
 @functools.lru_cache()

@@ -2,7 +2,6 @@ import warnings
 from dataclasses import dataclass
 
 import numpy as np
-from typing import Callable
 
 from pyquibbler import Assignment
 from pyquibbler.env import ASSIGNMENT_RESTRICTIONS
