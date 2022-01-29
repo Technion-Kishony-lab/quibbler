@@ -243,8 +243,12 @@ class Quib:
         """
         from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation
         func_call, sources_to_quibs = get_func_call_for_translation(self._quib_function_call)
-        sources_to_paths = backwards_translate(func_call=func_call, path=override_removal.path)
-        return [OverrideRemoval(sources_to_quibs[source], path) for source, path in sources_to_paths.items()]
+        try:
+            sources_to_paths = backwards_translate(func_call=func_call, path=override_removal.path)
+        except NoTranslatorsFoundException:
+            return []
+        else:
+            return [OverrideRemoval(sources_to_quibs[source], path) for source, path in sources_to_paths.items()]
 
     @property
     @functools.lru_cache()
