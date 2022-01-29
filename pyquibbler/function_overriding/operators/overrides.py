@@ -2,7 +2,8 @@
 
 from pyquibbler.function_overriding.operators.helpers import operator_override, \
     with_reverse_elementwise_operator_overrides, elementwise_operator_override
-from pyquibbler.function_overriding.third_party_overriding.numpy.helpers import get_inverter_for_func
+from pyquibbler.function_overriding.third_party_overriding.numpy.helpers import \
+    get_inverse_funcs_for_func, ELEMENTWISE_INVERTERS
 from pyquibbler.function_overriding.third_party_overriding.numpy.overrides import create_numpy_overrides
 from pyquibbler.inversion.inverters.getitem_inverter import GetItemInverter
 from pyquibbler.translation.translators import BackwardsGetItemTranslator
@@ -17,7 +18,8 @@ def create_operator_overrides():
 
         # Binary operators with reverse
         *(with_reverse_elementwise_operator_overrides(
-            operator_name, [0, 1], inverters=get_inverter_for_func(inverter_from))[is_rev] \
+            operator_name, [0, 1], inverters=ELEMENTWISE_INVERTERS,
+            inverse_funcs=get_inverse_funcs_for_func(inverter_from))[is_rev] \
           for is_rev in [0, 1] \
           for operator_name, inverter_from in (
             ('__add__',         'add'),
@@ -36,7 +38,8 @@ def create_operator_overrides():
 
         # Binary operators without reverse:
         *(elementwise_operator_override(
-            operator_name, [0, 1], inverters=get_inverter_for_func(inverter_from))
+            operator_name, [0, 1], inverters=ELEMENTWISE_INVERTERS,
+            inverse_funcs=get_inverse_funcs_for_func(inverter_from))
           for operator_name, inverter_from in (
               ('__ne__',        'not_equal'),
               ('__lt__',        'less'),
@@ -49,7 +52,8 @@ def create_operator_overrides():
 
         # Unary operators
         *(elementwise_operator_override(
-            operator_name, [0], inverters=get_inverter_for_func(inverter_from))
+            operator_name, [0], inverters=ELEMENTWISE_INVERTERS,
+            inverse_funcs=get_inverse_funcs_for_func(inverter_from))
             for operator_name, inverter_from in (
 
             # arithmetics:
