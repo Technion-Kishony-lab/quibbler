@@ -63,7 +63,7 @@ def elementwise(func_name: str, data_source_arguments: List[RawArgument],
 
 
 def single_arg_elementwise(func_name: str,
-                           inverse_func: Union[None, Callable, List[Union[Callable, Tuple[Callable, float]]]]):
+                           inverse_func: Union[None, Callable, Tuple[Union[Optional[Callable]]]]):
     from pyquibbler.translation.translators.elementwise.generic_inverse_functions import create_inverse_single_arg_func
 
     if isinstance(inverse_func, Callable) or inverse_func is None:
