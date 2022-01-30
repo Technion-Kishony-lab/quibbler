@@ -1,6 +1,4 @@
-from typing import Any, Tuple, Callable, Dict
-
-import numpy as np
+from typing import Any, Callable, Dict
 
 from pyquibbler.translation.types import Source
 from pyquibbler.translation.utils import copy_and_replace_sources_with_vals
@@ -41,5 +39,3 @@ def create_inverse_single_arg_func(inverse_func: Callable):
         return call_func_with_sources_values(inverse_func, [representative_result, *args], kwargs)
 
     return _inverse
-
-

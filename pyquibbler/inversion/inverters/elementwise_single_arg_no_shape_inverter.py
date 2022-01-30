@@ -55,10 +55,10 @@ class ElementwiseNoShapeInverter(Inverter):
                 source_to_change_at_value_shape = Source(deep_get(source_to_change.value, assignment_path))
                 inverse_func_with_input = create_inverse_single_arg_func(self._inverse_func_with_input)
                 value_to_set = inverse_func_with_input(self._assignment.value,
-                                                             [source_to_change_at_value_shape],
-                                                             self._func_call.kwargs,
-                                                             source_to_change_at_value_shape,
-                                                             assignment_path)
+                                                       [source_to_change_at_value_shape],
+                                                       self._func_call.kwargs,
+                                                       source_to_change_at_value_shape,
+                                                       assignment_path)
         return [
             Inversal(
                 source=source_to_change,

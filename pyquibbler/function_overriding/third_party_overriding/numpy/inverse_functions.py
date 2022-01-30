@@ -2,6 +2,7 @@ import numpy as np
 from typing import Callable
 pi = np.pi
 
+
 def inv_sin(new_y, x):
     """
     assuming y = sin(x) and y->new_y, find corresponding new_x such that
@@ -19,7 +20,7 @@ def inv_cos(new_y, x):
     """
 
     n = np.floor(x / pi)
-    return -(np.mod(n, 2) * 2 - 1) * (np.arccos(new_y) - pi/2) + n*pi + pi/2
+    return -(np.mod(n, 2) * 2 - 1) * (np.arccos(new_y) - pi / 2) + n * pi + pi / 2
 
 
 def inv_tan(new_y, x):
@@ -29,7 +30,7 @@ def inv_tan(new_y, x):
     """
 
     n = np.floor(x / pi + 0.5)
-    return np.arctan(new_y) + n*pi
+    return np.arctan(new_y) + n * pi
 
 
 def keep_sign(inv_func: Callable) -> Callable:
@@ -37,4 +38,3 @@ def keep_sign(inv_func: Callable) -> Callable:
         return np.sign(x) * inv_func(new_y)
 
     return sign_keeping
-

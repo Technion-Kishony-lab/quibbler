@@ -45,8 +45,6 @@ def elementwise(func_name: str, data_source_arguments: List[RawArgument],
     from pyquibbler.translation.translators.elementwise.elementwise_translator import \
         BackwardsElementwisePathTranslator
     from pyquibbler.translation.translators.elementwise.elementwise_translator import ForwardsElementwisePathTranslator
-    from pyquibbler.inversion.inverters.elementwise_inverter import ElementwiseInverter
-    from pyquibbler.inversion.inverters.elementwise_single_arg_no_shape_inverter import ElementwiseNoShapeInverter
 
     is_inverse = inverse_func_with_input or inverse_func_without_input
     if is_inverse:

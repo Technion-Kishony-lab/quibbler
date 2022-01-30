@@ -15,6 +15,7 @@ from pyquibbler.translation.types import Source, Inversal
 from pyquibbler.translation.translators.elementwise.generic_inverse_functions import \
     create_inverse_single_arg_func, create_inverse_func_from_indexes_to_funcs
 
+
 @dataclass
 class CannotReverseException(PyQuibblerException):
     source: Source
