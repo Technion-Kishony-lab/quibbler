@@ -8,11 +8,7 @@ from pyquibbler.quib.factory import create_quib
 
 def test_quib_does_not_request_shape_or_parents_shapes_on_first_attempt(create_mock_quib):
     parent = create_mock_quib()
-
-    def func(a):
-        return a
-
-    quib = create_quib(func=func, args=(parent,))
+    quib = create_quib(func=lambda a: a, args=(parent,))
     backwards_path_translator = mock.Mock()
     backwards_path_translator.return_value.translate.return_value = {}
     add_definition_for_function(func=quib.func, function_definition=create_func_definition(
