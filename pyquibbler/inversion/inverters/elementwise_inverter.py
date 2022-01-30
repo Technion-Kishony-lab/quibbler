@@ -12,7 +12,8 @@ from pyquibbler.path.utils import working_component
 from pyquibbler.utilities.iterators import iter_objects_of_type_in_object_shallowly
 from pyquibbler.translation.translate import backwards_translate
 from pyquibbler.translation.types import Source, Inversal
-
+from pyquibbler.translation.translators.elementwise.generic_inverse_functions import \
+    create_inverse_single_arg_func, create_inverse_func_from_indexes_to_funcs
 
 @dataclass
 class CannotReverseException(PyQuibblerException):
@@ -60,12 +61,18 @@ class ElementwiseInverter(Inverter):
                                                       path=self._assignment.path)[source_to_change]
 
         with warnings.catch_warnings():
+
             warnings.simplefilter("ignore")
-            new_quib_argument_value = self._inverse_func(self._get_result_with_assignment_set(),
-                                                         self._func_call.args,
-                                                         self._func_call.kwargs,
-                                                         source_to_change,
-                                                         relevant_path_in_source)
+            if isinstance(self._inverse_func, dict):
+                actual_inverse_func = create_inverse_func_from_indexes_to_funcs(self._inverse_func)
+            else:
+                actual_inverse_func = create_inverse_single_arg_func(self._inverse_func)
+
+            new_quib_argument_value = actual_inverse_func(self._get_result_with_assignment_set(),
+                                                          self._func_call.args,
+                                                          self._func_call.kwargs,
+                                                          source_to_change,
+                                                          relevant_path_in_source)
         value_to_set = new_quib_argument_value \
             if component is True \
             else new_quib_argument_value[component]
