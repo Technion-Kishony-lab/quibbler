@@ -22,7 +22,8 @@ from pyquibbler.quib.func_calling.utils import create_array_from_func
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.quib_guard import QuibGuard
 from pyquibbler.quib.quib_ref import QuibRef
-from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation
+from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation_with_sources_metadata, \
+    get_func_call_for_translation_without_sources_metadata
 from pyquibbler.translation import NoTranslatorsFoundException
 from pyquibbler.translation.translate import backwards_translate
 from pyquibbler.utilities.iterators import get_paths_for_objects_of_type
@@ -168,14 +169,14 @@ class QuibFuncCall(FuncCall):
         if not self.get_data_sources():
             return {}
 
-        func_call, sources_to_quibs = get_func_call_for_translation(self)
-
         try:
+            func_call, sources_to_quibs = get_func_call_for_translation_without_sources_metadata(func_call=self)
             sources_to_paths = backwards_translate(
                 func_call=func_call,
                 path=valid_path,
             )
         except NoTranslatorsFoundException:
+            func_call, sources_to_quibs = get_func_call_for_translation_with_sources_metadata(func_call=self)
             try:
                 sources_to_paths = backwards_translate(
                     func_call=func_call,

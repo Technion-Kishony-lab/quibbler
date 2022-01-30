@@ -1,11 +1,8 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Callable, TYPE_CHECKING
+from typing import Callable
 
 from pyquibbler.exceptions import PyQuibblerException
-
-if TYPE_CHECKING:
-    from pyquibbler.function_definitions.func_call import FuncCall
 
 
 class TranslationException(PyQuibblerException):
@@ -15,10 +12,8 @@ class TranslationException(PyQuibblerException):
 @dataclass
 class FailedToTranslateException(TranslationException):
 
-    func_call: FuncCall
-
     def __str__(self):
-        return f"Failed to translate {self.func_call}"
+        return "Failed to translate func call"
 
 
 @dataclass

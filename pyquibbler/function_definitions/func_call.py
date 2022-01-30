@@ -116,8 +116,7 @@ class FuncCall(ABC):
 
     def _get_argument_used_in_current_func_call_for_argument(self, argument: Argument):
         """
-        Get the argument actually used in this specific funccall,
-        which is the same argument essentially as the given argument.
+        Get the argument actually used in this specific funccall corresponding to the given parameter `argument`.
 
         For example, given:
 

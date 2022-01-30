@@ -27,7 +27,7 @@ class MultipleBackwardsTranslatorRunner(MultipleInstanceRunner):
 
     def _run_runner(self, runner: Type[BackwardsPathTranslator]):
         if not runner.SHOULD_ATTEMPT_WITHOUT_SHAPE_AND_TYPE and self._type is None:
-            raise FailedToTranslateException(self._func_call)
+            raise FailedToTranslateException()
         translator = runner(
             func_call=self._func_call,
             path=self._path,
@@ -53,7 +53,7 @@ class MultipleForwardsTranslatorRunner(MultipleInstanceRunner):
 
     def _run_runner(self, runner: Type[ForwardsPathTranslator]):
         if not runner.SHOULD_ATTEMPT_WITHOUT_SHAPE_AND_TYPE and self._type is None:
-            raise FailedToTranslateException(self._func_call)
+            raise FailedToTranslateException()
         return runner(
             func_call=self._func_call,
             shape=self._shape,
