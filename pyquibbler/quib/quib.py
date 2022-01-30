@@ -23,7 +23,8 @@ from pyquibbler.quib.quib_guard import guard_raise_if_not_allowed_access_to_quib
 from pyquibbler.quib.pretty_converters import MathExpression, FailedMathExpression, \
     NameMathExpression, pretty_convert
 from pyquibbler.quib.utils.miscellaneous import get_user_friendly_name_for_requested_valid_path
-from pyquibbler.translation.types import Source
+from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation_with_sources_metadata, \
+    get_func_call_for_translation_without_sources_metadata
 from pyquibbler.utilities.input_validation_utils import validate_user_input
 from pyquibbler.logger import logger
 from pyquibbler.project import Project
@@ -34,7 +35,7 @@ from pyquibbler.assignment import AssignmentTemplate, Overrider, Assignment, \
 from pyquibbler.path.data_accessing import FailedToDeepAssignException
 from pyquibbler.path.path_component import PathComponent, Path
 from pyquibbler.assignment import InvalidTypeException, OverrideRemoval, get_override_group_for_change
-from pyquibbler.function_definitions import ArgsValues, FuncCall
+from pyquibbler.function_definitions import ArgsValues
 from pyquibbler.quib.func_calling.cache_behavior import CacheBehavior, UnknownCacheBehaviorException
 from pyquibbler.quib.exceptions import OverridingNotAllowedException, UnknownUpdateTypeException, \
     InvalidCacheBehaviorForQuibException, CannotSaveAsTextException
@@ -241,8 +242,8 @@ class Quib:
         Get a list of overide removals to parent quibs which could be applied instead of the given override removal
         and produce the same change in the value of this quib.
         """
-        from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation
-        func_call, sources_to_quibs = get_func_call_for_translation(self._quib_function_call)
+        from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation_with_sources_metadata
+        func_call, sources_to_quibs = get_func_call_for_translation_with_sources_metadata(self._quib_function_call)
         try:
             sources_to_paths = backwards_translate(func_call=func_call, path=override_removal.path)
         except NoTranslatorsFoundException:
@@ -265,8 +266,8 @@ class Quib:
         Get a list of assignments to parent quibs which could be applied instead of the given assignment
         and produce the same change in the value of this quib.
         """
-        from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation
-        func_call, data_sources_to_quibs = get_func_call_for_translation(self._quib_function_call)
+        from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation_with_sources_metadata
+        func_call, data_sources_to_quibs = get_func_call_for_translation_with_sources_metadata(self._quib_function_call)
 
         try:
             value = self.get_value()
@@ -369,55 +370,66 @@ class Quib:
                 if len(path) == 0 or not self._is_completely_overridden_at_first_component(new_path):
                     self._invalidate_children_at_path(new_path)
 
-    def _forward_translate_source_path(self, func_call: FuncCall, source: Source, path: Path):
+    def _forward_translate_without_retrieving_metadata(self, invalidator_quib: Quib, path: Path) -> List[Path]:
+        func_call, sources_to_quibs = get_func_call_for_translation_without_sources_metadata(
+            self._quib_function_call
+        )
+        quibs_to_sources = {quib: source for source, quib in sources_to_quibs.items()}
+        sources_to_forwarded_paths = forwards_translate(
+            func_call=func_call,
+            sources_to_paths={
+                quibs_to_sources[invalidator_quib]: path
+            },
+        )
+        return sources_to_forwarded_paths.get(quibs_to_sources[invalidator_quib], [])
+
+    def _forward_translate_with_retrieving_metadata(self, invalidator_quib: Quib, path: Path) -> List[Path]:
+        func_call, sources_to_quibs = get_func_call_for_translation_with_sources_metadata(
+            self._quib_function_call
+        )
+        quibs_to_sources = {quib: source for source, quib in sources_to_quibs.items()}
+        sources_to_forwarded_paths = forwards_translate(
+            func_call=func_call,
+            sources_to_paths={
+                quibs_to_sources[invalidator_quib]: path
+            },
+            shape=self.get_shape(),
+            type_=self.get_type(),
+            **self._quib_function_call.get_result_metadata()
+        )
+        return sources_to_forwarded_paths.get(quibs_to_sources[invalidator_quib], [])
+
+    def _forward_translate_source_path(self, invalidator_quib: Quib, path: Path) -> List[Path]:
         """
         Forward translate a path, first attempting to do it WITHOUT using getting the shape and type, and if/when
         failure does grace us, we attempt again with shape and type
         """
         try:
-            return forwards_translate(
-                func_call=func_call,
-                sources_to_paths={
-                    source: path
-                },
-            )
+            return self._forward_translate_without_retrieving_metadata(invalidator_quib, path)
         except NoTranslatorsFoundException:
             try:
-                return forwards_translate(
-                    func_call=func_call,
-                    sources_to_paths={
-                        source: path
-                    },
-                    shape=self.get_shape(),
-                    type_=self.get_type(),
-                    **self._quib_function_call.get_result_metadata()
-                )
+                return self._forward_translate_with_retrieving_metadata(invalidator_quib, path)
             except NoTranslatorsFoundException:
-                return {
-                    source: [[]]
-                }
+                return [[]]
 
     def _get_paths_for_children_invalidation(self, invalidator_quib: Quib,
-                                             path: List[PathComponent]) -> List[Optional[List[PathComponent]]]:
+                                             path: List[PathComponent]) -> List[Path]:
         """
-        Get the new paths for invalidating children- a quib overrides this method if it has a specific way to translate
-        paths to new invalidation paths.
-        If not, invalidate all children all over; as you have no more specific way to invalidate them
+        Forward translate a path for invalidation, first attempting to do it WITHOUT using getting the shape and type,
+        and if/when failure does grace us, we attempt again with shape and type.
+        If we have no translators, we forward the path to invalidate all, as we have no more specific way to do it
         """
-        from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation
-
         # We always invalidate all if it's a parameter source quib
         if invalidator_quib not in self._quib_function_call.get_data_sources():
             return [[]]
 
-        func_call, sources_to_quibs = get_func_call_for_translation(self._quib_function_call)
-        quibs_to_sources = {quib: source for source, quib in sources_to_quibs.items()}
-
-        sources_to_new_paths = self._forward_translate_source_path(func_call,
-                                                                   quibs_to_sources[invalidator_quib],
-                                                                   path)
-        source = quibs_to_sources[invalidator_quib]
-        return sources_to_new_paths[source] if source in sources_to_new_paths else []
+        try:
+            return self._forward_translate_without_retrieving_metadata(invalidator_quib, path)
+        except NoTranslatorsFoundException:
+            try:
+                return self._forward_translate_with_retrieving_metadata(invalidator_quib, path)
+            except NoTranslatorsFoundException:
+                return [[]]
 
     def _invalidate_self(self, path: List[PathComponent]):
         """
