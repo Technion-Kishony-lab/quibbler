@@ -3,7 +3,6 @@
 import math
 
 import numpy as np
-from numpy import pi
 
 from pyquibbler.function_overriding.third_party_overriding.numpy.helpers import numpy_override, \
     numpy_override_random, numpy_override_read_file, \
@@ -12,8 +11,6 @@ from pyquibbler.function_overriding.third_party_overriding.numpy.helpers import 
 from pyquibbler.function_overriding.third_party_overriding.numpy.vectorize_overrides import create_vectorize_overrides
 from pyquibbler.quib.func_calling.func_calls.apply_along_axis_call import ApplyAlongAxisQuibFuncCall
 from pyquibbler.translation.translators.apply_along_axis_translator import ApplyAlongAxisForwardsTranslator
-from pyquibbler.translation.translators.elementwise.generic_inverse_functions import \
-    create_inverse_func_from_indexes_to_funcs
 from pyquibbler.function_overriding.third_party_overriding.numpy.inverse_functions import \
     inv_sin, inv_cos, inv_tan, keep_sign
 
