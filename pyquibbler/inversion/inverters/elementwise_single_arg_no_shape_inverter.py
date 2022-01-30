@@ -9,6 +9,8 @@ from pyquibbler.translation.source_func_call import SourceFuncCall
 from pyquibbler.inversion.inverter import Inverter
 from pyquibbler.translation.types import Source, Inversal
 from pyquibbler.inversion.exceptions import FailedToInvertException
+from pyquibbler.translation.translators.elementwise.generic_inverse_functions import \
+    create_inverse_single_arg_func
 
 
 def is_path_component_open_ended(component: PathComponent):
@@ -27,8 +29,8 @@ class ElementwiseNoShapeInverter(Inverter):
 
     def __init__(self, func_call: SourceFuncCall, assignment, previous_result):
         super().__init__(func_call, assignment, previous_result)
-        self._inverse_func = func_call.get_func_definition().inverse_func_with_input
-        self._raw_inverse_func = func_call.get_func_definition().inverse_func_without_input
+        self._inverse_func_with_input = func_call.get_func_definition().inverse_func_with_input
+        self._inverse_func_without_input = func_call.get_func_definition().inverse_func_without_input
 
     def get_inversals(self):
         if len(self._func_call.args) != 1 \
@@ -43,18 +45,20 @@ class ElementwiseNoShapeInverter(Inverter):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             if len(assignment_path) and is_path_component_open_ended(assignment_path[0]) \
-                    or np.shape(self._assignment.value) != np.shape(deep_get(self._previous_result, assignment_path)):
+                    or np.shape(self._assignment.value) != np.shape(deep_get(self._previous_result, assignment_path)) \
+                    or self._inverse_func_with_input is None:
                 # assignment is open-ended (e.g., quib[:,1] = value, or quib[0:-1] = val), or is broadcasted
                 # Under these conditions, if we want to keep the shape of the assigned value, we cannot adjust the
                 # value at each element based on the value of the args.
-                value_to_set = self._raw_inverse_func(self._assignment.value)
+                value_to_set = self._inverse_func_without_input(self._assignment.value)
             else:
                 source_to_change_at_value_shape = Source(deep_get(source_to_change.value, assignment_path))
-                value_to_set = self._inverse_func(self._assignment.value,
-                                                  self._func_call.args,
-                                                  self._func_call.kwargs,
-                                                  source_to_change_at_value_shape,
-                                                  assignment_path)
+                inverse_func_with_input = create_inverse_single_arg_func(self._inverse_func_with_input)
+                value_to_set = inverse_func_with_input(self._assignment.value,
+                                                             [source_to_change_at_value_shape],
+                                                             self._func_call.kwargs,
+                                                             source_to_change_at_value_shape,
+                                                             assignment_path)
         return [
             Inversal(
                 source=source_to_change,

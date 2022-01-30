@@ -72,7 +72,7 @@ def create_numpy_overrides():
           )),
 
         # Binary
-        *(elementwise(func_name, [0, 1], create_inverse_func_from_indexes_to_funcs({0: invs[0], 1: invs[1]}))
+        *(elementwise(func_name, [0, 1], {0: invs[0], 1: invs[1]})
           for func_name, invs in (
             # Arithmetic
             ('add',           (np.subtract, np.subtract)),
@@ -143,7 +143,7 @@ def create_numpy_overrides():
             ('angle',       (lambda a: np.cos(a) + 1j * np.sin(a), lambda a, c: (np.cos(a) + 1j * np.sin(a)) * np.abs(c))),
             ('conj',        np.conj),
             ('conjugate',   np.conjugate),
-            ('sign',        identity, lambda sgn, val: sgn * val),
+            ('sign',        lambda sgn, val: sgn * val),
 
             # hyperbolic / inverse-hyperbolic
             ('arcsinh',     np.sinh),
