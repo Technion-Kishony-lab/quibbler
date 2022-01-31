@@ -16,7 +16,7 @@ def _get_data_source_locations_and_parameter_locations(func, args, kwargs):
     definition = get_definition_for_function(func)
     args_values = ArgsValues.from_func_args_kwargs(func, args, kwargs, include_defaults=True)
     data_arguments_with_values = definition.get_data_source_arguments_with_values(args_values)
-    parameter_arguments_with_values = definition.get_parameter_arguments_with_values(func, args_values)
+    parameter_arguments_with_values = definition.get_parameter_arguments_with_values(args_values)
 
     data_source_arguments_with_paths = [
         (argument, get_paths_for_objects_of_type(obj=value, type_=Source))

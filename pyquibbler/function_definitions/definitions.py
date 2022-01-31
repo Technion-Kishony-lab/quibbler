@@ -13,6 +13,7 @@ def add_definition_for_function(func: Callable, function_definition: FuncDefinit
     specific manner (and not just use default behavior)
     """
     FUNCS_TO_DEFINITIONS[func] = function_definition
+    function_definition.func = func
 
 
 def get_definition_for_function(func: Callable) -> FuncDefinition:

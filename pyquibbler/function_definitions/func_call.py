@@ -132,7 +132,7 @@ class FuncCall(ABC):
             create_source_location(argument=argument, path=[]).find_in_args_kwargs(self.args, self.kwargs)
             return argument
         except (KeyError, IndexError):
-            return self.get_func_definition().get_corresponding_argument(argument=argument, func=self.func)
+            return self.get_func_definition().get_corresponding_argument(argument)
 
     def _get_locations_within_arguments_and_values(self, arguments_and_values):
         return [
@@ -148,19 +148,15 @@ class FuncCall(ABC):
         """
 
         if self.data_source_locations is None:
-            data_arguments_with_values = self.get_func_definition().get_data_source_arguments_with_values(
-                self.args_values
-            )
-            parameter_arguments_with_values = self.get_func_definition().get_parameter_arguments_with_values(
-                self.func, self.args_values
-            )
+            data_arguments_with_values = \
+                self.get_func_definition().get_data_source_arguments_with_values(self.args_values)
+            parameter_arguments_with_values = \
+                self.get_func_definition().get_parameter_arguments_with_values(self.args_values)
 
-            self.data_source_locations = self._get_locations_within_arguments_and_values(
-                data_arguments_with_values
-            )
-            self.parameter_source_locations = self._get_locations_within_arguments_and_values(
-                parameter_arguments_with_values
-            )
+            self.data_source_locations = \
+                self._get_locations_within_arguments_and_values(data_arguments_with_values)
+            self.parameter_source_locations = \
+                self._get_locations_within_arguments_and_values(parameter_arguments_with_values)
 
         return self.data_source_locations, self.parameter_source_locations
 
