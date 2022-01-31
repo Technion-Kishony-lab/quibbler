@@ -38,6 +38,15 @@ def create_motion_notify_event(axes):
     return _create
 
 
+@pytest.fixture
+def create_key_press_and_release_event(axes):
+    def _create(key):
+        FigureCanvasBase.key_press_event(axes.figure.canvas, key)
+        FigureCanvasBase.key_release_event(axes.figure.canvas, key)
+
+    return _create
+
+
 @pytest.fixture()
 def get_axes_start(axes):
     def _get():

@@ -7,6 +7,7 @@ from pyquibbler.function_overriding.third_party_overriding.graphics.helpers impo
 from pyquibbler.quib.func_calling.func_calls import RadioButtonsQuibFuncCall, SliderQuibFuncCall, \
     RectangleSelectorQuibFuncCall,  CheckButtonsQuibFuncCall
 from pyquibbler.quib.func_calling.func_calls.known_graphics.plot_call import PlotQuibFuncCall
+from pyquibbler.quib.func_calling.func_calls.known_graphics.widgets.textbox_call import TextBoxQuibFuncCall
 
 
 def create_graphics_overrides():
@@ -43,7 +44,7 @@ def create_graphics_overrides():
             ('Slider',              SliderQuibFuncCall),
             ('CheckButtons',        CheckButtonsQuibFuncCall),
             ('RectangleSelector',   RectangleSelectorQuibFuncCall),
-            # TODO: add TextBox
+            ('TextBox',             TextBoxQuibFuncCall),
         )),
 
         override(matplotlib.image, 'imread', is_file_loading_func=True)
