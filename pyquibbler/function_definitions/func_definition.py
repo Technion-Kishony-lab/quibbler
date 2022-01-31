@@ -27,6 +27,7 @@ class FuncDefinition:
     This includes which arguments are data_sources, how to translate paths, how to invert, how to run the function, etc
     """
 
+    func: Optional[Callable] = None
     data_source_arguments: Set[Argument] = field(default_factory=set)
     is_random_func: bool = False
     is_file_loading_func: bool = False
@@ -43,28 +44,28 @@ class FuncDefinition:
         return id(self)
 
     @functools.lru_cache()
-    def get_parameters(self, func):
+    def get_parameters(self):
         try:
-            sig = get_signature_for_func(func)
+            sig = get_signature_for_func(self.func)
             return sig.parameters
         except ValueError:
             return {}
 
     @functools.lru_cache()
-    def get_positional_to_keyword_arguments(self, func):
+    def get_positional_to_keyword_arguments(self):
         return {
             PositionalArgument(i): KeywordArgument(name) if parameter.kind.name != "POSITIONAL_ONLY" else None
-            for i, (name, parameter) in enumerate(self.get_parameters(func).items())
+            for i, (name, parameter) in enumerate(self.get_parameters().items())
         }
 
     @functools.lru_cache()
-    def get_keyword_to_positional_arguments(self, func):
+    def get_keyword_to_positional_arguments(self):
         return {
             KeywordArgument(name): PositionalArgument(i) if parameter.kind.name != "KEYWORD_ONLY" else None
-            for i, (name, parameter) in enumerate(self.get_parameters(func).items())
+            for i, (name, parameter) in enumerate(self.get_parameters().items())
         }
 
-    def get_corresponding_argument(self, func, argument):
+    def get_corresponding_argument(self, argument):
         """
         Get the argument of the opposite type (positional v keyword) which corresponds to the same argument
 
@@ -80,16 +81,16 @@ class FuncDefinition:
             If given KeywordArgument("a") will return PositionalArgument(0)
         """
         if isinstance(argument, PositionalArgument):
-            corresponding_dict = self.get_positional_to_keyword_arguments(func)
+            corresponding_dict = self.get_positional_to_keyword_arguments()
         else:
-            corresponding_dict = self.get_keyword_to_positional_arguments(func)
+            corresponding_dict = self.get_keyword_to_positional_arguments()
         return corresponding_dict[argument]
 
-    def _get_all_data_source_arguments(self, func: Callable, args_values):
+    def _get_all_data_source_arguments(self, args_values):
         all_data_source_arguments = set()
         for argument, value in self.get_data_source_arguments_with_values(args_values):
             try:
-                corresponding_argument = self.get_corresponding_argument(func, argument)
+                corresponding_argument = self.get_corresponding_argument(argument)
             except KeyError:
                 corresponding_argument = None
 
@@ -106,8 +107,8 @@ class FuncDefinition:
             for argument in self.data_source_arguments
         ]
 
-    def get_parameter_arguments_with_values(self, func, args_values: ArgsValues):
-        all_data_source_arguments = self._get_all_data_source_arguments(func, args_values)
+    def get_parameter_arguments_with_values(self, args_values: ArgsValues):
+        all_data_source_arguments = self._get_all_data_source_arguments(args_values)
         return [*[
             (PositionalArgument(index=i), args_values.args[i])
             for i, arg in enumerate(args_values.args)
@@ -129,6 +130,7 @@ def create_func_definition(data_source_arguments: List[Union[str, int]] = None,
                            forwards_path_translators: List[Type[ForwardsPathTranslator]] = None,
                            quib_function_call_cls: Type[QuibFuncCall] = None,
                            inverse_funcs: Optional[Tuple[Callable]] = None,
+                           func: Optional[Callable] = None,
                            ):
     """
     Create a definition for a function- this will allow quibbler to utilize Quibs with the function in a more
@@ -145,6 +147,7 @@ def create_func_definition(data_source_arguments: List[Union[str, int]] = None,
         for data_source_argument in data_source_arguments
     }
     return FuncDefinition(
+        func=func,
         is_random_func=is_random_func,
         is_known_graphics_func=is_known_graphics_func,
         is_file_loading_func=is_file_loading_func,
