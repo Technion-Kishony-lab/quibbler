@@ -6,8 +6,9 @@ import numpy as np
 from pyquibbler.path.path_component import PathComponent, Path
 from pyquibbler.path import working_component
 from pyquibbler.translation.backwards_path_translator import BackwardsPathTranslator
+from pyquibbler.translation.exceptions import FailedToTranslateException
 from pyquibbler.translation.forwards_path_translator import ForwardsPathTranslator
-from pyquibbler.translation.types import Source
+from pyquibbler.translation.types import Source, NoMetadataSource
 
 
 class NumpyBackwardsPathTranslator(BackwardsPathTranslator):
@@ -45,6 +46,8 @@ class NumpyForwardsPathTranslator(ForwardsPathTranslator):
     numpy function.
     """
 
+    SHOULD_ATTEMPT_WITHOUT_SHAPE_AND_TYPE = True
+
     def __init__(self, func_call, sources_to_paths: Dict[Source, Path], shape: Optional[Tuple[int, ...]],
                  type_: Optional[Type], should_forward_empty_paths_to_empty_paths: bool = True):
         super().__init__(func_call, sources_to_paths, shape, type_)
@@ -58,6 +61,9 @@ class NumpyForwardsPathTranslator(ForwardsPathTranslator):
         # TODO: THIS AUTO RETURNING OF [[]] IS INCORRECT IF PATH IS EMPTY, IN SOME EDGE CASES THIS DOESN'T HOLD
         if len(path) == 0 and self._should_forward_empty_paths_to_empty_paths:
             return [[]]
+
+        if isinstance(source, NoMetadataSource):
+            raise FailedToTranslateException()
 
         bool_mask_in_output_array = self._forward_translate_indices_to_bool_mask(source, working_component(path))
         if np.any(bool_mask_in_output_array):
