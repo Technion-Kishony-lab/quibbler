@@ -1,7 +1,6 @@
 # flake8: noqa
 
-from pyquibbler.function_overriding.operators.helpers import operator_override, \
-    with_reverse_elementwise_operator_overrides, elementwise_operator_override
+from pyquibbler.function_overriding.operators.helpers import operator_override, elementwise_operator_override
 from pyquibbler.function_overriding.third_party_overriding.numpy.helpers import \
     get_inverse_funcs_for_func, ELEMENTWISE_INVERTERS
 from pyquibbler.function_overriding.third_party_overriding.numpy.overrides import create_numpy_overrides
@@ -17,10 +16,10 @@ def create_operator_overrides():
     return [
 
         # Binary operators with reverse
-        *(with_reverse_elementwise_operator_overrides(
+        *(elementwise_operator_override(
             operator_name, [0, 1], inverters=ELEMENTWISE_INVERTERS,
-            inverse_funcs=get_inverse_funcs_for_func(inverter_from))[is_rev] \
-          for is_rev in [0, 1] \
+            inverse_funcs=get_inverse_funcs_for_func(inverter_from), is_reverse=is_rev)
+          for is_rev in [False, True]
           for operator_name, inverter_from in (
             ('__add__',         'add'),
             ('__sub__',         'subtract'),
