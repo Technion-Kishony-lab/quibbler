@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import functools
 from dataclasses import dataclass, field
-from typing import Set, Type, List, Union, TYPE_CHECKING, Callable, Optional, Tuple
+from typing import Set, Type, List, Union, TYPE_CHECKING, Callable, Optional, Dict, Tuple
 
 from pyquibbler.function_definitions.func_call import ArgsValues
 from pyquibbler.function_definitions.types import Argument, PositionalArgument, KeywordArgument
@@ -118,6 +118,16 @@ class FuncDefinition:
             for kwarg, value in args_values.kwargs.items()
             if KeywordArgument(keyword=kwarg) not in all_data_source_arguments
         ]]
+
+
+@dataclass
+class ElementWiseFuncDefinition(FuncDefinition):
+    """
+    Represents a definition of functions that act element-wise on a single arg
+    """
+
+    inverse_func_without_input: Optional[Callable] = None
+    inverse_func_with_input: Optional[Callable] = None
 
 
 def create_func_definition(data_source_arguments: List[Union[str, int]] = None,
