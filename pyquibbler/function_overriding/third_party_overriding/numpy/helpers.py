@@ -11,6 +11,7 @@ from pyquibbler.translation.translators import ForwardsTranspositionalTranslator
     ReductionAxiswiseForwardsPathTranslator
 from pyquibbler.inversion.inverters.elementwise_inverter import ElementwiseInverter
 from pyquibbler.inversion.inverters.elementwise_single_arg_no_shape_inverter import ElementwiseNoShapeInverter
+from pyquibbler.function_definitions.func_definition import ElementWiseFuncDefinition
 
 numpy_override = functools.partial(override, np)
 
@@ -59,6 +60,7 @@ def elementwise(func_name: str, data_source_arguments: List[RawArgument],
         inverters=ELEMENTWISE_INVERTERS if is_inverse else [],
         inverse_func_with_input=inverse_func_with_input,
         inverse_func_without_input=inverse_func_without_input,
+        func_defintion_cls=ElementWiseFuncDefinition,
     )
 
 

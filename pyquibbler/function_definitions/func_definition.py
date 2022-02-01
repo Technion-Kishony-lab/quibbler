@@ -131,6 +131,9 @@ class ElementWiseFuncDefinition(FuncDefinition):
     inverse_func_with_input: Optional[Callable] = None
 
 
+ElementWiseFuncDefinition.__hash__ = FuncDefinition.__hash__
+
+
 def create_func_definition(data_source_arguments: List[Union[str, int]] = None,
                            is_random_func: bool = False,
                            is_file_loading_func: bool = False,
