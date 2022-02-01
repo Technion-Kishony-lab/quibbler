@@ -1,7 +1,7 @@
 import functools
 from typing import List, Union, Optional, Callable, Tuple
 
-from pyquibbler.function_definitions.func_definition import create_func_definition
+from pyquibbler.function_definitions.func_definition import create_func_definition, FuncDefinition
 from pyquibbler.function_overriding.function_override import FuncOverride
 
 RawArgument = Union[str, int]
@@ -18,7 +18,8 @@ def override_with_cls(override_cls,
                       quib_function_call_cls=None, is_file_loading_func=False, is_random_func=False,
                       replace_previous_quibs_on_artists: bool = False,
                       is_known_graphics_func: bool = False,
-                      func: Optional[Callable] = None):
+                      func: Optional[Callable] = None,
+                      func_defintion_cls: Optional[FuncDefinition] = None):
     return override_cls(
         func_name=func_name,
         module_or_cls=module_or_cls,
@@ -32,6 +33,7 @@ def override_with_cls(override_cls,
                                                    backwards_path_translators=backwards_path_translators,
                                                    forwards_path_translators=forwards_path_translators,
                                                    quib_function_call_cls=quib_function_call_cls,
+                                                   func_defintion_cls=func_defintion_cls,
                                                    inverse_funcs=inverse_funcs)
     )
 

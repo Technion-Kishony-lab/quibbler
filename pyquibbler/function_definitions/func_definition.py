@@ -5,7 +5,8 @@ from dataclasses import dataclass, field
 from typing import Set, Type, List, Union, TYPE_CHECKING, Callable, Optional, Dict, Tuple
 
 from pyquibbler.function_definitions.func_call import ArgsValues
-from pyquibbler.function_definitions.types import Argument, PositionalArgument, KeywordArgument
+from pyquibbler.function_definitions.types import Argument, PositionalArgument, KeywordArgument, \
+    convert_raw_data_source_argument_to_data_source_argument
 from pyquibbler.translation.backwards_path_translator import BackwardsPathTranslator
 from pyquibbler.translation.forwards_path_translator import ForwardsPathTranslator
 from pyquibbler.utils import get_signature_for_func
@@ -141,22 +142,19 @@ def create_func_definition(data_source_arguments: List[Union[str, int]] = None,
                            quib_function_call_cls: Type[QuibFuncCall] = None,
                            inverse_funcs: Optional[Tuple[Callable]] = None,
                            func: Optional[Callable] = None,
-                           ):
+                           func_defintion_cls: Optional[FuncDefinition] = None,
+                           **kwargs):
     """
     Create a definition for a function- this will allow quibbler to utilize Quibs with the function in a more
     specific manner (and not just use default behavior), for whichever parameters you give.
     """
 
     from pyquibbler.quib.func_calling import QuibFuncCall
+    func_defintion_cls = func_defintion_cls or FuncDefinition
     quib_function_call_cls = quib_function_call_cls or QuibFuncCall
     data_source_arguments = data_source_arguments or set()
-    raw_data_source_arguments = {
-        PositionalArgument(data_source_argument)
-        if isinstance(data_source_argument, int)
-        else KeywordArgument(data_source_argument)
-        for data_source_argument in data_source_arguments
-    }
-    return FuncDefinition(
+    raw_data_source_arguments = convert_raw_data_source_argument_to_data_source_argument(data_source_arguments)
+    return func_defintion_cls(
         func=func,
         is_random_func=is_random_func,
         is_known_graphics_func=is_known_graphics_func,
@@ -168,5 +166,6 @@ def create_func_definition(data_source_arguments: List[Union[str, int]] = None,
         quib_function_call_cls=quib_function_call_cls,
         inverse_func_with_input=None if not inverse_funcs else inverse_funcs[0],
         inverse_func_without_input=None if not inverse_funcs else inverse_funcs[1],
-        replace_previous_quibs_on_artists=replace_previous_quibs_on_artists
+        replace_previous_quibs_on_artists=replace_previous_quibs_on_artists,
+        **kwargs
     )
