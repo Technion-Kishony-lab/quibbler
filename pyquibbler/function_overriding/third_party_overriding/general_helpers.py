@@ -36,4 +36,7 @@ def override_with_cls(override_cls,
     )
 
 
+def file_loading_override(module_or_cls, func_name: str):
+    return FuncOverride(module_or_cls, func_name, FuncDefinition(is_file_loading_func=True))
+
 override = functools.partial(override_with_cls, FuncOverride)

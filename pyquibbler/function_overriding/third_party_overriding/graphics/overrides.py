@@ -1,7 +1,7 @@
 # flake8: noqa
 
 import matplotlib.image
-from pyquibbler.function_overriding.third_party_overriding.general_helpers import override
+from pyquibbler.function_overriding.third_party_overriding.general_helpers import file_loading_override
 from pyquibbler.function_overriding.third_party_overriding.graphics.helpers import axes_override, \
     replacing_axes_override, widget_override
 from pyquibbler.quib.func_calling.func_calls import RadioButtonsQuibFuncCall, SliderQuibFuncCall, \
@@ -47,5 +47,5 @@ def create_graphics_overrides():
             ('TextBox',             TextBoxQuibFuncCall),
         )),
 
-        override(matplotlib.image, 'imread', is_file_loading_func=True)
+        file_loading_override(matplotlib.image, 'imread')
     ]

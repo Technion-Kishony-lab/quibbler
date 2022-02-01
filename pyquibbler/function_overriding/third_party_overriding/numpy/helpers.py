@@ -3,7 +3,8 @@ from typing import List, Callable, Tuple, Union, Optional, Dict
 
 import numpy as np
 
-from pyquibbler.function_overriding.third_party_overriding.general_helpers import RawArgument, override
+from pyquibbler.function_overriding.third_party_overriding.general_helpers import RawArgument, override, \
+    file_loading_override
 from pyquibbler.inversion import TranspositionalInverter
 from pyquibbler.translation.translators import ForwardsTranspositionalTranslator, BackwardsTranspositionalTranslator, \
     AccumulationBackwardsPathTranslator, AccumulationForwardsPathTranslator, ReductionAxiswiseBackwardsPathTranslator, \
@@ -15,7 +16,7 @@ numpy_override = functools.partial(override, np)
 
 numpy_override_random = functools.partial(override, np.random, is_random_func=True)
 
-numpy_override_read_file = functools.partial(numpy_override, is_file_loading_func=True)
+numpy_override_read_file = functools.partial(file_loading_override, np)
 
 numpy_override_transpositional = functools.partial(numpy_override, inverters=[TranspositionalInverter],
                                                    backwards_path_translators=[BackwardsTranspositionalTranslator],
