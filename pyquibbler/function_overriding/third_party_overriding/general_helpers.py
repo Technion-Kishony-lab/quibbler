@@ -1,5 +1,5 @@
 import functools
-from typing import List, Union, Optional, Callable, Tuple
+from typing import List, Union, Optional, Callable, Type
 
 from pyquibbler.function_definitions.func_definition import create_func_definition, FuncDefinition
 from pyquibbler.function_overriding.function_override import FuncOverride
@@ -18,7 +18,7 @@ def override_with_cls(override_cls,
                       replace_previous_quibs_on_artists: bool = False,
                       is_known_graphics_func: bool = False,
                       func: Optional[Callable] = None,
-                      func_defintion_cls: Optional[FuncDefinition] = None,
+                      func_defintion_cls: Optional[Type[FuncDefinition]] = None,
                       **kwargs
                       ):
     return override_cls(

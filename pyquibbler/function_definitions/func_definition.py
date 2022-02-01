@@ -38,8 +38,6 @@ class FuncDefinition:
     backwards_path_translators: List[Type[BackwardsPathTranslator]] = field(default_factory=list)
     forwards_path_translators: List[Type[ForwardsPathTranslator]] = field(default_factory=list)
     quib_function_call_cls: Type[QuibFuncCall] = field(default_factory=get_default_quib_func_call)
-    inverse_func_without_input: Optional[Callable] = None
-    inverse_func_with_input: Optional[Callable] = None
 
     def __hash__(self):
         return id(self)

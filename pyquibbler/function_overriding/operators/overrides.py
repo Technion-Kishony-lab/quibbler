@@ -1,8 +1,7 @@
 # flake8: noqa
 
 from pyquibbler.function_overriding.operators.helpers import operator_override, elementwise_operator_override
-from pyquibbler.function_overriding.third_party_overriding.numpy.helpers import \
-    get_inverse_funcs_for_func, ELEMENTWISE_INVERTERS
+from pyquibbler.function_overriding.third_party_overriding.numpy.helpers import get_inverse_funcs_for_func
 from pyquibbler.function_overriding.third_party_overriding.numpy.overrides import create_numpy_overrides
 from pyquibbler.inversion.inverters.getitem_inverter import GetItemInverter
 from pyquibbler.translation.translators import BackwardsGetItemTranslator
@@ -17,7 +16,7 @@ def create_operator_overrides():
 
         # Binary operators with reverse
         *(elementwise_operator_override(
-            operator_name, [0, 1], inverters=ELEMENTWISE_INVERTERS,
+            operator_name, [0, 1],
             inverse_funcs=get_inverse_funcs_for_func(inverter_from), is_reverse=is_rev)
           for is_rev in [False, True]
           for operator_name, inverter_from in (
@@ -37,7 +36,7 @@ def create_operator_overrides():
 
         # Binary operators without reverse:
         *(elementwise_operator_override(
-            operator_name, [0, 1], inverters=ELEMENTWISE_INVERTERS,
+            operator_name, [0, 1],
             inverse_funcs=get_inverse_funcs_for_func(inverter_from))
           for operator_name, inverter_from in (
               ('__ne__',        'not_equal'),
@@ -51,7 +50,7 @@ def create_operator_overrides():
 
         # Unary operators
         *(elementwise_operator_override(
-            operator_name, [0], inverters=ELEMENTWISE_INVERTERS,
+            operator_name, [0],
             inverse_funcs=get_inverse_funcs_for_func(inverter_from))
             for operator_name, inverter_from in (
 
