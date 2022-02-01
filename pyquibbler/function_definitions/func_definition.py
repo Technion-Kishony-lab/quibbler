@@ -140,7 +140,6 @@ def create_func_definition(data_source_arguments: List[Union[str, int]] = None,
                            backwards_path_translators: List[Type[BackwardsPathTranslator]] = None,
                            forwards_path_translators: List[Type[ForwardsPathTranslator]] = None,
                            quib_function_call_cls: Type[QuibFuncCall] = None,
-                           inverse_funcs: Optional[Tuple[Callable]] = None,
                            func: Optional[Callable] = None,
                            func_defintion_cls: Optional[FuncDefinition] = None,
                            **kwargs):
@@ -164,8 +163,6 @@ def create_func_definition(data_source_arguments: List[Union[str, int]] = None,
         backwards_path_translators=backwards_path_translators or [],
         forwards_path_translators=forwards_path_translators or [],
         quib_function_call_cls=quib_function_call_cls,
-        inverse_func_with_input=None if not inverse_funcs else inverse_funcs[0],
-        inverse_func_without_input=None if not inverse_funcs else inverse_funcs[1],
         replace_previous_quibs_on_artists=replace_previous_quibs_on_artists,
         **kwargs
     )

@@ -57,7 +57,8 @@ def elementwise(func_name: str, data_source_arguments: List[RawArgument],
         backwards_path_translators=[BackwardsElementwisePathTranslator],
         forwards_path_translators=[ForwardsElementwisePathTranslator],
         inverters=ELEMENTWISE_INVERTERS if is_inverse else [],
-        inverse_funcs=(inverse_func_with_input, inverse_func_without_input),
+        inverse_func_with_input=inverse_func_with_input,
+        inverse_func_without_input=inverse_func_without_input,
     )
 
 

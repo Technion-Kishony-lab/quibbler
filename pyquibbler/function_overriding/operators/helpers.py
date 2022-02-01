@@ -31,25 +31,38 @@ class OperatorOverride(FuncOverride):
         return getattr(operator, self.func_name)
 
 
-operator_override = functools.partial(override_with_cls, OperatorOverride, Quib)
+#operator_override = functools.partial(override_with_cls, OperatorOverride, Quib)
 
 
-def with_reverse_operator_overrides(name,
+def              operator_override(name,
                                     data_source_indexes: Optional[List] = None,
                                     inverters: Optional[List] = None,
                                     backwards_path_translators: Optional[List] = None,
                                     forwards_path_translators: Optional[List] = None,
                                     inverse_funcs: Optional[Tuple[Callable]] = None,
+                                    with_reverse: bool = False,
                                     ):
-    rname = '__r' + name[2:]
+    names = [name]
+    if with_reverse:
+        names.append('__r' + name[2:])
 
-    return [operator_override(func_name, data_source_indexes,
-                              inverters=inverters,
-                              backwards_path_translators=backwards_path_translators,
-                              forwards_path_translators=forwards_path_translators,
-                              inverse_funcs=inverse_funcs)
-            for func_name in (name, rname)]
+    overrides = [override_with_cls(OperatorOverride, Quib,
+                                   func_name, data_source_indexes,
+                                   inverters=inverters,
+                                   backwards_path_translators=backwards_path_translators,
+                                   forwards_path_translators=forwards_path_translators,
+                                   inverse_func_with_input=None if not inverse_funcs else inverse_funcs[0],
+                                   inverse_func_without_input=None if not inverse_funcs else inverse_funcs[1],
+                                   )
+                 for func_name in names]
 
+    if with_reverse:
+        return overrides
+    return overrides[0]
+
+
+
+with_reverse_operator_overrides = functools.partial(operator_override, with_reverse=True)
 
 elementwise_operator_override = \
     functools.partial(operator_override,
