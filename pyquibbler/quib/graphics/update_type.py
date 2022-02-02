@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class UpdateType(Enum):
+class UpdateType(str, Enum):
 
     DRAG = 'drag'
     DROP = 'drop'

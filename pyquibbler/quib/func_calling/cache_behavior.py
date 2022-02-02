@@ -12,7 +12,7 @@ class UnknownCacheBehaviorException(PyQuibblerException):
         return f"{self.attempted_value} is not a valid value for a cache behavior"
 
 
-class CacheBehavior(Enum):
+class CacheBehavior(str, Enum):
     """
     The different modes in which the caching of a FuncQuib can operate:
      - `AUTO`: decide automatically according to the ratio between evaluation time and memory consumption.

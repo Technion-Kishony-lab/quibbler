@@ -155,7 +155,7 @@ class Quib:
 
     @property
     def redraw_update_type(self):
-        return self._redraw_update_type
+        return self._redraw_update_type.value
 
     """
     Assignment
@@ -469,7 +469,7 @@ class Quib:
         return Project.get_or_create()
 
     def get_cache_behavior(self):
-        return self._quib_function_call.get_cache_behavior()
+        return self._quib_function_call.get_cache_behavior().value
 
     @validate_user_input(cache_behavior=(str, CacheBehavior))
     def set_cache_behavior(self, cache_behavior: CacheBehavior):
