@@ -1,4 +1,3 @@
-import functools
 import math
 import operator
 from dataclasses import dataclass
@@ -52,10 +51,10 @@ def operator_override(func_name,
 
 
 def elementwise_operator_override(func_name,
-                      data_source_indexes: Optional[List] = None,
-                      inverse_funcs: Optional[Tuple[Callable]] = None,
-                      is_reverse: bool = False,
-                      ):
+                                  data_source_indexes: Optional[List] = None,
+                                  inverse_funcs: Optional[Tuple[Callable]] = None,
+                                  is_reverse: bool = False,
+                                  ):
     if is_reverse:
         func_name = '__r' + func_name[2:]
 
@@ -68,4 +67,3 @@ def elementwise_operator_override(func_name,
                              inverse_func_without_input=None if not inverse_funcs else inverse_funcs[1],
                              func_defintion_cls=ElementWiseFuncDefinition,
                              )
-

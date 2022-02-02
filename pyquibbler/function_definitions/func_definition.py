@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import functools
 from dataclasses import dataclass, field
-from typing import Set, Type, List, Union, TYPE_CHECKING, Callable, Optional
+from typing import Set, Type, List, TYPE_CHECKING, Callable, Optional
 
 from pyquibbler.function_definitions.func_call import ArgsValues
-from pyquibbler.function_definitions.types import Argument, PositionalArgument, KeywordArgument, \
-    convert_raw_data_source_argument_to_data_source_argument
+from pyquibbler.function_definitions.types import RawArgument, Argument, PositionalArgument, KeywordArgument, \
+    convert_raw_data_source_arguments_to_data_source_arguments
 from pyquibbler.translation.backwards_path_translator import BackwardsPathTranslator
 from pyquibbler.translation.forwards_path_translator import ForwardsPathTranslator
 from pyquibbler.utils import get_signature_for_func
@@ -132,7 +132,7 @@ class ElementWiseFuncDefinition(FuncDefinition):
 ElementWiseFuncDefinition.__hash__ = FuncDefinition.__hash__
 
 
-def create_func_definition(data_source_arguments: List[Union[str, int]] = None,
+def create_func_definition(raw_data_source_arguments: List[RawArgument] = None,
                            is_random_func: bool = False,
                            is_file_loading_func: bool = False,
                            is_known_graphics_func: bool = False,
@@ -152,14 +152,14 @@ def create_func_definition(data_source_arguments: List[Union[str, int]] = None,
     from pyquibbler.quib.func_calling import QuibFuncCall
     func_defintion_cls = func_defintion_cls or FuncDefinition
     quib_function_call_cls = quib_function_call_cls or QuibFuncCall
-    data_source_arguments = data_source_arguments or set()
-    raw_data_source_arguments = convert_raw_data_source_argument_to_data_source_argument(data_source_arguments)
+    raw_data_source_arguments = raw_data_source_arguments or set()
+    data_source_arguments = convert_raw_data_source_arguments_to_data_source_arguments(raw_data_source_arguments)
     return func_defintion_cls(
         func=func,
         is_random_func=is_random_func,
         is_known_graphics_func=is_known_graphics_func,
         is_file_loading_func=is_file_loading_func,
-        data_source_arguments=raw_data_source_arguments,
+        data_source_arguments=data_source_arguments,
         inverters=inverters or [],
         backwards_path_translators=backwards_path_translators or [],
         forwards_path_translators=forwards_path_translators or [],

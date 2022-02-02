@@ -1,10 +1,8 @@
 import functools
-from typing import List, Union, Optional, Callable, Type
-
+from typing import List, Optional, Callable, Type
+from pyquibbler.function_definitions.types import RawArgument
 from pyquibbler.function_definitions.func_definition import create_func_definition, FuncDefinition
 from pyquibbler.function_overriding.function_override import FuncOverride
-
-RawArgument = Union[str, int]
 
 
 def override_with_cls(override_cls,
@@ -24,8 +22,7 @@ def override_with_cls(override_cls,
     return override_cls(
         func_name=func_name,
         module_or_cls=module_or_cls,
-        function_definition=create_func_definition(func=func,
-                                                   data_source_arguments=data_source_arguments,
+        function_definition=create_func_definition(raw_data_source_arguments=data_source_arguments,
                                                    is_random_func=is_random_func,
                                                    is_file_loading_func=is_file_loading_func,
                                                    is_known_graphics_func=is_known_graphics_func,
@@ -33,14 +30,13 @@ def override_with_cls(override_cls,
                                                    inverters=inverters,
                                                    backwards_path_translators=backwards_path_translators,
                                                    forwards_path_translators=forwards_path_translators,
-                                                   quib_function_call_cls=quib_function_call_cls,
-                                                   func_defintion_cls=func_defintion_cls,
-                                                   **kwargs,
-                                                   )
+                                                   quib_function_call_cls=quib_function_call_cls, func=func,
+                                                   func_defintion_cls=func_defintion_cls, **kwargs)
     )
 
 
 def file_loading_override(module_or_cls, func_name: str):
     return FuncOverride(module_or_cls, func_name, FuncDefinition(is_file_loading_func=True))
+
 
 override = functools.partial(override_with_cls, FuncOverride)

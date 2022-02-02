@@ -63,9 +63,7 @@ class IQuibForwardsPathTranslator(ForwardsPathTranslator):
         return [path]
 
 
-iquib_definition = create_func_definition(
-    forwards_path_translators=[IQuibForwardsPathTranslator],
-    data_source_arguments=[0],
-)
+iquib_definition = create_func_definition(raw_data_source_arguments=[0],
+                                          forwards_path_translators=[IQuibForwardsPathTranslator])
 
 add_definition_for_function(func=identity_function, function_definition=iquib_definition)

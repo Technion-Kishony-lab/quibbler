@@ -6,7 +6,7 @@ import numpy as np
 from pyquibbler import Assignment
 from pyquibbler.env import ASSIGNMENT_RESTRICTIONS
 from pyquibbler.exceptions import PyQuibblerException
-from pyquibbler.function_definitions.func_call import FuncCall
+from pyquibbler.translation.source_func_call import SourceFuncCall
 from pyquibbler.inversion.inverter import Inverter
 from pyquibbler.path.utils import working_component
 from pyquibbler.utilities.iterators import iter_objects_of_type_in_object_shallowly
@@ -28,9 +28,8 @@ class CommonAncestorBetweenArgumentsException(CannotReverseException):
 
 class ElementwiseInverter(Inverter):
 
-    def __init__(self, func_call: FuncCall, assignment, previous_result):
+    def __init__(self, func_call: SourceFuncCall, assignment, previous_result):
         super().__init__(func_call, assignment, previous_result)
-        self._inverse_func = func_call.get_func_definition().inverse_func_with_input
 
     def raise_if_multiple_args_have_common_ancestor(self):
         """
@@ -61,13 +60,14 @@ class ElementwiseInverter(Inverter):
                                                       type_=type(self._previous_result),
                                                       path=self._assignment.path)[source_to_change]
 
+        inverse_func = self._func_call.get_func_definition().inverse_func_with_input
         with warnings.catch_warnings():
 
             warnings.simplefilter("ignore")
-            if isinstance(self._inverse_func, dict):
-                actual_inverse_func = create_inverse_func_from_indexes_to_funcs(self._inverse_func)
+            if isinstance(inverse_func, dict):
+                actual_inverse_func = create_inverse_func_from_indexes_to_funcs(inverse_func)
             else:
-                actual_inverse_func = create_inverse_single_arg_func(self._inverse_func)
+                actual_inverse_func = create_inverse_single_arg_func(inverse_func)
 
             new_quib_argument_value = actual_inverse_func(self._get_result_with_assignment_set(),
                                                           self._func_call.args,

@@ -19,7 +19,7 @@ Argument = Union[KeywordArgument, PositionalArgument]
 RawArgument = Union[str, int]
 
 
-def convert_raw_data_source_argument_to_data_source_argument(
+def convert_raw_data_source_arguments_to_data_source_arguments(
         data_source_arguments: List[RawArgument] = None) -> Set[Argument]:
     data_source_arguments = data_source_arguments or set()
     return {
@@ -28,5 +28,3 @@ def convert_raw_data_source_argument_to_data_source_argument(
         else KeywordArgument(data_source_argument)
         for data_source_argument in data_source_arguments
     }
-
-
