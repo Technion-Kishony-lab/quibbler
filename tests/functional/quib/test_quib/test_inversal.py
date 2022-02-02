@@ -173,3 +173,21 @@ def test_inverse_with_single_arg_operator():
     b[1:3] = 5
 
     assert np.array_equal(a.get_value(), [1, -5, -5])
+
+
+@pytest.mark.regression
+def test_inverse_tile_scalar():
+    a = iquib(7)
+    b = np.tile(a, 3)
+    b[1] = 5
+
+    assert a.get_value() == 5
+
+
+@pytest.mark.regression
+def test_inverse_tile_array():
+    a = iquib([7])
+    b = np.tile(a, 3)
+    b[1] = 5
+
+    assert a.get_value() == [5]
