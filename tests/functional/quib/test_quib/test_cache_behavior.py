@@ -47,5 +47,5 @@ def test_cant_set_quib_cache_behavior_to_something_other_than_on_when_random(ran
 
 
 def test_quib_cache_behavior_on_by_default_when_is_random(random_quib):
-    assert random_quib.get_cache_behavior() is CacheBehavior.ON
+    assert random_quib.get_cache_behavior() == CacheBehavior.ON
 
