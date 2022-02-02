@@ -865,7 +865,7 @@ class Quib:
             if REPR_RETURNS_SHORT_NAME:
                 return str(self.get_math_expression())
             elif REPR_WITH_OVERRIDES and len(self._overrider):
-                return self.pretty_repr() + '\n' + self._overrider.pretty_repr(self.name)
+                return self.pretty_repr() + '\n' + self._overrider.pretty_repr(self.assigned_name)
             return self.pretty_repr()
         return self.ugly_repr()
 
