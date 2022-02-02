@@ -45,7 +45,7 @@ def test_quib_with_multiple_in_same_line():
 def test_quib_doesnt_get_name_if_it_is_created_in_context():
     def func():
         noname = create_quib(mock.Mock(return_value=0))
-        assert noname.name is None
+        assert noname.assigned_name is None
 
     create_quib(func).get_value()
 
@@ -58,8 +58,8 @@ def test_quib_cannot_assign_int_to_name(quib):
 @pytest.mark.get_variable_names(True)
 def test_quib_can_assign_none_to_name():
     a = create_quib(mock.Mock(return_value=["val"]))
-    assert a.name == 'a', "Sanity check"
+    assert a.assigned_name == 'a', "Sanity check"
 
     a.set_name(None)
 
-    assert a.name is None
+    assert a.assigned_name is None
