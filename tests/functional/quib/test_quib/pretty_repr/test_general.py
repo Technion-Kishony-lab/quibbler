@@ -145,3 +145,10 @@ def test_getitem_pretty_repr_with_quib_as_item():
     b = iquib(1)
 
     assert a[:b].pretty_repr() == 'a[:b]'
+
+
+@pytest.mark.get_variable_names(True)
+def test_getitem_pretty_repr_str_format():
+    a = iquib(3)
+    b = iquib(7)
+    assert q('a = {}, b = {}'.format, a, b).pretty_repr() == '"a = {}, b = {}".format(a, b)'
