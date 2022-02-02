@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import functools
 from dataclasses import dataclass, field
-from typing import Set, Type, List, Union, TYPE_CHECKING, Callable, Optional, Tuple
+from typing import Set, Type, List, TYPE_CHECKING, Callable, Optional
 
 from pyquibbler.function_definitions.func_call import ArgsValues
-from pyquibbler.function_definitions.types import Argument, PositionalArgument, KeywordArgument
+from pyquibbler.function_definitions.types import RawArgument, Argument, PositionalArgument, KeywordArgument, \
+    convert_raw_data_source_arguments_to_data_source_arguments
 from pyquibbler.translation.backwards_path_translator import BackwardsPathTranslator
 from pyquibbler.translation.forwards_path_translator import ForwardsPathTranslator
 from pyquibbler.utils import get_signature_for_func
@@ -37,8 +38,6 @@ class FuncDefinition:
     backwards_path_translators: List[Type[BackwardsPathTranslator]] = field(default_factory=list)
     forwards_path_translators: List[Type[ForwardsPathTranslator]] = field(default_factory=list)
     quib_function_call_cls: Type[QuibFuncCall] = field(default_factory=get_default_quib_func_call)
-    inverse_func_without_input: Optional[Callable] = None
-    inverse_func_with_input: Optional[Callable] = None
 
     def __hash__(self):
         return id(self)
@@ -120,7 +119,20 @@ class FuncDefinition:
         ]]
 
 
-def create_func_definition(data_source_arguments: List[Union[str, int]] = None,
+@dataclass
+class ElementWiseFuncDefinition(FuncDefinition):
+    """
+    Represents a definition of functions that act element-wise on a single arg
+    """
+
+    inverse_func_without_input: Optional[Callable] = None
+    inverse_func_with_input: Optional[Callable] = None
+
+
+ElementWiseFuncDefinition.__hash__ = FuncDefinition.__hash__
+
+
+def create_func_definition(raw_data_source_arguments: List[RawArgument] = None,
                            is_random_func: bool = False,
                            is_file_loading_func: bool = False,
                            is_known_graphics_func: bool = False,
@@ -129,34 +141,29 @@ def create_func_definition(data_source_arguments: List[Union[str, int]] = None,
                            backwards_path_translators: List[Type[BackwardsPathTranslator]] = None,
                            forwards_path_translators: List[Type[ForwardsPathTranslator]] = None,
                            quib_function_call_cls: Type[QuibFuncCall] = None,
-                           inverse_funcs: Optional[Tuple[Callable]] = None,
                            func: Optional[Callable] = None,
-                           ):
+                           func_defintion_cls: Optional[FuncDefinition] = None,
+                           **kwargs):
     """
     Create a definition for a function- this will allow quibbler to utilize Quibs with the function in a more
     specific manner (and not just use default behavior), for whichever parameters you give.
     """
 
     from pyquibbler.quib.func_calling import QuibFuncCall
+    func_defintion_cls = func_defintion_cls or FuncDefinition
     quib_function_call_cls = quib_function_call_cls or QuibFuncCall
-    data_source_arguments = data_source_arguments or set()
-    raw_data_source_arguments = {
-        PositionalArgument(data_source_argument)
-        if isinstance(data_source_argument, int)
-        else KeywordArgument(data_source_argument)
-        for data_source_argument in data_source_arguments
-    }
-    return FuncDefinition(
+    raw_data_source_arguments = raw_data_source_arguments or set()
+    data_source_arguments = convert_raw_data_source_arguments_to_data_source_arguments(raw_data_source_arguments)
+    return func_defintion_cls(
         func=func,
         is_random_func=is_random_func,
         is_known_graphics_func=is_known_graphics_func,
         is_file_loading_func=is_file_loading_func,
-        data_source_arguments=raw_data_source_arguments,
+        data_source_arguments=data_source_arguments,
         inverters=inverters or [],
         backwards_path_translators=backwards_path_translators or [],
         forwards_path_translators=forwards_path_translators or [],
         quib_function_call_cls=quib_function_call_cls,
-        inverse_func_with_input=None if not inverse_funcs else inverse_funcs[0],
-        inverse_func_without_input=None if not inverse_funcs else inverse_funcs[1],
-        replace_previous_quibs_on_artists=replace_previous_quibs_on_artists
+        replace_previous_quibs_on_artists=replace_previous_quibs_on_artists,
+        **kwargs
     )

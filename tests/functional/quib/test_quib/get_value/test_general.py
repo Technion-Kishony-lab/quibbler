@@ -12,9 +12,7 @@ def test_quib_does_not_request_shape_or_parents_shapes_on_first_attempt(create_m
     backwards_path_translator = mock.Mock()
     backwards_path_translator.return_value.translate.return_value = {}
     add_definition_for_function(func=quib.func, function_definition=create_func_definition(
-        backwards_path_translators=[backwards_path_translator],
-        data_source_arguments=[0]
-    ))
+        raw_data_source_arguments=[0], backwards_path_translators=[backwards_path_translator]))
 
     quib.get_value()
 

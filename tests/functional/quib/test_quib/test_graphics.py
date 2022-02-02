@@ -115,10 +115,8 @@ def test_graphics_quib_which_should_never_update(update_type, quib, graphics_qui
 def replacing_func():
     mock_func = mock.Mock()
     mock_func.__name__ = "myfunc"
-    add_definition_for_function(func=mock_func, function_definition=create_func_definition(
-        replace_previous_quibs_on_artists=True,
-        is_known_graphics_func=True,
-    ))
+    add_definition_for_function(func=mock_func, function_definition=create_func_definition(is_known_graphics_func=True,
+                                                                                           replace_previous_quibs_on_artists=True))
     return mock_func
 
 

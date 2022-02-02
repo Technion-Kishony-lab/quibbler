@@ -64,7 +64,7 @@ def test_inverse_elementwise_two_arguments(func, func_args, indices, value, quib
     "square: array[2] = scalar",
     "square: array[[0,1,2,3]] = array",
     "square: array[[0,1,2,3]] = scalar",
-    "int: float-to-int",
+    "negative: scalar",
 ])
 def test_inverse_elementwise_single_argument(func, func_arg, indices, value, expected_value):
     sources_to_results, _ = inverse(func, indices=indices, value=value, args=(func_arg,), empty_path=indices is None)
