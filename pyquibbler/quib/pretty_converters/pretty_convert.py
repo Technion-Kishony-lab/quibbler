@@ -54,11 +54,25 @@ def function_call_converter(func: Callable,
                                 MathPrecedence.FUNCTION_CALL)
 
 
+def str_format_call_converter(func: Callable,
+                              args: Tuple[Any, ...],
+                              kwargs: Mapping[str, Any]) -> MathExpression:
+    func_name = getattr(func, '__name__', str(func))
+    str_ = getattr(func, '__reduce__')()[1][0]
+    pretty_args, pretty_kwargs = get_pretty_args_and_kwargs(args, kwargs)
+    return StringMathExpression(f'"{str_}".{func_name}({", ".join(map(str, [*pretty_args, *pretty_kwargs]))})',
+                                MathPrecedence.FUNCTION_CALL)
+
+
 def get_pretty_args_and_kwargs(args: Tuple[Any, ...], kwargs: Mapping[str, Any]):
     pretty_args = [repr(arg) for arg in args]
     pretty_kwargs = [f'{key}={repr(val)}' for key, val in kwargs.items()]
 
     return pretty_args, pretty_kwargs
+
+
+def is_str_format(func: Callable) -> bool:
+    return getattr(func, '__qualname__', None) == 'str.format'
 
 
 def get_pretty_value_of_func_with_args_and_kwargs(func: Callable,
@@ -73,6 +87,8 @@ def get_pretty_value_of_func_with_args_and_kwargs(func: Callable,
         # For now, no ability to special convert if kwargs exist
         if not kwargs and func in CONVERTERS:
             pretty_value = CONVERTERS[func](func, args)
+        elif is_str_format(func):
+            pretty_value = str_format_call_converter(func, args, kwargs)
         else:
             pretty_value = function_call_converter(func, args, kwargs)
 
