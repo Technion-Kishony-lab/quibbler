@@ -155,7 +155,7 @@ class Quib:
 
     @property
     def redraw_update_type(self):
-        return self._redraw_update_type
+        return self._redraw_update_type.value
 
     """
     Assignment
