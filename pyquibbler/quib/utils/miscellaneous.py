@@ -57,11 +57,8 @@ def copy_and_replace_quibs_with_vals(obj: Any):
     """
     from pyquibbler.quib.quib import Quib
     from matplotlib.artist import Artist
-    from pyquibbler.quib.quib_ref import QuibRef
 
     def replace_with_value_if_quib_or_copy(o):
-        if isinstance(o, QuibRef):
-            return o.quib
         if isinstance(o, Quib):
             return o.get_value()
         if isinstance(o, Artist):
@@ -73,7 +70,7 @@ def copy_and_replace_quibs_with_vals(obj: Any):
 
     result = recursively_run_func_on_object(func=replace_with_value_if_quib_or_copy, max_depth=SHALLOW_MAX_DEPTH,
                                             max_length=SHALLOW_MAX_LENGTH, obj=obj)
-    if DEBUG and not isinstance(obj, QuibRef):
+    if DEBUG:
         nested_quibs = set(iter_quibs_in_object_recursively(result))
         if nested_quibs:
             raise NestedQuibException(obj, nested_quibs)

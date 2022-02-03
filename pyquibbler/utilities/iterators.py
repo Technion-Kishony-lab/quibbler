@@ -20,10 +20,7 @@ def iter_objects_of_type_in_object_recursively(object_type: Type,
     `max_depth=1` means `obj` and all objects it directly references, and so on.
     When `max_length` is given, does not recurse into iterables larger than `max_length`.
     """
-    from pyquibbler.quib.quib_ref import QuibRef
     objects = set()
-    if isinstance(obj, QuibRef):
-        obj = obj.quib
     if isinstance(obj, object_type):
         if obj not in objects:
             objects.add(obj)

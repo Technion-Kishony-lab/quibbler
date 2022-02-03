@@ -8,9 +8,8 @@ from pyquibbler.cache.cache_utils import _truncate_path_to_match_shallow_caches,
     get_cached_data_at_truncated_path_given_result_at_uncached_path
 from pyquibbler.cache import PathCannotHaveComponentsException, get_uncached_paths_matching_path
 
-from pyquibbler.function_definitions import FuncCall, PositionalSourceLocation, SourceLocation, KeywordSourceLocation, \
+from pyquibbler.function_definitions import FuncCall, SourceLocation, \
     load_source_locations_before_running, ArgsValues
-from pyquibbler.function_definitions.types import PositionalArgument, KeywordArgument
 from pyquibbler.graphics.graphics_collection import GraphicsCollection
 from pyquibbler.path import Path
 from pyquibbler.quib import consts
@@ -21,12 +20,10 @@ from pyquibbler.quib.func_calling.result_metadata import ResultMetadata
 from pyquibbler.quib.func_calling.utils import create_array_from_func
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.quib_guard import QuibGuard
-from pyquibbler.quib.quib_ref import QuibRef
 from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation_with_sources_metadata, \
     get_func_call_for_translation_without_sources_metadata
 from pyquibbler.translation import NoTranslatorsFoundException
 from pyquibbler.translation.translate import backwards_translate
-from pyquibbler.utilities.iterators import get_paths_for_objects_of_type
 
 
 class QuibFuncCall(FuncCall):
@@ -213,7 +210,8 @@ class QuibFuncCall(FuncCall):
             args, kwargs, quibs_allowed_to_access = self._proxify_args()
         else:
             quibs_to_paths = {} if valid_path is None else self._backwards_translate_path(valid_path)
-            args, kwargs, quibs_allowed_to_access = self.get_args_and_kwargs_valid_at_quibs_to_paths(quibs_to_paths)
+            args, kwargs = self.get_args_and_kwargs_valid_at_quibs_to_paths(quibs_to_paths)
+            quibs_allowed_to_access = set()
 
         return self._run_single_call(
             func=self.func,
@@ -261,29 +259,12 @@ class QuibFuncCall(FuncCall):
 
         return result
 
-    def _load_source_locations(self):
-        super(QuibFuncCall, self)._load_source_locations()
-        if self._quib_ref_locations is None:
-            self._quib_ref_locations: List[SourceLocation] = [
-                PositionalSourceLocation(PositionalArgument(i), path)
-                for i, arg in enumerate(self.args)
-                for path in get_paths_for_objects_of_type(arg, type_=QuibRef)
-            ]
-            self._quib_ref_locations.extend([
-                KeywordSourceLocation(KeywordArgument(key), path)
-                for key, value in self.kwargs.items()
-                for path in get_paths_for_objects_of_type(value, type_=QuibRef)
-            ])
-
     @load_source_locations_before_running
     def get_args_and_kwargs_valid_at_quibs_to_paths(self,
                                                     quibs_to_valid_paths: Dict[Quib, Optional[Path]]):
         """
-        Prepare arguments to call self.func with - replace quibs with values valid at the given path,
-        and QuibRefs with quibs.
+        Prepare arguments to call self.func with - replace quibs with values valid at the given path
         """
-
-        quibs_allowed_to_access = set()
 
         def _transform_data_source_quib(quib):
             # If the quib is a data source, and we didn't see it in the result, we don't need it to be valid at any
@@ -301,12 +282,7 @@ class QuibFuncCall(FuncCall):
             transform_parameter_func=_transform_parameter_source_quib
         )
 
-        for location in self._quib_ref_locations:
-            quib_ref = location.find_in_args_kwargs(args=new_args, kwargs=new_kwargs)
-            quibs_allowed_to_access.add(quib_ref.quib)
-            new_args, new_kwargs = location.set_in_args_kwargs(args=new_args, kwargs=new_kwargs, value=quib_ref.quib)
-
-        return new_args, new_kwargs, quibs_allowed_to_access
+        return new_args, new_kwargs
 
     def invalidate_cache_at_path(self, path: Path):
         if self.cache is not None:

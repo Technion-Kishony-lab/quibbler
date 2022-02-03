@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import cProfile
 import functools
 import json
 import os
@@ -43,7 +42,6 @@ from pyquibbler.quib.external_call_failed_exception_handling import raise_quib_c
     add_quib_to_fail_trace_if_raises_quib_call_exception
 from pyquibbler.quib.graphics import UpdateType
 from pyquibbler.utilities.iterators import recursively_run_func_on_object
-from pyquibbler.quib.quib_method import quib_method
 from pyquibbler.translation.translate import forwards_translate, NoTranslatorsFoundException, \
     backwards_translate
 from pyquibbler.utilities.unpacker import Unpacker
@@ -52,9 +50,9 @@ from pyquibbler.cache.cache import CacheStatus
 from pyquibbler.cache import create_cache
 
 if TYPE_CHECKING:
+    from pyquibbler.function_definitions.func_definition import FuncDefinition
     from pyquibbler.assignment.override_choice import ChoiceContext
     from pyquibbler.assignment import OverrideChoice
-    from pyquibbler.function_definitions.func_definition import FuncDefinition
     from pyquibbler.quib.func_calling import QuibFuncCall
 
 
@@ -64,8 +62,6 @@ class Quib:
     """
 
     _IS_WITHIN_GET_VALUE_CONTEXT = False
-
-    PROFILER = cProfile.Profile()
 
     def __init__(self, quib_function_call: QuibFuncCall,
                  assignment_template: AssignmentTemplate,
@@ -346,8 +342,9 @@ class Quib:
         if path is None:
             path = []
 
-        with timer("quib_invalidation", lambda x: logger.info(f"invalidation {x}")):
+        with timer("quib_invalidation", lambda x: logger.info(f"invalidate {x}")):
             self._invalidate_children_at_path(path)
+
         self._redraw()
 
     def _invalidate_children_at_path(self, path: List[PathComponent]) -> None:
@@ -694,18 +691,19 @@ class Quib:
         with add_quib_to_fail_trace_if_raises_quib_call_exception(quib=self, call='get_ndim()', replace_last=True):
             return self._quib_function_call.get_ndim()
 
-    @quib_method
     def get_override_mask(self):
         """
         Assuming this quib represents a numpy ndarray, return a quib representing its override mask.
         The override mask is a boolean array of the same shape, in which every value is
         set to True if the matching value in the array is overridden, and False otherwise.
         """
-        if issubclass(self.get_type(), np.ndarray):
-            mask = np.zeros(self.get_shape(), dtype=np.bool)
+        from pyquibbler.quib.specialized_functions import proxy
+        quib = self.args[0] if self.func == proxy else self
+        if issubclass(quib.get_type(), np.ndarray):
+            mask = np.zeros(quib.get_shape(), dtype=np.bool)
         else:
-            mask = recursively_run_func_on_object(func=lambda x: False, obj=self.get_value())
-        return self._overrider.fill_override_mask(mask)
+            mask = recursively_run_func_on_object(func=lambda x: False, obj=quib.get_value())
+        return quib._overrider.fill_override_mask(mask)
 
     def iter_first(self, amount: Optional[int] = None):
         """

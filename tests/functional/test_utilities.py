@@ -3,7 +3,6 @@ from pytest import mark, raises, fixture
 from pyquibbler import iquib
 from pyquibbler.quib import Quib
 from pyquibbler.quib.exceptions import NestedQuibException
-from pyquibbler.quib.quib_ref import QuibRef
 from pyquibbler.quib.utils import miscellaneous
 from pyquibbler.quib.utils.iterators import iter_quibs_in_args, iter_quibs_in_object
 from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals, is_there_a_quib_in_args
@@ -45,7 +44,6 @@ def test_is_iterator_empty(iterator, expected_result):
     ([1, [iquib1, [iquib2]]], None, 0, [1, [iquib1, [iquib2]]]),
     ([1, [iquib1, [iquib2]]], None, 1, [1, [iquib1, [iquib2]]]),
     ([1, [iquib1, [iquib2]]], None, 2, [1, [1, [2]]]),
-    ([QuibRef(iquib1)], None, None, [iquib1]),
 ])
 @mark.debug(False)
 def test_copy_and_replace_quibs_with_vals(monkeypatch, to_copy, depth, length, expected_result):
@@ -78,7 +76,6 @@ def test_copy_and_replace_quibs_with_vals(monkeypatch, to_copy, depth, length, e
     ([1, [iquib1, [iquib2]]], None, 0, set()),
     ([1, [iquib1, [iquib2]]], None, 1, set()),
     ([1, [iquib1, [iquib2]]], None, 2, {iquib1, iquib2}),
-    ([QuibRef(iquib1)], None, None, {iquib1}),
     (slicer[iquib1:, iquib1:iquib2], 2, None, {iquib1, iquib2}),
 ])
 def test_iter_quibs_in_object(to_iter, depth, length, expected_result):

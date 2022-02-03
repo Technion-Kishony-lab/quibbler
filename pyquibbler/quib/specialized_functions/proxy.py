@@ -1,12 +1,11 @@
 from __future__ import annotations
-from typing import Any, List, TYPE_CHECKING, Dict
+from typing import Any, TYPE_CHECKING, Dict
 
 from pyquibbler.function_definitions import add_definition_for_function
 from pyquibbler.function_definitions.func_definition import create_func_definition
 from pyquibbler.inversion.inverter import Inverter
 from pyquibbler.path.path_component import Path
 from pyquibbler.translation.backwards_path_translator import BackwardsPathTranslator
-from pyquibbler.translation.forwards_path_translator import ForwardsPathTranslator
 from pyquibbler.translation.types import Source, Inversal
 
 if TYPE_CHECKING:
@@ -15,20 +14,14 @@ if TYPE_CHECKING:
 
 def create_proxy(quib: Quib):
     from pyquibbler.quib.factory import create_quib
-    return create_quib(func=proxy, args=(quib,))
+    proxy_quib = create_quib(func=proxy, args=(quib,))
+    # We don't need to be the child of our parent, as we never want to be invalidated
+    quib.remove_child(proxy_quib)
+    return proxy_quib
 
 
 def proxy(quib_value: Any):
     return quib_value
-
-
-class ProxyForwardsPathTranslator(ForwardsPathTranslator):
-
-    SHOULD_ATTEMPT_WITHOUT_SHAPE_AND_TYPE = True
-
-    def _forward_translate_source(self, source: Source, path: Path) -> List[Path]:
-        # We never invalidate as a proxy
-        return []
 
 
 class ProxyBackwardsPathTranslator(BackwardsPathTranslator):
@@ -55,7 +48,6 @@ class ProxyInverter(Inverter):
 
 
 proxy_definition = create_func_definition(raw_data_source_arguments=[0], inverters=[ProxyInverter],
-                                          backwards_path_translators=[ProxyBackwardsPathTranslator],
-                                          forwards_path_translators=[ProxyForwardsPathTranslator])
+                                          backwards_path_translators=[ProxyBackwardsPathTranslator])
 
 add_definition_for_function(proxy, proxy_definition)

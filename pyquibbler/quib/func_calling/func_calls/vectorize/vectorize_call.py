@@ -81,9 +81,9 @@ class VectorizeQuibFuncCall(QuibFuncCall):
             call = self._wrap_vectorize_call_to_pass_quibs(call, args_metadata, results_core_ndims)
         else:
             quibs_to_paths = {} if valid_path is None else self._backwards_translate_path(valid_path)
-            new_args, new_kwargs, quibs_allowed = self.get_args_and_kwargs_valid_at_quibs_to_paths(quibs_to_paths)
+            new_args, new_kwargs = self.get_args_and_kwargs_valid_at_quibs_to_paths(quibs_to_paths)
             (vectorize, *args), kwargs = new_args, new_kwargs
-            call = VectorizeCall(vectorize, args, kwargs, quibs_allowed)
+            call = VectorizeCall(vectorize, args, kwargs)
         return call
 
     def _get_sample_result(self, args_metadata, results_core_ndims):
@@ -101,9 +101,9 @@ class VectorizeQuibFuncCall(QuibFuncCall):
         """
         Get and cache metadata for the vectorize call.
         """
-        new_args, new_kwargs, quibs_allowed = self.get_args_and_kwargs_valid_at_quibs_to_paths(quibs_to_valid_paths={})
+        new_args, new_kwargs = self.get_args_and_kwargs_valid_at_quibs_to_paths(quibs_to_valid_paths={})
         (vectorize, *args), kwargs = new_args, new_kwargs
-        return VectorizeCall(vectorize, args, kwargs, quibs_allowed).get_metadata(self._get_sample_result)
+        return VectorizeCall(vectorize, args, kwargs).get_metadata(self._get_sample_result)
 
     @cache_method_until_full_invalidation
     def _get_loop_shape(self):
