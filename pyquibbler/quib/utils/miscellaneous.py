@@ -87,3 +87,7 @@ def get_user_friendly_name_for_requested_valid_path(valid_path: Optional[Path]):
         return 'get_value()'
     else:
         return f'get_value_valid_at_path({valid_path})'
+
+
+class NoValue:
+    pass
