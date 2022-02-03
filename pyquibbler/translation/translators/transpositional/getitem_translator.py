@@ -55,17 +55,7 @@ class ForwardsGetItemTranslator(ForwardsTranspositionalTranslator):
                 # Therefore, we translate the indices and invalidate our children with the new indices (which are an
                 # intersection between our getitem and the path to invalidate- if this intersections yields nothing,
                 # we do NOT invalidate our children)
-                translated_paths = super(ForwardsGetItemTranslator, self)._forward_translate_source(source=source,
-                                                                                                    path=path)
-                # Getitems can potentially drop the first component in the path, if that component is completely True
-                # and the getitem's result is not an ndarray
-                new_translated_paths = []
-                for path in translated_paths:
-                    if self._type != np.ndarray and np.all(path[0].component):
-                        new_translated_paths.append(path[1:])
-                    else:
-                        new_translated_paths.append(path)
-                return new_translated_paths
+                return super(ForwardsGetItemTranslator, self)._forward_translate_source(source=source, path=path)
 
             elif (
                     _getitem_path_component(self._func_call).references_field_in_field_array()

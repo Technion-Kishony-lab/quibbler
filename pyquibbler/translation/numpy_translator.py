@@ -75,7 +75,14 @@ class NumpyForwardsPathTranslator(ForwardsPathTranslator):
             assert issubclass(self._type, np.ndarray) or isinstance(bool_mask_in_output_array, np.bool_) \
                    or (bool_mask_in_output_array.shape == () and bool_mask_in_output_array.dtype == np.bool_)
 
+            if self._type != np.ndarray and np.all(bool_mask_in_output_array):
+                return [path[1:]]
+
             if len(path) > 0 and issubclass(path[0].indexed_cls, (list, np.ndarray)):
+                # If we are in a situation in which the first component is a referencing an ndarray or list, then the
+                # `bool_mask_in_output_array` is already a combination of the first component with the
+                # self._func_call.func- therefore, we are going to replace the first component with the
+                # bool_mask_in_output_array
                 rest_of_path = path[1:]
             else:
                 rest_of_path = path
