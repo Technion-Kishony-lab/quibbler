@@ -141,6 +141,16 @@ def test_quib_get_override_mask_with_list():
     assert mask.get_value() == [False, [False, True], False]
 
 
+@pytest.mark.regression
+def test_quib_get_override_mask_dict():
+    quib = create_quib(func=mock.Mock(return_value={'city': 'Haifa', 'beach': 'yes'}), allow_overriding=True)
+    quib['city'] = 'Tel-Aviv'
+
+    mask = quib.get_override_mask()
+
+    assert mask.get_value() == {'city': True, 'beach': False}
+
+
 def test_quib_does_not_fail_when_assignment_fails_on_second_get_value():
     quib = create_quib(mock.Mock(return_value=[1, 2, 3]), allow_overriding=True)
     quib.assign_value_to_key(key=2, value=1)
