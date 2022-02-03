@@ -70,7 +70,7 @@ class Quib:
                  assigned_name: Optional[str],
                  file_name: Optional[str],
                  line_no: Optional[str],
-                 update_type: UpdateType,
+                 redraw_update_type: UpdateType,
                  save_directory: pathlib.Path,
                  can_save_as_txt: bool,
                  can_contain_graphics: bool,
@@ -86,7 +86,7 @@ class Quib:
         self.created_in_get_value_context = self._IS_WITHIN_GET_VALUE_CONTEXT
         self.file_name = file_name
         self.line_no = line_no
-        self._redraw_update_type = update_type
+        self.redraw_update_type = redraw_update_type
 
         self._save_directory = save_directory
 
@@ -151,8 +151,36 @@ class Quib:
         redraw_quibs_with_graphics_or_add_in_aggregate_mode(quibs)
 
     @property
-    def redraw_update_type(self):
-        return self._redraw_update_type.value
+    def redraw_update_type(self) -> Union[None, str]:
+        """
+        Return the redraw_update_type of the quib, indicating whether the quib should refresh upon upstream assignments.
+        Options are:
+        "drag":     refresh immediately as upstream objects are dragged
+        "drop":     refresh at end of dragging upon graphic object drop.
+        "central":  do not automatically refresh. Refresh, centrally upon
+                    redraw_central_refresh_graphics_function_quibs().
+        "never":    Never refresh.
+
+        Returns
+        -------
+        "drag", "drop", "central", "never", or None
+
+        See Also
+        --------
+        UpdateType, Project.redraw_central_refresh_graphics_function_quibs
+        """
+        return self._redraw_update_type.value if self._redraw_update_type else None
+
+    @redraw_update_type.setter
+    @validate_user_input(redraw_update_type=(type(None), str, UpdateType))
+    def redraw_update_type(self, redraw_update_type: Union[None, str, UpdateType]):
+        if isinstance(redraw_update_type, str):
+            try:
+                redraw_update_type = UpdateType[redraw_update_type.upper()]
+            except KeyError:
+                raise UnknownUpdateTypeException(redraw_update_type)
+        self._redraw_update_type = redraw_update_type
+
 
     """
     Assignment
@@ -487,6 +515,7 @@ class Quib:
              cache_behavior: Union[str, CacheBehavior] = None,
              assigned_name: Union[None, str] = NoValue,
              name: Union[None, str] = NoValue,
+             redraw_update_type: Union[None, str] = NoValue,
              ):
         """
         Configure a quib with certain attributes- because this function is expected to be used by users, we never
@@ -504,19 +533,9 @@ class Quib:
             self.set_assigned_name(assigned_name)
         if name is not NoValue:
             self.set_assigned_name(name)
+        if redraw_update_type is not NoValue:
+            self.redraw_update_type = redraw_update_type
         return self
-
-    @validate_user_input(update_type=(str, UpdateType))
-    def set_redraw_update_type(self, update_type: Union[str, UpdateType]):
-        """
-        Set when to redraw a quib- on "drag", on "drop", on "central" refresh, or "never" (see UpdateType enum)
-        """
-        if isinstance(update_type, str):
-            try:
-                update_type = UpdateType[update_type.upper()]
-            except KeyError:
-                raise UnknownUpdateTypeException(update_type)
-        self._redraw_update_type = update_type
 
     @property
     def children(self) -> Set[Quib]:
