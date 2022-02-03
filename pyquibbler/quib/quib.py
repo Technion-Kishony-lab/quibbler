@@ -48,6 +48,7 @@ from pyquibbler.utilities.unpacker import Unpacker
 from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals
 from pyquibbler.cache.cache import CacheStatus
 from pyquibbler.cache import create_cache
+from .utils.miscellaneous import NoValue
 
 if TYPE_CHECKING:
     from pyquibbler.function_definitions.func_definition import FuncDefinition
@@ -66,7 +67,7 @@ class Quib:
     def __init__(self, quib_function_call: QuibFuncCall,
                  assignment_template: AssignmentTemplate,
                  allow_overriding: bool,
-                 name: Optional[str],
+                 assigned_name: Optional[str],
                  file_name: Optional[str],
                  line_no: Optional[str],
                  update_type: UpdateType,
@@ -75,7 +76,7 @@ class Quib:
                  can_contain_graphics: bool,
                  ):
         self._assignment_template = assignment_template
-        self._assigned_name = name
+        self.set_assigned_name(assigned_name)
 
         self._children = WeakSet()
         self._overrider = Overrider()
@@ -479,9 +480,14 @@ class Quib:
             raise InvalidCacheBehaviorForQuibException(self._quib_function_call.default_cache_behavior)
         self._quib_function_call.default_cache_behavior = cache_behavior
 
-    def setp(self, allow_overriding: bool = None, assignment_template: Union[tuple, AssignmentTemplate] = None,
-             save_directory: Union[str, pathlib.Path] = None, cache_behavior: Union[str, CacheBehavior] = None,
-             **kwargs):
+    def setp(self,
+             allow_overriding: bool = None,
+             assignment_template: Union[tuple, AssignmentTemplate] = None,
+             save_directory: Union[str, pathlib.Path] = None,
+             cache_behavior: Union[str, CacheBehavior] = None,
+             assigned_name: Union[None, str] = NoValue,
+             name: Union[None, str] = NoValue,
+             ):
         """
         Configure a quib with certain attributes- because this function is expected to be used by users, we never
         setattr to anything before checking the types.
@@ -494,10 +500,10 @@ class Quib:
             self.set_save_directory(save_directory)
         if cache_behavior is not None:
             self.set_cache_behavior(cache_behavior)
-        if 'name' in kwargs:
-            self.set_name(kwargs.pop('name'))
-        if 'assigned_name' in kwargs:
-            self.set_name(kwargs.pop('assigned_name'))
+        if assigned_name is not NoValue:
+            self.set_assigned_name(assigned_name)
+        if name is not NoValue:
+            self.set_assigned_name(name)
         return self
 
     @validate_user_input(update_type=(str, UpdateType))
@@ -590,14 +596,16 @@ class Quib:
         raise TypeError('Cannot iterate over quibs, as their size can vary. '
                         'Try Quib.iter_first() to iterate over the n-first items of the quib.')
 
-    @validate_user_input(name=(str, type(None)))
-    def set_name(self, name: Optional[str]):
+    @validate_user_input(assigned_name=(str, type(None)))
+    def set_assigned_name(self, assigned_name: Optional[str]):
         """
         Set the quib's name- this will override any name automatically created if it exists.
         Set the name to None to indicate unnamed quib.
         """
-        if name is None or len(name) and name[0].isalpha() and all([c.isalnum() or c in ' _' for c in name]):
-            self._assigned_name = name
+        if assigned_name is None \
+                or len(assigned_name) \
+                and assigned_name[0].isalpha() and all([c.isalnum() or c in ' _' for c in assigned_name]):
+            self._assigned_name = assigned_name
         else:
             raise ValueError('name must be None or a string starting with a letter '
                              'and continuing alpha-numeric charaters or spaces')
@@ -868,4 +876,4 @@ class Quib:
         return self.ugly_repr()
 
 
-Quib.set_assigned_name = Quib.set_name
+Quib.set_name = Quib.set_assigned_name
