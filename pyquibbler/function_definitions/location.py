@@ -34,6 +34,9 @@ class PositionalSourceLocation(SourceLocation):
 
     argument: PositionalArgument
 
+    def __hash__(self):
+        return id(self)
+
     @property
     def full_path(self):
         return [PathComponent(component=self.argument.index, indexed_cls=tuple), *self.path]

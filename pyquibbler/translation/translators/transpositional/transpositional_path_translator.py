@@ -2,10 +2,12 @@ import functools
 from functools import lru_cache
 
 import numpy as np
-from typing import Dict, Callable, Any, List
+from typing import Dict, Any, List
 
+from pyquibbler.function_definitions import SourceLocation
 from pyquibbler.translation.numpy_translator import NumpyForwardsPathTranslator
 from pyquibbler.translation.numpy_translator import NumpyBackwardsPathTranslator
+from pyquibbler.translation.source_func_call import SourceFuncCall
 from pyquibbler.translation.translators.transpositional.utils import get_data_source_ids_mask
 from pyquibbler.translation.types import Source
 from pyquibbler.path.path_component import Path, PathComponent
@@ -15,18 +17,47 @@ from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_ind
 
 class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
 
+    @functools.lru_cache()
+    def _get_shape_to_fill_for_data_source_in_location(self, location: SourceLocation):
+        """
+        Return the shape that needs to be filled for a given data source. One might think this is simply the shape of
+        the data source (whether it be minor or major),
+        but in situations in which a minor data source is not part of the shape (or only part of it
+        is a part of the shape) of the major data source (for example, `a` in `a = [1, 2],
+         b = np.array([1, 2, a])`), we want to return only the part of the shape that is relevant to the major data
+         source
+        """
+        from pyquibbler.quib.factory import get_original_func
+        # TODO: Functions should allow specifying "major" data sources at a full path instead of just at argument level
+        # Because of situations like concat, in which the "major" data source is one level in (within a tuple of the
+        # first arg)
+        if self._func_call.func == get_original_func(np.concatenate):
+            major_data_source_location = type(location)(argument=location.argument, path=[location.path[0]])
+        else:
+            major_data_source_location = type(location)(argument=location.argument, path=[])
+
+        major_data_source = major_data_source_location.find_in_args_kwargs(self._func_call.args, self._func_call.kwargs)
+
+        # A source cannot be within a source- if the major data argument is already a source, just return it's shape
+        if isinstance(major_data_source, Source):
+            return np.shape(major_data_source.value)
+
+        major_data_source = np.array(major_data_source)
+        minor_source = location.find_in_args_kwargs(self._func_call.args, self._func_call.kwargs)
+        return np.shape(minor_source.value)[:major_data_source.ndim - len(location.path)]
+
+    @functools.lru_cache()
     def _get_data_source_ids_mask(self) -> np.ndarray:
         """
         Runs the function with each source's ids instead of it's values
         """
-
-        def replace_source_with_id(obj):
-            if isinstance(obj, Source):
-                return np.full(np.shape(obj.value), id(obj))
-            return obj
-
-        args, kwargs = self._convert_sources_in_args(replace_source_with_id)
-        return self._func_call.func(*args, **kwargs)
+        args = self._func_call.args
+        kwargs = self._func_call.kwargs
+        for location in self._func_call.data_source_locations:
+            shape = self._get_shape_to_fill_for_data_source_in_location(location)
+            source = location.find_in_args_kwargs(args, kwargs)
+            args, kwargs = location.set_in_args_kwargs(args, kwargs, np.full(shape, id(source)))
+        return SourceFuncCall.from_(self._func_call.func, args, kwargs).run()
 
     @functools.lru_cache()
     def get_data_sources_to_masks_in_result(self) -> Dict[Source, Any]:
@@ -38,22 +69,6 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
         return {data_source: np.equal(data_sources_ids_mask, id(data_source))
                 for data_source in self._func_call.get_data_sources()}
 
-    def _convert_sources_in_args(self, convert_data_source: Callable):
-        """
-        Return self.args and self.kwargs with all data source args converted with the given convert_data_source
-        callback
-        """
-        def _convert_data_source(o):
-            return convert_data_source(o)
-
-        def _convert_param_source(o):
-            return o.value
-
-        return self._func_call.transform_sources_in_args_kwargs(
-            transform_data_source_func=_convert_data_source,
-            transform_parameter_func=_convert_param_source
-        )
-
     def _get_data_sources_to_indices_at_dimension(self, dimension: int,
                                                   relevant_indices_mask) -> Dict[Source, np.ndarray]:
         """
@@ -61,11 +76,14 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
         """
         data_sources_to_masks = self.get_data_sources_to_masks_in_result()
 
-        def replace_data_source_with_index_at_dimension(d):
-            return np.indices(np.shape(d.value))[dimension]
+        args = self._func_call.args
+        kwargs = self._func_call.kwargs
+        for location in self._func_call.data_source_locations:
+            shape = self._get_shape_to_fill_for_data_source_in_location(location)
+            arr = np.indices(shape)[dimension]
+            args, kwargs = location.set_in_args_kwargs(args, kwargs, arr)
 
-        args, kwargs = self._convert_sources_in_args(replace_data_source_with_index_at_dimension)
-        indices_res = self._func_call.func(*args, **kwargs)
+        indices_res = SourceFuncCall.from_(self._func_call.func, args, kwargs).run()
 
         return {
             data_source: indices_res[np.logical_and(data_sources_to_masks[data_source], relevant_indices_mask)]
@@ -80,8 +98,11 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
         """
         relevant_indices_mask = create_bool_mask_with_true_at_indices(self._shape, self._working_component)
         data_sources = self._func_call.get_data_sources()
-        max_shape_length = max([np.ndim(data_source_argument.value)
-                                for data_source_argument in data_sources]) if len(data_sources) > 0 else 0
+
+        max_shape_length = 0
+        for location in self._func_call.data_source_locations:
+            shape = self._get_shape_to_fill_for_data_source_in_location(location)
+            max_shape_length = max([max_shape_length, len(shape)])
 
         data_sources_to_masks = self.get_data_sources_to_masks_in_result()
 
