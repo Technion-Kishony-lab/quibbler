@@ -184,7 +184,7 @@ def test_assignment_to_quib_within_vectorize_is_translated_to_override_on_vector
     @functools.partial(np.vectorize, pass_quibs=True, excluded={0}, otypes=[object])
     def get_override_group_for_assignment_to_child(quib):
         child = quib + iquib(1)
-        child.set_allow_overriding(True)
+        child.allow_overriding = True
         return get_override_group_for_change(AssignmentToQuib(child, Assignment(2, [])))
 
     override_group = get_override_group_for_assignment_to_child(parent).get_value()[()]

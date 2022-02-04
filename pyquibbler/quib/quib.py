@@ -80,7 +80,7 @@ class Quib:
 
         self._children = WeakSet()
         self._overrider = Overrider()
-        self._allow_overriding = allow_overriding
+        self.allow_overriding = allow_overriding
         self._quibs_allowed_to_assign_to = None
         self._override_choice_cache = {}
         self.created_in_get_value_context = self._IS_WITHIN_GET_VALUE_CONTEXT
@@ -186,11 +186,26 @@ class Quib:
     Assignment
     """
 
+    @property
+    def allow_overriding(self):
+        """
+        Indicates whether the quib can be overridden.
+        The default for allow_overriding is True for iquibs and False in function quibs.
+
+        Returns
+        -------
+        bool
+
+        See Also
+        --------
+        set_assigned_quibs
+        
+        """
+        return self._allow_overriding
+
+    @allow_overriding.setter
     @validate_user_input(allow_overriding=bool)
-    def set_allow_overriding(self, allow_overriding: bool):
-        """
-        Set whether the quib can be overridden- this defaults to True in iquibs and False in function quibs
-        """
+    def allow_overriding(self, allow_overriding: bool):
         self._allow_overriding = allow_overriding
 
     def override(self, assignment: Assignment, allow_overriding_from_now_on=True):
@@ -339,10 +354,6 @@ class Quib:
         and False otherwise.
         """
         return True if self._quibs_allowed_to_assign_to is None else quib in self._quibs_allowed_to_assign_to
-
-    @property
-    def allow_overriding(self) -> bool:
-        return self._allow_overriding
 
     def get_assignment_template(self) -> AssignmentTemplate:
         return self._assignment_template
@@ -522,7 +533,7 @@ class Quib:
         setattr to anything before checking the types.
         """
         if allow_overriding is not None:
-            self.set_allow_overriding(allow_overriding)
+            self.allow_overriding = allow_overriding
         if assignment_template is not None:
             self.set_assignment_template(assignment_template)
         if save_directory is not None:
