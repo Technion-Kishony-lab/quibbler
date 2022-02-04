@@ -70,7 +70,7 @@ class Quib:
                  assigned_name: Optional[str],
                  file_name: Optional[str],
                  line_no: Optional[str],
-                 update_type: UpdateType,
+                 redraw_update_type: UpdateType,
                  save_directory: pathlib.Path,
                  can_save_as_txt: bool,
                  can_contain_graphics: bool,
@@ -80,15 +80,15 @@ class Quib:
 
         self._children = WeakSet()
         self._overrider = Overrider()
-        self._allow_overriding = allow_overriding
+        self.allow_overriding = allow_overriding
         self._quibs_allowed_to_assign_to = None
         self._override_choice_cache = {}
         self.created_in_get_value_context = self._IS_WITHIN_GET_VALUE_CONTEXT
         self.file_name = file_name
         self.line_no = line_no
-        self._redraw_update_type = update_type
+        self.redraw_update_type = redraw_update_type
 
-        self._save_directory = save_directory
+        self.save_directory = save_directory
 
         self._quib_function_call = quib_function_call
 
@@ -151,18 +151,60 @@ class Quib:
         redraw_quibs_with_graphics_or_add_in_aggregate_mode(quibs)
 
     @property
-    def redraw_update_type(self):
-        return self._redraw_update_type.value
+    def redraw_update_type(self) -> Union[None, str]:
+        """
+        Return the redraw_update_type of the quib, indicating whether the quib should refresh upon upstream assignments.
+        Options are:
+        "drag":     refresh immediately as upstream objects are dragged
+        "drop":     refresh at end of dragging upon graphic object drop.
+        "central":  do not automatically refresh. Refresh, centrally upon
+                    redraw_central_refresh_graphics_function_quibs().
+        "never":    Never refresh.
+
+        Returns
+        -------
+        "drag", "drop", "central", "never", or None
+
+        See Also
+        --------
+        UpdateType, Project.redraw_central_refresh_graphics_function_quibs
+        """
+        return self._redraw_update_type.value if self._redraw_update_type else None
+
+    @redraw_update_type.setter
+    @validate_user_input(redraw_update_type=(type(None), str, UpdateType))
+    def redraw_update_type(self, redraw_update_type: Union[None, str, UpdateType]):
+        if isinstance(redraw_update_type, str):
+            try:
+                redraw_update_type = UpdateType[redraw_update_type.upper()]
+            except KeyError:
+                raise UnknownUpdateTypeException(redraw_update_type)
+        self._redraw_update_type = redraw_update_type
 
     """
     Assignment
     """
 
+    @property
+    def allow_overriding(self):
+        """
+        Indicates whether the quib can be overridden.
+        The default for allow_overriding is True for iquibs and False in function quibs.
+
+        Returns
+        -------
+        bool
+
+        See Also
+        --------
+        set_assigned_quibs
+
+        """
+        return self._allow_overriding
+
+    @allow_overriding.setter
     @validate_user_input(allow_overriding=bool)
-    def set_allow_overriding(self, allow_overriding: bool):
-        """
-        Set whether the quib can be overridden- this defaults to True in iquibs and False in function quibs
-        """
+    def allow_overriding(self, allow_overriding: bool):
         self._allow_overriding = allow_overriding
 
     def override(self, assignment: Assignment, allow_overriding_from_now_on=True):
@@ -311,10 +353,6 @@ class Quib:
         and False otherwise.
         """
         return True if self._quibs_allowed_to_assign_to is None else quib in self._quibs_allowed_to_assign_to
-
-    @property
-    def allow_overriding(self) -> bool:
-        return self._allow_overriding
 
     def get_assignment_template(self) -> AssignmentTemplate:
         return self._assignment_template
@@ -466,11 +504,28 @@ class Quib:
     def project(self) -> Project:
         return Project.get_or_create()
 
-    def get_cache_behavior(self):
+    @property
+    def cache_behavior(self):
+        """
+        Set the value caching mode for the quib:
+        'auto':     caching is decided automatically according to the ratio between evaluation time and
+                    memory consumption.
+        'off':      do not cache.
+        'on':       always caching.
+
+        Returns
+        -------
+        'auto', 'on', or 'off'
+
+        See Also
+        --------
+        CacheBehavior
+        """
         return self._quib_function_call.get_cache_behavior().value
 
+    @cache_behavior.setter
     @validate_user_input(cache_behavior=(str, CacheBehavior))
-    def set_cache_behavior(self, cache_behavior: CacheBehavior):
+    def cache_behavior(self, cache_behavior: Union[str, CacheBehavior]):
         if isinstance(cache_behavior, str):
             try:
                 cache_behavior = CacheBehavior[cache_behavior.upper()]
@@ -487,36 +542,27 @@ class Quib:
              cache_behavior: Union[str, CacheBehavior] = None,
              assigned_name: Union[None, str] = NoValue,
              name: Union[None, str] = NoValue,
+             redraw_update_type: Union[None, str] = NoValue,
              ):
         """
         Configure a quib with certain attributes- because this function is expected to be used by users, we never
         setattr to anything before checking the types.
         """
         if allow_overriding is not None:
-            self.set_allow_overriding(allow_overriding)
+            self.allow_overriding = allow_overriding
         if assignment_template is not None:
             self.set_assignment_template(assignment_template)
         if save_directory is not None:
-            self.set_save_directory(save_directory)
+            self.save_directory = save_directory
         if cache_behavior is not None:
-            self.set_cache_behavior(cache_behavior)
+            self.cache_behavior = cache_behavior
         if assigned_name is not NoValue:
             self.set_assigned_name(assigned_name)
         if name is not NoValue:
             self.set_assigned_name(name)
+        if redraw_update_type is not NoValue:
+            self.redraw_update_type = redraw_update_type
         return self
-
-    @validate_user_input(update_type=(str, UpdateType))
-    def set_redraw_update_type(self, update_type: Union[str, UpdateType]):
-        """
-        Set when to redraw a quib- on "drag", on "drop", on "central" refresh, or "never" (see UpdateType enum)
-        """
-        if isinstance(update_type, str):
-            try:
-                update_type = UpdateType[update_type.upper()]
-            except KeyError:
-                raise UnknownUpdateTypeException(update_type)
-        self._redraw_update_type = update_type
 
     @property
     def children(self) -> Set[Quib]:
@@ -762,8 +808,13 @@ class Quib:
     def _save_txt_path(self) -> Optional[pathlib.Path]:
         return self._save_directory / f"{self.assigned_name}.txt"
 
+    @property
+    def save_directory(self):
+        return self._save_directory
+
+    @save_directory.setter
     @validate_user_input(path=(str, pathlib.Path))
-    def set_save_directory(self, path: Union[str, pathlib.Path]):
+    def save_directory(self, path: Union[str, pathlib.Path]):
         """
         Set the save path of the quib (where it will be loaded/saved)
         """

@@ -123,26 +123,16 @@ def create_quib(func: Callable, args: Tuple[Any, ...] = (), kwargs: Mapping[str,
         include_defaults=True,
     )
 
-    quib = Quib(quib_function_call=quib_func_call,
-                assignment_template=None,
-                allow_overriding=allow_overriding,
-                assigned_name=get_quib_name(),
-                file_name=file_name,
-                line_no=line_no,
-                update_type=None,
-                can_save_as_txt=can_save_as_txt,
-                save_directory=save_directory or project.function_quib_directory,
-                # If the update type isn't None, we presume the user wanted the quib to be redrawn on graphic changes;
-                # note that this isn't strictly necessary- a quib could, for example, have an update type while knowing
-                # that there is a chance it will never make artists, but if it did then this would be the update type
-                can_contain_graphics=update_type is not None,
-                **init_kwargs)
+    quib = Quib(quib_function_call=quib_func_call, assignment_template=None, allow_overriding=allow_overriding,
+                assigned_name=get_quib_name(), file_name=file_name, line_no=line_no, redraw_update_type=None,
+                save_directory=save_directory or project.function_quib_directory, can_save_as_txt=can_save_as_txt,
+                can_contain_graphics=update_type is not None)
 
     project.register_quib(quib)
     add_new_quib_to_guard_if_exists(quib)
 
     if update_type:
-        quib.set_redraw_update_type(update_type or UpdateType.DRAG)
+        quib.redraw_update_type = update_type or UpdateType.DRAG
 
     for arg in quib.parents:
         arg.add_child(quib)

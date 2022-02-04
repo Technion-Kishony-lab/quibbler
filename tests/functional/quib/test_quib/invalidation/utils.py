@@ -32,7 +32,7 @@ def check_invalidation(func, data, indices_to_invalidate):
     """
     input_quib = iquib(data)
     result = func(input_quib)
-    result.set_cache_behavior(CacheBehavior.OFF)
+    result.cache_behavior = CacheBehavior.OFF
     children = breakdown_quib(result)
 
     original_values = {child: child.get_value() for child in children}

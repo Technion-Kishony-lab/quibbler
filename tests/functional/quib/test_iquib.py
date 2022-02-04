@@ -128,7 +128,7 @@ def test_save_iquib_with_save_path(tmpdir):
         a = iquib(10)
     a.assign_value(11)
     path = pathlib.Path(tmpdir.strpath) / "whatever"
-    a.set_save_directory(path)
+    a.save_directory = path
 
     a.save_if_relevant()
     a.load()

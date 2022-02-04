@@ -47,7 +47,7 @@ roi_default._allow_overriding = False
 
 rois = np.repeat(roi_default, images_count, axis=0)
 rois.set_assignment_template(0, 1000, 1)
-rois.set_allow_overriding(True)
+rois.allow_overriding = True
 
 similiarity_threshold = iquib(.1)
 cut_images = cut_image(image, rois)

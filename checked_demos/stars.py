@@ -23,8 +23,8 @@ y_star = np.sin(tet) * rs;
 #%%
 
 # Allow changing the coordinates:
-x_star.set_allow_overriding(True);
-y_star.set_allow_overriding(True);
+x_star.allow_overriding = True
+y_star.allow_overriding = True
 
 #%%
 
@@ -34,8 +34,8 @@ y_star_circ = np.concatenate([y_star, y_star[[0]]])
 #%%
 
 # Define and draw movable star:
-x_center_movable = iquib(np.array([7.]));
-y_center_movable = iquib(np.array([5.]));
+x_center_movable = iquib(np.array([7.]))
+y_center_movable = iquib(np.array([5.]))
 
 # using x_center_movable as the first argument
 # (to which the inverse-assignment is channeled):
