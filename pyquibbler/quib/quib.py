@@ -181,7 +181,6 @@ class Quib:
                 raise UnknownUpdateTypeException(redraw_update_type)
         self._redraw_update_type = redraw_update_type
 
-
     """
     Assignment
     """
@@ -199,7 +198,7 @@ class Quib:
         See Also
         --------
         set_assigned_quibs
-        
+
         """
         return self._allow_overriding
 
@@ -505,11 +504,28 @@ class Quib:
     def project(self) -> Project:
         return Project.get_or_create()
 
-    def get_cache_behavior(self):
+    @property
+    def cache_behavior(self):
+        """
+        Set the value caching mode for the quib:
+        'auto':     caching is decided automatically according to the ratio between evaluation time and
+                    memory consumption.
+        'off':      do not cache.
+        'on':       always caching.
+
+        Returns
+        -------
+        'auto', 'on', or 'off'
+
+        See Also
+        --------
+        CacheBehavior
+        """
         return self._quib_function_call.get_cache_behavior().value
 
+    @cache_behavior.setter
     @validate_user_input(cache_behavior=(str, CacheBehavior))
-    def set_cache_behavior(self, cache_behavior: CacheBehavior):
+    def cache_behavior(self, cache_behavior: Union[str, CacheBehavior]):
         if isinstance(cache_behavior, str):
             try:
                 cache_behavior = CacheBehavior[cache_behavior.upper()]
@@ -539,7 +555,7 @@ class Quib:
         if save_directory is not None:
             self.save_directory = save_directory
         if cache_behavior is not None:
-            self.set_cache_behavior(cache_behavior)
+            self.cache_behavior = cache_behavior
         if assigned_name is not NoValue:
             self.set_assigned_name(assigned_name)
         if name is not NoValue:

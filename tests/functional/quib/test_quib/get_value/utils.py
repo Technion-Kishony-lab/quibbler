@@ -90,7 +90,7 @@ def check_get_value_valid_at_path(func, data, path_to_get_value_at):
     """
     input_quib = collecting_quib(data)
     result_quib = func(input_quib)
-    result_quib.set_cache_behavior(CacheBehavior.OFF)
+    result_quib.cache_behavior = CacheBehavior.OFF
 
     result = result_quib.get_value()
 
