@@ -88,7 +88,7 @@ class Quib:
         self.line_no = line_no
         self.redraw_update_type = redraw_update_type
 
-        self._save_directory = save_directory
+        self.save_directory = save_directory
 
         self._quib_function_call = quib_function_call
 
@@ -526,7 +526,7 @@ class Quib:
         if assignment_template is not None:
             self.set_assignment_template(assignment_template)
         if save_directory is not None:
-            self.set_save_directory(save_directory)
+            self.save_directory = save_directory
         if cache_behavior is not None:
             self.set_cache_behavior(cache_behavior)
         if assigned_name is not NoValue:
@@ -781,8 +781,13 @@ class Quib:
     def _save_txt_path(self) -> Optional[pathlib.Path]:
         return self._save_directory / f"{self.assigned_name}.txt"
 
+    @property
+    def save_directory(self):
+        return self._save_directory
+
+    @save_directory.setter
     @validate_user_input(path=(str, pathlib.Path))
-    def set_save_directory(self, path: Union[str, pathlib.Path]):
+    def save_directory(self, path: Union[str, pathlib.Path]):
         """
         Set the save path of the quib (where it will be loaded/saved)
         """
