@@ -78,6 +78,16 @@ def test_assignment_to_list_after_np_function(create_quib_with_return_value):
 
 
 @pytest.mark.regression
+def test_slice_assignment_to_list_after_get_item(create_quib_with_return_value):
+    a = create_quib_with_return_value([1, 2, 3, 4], allow_overriding=True)
+    b: Quib = a[:3].setp(cache_behavior='on')
+    b.get_value()
+    a[1:] = [20, 30, 40]
+    print(b.get_value())
+    assert np.array_equiv(b.get_value(), [1, 20, 30])
+
+
+@pytest.mark.regression
 def test_assignment_to_list_make_it_unarrayable_after_np_function(create_quib_with_return_value):
     first_quib_arg = create_quib_with_return_value([[11, 12, 13], [21, 22, 23]], allow_overriding=True)
     rotated: Quib = np.rot90(first_quib_arg)
