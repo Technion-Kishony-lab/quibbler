@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from types import ModuleType
 from typing import Callable, Any, Dict, Union, Type, Optional
 
-from pyquibbler.env import EVALUATE_NOW
+from pyquibbler.env import EVALUATE_NOW, REVEAL_THIRD_PARTY_CALLS
 from pyquibbler.function_definitions.func_definition import FuncDefinition
 from pyquibbler.quib.utils.miscellaneous import is_there_a_quib_in_args
 
@@ -55,13 +55,20 @@ class FuncOverride:
         wrapped_func = self.original_func
 
         @functools.wraps(wrapped_func)
+        def call_third_party(*args, **kwargs):
+            print('Quibbler calls: ', wrapped_func)
+            return wrapped_func(*args, **kwargs)
+
+        call_third_party.__quibbler_third_party_called__ = wrapped_func
+
+        @functools.wraps(wrapped_func)
         def _maybe_create_quib(*args, **kwargs):
             from pyquibbler.quib.factory import create_quib
             if is_there_a_quib_in_args(args, kwargs):
                 flags = self._get_creation_flags(args, kwargs)
                 evaluate_now = flags.pop('evaluate_now', EVALUATE_NOW)
                 return create_quib(
-                    func=wrapped_func,
+                    func=call_third_party if REVEAL_THIRD_PARTY_CALLS else wrapped_func,
                     args=args,
                     kwargs=kwargs,
                     evaluate_now=evaluate_now,

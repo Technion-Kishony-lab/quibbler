@@ -2,6 +2,8 @@ from pyquibbler.utils import Flag
 
 DEBUG = Flag(True)
 
+REVEAL_THIRD_PARTY_CALLS = Flag(False)
+
 EVALUATE_NOW = Flag(False)
 
 GRAPHICS_EVALUATE_NOW = Flag(True)
