@@ -29,7 +29,7 @@ def test_quib_with_valid_set_name():
     my_quib = create_quib(func=mock.Mock())
     name = "hello_quib"
 
-    my_quib.set_name(name)
+    my_quib.name = name
 
     assert my_quib.name == name
 
@@ -39,7 +39,7 @@ def test_quib_with_invalid_set_name():
     name = "hello quib!"
 
     try:
-        my_quib.set_name(name)
+        my_quib.name = name
     except ValueError:
         pass
     else:
@@ -65,7 +65,7 @@ def test_quib_doesnt_get_name_if_it_is_created_in_context():
 
 def test_quib_cannot_assign_int_to_name(quib):
     with pytest.raises(InvalidArgumentException):
-        quib.set_name(1)
+        quib.name = 1
 
 
 @pytest.mark.get_variable_names(True)
@@ -73,6 +73,6 @@ def test_quib_can_assign_none_to_name():
     a = create_quib(mock.Mock(return_value=["val"]))
     assert a.assigned_name == 'a', "Sanity check"
 
-    a.set_name(None)
+    a.name = None
 
     assert a.assigned_name is None

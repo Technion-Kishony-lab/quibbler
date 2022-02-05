@@ -76,7 +76,7 @@ class Quib:
                  can_contain_graphics: bool,
                  ):
         self._assignment_template = assignment_template
-        self.set_assigned_name(assigned_name)
+        self.assigned_name = assigned_name
 
         self._children = WeakSet()
         self._overrider = Overrider()
@@ -558,15 +558,15 @@ class Quib:
         if cache_behavior is not None:
             self.cache_behavior = cache_behavior
         if assigned_name is not NoValue:
-            self.set_assigned_name(assigned_name)
+            self.assigned_name = assigned_name
         if name is not NoValue:
-            self.set_assigned_name(name)
+            self.assigned_name = name
         if redraw_update_type is not NoValue:
             self.redraw_update_type = redraw_update_type
 
         var_name = get_quib_name()
         if var_name:
-            self.set_assigned_name(var_name)
+            self.assigned_name = var_name
 
         return self
 
@@ -648,12 +648,32 @@ class Quib:
         raise TypeError('Cannot iterate over quibs, as their size can vary. '
                         'Try Quib.iter_first() to iterate over the n-first items of the quib.')
 
+    @property
+    def assigned_name(self) -> Optional[str]:
+        """
+        Returns the assigned_name of the quib
+        The assigned_name can either be a name automatically created based on the variable name to which the quib
+        was first assigned, or a manually assigned name set by setp or by assigning to assigned_name,
+        or None indicating unnamed quib.
+
+        The name must be a string starting with a letter and continuing with alpha-numeric charaters. Spaces
+        are also allowed.
+
+        The assigned_name is also used for setting the file name for saving overrides.
+
+        Returns
+        -------
+        str, None
+
+        See Also
+        --------
+        name, setp, Project.save_quibs, Project.load_quibs
+        """
+        return self._assigned_name
+
+    @assigned_name.setter
     @validate_user_input(assigned_name=(str, type(None)))
-    def set_assigned_name(self, assigned_name: Optional[str]):
-        """
-        Set the quib's name- this will override any name automatically created if it exists.
-        Set the name to None to indicate unnamed quib.
-        """
+    def assigned_name(self, assigned_name: Optional[str]):
         if assigned_name is None \
                 or len(assigned_name) \
                 and assigned_name[0].isalpha() and all([c.isalnum() or c in ' _' for c in assigned_name]):
@@ -663,21 +683,28 @@ class Quib:
                              'and continuing alpha-numeric charaters or spaces')
 
     @property
-    def assigned_name(self) -> Optional[str]:
-        """
-        Get the assigned_name of the quib- this can either be an automatic name created
-        based on th var name to which the quib was first assigned, or a manually assigned name,
-        or None indicating unnamed quib.
-        """
-        return self._assigned_name
-
-    @property
     def name(self) -> Optional[str]:
         """
-        Get the name of the quib- this can either be the given assigned_name if not None,
+        Returns the name of the quib
+
+        The name of the quib can either be the given assigned_name if not None,
         or an automated name representing the function of the quib (the functional_representation attribute).
+
+        Assigning into name is equivalent to assigning into assigned_name
+
+        Returns
+        -------
+        str
+
+        See Also
+        --------
+        assigned_name, setp, functional_representation
         """
         return self.assigned_name or self.functional_representation
+
+    @name.setter
+    def name(self, name: str):
+        self.assigned_name = name
 
     @raise_quib_call_exceptions_as_own
     def get_value_valid_at_path(self, path: Optional[List[PathComponent]]) -> Any:
@@ -931,6 +958,3 @@ class Quib:
                 return self.pretty_repr() + '\n' + self._overrider.pretty_repr(self.assigned_name)
             return self.pretty_repr()
         return self.ugly_repr()
-
-
-Quib.set_name = Quib.set_assigned_name
