@@ -12,6 +12,19 @@ def test_quib_var_name():
     assert my_quib.name == "my_quib"
 
 
+@pytest.mark.get_variable_names(True)
+def test_quib_var_name_after_setp():
+    my_quib = create_quib(func=mock.Mock()).setp()
+    assert my_quib.name == "my_quib"
+
+
+@pytest.mark.get_variable_names(True)
+def test_quib_var_name_after_setp_without_variable():
+    my_quib = create_quib(func=mock.Mock())
+    my_quib.setp()
+    assert my_quib.name == "my_quib"
+
+
 def test_quib_with_valid_set_name():
     my_quib = create_quib(func=mock.Mock())
     name = "hello_quib"
