@@ -36,6 +36,7 @@ def path_beyond_nd_working_component(path: Path):
         return path[1:]
     return path
 
+
 def translate_bool_vector_to_slice_if_possible(bool_index: bool) -> Union[None, slice]:
     indeces, = np.nonzero(bool_index)
     if len(indeces) == 0:
