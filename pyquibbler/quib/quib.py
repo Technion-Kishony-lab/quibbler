@@ -548,6 +548,7 @@ class Quib:
         Configure a quib with certain attributes- because this function is expected to be used by users, we never
         setattr to anything before checking the types.
         """
+        from pyquibbler.quib.factory import get_quib_name
         if allow_overriding is not None:
             self.allow_overriding = allow_overriding
         if assignment_template is not None:
@@ -562,6 +563,11 @@ class Quib:
             self.set_assigned_name(name)
         if redraw_update_type is not NoValue:
             self.redraw_update_type = redraw_update_type
+
+        var_name = get_quib_name()
+        if var_name:
+            self.set_assigned_name(var_name)
+
         return self
 
     @property
