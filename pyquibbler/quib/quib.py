@@ -76,19 +76,19 @@ class Quib:
                  can_contain_graphics: bool,
                  ):
         self._assignment_template = assignment_template
-        self.assigned_name = assigned_name
+        self._assigned_name = assigned_name
 
         self._children = WeakSet()
         self._overrider = Overrider()
-        self.allow_overriding = allow_overriding
+        self._allow_overriding = allow_overriding
         self._quibs_allowed_to_assign_to = None
         self._override_choice_cache = {}
         self.created_in_get_value_context = self._IS_WITHIN_GET_VALUE_CONTEXT
         self.file_name = file_name
         self.line_no = line_no
-        self.redraw_update_type = redraw_update_type
+        self._redraw_update_type = redraw_update_type
 
-        self.save_directory = save_directory
+        self._save_directory = save_directory
 
         self._quib_function_call = quib_function_call
 
