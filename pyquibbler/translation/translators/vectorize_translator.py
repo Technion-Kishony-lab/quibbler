@@ -3,6 +3,7 @@ from typing import Dict, Any, Set, TYPE_CHECKING, Optional, Tuple, Type, List
 
 import numpy as np
 
+from pyquibbler.translation.exceptions import FailedToTranslateException
 from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices, unbroadcast_bool_mask
 from pyquibbler.path import PathComponent
 from pyquibbler.path.path_component import Path
@@ -25,8 +26,10 @@ def _get_arg_ids_for_source(source: Source, args, kwargs) -> Set[ArgId]:
 
 class VectorizeBackwardsPathTranslator(BackwardsPathTranslator):
 
+    SHOULD_ATTEMPT_WITHOUT_SHAPE_AND_TYPE = True
+
     def __init__(self, func_call, shape: Optional[Tuple[int, ...]], type_: Optional[Type], path,
-                 vectorize_metadata):
+                 vectorize_metadata=None):
         super().__init__(func_call, shape, type_, path)
         self._vectorize_metadata = vectorize_metadata
 
@@ -50,6 +53,10 @@ class VectorizeBackwardsPathTranslator(BackwardsPathTranslator):
         """
         if len(filtered_path_in_result) == 0 or filtered_path_in_result[0].indexed_cls is tuple:
             return []
+
+        if self._shape is None:
+            raise FailedToTranslateException()
+
         working_component, *rest_of_path = filtered_path_in_result
         indices_in_data_source = self._backwards_translate_indices_to_bool_mask(source, working_component.component)
         return [PathComponent(self._type, indices_in_data_source)]
