@@ -35,3 +35,16 @@ def path_beyond_nd_working_component(path: Path):
     if first_component.indexed_cls == np.ndarray:
         return path[1:]
     return path
+
+
+def translate_bool_vector_to_slice_if_possible(bool_index: bool) -> Union[None, slice]:
+    indeces, = np.nonzero(bool_index)
+    if len(indeces) == 0:
+        return(slice(0, 0))
+    if len(indeces) == 1:
+        return (slice(indeces[0], indeces[0] + 1))
+
+    diff_indices = np.diff(indeces)
+    if np.all(diff_indices == diff_indices[0]):
+        return slice(indeces[0], indeces[-1] + 1, diff_indices[0])
+    return None

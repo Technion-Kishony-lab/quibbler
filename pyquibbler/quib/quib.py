@@ -65,12 +65,12 @@ class Quib:
     _IS_WITHIN_GET_VALUE_CONTEXT = False
 
     def __init__(self, quib_function_call: QuibFuncCall,
-                 assignment_template: AssignmentTemplate,
+                 assignment_template: Optional[AssignmentTemplate],
                  allow_overriding: bool,
                  assigned_name: Optional[str],
                  file_name: Optional[str],
                  line_no: Optional[str],
-                 redraw_update_type: UpdateType,
+                 redraw_update_type: Optional[UpdateType],
                  save_directory: pathlib.Path,
                  can_save_as_txt: bool,
                  can_contain_graphics: bool,

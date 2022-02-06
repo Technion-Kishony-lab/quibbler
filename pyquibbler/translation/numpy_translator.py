@@ -4,7 +4,7 @@ from typing import Any, List, Dict, Optional, Type, Tuple
 import numpy as np
 
 from pyquibbler.path.path_component import PathComponent, Path
-from pyquibbler.path import working_component
+from pyquibbler.path import working_component, translate_bool_vector_to_slice_if_possible
 from pyquibbler.translation.backwards_path_translator import BackwardsPathTranslator
 from pyquibbler.translation.exceptions import FailedToTranslateException
 from pyquibbler.translation.forwards_path_translator import ForwardsPathTranslator
@@ -71,11 +71,11 @@ class NumpyForwardsPathTranslator(ForwardsPathTranslator):
             # this function's quib result must be an ndarray- if it were a single item (say a PyObj, int, dict, list)
             # we'd expect it to be completely True (as it is ONE single object). If it is not a single item, it is by
             # definition an ndarray
-            assert issubclass(self._type, np.ndarray) or np.all(bool_mask_in_output_array)
-            assert issubclass(self._type, np.ndarray) or isinstance(bool_mask_in_output_array, np.bool_) \
+            assert issubclass(self._type, (np.ndarray, list)) or np.all(bool_mask_in_output_array)
+            assert issubclass(self._type, (np.ndarray, list)) or isinstance(bool_mask_in_output_array, np.bool_) \
                    or (bool_mask_in_output_array.shape == () and bool_mask_in_output_array.dtype == np.bool_)
 
-            if self._type != np.ndarray and np.all(bool_mask_in_output_array):
+            if not issubclass(self._type, (np.ndarray, list)) and np.all(bool_mask_in_output_array):
                 return [path[1:]]
 
             if len(path) > 0 and issubclass(path[0].indexed_cls, (list, np.ndarray)):
@@ -86,6 +86,14 @@ class NumpyForwardsPathTranslator(ForwardsPathTranslator):
                 rest_of_path = path[1:]
             else:
                 rest_of_path = path
+
+            if len(path) > 0 and issubclass(path[0].indexed_cls, list) and issubclass(self._type, list):
+                assert np.ndim(bool_mask_in_output_array) == 1
+                slice_index = translate_bool_vector_to_slice_if_possible(bool_mask_in_output_array)
+                if slice_index:
+                    return [[PathComponent(self._type, slice_index),
+                             *rest_of_path]]
+                return [[]]  # TODO: may need to treat as list of paths
 
             return [[PathComponent(self._type, bool_mask_in_output_array),
                      *rest_of_path]]
