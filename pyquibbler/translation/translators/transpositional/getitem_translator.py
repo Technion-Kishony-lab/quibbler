@@ -72,6 +72,9 @@ class ForwardsGetItemTranslator(ForwardsTranspositionalTranslator):
                 # interchangeable when indexing structured ndarrays
                 return [path]
 
+        if isinstance(source.value, list) and len(path) == 1 and working_component.indexed_cls is list:
+            return super(ForwardsGetItemTranslator, self)._forward_translate_source(source=source, path=path)
+
         # We come to our default scenario- if
         # 1. The invalidator quib is not an ndarray
         # or
