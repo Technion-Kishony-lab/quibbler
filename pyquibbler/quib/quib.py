@@ -242,7 +242,8 @@ class Quib:
         from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation_with_sources_metadata
         func_call, sources_to_quibs = get_func_call_for_translation_with_sources_metadata(self._quib_function_call)
         try:
-            sources_to_paths = backwards_translate(func_call=func_call, path=override_removal.path)
+            sources_to_paths = backwards_translate(func_call=func_call, path=override_removal.path,
+                                                   shape=self.get_shape(), type_=self.get_type())
         except NoTranslatorsFoundException:
             return []
         else:
