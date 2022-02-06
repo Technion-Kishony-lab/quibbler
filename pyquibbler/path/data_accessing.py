@@ -63,7 +63,7 @@ def set_for_slice(sl_, attribute, value):
 def set_for_tuple(tpl, index, value):
     lst = list(tpl)
     lst[index] = value
-    return lst
+    return tuple(lst)
 
 
 def set_key_to_value(obj, key, value):
