@@ -10,6 +10,7 @@ from enum import Enum
 from pyquibbler.logger import logger
 from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.utils import Flag, Mutable
+from pyquibbler.env import OVERIDE_DIALOG_IN_SEPERATE_WINDOW
 
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib
@@ -64,25 +65,69 @@ def show_fig(fig, choice_type):
     return figure_closed.val
 
 
+def add_axes_by_inches(fig, position):
+    from mpl_toolkits.axes_grid1 import Divider, Size
+    h = [Size.Fixed(position[0]), Size.Fixed(position[2])]
+    v = [Size.Fixed(position[1]), Size.Fixed(position[3])]
+    divider = Divider(fig, (0, 0, 1, 1), h, v, aspect=False)
+    return fig.add_axes(divider.get_position(),
+                        axes_locator=divider.new_locator(nx=1, ny=1))
+
+
+def pretty_radio_buttons(fig, box, labels,
+                         line_distance=0.3,
+                         radius=0.08,
+                         top_margin=0.2,
+                         circle_x=0.2,
+                         circle_text_distance=0.05,
+                         color='grey',
+                         ):
+    # all dimensions in inches
+
+    from pyquibbler.graphics.widgets import QRadioButtons
+    from numpy import arange
+
+    ax = add_axes_by_inches(fig, box)
+    ax.axis([0, box[2], 0, box[3]])
+    ax.axis("off")
+    ax.transAxes = ax.transData
+    radios = QRadioButtons(ax, labels, activecolor=color)
+
+    n = len(labels)
+
+    dy = min(line_distance, (box[3] - 2 * top_margin) / (n - 1))
+    ys = box[3] - top_margin - arange(n) * dy
+
+    for circle, label, y in zip(radios.circles, radios.labels, ys):
+        circle.set_radius(radius)
+        circle.set_center((circle_x, y))
+        label.set_x(circle_x + radius + circle_text_distance)
+        label.set_y(y)
+    return ax, radios
+
+
 def choose_override_dialog(options: List[Quib], can_diverge: bool) -> OverrideChoice:
     """
     Open a popup dialog to offer the user a choice between override options.
     If can_diverge is true, offer the user to diverge the override instead of choosing an override option.
     """
-    from pyquibbler.graphics.widgets import QRadioButtons
+
     # Used to keep references to the widgets so they won't be garbage collected
     widgets = []
     axeses = []
-    fig = plt.gcf()  # TODO: use figure the drag event was fired in
 
-    background_ax = fig.add_axes([0, 0, 1, 1])
-    background_ax.tick_params(left=False, right=False, labelleft=False, labelbottom=False, bottom=False)
-    axeses.append(background_ax)
+    if OVERIDE_DIALOG_IN_SEPERATE_WINDOW:
+        fig = plt.figure(figsize=(3, 2.5))
+        shift = (0, 0)
+    else:
+        fig = plt.gcf()
+        shift = (0.5, 0.5)
+        background_ax = add_axes_by_inches(fig, [shift[0], shift[1], 3, 2.5])
+        background_ax.tick_params(left=False, right=False, labelleft=False, labelbottom=False, bottom=False)
+        axeses.append(background_ax)
 
-    grid = fig.add_gridspec(6, 6, left=0.1, right=0.9, bottom=0.1, top=0.9)
-    radio_ax = fig.add_subplot(grid[:-1, :])
-    radio_ax.axis("off")
-    radio = QRadioButtons(radio_ax, [f'Override {quib.pretty_repr()}' for quib in options])
+    radio_ax, radio = pretty_radio_buttons(fig, [0.2 + shift[0], 1 + shift[1], 2.6, 1.3],
+                                           [quib.name for quib in options])
     widgets.append(radio)  # This is not strictly needed but left here to prevent a bug
     axeses.append(radio_ax)
 
@@ -93,7 +138,7 @@ def choose_override_dialog(options: List[Quib], can_diverge: bool) -> OverrideCh
         button_specs.append(('Diverge', OverrideChoiceType.DIVERGE))
 
     for i, (label, button_choice) in enumerate(button_specs):
-        ax = fig.add_subplot(grid[-1, -i - 1])
+        ax = add_axes_by_inches(fig, [2 - i * 1.0 + 0.15 + shift[0], 0.1 + shift[1], 0.7, 0.3])
         button = create_button(ax, label, partial(choice_type.set, button_choice))
         widgets.append(button)
         axeses.append(ax)
@@ -105,6 +150,8 @@ def choose_override_dialog(options: List[Quib], can_diverge: bool) -> OverrideCh
         for axes in axeses:
             axes.remove()
         fig.canvas.draw()
+        if OVERIDE_DIALOG_IN_SEPERATE_WINDOW:
+            plt.close(fig)
 
     if choice_type.val is None:
         raise AssignmentCancelledByUserException()
