@@ -13,7 +13,7 @@ from tests.functional.utils import slicer, get_mock_with_repr
 
 def test_quib_must_assign_bool_to_overriding(quib):
     with pytest.raises(InvalidArgumentException):
-        quib.set_allow_overriding(1)
+        quib.allow_overriding = 1
 
 
 def test_quib_fails_when_not_matching_assignment_template():

@@ -12,7 +12,7 @@ def test_reduction_function_gets_whole_value_of_non_data_source_parents():
     # This is also a regression to handling 0 data source quibs
     non_data = collecting_quib(0)
     fquib = np.sum([1, 2, 3], axis=non_data)
-    fquib.set_cache_behavior(CacheBehavior.OFF)
+    fquib.cache_behavior = CacheBehavior.OFF
     with non_data.collect_valid_paths() as valid_paths:
         fquib.get_value()
 
@@ -22,7 +22,7 @@ def test_reduction_function_gets_whole_value_of_non_data_source_parents():
 def test_reduction_function_gets_whole_value_of_data_source_parents_when_whole_value_changed():
     data = collecting_quib([1, 2, 3])
     fquib = np.sum(data)
-    fquib.set_cache_behavior(CacheBehavior.OFF)
+    fquib.cache_behavior = CacheBehavior.OFF
     with data.collect_valid_paths() as valid_paths:
         fquib.get_value()
 
@@ -56,7 +56,7 @@ def test_reduction_axiswise_get_value_valid_at_path(axis, data, keepdims, where,
 def test_quib_get_value_valid_at_path_with_data_source_kwarg():
     parent = collecting_quib([[1]])
     quib = np.sum(a=parent, axis=1)
-    quib.set_cache_behavior(CacheBehavior.OFF)
+    quib.cache_behavior = CacheBehavior.OFF
     with parent.collect_valid_paths() as paths:
         quib.get_value_valid_at_path([PathComponent(np.ndarray, 0)])
 

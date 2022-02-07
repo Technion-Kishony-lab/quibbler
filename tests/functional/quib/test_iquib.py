@@ -54,10 +54,10 @@ def test_iquib_save_and_load():
     save_name = "example_quib"
     original_value = [1, 2, 3]
     a = iquib(original_value)
-    a.set_name(save_name)
+    a.name = save_name
     a.assign_value_to_key(key=1, value=10)
     b = iquib(original_value)
-    b.set_name(save_name)
+    b.name= save_name
 
     a.save_if_relevant()
     b.load()
@@ -70,7 +70,7 @@ def test_iquib_loads_if_same_name():
     save_name = "example_quib"
     original_value = [1, 2, 3]
     a = iquib(original_value)
-    a.set_name(save_name)
+    a.name = save_name
     a.assign_value_to_key(key=1, value=10)
 
     a.save_if_relevant()
@@ -128,7 +128,7 @@ def test_save_iquib_with_save_path(tmpdir):
         a = iquib(10)
     a.assign_value(11)
     path = pathlib.Path(tmpdir.strpath) / "whatever"
-    a.set_save_directory(path)
+    a.save_directory = path
 
     a.save_if_relevant()
     a.load()

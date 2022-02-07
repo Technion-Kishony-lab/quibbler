@@ -65,18 +65,18 @@ class Quib:
     _IS_WITHIN_GET_VALUE_CONTEXT = False
 
     def __init__(self, quib_function_call: QuibFuncCall,
-                 assignment_template: AssignmentTemplate,
+                 assignment_template: Optional[AssignmentTemplate],
                  allow_overriding: bool,
                  assigned_name: Optional[str],
                  file_name: Optional[str],
                  line_no: Optional[str],
-                 update_type: UpdateType,
+                 redraw_update_type: Optional[UpdateType],
                  save_directory: pathlib.Path,
                  can_save_as_txt: bool,
                  can_contain_graphics: bool,
                  ):
         self._assignment_template = assignment_template
-        self.set_assigned_name(assigned_name)
+        self._assigned_name = assigned_name
 
         self._children = WeakSet()
         self._overrider = Overrider()
@@ -86,7 +86,7 @@ class Quib:
         self.created_in_get_value_context = self._IS_WITHIN_GET_VALUE_CONTEXT
         self.file_name = file_name
         self.line_no = line_no
-        self._redraw_update_type = update_type
+        self._redraw_update_type = redraw_update_type
 
         self._save_directory = save_directory
 
@@ -151,18 +151,60 @@ class Quib:
         redraw_quibs_with_graphics_or_add_in_aggregate_mode(quibs)
 
     @property
-    def redraw_update_type(self):
-        return self._redraw_update_type.value
+    def redraw_update_type(self) -> Union[None, str]:
+        """
+        Return the redraw_update_type of the quib, indicating whether the quib should refresh upon upstream assignments.
+        Options are:
+        "drag":     refresh immediately as upstream objects are dragged
+        "drop":     refresh at end of dragging upon graphic object drop.
+        "central":  do not automatically refresh. Refresh, centrally upon
+                    redraw_central_refresh_graphics_function_quibs().
+        "never":    Never refresh.
+
+        Returns
+        -------
+        "drag", "drop", "central", "never", or None
+
+        See Also
+        --------
+        UpdateType, Project.redraw_central_refresh_graphics_function_quibs
+        """
+        return self._redraw_update_type.value if self._redraw_update_type else None
+
+    @redraw_update_type.setter
+    @validate_user_input(redraw_update_type=(type(None), str, UpdateType))
+    def redraw_update_type(self, redraw_update_type: Union[None, str, UpdateType]):
+        if isinstance(redraw_update_type, str):
+            try:
+                redraw_update_type = UpdateType[redraw_update_type.upper()]
+            except KeyError:
+                raise UnknownUpdateTypeException(redraw_update_type)
+        self._redraw_update_type = redraw_update_type
 
     """
     Assignment
     """
 
+    @property
+    def allow_overriding(self):
+        """
+        Indicates whether the quib can be overridden.
+        The default for allow_overriding is True for iquibs and False in function quibs.
+
+        Returns
+        -------
+        bool
+
+        See Also
+        --------
+        set_assigned_quibs
+
+        """
+        return self._allow_overriding
+
+    @allow_overriding.setter
     @validate_user_input(allow_overriding=bool)
-    def set_allow_overriding(self, allow_overriding: bool):
-        """
-        Set whether the quib can be overridden- this defaults to True in iquibs and False in function quibs
-        """
+    def allow_overriding(self, allow_overriding: bool):
         self._allow_overriding = allow_overriding
 
     def override(self, assignment: Assignment, allow_overriding_from_now_on=True):
@@ -312,10 +354,6 @@ class Quib:
         and False otherwise.
         """
         return True if self._quibs_allowed_to_assign_to is None else quib in self._quibs_allowed_to_assign_to
-
-    @property
-    def allow_overriding(self) -> bool:
-        return self._allow_overriding
 
     def get_assignment_template(self) -> AssignmentTemplate:
         return self._assignment_template
@@ -467,11 +505,28 @@ class Quib:
     def project(self) -> Project:
         return Project.get_or_create()
 
-    def get_cache_behavior(self):
+    @property
+    def cache_behavior(self):
+        """
+        Set the value caching mode for the quib:
+        'auto':     caching is decided automatically according to the ratio between evaluation time and
+                    memory consumption.
+        'off':      do not cache.
+        'on':       always caching.
+
+        Returns
+        -------
+        'auto', 'on', or 'off'
+
+        See Also
+        --------
+        CacheBehavior
+        """
         return self._quib_function_call.get_cache_behavior().value
 
+    @cache_behavior.setter
     @validate_user_input(cache_behavior=(str, CacheBehavior))
-    def set_cache_behavior(self, cache_behavior: CacheBehavior):
+    def cache_behavior(self, cache_behavior: Union[str, CacheBehavior]):
         if isinstance(cache_behavior, str):
             try:
                 cache_behavior = CacheBehavior[cache_behavior.upper()]
@@ -488,36 +543,33 @@ class Quib:
              cache_behavior: Union[str, CacheBehavior] = None,
              assigned_name: Union[None, str] = NoValue,
              name: Union[None, str] = NoValue,
+             redraw_update_type: Union[None, str] = NoValue,
              ):
         """
         Configure a quib with certain attributes- because this function is expected to be used by users, we never
         setattr to anything before checking the types.
         """
+        from pyquibbler.quib.factory import get_quib_name
         if allow_overriding is not None:
-            self.set_allow_overriding(allow_overriding)
+            self.allow_overriding = allow_overriding
         if assignment_template is not None:
             self.set_assignment_template(assignment_template)
         if save_directory is not None:
-            self.set_save_directory(save_directory)
+            self.save_directory = save_directory
         if cache_behavior is not None:
-            self.set_cache_behavior(cache_behavior)
+            self.cache_behavior = cache_behavior
         if assigned_name is not NoValue:
-            self.set_assigned_name(assigned_name)
+            self.assigned_name = assigned_name
         if name is not NoValue:
-            self.set_assigned_name(name)
-        return self
+            self.assigned_name = name
+        if redraw_update_type is not NoValue:
+            self.redraw_update_type = redraw_update_type
 
-    @validate_user_input(update_type=(str, UpdateType))
-    def set_redraw_update_type(self, update_type: Union[str, UpdateType]):
-        """
-        Set when to redraw a quib- on "drag", on "drop", on "central" refresh, or "never" (see UpdateType enum)
-        """
-        if isinstance(update_type, str):
-            try:
-                update_type = UpdateType[update_type.upper()]
-            except KeyError:
-                raise UnknownUpdateTypeException(update_type)
-        self._redraw_update_type = update_type
+        var_name = get_quib_name()
+        if var_name:
+            self.assigned_name = var_name
+
+        return self
 
     @property
     def children(self) -> Set[Quib]:
@@ -597,12 +649,32 @@ class Quib:
         raise TypeError('Cannot iterate over quibs, as their size can vary. '
                         'Try Quib.iter_first() to iterate over the n-first items of the quib.')
 
+    @property
+    def assigned_name(self) -> Optional[str]:
+        """
+        Returns the assigned_name of the quib
+        The assigned_name can either be a name automatically created based on the variable name to which the quib
+        was first assigned, or a manually assigned name set by setp or by assigning to assigned_name,
+        or None indicating unnamed quib.
+
+        The name must be a string starting with a letter and continuing with alpha-numeric charaters. Spaces
+        are also allowed.
+
+        The assigned_name is also used for setting the file name for saving overrides.
+
+        Returns
+        -------
+        str, None
+
+        See Also
+        --------
+        name, setp, Project.save_quibs, Project.load_quibs
+        """
+        return self._assigned_name
+
+    @assigned_name.setter
     @validate_user_input(assigned_name=(str, type(None)))
-    def set_assigned_name(self, assigned_name: Optional[str]):
-        """
-        Set the quib's name- this will override any name automatically created if it exists.
-        Set the name to None to indicate unnamed quib.
-        """
+    def assigned_name(self, assigned_name: Optional[str]):
         if assigned_name is None \
                 or len(assigned_name) \
                 and assigned_name[0].isalpha() and all([c.isalnum() or c in ' _' for c in assigned_name]):
@@ -612,21 +684,28 @@ class Quib:
                              'and continuing alpha-numeric charaters or spaces')
 
     @property
-    def assigned_name(self) -> Optional[str]:
-        """
-        Get the assigned_name of the quib- this can either be an automatic name created
-        based on th var name to which the quib was first assigned, or a manually assigned name,
-        or None indicating unnamed quib.
-        """
-        return self._assigned_name
-
-    @property
     def name(self) -> Optional[str]:
         """
-        Get the name of the quib- this can either be the given assigned_name if not None,
+        Returns the name of the quib
+
+        The name of the quib can either be the given assigned_name if not None,
         or an automated name representing the function of the quib (the functional_representation attribute).
+
+        Assigning into name is equivalent to assigning into assigned_name
+
+        Returns
+        -------
+        str
+
+        See Also
+        --------
+        assigned_name, setp, functional_representation
         """
         return self.assigned_name or self.functional_representation
+
+    @name.setter
+    def name(self, name: str):
+        self.assigned_name = name
 
     @raise_quib_call_exceptions_as_own
     def get_value_valid_at_path(self, path: Optional[List[PathComponent]]) -> Any:
@@ -763,8 +842,13 @@ class Quib:
     def _save_txt_path(self) -> Optional[pathlib.Path]:
         return self._save_directory / f"{self.assigned_name}.txt"
 
+    @property
+    def save_directory(self):
+        return self._save_directory
+
+    @save_directory.setter
     @validate_user_input(path=(str, pathlib.Path))
-    def set_save_directory(self, path: Union[str, pathlib.Path]):
+    def save_directory(self, path: Union[str, pathlib.Path]):
         """
         Set the save path of the quib (where it will be loaded/saved)
         """
@@ -875,6 +959,3 @@ class Quib:
                 return self.pretty_repr() + '\n' + self._overrider.pretty_repr(self.assigned_name)
             return self.pretty_repr()
         return self.ugly_repr()
-
-
-Quib.set_name = Quib.set_assigned_name
