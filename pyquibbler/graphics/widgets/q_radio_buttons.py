@@ -9,8 +9,8 @@ class QRadioButtons(RadioButtons):
         - They expose the selected index via the selected_index attribute
     """
 
-    def __init__(self, ax: Axes, labels: List[str], active=0):
-        super().__init__(ax, labels, active=active)
+    def __init__(self, ax: Axes, labels: List[str], active=0, **kwargs):
+        super().__init__(ax, labels, active=active, **kwargs)
         self.selected_index = active
 
     def set_active(self, index: int):
