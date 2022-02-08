@@ -232,7 +232,7 @@ class Quib:
                                                        index=len(self._overrider) - 1,
                                                        overrider=self._overrider)
 
-    def remove_override(self, path: List[PathComponent], invalidate_and_redraw: bool = True):
+    def remove_override(self, path: Path, invalidate_and_redraw: bool = True):
         """
         Remove function_definitions in a specific path in the quib.
         """
@@ -373,7 +373,7 @@ class Quib:
     Invalidation
     """
 
-    def invalidate_and_redraw_at_path(self, path: Optional[List[PathComponent]] = None) -> None:
+    def invalidate_and_redraw_at_path(self, path: Optional[Path] = None) -> None:
         """
         Perform all actions needed after the quib was mutated (whether by function_definitions or inverse assignment).
         If path is not given, the whole quib is invalidated.
@@ -387,14 +387,14 @@ class Quib:
 
         self._redraw()
 
-    def _invalidate_children_at_path(self, path: List[PathComponent]) -> None:
+    def _invalidate_children_at_path(self, path: Path) -> None:
         """
         Change this quib's state according to a change in a dependency.
         """
         for child in self.children:
             child._invalidate_quib_with_children_at_path(self, path)
 
-    def _invalidate_quib_with_children_at_path(self, invalidator_quib, path: List[PathComponent]):
+    def _invalidate_quib_with_children_at_path(self, invalidator_quib, path: Path):
         """
         Invalidate a quib and it's children at a given path.
         This method should be overriden if there is any 'special' implementation for either invalidating oneself
@@ -450,7 +450,7 @@ class Quib:
                 return [[]]
 
     def _get_paths_for_children_invalidation(self, invalidator_quib: Quib,
-                                             path: List[PathComponent]) -> List[Path]:
+                                             path: Path) -> List[Path]:
         """
         Forward translate a path for invalidation, first attempting to do it WITHOUT using getting the shape and type,
         and if/when failure does grace us, we attempt again with shape and type.
@@ -468,7 +468,7 @@ class Quib:
             except NoTranslatorsFoundException:
                 return [[]]
 
-    def _invalidate_self(self, path: List[PathComponent]):
+    def _invalidate_self(self, path: Path):
         """
         This method is called whenever a quib itself is invalidated; subclasses will override this with their
         implementations for invalidations.
@@ -708,7 +708,7 @@ class Quib:
         self.assigned_name = name
 
     @raise_quib_call_exceptions_as_own
-    def get_value_valid_at_path(self, path: Optional[List[PathComponent]]) -> Any:
+    def get_value_valid_at_path(self, path: Optional[Path]) -> Any:
         """
         Get the actual data that this quib represents, valid at the path given in the argument.
         The value will necessarily return in the shape of the actual result, but only the values at the given path

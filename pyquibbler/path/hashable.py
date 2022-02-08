@@ -1,9 +1,8 @@
 from dataclasses import dataclass
-from typing import List
 
 import numpy as np
 
-from pyquibbler.path import PathComponent
+from pyquibbler.path import Path
 
 
 @dataclass(frozen=True)
@@ -25,7 +24,7 @@ def _hash_component_value(inner_component):
     return inner_component
 
 
-def get_hashable_path(path: List[PathComponent]):
+def get_hashable_path(path: Path):
     """
     Get a hashable path (list of pathcomponents)- this supports known indexing methods
     """

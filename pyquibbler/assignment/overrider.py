@@ -2,18 +2,18 @@ import copy
 
 import numpy as np
 from dataclasses import dataclass
-from typing import Any, List, Optional, Union, Dict, Hashable
+from typing import Any, Optional, Union, Dict, Hashable
 
 from .assignment import Assignment
 from ..path.hashable import get_hashable_path
-from pyquibbler.path.path_component import PathComponent
+from pyquibbler.path.path_component import Path
 from .assignment_template import AssignmentTemplate
 from ..path.data_accessing import deep_get, deep_assign_data_in_path
 
 
 @dataclass
 class AssignmentRemoval:
-    path: List[PathComponent]
+    path: Path
 
 
 class Overrider:
@@ -43,7 +43,7 @@ class Overrider:
         self._active_assignment = assignment_without_indexed_cls
         self._add_to_paths_to_assignments(assignment_without_indexed_cls)
 
-    def remove_assignment(self, path: List[PathComponent]):
+    def remove_assignment(self, path: Path):
         """
         Remove function_definitions in a specific path.
         """
@@ -54,7 +54,7 @@ class Overrider:
 
     def undo_assignment(self,
                         previous_index: int,
-                        previous_path: List[PathComponent],
+                        previous_path: Path,
                         assignment_to_return: Optional[Union[Assignment, AssignmentRemoval]]):
         """
         Undo an assignment, returning the overrider to the previous state before the assignment.
@@ -142,7 +142,7 @@ class Overrider:
 
         return mask
 
-    def get(self, path: List[PathComponent], default_value: bool = None) -> Assignment:
+    def get(self, path: Path, default_value: bool = None) -> Assignment:
         """
         Get the assignment at the given path
         """

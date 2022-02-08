@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Tuple, Type, List, Any
 
-from pyquibbler.path import PathComponent
+from pyquibbler.path import Path
 
 
 class CacheStatus(Enum):
@@ -47,19 +47,19 @@ class Cache(ABC):
         return self.supports_result(result)
 
     @abstractmethod
-    def set_valid_value_at_path(self, path: List[PathComponent], value: Any) -> None:
+    def set_valid_value_at_path(self, path: Path, value: Any) -> None:
         """
         Store a valid value at a given path within the cache
         """
 
     @abstractmethod
-    def set_invalid_at_path(self, path: List[PathComponent]) -> None:
+    def set_invalid_at_path(self, path: Path) -> None:
         """
         Set any values found at these paths to invalid
         """
 
     @abstractmethod
-    def get_uncached_paths(self, path: List[PathComponent]) -> List[List[PathComponent]]:
+    def get_uncached_paths(self, path: Path) -> List[Path]:
         """
         Get a list of paths which do not have cached values and interstect with the argument path.
         For example, if `path` were to be an empty list `[]` (meaning "everything"), then all uncached paths would be

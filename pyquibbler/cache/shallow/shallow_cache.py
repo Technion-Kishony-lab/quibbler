@@ -4,7 +4,7 @@ from typing import Any, List
 
 from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.cache.cache import Cache
-from pyquibbler.path import PathComponent
+from pyquibbler.path import PathComponent, Path
 
 
 class CannotInvalidateEntireCacheException(PyQuibblerException):
@@ -48,7 +48,7 @@ class ShallowCache(Cache):
         pass
 
     @abstractmethod
-    def _get_all_uncached_paths(self) -> List[List[PathComponent]]:
+    def _get_all_uncached_paths(self) -> List[Path]:
         """
         Get all uncached (invalid) paths which exist
         """
@@ -57,27 +57,27 @@ class ShallowCache(Cache):
     @abstractmethod
     def _get_uncached_paths_at_path_component(self,
                                               path_component: PathComponent) \
-            -> List[List[PathComponent]]:
+            -> List[Path]:
         """
         Get all uncached paths that derive from a given path component (this must be a subset of the path component
         or the path component itself)
         """
         pass
 
-    def set_valid_value_at_path(self, path: List[PathComponent], value: Any) -> None:
+    def set_valid_value_at_path(self, path: Path, value: Any) -> None:
         if len(path) != 0:
             self._set_valid_value_at_path_component(path[0], value)
         else:
             self._set_valid_at_all_paths()
             self._value = value
 
-    def set_invalid_at_path(self, path: List[PathComponent]) -> None:
+    def set_invalid_at_path(self, path: Path) -> None:
         if len(path) == 0:
             raise CannotInvalidateEntireCacheException()
 
         self._set_invalid_at_path_component(path[0])
 
-    def get_uncached_paths(self, path: List[PathComponent]):
+    def get_uncached_paths(self, path: Path):
         if len(path) == 0:
             return self._get_all_uncached_paths()
         return self._get_uncached_paths_at_path_component(path[0])

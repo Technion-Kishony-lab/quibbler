@@ -3,7 +3,7 @@ import pytest
 from pytest import fixture
 
 from pyquibbler.assignment import Overrider, Assignment
-from pyquibbler.assignment.assignment import PathComponent
+from pyquibbler.path.path_component import PathComponent
 from pyquibbler.path.data_accessing import FailedToDeepAssignException
 
 

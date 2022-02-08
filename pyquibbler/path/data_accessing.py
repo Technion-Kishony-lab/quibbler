@@ -1,19 +1,19 @@
 import copy
 from dataclasses import dataclass
-from typing import List, Any
+from typing import Any
 
 import numpy as np
 
 from pyquibbler.env import DEBUG
 from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.logger import logger
-from pyquibbler.path import PathComponent, Path
+from pyquibbler.path import Path
 
 
 @dataclass
 class FailedToDeepAssignException(PyQuibblerException):
 
-    path: List[PathComponent]
+    path: Path
     exception: IndexError
 
     def __str__(self):
@@ -77,7 +77,7 @@ SETTERS = {
 }
 
 
-def deep_assign_data_in_path(data: Any, path: List[PathComponent],
+def deep_assign_data_in_path(data: Any, path: Path,
                              value: Any,
                              raise_on_failure: bool = False,
                              should_copy_objects_referenced: bool = True):

@@ -3,10 +3,10 @@ import functools
 import numpy as np
 from contextlib import contextmanager
 from copy import deepcopy
-from typing import Any, List
+from typing import Any
 
 from pyquibbler import CacheBehavior, Assignment, iquib
-from pyquibbler.path.path_component import PathComponent
+from pyquibbler.path.path_component import PathComponent, Path
 from pyquibbler.path.data_accessing import deep_get, deep_assign_data_in_path
 from tests.functional.utils import PathBuilder
 
@@ -56,7 +56,7 @@ def breakdown_component(shape, path_component: PathComponent):
     return components, field_index
 
 
-def breakdown_path(data: Any, path: List[PathComponent]):
+def breakdown_path(data: Any, path: Path):
     """
     Given a path pointing to a slice of data inside a quib,
     return paths to all cells in the slice.
