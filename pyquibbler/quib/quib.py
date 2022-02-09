@@ -486,12 +486,16 @@ class Quib:
     """
 
     @property
-    def is_impure(self):
-        return self._func_definition.is_random_func or self._func_definition.is_file_loading_func
+    def is_impure_func(self):
+        return self.is_random_func or self.is_file_loading_func
 
     @property
     def is_random_func(self):
         return self._func_definition.is_random_func
+
+    @property
+    def is_file_loading_func(self):
+        return self._func_definition.is_file_loading_func
 
     @property
     def cache_status(self):
@@ -532,7 +536,7 @@ class Quib:
                 cache_behavior = CacheBehavior[cache_behavior.upper()]
             except KeyError:
                 raise UnknownCacheBehaviorException(cache_behavior)
-        if self._func_definition.is_random_func and cache_behavior != CacheBehavior.ON:
+        if self.is_random_func and cache_behavior != CacheBehavior.ON:
             raise InvalidCacheBehaviorForQuibException(self._quib_function_call.default_cache_behavior)
         self._quib_function_call.default_cache_behavior = cache_behavior
 
