@@ -649,64 +649,6 @@ class Quib:
         raise TypeError('Cannot iterate over quibs, as their size can vary. '
                         'Try Quib.iter_first() to iterate over the n-first items of the quib.')
 
-    @property
-    def assigned_name(self) -> Optional[str]:
-        """
-        Returns the assigned_name of the quib
-        The assigned_name can either be a name automatically created based on the variable name to which the quib
-        was first assigned, or a manually assigned name set by setp or by assigning to assigned_name,
-        or None indicating unnamed quib.
-
-        The name must be a string starting with a letter and continuing with alpha-numeric charaters. Spaces
-        are also allowed.
-
-        The assigned_name is also used for setting the file name for saving overrides.
-
-        Returns
-        -------
-        str, None
-
-        See Also
-        --------
-        name, setp, Project.save_quibs, Project.load_quibs
-        """
-        return self._assigned_name
-
-    @assigned_name.setter
-    @validate_user_input(assigned_name=(str, type(None)))
-    def assigned_name(self, assigned_name: Optional[str]):
-        if assigned_name is None \
-                or len(assigned_name) \
-                and assigned_name[0].isalpha() and all([c.isalnum() or c in ' _' for c in assigned_name]):
-            self._assigned_name = assigned_name
-        else:
-            raise ValueError('name must be None or a string starting with a letter '
-                             'and continuing alpha-numeric charaters or spaces')
-
-    @property
-    def name(self) -> Optional[str]:
-        """
-        Returns the name of the quib
-
-        The name of the quib can either be the given assigned_name if not None,
-        or an automated name representing the function of the quib (the functional_representation attribute).
-
-        Assigning into name is equivalent to assigning into assigned_name
-
-        Returns
-        -------
-        str
-
-        See Also
-        --------
-        assigned_name, setp, functional_representation
-        """
-        return self.assigned_name or self.functional_representation
-
-    @name.setter
-    def name(self, name: str):
-        self.assigned_name = name
-
     @raise_quib_call_exceptions_as_own
     def get_value_valid_at_path(self, path: Optional[Path]) -> Any:
         """
@@ -915,6 +857,64 @@ class Quib:
     Repr
     """
 
+
+    @property
+    def assigned_name(self) -> Optional[str]:
+        """
+        Returns the assigned_name of the quib
+        The assigned_name can either be a name automatically created based on the variable name to which the quib
+        was first assigned, or a manually assigned name set by setp or by assigning to assigned_name,
+        or None indicating unnamed quib.
+
+        The name must be a string starting with a letter and continuing with alpha-numeric charaters. Spaces
+        are also allowed.
+
+        The assigned_name is also used for setting the file name for saving overrides.
+
+        Returns
+        -------
+        str, None
+
+        See Also
+        --------
+        name, setp, Project.save_quibs, Project.load_quibs
+        """
+        return self._assigned_name
+
+    @assigned_name.setter
+    @validate_user_input(assigned_name=(str, type(None)))
+    def assigned_name(self, assigned_name: Optional[str]):
+        if assigned_name is None \
+                or len(assigned_name) \
+                and assigned_name[0].isalpha() and all([c.isalnum() or c in ' _' for c in assigned_name]):
+            self._assigned_name = assigned_name
+        else:
+            raise ValueError('name must be None or a string starting with a letter '
+                             'and continuing alpha-numeric charaters or spaces')
+
+    @property
+    def name(self) -> Optional[str]:
+        """
+        Returns the name of the quib
+
+        The name of the quib can either be the given assigned_name if not None,
+        or an automated name representing the function of the quib (the functional_representation attribute).
+
+        Assigning into name is equivalent to assigning into assigned_name
+
+        Returns
+        -------
+        str
+
+        See Also
+        --------
+        assigned_name, setp, functional_representation
+        """
+        return self.assigned_name or self.functional_representation
+
+    @name.setter
+    def name(self, name: str):
+        self.assigned_name = name
     def get_functional_representation_expression(self) -> MathExpression:
         try:
             return pretty_convert.get_pretty_value_of_func_with_args_and_kwargs(self.func, self.args, self.kwargs)
