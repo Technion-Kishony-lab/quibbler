@@ -126,3 +126,21 @@ def deep_assign_data_in_path(data: Any, path: Path,
 
         last_element = new_element
     return last_element
+
+
+def datetime_to_float(d):
+    from datetime import datetime
+    epoch = datetime.utcfromtimestamp(0)
+    seconds =  (d - epoch).total_seconds()
+    days = seconds / (60 * 60 * 24)
+    return days
+
+
+def float_to_datetime(days):
+    from datetime import datetime
+    seconds = days * (60 * 60 * 24)
+    return datetime.fromtimestamp(seconds)
+
+
+def cast_data(type_, data):
+    
