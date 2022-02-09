@@ -86,7 +86,7 @@ def get_overrides_for_event(args: List[Any], arg_indices: List[int], artist_inde
         return []
 
     quibs_to_paths = get_quibs_to_paths_affected_by_event(args, arg_indices, artist_index, data_indices)
-    return [AssignmentToQuib(quib, Assignment(value=value, path=path))
+    return [AssignmentToQuib(quib, Assignment(value=value, path=path, cast=True))
             for quib, paths in quibs_to_paths.items() for path in paths]
 
 
