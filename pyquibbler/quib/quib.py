@@ -340,6 +340,9 @@ class QuibHandler:
         Create an assignment with an Assignment object,
         function_definitions the current values at the assignment's paths with the assignment's value
         """
+        if assignment.cast:
+            Assignment.value = type(self.get_value_at_path(assignment.path))(assignment.value)
+
         get_override_group_for_change(AssignmentToQuib(self.quib, assignment)).apply()
 
     def get_inversions_for_override_removal(self, override_removal: OverrideRemoval) -> List[OverrideRemoval]:

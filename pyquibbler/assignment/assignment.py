@@ -18,6 +18,7 @@ class Assignment:
     """
     value: Any
     path: Path = field(default_factory=list)
+    cast: bool = False
 
     def __eq__(self, other):
         if not isinstance(other, Assignment):
