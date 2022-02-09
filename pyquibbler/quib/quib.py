@@ -297,7 +297,7 @@ class Quib:
         return ArgsValues.from_func_args_kwargs(self.func, self.args, self.kwargs, include_defaults=True)
 
     @property
-    def _func_definition(self) -> FuncDefinition:
+    def func_definition(self) -> FuncDefinition:
         from pyquibbler.function_definitions import get_definition_for_function
         return get_definition_for_function(self.func)
 
@@ -491,11 +491,11 @@ class Quib:
 
     @property
     def is_random_func(self):
-        return self._func_definition.is_random_func
+        return self.func_definition.is_random_func
 
     @property
     def is_file_loading_func(self):
-        return self._func_definition.is_file_loading_func
+        return self.func_definition.is_file_loading_func
 
     @property
     def cache_status(self):
