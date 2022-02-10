@@ -13,7 +13,7 @@ def test_quib_inverse_getitem(create_quib_with_return_value):
     quib = create_quib_with_return_value([1, 2, 3], allow_overriding=True)
     child = quib[0]
 
-    child.assign_value(10)
+    child.assign(10)
 
     assert quib.get_value() == [10, 2, 3]
 
@@ -31,7 +31,7 @@ def test_inverse_assign_field_array_with_function_and_fancy_indexing_and_field_n
 
     first_value: Quib = rotation_quib[[0], [1]]
 
-    first_value.assign_value_to_key(value="heisenberg", key='name')
+    first_value.assign("heisenberg", 'name')
 
     assert np.array_equal(arr.get_value(), np.array([[("shlomi", 9)], [("heisenberg", 3)]], dtype=basic_dtype))
 
@@ -51,7 +51,7 @@ def test_inverse_assign_nested_with_fancy_rot90_fancy_and_replace(create_quib_wi
     rotated_children = np.rot90(children_names)
     dumbest_child: Quib = rotated_children[([0], [0])]
 
-    dumbest_child.assign_value_to_key(value=new_name, key=...)
+    dumbest_child.assign(new_name, ...)
 
     assert np.array_equal(families.get_value(), np.array([[(name_1, first_children)],
                                                           [(name_2, [*second_children[:-1], new_name])]], dtype=dtype))
@@ -62,7 +62,7 @@ def test_inverse_setitem_on_non_ndarray_after_rotation(create_quib_with_return_v
     first_quib_arg = create_quib_with_return_value([[[1, 2, 3]]], allow_overriding=True)
     rotated: Quib = np.rot90(first_quib_arg[0])
 
-    rotated.assign_value_to_key(value=4, key=(0, 0))
+    rotated.assign(4, (0, 0))
 
     assert np.array_equal(first_quib_arg.get_value(), [[[1, 2, 4]]])
 
@@ -113,7 +113,7 @@ def test_inverse_with_int_as_result_of_function_quib_after_slicing(create_quib_w
     b = a[0:1]
     c = b[0]
 
-    c.assign_value(3)
+    c.assign(3)
 
     assert np.array_equal(a.get_value(), np.array([3, 2, 3]))
 
@@ -134,7 +134,7 @@ def test_invert_single_arg_elementwise_with_colon_slice(create_quib_with_return_
     b = np.log2(a)
 
     b[:] = 3
-    n.assign_value(4)
+    n.assign(4)
     assert np.array_equal(a.get_value(), [8, 8, 8, 8])
 
 
@@ -144,7 +144,7 @@ def test_deep_assignment_with_object_ndarray():
     b = np.array([a], dtype=object)
     b0 = b[0]['name']
 
-    b0.assign_value('bobby')
+    b0.assign('bobby')
 
     assert b0.get_value() == 'bobby'
 
@@ -156,7 +156,7 @@ def test_change_minor_sources():
     b = np.array([a, t])
     b0 = b[0]
 
-    b0.assign_value(5)
+    b0.assign(5)
 
     assert b0.get_value() == 5
 

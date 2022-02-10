@@ -16,8 +16,8 @@ class CheckButtonsQuibFuncCall(WidgetQuibFuncCall):
             buttons_checked = widget.get_status()
             labels = self.args_values.get('labels')
             new_value_index = labels.index(new_value)
-            actives.assign(Assignment(value=buttons_checked[new_value_index],
-                                      path=[PathComponent(indexed_cls=list, component=new_value_index)]))
+            actives.apply_assignment(Assignment(value=buttons_checked[new_value_index],
+                                                path=[PathComponent(indexed_cls=list, component=new_value_index)]))
 
     def _connect_callbacks(self, widget: CheckButtons):
         widget.on_clicked(functools.partial(self.on_change_checkbuttons, widget))

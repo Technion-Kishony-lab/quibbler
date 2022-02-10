@@ -19,7 +19,7 @@ def test_quib_must_assign_bool_to_overriding(quib):
 def test_quib_fails_when_not_matching_assignment_template():
     quib = create_quib(mock.Mock(return_value=[1, 2, 3]), allow_overriding=True)
     quib.set_assignment_template(1, 3)
-    quib.assign_value_to_key(key=2, value="hello johnny")
+    quib.assign("hello johnny", 2)
 
     with pytest.raises(InvalidTypeException):
         quib.get_value()
@@ -116,7 +116,7 @@ def test_quib_get_override_mask(data, overrides, expected_mask):
 
 def test_quib_get_override_mask_whole_array_override():
     quib = create_quib(func=mock.Mock(return_value=np.array([0, 1])), allow_overriding=True)
-    quib.assign_value(np.array([0, 1, 2]))
+    quib.assign(np.array([0, 1, 2]))
     assert np.array_equal(quib.get_override_mask().get_value(), [True, True, True])
 
 
@@ -153,9 +153,9 @@ def test_quib_get_override_mask_dict():
 
 def test_quib_does_not_fail_when_assignment_fails_on_second_get_value():
     quib = create_quib(mock.Mock(return_value=[1, 2, 3]), allow_overriding=True)
-    quib.assign_value_to_key(key=2, value=1)
+    quib.assign(1, 2)
     quib.get_value()
-    quib.assign_value([1])
+    quib.assign([1])
 
     # just make sure we don't fail
     quib.get_value()
@@ -163,7 +163,7 @@ def test_quib_does_not_fail_when_assignment_fails_on_second_get_value():
 
 def test_quib_fails_when_given_invalid_assignment_on_first_get_value():
     quib = create_quib(mock.Mock(return_value=[1, 2, 3]), allow_overriding=True)
-    quib.assign_value_to_key(key=4, value=1)
+    quib.assign(1, 4)
 
     with pytest.raises(FailedToDeepAssignException):
         quib.get_value()

@@ -71,7 +71,7 @@ def test_quib_invalidates_all_when_invalidated_at_param_source(quib, create_quib
     quib_with_param_source = create_quib(func=mock.Mock(), args=(param_source,))
 
     # By default everything is considered a param source
-    param_source.assign_value(5)
+    param_source.assign(5)
 
     assert quib_with_param_source.cache_status == CacheStatus.ALL_INVALID
 

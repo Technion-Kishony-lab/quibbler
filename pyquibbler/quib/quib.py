@@ -247,7 +247,7 @@ class Quib:
         if invalidate_and_redraw:
             self.invalidate_and_redraw_at_path(path=path)
 
-    def assign(self, assignment: Assignment) -> None:
+    def apply_assignment(self, assignment: Assignment) -> None:
         """
         Create an assignment with an Assignment object,
         function_definitions the current values at the assignment's paths with the assignment's value
@@ -255,26 +255,19 @@ class Quib:
         get_override_group_for_change(AssignmentToQuib(self, assignment)).apply()
 
     @raise_quib_call_exceptions_as_own
-    def assign_value(self, value: Any) -> None:
+    def assign(self, value: Any, key: Optional[Any] = NoValue) -> None:
         """
-        Helper method to assign a single value and override the whole value of the quib
-        """
-        value = copy_and_replace_quibs_with_vals(value)
-        self.assign(Assignment(value=value, path=[]))
-
-    @raise_quib_call_exceptions_as_own
-    def assign_value_to_key(self, key: Any, value: Any) -> None:
-        """
-        Helper method to assign a value at a specific key
+        Assign a specified value to the whole array, or to a specific key if specified
         """
         key = copy_and_replace_quibs_with_vals(key)
         value = copy_and_replace_quibs_with_vals(value)
-        self.assign(Assignment(path=[PathComponent(component=key, indexed_cls=self.get_type())], value=value))
+        path = [] if key is NoValue else [PathComponent(component=key, indexed_cls=self.get_type())]
+        self.apply_assignment(Assignment(path=path, value=value))
 
     def __setitem__(self, key, value):
         key = copy_and_replace_quibs_with_vals(key)
         value = copy_and_replace_quibs_with_vals(value)
-        self.assign(Assignment(value=value, path=[PathComponent(component=key, indexed_cls=self.get_type())]))
+        self.apply_assignment(Assignment(value=value, path=[PathComponent(component=key, indexed_cls=self.get_type())]))
 
     def get_inversions_for_override_removal(self, override_removal: OverrideRemoval) -> List[OverrideRemoval]:
         """
@@ -861,10 +854,10 @@ class Quib:
         """
         if self._save_txt_path and os.path.exists(self._save_txt_path):
             if issubclass(self.get_type(), np.ndarray):
-                self.assign_value(np.array(np.loadtxt(str(self._save_txt_path)), dtype=self.get_value().dtype))
+                self.assign(np.array(np.loadtxt(str(self._save_txt_path)), dtype=self.get_value().dtype))
             else:
                 with open(self._save_txt_path, 'r') as f:
-                    self.assign_value(json.load(f))
+                    self.assign(json.load(f))
 
     def load(self):
         if self._save_txt_path and os.path.exists(self._save_txt_path):

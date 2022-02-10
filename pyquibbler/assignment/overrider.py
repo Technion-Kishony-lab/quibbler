@@ -63,8 +63,8 @@ class Overrider:
 
         ```
         q = iquib(0)
-        q.assign_value(1)
-        q.assign_value(2)
+        q.assign(1)
+        q.assign(2)
         ```
 
         and then do remove_assignment, the value will go back to 0 (the original value).

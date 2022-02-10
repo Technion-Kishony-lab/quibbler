@@ -58,7 +58,7 @@ class QuibWithAssignment(QuibChange, ABC):
 
 class AssignmentToQuib(QuibWithAssignment):
     def apply(self) -> None:
-        self.quib.assign(self.assignment)
+        self.quib.apply_assignment(self.assignment)
 
     def to_override(self) -> Override:
         return Override(self.quib, self.assignment)

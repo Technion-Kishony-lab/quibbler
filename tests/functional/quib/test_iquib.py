@@ -19,7 +19,7 @@ def test_iquib_get_value_returns_argument():
 def test_iquib_is_overridable():
     quib = iquib(3)
 
-    quib.assign_value(10)
+    quib.assign(10)
 
     assert quib.get_value() == 10
 
@@ -55,7 +55,7 @@ def test_iquib_save_and_load():
     original_value = [1, 2, 3]
     a = iquib(original_value)
     a.name = save_name
-    a.assign_value_to_key(key=1, value=10)
+    a.assign(10, 1)
     b = iquib(original_value)
     b.name= save_name
 
@@ -71,7 +71,7 @@ def test_iquib_loads_if_same_name():
     original_value = [1, 2, 3]
     a = iquib(original_value)
     a.name = save_name
-    a.assign_value_to_key(key=1, value=10)
+    a.assign(10, 1)
 
     a.save_if_relevant()
     # the name "example_quib" is critical here! it must be the same as save_name for the quib to actually load
@@ -96,7 +96,7 @@ def test_iquib_does_not_save_if_irrelevant(project):
 ])
 def test_save_txt_and_load_iquib_ndarray(obj, tmpdir):
     a = iquib(obj)
-    a.assign_value(obj)
+    a.assign(obj)
 
     a.save_if_relevant()
     a.load()
@@ -114,7 +114,7 @@ class A:
 def test_save_saves_not_as_txt_if_cant(tmpdir):
 
     a = iquib(np.array([mock.Mock()]))
-    a.assign_value_to_key(key=0, value=A())
+    a.assign(A(), 0)
 
     a.save_if_relevant()
 
@@ -126,7 +126,7 @@ def test_save_saves_not_as_txt_if_cant(tmpdir):
 def test_save_iquib_with_save_path(tmpdir):
     with GET_VARIABLE_NAMES.temporary_set(True):
         a = iquib(10)
-    a.assign_value(11)
+    a.assign(11)
     path = pathlib.Path(tmpdir.strpath) / "whatever"
     a.save_directory = path
 
