@@ -32,7 +32,7 @@ def test_quib_fails_when_not_matching_assignment_template():
 ])
 def test_set_and_get_assignment_template(args, expected_template, quib):
     quib.set_assignment_template(*args)
-    template = quib.get_assignment_template()
+    template = quib.assignment_template
 
     assert template == expected_template
 
@@ -45,7 +45,7 @@ def test_set_assignment_template_with_wrong_number_of_args_raises_typeerror(args
 
 def test_set_assignment_template_with_range(quib):
     quib.set_assignment_template(1, 2, 3)
-    template = quib.get_assignment_template()
+    template = quib.assignment_template
 
     assert template == RangeAssignmentTemplate(1, 2, 3)
 

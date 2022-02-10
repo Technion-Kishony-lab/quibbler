@@ -359,8 +359,21 @@ class Quib:
 
         self._assigned_quibs = quibs
 
-    def get_assignment_template(self) -> AssignmentTemplate:
+    @property
+    def assignment_template(self) -> AssignmentTemplate:
+        """
+        Returns an AssignmentTemplate object indicating type and range restricting assignments to the quib.
+
+        See also:
+            assign
+            AssignmentTemplate
+        """
         return self._assignment_template
+
+    @assignment_template.setter
+    @validate_user_input(template=AssignmentTemplate)
+    def assignment_template(self, template):
+        self._assignment_template = template
 
     def set_assignment_template(self, *args) -> None:
         """
