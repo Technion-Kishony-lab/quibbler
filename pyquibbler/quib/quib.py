@@ -24,7 +24,7 @@ from pyquibbler.quib.pretty_converters import MathExpression, FailedMathExpressi
 from pyquibbler.quib.utils.miscellaneous import get_user_friendly_name_for_requested_valid_path
 from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation_with_sources_metadata, \
     get_func_call_for_translation_without_sources_metadata
-from pyquibbler.utilities.input_validation_utils import validate_user_input
+from pyquibbler.utilities.input_validation_utils import validate_user_input, InvalidArgumentValueException
 from pyquibbler.logger import logger
 from pyquibbler.project import Project
 from pyquibbler.assignment import create_assignment_template
@@ -81,7 +81,7 @@ class Quib:
         self._children = WeakSet()
         self._overrider = Overrider()
         self._allow_overriding = allow_overriding
-        self._quibs_allowed_to_assign_to = None
+        self._assigned_quibs = None
         self._override_choice_cache = {}
         self.created_in_get_value_context = self._IS_WITHIN_GET_VALUE_CONTEXT
         self.file_name = file_name
@@ -197,7 +197,7 @@ class Quib:
 
         See Also
         --------
-        set_assigned_quibs
+        assigned_quibs
 
         """
         return self._allow_overriding
@@ -341,19 +341,35 @@ class Quib:
         """
         return self._override_choice_cache.get(context)
 
-    def set_assigned_quibs(self, quibs: Optional[Iterable[Quib]]) -> None:
+    @property
+    def assigned_quibs(self) -> Union[None, Set[Quib, ...]]:
         """
-        Set the quibs to which assignments to this quib could translate to overrides in.
-        When None is given, a dialog will be used to choose between options.
+        Set of quibs to which assignments to this quib could translate to and override.
+        When assigned_quibs is None, a dialog will be used to choose between options.
         """
-        self._quibs_allowed_to_assign_to = quibs if quibs is None else set(quibs)
+        return self._assigned_quibs
+
+    @assigned_quibs.setter
+    def assigned_quibs(self, quibs: Optional[Iterable[Quib]]) -> None:
+        if quibs is not None:
+            try:
+                quibs = set(quibs)
+                if not all(map(lambda x: isinstance(x, Quib), quibs)):
+                    raise Exception
+            except Exception:
+                raise InvalidArgumentValueException(
+                    var_name='assigned_quibs',
+                    message='a set of quibs.',
+                )
+
+        self._assigned_quibs = quibs
 
     def allows_assignment_to(self, quib: Quib) -> bool:
         """
         Returns True if this quib allows assignments to it to be translated into assignments to the given quib,
         and False otherwise.
         """
-        return True if self._quibs_allowed_to_assign_to is None else quib in self._quibs_allowed_to_assign_to
+        return True if self._assigned_quibs is None else quib in self._assigned_quibs
 
     def get_assignment_template(self) -> AssignmentTemplate:
         return self._assignment_template
