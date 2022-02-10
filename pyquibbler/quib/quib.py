@@ -292,11 +292,6 @@ class Quib:
             return [OverrideRemoval(sources_to_quibs[source], path) for source, path in sources_to_paths.items()]
 
     @property
-    @functools.lru_cache()
-    def _args_values(self):
-        return ArgsValues.from_func_args_kwargs(self.func, self.args, self.kwargs, include_defaults=True)
-
-    @property
     def func_definition(self) -> FuncDefinition:
         from pyquibbler.function_definitions import get_definition_for_function
         return get_definition_for_function(self.func)
