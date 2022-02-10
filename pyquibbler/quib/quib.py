@@ -364,13 +364,6 @@ class Quib:
 
         self._assigned_quibs = quibs
 
-    def allows_assignment_to(self, quib: Quib) -> bool:
-        """
-        Returns True if this quib allows assignments to it to be translated into assignments to the given quib,
-        and False otherwise.
-        """
-        return True if self._assigned_quibs is None else quib in self._assigned_quibs
-
     def get_assignment_template(self) -> AssignmentTemplate:
         return self._assignment_template
 
