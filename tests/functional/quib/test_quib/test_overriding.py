@@ -3,7 +3,7 @@ from unittest import mock
 import numpy as np
 import pytest
 
-from pyquibbler.utilities.input_validation_utils import InvalidArgumentException
+from pyquibbler.utilities.input_validation_utils import InvalidArgumentTypeException
 from pyquibbler.assignment import InvalidTypeException, BoundAssignmentTemplate, RangeAssignmentTemplate
 from pyquibbler.path.data_accessing import FailedToDeepAssignException
 from pyquibbler.quib.exceptions import OverridingNotAllowedException
@@ -12,7 +12,7 @@ from tests.functional.utils import slicer, get_mock_with_repr
 
 
 def test_quib_must_assign_bool_to_overriding(quib):
-    with pytest.raises(InvalidArgumentException):
+    with pytest.raises(InvalidArgumentTypeException):
         quib.allow_overriding = 1
 
 

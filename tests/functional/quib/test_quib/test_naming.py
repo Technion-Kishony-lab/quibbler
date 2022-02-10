@@ -2,7 +2,7 @@ from unittest import mock
 
 import pytest
 
-from pyquibbler.utilities.input_validation_utils import InvalidArgumentException
+from pyquibbler.utilities.input_validation_utils import InvalidArgumentTypeException
 from pyquibbler.quib.factory import create_quib
 
 
@@ -64,7 +64,7 @@ def test_quib_doesnt_get_name_if_it_is_created_in_context():
 
 
 def test_quib_cannot_assign_int_to_name(quib):
-    with pytest.raises(InvalidArgumentException):
+    with pytest.raises(InvalidArgumentTypeException):
         quib.name = 1
 
 
