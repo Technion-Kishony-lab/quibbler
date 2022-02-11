@@ -1,5 +1,6 @@
 from pathlib import Path
-from typing import Union
+from typing import Union, List, Callable, Type
+from types import ModuleType
 
 from pyquibbler.utilities.input_validation_utils import validate_user_input
 from pyquibbler.project import Project
@@ -87,3 +88,21 @@ def redraw_central_refresh_graphics_function_quibs() -> None:
     Redraw all graphics function quibs which only redraw when set to UpdateType.CENTRAL
     """
     return Project.get_or_create().redraw_central_refresh_graphics_function_quibs()
+
+
+def list_quiby_funcs(module_or_cls: Union[None, ModuleType, Type] = None) -> List[str]:
+    """
+    Returns a list of overridden, "quiby", functions
+
+    module_or_cls: optinal specification of module (like, numpy, matplotlib, matplotlib.widgets)
+    """
+    from pyquibbler.function_definitions.definitions import FUNCS_TO_DEFINITIONS_MODULE_AND_NAME_ISOVERRIDDEN
+    from pyquibbler.function_overriding.third_party_overriding.numpy.vectorize_overrides import QVectorize
+    return [f"{getattr(mdl, '__name__', mdl)}: {func_name}" for definition, mdl, func_name, isoverriden in
+            FUNCS_TO_DEFINITIONS_MODULE_AND_NAME_ISOVERRIDDEN.values()
+            if isoverriden and (module_or_cls is None or mdl is module_or_cls)
+            and mdl is not QVectorize]
+
+
+def is_func_quiby(func: Callable) -> bool:
+    return hasattr(func, '__quibbler_wrapped__')

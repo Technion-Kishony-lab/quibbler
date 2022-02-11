@@ -3,9 +3,10 @@ from typing import Callable
 
 
 def get_reversed_func(func: Callable):
-    def _reversed(q, o):
-        return func(o, q)
+    def _reversed(quib, obj):
+        return func(obj, quib)
     _reversed.__name__ = f"{func.__name__}_reversed"
+    _reversed.__qualname__ = f"{func.__name__}_reversed"
     return _reversed
 
 

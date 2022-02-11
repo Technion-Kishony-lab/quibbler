@@ -70,6 +70,7 @@ class FuncOverride:
             return wrapped_func(*args, **kwargs)
 
         _maybe_create_quib.__quibbler_wrapped__ = wrapped_func
+        _maybe_create_quib.__qualname__ = getattr(wrapped_func, '__name__', str(wrapped_func))
 
         # TODO: obviously not good solution, how do we fix issue with `np.sum` referring to `np.add`'s attrs?
         if hasattr(wrapped_func, 'reduce'):

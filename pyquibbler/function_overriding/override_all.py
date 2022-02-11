@@ -25,6 +25,11 @@ def override_all():
     switch_widgets_to_quib_supporting_widgets()
     override_graphics_functions_to_be_within_known_func_ctx()
     for func_override in function_overrides:
-        if func_override.function_definition:
-            add_definition_for_function(func_override.original_func, func_override.function_definition)
+        add_definition_for_function(
+            func=func_override.original_func,
+            function_definition=func_override.function_definition,
+            module_or_cls=func_override.module_or_cls,
+            func_name=func_override.func_name,
+            is_overridden=True)
+
         func_override.override()

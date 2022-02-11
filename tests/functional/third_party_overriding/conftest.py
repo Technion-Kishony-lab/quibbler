@@ -12,8 +12,9 @@ def quib():
 
 @pytest.fixture
 def mock_module():
-    return mock.Mock()
-
+    mdl = mock.Mock()
+    mdl.__name__ = 'MockModule'
+    return mdl
 
 @pytest.fixture
 def func_name_to_override():
