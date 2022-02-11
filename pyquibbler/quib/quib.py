@@ -299,7 +299,7 @@ class Quib:
 
         try:
             value = self.get_value()
-            # TODO: need to rake care of out-of-range assignments:
+            # TODO: need to take care of out-of-range assignments:
             # value = self.get_value_valid_at_path(assignment.path)
 
             from pyquibbler.inversion.invert import invert

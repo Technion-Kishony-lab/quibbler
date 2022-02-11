@@ -28,7 +28,6 @@ def setup_environment_for_tests():
 @pytest.fixture(autouse=True, scope="session")
 def override_all_():
     override_all()
-    # override_all()
 
 def pytest_configure(config):
     # register additional markers
