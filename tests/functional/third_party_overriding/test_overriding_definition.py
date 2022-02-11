@@ -3,7 +3,7 @@ import pytest
 from pyquibbler.env import EVALUATE_NOW
 from pyquibbler.function_overriding.function_override import FuncOverride
 from pyquibbler.function_definitions.definitions import add_definition_for_function
-from pyquibbler import list_quiby_funcs
+from pyquibbler import list_quiby_funcs, is_func_quiby
 
 
 @pytest.fixture(autouse=True)
@@ -66,3 +66,8 @@ def test_overridden_function_in_list_quiby_funcs(overriden_func, func_mock_on_mo
     add_defintion()
     assert list_quiby_funcs()[-1] == 'MockModule: hello_my_good_good_friend'
 
+
+def test_overridden_function_is_quiby(mock_module, func_name_to_override, override):
+    assert not is_func_quiby(getattr(mock_module, func_name_to_override)), 'sanity'
+    override()
+    assert is_func_quiby(getattr(mock_module, func_name_to_override))
