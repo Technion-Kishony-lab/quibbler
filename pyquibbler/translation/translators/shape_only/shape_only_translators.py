@@ -25,7 +25,10 @@ class BackwardsShapeOnlyPathTranslator(BackwardsPathTranslator):
 class ForwardsShapeOnlyPathTranslator(ForwardsPathTranslator):
     """
     We are only affected if sources change their shape. Element-wise changes are not affecting us.
+    We need to take care of lists that can change their size due to assignment.
     """
     def _forward_translate_source(self, source: Source, path: Path) -> List[Path]:
-        return [] if len(path) else [[]]
-    
+        is_list_extension_possible = len(path) \
+                            and path[0].indexed_cls is list \
+                            and isinstance(path[0].component, slice)
+        return [] if len(path) and not is_list_extension_possible else [[]]
