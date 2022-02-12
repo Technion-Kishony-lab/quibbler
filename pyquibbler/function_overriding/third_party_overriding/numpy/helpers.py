@@ -8,7 +8,7 @@ from pyquibbler.function_overriding.third_party_overriding.general_helpers impor
 from pyquibbler.inversion import TranspositionalInverter
 from pyquibbler.translation.translators import ForwardsTranspositionalTranslator, BackwardsTranspositionalTranslator, \
     AccumulationBackwardsPathTranslator, AccumulationForwardsPathTranslator, ReductionAxiswiseBackwardsPathTranslator, \
-    ReductionAxiswiseForwardsPathTranslator
+    ReductionAxiswiseForwardsPathTranslator, ForwardsShapeOnlyPathTranslator, BackwardsShapeOnlyPathTranslator
 from pyquibbler.inversion.inverters.elementwise_inverter import ElementwiseInverter
 from pyquibbler.inversion.inverters.elementwise_single_arg_no_shape_inverter import ElementwiseNoShapeInverter
 from pyquibbler.function_definitions.func_definition import ElementWiseFuncDefinition
@@ -30,6 +30,10 @@ numpy_override_accumulation = functools.partial(numpy_override, data_source_argu
 numpy_override_reduction = functools.partial(numpy_override, data_source_arguments=[0],
                                              backwards_path_translators=[ReductionAxiswiseBackwardsPathTranslator],
                                              forwards_path_translators=[ReductionAxiswiseForwardsPathTranslator])
+
+numpy_override_shape_only = functools.partial(numpy_override, data_source_arguments=[0],
+                                             backwards_path_translators=[BackwardsShapeOnlyPathTranslator],
+                                             forwards_path_translators=[ForwardsShapeOnlyPathTranslator])
 
 ELEMENTWISE_FUNCS_TO_INVERSE_FUNCS = {}
 
