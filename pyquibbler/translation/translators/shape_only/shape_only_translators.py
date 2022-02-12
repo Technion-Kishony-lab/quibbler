@@ -1,13 +1,10 @@
-from typing import Any, List, Dict
+from typing import List, Dict
 
 import numpy as np
 
 from pyquibbler.path.path_component import PathComponent, Path
 from pyquibbler.translation.forwards_path_translator import ForwardsPathTranslator
-from pyquibbler.translation.numpy_translator import NumpyBackwardsPathTranslator
 from pyquibbler.translation.backwards_path_translator import BackwardsPathTranslator
-from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices, unbroadcast_bool_mask
-from pyquibbler.translation.numpy_translator import NumpyForwardsPathTranslator
 from pyquibbler.translation.types import Source
 
 

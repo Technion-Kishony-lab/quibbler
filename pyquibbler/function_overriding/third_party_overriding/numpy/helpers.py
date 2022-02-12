@@ -32,8 +32,8 @@ numpy_override_reduction = functools.partial(numpy_override, data_source_argumen
                                              forwards_path_translators=[ReductionAxiswiseForwardsPathTranslator])
 
 numpy_override_shape_only = functools.partial(numpy_override, data_source_arguments=[0],
-                                             backwards_path_translators=[BackwardsShapeOnlyPathTranslator],
-                                             forwards_path_translators=[ForwardsShapeOnlyPathTranslator])
+                                              backwards_path_translators=[BackwardsShapeOnlyPathTranslator],
+                                              forwards_path_translators=[ForwardsShapeOnlyPathTranslator])
 
 ELEMENTWISE_FUNCS_TO_INVERSE_FUNCS = {}
 
