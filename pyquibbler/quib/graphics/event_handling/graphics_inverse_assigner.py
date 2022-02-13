@@ -1,4 +1,4 @@
-from typing import Callable, TYPE_CHECKING, List, Any, Iterable
+from typing import Callable, TYPE_CHECKING, List, Any, Iterable, Tuple, Union
 from matplotlib.backend_bases import MouseEvent, PickEvent
 
 from pyquibbler.assignment import AssignmentToQuib
@@ -10,13 +10,14 @@ if TYPE_CHECKING:
 GRAPHICS_REVERSE_ASSIGNERS = {}
 
 
-def graphics_inverse_assigner(graphics_func_name_to_handle: str):
+def graphics_inverse_assigner(graphics_func_names_to_handle: Union[str, List[str]]):
     """
     Decorate a function capable of inverse assigning to argument quibs given a mouse event
     """
 
     def _decorator(func: Callable[[PickEvent, MouseEvent, 'GraphicsFuncQuib'], List[AssignmentToQuib]]):
-        GRAPHICS_REVERSE_ASSIGNERS[graphics_func_name_to_handle] = func
+        for func_name in graphics_func_names_to_handle:
+            GRAPHICS_REVERSE_ASSIGNERS[func_name] = func
         return func
 
     return _decorator
