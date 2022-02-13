@@ -9,8 +9,7 @@ from pyquibbler.graphics import releasing
 from pyquibbler.logger import logger
 from pyquibbler.utilities.performance_utils import timer
 from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
-from pyquibbler.quib.graphics.event_handling.graphics_inverse_assigner import \
-    inverse_assign_drawing_func, inverse_assign_axes_lim_func
+from pyquibbler.quib.graphics.event_handling import graphics_inverse_assigner
 
 from matplotlib.axes import Axes
 
@@ -69,10 +68,10 @@ class CanvasEventHandler:
         drawing_func = getattr(artist, '_quibbler_drawing_func')
         args = getattr(artist, '_quibbler_args')
         with timer("motion_notify", lambda x: logger.info(f"motion notify {x}")), aggregate_redraw_mode():
-            override_group = inverse_assign_drawing_func(drawing_func=drawing_func,
-                                                         args=args,
-                                                         mouse_event=mouse_event,
-                                                         pick_event=pick_event)
+            override_group = graphics_inverse_assigner.inverse_assign_drawing_func(drawing_func=drawing_func,
+                                                                                   args=args,
+                                                                                   mouse_event=mouse_event,
+                                                                                   pick_event=pick_event)
             if override_group is not None and override_group:
                 self._last_mouse_event_with_overrides = mouse_event
 
@@ -127,8 +126,8 @@ class CanvasEventHandler:
         if quib is not None:
             with self._try_acquire_assignment_lock() as locked:
                 if locked:
-                    inverse_assign_axes_lim_func(drawing_func=drawing_func,
-                                                 args=quib.args,
-                                                 lim=lim,
-                                                 is_override_removal=False,
-                                                 )
+                    graphics_inverse_assigner.inverse_assign_axes_lim_func(drawing_func=drawing_func,
+                                                                           args=quib.args,
+                                                                           lim=lim,
+                                                                           is_override_removal=False,
+                                                                           )

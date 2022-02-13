@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 GRAPHICS_REVERSE_ASSIGNERS = {}
 
 
-def graphics_inverse_assigner(graphics_func_names_to_handle: Union[str, List[str]]):
+def graphics_inverse_assigner(graphics_func_names_to_handle: List[str]):
     """
     Decorate a function capable of inverse assigning to argument quibs given a mouse event
     """
