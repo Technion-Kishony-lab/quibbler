@@ -1,2 +1,3 @@
 from .plot_inverse_assigner import get_override_group_for_axes_plot
+from .set_lim_inverse_assigner import get_override_group_for_axes_set_lim
 from .canvas_event_handler import CanvasEventHandler
