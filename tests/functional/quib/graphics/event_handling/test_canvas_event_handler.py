@@ -17,6 +17,24 @@ def test_canvas_event_handler_create_happy_flow():
     canvas.mpl_connect.assert_called()
 
 
+def test_canvas_event_handler_delete_itself_upon_figure_close():
+    from pyquibbler.quib.graphics.event_handling.canvas_event_handler import CanvasEventHandler
+
+    canvas = mock.Mock()
+    canvas.events_to_funcs = {}
+
+    def mpl_connect(event, func):
+        canvas.events_to_funcs[event] = func
+
+    canvas.mpl_connect = mpl_connect
+    handler = CanvasEventHandler.get_or_create_initialized_event_handler(canvas=canvas)
+
+    assert len(CanvasEventHandler.CANVASES_TO_TRACKERS) == 1
+
+    canvas.events_to_funcs['close_event'](None)
+    assert len(CanvasEventHandler.CANVASES_TO_TRACKERS) == 0
+
+
 # NOTE: We're generally against calling private methods, but since the canvas is in charge of firing our handlers and
 # we're mocking the canvas, we'll have to call our handlers ourselves
 
