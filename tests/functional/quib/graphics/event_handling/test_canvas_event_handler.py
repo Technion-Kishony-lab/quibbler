@@ -29,10 +29,10 @@ def test_canvas_event_handler_delete_itself_upon_figure_close():
     canvas.mpl_connect = mpl_connect
     handler = CanvasEventHandler.get_or_create_initialized_event_handler(canvas=canvas)
 
-    assert len(CanvasEventHandler.CANVASES_TO_TRACKERS) == 1
+    number_of_handlers = len(CanvasEventHandler.CANVASES_TO_TRACKERS)
 
     canvas.events_to_funcs['close_event'](None)
-    assert len(CanvasEventHandler.CANVASES_TO_TRACKERS) == 0
+    assert len(CanvasEventHandler.CANVASES_TO_TRACKERS) == number_of_handlers - 1
 
 
 # NOTE: We're generally against calling private methods, but since the canvas is in charge of firing our handlers and
