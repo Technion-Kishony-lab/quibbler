@@ -47,7 +47,7 @@ class CanvasEventHandler:
     def _handle_button_release(self, _mouse_event: MouseEvent):
         if self._last_mouse_event_with_overrides:
             with releasing():
-                self._inverse_from_mouse_event(mouse_event=self._last_mouse_event_with_overrides)
+                self._inverse_from_mouse_event(self._last_mouse_event_with_overrides)
         self._last_mouse_event_with_overrides = None
         self.current_pick_event = None
 
@@ -121,6 +121,9 @@ class CanvasEventHandler:
         handler_ids.append(self.canvas.mpl_connect('close_event', disconnect))
 
     def handle_axes_changed(self, ax: Axes, drawing_func: Callable, lim: Tuple[float, float]):
+        """
+        This method is called by the overridden set_xlim, set_ylim
+        """
         name = f'_quibbler_{drawing_func.__name__}'
         quib = getattr(ax, name, None)
         if quib is not None:
