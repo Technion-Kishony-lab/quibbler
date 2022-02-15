@@ -4,8 +4,11 @@ from matplotlib.pyplot import Axes
 from pyquibbler.assignment.override_choice import get_overrides_for_quib_change_group
 from pyquibbler.path import PathComponent
 from pyquibbler.assignment import AssignmentToQuib, Assignment
-from pyquibbler.assignment import OverrideRemoval, OverrideGroup
+from pyquibbler.assignment import OverrideGroup
 
+
+# TODO: might be helpful to implement is_override_removal=True which will be called for example upon
+#  right click the axis
 
 def get_override_group_for_axes_set_lim(args: List[Any], lim: Tuple[float, float], is_override_removal: bool) \
         -> OverrideGroup:

@@ -4,6 +4,7 @@ WITHIN_DRAG_COUNT = 0
 WITHIN_RELEASE_COUNT = 0
 IS_PRESSED = False
 
+
 def is_within_release():
     return WITHIN_RELEASE_COUNT > 0
 
