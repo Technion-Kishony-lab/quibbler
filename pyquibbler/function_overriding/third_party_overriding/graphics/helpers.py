@@ -23,7 +23,29 @@ class GraphicsOverride(FuncOverride):
         )
 
 
+@dataclass
+class AxesSetOverride(GraphicsOverride):
+
+    @staticmethod
+    def _call_wrapped_func(func, args, kwargs) -> Any:
+        """
+        An override of a axes setting functions with no quibs
+        to remove any prior quib setters of same attribute.
+        """
+
+        result = func(*args, **kwargs)
+
+        ax = args[0]
+        name = f'_quibbler_{func.__name__}'
+        if hasattr(ax, name):
+            delattr(ax, name)
+        return result
+
+
 graphics_override = functools.partial(override_with_cls, GraphicsOverride, is_known_graphics_func=True)
 axes_override = functools.partial(graphics_override, Axes)
-replacing_axes_override = functools.partial(axes_override, replace_previous_quibs_on_artists=True)
+
+replacing_axes_override = functools.partial(override_with_cls, AxesSetOverride, Axes, is_known_graphics_func=True,
+                                            replace_previous_quibs_on_artists=True)
+
 widget_override = functools.partial(graphics_override, matplotlib.widgets)

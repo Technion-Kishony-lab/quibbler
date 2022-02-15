@@ -46,6 +46,10 @@ class FuncOverride:
     def _get_func_from_module_or_cls(self):
         return getattr(self.module_or_cls, self.func_name)
 
+    @staticmethod
+    def _call_wrapped_func(func, args, kwargs) -> Any:
+        return func(*args, **kwargs)
+
     def _create_quib_supporting_func(self):
         """
         Create a function which *can* support quibs (and return a quib as a result) if any argument is a quib
@@ -67,7 +71,8 @@ class FuncOverride:
                     evaluate_now=evaluate_now,
                     **flags
                 )
-            return wrapped_func(*args, **kwargs)
+
+            return self._call_wrapped_func(wrapped_func, args, kwargs)
 
         _maybe_create_quib.__quibbler_wrapped__ = wrapped_func
         _maybe_create_quib.__qualname__ = getattr(wrapped_func, '__name__', str(wrapped_func))
