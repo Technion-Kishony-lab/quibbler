@@ -15,6 +15,7 @@ from pyquibbler.assignment.override_choice.types import OverrideGroup
 from matplotlib.axes import Axes
 from pyquibbler.quib import Quib
 
+
 class CanvasEventHandler:
     """
     Handles all events from the canvas (such as press, drag, and pick), inverse assigning to the relevant quibs
