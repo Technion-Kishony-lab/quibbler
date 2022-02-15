@@ -45,21 +45,25 @@ class AxesSetOverride(GraphicsOverride):
 
 
 @dataclass
-class AxesLimOverride(GraphicsOverride):
+class AxesLimOverride(AxesSetOverride):
 
     @staticmethod
     def _call_wrapped_func(func, args, kwargs) -> Any:
         """
-        An override of a set_xlim, set_ylim to allow tracking limit changes to axes
-        to be transfer to CanvasEventHandler for inverse assignment upon axes limits change.
+        An override of a set_xlim, set_ylim to allow tracking limit changes to axes.
+        When mouse is pressed, changes to axis limits are reported to CanvasEventHandler for inverse assignment.
+        Otherwise, the normal behavior of AxesSetOverrise is invoked.
         """
+        from pyquibbler.graphics import is_pressed
+        if is_pressed():
+            result = func(*args, **kwargs)
 
-        result = func(*args, **kwargs)
+            ax = args[0]
+            CanvasEventHandler.get_or_create_initialized_event_handler(ax.figure.canvas). \
+                handle_axes_limits_changed(ax, func, result)
+            return result
 
-        ax = args[0]
-        CanvasEventHandler.get_or_create_initialized_event_handler(ax.figure.canvas). \
-            handle_axes_limits_changed(ax, func, result)
-        return result
+        return AxesSetOverride._call_wrapped_func(func, args, kwargs)
 
 
 graphics_override = functools.partial(override_with_cls, GraphicsOverride, is_known_graphics_func=True)

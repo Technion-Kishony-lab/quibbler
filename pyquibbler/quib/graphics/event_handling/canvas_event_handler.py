@@ -5,7 +5,7 @@ from matplotlib.artist import Artist
 from matplotlib.backend_bases import MouseEvent, PickEvent, MouseButton
 
 from pyquibbler.env import END_DRAG_IMMEDIATELY
-from pyquibbler.graphics import releasing
+from pyquibbler.graphics import releasing, pressed, released
 from pyquibbler.logger import logger
 from pyquibbler.utilities.performance_utils import timer
 from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
@@ -42,10 +42,14 @@ class CanvasEventHandler:
         self._assignment_lock = Lock()
 
         self.EVENT_HANDLERS = {
+            'button_press_event': self._handle_button_press,
             'button_release_event': self._handle_button_release,
             'motion_notify_event': self._handle_motion_notify,
             'pick_event': self._handle_pick_event
         }
+
+    def _handle_button_press(self, _mouse_event: MouseEvent):
+        pressed()
 
     def _handle_button_release(self, _mouse_event: MouseEvent):
         if self._last_mouse_event_with_overrides:
@@ -61,6 +65,7 @@ class CanvasEventHandler:
                     override_group.extend(override_group_x_or_y)
                 override_group.apply()
         self._last_axis_event_with_overrides = {}
+        released()
 
     def _handle_pick_event(self, pick_event: PickEvent):
         self.current_pick_event = pick_event

@@ -2,7 +2,7 @@ import contextlib
 
 WITHIN_DRAG_COUNT = 0
 WITHIN_RELEASE_COUNT = 0
-
+IS_PRESSED = False
 
 def is_within_release():
     return WITHIN_RELEASE_COUNT > 0
@@ -26,3 +26,18 @@ def releasing():
     WITHIN_RELEASE_COUNT += 1
     yield
     WITHIN_RELEASE_COUNT -= 1
+
+
+def pressed():
+    global IS_PRESSED
+    IS_PRESSED = True
+
+
+def released():
+    global IS_PRESSED
+    IS_PRESSED = False
+
+
+def is_pressed() -> bool:
+    global IS_PRESSED
+    return IS_PRESSED
