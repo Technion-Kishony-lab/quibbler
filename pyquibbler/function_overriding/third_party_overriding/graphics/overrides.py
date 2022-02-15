@@ -30,6 +30,8 @@ def create_graphics_overrides():
         *(replacing_axes_override(func_name) for func_name in (
             'set_xticks',
             'set_yticks',
+            'set_xticklabels',
+            'set_yticklabels',
             'set_xlabel',
             'set_ylabel',
             'set_title',
