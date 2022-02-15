@@ -4,11 +4,9 @@ from matplotlib.pyplot import Axes
 from pyquibbler.assignment.override_choice import get_overrides_for_quib_change_group
 from pyquibbler.path import PathComponent
 from pyquibbler.assignment import AssignmentToQuib, Assignment
-from .graphics_inverse_assigner import graphics_inverse_assigner
 from pyquibbler.assignment import OverrideRemoval, OverrideGroup
 
 
-@graphics_inverse_assigner(['_AxesBase.set_xlim', '_AxesBase.set_ylim'])
 def get_override_group_for_axes_set_lim(args: List[Any], lim: Tuple[float, float], is_override_removal: bool) \
         -> OverrideGroup:
     from pyquibbler.quib import Quib

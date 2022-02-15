@@ -58,7 +58,7 @@ class AxesLimOverride(GraphicsOverride):
 
         ax = args[0]
         CanvasEventHandler.get_or_create_initialized_event_handler(ax.figure.canvas). \
-            handle_axes_changed(ax, func, result)
+            handle_axes_limits_changed(ax, func, result)
         return result
 
 
