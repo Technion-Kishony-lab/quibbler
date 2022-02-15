@@ -179,3 +179,25 @@ def test_replacing_graphics_function_quib_is_removed_after_call_with_no_quibs(cr
 
     # this was the bug:
     assert axes.get_title() == 'good title'
+
+
+@pytest.mark.regression
+def test_inverse_assignment_from_axis_lim(create_quib_with_return_value, axes):
+    from pyquibbler.graphics import pressed, released
+    quib = create_quib_with_return_value(2., allow_overriding=True)
+    axes.set_xlim([0., quib])
+
+    pressed()  # simulate mouse key down
+    axes.set_xlim([1., 3.])
+    released()
+    assert quib.get_value() == 3.
+
+
+@pytest.mark.regression
+def test_inverse_assignment_is_not_invoked_when_mouse_key_is_not_down(create_quib_with_return_value, axes):
+    from pyquibbler.graphics import pressed, released
+    quib = create_quib_with_return_value(2., allow_overriding=True)
+    axes.set_xlim([0., quib])
+
+    axes.set_xlim([1., 3.])
+    assert quib.get_value() == 2.

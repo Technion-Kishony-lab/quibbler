@@ -92,7 +92,7 @@ def get_override_removals_for_event(args: List[Any], arg_indices: List[int], art
             for quib, paths in quibs_to_paths.items() for path in paths]
 
 
-@graphics_inverse_assigner('Axes.plot')
+@graphics_inverse_assigner(['Axes.plot'])
 def get_override_group_for_axes_plot(pick_event: PickEvent, mouse_event: MouseEvent, args: List[Any]) -> OverrideGroup:
     indices = pick_event.ind
     x_arg_indices, y_arg_indices = get_xdata_arg_indices_and_ydata_arg_indices(tuple(args))
