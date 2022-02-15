@@ -115,8 +115,10 @@ def test_graphics_quib_which_should_never_update(update_type, quib, graphics_qui
 def replacing_func():
     mock_func = mock.Mock()
     mock_func.__name__ = "myfunc"
-    add_definition_for_function(func=mock_func, function_definition=create_func_definition(is_known_graphics_func=True,
-                                                                                           replace_previous_quibs_on_artists=True))
+    add_definition_for_function(func=mock_func, function_definition=create_func_definition(
+        is_known_graphics_func=True,
+        replace_previous_quibs_on_artists=True),
+                                )
     return mock_func
 
 
@@ -161,3 +163,19 @@ def test_replacing_graphics_function_quib_doesnt_remove_quib_after_invalidation_
     first_quib.invalidate_and_redraw_at_path(path=path)
 
     assert replacing_func.call_count == 3
+
+
+@pytest.mark.regression
+def test_replacing_graphics_function_quib_is_removed_after_call_with_no_quibs(create_quib_with_return_value, axes):
+    quib = create_quib_with_return_value('bad title', allow_overriding=True)
+    axes.set_title(quib)
+
+    assert axes.get_title() == quib.get_value(), "sanity"
+
+    axes.set_title('good title')
+    assert axes.get_title() == 'good title', "sanity"
+
+    quib.assign_value('another bad title')
+
+    # this was the bug:
+    assert axes.get_title() == 'good title'
