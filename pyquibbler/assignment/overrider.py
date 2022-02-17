@@ -10,6 +10,8 @@ from pyquibbler.path.path_component import Path, Paths
 from .assignment_template import AssignmentTemplate
 from ..path.data_accessing import deep_get, deep_assign_data_in_path
 
+from pyquibbler.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
+
 
 @dataclass
 class AssignmentRemoval:
@@ -127,9 +129,9 @@ class Overrider:
                     value = assignment.value if assignment_template is None \
                         else assignment_template.convert(assignment.value)
                     path = assignment.path
-
-                data = deep_assign_data_in_path(data, path, value,
-                                                raise_on_failure=assignment == self._active_assignment)
+                with external_call_failed_exception_handling():
+                    data = deep_assign_data_in_path(data, path, value,
+                                                    raise_on_failure=assignment == self._active_assignment)
 
         self._active_assignment = None
         return data
