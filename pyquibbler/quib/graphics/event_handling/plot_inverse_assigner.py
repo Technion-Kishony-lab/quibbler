@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Any, List, Tuple
+from typing import Any, List, Tuple, Union
 from matplotlib.backend_bases import PickEvent, MouseEvent, MouseButton
 
 from pyquibbler.assignment.override_choice import get_overrides_for_quib_change_group
@@ -8,6 +8,7 @@ from pyquibbler.assignment import AssignmentToQuib, Assignment
 from .graphics_inverse_assigner import graphics_inverse_assigner
 from pyquibbler.assignment import OverrideRemoval, OverrideGroup
 
+from numpy import unravel_index
 
 def get_xdata_arg_indices_and_ydata_arg_indices(args: Tuple[List, List]):
     """
@@ -57,15 +58,20 @@ def get_quibs_to_paths_affected_by_event(args: List[Any], arg_indices: List[int]
             # Support indexing of lists when more than one marker is dragged
             for data_index in data_indices:
                 shape = quib.get_shape()
-                if len(shape) == 0:
-                    path = []
-                elif len(shape) == 1:
-                    path = [PathComponent(quib.get_type(), data_index)]
+                if artist_index:
+                    # for plot:
+                    if len(shape) == 0:
+                        path = []
+                    elif len(shape) == 1:
+                        path = [PathComponent(quib.get_type(), data_index)]
+                    else:
+                        assert len(shape) == 2, 'Matplotlib is not supposed to support plotting 3d data'
+                        path = [PathComponent(quib[0].get_type(), data_index),
+                                # Plot args should be array-like, so quib[0].get_type() should be representative
+                                PathComponent(quib.get_type(), artist_index)]
                 else:
-                    assert len(shape) == 2, 'Matplotlib is not supposed to support plotting 3d data'
-                    path = [PathComponent(quib[0].get_type(), data_index),
-                            # Plot args should be array-like, so quib[0].get_type() should be representative
-                            PathComponent(quib.get_type(), artist_index)]
+                    # for scatter:
+                    path = [PathComponent(quib.get_type(), unravel_index(data_index, shape))]
                 quibs_to_paths[quib].append(path)
     return quibs_to_paths
 
@@ -92,11 +98,9 @@ def get_override_removals_for_event(args: List[Any], arg_indices: List[int], art
             for quib, paths in quibs_to_paths.items() for path in paths]
 
 
-@graphics_inverse_assigner(['Axes.plot'])
-def get_override_group_for_axes_plot(pick_event: PickEvent, mouse_event: MouseEvent, args: List[Any]) -> OverrideGroup:
+def get_override_group_by_indices(x_arg_indices: list[int], y_arg_indices: list[int], artist_index: Union[None, int],
+                           pick_event: PickEvent, mouse_event: MouseEvent, args: List[Any]) -> OverrideGroup:
     indices = pick_event.ind
-    x_arg_indices, y_arg_indices = get_xdata_arg_indices_and_ydata_arg_indices(tuple(args))
-    artist_index = pick_event.artist._index_in_plot
     if pick_event.mouseevent.button is MouseButton.RIGHT:
         arg_indices = x_arg_indices + y_arg_indices
         changes = get_override_removals_for_event(args, arg_indices, artist_index, indices)
@@ -104,3 +108,19 @@ def get_override_group_for_axes_plot(pick_event: PickEvent, mouse_event: MouseEv
         changes = [*get_overrides_for_event(args, x_arg_indices, artist_index, indices, mouse_event.xdata),
                    *get_overrides_for_event(args, y_arg_indices, artist_index, indices, mouse_event.ydata)]
     return get_overrides_for_quib_change_group(changes)
+
+
+@graphics_inverse_assigner(['Axes.plot'])
+def get_override_group_for_axes_plot(pick_event: PickEvent, mouse_event: MouseEvent, args: List[Any]) \
+        -> OverrideGroup:
+    x_arg_indices, y_arg_indices = get_xdata_arg_indices_and_ydata_arg_indices(tuple(args))
+    artist_index = pick_event.artist._index_in_plot
+    return get_override_group_by_indices(x_arg_indices, y_arg_indices, artist_index, pick_event, mouse_event, args)
+
+
+@graphics_inverse_assigner(['Axes.scatter'])
+def get_override_group_for_axes_scatter(pick_event: PickEvent, mouse_event: MouseEvent, args: List[Any]) \
+        -> OverrideGroup:
+    x_arg_indices, y_arg_indices = [1], [2]
+    artist_index = None
+    return get_override_group_by_indices(x_arg_indices, y_arg_indices, artist_index, pick_event, mouse_event, args)
