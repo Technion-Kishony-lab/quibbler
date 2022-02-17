@@ -10,6 +10,7 @@ from pyquibbler.assignment import OverrideRemoval, OverrideGroup
 
 from numpy import unravel_index
 
+
 def get_xdata_arg_indices_and_ydata_arg_indices(args: Tuple[List, List]):
     """
     Gets a list of indices of arguments referencing `xdata`s, and a list of indices of arguments referencing `ydata`
@@ -98,8 +99,8 @@ def get_override_removals_for_event(args: List[Any], arg_indices: List[int], art
             for quib, paths in quibs_to_paths.items() for path in paths]
 
 
-def get_override_group_by_indices(x_arg_indices: list[int], y_arg_indices: list[int], artist_index: Union[None, int],
-                           pick_event: PickEvent, mouse_event: MouseEvent, args: List[Any]) -> OverrideGroup:
+def get_override_group_by_indices(x_arg_indices: List[int], y_arg_indices: List[int], artist_index: Union[None, int],
+                                  pick_event: PickEvent, mouse_event: MouseEvent, args: List[Any]) -> OverrideGroup:
     indices = pick_event.ind
     if pick_event.mouseevent.button is MouseButton.RIGHT:
         arg_indices = x_arg_indices + y_arg_indices
