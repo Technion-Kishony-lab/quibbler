@@ -143,7 +143,8 @@ class QuibFuncCall(FuncCall):
     def _run_single_call(self, func: Callable, graphics_collection: GraphicsCollection,
                          args: Tuple[Any, ...], kwargs: Mapping[str, Any], quibs_allowed_to_access: Set[Quib]):
         with graphics_collection.track_and_handle_new_graphics(
-                kwargs_specified_in_artists_creation=set(self.kwargs.keys())
+                kwargs_specified_in_artists_creation=
+                set(key for key, value in self.kwargs.items() if value is not None)
         ), QuibGuard(quibs_allowed_to_access):
             with external_call_failed_exception_handling():
                 res = func(*args, **kwargs)
