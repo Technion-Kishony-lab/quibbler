@@ -13,6 +13,8 @@ from pyquibbler.graphics.utils import ArrayNameToArtists
 ATTRIBUTES_TO_COPY_UNLESS_IN_KWARGS = {
     '_color': {'color'},
     '_facecolor': {'facecolor'},
+    '_facecolors': {'facecolor', 'c', 'color'},
+    '_original_facecolor': {'facecolor', 'c', 'color'},
 }
 
 
