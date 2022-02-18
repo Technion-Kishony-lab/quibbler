@@ -59,7 +59,7 @@ def get_quibs_to_paths_affected_by_event(args: List[Any], arg_indices: List[int]
             # Support indexing of lists when more than one marker is dragged
             for data_index in data_indices:
                 shape = quib.get_shape()
-                if artist_index:
+                if artist_index is not None:
                     # for plot:
                     if len(shape) == 0:
                         path = []
