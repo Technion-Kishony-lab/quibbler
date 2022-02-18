@@ -143,7 +143,7 @@ def create_func_definition(raw_data_source_arguments: List[RawArgument] = None,
                            quib_function_call_cls: Type[QuibFuncCall] = None,
                            func: Optional[Callable] = None,
                            func_defintion_cls: Optional[FuncDefinition] = None,
-                           **kwargs):
+                           **kwargs) -> FuncDefinition:
     """
     Create a definition for a function- this will allow quibbler to utilize Quibs with the function in a more
     specific manner (and not just use default behavior), for whichever parameters you give.

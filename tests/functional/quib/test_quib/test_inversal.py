@@ -5,7 +5,7 @@ import numpy as np
 # should be here
 import pytest
 
-from pyquibbler import iquib
+from pyquibbler import iquib, q
 from pyquibbler.quib.quib import Quib
 
 
@@ -201,3 +201,22 @@ def test_inverse_tile_array():
     b[1] = 5
 
     assert a.get_value() == [5]
+
+
+@pytest.mark.parametrize(
+    ['first_input', 'assigned_value', 'new_input'], [
+        (4, '55', 55),
+        (4.0, '55', 55.),
+        (4.0, '5.5', 5.5),
+        (np.int32(2), '7', np.int32(7)),
+        ([1, 3, 4.2], '["hi", 5]', ["hi", 5]),
+        (np.array([1, 2, 3]), '[11, 12, 13]', np.array([11, 12, 13])),
+    ]
+)
+def test_inverse_str(first_input, assigned_value, new_input):
+    a = iquib(first_input)
+    b = q(str, a)
+    b.assign_value(assigned_value)
+
+    a_value = a.get_value()
+    assert np.array_equal(a_value, new_input) and type(a_value) == type(new_input)
