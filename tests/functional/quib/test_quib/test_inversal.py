@@ -210,6 +210,7 @@ def test_inverse_tile_array():
         (4.0, '5.5', 5.5),
         (np.int32(2), '7', np.int32(7)),
         ([1, 3, 4.2], '["hi", 5]', ["hi", 5]),
+        (np.array([1, 2, 3]), '[11, 12, 13]', np.array([11, 12, 13])),
     ]
 )
 def test_inverse_str(first_input, assigned_value, new_input):
@@ -218,4 +219,4 @@ def test_inverse_str(first_input, assigned_value, new_input):
     b.assign_value(assigned_value)
 
     a_value = a.get_value()
-    assert a_value == new_input and type(a_value) == type(new_input)
+    assert np.array_equal(a_value, new_input) and type(a_value) == type(new_input)

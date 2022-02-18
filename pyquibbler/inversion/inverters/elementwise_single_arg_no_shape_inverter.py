@@ -5,7 +5,6 @@ import numpy as np
 from pyquibbler import Assignment
 from pyquibbler.path.path_component import PathComponent
 from pyquibbler.path.data_accessing import deep_get
-from pyquibbler.translation.source_func_call import SourceFuncCall
 from pyquibbler.inversion.inverter import Inverter
 from pyquibbler.translation.types import Source, Inversal
 from pyquibbler.inversion.exceptions import FailedToInvertException

@@ -3,14 +3,9 @@ import warnings
 import numpy as np
 
 from pyquibbler import Assignment
-from pyquibbler.path.path_component import PathComponent
-from pyquibbler.path.data_accessing import deep_get
-from pyquibbler.translation.source_func_call import SourceFuncCall
 from pyquibbler.inversion.inverter import Inverter
 from pyquibbler.translation.types import Source, Inversal
 from pyquibbler.inversion.exceptions import FailedToInvertException
-from pyquibbler.translation.translators.elementwise.generic_inverse_functions import \
-    create_inverse_single_arg_func
 
 
 class StrInverter(Inverter):
@@ -28,14 +23,19 @@ class StrInverter(Inverter):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             source_to_change_type = type(source_to_change.value)
-            if source_to_change_type is list:
+            if source_to_change_type is list or source_to_change_type is np.ndarray:
                 value_to_set = eval(self._assignment.value)
                 if type(value_to_set) is not list:
                     raise FailedToInvertException(self._func_call)
+                if source_to_change_type is np.ndarray:
+                    try:
+                        value_to_set = np.array(value_to_set)
+                    except Exception:
+                        raise FailedToInvertException(self._func_call)
             else:
                 try:
                     value_to_set = source_to_change_type(self._assignment.value)
-                except:
+                except Exception:
                     raise FailedToInvertException(self._func_call)
         return [
             Inversal(
