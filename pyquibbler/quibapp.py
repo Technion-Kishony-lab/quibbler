@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from .project import Project, CannotLoadWithoutProjectPathException, CannotSaveWithoutProjectPathException, \
-    NothingToUndoException, NothingToRedoException
+from pyquibbler.project.project import Project, NothingToUndoException, NothingToRedoException,\
+    CannotLoadWithoutProjectPathException, CannotSaveWithoutProjectPathException
 from matplotlib.pyplot import figure
 from matplotlib.widgets import Button
 
@@ -22,7 +22,7 @@ class QuibApp:
         fig.canvas.mpl_connect('close_event', self.on_close)
         self.app_figure = fig
 
-        h = 0.18  # button height
+        h = 0.22  # button height
         w = 0.25  # Button width
 
         # Undo:
