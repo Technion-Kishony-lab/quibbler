@@ -1,6 +1,5 @@
 from __future__ import annotations
 from typing import List, TYPE_CHECKING
-from pyquibbler.function_overriding.function_override import FuncOverride
 from pyquibbler.translation.translators.shape_only.shape_only_translators import \
     BackwardsShapeOnlyPathTranslator, ForwardsShapeOnlyPathTranslator
 from pyquibbler.inversion.inverters.str_inverter import StrInverter
