@@ -204,19 +204,31 @@ def test_inverse_tile_array():
 
 
 @pytest.mark.parametrize(
-    ['first_input', 'assigned_value', 'new_input'], [
-        (4, '55', 55),
-        (4.0, '55', 55.),
-        (4.0, '5.5', 5.5),
-        (np.int32(2), '7', np.int32(7)),
-        ([1, 3, 4.2], '["hi", 5]', ["hi", 5]),
-        (np.array([1, 2, 3]), '[11, 12, 13]', np.array([11, 12, 13])),
+    ['func', 'initial_input', 'assigned_value', 'expected_new_input'], [
+        (str, 4, '55', 55),
+        (str, 4.0, '55', 55.),
+        (str, 4.0, '5.5', 5.5),
+        (str, np.int32(2), '7', np.int32(7)),
+        (str, [1, 3, 4.2], '["hi", 5]', ["hi", 5]),
+        (str, np.array([1, 2, 3]), '[11, 12, 13]', np.array([11, 12, 13])),
+        (int, 4.3, 10, 10.),
+        (int, 4.3, 10.3, 10.),
+        (int, np.array([[4.3]]), 10.3, np.array([[10.]])),
+        (int, '15', 10.2, '10'),
+        (bool, 2, False, 0),
+        (bool, 2, True, 1),
+        (bool, 2., True, 1.),
+        (bool, np.array([2.]), False, np.array([0.])),
+        (bool, np.array([[2]]), True, np.array([[1]])),
     ]
 )
-def test_inverse_str(first_input, assigned_value, new_input):
-    a = iquib(first_input)
-    b = q(str, a)
-    b.assign_value(assigned_value)
+def test_inverse_casting(func, initial_input, assigned_value, expected_new_input):
+    input = iquib(initial_input)
+    output = q(func, input)
+    output.assign_value(assigned_value)
 
-    a_value = a.get_value()
-    assert np.array_equal(a_value, new_input) and type(a_value) == type(new_input)
+    input_value = input.get_value()
+    print(input_value)
+    assert np.array_equal(input_value, expected_new_input) and type(input_value) == type(expected_new_input)
+    if isinstance(input_value, np.ndarray):
+        assert input_value.dtype == expected_new_input.dtype
