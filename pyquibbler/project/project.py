@@ -76,6 +76,15 @@ class Project:
 
     @property
     def path(self):
+        """
+        The directory to which quibs are saved.
+
+        Returns a Path object
+
+        Can be set as a str or Path object.
+
+        path = None indicates undefined path.
+        """
         return self._path
 
     @path.setter
@@ -122,7 +131,10 @@ class Project:
 
     def save_quibs(self, save_as_txt_where_possible: bool = True):
         """
-        Save quibs (where relevant) to files in the current project directory
+        Save all the quibs to files (if relevant- i.e. if they have overrides)
+
+        save_as_txt: bool indicating whether each quib should try to save as text if possible.
+            None (default) - respects each quib save_as_txt.
         """
         if self.path is None:
             raise CannotSaveWithoutProjectPathException()
@@ -131,7 +143,7 @@ class Project:
 
     def load_quibs(self):
         """
-        Load quibs (where relevant) from files in the current project directory
+        Load quibs (where relevant) from files in the current project directory.
         """
         from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
         if self.path is None:
@@ -142,13 +154,17 @@ class Project:
 
     def has_undo(self):
         """
-        Whether or not an undo exists
+        Whether or not an assignment undo exists.
+
+        Returns: bool
         """
         return len(self._undo_action_groups) > 0
 
     def has_redo(self):
         """
-        Whether or not a redo exists
+        Whether or not an assignment redo exists
+
+        Returns: bool
         """
         return len(self._redo_action_groups) > 0
 
@@ -161,7 +177,7 @@ class Project:
 
     def undo(self):
         """
-        Undo the last action committed (see overrider docs for more information)
+        Undo the last quib assignment (see overrider docs for more information)
         """
         from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
         try:
@@ -178,7 +194,7 @@ class Project:
 
     def redo(self):
         """
-        Redo the last action committed
+        Redo the last quib assignment
         """
         try:
             actions = self._redo_action_groups.pop(-1)
