@@ -225,7 +225,7 @@ def test_inverse_tile_array():
 def test_inverse_casting(func, initial_input, assigned_value, expected_new_input):
     input = iquib(initial_input)
     output = q(func, input)
-    output.assign_value(assigned_value)
+    output.assign(assigned_value)
 
     input_value = input.get_value()
     print(input_value)
