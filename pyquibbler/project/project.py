@@ -102,14 +102,6 @@ class Project:
 
         return {quib_weakref() for quib_weakref in self._quib_weakrefs}
 
-    @property
-    def input_quib_directory(self) -> Optional[Path]:
-        return self.path / "input_quibs" if self.path else None
-
-    @property
-    def function_quib_directory(self) -> Optional[Path]:
-        return self.path / "function_quibs" if self.path else None
-
     def register_quib(self, quib: Quib):
         """
         Register a quib to the project

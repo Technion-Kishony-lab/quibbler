@@ -125,7 +125,7 @@ def create_quib(func: Callable, args: Tuple[Any, ...] = (), kwargs: Mapping[str,
 
     quib = Quib(quib_function_call=quib_func_call, assignment_template=None, allow_overriding=allow_overriding,
                 assigned_name=get_quib_name(), file_name=file_name, line_no=line_no, redraw_update_type=None,
-                save_directory=save_directory or project.function_quib_directory, can_save_as_txt=can_save_as_txt,
+                save_directory=save_directory, can_save_as_txt=can_save_as_txt,
                 can_contain_graphics=update_type is not None)
 
     project.register_quib(quib)

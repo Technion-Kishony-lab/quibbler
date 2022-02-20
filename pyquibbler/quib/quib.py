@@ -834,13 +834,22 @@ class Quib:
     """
 
     @property
+    def _actual_save_directory(self) -> Optional[pathlib.Path]:
+        save_name = self.assigned_name if self.assigned_name else hash(self.functional_representation)
+        if self._save_directory is not None and (self._save_directory.is_absolute() or self.project.path is None):
+            return self._save_directory
+        else:
+            return self.project.path if self._save_directory is None \
+                else self.project.path / self._save_directory
+
+    @property
     def _save_path(self) -> Optional[pathlib.Path]:
         save_name = self.assigned_name if self.assigned_name else hash(self.functional_representation)
-        return self._save_directory / f"{save_name}.quib"
+        return self._actual_save_directory / f"{save_name}.quib"
 
     @property
     def _save_txt_path(self) -> Optional[pathlib.Path]:
-        return self._save_directory / f"{self.assigned_name}.txt"
+        return self._actual_save_directory / f"{self.assigned_name}.txt"
 
     @property
     def save_directory(self):
@@ -851,16 +860,19 @@ class Quib:
     def save_directory(self, path: Union[str, pathlib.Path]):
         """
         Set the save path of the quib (where it will be loaded/saved)
+
+        path can be a str or Path
+        If the path is absolte, it used as is; if the path is relative, it is used relative to the project path.
         """
         if isinstance(path, str):
             path = pathlib.Path(path)
-        self._save_directory = path.resolve()
+        self._save_directory = path
 
     def save_if_relevant(self, save_as_txt_if_possible: bool = True):
         """
         Save the quib if relevant- this will NOT save if the quib does not have overrides, as there is nothing to save
         """
-        os.makedirs(self._save_directory, exist_ok=True)
+        os.makedirs(self._actual_save_directory, exist_ok=True)
         if len(self._overrider) > 0:
             if save_as_txt_if_possible and self._can_save_as_txt:
                 try:

@@ -85,7 +85,7 @@ def test_iquib_does_not_save_if_irrelevant(project):
     a = iquib(1)
     a.save_if_relevant()
 
-    assert len(os.listdir(project.input_quib_directory)) == 0
+    assert len(os.listdir(project.path)) == 0
 
 
 @pytest.mark.parametrize("obj", [
@@ -101,7 +101,7 @@ def test_save_txt_and_load_iquib_ndarray(obj, tmpdir):
     a.save_if_relevant()
     a.load()
 
-    files = os.listdir(f"{tmpdir}/input_quibs")
+    files = os.listdir(f"{tmpdir}")
     assert len(files) == 1
     assert files[0].endswith('.txt')
     assert np.array_equal(a.get_value(), obj)
@@ -118,7 +118,7 @@ def test_save_saves_not_as_txt_if_cant(tmpdir):
 
     a.save_if_relevant()
 
-    quib_files = os.listdir(f"{tmpdir}/input_quibs")
+    quib_files = os.listdir(f"{tmpdir}")
     assert len(quib_files) == 1
     assert quib_files[0].endswith(".quib")
 
