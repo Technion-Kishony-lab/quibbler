@@ -792,6 +792,10 @@ class Quib:
     """
 
     @property
+    def _actual_save_as_txt(self) -> bool:
+        return self._save_as_txt if self._save_as_txt else self.project.save_as_txt
+
+    @property
     def _actual_save_directory(self) -> Optional[pathlib.Path]:
         save_name = self.assigned_name if self.assigned_name else hash(self.functional_representation)
         if self._save_directory is not None and (self._save_directory.is_absolute() or self.project.directory is None):

@@ -6,7 +6,7 @@ from _weakref import ReferenceType
 from collections import defaultdict
 from pathlib import Path
 import sys
-from typing import Optional, Set, TYPE_CHECKING, List
+from typing import Optional, Set, TYPE_CHECKING, List, Callable
 from pyquibbler.utilities.input_validation_utils import validate_user_input
 from pyquibbler.utilities.file_path import PathWithHyperLink
 from pyquibbler.exceptions import PyQuibblerException
@@ -56,7 +56,8 @@ class Project:
         self._undo_action_groups: List[List[Action]] = []
         self._redo_action_groups: List[List[Action]] = []
         self._quib_refs_to_paths_to_released_assignments = defaultdict(dict)
-        self.on_path_change = None
+        self._save_as_txt: Optional[bool] = None
+        self.on_path_change: Optional[Callable] = None
 
     @classmethod
     def get_or_create(cls, directory: Optional[Path] = None):
@@ -150,6 +151,23 @@ class Project:
 
         if self.on_path_change:
             self.on_path_change(path)
+
+    @property
+    def save_as_txt(self) -> bool:
+        """
+        Indicates whether quibs should save assignments as text or binary by default.
+
+        Quibs whose own save_as_text is None yield to the default save_as_text of the Project.
+
+        Returns:
+             bool
+        """
+        return self._save_as_txt
+
+    @save_as_txt.setter
+    @validate_user_input(save_as_txt=bool)
+    def save_as_txt(self, save_as_text: bool):
+        self._save_as_txt = save_as_text
 
     def save_quibs(self, save_as_txt_where_possible: bool = True):
         """

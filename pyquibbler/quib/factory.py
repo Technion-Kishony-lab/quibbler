@@ -77,7 +77,7 @@ def create_quib(func: Callable, args: Tuple[Any, ...] = (), kwargs: Mapping[str,
                 allow_overriding: bool = False,
                 call_func_with_quibs: bool = False,
                 update_type: UpdateType = None,
-                save_as_txt: bool = True,
+                save_as_txt: Optional[bool] = None,
                 save_directory: pathlib.Path = None,
                 **init_kwargs):
     """
