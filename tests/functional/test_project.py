@@ -28,7 +28,7 @@ def test_reset_impure_quibs_clears_their_cache(random_func_with_side_effect):
     assert quib.get_value() == 1, "sanity"
     assert quib.get_value() == 1, "sanity"
 
-    Project.get_or_create().reset_invalidate_and_redraw_all_impure_function_quibs()
+    Project.get_or_create().reset_random_quibs()
 
     assert quib.get_value() == 2
 
@@ -40,7 +40,7 @@ def test_reset_impure_quibs_invalidates_and_redraws(random_func_with_side_effect
     add_definition_for_function(graphics_function_mock, create_func_definition(is_known_graphics_func=True))
     _ = create_quib(func=graphics_function_mock, args=(quib,))
 
-    Project.get_or_create().reset_invalidate_and_redraw_all_impure_function_quibs()
+    Project.get_or_create().reset_random_quibs()
 
     assert graphics_function_mock.call_count == 1
 

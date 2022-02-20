@@ -117,17 +117,27 @@ class Project:
         """
         self._quib_weakrefs.add(weakref.ref(quib))
 
-    def reset_invalidate_and_redraw_all_impure_function_quibs(self):
-        """
-        Reset and then invalidate_redraw all impure function quibs in the project.
-        We do this aggregatively so as to ensure we don't redraw axes more than once
-        """
+    def _reset_list_of_quibs(self, quibs):
+        # We aggregate to ensure we don't redraw axes more than once
         from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
-        impure_function_quibs = [quib for quib in self.quibs if quib.is_impure]
         with aggregate_redraw_mode():
-            for function_quib in impure_function_quibs:
+            for function_quib in quibs:
                 function_quib._invalidate_self([])
                 function_quib.invalidate_and_redraw_at_path([])
+
+    def reset_random_quibs(self):
+        """
+        Reset and then invalidate_redraw all random quibs in the project.
+        """
+        self._reset_list_of_quibs([quib for quib in self.quibs if quib.is_random_func])
+
+
+    def reset_impure_quibs(self):
+        """
+        Reset and then invalidate_redraw all impure quibs in the project.
+        """
+        self._reset_list_of_quibs([quib for quib in self.quibs if quib.is_impure])
+
 
     def save_quibs(self, save_as_txt_where_possible: bool = True):
         """
