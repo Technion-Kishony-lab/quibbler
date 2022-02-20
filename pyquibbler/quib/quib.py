@@ -792,11 +792,11 @@ class Quib:
     @property
     def _actual_save_directory(self) -> Optional[pathlib.Path]:
         save_name = self.assigned_name if self.assigned_name else hash(self.functional_representation)
-        if self._save_directory is not None and (self._save_directory.is_absolute() or self.project.path is None):
+        if self._save_directory is not None and (self._save_directory.is_absolute() or self.project.directory is None):
             return self._save_directory
         else:
-            return self.project.path if self._save_directory is None \
-                else self.project.path / self._save_directory
+            return self.project.directory if self._save_directory is None \
+                else self.project.directory / self._save_directory
 
     @property
     def _save_path(self) -> Optional[pathlib.Path]:

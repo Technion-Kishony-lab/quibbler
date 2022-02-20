@@ -41,18 +41,18 @@ def reset_random_quibs() -> None:
     Project.get_or_create().reset_random_quibs()
 
 
-@copy_docs(Project.path)
-def get_project_path() -> Path:
-    return Project.get_or_create().path
+@copy_docs(Project.directory)
+def get_project_directory() -> Path:
+    return Project.get_or_create().directory
 
 
-def set_project_path(path: Union[None, str, Path]) -> None:
+def set_project_directory(directory: Union[None, str, Path]) -> None:
     """
-    Set the current project's path
+    Set the current project's directory
 
     path can be a string, or a Path object, or None indicating that a path is not yet set.
     """
-    Project.get_or_create().path = path
+    Project.get_or_create().directory = directory
 
 
 @copy_docs(Project.load_quibs)

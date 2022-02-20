@@ -7,7 +7,7 @@ from .utilities.user_utils import \
     get_project, \
     q, q_eager, \
     reset_random_quibs, \
-    set_project_path, get_project_path, \
+    set_project_directory, get_project_directory, \
     save_quibs, load_quibs, \
     undo, redo, has_redos, has_undos, \
     redraw_central_refresh_graphics_function_quibs, \

@@ -75,7 +75,7 @@ class Project:
         self._pushing_undo_group = None
 
     @property
-    def path(self):
+    def directory(self):
         """
         The directory to which quibs are saved.
 
@@ -87,9 +87,9 @@ class Project:
         """
         return self._path
 
-    @path.setter
+    @directory.setter
     @validate_user_input(path=(type(None), str, Path))
-    def path(self, path):
+    def directory(self, path):
         if isinstance(path, str):
             path = Path(path)
         self._path = None if path is None else path.resolve()
@@ -146,7 +146,7 @@ class Project:
         save_as_txt: bool indicating whether each quib should try to save as text if possible.
             None (default) - respects each quib save_as_txt.
         """
-        if self.path is None:
+        if self.directory is None:
             raise CannotSaveWithoutProjectPathException()
         for quib in self.quibs:
             quib.save_if_relevant(save_as_txt_if_possible=save_as_txt_where_possible)
@@ -156,7 +156,7 @@ class Project:
         Load quibs (where relevant) from files in the current project directory.
         """
         from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
-        if self.path is None:
+        if self.directory is None:
             raise CannotLoadWithoutProjectPathException()
         with aggregate_redraw_mode():
             for quib in self.quibs:
