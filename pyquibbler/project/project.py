@@ -7,6 +7,7 @@ from collections import defaultdict
 from pathlib import Path
 import sys
 from typing import Optional, Set, TYPE_CHECKING, List
+from pyquibbler.utilities.input_validation_utils import validate_user_input
 
 from pyquibbler.exceptions import PyQuibblerException
 from .actions import Action, AssignmentAction
@@ -31,13 +32,13 @@ class NothingToRedoException(PyQuibblerException):
 class CannotSaveWithoutProjectPathException(PyQuibblerException):
 
     def __str__(self):
-        return "The current project does not have a path. Set one in order to save."
+        return "The current project does not have a path. To save quibs, set a path first (see set_project_path)."
 
 
 class CannotLoadWithoutProjectPathException(PyQuibblerException):
 
     def __str__(self):
-        return "The current project does not have a path. Set one in order to load."
+        return "The current project does not have a path. To load quibs, set a path first (see set_project_path)."
 
 
 class Project:
@@ -49,12 +50,13 @@ class Project:
     current_project = None
 
     def __init__(self, path: Optional[Path], quib_weakrefs: Set[ReferenceType[Quib]]):
-        self.path = path
+        self._path = path
         self._quib_weakrefs = quib_weakrefs
         self._pushing_undo_group = None
         self._undo_action_groups: List[List[Action]] = []
         self._redo_action_groups: List[List[Action]] = []
         self._quib_refs_to_paths_to_released_assignments = defaultdict(dict)
+        self.on_path_change = None
 
     @classmethod
     def get_or_create(cls, path: Optional[Path] = None):
@@ -71,6 +73,20 @@ class Project:
         if self._pushing_undo_group:
             self._undo_action_groups.append(self._pushing_undo_group)
         self._pushing_undo_group = None
+
+    @property
+    def path(self):
+        return self._path
+
+    @path.setter
+    @validate_user_input(path=(type(None), str, Path))
+    def path(self, path):
+        if isinstance(path, str):
+            path = Path(path)
+        self._path = None if path is None else path.resolve()
+
+        if self.on_path_change:
+            self.on_path_change(path)
 
     @property
     def quibs(self) -> Set[Quib]:

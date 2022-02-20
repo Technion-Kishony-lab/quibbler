@@ -2,7 +2,6 @@ from pathlib import Path
 from typing import Union, List, Callable, Type
 from types import ModuleType
 
-from pyquibbler.utilities.input_validation_utils import validate_user_input
 from pyquibbler.project import Project
 
 from pyquibbler.quib.quib import Quib
@@ -31,14 +30,23 @@ def reset_impure_function_quibs() -> None:
     Project.get_or_create().reset_invalidate_and_redraw_all_impure_function_quibs()
 
 
-@validate_user_input(path=(str, Path))
-def set_project_path(path: Union[str, Path]) -> None:
+def get_project_path() -> Path:
+    """
+    Get the current project's path
+
+    Returns
+    Path or or None indicating that a path is not yet set.
+    """
+    return Project.get_or_create().path
+
+
+def set_project_path(path: Union[None, str, Path]) -> None:
     """
     Set the current project's path
+
+    path can be a string, or a Path object, or None indicating that a path is not yet set.
     """
-    if isinstance(path, str):
-        path = Path(path)
-    Project.get_or_create().path = path.resolve()
+    Project.get_or_create().path = path
 
 
 def load_quibs() -> None:
