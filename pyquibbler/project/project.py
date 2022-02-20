@@ -66,36 +66,9 @@ class Project:
             cls.current_project = cls(directory=directory, quib_weakrefs=set())
         return cls.current_project
 
-    @contextlib.contextmanager
-    def start_undo_group(self):
-        self._pushing_undo_group = []
-        yield
-        if self._pushing_undo_group:
-            self._undo_action_groups.append(self._pushing_undo_group)
-        self._pushing_undo_group = None
-
-    @property
-    def directory(self) -> PathWithHyperLink:
-        """
-        The directory to which quibs are saved.
-
-        Returns a Path object
-
-        Can be set as a str or Path object.
-
-        path = None indicates undefined path.
-        """
-        return PathWithHyperLink(self._directory)
-
-    @directory.setter
-    @validate_user_input(path=(type(None), str, Path))
-    def directory(self, path: Optional[Path]):
-        if isinstance(path, str):
-            path = Path(path)
-        self._directory = None if path is None else path.resolve()
-
-        if self.on_path_change:
-            self.on_path_change(path)
+    """
+    quibs
+    """
 
     @property
     def quibs(self) -> Set[Quib]:
@@ -125,6 +98,10 @@ class Project:
                 function_quib._invalidate_self([])
                 function_quib.invalidate_and_redraw_at_path([])
 
+    """
+    central quib commands
+    """
+
     def reset_random_quibs(self):
         """
         Reset and then invalidate_redraw all random quibs in the project.
@@ -138,6 +115,41 @@ class Project:
         """
         self._reset_list_of_quibs([quib for quib in self.quibs if quib.is_impure])
 
+
+    def redraw_central_refresh_graphics_function_quibs(self):
+        """
+        Redraw all graphics function quibs which only redraw when set to UpdateType.CENTRAL
+        """
+        for quib in self.quibs:
+            if quib.redraw_update_type == UpdateType.CENTRAL:
+                quib.get_value()
+
+    """
+    save/load
+    """
+
+    @property
+    def directory(self) -> PathWithHyperLink:
+        """
+        The directory to which quibs are saved.
+
+        Returns a Path object
+
+        Can be set as a str or Path object.
+
+        path = None indicates undefined path.
+        """
+        return PathWithHyperLink(self._directory)
+
+    @directory.setter
+    @validate_user_input(path=(type(None), str, Path))
+    def directory(self, path: Optional[Path]):
+        if isinstance(path, str):
+            path = Path(path)
+        self._directory = None if path is None else path.resolve()
+
+        if self.on_path_change:
+            self.on_path_change(path)
 
     def save_quibs(self, save_as_txt_where_possible: bool = True):
         """
@@ -161,6 +173,18 @@ class Project:
         with aggregate_redraw_mode():
             for quib in self.quibs:
                 quib.load()
+
+    """
+    undo/redo
+    """""
+
+    @contextlib.contextmanager
+    def start_undo_group(self):
+        self._pushing_undo_group = []
+        yield
+        if self._pushing_undo_group:
+            self._undo_action_groups.append(self._pushing_undo_group)
+        self._pushing_undo_group = None
 
     def can_undo(self):
         """
@@ -245,11 +269,3 @@ class Project:
             self._undo_action_groups.append([assignment_action])
 
         self._redo_action_groups.clear()
-
-    def redraw_central_refresh_graphics_function_quibs(self):
-        """
-        Redraw all graphics function quibs which only redraw when set to UpdateType.CENTRAL
-        """
-        for quib in self.quibs:
-            if quib.redraw_update_type == UpdateType.CENTRAL:
-                quib.get_value()
