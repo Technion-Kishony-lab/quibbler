@@ -75,14 +75,14 @@ def redo() -> None:
     Project.get_or_create().redo()
 
 
-@copy_docs(Project.has_undo)
-def has_undos() -> bool:
-    return Project.get_or_create().has_undo()
+@copy_docs(Project.can_undo)
+def can_undo() -> bool:
+    return Project.get_or_create().can_undo()
 
 
-@copy_docs(Project.has_redo)
-def has_redos() -> bool:
-    return Project.get_or_create().has_redo()
+@copy_docs(Project.can_redo)
+def can_redo() -> bool:
+    return Project.get_or_create().can_redo()
 
 
 def redraw_central_refresh_graphics_function_quibs() -> None:

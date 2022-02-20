@@ -200,18 +200,18 @@ def test_project_undo_with_group_reverts_back_to_before_group_and_runs_graphics_
 
 
 def test_project_has_undo_when_not(project):
-    assert project.has_undo() is False
+    assert project.can_undo() is False
 
 
 def test_project_has_redo_when_not(project):
-    assert project.has_redo() is False
+    assert project.can_redo() is False
 
 
 def test_project_has_undo_when_true(project):
     a = iquib(1)
     a.assign(1)
 
-    assert project.has_undo()
+    assert project.can_undo()
 
 
 def test_project_has_redo_when_true(project):
@@ -219,7 +219,7 @@ def test_project_has_redo_when_true(project):
     a.assign(1)
     project.undo()
 
-    assert project.has_redo()
+    assert project.can_redo()
 
 
 def test_project_redraw_central_graphics_function_quibs(project):
@@ -247,8 +247,8 @@ def test_undo_redo_does_not_hold_strong_ref():
 def test_undo_redos_clear_from_stack_on_removal(project):
     a = iquib(7)
     a.assign(10)
-    assert project.has_undo(), "sanity"
+    assert project.can_undo(), "sanity"
 
     del a
 
-    assert not project.has_undo()
+    assert not project.can_undo()

@@ -162,7 +162,7 @@ class Project:
             for quib in self.quibs:
                 quib.load()
 
-    def has_undo(self):
+    def can_undo(self):
         """
         Whether or not an assignment undo exists.
 
@@ -170,7 +170,7 @@ class Project:
         """
         return len(self._undo_action_groups) > 0
 
-    def has_redo(self):
+    def can_redo(self):
         """
         Whether or not an assignment redo exists
 
