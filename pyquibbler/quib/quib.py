@@ -6,6 +6,8 @@ import os
 import pathlib
 import pickle
 import weakref
+
+from pyquibbler.utilities.file_path import PathWithHyperLink
 from contextlib import contextmanager
 from functools import cached_property
 from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Union, Iterable
@@ -799,32 +801,45 @@ class Quib:
                 else self.project.directory / self._save_directory
 
     @property
-    def _save_path(self) -> Optional[pathlib.Path]:
-        save_name = self.assigned_name if self.assigned_name else hash(self.functional_representation)
-        return self._actual_save_directory / f"{save_name}.quib"
+    def save_path(self) -> Optional[PathWithHyperLink]:
+        """
+        The full path for the file where quib assignments are saved.
+
+        Returns:
+            Path
+        """
+        if self.assigned_name is None or self._actual_save_directory is None:
+            return None
+        file_name = self.assigned_name + ('.txt' if self._save_as_txt else '.quib')
+        return PathWithHyperLink(self._actual_save_directory / file_name)
 
     @property
-    def _save_txt_path(self) -> Optional[pathlib.Path]:
-        return self._actual_save_directory / f"{self.assigned_name}.txt"
+    def save_directory(self) -> PathWithHyperLink:
+        """
+        The directory where quib assignments are saved.
 
-    @property
-    def save_directory(self):
-        return self._save_directory
+        Can be set to a str or Path object.
+
+        If the directory is absolute, it is used as is.
+        If directory is relative, it is used relative to the project directory.
+        If directory is None, the project directory is used.
+
+        Returns:
+            Path
+
+        See also:
+            save_path
+        """
+        return PathWithHyperLink(self._save_directory)
 
     @save_directory.setter
     @validate_user_input(path=(str, pathlib.Path))
-    def save_directory(self, path: Union[str, pathlib.Path]):
-        """
-        Set the save path of the quib (where it will be loaded/saved)
+    def save_directory(self, directory: Union[str, pathlib.Path]):
+        if isinstance(directory, str):
+            directory = pathlib.Path(directory)
+        self._save_directory = directory
 
-        path can be a str or Path
-        If the path is absolte, it used as is; if the path is relative, it is used relative to the project path.
-        """
-        if isinstance(path, str):
-            path = pathlib.Path(path)
-        self._save_directory = path
-
-    def save_if_relevant(self, save_as_txt_if_possible: bool = True):
+    def save_if_relevant(self):
         """
         Save the quib if relevant- this will NOT save if the quib does not have overrides, as there is nothing to save
         """
@@ -837,7 +852,7 @@ class Quib:
                     # Continue on to normal save
                     pass
 
-            with open(self._save_path, 'wb') as f:
+            with open(self.save_path, 'wb') as f:
                 pickle.dump(self._overrider, f)
 
     def _save_as_txt(self):
@@ -874,8 +889,8 @@ class Quib:
     def load(self):
         if self._save_txt_path and os.path.exists(self._save_txt_path):
             self._load_from_txt()
-        elif self._save_path and os.path.exists(self._save_path):
-            with open(self._save_path, 'rb') as f:
+        elif self.save_path and os.path.exists(self.save_path):
+            with open(self.save_path, 'rb') as f:
                 self._overrider = pickle.load(f)
                 self.invalidate_and_redraw_at_path([])
 

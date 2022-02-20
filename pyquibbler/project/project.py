@@ -8,7 +8,7 @@ from pathlib import Path
 import sys
 from typing import Optional, Set, TYPE_CHECKING, List
 from pyquibbler.utilities.input_validation_utils import validate_user_input
-
+from pyquibbler.utilities.file_path import PathWithHyperLink
 from pyquibbler.exceptions import PyQuibblerException
 from .actions import Action, AssignmentAction
 from pyquibbler.quib.graphics import UpdateType
@@ -49,8 +49,8 @@ class Project:
 
     current_project = None
 
-    def __init__(self, path: Optional[Path], quib_weakrefs: Set[ReferenceType[Quib]]):
-        self._path = path
+    def __init__(self, directory: Optional[Path], quib_weakrefs: Set[ReferenceType[Quib]]):
+        self._directory = directory
         self._quib_weakrefs = quib_weakrefs
         self._pushing_undo_group = None
         self._undo_action_groups: List[List[Action]] = []
@@ -59,11 +59,11 @@ class Project:
         self.on_path_change = None
 
     @classmethod
-    def get_or_create(cls, path: Optional[Path] = None):
+    def get_or_create(cls, directory: Optional[Path] = None):
         if cls.current_project is None:
             main_module = sys.modules['__main__']
-            path = path or (Path(main_module.__file__).parent if hasattr(main_module, '__file__') else None)
-            cls.current_project = cls(path=path, quib_weakrefs=set())
+            directory = directory or (Path(main_module.__file__).parent if hasattr(main_module, '__file__') else None)
+            cls.current_project = cls(directory=directory, quib_weakrefs=set())
         return cls.current_project
 
     @contextlib.contextmanager
@@ -75,7 +75,7 @@ class Project:
         self._pushing_undo_group = None
 
     @property
-    def directory(self):
+    def directory(self) -> PathWithHyperLink:
         """
         The directory to which quibs are saved.
 
@@ -85,14 +85,14 @@ class Project:
 
         path = None indicates undefined path.
         """
-        return self._path
+        return PathWithHyperLink(self._directory)
 
     @directory.setter
     @validate_user_input(path=(type(None), str, Path))
-    def directory(self, path):
+    def directory(self, path: Optional[Path]):
         if isinstance(path, str):
             path = Path(path)
-        self._path = None if path is None else path.resolve()
+        self._directory = None if path is None else path.resolve()
 
         if self.on_path_change:
             self.on_path_change(path)
@@ -149,7 +149,7 @@ class Project:
         if self.directory is None:
             raise CannotSaveWithoutProjectPathException()
         for quib in self.quibs:
-            quib.save_if_relevant(save_as_txt_if_possible=save_as_txt_where_possible)
+            quib.save_if_relevant()
 
     def load_quibs(self):
         """

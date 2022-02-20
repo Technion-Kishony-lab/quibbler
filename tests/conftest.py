@@ -113,6 +113,6 @@ def axes():
 @pytest.fixture(autouse=True)
 def project(tmpdir):
     path = tmpdir.strpath
-    yield Project.get_or_create(path=Path(path))
+    yield Project.get_or_create(directory=Path(path))
     Project.current_project = None
     shutil.rmtree(path)
