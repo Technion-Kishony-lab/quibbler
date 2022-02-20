@@ -1,11 +1,16 @@
 from pathlib import Path
-from typing import Union, List, Callable, Type
+from typing import Union, List, Callable, Type, Optional
 from types import ModuleType
 
 from pyquibbler.project import Project
 
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.factory import create_quib
+
+import functools
+
+
+copy_docs = functools.partial(functools.wraps, assigned=['__doc__'], updated=[])
 
 
 def q(func, *args, **kwargs) -> Quib:
@@ -22,21 +27,22 @@ def q_eager(func, *args, **kwargs) -> Quib:
     return create_quib(func=func, func_args=args, func_kwargs=kwargs, evaluate_now=True)
 
 
-def reset_impure_function_quibs() -> None:
+def get_project() -> Project:
     """
-    Resets all impure function quib caches and invalidates and redraws with them- note that this does NOT necessarily
-    mean they will run
+    Returns the current project.
+
+    A project allows controlling common functionality for all quibs, like save/load, undo/redo.
     """
-    Project.get_or_create().reset_invalidate_and_redraw_all_impure_function_quibs()
+    return Project.get_or_create()
 
 
+@copy_docs(Project.reset_random_quibs)
+def reset_random_quibs() -> None:
+    Project.get_or_create().reset_random_quibs()
+
+
+@copy_docs(Project.path)
 def get_project_path() -> Path:
-    """
-    Get the current project's path
-
-    Returns
-    Path or or None indicating that a path is not yet set.
-    """
     return Project.get_or_create().path
 
 
@@ -49,45 +55,33 @@ def set_project_path(path: Union[None, str, Path]) -> None:
     Project.get_or_create().path = path
 
 
+@copy_docs(Project.load_quibs)
 def load_quibs() -> None:
-    """
-    Load quibs from files of project if existing
-    """
     Project.get_or_create().load_quibs()
 
 
-def save_quibs(save_as_txt_where_possible: bool = True):
-    """
-    Save all the quibs to files (if relevant- ie if they have overrides)
-    """
-    Project.get_or_create().save_quibs(save_as_txt_where_possible=save_as_txt_where_possible)
+@copy_docs(Project.save_quibs)
+def save_quibs(save_as_txt: Optional[bool] = None):
+    Project.get_or_create().save_quibs(save_as_txt=save_as_txt)
 
 
+@copy_docs(Project.undo)
 def undo() -> None:
-    """
-    Undo the last action commited (an assignment or assignment removal)
-    """
     Project.get_or_create().undo()
 
 
+@copy_docs(Project.redo)
 def redo() -> None:
-    """
-    Redo the last action undone
-    """
     Project.get_or_create().redo()
 
 
+@copy_docs(Project.has_undo)
 def has_undos() -> bool:
-    """
-    Whether or not any undos exist
-    """
     return Project.get_or_create().has_undo()
 
 
+@copy_docs(Project.has_redo)
 def has_redos() -> bool:
-    """
-    Whether or not any redos exist
-    """
     return Project.get_or_create().has_redo()
 
 
