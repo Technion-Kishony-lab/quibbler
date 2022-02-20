@@ -77,7 +77,7 @@ def create_quib(func: Callable, args: Tuple[Any, ...] = (), kwargs: Mapping[str,
                 allow_overriding: bool = False,
                 call_func_with_quibs: bool = False,
                 update_type: UpdateType = None,
-                can_save_as_txt: bool = False,
+                save_as_txt: bool = True,
                 save_directory: pathlib.Path = None,
                 **init_kwargs):
     """
@@ -96,7 +96,7 @@ def create_quib(func: Callable, args: Tuple[Any, ...] = (), kwargs: Mapping[str,
     func will be called with the quibs.
     :param update_type - (Only relevant if the quib has graphics/is known graphics func) - when should the quib
     "update"? See UpdateType for options
-    :param can_save_as_txt - whether this quib can be saved as a text file (default is to pickle)
+    :param save_as_txt - bool indicating whether this quib attempts to save as a text file (default: True).
     :param save_directory - where to save the quib?
     """
 
@@ -125,7 +125,7 @@ def create_quib(func: Callable, args: Tuple[Any, ...] = (), kwargs: Mapping[str,
 
     quib = Quib(quib_function_call=quib_func_call, assignment_template=None, allow_overriding=allow_overriding,
                 assigned_name=get_quib_name(), file_name=file_name, line_no=line_no, redraw_update_type=None,
-                save_directory=save_directory or project.function_quib_directory, can_save_as_txt=can_save_as_txt,
+                save_directory=save_directory, save_as_txt=save_as_txt,
                 can_contain_graphics=update_type is not None)
 
     project.register_quib(quib)

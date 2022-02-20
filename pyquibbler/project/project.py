@@ -7,6 +7,7 @@ from collections import defaultdict
 from pathlib import Path
 import sys
 from typing import Optional, Set, TYPE_CHECKING, List
+from pyquibbler.utilities.input_validation_utils import validate_user_input
 
 from pyquibbler.exceptions import PyQuibblerException
 from .actions import Action, AssignmentAction
@@ -31,13 +32,13 @@ class NothingToRedoException(PyQuibblerException):
 class CannotSaveWithoutProjectPathException(PyQuibblerException):
 
     def __str__(self):
-        return "The current project does not have a path. Set one in order to save."
+        return "The current project does not have a path. To save quibs, set a path first (see set_project_path)."
 
 
 class CannotLoadWithoutProjectPathException(PyQuibblerException):
 
     def __str__(self):
-        return "The current project does not have a path. Set one in order to load."
+        return "The current project does not have a path. To load quibs, set a path first (see set_project_path)."
 
 
 class Project:
@@ -49,12 +50,13 @@ class Project:
     current_project = None
 
     def __init__(self, path: Optional[Path], quib_weakrefs: Set[ReferenceType[Quib]]):
-        self.path = path
+        self._path = path
         self._quib_weakrefs = quib_weakrefs
         self._pushing_undo_group = None
         self._undo_action_groups: List[List[Action]] = []
         self._redo_action_groups: List[List[Action]] = []
         self._quib_refs_to_paths_to_released_assignments = defaultdict(dict)
+        self.on_path_change = None
 
     @classmethod
     def get_or_create(cls, path: Optional[Path] = None):
@@ -73,6 +75,29 @@ class Project:
         self._pushing_undo_group = None
 
     @property
+    def path(self):
+        """
+        The directory to which quibs are saved.
+
+        Returns a Path object
+
+        Can be set as a str or Path object.
+
+        path = None indicates undefined path.
+        """
+        return self._path
+
+    @path.setter
+    @validate_user_input(path=(type(None), str, Path))
+    def path(self, path):
+        if isinstance(path, str):
+            path = Path(path)
+        self._path = None if path is None else path.resolve()
+
+        if self.on_path_change:
+            self.on_path_change(path)
+
+    @property
     def quibs(self) -> Set[Quib]:
         """
         Get all quibs in the project that are still alive
@@ -86,35 +111,40 @@ class Project:
 
         return {quib_weakref() for quib_weakref in self._quib_weakrefs}
 
-    @property
-    def input_quib_directory(self) -> Optional[Path]:
-        return self.path / "input_quibs" if self.path else None
-
-    @property
-    def function_quib_directory(self) -> Optional[Path]:
-        return self.path / "function_quibs" if self.path else None
-
     def register_quib(self, quib: Quib):
         """
         Register a quib to the project
         """
         self._quib_weakrefs.add(weakref.ref(quib))
 
-    def reset_invalidate_and_redraw_all_impure_function_quibs(self):
-        """
-        Reset and then invalidate_redraw all impure function quibs in the project.
-        We do this aggregatively so as to ensure we don't redraw axes more than once
-        """
+    def _reset_list_of_quibs(self, quibs):
+        # We aggregate to ensure we don't redraw axes more than once
         from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
-        impure_function_quibs = [quib for quib in self.quibs if quib.is_impure_func]
         with aggregate_redraw_mode():
-            for function_quib in impure_function_quibs:
+            for function_quib in quibs:
                 function_quib._invalidate_self([])
                 function_quib.invalidate_and_redraw_at_path([])
 
+    def reset_random_quibs(self):
+        """
+        Reset and then invalidate_redraw all random quibs in the project.
+        """
+        self._reset_list_of_quibs([quib for quib in self.quibs if quib.is_random_func])
+
+
+    def reset_impure_quibs(self):
+        """
+        Reset and then invalidate_redraw all impure quibs in the project.
+        """
+        self._reset_list_of_quibs([quib for quib in self.quibs if quib.is_impure])
+
+
     def save_quibs(self, save_as_txt_where_possible: bool = True):
         """
-        Save quibs (where relevant) to files in the current project directory
+        Save all the quibs to files (if relevant- i.e. if they have overrides)
+
+        save_as_txt: bool indicating whether each quib should try to save as text if possible.
+            None (default) - respects each quib save_as_txt.
         """
         if self.path is None:
             raise CannotSaveWithoutProjectPathException()
@@ -123,7 +153,7 @@ class Project:
 
     def load_quibs(self):
         """
-        Load quibs (where relevant) from files in the current project directory
+        Load quibs (where relevant) from files in the current project directory.
         """
         from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
         if self.path is None:
@@ -134,13 +164,17 @@ class Project:
 
     def has_undo(self):
         """
-        Whether or not an undo exists
+        Whether or not an assignment undo exists.
+
+        Returns: bool
         """
         return len(self._undo_action_groups) > 0
 
     def has_redo(self):
         """
-        Whether or not a redo exists
+        Whether or not an assignment redo exists
+
+        Returns: bool
         """
         return len(self._redo_action_groups) > 0
 
@@ -153,7 +187,7 @@ class Project:
 
     def undo(self):
         """
-        Undo the last action committed (see overrider docs for more information)
+        Undo the last quib assignment (see overrider docs for more information)
         """
         from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
         try:
@@ -170,7 +204,7 @@ class Project:
 
     def redo(self):
         """
-        Redo the last action committed
+        Redo the last quib assignment
         """
         try:
             actions = self._redo_action_groups.pop(-1)
