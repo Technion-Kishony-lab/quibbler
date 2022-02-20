@@ -50,7 +50,6 @@ def iquib(value: Any):
         allow_overriding=True,
         evaluate_now=True,
         cache_behavior=CacheBehavior.ON,
-        can_save_as_txt=True,
     )
 
 

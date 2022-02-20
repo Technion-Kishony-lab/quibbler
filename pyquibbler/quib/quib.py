@@ -72,7 +72,7 @@ class Quib:
                  line_no: Optional[str],
                  redraw_update_type: Optional[UpdateType],
                  save_directory: pathlib.Path,
-                 can_save_as_txt: bool,
+                 save_as_txt: bool,
                  can_contain_graphics: bool,
                  ):
         self._assignment_template = assignment_template
@@ -96,7 +96,7 @@ class Quib:
         self._quib_function_call.artists_creation_callback = functools.partial(persist_artists_on_quib_weak_ref,
                                                                                weakref.ref(self))
 
-        self._can_save_as_txt = can_save_as_txt
+        self._save_as_txt = save_as_txt
         self._can_contain_graphics = can_contain_graphics
 
     """
