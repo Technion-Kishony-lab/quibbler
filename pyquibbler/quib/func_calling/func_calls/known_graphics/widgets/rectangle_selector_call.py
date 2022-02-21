@@ -1,8 +1,10 @@
+import numpy as np
+
 from pyquibbler.graphics import releasing
 from pyquibbler.graphics.widgets import QRectangleSelector
 from pyquibbler.logger import logger
 from .widget_call import WidgetQuibFuncCall
-
+from pyquibbler.path import PathComponent
 
 class RectangleSelectorQuibFuncCall(WidgetQuibFuncCall):
     _last_extents_change = None
@@ -31,12 +33,12 @@ class RectangleSelectorQuibFuncCall(WidgetQuibFuncCall):
         init_val = self.args_values.get('extents')
 
         from pyquibbler import timer
-        with timer("selector_change", lambda x: logger.info(f"selector change {x}")):
-            from pyquibbler.quib import Quib
-            if isinstance(init_val, Quib):
+        from pyquibbler.quib import Quib
+        if isinstance(init_val, Quib):
+            with timer("selector_change", lambda x: logger.info(f"selector change {x}")):
                 if self._widget_is_attempting_to_resize_when_not_allowed(extents):
                     return
-                init_val[:] = extents
+                self._inverse_assign(init_val, [PathComponent(component=slice(0, 4), indexed_cls=np.ndarray)], extents)
 
     def _on_release(self):
         if self._last_extents_change:
