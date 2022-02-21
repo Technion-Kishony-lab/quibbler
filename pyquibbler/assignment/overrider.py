@@ -1,5 +1,5 @@
 import copy
-
+import pickle
 import numpy as np
 from dataclasses import dataclass
 from typing import Any, Optional, Union, Dict, Hashable
@@ -38,7 +38,7 @@ class Overrider:
         """
         assignment_without_indexed_cls = copy.deepcopy(assignment)
         for component in assignment_without_indexed_cls.path:
-            assignment_without_indexed_cls.indexed_cls = None
+            component.indexed_cls = None
 
         self._active_assignment = assignment_without_indexed_cls
         self._add_to_paths_to_assignments(assignment_without_indexed_cls)
@@ -153,6 +153,55 @@ class Overrider:
 
     def __len__(self):
         return len(self._paths_to_assignments)
+
+    """
+    save/load
+    """
+
+    def save_to_binary(self, file):
+        with open(file, 'wb') as f:
+            pickle.dump(self._paths_to_assignments, f)
+
+    def load_from_binary(self, file):
+        with open(file, 'rb') as f:
+            self._paths_to_assignments = pickle.load(f)
+        self._active_assignment = None
+
+    def can_save_to_txt(self) -> bool:
+        from pyquibbler.quib.utils.miscellaneous import is_saveable_as_txt
+        for assignment in self._paths_to_assignments.values():
+            if not is_saveable_as_txt([cmp.component for cmp in assignment.path]) \
+                    or isinstance(assignment, Assignment) and not is_saveable_as_txt(assignment.value):
+                return False
+        return True
+
+    def save_to_txt(self, file):
+        from pyquibbler.quib.exceptions import CannotSaveAsTextException
+        if not self.can_save_to_txt():
+            raise CannotSaveAsTextException
+        with open(file, "wt") as f:
+            f.write(self.pretty_repr())
+
+    def load_from_txt(self, file):
+        """
+        load assignments from text file.
+        """
+        from pyquibbler import iquib
+        quib = iquib(None)
+        with open(file, mode='r') as f:
+            assignment_text_commands = f.read()
+        # TODO: We are using exec. This is very simple, but obviously highly risky.
+        #  Need to good to replace with a dedicated parser.
+        try:
+            exec(assignment_text_commands)
+        except Exception as e:
+            raise e
+        self._paths_to_assignments = quib._overrider._paths_to_assignments
+        self._active_assignment = None
+
+    """
+    repr
+    """
 
     def pretty_repr(self, name: str = None):
         name = 'quib' if name is None else name
