@@ -21,7 +21,9 @@ UNSET = object()
 
 @dataclass
 class AssignmentCancelledByUserException(PyQuibblerException):
-    pass
+
+    def __str__(self):
+        return "User cancel inverse assignment dialog."
 
 
 class OverrideChoiceType(Enum):
@@ -190,7 +192,7 @@ def choose_override_text_dialog(str_options: List[str],
     choice_type = None
     choice = None
     while choice is None:
-        choice = input('Choose the number of the quib to override (press enter without a choice to cancel): ')
+        choice = input('Choose the number of the quib to override \n(press enter without a choice to cancel): ')
         if len(choice) == 0:
             print('Cancel')
             break
