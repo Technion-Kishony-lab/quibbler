@@ -3,7 +3,7 @@ from unittest.mock import Mock
 from pytest import fixture, mark, raises
 
 from pyquibbler.assignment import override_dialog, AssignmentCancelledByUserException
-
+from pyquibbler.env import OVERIDE_DIALOG_AS_TEXT_FOR_NON_GRAPHICS_ASSIGNMENT
 
 @fixture
 def button_callbacks():
@@ -41,22 +41,25 @@ def override_options():
 
 @mark.parametrize('can_diverge', [True, False])
 def test_override_dialog_cancel_button(monkeypatch, override_options, can_diverge, button_callbacks):
-    override_show_fig_with_button_press(monkeypatch, 'Cancel', button_callbacks)
-    with raises(AssignmentCancelledByUserException):
-        override_dialog.choose_override_dialog(override_options, can_diverge)
+    with OVERIDE_DIALOG_AS_TEXT_FOR_NON_GRAPHICS_ASSIGNMENT.temporary_set(False):
+        override_show_fig_with_button_press(monkeypatch, 'Cancel', button_callbacks)
+        with raises(AssignmentCancelledByUserException):
+            override_dialog.choose_override_dialog(override_options, can_diverge)
 
 
 @mark.parametrize('can_diverge', [True, False])
 def test_override_dialog_override_button(monkeypatch, override_options, can_diverge, button_callbacks):
-    override_show_fig_with_button_press(monkeypatch, 'Override', button_callbacks)
-    result = override_dialog.choose_override_dialog(override_options, can_diverge)
+    with OVERIDE_DIALOG_AS_TEXT_FOR_NON_GRAPHICS_ASSIGNMENT.temporary_set(False):
+        override_show_fig_with_button_press(monkeypatch, 'Override', button_callbacks)
+        result = override_dialog.choose_override_dialog(override_options, can_diverge)
 
-    assert result.choice_type is override_dialog.OverrideChoiceType.OVERRIDE
-    assert result.chosen_index == 0
+        assert result.choice_type is override_dialog.OverrideChoiceType.OVERRIDE
+        assert result.chosen_index == 0
 
 
 def test_override_dialog_diverge_button(monkeypatch, override_options, button_callbacks):
-    override_show_fig_with_button_press(monkeypatch, 'Diverge', button_callbacks)
-    result = override_dialog.choose_override_dialog(override_options, True)
+    with OVERIDE_DIALOG_AS_TEXT_FOR_NON_GRAPHICS_ASSIGNMENT.temporary_set(False):
+        override_show_fig_with_button_press(monkeypatch, 'Diverge', button_callbacks)
+        result = override_dialog.choose_override_dialog(override_options, True)
 
-    assert result.choice_type is override_dialog.OverrideChoiceType.DIVERGE
+        assert result.choice_type is override_dialog.OverrideChoiceType.DIVERGE
