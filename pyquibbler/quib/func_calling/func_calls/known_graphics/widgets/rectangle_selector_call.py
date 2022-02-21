@@ -6,6 +6,7 @@ from pyquibbler.logger import logger
 from .widget_call import WidgetQuibFuncCall
 from pyquibbler.path import PathComponent
 
+
 class RectangleSelectorQuibFuncCall(WidgetQuibFuncCall):
     _last_extents_change = None
 
