@@ -4,13 +4,14 @@ from functools import partial
 from matplotlib.axes import Axes
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Button
-from typing import List, Callable, Optional, TYPE_CHECKING
+from typing import List, Callable, Optional, TYPE_CHECKING, Tuple
 from enum import Enum
 
 from pyquibbler.logger import logger
 from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.utils import Flag, Mutable
-from pyquibbler.env import OVERIDE_DIALOG_IN_SEPERATE_WINDOW
+from pyquibbler.env import OVERIDE_DIALOG_IN_SEPERATE_WINDOW, \
+    OVERIDE_DIALOG_AS_TEXT_FOR_GRAPHICS_ASSIGNMENT, OVERIDE_DIALOG_AS_TEXT_FOR_NON_GRAPHICS_ASSIGNMENT
 
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib
@@ -114,11 +115,27 @@ def choose_override_dialog(options: List[Quib], can_diverge: bool) -> OverrideCh
 
     from pyquibbler.quib.graphics.event_handling.canvas_event_handler import get_graphics_assignment_mode_axes
 
+    invoking_axes = get_graphics_assignment_mode_axes()
+    str_options = [quib.name for quib in options]
+    if invoking_axes is None and OVERIDE_DIALOG_AS_TEXT_FOR_NON_GRAPHICS_ASSIGNMENT \
+        or invoking_axes is not None and OVERIDE_DIALOG_AS_TEXT_FOR_GRAPHICS_ASSIGNMENT:
+        choice_type, selected_index = choose_override_text_dialog(str_options, can_diverge)
+    else:
+        choice_type, selected_index = choose_override_graphics_dialog(str_options, can_diverge, invoking_axes)
+    if choice_type is None:
+        raise AssignmentCancelledByUserException()
+    return OverrideChoice(choice_type, selected_index)
+
+
+def choose_override_graphics_dialog(str_options: List[str],
+                                    can_diverge: bool,
+                                    invoking_axes: Optional[Axes]
+                                    ) -> (Optional[OverrideChoiceType], int):
+
     # Used to keep references to the widgets so they won't be garbage collected
     widgets = []
     axeses = []
 
-    invoking_axes = get_graphics_assignment_mode_axes()
     is_new_figure = OVERIDE_DIALOG_IN_SEPERATE_WINDOW or invoking_axes is None
     if is_new_figure:
         fig = plt.figure(figsize=(3, 2.5))
@@ -130,8 +147,7 @@ def choose_override_dialog(options: List[Quib], can_diverge: bool) -> OverrideCh
         background_ax.tick_params(left=False, right=False, labelleft=False, labelbottom=False, bottom=False)
         axeses.append(background_ax)
 
-    radio_ax, radio = pretty_radio_buttons(fig, [0.2 + shift[0], 1 + shift[1], 2.6, 1.3],
-                                           [quib.name for quib in options])
+    radio_ax, radio = pretty_radio_buttons(fig, [0.2 + shift[0], 1 + shift[1], 2.6, 1.3], str_options)
     widgets.append(radio)  # This is not strictly needed but left here to prevent a bug
     axeses.append(radio_ax)
 
@@ -156,7 +172,41 @@ def choose_override_dialog(options: List[Quib], can_diverge: bool) -> OverrideCh
         fig.canvas.draw()
         if is_new_figure:
             plt.close(fig)
+    return choice_type.val, radio.selected_index
 
-    if choice_type.val is None:
-        raise AssignmentCancelledByUserException()
-    return OverrideChoice(choice_type.val, radio.selected_index)
+
+def choose_override_text_dialog(str_options: List[str],
+                                can_diverge: bool,
+                                ) -> (Optional[OverrideChoiceType], int):
+
+    print('Overriding choices:')
+    if can_diverge:
+        print(f'({0}) {"[Diverge]"}')
+    for index, str_option in enumerate(str_options):
+        print(f'({index + 1}) {str_option}')
+
+    print('')
+    selected_index = None
+    choice_type = None
+    choice = None
+    while choice is None:
+        choice = input('Choose the number of the quib to override (press enter without a choice to cancel): ')
+        if len(choice) == 0:
+            print('Cancel')
+            break
+        else:
+            try:
+                choice = int(choice)
+            except ValueError:
+                choice = None
+            if choice == 0 and can_diverge:
+                choice_type = OverrideChoiceType.DIVERGE
+                print('Diverging...')
+            elif 1 <= choice <= len(str_options):
+                choice_type = OverrideChoiceType.OVERRIDE
+                selected_index = choice - 1
+                print('Overriding: ', str_options[selected_index])
+            else:
+                choice = None
+
+    return choice_type, selected_index
