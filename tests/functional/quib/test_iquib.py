@@ -8,7 +8,7 @@ import pytest
 from pyquibbler.env import GET_VARIABLE_NAMES
 from pyquibbler.quib.exceptions import CannotSaveAsTextException
 from pyquibbler.quib.specialized_functions.iquib import iquib, CannotNestQuibInIQuibException
-
+from pyquibbler.quib.save_assignments import SaveFormat
 
 def test_iquib_get_value_returns_argument():
     quib = iquib(3)
@@ -50,16 +50,20 @@ def test_iquib_pretty_repr_str():
     assert a.pretty_repr() == 'a = iquib(\'a\')'
 
 # File system
-def test_iquib_save_and_load():
+@pytest.mark.parametrize(['save_format'], [
+    (SaveFormat.TXT,),
+    (SaveFormat.BIN,),
+])
+def test_iquib_save_and_load(save_format: SaveFormat):
     save_name = "example_quib"
     original_value = [1, 2, 3]
-    a = iquib(original_value)
+    a = iquib(original_value).setp(save_format=save_format)
     a.name = save_name
     a.assign(10, 1)
-    b = iquib(original_value)
+    b = iquib(original_value).setp(save_format=save_format)
     b.name= save_name
 
-    a.save_if_relevant()
+    a.save()
     b.load()
 
     assert a.get_value() == b.get_value()
@@ -73,7 +77,7 @@ def test_iquib_loads_if_same_name():
     a.name = save_name
     a.assign(10, 1)
 
-    a.save_if_relevant()
+    a.save()
     # the name "example_quib" is critical here! it must be the same as save_name for the quib to actually load
     example_quib = iquib(original_value)
     example_quib.load()
@@ -83,9 +87,9 @@ def test_iquib_loads_if_same_name():
 
 def test_iquib_does_not_save_if_irrelevant(project):
     a = iquib(1)
-    a.save_if_relevant()
+    a.save()
 
-    assert len(os.listdir(project.path)) == 0
+    assert len(os.listdir(project.directory)) == 0
 
 
 @pytest.mark.parametrize("obj", [
@@ -94,11 +98,12 @@ def test_iquib_does_not_save_if_irrelevant(project):
     {"a": "b"},
     (1, 2, 3),
 ])
+@pytest.mark.get_variable_names(True)
 def test_save_txt_and_load_iquib_ndarray(obj, tmpdir):
-    a = iquib(obj)
+    a = iquib(obj).setp(save_format=SaveFormat.VALUE_TXT)
     a.assign(obj)
 
-    a.save_if_relevant()
+    a.save()
     a.load()
 
     files = os.listdir(f"{tmpdir}")
@@ -111,16 +116,19 @@ class A:
     pass
 
 
-def test_save_saves_not_as_txt_if_cant(tmpdir):
+def test_save_raises_exception_when_cannot_save_as_text(tmpdir):
 
-    a = iquib(np.array([mock.Mock()]))
+    a = iquib(np.array([mock.Mock()])).setp(save_format=SaveFormat.TXT, name='my_quib')
     a.assign(A(), 0)
 
-    a.save_if_relevant()
+    try:
+        a.save()
+    except CannotSaveAsTextException:
+        quib_files = os.listdir(f"{tmpdir}")
+        assert len(quib_files) == 0
+        return
 
-    quib_files = os.listdir(f"{tmpdir}")
-    assert len(quib_files) == 1
-    assert quib_files[0].endswith(".quib")
+    assert False
 
 
 def test_save_iquib_with_save_path(tmpdir):
@@ -130,7 +138,7 @@ def test_save_iquib_with_save_path(tmpdir):
     path = pathlib.Path(tmpdir.strpath) / "whatever"
     a.save_directory = path
 
-    a.save_if_relevant()
+    a.save()
     a.load()
 
     assert os.path.exists(path)
