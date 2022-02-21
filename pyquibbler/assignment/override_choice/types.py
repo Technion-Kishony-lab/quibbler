@@ -28,8 +28,8 @@ class OverrideRemoval(QuibChange):
     def path(self):
         return self._path
 
-    def apply(self, invalidate_and_redraw: bool = True):
-        self.quib.remove_override(self.path, invalidate_and_redraw=invalidate_and_redraw)
+    def apply(self):
+        self.quib.remove_override(self.path)
 
     @classmethod
     def from_quib_change(cls, change: QuibChange):

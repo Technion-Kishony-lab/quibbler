@@ -233,7 +233,7 @@ class Quib:
                                                        index=len(self._overrider) - 1,
                                                        overrider=self._overrider)
 
-    def remove_override(self, path: Path, invalidate_and_redraw: bool = True):
+    def remove_override(self, path: Path):
         """
         Remove function_definitions in a specific path in the quib.
         """
@@ -245,8 +245,7 @@ class Quib:
                                                        quib=self)
         if len(path) == 0:
             self._quib_function_call.on_type_change()
-        if invalidate_and_redraw:
-            self.invalidate_and_redraw_at_path(path=path)
+        self.invalidate_and_redraw_at_path(path=path)
 
     def apply_assignment(self, assignment: Assignment) -> None:
         """
