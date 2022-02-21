@@ -553,10 +553,11 @@ class Quib:
         self._quib_function_call.default_cache_behavior = cache_behavior
 
     def setp(self,
-             allow_overriding: bool = None,
-             assignment_template: Union[tuple, AssignmentTemplate] = None,
-             save_directory: Union[str, pathlib.Path] = None,
-             cache_behavior: Union[str, CacheBehavior] = None,
+             allow_overriding: bool = NoValue,
+             assignment_template: Union[tuple, AssignmentTemplate] = NoValue,
+             save_directory: Union[str, pathlib.Path] = NoValue,
+             save_format: Union[None, str, SaveFormat] = NoValue,
+             cache_behavior: Union[str, CacheBehavior] = NoValue,
              assigned_name: Union[None, str] = NoValue,
              name: Union[None, str] = NoValue,
              redraw_update_type: Union[None, str] = NoValue,
@@ -566,13 +567,15 @@ class Quib:
         setattr to anything before checking the types.
         """
         from pyquibbler.quib.factory import get_quib_name
-        if allow_overriding is not None:
+        if allow_overriding is not NoValue:
             self.allow_overriding = allow_overriding
-        if assignment_template is not None:
+        if assignment_template is not NoValue:
             self.set_assignment_template(assignment_template)
-        if save_directory is not None:
+        if save_directory is not NoValue:
             self.save_directory = save_directory
-        if cache_behavior is not None:
+        if save_format is not NoValue:
+            self.save_format = save_format
+        if cache_behavior is not NoValue:
             self.cache_behavior = cache_behavior
         if assigned_name is not NoValue:
             self.assigned_name = assigned_name
@@ -792,8 +795,31 @@ class Quib:
     """
 
     @property
-    def _actual_save_as_txt(self) -> bool:
-        return self._save_as_txt if self._save_as_txt else self.project.save_as_txt
+    def save_format(self):
+        """
+        Indicates the file format in which quib assignments are saved.
+
+        Options:
+            'txt' - save assignments as text file.
+            'binary' - save assignments as a binary file.
+            'value_txt' - save the quib value as a text file.
+            None - yield to the Project default save_format
+
+        See also:
+             SaveFormat
+        """
+        return self._save_format
+
+    @save_format.setter
+    @validate_user_input(save_format=(str, SaveFormat))
+    def save_format(self, save_format):
+        if isinstance(save_format, str):
+            save_format = SaveFormat(save_format)
+        self._save_format = save_format
+
+    @property
+    def _actual_save_format(self) -> SaveFormat:
+        return self._save_format if self._save_format else self.project.save_format
 
     @property
     def _actual_save_directory(self) -> Optional[pathlib.Path]:

@@ -13,6 +13,7 @@ from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.utils import deep_copy_without_quibs_or_graphics
 from pyquibbler.quib.variable_metadata import get_var_name_being_set_outside_of_pyquibbler, \
     get_file_name_and_line_number_of_quib
+from pyquibbler.quib.save_assignments import SaveFormat
 
 if TYPE_CHECKING:
     from pyquibbler import CacheBehavior
@@ -77,7 +78,7 @@ def create_quib(func: Callable, args: Tuple[Any, ...] = (), kwargs: Mapping[str,
                 allow_overriding: bool = False,
                 call_func_with_quibs: bool = False,
                 update_type: UpdateType = None,
-                save_as_txt: Optional[bool] = None,
+                save_format: Optional[SaveFormat] = None,
                 save_directory: pathlib.Path = None,
                 **init_kwargs):
     """
@@ -96,7 +97,7 @@ def create_quib(func: Callable, args: Tuple[Any, ...] = (), kwargs: Mapping[str,
     func will be called with the quibs.
     :param update_type - (Only relevant if the quib has graphics/is known graphics func) - when should the quib
     "update"? See UpdateType for options
-    :param save_as_txt - bool indicating whether this quib attempts to save as a text file (default: True).
+    :param save_format - indicating the file format for saving assignments to the quib (FileFormat).
     :param save_directory - where to save the quib?
     """
 
@@ -125,7 +126,7 @@ def create_quib(func: Callable, args: Tuple[Any, ...] = (), kwargs: Mapping[str,
 
     quib = Quib(quib_function_call=quib_func_call, assignment_template=None, allow_overriding=allow_overriding,
                 assigned_name=get_quib_name(), file_name=file_name, line_no=line_no, redraw_update_type=None,
-                save_directory=save_directory, save_as_txt=save_as_txt,
+                save_directory=save_directory, save_format=save_format,
                 can_contain_graphics=update_type is not None)
 
     project.register_quib(quib)

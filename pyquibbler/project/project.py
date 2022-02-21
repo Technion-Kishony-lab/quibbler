@@ -12,6 +12,7 @@ from pyquibbler.utilities.file_path import PathWithHyperLink
 from pyquibbler.exceptions import PyQuibblerException
 from .actions import Action, AssignmentAction
 from pyquibbler.quib.graphics import UpdateType
+from pyquibbler.quib.save_assignments import SaveFormat
 
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib
@@ -56,7 +57,7 @@ class Project:
         self._undo_action_groups: List[List[Action]] = []
         self._redo_action_groups: List[List[Action]] = []
         self._quib_refs_to_paths_to_released_assignments = defaultdict(dict)
-        self._save_as_txt: Optional[bool] = None
+        self._save_format: SaveFormat = SaveFormat.TXT
         self.on_path_change: Optional[Callable] = None
 
     @classmethod
@@ -153,21 +154,24 @@ class Project:
             self.on_path_change(path)
 
     @property
-    def save_as_txt(self) -> bool:
+    def save_format(self) -> SaveFormat:
         """
-        Indicates whether quibs should save assignments as text or binary by default.
+        The default file format for saving quibs.
 
         Quibs whose own save_as_text is None yield to the default save_as_text of the Project.
 
         Returns:
-             bool
-        """
-        return self._save_as_txt
+             SaveFormat
 
-    @save_as_txt.setter
-    @validate_user_input(save_as_txt=bool)
-    def save_as_txt(self, save_as_text: bool):
-        self._save_as_txt = save_as_text
+        See also:
+            Quib.save_format
+        """
+        return self._save_format
+
+    @save_format.setter
+    @validate_user_input(save_format=save_format)
+    def save_format(self, save_format: SaveFormat):
+        self._save_format = save_format
 
     def save_quibs(self, save_as_txt_where_possible: bool = True):
         """
