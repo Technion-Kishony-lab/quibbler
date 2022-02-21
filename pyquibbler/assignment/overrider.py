@@ -159,11 +159,13 @@ class Overrider:
         from ..quib.pretty_converters.pretty_convert import getitem_converter
         pretty = ''
         for assignment in self._paths_to_assignments.values():
-            pretty = pretty + '\n' \
-                     + name \
-                     + ''.join([str(getitem_converter(None, ('', cmp.component))) for cmp in assignment.path]) \
-                     + ' = ' \
-                     + repr(assignment.value)
+            pretty_value = repr(assignment.value) if isinstance(assignment, Assignment) else 'Default'
+            pretty += '\n' + name
+            if assignment.path:
+                pretty += ''.join([str(getitem_converter(None, ('', cmp.component))) for cmp in assignment.path])
+                pretty += ' = ' + pretty_value
+            else:
+                pretty += '.assign(' + pretty_value + ')'
         pretty = pretty[1:] if pretty else pretty
         return pretty
 
