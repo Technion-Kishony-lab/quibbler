@@ -112,15 +112,19 @@ def choose_override_dialog(options: List[Quib], can_diverge: bool) -> OverrideCh
     If can_diverge is true, offer the user to diverge the override instead of choosing an override option.
     """
 
+    from pyquibbler.quib.graphics.event_handling.canvas_event_handler import get_graphics_assignment_mode_axes
+
     # Used to keep references to the widgets so they won't be garbage collected
     widgets = []
     axeses = []
 
-    if OVERIDE_DIALOG_IN_SEPERATE_WINDOW:
+    invoking_axes = get_graphics_assignment_mode_axes()
+    is_new_figure = OVERIDE_DIALOG_IN_SEPERATE_WINDOW or invoking_axes is None
+    if is_new_figure:
         fig = plt.figure(figsize=(3, 2.5))
         shift = (0, 0)
     else:
-        fig = plt.gcf()
+        fig = invoking_axes.figure
         shift = (0.5, 0.5)
         background_ax = add_axes_by_inches(fig, [shift[0], shift[1], 3, 2.5])
         background_ax.tick_params(left=False, right=False, labelleft=False, labelbottom=False, bottom=False)
@@ -150,7 +154,7 @@ def choose_override_dialog(options: List[Quib], can_diverge: bool) -> OverrideCh
         for axes in axeses:
             axes.remove()
         fig.canvas.draw()
-        if OVERIDE_DIALOG_IN_SEPERATE_WINDOW:
+        if is_new_figure:
             plt.close(fig)
 
     if choice_type.val is None:
