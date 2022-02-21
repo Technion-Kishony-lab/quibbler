@@ -183,7 +183,7 @@ class Project:
         if self.directory is None:
             raise CannotSaveWithoutProjectPathException()
         for quib in self.quibs:
-            quib.save_if_relevant()
+            quib.save()
 
     def load_quibs(self):
         """

@@ -4,7 +4,6 @@ import functools
 import json
 import os
 import pathlib
-import pickle
 import weakref
 
 from pyquibbler.utilities.file_path import PathWithHyperLink
@@ -50,6 +49,7 @@ from pyquibbler.utilities.unpacker import Unpacker
 from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals
 from pyquibbler.cache.cache import CacheStatus
 from pyquibbler.cache import create_cache
+from pyquibbler.quib.save_assignments import SaveFormat, SAVEFORMAT_TO_FILE_EXT
 from .utils.miscellaneous import NoValue
 
 if TYPE_CHECKING:
@@ -74,7 +74,7 @@ class Quib:
                  line_no: Optional[str],
                  redraw_update_type: Optional[UpdateType],
                  save_directory: pathlib.Path,
-                 save_as_txt: bool,
+                 save_format: Optional[SaveFormat],
                  can_contain_graphics: bool,
                  ):
         self._assignment_template = assignment_template
@@ -98,7 +98,7 @@ class Quib:
         self._quib_function_call.artists_creation_callback = functools.partial(persist_artists_on_quib_weak_ref,
                                                                                weakref.ref(self))
 
-        self._save_as_txt = save_as_txt
+        self._save_format = save_format
         self._can_contain_graphics = can_contain_graphics
 
     """
@@ -823,9 +823,10 @@ class Quib:
 
     @property
     def _actual_save_directory(self) -> Optional[pathlib.Path]:
-        save_name = self.assigned_name if self.assigned_name else hash(self.functional_representation)
-        if self._save_directory is not None and (self._save_directory.is_absolute() or self.project.directory is None):
-            return self._save_directory
+        if self._save_directory is not None and self._save_directory.is_absolute():
+            return self._save_directory  # absolute directory
+        elif self.project.directory is None:
+            return None
         else:
             return self.project.directory if self._save_directory is None \
                 else self.project.directory / self._save_directory
@@ -836,12 +837,11 @@ class Quib:
         The full path for the file where quib assignments are saved.
 
         Returns:
-            Path
+            Path or None
         """
-        if self.assigned_name is None or self._actual_save_directory is None:
-            return None
-        file_name = self.assigned_name + ('.txt' if self._save_as_txt else '.quib')
-        return PathWithHyperLink(self._actual_save_directory / file_name)
+        return None if self.assigned_name is None or self._actual_save_directory is None \
+            else PathWithHyperLink(self._actual_save_directory /
+                                   (self.assigned_name + SAVEFORMAT_TO_FILE_EXT[self._actual_save_format]))
 
     @property
     def save_directory(self) -> PathWithHyperLink:
@@ -863,71 +863,89 @@ class Quib:
         return PathWithHyperLink(self._save_directory)
 
     @save_directory.setter
-    @validate_user_input(path=(str, pathlib.Path))
+    @validate_user_input(directory=(str, pathlib.Path))
     def save_directory(self, directory: Union[str, pathlib.Path]):
         if isinstance(directory, str):
             directory = pathlib.Path(directory)
         self._save_directory = directory
 
-    def save_if_relevant(self):
+    def save(self) -> bool:
         """
-        Save the quib if relevant- this will NOT save if the quib does not have overrides, as there is nothing to save
+        Save the quib assignments if any.
+
+        Returns:
+            bool - indicating whether a file was created successfully.
         """
+        if self.save_path is None:
+            return False
+
+        if self._actual_save_format == SaveFormat.VALUE_TXT:
+            return self._save_value_as_txt()
+
+        if len(self._overrider) == 0:
+            return False
         os.makedirs(self._actual_save_directory, exist_ok=True)
-        if len(self._overrider) > 0:
-            if save_as_txt_if_possible and self._can_save_as_txt:
-                try:
-                    return self._save_as_txt()
-                except CannotSaveAsTextException:
-                    # Continue on to normal save
-                    pass
+        if self._actual_save_format == SaveFormat.BIN:
+            return self._overrider.save_to_binary(self.save_path)
+        elif self._actual_save_format == SaveFormat.TXT:
+            return self._overrider.save_to_txt(self.save_path)
 
-            with open(self.save_path, 'wb') as f:
-                pickle.dump(self._overrider, f)
-
-    def _save_as_txt(self):
+    def _save_value_as_txt(self):
         """
-        Save the quib as a text file. In contrast to the normal save, this will save the value of the quib regardless
+        Save the quib's value as a text file.
+        In contrast to the normal save, this will save the value of the quib regardless
         of whether the quib has overrides, as a txt file is used for the user to be able to see the quib and change it
         in a textual manner.
         Note that this WILL fail with CannotSaveAsTextException in situations where the iquib
         cannot be represented textually.
         """
         value = self.get_value()
+        save_path = self.save_path
         try:
             if isinstance(value, np.ndarray):
-                np.savetxt(str(self._save_txt_path), value)
+                np.savetxt(str(save_path), value)
             else:
-                with open(self._save_txt_path, 'w') as f:
+                with open(save_path, 'w') as f:
                     json.dump(value, f)
         except TypeError:
-            if os.path.exists(self._save_txt_path):
-                os.remove(self._save_txt_path)
+            if os.path.exists(save_path):
+                os.remove(save_path)
             raise CannotSaveAsTextException()
 
-    def _load_from_txt(self):
+    def _load_value_from_txt(self):
         """
         Load the quib from the corresponding text file is possible
         """
-        if self._save_txt_path and os.path.exists(self._save_txt_path):
+        if self.save_path and os.path.exists(self.save_path):
             if issubclass(self.get_type(), np.ndarray):
-                self.assign(np.array(np.loadtxt(str(self._save_txt_path)), dtype=self.get_value().dtype))
+                self.assign(np.array(np.loadtxt(str(self.save_path)), dtype=self.get_value().dtype))
             else:
-                with open(self._save_txt_path, 'r') as f:
+                with open(self.save_path, 'r') as f:
                     self.assign(json.load(f))
 
-    def load(self):
-        if self._save_txt_path and os.path.exists(self._save_txt_path):
-            self._load_from_txt()
-        elif self.save_path and os.path.exists(self.save_path):
-            with open(self.save_path, 'rb') as f:
-                self._overrider = pickle.load(f)
-                self.invalidate_and_redraw_at_path([])
+    def load(self) -> bool:
+        """
+        load quib assignments from file.
+
+        Returns:
+            bool: indicating whether the file was found and loaded.
+        """
+        if not (self.save_path and os.path.exists(self.save_path)):
+            return False
+
+        if self._actual_save_format == SaveFormat.BIN:
+            self._overrider.load_from_binary(self.save_path)
+        elif self._actual_save_format == SaveFormat.TXT:
+            self._overrider.load_from_txt(self.save_path)
+        elif self._actual_save_format == SaveFormat.VALUE_TXT:
+            self._load_value_from_txt()
+
+        self.invalidate_and_redraw_at_path([])
+        return True
 
     """
     Repr
     """
-
 
     @property
     def assigned_name(self) -> Optional[str]:

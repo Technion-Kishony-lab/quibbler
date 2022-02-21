@@ -6,8 +6,8 @@ def test_multiple_quib_save_without_given_name(create_quib_with_return_value):
     another_quib = create_quib_with_return_value(6).setp(allow_overriding=True)
     another_quib.assign(8)
 
-    example_quib.save_if_relevant()
-    another_quib.save_if_relevant()
+    example_quib.save()
+    another_quib.save()
     another_quib.load()
     example_quib.load()
 
