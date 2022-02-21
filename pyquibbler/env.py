@@ -1,6 +1,6 @@
 from pyquibbler.utils import Flag
 
-DEBUG = Flag(True)
+DEBUG = Flag(False)
 
 EVALUATE_NOW = Flag(False)
 
