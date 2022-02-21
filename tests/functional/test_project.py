@@ -226,7 +226,7 @@ def test_project_redraw_central_graphics_function_quibs(project):
     func = mock.Mock()
     _ = create_quib(func=func, update_type='central', evaluate_now=False)
 
-    project.redraw_central_refresh_graphics_function_quibs()
+    project.refresh_graphics()
 
     func.assert_called_once()
 

@@ -123,9 +123,12 @@ class Project:
         """
         self._reset_list_of_quibs([quib for quib in self.quibs if quib.is_impure_func])
 
-    def redraw_central_refresh_graphics_function_quibs(self):
+    def refresh_graphics(self):
         """
         Redraw all graphics function quibs which only redraw when set to UpdateType.CENTRAL
+
+        See also:
+            Quib.update_type
         """
         for quib in self.quibs:
             if quib.redraw_update_type == UpdateType.CENTRAL:

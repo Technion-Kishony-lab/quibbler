@@ -160,8 +160,7 @@ class Quib:
         Options are:
         "drag":     refresh immediately as upstream objects are dragged
         "drop":     refresh at end of dragging upon graphic object drop.
-        "central":  do not automatically refresh. Refresh, centrally upon
-                    redraw_central_refresh_graphics_function_quibs().
+        "central":  do not automatically refresh. Refresh, centrally upon refresh_graphics().
         "never":    Never refresh.
 
         Returns
@@ -170,7 +169,7 @@ class Quib:
 
         See Also
         --------
-        UpdateType, Project.redraw_central_refresh_graphics_function_quibs
+        UpdateType, Project.refresh_graphics
         """
         return self._redraw_update_type.value if self._redraw_update_type else None
 
