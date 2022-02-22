@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Union, List, Callable, Type, Optional
+from typing import Union, List, Callable, Type
 from types import ModuleType
 
 from pyquibbler.project import Project
@@ -8,7 +8,6 @@ from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.factory import create_quib
 
 import functools
-from pyquibbler.quib.utils.miscellaneous import Default
 
 copy_docs = functools.partial(functools.wraps, assigned=['__doc__'], updated=[])
 
@@ -108,6 +107,3 @@ def list_quiby_funcs(module_or_cls: Union[None, ModuleType, Type] = None) -> Lis
 
 def is_func_quiby(func: Callable) -> bool:
     return hasattr(func, '__quibbler_wrapped__')
-
-
-default = Default()

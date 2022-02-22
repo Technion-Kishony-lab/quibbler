@@ -10,6 +10,6 @@ from .utilities.user_utils import \
     set_project_directory, get_project_directory, \
     save_quibs, load_quibs, \
     undo, redo, can_redo, can_undo, \
-    redraw_central_refresh_graphics_function_quibs, \
-    list_quiby_funcs, is_func_quiby, \
-    default
+    refresh_graphics, \
+    list_quiby_funcs, is_func_quiby
+from .assignment.default_value import default

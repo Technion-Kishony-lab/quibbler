@@ -50,7 +50,8 @@ from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals
 from pyquibbler.cache.cache import CacheStatus
 from pyquibbler.cache import create_cache
 from pyquibbler.quib.save_assignments import SaveFormat, SAVEFORMAT_TO_FILE_EXT
-from .utils.miscellaneous import NoValue, Default
+from .utils.miscellaneous import NoValue
+
 
 if TYPE_CHECKING:
     from pyquibbler.function_definitions.func_definition import FuncDefinition
@@ -260,19 +261,23 @@ class Quib:
         """
         Assign a specified value to the whole array, or to a specific key if specified
         """
+        from pyquibbler import default
+
         key = copy_and_replace_quibs_with_vals(key)
         value = copy_and_replace_quibs_with_vals(value)
         path = [] if key is NoValue else [PathComponent(component=key, indexed_cls=self.get_type())]
-        if isinstance(value, Default):
+        if value is default:
             self.remove_override(path)
         else:
             self.apply_assignment(Assignment(path=path, value=value))
 
     def __setitem__(self, key, value):
+        from pyquibbler import default
+
         key = copy_and_replace_quibs_with_vals(key)
         value = copy_and_replace_quibs_with_vals(value)
         path = [PathComponent(component=key, indexed_cls=self.get_type())]
-        if isinstance(value, Default):
+        if value is default:
             self.remove_override(path)
         else:
             self.apply_assignment(Assignment(value=value, path=path))
