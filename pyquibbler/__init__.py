@@ -11,4 +11,5 @@ from .utilities.user_utils import \
     save_quibs, load_quibs, \
     undo, redo, can_redo, can_undo, \
     redraw_central_refresh_graphics_function_quibs, \
-    list_quiby_funcs, is_func_quiby
+    list_quiby_funcs, is_func_quiby, \
+    default
