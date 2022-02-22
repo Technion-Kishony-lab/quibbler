@@ -50,7 +50,7 @@ from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals
 from pyquibbler.cache.cache import CacheStatus
 from pyquibbler.cache import create_cache
 from pyquibbler.quib.save_assignments import SaveFormat, SAVEFORMAT_TO_FILE_EXT
-from .utils.miscellaneous import NoValue
+from .utils.miscellaneous import NoValue, Default
 
 if TYPE_CHECKING:
     from pyquibbler.function_definitions.func_definition import FuncDefinition
@@ -263,12 +263,19 @@ class Quib:
         key = copy_and_replace_quibs_with_vals(key)
         value = copy_and_replace_quibs_with_vals(value)
         path = [] if key is NoValue else [PathComponent(component=key, indexed_cls=self.get_type())]
-        self.apply_assignment(Assignment(path=path, value=value))
+        if isinstance(value, Default):
+            self.remove_override(path)
+        else:
+            self.apply_assignment(Assignment(path=path, value=value))
 
     def __setitem__(self, key, value):
         key = copy_and_replace_quibs_with_vals(key)
         value = copy_and_replace_quibs_with_vals(value)
-        self.apply_assignment(Assignment(value=value, path=[PathComponent(component=key, indexed_cls=self.get_type())]))
+        path = [PathComponent(component=key, indexed_cls=self.get_type())]
+        if isinstance(value, Default):
+            self.remove_override(path)
+        else:
+            self.apply_assignment(Assignment(value=value, path=path))
 
     def get_inversions_for_override_removal(self, override_removal: OverrideRemoval) -> List[OverrideRemoval]:
         """
