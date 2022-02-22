@@ -27,7 +27,7 @@ def deep_get(obj: Any, path: Path):
     Get the data from an object in a given path.
     """
     for component in path:
-        if isinstance(obj, np.ndarray) and component.indexed_cls != np.ndarray:
+        if isinstance(obj, np.ndarray) and component.indexed_cls is not None and component.indexed_cls != np.ndarray:
             # We allow specifying a path component that can reference multiple places in the array - for example,
             # if given a path
             # [PathComponent(np.ndarray, [True, True]), PathComponent(dict, "name"])]
