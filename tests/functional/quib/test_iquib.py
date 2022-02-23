@@ -87,7 +87,8 @@ def test_iquib_loads_if_same_name():
 
 def test_iquib_does_not_save_if_irrelevant(project):
     a = iquib(1)
-    a.save()
+    b = (a + 1).setp(assigned_name='b')
+    b.save()
 
     assert len(os.listdir(project.directory)) == 0
 
