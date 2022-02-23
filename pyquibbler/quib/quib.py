@@ -36,7 +36,6 @@ from pyquibbler.assignment import AssignmentTemplate, Overrider, Assignment, \
 from pyquibbler.path.data_accessing import FailedToDeepAssignException
 from pyquibbler.path.path_component import PathComponent, Path
 from pyquibbler.assignment import InvalidTypeException, OverrideRemoval, get_override_group_for_change
-from pyquibbler.function_definitions import ArgsValues
 from pyquibbler.quib.func_calling.cache_behavior import CacheBehavior, UnknownCacheBehaviorException
 from pyquibbler.quib.exceptions import OverridingNotAllowedException, UnknownUpdateTypeException, \
     InvalidCacheBehaviorForQuibException, CannotSaveAsTextException
@@ -850,19 +849,22 @@ class Quib:
         Returns:
             Path or None
         """
-        return None if self.assigned_name is None or self._actual_save_directory is None \
-            else PathWithHyperLink(self._actual_save_directory /
-                                   (self.assigned_name + SAVEFORMAT_TO_FILE_EXT[self._actual_save_format]))
+        return self._get_save_path()
 
     def _get_save_path(self, response_to_file_not_found: ResponseToFileNotDefined = ResponseToFileNotDefined.IGNORE) \
             -> Optional[PathWithHyperLink]:
-        path = self.save_path
-        if path is None:
-            exception = FileNotDefinedException(self.assigned_name, self.project.directory)
+
+        if self.assigned_name is None or self._actual_save_directory is None or self._actual_save_format is None:
+            path = None
+            exception = FileNotDefinedException(
+                self.assigned_name, self._actual_save_directory, self._actual_save_format)
             if response_to_file_not_found == ResponseToFileNotDefined.RAISE:
                 raise exception
             elif response_to_file_not_found == ResponseToFileNotDefined.WARNING:
                 warnings.warn(str(exception))
+        else:
+            path = PathWithHyperLink(self._actual_save_directory /
+                                     (self.assigned_name + SAVEFORMAT_TO_FILE_EXT[self._actual_save_format]))
 
         return path
 
@@ -936,33 +938,36 @@ class Quib:
                 os.remove(save_path)
             raise CannotSaveAsTextException()
 
-    def _load_value_from_txt(self):
+    def _load_value_from_txt(self, save_path):
         """
         Load the quib from the corresponding text file is possible
         """
-        if self.save_path and os.path.exists(self.save_path):
-            if issubclass(self.get_type(), np.ndarray):
-                self.assign(np.array(np.loadtxt(str(self.save_path)), dtype=self.get_value().dtype))
-            else:
-                with open(self.save_path, 'r') as f:
-                    self.assign(json.load(f))
+        if issubclass(self.get_type(), np.ndarray):
+            self.assign(np.array(np.loadtxt(str(self.save_path)), dtype=self.get_value().dtype))
+        else:
+            with open(self.save_path, 'r') as f:
+                self.assign(json.load(f))
 
-    def load(self) -> bool:
+    def load(self, response_to_file_not_defined: ResponseToFileNotDefined = ResponseToFileNotDefined.RAISE) -> bool:
         """
         load quib assignments from file.
 
         Returns:
             bool: indicating whether the file was found and loaded.
         """
-        if not (self.save_path and os.path.exists(self.save_path)):
+        save_path = self._get_save_path(response_to_file_not_defined)
+        if self.save_path is None:
+            return False
+
+        if not os.path.exists(self.save_path):
             return False
 
         if self._actual_save_format == SaveFormat.BIN:
-            self._overrider.load_from_binary(self.save_path)
+            self._overrider.load_from_binary(save_path)
         elif self._actual_save_format == SaveFormat.TXT:
-            self._overrider.load_from_txt(self.save_path)
+            self._overrider.load_from_txt(save_path)
         elif self._actual_save_format == SaveFormat.VALUE_TXT:
-            self._load_value_from_txt()
+            self._load_value_from_txt(save_path)
 
         self.invalidate_and_redraw_at_path([])
         return True
