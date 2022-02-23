@@ -5,6 +5,7 @@ import json
 import os
 import pathlib
 import weakref
+import warnings
 
 from pyquibbler.utilities.file_path import PathWithHyperLink
 from contextlib import contextmanager
@@ -49,9 +50,9 @@ from pyquibbler.utilities.unpacker import Unpacker
 from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals
 from pyquibbler.cache.cache import CacheStatus
 from pyquibbler.cache import create_cache
-from pyquibbler.quib.save_assignments import SaveFormat, SAVEFORMAT_TO_FILE_EXT
+from pyquibbler.quib.save_assignments import SaveFormat, SAVEFORMAT_TO_FILE_EXT, \
+    ResponseToFileNotDefined, FileNotDefinedException
 from .utils.miscellaneous import NoValue
-
 
 if TYPE_CHECKING:
     from pyquibbler.function_definitions.func_definition import FuncDefinition
@@ -853,6 +854,18 @@ class Quib:
             else PathWithHyperLink(self._actual_save_directory /
                                    (self.assigned_name + SAVEFORMAT_TO_FILE_EXT[self._actual_save_format]))
 
+    def _get_save_path(self, response_to_file_not_found: ResponseToFileNotDefined = ResponseToFileNotDefined.IGNORE) \
+            -> Optional[PathWithHyperLink]:
+        path = self.save_path
+        if path is None:
+            exception = FileNotDefinedException(self.assigned_name, self.project.directory)
+            if response_to_file_not_found == ResponseToFileNotDefined.RAISE:
+                raise exception
+            elif response_to_file_not_found == ResponseToFileNotDefined.WARNING:
+                warnings.warn(str(exception))
+
+        return path
+
     @property
     def save_directory(self) -> PathWithHyperLink:
         """
@@ -879,28 +892,30 @@ class Quib:
             directory = pathlib.Path(directory)
         self._save_directory = directory
 
-    def save(self) -> bool:
+    def save(self, response_to_file_not_defined: ResponseToFileNotDefined = ResponseToFileNotDefined.RAISE) -> bool:
         """
         Save the quib assignments if any.
 
         Returns:
-            bool - indicating whether a file was created successfully.
+            bool - indicating whether the quib was saved successfully.
         """
+
+        save_path = self._get_save_path(response_to_file_not_defined)
         if self.save_path is None:
             return False
 
-        if self._actual_save_format == SaveFormat.VALUE_TXT:
-            return self._save_value_as_txt()
-
-        if len(self._overrider) == 0:
+        if self._actual_save_format != SaveFormat.VALUE_TXT and len(self._overrider) == 0:
             return False
-        os.makedirs(self._actual_save_directory, exist_ok=True)
-        if self._actual_save_format == SaveFormat.BIN:
-            return self._overrider.save_to_binary(self.save_path)
-        elif self._actual_save_format == SaveFormat.TXT:
-            return self._overrider.save_to_txt(self.save_path)
 
-    def _save_value_as_txt(self):
+        os.makedirs(save_path.parents[0], exist_ok=True)
+        if self._actual_save_format == SaveFormat.VALUE_TXT:
+            return self._save_value_as_txt(save_path)
+        elif self._actual_save_format == SaveFormat.BIN:
+            return self._overrider.save_to_binary(save_path)
+        elif self._actual_save_format == SaveFormat.TXT:
+            return self._overrider.save_to_txt(save_path)
+
+    def _save_value_as_txt(self, save_path: pathlib.Path):
         """
         Save the quib's value as a text file.
         In contrast to the normal save, this will save the value of the quib regardless
@@ -910,7 +925,6 @@ class Quib:
         cannot be represented textually.
         """
         value = self.get_value()
-        save_path = self.save_path
         try:
             if isinstance(value, np.ndarray):
                 np.savetxt(str(save_path), value)
