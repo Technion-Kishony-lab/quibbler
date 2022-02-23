@@ -7,6 +7,7 @@ import pathlib
 
 class SaveFormat(str, Enum):
 
+    OFF = 'off'
     TXT = 'txt'
     BIN = 'binary'
     VALUE_TXT = 'value_txt'
@@ -29,12 +30,15 @@ class ResponseToFileNotDefined(str, Enum):
 class FileNotDefinedException(PyQuibblerException):
 
     quib_assigned_name: Optional[str]
-    project_directory: Optional[pathlib.Path]
+    actual_save_directory: Optional[pathlib.Path]
+    actual_save_format: Optional[SaveFormat]
 
     def __str__(self):
         messages = []
         if self.quib_assigned_name is None:
             messages.append('set the assigned_name for the quib')
-        if self.project_directory is None:
+        if self.actual_save_directory is None:
             messages.append('set a project directory (pyquibbler.set_project_directory)')
+        if self.actual_save_format == SaveFormat.OFF:
+            messages.append('set the save_format')
         return 'To save/load a quib you must ' + ' and '.join(messages) + '.'
