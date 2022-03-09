@@ -51,7 +51,7 @@ def external_call_failed_exception_handling():
                 formatted_tb = ''.join(traceback.format_exception_only(type_, value=exc))
             else:
                 traceback_lines = traceback.format_exception(type_, exc, tb)
-                formatted_tb = "".join(traceback_lines)
+                formatted_tb = ''.join(traceback_lines)
 
             raise ExternalCallFailedException(quibs_with_calls=[],
                                               exception=e,

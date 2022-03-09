@@ -7,7 +7,6 @@ import pathlib
 import weakref
 
 from pyquibbler.utilities.file_path import PathWithHyperLink
-from contextlib import contextmanager
 from functools import cached_property
 from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Union, Iterable
 from weakref import WeakSet
@@ -112,9 +111,9 @@ class QuibHandler:
 
         if not is_within_drag():
             self.quib().project.push_assignment_to_undo_stack(quib=self.quib(),
-                                                       assignment=assignment,
-                                                       index=len(self.quib()._overrider) - 1,
-                                                       overrider=self.quib()._overrider)
+                                                              assignment=assignment,
+                                                              index=len(self.quib()._overrider) - 1,
+                                                              overrider=self.quib()._overrider)
 
     def remove_override(self, path: Path):
         """
@@ -123,9 +122,9 @@ class QuibHandler:
         assignment_removal = self.quib()._overrider.remove_assignment(path)
         if assignment_removal is not None:
             self.quib().project.push_assignment_to_undo_stack(assignment=assignment_removal,
-                                                       index=len(self.quib()._overrider) - 1,
-                                                       overrider=self.quib()._overrider,
-                                                       quib=self.quib())
+                                                              index=len(self.quib()._overrider) - 1,
+                                                              overrider=self.quib()._overrider,
+                                                              quib=self.quib())
         if len(path) == 0:
             self.quib_function_call.on_type_change()
         self.invalidate_and_redraw_at_path(path=path)
@@ -435,7 +434,7 @@ class Quib:
     @property
     def graphics_update_type(self) -> Union[None, str]:
         """
-        Return the graphics_update_type of the quib, indicating whether the quib should refresh upon upstream assignments.
+        Return the graphics_update_type indicating whether the quib should refresh upon upstream assignments.
         Options are:
         "drag":     refresh immediately as upstream objects are dragged
         "drop":     refresh at end of dragging upon graphic object drop.
