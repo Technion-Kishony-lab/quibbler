@@ -1003,7 +1003,7 @@ class Quib:
     def name(self, name: str):
         self.assigned_name = name
 
-    def get_functional_representation_expression(self) -> MathExpression:
+    def _get_functional_representation_expression(self) -> MathExpression:
         try:
             return pretty_convert.get_pretty_value_of_func_with_args_and_kwargs(self.func, self.args, self.kwargs)
         except Exception as e:
@@ -1020,18 +1020,18 @@ class Quib:
         ```
         "iquib(4)" would be the functional representation
         """
-        return str(self.get_functional_representation_expression())
+        return str(self._get_functional_representation_expression())
 
     def get_math_expression(self) -> MathExpression:
         return NameMathExpression(self.assigned_name) if self.assigned_name is not None \
-            else self.get_functional_representation_expression()
+            else self._get_functional_representation_expression()
 
     def ugly_repr(self):
         return f"<{self.__class__.__name__} - {self.func}"
 
     def pretty_repr(self):
         """
-        Returns a pretty representation of the quib. Might calculate values of parent quibs.
+        Returns a pretty representation of the quib.
         """
         return f"{self.assigned_name} = {self.functional_representation}" \
             if self.assigned_name is not None else self.functional_representation
