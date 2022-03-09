@@ -29,7 +29,7 @@ class OverrideRemoval(QuibChange):
         return self._path
 
     def apply(self):
-        self.quib.remove_override(self.path)
+        self.quib.handler.remove_override(self.path)
 
     @classmethod
     def from_quib_change(cls, change: QuibChange):

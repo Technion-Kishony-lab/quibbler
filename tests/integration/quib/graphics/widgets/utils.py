@@ -1,6 +1,7 @@
 import contextlib
 import functools
 from dataclasses import dataclass
+from pyquibbler.quib import Quib
 
 from matplotlib.testing.decorators import image_comparison
 
@@ -11,8 +12,8 @@ class RedrawCount:
 
 
 @contextlib.contextmanager
-def count_redraws(widget_quib):
-    previous_redraw = widget_quib.redraw_if_appropriate
+def count_redraws(widget_quib: Quib):
+    previous_redraw = widget_quib.handler.redraw_if_appropriate
     redraw_count = RedrawCount(0)
 
     def redraw(*args, **kwargs):
@@ -20,11 +21,11 @@ def count_redraws(widget_quib):
         redraw_count.count += 1
         return previous_redraw(*args, **kwargs)
 
-    widget_quib.redraw_if_appropriate = redraw
+    widget_quib.handler.redraw_if_appropriate = redraw
 
     yield redraw_count
 
-    widget_quib.redraw_if_appropriate = previous_redraw
+    widget_quib.handler.redraw_if_appropriate = previous_redraw
 
 
 quibbler_image_comparison = functools.partial(image_comparison, remove_text=True, extensions=['png'],

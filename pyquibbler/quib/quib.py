@@ -70,6 +70,71 @@ class QuibHandler:
         """
         self.quib()._children.add(quib)
 
+    def redraw_if_appropriate(self):
+        """
+        Redraws the quib if it's appropriate
+        """
+        if self.quib()._redraw_update_type in [UpdateType.NEVER, UpdateType.CENTRAL] \
+                or (self.quib()._redraw_update_type == UpdateType.DROP and is_within_drag()):
+            return
+
+        return self.quib().get_value()
+
+    def override(self, assignment: Assignment, allow_overriding_from_now_on=True):
+        """
+        Overrides a part of the data the quib represents.
+        """
+        if allow_overriding_from_now_on:
+            self.quib()._allow_overriding = True
+        if not self.quib()._allow_overriding:
+            raise OverridingNotAllowedException(self.quib(), assignment)
+        self.quib()._overrider.add_assignment(assignment)
+        if len(assignment.path) == 0:
+            self.quib()._quib_function_call.on_type_change()
+
+        try:
+            self.quib().invalidate_and_redraw_at_path(assignment.path)
+        except FailedToDeepAssignException as e:
+            raise FailedToDeepAssignException(exception=e.exception, path=e.path) from None
+        except InvalidTypeException as e:
+            raise InvalidTypeException(e.type_) from None
+
+        if not is_within_drag():
+            self.quib().project.push_assignment_to_undo_stack(quib=self.quib(),
+                                                       assignment=assignment,
+                                                       index=len(self.quib()._overrider) - 1,
+                                                       overrider=self.quib()._overrider)
+
+    def remove_override(self, path: Path):
+        """
+        Remove function_definitions in a specific path in the quib.
+        """
+        assignment_removal = self.quib()._overrider.remove_assignment(path)
+        if assignment_removal is not None:
+            self.quib().project.push_assignment_to_undo_stack(assignment=assignment_removal,
+                                                       index=len(self.quib()._overrider) - 1,
+                                                       overrider=self.quib()._overrider,
+                                                       quib=self.quib())
+        if len(path) == 0:
+            self.quib()._quib_function_call.on_type_change()
+        self.quib().invalidate_and_redraw_at_path(path=path)
+
+    def apply_assignment(self, assignment: Assignment) -> None:
+        """
+        Create an assignment with an Assignment object,
+        function_definitions the current values at the assignment's paths with the assignment's value
+        """
+        get_override_group_for_change(AssignmentToQuib(self.quib(), assignment)).apply()
+
+    def _iter_artist_lists(self) -> Iterable[List[Artist]]:
+        return map(lambda g: g.artists, self.quib()._quib_function_call.flat_graphics_collections())
+
+    def _iter_artists(self) -> Iterable[Artist]:
+        return (artist for artists in self._iter_artist_lists() for artist in artists)
+
+    def get_axeses(self):
+        return {artist.axes for artist in self._iter_artists()}
+
 class Quib:
     """
     A Quib is a node representing a singular call of a function with it's arguments (it's parents in the graph)
@@ -137,25 +202,6 @@ class Quib:
     def func_can_create_graphics(self):
         return self._quib_function_call.func_can_create_graphics or self._can_contain_graphics
 
-    def redraw_if_appropriate(self):
-        """
-        Redraws the quib if it's appropriate
-        """
-        if self._redraw_update_type in [UpdateType.NEVER, UpdateType.CENTRAL] \
-                or (self._redraw_update_type == UpdateType.DROP and is_within_drag()):
-            return
-
-        return self.get_value()
-
-    def _iter_artist_lists(self) -> Iterable[List[Artist]]:
-        return map(lambda g: g.artists, self._quib_function_call.flat_graphics_collections())
-
-    def _iter_artists(self) -> Iterable[Artist]:
-        return (artist for artists in self._iter_artist_lists() for artist in artists)
-
-    def get_axeses(self):
-        return {artist.axes for artist in self._iter_artists()}
-
     def _redraw(self) -> None:
         """
         Redraw all artists that directly or indirectly depend on this quib.
@@ -220,52 +266,6 @@ class Quib:
     def allow_overriding(self, allow_overriding: bool):
         self._allow_overriding = allow_overriding
 
-    def override(self, assignment: Assignment, allow_overriding_from_now_on=True):
-        """
-        Overrides a part of the data the quib represents.
-        """
-        if allow_overriding_from_now_on:
-            self._allow_overriding = True
-        if not self._allow_overriding:
-            raise OverridingNotAllowedException(self, assignment)
-        self._overrider.add_assignment(assignment)
-        if len(assignment.path) == 0:
-            self._quib_function_call.on_type_change()
-
-        try:
-            self.invalidate_and_redraw_at_path(assignment.path)
-        except FailedToDeepAssignException as e:
-            raise FailedToDeepAssignException(exception=e.exception, path=e.path) from None
-        except InvalidTypeException as e:
-            raise InvalidTypeException(e.type_) from None
-
-        if not is_within_drag():
-            self.project.push_assignment_to_undo_stack(quib=self,
-                                                       assignment=assignment,
-                                                       index=len(self._overrider) - 1,
-                                                       overrider=self._overrider)
-
-    def remove_override(self, path: Path):
-        """
-        Remove function_definitions in a specific path in the quib.
-        """
-        assignment_removal = self._overrider.remove_assignment(path)
-        if assignment_removal is not None:
-            self.project.push_assignment_to_undo_stack(assignment=assignment_removal,
-                                                       index=len(self._overrider) - 1,
-                                                       overrider=self._overrider,
-                                                       quib=self)
-        if len(path) == 0:
-            self._quib_function_call.on_type_change()
-        self.invalidate_and_redraw_at_path(path=path)
-
-    def apply_assignment(self, assignment: Assignment) -> None:
-        """
-        Create an assignment with an Assignment object,
-        function_definitions the current values at the assignment's paths with the assignment's value
-        """
-        get_override_group_for_change(AssignmentToQuib(self, assignment)).apply()
-
     @raise_quib_call_exceptions_as_own
     def assign(self, value: Any, key: Optional[Any] = NoValue) -> None:
         """
@@ -277,9 +277,9 @@ class Quib:
         value = copy_and_replace_quibs_with_vals(value)
         path = [] if key is NoValue else [PathComponent(component=key, indexed_cls=self.get_type())]
         if value is default:
-            self.remove_override(path)
+            self.handler.remove_override(path)
         else:
-            self.apply_assignment(Assignment(path=path, value=value))
+            self.handler.apply_assignment(Assignment(path=path, value=value))
 
     def __setitem__(self, key, value):
         from pyquibbler import default
@@ -288,9 +288,9 @@ class Quib:
         value = copy_and_replace_quibs_with_vals(value)
         path = [PathComponent(component=key, indexed_cls=self.get_type())]
         if value is default:
-            self.remove_override(path)
+            self.handler.remove_override(path)
         else:
-            self.apply_assignment(Assignment(value=value, path=path))
+            self.handler.apply_assignment(Assignment(value=value, path=path))
 
     def get_inversions_for_override_removal(self, override_removal: OverrideRemoval) -> List[OverrideRemoval]:
         """

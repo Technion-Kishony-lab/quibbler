@@ -124,7 +124,7 @@ def test_quib_override_when_overriding_not_allowed(quib):
     override = mock.Mock()
 
     with pytest.raises(OverridingNotAllowedException) as exc_info:
-        quib.override(override, allow_overriding_from_now_on=False)
+        quib.handler.override(override, allow_overriding_from_now_on=False)
 
     assert exc_info.value.quib is quib
     assert exc_info.value.override is override
