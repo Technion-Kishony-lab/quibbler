@@ -75,8 +75,8 @@ class QuibHandler:
         """
         Redraws the quib if it's appropriate
         """
-        if self.quib()._redraw_update_type in [UpdateType.NEVER, UpdateType.CENTRAL] \
-                or (self.quib()._redraw_update_type == UpdateType.DROP and is_within_drag()):
+        if self.quib()._graphics_update_type in [UpdateType.NEVER, UpdateType.CENTRAL] \
+                or (self.quib()._graphics_update_type == UpdateType.DROP and is_within_drag()):
             return
 
         return self.quib().get_value()
@@ -308,7 +308,7 @@ class Quib:
                  assigned_name: Optional[str],
                  file_name: Optional[str],
                  line_no: Optional[str],
-                 redraw_update_type: Optional[UpdateType],
+                 graphics_update_type: Optional[UpdateType],
                  save_directory: pathlib.Path,
                  save_format: Optional[SaveFormat],
                  can_contain_graphics: bool,
@@ -323,7 +323,7 @@ class Quib:
         self.created_in_get_value_context = self._IS_WITHIN_GET_VALUE_CONTEXT
         self.file_name = file_name
         self.line_no = line_no
-        self._redraw_update_type = redraw_update_type
+        self._graphics_update_type = graphics_update_type
 
         self._save_directory = save_directory
 
@@ -362,9 +362,9 @@ class Quib:
         return self._quib_function_call.func_can_create_graphics or self._can_contain_graphics
 
     @property
-    def redraw_update_type(self) -> Union[None, str]:
+    def graphics_update_type(self) -> Union[None, str]:
         """
-        Return the redraw_update_type of the quib, indicating whether the quib should refresh upon upstream assignments.
+        Return the graphics_update_type of the quib, indicating whether the quib should refresh upon upstream assignments.
         Options are:
         "drag":     refresh immediately as upstream objects are dragged
         "drop":     refresh at end of dragging upon graphic object drop.
@@ -379,17 +379,17 @@ class Quib:
         --------
         UpdateType, Project.refresh_graphics
         """
-        return self._redraw_update_type.value if self._redraw_update_type else None
+        return self._graphics_update_type.value if self._graphics_update_type else None
 
-    @redraw_update_type.setter
-    @validate_user_input(redraw_update_type=(type(None), str, UpdateType))
-    def redraw_update_type(self, redraw_update_type: Union[None, str, UpdateType]):
-        if isinstance(redraw_update_type, str):
+    @graphics_update_type.setter
+    @validate_user_input(graphics_update_type=(type(None), str, UpdateType))
+    def graphics_update_type(self, graphics_update_type: Union[None, str, UpdateType]):
+        if isinstance(graphics_update_type, str):
             try:
-                redraw_update_type = UpdateType[redraw_update_type.upper()]
+                graphics_update_type = UpdateType[graphics_update_type.upper()]
             except KeyError:
-                raise UnknownUpdateTypeException(redraw_update_type)
-        self._redraw_update_type = redraw_update_type
+                raise UnknownUpdateTypeException(graphics_update_type)
+        self._graphics_update_type = graphics_update_type
 
     """
     Assignment
@@ -581,7 +581,7 @@ class Quib:
              cache_behavior: Union[str, CacheBehavior] = NoValue,
              assigned_name: Union[None, str] = NoValue,
              name: Union[None, str] = NoValue,
-             redraw_update_type: Union[None, str] = NoValue,
+             graphics_update_type: Union[None, str] = NoValue,
              ):
         """
         Configure a quib with certain attributes- because this function is expected to be used by users, we never
@@ -602,8 +602,8 @@ class Quib:
             self.assigned_name = assigned_name
         if name is not NoValue:
             self.assigned_name = name
-        if redraw_update_type is not NoValue:
-            self.redraw_update_type = redraw_update_type
+        if graphics_update_type is not NoValue:
+            self.graphics_update_type = graphics_update_type
 
         var_name = get_quib_name()
         if var_name:

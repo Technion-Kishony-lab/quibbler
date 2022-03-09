@@ -125,7 +125,7 @@ def create_quib(func: Callable, args: Tuple[Any, ...] = (), kwargs: Mapping[str,
     )
 
     quib = Quib(quib_function_call=quib_func_call, assignment_template=None, allow_overriding=allow_overriding,
-                assigned_name=get_quib_name(), file_name=file_name, line_no=line_no, redraw_update_type=None,
+                assigned_name=get_quib_name(), file_name=file_name, line_no=line_no, graphics_update_type=None,
                 save_directory=save_directory, save_format=save_format,
                 can_contain_graphics=update_type is not None)
 
@@ -133,7 +133,7 @@ def create_quib(func: Callable, args: Tuple[Any, ...] = (), kwargs: Mapping[str,
     add_new_quib_to_guard_if_exists(quib)
 
     if update_type:
-        quib.redraw_update_type = update_type or UpdateType.DRAG
+        quib.graphics_update_type = update_type or UpdateType.DRAG
 
     for arg in quib.parents:
         arg.handler.add_child(quib)

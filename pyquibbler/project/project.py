@@ -131,7 +131,7 @@ class Project:
             Quib.update_type
         """
         for quib in self.quibs:
-            if quib.redraw_update_type == UpdateType.CENTRAL:
+            if quib.graphics_update_type == UpdateType.CENTRAL:
                 quib.get_value()
 
     """
