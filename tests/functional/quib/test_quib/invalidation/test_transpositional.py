@@ -227,9 +227,9 @@ def test_concatenate_invalidation(direction, concat_with_quib, indices_to_invali
 def test_function_quib_forward_invalidation_path_with_changing_shapes(create_quib_with_return_value, create_mock_quib):
     grandparent = create_quib(func=mock.Mock())
     parent = create_quib(func=mock.Mock())
-    grandparent.add_child(parent)
+    grandparent.handler.add_child(parent)
     mock_quib = create_mock_quib(shape=(3, 1), get_value_result=[[1, 2, 3]])
-    parent.add_child(mock_quib)
+    parent.handler.add_child(mock_quib)
 
     grandparent.invalidate_and_redraw_at_path([])
 

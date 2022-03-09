@@ -28,7 +28,7 @@ def test_quib_removes_dead_children_automatically(quib):
     add_definition_for_function(func=mock_func,
                                 function_definition=create_func_definition(is_known_graphics_func=True))
     child = create_quib(func=mock_func, args=(quib,), kwargs={})
-    quib.add_child(child)
+    quib.handler.add_child(child)
 
     del child
     quib.invalidate_and_redraw_at_path(path=[])
@@ -40,7 +40,7 @@ def test_quib_removes_dead_children_automatically(quib):
 def test_quib_invalidates_children_recursively(quib, create_mock_quib):
     child = create_quib(func=mock.Mock(), args=(quib,), kwargs={})
     grandchild = create_mock_quib()
-    child.add_child(grandchild)
+    child.handler.add_child(grandchild)
 
     quib.invalidate_and_redraw_at_path([])
 

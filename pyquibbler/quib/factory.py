@@ -136,7 +136,7 @@ def create_quib(func: Callable, args: Tuple[Any, ...] = (), kwargs: Mapping[str,
         quib.redraw_update_type = update_type or UpdateType.DRAG
 
     for arg in quib.parents:
-        arg.add_child(quib)
+        arg.handler.add_child(quib)
 
     if evaluate_now:
         quib.get_value()

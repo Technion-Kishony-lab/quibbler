@@ -10,8 +10,8 @@ from pyquibbler.path.path_component import PathComponent
 from tests.functional.quib.test_quib.get_value.utils import check_get_value_valid_at_path
 
 
-def test_elementwise_function_quib_does_not_request_unneeded_indices_on_get_value():
-    fake_quib = mock.Mock(spec=Quib)
+def test_elementwise_function_quib_does_not_request_unneeded_indices_on_get_value(create_mock_quib):
+    fake_quib = create_mock_quib()
     fake_quib.get_value_valid_at_path.return_value = np.array([1, 2])
     fake_quib.get_shape.return_value = (2,)
     b = np.add(fake_quib, 1)

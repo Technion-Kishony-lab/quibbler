@@ -59,6 +59,17 @@ if TYPE_CHECKING:
     from pyquibbler.quib.func_calling import QuibFuncCall
 
 
+class QuibHandler:
+
+    def __init__(self, quib: Quib):
+        self.quib = weakref.ref(quib)
+
+    def add_child(self, quib: Quib) -> None:
+        """
+        Add the given quib to the list of quibs that are dependent on this quib.
+        """
+        self.quib()._children.add(quib)
+
 class Quib:
     """
     A Quib is a node representing a singular call of a function with it's arguments (it's parents in the graph)
@@ -101,6 +112,7 @@ class Quib:
         self._save_format = save_format
         self._can_contain_graphics = can_contain_graphics
 
+        self.handler = QuibHandler(self)
     """
     Func metadata funcs
     """
@@ -658,12 +670,6 @@ class Quib:
                 cache = self._apply_assignment_to_cache(original_value, cache, assignment)
             return len(cache.get_uncached_paths(path)) == 0
         return False
-
-    def add_child(self, quib: Quib) -> None:
-        """
-        Add the given quib to the list of quibs that are dependent on this quib.
-        """
-        self._children.add(quib)
 
     def __len__(self):
         if LEN_RAISE_EXCEPTION:
