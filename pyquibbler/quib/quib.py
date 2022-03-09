@@ -93,7 +93,7 @@ class QuibHandler:
             self.quib()._quib_function_call.on_type_change()
 
         try:
-            self.quib().invalidate_and_redraw_at_path(assignment.path)
+            self.quib().handler.invalidate_and_redraw_at_path(assignment.path)
         except FailedToDeepAssignException as e:
             raise FailedToDeepAssignException(exception=e.exception, path=e.path) from None
         except InvalidTypeException as e:
@@ -117,7 +117,7 @@ class QuibHandler:
                                                        quib=self.quib())
         if len(path) == 0:
             self.quib()._quib_function_call.on_type_change()
-        self.quib().invalidate_and_redraw_at_path(path=path)
+        self.quib().handler.invalidate_and_redraw_at_path(path=path)
 
     def apply_assignment(self, assignment: Assignment) -> None:
         """
@@ -134,6 +134,28 @@ class QuibHandler:
 
     def get_axeses(self):
         return {artist.axes for artist in self._iter_artists()}
+
+    def _redraw(self) -> None:
+        """
+        Redraw all artists that directly or indirectly depend on this quib.
+        """
+        from pyquibbler.quib.graphics.redraw import redraw_quibs_with_graphics_or_add_in_aggregate_mode
+        quibs = self.quib()._get_descendant_graphics_quibs_recursively()
+        redraw_quibs_with_graphics_or_add_in_aggregate_mode(quibs)
+
+    def invalidate_and_redraw_at_path(self, path: Optional[Path] = None) -> None:
+        """
+        Perform all actions needed after the quib was mutated (whether by function_definitions or inverse assignment).
+        If path is not given, the whole quib is invalidated.
+        """
+        from pyquibbler import timer
+        if path is None:
+            path = []
+
+        with timer("quib_invalidation", lambda x: logger.info(f"invalidate {x}")):
+            self.quib()._invalidate_children_at_path(path)
+
+        self._redraw()
 
 class Quib:
     """
@@ -201,14 +223,6 @@ class Quib:
     @property
     def func_can_create_graphics(self):
         return self._quib_function_call.func_can_create_graphics or self._can_contain_graphics
-
-    def _redraw(self) -> None:
-        """
-        Redraw all artists that directly or indirectly depend on this quib.
-        """
-        from pyquibbler.quib.graphics.redraw import redraw_quibs_with_graphics_or_add_in_aggregate_mode
-        quibs = self._get_descendant_graphics_quibs_recursively()
-        redraw_quibs_with_graphics_or_add_in_aggregate_mode(quibs)
 
     @property
     def redraw_update_type(self) -> Union[None, str]:
@@ -405,20 +419,6 @@ class Quib:
     """
     Invalidation
     """
-
-    def invalidate_and_redraw_at_path(self, path: Optional[Path] = None) -> None:
-        """
-        Perform all actions needed after the quib was mutated (whether by function_definitions or inverse assignment).
-        If path is not given, the whole quib is invalidated.
-        """
-        from pyquibbler import timer
-        if path is None:
-            path = []
-
-        with timer("quib_invalidation", lambda x: logger.info(f"invalidate {x}")):
-            self._invalidate_children_at_path(path)
-
-        self._redraw()
 
     def _invalidate_children_at_path(self, path: Path) -> None:
         """
@@ -955,7 +955,7 @@ class Quib:
         elif self._actual_save_format == SaveFormat.VALUE_TXT:
             self._load_value_from_txt()
 
-        self.invalidate_and_redraw_at_path([])
+        self.handler.invalidate_and_redraw_at_path([])
         return True
 
     """

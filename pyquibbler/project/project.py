@@ -99,7 +99,7 @@ class Project:
         with aggregate_redraw_mode():
             for function_quib in quibs:
                 function_quib._invalidate_self([])
-                function_quib.invalidate_and_redraw_at_path([])
+                function_quib.handler.invalidate_and_redraw_at_path([])
 
     """
     central quib commands
