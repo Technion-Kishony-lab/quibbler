@@ -95,6 +95,7 @@ class NoValue:
 
 def is_saveable_as_txt(val: Any) -> bool:
     all_ok = True
+
     def set_false_if_repr_is_not_invertible(v):
         from numpy import ndarray
         nonlocal all_ok

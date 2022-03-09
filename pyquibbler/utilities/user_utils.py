@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Union, List, Callable, Type, Optional
+from typing import Union, List, Callable, Type
 from types import ModuleType
 
 from pyquibbler.project import Project
@@ -61,8 +61,8 @@ def load_quibs() -> None:
 
 
 @copy_docs(Project.save_quibs)
-def save_quibs(save_as_txt: Optional[bool] = None):
-    Project.get_or_create().save_quibs(save_as_txt=save_as_txt)
+def save_quibs():
+    Project.get_or_create().save_quibs()
 
 
 @copy_docs(Project.undo)

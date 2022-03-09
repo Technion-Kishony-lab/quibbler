@@ -35,7 +35,6 @@ from pyquibbler.assignment import AssignmentTemplate, Overrider, Assignment, \
 from pyquibbler.path.data_accessing import FailedToDeepAssignException
 from pyquibbler.path.path_component import PathComponent, Path
 from pyquibbler.assignment import InvalidTypeException, OverrideRemoval, get_override_group_for_change
-from pyquibbler.function_definitions import ArgsValues
 from pyquibbler.quib.func_calling.cache_behavior import CacheBehavior, UnknownCacheBehaviorException
 from pyquibbler.quib.exceptions import OverridingNotAllowedException, UnknownUpdateTypeException, \
     InvalidCacheBehaviorForQuibException, CannotSaveAsTextException
@@ -1004,6 +1003,7 @@ class Quib:
     @name.setter
     def name(self, name: str):
         self.assigned_name = name
+
     def get_functional_representation_expression(self) -> MathExpression:
         try:
             return pretty_convert.get_pretty_value_of_func_with_args_and_kwargs(self.func, self.args, self.kwargs)

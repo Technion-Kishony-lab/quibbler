@@ -110,13 +110,11 @@ class Project:
         """
         self._reset_list_of_quibs([quib for quib in self.quibs if quib.is_random_func])
 
-
     def reset_impure_quibs(self):
         """
         Reset and then invalidate_redraw all impure quibs in the project.
         """
-        self._reset_list_of_quibs([quib for quib in self.quibs if quib.is_impure])
-
+        self._reset_list_of_quibs([quib for quib in self.quibs if quib.is_impure_func])
 
     def redraw_central_refresh_graphics_function_quibs(self):
         """
@@ -173,7 +171,7 @@ class Project:
     def save_format(self, save_format: SaveFormat):
         self._save_format = save_format
 
-    def save_quibs(self, save_as_txt_where_possible: bool = True):
+    def save_quibs(self):
         """
         Save all the quibs to files (if relevant- i.e. if they have overrides)
 
