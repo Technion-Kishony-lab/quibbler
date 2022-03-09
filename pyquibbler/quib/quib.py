@@ -817,10 +817,39 @@ class Quib:
 
     @property
     def actual_save_format(self) -> SaveFormat:
+        """
+        The actual save_format used by the quib.
+
+        The quib's actual_save_format is its save_format if defined.
+        Otherwise it defaults to the project's save_format.
+
+        Returns:
+            SaveFormat
+
+        See also:
+            save_format
+            SaveFormat
+        """
         return self._save_format if self._save_format else self.project.save_format
 
     @property
     def actual_save_directory(self) -> Optional[pathlib.Path]:
+        """
+        The actual directory where quib file is saved.
+
+        By default, the quib's save_directory is None and the actual_save_directory defaults to the
+        project's save_directory.
+        Otherwise, if the quib's save_directory is defined as an absolute directory then it is used as is,
+        and if it is defined as a relative path it is used relative to the project's directory.
+
+        Returns:
+            Path
+
+        See also:
+            save_directory
+            Project.directory
+            SaveFormat
+        """
         if self._save_directory is not None and self._save_directory.is_absolute():
             return self._save_directory  # absolute directory
         elif self.project.directory is None:
@@ -833,9 +862,19 @@ class Quib:
     def save_path(self) -> Optional[PathWithHyperLink]:
         """
         The full path for the file where quib assignments are saved.
+        The path is defined as the [actual_save_directory]/[assigned_name].ext
+        ext is determined by the actual_save_format
 
         Returns:
             Path or None
+
+        See also:
+            save_directory
+            actual_save_directory
+            save_format
+            actual_save_format
+            assigned_name
+            Project.directory
         """
         return None if self.assigned_name is None or self.actual_save_directory is None \
             else PathWithHyperLink(self.actual_save_directory /
