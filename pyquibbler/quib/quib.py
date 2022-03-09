@@ -357,6 +357,12 @@ class QuibHandler:
             return len(cache.get_uncached_paths(path)) == 0
         return False
 
+    def remove_child(self, quib_to_remove: Quib):
+        """
+        Removes a child from the quib, no longer sending invalidations to it
+        """
+        self.quib()._children.remove(quib_to_remove)
+
 
 class Quib:
     """
@@ -763,12 +769,6 @@ class Quib:
         items - `a, b = iquib([1, 2, 3, 4]).iter_first()` is the same as `a, b = iquib([1, 2, 3, 4]).iter_first(2)`.
         """
         return Unpacker(self, amount)
-
-    def remove_child(self, quib_to_remove: Quib):
-        """
-        Removes a child from the quib, no longer sending invalidations to it
-        """
-        self._children.remove(quib_to_remove)
 
     @property
     def parents(self) -> Set[Quib]:

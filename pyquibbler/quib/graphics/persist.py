@@ -67,7 +67,7 @@ def persist_artists_on_quib_weak_ref(weak_ref_quib, artists):
             current_quib = getattr(artist, name, None)
             if current_quib is not quib and current_quib is not None:
                 for parent in current_quib.parents:
-                    parent.remove_child(current_quib)
+                    parent.handler.remove_child(current_quib)
             setattr(artist, name, quib)
     else:
         persist_relevant_info_on_new_artists_for_quib(quib, artists)
