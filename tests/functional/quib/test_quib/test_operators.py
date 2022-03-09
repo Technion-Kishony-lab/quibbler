@@ -4,6 +4,7 @@ import numpy as np
 
 import pytest
 
+from pyquibbler.quib import Quib
 
 operator_names = {
     '__add__',
@@ -51,14 +52,14 @@ def test_quib_forward_and_inverse_arithmetic_operators(create_quib_with_return_v
 def test_binary_operators_elementwise_invalidation(create_quib_with_return_value, operator_name: str):
     op = getattr(operator, operator_name)
     a = create_quib_with_return_value(np.array([0, 1, 2]), allow_overriding=True)
-    b = op(a, 10).setp(cache_behavior='on')
+    b: Quib = op(a, 10).setp(cache_behavior='on')
     b.get_value()
 
     # sanity:
-    assert np.array_equal(b.handler._quib_function_call.cache._invalid_mask, [False, False, False])
+    assert np.array_equal(b.handler.quib_function_call.cache._invalid_mask, [False, False, False])
 
     a[1] = 10
-    assert np.array_equal(b.handler._quib_function_call.cache._invalid_mask, [False, True, False])
+    assert np.array_equal(b.handler.quib_function_call.cache._invalid_mask, [False, True, False])
 
 
 @pytest.mark.parametrize('val', [1, 1., -1, -1.])

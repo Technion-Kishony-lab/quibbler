@@ -30,7 +30,7 @@ def test_apply_along_axis_get_value_valid_at_path(indices_to_get_value_at, axis,
     check_get_value_valid_at_path(lambda quib: np.apply_along_axis(func1d, axis, quib), data, path_to_get_value_at)
 
 
-def create_lazy_apply_along_axis_quib(func, arr, axis, args=None, kwargs=None, call_func_with_quibs=False):
+def create_lazy_apply_along_axis_quib(func, arr, axis, args=None, kwargs=None, call_func_with_quibs=False) -> Quib:
     with GRAPHICS_EVALUATE_NOW.temporary_set(True):
         return np.apply_along_axis(func, axis, iquib(arr) if not isinstance(arr, Quib) else arr,
                                    *(args or []), **(kwargs or {}), call_func_with_quibs=call_func_with_quibs)
@@ -48,7 +48,7 @@ def test_apply_along_axis_get_shape(shape, axis, func1d_res, pass_quibs):
     func = get_func_mock(lambda x: func1d_res)
     arr = np.arange(np.prod(shape)).reshape(shape)
     quib = create_lazy_apply_along_axis_quib(func=func, arr=arr, axis=axis, call_func_with_quibs=pass_quibs)
-    expected_input_arr = arr[tuple([slice(None) if i == quib.handler._quib_function_call.core_axis
+    expected_input_arr = arr[tuple([slice(None) if i == quib.handler.quib_function_call.core_axis
                                     else 0 for i in range(len(arr.shape))])]
     res = quib.get_shape()
 
