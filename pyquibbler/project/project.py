@@ -92,7 +92,8 @@ class Project:
         """
         self._quib_weakrefs.add(weakref.ref(quib))
 
-    def _reset_list_of_quibs(self, quibs):
+    @staticmethod
+    def _reset_list_of_quibs(quibs):
         # We aggregate to ensure we don't redraw axes more than once
         from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
         with aggregate_redraw_mode():
@@ -110,15 +111,24 @@ class Project:
         """
         self._reset_list_of_quibs([quib for quib in self.quibs if quib.is_random_func])
 
+    def reset_file_loading_quibs(self):
+        """
+        Reset and then invalidate_redraw all file_loading quibs in the project.
+        """
+        self._reset_list_of_quibs([quib for quib in self.quibs if quib.is_file_loading_func])
+
     def reset_impure_quibs(self):
         """
         Reset and then invalidate_redraw all impure quibs in the project.
         """
         self._reset_list_of_quibs([quib for quib in self.quibs if quib.is_impure_func])
 
-    def redraw_central_refresh_graphics_function_quibs(self):
+    def refresh_graphics(self):
         """
         Redraw all graphics function quibs which only redraw when set to UpdateType.CENTRAL
+
+        See also:
+            Quib.update_type
         """
         for quib in self.quibs:
             if quib.redraw_update_type == UpdateType.CENTRAL:
@@ -174,9 +184,6 @@ class Project:
     def save_quibs(self):
         """
         Save all the quibs to files (if relevant- i.e. if they have overrides)
-
-        save_as_txt: bool indicating whether each quib should try to save as text if possible.
-            None (default) - respects each quib save_as_txt.
         """
         if self.directory is None:
             raise CannotSaveWithoutProjectPathException()

@@ -15,6 +15,15 @@ copy_docs = functools.partial(functools.wraps, assigned=['__doc__'], updated=[])
 def q(func, *args, **kwargs) -> Quib:
     """
     Creates a function quib from the given function call.
+
+    Example:
+        a = iquib(2)
+        b = q(str, a)
+
+        b.get_value() -> '2'
+
+    Returns:
+        Quib
     """
     return create_quib(func=func, args=args, kwargs=kwargs, evaluate_now=False)
 
@@ -38,6 +47,16 @@ def get_project() -> Project:
 @copy_docs(Project.reset_random_quibs)
 def reset_random_quibs() -> None:
     Project.get_or_create().reset_random_quibs()
+
+
+@copy_docs(Project.reset_file_loading_quibs)
+def reset_file_loading_quibs() -> None:
+    Project.get_or_create().reset_file_loading_quibs()
+
+
+@copy_docs(Project.reset_impure_quibs)
+def reset_impure_quibs() -> None:
+    Project.get_or_create().reset_impure_quibs()
 
 
 @copy_docs(Project.directory)
@@ -84,11 +103,9 @@ def can_redo() -> bool:
     return Project.get_or_create().can_redo()
 
 
-def redraw_central_refresh_graphics_function_quibs() -> None:
-    """
-    Redraw all graphics function quibs which only redraw when set to UpdateType.CENTRAL
-    """
-    return Project.get_or_create().redraw_central_refresh_graphics_function_quibs()
+@copy_docs(Project.refresh_graphics)
+def refresh_graphics() -> None:
+    return Project.get_or_create().refresh_graphics()
 
 
 def list_quiby_funcs(module_or_cls: Union[None, ModuleType, Type] = None) -> List[str]:
@@ -106,4 +123,17 @@ def list_quiby_funcs(module_or_cls: Union[None, ModuleType, Type] = None) -> Lis
 
 
 def is_func_quiby(func: Callable) -> bool:
+    """
+    Check whether a given function is modified to work directly with quib arguments ("quiby").
+
+    Returns:
+        bool
+
+    Example:
+        is_func_quiby(np.sin) -> True
+        is_func_quiby(len) -> False
+
+    See also:
+        q, q_eager
+    """
     return hasattr(func, '__quibbler_wrapped__')

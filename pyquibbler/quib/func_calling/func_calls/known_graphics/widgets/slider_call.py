@@ -8,8 +8,8 @@ class SliderQuibFuncCall(WidgetQuibFuncCall):
         from pyquibbler.quib.quib import Quib
         val = self.args_values.get('valinit')
         if isinstance(val, Quib):
-            val.assign(new_value)
+            self._inverse_assign(val, [], new_value)
 
     def _connect_callbacks(self, widget: QSlider):
         widget.on_changed(self._on_change_slider)
-        widget.on_release = self._on_change_slider
+        # widget.on_release = self._on_change_slider  # disabled. it caused the overriding dialog to appear twice.

@@ -16,6 +16,27 @@ from matplotlib.axes import Axes
 from pyquibbler.quib import Quib
 
 
+GRAPHICS_ASSIGNMENT_MODE_AXES: Optional[Axes] = None
+
+
+@contextmanager
+def graphics_assignment_mode(axes: Axes):
+    """
+    In graphics assinment mode. Indicating the axes invoking the assignment.
+    """
+
+    global GRAPHICS_ASSIGNMENT_MODE_AXES
+    GRAPHICS_ASSIGNMENT_MODE_AXES = axes
+    try:
+        yield
+    finally:
+        GRAPHICS_ASSIGNMENT_MODE_AXES = None
+
+
+def get_graphics_assignment_mode_axes() -> Optional[Axes]:
+    return GRAPHICS_ASSIGNMENT_MODE_AXES
+
+
 class CanvasEventHandler:
     """
     Handles all events from the canvas (such as press, drag, and pick), inverse assigning to the relevant quibs
@@ -83,7 +104,9 @@ class CanvasEventHandler:
             return
         drawing_func = getattr(artist, '_quibbler_drawing_func')
         args = getattr(artist, '_quibbler_args')
-        with timer("motion_notify", lambda x: logger.info(f"motion notify {x}")), aggregate_redraw_mode():
+        with timer("motion_notify", lambda x: logger.info(f"motion notify {x}")), \
+                aggregate_redraw_mode(), \
+                graphics_assignment_mode(mouse_event.inaxes):
             override_group = graphics_inverse_assigner.inverse_assign_drawing_func(drawing_func=drawing_func,
                                                                                    args=args,
                                                                                    mouse_event=mouse_event,
@@ -100,7 +123,9 @@ class CanvasEventHandler:
         """
         Reverse axis limit change
         """
-        with timer("axis_lim_notify", lambda x: logger.info(f"axis-lim notify {x}")), aggregate_redraw_mode():
+        with timer("axis_lim_notify", lambda x: logger.info(f"axis-lim notify {x}")), \
+                aggregate_redraw_mode(), \
+                graphics_assignment_mode(set_lim_quib.args[0]):
             override_group = graphics_inverse_assigner.inverse_assign_axes_lim_func(
                 args=set_lim_quib.args,
                 lim=lim,
