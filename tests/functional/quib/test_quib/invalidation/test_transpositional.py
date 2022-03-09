@@ -233,7 +233,7 @@ def test_function_quib_forward_invalidation_path_with_changing_shapes(create_qui
 
     grandparent.handler.invalidate_and_redraw_at_path([])
 
-    mock_quib._invalidate_quib_with_children_at_path.assert_called_with(parent, [])
+    mock_quib.handler._invalidate_quib_with_children_at_path.assert_called_with(parent, [])
 
 
 @pytest.mark.regression

@@ -65,7 +65,7 @@ class AssignmentToQuib(QuibWithAssignment):
 
     def get_inversions(self, return_empty_list_instead_of_raising=False) -> List[AssignmentToQuib]:
         try:
-            return self.quib.get_inversions_for_assignment(self.assignment)
+            return self.quib.handler.get_inversions_for_assignment(self.assignment)
         except CannotReverseException:
             if return_empty_list_instead_of_raising:
                 return []

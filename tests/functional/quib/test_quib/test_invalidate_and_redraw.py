@@ -44,7 +44,7 @@ def test_quib_invalidates_children_recursively(quib, create_mock_quib):
 
     quib.handler.invalidate_and_redraw_at_path([])
 
-    grandchild._invalidate_quib_with_children_at_path.assert_called_once()
+    grandchild.handler._invalidate_quib_with_children_at_path.assert_called_once()
 
 
 def create_child_with_valid_cache(parent):
