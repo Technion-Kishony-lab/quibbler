@@ -95,7 +95,7 @@ class QuibHandler:
             self.quib()._quib_function_call.on_type_change()
 
         try:
-            self.quib().handler.invalidate_and_redraw_at_path(assignment.path)
+            self.invalidate_and_redraw_at_path(assignment.path)
         except FailedToDeepAssignException as e:
             raise FailedToDeepAssignException(exception=e.exception, path=e.path) from None
         except InvalidTypeException as e:
@@ -119,7 +119,7 @@ class QuibHandler:
                                                        quib=self.quib())
         if len(path) == 0:
             self.quib()._quib_function_call.on_type_change()
-        self.quib().handler.invalidate_and_redraw_at_path(path=path)
+        self.invalidate_and_redraw_at_path(path=path)
 
     def apply_assignment(self, assignment: Assignment) -> None:
         """
