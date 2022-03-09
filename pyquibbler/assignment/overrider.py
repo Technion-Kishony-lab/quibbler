@@ -1,19 +1,19 @@
 import copy
-
+import pickle
 import numpy as np
 from dataclasses import dataclass
-from typing import Any, List, Optional, Union, Dict, Hashable
+from typing import Any, Optional, Union, Dict, Hashable
 
 from .assignment import Assignment
 from ..path.hashable import get_hashable_path
-from pyquibbler.path.path_component import PathComponent
+from pyquibbler.path.path_component import Path
 from .assignment_template import AssignmentTemplate
 from ..path.data_accessing import deep_get, deep_assign_data_in_path
 
 
 @dataclass
 class AssignmentRemoval:
-    path: List[PathComponent]
+    path: Path
 
 
 class Overrider:
@@ -38,12 +38,12 @@ class Overrider:
         """
         assignment_without_indexed_cls = copy.deepcopy(assignment)
         for component in assignment_without_indexed_cls.path:
-            assignment_without_indexed_cls.indexed_cls = None
+            component.indexed_cls = None
 
         self._active_assignment = assignment_without_indexed_cls
         self._add_to_paths_to_assignments(assignment_without_indexed_cls)
 
-    def remove_assignment(self, path: List[PathComponent]):
+    def remove_assignment(self, path: Path):
         """
         Remove function_definitions in a specific path.
         """
@@ -54,7 +54,7 @@ class Overrider:
 
     def undo_assignment(self,
                         previous_index: int,
-                        previous_path: List[PathComponent],
+                        previous_path: Path,
                         assignment_to_return: Optional[Union[Assignment, AssignmentRemoval]]):
         """
         Undo an assignment, returning the overrider to the previous state before the assignment.
@@ -63,8 +63,8 @@ class Overrider:
 
         ```
         q = iquib(0)
-        q.assign_value(1)
-        q.assign_value(2)
+        q.assign(1)
+        q.assign(2)
         ```
 
         and then do remove_assignment, the value will go back to 0 (the original value).
@@ -142,7 +142,7 @@ class Overrider:
 
         return mask
 
-    def get(self, path: List[PathComponent], default_value: bool = None) -> Assignment:
+    def get(self, path: Path, default_value: bool = None) -> Assignment:
         """
         Get the assignment at the given path
         """
@@ -154,16 +154,67 @@ class Overrider:
     def __len__(self):
         return len(self._paths_to_assignments)
 
+    """
+    save/load
+    """
+
+    def save_to_binary(self, file):
+        with open(file, 'wb') as f:
+            pickle.dump(self._paths_to_assignments, f)
+
+    def load_from_binary(self, file):
+        with open(file, 'rb') as f:
+            self._paths_to_assignments = pickle.load(f)
+        self._active_assignment = None
+
+    def can_save_to_txt(self) -> bool:
+        from pyquibbler.quib.utils.miscellaneous import is_saveable_as_txt
+        for assignment in self._paths_to_assignments.values():
+            if not is_saveable_as_txt([cmp.component for cmp in assignment.path]) \
+                    or isinstance(assignment, Assignment) and not is_saveable_as_txt(assignment.value):
+                return False
+        return True
+
+    def save_to_txt(self, file):
+        from pyquibbler.quib.exceptions import CannotSaveAsTextException
+        if not self.can_save_to_txt():
+            raise CannotSaveAsTextException
+        with open(file, "wt") as f:
+            f.write(self.pretty_repr())
+
+    def load_from_txt(self, file):
+        """
+        load assignments from text file.
+        """
+        from pyquibbler import iquib
+        quib = iquib(None)
+        with open(file, mode='r') as f:
+            assignment_text_commands = f.read()
+        # TODO: We are using exec. This is very simple, but obviously highly risky.
+        #  Need to good to replace with a dedicated parser.
+        try:
+            exec(assignment_text_commands)
+        except Exception as e:
+            raise e
+        self._paths_to_assignments = quib._overrider._paths_to_assignments
+        self._active_assignment = None
+
+    """
+    repr
+    """
+
     def pretty_repr(self, name: str = None):
         name = 'quib' if name is None else name
         from ..quib.pretty_converters.pretty_convert import getitem_converter
         pretty = ''
         for assignment in self._paths_to_assignments.values():
-            pretty = pretty + '\n' \
-                     + name \
-                     + ''.join([str(getitem_converter(None, ('', cmp.component))) for cmp in assignment.path]) \
-                     + ' = ' \
-                     + repr(assignment.value)
+            pretty_value = repr(assignment.value) if isinstance(assignment, Assignment) else 'Default'
+            pretty += '\n' + name
+            if assignment.path:
+                pretty += ''.join([str(getitem_converter(None, ('', cmp.component))) for cmp in assignment.path])
+                pretty += ' = ' + pretty_value
+            else:
+                pretty += '.assign(' + pretty_value + ')'
         pretty = pretty[1:] if pretty else pretty
         return pretty
 

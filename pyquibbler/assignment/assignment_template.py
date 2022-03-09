@@ -5,7 +5,7 @@ from typing import Any, Type
 from dataclasses import dataclass
 
 from pyquibbler.exceptions import DebugException, PyQuibblerException
-from pyquibbler.utilities.input_validation_utils import InvalidArgumentException
+from pyquibbler.utilities.input_validation_utils import InvalidArgumentTypeException
 
 CONSTRUCTORS = {
     np.ndarray: np.array
@@ -139,8 +139,8 @@ def create_assignment_template(*args):
 
     if len(args) == 1:
         if not isinstance(args[0], AssignmentTemplate):
-            raise InvalidArgumentException(expected_type=(AssignmentTemplate, tuple),
-                                           var_name="assignment template")
+            raise InvalidArgumentTypeException(expected_type=(AssignmentTemplate, tuple),
+                                               var_name="assignment template")
         template, = args
     elif len(args) == 2:
         minimum, maximum = args

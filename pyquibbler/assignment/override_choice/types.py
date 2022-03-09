@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from typing import List, Union
 
 from pyquibbler.assignment import AssignmentToQuib, QuibChange, CannotReverseException
-from pyquibbler.path.path_component import PathComponent
+from pyquibbler.path.path_component import Path
 from pyquibbler.assignment import Override
 
 
@@ -22,7 +22,7 @@ class OverrideRemoval(QuibChange):
     """
     Removal of overrides in a specific path on a specific quib.
     """
-    _path: List[PathComponent]
+    _path: Path
 
     @property
     def path(self):

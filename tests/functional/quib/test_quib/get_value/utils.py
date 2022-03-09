@@ -3,10 +3,10 @@ import functools
 import numpy as np
 from contextlib import contextmanager
 from copy import deepcopy
-from typing import Any, List
+from typing import Any
 
 from pyquibbler import CacheBehavior, Assignment, iquib
-from pyquibbler.path.path_component import PathComponent
+from pyquibbler.path.path_component import PathComponent, Path
 from pyquibbler.path.data_accessing import deep_get, deep_assign_data_in_path
 from tests.functional.utils import PathBuilder
 
@@ -56,7 +56,7 @@ def breakdown_component(shape, path_component: PathComponent):
     return components, field_index
 
 
-def breakdown_path(data: Any, path: List[PathComponent]):
+def breakdown_path(data: Any, path: Path):
     """
     Given a path pointing to a slice of data inside a quib,
     return paths to all cells in the slice.
@@ -108,9 +108,9 @@ def check_get_value_valid_at_path(func, data, path_to_get_value_at):
     assert not faulty_sub_paths, faulty_sub_paths
 
     # Check that if any other paths in the parent change, the result doesn't change
-    input_quib.assign(Assignment(999, PathBuilder(input_quib)[...].path))
+    input_quib.apply_assignment(Assignment(999, PathBuilder(input_quib)[...].path))
     for path in requested_paths:
         value = deep_get(data, path)
-        input_quib.assign(Assignment(value, path))
+        input_quib.apply_assignment(Assignment(value, path))
     result_with_everything_else_changed = result_quib.get_value()
     assert equals_at_path(result_with_everything_else_changed, result, path_to_get_value_at)

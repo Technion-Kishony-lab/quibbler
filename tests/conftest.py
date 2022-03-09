@@ -28,7 +28,6 @@ def setup_environment_for_tests():
 @pytest.fixture(autouse=True, scope="session")
 def override_all_():
     override_all()
-    # override_all()
 
 def pytest_configure(config):
     # register additional markers
@@ -114,6 +113,6 @@ def axes():
 @pytest.fixture(autouse=True)
 def project(tmpdir):
     path = tmpdir.strpath
-    yield Project.get_or_create(path=Path(path))
+    yield Project.get_or_create(directory=Path(path))
     Project.current_project = None
     shutil.rmtree(path)

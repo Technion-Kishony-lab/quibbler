@@ -6,7 +6,6 @@ from pyquibbler.exceptions import DebugException
 from pyquibbler.function_definitions import add_definition_for_function
 from pyquibbler.function_definitions.func_definition import create_func_definition
 from pyquibbler.path.path_component import Path
-from pyquibbler.project import Project
 from pyquibbler.quib.factory import create_quib
 from pyquibbler.quib.func_calling.cache_behavior import CacheBehavior
 from pyquibbler.quib.utils.miscellaneous import is_there_a_quib_in_object
@@ -50,8 +49,6 @@ def iquib(value: Any):
         allow_overriding=True,
         evaluate_now=True,
         cache_behavior=CacheBehavior.ON,
-        can_save_as_txt=True,
-        save_directory=Project.get_or_create().input_quib_directory
     )
 
 

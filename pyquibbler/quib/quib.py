@@ -4,8 +4,9 @@ import functools
 import json
 import os
 import pathlib
-import pickle
 import weakref
+
+from pyquibbler.utilities.file_path import PathWithHyperLink
 from contextlib import contextmanager
 from functools import cached_property
 from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Union, Iterable
@@ -24,7 +25,7 @@ from pyquibbler.quib.pretty_converters import MathExpression, FailedMathExpressi
 from pyquibbler.quib.utils.miscellaneous import get_user_friendly_name_for_requested_valid_path
 from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation_with_sources_metadata, \
     get_func_call_for_translation_without_sources_metadata
-from pyquibbler.utilities.input_validation_utils import validate_user_input
+from pyquibbler.utilities.input_validation_utils import validate_user_input, InvalidArgumentValueException
 from pyquibbler.logger import logger
 from pyquibbler.project import Project
 from pyquibbler.assignment import create_assignment_template
@@ -34,7 +35,6 @@ from pyquibbler.assignment import AssignmentTemplate, Overrider, Assignment, \
 from pyquibbler.path.data_accessing import FailedToDeepAssignException
 from pyquibbler.path.path_component import PathComponent, Path
 from pyquibbler.assignment import InvalidTypeException, OverrideRemoval, get_override_group_for_change
-from pyquibbler.function_definitions import ArgsValues
 from pyquibbler.quib.func_calling.cache_behavior import CacheBehavior, UnknownCacheBehaviorException
 from pyquibbler.quib.exceptions import OverridingNotAllowedException, UnknownUpdateTypeException, \
     InvalidCacheBehaviorForQuibException, CannotSaveAsTextException
@@ -48,6 +48,7 @@ from pyquibbler.utilities.unpacker import Unpacker
 from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals
 from pyquibbler.cache.cache import CacheStatus
 from pyquibbler.cache import create_cache
+from pyquibbler.quib.save_assignments import SaveFormat, SAVEFORMAT_TO_FILE_EXT
 from .utils.miscellaneous import NoValue
 
 if TYPE_CHECKING:
@@ -72,7 +73,7 @@ class Quib:
                  line_no: Optional[str],
                  redraw_update_type: Optional[UpdateType],
                  save_directory: pathlib.Path,
-                 can_save_as_txt: bool,
+                 save_format: Optional[SaveFormat],
                  can_contain_graphics: bool,
                  ):
         self._assignment_template = assignment_template
@@ -81,7 +82,7 @@ class Quib:
         self._children = WeakSet()
         self._overrider = Overrider()
         self._allow_overriding = allow_overriding
-        self._quibs_allowed_to_assign_to = None
+        self._assigned_quibs = None
         self._override_choice_cache = {}
         self.created_in_get_value_context = self._IS_WITHIN_GET_VALUE_CONTEXT
         self.file_name = file_name
@@ -96,7 +97,7 @@ class Quib:
         self._quib_function_call.artists_creation_callback = functools.partial(persist_artists_on_quib_weak_ref,
                                                                                weakref.ref(self))
 
-        self._can_save_as_txt = can_save_as_txt
+        self._save_format = save_format
         self._can_contain_graphics = can_contain_graphics
 
     """
@@ -197,7 +198,7 @@ class Quib:
 
         See Also
         --------
-        set_assigned_quibs
+        assigned_quibs
 
         """
         return self._allow_overriding
@@ -232,7 +233,7 @@ class Quib:
                                                        index=len(self._overrider) - 1,
                                                        overrider=self._overrider)
 
-    def remove_override(self, path: List[PathComponent], invalidate_and_redraw: bool = True):
+    def remove_override(self, path: Path, invalidate_and_redraw: bool = True):
         """
         Remove function_definitions in a specific path in the quib.
         """
@@ -247,7 +248,7 @@ class Quib:
         if invalidate_and_redraw:
             self.invalidate_and_redraw_at_path(path=path)
 
-    def assign(self, assignment: Assignment) -> None:
+    def apply_assignment(self, assignment: Assignment) -> None:
         """
         Create an assignment with an Assignment object,
         function_definitions the current values at the assignment's paths with the assignment's value
@@ -255,26 +256,19 @@ class Quib:
         get_override_group_for_change(AssignmentToQuib(self, assignment)).apply()
 
     @raise_quib_call_exceptions_as_own
-    def assign_value(self, value: Any) -> None:
+    def assign(self, value: Any, key: Optional[Any] = NoValue) -> None:
         """
-        Helper method to assign a single value and override the whole value of the quib
-        """
-        value = copy_and_replace_quibs_with_vals(value)
-        self.assign(Assignment(value=value, path=[]))
-
-    @raise_quib_call_exceptions_as_own
-    def assign_value_to_key(self, key: Any, value: Any) -> None:
-        """
-        Helper method to assign a value at a specific key
+        Assign a specified value to the whole array, or to a specific key if specified
         """
         key = copy_and_replace_quibs_with_vals(key)
         value = copy_and_replace_quibs_with_vals(value)
-        self.assign(Assignment(path=[PathComponent(component=key, indexed_cls=self.get_type())], value=value))
+        path = [] if key is NoValue else [PathComponent(component=key, indexed_cls=self.get_type())]
+        self.apply_assignment(Assignment(path=path, value=value))
 
     def __setitem__(self, key, value):
         key = copy_and_replace_quibs_with_vals(key)
         value = copy_and_replace_quibs_with_vals(value)
-        self.assign(Assignment(value=value, path=[PathComponent(component=key, indexed_cls=self.get_type())]))
+        self.apply_assignment(Assignment(value=value, path=[PathComponent(component=key, indexed_cls=self.get_type())]))
 
     def get_inversions_for_override_removal(self, override_removal: OverrideRemoval) -> List[OverrideRemoval]:
         """
@@ -292,12 +286,7 @@ class Quib:
             return [OverrideRemoval(sources_to_quibs[source], path) for source, path in sources_to_paths.items()]
 
     @property
-    @functools.lru_cache()
-    def _args_values(self):
-        return ArgsValues.from_func_args_kwargs(self.func, self.args, self.kwargs, include_defaults=True)
-
-    @property
-    def _func_definition(self) -> FuncDefinition:
+    def func_definition(self) -> FuncDefinition:
         from pyquibbler.function_definitions import get_definition_for_function
         return get_definition_for_function(self.func)
 
@@ -311,7 +300,7 @@ class Quib:
 
         try:
             value = self.get_value()
-            # TODO: need to rake care of out-of-range assignments:
+            # TODO: need to take care of out-of-range assignments:
             # value = self.get_value_valid_at_path(assignment.path)
 
             from pyquibbler.inversion.invert import invert
@@ -341,22 +330,44 @@ class Quib:
         """
         return self._override_choice_cache.get(context)
 
-    def set_assigned_quibs(self, quibs: Optional[Iterable[Quib]]) -> None:
+    @property
+    def assigned_quibs(self) -> Union[None, Set[Quib, ...]]:
         """
-        Set the quibs to which assignments to this quib could translate to overrides in.
-        When None is given, a dialog will be used to choose between options.
+        Set of quibs to which assignments to this quib could translate to and override.
+        When assigned_quibs is None, a dialog will be used to choose between options.
         """
-        self._quibs_allowed_to_assign_to = quibs if quibs is None else set(quibs)
+        return self._assigned_quibs
 
-    def allows_assignment_to(self, quib: Quib) -> bool:
-        """
-        Returns True if this quib allows assignments to it to be translated into assignments to the given quib,
-        and False otherwise.
-        """
-        return True if self._quibs_allowed_to_assign_to is None else quib in self._quibs_allowed_to_assign_to
+    @assigned_quibs.setter
+    def assigned_quibs(self, quibs: Optional[Iterable[Quib]]) -> None:
+        if quibs is not None:
+            try:
+                quibs = set(quibs)
+                if not all(map(lambda x: isinstance(x, Quib), quibs)):
+                    raise Exception
+            except Exception:
+                raise InvalidArgumentValueException(
+                    var_name='assigned_quibs',
+                    message='a set of quibs.',
+                )
 
-    def get_assignment_template(self) -> AssignmentTemplate:
+        self._assigned_quibs = quibs
+
+    @property
+    def assignment_template(self) -> AssignmentTemplate:
+        """
+        Returns an AssignmentTemplate object indicating type and range restricting assignments to the quib.
+
+        See also:
+            assign
+            AssignmentTemplate
+        """
         return self._assignment_template
+
+    @assignment_template.setter
+    @validate_user_input(template=AssignmentTemplate)
+    def assignment_template(self, template):
+        self._assignment_template = template
 
     def set_assignment_template(self, *args) -> None:
         """
@@ -373,7 +384,7 @@ class Quib:
     Invalidation
     """
 
-    def invalidate_and_redraw_at_path(self, path: Optional[List[PathComponent]] = None) -> None:
+    def invalidate_and_redraw_at_path(self, path: Optional[Path] = None) -> None:
         """
         Perform all actions needed after the quib was mutated (whether by function_definitions or inverse assignment).
         If path is not given, the whole quib is invalidated.
@@ -387,14 +398,14 @@ class Quib:
 
         self._redraw()
 
-    def _invalidate_children_at_path(self, path: List[PathComponent]) -> None:
+    def _invalidate_children_at_path(self, path: Path) -> None:
         """
         Change this quib's state according to a change in a dependency.
         """
         for child in self.children:
             child._invalidate_quib_with_children_at_path(self, path)
 
-    def _invalidate_quib_with_children_at_path(self, invalidator_quib, path: List[PathComponent]):
+    def _invalidate_quib_with_children_at_path(self, invalidator_quib, path: Path):
         """
         Invalidate a quib and it's children at a given path.
         This method should be overriden if there is any 'special' implementation for either invalidating oneself
@@ -450,7 +461,7 @@ class Quib:
                 return [[]]
 
     def _get_paths_for_children_invalidation(self, invalidator_quib: Quib,
-                                             path: List[PathComponent]) -> List[Path]:
+                                             path: Path) -> List[Path]:
         """
         Forward translate a path for invalidation, first attempting to do it WITHOUT using getting the shape and type,
         and if/when failure does grace us, we attempt again with shape and type.
@@ -468,7 +479,7 @@ class Quib:
             except NoTranslatorsFoundException:
                 return [[]]
 
-    def _invalidate_self(self, path: List[PathComponent]):
+    def _invalidate_self(self, path: Path):
         """
         This method is called whenever a quib itself is invalidated; subclasses will override this with their
         implementations for invalidations.
@@ -486,12 +497,16 @@ class Quib:
     """
 
     @property
-    def is_impure(self):
-        return self._func_definition.is_random_func or self._func_definition.is_file_loading_func
+    def is_impure_func(self):
+        return self.is_random_func or self.is_file_loading_func
 
     @property
     def is_random_func(self):
-        return self._func_definition.is_random_func
+        return self.func_definition.is_random_func
+
+    @property
+    def is_file_loading_func(self):
+        return self.func_definition.is_file_loading_func
 
     @property
     def cache_status(self):
@@ -532,15 +547,16 @@ class Quib:
                 cache_behavior = CacheBehavior[cache_behavior.upper()]
             except KeyError:
                 raise UnknownCacheBehaviorException(cache_behavior)
-        if self._func_definition.is_random_func and cache_behavior != CacheBehavior.ON:
+        if self.is_random_func and cache_behavior != CacheBehavior.ON:
             raise InvalidCacheBehaviorForQuibException(self._quib_function_call.default_cache_behavior)
         self._quib_function_call.default_cache_behavior = cache_behavior
 
     def setp(self,
-             allow_overriding: bool = None,
-             assignment_template: Union[tuple, AssignmentTemplate] = None,
-             save_directory: Union[str, pathlib.Path] = None,
-             cache_behavior: Union[str, CacheBehavior] = None,
+             allow_overriding: bool = NoValue,
+             assignment_template: Union[tuple, AssignmentTemplate] = NoValue,
+             save_directory: Union[str, pathlib.Path] = NoValue,
+             save_format: Union[None, str, SaveFormat] = NoValue,
+             cache_behavior: Union[str, CacheBehavior] = NoValue,
              assigned_name: Union[None, str] = NoValue,
              name: Union[None, str] = NoValue,
              redraw_update_type: Union[None, str] = NoValue,
@@ -550,13 +566,15 @@ class Quib:
         setattr to anything before checking the types.
         """
         from pyquibbler.quib.factory import get_quib_name
-        if allow_overriding is not None:
+        if allow_overriding is not NoValue:
             self.allow_overriding = allow_overriding
-        if assignment_template is not None:
+        if assignment_template is not NoValue:
             self.set_assignment_template(assignment_template)
-        if save_directory is not None:
+        if save_directory is not NoValue:
             self.save_directory = save_directory
-        if cache_behavior is not None:
+        if save_format is not NoValue:
+            self.save_format = save_format
+        if cache_behavior is not NoValue:
             self.cache_behavior = cache_behavior
         if assigned_name is not NoValue:
             self.assigned_name = assigned_name
@@ -649,66 +667,8 @@ class Quib:
         raise TypeError('Cannot iterate over quibs, as their size can vary. '
                         'Try Quib.iter_first() to iterate over the n-first items of the quib.')
 
-    @property
-    def assigned_name(self) -> Optional[str]:
-        """
-        Returns the assigned_name of the quib
-        The assigned_name can either be a name automatically created based on the variable name to which the quib
-        was first assigned, or a manually assigned name set by setp or by assigning to assigned_name,
-        or None indicating unnamed quib.
-
-        The name must be a string starting with a letter and continuing with alpha-numeric charaters. Spaces
-        are also allowed.
-
-        The assigned_name is also used for setting the file name for saving overrides.
-
-        Returns
-        -------
-        str, None
-
-        See Also
-        --------
-        name, setp, Project.save_quibs, Project.load_quibs
-        """
-        return self._assigned_name
-
-    @assigned_name.setter
-    @validate_user_input(assigned_name=(str, type(None)))
-    def assigned_name(self, assigned_name: Optional[str]):
-        if assigned_name is None \
-                or len(assigned_name) \
-                and assigned_name[0].isalpha() and all([c.isalnum() or c in ' _' for c in assigned_name]):
-            self._assigned_name = assigned_name
-        else:
-            raise ValueError('name must be None or a string starting with a letter '
-                             'and continuing alpha-numeric charaters or spaces')
-
-    @property
-    def name(self) -> Optional[str]:
-        """
-        Returns the name of the quib
-
-        The name of the quib can either be the given assigned_name if not None,
-        or an automated name representing the function of the quib (the functional_representation attribute).
-
-        Assigning into name is equivalent to assigning into assigned_name
-
-        Returns
-        -------
-        str
-
-        See Also
-        --------
-        assigned_name, setp, functional_representation
-        """
-        return self.assigned_name or self.functional_representation
-
-    @name.setter
-    def name(self, name: str):
-        self.assigned_name = name
-
     @raise_quib_call_exceptions_as_own
-    def get_value_valid_at_path(self, path: Optional[List[PathComponent]]) -> Any:
+    def get_value_valid_at_path(self, path: Optional[Path]) -> Any:
         """
         Get the actual data that this quib represents, valid at the path given in the argument.
         The value will necessarily return in the shape of the actual result, but only the values at the given path
@@ -834,86 +794,215 @@ class Quib:
     """
 
     @property
-    def _save_path(self) -> Optional[pathlib.Path]:
-        save_name = self.assigned_name if self.assigned_name else hash(self.functional_representation)
-        return self._save_directory / f"{save_name}.quib"
+    def save_format(self):
+        """
+        Indicates the file format in which quib assignments are saved.
+
+        Options:
+            'txt' - save assignments as text file.
+            'binary' - save assignments as a binary file.
+            'value_txt' - save the quib value as a text file.
+            None - yield to the Project default save_format
+
+        See also:
+             SaveFormat
+        """
+        return self._save_format
+
+    @save_format.setter
+    @validate_user_input(save_format=(str, SaveFormat))
+    def save_format(self, save_format):
+        if isinstance(save_format, str):
+            save_format = SaveFormat(save_format)
+        self._save_format = save_format
 
     @property
-    def _save_txt_path(self) -> Optional[pathlib.Path]:
-        return self._save_directory / f"{self.assigned_name}.txt"
+    def _actual_save_format(self) -> SaveFormat:
+        return self._save_format if self._save_format else self.project.save_format
 
     @property
-    def save_directory(self):
-        return self._save_directory
+    def _actual_save_directory(self) -> Optional[pathlib.Path]:
+        if self._save_directory is not None and self._save_directory.is_absolute():
+            return self._save_directory  # absolute directory
+        elif self.project.directory is None:
+            return None
+        else:
+            return self.project.directory if self._save_directory is None \
+                else self.project.directory / self._save_directory
+
+    @property
+    def save_path(self) -> Optional[PathWithHyperLink]:
+        """
+        The full path for the file where quib assignments are saved.
+
+        Returns:
+            Path or None
+        """
+        return None if self.assigned_name is None or self._actual_save_directory is None \
+            else PathWithHyperLink(self._actual_save_directory /
+                                   (self.assigned_name + SAVEFORMAT_TO_FILE_EXT[self._actual_save_format]))
+
+    @property
+    def save_directory(self) -> PathWithHyperLink:
+        """
+        The directory where quib assignments are saved.
+
+        Can be set to a str or Path object.
+
+        If the directory is absolute, it is used as is.
+        If directory is relative, it is used relative to the project directory.
+        If directory is None, the project directory is used.
+
+        Returns:
+            Path
+
+        See also:
+            save_path
+        """
+        return PathWithHyperLink(self._save_directory)
 
     @save_directory.setter
-    @validate_user_input(path=(str, pathlib.Path))
-    def save_directory(self, path: Union[str, pathlib.Path]):
-        """
-        Set the save path of the quib (where it will be loaded/saved)
-        """
-        if isinstance(path, str):
-            path = pathlib.Path(path)
-        self._save_directory = path.resolve()
+    @validate_user_input(directory=(str, pathlib.Path))
+    def save_directory(self, directory: Union[str, pathlib.Path]):
+        if isinstance(directory, str):
+            directory = pathlib.Path(directory)
+        self._save_directory = directory
 
-    def save_if_relevant(self, save_as_txt_if_possible: bool = True):
+    def save(self) -> bool:
         """
-        Save the quib if relevant- this will NOT save if the quib does not have overrides, as there is nothing to save
-        """
-        os.makedirs(self._save_directory, exist_ok=True)
-        if len(self._overrider) > 0:
-            if save_as_txt_if_possible and self._can_save_as_txt:
-                try:
-                    return self._save_as_txt()
-                except CannotSaveAsTextException:
-                    # Continue on to normal save
-                    pass
+        Save the quib assignments if any.
 
-            with open(self._save_path, 'wb') as f:
-                pickle.dump(self._overrider, f)
-
-    def _save_as_txt(self):
+        Returns:
+            bool - indicating whether a file was created successfully.
         """
-        Save the quib as a text file. In contrast to the normal save, this will save the value of the quib regardless
+        if self.save_path is None:
+            return False
+
+        if self._actual_save_format == SaveFormat.VALUE_TXT:
+            return self._save_value_as_txt()
+
+        if len(self._overrider) == 0:
+            return False
+        os.makedirs(self._actual_save_directory, exist_ok=True)
+        if self._actual_save_format == SaveFormat.BIN:
+            return self._overrider.save_to_binary(self.save_path)
+        elif self._actual_save_format == SaveFormat.TXT:
+            return self._overrider.save_to_txt(self.save_path)
+
+    def _save_value_as_txt(self):
+        """
+        Save the quib's value as a text file.
+        In contrast to the normal save, this will save the value of the quib regardless
         of whether the quib has overrides, as a txt file is used for the user to be able to see the quib and change it
         in a textual manner.
         Note that this WILL fail with CannotSaveAsTextException in situations where the iquib
         cannot be represented textually.
         """
         value = self.get_value()
+        save_path = self.save_path
         try:
             if isinstance(value, np.ndarray):
-                np.savetxt(str(self._save_txt_path), value)
+                np.savetxt(str(save_path), value)
             else:
-                with open(self._save_txt_path, 'w') as f:
+                with open(save_path, 'w') as f:
                     json.dump(value, f)
         except TypeError:
-            if os.path.exists(self._save_txt_path):
-                os.remove(self._save_txt_path)
+            if os.path.exists(save_path):
+                os.remove(save_path)
             raise CannotSaveAsTextException()
 
-    def _load_from_txt(self):
+    def _load_value_from_txt(self):
         """
         Load the quib from the corresponding text file is possible
         """
-        if self._save_txt_path and os.path.exists(self._save_txt_path):
+        if self.save_path and os.path.exists(self.save_path):
             if issubclass(self.get_type(), np.ndarray):
-                self.assign_value(np.array(np.loadtxt(str(self._save_txt_path)), dtype=self.get_value().dtype))
+                self.assign(np.array(np.loadtxt(str(self.save_path)), dtype=self.get_value().dtype))
             else:
-                with open(self._save_txt_path, 'r') as f:
-                    self.assign_value(json.load(f))
+                with open(self.save_path, 'r') as f:
+                    self.assign(json.load(f))
 
-    def load(self):
-        if self._save_txt_path and os.path.exists(self._save_txt_path):
-            self._load_from_txt()
-        elif self._save_path and os.path.exists(self._save_path):
-            with open(self._save_path, 'rb') as f:
-                self._overrider = pickle.load(f)
-                self.invalidate_and_redraw_at_path([])
+    def load(self) -> bool:
+        """
+        load quib assignments from file.
+
+        Returns:
+            bool: indicating whether the file was found and loaded.
+        """
+        if not (self.save_path and os.path.exists(self.save_path)):
+            return False
+
+        if self._actual_save_format == SaveFormat.BIN:
+            self._overrider.load_from_binary(self.save_path)
+        elif self._actual_save_format == SaveFormat.TXT:
+            self._overrider.load_from_txt(self.save_path)
+        elif self._actual_save_format == SaveFormat.VALUE_TXT:
+            self._load_value_from_txt()
+
+        self.invalidate_and_redraw_at_path([])
+        return True
 
     """
     Repr
     """
+
+    @property
+    def assigned_name(self) -> Optional[str]:
+        """
+        Returns the assigned_name of the quib
+        The assigned_name can either be a name automatically created based on the variable name to which the quib
+        was first assigned, or a manually assigned name set by setp or by assigning to assigned_name,
+        or None indicating unnamed quib.
+
+        The name must be a string starting with a letter and continuing with alpha-numeric charaters. Spaces
+        are also allowed.
+
+        The assigned_name is also used for setting the file name for saving overrides.
+
+        Returns
+        -------
+        str, None
+
+        See Also
+        --------
+        name, setp, Project.save_quibs, Project.load_quibs
+        """
+        return self._assigned_name
+
+    @assigned_name.setter
+    @validate_user_input(assigned_name=(str, type(None)))
+    def assigned_name(self, assigned_name: Optional[str]):
+        if assigned_name is None \
+                or len(assigned_name) \
+                and assigned_name[0].isalpha() and all([c.isalnum() or c in ' _' for c in assigned_name]):
+            self._assigned_name = assigned_name
+        else:
+            raise ValueError('name must be None or a string starting with a letter '
+                             'and continuing alpha-numeric charaters or spaces')
+
+    @property
+    def name(self) -> Optional[str]:
+        """
+        Returns the name of the quib
+
+        The name of the quib can either be the given assigned_name if not None,
+        or an automated name representing the function of the quib (the functional_representation attribute).
+
+        Assigning into name is equivalent to assigning into assigned_name
+
+        Returns
+        -------
+        str
+
+        See Also
+        --------
+        assigned_name, setp, functional_representation
+        """
+        return self.assigned_name or self.functional_representation
+
+    @name.setter
+    def name(self, name: str):
+        self.assigned_name = name
 
     def get_functional_representation_expression(self) -> MathExpression:
         try:

@@ -323,7 +323,7 @@ def test_get_overrides_for_assignment_when_can_assign_to_self(diverged_quib_grap
     grandparent1, parent1, grandparent2, parent2, child, parent1_override = diverged_quib_graph
     parent1.allow_overriding = True
     child.allow_overriding = True
-    child.set_assigned_quibs([child])
+    child.assigned_quibs = [child]
     assignment = AssignmentToQuib(child, assignment_to_multiple)
     override_group = get_override_group_for_change(assignment)
 
@@ -334,7 +334,7 @@ def test_get_overrides_for_assignment_when_can_assign_to_parents(diverged_quib_g
     grandparent1, parent1, grandparent2, parent2, child, parent1_override = diverged_quib_graph
     parent1.allow_overriding = True
     parent2.allow_overriding = True
-    child.set_assigned_quibs([parent1, parent2])
+    child.assigned_quibs = [parent1, parent2]
     assignment = AssignmentToQuib(child, assignment_to_multiple)
     override_group = get_override_group_for_change(assignment)
 

@@ -28,7 +28,7 @@ def test_reset_impure_quibs_clears_their_cache(random_func_with_side_effect):
     assert quib.get_value() == 1, "sanity"
     assert quib.get_value() == 1, "sanity"
 
-    Project.get_or_create().reset_invalidate_and_redraw_all_impure_function_quibs()
+    Project.get_or_create().reset_random_quibs()
 
     assert quib.get_value() == 2
 
@@ -40,14 +40,14 @@ def test_reset_impure_quibs_invalidates_and_redraws(random_func_with_side_effect
     add_definition_for_function(graphics_function_mock, create_func_definition(is_known_graphics_func=True))
     _ = create_quib(func=graphics_function_mock, args=(quib,))
 
-    Project.get_or_create().reset_invalidate_and_redraw_all_impure_function_quibs()
+    Project.get_or_create().reset_random_quibs()
 
     assert graphics_function_mock.call_count == 1
 
 
 def test_undo_assignment(project):
     a = iquib(10)
-    a.assign_value(1)
+    a.assign(1)
     assert a.get_value() == 1, "sanity"
 
     project.undo()
@@ -57,8 +57,8 @@ def test_undo_assignment(project):
 
 def test_undo_assignment_with_multiple_assignments_in_same_path(project):
     a = iquib(10)
-    a.assign_value(1)
-    a.assign_value(2)
+    a.assign(1)
+    a.assign(2)
     assert a.get_value() == 2, "sanity"
 
     project.undo()
@@ -68,8 +68,8 @@ def test_undo_assignment_with_multiple_assignments_in_same_path(project):
 
 def test_undo_multiple_assignments(project):
     a = iquib(10)
-    a.assign_value(1)
-    a.assign_value(2)
+    a.assign(1)
+    a.assign(2)
     assert a.get_value() == 2, "sanity"
 
     project.undo()
@@ -80,7 +80,7 @@ def test_undo_multiple_assignments(project):
 
 def test_undo_too_much_raises_exception(project):
     a = iquib(10)
-    a.assign_value(1)
+    a.assign(1)
 
     project.undo()
     with pytest.raises(NothingToUndoException):
@@ -89,7 +89,7 @@ def test_undo_too_much_raises_exception(project):
 
 def test_undo_redo(project):
     a = iquib(5)
-    a.assign_value(1)
+    a.assign(1)
 
     project.undo()
     assert a.get_value() == 5, "sanity"
@@ -100,8 +100,8 @@ def test_undo_redo(project):
 
 def test_undo_redo_undo(project):
     a = iquib(5)
-    a.assign_value(1)
-    a.assign_value(2)
+    a.assign(1)
+    a.assign(2)
 
     project.undo()
     project.redo()
@@ -112,7 +112,7 @@ def test_undo_redo_undo(project):
 
 def test_undo_assignment_removal(project):
     a = iquib(5)
-    a.assign_value(10)
+    a.assign(10)
     a.remove_override([])
     assert a.get_value() == 5, "sanity"
 
@@ -123,7 +123,7 @@ def test_undo_assignment_removal(project):
 
 def test_undo_assignment_removal_and_assignment(project):
     a = iquib(5)
-    a.assign_value(10)
+    a.assign(10)
     a.remove_override([])
     assert a.get_value() == 5, "sanity"
 
@@ -149,9 +149,9 @@ def test_undo_with_multiple_paths(project):
 @pytest.mark.regression
 def test_undo_redo_with_assignment_in_the_middle(project):
     a = iquib(10)
-    a.assign_value(11)
+    a.assign(11)
     project.undo()
-    a.assign_value(12)
+    a.assign(12)
 
     with pytest.raises(NothingToRedoException):
         project.redo()
@@ -160,7 +160,7 @@ def test_undo_redo_with_assignment_in_the_middle(project):
 def test_doesnt_record_when_dragging(project):
     a = iquib(5)
     with dragging():
-        a.assign_value(10)
+        a.assign(10)
 
     with pytest.raises(NothingToUndoException):
         project.undo()
@@ -170,8 +170,8 @@ def test_project_undo_group_doesnt_add_on_dragging(project):
     a = iquib(5)
     with dragging():
         with project.start_undo_group():
-            a.assign_value(10)
-            a.assign_value(8)
+            a.assign(10)
+            a.assign(8)
 
     with pytest.raises(NothingToUndoException):
         project.undo()
@@ -200,26 +200,26 @@ def test_project_undo_with_group_reverts_back_to_before_group_and_runs_graphics_
 
 
 def test_project_has_undo_when_not(project):
-    assert project.has_undo() is False
+    assert project.can_undo() is False
 
 
 def test_project_has_redo_when_not(project):
-    assert project.has_redo() is False
+    assert project.can_redo() is False
 
 
 def test_project_has_undo_when_true(project):
     a = iquib(1)
-    a.assign_value(1)
+    a.assign(1)
 
-    assert project.has_undo()
+    assert project.can_undo()
 
 
 def test_project_has_redo_when_true(project):
     a = iquib(1)
-    a.assign_value(1)
+    a.assign(1)
     project.undo()
 
-    assert project.has_redo()
+    assert project.can_redo()
 
 
 def test_project_redraw_central_graphics_function_quibs(project):
@@ -236,7 +236,7 @@ def test_undo_redo_does_not_hold_strong_ref():
     a = iquib(7)
     mock_weakref_callback = mock.Mock()
     _ = weakref.ref(a, mock_weakref_callback)
-    a.assign_value(10)
+    a.assign(10)
 
     del a
 
@@ -246,9 +246,9 @@ def test_undo_redo_does_not_hold_strong_ref():
 @pytest.mark.regression
 def test_undo_redos_clear_from_stack_on_removal(project):
     a = iquib(7)
-    a.assign_value(10)
-    assert project.has_undo(), "sanity"
+    a.assign(10)
+    assert project.can_undo(), "sanity"
 
     del a
 
-    assert not project.has_undo()
+    assert not project.can_undo()

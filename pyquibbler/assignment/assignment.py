@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from typing import Any, TYPE_CHECKING, List
 
 from .exceptions import CannotReverseException
-from pyquibbler.path.path_component import PathComponent
+from pyquibbler.path.path_component import Path
 
 if TYPE_CHECKING:
     from pyquibbler.quib.quib import Quib
@@ -17,7 +17,7 @@ class Assignment:
     A change performed on a quib.
     """
     value: Any
-    path: List[PathComponent] = field(default_factory=list)
+    path: Path = field(default_factory=list)
 
     def __eq__(self, other):
         if not isinstance(other, Assignment):
@@ -58,7 +58,7 @@ class QuibWithAssignment(QuibChange, ABC):
 
 class AssignmentToQuib(QuibWithAssignment):
     def apply(self) -> None:
-        self.quib.assign(self.assignment)
+        self.quib.apply_assignment(self.assignment)
 
     def to_override(self) -> Override:
         return Override(self.quib, self.assignment)

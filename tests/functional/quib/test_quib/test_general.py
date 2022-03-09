@@ -4,7 +4,7 @@ from unittest import mock
 import numpy as np
 import pytest
 
-from pyquibbler.utilities.input_validation_utils import InvalidArgumentException
+from pyquibbler.utilities.input_validation_utils import InvalidArgumentTypeException
 from pyquibbler.quib.factory import create_quib
 
 
@@ -44,7 +44,7 @@ def test_quib_configure(quib):
 
 
 def test_quib_configure_with_invalid_value(quib):
-    with pytest.raises(InvalidArgumentException):
+    with pytest.raises(InvalidArgumentTypeException):
         quib.setp(allow_overriding=3, name="pasten")
 
 

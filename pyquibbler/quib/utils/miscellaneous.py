@@ -91,3 +91,16 @@ def get_user_friendly_name_for_requested_valid_path(valid_path: Optional[Path]):
 
 class NoValue:
     pass
+
+
+def is_saveable_as_txt(val: Any) -> bool:
+    all_ok = True
+
+    def set_false_if_repr_is_not_invertible(v):
+        from numpy import ndarray
+        nonlocal all_ok
+        all_ok &= isinstance(v, (str, int, float, ndarray))
+
+    # TODO: for dicts we need to check also that the keys are invertible
+    recursively_run_func_on_object(func=set_false_if_repr_is_not_invertible, obj=val)
+    return all_ok

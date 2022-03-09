@@ -27,7 +27,7 @@ def test_shape_only_function_quib_is_fully_invalidated_upon_change_in_data_sourc
     b = q(func, a).setp(cache_behavior='on')
     b.get_value()
 
-    a.assign_value(np.arange(6).reshape(3, 2))
+    a.assign(np.arange(6).reshape(3, 2))
     assert b.cache_status == CacheStatus.ALL_INVALID
 
 

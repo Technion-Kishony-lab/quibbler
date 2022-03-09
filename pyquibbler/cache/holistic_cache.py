@@ -3,7 +3,7 @@ from typing import List
 
 from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.cache.cache import Cache
-from pyquibbler.path import PathComponent
+from pyquibbler.path import Path
 
 
 class PathCannotHaveComponentsException(PyQuibblerException):
@@ -38,15 +38,15 @@ class HolisticCache(Cache):
         return cls(value=result, invalid=True)
 
     @raise_if_path_is_not_empty
-    def set_valid_value_at_path(self, path: List[PathComponent], value) -> None:
+    def set_valid_value_at_path(self, path: Path, value) -> None:
         self._invalid = False
         self._value = value
 
     @raise_if_path_is_not_empty
-    def set_invalid_at_path(self, path: List[PathComponent]) -> None:
+    def set_invalid_at_path(self, path: Path) -> None:
         self._invalid = True
 
-    def get_uncached_paths(self, path: List[PathComponent]) -> List[List[PathComponent]]:
+    def get_uncached_paths(self, path: Path) -> List[Path]:
         return [path] if self._invalid else []
 
     def _is_completely_invalid(self):

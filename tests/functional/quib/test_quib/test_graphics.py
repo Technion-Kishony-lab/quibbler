@@ -175,7 +175,7 @@ def test_replacing_graphics_function_quib_is_removed_after_call_with_no_quibs(cr
     axes.set_title('good title')
     assert axes.get_title() == 'good title', "sanity"
 
-    quib.assign_value('another bad title')
+    quib.assign('another bad title')
 
     # this was the bug:
     assert axes.get_title() == 'good title'

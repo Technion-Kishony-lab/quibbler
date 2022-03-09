@@ -34,6 +34,6 @@ def test_diamond_invalidation_with_changing_shape(create_quib_with_return_value)
     e.get_value()
 
     # This previously raised an exception
-    a.assign_value(10)
+    a.assign(10)
 
     assert np.array_equal(e.get_value(), np.arange(10) * 2)
