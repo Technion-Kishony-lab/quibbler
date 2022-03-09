@@ -167,7 +167,7 @@ class Project:
         return self._save_format
 
     @save_format.setter
-    @validate_user_input(save_format=save_format)
+    @validate_user_input(save_format=SaveFormat)
     def save_format(self, save_format: SaveFormat):
         self._save_format = save_format
 

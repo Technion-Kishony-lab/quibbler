@@ -9,7 +9,6 @@ from pyquibbler.quib.factory import create_quib
 
 import functools
 
-
 copy_docs = functools.partial(functools.wraps, assigned=['__doc__'], updated=[])
 
 
