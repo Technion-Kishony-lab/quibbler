@@ -141,8 +141,14 @@ class QuibHandler:
         Redraw all artists that directly or indirectly depend on this quib.
         """
         from pyquibbler.quib.graphics.redraw import redraw_quibs_with_graphics_or_add_in_aggregate_mode
-        quibs = self.quib()._get_descendant_graphics_quibs_recursively()
+        quibs = self._get_descendant_graphics_quibs_recursively()
         redraw_quibs_with_graphics_or_add_in_aggregate_mode(quibs)
+
+    def _get_descendant_graphics_quibs_recursively(self) -> Set[Quib]:
+        """
+        Get all artists that directly or indirectly depend on this quib.
+        """
+        return {child for child in self.quib().get_descendants() if child.func_can_create_graphics}
 
     """
     Invalidation
@@ -246,7 +252,7 @@ class QuibHandler:
         for new_path in new_paths:
             if new_path is not None:
                 self.invalidate_self(new_path)
-                if len(path) == 0 or not self.quib()._is_completely_overridden_at_first_component(new_path):
+                if len(path) == 0 or not self._is_completely_overridden_at_first_component(new_path):
                     self._invalidate_children_at_path(new_path)
 
     def _forward_translate_without_retrieving_metadata(self, invalidator_quib: Quib, path: Path) -> List[Path]:
@@ -309,6 +315,46 @@ class QuibHandler:
                 return self._forward_translate_with_retrieving_metadata(invalidator_quib, path)
             except NoTranslatorsFoundException:
                 return [[]]
+
+    @staticmethod
+    def _apply_assignment_to_cache(original_value, cache, assignment):
+        """
+        Apply an assignment to a cache, setting valid if it was an assignment and invalid if it was an assignmentremoval
+        """
+        try:
+            if isinstance(assignment, Assignment):
+                # Our cache only accepts shallow paths, so any validation to a non-shallow path is not necessarily
+                # overridden at the first component completely- so we ignore it
+                if len(assignment.path) <= 1:
+                    cache.set_valid_value_at_path(assignment.path, assignment.value)
+            else:
+                # Our cache only accepts shallow paths, so we need to consider any invalidation to a path deeper
+                # than one component as an invalidation to the entire first component of that path
+                if len(assignment.path) == 0:
+                    cache = create_cache(original_value)
+                else:
+                    cache.set_invalid_at_path(assignment.path[:1])
+
+        except (IndexError, TypeError):
+            # it's very possible there's an old assignment that doesn't match our new "shape" (not specifically np)-
+            # if so we don't care about it
+            pass
+
+        return cache
+
+    def _is_completely_overridden_at_first_component(self, path) -> bool:
+        """
+        Get a list of all the non overridden paths (at the first component)
+        """
+        path = path[:1]
+        assignments = list(self.quib()._overrider)
+        if assignments:
+            original_value = self.quib().get_value_valid_at_path(None)
+            cache = create_cache(original_value)
+            for assignment in assignments:
+                cache = self._apply_assignment_to_cache(original_value, cache, assignment)
+            return len(cache.get_uncached_paths(path)) == 0
+        return False
 
 
 class Quib:
@@ -624,52 +670,6 @@ class Quib:
         for child in self.children:
             children |= child.get_descendants()
         return children
-
-    def _get_descendant_graphics_quibs_recursively(self) -> Set[Quib]:
-        """
-        Get all artists that directly or indirectly depend on this quib.
-        """
-        return {child for child in self.get_descendants() if child.func_can_create_graphics}
-
-    @staticmethod
-    def _apply_assignment_to_cache(original_value, cache, assignment):
-        """
-        Apply an assignment to a cache, setting valid if it was an assignment and invalid if it was an assignmentremoval
-        """
-        try:
-            if isinstance(assignment, Assignment):
-                # Our cache only accepts shallow paths, so any validation to a non-shallow path is not necessarily
-                # overridden at the first component completely- so we ignore it
-                if len(assignment.path) <= 1:
-                    cache.set_valid_value_at_path(assignment.path, assignment.value)
-            else:
-                # Our cache only accepts shallow paths, so we need to consider any invalidation to a path deeper
-                # than one component as an invalidation to the entire first component of that path
-                if len(assignment.path) == 0:
-                    cache = create_cache(original_value)
-                else:
-                    cache.set_invalid_at_path(assignment.path[:1])
-
-        except (IndexError, TypeError):
-            # it's very possible there's an old assignment that doesn't match our new "shape" (not specifically np)-
-            # if so we don't care about it
-            pass
-
-        return cache
-
-    def _is_completely_overridden_at_first_component(self, path) -> bool:
-        """
-        Get a list of all the non overridden paths (at the first component)
-        """
-        path = path[:1]
-        assignments = list(self._overrider)
-        if assignments:
-            original_value = self.get_value_valid_at_path(None)
-            cache = create_cache(original_value)
-            for assignment in assignments:
-                cache = self._apply_assignment_to_cache(original_value, cache, assignment)
-            return len(cache.get_uncached_paths(path)) == 0
-        return False
 
     def __len__(self):
         if LEN_RAISE_EXCEPTION:
