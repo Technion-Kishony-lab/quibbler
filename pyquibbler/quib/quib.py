@@ -62,9 +62,14 @@ if TYPE_CHECKING:
 
 class QuibHandler:
 
-    def __init__(self, quib: Quib):
+    def __init__(self, quib: Quib, quib_function_call: QuibFuncCall):
         self.quib = weakref.ref(quib)
         self._override_choice_cache = {}
+        self._quib_function_call = quib_function_call
+
+        from pyquibbler.quib.graphics.persist import persist_artists_on_quib_weak_ref
+        self._quib_function_call.artists_creation_callback = functools.partial(persist_artists_on_quib_weak_ref,
+                                                                               weakref.ref(quib))
 
     def add_child(self, quib: Quib) -> None:
         """
@@ -92,7 +97,7 @@ class QuibHandler:
             raise OverridingNotAllowedException(self.quib(), assignment)
         self.quib()._overrider.add_assignment(assignment)
         if len(assignment.path) == 0:
-            self.quib()._quib_function_call.on_type_change()
+            self._quib_function_call.on_type_change()
 
         try:
             self.invalidate_and_redraw_at_path(assignment.path)
@@ -118,7 +123,7 @@ class QuibHandler:
                                                        overrider=self.quib()._overrider,
                                                        quib=self.quib())
         if len(path) == 0:
-            self.quib()._quib_function_call.on_type_change()
+            self._quib_function_call.on_type_change()
         self.invalidate_and_redraw_at_path(path=path)
 
     def apply_assignment(self, assignment: Assignment) -> None:
@@ -129,7 +134,7 @@ class QuibHandler:
         get_override_group_for_change(AssignmentToQuib(self.quib(), assignment)).apply()
 
     def _iter_artist_lists(self) -> Iterable[List[Artist]]:
-        return map(lambda g: g.artists, self.quib()._quib_function_call.flat_graphics_collections())
+        return map(lambda g: g.artists, self._quib_function_call.flat_graphics_collections())
 
     def _iter_artists(self) -> Iterable[Artist]:
         return (artist for artists in self._iter_artist_lists() for artist in artists)
@@ -162,10 +167,10 @@ class QuibHandler:
         false signifying validity
         """
         if len(path) == 0:
-            self.quib()._quib_function_call.on_type_change()
-            self.quib()._quib_function_call.reset_cache()
+            self._quib_function_call.on_type_change()
+            self._quib_function_call.reset_cache()
 
-        self.quib()._quib_function_call.invalidate_cache_at_path(path)
+        self._quib_function_call.invalidate_cache_at_path(path)
 
     def invalidate_and_redraw_at_path(self, path: Optional[Path] = None) -> None:
         """
@@ -187,7 +192,7 @@ class QuibHandler:
         and produce the same change in the value of this quib.
         """
         from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation_with_sources_metadata
-        func_call, sources_to_quibs = get_func_call_for_translation_with_sources_metadata(self.quib()._quib_function_call)
+        func_call, sources_to_quibs = get_func_call_for_translation_with_sources_metadata(self._quib_function_call)
         try:
             sources_to_paths = backwards_translate(func_call=func_call, path=override_removal.path,
                                                    shape=self.quib().get_shape(), type_=self.quib().get_type())
@@ -202,7 +207,7 @@ class QuibHandler:
         and produce the same change in the value of this quib.
         """
         from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation_with_sources_metadata
-        func_call, data_sources_to_quibs = get_func_call_for_translation_with_sources_metadata(self.quib()._quib_function_call)
+        func_call, data_sources_to_quibs = get_func_call_for_translation_with_sources_metadata(self._quib_function_call)
 
         try:
             value = self.quib().get_value()
@@ -258,7 +263,7 @@ class QuibHandler:
 
     def _forward_translate_without_retrieving_metadata(self, invalidator_quib: Quib, path: Path) -> List[Path]:
         func_call, sources_to_quibs = get_func_call_for_translation_without_sources_metadata(
-            self.quib()._quib_function_call
+            self._quib_function_call
         )
         quibs_to_sources = {quib: source for source, quib in sources_to_quibs.items()}
         sources_to_forwarded_paths = forwards_translate(
@@ -271,7 +276,7 @@ class QuibHandler:
 
     def _forward_translate_with_retrieving_metadata(self, invalidator_quib: Quib, path: Path) -> List[Path]:
         func_call, sources_to_quibs = get_func_call_for_translation_with_sources_metadata(
-            self.quib()._quib_function_call
+            self._quib_function_call
         )
         quibs_to_sources = {quib: source for source, quib in sources_to_quibs.items()}
         sources_to_forwarded_paths = forwards_translate(
@@ -281,7 +286,7 @@ class QuibHandler:
             },
             shape=self.quib().get_shape(),
             type_=self.quib().get_type(),
-            **self.quib()._quib_function_call.get_result_metadata()
+            **self._quib_function_call.get_result_metadata()
         )
         return sources_to_forwarded_paths.get(quibs_to_sources[invalidator_quib], [])
 
@@ -306,7 +311,7 @@ class QuibHandler:
         If we have no translators, we forward the path to invalidate all, as we have no more specific way to do it
         """
         # We always invalidate all if it's a parameter source quib
-        if invalidator_quib not in self.quib()._quib_function_call.get_data_sources():
+        if invalidator_quib not in self._quib_function_call.get_data_sources():
             return [[]]
 
         try:
@@ -394,31 +399,25 @@ class Quib:
 
         self._save_directory = save_directory
 
-        self._quib_function_call = quib_function_call
-
-        from pyquibbler.quib.graphics.persist import persist_artists_on_quib_weak_ref
-        self._quib_function_call.artists_creation_callback = functools.partial(persist_artists_on_quib_weak_ref,
-                                                                               weakref.ref(self))
-
         self._save_format = save_format
         self._can_contain_graphics = can_contain_graphics
 
-        self.handler = QuibHandler(self)
+        self.handler = QuibHandler(self, quib_function_call)
     """
     Func metadata funcs
     """
 
     @property
     def func(self):
-        return self._quib_function_call.func
+        return self.handler._quib_function_call.func
 
     @property
     def args(self):
-        return self._quib_function_call.args
+        return self.handler._quib_function_call.args
 
     @property
     def kwargs(self):
-        return self._quib_function_call.kwargs
+        return self.handler._quib_function_call.kwargs
 
     """
     Graphics related funcs
@@ -426,7 +425,7 @@ class Quib:
 
     @property
     def func_can_create_graphics(self):
-        return self._quib_function_call.func_can_create_graphics or self._can_contain_graphics
+        return self.handler._quib_function_call.func_can_create_graphics or self._can_contain_graphics
 
     @property
     def graphics_update_type(self) -> Union[None, str]:
@@ -586,8 +585,8 @@ class Quib:
         """
         User interface to check cache validity.
         """
-        return self._quib_function_call.cache.get_cache_status()\
-            if self._quib_function_call.cache is not None else CacheStatus.ALL_INVALID
+        return self.handler._quib_function_call.cache.get_cache_status()\
+            if self.handler._quib_function_call.cache is not None else CacheStatus.ALL_INVALID
 
     @property
     def project(self) -> Project:
@@ -610,7 +609,7 @@ class Quib:
         --------
         CacheBehavior
         """
-        return self._quib_function_call.get_cache_behavior().value
+        return self.handler._quib_function_call.get_cache_behavior().value
 
     @cache_behavior.setter
     @validate_user_input(cache_behavior=(str, CacheBehavior))
@@ -621,8 +620,8 @@ class Quib:
             except KeyError:
                 raise UnknownCacheBehaviorException(cache_behavior)
         if self.is_random_func and cache_behavior != CacheBehavior.ON:
-            raise InvalidCacheBehaviorForQuibException(self._quib_function_call.default_cache_behavior)
-        self._quib_function_call.default_cache_behavior = cache_behavior
+            raise InvalidCacheBehaviorForQuibException(self.handler._quib_function_call.default_cache_behavior)
+        self.handler._quib_function_call.default_cache_behavior = cache_behavior
 
     def setp(self,
              allow_overriding: bool = NoValue,
@@ -702,7 +701,7 @@ class Quib:
         name_for_call = get_user_friendly_name_for_requested_valid_path(path)
 
         with add_quib_to_fail_trace_if_raises_quib_call_exception(self, name_for_call):
-            result = self._quib_function_call.run(path)
+            result = self.handler._quib_function_call.run(path)
 
         return self._overrider.override(result, self._assignment_template)
 
@@ -728,21 +727,21 @@ class Quib:
         Get the type of wrapped value.
         """
         with add_quib_to_fail_trace_if_raises_quib_call_exception(quib=self, call='get_type()', replace_last=True):
-            return self._quib_function_call.get_type()
+            return self.handler._quib_function_call.get_type()
 
     def get_shape(self) -> Tuple[int, ...]:
         """
         Assuming this quib represents a numpy ndarray, returns a quib of its shape.
         """
         with add_quib_to_fail_trace_if_raises_quib_call_exception(quib=self, call='get_shape()', replace_last=True):
-            return self._quib_function_call.get_shape()
+            return self.handler._quib_function_call.get_shape()
 
     def get_ndim(self) -> int:
         """
         Assuming this quib represents a numpy ndarray, returns a quib of its shape.
         """
         with add_quib_to_fail_trace_if_raises_quib_call_exception(quib=self, call='get_ndim()', replace_last=True):
-            return self._quib_function_call.get_ndim()
+            return self.handler._quib_function_call.get_ndim()
 
     def get_override_mask(self):
         """
@@ -775,7 +774,7 @@ class Quib:
         """
         Returns a list of quibs that this quib depends on.
         """
-        return set(self._quib_function_call.get_objects_of_type_in_args_kwargs(Quib))
+        return set(self.handler._quib_function_call.get_objects_of_type_in_args_kwargs(Quib))
 
     @cached_property
     def ancestors(self) -> Set[Quib]:

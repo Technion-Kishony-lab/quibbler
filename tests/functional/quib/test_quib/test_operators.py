@@ -55,10 +55,10 @@ def test_binary_operators_elementwise_invalidation(create_quib_with_return_value
     b.get_value()
 
     # sanity:
-    assert np.array_equal(b._quib_function_call.cache._invalid_mask, [False, False, False])
+    assert np.array_equal(b.handler._quib_function_call.cache._invalid_mask, [False, False, False])
 
     a[1] = 10
-    assert np.array_equal(b._quib_function_call.cache._invalid_mask, [False, True, False])
+    assert np.array_equal(b.handler._quib_function_call.cache._invalid_mask, [False, True, False])
 
 
 @pytest.mark.parametrize('val', [1, 1., -1, -1.])

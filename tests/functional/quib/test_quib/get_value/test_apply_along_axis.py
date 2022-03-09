@@ -48,7 +48,7 @@ def test_apply_along_axis_get_shape(shape, axis, func1d_res, pass_quibs):
     func = get_func_mock(lambda x: func1d_res)
     arr = np.arange(np.prod(shape)).reshape(shape)
     quib = create_lazy_apply_along_axis_quib(func=func, arr=arr, axis=axis, call_func_with_quibs=pass_quibs)
-    expected_input_arr = arr[tuple([slice(None) if i == quib._quib_function_call.core_axis
+    expected_input_arr = arr[tuple([slice(None) if i == quib.handler._quib_function_call.core_axis
                                     else 0 for i in range(len(arr.shape))])]
     res = quib.get_shape()
 
