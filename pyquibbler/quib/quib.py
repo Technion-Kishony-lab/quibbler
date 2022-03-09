@@ -71,11 +71,15 @@ class QuibHandler:
         self.quib_function_call.artists_creation_callback = functools.partial(persist_artists_on_quib_weak_ref,
                                                                               weakref.ref(quib))
 
+    @property
+    def quib_children(self):
+        return self.quib().children
+
     def add_child(self, quib: Quib) -> None:
         """
         Add the given quib to the list of quibs that are dependent on this quib.
         """
-        self.quib()._children.add(quib)
+        self.quib_children.add(quib)
 
     def redraw_if_appropriate(self):
         """
@@ -245,7 +249,8 @@ class QuibHandler:
         """
         Change this quib's state according to a change in a dependency.
         """
-        for child in self.quib().children:
+        for child in set(self.quib_children):  # We copy of the set because children can change size during iteration
+
             child.handler._invalidate_quib_with_children_at_path(self.quib(), path)
 
     def _invalidate_quib_with_children_at_path(self, invalidator_quib: Quib, path: Path):
@@ -366,7 +371,7 @@ class QuibHandler:
         """
         Removes a child from the quib, no longer sending invalidations to it
         """
-        self.quib()._children.remove(quib_to_remove)
+        self.quib_children.remove(quib_to_remove)
 
 
 class Quib:
@@ -388,7 +393,7 @@ class Quib:
         self._assignment_template = assignment_template
         self._assigned_name = assigned_name
 
-        self._children = WeakSet()
+        self.children = WeakSet()
         self._overrider = Overrider()
         self._allow_overriding = allow_overriding
         self._assigned_quibs = None
@@ -661,17 +666,13 @@ class Quib:
 
         return self
 
-    @property
-    def children(self) -> Set[Quib]:
-        """
-        Return a copy of the current children weakset.
-        """
-        # We return a copy of the set because self._children can change size during iteration
-        return set(self._children)
+    def get_children(self) -> Set[Quib]:
+        # we make a copy since children itself may change size during iteration
+        return set(self.children)
 
     def get_descendants(self) -> Set[Quib]:
-        children = self.children
-        for child in self.children:
+        children = self.get_children()
+        for child in self.get_children():
             children |= child.get_descendants()
         return children
 
