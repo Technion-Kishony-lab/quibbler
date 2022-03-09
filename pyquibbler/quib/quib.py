@@ -816,11 +816,11 @@ class Quib:
         self._save_format = save_format
 
     @property
-    def _actual_save_format(self) -> SaveFormat:
+    def actual_save_format(self) -> SaveFormat:
         return self._save_format if self._save_format else self.project.save_format
 
     @property
-    def _actual_save_directory(self) -> Optional[pathlib.Path]:
+    def actual_save_directory(self) -> Optional[pathlib.Path]:
         if self._save_directory is not None and self._save_directory.is_absolute():
             return self._save_directory  # absolute directory
         elif self.project.directory is None:
@@ -837,9 +837,9 @@ class Quib:
         Returns:
             Path or None
         """
-        return None if self.assigned_name is None or self._actual_save_directory is None \
-            else PathWithHyperLink(self._actual_save_directory /
-                                   (self.assigned_name + SAVEFORMAT_TO_FILE_EXT[self._actual_save_format]))
+        return None if self.assigned_name is None or self.actual_save_directory is None \
+            else PathWithHyperLink(self.actual_save_directory /
+                                   (self.assigned_name + SAVEFORMAT_TO_FILE_EXT[self.actual_save_format]))
 
     @property
     def save_directory(self) -> PathWithHyperLink:
@@ -877,15 +877,15 @@ class Quib:
         if self.save_path is None:
             return False
 
-        if self._actual_save_format == SaveFormat.VALUE_TXT:
+        if self.actual_save_format == SaveFormat.VALUE_TXT:
             return self._save_value_as_txt()
 
         if len(self._overrider) == 0:
             return False
-        os.makedirs(self._actual_save_directory, exist_ok=True)
-        if self._actual_save_format == SaveFormat.BIN:
+        os.makedirs(self.actual_save_directory, exist_ok=True)
+        if self.actual_save_format == SaveFormat.BIN:
             return self._overrider.save_to_binary(self.save_path)
-        elif self._actual_save_format == SaveFormat.TXT:
+        elif self.actual_save_format == SaveFormat.TXT:
             return self._overrider.save_to_txt(self.save_path)
 
     def _save_value_as_txt(self):
@@ -931,11 +931,11 @@ class Quib:
         if not (self.save_path and os.path.exists(self.save_path)):
             return False
 
-        if self._actual_save_format == SaveFormat.BIN:
+        if self.actual_save_format == SaveFormat.BIN:
             self._overrider.load_from_binary(self.save_path)
-        elif self._actual_save_format == SaveFormat.TXT:
+        elif self.actual_save_format == SaveFormat.TXT:
             self._overrider.load_from_txt(self.save_path)
-        elif self._actual_save_format == SaveFormat.VALUE_TXT:
+        elif self.actual_save_format == SaveFormat.VALUE_TXT:
             self._load_value_from_txt()
 
         self.handler.invalidate_and_redraw_at_path([])
