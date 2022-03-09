@@ -7,6 +7,7 @@ from pyquibbler.logger import logger
 from pyquibbler.project import Project
 from pyquibbler.quib.func_calling import QuibFuncCall
 from pyquibbler.function_definitions import get_definition_for_function
+from pyquibbler.quib.get_value_context_manager import is_within_get_value_context
 from pyquibbler.quib.graphics import UpdateType
 from pyquibbler.quib.quib_guard import add_new_quib_to_guard_if_exists
 from pyquibbler.quib.quib import Quib
@@ -36,7 +37,7 @@ def get_quib_name() -> Optional[str]:
     Get the quib's name- this can potentially return None
     if the context makes getting the file name and line no irrelevant
     """
-    should_get_variable_names = GET_VARIABLE_NAMES and not Quib._IS_WITHIN_GET_VALUE_CONTEXT
+    should_get_variable_names = GET_VARIABLE_NAMES and not is_within_get_value_context()
 
     try:
         return get_var_name_being_set_outside_of_pyquibbler() if should_get_variable_names else None
@@ -51,7 +52,7 @@ def _get_file_name_and_line_no() -> Tuple[Optional[str], Optional[str]]:
     Get the file name and line no where the quib was created (outside of pyquibbler)- this can potentially return Nones
     if the context makes getting the file name and line no irrelevant
     """
-    should_get_file_name_and_line = SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS and not Quib._IS_WITHIN_GET_VALUE_CONTEXT
+    should_get_file_name_and_line = SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS and not is_within_get_value_context()
 
     try:
         return get_file_name_and_line_number_of_quib() if should_get_file_name_and_line else None, None

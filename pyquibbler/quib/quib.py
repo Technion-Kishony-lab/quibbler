@@ -49,6 +49,7 @@ from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals
 from pyquibbler.cache.cache import CacheStatus
 from pyquibbler.cache import create_cache
 from pyquibbler.quib.save_assignments import SaveFormat, SAVEFORMAT_TO_FILE_EXT
+from .get_value_context_manager import get_value_context, is_within_get_value_context
 from .utils.miscellaneous import NoValue
 
 
@@ -362,8 +363,6 @@ class Quib:
     A Quib is a node representing a singular call of a function with it's arguments (it's parents in the graph)
     """
 
-    _IS_WITHIN_GET_VALUE_CONTEXT = False
-
     def __init__(self, quib_function_call: QuibFuncCall,
                  assignment_template: Optional[AssignmentTemplate],
                  allow_overriding: bool,
@@ -382,7 +381,7 @@ class Quib:
         self._overrider = Overrider()
         self._allow_overriding = allow_overriding
         self._assigned_quibs = None
-        self.created_in_get_value_context = self._IS_WITHIN_GET_VALUE_CONTEXT
+        self.created_in_get_value_context = is_within_get_value_context()
         self.file_name = file_name
         self.line_no = line_no
         self._graphics_update_type = graphics_update_type
@@ -701,22 +700,6 @@ class Quib:
 
         return self._overrider.override(result, self._assignment_template)
 
-    @staticmethod
-    @contextmanager
-    def _get_value_context():
-        """
-        Change cls._IS_WITHIN_GET_VALUE_CONTEXT while in the process of running get_value.
-        This has to be a static method as the _IS_WITHIN_GET_VALUE_CONTEXT is a global state for all quib types
-        """
-        if Quib._IS_WITHIN_GET_VALUE_CONTEXT:
-            yield
-        else:
-            Quib._IS_WITHIN_GET_VALUE_CONTEXT = True
-            try:
-                yield
-            finally:
-                Quib._IS_WITHIN_GET_VALUE_CONTEXT = False
-
     @raise_quib_call_exceptions_as_own
     def get_value(self) -> Any:
         """
@@ -725,7 +708,7 @@ class Quib:
         are lazy, so a function quib might need to calculate uncached values and might
         even have to calculate the values of its dependencies.
         """
-        with self._get_value_context():
+        with get_value_context():
             return self.get_value_valid_at_path([])
 
     def get_override_list(self) -> Overrider:
