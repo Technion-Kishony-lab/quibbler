@@ -144,6 +144,22 @@ class QuibHandler:
         quibs = self.quib()._get_descendant_graphics_quibs_recursively()
         redraw_quibs_with_graphics_or_add_in_aggregate_mode(quibs)
 
+    """
+    Invalidation
+    """
+    def invalidate_self(self, path: Path):
+        """
+        This method is called whenever a quib itself is invalidated; subclasses will override this with their
+        implementations for invalidations.
+        For example, a simple implementation for a quib which is a function could be setting a boolean to true or
+        false signifying validity
+        """
+        if len(path) == 0:
+            self.quib()._quib_function_call.on_type_change()
+            self.quib()._quib_function_call.reset_cache()
+
+        self.quib()._quib_function_call.invalidate_cache_at_path(path)
+
     def invalidate_and_redraw_at_path(self, path: Optional[Path] = None) -> None:
         """
         Perform all actions needed after the quib was mutated (whether by function_definitions or inverse assignment).
@@ -229,7 +245,7 @@ class QuibHandler:
         new_paths = self._get_paths_for_children_invalidation(invalidator_quib, path)
         for new_path in new_paths:
             if new_path is not None:
-                self.quib()._invalidate_self(new_path)
+                self.invalidate_self(new_path)
                 if len(path) == 0 or not self.quib()._is_completely_overridden_at_first_component(new_path):
                     self._invalidate_children_at_path(new_path)
 
@@ -499,22 +515,6 @@ class Quib:
         self._assignment_template = create_assignment_template(*args)
 
     """
-    Invalidation
-    """
-    def _invalidate_self(self, path: Path):
-        """
-        This method is called whenever a quib itself is invalidated; subclasses will override this with their
-        implementations for invalidations.
-        For example, a simple implementation for a quib which is a function could be setting a boolean to true or
-        false signifying validity
-        """
-        if len(path) == 0:
-            self._quib_function_call.on_type_change()
-            self._quib_function_call.reset_cache()
-
-        self._quib_function_call.invalidate_cache_at_path(path)
-
-    """
     Misc
     """
 
@@ -619,17 +619,17 @@ class Quib:
         # We return a copy of the set because self._children can change size during iteration
         return set(self._children)
 
-    def _get_children_recursively(self) -> Set[Quib]:
+    def get_descendants(self) -> Set[Quib]:
         children = self.children
         for child in self.children:
-            children |= child._get_children_recursively()
+            children |= child.get_descendants()
         return children
 
     def _get_descendant_graphics_quibs_recursively(self) -> Set[Quib]:
         """
         Get all artists that directly or indirectly depend on this quib.
         """
-        return {child for child in self._get_children_recursively() if child.func_can_create_graphics}
+        return {child for child in self.get_descendants() if child.func_can_create_graphics}
 
     @staticmethod
     def _apply_assignment_to_cache(original_value, cache, assignment):
