@@ -660,9 +660,23 @@ class Quib:
              graphics_update_type: Union[None, str] = NoValue,
              ):
         """
-        Configure a quib with certain attributes- because this function is expected to be used by users, we never
-        setattr to anything before checking the types.
+        Set one or more properties on a quib.
+
+        Settable properties:
+             allow_overriding: bool
+             assignment_template: Union[tuple, AssignmentTemplate],
+             save_directory: Union[str, pathlib.Path],
+             save_format: Union[None, str, SaveFormat],
+             cache_behavior: Union[str, CacheBehavior],
+             assigned_name: Union[None, str],
+             name: Union[None, str],
+             graphics_update_type: Union[None, str]
+
+        Examples:
+            a = iquib(7).setp(assigned_name='my_number')
+            b = (2 * a).setp(allow_overriding=True)
         """
+
         from pyquibbler.quib.factory import get_quib_name
         if allow_overriding is not NoValue:
             self.allow_overriding = allow_overriding
