@@ -445,8 +445,68 @@ class Quib:
     def kwargs(self):
         return self.handler.quib_function_call.kwargs
 
+    @property
+    def func_definition(self) -> FuncDefinition:
+        from pyquibbler.function_definitions import get_definition_for_function
+        return get_definition_for_function(self.func)
+
+    @property
+    def is_impure_func(self):
+        return self.is_random_func or self.is_file_loading_func
+
+    @property
+    def is_random_func(self):
+        return self.func_definition.is_random_func
+
+    @property
+    def is_file_loading_func(self):
+        return self.func_definition.is_file_loading_func
+
     """
-    Graphics related funcs
+    cache
+    """
+
+    @property
+    def cache_status(self):
+        """
+        User interface to check cache validity.
+        """
+        return self.handler.quib_function_call.cache.get_cache_status()\
+            if self.handler.quib_function_call.cache is not None else CacheStatus.ALL_INVALID
+
+    @property
+    def cache_behavior(self):
+        """
+        Set the value caching mode for the quib:
+        'auto':     caching is decided automatically according to the ratio between evaluation time and
+                    memory consumption.
+        'off':      do not cache.
+        'on':       always caching.
+
+        Returns
+        -------
+        'auto', 'on', or 'off'
+
+        See Also
+        --------
+        CacheBehavior
+        """
+        return self.handler.quib_function_call.get_cache_behavior().value
+
+    @cache_behavior.setter
+    @validate_user_input(cache_behavior=(str, CacheBehavior))
+    def cache_behavior(self, cache_behavior: Union[str, CacheBehavior]):
+        if isinstance(cache_behavior, str):
+            try:
+                cache_behavior = CacheBehavior[cache_behavior.upper()]
+            except KeyError:
+                raise UnknownCacheBehaviorException(cache_behavior)
+        if self.is_random_func and cache_behavior != CacheBehavior.ON:
+            raise InvalidCacheBehaviorForQuibException(self.handler.quib_function_call.default_cache_behavior)
+        self.handler.quib_function_call.default_cache_behavior = cache_behavior
+
+    """
+    Graphics
     """
 
     @property
@@ -536,11 +596,6 @@ class Quib:
             self.handler.apply_assignment(Assignment(value=value, path=path))
 
     @property
-    def func_definition(self) -> FuncDefinition:
-        from pyquibbler.function_definitions import get_definition_for_function
-        return get_definition_for_function(self.func)
-
-    @property
     def assigned_quibs(self) -> Union[None, Set[Quib, ...]]:
         """
         Set of quibs to which assignments to this quib could translate to and override.
@@ -591,63 +646,8 @@ class Quib:
         self.handler.assignment_template = create_assignment_template(*args)
 
     """
-    Misc
+    setp
     """
-
-    @property
-    def is_impure_func(self):
-        return self.is_random_func or self.is_file_loading_func
-
-    @property
-    def is_random_func(self):
-        return self.func_definition.is_random_func
-
-    @property
-    def is_file_loading_func(self):
-        return self.func_definition.is_file_loading_func
-
-    @property
-    def cache_status(self):
-        """
-        User interface to check cache validity.
-        """
-        return self.handler.quib_function_call.cache.get_cache_status()\
-            if self.handler.quib_function_call.cache is not None else CacheStatus.ALL_INVALID
-
-    @property
-    def project(self) -> Project:
-        return self.handler.project
-
-    @property
-    def cache_behavior(self):
-        """
-        Set the value caching mode for the quib:
-        'auto':     caching is decided automatically according to the ratio between evaluation time and
-                    memory consumption.
-        'off':      do not cache.
-        'on':       always caching.
-
-        Returns
-        -------
-        'auto', 'on', or 'off'
-
-        See Also
-        --------
-        CacheBehavior
-        """
-        return self.handler.quib_function_call.get_cache_behavior().value
-
-    @cache_behavior.setter
-    @validate_user_input(cache_behavior=(str, CacheBehavior))
-    def cache_behavior(self, cache_behavior: Union[str, CacheBehavior]):
-        if isinstance(cache_behavior, str):
-            try:
-                cache_behavior = CacheBehavior[cache_behavior.upper()]
-            except KeyError:
-                raise UnknownCacheBehaviorException(cache_behavior)
-        if self.is_random_func and cache_behavior != CacheBehavior.ON:
-            raise InvalidCacheBehaviorForQuibException(self.handler.quib_function_call.default_cache_behavior)
-        self.handler.quib_function_call.default_cache_behavior = cache_behavior
 
     def setp(self,
              allow_overriding: bool = NoValue,
@@ -701,15 +701,9 @@ class Quib:
 
         return self
 
-    def get_children(self) -> Set[Quib]:
-        # we make a copy since children itself may change size during iteration
-        return set(self.handler.children)
-
-    def get_descendants(self) -> Set[Quib]:
-        children = self.get_children()
-        for child in self.get_children():
-            children |= child.get_descendants()
-        return children
+    """
+    iterations
+    """
 
     def __len__(self):
         if LEN_RAISE_EXCEPTION:
@@ -722,6 +716,22 @@ class Quib:
     def __iter__(self):
         raise TypeError('Cannot iterate over quibs, as their size can vary. '
                         'Try Quib.iter_first() to iterate over the n-first items of the quib.')
+
+    def iter_first(self, amount: Optional[int] = None):
+        """
+        Returns an iterator to the first `amount` elements of the quib.
+        `a, b = quib.iter_first(2)` is the same as `a, b = quib[0], quib[1]`.
+        When `amount` is not given, quibbler will try to detect the correct amount automatically, and
+        might fail with a RuntimeError.
+        For example, `a, b = iquib([1, 2]).iter_first()` is the same as `a, b = iquib([1, 2]).iter_first(2)`.
+        But note that even if the quib is larger than the unpacked amount, the iterator will still yield only the first
+        items - `a, b = iquib([1, 2, 3, 4]).iter_first()` is the same as `a, b = iquib([1, 2, 3, 4]).iter_first(2)`.
+        """
+        return Unpacker(self, amount)
+
+    """
+    get_value
+    """
 
     @raise_quib_call_exceptions_as_own
     def get_value_valid_at_path(self, path: Optional[Path]) -> Any:
@@ -752,12 +762,6 @@ class Quib:
         with get_value_context():
             return self.get_value_valid_at_path([])
 
-    def get_override_list(self) -> Overrider:
-        """
-        Returns an Overrider object representing a list of overrides performed on the quib.
-        """
-        return self.handler.overrider
-
     def get_type(self) -> Type:
         """
         Get the type of wrapped value.
@@ -779,6 +783,15 @@ class Quib:
         with add_quib_to_fail_trace_if_raises_quib_call_exception(quib=self, call='get_ndim()', replace_last=True):
             return self.handler.quib_function_call.get_ndim()
 
+    """
+    overrides
+    """
+    def get_override_list(self) -> Overrider:
+        """
+        Returns an Overrider object representing a list of overrides performed on the quib.
+        """
+        return self.handler.overrider
+
     def get_override_mask(self):
         """
         Assuming this quib represents a numpy ndarray, return a quib representing its override mask.
@@ -793,17 +806,19 @@ class Quib:
             mask = recursively_run_func_on_object(func=lambda x: False, obj=quib.get_value())
         return quib.handler.overrider.fill_override_mask(mask)
 
-    def iter_first(self, amount: Optional[int] = None):
-        """
-        Returns an iterator to the first `amount` elements of the quib.
-        `a, b = quib.iter_first(2)` is the same as `a, b = quib[0], quib[1]`.
-        When `amount` is not given, quibbler will try to detect the correct amount automatically, and
-        might fail with a RuntimeError.
-        For example, `a, b = iquib([1, 2]).iter_first()` is the same as `a, b = iquib([1, 2]).iter_first(2)`.
-        But note that even if the quib is larger than the unpacked amount, the iterator will still yield only the first
-        items - `a, b = iquib([1, 2, 3, 4]).iter_first()` is the same as `a, b = iquib([1, 2, 3, 4]).iter_first(2)`.
-        """
-        return Unpacker(self, amount)
+    """
+    relationships
+    """
+
+    def get_children(self) -> Set[Quib]:
+        # we make a copy since children itself may change size during iteration
+        return set(self.handler.children)
+
+    def get_descendants(self) -> Set[Quib]:
+        children = self.get_children()
+        for child in self.get_children():
+            children |= child.get_descendants()
+        return children
 
     @property
     def parents(self) -> Set[Quib]:
@@ -826,6 +841,10 @@ class Quib:
     """
     File saving
     """
+
+    @property
+    def project(self) -> Project:
+        return self.handler.project
 
     @property
     def save_format(self):
@@ -866,33 +885,6 @@ class Quib:
             SaveFormat
         """
         return self.save_format if self.save_format else self.project.save_format
-
-    @property
-    def actual_save_directory(self) -> Optional[pathlib.Path]:
-        """
-        The actual directory where quib file is saved.
-
-        By default, the quib's save_directory is None and the actual_save_directory defaults to the
-        project's save_directory.
-        Otherwise, if the quib's save_directory is defined as an absolute directory then it is used as is,
-        and if it is defined as a relative path it is used relative to the project's directory.
-
-        Returns:
-            Path
-
-        See also:
-            save_directory
-            Project.directory
-            SaveFormat
-        """
-        save_directory = self.handler.save_directory
-        if save_directory is not None and save_directory.is_absolute():
-            return save_directory  # absolute directory
-        elif self.project.directory is None:
-            return None
-        else:
-            return self.project.directory if save_directory is None \
-                else self.project.directory / save_directory
 
     @property
     def save_path(self) -> Optional[PathWithHyperLink]:
@@ -941,6 +933,33 @@ class Quib:
         if isinstance(directory, str):
             directory = pathlib.Path(directory)
         self.handler.save_directory = directory
+
+    @property
+    def actual_save_directory(self) -> Optional[pathlib.Path]:
+        """
+        The actual directory where quib file is saved.
+
+        By default, the quib's save_directory is None and the actual_save_directory defaults to the
+        project's save_directory.
+        Otherwise, if the quib's save_directory is defined as an absolute directory then it is used as is,
+        and if it is defined as a relative path it is used relative to the project's directory.
+
+        Returns:
+            Path
+
+        See also:
+            save_directory
+            Project.directory
+            SaveFormat
+        """
+        save_directory = self.handler.save_directory
+        if save_directory is not None and save_directory.is_absolute():
+            return save_directory  # absolute directory
+        elif self.project.directory is None:
+            return None
+        else:
+            return self.project.directory if save_directory is None \
+                else self.project.directory / save_directory
 
     def save(self) -> bool:
         """
