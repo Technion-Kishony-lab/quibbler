@@ -196,7 +196,7 @@ class Overrider:
             exec(assignment_text_commands)
         except Exception as e:
             raise e
-        self._paths_to_assignments = quib._overrider._paths_to_assignments
+        self._paths_to_assignments = quib.handler.overrider._paths_to_assignments
         self._active_assignment = None
 
     """

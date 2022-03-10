@@ -61,31 +61,58 @@ if TYPE_CHECKING:
 
 class QuibHandler:
 
-    def __init__(self, quib: Quib, quib_function_call: QuibFuncCall):
+    def __init__(self, quib: Quib, quib_function_call: QuibFuncCall,
+                 assignment_template: Optional[AssignmentTemplate],
+                 allow_overriding: bool,
+                 assigned_name: Optional[str],
+                 file_name: Optional[str],
+                 line_no: Optional[str],
+                 graphics_update_type: Optional[UpdateType],
+                 save_directory: pathlib.Path,
+                 save_format: Optional[SaveFormat],
+                 can_contain_graphics: bool,
+                 ):
         self.quib = weakref.ref(quib)
         self._override_choice_cache = {}
         self.quib_function_call = quib_function_call
+
+        self.assignment_template = assignment_template
+        self.assigned_name = assigned_name
+
+        self.children = WeakSet()
+        self.overrider = Overrider()
+        self.allow_overriding = allow_overriding
+        self.assigned_quibs = None
+        self.created_in_get_value_context = is_within_get_value_context()
+        self.file_name = file_name
+        self.line_no = line_no
+        self.graphics_update_type = graphics_update_type
+
+        self.save_directory = save_directory
+
+        self.save_format = save_format
+        self.can_contain_graphics = can_contain_graphics
 
         from pyquibbler.quib.graphics.persist import persist_artists_on_quib_weak_ref
         self.quib_function_call.artists_creation_callback = functools.partial(persist_artists_on_quib_weak_ref,
                                                                               weakref.ref(quib))
 
     @property
-    def quib_children(self):
-        return self.quib().children
+    def project(self) -> Project:
+        return Project.get_or_create()
 
     def add_child(self, quib: Quib) -> None:
         """
         Add the given quib to the list of quibs that are dependent on this quib.
         """
-        self.quib_children.add(quib)
+        self.children.add(quib)
 
     def redraw_if_appropriate(self):
         """
         Redraws the quib if it's appropriate
         """
-        if self.quib()._graphics_update_type in [UpdateType.NEVER, UpdateType.CENTRAL] \
-                or (self.quib()._graphics_update_type == UpdateType.DROP and is_within_drag()):
+        if self.graphics_update_type in [UpdateType.NEVER, UpdateType.CENTRAL] \
+                or (self.graphics_update_type == UpdateType.DROP and is_within_drag()):
             return
 
         return self.quib().get_value()
@@ -95,10 +122,10 @@ class QuibHandler:
         Overrides a part of the data the quib represents.
         """
         if allow_overriding_from_now_on:
-            self.quib()._allow_overriding = True
-        if not self.quib()._allow_overriding:
+            self.allow_overriding = True
+        if not self.allow_overriding:
             raise OverridingNotAllowedException(self.quib(), assignment)
-        self.quib()._overrider.add_assignment(assignment)
+        self.overrider.add_assignment(assignment)
         if len(assignment.path) == 0:
             self.quib_function_call.on_type_change()
 
@@ -110,21 +137,21 @@ class QuibHandler:
             raise InvalidTypeException(e.type_) from None
 
         if not is_within_drag():
-            self.quib().project.push_assignment_to_undo_stack(quib=self.quib(),
-                                                              assignment=assignment,
-                                                              index=len(self.quib()._overrider) - 1,
-                                                              overrider=self.quib()._overrider)
+            self.project.push_assignment_to_undo_stack(quib=self.quib(),
+                                                       assignment=assignment,
+                                                       index=len(self.overrider) - 1,
+                                                       overrider=self.overrider)
 
     def remove_override(self, path: Path):
         """
         Remove function_definitions in a specific path in the quib.
         """
-        assignment_removal = self.quib()._overrider.remove_assignment(path)
+        assignment_removal = self.overrider.remove_assignment(path)
         if assignment_removal is not None:
-            self.quib().project.push_assignment_to_undo_stack(assignment=assignment_removal,
-                                                              index=len(self.quib()._overrider) - 1,
-                                                              overrider=self.quib()._overrider,
-                                                              quib=self.quib())
+            self.project.push_assignment_to_undo_stack(assignment=assignment_removal,
+                                                       index=len(self.overrider) - 1,
+                                                       overrider=self.overrider,
+                                                       quib=self.quib())
         if len(path) == 0:
             self.quib_function_call.on_type_change()
         self.invalidate_and_redraw_at_path(path=path)
@@ -248,7 +275,7 @@ class QuibHandler:
         """
         Change this quib's state according to a change in a dependency.
         """
-        for child in set(self.quib_children):  # We copy of the set because children can change size during iteration
+        for child in set(self.children):  # We copy of the set because children can change size during iteration
 
             child.handler._invalidate_quib_with_children_at_path(self.quib(), path)
 
@@ -357,7 +384,7 @@ class QuibHandler:
         Get a list of all the non overridden paths (at the first component)
         """
         path = path[:1]
-        assignments = list(self.quib()._overrider)
+        assignments = list(self.overrider)
         if assignments:
             original_value = self.quib().get_value_valid_at_path(None)
             cache = create_cache(original_value)
@@ -370,7 +397,7 @@ class QuibHandler:
         """
         Removes a child from the quib, no longer sending invalidations to it
         """
-        self.quib_children.remove(quib_to_remove)
+        self.children.remove(quib_to_remove)
 
 
 class Quib:
@@ -389,24 +416,19 @@ class Quib:
                  save_format: Optional[SaveFormat],
                  can_contain_graphics: bool,
                  ):
-        self._assignment_template = assignment_template
-        self._assigned_name = assigned_name
 
-        self.children = WeakSet()
-        self._overrider = Overrider()
-        self._allow_overriding = allow_overriding
-        self._assigned_quibs = None
-        self.created_in_get_value_context = is_within_get_value_context()
-        self.file_name = file_name
-        self.line_no = line_no
-        self._graphics_update_type = graphics_update_type
+        self.handler = QuibHandler(self, quib_function_call,
+                                   assignment_template,
+                                   allow_overriding,
+                                   assigned_name,
+                                   file_name,
+                                   line_no,
+                                   graphics_update_type,
+                                   save_directory,
+                                   save_format,
+                                   can_contain_graphics,
+                                   )
 
-        self._save_directory = save_directory
-
-        self._save_format = save_format
-        self._can_contain_graphics = can_contain_graphics
-
-        self.handler = QuibHandler(self, quib_function_call)
     """
     Func metadata funcs
     """
@@ -429,7 +451,7 @@ class Quib:
 
     @property
     def func_can_create_graphics(self):
-        return self.handler.quib_function_call.func_can_create_graphics or self._can_contain_graphics
+        return self.handler.quib_function_call.func_can_create_graphics or self.handler.can_contain_graphics
 
     @property
     def graphics_update_type(self) -> Union[None, str]:
@@ -449,7 +471,7 @@ class Quib:
         --------
         UpdateType, Project.refresh_graphics
         """
-        return self._graphics_update_type.value if self._graphics_update_type else None
+        return self.handler.graphics_update_type.value if self.handler.graphics_update_type else None
 
     @graphics_update_type.setter
     @validate_user_input(graphics_update_type=(type(None), str, UpdateType))
@@ -459,7 +481,7 @@ class Quib:
                 graphics_update_type = UpdateType[graphics_update_type.upper()]
             except KeyError:
                 raise UnknownUpdateTypeException(graphics_update_type)
-        self._graphics_update_type = graphics_update_type
+        self.handler.graphics_update_type = graphics_update_type
 
     """
     Assignment
@@ -480,12 +502,12 @@ class Quib:
         assigned_quibs
 
         """
-        return self._allow_overriding
+        return self.handler.allow_overriding
 
     @allow_overriding.setter
     @validate_user_input(allow_overriding=bool)
     def allow_overriding(self, allow_overriding: bool):
-        self._allow_overriding = allow_overriding
+        self.handler.allow_overriding = allow_overriding
 
     @raise_quib_call_exceptions_as_own
     def assign(self, value: Any, key: Optional[Any] = NoValue) -> None:
@@ -524,7 +546,7 @@ class Quib:
         Set of quibs to which assignments to this quib could translate to and override.
         When assigned_quibs is None, a dialog will be used to choose between options.
         """
-        return self._assigned_quibs
+        return self.handler.assigned_quibs
 
     @assigned_quibs.setter
     def assigned_quibs(self, quibs: Optional[Iterable[Quib]]) -> None:
@@ -539,7 +561,7 @@ class Quib:
                     message='a set of quibs.',
                 )
 
-        self._assigned_quibs = quibs
+        self.handler.assigned_quibs = quibs
 
     @property
     def assignment_template(self) -> AssignmentTemplate:
@@ -550,12 +572,12 @@ class Quib:
             assign
             AssignmentTemplate
         """
-        return self._assignment_template
+        return self.handler.assignment_template
 
     @assignment_template.setter
     @validate_user_input(template=AssignmentTemplate)
     def assignment_template(self, template):
-        self._assignment_template = template
+        self.handler.assignment_template = template
 
     def set_assignment_template(self, *args) -> None:
         """
@@ -566,7 +588,7 @@ class Quib:
         - quib.set_assignment_template(min, max): set the template to a bound template between min and max.
         - quib.set_assignment_template(start, stop, step): set the template to a bound template between min and max.
         """
-        self._assignment_template = create_assignment_template(*args)
+        self.handler.assignment_template = create_assignment_template(*args)
 
     """
     Misc
@@ -594,7 +616,7 @@ class Quib:
 
     @property
     def project(self) -> Project:
-        return Project.get_or_create()
+        return self.handler.project
 
     @property
     def cache_behavior(self):
@@ -667,7 +689,7 @@ class Quib:
 
     def get_children(self) -> Set[Quib]:
         # we make a copy since children itself may change size during iteration
-        return set(self.children)
+        return set(self.handler.children)
 
     def get_descendants(self) -> Set[Quib]:
         children = self.get_children()
@@ -703,7 +725,7 @@ class Quib:
         with add_quib_to_fail_trace_if_raises_quib_call_exception(self, name_for_call):
             result = self.handler.quib_function_call.run(path)
 
-        return self._overrider.override(result, self._assignment_template)
+        return self.handler.overrider.override(result, self.assignment_template)
 
     @raise_quib_call_exceptions_as_own
     def get_value(self) -> Any:
@@ -720,7 +742,7 @@ class Quib:
         """
         Returns an Overrider object representing a list of overrides performed on the quib.
         """
-        return self._overrider
+        return self.handler.overrider
 
     def get_type(self) -> Type:
         """
@@ -755,7 +777,7 @@ class Quib:
             mask = np.zeros(quib.get_shape(), dtype=np.bool)
         else:
             mask = recursively_run_func_on_object(func=lambda x: False, obj=quib.get_value())
-        return quib._overrider.fill_override_mask(mask)
+        return quib.handler.overrider.fill_override_mask(mask)
 
     def iter_first(self, amount: Optional[int] = None):
         """
@@ -805,14 +827,14 @@ class Quib:
         See also:
              SaveFormat
         """
-        return self._save_format
+        return self.handler.save_format
 
     @save_format.setter
     @validate_user_input(save_format=(str, SaveFormat))
     def save_format(self, save_format):
         if isinstance(save_format, str):
             save_format = SaveFormat(save_format)
-        self._save_format = save_format
+        self.handler.save_format = save_format
 
     @property
     def actual_save_format(self) -> SaveFormat:
@@ -829,7 +851,7 @@ class Quib:
             save_format
             SaveFormat
         """
-        return self._save_format if self._save_format else self.project.save_format
+        return self.save_format if self.save_format else self.project.save_format
 
     @property
     def actual_save_directory(self) -> Optional[pathlib.Path]:
@@ -849,13 +871,14 @@ class Quib:
             Project.directory
             SaveFormat
         """
-        if self._save_directory is not None and self._save_directory.is_absolute():
-            return self._save_directory  # absolute directory
+        save_directory = self.handler.save_directory
+        if save_directory is not None and save_directory.is_absolute():
+            return save_directory  # absolute directory
         elif self.project.directory is None:
             return None
         else:
-            return self.project.directory if self._save_directory is None \
-                else self.project.directory / self._save_directory
+            return self.project.directory if save_directory is None \
+                else self.project.directory / save_directory
 
     @property
     def save_path(self) -> Optional[PathWithHyperLink]:
@@ -896,14 +919,14 @@ class Quib:
         See also:
             save_path
         """
-        return PathWithHyperLink(self._save_directory)
+        return PathWithHyperLink(self.handler.save_directory)
 
     @save_directory.setter
     @validate_user_input(directory=(str, pathlib.Path))
     def save_directory(self, directory: Union[str, pathlib.Path]):
         if isinstance(directory, str):
             directory = pathlib.Path(directory)
-        self._save_directory = directory
+        self.handler.save_directory = directory
 
     def save(self) -> bool:
         """
@@ -918,13 +941,13 @@ class Quib:
         if self.actual_save_format == SaveFormat.VALUE_TXT:
             return self._save_value_as_txt()
 
-        if len(self._overrider) == 0:
+        if len(self.handler.overrider) == 0:
             return False
         os.makedirs(self.actual_save_directory, exist_ok=True)
         if self.actual_save_format == SaveFormat.BIN:
-            return self._overrider.save_to_binary(self.save_path)
+            return self.handler.overrider.save_to_binary(self.save_path)
         elif self.actual_save_format == SaveFormat.TXT:
-            return self._overrider.save_to_txt(self.save_path)
+            return self.handler.overrider.save_to_txt(self.save_path)
 
     def _save_value_as_txt(self):
         """
@@ -970,9 +993,9 @@ class Quib:
             return False
 
         if self.actual_save_format == SaveFormat.BIN:
-            self._overrider.load_from_binary(self.save_path)
+            self.handler.overrider.load_from_binary(self.save_path)
         elif self.actual_save_format == SaveFormat.TXT:
-            self._overrider.load_from_txt(self.save_path)
+            self.handler.overrider.load_from_txt(self.save_path)
         elif self.actual_save_format == SaveFormat.VALUE_TXT:
             self._load_value_from_txt()
 
@@ -1004,7 +1027,7 @@ class Quib:
         --------
         name, setp, Project.save_quibs, Project.load_quibs
         """
-        return self._assigned_name
+        return self.handler.assigned_name
 
     @assigned_name.setter
     @validate_user_input(assigned_name=(str, type(None)))
@@ -1012,7 +1035,7 @@ class Quib:
         if assigned_name is None \
                 or len(assigned_name) \
                 and assigned_name[0].isalpha() and all([c.isalnum() or c in ' _' for c in assigned_name]):
-            self._assigned_name = assigned_name
+            self.handler.assigned_name = assigned_name
         else:
             raise ValueError('name must be None or a string starting with a letter '
                              'and continuing alpha-numeric charaters or spaces')
@@ -1081,7 +1104,15 @@ class Quib:
         if PRETTY_REPR:
             if REPR_RETURNS_SHORT_NAME:
                 return str(self.get_math_expression())
-            elif REPR_WITH_OVERRIDES and len(self._overrider):
-                return self.pretty_repr() + '\n' + self._overrider.pretty_repr(self.assigned_name)
+            elif REPR_WITH_OVERRIDES and len(self.handler.overrider):
+                return self.pretty_repr() + '\n' + self.handler.overrider.pretty_repr(self.assigned_name)
             return self.pretty_repr()
         return self.ugly_repr()
+
+    @property
+    def line_no(self):
+        return self.handler.line_no
+
+    @property
+    def file_name(self):
+        return self.handler.file_name

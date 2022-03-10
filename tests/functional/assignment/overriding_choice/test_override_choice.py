@@ -222,7 +222,7 @@ def test_override_choice_when_diverged_and_all_diverged_inversions_are_overridde
 
 def create_proxy_created_in_context(quib):
     proxy = create_proxy(quib)
-    proxy.created_in_get_value_context = True
+    proxy.handler.created_in_get_value_context = True
     return proxy
 
 

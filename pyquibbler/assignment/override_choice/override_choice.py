@@ -169,7 +169,7 @@ class OverrideOptionsTree:
             if not inversions:
                 raise CannotChangeQuibAtPathException(quib_change)
             non_context_inversions = [inversion for inversion in inversions
-                                      if not inversion.quib.created_in_get_value_context]
+                                      if not inversion.quib.handler.created_in_get_value_context]
             assert len(non_context_inversions) < 2
             if non_context_inversions:
                 return non_context_inversions[0]
