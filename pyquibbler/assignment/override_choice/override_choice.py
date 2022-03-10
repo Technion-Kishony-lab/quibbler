@@ -92,11 +92,11 @@ class OverrideOptionsTree:
         """
         if len(self.options) == 1 and not self.can_diverge:
             return OverrideChoice(OverrideChoiceType.OVERRIDE, 0)
-        choice = self.inversed_quib.try_load_override_choice(self.choice_context)
+        choice = self.inversed_quib.handler.try_load_override_choice(self.choice_context)
         if choice is None:
             from pyquibbler.assignment.override_choice import choose_override_dialog
             choice = choose_override_dialog([override.quib for override in self.options], self.can_diverge)
-            self.inversed_quib.store_override_choice(self.choice_context, choice)
+            self.inversed_quib.handler.store_override_choice(self.choice_context, choice)
         return choice
 
     def choose_overrides_from_diverged_inverse_assignment(self) -> OverrideGroup:
@@ -169,7 +169,7 @@ class OverrideOptionsTree:
             if not inversions:
                 raise CannotChangeQuibAtPathException(quib_change)
             non_context_inversions = [inversion for inversion in inversions
-                                      if not inversion.quib.created_in_get_value_context]
+                                      if not inversion.quib.handler.created_in_get_value_context]
             assert len(non_context_inversions) < 2
             if non_context_inversions:
                 return non_context_inversions[0]

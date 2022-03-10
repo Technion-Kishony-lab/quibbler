@@ -113,7 +113,7 @@ def test_undo_redo_undo(project):
 def test_undo_assignment_removal(project):
     a = iquib(5)
     a.assign(10)
-    a.remove_override([])
+    a.handler.remove_override([])
     assert a.get_value() == 5, "sanity"
 
     project.undo()
@@ -124,7 +124,7 @@ def test_undo_assignment_removal(project):
 def test_undo_assignment_removal_and_assignment(project):
     a = iquib(5)
     a.assign(10)
-    a.remove_override([])
+    a.handler.remove_override([])
     assert a.get_value() == 5, "sanity"
 
     project.undo()
@@ -183,11 +183,11 @@ def test_project_undo_with_group_reverts_back_to_before_group_and_runs_graphics_
     add_definition_for_function(mock_func, create_func_definition(is_known_graphics_func=True))
     _ = create_quib(func=mock_func, args=(a,), evaluate_now=True)
     with project.start_undo_group():
-        a.override(Assignment(
+        a.handler.override(Assignment(
             path=[],
             value=10
         ))
-        a.override(Assignment(
+        a.handler.override(Assignment(
             path=[],
             value=8
         ))

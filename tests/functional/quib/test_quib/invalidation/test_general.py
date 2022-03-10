@@ -17,7 +17,7 @@ def test_quib_does_not_request_shape_or_parents_shapes_on_first_attempt(create_m
     add_definition_for_function(func=quib.func, function_definition=create_func_definition(
         raw_data_source_arguments=[0], forwards_path_translators=[forwards_path_translator]))
 
-    parent_quib.invalidate_and_redraw_at_path([])
+    parent_quib.handler.invalidate_and_redraw_at_path([])
 
     assert parent_quib.func.call_count == 0
 

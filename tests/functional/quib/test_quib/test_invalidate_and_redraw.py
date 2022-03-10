@@ -10,7 +10,7 @@ from pyquibbler.quib.factory import create_quib
 
 
 def test_quib_invalidate_and_redraw_calls_children_with_graphics(quib, graphics_quib):
-    quib.invalidate_and_redraw_at_path()
+    quib.handler.invalidate_and_redraw_at_path()
 
     graphics_quib.func.assert_called_once()
 
@@ -18,7 +18,7 @@ def test_quib_invalidate_and_redraw_calls_children_with_graphics(quib, graphics_
 def test_quib_does_not_redraw_when_child_is_not_graphics_quib(quib):
     non_graphics_quib = create_quib(func=mock.Mock(), args=(quib,), kwargs={})
 
-    quib.invalidate_and_redraw_at_path()
+    quib.handler.invalidate_and_redraw_at_path()
 
     non_graphics_quib.func.assert_not_called()
 
@@ -28,10 +28,10 @@ def test_quib_removes_dead_children_automatically(quib):
     add_definition_for_function(func=mock_func,
                                 function_definition=create_func_definition(is_known_graphics_func=True))
     child = create_quib(func=mock_func, args=(quib,), kwargs={})
-    quib.add_child(child)
+    quib.handler.add_child(child)
 
     del child
-    quib.invalidate_and_redraw_at_path(path=[])
+    quib.handler.invalidate_and_redraw_at_path(path=[])
 
     mock_func.assert_not_called()
 
@@ -40,11 +40,11 @@ def test_quib_removes_dead_children_automatically(quib):
 def test_quib_invalidates_children_recursively(quib, create_mock_quib):
     child = create_quib(func=mock.Mock(), args=(quib,), kwargs={})
     grandchild = create_mock_quib()
-    child.add_child(grandchild)
+    child.handler.add_child(grandchild)
 
-    quib.invalidate_and_redraw_at_path([])
+    quib.handler.invalidate_and_redraw_at_path([])
 
-    grandchild._invalidate_quib_with_children_at_path.assert_called_once()
+    grandchild.handler._invalidate_quib_with_children_at_path.assert_called_once()
 
 
 def create_child_with_valid_cache(parent):
@@ -60,7 +60,7 @@ def test_quib_invalidates_children_recursively(quib, create_mock_quib):
     child = create_child_with_valid_cache(quib)
     grandchild = create_child_with_valid_cache(child)
 
-    quib.invalidate_and_redraw_at_path([])
+    quib.handler.invalidate_and_redraw_at_path([])
 
     assert child.cache_status == CacheStatus.ALL_INVALID
     assert grandchild.cache_status == CacheStatus.ALL_INVALID

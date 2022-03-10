@@ -29,7 +29,7 @@ class OverrideRemoval(QuibChange):
         return self._path
 
     def apply(self):
-        self.quib.remove_override(self.path)
+        self.quib.handler.remove_override(self.path)
 
     @classmethod
     def from_quib_change(cls, change: QuibChange):
@@ -37,7 +37,7 @@ class OverrideRemoval(QuibChange):
 
     def get_inversions(self, return_empty_list_instead_of_raising=False) -> List[OverrideRemoval]:
         try:
-            return self.quib.get_inversions_for_override_removal(self)
+            return self.quib.handler.get_inversions_for_override_removal(self)
         except CannotReverseException:
             if return_empty_list_instead_of_raising:
                 return []

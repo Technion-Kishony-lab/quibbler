@@ -50,7 +50,7 @@ def test_quib_configure_with_invalid_value(quib):
 
 def test_quib_knows_it_is_created_in_a_context():
     def func():
-        assert create_quib(mock.Mock(return_value=0)).created_in_get_value_context
+        assert create_quib(mock.Mock(return_value=0)).handler.created_in_get_value_context
         return 'yay'
 
     assert create_quib(func).get_value() == 'yay'

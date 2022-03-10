@@ -15,6 +15,7 @@ from pyquibbler.assignment import override_choice as override_choice_module
 from pyquibbler.path import PathComponent
 from pyquibbler.quib import Quib
 from pyquibbler.quib.factory import create_quib
+from pyquibbler.quib.get_value_context_manager import get_value_context
 from pyquibbler.quib.specialized_functions.proxy import create_proxy
 
 
@@ -221,7 +222,7 @@ def test_override_choice_when_diverged_and_all_diverged_inversions_are_overridde
 
 def create_proxy_created_in_context(quib):
     proxy = create_proxy(quib)
-    proxy.created_in_get_value_context = True
+    proxy.handler.created_in_get_value_context = True
     return proxy
 
 
@@ -342,7 +343,7 @@ def test_get_overrides_for_assignment_when_can_assign_to_parents(diverged_quib_g
 
 
 def test_raises_cannot_change_when_context_quib_cannot_be_inverted():
-    with Quib._get_value_context():
+    with get_value_context():
         # A function we don't know to invert
         child = q(lambda x: x, 10)
     with raises(CannotChangeQuibAtPathException):
@@ -351,7 +352,7 @@ def test_raises_cannot_change_when_context_quib_cannot_be_inverted():
 
 def test_get_override_group_on_context_quibs():
     non_context_parent = iquib(0)
-    with Quib._get_value_context():
+    with get_value_context():
         context_parent = iquib(1)
         child = non_context_parent + context_parent
         child.allow_overriding = True

@@ -98,8 +98,8 @@ class Project:
         from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
         with aggregate_redraw_mode():
             for function_quib in quibs:
-                function_quib._invalidate_self([])
-                function_quib.invalidate_and_redraw_at_path([])
+                function_quib.handler.invalidate_self([])
+                function_quib.handler.invalidate_and_redraw_at_path([])
 
     """
     central quib commands
@@ -131,7 +131,7 @@ class Project:
             Quib.update_type
         """
         for quib in self.quibs:
-            if quib.redraw_update_type == UpdateType.CENTRAL:
+            if quib.graphics_update_type == UpdateType.CENTRAL:
                 quib.get_value()
 
     """

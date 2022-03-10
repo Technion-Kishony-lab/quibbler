@@ -14,7 +14,7 @@ def test_elementwise_function_quib_invalidation_with_flat_list():
     d = b[1]
     d.get_value()
 
-    a.invalidate_and_redraw_at_path(PathBuilder(a)[0].path)
+    a.handler.invalidate_and_redraw_at_path(PathBuilder(a)[0].path)
 
     assert c.cache_status == CacheStatus.ALL_INVALID
     assert d.cache_status == CacheStatus.ALL_VALID
@@ -30,7 +30,7 @@ def test_elementwise_function_quib_invalidation_with_broadcast_numpy_array():
     for quib in quibs:
         quib.get_value()
 
-    a.invalidate_and_redraw_at_path(PathBuilder(a)[0, 0].path)
+    a.handler.invalidate_and_redraw_at_path(PathBuilder(a)[0, 0].path)
 
     for quib, should_be_invalidated in zip(quibs, should_be_invalidated_list):
         assert quib.cache_status == (CacheStatus.ALL_INVALID if should_be_invalidated else CacheStatus.ALL_VALID)

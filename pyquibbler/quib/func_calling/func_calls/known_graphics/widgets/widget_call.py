@@ -22,7 +22,7 @@ class WidgetQuibFuncCall(QuibFuncCall):
     def _inverse_assign(self, quib: Quib, path: Path, value: Any):
         from pyquibbler import Assignment
         with graphics_assignment_mode(self._get_axis()):
-            quib.apply_assignment(Assignment(value=value, path=path))
+            quib.handler.apply_assignment(Assignment(value=value, path=path))
 
     def _run_single_call(self, func: Callable, graphics_collection: GraphicsCollection,
                          args: Tuple[Any, ...], kwargs: Mapping[str, Any], quibs_allowed_to_access: Set[Quib]):

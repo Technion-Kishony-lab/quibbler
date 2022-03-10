@@ -108,9 +108,9 @@ def check_get_value_valid_at_path(func, data, path_to_get_value_at):
     assert not faulty_sub_paths, faulty_sub_paths
 
     # Check that if any other paths in the parent change, the result doesn't change
-    input_quib.apply_assignment(Assignment(999, PathBuilder(input_quib)[...].path))
+    input_quib.handler.apply_assignment(Assignment(999, PathBuilder(input_quib)[...].path))
     for path in requested_paths:
         value = deep_get(data, path)
-        input_quib.apply_assignment(Assignment(value, path))
+        input_quib.handler.apply_assignment(Assignment(value, path))
     result_with_everything_else_changed = result_quib.get_value()
     assert equals_at_path(result_with_everything_else_changed, result, path_to_get_value_at)

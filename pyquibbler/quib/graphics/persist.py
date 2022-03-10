@@ -39,7 +39,7 @@ def persist_quib_on_artists(quib: Quib, new_artists: Set[Artist]):
     """
 
     artists_to_persist_on = new_artists \
-        if new_artists else quib._quib_function_call.get_objects_of_type_in_args_kwargs(Artist)
+        if new_artists else quib.handler.quib_function_call.get_objects_of_type_in_args_kwargs(Artist)
     for artist in artists_to_persist_on:
         quibs = getattr(artist, '_quibbler_graphics_function_quibs', set())
         quibs.add(quib)
@@ -67,7 +67,7 @@ def persist_artists_on_quib_weak_ref(weak_ref_quib, artists):
             current_quib = getattr(artist, name, None)
             if current_quib is not quib and current_quib is not None:
                 for parent in current_quib.parents:
-                    parent.remove_child(current_quib)
+                    parent.handler.remove_child(current_quib)
             setattr(artist, name, quib)
     else:
         persist_relevant_info_on_new_artists_for_quib(quib, artists)

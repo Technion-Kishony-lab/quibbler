@@ -58,14 +58,14 @@ class QuibWithAssignment(QuibChange, ABC):
 
 class AssignmentToQuib(QuibWithAssignment):
     def apply(self) -> None:
-        self.quib.apply_assignment(self.assignment)
+        self.quib.handler.apply_assignment(self.assignment)
 
     def to_override(self) -> Override:
         return Override(self.quib, self.assignment)
 
     def get_inversions(self, return_empty_list_instead_of_raising=False) -> List[AssignmentToQuib]:
         try:
-            return self.quib.get_inversions_for_assignment(self.assignment)
+            return self.quib.handler.get_inversions_for_assignment(self.assignment)
         except CannotReverseException:
             if return_empty_list_instead_of_raising:
                 return []
@@ -74,4 +74,4 @@ class AssignmentToQuib(QuibWithAssignment):
 
 class Override(QuibWithAssignment):
     def apply(self) -> None:
-        self.quib.override(self.assignment, allow_overriding_from_now_on=False)
+        self.quib.handler.override(self.assignment, allow_overriding_from_now_on=False)

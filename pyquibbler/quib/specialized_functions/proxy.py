@@ -12,11 +12,11 @@ if TYPE_CHECKING:
     from pyquibbler.quib import Quib
 
 
-def create_proxy(quib: Quib):
+def create_proxy(quib: Quib) -> Quib:
     from pyquibbler.quib.factory import create_quib
     proxy_quib = create_quib(func=proxy, args=(quib,))
     # We don't need to be the child of our parent, as we never want to be invalidated
-    quib.remove_child(proxy_quib)
+    quib.handler.remove_child(proxy_quib)
     return proxy_quib
 
 

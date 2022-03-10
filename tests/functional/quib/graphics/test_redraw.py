@@ -23,9 +23,9 @@ def test_redraw_in_aggregate_mode():
     assert mock_func.call_count == 0, "sanity"
 
     with aggregate_redraw_mode():
-        quib.invalidate_and_redraw_at_path([])
-        quib.invalidate_and_redraw_at_path([])
-        quib.invalidate_and_redraw_at_path([])
+        quib.handler.invalidate_and_redraw_at_path([])
+        quib.handler.invalidate_and_redraw_at_path([])
+        quib.handler.invalidate_and_redraw_at_path([])
 
     assert mock_func.call_count == 1
 
