@@ -97,6 +97,10 @@ class QuibHandler:
         self.quib_function_call.artists_creation_callback = functools.partial(persist_artists_on_quib_weak_ref,
                                                                               weakref.ref(quib))
 
+    """
+    relationships
+    """
+
     @property
     def project(self) -> Project:
         return Project.get_or_create()
@@ -107,6 +111,16 @@ class QuibHandler:
         """
         self.children.add(quib)
 
+    def remove_child(self, quib_to_remove: Quib):
+        """
+        Removes a child from the quib, no longer sending invalidations to it
+        """
+        self.children.remove(quib_to_remove)
+
+    """
+    graphics
+    """
+
     def redraw_if_appropriate(self):
         """
         Redraws the quib if it's appropriate
@@ -116,52 +130,6 @@ class QuibHandler:
             return
 
         return self.quib().get_value()
-
-    def override(self, assignment: Assignment, allow_overriding_from_now_on=True):
-        """
-        Overrides a part of the data the quib represents.
-        """
-        if allow_overriding_from_now_on:
-            self.allow_overriding = True
-        if not self.allow_overriding:
-            raise OverridingNotAllowedException(self.quib(), assignment)
-        self.overrider.add_assignment(assignment)
-        if len(assignment.path) == 0:
-            self.quib_function_call.on_type_change()
-
-        try:
-            self.invalidate_and_redraw_at_path(assignment.path)
-        except FailedToDeepAssignException as e:
-            raise FailedToDeepAssignException(exception=e.exception, path=e.path) from None
-        except InvalidTypeException as e:
-            raise InvalidTypeException(e.type_) from None
-
-        if not is_within_drag():
-            self.project.push_assignment_to_undo_stack(quib=self.quib(),
-                                                       assignment=assignment,
-                                                       index=len(self.overrider) - 1,
-                                                       overrider=self.overrider)
-
-    def remove_override(self, path: Path):
-        """
-        Remove function_definitions in a specific path in the quib.
-        """
-        assignment_removal = self.overrider.remove_assignment(path)
-        if assignment_removal is not None:
-            self.project.push_assignment_to_undo_stack(assignment=assignment_removal,
-                                                       index=len(self.overrider) - 1,
-                                                       overrider=self.overrider,
-                                                       quib=self.quib())
-        if len(path) == 0:
-            self.quib_function_call.on_type_change()
-        self.invalidate_and_redraw_at_path(path=path)
-
-    def apply_assignment(self, assignment: Assignment) -> None:
-        """
-        Create an assignment with an Assignment object,
-        function_definitions the current values at the assignment's paths with the assignment's value
-        """
-        get_override_group_for_change(AssignmentToQuib(self.quib(), assignment)).apply()
 
     def _iter_artist_lists(self) -> Iterable[List[Artist]]:
         return map(lambda g: g.artists, self.quib_function_call.flat_graphics_collections())
@@ -189,6 +157,7 @@ class QuibHandler:
     """
     Invalidation
     """
+
     def invalidate_self(self, path: Path):
         """
         This method is called whenever a quib itself is invalidated; subclasses will override this with their
@@ -215,61 +184,6 @@ class QuibHandler:
             self._invalidate_children_at_path(path)
 
         self._redraw()
-
-    def get_inversions_for_override_removal(self, override_removal: OverrideRemoval) -> List[OverrideRemoval]:
-        """
-        Get a list of overide removals to parent quibs which could be applied instead of the given override removal
-        and produce the same change in the value of this quib.
-        """
-        from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation_with_sources_metadata
-        func_call, sources_to_quibs = get_func_call_for_translation_with_sources_metadata(self.quib_function_call)
-        try:
-            sources_to_paths = backwards_translate(func_call=func_call, path=override_removal.path,
-                                                   shape=self.quib().get_shape(), type_=self.quib().get_type())
-        except NoTranslatorsFoundException:
-            return []
-        else:
-            return [OverrideRemoval(sources_to_quibs[source], path) for source, path in sources_to_paths.items()]
-
-    def get_inversions_for_assignment(self, assignment: Assignment) -> List[AssignmentToQuib]:
-        """
-        Get a list of assignments to parent quibs which could be applied instead of the given assignment
-        and produce the same change in the value of this quib.
-        """
-        from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation_with_sources_metadata
-        func_call, data_sources_to_quibs = get_func_call_for_translation_with_sources_metadata(self.quib_function_call)
-
-        try:
-            value = self.quib().get_value()
-            # TODO: need to take care of out-of-range assignments:
-            # value = self.get_value_valid_at_path(assignment.path)
-
-            from pyquibbler.inversion.invert import invert
-            inversals = invert(func_call=func_call,
-                               previous_result=value,
-                               assignment=assignment)
-        except NoInvertersFoundException:
-            return []
-
-        return [
-            AssignmentToQuib(
-                quib=data_sources_to_quibs[inversal.source],
-                assignment=inversal.assignment
-            )
-            for inversal in inversals
-        ]
-
-    def store_override_choice(self, context: ChoiceContext, choice: OverrideChoice) -> None:
-        """
-        Store a user override choice in the cache for future use.
-        """
-        self._override_choice_cache[context] = choice
-
-    def try_load_override_choice(self, context: ChoiceContext) -> Optional[OverrideChoice]:
-        """
-        If a choice fitting the current options has been cached, return it. Otherwise return None.
-        """
-        return self._override_choice_cache.get(context)
 
     def _invalidate_children_at_path(self, path: Path) -> None:
         """
@@ -353,6 +267,111 @@ class QuibHandler:
             except NoTranslatorsFoundException:
                 return [[]]
 
+    """
+    assignments
+    """
+
+    def override(self, assignment: Assignment, allow_overriding_from_now_on=True):
+        """
+        Overrides a part of the data the quib represents.
+        """
+        if allow_overriding_from_now_on:
+            self.allow_overriding = True
+        if not self.allow_overriding:
+            raise OverridingNotAllowedException(self.quib(), assignment)
+        self.overrider.add_assignment(assignment)
+        if len(assignment.path) == 0:
+            self.quib_function_call.on_type_change()
+
+        try:
+            self.invalidate_and_redraw_at_path(assignment.path)
+        except FailedToDeepAssignException as e:
+            raise FailedToDeepAssignException(exception=e.exception, path=e.path) from None
+        except InvalidTypeException as e:
+            raise InvalidTypeException(e.type_) from None
+
+        if not is_within_drag():
+            self.project.push_assignment_to_undo_stack(quib=self.quib(),
+                                                       assignment=assignment,
+                                                       index=len(self.overrider) - 1,
+                                                       overrider=self.overrider)
+
+    def remove_override(self, path: Path):
+        """
+        Remove function_definitions in a specific path in the quib.
+        """
+        assignment_removal = self.overrider.remove_assignment(path)
+        if assignment_removal is not None:
+            self.project.push_assignment_to_undo_stack(assignment=assignment_removal,
+                                                       index=len(self.overrider) - 1,
+                                                       overrider=self.overrider,
+                                                       quib=self.quib())
+        if len(path) == 0:
+            self.quib_function_call.on_type_change()
+        self.invalidate_and_redraw_at_path(path=path)
+
+    def apply_assignment(self, assignment: Assignment) -> None:
+        """
+        Create an assignment with an Assignment object,
+        function_definitions the current values at the assignment's paths with the assignment's value
+        """
+        get_override_group_for_change(AssignmentToQuib(self.quib(), assignment)).apply()
+
+    def get_inversions_for_override_removal(self, override_removal: OverrideRemoval) -> List[OverrideRemoval]:
+        """
+        Get a list of overide removals to parent quibs which could be applied instead of the given override removal
+        and produce the same change in the value of this quib.
+        """
+        from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation_with_sources_metadata
+        func_call, sources_to_quibs = get_func_call_for_translation_with_sources_metadata(self.quib_function_call)
+        try:
+            sources_to_paths = backwards_translate(func_call=func_call, path=override_removal.path,
+                                                   shape=self.quib().get_shape(), type_=self.quib().get_type())
+        except NoTranslatorsFoundException:
+            return []
+        else:
+            return [OverrideRemoval(sources_to_quibs[source], path) for source, path in sources_to_paths.items()]
+
+    def get_inversions_for_assignment(self, assignment: Assignment) -> List[AssignmentToQuib]:
+        """
+        Get a list of assignments to parent quibs which could be applied instead of the given assignment
+        and produce the same change in the value of this quib.
+        """
+        from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation_with_sources_metadata
+        func_call, data_sources_to_quibs = get_func_call_for_translation_with_sources_metadata(self.quib_function_call)
+
+        try:
+            value = self.quib().get_value()
+            # TODO: need to take care of out-of-range assignments:
+            # value = self.get_value_valid_at_path(assignment.path)
+
+            from pyquibbler.inversion.invert import invert
+            inversals = invert(func_call=func_call,
+                               previous_result=value,
+                               assignment=assignment)
+        except NoInvertersFoundException:
+            return []
+
+        return [
+            AssignmentToQuib(
+                quib=data_sources_to_quibs[inversal.source],
+                assignment=inversal.assignment
+            )
+            for inversal in inversals
+        ]
+
+    def store_override_choice(self, context: ChoiceContext, choice: OverrideChoice) -> None:
+        """
+        Store a user override choice in the cache for future use.
+        """
+        self._override_choice_cache[context] = choice
+
+    def try_load_override_choice(self, context: ChoiceContext) -> Optional[OverrideChoice]:
+        """
+        If a choice fitting the current options has been cached, return it. Otherwise return None.
+        """
+        return self._override_choice_cache.get(context)
+
     @staticmethod
     def _apply_assignment_to_cache(original_value, cache, assignment):
         """
@@ -392,12 +411,6 @@ class QuibHandler:
                 cache = self._apply_assignment_to_cache(original_value, cache, assignment)
             return len(cache.get_uncached_paths(path)) == 0
         return False
-
-    def remove_child(self, quib_to_remove: Quib):
-        """
-        Removes a child from the quib, no longer sending invalidations to it
-        """
-        self.children.remove(quib_to_remove)
 
 
 class Quib:
