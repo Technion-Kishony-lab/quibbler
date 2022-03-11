@@ -11,7 +11,7 @@ def test_get_shape_raises_external_call_exception():
     try:
         c.get_shape()
     except ExternalCallFailedException as e:
-        pass
+        assert e.quibs_with_calls == [(b, 'get_blank_value()'), (c, 'get_shape()')]
 
 
 @pytest.mark.show_quib_exceptions_as_quib_traceback(True)
@@ -25,7 +25,6 @@ def test_get_value_raises_external_call_exception():
         assert e.quibs_with_calls == [(b, 'get_blank_value()'), (c, 'get_value()')]
 
 
-
 @pytest.mark.show_quib_exceptions_as_quib_traceback(True)
 def test_get_shape_of_q_function_raises_external_call_exception():
 
@@ -37,13 +36,16 @@ def test_get_shape_of_q_function_raises_external_call_exception():
 
     try:
         b.get_shape()
-    except Exception as e:
-        assert isinstance(e, ExternalCallFailedException)
+    except ExternalCallFailedException as e:
+        assert e.quibs_with_calls == [(b, 'get_shape()')]
 
 
 @pytest.mark.show_quib_exceptions_as_quib_traceback(True)
 def test_exception_during_quib_creation():
     import numpy as np
     a = iquib(np.array([1,2]))
-    c = np.swapaxes(a) # <--- missing positional argument
-    c.get_value()
+    b = np.swapaxes(a) # <--- missing positional argument
+    try:
+        b.get_shape()
+    except ExternalCallFailedException as e:
+        assert e.quibs_with_calls == [(b, 'get_shape()')]
