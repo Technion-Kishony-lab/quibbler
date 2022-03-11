@@ -68,7 +68,7 @@ class QuibHandler:
                  save_format: Optional[SaveFormat],
                  can_contain_graphics: bool,
                  ):
-        self.quib = weakref.ref(quib)
+        self._quib_weakref = weakref.ref(quib)
         self._override_choice_cache = {}
         self.quib_function_call = quib_function_call
 
@@ -98,6 +98,10 @@ class QuibHandler:
     """
 
     @property
+    def quib(self):
+        return self._quib_weakref()
+
+    @property
     def project(self) -> Project:
         return Project.get_or_create()
 
@@ -125,7 +129,7 @@ class QuibHandler:
                 or (self.graphics_update_type == UpdateType.DROP and is_within_drag()):
             return
 
-        return self.quib().get_value()
+        return self.quib.get_value()
 
     def _iter_artist_lists(self) -> Iterable[List[Artist]]:
         return map(lambda g: g.artists, self.quib_function_call.flat_graphics_collections())
@@ -148,7 +152,7 @@ class QuibHandler:
         """
         Get all artists that directly or indirectly depend on this quib.
         """
-        return {child for child in self.quib().get_descendants() if child.func_can_create_graphics}
+        return {child for child in self.quib.get_descendants() if child.func_can_create_graphics}
 
     """
     Invalidation
@@ -187,7 +191,7 @@ class QuibHandler:
         """
         for child in set(self.children):  # We copy of the set because children can change size during iteration
 
-            child.handler._invalidate_quib_with_children_at_path(self.quib(), path)
+            child.handler._invalidate_quib_with_children_at_path(self.quib, path)
 
     def _invalidate_quib_with_children_at_path(self, invalidator_quib: Quib, path: Path):
         """
@@ -225,8 +229,8 @@ class QuibHandler:
             sources_to_paths={
                 quibs_to_sources[invalidator_quib]: path
             },
-            shape=self.quib().get_shape(),
-            type_=self.quib().get_type(),
+            shape=self.quib.get_shape(),
+            type_=self.quib.get_type(),
             **self.quib_function_call.get_result_metadata()
         )
         return sources_to_forwarded_paths.get(quibs_to_sources[invalidator_quib], [])
@@ -284,7 +288,7 @@ class QuibHandler:
         if allow_overriding_from_now_on:
             self.allow_overriding = True
         if not self.allow_overriding:
-            raise OverridingNotAllowedException(self.quib(), assignment)
+            raise OverridingNotAllowedException(self.quib, assignment)
         self.overrider.add_assignment(assignment)
         if len(assignment.path) == 0:
             self.quib_function_call.on_type_change()
@@ -297,7 +301,7 @@ class QuibHandler:
             raise InvalidTypeException(e.type_) from None
 
         if not is_within_drag():
-            self.project.push_assignment_to_undo_stack(quib=self.quib(),
+            self.project.push_assignment_to_undo_stack(quib=self.quib,
                                                        assignment=assignment,
                                                        index=len(self.overrider) - 1,
                                                        overrider=self.overrider)
@@ -311,7 +315,7 @@ class QuibHandler:
             self.project.push_assignment_to_undo_stack(assignment=assignment_removal,
                                                        index=len(self.overrider) - 1,
                                                        overrider=self.overrider,
-                                                       quib=self.quib())
+                                                       quib=self.quib)
         if len(path) == 0:
             self.quib_function_call.on_type_change()
         self.invalidate_and_redraw_at_path(path=path)
@@ -321,7 +325,7 @@ class QuibHandler:
         Create an assignment with an Assignment object,
         function_definitions the current values at the assignment's paths with the assignment's value
         """
-        get_override_group_for_change(AssignmentToQuib(self.quib(), assignment)).apply()
+        get_override_group_for_change(AssignmentToQuib(self.quib, assignment)).apply()
 
     def get_inversions_for_override_removal(self, override_removal: OverrideRemoval) -> List[OverrideRemoval]:
         """
@@ -332,7 +336,7 @@ class QuibHandler:
         func_call, sources_to_quibs = get_func_call_for_translation_with_sources_metadata(self.quib_function_call)
         try:
             sources_to_paths = backwards_translate(func_call=func_call, path=override_removal.path,
-                                                   shape=self.quib().get_shape(), type_=self.quib().get_type())
+                                                   shape=self.quib.get_shape(), type_=self.quib.get_type())
         except NoTranslatorsFoundException:
             return []
         else:
@@ -347,7 +351,7 @@ class QuibHandler:
         func_call, data_sources_to_quibs = get_func_call_for_translation_with_sources_metadata(self.quib_function_call)
 
         try:
-            value = self.quib().get_value()
+            value = self.quib.get_value()
             # TODO: need to take care of out-of-range assignments:
             # value = self.get_value_valid_at_path(assignment.path)
 
@@ -413,7 +417,7 @@ class QuibHandler:
 
         assignments = list(self.overrider)
         path = path[:1]
-        original_value = self.quib().get_value_valid_at_path(None)
+        original_value = self.quib.get_value_valid_at_path(None)
         cache = create_cache(original_value)
         for assignment in assignments:
             cache = self._apply_assignment_to_cache(original_value, cache, assignment)
@@ -430,7 +434,7 @@ class QuibHandler:
         are guaranteed to be valid
         """
         try:
-            guard_raise_if_not_allowed_access_to_quib(self.quib())
+            guard_raise_if_not_allowed_access_to_quib(self.quib)
         except CannotAccessQuibInScopeException:
             raise
 
