@@ -97,9 +97,9 @@ class Project:
         # We aggregate to ensure we don't redraw axes more than once
         from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
         with aggregate_redraw_mode():
-            for function_quib in quibs:
-                function_quib.handler.invalidate_self([])
-                function_quib.handler.invalidate_and_redraw_at_path([])
+            for quib in quibs:
+                quib.handler.invalidate_self([])
+                quib.handler.invalidate_and_redraw_at_path([])
 
     """
     central quib commands
