@@ -6,7 +6,6 @@ from pyquibbler.utilities.iterators import is_iterator_empty, iter_args_and_name
     SHALLOW_MAX_LENGTH, SHALLOW_MAX_DEPTH, recursively_run_func_on_object
 from .iterators import iter_quibs_in_object, iter_quibs_in_args, iter_quibs_in_object_recursively
 from ..exceptions import NestedQuibException
-from ...path import Path
 
 
 def is_there_a_quib_in_object(obj, force_recursive: bool = False):

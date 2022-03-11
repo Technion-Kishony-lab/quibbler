@@ -17,7 +17,7 @@ def get_user_friendly_name_for_requested_evaluation(func, args, kwargs):
     func_name = func.__name__
     if func_name != 'get_value_valid_at_path':
         return func_name + '()'
-    valid_path = args[1] if len(args)>0 else kwargs.get('path')
+    valid_path = args[1] if len(args) > 0 else kwargs.get('path')
     if valid_path is None:
         return 'get_blank_value()'
     elif len(valid_path) == 0:
