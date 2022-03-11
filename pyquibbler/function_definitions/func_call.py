@@ -59,7 +59,7 @@ class ArgsValues:
             try:
                 arg_values_by_name = dict(iter_args_and_names_in_function_call(func, args, kwargs, include_defaults))
                 arg_values_by_position = tuple(arg_values_by_name.values())
-            except ValueError:
+            except (ValueError, TypeError):
                 arg_values_by_name = kwargs
                 arg_values_by_position = args
 
