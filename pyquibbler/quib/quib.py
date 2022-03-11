@@ -412,6 +412,27 @@ class QuibHandler:
             return len(cache.get_uncached_paths(path)) == 0
         return False
 
+    """
+    get_value
+    """
+
+    def get_value_valid_at_path(self, path: Optional[Path]) -> Any:
+        """
+        Get the actual data that this quib represents, valid at the path given in the argument.
+        The value will necessarily return in the shape of the actual result, but only the values at the given path
+        are guaranteed to be valid
+        """
+        try:
+            guard_raise_if_not_allowed_access_to_quib(self.quib())
+        except CannotAccessQuibInScopeException:
+            raise
+        name_for_call = get_user_friendly_name_for_requested_valid_path(path)
+
+        with add_quib_to_fail_trace_if_raises_quib_call_exception(self, name_for_call):
+            result = self.quib_function_call.run(path)
+
+        return self.overrider.override(result, self.assignment_template)
+
 
 class Quib:
     """
@@ -753,16 +774,7 @@ class Quib:
         The value will necessarily return in the shape of the actual result, but only the values at the given path
         are guaranteed to be valid
         """
-        try:
-            guard_raise_if_not_allowed_access_to_quib(self)
-        except CannotAccessQuibInScopeException:
-            raise
-        name_for_call = get_user_friendly_name_for_requested_valid_path(path)
-
-        with add_quib_to_fail_trace_if_raises_quib_call_exception(self, name_for_call):
-            result = self.handler.quib_function_call.run(path)
-
-        return self.handler.overrider.override(result, self.assignment_template)
+        return self.handler.get_value_valid_at_path(path)
 
     @raise_quib_call_exceptions_as_own
     def get_value(self) -> Any:
@@ -775,6 +787,7 @@ class Quib:
         with get_value_context():
             return self.get_value_valid_at_path([])
 
+    @raise_quib_call_exceptions_as_own
     def get_type(self) -> Type:
         """
         Get the type of wrapped value.
@@ -782,6 +795,7 @@ class Quib:
         with add_quib_to_fail_trace_if_raises_quib_call_exception(quib=self, call='get_type()', replace_last=True):
             return self.handler.quib_function_call.get_type()
 
+    @raise_quib_call_exceptions_as_own
     def get_shape(self) -> Tuple[int, ...]:
         """
         Assuming this quib represents a numpy ndarray, returns a quib of its shape.
@@ -789,6 +803,7 @@ class Quib:
         with add_quib_to_fail_trace_if_raises_quib_call_exception(quib=self, call='get_shape()', replace_last=True):
             return self.handler.quib_function_call.get_shape()
 
+    @raise_quib_call_exceptions_as_own
     def get_ndim(self) -> int:
         """
         Assuming this quib represents a numpy ndarray, returns a quib of its shape.
