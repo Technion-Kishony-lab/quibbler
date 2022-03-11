@@ -10,14 +10,14 @@ from pyquibbler.env import SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS
 from pyquibbler.exceptions import PyQuibblerException
 
 
-def get_user_friendly_name_for_requested_evaluation(func, args):
+def get_user_friendly_name_for_requested_evaluation(func, args, kwargs):
     """
     Get a user-friendly name representing the call to get_value_valid_at_path
     """
     func_name = func.__name__
     if func_name != 'get_value_valid_at_path':
         return func_name + '()'
-    valid_path = args[1]
+    valid_path = args[1] if len(args)>0 else kwargs.get('path')
     if valid_path is None:
         return 'get_blank_value()'
     elif len(valid_path) == 0:
@@ -34,6 +34,9 @@ class ExternalCallFailedException(PyQuibblerException):
         self.traceback = tb
 
     def __str__(self):
+        if len(self.quibs_with_calls) == 0:
+            return ''
+
         quibs_formatted = ""
         for quib, call in self.quibs_with_calls[::-1]:
             file_info = f"File \"{quib.file_name}\", line {quib.line_no}" if quib.file_name else "Unnamed quib"
@@ -56,23 +59,23 @@ def external_call_failed_exception_handling():
     try:
         yield
     except Exception as e:
+        if not SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS:
+            raise
+
         # get traceback outside of pyquibbler
         type_, exc, tb = sys.exc_info()
         while tb is not None and cached_getmodule(tb.tb_frame.f_code) is not None \
                 and cached_getmodule(tb.tb_frame.f_code).__name__.startswith("pyquibbler"):
             tb = tb.tb_next
 
-        if SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS:
-            if tb is None:
-                formatted_tb = ''.join(traceback.format_exception_only(type_, value=exc))
-            else:
-                traceback_lines = traceback.format_exception(type_, exc, tb)
-                formatted_tb = ''.join(traceback_lines)
+        if tb is None:
+            formatted_tb = ''.join(traceback.format_exception_only(type_, value=exc))
+        else:
+            formatted_tb = ''.join(traceback.format_exception(type_, exc, tb))
 
-            raise ExternalCallFailedException(quibs_with_calls=[],
-                                              exception=e,
-                                              tb=formatted_tb) from None
-        raise
+        raise ExternalCallFailedException(quibs_with_calls=[],
+                                          exception=e,
+                                          tb=formatted_tb) from None
 
 
 def raise_quib_call_exceptions_as_own(func):
@@ -86,12 +89,11 @@ def raise_quib_call_exceptions_as_own(func):
         except ExternalCallFailedException as e:
             # We want to remove any context
             quib = args[0]
-            new_quib_with_call = (quib, get_user_friendly_name_for_requested_evaluation(func, args))
+            new_quib_with_call = (quib, get_user_friendly_name_for_requested_evaluation(func, args, kwargs))
             quibs_with_calls = e.quibs_with_calls
             exc = ExternalCallFailedException(exception=e.exception,
                                               quibs_with_calls=[*quibs_with_calls, new_quib_with_call],
                                               tb=e.traceback)
-            str(exc)
             raise exc from None
 
     return _wrapper
