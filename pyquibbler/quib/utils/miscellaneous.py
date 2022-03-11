@@ -77,18 +77,6 @@ def copy_and_replace_quibs_with_vals(obj: Any):
     return result
 
 
-def get_user_friendly_name_for_requested_valid_path(valid_path: Optional[Path]):
-    """
-    Get a user-friendly name representing the call to get_value_valid_at_path
-    """
-    if valid_path is None:
-        return 'get_blank_value()'
-    elif len(valid_path) == 0:
-        return 'get_value()'
-    else:
-        return f'get_value_valid_at_path({valid_path})'
-
-
 class NoValue:
     pass
 

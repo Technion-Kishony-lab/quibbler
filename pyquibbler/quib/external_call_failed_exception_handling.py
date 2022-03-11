@@ -10,6 +10,22 @@ from pyquibbler.env import SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS
 from pyquibbler.exceptions import PyQuibblerException
 
 
+def get_user_friendly_name_for_requested_evaluation(func, args):
+    """
+    Get a user-friendly name representing the call to get_value_valid_at_path
+    """
+    func_name = func.__name__
+    if func_name != 'get_value_valid_at_path':
+        return func_name + '()'
+    valid_path = args[1]
+    if valid_path is None:
+        return 'get_blank_value()'
+    elif len(valid_path) == 0:
+        return 'get_value()'
+    else:
+        return f'get_value_valid_at_path({valid_path})'
+
+
 class ExternalCallFailedException(PyQuibblerException):
 
     def __init__(self, quibs_with_calls, exception, tb):
@@ -59,22 +75,6 @@ def external_call_failed_exception_handling():
         raise
 
 
-@contextlib.contextmanager
-def add_quib_to_fail_trace_if_raises_quib_call_exception(quib, call: str, replace_last: bool = False):
-    try:
-        yield
-    except ExternalCallFailedException as e:
-        new_quib_with_call = (quib, call)
-        quibs_with_calls = e.quibs_with_calls
-        if replace_last:
-            previous_quib, _ = e.quibs_with_calls[-1]
-            assert quib == previous_quib
-            quibs_with_calls = quibs_with_calls[:-1]
-
-        raise ExternalCallFailedException(quibs_with_calls=[*quibs_with_calls, new_quib_with_call],
-                                          exception=e.exception, tb=e.traceback)
-
-
 def raise_quib_call_exceptions_as_own(func):
     """
     Raise any quib call failed exceptions as though they were your own (so as to prevent long tracebacks)
@@ -85,8 +85,13 @@ def raise_quib_call_exceptions_as_own(func):
             return func(*args, **kwargs)
         except ExternalCallFailedException as e:
             # We want to remove any context
-            raise ExternalCallFailedException(exception=e.exception,
-                                              quibs_with_calls=e.quibs_with_calls,
-                                              tb=e.traceback) from None
+            quib = args[0]
+            new_quib_with_call = (quib, get_user_friendly_name_for_requested_evaluation(func, args))
+            quibs_with_calls = e.quibs_with_calls
+            exc = ExternalCallFailedException(exception=e.exception,
+                                              quibs_with_calls=[*quibs_with_calls, new_quib_with_call],
+                                              tb=e.traceback)
+            str(exc)
+            raise exc from None
 
     return _wrapper

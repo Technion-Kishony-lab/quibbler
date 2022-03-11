@@ -21,7 +21,6 @@ from pyquibbler.quib.quib_guard import guard_raise_if_not_allowed_access_to_quib
     CannotAccessQuibInScopeException
 from pyquibbler.quib.pretty_converters import MathExpression, FailedMathExpression, \
     NameMathExpression, pretty_convert
-from pyquibbler.quib.utils.miscellaneous import get_user_friendly_name_for_requested_valid_path
 from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation_with_sources_metadata, \
     get_func_call_for_translation_without_sources_metadata
 from pyquibbler.utilities.input_validation_utils import validate_user_input, InvalidArgumentValueException
@@ -37,8 +36,7 @@ from pyquibbler.assignment import InvalidTypeException, OverrideRemoval, get_ove
 from pyquibbler.quib.func_calling.cache_behavior import CacheBehavior, UnknownCacheBehaviorException
 from pyquibbler.quib.exceptions import OverridingNotAllowedException, UnknownUpdateTypeException, \
     InvalidCacheBehaviorForQuibException, CannotSaveAsTextException
-from pyquibbler.quib.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own, \
-    add_quib_to_fail_trace_if_raises_quib_call_exception
+from pyquibbler.quib.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own
 from pyquibbler.quib.graphics import UpdateType
 from pyquibbler.utilities.iterators import recursively_run_func_on_object
 from pyquibbler.translation.translate import forwards_translate, NoTranslatorsFoundException, \
@@ -426,9 +424,8 @@ class QuibHandler:
             guard_raise_if_not_allowed_access_to_quib(self.quib())
         except CannotAccessQuibInScopeException:
             raise
-        name_for_call = get_user_friendly_name_for_requested_valid_path(path)
 
-        with add_quib_to_fail_trace_if_raises_quib_call_exception(self, name_for_call):
+        with get_value_context():
             result = self.quib_function_call.run(path)
 
         return self.overrider.override(result, self.assignment_template)
@@ -784,32 +781,28 @@ class Quib:
         are lazy, so a function quib might need to calculate uncached values and might
         even have to calculate the values of its dependencies.
         """
-        with get_value_context():
-            return self.get_value_valid_at_path([])
+        return self.handler.get_value_valid_at_path([])
 
     @raise_quib_call_exceptions_as_own
     def get_type(self) -> Type:
         """
         Get the type of wrapped value.
         """
-        with add_quib_to_fail_trace_if_raises_quib_call_exception(quib=self, call='get_type()', replace_last=True):
-            return self.handler.quib_function_call.get_type()
+        return self.handler.quib_function_call.get_type()
 
     @raise_quib_call_exceptions_as_own
     def get_shape(self) -> Tuple[int, ...]:
         """
         Assuming this quib represents a numpy ndarray, returns a quib of its shape.
         """
-        with add_quib_to_fail_trace_if_raises_quib_call_exception(quib=self, call='get_shape()', replace_last=True):
-            return self.handler.quib_function_call.get_shape()
+        return self.handler.quib_function_call.get_shape()
 
     @raise_quib_call_exceptions_as_own
     def get_ndim(self) -> int:
         """
         Assuming this quib represents a numpy ndarray, returns a quib of its shape.
         """
-        with add_quib_to_fail_trace_if_raises_quib_call_exception(quib=self, call='get_ndim()', replace_last=True):
-            return self.handler.quib_function_call.get_ndim()
+        return self.handler.quib_function_call.get_ndim()
 
     """
     overrides

@@ -20,7 +20,7 @@ def test_get_value_raises_external_call_exception():
     b = a / 0  # division by 0
     c = b + 3
     try:
-        print(c.get_value())
+        c.get_value()
     except ExternalCallFailedException as e:
         assert e.quibs_with_calls == [(b, 'get_blank_value()'), (c, 'get_value()')]
 
