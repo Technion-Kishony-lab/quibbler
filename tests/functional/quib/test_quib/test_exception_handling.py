@@ -1,27 +1,32 @@
+import pytest
 from pyquibbler import q, iquib, override_all
 from pyquibbler.quib.external_call_failed_exception_handling import ExternalCallFailedException
 
 
+@pytest.mark.show_quib_exceptions_as_quib_traceback(True)
 def test_get_shape_raises_external_call_exception():
     a = iquib(1)
     b = a / 0  # division by 0
     c = b + 3
     try:
         c.get_shape()
-    except Exception as e:
-        assert isinstance(e, ExternalCallFailedException)
+    except ExternalCallFailedException as e:
+        pass
 
 
+@pytest.mark.show_quib_exceptions_as_quib_traceback(True)
 def test_get_value_raises_external_call_exception():
     a = iquib(1)
     b = a / 0  # division by 0
     c = b + 3
     try:
         print(c.get_value())
-    except Exception as e:
-        assert isinstance(e, ExternalCallFailedException)
+    except ExternalCallFailedException as e:
+        assert e.quibs_with_calls == [(b, 'get_blank_value()'), (c, 'get_value()')]
 
 
+
+@pytest.mark.show_quib_exceptions_as_quib_traceback(True)
 def test_get_shape_of_q_function_raises_external_call_exception():
 
     def divide_by_zero(x):
@@ -34,3 +39,11 @@ def test_get_shape_of_q_function_raises_external_call_exception():
         b.get_shape()
     except Exception as e:
         assert isinstance(e, ExternalCallFailedException)
+
+
+@pytest.mark.show_quib_exceptions_as_quib_traceback(True)
+def test_exception_during_quib_creation():
+    import numpy as np
+    a = iquib(np.array([1,2]))
+    c = np.swapaxes(a) # <--- missing positional argument
+    c.get_value()
