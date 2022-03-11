@@ -14,7 +14,6 @@ from weakref import WeakSet
 import numpy as np
 from matplotlib.artist import Artist
 
-
 from pyquibbler.env import LEN_RAISE_EXCEPTION, PRETTY_REPR, REPR_RETURNS_SHORT_NAME, REPR_WITH_OVERRIDES
 from pyquibbler.graphics import is_within_drag
 from pyquibbler.quib.quib_guard import guard_raise_if_not_allowed_access_to_quib, \
@@ -49,7 +48,6 @@ from pyquibbler.quib.save_assignments import SaveFormat, SAVEFORMAT_TO_FILE_EXT
 from .get_value_context_manager import get_value_context, is_within_get_value_context
 from .utils.miscellaneous import NoValue
 
-
 if TYPE_CHECKING:
     from pyquibbler.function_definitions.func_definition import FuncDefinition
     from pyquibbler.assignment.override_choice import ChoiceContext
@@ -78,7 +76,7 @@ class QuibHandler:
         self.assigned_name = assigned_name
 
         self.children = WeakSet()
-        self.overrider = Overrider()
+        self._overrider: Optional[Overrider] = None
         self.allow_overriding = allow_overriding
         self.assigned_quibs = None
         self.created_in_get_value_context = is_within_get_value_context()
@@ -269,6 +267,16 @@ class QuibHandler:
     assignments
     """
 
+    @property
+    def overrider(self):
+        if self._overrider is None:
+            self._overrider = Overrider()
+        return self._overrider
+
+    @property
+    def is_overridden(self):
+        return self._overrider is not None and len(self._overrider)
+
     def override(self, assignment: Assignment, allow_overriding_from_now_on=True):
         """
         Overrides a part of the data the quib represents.
@@ -400,15 +408,16 @@ class QuibHandler:
         """
         Get a list of all the non overridden paths (at the first component)
         """
-        path = path[:1]
+        if not self.is_overridden:
+            return False
+
         assignments = list(self.overrider)
-        if assignments:
-            original_value = self.quib().get_value_valid_at_path(None)
-            cache = create_cache(original_value)
-            for assignment in assignments:
-                cache = self._apply_assignment_to_cache(original_value, cache, assignment)
-            return len(cache.get_uncached_paths(path)) == 0
-        return False
+        path = path[:1]
+        original_value = self.quib().get_value_valid_at_path(None)
+        cache = create_cache(original_value)
+        for assignment in assignments:
+            cache = self._apply_assignment_to_cache(original_value, cache, assignment)
+        return len(cache.get_uncached_paths(path)) == 0
 
     """
     get_value
@@ -428,7 +437,8 @@ class QuibHandler:
         with get_value_context():
             result = self.quib_function_call.run(path)
 
-        return self.overrider.override(result, self.assignment_template)
+        return self._overrider.override(result, self.assignment_template) if self.is_overridden \
+            else result
 
 
 class Quib:
@@ -502,7 +512,7 @@ class Quib:
         """
         User interface to check cache validity.
         """
-        return self.handler.quib_function_call.cache.get_cache_status()\
+        return self.handler.quib_function_call.cache.get_cache_status() \
             if self.handler.quib_function_call.cache is not None else CacheStatus.ALL_INVALID
 
     @property
@@ -807,6 +817,7 @@ class Quib:
     """
     overrides
     """
+
     def get_override_list(self) -> Overrider:
         """
         Returns an Overrider object representing a list of overrides performed on the quib.
@@ -995,7 +1006,7 @@ class Quib:
         if self.actual_save_format == SaveFormat.VALUE_TXT:
             return self._save_value_as_txt()
 
-        if len(self.handler.overrider) == 0:
+        if not self.handler.is_overridden:
             return False
         os.makedirs(self.actual_save_directory, exist_ok=True)
         if self.actual_save_format == SaveFormat.BIN:
@@ -1158,7 +1169,7 @@ class Quib:
         if PRETTY_REPR:
             if REPR_RETURNS_SHORT_NAME:
                 return str(self.get_math_expression())
-            elif REPR_WITH_OVERRIDES and len(self.handler.overrider):
+            elif REPR_WITH_OVERRIDES and self.handler.is_overridden:
                 return self.pretty_repr() + '\n' + self.handler.overrider.pretty_repr(self.assigned_name)
             return self.pretty_repr()
         return self.ugly_repr()
