@@ -166,6 +166,7 @@ class QuibFuncCall(FuncCall):
         if not self.get_data_sources():
             return {}
 
+        try_with_shape = False
         try:
             func_call, sources_to_quibs = get_func_call_for_translation_without_sources_metadata(func_call=self)
             sources_to_paths = backwards_translate(
@@ -173,6 +174,9 @@ class QuibFuncCall(FuncCall):
                 path=valid_path,
             )
         except NoTranslatorsFoundException:
+            try_with_shape = True
+
+        if try_with_shape:
             func_call, sources_to_quibs = get_func_call_for_translation_with_sources_metadata(func_call=self)
             try:
                 sources_to_paths = backwards_translate(

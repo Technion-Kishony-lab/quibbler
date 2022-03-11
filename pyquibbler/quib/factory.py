@@ -52,12 +52,11 @@ def _get_file_name_and_line_no() -> Tuple[Optional[str], Optional[str]]:
     Get the file name and line no where the quib was created (outside of pyquibbler)- this can potentially return Nones
     if the context makes getting the file name and line no irrelevant
     """
-    should_get_file_name_and_line = SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS and not is_within_get_value_context()
-
-    try:
-        return get_file_name_and_line_number_of_quib() if should_get_file_name_and_line else None, None
-    except Exception as e:
-        logger.warning(f"Failed to get file name + lineno, exception {e}")
+    if SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS and not is_within_get_value_context():
+        try:
+            return get_file_name_and_line_number_of_quib()
+        except Exception as e:
+            logger.warning(f"Failed to get file name + lineno, exception {e}")
 
     return None, None
 

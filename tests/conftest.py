@@ -55,6 +55,7 @@ def pytest_generate_tests(metafunc):
     parametrize_flag_fixture(metafunc, 'assignment_restrictions', 'setup_assignment_restrictions')
     parametrize_flag_fixture(metafunc, 'pretty_repr', 'setup_pretty_repr')
     parametrize_flag_fixture(metafunc, 'get_variable_names', 'setup_get_variable_names')
+    parametrize_flag_fixture(metafunc, 'show_quib_exceptions_as_quib_traceback', 'setup_show_quib_exceptions_as_quib_traceback')
 
 
 def setup_flag(flag: Flag, default: bool, request):
