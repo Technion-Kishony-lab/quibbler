@@ -4,7 +4,7 @@ from typing import Any, List
 
 from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.cache.cache import Cache
-from pyquibbler.path import PathComponent, Path
+from pyquibbler.path import PathComponent, Path, Paths
 
 
 class CannotInvalidateEntireCacheException(PyQuibblerException):
@@ -48,16 +48,14 @@ class ShallowCache(Cache):
         pass
 
     @abstractmethod
-    def _get_all_uncached_paths(self) -> List[Path]:
+    def _get_all_uncached_paths(self) -> Paths:
         """
         Get all uncached (invalid) paths which exist
         """
         pass
 
     @abstractmethod
-    def _get_uncached_paths_at_path_component(self,
-                                              path_component: PathComponent) \
-            -> List[Path]:
+    def _get_uncached_paths_at_path_component(self, path_component: PathComponent) -> Paths:
         """
         Get all uncached paths that derive from a given path component (this must be a subset of the path component
         or the path component itself)

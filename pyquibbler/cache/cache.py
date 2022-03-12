@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Tuple, Type, List, Any
+from typing import Tuple, Type, Any
 
-from pyquibbler.path import Path
+from pyquibbler.path import Path, Paths
 
 
 class CacheStatus(Enum):
@@ -59,7 +59,7 @@ class Cache(ABC):
         """
 
     @abstractmethod
-    def get_uncached_paths(self, path: Path) -> List[Path]:
+    def get_uncached_paths(self, path: Path) -> Paths:
         """
         Get a list of paths which do not have cached values and interstect with the argument path.
         For example, if `path` were to be an empty list `[]` (meaning "everything"), then all uncached paths would be

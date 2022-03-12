@@ -22,3 +22,5 @@ class PathComponent:
 
 
 Path = List[PathComponent]
+
+Paths = List[Path]

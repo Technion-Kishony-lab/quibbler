@@ -1,9 +1,9 @@
 from abc import abstractmethod
-from typing import Any, List, Dict, Optional, Type, Tuple
+from typing import Any, Dict, Optional, Type, Tuple
 
 import numpy as np
 
-from pyquibbler.path.path_component import PathComponent, Path
+from pyquibbler.path.path_component import PathComponent, Path, Paths
 from pyquibbler.path import working_component, translate_bool_vector_to_slice_if_possible
 from pyquibbler.translation.backwards_path_translator import BackwardsPathTranslator
 from pyquibbler.translation.exceptions import FailedToTranslateException
@@ -57,7 +57,7 @@ class NumpyForwardsPathTranslator(ForwardsPathTranslator):
     def _forward_translate_indices_to_bool_mask(self, source: Source, indices: Any) -> np.ndarray:
         pass
 
-    def _forward_translate_source(self, source: Source, path: Path) -> List[Path]:
+    def _forward_translate_source(self, source: Source, path: Path) -> Paths:
         # TODO: THIS AUTO RETURNING OF [[]] IS INCORRECT IF PATH IS EMPTY, IN SOME EDGE CASES THIS DOESN'T HOLD
         if len(path) == 0 and self._should_forward_empty_paths_to_empty_paths:
             return [[]]

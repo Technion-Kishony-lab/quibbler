@@ -5,7 +5,7 @@ from pyquibbler.env import DEBUG
 from pyquibbler.exceptions import DebugException
 from pyquibbler.function_definitions import add_definition_for_function
 from pyquibbler.function_definitions.func_definition import create_func_definition
-from pyquibbler.path.path_component import Path
+from pyquibbler.path.path_component import Path, Paths
 from pyquibbler.quib.factory import create_quib
 from pyquibbler.quib.func_calling.cache_behavior import CacheBehavior
 from pyquibbler.quib.utils.miscellaneous import is_there_a_quib_in_object
@@ -56,7 +56,7 @@ class IQuibForwardsPathTranslator(ForwardsPathTranslator):
 
     SHOULD_ATTEMPT_WITHOUT_SHAPE_AND_TYPE = True
 
-    def _forward_translate_source(self, source: Source, path: Path) -> List[Path]:
+    def _forward_translate_source(self, source: Source, path: Path) -> Paths:
         return [path]
 
 

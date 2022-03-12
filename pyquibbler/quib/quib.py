@@ -31,7 +31,7 @@ from pyquibbler.inversion.exceptions import NoInvertersFoundException
 from pyquibbler.assignment import AssignmentTemplate, Overrider, Assignment, \
     AssignmentToQuib
 from pyquibbler.path.data_accessing import FailedToDeepAssignException
-from pyquibbler.path.path_component import PathComponent, Path
+from pyquibbler.path.path_component import PathComponent, Path, Paths
 from pyquibbler.assignment import InvalidTypeException, OverrideRemoval, get_override_group_for_change
 from pyquibbler.quib.func_calling.cache_behavior import CacheBehavior, UnknownCacheBehaviorException
 from pyquibbler.quib.exceptions import OverridingNotAllowedException, UnknownUpdateTypeException, \
@@ -212,7 +212,7 @@ class QuibHandler:
                 if len(path) == 0 or not self._is_completely_overridden_at_first_component(new_path):
                     self._invalidate_children_at_path(new_path)
 
-    def _forward_translate_without_retrieving_metadata(self, invalidator_quib: Quib, path: Path) -> List[Path]:
+    def _forward_translate_without_retrieving_metadata(self, invalidator_quib: Quib, path: Path) -> Paths:
         func_call, sources_to_quibs = get_func_call_for_translation_without_sources_metadata(
             self.quib_function_call
         )
@@ -225,7 +225,7 @@ class QuibHandler:
         )
         return sources_to_forwarded_paths.get(quibs_to_sources[invalidator_quib], [])
 
-    def _forward_translate_with_retrieving_metadata(self, invalidator_quib: Quib, path: Path) -> List[Path]:
+    def _forward_translate_with_retrieving_metadata(self, invalidator_quib: Quib, path: Path) -> Paths:
         func_call, sources_to_quibs = get_func_call_for_translation_with_sources_metadata(
             self.quib_function_call
         )
@@ -241,7 +241,7 @@ class QuibHandler:
         )
         return sources_to_forwarded_paths.get(quibs_to_sources[invalidator_quib], [])
 
-    def _forward_translate_source_path(self, invalidator_quib: Quib, path: Path) -> List[Path]:
+    def _forward_translate_source_path(self, invalidator_quib: Quib, path: Path) -> Paths:
         """
         Forward translate a path, first attempting to do it WITHOUT using getting the shape and type, and if/when
         failure does grace us, we attempt again with shape and type
@@ -255,7 +255,7 @@ class QuibHandler:
                 return [[]]
 
     def _get_paths_for_children_invalidation(self, invalidator_quib: Quib,
-                                             path: Path) -> List[Path]:
+                                             path: Path) -> Paths:
         """
         Forward translate a path for invalidation, first attempting to do it WITHOUT using getting the shape and type,
         and if/when failure does grace us, we attempt again with shape and type.
