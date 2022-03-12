@@ -1,6 +1,6 @@
 import pytest
 
-from pyquibbler.quib.save_assignments import FileNotDefinedException, ResponseToFileNotDefined
+from pyquibbler.file_syncing.types import FileNotDefinedException, ResponseToFileNotDefined
 
 
 def test_quib_wont_save_without_assigned_name(create_quib_with_return_value):

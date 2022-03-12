@@ -12,7 +12,7 @@ from pyquibbler.utilities.file_path import PathWithHyperLink
 from pyquibbler.exceptions import PyQuibblerException
 from .actions import Action, AssignmentAction
 from pyquibbler.quib.graphics import UpdateType
-from pyquibbler.quib.save_assignments import SaveFormat
+from pyquibbler.file_syncing.types import SaveFormat
 
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib

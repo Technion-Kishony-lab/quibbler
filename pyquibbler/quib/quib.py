@@ -45,7 +45,7 @@ from pyquibbler.utilities.unpacker import Unpacker
 from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals
 from pyquibbler.cache.cache import CacheStatus
 from pyquibbler.cache import create_cache
-from pyquibbler.quib.save_assignments import SaveFormat, SAVEFORMAT_TO_FILE_EXT, \
+from pyquibbler.file_syncing.types import SaveFormat, SAVEFORMAT_TO_FILE_EXT, \
     ResponseToFileNotDefined, FileNotDefinedException
 from .get_value_context_manager import get_value_context, is_within_get_value_context
 from .utils.miscellaneous import NoValue
