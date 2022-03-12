@@ -25,6 +25,10 @@ class Overrider:
         self._paths_to_assignments: Dict[Hashable, Union[Assignment, AssignmentRemoval]] = {}
         self._active_assignment = None
 
+    def reset(self):
+        self._paths_to_assignments: {}
+        self._active_assignment = None
+
     def _add_to_paths_to_assignments(self, assignment: Union[Assignment, AssignmentRemoval]):
         hashable_path = get_hashable_path(assignment.path)
         # We need to first remove and then add to make sure the new key value pair are now first in the dict

@@ -142,17 +142,20 @@ class FileSyncer(ABC):
 
     FILECOMPARISON_TO_SAVE_LOAD_LETTERCODES = {
         # Table copied from MatQuibbler:
+        # letter codes are resolved in the tables above.
+        # capital letter-code indicates verification not needed
+        #
         # is_synced:                   Synced               Unsynced
         # need_file:                   Yes        No        Yes       No
         # has_data:                          Yes       No        Yes       No
         #                              Save  Load Save Load Save Load Save Load
         FileComparison.SAME_FILE:      ('-', '-', '-', '-', 'S', 'o', 'D', 'l'),  # noqa: E241
-        FileComparison.NO_FILE:        ('-'  '-', 'v', 'v', 'C'  'c', 'v', 'v'),  # noqa: E241
+        FileComparison.NO_FILE:        ('-'  '-', 'V', 'V', 'C'  'c', 'V', 'V'),  # noqa: E241
         FileComparison.CHANGED:        ('o', 'L', 'd', 'L', 'o', 'l', 'd', 'L'),  # noqa: E241
-        FileComparison.DELETED:        ('r', 'c', 'v', 'v', 'r', 'c', 'v', 'v'),  # noqa: E241
+        FileComparison.DELETED:        ('r', 'c', 'V', 'V', 'r', 'c', 'V', 'V'),  # noqa: E241
         FileComparison.CREATED:        ('o', 'L', 'd', 'L', 'o', 'l', 'd', 'L'),  # noqa: E241
         FileComparison.FILE_FOUND:     ('x', 'x', 'x', 'x', 'o', 'L', 'o', 'L'),  # noqa: E241 (x - not possible)
-        FileComparison.FILE_NOT_FOUND: ('x', 'x', 'x', 'x', 'C', 'c', 'v', 'v'),  # noqa: E241 (x - not possible)
+        FileComparison.FILE_NOT_FOUND: ('x', 'x', 'x', 'x', 'C', 'c', 'V', 'V'),  # noqa: E241 (x - not possible)
     }
 
     @classmethod

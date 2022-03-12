@@ -49,6 +49,7 @@ from pyquibbler.file_syncing.types import SaveFormat, SAVEFORMAT_TO_FILE_EXT, \
     ResponseToFileNotDefined, FileNotDefinedException
 from .get_value_context_manager import get_value_context, is_within_get_value_context
 from .utils.miscellaneous import NoValue
+from ..file_syncing.quib_file_syncer import QuibFileSyncer
 
 if TYPE_CHECKING:
     from pyquibbler.function_definitions.func_definition import FuncDefinition
@@ -70,7 +71,9 @@ class QuibHandler:
                  save_format: Optional[SaveFormat],
                  can_contain_graphics: bool,
                  ):
-        self._quib_weakref = weakref.ref(quib)
+
+        quib_weakref = weakref.ref(quib)
+        self._quib_weakref = quib_weakref
         self._override_choice_cache = {}
         self.quib_function_call = quib_function_call
 
@@ -79,6 +82,7 @@ class QuibHandler:
 
         self.children = WeakSet()
         self._overrider: Optional[Overrider] = None
+        self.file_syncer: QuibFileSyncer = QuibFileSyncer(quib_weakref)
         self.allow_overriding = allow_overriding
         self.assigned_quibs = None
         self.created_in_get_value_context = is_within_get_value_context()
@@ -307,17 +311,19 @@ class QuibHandler:
                                                        assignment=assignment,
                                                        index=len(self.overrider) - 1,
                                                        overrider=self.overrider)
+            self.file_syncer.data_changed()
 
     def remove_override(self, path: Path):
         """
         Remove function_definitions in a specific path in the quib.
         """
         assignment_removal = self.overrider.remove_assignment(path)
-        if assignment_removal is not None:
+        if assignment_removal is not None and not is_within_drag():
             self.project.push_assignment_to_undo_stack(assignment=assignment_removal,
                                                        index=len(self.overrider) - 1,
                                                        overrider=self.overrider,
                                                        quib=self.quib)
+            self.file_syncer.data_changed()
         if len(path) == 0:
             self.quib_function_call.on_type_change()
         self.invalidate_and_redraw_at_path(path=path)
@@ -445,6 +451,41 @@ class QuibHandler:
 
         return self._overrider.override(result, self.assignment_template) if self.is_overridden \
             else result
+
+    """
+    file syncing
+    """
+
+    def save_value_as_txt(self, file_path: pathlib.Path):
+        """
+        Save the quib's value as a text file.
+        In contrast to the normal save, this will save the value of the quib regardless
+        of whether the quib has overrides, as a txt file is used for the user to be able to see the quib and change it
+        in a textual manner.
+        Note that this WILL fail with CannotSaveAsTextException in situations where the iquib
+        cannot be represented textually.
+        """
+        value = self.get_value_valid_at_path([])
+        try:
+            if isinstance(value, np.ndarray):
+                np.savetxt(str(file_path), value)
+            else:
+                with open(file_path, 'w') as f:
+                    json.dump(value, f)
+        except TypeError:
+            if os.path.exists(file_path):
+                os.remove(file_path)
+            raise CannotSaveAsTextException()
+
+    def load_value_from_txt(self, file_path):
+        """
+        Load the quib from the corresponding text file is possible
+        """
+        if issubclass(self.get_type(), np.ndarray):
+            self.quib().assign(np.array(np.loadtxt(str(self.file_path)), dtype=self.get_value().dtype))
+        else:
+            with open(file_path, 'r') as f:
+                self.assign(json.load(f))
 
 
 class Quib:
@@ -880,6 +921,10 @@ class Quib:
     File saving
     """
 
+    def _upon_file_name_change(self):
+        # TODO: announce name change due to project directory change
+        self.handler.file_syncer.file_name_changed()
+
     @property
     def project(self) -> Project:
         return self.handler.project
@@ -906,6 +951,7 @@ class Quib:
         if isinstance(save_format, str):
             save_format = SaveFormat(save_format)
         self.handler.save_format = save_format
+        self._upon_file_name_change()
 
     @property
     def actual_save_format(self) -> SaveFormat:
@@ -925,7 +971,7 @@ class Quib:
         return self.save_format if self.save_format else self.project.save_format
 
     @property
-    def save_path(self) -> Optional[PathWithHyperLink]:
+    def file_path(self) -> Optional[PathWithHyperLink]:
         """
         The full path for the file where quib assignments are saved.
         The path is defined as the [actual_save_directory]/[assigned_name].ext
@@ -942,24 +988,22 @@ class Quib:
             assigned_name
             Project.directory
         """
-        return None if self.assigned_name is None or self.actual_save_directory is None \
-            else PathWithHyperLink(self.actual_save_directory /
-                                   (self.assigned_name + SAVEFORMAT_TO_FILE_EXT[self.actual_save_format]))
+        return self._get_file_path()
 
-    def _get_save_path(self, response_to_file_not_found: ResponseToFileNotDefined = ResponseToFileNotDefined.IGNORE) \
+    def _get_file_path(self, response_to_file_not_defined: ResponseToFileNotDefined = ResponseToFileNotDefined.IGNORE) \
             -> Optional[PathWithHyperLink]:
 
-        if self.assigned_name is None or self._actual_save_directory is None or self._actual_save_format is None:
+        if self.assigned_name is None or self.actual_save_directory is None or self.actual_save_format is None:
             path = None
             exception = FileNotDefinedException(
-                self.assigned_name, self._actual_save_directory, self._actual_save_format)
-            if response_to_file_not_found == ResponseToFileNotDefined.RAISE:
+                self.assigned_name, self.actual_save_directory, self.actual_save_format)
+            if response_to_file_not_defined == ResponseToFileNotDefined.RAISE:
                 raise exception
-            elif response_to_file_not_found == ResponseToFileNotDefined.WARNING:
+            elif response_to_file_not_defined == ResponseToFileNotDefined.WARNING:
                 warnings.warn(str(exception))
         else:
-            path = PathWithHyperLink(self._actual_save_directory /
-                                     (self.assigned_name + SAVEFORMAT_TO_FILE_EXT[self._actual_save_format]))
+            path = PathWithHyperLink(self.actual_save_directory /
+                                     (self.assigned_name + SAVEFORMAT_TO_FILE_EXT[self.actual_save_format]))
 
         return path
 
@@ -978,7 +1022,7 @@ class Quib:
             Path
 
         See also:
-            save_path
+            file_path
         """
         return PathWithHyperLink(self.handler.save_directory)
 
@@ -988,87 +1032,89 @@ class Quib:
         if isinstance(directory, str):
             directory = pathlib.Path(directory)
         self.handler.save_directory = directory
+        self._upon_file_name_change()
 
-    def save(self, response_to_file_not_defined: ResponseToFileNotDefined = ResponseToFileNotDefined.RAISE) -> bool:
+    @property
+    def actual_save_directory(self) -> Optional[pathlib.Path]:
         """
-        Save the quib assignments if any.
+        The actual directory where quib file is saved.
+
+        By default, the quib's save_directory is None and the actual_save_directory defaults to the
+        project's save_directory.
+        Otherwise, if the quib's save_directory is defined as an absolute directory then it is used as is,
+        and if it is defined as a relative path it is used relative to the project's directory.
 
         Returns:
-            bool - indicating whether the quib was saved successfully.
+            Path
+
+        See also:
+            save_directory
+            Project.directory
+            SaveFormat
         """
-
-        save_path = self._get_save_path(response_to_file_not_defined)
-        if self.save_path is None:
-            return False
-
-        if self.actual_save_format == SaveFormat.VALUE_TXT:
-            return self._save_value_as_txt()
-
-        if not self.handler.is_overridden:
-            return False
-
-        os.makedirs(save_path.parents[0], exist_ok=True)
-        if self.actual_save_format == SaveFormat.VALUE_TXT:
-            return self.save_value_as_txt(save_path)
-        elif self.actual_save_format == SaveFormat.BIN:
-            return self.handler.overrider.save_to_binary(save_path)
-        elif self.actual_save_format == SaveFormat.TXT:
-            return self.handler.overrider.save_to_txt(save_path)
-
-    def _save_value_as_txt(self, save_path: pathlib.Path):
-        """
-        Save the quib's value as a text file.
-        In contrast to the normal save, this will save the value of the quib regardless
-        of whether the quib has overrides, as a txt file is used for the user to be able to see the quib and change it
-        in a textual manner.
-        Note that this WILL fail with CannotSaveAsTextException in situations where the iquib
-        cannot be represented textually.
-        """
-        value = self.get_value()
-        try:
-            if isinstance(value, np.ndarray):
-                np.savetxt(str(save_path), value)
-            else:
-                with open(save_path, 'w') as f:
-                    json.dump(value, f)
-        except TypeError:
-            if os.path.exists(save_path):
-                os.remove(save_path)
-            raise CannotSaveAsTextException() from None
-
-    def _load_value_from_txt(self, save_path):
-        """
-        Load the quib from the corresponding text file is possible
-        """
-        if issubclass(self.get_type(), np.ndarray):
-            self.assign(np.array(np.loadtxt(str(self.save_path)), dtype=self.get_value().dtype))
+        save_directory = self.handler.save_directory
+        if save_directory is not None and save_directory.is_absolute():
+            return save_directory  # absolute directory
+        elif self.project.directory is None:
+            return None
         else:
-            with open(self.save_path, 'r') as f:
-                self.assign(json.load(f))
+            return self.project.directory if save_directory is None \
+                else self.project.directory / save_directory
 
-    def load(self, response_to_file_not_defined: ResponseToFileNotDefined = ResponseToFileNotDefined.RAISE) -> bool:
+    def save(self, response_to_file_not_defined: ResponseToFileNotDefined = ResponseToFileNotDefined.RAISE):
         """
-        load quib assignments from file.
+        Save the quib assignments to file.
 
-        Returns:
-            bool: indicating whether the file was found and loaded.
+        See also:
+            load
+            sync
+            save_directory
+            actual_save_directory
+            save_format
+            actual_save_format
+            assigned_name
+            Project.directory
         """
-        save_path = self._get_save_path(response_to_file_not_defined)
-        if self.save_path is None:
-            return False
+        self._get_file_path(response_to_file_not_defined)
+        self.handler.file_syncer.save()
 
-        if not os.path.exists(self.save_path):
-            return False
+    def load(self, response_to_file_not_defined: ResponseToFileNotDefined = ResponseToFileNotDefined.RAISE):
+        """
+        Load quib assignments from the quib's file.
 
-        if self.actual_save_format == SaveFormat.BIN:
-            self.handler.overrider.load_from_binary(save_path)
-        elif self.actual_save_format == SaveFormat.TXT:
-            self.handler.overrider.load_from_txt(save_path)
-        elif self.actual_save_format == SaveFormat.VALUE_TXT:
-            self._load_value_from_txt(save_path)
+        See also:
+            save
+            sync
+            save_directory
+            actual_save_directory
+            save_format
+            actual_save_format
+            assigned_name
+            Project.directory
+        """
+        self._get_file_path(response_to_file_not_defined)
+        self.handler.file_syncer.load()
 
-        self.handler.invalidate_and_redraw_at_path([])
-        return True
+    def sync(self, response_to_file_not_defined: ResponseToFileNotDefined = ResponseToFileNotDefined.RAISE):
+        """
+        Sync quib assignments with the quib's file.
+
+        If the file was changed it will be read to the quib.
+        If the quib assignments were changed, the file will be updated.
+        If both changed, a dialog is presented to resolve conflict.
+
+        See also:
+            save
+            load
+            save_directory
+            actual_save_directory
+            save_format
+            actual_save_format
+            assigned_name
+            Project.directory
+        """
+        self._get_file_path(response_to_file_not_defined)
+        self.handler.file_syncer.sync()
 
     """
     Repr
@@ -1104,9 +1150,10 @@ class Quib:
                 or len(assigned_name) \
                 and assigned_name[0].isalpha() and all([c.isalnum() or c in ' _' for c in assigned_name]):
             self.handler.assigned_name = assigned_name
+            self._upon_file_name_change()
         else:
             raise ValueError('name must be None or a string starting with a letter '
-                             'and continuing alpha-numeric charaters or spaces')
+                             'and continuing alpha-numeric characters or spaces')
 
     @property
     def name(self) -> Optional[str]:
