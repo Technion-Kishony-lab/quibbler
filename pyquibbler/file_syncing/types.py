@@ -23,7 +23,8 @@ SAVEFORMAT_TO_FILE_EXT = {
 class ResponseToFileNotDefined(str, Enum):
     IGNORE = 0
     RAISE = 1
-    WARNING = 2
+    WARN = 2
+    WARN_IF_DATA = 3
 
 
 @dataclass

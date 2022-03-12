@@ -1030,7 +1030,9 @@ class Quib:
                 self.assigned_name, self.actual_save_directory, self.actual_save_format)
             if response_to_file_not_defined == ResponseToFileNotDefined.RAISE:
                 raise exception
-            elif response_to_file_not_defined == ResponseToFileNotDefined.WARNING:
+            elif response_to_file_not_defined == ResponseToFileNotDefined.WARN \
+                    or response_to_file_not_defined == ResponseToFileNotDefined.WARN_IF_DATA \
+                    and self.handler.is_overridden():
                 warnings.warn(str(exception))
         else:
             path = PathWithHyperLink(self.actual_save_directory /

@@ -83,6 +83,11 @@ def save_quibs():
     Project.get_or_create().save_quibs()
 
 
+@copy_docs(Project.sync_quibs)
+def sync_quibs():
+    Project.get_or_create().sync_quibs()
+
+
 @copy_docs(Project.undo)
 def undo() -> None:
     Project.get_or_create().undo()
