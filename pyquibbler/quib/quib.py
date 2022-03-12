@@ -481,6 +481,7 @@ class QuibHandler:
                 changed_paths = self.overrider.load_from_txt(file_path)
             else:
                 return
+            self.project.clear_undo_and_redo_stacks()
             for path in changed_paths:
                 self.invalidate_and_redraw_at_path(path)
 

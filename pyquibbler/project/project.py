@@ -271,7 +271,7 @@ class Project:
 
         self._undo_action_groups.append(actions)
 
-    def _clear_undo_and_redo_stacks(self, *_, **__):
+    def clear_undo_and_redo_stacks(self, *_, **__):
         self._undo_action_groups = []
         self._redo_action_groups = []
 
@@ -283,7 +283,7 @@ class Project:
             assignment_hashable_path
         )
         assignment_action = AssignmentAction(
-            quib_ref=weakref.ref(quib, self._clear_undo_and_redo_stacks),
+            quib_ref=weakref.ref(quib, self.clear_undo_and_redo_stacks),
             overrider=overrider,
             previous_index=index,
             new_assignment=assignment,
