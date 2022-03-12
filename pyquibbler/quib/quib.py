@@ -2,17 +2,16 @@ from __future__ import annotations
 
 import functools
 import json
-import os
 import pathlib
 import weakref
 import warnings
+import numpy as np
 
 from pyquibbler.utilities.file_path import PathWithHyperLink
 from functools import cached_property
 from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Union, Iterable
 from weakref import WeakSet
 
-import numpy as np
 from matplotlib.artist import Artist
 
 from pyquibbler.env import LEN_RAISE_EXCEPTION, PRETTY_REPR, REPR_RETURNS_SHORT_NAME, REPR_WITH_OVERRIDES
@@ -21,35 +20,30 @@ from pyquibbler.quib.quib_guard import guard_raise_if_not_allowed_access_to_quib
     CannotAccessQuibInScopeException
 from pyquibbler.quib.pretty_converters import MathExpression, FailedMathExpression, \
     NameMathExpression, pretty_convert
+from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals, NoValue
 from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation_with_sources_metadata, \
     get_func_call_for_translation_without_sources_metadata
 from pyquibbler.utilities.input_validation_utils import validate_user_input, InvalidArgumentValueException
+from pyquibbler.utilities.iterators import recursively_run_func_on_object
+from pyquibbler.utilities.unpacker import Unpacker
 from pyquibbler.logger import logger
 from pyquibbler.project import Project
-from pyquibbler.assignment import create_assignment_template
 from pyquibbler.inversion.exceptions import NoInvertersFoundException
-from pyquibbler.assignment import AssignmentTemplate, Overrider, Assignment, \
-    AssignmentToQuib
-from pyquibbler.path.data_accessing import FailedToDeepAssignException
-from pyquibbler.path.path_component import PathComponent, Path, Paths
-from pyquibbler.assignment import InvalidTypeException, OverrideRemoval, get_override_group_for_change
+from pyquibbler.path import FailedToDeepAssignException, PathComponent, Path, Paths
+from pyquibbler.assignment import InvalidTypeException, OverrideRemoval, get_override_group_for_change, \
+    AssignmentTemplate, Overrider, Assignment, AssignmentToQuib, create_assignment_template
 from pyquibbler.quib.func_calling.cache_behavior import CacheBehavior, UnknownCacheBehaviorException
 from pyquibbler.quib.exceptions import OverridingNotAllowedException, UnknownUpdateTypeException, \
-    InvalidCacheBehaviorForQuibException, CannotSaveAsTextException
+    InvalidCacheBehaviorForQuibException
 from pyquibbler.quib.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own
 from pyquibbler.quib.graphics import UpdateType
-from pyquibbler.utilities.iterators import recursively_run_func_on_object
 from pyquibbler.translation.translate import forwards_translate, NoTranslatorsFoundException, \
     backwards_translate
-from pyquibbler.utilities.unpacker import Unpacker
-from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals
-from pyquibbler.cache.cache import CacheStatus
-from pyquibbler.cache import create_cache
-from pyquibbler.file_syncing.types import SaveFormat, SAVEFORMAT_TO_FILE_EXT, \
-    ResponseToFileNotDefined, FileNotDefinedException
-from .get_value_context_manager import get_value_context, is_within_get_value_context
-from .utils.miscellaneous import NoValue
-from ..file_syncing.quib_file_syncer import QuibFileSyncer
+from pyquibbler.cache import create_cache, CacheStatus
+from pyquibbler.file_syncing import SaveFormat, \
+    ResponseToFileNotDefined, FileNotDefinedException, QuibFileSyncer
+from pyquibbler.quib.get_value_context_manager import get_value_context, is_within_get_value_context
+
 
 if TYPE_CHECKING:
     from pyquibbler.function_definitions.func_definition import FuncDefinition
