@@ -59,6 +59,11 @@ if TYPE_CHECKING:
 
 
 class QuibHandler:
+    """
+    takes care of all the functionality of a quib.
+    allows the Quib class to only have user functions
+    All data is stored on the QuibHandler (the Quib itself is state-less)
+    """
 
     def __init__(self, quib: Quib, quib_function_call: QuibFuncCall,
                  assignment_template: Optional[AssignmentTemplate],
@@ -456,7 +461,30 @@ class QuibHandler:
     file syncing
     """
 
-    def save_value_as_txt(self, file_path: pathlib.Path):
+    def save_assignments(self, file_path: pathlib.Path):
+        save_format = self.quib.actual_save_format
+        if save_format == SaveFormat.VALUE_TXT:
+            return self._save_value_as_txt(file_path)
+        elif save_format == SaveFormat.BIN:
+            return self.overrider.save_to_binary(file_path)
+        elif save_format == SaveFormat.TXT:
+            return self.overrider.save_to_txt(file_path)
+
+    def load_assignments(self, file_path: pathlib.Path):
+        save_format = self.quib.actual_save_format
+        if save_format == SaveFormat.VALUE_TXT:
+            self._load_value_from_txt(file_path)
+        else:
+            if save_format == SaveFormat.BIN:
+                changed_paths = self.overrider.load_from_binary(file_path)
+            elif save_format == SaveFormat.TXT:
+                changed_paths = self.overrider.load_from_txt(file_path)
+            else:
+                return
+            for path in changed_paths:
+                self.invalidate_and_redraw_at_path(path)
+
+    def _save_value_as_txt(self, file_path: pathlib.Path):
         """
         Save the quib's value as a text file.
         In contrast to the normal save, this will save the value of the quib regardless
@@ -477,12 +505,14 @@ class QuibHandler:
                 os.remove(file_path)
             raise CannotSaveAsTextException()
 
-    def load_value_from_txt(self, file_path):
+    def _load_value_from_txt(self, file_path):
         """
         Load the quib from the corresponding text file is possible
         """
+
+        # TODO: this method is more of a stud. needs attention
         if issubclass(self.get_type(), np.ndarray):
-            self.quib().assign(np.array(np.loadtxt(str(self.file_path)), dtype=self.get_value().dtype))
+            self.quib.assign(np.array(np.loadtxt(str(file_path)), dtype=self.get_value().dtype))
         else:
             with open(file_path, 'r') as f:
                 self.assign(json.load(f))

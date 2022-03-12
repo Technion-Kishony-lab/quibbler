@@ -29,22 +29,10 @@ class QuibFileSyncer(FileSyncer):
         return bool(KEEP_EMPTY_FILE)
 
     def _save_data_to_file(self, file_path: pathlib.Path):
-        save_format = self.quib.actual_save_format
-        if save_format == SaveFormat.VALUE_TXT:
-            return self.handler.save_value_as_txt(file_path)
-        elif save_format == SaveFormat.BIN:
-            return self.handler.overrider.save_to_binary(file_path)
-        elif save_format == SaveFormat.TXT:
-            return self.handler.overrider.save_to_txt(file_path)
+        self.handler.save_assignments(file_path)
 
     def _load_data_from_file(self, file_path: pathlib.Path):
-        save_format = self.quib.actual_save_format
-        if save_format == SaveFormat.BIN:
-            self.handler.overrider.load_from_binary(file_path)
-        elif save_format == SaveFormat.TXT:
-            self.handler.overrider.load_from_txt(file_path)
-        elif save_format == SaveFormat.VALUE_TXT:
-            self.handler.load_value_from_txt(file_path)
+        self.handler.load_assignments(file_path)
 
     def _clear_data(self):
         pass
