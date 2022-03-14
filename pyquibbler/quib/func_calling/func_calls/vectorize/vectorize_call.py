@@ -166,5 +166,4 @@ class VectorizeQuibFuncCall(QuibFuncCall):
                                         vectorize_metadata.result_or_results_core_ndims, valid_path)
         call = self._wrap_vectorize_call_to_calc_only_needed(call, valid_path, vectorize_metadata.otypes)
 
-        with external_call_failed_exception_handling():
-            return call()
+        return call()
