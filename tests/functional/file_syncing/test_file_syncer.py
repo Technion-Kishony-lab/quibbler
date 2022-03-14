@@ -1,4 +1,6 @@
 import os
+import time
+
 import numpy as np
 import pathlib
 from dataclasses import dataclass, field
@@ -78,6 +80,7 @@ def syncable_data(file_path):
 
 
 def overwrite_file(path, data):
+    time.sleep(1.1)  # to make sure the time stamp of the file changes
     data = np.array(data, dtype=np.uint)
     np.savetxt(str(path), data)
 
@@ -238,6 +241,3 @@ def test_save_then_delete_file_then_sync(file_path, monkeypatch, capsys):
            '3 :  Skip\n'
 
     assert np.array_equal(syncable_array.data, np.zeros((1, 0), dtype=np.uint))
-
-
-
