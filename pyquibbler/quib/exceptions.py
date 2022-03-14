@@ -60,11 +60,11 @@ class FuncCalledWithNestedQuibException(PyQuibblerException):
 
 
 @dataclass
-class CannotSaveAsTextException(PyQuibblerException):
+class CannotSaveValueAsTextException(PyQuibblerException):
 
     def __str__(self):
-        return 'The quib assignments contain objects that cannot be saved as text.' \
-               'To save the quib set the save_format to "binary".'
+        return "The iquib's value contain objects that cannot be saved as text." \
+               "To save the iquib set the save_format to binary (quib.save_format = 'bin', or 'value_bin')"
 
 
 @dataclass
@@ -73,3 +73,11 @@ class CannotLoadAssignmentsFromTextException(PyQuibblerException):
 
     def __str__(self):
         return f'Failed loading assignments from file: {self.file}'
+
+
+@dataclass
+class CannotSaveAssignmentsAsTextException(PyQuibblerException):
+
+    def __str__(self):
+        return "The quib assignments contain objects that cannot be saved as text." \
+               "To save the quib set the save_format to binary (quib.save_format = 'bin')."

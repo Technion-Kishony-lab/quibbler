@@ -14,7 +14,7 @@ from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.utils import deep_copy_without_quibs_or_graphics
 from pyquibbler.quib.variable_metadata import get_var_name_being_set_outside_of_pyquibbler, \
     get_file_name_and_line_number_of_quib
-from pyquibbler.quib.save_assignments import SaveFormat
+from pyquibbler.file_syncing.types import SaveFormat
 
 if TYPE_CHECKING:
     from pyquibbler import CacheBehavior

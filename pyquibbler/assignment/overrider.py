@@ -2,11 +2,11 @@ import copy
 import pickle
 import numpy as np
 from dataclasses import dataclass
-from typing import Any, Optional, Union, Dict, Hashable
+from typing import Any, Optional, Union, Dict, Hashable, List
 
 from .assignment import Assignment
 from ..path.hashable import get_hashable_path
-from pyquibbler.path.path_component import Path
+from pyquibbler.path.path_component import Path, Paths
 from .assignment_template import AssignmentTemplate
 from ..path.data_accessing import deep_get, deep_assign_data_in_path
 
@@ -16,14 +16,30 @@ class AssignmentRemoval:
     path: Path
 
 
+PathsToAssignments = Dict[Hashable, Union[Assignment, AssignmentRemoval]]
+
+
 class Overrider:
     """
     Gathers function_definitions assignments performed on a quib in order to apply them on a quib value.
     """
 
     def __init__(self):
-        self._paths_to_assignments: Dict[Hashable, Union[Assignment, AssignmentRemoval]] = {}
+        self._paths_to_assignments: PathsToAssignments = {}
         self._active_assignment = None
+
+    def clear_assignments(self):
+        self._paths_to_assignments: {}
+        self._active_assignment = None
+
+    def replace_assignments(self, new_paths_to_assignments: PathsToAssignments) -> Paths:
+        """
+        replace assignment list and return the changed paths
+        """
+        self._paths_to_assignments = new_paths_to_assignments
+        self._active_assignment = None
+        # TODO: invalidate only the changed paths
+        return [[]]
 
     def _add_to_paths_to_assignments(self, assignment: Union[Assignment, AssignmentRemoval]):
         hashable_path = get_hashable_path(assignment.path)
@@ -158,14 +174,13 @@ class Overrider:
     save/load
     """
 
-    def save_to_binary(self, file):
+    def save_as_binary(self, file):
         with open(file, 'wb') as f:
             pickle.dump(self._paths_to_assignments, f)
 
-    def load_from_binary(self, file):
+    def load_from_binary(self, file) -> List[Path]:
         with open(file, 'rb') as f:
-            self._paths_to_assignments = pickle.load(f)
-        self._active_assignment = None
+            return self.replace_assignments(pickle.load(f))
 
     def can_save_to_txt(self) -> bool:
         from pyquibbler.quib.utils.miscellaneous import is_saveable_as_txt
@@ -175,10 +190,10 @@ class Overrider:
                 return False
         return True
 
-    def save_to_txt(self, file):
-        from pyquibbler.quib.exceptions import CannotSaveAsTextException
+    def save_as_txt(self, file):
+        from pyquibbler.quib.exceptions import CannotSaveAssignmentsAsTextException
         if not self.can_save_to_txt():
-            raise CannotSaveAsTextException()
+            raise CannotSaveAssignmentsAsTextException()
         with open(file, "wt") as f:
             f.write(self.pretty_repr())
 
@@ -193,13 +208,12 @@ class Overrider:
         with open(file, mode='r') as f:
             assignment_text_commands = f.read()
         # TODO: We are using exec. This is very simple, but obviously highly risky.
-        #  Need to good to replace with a dedicated parser.
+        #  Will be good to replace with a dedicated parser.
         try:
             exec(assignment_text_commands)
         except Exception:
             raise CannotLoadAssignmentsFromTextException(file) from None
-        self._paths_to_assignments = quib.handler.overrider._paths_to_assignments
-        self._active_assignment = None
+        return self.replace_assignments(quib.handler.overrider._paths_to_assignments)
 
     """
     repr

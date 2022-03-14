@@ -1,6 +1,6 @@
 from .decorators import quibbler_user_function
 from pyquibbler.assignment import Assignment
-from pyquibbler.quib import CacheBehavior, iquib
+from pyquibbler.quib import CacheBehavior, iquib, Quib
 from .function_overriding import override_all
 from .utilities.performance_utils import timer
 from .utilities.user_utils import \

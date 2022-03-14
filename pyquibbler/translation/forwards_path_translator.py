@@ -1,8 +1,8 @@
 from abc import abstractmethod
-from typing import Dict, Optional, Tuple, Type, List
+from typing import Dict, Optional, Tuple, Type
 
 from pyquibbler.translation.types import Source
-from pyquibbler.path.path_component import Path
+from pyquibbler.path.path_component import Path, Paths
 
 
 class ForwardsPathTranslator:
@@ -28,10 +28,10 @@ class ForwardsPathTranslator:
         self._type = type_
 
     @abstractmethod
-    def _forward_translate_source(self, source: Source, path: Path) -> List[Path]:
+    def _forward_translate_source(self, source: Source, path: Path) -> Paths:
         pass
 
-    def translate(self) -> Dict[Source, List[Path]]:
+    def translate(self) -> Dict[Source, Paths]:
         return {
             source: self._forward_translate_source(source, path)
             for source, path in self._sources_to_paths.items()

@@ -1,9 +1,8 @@
 from functools import wraps
-from typing import List
 
 from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.cache.cache import Cache
-from pyquibbler.path import Path
+from pyquibbler.path import Path, Paths
 
 
 class PathCannotHaveComponentsException(PyQuibblerException):
@@ -46,7 +45,7 @@ class HolisticCache(Cache):
     def set_invalid_at_path(self, path: Path) -> None:
         self._invalid = True
 
-    def get_uncached_paths(self, path: Path) -> List[Path]:
+    def get_uncached_paths(self, path: Path) -> Paths:
         return [path] if self._invalid else []
 
     def _is_completely_invalid(self):

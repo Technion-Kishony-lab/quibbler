@@ -2,7 +2,7 @@ import functools
 from functools import lru_cache
 
 import numpy as np
-from typing import Dict, Any, List
+from typing import Dict, Any
 
 from pyquibbler.function_definitions import SourceLocation
 from pyquibbler.translation.numpy_translator import NumpyForwardsPathTranslator
@@ -10,7 +10,7 @@ from pyquibbler.translation.numpy_translator import NumpyBackwardsPathTranslator
 from pyquibbler.translation.source_func_call import SourceFuncCall
 from pyquibbler.translation.translators.transpositional.utils import get_data_source_ids_mask
 from pyquibbler.translation.types import Source
-from pyquibbler.path.path_component import Path, PathComponent
+from pyquibbler.path.path_component import Path, Paths, PathComponent
 from pyquibbler.path.utils import working_component_of_type
 from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices
 
@@ -160,7 +160,7 @@ class ForwardsTranspositionalTranslator(NumpyForwardsPathTranslator):
     def _forward_translate_indices_to_bool_mask(self, source: Source, indices: Any):
         return np.equal(self._get_source_ids_mask(), id(source))
 
-    def _forward_translate_source(self, source: Source, path: Path) -> List[Path]:
+    def _forward_translate_source(self, source: Source, path: Path) -> Paths:
         """
         There are two things we can potentially do:
         1. Translate the invalidation path given the current function source (eg if this function source is rotate,

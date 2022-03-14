@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import contextlib
+import dataclasses
 import weakref
 from _weakref import ReferenceType
 from collections import defaultdict
@@ -12,7 +13,7 @@ from pyquibbler.utilities.file_path import PathWithHyperLink
 from pyquibbler.exceptions import PyQuibblerException
 from .actions import Action, AssignmentAction
 from pyquibbler.quib.graphics import UpdateType
-from pyquibbler.quib.save_assignments import SaveFormat
+from pyquibbler.file_syncing.types import SaveFormat, ResponseToFileNotDefined
 
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib
@@ -30,16 +31,13 @@ class NothingToRedoException(PyQuibblerException):
         return "There are no actions left to redo"
 
 
-class CannotSaveWithoutProjectPathException(PyQuibblerException):
+@dataclasses.dataclass
+class NoProjectDirectoryException(PyQuibblerException):
+    action: str
 
     def __str__(self):
-        return "The current project does not have a path. To save quibs, set a path first (see set_project_path)."
-
-
-class CannotLoadWithoutProjectPathException(PyQuibblerException):
-
-    def __str__(self):
-        return "The current project does not have a path. To load quibs, set a path first (see set_project_path)."
+        return f"The project directory is not define.\n" \
+               f"To {self.action} quibs, set the project directory (see set_project_directory)."
 
 
 class Project:
@@ -57,7 +55,7 @@ class Project:
         self._undo_action_groups: List[List[Action]] = []
         self._redo_action_groups: List[List[Action]] = []
         self._quib_refs_to_paths_to_released_assignments = defaultdict(dict)
-        self._save_format: SaveFormat = SaveFormat.TXT
+        self._save_format: SaveFormat = SaveFormat.VALUE_TXT
         self.on_path_change: Optional[Callable] = None
 
     @classmethod
@@ -97,9 +95,9 @@ class Project:
         # We aggregate to ensure we don't redraw axes more than once
         from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
         with aggregate_redraw_mode():
-            for function_quib in quibs:
-                function_quib.handler.invalidate_self([])
-                function_quib.handler.invalidate_and_redraw_at_path([])
+            for quib in quibs:
+                quib.handler.invalidate_self([])
+                quib.handler.invalidate_and_redraw_at_path([])
 
     """
     central quib commands
@@ -158,6 +156,9 @@ class Project:
             path = Path(path)
         self._directory = None if path is None else path.resolve()
 
+        for quib in self.quibs:
+            quib.handler.on_project_directory_change()
+
         if self.on_path_change:
             self.on_path_change(path)
 
@@ -181,25 +182,42 @@ class Project:
     def save_format(self, save_format: SaveFormat):
         self._save_format = save_format
 
-    def save_quibs(self):
+    def save_quibs(self, response_to_file_not_defined=ResponseToFileNotDefined.WARN_IF_DATA):
         """
-        Save all the quibs to files (if relevant- i.e. if they have overrides)
+        Save quib assignments to files.
+        Saves the assignments of all quibs which have overrides, have an assigned_name and their
+        save_format is not 'off'.
         """
         if self.directory is None:
-            raise CannotSaveWithoutProjectPathException()
+            raise NoProjectDirectoryException(action='save')
         for quib in self.quibs:
-            quib.save()
+            quib.save(response_to_file_not_defined)
 
-    def load_quibs(self):
+    def load_quibs(self, response_to_file_not_defined=ResponseToFileNotDefined.WARN_IF_DATA):
         """
-        Load quibs (where relevant) from files in the current project directory.
+        Load quib assignments from files.
+        Loads assignments from files for all quibs which have an assigned_name and their
+        save_format is not 'off'.
         """
         from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
         if self.directory is None:
-            raise CannotLoadWithoutProjectPathException()
+            raise NoProjectDirectoryException(action='load')
         with aggregate_redraw_mode():
             for quib in self.quibs:
-                quib.load()
+                quib.load(response_to_file_not_defined)
+
+    def sync_quibs(self, response_to_file_not_defined=ResponseToFileNotDefined.WARN_IF_DATA):
+        """
+        Sync quib assignments with files.
+        Syncs quib assignments with files for all quibs which have an assigned_name and their
+        save_format is not 'off'.
+        """
+        from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
+        if self.directory is None:
+            raise NoProjectDirectoryException(action='sync')
+        with aggregate_redraw_mode():
+            for quib in self.quibs:
+                quib.sync(response_to_file_not_defined)
 
     """
     undo/redo
@@ -271,7 +289,7 @@ class Project:
 
         self._undo_action_groups.append(actions)
 
-    def _clear_undo_and_redo_stacks(self, *_, **__):
+    def clear_undo_and_redo_stacks(self, *_, **__):
         self._undo_action_groups = []
         self._redo_action_groups = []
 
@@ -283,7 +301,7 @@ class Project:
             assignment_hashable_path
         )
         assignment_action = AssignmentAction(
-            quib_ref=weakref.ref(quib, self._clear_undo_and_redo_stacks),
+            quib_ref=weakref.ref(quib, self.clear_undo_and_redo_stacks),
             overrider=overrider,
             previous_index=index,
             new_assignment=assignment,

@@ -29,6 +29,7 @@ def setup_environment_for_tests():
 def override_all_():
     override_all()
 
+
 def pytest_configure(config):
     # register additional markers
     config.addinivalue_line("markers", "debug(on): mark test to run with or without debug mode")

@@ -1,13 +1,22 @@
 import functools
 import itertools
+import numpy as np
 from typing import Tuple, Any, Mapping, Type, Optional, Callable
 
 from pyquibbler.env import DEBUG
+from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.path import Path, PathComponent
 from pyquibbler.utils import get_signature_for_func
-
+from dataclasses import dataclass
 SHALLOW_MAX_DEPTH = 2
 SHALLOW_MAX_LENGTH = 100
+
+
+@dataclass
+class CannotCastObjectByOtherObjectException(PyQuibblerException):
+
+    def __str__(self):
+        return "New object cannot be casted by previous object."
 
 
 def iter_objects_of_type_in_object_recursively(object_type: Type,
@@ -156,3 +165,73 @@ def get_paths_for_objects_of_type(obj: Any, type_: Type):
 
     recursively_run_func_on_object(func=add_path_if_isinstance, obj=obj, with_path=True)
     return paths
+
+
+def recursively_compare_objects_type(obj1: Any, obj2: Any, type_only=True) -> bool:
+    # recursively compare object types (type_only=True), or type and value (type_only=False)
+
+    if type(obj1) is not type(obj2):
+        return False
+
+    if isinstance(obj1, (float, int, str)):
+        return type_only or obj1 == obj2
+
+    if isinstance(obj1, (tuple, list, set)):
+        if len(obj1) != len(obj2):
+            return False
+        return all(recursively_compare_objects_type(sub_obj1, sub_obj2, type_only)
+                   for sub_obj1, sub_obj2 in zip(obj1, obj2))
+
+    if isinstance(obj1, dict):
+        if len(obj1) != len(obj2):
+            return False
+        return all(recursively_compare_objects_type(key1, key2, type_only)
+                   for key1, key2 in zip(obj1.keys(), obj2.keys())) \
+            and all(recursively_compare_objects_type(val1, val2, type_only)
+                    for val1, val2 in zip(obj1.values(), obj2.values()))
+
+    if isinstance(obj1, np.ndarray) and obj1.dtype is object:
+        if obj1.shape != obj2.shape:
+            return False
+
+        return np.all(np.vectorize(recursively_compare_objects_type)(obj1, obj2, type_only))
+
+    if isinstance(obj1, np.ndarray) and obj1.dtype is not object:
+        return obj1.dtype is obj2.dtype and (type_only or np.array_equal(obj1, obj2))
+
+    return False
+
+
+def recursively_cast_one_object_by_other(template: Any, obj: Any) -> Any:
+    # Recursively cast one object based on the type of another
+
+    if isinstance(template, (float, int, str)):
+        return type(template)(obj)
+
+    if isinstance(template, np.ndarray) and template.dtype is object:
+        obj = np.array(obj, dtype=object)
+        if template.shape != obj.shape:
+            raise CannotCastObjectByOtherObjectException()
+        return np.vectorize(recursively_cast_one_object_by_other, otypes=[object])(template, obj)
+
+    if isinstance(template, np.ndarray) and template.dtype is not object:
+        return np.array(obj, dtype=template.dtype)
+
+    if type(obj) is not type(template):
+        raise CannotCastObjectByOtherObjectException()
+
+    if isinstance(template, (tuple, list, set)):
+        if len(template) != len(obj):
+            raise CannotCastObjectByOtherObjectException()
+        return type(template)(recursively_cast_one_object_by_other(sub_template, sub_obj)
+                              for sub_template, sub_obj in zip(template, obj))
+
+    if isinstance(template, dict):
+        if len(template) != len(obj):
+            raise CannotCastObjectByOtherObjectException()
+        return {recursively_cast_one_object_by_other(sub_template_key, sub_obj_key):
+                recursively_cast_one_object_by_other(sub_template_val, sub_obj_val)
+                for sub_template_key, sub_obj_key, sub_template_val, sub_obj_val
+                in zip(template.keys(), obj.keys(), template.values(), obj.values())}
+
+    raise CannotCastObjectByOtherObjectException()

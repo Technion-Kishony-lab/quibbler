@@ -2,7 +2,7 @@ from typing import List, Any, Type
 
 import numpy as np
 
-from pyquibbler.path import PathComponent, Path
+from pyquibbler.path import PathComponent, Paths
 from pyquibbler.cache.shallow.shallow_cache import ShallowCache
 from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices
 from pyquibbler.cache.cache_utils import is_path_component_nd
@@ -28,7 +28,7 @@ class IndexableCache(ShallowCache):
                and len(result) == len(self.get_value()) \
                and self._original_type == type(result)
 
-    def _get_uncached_paths_at_path_component(self, path_component: PathComponent) -> List[Path]:
+    def _get_uncached_paths_at_path_component(self, path_component: PathComponent) -> Paths:
         if is_path_component_nd(path_component):
             boolean_mask_of_indices = create_bool_mask_with_true_at_indices(self._shape(), path_component.component)
 
@@ -97,7 +97,7 @@ class IndexableCache(ShallowCache):
     def _set_valid_at_all_paths(self):
         self._invalid_mask = [False for _ in self._value]
 
-    def _get_all_uncached_paths(self) -> List[Path]:
+    def _get_all_uncached_paths(self) -> Paths:
         return [
             [PathComponent(indexed_cls=list, component=i)]
             for i, value in enumerate(self._value)
