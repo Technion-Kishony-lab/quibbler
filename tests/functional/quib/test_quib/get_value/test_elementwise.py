@@ -55,5 +55,4 @@ def test_object_array():
     a = iquib([1, 2])
     b = np.array(['nothing here', a], dtype=object)
 
-    assert np.array_equal(b.get_value(), np.array(['nothing here', a.get_value()]))
-
+    assert np.array_equal(b.get_value(), np.array(['nothing here', a.get_value()], dtype=object))
