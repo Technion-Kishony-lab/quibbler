@@ -73,23 +73,23 @@ class ActionVerification:
 
 class FileMetaData:
 
-    def __init__(self, file_path: Optional[pathlib.Path] = None):
+    def __init__(self):
         self.file_exists: Optional[bool] = None
         self.date: Optional[float] = None
-        if file_path:
-            self.store_metadata(file_path)
 
-    def store_metadata(self, file_path):
+    def store_metadata(self, file_path: Optional[pathlib.Path] = None):
         if file_path and os.path.isfile(file_path):
             self.date = os.path.getmtime(file_path)
             self.file_exists = True
         else:
             self.date = 0.
             self.file_exists = False
+        return self
 
     def reset_metadata(self):
         self.date = None
         self.file_exists = None
+        return self
 
     def get_file_status(self) -> FileStatus:
         if self.file_exists is None:
@@ -236,7 +236,7 @@ class FileSyncer(ABC):
 
     def _get_file_comparison(self) -> FileComparison:
         old_metadata = self.file_metadata
-        new_metadata = FileMetaData(self._get_file_path())
+        new_metadata = FileMetaData().store_metadata(self._get_file_path())
         return FILE_STATUSES_TO_FILECOMPARISON[
             (old_metadata.get_file_status(), new_metadata.get_file_status(), new_metadata == old_metadata)]
 

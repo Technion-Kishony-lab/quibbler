@@ -807,6 +807,7 @@ class Quib:
              assigned_name: Union[None, str] = NoValue,
              name: Union[None, str] = NoValue,
              graphics_update_type: Union[None, str] = NoValue,
+             assigned_quibs: set["Quib"] = NoValue,
              ):
         """
         Set one or more properties on a quib.
@@ -843,6 +844,8 @@ class Quib:
             self.assigned_name = name
         if graphics_update_type is not NoValue:
             self.graphics_update_type = graphics_update_type
+        if assigned_quibs is not NoValue:
+            self.assigned_quibs = assigned_quibs
 
         var_name = get_quib_name()
         if var_name:
@@ -1064,7 +1067,7 @@ class Quib:
                 raise exception
             elif response_to_file_not_defined == ResponseToFileNotDefined.WARN \
                     or response_to_file_not_defined == ResponseToFileNotDefined.WARN_IF_DATA \
-                    and self.handler.is_overridden():
+                    and self.handler.is_overridden:
                 warnings.warn(str(exception))
         else:
             path = PathWithHyperLink(self.actual_save_directory /
@@ -1140,8 +1143,8 @@ class Quib:
             assigned_name
             Project.directory
         """
-        self._get_file_path(response_to_file_not_defined)
-        self.handler.file_syncer.save()
+        if self._get_file_path(response_to_file_not_defined) is not None:
+            self.handler.file_syncer.save()
 
     def load(self, response_to_file_not_defined: ResponseToFileNotDefined = ResponseToFileNotDefined.RAISE):
         """
@@ -1157,8 +1160,8 @@ class Quib:
             assigned_name
             Project.directory
         """
-        self._get_file_path(response_to_file_not_defined)
-        self.handler.file_syncer.load()
+        if self._get_file_path(response_to_file_not_defined) is not None:
+            self.handler.file_syncer.load()
 
     def sync(self, response_to_file_not_defined: ResponseToFileNotDefined = ResponseToFileNotDefined.RAISE):
         """
@@ -1178,8 +1181,8 @@ class Quib:
             assigned_name
             Project.directory
         """
-        self._get_file_path(response_to_file_not_defined)
-        self.handler.file_syncer.sync()
+        if self._get_file_path(response_to_file_not_defined) is not None:
+            self.handler.file_syncer.sync()
 
     """
     Repr

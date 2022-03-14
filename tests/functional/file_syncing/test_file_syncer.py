@@ -69,7 +69,7 @@ class ArrayFileSyncer(FileSyncer):
 
 @fixture()
 def file_path(tmpdir):
-    return tmpdir / 'data_file.txt'
+    return str(pathlib.Path(tmpdir.strpath) / 'data_file.txt')
 
 
 @fixture()

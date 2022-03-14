@@ -208,6 +208,15 @@ def recursively_cast_one_object_by_other(template: Any, obj: Any) -> Any:
     if isinstance(template, (float, int, str)):
         return type(template)(obj)
 
+    if isinstance(template, np.ndarray) and template.dtype is object:
+        obj = np.array(obj, dtype=object)
+        if template.shape != obj.shape:
+            raise CannotCastObjectByOtherObjectException()
+        return np.vectorize(recursively_cast_one_object_by_other, otypes=[object])(template, obj)
+
+    if isinstance(template, np.ndarray) and template.dtype is not object:
+        return np.array(obj, dtype=template.dtype)
+
     if type(obj) is not type(template):
         raise CannotCastObjectByOtherObjectException()
 
@@ -224,13 +233,5 @@ def recursively_cast_one_object_by_other(template: Any, obj: Any) -> Any:
                 recursively_cast_one_object_by_other(sub_template_val, sub_obj_val)
                 for sub_template_key, sub_obj_key, sub_template_val, sub_obj_val
                 in zip(template.keys(), obj.keys(), template.values(), obj.values())}
-
-    if isinstance(template, np.ndarray) and template.dtype is object:
-        if template.shape != obj.shape:
-            raise CannotCastObjectByOtherObjectException()
-        return np.vectorize(recursively_cast_one_object_by_other, otypes=[object])(template, obj)
-
-    if isinstance(template, np.ndarray) and template.dtype is not object:
-        return np.array(obj, dtype=template.dtype)
 
     raise CannotCastObjectByOtherObjectException()

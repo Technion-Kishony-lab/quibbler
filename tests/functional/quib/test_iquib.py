@@ -54,6 +54,8 @@ def test_iquib_pretty_repr_str():
 @pytest.mark.parametrize(['save_format'], [
     (SaveFormat.TXT,),
     (SaveFormat.BIN,),
+    (SaveFormat.VALUE_TXT,),
+    (SaveFormat.VALUE_BIN,),
 ])
 def test_iquib_save_and_load(save_format: SaveFormat):
     save_name = "example_quib"
