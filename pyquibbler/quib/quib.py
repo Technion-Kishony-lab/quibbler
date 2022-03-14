@@ -1030,7 +1030,7 @@ class Quib:
         """
         actual_save_format = self.save_format if self.save_format else self.project.save_format
         if not self.is_iquib:
-            actual_save_format = SAVE_FORMAT_TO_FQUIB_SAVE_FORMAT[SAVE_FORMAT_TO_FQUIB_SAVE_FORMAT]
+            actual_save_format = SAVE_FORMAT_TO_FQUIB_SAVE_FORMAT[actual_save_format]
         return actual_save_format
 
     @property
@@ -1299,4 +1299,4 @@ class Quib:
 
     @property
     def is_iquib(self):
-        return self.func.__name__ == 'iquib'
+        return getattr(self.func, '__name__', None) == 'iquib'

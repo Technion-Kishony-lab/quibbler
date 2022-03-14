@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 from pyquibbler.env import GET_VARIABLE_NAMES
-from pyquibbler.quib.exceptions import CannotSaveValueAsTextException
+from pyquibbler.quib.exceptions import CannotSaveValueAsTextException, CannotSaveAssignmentsAsTextException
 from pyquibbler.quib.specialized_functions.iquib import iquib, CannotNestQuibInIQuibException
 from pyquibbler.file_syncing.types import SaveFormat
 from pyquibbler.quib import Quib
@@ -86,7 +86,7 @@ def test_iquib_loads_if_same_name():
 
 def test_iquib_does_not_save_if_irrelevant(project):
     a = iquib(1)
-    b:Quib = (a + 1).setp(assigned_name='b')
+    b: Quib = (a + 1).setp(assigned_name='b')
     b.save()
 
     assert len(os.listdir(project.directory)) == 0
@@ -123,7 +123,7 @@ def test_save_raises_exception_when_cannot_save_as_text(tmpdir):
 
     try:
         a.save()
-    except CannotSaveValueAsTextException:
+    except CannotSaveAssignmentsAsTextException:
         quib_files = os.listdir(f"{tmpdir}")
         assert len(quib_files) == 0
         return

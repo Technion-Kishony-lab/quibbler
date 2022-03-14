@@ -55,7 +55,7 @@ class Project:
         self._undo_action_groups: List[List[Action]] = []
         self._redo_action_groups: List[List[Action]] = []
         self._quib_refs_to_paths_to_released_assignments = defaultdict(dict)
-        self._save_format: SaveFormat = SaveFormat.TXT
+        self._save_format: SaveFormat = SaveFormat.VALUE_TXT
         self.on_path_change: Optional[Callable] = None
 
     @classmethod
