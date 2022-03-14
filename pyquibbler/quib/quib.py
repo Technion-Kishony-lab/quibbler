@@ -545,7 +545,7 @@ class Quib:
             try:
                 cache_behavior = CacheBehavior[cache_behavior.upper()]
             except KeyError:
-                raise UnknownCacheBehaviorException(cache_behavior)
+                raise UnknownCacheBehaviorException(cache_behavior) from None
         if self.is_random_func and cache_behavior != CacheBehavior.ON:
             raise InvalidCacheBehaviorForQuibException(self.handler.quib_function_call.default_cache_behavior)
         self.handler.quib_function_call.default_cache_behavior = cache_behavior
@@ -585,7 +585,7 @@ class Quib:
             try:
                 graphics_update_type = UpdateType[graphics_update_type.upper()]
             except KeyError:
-                raise UnknownUpdateTypeException(graphics_update_type)
+                raise UnknownUpdateTypeException(graphics_update_type) from None
         self.handler.graphics_update_type = graphics_update_type
 
     """
@@ -659,7 +659,7 @@ class Quib:
                 raise InvalidArgumentValueException(
                     var_name='assigned_quibs',
                     message='a set of quibs.',
-                )
+                ) from None
 
         self.handler.assigned_quibs = quibs
 
@@ -1038,7 +1038,7 @@ class Quib:
         except TypeError:
             if os.path.exists(save_path):
                 os.remove(save_path)
-            raise CannotSaveAsTextException()
+            raise CannotSaveAsTextException() from None
 
     def _load_value_from_txt(self):
         """

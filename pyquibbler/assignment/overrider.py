@@ -178,7 +178,7 @@ class Overrider:
     def save_to_txt(self, file):
         from pyquibbler.quib.exceptions import CannotSaveAsTextException
         if not self.can_save_to_txt():
-            raise CannotSaveAsTextException
+            raise CannotSaveAsTextException()
         with open(file, "wt") as f:
             f.write(self.pretty_repr())
 
@@ -187,6 +187,8 @@ class Overrider:
         load assignments from text file.
         """
         from pyquibbler import iquib
+        from ..quib.exceptions import CannotLoadAssignmentsFromTextException
+
         quib = iquib(None)
         with open(file, mode='r') as f:
             assignment_text_commands = f.read()
@@ -194,8 +196,8 @@ class Overrider:
         #  Need to good to replace with a dedicated parser.
         try:
             exec(assignment_text_commands)
-        except Exception as e:
-            raise e
+        except Exception:
+            raise CannotLoadAssignmentsFromTextException(file) from None
         self._paths_to_assignments = quib.handler.overrider._paths_to_assignments
         self._active_assignment = None
 
