@@ -11,5 +11,6 @@ from .utilities.user_utils import \
     save_quibs, load_quibs, \
     undo, redo, can_redo, can_undo, \
     refresh_graphics, \
-    list_quiby_funcs, is_func_quiby
+    list_quiby_funcs, is_func_quiby, \
+    quibapp
 from .assignment.default_value import default

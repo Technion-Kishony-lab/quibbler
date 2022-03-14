@@ -147,7 +147,7 @@ class Project:
 
         path = None indicates undefined path.
         """
-        return PathWithHyperLink(self._directory)
+        return None if self._directory is None else PathWithHyperLink(self._directory)
 
     @directory.setter
     @validate_user_input(path=(type(None), str, Path))
