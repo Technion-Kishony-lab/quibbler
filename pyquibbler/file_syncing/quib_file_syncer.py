@@ -29,10 +29,10 @@ class QuibFileSyncer(FileSyncer):
         return bool(KEEP_EMPTY_FILE)
 
     def _save_data_to_file(self, file_path: pathlib.Path):
-        self.handler.save_assignments(file_path)
+        self.handler.save_assignments_or_value(file_path)
 
     def _load_data_from_file(self, file_path: pathlib.Path):
-        self.handler.load_assignments(file_path)
+        self.handler.load_from_assignment_file_or_value_file(file_path)
 
     def _clear_data(self):
         pass

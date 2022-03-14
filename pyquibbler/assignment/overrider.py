@@ -174,7 +174,7 @@ class Overrider:
     save/load
     """
 
-    def save_to_binary(self, file):
+    def save_as_binary(self, file):
         with open(file, 'wb') as f:
             pickle.dump(self._paths_to_assignments, f)
 
@@ -190,10 +190,10 @@ class Overrider:
                 return False
         return True
 
-    def save_to_txt(self, file):
-        from pyquibbler.quib.exceptions import CannotSaveAsTextException
+    def save_as_txt(self, file):
+        from pyquibbler.quib.exceptions import CannotSaveAssignmentsAsTextException
         if not self.can_save_to_txt():
-            raise CannotSaveAsTextException()
+            raise CannotSaveAssignmentsAsTextException()
         with open(file, "wt") as f:
             f.write(self.pretty_repr())
 

@@ -2,9 +2,13 @@ from __future__ import annotations
 
 import functools
 import json
+import os
 import pathlib
+import pickle
 import weakref
 import warnings
+
+import json_tricks
 import numpy as np
 
 from pyquibbler.utilities.file_path import PathWithHyperLink
@@ -24,7 +28,8 @@ from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals
 from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation_with_sources_metadata, \
     get_func_call_for_translation_without_sources_metadata
 from pyquibbler.utilities.input_validation_utils import validate_user_input, InvalidArgumentValueException
-from pyquibbler.utilities.iterators import recursively_run_func_on_object
+from pyquibbler.utilities.iterators import recursively_run_func_on_object, recursively_compare_objects_type, \
+    recursively_cast_one_object_by_other
 from pyquibbler.utilities.unpacker import Unpacker
 from pyquibbler.logger import logger
 from pyquibbler.project import Project
@@ -40,8 +45,9 @@ from pyquibbler.quib.graphics import UpdateType
 from pyquibbler.translation.translate import forwards_translate, NoTranslatorsFoundException, \
     backwards_translate
 from pyquibbler.cache import create_cache, CacheStatus
-from pyquibbler.file_syncing import SaveFormat, \
-    ResponseToFileNotDefined, FileNotDefinedException, QuibFileSyncer
+from pyquibbler.file_syncing import SaveFormat, SAVE_FORMAT_TO_FILE_EXT, CannotSaveFunctionQuibsAsValueException, \
+    ResponseToFileNotDefined, FileNotDefinedException, QuibFileSyncer, SAVE_FORMAT_TO_FQUIB_SAVE_FORMAT, \
+    FIRST_LINE_OF_FORMATTED_TXT_FILE
 from pyquibbler.quib.get_value_context_manager import get_value_context, is_within_get_value_context
 
 
@@ -286,14 +292,7 @@ class QuibHandler:
     def is_overridden(self):
         return self._overrider is not None and len(self._overrider)
 
-    def override(self, assignment: Assignment, allow_overriding_from_now_on=True):
-        """
-        Overrides a part of the data the quib represents.
-        """
-        if allow_overriding_from_now_on:
-            self.allow_overriding = True
-        if not self.allow_overriding:
-            raise OverridingNotAllowedException(self.quib, assignment)
+    def _add_override(self, assignment: Assignment):
         self.overrider.add_assignment(assignment)
         if len(assignment.path) == 0:
             self.quib_function_call.on_type_change()
@@ -305,12 +304,24 @@ class QuibHandler:
         except InvalidTypeException as e:
             raise InvalidTypeException(e.type_) from None
 
+
+    def override(self, assignment: Assignment, allow_overriding_from_now_on=True):
+        """
+        Overrides a part of the data the quib represents.
+        """
+        if allow_overriding_from_now_on:
+            self.allow_overriding = True
+        if not self.allow_overriding:
+            raise OverridingNotAllowedException(self.quib, assignment)
+
+        self._add_override(assignment)
+
         if not is_within_drag():
             self.project.push_assignment_to_undo_stack(quib=self.quib,
                                                        assignment=assignment,
                                                        index=len(self.overrider) - 1,
                                                        overrider=self.overrider)
-            self.file_syncer.data_changed()
+            self.file_syncer.on_data_changed()
 
     def remove_override(self, path: Path):
         """
@@ -322,7 +333,7 @@ class QuibHandler:
                                                        index=len(self.overrider) - 1,
                                                        overrider=self.overrider,
                                                        quib=self.quib)
-            self.file_syncer.data_changed()
+            self.file_syncer.on_data_changed()
         if len(path) == 0:
             self.quib_function_call.on_type_change()
         self.invalidate_and_redraw_at_path(path=path)
@@ -359,7 +370,7 @@ class QuibHandler:
 
         try:
             value = self.quib.get_value()
-            # TODO: need to take care of out-of-range assignments:
+            # TODO: better implement with the line below. But need to take care of out-of-range assignments:
             # value = self.get_value_valid_at_path(assignment.path)
 
             from pyquibbler.inversion.invert import invert
@@ -455,62 +466,90 @@ class QuibHandler:
     file syncing
     """
 
-    def save_assignments(self, file_path: pathlib.Path):
-        save_format = self.quib.actual_save_format
-        if save_format == SaveFormat.VALUE_TXT:
-            return self._save_value_as_txt(file_path)
-        elif save_format == SaveFormat.BIN:
-            return self.overrider.save_to_binary(file_path)
-        elif save_format == SaveFormat.TXT:
-            return self.overrider.save_to_txt(file_path)
+    def on_project_directory_change(self):
+        if not(self.save_directory is not None and self.save_directory.is_absolute()):
+            self.file_syncer.on_file_name_changed()
 
-    def load_assignments(self, file_path: pathlib.Path):
+    def on_file_name_change(self):
+        self.file_syncer.on_file_name_changed()
+
+    def save_assignments_or_value(self, file_path: pathlib.Path):
         save_format = self.quib.actual_save_format
         if save_format == SaveFormat.VALUE_TXT:
-            self._load_value_from_txt(file_path)
+            self._save_value_as_txt(file_path)
+        elif save_format == SaveFormat.VALUE_BIN:
+            self._save_value_as_binary(file_path)
+        elif save_format == SaveFormat.BIN:
+            self.overrider.save_as_binary(file_path)
+        elif save_format == SaveFormat.TXT:
+            self.overrider.save_as_txt(file_path)
+
+    def load_from_assignment_file_or_value_file(self, file_path: pathlib.Path):
+        save_format = self.quib.actual_save_format
+        if save_format == SaveFormat.VALUE_TXT:
+            changed_paths = self._load_value_from_txt(file_path)
+        elif save_format == SaveFormat.VALUE_BIN:
+            changed_paths = self._load_value_from_binary(file_path)
+        elif save_format == SaveFormat.BIN:
+            changed_paths = self.overrider.load_from_binary(file_path)
+        elif save_format == SaveFormat.TXT:
+            changed_paths = self.overrider.load_from_txt(file_path)
         else:
-            if save_format == SaveFormat.BIN:
-                changed_paths = self.overrider.load_from_binary(file_path)
-            elif save_format == SaveFormat.TXT:
-                changed_paths = self.overrider.load_from_txt(file_path)
-            else:
-                return
-            self.project.clear_undo_and_redo_stacks()
-            for path in changed_paths:
-                self.invalidate_and_redraw_at_path(path)
+            return
+
+        self.project.clear_undo_and_redo_stacks()
+        for path in changed_paths:
+            self.invalidate_and_redraw_at_path(path)
+
+    def _replace_value_after_load(self, value) -> Paths:
+        self._add_override(Assignment(value=value, path=[]))
+        self.project.clear_undo_and_redo_stacks()
+
+        # TODO: check which specific elements changed.
+        return [[]]
+
+    def _save_value_as_binary(self, file_path):
+        with open(file_path, 'wb') as f:
+            pickle.dump(self.get_value_valid_at_path([]), f)
+
+    def _load_value_from_binary(self, file) -> Paths:
+        with open(file, 'rb') as f:
+            return self._replace_value_after_load(pickle.load(f))
 
     def _save_value_as_txt(self, file_path: pathlib.Path):
         """
-        Save the quib's value as a text file.
-        In contrast to the normal save, this will save the value of the quib regardless
-        of whether the quib has overrides, as a txt file is used for the user to be able to see the quib and change it
-        in a textual manner.
-        Note that this WILL fail with CannotSaveAsTextException in situations where the iquib
-        cannot be represented textually.
+        Save an iquib value as a text file
+
+        Note:
+            * This method is only defined for iquibs.
+            * The value must be of the same type as the original value of the iquib
+            * Will fail with CannotSaveValueAsTextException if the iquib's value cannot be represented as text.
         """
+        arg = self.quib.args[0]
         value = self.get_value_valid_at_path([])
-        try:
-            if isinstance(value, np.ndarray):
-                np.savetxt(str(file_path), value)
+        with open(file_path, 'w') as f:
+            if not recursively_compare_objects_type(arg, value):
+                f.write(FIRST_LINE_OF_FORMATTED_TXT_FILE +'\n\n')
+                json_tricks.dump(value, f, primitives=False)
             else:
-                with open(file_path, 'w') as f:
-                    json.dump(value, f)
-        except TypeError:
-            if os.path.exists(file_path):
-                os.remove(file_path)
-            raise CannotSaveAsTextException()
+                json_tricks.dump(value, f, primitives=True)
 
     def _load_value_from_txt(self, file_path):
         """
-        Load the quib from the corresponding text file is possible
+        Load the quib value from the corresponding text file
         """
 
-        # TODO: this method is more of a stud. needs attention
-        if issubclass(self.get_type(), np.ndarray):
-            self.quib.assign(np.array(np.loadtxt(str(file_path)), dtype=self.get_value().dtype))
-        else:
-            with open(file_path, 'r') as f:
-                self.assign(json.load(f))
+        with open(file_path, 'r') as f:
+            is_formatted = f.readline() == FIRST_LINE_OF_FORMATTED_TXT_FILE + '\n'
+
+        with open(file_path, 'r') as f:
+            value = json_tricks.load(f)
+
+        if not is_formatted:
+            arg = self.quib.args[0]
+            value = recursively_cast_one_object_by_other(arg, value)
+
+        return self._replace_value_after_load(value)
 
 
 class Quib:
@@ -946,10 +985,6 @@ class Quib:
     File saving
     """
 
-    def _upon_file_name_change(self):
-        # TODO: announce name change due to project directory change
-        self.handler.file_syncer.file_name_changed()
-
     @property
     def project(self) -> Project:
         return self.handler.project
@@ -975,8 +1010,11 @@ class Quib:
     def save_format(self, save_format):
         if isinstance(save_format, str):
             save_format = SaveFormat(save_format)
+        if (save_format in [SaveFormat.VALUE_BIN, SaveFormat.VALUE_TXT]) and not self.is_iquib:
+            raise CannotSaveFunctionQuibsAsValueException
+
         self.handler.save_format = save_format
-        self._upon_file_name_change()
+        self.handler.on_file_name_change()
 
     @property
     def actual_save_format(self) -> SaveFormat:
@@ -993,7 +1031,10 @@ class Quib:
             save_format
             SaveFormat
         """
-        return self.save_format if self.save_format else self.project.save_format
+        actual_save_format = self.save_format if self.save_format else self.project.save_format
+        if not self.is_iquib:
+            actual_save_format = SAVE_FORMAT_TO_FQUIB_SAVE_FORMAT[SAVE_FORMAT_TO_FQUIB_SAVE_FORMAT]
+        return actual_save_format
 
     @property
     def file_path(self) -> Optional[PathWithHyperLink]:
@@ -1030,7 +1071,7 @@ class Quib:
                 warnings.warn(str(exception))
         else:
             path = PathWithHyperLink(self.actual_save_directory /
-                                     (self.assigned_name + SAVEFORMAT_TO_FILE_EXT[self.actual_save_format]))
+                                     (self.assigned_name + SAVE_FORMAT_TO_FILE_EXT[self.actual_save_format]))
 
         return path
 
@@ -1059,7 +1100,7 @@ class Quib:
         if isinstance(directory, str):
             directory = pathlib.Path(directory)
         self.handler.save_directory = directory
-        self._upon_file_name_change()
+        self.handler.on_file_name_change()
 
     @property
     def actual_save_directory(self) -> Optional[pathlib.Path]:
@@ -1177,7 +1218,7 @@ class Quib:
                 or len(assigned_name) \
                 and assigned_name[0].isalpha() and all([c.isalnum() or c in ' _' for c in assigned_name]):
             self.handler.assigned_name = assigned_name
-            self._upon_file_name_change()
+            self.handler.on_file_name_change()
         else:
             raise ValueError('name must be None or a string starting with a letter '
                              'and continuing alpha-numeric characters or spaces')
@@ -1258,3 +1299,7 @@ class Quib:
     @property
     def file_name(self):
         return self.handler.file_name
+
+    @property
+    def is_iquib(self):
+        return self.func.__name__ == 'iquib'

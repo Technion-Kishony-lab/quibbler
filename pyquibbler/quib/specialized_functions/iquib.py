@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, List
+from typing import Any
 
 from pyquibbler.env import DEBUG
 from pyquibbler.exceptions import DebugException

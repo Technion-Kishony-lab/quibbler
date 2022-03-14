@@ -37,7 +37,7 @@ class NoProjectDirectoryException(PyQuibblerException):
 
     def __str__(self):
         return f"The project directory is not define.\n" \
-               f"To {self.action} quibs, set a project path (see set_project_path)."
+               f"To {self.action} quibs, set the project directory (see set_project_directory)."
 
 
 class Project:
@@ -155,6 +155,9 @@ class Project:
         if isinstance(path, str):
             path = Path(path)
         self._directory = None if path is None else path.resolve()
+
+        for quib in self.quibs:
+            quib.handler.on_project_directory_change()
 
         if self.on_path_change:
             self.on_path_change(path)

@@ -214,14 +214,14 @@ class FileSyncer(ABC):
     def _dialog_title(self) -> str:
         pass
 
-    def file_name_changed(self):
+    def on_file_name_changed(self):
         """
         must be called when the file name changes
         """
         self.is_synced = False
         self.file_metadata.reset_metadata()
 
-    def data_changed(self):
+    def on_data_changed(self):
         """
         must be called when the data to be saved has changed
         """

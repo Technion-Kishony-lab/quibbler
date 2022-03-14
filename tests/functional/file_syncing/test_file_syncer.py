@@ -48,7 +48,7 @@ class ArrayFileSyncer(FileSyncer):
     @data.setter
     def data(self, data):
         self._data = np.array(data, dtype=np.uint)
-        self.data_changed()
+        self.on_data_changed()
 
     @property
     def file_name(self):
@@ -57,7 +57,7 @@ class ArrayFileSyncer(FileSyncer):
     @file_name.setter
     def file_name(self, file_name):
         self._file_name = file_name
-        self.file_name_changed()
+        self.on_file_name_changed()
 
     def __repr__(self):
         return \
