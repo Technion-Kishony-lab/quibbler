@@ -49,3 +49,30 @@ def test_exception_during_quib_creation():
         b.get_shape()
     except ExternalCallFailedException as e:
         assert e.quibs_with_calls == [(b, 'get_shape()')]
+
+
+@pytest.mark.show_quib_exceptions_as_quib_traceback(True)
+def test_exception_in_overrider():
+    # Incorrect assignments do not generate proper readable exceptions #207
+    a = iquib(0)
+    a[2] = 10
+    try:
+        a.get_value()
+    except ExternalCallFailedException as e:
+        assert e.quibs_with_calls == [(a, 'get_value()')]
+
+
+@pytest.mark.show_quib_exceptions_as_quib_traceback(True)
+def test_exception_in_overrider():
+    # https://github.com/Technion-Kishony-lab/pyquibbler/issues/134
+    a = q(list, range(4))
+    a.allow_overriding = True
+    a[2] = [20, 30]
+    a[2][1] = 31
+    a[2] = 7
+    try:
+        a.get_value()
+    except ExternalCallFailedException as e:
+        assert e.quibs_with_calls == [(a, 'get_value()')]
+
+
