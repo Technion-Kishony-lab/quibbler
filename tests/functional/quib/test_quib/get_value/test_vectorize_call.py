@@ -177,6 +177,25 @@ def test_vectorize_with_empty_data_and_no_otypes(data, use_quib):
     assert exc_info.value.args[0] == 'cannot call `vectorize` on size 0 inputs unless `otypes` is set'
 
 
+def test_vectorize_array_and_scalar(uncached_array_quib, uncached_scalar_quib):
+    a = uncached_array_quib
+    b = uncached_scalar_quib
+    v_add = np.vectorize(np.add)
+    c = v_add(a, b)
+
+    assert np.array_equal(c.get_value(), v_add(a.get_value(), b.get_value()))
+
+
+def test_vectorize_array_and_scalar_with_invalidation(uncached_array_quib, uncached_scalar_quib):
+    a = uncached_array_quib
+    b = uncached_scalar_quib
+    v_add = np.vectorize(np.add)
+    c = v_add(a, b)
+    a[0] = 2
+
+    assert np.array_equal(c.get_value(), v_add(a.get_value(), b.get_value()))
+
+
 # TODO: Move to appropriate place
 def test_assignment_to_quib_within_vectorize_is_translated_to_override_on_vectorize():
     parent = iquib(0)

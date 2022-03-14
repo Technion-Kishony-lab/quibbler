@@ -232,3 +232,12 @@ def test_inverse_casting(func, initial_input, assigned_value, expected_new_input
     assert np.array_equal(input_value, expected_new_input) and type(input_value) == type(expected_new_input)
     if isinstance(input_value, np.ndarray):
         assert input_value.dtype == expected_new_input.dtype
+
+
+def test_invert_array_with_quib_elements(create_quib_with_return_value):
+    a = create_quib_with_return_value(1, allow_overriding=True)
+    b = create_quib_with_return_value(2, allow_overriding=True)
+    ab = np.array([a, b])
+    ab[:] = 0
+
+    assert np.array_equal(ab.get_value(), np.array([0, 0]))
