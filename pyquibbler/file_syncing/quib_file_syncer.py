@@ -1,11 +1,11 @@
+from __future__ import annotations
+
 import pathlib
 import weakref
 from typing import Optional
 from .file_syncer import FileSyncer
 from pyquibbler.utils import Flag
 from typing import TYPE_CHECKING
-
-from .types import SaveFormat
 
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib
@@ -15,7 +15,7 @@ KEEP_EMPTY_FILE = Flag(False)
 
 
 class QuibFileSyncer(FileSyncer):
-    def __init__(self, quib_weakref: weakref.ref["Quib"]):
+    def __init__(self, quib_weakref: weakref.ReferenceType["Quib"]):
         self.quib_weakref = quib_weakref
         super(QuibFileSyncer, self).__init__()
 

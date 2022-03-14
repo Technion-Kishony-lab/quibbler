@@ -1,5 +1,6 @@
 import functools
 import itertools
+import numpy as np
 from typing import Tuple, Any, Mapping, Type, Optional, Callable
 
 from pyquibbler.env import DEBUG
@@ -11,11 +12,12 @@ SHALLOW_MAX_DEPTH = 2
 SHALLOW_MAX_LENGTH = 100
 
 
-dataclass
+@dataclass
 class CannotCastObjectByOtherObjectException(PyQuibblerException):
 
     def __str__(self):
         return "New object cannot be casted by previous object."
+
 
 def iter_objects_of_type_in_object_recursively(object_type: Type,
                                                obj, max_depth: Optional[int] = None, max_length: Optional[int] = None):

@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Any, List
+from typing import Any
 
 
 from pyquibbler.exceptions import PyQuibblerException

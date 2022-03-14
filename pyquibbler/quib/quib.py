@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 import functools
-import json
-import os
 import pathlib
 import pickle
 import weakref
@@ -304,7 +302,6 @@ class QuibHandler:
         except InvalidTypeException as e:
             raise InvalidTypeException(e.type_) from None
 
-
     def override(self, assignment: Assignment, allow_overriding_from_now_on=True):
         """
         Overrides a part of the data the quib represents.
@@ -529,7 +526,7 @@ class QuibHandler:
         value = self.get_value_valid_at_path([])
         with open(file_path, 'w') as f:
             if not recursively_compare_objects_type(arg, value):
-                f.write(FIRST_LINE_OF_FORMATTED_TXT_FILE +'\n\n')
+                f.write(FIRST_LINE_OF_FORMATTED_TXT_FILE + '\n\n')
                 json_tricks.dump(value, f, primitives=False)
             else:
                 json_tricks.dump(value, f, primitives=True)
