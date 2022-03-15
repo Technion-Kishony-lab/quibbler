@@ -30,9 +30,8 @@ class Overrider:
         self._paths_to_assignments: PathsToAssignments = {}
         self._active_assignment = None
 
-    def clear_assignments(self):
-        self._paths_to_assignments: {}
-        self._active_assignment = None
+    def clear_assignments(self) -> Paths:
+        return self.replace_assignments({})
 
     def replace_assignments(self, new_paths_to_assignments: PathsToAssignments) -> Paths:
         """

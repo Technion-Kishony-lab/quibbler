@@ -35,8 +35,7 @@ class QuibFileSyncer(FileSyncer):
         self.handler.load_from_assignment_file_or_value_file(file_path)
 
     def _clear_data(self):
-        pass
-#        self.quib.assign() = np.zeros((1, 0), dtype=np.uint)
+        self.handler.clear_all_overrides()
 
     def _file_type(self) -> str:
         return 'assignment'

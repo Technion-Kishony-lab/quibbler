@@ -499,6 +499,13 @@ class QuibHandler:
         for path in changed_paths:
             self.invalidate_and_redraw_at_path(path)
 
+    def clear_all_overrides(self):
+        changed_paths = self.overrider.clear_assignments()
+
+        self.project.clear_undo_and_redo_stacks()
+        for path in changed_paths:
+            self.invalidate_and_redraw_at_path(path)
+
     def _replace_value_after_load(self, value) -> Paths:
         self._add_override(Assignment(value=value, path=[]))
         self.project.clear_undo_and_redo_stacks()
