@@ -9,6 +9,7 @@ import warnings
 import json_tricks
 import numpy as np
 
+from pyquibbler.quib.types import FileAndLineNumber
 from pyquibbler.utilities.file_path import PathWithHyperLink
 from functools import cached_property
 from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Union, Iterable
@@ -89,8 +90,8 @@ class QuibHandler:
         self.allow_overriding = allow_overriding
         self.assigned_quibs = None
         self.created_in_get_value_context = is_within_get_value_context()
-        self.file_name = file_name
-        self.line_no = line_no
+        self.created_in: Optional[FileAndLineNumber] = \
+            FileAndLineNumber(file_name, line_no) if file_name else None
         self.graphics_update_type = graphics_update_type
 
         self.save_directory = save_directory
@@ -1273,7 +1274,7 @@ class Quib:
     def ugly_repr(self):
         return f"<{self.__class__.__name__} - {self.func}"
 
-    def pretty_repr(self):
+    def pretty_repr(self) -> str:
         """
         Returns a pretty representation of the quib.
         """
@@ -1293,13 +1294,9 @@ class Quib:
         return self.ugly_repr()
 
     @property
-    def line_no(self):
-        return self.handler.line_no
+    def created_in(self) -> Optional[FileAndLineNumber]:
+        return self.handler.created_in
 
     @property
-    def file_name(self):
-        return self.handler.file_name
-
-    @property
-    def is_iquib(self):
+    def is_iquib(self) -> bool:
         return getattr(self.func, '__name__', None) == 'iquib'

@@ -39,7 +39,8 @@ class ExternalCallFailedException(PyQuibblerException):
 
         quibs_formatted = ""
         for quib, call in self.quibs_with_calls[::-1]:
-            file_info = f"File \"{quib.file_name}\", line {quib.line_no}" if quib.file_name else "Unnamed quib"
+            file_info = f"File \"{quib.created_in.file_path}\", line {quib.created_in.line_no}" \
+                if quib.created_in else "Untraceable quib"
             quibs_formatted += "\n  " + file_info
             quibs_formatted += f"\n\t{repr(quib)} -> {call} "
 

@@ -80,4 +80,4 @@ class CannotSaveAssignmentsAsTextException(PyQuibblerException):
 
     def __str__(self):
         return "The quib assignments contain objects that cannot be saved as text." \
-               "To save the quib set the save_format to binary (quib.save_format = 'bin')."
+               "To save the quib, set the save_format to binary (quib.save_format = 'bin')."
