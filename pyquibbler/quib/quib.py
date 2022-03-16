@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import functools
 import pathlib
 import pickle
@@ -433,7 +434,7 @@ class QuibHandler:
             return [path]
 
         assignments = list(self.overrider)
-        original_value = self.get_value_valid_at_path(None)
+        original_value = copy.deepcopy(self.get_value_valid_at_path(None))
         cache = create_cache(original_value)
         for assignment in assignments:
             cache = self._apply_assignment_to_cache(original_value, cache, assignment)
