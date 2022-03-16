@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import functools
 import pathlib
 import pickle
@@ -213,7 +214,7 @@ class QuibHandler:
         for new_path in new_paths:
             if new_path is not None:
                 self.invalidate_self(new_path)
-                if len(path) == 0 or not self._is_completely_overridden_at_first_component(new_path):
+                if len(path) == 0 or len(self._get_list_of_not_overridden_paths_at_first_component(new_path)) > 0:
                     self._invalidate_children_at_path(new_path)
 
     def _forward_translate_without_retrieving_metadata(self, invalidator_quib: Quib, path: Path) -> Paths:
@@ -424,20 +425,20 @@ class QuibHandler:
 
         return cache
 
-    def _is_completely_overridden_at_first_component(self, path) -> bool:
+    def _get_list_of_not_overridden_paths_at_first_component(self, path) -> Paths:
         """
         Get a list of all the non overridden paths (at the first component)
         """
+        path = path[:1]
         if not self.is_overridden:
-            return False
+            return [path]
 
         assignments = list(self.overrider)
-        path = path[:1]
-        original_value = self.quib.get_value_valid_at_path(None)
+        original_value = copy.deepcopy(self.get_value_valid_at_path(None))
         cache = create_cache(original_value)
         for assignment in assignments:
             cache = self._apply_assignment_to_cache(original_value, cache, assignment)
-        return len(cache.get_uncached_paths(path)) == 0
+        return cache.get_uncached_paths(path)
 
     """
     get_value
@@ -455,7 +456,11 @@ class QuibHandler:
             raise
 
         with get_value_context():
-            result = self.quib_function_call.run(path)
+            if path is None:
+                paths = [None]
+            else:
+                paths = self._get_list_of_not_overridden_paths_at_first_component(path)
+            result = self.quib_function_call.run(paths)
 
         return self._overrider.override(result, self.assignment_template) if self.is_overridden \
             else result
@@ -530,7 +535,7 @@ class QuibHandler:
             * The value must be of the same type as the original value of the iquib
             * Will fail with CannotSaveValueAsTextException if the iquib's value cannot be represented as text.
         """
-        arg = self.quib.args[0]
+        arg = self.quib_function_call.args[0]
         value = self.get_value_valid_at_path([])
         with open(file_path, 'w') as f:
             if not recursively_compare_objects_type(arg, value):
@@ -551,7 +556,7 @@ class QuibHandler:
             value = json_tricks.load(f)
 
         if not is_formatted:
-            arg = self.quib.args[0]
+            arg = self.quib_function_call.args[0]
             value = recursively_cast_one_object_by_other(arg, value)
 
         return self._replace_value_after_load(value)

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from sys import getsizeof
 from time import perf_counter
-from typing import Optional, Type, Tuple, Dict, Any, Set, Mapping, Callable, List
+from typing import Optional, Type, Tuple, Dict, Any, Set, Mapping, Callable, List, Union
 
 from pyquibbler.cache.cache_utils import _truncate_path_to_match_shallow_caches, _ensure_cache_matches_result, \
     get_cached_data_at_truncated_path_given_result_at_uncached_path
@@ -91,11 +91,11 @@ class QuibFuncCall(FuncCall):
             and getsizeof(result) / elapsed_seconds < consts.MAX_BYTES_PER_SECOND
 
     def _get_representative_value(self):
-        return self.run(valid_path=None)
+        return self.run([None])
 
     def _get_metadata(self):
         if not self._result_metadata:
-            result = self.run(valid_path=None)
+            result = self.run([None])
             self._result_metadata = ResultMetadata.from_result(result)
 
         return self._result_metadata
@@ -225,8 +225,10 @@ class QuibFuncCall(FuncCall):
             quibs_allowed_to_access=quibs_allowed_to_access
         )
 
-    def _run_on_uncached_paths_within_path(self, valid_path: Path):
-        uncached_paths = get_uncached_paths_matching_path(cache=self.cache, path=valid_path)
+    def _run_on_uncached_paths_within_path(self, valid_paths: List[Union[None, Path]]):
+        uncached_paths = []
+        for valid_path in valid_paths:
+            uncached_paths.extend(get_uncached_paths_matching_path(cache=self.cache, path=valid_path))
 
         if len(uncached_paths) == 0:
             return self.cache.get_value()
@@ -295,7 +297,7 @@ class QuibFuncCall(FuncCall):
     def get_result_metadata(self) -> Dict:
         return {}
 
-    def run(self, valid_path: Optional[Path]) -> Any:
+    def run(self, valid_paths: List[Union[None, Path]]) -> Any:
         """
         Get the actual data that this quib represents, valid at the path given in the argument.
         The value will necessarily return in the shape of the actual result, but only the values at the given path
@@ -305,7 +307,7 @@ class QuibFuncCall(FuncCall):
 
         start_time = perf_counter()
 
-        result = self._run_on_uncached_paths_within_path(valid_path)
+        result = self._run_on_uncached_paths_within_path(valid_paths)
 
         elapsed_seconds = perf_counter() - start_time
 

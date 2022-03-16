@@ -140,7 +140,7 @@ class ApplyAlongAxisQuibFuncCall(QuibFuncCall):
         """
         indices = True if len(valid_path) == 0 else valid_path[0].component
         ni, nk = self.arr.get_shape()[:self.core_axis], self.arr.get_shape()[self.core_axis + 1:]
-        out = self.run(valid_path=None)
+        out = self.run([None])
         args_values = ArgsValues.from_func_args_kwargs(func=self.func, args=self.args, kwargs=self.kwargs,
                                                        include_defaults=False)
         args_by_name = args_values.arg_values_by_name

@@ -168,3 +168,11 @@ def test_quib_fails_when_given_invalid_assignment_on_first_get_value():
     with pytest.raises(FailedToDeepAssignException):
         quib.get_value()
 
+
+def test_full_overriding_prevents_get_value():
+    a = create_quib(mock.Mock(return_value=[1, 2, 3]), allow_overriding=True)
+    a.assign([11, 12, 13, 14])
+
+    a3 = a[3]
+
+    assert a3.get_value() == 14
