@@ -22,7 +22,7 @@ class RectangleSelectorQuibFuncCall(WidgetQuibFuncCall):
         if isinstance(init_val, Quib):
             previous_value = init_val.get_value()
         else:
-            previous_value = self.run([]).extents
+            previous_value = self.run([[]]).extents
 
         return not allow_resize and (
                 previous_value[1] - previous_value[0] != extents[1] - extents[0] or

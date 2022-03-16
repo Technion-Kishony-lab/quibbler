@@ -455,7 +455,7 @@ class QuibHandler:
             raise
 
         with get_value_context():
-            result = self.quib_function_call.run(path)
+            result = self.quib_function_call.run([path])
 
         return self._overrider.override(result, self.assignment_template) if self.is_overridden \
             else result
