@@ -11,7 +11,7 @@ from pyquibbler.cache import PathCannotHaveComponentsException, get_uncached_pat
 from pyquibbler.function_definitions import FuncCall, SourceLocation, \
     load_source_locations_before_running, ArgsValues
 from pyquibbler.graphics.graphics_collection import GraphicsCollection
-from pyquibbler.path import Path, Paths
+from pyquibbler.path import Path
 from pyquibbler.quib import consts
 from pyquibbler.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
 from pyquibbler.quib.func_calling.cache_behavior import CacheBehavior
