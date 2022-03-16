@@ -433,7 +433,7 @@ class QuibHandler:
             return [path]
 
         assignments = list(self.overrider)
-        original_value = self.quib.get_value_valid_at_path(None)
+        original_value = self.get_value_valid_at_path(None)
         cache = create_cache(original_value)
         for assignment in assignments:
             cache = self._apply_assignment_to_cache(original_value, cache, assignment)
@@ -455,7 +455,11 @@ class QuibHandler:
             raise
 
         with get_value_context():
-            result = self.quib_function_call.run([path])
+            if path is None:
+                paths = [None]
+            else:
+                paths = self._get_list_of_not_overridden_paths_at_first_component(path)
+            result = self.quib_function_call.run(paths)
 
         return self._overrider.override(result, self.assignment_template) if self.is_overridden \
             else result
@@ -530,7 +534,7 @@ class QuibHandler:
             * The value must be of the same type as the original value of the iquib
             * Will fail with CannotSaveValueAsTextException if the iquib's value cannot be represented as text.
         """
-        arg = self.quib.args[0]
+        arg = self.quib_function_call.args[0]
         value = self.get_value_valid_at_path([])
         with open(file_path, 'w') as f:
             if not recursively_compare_objects_type(arg, value):
@@ -551,7 +555,7 @@ class QuibHandler:
             value = json_tricks.load(f)
 
         if not is_formatted:
-            arg = self.quib.args[0]
+            arg = self.quib_function_call.args[0]
             value = recursively_cast_one_object_by_other(arg, value)
 
         return self._replace_value_after_load(value)
