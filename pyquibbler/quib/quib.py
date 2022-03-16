@@ -213,7 +213,7 @@ class QuibHandler:
         for new_path in new_paths:
             if new_path is not None:
                 self.invalidate_self(new_path)
-                if len(path) == 0 or not self._is_completely_overridden_at_first_component(new_path):
+                if len(path) == 0 or len(self._get_list_of_not_overridden_paths_at_first_component(new_path)) > 0:
                     self._invalidate_children_at_path(new_path)
 
     def _forward_translate_without_retrieving_metadata(self, invalidator_quib: Quib, path: Path) -> Paths:
@@ -424,20 +424,20 @@ class QuibHandler:
 
         return cache
 
-    def _is_completely_overridden_at_first_component(self, path) -> bool:
+    def _get_list_of_not_overridden_paths_at_first_component(self, path) -> Paths:
         """
         Get a list of all the non overridden paths (at the first component)
         """
+        path = path[:1]
         if not self.is_overridden:
-            return False
+            return [path]
 
         assignments = list(self.overrider)
-        path = path[:1]
         original_value = self.quib.get_value_valid_at_path(None)
         cache = create_cache(original_value)
         for assignment in assignments:
             cache = self._apply_assignment_to_cache(original_value, cache, assignment)
-        return len(cache.get_uncached_paths(path)) == 0
+        return cache.get_uncached_paths(path)
 
     """
     get_value
