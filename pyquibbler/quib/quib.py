@@ -13,7 +13,7 @@ import numpy as np
 from pyquibbler.quib.types import FileAndLineNumber
 from pyquibbler.utilities.file_path import PathWithHyperLink
 from functools import cached_property
-from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Union, Iterable
+from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Union, Iterable, Mapping, Callable
 from weakref import WeakSet
 
 from matplotlib.artist import Artist
@@ -596,15 +596,37 @@ class Quib:
     """
 
     @property
-    def func(self):
+    def func(self) -> Callable:
+        """
+        The function run by the quib.
+
+        Returns:
+            Callable
+
+        Examples:
+            w = iquib(0.5)
+            s = np.sin(w)
+            s.func -> np.sin
+        """
         return self.handler.quib_function_call.func
 
     @property
-    def args(self):
+    def args(self) -> List[Any]:
+        """
+        The arguments of the function run by the quib.
+
+        Returns:
+            Any
+
+        Examples:
+            w = iquib(0.5)
+            s = np.sin(w)
+            s.func -> np.sin
+        """
         return self.handler.quib_function_call.args
 
     @property
-    def kwargs(self):
+    def kwargs(self) -> Mapping[str, Any]:
         return self.handler.quib_function_call.kwargs
 
     @property
