@@ -1,17 +1,10 @@
 from __future__ import annotations
-import contextlib
 import functools
 import threading
 from abc import ABC
 from typing import List, Callable, Type
 from matplotlib.artist import Artist
 from matplotlib.widgets import AxesWidget
-
-ORIGINAL_ARTIST_INIT = Artist.__init__
-
-CURRENT_THREAD_ID = None
-GLOBAL_ARTIST_COLLECTORS = 0
-OVERRIDDEN_GRAPHICS_FUNCTIONS_RUNNING = 0
 
 
 class GraphicsCollector(ABC):
@@ -36,7 +29,7 @@ class GraphicsCollector(ABC):
         @functools.wraps(func)
         def wrapped_init(obj, *args, **kwargs):
             res = func(obj, *args, **kwargs)
-            if threading.get_ident() == self._thread_id and OVERRIDDEN_GRAPHICS_FUNCTIONS_RUNNING:
+            if threading.get_ident() == self._thread_id:
                 self._objects_collected.append(obj)
             return res
 
@@ -59,24 +52,3 @@ class ArtistsCollector(GraphicsCollector):
 class AxesWidgetsCollector(GraphicsCollector):
 
     cls = AxesWidget
-
-
-@contextlib.contextmanager
-def overridden_graphics_function():
-    """
-    Any overridden graphics function should be run within this context manager.
-    Even in global collecting mode, artists will NOT be collected if not within this context manager.
-    This serves as an extra layer of protection to make sure we're only collecting artists from known functions.
-    """
-    global OVERRIDDEN_GRAPHICS_FUNCTIONS_RUNNING
-    OVERRIDDEN_GRAPHICS_FUNCTIONS_RUNNING += 1
-    yield
-    OVERRIDDEN_GRAPHICS_FUNCTIONS_RUNNING -= 1
-
-
-class classproperty:
-    def __init__(self, function: Callable):
-        self.function = function
-
-    def __get__(self, instance, owner):
-        return self.function(owner)

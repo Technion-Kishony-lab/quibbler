@@ -26,13 +26,3 @@ def test_global_graphics_collecting_within_collecting(axes):
         plt.plot([1, 2, 3])
     assert len(collector.objects_collected) == 1
     assert len(nested_collector.objects_collected) == 1
-
-
-@pytest.mark.regression
-def test_overridden_graphics_function_within_overridden_graphics_function(axes):
-    with global_collecting.ArtistsCollector() as collector, global_collecting.overridden_graphics_function():
-        with global_collecting.overridden_graphics_function():
-            pass
-        artist = Artist()
-
-    assert collector.objects_collected == [artist]

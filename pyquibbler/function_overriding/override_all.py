@@ -2,8 +2,7 @@ from typing import List
 
 from pyquibbler.function_definitions.definitions import add_definition_for_function
 from pyquibbler.function_overriding.function_override import FuncOverride
-from pyquibbler.function_overriding.non_quib_overrides import switch_widgets_to_quib_supporting_widgets, \
-    override_graphics_functions_to_be_within_known_func_ctx
+from pyquibbler.function_overriding.non_quib_overrides import switch_widgets_to_quib_supporting_widgets
 from pyquibbler.function_overriding.defintion_without_override.python_functions import \
     create_defintions_for_python_functions
 from pyquibbler.function_overriding.quib_overrides.operators.overrides import create_operator_overrides
@@ -32,7 +31,6 @@ def override_all():
                                               *create_numpy_overrides(),
                                               *create_quib_method_overrides()]
     switch_widgets_to_quib_supporting_widgets()
-    override_graphics_functions_to_be_within_known_func_ctx()
     for func_override in function_overrides:
         add_definition_for_function(
             func=func_override.original_func,

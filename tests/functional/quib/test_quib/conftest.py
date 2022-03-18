@@ -5,9 +5,7 @@ from matplotlib.artist import Artist
 
 from pyquibbler.function_definitions import add_definition_for_function
 from pyquibbler.function_definitions.func_definition import create_func_definition
-from pyquibbler.graphics.global_collecting import overridden_graphics_function
 from pyquibbler.quib.factory import create_quib
-from pyquibbler.quib.quib import Quib
 
 
 @pytest.fixture
@@ -52,11 +50,10 @@ def create_artist(mock_axes):
 
     def _create(*args):
         # We need this in order for artist to be tracked
-        with overridden_graphics_function():
-            artist = Artist()
-            artist.axes = mock_axes
-            artist.figure = mock.Mock()
-            mock_axes.artists.append(artist)
+        artist = Artist()
+        artist.axes = mock_axes
+        artist.figure = mock.Mock()
+        mock_axes.artists.append(artist)
         return artist
 
     return _create
