@@ -96,8 +96,7 @@ class Project:
         from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
         with aggregate_redraw_mode():
             for quib in quibs:
-                quib.handler.invalidate_self([])
-                quib.handler.invalidate_and_redraw_at_path([])
+                quib.invalidate()
 
     """
     central quib commands

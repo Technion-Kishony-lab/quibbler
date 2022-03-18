@@ -689,6 +689,20 @@ class Quib:
             raise InvalidCacheBehaviorForQuibException(self.handler.quib_function_call.default_cache_behavior)
         self.handler.quib_function_call.default_cache_behavior = cache_behavior
 
+    def invalidate(self):
+        """
+        Invalidate the quib value.
+
+        Invalidate the value of the quib and the value of any downstream dependent quibs, and re-evaluate any
+        graphical quibs.
+
+        Returns
+        -------
+        None
+        """
+        self.handler.invalidate_self([])
+        self.handler.invalidate_and_redraw_at_path([])
+
     """
     Graphics
     """
