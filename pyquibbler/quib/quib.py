@@ -592,7 +592,7 @@ class Quib:
                                    )
 
     """
-    Func metadata funcs
+    Func metadata
     """
 
     @property
@@ -600,13 +600,27 @@ class Quib:
         """
         The function run by the quib.
 
-        Returns:
-            Callable
+        A quib calls its function `func`, with the arguments `args` and the keyworded variables `kwargs`.
+        The quib's value is gievn by:
 
-        Examples:
-            w = iquib(0.5)
-            s = np.sin(w)
-            s.func -> np.sin
+        >>> value = func(*args, **kwargs)
+
+        with any quibs in `args` or `kwargs` replaced by their values.
+
+        Returns
+        -------
+        func : Callable, the called function
+
+        See also
+        --------
+        args, kwargs
+
+        Examples
+        --------
+        >>> w = iquib(0.5)
+        >>> s = np.sin(w)
+        >>> s.func
+        np.sin
         """
         return self.handler.quib_function_call.func
 
@@ -615,35 +629,167 @@ class Quib:
         """
         The arguments of the function run by the quib.
 
-        Returns:
-            Any
+        A quib calls its function `func`, with the arguments `args` and the keyworded variables `kwargs`.
+        The quib's value is gievn by:
 
-        Examples:
-            w = iquib(0.5)
-            s = np.sin(w)
-            s.func -> np.sin
+        >>> value = func(*args, **kwargs)
+
+        with any quibs in `args` or `kwargs` replaced by their values.
+
+        `args` is a list of all positional arguments, which could be any object including other quibs.
+
+        Returns
+        -------
+        args : list of Quib or any
+            A list of arguments, which could be any object including other quibs.
+
+        See also
+        --------
+        func, kwargs
+
+        Examples
+        --------
+        >>> w = iquib(0.5)
+        >>> s = w + 10
+        >>> s.args
+        [w, 10]
         """
         return self.handler.quib_function_call.args
 
     @property
     def kwargs(self) -> Mapping[str, Any]:
+        """
+        The keyworded arguments for the function run by the quib.
+
+        A quib calls its function `func`, with the arguments `args` and the keyworded variables `kwargs`.
+        The quib's value is gievn by:
+
+        >>> value = func(*args, **kwargs)
+
+        with any quibs in `args` or `kwargs` replaced by their values.
+
+        `kwargs` is a dictionary of str keywords mapped to any object including non-quib or quib arguments.
+
+        Returns
+        -------
+        kwargs : dict of str: any
+            A dict of keyworded arguments, which could be any object including other quibs.
+
+        See also
+        --------
+        func, args
+
+        Examples
+        --------
+        >>> a = iquib(10)
+        >>> s = np.linspace(start=0, stop=a)
+        >>> s.kwargs
+        {'start': 0, 'stop': a}
+        """
         return self.handler.quib_function_call.kwargs
 
     @property
     def func_definition(self) -> FuncDefinition:
+        """
+        Properties of the function run by the quib.
+
+        Returns
+        -------
+        func_definition : FuncDefinition
+            An object containg the properties of the function.
+        """
         from pyquibbler.function_definitions import get_definition_for_function
         return get_definition_for_function(self.func)
 
     @property
-    def is_impure_func(self):
+    def is_impure_func(self) -> bool:
+        """
+        Indicates whether the quib runs an impure function.
+
+        Returns `True` is the function of the quib is impure,
+        either random function or file reading.
+
+        See Also
+        --------
+        is_random_func, is_file_loading_func
+        Project.reset_impure_quibs
+
+        Returns
+        -------
+        bool
+            Indicating True for impure functions.
+
+        Examples
+        --------
+        >>> n = iquib(5)
+        >>> r = np.random.randint(0, n)
+        >>> r.is_impure_func
+        True
+        """
         return self.is_random_func or self.is_file_loading_func
 
     @property
-    def is_random_func(self):
+    def is_random_func(self) -> bool:
+        """
+        Indicates whether the quib represents a random function.
+
+        A quib that represents a random function automatically caches its value.
+        Thereby, repeated calls to the quib return the same random cached results (quenched randomization).
+        This behaviour guarentees mathematical consistency (for example, if ``r`` is a random quib ``s = r - r``
+        will always have a value of 0).
+
+        The quib can be re-evaluated (randomized), by invalidating its value either locally using `invalidate()`
+        or centrally, using `Project.reset_random_quibs()`
+
+        See Also
+        --------
+        is_impure_func, is_file_loading_func
+        invalidate
+        Project.reset_random_quibs
+
+        Returns
+        -------
+        bool
+            Indicating True for random functions.
+
+        Examples
+        --------
+        >>> n = iquib(5)
+        >>> r = np.random.randint(0, n)
+        >>> r.is_random_func
+        True
+        """
         return self.func_definition.is_random_func
 
     @property
-    def is_file_loading_func(self):
+    def is_file_loading_func(self) -> bool:
+        """
+        Indicates whether the quib represents a function that loads external files.
+
+        A quib whose value depends on the content of external files automatically caches its value.
+        Thereby, repeated calls to the quib return the same results even if the file changes.
+
+        The quib can be re-evaluated, by invalidating its value either locally using `invalidate()`
+        or centrally, using `Project.reset_file_loading_quibs()`
+
+        See Also
+        --------
+        is_impure_func, is_random_func
+        invalidate
+        Project.reset_file_loading_quibs
+
+        Returns
+        -------
+        bool
+            Indicating True for random functions.
+
+        Examples
+        --------
+        >>> file_name = iquib('my_file.txt')
+        >>> x = np.loadtxt(file_name)
+        >>> x.is_file_loading_func
+        True
+        """
         return self.func_definition.is_file_loading_func
 
     """
@@ -651,9 +797,19 @@ class Quib:
     """
 
     @property
-    def cache_status(self):
+    def cache_status(self) -> CacheStatus:
         """
-        User interface to check cache validity.
+        The status of the quib's cache.
+
+        Returns
+        -------
+        CacheStatus :
+            ALL_INVALID: the cache is fully invalid, or the quib is not caching.
+            ALL_VALID: The cache is fully valid.
+            PARTIAL: Only part of the quib's cache is valid.
+
+        See Also:
+        cache_behavior
         """
         return self.handler.quib_function_call.cache.get_cache_status() \
             if self.handler.quib_function_call.cache is not None else CacheStatus.ALL_INVALID
@@ -674,6 +830,7 @@ class Quib:
         See Also
         --------
         CacheBehavior
+        cache_status
         """
         return self.handler.quib_function_call.get_cache_behavior().value
 
@@ -793,8 +950,7 @@ class Quib:
 
         See Also
         --------
-        assigned_quibs
-
+        assign, assigned_quibs
         """
         return self.handler.allow_overriding
 
@@ -833,7 +989,16 @@ class Quib:
     def assigned_quibs(self) -> Union[None, Set[Quib, ...]]:
         """
         Set of quibs to which assignments to this quib could translate to and override.
+
         When assigned_quibs is None, a dialog will be used to choose between options.
+
+        Returns
+        -------
+        None or set of Quib
+
+        See Also
+        --------
+        assign, allow_overriding
         """
         return self.handler.assigned_quibs
 
@@ -857,9 +1022,10 @@ class Quib:
         """
         Returns an AssignmentTemplate object indicating type and range restricting assignments to the quib.
 
-        See also:
-            assign
-            AssignmentTemplate
+        See Also
+        --------
+        assign
+        AssignmentTemplate
         """
         return self.handler.assignment_template
 
@@ -898,18 +1064,18 @@ class Quib:
         Set one or more properties on a quib.
 
         Settable properties:
-             allow_overriding: bool
-             assignment_template: Union[tuple, AssignmentTemplate],
-             save_directory: Union[str, pathlib.Path],
-             save_format: Union[None, str, SaveFormat],
-             cache_behavior: Union[str, CacheBehavior],
-             assigned_name: Union[None, str],
-             name: Union[None, str],
-             graphics_update_type: Union[None, str]
+         allow_overriding: bool
+         assignment_template: Union[tuple, AssignmentTemplate],
+         save_directory: Union[str, pathlib.Path],
+         save_format: Union[None, str, SaveFormat],
+         cache_behavior: Union[str, CacheBehavior],
+         assigned_name: Union[None, str],
+         name: Union[None, str],
+         graphics_update_type: Union[None, str]
 
         Examples:
-            a = iquib(7).setp(assigned_name='my_number')
-            b = (2 * a).setp(allow_overriding=True)
+            >>>> a = iquib(7).setp(assigned_name='my_number')
+            >>>> b = (2 * a).setp(allow_overriding=True)
         """
 
         from pyquibbler.quib.factory import get_quib_name
@@ -975,38 +1141,99 @@ class Quib:
         """
         Get the actual data that this quib represents, valid at the path given in the argument.
         The value will necessarily return in the shape of the actual result, but only the values at the given path
-        are guaranteed to be valid
+        are guaranteed to be valid.
+
+        Returns
+        -------
+        any
+
+        See Also
+        --------
+        get_value
         """
         return self.handler.get_value_valid_at_path(path)
 
     @raise_quib_call_exceptions_as_own
     def get_value(self) -> Any:
         """
-        Get the entire actual data that this quib represents, all valid.
-        This function might perform several different computations - function quibs
-        are lazy, so a function quib might need to calculate uncached values and might
-        even have to calculate the values of its dependencies.
+        Returns the entire value of the quib.
+
+        Runs the function of the quib and returns the result.
+
+        Returns
+        -------
+        any
+            the result of the function of the quib.
+
+        See Also
+        --------
+        get_shape, get_ndim, get_type
         """
         return self.handler.get_value_valid_at_path([])
 
     @raise_quib_call_exceptions_as_own
     def get_type(self) -> Type:
         """
-        Get the type of wrapped value.
+        Returns the shape of the quib's value.
+
+        Implements `type` of the value of the quib.
+
+        Returns
+        -------
+        type
+            the type of the quib's value.
+
+        See Also
+        --------
+        get_value, get_ndim, get_shape
+
+        Note
+        ----
+        Calculating the type does not necessarily require calculating its entire value.
         """
         return self.handler.quib_function_call.get_type()
 
     @raise_quib_call_exceptions_as_own
     def get_shape(self) -> Tuple[int, ...]:
         """
-        Assuming this quib represents a numpy ndarray, returns a quib of its shape.
+        Returns the shape of the quib's value.
+
+        Implements `np.shape` of the value of the quib.
+
+        Returns
+        -------
+        tuple of int
+            the shape of the quib's value.
+
+        See Also
+        --------
+        get_value, get_ndim, get_type
+
+        Note
+        ----
+        Calculating the shape does not necessarily require calculating its entire value.
         """
         return self.handler.quib_function_call.get_shape()
 
     @raise_quib_call_exceptions_as_own
     def get_ndim(self) -> int:
         """
-        Assuming this quib represents a numpy ndarray, returns a quib of its shape.
+        Returns the number of dimensions of the quib's value.
+
+        Implements `np.ndim` of the value of the quib.
+
+        Returns
+        -------
+        int
+            the number of dimensions of the quib's value.
+
+        See Also
+        --------
+        get_value, get_shape, get_type
+
+        Note
+        ----
+        Calculating ndim does not necessarily require calculating its entire value.
         """
         return self.handler.quib_function_call.get_ndim()
 
@@ -1017,14 +1244,30 @@ class Quib:
     def get_override_list(self) -> Overrider:
         """
         Returns an Overrider object representing a list of overrides performed on the quib.
+
+        Returns
+        -------
+        Overrider
+            an object holding a list of all the assignments to the quib.
+
+        See Also
+        --------
+        assign, assigned_quibs
         """
         return self.handler.overrider
 
     def get_override_mask(self):
         """
+        Returns a quib whos value is the override mask of the current quib.
+
         Assuming this quib represents a numpy ndarray, return a quib representing its override mask.
+
         The override mask is a boolean array of the same shape, in which every value is
         set to True if the matching value in the array is overridden, and False otherwise.
+
+        See Also
+        --------
+        get_override_list
         """
         from pyquibbler.quib.specialized_functions import proxy
         quib = self.args[0] if self.func == proxy else self
@@ -1038,27 +1281,54 @@ class Quib:
     relationships
     """
 
-    def get_children(self) -> Set[Quib]:
-        # we make a copy since children itself may change size during iteration
+    @property
+    def children(self) -> Set[Quib]:
+        """
+        Returns the set of quibs that are immediate dependants of the current quib.
+
+        Returns
+        -------
+        set of Quib
+
+        See Also
+        --------
+        ancestors, parents
+        """
         return set(self.handler.children)
 
     def get_descendants(self) -> Set[Quib]:
-        children = self.get_children()
-        for child in self.get_children():
+        children = self.children
+        for child in self.children:
             children |= child.get_descendants()
         return children
 
     @property
     def parents(self) -> Set[Quib]:
         """
-        Returns a list of quibs that this quib depends on.
+        Returns the set of quibs that this quib depends on.
+
+        Returns
+        -------
+        set of Quib
+
+        See Also
+        --------
+        ancestors, children
         """
         return set(self.handler.quib_function_call.get_objects_of_type_in_args_kwargs(Quib))
 
     @cached_property
     def ancestors(self) -> Set[Quib]:
         """
-        Return all ancestors of the quib, going recursively up the tree
+        Returns all ancestors of the quib, going recursively up the tree.
+
+        Returns
+        -------
+        set of Quib
+
+        See Also
+        --------
+        parents, children
         """
         ancestors = set()
         for parent in self.parents:
@@ -1072,6 +1342,20 @@ class Quib:
 
     @property
     def project(self) -> Project:
+        """
+        The project object that the quib belongs to.
+
+        The Project provides global functionality inclduing save, load, sync of all quibs,
+        undo, redo, and randomization of random quibs.
+
+        Returns
+        -------
+        Project
+
+        See Also
+        --------
+        Project
+        """
         return self.handler.project
 
     @property
@@ -1083,10 +1367,11 @@ class Quib:
             'txt' - save assignments as text file.
             'binary' - save assignments as a binary file.
             'value_txt' - save the quib value as a text file.
-            None - yield to the Project default save_format
+            `None` - yield to the Project default save_format
 
-        See also:
-             SaveFormat
+        See Also
+        --------
+         SaveFormat
         """
         return self.handler.save_format
 
@@ -1109,12 +1394,14 @@ class Quib:
         The quib's actual_save_format is its save_format if defined.
         Otherwise it defaults to the project's save_format.
 
-        Returns:
-            SaveFormat
+        Returns
+        -------
+        SaveFormat
 
-        See also:
-            save_format
-            SaveFormat
+        See Also
+        --------
+        save_format
+        SaveFormat
         """
         actual_save_format = self.save_format if self.save_format else self.project.save_format
         if not self.is_iquib:
@@ -1128,16 +1415,16 @@ class Quib:
         The path is defined as the [actual_save_directory]/[assigned_name].ext
         ext is determined by the actual_save_format
 
-        Returns:
-            Path or None
+        Returns
+        -------
+        pathlib.Path or None
 
-        See also:
-            save_directory
-            actual_save_directory
-            save_format
-            actual_save_format
-            assigned_name
-            Project.directory
+        See Also
+        --------
+        save_directory, actual_save_directory
+        save_format, actual_save_format
+        assigned_name
+        Project.directory
         """
         return self._get_file_path()
 
@@ -1171,11 +1458,13 @@ class Quib:
         If directory is relative, it is used relative to the project directory.
         If directory is None, the project directory is used.
 
-        Returns:
-            Path
+        Returns
+        -------
+        pathlib.Path
 
-        See also:
-            file_path
+        See Also
+        --------
+        file_path
         """
         return PathWithHyperLink(self.handler.save_directory)
 
@@ -1197,13 +1486,15 @@ class Quib:
         Otherwise, if the quib's save_directory is defined as an absolute directory then it is used as is,
         and if it is defined as a relative path it is used relative to the project's directory.
 
-        Returns:
-            Path
+        Returns
+        -------
+        pathlib.Path
 
-        See also:
-            save_directory
-            Project.directory
-            SaveFormat
+        See Also
+        --------
+        save_directory
+        Project.directory
+        SaveFormat
         """
         save_directory = self.handler.save_directory
         if save_directory is not None and save_directory.is_absolute():
@@ -1218,15 +1509,13 @@ class Quib:
         """
         Save the quib assignments to file.
 
-        See also:
-            load
-            sync
-            save_directory
-            actual_save_directory
-            save_format
-            actual_save_format
-            assigned_name
-            Project.directory
+        See Also
+        --------
+        load, sync
+        save_directory, actual_save_directory
+        save_format, actual_save_format
+        assigned_name
+        Project.directory
         """
         if self._get_file_path(response_to_file_not_defined) is not None:
             self.handler.file_syncer.save()
@@ -1235,15 +1524,13 @@ class Quib:
         """
         Load quib assignments from the quib's file.
 
-        See also:
-            save
-            sync
-            save_directory
-            actual_save_directory
-            save_format
-            actual_save_format
-            assigned_name
-            Project.directory
+        See Also
+        --------
+        save, sync
+        save_directory, actual_save_directory
+        save_format, actual_save_format
+        assigned_name
+        Project.directory
         """
         if self._get_file_path(response_to_file_not_defined) is not None:
             self.handler.file_syncer.load()
@@ -1256,15 +1543,13 @@ class Quib:
         If the quib assignments were changed, the file will be updated.
         If both changed, a dialog is presented to resolve conflict.
 
-        See also:
-            save
-            load
-            save_directory
-            actual_save_directory
-            save_format
-            actual_save_format
-            assigned_name
-            Project.directory
+        See Also
+        --------
+        save, load,
+        save_directory, actual_save_directory
+        save_format, actual_save_format
+        assigned_name
+        Project.directory
         """
         if self._get_file_path(response_to_file_not_defined) is not None:
             self.handler.file_syncer.sync()
@@ -1277,6 +1562,7 @@ class Quib:
     def assigned_name(self) -> Optional[str]:
         """
         Returns the assigned_name of the quib
+
         The assigned_name can either be a name automatically created based on the variable name to which the quib
         was first assigned, or a manually assigned name set by setp or by assigning to assigned_name,
         or None indicating unnamed quib.
@@ -1342,12 +1628,25 @@ class Quib:
     @property
     def functional_representation(self) -> str:
         """
-        Get a string representing a functional representation of the quib.
-        For example, in
-        ```
-        a = iquib(4)
-        ```
-        "iquib(4)" would be the functional representation
+        Returns a string representing a functional representation of the quib.
+
+        Returns
+        -------
+        str
+
+        See Also
+        --------
+        name
+        assigned_name
+        functional_representation
+        pretty_repr
+        get_math_expression
+
+        Examples
+        --------
+        >>> a = iquib(4)
+        >>> a.functional_representation
+        "iquib(4)"
         """
         return str(self._get_functional_representation_expression())
 
@@ -1356,11 +1655,38 @@ class Quib:
             else self._get_functional_representation_expression()
 
     def ugly_repr(self):
+        """
+        Returns a simple representation of the quib.
+
+        Returns
+        -------
+        str
+
+        See Also
+        --------
+        name
+        assigned_name
+        functional_representation
+        pretty_repr
+        get_math_expression
+        """
         return f"<{self.__class__.__name__} - {self.func}"
 
     def pretty_repr(self) -> str:
         """
         Returns a pretty representation of the quib.
+
+        Return
+        ------
+        str
+
+        See Also
+        --------
+        name
+        assigned_name
+        functional_representation
+        ugly_repr
+        get_math_expression
         """
         return f"{self.assigned_name} = {self.functional_representation}" \
             if self.assigned_name is not None else self.functional_representation
@@ -1379,8 +1705,31 @@ class Quib:
 
     @property
     def created_in(self) -> Optional[FileAndLineNumber]:
+        """
+        The file and line number where the quib was created.
+
+        Returns a FileAndLineNumber object indicating the place where the quib was created.
+
+        None if creation place is unknown.
+
+        Returns
+        -------
+        FileAndLineNumber or None
+        """
         return self.handler.created_in
 
     @property
     def is_iquib(self) -> bool:
+        """
+        Returns True if the quib is an input quib (iquib).
+
+        Returns
+        -------
+        bool
+
+        See Also
+        --------
+        func
+        SaveFormat
+        """
         return getattr(self.func, '__name__', None) == 'iquib'
