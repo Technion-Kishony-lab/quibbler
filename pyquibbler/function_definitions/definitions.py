@@ -33,5 +33,5 @@ def get_definition_for_function(func: Callable) -> FuncDefinition:
     from pyquibbler.function_definitions.func_definition import FuncDefinition
     if func not in FUNCS_TO_DEFINITIONS_MODULE_AND_NAME_ISOVERRIDDEN:
         # Default function definition
-        return FuncDefinition()
+        return FuncDefinition(is_graphics_func=None)
     return FUNCS_TO_DEFINITIONS_MODULE_AND_NAME_ISOVERRIDDEN[func][0]

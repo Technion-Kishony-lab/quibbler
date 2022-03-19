@@ -37,7 +37,7 @@ def test_reset_impure_quibs_invalidates_and_redraws(random_func_with_side_effect
     quib = create_quib(func=random_func_with_side_effect)
     quib.get_value()
     graphics_function_mock = mock.Mock()
-    add_definition_for_function(graphics_function_mock, create_func_definition(is_known_graphics_func=True))
+    add_definition_for_function(graphics_function_mock, create_func_definition(is_graphics_func=True))
     _ = create_quib(func=graphics_function_mock, args=(quib,))
 
     Project.get_or_create().reset_random_quibs()
@@ -180,7 +180,7 @@ def test_project_undo_group_doesnt_add_on_dragging(project):
 def test_project_undo_with_group_reverts_back_to_before_group_and_runs_graphics_quib_once(project):
     a = iquib(5)
     mock_func = mock.Mock()
-    add_definition_for_function(mock_func, create_func_definition(is_known_graphics_func=True))
+    add_definition_for_function(mock_func, create_func_definition(is_graphics_func=True))
     _ = create_quib(func=mock_func, args=(a,), evaluate_now=True)
     with project.start_undo_group():
         a.handler.override(Assignment(

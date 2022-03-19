@@ -66,13 +66,13 @@ class AxesLimOverride(AxesSetOverride):
         return AxesSetOverride._call_wrapped_func(func, args, kwargs)
 
 
-graphics_override = functools.partial(override_with_cls, GraphicsOverride, is_known_graphics_func=True)
+graphics_override = functools.partial(override_with_cls, GraphicsOverride, is_graphics_func=True)
 axes_override = functools.partial(graphics_override, Axes)
 
-replacing_axes_override = functools.partial(override_with_cls, AxesSetOverride, Axes, is_known_graphics_func=True,
+replacing_axes_override = functools.partial(override_with_cls, AxesSetOverride, Axes, is_graphics_func=True,
                                             replace_previous_quibs_on_artists=True)
 
 widget_override = functools.partial(graphics_override, matplotlib.widgets)
 
 axes_lim_override = functools.partial(override_with_cls, AxesLimOverride,
-                                      Axes, is_known_graphics_func=True, replace_previous_quibs_on_artists=True)
+                                      Axes, is_graphics_func=True, replace_previous_quibs_on_artists=True)

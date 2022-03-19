@@ -73,6 +73,7 @@ def create_vectorize_overrides():
         VectorizeCallOverride(func_name="__call__", module_or_cls=QVectorize,
                               function_definition=VectorizeCallDefinition(
                                   quib_function_call_cls=VectorizeQuibFuncCall,
+                                  is_graphics_func=None,
                                   forwards_path_translators=[VectorizeForwardsPathTranslator],
                                   backwards_path_translators=[VectorizeBackwardsPathTranslator]
                               )

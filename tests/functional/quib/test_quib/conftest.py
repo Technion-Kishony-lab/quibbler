@@ -29,7 +29,7 @@ def quib():
 @pytest.fixture()
 def graphics_quib(quib):
     func = mock.Mock()
-    add_definition_for_function(func=func, function_definition=create_func_definition(is_known_graphics_func=True))
+    add_definition_for_function(func=func, function_definition=create_func_definition(is_graphics_func=True))
     return create_quib(
         func=func,
         args=(quib,),

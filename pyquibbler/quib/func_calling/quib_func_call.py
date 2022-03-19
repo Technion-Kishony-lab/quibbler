@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from contextlib import ExitStack
 from sys import getsizeof
 from time import perf_counter
 from typing import Optional, Type, Tuple, Dict, Any, Set, Mapping, Callable, List, Union
@@ -125,12 +126,13 @@ class QuibFuncCall(FuncCall):
         return metadata.ndim
 
     @property
-    def _did_create_graphics(self) -> bool:
+    def created_graphics(self) -> bool:
         return any(graphics_collection.artists for graphics_collection in self.flat_graphics_collections())
 
     @property
     def func_can_create_graphics(self):
-        return self.get_func_definition().is_known_graphics_func or self._did_create_graphics
+        is_graphics_func = self.get_func_definition().is_graphics_func
+        return is_graphics_func or (is_graphics_func is None and self.created_graphics)
 
     def reset_cache(self):
         self.cache = None
@@ -142,16 +144,21 @@ class QuibFuncCall(FuncCall):
 
     def _run_single_call(self, func: Callable, graphics_collection: GraphicsCollection,
                          args: Tuple[Any, ...], kwargs: Mapping[str, Any], quibs_allowed_to_access: Set[Quib]):
-        with graphics_collection.track_and_handle_new_graphics(
-                kwargs_specified_in_artists_creation=set(key for key, value in self.kwargs.items() if value is not None)
-        ), QuibGuard(quibs_allowed_to_access):
-            with external_call_failed_exception_handling():
-                res = func(*args, **kwargs)
 
-            # We don't allow returning quibs as results from functions
-            from pyquibbler.quib.quib import Quib
-            if isinstance(res, Quib):
-                res = res.get_value()
+        with ExitStack() as stack:
+            if self.get_func_definition().is_graphics_func is not False:
+                stack.enter_context(graphics_collection.track_and_handle_new_graphics(
+                    kwargs_specified_in_artists_creation=set(
+                        key for key, value in self.kwargs.items() if value is not None)))
+            stack.enter_context(QuibGuard(quibs_allowed_to_access))
+            stack.enter_context(external_call_failed_exception_handling())
+
+            res = func(*args, **kwargs)
+
+        # We don't allow returning quibs as results from functions
+        from pyquibbler.quib.quib import Quib
+        if isinstance(res, Quib):
+            res = res.get_value()
 
         if self.artists_creation_callback:
             self.artists_creation_callback(set(graphics_collection.artists))
