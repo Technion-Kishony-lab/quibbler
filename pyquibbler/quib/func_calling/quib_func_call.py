@@ -7,7 +7,7 @@ from typing import Optional, Type, Tuple, Dict, Any, Set, Mapping, Callable, Lis
 
 from pyquibbler.cache.cache_utils import _truncate_path_to_match_shallow_caches, _ensure_cache_matches_result, \
     get_cached_data_at_truncated_path_given_result_at_uncached_path
-from pyquibbler.cache import PathCannotHaveComponentsException, get_uncached_paths_matching_path
+from pyquibbler.cache import PathCannotHaveComponentsException, get_uncached_paths_matching_path, Cache
 
 from pyquibbler.function_definitions import FuncCall, SourceLocation, \
     load_source_locations_before_running, ArgsValues
@@ -41,7 +41,7 @@ class QuibFuncCall(FuncCall):
         super(QuibFuncCall, self).__init__(func=func, args_values=args_values)
         self.graphics_collections = None
         self.method_cache = {}
-        self.cache = None
+        self.cache: Optional[Cache] = None
         self.default_cache_behavior = default_cache_behavior
         self.artists_creation_callback = artists_creation_callback
         self._caching = False

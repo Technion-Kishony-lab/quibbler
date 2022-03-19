@@ -54,7 +54,7 @@ def get_cached_data_at_truncated_path_given_result_at_uncached_path(cache, resul
     return value
 
 
-def _ensure_cache_matches_result(cache: Optional[Cache], new_result: Any):
+def _ensure_cache_matches_result(cache: Optional[Cache], new_result: Any) -> Cache:
     """
     Ensure there exists a current cache matching the given result; if the held cache does not match,
     this function will now recreate the cache to match it
