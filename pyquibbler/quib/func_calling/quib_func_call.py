@@ -9,8 +9,7 @@ from pyquibbler.cache.cache_utils import _truncate_path_to_match_shallow_caches,
     get_cached_data_at_truncated_path_given_result_at_uncached_path
 from pyquibbler.cache import PathCannotHaveComponentsException, get_uncached_paths_matching_path, Cache
 
-from pyquibbler.function_definitions import FuncCall, SourceLocation, \
-    load_source_locations_before_running, ArgsValues
+from pyquibbler.function_definitions import FuncCall, load_source_locations_before_running, ArgsValues
 from pyquibbler.graphics.graphics_collection import GraphicsCollection
 from pyquibbler.path import Path
 from pyquibbler.quib import consts
@@ -47,7 +46,6 @@ class QuibFuncCall(FuncCall):
         self._caching = False
         self._call_func_with_quibs = call_func_with_quibs
         self._result_metadata = None
-        self._quib_ref_locations: Optional[List[SourceLocation]] = None
 
     def flat_graphics_collections(self):
         return list(self.graphics_collections.flat) if self.graphics_collections is not None else []
