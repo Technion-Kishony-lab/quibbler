@@ -15,7 +15,7 @@ class InvalidArgumentException(PyQuibblerException, ABC):
         return f'Argument {self.var_name} must be ' + self._must_be_message
 
     @abstractmethod
-    def must_be_message(self):
+    def _must_be_message(self):
         pass
 
 
@@ -23,7 +23,7 @@ class InvalidArgumentException(PyQuibblerException, ABC):
 class InvalidArgumentValueException(InvalidArgumentException):
     message: str = None
 
-    def must_be_message(self):
+    def _must_be_message(self):
         return self.message
 
 
@@ -32,7 +32,7 @@ class InvalidArgumentTypeException(InvalidArgumentException):
 
     expected_type: Union[Type, Tuple[Type, ...]]
 
-    def must_be_message(self):
+    def _must_be_message(self):
         types = self.expected_type if isinstance(self.expected_type, tuple) else (self.expected_type,)
         return f'of types {", ".join(map(lambda t: t.__name__, types))}'
 
