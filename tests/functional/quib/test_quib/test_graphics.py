@@ -25,10 +25,10 @@ def artist_graphics_quib(parent_quib, create_artist):
 
 
 def test_quib_func_creates_graphics_returns_true_if_created_graphics(parent_quib, artist_graphics_quib):
-    assert artist_graphics_quib.func_can_create_graphics is False, "Sanity"
+    assert artist_graphics_quib.is_graphics_quib is False, "Sanity"
     artist_graphics_quib.get_value()  # We should now know we create graphics
 
-    assert artist_graphics_quib.func_can_create_graphics
+    assert artist_graphics_quib.is_graphics_quib
 
 
 def test_quib_func_creates_artist(parent_quib, artist_graphics_quib, mock_axes):
@@ -116,7 +116,7 @@ def replacing_func():
     mock_func = mock.Mock()
     mock_func.__name__ = "myfunc"
     add_definition_for_function(func=mock_func, function_definition=create_func_definition(
-        is_known_graphics_func=True,
+        is_graphics_func=True,
         replace_previous_quibs_on_artists=True),
                                 )
     return mock_func

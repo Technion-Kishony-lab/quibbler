@@ -32,7 +32,7 @@ class FuncDefinition:
     data_source_arguments: Set[Argument] = field(default_factory=set)
     is_random_func: bool = False
     is_file_loading_func: bool = False
-    is_known_graphics_func: bool = False
+    is_graphics_func: Optional[bool] = False  # None for 'maybe'
     replace_previous_quibs_on_artists: bool = False
     inverters: List[Type[Inverter]] = field(default_factory=list)
     backwards_path_translators: List[Type[BackwardsPathTranslator]] = field(default_factory=list)
@@ -135,7 +135,7 @@ ElementWiseFuncDefinition.__hash__ = FuncDefinition.__hash__
 def create_func_definition(raw_data_source_arguments: List[RawArgument] = None,
                            is_random_func: bool = False,
                            is_file_loading_func: bool = False,
-                           is_known_graphics_func: bool = False,
+                           is_graphics_func: Optional[bool] = False,
                            replace_previous_quibs_on_artists: bool = False,
                            inverters: List[Type[Inverter]] = None,
                            backwards_path_translators: List[Type[BackwardsPathTranslator]] = None,
@@ -157,7 +157,7 @@ def create_func_definition(raw_data_source_arguments: List[RawArgument] = None,
     return func_defintion_cls(
         func=func,
         is_random_func=is_random_func,
-        is_known_graphics_func=is_known_graphics_func,
+        is_graphics_func=is_graphics_func,
         is_file_loading_func=is_file_loading_func,
         data_source_arguments=data_source_arguments,
         inverters=inverters or [],

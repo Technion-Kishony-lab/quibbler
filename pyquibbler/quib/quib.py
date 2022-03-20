@@ -163,7 +163,7 @@ class QuibHandler:
         """
         Get all artists that directly or indirectly depend on this quib.
         """
-        return {child for child in self.quib.get_descendants() if child.func_can_create_graphics}
+        return {child for child in self.quib.get_descendants() if child.is_graphics_quib}
 
     """
     Invalidation
@@ -672,8 +672,44 @@ class Quib:
     """
 
     @property
-    def func_can_create_graphics(self):
-        return self.handler.quib_function_call.func_can_create_graphics or self.handler.can_contain_graphics
+    def is_graphics_func(self):
+        """
+        Specifies whether the function runs by the quib is a graphics function.
+
+        `True` for known graphics functions
+        `False` for known non-graphics functions
+        `None` for functions that may create graphics (such as for user functions).
+
+        Returns
+        -------
+        True, False, or None
+
+        See Also
+        --------
+        is_graphics_quib, graphics_update_type
+        """
+        return self.func_definition.is_graphics_func
+
+    @property
+    def is_graphics_quib(self):
+        """
+        Specifies whether the quib is a graphics quib.
+
+        A quib is defined as graphics if its function is a known graphics function (`is_graphics_func`=`True`),
+        or if its function created graphics.
+
+        A quib defined as graphics will get auto-refreshed based on the `graphics_update_type`.
+
+        Returns
+        -------
+        bool
+
+        See Also
+        --------
+        is_graphics_func, graphics_update_type
+        Project.refresh_graphics
+        """
+        return self.func_definition.is_graphics_func or self.handler.quib_function_call.created_graphics
 
     @property
     def graphics_update_type(self) -> Union[None, str]:

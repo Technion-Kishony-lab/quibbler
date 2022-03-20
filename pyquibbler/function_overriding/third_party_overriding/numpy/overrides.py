@@ -249,6 +249,7 @@ def create_numpy_overrides():
         # Custom:
         # apply_along_axis
         numpy_override('apply_along_axis', data_source_arguments=["arr"],
+                       is_graphics_func=None,
                        forwards_path_translators=[ApplyAlongAxisForwardsTranslator],
                        quib_function_call_cls=ApplyAlongAxisQuibFuncCall),
 
