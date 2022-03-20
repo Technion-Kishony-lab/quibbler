@@ -4,14 +4,6 @@ from enum import Enum
 from pyquibbler.exceptions import PyQuibblerException
 
 
-@dataclass
-class UnknownCacheBehaviorException(PyQuibblerException):
-    attempted_value: str
-
-    def __str__(self):
-        return f"{self.attempted_value} is not a valid value for a cache behavior"
-
-
 class CacheBehavior(str, Enum):
     """
     The different modes in which the caching of a FuncQuib can operate:

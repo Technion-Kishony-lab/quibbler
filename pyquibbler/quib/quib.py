@@ -27,7 +27,8 @@ from pyquibbler.quib.pretty_converters import MathExpression, FailedMathExpressi
 from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals, NoValue
 from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation_with_sources_metadata, \
     get_func_call_for_translation_without_sources_metadata
-from pyquibbler.utilities.input_validation_utils import validate_user_input, InvalidArgumentValueException
+from pyquibbler.utilities.input_validation_utils import validate_user_input, InvalidArgumentValueException, \
+    get_enum_by_str
 from pyquibbler.utilities.iterators import recursively_run_func_on_object, recursively_compare_objects_type, \
     recursively_cast_one_object_by_other
 from pyquibbler.utilities.unpacker import Unpacker
@@ -37,7 +38,7 @@ from pyquibbler.inversion.exceptions import NoInvertersFoundException
 from pyquibbler.path import FailedToDeepAssignException, PathComponent, Path, Paths
 from pyquibbler.assignment import InvalidTypeException, OverrideRemoval, get_override_group_for_change, \
     AssignmentTemplate, Overrider, Assignment, AssignmentToQuib, create_assignment_template
-from pyquibbler.quib.func_calling.cache_behavior import CacheBehavior, UnknownCacheBehaviorException
+from pyquibbler.quib.func_calling.cache_behavior import CacheBehavior
 from pyquibbler.quib.exceptions import OverridingNotAllowedException, UnknownUpdateTypeException, \
     InvalidCacheBehaviorForQuibException
 from pyquibbler.quib.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own
@@ -49,7 +50,6 @@ from pyquibbler.file_syncing import SaveFormat, SAVE_FORMAT_TO_FILE_EXT, CannotS
     ResponseToFileNotDefined, FileNotDefinedException, QuibFileSyncer, SAVE_FORMAT_TO_FQUIB_SAVE_FORMAT, \
     FIRST_LINE_OF_FORMATTED_TXT_FILE
 from pyquibbler.quib.get_value_context_manager import get_value_context, is_within_get_value_context
-
 
 if TYPE_CHECKING:
     from pyquibbler.function_definitions.func_definition import FuncDefinition
@@ -837,13 +837,9 @@ class Quib:
     @cache_behavior.setter
     @validate_user_input(cache_behavior=(str, CacheBehavior))
     def cache_behavior(self, cache_behavior: Union[str, CacheBehavior]):
-        if isinstance(cache_behavior, str):
-            try:
-                cache_behavior = CacheBehavior[cache_behavior.upper()]
-            except KeyError:
-                raise UnknownCacheBehaviorException(cache_behavior) from None
+        cache_behavior = get_enum_by_str(CacheBehavior, cache_behavior)
         if self.is_random_func and cache_behavior != CacheBehavior.ON:
-            raise InvalidCacheBehaviorForQuibException(self.handler.quib_function_call.default_cache_behavior)
+            raise InvalidCacheBehaviorForQuibException(self.handler.quib_function_call.default_cache_behavior) from None
         self.handler.quib_function_call.default_cache_behavior = cache_behavior
 
     def invalidate(self):
@@ -927,12 +923,7 @@ class Quib:
     @graphics_update_type.setter
     @validate_user_input(graphics_update_type=(type(None), str, UpdateType))
     def graphics_update_type(self, graphics_update_type: Union[None, str, UpdateType]):
-        if isinstance(graphics_update_type, str):
-            try:
-                graphics_update_type = UpdateType[graphics_update_type.upper()]
-            except KeyError:
-                raise UnknownUpdateTypeException(graphics_update_type) from None
-        self.handler.graphics_update_type = graphics_update_type
+        self.handler.graphics_update_type = get_enum_by_str(UpdateType, graphics_update_type, allow_none=True)
 
     """
     Assignment
@@ -1394,10 +1385,9 @@ class Quib:
         return self.handler.save_format
 
     @save_format.setter
-    @validate_user_input(save_format=(str, SaveFormat))
+    @validate_user_input(save_format=(type(None), str, SaveFormat))
     def save_format(self, save_format):
-        if isinstance(save_format, str):
-            save_format = SaveFormat(save_format)
+        save_format = get_enum_by_str(SaveFormat, save_format, allow_none=True)
         if (save_format in [SaveFormat.VALUE_BIN, SaveFormat.VALUE_TXT]) and not self.is_iquib:
             raise CannotSaveFunctionQuibsAsValueException
 

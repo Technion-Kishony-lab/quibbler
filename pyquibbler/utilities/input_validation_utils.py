@@ -1,9 +1,10 @@
 import functools
 from dataclasses import dataclass
-from typing import Type, Union, Tuple
+from typing import Type, Union, Tuple, Optional
 from abc import ABC, abstractmethod
 
 from pyquibbler.exceptions import PyQuibblerException
+from pyquibbler.utils import StrEnum
 
 
 @dataclass
@@ -55,3 +56,28 @@ def validate_user_input(**vars_to_expected_types):
         return _wrapper
 
     return _decorator
+
+
+@dataclass
+class UnknownEnumException(PyQuibblerException):
+    attempted_value: str
+    cls: Type
+
+    def __str__(self):
+        return f"{self.attempted_value} is not a valid value for {self.cls}.\n" \
+            f"Allowed values: {', '.join([value for value in self.cls])}"
+
+
+def get_enum_by_str(cls: Type[Type[StrEnum]], value: Union[str, Type[StrEnum]], allow_none: bool = False) -> \
+        Optional[Type[StrEnum]]:
+
+    if type(value) is cls:
+        return value
+    if allow_none and value is None:
+        return None
+    if isinstance(value, str):
+        try:
+            return cls[value.upper()]
+        except KeyError:
+            pass
+    raise UnknownEnumException(attempted_value=value, cls=cls) from None

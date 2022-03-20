@@ -1,8 +1,9 @@
 import contextlib
 import functools
 import inspect
-from typing import Callable, Any, Tuple, Mapping
+from typing import Callable, Any, Tuple, Mapping, Type, Optional, Union
 from dataclasses import dataclass
+from enum import Enum
 
 
 def ensure_only_run_once_globally(func: Callable):
@@ -62,3 +63,8 @@ def get_signature_for_func(func):
     cache the result per function
     """
     return inspect.signature(func)
+
+
+class StrEnum(str, Enum):
+    pass
+
