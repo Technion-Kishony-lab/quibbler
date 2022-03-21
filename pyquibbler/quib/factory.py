@@ -11,6 +11,7 @@ from pyquibbler.quib.get_value_context_manager import is_within_get_value_contex
 from pyquibbler.quib.graphics import UpdateType
 from pyquibbler.quib.quib_guard import add_new_quib_to_guard_if_exists
 from pyquibbler.quib.quib import Quib
+from pyquibbler.quib.types import FileAndLineNumber
 from pyquibbler.quib.utils import deep_copy_without_quibs_or_graphics
 from pyquibbler.quib.variable_metadata import get_var_name_being_set_outside_of_pyquibbler, \
     get_file_name_and_line_number_of_quib
@@ -37,17 +38,16 @@ def get_quib_name() -> Optional[str]:
     Get the quib's name- this can potentially return None
     if the context makes getting the file name and line no irrelevant
     """
-    should_get_variable_names = GET_VARIABLE_NAMES and not is_within_get_value_context()
-
-    try:
-        return get_var_name_being_set_outside_of_pyquibbler() if should_get_variable_names else None
-    except Exception as e:
-        logger.warning(f"Failed to get name, exception {e}")
+    if GET_VARIABLE_NAMES and not is_within_get_value_context():
+        try:
+            return get_var_name_being_set_outside_of_pyquibbler()
+        except Exception as e:
+            logger.warning(f"Failed to get name, exception {e}")
 
     return None
 
 
-def _get_file_name_and_line_no() -> Tuple[Optional[str], Optional[str]]:
+def _get_file_name_and_line_no() -> Optional[FileAndLineNumber]:
     """
     Get the file name and line no where the quib was created (outside of pyquibbler)- this can potentially return Nones
     if the context makes getting the file name and line no irrelevant
@@ -58,7 +58,7 @@ def _get_file_name_and_line_no() -> Tuple[Optional[str], Optional[str]]:
         except Exception as e:
             logger.warning(f"Failed to get file name + lineno, exception {e}")
 
-    return None, None
+    return None
 
 
 def _get_deep_copied_args_and_kwargs(args, kwargs):
@@ -109,7 +109,7 @@ def create_quib(func: Callable, args: Tuple[Any, ...] = (), kwargs: Mapping[str,
     call_func_with_quibs = kwargs.pop('call_func_with_quibs', call_func_with_quibs)
 
     args, kwargs = _get_deep_copied_args_and_kwargs(args, kwargs)
-    file_name, line_no = _get_file_name_and_line_no()
+    created_in = _get_file_name_and_line_no()
     func = get_original_func(func)
 
     definition = get_definition_for_function(func)
@@ -124,10 +124,11 @@ def create_quib(func: Callable, args: Tuple[Any, ...] = (), kwargs: Mapping[str,
         include_defaults=True,
     )
 
-    quib = Quib(quib_function_call=quib_func_call, assignment_template=None, allow_overriding=allow_overriding,
-                assigned_name=get_quib_name(), file_name=file_name, line_no=line_no, graphics_update_type=None,
-                save_directory=save_directory, save_format=save_format,
-                can_contain_graphics=update_type is not None)
+    quib = Quib(quib_function_call=quib_func_call, created_in=created_in)
+
+    quib.setp(assignment_template=None, allow_overriding=allow_overriding,
+              assigned_name=get_quib_name(), graphics_update_type=None, can_contain_graphics=update_type is not None,
+              save_directory=save_directory, save_format=save_format)
 
     project.register_quib(quib)
     add_new_quib_to_guard_if_exists(quib)
