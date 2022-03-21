@@ -6,6 +6,7 @@ from typing import Optional
 from varname.utils import ASSIGN_TYPES, get_node, node_name, AssignType
 
 from pyquibbler.exceptions import PyQuibblerException
+from pyquibbler.quib.types import FileAndLineNumber
 
 
 class CannotFindNodeException(PyQuibblerException):
@@ -38,14 +39,14 @@ def get_quib_node_being_set_outside_of_pyquibbler():
     return get_node(frame=1, ignore=[pyquibbler, matplotlib], raise_exc=False)
 
 
-def get_file_name_and_line_number_of_quib():
+def get_file_name_and_line_number_of_quib() -> Optional[FileAndLineNumber]:
     refnode = get_quib_node_being_set_outside_of_pyquibbler()
     if refnode is None:
-        return None, None
+        return None
     frame = refnode.__frame__
     file_name = frame.f_code.co_filename
     line_number = frame.f_lineno
-    return file_name, line_number
+    return FileAndLineNumber(file_name, line_number)
 
 
 def get_var_name_being_set_outside_of_pyquibbler() -> Optional[str]:

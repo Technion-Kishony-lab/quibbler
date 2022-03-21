@@ -69,8 +69,7 @@ class QuibHandler:
                  assignment_template: Optional[AssignmentTemplate],
                  allow_overriding: bool,
                  assigned_name: Optional[str],
-                 file_name: Optional[str],
-                 line_no: Optional[str],
+                 created_in: Optional[FileAndLineNumber],
                  graphics_update_type: Optional[UpdateType],
                  save_directory: pathlib.Path,
                  save_format: Optional[SaveFormat],
@@ -91,8 +90,7 @@ class QuibHandler:
         self.allow_overriding = allow_overriding
         self.assigned_quibs = None
         self.created_in_get_value_context = is_within_get_value_context()
-        self.created_in: Optional[FileAndLineNumber] = \
-            FileAndLineNumber(file_name, line_no) if file_name else None
+        self.created_in: Optional[FileAndLineNumber] = created_in
         self.graphics_update_type = graphics_update_type
 
         self.save_directory = save_directory
@@ -568,23 +566,21 @@ class Quib:
     """
 
     def __init__(self, quib_function_call: QuibFuncCall,
-                 assignment_template: Optional[AssignmentTemplate],
-                 allow_overriding: bool,
-                 assigned_name: Optional[str],
-                 file_name: Optional[str],
-                 line_no: Optional[str],
-                 graphics_update_type: Optional[UpdateType],
-                 save_directory: pathlib.Path,
-                 save_format: Optional[SaveFormat],
-                 can_contain_graphics: bool,
+                 assignment_template: Optional[AssignmentTemplate] = None,
+                 allow_overriding: bool = False,
+                 assigned_name: Optional[str] = None,
+                 created_in: Optional[FileAndLineNumber] = None,
+                 graphics_update_type: Optional[UpdateType] = None,
+                 save_directory: Optional[pathlib.Path] = None,
+                 save_format: Optional[SaveFormat] = None,
+                 can_contain_graphics: Optional[bool] = None,
                  ):
 
         self.handler = QuibHandler(self, quib_function_call,
                                    assignment_template,
                                    allow_overriding,
                                    assigned_name,
-                                   file_name,
-                                   line_no,
+                                   created_in,
                                    graphics_update_type,
                                    save_directory,
                                    save_format,
@@ -925,6 +921,15 @@ class Quib:
     def graphics_update_type(self, graphics_update_type: Union[None, str, UpdateType]):
         self.handler.graphics_update_type = get_enum_by_str(UpdateType, graphics_update_type, allow_none=True)
 
+    @property
+    def can_contain_graphics(self):
+        return self.handler.can_contain_graphics
+
+    @can_contain_graphics.setter
+    @validate_user_input(can_contain_graphics=(type(None), bool))
+    def can_contain_graphics(self, can_contain_graphics: Optional[bool]):
+        self.handler.can_contain_graphics = can_contain_graphics
+
     """
     Assignment
     """
@@ -1060,13 +1065,14 @@ class Quib:
 
     def setp(self,
              allow_overriding: bool = NoValue,
-             assignment_template: Union[tuple, AssignmentTemplate] = NoValue,
-             save_directory: Union[str, pathlib.Path] = NoValue,
+             assignment_template: Union[None, tuple, AssignmentTemplate] = NoValue,
+             save_directory: Union[None, str, pathlib.Path] = NoValue,
              save_format: Union[None, str, SaveFormat] = NoValue,
              cache_behavior: Union[str, CacheBehavior] = NoValue,
              assigned_name: Union[None, str] = NoValue,
              name: Union[None, str] = NoValue,
              graphics_update_type: Union[None, str] = NoValue,
+             can_contain_graphics: Union[None, bool] = NoValue,
              assigned_quibs: set["Quib"] = NoValue,
              ):
         """
@@ -1104,12 +1110,15 @@ class Quib:
             self.assigned_name = name
         if graphics_update_type is not NoValue:
             self.graphics_update_type = graphics_update_type
+        if can_contain_graphics is not NoValue:
+            self.can_contain_graphics = can_contain_graphics
         if assigned_quibs is not NoValue:
             self.assigned_quibs = assigned_quibs
 
-        var_name = get_quib_name()
-        if var_name:
-            self.assigned_name = var_name
+        if name is NoValue and assigned_name is NoValue and self.assigned_name is None:
+            var_name = get_quib_name()
+            if var_name:
+                self.assigned_name = var_name
 
         return self
 
@@ -1477,8 +1486,8 @@ class Quib:
         return PathWithHyperLink(self.handler.save_directory)
 
     @save_directory.setter
-    @validate_user_input(directory=(str, pathlib.Path))
-    def save_directory(self, directory: Union[str, pathlib.Path]):
+    @validate_user_input(directory=(type(None), str, pathlib.Path))
+    def save_directory(self, directory: Union[None, str, pathlib.Path]):
         if isinstance(directory, str):
             directory = pathlib.Path(directory)
         self.handler.save_directory = directory
