@@ -291,8 +291,7 @@ class QuibHandler:
             func=self.func,
             func_args=self.args,
             func_kwargs=self.kwargs,
-            call_func_with_quibs=self.call_func_with_quibs,
-            default_cache_behavior=self.default_cache_behavior,
+            quib_handler=self,
             include_defaults=True,
         )
         from pyquibbler.quib.graphics.persist import persist_artists_on_quib_weak_ref
@@ -890,8 +889,8 @@ class Quib:
     def cache_behavior(self, cache_behavior: Union[str, CacheBehavior]):
         cache_behavior = get_enum_by_str(CacheBehavior, cache_behavior)
         if self.is_random_func and cache_behavior != CacheBehavior.ON:
-            raise InvalidCacheBehaviorForQuibException(self.handler.quib_function_call.default_cache_behavior) from None
-        self.handler.quib_function_call.default_cache_behavior = cache_behavior
+            raise InvalidCacheBehaviorForQuibException(self.handler.default_cache_behavior) from None
+        self.handler.default_cache_behavior = cache_behavior
 
     @property
     def default_cache_behavior(self):
