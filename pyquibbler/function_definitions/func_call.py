@@ -94,25 +94,21 @@ class FuncCall(ABC):
 
     SOURCE_OBJECT_TYPE: ClassVar[Type]
 
-    args_values: ArgsValues
-    func: Callable
-
     data_source_locations: Optional[List[SourceLocation]] = None
     parameter_source_locations: Optional[List[SourceLocation]] = None
 
     def __hash__(self):
         return id(self)
 
-    @classmethod
-    def from_(cls, func: Callable,
-              func_args: Tuple[Any, ...],
-              func_kwargs: Mapping[str, Any],
-              include_defaults: bool = False,
-              *args, **kwargs):
+    @property
+    @abstractmethod
+    def args_values(self):
+        pass
 
-        return cls(args_values=ArgsValues.from_func_args_kwargs(func, func_args, func_kwargs, include_defaults),
-                   func=func,
-                   *args, **kwargs)
+    @property
+    @abstractmethod
+    def func(self):
+        pass
 
     def _get_argument_used_in_current_func_call_for_argument(self, argument: Argument):
         """

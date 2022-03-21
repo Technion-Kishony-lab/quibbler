@@ -36,9 +36,9 @@ class QuibFuncCall(FuncCall):
     SOURCE_OBJECT_TYPE = Quib
     DEFAULT_CACHE_BEHAVIOR = CacheBehavior.AUTO
 
-    def __init__(self, func: Callable, args_values: ArgsValues, artists_creation_callback: Callable = None,
+    def __init__(self, artists_creation_callback: Callable = None,
                  quib_handler: QuibHandler = None):
-        super(QuibFuncCall, self).__init__(func=func, args_values=args_values)
+        super(QuibFuncCall, self).__init__()
         self.graphics_collections = None
         self.method_cache = {}
         self.cache: Optional[Cache] = None
@@ -46,6 +46,17 @@ class QuibFuncCall(FuncCall):
         self.artists_creation_callback = artists_creation_callback
         self._caching = False
         self._result_metadata = None
+
+    @property
+    def func(self) -> Callable:
+        return self.quib_handler.func
+
+    @property
+    def args_values(self) -> ArgsValues:
+        return ArgsValues.from_func_args_kwargs(func=self.func,
+                                                args=self.quib_handler.args,
+                                                kwargs=self.quib_handler.kwargs,
+                                                include_defaults=True)
 
     @property
     def quib_handler(self):
