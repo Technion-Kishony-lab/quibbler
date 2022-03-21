@@ -130,6 +130,12 @@ def create_quib(func: Callable, args: Tuple[Any, ...] = (), kwargs: Mapping[str,
               assigned_name=get_quib_name(), graphics_update_type=None, can_contain_graphics=update_type is not None,
               save_directory=save_directory, save_format=save_format)
 
+    quib.func = func
+    quib.args = args
+    quib.kwargs = kwargs
+    quib.call_func_with_quibs = call_func_with_quibs
+    quib.default_cache_behavior = cache_behavior or QuibFuncCall.DEFAULT_CACHE_BEHAVIOR
+
     project.register_quib(quib)
     add_new_quib_to_guard_if_exists(quib)
 
