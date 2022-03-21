@@ -1037,11 +1037,29 @@ class Quib:
     def set_assignment_template(self, *args) -> None:
         """
         Sets an assignment template for the quib.
-        Usage:
 
-        - quib.set_assignment_template(assignment_template): set a specific AssignmentTemplate object.
-        - quib.set_assignment_template(min, max): set the template to a bound template between min and max.
-        - quib.set_assignment_template(start, stop, step): set the template to a bound template between min and max.
+        The assignment template restricts the values of any future assignments to the quib.
+
+        Options:
+        Set a specific AssignmentTemplate object:
+
+        >>> quib.set_assignment_template(assignment_template)
+
+        Set a bound template between `start` and `stop`:
+
+        >>> quib.set_assignment_template(start, stop)
+
+        Set a bound template between `start` and `stop`, with specified `step`
+
+        >>> quib.set_assignment_template(start, stop, step)
+
+        Remove the assignment_template:
+
+        >>> quib.set_assignment_template(None)
+
+        See Also
+        --------
+        AssignmentTemplate, assignment_template
         """
         self.handler.assignment_template = create_assignment_template(*args)
 
