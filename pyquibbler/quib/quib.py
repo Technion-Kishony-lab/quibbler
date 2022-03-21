@@ -74,7 +74,13 @@ class QuibHandler:
                  save_directory: pathlib.Path,
                  save_format: Optional[SaveFormat],
                  can_contain_graphics: bool,
+                 call_func_with_quibs: bool,
+                 func: Optional[Callable],
+                 args: Tuple[Any, ...] = (),
+                 kwargs: Mapping[str, Any] = None,
+                 default_cache_behavior: CacheBehavior = None,
                  ):
+        kwargs = kwargs or {}
 
         quib_weakref = weakref.ref(quib)
         self._quib_weakref = quib_weakref
@@ -97,6 +103,11 @@ class QuibHandler:
 
         self.save_format = save_format
         self.can_contain_graphics = can_contain_graphics
+        self.call_func_with_quibs = call_func_with_quibs
+        self.func = func
+        self.args = args
+        self.kwargs = kwargs
+        self.default_cache_behavior = default_cache_behavior
 
         from pyquibbler.quib.graphics.persist import persist_artists_on_quib_weak_ref
         self.quib_function_call.artists_creation_callback = functools.partial(persist_artists_on_quib_weak_ref,
@@ -574,6 +585,11 @@ class Quib:
                  save_directory: Optional[pathlib.Path] = None,
                  save_format: Optional[SaveFormat] = None,
                  can_contain_graphics: Optional[bool] = None,
+                 call_func_with_quibs: bool = None,
+                 func: Optional[Callable] = None,
+                 args: Tuple[Any, ...] = (),
+                 kwargs: Mapping[str, Any] = None,
+                 default_cache_behavior: CacheBehavior = None,
                  ):
 
         self.handler = QuibHandler(self, quib_function_call,
@@ -585,6 +601,11 @@ class Quib:
                                    save_directory,
                                    save_format,
                                    can_contain_graphics,
+                                   call_func_with_quibs,
+                                   func,
+                                   args,
+                                   kwargs,
+                                   default_cache_behavior,
                                    )
 
     """
@@ -620,6 +641,10 @@ class Quib:
         """
         return self.handler.quib_function_call.func
 
+    @func.setter
+    def func(self, func):
+        self.handler.func = func
+
     @property
     def args(self) -> List[Any]:
         """
@@ -652,6 +677,10 @@ class Quib:
         """
         return self.handler.quib_function_call.args
 
+    @args.setter
+    def args(self, args):
+        self.handler.args = args
+
     @property
     def kwargs(self) -> Mapping[str, Any]:
         """
@@ -683,6 +712,10 @@ class Quib:
         {'start': 0, 'stop': a}
         """
         return self.handler.quib_function_call.kwargs
+
+    @kwargs.setter
+    def kwargs(self, kwargs):
+        self.handler.kwargs = kwargs
 
     @property
     def func_definition(self) -> FuncDefinition:
@@ -788,6 +821,15 @@ class Quib:
         """
         return self.func_definition.is_file_loading_func
 
+    @property
+    def call_func_with_quibs(self) -> bool:
+        return self.handler.call_func_with_quibs
+
+    @call_func_with_quibs.setter
+    @validate_user_input(call_func_with_quibs=bool)
+    def call_func_with_quibs(self, call_func_with_quibs):
+        self.handler.call_func_with_quibs = call_func_with_quibs
+
     """
     cache
     """
@@ -837,6 +879,15 @@ class Quib:
         if self.is_random_func and cache_behavior != CacheBehavior.ON:
             raise InvalidCacheBehaviorForQuibException(self.handler.quib_function_call.default_cache_behavior) from None
         self.handler.quib_function_call.default_cache_behavior = cache_behavior
+
+    @property
+    def default_cache_behavior(self):
+        return self.handler.default_cache_behavior
+
+    @default_cache_behavior.setter
+    @validate_user_input(cache_behavior=(str, CacheBehavior))
+    def default_cache_behavior(self, cache_behavior: Union[str, CacheBehavior]):
+        self.handler.default_cache_behavior = get_enum_by_str(CacheBehavior, cache_behavior)
 
     def invalidate(self):
         """
