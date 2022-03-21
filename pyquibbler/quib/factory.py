@@ -6,31 +6,17 @@ from pyquibbler.env import GET_VARIABLE_NAMES, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRAC
 from pyquibbler.logger import logger
 from pyquibbler.project import Project
 from pyquibbler.quib.func_calling import QuibFuncCall
-from pyquibbler.function_definitions import get_definition_for_function
 from pyquibbler.quib.get_value_context_manager import is_within_get_value_context
 from pyquibbler.quib.graphics import UpdateType
 from pyquibbler.quib.quib_guard import add_new_quib_to_guard_if_exists
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.types import FileAndLineNumber
-from pyquibbler.quib.utils import deep_copy_without_quibs_or_graphics
 from pyquibbler.quib.variable_metadata import get_var_name_being_set_outside_of_pyquibbler, \
     get_file_name_and_line_number_of_quib
 from pyquibbler.file_syncing.types import SaveFormat
 
 if TYPE_CHECKING:
     from pyquibbler import CacheBehavior
-
-
-def get_original_func(func: Callable):
-    """
-    Get the original func- if this function is already overrided, get the original func it's function_definitions.
-
-    So for example, if the OVERLOADED np.array is given as `func`, then the ORIGINAL np.array will be returned
-    If the ORIGINAL np.array is given as `func`, then `func` will be returned
-    """
-    while hasattr(func, '__quibbler_wrapped__'):
-        func = func.__quibbler_wrapped__
-    return func
 
 
 def get_quib_name() -> Optional[str]:
@@ -59,17 +45,6 @@ def _get_file_name_and_line_no() -> Optional[FileAndLineNumber]:
             logger.warning(f"Failed to get file name + lineno, exception {e}")
 
     return None
-
-
-def _get_deep_copied_args_and_kwargs(args, kwargs):
-    """
-    Get deep copied args and kwargs- any manipulation of the returned values should not affect the parameter values.
-    """
-    if kwargs is None:
-        kwargs = {}
-    kwargs = {k: deep_copy_without_quibs_or_graphics(v) for k, v in kwargs.items()}
-    args = deep_copy_without_quibs_or_graphics(args)
-    return args, kwargs
 
 
 def create_quib(func: Callable, args: Tuple[Any, ...] = (), kwargs: Mapping[str, Any] = None,
@@ -108,23 +83,11 @@ def create_quib(func: Callable, args: Tuple[Any, ...] = (), kwargs: Mapping[str,
     # `call_func_with_quibs`
     call_func_with_quibs = kwargs.pop('call_func_with_quibs', call_func_with_quibs)
 
-    args, kwargs = _get_deep_copied_args_and_kwargs(args, kwargs)
     created_in = _get_file_name_and_line_no()
-    func = get_original_func(func)
 
-    definition = get_definition_for_function(func)
     project = Project.get_or_create()
 
-    quib_func_call = definition.quib_function_call_cls.from_(
-        func=func,
-        func_args=args,
-        func_kwargs=kwargs,
-        call_func_with_quibs=call_func_with_quibs,
-        default_cache_behavior=cache_behavior or QuibFuncCall.DEFAULT_CACHE_BEHAVIOR,
-        include_defaults=True,
-    )
-
-    quib = Quib(quib_function_call=quib_func_call, created_in=created_in)
+    quib = Quib(created_in=created_in)
 
     quib.setp(assignment_template=None, allow_overriding=allow_overriding,
               assigned_name=get_quib_name(), graphics_update_type=None, can_contain_graphics=update_type is not None,
@@ -135,6 +98,7 @@ def create_quib(func: Callable, args: Tuple[Any, ...] = (), kwargs: Mapping[str,
     quib.kwargs = kwargs
     quib.call_func_with_quibs = call_func_with_quibs
     quib.default_cache_behavior = cache_behavior or QuibFuncCall.DEFAULT_CACHE_BEHAVIOR
+    quib.handler.reset_quib_func_call()
 
     project.register_quib(quib)
     add_new_quib_to_guard_if_exists(quib)

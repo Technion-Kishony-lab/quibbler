@@ -10,6 +10,8 @@ import warnings
 import json_tricks
 import numpy as np
 
+from pyquibbler.function_definitions import get_definition_for_function
+from pyquibbler.utils import get_original_func
 from pyquibbler.quib.types import FileAndLineNumber
 from pyquibbler.utilities.file_path import PathWithHyperLink
 from functools import cached_property
@@ -24,7 +26,8 @@ from pyquibbler.quib.quib_guard import guard_raise_if_not_allowed_access_to_quib
     CannotAccessQuibInScopeException
 from pyquibbler.quib.pretty_converters import MathExpression, FailedMathExpression, \
     NameMathExpression, pretty_convert
-from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals, NoValue
+from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals, NoValue, \
+    deep_copy_without_quibs_or_graphics
 from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation_with_sources_metadata, \
     get_func_call_for_translation_without_sources_metadata
 from pyquibbler.utilities.input_validation_utils import validate_user_input, InvalidArgumentValueException, \
@@ -108,11 +111,6 @@ class QuibHandler:
         self.args = args
         self.kwargs = kwargs
         self.default_cache_behavior = default_cache_behavior
-
-        from pyquibbler.quib.graphics.persist import persist_artists_on_quib_weak_ref
-        self.quib_function_call.artists_creation_callback = functools.partial(persist_artists_on_quib_weak_ref,
-                                                                              weakref.ref(quib))
-
     """
     relationships
     """
@@ -286,6 +284,20 @@ class QuibHandler:
                 return self._forward_translate_with_retrieving_metadata(invalidator_quib, path)
             except NoTranslatorsFoundException:
                 return [[]]
+
+    def reset_quib_func_call(self):
+        definition = get_definition_for_function(self.func)
+        self.quib_function_call = definition.quib_function_call_cls.from_(
+            func=self.func,
+            func_args=self.args,
+            func_kwargs=self.kwargs,
+            call_func_with_quibs=self.call_func_with_quibs,
+            default_cache_behavior=self.default_cache_behavior,
+            include_defaults=True,
+        )
+        from pyquibbler.quib.graphics.persist import persist_artists_on_quib_weak_ref
+        self.quib_function_call.artists_creation_callback = functools.partial(persist_artists_on_quib_weak_ref,
+                                                                              weakref.ref(self.quib))
 
     """
     assignments
@@ -576,7 +588,8 @@ class Quib:
     A Quib is a node representing a singular call of a function with it's arguments (it's parents in the graph)
     """
 
-    def __init__(self, quib_function_call: QuibFuncCall,
+    def __init__(self,
+                 quib_function_call: QuibFuncCall = None,
                  assignment_template: Optional[AssignmentTemplate] = None,
                  allow_overriding: bool = False,
                  assigned_name: Optional[str] = None,
@@ -643,7 +656,7 @@ class Quib:
 
     @func.setter
     def func(self, func):
-        self.handler.func = func
+        self.handler.func = get_original_func(func)
 
     @property
     def args(self) -> List[Any]:
@@ -679,7 +692,7 @@ class Quib:
 
     @args.setter
     def args(self, args):
-        self.handler.args = args
+        self.handler.args = deep_copy_without_quibs_or_graphics(args)
 
     @property
     def kwargs(self) -> Mapping[str, Any]:
@@ -715,7 +728,7 @@ class Quib:
 
     @kwargs.setter
     def kwargs(self, kwargs):
-        self.handler.kwargs = kwargs
+        self.handler.kwargs = {k: deep_copy_without_quibs_or_graphics(v) for k, v in kwargs.items()}
 
     @property
     def func_definition(self) -> FuncDefinition:
