@@ -42,8 +42,7 @@ from pyquibbler.path import FailedToDeepAssignException, PathComponent, Path, Pa
 from pyquibbler.assignment import InvalidTypeException, OverrideRemoval, get_override_group_for_change, \
     AssignmentTemplate, Overrider, Assignment, AssignmentToQuib, create_assignment_template
 from pyquibbler.quib.func_calling.cache_behavior import CacheBehavior
-from pyquibbler.quib.exceptions import OverridingNotAllowedException, UnknownUpdateTypeException, \
-    InvalidCacheBehaviorForQuibException
+from pyquibbler.quib.exceptions import OverridingNotAllowedException, InvalidCacheBehaviorForQuibException
 from pyquibbler.quib.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own
 from pyquibbler.quib.graphics import UpdateType
 from pyquibbler.translation.translate import forwards_translate, NoTranslatorsFoundException, \
@@ -287,13 +286,7 @@ class QuibHandler:
 
     def reset_quib_func_call(self):
         definition = get_definition_for_function(self.func)
-        self.quib_function_call = definition.quib_function_call_cls.from_(
-            func=self.func,
-            func_args=self.args,
-            func_kwargs=self.kwargs,
-            quib_handler=self,
-            include_defaults=True,
-        )
+        self.quib_function_call = definition.quib_function_call_cls(quib_handler=self)
         from pyquibbler.quib.graphics.persist import persist_artists_on_quib_weak_ref
         self.quib_function_call.artists_creation_callback = functools.partial(persist_artists_on_quib_weak_ref,
                                                                               weakref.ref(self.quib))
