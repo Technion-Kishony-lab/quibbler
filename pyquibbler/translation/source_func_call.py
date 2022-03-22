@@ -8,7 +8,6 @@ from pyquibbler.translation.types import Source
 @dataclasses.dataclass
 class SourceFuncCall(FuncCall):
     args_values: FuncArgsKwargs = None
-    func: Callable = None
 
     """
     A funccall with `Source` objects for any sources in the arguments
@@ -23,7 +22,6 @@ class SourceFuncCall(FuncCall):
               include_defaults: bool = False,
               *args, **kwargs):
         return cls(args_values=FuncArgsKwargs(func, func_args, func_kwargs, include_defaults),
-                   func=func,
                    *args, **kwargs)
 
     def run(self):

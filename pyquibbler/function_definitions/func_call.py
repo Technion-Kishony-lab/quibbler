@@ -113,9 +113,8 @@ class FuncCall(ABC):
         pass
 
     @property
-    @abstractmethod
-    def func(self):
-        pass
+    def func(self) -> Callable:
+        return self.args_values.func
 
     def _get_argument_used_in_current_func_call_for_argument(self, argument: Argument):
         """
