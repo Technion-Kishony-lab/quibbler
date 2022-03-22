@@ -17,8 +17,8 @@ class RectangleSelectorQuibFuncCall(WidgetQuibFuncCall):
         resize when it should not have been able to
         """
         from pyquibbler.quib import Quib
-        init_val = self.args_values.get('extents')
-        allow_resize = self.args_values.get('allow_resize')
+        init_val = self.func_args_kwargs.get('extents')
+        allow_resize = self.func_args_kwargs.get('allow_resize')
         if isinstance(init_val, Quib):
             previous_value = init_val.get_value()
         else:
@@ -31,7 +31,7 @@ class RectangleSelectorQuibFuncCall(WidgetQuibFuncCall):
 
     def _on_changed(self, extents):
         self._last_extents_change = extents
-        init_val = self.args_values.get('extents')
+        init_val = self.func_args_kwargs.get('extents')
 
         from pyquibbler import timer
         from pyquibbler.quib import Quib

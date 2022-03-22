@@ -85,9 +85,9 @@ class FuncDefinition:
             corresponding_dict = self.get_keyword_to_positional_arguments()
         return corresponding_dict[argument]
 
-    def _get_all_data_source_arguments(self, args_values):
+    def _get_all_data_source_arguments(self, func_args_kwargs: FuncArgsKwargs):
         all_data_source_arguments = set()
-        for argument, value in self.get_data_source_arguments_with_values(args_values):
+        for argument, value in self.get_data_source_arguments_with_values(func_args_kwargs):
             try:
                 corresponding_argument = self.get_corresponding_argument(argument)
             except KeyError:
@@ -100,21 +100,21 @@ class FuncDefinition:
         return all_data_source_arguments
 
     @functools.lru_cache()
-    def get_data_source_arguments_with_values(self, args_values: FuncArgsKwargs):
+    def get_data_source_arguments_with_values(self, func_args_kwargs: FuncArgsKwargs):
         return [
-            (argument, args_values[argument])
+            (argument, func_args_kwargs[argument])
             for argument in self.data_source_arguments
         ]
 
-    def get_parameter_arguments_with_values(self, args_values: FuncArgsKwargs):
-        all_data_source_arguments = self._get_all_data_source_arguments(args_values)
+    def get_parameter_arguments_with_values(self, func_args_kwargs: FuncArgsKwargs):
+        all_data_source_arguments = self._get_all_data_source_arguments(func_args_kwargs)
         return [*[
-            (PositionalArgument(index=i), args_values.args[i])
-            for i, arg in enumerate(args_values.args)
+            (PositionalArgument(index=i), func_args_kwargs.args[i])
+            for i, arg in enumerate(func_args_kwargs.args)
             if PositionalArgument(index=i) not in all_data_source_arguments
         ], *[
-            (KeywordArgument(keyword=kwarg), args_values.kwargs[kwarg])
-            for kwarg, value in args_values.kwargs.items()
+            (KeywordArgument(keyword=kwarg), func_args_kwargs.kwargs[kwarg])
+            for kwarg, value in func_args_kwargs.kwargs.items()
             if KeywordArgument(keyword=kwarg) not in all_data_source_arguments
         ]]
 

@@ -48,7 +48,7 @@ class QuibFuncCall(FuncCall):
         self._result_metadata = None
 
     @property
-    def args_values(self) -> FuncArgsKwargs:
+    def func_args_kwargs(self) -> FuncArgsKwargs:
         return self.quib_handler.func_args_kwargs
 
     @property

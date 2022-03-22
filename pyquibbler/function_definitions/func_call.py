@@ -109,12 +109,12 @@ class FuncCall(ABC):
 
     @property
     @abstractmethod
-    def args_values(self) -> FuncArgsKwargs:
+    def func_args_kwargs(self) -> FuncArgsKwargs:
         pass
 
     @property
     def func(self) -> Callable:
-        return self.args_values.func
+        return self.func_args_kwargs.func
 
     def _get_argument_used_in_current_func_call_for_argument(self, argument: Argument):
         """
@@ -151,9 +151,9 @@ class FuncCall(ABC):
 
         if self.data_source_locations is None:
             data_arguments_with_values = \
-                self.get_func_definition().get_data_source_arguments_with_values(self.args_values)
+                self.get_func_definition().get_data_source_arguments_with_values(self.func_args_kwargs)
             parameter_arguments_with_values = \
-                self.get_func_definition().get_parameter_arguments_with_values(self.args_values)
+                self.get_func_definition().get_parameter_arguments_with_values(self.func_args_kwargs)
 
             self.data_source_locations = \
                 self._get_locations_within_arguments_and_values(data_arguments_with_values)
@@ -208,14 +208,14 @@ class FuncCall(ABC):
 
     @property
     def args(self):
-        return self.args_values.args
+        return self.func_args_kwargs.args
 
     @property
     def kwargs(self):
-        return self.args_values.kwargs
+        return self.func_args_kwargs.kwargs
 
     def get_data_source_argument_values(self) -> List[Any]:
-        return [v for _, v in self.get_func_definition().get_data_source_arguments_with_values(self.args_values)]
+        return [v for _, v in self.get_func_definition().get_data_source_arguments_with_values(self.func_args_kwargs)]
 
     @load_source_locations_before_running
     @functools.lru_cache()

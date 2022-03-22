@@ -6,7 +6,7 @@ class SliderQuibFuncCall(WidgetQuibFuncCall):
 
     def _on_change_slider(self, new_value):
         from pyquibbler.quib.quib import Quib
-        val = self.args_values.get('valinit')
+        val = self.func_args_kwargs.get('valinit')
         if isinstance(val, Quib):
             self._inverse_assign(val, [], new_value)
 

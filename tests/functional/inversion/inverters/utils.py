@@ -14,9 +14,9 @@ from pyquibbler.utilities.iterators import get_paths_for_objects_of_type
 
 def _get_data_source_locations_and_parameter_locations(func, args, kwargs):
     definition = get_definition_for_function(func)
-    args_values = FuncArgsKwargs(func, args, kwargs, True)
-    data_arguments_with_values = definition.get_data_source_arguments_with_values(args_values)
-    parameter_arguments_with_values = definition.get_parameter_arguments_with_values(args_values)
+    func_args_values = FuncArgsKwargs(func, args, kwargs, True)
+    data_arguments_with_values = definition.get_data_source_arguments_with_values(func_args_values)
+    parameter_arguments_with_values = definition.get_parameter_arguments_with_values(func_args_values)
 
     data_source_arguments_with_paths = [
         (argument, get_paths_for_objects_of_type(obj=value, type_=Source))

@@ -17,7 +17,7 @@ class WidgetQuibFuncCall(QuibFuncCall):
         pass
 
     def _get_axis(self):
-        return self.args_values.get('ax')
+        return self.func_args_kwargs.get('ax')
 
     def _inverse_assign(self, quib: Quib, path: Path, value: Any):
         from pyquibbler import Assignment
