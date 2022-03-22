@@ -90,7 +90,7 @@ def create_quib(func: Callable, args: Tuple[Any, ...] = (), kwargs: Mapping[str,
     quib = Quib(created_in=created_in)
 
     quib.setp(assignment_template=None, allow_overriding=allow_overriding,
-              assigned_name=get_quib_name(), graphics_update_type=None, can_contain_graphics=update_type is not None,
+              assigned_name=get_quib_name(), graphics_update_type=None,
               save_directory=save_directory, save_format=save_format)
 
     quib.func = func

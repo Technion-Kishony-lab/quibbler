@@ -75,7 +75,6 @@ class QuibHandler:
                  graphics_update_type: Optional[UpdateType],
                  save_directory: pathlib.Path,
                  save_format: Optional[SaveFormat],
-                 can_contain_graphics: bool,
                  call_func_with_quibs: bool,
                  func: Optional[Callable],
                  args: Tuple[Any, ...] = (),
@@ -104,7 +103,6 @@ class QuibHandler:
         self.save_directory = save_directory
 
         self.save_format = save_format
-        self.can_contain_graphics = can_contain_graphics
         self.call_func_with_quibs = call_func_with_quibs
         self.func_args_kwargs = FuncArgsKwargs(func, args, kwargs, include_defaults=True)
 
@@ -588,7 +586,6 @@ class Quib:
                  graphics_update_type: Optional[UpdateType] = None,
                  save_directory: Optional[pathlib.Path] = None,
                  save_format: Optional[SaveFormat] = None,
-                 can_contain_graphics: Optional[bool] = None,
                  call_func_with_quibs: bool = None,
                  func: Optional[Callable] = None,
                  args: Tuple[Any, ...] = (),
@@ -604,7 +601,6 @@ class Quib:
                                    graphics_update_type,
                                    save_directory,
                                    save_format,
-                                   can_contain_graphics,
                                    call_func_with_quibs,
                                    func,
                                    args,
@@ -976,15 +972,6 @@ class Quib:
     def graphics_update_type(self, graphics_update_type: Union[None, str, UpdateType]):
         self.handler.graphics_update_type = get_enum_by_str(UpdateType, graphics_update_type, allow_none=True)
 
-    @property
-    def can_contain_graphics(self):
-        return self.handler.can_contain_graphics
-
-    @can_contain_graphics.setter
-    @validate_user_input(can_contain_graphics=(type(None), bool))
-    def can_contain_graphics(self, can_contain_graphics: Optional[bool]):
-        self.handler.can_contain_graphics = can_contain_graphics
-
     """
     Assignment
     """
@@ -1127,7 +1114,6 @@ class Quib:
              assigned_name: Union[None, str] = NoValue,
              name: Union[None, str] = NoValue,
              graphics_update_type: Union[None, str] = NoValue,
-             can_contain_graphics: Union[None, bool] = NoValue,
              assigned_quibs: set["Quib"] = NoValue,
              ):
         """
@@ -1165,8 +1151,6 @@ class Quib:
             self.assigned_name = name
         if graphics_update_type is not NoValue:
             self.graphics_update_type = graphics_update_type
-        if can_contain_graphics is not NoValue:
-            self.can_contain_graphics = can_contain_graphics
         if assigned_quibs is not NoValue:
             self.assigned_quibs = assigned_quibs
 
