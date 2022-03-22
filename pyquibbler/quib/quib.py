@@ -10,7 +10,7 @@ import warnings
 import json_tricks
 import numpy as np
 
-from pyquibbler.function_definitions import get_definition_for_function
+from pyquibbler.function_definitions import get_definition_for_function, FuncArgsKwargs
 from pyquibbler.utils import get_original_func
 from pyquibbler.quib.types import FileAndLineNumber
 from pyquibbler.utilities.file_path import PathWithHyperLink
@@ -106,9 +106,8 @@ class QuibHandler:
         self.save_format = save_format
         self.can_contain_graphics = can_contain_graphics
         self.call_func_with_quibs = call_func_with_quibs
-        self.func = func
-        self.args = args
-        self.kwargs = kwargs
+        self.func_args_kwargs = FuncArgsKwargs(func, args, kwargs, include_defaults=True)
+
         self.default_cache_behavior = default_cache_behavior
     """
     relationships
@@ -285,7 +284,7 @@ class QuibHandler:
                 return [[]]
 
     def reset_quib_func_call(self):
-        definition = get_definition_for_function(self.func)
+        definition = get_definition_for_function(self.func_args_kwargs.func)
         self.quib_function_call = definition.quib_function_call_cls(quib_handler=self)
         from pyquibbler.quib.graphics.persist import persist_artists_on_quib_weak_ref
         self.quib_function_call.artists_creation_callback = functools.partial(persist_artists_on_quib_weak_ref,
@@ -648,7 +647,7 @@ class Quib:
 
     @func.setter
     def func(self, func):
-        self.handler.func = get_original_func(func)
+        self.handler.func_args_kwargs.func = get_original_func(func)
 
     @property
     def args(self) -> List[Any]:
@@ -684,7 +683,7 @@ class Quib:
 
     @args.setter
     def args(self, args):
-        self.handler.args = deep_copy_without_quibs_or_graphics(args)
+        self.handler.func_args_kwargs.args = deep_copy_without_quibs_or_graphics(args)
 
     @property
     def kwargs(self) -> Mapping[str, Any]:
@@ -720,7 +719,7 @@ class Quib:
 
     @kwargs.setter
     def kwargs(self, kwargs):
-        self.handler.kwargs = {k: deep_copy_without_quibs_or_graphics(v) for k, v in kwargs.items()}
+        self.handler.func_args_kwargs.kwargs = {k: deep_copy_without_quibs_or_graphics(v) for k, v in kwargs.items()}
 
     @property
     def func_definition(self) -> FuncDefinition:

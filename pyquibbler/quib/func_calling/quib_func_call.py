@@ -49,12 +49,11 @@ class QuibFuncCall(FuncCall):
 
     @property
     def func(self) -> Callable:
-        return self.quib_handler.func
+        return self.args_values.func
 
     @property
     def args_values(self) -> FuncArgsKwargs:
-        return FuncArgsKwargs(func=self.func, args=self.quib_handler.args,
-                              kwargs=self.quib_handler.kwargs, include_defaults=True)
+        return self.quib_handler.func_args_kwargs
 
     @property
     def quib_handler(self) -> QuibHandler:
