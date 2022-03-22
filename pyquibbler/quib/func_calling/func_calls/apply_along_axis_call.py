@@ -51,8 +51,8 @@ class ApplyAlongAxisQuibFuncCall(QuibFuncCall):
             with external_call_failed_exception_handling():
                 return self._run_func1d(
                     oned_slice,
-                    *args_values.arg_values_by_name.get('args', []),
-                    **args_values.arg_values_by_name.get('kwargs', {}),
+                    *args_values.get('args', []),
+                    **args_values.get('kwargs', {}),
 
                 )
 
