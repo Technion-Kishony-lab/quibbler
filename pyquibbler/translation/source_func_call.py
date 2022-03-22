@@ -1,13 +1,13 @@
 import dataclasses
 from typing import Callable, Tuple, Any, Mapping
 
-from pyquibbler.function_definitions.func_call import FuncCall, ArgsValues
+from pyquibbler.function_definitions.func_call import FuncCall, FuncArgsKwargs
 from pyquibbler.translation.types import Source
 
 
 @dataclasses.dataclass
 class SourceFuncCall(FuncCall):
-    args_values: ArgsValues = None
+    args_values: FuncArgsKwargs = None
     func: Callable = None
 
     """
@@ -22,7 +22,7 @@ class SourceFuncCall(FuncCall):
               func_kwargs: Mapping[str, Any],
               include_defaults: bool = False,
               *args, **kwargs):
-        return cls(args_values=ArgsValues.from_func_args_kwargs(func, func_args, func_kwargs, include_defaults),
+        return cls(args_values=FuncArgsKwargs(func, func_args, func_kwargs, include_defaults),
                    func=func,
                    *args, **kwargs)
 

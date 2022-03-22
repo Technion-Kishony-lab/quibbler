@@ -4,7 +4,7 @@ import functools
 from dataclasses import dataclass, field
 from typing import Set, Type, List, TYPE_CHECKING, Callable, Optional
 
-from pyquibbler.function_definitions.func_call import ArgsValues
+from pyquibbler.function_definitions.func_call import FuncArgsKwargs
 from pyquibbler.function_definitions.types import RawArgument, Argument, PositionalArgument, KeywordArgument, \
     convert_raw_data_source_arguments_to_data_source_arguments
 from pyquibbler.translation.backwards_path_translator import BackwardsPathTranslator
@@ -100,13 +100,13 @@ class FuncDefinition:
         return all_data_source_arguments
 
     @functools.lru_cache()
-    def get_data_source_arguments_with_values(self, args_values: ArgsValues):
+    def get_data_source_arguments_with_values(self, args_values: FuncArgsKwargs):
         return [
             (argument, args_values[argument])
             for argument in self.data_source_arguments
         ]
 
-    def get_parameter_arguments_with_values(self, args_values: ArgsValues):
+    def get_parameter_arguments_with_values(self, args_values: FuncArgsKwargs):
         all_data_source_arguments = self._get_all_data_source_arguments(args_values)
         return [*[
             (PositionalArgument(index=i), args_values.args[i])

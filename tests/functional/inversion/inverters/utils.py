@@ -2,7 +2,7 @@ from typing import Callable, Any, Tuple, Mapping
 
 from pyquibbler import Assignment
 from pyquibbler.function_definitions import get_definition_for_function
-from pyquibbler.function_definitions.func_call import FuncCall, ArgsValues
+from pyquibbler.function_definitions.func_call import FuncCall, FuncArgsKwargs
 from pyquibbler.inversion.invert import invert
 from pyquibbler.path.data_accessing import deep_assign_data_in_path
 from pyquibbler.utils import get_original_func
@@ -14,7 +14,7 @@ from pyquibbler.utilities.iterators import get_paths_for_objects_of_type
 
 def _get_data_source_locations_and_parameter_locations(func, args, kwargs):
     definition = get_definition_for_function(func)
-    args_values = ArgsValues.from_func_args_kwargs(func, args, kwargs, include_defaults=True)
+    args_values = FuncArgsKwargs(func, args, kwargs, True)
     data_arguments_with_values = definition.get_data_source_arguments_with_values(args_values)
     parameter_arguments_with_values = definition.get_parameter_arguments_with_values(args_values)
 

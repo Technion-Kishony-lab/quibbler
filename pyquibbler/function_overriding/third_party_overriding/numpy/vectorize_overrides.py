@@ -3,7 +3,7 @@ from typing import Union
 import numpy as np
 
 from pyquibbler.function_definitions import PositionalArgument, KeywordArgument
-from pyquibbler.function_definitions.func_call import ArgsValues
+from pyquibbler.function_definitions.func_call import FuncArgsKwargs
 from pyquibbler.function_definitions.func_definition import FuncDefinition
 from pyquibbler.function_overriding.function_override import FuncOverride
 from pyquibbler.quib.func_calling.func_calls.vectorize.vectorize_call \
@@ -23,7 +23,7 @@ class VectorizeOverride(FuncOverride):
 
 class VectorizeCallDefinition(FuncDefinition):
 
-    def get_data_source_arguments_with_values(self, args_values: ArgsValues):
+    def get_data_source_arguments_with_values(self, args_values: FuncArgsKwargs):
         """
         Given a call to a vectorized function, return the arguments which act as data sources.
         We are using args_values.args and args_values.kwargs instead of the full args dict on purpose,

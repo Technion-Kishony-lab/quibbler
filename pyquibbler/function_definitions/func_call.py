@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 
 @dataclass
-class ArgsValues:
+class FuncArgsKwargs:
     """
     In a function call, when trying to understand what value an a specific parameter was given, looking at
     args and kwargs isn't enough. We have to deal with:
@@ -28,10 +28,31 @@ class ArgsValues:
     and can be indexed using ints, slices and keywords.
     """
 
+    func: Callable
     args: Tuple[Any, ...]
     kwargs: Mapping[str, Any]
-    arg_values_by_position: Tuple[Any, ...]
-    arg_values_by_name: Mapping[str, Any]
+    include_defaults: bool
+
+    def get_args_values_by_name_and_position(self) -> Tuple[Mapping[str, Any], Tuple[Any, ...]]:
+        # We use external_call_failed_exception_handling here as if the user provided the wrong arguments to the
+        # function we'll fail here
+        with external_call_failed_exception_handling():
+            try:
+                arg_values_by_name = dict(iter_args_and_names_in_function_call(self.func, self.args,
+                                                                               self.kwargs, self.include_defaults))
+                arg_values_by_position = tuple(arg_values_by_name.values())
+            except (ValueError, TypeError):
+                arg_values_by_name = self.kwargs
+                arg_values_by_position = self.args
+        return arg_values_by_name, arg_values_by_position
+
+    @property
+    def arg_values_by_name(self) -> Mapping[str, Any]:
+        return self.get_args_values_by_name_and_position()[0]
+
+    @property
+    def arg_values_by_position(self) -> Tuple[Any, ...]:
+        return self.get_args_values_by_name_and_position()[1]
 
     def __hash__(self):
         return id(self)
@@ -50,20 +71,6 @@ class ArgsValues:
 
     def get(self, keyword: str, default: Optional = None) -> Optional[Any]:
         return self.arg_values_by_name.get(keyword, default)
-
-    @classmethod
-    def from_func_args_kwargs(cls, func: Callable, args: Tuple[Any, ...], kwargs: Mapping[str, Any], include_defaults):
-        # We use external_call_failed_exception_handling here as if the user provided the wrong arguments to the
-        # function we'll fail here
-        with external_call_failed_exception_handling():
-            try:
-                arg_values_by_name = dict(iter_args_and_names_in_function_call(func, args, kwargs, include_defaults))
-                arg_values_by_position = tuple(arg_values_by_name.values())
-            except (ValueError, TypeError):
-                arg_values_by_name = kwargs
-                arg_values_by_position = args
-
-        return cls(args, kwargs, arg_values_by_position, arg_values_by_name)
 
 
 def load_source_locations_before_running(f):

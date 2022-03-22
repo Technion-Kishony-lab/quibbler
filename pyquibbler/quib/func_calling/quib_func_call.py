@@ -10,7 +10,7 @@ from pyquibbler.cache.cache_utils import _truncate_path_to_match_shallow_caches,
     get_cached_data_at_truncated_path_given_result_at_uncached_path
 from pyquibbler.cache import PathCannotHaveComponentsException, get_uncached_paths_matching_path, Cache
 
-from pyquibbler.function_definitions import FuncCall, load_source_locations_before_running, ArgsValues
+from pyquibbler.function_definitions import FuncCall, load_source_locations_before_running, FuncArgsKwargs
 from pyquibbler.graphics.graphics_collection import GraphicsCollection
 from pyquibbler.path import Path
 from pyquibbler.quib import consts
@@ -52,11 +52,9 @@ class QuibFuncCall(FuncCall):
         return self.quib_handler.func
 
     @property
-    def args_values(self) -> ArgsValues:
-        return ArgsValues.from_func_args_kwargs(func=self.func,
-                                                args=self.quib_handler.args,
-                                                kwargs=self.quib_handler.kwargs,
-                                                include_defaults=True)
+    def args_values(self) -> FuncArgsKwargs:
+        return FuncArgsKwargs(func=self.func, args=self.quib_handler.args,
+                              kwargs=self.quib_handler.kwargs, include_defaults=True)
 
     @property
     def quib_handler(self):

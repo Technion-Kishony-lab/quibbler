@@ -9,7 +9,7 @@ from pyquibbler.quib.external_call_failed_exception_handling import \
     external_call_failed_exception_handling
 from pyquibbler.quib.specialized_functions.proxy import create_proxy
 from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices
-from pyquibbler.function_definitions.func_call import ArgsValues
+from pyquibbler.function_definitions.func_call import FuncArgsKwargs
 from pyquibbler.graphics.utils import remove_created_graphics
 from pyquibbler.quib.func_calling import QuibFuncCall
 from pyquibbler.quib.func_calling.utils import cache_method_until_full_invalidation
@@ -44,15 +44,14 @@ class ApplyAlongAxisQuibFuncCall(QuibFuncCall):
         oned_slice = input_array[item]
         new_args, new_kwargs = self.get_args_and_kwargs_valid_at_quibs_to_paths(quibs_to_valid_paths={})
 
-        args_values = ArgsValues.from_func_args_kwargs(func=self.func, args=new_args, kwargs=new_kwargs,
-                                                       include_defaults=False)
+        args_values = FuncArgsKwargs(func=self.func, args=new_args, kwargs=new_kwargs, include_defaults=False)
 
         with remove_created_graphics():
             with external_call_failed_exception_handling():
                 return self._run_func1d(
                     oned_slice,
-                    *args_values.arg_values_by_name.get('args', []),
-                    **args_values.arg_values_by_name.get('kwargs', {}),
+                    *args_values.get('args', []),
+                    **args_values.get('kwargs', {}),
 
                 )
 
@@ -141,8 +140,7 @@ class ApplyAlongAxisQuibFuncCall(QuibFuncCall):
         indices = True if len(valid_path) == 0 else valid_path[0].component
         ni, nk = self.arr.get_shape()[:self.core_axis], self.arr.get_shape()[self.core_axis + 1:]
         out = self.run([None])
-        args_values = ArgsValues.from_func_args_kwargs(func=self.func, args=self.args, kwargs=self.kwargs,
-                                                       include_defaults=False)
+        args_values = FuncArgsKwargs(func=self.func, args=self.args, kwargs=self.kwargs, include_defaults=False)
         args_by_name = args_values.arg_values_by_name
         bool_mask = create_bool_mask_with_true_at_indices(self.get_shape(), indices)
         for ii in ndindex(ni):
