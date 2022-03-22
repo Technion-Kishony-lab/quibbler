@@ -4,6 +4,7 @@ from unittest import mock
 import numpy as np
 import pytest
 
+from pyquibbler import Quib
 from pyquibbler.utilities.input_validation_utils import InvalidArgumentTypeException
 from pyquibbler.quib.factory import create_quib
 
@@ -26,7 +27,7 @@ def test_quib_iter_first(quib):
 def test_quib_getitem(quib):
     quib.func.return_value = [1, 2, 3]
 
-    getitem_quib = quib[0]
+    getitem_quib: Quib = quib[0]
 
     assert getitem_quib.func == operator.getitem
     assert getitem_quib.get_value() == quib.func.return_value[0]

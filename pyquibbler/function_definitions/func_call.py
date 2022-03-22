@@ -109,7 +109,7 @@ class FuncCall(ABC):
 
     @property
     @abstractmethod
-    def args_values(self):
+    def args_values(self) -> FuncArgsKwargs:
         pass
 
     @property

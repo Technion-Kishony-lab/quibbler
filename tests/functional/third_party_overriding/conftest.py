@@ -2,11 +2,12 @@ from unittest import mock
 
 import pytest
 
+from pyquibbler import Quib
 from pyquibbler.quib.factory import create_quib
 
 
 @pytest.fixture()
-def quib():
+def quib() -> Quib:
     return create_quib(func=mock.Mock())
 
 

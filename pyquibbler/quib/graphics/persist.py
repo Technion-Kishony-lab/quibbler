@@ -24,7 +24,7 @@ def track_artist(artist: Artist):
     CanvasEventHandler.get_or_create_initialized_event_handler(artist.figure.canvas)
 
 
-def persist_func_on_artists(quib, new_artists):
+def persist_func_on_artists(quib: Quib, new_artists):
     for artist in new_artists:
         save_func_and_args_on_artists(artist, func=quib.func, args=quib.args)
         track_artist(artist)

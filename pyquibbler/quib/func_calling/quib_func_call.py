@@ -57,7 +57,7 @@ class QuibFuncCall(FuncCall):
                               kwargs=self.quib_handler.kwargs, include_defaults=True)
 
     @property
-    def quib_handler(self):
+    def quib_handler(self) -> QuibHandler:
         return self.quib_handler_ref()
 
     @property

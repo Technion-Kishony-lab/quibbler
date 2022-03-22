@@ -55,7 +55,7 @@ def create_quib(func: Callable, args: Tuple[Any, ...] = (), kwargs: Mapping[str,
                 update_type: UpdateType = None,
                 save_format: Optional[SaveFormat] = None,
                 save_directory: pathlib.Path = None,
-                **init_kwargs):
+                **init_kwargs) -> Quib:
     """
     Public constructor for creating a quib- this takes care of retrieving all relevant info for the creation of the
     quib as well as registering and performing any calculations.
