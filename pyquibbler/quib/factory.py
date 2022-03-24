@@ -14,6 +14,8 @@ from pyquibbler.quib.types import FileAndLineNumber
 from pyquibbler.quib.variable_metadata import get_var_name_being_set_outside_of_pyquibbler, \
     get_file_name_and_line_number_of_quib
 from pyquibbler.file_syncing.types import SaveFormat
+from pyquibbler.function_definitions.func_definition import FuncDefinition
+from pyquibbler.function_definitions import get_definition_for_function
 
 if TYPE_CHECKING:
     from pyquibbler import CacheBehavior
@@ -55,6 +57,7 @@ def create_quib(func: Callable, args: Tuple[Any, ...] = (), kwargs: Mapping[str,
                 update_type: UpdateType = None,
                 save_format: Optional[SaveFormat] = None,
                 save_directory: pathlib.Path = None,
+                function_definition: FuncDefinition = None,
                 **init_kwargs) -> Quib:
     """
     Public constructor for creating a quib- this takes care of retrieving all relevant info for the creation of the
@@ -74,9 +77,11 @@ def create_quib(func: Callable, args: Tuple[Any, ...] = (), kwargs: Mapping[str,
     "update"? See UpdateType for options
     :param save_format - indicating the file format for saving assignments to the quib (FileFormat).
     :param save_directory - where to save the quib?
+    :param function_definition - the definition of the function
     """
 
     kwargs = kwargs or {}
+    function_definition = function_definition or get_definition_for_function(func)
 
     # We have the possiblility of certain Quib parameters to be in the kwargs of the specific call.
     # We may want to move this out per function- for now, we have generic handling for all funcs with
@@ -96,6 +101,7 @@ def create_quib(func: Callable, args: Tuple[Any, ...] = (), kwargs: Mapping[str,
     quib.func = func
     quib.args = args
     quib.kwargs = kwargs
+    quib.handler.func_definition = function_definition
     quib.call_func_with_quibs = call_func_with_quibs
     quib.default_cache_behavior = cache_behavior or QuibFuncCall.DEFAULT_CACHE_BEHAVIOR
     quib.handler.reset_quib_func_call()

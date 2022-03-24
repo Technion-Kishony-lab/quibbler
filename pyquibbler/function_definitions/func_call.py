@@ -113,8 +113,21 @@ class FuncCall(ABC):
         pass
 
     @property
+    @abstractmethod
+    def func_definition(self) -> Type[FuncDefinition]:
+        pass
+
+    @property
     def func(self) -> Callable:
         return self.func_args_kwargs.func
+
+    @property
+    def args(self):
+        return self.func_args_kwargs.args
+
+    @property
+    def kwargs(self):
+        return self.func_args_kwargs.kwargs
 
     def _get_argument_used_in_current_func_call_for_argument(self, argument: Argument):
         """
@@ -134,7 +147,7 @@ class FuncCall(ABC):
             create_source_location(argument=argument, path=[]).find_in_args_kwargs(self.args, self.kwargs)
             return argument
         except (KeyError, IndexError):
-            return self.get_func_definition().get_corresponding_argument(argument)
+            return self.func_definition.get_corresponding_argument(argument)
 
     def _get_locations_within_arguments_and_values(self, arguments_and_values):
         return [
@@ -151,9 +164,9 @@ class FuncCall(ABC):
 
         if self.data_source_locations is None:
             data_arguments_with_values = \
-                self.get_func_definition().get_data_source_arguments_with_values(self.func_args_kwargs)
+                self.func_definition.get_data_source_arguments_with_values(self.func_args_kwargs)
             parameter_arguments_with_values = \
-                self.get_func_definition().get_parameter_arguments_with_values(self.func_args_kwargs)
+                self.func_definition.get_parameter_arguments_with_values(self.func_args_kwargs)
 
             self.data_source_locations = \
                 self._get_locations_within_arguments_and_values(data_arguments_with_values)
@@ -201,21 +214,8 @@ class FuncCall(ABC):
     def get_objects_of_type_in_args_kwargs(self, type_):
         return list(iter_object_type_in_args(type_, self.args, self.kwargs))
 
-    @functools.lru_cache()
-    def get_func_definition(self) -> FuncDefinition:
-        from pyquibbler.function_definitions import get_definition_for_function
-        return get_definition_for_function(self.func)
-
-    @property
-    def args(self):
-        return self.func_args_kwargs.args
-
-    @property
-    def kwargs(self):
-        return self.func_args_kwargs.kwargs
-
     def get_data_source_argument_values(self) -> List[Any]:
-        return [v for _, v in self.get_func_definition().get_data_source_arguments_with_values(self.func_args_kwargs)]
+        return [v for _, v in self.func_definition.get_data_source_arguments_with_values(self.func_args_kwargs)]
 
     @load_source_locations_before_running
     @functools.lru_cache()

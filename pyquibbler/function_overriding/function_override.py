@@ -57,6 +57,7 @@ class FuncOverride:
         """
 
         wrapped_func = self.original_func
+        function_definition = self.function_definition
 
         @functools.wraps(wrapped_func)
         def _maybe_create_quib(*args, **kwargs):
@@ -69,11 +70,13 @@ class FuncOverride:
                     args=args,
                     kwargs=kwargs,
                     evaluate_now=evaluate_now,
+                    function_definition=function_definition,
                     **flags
                 )
 
             return self._call_wrapped_func(wrapped_func, args, kwargs)
 
+        # _maybe_create_quib.function_definition = function_definition
         _maybe_create_quib.__quibbler_wrapped__ = wrapped_func
         _maybe_create_quib.__qualname__ = getattr(wrapped_func, '__name__', str(wrapped_func))
 
@@ -94,9 +97,11 @@ class FuncOverride:
             return self._get_func_from_module_or_cls()
         return self._original_func
 
-    def override(self):
+    def override(self) -> Callable:
         """
         Override the original function and make it quibbler supporting
         """
         self._original_func = self._get_func_from_module_or_cls()
-        setattr(self.module_or_cls, self.func_name, self._create_quib_supporting_func())
+        maybe_create_quib = self._create_quib_supporting_func()
+        setattr(self.module_or_cls, self.func_name, maybe_create_quib)
+        return maybe_create_quib

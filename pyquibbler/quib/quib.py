@@ -79,6 +79,7 @@ class QuibHandler:
                  func: Optional[Callable],
                  args: Tuple[Any, ...] = (),
                  kwargs: Mapping[str, Any] = None,
+                 function_definition: FuncDefinition = None,
                  default_cache_behavior: CacheBehavior = None,
                  ):
         kwargs = kwargs or {}
@@ -105,8 +106,10 @@ class QuibHandler:
         self.save_format = save_format
         self.call_func_with_quibs = call_func_with_quibs
         self.func_args_kwargs = FuncArgsKwargs(func, args, kwargs, include_defaults=True)
+        self.func_definition = function_definition
 
         self.default_cache_behavior = default_cache_behavior
+
     """
     relationships
     """
@@ -480,7 +483,7 @@ class QuibHandler:
     """
 
     def on_project_directory_change(self):
-        if not(self.save_directory is not None and self.save_directory.is_absolute()):
+        if not (self.save_directory is not None and self.save_directory.is_absolute()):
             self.file_syncer.on_file_name_changed()
 
     def on_file_name_change(self):
@@ -590,6 +593,7 @@ class Quib:
                  func: Optional[Callable] = None,
                  args: Tuple[Any, ...] = (),
                  kwargs: Mapping[str, Any] = None,
+                 function_definition: FuncDefinition = None,
                  default_cache_behavior: CacheBehavior = None,
                  ):
 
@@ -605,6 +609,7 @@ class Quib:
                                    func,
                                    args,
                                    kwargs,
+                                   function_definition,
                                    default_cache_behavior,
                                    )
 

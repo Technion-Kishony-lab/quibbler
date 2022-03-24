@@ -32,26 +32,6 @@ def identity_function(v):
 identity_function.__name__ = 'iquib'
 
 
-def iquib(value: Any):
-    """
-    An "iquib" represents an input or parameter to your project.
-
-    It is implemented by being a quib with an identity function- it will simply return the value given to it when
-    called.
-    """
-    if DEBUG:
-        if is_there_a_quib_in_object(value, force_recursive=True):
-            raise CannotNestQuibInIQuibException(value)
-
-    return create_quib(
-        func=identity_function,
-        args=(value,),
-        allow_overriding=True,
-        evaluate_now=True,
-        cache_behavior=CacheBehavior.ON,
-    )
-
-
 class IQuibForwardsPathTranslator(ForwardsPathTranslator):
 
     SHOULD_ATTEMPT_WITHOUT_SHAPE_AND_TYPE = True
@@ -63,4 +43,39 @@ class IQuibForwardsPathTranslator(ForwardsPathTranslator):
 iquib_definition = create_func_definition(raw_data_source_arguments=[0],
                                           forwards_path_translators=[IQuibForwardsPathTranslator])
 
-add_definition_for_function(func=identity_function, function_definition=iquib_definition)
+
+def iquib(value: Any):
+    """
+    Returns an input-quib that represent a given object
+
+    Parameters
+    ----------
+    value : Any
+    The value returned by the quib.
+
+    Returns
+    -------
+    Quib
+
+    See Also
+    --------
+    q, q_eager, Quib.get_value()
+    """
+
+    # iquib is implemented as a quib with an identity function
+    if DEBUG:
+        if is_there_a_quib_in_object(value, force_recursive=True):
+            raise CannotNestQuibInIQuibException(value)
+
+    return create_quib(
+        func=identity_function,
+        args=(value,),
+        allow_overriding=True,
+        evaluate_now=True,
+        cache_behavior=CacheBehavior.ON,
+        function_definition=iquib_definition,
+    )
+
+
+add_definition_for_function(func=identity_function, function_definition=iquib_definition,
+                            quib_creating_func=iquib)

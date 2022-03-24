@@ -18,13 +18,13 @@ def override_all():
     Override all relavent functions, both operators and third party, to support Quibs
     """
 
-    function_defintions = create_defintions_for_python_functions()
-    for function_defintion in function_defintions:
+    function_definitions = create_defintions_for_python_functions()
+    for function_definition in function_definitions:
         add_definition_for_function(
-            func=function_defintion.func,
-            function_definition=function_defintion,
+            func=function_definition.func,
+            function_definition=function_definition,
             module_or_cls=None,
-            is_overridden=False)
+        )
 
     function_overrides: List[FuncOverride] = [*create_operator_overrides(),
                                               *create_graphics_overrides(),
@@ -32,11 +32,10 @@ def override_all():
                                               *create_quib_method_overrides()]
     switch_widgets_to_quib_supporting_widgets()
     for func_override in function_overrides:
+        maybe_create_quib = func_override.override()
         add_definition_for_function(
             func=func_override.original_func,
             function_definition=func_override.function_definition,
             module_or_cls=func_override.module_or_cls,
             func_name=func_override.func_name,
-            is_overridden=True)
-
-        func_override.override()
+            quib_creating_func=maybe_create_quib)

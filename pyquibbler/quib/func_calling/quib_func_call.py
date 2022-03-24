@@ -11,6 +11,7 @@ from pyquibbler.cache.cache_utils import _truncate_path_to_match_shallow_caches,
 from pyquibbler.cache import PathCannotHaveComponentsException, get_uncached_paths_matching_path, Cache
 
 from pyquibbler.function_definitions import FuncCall, load_source_locations_before_running, FuncArgsKwargs
+from pyquibbler.function_definitions.func_definition import FuncDefinition
 from pyquibbler.graphics.graphics_collection import GraphicsCollection
 from pyquibbler.path import Path
 from pyquibbler.quib import consts
@@ -48,12 +49,16 @@ class QuibFuncCall(FuncCall):
         self._result_metadata = None
 
     @property
+    def quib_handler(self) -> QuibHandler:
+        return self.quib_handler_ref()
+
+    @property
     def func_args_kwargs(self) -> FuncArgsKwargs:
         return self.quib_handler.func_args_kwargs
 
     @property
-    def quib_handler(self) -> QuibHandler:
-        return self.quib_handler_ref()
+    def func_definition(self) -> FuncDefinition:
+        return self.quib_handler.func_definition
 
     @property
     def _call_func_with_quibs(self):
@@ -81,7 +86,7 @@ class QuibFuncCall(FuncCall):
             self.graphics_collections = create_array_from_func(GraphicsCollection, loop_shape)
 
     def get_cache_behavior(self):
-        if self.get_func_definition().is_random_func or self.func_can_create_graphics:
+        if self.func_definition.is_random_func or self.func_can_create_graphics:
             return CacheBehavior.ON
         return self.quib_handler.default_cache_behavior
 
@@ -141,7 +146,7 @@ class QuibFuncCall(FuncCall):
 
     @property
     def func_can_create_graphics(self):
-        is_graphics_func = self.get_func_definition().is_graphics_func
+        is_graphics_func = self.func_definition.is_graphics_func
         return is_graphics_func or (is_graphics_func is None and self.created_graphics)
 
     def reset_cache(self):
@@ -156,7 +161,7 @@ class QuibFuncCall(FuncCall):
                          args: Tuple[Any, ...], kwargs: Mapping[str, Any], quibs_allowed_to_access: Set[Quib]):
 
         with ExitStack() as stack:
-            if self.get_func_definition().is_graphics_func is not False:
+            if self.func_definition.is_graphics_func is not False:
                 stack.enter_context(graphics_collection.track_and_handle_new_graphics(
                     kwargs_specified_in_artists_creation=set(
                         key for key, value in self.kwargs.items() if value is not None)))

@@ -17,16 +17,16 @@ def override(mock_module, func_name_to_override, func_mock_on_module):
 
 
 @pytest.fixture(autouse=True)
-def add_defintion(mock_module, func_name_to_override, func_mock_on_module):
-    def _add_defintion(**quib_creation_flags):
-        definition = FuncOverride(func_name=func_name_to_override, module_or_cls=mock_module,
-                                        quib_creation_flags=quib_creation_flags)
+def add_defintion(mock_module, func_name_to_override, func_mock_on_module, overriden_func):
+    def _add_defintion():
+        definition = FuncOverride(func_name=func_name_to_override, module_or_cls=mock_module)
         add_definition_for_function(
             func=definition.original_func,
             function_definition=definition.function_definition,
             module_or_cls=definition.module_or_cls,
             func_name=definition.func_name,
-            is_overridden=True)
+            quib_creating_func=overriden_func,
+        )
     return _add_defintion
 
 

@@ -32,7 +32,7 @@ class MultipleInstanceRunner(ABC):
             yield
 
     def run(self):
-        definition = self._func_call.get_func_definition()
+        definition = self._func_call.func_definition
         for runner in self._get_runners_from_definition(definition=definition):
             with self.exception_context():
                 return self._run_runner(runner)

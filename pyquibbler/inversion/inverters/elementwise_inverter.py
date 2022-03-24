@@ -60,7 +60,7 @@ class ElementwiseInverter(Inverter):
                                                       type_=type(self._previous_result),
                                                       path=self._assignment.path)[source_to_change]
 
-        inverse_func = self._func_call.get_func_definition().inverse_func_with_input
+        inverse_func = self._func_call.func_definition.inverse_func_with_input
         with warnings.catch_warnings():
 
             warnings.simplefilter("ignore")

@@ -22,5 +22,6 @@ def get_data_source_ids_mask(func_call: FuncCall, sources_to_indices: Dict[Sourc
     return SourceFuncCall.from_(func=func_call.func,
                                 func_args=args,
                                 func_kwargs=kwargs,
+                                func_definition=func_call.func_definition,
                                 data_source_locations=[],
                                 parameter_source_locations=func_call.parameter_source_locations).run()

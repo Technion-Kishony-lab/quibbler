@@ -57,7 +57,8 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
             shape = self._get_shape_to_fill_for_data_source_in_location(location)
             source = location.find_in_args_kwargs(args, kwargs)
             args, kwargs = location.set_in_args_kwargs(args, kwargs, np.full(shape, id(source)))
-        return SourceFuncCall.from_(self._func_call.func, args, kwargs).run()
+        return SourceFuncCall.from_(self._func_call.func, args, kwargs,
+                                    func_definition=self._func_call.func_definition).run()
 
     @functools.lru_cache()
     def get_data_sources_to_masks_in_result(self) -> Dict[Source, Any]:
@@ -83,7 +84,8 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
             arr = np.indices(shape)[dimension]
             args, kwargs = location.set_in_args_kwargs(args, kwargs, arr)
 
-        indices_res = SourceFuncCall.from_(self._func_call.func, args, kwargs).run()
+        indices_res = SourceFuncCall.from_(self._func_call.func, args, kwargs,
+                                           func_definition=self._func_call.func_definition).run()
 
         return {
             data_source: indices_res[np.logical_and(data_sources_to_masks[data_source], relevant_indices_mask)]
