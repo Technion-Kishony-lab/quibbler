@@ -33,6 +33,7 @@ class FuncDefinition:
     is_random_func: bool = False
     is_file_loading_func: bool = False
     is_graphics_func: Optional[bool] = False  # None for 'maybe'
+    call_func_with_quibs: bool = False
     replace_previous_quibs_on_artists: bool = False
     inverters: List[Type[Inverter]] = field(default_factory=list)
     backwards_path_translators: List[Type[BackwardsPathTranslator]] = field(default_factory=list)
@@ -136,6 +137,7 @@ def create_func_definition(raw_data_source_arguments: List[RawArgument] = None,
                            is_random_func: bool = False,
                            is_file_loading_func: bool = False,
                            is_graphics_func: Optional[bool] = False,
+                           call_func_with_quibs: bool = False,
                            replace_previous_quibs_on_artists: bool = False,
                            inverters: List[Type[Inverter]] = None,
                            backwards_path_translators: List[Type[BackwardsPathTranslator]] = None,
@@ -164,6 +166,7 @@ def create_func_definition(raw_data_source_arguments: List[RawArgument] = None,
         backwards_path_translators=backwards_path_translators or [],
         forwards_path_translators=forwards_path_translators or [],
         quib_function_call_cls=quib_function_call_cls,
+        call_func_with_quibs=call_func_with_quibs,
         replace_previous_quibs_on_artists=replace_previous_quibs_on_artists,
         **kwargs
     )

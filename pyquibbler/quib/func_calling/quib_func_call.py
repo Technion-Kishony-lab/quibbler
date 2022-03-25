@@ -62,7 +62,7 @@ class QuibFuncCall(FuncCall):
 
     @property
     def _call_func_with_quibs(self):
-        return self.quib_handler.call_func_with_quibs
+        return self.func_definition.call_func_with_quibs
 
     def flat_graphics_collections(self):
         return list(self.graphics_collections.flat) if self.graphics_collections is not None else []

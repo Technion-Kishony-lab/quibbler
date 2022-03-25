@@ -75,7 +75,6 @@ class QuibHandler:
                  graphics_update_type: Optional[UpdateType],
                  save_directory: pathlib.Path,
                  save_format: Optional[SaveFormat],
-                 call_func_with_quibs: bool,
                  func: Optional[Callable],
                  args: Tuple[Any, ...] = (),
                  kwargs: Mapping[str, Any] = None,
@@ -104,7 +103,6 @@ class QuibHandler:
         self.save_directory = save_directory
 
         self.save_format = save_format
-        self.call_func_with_quibs = call_func_with_quibs
         self.func_args_kwargs = FuncArgsKwargs(func, args, kwargs, include_defaults=True)
         self.func_definition = function_definition
 
@@ -589,7 +587,6 @@ class Quib:
                  graphics_update_type: Optional[UpdateType] = None,
                  save_directory: Optional[pathlib.Path] = None,
                  save_format: Optional[SaveFormat] = None,
-                 call_func_with_quibs: bool = None,
                  func: Optional[Callable] = None,
                  args: Tuple[Any, ...] = (),
                  kwargs: Mapping[str, Any] = None,
@@ -605,7 +602,6 @@ class Quib:
                                    graphics_update_type,
                                    save_directory,
                                    save_format,
-                                   call_func_with_quibs,
                                    func,
                                    args,
                                    kwargs,
@@ -828,12 +824,12 @@ class Quib:
 
     @property
     def call_func_with_quibs(self) -> bool:
-        return self.handler.call_func_with_quibs
+        return self.handler.func_definition.call_func_with_quibs
 
     @call_func_with_quibs.setter
     @validate_user_input(call_func_with_quibs=bool)
     def call_func_with_quibs(self, call_func_with_quibs):
-        self.handler.call_func_with_quibs = call_func_with_quibs
+        self.handler.func_definition.call_func_with_quibs = call_func_with_quibs
 
     """
     cache
