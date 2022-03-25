@@ -1,6 +1,6 @@
 import pytest
 
-from pyquibbler.env import GRAPHICS_EVALUATE_NOW
+from pyquibbler.env import GRAPHICS_LAZY
 from pyquibbler.function_overriding.third_party_overriding.graphics.helpers import graphics_override
 
 
@@ -17,8 +17,8 @@ def test_graphics_func_does_run_by_default(overridden_func, func_mock_on_module,
     assert func_mock_on_module.call_count == 1
 
 
-def test_graphics_func_does_not_run_when_evaluate_now_flag_set_to_false(overridden_func, func_mock_on_module, quib):
-    with GRAPHICS_EVALUATE_NOW.temporary_set(False):
+def test_graphics_func_does_not_run_when_lazy_flag_set_to_true(overridden_func, func_mock_on_module, quib):
+    with GRAPHICS_LAZY.temporary_set(True):
         overridden_func(quib, )
 
     assert func_mock_on_module.call_count == 0

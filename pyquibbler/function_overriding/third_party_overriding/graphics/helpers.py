@@ -5,7 +5,7 @@ from typing import Any
 import matplotlib.widgets
 from matplotlib.axes import Axes
 
-from pyquibbler.env import GRAPHICS_EVALUATE_NOW
+from pyquibbler.env import GRAPHICS_LAZY
 from pyquibbler.function_overriding.function_override import FuncOverride
 from pyquibbler.function_overriding.third_party_overriding.general_helpers import override_with_cls
 
@@ -63,15 +63,15 @@ class AxesLimOverride(AxesSetOverride):
 
 
 graphics_override = functools.partial(override_with_cls, GraphicsOverride, is_graphics_func=True,
-                                      evaluate_now=GRAPHICS_EVALUATE_NOW)
+                                      lazy=GRAPHICS_LAZY)
 axes_override = functools.partial(graphics_override, Axes)
 
 replacing_axes_override = functools.partial(override_with_cls, AxesSetOverride, Axes, is_graphics_func=True,
-                                            evaluate_now=GRAPHICS_EVALUATE_NOW,
+                                            lazy=GRAPHICS_LAZY,
                                             replace_previous_quibs_on_artists=True)
 
 widget_override = functools.partial(graphics_override, matplotlib.widgets)
 
 axes_lim_override = functools.partial(override_with_cls, AxesLimOverride,
                                       Axes, is_graphics_func=True, replace_previous_quibs_on_artists=True,
-                                      evaluate_now=GRAPHICS_EVALUATE_NOW)
+                                      lazy=GRAPHICS_LAZY)

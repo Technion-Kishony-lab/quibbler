@@ -4,16 +4,16 @@ import functools
 from pyquibbler.quib.factory import create_quib
 
 
-def quibbler_user_function(evaluate_now: bool = True, pass_quibs: bool = False):
+def quibbler_user_function(lazy: bool = False, pass_quibs: bool = False):
     """
     Decorate your function with this in order for quibbler to automatically unpack quibs sent as arguments to this
     function, while reruninng this function every time any argument quib changes.
 
     Any graphics created in this function will also be redrawn if any argument quib changes.
 
-    :param evaluate_now: Should this function be run immediately (evaluate_now=False), or only when
+    :param lazy: Should this function be run immediately (lazy=False), or only when
      it's needed down the line?
-    (evaluate_now=False) - if you do any graphics in this function you should probably set evaluate_now=False
+    (lazy=False) - if you do any graphics in this function you should probably set lazy=False
     :param pass_quibs: Should this function receive quibs or their values?
     """
 
@@ -22,7 +22,7 @@ def quibbler_user_function(evaluate_now: bool = True, pass_quibs: bool = False):
     def _decorator(func):
         @functools.wraps(func)
         def _wrapper(*args, **kwargs):
-            return create_quib(func=func, args=args, kwargs=kwargs, evaluate_now=evaluate_now,
+            return create_quib(func=func, args=args, kwargs=kwargs, lazy=lazy,
                                function_definition=FuncDefinition(call_func_with_quibs=pass_quibs),
                                )
 

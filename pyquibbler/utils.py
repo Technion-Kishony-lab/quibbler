@@ -47,6 +47,13 @@ class Flag(Mutable):
     def __bool__(self):
         return self.val
 
+    def __eq__(self, other):
+        return self.val == other
+
+    def __ne__(self, other):
+        return self.val != other
+
+
 
 def convert_args_and_kwargs(converter: Callable, args: Tuple[Any, ...], kwargs: Mapping[str, Any]):
     """

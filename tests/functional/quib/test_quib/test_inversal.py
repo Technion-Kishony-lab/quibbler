@@ -26,7 +26,7 @@ def basic_dtype():
 def test_inverse_assign_field_array_with_function_and_fancy_indexing_and_field_name(basic_dtype,
                                                                                     create_quib_with_return_value):
     arr = create_quib_with_return_value(np.array([[('shlomi', 9)], [('maor', 3)]], dtype=basic_dtype),
-                                        allow_overriding=True, evaluate_now=True)
+                                        allow_overriding=True, lazy=False)
     rotation_quib = np.rot90(arr)
 
     first_value: Quib = rotation_quib[[0], [1]]

@@ -41,7 +41,7 @@ class VectorizeCallOverride(FuncOverride):
     def _get_creation_flags(self, args, kwargs):
         vectorize, *_ = args
         return {
-            'evaluate_now': vectorize.evaluate_now,
+            'lazy': vectorize.lazy,
             'call_func_with_quibs': vectorize.pass_quibs,
             'update_type': vectorize.update_type
         }
@@ -54,12 +54,12 @@ class QVectorize(np.vectorize):
     """
 
     def __init__(self, *args, pass_quibs=False, update_type: Union[str, UpdateType] = None,
-                 evaluate_now: bool = None, signature=None, cache=False, **kwargs):
+                 lazy: bool = None, signature=None, cache=False, **kwargs):
         # We don't need the underlying vectorize object to cache, we are doing that ourselves.
         super().__init__(*args, signature=signature, cache=False, **kwargs)
         self.pass_quibs = pass_quibs
         self.update_type = update_type or UpdateType.DRAG
-        self.evaluate_now = evaluate_now or False
+        self.lazy = lazy if lazy is not None else True
 
     def __repr__(self):
         if PRETTY_REPR:

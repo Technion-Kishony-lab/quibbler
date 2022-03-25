@@ -181,7 +181,7 @@ def test_project_undo_with_group_reverts_back_to_before_group_and_runs_graphics_
     a = iquib(5)
     mock_func = mock.Mock()
     add_definition_for_function(mock_func, create_func_definition(is_graphics_func=True))
-    _ = create_quib(func=mock_func, args=(a,), evaluate_now=True)
+    _ = create_quib(func=mock_func, args=(a,), lazy=False)
     with project.start_undo_group():
         a.handler.override(Assignment(
             path=[],
@@ -224,7 +224,7 @@ def test_project_has_redo_when_true(project):
 
 def test_project_redraw_central_graphics_function_quibs(project):
     func = mock.Mock()
-    _ = create_quib(func=func, update_type='central', evaluate_now=False)
+    _ = create_quib(func=func, update_type='central', lazy=True)
 
     project.refresh_graphics()
 

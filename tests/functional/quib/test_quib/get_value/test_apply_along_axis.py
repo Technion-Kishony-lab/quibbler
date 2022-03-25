@@ -1,7 +1,7 @@
 import itertools
 
 from pyquibbler import iquib
-from pyquibbler.env import GRAPHICS_EVALUATE_NOW
+from pyquibbler.env import GRAPHICS_LAZY
 from pyquibbler.path import PathComponent
 from pyquibbler.path.data_accessing import deep_get
 from pyquibbler.quib.quib import Quib
@@ -31,7 +31,7 @@ def test_apply_along_axis_get_value_valid_at_path(indices_to_get_value_at, axis,
 
 
 def create_lazy_apply_along_axis_quib(func, arr, axis, args=None, kwargs=None, call_func_with_quibs=False) -> Quib:
-    with GRAPHICS_EVALUATE_NOW.temporary_set(True):
+    with GRAPHICS_LAZY.temporary_set(False):
         return np.apply_along_axis(func, axis, iquib(arr) if not isinstance(arr, Quib) else arr,
                                    *(args or []), **(kwargs or {}), call_func_with_quibs=call_func_with_quibs)
 

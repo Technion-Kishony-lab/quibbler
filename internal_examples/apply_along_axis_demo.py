@@ -24,7 +24,7 @@ def plot_averages(res):
     axis.text(x, 0.5, f"avg: {average}")
 
 
-result = np.apply_along_axis(func1d=run_heavy_averages, axis=1, arr=reshaped_numbers, evaluate_now=False)
+result = np.apply_along_axis(func1d=run_heavy_averages, axis=1, arr=reshaped_numbers, lazy=True)
 xs_to_plot = np.linspace(0, 0.7, num=q(int, count / 2))
 result_with_xs = np.concatenate((result[:, np.newaxis], xs_to_plot[:, np.newaxis]), axis=1)
 np.apply_along_axis(func1d=plot_averages, axis=1, arr=result_with_xs)

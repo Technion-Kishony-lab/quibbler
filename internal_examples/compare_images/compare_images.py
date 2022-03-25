@@ -8,7 +8,7 @@ from pyquibbler import iquib, override_all, q
 override_all()
 
 
-@partial(np.vectorize, signature='(extents),()->()', pass_quibs=True, evaluate_now=True)
+@partial(np.vectorize, signature='(extents),()->()', pass_quibs=True, lazy=False)
 def create_roi(roi, axes):
     print("Creating ROI")
     widgets.RectangleSelector(axes, extents=roi, allow_resize=False)

@@ -1,6 +1,6 @@
 import pytest
 
-from pyquibbler.env import EVALUATE_NOW
+from pyquibbler.env import LAZY
 from pyquibbler.function_overriding.function_override import FuncOverride
 from pyquibbler.function_definitions.definitions import add_definition_for_function
 from pyquibbler import list_quiby_funcs, is_func_quiby
@@ -39,9 +39,9 @@ def test_overriding_definition_does_not_call_func(overridden_func, func_mock_on_
     func_mock_on_module.assert_not_called()
 
 
-def test_overriding_definition_does_call_func_when_set_to_evaluate_now(overridden_func, func_mock_on_module, override,
-                                                                       quib):
-    override(evaluate_now=True)
+def test_overriding_definition_does_call_func_when_set_to_lazy_false(overridden_func, func_mock_on_module, override,
+                                                                     quib):
+    override(lazy=False)
     overridden_func(quib, )
 
     func_mock_on_module.assert_called_once()
@@ -54,10 +54,10 @@ def test_overriding_definition_does_call_func_when_no_quib_args(overridden_func,
     func_mock_on_module.assert_called_once()
 
 
-def test_overriding_definition_defaults_to_evaluate_now_when_flag_set_to_true(overridden_func,
-                                                                              func_mock_on_module,
-                                                                              override, quib):
-    with EVALUATE_NOW.temporary_set(True):
+def test_overriding_definition_defaults_to_evaluate_now_when_lazy_flag_set_to_false(overridden_func,
+                                                                                    func_mock_on_module,
+                                                                                    override, quib):
+    with LAZY.temporary_set(False):
         override()
         overridden_func(quib, )
 
