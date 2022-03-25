@@ -54,7 +54,6 @@ class Flag(Mutable):
         return self.val != other
 
 
-
 def convert_args_and_kwargs(converter: Callable, args: Tuple[Any, ...], kwargs: Mapping[str, Any]):
     """
     Apply the given converter on all given arg and kwarg values.
