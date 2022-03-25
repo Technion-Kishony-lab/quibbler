@@ -138,9 +138,9 @@ def create_assignment_template(*args):
         args = args[0]
 
     if len(args) == 1:
-        if not isinstance(args[0], AssignmentTemplate):
+        if not isinstance(args[0], (AssignmentTemplate, type(None))):
             raise InvalidArgumentTypeException(expected_type=(AssignmentTemplate, tuple),
-                                               var_name="assignment template")
+                                               var_name="assignment_template")
         template, = args
     elif len(args) == 2:
         minimum, maximum = args

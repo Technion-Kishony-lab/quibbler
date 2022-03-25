@@ -189,20 +189,20 @@ def create_numpy_overrides():
         # Transpositional
         *(numpy_override_transpositional(func_name, data_sources)
           for func_name, data_sources in (
-            ("rot90",       [0]),
-            ("concatenate", [0]),
-            ("repeat",      [0]),
-            ("full",        ['fill_value']),
-            ("reshape",     [0]),
-            ("transpose",   [0]),
-            ("array",       [0]),
-            ("swapaxes",    [0]),
-            ("tile",        [0]),
-            ("asarray",     [0]),
-            ("squeeze",     [0]),
-            ("expand_dims", [0]),
-            ("ravel",       [0]),
-            ("squeeze",     [0]),
+            ('rot90',       [0]),
+            ('concatenate', [0]),
+            ('repeat',      [0]),
+            ('full',        ['fill_value']),
+            ('reshape',     [0]),
+            ('transpose',   [0]),
+            ('array',       [0]),
+            ('swapaxes',    [0]),
+            ('tile',        [0]),
+            ('asarray',     [0]),
+            ('squeeze',     [0]),
+            ('expand_dims', [0]),
+            ('ravel',       [0]),
+            ('squeeze',     [0]),
           )),
 
         # Shape-only, data-independent
@@ -250,6 +250,7 @@ def create_numpy_overrides():
         # apply_along_axis
         numpy_override('apply_along_axis', data_source_arguments=["arr"],
                        is_graphics_func=None,
+                       allowed_kwarg_flags=('call_func_with_quibs', 'evaluate_now'),
                        forwards_path_translators=[ApplyAlongAxisForwardsTranslator],
                        quib_function_call_cls=ApplyAlongAxisQuibFuncCall),
 

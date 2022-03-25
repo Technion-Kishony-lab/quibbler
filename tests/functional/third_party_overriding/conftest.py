@@ -2,11 +2,12 @@ from unittest import mock
 
 import pytest
 
+from pyquibbler import Quib
 from pyquibbler.quib.factory import create_quib
 
 
 @pytest.fixture()
-def quib():
+def quib() -> Quib:
     return create_quib(func=mock.Mock())
 
 
@@ -27,5 +28,5 @@ def func_mock_on_module(mock_module, func_name_to_override):
 
 
 @pytest.fixture()
-def overriden_func(mock_module, func_name_to_override):
+def overridden_func(mock_module, func_name_to_override):
     return lambda *a: getattr(mock_module, func_name_to_override)(*a)

@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 
 @dataclass
-class ArgsValues:
+class FuncArgsKwargs:
     """
     In a function call, when trying to understand what value an a specific parameter was given, looking at
     args and kwargs isn't enough. We have to deal with:
@@ -28,10 +28,31 @@ class ArgsValues:
     and can be indexed using ints, slices and keywords.
     """
 
+    func: Callable
     args: Tuple[Any, ...]
     kwargs: Mapping[str, Any]
-    arg_values_by_position: Tuple[Any, ...]
-    arg_values_by_name: Mapping[str, Any]
+    include_defaults: bool
+
+    def get_args_values_by_name_and_position(self) -> Tuple[Mapping[str, Any], Tuple[Any, ...]]:
+        # We use external_call_failed_exception_handling here as if the user provided the wrong arguments to the
+        # function we'll fail here
+        with external_call_failed_exception_handling():
+            try:
+                arg_values_by_name = dict(iter_args_and_names_in_function_call(self.func, self.args,
+                                                                               self.kwargs, self.include_defaults))
+                arg_values_by_position = tuple(arg_values_by_name.values())
+            except (ValueError, TypeError):
+                arg_values_by_name = self.kwargs
+                arg_values_by_position = self.args
+        return arg_values_by_name, arg_values_by_position
+
+    @property
+    def arg_values_by_name(self) -> Mapping[str, Any]:
+        return self.get_args_values_by_name_and_position()[0]
+
+    @property
+    def arg_values_by_position(self) -> Tuple[Any, ...]:
+        return self.get_args_values_by_name_and_position()[1]
 
     def __hash__(self):
         return id(self)
@@ -50,20 +71,6 @@ class ArgsValues:
 
     def get(self, keyword: str, default: Optional = None) -> Optional[Any]:
         return self.arg_values_by_name.get(keyword, default)
-
-    @classmethod
-    def from_func_args_kwargs(cls, func: Callable, args: Tuple[Any, ...], kwargs: Mapping[str, Any], include_defaults):
-        # We use external_call_failed_exception_handling here as if the user provided the wrong arguments to the
-        # function we'll fail here
-        with external_call_failed_exception_handling():
-            try:
-                arg_values_by_name = dict(iter_args_and_names_in_function_call(func, args, kwargs, include_defaults))
-                arg_values_by_position = tuple(arg_values_by_name.values())
-            except (ValueError, TypeError):
-                arg_values_by_name = kwargs
-                arg_values_by_position = args
-
-        return cls(args, kwargs, arg_values_by_position, arg_values_by_name)
 
 
 def load_source_locations_before_running(f):
@@ -94,25 +101,33 @@ class FuncCall(ABC):
 
     SOURCE_OBJECT_TYPE: ClassVar[Type]
 
-    args_values: ArgsValues
-    func: Callable
-
     data_source_locations: Optional[List[SourceLocation]] = None
     parameter_source_locations: Optional[List[SourceLocation]] = None
 
     def __hash__(self):
         return id(self)
 
-    @classmethod
-    def from_(cls, func: Callable,
-              func_args: Tuple[Any, ...],
-              func_kwargs: Mapping[str, Any],
-              include_defaults: bool = False,
-              *args, **kwargs):
+    @property
+    @abstractmethod
+    def func_args_kwargs(self) -> FuncArgsKwargs:
+        pass
 
-        return cls(args_values=ArgsValues.from_func_args_kwargs(func, func_args, func_kwargs, include_defaults),
-                   func=func,
-                   *args, **kwargs)
+    @property
+    @abstractmethod
+    def func_definition(self) -> Type[FuncDefinition]:
+        pass
+
+    @property
+    def func(self) -> Callable:
+        return self.func_args_kwargs.func
+
+    @property
+    def args(self):
+        return self.func_args_kwargs.args
+
+    @property
+    def kwargs(self):
+        return self.func_args_kwargs.kwargs
 
     def _get_argument_used_in_current_func_call_for_argument(self, argument: Argument):
         """
@@ -132,7 +147,7 @@ class FuncCall(ABC):
             create_source_location(argument=argument, path=[]).find_in_args_kwargs(self.args, self.kwargs)
             return argument
         except (KeyError, IndexError):
-            return self.get_func_definition().get_corresponding_argument(argument)
+            return self.func_definition.get_corresponding_argument(argument)
 
     def _get_locations_within_arguments_and_values(self, arguments_and_values):
         return [
@@ -149,9 +164,9 @@ class FuncCall(ABC):
 
         if self.data_source_locations is None:
             data_arguments_with_values = \
-                self.get_func_definition().get_data_source_arguments_with_values(self.args_values)
+                self.func_definition.get_data_source_arguments_with_values(self.func_args_kwargs)
             parameter_arguments_with_values = \
-                self.get_func_definition().get_parameter_arguments_with_values(self.args_values)
+                self.func_definition.get_parameter_arguments_with_values(self.func_args_kwargs)
 
             self.data_source_locations = \
                 self._get_locations_within_arguments_and_values(data_arguments_with_values)
@@ -199,21 +214,8 @@ class FuncCall(ABC):
     def get_objects_of_type_in_args_kwargs(self, type_):
         return list(iter_object_type_in_args(type_, self.args, self.kwargs))
 
-    @functools.lru_cache()
-    def get_func_definition(self) -> FuncDefinition:
-        from pyquibbler.function_definitions import get_definition_for_function
-        return get_definition_for_function(self.func)
-
-    @property
-    def args(self):
-        return self.args_values.args
-
-    @property
-    def kwargs(self):
-        return self.args_values.kwargs
-
     def get_data_source_argument_values(self) -> List[Any]:
-        return [v for _, v in self.get_func_definition().get_data_source_arguments_with_values(self.args_values)]
+        return [v for _, v in self.func_definition.get_data_source_arguments_with_values(self.func_args_kwargs)]
 
     @load_source_locations_before_running
     @functools.lru_cache()

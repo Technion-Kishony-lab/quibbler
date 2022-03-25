@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import Any, Tuple, Dict
+from pyquibbler.utils import get_original_func
 
 import numpy as np
 
@@ -14,7 +15,6 @@ def create_empty_array_with_values_at_indices(shape: tuple, indices: Any, value:
     Create an empty array in a given shape with `values` at `indices`. All other indices will be filled with
     `empty_value`
     """
-    from pyquibbler.quib.factory import get_original_func
     res = get_original_func(np.zeros)(shape, dtype=dtype or get_original_func(np.array)(value).dtype)
     if empty_value is not None:
         res.fill(empty_value)
@@ -28,7 +28,6 @@ def create_bool_mask_with_true_at_indices(shape: tuple, indices: Any) -> np.ndar
     """
     Create an array of False in a given shape with True at `indices`.
     """
-    from pyquibbler.quib.factory import get_original_func
     res = get_original_func(np.zeros)(shape, dtype=bool)
     res[indices] = True
     return res

@@ -1,11 +1,15 @@
+import copy
 import functools
 from dataclasses import dataclass
 from types import ModuleType
-from typing import Callable, Any, Dict, Union, Type, Optional
+from typing import Callable, Any, Dict, Union, Type, Optional, Tuple, Mapping
 
-from pyquibbler.env import EVALUATE_NOW
 from pyquibbler.function_definitions.func_definition import FuncDefinition
 from pyquibbler.quib.utils.miscellaneous import is_there_a_quib_in_args
+
+
+def get_flags_from_kwargs(flag_names: Tuple[str, ...], kwargs: Dict[str, Any]) -> Mapping[str, Any]:
+    return {key: kwargs.pop(key) for key in flag_names if key in kwargs.keys()}
 
 
 @dataclass
@@ -18,7 +22,7 @@ class FuncOverride:
     module_or_cls: Union[ModuleType, Type]
     func_name: str
     function_definition: Optional[FuncDefinition] = None
-    quib_creation_flags: Optional[Dict[str, Any]] = None
+    allowed_kwarg_flags: Tuple[str] = ()
     _original_func: Callable = None
 
     @classmethod
@@ -26,22 +30,17 @@ class FuncOverride:
         return cls(func_name=func.__name__, module_or_cls=module_or_cls,
                    function_definition=function_definition, *args, **kwargs)
 
-    @property
-    def _default_creation_flags(self) -> Dict[str, Any]:
-        """
-        What are the default flags for creating a Quib for this FuncOverride?
-        If you subclass this, you can override this, the default is to use the default flags
-        """
-        return {}
-
     def _get_creation_flags(self, args, kwargs):
         """
         Get all the creation flags for creating a quib
         """
-        return {
-            **self._default_creation_flags,
-            **(self.quib_creation_flags or {})
-        }
+        return {}
+
+    def _get_dynamic_flags(self, args, kwargs):
+        """
+        Get flags found in the quib creation call
+        """
+        return get_flags_from_kwargs(self.allowed_kwarg_flags, kwargs)
 
     def _get_func_from_module_or_cls(self):
         return getattr(self.module_or_cls, self.func_name)
@@ -57,23 +56,30 @@ class FuncOverride:
         """
 
         wrapped_func = self.original_func
+        function_definition = self.function_definition
 
         @functools.wraps(wrapped_func)
         def _maybe_create_quib(*args, **kwargs):
             from pyquibbler.quib.factory import create_quib
             if is_there_a_quib_in_args(args, kwargs):
-                flags = self._get_creation_flags(args, kwargs)
-                evaluate_now = flags.pop('evaluate_now', EVALUATE_NOW)
+                flags = {**self._get_creation_flags(args, kwargs), **self._get_dynamic_flags(args, kwargs)}
+                if flags:
+                    func_definition_for_quib = copy.deepcopy(function_definition)
+                    for key, value in flags.items():
+                        setattr(func_definition_for_quib, key, value)
+                else:
+                    func_definition_for_quib = function_definition
+
                 return create_quib(
                     func=wrapped_func,
                     args=args,
                     kwargs=kwargs,
-                    evaluate_now=evaluate_now,
-                    **flags
+                    function_definition=func_definition_for_quib,
                 )
 
             return self._call_wrapped_func(wrapped_func, args, kwargs)
 
+        # _maybe_create_quib.function_definition = function_definition
         _maybe_create_quib.__quibbler_wrapped__ = wrapped_func
         _maybe_create_quib.__qualname__ = getattr(wrapped_func, '__name__', str(wrapped_func))
 
@@ -94,9 +100,11 @@ class FuncOverride:
             return self._get_func_from_module_or_cls()
         return self._original_func
 
-    def override(self):
+    def override(self) -> Callable:
         """
         Override the original function and make it quibbler supporting
         """
         self._original_func = self._get_func_from_module_or_cls()
-        setattr(self.module_or_cls, self.func_name, self._create_quib_supporting_func())
+        maybe_create_quib = self._create_quib_supporting_func()
+        setattr(self.module_or_cls, self.func_name, maybe_create_quib)
+        return maybe_create_quib

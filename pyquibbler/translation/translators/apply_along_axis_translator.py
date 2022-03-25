@@ -17,11 +17,11 @@ class ApplyAlongAxis:
 
     @property
     def arr(self):
-        return self.func_call.args_values['arr']
+        return self.func_call.func_args_kwargs['arr']
 
     @property
     def axis(self):
-        return self.func_call.args_values['axis']
+        return self.func_call.func_args_kwargs['axis']
 
     def get_expanded_dims(self):
         func_result_ndim = len(self.result_shape) - len(np.shape(self.arr)) + 1
@@ -34,7 +34,7 @@ class ApplyAlongAxisForwardsTranslator(NumpyForwardsPathTranslator):
     TRANSLATION_RELATED_ARGS = [Arg('axis')]
 
     def _get_translation_related_arg_dict(self):
-        arg_dict = {key: val for key, val in self._func_call.args_values.arg_values_by_name.items()
+        arg_dict = {key: val for key, val in self._func_call.func_args_kwargs.arg_values_by_name.items()
                     if not isinstance(val, np._globals._NoValueType)}
         return {arg.name: arg.get_value(arg_dict) for arg in self.TRANSLATION_RELATED_ARGS}
 

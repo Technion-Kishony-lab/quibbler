@@ -3,6 +3,7 @@ import functools
 import inspect
 from typing import Callable, Any, Tuple, Mapping
 from dataclasses import dataclass
+from enum import Enum
 
 
 def ensure_only_run_once_globally(func: Callable):
@@ -62,3 +63,19 @@ def get_signature_for_func(func):
     cache the result per function
     """
     return inspect.signature(func)
+
+
+class StrEnum(str, Enum):
+    pass
+
+
+def get_original_func(func: Callable):
+    """
+    Get the original func- if this function is already overrided, get the original func it's function_definitions.
+
+    So for example, if the OVERLOADED np.array is given as `func`, then the ORIGINAL np.array will be returned
+    If the ORIGINAL np.array is given as `func`, then `func` will be returned
+    """
+    while hasattr(func, '__quibbler_wrapped__'):
+        func = func.__quibbler_wrapped__
+    return func

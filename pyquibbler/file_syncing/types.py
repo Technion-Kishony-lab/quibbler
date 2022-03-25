@@ -1,11 +1,11 @@
-from enum import Enum
+from pyquibbler.utils import StrEnum
 from dataclasses import dataclass
 from typing import Optional
 from pyquibbler.exceptions import PyQuibblerException
 import pathlib
 
 
-class SaveFormat(str, Enum):
+class SaveFormat(StrEnum):
     """
     Define the format for saving quib assignments:
 
@@ -48,7 +48,7 @@ SAVE_FORMAT_TO_FQUIB_SAVE_FORMAT = {
 }
 
 
-class ResponseToFileNotDefined(str, Enum):
+class ResponseToFileNotDefined(StrEnum):
     IGNORE = 0
     RAISE = 1
     WARN = 2

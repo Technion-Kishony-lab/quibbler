@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import weakref
 from contextlib import ExitStack
 from sys import getsizeof
 from time import perf_counter
@@ -9,8 +10,8 @@ from pyquibbler.cache.cache_utils import _truncate_path_to_match_shallow_caches,
     get_cached_data_at_truncated_path_given_result_at_uncached_path
 from pyquibbler.cache import PathCannotHaveComponentsException, get_uncached_paths_matching_path, Cache
 
-from pyquibbler.function_definitions import FuncCall, SourceLocation, \
-    load_source_locations_before_running, ArgsValues
+from pyquibbler.function_definitions import FuncCall, load_source_locations_before_running, FuncArgsKwargs
+from pyquibbler.function_definitions.func_definition import FuncDefinition
 from pyquibbler.graphics.graphics_collection import GraphicsCollection
 from pyquibbler.path import Path
 from pyquibbler.quib import consts
@@ -19,7 +20,7 @@ from pyquibbler.quib.func_calling.cache_behavior import CacheBehavior
 from pyquibbler.quib.func_calling.exceptions import CannotCalculateShapeException
 from pyquibbler.quib.func_calling.result_metadata import ResultMetadata
 from pyquibbler.quib.func_calling.utils import create_array_from_func
-from pyquibbler.quib.quib import Quib
+from pyquibbler.quib.quib import Quib, QuibHandler
 from pyquibbler.quib.quib_guard import QuibGuard
 from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation_with_sources_metadata, \
     get_func_call_for_translation_without_sources_metadata
@@ -36,18 +37,32 @@ class QuibFuncCall(FuncCall):
     SOURCE_OBJECT_TYPE = Quib
     DEFAULT_CACHE_BEHAVIOR = CacheBehavior.AUTO
 
-    def __init__(self, func: Callable, args_values: ArgsValues, default_cache_behavior: CacheBehavior,
-                 call_func_with_quibs: bool, artists_creation_callback: Callable = None):
-        super(QuibFuncCall, self).__init__(func=func, args_values=args_values)
+    def __init__(self, artists_creation_callback: Callable = None,
+                 quib_handler: QuibHandler = None):
+        super(QuibFuncCall, self).__init__()
         self.graphics_collections = None
         self.method_cache = {}
         self.cache: Optional[Cache] = None
-        self.default_cache_behavior = default_cache_behavior
+        self.quib_handler_ref = weakref.ref(quib_handler)
         self.artists_creation_callback = artists_creation_callback
         self._caching = False
-        self._call_func_with_quibs = call_func_with_quibs
         self._result_metadata = None
-        self._quib_ref_locations: Optional[List[SourceLocation]] = None
+
+    @property
+    def quib_handler(self) -> QuibHandler:
+        return self.quib_handler_ref()
+
+    @property
+    def func_args_kwargs(self) -> FuncArgsKwargs:
+        return self.quib_handler.func_args_kwargs
+
+    @property
+    def func_definition(self) -> FuncDefinition:
+        return self.quib_handler.func_definition
+
+    @property
+    def _call_func_with_quibs(self):
+        return self.func_definition.call_func_with_quibs
 
     def flat_graphics_collections(self):
         return list(self.graphics_collections.flat) if self.graphics_collections is not None else []
@@ -71,9 +86,9 @@ class QuibFuncCall(FuncCall):
             self.graphics_collections = create_array_from_func(GraphicsCollection, loop_shape)
 
     def get_cache_behavior(self):
-        if self.get_func_definition().is_random_func or self.func_can_create_graphics:
+        if self.func_definition.is_random_func or self.func_can_create_graphics:
             return CacheBehavior.ON
-        return self.default_cache_behavior
+        return self.quib_handler.default_cache_behavior
 
     def _should_cache(self, result: Any, elapsed_seconds: float):
         """
@@ -131,7 +146,7 @@ class QuibFuncCall(FuncCall):
 
     @property
     def func_can_create_graphics(self):
-        is_graphics_func = self.get_func_definition().is_graphics_func
+        is_graphics_func = self.func_definition.is_graphics_func
         return is_graphics_func or (is_graphics_func is None and self.created_graphics)
 
     def reset_cache(self):
@@ -146,7 +161,7 @@ class QuibFuncCall(FuncCall):
                          args: Tuple[Any, ...], kwargs: Mapping[str, Any], quibs_allowed_to_access: Set[Quib]):
 
         with ExitStack() as stack:
-            if self.get_func_definition().is_graphics_func is not False:
+            if self.func_definition.is_graphics_func is not False:
                 stack.enter_context(graphics_collection.track_and_handle_new_graphics(
                     kwargs_specified_in_artists_creation=set(
                         key for key, value in self.kwargs.items() if value is not None)))

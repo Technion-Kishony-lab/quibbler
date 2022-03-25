@@ -7,9 +7,9 @@ class RadioButtonsQuibFuncCall(WidgetQuibFuncCall):
 
     def _on_clicked(self, new_value):
         from pyquibbler.quib import Quib
-        active = self.args_values.get('active')
+        active = self.func_args_kwargs.get('active')
         if isinstance(active, Quib):
-            self._inverse_assign(active, [], self.args_values.get('labels').index(new_value))
+            self._inverse_assign(active, [], self.func_args_kwargs.get('labels').index(new_value))
 
     def _connect_callbacks(self, widget: RadioButtons):
         widget.on_clicked(self._on_clicked)

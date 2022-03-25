@@ -4,7 +4,8 @@ import functools
 from dataclasses import dataclass, field
 from typing import Set, Type, List, TYPE_CHECKING, Callable, Optional
 
-from pyquibbler.function_definitions.func_call import ArgsValues
+from pyquibbler.env import EVALUATE_NOW
+from pyquibbler.function_definitions.func_call import FuncArgsKwargs
 from pyquibbler.function_definitions.types import RawArgument, Argument, PositionalArgument, KeywordArgument, \
     convert_raw_data_source_arguments_to_data_source_arguments
 from pyquibbler.translation.backwards_path_translator import BackwardsPathTranslator
@@ -33,6 +34,8 @@ class FuncDefinition:
     is_random_func: bool = False
     is_file_loading_func: bool = False
     is_graphics_func: Optional[bool] = False  # None for 'maybe'
+    call_func_with_quibs: bool = False
+    evaluate_now: bool = False
     replace_previous_quibs_on_artists: bool = False
     inverters: List[Type[Inverter]] = field(default_factory=list)
     backwards_path_translators: List[Type[BackwardsPathTranslator]] = field(default_factory=list)
@@ -85,9 +88,9 @@ class FuncDefinition:
             corresponding_dict = self.get_keyword_to_positional_arguments()
         return corresponding_dict[argument]
 
-    def _get_all_data_source_arguments(self, args_values):
+    def _get_all_data_source_arguments(self, func_args_kwargs: FuncArgsKwargs):
         all_data_source_arguments = set()
-        for argument, value in self.get_data_source_arguments_with_values(args_values):
+        for argument, value in self.get_data_source_arguments_with_values(func_args_kwargs):
             try:
                 corresponding_argument = self.get_corresponding_argument(argument)
             except KeyError:
@@ -100,21 +103,21 @@ class FuncDefinition:
         return all_data_source_arguments
 
     @functools.lru_cache()
-    def get_data_source_arguments_with_values(self, args_values: ArgsValues):
+    def get_data_source_arguments_with_values(self, func_args_kwargs: FuncArgsKwargs):
         return [
-            (argument, args_values[argument])
+            (argument, func_args_kwargs[argument])
             for argument in self.data_source_arguments
         ]
 
-    def get_parameter_arguments_with_values(self, args_values: ArgsValues):
-        all_data_source_arguments = self._get_all_data_source_arguments(args_values)
+    def get_parameter_arguments_with_values(self, func_args_kwargs: FuncArgsKwargs):
+        all_data_source_arguments = self._get_all_data_source_arguments(func_args_kwargs)
         return [*[
-            (PositionalArgument(index=i), args_values.args[i])
-            for i, arg in enumerate(args_values.args)
+            (PositionalArgument(index=i), func_args_kwargs.args[i])
+            for i, arg in enumerate(func_args_kwargs.args)
             if PositionalArgument(index=i) not in all_data_source_arguments
         ], *[
-            (KeywordArgument(keyword=kwarg), args_values.kwargs[kwarg])
-            for kwarg, value in args_values.kwargs.items()
+            (KeywordArgument(keyword=kwarg), func_args_kwargs.kwargs[kwarg])
+            for kwarg, value in func_args_kwargs.kwargs.items()
             if KeywordArgument(keyword=kwarg) not in all_data_source_arguments
         ]]
 
@@ -136,13 +139,15 @@ def create_func_definition(raw_data_source_arguments: List[RawArgument] = None,
                            is_random_func: bool = False,
                            is_file_loading_func: bool = False,
                            is_graphics_func: Optional[bool] = False,
+                           call_func_with_quibs: bool = False,
+                           evaluate_now: bool = None,
                            replace_previous_quibs_on_artists: bool = False,
                            inverters: List[Type[Inverter]] = None,
                            backwards_path_translators: List[Type[BackwardsPathTranslator]] = None,
                            forwards_path_translators: List[Type[ForwardsPathTranslator]] = None,
                            quib_function_call_cls: Type[QuibFuncCall] = None,
                            func: Optional[Callable] = None,
-                           func_defintion_cls: Optional[FuncDefinition] = None,
+                           func_definition_cls: Optional[FuncDefinition] = None,
                            **kwargs) -> FuncDefinition:
     """
     Create a definition for a function- this will allow quibbler to utilize Quibs with the function in a more
@@ -150,11 +155,12 @@ def create_func_definition(raw_data_source_arguments: List[RawArgument] = None,
     """
 
     from pyquibbler.quib.func_calling import QuibFuncCall
-    func_defintion_cls = func_defintion_cls or FuncDefinition
+    evaluate_now = evaluate_now or EVALUATE_NOW
+    func_definition_cls = func_definition_cls or FuncDefinition
     quib_function_call_cls = quib_function_call_cls or QuibFuncCall
     raw_data_source_arguments = raw_data_source_arguments or set()
     data_source_arguments = convert_raw_data_source_arguments_to_data_source_arguments(raw_data_source_arguments)
-    return func_defintion_cls(
+    return func_definition_cls(
         func=func,
         is_random_func=is_random_func,
         is_graphics_func=is_graphics_func,
@@ -164,6 +170,8 @@ def create_func_definition(raw_data_source_arguments: List[RawArgument] = None,
         backwards_path_translators=backwards_path_translators or [],
         forwards_path_translators=forwards_path_translators or [],
         quib_function_call_cls=quib_function_call_cls,
+        call_func_with_quibs=call_func_with_quibs,
+        evaluate_now=evaluate_now,
         replace_previous_quibs_on_artists=replace_previous_quibs_on_artists,
         **kwargs
     )

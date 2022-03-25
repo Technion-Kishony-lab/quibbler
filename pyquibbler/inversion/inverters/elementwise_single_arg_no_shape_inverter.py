@@ -36,7 +36,7 @@ class ElementwiseNoShapeInverter(Inverter):
 
         assignment_path = self._assignment.path
 
-        func_definition = self._func_call.get_func_definition()
+        func_definition = self._func_call.func_definition
         inverse_func_with_input = func_definition.inverse_func_with_input
         inverse_func_without_input = func_definition.inverse_func_without_input
 

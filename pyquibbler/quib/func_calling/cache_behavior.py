@@ -1,18 +1,7 @@
-from dataclasses import dataclass
-from enum import Enum
-
-from pyquibbler.exceptions import PyQuibblerException
+from pyquibbler.utils import StrEnum
 
 
-@dataclass
-class UnknownCacheBehaviorException(PyQuibblerException):
-    attempted_value: str
-
-    def __str__(self):
-        return f"{self.attempted_value} is not a valid value for a cache behavior"
-
-
-class CacheBehavior(str, Enum):
+class CacheBehavior(StrEnum):
     """
     The different modes in which the caching of a FuncQuib can operate:
      - `AUTO`: decide automatically according to the ratio between evaluation time and memory consumption.

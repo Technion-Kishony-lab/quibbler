@@ -10,10 +10,10 @@ class CheckButtonsQuibFuncCall(WidgetQuibFuncCall):
 
     def on_change_checkbuttons(self, widget, new_value):
         from pyquibbler.quib.quib import Quib
-        actives = self.args_values.get('actives')
+        actives = self.func_args_kwargs.get('actives')
         if isinstance(actives, Quib):
             buttons_checked = widget.get_status()
-            labels = self.args_values.get('labels')
+            labels = self.func_args_kwargs.get('labels')
             new_value_index = labels.index(new_value)
             self._inverse_assign(actives, [PathComponent(indexed_cls=list, component=new_value_index)],
                                  value=buttons_checked[new_value_index])

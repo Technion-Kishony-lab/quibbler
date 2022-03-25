@@ -13,6 +13,7 @@ from pyquibbler.translation.types import Source
 from pyquibbler.path.path_component import Path, Paths, PathComponent
 from pyquibbler.path.utils import working_component_of_type
 from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices
+from pyquibbler.utils import get_original_func
 
 
 class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
@@ -27,7 +28,6 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
          b = np.array([1, 2, a])`), we want to return only the part of the shape that is relevant to the major data
          source
         """
-        from pyquibbler.quib.factory import get_original_func
         # TODO: Functions should allow specifying "major" data sources at a full path instead of just at argument level
         # Because of situations like concat, in which the "major" data source is one level in (within a tuple of the
         # first arg)
@@ -57,7 +57,8 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
             shape = self._get_shape_to_fill_for_data_source_in_location(location)
             source = location.find_in_args_kwargs(args, kwargs)
             args, kwargs = location.set_in_args_kwargs(args, kwargs, np.full(shape, id(source)))
-        return SourceFuncCall.from_(self._func_call.func, args, kwargs).run()
+        return SourceFuncCall.from_(self._func_call.func, args, kwargs,
+                                    func_definition=self._func_call.func_definition).run()
 
     @functools.lru_cache()
     def get_data_sources_to_masks_in_result(self) -> Dict[Source, Any]:
@@ -83,7 +84,8 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
             arr = np.indices(shape)[dimension]
             args, kwargs = location.set_in_args_kwargs(args, kwargs, arr)
 
-        indices_res = SourceFuncCall.from_(self._func_call.func, args, kwargs).run()
+        indices_res = SourceFuncCall.from_(self._func_call.func, args, kwargs,
+                                           func_definition=self._func_call.func_definition).run()
 
         return {
             data_source: indices_res[np.logical_and(data_sources_to_masks[data_source], relevant_indices_mask)]

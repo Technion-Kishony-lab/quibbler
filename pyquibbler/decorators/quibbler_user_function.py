@@ -1,5 +1,6 @@
 import functools
 
+
 from pyquibbler.quib.factory import create_quib
 
 
@@ -15,11 +16,15 @@ def quibbler_user_function(evaluate_now: bool = True, pass_quibs: bool = False):
     (evaluate_now=False) - if you do any graphics in this function you should probably set evaluate_now=False
     :param pass_quibs: Should this function receive quibs or their values?
     """
+
+    from pyquibbler.function_definitions.func_definition import FuncDefinition
+
     def _decorator(func):
         @functools.wraps(func)
         def _wrapper(*args, **kwargs):
             return create_quib(func=func, args=args, kwargs=kwargs, evaluate_now=evaluate_now,
-                               call_func_with_quibs=pass_quibs)
+                               function_definition=FuncDefinition(call_func_with_quibs=pass_quibs),
+                               )
 
         return _wrapper
 

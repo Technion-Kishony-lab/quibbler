@@ -35,6 +35,7 @@ def get_func_call_for_translation_with_sources_metadata(func_call: QuibFuncCall)
         func=func_call.func,
         func_args=new_args,
         func_kwargs=new_kwargs,
+        func_definition=func_call.func_definition,
         include_defaults=True
     ), data_sources_to_quibs
 
@@ -65,5 +66,6 @@ def get_func_call_for_translation_without_sources_metadata(func_call: QuibFuncCa
         func=func_call.func,
         func_args=new_args,
         func_kwargs=new_kwargs,
+        func_definition=func_call.func_definition,
         include_defaults=True
     ), data_sources_to_quibs
