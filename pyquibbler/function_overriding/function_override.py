@@ -9,7 +9,7 @@ from pyquibbler.function_definitions.func_definition import FuncDefinition
 from pyquibbler.quib.utils.miscellaneous import is_there_a_quib_in_args
 
 
-def get_flags_from_kwargs(flag_names: Tuple[str], kwargs: Dict[str, Any]) -> Mapping[str, Any]:
+def get_flags_from_kwargs(flag_names: Tuple[str, ...], kwargs: Dict[str, Any]) -> Mapping[str, Any]:
     return {key: kwargs.pop(key) for key in flag_names if key in kwargs.keys()}
 
 
@@ -69,8 +69,7 @@ class FuncOverride:
             from pyquibbler.quib.factory import create_quib
             if is_there_a_quib_in_args(args, kwargs):
                 flags = self._get_creation_flags(args, kwargs)
-                evaluate_now = flags.pop('evaluate_now', EVALUATE_NOW)
-                dynamic_flags = get_flags_from_kwargs(('call_func_with_quibs', ), kwargs)
+                dynamic_flags = get_flags_from_kwargs(('call_func_with_quibs', 'evaluate_now'), kwargs)
                 all_flags = {**flags, **dynamic_flags}
                 if all_flags:
                     func_definition_for_quib = copy.deepcopy(function_definition)
@@ -83,7 +82,6 @@ class FuncOverride:
                     func=wrapped_func,
                     args=args,
                     kwargs=kwargs,
-                    evaluate_now=evaluate_now,
                     function_definition=func_definition_for_quib,
                 )
 

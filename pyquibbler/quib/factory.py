@@ -11,6 +11,7 @@ from pyquibbler.quib.graphics import UpdateType
 from pyquibbler.quib.quib_guard import add_new_quib_to_guard_if_exists
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.types import FileAndLineNumber
+from pyquibbler.quib.utils.miscellaneous import NoValue
 from pyquibbler.quib.variable_metadata import get_var_name_being_set_outside_of_pyquibbler, \
     get_file_name_and_line_number_of_quib
 from pyquibbler.file_syncing.types import SaveFormat
@@ -51,13 +52,13 @@ def _get_file_name_and_line_no() -> Optional[FileAndLineNumber]:
 
 def create_quib(func: Callable, args: Tuple[Any, ...] = (), kwargs: Mapping[str, Any] = None,
                 cache_behavior: CacheBehavior = None,
-                evaluate_now: bool = False,
+                evaluate_now: bool = None,
                 allow_overriding: bool = False,
                 update_type: UpdateType = None,
                 save_format: Optional[SaveFormat] = None,
                 save_directory: pathlib.Path = None,
                 function_definition: FuncDefinition = None,
-                **init_kwargs) -> Quib:
+                ) -> Quib:
     """
     Public constructor for creating a quib- this takes care of retrieving all relevant info for the creation of the
     quib as well as registering and performing any calculations.
@@ -79,6 +80,9 @@ def create_quib(func: Callable, args: Tuple[Any, ...] = (), kwargs: Mapping[str,
 
     kwargs = kwargs or {}
     function_definition = function_definition or get_definition_for_function(func)
+
+    if evaluate_now is None:
+        evaluate_now = function_definition.evaluate_now
 
     created_in = _get_file_name_and_line_no()
 

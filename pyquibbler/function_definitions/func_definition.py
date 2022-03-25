@@ -4,6 +4,7 @@ import functools
 from dataclasses import dataclass, field
 from typing import Set, Type, List, TYPE_CHECKING, Callable, Optional
 
+from pyquibbler.env import EVALUATE_NOW
 from pyquibbler.function_definitions.func_call import FuncArgsKwargs
 from pyquibbler.function_definitions.types import RawArgument, Argument, PositionalArgument, KeywordArgument, \
     convert_raw_data_source_arguments_to_data_source_arguments
@@ -34,6 +35,7 @@ class FuncDefinition:
     is_file_loading_func: bool = False
     is_graphics_func: Optional[bool] = False  # None for 'maybe'
     call_func_with_quibs: bool = False
+    evaluate_now: bool = False
     replace_previous_quibs_on_artists: bool = False
     inverters: List[Type[Inverter]] = field(default_factory=list)
     backwards_path_translators: List[Type[BackwardsPathTranslator]] = field(default_factory=list)
@@ -138,6 +140,7 @@ def create_func_definition(raw_data_source_arguments: List[RawArgument] = None,
                            is_file_loading_func: bool = False,
                            is_graphics_func: Optional[bool] = False,
                            call_func_with_quibs: bool = False,
+                           evaluate_now: bool = None,
                            replace_previous_quibs_on_artists: bool = False,
                            inverters: List[Type[Inverter]] = None,
                            backwards_path_translators: List[Type[BackwardsPathTranslator]] = None,
@@ -152,6 +155,7 @@ def create_func_definition(raw_data_source_arguments: List[RawArgument] = None,
     """
 
     from pyquibbler.quib.func_calling import QuibFuncCall
+    evaluate_now = evaluate_now or EVALUATE_NOW
     func_defintion_cls = func_defintion_cls or FuncDefinition
     quib_function_call_cls = quib_function_call_cls or QuibFuncCall
     raw_data_source_arguments = raw_data_source_arguments or set()
@@ -167,6 +171,7 @@ def create_func_definition(raw_data_source_arguments: List[RawArgument] = None,
         forwards_path_translators=forwards_path_translators or [],
         quib_function_call_cls=quib_function_call_cls,
         call_func_with_quibs=call_func_with_quibs,
+        evaluate_now=evaluate_now,
         replace_previous_quibs_on_artists=replace_previous_quibs_on_artists,
         **kwargs
     )
