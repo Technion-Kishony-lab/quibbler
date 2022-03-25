@@ -1,5 +1,5 @@
 import functools
-from typing import List, Optional, Callable, Type
+from typing import List, Optional, Callable, Type, Tuple
 from pyquibbler.function_definitions.types import RawArgument
 from pyquibbler.function_definitions.func_definition import create_func_definition, FuncDefinition
 from pyquibbler.function_overriding.function_override import FuncOverride
@@ -19,11 +19,13 @@ def override_with_cls(override_cls,
                       is_graphics_func: bool = False,
                       func: Optional[Callable] = None,
                       func_definition_cls: Optional[Type[FuncDefinition]] = None,
+                      allowed_kwarg_flags: Tuple[str] = (),
                       **kwargs
                       ):
     return override_cls(
         func_name=func_name,
         module_or_cls=module_or_cls,
+        allowed_kwarg_flags=allowed_kwarg_flags,
         function_definition=create_func_definition(raw_data_source_arguments=data_source_arguments,
                                                    is_random_func=is_random_func,
                                                    is_file_loading_func=is_file_loading_func,

@@ -22,6 +22,7 @@ class FuncOverride:
     module_or_cls: Union[ModuleType, Type]
     func_name: str
     function_definition: Optional[FuncDefinition] = None
+    allowed_kwarg_flags: Tuple[str] = ()
     _original_func: Callable = None
 
     @classmethod
@@ -34,6 +35,12 @@ class FuncOverride:
         Get all the creation flags for creating a quib
         """
         return {}
+
+    def _get_dynamic_flags(self, args, kwargs):
+        """
+        Get flags found in the quib creation call
+        """
+        return get_flags_from_kwargs(self.allowed_kwarg_flags, kwargs)
 
     def _get_func_from_module_or_cls(self):
         return getattr(self.module_or_cls, self.func_name)
@@ -55,12 +62,10 @@ class FuncOverride:
         def _maybe_create_quib(*args, **kwargs):
             from pyquibbler.quib.factory import create_quib
             if is_there_a_quib_in_args(args, kwargs):
-                flags = self._get_creation_flags(args, kwargs)
-                dynamic_flags = get_flags_from_kwargs(('call_func_with_quibs', 'evaluate_now'), kwargs)
-                all_flags = {**flags, **dynamic_flags}
-                if all_flags:
+                flags = {**self._get_creation_flags(args, kwargs), **self._get_dynamic_flags(args, kwargs)}
+                if flags:
                     func_definition_for_quib = copy.deepcopy(function_definition)
-                    for key, value in all_flags.items():
+                    for key, value in flags.items():
                         setattr(func_definition_for_quib, key, value)
                 else:
                     func_definition_for_quib = function_definition
