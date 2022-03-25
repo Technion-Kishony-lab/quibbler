@@ -42,7 +42,7 @@ class VectorizeCallOverride(FuncOverride):
         vectorize, *_ = args
         return {
             'lazy': vectorize.lazy,
-            'call_func_with_quibs': vectorize.pass_quibs,
+            'pass_quibs': vectorize.pass_quibs,
             'update_type': vectorize.update_type
         }
 

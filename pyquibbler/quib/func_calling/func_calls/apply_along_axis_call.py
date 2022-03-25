@@ -36,7 +36,7 @@ class ApplyAlongAxisQuibFuncCall(QuibFuncCall):
         input_array_shape = self.arr.get_shape()
         item = tuple([slice(None) if i == self.core_axis else 0 for i in range(len(input_array_shape))])
 
-        if self._call_func_with_quibs:
+        if self._pass_quibs:
             input_array = create_proxy(self.arr)
         else:
             input_array = self.arr.get_value_valid_at_path([PathComponent(component=item, indexed_cls=np.ndarray)])
@@ -100,7 +100,7 @@ class ApplyAlongAxisQuibFuncCall(QuibFuncCall):
         he creates)
         or the values themselves of the slice
         """
-        if self._call_func_with_quibs:
+        if self._pass_quibs:
             return create_proxy(self.arr[indices])
         return self.arr[indices].get_value()
 

@@ -23,7 +23,7 @@ def quibbler_user_function(lazy: bool = False, pass_quibs: bool = False):
         @functools.wraps(func)
         def _wrapper(*args, **kwargs):
             return create_quib(func=func, args=args, kwargs=kwargs, lazy=lazy,
-                               function_definition=FuncDefinition(call_func_with_quibs=pass_quibs),
+                               function_definition=FuncDefinition(pass_quibs=pass_quibs),
                                )
 
         return _wrapper

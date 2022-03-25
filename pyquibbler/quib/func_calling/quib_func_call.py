@@ -61,8 +61,8 @@ class QuibFuncCall(FuncCall):
         return self.quib_handler.func_definition
 
     @property
-    def _call_func_with_quibs(self):
-        return self.func_definition.call_func_with_quibs
+    def _pass_quibs(self):
+        return self.func_definition.pass_quibs
 
     def flat_graphics_collections(self):
         return list(self.graphics_collections.flat) if self.graphics_collections is not None else []
@@ -232,7 +232,7 @@ class QuibFuncCall(FuncCall):
     def _run_on_path(self, valid_path: Path):
         graphics_collection: GraphicsCollection = self.graphics_collections[()]
 
-        if self._call_func_with_quibs:
+        if self._pass_quibs:
             args, kwargs, quibs_allowed_to_access = self._proxify_args()
         else:
             quibs_to_paths = {} if valid_path is None else self._backwards_translate_path(valid_path)
