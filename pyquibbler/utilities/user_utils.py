@@ -26,14 +26,14 @@ def q(func, *args, **kwargs) -> Quib:
     Returns:
         Quib
     """
-    return create_quib(func=func, args=args, kwargs=kwargs, evaluate_now=False)
+    return create_quib(func=func, args=args, kwargs=kwargs, lazy=True)
 
 
 def q_eager(func, *args, **kwargs) -> Quib:
     """
     Creates a graphical function quib from the given function call.
     """
-    return create_quib(func=func, func_args=args, func_kwargs=kwargs, evaluate_now=True)
+    return create_quib(func=func, func_args=args, func_kwargs=kwargs, lazy=False)
 
 
 def get_project() -> Project:

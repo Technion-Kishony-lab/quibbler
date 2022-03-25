@@ -2,9 +2,9 @@ from pyquibbler.utils import Flag
 
 DEBUG = Flag(False)
 
-EVALUATE_NOW = Flag(False)
+LAZY = Flag(True)
 
-GRAPHICS_EVALUATE_NOW = Flag(True)
+GRAPHICS_LAZY = Flag(False)
 
 # Assignment restrictions are incomplete at the moment -
 # they consider changes to the same quib contradictory, while

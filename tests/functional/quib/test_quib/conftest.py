@@ -11,9 +11,9 @@ from pyquibbler.quib.factory import create_quib
 
 @pytest.fixture
 def create_quib_with_return_value():
-    def _create(ret_val, allow_overriding=False, evaluate_now=False):
+    def _create(ret_val, allow_overriding=False, lazy=True):
         return create_quib(mock.Mock(return_value=ret_val), allow_overriding=allow_overriding,
-                           evaluate_now=evaluate_now)
+                           lazy=lazy)
     return _create
 
 

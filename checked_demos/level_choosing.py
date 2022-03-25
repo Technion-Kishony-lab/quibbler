@@ -7,7 +7,7 @@ import numpy as np
 #%%
 
 # user function to plot markers at specified colors
-@partial(np.vectorize, excluded={0}, evaluate_now=True, pass_quibs=True)
+@partial(np.vectorize, excluded={0}, lazy=False, pass_quibs=True)
 def plot_dragger(ax, x, y, overridden):
     color = 'r' if overridden.get_value() else 'g'
     ax.plot(x, y, marker='d', markerfacecolor=color, markeredgecolor='None',

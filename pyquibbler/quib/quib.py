@@ -823,13 +823,13 @@ class Quib:
         return self.func_definition.is_file_loading_func
 
     @property
-    def call_func_with_quibs(self) -> bool:
-        return self.handler.func_definition.call_func_with_quibs
+    def pass_quibs(self) -> bool:
+        return self.handler.func_definition.pass_quibs
 
-    @call_func_with_quibs.setter
-    @validate_user_input(call_func_with_quibs=bool)
-    def call_func_with_quibs(self, call_func_with_quibs):
-        self.handler.func_definition.call_func_with_quibs = call_func_with_quibs
+    @pass_quibs.setter
+    @validate_user_input(pass_quibs=bool)
+    def pass_quibs(self, pass_quibs):
+        self.handler.func_definition.pass_quibs = pass_quibs
 
     """
     cache

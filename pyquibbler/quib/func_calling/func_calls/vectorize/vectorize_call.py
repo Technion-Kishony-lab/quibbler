@@ -75,7 +75,7 @@ class VectorizeQuibFuncCall(QuibFuncCall):
         Get a VectorizeCall object to actually call vectorize with.
         If asked to pass quibs, return a modified call that passes quibs.
         """
-        if self._call_func_with_quibs:
+        if self._pass_quibs:
             (vectorize, *args), kwargs = self.args, self.kwargs
             call = VectorizeCall(vectorize, args, kwargs)
             call = self._wrap_vectorize_call_to_pass_quibs(call, args_metadata, results_core_ndims)

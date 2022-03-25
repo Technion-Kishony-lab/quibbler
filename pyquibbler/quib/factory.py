@@ -51,7 +51,7 @@ def _get_file_name_and_line_no() -> Optional[FileAndLineNumber]:
 
 def create_quib(func: Callable, args: Tuple[Any, ...] = (), kwargs: Mapping[str, Any] = None,
                 cache_behavior: CacheBehavior = None,
-                evaluate_now: bool = None,
+                lazy: bool = None,
                 allow_overriding: bool = False,
                 update_type: UpdateType = None,
                 save_format: Optional[SaveFormat] = None,
@@ -67,7 +67,7 @@ def create_quib(func: Callable, args: Tuple[Any, ...] = (), kwargs: Mapping[str,
     :param args - Positional arguments of the quib's function
     :param kwargs - Keyword arguments of the quib's function
     :param cache_behavior - In what fashion should the quib cache? See CacheBehavior for options
-    :param evaluate_now - by default we are lazy- should the quib be evaluated immediately upon creation?
+    :param lazy - by default we are lazy- should the quib be evaluated immediately upon creation?
     :param allow_overriding - can this quib be overridden, or does it always need to propogate assignments backwards?
     func will be called with the quibs.
     :param update_type - (Only relevant if the quib has graphics/is known graphics func) - when should the quib
@@ -80,8 +80,8 @@ def create_quib(func: Callable, args: Tuple[Any, ...] = (), kwargs: Mapping[str,
     kwargs = kwargs or {}
     function_definition = function_definition or get_definition_for_function(func)
 
-    if evaluate_now is None:
-        evaluate_now = function_definition.evaluate_now
+    if lazy is None:
+        lazy = function_definition.lazy
 
     created_in = _get_file_name_and_line_no()
 
@@ -109,7 +109,7 @@ def create_quib(func: Callable, args: Tuple[Any, ...] = (), kwargs: Mapping[str,
     for arg in quib.parents:
         arg.handler.add_child(quib)
 
-    if evaluate_now:
+    if not lazy:
         quib.get_value()
 
     return quib

@@ -130,12 +130,12 @@ def test_replacing_graphics_function_quib(create_quib_with_return_value, replaci
     _ = create_quib(
         func=replacing_func,
         args=(mock_artist, first_quib),
-        evaluate_now=True
+        lazy=False
     )
     __ = create_quib(
         func=replacing_func,
         args=(mock_artist,),
-        evaluate_now=True
+        lazy=False
     )
 
     first_quib.handler.invalidate_and_redraw_at_path(path=[...])
@@ -155,7 +155,7 @@ def test_replacing_graphics_function_quib_doesnt_remove_quib_after_invalidation_
     _ = create_quib(
         func=replacing_func,
         args=(mock_artist, first_quib),
-        evaluate_now=True,
+        lazy=False,
     )
     # Second time to potentially remove from axes (this was the bug)
     first_quib.handler.invalidate_and_redraw_at_path(path=path)

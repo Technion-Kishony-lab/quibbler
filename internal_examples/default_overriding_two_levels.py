@@ -7,7 +7,7 @@ from pyquibbler import iquib, override_all
 override_all()
 
 
-@partial(np.vectorize, excluded={0}, evaluate_now=True, pass_quibs=True)
+@partial(np.vectorize, excluded={0}, lazy=False, pass_quibs=True)
 def plot_dragger(ax, x, y, overridden):
     color = (1, 0, 0) if overridden.get_value() else (0, 1, 0)
     ax.plot(x, y, marker='s', markerfacecolor=color, markersize=9, linestyle='None', picker=True)

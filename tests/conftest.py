@@ -5,7 +5,7 @@ import pytest
 from pytest import fixture
 
 from pyquibbler import CacheBehavior
-from pyquibbler.env import DEBUG, EVALUATE_NOW, ASSIGNMENT_RESTRICTIONS, PRETTY_REPR, \
+from pyquibbler.env import DEBUG, LAZY, ASSIGNMENT_RESTRICTIONS, PRETTY_REPR, \
     SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS, GET_VARIABLE_NAMES
 from pyquibbler.project import Project
 from pyquibbler.function_overriding import override_all
@@ -13,7 +13,7 @@ from pyquibbler.quib.func_calling import QuibFuncCall
 from pyquibbler.utils import Flag
 
 DEFAULT_DEBUG = True
-DEFAULT_EVALUATE_NOW = False
+DEFAULT_LAZY = True
 DEFAULT_ASSIGNMENT_RESTRICTIONS = False
 DEFAULT_PRETTY_REPR = True
 DEFAULT_SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACK = False
@@ -72,7 +72,7 @@ def setup_debug(request):
 
 @fixture(autouse=True)
 def setup_evaluate_now(request):
-    yield from setup_flag(EVALUATE_NOW, DEFAULT_EVALUATE_NOW, request)
+    yield from setup_flag(LAZY, DEFAULT_LAZY, request)
 
 
 @fixture(autouse=True)

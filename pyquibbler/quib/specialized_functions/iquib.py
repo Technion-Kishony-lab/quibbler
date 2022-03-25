@@ -71,7 +71,7 @@ def iquib(value: Any):
         func=identity_function,
         args=(value,),
         allow_overriding=True,
-        evaluate_now=True,
+        lazy=False,
         cache_behavior=CacheBehavior.ON,
         function_definition=iquib_definition,
     )

@@ -9,7 +9,7 @@ import numpy as np
 def uncached_array_quib() -> Quib:
     return create_quib(func=identity_function, args=(np.arange(6),),
             allow_overriding=True,
-            evaluate_now=True,
+            lazy=False,
             cache_behavior=CacheBehavior.OFF,
         )
 
@@ -17,6 +17,6 @@ def uncached_array_quib() -> Quib:
 def uncached_scalar_quib() -> Quib:
     return create_quib(func=identity_function, args=(3,),
             allow_overriding=True,
-            evaluate_now=True,
+            lazy=False,
             cache_behavior=CacheBehavior.OFF,
         )
