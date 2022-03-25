@@ -65,5 +65,5 @@ def elementwise_operator_override(func_name,
                              forwards_path_translators=[ForwardsElementwisePathTranslator],
                              inverse_func_with_input=None if not inverse_funcs else inverse_funcs[0],
                              inverse_func_without_input=None if not inverse_funcs else inverse_funcs[1],
-                             func_defintion_cls=ElementWiseFuncDefinition,
+                             func_definition_cls=ElementWiseFuncDefinition,
                              )

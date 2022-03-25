@@ -64,7 +64,7 @@ def elementwise(func_name: str, data_source_arguments: List[RawArgument],
         inverters=ELEMENTWISE_INVERTERS if is_inverse else [],
         inverse_func_with_input=inverse_func_with_input,
         inverse_func_without_input=inverse_func_without_input,
-        func_defintion_cls=ElementWiseFuncDefinition,
+        func_definition_cls=ElementWiseFuncDefinition,
     )
 
 

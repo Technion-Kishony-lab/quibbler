@@ -18,7 +18,7 @@ def override_with_cls(override_cls,
                       replace_previous_quibs_on_artists: bool = False,
                       is_graphics_func: bool = False,
                       func: Optional[Callable] = None,
-                      func_defintion_cls: Optional[Type[FuncDefinition]] = None,
+                      func_definition_cls: Optional[Type[FuncDefinition]] = None,
                       **kwargs
                       ):
     return override_cls(
@@ -35,7 +35,7 @@ def override_with_cls(override_cls,
                                                    backwards_path_translators=backwards_path_translators,
                                                    forwards_path_translators=forwards_path_translators,
                                                    quib_function_call_cls=quib_function_call_cls, func=func,
-                                                   func_defintion_cls=func_defintion_cls, **kwargs)
+                                                   func_definition_cls=func_definition_cls, **kwargs)
     )
 
 

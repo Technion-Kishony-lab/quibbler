@@ -147,7 +147,7 @@ def create_func_definition(raw_data_source_arguments: List[RawArgument] = None,
                            forwards_path_translators: List[Type[ForwardsPathTranslator]] = None,
                            quib_function_call_cls: Type[QuibFuncCall] = None,
                            func: Optional[Callable] = None,
-                           func_defintion_cls: Optional[FuncDefinition] = None,
+                           func_definition_cls: Optional[FuncDefinition] = None,
                            **kwargs) -> FuncDefinition:
     """
     Create a definition for a function- this will allow quibbler to utilize Quibs with the function in a more
@@ -156,11 +156,11 @@ def create_func_definition(raw_data_source_arguments: List[RawArgument] = None,
 
     from pyquibbler.quib.func_calling import QuibFuncCall
     evaluate_now = evaluate_now or EVALUATE_NOW
-    func_defintion_cls = func_defintion_cls or FuncDefinition
+    func_definition_cls = func_definition_cls or FuncDefinition
     quib_function_call_cls = quib_function_call_cls or QuibFuncCall
     raw_data_source_arguments = raw_data_source_arguments or set()
     data_source_arguments = convert_raw_data_source_arguments_to_data_source_arguments(raw_data_source_arguments)
-    return func_defintion_cls(
+    return func_definition_cls(
         func=func,
         is_random_func=is_random_func,
         is_graphics_func=is_graphics_func,
