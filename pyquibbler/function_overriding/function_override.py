@@ -23,7 +23,6 @@ class FuncOverride:
     module_or_cls: Union[ModuleType, Type]
     func_name: str
     function_definition: Optional[FuncDefinition] = None
-    quib_creation_flags: Optional[Dict[str, Any]] = None
     _original_func: Callable = None
 
     @classmethod
@@ -31,22 +30,11 @@ class FuncOverride:
         return cls(func_name=func.__name__, module_or_cls=module_or_cls,
                    function_definition=function_definition, *args, **kwargs)
 
-    @property
-    def _default_creation_flags(self) -> Dict[str, Any]:
-        """
-        What are the default flags for creating a Quib for this FuncOverride?
-        If you subclass this, you can override this, the default is to use the default flags
-        """
-        return {}
-
     def _get_creation_flags(self, args, kwargs):
         """
         Get all the creation flags for creating a quib
         """
-        return {
-            **self._default_creation_flags,
-            **(self.quib_creation_flags or {})
-        }
+        return {}
 
     def _get_func_from_module_or_cls(self):
         return getattr(self.module_or_cls, self.func_name)
