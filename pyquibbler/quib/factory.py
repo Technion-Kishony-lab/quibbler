@@ -11,7 +11,6 @@ from pyquibbler.quib.graphics import UpdateType
 from pyquibbler.quib.quib_guard import add_new_quib_to_guard_if_exists
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.types import FileAndLineNumber
-from pyquibbler.quib.utils.miscellaneous import NoValue
 from pyquibbler.quib.variable_metadata import get_var_name_being_set_outside_of_pyquibbler, \
     get_file_name_and_line_number_of_quib
 from pyquibbler.file_syncing.types import SaveFormat

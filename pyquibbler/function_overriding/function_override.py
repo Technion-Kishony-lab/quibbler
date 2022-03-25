@@ -4,7 +4,6 @@ from dataclasses import dataclass
 from types import ModuleType
 from typing import Callable, Any, Dict, Union, Type, Optional, Tuple, Mapping
 
-from pyquibbler.env import EVALUATE_NOW
 from pyquibbler.function_definitions.func_definition import FuncDefinition
 from pyquibbler.quib.utils.miscellaneous import is_there_a_quib_in_args
 

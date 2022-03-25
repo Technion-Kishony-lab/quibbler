@@ -1,6 +1,6 @@
 import functools
 from dataclasses import dataclass
-from typing import Dict, Any
+from typing import Any
 
 import matplotlib.widgets
 from matplotlib.axes import Axes
