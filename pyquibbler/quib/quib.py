@@ -5,7 +5,6 @@ import functools
 import pathlib
 import pickle
 import weakref
-import warnings
 
 import json_tricks
 import numpy as np
@@ -13,7 +12,6 @@ import numpy as np
 from pyquibbler.function_definitions import get_definition_for_function, FuncArgsKwargs
 from pyquibbler.utils import get_original_func
 from pyquibbler.quib.types import FileAndLineNumber
-from pyquibbler.utilities.file_path import PathWithHyperLink
 from functools import cached_property
 from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Union, Iterable, Mapping, Callable
 from weakref import WeakSet
@@ -30,8 +28,7 @@ from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals
     deep_copy_without_quibs_or_graphics
 from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation_with_sources_metadata, \
     get_func_call_for_translation_without_sources_metadata
-from pyquibbler.utilities.input_validation_utils import validate_user_input, InvalidArgumentValueException, \
-    get_enum_by_str
+from pyquibbler.utilities.input_validation_utils import validate_user_input, get_enum_by_str
 from pyquibbler.utilities.iterators import recursively_run_func_on_object, recursively_compare_objects_type, \
     recursively_cast_one_object_by_other
 from pyquibbler.utilities.unpacker import Unpacker
@@ -40,7 +37,7 @@ from pyquibbler.project import Project
 from pyquibbler.inversion.exceptions import NoInvertersFoundException
 from pyquibbler.path import FailedToDeepAssignException, PathComponent, Path, Paths
 from pyquibbler.assignment import InvalidTypeException, OverrideRemoval, get_override_group_for_change, \
-    AssignmentTemplate, Overrider, Assignment, AssignmentToQuib, create_assignment_template
+    AssignmentTemplate, Overrider, Assignment, AssignmentToQuib
 from pyquibbler.quib.func_calling.cache_behavior import CacheBehavior
 from pyquibbler.quib.exceptions import OverridingNotAllowedException, InvalidCacheBehaviorForQuibException
 from pyquibbler.quib.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own
@@ -48,8 +45,7 @@ from pyquibbler.quib.graphics import UpdateType
 from pyquibbler.translation.translate import forwards_translate, NoTranslatorsFoundException, \
     backwards_translate
 from pyquibbler.cache import create_cache, CacheStatus
-from pyquibbler.file_syncing import SaveFormat, SAVE_FORMAT_TO_FILE_EXT, CannotSaveFunctionQuibsAsValueException, \
-    ResponseToFileNotDefined, FileNotDefinedException, QuibFileSyncer, SAVE_FORMAT_TO_FQUIB_SAVE_FORMAT, \
+from pyquibbler.file_syncing import SaveFormat, ResponseToFileNotDefined, QuibFileSyncer, \
     FIRST_LINE_OF_FORMATTED_TXT_FILE
 from pyquibbler.quib.get_value_context_manager import get_value_context, is_within_get_value_context
 

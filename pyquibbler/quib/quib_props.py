@@ -1,8 +1,8 @@
 import dataclasses
 import pathlib
 import warnings
-from weakref import ref, ReferenceType
-from typing import Union, Optional, Set, TYPE_CHECKING, Iterable
+from weakref import ReferenceType
+from typing import Union, Optional, Set, Iterable
 
 from pyquibbler.quib.func_calling.quib_func_call import CacheBehavior
 from pyquibbler.assignment import AssignmentTemplate, create_assignment_template
@@ -587,4 +587,3 @@ class QuibProps:
             _repr = _repr + '\n'.join((f'{prop:>26}: {getattr(self, prop)}' for prop, settable in
                                        self.PROPERTIES_AND_IS_SETTABLE if not settable))
         return _repr
-

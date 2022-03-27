@@ -191,7 +191,8 @@ class OverrideOptionsTree:
         last_inversion = None
         while len(inversions) == 1:
             inversion = inversions[0]
-            if inversion.quib.props.allow_overriding and is_assignment_allowed_from_quib_to_quib(top_quib, inversion.quib):
+            if inversion.quib.props.allow_overriding \
+                    and is_assignment_allowed_from_quib_to_quib(top_quib, inversion.quib):
                 override = inversion.to_override() if isinstance(inversion, AssignmentToQuib) else inversion
                 options.append(QuibChangeWithOverrideRemovals(override, override_removals[:]))
             override_removals.append(OverrideRemoval.from_quib_change(inversion))
