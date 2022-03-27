@@ -58,6 +58,7 @@ if TYPE_CHECKING:
     from pyquibbler.assignment.override_choice import ChoiceContext
     from pyquibbler.assignment import OverrideChoice
     from pyquibbler.quib.func_calling import QuibFuncCall
+    from pyquibbler.quib.quib_props import QuibProps
 
 
 class QuibHandler:
@@ -592,7 +593,10 @@ class Quib:
                  kwargs: Mapping[str, Any] = None,
                  function_definition: FuncDefinition = None,
                  default_cache_behavior: CacheBehavior = None,
+                 props: QuibProps = None,
                  ):
+
+        self.props: QuibProps = props
 
         self.handler = QuibHandler(self, quib_function_call,
                                    assignment_template,
@@ -608,6 +612,9 @@ class Quib:
                                    function_definition,
                                    default_cache_behavior,
                                    )
+
+        from pyquibbler.quib.quib_props import QuibProps
+
 
     """
     Func metadata

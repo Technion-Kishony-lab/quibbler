@@ -1,10 +1,10 @@
 import dataclasses
 import pathlib
 import warnings
-import weakref
+from weakref import ref, ReferenceType
 from typing import Union, Optional, Set, TYPE_CHECKING, Iterable
 
-from pyquibbler import CacheBehavior
+from pyquibbler.quib.func_calling.quib_func_call import CacheBehavior
 from pyquibbler.assignment import AssignmentTemplate, create_assignment_template
 from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.file_syncing import SaveFormat, CannotSaveFunctionQuibsAsValueException, \
@@ -54,11 +54,11 @@ class QuibProps:
         self._default_cache_behavior: CacheBehavior = CacheBehavior.AUTO
         self._graphics_update_type: Union[None, UpdateType] = None
         self._assigned_quibs: Set[Quib] = set()
-        self._created_in: Optional[FileAndLineNumber] = None
-        self._quib_ref: weakref.ref[Quib] = None
+        self._quib_ref: Optional[ReferenceType[Quib]] = None
+        self.set_quib(quib)
 
-    def set_quib(self, quib):
-        self._quib_ref = weakref.ref(quib) if quib else None
+    def set_quib(self, quib_weakref):
+        self._quib_ref = quib_weakref
 
     @property
     def _quib(self) -> Quib:
@@ -546,7 +546,7 @@ class QuibProps:
 
         self.verify_quib_connection('created_in')
 
-        return self._created_in
+        return self._quib.created_in
 
     @property
     def is_iquib(self) -> bool:
@@ -569,14 +569,15 @@ class QuibProps:
 
     def __repr__(self):
         _repr = ''
-        _repr = _repr + f'{"Settable properties":>24}\n'
-        _repr = _repr + f'{"-------------------":>24}\n'
-        _repr = _repr + '\n'.join((f'{prop:>24}: {getattr(self, prop)}' for prop, settable in
+        _repr = _repr + f'{"Settable properties":>26}\n'
+        _repr = _repr + f'{"-------------------":>26}\n'
+        _repr = _repr + '\n'.join((f'{prop:>26}: {getattr(self, prop)}' for prop, settable in
                                    self.PROPERTIES_AND_IS_SETTABLE if settable))
         if self._quib_ref:
-            _repr = _repr + f'{"Derived properties":>24}\n'
-            _repr = _repr + f'{"------------------":>24}\n'
-            _repr = _repr + '\n'.join((f'{prop:>L}: {getattr(self, prop)}' for prop, settable in
+            _repr = _repr + '\n\n'
+            _repr = _repr + f'{"Derived properties":>26}\n'
+            _repr = _repr + f'{"------------------":>26}\n'
+            _repr = _repr + '\n'.join((f'{prop:>26}: {getattr(self, prop)}' for prop, settable in
                                        self.PROPERTIES_AND_IS_SETTABLE if not settable))
         return _repr
 
