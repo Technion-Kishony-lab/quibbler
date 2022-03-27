@@ -83,7 +83,6 @@ class FuncOverride:
         _maybe_create_quib.__quibbler_wrapped__ = wrapped_func
         _maybe_create_quib.__qualname__ = getattr(wrapped_func, '__name__', str(wrapped_func))
 
-        # TODO: obviously not good solution, how do we fix issue with `np.sum` referring to `np.add`'s attrs?
         # copy all public attr. this takes care of np.ufuncs like np.add.reduce, np.add.outer, etc
         # note that functools.wraps does not take care of attributes in dir but not in __dict__
         # see issue: #345
