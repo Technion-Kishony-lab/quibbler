@@ -253,6 +253,9 @@ class QuibFuncCall(FuncCall):
             uncached_paths.extend(get_uncached_paths_matching_path(cache=self.cache, path=valid_path))
 
         if len(uncached_paths) == 0:
+            if self.cache is None:
+                result = self._run_on_path(None)
+                self.cache = _ensure_cache_matches_result(self.cache, result)
             return self.cache.get_value()
 
         result = None
