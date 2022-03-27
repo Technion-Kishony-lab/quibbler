@@ -14,12 +14,12 @@ if TYPE_CHECKING:
     from pyquibbler.quib import Quib
 
 
-def is_assignment_allowed_from_quib_to_quib(from_quib, to_quib):
+def is_assignment_allowed_from_quib_to_quib(from_quib: Quib, to_quib: Quib):
     """
     Returns True/False indicating if from_quib allows assignments made to it to be translated
     into assignments to the to_quib.
     """
-    return True if from_quib.assigned_quibs is None else to_quib in from_quib.assigned_quibs
+    return True if from_quib.props.assigned_quibs is None else to_quib in from_quib.props.assigned_quibs
 
 
 @dataclass
@@ -191,7 +191,7 @@ class OverrideOptionsTree:
         last_inversion = None
         while len(inversions) == 1:
             inversion = inversions[0]
-            if inversion.quib.allow_overriding and is_assignment_allowed_from_quib_to_quib(top_quib, inversion.quib):
+            if inversion.quib.props.allow_overriding and is_assignment_allowed_from_quib_to_quib(top_quib, inversion.quib):
                 override = inversion.to_override() if isinstance(inversion, AssignmentToQuib) else inversion
                 options.append(QuibChangeWithOverrideRemovals(override, override_removals[:]))
             override_removals.append(OverrideRemoval.from_quib_change(inversion))

@@ -18,7 +18,7 @@ def test_iquib_get_value_returns_argument():
 
 
 def test_iquib_is_overridable():
-    quib = iquib(3)
+    quib = iquib(3).setp(cache_behavior='off')
 
     quib.assign(10)
 
@@ -75,7 +75,7 @@ def test_iquib_loads_if_same_name():
     save_name = "example_quib"
     original_value = [1, 2, 3]
     a = iquib(original_value)
-    a.name = save_name
+    a.props.name = save_name
     a.assign(10, 1)
 
     a.save()
@@ -138,7 +138,7 @@ def test_save_iquib_with_save_path(tmpdir):
         a = iquib(10)
     a.assign(11)
     path = pathlib.Path(tmpdir.strpath) / "whatever"
-    a.save_directory = path
+    a.props.save_directory = path
 
     a.save()
     a.load()

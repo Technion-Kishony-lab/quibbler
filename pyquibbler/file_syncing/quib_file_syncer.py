@@ -7,8 +7,11 @@ from .file_syncer import FileSyncer
 from pyquibbler.utils import Flag
 from typing import TYPE_CHECKING
 
+
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib
+    from ..assignment import Overrider
+    from ..quib.quib import QuibHandler
 
 
 KEEP_EMPTY_FILE = Flag(False)
@@ -20,7 +23,7 @@ class QuibFileSyncer(FileSyncer):
         super(QuibFileSyncer, self).__init__()
 
     def _get_file_path(self) -> Optional[pathlib.Path]:
-        return self.quib.file_path
+        return self.quib.props.file_path
 
     def _has_data(self) -> bool:
         return len(self.quib.get_override_list()) > 0
@@ -41,16 +44,16 @@ class QuibFileSyncer(FileSyncer):
         return 'assignment'
 
     def _dialog_title(self) -> str:
-        return self.quib.name
+        return self.quib.props.name
 
     @property
-    def quib(self):
+    def quib(self) -> Quib:
         return self.quib_weakref()
 
     @property
-    def handler(self):
+    def handler(self) -> QuibHandler:
         return self.quib.handler
 
     @property
-    def overrider(self):
+    def overrider(self) -> Overrider:
         return self.handler.overrider

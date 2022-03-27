@@ -53,7 +53,7 @@ class QuibProps:
         self._assignment_template: Union[None, AssignmentTemplate] = None
         self._default_cache_behavior: CacheBehavior = CacheBehavior.AUTO
         self._graphics_update_type: Union[None, UpdateType] = None
-        self._assigned_quibs: Set[Quib] = set()
+        self._assigned_quibs: Optional[Set[Quib]] = None
         self._quib_ref: Optional[ReferenceType[Quib]] = None
         self.set_quib(quib)
 
@@ -104,6 +104,7 @@ class QuibProps:
 
     def setp(self,
              assigned_name: Union[None, str] = NoValue,
+             name: Union[None, str] = NoValue,
              save_directory: Union[None, str, pathlib.Path] = NoValue,
              save_format: Union[None, str, SaveFormat] = NoValue,
              allow_overriding: bool = NoValue,
@@ -143,6 +144,8 @@ class QuibProps:
             self.default_cache_behavior = default_cache_behavior
         if assigned_name is not NoValue:
             self.assigned_name = assigned_name
+        if name is not NoValue:
+            self.assigned_name = name
         if graphics_update_type is not NoValue:
             self.graphics_update_type = graphics_update_type
         if assigned_quibs is not NoValue:
@@ -502,6 +505,11 @@ class QuibProps:
 
         return self.assigned_name or self.functional_representation
 
+    @name.setter
+    @validate_user_input(name=(str, type(None)))
+    def name(self, name: Optional[str]):
+        self.assigned_name = name
+
     @property
     def functional_representation(self) -> str:
         """
@@ -549,7 +557,7 @@ class QuibProps:
         return self._quib.created_in
 
     @property
-    def is_iquib(self) -> bool:
+    def is_iquib(self) -> Optional[bool]:
         """
         Returns True if the quib is an input quib (iquib).
 
@@ -563,9 +571,8 @@ class QuibProps:
         SaveFormat
         """
 
-        self.verify_quib_connection('is_iquib')
-
-        return getattr(self._quib.func, '__name__', None) == 'iquib'
+        return getattr(self._quib.func, '__name__', None) == 'iquib' if self._quib_ref \
+            else None
 
     def __repr__(self):
         _repr = ''

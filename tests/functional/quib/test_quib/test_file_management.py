@@ -19,7 +19,7 @@ def test_quib_wont_save_without_assigned_name(create_quib_with_return_value):
 def test_sync_quibs_with_files_project_initiation(project):
     a = iquib(np.array([1., 2., 3.])).setp(name='a')
     b: Quib = (a + 10).setp(allow_overriding=True, name='b')
-    b.assigned_quibs = {b}
+    b.props.assigned_quibs = {b}
     b[1] = 20
     a[2] = 30
 
@@ -40,7 +40,7 @@ def test_sync_quibs_with_files_and_then_file_change(project, monkeypatch):
     project.sync_quibs()
     assert np.array_equal(a.get_value(), [1., 10., 3.]), 'sanity'
 
-    os.remove(a.file_path)
+    os.remove(a.props.file_path)
     monkeypatch.setattr('builtins.input', lambda: "2")
     project.sync_quibs()
 

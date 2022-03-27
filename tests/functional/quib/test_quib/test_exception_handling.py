@@ -66,7 +66,7 @@ def test_exception_in_overrider():
 def test_exception_in_overrider():
     # https://github.com/Technion-Kishony-lab/pyquibbler/issues/134
     a = q(list, range(4))
-    a.allow_overriding = True
+    a.props.allow_overriding = True
     a[2] = [20, 30]
     a[2][1] = 31
     a[2] = 7

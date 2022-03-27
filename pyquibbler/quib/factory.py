@@ -89,16 +89,16 @@ def create_quib(func: Callable, args: Tuple[Any, ...] = (), kwargs: Mapping[str,
 
     quib = Quib(created_in=created_in)
 
-    quib.setp(assignment_template=None, allow_overriding=allow_overriding,
-              assigned_name=get_quib_name(), graphics_update_type=None,
-              save_directory=save_directory, save_format=save_format)
-
     quib.func = func
     quib.args = args
     quib.kwargs = kwargs
     quib.handler.func_definition = function_definition
-    quib.default_cache_behavior = cache_behavior or QuibFuncCall.DEFAULT_CACHE_BEHAVIOR
+    quib.props.default_cache_behavior = cache_behavior or QuibFuncCall.DEFAULT_CACHE_BEHAVIOR
     quib.handler.reset_quib_func_call()
+
+    quib.setp(assignment_template=None, allow_overriding=allow_overriding,
+              assigned_name=get_quib_name(), graphics_update_type=None,
+              save_directory=save_directory, save_format=save_format)
 
     project.register_quib(quib)
     add_new_quib_to_guard_if_exists(quib)

@@ -40,8 +40,8 @@ def test_quib_get_type(quib):
 def test_quib_configure(quib):
     quib = quib.setp(allow_overriding=True, name="pasten")
 
-    assert quib.name == 'pasten'
-    assert quib.allow_overriding is True
+    assert quib.props.name == 'pasten'
+    assert quib.props.allow_overriding is True
 
 
 def test_quib_configure_with_invalid_value(quib):

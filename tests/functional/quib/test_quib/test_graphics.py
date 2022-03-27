@@ -87,7 +87,7 @@ def test_graphics_quib_does_not_copy_color(axes, create_quib_with_return_value):
 ])
 def test_graphics_quib_update_on_drag(update_type, should_have_called, quib, graphics_quib,
                                       create_quib_with_return_value):
-    graphics_quib.graphics_update_type = update_type
+    graphics_quib.props.graphics_update_type = update_type
     with dragging():
         quib.handler.invalidate_and_redraw_at_path([])
 
@@ -95,7 +95,7 @@ def test_graphics_quib_update_on_drag(update_type, should_have_called, quib, gra
 
 
 def test_graphics_quib_update_on_drop(quib, graphics_quib):
-    graphics_quib.graphics_update_type = UpdateType.DROP
+    graphics_quib.props.graphics_update_type = UpdateType.DROP
 
     quib.handler.invalidate_and_redraw_at_path([])
 
@@ -104,7 +104,7 @@ def test_graphics_quib_update_on_drop(quib, graphics_quib):
 
 @pytest.mark.parametrize("update_type", ["never", "central"])
 def test_graphics_quib_which_should_never_update(update_type, quib, graphics_quib):
-    graphics_quib.graphics_update_type = update_type
+    graphics_quib.props.graphics_update_type = update_type
 
     quib.handler.invalidate_and_redraw_at_path([])
 

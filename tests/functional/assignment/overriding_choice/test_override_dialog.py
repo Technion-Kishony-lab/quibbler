@@ -69,8 +69,8 @@ def test_override_dialog_diverge_button(monkeypatch, override_options, button_ca
 
 def test_override_text_dialog(monkeypatch, capsys):
     monkeypatch.setattr('builtins.input', lambda _: "2")
-    a = iquib(10).setp(allow_overriding=True, name='input')
-    b = (a + 1).setp(allow_overriding=True, name='add_one')
+    a = iquib(10).setp(allow_overriding=True, assigned_name='input')
+    b = (a + 1).setp(allow_overriding=True, assigned_name='add_one')
     b.assign(100)
     assert capsys.readouterr().out == \
            'Overriding choices:\n' \

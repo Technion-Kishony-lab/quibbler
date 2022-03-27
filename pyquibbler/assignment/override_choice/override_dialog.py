@@ -118,7 +118,7 @@ def choose_override_dialog(options: List[Quib], can_diverge: bool) -> OverrideCh
     from pyquibbler.quib.graphics.event_handling.canvas_event_handler import get_graphics_assignment_mode_axes
 
     invoking_axes = get_graphics_assignment_mode_axes()
-    str_options = [quib.name for quib in options]
+    str_options = [quib.props.name for quib in options]
     if invoking_axes is None and OVERIDE_DIALOG_AS_TEXT_FOR_NON_GRAPHICS_ASSIGNMENT \
             or invoking_axes is not None and OVERIDE_DIALOG_AS_TEXT_FOR_GRAPHICS_ASSIGNMENT:
         choice_type, selected_index = choose_override_text_dialog(str_options, can_diverge)

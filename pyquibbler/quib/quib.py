@@ -69,18 +69,10 @@ class QuibHandler:
     """
 
     def __init__(self, quib: Quib, quib_function_call: QuibFuncCall,
-                 assignment_template: Optional[AssignmentTemplate],
-                 allow_overriding: bool,
-                 assigned_name: Optional[str],
-                 created_in: Optional[FileAndLineNumber],
-                 graphics_update_type: Optional[UpdateType],
-                 save_directory: pathlib.Path,
-                 save_format: Optional[SaveFormat],
                  func: Optional[Callable],
                  args: Tuple[Any, ...] = (),
                  kwargs: Mapping[str, Any] = None,
                  function_definition: FuncDefinition = None,
-                 default_cache_behavior: CacheBehavior = None,
                  ):
         kwargs = kwargs or {}
 
@@ -89,33 +81,25 @@ class QuibHandler:
         self._override_choice_cache = {}
         self.quib_function_call = quib_function_call
 
-        self.assignment_template = assignment_template
-        self.assigned_name = assigned_name
-
         self.children = WeakSet()
         self._overrider: Optional[Overrider] = None
         self.file_syncer: QuibFileSyncer = QuibFileSyncer(quib_weakref)
-        self.allow_overriding = allow_overriding
-        self.assigned_quibs = None
         self.created_in_get_value_context = is_within_get_value_context()
-        self.created_in: Optional[FileAndLineNumber] = created_in
-        self.graphics_update_type = graphics_update_type
 
-        self.save_directory = save_directory
-
-        self.save_format = save_format
         self.func_args_kwargs = FuncArgsKwargs(func, args, kwargs, include_defaults=True)
         self.func_definition = function_definition
-
-        self.default_cache_behavior = default_cache_behavior
 
     """
     relationships
     """
 
     @property
-    def quib(self):
+    def quib(self) -> Quib:
         return self._quib_weakref()
+
+    @property
+    def props(self) -> QuibProps:
+        return self.quib.props
 
     @property
     def project(self) -> Project:
@@ -141,8 +125,8 @@ class QuibHandler:
         """
         Redraws the quib if it's appropriate
         """
-        if self.graphics_update_type in [UpdateType.NEVER, UpdateType.CENTRAL] \
-                or (self.graphics_update_type == UpdateType.DROP and is_within_drag()):
+        if self.props.graphics_update_type in [UpdateType.NEVER, UpdateType.CENTRAL] \
+                or (self.props.graphics_update_type == UpdateType.DROP and is_within_drag()):
             return
 
         return self.quib.get_value()
@@ -321,8 +305,8 @@ class QuibHandler:
         Overrides a part of the data the quib represents.
         """
         if allow_overriding_from_now_on:
-            self.allow_overriding = True
-        if not self.allow_overriding:
+            self.props.allow_overriding = True
+        if not self.props.allow_overriding:
             raise OverridingNotAllowedException(self.quib, assignment)
 
         self._add_override(assignment)
@@ -474,7 +458,7 @@ class QuibHandler:
                 paths = self._get_list_of_not_overridden_paths_at_first_component(path)
             result = self.quib_function_call.run(paths)
 
-        return self._overrider.override(result, self.assignment_template) if self.is_overridden \
+        return self._overrider.override(result, self.props.assignment_template) if self.is_overridden \
             else result
 
     """
@@ -482,14 +466,14 @@ class QuibHandler:
     """
 
     def on_project_directory_change(self):
-        if not (self.save_directory is not None and self.save_directory.is_absolute()):
+        if not (self.props.save_directory is not None and self.props.save_directory.is_absolute()):
             self.file_syncer.on_file_name_changed()
 
     def on_file_name_change(self):
         self.file_syncer.on_file_name_changed()
 
     def save_assignments_or_value(self, file_path: pathlib.Path):
-        save_format = self.quib.actual_save_format
+        save_format = self.props.actual_save_format
         if save_format == SaveFormat.VALUE_TXT:
             self._save_value_as_txt(file_path)
         elif save_format == SaveFormat.VALUE_BIN:
@@ -500,7 +484,7 @@ class QuibHandler:
             self.overrider.save_as_txt(file_path)
 
     def load_from_assignment_file_or_value_file(self, file_path: pathlib.Path):
-        save_format = self.quib.actual_save_format
+        save_format = self.props.actual_save_format
         if save_format == SaveFormat.VALUE_TXT:
             changed_paths = self._load_value_from_txt(file_path)
         elif save_format == SaveFormat.VALUE_BIN:
@@ -581,41 +565,28 @@ class Quib:
 
     def __init__(self,
                  quib_function_call: QuibFuncCall = None,
-                 assignment_template: Optional[AssignmentTemplate] = None,
-                 allow_overriding: bool = False,
-                 assigned_name: Optional[str] = None,
-                 created_in: Optional[FileAndLineNumber] = None,
-                 graphics_update_type: Optional[UpdateType] = None,
-                 save_directory: Optional[pathlib.Path] = None,
-                 save_format: Optional[SaveFormat] = None,
                  func: Optional[Callable] = None,
                  args: Tuple[Any, ...] = (),
                  kwargs: Mapping[str, Any] = None,
                  function_definition: FuncDefinition = None,
-                 default_cache_behavior: CacheBehavior = None,
                  props: QuibProps = None,
+                 created_in: Optional[FileAndLineNumber] = None,
                  ):
 
-        self.props: QuibProps = props
+        from pyquibbler.quib.quib_props import QuibProps
 
-        self.handler = QuibHandler(self, quib_function_call,
-                                   assignment_template,
-                                   allow_overriding,
-                                   assigned_name,
-                                   created_in,
-                                   graphics_update_type,
-                                   save_directory,
-                                   save_format,
+        self.handler = QuibHandler(self,
+                                   quib_function_call,
                                    func,
                                    args,
                                    kwargs,
                                    function_definition,
-                                   default_cache_behavior,
                                    )
 
-        from pyquibbler.quib.quib_props import QuibProps
-
-
+        self_weakref = weakref.ref(self)
+        self.props: QuibProps = props if props else QuibProps()
+        self.props.set_quib(self_weakref)
+        self._created_in = created_in
     """
     Func metadata
     """
@@ -735,8 +706,7 @@ class Quib:
         func_definition : FuncDefinition
             An object containg the properties of the function.
         """
-        from pyquibbler.function_definitions import get_definition_for_function
-        return get_definition_for_function(self.func)
+        return self.handler.func_definition
 
     @property
     def is_impure_func(self) -> bool:
@@ -885,17 +855,8 @@ class Quib:
     def cache_behavior(self, cache_behavior: Union[str, CacheBehavior]):
         cache_behavior = get_enum_by_str(CacheBehavior, cache_behavior)
         if self.is_random_func and cache_behavior != CacheBehavior.ON:
-            raise InvalidCacheBehaviorForQuibException(self.handler.default_cache_behavior) from None
-        self.handler.default_cache_behavior = cache_behavior
-
-    @property
-    def default_cache_behavior(self):
-        return self.handler.default_cache_behavior
-
-    @default_cache_behavior.setter
-    @validate_user_input(cache_behavior=(str, CacheBehavior))
-    def default_cache_behavior(self, cache_behavior: Union[str, CacheBehavior]):
-        self.handler.default_cache_behavior = get_enum_by_str(CacheBehavior, cache_behavior)
+            raise InvalidCacheBehaviorForQuibException(cache_behavior) from None
+        self.props.default_cache_behavior = cache_behavior
 
     def invalidate(self):
         """
@@ -955,55 +916,9 @@ class Quib:
         """
         return self.func_definition.is_graphics_func or self.handler.quib_function_call.created_graphics
 
-    @property
-    def graphics_update_type(self) -> Union[None, str]:
-        """
-        Return the graphics_update_type indicating whether the quib should refresh upon upstream assignments.
-        Options are:
-        "drag":     refresh immediately as upstream objects are dragged
-        "drop":     refresh at end of dragging upon graphic object drop.
-        "central":  do not automatically refresh. Refresh, centrally upon refresh_graphics().
-        "never":    Never refresh.
-
-        Returns
-        -------
-        "drag", "drop", "central", "never", or None
-
-        See Also
-        --------
-        UpdateType, Project.refresh_graphics
-        """
-        return self.handler.graphics_update_type.value if self.handler.graphics_update_type else None
-
-    @graphics_update_type.setter
-    @validate_user_input(graphics_update_type=(type(None), str, UpdateType))
-    def graphics_update_type(self, graphics_update_type: Union[None, str, UpdateType]):
-        self.handler.graphics_update_type = get_enum_by_str(UpdateType, graphics_update_type, allow_none=True)
-
     """
     Assignment
     """
-
-    @property
-    def allow_overriding(self):
-        """
-        Indicates whether the quib can be overridden.
-        The default for allow_overriding is True for iquibs and False in function quibs.
-
-        Returns
-        -------
-        bool
-
-        See Also
-        --------
-        assign, assigned_quibs
-        """
-        return self.handler.allow_overriding
-
-    @allow_overriding.setter
-    @validate_user_input(allow_overriding=bool)
-    def allow_overriding(self, allow_overriding: bool):
-        self.handler.allow_overriding = allow_overriding
 
     @raise_quib_call_exceptions_as_own
     def assign(self, value: Any, key: Optional[Any] = NoValue) -> None:
@@ -1031,98 +946,20 @@ class Quib:
         else:
             self.handler.apply_assignment(Assignment(value=value, path=path))
 
-    @property
-    def assigned_quibs(self) -> Union[None, Set[Quib, ...]]:
-        """
-        Set of quibs to which assignments to this quib could translate to and override.
-
-        When assigned_quibs is None, a dialog will be used to choose between options.
-
-        Returns
-        -------
-        None or set of Quib
-
-        See Also
-        --------
-        assign, allow_overriding
-        """
-        return self.handler.assigned_quibs
-
-    @assigned_quibs.setter
-    def assigned_quibs(self, quibs: Optional[Iterable[Quib]]) -> None:
-        if quibs is not None:
-            try:
-                quibs = set(quibs)
-                if not all(map(lambda x: isinstance(x, Quib), quibs)):
-                    raise Exception
-            except Exception:
-                raise InvalidArgumentValueException(
-                    var_name='assigned_quibs',
-                    message='a set of quibs.',
-                ) from None
-
-        self.handler.assigned_quibs = quibs
-
-    @property
-    def assignment_template(self) -> AssignmentTemplate:
-        """
-        Returns an AssignmentTemplate object indicating type and range restricting assignments to the quib.
-
-        See Also
-        --------
-        assign
-        AssignmentTemplate
-        """
-        return self.handler.assignment_template
-
-    @assignment_template.setter
-    @validate_user_input(template=AssignmentTemplate)
-    def assignment_template(self, template):
-        self.handler.assignment_template = template
-
-    def set_assignment_template(self, *args) -> None:
-        """
-        Sets an assignment template for the quib.
-
-        The assignment template restricts the values of any future assignments to the quib.
-
-        Options:
-        Set a specific AssignmentTemplate object:
-
-        >>> quib.set_assignment_template(assignment_template)
-
-        Set a bound template between `start` and `stop`:
-
-        >>> quib.set_assignment_template(start, stop)
-
-        Set a bound template between `start` and `stop`, with specified `step`
-
-        >>> quib.set_assignment_template(start, stop, step)
-
-        Remove the assignment_template:
-
-        >>> quib.set_assignment_template(None)
-
-        See Also
-        --------
-        AssignmentTemplate, assignment_template
-        """
-        self.handler.assignment_template = create_assignment_template(*args)
-
     """
     setp
     """
 
     def setp(self,
-             allow_overriding: bool = NoValue,
-             assignment_template: Union[None, tuple, AssignmentTemplate] = NoValue,
-             save_directory: Union[None, str, pathlib.Path] = NoValue,
-             save_format: Union[None, str, SaveFormat] = NoValue,
-             cache_behavior: Union[str, CacheBehavior] = NoValue,
              assigned_name: Union[None, str] = NoValue,
              name: Union[None, str] = NoValue,
+             save_directory: Union[None, str, pathlib.Path] = NoValue,
+             save_format: Union[None, str, SaveFormat] = NoValue,
+             allow_overriding: bool = NoValue,
+             assignment_template: Union[None, tuple, AssignmentTemplate] = NoValue,
+             cache_behavior: Union[str, CacheBehavior] = NoValue,
              graphics_update_type: Union[None, str] = NoValue,
-             assigned_quibs: set["Quib"] = NoValue,
+             assigned_quibs: Set[Quib] = NoValue,
              ):
         """
         Set one or more properties on a quib.
@@ -1143,29 +980,22 @@ class Quib:
         """
 
         from pyquibbler.quib.factory import get_quib_name
-        if allow_overriding is not NoValue:
-            self.allow_overriding = allow_overriding
-        if assignment_template is not NoValue:
-            self.set_assignment_template(assignment_template)
-        if save_directory is not NoValue:
-            self.save_directory = save_directory
-        if save_format is not NoValue:
-            self.save_format = save_format
-        if cache_behavior is not NoValue:
-            self.cache_behavior = cache_behavior
-        if assigned_name is not NoValue:
-            self.assigned_name = assigned_name
-        if name is not NoValue:
-            self.assigned_name = name
-        if graphics_update_type is not NoValue:
-            self.graphics_update_type = graphics_update_type
-        if assigned_quibs is not NoValue:
-            self.assigned_quibs = assigned_quibs
+        self.props.setp(
+            allow_overriding=allow_overriding,
+            assignment_template=assignment_template,
+            save_directory=save_directory,
+            save_format=save_format,
+            default_cache_behavior=cache_behavior,
+            name=name,
+            assigned_name=assigned_name,
+            graphics_update_type=graphics_update_type,
+            assigned_quibs=assigned_quibs,
+        )
 
-        if name is NoValue and assigned_name is NoValue and self.assigned_name is None:
+        if name is NoValue and assigned_name is NoValue and self.props.assigned_name is None:
             var_name = get_quib_name()
             if var_name:
-                self.assigned_name = var_name
+                self.props.assigned_name = var_name
 
         return self
 
@@ -1423,152 +1253,6 @@ class Quib:
         """
         return self.handler.project
 
-    @property
-    def save_format(self):
-        """
-        Indicates the file format in which quib assignments are saved.
-
-        Options:
-            'txt' - save assignments as text file.
-            'binary' - save assignments as a binary file.
-            'value_txt' - save the quib value as a text file.
-            `None` - yield to the Project default save_format
-
-        See Also
-        --------
-         SaveFormat
-        """
-        return self.handler.save_format
-
-    @save_format.setter
-    @validate_user_input(save_format=(type(None), str, SaveFormat))
-    def save_format(self, save_format):
-        save_format = get_enum_by_str(SaveFormat, save_format, allow_none=True)
-        if (save_format in [SaveFormat.VALUE_BIN, SaveFormat.VALUE_TXT]) and not self.is_iquib:
-            raise CannotSaveFunctionQuibsAsValueException
-
-        self.handler.save_format = save_format
-        self.handler.on_file_name_change()
-
-    @property
-    def actual_save_format(self) -> SaveFormat:
-        """
-        The actual save_format used by the quib.
-
-        The quib's actual_save_format is its save_format if defined.
-        Otherwise it defaults to the project's save_format.
-
-        Returns
-        -------
-        SaveFormat
-
-        See Also
-        --------
-        save_format
-        SaveFormat
-        """
-        actual_save_format = self.save_format if self.save_format else self.project.save_format
-        if not self.is_iquib:
-            actual_save_format = SAVE_FORMAT_TO_FQUIB_SAVE_FORMAT[actual_save_format]
-        return actual_save_format
-
-    @property
-    def file_path(self) -> Optional[PathWithHyperLink]:
-        """
-        The full path for the file where quib assignments are saved.
-        The path is defined as the [actual_save_directory]/[assigned_name].ext
-        ext is determined by the actual_save_format
-
-        Returns
-        -------
-        pathlib.Path or None
-
-        See Also
-        --------
-        save_directory, actual_save_directory
-        save_format, actual_save_format
-        assigned_name
-        Project.directory
-        """
-        return self._get_file_path()
-
-    def _get_file_path(self, response_to_file_not_defined: ResponseToFileNotDefined = ResponseToFileNotDefined.IGNORE) \
-            -> Optional[PathWithHyperLink]:
-
-        if self.assigned_name is None or self.actual_save_directory is None or self.actual_save_format is None:
-            path = None
-            exception = FileNotDefinedException(
-                self.assigned_name, self.actual_save_directory, self.actual_save_format)
-            if response_to_file_not_defined == ResponseToFileNotDefined.RAISE:
-                raise exception
-            elif response_to_file_not_defined == ResponseToFileNotDefined.WARN \
-                    or response_to_file_not_defined == ResponseToFileNotDefined.WARN_IF_DATA \
-                    and self.handler.is_overridden:
-                warnings.warn(str(exception))
-        else:
-            path = PathWithHyperLink(self.actual_save_directory /
-                                     (self.assigned_name + SAVE_FORMAT_TO_FILE_EXT[self.actual_save_format]))
-
-        return path
-
-    @property
-    def save_directory(self) -> PathWithHyperLink:
-        """
-        The directory where quib assignments are saved.
-
-        Can be set to a str or Path object.
-
-        If the directory is absolute, it is used as is.
-        If directory is relative, it is used relative to the project directory.
-        If directory is None, the project directory is used.
-
-        Returns
-        -------
-        pathlib.Path
-
-        See Also
-        --------
-        file_path
-        """
-        return PathWithHyperLink(self.handler.save_directory)
-
-    @save_directory.setter
-    @validate_user_input(directory=(type(None), str, pathlib.Path))
-    def save_directory(self, directory: Union[None, str, pathlib.Path]):
-        if isinstance(directory, str):
-            directory = pathlib.Path(directory)
-        self.handler.save_directory = directory
-        self.handler.on_file_name_change()
-
-    @property
-    def actual_save_directory(self) -> Optional[pathlib.Path]:
-        """
-        The actual directory where quib file is saved.
-
-        By default, the quib's save_directory is None and the actual_save_directory defaults to the
-        project's save_directory.
-        Otherwise, if the quib's save_directory is defined as an absolute directory then it is used as is,
-        and if it is defined as a relative path it is used relative to the project's directory.
-
-        Returns
-        -------
-        pathlib.Path
-
-        See Also
-        --------
-        save_directory
-        Project.directory
-        SaveFormat
-        """
-        save_directory = self.handler.save_directory
-        if save_directory is not None and save_directory.is_absolute():
-            return save_directory  # absolute directory
-        elif self.project.directory is None:
-            return None
-        else:
-            return self.project.directory if save_directory is None \
-                else self.project.directory / save_directory
-
     def save(self, response_to_file_not_defined: ResponseToFileNotDefined = ResponseToFileNotDefined.RAISE):
         """
         Save the quib assignments to file.
@@ -1581,7 +1265,7 @@ class Quib:
         assigned_name
         Project.directory
         """
-        if self._get_file_path(response_to_file_not_defined) is not None:
+        if self.props._get_file_path(response_to_file_not_defined) is not None:
             self.handler.file_syncer.save()
 
     def load(self, response_to_file_not_defined: ResponseToFileNotDefined = ResponseToFileNotDefined.RAISE):
@@ -1596,7 +1280,7 @@ class Quib:
         assigned_name
         Project.directory
         """
-        if self._get_file_path(response_to_file_not_defined) is not None:
+        if self.props._get_file_path(response_to_file_not_defined) is not None:
             self.handler.file_syncer.load()
 
     def sync(self, response_to_file_not_defined: ResponseToFileNotDefined = ResponseToFileNotDefined.RAISE):
@@ -1615,72 +1299,12 @@ class Quib:
         assigned_name
         Project.directory
         """
-        if self._get_file_path(response_to_file_not_defined) is not None:
+        if self.props._get_file_path(response_to_file_not_defined) is not None:
             self.handler.file_syncer.sync()
 
     """
     Repr
     """
-
-    @property
-    def assigned_name(self) -> Optional[str]:
-        """
-        Returns the assigned_name of the quib
-
-        The assigned_name can either be a name automatically created based on the variable name to which the quib
-        was first assigned, or a manually assigned name set by setp or by assigning to assigned_name,
-        or None indicating unnamed quib.
-
-        The name must be a string starting with a letter and continuing with alpha-numeric charaters. Spaces
-        are also allowed.
-
-        The assigned_name is also used for setting the file name for saving overrides.
-
-        Returns
-        -------
-        str, None
-
-        See Also
-        --------
-        name, setp, Project.save_quibs, Project.load_quibs
-        """
-        return self.handler.assigned_name
-
-    @assigned_name.setter
-    @validate_user_input(assigned_name=(str, type(None)))
-    def assigned_name(self, assigned_name: Optional[str]):
-        if assigned_name is None \
-                or len(assigned_name) \
-                and assigned_name[0].isalpha() and all([c.isalnum() or c in ' _' for c in assigned_name]):
-            self.handler.assigned_name = assigned_name
-            self.handler.on_file_name_change()
-        else:
-            raise ValueError('name must be None or a string starting with a letter '
-                             'and continuing alpha-numeric characters or spaces')
-
-    @property
-    def name(self) -> Optional[str]:
-        """
-        Returns the name of the quib
-
-        The name of the quib can either be the given assigned_name if not None,
-        or an automated name representing the function of the quib (the functional_representation attribute).
-
-        Assigning into name is equivalent to assigning into assigned_name
-
-        Returns
-        -------
-        str
-
-        See Also
-        --------
-        assigned_name, setp, functional_representation
-        """
-        return self.assigned_name or self.functional_representation
-
-    @name.setter
-    def name(self, name: str):
-        self.assigned_name = name
 
     def _get_functional_representation_expression(self) -> MathExpression:
         try:
@@ -1689,33 +1313,8 @@ class Quib:
             logger.warning(f"Failed to get repr {e}")
             return FailedMathExpression()
 
-    @property
-    def functional_representation(self) -> str:
-        """
-        Returns a string representing a functional representation of the quib.
-
-        Returns
-        -------
-        str
-
-        See Also
-        --------
-        name
-        assigned_name
-        functional_representation
-        pretty_repr
-        get_math_expression
-
-        Examples
-        --------
-        >>> a = iquib(4)
-        >>> a.functional_representation
-        "iquib(4)"
-        """
-        return str(self._get_functional_representation_expression())
-
     def get_math_expression(self) -> MathExpression:
-        return NameMathExpression(self.assigned_name) if self.assigned_name is not None \
+        return NameMathExpression(self.props.assigned_name) if self.props.assigned_name is not None \
             else self._get_functional_representation_expression()
 
     def ugly_repr(self):
@@ -1752,8 +1351,8 @@ class Quib:
         ugly_repr
         get_math_expression
         """
-        return f"{self.assigned_name} = {self.functional_representation}" \
-            if self.assigned_name is not None else self.functional_representation
+        return f"{self.props.assigned_name} = {self.props.functional_representation}" \
+            if self.props.assigned_name is not None else self.props.functional_representation
 
     def __repr__(self):
         return str(self)
@@ -1763,7 +1362,7 @@ class Quib:
             if REPR_RETURNS_SHORT_NAME:
                 return str(self.get_math_expression())
             elif REPR_WITH_OVERRIDES and self.handler.is_overridden:
-                return self.pretty_repr() + '\n' + self.handler.overrider.pretty_repr(self.assigned_name)
+                return self.pretty_repr() + '\n' + self.handler.overrider.pretty_repr(self.props.assigned_name)
             return self.pretty_repr()
         return self.ugly_repr()
 
@@ -1780,20 +1379,4 @@ class Quib:
         -------
         FileAndLineNumber or None
         """
-        return self.handler.created_in
-
-    @property
-    def is_iquib(self) -> bool:
-        """
-        Returns True if the quib is an input quib (iquib).
-
-        Returns
-        -------
-        bool
-
-        See Also
-        --------
-        func
-        SaveFormat
-        """
-        return getattr(self.func, '__name__', None) == 'iquib'
+        return self._created_in

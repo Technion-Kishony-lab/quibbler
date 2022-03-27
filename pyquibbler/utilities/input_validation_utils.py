@@ -68,8 +68,8 @@ class UnknownEnumException(PyQuibblerException):
             f"Allowed values: {', '.join([value for value in self.cls])}"
 
 
-def get_enum_by_str(cls: Type[Type[StrEnum]], value: Union[str, Type[StrEnum]], allow_none: bool = False) -> \
-        Optional[Type[StrEnum]]:
+def get_enum_by_str(cls: Type[StrEnum], value: Union[str, StrEnum], allow_none: bool = False) -> \
+        Optional[StrEnum]:
 
     if type(value) is cls:
         return value

@@ -208,7 +208,7 @@ def test_project_has_redo_when_not(project):
 
 
 def test_project_has_undo_when_true(project):
-    a = iquib(1)
+    a = iquib(1).setp(cache_behavior='off')
     a.assign(1)
 
     assert project.can_undo()

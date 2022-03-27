@@ -4,7 +4,7 @@ import weakref
 from contextlib import ExitStack
 from sys import getsizeof
 from time import perf_counter
-from typing import Optional, Type, Tuple, Dict, Any, Set, Mapping, Callable, List, Union
+from typing import Optional, Type, Tuple, Dict, Any, Set, Mapping, Callable, List, Union, TYPE_CHECKING
 
 from pyquibbler.cache.cache_utils import _truncate_path_to_match_shallow_caches, _ensure_cache_matches_result, \
     get_cached_data_at_truncated_path_given_result_at_uncached_path
@@ -26,6 +26,9 @@ from pyquibbler.quib.utils.translation_utils import get_func_call_for_translatio
     get_func_call_for_translation_without_sources_metadata
 from pyquibbler.translation import NoTranslatorsFoundException
 from pyquibbler.translation.translate import backwards_translate
+
+if TYPE_CHECKING:
+    from pyquibbler.quib.quib_props import QuibProps
 
 
 class QuibFuncCall(FuncCall):
@@ -51,6 +54,10 @@ class QuibFuncCall(FuncCall):
     @property
     def quib_handler(self) -> QuibHandler:
         return self.quib_handler_ref()
+
+    @property
+    def props(self) -> QuibProps:
+        return self.quib_handler.props
 
     @property
     def func_args_kwargs(self) -> FuncArgsKwargs:
@@ -88,7 +95,7 @@ class QuibFuncCall(FuncCall):
     def get_cache_behavior(self):
         if self.func_definition.is_random_func or self.func_can_create_graphics:
             return CacheBehavior.ON
-        return self.quib_handler.default_cache_behavior
+        return self.props.default_cache_behavior
 
     def _should_cache(self, result: Any, elapsed_seconds: float):
         """

@@ -14,12 +14,12 @@ from tests.functional.utils import slicer, get_mock_with_repr
 
 def test_quib_must_assign_bool_to_overriding(quib):
     with pytest.raises(InvalidArgumentTypeException):
-        quib.allow_overriding = 1
+        quib.props.allow_overriding = 1
 
 
 def test_quib_fails_when_not_matching_assignment_template():
     quib = create_quib(mock.Mock(return_value=[1, 2, 3]), allow_overriding=True)
-    quib.set_assignment_template(1, 3)
+    quib.props.set_assignment_template(1, 3)
     quib.assign("hello johnny", 2)
 
     with pytest.raises(InvalidTypeException):
@@ -32,8 +32,8 @@ def test_quib_fails_when_not_matching_assignment_template():
     ((1, 2, 3), RangeAssignmentTemplate(1, 2, 3))
 ])
 def test_set_and_get_assignment_template(args, expected_template, quib):
-    quib.set_assignment_template(*args)
-    template = quib.assignment_template
+    quib.props.set_assignment_template(*args)
+    template = quib.props.assignment_template
 
     assert template == expected_template
 
@@ -41,12 +41,12 @@ def test_set_and_get_assignment_template(args, expected_template, quib):
 @pytest.mark.parametrize('args', [(), (1, 2, 3, 4)])
 def test_set_assignment_template_with_wrong_number_of_args_raises_typeerror(args, quib):
     with pytest.raises(TypeError):
-        quib.set_assignment_template(*args)
+        quib.props.set_assignment_template(*args)
 
 
 def test_set_assignment_template_with_range(quib):
-    quib.set_assignment_template(1, 2, 3)
-    template = quib.assignment_template
+    quib.props.set_assignment_template(1, 2, 3)
+    template = quib.props.assignment_template
 
     assert template == RangeAssignmentTemplate(1, 2, 3)
 
@@ -67,7 +67,7 @@ def test_quib_override_with_assignment_template():
     mock_assignment_template = mock.Mock(spec=BoundAssignmentTemplate)
     mock_assignment_template.convert.return_value = "something that wont change on deepcopy"
     quib = create_quib(func=mock.Mock(return_value=['oh no']), allow_overriding=True)
-    quib.set_assignment_template(mock_assignment_template)
+    quib.props.set_assignment_template(mock_assignment_template)
     quib[0] = 'val'
 
     result = quib[0].get_value()
