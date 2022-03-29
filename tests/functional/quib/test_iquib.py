@@ -18,7 +18,7 @@ def test_iquib_get_value_returns_argument():
 
 
 def test_iquib_is_overridable():
-    quib = iquib(3).setp(cache_behavior='off')
+    quib = iquib(3).setp(caching='off')
 
     quib.assign(10)
 

@@ -5,25 +5,24 @@ import pytest
 from pyquibbler.function_definitions import add_definition_for_function
 from pyquibbler.function_definitions.func_definition import FuncDefinition
 from pyquibbler.utilities.input_validation_utils import InvalidArgumentTypeException, UnknownEnumException
-from pyquibbler.quib.func_calling.cache_behavior import CacheBehavior
-from pyquibbler.quib.exceptions import InvalidCacheBehaviorForQuibException
+from pyquibbler.quib.func_calling.caching_options import CachingOptions
 from pyquibbler.quib.factory import create_quib
 
 
 def test_quib_set_cache_behaviour_forces_correct_type(quib):
     with pytest.raises(InvalidArgumentTypeException):
-        quib.cache_behavior = 1
+        quib.props.caching = 1
 
 
 def test_quib_setp(quib):
-    quib.setp(cache_behavior='off')
+    quib.setp(caching='off')
 
-    assert quib.cache_behavior == CacheBehavior.OFF
+    assert quib.props.caching == CachingOptions.OFF
 
 
 def test_quib_setp_with_invalid_cache_behavior(quib):
     with pytest.raises(UnknownEnumException):
-        quib.setp(cache_behavior='ondfdd')
+        quib.setp(caching='ondfdd')
 
 
 @pytest.fixture()
@@ -34,18 +33,9 @@ def random_quib():
 
 
 def test_can_set_quib_cache_behavior_to_on_when_random(random_quib):
-    random_quib.ache_behavior = CacheBehavior.ON
-
-
-@pytest.mark.parametrize(
-    'cache_behavior',
-    filter(lambda cache_behavior: cache_behavior is not CacheBehavior.ON, CacheBehavior)
-)
-def test_cant_set_quib_cache_behavior_to_something_other_than_on_when_random(random_quib, cache_behavior):
-    with pytest.raises(InvalidCacheBehaviorForQuibException):
-        random_quib.cache_behavior = cache_behavior
+    random_quib.ache_behavior = CachingOptions.ON
 
 
 def test_quib_cache_behavior_on_by_default_when_is_random(random_quib):
-    assert random_quib.cache_behavior == CacheBehavior.ON
+    assert random_quib.props.caching == CachingOptions.ON
 

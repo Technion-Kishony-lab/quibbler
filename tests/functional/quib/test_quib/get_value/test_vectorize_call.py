@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 from matplotlib import pyplot as plt
 
-from pyquibbler import CacheBehavior, iquib, Assignment
+from pyquibbler import CachingOptions, iquib, Assignment
 from pyquibbler.env import GRAPHICS_LAZY
 from pyquibbler.assignment import AssignmentToQuib, Override
 from pyquibbler.path.path_component import PathComponent
@@ -34,7 +34,7 @@ def test_vectorize_get_value_valid_at_path_with_excluded_quib(pass_quibs):
         return b
 
     fquib = func([0, 1], excluded)
-    fquib.cache_behavior = CacheBehavior.OFF
+    fquib.props.caching = CachingOptions.OFF
     path = PathBuilder(fquib)[0].path
 
     with excluded.collect_valid_paths() as valid_paths:

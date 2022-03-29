@@ -80,7 +80,7 @@ def test_assignment_to_list_after_np_function(create_quib_with_return_value):
 @pytest.mark.regression
 def test_slice_assignment_to_list_after_get_item(create_quib_with_return_value):
     a = create_quib_with_return_value([1, 2, 3, 4], allow_overriding=True)
-    b: Quib = a[:3].setp(cache_behavior='on')
+    b: Quib = a[:3].setp(caching='on')
     b.get_value()
     a[1:] = [20, 30, 40]
     print(b.get_value())

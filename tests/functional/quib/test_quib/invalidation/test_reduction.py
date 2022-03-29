@@ -25,7 +25,7 @@ def test_reduction_axiswise_invalidation(indices_to_invalidate, axis, keepdims, 
 @pytest.mark.regression
 def test_sum_invalidation():
     z = iquib(np.array([3, 1, 2]))
-    sum_z = np.sum(z).setp(cache_behavior='on')
+    sum_z = np.sum(z).setp(caching='on')
     sum_z.get_value()
     assert sum_z.cache_status == CacheStatus.ALL_VALID, "Sanity"
 

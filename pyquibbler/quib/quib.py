@@ -28,7 +28,7 @@ from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals
     deep_copy_without_quibs_or_graphics
 from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation_with_sources_metadata, \
     get_func_call_for_translation_without_sources_metadata
-from pyquibbler.utilities.input_validation_utils import validate_user_input, get_enum_by_str
+from pyquibbler.utilities.input_validation_utils import validate_user_input
 from pyquibbler.utilities.iterators import recursively_run_func_on_object, recursively_compare_objects_type, \
     recursively_cast_one_object_by_other
 from pyquibbler.utilities.unpacker import Unpacker
@@ -38,8 +38,8 @@ from pyquibbler.inversion.exceptions import NoInvertersFoundException
 from pyquibbler.path import FailedToDeepAssignException, PathComponent, Path, Paths
 from pyquibbler.assignment import InvalidTypeException, OverrideRemoval, get_override_group_for_change, \
     AssignmentTemplate, Overrider, Assignment, AssignmentToQuib
-from pyquibbler.quib.func_calling.cache_behavior import CacheBehavior
-from pyquibbler.quib.exceptions import OverridingNotAllowedException, InvalidCacheBehaviorForQuibException
+from pyquibbler.quib.func_calling.caching_options import CachingOptions
+from pyquibbler.quib.exceptions import OverridingNotAllowedException
 from pyquibbler.quib.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own
 from pyquibbler.quib.graphics import UpdateType
 from pyquibbler.translation.translate import forwards_translate, NoTranslatorsFoundException, \
@@ -821,38 +821,10 @@ class Quib:
             PARTIAL: Only part of the quib's cache is valid.
 
         See Also:
-        cache_behavior
+        QuibProps.caching
         """
         return self.handler.quib_function_call.cache.get_cache_status() \
             if self.handler.quib_function_call.cache is not None else CacheStatus.ALL_INVALID
-
-    @property
-    def cache_behavior(self):
-        """
-        Set the value caching mode for the quib:
-        'auto':     caching is decided automatically according to the ratio between evaluation time and
-                    memory consumption.
-        'off':      do not cache.
-        'on':       always caching.
-
-        Returns
-        -------
-        'auto', 'on', or 'off'
-
-        See Also
-        --------
-        CacheBehavior
-        cache_status
-        """
-        return self.handler.quib_function_call.get_cache_behavior().value
-
-    @cache_behavior.setter
-    @validate_user_input(cache_behavior=(str, CacheBehavior))
-    def cache_behavior(self, cache_behavior: Union[str, CacheBehavior]):
-        cache_behavior = get_enum_by_str(CacheBehavior, cache_behavior)
-        if self.is_random_func and cache_behavior != CacheBehavior.ON:
-            raise InvalidCacheBehaviorForQuibException(cache_behavior) from None
-        self.props.default_cache_behavior = cache_behavior
 
     def invalidate(self):
         """
@@ -952,27 +924,46 @@ class Quib:
              save_directory: Union[None, str, pathlib.Path] = NoValue,
              save_format: Union[None, str, SaveFormat] = NoValue,
              allow_overriding: bool = NoValue,
+             assigned_quibs: Optional[Set[Quib]] = NoValue,
              assignment_template: Union[None, tuple, AssignmentTemplate] = NoValue,
-             cache_behavior: Union[str, CacheBehavior] = NoValue,
+             caching: Union[str, CachingOptions] = NoValue,
              graphics_update_type: Union[None, str] = NoValue,
-             assigned_quibs: Set[Quib] = NoValue,
              ):
         """
         Set one or more properties on a quib.
 
         Settable properties:
-         allow_overriding: bool
-         assignment_template: Union[tuple, AssignmentTemplate],
-         save_directory: Union[str, pathlib.Path],
-         save_format: Union[None, str, SaveFormat],
-         cache_behavior: Union[str, CacheBehavior],
-         assigned_name: Union[None, str],
-         name: Union[None, str],
-         graphics_update_type: Union[None, str]
+            assigned_name: Union[None, str],
+            name: Union[None, str],
+            save_directory: Union[str, pathlib.Path],
+            save_format: Union[None, str, SaveFormat],
+            allow_overriding: bool
+            assigned_quibs: Optional[Set[Quib]]
+            assignment_template: Union[tuple, AssignmentTemplate],
+            caching: Union[str, CachingOptions],
+            graphics_update_type: Union[None, str]
+
+        Returns:
+        -------
+        Quib, the quib that was set is returned
+
+        See Also:
+        --------
+            QuibProps
+            QuibProps.assigned_name
+            QuibProps.name
+            QuibProps.save_directory
+            QuibProps.save_format
+            QuibProps.allow_overriding
+            QuibProps.assigned_quibs
+            QuibProps.assignment_template
+            QuibProps.caching
+            QuibProps.graphics_update_type
 
         Examples:
-            >>>> a = iquib(7).setp(assigned_name='my_number')
-            >>>> b = (2 * a).setp(allow_overriding=True)
+        --------
+        >>>> a = iquib(7).setp(assigned_name='my_number')
+        >>>> b = (2 * a).setp(allow_overriding=True)
         """
 
         from pyquibbler.quib.factory import get_quib_name
@@ -981,7 +972,7 @@ class Quib:
             assignment_template=assignment_template,
             save_directory=save_directory,
             save_format=save_format,
-            default_cache_behavior=cache_behavior,
+            caching=caching,
             name=name,
             assigned_name=assigned_name,
             graphics_update_type=graphics_update_type,

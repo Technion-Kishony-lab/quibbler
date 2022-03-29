@@ -4,7 +4,7 @@ import warnings
 from weakref import ReferenceType
 from typing import Union, Optional, Set, Iterable
 
-from pyquibbler.quib.func_calling.quib_func_call import CacheBehavior
+from pyquibbler.quib.func_calling.quib_func_call import CachingOptions
 from pyquibbler.assignment import AssignmentTemplate, create_assignment_template
 from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.file_syncing import SaveFormat, CannotSaveFunctionQuibsAsValueException, \
@@ -39,10 +39,10 @@ class QuibProps:
         ('actual_save_format', False),
         ('file_path', False),
         ('allow_overriding', True),
-        ('assignment_template', True),
-        ('default_cache_behavior', True),
-        ('graphics_update_type', True),
         ('assigned_quibs', True),
+        ('assignment_template', True),
+        ('caching', True),
+        ('graphics_update_type', True),
     )
 
     def __init__(self, quib: Quib = None):
@@ -51,7 +51,7 @@ class QuibProps:
         self._save_format: Union[None, SaveFormat] = None
         self._allow_overriding: bool = False
         self._assignment_template: Union[None, AssignmentTemplate] = None
-        self._default_cache_behavior: CacheBehavior = CacheBehavior.AUTO
+        self._caching: CachingOptions = CachingOptions.AUTO
         self._graphics_update_type: Union[None, UpdateType] = None
         self._assigned_quibs: Optional[Set[Quib]] = None
         self._quib_ref: Optional[ReferenceType[Quib]] = None
@@ -84,7 +84,7 @@ class QuibProps:
               save_format: Union[None, str, SaveFormat] = NoValue,
               allow_overriding: bool = NoValue,
               assignment_template: Union[None, tuple, AssignmentTemplate] = NoValue,
-              default_cache_behavior: Union[str, CacheBehavior] = NoValue,
+              caching: Union[str, CachingOptions] = NoValue,
               graphics_update_type: Union[None, str] = NoValue,
               assigned_quibs: Set[Quib] = NoValue,
               ):
@@ -96,7 +96,7 @@ class QuibProps:
             save_format=save_format,
             allow_overriding=allow_overriding,
             assignment_template=assignment_template,
-            default_cache_behavior=default_cache_behavior,
+            caching=caching,
             graphics_update_type=graphics_update_type,
             assigned_quibs=assigned_quibs,
         )
@@ -109,7 +109,7 @@ class QuibProps:
              save_format: Union[None, str, SaveFormat] = NoValue,
              allow_overriding: bool = NoValue,
              assignment_template: Union[None, tuple, AssignmentTemplate] = NoValue,
-             default_cache_behavior: Union[str, CacheBehavior] = NoValue,
+             caching: Union[str, CachingOptions] = NoValue,
              graphics_update_type: Union[None, str] = NoValue,
              assigned_quibs: Set[Quib] = NoValue,
              ):
@@ -121,7 +121,7 @@ class QuibProps:
          assignment_template: Union[tuple, AssignmentTemplate],
          save_directory: Union[str, pathlib.Path],
          save_format: Union[None, str, SaveFormat],
-         default_cache_behavior: Union[str, CacheBehavior],
+         caching: Union[str, CachingOptions],
          assigned_name: Union[None, str],
          name: Union[None, str],
          graphics_update_type: Union[None, str]
@@ -140,8 +140,8 @@ class QuibProps:
             self.save_directory = save_directory
         if save_format is not NoValue:
             self.save_format = save_format
-        if default_cache_behavior is not NoValue:
-            self.default_cache_behavior = default_cache_behavior
+        if caching is not NoValue:
+            self.caching = caching
         if assigned_name is not NoValue:
             self.assigned_name = assigned_name
         if name is not NoValue:
@@ -205,13 +205,31 @@ class QuibProps:
         self._assignment_template = create_assignment_template(*args)
 
     @property
-    def default_cache_behavior(self):
-        return self._default_cache_behavior
+    def caching(self):
+        """
+        The caching mode for the quib.
 
-    @default_cache_behavior.setter
-    @validate_user_input(default_cache_behavior=(str, CacheBehavior))
-    def default_cache_behavior(self, default_cache_behavior: Union[str, CacheBehavior]):
-        self._default_cache_behavior = get_enum_by_str(CacheBehavior, default_cache_behavior)
+        Options:
+        'auto':     Caching is decided automatically according to the ratio between evaluation time and
+                    memory consumption. Quibs with random or graphics functions are always cached.
+        'on':       Always cache.
+        'off':      Do not cache, unless the quib's function is random or graphics.
+
+        Returns
+        -------
+        'auto', 'on', or 'off'
+
+        See Also
+        --------
+        CachingOptions
+        cache_status
+        """
+        return self._caching
+
+    @caching.setter
+    @validate_user_input(caching=(str, CachingOptions))
+    def caching(self, caching: Union[str, CachingOptions]):
+        self._caching = get_enum_by_str(CachingOptions, caching)
 
     @property
     def graphics_update_type(self) -> Union[None, str]:

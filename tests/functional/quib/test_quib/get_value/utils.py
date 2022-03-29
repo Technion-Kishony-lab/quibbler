@@ -5,7 +5,7 @@ from contextlib import contextmanager
 from copy import deepcopy
 from typing import Any
 
-from pyquibbler import CacheBehavior, Assignment, iquib
+from pyquibbler import CachingOptions, Assignment, iquib
 from pyquibbler.path.path_component import PathComponent, Path
 from pyquibbler.path.data_accessing import deep_get, deep_assign_data_in_path
 from tests.functional.utils import PathBuilder
@@ -90,7 +90,7 @@ def check_get_value_valid_at_path(func, data, path_to_get_value_at):
     """
     input_quib = collecting_quib(data)
     result_quib = func(input_quib)
-    result_quib.cache_behavior = CacheBehavior.OFF
+    result_quib.props.caching = CachingOptions.OFF
 
     result = result_quib.get_value()
 

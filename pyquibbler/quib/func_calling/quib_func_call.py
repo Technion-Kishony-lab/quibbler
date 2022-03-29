@@ -16,7 +16,7 @@ from pyquibbler.graphics.graphics_collection import GraphicsCollection
 from pyquibbler.path import Path
 from pyquibbler.quib import consts
 from pyquibbler.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
-from pyquibbler.quib.func_calling.cache_behavior import CacheBehavior
+from pyquibbler.quib.func_calling.caching_options import CachingOptions
 from pyquibbler.quib.func_calling.exceptions import CannotCalculateShapeException
 from pyquibbler.quib.func_calling.result_metadata import ResultMetadata
 from pyquibbler.quib.func_calling.utils import create_array_from_func
@@ -38,7 +38,7 @@ class QuibFuncCall(FuncCall):
     """
 
     SOURCE_OBJECT_TYPE = Quib
-    DEFAULT_CACHE_BEHAVIOR = CacheBehavior.AUTO
+    DEFAULT_CACHING = CachingOptions.AUTO
 
     def __init__(self, artists_creation_callback: Callable = None,
                  quib_handler: QuibHandler = None):
@@ -92,10 +92,10 @@ class QuibFuncCall(FuncCall):
         if self.graphics_collections is None:
             self.graphics_collections = create_array_from_func(GraphicsCollection, loop_shape)
 
-    def get_cache_behavior(self):
+    def get_cache_behavior(self) -> CachingOptions:
         if self.func_definition.is_random_func or self.func_can_create_graphics:
-            return CacheBehavior.ON
-        return self.props.default_cache_behavior
+            return CachingOptions.ON
+        return self.props._caching
 
     def _should_cache(self, result: Any, elapsed_seconds: float):
         """
@@ -103,15 +103,16 @@ class QuibFuncCall(FuncCall):
         Note that there is no accurate way (and no efficient way to even approximate) the complete size of composite
         types in python, so we only measure the outer size of the object.
         """
-        cache_behavior = self.get_cache_behavior()
-        if cache_behavior is CacheBehavior.ON:
+        caching = self.get_cache_behavior()
+        if caching is CachingOptions.ON:
             return True
-        if cache_behavior is CacheBehavior.OFF:
+        if caching is CachingOptions.OFF:
             return False
-        assert cache_behavior is CacheBehavior.AUTO, \
-            f'self.cache_behavior has unexpected value: "{cache_behavior}"'
-        return elapsed_seconds > consts.MIN_SECONDS_FOR_CACHE \
-            and getsizeof(result) / elapsed_seconds < consts.MAX_BYTES_PER_SECOND
+        if caching is CachingOptions.AUTO:
+            return elapsed_seconds > consts.MIN_SECONDS_FOR_CACHE \
+                and getsizeof(result) / elapsed_seconds < consts.MAX_BYTES_PER_SECOND
+
+        assert False, f'self.caching has unexpected value: "{caching}"'
 
     def _get_representative_value(self):
         return self.run([None])
@@ -158,7 +159,7 @@ class QuibFuncCall(FuncCall):
 
     def reset_cache(self):
         self.cache = None
-        self._caching = True if self.get_cache_behavior() == CacheBehavior.ON else False
+        self._caching = True if self.get_cache_behavior() == CachingOptions.ON else False
         self._result_metadata = None
 
     def on_type_change(self):

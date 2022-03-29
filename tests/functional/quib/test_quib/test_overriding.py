@@ -3,7 +3,7 @@ from unittest import mock
 import numpy as np
 import pytest
 
-from pyquibbler import CacheBehavior
+from pyquibbler import CachingOptions
 from pyquibbler.utilities.input_validation_utils import InvalidArgumentTypeException
 from pyquibbler.assignment import InvalidTypeException, BoundAssignmentTemplate, RangeAssignmentTemplate
 from pyquibbler.path.data_accessing import FailedToDeepAssignException
@@ -181,6 +181,6 @@ def test_full_overriding_prevents_get_value():
 
 @pytest.mark.regression
 def test_quib_get_value_when_fully_overridden():
-    quib = create_quib(mock.Mock(return_value=[1, 2, 3]), allow_overriding=True, cache_behavior=CacheBehavior.OFF)
+    quib = create_quib(mock.Mock(return_value=[1, 2, 3]), allow_overriding=True, caching=CachingOptions.OFF)
     quib.assign(7)
     assert quib.get_value() == 7
