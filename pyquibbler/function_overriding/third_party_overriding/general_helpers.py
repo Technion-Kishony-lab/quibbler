@@ -12,11 +12,11 @@ def override_with_cls(override_cls,
                       forwards_path_translators: Optional[List] = None,
                       backwards_path_translators: Optional[List] = None,
                       inverters: Optional[List] = None,
-                      quib_function_call_cls=None, is_file_loading_func=False, is_random_func=False,
+                      quib_function_call_cls=None, is_file_loading=False, is_random=False,
                       pass_quibs: bool = False,
                       lazy: bool = None,
                       replace_previous_quibs_on_artists: bool = False,
-                      is_graphics_func: bool = False,
+                      is_graphics: bool = False,
                       func: Optional[Callable] = None,
                       func_definition_cls: Optional[Type[FuncDefinition]] = None,
                       allowed_kwarg_flags: Tuple[str] = (),
@@ -27,9 +27,9 @@ def override_with_cls(override_cls,
         module_or_cls=module_or_cls,
         allowed_kwarg_flags=allowed_kwarg_flags,
         function_definition=create_func_definition(raw_data_source_arguments=data_source_arguments,
-                                                   is_random_func=is_random_func,
-                                                   is_file_loading_func=is_file_loading_func,
-                                                   is_graphics_func=is_graphics_func,
+                                                   is_random=is_random,
+                                                   is_file_loading=is_file_loading,
+                                                   is_graphics=is_graphics,
                                                    pass_quibs=pass_quibs,
                                                    lazy=lazy,
                                                    replace_previous_quibs_on_artists=replace_previous_quibs_on_artists,
@@ -42,7 +42,7 @@ def override_with_cls(override_cls,
 
 
 def file_loading_override(module_or_cls, func_name: str):
-    return FuncOverride(module_or_cls, func_name, FuncDefinition(is_file_loading_func=True))
+    return FuncOverride(module_or_cls, func_name, FuncDefinition(is_file_loading=True))
 
 
 override = functools.partial(override_with_cls, FuncOverride)

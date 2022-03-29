@@ -106,13 +106,13 @@ class Project:
         """
         Reset and then invalidate_redraw all random quibs in the project.
         """
-        self._reset_list_of_quibs([quib for quib in self.quibs if quib.is_random_func])
+        self._reset_list_of_quibs([quib for quib in self.quibs if quib.is_random])
 
     def reset_file_loading_quibs(self):
         """
         Reset and then invalidate_redraw all file_loading quibs in the project.
         """
-        self._reset_list_of_quibs([quib for quib in self.quibs if quib.is_file_loading_func])
+        self._reset_list_of_quibs([quib for quib in self.quibs if quib.is_file_loading])
 
     def reset_impure_quibs(self):
         """

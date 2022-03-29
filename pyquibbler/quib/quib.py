@@ -714,7 +714,7 @@ class Quib:
 
         See Also
         --------
-        is_random_func, is_file_loading_func
+        is_random, is_file_loading
         Project.reset_impure_quibs
 
         Returns
@@ -729,10 +729,10 @@ class Quib:
         >>> r.is_impure_func
         True
         """
-        return self.is_random_func or self.is_file_loading_func
+        return self.is_random or self.is_file_loading
 
     @property
-    def is_random_func(self) -> bool:
+    def is_random(self) -> bool:
         """
         Indicates whether the quib represents a random function.
 
@@ -746,7 +746,7 @@ class Quib:
 
         See Also
         --------
-        is_impure_func, is_file_loading_func
+        is_impure_func, is_file_loading
         invalidate
         Project.reset_random_quibs
 
@@ -759,13 +759,13 @@ class Quib:
         --------
         >>> n = iquib(5)
         >>> r = np.random.randint(0, n)
-        >>> r.is_random_func
+        >>> r.is_random
         True
         """
-        return self.func_definition.is_random_func
+        return self.func_definition.is_random
 
     @property
-    def is_file_loading_func(self) -> bool:
+    def is_file_loading(self) -> bool:
         """
         Indicates whether the quib represents a function that loads external files.
 
@@ -777,7 +777,7 @@ class Quib:
 
         See Also
         --------
-        is_impure_func, is_random_func
+        is_impure_func, is_random
         invalidate
         Project.reset_file_loading_quibs
 
@@ -790,10 +790,10 @@ class Quib:
         --------
         >>> file_name = iquib('my_file.txt')
         >>> x = np.loadtxt(file_name)
-        >>> x.is_file_loading_func
+        >>> x.is_file_loading
         True
         """
-        return self.func_definition.is_file_loading_func
+        return self.func_definition.is_file_loading
 
     @property
     def pass_quibs(self) -> bool:
@@ -845,7 +845,7 @@ class Quib:
     """
 
     @property
-    def is_graphics_func(self):
+    def is_graphics(self):
         """
         Specifies whether the function runs by the quib is a graphics function.
 
@@ -861,14 +861,14 @@ class Quib:
         --------
         is_graphics_quib, graphics_update_type
         """
-        return self.func_definition.is_graphics_func
+        return self.func_definition.is_graphics
 
     @property
     def is_graphics_quib(self):
         """
         Specifies whether the quib is a graphics quib.
 
-        A quib is defined as graphics if its function is a known graphics function (`is_graphics_func`=`True`),
+        A quib is defined as graphics if its function is a known graphics function (`is_graphics`=`True`),
         or if its function created graphics.
 
         A quib defined as graphics will get auto-refreshed based on the `graphics_update_type`.
@@ -879,10 +879,10 @@ class Quib:
 
         See Also
         --------
-        is_graphics_func, graphics_update_type
+        is_graphics, graphics_update_type
         Project.refresh_graphics
         """
-        return self.func_definition.is_graphics_func or self.handler.quib_function_call.created_graphics
+        return self.func_definition.is_graphics or self.handler.quib_function_call.created_graphics
 
     """
     Assignment

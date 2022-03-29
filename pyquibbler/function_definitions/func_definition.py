@@ -31,9 +31,9 @@ class FuncDefinition:
 
     func: Optional[Callable] = None
     data_source_arguments: Set[Argument] = field(repr=False, default_factory=set)
-    is_random_func: bool = False
-    is_file_loading_func: bool = False
-    is_graphics_func: Optional[bool] = False  # None for 'maybe'
+    is_random: bool = False
+    is_file_loading: bool = False
+    is_graphics: Optional[bool] = False  # None for 'maybe'
     pass_quibs: bool = False
     lazy: bool = True
     replace_previous_quibs_on_artists: bool = field(repr=False, default=False)
@@ -136,9 +136,9 @@ ElementWiseFuncDefinition.__hash__ = FuncDefinition.__hash__
 
 
 def create_func_definition(raw_data_source_arguments: List[RawArgument] = None,
-                           is_random_func: bool = False,
-                           is_file_loading_func: bool = False,
-                           is_graphics_func: Optional[bool] = False,
+                           is_random: bool = False,
+                           is_file_loading: bool = False,
+                           is_graphics: Optional[bool] = False,
                            pass_quibs: bool = False,
                            lazy: bool = None,
                            replace_previous_quibs_on_artists: bool = False,
@@ -162,9 +162,9 @@ def create_func_definition(raw_data_source_arguments: List[RawArgument] = None,
     data_source_arguments = convert_raw_data_source_arguments_to_data_source_arguments(raw_data_source_arguments)
     return func_definition_cls(
         func=func,
-        is_random_func=is_random_func,
-        is_graphics_func=is_graphics_func,
-        is_file_loading_func=is_file_loading_func,
+        is_random=is_random,
+        is_graphics=is_graphics,
+        is_file_loading=is_file_loading,
         data_source_arguments=data_source_arguments,
         inverters=inverters or [],
         backwards_path_translators=backwards_path_translators or [],

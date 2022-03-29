@@ -28,7 +28,7 @@ def test_quib_setp_with_invalid_cache_behavior(quib):
 @pytest.fixture()
 def random_quib():
     func = mock.Mock()
-    add_definition_for_function(func=func, function_definition=FuncDefinition(is_random_func=True))
+    add_definition_for_function(func=func, function_definition=FuncDefinition(is_random=True))
     return create_quib(func=func)
 
 
