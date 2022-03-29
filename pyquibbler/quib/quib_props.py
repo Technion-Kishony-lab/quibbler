@@ -593,15 +593,15 @@ class QuibProps:
             else None
 
     def __repr__(self):
-        _repr = ''
-        _repr = _repr + f'{"Settable properties":>26}\n'
-        _repr = _repr + f'{"-------------------":>26}\n'
-        _repr = _repr + '\n'.join((f'{prop:>26}: {getattr(self, prop)}' for prop, settable in
+        repr_ = ''
+        repr_ = repr_ + f'{"Settable properties":>26}\n'
+        repr_ = repr_ + f'{"-------------------":>26}\n'
+        repr_ = repr_ + '\n'.join((f'{prop:>26}: {getattr(self, prop)}' for prop, settable in
                                    self.PROPERTIES_AND_IS_SETTABLE if settable))
         if self._quib_ref:
-            _repr = _repr + '\n\n'
-            _repr = _repr + f'{"Derived properties":>26}\n'
-            _repr = _repr + f'{"------------------":>26}\n'
-            _repr = _repr + '\n'.join((f'{prop:>26}: {getattr(self, prop)}' for prop, settable in
+            repr_ = repr_ + '\n\n'
+            repr_ = repr_ + f'{"Derived properties":>26}\n'
+            repr_ = repr_ + f'{"------------------":>26}\n'
+            repr_ = repr_ + '\n'.join((f'{prop:>26}: {getattr(self, prop)}' for prop, settable in
                                        self.PROPERTIES_AND_IS_SETTABLE if not settable))
-        return _repr
+        return repr_
