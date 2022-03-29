@@ -104,7 +104,7 @@ def create_quib(func: Callable, args: Tuple[Any, ...] = (), kwargs: Mapping[str,
     add_new_quib_to_guard_if_exists(quib)
 
     if update_type:
-        quib.graphics_update_type = update_type or UpdateType.DRAG
+        quib.props.graphics_update_type = update_type or UpdateType.DRAG
 
     for arg in quib.parents:
         arg.handler.add_child(quib)
