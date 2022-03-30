@@ -45,6 +45,10 @@ class FuncDefinition:
     def __hash__(self):
         return id(self)
 
+    @property
+    def is_impure(self):
+        return self.is_random or self.is_file_loading
+
     @functools.lru_cache()
     def get_parameters(self):
         try:
