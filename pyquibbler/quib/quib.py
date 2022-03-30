@@ -1490,7 +1490,7 @@ class Quib:
         --------
         file_path
         """
-        return PathWithHyperLink(self.handler.save_directory)
+        return PathWithHyperLink(self.handler.save_directory) if self.handler.save_directory else None
 
     @save_directory.setter
     @validate_user_input(directory=(type(None), str, pathlib.Path))
