@@ -37,5 +37,5 @@ def get_definition_for_function(func: Callable) -> FuncDefinition:
         return func.function_definition
     if func not in FUNCS_TO_DEFINITIONS_MODULE_NAME_ISOVERRIDDEN:
         # Default function definition
-        return FuncDefinition(is_graphics_func=None)
+        return FuncDefinition(is_graphics=None)
     return FUNCS_TO_DEFINITIONS_MODULE_NAME_ISOVERRIDDEN[func][0]

@@ -86,7 +86,7 @@ class QuibFuncCall(FuncCall):
             self.graphics_collections = create_array_from_func(GraphicsCollection, loop_shape)
 
     def get_cache_behavior(self):
-        if self.func_definition.is_random_func or self.func_can_create_graphics:
+        if self.func_definition.is_random or self.func_can_create_graphics:
             return CacheMode.ON
         return self.quib_handler.cache_mode
 
@@ -146,8 +146,8 @@ class QuibFuncCall(FuncCall):
 
     @property
     def func_can_create_graphics(self):
-        is_graphics_func = self.func_definition.is_graphics_func
-        return is_graphics_func or (is_graphics_func is None and self.created_graphics)
+        is_graphics = self.func_definition.is_graphics
+        return is_graphics or (is_graphics is None and self.created_graphics)
 
     def reset_cache(self):
         self.cache = None
@@ -161,7 +161,7 @@ class QuibFuncCall(FuncCall):
                          args: Tuple[Any, ...], kwargs: Mapping[str, Any], quibs_allowed_to_access: Set[Quib]):
 
         with ExitStack() as stack:
-            if self.func_definition.is_graphics_func is not False:
+            if self.func_definition.is_graphics is not False:
                 stack.enter_context(graphics_collection.track_and_handle_new_graphics(
                     kwargs_specified_in_artists_creation=set(
                         key for key, value in self.kwargs.items() if value is not None)))

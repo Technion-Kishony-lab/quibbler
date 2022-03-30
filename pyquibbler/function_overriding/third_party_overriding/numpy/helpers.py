@@ -15,7 +15,7 @@ from pyquibbler.function_definitions.func_definition import ElementWiseFuncDefin
 
 numpy_override = functools.partial(override, np)
 
-numpy_override_random = functools.partial(override, np.random, is_random_func=True)
+numpy_override_random = functools.partial(override, np.random, is_random=True)
 
 numpy_override_read_file = functools.partial(file_loading_override, np)
 

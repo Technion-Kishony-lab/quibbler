@@ -17,7 +17,7 @@ def test_redraw_axes_happy_flow(mock_axes):
 def test_redraw_in_aggregate_mode():
     mock_func = mock.Mock()
     quib = iquib(1)
-    add_definition_for_function(func=mock_func, function_definition=create_func_definition(is_graphics_func=True,
+    add_definition_for_function(func=mock_func, function_definition=create_func_definition(is_graphics=True,
                                                                                            replace_previous_quibs_on_artists=True))
     _ = create_quib(func=mock_func, args=(quib,))
     assert mock_func.call_count == 0, "sanity"
