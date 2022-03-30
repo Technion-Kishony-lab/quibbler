@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 from pytest import fixture
 
-from pyquibbler import CacheBehavior
+from pyquibbler import CacheMode
 from pyquibbler.env import DEBUG, LAZY, ASSIGNMENT_RESTRICTIONS, PRETTY_REPR, \
     SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS, GET_VARIABLE_NAMES
 from pyquibbler.project import Project
@@ -22,7 +22,7 @@ DEFAULT_GET_VARIABLE_NAMES = False
 
 @fixture(scope="session", autouse=True)
 def setup_environment_for_tests():
-    QuibFuncCall.DEFAULT_CACHE_BEHAVIOR = CacheBehavior.ON
+    QuibFuncCall.DEFAULT_CACHE_MODE = CacheMode.ON
 
 
 @pytest.fixture(autouse=True, scope="session")

@@ -18,7 +18,7 @@ from pyquibbler.function_definitions.func_definition import FuncDefinition
 from pyquibbler.function_definitions import get_definition_for_function
 
 if TYPE_CHECKING:
-    from pyquibbler import CacheBehavior
+    from pyquibbler import CacheMode
 
 
 def get_quib_name() -> Optional[str]:
@@ -50,7 +50,7 @@ def _get_file_name_and_line_no() -> Optional[FileAndLineNumber]:
 
 
 def create_quib(func: Callable, args: Tuple[Any, ...] = (), kwargs: Mapping[str, Any] = None,
-                cache_behavior: CacheBehavior = None,
+                cache_mode: CacheMode = None,
                 lazy: bool = None,
                 allow_overriding: bool = False,
                 update_type: UpdateType = None,
@@ -66,7 +66,7 @@ def create_quib(func: Callable, args: Tuple[Any, ...] = (), kwargs: Mapping[str,
     :param func - The function this quib represents
     :param args - Positional arguments of the quib's function
     :param kwargs - Keyword arguments of the quib's function
-    :param cache_behavior - In what fashion should the quib cache? See CacheBehavior for options
+    :param cache_mode - In what fashion should the quib cache? See CacheMode for options
     :param lazy - by default we are lazy- should the quib be evaluated immediately upon creation?
     :param allow_overriding - can this quib be overridden, or does it always need to propogate assignments backwards?
     func will be called with the quibs.
@@ -97,7 +97,7 @@ def create_quib(func: Callable, args: Tuple[Any, ...] = (), kwargs: Mapping[str,
     quib.args = args
     quib.kwargs = kwargs
     quib.handler.func_definition = function_definition
-    quib.default_cache_behavior = cache_behavior or QuibFuncCall.DEFAULT_CACHE_BEHAVIOR
+    quib.cache_mode = cache_mode or QuibFuncCall.DEFAULT_CACHE_MODE
     quib.handler.reset_quib_func_call()
 
     project.register_quib(quib)

@@ -7,7 +7,7 @@ from pyquibbler.function_definitions import add_definition_for_function
 from pyquibbler.function_definitions.func_definition import create_func_definition
 from pyquibbler.path.path_component import Path, Paths
 from pyquibbler.quib.factory import create_quib
-from pyquibbler.quib.func_calling.cache_behavior import CacheBehavior
+from pyquibbler.quib.func_calling.cache_mode import CacheMode
 from pyquibbler.quib.utils.miscellaneous import is_there_a_quib_in_object
 from pyquibbler.quib.quib import Quib
 
@@ -72,7 +72,7 @@ def iquib(value: Any):
         args=(value,),
         allow_overriding=True,
         lazy=False,
-        cache_behavior=CacheBehavior.ON,
+        cache_mode=CacheMode.ON,
         function_definition=iquib_definition,
     )
 

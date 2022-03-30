@@ -3,7 +3,7 @@ from operator import or_
 from functools import reduce
 from typing import Set
 
-from pyquibbler import iquib, CacheBehavior
+from pyquibbler import iquib, CacheMode
 from pyquibbler.quib.quib import Quib
 from pyquibbler.cache.cache import CacheStatus
 
@@ -32,7 +32,7 @@ def check_invalidation(func, data, indices_to_invalidate):
     """
     input_quib = iquib(data)
     result = func(input_quib)
-    result.cache_behavior = CacheBehavior.OFF
+    result.cache_mode = CacheMode.OFF
     children = breakdown_quib(result)
 
     original_values = {child: child.get_value() for child in children}

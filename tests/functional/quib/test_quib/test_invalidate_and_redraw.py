@@ -2,7 +2,7 @@ from unittest import mock
 
 import pytest
 
-from pyquibbler import CacheBehavior
+from pyquibbler import CacheMode
 from pyquibbler.cache.cache import CacheStatus
 from pyquibbler.function_definitions import add_definition_for_function
 from pyquibbler.function_definitions.func_definition import create_func_definition
@@ -48,7 +48,7 @@ def test_quib_invalidates_children_recursively(quib, create_mock_quib):
 
 
 def create_child_with_valid_cache(parent):
-    child = create_quib(func=mock.Mock(), args=(parent,), kwargs={}, cache_behavior=CacheBehavior.ON)
+    child = create_quib(func=mock.Mock(), args=(parent,), kwargs={}, cache_mode=CacheMode.ON)
     child.get_value()
     # Sanity
     assert child.cache_status == CacheStatus.ALL_VALID

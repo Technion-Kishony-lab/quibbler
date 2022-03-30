@@ -41,7 +41,7 @@ from pyquibbler.inversion.exceptions import NoInvertersFoundException
 from pyquibbler.path import FailedToDeepAssignException, PathComponent, Path, Paths
 from pyquibbler.assignment import InvalidTypeException, OverrideRemoval, get_override_group_for_change, \
     AssignmentTemplate, Overrider, Assignment, AssignmentToQuib, create_assignment_template
-from pyquibbler.quib.func_calling.cache_behavior import CacheBehavior
+from pyquibbler.quib.func_calling.cache_mode import CacheMode
 from pyquibbler.quib.exceptions import OverridingNotAllowedException, InvalidCacheBehaviorForQuibException
 from pyquibbler.quib.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own
 from pyquibbler.quib.graphics import UpdateType
@@ -79,7 +79,7 @@ class QuibHandler:
                  args: Tuple[Any, ...] = (),
                  kwargs: Mapping[str, Any] = None,
                  function_definition: FuncDefinition = None,
-                 default_cache_behavior: CacheBehavior = None,
+                 cache_mode: CacheMode = None,
                  ):
         kwargs = kwargs or {}
 
@@ -106,7 +106,7 @@ class QuibHandler:
         self.func_args_kwargs = FuncArgsKwargs(func, args, kwargs, include_defaults=True)
         self.func_definition = function_definition
 
-        self.default_cache_behavior = default_cache_behavior
+        self.cache_mode = cache_mode
 
     """
     relationships
@@ -583,7 +583,7 @@ class Quib:
                  args: Tuple[Any, ...] = (),
                  kwargs: Mapping[str, Any] = None,
                  function_definition: FuncDefinition = None,
-                 default_cache_behavior: CacheBehavior = None,
+                 cache_mode: CacheMode = None,
                  ):
 
         self.handler = QuibHandler(self, quib_function_call,
@@ -598,7 +598,7 @@ class Quib:
                                    args,
                                    kwargs,
                                    function_definition,
-                                   default_cache_behavior,
+                                   cache_mode,
                                    )
 
     """
@@ -840,19 +840,19 @@ class Quib:
             PARTIAL: Only part of the quib's cache is valid.
 
         See Also:
-        cache_behavior
+        cache_mode
         """
         return self.handler.quib_function_call.cache.get_cache_status() \
             if self.handler.quib_function_call.cache is not None else CacheStatus.ALL_INVALID
 
     @property
-    def cache_behavior(self):
+    def cache_mode(self):
         """
         Set the value caching mode for the quib:
-        'auto':     caching is decided automatically according to the ratio between evaluation time and
-                    memory consumption.
-        'off':      do not cache.
-        'on':       always caching.
+        'auto':     Caching is decided automatically according to the ratio between evaluation time and
+                    memory consumption. Quibs with random or graphics functions are always cached.
+        'on':       Always cache.
+        'off':      Do not cache, unless the quib's function is random or graphics.
 
         Returns
         -------
@@ -860,27 +860,15 @@ class Quib:
 
         See Also
         --------
-        CacheBehavior
+        CacheMode
         cache_status
         """
-        return self.handler.quib_function_call.get_cache_behavior().value
+        return self.handler.cache_mode
 
-    @cache_behavior.setter
-    @validate_user_input(cache_behavior=(str, CacheBehavior))
-    def cache_behavior(self, cache_behavior: Union[str, CacheBehavior]):
-        cache_behavior = get_enum_by_str(CacheBehavior, cache_behavior)
-        if self.is_random_func and cache_behavior != CacheBehavior.ON:
-            raise InvalidCacheBehaviorForQuibException(self.handler.default_cache_behavior) from None
-        self.handler.default_cache_behavior = cache_behavior
-
-    @property
-    def default_cache_behavior(self):
-        return self.handler.default_cache_behavior
-
-    @default_cache_behavior.setter
-    @validate_user_input(cache_behavior=(str, CacheBehavior))
-    def default_cache_behavior(self, cache_behavior: Union[str, CacheBehavior]):
-        self.handler.default_cache_behavior = get_enum_by_str(CacheBehavior, cache_behavior)
+    @cache_mode.setter
+    @validate_user_input(cache_mode=(str, CacheMode))
+    def cache_mode(self, cache_mode: Union[str, CacheMode]):
+        self.handler.cache_mode = get_enum_by_str(CacheMode, cache_mode)
 
     def invalidate(self):
         """
@@ -1103,7 +1091,7 @@ class Quib:
              assignment_template: Union[None, tuple, AssignmentTemplate] = NoValue,
              save_directory: Union[None, str, pathlib.Path] = NoValue,
              save_format: Union[None, str, SaveFormat] = NoValue,
-             cache_behavior: Union[str, CacheBehavior] = NoValue,
+             cache_mode: Union[str, CacheMode] = NoValue,
              assigned_name: Union[None, str] = NoValue,
              name: Union[None, str] = NoValue,
              graphics_update_type: Union[None, str] = NoValue,
@@ -1117,7 +1105,7 @@ class Quib:
          assignment_template: Union[tuple, AssignmentTemplate],
          save_directory: Union[str, pathlib.Path],
          save_format: Union[None, str, SaveFormat],
-         cache_behavior: Union[str, CacheBehavior],
+         cache_mode: Union[str, CacheMode],
          assigned_name: Union[None, str],
          name: Union[None, str],
          graphics_update_type: Union[None, str]
@@ -1136,8 +1124,8 @@ class Quib:
             self.save_directory = save_directory
         if save_format is not NoValue:
             self.save_format = save_format
-        if cache_behavior is not NoValue:
-            self.cache_behavior = cache_behavior
+        if cache_mode is not NoValue:
+            self.cache_mode = cache_mode
         if assigned_name is not NoValue:
             self.assigned_name = assigned_name
         if name is not NoValue:

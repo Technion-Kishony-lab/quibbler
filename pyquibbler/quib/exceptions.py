@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Callable, Dict, Set, Any
 
 from pyquibbler.exceptions import PyQuibblerException, DebugException
-from pyquibbler.quib.func_calling.cache_behavior import CacheBehavior
+from pyquibbler.quib.func_calling.cache_mode import CacheMode
 
 if TYPE_CHECKING:
     from pyquibbler.quib.quib import Quib
@@ -29,12 +29,12 @@ class UnknownUpdateTypeException(PyQuibblerException):
 
 @dataclass
 class InvalidCacheBehaviorForQuibException(PyQuibblerException):
-    invalid_cache_behavior: CacheBehavior
+    invalid_cache_behavior: CacheMode
 
     def __str__(self):
         return 'This quib must always cache function results, ' \
                'so they are not changed until they are refreshed. ' \
-               f'Therefore, the cache behavior should be always set to {CacheBehavior.ON}, ' \
+               f'Therefore, the cache behavior should be always set to {CacheMode.ON}, ' \
                f'and {self.invalid_cache_behavior} is invalid.'
 
 
