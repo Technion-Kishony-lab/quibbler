@@ -22,20 +22,13 @@ from pyquibbler import Quib
 
 class QuibProps:
 
-    PROPERTIES_AND_IS_SETTABLE = (
-        ('assigned_name', True),
-        ('name', False),
-        ('functional_representation', False),
-        ('save_directory', True),
-        ('actual_save_directory', False),
-        ('save_format', True),
-        ('actual_save_format', False),
-        ('file_path', False),
-        ('allow_overriding', True),
-        ('assigned_quibs', True),
-        ('assignment_template', True),
-        ('caching', True),
-        ('graphics_update_type', True),
+    PROPERTY_LIST = (
+        ('Designation', ('assigned_name', 'name', 'functional_representation','created_in')),
+        ('Function', ('is_iquib', 'is_random', 'is_file_loading', 'is_impure', 'is_graphics', 'pass_quibs')),
+        ('File saving', ('save_directory', 'actual_save_directory', 'save_format', 'actual_save_format', 'file_path')),
+        ('Assignments', ('assignment_template', 'allow_overriding', 'assigned_quibs')),
+        ('Caching', ('caching', )),
+        ('Graphics', ('graphics_update_type', )),
     )
 
     def __init__(self,
@@ -666,21 +659,10 @@ class QuibProps:
 
     def __repr__(self):
         repr_ = ''
-        repr_ = repr_ + f'{"Settable properties":>26}\n'
-        repr_ = repr_ + f'{"-------------------":>26}\n'
-        repr_ = repr_ + '\n'.join((f'{prop:>26}: {getattr(self, prop)}' for prop, settable in
-                                   self.PROPERTIES_AND_IS_SETTABLE if settable))
-        if self._quib:
-            repr_ = repr_ + '\n\n'
-            repr_ = repr_ + f'{"Derived properties":>26}\n'
-            repr_ = repr_ + f'{"------------------":>26}\n'
-            repr_ = repr_ + '\n'.join((f'{prop:>26}: {getattr(self, prop)}' for prop, settable in
-                                       self.PROPERTIES_AND_IS_SETTABLE if not settable))
 
-        if self._func_definition:
+        for header, properties in self.PROPERTY_LIST:
+            repr_ = repr_ + f'{"--- " + header + " ---":>30}\n'
+            repr_ = repr_ + '\n'.join((f'{prop:>26}: {getattr(self, prop)}' for prop in properties))
             repr_ = repr_ + '\n\n'
-            repr_ = repr_ + f'{"Function definition":>26}\n'
-            repr_ = repr_ + f'{"------------------":>26}\n'
-            repr_ = repr_ + '\n'.join((f'{prop:>26}: {getattr(self, prop)}' for prop, settable in
-                                       self.PROPERTIES_AND_IS_SETTABLE if not settable))
+
         return repr_
