@@ -38,7 +38,10 @@ class QuibProps:
         ('graphics_update_type', True),
     )
 
-    def __init__(self, quib_weakref: ReferenceType[Quib]):
+    def __init__(self,
+                 quib_weakref: ReferenceType[Quib],
+                 created_in: Optional[FileAndLineNumber] = None,
+                 ):
         self._assigned_name: Union[None, str] = None
         self._save_directory: Union[None, pathlib.Path] = None
         self._save_format: Union[None, SaveFormat] = None
@@ -47,6 +50,7 @@ class QuibProps:
         self._caching: CachingOptions = CachingOptions.AUTO
         self._graphics_update_type: Union[None, UpdateType] = None
         self._assigned_quibs: Optional[Set[Quib]] = None
+        self._created_in = created_in
         self._quib_ref: ReferenceType[Quib] = quib_weakref
 
     @property
@@ -518,7 +522,7 @@ class QuibProps:
         -------
         FileAndLineNumber or None
         """
-        return self._quib.created_in
+        return self._created_in
 
     @property
     def is_iquib(self) -> Optional[bool]:

@@ -3,14 +3,18 @@ import contextlib
 import functools
 import sys
 import traceback
+from typing import List, Tuple, TYPE_CHECKING
 
 from varname.utils import cached_getmodule
 
 from pyquibbler.env import SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS
 from pyquibbler.exceptions import PyQuibblerException
 
+if TYPE_CHECKING:
+    from pyquibbler import Quib
 
-def get_user_friendly_name_for_requested_evaluation(func, args, kwargs):
+
+def get_user_friendly_name_for_requested_evaluation(func, args, kwargs) -> str:
     """
     Get a user-friendly name representing the call to get_value_valid_at_path
     """
@@ -28,7 +32,7 @@ def get_user_friendly_name_for_requested_evaluation(func, args, kwargs):
 
 class ExternalCallFailedException(PyQuibblerException):
 
-    def __init__(self, quibs_with_calls, exception, tb):
+    def __init__(self, quibs_with_calls: List[Tuple[Quib, str]], exception, tb):
         self.quibs_with_calls = quibs_with_calls
         self.exception = exception
         self.traceback = tb
@@ -39,8 +43,9 @@ class ExternalCallFailedException(PyQuibblerException):
 
         quibs_formatted = ""
         for quib, call in self.quibs_with_calls[::-1]:
-            file_info = f"File \"{quib.created_in.file_path}\", line {quib.created_in.line_no}" \
-                if quib.created_in else "Untraceable quib"
+            created_in = quib.props.created_in
+            file_info = f"File \"{created_in.file_path}\", line {created_in.line_no}" \
+                if created_in else "Untraceable quib"
             quibs_formatted += "\n  " + file_info
             quibs_formatted += f"\n\t{repr(quib)} -> {call} "
 

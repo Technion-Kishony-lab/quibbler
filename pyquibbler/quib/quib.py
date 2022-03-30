@@ -579,8 +579,7 @@ class Quib:
                                    function_definition,
                                    )
 
-        self.props = QuibProps(self_weakref)
-        self._created_in = created_in
+        self.props = QuibProps(self_weakref, created_in)
     """
     Func metadata
     """
@@ -1219,18 +1218,3 @@ class Quib:
                 return self.pretty_repr() + '\n' + self.handler.overrider.pretty_repr(self.props.assigned_name)
             return self.pretty_repr()
         return self.ugly_repr()
-
-    @property
-    def created_in(self) -> Optional[FileAndLineNumber]:
-        """
-        The file and line number where the quib was created.
-
-        Returns a FileAndLineNumber object indicating the place where the quib was created.
-
-        None if creation place is unknown.
-
-        Returns
-        -------
-        FileAndLineNumber or None
-        """
-        return self._created_in
