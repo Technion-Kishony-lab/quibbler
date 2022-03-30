@@ -693,18 +693,6 @@ class Quib:
         self.handler.func_args_kwargs.kwargs = {k: deep_copy_without_quibs_or_graphics(v) for k, v in kwargs.items()}
 
     @property
-    def func_definition(self) -> FuncDefinition:
-        """
-        Properties of the function run by the quib.
-
-        Returns
-        -------
-        func_definition : FuncDefinition
-            An object containg the properties of the function.
-        """
-        return self.handler.func_definition
-
-    @property
     def is_impure_func(self) -> bool:
         """
         Indicates whether the quib runs an impure function.
@@ -762,7 +750,7 @@ class Quib:
         >>> r.is_random
         True
         """
-        return self.func_definition.is_random
+        return self.handler.func_definition.is_random
 
     @property
     def is_file_loading(self) -> bool:
@@ -793,7 +781,7 @@ class Quib:
         >>> x.is_file_loading
         True
         """
-        return self.func_definition.is_file_loading
+        return self.handle.func_definition.is_file_loading
 
     @property
     def pass_quibs(self) -> bool:
@@ -861,7 +849,7 @@ class Quib:
         --------
         is_graphics_quib, graphics_update_type
         """
-        return self.func_definition.is_graphics
+        return self.handler.func_definition.is_graphics
 
     @property
     def is_graphics_quib(self):
@@ -882,7 +870,7 @@ class Quib:
         is_graphics, graphics_update_type
         Project.refresh_graphics
         """
-        return self.func_definition.is_graphics or self.handler.quib_function_call.created_graphics
+        return self.handler.func_definition.is_graphics or self.handler.quib_function_call.created_graphics
 
     """
     Assignment

@@ -60,7 +60,7 @@ def persist_artists_on_quib_weak_ref(weak_ref_quib, artists):
     functionrunner should have no knowledge of it
     """
     quib: Quib = weak_ref_quib()
-    if quib.func_definition.replace_previous_quibs_on_artists:
+    if quib.handler.func_definition.replace_previous_quibs_on_artists:
         persist_func_on_artists(quib, artists)
         for artist in chain(artists, iter_object_type_in_args(Artist, quib.args, quib.kwargs)):
             name = f'_quibbler_{quib.func.__name__}'
