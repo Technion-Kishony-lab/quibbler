@@ -567,7 +567,7 @@ class QuibHandler:
 
 class Quib:
     """
-    A Quib is a node representing a singular call of a function with it's arguments (it's parents in the graph)
+    A Quib is an object representing a specific call of a function with it's arguments.
     """
 
     def __init__(self,

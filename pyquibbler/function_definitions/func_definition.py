@@ -30,17 +30,17 @@ class FuncDefinition:
     """
 
     func: Optional[Callable] = None
-    data_source_arguments: Set[Argument] = field(default_factory=set)
+    data_source_arguments: Set[Argument] = field(repr=False, default_factory=set)
     is_random_func: bool = False
     is_file_loading_func: bool = False
     is_graphics_func: Optional[bool] = False  # None for 'maybe'
     pass_quibs: bool = False
     lazy: bool = True
-    replace_previous_quibs_on_artists: bool = False
-    inverters: List[Type[Inverter]] = field(default_factory=list)
-    backwards_path_translators: List[Type[BackwardsPathTranslator]] = field(default_factory=list)
-    forwards_path_translators: List[Type[ForwardsPathTranslator]] = field(default_factory=list)
-    quib_function_call_cls: Type[QuibFuncCall] = field(default_factory=get_default_quib_func_call)
+    replace_previous_quibs_on_artists: bool = field(repr=False, default=False)
+    inverters: List[Type[Inverter]] = field(repr=False, default_factory=list)
+    backwards_path_translators: List[Type[BackwardsPathTranslator]] = field(repr=False, default_factory=list)
+    forwards_path_translators: List[Type[ForwardsPathTranslator]] = field(repr=False, default_factory=list)
+    quib_function_call_cls: Type[QuibFuncCall] = field(repr=False, default_factory=get_default_quib_func_call)
 
     def __hash__(self):
         return id(self)
@@ -128,8 +128,8 @@ class ElementWiseFuncDefinition(FuncDefinition):
     Represents a definition of functions that act element-wise on a single arg
     """
 
-    inverse_func_without_input: Optional[Callable] = None
-    inverse_func_with_input: Optional[Callable] = None
+    inverse_func_without_input: Optional[Callable] = field(repr=False, default=None)
+    inverse_func_with_input: Optional[Callable] = field(repr=False, default=None)
 
 
 ElementWiseFuncDefinition.__hash__ = FuncDefinition.__hash__
