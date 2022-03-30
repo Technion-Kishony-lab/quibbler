@@ -1,6 +1,4 @@
 from __future__ import annotations
-import dataclasses
-import functools
 import pathlib
 import warnings
 
@@ -10,7 +8,6 @@ from typing import Union, Optional, Set, Iterable
 from pyquibbler.function_definitions.func_definition import FuncDefinition
 from pyquibbler.quib.func_calling.quib_func_call import CachingOptions
 from pyquibbler.assignment import AssignmentTemplate, create_assignment_template
-from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.file_syncing import SaveFormat, CannotSaveFunctionQuibsAsValueException, \
     SAVE_FORMAT_TO_FQUIB_SAVE_FORMAT, ResponseToFileNotDefined, FileNotDefinedException, SAVE_FORMAT_TO_FILE_EXT
 from pyquibbler.quib.graphics import UpdateType
@@ -21,27 +18,6 @@ from pyquibbler.utilities.input_validation_utils import validate_user_input, get
     InvalidArgumentValueException
 
 from pyquibbler import Quib
-
-
-@dataclasses.dataclass
-class PropertyOnlyDefinedWhenQuibConnected(PyQuibblerException):
-    property_name: str
-
-    def __str__(self):
-        return f"Property {self.property_name} is only defined when props is quib-connected."
-
-
-def _verify_quib_connection(func):
-    @functools.wraps(func)
-    def _wrapper(self, *args, **kwargs):
-        if self._quib_ref is None:
-            raise PropertyOnlyDefinedWhenQuibConnected(func.__name__)
-        return func(self, *args, **kwargs)
-
-    return _wrapper
-
-
-_verify_func_definition_connection = _verify_quib_connection
 
 
 class QuibProps:
@@ -62,7 +38,7 @@ class QuibProps:
         ('graphics_update_type', True),
     )
 
-    def __init__(self, quib: Quib = None):
+    def __init__(self, quib_weakref: ReferenceType[Quib]):
         self._assigned_name: Union[None, str] = None
         self._save_directory: Union[None, pathlib.Path] = None
         self._save_format: Union[None, SaveFormat] = None
@@ -71,11 +47,7 @@ class QuibProps:
         self._caching: CachingOptions = CachingOptions.AUTO
         self._graphics_update_type: Union[None, UpdateType] = None
         self._assigned_quibs: Optional[Set[Quib]] = None
-        self._quib_ref: Optional[ReferenceType[Quib]] = None
-        self.set_quib(quib)
-
-    def set_quib(self, quib_weakref: Optional[ReferenceType[Quib]]):
-        self._quib_ref = quib_weakref
+        self._quib_ref: ReferenceType[Quib] = quib_weakref
 
     @property
     def _quib(self) -> Optional[Quib]:
@@ -92,31 +64,6 @@ class QuibProps:
     def _on_file_name_changed(self):
         if self._quib_ref:
             self._quib.handler.file_syncer.on_file_name_changed()
-
-    @classmethod
-    def from_(cls,
-              assigned_name: Union[None, str] = NoValue,
-              save_directory: Union[None, str, pathlib.Path] = NoValue,
-              save_format: Union[None, str, SaveFormat] = NoValue,
-              allow_overriding: bool = NoValue,
-              assignment_template: Union[None, tuple, AssignmentTemplate] = NoValue,
-              caching: Union[str, CachingOptions] = NoValue,
-              graphics_update_type: Union[None, str] = NoValue,
-              assigned_quibs: Set[Quib] = NoValue,
-              ):
-
-        self = cls()
-        self.setp(
-            assigned_name=assigned_name,
-            save_directory=save_directory,
-            save_format=save_format,
-            allow_overriding=allow_overriding,
-            assignment_template=assignment_template,
-            caching=caching,
-            graphics_update_type=graphics_update_type,
-            assigned_quibs=assigned_quibs,
-        )
-        return self
 
     def setp(self,
              assigned_name: Union[None, str] = NoValue,
@@ -382,7 +329,6 @@ class QuibProps:
         self._on_file_name_changed()
 
     @property
-    @_verify_quib_connection
     def actual_save_format(self) -> SaveFormat:
         """
         The actual save_format used by the quib.
@@ -406,7 +352,6 @@ class QuibProps:
         return actual_save_format
 
     @property
-    @_verify_quib_connection
     def file_path(self) -> Optional[PathWithHyperLink]:
         """
         The full path for the file where quib assignments are saved.
@@ -446,7 +391,6 @@ class QuibProps:
         return path
 
     @property
-    @_verify_quib_connection
     def actual_save_directory(self) -> Optional[pathlib.Path]:
         """
         The actual directory where quib file is saved.
@@ -512,7 +456,6 @@ class QuibProps:
                              'and continuing alpha-numeric characters or spaces')
 
     @property
-    @_verify_quib_connection
     def name(self) -> Optional[str]:
         """
         Returns the name of the quib
@@ -534,12 +477,10 @@ class QuibProps:
 
     @name.setter
     @validate_user_input(name=(str, type(None)))
-    @_verify_quib_connection
     def name(self, name: Optional[str]):
         self.assigned_name = name
 
     @property
-    @_verify_quib_connection
     def functional_representation(self) -> str:
         """
         Returns a string representing a functional representation of the quib.
@@ -565,7 +506,6 @@ class QuibProps:
         return str(self._quib._get_functional_representation_expression())
 
     @property
-    @_verify_quib_connection
     def created_in(self) -> Optional[FileAndLineNumber]:
         """
         The file and line number where the quib was created.
@@ -602,7 +542,6 @@ class QuibProps:
     """
 
     @property
-    @_verify_func_definition_connection
     def is_graphics(self):
         """
         Specifies whether the function runs by the quib is a graphics function.
@@ -622,18 +561,15 @@ class QuibProps:
         return self._func_definition.is_graphics
 
     @property
-    @_verify_func_definition_connection
     def pass_quibs(self) -> bool:
         return self._func_definition.pass_quibs
 
     @pass_quibs.setter
-    @_verify_func_definition_connection
     @validate_user_input(pass_quibs=bool)
     def pass_quibs(self, pass_quibs):
         self._func_definition.pass_quibs = pass_quibs
 
     @property
-    @_verify_func_definition_connection
     def is_impure(self) -> bool:
         """
         Indicates whether the quib runs an impure function.
@@ -661,7 +597,6 @@ class QuibProps:
         return self._func_definition.is_impure
 
     @property
-    @_verify_func_definition_connection
     def is_random(self) -> bool:
         """
         Indicates whether the quib represents a random function.
@@ -695,7 +630,6 @@ class QuibProps:
         return self._func_definition.is_random
 
     @property
-    @_verify_func_definition_connection
     def is_file_loading(self) -> bool:
         """
         Indicates whether the quib represents a function that loads external files.

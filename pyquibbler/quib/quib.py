@@ -565,7 +565,6 @@ class Quib:
                  args: Tuple[Any, ...] = (),
                  kwargs: Mapping[str, Any] = None,
                  function_definition: FuncDefinition = None,
-                 props: QuibProps = None,
                  created_in: Optional[FileAndLineNumber] = None,
                  ):
 
@@ -580,8 +579,7 @@ class Quib:
                                    function_definition,
                                    )
 
-        self.props: QuibProps = props if props else QuibProps()
-        self.props.set_quib(self_weakref)
+        self.props = QuibProps(self_weakref)
         self._created_in = created_in
     """
     Func metadata
