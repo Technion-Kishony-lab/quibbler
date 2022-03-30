@@ -4,6 +4,7 @@ import warnings
 from weakref import ReferenceType
 from typing import Union, Optional, Set, Iterable
 
+from pyquibbler.function_definitions.func_definition import FuncDefinition
 from pyquibbler.quib.func_calling.quib_func_call import CachingOptions
 from pyquibbler.assignment import AssignmentTemplate, create_assignment_template
 from pyquibbler.exceptions import PyQuibblerException
@@ -61,8 +62,12 @@ class QuibProps:
         self._quib_ref = quib_weakref
 
     @property
-    def _quib(self) -> Quib:
+    def _quib(self) -> Optional[Quib]:
         return self._quib_ref() if self._quib_ref else None
+
+    @property
+    def _func_definition(self) -> Optional[FuncDefinition]:
+        return self._quib.handler.func_definition if self._quib_ref else None
 
     def on_project_directory_change(self):
         if not (self.save_directory is not None and self.save_directory.is_absolute()):
@@ -72,10 +77,14 @@ class QuibProps:
         if self._quib_ref:
             self._quib.handler.file_syncer.on_file_name_changed()
 
-    def verify_quib_connection(self, property_name):
+    def _verify_quib_connection(self, property_name):
         if self._quib_ref:
             return
         raise PropertyOnlyDefinedWhenQuibConnected(property_name)
+
+    def _verify_func_definition_connection(self, property_name):
+        # same as verify_quib_connection for now
+        return self._verify_quib_connection(property_name)
 
     @classmethod
     def from_(cls,
@@ -383,7 +392,7 @@ class QuibProps:
         SaveFormat
         """
 
-        self.verify_quib_connection('actual_save_format')
+        self._verify_quib_connection('actual_save_format')
 
         actual_save_format = self.save_format if self.save_format else self._quib.project.save_format
         if self.is_iquib is False:
@@ -409,7 +418,7 @@ class QuibProps:
         Project.directory
         """
 
-        self.verify_quib_connection('file_path')
+        self._verify_quib_connection('file_path')
 
         return self._get_file_path()
 
@@ -453,7 +462,7 @@ class QuibProps:
         SaveFormat
         """
 
-        self.verify_quib_connection('actual_save_directory')
+        self._verify_quib_connection('actual_save_directory')
 
         save_directory = self.save_directory
         if save_directory is not None and save_directory.is_absolute():
@@ -519,7 +528,7 @@ class QuibProps:
         assigned_name, setp, functional_representation
         """
 
-        self.verify_quib_connection('name')
+        self._verify_quib_connection('name')
 
         return self.assigned_name or self.functional_representation
 
@@ -552,7 +561,7 @@ class QuibProps:
         "iquib(4)"
         """
 
-        self.verify_quib_connection('functional_representation')
+        self._verify_quib_connection('functional_representation')
 
         return str(self._quib._get_functional_representation_expression())
 
@@ -570,7 +579,7 @@ class QuibProps:
         FileAndLineNumber or None
         """
 
-        self.verify_quib_connection('created_in')
+        self._verify_quib_connection('created_in')
 
         return self._quib.created_in
 
@@ -591,6 +600,42 @@ class QuibProps:
 
         return getattr(self._quib.func, '__name__', None) == 'iquib' if self._quib_ref \
             else None
+
+    """
+    func_defintion attribuites
+    """
+
+    @property
+    def is_graphics(self):
+        """
+        Specifies whether the function runs by the quib is a graphics function.
+
+        `True` for known graphics functions
+        `False` for known non-graphics functions
+        `None` for functions that may create graphics (such as for user functions).
+
+        Returns
+        -------
+        True, False, or None
+
+        See Also
+        --------
+        is_graphics_quib, graphics_update_type
+        """
+        self._verify_func_definition_connection('is_graphics')
+
+        return self._func_definition.is_graphics
+
+    @property
+    def pass_quibs(self) -> bool:
+        self._verify_func_definition_connection('pass_quibs')
+        return self._func_definition.pass_quibs
+
+    @pass_quibs.setter
+    @validate_user_input(pass_quibs=bool)
+    def pass_quibs(self, pass_quibs):
+        self._verify_func_definition_connection('pass_quibs')
+        self._func_definition.pass_quibs = pass_quibs
 
     def __repr__(self):
         repr_ = ''

@@ -39,7 +39,7 @@ class VectorizeCallDefinition(FuncDefinition):
 class VectorizeCallOverride(FuncOverride):
 
     def _get_creation_flags(self, args, kwargs):
-        vectorize, *_ = args
+        vectorize: QVectorize = args[0]
         return {
             'lazy': vectorize.lazy,
             'pass_quibs': vectorize.pass_quibs,

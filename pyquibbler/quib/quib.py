@@ -5,6 +5,7 @@ import functools
 import pathlib
 import pickle
 import weakref
+from _weakref import ReferenceType
 
 import json_tricks
 import numpy as np
@@ -64,7 +65,7 @@ class QuibHandler:
     All data is stored on the QuibHandler (the Quib itself is state-less)
     """
 
-    def __init__(self, quib: Quib, quib_function_call: QuibFuncCall,
+    def __init__(self, quib_weakref: ReferenceType[Quib], quib_function_call: QuibFuncCall,
                  func: Optional[Callable],
                  args: Tuple[Any, ...] = (),
                  kwargs: Mapping[str, Any] = None,
@@ -72,7 +73,6 @@ class QuibHandler:
                  ):
         kwargs = kwargs or {}
 
-        quib_weakref = weakref.ref(quib)
         self._quib_weakref = quib_weakref
         self._override_choice_cache = {}
         self.quib_function_call = quib_function_call
@@ -571,7 +571,8 @@ class Quib:
 
         from pyquibbler.quib.quib_props import QuibProps
 
-        self.handler = QuibHandler(self,
+        self_weakref = weakref.ref(self)
+        self.handler = QuibHandler(self_weakref,
                                    quib_function_call,
                                    func,
                                    args,
@@ -579,7 +580,6 @@ class Quib:
                                    function_definition,
                                    )
 
-        self_weakref = weakref.ref(self)
         self.props: QuibProps = props if props else QuibProps()
         self.props.set_quib(self_weakref)
         self._created_in = created_in
@@ -783,15 +783,6 @@ class Quib:
         """
         return self.handle.func_definition.is_file_loading
 
-    @property
-    def pass_quibs(self) -> bool:
-        return self.handler.func_definition.pass_quibs
-
-    @pass_quibs.setter
-    @validate_user_input(pass_quibs=bool)
-    def pass_quibs(self, pass_quibs):
-        self.handler.func_definition.pass_quibs = pass_quibs
-
     """
     cache
     """
@@ -831,25 +822,6 @@ class Quib:
     """
     Graphics
     """
-
-    @property
-    def is_graphics(self):
-        """
-        Specifies whether the function runs by the quib is a graphics function.
-
-        `True` for known graphics functions
-        `False` for known non-graphics functions
-        `None` for functions that may create graphics (such as for user functions).
-
-        Returns
-        -------
-        True, False, or None
-
-        See Also
-        --------
-        is_graphics_quib, graphics_update_type
-        """
-        return self.handler.func_definition.is_graphics
 
     @property
     def is_graphics_quib(self):
