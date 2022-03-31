@@ -122,10 +122,11 @@ class Project:
 
     def refresh_graphics(self):
         """
-        Redraw all graphics function quibs which only redraw when set to UpdateType.CENTRAL
+        Redraw all graphics function quibs which only redraw when set to 'central'
 
-        See also:
-            Quib.update_type
+        See Also
+        --------
+        GraphicsUpdateType, Quib.graphics_update
         """
         for quib in self.quibs:
             if quib.graphics_update_type == UpdateType.CENTRAL:
@@ -140,11 +141,13 @@ class Project:
         """
         The directory to which quibs are saved.
 
-        Returns a Path object
-
         Can be set as a str or Path object.
 
         path = None indicates undefined path.
+
+        Returns
+        -------
+        PathWithHyperLink
         """
         return None if self._directory is None else PathWithHyperLink(self._directory)
 
@@ -166,13 +169,16 @@ class Project:
         """
         The default file format for saving quibs.
 
-        Quibs whose own save_as_text is None yield to the default save_as_text of the Project.
+        Quibs whose own save_format is None yield to the default save_format of the Project.
 
-        Returns:
-             SaveFormat
+        Returns
+        -------
+        SaveFormat
 
-        See also:
-            Quib.save_format
+        See Also
+        --------
+        Quib.save_format
+        SaveFormat
         """
         return self._save_format
 
@@ -184,8 +190,13 @@ class Project:
     def save_quibs(self, response_to_file_not_defined=ResponseToFileNotDefined.WARN_IF_DATA):
         """
         Save quib assignments to files.
+
         Saves the assignments of all quibs which have overrides, have an assigned_name and their
         save_format is not 'off'.
+
+        See Also:
+        --------
+        load_quibs, sync_quibs
         """
         if self.directory is None:
             raise NoProjectDirectoryException(action='save')
@@ -195,8 +206,13 @@ class Project:
     def load_quibs(self, response_to_file_not_defined=ResponseToFileNotDefined.WARN_IF_DATA):
         """
         Load quib assignments from files.
+
         Loads assignments from files for all quibs which have an assigned_name and their
         save_format is not 'off'.
+
+        See Also:
+        --------
+        save_quibs, sync_quibs
         """
         from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
         if self.directory is None:
@@ -208,8 +224,13 @@ class Project:
     def sync_quibs(self, response_to_file_not_defined=ResponseToFileNotDefined.WARN_IF_DATA):
         """
         Sync quib assignments with files.
+
         Syncs quib assignments with files for all quibs which have an assigned_name and their
         save_format is not 'off'.
+
+        See Also:
+        --------
+        save_quibs, load_quibs
         """
         from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
         if self.directory is None:
@@ -232,17 +253,29 @@ class Project:
 
     def can_undo(self):
         """
-        Whether or not an assignment undo exists.
+        Indicates whether or not an assignment undo exists.
 
-        Returns: bool
+        Returns:
+        -------
+        bool
+
+        See Also:
+        --------
+        can_redo
         """
         return len(self._undo_action_groups) > 0
 
     def can_redo(self):
         """
-        Whether or not an assignment redo exists
+        Indicates whether or not an assignment redo exists.
 
-        Returns: bool
+        Returns:
+        -------
+        bool
+
+        See Also:
+        --------
+        can_undo
         """
         return len(self._redo_action_groups) > 0
 
@@ -255,7 +288,11 @@ class Project:
 
     def undo(self):
         """
-        Undo the last quib assignment (see overrider docs for more information)
+        Undo the last quib assignment.
+
+        See Also:
+        --------
+        redo
         """
         from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
         try:
@@ -272,7 +309,11 @@ class Project:
 
     def redo(self):
         """
-        Redo the last quib assignment
+        Redo the last quib assignment.
+
+        See Also:
+        --------
+        undo
         """
         try:
             actions = self._redo_action_groups.pop(-1)

@@ -17,14 +17,17 @@ def q(func, *args, **kwargs) -> Quib:
     """
     Creates a function quib from the given function call.
 
-    Example:
-        a = iquib(2)
-        b = q(str, a)
+    Returns
+    -------
+    Quib
 
-        b.get_value() -> '2'
+    Examples
+    --------
+    >>> a = iquib(2)
+    >>> b = q(str, a)
 
-    Returns:
-        Quib
+    >>> b.get_value()
+    '2'
     """
     return create_quib(func=func, args=args, kwargs=kwargs, lazy=True)
 
@@ -116,9 +119,9 @@ def refresh_graphics() -> None:
 
 def list_quiby_funcs(module_or_cls: Union[None, ModuleType, Type] = None) -> List[str]:
     """
-    Returns a list of overridden, "quiby", functions
+    Returns a list of "quiby" functions.
 
-    module_or_cls: optinal specification of module (like, numpy, matplotlib, matplotlib.widgets)
+    Returns a list of functions overridden to be able to work with quib arguments.
     """
     from pyquibbler.function_definitions.definitions import FUNCS_TO_DEFINITIONS_MODULE_NAME_ISOVERRIDDEN
     from pyquibbler.function_overriding.third_party_overriding.numpy.vectorize_overrides import QVectorize
@@ -132,15 +135,18 @@ def is_func_quiby(func: Callable) -> bool:
     """
     Check whether a given function is modified to work directly with quib arguments ("quiby").
 
-    Returns:
-        bool
+    Returns
+    -------
+    bool
 
-    Example:
-        is_func_quiby(np.sin) -> True
-        is_func_quiby(len) -> False
+    See Also
+    --------
+    q, q_eager
 
-    See also:
-        q, q_eager
+    Examples
+    --------
+    >>> is_func_quiby(np.sin)  # -> True
+    >>> is_func_quiby(len)  # -> False
     """
     return hasattr(func, '__quibbler_wrapped__')
 
@@ -148,5 +154,9 @@ def is_func_quiby(func: Callable) -> bool:
 def quibapp():
     """
     Open the Quibbler App
+
+    See Also
+    --------
+    Project
     """
     return QuibApp.get_or_create()

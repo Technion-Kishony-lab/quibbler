@@ -1405,7 +1405,7 @@ class Quib:
 
         See Also
         --------
-         SaveFormat
+        SaveFormat
         """
         return self.handler.save_format
 
