@@ -8,7 +8,7 @@ from pyquibbler.function_definitions.func_definition import create_func_definiti
 from pyquibbler.graphics import dragging
 from pyquibbler.path import PathComponent
 from pyquibbler.quib.factory import create_quib
-from pyquibbler.quib.graphics import UpdateType
+from pyquibbler.quib.graphics import GraphicsUpdateType
 
 
 @pytest.fixture()
@@ -79,15 +79,15 @@ def test_graphics_quib_does_not_copy_color(axes, create_quib_with_return_value):
     assert artist_color_after_color_change == [1, 1, 0]
 
 
-@pytest.mark.parametrize("update_type,should_have_called", [
-    (UpdateType.DRAG, True),
-    (UpdateType.DROP, False),
-    (UpdateType.NEVER, False),
-    (UpdateType.CENTRAL, False)
+@pytest.mark.parametrize("graphics_update,should_have_called", [
+    (GraphicsUpdateType.DRAG, True),
+    (GraphicsUpdateType.DROP, False),
+    (GraphicsUpdateType.NEVER, False),
+    (GraphicsUpdateType.CENTRAL, False)
 ])
-def test_graphics_quib_update_on_drag(update_type, should_have_called, quib, graphics_quib,
+def test_graphics_quib_update_on_drag(graphics_update, should_have_called, quib, graphics_quib,
                                       create_quib_with_return_value):
-    graphics_quib.graphics_update_type = update_type
+    graphics_quib.graphics_update = graphics_update
     with dragging():
         quib.handler.invalidate_and_redraw_at_path([])
 
@@ -95,16 +95,16 @@ def test_graphics_quib_update_on_drag(update_type, should_have_called, quib, gra
 
 
 def test_graphics_quib_update_on_drop(quib, graphics_quib):
-    graphics_quib.graphics_update_type = UpdateType.DROP
+    graphics_quib.graphics_update = GraphicsUpdateType.DROP
 
     quib.handler.invalidate_and_redraw_at_path([])
 
     assert len(graphics_quib.func.mock_calls) == 1
 
 
-@pytest.mark.parametrize("update_type", ["never", "central"])
-def test_graphics_quib_which_should_never_update(update_type, quib, graphics_quib):
-    graphics_quib.graphics_update_type = update_type
+@pytest.mark.parametrize("graphics_update", ["never", "central"])
+def test_graphics_quib_which_should_never_update(graphics_update, quib, graphics_quib):
+    graphics_quib.graphics_update = graphics_update
 
     quib.handler.invalidate_and_redraw_at_path([])
 

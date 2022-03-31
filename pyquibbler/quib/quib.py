@@ -44,7 +44,7 @@ from pyquibbler.assignment import InvalidTypeException, OverrideRemoval, get_ove
 from pyquibbler.quib.func_calling.cache_mode import CacheMode
 from pyquibbler.quib.exceptions import OverridingNotAllowedException, InvalidCacheBehaviorForQuibException
 from pyquibbler.quib.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own
-from pyquibbler.quib.graphics import UpdateType
+from pyquibbler.quib.graphics import GraphicsUpdateType
 from pyquibbler.translation.translate import forwards_translate, NoTranslatorsFoundException, \
     backwards_translate
 from pyquibbler.cache import create_cache, CacheStatus
@@ -72,7 +72,7 @@ class QuibHandler:
                  allow_overriding: bool,
                  assigned_name: Optional[str],
                  created_in: Optional[FileAndLineNumber],
-                 graphics_update_type: Optional[UpdateType],
+                 graphics_update: Optional[GraphicsUpdateType],
                  save_directory: pathlib.Path,
                  save_format: Optional[SaveFormat],
                  func: Optional[Callable],
@@ -98,7 +98,7 @@ class QuibHandler:
         self.assigned_quibs = None
         self.created_in_get_value_context = is_within_get_value_context()
         self.created_in: Optional[FileAndLineNumber] = created_in
-        self.graphics_update_type = graphics_update_type
+        self.graphics_update = graphics_update
 
         self.save_directory = save_directory
 
@@ -136,15 +136,18 @@ class QuibHandler:
     graphics
     """
 
-    def redraw_if_appropriate(self):
+    @property
+    def actual_graphics_update(self):
+        return self.graphics_update or self.project.graphics_update
+
+    def redraw_if_appropriate(self) -> None:
         """
         Redraws the quib if it's appropriate
         """
-        if self.graphics_update_type in [UpdateType.NEVER, UpdateType.CENTRAL] \
-                or (self.graphics_update_type == UpdateType.DROP and is_within_drag()):
-            return
-
-        return self.quib.get_value()
+        graphics_update = self.actual_graphics_update
+        if graphics_update == GraphicsUpdateType.DRAG \
+                or self.graphics_update == GraphicsUpdateType.DROP and not is_within_drag():
+            self.quib.get_value()
 
     def _iter_artist_lists(self) -> Iterable[List[Artist]]:
         return map(lambda g: g.artists, self.quib_function_call.flat_graphics_collections())
@@ -576,7 +579,7 @@ class Quib:
         ('File saving', ('save_directory', 'actual_save_directory', 'save_format', 'actual_save_format', 'file_path')),
         ('Assignments', ('assignment_template', 'allow_overriding', 'assigned_quibs')),
         ('Caching', ('cache_mode', )),
-        ('Graphics', ('graphics_update_type', )),
+        ('Graphics', ('graphics_update', 'actual_graphics_update')),
     )
 
     def __init__(self,
@@ -585,7 +588,7 @@ class Quib:
                  allow_overriding: bool = False,
                  assigned_name: Optional[str] = None,
                  created_in: Optional[FileAndLineNumber] = None,
-                 graphics_update_type: Optional[UpdateType] = None,
+                 graphics_update: Optional[GraphicsUpdateType] = None,
                  save_directory: Optional[pathlib.Path] = None,
                  save_format: Optional[SaveFormat] = None,
                  func: Optional[Callable] = None,
@@ -600,7 +603,7 @@ class Quib:
                                    allow_overriding,
                                    assigned_name,
                                    created_in,
-                                   graphics_update_type,
+                                   graphics_update,
                                    save_directory,
                                    save_format,
                                    func,
@@ -842,7 +845,7 @@ class Quib:
             if self.handler.quib_function_call.cache is not None else CacheStatus.ALL_INVALID
 
     @property
-    def cache_mode(self):
+    def cache_mode(self) -> CacheMode:
         """
         Set the value caching mode for the quib:
         'auto':     Caching is decided automatically according to the ratio between evaluation time and
@@ -885,7 +888,7 @@ class Quib:
     """
 
     @property
-    def is_graphics(self):
+    def is_graphics(self) -> bool:
         """
         Specifies whether the function runs by the quib is a graphics function.
 
@@ -899,19 +902,19 @@ class Quib:
 
         See Also
         --------
-        is_graphics_quib, graphics_update_type
+        is_graphics_quib, graphics_update
         """
         return self.handler.func_definition.is_graphics
 
     @property
-    def is_graphics_quib(self):
+    def is_graphics_quib(self) -> bool:
         """
         Specifies whether the quib is a graphics quib.
 
         A quib is defined as graphics if its function is a known graphics function (`is_graphics`=`True`),
         or if its function created graphics.
 
-        A quib defined as graphics will get auto-refreshed based on the `graphics_update_type`.
+        A quib defined as graphics will get auto-refreshed based on the `graphics_update`.
 
         Returns
         -------
@@ -919,15 +922,15 @@ class Quib:
 
         See Also
         --------
-        is_graphics, graphics_update_type
+        is_graphics, graphics_update
         Project.refresh_graphics
         """
         return self.handler.func_definition.is_graphics or self.handler.quib_function_call.created_graphics
 
     @property
-    def graphics_update_type(self) -> Union[None, str]:
+    def graphics_update(self) -> GraphicsUpdateType:
         """
-        Return the graphics_update_type indicating whether the quib should refresh upon upstream assignments.
+        Return the graphics_update indicating whether the quib should refresh upon upstream assignments.
         Options are:
         "drag":     refresh immediately as upstream objects are dragged
         "drop":     refresh at end of dragging upon graphic object drop.
@@ -940,21 +943,25 @@ class Quib:
 
         See Also
         --------
-        UpdateType, Project.refresh_graphics
+        GraphicsUpdateType, Project.refresh_graphics
         """
-        return self.handler.graphics_update_type.value if self.handler.graphics_update_type else None
+        return self.handler.graphics_update
 
-    @graphics_update_type.setter
-    @validate_user_input(graphics_update_type=(type(None), str, UpdateType))
-    def graphics_update_type(self, graphics_update_type: Union[None, str, UpdateType]):
-        self.handler.graphics_update_type = get_enum_by_str(UpdateType, graphics_update_type, allow_none=True)
+    @graphics_update.setter
+    @validate_user_input(graphics_update=(type(None), str, GraphicsUpdateType))
+    def graphics_update(self, graphics_update: Union[None, str, GraphicsUpdateType]):
+        self.handler.graphics_update = get_enum_by_str(GraphicsUpdateType, graphics_update, allow_none=True)
+
+    @property
+    def actual_graphics_update(self):
+        return self.handler.actual_graphics_update
 
     """
     Assignment
     """
 
     @property
-    def allow_overriding(self):
+    def allow_overriding(self) -> bool:
         """
         Indicates whether the quib can be overridden.
         The default for allow_overriding is True for iquibs and False in function quibs.
@@ -1090,7 +1097,7 @@ class Quib:
              cache_mode: Union[str, CacheMode] = NoValue,
              assigned_name: Union[None, str] = NoValue,
              name: Union[None, str] = NoValue,
-             graphics_update_type: Union[None, str] = NoValue,
+             graphics_update: Union[None, str] = NoValue,
              assigned_quibs: set["Quib"] = NoValue,
              ):
         """
@@ -1104,7 +1111,7 @@ class Quib:
          cache_mode: Union[str, CacheMode],
          assigned_name: Union[None, str],
          name: Union[None, str],
-         graphics_update_type: Union[None, str]
+         graphics_update: Union[None, str]
 
         Examples:
             >>>> a = iquib(7).setp(assigned_name='my_number')
@@ -1126,8 +1133,8 @@ class Quib:
             self.assigned_name = assigned_name
         if name is not NoValue:
             self.assigned_name = name
-        if graphics_update_type is not NoValue:
-            self.graphics_update_type = graphics_update_type
+        if graphics_update is not NoValue:
+            self.graphics_update = graphics_update
         if assigned_quibs is not NoValue:
             self.assigned_quibs = assigned_quibs
 
@@ -1393,7 +1400,7 @@ class Quib:
         return self.handler.project
 
     @property
-    def save_format(self):
+    def save_format(self) -> SaveFormat:
         """
         Indicates the file format in which quib assignments are saved.
 

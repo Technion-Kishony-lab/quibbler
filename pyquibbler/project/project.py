@@ -12,7 +12,7 @@ from pyquibbler.utilities.input_validation_utils import validate_user_input
 from pyquibbler.utilities.file_path import PathWithHyperLink
 from pyquibbler.exceptions import PyQuibblerException
 from .actions import Action, AssignmentAction
-from pyquibbler.quib.graphics import UpdateType
+from pyquibbler.quib.graphics import GraphicsUpdateType
 from pyquibbler.file_syncing.types import SaveFormat, ResponseToFileNotDefined
 
 if TYPE_CHECKING:
@@ -56,6 +56,7 @@ class Project:
         self._redo_action_groups: List[List[Action]] = []
         self._quib_refs_to_paths_to_released_assignments = defaultdict(dict)
         self._save_format: SaveFormat = SaveFormat.VALUE_TXT
+        self._graphics_update: GraphicsUpdateType = GraphicsUpdateType.DRAG
         self.on_path_change: Optional[Callable] = None
 
     @classmethod
@@ -129,8 +130,35 @@ class Project:
         GraphicsUpdateType, Quib.graphics_update
         """
         for quib in self.quibs:
-            if quib.graphics_update_type == UpdateType.CENTRAL:
+            if quib.graphics_update == GraphicsUpdateType.CENTRAL:
                 quib.get_value()
+
+    """
+    graphics
+    """
+
+    @property
+    def graphics_update(self) -> GraphicsUpdateType:
+        """
+        The default mode of updating graphics quibs.
+
+        Quibs whose own graphics_update is None yield to the default graphics_update of the Project.
+
+        Returns
+        -------
+        GraphicsUpdateType
+
+        See Also
+        --------
+        Quib.graphics_update
+        GraphicsUpdateType
+        """
+        return self._graphics_update
+
+    @graphics_update.setter
+    @validate_user_input(graphics_update=GraphicsUpdateType)
+    def graphics_update(self, graphics_update: GraphicsUpdateType):
+        self._graphics_update = graphics_update
 
     """
     save/load

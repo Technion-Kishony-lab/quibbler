@@ -111,7 +111,7 @@ def test_vectorize_with_pass_quibs_and_core_dims():
 def test_lazy_vectorize():
     func_mock = mock.Mock(return_value=5)
     parent = iquib([0, 1, 2, 3])
-    reference_to_vectorize = np.vectorize(func_mock, update_type="never")(parent)
+    reference_to_vectorize = np.vectorize(func_mock, graphics_update="never")(parent)
     func_mock.assert_not_called()
 
     parent[0] = 100

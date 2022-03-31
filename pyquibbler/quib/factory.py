@@ -7,7 +7,7 @@ from pyquibbler.logger import logger
 from pyquibbler.project import Project
 from pyquibbler.quib.func_calling import QuibFuncCall
 from pyquibbler.quib.get_value_context_manager import is_within_get_value_context
-from pyquibbler.quib.graphics import UpdateType
+from pyquibbler.quib.graphics import GraphicsUpdateType
 from pyquibbler.quib.quib_guard import add_new_quib_to_guard_if_exists
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.types import FileAndLineNumber
@@ -53,7 +53,7 @@ def create_quib(func: Callable, args: Tuple[Any, ...] = (), kwargs: Mapping[str,
                 cache_mode: CacheMode = None,
                 lazy: bool = None,
                 allow_overriding: bool = False,
-                update_type: UpdateType = None,
+                graphics_update: GraphicsUpdateType = None,
                 save_format: Optional[SaveFormat] = None,
                 save_directory: pathlib.Path = None,
                 function_definition: FuncDefinition = None,
@@ -70,8 +70,8 @@ def create_quib(func: Callable, args: Tuple[Any, ...] = (), kwargs: Mapping[str,
     :param lazy - by default we are lazy- should the quib be evaluated immediately upon creation?
     :param allow_overriding - can this quib be overridden, or does it always need to propogate assignments backwards?
     func will be called with the quibs.
-    :param update_type - (Only relevant if the quib has graphics/is known graphics func) - when should the quib
-    "update"? See UpdateType for options
+    :param graphics_update - (Only relevant if the quib has graphics/is known graphics func) - when should the quib
+    "update"? See GraphicsUpdateType for options
     :param save_format - indicating the file format for saving assignments to the quib (FileFormat).
     :param save_directory - where to save the quib?
     :param function_definition - the definition of the function
@@ -90,7 +90,7 @@ def create_quib(func: Callable, args: Tuple[Any, ...] = (), kwargs: Mapping[str,
     quib = Quib(created_in=created_in)
 
     quib.setp(assignment_template=None, allow_overriding=allow_overriding,
-              assigned_name=get_quib_name(), graphics_update_type=None,
+              assigned_name=get_quib_name(), graphics_update=None,
               save_directory=save_directory, save_format=save_format)
 
     quib.func = func
@@ -103,8 +103,8 @@ def create_quib(func: Callable, args: Tuple[Any, ...] = (), kwargs: Mapping[str,
     project.register_quib(quib)
     add_new_quib_to_guard_if_exists(quib)
 
-    if update_type:
-        quib.graphics_update_type = update_type or UpdateType.DRAG
+    if graphics_update:
+        quib.graphics_update = graphics_update or GraphicsUpdateType.DRAG
 
     for arg in quib.parents:
         arg.handler.add_child(quib)

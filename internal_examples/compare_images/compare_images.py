@@ -94,7 +94,7 @@ def create_figure_2():
 
     return np.vectorize(show_image,
                         signature='(),(w,h,c)->()',
-                        update_type="drop")(grid_axes[:q(int, images_count)], cut_images)
+                        graphics_update="drop")(grid_axes[:q(int, images_count)], cut_images)
 
 
 def create_figure_3():

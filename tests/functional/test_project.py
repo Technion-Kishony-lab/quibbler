@@ -224,7 +224,7 @@ def test_project_has_redo_when_true(project):
 
 def test_project_redraw_central_graphics_function_quibs(project):
     func = mock.Mock()
-    _ = create_quib(func=func, update_type='central', lazy=True)
+    _ = create_quib(func=func, graphics_update='central', lazy=True)
 
     project.refresh_graphics()
 
