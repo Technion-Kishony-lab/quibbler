@@ -570,6 +570,15 @@ class Quib:
     A Quib is an object representing a specific call of a function with it's arguments.
     """
 
+    PROPERTY_LIST = (
+        ('Designation', ('assigned_name', 'name', 'functional_representation','created_in')),
+        ('Function', ('is_iquib', 'is_random', 'is_file_loading', 'is_impure', 'is_graphics', 'pass_quibs')),
+        ('File saving', ('save_directory', 'actual_save_directory', 'save_format', 'actual_save_format', 'file_path')),
+        ('Assignments', ('assignment_template', 'allow_overriding', 'assigned_quibs')),
+        ('Caching', ('cache_mode', )),
+        ('Graphics', ('graphics_update_type', )),
+    )
+
     def __init__(self,
                  quib_function_call: QuibFuncCall = None,
                  assignment_template: Optional[AssignmentTemplate] = None,
@@ -1726,6 +1735,16 @@ class Quib:
                 return self.pretty_repr() + '\n' + self.handler.overrider.pretty_repr(self.assigned_name)
             return self.pretty_repr()
         return self.ugly_repr()
+
+    def display_props(self) -> None:
+        repr_ = ''
+
+        for header, properties in self.PROPERTY_LIST:
+            repr_ = repr_ + f'{"--- " + header + " ---":>30}\n'
+            repr_ = repr_ + '\n'.join((f'{prop:>26}: {getattr(self, prop)}' for prop in properties))
+            repr_ = repr_ + '\n\n'
+
+        print(repr_)
 
     @property
     def created_in(self) -> Optional[FileAndLineNumber]:
