@@ -118,7 +118,7 @@ class Project:
         """
         Reset and then invalidate_redraw all impure quibs in the project.
         """
-        self._reset_list_of_quibs([quib for quib in self.quibs if quib.is_impure_func])
+        self._reset_list_of_quibs([quib for quib in self.quibs if quib.is_impure])
 
     def refresh_graphics(self):
         """

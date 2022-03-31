@@ -761,7 +761,7 @@ class Quib:
 
         See Also
         --------
-        is_impure_func, is_file_loading
+        is_impure, is_file_loading
         invalidate
         Project.reset_random_quibs
 
@@ -792,7 +792,7 @@ class Quib:
 
         See Also
         --------
-        is_impure_func, is_random
+        is_impure, is_random
         invalidate
         Project.reset_file_loading_quibs
 
