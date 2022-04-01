@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import enum
 import functools
 import pathlib
 import pickle
@@ -11,7 +12,7 @@ import json_tricks
 import numpy as np
 
 from pyquibbler.function_definitions import get_definition_for_function, FuncArgsKwargs
-from pyquibbler.utils import get_original_func
+from pyquibbler.utils import get_original_func, StrEnum
 from pyquibbler.quib.types import FileAndLineNumber
 from pyquibbler.utilities.file_path import PathWithHyperLink
 from functools import cached_property
@@ -574,12 +575,12 @@ class Quib:
     """
 
     PROPERTY_LIST = (
-        ('Designation', ('assigned_name', 'name', 'functional_representation','created_in')),
-        ('Function', ('is_iquib', 'is_random', 'is_file_loading', 'is_impure', 'is_graphics', 'pass_quibs')),
-        ('File saving', ('save_directory', 'actual_save_directory', 'save_format', 'actual_save_format', 'file_path')),
+        ('Function', ('func', 'is_iquib', 'is_random', 'is_file_loading', 'is_graphics', 'pass_quibs')),
+        ('Arguments', ('args', 'kwargs')),
+        ('File saving', (('save_format', 'actual_save_format'), 'file_path')),
         ('Assignments', ('assignment_template', 'allow_overriding', 'assigned_quibs')),
-        ('Caching', ('cache_mode', )),
-        ('Graphics', ('graphics_update', 'actual_graphics_update')),
+        ('Caching', ('cache_mode', 'cache_status')),
+        ('Graphics', (('graphics_update', 'actual_graphics_update'), 'is_graphics_quib')),
     )
 
     def __init__(self,
@@ -912,7 +913,7 @@ class Quib:
         Specifies whether the quib is a graphics quib.
 
         A quib is defined as graphics if its function is a known graphics function (`is_graphics`=`True`),
-        or if its function created graphics.
+        or if its function's `is_graphics`=`None` and a call to the function created graphics.
 
         A quib defined as graphics will get auto-refreshed based on the `graphics_update`.
 
@@ -925,7 +926,7 @@ class Quib:
         is_graphics, graphics_update
         Project.refresh_graphics
         """
-        return self.handler.func_definition.is_graphics or self.handler.quib_function_call.created_graphics
+        return self.handler.quib_function_call.func_can_create_graphics
 
     @property
     def graphics_update(self) -> GraphicsUpdateType:
@@ -936,6 +937,7 @@ class Quib:
         "drop":     refresh at end of dragging upon graphic object drop.
         "central":  do not automatically refresh. Refresh, centrally upon refresh_graphics().
         "never":    Never refresh.
+        None:       Yield to the default project's graphics_update
 
         Returns
         -------
@@ -1744,12 +1746,31 @@ class Quib:
         return self.ugly_repr()
 
     def display_props(self) -> None:
-        repr_ = ''
 
-        for header, properties in self.PROPERTY_LIST:
-            repr_ = repr_ + f'{"--- " + header + " ---":>30}\n'
-            repr_ = repr_ + '\n'.join((f'{prop:>26}: {getattr(self, prop)}' for prop in properties))
-            repr_ = repr_ + '\n\n'
+        def _repr(value):
+            if isinstance(value, enum.Enum):
+                return value.name
+            if isinstance(value, str):
+                return f'"{value}"'
+            if isinstance(value, pathlib.Path):
+                return str(value)
+            return value
+
+        repr_ = ''
+        repr_ = repr_ + f'{"quib":>20}: {self}\n\n'
+        with REPR_RETURNS_SHORT_NAME.temporary_set(True):
+            for header, properties in self.PROPERTY_LIST:
+                repr_ = repr_ + f'{"--- " + header + " ---":>20}\n'
+                for prop in properties:
+                    if isinstance(prop, str):
+                        repr_ = repr_ + f'{prop:>20}: {_repr(getattr(self, prop))}'
+                    else:
+                        prop, actual_prop = prop
+                        repr_ = repr_ + f'{prop:>20}: {_repr(getattr(self, prop))}'
+                        if getattr(self, prop) is None:
+                            repr_ = repr_ + f' -> {_repr(getattr(self, actual_prop))}'
+                    repr_ = repr_ + '\n'
+                repr_ = repr_ + '\n'
 
         print(repr_)
 
