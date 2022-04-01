@@ -1421,7 +1421,7 @@ class Quib:
     def save_format(self, save_format):
         save_format = get_enum_by_str(SaveFormat, save_format, allow_none=True)
         if (save_format in [SaveFormat.VALUE_BIN, SaveFormat.VALUE_TXT]) and not self.is_iquib:
-            raise CannotSaveFunctionQuibsAsValueException
+            raise CannotSaveFunctionQuibsAsValueException()
 
         self.handler.save_format = save_format
         self.handler.on_file_name_change()
@@ -1694,7 +1694,7 @@ class Quib:
         return NameMathExpression(self.assigned_name) if self.assigned_name is not None \
             else self._get_functional_representation_expression()
 
-    def ugly_repr(self):
+    def ugly_repr(self) -> str:
         """
         Returns a simple representation of the quib.
 

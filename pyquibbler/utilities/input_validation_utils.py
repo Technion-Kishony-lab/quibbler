@@ -13,7 +13,7 @@ class InvalidArgumentException(PyQuibblerException, ABC):
     var_name: str
 
     def __str__(self):
-        return f'Argument {self.var_name} must be ' + self._must_be_message
+        return f'Attribute {self.var_name} must be ' + self._must_be_message()
 
     @abstractmethod
     def _must_be_message(self):
@@ -61,15 +61,15 @@ def validate_user_input(**vars_to_expected_types):
 @dataclass
 class UnknownEnumException(PyQuibblerException):
     attempted_value: str
-    cls: Type
+    cls: Type[StrEnum]
 
     def __str__(self):
         return f"{self.attempted_value} is not a valid value for {self.cls}.\n" \
             f"Allowed values: {', '.join([value for value in self.cls])}"
 
 
-def get_enum_by_str(cls: Type[Type[StrEnum]], value: Union[str, Type[StrEnum]], allow_none: bool = False) -> \
-        Optional[Type[StrEnum]]:
+def get_enum_by_str(cls: Type[StrEnum], value: Union[str, Type[StrEnum]], allow_none: bool = False) -> \
+        Optional[StrEnum]:
 
     if type(value) is cls:
         return value
