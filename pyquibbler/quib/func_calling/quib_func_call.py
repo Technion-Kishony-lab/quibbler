@@ -285,8 +285,10 @@ class QuibFuncCall(FuncCall):
                     # don't want to only take the last run
                     result = self.cache.get_value()
 
-                    # sanity
-                    assert len(self.cache.get_uncached_paths(truncated_path)) == 0
+                    # assert is commented as this is not the case for a list cache
+                    # accessed with array indexing.
+                    # (see test_get_partial_value_of_a_list_iquib_with_boolean_indexing)
+                    # assert len(self.cache.get_uncached_paths(truncated_path)) == 0
 
         return result
 
