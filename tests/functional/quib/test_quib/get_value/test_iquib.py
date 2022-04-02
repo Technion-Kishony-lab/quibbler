@@ -6,10 +6,9 @@ from pyquibbler.path import PathComponent
 
 
 @mark.regression
-@mark.parametrize(['lazy'], [(True,), (False,)])
-def test_get_partial_value_of_a_list_iquib_with_boolean_indexing(lazy):
+def test_get_partial_value_of_a_list_iquib_with_boolean_indexing():
     value = [[1, 2], [3, 4]]
-    a = iquib(value, lazy=lazy)
+    a = iquib(value)
 
     index = np.array([[0, 1], [0, 0]], dtype=bool)
     partial_value = a.get_value_valid_at_path([PathComponent(component=index, indexed_cls=np.ndarray)])
@@ -18,10 +17,9 @@ def test_get_partial_value_of_a_list_iquib_with_boolean_indexing(lazy):
 
 
 @mark.regression
-@mark.parametrize(['lazy'], [(True,), (False,)])
-def test_array_of_iquib_list(lazy):
+def test_array_of_iquib_list():
     value = [[1, 2], [3, 4]]
-    a = iquib(value, lazy=lazy)
+    a = iquib(value)
 
     index = np.array([[0, 1], [0, 0]], dtype=bool)
     b = np.array(a)

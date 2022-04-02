@@ -1,26 +1,22 @@
 from __future__ import annotations
 
-import weakref
 from contextlib import ExitStack
 from sys import getsizeof
 from time import perf_counter
-from typing import Optional, Type, Tuple, Dict, Any, Set, Mapping, Callable, List, Union
+from typing import Optional, Tuple, Dict, Any, Set, Mapping, Callable, List, Union
 
 from pyquibbler.cache.cache_utils import _truncate_path_to_match_shallow_caches, _ensure_cache_matches_result, \
     get_cached_data_at_truncated_path_given_result_at_uncached_path
 from pyquibbler.cache import PathCannotHaveComponentsException, get_uncached_paths_matching_path, Cache
 
-from pyquibbler.function_definitions import FuncCall, load_source_locations_before_running, FuncArgsKwargs
-from pyquibbler.function_definitions.func_definition import FuncDefinition
+from pyquibbler.function_definitions import load_source_locations_before_running
+
 from pyquibbler.graphics.graphics_collection import GraphicsCollection
 from pyquibbler.path import Path
 from pyquibbler.quib import consts
 from pyquibbler.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
 from pyquibbler.quib.func_calling import QuibFuncCall
 from pyquibbler.quib.func_calling.cache_mode import CacheMode
-from pyquibbler.quib.func_calling.exceptions import CannotCalculateShapeException
-from pyquibbler.quib.func_calling.result_metadata import ResultMetadata
-from pyquibbler.quib.func_calling.utils import create_array_from_func
 from pyquibbler.quib.quib import Quib, QuibHandler
 from pyquibbler.quib.quib_guard import QuibGuard
 from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation_with_sources_metadata, \

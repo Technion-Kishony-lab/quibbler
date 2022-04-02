@@ -13,7 +13,6 @@ from pyquibbler.quib.factory import create_quib
 from pyquibbler.quib.func_calling.cache_mode import CacheMode
 from pyquibbler.quib.utils.miscellaneous import is_there_a_quib_in_object
 
-
 from pyquibbler.translation.forwards_path_translator import ForwardsPathTranslator
 from pyquibbler.translation.types import Source
 
@@ -42,13 +41,21 @@ class IQuibForwardsPathTranslator(ForwardsPathTranslator):
         return [path]
 
 
-iquib_definition = create_func_definition(raw_data_source_arguments=[0],
-                                          forwards_path_translators=[IQuibForwardsPathTranslator])
+def get_iquib_func_call():
+    from pyquibbler.quib.func_calling.iquib_call import IQuibFuncCall
+    return IQuibFuncCall
+
+
+iquib_definition = create_func_definition(
+    is_graphics=False,
+    is_random=False,
+    lazy=False,
+    raw_data_source_arguments=[0],
+    forwards_path_translators=[IQuibForwardsPathTranslator],
+    quib_function_call_cls=get_iquib_func_call())
 
 
 def iquib(value: Any,
-          cache_mode: CacheMode = None,
-          lazy: bool = False,
           allow_overriding: bool = True,
           save_format: Union[None, str, SaveFormat] = None,
           save_directory: Union[None, str, pathlib.Path] = None,
@@ -83,10 +90,8 @@ def iquib(value: Any,
         assigned_name=assigned_name,
         allow_overriding=allow_overriding,
         assignment_template=assignment_template,
-        lazy=lazy,
         save_format=save_format,
         save_directory=save_directory,
-        cache_mode=cache_mode,
     )
 
 add_definition_for_function(func=identity_function, function_definition=iquib_definition,
