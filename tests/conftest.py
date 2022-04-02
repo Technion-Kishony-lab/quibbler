@@ -97,14 +97,14 @@ def setup_assignment_restrictions(request):
     yield from setup_flag(ASSIGNMENT_RESTRICTIONS, DEFAULT_ASSIGNMENT_RESTRICTIONS, request)
 
 
-@pytest.fixture(scope='session', autouse=True)
+@fixture(scope='session', autouse=True)
 def set_backend():
     import matplotlib
     # A backend that doesn't do anything. We use it because some tests failed in the TK backend because of tk bugs
     matplotlib.use("template")
 
 
-@pytest.fixture
+@fixture
 def axes():
     from matplotlib import pyplot as plt
     plt.close("all")
@@ -112,7 +112,7 @@ def axes():
     return plt.gca()
 
 
-@pytest.fixture(autouse=True)
+@fixture(autouse=True)
 def project(tmpdir):
     path = tmpdir.strpath
     yield Project.get_or_create(directory=Path(path))

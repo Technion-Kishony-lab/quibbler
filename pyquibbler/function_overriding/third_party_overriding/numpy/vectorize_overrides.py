@@ -6,6 +6,7 @@ from pyquibbler.function_definitions import PositionalArgument, KeywordArgument
 from pyquibbler.function_definitions.func_call import FuncArgsKwargs
 from pyquibbler.function_definitions.func_definition import FuncDefinition
 from pyquibbler.function_overriding.function_override import FuncOverride
+from pyquibbler.project import Project
 from pyquibbler.quib.func_calling.func_calls.vectorize.vectorize_call \
     import VectorizeQuibFuncCall
 from pyquibbler.quib.graphics import GraphicsUpdateType
@@ -58,7 +59,7 @@ class QVectorize(np.vectorize):
         # We don't need the underlying vectorize object to cache, we are doing that ourselves.
         super().__init__(*args, signature=signature, cache=False, **kwargs)
         self.pass_quibs = pass_quibs
-        self.graphics_update = graphics_update or GraphicsUpdateType.DRAG
+        self.graphics_update = graphics_update or Project.DEFAULT_GRAPHICS_UPDATE
         self.lazy = lazy if lazy is not None else True
 
     def __repr__(self):

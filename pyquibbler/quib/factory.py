@@ -1,7 +1,8 @@
 from __future__ import annotations
 import pathlib
-from typing import Optional, Tuple, Callable, Any, Mapping, TYPE_CHECKING
+from typing import Optional, Tuple, Callable, Any, Mapping, TYPE_CHECKING, Union, Set
 
+from pyquibbler.assignment import AssignmentTemplate
 from pyquibbler.env import GET_VARIABLE_NAMES, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS
 from pyquibbler.logger import logger
 from pyquibbler.project import Project
@@ -49,66 +50,65 @@ def _get_file_name_and_line_no() -> Optional[FileAndLineNumber]:
     return None
 
 
-def create_quib(func: Callable, args: Tuple[Any, ...] = (), kwargs: Mapping[str, Any] = None,
+def create_quib(func: Callable,
+                args: Tuple[Any, ...] = (),
+                kwargs: Mapping[str, Any] = None,
+                function_definition: FuncDefinition = None,
                 cache_mode: CacheMode = None,
                 lazy: bool = None,
                 allow_overriding: bool = False,
                 graphics_update: GraphicsUpdateType = None,
                 save_format: Optional[SaveFormat] = None,
                 save_directory: pathlib.Path = None,
-                function_definition: FuncDefinition = None,
+                assigned_name: Optional[str] = None,
+                assignment_template: Union[None, tuple, AssignmentTemplate] = None,
+                assigned_quibs: Optional[Set[Quib]] = None,
+                register_as_child_of_parents: bool = True,
                 ) -> Quib:
     """
-    Public constructor for creating a quib- this takes care of retrieving all relevant info for the creation of the
+    Public constructor for creating a quib
+    Takes care of retrieving all relevant info for the creation of the
     quib as well as registering and performing any calculations.
-    Returns a Quib object.
 
-    :param func - The function this quib represents
-    :param args - Positional arguments of the quib's function
-    :param kwargs - Keyword arguments of the quib's function
-    :param cache_mode - In what fashion should the quib cache? See CacheMode for options
-    :param lazy - by default we are lazy- should the quib be evaluated immediately upon creation?
-    :param allow_overriding - can this quib be overridden, or does it always need to propogate assignments backwards?
-    func will be called with the quibs.
-    :param graphics_update - (Only relevant if the quib has graphics/is known graphics func) - when should the quib
-    "update"? See GraphicsUpdateType for options
-    :param save_format - indicating the file format for saving assignments to the quib (FileFormat).
-    :param save_directory - where to save the quib?
-    :param function_definition - the definition of the function
+    Returns a Quib object.
     """
+
+    quib = Quib(created_in=_get_file_name_and_line_no())
 
     kwargs = kwargs or {}
     function_definition = function_definition or get_definition_for_function(func)
+    lazy = function_definition.lazy if lazy is None else lazy
+    cache_mode = cache_mode or QuibFuncCall.DEFAULT_CACHE_MODE
+    assigned_name = get_quib_name() if assigned_name is None else assigned_name
 
-    if lazy is None:
-        lazy = function_definition.lazy
-
-    created_in = _get_file_name_and_line_no()
-
-    project = Project.get_or_create()
-
-    quib = Quib(created_in=created_in)
-
-    quib.setp(assignment_template=None, allow_overriding=allow_overriding,
-              assigned_name=get_quib_name(), graphics_update=None,
-              save_directory=save_directory, save_format=save_format)
+    quib.setp(assignment_template=assignment_template,
+              assigned_quibs=assigned_quibs,
+              allow_overriding=allow_overriding,
+              assigned_name=assigned_name,
+              graphics_update=graphics_update,
+              save_directory=save_directory,
+              save_format=save_format,
+              cache_mode=cache_mode,
+              )
 
     quib.func = func
     quib.args = args
     quib.kwargs = kwargs
     quib.handler.func_definition = function_definition
-    quib.cache_mode = cache_mode or QuibFuncCall.DEFAULT_CACHE_MODE
     quib.handler.reset_quib_func_call()
 
+    # register new quib on project
+    project = Project.get_or_create()
     project.register_quib(quib)
+
     add_new_quib_to_guard_if_exists(quib)
 
-    if graphics_update:
-        quib.graphics_update = graphics_update or GraphicsUpdateType.DRAG
+    # register new quib on parents
+    if register_as_child_of_parents:
+        for parent in quib.parents:
+            parent.handler.add_child(quib)
 
-    for arg in quib.parents:
-        arg.handler.add_child(quib)
-
+    # evaluate now if not lazy
     if not lazy:
         quib.get_value()
 

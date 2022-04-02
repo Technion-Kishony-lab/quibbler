@@ -46,6 +46,9 @@ class Project:
     performing actions aggregatively on many quibs
     """
 
+    DEFAULT_GRAPHICS_UPDATE = GraphicsUpdateType.DRAG
+    DEFAULT_SAVE_FORMAT = SaveFormat.VALUE_TXT
+
     current_project = None
 
     def __init__(self, directory: Optional[Path], quib_weakrefs: Set[ReferenceType[Quib]]):
@@ -55,8 +58,8 @@ class Project:
         self._undo_action_groups: List[List[Action]] = []
         self._redo_action_groups: List[List[Action]] = []
         self._quib_refs_to_paths_to_released_assignments = defaultdict(dict)
-        self._save_format: SaveFormat = SaveFormat.VALUE_TXT
-        self._graphics_update: GraphicsUpdateType = GraphicsUpdateType.DRAG
+        self._save_format: SaveFormat = self.DEFAULT_SAVE_FORMAT
+        self._graphics_update: GraphicsUpdateType = self.DEFAULT_GRAPHICS_UPDATE
         self.on_path_change: Optional[Callable] = None
 
     @classmethod

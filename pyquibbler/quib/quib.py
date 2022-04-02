@@ -652,7 +652,7 @@ class Quib:
         self.handler.func_args_kwargs.func = get_original_func(func)
 
     @property
-    def args(self) -> List[Any]:
+    def args(self) -> Tuple[Any]:
         """
         The arguments of the function run by the quib.
 
@@ -1100,7 +1100,7 @@ class Quib:
              assigned_name: Union[None, str] = NoValue,
              name: Union[None, str] = NoValue,
              graphics_update: Union[None, str] = NoValue,
-             assigned_quibs: set["Quib"] = NoValue,
+             assigned_quibs: Optional[Set[Quib]] = NoValue,
              ):
         """
         Set one or more properties on a quib.
@@ -1116,8 +1116,8 @@ class Quib:
          graphics_update: Union[None, str]
 
         Examples:
-            >>>> a = iquib(7).setp(assigned_name='my_number')
-            >>>> b = (2 * a).setp(allow_overriding=True)
+            >>> a = iquib(7).setp(assigned_name='my_number')
+            >>> b = (2 * a).setp(allow_overriding=True)
         """
 
         from pyquibbler.quib.factory import get_quib_name
@@ -1315,7 +1315,7 @@ class Quib:
         from pyquibbler.quib.specialized_functions import proxy
         quib = self.args[0] if self.func == proxy else self
         if issubclass(quib.get_type(), np.ndarray):
-            mask = np.zeros(quib.get_shape(), dtype=np.bool)
+            mask = np.zeros(quib.get_shape(), dtype=bool)
         else:
             mask = recursively_run_func_on_object(func=lambda x: False, obj=quib.get_value())
         return quib.handler.overrider.fill_override_mask(mask)
