@@ -10,7 +10,6 @@ from pyquibbler.function_definitions import add_definition_for_function
 from pyquibbler.function_definitions.func_definition import create_func_definition
 from pyquibbler.path.path_component import Path, Paths
 from pyquibbler.quib.factory import create_quib
-from pyquibbler.quib.func_calling.cache_mode import CacheMode
 from pyquibbler.quib.utils.miscellaneous import is_there_a_quib_in_object
 
 from pyquibbler.translation.forwards_path_translator import ForwardsPathTranslator
@@ -93,6 +92,7 @@ def iquib(value: Any,
         save_format=save_format,
         save_directory=save_directory,
     )
+
 
 add_definition_for_function(func=identity_function, function_definition=iquib_definition,
                             quib_creating_func=iquib)

@@ -7,7 +7,7 @@ from typing import Optional, Tuple, Dict, Any, Set, Mapping, Callable, List, Uni
 
 from pyquibbler.cache.cache_utils import _truncate_path_to_match_shallow_caches, _ensure_cache_matches_result, \
     get_cached_data_at_truncated_path_given_result_at_uncached_path
-from pyquibbler.cache import PathCannotHaveComponentsException, get_uncached_paths_matching_path, Cache
+from pyquibbler.cache import PathCannotHaveComponentsException, get_uncached_paths_matching_path
 
 from pyquibbler.function_definitions import load_source_locations_before_running
 
@@ -68,11 +68,6 @@ class CachedQuibFuncCall(QuibFuncCall):
     def on_type_change(self):
         self._reset_cache()
         super(CachedQuibFuncCall, self).on_type_change()
-
-
-
-
-
 
     def _run_single_call(self, func: Callable, graphics_collection: GraphicsCollection,
                          args: Tuple[Any, ...], kwargs: Mapping[str, Any], quibs_allowed_to_access: Set[Quib]):
@@ -210,8 +205,7 @@ class CachedQuibFuncCall(QuibFuncCall):
         return result
 
     @load_source_locations_before_running
-    def _get_args_and_kwargs_valid_at_quibs_to_paths(self,
-                                                    quibs_to_valid_paths: Dict[Quib, Optional[Path]]):
+    def _get_args_and_kwargs_valid_at_quibs_to_paths(self, quibs_to_valid_paths: Dict[Quib, Optional[Path]]):
         """
         Prepare arguments to call self.func with - replace quibs with values valid at the given path
         """

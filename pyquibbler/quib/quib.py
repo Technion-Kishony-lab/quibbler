@@ -12,7 +12,7 @@ import json_tricks
 import numpy as np
 
 from pyquibbler.function_definitions import get_definition_for_function, FuncArgsKwargs
-from pyquibbler.utils import get_original_func, StrEnum
+from pyquibbler.utils import get_original_func
 from pyquibbler.quib.types import FileAndLineNumber
 from pyquibbler.utilities.file_path import PathWithHyperLink
 from functools import cached_property
@@ -43,7 +43,7 @@ from pyquibbler.path import FailedToDeepAssignException, PathComponent, Path, Pa
 from pyquibbler.assignment import InvalidTypeException, OverrideRemoval, get_override_group_for_change, \
     AssignmentTemplate, Overrider, Assignment, AssignmentToQuib, create_assignment_template
 from pyquibbler.quib.func_calling.cache_mode import CacheMode
-from pyquibbler.quib.exceptions import OverridingNotAllowedException, InvalidCacheBehaviorForQuibException
+from pyquibbler.quib.exceptions import OverridingNotAllowedException
 from pyquibbler.quib.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own
 from pyquibbler.quib.graphics import GraphicsUpdateType
 from pyquibbler.translation.translate import forwards_translate, NoTranslatorsFoundException, \
