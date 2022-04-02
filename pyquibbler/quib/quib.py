@@ -309,8 +309,6 @@ class QuibHandler:
 
     def _add_override(self, assignment: Assignment):
         self.overrider.add_assignment(assignment)
-        if len(assignment.path) == 0:
-            self.quib_function_call.on_type_change()
 
         try:
             self.invalidate_and_redraw_at_path(assignment.path)
@@ -348,8 +346,6 @@ class QuibHandler:
                                                        overrider=self.overrider,
                                                        quib=self.quib)
             self.file_syncer.on_data_changed()
-        if len(path) == 0:
-            self.quib_function_call.on_type_change()
         self.invalidate_and_redraw_at_path(path=path)
 
     def apply_assignment(self, assignment: Assignment) -> None:
