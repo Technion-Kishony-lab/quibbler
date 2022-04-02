@@ -158,10 +158,9 @@ def create_func_definition(raw_data_source_arguments: List[RawArgument] = None,
     specific manner (and not just use default behavior), for whichever parameters you give.
     """
 
-    from pyquibbler.quib.func_calling import QuibFuncCall
     lazy = lazy if lazy is not None else LAZY
     func_definition_cls = func_definition_cls or FuncDefinition
-    quib_function_call_cls = quib_function_call_cls or QuibFuncCall
+    quib_function_call_cls = quib_function_call_cls or get_default_quib_func_call()
     raw_data_source_arguments = raw_data_source_arguments or set()
     data_source_arguments = convert_raw_data_source_arguments_to_data_source_arguments(raw_data_source_arguments)
     return func_definition_cls(
