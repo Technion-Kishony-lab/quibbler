@@ -42,7 +42,7 @@ class ApplyAlongAxisQuibFuncCall(QuibFuncCall):
             input_array = self.arr.get_value_valid_at_path([PathComponent(component=item, indexed_cls=np.ndarray)])
 
         oned_slice = input_array[item]
-        new_args, new_kwargs = self.get_args_and_kwargs_valid_at_quibs_to_paths(quibs_to_valid_paths={})
+        new_args, new_kwargs = self._get_args_and_kwargs_valid_at_quibs_to_paths(quibs_to_valid_paths={})
 
         func_args_kwargs = FuncArgsKwargs(func=self.func, args=new_args, kwargs=new_kwargs, include_defaults=False)
 

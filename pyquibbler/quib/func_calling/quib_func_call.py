@@ -85,7 +85,7 @@ class QuibFuncCall(FuncCall):
         if self.graphics_collections is None:
             self.graphics_collections = create_array_from_func(GraphicsCollection, loop_shape)
 
-    def get_cache_behavior(self):
+    def _get_cache_behavior(self):
         if self.func_definition.is_random or self.func_can_create_graphics:
             return CacheMode.ON
         return self.quib_handler.cache_mode
@@ -96,7 +96,7 @@ class QuibFuncCall(FuncCall):
         Note that there is no accurate way (and no efficient way to even approximate) the complete size of composite
         types in python, so we only measure the outer size of the object.
         """
-        cache_mode = self.get_cache_behavior()
+        cache_mode = self._get_cache_behavior()
         if cache_mode is CacheMode.ON:
             return True
         if cache_mode is CacheMode.OFF:
@@ -151,7 +151,7 @@ class QuibFuncCall(FuncCall):
 
     def reset_cache(self):
         self.cache = None
-        self._caching = True if self.get_cache_behavior() == CacheMode.ON else False
+        self._caching = True if self._get_cache_behavior() == CacheMode.ON else False
         self._result_metadata = None
 
     def on_type_change(self):
@@ -236,7 +236,7 @@ class QuibFuncCall(FuncCall):
             args, kwargs, quibs_allowed_to_access = self._proxify_args()
         else:
             quibs_to_paths = {} if valid_path is None else self._backwards_translate_path(valid_path)
-            args, kwargs = self.get_args_and_kwargs_valid_at_quibs_to_paths(quibs_to_paths)
+            args, kwargs = self._get_args_and_kwargs_valid_at_quibs_to_paths(quibs_to_paths)
             quibs_allowed_to_access = set()
 
         return self._run_single_call(
@@ -293,7 +293,7 @@ class QuibFuncCall(FuncCall):
         return result
 
     @load_source_locations_before_running
-    def get_args_and_kwargs_valid_at_quibs_to_paths(self,
+    def _get_args_and_kwargs_valid_at_quibs_to_paths(self,
                                                     quibs_to_valid_paths: Dict[Quib, Optional[Path]]):
         """
         Prepare arguments to call self.func with - replace quibs with values valid at the given path
