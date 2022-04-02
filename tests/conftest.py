@@ -9,7 +9,7 @@ from pyquibbler.env import DEBUG, LAZY, ASSIGNMENT_RESTRICTIONS, PRETTY_REPR, \
     SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS, GET_VARIABLE_NAMES
 from pyquibbler.project import Project
 from pyquibbler.function_overriding import override_all
-from pyquibbler.quib.func_calling import QuibFuncCall
+from pyquibbler.quib.func_calling import CachedQuibFuncCall
 from pyquibbler.utils import Flag
 
 DEFAULT_DEBUG = True
@@ -22,7 +22,7 @@ DEFAULT_GET_VARIABLE_NAMES = False
 
 @fixture(scope="session", autouse=True)
 def setup_environment_for_tests():
-    QuibFuncCall.DEFAULT_CACHE_MODE = CacheMode.ON
+    CachedQuibFuncCall.DEFAULT_CACHE_MODE = CacheMode.ON
 
 
 @pytest.fixture(autouse=True, scope="session")

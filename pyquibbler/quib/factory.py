@@ -6,7 +6,7 @@ from pyquibbler.assignment import AssignmentTemplate
 from pyquibbler.env import GET_VARIABLE_NAMES, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS
 from pyquibbler.logger import logger
 from pyquibbler.project import Project
-from pyquibbler.quib.func_calling import QuibFuncCall
+from pyquibbler.quib.func_calling import CachedQuibFuncCall
 from pyquibbler.quib.get_value_context_manager import is_within_get_value_context
 from pyquibbler.quib.graphics import GraphicsUpdateType
 from pyquibbler.quib.quib_guard import add_new_quib_to_guard_if_exists
@@ -78,7 +78,7 @@ def create_quib(func: Callable,
     kwargs = kwargs or {}
     function_definition = function_definition or get_definition_for_function(func)
     lazy = function_definition.lazy if lazy is None else lazy
-    cache_mode = cache_mode or QuibFuncCall.DEFAULT_CACHE_MODE
+    cache_mode = cache_mode or CachedQuibFuncCall.DEFAULT_CACHE_MODE
     assigned_name = get_quib_name() if assigned_name is None else assigned_name
 
     quib.setp(assignment_template=assignment_template,

@@ -186,7 +186,6 @@ class QuibHandler:
         """
         if len(path) == 0:
             self.quib_function_call.on_type_change()
-            self.quib_function_call.reset_cache()
 
         self.quib_function_call.invalidate_cache_at_path(path)
 

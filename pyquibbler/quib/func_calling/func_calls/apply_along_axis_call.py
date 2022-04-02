@@ -11,12 +11,12 @@ from pyquibbler.quib.specialized_functions.proxy import create_proxy
 from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices
 from pyquibbler.function_definitions.func_call import FuncArgsKwargs
 from pyquibbler.graphics.utils import remove_created_graphics
-from pyquibbler.quib.func_calling import QuibFuncCall
+from pyquibbler.quib.func_calling import CachedQuibFuncCall
 from pyquibbler.quib.func_calling.utils import cache_method_until_full_invalidation
 from pyquibbler.quib.quib import Quib
 
 
-class ApplyAlongAxisQuibFuncCall(QuibFuncCall):
+class ApplyAlongAxisQuibFuncCall(CachedQuibFuncCall):
 
     def _run_func1d(self, arr: np.ndarray, *args, **kwargs) -> Any:
         """

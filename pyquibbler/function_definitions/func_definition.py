@@ -18,8 +18,8 @@ if TYPE_CHECKING:
 
 
 def get_default_quib_func_call():
-    from pyquibbler.quib.func_calling import QuibFuncCall
-    return QuibFuncCall
+    from pyquibbler.quib.func_calling import CachedQuibFuncCall
+    return CachedQuibFuncCall
 
 
 @dataclass
