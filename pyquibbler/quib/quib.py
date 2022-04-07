@@ -488,29 +488,21 @@ class QuibHandler:
         self.file_syncer.on_file_name_changed()
 
     def save_assignments_or_value(self, file_path: pathlib.Path):
-        save_format = self.quib.actual_save_format
-        if save_format == SaveFormat.VALUE_TXT:
-            self._save_value_as_txt(file_path)
-        elif save_format == SaveFormat.VALUE_BIN:
-            self._save_value_as_binary(file_path)
-        elif save_format == SaveFormat.BIN:
-            self.overrider.save_as_binary(file_path)
-        elif save_format == SaveFormat.TXT:
-            self.overrider.save_as_txt(file_path)
+        if self.quib.actual_save_format is SaveFormat.OFF:
+            return
+        {SaveFormat.VALUE_TXT: self._save_value_as_txt,
+         SaveFormat.VALUE_BIN: self._save_value_as_binary,
+         SaveFormat.BIN: self.overrider.save_as_binary,
+         SaveFormat.TXT: self.overrider.save_as_txt}[self.quib.actual_save_format](file_path)
 
     def load_from_assignment_file_or_value_file(self, file_path: pathlib.Path):
-        save_format = self.quib.actual_save_format
-        if save_format == SaveFormat.VALUE_TXT:
-            changed_paths = self._load_value_from_txt(file_path)
-        elif save_format == SaveFormat.VALUE_BIN:
-            changed_paths = self._load_value_from_binary(file_path)
-        elif save_format == SaveFormat.BIN:
-            changed_paths = self.overrider.load_from_binary(file_path)
-        elif save_format == SaveFormat.TXT:
-            changed_paths = self.overrider.load_from_txt(file_path)
-        else:
+        if self.quib.actual_save_format is SaveFormat.OFF:
             return
-
+        changed_paths = {
+            SaveFormat.VALUE_TXT: self._load_value_from_txt,
+            SaveFormat.VALUE_BIN: self._load_value_from_binary,
+            SaveFormat.BIN: self.overrider.load_from_binary,
+            SaveFormat.TXT: self.overrider.load_from_txt}[self.quib.actual_save_format](file_path)
         self.project.clear_undo_and_redo_stacks()
         for path in changed_paths:
             self.invalidate_and_redraw_at_path(path)
@@ -529,7 +521,7 @@ class QuibHandler:
         # TODO: check which specific elements changed.
         return [[]]
 
-    def _save_value_as_binary(self, file_path):
+    def _save_value_as_binary(self, file_path: pathlib.Path):
         with open(file_path, 'wb') as f:
             pickle.dump(self.get_value_valid_at_path([]), f)
 

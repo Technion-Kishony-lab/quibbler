@@ -1,4 +1,5 @@
 import copy
+import pathlib
 import pickle
 import numpy as np
 from dataclasses import dataclass
@@ -175,11 +176,11 @@ class Overrider:
     save/load
     """
 
-    def save_as_binary(self, file):
+    def save_as_binary(self, file: pathlib.Path):
         with open(file, 'wb') as f:
             pickle.dump(self._paths_to_assignments, f)
 
-    def load_from_binary(self, file) -> List[Path]:
+    def load_from_binary(self, file: pathlib.Path) -> List[Path]:
         with open(file, 'rb') as f:
             return self.replace_assignments(pickle.load(f))
 
@@ -191,14 +192,14 @@ class Overrider:
                 return False
         return True
 
-    def save_as_txt(self, file):
+    def save_as_txt(self, file: pathlib.Path):
         from pyquibbler.quib.exceptions import CannotSaveAssignmentsAsTextException
         if not self.can_save_to_txt():
             raise CannotSaveAssignmentsAsTextException()
         with open(file, "wt") as f:
             f.write(self.pretty_repr())
 
-    def load_from_txt(self, file):
+    def load_from_txt(self, file: pathlib.Path):
         """
         load assignments from text file.
         """
