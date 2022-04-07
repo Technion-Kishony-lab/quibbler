@@ -3,8 +3,7 @@ from abc import ABC, abstractmethod
 import os
 from enum import Enum
 import pathlib
-from typing import Optional, Iterable, Tuple
-
+from typing import Optional, Mapping
 
 """
 This file follows the logic of file-syncing from MatQuibbler
@@ -12,14 +11,14 @@ This file follows the logic of file-syncing from MatQuibbler
 
 
 #  TODO: should be replaced with more fancy dialog box
-def text_dialog(title: str, message: str, buttons_and_options: Iterable[Tuple[str, str]]) -> str:
+def text_dialog(title: str, message: str, buttons_and_options: Mapping[str, str]) -> str:
     print(title)
     print(message)
-    for button, option in buttons_and_options:
+    for button, option in buttons_and_options.items():
         print(button, ': ', option)
     while True:
         choice = input()
-        if choice in [button for button, _ in buttons_and_options]:
+        if choice in buttons_and_options.keys():
             break
     return choice
 
@@ -260,7 +259,7 @@ class FileSyncer(ABC):
         answer = text_dialog(self._dialog_title(),
                              self._get_what_happened_message(file_comparison) + '\n'
                              + action_verification.message.format(self._file_type()) + '?',
-                             (('1', action_verification.button), ('2', 'Skip')))
+                             {'1': action_verification.button, '2': 'Skip'})
         return answer == '1'
 
     def save(self):
@@ -295,9 +294,8 @@ class FileSyncer(ABC):
         file_comparison = self._get_file_comparison()
         save_command = self._get_save_action_verification(file_comparison, self.is_synced, self.need_file)
         load_command = self._get_load_action_verification(file_comparison, self.is_synced, self.need_file)
-        action = SaveLoadAction.NOTHING
         if not save_command.action.is_action() and not load_command.action.is_action():
-            return
+            action = SaveLoadAction.NOTHING
         elif load_command.action.is_action() \
                 and (not save_command.action.is_action()
                      or save_command.requires_verification and not load_command.requires_verification):
@@ -309,12 +307,11 @@ class FileSyncer(ABC):
         else:
             answer = text_dialog(self._dialog_title(),
                                  self._get_what_happened_message(file_comparison),
-                                 (('1', save_command.message.format(self._file_type())),
-                                  ('2', load_command.message.format(self._file_type())),
-                                  ('3', 'Skip')))
-            if answer == '1':
-                action = save_command.action
-            if answer == '2':
-                action = load_command.action
+                                 {'1': save_command.message.format(self._file_type()),
+                                  '2': load_command.message.format(self._file_type()),
+                                  '3': 'Skip'})
+            action = {'1': save_command.action,
+                      '2': load_command.action,
+                      '3': SaveLoadAction.NOTHING}[answer]
 
         self._do_action(action)
