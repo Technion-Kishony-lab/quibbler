@@ -1,1 +1,1 @@
-from .quibbler_user_function import quibbler_user_function
+from .quiby_function import quiby_function

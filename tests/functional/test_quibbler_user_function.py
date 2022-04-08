@@ -1,12 +1,12 @@
 from unittest import mock
 
-from pyquibbler import quibbler_user_function, iquib
+from pyquibbler import quiby_function, iquib
 from pyquibbler.quib import Quib
 
 
 def test_quibbler_user_function_lazy():
     mock_func = mock.Mock()
-    user_function = quibbler_user_function(lazy=True)(mock_func)
+    user_function = quiby_function(lazy=True)(mock_func)
 
     res = user_function()
 
@@ -16,7 +16,7 @@ def test_quibbler_user_function_lazy():
 
 def test_quibbler_user_function_non_lazy():
     mock_func = mock.Mock()
-    user_function = quibbler_user_function(lazy=False)(mock_func)
+    user_function = quiby_function(lazy=False)(mock_func)
 
     res = user_function()
 
@@ -26,7 +26,7 @@ def test_quibbler_user_function_non_lazy():
 
 def test_quibbler_user_function_with_quibs():
     mock_func = mock.Mock()
-    user_function = quibbler_user_function(pass_quibs=True, lazy=False)(mock_func)
+    user_function = quiby_function(lazy=False, pass_quibs=True)(mock_func)
     quib = iquib(6)
 
     res = user_function(quib)

@@ -1,4 +1,4 @@
-from .decorators import quibbler_user_function
+from .decorators import quiby_function
 from pyquibbler.assignment import Assignment
 from pyquibbler.quib import CacheMode, iquib, Quib
 from .function_overriding import override_all

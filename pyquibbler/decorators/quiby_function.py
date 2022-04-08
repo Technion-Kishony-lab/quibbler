@@ -4,7 +4,7 @@ import functools
 from pyquibbler.quib.factory import create_quib
 
 
-def quibbler_user_function(lazy: bool = False, pass_quibs: bool = False):
+def quiby_function(lazy: bool = False, pass_quibs: bool = False):
     """
     Decorate your function with this in order for quibbler to automatically unpack quibs sent as arguments to this
     function, while reruninng this function every time any argument quib changes.
