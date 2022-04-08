@@ -34,7 +34,7 @@ def random_quib():
 
 
 def test_can_set_quib_cache_mode_to_on_when_random(random_quib):
-    random_quib.ache_behavior = CacheMode.ON
+    random_quib.cache_mode = CacheMode.ON
 
 
 def test_quib_cache_mode_on_by_default_when_is_random(random_quib):

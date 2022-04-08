@@ -14,7 +14,7 @@ from pyquibbler.quib.utils.miscellaneous import is_there_a_quib_in_object
 
 from pyquibbler.translation.forwards_path_translator import ForwardsPathTranslator
 from pyquibbler.translation.types import Source
-
+from pyquibbler.quib.quib import Quib
 
 @dataclass
 class CannotNestQuibInIQuibException(DebugException):
@@ -60,7 +60,7 @@ def iquib(value: Any,
           save_directory: Union[None, str, pathlib.Path] = None,
           assigned_name: Optional[str] = None,
           assignment_template: Union[None, tuple, AssignmentTemplate] = None,
-          ):
+          ) -> Quib:
     """
     Returns an input-quib that represent a given object
 
