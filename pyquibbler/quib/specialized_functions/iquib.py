@@ -16,6 +16,7 @@ from pyquibbler.translation.forwards_path_translator import ForwardsPathTranslat
 from pyquibbler.translation.types import Source
 from pyquibbler.quib.quib import Quib
 
+
 @dataclass
 class CannotNestQuibInIQuibException(DebugException):
     value: Any

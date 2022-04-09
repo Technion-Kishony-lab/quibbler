@@ -28,7 +28,7 @@ def add_definition_for_function(func: Callable,
         quib_creating_func.function_definition = function_definition
 
 
-def get_definition_for_function(func: Callable, return_default: bool=True) -> FuncDefinition:
+def get_definition_for_function(func: Callable, return_default: bool = True) -> FuncDefinition:
     """
     Get a definition for the function
     """

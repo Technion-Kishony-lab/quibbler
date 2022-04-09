@@ -4,7 +4,6 @@ import functools
 from dataclasses import dataclass, field
 from typing import Set, Type, List, TYPE_CHECKING, Callable, Optional
 
-from pyquibbler.env import LAZY
 from pyquibbler.function_definitions.func_call import FuncArgsKwargs
 from pyquibbler.function_definitions.types import RawArgument, Argument, PositionalArgument, KeywordArgument, \
     convert_raw_data_source_arguments_to_data_source_arguments
