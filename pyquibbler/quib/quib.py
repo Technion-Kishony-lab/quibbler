@@ -1814,4 +1814,4 @@ class Quib:
         func
         SaveFormat
         """
-        return getattr(self.func, '__name__', None) == 'iquib'
+        return self.handler.is_iquib
