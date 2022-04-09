@@ -133,6 +133,12 @@ class QuibHandler:
         """
         self.children.remove(quib_to_remove)
 
+    def get_descendants(self):
+        children = set(self.children)  # copy to prevent set changing during operation
+        for child in self.children:
+            children |= child.descendants
+        return children
+
     """
     graphics
     """
@@ -171,7 +177,7 @@ class QuibHandler:
         """
         Get all artists that directly or indirectly depend on this quib.
         """
-        return {child for child in self.quib.get_descendants() if child.is_graphics_quib}
+        return {child for child in self.get_descendants() if child.is_graphics_quib}
 
     """
     Invalidation
@@ -1330,15 +1336,25 @@ class Quib:
 
         See Also
         --------
-        ancestors, parents
+        ancestors, parents, descendants
         """
         return set(self.handler.children)
 
-    def get_descendants(self) -> Set[Quib]:
-        children = self.children
-        for child in self.children:
-            children |= child.get_descendants()
-        return children
+    @property
+    def descendants(self) -> Set[Quib]:
+        """
+        All quibs downstream of current quib.
+
+        Returns
+        -------
+        set of Quib
+            a set of all quibs that depend on the current quib, recursively.
+
+        See Also
+        --------
+        ancestors, children, parents
+        """
+        return self.handler.get_descendants()
 
     @property
     def parents(self) -> Set[Quib]:
@@ -1351,7 +1367,7 @@ class Quib:
 
         See Also
         --------
-        ancestors, children
+        ancestors, children, descendants
         """
         return set(self.handler.quib_function_call.get_objects_of_type_in_args_kwargs(Quib))
 
@@ -1366,7 +1382,7 @@ class Quib:
 
         See Also
         --------
-        parents, children
+        parents, children, descendants
         """
         ancestors = set()
         for parent in self.parents:
