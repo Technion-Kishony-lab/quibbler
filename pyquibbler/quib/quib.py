@@ -139,6 +139,10 @@ class QuibHandler:
             children |= child.descendants
         return children
 
+    @property
+    def is_iquib(self):
+        return getattr(self.func_args_kwargs.func, '__name__', None) == 'iquib'
+
     """
     graphics
     """
@@ -485,6 +489,13 @@ class QuibHandler:
     file syncing
     """
 
+    @property
+    def actual_save_format(self):
+        actual_save_format = self.save_format if self.save_format else self.project.save_format
+        if not self.is_iquib:
+            actual_save_format = SAVE_FORMAT_TO_FQUIB_SAVE_FORMAT[actual_save_format]
+        return actual_save_format
+
     def on_project_directory_change(self):
         if not (self.save_directory is not None and self.save_directory.is_absolute()):
             self.file_syncer.on_file_name_changed()
@@ -493,21 +504,21 @@ class QuibHandler:
         self.file_syncer.on_file_name_changed()
 
     def save_assignments_or_value(self, file_path: pathlib.Path):
-        if self.quib.actual_save_format is SaveFormat.OFF:
+        if self.actual_save_format is SaveFormat.OFF:
             return
         {SaveFormat.VALUE_TXT: self._save_value_as_txt,
          SaveFormat.VALUE_BIN: self._save_value_as_binary,
          SaveFormat.BIN: self.overrider.save_as_binary,
-         SaveFormat.TXT: self.overrider.save_as_txt}[self.quib.actual_save_format](file_path)
+         SaveFormat.TXT: self.overrider.save_as_txt}[self.actual_save_format](file_path)
 
     def load_from_assignment_file_or_value_file(self, file_path: pathlib.Path):
-        if self.quib.actual_save_format is SaveFormat.OFF:
+        if self.actual_save_format is SaveFormat.OFF:
             return
         changed_paths = {
             SaveFormat.VALUE_TXT: self._load_value_from_txt,
             SaveFormat.VALUE_BIN: self._load_value_from_binary,
             SaveFormat.BIN: self.overrider.load_from_binary,
-            SaveFormat.TXT: self.overrider.load_from_txt}[self.quib.actual_save_format](file_path)
+            SaveFormat.TXT: self.overrider.load_from_txt}[self.actual_save_format](file_path)
         self.project.clear_undo_and_redo_stacks()
         for path in changed_paths:
             self.invalidate_and_redraw_at_path(path)
@@ -1456,10 +1467,7 @@ class Quib:
         save_format
         SaveFormat
         """
-        actual_save_format = self.save_format if self.save_format else self.project.save_format
-        if not self.is_iquib:
-            actual_save_format = SAVE_FORMAT_TO_FQUIB_SAVE_FORMAT[actual_save_format]
-        return actual_save_format
+        return self.handler.actual_save_format
 
     @property
     def file_path(self) -> Optional[PathWithHyperLink]:
