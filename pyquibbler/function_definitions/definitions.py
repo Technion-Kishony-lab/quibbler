@@ -28,14 +28,14 @@ def add_definition_for_function(func: Callable,
         quib_creating_func.function_definition = function_definition
 
 
-def get_definition_for_function(func: Callable) -> FuncDefinition:
+def get_definition_for_function(func: Callable, return_default: bool=True) -> FuncDefinition:
     """
     Get a definition for the function
     """
     from pyquibbler.function_definitions.func_definition import FuncDefinition
     if hasattr(func, 'function_definition') and isinstance(func.function_definition, FuncDefinition):
         return func.function_definition
-    if func not in FUNCS_TO_DEFINITIONS_MODULE_NAME_ISOVERRIDDEN:
-        # Default function definition
-        return FuncDefinition(is_graphics=None)
-    return FUNCS_TO_DEFINITIONS_MODULE_NAME_ISOVERRIDDEN[func][0]
+    if func in FUNCS_TO_DEFINITIONS_MODULE_NAME_ISOVERRIDDEN:
+        return FUNCS_TO_DEFINITIONS_MODULE_NAME_ISOVERRIDDEN[func][0]
+    # Default function definition
+    return FuncDefinition(is_graphics=None) if return_default else None

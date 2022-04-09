@@ -1,5 +1,5 @@
 import functools
-from typing import Optional
+from typing import Optional, Callable
 
 from pyquibbler.quib.factory import create_quib
 
@@ -43,16 +43,17 @@ def quiby_function(
     """
 
     from pyquibbler.function_definitions.func_definition import FuncDefinition
+    from pyquibbler.function_definitions import get_definition_for_function
 
-    def _decorator(func):
-        function_definition = function_definition = FuncDefinition(
-            func=func,
-            lazy=lazy,
-            pass_quibs=pass_quibs,
-            is_random=is_random,
-            is_graphics=is_graphics,
-            is_file_loading=is_file_loading,
-        )
+    def _decorator(func: Callable):
+        function_definition = get_definition_for_function(func, return_default=False)
+        function_definition = function_definition or FuncDefinition(func=func,
+                                                                    lazy=lazy,
+                                                                    pass_quibs=pass_quibs,
+                                                                    is_random=is_random,
+                                                                    is_graphics=is_graphics,
+                                                                    is_file_loading=is_file_loading,
+                                                                    )
 
         @functools.wraps(func)
         def _wrapper(*args, **kwargs):

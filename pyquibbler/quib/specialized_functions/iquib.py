@@ -75,7 +75,7 @@ def iquib(value: Any,
 
     See Also
     --------
-    q, q_eager, Quib.get_value()
+    q, quiby, Quib.get_value()
     """
 
     # iquib is implemented as a quib with an identity function
