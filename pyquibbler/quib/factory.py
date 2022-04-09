@@ -51,7 +51,7 @@ def _get_file_name_and_line_no() -> Optional[FileAndLineNumber]:
     return None
 
 
-def create_quib(func: Callable,
+def create_quib(func: Optional[Callable],
                 args: Tuple[Any, ...] = (),
                 kwargs: Mapping[str, Any] = None,
                 function_definition: FuncDefinition = None,
@@ -77,7 +77,10 @@ def create_quib(func: Callable,
     quib = Quib(created_in=_get_file_name_and_line_no())
 
     kwargs = kwargs or {}
-    function_definition = function_definition or get_definition_for_function(func)
+    if func is None:
+        func = function_definition.func
+    else:
+        function_definition = function_definition or get_definition_for_function(func)
     cache_mode = cache_mode or CachedQuibFuncCall.DEFAULT_CACHE_MODE
     assigned_name = get_quib_name() if assigned_name is None else assigned_name
 

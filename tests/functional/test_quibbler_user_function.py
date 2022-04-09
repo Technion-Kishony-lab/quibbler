@@ -39,3 +39,13 @@ def test_quibbler_user_function_with_quibs():
     assert isinstance(arg_quib, Quib)
     assert arg_quib.get_value() == quib.get_value()
 
+
+def test_quibbler_user_function_change_defintion_after_declearation():
+    mock_func = mock.Mock()
+    user_function = quiby_function(lazy=False)(mock_func)
+    user_function.function_definition.lazy = True
+    res = user_function()
+
+    assert isinstance(res, Quib)
+    assert mock_func.call_count == 0
+
