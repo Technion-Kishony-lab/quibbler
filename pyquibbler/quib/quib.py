@@ -253,8 +253,8 @@ class QuibHandler:
             sources_to_paths={
                 quibs_to_sources[invalidator_quib]: path
             },
-            shape=self.quib.get_shape(),
-            type_=self.quib.get_type(),
+            shape=self.quib_function_call.get_shape(),
+            type_=self.quib_function_call.get_type(),
             **self.quib_function_call.get_result_metadata()
         )
         return sources_to_forwarded_paths.get(quibs_to_sources[invalidator_quib], [])
@@ -369,7 +369,7 @@ class QuibHandler:
         func_call, sources_to_quibs = get_func_call_for_translation_with_sources_metadata(self.quib_function_call)
         try:
             sources_to_paths = backwards_translate(func_call=func_call, path=override_removal.path,
-                                                   shape=self.quib.get_shape(), type_=self.quib.get_type())
+                                                   shape=self.quib_function_call.get_shape(), type_=self.quib_function_call.get_type())
         except NoTranslatorsFoundException:
             return []
         else:
