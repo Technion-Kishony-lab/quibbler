@@ -37,7 +37,7 @@ def test_reset_impure_quibs_invalidates_and_redraws(random_func_with_side_effect
     quib = create_quib(func=random_func_with_side_effect)
     quib.get_value()
     graphics_function_mock = mock.Mock()
-    add_definition_for_function(graphics_function_mock, create_func_definition(is_graphics=True))
+    add_definition_for_function(graphics_function_mock, create_func_definition(is_graphics=True, lazy=True))
     _ = create_quib(func=graphics_function_mock, args=(quib,))
 
     Project.get_or_create().reset_random_quibs()

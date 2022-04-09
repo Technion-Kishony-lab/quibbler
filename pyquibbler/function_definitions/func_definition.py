@@ -35,7 +35,7 @@ class FuncDefinition:
     is_file_loading: bool = False
     is_graphics: Optional[bool] = False  # None for 'maybe'
     pass_quibs: bool = False
-    lazy: bool = True
+    lazy: Optional[bool] = None  # None for auto: LAZY for non-graphics, GRAPHICS_LAZY for is_graphics=True
     replace_previous_quibs_on_artists: bool = field(repr=False, default=False)
     inverters: List[Type[Inverter]] = field(repr=False, default_factory=list)
     backwards_path_translators: List[Type[BackwardsPathTranslator]] = field(repr=False, default_factory=list)
@@ -144,7 +144,7 @@ def create_func_definition(raw_data_source_arguments: List[RawArgument] = None,
                            is_file_loading: bool = False,
                            is_graphics: Optional[bool] = False,
                            pass_quibs: bool = False,
-                           lazy: bool = None,
+                           lazy: Optional[bool] = None,
                            replace_previous_quibs_on_artists: bool = False,
                            inverters: List[Type[Inverter]] = None,
                            backwards_path_translators: List[Type[BackwardsPathTranslator]] = None,
@@ -158,7 +158,6 @@ def create_func_definition(raw_data_source_arguments: List[RawArgument] = None,
     specific manner (and not just use default behavior), for whichever parameters you give.
     """
 
-    lazy = lazy if lazy is not None else LAZY
     func_definition_cls = func_definition_cls or FuncDefinition
     quib_function_call_cls = quib_function_call_cls or get_default_quib_func_call()
     raw_data_source_arguments = raw_data_source_arguments or set()

@@ -3,7 +3,7 @@ import pathlib
 from typing import Optional, Tuple, Callable, Any, Mapping, TYPE_CHECKING, Union, Set
 
 from pyquibbler.assignment import AssignmentTemplate
-from pyquibbler.env import GET_VARIABLE_NAMES, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS
+from pyquibbler.env import GET_VARIABLE_NAMES, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS, LAZY, GRAPHICS_LAZY
 from pyquibbler.logger import logger
 from pyquibbler.project import Project
 from pyquibbler.quib.func_calling import CachedQuibFuncCall
@@ -12,6 +12,7 @@ from pyquibbler.quib.graphics import GraphicsUpdateType
 from pyquibbler.quib.quib_guard import add_new_quib_to_guard_if_exists
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.types import FileAndLineNumber
+from pyquibbler.quib.utils.miscellaneous import NoValue
 from pyquibbler.quib.variable_metadata import get_var_name_being_set_outside_of_pyquibbler, \
     get_file_name_and_line_number_of_quib
 from pyquibbler.file_syncing.types import SaveFormat
@@ -55,7 +56,7 @@ def create_quib(func: Callable,
                 kwargs: Mapping[str, Any] = None,
                 function_definition: FuncDefinition = None,
                 cache_mode: CacheMode = None,
-                lazy: bool = None,
+                lazy: bool = NoValue,
                 allow_overriding: bool = False,
                 graphics_update: GraphicsUpdateType = None,
                 save_format: Optional[SaveFormat] = None,
@@ -77,7 +78,6 @@ def create_quib(func: Callable,
 
     kwargs = kwargs or {}
     function_definition = function_definition or get_definition_for_function(func)
-    lazy = function_definition.lazy if lazy is None else lazy
     cache_mode = cache_mode or CachedQuibFuncCall.DEFAULT_CACHE_MODE
     assigned_name = get_quib_name() if assigned_name is None else assigned_name
 
@@ -109,6 +109,9 @@ def create_quib(func: Callable,
             parent.handler.add_child(quib)
 
     # evaluate now if not lazy
+    lazy = function_definition.lazy if lazy is NoValue else lazy
+    if lazy is None:
+        lazy = GRAPHICS_LAZY if function_definition.is_graphics else LAZY
     if not lazy:
         quib.get_value()
 
