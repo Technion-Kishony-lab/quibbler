@@ -1,11 +1,10 @@
 import warnings
-from dataclasses import dataclass
 
 import numpy as np
 
 from pyquibbler import Assignment
+from pyquibbler.assignment.exceptions import CommonAncestorBetweenArgumentsException
 from pyquibbler.env import ASSIGNMENT_RESTRICTIONS
-from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.translation.source_func_call import SourceFuncCall
 from pyquibbler.inversion.inverter import Inverter
 from pyquibbler.path.utils import working_component
@@ -14,16 +13,6 @@ from pyquibbler.translation.translate import backwards_translate
 from pyquibbler.translation.types import Source, Inversal
 from pyquibbler.translation.translators.elementwise.generic_inverse_functions import \
     create_inverse_single_arg_func, create_inverse_func_from_indexes_to_funcs
-
-
-@dataclass
-class CannotReverseException(PyQuibblerException):
-    source: Source
-    assignment: Assignment
-
-
-class CommonAncestorBetweenArgumentsException(CannotReverseException):
-    pass
 
 
 class ElementwiseInverter(Inverter):

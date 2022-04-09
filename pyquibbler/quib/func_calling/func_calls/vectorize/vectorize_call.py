@@ -7,7 +7,7 @@ from pyquibbler.path.path_component import Path
 from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices
 from pyquibbler.graphics.utils import remove_created_graphics
 from pyquibbler.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
-from pyquibbler.quib.func_calling import QuibFuncCall
+from pyquibbler.quib.func_calling import CachedQuibFuncCall
 from pyquibbler.quib.func_calling.utils import cache_method_until_full_invalidation
 from pyquibbler.quib.func_calling.func_calls.vectorize.utils import alter_signature, copy_vectorize, \
     get_indices_array, iter_arg_ids_and_values
@@ -19,7 +19,7 @@ from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals
 from pyquibbler.utils import convert_args_and_kwargs
 
 
-class VectorizeQuibFuncCall(QuibFuncCall):
+class VectorizeQuibFuncCall(CachedQuibFuncCall):
 
     def _wrap_vectorize_call_to_pass_quibs(self, call: VectorizeCall, args_metadata,
                                            results_core_ndims) -> VectorizeCall:
@@ -81,7 +81,7 @@ class VectorizeQuibFuncCall(QuibFuncCall):
             call = self._wrap_vectorize_call_to_pass_quibs(call, args_metadata, results_core_ndims)
         else:
             quibs_to_paths = {} if valid_path is None else self._backwards_translate_path(valid_path)
-            new_args, new_kwargs = self.get_args_and_kwargs_valid_at_quibs_to_paths(quibs_to_paths)
+            new_args, new_kwargs = self._get_args_and_kwargs_valid_at_quibs_to_paths(quibs_to_paths)
             (vectorize, *args), kwargs = new_args, new_kwargs
             call = VectorizeCall(vectorize, args, kwargs)
         return call
@@ -101,7 +101,7 @@ class VectorizeQuibFuncCall(QuibFuncCall):
         """
         Get and cache metadata for the vectorize call.
         """
-        new_args, new_kwargs = self.get_args_and_kwargs_valid_at_quibs_to_paths(quibs_to_valid_paths={})
+        new_args, new_kwargs = self._get_args_and_kwargs_valid_at_quibs_to_paths(quibs_to_valid_paths={})
         (vectorize, *args), kwargs = new_args, new_kwargs
         return VectorizeCall(vectorize, args, kwargs).get_metadata(self._get_sample_result)
 

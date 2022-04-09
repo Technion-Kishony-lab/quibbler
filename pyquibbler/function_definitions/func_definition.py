@@ -4,7 +4,6 @@ import functools
 from dataclasses import dataclass, field
 from typing import Set, Type, List, TYPE_CHECKING, Callable, Optional
 
-from pyquibbler.env import LAZY
 from pyquibbler.function_definitions.func_call import FuncArgsKwargs
 from pyquibbler.function_definitions.types import RawArgument, Argument, PositionalArgument, KeywordArgument, \
     convert_raw_data_source_arguments_to_data_source_arguments
@@ -18,8 +17,8 @@ if TYPE_CHECKING:
 
 
 def get_default_quib_func_call():
-    from pyquibbler.quib.func_calling import QuibFuncCall
-    return QuibFuncCall
+    from pyquibbler.quib.func_calling import CachedQuibFuncCall
+    return CachedQuibFuncCall
 
 
 @dataclass
@@ -30,20 +29,24 @@ class FuncDefinition:
     """
 
     func: Optional[Callable] = None
-    data_source_arguments: Set[Argument] = field(default_factory=set)
-    is_random_func: bool = False
-    is_file_loading_func: bool = False
-    is_graphics_func: Optional[bool] = False  # None for 'maybe'
+    data_source_arguments: Set[Argument] = field(repr=False, default_factory=set)
+    is_random: bool = False
+    is_file_loading: bool = False
+    is_graphics: Optional[bool] = False  # None for 'maybe'
     pass_quibs: bool = False
-    lazy: bool = True
-    replace_previous_quibs_on_artists: bool = False
-    inverters: List[Type[Inverter]] = field(default_factory=list)
-    backwards_path_translators: List[Type[BackwardsPathTranslator]] = field(default_factory=list)
-    forwards_path_translators: List[Type[ForwardsPathTranslator]] = field(default_factory=list)
-    quib_function_call_cls: Type[QuibFuncCall] = field(default_factory=get_default_quib_func_call)
+    lazy: Optional[bool] = None  # None for auto: LAZY for non-graphics, GRAPHICS_LAZY for is_graphics=True
+    replace_previous_quibs_on_artists: bool = field(repr=False, default=False)
+    inverters: List[Type[Inverter]] = field(repr=False, default_factory=list)
+    backwards_path_translators: List[Type[BackwardsPathTranslator]] = field(repr=False, default_factory=list)
+    forwards_path_translators: List[Type[ForwardsPathTranslator]] = field(repr=False, default_factory=list)
+    quib_function_call_cls: Type[QuibFuncCall] = field(repr=False, default_factory=get_default_quib_func_call)
 
     def __hash__(self):
         return id(self)
+
+    @property
+    def is_impure(self):
+        return self.is_file_loading or self.is_random
 
     @functools.lru_cache()
     def get_parameters(self):
@@ -128,19 +131,19 @@ class ElementWiseFuncDefinition(FuncDefinition):
     Represents a definition of functions that act element-wise on a single arg
     """
 
-    inverse_func_without_input: Optional[Callable] = None
-    inverse_func_with_input: Optional[Callable] = None
+    inverse_func_without_input: Optional[Callable] = field(repr=False, default=None)
+    inverse_func_with_input: Optional[Callable] = field(repr=False, default=None)
 
 
 ElementWiseFuncDefinition.__hash__ = FuncDefinition.__hash__
 
 
 def create_func_definition(raw_data_source_arguments: List[RawArgument] = None,
-                           is_random_func: bool = False,
-                           is_file_loading_func: bool = False,
-                           is_graphics_func: Optional[bool] = False,
+                           is_random: bool = False,
+                           is_file_loading: bool = False,
+                           is_graphics: Optional[bool] = False,
                            pass_quibs: bool = False,
-                           lazy: bool = None,
+                           lazy: Optional[bool] = None,
                            replace_previous_quibs_on_artists: bool = False,
                            inverters: List[Type[Inverter]] = None,
                            backwards_path_translators: List[Type[BackwardsPathTranslator]] = None,
@@ -154,17 +157,15 @@ def create_func_definition(raw_data_source_arguments: List[RawArgument] = None,
     specific manner (and not just use default behavior), for whichever parameters you give.
     """
 
-    from pyquibbler.quib.func_calling import QuibFuncCall
-    lazy = lazy if lazy is not None else LAZY
     func_definition_cls = func_definition_cls or FuncDefinition
-    quib_function_call_cls = quib_function_call_cls or QuibFuncCall
+    quib_function_call_cls = quib_function_call_cls or get_default_quib_func_call()
     raw_data_source_arguments = raw_data_source_arguments or set()
     data_source_arguments = convert_raw_data_source_arguments_to_data_source_arguments(raw_data_source_arguments)
     return func_definition_cls(
         func=func,
-        is_random_func=is_random_func,
-        is_graphics_func=is_graphics_func,
-        is_file_loading_func=is_file_loading_func,
+        is_random=is_random,
+        is_graphics=is_graphics,
+        is_file_loading=is_file_loading,
         data_source_arguments=data_source_arguments,
         inverters=inverters or [],
         backwards_path_translators=backwards_path_translators or [],

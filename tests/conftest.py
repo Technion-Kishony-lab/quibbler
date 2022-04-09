@@ -4,12 +4,12 @@ from pathlib import Path
 import pytest
 from pytest import fixture
 
-from pyquibbler import CacheBehavior
+from pyquibbler import CacheMode
 from pyquibbler.env import DEBUG, LAZY, ASSIGNMENT_RESTRICTIONS, PRETTY_REPR, \
     SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS, GET_VARIABLE_NAMES
 from pyquibbler.project import Project
 from pyquibbler.function_overriding import override_all
-from pyquibbler.quib.func_calling import QuibFuncCall
+from pyquibbler.quib.func_calling import CachedQuibFuncCall
 from pyquibbler.utils import Flag
 
 DEFAULT_DEBUG = True
@@ -22,7 +22,7 @@ DEFAULT_GET_VARIABLE_NAMES = False
 
 @fixture(scope="session", autouse=True)
 def setup_environment_for_tests():
-    QuibFuncCall.DEFAULT_CACHE_BEHAVIOR = CacheBehavior.ON
+    CachedQuibFuncCall.DEFAULT_CACHE_MODE = CacheMode.ON
 
 
 @pytest.fixture(autouse=True, scope="session")
@@ -97,14 +97,14 @@ def setup_assignment_restrictions(request):
     yield from setup_flag(ASSIGNMENT_RESTRICTIONS, DEFAULT_ASSIGNMENT_RESTRICTIONS, request)
 
 
-@pytest.fixture(scope='session', autouse=True)
+@fixture(scope='session', autouse=True)
 def set_backend():
     import matplotlib
     # A backend that doesn't do anything. We use it because some tests failed in the TK backend because of tk bugs
     matplotlib.use("template")
 
 
-@pytest.fixture
+@fixture
 def axes():
     from matplotlib import pyplot as plt
     plt.close("all")
@@ -112,7 +112,7 @@ def axes():
     return plt.gca()
 
 
-@pytest.fixture(autouse=True)
+@fixture(autouse=True)
 def project(tmpdir):
     path = tmpdir.strpath
     yield Project.get_or_create(directory=Path(path))

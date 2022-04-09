@@ -6,9 +6,10 @@ from pyquibbler.function_definitions import PositionalArgument, KeywordArgument
 from pyquibbler.function_definitions.func_call import FuncArgsKwargs
 from pyquibbler.function_definitions.func_definition import FuncDefinition
 from pyquibbler.function_overriding.function_override import FuncOverride
+from pyquibbler.project import Project
 from pyquibbler.quib.func_calling.func_calls.vectorize.vectorize_call \
     import VectorizeQuibFuncCall
-from pyquibbler.quib.graphics import UpdateType
+from pyquibbler.quib.graphics import GraphicsUpdateType
 from pyquibbler.env import PRETTY_REPR
 from pyquibbler.translation.translators.vectorize_translator import VectorizeForwardsPathTranslator, \
     VectorizeBackwardsPathTranslator
@@ -39,11 +40,11 @@ class VectorizeCallDefinition(FuncDefinition):
 class VectorizeCallOverride(FuncOverride):
 
     def _get_creation_flags(self, args, kwargs):
-        vectorize, *_ = args
+        vectorize: QVectorize = args[0]
         return {
             'lazy': vectorize.lazy,
             'pass_quibs': vectorize.pass_quibs,
-            'update_type': vectorize.update_type
+            'graphics_update': vectorize.graphics_update
         }
 
 
@@ -53,12 +54,12 @@ class QVectorize(np.vectorize):
     with a quib function wrapper.
     """
 
-    def __init__(self, *args, pass_quibs=False, update_type: Union[str, UpdateType] = None,
+    def __init__(self, *args, pass_quibs=False, graphics_update: Union[str, GraphicsUpdateType] = None,
                  lazy: bool = None, signature=None, cache=False, **kwargs):
         # We don't need the underlying vectorize object to cache, we are doing that ourselves.
         super().__init__(*args, signature=signature, cache=False, **kwargs)
         self.pass_quibs = pass_quibs
-        self.update_type = update_type or UpdateType.DRAG
+        self.graphics_update = graphics_update or Project.DEFAULT_GRAPHICS_UPDATE
         self.lazy = lazy if lazy is not None else True
 
     def __repr__(self):
@@ -73,7 +74,7 @@ def create_vectorize_overrides():
         VectorizeCallOverride(func_name="__call__", module_or_cls=QVectorize,
                               function_definition=VectorizeCallDefinition(
                                   quib_function_call_cls=VectorizeQuibFuncCall,
-                                  is_graphics_func=None,
+                                  is_graphics=None,
                                   forwards_path_translators=[VectorizeForwardsPathTranslator],
                                   backwards_path_translators=[VectorizeBackwardsPathTranslator]
                               )

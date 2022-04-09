@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from pyquibbler.quib.specialized_functions.iquib import iquib
-from pyquibbler.decorators import quibbler_user_function
+from pyquibbler.decorators import quiby_function
 from pyquibbler.utilities.user_utils import q
 
 
@@ -18,12 +18,12 @@ def test_quib_pretty_repr_with_quibs_being_created_inline():
 @pytest.mark.regression
 @pytest.mark.get_variable_names(True)
 def test_quib_pretty_repr_with_quibs_with_quib_creation_with_name_in_inner_func():
-    @quibbler_user_function(lazy=False)
+    @quiby_function(lazy=False)
     def inner_func():
         d = iquib(4)
         return d
 
-    @quibbler_user_function(lazy=False)
+    @quiby_function(lazy=False)
     def another_inner_func():
         e = iquib(4)
         return e

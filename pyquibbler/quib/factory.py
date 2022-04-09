@@ -1,16 +1,18 @@
 from __future__ import annotations
 import pathlib
-from typing import Optional, Tuple, Callable, Any, Mapping, TYPE_CHECKING
+from typing import Optional, Tuple, Callable, Any, Mapping, TYPE_CHECKING, Union, Set
 
-from pyquibbler.env import GET_VARIABLE_NAMES, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS
+from pyquibbler.assignment import AssignmentTemplate
+from pyquibbler.env import GET_VARIABLE_NAMES, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS, LAZY, GRAPHICS_LAZY
 from pyquibbler.logger import logger
 from pyquibbler.project import Project
-from pyquibbler.quib.func_calling import QuibFuncCall
+from pyquibbler.quib.func_calling import CachedQuibFuncCall
 from pyquibbler.quib.get_value_context_manager import is_within_get_value_context
-from pyquibbler.quib.graphics import UpdateType
+from pyquibbler.quib.graphics import GraphicsUpdateType
 from pyquibbler.quib.quib_guard import add_new_quib_to_guard_if_exists
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.types import FileAndLineNumber
+from pyquibbler.quib.utils.miscellaneous import NoValue
 from pyquibbler.quib.variable_metadata import get_var_name_being_set_outside_of_pyquibbler, \
     get_file_name_and_line_number_of_quib
 from pyquibbler.file_syncing.types import SaveFormat
@@ -18,7 +20,7 @@ from pyquibbler.function_definitions.func_definition import FuncDefinition
 from pyquibbler.function_definitions import get_definition_for_function
 
 if TYPE_CHECKING:
-    from pyquibbler import CacheBehavior
+    from pyquibbler import CacheMode
 
 
 def get_quib_name() -> Optional[str]:
@@ -49,66 +51,70 @@ def _get_file_name_and_line_no() -> Optional[FileAndLineNumber]:
     return None
 
 
-def create_quib(func: Callable, args: Tuple[Any, ...] = (), kwargs: Mapping[str, Any] = None,
-                cache_behavior: CacheBehavior = None,
-                lazy: bool = None,
+def create_quib(func: Optional[Callable],
+                args: Tuple[Any, ...] = (),
+                kwargs: Mapping[str, Any] = None,
+                function_definition: FuncDefinition = None,
+                cache_mode: CacheMode = None,
+                lazy: bool = NoValue,
                 allow_overriding: bool = False,
-                update_type: UpdateType = None,
+                graphics_update: GraphicsUpdateType = None,
                 save_format: Optional[SaveFormat] = None,
                 save_directory: pathlib.Path = None,
-                function_definition: FuncDefinition = None,
+                assigned_name: Optional[str] = None,
+                assignment_template: Union[None, tuple, AssignmentTemplate] = None,
+                assigned_quibs: Optional[Set[Quib]] = None,
+                register_as_child_of_parents: bool = True,
                 ) -> Quib:
     """
-    Public constructor for creating a quib- this takes care of retrieving all relevant info for the creation of the
+    Public constructor for creating a quib
+    Takes care of retrieving all relevant info for the creation of the
     quib as well as registering and performing any calculations.
-    Returns a Quib object.
 
-    :param func - The function this quib represents
-    :param args - Positional arguments of the quib's function
-    :param kwargs - Keyword arguments of the quib's function
-    :param cache_behavior - In what fashion should the quib cache? See CacheBehavior for options
-    :param lazy - by default we are lazy- should the quib be evaluated immediately upon creation?
-    :param allow_overriding - can this quib be overridden, or does it always need to propogate assignments backwards?
-    func will be called with the quibs.
-    :param update_type - (Only relevant if the quib has graphics/is known graphics func) - when should the quib
-    "update"? See UpdateType for options
-    :param save_format - indicating the file format for saving assignments to the quib (FileFormat).
-    :param save_directory - where to save the quib?
-    :param function_definition - the definition of the function
+    Returns a Quib object.
     """
 
+    quib = Quib(created_in=_get_file_name_and_line_no())
+
     kwargs = kwargs or {}
-    function_definition = function_definition or get_definition_for_function(func)
+    if func is None:
+        func = function_definition.func
+    else:
+        function_definition = function_definition or get_definition_for_function(func)
+    cache_mode = cache_mode or CachedQuibFuncCall.DEFAULT_CACHE_MODE
+    assigned_name = get_quib_name() if assigned_name is None else assigned_name
 
-    if lazy is None:
-        lazy = function_definition.lazy
-
-    created_in = _get_file_name_and_line_no()
-
-    project = Project.get_or_create()
-
-    quib = Quib(created_in=created_in)
-
-    quib.setp(assignment_template=None, allow_overriding=allow_overriding,
-              assigned_name=get_quib_name(), graphics_update_type=None,
-              save_directory=save_directory, save_format=save_format)
+    quib.setp(assignment_template=assignment_template,
+              assigned_quibs=assigned_quibs,
+              allow_overriding=allow_overriding,
+              assigned_name=assigned_name,
+              graphics_update=graphics_update,
+              save_directory=save_directory,
+              save_format=save_format,
+              cache_mode=cache_mode,
+              )
 
     quib.func = func
     quib.args = args
     quib.kwargs = kwargs
     quib.handler.func_definition = function_definition
-    quib.default_cache_behavior = cache_behavior or QuibFuncCall.DEFAULT_CACHE_BEHAVIOR
     quib.handler.reset_quib_func_call()
 
+    # register new quib on project
+    project = Project.get_or_create()
     project.register_quib(quib)
+
     add_new_quib_to_guard_if_exists(quib)
 
-    if update_type:
-        quib.graphics_update_type = update_type or UpdateType.DRAG
+    # register new quib on parents
+    if register_as_child_of_parents:
+        for parent in quib.parents:
+            parent.handler.add_child(quib)
 
-    for arg in quib.parents:
-        arg.handler.add_child(quib)
-
+    # evaluate now if not lazy
+    lazy = function_definition.lazy if lazy is NoValue else lazy
+    if lazy is None:
+        lazy = GRAPHICS_LAZY if function_definition.is_graphics else LAZY
     if not lazy:
         quib.get_value()
 

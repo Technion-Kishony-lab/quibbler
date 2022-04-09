@@ -1,1 +1,1 @@
-from .update_type import UpdateType
+from .graphics_update import GraphicsUpdateType

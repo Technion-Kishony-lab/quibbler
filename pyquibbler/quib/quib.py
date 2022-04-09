@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import enum
 import functools
 import pathlib
 import pickle
@@ -41,10 +42,10 @@ from pyquibbler.inversion.exceptions import NoInvertersFoundException
 from pyquibbler.path import FailedToDeepAssignException, PathComponent, Path, Paths
 from pyquibbler.assignment import InvalidTypeException, OverrideRemoval, get_override_group_for_change, \
     AssignmentTemplate, Overrider, Assignment, AssignmentToQuib, create_assignment_template
-from pyquibbler.quib.func_calling.cache_behavior import CacheBehavior
-from pyquibbler.quib.exceptions import OverridingNotAllowedException, InvalidCacheBehaviorForQuibException
+from pyquibbler.quib.func_calling.cache_mode import CacheMode
+from pyquibbler.quib.exceptions import OverridingNotAllowedException
 from pyquibbler.quib.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own
-from pyquibbler.quib.graphics import UpdateType
+from pyquibbler.quib.graphics import GraphicsUpdateType
 from pyquibbler.translation.translate import forwards_translate, NoTranslatorsFoundException, \
     backwards_translate
 from pyquibbler.cache import create_cache, CacheStatus
@@ -72,14 +73,14 @@ class QuibHandler:
                  allow_overriding: bool,
                  assigned_name: Optional[str],
                  created_in: Optional[FileAndLineNumber],
-                 graphics_update_type: Optional[UpdateType],
+                 graphics_update: Optional[GraphicsUpdateType],
                  save_directory: pathlib.Path,
                  save_format: Optional[SaveFormat],
                  func: Optional[Callable],
                  args: Tuple[Any, ...] = (),
                  kwargs: Mapping[str, Any] = None,
                  function_definition: FuncDefinition = None,
-                 default_cache_behavior: CacheBehavior = None,
+                 cache_mode: CacheMode = None,
                  ):
         kwargs = kwargs or {}
 
@@ -98,7 +99,7 @@ class QuibHandler:
         self.assigned_quibs = None
         self.created_in_get_value_context = is_within_get_value_context()
         self.created_in: Optional[FileAndLineNumber] = created_in
-        self.graphics_update_type = graphics_update_type
+        self.graphics_update = graphics_update
 
         self.save_directory = save_directory
 
@@ -106,7 +107,7 @@ class QuibHandler:
         self.func_args_kwargs = FuncArgsKwargs(func, args, kwargs, include_defaults=True)
         self.func_definition = function_definition
 
-        self.default_cache_behavior = default_cache_behavior
+        self.cache_mode = cache_mode
 
     """
     relationships
@@ -132,19 +133,32 @@ class QuibHandler:
         """
         self.children.remove(quib_to_remove)
 
+    def get_descendants(self):
+        children = set(self.children)  # copy to prevent set changing during operation
+        for child in self.children:
+            children |= child.descendants
+        return children
+
+    @property
+    def is_iquib(self):
+        return getattr(self.func_args_kwargs.func, '__name__', None) == 'iquib'
+
     """
     graphics
     """
 
-    def redraw_if_appropriate(self):
+    @property
+    def actual_graphics_update(self):
+        return self.graphics_update or self.project.graphics_update
+
+    def redraw_if_appropriate(self) -> None:
         """
         Redraws the quib if it's appropriate
         """
-        if self.graphics_update_type in [UpdateType.NEVER, UpdateType.CENTRAL] \
-                or (self.graphics_update_type == UpdateType.DROP and is_within_drag()):
-            return
-
-        return self.quib.get_value()
+        graphics_update = self.actual_graphics_update
+        if graphics_update == GraphicsUpdateType.DRAG \
+                or self.graphics_update == GraphicsUpdateType.DROP and not is_within_drag():
+            self.quib.get_value()
 
     def _iter_artist_lists(self) -> Iterable[List[Artist]]:
         return map(lambda g: g.artists, self.quib_function_call.flat_graphics_collections())
@@ -167,7 +181,7 @@ class QuibHandler:
         """
         Get all artists that directly or indirectly depend on this quib.
         """
-        return {child for child in self.quib.get_descendants() if child.is_graphics_quib}
+        return {child for child in self.get_descendants() if child.is_graphics_quib}
 
     """
     Invalidation
@@ -182,7 +196,6 @@ class QuibHandler:
         """
         if len(path) == 0:
             self.quib_function_call.on_type_change()
-            self.quib_function_call.reset_cache()
 
         self.quib_function_call.invalidate_cache_at_path(path)
 
@@ -244,8 +257,8 @@ class QuibHandler:
             sources_to_paths={
                 quibs_to_sources[invalidator_quib]: path
             },
-            shape=self.quib.get_shape(),
-            type_=self.quib.get_type(),
+            shape=self.quib_function_call.get_shape(),
+            type_=self.quib_function_call.get_type(),
             **self.quib_function_call.get_result_metadata()
         )
         return sources_to_forwarded_paths.get(quibs_to_sources[invalidator_quib], [])
@@ -305,8 +318,6 @@ class QuibHandler:
 
     def _add_override(self, assignment: Assignment):
         self.overrider.add_assignment(assignment)
-        if len(assignment.path) == 0:
-            self.quib_function_call.on_type_change()
 
         try:
             self.invalidate_and_redraw_at_path(assignment.path)
@@ -344,8 +355,6 @@ class QuibHandler:
                                                        overrider=self.overrider,
                                                        quib=self.quib)
             self.file_syncer.on_data_changed()
-        if len(path) == 0:
-            self.quib_function_call.on_type_change()
         self.invalidate_and_redraw_at_path(path=path)
 
     def apply_assignment(self, assignment: Assignment) -> None:
@@ -363,8 +372,10 @@ class QuibHandler:
         from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation_with_sources_metadata
         func_call, sources_to_quibs = get_func_call_for_translation_with_sources_metadata(self.quib_function_call)
         try:
-            sources_to_paths = backwards_translate(func_call=func_call, path=override_removal.path,
-                                                   shape=self.quib.get_shape(), type_=self.quib.get_type())
+            sources_to_paths = backwards_translate(func_call=func_call,
+                                                   path=override_removal.path,
+                                                   shape=self.quib_function_call.get_shape(),
+                                                   type_=self.quib_function_call.get_type())
         except NoTranslatorsFoundException:
             return []
         else:
@@ -480,6 +491,13 @@ class QuibHandler:
     file syncing
     """
 
+    @property
+    def actual_save_format(self):
+        actual_save_format = self.save_format if self.save_format else self.project.save_format
+        if not self.is_iquib:
+            actual_save_format = SAVE_FORMAT_TO_FQUIB_SAVE_FORMAT[actual_save_format]
+        return actual_save_format
+
     def on_project_directory_change(self):
         if not (self.save_directory is not None and self.save_directory.is_absolute()):
             self.file_syncer.on_file_name_changed()
@@ -488,21 +506,21 @@ class QuibHandler:
         self.file_syncer.on_file_name_changed()
 
     def save_assignments_or_value(self, file_path: pathlib.Path):
-        if self.quib.actual_save_format is SaveFormat.OFF:
+        if self.actual_save_format is SaveFormat.OFF:
             return
         {SaveFormat.VALUE_TXT: self._save_value_as_txt,
          SaveFormat.VALUE_BIN: self._save_value_as_binary,
          SaveFormat.BIN: self.overrider.save_as_binary,
-         SaveFormat.TXT: self.overrider.save_as_txt}[self.quib.actual_save_format](file_path)
+         SaveFormat.TXT: self.overrider.save_as_txt}[self.actual_save_format](file_path)
 
     def load_from_assignment_file_or_value_file(self, file_path: pathlib.Path):
-        if self.quib.actual_save_format is SaveFormat.OFF:
+        if self.actual_save_format is SaveFormat.OFF:
             return
         changed_paths = {
             SaveFormat.VALUE_TXT: self._load_value_from_txt,
             SaveFormat.VALUE_BIN: self._load_value_from_binary,
             SaveFormat.BIN: self.overrider.load_from_binary,
-            SaveFormat.TXT: self.overrider.load_from_txt}[self.quib.actual_save_format](file_path)
+            SaveFormat.TXT: self.overrider.load_from_txt}[self.actual_save_format](file_path)
         self.project.clear_undo_and_redo_stacks()
         for path in changed_paths:
             self.invalidate_and_redraw_at_path(path)
@@ -567,8 +585,17 @@ class QuibHandler:
 
 class Quib:
     """
-    A Quib is a node representing a singular call of a function with it's arguments (it's parents in the graph)
+    A Quib is an object representing a specific call of a function with it's arguments.
     """
+
+    PROPERTY_LIST = (
+        ('Function', ('func', 'is_iquib', 'is_random', 'is_file_loading', 'is_graphics', 'pass_quibs')),
+        ('Arguments', ('args', 'kwargs')),
+        ('File saving', (('save_format', 'actual_save_format'), 'file_path')),
+        ('Assignments', ('assignment_template', 'allow_overriding', 'assigned_quibs')),
+        ('Caching', ('cache_mode', 'cache_status')),
+        ('Graphics', (('graphics_update', 'actual_graphics_update'), 'is_graphics_quib')),
+    )
 
     def __init__(self,
                  quib_function_call: QuibFuncCall = None,
@@ -576,14 +603,14 @@ class Quib:
                  allow_overriding: bool = False,
                  assigned_name: Optional[str] = None,
                  created_in: Optional[FileAndLineNumber] = None,
-                 graphics_update_type: Optional[UpdateType] = None,
+                 graphics_update: Optional[GraphicsUpdateType] = None,
                  save_directory: Optional[pathlib.Path] = None,
                  save_format: Optional[SaveFormat] = None,
                  func: Optional[Callable] = None,
                  args: Tuple[Any, ...] = (),
                  kwargs: Mapping[str, Any] = None,
                  function_definition: FuncDefinition = None,
-                 default_cache_behavior: CacheBehavior = None,
+                 cache_mode: CacheMode = None,
                  ):
 
         self.handler = QuibHandler(self, quib_function_call,
@@ -591,14 +618,14 @@ class Quib:
                                    allow_overriding,
                                    assigned_name,
                                    created_in,
-                                   graphics_update_type,
+                                   graphics_update,
                                    save_directory,
                                    save_format,
                                    func,
                                    args,
                                    kwargs,
                                    function_definition,
-                                   default_cache_behavior,
+                                   cache_mode,
                                    )
 
     """
@@ -639,7 +666,7 @@ class Quib:
         self.handler.func_args_kwargs.func = get_original_func(func)
 
     @property
-    def args(self) -> List[Any]:
+    def args(self) -> Tuple[Any]:
         """
         The arguments of the function run by the quib.
 
@@ -711,20 +738,7 @@ class Quib:
         self.handler.func_args_kwargs.kwargs = {k: deep_copy_without_quibs_or_graphics(v) for k, v in kwargs.items()}
 
     @property
-    def func_definition(self) -> FuncDefinition:
-        """
-        Properties of the function run by the quib.
-
-        Returns
-        -------
-        func_definition : FuncDefinition
-            An object containg the properties of the function.
-        """
-        from pyquibbler.function_definitions import get_definition_for_function
-        return get_definition_for_function(self.func)
-
-    @property
-    def is_impure_func(self) -> bool:
+    def is_impure(self) -> bool:
         """
         Indicates whether the quib runs an impure function.
 
@@ -733,7 +747,7 @@ class Quib:
 
         See Also
         --------
-        is_random_func, is_file_loading_func
+        is_random, is_file_loading
         Project.reset_impure_quibs
 
         Returns
@@ -745,13 +759,13 @@ class Quib:
         --------
         >>> n = iquib(5)
         >>> r = np.random.randint(0, n)
-        >>> r.is_impure_func
+        >>> r.is_impure
         True
         """
-        return self.is_random_func or self.is_file_loading_func
+        return self.handler.func_definition.is_impure
 
     @property
-    def is_random_func(self) -> bool:
+    def is_random(self) -> bool:
         """
         Indicates whether the quib represents a random function.
 
@@ -765,7 +779,7 @@ class Quib:
 
         See Also
         --------
-        is_impure_func, is_file_loading_func
+        is_impure, is_file_loading
         invalidate
         Project.reset_random_quibs
 
@@ -778,13 +792,13 @@ class Quib:
         --------
         >>> n = iquib(5)
         >>> r = np.random.randint(0, n)
-        >>> r.is_random_func
+        >>> r.is_random
         True
         """
-        return self.func_definition.is_random_func
+        return self.handler.func_definition.is_random
 
     @property
-    def is_file_loading_func(self) -> bool:
+    def is_file_loading(self) -> bool:
         """
         Indicates whether the quib represents a function that loads external files.
 
@@ -796,7 +810,7 @@ class Quib:
 
         See Also
         --------
-        is_impure_func, is_random_func
+        is_impure, is_random
         invalidate
         Project.reset_file_loading_quibs
 
@@ -809,10 +823,10 @@ class Quib:
         --------
         >>> file_name = iquib('my_file.txt')
         >>> x = np.loadtxt(file_name)
-        >>> x.is_file_loading_func
+        >>> x.is_file_loading
         True
         """
-        return self.func_definition.is_file_loading_func
+        return self.handler.func_definition.is_file_loading
 
     @property
     def pass_quibs(self) -> bool:
@@ -840,19 +854,19 @@ class Quib:
             PARTIAL: Only part of the quib's cache is valid.
 
         See Also:
-        cache_behavior
+        cache_mode
         """
         return self.handler.quib_function_call.cache.get_cache_status() \
             if self.handler.quib_function_call.cache is not None else CacheStatus.ALL_INVALID
 
     @property
-    def cache_behavior(self):
+    def cache_mode(self) -> CacheMode:
         """
         Set the value caching mode for the quib:
-        'auto':     caching is decided automatically according to the ratio between evaluation time and
-                    memory consumption.
-        'off':      do not cache.
-        'on':       always caching.
+        'auto':     Caching is decided automatically according to the ratio between evaluation time and
+                    memory consumption. Quibs with random or graphics functions are always cached.
+        'on':       Always cache.
+        'off':      Do not cache, unless the quib's function is random or graphics.
 
         Returns
         -------
@@ -860,27 +874,15 @@ class Quib:
 
         See Also
         --------
-        CacheBehavior
+        CacheMode
         cache_status
         """
-        return self.handler.quib_function_call.get_cache_behavior().value
+        return self.handler.cache_mode
 
-    @cache_behavior.setter
-    @validate_user_input(cache_behavior=(str, CacheBehavior))
-    def cache_behavior(self, cache_behavior: Union[str, CacheBehavior]):
-        cache_behavior = get_enum_by_str(CacheBehavior, cache_behavior)
-        if self.is_random_func and cache_behavior != CacheBehavior.ON:
-            raise InvalidCacheBehaviorForQuibException(self.handler.default_cache_behavior) from None
-        self.handler.default_cache_behavior = cache_behavior
-
-    @property
-    def default_cache_behavior(self):
-        return self.handler.default_cache_behavior
-
-    @default_cache_behavior.setter
-    @validate_user_input(cache_behavior=(str, CacheBehavior))
-    def default_cache_behavior(self, cache_behavior: Union[str, CacheBehavior]):
-        self.handler.default_cache_behavior = get_enum_by_str(CacheBehavior, cache_behavior)
+    @cache_mode.setter
+    @validate_user_input(cache_mode=(str, CacheMode))
+    def cache_mode(self, cache_mode: Union[str, CacheMode]):
+        self.handler.cache_mode = get_enum_by_str(CacheMode, cache_mode)
 
     def invalidate(self):
         """
@@ -901,7 +903,7 @@ class Quib:
     """
 
     @property
-    def is_graphics_func(self):
+    def is_graphics(self) -> bool:
         """
         Specifies whether the function runs by the quib is a graphics function.
 
@@ -915,19 +917,19 @@ class Quib:
 
         See Also
         --------
-        is_graphics_quib, graphics_update_type
+        is_graphics_quib, graphics_update
         """
-        return self.func_definition.is_graphics_func
+        return self.handler.func_definition.is_graphics
 
     @property
-    def is_graphics_quib(self):
+    def is_graphics_quib(self) -> bool:
         """
         Specifies whether the quib is a graphics quib.
 
-        A quib is defined as graphics if its function is a known graphics function (`is_graphics_func`=`True`),
-        or if its function created graphics.
+        A quib is defined as graphics if its function is a known graphics function (`is_graphics`=`True`),
+        or if its function's `is_graphics`=`None` and a call to the function created graphics.
 
-        A quib defined as graphics will get auto-refreshed based on the `graphics_update_type`.
+        A quib defined as graphics will get auto-refreshed based on the `graphics_update`.
 
         Returns
         -------
@@ -935,20 +937,21 @@ class Quib:
 
         See Also
         --------
-        is_graphics_func, graphics_update_type
+        is_graphics, graphics_update
         Project.refresh_graphics
         """
-        return self.func_definition.is_graphics_func or self.handler.quib_function_call.created_graphics
+        return self.handler.quib_function_call.func_can_create_graphics
 
     @property
-    def graphics_update_type(self) -> Union[None, str]:
+    def graphics_update(self) -> GraphicsUpdateType:
         """
-        Return the graphics_update_type indicating whether the quib should refresh upon upstream assignments.
+        Return the graphics_update indicating whether the quib should refresh upon upstream assignments.
         Options are:
         "drag":     refresh immediately as upstream objects are dragged
         "drop":     refresh at end of dragging upon graphic object drop.
         "central":  do not automatically refresh. Refresh, centrally upon refresh_graphics().
         "never":    Never refresh.
+        None:       Yield to the default project's graphics_update
 
         Returns
         -------
@@ -956,21 +959,25 @@ class Quib:
 
         See Also
         --------
-        UpdateType, Project.refresh_graphics
+        GraphicsUpdateType, Project.refresh_graphics
         """
-        return self.handler.graphics_update_type.value if self.handler.graphics_update_type else None
+        return self.handler.graphics_update
 
-    @graphics_update_type.setter
-    @validate_user_input(graphics_update_type=(type(None), str, UpdateType))
-    def graphics_update_type(self, graphics_update_type: Union[None, str, UpdateType]):
-        self.handler.graphics_update_type = get_enum_by_str(UpdateType, graphics_update_type, allow_none=True)
+    @graphics_update.setter
+    @validate_user_input(graphics_update=(type(None), str, GraphicsUpdateType))
+    def graphics_update(self, graphics_update: Union[None, str, GraphicsUpdateType]):
+        self.handler.graphics_update = get_enum_by_str(GraphicsUpdateType, graphics_update, allow_none=True)
+
+    @property
+    def actual_graphics_update(self):
+        return self.handler.actual_graphics_update
 
     """
     Assignment
     """
 
     @property
-    def allow_overriding(self):
+    def allow_overriding(self) -> bool:
         """
         Indicates whether the quib can be overridden.
         The default for allow_overriding is True for iquibs and False in function quibs.
@@ -1103,11 +1110,11 @@ class Quib:
              assignment_template: Union[None, tuple, AssignmentTemplate] = NoValue,
              save_directory: Union[None, str, pathlib.Path] = NoValue,
              save_format: Union[None, str, SaveFormat] = NoValue,
-             cache_behavior: Union[str, CacheBehavior] = NoValue,
+             cache_mode: Union[str, CacheMode] = NoValue,
              assigned_name: Union[None, str] = NoValue,
              name: Union[None, str] = NoValue,
-             graphics_update_type: Union[None, str] = NoValue,
-             assigned_quibs: set["Quib"] = NoValue,
+             graphics_update: Union[None, str] = NoValue,
+             assigned_quibs: Optional[Set[Quib]] = NoValue,
              ):
         """
         Set one or more properties on a quib.
@@ -1117,14 +1124,14 @@ class Quib:
          assignment_template: Union[tuple, AssignmentTemplate],
          save_directory: Union[str, pathlib.Path],
          save_format: Union[None, str, SaveFormat],
-         cache_behavior: Union[str, CacheBehavior],
+         cache_mode: Union[str, CacheMode],
          assigned_name: Union[None, str],
          name: Union[None, str],
-         graphics_update_type: Union[None, str]
+         graphics_update: Union[None, str]
 
         Examples:
-            >>>> a = iquib(7).setp(assigned_name='my_number')
-            >>>> b = (2 * a).setp(allow_overriding=True)
+            >>> a = iquib(7).setp(assigned_name='my_number')
+            >>> b = (2 * a).setp(allow_overriding=True)
         """
 
         from pyquibbler.quib.factory import get_quib_name
@@ -1136,14 +1143,14 @@ class Quib:
             self.save_directory = save_directory
         if save_format is not NoValue:
             self.save_format = save_format
-        if cache_behavior is not NoValue:
-            self.cache_behavior = cache_behavior
+        if cache_mode is not NoValue:
+            self.cache_mode = cache_mode
         if assigned_name is not NoValue:
             self.assigned_name = assigned_name
         if name is not NoValue:
             self.assigned_name = name
-        if graphics_update_type is not NoValue:
-            self.graphics_update_type = graphics_update_type
+        if graphics_update is not NoValue:
+            self.graphics_update = graphics_update
         if assigned_quibs is not NoValue:
             self.assigned_quibs = assigned_quibs
 
@@ -1322,7 +1329,7 @@ class Quib:
         from pyquibbler.quib.specialized_functions import proxy
         quib = self.args[0] if self.func == proxy else self
         if issubclass(quib.get_type(), np.ndarray):
-            mask = np.zeros(quib.get_shape(), dtype=np.bool)
+            mask = np.zeros(quib.get_shape(), dtype=bool)
         else:
             mask = recursively_run_func_on_object(func=lambda x: False, obj=quib.get_value())
         return quib.handler.overrider.fill_override_mask(mask)
@@ -1342,15 +1349,25 @@ class Quib:
 
         See Also
         --------
-        ancestors, parents
+        ancestors, parents, descendants
         """
         return set(self.handler.children)
 
-    def get_descendants(self) -> Set[Quib]:
-        children = self.children
-        for child in self.children:
-            children |= child.get_descendants()
-        return children
+    @property
+    def descendants(self) -> Set[Quib]:
+        """
+        All quibs downstream of current quib.
+
+        Returns
+        -------
+        set of Quib
+            a set of all quibs that depend on the current quib, recursively.
+
+        See Also
+        --------
+        ancestors, children, parents
+        """
+        return self.handler.get_descendants()
 
     @property
     def parents(self) -> Set[Quib]:
@@ -1363,7 +1380,7 @@ class Quib:
 
         See Also
         --------
-        ancestors, children
+        ancestors, children, descendants
         """
         return set(self.handler.quib_function_call.get_objects_of_type_in_args_kwargs(Quib))
 
@@ -1378,7 +1395,7 @@ class Quib:
 
         See Also
         --------
-        parents, children
+        parents, children, descendants
         """
         ancestors = set()
         for parent in self.parents:
@@ -1409,7 +1426,7 @@ class Quib:
         return self.handler.project
 
     @property
-    def save_format(self):
+    def save_format(self) -> SaveFormat:
         """
         Indicates the file format in which quib assignments are saved.
 
@@ -1421,7 +1438,7 @@ class Quib:
 
         See Also
         --------
-         SaveFormat
+        SaveFormat
         """
         return self.handler.save_format
 
@@ -1430,7 +1447,7 @@ class Quib:
     def save_format(self, save_format):
         save_format = get_enum_by_str(SaveFormat, save_format, allow_none=True)
         if (save_format in [SaveFormat.VALUE_BIN, SaveFormat.VALUE_TXT]) and not self.is_iquib:
-            raise CannotSaveFunctionQuibsAsValueException
+            raise CannotSaveFunctionQuibsAsValueException()
 
         self.handler.save_format = save_format
         self.handler.on_file_name_change()
@@ -1452,10 +1469,7 @@ class Quib:
         save_format
         SaveFormat
         """
-        actual_save_format = self.save_format if self.save_format else self.project.save_format
-        if not self.is_iquib:
-            actual_save_format = SAVE_FORMAT_TO_FQUIB_SAVE_FORMAT[actual_save_format]
-        return actual_save_format
+        return self.handler.actual_save_format
 
     @property
     def file_path(self) -> Optional[PathWithHyperLink]:
@@ -1515,7 +1529,7 @@ class Quib:
         --------
         file_path
         """
-        return PathWithHyperLink(self.handler.save_directory)
+        return PathWithHyperLink(self.handler.save_directory) if self.handler.save_directory else None
 
     @save_directory.setter
     @validate_user_input(directory=(type(None), str, pathlib.Path))
@@ -1703,7 +1717,7 @@ class Quib:
         return NameMathExpression(self.assigned_name) if self.assigned_name is not None \
             else self._get_functional_representation_expression()
 
-    def ugly_repr(self):
+    def ugly_repr(self) -> str:
         """
         Returns a simple representation of the quib.
 
@@ -1752,6 +1766,35 @@ class Quib:
             return self.pretty_repr()
         return self.ugly_repr()
 
+    def display_props(self) -> None:
+
+        def _repr(value):
+            if isinstance(value, enum.Enum):
+                return value.name
+            if isinstance(value, str):
+                return f'"{value}"'
+            if isinstance(value, pathlib.Path):
+                return str(value)
+            return value
+
+        repr_ = ''
+        repr_ = repr_ + f'{"quib":>20}: {self}\n\n'
+        with REPR_RETURNS_SHORT_NAME.temporary_set(True):
+            for header, properties in self.PROPERTY_LIST:
+                repr_ = repr_ + f'{"--- " + header + " ---":>20}\n'
+                for prop in properties:
+                    if isinstance(prop, str):
+                        repr_ = repr_ + f'{prop:>20}: {_repr(getattr(self, prop))}'
+                    else:
+                        prop, actual_prop = prop
+                        repr_ = repr_ + f'{prop:>20}: {_repr(getattr(self, prop))}'
+                        if getattr(self, prop) is None:
+                            repr_ = repr_ + f' -> {_repr(getattr(self, actual_prop))}'
+                    repr_ = repr_ + '\n'
+                repr_ = repr_ + '\n'
+
+        print(repr_)
+
     @property
     def created_in(self) -> Optional[FileAndLineNumber]:
         """
@@ -1781,4 +1824,4 @@ class Quib:
         func
         SaveFormat
         """
-        return getattr(self.func, '__name__', None) == 'iquib'
+        return self.handler.is_iquib
