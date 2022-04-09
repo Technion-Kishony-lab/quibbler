@@ -194,7 +194,7 @@ def list_quiby_funcs(module_or_cls: Union[None, ModuleType, Type] = None) -> Lis
             and mdl is not QVectorize]
 
 
-def is_func_quiby(func: Callable) -> bool:
+def is_quiby(func: Callable) -> bool:
     """
     Check whether a given function is modified to work directly with quib arguments ("quiby").
 
@@ -208,8 +208,8 @@ def is_func_quiby(func: Callable) -> bool:
 
     Examples
     --------
-    >>> is_func_quiby(np.sin)  # -> True
-    >>> is_func_quiby(len)  # -> False
+    >>> is_quiby(np.sin)  # -> True
+    >>> is_quiby(len)  # -> False
     """
     return hasattr(func, '__quibbler_wrapped__')
 

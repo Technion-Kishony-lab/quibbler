@@ -3,7 +3,7 @@ import pytest
 from pyquibbler.env import LAZY
 from pyquibbler.function_overriding.function_override import FuncOverride
 from pyquibbler.function_definitions.definitions import add_definition_for_function
-from pyquibbler import list_quiby_funcs, is_func_quiby
+from pyquibbler import list_quiby_funcs, is_quiby
 from pyquibbler.function_overriding.third_party_overriding.general_helpers import override_with_cls
 
 
@@ -70,6 +70,6 @@ def test_overridden_function_in_list_quiby_funcs(overridden_func, func_mock_on_m
 
 
 def test_overridden_function_is_quiby(mock_module, func_name_to_override, override):
-    assert not is_func_quiby(getattr(mock_module, func_name_to_override)), 'sanity'
+    assert not is_quiby(getattr(mock_module, func_name_to_override)), 'sanity'
     override()
-    assert is_func_quiby(getattr(mock_module, func_name_to_override))
+    assert is_quiby(getattr(mock_module, func_name_to_override))
