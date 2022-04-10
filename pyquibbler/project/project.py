@@ -77,7 +77,11 @@ class Project:
     @property
     def quibs(self) -> Set[Quib]:
         """
-        Get all quibs in the project that are still alive
+        Get all quibs in the project
+
+        Returns
+        -------
+        set of Quib
         """
         refs_to_remove = set()
         for quib_weakref in self._quib_weakrefs:
@@ -108,19 +112,45 @@ class Project:
 
     def reset_random_quibs(self):
         """
-        Reset and then invalidate_redraw all random quibs in the project.
+        Reset and redraw all random quibs in the project.
+
+        Invalidates the cache of all random quibs in the project.
+        Any downstream graphics will refresh with new randomization.
+
+        See Also
+        --------
+        reset_file_loading_quibs, reset_random_quibs, reset_impure_quibs, refresh_graphics
+        Quib.is_random
         """
         self._reset_list_of_quibs([quib for quib in self.quibs if quib.is_random])
 
     def reset_file_loading_quibs(self):
         """
         Reset and then invalidate_redraw all file_loading quibs in the project.
+
+        Invalidates the cache of all file-loading quibs in the project.
+        Request for the value of these quibs will cause re-loading of their files.
+        Any downstream graphics will automatically update.
+
+        See Also
+        --------
+        reset_random_quibs, reset_impure_quibs, refresh_graphics
+        Quib.is_file_loading
         """
         self._reset_list_of_quibs([quib for quib in self.quibs if quib.is_file_loading])
 
     def reset_impure_quibs(self):
         """
         Reset and then invalidate_redraw all impure quibs in the project.
+
+        Invalidates the cache of all impure quibs, inclduing random or file-loading quibs in the project.
+        Request for the value of these quibs will cause re-loading of their files.
+        Any downstream graphics will automatically update.
+
+        See Also
+        --------
+        reset_file_loading_quibs, reset_random_quibs, refresh_graphics
+        Quib.is_impure
         """
         self._reset_list_of_quibs([quib for quib in self.quibs if quib.is_impure])
 
@@ -130,7 +160,8 @@ class Project:
 
         See Also
         --------
-        GraphicsUpdateType, Quib.graphics_update
+        reset_file_loading_quibs, reset_random_quibs, reset_impure_quibs, Quib.graphics_update
+        Quib.is_graphics, GraphicsUpdateType
         """
         for quib in self.quibs:
             if quib.graphics_update == GraphicsUpdateType.CENTRAL:
@@ -173,12 +204,13 @@ class Project:
         The directory to which quibs are saved.
 
         Can be set as a str or Path object.
+        None indicates undefined path.
 
         path = None indicates undefined path.
 
         Returns
         -------
-        PathWithHyperLink
+        PathWithHyperLink or None
         """
         return None if self._directory is None else PathWithHyperLink(self._directory)
 
@@ -200,7 +232,22 @@ class Project:
         """
         The default file format for saving quibs.
 
-        Quibs whose own save_format is None yield to the default save_format of the Project.
+        Options:
+            'off': do not save
+
+            'txt': save quib assignments as text if possible (.txt)
+
+            'bin': save quib assignments as a binary file (.quib)
+
+            'value_txt':
+                for iquibs: save the value, rather than the assignments, as text (if possible).
+                for fquibs: save assignments as text (if possible).
+
+            'value_bin':
+                for iquibs: save the value, rather than the assignments, as binary.
+                for fquibs: save assignments as binary.
+
+        Quibs whose own save_format is None yield to this default save_format of the Project.
 
         Returns
         -------
@@ -223,11 +270,12 @@ class Project:
         Save quib assignments to files.
 
         Saves the assignments of all quibs which have overrides, have an assigned_name and their
-        save_format is not 'off'.
+        actual_save_format is not 'off'.
 
-        See Also:
+        See Also
         --------
-        load_quibs, sync_quibs
+        load_quibs, sync_quibs, 
+        Quib.save_format, Quib.actual_save_format, Project.save_format
         """
         if self.directory is None:
             raise NoProjectDirectoryException(action='save')
@@ -240,10 +288,6 @@ class Project:
 
         Loads assignments from files for all quibs which have an assigned_name and their
         save_format is not 'off'.
-
-        See Also:
-        --------
-        save_quibs, sync_quibs
         """
         from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
         if self.directory is None:
@@ -257,11 +301,12 @@ class Project:
         Sync quib assignments with files.
 
         Syncs quib assignments with files for all quibs which have an assigned_name and their
-        save_format is not 'off'.
+        actual_save_format is not 'off'.
 
-        See Also:
+        See Also
         --------
         save_quibs, load_quibs
+        Quib.save_format, Quib.actual_save_format, Project.save_format
         """
         from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
         if self.directory is None:
@@ -286,7 +331,7 @@ class Project:
         """
         Indicates whether or not an assignment undo exists.
 
-        Returns:
+        Returns
         -------
         bool
 
@@ -300,11 +345,11 @@ class Project:
         """
         Indicates whether or not an assignment redo exists.
 
-        Returns:
+        Returns
         -------
         bool
 
-        See Also:
+        See Also
         --------
         can_undo
         """
@@ -321,7 +366,7 @@ class Project:
         """
         Undo the last quib assignment.
 
-        See Also:
+        See Also
         --------
         redo
         """
@@ -342,7 +387,7 @@ class Project:
         """
         Redo the last quib assignment.
 
-        See Also:
+        See Also
         --------
         undo
         """
@@ -361,6 +406,9 @@ class Project:
         self._undo_action_groups.append(actions)
 
     def clear_undo_and_redo_stacks(self, *_, **__):
+        """
+        Clear the undo/redo stack.
+        """
         self._undo_action_groups = []
         self._redo_action_groups = []
 
