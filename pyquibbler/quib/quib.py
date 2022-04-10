@@ -12,7 +12,6 @@ import json_tricks
 import numpy as np
 
 from pyquibbler.function_definitions import get_definition_for_function, FuncArgsKwargs
-from pyquibbler.utils import get_original_func
 from pyquibbler.quib.types import FileAndLineNumber
 from pyquibbler.utilities.file_path import PathWithHyperLink
 from functools import cached_property
@@ -27,8 +26,7 @@ from pyquibbler.quib.quib_guard import guard_raise_if_not_allowed_access_to_quib
     CannotAccessQuibInScopeException
 from pyquibbler.quib.pretty_converters import MathExpression, FailedMathExpression, \
     NameMathExpression, pretty_convert
-from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals, NoValue, \
-    deep_copy_without_quibs_or_graphics
+from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals, NoValue
 from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation_with_sources_metadata, \
     get_func_call_for_translation_without_sources_metadata
 from pyquibbler.utilities.input_validation_utils import validate_user_input, InvalidArgumentValueException, \
@@ -667,10 +665,6 @@ class Quib:
         """
         return self.handler.quib_function_call.func
 
-    @func.setter
-    def func(self, func):
-        self.handler.func_args_kwargs.func = get_original_func(func)
-
     @property
     def args(self) -> Tuple[Any]:
         """
@@ -703,10 +697,6 @@ class Quib:
         """
         return self.handler.quib_function_call.args
 
-    @args.setter
-    def args(self, args):
-        self.handler.func_args_kwargs.args = deep_copy_without_quibs_or_graphics(args)
-
     @property
     def kwargs(self) -> Mapping[str, Any]:
         """
@@ -738,10 +728,6 @@ class Quib:
         {'start': 0, 'stop': a}
         """
         return self.handler.quib_function_call.kwargs
-
-    @kwargs.setter
-    def kwargs(self, kwargs):
-        self.handler.func_args_kwargs.kwargs = {k: deep_copy_without_quibs_or_graphics(v) for k, v in kwargs.items()}
 
     @property
     def is_impure(self) -> bool:

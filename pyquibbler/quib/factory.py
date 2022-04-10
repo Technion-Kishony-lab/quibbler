@@ -12,12 +12,13 @@ from pyquibbler.quib.graphics import GraphicsUpdateType
 from pyquibbler.quib.quib_guard import add_new_quib_to_guard_if_exists
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.types import FileAndLineNumber
-from pyquibbler.quib.utils.miscellaneous import NoValue
+from pyquibbler.quib.utils.miscellaneous import NoValue, deep_copy_without_quibs_or_graphics
 from pyquibbler.quib.variable_metadata import get_var_name_being_set_outside_of_pyquibbler, \
     get_file_name_and_line_number_of_quib
 from pyquibbler.file_syncing.types import SaveFormat
 from pyquibbler.function_definitions.func_definition import FuncDefinition
 from pyquibbler.function_definitions import get_definition_for_function
+from pyquibbler.utils import get_original_func
 
 if TYPE_CHECKING:
     from pyquibbler import CacheMode
@@ -74,8 +75,6 @@ def create_quib(func: Optional[Callable],
     Returns a Quib object.
     """
 
-    quib = Quib(created_in=_get_file_name_and_line_no())
-
     kwargs = kwargs or {}
     if func is None:
         func = function_definition.func
@@ -83,6 +82,13 @@ def create_quib(func: Optional[Callable],
         function_definition = function_definition or get_definition_for_function(func)
     cache_mode = cache_mode or CachedQuibFuncCall.DEFAULT_CACHE_MODE
     assigned_name = get_quib_name() if assigned_name is None else assigned_name
+
+    quib = Quib(created_in=_get_file_name_and_line_no(),
+                func=get_original_func(func),
+                args=deep_copy_without_quibs_or_graphics(args),
+                kwargs=deep_copy_without_quibs_or_graphics(kwargs),
+                function_definition=function_definition,
+                )
 
     quib.setp(assignment_template=assignment_template,
               assigned_quibs=assigned_quibs,
@@ -94,10 +100,6 @@ def create_quib(func: Optional[Callable],
               cache_mode=cache_mode,
               )
 
-    quib.func = func
-    quib.args = args
-    quib.kwargs = kwargs
-    quib.handler.func_definition = function_definition
     quib.handler.reset_quib_func_call()
 
     # register new quib on project

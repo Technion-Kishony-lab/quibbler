@@ -17,6 +17,7 @@ from pyquibbler.utilities.input_validation_utils import InvalidArgumentTypeExcep
     ('allow_overriding', False, False),
     ('assigned_quibs', [], set()),
     ('assigned_quibs', (), set()),
+    ('assigned_quibs', None, None),
     ('assignment_template', None, None),
     ('save_directory', 'my_folder', PathWithHyperLink('my_folder')),
     ('save_directory', None, None),
