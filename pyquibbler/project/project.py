@@ -274,7 +274,7 @@ class Project:
 
         See Also
         --------
-        load_quibs, sync_quibs, 
+        load_quibs, sync_quibs,
         Quib.save_format, Quib.actual_save_format, Project.save_format
         """
         if self.directory is None:

@@ -17,7 +17,7 @@ from pyquibbler.quib import consts
 from pyquibbler.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
 from pyquibbler.quib.func_calling import QuibFuncCall
 from pyquibbler.quib.func_calling.cache_mode import CacheMode
-from pyquibbler.quib.quib import Quib, QuibHandler
+from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.quib_guard import QuibGuard
 from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation_with_sources_metadata, \
     get_func_call_for_translation_without_sources_metadata
@@ -33,16 +33,10 @@ class CachedQuibFuncCall(QuibFuncCall):
 
     DEFAULT_CACHE_MODE = CacheMode.AUTO
 
-    def __init__(self, artists_creation_callback: Callable = None,
-                 quib_handler: QuibHandler = None):
-        super(CachedQuibFuncCall, self).__init__(
-            quib_handler=quib_handler,
-            artists_creation_callback=artists_creation_callback)
-
     def _get_cache_behavior(self):
         if self.func_definition.is_random or self.func_can_create_graphics:
             return CacheMode.ON
-        return self.quib_handler.cache_mode
+        return self.cache_mode
 
     def _should_cache(self, result: Any, elapsed_seconds: float):
         """

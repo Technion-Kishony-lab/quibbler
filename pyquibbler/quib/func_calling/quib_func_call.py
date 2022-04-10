@@ -1,50 +1,41 @@
 from __future__ import annotations
 
-import weakref
-from typing import Optional, Type, Tuple, Dict, Callable
+from typing import Optional, Type, Tuple, Dict, Callable, Mapping, Any
 
+import numpy as np
+
+from pyquibbler.quib.func_calling.cache_mode import CacheMode
 from pyquibbler.cache import Cache
 
-from pyquibbler.function_definitions import FuncCall, FuncArgsKwargs
-from pyquibbler.function_definitions.func_definition import FuncDefinition
+from pyquibbler.function_definitions import FuncCall
+from dataclasses import dataclass, field
 from pyquibbler.graphics.graphics_collection import GraphicsCollection
 from pyquibbler.path import Path
 from pyquibbler.quib.func_calling.exceptions import CannotCalculateShapeException
 from pyquibbler.quib.func_calling.result_metadata import ResultMetadata
-from pyquibbler.quib.func_calling.utils import create_array_from_func
-from pyquibbler.quib.quib import Quib, QuibHandler
+from pyquibbler.quib.func_calling.utils import create_array_from_func, CachedCall
+from pyquibbler.quib.quib import Quib
 
 
+@dataclass
 class QuibFuncCall(FuncCall):
     """
     Represents a FuncCall with Quibs as argument sources- this will handle running a function with quibs as arguments,
     by caching results and only asking for necessary values from argument quibs
     """
 
+    artists_creation_callback: Callable = None
+    graphics_collections: Optional[np.ndarray] = None
+    method_cache: Mapping[CachedCall, Any] = field(default_factory=dict)
+    cache: Optional[Cache] = None
+    _caching: bool = False
+    _result_metadata: ResultMetadata = None
+    cache_mode: CacheMode = None
+
     SOURCE_OBJECT_TYPE = Quib
 
-    def __init__(self, artists_creation_callback: Callable = None,
-                 quib_handler: QuibHandler = None):
-        super(QuibFuncCall, self).__init__()
-        self.graphics_collections = None
-        self.method_cache = {}
-        self.cache: Optional[Cache] = None
-        self.quib_handler_ref = weakref.ref(quib_handler)
-        self.artists_creation_callback = artists_creation_callback
-        self._caching = False
-        self._result_metadata = None
-
-    @property
-    def quib_handler(self) -> QuibHandler:
-        return self.quib_handler_ref()
-
-    @property
-    def func_args_kwargs(self) -> FuncArgsKwargs:
-        return self.quib_handler.func_args_kwargs
-
-    @property
-    def func_definition(self) -> FuncDefinition:
-        return self.quib_handler.func_definition
+    def __hash__(self):
+        return id(self)
 
     @property
     def _pass_quibs(self):
