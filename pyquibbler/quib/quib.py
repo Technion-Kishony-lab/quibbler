@@ -144,7 +144,7 @@ class QuibHandler:
         return getattr(self.func_args_kwargs.func, '__name__', None) == 'iquib'
 
     """
-    graphics
+    properties
     """
 
     @property
@@ -297,7 +297,11 @@ class QuibHandler:
 
     def reset_quib_func_call(self):
         definition = get_definition_for_function(self.func_args_kwargs.func)
-        self.quib_function_call = definition.quib_function_call_cls(quib_handler=self)
+        self.quib_function_call = definition.quib_function_call_cls(
+            func_args_kwargs=self.func_args_kwargs,
+            func_definition=self.func_definition,
+            cache_mode=self.cache_mode,
+        )
         from pyquibbler.quib.graphics.persist import persist_artists_on_quib_weak_ref
         self.quib_function_call.artists_creation_callback = functools.partial(persist_artists_on_quib_weak_ref,
                                                                               weakref.ref(self.quib))
@@ -883,6 +887,7 @@ class Quib:
     @validate_user_input(cache_mode=(str, CacheMode))
     def cache_mode(self, cache_mode: Union[str, CacheMode]):
         self.handler.cache_mode = get_enum_by_str(CacheMode, cache_mode)
+        self.handler.reset_quib_func_call()
 
     def invalidate(self):
         """

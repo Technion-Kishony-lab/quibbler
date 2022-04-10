@@ -103,19 +103,11 @@ class FuncCall(ABC):
 
     data_source_locations: Optional[List[SourceLocation]] = None
     parameter_source_locations: Optional[List[SourceLocation]] = None
+    func_args_kwargs: FuncArgsKwargs = None
+    func_definition: FuncDefinition = None
 
     def __hash__(self):
         return id(self)
-
-    @property
-    @abstractmethod
-    def func_args_kwargs(self) -> FuncArgsKwargs:
-        pass
-
-    @property
-    @abstractmethod
-    def func_definition(self) -> Type[FuncDefinition]:
-        pass
 
     @property
     def func(self) -> Callable:
