@@ -2,7 +2,7 @@ from unittest import mock
 
 import pytest
 
-from pyquibbler.utilities.input_validation_utils import InvalidArgumentTypeException
+from pyquibbler.utilities.input_validation_utils import InvalidArgumentTypeException, InvalidArgumentValueException
 from pyquibbler.quib.factory import create_quib
 
 
@@ -40,7 +40,7 @@ def test_quib_with_invalid_set_name():
 
     try:
         my_quib.name = name
-    except ValueError:
+    except InvalidArgumentValueException:
         pass
     else:
         assert False
