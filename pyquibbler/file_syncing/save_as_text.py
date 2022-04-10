@@ -1,9 +1,11 @@
 import numpy as np
 
 
-def count_digists(array: np.ndarray):
+# TODO: at the end we are not using the functions below for array saving. can be deleted
+
+def count_digits(array: np.ndarray):
     """
-    returns the max number of digists before and after the decimal point in the entire array.
+    returns the max number of digits before and after the decimal point in the entire array.
     """
 
     max_before = 0
@@ -29,7 +31,7 @@ def count_digists(array: np.ndarray):
 
 
 def save_array_as_text(file_path: str, value):
-    max_before, max_after = count_digists(value)
+    max_before, max_after = count_digits(value)
     np.savetxt(file_path, value, fmt=f'%{max_before + max_after + 1}.{max_after}f')
 
 

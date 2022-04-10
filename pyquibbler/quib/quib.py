@@ -60,6 +60,8 @@ if TYPE_CHECKING:
     from pyquibbler.assignment import OverrideChoice
     from pyquibbler.quib.func_calling import QuibFuncCall
 
+NoneType = type(None)
+
 
 class QuibHandler:
     """
@@ -969,7 +971,7 @@ class Quib:
         return self.handler.graphics_update
 
     @graphics_update.setter
-    @validate_user_input(graphics_update=(type(None), str, GraphicsUpdateType))
+    @validate_user_input(graphics_update=(NoneType, str, GraphicsUpdateType))
     def graphics_update(self, graphics_update: Union[None, str, GraphicsUpdateType]):
         self.handler.graphics_update = get_enum_by_str(GraphicsUpdateType, graphics_update, allow_none=True)
 
@@ -1065,15 +1067,20 @@ class Quib:
         """
         Returns an AssignmentTemplate object indicating type and range restricting assignments to the quib.
 
+        Returns
+        -------
+        AssignmentTemplate
+
         See Also
         --------
         assign
         AssignmentTemplate
+        set_assignment_template
         """
         return self.handler.assignment_template
 
     @assignment_template.setter
-    @validate_user_input(template=AssignmentTemplate)
+    @validate_user_input(template=(NoneType, AssignmentTemplate))
     def assignment_template(self, template):
         self.handler.assignment_template = template
 
@@ -1448,7 +1455,7 @@ class Quib:
         return self.handler.save_format
 
     @save_format.setter
-    @validate_user_input(save_format=(type(None), str, SaveFormat))
+    @validate_user_input(save_format=(NoneType, str, SaveFormat))
     def save_format(self, save_format):
         save_format = get_enum_by_str(SaveFormat, save_format, allow_none=True)
         if (save_format in [SaveFormat.VALUE_BIN, SaveFormat.VALUE_TXT]) and not self.is_iquib:
@@ -1537,7 +1544,7 @@ class Quib:
         return PathWithHyperLink(self.handler.save_directory) if self.handler.save_directory else None
 
     @save_directory.setter
-    @validate_user_input(directory=(type(None), str, pathlib.Path))
+    @validate_user_input(directory=(NoneType, str, pathlib.Path))
     def save_directory(self, directory: Union[None, str, pathlib.Path]):
         if isinstance(directory, str):
             directory = pathlib.Path(directory)
@@ -1651,7 +1658,7 @@ class Quib:
         return self.handler.assigned_name
 
     @assigned_name.setter
-    @validate_user_input(assigned_name=(str, type(None)))
+    @validate_user_input(assigned_name=(str, NoneType))
     def assigned_name(self, assigned_name: Optional[str]):
         if assigned_name is None \
                 or len(assigned_name) \
@@ -1659,8 +1666,10 @@ class Quib:
             self.handler.assigned_name = assigned_name
             self.handler.on_file_name_change()
         else:
-            raise ValueError('name must be None or a string starting with a letter '
-                             'and continuing alpha-numeric characters or spaces')
+            raise InvalidArgumentValueException(
+                'name must be None or a string starting with a letter '
+                'and continuing alpha-numeric characters or spaces.'
+            )
 
     @property
     def name(self) -> Optional[str]:
