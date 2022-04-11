@@ -800,16 +800,16 @@ class Quib:
         The quib can be re-evaluated, by invalidating its value either locally using `invalidate()`
         or centrally, using `Project.reset_file_loading_quibs()`
 
+        Returns
+        -------
+        bool
+            Indicating True for random functions.
+
         See Also
         --------
         is_impure, is_random
         invalidate
         Project.reset_file_loading_quibs
-
-        Returns
-        -------
-        bool
-            Indicating True for random functions.
 
         Examples
         --------
@@ -845,7 +845,8 @@ class Quib:
             ALL_VALID: The cache is fully valid.
             PARTIAL: Only part of the quib's cache is valid.
 
-        See Also:
+        See Also
+        --------
         cache_mode
         """
         return self.handler.quib_function_call.cache.get_cache_status() \
@@ -862,7 +863,7 @@ class Quib:
 
         Returns
         -------
-        'auto', 'on', or 'off'
+        CacheMode
 
         See Also
         --------
@@ -948,7 +949,7 @@ class Quib:
 
         Returns
         -------
-        "drag", "drop", "central", "never", or None
+        GraphicsUpdateType or None
 
         See Also
         --------

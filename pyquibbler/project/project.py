@@ -7,8 +7,8 @@ from _weakref import ReferenceType
 from collections import defaultdict
 from pathlib import Path
 import sys
-from typing import Optional, Set, TYPE_CHECKING, List, Callable
-from pyquibbler.utilities.input_validation_utils import validate_user_input
+from typing import Optional, Set, TYPE_CHECKING, List, Callable, Union
+from pyquibbler.utilities.input_validation_utils import validate_user_input, get_enum_by_str
 from pyquibbler.utilities.file_path import PathWithHyperLink
 from pyquibbler.exceptions import PyQuibblerException
 from .actions import Action, AssignmentAction
@@ -176,7 +176,13 @@ class Project:
         """
         The default mode of updating graphics quibs.
 
-        Quibs whose own graphics_update is None yield to the default graphics_update of the Project.
+        Quibs whose own graphics_update is None adhere to the default graphics_update of the Project.
+
+        Options are:
+        "drag":     refresh immediately as upstream objects are dragged
+        "drop":     refresh at end of dragging upon graphic object drop.
+        "central":  do not automatically refresh. Refresh, centrally upon refresh_graphics().
+        "never":    Never refresh.
 
         Returns
         -------
@@ -190,9 +196,9 @@ class Project:
         return self._graphics_update
 
     @graphics_update.setter
-    @validate_user_input(graphics_update=GraphicsUpdateType)
-    def graphics_update(self, graphics_update: GraphicsUpdateType):
-        self._graphics_update = graphics_update
+    @validate_user_input(graphics_update=(str, GraphicsUpdateType))
+    def graphics_update(self, graphics_update: Union[str, GraphicsUpdateType]):
+        self._graphics_update = get_enum_by_str(GraphicsUpdateType, graphics_update)
 
     """
     save/load
@@ -205,8 +211,6 @@ class Project:
 
         Can be set as a str or Path object.
         None indicates undefined path.
-
-        path = None indicates undefined path.
 
         Returns
         -------
@@ -261,9 +265,9 @@ class Project:
         return self._save_format
 
     @save_format.setter
-    @validate_user_input(save_format=SaveFormat)
-    def save_format(self, save_format: SaveFormat):
-        self._save_format = save_format
+    @validate_user_input(save_format=(str, SaveFormat))
+    def save_format(self, save_format: Union[str, SaveFormat]):
+        self._save_format = get_enum_by_str(SaveFormat, save_format)
 
     def save_quibs(self, response_to_file_not_defined=ResponseToFileNotDefined.WARN_IF_DATA):
         """

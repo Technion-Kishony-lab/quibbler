@@ -4,11 +4,16 @@ from unittest import mock
 import pytest
 
 from pyquibbler import iquib, Assignment
+from pyquibbler.file_syncing import SaveFormat
 from pyquibbler.function_definitions import add_definition_for_function
 from pyquibbler.function_definitions.func_definition import create_func_definition
 from pyquibbler.graphics import dragging
 from pyquibbler.project import Project, NothingToUndoException, NothingToRedoException
 from pyquibbler.quib.factory import create_quib
+from pyquibbler.quib.graphics import GraphicsUpdateType
+from pyquibbler.utilities.file_path import PathWithHyperLink
+from pyquibbler.utilities.input_validation_utils import InvalidArgumentTypeException, UnknownEnumException, \
+    InvalidArgumentValueException
 
 
 def test_get_or_create_only_creates_one_instance():
@@ -252,3 +257,27 @@ def test_undo_redos_clear_from_stack_on_removal(project):
     del a
 
     assert not project.can_undo()
+
+
+@pytest.mark.parametrize(['prop_name', 'set_value', 'get_value'], [
+    ('save_format', 'off', SaveFormat.OFF),
+    ('save_format', SaveFormat.VALUE_TXT, SaveFormat.VALUE_TXT),
+    ('graphics_update', 'never', GraphicsUpdateType.NEVER),
+    ('directory', '/my_folder', PathWithHyperLink('/my_folder')),
+    ('directory', None, None),
+])
+def test_project_correctly_set_valid_values(project, prop_name, set_value, get_value):
+    setattr(project, prop_name, set_value)
+    assert getattr(project, prop_name) == get_value
+
+
+@pytest.mark.parametrize(['prop_name', 'set_value', 'exception'], [
+    ('save_format', None, InvalidArgumentTypeException),
+    ('save_format', 2, InvalidArgumentTypeException),
+    ('save_format', 'abc', UnknownEnumException),
+    ('graphics_update', True, InvalidArgumentTypeException),
+    ('directory', 7, InvalidArgumentTypeException),
+])
+def test_project_reject_set_invlid_properties(project, prop_name, set_value, exception):
+    with pytest.raises(exception):
+        setattr(project, prop_name, set_value)
