@@ -4,6 +4,7 @@ from pytest import mark, raises
 
 from pyquibbler.assignment import AssignmentTemplate, BoundAssignmentTemplate, RangeAssignmentTemplate, \
     BoundMaxBelowMinException, RangeStopBelowStartException, TypesMustBeSameInAssignmentTemplateException
+from pyquibbler.utilities.iterators import recursively_compare_objects_type
 
 
 class ExampleAssignmentTemplate(AssignmentTemplate):
@@ -25,18 +26,23 @@ def test_assignment_template_convert(data, expected):
 
 
 @mark.parametrize(['template', 'data', 'expected'], [
+    (BoundAssignmentTemplate(0, 2), np.array([-1., 0, 1.7, 2, 3]), np.array([0, 0, 1, 2, 2])),
+    (BoundAssignmentTemplate(0, 2), [-1., 0, 1.7, 2, 3], [0, 0, 1, 2, 2]),
+    (BoundAssignmentTemplate(0, 2), [-1, 0, 1.7, [-1, 1.7, 10], 3], [0, 0, 1, [0, 1, 2], 2]),
+    (BoundAssignmentTemplate(0, 2), {'a': 3, 'b': -1}, {'a': 2, 'b': 0}),
+
     # Bound int
     (BoundAssignmentTemplate(0, 2), -1, 0),
     (BoundAssignmentTemplate(0, 2), 0, 0),
     (BoundAssignmentTemplate(0, 2), 1, 1),
     (BoundAssignmentTemplate(0, 2), 2, 2),
     (BoundAssignmentTemplate(0, 2), 3, 2),
-    (BoundAssignmentTemplate(0, 2), 3, 2),
 
     # Bound float
     (BoundAssignmentTemplate(0.1, 0.2), 0., 0.1),
     (BoundAssignmentTemplate(0.1, 0.2), 0.15, 0.15),
     (BoundAssignmentTemplate(0.1, 0.2), 0.2, 0.2),
+    (BoundAssignmentTemplate(0.1, 0.25), 0.2, 0.2),
 
     # Range int
     (RangeAssignmentTemplate(-3, 3, 3), -7, -3),
@@ -47,7 +53,7 @@ def test_assignment_template_convert(data, expected):
     (RangeAssignmentTemplate(-3, 3, 3), 0, 0),
     (RangeAssignmentTemplate(-3, 3, 3), 1, 0),
     (RangeAssignmentTemplate(-3, 3, 3), 2, 3),
-    (RangeAssignmentTemplate(-3, 3, 3), 6, 3),
+    (RangeAssignmentTemplate(-3, 3, 3), 3, 3),
     (RangeAssignmentTemplate(-3, 3, 3), 10, 3),
 
     # Range when stop is not divisible by step
@@ -90,8 +96,12 @@ def test_assignment_template_convert(data, expected):
 ])
 def test_casting_assignment_template(template, data, expected):
     result = template.convert(data)
-    assert result == expected
-    assert type(result) is type(expected)
+    if isinstance(result, np.ndarray):
+        assert result.dtype == expected.dtype
+        assert np.array_equal(result, expected)
+    else:
+        assert result == expected
+        assert recursively_compare_objects_type(result, expected)
 
 
 def test_cant_create_bound_assignment_template_with_max_smaller_than_min():
