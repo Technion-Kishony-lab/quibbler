@@ -19,7 +19,7 @@ class ExampleAssignmentTemplate(AssignmentTemplate):
     (1, -1),
     ([1], [-1]),
     ([[1, 2], [3, 4]], [[-1, -2], [-3, -4]]),
-    ((1,), [-1]),
+    ((1,), (-1,)),
 ])
 def test_assignment_template_convert(data, expected):
     assert ExampleAssignmentTemplate().convert(data) == expected
