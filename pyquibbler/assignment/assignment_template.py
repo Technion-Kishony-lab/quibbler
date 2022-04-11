@@ -1,11 +1,11 @@
 import numpy as np
 from abc import ABC, abstractmethod
-from math import floor
 from typing import Any, Type
 from dataclasses import dataclass
 
 from pyquibbler.exceptions import DebugException, PyQuibblerException
 from pyquibbler.utilities.input_validation_utils import InvalidArgumentTypeException
+from pyquibbler.utilities.iterators import recursively_run_func_on_object
 
 CONSTRUCTORS = {
     np.ndarray: np.array
@@ -46,7 +46,7 @@ class TypesMustBeSameInAssignmentTemplateException(DebugException):
 
 
 def get_number_in_bounds(number, minimum, maximum):
-    return min(max(number, minimum), maximum)
+    return np.minimum(np.maximum(number, minimum), maximum)
 
 
 @dataclass
@@ -61,6 +61,17 @@ class AssignmentTemplate(ABC):
     def _get_number_type(self) -> Type:
         pass
 
+    def _convert_and_cast_number(self, data):
+        if not isinstance(data, (np.ndarray, int, float)):
+            raise InvalidTypeException(type(data))
+        data = self._convert_number(data)
+        if isinstance(data, np.ndarray):
+            casted_data = np.ndarray.astype(data, self._get_number_type())
+        else:
+            constructor = CONSTRUCTORS.get(self._get_number_type(), self._get_number_type())
+            casted_data = constructor(data)
+        return casted_data
+
     def convert(self, data: Any):
         """
         Convert the given data according to the assignment template.
@@ -71,18 +82,7 @@ class AssignmentTemplate(ABC):
         iquib(np.zeros((2, 2)))[0] = [1, 1]
         ```
         """
-        # we need to be careful of strings, as they are iterators but not valid values
-        if isinstance(data, str):
-            raise InvalidTypeException(str)
-
-        try:
-            iterator = iter(data)
-        except TypeError:
-            constructor = CONSTRUCTORS.get(self._get_number_type(), self._get_number_type())
-            casted_data = constructor(data)
-            return self._convert_number(casted_data)
-        else:
-            return [self.convert(item) for item in iterator]
+        return recursively_run_func_on_object(self._convert_and_cast_number, data)
 
 
 @dataclass
@@ -103,7 +103,7 @@ class BoundAssignmentTemplate(AssignmentTemplate):
     def _get_number_type(self) -> Type:
         return type(self.minimum)
 
-    def _convert_number(self, number):
+    def _convert_number(self, number: Any):
         return get_number_in_bounds(number, self.minimum, self.maximum)
 
 
@@ -127,10 +127,9 @@ class RangeAssignmentTemplate(AssignmentTemplate):
         return type(self.start)
 
     def _convert_number(self, number: Any):
-        rounded = round((number - self.start) / self.step)
-        bound = get_number_in_bounds(rounded, 0, floor((self.stop - self.start) / self.step))
-        constructor = CONSTRUCTORS.get(type(number), type(number))
-        return constructor(self.start + bound * self.step)
+        rounded = np.round((number - self.start) / self.step)
+        bound = get_number_in_bounds(rounded, 0, np.floor((self.stop - self.start) / self.step))
+        return self.start + bound * self.step
 
 
 def create_assignment_template(*args):
