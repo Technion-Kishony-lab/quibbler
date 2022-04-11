@@ -6,7 +6,7 @@ from .utilities.performance_utils import timer
 from .utilities.user_utils import \
     get_project, \
     q, quiby, \
-    reset_random_quibs, \
+    reset_random_quibs, reset_file_loading_quibs, reset_impure_quibs, \
     set_project_directory, get_project_directory, \
     save_quibs, load_quibs, \
     undo, redo, can_redo, can_undo, \
