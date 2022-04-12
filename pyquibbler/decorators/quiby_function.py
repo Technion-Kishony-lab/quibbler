@@ -5,7 +5,7 @@ from pyquibbler.quib.factory import create_quib
 
 
 def quiby_function(
-        lazy: bool = False,
+        lazy: Optional[bool] = None,
         pass_quibs: bool = False,
         is_random: bool = False,
         is_graphics: Optional[bool] = False,
