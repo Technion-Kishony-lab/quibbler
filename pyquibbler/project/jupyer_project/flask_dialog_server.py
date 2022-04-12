@@ -14,12 +14,7 @@ def run_flask_app(answer_queue):
 
     @app.route('/answer', methods=['POST'])
     def dialog_answer():
-        open('/tmp/aaa.txt', 'w').write('HELLO!')
-        try:
-            answer_queue.put(request.json["option"])
-        except Exception:
-            open('/tmp/aaa.txt', 'w').write(traceback.format_exc())
-            raise
-        return 'pasten'
+        answer_queue.put(request.json["option"])
+        return 'done'
 
     app.run('0.0.0.0', port=8200)

@@ -22,9 +22,6 @@ class AssignmentRemoval:
 PathsToAssignments = Dict[Hashable, Union[Assignment, AssignmentRemoval]]
 
 
-QUIB_MAGIC = "QUIB {quib_name}"
-
-
 class Overrider:
     """
     Gathers function_definitions assignments performed on a quib in order to apply them on a quib value.
@@ -81,13 +78,11 @@ class Overrider:
         Undo an assignment, returning the overrider to the previous state before the assignment.
         Note that this is essentially different than simply adding an AssignmentRemoval ->
         if I do
-
         ```
         q = iquib(0)
         q.assign(1)
         q.assign(2)
         ```
-
         and then do remove_assignment, the value will go back to 0 (the original value).
         if I do undo_assignment, the value will go back to 1 (the previous value)
         """
