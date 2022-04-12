@@ -1563,7 +1563,6 @@ class Quib:
 
     def _get_file_path(self, response_to_file_not_defined: ResponseToFileNotDefined = ResponseToFileNotDefined.IGNORE) \
             -> Optional[PathWithHyperLink]:
-
         if self.assigned_name is None or self.actual_save_directory is None or self.actual_save_format is None:
             path = None
             exception = FileNotDefinedException(

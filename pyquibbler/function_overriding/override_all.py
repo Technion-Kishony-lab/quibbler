@@ -9,6 +9,7 @@ from pyquibbler.function_overriding.quib_overrides.operators.overrides import cr
 from pyquibbler.function_overriding.quib_overrides.quib_methods import create_quib_method_overrides
 from pyquibbler.function_overriding.third_party_overriding.numpy.overrides import create_numpy_overrides
 from pyquibbler.function_overriding.third_party_overriding.graphics.overrides import create_graphics_overrides
+from pyquibbler.project.jupyer_project.jupyter_project import create_jupyter_project_if_in_jupyter_lab
 from pyquibbler.utils import ensure_only_run_once_globally
 
 
@@ -17,6 +18,7 @@ def override_all():
     """
     Override all relavent functions, both operators and third party, to support Quibs
     """
+    create_jupyter_project_if_in_jupyter_lab()
 
     function_definitions = create_defintions_for_python_functions()
     for func_definition in function_definitions:

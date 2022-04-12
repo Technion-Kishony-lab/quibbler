@@ -3,24 +3,11 @@ from abc import ABC, abstractmethod
 import os
 from enum import Enum
 import pathlib
-from typing import Optional, Mapping
+from typing import Optional
 
 """
 This file follows the logic of file-syncing from MatQuibbler
 """
-
-
-#  TODO: should be replaced with more fancy dialog box
-def text_dialog(title: str, message: str, buttons_and_options: Mapping[str, str]) -> str:
-    print(title)
-    print(message)
-    for button, option in buttons_and_options.items():
-        print(button, ': ', option)
-    while True:
-        choice = input()
-        if choice in buttons_and_options.keys():
-            break
-    return choice
 
 
 class FileStatus(Enum):
@@ -256,10 +243,12 @@ class FileSyncer(ABC):
     def _verify_action(self, file_comparison: FileComparison, action_verification: ActionVerification) -> bool:
         if not action_verification.requires_verification:
             return True
-        answer = text_dialog(self._dialog_title(),
+        from pyquibbler import Project
+        answer = Project.get_or_create().text_dialog(self._dialog_title(),
                              self._get_what_happened_message(file_comparison) + '\n'
                              + action_verification.message.format(self._file_type()) + '?',
                              {'1': action_verification.button, '2': 'Skip'})
+
         return answer == '1'
 
     def save(self):
@@ -305,7 +294,8 @@ class FileSyncer(ABC):
                      or load_command.requires_verification and not save_command.requires_verification):
             action = save_command.action
         else:
-            answer = text_dialog(self._dialog_title(),
+            from pyquibbler import Project
+            answer = Project.get_or_create().text_dialog(self._dialog_title(),
                                  self._get_what_happened_message(file_comparison),
                                  {'1': save_command.message.format(self._file_type()),
                                   '2': load_command.message.format(self._file_type()),

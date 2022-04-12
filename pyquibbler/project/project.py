@@ -9,6 +9,8 @@ from pathlib import Path
 import sys
 from typing import Optional, Set, TYPE_CHECKING, List, Callable, Union
 from pyquibbler.utilities.input_validation_utils import validate_user_input, get_enum_by_str
+from typing import Optional, Set, TYPE_CHECKING, List, Callable, Iterable, Tuple
+from pyquibbler.utilities.input_validation_utils import validate_user_input
 from pyquibbler.utilities.file_path import PathWithHyperLink
 from pyquibbler.exceptions import PyQuibblerException
 from .actions import Action, AssignmentAction
@@ -36,7 +38,7 @@ class NoProjectDirectoryException(PyQuibblerException):
     action: str
 
     def __str__(self):
-        return f"The project directory is not define.\n" \
+        return f"The project directory is not defined.\n" \
                f"To {self.action} quibs, set the project directory (see set_project_directory)."
 
 
@@ -63,11 +65,11 @@ class Project:
 
     @classmethod
     def get_or_create(cls, directory: Optional[Path] = None):
-        if cls.current_project is None:
+        if Project.current_project is None:
             main_module = sys.modules['__main__']
             directory = directory or (Path(main_module.__file__).parent if hasattr(main_module, '__file__') else None)
-            cls.current_project = cls(directory=directory, quib_weakrefs=set())
-        return cls.current_project
+            Project.current_project = cls(directory=directory, quib_weakrefs=set())
+        return Project.current_project
 
     """
     quibs
@@ -496,3 +498,15 @@ class Project:
             self._undo_action_groups.append([assignment_action])
 
         self._redo_action_groups.clear()
+
+    #  TODO: should be replaced with more fancy dialog box
+    def text_dialog(self, title: str, message: str, buttons_and_options: Mapping[str, str]) -> str:
+        print(title)
+        print(message)
+        for button, option in buttons_and_options.items():
+            print(button, ': ', option)
+        while True:
+            choice = input()
+            if choice in buttons_and_options.keys():
+                break
+        return choice

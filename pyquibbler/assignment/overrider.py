@@ -22,6 +22,9 @@ class AssignmentRemoval:
 PathsToAssignments = Dict[Hashable, Union[Assignment, AssignmentRemoval]]
 
 
+QUIB_MAGIC = "QUIB {quib_name}"
+
+
 class Overrider:
     """
     Gathers function_definitions assignments performed on a quib in order to apply them on a quib value.
