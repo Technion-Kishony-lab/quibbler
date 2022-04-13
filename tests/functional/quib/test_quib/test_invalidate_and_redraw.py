@@ -26,7 +26,7 @@ def test_quib_does_not_redraw_when_child_is_not_graphics_quib(quib):
 def test_quib_removes_dead_children_automatically(quib):
     mock_func = mock.Mock()
     add_definition_for_function(func=mock_func,
-                                function_definition=create_func_definition(is_graphics=True ,lazy=True))
+                                func_definition=create_func_definition(is_graphics=True ,lazy=True))
     child = create_quib(func=mock_func, args=(quib,), kwargs={})
     quib.handler.add_child(child)
 

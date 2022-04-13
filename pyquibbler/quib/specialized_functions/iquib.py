@@ -95,5 +95,5 @@ def iquib(value: Any,
     )
 
 
-add_definition_for_function(func=identity_function, function_definition=iquib_definition,
+add_definition_for_function(func=identity_function, func_definition=iquib_definition,
                             quib_creating_func=iquib)

@@ -50,4 +50,4 @@ class ProxyInverter(Inverter):
 proxy_definition = create_func_definition(raw_data_source_arguments=[0], inverters=[ProxyInverter],
                                           backwards_path_translators=[ProxyBackwardsPathTranslator])
 
-add_definition_for_function(func=proxy, function_definition=proxy_definition, quib_creating_func=create_proxy)
+add_definition_for_function(func=proxy, func_definition=proxy_definition, quib_creating_func=create_proxy)

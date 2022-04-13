@@ -24,7 +24,7 @@ def test_get_or_create_only_creates_one_instance():
 def random_func_with_side_effect():
     func = mock.Mock()
     func.side_effect = [1, 2]
-    add_definition_for_function(func=func, function_definition=create_func_definition(is_random=True))
+    add_definition_for_function(func=func, func_definition=create_func_definition(is_random=True))
     return func
 
 

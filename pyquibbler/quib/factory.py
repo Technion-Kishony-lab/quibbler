@@ -55,7 +55,7 @@ def _get_file_name_and_line_no() -> Optional[FileAndLineNumber]:
 def create_quib(func: Optional[Callable],
                 args: Tuple[Any, ...] = (),
                 kwargs: Mapping[str, Any] = None,
-                function_definition: FuncDefinition = None,
+                func_definition: FuncDefinition = None,
                 cache_mode: CacheMode = None,
                 lazy: bool = NoValue,
                 allow_overriding: bool = False,
@@ -77,9 +77,9 @@ def create_quib(func: Optional[Callable],
 
     kwargs = kwargs or {}
     if func is None:
-        func = function_definition.func
+        func = func_definition.func
     else:
-        function_definition = function_definition or get_definition_for_function(func)
+        func_definition = func_definition or get_definition_for_function(func)
     cache_mode = cache_mode or CachedQuibFuncCall.DEFAULT_CACHE_MODE
     assigned_name = get_quib_name() if assigned_name is None else assigned_name
 
@@ -87,7 +87,7 @@ def create_quib(func: Optional[Callable],
                 func=get_original_func(func),
                 args=deep_copy_without_quibs_or_graphics(args),
                 kwargs=deep_copy_without_quibs_or_graphics(kwargs),
-                function_definition=function_definition,
+                func_definition=func_definition,
                 )
 
     quib.setp(assignment_template=assignment_template,
@@ -114,9 +114,9 @@ def create_quib(func: Optional[Callable],
             parent.handler.add_child(quib)
 
     # evaluate now if not lazy
-    lazy = function_definition.lazy if lazy is NoValue else lazy
+    lazy = func_definition.lazy if lazy is NoValue else lazy
     if lazy is None:
-        lazy = GRAPHICS_LAZY if function_definition.is_graphics else LAZY
+        lazy = GRAPHICS_LAZY if func_definition.is_graphics else LAZY
     if not lazy:
         quib.get_value()
 

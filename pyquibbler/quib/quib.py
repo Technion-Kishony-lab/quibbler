@@ -79,7 +79,7 @@ class QuibHandler:
                  func: Optional[Callable],
                  args: Tuple[Any, ...] = (),
                  kwargs: Mapping[str, Any] = None,
-                 function_definition: FuncDefinition = None,
+                 func_definition: FuncDefinition = None,
                  cache_mode: CacheMode = None,
                  ):
         kwargs = kwargs or {}
@@ -105,7 +105,7 @@ class QuibHandler:
 
         self.save_format = save_format
         self.func_args_kwargs = FuncArgsKwargs(func, args, kwargs, include_defaults=True)
-        self.func_definition = function_definition
+        self.func_definition = func_definition
 
         self.cache_mode = cache_mode
 
@@ -613,7 +613,7 @@ class Quib:
                  func: Optional[Callable] = None,
                  args: Tuple[Any, ...] = (),
                  kwargs: Mapping[str, Any] = None,
-                 function_definition: FuncDefinition = None,
+                 func_definition: FuncDefinition = None,
                  cache_mode: CacheMode = None,
                  ):
 
@@ -628,7 +628,7 @@ class Quib:
                                    func,
                                    args,
                                    kwargs,
-                                   function_definition,
+                                   func_definition,
                                    cache_mode,
                                    )
 

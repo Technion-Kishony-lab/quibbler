@@ -21,14 +21,14 @@ class FuncOverride:
 
     module_or_cls: Union[ModuleType, Type]
     func_name: str
-    function_definition: Optional[FuncDefinition] = None
+    func_definition: Optional[FuncDefinition] = None
     allowed_kwarg_flags: Tuple[str] = ()
     _original_func: Callable = None
 
     @classmethod
-    def from_func(cls, func: Callable, module_or_cls, function_definition=None, *args, **kwargs):
+    def from_func(cls, func: Callable, module_or_cls, func_definition=None, *args, **kwargs):
         return cls(func_name=func.__name__, module_or_cls=module_or_cls,
-                   function_definition=function_definition, *args, **kwargs)
+                   func_definition=func_definition, *args, **kwargs)
 
     def _get_creation_flags(self, args, kwargs):
         """
@@ -56,7 +56,7 @@ class FuncOverride:
         """
 
         wrapped_func = self.original_func
-        function_definition = self.function_definition
+        func_definition = self.func_definition
 
         @functools.wraps(wrapped_func)
         def _maybe_create_quib(*args, **kwargs):
@@ -64,22 +64,22 @@ class FuncOverride:
             if is_there_a_quib_in_args(args, kwargs):
                 flags = {**self._get_creation_flags(args, kwargs), **self._get_dynamic_flags(args, kwargs)}
                 if flags:
-                    func_definition_for_quib = copy.deepcopy(function_definition)
+                    func_definition_for_quib = copy.deepcopy(func_definition)
                     for key, value in flags.items():
                         setattr(func_definition_for_quib, key, value)
                 else:
-                    func_definition_for_quib = function_definition
+                    func_definition_for_quib = func_definition
 
                 return create_quib(
                     func=wrapped_func,
                     args=args,
                     kwargs=kwargs,
-                    function_definition=func_definition_for_quib,
+                    func_definition=func_definition_for_quib,
                 )
 
             return self._call_wrapped_func(wrapped_func, args, kwargs)
 
-        # _maybe_create_quib.function_definition = function_definition
+        # _maybe_create_quib.func_definition = func_definition
         _maybe_create_quib.__quibbler_wrapped__ = wrapped_func
         _maybe_create_quib.__qualname__ = getattr(wrapped_func, '__name__', str(wrapped_func))
 

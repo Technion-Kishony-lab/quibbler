@@ -19,10 +19,10 @@ def override_all():
     """
 
     function_definitions = create_defintions_for_python_functions()
-    for function_definition in function_definitions:
+    for func_definition in function_definitions:
         add_definition_for_function(
-            func=function_definition.func,
-            function_definition=function_definition,
+            func=func_definition.func,
+            func_definition=func_definition,
             module_or_cls=None,
         )
 
@@ -35,7 +35,7 @@ def override_all():
         maybe_create_quib = func_override.override()
         add_definition_for_function(
             func=func_override.original_func,
-            function_definition=func_override.function_definition,
+            func_definition=func_override.func_definition,
             module_or_cls=func_override.module_or_cls,
             func_name=func_override.func_name,
             quib_creating_func=maybe_create_quib)

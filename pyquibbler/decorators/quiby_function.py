@@ -46,20 +46,20 @@ def quiby_function(
     from pyquibbler.function_definitions import get_definition_for_function
 
     def _decorator(func: Callable):
-        function_definition = get_definition_for_function(func, return_default=False)
-        function_definition = function_definition or FuncDefinition(func=func,
-                                                                    lazy=lazy,
-                                                                    pass_quibs=pass_quibs,
-                                                                    is_random=is_random,
-                                                                    is_graphics=is_graphics,
-                                                                    is_file_loading=is_file_loading,
-                                                                    )
+        func_definition = get_definition_for_function(func, return_default=False)
+        func_definition = func_definition or FuncDefinition(func=func,
+                                                            lazy=lazy,
+                                                            pass_quibs=pass_quibs,
+                                                            is_random=is_random,
+                                                            is_graphics=is_graphics,
+                                                            is_file_loading=is_file_loading,
+                                                            )
 
         @functools.wraps(func)
         def _wrapper(*args, **kwargs):
-            return create_quib(func=None, args=args, kwargs=kwargs, function_definition=function_definition)
+            return create_quib(func=None, args=args, kwargs=kwargs, func_definition=func_definition)
 
-        _wrapper.function_definition = function_definition
+        _wrapper.func_definition = func_definition
 
         return _wrapper
 

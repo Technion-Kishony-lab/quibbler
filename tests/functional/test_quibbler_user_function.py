@@ -43,7 +43,7 @@ def test_quibbler_user_function_with_quibs():
 def test_quibbler_user_function_change_defintion_after_declearation():
     mock_func = mock.Mock()
     user_function = quiby_function(lazy=False)(mock_func)
-    user_function.function_definition.lazy = True
+    user_function.func_definition.lazy = True
     res = user_function()
 
     assert isinstance(res, Quib)
@@ -53,10 +53,10 @@ def test_quibbler_user_function_change_defintion_after_declearation():
 def test_quibbler_user_function_uses_builtin_defintion():
     mock_func = mock.Mock()
     user_function = quiby_function(lazy=False)(mock_func)
-    assert user_function.function_definition.lazy is False, "sanity"
+    assert user_function.func_definition.lazy is False, "sanity"
 
     user_function = quiby_function(lazy=False)(str)
-    assert user_function.function_definition.lazy is None
+    assert user_function.func_definition.lazy is None
 
 
 def test_quiby_creates_quiby_function():
