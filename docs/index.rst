@@ -6,12 +6,12 @@
 Welcome to Quibbler's documentation!
 ====================================
 
-.. automodule:: pyquibbler
-   :members: Quib
-
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
+
+   Quib
+   README
 
 Indices and tables
 ==================
