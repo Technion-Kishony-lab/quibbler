@@ -639,18 +639,14 @@ class Quib:
     @property
     def func(self) -> Callable:
         """
-        The function run by the quib.
+        Callable: The function run by the quib.
 
-        A quib calls its function `func`, with the arguments `args` and the keyworded variables `kwargs`.
-        The quib's value is gievn by:
+        A quib calls its function ``func``, with the arguments ``args`` and the keyworded variables ``kwargs``.
+        The quib's value is given by:
 
         >>> value = func(*args, **kwargs)
 
         with any quibs in `args` or `kwargs` replaced by their values.
-
-        Returns
-        -------
-        func : Callable, the called function
 
         See also
         --------
@@ -668,9 +664,9 @@ class Quib:
     @property
     def args(self) -> Tuple[Any]:
         """
-        The arguments of the function run by the quib.
+        tuple of any: The arguments of the function run by the quib.
 
-        A quib calls its function `func`, with the arguments `args` and the keyworded variables `kwargs`.
+        A quib calls its function ``func``, with the arguments ``args`` and the keyworded variables ``kwargs``.
         The quib's value is gievn by:
 
         >>> value = func(*args, **kwargs)
@@ -678,11 +674,6 @@ class Quib:
         with any quibs in `args` or `kwargs` replaced by their values.
 
         `args` is a list of all positional arguments, which could be any object including other quibs.
-
-        Returns
-        -------
-        args : list of Quib or any
-            A list of arguments, which could be any object including other quibs.
 
         See also
         --------
@@ -700,9 +691,9 @@ class Quib:
     @property
     def kwargs(self) -> Mapping[str, Any]:
         """
-        The keyworded arguments for the function run by the quib.
+        dict of str: any: The keyworded arguments for the function run by the quib.
 
-        A quib calls its function `func`, with the arguments `args` and the keyworded variables `kwargs`.
+        A quib calls its function ``func``, with the arguments ``args`` and the keyworded variables ``kwargs``.
         The quib's value is gievn by:
 
         >>> value = func(*args, **kwargs)
@@ -710,11 +701,6 @@ class Quib:
         with any quibs in `args` or `kwargs` replaced by their values.
 
         `kwargs` is a dictionary of str keywords mapped to any object including non-quib or quib arguments.
-
-        Returns
-        -------
-        kwargs : dict of str: any
-            A dict of keyworded arguments, which could be any object including other quibs.
 
         See also
         --------
@@ -732,20 +718,15 @@ class Quib:
     @property
     def is_impure(self) -> bool:
         """
-        Indicates whether the quib runs an impure function.
+        bool: Indicates whether the quib runs an impure function.
 
-        Returns `True` is the function of the quib is impure,
-        either random function or file reading.
+        True if the function of the quib is impure,
+        either a random function or a file loading function.
 
         See Also
         --------
         is_random, is_file_loading
         Project.reset_impure_quibs
-
-        Returns
-        -------
-        bool
-            Indicating True for impure functions.
 
         Examples
         --------
@@ -759,7 +740,7 @@ class Quib:
     @property
     def is_random(self) -> bool:
         """
-        Indicates whether the quib represents a random function.
+        bool: Indicates whether the quib represents a random function.
 
         A quib that represents a random function automatically caches its value.
         Thereby, repeated calls to the quib return the same random cached results (quenched randomization).
@@ -775,11 +756,6 @@ class Quib:
         invalidate
         Project.reset_random_quibs
 
-        Returns
-        -------
-        bool
-            Indicating True for random functions.
-
         Examples
         --------
         >>> n = iquib(5)
@@ -792,18 +768,13 @@ class Quib:
     @property
     def is_file_loading(self) -> bool:
         """
-        Indicates whether the quib represents a function that loads external files.
+        bool: Indicates whether the quib represents a function that loads external files.
 
         A quib whose value depends on the content of external files automatically caches its value.
         Thereby, repeated calls to the quib return the same results even if the file changes.
 
         The quib can be re-evaluated, by invalidating its value either locally using `invalidate()`
         or centrally, using `Project.reset_file_loading_quibs()`
-
-        Returns
-        -------
-        bool
-            Indicating True for random functions.
 
         See Also
         --------
@@ -822,6 +793,9 @@ class Quib:
 
     @property
     def pass_quibs(self) -> bool:
+        """
+        bool: Indicates whether the quib passes quib arguments to its function
+        """
         return self.handler.func_definition.pass_quibs
 
     @pass_quibs.setter
@@ -836,14 +810,11 @@ class Quib:
     @property
     def cache_status(self) -> CacheStatus:
         """
-        The status of the quib's cache.
+        CacheStatus: The status of the quib's cache.
 
-        Returns
-        -------
-        CacheStatus :
-            ALL_INVALID: the cache is fully invalid, or the quib is not caching.
-            ALL_VALID: The cache is fully valid.
-            PARTIAL: Only part of the quib's cache is valid.
+        ALL_INVALID: the cache is fully invalid, or the quib is not caching.
+        ALL_VALID: The cache is fully valid.
+        PARTIAL: Only part of the quib's cache is valid.
 
         See Also
         --------
@@ -855,20 +826,18 @@ class Quib:
     @property
     def cache_mode(self) -> CacheMode:
         """
-        Set the value caching mode for the quib:
-        'auto':     Caching is decided automatically according to the ratio between evaluation time and
-                    memory consumption. Quibs with random or graphics functions are always cached.
-        'on':       Always cache.
-        'off':      Do not cache, unless the quib's function is random or graphics.
+        CacheMode: Set the value caching mode for the quib:
 
-        Returns
-        -------
-        CacheMode
+        'auto':     Caching is decided automatically according to the ratio between evaluation time and
+        memory consumption. Quibs with random or graphics functions are always cached.
+
+        'on':       Always cache.
+
+        'off':      Do not cache, unless the quib's function is random or graphics.
 
         See Also
         --------
-        CacheMode
-        cache_status
+        CacheMode, cache_status
         """
         return self.handler.cache_mode
 
@@ -884,10 +853,6 @@ class Quib:
 
         Invalidate the value of the quib and the value of any downstream dependent quibs, and re-evaluate any
         graphical quibs.
-
-        Returns
-        -------
-        None
         """
         self.handler.invalidate_self([])
         self.handler.invalidate_and_redraw_at_path([])
@@ -899,15 +864,11 @@ class Quib:
     @property
     def is_graphics(self) -> bool:
         """
-        Specifies whether the function runs by the quib is a graphics function.
+        bool or None: Specifies whether the function runs by the quib is a graphics function.
 
         `True` for known graphics functions
         `False` for known non-graphics functions
         `None` for functions that may create graphics (such as for user functions).
-
-        Returns
-        -------
-        True, False, or None
 
         See Also
         --------
@@ -918,16 +879,12 @@ class Quib:
     @property
     def is_graphics_quib(self) -> bool:
         """
-        Specifies whether the quib is a graphics quib.
+        bool: Specifies whether the quib is a graphics quib.
 
         A quib is defined as graphics if its function is a known graphics function (`is_graphics`=`True`),
         or if its function's `is_graphics`=`None` and a call to the function created graphics.
 
         A quib defined as graphics will get auto-refreshed based on the `graphics_update`.
-
-        Returns
-        -------
-        bool
 
         See Also
         --------
@@ -939,17 +896,17 @@ class Quib:
     @property
     def graphics_update(self) -> GraphicsUpdateType:
         """
-        Return the graphics_update indicating whether the quib should refresh upon upstream assignments.
-        Options are:
-        "drag":     refresh immediately as upstream objects are dragged
-        "drop":     refresh at end of dragging upon graphic object drop.
-        "central":  do not automatically refresh. Refresh, centrally upon refresh_graphics().
-        "never":    Never refresh.
-        None:       Yield to the default project's graphics_update
+        GraphicsUpdateType or None: Indicates whether the quib should refresh upon upstream assignments.
 
-        Returns
-        -------
-        GraphicsUpdateType or None
+        "drag":     refresh immediately as upstream objects are dragged.
+
+        "drop":     refresh at end of dragging upon graphic object drop.
+
+        "central":  do not automatically refresh. Refresh, centrally upon refresh_graphics().
+
+        "never":    Never refresh.
+
+        None:       Yield to the default project's graphics_update
 
         See Also
         --------
@@ -973,12 +930,9 @@ class Quib:
     @property
     def allow_overriding(self) -> bool:
         """
-        Indicates whether the quib can be overridden.
-        The default for allow_overriding is True for iquibs and False in function quibs.
+        bool: Indicates whether the quib can be overridden.
 
-        Returns
-        -------
-        bool
+        The default for allow_overriding is True for iquibs and False in function quibs.
 
         See Also
         --------
@@ -1020,13 +974,9 @@ class Quib:
     @property
     def assigned_quibs(self) -> Union[None, Set[Quib, ...]]:
         """
-        Set of quibs to which assignments to this quib could translate to and override.
+        None or set of Quib: Set of quibs to which assignments to this quib could translate to and override.
 
         When assigned_quibs is None, a dialog will be used to choose between options.
-
-        Returns
-        -------
-        None or set of Quib
 
         See Also
         --------
@@ -1052,11 +1002,7 @@ class Quib:
     @property
     def assignment_template(self) -> AssignmentTemplate:
         """
-        Returns an AssignmentTemplate object indicating type and range restricting assignments to the quib.
-
-        Returns
-        -------
-        AssignmentTemplate
+        AssignmentTemplate: Dictates type and range restricting assignments to the quib.
 
         See Also
         --------
@@ -1119,16 +1065,38 @@ class Quib:
         Set one or more properties on a quib.
 
         Settable properties:
-         allow_overriding: bool
-         assignment_template: Union[tuple, AssignmentTemplate],
-         save_directory: Union[str, pathlib.Path],
-         save_format: Union[None, str, SaveFormat],
-         cache_mode: Union[str, CacheMode],
-         assigned_name: Union[None, str],
-         name: Union[None, str],
-         graphics_update: Union[None, str]
 
-        Examples:
+        ``allow_overriding``: bool
+
+        ``assigned_quibs``: Optional[Set[Quib]]
+
+        ``assignment_template``: Union[tuple, AssignmentTemplate]
+
+        ``save_directory``: Union[str, pathlib.Path]
+
+        ``save_format``: Union[None, str, SaveFormat]
+
+        ``cache_mode``: Union[str, CacheMode]
+
+        ``assigned_name``: Union[None, str]
+
+        ``name``: Union[None, str]
+
+        ``graphics_update``: Union[None, str]
+
+
+        Returns
+        -------
+        quib: Quib
+            The focal quib.
+
+        See Also
+        --------
+        allow_overriding, assigned_quibs, assignment_template, save_directory, save_format
+        cache_mode, assigned_name, name, graphics_update
+
+
+        Examples
             >>> a = iquib(7).setp(assigned_name='my_number')
             >>> b = (2 * a).setp(allow_overriding=True)
         """
@@ -1179,12 +1147,34 @@ class Quib:
     def iter_first(self, amount: Optional[int] = None):
         """
         Returns an iterator to the first `amount` elements of the quib.
-        `a, b = quib.iter_first(2)` is the same as `a, b = quib[0], quib[1]`.
-        When `amount` is not given, quibbler will try to detect the correct amount automatically, and
+
+        ``a, b = quib.iter_first(2)`` is the same as ``a, b = quib[0], quib[1]``.
+
+        When `amount=None`, quibbler will try to detect the correct amount automatically, and
         might fail with a RuntimeError.
-        For example, `a, b = iquib([1, 2]).iter_first()` is the same as `a, b = iquib([1, 2]).iter_first(2)`.
-        But note that even if the quib is larger than the unpacked amount, the iterator will still yield only the first
-        items - `a, b = iquib([1, 2, 3, 4]).iter_first()` is the same as `a, b = iquib([1, 2, 3, 4]).iter_first(2)`.
+        For example, ``a, b = iquib([1, 2]).iter_first()`` is the same as ``a, b = iquib([1, 2]).iter_first(2)``.
+        And even if the quib is larger than the unpacked amount, the iterator will still yield only the first
+        items - ``a, b = iquib([1, 2, 3, 4]).iter_first()`` is the same as ``a, b = iquib([1, 2, 3, 4]).iter_first(2)``.
+
+        Returns
+        -------
+        Iterator of Quib
+
+        Examples
+        --------
+        >>> @quiby
+            def sum_and_prod(x):
+                return np.sum(x), np.prod(x)
+
+        >>> nums = iquib([10, 20, 30])
+
+        >>> sum_nums, prod_nums = sum_and_prod(nums).iter_first()
+
+        >>> sum_nums.get_value()
+        60
+
+        >>> prod_nums.get_value()
+        6000
         """
         return Unpacker(self, amount)
 
@@ -1340,11 +1330,7 @@ class Quib:
     @property
     def children(self) -> Set[Quib]:
         """
-        Returns the set of quibs that are immediate dependants of the current quib.
-
-        Returns
-        -------
-        set of Quib
+        set of Quib: The set of quibs that are immediate dependants of the current quib.
 
         See Also
         --------
@@ -1355,12 +1341,7 @@ class Quib:
     @property
     def descendants(self) -> Set[Quib]:
         """
-        All quibs downstream of current quib.
-
-        Returns
-        -------
-        set of Quib
-            a set of all quibs that depend on the current quib, recursively.
+        set of Quib: All quibs downstream of current quib.
 
         See Also
         --------
@@ -1371,11 +1352,7 @@ class Quib:
     @property
     def parents(self) -> Set[Quib]:
         """
-        Returns the set of quibs that this quib depends on.
-
-        Returns
-        -------
-        set of Quib
+        set of Quib: The set of quibs that this quib depends on.
 
         See Also
         --------
@@ -1386,11 +1363,7 @@ class Quib:
     @cached_property
     def ancestors(self) -> Set[Quib]:
         """
-        Returns all ancestors of the quib, going recursively up the tree.
-
-        Returns
-        -------
-        set of Quib
+        set of Quib: All ancestors of the quib, going recursively up the tree.
 
         See Also
         --------
@@ -1409,14 +1382,10 @@ class Quib:
     @property
     def project(self) -> Project:
         """
-        The project object that the quib belongs to.
+        Project: The project object that the quib belongs to.
 
         The Project provides global functionality inclduing save, load, sync of all quibs,
         undo, redo, and randomization of random quibs.
-
-        Returns
-        -------
-        Project
 
         See Also
         --------
@@ -1427,13 +1396,15 @@ class Quib:
     @property
     def save_format(self) -> SaveFormat:
         """
-        Indicates the file format in which quib assignments are saved.
+        SaveFormat: The file format in which quib assignments are saved.
 
-        Options:
-            'txt' - save assignments as text file.
-            'binary' - save assignments as a binary file.
-            'value_txt' - save the quib value as a text file.
-            `None` - yield to the Project default save_format
+        'txt' - save assignments as text file.
+
+        'binary' - save assignments as a binary file.
+
+        'value_txt' - save the quib value as a text file.
+
+        `None` - yield to the Project default save_format
 
         See Also
         --------
@@ -1454,14 +1425,10 @@ class Quib:
     @property
     def actual_save_format(self) -> SaveFormat:
         """
-        The actual save_format used by the quib.
+        SaveFormat: The actual save_format used by the quib.
 
-        The quib's actual_save_format is its save_format if defined.
-        Otherwise it defaults to the project's save_format.
-
-        Returns
-        -------
-        SaveFormat
+        The quib's ``actual_save_format`` is its save_format if defined.
+        Otherwise it defaults to the project's ``save_format``.
 
         See Also
         --------
@@ -1473,13 +1440,10 @@ class Quib:
     @property
     def file_path(self) -> Optional[PathWithHyperLink]:
         """
-        The full path for the file where quib assignments are saved.
+        pathlib.Path or None: The full path for the file where quib assignments are saved.
+
         The path is defined as the [actual_save_directory]/[assigned_name].ext
         ext is determined by the actual_save_format
-
-        Returns
-        -------
-        pathlib.Path or None
 
         See Also
         --------
@@ -1512,17 +1476,13 @@ class Quib:
     @property
     def save_directory(self) -> PathWithHyperLink:
         """
-        The directory where quib assignments are saved.
+        PathWithHyperLink: The directory where quib assignments are saved.
 
         Can be set to a str or Path object.
 
         If the directory is absolute, it is used as is.
         If directory is relative, it is used relative to the project directory.
         If directory is None, the project directory is used.
-
-        Returns
-        -------
-        pathlib.Path
 
         See Also
         --------
@@ -1541,16 +1501,12 @@ class Quib:
     @property
     def actual_save_directory(self) -> Optional[pathlib.Path]:
         """
-        The actual directory where quib file is saved.
+        pathlib.Path or None: The actual directory where quib file is saved.
 
-        By default, the quib's save_directory is None and the actual_save_directory defaults to the
-        project's save_directory.
-        Otherwise, if the quib's save_directory is defined as an absolute directory then it is used as is,
+        By default, the quib's save_directory is ``None`` and the ``actual_save_directory`` defaults to the
+        project's ``save_directory``.
+        Otherwise, if the quib's ``save_directory`` is defined as an absolute directory then it is used as is,
         and if it is defined as a relative path it is used relative to the project's directory.
-
-        Returns
-        -------
-        pathlib.Path
 
         See Also
         --------
@@ -1558,6 +1514,7 @@ class Quib:
         Project.directory
         SaveFormat
         """
+        np.array()
         save_directory = self.handler.save_directory
         if save_directory is not None and save_directory.is_absolute():
             return save_directory  # absolute directory
@@ -1623,7 +1580,7 @@ class Quib:
     @property
     def assigned_name(self) -> Optional[str]:
         """
-        Returns the assigned_name of the quib
+        str or None: The assigned_name of the quib
 
         The assigned_name can either be a name automatically created based on the variable name to which the quib
         was first assigned, or a manually assigned name set by setp or by assigning to assigned_name,
@@ -1633,10 +1590,6 @@ class Quib:
         are also allowed.
 
         The assigned_name is also used for setting the file name for saving overrides.
-
-        Returns
-        -------
-        str, None
 
         See Also
         --------
@@ -1661,16 +1614,12 @@ class Quib:
     @property
     def name(self) -> Optional[str]:
         """
-        Returns the name of the quib
+        str: The name of the quib
 
         The name of the quib can either be the given assigned_name if not None,
         or an automated name representing the function of the quib (the functional_representation attribute).
 
         Assigning into name is equivalent to assigning into assigned_name
-
-        Returns
-        -------
-        str
 
         See Also
         --------
@@ -1692,11 +1641,7 @@ class Quib:
     @property
     def functional_representation(self) -> str:
         """
-        Returns a string representing a functional representation of the quib.
-
-        Returns
-        -------
-        str
+        str: A string representing a functional representation of the quib.
 
         See Also
         --------
@@ -1799,26 +1744,18 @@ class Quib:
     @property
     def created_in(self) -> Optional[FileAndLineNumber]:
         """
-        The file and line number where the quib was created.
+        FileAndLineNumber: The file and line number where the quib was created.
 
-        Returns a FileAndLineNumber object indicating the place where the quib was created.
+        Indicates the place where the quib was created.
 
         None if creation place is unknown.
-
-        Returns
-        -------
-        FileAndLineNumber or None
         """
         return self.handler.created_in
 
     @property
     def is_iquib(self) -> bool:
         """
-        Returns True if the quib is an input quib (iquib).
-
-        Returns
-        -------
-        bool
+        bool: Indicates whether the quib is an input quib (iquib).
 
         See Also
         --------
