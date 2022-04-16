@@ -11,6 +11,9 @@ Welcome to Quibbler's documentation!
    :caption: Contents:
 
    Quib
+   Project
+   Quibbler_Enums
+   Quibbler_functions
    README
 
 Indices and tables
