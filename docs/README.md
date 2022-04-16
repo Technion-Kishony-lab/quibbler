@@ -1,3 +1,4 @@
+
 <img src="_images/quibicon.gif" width=300 align='right'>
 
 # Quibbler

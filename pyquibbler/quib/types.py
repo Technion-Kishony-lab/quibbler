@@ -4,6 +4,10 @@ from typing import Optional
 
 @dataclass
 class FileAndLineNumber:
+    """
+    Points to a specific line number within a specified file.
+    """
+
     file_path: str
     line_no: Optional[int]
 

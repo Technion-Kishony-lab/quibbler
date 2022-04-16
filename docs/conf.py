@@ -58,3 +58,5 @@ html_theme = "pydata_sphinx_theme"
 
 napoleon_google_docstring = False
 napoleon_numpy_docstring = True
+
+autodoc_member_order = 'bysource'
