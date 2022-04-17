@@ -72,11 +72,12 @@ for full_file in full_files:
 os.system("jupyter nbconvert --to rst " + docs_notebooks_path + "/*.ipynb")
 full_files = glob.glob(docs_notebooks_path + sep + '*.rst')
 for full_file in full_files:
-    os.system(r"sed -i '' -E 's/\[\[([-_ [:alnum:]]{1,100})\|([-_ [:alnum:]]{1,100})\]\]/:doc:`\1<\2>`/g' " + full_file)
-    os.system(r"sed -i '' -E 's/\[\[([-_ [:alnum:]]{1,100})\]\]/:doc:`\1`/g' " + full_file)
-    os.system(r"sed -i '' -E 's/\[\[Quib.([_[:alnum:]]{1,20})\]\]/:py:attr:`~pyquibbler.Quib.\1`/g' " + full_file)
-    os.system(r"sed -i '' -E 's/\[\[Quib.([_[:alnum:]]{1,20}\(\))\]\]/:py:meth:`~pyquibbler.Quib.\1`/g' " + full_file)
-    os.system(r"sed -i '' -E 's/\[\[qb.([_[:alnum:]]{1,20})\]\]/:py:func:`~pyquibbler.\1`/g' " + full_file)
-    os.system(r"sed -i '' -E  's/\[\[[/]images([-/_[:alnum:].]{1,90})\]\]/.. image:: images\1/g' " + full_file)
+    os.system(r"sed -i '' -E 's/\[\[quibdemo([-_[:alnum:]]{1,100}\]\])/\[\[examples\/quibdemo\1/g' " + full_file)
+    os.system(r"sed -i '' -E 's/\[\[([A-Z,a-z][-_ [:alnum:]]{1,100})\|([-_ [:alnum:]]{1,100})\]\]/:doc:`\1<\2>`/g' " + full_file)
+    os.system(r"sed -i '' -E 's/\[\[([A-Z,a-z][-_ [:alnum:]]{1,100})\]\]/:doc:`\1`/g' " + full_file)
+    os.system(r"sed -i '' -E 's/\[\[Quib.([_[:alnum:]]{1,30})\]\]/:py:attr:`~pyquibbler.Quib.\1`/g' " + full_file)
+    os.system(r"sed -i '' -E 's/\[\[Quib.([_[:alnum:]]{1,30}\(\))\]\]/:py:meth:`~pyquibbler.Quib.\1`/g' " + full_file)
+    os.system(r"sed -i '' -E 's/\[\[qb.([_[:alnum:]]{1,30})\]\]/:py:func:`~pyquibbler.\1`/g' " + full_file)
+    os.system(r"sed -i '' -E 's/\[\[[/]images([-/_[:alnum:].]{1,90})\]\]/.. image:: images\1/g' " + full_file)
 
 os.system("mv " + docs_notebooks_path + "/*.rst " + docs_path)
