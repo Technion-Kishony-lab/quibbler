@@ -1,11 +1,9 @@
 
+# *Quibbler*: Interactive, traceable and efficient data analytics
+
+
+## What is *Quibbler*?
 <img src="_images/quibicon.gif" width=300 align='right'>
-
-# Quibbler
-**Interactive, traceable and efficient data analytics**
-
-
-## What is it?
 *Quibbler* is a toolset for building highly interactive, yet traceable, 
 transparent and efficient data analysis pipelines. *Quibbler* allows using standard 
 *Python* syntax to process data through any series of analysis steps, while 
@@ -20,7 +18,8 @@ even specific slices or elements thereof are affected, thereby vastly saving unn
 recalculations. *Quibbler*, therefore, facilitates hands-on interactions with data 
 in ways that are not only flexible, fun and interactive, but also traceable, 
 well-documented, and highly effecient.
-
+<br/>
+<br/>
 
 ## Main Features
 Here are a few of the things that *Quibbler* does:
@@ -39,9 +38,11 @@ and event listeners.
 * Inherent undo/redo functionalities.
 
 * **All-of-the-above using completely standard functions and programming syntax - there is very little to learn to get started!** 
+<br/>
+<br/>
 
 ## Rationale
-TTraceability, transparency, interactivity and efficiency are becoming increasingly
+Traceability, transparency, interactivity and efficiency are becoming increasingly
 important, yet challenging, in today’s data-rich worlds of science, engineering and biomedicine. 
 Throughout these fields, important insights are derived from highly complex data analysis
 pipelines, where, through chained transformation steps, raw data is gradually transformed 
@@ -78,7 +79,6 @@ Through such an interactive process of parameter specifications, we ultimately r
 insights we gain from our analysis._ 
 <br/>
 <br/>
-### *Quibbler*: interactive, traceable and efficient data analytics
 
 Addressing the above challenges, *Quibbler* offers a data analysis toolset built on three
 key principles:

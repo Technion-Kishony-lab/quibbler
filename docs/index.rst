@@ -3,22 +3,52 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Quibbler's documentation!
-====================================
+Getting started
+===============
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+   :maxdepth: 1
 
-   Quib
-   Project
-   Quibbler_Enums
-   Quibbler_functions
    README
+   Installation
+   Quickstart
+   Examples
 
-Indices and tables
-==================
+
+User guide
+==========
+.. toctree::
+   :maxdepth: 1
+
+   Introduction
+   Graphics
+   Inverse-assignments
+   Overriding-default-functionality
+   User-defined-functions
+   Diverged-evaluation
+   Random-functions
+   Quib-naming
+   Project-save-load
+   List_of_functions
+   List-of-quiby-functions
+   Quibbler_Enums
+
+Classes
+=======
+.. currentmodule:: pyquibbler
+
+.. autosummary::
+   :toctree: major_classes
+   :nosignatures:
+   :recursive:
+
+   pyquibbler.Quib
+   pyquibbler.Project
+
+
+Index
+=====
 
 * :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+
+

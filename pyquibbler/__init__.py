@@ -10,7 +10,7 @@ from .utilities.user_utils import \
     q, quiby, \
     reset_random_quibs, reset_file_loading_quibs, reset_impure_quibs, \
     set_project_directory, get_project_directory, \
-    save_quibs, load_quibs, \
+    save_quibs, load_quibs, sync_quibs, \
     undo, redo, can_redo, can_undo, \
     refresh_graphics, \
     list_quiby_funcs, is_quiby, \
