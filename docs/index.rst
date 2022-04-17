@@ -39,6 +39,7 @@ Classes
 
 .. autosummary::
    :toctree: major_classes
+   :template: custom-class-template.rst
    :nosignatures:
    :recursive:
 
