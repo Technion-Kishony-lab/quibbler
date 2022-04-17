@@ -1,10 +1,12 @@
 Quibbler special property classes
 =================================
+.. currentmodule:: pyquibbler
 
-.. autoclass:: pyquibbler.SaveFormat
+.. autosummary::
+   :toctree: classes
+   :nosignatures:
 
-.. autoclass:: pyquibbler.GraphicsUpdateType
-
-.. autoclass:: pyquibbler.CacheMode
-
-.. autoclass:: pyquibbler.AssignmentTemplate
+   SaveFormat
+   GraphicsUpdateType
+   CacheMode
+   AssignmentTemplate
