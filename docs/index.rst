@@ -1,26 +1,25 @@
-.. Quibbler documentation master file, created by
-   sphinx-quickstart on Fri Apr 15 00:52:52 2022.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+Data Quibbler
+=============
+**Interactive, transparent, and efficient data analytics.**
 
 .. image:: images/quibicon.gif
    :width: 300
    :align: right
 
-Getting started
-===============
+Getting started with Quibbler
+-----------------------------
 
 .. toctree::
    :maxdepth: 1
 
-   README
+   What-is-it
    Installation
    Quickstart
    Examples
 
 
 User guide
-==========
+----------
 .. toctree::
    :maxdepth: 1
 
