@@ -42,8 +42,7 @@ class NoProjectDirectoryException(PyQuibblerException):
 
 class Project:
     """
-    A "quibbler" project, giving an interface to get globally collected information (such as all quibs created) and
-    performing actions aggregatively on many quibs
+    Quibbler project providing save/load and undo/redo functionality.
     """
 
     DEFAULT_GRAPHICS_UPDATE = GraphicsUpdateType.DRAG
@@ -77,7 +76,7 @@ class Project:
     @property
     def quibs(self) -> Set[Quib]:
         """
-        Get all quibs in the project
+        Get all quibs in the project.
 
         Returns
         -------
@@ -126,7 +125,7 @@ class Project:
 
     def reset_file_loading_quibs(self):
         """
-        Reset and then invalidate_redraw all file_loading quibs in the project.
+        Reset and redraw all file-loading quibs in the project.
 
         Invalidates the cache of all file-loading quibs in the project.
         Request for the value of these quibs will cause re-loading of their files.
@@ -141,7 +140,7 @@ class Project:
 
     def reset_impure_quibs(self):
         """
-        Reset and then invalidate_redraw all impure quibs in the project.
+        Reset and redraw all impure quibs in the project.
 
         Invalidates the cache of all impure quibs, inclduing random or file-loading quibs in the project.
         Request for the value of these quibs will cause re-loading of their files.
@@ -156,7 +155,7 @@ class Project:
 
     def refresh_graphics(self):
         """
-        Redraw all graphics function quibs which only redraw when set to 'central'
+        Redraw all graphics quibs whose graphics_update='central'.
 
         See Also
         --------
@@ -174,7 +173,7 @@ class Project:
     @property
     def graphics_update(self) -> GraphicsUpdateType:
         """
-        The default mode of updating graphics quibs.
+        The default mode of updating graphics for all quibs.
 
         Quibs whose own graphics_update is None adhere to the default graphics_update of the Project.
 
@@ -207,7 +206,7 @@ class Project:
     @property
     def directory(self) -> PathWithHyperLink:
         """
-        The directory to which quibs are saved.
+        The directory to which quib assignments are saved.
 
         Can be set as a str or Path object.
         None indicates undefined path.
@@ -237,19 +236,19 @@ class Project:
         The default file format for saving quibs.
 
         Options:
-            'off': do not save
+        'off': do not save
 
-            'txt': save quib assignments as text if possible (.txt)
+        'txt': save quib assignments as text if possible (.txt)
 
-            'bin': save quib assignments as a binary file (.quib)
+        'bin': save quib assignments as a binary file (.quib)
 
-            'value_txt':
-                for iquibs: save the value, rather than the assignments, as text (if possible).
-                for fquibs: save assignments as text (if possible).
+        'value_txt':
+            for iquibs: save the value, rather than the assignments, as text (if possible).
+            for fquibs: save assignments as text (if possible).
 
-            'value_bin':
-                for iquibs: save the value, rather than the assignments, as binary.
-                for fquibs: save assignments as binary.
+        'value_bin':
+            for iquibs: save the value, rather than the assignments, as binary.
+            for fquibs: save assignments as binary.
 
         Quibs whose own save_format is None yield to this default save_format of the Project.
 
@@ -333,13 +332,13 @@ class Project:
 
     def can_undo(self):
         """
-        Indicates whether or not an assignment undo exists.
+        Indicates whether an assignment undo exists.
 
         Returns
         -------
         bool
 
-        See Also:
+        See Also
         --------
         can_redo
         """
@@ -347,7 +346,7 @@ class Project:
 
     def can_redo(self):
         """
-        Indicates whether or not an assignment redo exists.
+        Indicates whether an assignment redo exists.
 
         Returns
         -------
@@ -412,6 +411,10 @@ class Project:
     def clear_undo_and_redo_stacks(self, *_, **__):
         """
         Clear the undo/redo stack.
+
+        See Also
+        --------
+        undo, redo
         """
         self._undo_action_groups = []
         self._redo_action_groups = []

@@ -11,7 +11,17 @@ from pyquibbler.quib.factory import create_quib
 
 import functools
 
-copy_docs = functools.partial(functools.wraps, assigned=['__doc__'], updated=[])
+
+def copy_docs(original):
+
+    def _wrapper(func):
+        func.__doc__ = original.__doc__
+        return func
+
+    return _wrapper
+
+
+# copy_docs = functools.partial(functools.wraps, assigned=['__doc__'], updated=[])
 
 
 def quiby(func: Callable,
@@ -61,9 +71,9 @@ def quiby(func: Callable,
     Callable
         a quiby function
 
-    See Also:
+    See Also
     --------
-    quiby_function, is_quiby
+    quiby_function, is_quiby, q
 
     Examples
     --------
@@ -91,6 +101,10 @@ def q(func, *args, **kwargs) -> Quib:
     -------
     Quib
 
+    See Also
+    --------
+    quiby, quiby_function, is_quiby, q
+
     Examples
     --------
     >>> a = iquib(2)
@@ -107,6 +121,10 @@ def get_project() -> Project:
     Returns the current project.
 
     A project allows controlling common functionality for all quibs, like save/load, undo/redo.
+
+    See Also
+    --------
+    Project
     """
     return Project.get_or_create()
 
