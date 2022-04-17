@@ -10,6 +10,7 @@ print(os.getcwd())
 
 import glob
 from remove_empty_lines_from_md import remove_empty_lines_from_md
+from pathlib import Path
 
 sep = os.path.sep
 
@@ -22,6 +23,7 @@ docs_path = os.path.join('..', '..', 'docs')
 docs_demo_path = os.path.join(docs_path, 'examples')
 docs_demo_gif_path = os.path.join(docs_path, 'images', 'demo_gif')
 
+Path(docs_demo_path).mkdir(parents=True, exist_ok=True)
 
 # --- wiki ---
 if False:
