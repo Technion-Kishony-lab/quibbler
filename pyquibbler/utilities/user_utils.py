@@ -9,8 +9,6 @@ from pyquibbler.quibapp import QuibApp
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.factory import create_quib
 
-import functools
-
 
 def copy_docs(original):
 

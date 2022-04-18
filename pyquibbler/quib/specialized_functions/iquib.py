@@ -68,7 +68,26 @@ def iquib(value: Any,
     Parameters
     ----------
     value : Any
-    The value returned by the quib.
+        The value returned by the quib.
+
+    allow_overriding : bool, default True
+        Whether to allow overriding assignments to the quib.
+
+    save_format : None, str, SaveFormat
+        The format in which quib assignments are saved to file.
+        default: None
+
+    save_directory: None, str, pathlib.Path
+        The directory in which quib assignments are to be saved.
+        default: None
+
+    assigned_name: None, str
+        A name assigned to the quib. If none is specified the name is assigned based on the name of the
+        variable to which the quib is assigned.
+
+    assignment_template: None, tuple, AssignmentTemplate
+        A template to restrict quib assignments
+        default: None
 
     Returns
     -------
@@ -76,7 +95,8 @@ def iquib(value: Any,
 
     See Also
     --------
-    q, quiby, Quib.get_value()
+    q, quiby, Quib.get_value
+    Quib.allow_overriding, Quib.save_format, Quib.save_directory, Quib.assigned_name, Quib.assignment_template
     """
 
     # iquib is implemented as a quib with an identity function
