@@ -17,8 +17,8 @@ sys.path.insert(0, os.path.abspath('./puquibbler'))
 # -- Project information -----------------------------------------------------
 
 project = 'Quibbler'
-copyright = '2022, Kishony lab'
-author = 'Kishony lab'
+copyright = '2022, Kishony lab, Technion - Israel Institute of Technology'
+author = 'Kishony lab, Technion - Israel Institute of Technology'
 
 # The full version, including alpha/beta/rc tags
 release = '1.0'
