@@ -74,6 +74,7 @@ for full_file in full_files:
 os.system("jupyter nbconvert --to rst " + docs_notebooks_path + "/*.ipynb")
 full_files = glob.glob(docs_notebooks_path + sep + '*.rst')
 for full_file in full_files:
+    os.system(r"sed -i '' -E 's/\[\[Quib\]\]/:py:class:`~pyquibbler.Quib`/g' " + full_file)
     os.system(r"sed -i '' -E 's/\[\[quibdemo([-_[:alnum:]]{1,100}\]\])/\[\[examples\/quibdemo\1/g' " + full_file)
     os.system(r"sed -i '' -E 's/\[\[([A-Z,a-z][-_ [:alnum:]]{1,100})\|([-_ [:alnum:]]{1,100})\]\]/:doc:`\1<\2>`/g' " + full_file)
     os.system(r"sed -i '' -E 's/\[\[([A-Z,a-z][-_ [:alnum:]]{1,100})\]\]/:doc:`\1`/g' " + full_file)

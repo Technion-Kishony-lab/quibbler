@@ -44,7 +44,7 @@ User guide
    Quibbler_Enums
 
 Classes
-=======
+-------
 .. currentmodule:: pyquibbler
 
 .. autosummary::
@@ -58,7 +58,7 @@ Classes
 
 
 Index
-=====
+-----
 
 * :ref:`genindex`
 
