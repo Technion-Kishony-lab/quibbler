@@ -1167,9 +1167,7 @@ class Quib:
                 return np.sum(x), np.prod(x)
 
         >>> nums = iquib([10, 20, 30])
-
         >>> sum_nums, prod_nums = sum_and_prod(nums).iter_first()
-
         >>> sum_nums.get_value()
         60
 
