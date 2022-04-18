@@ -1,8 +1,9 @@
-# Data Quibbler
+What is it?
+===========
+
 **Building interactive, traceable, transparent, and efficient data analysis pipelines.** 
 
-## What is it?
-*Quibbler* is a toolset for building highly interactive, yet traceable, 
+*Quibbler* is a toolset for building highly interactive, yet traceable,
 transparent and efficient data analysis pipelines. *Quibbler* allows using standard 
 *Python* syntax to process data through any series of analysis steps, while 
 automatically maintaining connectivity between downstream results and upstream raw 
@@ -17,9 +18,10 @@ recalculations. *Quibbler*, therefore, facilitates hands-on interactions with da
 in ways that are flexible and interactive, yet also efficient, traceable, 
 well-documented, and reproducible.
 
-## Main Features
-Here are a few of the things that *Quibbler* does:
+Main Features
+-------------
 
+Here are a few of the things that *Quibbler* does:
 
 * Easily build powerful GUI-like interaction with data, without a need for callbacks 
 and listeners. 
@@ -34,6 +36,5 @@ and listeners.
 
 * Inherent undo/redo functionalities.
 
-* **All-of-the-above using standard functions and programming syntax - very little to learn to get started!** 
-
+* **All-of-the-above using standard functions and programming syntax - very little to learn to get started!**
 

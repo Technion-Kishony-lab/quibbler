@@ -1,10 +1,18 @@
-Data Quibbler
-=============
-**Interactive, transparent, and efficient data analytics.**
-
 .. image:: images/quibicon.gif
    :width: 300
    :align: right
+
+Data Quibbler
+=============
+
+**Interactive, transparent, and efficient data analytics.**
+
+.. toctree::
+   :maxdepth: 1
+
+   What-is-it
+   Rationale
+
 
 Getting started with Quibbler
 -----------------------------
@@ -12,7 +20,6 @@ Getting started with Quibbler
 .. toctree::
    :maxdepth: 1
 
-   What-is-it
    Installation
    Quickstart
    Examples
