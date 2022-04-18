@@ -39,22 +39,25 @@ User guide
    Random-functions
    Quib-naming
    Project-save-load
+
+
+Functions
+---------
+.. toctree::
+   :maxdepth: 1
+
    List_of_functions
    List-of-quiby-functions
-   Quibbler_Enums
+
 
 Classes
 -------
-.. currentmodule:: pyquibbler
+.. toctree::
+   :maxdepth: 1
 
-.. autosummary::
-   :toctree: major_classes
-   :template: custom-class-template.rst
-   :nosignatures:
-   :recursive:
-
-   pyquibbler.Quib
-   pyquibbler.Project
+   major_classes/Quib_class
+   major_classes/Project_class
+   Quibbler_Enums
 
 
 Index
