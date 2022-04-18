@@ -51,6 +51,15 @@ def get_number_in_bounds(number, minimum, maximum):
 
 @dataclass
 class AssignmentTemplate(ABC):
+    """
+    Converts assignment to a quib according to specified type and range constraints
+
+    See Also
+    --------
+    Quib.assignment_template
+    Quib.set_assignment_template
+    """
+
     @abstractmethod
     def _convert_number(self, number: Any):
         """

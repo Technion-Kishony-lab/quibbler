@@ -9,14 +9,21 @@ class Singleton(object):
 
 class Default(Singleton):
     """
-    default is a singleton instance which is used as a dummy value in quib assignments to indicate
+    A default value for remove-overriding assignments.
+
+    `default` is a singleton instance which is used as a dummy value in quib assignments to indicate
     removal of overriding assignments.
 
-    default allows removing quib assignments in any quib-assignment syntax, such as:
+    `default` allows removing quib assignments by assigning it as value in quib-assignment syntax.
 
-    quib[2:5] = default
-    quib.assign(default)
-    quib['year'] = default
+    Examples
+    --------
+
+    >>> quib[2:5] = default
+
+    >>> quib.assign(default)
+
+    >>> quib['year'] = default
     """
 
 

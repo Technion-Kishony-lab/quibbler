@@ -5,5 +5,17 @@ setup(
     version='0.1.0',
     python_requires='>=3.8',
     packages=find_packages(),
-    install_requires=["matplotlib==3.4.3", "numpy==1.21.2", "varname==0.8.1", "json-tricks==3.15.5"]
+    install_requires=["matplotlib==3.4.3", "numpy==1.21.2", "varname==0.8.1", "json-tricks==3.15.5"],
+    extras_require={
+        'dev': [
+            'pytest',
+            'pytest-pep8',
+            'pytest-cov'
+        ],
+        'sphinx': [
+            'sphinx',
+            'myst-parser',
+            'sphinx_rtd_theme',
+        ]
+    }
 )

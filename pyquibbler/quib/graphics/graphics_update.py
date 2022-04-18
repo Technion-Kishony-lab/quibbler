@@ -5,19 +5,17 @@ class GraphicsUpdateType(StrEnum):
     """
     Options for specifying when to refresh a graphics quib upon upstream assignments.
 
-    Options are:
-    "drag":     refresh immediately as upstream objects are dragged, or when manually assigned to.
-    "drop":     refresh at end of dragging, upon graphic object drop.
-    "central":  do not automatically refresh. Refresh, centrally upon refresh_graphics().
-    "never":    Never refresh.
+    ``'drag'``:     refresh immediately as upstream objects are dragged, or when manually assigned to.
 
-    Returns
-    -------
-    "drag", "drop", "central", "never", or None
+    ``'drop'``:     refresh at end of dragging, upon graphic object drop.
+
+    ``'central'``:  do not automatically refresh. Refresh, centrally upon refresh_graphics().
+
+    ``'never'``:    Never refresh.
 
     See Also
     --------
-    GraphicsUpdateType, Project.refresh_graphics
+    Project.refresh_graphics, Quib.graphics_update
     """
 
     DRAG = 'drag'
