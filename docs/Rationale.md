@@ -1,4 +1,6 @@
-### Problem statement
+Problem statement
+=================
+
 Traceability, transparency, interactivity and efficiency are becoming increasingly
 important, yet challenging, in today’s data-rich worlds of science, engineering and biomedicine. 
 Throughout these fields, important insights are derived from highly complex data analysis
@@ -16,10 +18,9 @@ upstream parameters and which specific parts of the analysis must be
 recalculated upon any such changes. Parameters are often buried in the code and
 re-specification of parameters is slow, undocumented and non-interactive. 
 
+![](images/conceptual_view.gif)
 
-[[/images/conceptual_view.gif]]
-
-_**Conceptual view of data analysis pipelines:** Raw data (left) is gradually cleaned and 
+_**Conceptual view of data analysis pipelines:** Raw data (left) is gradually cleaned and
 transformed as it is processed through multiple analysis steps, ultimately leading to
 key results and insights (right). These analysis steps often require choices and 
 specifications of key critical parameters (green boxes). While the data flow downstream 
@@ -28,27 +29,28 @@ questioning how a given downstream result or insight depends on the raw
 data and the many parameter choices throughout the analysis pipeline. 
 Changing and refining an upstream parameter (red '\') may affect one (or more) of 
 the data items, which requires recalculating only specific steps of the pipeline 
-(red left-to-right arrows). 
-In "diverged" analysis steps, data items are processed independently 
+(red left-to-right arrows). In "diverged" analysis steps, data items are processed independently
 and only the affected items must be recalculated (red frames), and in "converged" steps, 
 the entire calculation needs to be repeated. Strong analysis pipelines must facilitate 
 making such changes while interactively viewing their effect on downstream results (changing bars).
 Through such an interactive process of parameter specifications, we ultimately refine the 
 insights we gain from our analysis._ 
+
 <br/>
 <br/>
-### *Quibbler*: interactive, traceable, transparent, and efficient data analysis pipelines
+
+#### *Quibbler*: interactive, traceable, transparent, and efficient data analysis pipelines
 
 Addressing the above challenges, *Quibbler* offers a data analysis toolset built on three
 key principles:
 
-1. **Forward and backward traceability.** In *Quibbler*, every piece of 
+**1. Forward and backward traceability.** In *Quibbler*, every piece of
 data maintains upstream connectivity all the way to the raw data. 
 *Quibbler* thereby allows both forward and backward dependency-tracing 
 through the analysis pipeline. 
 
 
-2. **Interactive, transparent, and well-documented human interventions.** Realizing 
+**2. Interactive, transparent, and well-documented human interventions.** Realizing
 that data analysis pipelines are rarely fully automated, *Quibbler* facilitates
 and embraces human interventions as an inherent part of the analysis pipeline. 
 Users can readily change any external input parameters as well as override any 
@@ -60,7 +62,7 @@ and parameters that led to any key observation, making the results of the analys
 pipeline transparent, understandable and reproducible. 
 
 
-3. **Computation efficiency.** In *Quibbler*, intermediate calculations are cached 
+**3. Computation efficiency.** In *Quibbler*, intermediate calculations are cached
 in memory and when an upstream parameter changes, only the specific cached calculations 
 that depend on this parameter are invalidated. *Quibbler* thereby avoids re-running 
 of complex codes and make sure only the very necessary steps of the analysis and only the 
