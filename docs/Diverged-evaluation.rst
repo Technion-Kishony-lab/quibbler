@@ -16,14 +16,11 @@ parameter specific for one image requires repeating the processing of
 this image alone). We therefore need ways to independently calculate,
 cache and track the validity of each data item in such diverged analysis
 steps. In *Quibbler*, such independent processing and tracking is
-automatically enabled by adopting the *NumPy* syntax of
-[[vectorize|https://numpy.org/doc/stable/reference/generated/numpy.vectorize.html]]
-and
-[[apply_along_axis|https://numpy.org/doc/stable/reference/generated/numpy.apply_along_axis.html]].
-Applying such *NumPy* vectorized functions to quib arguments creates a
-*vectorized function quib* whose output array is calculated, cached and
-invalidated not as a whole but rather element-by-element, or slice by
-slice.
+automatically enabled by adopting the *NumPy* syntax of ``vectorize``
+and ``apply_along_axis``. Applying such *NumPy* vectorized functions to
+quib arguments creates a *vectorized function quib* whose output array
+is calculated, cached and invalidated not as a whole but rather
+element-by-element, or slice by slice.
 
 Reviewing the standard behavior of np.vectorize
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
