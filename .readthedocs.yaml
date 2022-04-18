@@ -19,7 +19,7 @@ python:
     - method: pip
       path: .
       extra_requirements:
-        - myst_parser
+        - sphinx
 
 #
 #version: 2
