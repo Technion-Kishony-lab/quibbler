@@ -76,7 +76,7 @@ class AxesWidgetsCollector(GraphicsCollector):
 class AxesCreatedDuringQuibEvaluationException(PyQuibblerException):
 
     def __str__(self):
-        return f"Quibs are not allowed to create new axes.\n" \
+        return "Quibs are not allowed to create new axes.\n" \
                "Required axes should be created outside the quib function, before the quib is evaluated."
 
 
