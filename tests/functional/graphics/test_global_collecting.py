@@ -26,3 +26,9 @@ def test_global_graphics_collecting_within_collecting(axes):
         plt.plot([1, 2, 3])
     assert len(collector.objects_collected) == 1
     assert len(nested_collector.objects_collected) == 1
+
+
+def test_global_graphics_collecting_not_allowing_axes_ceation(axes):
+    with global_collecting.AxesCreationPreventor():
+        with pytest.raises(global_collecting.AxesCreatedDuringQuibEvaluationException):
+            axes.figure.add_axes([0, 0, 1, 1])
