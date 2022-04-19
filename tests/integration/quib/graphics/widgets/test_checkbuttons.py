@@ -21,6 +21,22 @@ def checkbox_quib(axes, actives_quib):
     return checkbox
 
 
+@pytest.fixture
+def list_of_bool_quibs():
+    return [iquib(False), iquib(False), iquib(False)]
+
+
+@pytest.fixture
+def checkbox_list_of_quibs(axes, list_of_bool_quibs):
+    checkbox = widgets.CheckButtons(
+        ax=axes,
+        labels=['Red', 'Green', 'Blue'],
+        actives=list_of_bool_quibs
+    )
+    plt.pause(0.01)
+    return checkbox
+
+
 @pytest.mark.regression
 @quibbler_image_comparison(baseline_images=['multiple_sets'])
 def test_checkbox_multiple_sets(get_only_live_widget, checkbox_quib, actives_quib):
@@ -45,3 +61,25 @@ def test_checkbox_unset(get_only_live_widget, checkbox_quib, actives_quib):
 
     assert actives_quib.get_value() == [False, False, False]
     assert redraw_count.count == 2
+
+
+def test_set_quib_in_checkbox_of_list_of_quibs(get_only_live_widget, checkbox_list_of_quibs, list_of_bool_quibs):
+    widget = get_only_live_widget()
+
+    with count_redraws(checkbox_list_of_quibs) as redraw_count:
+        widget.set_active(1)
+
+    assert [quib.get_value() for quib in list_of_bool_quibs] == [False, True, False]
+    assert redraw_count.count == 1
+
+
+def test_unset_quib_in_checkbox_of_list_of_quibs(get_only_live_widget, checkbox_list_of_quibs, list_of_bool_quibs):
+    widget = get_only_live_widget()
+
+    with count_redraws(checkbox_list_of_quibs) as redraw_count:
+        widget.set_active(1)
+        widget.set_active(1)
+
+    assert [quib.get_value() for quib in list_of_bool_quibs] == [False, False, False]
+    assert redraw_count.count == 2
+
