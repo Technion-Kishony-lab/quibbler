@@ -12,8 +12,7 @@ from matplotlib.spines import Spine
 from matplotlib.table import Table
 from matplotlib.text import Text
 
-from pyquibbler.graphics.global_collecting import ArtistsCollector, AxesWidgetsCollector
-
+from pyquibbler.graphics.global_collecting import ArtistsCollector, AxesWidgetsCollector, AxesCreationPreventor
 
 ArrayNameToArtists = Dict[str, List[Artist]]
 
@@ -82,7 +81,9 @@ def get_axeses_to_array_names_to_starting_indices_and_artists(artists: List[Arti
 
 @contextmanager
 def remove_created_graphics():
-    with ArtistsCollector() as collector, AxesWidgetsCollector() as widgets_collector:
+    with ArtistsCollector() as collector, \
+            AxesWidgetsCollector() as widgets_collector, \
+            AxesCreationPreventor():
         yield
     for artist in collector.objects_collected:
         remove_artist(artist)

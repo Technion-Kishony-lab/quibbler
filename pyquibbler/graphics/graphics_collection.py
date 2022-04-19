@@ -6,7 +6,7 @@ from matplotlib.artist import Artist
 from matplotlib.widgets import AxesWidget
 
 from pyquibbler.graphics.attribute_copying import update_new_artists_from_previous_artists
-from pyquibbler.graphics.global_collecting import ArtistsCollector, AxesWidgetsCollector
+from pyquibbler.graphics.global_collecting import ArtistsCollector, AxesWidgetsCollector, AxesCreationPreventor
 from pyquibbler.graphics.utils import get_artist_array, \
     get_axeses_to_array_names_to_starting_indices_and_artists, remove_artist,\
     get_axeses_to_array_names_to_artists
@@ -65,7 +65,9 @@ class GraphicsCollection:
             get_axeses_to_array_names_to_starting_indices_and_artists(self.artists)
         self.remove_artists()
 
-        with ArtistsCollector() as artists_collector, AxesWidgetsCollector() as widgets_collector:
+        with ArtistsCollector() as artists_collector, \
+                AxesWidgetsCollector() as widgets_collector, \
+                AxesCreationPreventor():
             yield
 
         self._handle_new_widgets(new_widgets=widgets_collector.objects_collected)
