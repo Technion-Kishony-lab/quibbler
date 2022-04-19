@@ -1,5 +1,6 @@
 from unittest import mock
 
+import matplotlib.pyplot as plt
 import pytest
 from matplotlib.artist import Artist
 
@@ -39,7 +40,7 @@ def graphics_quib(quib) -> Quib:
 
 
 @pytest.fixture
-def axes():
+def axes() -> plt.Axes:
     from matplotlib import pyplot as plt
     plt.close("all")
     plt.gcf().set_size_inches(8, 6)
