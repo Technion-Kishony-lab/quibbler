@@ -308,4 +308,4 @@ Additional demos
 
 For additional examples, see:
 
--  [[examples/quibdemo_compare_images]]
+-  :doc:`examples/quibdemo_compare_images`
