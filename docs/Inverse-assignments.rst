@@ -248,14 +248,13 @@ relevant source i-quibs:
 Combining inverse assignments with graphics-driven assignments readily creates interactive GUI for parameter specification
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-By combining inverse assignment with [[graphics-driven
-assignment|Graphics]] we can easily create intuitive and interactive
-graphical user interface for parameter specification. This combination
-is particularly powerful in cases where an upstream parameter is
-transformed into one or more different, yet inherently dependent,
-representations. In such cases, changing any of these representations
-will affect the source parameter, by inverse assignment, and thereby
-affect all other dependent representations.
+By combining inverse assignment with :doc:`Graphics` we can easily create
+intuitive and interactive graphical user interface for parameter
+specification. This combination is particularly powerful in cases where
+an upstream parameter is transformed into one or more different, yet
+inherently dependent, representations. In such cases, changing any of
+these representations will affect the source parameter, by inverse
+assignment, and thereby affect all other dependent representations.
 
 Consider the following example, in which we choose parameters for
 analysis of Electronic Health Records. In this example, we need to
@@ -298,8 +297,8 @@ array that can be presented as check-boxes:
 
 For additional examples, see:
 
--  [[examples/quibdemo_LotkaVolterra]]
--  [[examples/quibdemo_same_data_in_many_forms]]
+-  :doc:`examples/quibdemo_LotkaVolterra`
+-  :doc:`examples/quibdemo_same_data_in_many_forms`
 
 Inverse assignments of many-to-one functions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -453,7 +452,7 @@ quib is ``x[0]`` and the assignment into ``s`` is inverted to affect
 This behavior allows controlling the desired behavior of inverse
 assignment when a given change can be satisfied in more than one way. As
 an illustrating example, see: \*
-[[examples/quibdemo_drag_whole_object_vs_individual_points]]
+:doc:`examples/quibdemo_drag_whole_object_vs_individual_points`
 
 Inverse assignment of binary operators with two dependent quib arguments
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -506,8 +505,7 @@ quib:
 This behavior can be used, for example, to graphically control the
 position of one object by “dragging” another fixed object. See:
 
--  [[Dragging fixed object to affect
-   another|quibdemo_dragging_fixed_object]]
+-  :doc:`examples/quibdemo_dragging_fixed_object`
 
 Upstream type casting can be used to restrict the value of downstream results
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -540,7 +538,7 @@ This natural behavior can be used in applications where we need to
 restrict the possible values of specific function quibs. See for
 example:
 
--  [[examples/quibdemo_drag_fixed_values]]
+-  :doc:`examples/quibdemo_drag_fixed_values`
 
 Graphics-driven assignments
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~

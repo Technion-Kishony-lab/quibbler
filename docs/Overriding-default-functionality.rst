@@ -222,10 +222,10 @@ specification.
     plt.bar(x, per_item_factor, color=(0.7, 0.7, 0.7))
     plt.plot(x, per_item_factor, 's', picker=True);
 
-[[images/overriding_default_by_dragging.gif]]
+.. image:: images/overriding_default_by_dragging.gif
 
 For more complex, two-level overriding, see
-[[examples/quibdemo_default_overriding_two_levels]].
+:doc:`examples/quibdemo_default_overriding_two_levels`.
 
 Clearing assignments by assigning the Default value
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

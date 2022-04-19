@@ -138,7 +138,7 @@ sliding markers for setting the x-y coordinates of our chosen point:
 
 .. image:: images/graphics_gif/graphics_xy_drag_horz_vert.gif
 
-For dragging on more complex paths, see: [[examples/quibdemo_drag_on_curve]]
+For dragging on more complex paths, see: :doc:`examples/quibdemo_drag_on_curve`
 
 Quiby setters of axis attributes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -287,8 +287,8 @@ the following features:
 
 -  Setting ``picker=True`` for the plot of the box allows dragging the
    box leading to assignment into the ``x`` and ``y`` quibs (as they are
-   specified as the first argument in the ``+`` operator, see [[inverse
-   assignments]]).
+   specified as the first argument in the ``+`` operator, see
+   :doc:`Inverse-assignments`).
 
 -  Using a quiby setter of the axis limits
    (``ax.axis([-0.5, 2 * box_size + 0.5, -0.5, 2 * box_size + 0.5])``)

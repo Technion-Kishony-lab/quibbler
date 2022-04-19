@@ -217,5 +217,5 @@ Examples
 
 For an example of an *Quibbler* app with random quibs, see:
 
--  [[examples/quibdemo_fft]]
--  [[examples/quibdemo_random_quibs_dice]]
+-  :doc:`examples/quibdemo_fft`
+-  :doc:`examples/quibdemo_random_quibs_dice`

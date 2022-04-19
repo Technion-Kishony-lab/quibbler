@@ -57,7 +57,7 @@ for rst_path in rst_paths:
     # [[qb.xxx]] -> :py:func:`~pyquibbler.xxx`
     os.system(r"sed -i '' -E 's/\[\[qb.([_[:alnum:]]{1,50})\]\]/:py:func:`~pyquibbler.\1`/g' " + file)
 
-    # [[imagesXXX]] -> .. image:: imagesXXX
+    # [[/imagesXXX]] -> .. image:: imagesXXX
     os.system(r"sed -i '' -E 's/\[\[[/]images([-/_[:alnum:].]{1,90})\]\]/.. image:: images\1/g' " + file)
 
 os.system(f"mv {docs_notebooks_path / '*.rst'} {docs_path}")
