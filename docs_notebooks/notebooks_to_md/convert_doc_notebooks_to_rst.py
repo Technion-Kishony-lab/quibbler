@@ -46,7 +46,7 @@ for rst_path in rst_paths:
     os.system(r"sed -i '' -E 's/\[\[([A-Z,a-z][-._ [:alnum:]]{1,100})\|([-.:<>/_ [:alnum:]]{1,100})\]\]/:doc:`\1<\2>`/g' " + file)
 
     # [[reference]] -> :doc:`reference`
-    os.system(r"sed -i '' -E 's/\[\[([A-Z,a-z][-_ [:alnum:]]{1,100})\]\]/:doc:`\1`/g' " + file)
+    os.system(r"sed -i '' -E 's/\[\[([A-Z,a-z][-/_ [:alnum:]]{1,100})\]\]/:doc:`\1`/g' " + file)
 
     # [[Quib.xxx]] -> :py:attr:`~pyquibbler.Quib.xxx`
     os.system(r"sed -i '' -E 's/\[\[Quib.([_[:alnum:]]{1,50})\]\]/:py:attr:`~pyquibbler.Quib.\1`/g' " + file)
