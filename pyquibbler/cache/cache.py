@@ -23,6 +23,7 @@ class CacheStatus(Enum):
     PARTIAL = 2
     "The cache has the value valid only in some of its items."
 
+
 class Cache(ABC):
     """
     A cache is an object which supports storing and invalidating values at specific paths.

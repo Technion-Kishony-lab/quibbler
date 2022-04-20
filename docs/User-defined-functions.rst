@@ -9,7 +9,13 @@ external packages, or user-defined function.
 
 *Quibbler* allows several ways for creating quibs that represent any
 arbitrary function. Below we explain and demonstrate these different
-ways of implementating user-defined functions.
+ways of implementing user-defined functions.
+
+The implementations described here are for functions that work on quib
+values as a whole. *Quibbler* also supports implementing user-defined
+functions that work consecutively on parts of arrays, using the *NumPy*
+syntax of ``np.vectorize``, ``np.apply_along_axis`` (see
+:doc:`Diverged-evaluation`).
 
 Import
 ^^^^^^
@@ -25,7 +31,7 @@ Import
     %matplotlib tk
 
 An example function
-^^^^^^^^^^^^^^^^^^^
+'''''''''''''''''''
 
 We consider as an example the following user-defined function that we
 want to implement as a quib, with quib arguments:
@@ -197,4 +203,4 @@ arguments.
     axs_widget.axis('off')
     widgets.CheckButtons(ax=axs_widget, labels=['Transpose'], actives=[is_transpose]);
 
-[[images/User-defined-functions-pass-quibs.gif]]
+.. image:: images/User_defined_functions_pass_quibs.gif
