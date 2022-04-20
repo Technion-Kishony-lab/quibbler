@@ -26,8 +26,8 @@ Creating quibs
    list_quiby_funcs
    is_quiby
 
-Project save/loda quibs
------------------------
+Save/Loda quibs
+---------------
 .. currentmodule:: pyquibbler
 
 .. autosummary::
