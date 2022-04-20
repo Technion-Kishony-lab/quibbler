@@ -4,6 +4,7 @@ import numpy as np
 
 import pytest
 
+from pyquibbler.env import LEN_RAISE_EXCEPTION, BOOL_RAISE_EXCEPTION
 from pyquibbler.quib import Quib
 
 operator_names = {
@@ -96,4 +97,31 @@ def test_quib_add_with_float_does_not_return_not_implemented(create_quib_with_re
     value = add_function_quib.get_value()
 
     assert value == 2.2
+
+
+def test_len_of_quib_not_allowed(create_quib_with_return_value):
+    quib = create_quib_with_return_value([1, 2])
+    with LEN_RAISE_EXCEPTION.temporary_set(True):
+        with pytest.raises(TypeError):
+            len(quib)
+
+
+def test_len_of_quib_allowed(create_quib_with_return_value):
+    quib = create_quib_with_return_value([1, 2])
+    with LEN_RAISE_EXCEPTION.temporary_set(False):
+        assert len(quib) == 2
+
+
+def test_bool_of_quib_not_allowed(create_quib_with_return_value):
+    quib = create_quib_with_return_value(1)
+    with BOOL_RAISE_EXCEPTION.temporary_set(True):
+        with pytest.raises(TypeError):
+            bool(quib)
+
+
+def test_bool_of_quib_allowed(create_quib_with_return_value):
+    quib = create_quib_with_return_value(1)
+    with BOOL_RAISE_EXCEPTION.temporary_set(False):
+        assert bool(quib) == True
+
 

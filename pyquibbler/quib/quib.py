@@ -20,7 +20,8 @@ from weakref import WeakSet
 
 from matplotlib.artist import Artist
 
-from pyquibbler.env import LEN_RAISE_EXCEPTION, PRETTY_REPR, REPR_RETURNS_SHORT_NAME, REPR_WITH_OVERRIDES
+from pyquibbler.env import LEN_RAISE_EXCEPTION, BOOL_RAISE_EXCEPTION, \
+    PRETTY_REPR, REPR_RETURNS_SHORT_NAME, REPR_WITH_OVERRIDES
 from pyquibbler.graphics import is_within_drag
 from pyquibbler.quib.quib_guard import guard_raise_if_not_allowed_access_to_quib, \
     CannotAccessQuibInScopeException
@@ -1324,6 +1325,14 @@ class Quib:
         Calculating ndim does not necessarily require calculating its entire value.
         """
         return self.handler.quib_function_call.get_ndim()
+
+    def __bool__(self):
+        if BOOL_RAISE_EXCEPTION:
+            raise TypeError('bool(Q), where Q is a quib, is not allowed. '
+                            'To get a functional quib, use q(bool, Q). '
+                            'To get bool of the current value of Q, use bool(Q.get_value()).')
+        else:
+            return bool(self.get_value())
 
     """
     overrides
