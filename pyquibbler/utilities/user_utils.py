@@ -95,6 +95,8 @@ def q(func, *args, **kwargs) -> Quib:
     """
     Creates a function quib from the given function call.
 
+    ``w = q(func, *args, **kwargs)`` returns a quib that implement ``func(*args, **kwargs)``.
+
     Returns
     -------
     Quib

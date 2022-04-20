@@ -6,9 +6,22 @@ from pyquibbler.path import Path, Paths
 
 
 class CacheStatus(Enum):
+    """
+    Possible status values for a cache.
+
+    See Also
+    --------
+    Quib.cache_status, Quib.cache_mode,
+    """
+
     ALL_INVALID = 0
+    "No caching, or the cache does not have any valid results."
+
     ALL_VALID = 1
+    "The cache has the entire valid value."
+
     PARTIAL = 2
+    "The cache has the value valid only in some of its items."
 
 
 class Cache(ABC):

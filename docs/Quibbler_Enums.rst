@@ -9,4 +9,5 @@ Quibbler special property classes
    SaveFormat
    GraphicsUpdateType
    CacheMode
+   CacheStatus
    AssignmentTemplate
