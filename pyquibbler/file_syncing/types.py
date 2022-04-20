@@ -9,28 +9,25 @@ class SaveFormat(StrEnum):
     """
     Define the format for saving quib assignments:
 
-    ``'off'``:  do not save
-
-    ``'txt'``:  save assignments as text if possible (.txt)
-
-    ``'bin'``:  save assignments as a binary file (.quib)
-
-    ``'value_txt'``: for iquibs: save the value, rather than the assignments, as text (if possible).
-    for fquibs: save assignments as text (if possible).
-
-    ``'value_bin'``: for iquibs: save the value, rather than the assignments, as binary.
-    for fquibs: save assignments as binary.
-
     See Also
     --------
     Quib.save_format, Project.save_format
     """
 
     OFF = 'off'
+    "``'off'``;  do not save"
+
     TXT = 'txt'
+    "``'txt'``;  save assignments as text if possible (.txt)"
+
     BIN = 'bin'
+    "``'bin'``;  save assignments as a binary file (.quib)"
+
     VALUE_TXT = 'value_txt'
+    "``'value_txt'``; save the value, rather than the assignments, as text (.txt, for iquibs only)."
+
     VALUE_BIN = 'value_bin'
+    "``'value_bin'``; save the value, rather than the assignments, as binary (.quib, for iquibs only)."
 
 
 SAVE_FORMAT_TO_FILE_EXT = {
