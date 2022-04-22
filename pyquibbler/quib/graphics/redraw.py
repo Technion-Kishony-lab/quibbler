@@ -2,6 +2,7 @@ from __future__ import annotations
 import contextlib
 from typing import Set
 from matplotlib.axes import Axes
+from matplotlib.pyplot import fignum_exists
 
 from pyquibbler.logger import logger
 from pyquibbler.utilities.performance_utils import timer
@@ -57,7 +58,7 @@ def redraw_axeses(axeses: Set[Axes]):
     """
     Actual redrawing of axes- this should be WITHOUT rendering anything except for the new artists
     """
-    canvases = {axes.figure.canvas for axes in axeses}
+    canvases = {axes.figure.canvas for axes in axeses if fignum_exists(axes.figure.number)}
     with timer("redraw", lambda x: logger.info(f"redraw {len(axeses)} axeses, {len(canvases)} canvases {x}s")):
         for canvas in canvases:
             canvas.draw()
