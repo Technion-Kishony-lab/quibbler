@@ -144,16 +144,42 @@ def reset_impure_quibs() -> None:
     Project.get_or_create().reset_impure_quibs()
 
 
-@copy_docs(Project.directory)
 def get_project_directory() -> Path:
+    """
+    Returns the directory to which quib assignments are saved.
+
+    By default, quibs save their override data to the project directory, or to a directory relative to
+    this project directory, as specified by each quib `save_directory` property.
+
+    None indicates undefined path.
+
+    Returns
+    -------
+    PathWithHyperLink or None
+
+    See Also
+    --------
+    Quib.save_directory, pyquibbler.set_project_directory
+    """
     return Project.get_or_create().directory
 
 
 def set_project_directory(directory: Union[None, str, Path]) -> None:
     """
-    Set the current project's directory
+    Set the current project's directory.
 
-    path can be a string, or a Path object, or None indicating that a path is not yet set.
+    By default, quibs save their override data to the project directory, or to a directory relative to
+    this project directory, as specified by each quib `save_directory` property.
+
+    None indicates undefined path.
+
+    Parameters
+    ----------
+    directory: str, pathlib.Path or None
+
+    See Also
+    --------
+    Quib.save_directory, pyquibbler.get_project_directory
     """
     Project.get_or_create().directory = directory
 

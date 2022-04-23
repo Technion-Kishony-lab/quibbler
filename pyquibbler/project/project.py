@@ -173,19 +173,19 @@ class Project:
     @property
     def graphics_update(self) -> GraphicsUpdateType:
         """
-        The default mode of updating graphics for all quibs.
+        GraphicsUpdateType: The default mode of updating graphics for all quibs.
 
         Quibs whose own graphics_update is None adhere to the default graphics_update of the Project.
 
-        Options are:
-        "drag":     refresh immediately as upstream objects are dragged
-        "drop":     refresh at end of dragging upon graphic object drop.
-        "central":  do not automatically refresh. Refresh, centrally upon refresh_graphics().
-        "never":    Never refresh.
+        Can be set to `GraphicsUpdateType` or `str`:
 
-        Returns
-        -------
-        GraphicsUpdateType
+        ``'drag'``:     refresh immediately as upstream objects are dragged.
+
+        ``'drop'``:     refresh at end of dragging upon graphic object drop.
+
+        ``'central'``:  do not automatically refresh. Refresh, centrally upon refresh_graphics().
+
+        ``'never'``:    Never refresh.
 
         See Also
         --------
@@ -204,16 +204,20 @@ class Project:
     """
 
     @property
-    def directory(self) -> PathWithHyperLink:
+    def directory(self) -> Optional[PathWithHyperLink]:
         """
-        The directory to which quib assignments are saved.
+        PathWithHyperLink or None: The directory to which quib assignments are saved.
 
-        Can be set as a str or Path object.
-        None indicates undefined path.
+        Can be set as a `str`, `Path`.
 
-        Returns
-        -------
-        PathWithHyperLink or None
+        Quibs whose own save_directory is None adhere to the `directory` of the project.
+
+        Quibs with a relative path as their save_directory, save to
+        `Project.directory / Quib.save_directory`
+
+        See Also
+        --------
+        Quib.save_directory
         """
         return None if self._directory is None else PathWithHyperLink(self._directory)
 
@@ -233,32 +237,30 @@ class Project:
     @property
     def save_format(self) -> SaveFormat:
         """
-        The default file format for saving quibs.
+        SaveFormat: The default file format for saving quibs.
 
-        Options:
-        'off': do not save
+        Can be set as `SaveFormat` or as `str`:
 
-        'txt': save quib assignments as text if possible (.txt)
+        ``'off'``: do not save
 
-        'bin': save quib assignments as a binary file (.quib)
+        ``'txt'``: save quib assignments as text if possible (.txt)
 
-        'value_txt':
+        ``'bin'``: save quib assignments as a binary file (.quib)
+
+        ``'value_txt'``:
             for iquibs: save the value, rather than the assignments, as text (if possible).
             for fquibs: save assignments as text (if possible).
 
-        'value_bin':
+        ``'value_bin'``:
             for iquibs: save the value, rather than the assignments, as binary.
             for fquibs: save assignments as binary.
 
-        Quibs whose own save_format is None yield to this default save_format of the Project.
-
-        Returns
-        -------
-        SaveFormat
+        Quibs whose own `save_format` is `None` yield to this default `save_format` of the Project.
 
         See Also
         --------
         Quib.save_format
+        Quib.actual_save_format
         SaveFormat
         """
         return self._save_format
@@ -273,12 +275,13 @@ class Project:
         Save quib assignments to files.
 
         Saves the assignments of all quibs which have overrides, have an assigned_name and their
-        actual_save_format is not 'off'.
+        `actual_save_format` is not 'off'.
 
         See Also
         --------
         load_quibs, sync_quibs,
         Quib.save_format, Quib.actual_save_format, Project.save_format
+        Quib.save
         """
         if self.directory is None:
             raise NoProjectDirectoryException(action='save')
@@ -290,7 +293,13 @@ class Project:
         Load quib assignments from files.
 
         Loads assignments from files for all quibs which have an assigned_name and their
-        save_format is not 'off'.
+        `actual_save_format` is not 'off'.
+
+        See Also
+        --------
+        Sync_quibs, load_quibs
+        Quib.save_format, Quib.actual_save_format, Project.save_format
+        Quib.load
         """
         from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
         if self.directory is None:
@@ -304,12 +313,13 @@ class Project:
         Sync quib assignments with files.
 
         Syncs quib assignments with files for all quibs which have an assigned_name and their
-        actual_save_format is not 'off'.
+        `actual_save_format` is not 'off'.
 
         See Also
         --------
         save_quibs, load_quibs
         Quib.save_format, Quib.actual_save_format, Project.save_format
+        Quib.sync
         """
         from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
         if self.directory is None:
@@ -340,7 +350,19 @@ class Project:
 
         See Also
         --------
-        can_redo
+        can_redo, undo, redo
+
+        Examples
+        --------
+        >>> a = iquib([1, 2, 3])
+        >>> qb.can_undo()
+        False
+        >>> a[1] = 10
+        >>> qb.can_redo()
+        True
+        >>> qb.undo()
+        >>> qb.can_undo()
+        False
         """
         return len(self._undo_action_groups) > 0
 
@@ -354,7 +376,18 @@ class Project:
 
         See Also
         --------
-        can_undo
+        can_undo, undo, redo
+
+        Examples
+        --------
+        >>> a = iquib([1, 2, 3])
+        >>> a[1] = 10
+        >>> qb.undo()
+        >>> qb.can_redo()
+        True
+        >>> qb.redo()
+        >>> qb.can_redo()
+        False
         """
         return len(self._redo_action_groups) > 0
 
@@ -371,7 +404,17 @@ class Project:
 
         See Also
         --------
-        redo
+        redo, can_undo
+
+        Examples
+        --------
+        >>> a = iquib([1, 2, 3])
+        >>> a[1] = 10
+        >>> a.get_value()
+        [1, 10, 3]
+        >>> qb.undo()
+        >>> a.get_value()
+        [1, 2, 3]
         """
         from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
         try:
@@ -392,7 +435,20 @@ class Project:
 
         See Also
         --------
-        undo
+        undo, can_redo
+
+        Examples
+        --------
+        >>> a = iquib([1, 2, 3])
+        >>> a[1] = 10
+        >>> a.get_value()
+        [1, 10, 3]
+        >>> qb.undo()
+        >>> a.get_value()
+        [1, 2, 3]
+        >>> qb.redo()
+        >>> a.get_value()
+        [1, 10, 3]
         """
         try:
             actions = self._redo_action_groups.pop(-1)
@@ -414,7 +470,7 @@ class Project:
 
         See Also
         --------
-        undo, redo
+        undo, redo, can_undo, can_redo
         """
         self._undo_action_groups = []
         self._redo_action_groups = []

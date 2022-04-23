@@ -14,8 +14,8 @@ Data Quibbler
    Rationale
 
 
-Getting started with Quibbler
------------------------------
+Getting started
+---------------
 
 .. toctree::
    :maxdepth: 1

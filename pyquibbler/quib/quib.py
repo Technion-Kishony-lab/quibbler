@@ -1013,10 +1013,14 @@ class Quib:
 
         Examples
         --------
+        Whole-object assignment
+
         >>> a = iquib([1, 2, 3])
         >>> a.assign('new value')
         >>> a.get_value()
         'new value'
+
+        Item-specific assignment
 
         >>> a = iquib([1, 2, 3])
         >>> a.assign('new value', 1)
