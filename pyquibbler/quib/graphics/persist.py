@@ -8,25 +8,12 @@ from pyquibbler.quib.utils.iterators import iter_object_type_in_args
 from pyquibbler.quib.quib import Quib
 
 
-def save_func_and_args_on_artists(artist: Artist, func: Callable, args: Iterable[Any]):
-    """
-    Set the drawing func and on the artist- this will be used later on when tracking an artist, in order to know how to
-    inverse and handle events.
-    If there's already a creating func, we assume the lower func that already created the artist is the actual
-    drawing func (such as a user func that called plt.plot)
-    """
-    if getattr(artist, '_quibbler_drawing_func', None) is None:
-        artist._quibbler_drawing_func = func
-        artist._quibbler_args = args
-
-
 def track_artist(artist: Artist):
     CanvasEventHandler.get_or_create_initialized_event_handler(artist.figure.canvas)
 
 
 def persist_func_on_artists(quib: Quib, new_artists):
     for artist in new_artists:
-        save_func_and_args_on_artists(artist, func=quib.func, args=quib.args)
         track_artist(artist)
 
 

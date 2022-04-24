@@ -102,8 +102,9 @@ class CanvasEventHandler:
         if pick_event is None:
             # This case was observed in the wild
             return
-        drawing_func = getattr(artist, '_quibbler_drawing_func')
-        args = getattr(artist, '_quibbler_args')
+        drawing_quib = getattr(artist, '_quibbler_artist_creating_quib')
+        drawing_func = drawing_quib.func
+        args = drawing_quib.args
         with timer("motion_notify", lambda x: logger.info(f"motion notify {x}")), \
                 aggregate_redraw_mode(), \
                 graphics_assignment_mode(mouse_event.inaxes):
@@ -154,7 +155,8 @@ class CanvasEventHandler:
 
     def _inverse_from_mouse_event(self, mouse_event):
         if self.current_pick_event is not None:
-            drawing_func = getattr(self.current_pick_event.artist, '_quibbler_drawing_func', None)
+            drawing_quib = getattr(self.current_pick_event.artist, '_quibbler_artist_creating_quib', None)
+            drawing_func = drawing_quib.func
             if drawing_func is not None:
                 with self._try_acquire_assignment_lock() as locked:
                     if locked:
