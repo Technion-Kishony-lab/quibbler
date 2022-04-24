@@ -202,7 +202,7 @@ class FuncCall(ABC):
 
         return new_args, new_kwargs
 
-    @functools.lru_cache()
+    #@functools.lru_cache()
     def get_objects_of_type_in_args_kwargs(self, type_):
         return list(iter_object_type_in_args(type_, self.args, self.kwargs))
 
@@ -210,7 +210,7 @@ class FuncCall(ABC):
         return [v for _, v in self.func_definition.get_data_source_arguments_with_values(self.func_args_kwargs)]
 
     @load_source_locations_before_running
-    @functools.lru_cache()
+    #@functools.lru_cache()
     def get_data_sources(self):
         sources = set()
         for location in self.data_source_locations:
