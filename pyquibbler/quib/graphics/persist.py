@@ -41,9 +41,7 @@ def persist_quib_on_artists(quib: Quib, new_artists: Set[Artist]):
     artists_to_persist_on = new_artists \
         if new_artists else quib.handler.quib_function_call.get_objects_of_type_in_args_kwargs(Artist)
     for artist in artists_to_persist_on:
-        quibs = getattr(artist, '_quibbler_graphics_function_quibs', set())
-        quibs.add(quib)
-        artist._quibbler_graphics_function_quibs = quibs
+        artist._quibbler_artist_creating_quib = quib
 
 
 def persist_relevant_info_on_new_artists_for_quib(quib: Quib, new_artists):
