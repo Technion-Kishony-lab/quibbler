@@ -1,3 +1,4 @@
+from pyquibbler.quib.graphics.artist_wrapper import QuibblerArtistWrapper
 from contextlib import contextmanager
 from threading import Lock
 from typing import Optional, Tuple, Callable
@@ -102,7 +103,8 @@ class CanvasEventHandler:
         if pick_event is None:
             # This case was observed in the wild
             return
-        drawing_quib = getattr(artist, '_quibbler_artist_creating_quib')
+
+        drawing_quib = QuibblerArtistWrapper(artist).get_creating_quib()
         drawing_func = drawing_quib.func
         args = drawing_quib.args
         with timer("motion_notify", lambda x: logger.info(f"motion notify {x}")), \
@@ -155,7 +157,7 @@ class CanvasEventHandler:
 
     def _inverse_from_mouse_event(self, mouse_event):
         if self.current_pick_event is not None:
-            drawing_quib = getattr(self.current_pick_event.artist, '_quibbler_artist_creating_quib', None)
+            drawing_quib = QuibblerArtistWrapper(self.current_pick_event.artist).get_creating_quib()
             drawing_func = drawing_quib.func
             if drawing_func is not None:
                 with self._try_acquire_assignment_lock() as locked:
@@ -186,8 +188,8 @@ class CanvasEventHandler:
         This method is called by the overridden set_xlim, set_ylim
         """
         from pyquibbler.graphics import dragging
-        name = f'_quibbler_{drawing_func.__name__}'
-        set_lim_quib = getattr(ax, name, None)
+        name = drawing_func.__name__
+        set_lim_quib = QuibblerArtistWrapper(ax).get_setter_quib(name)
         if isinstance(set_lim_quib, Quib):
             with self._try_acquire_assignment_lock() as locked:
                 if locked:

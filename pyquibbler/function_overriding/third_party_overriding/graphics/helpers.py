@@ -7,6 +7,7 @@ from matplotlib.axes import Axes
 
 from pyquibbler.function_overriding.function_override import FuncOverride
 from pyquibbler.function_overriding.third_party_overriding.general_helpers import override_with_cls
+from pyquibbler.quib.graphics.artist_wrapper import QuibblerArtistWrapper
 
 from pyquibbler.quib.graphics.event_handling import CanvasEventHandler
 
@@ -33,9 +34,10 @@ class AxesSetOverride(GraphicsOverride):
         result = func(*args, **kwargs)
 
         ax = args[0]
-        name = f'_quibbler_{func.__name__}'
-        if hasattr(ax, name):
-            delattr(ax, name)
+        name = func.__name__
+
+        QuibblerArtistWrapper(ax).set_setter_quib(name, None)
+
         return result
 
 
