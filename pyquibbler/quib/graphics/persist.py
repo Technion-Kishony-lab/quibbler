@@ -4,7 +4,7 @@ from typing import Set, Callable, Iterable, Any
 from matplotlib.artist import Artist
 
 from pyquibbler.quib.graphics.event_handling import CanvasEventHandler
-from pyquibbler.quib.utils.iterators import iter_object_type_in_args
+from pyquibbler.quib.utils.iterators import iter_object_type_in_args_kwargs
 from pyquibbler.quib.quib import Quib
 
 
@@ -47,7 +47,7 @@ def persist_artists_on_quib_weak_ref(weak_ref_quib, artists):
     quib: Quib = weak_ref_quib()
     if quib.handler.func_definition.is_artist_setter:
         persist_func_on_artists(quib, artists)
-        for artist in chain(artists, iter_object_type_in_args(Artist, quib.args, quib.kwargs)):
+        for artist in chain(artists, iter_object_type_in_args_kwargs(Artist, quib.args, quib.kwargs)):
             name = f'_quibbler_{quib.func.__name__}'
             current_quib = getattr(artist, name, None)
             if current_quib is not quib and current_quib is not None:

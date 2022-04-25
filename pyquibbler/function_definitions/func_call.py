@@ -10,7 +10,7 @@ from .types import Argument
 from pyquibbler.quib.external_call_failed_exception_handling import \
     external_call_failed_exception_handling
 from pyquibbler.utilities.iterators import iter_args_and_names_in_function_call, \
-    get_paths_for_objects_of_type, iter_object_type_in_args
+    get_paths_for_objects_of_type, iter_object_type_in_args_kwargs
 
 if TYPE_CHECKING:
     from pyquibbler.function_definitions import FuncDefinition
@@ -204,7 +204,7 @@ class FuncCall(ABC):
 
     #@functools.lru_cache()
     def get_objects_of_type_in_args_kwargs(self, type_):
-        return list(iter_object_type_in_args(type_, self.args, self.kwargs))
+        return list(iter_object_type_in_args_kwargs(type_, self.args, self.kwargs))
 
     def get_data_source_argument_values(self) -> List[Any]:
         return [v for _, v in self.func_definition.get_data_source_arguments_with_values(self.func_args_kwargs)]
