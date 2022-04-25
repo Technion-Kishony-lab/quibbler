@@ -122,19 +122,18 @@ def replacing_func():
     return mock_func
 
 
-def test_replacing_graphics_function_quib(create_quib_with_return_value, replacing_func):
+def test_replacing_graphics_function_quib(axes, create_quib_with_return_value, replacing_func):
     first_quib = create_quib_with_return_value(5)
-    mock_artist = mock.Mock(spec=Axes)
     # Creating runs the quibs- it's also important to keep them as a local var so they don't get garbage collected
     # if they are the test will pass regardless
     _ = create_quib(
         func=replacing_func,
-        args=(mock_artist, first_quib),
+        args=(axes, first_quib),
         lazy=False
     )
     __ = create_quib(
         func=replacing_func,
-        args=(mock_artist,),
+        args=(axes,),
         lazy=False
     )
 
@@ -145,16 +144,15 @@ def test_replacing_graphics_function_quib(create_quib_with_return_value, replaci
 
 @pytest.mark.regression
 def test_replacing_graphics_function_quib_doesnt_remove_quib_after_invalidation_three_times(
-        create_quib_with_return_value, replacing_func
+        axes, create_quib_with_return_value, replacing_func
 ):
     first_quib = create_quib_with_return_value(5)
-    mock_artist = mock.Mock(spec=Axes)
     path = [PathComponent(component=..., indexed_cls=first_quib.get_type())]
 
     # First time to create quib, attach to parent, attach to axes
     _ = create_quib(
         func=replacing_func,
-        args=(mock_artist, first_quib),
+        args=(axes, first_quib),
         lazy=False,
     )
     # Second time to potentially remove from axes (this was the bug)

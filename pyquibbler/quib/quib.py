@@ -323,9 +323,13 @@ class QuibHandler:
             func_definition=self.func_definition,
             cache_mode=self.cache_mode,
         )
-        from pyquibbler.quib.graphics.persist import persist_artists_on_quib_weak_ref
-        self.quib_function_call.artists_creation_callback = functools.partial(persist_artists_on_quib_weak_ref,
-                                                                              weakref.ref(self.quib))
+        from pyquibbler.quib.graphics.persist import persist_quib_on_created_artists, persist_quib_on_setted_artist
+        if definition.is_artist_setter:
+            self.quib_function_call.artists_creation_callback = functools.partial(persist_quib_on_setted_artist,
+                                                                                  weakref.ref(self.quib))
+        else:
+            self.quib_function_call.artists_creation_callback = functools.partial(persist_quib_on_created_artists,
+                                                                                  weakref.ref(self.quib))
 
     """
     assignments
