@@ -117,7 +117,7 @@ def replacing_func():
     mock_func.__name__ = "myfunc"
     add_definition_for_function(func=mock_func, func_definition=create_func_definition(
         is_graphics=True,
-        replace_previous_quibs_on_artists=True),
+        is_artist_setter=True),
                                 )
     return mock_func
 
