@@ -1,5 +1,5 @@
 from itertools import chain
-from typing import Set, Callable, Iterable, Any
+from typing import Set, Callable, Iterable, Any, Optional
 
 from matplotlib.artist import Artist
 
@@ -25,9 +25,7 @@ def persist_quib_on_artists(quib: Quib, new_artists: Set[Artist]):
     did perform an action on an existing one, such as Axes.set_xlim
     """
 
-    artists_to_persist_on = new_artists \
-        if new_artists else quib.handler.quib_function_call.get_objects_of_type_in_args_kwargs(Artist)
-    for artist in artists_to_persist_on:
+    for artist in new_artists:
         artist._quibbler_artist_creating_quib = quib
 
 
@@ -49,10 +47,9 @@ def persist_artists_on_quib_weak_ref(weak_ref_quib, artists):
         persist_func_on_artists(quib, artists)
         for artist in chain(artists, iter_object_type_in_args_kwargs(Artist, quib.args, quib.kwargs)):
             name = f'_quibbler_{quib.func.__name__}'
-            current_quib = getattr(artist, name, None)
+            current_quib: Optional[Quib] = getattr(artist, name, None)
             if current_quib is not quib and current_quib is not None:
-                for parent in current_quib.parents:
-                    parent.handler.remove_child(current_quib)
+                current_quib.handler.disconnect_from_parents()
             setattr(artist, name, quib)
     else:
         persist_relevant_info_on_new_artists_for_quib(quib, artists)

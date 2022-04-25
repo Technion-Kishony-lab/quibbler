@@ -15,7 +15,7 @@ from pyquibbler.function_definitions import get_definition_for_function, FuncArg
 from pyquibbler.quib.types import FileAndLineNumber
 from pyquibbler.utilities.file_path import PathWithHyperLink
 from functools import cached_property
-from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Union, Iterable, Mapping, Callable
+from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Union, Iterable, Mapping, Callable, Iterator
 from weakref import WeakSet
 
 from matplotlib.artist import Artist
@@ -124,6 +124,10 @@ class QuibHandler:
     def project(self) -> Project:
         return Project.get_or_create()
 
+    @property
+    def parents(self) -> Iterator[Quib]:
+        return self.quib_function_call.get_objects_of_type_in_args_kwargs(Quib)
+
     def add_child(self, quib: Quib) -> None:
         """
         Add the given quib to the list of quibs that are dependent on this quib.
@@ -135,6 +139,20 @@ class QuibHandler:
         Removes a child from the quib, no longer sending invalidations to it
         """
         self.children.remove(quib_to_remove)
+
+    def connect_to_parents(self):
+        """
+        Connect the quib to its parents
+        """
+        for parent in self.parents:
+            parent.handler.add_child(self.quib)
+
+    def disconnect_from_parents(self):
+        """
+        Disconnect the quib from its parents, so that the quib is effectively inactivated
+        """
+        for parent in self.parents:
+            parent.handler.remove_child(self.quib)
 
     def get_descendants(self):
         children = set(self.children)  # copy to prevent set changing during operation
@@ -1462,7 +1480,7 @@ class Quib:
         --------
         ancestors, children, descendants
         """
-        return set(self.handler.quib_function_call.get_objects_of_type_in_args_kwargs(Quib))
+        return set(self.handler.parents)
 
     @cached_property
     def ancestors(self) -> Set[Quib]:

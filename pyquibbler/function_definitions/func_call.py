@@ -3,7 +3,7 @@ from __future__ import annotations
 import functools
 from abc import abstractmethod, ABC
 from dataclasses import dataclass
-from typing import Tuple, Any, Mapping, Optional, Callable, List, TYPE_CHECKING, Type, ClassVar
+from typing import Tuple, Any, Mapping, Optional, Callable, List, TYPE_CHECKING, Type, ClassVar, Iterator
 
 from .location import SourceLocation, create_source_location
 from .types import Argument
@@ -203,8 +203,8 @@ class FuncCall(ABC):
         return new_args, new_kwargs
 
     #@functools.lru_cache()
-    def get_objects_of_type_in_args_kwargs(self, type_):
-        return list(iter_object_type_in_args_kwargs(type_, self.args, self.kwargs))
+    def get_objects_of_type_in_args_kwargs(self, type_) -> Iterator[Any]:
+        return iter_object_type_in_args_kwargs(type_, self.args, self.kwargs)
 
     def get_data_source_argument_values(self) -> List[Any]:
         return [v for _, v in self.func_definition.get_data_source_arguments_with_values(self.func_args_kwargs)]
