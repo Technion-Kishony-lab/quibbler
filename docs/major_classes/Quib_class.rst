@@ -1,4 +1,4 @@
-﻿pyquibbler.Quib
+pyquibbler.Quib
 ===============
 
 .. currentmodule:: pyquibbler
@@ -14,13 +14,13 @@
    .. autosummary::
 
       ~Quib.func
-      ~Quib.kwargs
       ~Quib.args
-      ~Quib.is_file_loading
+      ~Quib.kwargs
+      ~Quib.is_iquib
       ~Quib.is_graphics
       ~Quib.is_random
+      ~Quib.is_file_loading
       ~Quib.is_impure
-      ~Quib.is_iquib
       ~Quib.pass_quibs
 
 

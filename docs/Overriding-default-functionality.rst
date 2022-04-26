@@ -370,4 +370,5 @@ these options is determined by the ``assigned_quibs`` property of the
 quib to which the *de novo* assignment was made.
 
 The following diagram depicts such inverse assignment behaviors:
+
 .. image:: images/inverse_assignment_choice.png
