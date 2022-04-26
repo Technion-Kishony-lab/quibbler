@@ -59,6 +59,7 @@ class CanvasEventHandler:
     def __init__(self, canvas):
         self.canvas = canvas
         self.current_pick_event: Optional[PickEvent] = None
+        self.current_pick_quib: Optional[Quib] = None
         self._last_mouse_event_with_overrides: Optional[PickEvent] = None
         self._last_axis_event_with_overrides = {}
         self._assignment_lock = Lock()
@@ -79,6 +80,7 @@ class CanvasEventHandler:
                 self._inverse_from_mouse_event(self._last_mouse_event_with_overrides)
         self._last_mouse_event_with_overrides = None
         self.current_pick_event = None
+        self.current_pick_quib = None
 
         if self._last_axis_event_with_overrides:
             with releasing():
@@ -91,10 +93,11 @@ class CanvasEventHandler:
 
     def _handle_pick_event(self, pick_event: PickEvent):
         self.current_pick_event = pick_event
+        self.current_pick_quib = QuibblerArtistWrapper(pick_event.artist).get_creating_quib()
         if pick_event.mouseevent.button is MouseButton.RIGHT:
             self._inverse_from_mouse_event(pick_event.mouseevent)
 
-    def _inverse_assign_graphics(self, artist: Artist, mouse_event: MouseEvent):
+    def _inverse_assign_graphics(self, drawing_quib: Quib, mouse_event: MouseEvent):
         """
         Reverse any relevant quibs in artists creation args
         """
@@ -104,7 +107,6 @@ class CanvasEventHandler:
             # This case was observed in the wild
             return
 
-        drawing_quib = QuibblerArtistWrapper(artist).get_creating_quib()
         drawing_func = drawing_quib.func
         args = drawing_quib.args
         with timer("motion_notify", lambda x: logger.info(f"motion notify {x}")), \
@@ -157,16 +159,17 @@ class CanvasEventHandler:
 
     def _inverse_from_mouse_event(self, mouse_event):
         if self.current_pick_event is not None:
-            drawing_quib = QuibblerArtistWrapper(self.current_pick_event.artist).get_creating_quib()
+            drawing_quib = self.current_pick_quib
             drawing_func = drawing_quib.func
             if drawing_func is not None:
                 with self._try_acquire_assignment_lock() as locked:
                     if locked:
                         # If not locked, there is already another motion handler running, we just drop this one.
                         # This could happen if changes are slow or if a dialog is open
-                        self._inverse_assign_graphics(self.current_pick_event.artist, mouse_event)
+                        self._inverse_assign_graphics(drawing_quib, mouse_event)
                         if END_DRAG_IMMEDIATELY:
                             self.current_pick_event = None
+                            self.current_pick_quib = None
 
     def initialize(self):
         """

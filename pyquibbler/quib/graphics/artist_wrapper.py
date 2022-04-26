@@ -15,9 +15,13 @@ class QuibblerArtistWrapper:
     def get_creating_quib(self):
         return getattr(self.artist, self.CREATING_QUIB_NAME, None)
 
+    def delete_creating_quib_attr(self):
+        if hasattr(self.artist, self.CREATING_QUIB_NAME):
+            delattr(self.artist, self.CREATING_QUIB_NAME)
+
     def set_creating_quib(self, quib: Optional[Quib]):
         if quib is None:
-            delattr(self.artist, self.CREATING_QUIB_NAME)
+            self.delete_creating_quib_attr()
         else:
             setattr(self.artist, self.CREATING_QUIB_NAME, quib)
 
@@ -35,3 +39,11 @@ class QuibblerArtistWrapper:
             setter_quibs.pop(name, None)
         else:
             setter_quibs[name] = quib
+
+    def delete_setting_quibs_attr(self):
+        if hasattr(self.artist, self.SETTER_QUIBS_NAME):
+            delattr(self.artist, self.SETTER_QUIBS_NAME)
+
+    def clear_all_quibs(self):
+        self.delete_creating_quib_attr()
+        self.delete_setting_quibs_attr()
