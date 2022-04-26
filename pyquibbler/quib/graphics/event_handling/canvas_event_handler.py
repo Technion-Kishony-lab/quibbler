@@ -97,7 +97,7 @@ class CanvasEventHandler:
         if pick_event.mouseevent.button is MouseButton.RIGHT:
             self._inverse_from_mouse_event(pick_event.mouseevent)
 
-    def _inverse_assign_graphics(self, drawing_quib: Quib, mouse_event: MouseEvent):
+    def _inverse_assign_graphics(self, mouse_event: MouseEvent):
         """
         Reverse any relevant quibs in artists creation args
         """
@@ -107,13 +107,12 @@ class CanvasEventHandler:
             # This case was observed in the wild
             return
 
-        drawing_func = drawing_quib.func
-        args = drawing_quib.args
+        drawing_quib = self.current_pick_quib
         with timer("motion_notify", lambda x: logger.info(f"motion notify {x}")), \
                 aggregate_redraw_mode(), \
                 graphics_assignment_mode(mouse_event.inaxes):
-            override_group = graphics_inverse_assigner.inverse_assign_drawing_func(drawing_func=drawing_func,
-                                                                                   args=args,
+            override_group = graphics_inverse_assigner.inverse_assign_drawing_func(drawing_func=drawing_quib.func,
+                                                                                   args=drawing_quib.args,
                                                                                    mouse_event=mouse_event,
                                                                                    pick_event=pick_event)
             if override_group is not None and override_group:
@@ -159,17 +158,14 @@ class CanvasEventHandler:
 
     def _inverse_from_mouse_event(self, mouse_event):
         if self.current_pick_event is not None:
-            drawing_quib = self.current_pick_quib
-            drawing_func = drawing_quib.func
-            if drawing_func is not None:
-                with self._try_acquire_assignment_lock() as locked:
-                    if locked:
-                        # If not locked, there is already another motion handler running, we just drop this one.
-                        # This could happen if changes are slow or if a dialog is open
-                        self._inverse_assign_graphics(drawing_quib, mouse_event)
-                        if END_DRAG_IMMEDIATELY:
-                            self.current_pick_event = None
-                            self.current_pick_quib = None
+            with self._try_acquire_assignment_lock() as locked:
+                if locked:
+                    # If not locked, there is already another motion handler running, we just drop this one.
+                    # This could happen if changes are slow or if a dialog is open
+                    self._inverse_assign_graphics(mouse_event)
+                    if END_DRAG_IMMEDIATELY:
+                        self.current_pick_event = None
+                        self.current_pick_quib = None
 
     def initialize(self):
         """
