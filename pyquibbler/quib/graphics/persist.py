@@ -1,3 +1,4 @@
+from __future__ import annotations
 import dataclasses
 from abc import ABC, abstractmethod
 from typing import Iterable, Optional
@@ -5,7 +6,7 @@ from typing import Iterable, Optional
 from pyquibbler.quib.graphics.artist_wrapper import QuibblerArtistWrapper
 from pyquibbler.quib.graphics.event_handling import CanvasEventHandler
 
-from weakref import ref
+from weakref import ReferenceType
 from pyquibbler.quib.quib import Quib
 from pyquibbler.function_definitions import FuncArgsKwargs
 from matplotlib.artist import Artist
@@ -17,7 +18,7 @@ def track_artist(artist):
 
 @dataclasses.dataclass
 class RunFunctionWithQuibArg(ABC):
-    weak_ref_quib: ref[Quib]
+    weak_ref_quib: ReferenceType[Quib]
 
     @property
     def quib(self):
