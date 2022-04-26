@@ -178,7 +178,11 @@ class CanvasEventHandler:
         def disconnect(event):
             for handler_id in handler_ids:
                 self.canvas.mpl_disconnect(handler_id)
+
             self.CANVASES_TO_TRACKERS.pop(self.canvas)
+
+            for ax in self.canvas.figure.axes:
+                ax.cla()
 
         handler_ids.append(self.canvas.mpl_connect('close_event', disconnect))
 
