@@ -1,5 +1,5 @@
 import dataclasses
-from typing import Optional, Dict, TYPE_CHECKING
+from typing import Optional, Dict
 from matplotlib.artist import Artist
 
 from pyquibbler.quib.quib import Quib

@@ -3,7 +3,7 @@ from __future__ import annotations
 import functools
 from abc import abstractmethod, ABC
 from dataclasses import dataclass
-from typing import Tuple, Any, Mapping, Optional, Callable, List, TYPE_CHECKING, Type, ClassVar, Iterator
+from typing import Tuple, Any, Mapping, Optional, Callable, List, TYPE_CHECKING, Type, ClassVar, Iterator, Dict
 
 from .location import SourceLocation, create_source_location
 from .types import Argument
@@ -30,7 +30,7 @@ class FuncArgsKwargs:
 
     func: Callable
     args: Tuple[Any, ...]
-    kwargs: Mapping[str, Any]
+    kwargs: Dict[str, Any]
     include_defaults: bool
 
     def get_args_values_by_name_and_position(self) -> Tuple[Mapping[str, Any], Tuple[Any, ...]]:
