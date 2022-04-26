@@ -202,10 +202,6 @@ class FuncCall(ABC):
 
         return new_args, new_kwargs
 
-    #@functools.lru_cache()
-    def get_objects_of_type_in_args_kwargs(self, type_) -> Iterator[Any]:
-        return iter_object_type_in_args_kwargs(type_, self.args, self.kwargs)
-
     def get_data_source_argument_values(self) -> List[Any]:
         return [v for _, v in self.func_definition.get_data_source_arguments_with_values(self.func_args_kwargs)]
 
@@ -214,6 +210,14 @@ class FuncCall(ABC):
     def get_data_sources(self):
         sources = set()
         for location in self.data_source_locations:
+            sources.add(location.find_in_args_kwargs(self.args, self.kwargs))
+        return sources
+
+    @load_source_locations_before_running
+    #@functools.lru_cache()
+    def get_parameter_sources(self):
+        sources = set()
+        for location in self.parameter_source_locations:
             sources.add(location.find_in_args_kwargs(self.args, self.kwargs))
         return sources
 

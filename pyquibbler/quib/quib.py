@@ -125,7 +125,7 @@ class QuibHandler:
 
     @property
     def parents(self) -> Iterator[Quib]:
-        return self.quib_function_call.get_objects_of_type_in_args_kwargs(Quib)
+        return self.quib_function_call.get_data_sources() | self.quib_function_call.get_parameter_sources()
 
     def add_child(self, quib: Quib) -> None:
         """
