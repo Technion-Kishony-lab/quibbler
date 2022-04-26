@@ -22,6 +22,8 @@ def test_canvas_event_handler_delete_itself_upon_figure_close():
 
     canvas = mock.Mock()
     canvas.events_to_funcs = {}
+    canvas.figure = mock.Mock()
+    canvas.figure.axes = []
 
     def mpl_connect(event, func):
         canvas.events_to_funcs[event] = func
