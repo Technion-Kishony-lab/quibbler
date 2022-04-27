@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import functools
 from dataclasses import dataclass, field
 from typing import Set, Type, List, TYPE_CHECKING, Callable, Optional
 
@@ -47,7 +48,7 @@ class FuncDefinition:
     def is_impure(self):
         return self.is_file_loading or self.is_random
 
-    #@functools.lru_cache()
+    @functools.lru_cache()
     def get_parameters(self):
         try:
             sig = get_signature_for_func(self.func)
@@ -55,14 +56,14 @@ class FuncDefinition:
         except ValueError:
             return {}
 
-    #@functools.lru_cache()
+    @functools.lru_cache()
     def get_positional_to_keyword_arguments(self):
         return {
             PositionalArgument(i): KeywordArgument(name) if parameter.kind.name != "POSITIONAL_ONLY" else None
             for i, (name, parameter) in enumerate(self.get_parameters().items())
         }
 
-    #@functools.lru_cache()
+    @functools.lru_cache()
     def get_keyword_to_positional_arguments(self):
         return {
             KeywordArgument(name): PositionalArgument(i) if parameter.kind.name != "KEYWORD_ONLY" else None
