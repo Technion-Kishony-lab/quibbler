@@ -1,4 +1,3 @@
-from pyquibbler.quib.graphics.artist_wrapper import QuibblerArtistWrapper
 from contextlib import contextmanager
 from threading import Lock
 from typing import Optional, Tuple, Callable
@@ -12,6 +11,7 @@ from pyquibbler.utilities.performance_utils import timer
 from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
 from pyquibbler.quib.graphics.event_handling import graphics_inverse_assigner
 from pyquibbler.assignment.override_choice.types import OverrideGroup
+from pyquibbler.quib.graphics import artist_wrapper
 
 from matplotlib.axes import Axes
 from pyquibbler.quib import Quib
@@ -93,7 +93,7 @@ class CanvasEventHandler:
 
     def _handle_pick_event(self, pick_event: PickEvent):
         self.current_pick_event = pick_event
-        self.current_pick_quib = QuibblerArtistWrapper(pick_event.artist).get_creating_quib()
+        self.current_pick_quib = artist_wrapper.get_creating_quib(pick_event.artist)
         if pick_event.mouseevent.button is MouseButton.RIGHT:
             self._inverse_from_mouse_event(pick_event.mouseevent)
 
@@ -192,7 +192,7 @@ class CanvasEventHandler:
         """
         from pyquibbler.graphics import dragging
         name = drawing_func.__name__
-        set_lim_quib = QuibblerArtistWrapper(ax).get_setter_quib(name)
+        set_lim_quib = artist_wrapper.get_setter_quib(ax, name)
         if isinstance(set_lim_quib, Quib):
             with self._try_acquire_assignment_lock() as locked:
                 if locked:

@@ -5,7 +5,7 @@ import matplotlib.widgets
 
 from pyquibbler.graphics.utils import TYPES_TO_ARTIST_ARRAY_NAMES
 from pyquibbler.graphics.widgets import QRadioButtons, QSlider, QRectangleSelector
-from pyquibbler.quib.graphics.artist_wrapper import QuibblerArtistWrapper
+from pyquibbler.quib.graphics import artist_wrapper
 
 widget_class_names_to_quib_supporting_widget = {
     'RadioButtons': QRadioButtons,
@@ -23,11 +23,11 @@ def get_clear_axes_wrapper(func: Callable):
 
     @functools.wraps(func)
     def _wrapper(self, *args, **kwargs):
-        QuibblerArtistWrapper(self).clear_all_quibs()
+        artist_wrapper.clear_all_quibs(self)
         for array_name in TYPES_TO_ARTIST_ARRAY_NAMES.values():
             if hasattr(self, array_name):
                 for artist in getattr(self, array_name):
-                    QuibblerArtistWrapper(artist).clear_all_quibs()
+                    artist_wrapper.clear_all_quibs(artist)
         return func(self, *args, **kwargs)
 
     return _wrapper

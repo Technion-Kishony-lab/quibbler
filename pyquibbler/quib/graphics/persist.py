@@ -3,7 +3,7 @@ import dataclasses
 from abc import ABC, abstractmethod
 from typing import Iterable, Optional
 
-from pyquibbler.quib.graphics.artist_wrapper import QuibblerArtistWrapper
+from pyquibbler.quib.graphics import artist_wrapper
 from pyquibbler.quib.graphics.event_handling import CanvasEventHandler
 
 from weakref import ReferenceType
@@ -42,7 +42,7 @@ class PersistQuibOnCreatedArtists(RunFunctionWithQuibArg):
         This method will be given as a callback to the function runner whenever it creates artists.
         """
         for artist in new_artists:
-            QuibblerArtistWrapper(artist).set_creating_quib(quib)
+            artist_wrapper.set_creating_quib(artist, quib)
             track_artist(artist)
 
 
@@ -56,10 +56,9 @@ class PersistQuibOnSettedArtist(RunFunctionWithQuibArg):
         """
         if func_args_kwargs.args and isinstance(func_args_kwargs.args[0], Artist):
             setted_artist = func_args_kwargs.args[0]
-            setted_artist_wrapper = QuibblerArtistWrapper(setted_artist)
             track_artist(setted_artist)
             name = quib.func.__name__
-            old_quib: Optional[Quib] = setted_artist_wrapper.get_setter_quib(name)
+            old_quib = artist_wrapper.get_setter_quib(setted_artist, name)
             if old_quib is not quib and old_quib is not None:
                 old_quib.handler.disconnect_from_parents()
-            setted_artist_wrapper.set_setter_quib(name, quib)
+            artist_wrapper.set_setter_quib(setted_artist, name, quib)

@@ -56,8 +56,8 @@ def remove_artist(artist: Artist):
     """
     Remove an artist from its artist array (does NOT redraw)
     """
-    from pyquibbler.quib.graphics.artist_wrapper import QuibblerArtistWrapper
-    QuibblerArtistWrapper(artist).clear_all_quibs()
+    from pyquibbler.quib.graphics import artist_wrapper
+    artist_wrapper.clear_all_quibs(artist)
     get_artist_array(artist).remove(artist)
 
 
