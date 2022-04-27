@@ -37,7 +37,7 @@ def test_inverse_assign_field_array_with_function_and_fancy_indexing_and_field_n
 
 
 def test_inverse_assign_nested_with_fancy_rot90_fancy_and_replace(create_quib_with_return_value):
-    dtype = [('name', '|S10'), ('nested', [('child_name', np.unicode, 30)], (3,))]
+    dtype = [('name', '|S10'), ('nested', [('child_name', np.compat.unicode, 30)], (3,))]
     name_1 = 'Maor'
     name_2 = 'StupidMan'
     first_children = ['Yechiel', "Yossiel", "Yirmiyahu"]
