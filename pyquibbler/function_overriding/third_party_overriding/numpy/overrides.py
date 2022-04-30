@@ -246,11 +246,11 @@ def create_numpy_overrides():
             'randint'
           )),
 
-        # Custom:
         # apply_along_axis
         numpy_override('apply_along_axis', data_source_arguments=["arr"],
                        is_graphics=None,
-                       allowed_kwarg_flags=('pass_quibs', 'lazy'),
+                       allowed_kwarg_flags=('is_random', 'is_file_loading',
+                                            'is_graphics', 'pass_quibs', 'lazy'),
                        forwards_path_translators=[ApplyAlongAxisForwardsTranslator],
                        quib_function_call_cls=ApplyAlongAxisQuibFuncCall),
 
