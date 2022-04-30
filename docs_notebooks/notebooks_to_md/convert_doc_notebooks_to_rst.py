@@ -42,7 +42,7 @@ for rst_path in rst_paths:
     # [[quibdemoXXX]] -> [[examples/quibdemoXXX]]
     os.system(r"sed -i '' -E 's/\[\[quibdemo([-_[:alnum:]]{1,100}\]\])/\[\[examples\/quibdemo\1/g' " + file)
 
-    # [[see this reference|reference] -> :doc:`see this reference<reference>`
+    # [[see this reference|reference]] -> :doc:`see this reference<reference>`
     os.system(r"sed -i '' -E 's/\[\[([A-Z,a-z][-._ [:alnum:]]{1,100})\|([-.:<>/_ [:alnum:]]{1,100})\]\]/:doc:`\1<\2>`/g' " + file)
 
     # [[reference]] -> :doc:`reference`
