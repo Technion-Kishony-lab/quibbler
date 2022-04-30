@@ -80,18 +80,6 @@ class NoValue:
     pass
 
 
-class Default:
-    """
-    a dummy value to be assigned to quibs indicating removal of overrding assignments.
-
-    default allows removing quib assignments using any assignment syntax such as:
-
-    quib[2:5] = default
-    quib.assign(default)
-    quib['year'] = default
-    """
-
-
 def is_saveable_as_txt(val: Any) -> bool:
     all_ok = True
 
