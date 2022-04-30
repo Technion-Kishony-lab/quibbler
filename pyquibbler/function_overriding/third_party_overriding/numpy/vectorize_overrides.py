@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Optional
 
 import numpy as np
 
@@ -6,11 +6,11 @@ from pyquibbler.function_definitions import PositionalArgument, KeywordArgument
 from pyquibbler.function_definitions.func_call import FuncArgsKwargs
 from pyquibbler.function_definitions.func_definition import FuncDefinition
 from pyquibbler.function_overriding.function_override import FuncOverride
-from pyquibbler.project import Project
 from pyquibbler.quib.func_calling.func_calls.vectorize.vectorize_call \
     import VectorizeQuibFuncCall
 from pyquibbler.quib.graphics import GraphicsUpdateType
 from pyquibbler.env import PRETTY_REPR
+from pyquibbler.quib.utils.miscellaneous import NoValue
 from pyquibbler.translation.translators.vectorize_translator import VectorizeForwardsPathTranslator, \
     VectorizeBackwardsPathTranslator
 
@@ -41,11 +41,7 @@ class VectorizeCallOverride(FuncOverride):
 
     def _get_creation_flags(self, args, kwargs):
         vectorize: QVectorize = args[0]
-        return {
-            'lazy': vectorize.lazy,
-            'pass_quibs': vectorize.pass_quibs,
-            'graphics_update': vectorize.graphics_update
-        }
+        return vectorize.func_defintion_flags
 
 
 class QVectorize(np.vectorize):
@@ -54,13 +50,24 @@ class QVectorize(np.vectorize):
     with a quib function wrapper.
     """
 
-    def __init__(self, *args, pass_quibs=False, graphics_update: Union[str, GraphicsUpdateType] = None,
-                 lazy: bool = None, signature=None, cache=False, **kwargs):
-        # We don't need the underlying vectorize object to cache, we are doing that ourselves.
+    def __init__(self, *args,
+                 is_random: bool = NoValue,
+                 is_file_loading: bool = NoValue,
+                 is_graphics: Optional[bool] = NoValue,
+                 pass_quibs: bool = NoValue,
+                 lazy: Optional[bool] = NoValue,
+                 signature=None,
+                 cache=False,  # We don't need the underlying vectorize object to cache, we are doing that ourselves.
+                 **kwargs):
         super().__init__(*args, signature=signature, cache=False, **kwargs)
-        self.pass_quibs = pass_quibs
-        self.graphics_update = graphics_update or Project.DEFAULT_GRAPHICS_UPDATE
-        self.lazy = lazy if lazy is not None else True
+
+        self.func_defintion_flags = {name: value for name, value in (
+            ('is_random', is_random),
+            ('is_file_loading', is_file_loading),
+            ('is_graphics', is_graphics),
+            ('pass_quibs', pass_quibs),
+            ('lazy', lazy),
+        ) if value is not NoValue }
 
     def __repr__(self):
         if PRETTY_REPR:

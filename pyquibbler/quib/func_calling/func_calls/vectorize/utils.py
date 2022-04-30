@@ -63,7 +63,7 @@ def copy_vectorize(vectorize, func=None, otypes=None, excluded=None, signature=N
     if signature is None:
         signature = vectorize.signature
     return np.vectorize(func, otypes=otypes, doc=vectorize.__doc__, excluded=excluded, cache=vectorize.cache,
-                        signature=signature, pass_quibs=vectorize.pass_quibs)
+                        signature=signature, **vectorize.func_defintion_flags)
 
 
 class Indices:
