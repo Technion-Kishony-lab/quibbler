@@ -1098,7 +1098,7 @@ class Quib:
     def assignment_template(self, template):
         self.handler.assignment_template = template
 
-    def set_assignment_template(self, *args) -> None:
+    def set_assignment_template(self, *args) -> Quib:
         """
         Sets an assignment template for the quib.
 
@@ -1118,12 +1118,17 @@ class Quib:
         * Remove the `assignment_template`:
             ``set_assignment_template(None)``
 
+        Returns
+        -------
+        quib: Quib
+            The focal quib.
+
         See Also
         --------
         AssignmentTemplate, assignment_template
         """
         self.handler.assignment_template = create_assignment_template(*args)
-
+        return self
     """
     setp
     """
@@ -1138,7 +1143,7 @@ class Quib:
              name: Union[None, str] = NoValue,
              graphics_update: Union[None, str] = NoValue,
              assigned_quibs: Optional[Set[Quib]] = NoValue,
-             ):
+             ) -> Quib:
         """
         Set one or more properties on a quib.
 
