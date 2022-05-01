@@ -1053,11 +1053,20 @@ class Quib:
         """
         None or set of Quib: Set of quibs to which assignments to this quib could translate to and override.
 
-        Assignments to the quib are propagated upstream to quibs specified by `assigned_quibs`.
+        When ``assigned_quibs=None``, assignments to the quib are inverse-propagated to any upstream quibs
+        whose ``allow_overriding=True``.
 
-        When ``assigned_quibs=None``, a dialog will be used to choose between options.
+        When ``assigned_quibs``is a set of `Quibs`, assignments to the quib are inverse-propagated to any upstream quibs
+        whose ``allow_overriding=True`` and that are specified in ``assigned_quibs``.
+
+        If multiple choices are available for inverse assignment, a dialog is presented to allow choosing between
+        these options.
 
         Setting ``assigned_quibs=set()`` prevent inverse assignments.
+
+        To allow assignment to self, the str 'self' can be used within the set of quibs.
+
+        Specifying a single quib, or 'self', is interpreted as a set containing this single quib.
 
         See Also
         --------
@@ -1066,13 +1075,18 @@ class Quib:
         return self.handler.assigned_quibs
 
     @assigned_quibs.setter
-    def assigned_quibs(self, quibs: Optional[Iterable[Quib]]) -> None:
+    def assigned_quibs(self, quibs: Union[None, Union[Quib, str], Iterable[Quib, str]]) -> None:
         if quibs is not None:
-            try:
+            if isinstance(quibs, (list, tuple)):
                 quibs = set(quibs)
-                if not all(map(lambda x: isinstance(x, Quib), quibs)):
-                    raise Exception
-            except Exception:
+            elif isinstance(quibs, (str, Quib)):
+                quibs = {quibs}
+
+            if 'self' in quibs:
+                quibs.remove('self')
+                quibs.add(self)
+
+            if not all(map(lambda x: isinstance(x, Quib), quibs)):
                 raise InvalidArgumentValueException(
                     var_name='assigned_quibs',
                     message='a set of quibs.',
