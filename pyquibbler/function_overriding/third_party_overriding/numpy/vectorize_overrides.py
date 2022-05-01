@@ -1,4 +1,4 @@
-from typing import Union, Optional
+from typing import Optional
 
 import numpy as np
 
@@ -8,7 +8,6 @@ from pyquibbler.function_definitions.func_definition import FuncDefinition
 from pyquibbler.function_overriding.function_override import FuncOverride
 from pyquibbler.quib.func_calling.func_calls.vectorize.vectorize_call \
     import VectorizeQuibFuncCall
-from pyquibbler.quib.graphics import GraphicsUpdateType
 from pyquibbler.env import PRETTY_REPR
 from pyquibbler.quib.utils.miscellaneous import NoValue
 from pyquibbler.translation.translators.vectorize_translator import VectorizeForwardsPathTranslator, \
