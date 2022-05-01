@@ -17,9 +17,10 @@ of this image alone). We therefore need ways to independently calculate,
 cache and track the validity of each data item in such diverged analysis
 steps. In *Quibbler*, such independent processing and tracking is
 automatically enabled when we use the *NumPy* syntax of
-:doc:`vectorize<https://numpy.org/doc/stable/reference/generated/numpy.vectorize.html>`
+`vectorize <https://numpy.org/doc/stable/reference/generated/numpy.vectorize.html>`_
 and
-:doc:`apply_along_axis<https://numpy.org/doc/stable/reference/generated/numpy.apply_along_axis.html>`.
+`apply_along_axis <https://numpy.org/doc/stable/reference/generated/numpy.apply_along_axis.html>`_.
+
 Applying such *NumPy* vectorized functions to quib arguments creates a
 *vectorized function quib* whose output array is calculated, cached and
 invalidated not as a whole but rather element-by-element, or slice by
@@ -272,6 +273,8 @@ Here is a simple example:
     draw_arrow(ax, xy_tail, dxy, w);
     plt.plot(xy[:,0], xy[:,1], 'ob', markersize=4, picker=True);
 
+.. image:: images/divergence_gif/Divergence_arrows.gif
+
 Passing quibs as arguments to allows inverse assignment from vectorized quibs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -290,32 +293,31 @@ See this example:
 
 .. code:: ipython3
 
-    xy_default = iquib(np.array([10, 20, 10, 20]))
-    n = iquib(5).setp(assignment_template=(1, 8))
-    xy = np.tile(xy_default, (n, 1))
-    xy.setp(allow_overriding=True, assigned_quibs={xy})
+    # Set figure:
+    plt.figure(figsize=(4, 5))
+    ax = plt.gca()
+    ax.axis('square')
+    ax.axis([0, 100, 0, 100])
+    ax_slider = plt.axes([0.2, 0.05, 0.6, 0.05])
     
-    @partial(np.vectorize, signature='(),(4)->()', is_graphics=True, pass_quibs=True)
-    def rectselect(ax, ext):
+    # Define quibs:
+    number_of_rectangles = iquib(3, assignment_template=(1, 8))
+    ext_default = iquib(np.array([10, 20, 10, 20]))
+    exts = np.tile(ext_default, (number_of_rectangles, 1))
+    exts.setp(allow_overriding=True, assigned_quibs='self')
+    
+    # Use vectorize with pass_quibs to allow inverse_assignment:
+    @partial(np.vectorize, signature='(4)->()', 
+             is_graphics=True, pass_quibs=True)
+    def rectangle_selector(ext):
         RectangleSelector(ax=ax, extents=ext)
         return
     
-    
-    ax = plt.gca()
-    plt.axis('square')
-    plt.axis([0, 100, 0, 100])
-    rectselect(ax, xy)
-    plt.text(5, 95, q(str, xy), va='top');
-    Slider(ax=plt.axes([0.4, 0.2, 0.3, 0.05]), label='n', valmin=1, valmax=8, valinit=n);
-
-
-
-
-.. parsed-literal::
-
-    QSlider(ax=<Axes:>, label='n', valmin=1, valmax=8, valinit=n)
-
-
+    # Graphics:
+    rectangle_selector(exts)
+    ax.text(5, 95, q(str, exts), va='top');
+    Slider(ax=ax_slider, label='n', valmin=1, valmax=8, 
+           valinit=number_of_rectangles);
 
 .. image:: images/divergence_gif/Divergence_passquibs.gif
 

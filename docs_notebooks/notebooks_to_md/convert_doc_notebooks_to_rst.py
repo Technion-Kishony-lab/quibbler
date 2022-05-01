@@ -36,6 +36,10 @@ rst_paths = docs_notebooks_path.glob('*.rst')
 for rst_path in rst_paths:
 
     file = str(rst_path)
+
+    # [[CNN\|\http...]] -> `CNN <http...>`_
+    os.system(r"sed -i '' -E 's/\[\[([A-Z,a-z][-._ [:alnum:]]{1,100})\\\|\\ ([-.:<>/_ [:alnum:]]{1,100})\]\]/`\1 <\2>`_/g' " + file)
+
     # [[Quib]] -> `~pyquibbler.Quib`
     os.system(r"sed -i '' -E 's/\[\[Quib\]\]/:py:class:`~pyquibbler.Quib`/g' " + file)
 
