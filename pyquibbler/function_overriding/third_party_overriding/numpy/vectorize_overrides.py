@@ -2,7 +2,7 @@ from typing import Union, Optional
 
 import numpy as np
 
-from pyquibbler.function_definitions import PositionalArgument, KeywordArgument
+from pyquibbler.function_definitions import PositionalArgument, KeywordArgument, get_definition_for_function
 from pyquibbler.function_definitions.func_call import FuncArgsKwargs
 from pyquibbler.function_definitions.func_definition import FuncDefinition
 from pyquibbler.function_overriding.function_override import FuncOverride
@@ -60,14 +60,16 @@ class QVectorize(np.vectorize):
                  cache=False,  # We don't need the underlying vectorize object to cache, we are doing that ourselves.
                  **kwargs):
         super().__init__(*args, signature=signature, cache=False, **kwargs)
-
-        self.func_defintion_flags = {name: value for name, value in (
-            ('is_random', is_random),
-            ('is_file_loading', is_file_loading),
-            ('is_graphics', is_graphics),
-            ('pass_quibs', pass_quibs),
-            ('lazy', lazy),
-        ) if value is not NoValue }
+        func_definition = get_definition_for_function(self.pyfunc)
+        self.func_defintion_flags = {
+            name: value if value is not NoValue else getattr(func_definition, name)
+            for name, value in (
+                ('is_random', is_random),
+                ('is_file_loading', is_file_loading),
+                ('is_graphics', is_graphics),
+                ('pass_quibs', pass_quibs),
+                ('lazy', lazy),
+            )}
 
     def __repr__(self):
         if PRETTY_REPR:
