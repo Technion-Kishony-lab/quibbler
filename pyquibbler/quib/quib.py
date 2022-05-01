@@ -1053,11 +1053,20 @@ class Quib:
         """
         None or set of Quib: Set of quibs to which assignments to this quib could translate to and override.
 
-        Assignments to the quib are propagated upstream to quibs specified by `assigned_quibs`.
+        When ``assigned_quibs=None``, assignments to the quib are inverse-propagated to any upstream quibs
+        whose ``allow_overriding=True``.
 
-        When ``assigned_quibs=None``, a dialog will be used to choose between options.
+        When ``assigned_quibs``is a set of `Quibs`, assignments to the quib are inverse-propagated to any upstream quibs
+        whose ``allow_overriding=True`` and that are specified in ``assigned_quibs``.
+
+        If multiple choices are available for inverse assignment, a dialog is presented to allow choosing between
+        these options.
 
         Setting ``assigned_quibs=set()`` prevent inverse assignments.
+
+        To allow assignment to self, the str 'self' can be used within the set of quibs.
+
+        Specifying a single quib, or 'self', is interpreted as a set containing this single quib.
 
         See Also
         --------
@@ -1066,13 +1075,18 @@ class Quib:
         return self.handler.assigned_quibs
 
     @assigned_quibs.setter
-    def assigned_quibs(self, quibs: Optional[Iterable[Quib]]) -> None:
+    def assigned_quibs(self, quibs: Union[None, Union[Quib, str], Iterable[Quib, str]]) -> None:
         if quibs is not None:
-            try:
+            if isinstance(quibs, (list, tuple)):
                 quibs = set(quibs)
-                if not all(map(lambda x: isinstance(x, Quib), quibs)):
-                    raise Exception
-            except Exception:
+            elif isinstance(quibs, (str, Quib)):
+                quibs = {quibs}
+
+            if 'self' in quibs:
+                quibs.remove('self')
+                quibs.add(self)
+
+            if not all(map(lambda x: isinstance(x, Quib), quibs)):
                 raise InvalidArgumentValueException(
                     var_name='assigned_quibs',
                     message='a set of quibs.',
@@ -1098,7 +1112,7 @@ class Quib:
     def assignment_template(self, template):
         self.handler.assignment_template = template
 
-    def set_assignment_template(self, *args) -> None:
+    def set_assignment_template(self, *args) -> Quib:
         """
         Sets an assignment template for the quib.
 
@@ -1118,12 +1132,17 @@ class Quib:
         * Remove the `assignment_template`:
             ``set_assignment_template(None)``
 
+        Returns
+        -------
+        quib: Quib
+            The focal quib.
+
         See Also
         --------
         AssignmentTemplate, assignment_template
         """
         self.handler.assignment_template = create_assignment_template(*args)
-
+        return self
     """
     setp
     """
@@ -1138,30 +1157,41 @@ class Quib:
              name: Union[None, str] = NoValue,
              graphics_update: Union[None, str] = NoValue,
              assigned_quibs: Optional[Set[Quib]] = NoValue,
-             ):
+             ) -> Quib:
         """
         Set one or more properties on a quib.
 
-        Settable properties:
+        Parameters
+        ----------
+        x : type
+            Description of parameter `x`.
 
-        ``allow_overriding``: bool
+        allow_overriding : bool, optional
+            Specifies whether the quib is open for overriding assignments.
 
-        ``assigned_quibs``: Optional[Set[Quib]]
+        assigned_quibs : None or Set[Quib]], optional
+            Indicates which upstream quibs to inverse-assign to.
 
-        ``assignment_template``: Union[tuple, AssignmentTemplate]
+        assignment_template : tuple or AssignmentTemplate, optional
+            Constrain the type and value of overriding assignments to the quib.
 
-        ``save_directory``: Union[str, pathlib.Path]
+        save_directory : str or pathlib.Path, optional
+            The directory to which quib assignments are saved.
 
-        ``save_format``: Union[None, str, SaveFormat]
+        save_format : None, str, or SaveFormat, optional
+            The file format for saving quib assignments.
 
-        ``cache_mode``: Union[str, CacheMode]
+        cache_mode : str or CacheMode, optional
+            Indicates whether the quib caches its calculated value.
 
-        ``assigned_name``: Union[None, str]
+        assigned_name : None or str, optional
+            The user-assigned name of the quib.
 
-        ``name``: Union[None, str]
+        name : None or str, optional
+            The name of the quib.
 
-        ``graphics_update``: Union[None, str]
-
+        graphics_update : None or str, optional
+            For graphics quibs, indicates when they should be refreshed.
 
         Returns
         -------
@@ -1180,24 +1210,13 @@ class Quib:
         """
 
         from pyquibbler.quib.factory import get_quib_name
-        if allow_overriding is not NoValue:
-            self.allow_overriding = allow_overriding
+        for attr_name in ['allow_overriding', 'save_directory', 'save_format',
+                          'cache_mode', 'assigned_name', 'name', 'graphics_update', 'assigned_quibs']:
+            value = eval(attr_name)
+            if value is not NoValue:
+                setattr(self, attr_name, value)
         if assignment_template is not NoValue:
             self.set_assignment_template(assignment_template)
-        if save_directory is not NoValue:
-            self.save_directory = save_directory
-        if save_format is not NoValue:
-            self.save_format = save_format
-        if cache_mode is not NoValue:
-            self.cache_mode = cache_mode
-        if assigned_name is not NoValue:
-            self.assigned_name = assigned_name
-        if name is not NoValue:
-            self.assigned_name = name
-        if graphics_update is not NoValue:
-            self.graphics_update = graphics_update
-        if assigned_quibs is not NoValue:
-            self.assigned_quibs = assigned_quibs
 
         if name is NoValue and assigned_name is NoValue and self.assigned_name is None:
             var_name = get_quib_name()

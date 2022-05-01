@@ -7,23 +7,27 @@ Rationale
 Data analysis pipelines can have *diverged* processing steps, where a
 specific function is applied repeatedly to each of many individual data
 items (e.g., enhancing each image in a stack of images). In such
-diverged analysis, the processing of each data item could be done
-independently, and we may only want to process some and not all of the
+diverged steps, the calculation of each data item could be done
+independently, and we may only want to calculate some and not all of the
 items at a given time. Furthermore, changes to upstream parameters may
 only affect the calculations of some of the data items while any cached
 calculations of other items remain valid (e.g., changing an enhancement
-parameter specific for one image requires repeating the processing of
-this image alone). We therefore need ways to independently calculate,
+parameter specific for one image will require repeating the processing
+of this image alone). We therefore need ways to independently calculate,
 cache and track the validity of each data item in such diverged analysis
 steps. In *Quibbler*, such independent processing and tracking is
-automatically enabled by adopting the *NumPy* syntax of ``vectorize``
-and ``apply_along_axis``. Applying such *NumPy* vectorized functions to
-quib arguments creates a *vectorized function quib* whose output array
-is calculated, cached and invalidated not as a whole but rather
-element-by-element, or slice by slice.
+automatically enabled when we use the *NumPy* syntax of
+`vectorize <https://numpy.org/doc/stable/reference/generated/numpy.vectorize.html>`_
+and
+`apply_along_axis <https://numpy.org/doc/stable/reference/generated/numpy.apply_along_axis.html>`_.
 
-Reviewing the standard behavior of np.vectorize
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Applying such *NumPy* vectorized functions to quib arguments creates a
+*vectorized function quib* whose output array is calculated, cached and
+invalidated not as a whole but rather element-by-element, or slice by
+slice.
+
+Quickly reviewing the standard behavior of np.vectorize
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 *NumPy*\ ’s ``np.vectorize`` provides a standard syntax to *vectorize* a
 given function such that when applied to array arguments it creates a
@@ -46,29 +50,29 @@ For example:
 
 .. code:: ipython3
 
-    def mysqr(x):
-        print('calculating sqr({})'.format(x))
+    def my_sqr(x):
+        print(f'calculating my_sqr of x = {x}')
         return x ** 2
     
     
-    v_mysqr = np.vectorize(mysqr, otypes=[int])
+    v_my_sqr = np.vectorize(my_sqr, otypes=[int])
 
-In this example, ``v_mysqr`` is the vectorized form of ``mysqr``; when
-``v_mysqr`` is applied to an array, it executes the underlying function
-``mysqr`` on each element of the input array:
+In this example, ``v_my_sqr`` is the vectorized form of ``my_sqr``; when
+``v_my_sqr`` is applied to an array, it executes the underlying function
+``my_sqr`` on each element of the input array:
 
 .. code:: ipython3
 
-    v_mysqr(np.array([0, 1, 2, 3, 4]))
+    v_my_sqr(np.array([0, 1, 2, 3, 4]))
 
 
 .. parsed-literal::
 
-    calculating sqr(0)
-    calculating sqr(1)
-    calculating sqr(2)
-    calculating sqr(3)
-    calculating sqr(4)
+    calculating my_sqr of x = 0
+    calculating my_sqr of x = 1
+    calculating my_sqr of x = 2
+    calculating my_sqr of x = 3
+    calculating my_sqr of x = 4
 
 
 
@@ -86,28 +90,29 @@ In analogy to the standard behavior above, applying a vectorized
 function to quib arguments creates a vectorized function quib that
 calculates its output by calling the underlying function on each element
 of the output of its quib arguments. As with other function quibs, this
-definion is declarative, no calculations are initially performed:
+definion is declarative (``lazy`` by default), so no calculations are
+initially performed:
 
 .. code:: ipython3
 
     x = iquib(np.array([0, 1, 2, 3, 4]))
-    x2 = v_mysqr(x).setp(cache_mode='on')
+    x_sqr = v_my_sqr(x).setp(cache_mode='on')
 
 Calculations are only performed once we request the output of the
 function quib:
 
 .. code:: ipython3
 
-    x2.get_value()
+    x_sqr.get_value()
 
 
 .. parsed-literal::
 
-    calculating sqr(0)
-    calculating sqr(1)
-    calculating sqr(2)
-    calculating sqr(3)
-    calculating sqr(4)
+    calculating my_sqr of x = 0
+    calculating my_sqr of x = 1
+    calculating my_sqr of x = 2
+    calculating my_sqr of x = 3
+    calculating my_sqr of x = 4
 
 
 
@@ -118,30 +123,29 @@ function quib:
 
 
 
-Vectorized quibs targetly calculate and cache specifically requested array elements
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Vectorized quibs independently calculate and cache specifically requested array elements
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 As the output of vectorized function quibs is calculated
 element-by-element, there is no need to calculate the entire array if
-only specific elements are requested. Indeed, the *Quibbler*
-implementation of ``np.vectorize``, unlike the standard *NumPy*
-implementation, knows to only calculate the array elements specifically
-requested to provide a requested output.
+only specific elements are requested. Indeed, an ``np.vectorize`` quib
+knows to only calculate the array elements specifically needed to
+provide a requested output.
 
 For example, let’s repeat the simple code above, but only ask for the
-value of ``x2`` at a specific element. *Quibbler* will only evaluate the
-function at the requested position:
+value of ``x_sqr`` at a specific element. *Quibbler* will only evaluate
+the function at the requested position:
 
 .. code:: ipython3
 
     x = iquib(np.array([0, 1, 2, 3, 4]))
-    x2 = v_mysqr(x).setp(cache_mode='on')
-    x2[3].get_value()
+    x_sqr = v_my_sqr(x).setp(cache_mode='on')
+    x_sqr[3].get_value()
 
 
 .. parsed-literal::
 
-    calculating sqr(3)
+    calculating my_sqr of x = 3
 
 
 
@@ -152,18 +156,19 @@ function at the requested position:
 
 
 
-These values are indepdnently cached, so additional requests for array
-output only calculate the parts of the array not yet calculated:
+These calculated values resulting from each call to the underlying
+fucntion are indepdnently cached, so further requests for array output
+only calculate the parts of the array not yet calculated:
 
 .. code:: ipython3
 
-    x2[2:].get_value()
+    x_sqr[2:].get_value()
 
 
 .. parsed-literal::
 
-    calculating sqr(2)
-    calculating sqr(4)
+    calculating my_sqr of x = 2
+    calculating my_sqr of x = 4
 
 
 
@@ -176,13 +181,13 @@ output only calculate the parts of the array not yet calculated:
 
 .. code:: ipython3
 
-    x2.get_value()
+    x_sqr.get_value()
 
 
 .. parsed-literal::
 
-    calculating sqr(0)
-    calculating sqr(1)
+    calculating my_sqr of x = 0
+    calculating my_sqr of x = 1
 
 
 
@@ -204,21 +209,18 @@ When upstream value changes, such changes only invalidate the
 specifically affected array elements. Only the calculation of these
 elements is then repeated when the output is requested:
 
-TODO: repeat after making vectorized non-graphic
-
 .. code:: ipython3
 
     x[3] = 10
 
+.. code:: ipython3
+
+    x_sqr.get_value()
+
 
 .. parsed-literal::
 
-    calculating sqr(10)
-
-
-.. code:: ipython3
-
-    x2.get_value()
+    calculating my_sqr of x = 10
 
 
 
@@ -234,31 +236,44 @@ Using vectorize for graphic functions
 
 Vectorized function quibs readily facilitate creating multiple instances
 of similar graphic elements. This is done simply by vectorizing an
-underlying function that create graphics and setting ``lazy=False`` in
-the vectorize command.
+underlying function that create graphics and setting
+``Quib.is_graphics=True`` in the vectorize command.
 
 Here is a simple example:
 
 .. code:: ipython3
 
-    def draw_arrow(ax, xy, dxy, w):
-        plt.plot([xy[0], xy[0]+dxy[0]], [xy[1], xy[1]+dxy[1]], 'r-')
-        #ax.add_patch(Arrow(xy[0], xy[1], dxy[0], dxy[1], w)) <- TODO - use this when patches work
+    from functools import partial
     
+    # define graphics vectorize function
+    @partial(np.vectorize, is_graphics=True, signature='(),(2),(2),()->()')
+    def draw_arrow(ax, xy0, dxy, w):
+        xy1 = xy0 + dxy
+        ax.plot([xy0[0], xy1[0]], [xy0[1], xy1[1]], 'r-')
+        phi = np.pi + np.arctan2(dxy[1], dxy[0])
+        phi1 = phi - 0.3
+        phi2 = phi + 0.3
+        ax.plot([xy1[0], xy1[0] + w*np.cos(phi1)], [xy1[1], xy1[1] + w*np.sin(phi1)], 'r')
+        ax.plot([xy1[0], xy1[0] + w*np.cos(phi2)], [xy1[1], xy1[1] + w*np.sin(phi2)], 'r')
     
-    v_draw_arrow = np.vectorize(draw_arrow, lazy=False, signature='(),(2),(2),()->()')
-    
+    # prepare figure
     plt.figure()
     ax = plt.gca()
-    plt.axis([0, 100, 0, 100])
+    ax.axis('square')
+    ax.axis([0, 50, 0, 50])
     
+    # define quibs:
     xy = iquib(np.array([[10, 10], [20, 20], [30, 30], [40, 40]]))
     xy_tail = xy[0:-1]
     xy_head = xy[1:]
     dxy = xy_head - xy_tail
-    w = iquib(10.)
-    v_draw_arrow(ax, xy_tail, dxy, w);
-    plt.plot(xy[:,0], xy[:,1], 'ob', markersize=16, picker=True);
+    w = iquib(4.)
+    
+    # draw
+    draw_arrow(ax, xy_tail, dxy, w);
+    plt.plot(xy[:,0], xy[:,1], 'ob', markersize=4, picker=True);
+
+.. image:: images/divergence_gif/Divergence_arrows.gif
 
 Passing quibs as arguments to allows inverse assignment from vectorized quibs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -267,39 +282,42 @@ In the examples above, when the vectorized function quib gets quib
 arguments it sends to the underlying function the output value of these
 quibs at given array positions. The underlying function deals with
 regular, non-quib, arguments. Alternatively, it is also possible to send
-the underlying function quibs which reference the vectorize quib
-arguments at the corresponding indices. This behavior is controlled by
-the ``pass_quibs`` kwarg of np.vectorize. By default, ``pass_quibs`` is
-set to ``False``. Setting ``pass_quibs=True`` will pass quib as
-arguments thus enabling some important functionality including in
-particular the ability to inverse assign from graphics created within
-the function.
+the underlying function quib arguments which reference the vectorize
+quib arguments at the corresponding indices. This behavior is controlled
+by the ``pass_quibs`` kwarg of ``np.vectorize``. Setting
+``pass_quibs=True`` will pass quib as arguments thus enabling some
+additional functionality including in particular the ability to inverse
+assign from graphics created within the function.
 
 See this example:
 
 .. code:: ipython3
 
-    xy_default = iquib(np.array([10, 20, 10, 20]))
-    xy_default.allow_overriding = False
-    n = iquib(np.array([5]))
-    xy = np.tile(xy_default, (n[0], 1))
-    xy.allow_overriding = True
+    # Set figure:
+    plt.figure(figsize=(4, 5))
+    ax = plt.gca()
+    ax.axis('square')
+    ax.axis([0, 100, 0, 100])
+    ax_slider = plt.axes([0.2, 0.05, 0.6, 0.05])
     
-    def rectselect(ax, ext):
+    # Define quibs:
+    number_of_rectangles = iquib(3, assignment_template=(1, 8))
+    ext_default = iquib(np.array([10, 20, 10, 20]))
+    exts = np.tile(ext_default, (number_of_rectangles, 1))
+    exts.setp(allow_overriding=True, assigned_quibs='self')
+    
+    # Use vectorize with pass_quibs to allow inverse_assignment:
+    @partial(np.vectorize, signature='(4)->()', 
+             is_graphics=True, pass_quibs=True)
+    def rectangle_selector(ext):
         RectangleSelector(ax=ax, extents=ext)
         return
     
-    v_rectselect = np.vectorize(rectselect, signature='(),(4)->()', lazy=False, pass_quibs=True)
-    
-    ax = plt.gca()
-    plt.axis('square')
-    plt.axis([0, 100, 0, 100])
-    v_rectselect(ax, xy)
-    
-    plt.text(5, 95, q(str, xy), va='top');
-    
-    # TODO: add after fixing bug:
-    #Slider(ax=plt.axes([0.4, 0.2, 0.3, 0.05]), label='n', valmin=1, valmax=8, valinit=n[0])
+    # Graphics:
+    rectangle_selector(exts)
+    ax.text(5, 95, q(str, exts), va='top');
+    Slider(ax=ax_slider, label='n', valmin=1, valmax=8, 
+           valinit=number_of_rectangles);
 
 .. image:: images/divergence_gif/Divergence_passquibs.gif
 

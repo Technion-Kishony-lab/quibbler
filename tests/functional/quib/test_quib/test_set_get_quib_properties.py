@@ -1,6 +1,6 @@
 import pytest
 
-from pyquibbler import iquib, CacheMode
+from pyquibbler import iquib, CacheMode, Quib
 from pyquibbler.file_syncing import SaveFormat
 from pyquibbler.quib.graphics import GraphicsUpdateType
 from pyquibbler.utilities.file_path import PathWithHyperLink
@@ -52,6 +52,21 @@ def test_reject_set_invlid_properties(prop_name, set_value, exception):
 
 def test_set_assigned_quibs():
     a = iquib(2)
-    b = iquib(3)
-    a.assigned_quibs = {b}
-    assert a.assigned_quibs == {b}
+    b: Quib = a + 3
+    b.assigned_quibs = {b}
+    assert b.assigned_quibs == {b}
+
+
+def test_set_assigned_quibs_to_self():
+    a = iquib(2)
+    b: Quib = a + 3
+    b.assigned_quibs = {'self'}
+    assert b.assigned_quibs == {b}
+
+
+def test_set_assigned_quibs_to_a_single_quib():
+    a = iquib(2)
+    b: Quib = a + 3
+    b.assigned_quibs = 'self'
+    assert b.assigned_quibs == {b}
+
