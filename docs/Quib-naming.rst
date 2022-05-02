@@ -12,7 +12,7 @@ The ``assigned_name`` and the ``functional_representation`` of a quib
 are indicated by its repr representation. Consider the following
 example:
 
-.. code:: ipython3
+.. code:: python
 
     # Imports
     import pyquibbler as qb
@@ -20,7 +20,7 @@ example:
     qb.override_all()
     import numpy as np
 
-.. code:: ipython3
+.. code:: python
 
     n = iquib(6)
     numbers = np.arange(n**2)
@@ -50,7 +50,7 @@ arguments. This automatically assigned string is displayed after the
 equal sign in the quib repr and can also be accessed directly through
 the ``functional_representation`` property:
 
-.. code:: ipython3
+.. code:: python
 
     n.functional_representation
 
@@ -63,7 +63,7 @@ the ``functional_representation`` property:
 
 
 
-.. code:: ipython3
+.. code:: python
 
     numbers.functional_representation
 
@@ -76,7 +76,7 @@ the ``functional_representation`` property:
 
 
 
-.. code:: ipython3
+.. code:: python
 
     total.functional_representation
 
@@ -99,7 +99,7 @@ variable to which the quib is assigned. This assigned name is displayed
 before the equal sign in the quib repr and can also be accessed by the
 ``assigned_name`` property:
 
-.. code:: ipython3
+.. code:: python
 
     numbers.assigned_name
 
@@ -133,7 +133,7 @@ shorter, more compact, name for the variable pointing to it.
 In the above example, the user may choose for instance to rename
 numbers:
 
-.. code:: ipython3
+.. code:: python
 
     numbers.assigned_name = 'numbers from zero to sqr_n minus one'
     numbers.assigned_name
@@ -164,7 +164,7 @@ typically represent intermediate analysis steps.
 For example, when we defined ``numbers = np.arange(n**2)``, an
 intermediate quib ``n**2`` was created:
 
-.. code:: ipython3
+.. code:: python
 
     numbers.parents
 
@@ -179,7 +179,7 @@ intermediate quib ``n**2`` was created:
 
 This intermediate quib has no assigned ``assigned_name``:
 
-.. code:: ipython3
+.. code:: python
 
     n2 = next(iter(numbers.parents))
     print(n2.assigned_name)
@@ -197,7 +197,7 @@ The :py:attr:`~pyquibbler.Quib.name` property of a quib is defined as its ``assi
 if specified, or as its ``functional_representation`` if
 ``assigned_name`` is ``None``.
 
-.. code:: ipython3
+.. code:: python
 
     total.name
 
@@ -210,7 +210,7 @@ if specified, or as its ``functional_representation`` if
 
 
 
-.. code:: ipython3
+.. code:: python
 
     total.set_assigned_name(None)
     total.name
@@ -235,13 +235,13 @@ changes to reflect changes in the names of quib arguments, recursively.
 
 For example, if we set ``numbers`` to as un-named:
 
-.. code:: ipython3
+.. code:: python
 
     total.assigned_name = None
 
 then the name of the downstream quib ``total`` is updated:
 
-.. code:: ipython3
+.. code:: python
 
     total.name
 
@@ -256,7 +256,7 @@ then the name of the downstream quib ``total`` is updated:
 
 Changing the name of ``n`` will now also be reflected downstream:
 
-.. code:: ipython3
+.. code:: python
 
     n.name = 'number_of_values'
     total.name

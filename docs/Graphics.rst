@@ -46,7 +46,7 @@ recalculate, creating live updates to their graphics.
 
 For example, consider the following code for choosing a coordinate x-y:
 
-.. code:: ipython3
+.. code:: python
 
     # Imports
     import pyquibbler as qb
@@ -59,7 +59,7 @@ For example, consider the following code for choosing a coordinate x-y:
     
     %matplotlib tk
 
-.. code:: ipython3
+.. code:: python
 
     # Figure setup
     plt.figure(figsize=(5, 3))
@@ -126,7 +126,7 @@ horizontally.
 For example, in the code below, we add horizontally and vertically
 sliding markers for setting the x-y coordinates of our chosen point:
 
-.. code:: ipython3
+.. code:: python
 
     # Add horizontal and vertical guiding lines:
     plt.plot([0, x], [y, y], 'r--', linewidth=0.5)
@@ -158,7 +158,7 @@ coordinate-choosing axes to indicate the chosen x and y values. These
 labels will thereby update automatically as the markers setting ``xy``
 are dragged:
 
-.. code:: ipython3
+.. code:: python
 
     plt.xlabel(q('x={}'.format, x))
     plt.ylabel(q('y={}'.format, y));
@@ -195,7 +195,7 @@ supported in the *Quibbler* implementation of RectangleSelector)
 For example, let’s define a box around our point x-y and create a Slider
 to control the size of this box:
 
-.. code:: ipython3
+.. code:: python
 
     # Plot a square around the point (x,y):
     box_size = iquib(6) # size of the square
@@ -220,7 +220,7 @@ example, we apply below our point-choosing implementation to probe the
 RGB intensities of an image (here, an image of red, green and blue
 labeled bacteria growing in a water-in-oil droplet).
 
-.. code:: ipython3
+.. code:: python
 
     # Load an image from file:
     filename = iquib(os.path.join('..','examples','data_files','bacteria_in_a_droplet.tif'))

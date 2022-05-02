@@ -36,7 +36,7 @@ new array by acting repeatedly on each element of the array arguments
 
 For example:
 
-.. code:: ipython3
+.. code:: python
 
     # Imports
     import pyquibbler as qb
@@ -48,7 +48,7 @@ For example:
     from matplotlib.patches import Arrow
     %matplotlib tk
 
-.. code:: ipython3
+.. code:: python
 
     def my_sqr(x):
         print(f'calculating my_sqr of x = {x}')
@@ -61,7 +61,7 @@ In this example, ``v_my_sqr`` is the vectorized form of ``my_sqr``; when
 ``v_my_sqr`` is applied to an array, it executes the underlying function
 ``my_sqr`` on each element of the input array:
 
-.. code:: ipython3
+.. code:: python
 
     v_my_sqr(np.array([0, 1, 2, 3, 4]))
 
@@ -93,7 +93,7 @@ of the output of its quib arguments. As with other function quibs, this
 definion is declarative (``lazy`` by default), so no calculations are
 initially performed:
 
-.. code:: ipython3
+.. code:: python
 
     x = iquib(np.array([0, 1, 2, 3, 4]))
     x_sqr = v_my_sqr(x).setp(cache_mode='on')
@@ -101,7 +101,7 @@ initially performed:
 Calculations are only performed once we request the output of the
 function quib:
 
-.. code:: ipython3
+.. code:: python
 
     x_sqr.get_value()
 
@@ -136,7 +136,7 @@ For example, let’s repeat the simple code above, but only ask for the
 value of ``x_sqr`` at a specific element. *Quibbler* will only evaluate
 the function at the requested position:
 
-.. code:: ipython3
+.. code:: python
 
     x = iquib(np.array([0, 1, 2, 3, 4]))
     x_sqr = v_my_sqr(x).setp(cache_mode='on')
@@ -160,7 +160,7 @@ These calculated values resulting from each call to the underlying
 fucntion are indepdnently cached, so further requests for array output
 only calculate the parts of the array not yet calculated:
 
-.. code:: ipython3
+.. code:: python
 
     x_sqr[2:].get_value()
 
@@ -179,7 +179,7 @@ only calculate the parts of the array not yet calculated:
 
 
 
-.. code:: ipython3
+.. code:: python
 
     x_sqr.get_value()
 
@@ -209,11 +209,11 @@ When upstream value changes, such changes only invalidate the
 specifically affected array elements. Only the calculation of these
 elements is then repeated when the output is requested:
 
-.. code:: ipython3
+.. code:: python
 
     x[3] = 10
 
-.. code:: ipython3
+.. code:: python
 
     x_sqr.get_value()
 
@@ -241,7 +241,7 @@ underlying function that create graphics and setting
 
 Here is a simple example:
 
-.. code:: ipython3
+.. code:: python
 
     from functools import partial
     
@@ -291,7 +291,7 @@ assign from graphics created within the function.
 
 See this example:
 
-.. code:: ipython3
+.. code:: python
 
     # Set figure:
     plt.figure(figsize=(4, 5))

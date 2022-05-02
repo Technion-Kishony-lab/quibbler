@@ -39,7 +39,7 @@ Quib assignments are made using standard *Python* assignment syntax.
 
 For example:
 
-.. code:: ipython3
+.. code:: python
 
     # Imports
     import pyquibbler as qb
@@ -50,7 +50,7 @@ For example:
     from matplotlib.widgets import Slider, CheckButtons
     %matplotlib tk
 
-.. code:: ipython3
+.. code:: python
 
     words = iquib(['We', 'love', 'big', 'data'])
     words.get_value()
@@ -64,7 +64,7 @@ For example:
 
 
 
-.. code:: ipython3
+.. code:: python
 
     words[2] = 'huge'
     words.get_value()
@@ -80,7 +80,7 @@ For example:
 
 Deep-level assignments are also supported:
 
-.. code:: ipython3
+.. code:: python
 
     x = iquib([1, [2, 3], 4])
     x[1][1] = 0
@@ -106,7 +106,7 @@ array ``np.array([10, 20, 30])`` into the quib ``x`` above. The syntax
 the array. To perform such whole-object assignments, we can use the
 ``assign()`` method:
 
-.. code:: ipython3
+.. code:: python
 
     x.assign(np.array([10, 20, 30]))
     x.get_value()
@@ -133,7 +133,7 @@ f-quibs, see :doc:`Overriding-default-functionality`).
 For example, suppose ``z`` is an i-quib and ``z10`` is an f-quib that
 depends on ``z``:
 
-.. code:: ipython3
+.. code:: python
 
     z = iquib(np.array([11, 12, 13]))
     z10 = z + 10
@@ -151,7 +151,7 @@ depends on ``z``:
 Then, making an assignment into ``z10`` is propagated backwards,
 reaching the i-quib ``z`` where the assignment is actualized:
 
-.. code:: ipython3
+.. code:: python
 
     z10[2] = 100;
     z.get_value()
@@ -165,7 +165,7 @@ reaching the i-quib ``z`` where the assignment is actualized:
 
 
 
-.. code:: ipython3
+.. code:: python
 
     z10.get_value()
 
@@ -185,7 +185,7 @@ concatenation, array-reordering, array referencing and more.
 For example, consider a series of functional operations starting with a
 given i-quib:
 
-.. code:: ipython3
+.. code:: python
 
     xy_list = iquib(np.array([[8, 1], [16, 2], [2, 4]]))
     xy_list.get_value()
@@ -201,7 +201,7 @@ given i-quib:
 
 
 
-.. code:: ipython3
+.. code:: python
 
     xy0 = xy_list[0] # -> [8, 1]
     xy2 = xy_list[2] # -> [2, 4]
@@ -223,14 +223,14 @@ given i-quib:
 
 then, assigning to the downstream f-quib:
 
-.. code:: ipython3
+.. code:: python
 
     x0y2_log_plus10[1] = 16
 
 is translated into upstream changes in the corresponding indeces of the
 relevant source i-quibs:
 
-.. code:: ipython3
+.. code:: python
 
     xy_list.get_value()
 
@@ -262,7 +262,7 @@ translate from date of birth (dob) to age and backwards, from height in
 foot to centimeters, and from individual Boolean parameters to a Boolean
 array that can be presented as check-boxes:
 
-.. code:: ipython3
+.. code:: python
 
     params = iquib({
         'dob': [1950, 2010], 
@@ -316,14 +316,14 @@ overridded, yet we can apply them using the ``q`` syntax).
 
 For example:
 
-.. code:: ipython3
+.. code:: python
 
     i = iquib(5)
     f = q(float, i)
     s = q(str, f)
     s.get_value()
 
-.. code:: ipython3
+.. code:: python
 
     s.assign('7.2')
     i.get_value()
@@ -342,7 +342,7 @@ For example:
 function. So, while the inverse of round(10) can be any number between
 9.5 and 10.5, *Quibbler* uses the value 10 for the inversion:
 
-.. code:: ipython3
+.. code:: python
 
     f = iquib(np.array([-3.2, 3.2, -3.7, 3.7]))
     f_round = np.round(f)
@@ -362,7 +362,7 @@ function. So, while the inverse of round(10) can be any number between
 solutions. *Quibbler* automatically chooses the solution closet to the
 current value of the assigned quib. For example:
 
-.. code:: ipython3
+.. code:: python
 
     phi = iquib(np.array([0., 180., 360., -360., 3600.]))
     sin_phi = np.sin(phi / 360 * 2 * np.pi) # <- [0., 0., 0., 0., 0.]
@@ -382,7 +382,7 @@ current value of the assigned quib. For example:
 functions where multiple solutions exist, inverse assignments assumes
 the solution closest to the current value:
 
-.. code:: ipython3
+.. code:: python
 
     r = iquib(np.array([-3., 3.]))
     r2 = np.square(r)
@@ -410,7 +410,7 @@ inversion.
 Consider for example the different in behavior of the following two code
 snippets:
 
-.. code:: ipython3
+.. code:: python
 
     x = iquib([3, 4])
     s = x[0] + x[1]
@@ -426,7 +426,7 @@ snippets:
 
 
 
-.. code:: ipython3
+.. code:: python
 
     x = iquib([3, 4])
     s = x[1] + x[0]
@@ -469,12 +469,12 @@ to desired upstream changes. This is perhaps best exemplified in the
 following simple code which allows adding a given value to specified
 quib:
 
-.. code:: ipython3
+.. code:: python
 
     xy = iquib(np.array([2, 3]))
     dxy = xy - xy
 
-.. code:: ipython3
+.. code:: python
 
     dxy[1] = 4
     xy.get_value()
@@ -488,7 +488,7 @@ quib:
 
 
 
-.. code:: ipython3
+.. code:: python
 
     dxy[:] = [3, -1]
     xy.get_value()
@@ -518,7 +518,7 @@ must be divisible by 10. Assigning a value of 33 to ``b`` assigns 3.3 to
 ``a``, but since ``a`` is an array of integers, it changes to 3 thereby
 changing ``b`` to 30 (rather than the assigned value of 33):
 
-.. code:: ipython3
+.. code:: python
 
     a = iquib(np.array([7]))
     b = 10 * a

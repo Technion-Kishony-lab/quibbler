@@ -11,14 +11,14 @@ To test if a given function is quiby, use ``is_quiby``:
 Import
 ^^^^^^
 
-.. code:: ipython3
+.. code:: python
 
     import pyquibbler as qb
     from pyquibbler import iquib
     qb.override_all()
     import numpy as np
 
-.. code:: ipython3
+.. code:: python
 
     qb.is_quiby(np.sin)
 
@@ -31,7 +31,7 @@ Import
 
 
 
-.. code:: ipython3
+.. code:: python
 
     qb.is_quiby(int)
 
@@ -53,7 +53,7 @@ List of all built-in quiby functions
 
 To see all available quiby functiuons, use ``list_quiby_funcs()``:
 
-.. code:: ipython3
+.. code:: python
 
     qb.list_quiby_funcs()
 

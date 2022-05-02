@@ -16,7 +16,7 @@ downstream output request.
 Import
 ~~~~~~
 
-.. code:: ipython3
+.. code:: python
 
     import pyquibbler as qb
     from pyquibbler import iquib
@@ -33,7 +33,7 @@ arguments.
 
 For example,
 
-.. code:: ipython3
+.. code:: python
 
     n = iquib(3)
     rand_numbers = np.random.rand(n)
@@ -48,7 +48,7 @@ For example,
 
 
 
-.. code:: ipython3
+.. code:: python
 
     rand_numbers.is_random
 
@@ -67,7 +67,7 @@ Random quibs always cache their results
 Random quibs always cache their results, so repeated calls for their
 value yields the same randomization:
 
-.. code:: ipython3
+.. code:: python
 
     rand_numbers.get_value()
 
@@ -82,7 +82,7 @@ value yields the same randomization:
 
 Because the randomization is fixed, mathematical trivialities hold true:
 
-.. code:: ipython3
+.. code:: python
 
     rand_numbers_plus_1 = rand_numbers + 1
     should_equal_zero = np.sum(rand_numbers_plus_1 - rand_numbers) - n
@@ -112,7 +112,7 @@ use the ``reset_random_quibs`` function. All downstream results are also
 invalidated and upon request for their value, new randomization will be
 calculated:
 
-.. code:: ipython3
+.. code:: python
 
     rand_numbers_plus_1.get_value()
 
@@ -125,7 +125,7 @@ calculated:
 
 
 
-.. code:: ipython3
+.. code:: python
 
     qb.reset_random_quibs()
     rand_numbers_plus_1.get_value()
@@ -145,7 +145,7 @@ using the ``invalidate`` method. Any function quibs downstream of this
 specific quib will thereby also invalidate. Request the value of such
 downstream results will lead to new randomization:
 
-.. code:: ipython3
+.. code:: python
 
     rand_numbers.invalidate()
     rand_numbers_plus_1.get_value()
@@ -166,7 +166,7 @@ To implement quibs that call user defined random functions, we can set
 the ``is_random`` property of the function to ``True``, when converting
 it to a quiby function using the :py:func:`~pyquibbler.quiby_function` decorator:
 
-.. code:: ipython3
+.. code:: python
 
     @qb.quiby_function(is_random=True)
     def sum_of_dice(n: int):
@@ -185,7 +185,7 @@ it to a quiby function using the :py:func:`~pyquibbler.quiby_function` decorator
 
 
 
-.. code:: ipython3
+.. code:: python
 
     sum_dice.get_value()
 
@@ -198,7 +198,7 @@ it to a quiby function using the :py:func:`~pyquibbler.quiby_function` decorator
 
 
 
-.. code:: ipython3
+.. code:: python
 
     qb.reset_random_quibs()
     sum_dice.get_value()

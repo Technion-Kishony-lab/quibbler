@@ -27,7 +27,7 @@ Following import, we execute ``qb.override_all()`` which configures
 *NumPy* and *Matplotlib* functions to work with *Quibbler*. A typical
 import therefore looks as follows:
 
-.. code:: ipython3
+.. code:: python
 
     # Quibbler import:
     import pyquibbler as qb
@@ -46,7 +46,7 @@ As a quick simple example to demonstrate *Quibbler*, consider the
 following code for creating a figure with a draggable marker and
 corresponding text at defined x-y coordinates:
 
-.. code:: ipython3
+.. code:: python
 
     xy = iquib(np.array([250, 250]))
     x = xy[0]
@@ -167,7 +167,7 @@ in an image.
 Let’s first define and plot our square area, as a box extending length
 ``d`` from our defined x-y coordinates:
 
-.. code:: ipython3
+.. code:: python
 
     d = iquib(np.array([120]))
     plt.plot(d * np.array([ -1,  1,  1, -1, -1]) + x, 
@@ -200,7 +200,7 @@ box.
 
 As the box is extending from -d[0] to d[0], its size is defined by:
 
-.. code:: ipython3
+.. code:: python
 
     box_size = 2 * d[0] + 1
 
@@ -209,7 +209,7 @@ widget creation functions, while specifying a quib as the initial value
 of the widget. In our case, we will create a slider with initial value
 set to the function quib ``box_size``:
 
-.. code:: ipython3
+.. code:: python
 
     from matplotlib.widgets import Slider
     main_ax = plt.gca()
@@ -242,7 +242,7 @@ In our example, we will load and plot an image that we want to cut based
 on our defined square. Let’s look at an example of a microscopy image of
 fluorescently-labeled bacteria growing inside small micro-droplets:
 
-.. code:: ipython3
+.. code:: python
 
     filename = iquib('bacteria_in_droplets.tif')
     img = plt.imread(filename)
@@ -260,7 +260,7 @@ For example, we can use slice indexing based on the quibs ``x``, ``y``
 and ``d`` which we have defined above, to extract and plot the image
 within our defined box:
 
-.. code:: ipython3
+.. code:: python
 
     d0 = d[0]
     img_cut = img[y-d0:y+d0+1, x-d0:x+d0+1, :]

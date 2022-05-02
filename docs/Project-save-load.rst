@@ -25,7 +25,7 @@ There are two types of LIFs:
 Import
 ~~~~~~
 
-.. code:: ipython3
+.. code:: python
 
     # Quibbler import:
     import pyquibbler as qb
@@ -37,12 +37,12 @@ Import
     import matplotlib.pyplot as plt
     %matplotlib tk
 
-.. code:: ipython3
+.. code:: python
 
     xy = iquib(np.array([[250], [250]]))
     xy2 = xy + 1000
 
-.. code:: ipython3
+.. code:: python
 
     # set the project path to the current directory
     qb.set_project_directory('.')  
@@ -57,7 +57,7 @@ Import
 
 
 
-.. code:: ipython3
+.. code:: python
 
     qb.get_project().save_format
 
@@ -70,15 +70,15 @@ Import
 
 
 
-.. code:: ipython3
+.. code:: python
 
     qb.save_quibs()
 
-.. code:: ipython3
+.. code:: python
 
     xy[1,0] = 10
 
-.. code:: ipython3
+.. code:: python
 
     xy.get_value()
 

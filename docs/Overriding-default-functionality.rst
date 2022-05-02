@@ -18,7 +18,7 @@ Such exceptions are made by *overriding assignments*.
 Consider the following simple, where we define a default value to be
 used for some presumed downstream processing of some *n* data items:
 
-.. code:: ipython3
+.. code:: python
 
     # Imports
     import pyquibbler as qb
@@ -28,7 +28,7 @@ used for some presumed downstream processing of some *n* data items:
     import matplotlib.pyplot as plt
     %matplotlib tk
 
-.. code:: ipython3
+.. code:: python
 
     # Number of data items:
     n = iquib(5)
@@ -39,7 +39,7 @@ used for some presumed downstream processing of some *n* data items:
     # Define a per-item factor by replicating the default factor:
     per_item_factor = np.tile(default_factor, n)
 
-.. code:: ipython3
+.. code:: python
 
     per_item_factor.get_value()
 
@@ -62,7 +62,7 @@ sometime need to make exceptions, *overriding* the default functional
 behavior. To allow such overriding of the defualt funational values of a
 given quib, we first need to turn on its ``allow_overriding`` property:
 
-.. code:: ipython3
+.. code:: python
 
     per_item_factor.allow_overriding = True
 
@@ -70,7 +70,7 @@ Now, say we want to override the ``per_item_factor``, for instance
 substituting 9 in position 1, we can simply use standard assignment
 syntax:
 
-.. code:: ipython3
+.. code:: python
 
     per_item_factor[1] = 9
 
@@ -108,7 +108,7 @@ choose at which of these two levels to actualize the assignment.
 Choosing to actualize at the ``per_item_factor`` (choosing “1” in the
 menu above) will cause an overriding assignment to this function quib:
 
-.. code:: ipython3
+.. code:: python
 
     per_item_factor.get_value()
 
@@ -129,7 +129,7 @@ function ``tile`` applied to ``default_factor``. Changing
 ``default_factor`` will change the downstream ``per_item_factor`` in all
 but the overridden positions:
 
-.. code:: ipython3
+.. code:: python
 
     default_factor[0] = 8
     per_item_factor.get_value()
@@ -146,7 +146,7 @@ but the overridden positions:
 The choice we made in the dialog box is recorded in the quib. So further
 assignments do not require bringing up the dialog box again:
 
-.. code:: ipython3
+.. code:: python
 
     per_item_factor[3] = 7
     per_item_factor.get_value()
@@ -170,7 +170,7 @@ value (the functional value).
 This override list is accessible through the ``get_override_list()``
 method:
 
-.. code:: ipython3
+.. code:: python
 
     per_item_factor.get_override_list()
 
@@ -187,7 +187,7 @@ method:
 In addition, we can check which element positions are overridden, using
 the ``get_override_mask()`` method:
 
-.. code:: ipython3
+.. code:: python
 
     per_item_factor.get_override_mask().get_value()
 
@@ -207,7 +207,7 @@ Overriding can also be used together with graphics-driven assignments,
 easily yielding interactive GUIs for default-overriding parameter
 specification.
 
-.. code:: ipython3
+.. code:: python
 
     # Figure setup
     plt.axis([-0.5, n - 0.5, 0, 10])
@@ -237,7 +237,7 @@ above). Alternatively, overriding can be removed programatically using
 an assigning syntax where the assigned value is the *Quibbler*
 ``default`` value:
 
-.. code:: ipython3
+.. code:: python
 
     per_item_factor[1:4] = [101, 102, 103]
     per_item_factor.get_value()
@@ -251,7 +251,7 @@ an assigning syntax where the assigned value is the *Quibbler*
 
 
 
-.. code:: ipython3
+.. code:: python
 
     per_item_factor[1:3] = qb.default
     per_item_factor.get_value()
@@ -267,7 +267,7 @@ an assigning syntax where the assigned value is the *Quibbler*
 
 All assignments to a quib can be cleared using:
 
-.. code:: ipython3
+.. code:: python
 
     per_item_factor.assign(qb.default)
     per_item_factor.get_value()
@@ -286,7 +286,7 @@ Out-of-range overriding are ignored
 
 When we try to assign out of range, we get an exception. For example,
 
-.. code:: ipython3
+.. code:: python
 
     per_item_factor[10] = 3
     # yields: IndexError: index 10 is out of bounds for axis 0 with size 5
@@ -294,7 +294,7 @@ When we try to assign out of range, we get an exception. For example,
 However, it is also possible that an originally within-range assignment
 will become out-of-range. For example:
 
-.. code:: ipython3
+.. code:: python
 
     per_item_factor[4] = 3
     per_item_factor.get_value()
@@ -312,7 +312,7 @@ This assignment will become out-of-range if we now change ``n``. In such
 a case, *Quibbler* gives a warning and otherwise ignores the
 out-of-range assignment:
 
-.. code:: ipython3
+.. code:: python
 
     n.assign(4)
     per_item_factor.get_value()

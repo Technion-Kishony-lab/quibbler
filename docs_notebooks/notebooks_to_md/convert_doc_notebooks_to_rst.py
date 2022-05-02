@@ -37,6 +37,9 @@ for rst_path in rst_paths:
 
     file = str(rst_path)
 
+    # code:: ipython3 -> ..code:: python
+    os.system(r"sed -i '' -E 's/code:: ipython3/code:: python/g' " + file)
+
     # [[CNN\|\http...]] -> `CNN <http...>`_
     os.system(r"sed -i '' -E 's/\[\[([A-Z,a-z][-._ [:alnum:]]{1,100})\\\|\\ ([-.:<>/_ [:alnum:]]{1,100})\]\]/`\1 <\2>`_/g' " + file)
 

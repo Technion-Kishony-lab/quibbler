@@ -20,7 +20,7 @@ syntax of ``np.vectorize``, ``np.apply_along_axis`` (see
 Import
 ^^^^^^
 
-.. code:: ipython3
+.. code:: python
 
     import pyquibbler as qb
     from pyquibbler import q, quiby, quiby_function, iquib, Quib
@@ -36,7 +36,7 @@ An example function
 We consider as an example the following user-defined function that we
 want to implement as a quib, with quib arguments:
 
-.. code:: ipython3
+.. code:: python
 
     def add(a, b):
         print(f'function add called with {a}, {b}')
@@ -44,7 +44,7 @@ want to implement as a quib, with quib arguments:
 
 Our task is to implement this function on the value of two quibs:
 
-.. code:: ipython3
+.. code:: python
 
     x = iquib(np.array([1, 2, 3]))
     y = iquib(100)
@@ -58,11 +58,11 @@ a quib that implement ``func(*args, **kwargs)``.
 
 For the example function above, we will implement:
 
-.. code:: ipython3
+.. code:: python
 
     w1 = q(add, x, y)
 
-.. code:: ipython3
+.. code:: python
 
     w1.get_value()
 
@@ -89,11 +89,11 @@ to create a quib.
 
 For the example function above, we will implement:
 
-.. code:: ipython3
+.. code:: python
 
     w2 = quiby(add)(x, y)
 
-.. code:: ipython3
+.. code:: python
 
     w2.get_value()
 
@@ -128,18 +128,18 @@ a quiby function, while allowing easy way to specify function propeties.
 
 For the example function above, we will implement:
 
-.. code:: ipython3
+.. code:: python
 
     @quiby_function(is_graphics=False)
     def add(a, b):
         print(f'function add called with {a}, {b}')
         return a + b
 
-.. code:: ipython3
+.. code:: python
 
     w3 = add(x, y)
 
-.. code:: ipython3
+.. code:: python
 
     w3.get_value()
 
@@ -176,7 +176,7 @@ inverse assign to upstream quibs outside the function. Note that, as
 demonstrated, the function can also execute ``get_value`` on its quib
 arguments.
 
-.. code:: ipython3
+.. code:: python
 
     # Define axes:
     fig = plt.figure(figsize=(4, 5))

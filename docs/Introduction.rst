@@ -30,7 +30,7 @@ and *Matplotlib* functions to work with *Quibbler*. Imports of *NumPy*
 and *Matplotlib*, if needed, should follow the execution of
 ``qb.override_all()``. A typical import therefore looks like:
 
-.. code:: ipython3
+.. code:: python
 
     # importing and initializing pyquibbler:
     import pyquibbler as qb
@@ -48,7 +48,7 @@ Graphics backend
 
 If you are using *Jupiter Notebook*, use for example:
 
-.. code:: ipython3
+.. code:: python
 
     %matplotlib tk
 
@@ -70,7 +70,7 @@ Input quib (i-quib)
 Any *Python* object can be transformed into an i-quib using the
 ``iquib`` command. For example:
 
-.. code:: ipython3
+.. code:: python
 
     my_lucky_number = iquib(7)
     my_lucky_number
@@ -96,7 +96,7 @@ Getting the quib’s value using get_value()
 To get the output *value* of the quib, we use the :py:attr:`~pyquibbler.Quib.get_value`
 method:
 
-.. code:: ipython3
+.. code:: python
 
     my_lucky_number.get_value()
 
@@ -118,7 +118,7 @@ Tuple, Set, and Dictionary. They can also represent *NumPy* ndarrays,
 
 For example:
 
-.. code:: ipython3
+.. code:: python
 
     city_data = iquib({'City': 'Haifa', 'Population': 279247})
     city_data
@@ -132,7 +132,7 @@ For example:
 
 
 
-.. code:: ipython3
+.. code:: python
 
     hello_world = iquib(['Hello', 'World'])
     hello_world.get_value()
@@ -152,7 +152,7 @@ Assigning new values to input quibs
 Input quibs can be modified by assignments using standard *Python*
 assignment syntax:
 
-.. code:: ipython3
+.. code:: python
 
     hello_world[0] = 'Hi'
     hello_world.get_value()
@@ -169,7 +169,7 @@ assignment syntax:
 To completely replace the value of a quib, even with objects of a
 different type, use the ``assign()`` method:
 
-.. code:: ipython3
+.. code:: python
 
     city_data.assign('anything')
     city_data.get_value()
@@ -203,14 +203,14 @@ functional quibs using standard *Python* syntax.
 As a simple example, let’s start with an input quib ``z`` representing a
 numeric *NumPy* array:
 
-.. code:: ipython3
+.. code:: python
 
     z = iquib(np.array([2, 1, 2, 3]))
 
 We can use this quib in standard functions and operations, just like we
 would use a normal numeric *NumPy* array. For example:
 
-.. code:: ipython3
+.. code:: python
 
     z_sqr = z ** 2
     z_sqr
@@ -230,7 +230,7 @@ The statement above created ``z_sqr`` which is a functional quib whose
 We can similarly continue with additional downstream operations. Say,
 calculating the average of the elements of ``z_sqr``:
 
-.. code:: ipython3
+.. code:: python
 
     mean_z_sqr = np.average(z_sqr)
     mean_z_sqr
@@ -262,7 +262,7 @@ Quib functions are only evaluated when their output value is needed
 To calculate the value of a function-quib, we can use the
 :py:meth:`~pyquibbler.Quib.get_value()` method:
 
-.. code:: ipython3
+.. code:: python
 
     mean_z_sqr.get_value() # (2^2 + 1^2 + 2^2 + 3^2) / 4 = 4.5
 
@@ -295,7 +295,7 @@ propagated to affect the values of downstream dependent quibs
 (recursively). For example, suppose we change one of the elements of our
 input quib ``z``:
 
-.. code:: ipython3
+.. code:: python
 
     z[2] = 0
 
@@ -305,7 +305,7 @@ immediately being performed). Then, when we ask for the value of a
 downstream quib, it will get recalculated to reflect the upstream
 change:
 
-.. code:: ipython3
+.. code:: python
 
     mean_z_sqr.get_value() # (2^2 + 1^2 + 0^2 + 3^2) / 4 = 3.5
 
@@ -327,7 +327,7 @@ creates an f-quib, whose function is to perform the indexing operation.
 For example, let’s define a function quib that calculates the middle
 value of each two consecutive elements of an array:
 
-.. code:: ipython3
+.. code:: python
 
     r = iquib(np.array([0., 3., 2., 5., 8.]))
     r_middle = (r[0:-1] + r[1:]) * 0.5
@@ -342,7 +342,7 @@ value of each two consecutive elements of an array:
 
 
 
-.. code:: ipython3
+.. code:: python
 
     r_middle.get_value()
 
@@ -358,7 +358,7 @@ value of each two consecutive elements of an array:
 Note that ``r_middle`` is defined functionally; if its argument change
 it will get re-evaluated:
 
-.. code:: ipython3
+.. code:: python
 
     r[-1] = 13.
     r_middle.get_value()
@@ -385,7 +385,7 @@ For example, if we want to define a quib that implements a
 string-specific ``format()`` function (which is a native string method,
 not a quiby function), we can use:
 
-.. code:: ipython3
+.. code:: python
 
     xy = iquib([2, 3])
     xy_text = quiby('X={}, Y={}'.format)(xy[0], xy[1])
@@ -400,7 +400,7 @@ not a quiby function), we can use:
 
 
 
-.. code:: ipython3
+.. code:: python
 
     xy[1] = 5
     xy_text.get_value()
@@ -418,7 +418,7 @@ As another example, consider ``str``. When applied to quib, ``str``
 returns the string representation of the quib, rather than a new quib
 that performs ``str`` on the value of the quib argument:
 
-.. code:: ipython3
+.. code:: python
 
     w = iquib(7)
     str_native = str(w)
@@ -436,7 +436,7 @@ that performs ``str`` on the value of the quib argument:
 If, instead, we want the quiby behavior of ``str``, we can use the
 ``quiby`` syntax:
 
-.. code:: ipython3
+.. code:: python
 
     str_quiby = quiby(str)(w)
     str_quiby.get_value()
@@ -468,14 +468,14 @@ recalculated, thereby efficiently reducing required calculations.
 
 Consider the following example:
 
-.. code:: ipython3
+.. code:: python
 
     @quiby
     def mean(x):
         print('Calculating the mean of: ',x)
         return np.average(x)
 
-.. code:: ipython3
+.. code:: python
 
     v = iquib(np.array([3, 0, 3, 1, 4, 2]))
     v_sqr = v ** 2
@@ -487,7 +487,7 @@ Now that these quibs are declared, asking for their values will trigger
 a call to the ‘mean’ function applied to the 3 left and 3 right numbers
 of v:
 
-.. code:: ipython3
+.. code:: python
 
     mean_v_sqr_left.get_value()
 
@@ -505,7 +505,7 @@ of v:
 
 
 
-.. code:: ipython3
+.. code:: python
 
     mean_v_sqr_right.get_value()
 
@@ -525,7 +525,7 @@ of v:
 
 Say, we now change a given element of the source data v:
 
-.. code:: ipython3
+.. code:: python
 
     v[3] = 2
 
@@ -534,7 +534,7 @@ affected downstream calculations. The change above affects the values
 used by ``mean_v_sqr_right``, so requesting its value requires
 re-calculation:
 
-.. code:: ipython3
+.. code:: python
 
     mean_v_sqr_right.get_value()
 
@@ -556,7 +556,7 @@ However, this same change in ``v[3]`` does not affect the value of
 ``mean_v_sqr_left``, and *Quibbler* knows there is no need to
 reclaculate it:
 
-.. code:: ipython3
+.. code:: python
 
     mean_v_sqr_left.get_value()
 
@@ -578,13 +578,13 @@ graphics that automatically refreshes upon upstream changes.
 
 For example:
 
-.. code:: ipython3
+.. code:: python
 
     z = iquib(np.array([1., 2, 2, 3, 1, 4]))
     z_sqr = z ** 2
     mean_z_sqr = np.average(z_sqr)
 
-.. code:: ipython3
+.. code:: python
 
     plt.plot(z_sqr, '-o')
     plt.plot([0, 5], mean_z_sqr + [0, 0], 'k--')
@@ -618,7 +618,7 @@ dragged. Dragging ``z`` affect downstream results. More so, even
 ``z_sqr`` can be dragged with these operations inverted to affect
 upstream ``z`` which in turn affects downstream ``mean_z_sqr``.
 
-.. code:: ipython3
+.. code:: python
 
     plt.figure()
     plt.subplot(2, 1, 1)
@@ -626,7 +626,7 @@ upstream ``z`` which in turn affects downstream ``mean_z_sqr``.
     plt.ylabel('z');
     plt.ylim([0, 5]);
 
-.. code:: ipython3
+.. code:: python
 
     plt.subplot(2, 1, 2)
     plt.plot(z_sqr, '-o', picker=True)
