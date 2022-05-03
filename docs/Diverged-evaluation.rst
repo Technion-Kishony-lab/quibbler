@@ -38,14 +38,14 @@ For example:
 
 .. code:: python
 
-    # Imports
+    # Import Quibbler:
     import pyquibbler as qb
     from pyquibbler import iquib, q
     qb.override_all()
+    
+    # Other imports:
     import numpy as np
     import matplotlib.pyplot as plt
-    from matplotlib.widgets import RectangleSelector, Slider
-    from matplotlib.patches import Arrow
     %matplotlib tk
 
 .. code:: python
@@ -293,6 +293,8 @@ See this example:
 
 .. code:: python
 
+    from matplotlib.widgets import RectangleSelector, Slider
+    
     # Set figure:
     plt.figure(figsize=(4, 5))
     ax = plt.gca()

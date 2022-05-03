@@ -171,7 +171,7 @@ def set_project_directory(directory: Union[None, str, Path]) -> None:
     By default, quibs save their override data to the project directory, or to a directory relative to
     this project directory, as specified by each quib `save_directory` property.
 
-    None indicates undefined path.
+    `None` indicates undefined path.
 
     Parameters
     ----------
