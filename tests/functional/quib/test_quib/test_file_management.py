@@ -27,7 +27,7 @@ def test_sync_quibs_with_files_project_initiation(project):
 
     # re-initiate the project:
     del a, b
-    a = iquib(np.array([1.2, 2., 5.])).setp(name='a')
+    a = iquib(np.array([1., 2., 3.])).setp(name='a')
     b: Quib = (a + 10).setp(allow_overriding=True, name='b')
 
     project.sync_quibs()
