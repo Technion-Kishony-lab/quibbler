@@ -46,6 +46,9 @@ for rst_path in rst_paths:
     # [[Quib]] -> `~pyquibbler.Quib`
     os.system(r"sed -i '' -E 's/\[\[Quib\]\]/:py:class:`~pyquibbler.Quib`/g' " + file)
 
+    # [[Project]] -> `~pyquibbler.Project`
+    os.system(r"sed -i '' -E 's/\[\[Project\]\]/:py:class:`~pyquibbler.Project`/g' " + file)
+
     # [[quibdemoXXX]] -> [[examples/quibdemoXXX]]
     os.system(r"sed -i '' -E 's/\[\[quibdemo([-_[:alnum:]]{1,100}\]\])/\[\[examples\/quibdemo\1/g' " + file)
 
@@ -57,6 +60,9 @@ for rst_path in rst_paths:
 
     # [[Quib.xxx]] -> :py:attr:`~pyquibbler.Quib.xxx`
     os.system(r"sed -i '' -E 's/\[\[Quib.([_[:alnum:]]{1,50})\]\]/:py:attr:`~pyquibbler.Quib.\1`/g' " + file)
+
+    # [[Project.xxx]] -> :py:attr:`~pyquibbler.Project.xxx`
+    os.system(r"sed -i '' -E 's/\[\[Project.([_[:alnum:]]{1,50})\]\]/:py:attr:`~pyquibbler.Project.\1`/g' " + file)
 
     # [[Quib.xxx()]] -> :py:meth:`~pyquibbler.Quib.xxx`
     os.system(r"sed -i '' -E 's/\[\[Quib.([_[:alnum:]]{1,50}\(\))\]\]/:py:meth:`~pyquibbler.Quib.\1`/g' " + file)

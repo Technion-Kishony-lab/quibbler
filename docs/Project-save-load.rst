@@ -1,26 +1,40 @@
 Project save/load
 -----------------
 
-WIP
-^^^
+As we explore data, we often make rational changes to parameters by
+overriding the initial values of either input or function quibs. These
+overriding assignments can be saved to external files and re-loaded when
+the session is initiated. Importantly, overriding assignments can be
+saved in simple text human readable/writable files, providing a
+transparent record of user defined parameters and changes. The linkage
+between a quib and its overriding file is bidirectional - changes to the
+quib overriding assignments can be saved to the file, and changes to the
+file can be loaded to update the quib.
 
-*Quibbler* allows saving and loading the value of input quibs as well as
-overriding, if any, to function quibs.
+File names and locations
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-A quib can be bi-directionally connected with a linked input file (LIF),
-where inputs to the quib are saved. LIFs can be saved in simple text
-human readable/writable files, providing a transparent record of user
-defined parameters and changes. The linkage between a quib and its LIF
-is bidirectional - changes to the inputs of the quib can update the
-file, and changes to the file can update the quib.
+By default, quibs save their assignment file to the :py:class:`~pyquibbler.Project`’s
+:py:attr:`~pyquibbler.Project.directory`, which can be get/set using the functions
+:py:func:`~pyquibbler.get_project_directory` and :py:func:`~pyquibbler.set_project_directory`.
 
-There are two types of LIFs:
+Alternatively, each quib can set its own path, either relative to the
+Project directory, or as an absolute path (see :py:attr:`~pyquibbler.Quib.save_directory`).
 
--  Array linked input file (arr-LIF): For an i-quib, the linked input
-   file saves the whole array represented by the i-quib.
+The name of the file of each quib is defined by its
+:py:attr:`~pyquibbler.Quib.assigned_name` (only quibs with defined ``assigned_name`` can
+save to a file).
 
--  Overriding linked input file (ovr-LIF): For a functional quib, the
-   linked input file saves the list of any user overrides to the quib.
+The ultimate file path for each quib is given by the :py:attr:`~pyquibbler.Quib.file_path`
+property.
+
+Assignment file format
+~~~~~~~~~~~~~~~~~~~~~~
+
+Assignments can be saved as a text file or binary file (see
+:py:func:`~pyquibbler.SaveFormat`). The file format can be set globally for all quibs
+using the Project’s :py:attr:`~pyquibbler.Project.save_format`, or inidividually for each
+quib using the Quib’s [[
 
 Import
 ~~~~~~
