@@ -46,7 +46,7 @@ class Project:
     """
 
     DEFAULT_GRAPHICS_UPDATE = GraphicsUpdateType.DRAG
-    DEFAULT_SAVE_FORMAT = SaveFormat.VALUE_TXT
+    DEFAULT_SAVE_FORMAT = SaveFormat.TXT
 
     current_project = None
 
