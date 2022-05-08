@@ -351,6 +351,8 @@ class QuibHandler:
                                                        overrider=self.overrider)
             self.file_syncer.on_data_changed()
 
+            self.project.notify_of_overriding_changes(self.quib)
+
     def remove_override(self, path: Path):
         """
         Remove function_definitions in a specific path in the quib.
@@ -369,7 +371,13 @@ class QuibHandler:
         Create an assignment with an Assignment object,
         function_definitions the current values at the assignment's paths with the assignment's value
         """
-        get_override_group_for_change(AssignmentToQuib(self.quib, assignment)).apply()
+        # TODO: it is necessary to immediately override iquibs because of how we handle "text" file loading- we need
+        #  to not go through the normal flow because get_value will potentially fail as the quib in the `exec` statement
+        #  is `None`
+        if self.quib.is_iquib:
+            self.override(assignment)
+        else:
+            get_override_group_for_change(AssignmentToQuib(self.quib, assignment)).apply()
 
     def get_inversions_for_override_removal(self, override_removal: OverrideRemoval) -> List[OverrideRemoval]:
         """
@@ -1646,6 +1654,7 @@ class Quib:
         """
         if self._get_file_path(response_to_file_not_defined) is not None:
             self.handler.file_syncer.save()
+            self.project.notify_of_overriding_changes(self)
 
     def load(self, response_to_file_not_defined: ResponseToFileNotDefined = ResponseToFileNotDefined.RAISE):
         """
@@ -1661,6 +1670,7 @@ class Quib:
         """
         if self._get_file_path(response_to_file_not_defined) is not None:
             self.handler.file_syncer.load()
+            self.project.notify_of_overriding_changes(self)
 
     def sync(self, response_to_file_not_defined: ResponseToFileNotDefined = ResponseToFileNotDefined.RAISE):
         """
@@ -1682,6 +1692,7 @@ class Quib:
         """
         if self._get_file_path(response_to_file_not_defined) is not None:
             self.handler.file_syncer.sync()
+            self.project.notify_of_overriding_changes(self)
 
     """
     Repr

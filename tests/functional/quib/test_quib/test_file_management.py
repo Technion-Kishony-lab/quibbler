@@ -34,9 +34,25 @@ def test_sync_quibs_with_files_project_initiation(project):
     assert np.array_equal(b.get_value(), [11., 20., 40.])
 
 
-def test_sync_quibs_with_files_and_then_file_change(project, monkeypatch):
-    a = iquib(np.array([1., 2., 3.])).setp(name='a', save_format='value_txt')
+def test_save_load_quib(project, monkeypatch):
+    a = iquib(np.array([1., 2., 3.])).setp(name='a', save_format='txt')
     a[1] = 10
+
+    a.save()
+    del a
+
+    a = iquib(np.array([1., 2., 3.])).setp(name='a', save_format='txt')
+    a.load()
+
+    assert np.array_equal(a.get_value(), [1., 10., 3.]), 'sanity'
+
+    os.remove(a.file_path)
+
+
+def test_sync_quibs_with_files_and_then_file_change(project, monkeypatch):
+    a = iquib(np.array([1., 2., 3.])).setp(name='a', save_format='txt')
+    a[1] = 10
+
     project.sync_quibs()
     assert np.array_equal(a.get_value(), [1., 10., 3.]), 'sanity'
 

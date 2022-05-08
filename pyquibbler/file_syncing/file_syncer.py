@@ -4,6 +4,9 @@ import os
 from enum import Enum
 import pathlib
 from typing import Optional
+from typing import Optional, Iterable, Tuple
+
+from pyquibbler.logger import logger
 
 """
 This file follows the logic of file-syncing from MatQuibbler
@@ -62,6 +65,9 @@ class FileMetaData:
     def __init__(self):
         self.file_exists: Optional[bool] = None
         self.date: Optional[float] = None
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__} - exists={self.file_exists}, date={self.date}>"
 
     def store_metadata(self, file_path: Optional[pathlib.Path] = None):
         if file_path and os.path.isfile(file_path):
@@ -223,8 +229,11 @@ class FileSyncer(ABC):
     def _get_file_comparison(self) -> FileComparison:
         old_metadata = self.file_metadata
         new_metadata = FileMetaData().store_metadata(self._get_file_path())
-        return FILE_STATUSES_TO_FILECOMPARISON[
+        logger.info(f"{old_metadata} {new_metadata}")
+        xx = FILE_STATUSES_TO_FILECOMPARISON[
             (old_metadata.get_file_status(), new_metadata.get_file_status(), new_metadata == old_metadata)]
+        logger.info(f"ff is {xx}")
+        return xx
 
     def _get_what_happened_message(self, file_comparison):
         what_happened_messages = []
@@ -274,6 +283,10 @@ class FileSyncer(ABC):
         elif action == SaveLoadAction.CLEAR:
             self._clear_data()
         else:
+            # TODO:
+            # For some reason, if we update the file metadata, we end up with a status NO_FILE which won't allow us to
+            # save in the future. We do want to be synced, but we certainly don't want that...
+            self.is_synced = True
             return
 
         self._update_file_metadata()

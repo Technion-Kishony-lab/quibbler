@@ -18,4 +18,3 @@ from .utilities.user_utils import \
     quibapp
 from .assignment.default_value import default
 from pyquibbler.project import Project
-

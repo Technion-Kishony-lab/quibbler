@@ -1,11 +1,14 @@
 import copy
 import pathlib
 import pickle
+from unittest import mock
+
 import numpy as np
 from dataclasses import dataclass
 from typing import Any, Optional, Union, Dict, Hashable, List
 
 from .assignment import Assignment
+from ..logger import logger
 from ..path.hashable import get_hashable_path
 from pyquibbler.path.path_component import Path, Paths
 from .assignment_template import AssignmentTemplate
@@ -197,23 +200,29 @@ class Overrider:
         with open(file, "wt") as f:
             f.write(self.pretty_repr())
 
+    def load_from_assignment_text(self, assignment_text: str):
+        from pyquibbler import iquib
+        from ..quib.exceptions import CannotLoadAssignmentsFromTextException
+        # TODO: We are using exec. This is very simple, but obviously highly risky.
+        #  Will be good to replace with a dedicated parser.
+        quib = iquib(None)
+        try:
+            exec(assignment_text, {
+                'array': np.array,
+                'quib': quib
+            })
+        except Exception:
+            raise
+            # raise CannotLoadAssignmentsFromTextException(assignment_text) from None
+        return self.replace_assignments(quib.handler.overrider._paths_to_assignments)
+
     def load_from_txt(self, file: pathlib.Path):
         """
         load assignments from text file.
         """
-        from pyquibbler import iquib
-        from ..quib.exceptions import CannotLoadAssignmentsFromTextException
-
-        quib = iquib(None)
         with open(file, mode='r') as f:
             assignment_text_commands = f.read()
-        # TODO: We are using exec. This is very simple, but obviously highly risky.
-        #  Will be good to replace with a dedicated parser.
-        try:
-            exec(assignment_text_commands)
-        except Exception:
-            raise CannotLoadAssignmentsFromTextException(file) from None
-        return self.replace_assignments(quib.handler.overrider._paths_to_assignments)
+        return self.load_from_assignment_text(assignment_text_commands)
 
     """
     repr

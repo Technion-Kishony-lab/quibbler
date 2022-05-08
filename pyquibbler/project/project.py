@@ -16,6 +16,7 @@ from pyquibbler.exceptions import PyQuibblerException
 from .actions import Action, AssignmentAction
 from pyquibbler.quib.graphics import GraphicsUpdateType
 from pyquibbler.file_syncing.types import SaveFormat, ResponseToFileNotDefined
+from ..logger import logger
 
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib
@@ -285,10 +286,13 @@ class Project:
         Quib.save_format, Quib.actual_save_format, Project.save_format
         Quib.save
         """
+        logger.info(f"Began saving to directory {self.directory}")
         if self.directory is None:
             raise NoProjectDirectoryException(action='save')
         for quib in self.quibs:
+            logger.info(f"Saving quib {quib}")
             quib.save(response_to_file_not_defined)
+        logger.info(f"Finished saving")
 
     def load_quibs(self, response_to_file_not_defined=ResponseToFileNotDefined.WARN_IF_DATA):
         """
@@ -498,6 +502,9 @@ class Project:
             self._undo_action_groups.append([assignment_action])
 
         self._redo_action_groups.clear()
+
+    def notify_of_overriding_changes(self, quib: Quib):
+        pass
 
     #  TODO: should be replaced with more fancy dialog box
     def text_dialog(self, title: str, message: str, buttons_and_options: Mapping[str, str]) -> str:

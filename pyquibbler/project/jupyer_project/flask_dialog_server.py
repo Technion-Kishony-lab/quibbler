@@ -4,7 +4,7 @@ from flask import Flask, request
 from flask_cors import CORS
 
 
-def run_flask_app(answer_queue):
+def run_flask_app(port, answer_queue):
     app = Flask(__name__)
     CORS(app)
 
@@ -17,4 +17,4 @@ def run_flask_app(answer_queue):
         answer_queue.put(request.json["option"])
         return 'done'
 
-    app.run('0.0.0.0', port=8200)
+    app.run('0.0.0.0', port=port)
