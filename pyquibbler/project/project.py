@@ -7,9 +7,8 @@ from _weakref import ReferenceType
 from collections import defaultdict
 from pathlib import Path
 import sys
-from typing import Optional, Set, TYPE_CHECKING, List, Callable, Union
-from pyquibbler.utilities.input_validation_utils import validate_user_input, get_enum_by_str
-from typing import Optional, Set, TYPE_CHECKING, List, Callable, Iterable, Tuple
+from pyquibbler.utilities.input_validation_utils import get_enum_by_str
+from typing import Optional, Set, TYPE_CHECKING, List, Callable, Union, Mapping
 from pyquibbler.utilities.input_validation_utils import validate_user_input
 from pyquibbler.utilities.file_path import PathWithHyperLink
 from pyquibbler.exceptions import PyQuibblerException
@@ -290,9 +289,7 @@ class Project:
         if self.directory is None:
             raise NoProjectDirectoryException(action='save')
         for quib in self.quibs:
-            logger.info(f"Saving quib {quib}")
             quib.save(response_to_file_not_defined)
-        logger.info(f"Finished saving")
 
     def load_quibs(self, response_to_file_not_defined=ResponseToFileNotDefined.WARN_IF_DATA):
         """

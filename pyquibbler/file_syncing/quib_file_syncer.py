@@ -7,8 +7,6 @@ from .file_syncer import FileSyncer
 from pyquibbler.utils import Flag
 from typing import TYPE_CHECKING
 
-from ..logger import logger
-
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib
 

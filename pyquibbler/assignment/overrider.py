@@ -1,14 +1,12 @@
 import copy
 import pathlib
 import pickle
-from unittest import mock
 
 import numpy as np
 from dataclasses import dataclass
 from typing import Any, Optional, Union, Dict, Hashable, List
 
 from .assignment import Assignment
-from ..logger import logger
 from ..path.hashable import get_hashable_path
 from pyquibbler.path.path_component import Path, Paths
 from .assignment_template import AssignmentTemplate
@@ -212,8 +210,7 @@ class Overrider:
                 'quib': quib
             })
         except Exception:
-            raise
-            # raise CannotLoadAssignmentsFromTextException(assignment_text) from None
+            raise CannotLoadAssignmentsFromTextException(assignment_text) from None
         return self.replace_assignments(quib.handler.overrider._paths_to_assignments)
 
     def load_from_txt(self, file: pathlib.Path):

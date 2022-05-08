@@ -11,7 +11,7 @@ from multiprocessing import Process
 
 import ipynbname
 from pathlib import Path
-from typing import Optional, Iterable, Tuple, Dict, Callable
+from typing import Optional, Iterable, Tuple, Callable
 
 from IPython import get_ipython
 from ipykernel.comm import Comm

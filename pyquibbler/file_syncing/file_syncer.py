@@ -4,7 +4,6 @@ import os
 from enum import Enum
 import pathlib
 from typing import Optional
-from typing import Optional, Iterable, Tuple
 
 from pyquibbler.logger import logger
 
@@ -254,9 +253,9 @@ class FileSyncer(ABC):
             return True
         from pyquibbler import Project
         answer = Project.get_or_create().text_dialog(self._dialog_title(),
-                             self._get_what_happened_message(file_comparison) + '\n'
-                             + action_verification.message.format(self._file_type()) + '?',
-                             {'1': action_verification.button, '2': 'Skip'})
+                                                     self._get_what_happened_message(file_comparison) + '\n'
+                                                     + action_verification.message.format(self._file_type()) + '?',
+                                                     {'1': action_verification.button, '2': 'Skip'})
 
         return answer == '1'
 
@@ -309,10 +308,10 @@ class FileSyncer(ABC):
         else:
             from pyquibbler import Project
             answer = Project.get_or_create().text_dialog(self._dialog_title(),
-                                 self._get_what_happened_message(file_comparison),
-                                 {'1': save_command.message.format(self._file_type()),
-                                  '2': load_command.message.format(self._file_type()),
-                                  '3': 'Skip'})
+                                                         self._get_what_happened_message(file_comparison),
+                                                         {'1': save_command.message.format(self._file_type()),
+                                                          '2': load_command.message.format(self._file_type()),
+                                                          '3': 'Skip'})
             action = {'1': save_command.action,
                       '2': load_command.action,
                       '3': SaveLoadAction.NOTHING}[answer]
