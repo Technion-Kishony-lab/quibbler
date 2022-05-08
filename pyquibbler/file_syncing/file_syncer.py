@@ -5,8 +5,6 @@ from enum import Enum
 import pathlib
 from typing import Optional
 
-from pyquibbler.logger import logger
-
 """
 This file follows the logic of file-syncing from MatQuibbler
 """
@@ -228,11 +226,8 @@ class FileSyncer(ABC):
     def _get_file_comparison(self) -> FileComparison:
         old_metadata = self.file_metadata
         new_metadata = FileMetaData().store_metadata(self._get_file_path())
-        logger.info(f"{old_metadata} {new_metadata}")
-        xx = FILE_STATUSES_TO_FILECOMPARISON[
+        return FILE_STATUSES_TO_FILECOMPARISON[
             (old_metadata.get_file_status(), new_metadata.get_file_status(), new_metadata == old_metadata)]
-        logger.info(f"ff is {xx}")
-        return xx
 
     def _get_what_happened_message(self, file_comparison):
         what_happened_messages = []
