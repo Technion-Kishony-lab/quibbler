@@ -197,7 +197,8 @@ class JupyterProject(Project):
             if override['left'] == 'quib':
                 override_text += f"quib.assign({override['right']})"
             else:
-                override_text += f"{override['left']} = {override['right']}\n"
+                override_text += f"{override['left']} = {override['right']}"
+            override_text += "\n"
 
         quib = self._find_quib_by_name(name)
         quib.handler.overrider.load_from_assignment_text(override_text)
