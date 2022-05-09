@@ -177,7 +177,7 @@ class QuibHandler:
         """
         graphics_update = self.actual_graphics_update
         if graphics_update == GraphicsUpdateType.DRAG \
-                or self.graphics_update == GraphicsUpdateType.DROP and not is_within_drag():
+                or graphics_update == GraphicsUpdateType.DROP and not is_within_drag():
             self.quib.get_value()
 
     def _iter_artist_lists(self) -> Iterable[List[Artist]]:
