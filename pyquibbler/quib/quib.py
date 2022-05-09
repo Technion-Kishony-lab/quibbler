@@ -933,7 +933,8 @@ class Quib:
         is_graphics, graphics_update
         pyquibbler.refresh_graphics
         """
-        return self.handler.quib_function_call.func_can_create_graphics
+        return self.handler.quib_function_call.func_can_create_graphics \
+               and not self.handler.created_in_get_value_context
 
     @property
     def graphics_update(self) -> GraphicsUpdateType:
