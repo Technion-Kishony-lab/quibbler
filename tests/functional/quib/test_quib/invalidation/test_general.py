@@ -38,3 +38,16 @@ def test_diamond_invalidation_with_changing_shape(create_quib_with_return_value)
     a.assign(10)
 
     assert np.array_equal(e.get_value(), np.arange(10) * 2)
+
+
+@pytest.mark.regression
+def test_invalidation_does_not_request_shape(create_quib_with_return_value):
+    func = mock.Mock(return_value=7)
+
+    a = create_quib_with_return_value([0, 1, 2], allow_overriding=True)
+    b = np.vectorize(func)(a)
+
+    func.assert_not_called(), "sanity"
+
+    a[0] = 7
+    func.assert_not_called(),
