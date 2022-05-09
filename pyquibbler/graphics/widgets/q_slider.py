@@ -1,5 +1,7 @@
 from matplotlib.widgets import Slider
 
+from pyquibbler.graphics.drag_context_manager import enter_dragging, exit_dragging, releasing
+
 
 class QSlider(Slider):
     def __init__(self, ax, label, valmin, valmax, valinit, **kwargs):
@@ -13,6 +15,13 @@ class QSlider(Slider):
 
     @drag_active.setter
     def drag_active(self, value):
+        if self._drag_active is value:
+            return
         self._drag_active = value
-        if value is False and self.on_release:
-            self.on_release(self.val)
+        if value:
+            enter_dragging()
+        else:
+            if self.on_release:
+                with releasing():
+                    self.on_release(self.val)
+            exit_dragging()
