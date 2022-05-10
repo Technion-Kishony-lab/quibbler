@@ -13,19 +13,19 @@ Simple quib-app for image analysis
 
    -  Try dragging the RGB threshold values.
 
-.. code:: ipython3
+.. code:: python
 
     from pyquibbler import iquib, override_all, q
     override_all()
 
-.. code:: ipython3
+.. code:: python
 
     import matplotlib.pyplot as plt
     import numpy as np
     import os
     %matplotlib tk
 
-.. code:: ipython3
+.. code:: python
 
     # Load an image:
     filename = iquib(os.path.join('..','data_files','bacteria_in_a_droplet.tif')) # <-- input
@@ -59,7 +59,7 @@ Simple quib-app for image analysis
     ax.plot([1, 2, 3], thresholds_rgb, 'sk', markersize=16, 
             markerfacecolor='k', picker=True);
 
-.. code:: ipython3
+.. code:: python
 
     # Show thresholds on log scale:
     log_thresholds_rgb = np.log2(thresholds_rgb)

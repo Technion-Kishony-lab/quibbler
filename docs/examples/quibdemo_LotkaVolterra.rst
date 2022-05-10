@@ -18,7 +18,7 @@ parameters are set interactively.**
       conditions.
    -  Try adjusting the sliders to set equation parameters.
 
-.. code:: ipython3
+.. code:: python
 
     from pyquibbler import iquib, override_all, q
     override_all()
@@ -28,7 +28,7 @@ parameters are set interactively.**
     from scipy.integrate import solve_ivp
     %matplotlib tk
 
-.. code:: ipython3
+.. code:: python
 
     def solveLV(x0, pars, tfinal):
         a,b,c,d = pars
@@ -42,7 +42,7 @@ parameters are set interactively.**
         
         return solve_ivp(LV, [0,tfinal], x0, rtol=1e-6)
 
-.. code:: ipython3
+.. code:: python
 
     # Initial condition:
     X0 = iquib([2,0.5]);
@@ -88,7 +88,7 @@ parameters are set interactively.**
         slider_axs = fig.add_axes([0.3,0.2-i*0.04,0.5,0.02])
         widgets.Slider(ax=slider_axs, label=params_labels[i], valmin=0, valmax=4, valstep=0.1, valinit=abcd[i])
 
-.. code:: ipython3
+.. code:: python
 
     plt.show()
 .. image:: ../images/demo_gif/quibdemo_LotkaVolterra.gif

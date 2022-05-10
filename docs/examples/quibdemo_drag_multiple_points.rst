@@ -14,7 +14,7 @@ Multi-point dragging and widgets
    -  Try dragging the data points.
    -  Try changing the degree of the polynomial fit with the slider.
 
-.. code:: ipython3
+.. code:: python
 
     from pyquibbler import iquib, override_all, q
     override_all()
@@ -23,7 +23,7 @@ Multi-point dragging and widgets
     import numpy as np
     %matplotlib tk
 
-.. code:: ipython3
+.. code:: python
 
     # Define x, y data points
     num_points = iquib(10)

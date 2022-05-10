@@ -13,7 +13,7 @@ Dragging graphics along a curved line
 
    -  Try dragging the circle along the functional line.
 
-.. code:: ipython3
+.. code:: python
 
     from pyquibbler import iquib, override_all, q
     override_all()
@@ -21,7 +21,7 @@ Dragging graphics along a curved line
     import numpy as np
     %matplotlib tk
 
-.. code:: ipython3
+.. code:: python
 
     # define and plot a curve:
     curve_function = lambda v: 4 * v ** 2 - v ** 3

@@ -12,7 +12,7 @@ COVID-19 analysis
 
    -  Drag right or left the high-rate threshold (triangle marker)
 
-.. code:: ipython3
+.. code:: python
 
     from pyquibbler import iquib, q, override_all
     override_all()
@@ -20,7 +20,7 @@ COVID-19 analysis
     import numpy as np
     %matplotlib tk
 
-.. code:: ipython3
+.. code:: python
 
     # Load data file of COVID statistics per countries
     file_name = iquib('../data_files/COVID_Fatality.csv')
@@ -28,20 +28,20 @@ COVID-19 analysis
     dtype=[("Country", str, 32), ("ConfirmedCases", int), ("Deaths", int),  ("Population", float)]
     fatality_table = np.genfromtxt(file_name, dtype=dtype, delimiter=',', names=True)
 
-.. code:: ipython3
+.. code:: python
 
     # Figure setup
     plt.xlabel("Confirmed Cases (%)")
     plt.ylabel("Number of countries")
     plt.xlim([0, 20]);
 
-.. code:: ipython3
+.. code:: python
 
     # Calculate and plot histogram of infection rate
     rate = fatality_table['ConfirmedCases'] / fatality_table['Population'] * 100
     plt.hist(rate, np.arange(0, 20, 1), facecolor='g', edgecolor='black', linewidth=1.2);
 
-.. code:: ipython3
+.. code:: python
 
     # Define a threshold for high-rate countries
     threshold = iquib(15)
@@ -57,7 +57,7 @@ COVID-19 analysis
     plt.plot(threshold, 0, markerfacecolor='k', marker='^', markersize=30, 
              picker=True, pickradius=30);
 
-.. code:: ipython3
+.. code:: python
 
     # List countries above the threshold:
     plt.text(18, 68, 'High-rate countries', fontsize=14, verticalalignment='top',
@@ -65,7 +65,7 @@ COVID-19 analysis
     plt.text(18, 63, q("\n".join, fatality_table[above_threshold]['Country']), verticalalignment='top',
              horizontalalignment='right', color='r');
 
-.. code:: ipython3
+.. code:: python
 
     # Pie chart
     below_threshold_sum = q(sum, below_threshold)

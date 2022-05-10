@@ -14,7 +14,7 @@ Interactive zooming on Mandelbrot
    -  Try moving the region-of-interests in panels 1 and 2 to choose
       zoom-in areas.
 
-.. code:: ipython3
+.. code:: python
 
     from pyquibbler import iquib, override_all, q
     import matplotlib.pyplot as plt
@@ -23,7 +23,7 @@ Interactive zooming on Mandelbrot
     override_all()
     %matplotlib tk
 
-.. code:: ipython3
+.. code:: python
 
     def mandelbrot(extent, num_pixels=200, num_iterations=30):
         '''
@@ -53,7 +53,7 @@ Interactive zooming on Mandelbrot
     
         return m
 
-.. code:: ipython3
+.. code:: python
 
     # Define input quibs:
     resolution = iquib(200) # image resolution

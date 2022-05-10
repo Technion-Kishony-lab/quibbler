@@ -16,7 +16,7 @@ points.**
    -  Try dragging the ‘Change me!’ star - it will change individual
       points.
 
-.. code:: ipython3
+.. code:: python
 
     from pyquibbler import iquib, override_all, q
     override_all()
@@ -24,7 +24,7 @@ points.**
     import numpy as np
     %matplotlib tk
 
-.. code:: ipython3
+.. code:: python
 
     # Figure setup:
     fig1 = plt.figure(figsize=(4,4))
@@ -32,7 +32,7 @@ points.**
     ax.axis('square')
     ax.axis([0, 12, 0, 12])
 
-.. code:: ipython3
+.. code:: python
 
     # Define star coordinates:
     nPoints = iquib(5)
@@ -43,18 +43,18 @@ points.**
     x_star = np.cos(tet) * rs
     y_star = np.sin(tet) * rs;
 
-.. code:: ipython3
+.. code:: python
 
     # Allow changing the coordinates:
     x_star.allow_overriding = True
     y_star.allow_overriding = True
 
-.. code:: ipython3
+.. code:: python
 
     x_star_circ = np.concatenate([x_star, x_star[[0]]])
     y_star_circ = np.concatenate([y_star, y_star[[0]]])
 
-.. code:: ipython3
+.. code:: python
 
     # Define and draw movable star:
     x_center_movable = iquib(np.array([7.]))
@@ -68,7 +68,7 @@ points.**
            horizontalalignment='center', verticalalignment='top')
     ax.plot(x_movable_star, y_movable_star, linewidth=2, color='m', picker=True);
 
-.. code:: ipython3
+.. code:: python
 
     # Define and draw changeable star:
     x_center_fixed = iquib(np.array([2.]))
@@ -81,7 +81,7 @@ points.**
             horizontalalignment='center', verticalalignment='top')
     ax.plot(x_changeable_star, y_changeable_star, linewidth=2, color='c', picker=True);
 
-.. code:: ipython3
+.. code:: python
 
     ax.set_title(q('{:.1f},{:.1f}'.format, x_center_movable[0], y_center_movable[0]));
 .. image:: ../images/demo_gif/quibdemo_drag_whole_object_vs_individual_points.gif

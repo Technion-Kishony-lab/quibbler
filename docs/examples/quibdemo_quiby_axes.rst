@@ -13,7 +13,7 @@ Quiby setting of axes limits
    -  Try panning or zooming into the axes.
    -  Try dragging the vertical line seperator.
 
-.. code:: ipython3
+.. code:: python
 
     from pyquibbler import iquib, q, override_all, undo, redo
     override_all()
@@ -21,7 +21,7 @@ Quiby setting of axes limits
     import numpy as np
     %matplotlib tk
 
-.. code:: ipython3
+.. code:: python
 
     fig = plt.figure()
     

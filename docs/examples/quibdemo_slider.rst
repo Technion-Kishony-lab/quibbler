@@ -8,7 +8,7 @@ Create a GUI by connecting quibs with widgets
    -  Quib-linked widgets
    -  Inverse assignments
 
-.. code:: ipython3
+.. code:: python
 
     from pyquibbler import iquib, override_all, q
     import matplotlib.pyplot as plt
@@ -17,7 +17,7 @@ Create a GUI by connecting quibs with widgets
     override_all()
     %matplotlib tk
 
-.. code:: ipython3
+.. code:: python
 
     # Figure setup:
     fig = plt.figure(figsize=(4,6))
@@ -30,7 +30,7 @@ Create a GUI by connecting quibs with widgets
     axs_slider1 = fig.add_axes([0.3,0.16,0.55,0.03])
     axs_slider2 = fig.add_axes([0.3,0.06,0.55,0.03])
 
-.. code:: ipython3
+.. code:: python
 
     # Defining quib input variables:
     nPoints = iquib(120);
@@ -43,7 +43,7 @@ Create a GUI by connecting quibs with widgets
     # Plot the data:
     axs.plot(r*np.cos(phi),r*np.sin(phi),'r-');
 
-.. code:: ipython3
+.. code:: python
 
     # Create quib-linked slider widgets:
     widgets.Slider(

@@ -16,7 +16,7 @@ Signal analysis with random noise
    -  Try playing with the sliders, or specifying a different function
       with the radio buttons.
 
-.. code:: ipython3
+.. code:: python
 
     from pyquibbler import iquib, override_all, q, quiby_function, reset_random_quibs
     import matplotlib.pyplot as plt
@@ -26,7 +26,7 @@ Signal analysis with random noise
     override_all()
     %matplotlib tk
 
-.. code:: ipython3
+.. code:: python
 
     # Total time (sec):
     total_time = iquib(100);
@@ -80,12 +80,12 @@ Signal analysis with random noise
     S0 = q(np.fft.ifft, spectrum_filtered);
 
 
-.. code:: ipython3
+.. code:: python
 
     # figure setup:
     fig = plt.figure(1, figsize=(6, 8))
 
-.. code:: ipython3
+.. code:: python
 
     # signal vs time 
     fig.clf()
@@ -98,7 +98,7 @@ Signal analysis with random noise
     axs1.plot(t,np.real(measurement), '.-', color=[0.8,0,0])
     axs1.plot(t,np.real(S0), '.-', color=[0,0.7,0]);
 
-.. code:: ipython3
+.. code:: python
 
     # spectrum
     axs2 = fig.add_axes((0.15, 0.5, 0.75, 0.2))
@@ -111,7 +111,7 @@ Signal analysis with random noise
     axs2.plot(min_freq, 0, 'k^', markersize=18, picker=True)
     axs2.plot(max_freq, 0, 'k^', markersize=18, picker=True);
 
-.. code:: ipython3
+.. code:: python
 
     # sliders of quibs:
     slider_axs = [fig.add_axes([0.3, 0.2-i*0.04, 0.5, 0.02]) for i in range(5)]
@@ -130,14 +130,14 @@ Signal analysis with random noise
     is_sinN = q(lambda x:x==3,signal_fnc_chosen)
     a = slider_axs[4].set_visible(is_sinN);
 
-.. code:: ipython3
+.. code:: python
 
     # radio buttons to choose function:
     axs_radio = fig.add_axes([0.3, 0.25, 0.5, 0.14])
     btns = widgets.RadioButtons(
         ax=axs_radio, labels=signal_fnc_list, active=signal_fnc_chosen)
 
-.. code:: ipython3
+.. code:: python
 
     # Randomization button
     randomize_button = widgets.Button(

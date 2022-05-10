@@ -24,7 +24,7 @@ and re-performs the pairwise comparisons of this image with all others
    -  Drag the cyan diamond marker to choose a squared number.
    -  Drag the cyan square corner.
 
-.. code:: ipython3
+.. code:: python
 
     import numpy as np
     from functools import partial
@@ -37,7 +37,7 @@ and re-performs the pairwise comparisons of this image with all others
     
     %matplotlib tk
 
-.. code:: ipython3
+.. code:: python
 
     @partial(np.vectorize, signature='(4),()->()', pass_quibs=True, lazy=False)
     def create_roi(roi, axs):
@@ -62,14 +62,14 @@ and re-performs the pairwise comparisons of this image with all others
     def plot_roi_label(axs, roi, index):
         axs.text(roi[1], roi[2], chr(index+65), fontsize=20)
 
-.. code:: ipython3
+.. code:: python
 
     @partial(np.vectorize, lazy=False)
     def show_adjacency(axs, x, y, adjacent):
         symbol = 'x' if adjacent else '.'
         axs.plot(x, y, symbol, color='r')
 
-.. code:: ipython3
+.. code:: python
 
     # Read and draw source image
     file_name = iquib('../data_files/pipes.jpg')
@@ -79,7 +79,7 @@ and re-performs the pairwise comparisons of this image with all others
     plt.imshow(image)
     ax1 = plt.gca()
 
-.. code:: ipython3
+.. code:: python
 
     images_count = iquib(6)
     images_count.set_assignment_template(0, 10, 1)
@@ -93,16 +93,16 @@ and re-performs the pairwise comparisons of this image with all others
     
     similiarity_threshold = iquib(np.array([.1]))
 
-.. code:: ipython3
+.. code:: python
 
     cut_images = cut_image(image, rois)
 
 
-.. code:: ipython3
+.. code:: python
 
     create_roi(rois, ax1)
 
-.. code:: ipython3
+.. code:: python
 
     widgets.Slider(
         ax=plt.axes([0.25, 0.1, 0.65, 0.03]),
@@ -116,24 +116,24 @@ and re-performs the pairwise comparisons of this image with all others
         valmin=1, valmax=9, valstep=1,
         valinit=images_count);
 
-.. code:: ipython3
+.. code:: python
 
     # Figure 2 - Plot images
     fig = plt.figure(2)
     grid_axes = iquib(ImageGrid(fig, 111, nrows_ncols=(3, 3), axes_pad=0.1))
 
-.. code:: ipython3
+.. code:: python
 
     np.vectorize(lambda ax, im: ax.imshow(im), signature='(),()->()', lazy=False)(
         grid_axes[:images_count], cut_images);
 
-.. code:: ipython3
+.. code:: python
 
     # Figure 3 - Compare sub images
     image_distances = image_distance(np.expand_dims(cut_images, 1), cut_images)
     adjacents = image_distances < similiarity_threshold
 
-.. code:: ipython3
+.. code:: python
 
     # Plot distance matrix
     fig = plt.figure(3)
@@ -155,12 +155,12 @@ and re-performs the pairwise comparisons of this image with all others
     axclr.set_yticks([])
     axclr.set_ylabel('Similarity Threshold')
 
-.. code:: ipython3
+.. code:: python
 
     # add cluster label
     rois.get_value()
 
-.. code:: ipython3
+.. code:: python
 
     c = q(connected_components,adjacents)[1]
     plot_roi_label(ax1, rois, c)

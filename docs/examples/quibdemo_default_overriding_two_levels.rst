@@ -32,7 +32,7 @@ function quibs.
       or inverse-propagate one step up to the plate level, or two step
       up to the default level.
 
-.. code:: ipython3
+.. code:: python
 
     from functools import partial
     from pyquibbler import iquib, override_all, q
@@ -41,13 +41,13 @@ function quibs.
     import numpy as np
     %matplotlib tk
 
-.. code:: ipython3
+.. code:: python
 
     # Set number of plate and number wells per plate
     n_plates = iquib(3)
     n_wells = iquib(6)
 
-.. code:: ipython3
+.. code:: python
 
     # Figure setup
     plt.figure()
@@ -62,7 +62,7 @@ function quibs.
     ax2.set_ylabel('Well factor');
     ax2.set_xticks(np.arange(n_plates));
 
-.. code:: ipython3
+.. code:: python
 
     # Common properties
     input_properties = {
@@ -78,14 +78,14 @@ function quibs.
             c=y.get_override_mask(), 
             picker=True, pickradius=10);
 
-.. code:: ipython3
+.. code:: python
 
     # Define and plot the default factor
     default_factor = iquib(np.array([70])).setp(**input_properties)
     ax1.plot([-0.5, n_plates - 0.5], default_factor[[0, 0]], 'k', 
              linewidth=5, picker=True);
 
-.. code:: ipython3
+.. code:: python
 
     # Define and plot the per-plate factor
     plate_factor = np.repeat(default_factor, n_plates, 0).setp(**input_properties)
@@ -93,7 +93,7 @@ function quibs.
     ax1.bar(x, plate_factor, color=(0.7, 0.7, 0.7))
     two_color_scatter(ax1, x, plate_factor);
 
-.. code:: ipython3
+.. code:: python
 
     # Define the per-plate-per-well factor
     well_factor = np.repeat(plate_factor, n_wells, 0).setp(**input_properties, name='Well_factor')
@@ -106,7 +106,7 @@ function quibs.
 
 
 
-.. parsed-literal::
+.. code:: none
 
     scatter(<AxesSubplot:ylabel='Well factor'>, xx, well_factor, marker='d', s=100, zorder=2, cmap=<matplotlib.colors.ListedColormap object at 0x7f8fa8e1b7c0>, c=get_override_mask(well_factor), picker=True, pickradius=10)
 

@@ -16,7 +16,7 @@ vertical/horizontal dragging.**
    -  Try dragging the axis-sliders - note that they are constraint
       horizontally and vertically.
 
-.. code:: ipython3
+.. code:: python
 
     from pyquibbler import iquib, override_all, q
     override_all()
@@ -24,7 +24,7 @@ vertical/horizontal dragging.**
     import numpy as np
     %matplotlib tk
 
-.. code:: ipython3
+.. code:: python
 
     x = iquib(7.)
     y = iquib(4.)

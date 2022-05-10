@@ -14,7 +14,7 @@ Dragging graphics between fixed points
    -  Drag the cyan diamond marker to choose a squared number.
    -  Drag the cyan square corner.
 
-.. code:: ipython3
+.. code:: python
 
     from pyquibbler import iquib, override_all, q
     override_all()
@@ -22,7 +22,7 @@ Dragging graphics between fixed points
     import numpy as np
     %matplotlib tk
 
-.. code:: ipython3
+.. code:: python
 
     # Prepare figure, axes
     fig = plt.figure(figsize=(5, 6))
@@ -42,20 +42,20 @@ Dragging graphics between fixed points
     ax2.spines['top'].set_visible(False)
     ax2.spines['right'].set_visible(False)
 
-.. code:: ipython3
+.. code:: python
 
     # Define x, x_squared
     # (use assingment_template to limit values of x)
     x = iquib(2).setp(assignment_template=(0, 6, 1));
     x_squared = x ** 2
 
-.. code:: ipython3
+.. code:: python
 
     # Plot draggable x_squared. 
     # (the marker position will be limitted to square numbers)
     ax1.plot(x_squared, 0.5, 'dc', markersize=18, picker=True, pickradius=25);
 
-.. code:: ipython3
+.. code:: python
 
     # Plot the black sqaure, with text, and a draggable corner
     ax2.plot([0, x, x, 0, 0], [0, 0, x, x, 0], 'k-', linewidth=4);

@@ -14,7 +14,7 @@ Dragging a fixed object to affect another
    -  Try dragging the fixed diamond. It won’t move but will affect the
       position of the circle.
 
-.. code:: ipython3
+.. code:: python
 
     from pyquibbler import iquib, override_all, q
     override_all()
@@ -22,7 +22,7 @@ Dragging a fixed object to affect another
     import numpy as np
     %matplotlib tk
 
-.. code:: ipython3
+.. code:: python
 
     # define and plot a point at xy coordinates:
     xy = iquib(np.array([2., 3.]))

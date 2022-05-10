@@ -30,7 +30,7 @@ the others accordingly.
    -  Adjusting the sliders
    -  Entering a new value in the text boxes (not currently implemented)
 
-.. code:: ipython3
+.. code:: python
 
     from pyquibbler import iquib, override_all, q
     override_all()
@@ -39,7 +39,7 @@ the others accordingly.
     import numpy as np
     %matplotlib tk
 
-.. code:: ipython3
+.. code:: python
 
     # Figure setup:
     fig = plt.figure(figsize=(4,9))
@@ -73,14 +73,14 @@ the others accordingly.
     axs_txt_x.set_xlabel('X')
     axs_txt_y.set_xlabel('Y');
 
-.. code:: ipython3
+.. code:: python
 
     # Define an input quib XY, representing X,Y coordinates:
     XY = iquib([7.,2.]);
     X = XY[0];
     Y = XY[1];
 
-.. code:: ipython3
+.. code:: python
 
     # Present the same data in many different co-adjusting graphical objects. 
     # Changing any one of the representaiotn will propagate backwards to change to 
@@ -113,7 +113,7 @@ the others accordingly.
     widgets.Slider(ax=axs_slider_x, label=None, valmin=0, valmax=8, valstep=0.1, valinit=X)
     widgets.Slider(ax=axs_slider_y, label=None, valmin=0, valmax=8, valstep=0.1, valinit=Y);
 
-.. code:: ipython3
+.. code:: python
 
     pass
 .. image:: ../images/demo_gif/quibdemo_same_data_in_many_forms.gif

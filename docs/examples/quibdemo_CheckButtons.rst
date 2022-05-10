@@ -12,7 +12,7 @@ Quib-linked CheckButtons widget
 
    -  Try playing with the check-buttons.
 
-.. code:: ipython3
+.. code:: python
 
     from pyquibbler import iquib, override_all, q
     override_all()
@@ -20,24 +20,24 @@ Quib-linked CheckButtons widget
     from matplotlib import widgets
     %matplotlib tk
 
-.. code:: ipython3
+.. code:: python
 
     # Prepare figure, axes
     plt.figure(figsize=(3,3))
     axs = plt.gca()
 
-.. code:: ipython3
+.. code:: python
 
     # Define input quib for colors:
     colors = iquib([False, True, True])
 
-.. code:: ipython3
+.. code:: python
 
     # Define a quib-widget
     # (Interaction with the widget changes the quib)
     widgets.CheckButtons(ax=axs, labels=['Red','Green','Blue'], actives=colors);
 
-.. code:: ipython3
+.. code:: python
 
     # Set the color of the axis to the quib colors
     axs.set_facecolor(colors);

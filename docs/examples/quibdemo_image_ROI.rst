@@ -18,12 +18,12 @@ matplotlib.widgets.RectangleSelector.**
    -  The ROI and downstream analysis showing the RGB components of the
       ROI will update.
 
-.. code:: ipython3
+.. code:: python
 
     from pyquibbler import iquib, override_all, q
     override_all()
 
-.. code:: ipython3
+.. code:: python
 
     import matplotlib.pyplot as plt
     from matplotlib.widgets import RectangleSelector
@@ -31,27 +31,27 @@ matplotlib.widgets.RectangleSelector.**
     import os
     %matplotlib tk
 
-.. code:: ipython3
+.. code:: python
 
     # Load an image:
     filename = iquib(os.path.join('..','data_files','bacteria_in_droplets.tif')) # <-- input
     img_main = plt.imread(filename);
 
-.. code:: ipython3
+.. code:: python
 
     # Show the image:
     plt.figure()
     ax = plt.gca()
     ax.imshow(img_main);
 
-.. code:: ipython3
+.. code:: python
 
     # Define and plot a rectangle Region Of Interest (ROI)
     ROI = iquib(np.array([250, 400, 300, 450])); # <-- input: xmin, xmax, ymin, ymax
     rectprops = dict(edgecolor='w', alpha=0.7, fill=False, linewidth=3)
     RectangleSelector(ax, extents=ROI, rectprops=rectprops);
 
-.. code:: ipython3
+.. code:: python
 
     # Cut the ROI from the main image:
     img_cut = img_main[ROI[2]:ROI[3], ROI[0]:ROI[1], :]
@@ -61,7 +61,7 @@ matplotlib.widgets.RectangleSelector.**
     ax_cut = fig2.add_axes([0.05, 0.55, 0.35, 0.4])
     ax_cut.imshow(img_cut);
 
-.. code:: ipython3
+.. code:: python
 
     # Threshold each of the RGB channels:
     thresholds_rgb = iquib(np.array([160, 170, 150])) # <-- input: RGB thresholds
@@ -71,7 +71,7 @@ matplotlib.widgets.RectangleSelector.**
     ax_cut01 = fig2.add_axes([0.05, 0.05, 0.35, 0.4])
     ax_cut01.imshow(img_cut01 * 1.);
 
-.. code:: ipython3
+.. code:: python
 
     # Calculate area above threshold for each color:
     fraction_above_threshold = np.average(img_cut01, (0, 1)); 
@@ -84,7 +84,7 @@ matplotlib.widgets.RectangleSelector.**
     ax_area.set_xticks([1, 2, 3])
     ax_area.set_xticklabels(['Red', 'Green', 'Blue']);
 
-.. code:: ipython3
+.. code:: python
 
     # Threshold controls
     ax_thr = fig2.add_axes([0.6, 0.05, 0.3, 0.2])
@@ -94,7 +94,7 @@ matplotlib.widgets.RectangleSelector.**
     ax_thr.set_xticklabels(['Red', 'Green', 'Blue'])
     ax_thr.plot([1, 2, 3], thresholds_rgb, 'sk', markersize=16, markerfacecolor='k', picker=True);
 
-.. code:: ipython3
+.. code:: python
 
     # Add a rectangle "draggable" ROI around the extracted image:
     shifted_ROI = ROI - ROI[[0,0,2,2]]

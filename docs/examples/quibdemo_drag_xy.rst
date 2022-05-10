@@ -14,7 +14,7 @@ Dragging graphics affects upstream quibs
    -  Try dragging the red marker; note the change in X,Y text, square,
       ellipse.
 
-.. code:: ipython3
+.. code:: python
 
     from pyquibbler import iquib, override_all, q
     import matplotlib.pyplot as plt
@@ -22,21 +22,21 @@ Dragging graphics affects upstream quibs
     override_all()
     %matplotlib tk
 
-.. code:: ipython3
+.. code:: python
 
     # Figure setup:
     fig1 = plt.figure(figsize=(4,3))
     plt.axis('square');
     plt.axis([-10, 10, -10, 10]);
 
-.. code:: ipython3
+.. code:: python
 
     # Define input quibs for X,Y coordinates:
     XY = iquib(np.array([3., 4.]))
     X = XY[[0]]
     Y = XY[[1]]
 
-.. code:: ipython3
+.. code:: python
 
     # Plot additional graphics based on X and Y.
     # these downstream graphics will change when the marker is moved:
