@@ -46,7 +46,7 @@ used for some presumed downstream processing of some *n* data items:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     array([7., 7., 7., 7., 7.])
 
@@ -75,7 +75,7 @@ syntax:
     per_item_factor[1] = 9
 
 
-.. parsed-literal::
+.. code:: none
 
     Overriding choices:
     (1) per_item_factor
@@ -83,13 +83,13 @@ syntax:
     
 
 
-.. parsed-literal::
+.. code:: none
 
     Choose the number of the quib to override 
     (press enter without a choice to cancel):  1
 
 
-.. parsed-literal::
+.. code:: none
 
     Overriding:  per_item_factor
 
@@ -115,7 +115,7 @@ menu above) will cause an overriding assignment to this function quib:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     array([7., 9., 7., 7., 7.])
 
@@ -137,7 +137,7 @@ but the overridden positions:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     array([8., 9., 8., 8., 8.])
 
@@ -154,7 +154,7 @@ assignments do not require bringing up the dialog box again:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     array([8., 9., 8., 7., 8.])
 
@@ -177,7 +177,7 @@ method:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     quib[1] = 9
     quib[3] = 7
@@ -194,7 +194,7 @@ the ``get_override_mask()`` method:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     array([False,  True, False,  True, False])
 
@@ -245,7 +245,7 @@ an assigning syntax where the assigned value is the *Quibbler*
 
 
 
-.. parsed-literal::
+.. code:: none
 
     array([  8., 101., 102., 103.,   8.])
 
@@ -259,7 +259,7 @@ an assigning syntax where the assigned value is the *Quibbler*
 
 
 
-.. parsed-literal::
+.. code:: none
 
     array([  8.,   8.,   8., 103.,   8.])
 
@@ -275,7 +275,7 @@ All assignments to a quib can be cleared using:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     array([8., 8., 8., 8., 8.])
 
@@ -302,7 +302,7 @@ will become out-of-range. For example:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     array([8., 8., 8., 8., 3.])
 
@@ -320,7 +320,7 @@ out-of-range assignment:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     array([8., 8., 8., 8.])
 

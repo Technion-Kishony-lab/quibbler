@@ -30,7 +30,7 @@ example:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     total = sum(numbers)
 
@@ -57,7 +57,7 @@ the ``functional_representation`` property:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     'iquib(6)'
 
@@ -70,7 +70,7 @@ the ``functional_representation`` property:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     'arange(n ** 2)'
 
@@ -83,7 +83,7 @@ the ``functional_representation`` property:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     'sum(numbers)'
 
@@ -106,7 +106,7 @@ before the equal sign in the quib repr and can also be accessed by the
 
 
 
-.. parsed-literal::
+.. code:: none
 
     'numbers'
 
@@ -141,7 +141,7 @@ numbers:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     'numbers from zero to sqr_n minus one'
 
@@ -171,7 +171,7 @@ intermediate quib ``n**2`` was created:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     {n ** 2}
 
@@ -185,7 +185,7 @@ This intermediate quib has no assigned ``assigned_name``:
     print(n2.assigned_name)
 
 
-.. parsed-literal::
+.. code:: none
 
     None
 
@@ -204,7 +204,7 @@ if specified, or as its ``functional_representation`` if
 
 
 
-.. parsed-literal::
+.. code:: none
 
     'total'
 
@@ -218,7 +218,7 @@ if specified, or as its ``functional_representation`` if
 
 
 
-.. parsed-literal::
+.. code:: none
 
     'sum(numbers from zero to sqr_n minus one)'
 
@@ -248,7 +248,7 @@ then the name of the downstream quib ``total`` is updated:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     'sum(arange(n ** 2))'
 
@@ -264,7 +264,7 @@ Changing the name of ``n`` will now also be reflected downstream:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     'sum(arange(number_of_values ** 2))'
 

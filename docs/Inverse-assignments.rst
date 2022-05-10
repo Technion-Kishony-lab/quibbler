@@ -58,7 +58,7 @@ For example:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     ['We', 'love', 'big', 'data']
 
@@ -72,7 +72,7 @@ For example:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     ['We', 'love', 'huge', 'data']
 
@@ -89,7 +89,7 @@ Deep-level assignments are also supported:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     [1, [2, 0], 4]
 
@@ -114,7 +114,7 @@ the array. To perform such whole-object assignments, we can use the
 
 
 
-.. parsed-literal::
+.. code:: none
 
     array([10, 20, 30])
 
@@ -142,7 +142,7 @@ depends on ``z``:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     array([21, 22, 23])
 
@@ -159,7 +159,7 @@ reaching the i-quib ``z`` where the assignment is actualized:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     array([11, 12, 90])
 
@@ -172,7 +172,7 @@ reaching the i-quib ``z`` where the assignment is actualized:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     array([ 21,  22, 100])
 
@@ -193,7 +193,7 @@ given i-quib:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     array([[ 8,  1],
            [16,  2],
@@ -215,7 +215,7 @@ given i-quib:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     array([13., 12.])
 
@@ -237,7 +237,7 @@ relevant source i-quibs:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     array([[ 8,  1],
            [16,  2],
@@ -331,7 +331,7 @@ For example:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     7
 
@@ -352,7 +352,7 @@ function. So, while the inverse of round(10) can be any number between
 
 
 
-.. parsed-literal::
+.. code:: none
 
     array([10., 10., 10., 10.])
 
@@ -372,7 +372,7 @@ current value of the assigned quib. For example:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     array([30., 30., 30., 30., 30.])
 
@@ -392,7 +392,7 @@ the solution closest to the current value:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     array([4., 4.])
 
@@ -420,7 +420,7 @@ snippets:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     [6, 4]
 
@@ -436,7 +436,7 @@ snippets:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     [3, 7]
 
@@ -482,7 +482,7 @@ quib:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     array([2, 7])
 
@@ -496,7 +496,7 @@ quib:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     array([5, 6])
 
@@ -528,7 +528,7 @@ changing ``b`` to 30 (rather than the assigned value of 33):
 
 
 
-.. parsed-literal::
+.. code:: none
 
     30
 

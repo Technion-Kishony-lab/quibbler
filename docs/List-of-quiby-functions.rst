@@ -25,7 +25,7 @@ Import
 
 
 
-.. parsed-literal::
+.. code:: none
 
     True
 
@@ -38,7 +38,7 @@ Import
 
 
 
-.. parsed-literal::
+.. code:: none
 
     False
 
@@ -60,7 +60,7 @@ To see all available quiby functiuons, use ``list_quiby_funcs()``:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     ['None: <function identity_function at 0x7f8ae1178670>',
      'None: <function proxy at 0x7f8ae1178ee0>',

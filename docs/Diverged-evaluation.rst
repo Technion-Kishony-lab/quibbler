@@ -66,7 +66,7 @@ In this example, ``v_my_sqr`` is the vectorized form of ``my_sqr``; when
     v_my_sqr(np.array([0, 1, 2, 3, 4]))
 
 
-.. parsed-literal::
+.. code:: none
 
     calculating my_sqr of x = 0
     calculating my_sqr of x = 1
@@ -77,7 +77,7 @@ In this example, ``v_my_sqr`` is the vectorized form of ``my_sqr``; when
 
 
 
-.. parsed-literal::
+.. code:: none
 
     array([ 0,  1,  4,  9, 16])
 
@@ -106,7 +106,7 @@ function quib:
     x_sqr.get_value()
 
 
-.. parsed-literal::
+.. code:: none
 
     calculating my_sqr of x = 0
     calculating my_sqr of x = 1
@@ -117,7 +117,7 @@ function quib:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     array([ 0,  1,  4,  9, 16])
 
@@ -143,14 +143,14 @@ the function at the requested position:
     x_sqr[3].get_value()
 
 
-.. parsed-literal::
+.. code:: none
 
     calculating my_sqr of x = 3
 
 
 
 
-.. parsed-literal::
+.. code:: none
 
     9
 
@@ -165,7 +165,7 @@ only calculate the parts of the array not yet calculated:
     x_sqr[2:].get_value()
 
 
-.. parsed-literal::
+.. code:: none
 
     calculating my_sqr of x = 2
     calculating my_sqr of x = 4
@@ -173,7 +173,7 @@ only calculate the parts of the array not yet calculated:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     array([ 4,  9, 16])
 
@@ -184,7 +184,7 @@ only calculate the parts of the array not yet calculated:
     x_sqr.get_value()
 
 
-.. parsed-literal::
+.. code:: none
 
     calculating my_sqr of x = 0
     calculating my_sqr of x = 1
@@ -192,7 +192,7 @@ only calculate the parts of the array not yet calculated:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     array([ 0,  1,  4,  9, 16])
 
@@ -218,14 +218,14 @@ elements is then repeated when the output is requested:
     x_sqr.get_value()
 
 
-.. parsed-literal::
+.. code:: none
 
     calculating my_sqr of x = 10
 
 
 
 
-.. parsed-literal::
+.. code:: none
 
     array([  0,   1,   4, 100,  16])
 

@@ -1,0 +1,14 @@
+.highlight-none {
+    color: #a0a0a0;
+    background: none;
+    border: none;
+}
+
+.highlight-python {
+    color: #000000;
+    background: #f8f8f8;
+}
+
+.highlight {
+    background: none;
+}
