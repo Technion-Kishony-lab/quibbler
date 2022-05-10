@@ -24,12 +24,12 @@ class QuibFuncCall(FuncCall):
     by caching results and only asking for necessary values from argument quibs
     """
 
-    artists_creation_callback: Callable = None
+    artists_creation_callback: Optional[Callable] = None
     graphics_collections: Optional[np.ndarray] = None
     method_cache: Mapping[CachedCall, Any] = field(default_factory=dict)
     cache: Optional[Cache] = None
     _caching: bool = False
-    _result_metadata: ResultMetadata = None
+    _result_metadata: Optional[ResultMetadata] = None
     cache_mode: CacheMode = None
 
     SOURCE_OBJECT_TYPE = Quib
@@ -104,6 +104,7 @@ class QuibFuncCall(FuncCall):
 
     def on_type_change(self):
         self.method_cache.clear()
+        self._result_metadata = None
 
     def invalidate_cache_at_path(self, path: Path):
         pass

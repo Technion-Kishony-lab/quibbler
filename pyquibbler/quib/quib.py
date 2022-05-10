@@ -278,10 +278,9 @@ class QuibHandler:
         If we have no translators, we forward the path to invalidate all, as we have no more specific way to do it
         """
         # We always invalidate all if it's a parameter source quib
-        if invalidator_quib not in self.quib_function_call.get_data_sources():
-            return [[]]
-
-        if not self.quib_function_call._result_metadata:
+        if invalidator_quib not in self.quib_function_call.get_data_sources() \
+                or path == [] \
+                or not self.quib_function_call._result_metadata:
             return [[]]
 
         try:
