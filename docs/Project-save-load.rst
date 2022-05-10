@@ -78,7 +78,7 @@ Import
 
 
 
-.. parsed-literal::
+.. code:: none
 
     <SaveFormat.VALUE_TXT: 'value_txt'>
 
@@ -99,7 +99,7 @@ Import
 
 
 
-.. parsed-literal::
+.. code:: none
 
     array([[250],
            [ 10]])

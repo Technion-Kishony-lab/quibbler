@@ -67,14 +67,14 @@ For the example function above, we will implement:
     w1.get_value()
 
 
-.. parsed-literal::
+.. code:: none
 
     function add called with [1 2 3], 100
 
 
 
 
-.. parsed-literal::
+.. code:: none
 
     array([101, 102, 103])
 
@@ -98,14 +98,14 @@ For the example function above, we will implement:
     w2.get_value()
 
 
-.. parsed-literal::
+.. code:: none
 
     function add called with [1 2 3], 100
 
 
 
 
-.. parsed-literal::
+.. code:: none
 
     array([101, 102, 103])
 
@@ -144,14 +144,14 @@ For the example function above, we will implement:
     w3.get_value()
 
 
-.. parsed-literal::
+.. code:: none
 
     function add called with [1 2 3], 100
 
 
 
 
-.. parsed-literal::
+.. code:: none
 
     array([101, 102, 103])
 
