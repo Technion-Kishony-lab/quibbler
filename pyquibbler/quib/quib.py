@@ -254,19 +254,6 @@ class QuibHandler:
                 if len(path) == 0 or len(self._get_list_of_not_overridden_paths_at_first_component(new_path)) > 0:
                     self._invalidate_children_at_path(new_path)
 
-    def _forward_translate_without_retrieving_metadata(self, invalidator_quib: Quib, path: Path) -> Paths:
-        func_call, sources_to_quibs = get_func_call_for_translation_without_sources_metadata(
-            self.quib_function_call
-        )
-        quibs_to_sources = {quib: source for source, quib in sources_to_quibs.items()}
-        sources_to_forwarded_paths = forwards_translate(
-            func_call=func_call,
-            sources_to_paths={
-                quibs_to_sources[invalidator_quib]: path
-            },
-        )
-        return sources_to_forwarded_paths.get(quibs_to_sources[invalidator_quib], [])
-
     def _forward_translate_with_retrieving_metadata(self, invalidator_quib: Quib, path: Path) -> Paths:
         func_call, sources_to_quibs = get_func_call_for_translation_with_sources_metadata(
             self.quib_function_call
@@ -283,19 +270,6 @@ class QuibHandler:
         )
         return sources_to_forwarded_paths.get(quibs_to_sources[invalidator_quib], [])
 
-    def _forward_translate_source_path(self, invalidator_quib: Quib, path: Path) -> Paths:
-        """
-        Forward translate a path, first attempting to do it WITHOUT using getting the shape and type, and if/when
-        failure does grace us, we attempt again with shape and type
-        """
-        try:
-            return self._forward_translate_without_retrieving_metadata(invalidator_quib, path)
-        except NoTranslatorsFoundException:
-            try:
-                return self._forward_translate_with_retrieving_metadata(invalidator_quib, path)
-            except NoTranslatorsFoundException:
-                return [[]]
-
     def _get_paths_for_children_invalidation(self, invalidator_quib: Quib,
                                              path: Path) -> Paths:
         """
@@ -307,13 +281,13 @@ class QuibHandler:
         if invalidator_quib not in self.quib_function_call.get_data_sources():
             return [[]]
 
+        if not self.quib_function_call._result_metadata:
+            return [[]]
+
         try:
-            return self._forward_translate_without_retrieving_metadata(invalidator_quib, path)
+            return self._forward_translate_with_retrieving_metadata(invalidator_quib, path)
         except NoTranslatorsFoundException:
-            try:
-                return self._forward_translate_with_retrieving_metadata(invalidator_quib, path)
-            except NoTranslatorsFoundException:
-                return [[]]
+            return [[]]
 
     def reset_quib_func_call(self):
         definition = get_definition_for_function(self.func_args_kwargs.func)
