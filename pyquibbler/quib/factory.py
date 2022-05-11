@@ -110,8 +110,7 @@ def create_quib(func: Optional[Callable],
 
     # register new quib on parents
     if register_as_child_of_parents:
-        for parent in quib.parents:
-            parent.handler.add_child(quib)
+        quib.handler.connect_to_parents()
 
     # evaluate now if not lazy
     lazy = func_definition.lazy if lazy is NoValue else lazy

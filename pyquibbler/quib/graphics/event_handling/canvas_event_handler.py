@@ -1,7 +1,6 @@
 from contextlib import contextmanager
 from threading import Lock
 from typing import Optional, Tuple, Callable
-from matplotlib.artist import Artist
 from matplotlib.backend_bases import MouseEvent, PickEvent, MouseButton
 
 from pyquibbler.env import END_DRAG_IMMEDIATELY
@@ -11,6 +10,7 @@ from pyquibbler.utilities.performance_utils import timer
 from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
 from pyquibbler.quib.graphics.event_handling import graphics_inverse_assigner
 from pyquibbler.assignment.override_choice.types import OverrideGroup
+from pyquibbler.quib.graphics import artist_wrapper
 
 from matplotlib.axes import Axes
 from pyquibbler.quib import Quib
@@ -58,6 +58,7 @@ class CanvasEventHandler:
     def __init__(self, canvas):
         self.canvas = canvas
         self.current_pick_event: Optional[PickEvent] = None
+        self.current_pick_quib: Optional[Quib] = None
         self._last_mouse_event_with_overrides: Optional[PickEvent] = None
         self._last_axis_event_with_overrides = {}
         self._assignment_lock = Lock()
@@ -78,6 +79,7 @@ class CanvasEventHandler:
                 self._inverse_from_mouse_event(self._last_mouse_event_with_overrides)
         self._last_mouse_event_with_overrides = None
         self.current_pick_event = None
+        self.current_pick_quib = None
 
         if self._last_axis_event_with_overrides:
             with releasing():
@@ -90,10 +92,11 @@ class CanvasEventHandler:
 
     def _handle_pick_event(self, pick_event: PickEvent):
         self.current_pick_event = pick_event
+        self.current_pick_quib = artist_wrapper.get_creating_quib(pick_event.artist)
         if pick_event.mouseevent.button is MouseButton.RIGHT:
             self._inverse_from_mouse_event(pick_event.mouseevent)
 
-    def _inverse_assign_graphics(self, artist: Artist, mouse_event: MouseEvent):
+    def _inverse_assign_graphics(self, mouse_event: MouseEvent):
         """
         Reverse any relevant quibs in artists creation args
         """
@@ -102,13 +105,13 @@ class CanvasEventHandler:
         if pick_event is None:
             # This case was observed in the wild
             return
-        drawing_func = getattr(artist, '_quibbler_drawing_func')
-        args = getattr(artist, '_quibbler_args')
+
+        drawing_quib = self.current_pick_quib
         with timer("motion_notify", lambda x: logger.info(f"motion notify {x}")), \
                 aggregate_redraw_mode(), \
                 graphics_assignment_mode(mouse_event.inaxes):
-            override_group = graphics_inverse_assigner.inverse_assign_drawing_func(drawing_func=drawing_func,
-                                                                                   args=args,
+            override_group = graphics_inverse_assigner.inverse_assign_drawing_func(drawing_func=drawing_quib.func,
+                                                                                   args=drawing_quib.args,
                                                                                    mouse_event=mouse_event,
                                                                                    pick_event=pick_event)
             if override_group is not None and override_group:
@@ -154,15 +157,14 @@ class CanvasEventHandler:
 
     def _inverse_from_mouse_event(self, mouse_event):
         if self.current_pick_event is not None:
-            drawing_func = getattr(self.current_pick_event.artist, '_quibbler_drawing_func', None)
-            if drawing_func is not None:
-                with self._try_acquire_assignment_lock() as locked:
-                    if locked:
-                        # If not locked, there is already another motion handler running, we just drop this one.
-                        # This could happen if changes are slow or if a dialog is open
-                        self._inverse_assign_graphics(self.current_pick_event.artist, mouse_event)
-                        if END_DRAG_IMMEDIATELY:
-                            self.current_pick_event = None
+            with self._try_acquire_assignment_lock() as locked:
+                if locked:
+                    # If not locked, there is already another motion handler running, we just drop this one.
+                    # This could happen if changes are slow or if a dialog is open
+                    self._inverse_assign_graphics(mouse_event)
+                    if END_DRAG_IMMEDIATELY:
+                        self.current_pick_event = None
+                        self.current_pick_quib = None
 
     def initialize(self):
         """
@@ -175,7 +177,11 @@ class CanvasEventHandler:
         def disconnect(event):
             for handler_id in handler_ids:
                 self.canvas.mpl_disconnect(handler_id)
+
             self.CANVASES_TO_TRACKERS.pop(self.canvas)
+
+            for ax in self.canvas.figure.axes:
+                ax.cla()
 
         handler_ids.append(self.canvas.mpl_connect('close_event', disconnect))
 
@@ -184,8 +190,8 @@ class CanvasEventHandler:
         This method is called by the overridden set_xlim, set_ylim
         """
         from pyquibbler.graphics import dragging
-        name = f'_quibbler_{drawing_func.__name__}'
-        set_lim_quib = getattr(ax, name, None)
+        name = drawing_func.__name__
+        set_lim_quib = artist_wrapper.get_setter_quib(ax, name)
         if isinstance(set_lim_quib, Quib):
             with self._try_acquire_assignment_lock() as locked:
                 if locked:

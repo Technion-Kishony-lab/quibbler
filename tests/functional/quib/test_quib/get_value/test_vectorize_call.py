@@ -117,7 +117,7 @@ def test_lazy_vectorize():
     parent[0] = 100
     parent[1] = 101
     parent[2] = 102
-    func_mock.assert_called_once()
+    func_mock.assert_not_called()
 
 
 def test_vectorize_doesnt_evaluate_sample_when_getting_value():

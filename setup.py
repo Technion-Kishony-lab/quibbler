@@ -10,7 +10,8 @@ setup(
         'dev': [
             'pytest',
             'pytest-pep8',
-            'pytest-cov'
+            'pytest-cov',
+            'pytest-benchmark',
         ],
         'sphinx': [
             'sphinx',

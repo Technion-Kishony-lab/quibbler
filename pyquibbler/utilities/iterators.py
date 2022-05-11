@@ -1,5 +1,3 @@
-import functools
-import itertools
 import numpy as np
 from typing import Tuple, Any, Mapping, Type, Optional, Callable
 
@@ -82,12 +80,11 @@ def iter_objects_of_type_in_object(object_type: Type, obj: Any, force_recursive:
     return result
 
 
-def iter_object_type_in_args(object_type, args: Tuple[Any, ...], kwargs: Mapping[str, Any]):
+def iter_object_type_in_args_kwargs(object_type, args: Tuple[Any, ...], kwargs: Mapping[str, Any]):
     """
     Returns an iterator for all objects of a type nested in the given args and kwargs.
     """
-    return itertools.chain(*map(functools.partial(iter_objects_of_type_in_object, object_type),
-                                itertools.chain(args, kwargs.values())))
+    return iter_objects_of_type_in_object(object_type, (*args, *kwargs.values()))
 
 
 def iter_args_and_names_in_function_call(func: Callable, args: Tuple[Any, ...], kwargs: Mapping[str, Any],
