@@ -123,6 +123,14 @@ def test_quib_pretty_repr_getitem_multiple_axes():
 
 
 @pytest.mark.get_variable_names(True)
+def test_quib_pretty_repr_single_tuple_getitem():
+    a = iquib(np.array([0]))
+    b = a[(0,)]
+
+    assert b.pretty_repr() == "b = a[(0,)]"
+
+
+@pytest.mark.get_variable_names(True)
 def test_quib_pretty_repr_getitem_index():
     a = iquib(np.array([1, 2, 3]))
     b = a[1]
