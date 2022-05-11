@@ -86,7 +86,7 @@ def is_saveable_as_txt(val: Any) -> bool:
     def set_false_if_repr_is_not_invertible(v):
         from numpy import ndarray
         nonlocal all_ok
-        all_ok &= isinstance(v, (str, int, float, ndarray))
+        all_ok &= isinstance(v, (str, int, float, ndarray, slice, type(None)))
 
     # TODO: for dicts we need to check also that the keys are invertible
     recursively_run_func_on_object(func=set_false_if_repr_is_not_invertible, obj=val)
