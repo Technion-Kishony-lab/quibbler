@@ -51,6 +51,7 @@ points.**
 
 .. code:: python
 
+    # Close the shapes by connecting the last point to the first point
     x_star_circ = np.concatenate([x_star, x_star[[0]]])
     y_star_circ = np.concatenate([y_star, y_star[[0]]])
 
@@ -60,7 +61,7 @@ points.**
     x_center_movable = iquib(np.array([7.]))
     y_center_movable = iquib(np.array([5.]))
     
-    # using x_center_movable as the first argument 
+    # using x_center_movable as the first argument in the summation 
     # (to which the inverse-assignment is channeled):
     x_movable_star = x_center_movable + x_star_circ
     y_movable_star = y_center_movable + y_star_circ
@@ -74,7 +75,7 @@ points.**
     x_center_fixed = iquib(np.array([2.]))
     y_center_fixed = iquib(np.array([8.]))
     
-    # using x_star as the first argument:
+    # using x_star_circ as the first argument in the summation
     x_changeable_star = x_star_circ + x_center_fixed;
     y_changeable_star = y_star_circ + y_center_fixed;
     ax.text(x_center_fixed, y_center_fixed+np.min(y_star_circ)-0.2,'Change me!',

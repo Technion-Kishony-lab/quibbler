@@ -16,12 +16,12 @@ Specifically, the pipeline involves the following three steps:
 When a single ROI changes (by being dragged), *Quibbler* knows to only
 make the calculation needed: re-cutting the specific corresponding image
 and re-calculating the pairwise comparisons of this specific image with
-all other images (2 *n* - 1 recalculations).
+all other images (2\*\ *n*-1 recalculations).
 
 A print command within the image-cutting and the image-comparison
 functions allows tracking functional call (dragging an ROI should follow
-by a report of a single “Cutting image” and then 2 *n* - 1 “Comparing
-images” messages).
+by a report of a single “Cutting image …” and then 2\*\ *n*-1 “Comparing
+…” messages).
 
 -  **Features**
 

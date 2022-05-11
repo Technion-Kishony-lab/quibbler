@@ -23,7 +23,7 @@ Quib-linked CheckButtons widget
 .. code:: python
 
     # Prepare figure, axes
-    plt.figure(figsize=(3,3))
+    plt.figure(figsize=(3, 3))
     axs = plt.gca()
 
 .. code:: python
@@ -35,11 +35,10 @@ Quib-linked CheckButtons widget
 
     # Define a quib-widget
     # (Interaction with the widget changes the quib)
-    widgets.CheckButtons(ax=axs, labels=['Red','Green','Blue'], actives=colors);
+    widgets.CheckButtons(ax=axs, labels=['Red', 'Green', 'Blue'], actives=colors);
 
 .. code:: python
 
     # Set the color of the axis to the quib colors
     axs.set_facecolor(colors);
-
 .. image:: ../images/demo_gif/quibdemo_CheckButtons.gif

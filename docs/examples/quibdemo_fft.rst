@@ -70,15 +70,14 @@ Signal analysis with random noise
     spectrum = q(np.fft.fft, measurement);
     dfreqs = 1/total_time; # Frequency resolution
     freqs = np.concatenate([
-        np.arange(0,(num_time_points-1)/2), 
-        np.arange(num_time_points/2,0,-1)]) * dfreqs  # Frequency vector
+        np.arange(0, (num_time_points - 1) / 2), 
+        np.arange(num_time_points/2, 0, -1)]) * dfreqs  # Frequency vector
     
     # Apply band filter
     spectrum_filtered = spectrum * ((freqs>=min_freq) & (freqs<=max_freq));
     
     # Inverse FFT:
     S0 = q(np.fft.ifft, spectrum_filtered);
-
 
 .. code:: python
 
@@ -92,11 +91,11 @@ Signal analysis with random noise
     axs1 = fig.add_axes((0.15, 0.78, 0.75, 0.2))
     axs1.set_ylim([np.min(measurement) - 0.5 - noise_amp, 
                    np.max(measurement) + 0.5 + noise_amp])
-    axs1.set_xlim([0,total_time])
+    axs1.set_xlim([0, total_time])
     axs1.set_xlabel('Time (sec)')
     axs1.set_ylabel('Signal')
-    axs1.plot(t,np.real(measurement), '.-', color=[0.8,0,0])
-    axs1.plot(t,np.real(S0), '.-', color=[0,0.7,0]);
+    axs1.plot(t,np.real(measurement), '.-', color=[0.8, 0, 0])
+    axs1.plot(t,np.real(S0), '.-', color=[0, 0.7, 0]);
 
 .. code:: python
 
@@ -127,7 +126,7 @@ Signal analysis with random noise
                    valmin=1, valmax=13,   valstep=1,   valinit=nSin);
     
     # Make the 'Power of sin' slider visible only when signal_fnc_chosen==3:
-    is_sinN = q(lambda x:x==3,signal_fnc_chosen)
+    is_sinN = q(lambda x: x==3, signal_fnc_chosen)
     a = slider_axs[4].set_visible(is_sinN);
 
 .. code:: python

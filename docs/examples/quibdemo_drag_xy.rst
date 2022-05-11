@@ -25,7 +25,7 @@ Dragging graphics affects upstream quibs
 .. code:: python
 
     # Figure setup:
-    fig1 = plt.figure(figsize=(4,3))
+    fig1 = plt.figure(figsize=(4, 3))
     plt.axis('square');
     plt.axis([-10, 10, -10, 10]);
 
@@ -33,8 +33,8 @@ Dragging graphics affects upstream quibs
 
     # Define input quibs for X,Y coordinates:
     XY = iquib(np.array([3., 4.]))
-    X = XY[[0]]
-    Y = XY[[1]]
+    X = XY[0]
+    Y = XY[1]
 
 .. code:: python
 
@@ -42,15 +42,14 @@ Dragging graphics affects upstream quibs
     # these downstream graphics will change when the marker is moved:
     
     # Text:
-    plt.text(-9,9,q('X={:.2f}, Y={:.2f}'.format,X[0],Y[0]),fontsize=16,verticalalignment='top');
+    plt.text(-9, 9, q('X={:.2f}, Y={:.2f}'.format, X, Y), fontsize=16, va='top');
     
     # Rectangle:
-    plt.plot(X*np.array([-1,1,1,-1,-1]), Y*np.array([-1,-1,1,1,-1]), 'k--o', linewidth=1, picker=True);
+    plt.plot(X * np.array([-1, 1, 1, -1, -1]), Y * np.array([-1, -1, 1, 1, -1]), 
+             'k--o', linewidth=1, picker=True);
     
     # Ellipse:
-    tt = np.linspace(0,2*np.pi,50);
-    xx = X*np.cos(tt);
-    yy = Y*np.sin(tt);
-    plt.plot(xx,yy,'r-',linewidth=4);
+    tt = np.linspace(0, 2 * np.pi, 50);
+    plt.plot(X * np.cos(tt), Y * np.sin(tt), 'r-', linewidth=4);
 
 .. image:: ../images/demo_gif/quibdemo_drag_xy.gif
