@@ -19,6 +19,7 @@ Quiby setting of axes limits
     override_all()
     from matplotlib import pyplot as plt
     import numpy as np
+    
     %matplotlib tk
 
 .. code:: python

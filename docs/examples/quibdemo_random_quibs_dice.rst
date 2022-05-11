@@ -23,6 +23,7 @@ Quibs of random functions - dice rolling
     import matplotlib.pyplot as plt
     from matplotlib.widgets import Slider, Button
     import numpy as np
+    
     %matplotlib tk
 
 .. code:: python
@@ -69,21 +70,21 @@ Quibs of random functions - dice rolling
     # Plot normal approximation
     @quiby_function()
     def p_normal(m,s,x):
-        return 1/s/np.sqrt(2*np.pi)*np.exp(-0.5*((x-m)/s)**2)
+        return 1 / s / np.sqrt(2 * np.pi) * np.exp(-0.5 * ((x - m) / s)**2)
     
-    std = np.std(np.arange(1,num_sides+1))
-    mean = np.average(np.arange(1,num_sides+1))
+    std = np.std(np.arange(1, num_sides + 1))
+    mean = np.average(np.arange(1, num_sides + 1))
     se = std * np.sqrt(num_dice)
     mn = mean * num_dice
-    xx = np.linspace(num_dice, num_dice*num_sides,100)
-    p = p_normal(mn,se,xx)
-    ax.plot(xx,p*num_rolls,'r-');
+    xx = np.linspace(num_dice, num_dice*num_sides, 100)
+    p = p_normal(mn, se, xx)
+    ax.plot(xx, p*num_rolls, 'r-');
 
 .. code:: python
 
     # set ylim to max expected + 2 std
-    mx_count_expected = p_normal(mn,se,mn)*num_rolls
-    ax.set_ylim([0,mx_count_expected + 2*np.sqrt(mx_count_expected)]);
+    mx_count_expected = p_normal(mn,se,mn) * num_rolls
+    ax.set_ylim([0, mx_count_expected + 2 * np.sqrt(mx_count_expected)]);
 
 .. code:: python
 
@@ -93,14 +94,16 @@ Quibs of random functions - dice rolling
 .. code:: python
 
     # Add slider controls
-    Slider(ax=fg.add_axes([0.23,0.15,0.4,0.03]), label='Number of dice', valmin=1, valmax=5, valinit=num_dice, valstep=1);
-    Slider(ax=fg.add_axes([0.23,0.1,0.4,0.03]), label='Number of rolls', valmin=10, valmax=1000, valinit=num_rolls, valstep=10);
+    Slider(ax=fg.add_axes([0.23, 0.15, 0.4, 0.03]), label='Number of dice', 
+           valmin=1, valmax=5, valinit=num_dice, valstep=1);
+    Slider(ax=fg.add_axes([0.23, 0.10, 0.4, 0.03]), label='Number of rolls', 
+           valmin=10, valmax=1000, valinit=num_rolls, valstep=10);
 
 .. code:: python
 
     # Add randomize button
     randomize = Button(fg.add_axes([0.23,0.03,0.16,0.05]),'Randomize')
-    randomize.on_clicked(lambda x: reset_random_quibs())
+    randomize.on_clicked(lambda x: reset_random_quibs());
 
 
 

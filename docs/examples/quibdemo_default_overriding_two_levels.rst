@@ -4,26 +4,26 @@ Overriding default values (two-levels)
 **A demo of two-level default and overriding.**
 
 Say we have several “plates”, and each of these plates has several
-“wells”, and we want to apply a function to each well with some default
-factor. We need a way to choose this factor globally, but we might
-sometimes need to adjust it for specific plates and even for specific
-wells within the plates. Essentially, we would like to copy the “default
-factor” for each plate and then for each well while allowing
-“overriding” of these copies at each level. In *Quibbler*, as shown
-here, such behavior is achieved quite seamlessly using overriding of
-function quibs.
+“wells”, and we want to apply a function to each well in each plate with
+some default factor. We need a way to choose this factor globally, but
+we might sometimes need to adjust it for specific plates and even for
+specific wells within the plates. Essentially, we would like to copy the
+“default factor” for each plate and copy the plate factor for each well,
+while allowing “overriding” of these copies at each level. In
+*Quibbler*, as shown here, such behavior is achieved quite seamlessly
+using overriding of function quibs.
 
 -  **Features**
 
-   -  Overriding default values
+   -  Overriding
+   -  Override mask
    -  Graphics-driven assignments
    -  Inverse assignments
-   -  override_mask
    -  Assignment template
 
 -  **Try me**
 
-   -  Drag the horizontal line to change the overall “default factor”
+   -  Drag the horizontal line to change the “default factor”
    -  Drag the “per-plate factor” markers will prompt asking if
       assignments should be interpreted as overrides to the
       “plate-facor”, or propagate upstream to change the default.
@@ -101,7 +101,7 @@ function quibs.
     dd = (dd[0:-1] + dd[1:]) / 2.
     xx = np.ravel(x + np.reshape(dd, (n_wells, 1)), 'F')
     ax2.bar(xx, well_factor, color=(0.7, 0.7, 0.7), width=0.1)
-    two_color_scatter(ax2, xx, well_factor)
+    two_color_scatter(ax2, xx, well_factor);
 
 
 
