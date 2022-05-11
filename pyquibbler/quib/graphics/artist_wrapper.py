@@ -1,4 +1,3 @@
-import dataclasses
 from typing import Optional, Dict
 from matplotlib.artist import Artist
 

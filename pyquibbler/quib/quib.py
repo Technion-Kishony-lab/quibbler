@@ -27,8 +27,7 @@ from pyquibbler.quib.quib_guard import guard_raise_if_not_allowed_access_to_quib
 from pyquibbler.quib.pretty_converters import MathExpression, FailedMathExpression, \
     NameMathExpression, pretty_convert
 from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals, NoValue
-from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation_with_sources_metadata, \
-    get_func_call_for_translation_without_sources_metadata
+from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation_with_sources_metadata
 from pyquibbler.utilities.input_validation_utils import validate_user_input, InvalidArgumentValueException, \
     get_enum_by_str
 from pyquibbler.utilities.iterators import recursively_run_func_on_object, recursively_compare_objects_type, \
@@ -907,7 +906,7 @@ class Quib:
         pyquibbler.refresh_graphics
         """
         return self.handler.quib_function_call.func_can_create_graphics \
-               and not self.handler.created_in_get_value_context
+            and not self.handler.created_in_get_value_context
 
     @property
     def graphics_update(self) -> GraphicsUpdateType:

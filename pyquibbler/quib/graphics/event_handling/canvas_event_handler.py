@@ -1,7 +1,6 @@
 from contextlib import contextmanager
 from threading import Lock
 from typing import Optional, Tuple, Callable
-from matplotlib.artist import Artist
 from matplotlib.backend_bases import MouseEvent, PickEvent, MouseButton
 
 from pyquibbler.env import END_DRAG_IMMEDIATELY

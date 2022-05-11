@@ -1,7 +1,7 @@
 from __future__ import annotations
 import dataclasses
 from abc import ABC, abstractmethod
-from typing import Iterable, Optional
+from typing import Iterable
 
 from pyquibbler.quib.graphics import artist_wrapper
 from pyquibbler.quib.graphics.event_handling import CanvasEventHandler
