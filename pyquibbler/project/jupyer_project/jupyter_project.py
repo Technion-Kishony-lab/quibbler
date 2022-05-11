@@ -91,17 +91,14 @@ class JupyterProject(Project):
     def register_quib(self, quib: Quib):
         super(JupyterProject, self).register_quib(quib)
 
-        if quib.assigned_name and quib.allow_overriding:
-            execution_count_diff = get_ipython().execution_count - self._last_requested_execution_count
-            quib_lists_to_add = execution_count_diff - len(self._tracked_quibs_stack)
+        execution_count_diff = get_ipython().execution_count - self._last_requested_execution_count
+        quib_lists_to_add = execution_count_diff - len(self._tracked_quibs_stack)
 
-            logger.info(f"quib lists to add, {quib_lists_to_add}")
+        for i in range(quib_lists_to_add):
+            self._tracked_quibs_stack.append([])
 
-            for i in range(quib_lists_to_add):
-                self._tracked_quibs_stack.append([])
-
-            current_quibs_list = self._tracked_quibs_stack[-1]
-            current_quibs_list.append(quib)
+        current_quibs_list = self._tracked_quibs_stack[-1]
+        current_quibs_list.append(quib)
 
     def _open_project_directory_from_zip(self):
         if self._tmp_save_directory is not None:
@@ -167,6 +164,7 @@ class JupyterProject(Project):
             "quibs": [
                 get_serialized_quib(quib)
                 for quib in names_to_quibs.values()
+                if quib.assigned_name and quib.allow_overriding
             ]
         }
         return dumped_quibs
