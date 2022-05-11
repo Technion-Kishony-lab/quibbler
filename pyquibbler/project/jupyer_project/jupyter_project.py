@@ -213,6 +213,9 @@ class JupyterProject(Project):
         with open(self._jupyter_notebook_path, 'w') as f:
             f.write(json.dumps(notebook_content, indent=2))
 
+        shutil.rmtree(self._tmp_save_directory)
+        os.makedirs(self._tmp_save_directory)
+
         for quib_ref in self._quib_weakrefs:
             quib = quib_ref()
             if quib is not None and quib.assigned_name and quib.allow_overriding:
