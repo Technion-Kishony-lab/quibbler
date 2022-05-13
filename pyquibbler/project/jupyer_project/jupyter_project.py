@@ -32,7 +32,7 @@ class JupyterProject(Project):
         self._tmp_save_directory = None
         self._should_save_load_within_notebook = True
         self._comm = None
-        self._tracked_quibs_stack = []
+        self._tracked_quibs = {}
         self._last_requested_execution_count = 0
         self._save_format = SaveFormat.TXT
         self._within_zip_and_send_context = False
@@ -91,14 +91,7 @@ class JupyterProject(Project):
     def register_quib(self, quib: Quib):
         super(JupyterProject, self).register_quib(quib)
 
-        execution_count_diff = get_ipython().execution_count - self._last_requested_execution_count
-        quib_lists_to_add = execution_count_diff - len(self._tracked_quibs_stack)
-
-        for i in range(quib_lists_to_add):
-            self._tracked_quibs_stack.append([])
-
-        current_quibs_list = self._tracked_quibs_stack[-1]
-        current_quibs_list.append(quib)
+        self._tracked_quibs.setdefault(get_ipython().execution_count, []).append(quib)
 
     def _open_project_directory_from_zip(self):
         if self._tmp_save_directory is not None:
@@ -147,15 +140,13 @@ class JupyterProject(Project):
 
         self._comm.send({"type": "quibsArchiveUpdate", "data": base64_message})
 
-    def _send_tracked_quibs(self):
-        self._last_requested_execution_count = get_ipython().execution_count - 1
-        if len(self._tracked_quibs_stack) == 0:
+    def _send_tracked_quibs(self, execution_count: int):
+        if execution_count not in self._tracked_quibs:
             return {
                 "quibs": []
             }
 
-        logger.info(f"Last requested execution count, {self._last_requested_execution_count}")
-        tracked_quibs = self._tracked_quibs_stack.pop(0)
+        tracked_quibs = self._tracked_quibs.pop(execution_count)
         names_to_quibs = {
             quib.assigned_name: quib
             for quib in tracked_quibs
