@@ -534,20 +534,113 @@ Undo/Redo assignments
 
 *Quibbler* tracks all assignments (either graphics-driven, or through
 the command line), allowing Undo/Redo functionality. Undo/Redo can be
-done using the Undo/Redo buttons of the :py:func:`~pyquibbler.quibapp`, or the embedded
-Undo/Redo buttons within *Jupyter Lab* or programatically using
-:py:func:`~pyquibbler.undo`, :py:func:`~pyquibbler.redo`.
+done using the Undo/Redo buttons of the :py:func:`~pyquibbler.quibapp`, or the using the
+embedded Undo/Redo buttons within *Jupyter Lab*.
+
+Here is a simple demo:
+
+.. code:: python
+
+    xy = iquib(np.array([50, 50]))
+    plt.figure(figsize=(4, 4))
+    plt.axis('square')
+    plt.axis([0, 100, 0, 100])
+    plt.plot(xy[0], xy[1], 'o', picker=True, markersize=16, markerfacecolor='r')
+    plt.text(xy[0], xy[1]+5, q('X={}, Y={}'.format, xy[0], xy[1]), 
+             ha='center', va='bottom')
+
+.. image:: images/assignments_jupyter_undo_redo.gif
+
+Undo/redo can also be invoked programatically using :py:func:`~pyquibbler.undo`,
+:py:func:`~pyquibbler.redo`:
+
+.. code:: python
+
+    a = iquib([0, 1, 2])
+    a[1] = 10
+    a.get_value()
+
+
+
+
+.. code:: none
+
+    [0, 10, 2]
+
+
+
+.. code:: python
+
+    qb.undo()
+    a.get_value()
+
+
+
+
+.. code:: none
+
+    [0, 1, 2]
+
+
+
+.. code:: python
+
+    qb.redo()
+    a.get_value()
+
+
+
+
+.. code:: none
+
+    [0, 10, 2]
+
+
 
 The assignment_template is used to restrict assigned values
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Depending on the application, we may need to assure and verify that the
 user only assign specific data types and values to a given quib. This is
-achieved using the ``assignment_template`` property. When ``None``,
-there are no restrictions on assignments. Otherwise, the following
-options are available:
+achieved using the :py:attr:`~pyquibbler.Quib.assignment_template` property. When ``None``,
+there are no restrictions on assignments. To restrict the value of
+overriding assignments to the quib, use the
+:py:meth:`~pyquibbler.Quib.set_assignment_template()` method:
 
-TODO
+-  Set a bound template between ``start`` and ``stop``:
+   ``set_assignment_template(start, stop)``
+
+-  Set a bound template between ``start`` and ``stop``, with specified
+   ``step``: ``quib.set_assignment_template(start, stop, step)``
+
+For example, here is a simple app for interactively choosing an even
+number within a defined range:
+
+.. code:: python
+
+    # figure setup
+    fig = plt.figure(figsize=(5, 2))
+    ax = fig.add_axes([0.2, 0.5, 0.6, 0.17])
+    ax.set_yticks([])
+    ax.set_xticks(np.arange(0, 22, 2))
+    ax.axis([0, 20, -1, 1])
+    ax.set_title('choose an even number between 6 and 16')
+    
+    # use assignment_template to restrict quib overriding values:
+    num = iquib(12, assignment_template=(6, 16, 2))
+    
+    # plot:
+    ax.plot(num, 0, 'gd', markersize=16, picker=True)
+    ax.set_xlabel(q('chosen number = {}'.format, num));
+
+.. image:: images/assignments_assignment_template.gif
+
+See also the following demos, where ``assignment_template`` is used:
+
+-  :doc:`examples/quibdemo_default_overriding`
+-  :doc:`examples/quibdemo_compare_images`
+-  :doc:`examples/quibdemo_drag_fixed_values`
+-  :doc:`examples/quibdemo_fft`
 
 Saving quib assignments to files
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
