@@ -1131,7 +1131,19 @@ class Quib:
         See Also
         --------
         AssignmentTemplate, assignment_template
+
+        Examples
+        --------
+        >>> a = iquib(20)
+        >>> a.set_assignment_template(0, 100, 10)  # restrict to 0, 10, ..., 100
+        >>> a.assign(37)
+        >>> a.get_value()
+        40
+        >>> a.assign(170)
+        >>> a.get_value()
+        100
         """
+
         self.handler.assignment_template = create_assignment_template(*args)
         return self
     """
