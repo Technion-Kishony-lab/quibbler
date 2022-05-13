@@ -1166,9 +1166,6 @@ class Quib:
 
         Parameters
         ----------
-        x : type
-            Description of parameter `x`.
-
         allow_overriding : bool, optional
             Specifies whether the quib is open for overriding assignments.
 
