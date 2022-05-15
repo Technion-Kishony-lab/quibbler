@@ -32,7 +32,7 @@ class AssignmentAction(Action):
     new_assignment: Union[Assignment, AssignmentRemoval]
 
     @property
-    def quib(self):
+    def quib(self) -> Quib:
         return self.quib_ref()
 
     def undo(self):
@@ -42,6 +42,7 @@ class AssignmentAction(Action):
         self.overrider.undo_assignment(assignment_to_return=self.previous_assignment,
                                        previous_path=self.new_assignment.path,
                                        previous_index=self.previous_index)
+        self.quib.handler.file_syncer.on_data_changed()
         self.quib.handler.invalidate_and_redraw_at_path(self.new_assignment.path)
 
     def redo(self):
@@ -50,4 +51,5 @@ class AssignmentAction(Action):
         """
         self.overrider.redo_assignment(previous_index=self.previous_index,
                                        assignment_to_return=self.new_assignment)
+        self.quib.handler.file_syncer.on_data_changed()
         self.quib.handler.invalidate_and_redraw_at_path(self.new_assignment.path)

@@ -428,6 +428,7 @@ class Project:
             for action in actions:
                 action.undo()
                 if isinstance(action, AssignmentAction):
+                    self.notify_of_overriding_changes(action.quib)
                     self._set_released_assignment_for_quib(action.quib, action.previous_assignment)
 
         self._redo_action_groups.append(actions)
@@ -463,6 +464,7 @@ class Project:
             for action in actions:
                 action.redo()
                 if isinstance(action, AssignmentAction):
+                    self.notify_of_overriding_changes(action.quib)
                     self._set_released_assignment_for_quib(action.quib, action.new_assignment)
 
         self._undo_action_groups.append(actions)
