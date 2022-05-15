@@ -202,8 +202,9 @@ class JupyterProject(Project):
         with open(self._jupyter_notebook_path, 'w') as f:
             f.write(json.dumps(notebook_content, indent=2))
 
-        shutil.rmtree(self._tmp_save_directory)
-        os.makedirs(self._tmp_save_directory)
+        if self._tmp_save_directory:
+            shutil.rmtree(self._tmp_save_directory)
+            os.makedirs(self._tmp_save_directory)
 
         for quib_ref in self._quib_weakrefs:
             quib = quib_ref()
