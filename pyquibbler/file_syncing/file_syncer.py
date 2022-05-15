@@ -145,7 +145,7 @@ class FileSyncer(ABC):
         FileComparison.CHANGED:        ('o', 'L', 'd', 'L', 'o', 'l', 'd', 'L'),  # noqa: E241
         FileComparison.DELETED:        ('r', 'c', 'V', 'V', 'r', 'c', 'V', 'V'),  # noqa: E241
         FileComparison.CREATED:        ('o', 'L', 'd', 'L', 'o', 'l', 'd', 'L'),  # noqa: E241
-        FileComparison.FILE_FOUND:     ('x', 'x', 'x', 'x', 'o', 'L', 'o', 'L'),  # noqa: E241
+        FileComparison.FILE_FOUND:     ('x', 'x', '-', '-', 'o', 'L', 'o', 'L'),  # noqa: E241
         FileComparison.FILE_NOT_FOUND: ('x', 'x', '-', '-', 'C', 'c', 'V', 'V'),  # noqa: E241
     }
 
