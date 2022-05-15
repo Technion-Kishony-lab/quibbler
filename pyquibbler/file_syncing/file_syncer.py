@@ -5,6 +5,8 @@ from enum import Enum
 import pathlib
 from typing import Optional
 
+from pyquibbler.logger import logger
+
 """
 This file follows the logic of file-syncing from MatQuibbler
 """
@@ -144,7 +146,7 @@ class FileSyncer(ABC):
         FileComparison.DELETED:        ('r', 'c', 'V', 'V', 'r', 'c', 'V', 'V'),  # noqa: E241
         FileComparison.CREATED:        ('o', 'L', 'd', 'L', 'o', 'l', 'd', 'L'),  # noqa: E241
         FileComparison.FILE_FOUND:     ('x', 'x', 'x', 'x', 'o', 'L', 'o', 'L'),  # noqa: E241
-        FileComparison.FILE_NOT_FOUND: ('x', 'x', 'x', 'x', 'C', 'c', 'V', 'V'),  # noqa: E241
+        FileComparison.FILE_NOT_FOUND: ('x', 'x', '-', '-', 'C', 'c', 'V', 'V'),  # noqa: E241
     }
 
     @classmethod
@@ -152,6 +154,7 @@ class FileSyncer(ABC):
             -> ActionVerification:
         code_letter = cls.FILECOMPARISON_TO_SAVE_LOAD_LETTERCODES[file_change][
             0 + (1 - is_synced) * 4 + (1 - need_file) * 2]
+        logger.info(f"file_change - {file_change} is_synced - {is_synced} need file - {need_file}")
         return ActionVerification(*cls.SAVE_LETTERCORE_TO_ACTION_BUTTON_QUESTION[code_letter.capitalize()],
                                   code_letter != code_letter.capitalize())
 
