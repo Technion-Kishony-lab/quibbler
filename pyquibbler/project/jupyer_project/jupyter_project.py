@@ -61,7 +61,7 @@ class JupyterProject(Project):
 
             if zip_and_send:
                 logger.info("Zipping and sending to client")
-                self.save_directory_into_notebook_and_send_quib_metadata_to_client()
+                self.zip_and_send_quibs_archive_to_client()
                 self._within_zip_and_send_context = False
 
             return res
@@ -124,7 +124,7 @@ class JupyterProject(Project):
                     archive.write(path, arcname=relative_path)
         return zip_buffer
 
-    def save_directory_into_notebook_and_send_quib_metadata_to_client(self):
+    def zip_and_send_quibs_archive_to_client(self):
         logger.info(f"Saving zip into notebook's metadata..., {self._directory}")
         zip_buffer = self._create_zip_buffer_from_save_directory()
 
@@ -134,9 +134,6 @@ class JupyterProject(Project):
         base64_bytes = base64.b64encode(zip_buffer.getvalue())
         base64_message = base64_bytes.decode('ascii')
         notebook_content['metadata']['quibs_archive'] = base64_message
-
-        with open(self._jupyter_notebook_path, 'w') as f:
-            f.write(json.dumps(notebook_content, indent=2))
 
         self._comm.send({"type": "quibsArchiveUpdate", "data": base64_message})
 
