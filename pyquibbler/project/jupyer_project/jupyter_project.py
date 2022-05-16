@@ -157,27 +157,27 @@ class JupyterProject(Project):
         }
         return dumped_quibs
 
-    def _load_quib(self, quib_name: str):
-        quib = self._find_quib_by_name(quib_name)
+    def _load_quib(self, quib_id: int):
+        quib = self._find_quib_by_id(quib_id)
         quib.load()
         return get_serialized_quib(quib)
 
-    def _find_quib_by_name(self, quib_name: str) -> Quib:
+    def _find_quib_by_id(self, quib_id: int) -> Quib:
         for quib_ref in self._quib_weakrefs:
             quib = quib_ref()
-            if quib is not None and quib.assigned_name == quib_name:
+            if quib is not None and id(quib) == quib_id:
                 return quib
         raise Exception("Quib is probably garbage disposed")
 
-    def _save_quib(self, quib_name: str):
-        found_quib = self._find_quib_by_name(quib_name)
+    def _save_quib(self, quib_id: int):
+        found_quib = self._find_quib_by_id(quib_id)
         found_quib.save()
 
     def _cleanup(self):
         if self._tmp_save_directory is not None:
             shutil.rmtree(self._tmp_save_directory)
 
-    def _change_quib(self, name: str, overrides):
+    def _change_quib(self, quib_id: int, overrides):
         override_text = ""
         for override in overrides:
             if override['left'] == 'quib':
@@ -186,7 +186,7 @@ class JupyterProject(Project):
                 override_text += f"{override['left']} = {override['right']}"
             override_text += "\n"
 
-        quib = self._find_quib_by_name(name)
+        quib = self._find_quib_by_id(quib_id)
         quib.handler.overrider.load_from_assignment_text(override_text)
         quib.handler.file_syncer.on_data_changed()
         quib.handler.invalidate_and_redraw_at_path([])

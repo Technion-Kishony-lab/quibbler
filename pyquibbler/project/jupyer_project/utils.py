@@ -52,6 +52,7 @@ def get_serialized_quib(quib: Quib):
         raw_overrides = create_raw_overrides_from_override_repr(overrider_repr)
     logger.info("Sending {} for {}".format(overrider_repr, quib))
     return {
+        "id": id(quib),
         "name": quib.name,
         "overrides": raw_overrides,
         "synced": quib.handler.file_syncer.is_synced
