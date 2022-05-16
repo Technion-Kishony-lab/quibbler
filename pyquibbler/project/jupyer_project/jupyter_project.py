@@ -190,6 +190,7 @@ class JupyterProject(Project):
         quib.handler.overrider.load_from_assignment_text(override_text)
         quib.handler.file_syncer.on_data_changed()
         quib.handler.invalidate_and_redraw_at_path([])
+        self.notify_of_overriding_changes(quib)
 
     def _clear_save_data(self):
         with open(self._jupyter_notebook_path, 'r') as f:
