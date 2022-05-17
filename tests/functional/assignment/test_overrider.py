@@ -56,7 +56,7 @@ def test_overrider_with_field_assignment_and_indices(overrider):
 
 def test_overrider_remove_assignment(overrider):
     overrider.add_assignment(Assignment(value=[1, 1], path=[]))
-    overrider.remove_assignment([PathComponent(component=1, indexed_cls=list)])
+    overrider.return_assignments_to_default([PathComponent(component=1, indexed_cls=list)])
     new_data = overrider.override([0, 0])
 
     assert new_data == [1, 0]
@@ -83,7 +83,7 @@ def test_overrider_doesnt_raise_exception_when_out_of_bounds_on_non_active_assig
 
 def test_overrider_keeps_order(overrider):
     overrider.add_assignment(Assignment(value=[5], path=[]))
-    overrider.remove_assignment(path=[PathComponent(component=0, indexed_cls=list)])
+    overrider.return_assignments_to_default(path=[PathComponent(component=0, indexed_cls=list)])
     overrider.add_assignment(Assignment(value=[10], path=[]))
 
     # We only truly want to make sure the above assignment didn't cause an exception

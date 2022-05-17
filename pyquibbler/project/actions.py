@@ -5,7 +5,7 @@ from abc import abstractmethod, ABC
 from dataclasses import dataclass
 from typing import Optional, Union, TYPE_CHECKING
 
-from pyquibbler.assignment import Assignment, Overrider, AssignmentRemoval
+from pyquibbler.assignment import Assignment, Overrider, AssignmentToDefault
 
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib
@@ -29,7 +29,7 @@ class AssignmentAction(Action):
     overrider: Overrider
     assignment_index: int
     previous_assignment_action: Optional[AssignmentAction]
-    assignment: Union[Assignment, AssignmentRemoval]
+    assignment: Union[Assignment, AssignmentToDefault]
 
     @property
     def quib(self) -> Quib:
@@ -45,7 +45,7 @@ class AssignmentAction(Action):
         q.assign(1)
         q.assign(2)
         ```
-        and then do remove_assignment, the value will go back to 0 (the original value).
+        and then do return_assignments_to_default, the value will go back to 0 (the original value).
         if I do undo_assignment, the value will go back to 1 (the previous value)
 
         This also is necessarily NOT just removing the assignment, as we may have overwritten another assignment if

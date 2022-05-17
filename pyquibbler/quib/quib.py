@@ -356,7 +356,7 @@ class QuibHandler:
         """
         Remove function_definitions in a specific path in the quib.
         """
-        assignment_removal = self.overrider.remove_assignment(path)
+        assignment_removal = self.overrider.return_assignments_to_default(path)
         if assignment_removal is not None and not is_within_drag():
             self.project.push_assignment_to_undo_stack(assignment=assignment_removal,
                                                        overrider=self.overrider,
