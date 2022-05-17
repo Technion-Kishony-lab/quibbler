@@ -36,6 +36,7 @@ class JupyterProject(Project):
         self._last_requested_execution_count = 0
         self._save_format = SaveFormat.TXT
         self._within_zip_and_send_context = False
+        self._should_notify_client_of_quib_changes = True
 
     def _wrap_file_system_func(self, func: Callable, save_and_send_after_op: bool = False):
         """
@@ -137,22 +138,26 @@ class JupyterProject(Project):
 
         self._comm.send({"type": "quibsArchiveUpdate", "data": base64_message})
 
-    def _send_tracked_quibs(self, execution_count: int):
+    def _send_loaded_tracked_quibs(self, execution_count: int):
         if execution_count not in self._tracked_quibs:
             return {
                 "quibs": []
             }
 
         tracked_quibs = self._tracked_quibs.pop(execution_count)
-        names_to_quibs = {
-            quib.assigned_name: quib
-            for quib in tracked_quibs
-        }
+        quibs_to_send = [quib for quib in tracked_quibs if quib.assigned_name and quib.allow_overriding]
+
+        try:
+            self._should_notify_client_of_quib_changes = False
+            for quib in quibs_to_send:
+                quib.load()
+        finally:
+            self._should_notify_client_of_quib_changes = True
+
         dumped_quibs = {
             "quibs": [
                 get_serialized_quib(quib)
-                for quib in names_to_quibs.values()
-                if quib.assigned_name and quib.allow_overriding
+                for quib in quibs_to_send
             ]
         }
         return dumped_quibs
@@ -160,6 +165,7 @@ class JupyterProject(Project):
     def _load_quib(self, quib_id: int):
         quib = self._find_quib_by_id(quib_id)
         quib.load()
+        logger.info(f"Loading quib {quib.name}, override count {len(quib.handler.overrider)}")
         return get_serialized_quib(quib)
 
     def _find_quib_by_id(self, quib_id: int) -> Quib:
@@ -223,7 +229,7 @@ class JupyterProject(Project):
             "load": self.load_quibs,
             "sync": self.sync_quibs,
             "clearData": self._clear_save_data,
-            "trackedQuibs": self._send_tracked_quibs,
+            "loadedTrackedQuibs": self._send_loaded_tracked_quibs,
             "loadQuib": self._load_quib,
             "saveQuib": self._save_quib,
             "changeQuib": self._change_quib,
@@ -246,7 +252,7 @@ class JupyterProject(Project):
                 self._comm.send({'type': "response", "data": res, "requestId": request_id})
 
     def notify_of_overriding_changes(self, quib: Quib):
-        if quib.assigned_name:
+        if self._should_notify_client_of_quib_changes and quib.assigned_name:
             self._call_client(action_type="quibChange", message_data=get_serialized_quib(quib))
 
     def text_dialog(self, title: str, message: str, buttons_and_options: Iterable[Tuple[str, str]]) -> str:
