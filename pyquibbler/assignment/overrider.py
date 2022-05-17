@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from typing import Any, Optional, Union, Dict, Hashable, List
 
 from .assignment import Assignment
+from .exceptions import NoAssignmentFoundAtPathException
 from ..path.hashable import get_hashable_path
 from pyquibbler.path.path_component import Path, Paths
 from .assignment_template import AssignmentTemplate
@@ -71,9 +72,20 @@ class Overrider:
             self.add_assignment(assignment_removal)
             return assignment_removal
 
+    def pop_assignment_at_path(self, path: Path, raise_on_not_found: bool = True):
+        hashable_path = get_hashable_path(path)
+        if raise_on_not_found and hashable_path not in self._paths_to_assignments:
+            raise NoAssignmentFoundAtPathException(path=path)
+        return self._paths_to_assignments.pop(hashable_path, None)
+
+    def insert_assignment_at_path_and_index(self, assignment: Assignment, path: Path, index: int):
+        new_paths_with_assignments = list(self._paths_to_assignments.items())
+        new_paths_with_assignments.insert(index, (get_hashable_path(path), assignment))
+        self._paths_to_assignments = dict(new_paths_with_assignments)
+
     def undo_assignment(self,
                         previous_index: int,
-                        previous_path: Path,
+                        path: Path,
                         assignment_to_return: Optional[Union[Assignment, AssignmentRemoval]]):
         """
         Undo an assignment, returning the overrider to the previous state before the assignment.
@@ -83,33 +95,25 @@ class Overrider:
         q = iquib(0)
         q.assign(1)
         q.assign(2)
+
+
+        q = [1, 2, 3]
+        q[0] = 4
+        q[0:1] = [0, 0]
+        q[0] = 6
         ```
         and then do remove_assignment, the value will go back to 0 (the original value).
         if I do undo_assignment, the value will go back to 1 (the previous value)
         """
-        previous_assignment = self._paths_to_assignments.pop(get_hashable_path(previous_path))
+        previous_assignment = self._paths_to_assignments.pop(get_hashable_path(path))
 
         if assignment_to_return is not None:
             new_paths_with_assignments = list(self._paths_to_assignments.items())
-            new_paths_with_assignments.insert(previous_index, (get_hashable_path(previous_path), assignment_to_return))
+            new_paths_with_assignments.insert(previous_index, (get_hashable_path(path),
+                                                               assignment_to_return))
             self._paths_to_assignments = dict(new_paths_with_assignments)
 
         return previous_assignment
-
-    def redo_assignment(self,
-                        previous_index: int,
-                        assignment_to_return: Union[Assignment, AssignmentRemoval]):
-        """
-        Redo an assignment that was undone- this is different than simply creating an assignment as it will put the
-        assignment in the correct location in the dict
-        """
-        # There may not be anything where the assignment we removed was, so we pop with None so as not to raise
-        self._paths_to_assignments.pop(get_hashable_path(assignment_to_return.path), None)
-
-        new_paths_with_assignments = list(self._paths_to_assignments.items())
-        new_paths_with_assignments.insert(previous_index, (get_hashable_path(assignment_to_return.path),
-                                                           assignment_to_return))
-        self._paths_to_assignments = dict(new_paths_with_assignments)
 
     def override(self, data: Any, assignment_template: Optional[AssignmentTemplate] = None):
         """

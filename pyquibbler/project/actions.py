@@ -27,9 +27,9 @@ class AssignmentAction(Action):
 
     quib_ref: ReferenceType[Quib]
     overrider: Overrider
-    previous_index: int
-    previous_assignment: Optional[Union[Assignment, AssignmentRemoval]]
-    new_assignment: Union[Assignment, AssignmentRemoval]
+    assignment_index: int
+    previous_assignment_action: Optional[AssignmentAction]
+    assignment: Union[Assignment, AssignmentRemoval]
 
     @property
     def quib(self) -> Quib:
@@ -37,19 +37,44 @@ class AssignmentAction(Action):
 
     def undo(self):
         """
-        Tell overrider to undo an assignment - see overrider docs for more info
+        Undo an assignment, returning the overrider to the previous state before the assignment.
+        Note that this is essentially different than simply adding an AssignmentRemoval ->
+        if I do
+        ```
+        q = iquib(0)
+        q.assign(1)
+        q.assign(2)
+        ```
+        and then do remove_assignment, the value will go back to 0 (the original value).
+        if I do undo_assignment, the value will go back to 1 (the previous value)
+
+        This also is necessarily NOT just removing the assignment, as we may have overwritten another assignment if
+        we were on the same path
         """
-        self.overrider.undo_assignment(assignment_to_return=self.previous_assignment,
-                                       previous_path=self.new_assignment.path,
-                                       previous_index=self.previous_index)
+        self.overrider.pop_assignment_at_path(self.assignment.path)
+        if self.previous_assignment_action:
+            self.overrider.insert_assignment_at_path_and_index(
+                assignment=self.previous_assignment_action.assignment,
+                path=self.assignment.path,
+                index=self.previous_assignment_action.assignment_index
+            )
+
         self.quib.handler.file_syncer.on_data_changed()
-        self.quib.handler.invalidate_and_redraw_at_path(self.new_assignment.path)
+        self.quib.handler.invalidate_and_redraw_at_path(self.assignment.path)
 
     def redo(self):
         """
         Redo an undo
         """
-        self.overrider.redo_assignment(previous_index=self.previous_index,
-                                       assignment_to_return=self.new_assignment)
+        self.overrider.pop_assignment_at_path(
+            self.assignment.path,
+            raise_on_not_found=False
+        )
+        self.overrider.insert_assignment_at_path_and_index(
+            assignment=self.assignment,
+            path=self.assignment.path,
+            index=self.assignment_index
+        )
+
         self.quib.handler.file_syncer.on_data_changed()
-        self.quib.handler.invalidate_and_redraw_at_path(self.new_assignment.path)
+        self.quib.handler.invalidate_and_redraw_at_path(self.assignment.path)

@@ -4,9 +4,11 @@ from dataclasses import dataclass
 
 from pyquibbler.exceptions import PyQuibblerException
 
+
 if TYPE_CHECKING:
     from pyquibbler import Assignment
     from pyquibbler.quib import Quib
+    from pyquibbler.path import Path
 
 
 @dataclass
@@ -23,3 +25,8 @@ class CannotReverseUnknownFuncException(CannotReverseException):
 
 class CommonAncestorBetweenArgumentsException(CannotReverseException):
     pass
+
+
+@dataclass
+class NoAssignmentFoundAtPathException(PyQuibblerException):
+    path: Path
