@@ -30,12 +30,9 @@ def driver():
     yield d
 
     for process in psutil.process_iter():
-        try:
-            with suppress(psutil.NoSuchProcess):
-                if '--test-type=webdriver' in process.cmdline():
-                    process.kill()
-        except psutil.AccessDenied:
-            pass
+        with suppress(psutil.NoSuchProcess, psutil.AccessDenied):
+            if '--test-type=webdriver' in process.cmdline():
+                process.kill()
 
     d.quit()
 
