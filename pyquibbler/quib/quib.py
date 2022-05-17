@@ -347,7 +347,7 @@ class QuibHandler:
         if not is_within_drag():
             self.project.push_assignment_to_undo_stack(quib=self.quib,
                                                        assignment=assignment,
-                                                       overrider=self.overrider)
+                                                       assignment_index=len(self.overrider) - 1)
             self.file_syncer.on_data_changed()
 
             self.project.notify_of_overriding_changes(self.quib)
@@ -359,8 +359,8 @@ class QuibHandler:
         assignment_removal = self.overrider.return_assignments_to_default(path)
         if assignment_removal is not None and not is_within_drag():
             self.project.push_assignment_to_undo_stack(assignment=assignment_removal,
-                                                       overrider=self.overrider,
-                                                       quib=self.quib)
+                                                       quib=self.quib,
+                                                       assignment_index=len(self.overrider) - 1)
             self.file_syncer.on_data_changed()
         self.invalidate_and_redraw_at_path(path=path)
 

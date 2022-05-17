@@ -11,7 +11,9 @@ setup(
         'dev': [
             'pytest',
             'pytest-pep8',
-            'pytest-cov'
+            'pytest-cov',
+            'selenium',
+            'psutil'
         ],
         'sphinx': [
             'sphinx',

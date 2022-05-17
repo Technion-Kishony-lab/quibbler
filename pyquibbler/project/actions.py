@@ -13,29 +13,60 @@ if TYPE_CHECKING:
 
 class Action(ABC):
 
-    @abstractmethod
     def undo(self):
+        self._undo()
+        self.run_post_action()
+
+    def redo(self):
+        self._redo()
+        self.run_post_action()
+
+    @abstractmethod
+    def _undo(self):
         pass
 
     @abstractmethod
-    def redo(self):
+    def _redo(self):
+        pass
+
+    def run_post_action(self):
         pass
 
 
 @dataclass
-class AssignmentAction(Action):
-
+class AssignmentAction(Action, ABC):
     quib_ref: ReferenceType[Quib]
-    overrider: Overrider
-    assignment_index: int
-    previous_assignment_action: Optional[AssignmentAction]
-    assignment: Union[Assignment, AssignmentToDefault]
 
     @property
     def quib(self) -> Quib:
         return self.quib_ref()
 
-    def undo(self):
+    @property
+    def overrider(self):
+        return self.quib.handler.overrider
+
+    @property
+    @abstractmethod
+    def relevant_path(self):
+        pass
+
+    def run_post_action(self):
+        self.quib.handler.file_syncer.on_data_changed()
+        self.quib.handler.invalidate_and_redraw_at_path(self.relevant_path)
+
+
+@dataclass
+class AddAssignmentAction(AssignmentAction):
+
+    assignment_index: int
+    assignment: Union[Assignment, AssignmentToDefault]
+    previous_assignment_action: Optional[AddAssignmentAction]
+
+    @property
+    def relevant_path(self):
+        return self.assignment.path
+
+    def _undo(self):
         """
         Undo an assignment, returning the overrider to the previous state before the assignment.
         Note that this is essentially different than simply adding an AssignmentRemoval ->
@@ -53,16 +84,12 @@ class AssignmentAction(Action):
         """
         self.overrider.pop_assignment_at_path(self.assignment.path)
         if self.previous_assignment_action:
-            self.overrider.insert_assignment_at_path_and_index(
+            self.overrider.insert_assignment_at_index(
                 assignment=self.previous_assignment_action.assignment,
-                path=self.assignment.path,
                 index=self.previous_assignment_action.assignment_index
             )
 
-        self.quib.handler.file_syncer.on_data_changed()
-        self.quib.handler.invalidate_and_redraw_at_path(self.assignment.path)
-
-    def redo(self):
+    def _redo(self):
         """
         Redo an undo
         """
@@ -70,11 +97,24 @@ class AssignmentAction(Action):
             self.assignment.path,
             raise_on_not_found=False
         )
-        self.overrider.insert_assignment_at_path_and_index(
+        self.overrider.insert_assignment_at_index(
             assignment=self.assignment,
-            path=self.assignment.path,
             index=self.assignment_index
         )
 
-        self.quib.handler.file_syncer.on_data_changed()
-        self.quib.handler.invalidate_and_redraw_at_path(self.assignment.path)
+
+@dataclass
+class RemoveAssignmentAction(AssignmentAction):
+
+    add_assignment_action: Optional[AddAssignmentAction]
+
+    @property
+    def relevant_path(self):
+        return self.add_assignment_action.assignment.path
+
+    def _undo(self):
+        self.quib.handler.overrider.insert_assignment_at_index(self.add_assignment_action.assignment,
+                                                               self.add_assignment_action.assignment_index)
+
+    def _redo(self):
+        self.quib.handler.overrider.pop_assignment_at_index(self.add_assignment_action.assignment_index)

@@ -12,7 +12,7 @@ from typing import Optional, Set, TYPE_CHECKING, List, Callable, Union, Mapping
 from pyquibbler.utilities.input_validation_utils import validate_user_input
 from pyquibbler.utilities.file_path import PathWithHyperLink
 from pyquibbler.exceptions import PyQuibblerException
-from .actions import Action, AssignmentAction
+from .actions import Action, AddAssignmentAction, AssignmentAction, RemoveAssignmentAction
 from pyquibbler.quib.graphics import GraphicsUpdateType
 from pyquibbler.file_syncing.types import SaveFormat, ResponseToFileNotDefined
 from ..logger import logger
@@ -44,6 +44,8 @@ class NoProjectDirectoryException(PyQuibblerException):
                f"To {self.action} quibs, set the project directory (see set_project_directory)."
 
 
+
+
 class Project:
     """
     Quibbler project providing save/load and undo/redo functionality.
@@ -64,6 +66,7 @@ class Project:
         self._save_format: SaveFormat = self.DEFAULT_SAVE_FORMAT
         self._graphics_update: GraphicsUpdateType = self.DEFAULT_GRAPHICS_UPDATE
         self.on_path_change: Optional[Callable] = None
+        self._record_undos = True
 
     @classmethod
     def get_or_create(cls, directory: Optional[Path] = None):
@@ -72,6 +75,16 @@ class Project:
             directory = directory or (Path(main_module.__file__).parent if hasattr(main_module, '__file__') else None)
             Project.current_project = cls(directory=directory, quib_weakrefs=set())
         return Project.current_project
+
+    @contextlib.contextmanager
+    def stop_recording_undos(self):
+        if not self._record_undos:
+            yield
+            return
+
+        self._record_undos = False
+        yield
+        self._record_undos = True
 
     """
     quibs
@@ -398,20 +411,21 @@ class Project:
 
     def _set_previous_assignment_action_for_quib_at_relevant_path(self,
                                                                   quib: Quib,
-                                                                  previous_assignment_action: AssignmentAction):
+                                                                  path,
+                                                                  previous_assignment_action:
+                                                                  Optional[AddAssignmentAction]):
         """
         Set's the last released assignment action for a quib at that assignment's path.
          This is important as for every action we undo, we need to know to "where to return"- ie what was the last
          assignment at that path that we need to return to.
          We can't simply remove the assignment we want to undo because we may have *overwritten* another assignment
         """
-        if previous_assignment_action is not None:
-            weak_ref = weakref.ref(quib, lambda k: self._quib_refs_to_paths_to_assignment_actions.pop(k))
-            paths_to_released_assignments = self._quib_refs_to_paths_to_assignment_actions[weak_ref]
-            from pyquibbler.path import get_hashable_path
-            paths_to_released_assignments[
-                get_hashable_path(previous_assignment_action.assignment.path)
-            ] = previous_assignment_action
+        weak_ref = weakref.ref(quib, lambda k: self._quib_refs_to_paths_to_assignment_actions.pop(k))
+        paths_to_released_assignments = self._quib_refs_to_paths_to_assignment_actions[weak_ref]
+        from pyquibbler.path import get_hashable_path
+        paths_to_released_assignments[
+            get_hashable_path(path)
+        ] = previous_assignment_action
 
     def undo(self):
         """
@@ -441,7 +455,10 @@ class Project:
                 action.undo()
                 if isinstance(action, AssignmentAction):
                     self.notify_of_overriding_changes(action.quib)
+
+                if isinstance(action, AddAssignmentAction):
                     self._set_previous_assignment_action_for_quib_at_relevant_path(action.quib,
+                                                                                   action.assignment.path,
                                                                                    action.previous_assignment_action)
 
         self._redo_action_groups.append(actions)
@@ -478,7 +495,11 @@ class Project:
                 action.redo()
                 if isinstance(action, AssignmentAction):
                     self.notify_of_overriding_changes(action.quib)
-                    self._set_previous_assignment_action_for_quib_at_relevant_path(action.quib, action)
+
+                if isinstance(action, AddAssignmentAction):
+                    self._set_previous_assignment_action_for_quib_at_relevant_path(action.quib,
+                                                                                   action.assignment.path,
+                                                                                   action)
 
         self._undo_action_groups.append(actions)
 
@@ -493,31 +514,48 @@ class Project:
         self._undo_action_groups = []
         self._redo_action_groups = []
 
-    def push_assignment_to_undo_stack(self, quib: Quib, overrider: Overrider, assignment: Assignment):
+    def push_assignment_to_undo_stack(self, quib: Quib, assignment: Assignment, assignment_index: int):
         """
         Push a new assignment to the undo stack- this will be able to be undone if the `project.undo` is called.
         """
+        if not self._record_undos:
+            return
 
-        from pyquibbler.project import AssignmentAction
+        from pyquibbler.project import AddAssignmentAction
         from pyquibbler.path import get_hashable_path
         assignment_hashable_path = get_hashable_path(assignment.path)
         previous_assignment_action = self._quib_refs_to_paths_to_assignment_actions.get(weakref.ref(quib), {}).get(
             assignment_hashable_path
         )
-        assignment_action = AssignmentAction(
+        assignment_action = AddAssignmentAction(
             quib_ref=weakref.ref(quib, self.clear_undo_and_redo_stacks),
-            overrider=overrider,
-            assignment_index=len(overrider) - 1,
+            assignment_index=assignment_index,
             assignment=assignment,
             previous_assignment_action=previous_assignment_action
         )
-        self._set_previous_assignment_action_for_quib_at_relevant_path(quib, assignment_action)
+        self._set_previous_assignment_action_for_quib_at_relevant_path(quib, assignment.path, assignment_action)
         if self._pushing_undo_group is not None:
             self._pushing_undo_group.insert(0, assignment_action)
         else:
             self._undo_action_groups.append([assignment_action])
 
         self._redo_action_groups.clear()
+
+    def remove_assignment_from_quib(self, quib: Quib, assignment_index: int):
+        from pyquibbler.path import get_hashable_path
+
+        assignment = quib.handler.overrider.pop_assignment_at_index(assignment_index)
+        assignment_action = self._quib_refs_to_paths_to_assignment_actions[weakref.ref(quib)][
+            get_hashable_path(assignment.path)
+        ]
+        self._undo_action_groups.append([RemoveAssignmentAction(
+            add_assignment_action=assignment_action,
+            quib_ref=weakref.ref(quib)
+        )])
+
+        self._redo_action_groups.clear()
+        quib.handler.file_syncer.on_data_changed()
+        self.notify_of_overriding_changes(quib)
 
     def notify_of_overriding_changes(self, quib: Quib):
         pass

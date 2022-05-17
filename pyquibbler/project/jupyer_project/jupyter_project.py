@@ -6,22 +6,25 @@ import multiprocessing
 import os
 import shutil
 import tempfile
+import traceback
 import zipfile
 from multiprocessing import Process
 
 import ipynbname
 from pathlib import Path
-from typing import Optional, Iterable, Tuple, Callable
+from typing import Optional, Iterable, Tuple, Callable, Dict
 
 from IPython import get_ipython
 from ipykernel.comm import Comm
 
-from pyquibbler import Quib
+from pyquibbler import Quib, iquib
+from pyquibbler.assignment import Overrider
 from pyquibbler.file_syncing import SaveFormat, ResponseToFileNotDefined
 from pyquibbler.logger import logger
 from pyquibbler.project import Project
 from pyquibbler.project.jupyer_project.flask_dialog_server import run_flask_app
 from pyquibbler.project.jupyer_project.utils import is_within_jupyter_lab, find_free_port, get_serialized_quib
+from pyquibbler.utils import ensure_only_run_once_globally
 
 
 class JupyterProject(Project):
@@ -219,8 +222,36 @@ class JupyterProject(Project):
     def _toggle_should_save_load_within_notebook(self, should_save_load_within_notebook: bool):
         self._should_save_load_within_notebook = should_save_load_within_notebook
 
+    def _upsert_assignment(self, quib_id: int, index: int, raw_override: Dict):
+        override_text = ""
+        if raw_override['left'] == 'quib':
+            override_text += f"quib.assign({raw_override['right']})"
+        else:
+            override_text += f"{raw_override['left']} = {raw_override['right']}"
+
+        overrider = Overrider()
+        overrider.load_from_assignment_text(override_text)
+        assignment = list(overrider._paths_to_assignments.values())[0]
+
+        quib = self._find_quib_by_id(quib_id)
+        self.push_assignment_to_undo_stack(
+            quib=quib,
+            assignment=assignment,
+            assignment_index=index
+        )
+        if len(quib.handler.overrider) > index:
+            quib.handler.overrider.pop_assignment_at_index(index)
+        quib.handler.overrider.insert_assignment_at_index(assignment, index)
+        quib.handler.file_syncer.on_data_changed()
+
+        self.notify_of_overriding_changes(quib)
+
+    def _remove_assignment_with_quib_id_at_index(self, quib_id: int, index: int):
+        quib = self._find_quib_by_id(quib_id)
+        self.remove_assignment_from_quib(quib, index)
+
     def listen_for_events(self):
-        self._jupyter_notebook_path = ipynbname.path()
+        self._jupyter_notebook_path = os.environ.get("JUPYTER_NOTEBOOK", ipynbname.path())
         self._comm = Comm(target_name='pyquibbler')
         action_names_to_funcs = {
             "undo": self.undo,
@@ -229,10 +260,11 @@ class JupyterProject(Project):
             "load": self.load_quibs,
             "sync": self.sync_quibs,
             "clearData": self._clear_save_data,
+            "upsertAssignment": self._upsert_assignment,
+            "removeAssignment": self._remove_assignment_with_quib_id_at_index,
             "loadedTrackedQuibs": self._send_loaded_tracked_quibs,
             "loadQuib": self._load_quib,
             "saveQuib": self._save_quib,
-            "changeQuib": self._change_quib,
             "setShouldSaveLoadWithinNotebook": self._toggle_should_save_load_within_notebook,
             "cleanup": self._cleanup,
         }

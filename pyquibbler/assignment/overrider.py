@@ -78,9 +78,15 @@ class Overrider:
             raise NoAssignmentFoundAtPathException(path=path)
         return self._paths_to_assignments.pop(hashable_path, None)
 
-    def insert_assignment_at_path_and_index(self, assignment: Assignment, path: Path, index: int):
+    def pop_assignment_at_index(self, index: int):
         new_paths_with_assignments = list(self._paths_to_assignments.items())
-        new_paths_with_assignments.insert(index, (get_hashable_path(path), assignment))
+        _, assignment = new_paths_with_assignments.pop(index)
+        self._paths_to_assignments = dict(new_paths_with_assignments)
+        return assignment
+
+    def insert_assignment_at_index(self, assignment: Assignment, index: int):
+        new_paths_with_assignments = list(self._paths_to_assignments.items())
+        new_paths_with_assignments.insert(index, (get_hashable_path(assignment.path), assignment))
         self._paths_to_assignments = dict(new_paths_with_assignments)
 
     def override(self, data: Any, assignment_template: Optional[AssignmentTemplate] = None):
@@ -177,10 +183,12 @@ class Overrider:
         #  Will be good to replace with a dedicated parser.
         quib = iquib(None)
         try:
-            exec(assignment_text, {
-                'array': np.array,
-                'quib': quib
-            })
+            from pyquibbler import Project
+            with Project.get_or_create().stop_recording_undos():
+                exec(assignment_text, {
+                    'array': np.array,
+                    'quib': quib
+                })
         except Exception:
             raise CannotLoadAssignmentsFromTextException(assignment_text) from None
         return self.replace_assignments(quib.handler.overrider._paths_to_assignments)

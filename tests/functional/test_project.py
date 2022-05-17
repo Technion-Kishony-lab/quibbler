@@ -293,3 +293,28 @@ def test_undo_when_something_changed_at_inexact_path(project):
     project.undo()
 
     assert quib.get_value() == [0, 0, 3]
+
+
+@pytest.mark.regression
+def test_undo_after_undo(project):
+    quib = iquib(1)
+    quib.assign(3)
+    project.undo()
+    quib.assign(4)
+
+    project.undo()
+
+    assert quib.get_value() == 1
+
+
+@pytest.mark.regression
+def test_undo_after_remove_assignment(project):
+    quib = iquib(1)
+    quib.assign(3)
+    project.remove_assignment_from_quib(quib=quib, assignment_index=0)
+    # Sanity
+    assert quib.get_value() == 1
+
+    project.undo()
+
+    assert quib.get_value() == 3
