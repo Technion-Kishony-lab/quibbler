@@ -19,6 +19,8 @@ from ..logger import logger
 
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib
+    from pyquibbler.assignment.overrider import Overrider
+    from pyquibbler.assignment import Assignment
 
 
 class NothingToUndoException(PyQuibblerException):
@@ -398,7 +400,7 @@ class Project:
                                                                   quib: Quib,
                                                                   previous_assignment_action: AssignmentAction):
         """
-        Set's the last released assignment for a quib at that assignment's path.
+        Set's the last released assignment action for a quib at that assignment's path.
          This is important as for every action we undo, we need to know to "where to return"- ie what was the last
          assignment at that path that we need to return to.
          We can't simply remove the assignment we want to undo because we may have *overwritten* another assignment
@@ -491,7 +493,11 @@ class Project:
         self._undo_action_groups = []
         self._redo_action_groups = []
 
-    def push_assignment_to_undo_stack(self, quib, overrider, assignment):
+    def push_assignment_to_undo_stack(self, quib: Quib, overrider: Overrider, assignment: Assignment):
+        """
+        Push a new assignment to the undo stack- this will be able to be undone if the `project.undo` is called.
+        """
+
         from pyquibbler.project import AssignmentAction
         from pyquibbler.path import get_hashable_path
         assignment_hashable_path = get_hashable_path(assignment.path)
