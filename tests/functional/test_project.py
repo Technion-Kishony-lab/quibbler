@@ -281,3 +281,27 @@ def test_project_correctly_set_valid_values(project, prop_name, set_value, get_v
 def test_project_reject_set_invlid_properties(project, prop_name, set_value, exception):
     with pytest.raises(exception):
         setattr(project, prop_name, set_value)
+
+
+def test_quib(project):
+    quib = iquib([1, 2, 3])
+    quib[0] = 4
+    quib[0:2] = [0, 0]
+    quib[0] = 6
+
+    project.undo()
+
+    assert quib.get_value() == [0, 0, 3]
+
+
+
+def test_quib_2(project):
+    quib = iquib([1, 2, 3])
+    quib[0] = 4
+    quib[0] = 5
+    quib[0] = 6
+
+    project.undo()
+    project.undo()
+
+    assert quib.get_value() == [4, 2, 3]
