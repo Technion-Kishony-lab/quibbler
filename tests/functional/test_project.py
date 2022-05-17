@@ -283,7 +283,8 @@ def test_project_reject_set_invlid_properties(project, prop_name, set_value, exc
         setattr(project, prop_name, set_value)
 
 
-def test_quib(project):
+@pytest.mark.regression
+def test_undo_when_something_changed_at_inexact_path(project):
     quib = iquib([1, 2, 3])
     quib[0] = 4
     quib[0:2] = [0, 0]
@@ -292,16 +293,3 @@ def test_quib(project):
     project.undo()
 
     assert quib.get_value() == [0, 0, 3]
-
-
-
-def test_quib_2(project):
-    quib = iquib([1, 2, 3])
-    quib[0] = 4
-    quib[0] = 5
-    quib[0] = 6
-
-    project.undo()
-    project.undo()
-
-    assert quib.get_value() == [4, 2, 3]
