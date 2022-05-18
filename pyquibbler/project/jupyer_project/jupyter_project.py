@@ -243,6 +243,7 @@ class JupyterProject(Project):
             quib.handler.overrider.pop_assignment_at_index(index)
         quib.handler.overrider.insert_assignment_at_index(assignment, index)
         quib.handler.file_syncer.on_data_changed()
+        quib.handler.invalidate_and_redraw_at_path(assignment.path)
 
         self.notify_of_overriding_changes(quib)
 
