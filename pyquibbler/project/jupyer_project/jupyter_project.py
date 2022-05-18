@@ -245,11 +245,13 @@ class JupyterProject(Project):
         quib.handler.file_syncer.on_data_changed()
         quib.handler.invalidate_and_redraw_at_path(assignment.path)
 
-        self.notify_of_overriding_changes(quib)
+        return get_serialized_quib(quib)
 
     def _remove_assignment_with_quib_id_at_index(self, quib_id: int, index: int):
         quib = self._find_quib_by_id(quib_id)
-        self.remove_assignment_from_quib(quib, index)
+        if index < len(quib.handler.overrider):
+            self.remove_assignment_from_quib(quib, index)
+        return get_serialized_quib(quib)
 
     def listen_for_events(self):
         self._jupyter_notebook_path = os.environ.get("JUPYTER_NOTEBOOK", ipynbname.path())
