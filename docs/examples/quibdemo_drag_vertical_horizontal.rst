@@ -16,7 +16,7 @@ vertical/horizontal dragging.**
    -  Try dragging the axis-sliders - note that they are constraint
       horizontally and vertically.
 
-.. code:: ipython3
+.. code:: python
 
     from pyquibbler import iquib, override_all, q
     override_all()
@@ -24,7 +24,7 @@ vertical/horizontal dragging.**
     import numpy as np
     %matplotlib tk
 
-.. code:: ipython3
+.. code:: python
 
     x = iquib(7.)
     y = iquib(4.)
@@ -40,8 +40,7 @@ vertical/horizontal dragging.**
     # Text above dot
     plt.text(x, y + 0.6, 
              q("({}, {})".format, np.around(x, decimals=1), np.around(y, decimals=1)),
-             horizontalalignment="center",
-             verticalalignment="bottom", fontsize=16)
+             ha="center", va="bottom", fontsize=16)
     
     # Vertical and horizontal sliders
     plt.plot(x, 0.2, '^', markerfacecolor='r', markersize=22, picker=True)

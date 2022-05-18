@@ -17,6 +17,9 @@ from tests.functional.inversion.inverters.utils import inverse
     (np.divide, (np.array([20, 20, 20]), Source(np.array([5, 5, 5]))), ([0],), 5, 1, np.array([4, 5, 5])),
     (np.power, (Source(10), 2), None, 10_000, 0, 100),
     (np.power, (10, Source(1)), None, 100, 1, 2),
+    (np.add, (Source(np.array([2])), np.array([5, 5, 5])), 0, 12, 0, np.array([7])),
+    (np.add, (Source(2), np.array([5, 5, 5])), 0, 12, 0, 7),
+    (np.add, (Source(2), np.array([5, 5, 5])), [False, True, False], 100, 0, 95),
 ], ids=[
     "add: simple",
     "add: multiple dimensions",
@@ -28,6 +31,9 @@ from tests.functional.inversion.inverters.utils import inverse
     "divide: second arg is quib",
     "power: first arg is quib",
     "power: second arg is quib",
+    "add: 1-size broadcasting to vector",
+    "add: scalar broadcasting to vector",
+    "add: scalar broadcasting to vector with boolean indexing",
 ])
 def test_inverse_elementwise_two_arguments(func, func_args, indices, value, quib_arg_index, expected_value):
     sources_to_results, _ = inverse(func, indices=indices, value=value, args=func_args, empty_path=indices is None)
@@ -37,6 +43,7 @@ def test_inverse_elementwise_two_arguments(func, func_args, indices, value, quib
         assert np.array_equal(value, expected_value)
     else:
         assert value == expected_value
+        assert np.shape(value) == np.shape(expected_value)
 
 
 @pytest.mark.parametrize("func,func_arg,indices,value,expected_value", [

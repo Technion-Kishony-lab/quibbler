@@ -82,7 +82,7 @@ class CachedQuibFuncCall(QuibFuncCall):
             res = res.get_value()
 
         if self.artists_creation_callback:
-            self.artists_creation_callback(set(graphics_collection.artists))
+            self.artists_creation_callback(graphics_collection.artists, self.func_args_kwargs)
 
         return res
 

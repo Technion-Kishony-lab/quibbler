@@ -17,19 +17,19 @@ using overriding of function quibs.
 -  **Features**
 
    -  Overriding default values
+   -  Override mask
    -  Graphics-driven assignments
    -  Inverse assignments
-   -  override_mask
    -  Assignment template
 
 -  **Try me**
 
    -  Drag the horizontal line to change the overall “default factor”
    -  Drag the “per-item factor” markers will make an excpetion, moving
-      a specific point. To cancel the exception and return to the
-      default value, right-click a point.
+      a specific point. Right-click a point to cancel the exception and
+      return to the default value.
 
-.. code:: ipython3
+.. code:: python
 
     from functools import partial
     from pyquibbler import iquib, override_all, q
@@ -38,12 +38,12 @@ using overriding of function quibs.
     import numpy as np
     %matplotlib tk
 
-.. code:: ipython3
+.. code:: python
 
     # Set number of plates
     n_plates = iquib(10)
 
-.. code:: ipython3
+.. code:: python
 
     # Figure setup
     plt.figure()
@@ -51,25 +51,24 @@ using overriding of function quibs.
     plt.ylabel('Per-item factor')
     plt.xticks(np.arange(n_plates));
 
-.. code:: ipython3
+.. code:: python
 
     # Common properties
     input_properties = {'assignment_template':(0, 100, 1), 'allow_overriding':True}
 
-.. code:: ipython3
+.. code:: python
 
     # Define and plot the default factor
-    default_factor = iquib(np.array([70]))
-    default_factor.setp(**input_properties)
+    default_factor = iquib(np.array([70]), **input_properties)
     plt.plot([-0.5, n_plates - 0.5], default_factor[[0, 0]], 'k', 
              zorder=3, linewidth=2, picker=True);
 
-.. code:: ipython3
+.. code:: python
 
     # Define and plot the per-item factor
     from matplotlib.colors import ListedColormap
-    per_item_factor = np.repeat(default_factor, n_plates, 0)
-    per_item_factor.setp(**input_properties, assigned_quibs=[per_item_factor])
+    per_item_factor = np.repeat(default_factor, n_plates, 0) \
+        .setp(**input_properties, assigned_quibs='self')
     
     x = np.arange(n_plates)
     plt.bar(x, per_item_factor, color=(0.7, 0.7, 0.7))

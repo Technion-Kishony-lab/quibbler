@@ -11,9 +11,9 @@ Dragging graphics along a curved line
 
 -  **Try me**
 
-   -  Try dragging the circle along the functional line.
+   -  Try dragging the circle along the functional curve.
 
-.. code:: ipython3
+.. code:: python
 
     from pyquibbler import iquib, override_all, q
     override_all()
@@ -21,13 +21,13 @@ Dragging graphics along a curved line
     import numpy as np
     %matplotlib tk
 
-.. code:: ipython3
+.. code:: python
 
     # define and plot a curve:
     curve_function = lambda v: 4 * v ** 2 - v ** 3
     graph_xs = np.arange(0, 4, .2)
     graph_ys = curve_function(graph_xs)
-    plt.figure(figsize=(4,3))
+    plt.figure(figsize=(4, 3))
     plt.plot(graph_xs, graph_ys, 'k')
     plt.axis([0, 4, 0, 12])
     
@@ -41,7 +41,5 @@ Dragging graphics along a curved line
     
     # Define and plot text (this text will change when the marker is dragged):
     xy_str = q("X={:.2f}, Y={:.2f}".format, point_x, point_y)
-    plt.text(point_x, point_y + .6, xy_str, 
-             horizontalalignment="center",
-             verticalalignment="bottom", fontsize=13);
+    plt.text(point_x, point_y + .6, xy_str, ha="center", va="bottom", fontsize=13);
 .. image:: ../images/demo_gif/quibdemo_drag_on_curve.gif

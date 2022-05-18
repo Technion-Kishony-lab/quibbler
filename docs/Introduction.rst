@@ -78,7 +78,7 @@ Any *Python* object can be transformed into an i-quib using the
 
 
 
-.. parsed-literal::
+.. code:: none
 
     my_lucky_number = iquib(7)
 
@@ -103,7 +103,7 @@ method:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     7
 
@@ -126,7 +126,7 @@ For example:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     city_data = iquib({'City': 'Haifa', 'Population': 279247})
 
@@ -140,7 +140,7 @@ For example:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     ['Hello', 'World']
 
@@ -160,7 +160,7 @@ assignment syntax:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     ['Hi', 'World']
 
@@ -177,7 +177,7 @@ different type, use the ``assign()`` method:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     'anything'
 
@@ -218,7 +218,7 @@ would use a normal numeric *NumPy* array. For example:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     z_sqr = z ** 2
 
@@ -238,7 +238,7 @@ calculating the average of the elements of ``z_sqr``:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     mean_z_sqr = average(z_sqr)
 
@@ -269,7 +269,7 @@ To calculate the value of a function-quib, we can use the
 
 
 
-.. parsed-literal::
+.. code:: none
 
     4.5
 
@@ -312,7 +312,7 @@ change:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     3.5
 
@@ -336,7 +336,7 @@ value of each two consecutive elements of an array:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     r_middle = (r[0:-1] + r[1:]) * 0.5
 
@@ -349,7 +349,7 @@ value of each two consecutive elements of an array:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     array([1.5, 2.5, 3.5, 6.5])
 
@@ -366,7 +366,7 @@ it will get re-evaluated:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     array([1.5, 2.5, 3.5, 9. ])
 
@@ -394,7 +394,7 @@ not a quiby function), we can use:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     'X=2, Y=3'
 
@@ -408,7 +408,7 @@ not a quiby function), we can use:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     'X=2, Y=5'
 
@@ -427,7 +427,7 @@ that performs ``str`` on the value of the quib argument:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     'w = iquib(7)'
 
@@ -444,7 +444,7 @@ If, instead, we want the quiby behavior of ``str``, we can use the
 
 
 
-.. parsed-literal::
+.. code:: none
 
     '7'
 
@@ -492,14 +492,14 @@ of v:
     mean_v_sqr_left.get_value()
 
 
-.. parsed-literal::
+.. code:: none
 
     Calculating the mean of:  [9 0 9]
 
 
 
 
-.. parsed-literal::
+.. code:: none
 
     6.0
 
@@ -510,14 +510,14 @@ of v:
     mean_v_sqr_right.get_value()
 
 
-.. parsed-literal::
+.. code:: none
 
     Calculating the mean of:  [ 1 16  4]
 
 
 
 
-.. parsed-literal::
+.. code:: none
 
     7.0
 
@@ -539,14 +539,14 @@ re-calculation:
     mean_v_sqr_right.get_value()
 
 
-.. parsed-literal::
+.. code:: none
 
     Calculating the mean of:  [ 4 16  4]
 
 
 
 
-.. parsed-literal::
+.. code:: none
 
     8.0
 
@@ -563,7 +563,7 @@ reclaculate it:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     6.0
 

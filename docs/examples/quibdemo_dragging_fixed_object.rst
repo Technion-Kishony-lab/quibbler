@@ -14,7 +14,7 @@ Dragging a fixed object to affect another
    -  Try dragging the fixed diamond. It won’t move but will affect the
       position of the circle.
 
-.. code:: ipython3
+.. code:: python
 
     from pyquibbler import iquib, override_all, q
     override_all()
@@ -22,7 +22,7 @@ Dragging a fixed object to affect another
     import numpy as np
     %matplotlib tk
 
-.. code:: ipython3
+.. code:: python
 
     # define and plot a point at xy coordinates:
     xy = iquib(np.array([2., 3.]))
@@ -31,7 +31,7 @@ Dragging a fixed object to affect another
     plt.plot(xy[0], xy[1], 'o', markersize=20)
     plt.text(-9, 9, np.array2string(xy, precision=2))
     
-    # define and plot a differential function quib, which is by defintion fixed at [0,0]:
+    # define and plot a differential function quib, which is by defintion fixed at [0, 0]:
     dxy = xy - xy
     plt.plot(dxy[0], dxy[1], 'd', markersize=20, picker=True);
 .. image:: ../images/demo_gif/quibdemo_dragging_fixed_object.gif

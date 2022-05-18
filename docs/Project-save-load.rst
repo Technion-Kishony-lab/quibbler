@@ -31,13 +31,16 @@ property.
 Assignment file format
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Assignments can be saved as a text file or binary file (see
-:py:func:`~pyquibbler.SaveFormat`). The file format can be set globally for all quibs
-using the Project’s :py:attr:`~pyquibbler.Project.save_format`, or inidividually for each
-quib using the Quib’s [[
+Assignments can be saved as a text file or binary file (``'txt'``, or
+``'bin'``). The file format can be set globally for all quibs using the
+Project’s :py:attr:`~pyquibbler.Project.save_format`, or individually for each quib using
+the Quib’s :py:attr:`~pyquibbler.Quib.save_format`.
 
-Import
-~~~~~~
+Simple example of assignment saving to file
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+As a simple example for saving quib assignment to file, conider the
+following code:
 
 .. code:: python
 
@@ -53,44 +56,34 @@ Import
 
 .. code:: python
 
-    xy = iquib(np.array([[250], [250]]))
-    xy2 = xy + 1000
-
-.. code:: python
-
     # set the project path to the current directory
-    qb.set_project_directory('.')  
-    qb.get_project_directory()
-
-
-
-
-.. raw:: html
-
-    <a href="file:///Users/roykishony/pyquibbler/docs">docs</a>
-
-
+    import os
+    os.system('mkdir my_data')
+    qb.set_project_directory('my_data')
 
 .. code:: python
 
+    # By default, quibs are saved to text file:
     qb.get_project().save_format
 
 
 
 
-.. parsed-literal::
+.. code:: none
 
-    <SaveFormat.VALUE_TXT: 'value_txt'>
+    <SaveFormat.TXT: 'txt'>
 
 
-
-.. code:: python
-
-    qb.save_quibs()
 
 .. code:: python
 
-    xy[1,0] = 10
+    # Define an iquib and an fquib:
+    xy = iquib([10.5, 17.0])
+
+.. code:: python
+
+    # Make an assignment
+    xy[1] = 18.
 
 .. code:: python
 
@@ -99,10 +92,79 @@ Import
 
 
 
-.. parsed-literal::
+.. code:: none
 
-    array([[250],
-           [ 10]])
+    [10.5, 18.0]
+
+
+
+.. code:: python
+
+    # Save all assignments:
+    qb.save_quibs()
+
+.. code:: python
+
+    os.system('ls my_data');
+
+
+.. code:: none
+
+    xy.txt
+
+
+.. code:: python
+
+    os.system('cat my_data/xy.txt');
+
+
+.. code:: none
+
+    quib[1] = 18.0
+
+.. code:: python
+
+    xy[1] = 20.
+    xy.get_value()
+
+
+
+
+.. code:: none
+
+    [10.5, 20.0]
+
+
+
+.. code:: python
+
+    qb.load_quibs()
+
+
+.. code:: none
+
+    xy
+    Data has changed.
+    Overwrite assignment?
+    1 :  Overwrite
+    2 :  Skip
+
+
+.. code:: none
+
+     1
+
+
+.. code:: python
+
+    xy.get_value()
+
+
+
+
+.. code:: none
+
+    [10.5, 18.0]
 
 
 

@@ -15,7 +15,7 @@ Making the quib icon
    -  Play with the sliders to choose line-width.
    -  Use the check-box to turn markers invisible.
 
-.. code:: ipython3
+.. code:: python
 
     from pyquibbler import iquib, override_all, quiby_function, quiby
     override_all()
@@ -24,7 +24,7 @@ Making the quib icon
     import matplotlib.widgets as widgets
     %matplotlib tk
 
-.. code:: ipython3
+.. code:: python
 
     @quiby
     def get_icon(par):
@@ -61,7 +61,7 @@ Making the quib icon
         
         return xy
 
-.. code:: ipython3
+.. code:: python
 
     # Define the parameters of the icon
     
@@ -84,7 +84,7 @@ Making the quib icon
     point_position = iquib(np.array([0., 1.]))
     color = iquib(np.array([79, 113, 191]) / 255);
 
-.. code:: ipython3
+.. code:: python
 
     # Set the figure
     fig = plt.figure(figsize=(5, 7))
@@ -92,20 +92,20 @@ Making the quib icon
     axs.axis('equal')
     axs.axis([-6, 6, -6, 6]);
 
-.. code:: ipython3
+.. code:: python
 
     # Plot the icon
     xy = get_icon(icon_props)
     axs.plot(xy[0], xy[1], linewidth=icon_props['LineWidth'], color=color);
 
-.. code:: ipython3
+.. code:: python
 
     # add the dot abobe the 'i'
     axs.plot(point_position[0] + icon_props['uiWidth'] + icon_props['uiShift'], 
              point_position[1] + 1, 
              marker='o', markersize=icon_props['LineWidth']*icon_props['PointWidth'], picker=True);
 
-.. code:: ipython3
+.. code:: python
 
     # Plot the handle-markers
     options = {'markersize':icon_props['LineWidth'], 'picker':True, 'visible':is_handles_visible}
@@ -120,7 +120,7 @@ Making the quib icon
     axs.plot(-np.cos(tet2) * icon_props['uiWidth'] + icon_props['uiWidth'] + icon_props['uiShift'],
              -np.sin(tet2) * 2 - 1, 'ok', **options);
 
-.. code:: ipython3
+.. code:: python
 
     # Make the Sliders widgets
     axs = fig.add_axes([0.2, 0.3, 0.6, 0.02])
@@ -131,7 +131,7 @@ Making the quib icon
     widgets.Slider(ax=axs, valmin=0, valmax=2, 
                    label='point size', valinit=icon_props['PointWidth']);
 
-.. code:: ipython3
+.. code:: python
 
     # Make the CheckButtons widget
     axs = fig.add_axes([0.2, 0.02, 0.4, 0.16])

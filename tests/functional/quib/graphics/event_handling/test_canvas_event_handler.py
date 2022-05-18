@@ -22,6 +22,8 @@ def test_canvas_event_handler_delete_itself_upon_figure_close():
 
     canvas = mock.Mock()
     canvas.events_to_funcs = {}
+    canvas.figure = mock.Mock()
+    canvas.figure.axes = []
 
     def mpl_connect(event, func):
         canvas.events_to_funcs[event] = func
@@ -60,15 +62,16 @@ def test_canvas_event_handler_plot_drag_without_pick_event_does_nothing(canvas_e
 
 def test_canvas_event_handler_plot_drag(canvas_event_handler, mock_inverse_graphics_function):
     pick_event = mock.Mock()
-    drawing_func = mock.Mock()
-    pick_event.artist._quibbler_drawing_func = drawing_func
-    pick_event.artist._quibbler_args = [mock.Mock()]
+    drawing_quib = mock.Mock()
+    drawing_quib.func = mock.Mock()
+    drawing_quib.args = mock.Mock()
+    pick_event.artist._quibbler_artist_creating_quib = drawing_quib
     canvas_event_handler._handle_pick_event(pick_event)
     mouse_event = mock.Mock()
     canvas_event_handler._handle_motion_notify(mouse_event)
 
-    mock_inverse_graphics_function.assert_called_once_with(drawing_func=drawing_func,
-                                                           args=pick_event.artist._quibbler_args,
+    mock_inverse_graphics_function.assert_called_once_with(drawing_func=drawing_quib.func,
+                                                           args=drawing_quib.args,
                                                            mouse_event=mouse_event,
                                                            pick_event=pick_event)
 

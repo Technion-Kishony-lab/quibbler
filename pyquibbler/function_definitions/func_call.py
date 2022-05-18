@@ -3,14 +3,14 @@ from __future__ import annotations
 import functools
 from abc import abstractmethod, ABC
 from dataclasses import dataclass
-from typing import Tuple, Any, Mapping, Optional, Callable, List, TYPE_CHECKING, Type, ClassVar
+from typing import Tuple, Any, Mapping, Optional, Callable, List, TYPE_CHECKING, Type, ClassVar, Dict
 
 from .location import SourceLocation, create_source_location
 from .types import Argument
 from pyquibbler.quib.external_call_failed_exception_handling import \
     external_call_failed_exception_handling
 from pyquibbler.utilities.iterators import iter_args_and_names_in_function_call, \
-    get_paths_for_objects_of_type, iter_object_type_in_args
+    get_paths_for_objects_of_type
 
 if TYPE_CHECKING:
     from pyquibbler.function_definitions import FuncDefinition
@@ -30,7 +30,7 @@ class FuncArgsKwargs:
 
     func: Callable
     args: Tuple[Any, ...]
-    kwargs: Mapping[str, Any]
+    kwargs: Dict[str, Any]
     include_defaults: bool
 
     def get_args_values_by_name_and_position(self) -> Tuple[Mapping[str, Any], Tuple[Any, ...]]:
@@ -202,18 +202,22 @@ class FuncCall(ABC):
 
         return new_args, new_kwargs
 
-    @functools.lru_cache()
-    def get_objects_of_type_in_args_kwargs(self, type_):
-        return list(iter_object_type_in_args(type_, self.args, self.kwargs))
-
     def get_data_source_argument_values(self) -> List[Any]:
         return [v for _, v in self.func_definition.get_data_source_arguments_with_values(self.func_args_kwargs)]
 
     @load_source_locations_before_running
-    @functools.lru_cache()
+    # @functools.lru_cache() - remove because it leads to quib persistence. TODO: alternative solution
     def get_data_sources(self):
         sources = set()
         for location in self.data_source_locations:
+            sources.add(location.find_in_args_kwargs(self.args, self.kwargs))
+        return sources
+
+    @load_source_locations_before_running
+    # @functools.lru_cache() - remove because it leads to quib persistence. TODO: alternative solution
+    def get_parameter_sources(self):
+        sources = set()
+        for location in self.parameter_source_locations:
             sources.add(location.find_in_args_kwargs(self.args, self.kwargs))
         return sources
 

@@ -3,6 +3,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, TYPE_CHECKING
 
+import numpy as np
+
 from pyquibbler.translation.exceptions import FailedToTranslateException
 
 if TYPE_CHECKING:
@@ -51,3 +53,13 @@ class NoMetadataSource(Source):
 class Inversal:
     assignment: Any
     source: Source
+
+    def cast_assigned_value_by_source_value(self):
+        if len(self.assignment.path):
+            return
+
+        original_value = self.source.value
+        if isinstance(original_value, np.ndarray):
+            self.assignment.value = np.array(self.assignment.value, dtype=original_value.dtype)
+        else:
+            self.assignment.value = type(original_value)(self.assignment.value)

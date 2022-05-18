@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import copy
 import enum
-import functools
 import pathlib
 import pickle
 import weakref
@@ -15,7 +14,7 @@ from pyquibbler.function_definitions import get_definition_for_function, FuncArg
 from pyquibbler.quib.types import FileAndLineNumber
 from pyquibbler.utilities.file_path import PathWithHyperLink
 from functools import cached_property
-from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Union, Iterable, Mapping, Callable
+from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Union, Iterable, Mapping, Callable, Iterator
 from weakref import WeakSet
 
 from matplotlib.artist import Artist
@@ -28,8 +27,7 @@ from pyquibbler.quib.quib_guard import guard_raise_if_not_allowed_access_to_quib
 from pyquibbler.quib.pretty_converters import MathExpression, FailedMathExpression, \
     NameMathExpression, pretty_convert
 from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals, NoValue
-from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation_with_sources_metadata, \
-    get_func_call_for_translation_without_sources_metadata
+from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation_with_sources_metadata
 from pyquibbler.utilities.input_validation_utils import validate_user_input, InvalidArgumentValueException, \
     get_enum_by_str
 from pyquibbler.utilities.iterators import recursively_run_func_on_object, recursively_compare_objects_type, \
@@ -124,6 +122,10 @@ class QuibHandler:
     def project(self) -> Project:
         return Project.get_or_create()
 
+    @property
+    def parents(self) -> Iterator[Quib]:
+        return self.quib_function_call.get_data_sources() | self.quib_function_call.get_parameter_sources()
+
     def add_child(self, quib: Quib) -> None:
         """
         Add the given quib to the list of quibs that are dependent on this quib.
@@ -135,6 +137,20 @@ class QuibHandler:
         Removes a child from the quib, no longer sending invalidations to it
         """
         self.children.remove(quib_to_remove)
+
+    def connect_to_parents(self):
+        """
+        Connect the quib to its parents
+        """
+        for parent in self.parents:
+            parent.handler.add_child(self.quib)
+
+    def disconnect_from_parents(self):
+        """
+        Disconnect the quib from its parents, so that the quib is effectively inactivated
+        """
+        for parent in self.parents:
+            parent.handler.remove_child(self.quib)
 
     def get_descendants(self):
         children = set(self.children)  # copy to prevent set changing during operation
@@ -160,7 +176,7 @@ class QuibHandler:
         """
         graphics_update = self.actual_graphics_update
         if graphics_update == GraphicsUpdateType.DRAG \
-                or self.graphics_update == GraphicsUpdateType.DROP and not is_within_drag():
+                or graphics_update == GraphicsUpdateType.DROP and not is_within_drag():
             self.quib.get_value()
 
     def _iter_artist_lists(self) -> Iterable[List[Artist]]:
@@ -237,19 +253,6 @@ class QuibHandler:
                 if len(path) == 0 or len(self._get_list_of_not_overridden_paths_at_first_component(new_path)) > 0:
                     self._invalidate_children_at_path(new_path)
 
-    def _forward_translate_without_retrieving_metadata(self, invalidator_quib: Quib, path: Path) -> Paths:
-        func_call, sources_to_quibs = get_func_call_for_translation_without_sources_metadata(
-            self.quib_function_call
-        )
-        quibs_to_sources = {quib: source for source, quib in sources_to_quibs.items()}
-        sources_to_forwarded_paths = forwards_translate(
-            func_call=func_call,
-            sources_to_paths={
-                quibs_to_sources[invalidator_quib]: path
-            },
-        )
-        return sources_to_forwarded_paths.get(quibs_to_sources[invalidator_quib], [])
-
     def _forward_translate_with_retrieving_metadata(self, invalidator_quib: Quib, path: Path) -> Paths:
         func_call, sources_to_quibs = get_func_call_for_translation_with_sources_metadata(
             self.quib_function_call
@@ -266,19 +269,6 @@ class QuibHandler:
         )
         return sources_to_forwarded_paths.get(quibs_to_sources[invalidator_quib], [])
 
-    def _forward_translate_source_path(self, invalidator_quib: Quib, path: Path) -> Paths:
-        """
-        Forward translate a path, first attempting to do it WITHOUT using getting the shape and type, and if/when
-        failure does grace us, we attempt again with shape and type
-        """
-        try:
-            return self._forward_translate_without_retrieving_metadata(invalidator_quib, path)
-        except NoTranslatorsFoundException:
-            try:
-                return self._forward_translate_with_retrieving_metadata(invalidator_quib, path)
-            except NoTranslatorsFoundException:
-                return [[]]
-
     def _get_paths_for_children_invalidation(self, invalidator_quib: Quib,
                                              path: Path) -> Paths:
         """
@@ -287,16 +277,15 @@ class QuibHandler:
         If we have no translators, we forward the path to invalidate all, as we have no more specific way to do it
         """
         # We always invalidate all if it's a parameter source quib
-        if invalidator_quib not in self.quib_function_call.get_data_sources():
+        if invalidator_quib not in self.quib_function_call.get_data_sources() \
+                or path == [] \
+                or not self.quib_function_call._result_metadata:
             return [[]]
 
         try:
-            return self._forward_translate_without_retrieving_metadata(invalidator_quib, path)
+            return self._forward_translate_with_retrieving_metadata(invalidator_quib, path)
         except NoTranslatorsFoundException:
-            try:
-                return self._forward_translate_with_retrieving_metadata(invalidator_quib, path)
-            except NoTranslatorsFoundException:
-                return [[]]
+            return [[]]
 
     def reset_quib_func_call(self):
         definition = get_definition_for_function(self.func_args_kwargs.func)
@@ -305,9 +294,10 @@ class QuibHandler:
             func_definition=self.func_definition,
             cache_mode=self.cache_mode,
         )
-        from pyquibbler.quib.graphics.persist import persist_artists_on_quib_weak_ref
-        self.quib_function_call.artists_creation_callback = functools.partial(persist_artists_on_quib_weak_ref,
-                                                                              weakref.ref(self.quib))
+        from pyquibbler.quib.graphics.persist import PersistQuibOnCreatedArtists, PersistQuibOnSettedArtist
+        persist_quib_callback = PersistQuibOnSettedArtist if definition.is_artist_setter \
+            else PersistQuibOnCreatedArtists
+        self.quib_function_call.artists_creation_callback = persist_quib_callback(weakref.ref(self.quib))
 
     """
     assignments
@@ -921,7 +911,8 @@ class Quib:
         is_graphics, graphics_update
         pyquibbler.refresh_graphics
         """
-        return self.handler.quib_function_call.func_can_create_graphics
+        return self.handler.quib_function_call.func_can_create_graphics \
+            and not self.handler.created_in_get_value_context
 
     @property
     def graphics_update(self) -> GraphicsUpdateType:
@@ -1146,7 +1137,19 @@ class Quib:
         See Also
         --------
         AssignmentTemplate, assignment_template
+
+        Examples
+        --------
+        >>> a = iquib(20)
+        >>> a.set_assignment_template(0, 100, 10)  # restrict to 0, 10, ..., 100
+        >>> a.assign(37)
+        >>> a.get_value()
+        40
+        >>> a.assign(170)
+        >>> a.get_value()
+        100
         """
+
         self.handler.assignment_template = create_assignment_template(*args)
         return self
     """
@@ -1169,9 +1172,6 @@ class Quib:
 
         Parameters
         ----------
-        x : type
-            Description of parameter `x`.
-
         allow_overriding : bool, optional
             Specifies whether the quib is open for overriding assignments.
 
@@ -1468,7 +1468,7 @@ class Quib:
         --------
         ancestors, children, descendants
         """
-        return set(self.handler.quib_function_call.get_objects_of_type_in_args_kwargs(Quib))
+        return set(self.handler.parents)
 
     @cached_property
     def ancestors(self) -> Set[Quib]:

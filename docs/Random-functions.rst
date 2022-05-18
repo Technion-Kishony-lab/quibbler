@@ -42,7 +42,7 @@ For example,
 
 
 
-.. parsed-literal::
+.. code:: none
 
     array([0.24936599, 0.49959145, 0.70940961])
 
@@ -55,7 +55,7 @@ For example,
 
 
 
-.. parsed-literal::
+.. code:: none
 
     True
 
@@ -74,7 +74,7 @@ value yields the same randomization:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     array([0.24936599, 0.49959145, 0.70940961])
 
@@ -91,7 +91,7 @@ Because the randomization is fixed, mathematical trivialities hold true:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     0.0
 
@@ -119,7 +119,7 @@ calculated:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     array([1.24936599, 1.49959145, 1.70940961])
 
@@ -133,7 +133,7 @@ calculated:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     array([1.76673854, 1.29385858, 1.72750647])
 
@@ -153,7 +153,7 @@ downstream results will lead to new randomization:
 
 
 
-.. parsed-literal::
+.. code:: none
 
     array([1.44229483, 1.94557109, 1.37758801])
 
@@ -179,7 +179,7 @@ it to a quiby function using the :py:func:`~pyquibbler.quiby_function` decorator
 
 
 
-.. parsed-literal::
+.. code:: none
 
     13
 
@@ -192,7 +192,7 @@ it to a quiby function using the :py:func:`~pyquibbler.quiby_function` decorator
 
 
 
-.. parsed-literal::
+.. code:: none
 
     13
 
@@ -206,7 +206,7 @@ it to a quiby function using the :py:func:`~pyquibbler.quiby_function` decorator
 
 
 
-.. parsed-literal::
+.. code:: none
 
     11
 

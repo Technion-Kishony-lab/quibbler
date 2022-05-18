@@ -14,7 +14,7 @@ Multi-point dragging and widgets
    -  Try dragging the data points.
    -  Try changing the degree of the polynomial fit with the slider.
 
-.. code:: ipython3
+.. code:: python
 
     from pyquibbler import iquib, override_all, q
     override_all()
@@ -23,7 +23,7 @@ Multi-point dragging and widgets
     import numpy as np
     %matplotlib tk
 
-.. code:: ipython3
+.. code:: python
 
     # Define x, y data points
     num_points = iquib(10)
@@ -33,7 +33,7 @@ Multi-point dragging and widgets
     # Add random noise
     y = y + 5 * np.random.randn(num_points)
     
-    # Allow overrding the default functional values of x,y:
+    # Allow overrding the default functional values of x, y:
     x.allow_overriding = True
     y.allow_overriding = True
     
@@ -41,10 +41,9 @@ Multi-point dragging and widgets
     plt.figure(figsize=[7, 5])
     ax = plt.axes([0.2, 0.2, 0.7, 0.6])
     
-    # Plot the x-y points. use picker=True to allow dragging
+    # Plot the x-y points. Setting picker=True to allow dragging
     ax.plot(x, y, marker='o', markersize=12, markerfacecolor='y',
             linestyle='None', picker=True, pickradius=15)
-    
     
     # Define polynomial fit degree:
     n_poly = iquib(2)
@@ -52,8 +51,7 @@ Multi-point dragging and widgets
     # Connect polynomial fit with slider:
     axSlider = plt.axes([0.25, 0.1, 0.65, 0.03])
     freq_slider = widgets.Slider(ax=axSlider, valmin=0, valmax=5, valstep=1,
-        label=q("poly deg {:.0f}".format, n_poly),
-        valinit=n_poly)
+        label=q("poly deg {:.0f}".format, n_poly), valinit=n_poly)
     
     # Perform and plot the polynomial fit:
     pf = np.polyfit(x, y, n_poly)

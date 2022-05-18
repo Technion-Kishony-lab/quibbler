@@ -203,6 +203,7 @@ def create_numpy_overrides():
             ('expand_dims', [0]),
             ('ravel',       [0]),
             ('squeeze',     [0]),
+            ('flip',        [0]),
           )),
 
         # Shape-only, data-independent

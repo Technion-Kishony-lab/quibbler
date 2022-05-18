@@ -36,4 +36,8 @@ def invert(func_call: SourceFuncCall, assignment: Assignment, previous_result):
     """
     Get all the inversions for a given assignment on the result of a funccall
     """
-    return MultipleInverterRunner(func_call, assignment, previous_result).run()
+    inversals = MultipleInverterRunner(func_call, assignment, previous_result).run()
+    for inversal in inversals:
+        inversal.cast_assigned_value_by_source_value()
+
+    return inversals

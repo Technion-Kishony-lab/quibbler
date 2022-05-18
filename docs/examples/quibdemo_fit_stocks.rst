@@ -17,7 +17,7 @@ values**
    -  Drag the dashed lines to change the width of the fit period.
    -  Use the slider to change the polynomial degree of the fit.
 
-.. code:: ipython3
+.. code:: python
 
     from pyquibbler import iquib, override_all, q
     override_all()
@@ -28,10 +28,10 @@ values**
     from datetime import datetime
     %matplotlib tk
 
-.. code:: ipython3
+.. code:: python
 
     # Load data of Apple stock:
-    t_init = datetime.strptime('2000-01-01','%Y-%m-%d').timestamp()
+    t_init = datetime.strptime('2000-01-01', '%Y-%m-%d').timestamp()
     str2date = lambda x: (datetime.strptime(x.decode("utf-8"), '%Y-%m-%d').timestamp() - t_init)/(365*24*60*60) + 2000
     filename = iquib('../data_files/AAPL.csv')
     d = np.genfromtxt(filename,delimiter=',', names=True, converters = {0: str2date})

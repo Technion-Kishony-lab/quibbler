@@ -14,7 +14,8 @@ def test_quib_does_not_request_shape_or_parents_shapes_on_first_attempt(create_m
     forwards_path_translator = mock.Mock()
     forwards_path_translator.return_value.translate.return_value = {}
     func.func_definition = create_func_definition(raw_data_source_arguments=[0],
-                                                      forwards_path_translators=[forwards_path_translator])
+                                                  forwards_path_translators=[forwards_path_translator],
+                                                  func=func)
     parent_quib = create_quib(func=func, args=(1,))
     quib = create_quib(func=lambda a: a, args=(parent_quib,))
     parent_quib.handler.invalidate_and_redraw_at_path([])
@@ -37,3 +38,16 @@ def test_diamond_invalidation_with_changing_shape(create_quib_with_return_value)
     a.assign(10)
 
     assert np.array_equal(e.get_value(), np.arange(10) * 2)
+
+
+@pytest.mark.regression
+def test_invalidation_does_not_request_shape(create_quib_with_return_value):
+    func = mock.Mock(return_value=7)
+
+    a = create_quib_with_return_value([0, 1, 2], allow_overriding=True)
+    b = np.vectorize(func)(a)
+
+    func.assert_not_called(), "sanity"
+
+    a[0] = 7
+    func.assert_not_called(),

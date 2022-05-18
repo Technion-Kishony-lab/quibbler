@@ -14,6 +14,7 @@ setup(
             'pytest-cov',
             'selenium',
             'psutil'
+            'pytest-benchmark',
         ],
         'sphinx': [
             'sphinx',

@@ -70,5 +70,5 @@ def test_slider_graphics_function_quib_calls_multiple_times(axes, get_live_widge
         create_motion_notify_event(*get_axes_end())
         create_button_release_event(*get_axes_end())
 
-    assert redraw_count.count == 4  # press * 2 + motion * 2
+    assert redraw_count.count == 6  # press * 2 + motion * 2 + release*2
     assert len(get_live_widgets()) == 1

@@ -56,7 +56,11 @@ def remove_artist(artist: Artist):
     """
     Remove an artist from its artist array (does NOT redraw)
     """
-    get_artist_array(artist).remove(artist)
+    from pyquibbler.quib.graphics import artist_wrapper
+    artist_wrapper.clear_all_quibs(artist)
+    artist_array = get_artist_array(artist)
+    if artist in artist_array:  # artists not in artist array have been observed in the wild
+        artist_array.remove(artist)
 
 
 def get_axeses_to_array_names_to_starting_indices_and_artists(artists: List[Artist]) \

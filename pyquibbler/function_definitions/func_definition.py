@@ -35,7 +35,7 @@ class FuncDefinition:
     is_graphics: Optional[bool] = False  # None for 'maybe'
     pass_quibs: bool = False
     lazy: Optional[bool] = None  # None for auto: LAZY for non-graphics, GRAPHICS_LAZY for is_graphics=True
-    replace_previous_quibs_on_artists: bool = field(repr=False, default=False)
+    is_artist_setter: bool = field(repr=False, default=False)
     inverters: List[Type[Inverter]] = field(repr=False, default_factory=list)
     backwards_path_translators: List[Type[BackwardsPathTranslator]] = field(repr=False, default_factory=list)
     forwards_path_translators: List[Type[ForwardsPathTranslator]] = field(repr=False, default_factory=list)
@@ -105,7 +105,7 @@ class FuncDefinition:
 
         return all_data_source_arguments
 
-    @functools.lru_cache()
+    # @functools.lru_cache() - remove because it leads to quib persistence. TODO: alternative solution
     def get_data_source_arguments_with_values(self, func_args_kwargs: FuncArgsKwargs):
         return [
             (argument, func_args_kwargs[argument])
@@ -144,7 +144,7 @@ def create_func_definition(raw_data_source_arguments: List[RawArgument] = None,
                            is_graphics: Optional[bool] = False,
                            pass_quibs: bool = False,
                            lazy: Optional[bool] = None,
-                           replace_previous_quibs_on_artists: bool = False,
+                           is_artist_setter: bool = False,
                            inverters: List[Type[Inverter]] = None,
                            backwards_path_translators: List[Type[BackwardsPathTranslator]] = None,
                            forwards_path_translators: List[Type[ForwardsPathTranslator]] = None,
@@ -173,6 +173,6 @@ def create_func_definition(raw_data_source_arguments: List[RawArgument] = None,
         quib_function_call_cls=quib_function_call_cls,
         pass_quibs=pass_quibs,
         lazy=lazy,
-        replace_previous_quibs_on_artists=replace_previous_quibs_on_artists,
+        is_artist_setter=is_artist_setter,
         **kwargs
     )
