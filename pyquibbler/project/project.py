@@ -544,9 +544,15 @@ class Project:
         from pyquibbler.path import get_hashable_path
 
         assignment = quib.handler.overrider.pop_assignment_at_index(assignment_index)
-        assignment_action = self._quib_refs_to_paths_to_assignment_actions[weakref.ref(quib)][
-            get_hashable_path(assignment.path)
-        ]
+        assignment_action = self._quib_refs_to_paths_to_assignment_actions[weakref.ref(quib)].get(
+            get_hashable_path(assignment.path),
+            AddAssignmentAction(
+                assignment=assignment,
+                assignment_index=assignment_index,
+                previous_assignment_action=None,
+                quib_ref=weakref.ref(quib)
+            )
+        )
         self._undo_action_groups.append([RemoveAssignmentAction(
             add_assignment_action=assignment_action,
             quib_ref=weakref.ref(quib)
