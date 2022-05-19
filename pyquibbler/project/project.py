@@ -44,8 +44,6 @@ class NoProjectDirectoryException(PyQuibblerException):
                f"To {self.action} quibs, set the project directory (see set_project_directory)."
 
 
-
-
 class Project:
     """
     Quibbler project providing save/load and undo/redo functionality.
@@ -65,8 +63,9 @@ class Project:
         self._quib_refs_to_paths_to_assignment_actions = defaultdict(dict)
         self._save_format: SaveFormat = self.DEFAULT_SAVE_FORMAT
         self._graphics_update: GraphicsUpdateType = self.DEFAULT_GRAPHICS_UPDATE
-        self.on_path_change: Optional[Callable] = None
         self._record_undos = True
+        self.on_path_change: Optional[Callable] = None
+        self.autoload_upon_first_get_value = False
 
     @classmethod
     def get_or_create(cls, directory: Optional[Path] = None):

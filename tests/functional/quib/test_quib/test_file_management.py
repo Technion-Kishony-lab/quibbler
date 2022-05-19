@@ -46,3 +46,16 @@ def test_sync_quibs_with_files_and_then_file_change(project, monkeypatch):
     project.sync_quibs()
 
     assert np.array_equal(a.get_value(), [1., 2., 3.])
+
+
+@pytest.mark.get_variable_names(True)
+def test_quib_get_value_with_autoload(project):
+    project.autoload_upon_first_get_value = True
+    a = iquib([1, 2, 3]).setp(save_format="value_txt")
+    a[0] = 2
+    a.save()
+    a = iquib([1, 2, 3], save_format="value_txt")
+
+    result = a.get_value()  # Should autoload at this point
+
+    assert result == [2, 2, 3]

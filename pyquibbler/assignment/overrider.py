@@ -8,6 +8,7 @@ from typing import Any, Optional, Union, Dict, Hashable, List
 
 from .assignment import Assignment
 from .exceptions import NoAssignmentFoundAtPathException
+from ..env import GET_VARIABLE_NAMES
 from ..path.hashable import get_hashable_path
 from pyquibbler.path.path_component import Path, Paths
 from .assignment_template import AssignmentTemplate
@@ -181,7 +182,8 @@ class Overrider:
         from ..quib.exceptions import CannotLoadAssignmentsFromTextException
         # TODO: We are using exec. This is very simple, but obviously highly risky.
         #  Will be good to replace with a dedicated parser.
-        quib = iquib(None)
+        with GET_VARIABLE_NAMES.temporary_set(False):
+            quib = iquib(None)
         try:
             from pyquibbler import Project
             with Project.get_or_create().stop_recording_undos():

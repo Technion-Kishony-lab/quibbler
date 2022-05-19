@@ -24,7 +24,6 @@ from pyquibbler.logger import logger
 from pyquibbler.project import Project
 from pyquibbler.project.jupyer_project.flask_dialog_server import run_flask_app
 from pyquibbler.project.jupyer_project.utils import is_within_jupyter_lab, find_free_port, get_serialized_quib
-from pyquibbler.utils import ensure_only_run_once_globally
 
 
 class JupyterProject(Project):
@@ -40,6 +39,7 @@ class JupyterProject(Project):
         self._save_format = SaveFormat.TXT
         self._within_zip_and_send_context = False
         self._should_notify_client_of_quib_changes = True
+        self.autoload_upon_first_get_value = True
 
     def _wrap_file_system_func(self, func: Callable, save_and_send_after_op: bool = False):
         """
