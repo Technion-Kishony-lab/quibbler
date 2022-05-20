@@ -231,7 +231,7 @@ class JupyterProject(Project):
 
         overrider = Overrider()
         overrider.load_from_assignment_text(override_text)
-        assignment = list(overrider._paths_to_assignments.values())[0]
+        assignment = overrider[0]
 
         quib = self._find_quib_by_id(quib_id)
         self.push_assignment_to_undo_stack(
