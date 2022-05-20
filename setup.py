@@ -13,7 +13,7 @@ setup(
             'pytest-pep8',
             'pytest-cov',
             'selenium',
-            'psutil'
+            'psutil',
             'pytest-benchmark',
         ],
         'sphinx': [
