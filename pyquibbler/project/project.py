@@ -560,7 +560,8 @@ class Project:
 
         self._redo_action_groups.clear()
         quib.handler.file_syncer.on_data_changed()
-        quib.handler.invalidate_and_redraw_at_path(assignment.path)
+        # TODO: invalidate only at path
+        quib.handler.invalidate_and_redraw_at_path([])
         self.notify_of_overriding_changes(quib)
 
     def notify_of_overriding_changes(self, quib: Quib):
