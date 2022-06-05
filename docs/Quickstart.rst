@@ -169,7 +169,7 @@ Let’s first define and plot our square area, as a box extending length
 
 .. code:: python
 
-    d = iquib(np.array([120]))
+    d = iquib(120)
     plt.plot(d * np.array([ -1,  1,  1, -1, -1]) + x, 
              d * np.array([ -1, -1,  1,  1, -1]) + y, 
              color='Orange', picker=True);
@@ -202,7 +202,7 @@ As the box is extending from -d[0] to d[0], its size is defined by:
 
 .. code:: python
 
-    box_size = 2 * d[0] + 1
+    box_size = 2 * d + 1
 
 To connect widgets with quibs, we simply use standard *Matplotlib*
 widget creation functions, while specifying a quib as the initial value
@@ -262,8 +262,7 @@ within our defined box:
 
 .. code:: python
 
-    d0 = d[0]
-    img_cut = img[y-d0:y+d0+1, x-d0:x+d0+1, :]
+    img_cut = img[y-d:y+d+1, x-d:x+d+1, :]
     plt.figure()
     plt.imshow(img_cut, origin='lower');
 
