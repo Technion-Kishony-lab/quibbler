@@ -1,6 +1,8 @@
 from typing import Optional, Any, Mapping, Tuple
+
+from pyquibbler.function_definitions import PositionalSourceLocation, KeywordSourceLocation
 from pyquibbler.utilities.iterators import iter_objects_of_type_in_object_recursively, iter_objects_of_type_in_object, \
-    iter_object_type_in_args_kwargs
+    iter_object_type_in_args_kwargs, get_paths_for_objects_of_type
 
 
 # Most common use-cases require one level of scanning - for example a quib inside a shape tuple.
@@ -30,3 +32,18 @@ def iter_quibs_in_args(args: Tuple[Any, ...], kwargs: Mapping[str, Any]):
     """
     from pyquibbler.quib.quib import Quib
     return iter_object_type_in_args_kwargs(Quib, args, kwargs)
+
+
+def get_quib_locations_in_args_kwargs(args: Tuple[Any, ...], kwargs: Mapping[str, Any]):
+    """
+    Find all quibns in args and kwargs and return their locations
+    """
+    from pyquibbler.quib.quib import Quib
+
+    positional_locations = [PositionalSourceLocation(path[0], path[1:]) for
+                            path in get_paths_for_objects_of_type(args, Quib)]
+
+    keyword_locations = [KeywordSourceLocation(path[0], path[1:]) for
+                            path in get_paths_for_objects_of_type(kwargs, Quib)]
+
+    return positional_locations + keyword_locations

@@ -228,7 +228,7 @@ class CachedQuibFuncCall(QuibFuncCall):
 
     def run(self, valid_paths: List[Union[None, Path]]) -> Any:
         """
-        Get the actual data that this quib represents, valid at the path given in the argument.
+        Get the actual data that this quib represents, valid at the paths given in the argument.
         The value will necessarily return in the shape of the actual result, but only the values at the given path
         are guaranteed to be valid
         """
