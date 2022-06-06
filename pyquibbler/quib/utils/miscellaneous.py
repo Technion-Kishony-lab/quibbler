@@ -1,8 +1,8 @@
 from copy import copy
-from typing import Any, Optional, Tuple, Callable, Dict
+from typing import Any, Optional
 
 from pyquibbler.env import DEBUG
-from pyquibbler.utilities.iterators import is_iterator_empty, iter_args_and_names_in_function_call, \
+from pyquibbler.utilities.iterators import is_iterator_empty, \
     SHALLOW_MAX_LENGTH, SHALLOW_MAX_DEPTH, recursively_run_func_on_object
 from .iterators import iter_quibs_in_object, iter_quibs_in_args, iter_quibs_in_object_recursively
 from ..exceptions import NestedQuibException
@@ -35,19 +35,6 @@ def deep_copy_without_quibs_or_graphics(obj: Any, max_depth: Optional[int] = Non
 
     return recursively_run_func_on_object(func=copy_if_not_quib_or_artist, max_length=max_length,
                                           max_depth=max_depth, obj=obj)
-
-
-def get_nested_quibs_by_arg_names_in_function_call(func: Callable, args: Tuple[Any, ...], kwargs: Dict[str, Any]):
-    """
-    Look for erroneously nested quibs in a function call and return a mapping between arg names and the quibs they
-    have nested inside them.
-    """
-    nested_quibs_by_arg_names = {}
-    for name, val in iter_args_and_names_in_function_call(func, args, kwargs, False):
-        quibs = set(iter_quibs_in_object_recursively(val))
-        if quibs:
-            nested_quibs_by_arg_names[name] = quibs
-    return nested_quibs_by_arg_names
 
 
 def copy_and_replace_quibs_with_vals(obj: Any):
