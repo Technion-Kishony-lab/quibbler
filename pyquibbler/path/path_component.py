@@ -9,7 +9,7 @@ class PathComponent:
     indexed_cls: Type
     component: Any
 
-    def references_field_in_field_array(self):
+    def references_field_in_field_array(self) -> bool:
         """
         Whether or not the component references a field in a field array
         It's important to note that this method is necessary as we need to dynamically decide whether a __setitem__

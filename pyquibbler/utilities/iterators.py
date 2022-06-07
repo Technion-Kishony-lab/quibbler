@@ -3,7 +3,7 @@ from typing import Tuple, Any, Mapping, Type, Optional, Callable
 
 from pyquibbler.env import DEBUG
 from pyquibbler.exceptions import PyQuibblerException
-from pyquibbler.path import Path, PathComponent
+from pyquibbler.path import Path, PathComponent, Paths
 from pyquibbler.utils import get_signature_for_func
 from dataclasses import dataclass
 SHALLOW_MAX_DEPTH = 2
@@ -150,7 +150,7 @@ def recursively_run_func_on_object(func: Callable, obj: Any,
     return func(path, obj) if with_path else func(obj)
 
 
-def get_paths_for_objects_of_type(obj: Any, type_: Type):
+def get_paths_for_objects_of_type(obj: Any, type_: Type) -> Paths:
     """
     Get paths for all objects of a certain `type_` within an `obj`
     """
