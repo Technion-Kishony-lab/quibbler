@@ -852,7 +852,8 @@ class Quib:
     @validate_user_input(cache_mode=(str, CacheMode))
     def cache_mode(self, cache_mode: Union[str, CacheMode]):
         self.handler.cache_mode = get_enum_by_str(CacheMode, cache_mode)
-        self.handler.reset_quib_func_call()
+        if self.handler.quib_function_call:
+            self.handler.quib_function_call.cache_mode = self.handler.cache_mode
 
     def invalidate(self):
         """

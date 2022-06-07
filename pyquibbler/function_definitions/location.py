@@ -10,7 +10,7 @@ from pyquibbler.utilities.general_utils import Args, Kwargs
 @dataclass
 class SourceLocation(ABC):
     """
-    Where within the args kwargs in this source located?
+    Where within the args kwargs is this source located?
     """
     argument: Argument
     path: Path
