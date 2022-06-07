@@ -26,16 +26,20 @@ class SourceFuncCall(FuncCall):
               func_kwargs: Mapping[str, Any],
               include_defaults: bool = False,
               func_definition: 'FuncDefinition' = None,
-              quib_locations: Optional[List[SourceLocation]] = None,
+              data_source_locations: Optional[List[SourceLocation]] = None,
+              parameter_source_locations: Optional[List[SourceLocation]] = None,
               *args, **kwargs):
         func_definition = func_definition or get_definition_for_function(func)
-        if quib_locations is None:
+        source_func_call = cls(func_args_kwargs=FuncArgsKwargs(func, func_args, func_kwargs, include_defaults),
+                   func_definition=func_definition,
+                   data_source_locations=data_source_locations,
+                   parameter_source_locations=parameter_source_locations,
+                   *args, **kwargs)
+        if data_source_locations is None:
             from pyquibbler.quib.utils.iterators import get_source_locations_in_args_kwargs
             quib_locations = get_source_locations_in_args_kwargs(func_args, func_kwargs)
-        return cls(func_args_kwargs=FuncArgsKwargs(func, func_args, func_kwargs, include_defaults),
-                   func_definition=func_definition,
-                   quib_locations=quib_locations,
-                   *args, **kwargs)
+            source_func_call.load_source_locations(quib_locations)
+        return source_func_call
 
     def run(self):
         """

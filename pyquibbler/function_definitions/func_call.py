@@ -73,17 +73,6 @@ class FuncArgsKwargs:
         return self.arg_values_by_name.get(keyword, default)
 
 
-def load_source_locations_before_running(f):
-    """
-    Does this method need data_source/parameter locations?
-    """
-    @functools.wraps(f)
-    def _wrapper(self, *args, **kwargs):
-        self._load_source_locations()
-        return f(self, *args, **kwargs)
-    return _wrapper
-
-
 @dataclass
 class FuncCall(ABC):
     """
@@ -105,7 +94,6 @@ class FuncCall(ABC):
     parameter_source_locations: Optional[List[SourceLocation]] = None
     func_args_kwargs: FuncArgsKwargs = None
     func_definition: FuncDefinition = None
-    quib_locations: Optional[List[SourceLocation]] = None
 
     def __hash__(self):
         return id(self)
@@ -149,24 +137,21 @@ class FuncCall(ABC):
             for path in get_paths_for_objects_of_type(obj=value, type_=self.SOURCE_OBJECT_TYPE)
         ]
 
-    def _load_source_locations(self):
+    def load_source_locations(self, quib_locations):
         """
         Load the locations of all sources (data sources and parameter sources) so we don't need to search within
         our args kwargs every time we need them
         """
 
-        if self.data_source_locations is None:
-            self.data_source_locations = []
-            self.parameter_source_locations = []
-            data_arguments = \
-                self.func_definition.get_data_source_arguments(self.func_args_kwargs)
-            for location in self.quib_locations:
-                if location.argument in data_arguments:
-                    self.data_source_locations.append(location)
-                else:
-                    self.parameter_source_locations.append(location)
-
-        return self.data_source_locations, self.parameter_source_locations
+        self.data_source_locations = []
+        self.parameter_source_locations = []
+        data_arguments = \
+            self.func_definition.get_data_source_arguments(self.func_args_kwargs)
+        for location in quib_locations:
+            if location.argument in data_arguments:
+                self.data_source_locations.append(location)
+            else:
+                self.parameter_source_locations.append(location)
 
     def _transform_source_locations(self,
                                     args,
@@ -181,7 +166,6 @@ class FuncCall(ABC):
             args, kwargs = location.set_in_args_kwargs(args=args, kwargs=kwargs, value=transformed)
         return args, kwargs
 
-    @load_source_locations_before_running
     def transform_sources_in_args_kwargs(self,
                                          transform_data_source_func: Callable[[Any], Any] = None,
                                          transform_parameter_func: Callable[[Any], Any] = None):
@@ -203,7 +187,6 @@ class FuncCall(ABC):
 
         return new_args, new_kwargs
 
-    @load_source_locations_before_running
     # @functools.lru_cache() - remove because it leads to quib persistence. TODO: alternative solution
     def get_data_sources(self):
         sources = set()
@@ -211,7 +194,6 @@ class FuncCall(ABC):
             sources.add(location.find_in_args_kwargs(self.args, self.kwargs))
         return sources
 
-    @load_source_locations_before_running
     # @functools.lru_cache() - remove because it leads to quib persistence. TODO: alternative solution
     def get_parameter_sources(self):
         sources = set()

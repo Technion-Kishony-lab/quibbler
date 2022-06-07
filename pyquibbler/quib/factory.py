@@ -109,7 +109,7 @@ def create_quib(func: Optional[Callable],
               )
 
     quib.handler.reset_quib_func_call()
-    quib.handler.quib_function_call.quib_locations = quib_locations
+    quib.handler.quib_function_call.load_source_locations(quib_locations)
 
     # register new quib on project
     project = Project.get_or_create()
