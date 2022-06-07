@@ -13,7 +13,6 @@ from pyquibbler.quib.graphics import GraphicsUpdateType
 from pyquibbler.quib.quib_guard import add_new_quib_to_guard_if_exists
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.types import FileAndLineNumber
-from pyquibbler.quib.utils.iterators import get_quib_locations_in_args_kwargs
 from pyquibbler.quib.utils.miscellaneous import NoValue, deep_copy_without_quibs_or_graphics
 from pyquibbler.quib.variable_metadata import get_var_name_being_set_outside_of_pyquibbler, \
     get_file_name_and_line_number_of_quib
@@ -85,9 +84,6 @@ def create_quib(func: Optional[Callable],
     else:
         func_definition = func_definition or get_definition_for_function(func)
 
-    if quib_locations is None:
-        quib_locations = get_quib_locations_in_args_kwargs(args, kwargs)
-        
     cache_mode = cache_mode or CachedQuibFuncCall.DEFAULT_CACHE_MODE
     assigned_name = get_quib_name() if assigned_name is None else assigned_name
 

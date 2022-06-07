@@ -33,19 +33,3 @@ def iter_quibs_in_args(args: Tuple[Any, ...], kwargs: Mapping[str, Any]):
     """
     from pyquibbler.quib.quib import Quib
     return iter_object_type_in_args_kwargs(Quib, args, kwargs)
-
-
-def get_quib_locations_in_args_kwargs(args: Tuple[Any, ...], kwargs: Mapping[str, Any]):
-    """
-    Find all quibns in args and kwargs and return their locations
-    """
-    from pyquibbler.quib.quib import Quib
-    return get_object_type_locations_in_args_kwargs(Quib, args, kwargs)
-
-
-def get_source_locations_in_args_kwargs(args: Tuple[Any, ...], kwargs: Mapping[str, Any]):
-    """
-    Find all quibns in args and kwargs and return their locations
-    """
-    from pyquibbler.translation.types import Source
-    return get_object_type_locations_in_args_kwargs(Source, args, kwargs)

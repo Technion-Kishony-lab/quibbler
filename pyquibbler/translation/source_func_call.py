@@ -36,9 +36,7 @@ class SourceFuncCall(FuncCall):
                    parameter_source_locations=parameter_source_locations,
                    *args, **kwargs)
         if data_source_locations is None:
-            from pyquibbler.quib.utils.iterators import get_source_locations_in_args_kwargs
-            quib_locations = get_source_locations_in_args_kwargs(func_args, func_kwargs)
-            source_func_call.load_source_locations(quib_locations)
+            source_func_call.load_source_locations()
         return source_func_call
 
     def run(self):

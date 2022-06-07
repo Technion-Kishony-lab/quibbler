@@ -10,7 +10,7 @@ from .types import Argument
 from pyquibbler.quib.external_call_failed_exception_handling import \
     external_call_failed_exception_handling
 from pyquibbler.utilities.iterators import iter_args_and_names_in_function_call, \
-    get_paths_for_objects_of_type
+    get_paths_for_objects_of_type, get_object_type_locations_in_args_kwargs
 
 if TYPE_CHECKING:
     from pyquibbler.function_definitions import FuncDefinition
@@ -137,17 +137,23 @@ class FuncCall(ABC):
             for path in get_paths_for_objects_of_type(obj=value, type_=self.SOURCE_OBJECT_TYPE)
         ]
 
-    def load_source_locations(self, quib_locations):
+    def load_source_locations(self, locations: List[SourceLocation] = None):
         """
         Load the locations of all sources (data sources and parameter sources) so we don't need to search within
-        our args kwargs every time we need them
+        our args kwargs every time we need them.
+        Further save re-seraching if locations is given (from _create_quib_supporting_func)
         """
+
+        if locations is None:
+            locations = get_object_type_locations_in_args_kwargs(self.SOURCE_OBJECT_TYPE,
+                                                                 self.func_args_kwargs.args,
+                                                                 self.func_args_kwargs.kwargs)
 
         self.data_source_locations = []
         self.parameter_source_locations = []
         data_arguments = \
             self.func_definition.get_data_source_arguments(self.func_args_kwargs)
-        for location in quib_locations:
+        for location in locations:
             if location.argument in data_arguments:
                 self.data_source_locations.append(location)
             else:

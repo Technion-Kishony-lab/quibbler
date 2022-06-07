@@ -5,7 +5,9 @@ from types import ModuleType
 from typing import Callable, Any, Dict, Union, Type, Optional, Tuple, Mapping
 
 from pyquibbler.function_definitions.func_definition import FuncDefinition
-from pyquibbler.quib.utils.iterators import get_quib_locations_in_args_kwargs
+from pyquibbler.utilities.iterators import get_object_type_locations_in_args_kwargs
+from pyquibbler.quib.quib import Quib
+from pyquibbler.quib.factory import create_quib
 
 
 def get_flags_from_kwargs(flag_names: Tuple[str, ...], kwargs: Dict[str, Any]) -> Mapping[str, Any]:
@@ -60,9 +62,8 @@ class FuncOverride:
 
         @functools.wraps(wrapped_func)
         def _maybe_create_quib(*args, **kwargs):
-            from pyquibbler.quib.factory import create_quib
 
-            quib_locations = get_quib_locations_in_args_kwargs(args, kwargs)
+            quib_locations = get_object_type_locations_in_args_kwargs(Quib, args, kwargs)
 
             if quib_locations:
                 flags = {**self._get_creation_flags(args, kwargs), **self._get_dynamic_flags(args, kwargs)}
