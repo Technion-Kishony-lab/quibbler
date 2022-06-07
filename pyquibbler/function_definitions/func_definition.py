@@ -101,6 +101,7 @@ class FuncDefinition:
                 if (argument in self.data_source_arguments)
                 or (self.get_corresponding_argument(argument) in self.data_source_arguments)]
 
+
 @dataclass
 class ElementWiseFuncDefinition(FuncDefinition):
     """

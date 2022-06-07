@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import functools
 from abc import abstractmethod, ABC
 from dataclasses import dataclass
 from typing import Tuple, Any, Mapping, Optional, Callable, List, TYPE_CHECKING, Type, ClassVar, Dict

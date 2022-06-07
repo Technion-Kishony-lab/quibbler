@@ -5,7 +5,6 @@ import numpy as np
 from pyquibbler.function_definitions import PositionalArgument, KeywordArgument, get_definition_for_function
 from pyquibbler.function_definitions.func_call import FuncArgsKwargs
 from pyquibbler.function_definitions.func_definition import FuncDefinition
-from pyquibbler.function_definitions.types import Argument
 from pyquibbler.function_overriding.function_override import FuncOverride
 from pyquibbler.quib.func_calling.func_calls.vectorize.vectorize_call \
     import VectorizeQuibFuncCall

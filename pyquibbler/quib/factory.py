@@ -5,7 +5,6 @@ from typing import Optional, Tuple, Callable, Any, Mapping, TYPE_CHECKING, Union
 from pyquibbler.assignment import AssignmentTemplate
 from pyquibbler.env import GET_VARIABLE_NAMES, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS, LAZY, GRAPHICS_LAZY
 from pyquibbler.logger import logger
-from pyquibbler.path import Paths
 from pyquibbler.project import Project
 from pyquibbler.quib.func_calling import CachedQuibFuncCall
 from pyquibbler.quib.get_value_context_manager import is_within_get_value_context

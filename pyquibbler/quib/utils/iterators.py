@@ -1,9 +1,7 @@
 from typing import Optional, Any, Mapping, Tuple
 
-from pyquibbler.function_definitions import PositionalSourceLocation, KeywordSourceLocation, PositionalArgument, \
-    KeywordArgument
 from pyquibbler.utilities.iterators import iter_objects_of_type_in_object_recursively, iter_objects_of_type_in_object, \
-    iter_object_type_in_args_kwargs, get_paths_for_objects_of_type, get_object_type_locations_in_args_kwargs
+    iter_object_type_in_args_kwargs
 
 
 # Most common use-cases require one level of scanning - for example a quib inside a shape tuple.
