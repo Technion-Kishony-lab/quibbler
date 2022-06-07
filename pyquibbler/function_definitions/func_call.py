@@ -105,6 +105,7 @@ class FuncCall(ABC):
     parameter_source_locations: Optional[List[SourceLocation]] = None
     func_args_kwargs: FuncArgsKwargs = None
     func_definition: FuncDefinition = None
+    quib_locations: Optional[List[SourceLocation]] = None
 
     def __hash__(self):
         return id(self)
@@ -155,15 +156,15 @@ class FuncCall(ABC):
         """
 
         if self.data_source_locations is None:
-            data_arguments_with_values = \
-                self.func_definition.get_data_source_arguments_with_values(self.func_args_kwargs)
-            parameter_arguments_with_values = \
-                self.func_definition.get_parameter_arguments_with_values(self.func_args_kwargs)
-
-            self.data_source_locations = \
-                self._get_locations_within_arguments_and_values(data_arguments_with_values)
-            self.parameter_source_locations = \
-                self._get_locations_within_arguments_and_values(parameter_arguments_with_values)
+            self.data_source_locations = []
+            self.parameter_source_locations = []
+            data_arguments = \
+                self.func_definition.get_data_source_arguments(self.func_args_kwargs)
+            for location in self.quib_locations:
+                if location.argument in data_arguments:
+                    self.data_source_locations.append(location)
+                else:
+                    self.parameter_source_locations.append(location)
 
         return self.data_source_locations, self.parameter_source_locations
 
@@ -201,9 +202,6 @@ class FuncCall(ABC):
                                                                     transform_func=transform_parameter_func)
 
         return new_args, new_kwargs
-
-    def get_data_source_argument_values(self) -> List[Any]:
-        return [v for _, v in self.func_definition.get_data_source_arguments_with_values(self.func_args_kwargs)]
 
     @load_source_locations_before_running
     # @functools.lru_cache() - remove because it leads to quib persistence. TODO: alternative solution
