@@ -6,7 +6,6 @@ import multiprocessing
 import os
 import shutil
 import tempfile
-import traceback
 import zipfile
 from multiprocessing import Process
 
@@ -17,7 +16,7 @@ from typing import Optional, Iterable, Tuple, Callable, Dict
 from IPython import get_ipython
 from ipykernel.comm import Comm
 
-from pyquibbler import Quib, iquib
+from pyquibbler import Quib
 from pyquibbler.assignment import Overrider
 from pyquibbler.file_syncing import SaveFormat, ResponseToFileNotDefined
 from pyquibbler.logger import logger

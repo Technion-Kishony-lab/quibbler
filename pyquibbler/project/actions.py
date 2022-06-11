@@ -5,7 +5,7 @@ from abc import abstractmethod, ABC
 from dataclasses import dataclass
 from typing import Optional, Union, TYPE_CHECKING
 
-from pyquibbler.assignment import Assignment, Overrider, AssignmentToDefault
+from pyquibbler.assignment import Assignment, AssignmentToDefault
 
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib

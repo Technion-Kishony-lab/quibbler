@@ -20,7 +20,6 @@ from ..path.path_component import set_path_indexed_classes_from_quib
 
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib
-    from pyquibbler.assignment.overrider import Overrider
     from pyquibbler.assignment import Assignment
 
 
