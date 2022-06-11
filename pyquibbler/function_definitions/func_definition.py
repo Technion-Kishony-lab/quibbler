@@ -55,6 +55,8 @@ class FuncDefinition:
             return sig.parameters
         except ValueError:
             return {}
+        except TypeError:
+            return {}
 
     @functools.lru_cache()
     def get_positional_to_keyword_arguments(self):
@@ -89,40 +91,15 @@ class FuncDefinition:
             corresponding_dict = self.get_positional_to_keyword_arguments()
         else:
             corresponding_dict = self.get_keyword_to_positional_arguments()
-        return corresponding_dict[argument]
+        return corresponding_dict.get(argument, None)
 
-    def _get_all_data_source_arguments(self, func_args_kwargs: FuncArgsKwargs):
-        all_data_source_arguments = set()
-        for argument, value in self.get_data_source_arguments_with_values(func_args_kwargs):
-            try:
-                corresponding_argument = self.get_corresponding_argument(argument)
-            except KeyError:
-                corresponding_argument = None
-
-            all_data_source_arguments.add(argument)
-            if corresponding_argument is not None:
-                all_data_source_arguments.add(corresponding_argument)
-
-        return all_data_source_arguments
-
-    # @functools.lru_cache() - remove because it leads to quib persistence. TODO: alternative solution
-    def get_data_source_arguments_with_values(self, func_args_kwargs: FuncArgsKwargs):
-        return [
-            (argument, func_args_kwargs[argument])
-            for argument in self.data_source_arguments
-        ]
-
-    def get_parameter_arguments_with_values(self, func_args_kwargs: FuncArgsKwargs):
-        all_data_source_arguments = self._get_all_data_source_arguments(func_args_kwargs)
-        return [*[
-            (PositionalArgument(index=i), func_args_kwargs.args[i])
-            for i, arg in enumerate(func_args_kwargs.args)
-            if PositionalArgument(index=i) not in all_data_source_arguments
-        ], *[
-            (KeywordArgument(keyword=kwarg), func_args_kwargs.kwargs[kwarg])
-            for kwarg, value in func_args_kwargs.kwargs.items()
-            if KeywordArgument(keyword=kwarg) not in all_data_source_arguments
-        ]]
+    def get_data_source_arguments(self, func_args_kwargs: FuncArgsKwargs):
+        from pyquibbler.quib.func_calling.func_calls.vectorize.utils import iter_arg_ids_and_values
+        all_arguments = [KeywordArgument(key) if isinstance(key, str) else PositionalArgument(key)
+                         for key, _ in iter_arg_ids_and_values(func_args_kwargs.args, func_args_kwargs.kwargs)]
+        return [argument for argument in all_arguments
+                if (argument in self.data_source_arguments)
+                or (self.get_corresponding_argument(argument) in self.data_source_arguments)]
 
 
 @dataclass

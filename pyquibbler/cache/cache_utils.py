@@ -96,18 +96,16 @@ def get_uncached_paths_matching_path(cache: Optional[Cache], path: Path):
     (or the path itself)
     """
 
-    if cache is not None:
-        if path is None:
-            # We need to be valid at no paths, so by definitions we also have no uncached paths that match no paths
-            return []
+    if cache is None:
+        return [path]
 
-        try:
-            uncached_paths = cache.get_uncached_paths(path)
-        except (TypeError, IndexError):
-            # It's possible the user is requesting a value at index which our current cache does not have but which
-            # will exist after rerunning the function- in that case, return that the given path is not cached
-            uncached_paths = [path]
-    else:
-        uncached_paths = [path]
+    if path is None:
+        # We need to be valid at no paths, so by definitions we also have no uncached paths that match no paths
+        return []
 
-    return uncached_paths
+    try:
+        return cache.get_uncached_paths(path)
+    except (TypeError, IndexError):
+        # It's possible the user is requesting a value at index which our current cache does not have but which
+        # will exist after rerunning the function- in that case, return that the given path is not cached
+        return [path]

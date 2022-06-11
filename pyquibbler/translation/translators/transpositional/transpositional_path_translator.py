@@ -58,6 +58,8 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
             source = location.find_in_args_kwargs(args, kwargs)
             args, kwargs = location.set_in_args_kwargs(args, kwargs, np.full(shape, id(source)))
         return SourceFuncCall.from_(self._func_call.func, args, kwargs,
+                                    data_source_locations=[],
+                                    parameter_source_locations=self._func_call.parameter_source_locations,
                                     func_definition=self._func_call.func_definition).run()
 
     @functools.lru_cache()
@@ -85,6 +87,8 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
             args, kwargs = location.set_in_args_kwargs(args, kwargs, arr)
 
         indices_res = SourceFuncCall.from_(self._func_call.func, args, kwargs,
+                                           data_source_locations=[],
+                                           parameter_source_locations=self._func_call.parameter_source_locations,
                                            func_definition=self._func_call.func_definition).run()
 
         return {

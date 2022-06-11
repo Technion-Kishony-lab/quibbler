@@ -1,6 +1,6 @@
 from __future__ import annotations
 import pathlib
-from typing import Optional, Tuple, Callable, Any, Mapping, TYPE_CHECKING, Union, Set
+from typing import Optional, Tuple, Callable, Any, Mapping, TYPE_CHECKING, Union, Set, List
 
 from pyquibbler.assignment import AssignmentTemplate
 from pyquibbler.env import GET_VARIABLE_NAMES, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS, LAZY, GRAPHICS_LAZY
@@ -17,7 +17,7 @@ from pyquibbler.quib.variable_metadata import get_var_name_being_set_outside_of_
     get_file_name_and_line_number_of_quib
 from pyquibbler.file_syncing.types import SaveFormat
 from pyquibbler.function_definitions.func_definition import FuncDefinition
-from pyquibbler.function_definitions import get_definition_for_function
+from pyquibbler.function_definitions import get_definition_for_function, SourceLocation
 from pyquibbler.utils import get_original_func
 
 if TYPE_CHECKING:
@@ -66,6 +66,7 @@ def create_quib(func: Optional[Callable],
                 assignment_template: Union[None, tuple, AssignmentTemplate] = None,
                 assigned_quibs: Optional[Set[Quib]] = None,
                 register_as_child_of_parents: bool = True,
+                quib_locations: List[SourceLocation] = None,
                 ) -> Quib:
     """
     Public constructor for creating a quib
@@ -76,10 +77,12 @@ def create_quib(func: Optional[Callable],
     """
 
     kwargs = kwargs or {}
+
     if func is None:
         func = func_definition.func
     else:
         func_definition = func_definition or get_definition_for_function(func)
+
     cache_mode = cache_mode or CachedQuibFuncCall.DEFAULT_CACHE_MODE
     assigned_name = get_quib_name() if assigned_name is None else assigned_name
 
@@ -101,6 +104,7 @@ def create_quib(func: Optional[Callable],
               )
 
     quib.handler.reset_quib_func_call()
+    quib.handler.quib_function_call.load_source_locations(quib_locations)
 
     # register new quib on project
     project = Project.get_or_create()

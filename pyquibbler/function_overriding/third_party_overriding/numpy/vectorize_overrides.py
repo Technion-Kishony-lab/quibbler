@@ -23,7 +23,7 @@ class VectorizeOverride(FuncOverride):
 
 class VectorizeCallDefinition(FuncDefinition):
 
-    def get_data_source_arguments_with_values(self, func_args_kwargs: FuncArgsKwargs):
+    def get_data_source_arguments(self, func_args_kwargs: FuncArgsKwargs):
         """
         Given a call to a vectorized function, return the arguments which act as data sources.
         We are using func_args_kwargs.args and func_args_kwargs.kwargs instead of the full args dict on purpose,
@@ -32,8 +32,8 @@ class VectorizeCallDefinition(FuncDefinition):
         from pyquibbler.quib.func_calling.func_calls.vectorize.utils import iter_arg_ids_and_values
         vectorize, *args = func_args_kwargs.args
         # We do + 1 to positional arguments because `vectorize` was zero and we removed it.
-        return [(KeywordArgument(key) if isinstance(key, str) else PositionalArgument(key + 1), val)
-                for key, val in iter_arg_ids_and_values(args, func_args_kwargs.kwargs) if key not in vectorize.excluded]
+        return [KeywordArgument(key) if isinstance(key, str) else PositionalArgument(key + 1)
+                for key, _ in iter_arg_ids_and_values(args, func_args_kwargs.kwargs) if key not in vectorize.excluded]
 
 
 class VectorizeCallOverride(FuncOverride):

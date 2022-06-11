@@ -9,8 +9,6 @@ from pyquibbler.cache.cache_utils import _truncate_path_to_match_shallow_caches,
     get_cached_data_at_truncated_path_given_result_at_uncached_path
 from pyquibbler.cache import PathCannotHaveComponentsException, get_uncached_paths_matching_path
 
-from pyquibbler.function_definitions import load_source_locations_before_running
-
 from pyquibbler.graphics.graphics_collection import GraphicsCollection
 from pyquibbler.path import Path
 from pyquibbler.quib import consts
@@ -198,7 +196,6 @@ class CachedQuibFuncCall(QuibFuncCall):
 
         return result
 
-    @load_source_locations_before_running
     def _get_args_and_kwargs_valid_at_quibs_to_paths(self, quibs_to_valid_paths: Dict[Quib, Optional[Path]]):
         """
         Prepare arguments to call self.func with - replace quibs with values valid at the given path
@@ -228,7 +225,7 @@ class CachedQuibFuncCall(QuibFuncCall):
 
     def run(self, valid_paths: List[Union[None, Path]]) -> Any:
         """
-        Get the actual data that this quib represents, valid at the path given in the argument.
+        Get the actual data that this quib represents, valid at the paths given in the argument.
         The value will necessarily return in the shape of the actual result, but only the values at the given path
         are guaranteed to be valid
         """

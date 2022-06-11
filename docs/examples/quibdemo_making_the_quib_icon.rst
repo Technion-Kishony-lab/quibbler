@@ -74,10 +74,10 @@ Making the quib icon
         'qbCurve':     1.5,
         'qbLineDown': -3.3,
         'qbLineUp':    0.9,
-        'qbExtend':    0,
+        'qbExtend':    0.,
         'uiAngle1':    177,
         'uiAngle2':    -49,
-        'uiWidth':     1,
+        'uiWidth':     1.,
         'uiShift':     0.1,
     })
     
