@@ -541,6 +541,10 @@ class Project:
         self._redo_action_groups.clear()
 
     def remove_assignment_from_quib(self, quib: Quib, assignment_index: int):
+        """
+        Remove an assignment from the quib, ensuring that it will be able to be "undone" and "redone"
+        should `undo`/`redo` be called
+        """
         from pyquibbler.path import get_hashable_path
 
         assignment = quib.handler.overrider.pop_assignment_at_index(assignment_index)
