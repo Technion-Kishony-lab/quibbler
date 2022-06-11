@@ -1,7 +1,10 @@
 from dataclasses import dataclass
-from typing import Type, Any, List
+from typing import Type, Any, List, TYPE_CHECKING
 
 import numpy as np
+
+if TYPE_CHECKING:
+    from pyquibbler import Quib
 
 
 @dataclass
@@ -24,3 +27,13 @@ class PathComponent:
 Path = List[PathComponent]
 
 Paths = List[Path]
+
+
+def set_path_indexed_classes_from_quib(path: Path, quib: 'Quib'):
+    """
+    Set indexed classes for a path based on a quibs types (deeply by the path)
+    TODO: This should not be necessary! This should be able to happen on the fly via PathComponent
+    """
+    for component in path:
+        component.indexed_cls = quib.get_type()
+        quib = quib[component.component]

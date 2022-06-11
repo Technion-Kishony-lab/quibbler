@@ -21,6 +21,7 @@ from pyquibbler import Quib, iquib
 from pyquibbler.assignment import Overrider
 from pyquibbler.file_syncing import SaveFormat, ResponseToFileNotDefined
 from pyquibbler.logger import logger
+from pyquibbler.path.path_component import set_path_indexed_classes_from_quib
 from pyquibbler.project import Project
 from pyquibbler.project.jupyer_project.flask_dialog_server import run_flask_app
 from pyquibbler.project.jupyer_project.utils import is_within_jupyter_lab, find_free_port, get_serialized_quib
@@ -228,8 +229,9 @@ class JupyterProject(Project):
             quib.handler.overrider.pop_assignment_at_index(index)
         quib.handler.overrider.insert_assignment_at_index(assignment, index)
         quib.handler.file_syncer.on_data_changed()
-        # TODO: invalidate only at path
-        quib.handler.invalidate_and_redraw_at_path([])
+
+        set_path_indexed_classes_from_quib(assignment.path, quib)
+        quib.handler.invalidate_and_redraw_at_path(assignment.path)
 
         return get_serialized_quib(quib)
 

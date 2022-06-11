@@ -16,6 +16,7 @@ from .actions import Action, AddAssignmentAction, AssignmentAction, RemoveAssign
 from pyquibbler.quib.graphics import GraphicsUpdateType
 from pyquibbler.file_syncing.types import SaveFormat, ResponseToFileNotDefined
 from ..logger import logger
+from ..path.path_component import set_path_indexed_classes_from_quib
 
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib
@@ -560,8 +561,11 @@ class Project:
 
         self._redo_action_groups.clear()
         quib.handler.file_syncer.on_data_changed()
-        # TODO: invalidate only at path
-        quib.handler.invalidate_and_redraw_at_path([])
+
+        # TODO: This shouldn't be necessary
+        set_path_indexed_classes_from_quib(assignment.path, quib)
+        quib.handler.invalidate_and_redraw_at_path(assignment.path)
+
         self.notify_of_overriding_changes(quib)
 
     def notify_of_overriding_changes(self, quib: Quib):

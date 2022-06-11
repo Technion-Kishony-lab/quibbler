@@ -6,21 +6,34 @@ import time
 from contextlib import suppress
 from pathlib import Path
 
+import interruptingcow
 import psutil
 import pytest
+import requests
 from selenium import webdriver
 from selenium.webdriver import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.expected_conditions import presence_of_element_located, alert_is_present
 from selenium.webdriver.support.wait import WebDriverWait
-
+from typing import Callable
 
 JUPYTER_PORT = 10_000
+NOTEBOOK_ELEMENT_COUNT = 5  # TODO: We use this to make sure we're loaded- is there a better way?
 NOTEBOOKS_PATH = (Path(__file__).parent / "notebooks").absolute()
+NOTEBOOK_URL = f"http://localhost:{JUPYTER_PORT}/lab/tree/example_notebook.ipynb"
 
 logger = logging.getLogger('pyquibblerTestLogger')
 logger.setLevel(logging.DEBUG)
 logger.addHandler(logging.FileHandler("/tmp/test_log.log"))
+
+
+def kill_process_on(func: Callable):
+    for process in psutil.process_iter():
+        with suppress(psutil.NoSuchProcess, psutil.AccessDenied):
+            if func(process):
+                process.kill()
+            # if '--test-type=webdriver' in process.cmdline():
+            #     process.kill()
 
 
 @pytest.fixture
@@ -28,11 +41,7 @@ def driver():
     chrome_options = webdriver.ChromeOptions()
     d = webdriver.Chrome(chrome_options=chrome_options)
     yield d
-
-    for process in psutil.process_iter():
-        with suppress(psutil.NoSuchProcess, psutil.AccessDenied):
-            if '--test-type=webdriver' in process.cmdline():
-                process.kill()
+    kill_process_on(lambda p: '--test-type=webdriver' in p.cmdline())
 
     d.quit()
 
@@ -48,6 +57,8 @@ def notebooks_path(tmpdir):
 @pytest.fixture(autouse=True)
 def start_jupyter_lab(notebooks_path):
     os.environ["JUPYTER_NOTEBOOK"] = os.path.join(notebooks_path, "example_notebook.ipynb")
+    kill_process_on(lambda p: any(c.laddr.port == JUPYTER_PORT for c in p.connections(kind='inet')))
+
     process = subprocess.Popen([
         "jupyter",
         "lab",
@@ -60,22 +71,22 @@ def start_jupyter_lab(notebooks_path):
         "--NotebookApp.password=''"
     ], cwd=notebooks_path, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-    try:
-        # TODO: Why 1? Shouldn't we wait for a log that tells us we're good? Or try accessing the lab
-        out, err = process.communicate(timeout=1)
-    except subprocess.TimeoutExpired:
-        pass
-    else:
-        if err:
-            raise Exception(err)
+    with interruptingcow.timeout(seconds=5):
+        while True:
+            try:
+                requests.get(NOTEBOOK_URL)
+            except requests.ConnectionError:
+                pass
+            else:
+                break
     yield
     process.kill()
 
 
 @pytest.fixture()
-def load_covid_analysis(driver, start_jupyter_lab, notebooks_path):
+def load_notebook(driver, start_jupyter_lab, notebooks_path):
     driver.get(f"http://localhost:{JUPYTER_PORT}/lab/tree/example_notebook.ipynb")
-    WebDriverWait(driver, 10).until(presence_of_element_located((By.CLASS_NAME, "jp-CodeCell")))
+    WebDriverWait(driver, 10).until(lambda d: len(d.find_elements(By.CLASS_NAME, "jp-CodeCell")) == NOTEBOOK_ELEMENT_COUNT)
 
 
 @pytest.fixture()
@@ -151,13 +162,13 @@ def add_override(driver):
     return _add
 
 
-def test_lab_extension_happy_flow(driver, load_covid_analysis, assert_no_failures, run_cells):
+def test_lab_extension_happy_flow(driver, load_notebook, assert_no_failures, run_cells):
     run_cells()
 
     assert_no_failures()
 
 
-def test_lab_extension_shows_error_on_undo_with_no_assignments(driver, load_covid_analysis, assert_no_failures,
+def test_lab_extension_shows_error_on_undo_with_no_assignments(driver, load_notebook, assert_no_failures,
                                                                click_undo):
     click_undo()
 
@@ -166,7 +177,7 @@ def test_lab_extension_shows_error_on_undo_with_no_assignments(driver, load_covi
     assert_no_failures()
 
 
-def test_lab_extension_undo_happy_flow(driver, load_covid_analysis, assert_no_failures,
+def test_lab_extension_undo_happy_flow(driver, load_notebook, assert_no_failures,
                                        click_undo, run_cells, run_code, add_override):
     run_cells()
     assert_no_failures()

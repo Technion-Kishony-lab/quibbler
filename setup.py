@@ -13,6 +13,8 @@ setup(
             'pytest-pep8',
             'pytest-cov',
             'selenium',
+            'requests',
+            'interruptingcow',
             'psutil',
             'pytest-benchmark',
         ],
