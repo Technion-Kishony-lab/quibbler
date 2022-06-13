@@ -281,3 +281,40 @@ def test_project_correctly_set_valid_values(project, prop_name, set_value, get_v
 def test_project_reject_set_invlid_properties(project, prop_name, set_value, exception):
     with pytest.raises(exception):
         setattr(project, prop_name, set_value)
+
+
+@pytest.mark.regression
+def test_undo_when_something_changed_at_inexact_path(project):
+    quib = iquib([1, 2, 3])
+    quib[0] = 4
+    quib[0:2] = [0, 0]
+    quib[0] = 6
+
+    project.undo()
+
+    assert quib.get_value() == [0, 0, 3]
+
+
+@pytest.mark.regression
+def test_undo_after_undo(project):
+    quib = iquib(1)
+    quib.assign(3)
+    project.undo()
+    quib.assign(4)
+
+    project.undo()
+
+    assert quib.get_value() == 1
+
+
+@pytest.mark.regression
+def test_undo_after_remove_assignment(project):
+    quib = iquib(1)
+    quib.assign(3)
+    project.remove_assignment_from_quib(quib=quib, assignment_index=0)
+    # Sanity
+    assert quib.get_value() == 1
+
+    project.undo()
+
+    assert quib.get_value() == 3

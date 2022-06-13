@@ -1,2 +1,2 @@
 from .project import Project, NothingToUndoException, NothingToRedoException
-from .actions import Action, AssignmentAction
+from .actions import Action, AddAssignmentAction

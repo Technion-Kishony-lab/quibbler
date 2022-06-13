@@ -33,10 +33,12 @@ def getitem_converter(func: Union[Callable, type(None)], args: Tuple[Any, ...]) 
     assert len(args) == 2
     obj, item = args
     if isinstance(item, tuple):
-        item = ", ".join(_convert_sub_item(sub_item) for sub_item in item)
+        item_repr = ", ".join(_convert_sub_item(sub_item) for sub_item in item)
+        if len(item) == 1:
+            item_repr = f"({item_repr},)"
     else:
-        item = _convert_sub_item(item)
-    return StringMathExpression(f"{obj}[{item}]", MathPrecedence.SUBSCRIPTION)
+        item_repr = _convert_sub_item(item)
+    return StringMathExpression(f"{obj}[{item_repr}]", MathPrecedence.SUBSCRIPTION)
 
 
 def vectorize_call_converter(func: Callable, pretty_arg_names: List[str]) -> MathExpression:

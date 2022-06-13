@@ -49,7 +49,8 @@ from pyquibbler.cache import create_cache, CacheStatus
 from pyquibbler.file_syncing import SaveFormat, SAVE_FORMAT_TO_FILE_EXT, CannotSaveFunctionQuibsAsValueException, \
     ResponseToFileNotDefined, FileNotDefinedException, QuibFileSyncer, SAVE_FORMAT_TO_FQUIB_SAVE_FORMAT, \
     FIRST_LINE_OF_FORMATTED_TXT_FILE
-from pyquibbler.quib.get_value_context_manager import get_value_context, is_within_get_value_context
+from pyquibbler.quib.get_value_context_manager import get_value_context, is_within_get_value_context, \
+    IS_WITHIN_GET_VALUE_CONTEXT
 
 if TYPE_CHECKING:
     from pyquibbler.function_definitions.func_definition import FuncDefinition
@@ -82,6 +83,7 @@ class QuibHandler:
                  kwargs: Mapping[str, Any] = None,
                  func_definition: FuncDefinition = None,
                  cache_mode: CacheMode = None,
+                 has_ever_called_get_value: bool = False
                  ):
         kwargs = kwargs or {}
 
@@ -109,6 +111,8 @@ class QuibHandler:
         self.func_definition = func_definition
 
         self.cache_mode = cache_mode
+
+        self._has_ever_called_get_value = has_ever_called_get_value
 
     """
     relationships
@@ -337,20 +341,20 @@ class QuibHandler:
         if not is_within_drag():
             self.project.push_assignment_to_undo_stack(quib=self.quib,
                                                        assignment=assignment,
-                                                       index=len(self.overrider) - 1,
-                                                       overrider=self.overrider)
+                                                       assignment_index=len(self.overrider) - 1)
             self.file_syncer.on_data_changed()
+
+            self.project.notify_of_overriding_changes(self.quib)
 
     def remove_override(self, path: Path):
         """
         Remove function_definitions in a specific path in the quib.
         """
-        assignment_removal = self.overrider.remove_assignment(path)
+        assignment_removal = self.overrider.return_assignments_to_default(path)
         if assignment_removal is not None and not is_within_drag():
             self.project.push_assignment_to_undo_stack(assignment=assignment_removal,
-                                                       index=len(self.overrider) - 1,
-                                                       overrider=self.overrider,
-                                                       quib=self.quib)
+                                                       quib=self.quib,
+                                                       assignment_index=len(self.overrider) - 1)
             self.file_syncer.on_data_changed()
         self.invalidate_and_redraw_at_path(path=path)
 
@@ -359,7 +363,13 @@ class QuibHandler:
         Create an assignment with an Assignment object,
         function_definitions the current values at the assignment's paths with the assignment's value
         """
-        get_override_group_for_change(AssignmentToQuib(self.quib, assignment)).apply()
+        # TODO: it is necessary to immediately override iquibs because of how we handle "text" file loading- we need
+        #  to not go through the normal flow because get_value will potentially fail as the quib in the `exec` statement
+        #  is `None`
+        if self.quib.is_iquib:
+            self.override(assignment)
+        else:
+            get_override_group_for_change(AssignmentToQuib(self.quib, assignment)).apply()
 
     def get_inversions_for_override_removal(self, override_removal: OverrideRemoval) -> List[OverrideRemoval]:
         """
@@ -475,14 +485,18 @@ class QuibHandler:
             raise
 
         with get_value_context():
+            if not self._has_ever_called_get_value and Project.get_or_create().autoload_upon_first_get_value:
+                self.quib.load(ResponseToFileNotDefined.IGNORE)
+
+            self._has_ever_called_get_value = True
+
             if path is None:
                 paths = [None]
             else:
                 paths = self._get_list_of_not_overridden_paths_at_first_component(path)
             result = self.quib_function_call.run(paths)
 
-        return self._overrider.override(result, self.assignment_template) if self.is_overridden \
-            else result
+        return self._overrider.override(result, self.assignment_template) if self.is_overridden else result
 
     """
     file syncing
@@ -519,8 +533,9 @@ class QuibHandler:
             SaveFormat.BIN: self.overrider.load_from_binary,
             SaveFormat.TXT: self.overrider.load_from_txt}[self.actual_save_format](file_path)
         self.project.clear_undo_and_redo_stacks()
-        for path in changed_paths:
-            self.invalidate_and_redraw_at_path(path)
+        if not IS_WITHIN_GET_VALUE_CONTEXT:
+            for path in changed_paths:
+                self.invalidate_and_redraw_at_path(path)
 
     def clear_all_overrides(self):
         changed_paths = self.overrider.clear_assignments()
@@ -1564,7 +1579,6 @@ class Quib:
 
     def _get_file_path(self, response_to_file_not_defined: ResponseToFileNotDefined = ResponseToFileNotDefined.IGNORE) \
             -> Optional[PathWithHyperLink]:
-
         if self.assigned_name is None or self.actual_save_directory is None or self.actual_save_format is None:
             path = None
             exception = FileNotDefinedException(
@@ -1648,6 +1662,7 @@ class Quib:
         """
         if self._get_file_path(response_to_file_not_defined) is not None:
             self.handler.file_syncer.save()
+            self.project.notify_of_overriding_changes(self)
 
     def load(self, response_to_file_not_defined: ResponseToFileNotDefined = ResponseToFileNotDefined.RAISE):
         """
@@ -1663,6 +1678,7 @@ class Quib:
         """
         if self._get_file_path(response_to_file_not_defined) is not None:
             self.handler.file_syncer.load()
+            self.project.notify_of_overriding_changes(self)
 
     def sync(self, response_to_file_not_defined: ResponseToFileNotDefined = ResponseToFileNotDefined.RAISE):
         """
@@ -1684,6 +1700,7 @@ class Quib:
         """
         if self._get_file_path(response_to_file_not_defined) is not None:
             self.handler.file_syncer.sync()
+            self.project.notify_of_overriding_changes(self)
 
     """
     Repr

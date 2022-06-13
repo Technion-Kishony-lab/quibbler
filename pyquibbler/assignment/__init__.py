@@ -1,4 +1,4 @@
-from .overrider import Overrider, AssignmentRemoval
+from .overrider import Overrider, AssignmentToDefault
 from .assignment import Assignment, QuibWithAssignment, AssignmentToQuib, QuibChange, Override
 from pyquibbler.path.path_component import PathComponent, Path
 from .assignment_template import AssignmentTemplate, RangeAssignmentTemplate, BoundAssignmentTemplate, \

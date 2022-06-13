@@ -3,24 +3,13 @@ from abc import ABC, abstractmethod
 import os
 from enum import Enum
 import pathlib
-from typing import Optional, Mapping
+from typing import Optional
+
+from pyquibbler.logger import logger
 
 """
 This file follows the logic of file-syncing from MatQuibbler
 """
-
-
-#  TODO: should be replaced with more fancy dialog box
-def text_dialog(title: str, message: str, buttons_and_options: Mapping[str, str]) -> str:
-    print(title)
-    print(message)
-    for button, option in buttons_and_options.items():
-        print(button, ': ', option)
-    while True:
-        choice = input()
-        if choice in buttons_and_options.keys():
-            break
-    return choice
 
 
 class FileStatus(Enum):
@@ -75,6 +64,9 @@ class FileMetaData:
     def __init__(self):
         self.file_exists: Optional[bool] = None
         self.date: Optional[float] = None
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__} - exists={self.file_exists}, date={self.date}>"
 
     def store_metadata(self, file_path: Optional[pathlib.Path] = None):
         if file_path and os.path.isfile(file_path):
@@ -149,12 +141,12 @@ class FileSyncer(ABC):
         # has_data:                          Yes       No        Yes       No
         #                              Save  Load Save Load Save Load Save Load
         FileComparison.SAME_FILE:      ('-', '-', '-', '-', 'S', 'o', 'D', 'l'),  # noqa: E241
-        FileComparison.NO_FILE:        ('-'  '-', 'V', 'V', 'C'  'c', 'V', 'V'),  # noqa: E241
+        FileComparison.NO_FILE:        ('-'  '-', 'V', 'V', 'C', 'c', 'V', 'V'),  # noqa: E241
         FileComparison.CHANGED:        ('o', 'L', 'd', 'L', 'o', 'l', 'd', 'L'),  # noqa: E241
         FileComparison.DELETED:        ('r', 'c', 'V', 'V', 'r', 'c', 'V', 'V'),  # noqa: E241
         FileComparison.CREATED:        ('o', 'L', 'd', 'L', 'o', 'l', 'd', 'L'),  # noqa: E241
-        FileComparison.FILE_FOUND:     ('x', 'x', 'x', 'x', 'o', 'L', 'o', 'L'),  # noqa: E241
-        FileComparison.FILE_NOT_FOUND: ('x', 'x', 'x', 'x', 'C', 'c', 'V', 'V'),  # noqa: E241
+        FileComparison.FILE_FOUND:     ('x', 'x', '-', '-', 'o', 'L', 'o', 'L'),  # noqa: E241
+        FileComparison.FILE_NOT_FOUND: ('x', 'x', '-', '-', 'C', 'c', 'V', 'V'),  # noqa: E241
     }
 
     @classmethod
@@ -162,6 +154,7 @@ class FileSyncer(ABC):
             -> ActionVerification:
         code_letter = cls.FILECOMPARISON_TO_SAVE_LOAD_LETTERCODES[file_change][
             0 + (1 - is_synced) * 4 + (1 - need_file) * 2]
+        logger.info(f"file_change - {file_change} is_synced - {is_synced} need file - {need_file}")
         return ActionVerification(*cls.SAVE_LETTERCORE_TO_ACTION_BUTTON_QUESTION[code_letter.capitalize()],
                                   code_letter != code_letter.capitalize())
 
@@ -256,10 +249,12 @@ class FileSyncer(ABC):
     def _verify_action(self, file_comparison: FileComparison, action_verification: ActionVerification) -> bool:
         if not action_verification.requires_verification:
             return True
-        answer = text_dialog(self._dialog_title(),
-                             self._get_what_happened_message(file_comparison) + '\n'
-                             + action_verification.message.format(self._file_type()) + '?',
-                             {'1': action_verification.button, '2': 'Skip'})
+        from pyquibbler import Project
+        answer = Project.get_or_create().text_dialog(self._dialog_title(),
+                                                     self._get_what_happened_message(file_comparison) + '\n'
+                                                     + action_verification.message.format(self._file_type()) + '?',
+                                                     {'1': action_verification.button, '2': 'Skip'})
+
         return answer == '1'
 
     def get_save_command(self, file_comparison: Optional[FileComparison]) -> ActionVerification:
@@ -293,6 +288,10 @@ class FileSyncer(ABC):
         elif action == SaveLoadAction.CLEAR:
             self._clear_data()
         else:
+            # TODO:
+            # For some reason, if we update the file metadata, we end up with a status NO_FILE which won't allow us to
+            # save in the future. We do want to be synced, but we certainly don't want that...
+            self.is_synced = True
             return
 
         self._update_file_metadata()
@@ -313,11 +312,12 @@ class FileSyncer(ABC):
                      or load_command.requires_verification and not save_command.requires_verification):
             action = save_command.action
         else:
-            answer = text_dialog(self._dialog_title(),
-                                 self._get_what_happened_message(file_comparison),
-                                 {'1': save_command.message.format(self._file_type()),
-                                  '2': load_command.message.format(self._file_type()),
-                                  '3': 'Skip'})
+            from pyquibbler import Project
+            answer = Project.get_or_create().text_dialog(self._dialog_title(),
+                                                         self._get_what_happened_message(file_comparison),
+                                                         {'1': save_command.message.format(self._file_type()),
+                                                          '2': load_command.message.format(self._file_type()),
+                                                          '3': 'Skip'})
             action = {'1': save_command.action,
                       '2': load_command.action,
                       '3': SaveLoadAction.NOTHING}[answer]
