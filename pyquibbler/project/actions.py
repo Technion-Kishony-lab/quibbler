@@ -3,9 +3,9 @@ from __future__ import annotations
 from weakref import ReferenceType
 from abc import abstractmethod, ABC
 from dataclasses import dataclass
-from typing import Optional, Union, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING
 
-from pyquibbler.assignment import Assignment, AssignmentToDefault
+from pyquibbler.assignment import Assignment
 
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib
@@ -59,7 +59,7 @@ class AssignmentAction(Action, ABC):
 class AddAssignmentAction(AssignmentAction):
 
     assignment_index: int
-    assignment: Union[Assignment, AssignmentToDefault]
+    assignment: Assignment
     previous_assignment_action: Optional[AddAssignmentAction]
 
     @property

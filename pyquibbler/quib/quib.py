@@ -434,7 +434,8 @@ class QuibHandler:
         Apply an assignment to a cache, setting valid if it was an assignment and invalid if it was an assignmentremoval
         """
         try:
-            if isinstance(assignment, Assignment):
+            from pyquibbler.assignment.default_value import default
+            if assignment.value is not default:
                 # Our cache only accepts shallow paths, so any validation to a non-shallow path is not necessarily
                 # overridden at the first component completely- so we ignore it
                 if len(assignment.path) <= 1:

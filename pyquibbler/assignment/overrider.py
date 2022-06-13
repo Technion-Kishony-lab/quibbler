@@ -13,16 +13,12 @@ from ..path.hashable import get_hashable_path
 from pyquibbler.path.path_component import Path, Paths
 from .assignment_template import AssignmentTemplate
 from ..path.data_accessing import deep_get, deep_assign_data_in_path
+from .default_value import default
 
 from pyquibbler.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
 
 
-@dataclass
-class AssignmentToDefault:
-    path: Path
-
-
-PathsToAssignments = Dict[Hashable, Union[Assignment, AssignmentToDefault]]
+PathsToAssignments = Dict[Hashable, Assignment]
 
 
 class Overrider:
@@ -46,14 +42,14 @@ class Overrider:
         # TODO: invalidate only the changed paths
         return [[]]
 
-    def _add_to_paths_to_assignments(self, assignment: Union[Assignment, AssignmentToDefault]):
+    def _add_to_paths_to_assignments(self, assignment: Assignment):
         hashable_path = get_hashable_path(assignment.path)
         # We need to first remove and then add to make sure the new key value pair are now first in the dict
         if hashable_path in self._paths_to_assignments:
             self._paths_to_assignments.pop(hashable_path)
         self._paths_to_assignments[hashable_path] = assignment
 
-    def add_assignment(self, assignment: Union[Assignment, AssignmentToDefault]):
+    def add_assignment(self, assignment: Assignment):
         """
         Adds an override to the overrider - data[key] = value.
         """
@@ -69,7 +65,7 @@ class Overrider:
         Remove function_definitions in a specific path.
         """
         if self._paths_to_assignments:
-            assignment_to_default = AssignmentToDefault(path)
+            assignment_to_default = Assignment(path=path, value=default)
             self.add_assignment(assignment_to_default)
             return assignment_to_default
 
@@ -100,7 +96,7 @@ class Overrider:
         with timer("quib_overriding"):
             data = deep_copy_without_quibs_or_graphics(data)
             for assignment in self._paths_to_assignments.values():
-                if isinstance(assignment, AssignmentToDefault):
+                if assignment.value is default:
                     value = deep_get(original_data, assignment.path)
                     path = assignment.path
                 else:
@@ -122,7 +118,7 @@ class Overrider:
         mask = false_mask
         for assignment in self:
             path = assignment.path
-            val = not isinstance(assignment, AssignmentToDefault)
+            val = assignment.value is not default
             if path:
                 if isinstance(path[-1].component, slice):
                     inner_data = deep_get(mask, path[:-1])
