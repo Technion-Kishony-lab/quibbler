@@ -48,14 +48,11 @@ class FuncDefinition:
     def is_impure(self):
         return self.is_file_loading or self.is_random
 
-    @functools.lru_cache()
     def get_parameters(self):
         try:
             sig = get_signature_for_func(self.func)
             return sig.parameters
-        except ValueError:
-            return {}
-        except TypeError:
+        except (ValueError, TypeError):
             return {}
 
     @functools.lru_cache()

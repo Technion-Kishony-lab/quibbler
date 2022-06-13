@@ -1,5 +1,4 @@
 import functools
-from functools import lru_cache
 
 import numpy as np
 from typing import Dict, Any
@@ -18,7 +17,6 @@ from pyquibbler.utils import get_original_func
 
 class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
 
-    @functools.lru_cache()
     def _get_shape_to_fill_for_data_source_in_location(self, location: SourceLocation):
         """
         Return the shape that needs to be filled for a given data source. One might think this is simply the shape of
@@ -46,7 +44,6 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
         minor_source = location.find_in_args_kwargs(self._func_call.args, self._func_call.kwargs)
         return np.shape(minor_source.value)[:major_data_source.ndim - len(location.path)]
 
-    @functools.lru_cache()
     def _get_data_source_ids_mask(self) -> np.ndarray:
         """
         Runs the function with each source's ids instead of it's values
@@ -62,7 +59,6 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
                                     parameter_source_locations=self._func_call.parameter_source_locations,
                                     func_definition=self._func_call.func_definition).run()
 
-    @functools.lru_cache()
     def get_data_sources_to_masks_in_result(self) -> Dict[Source, Any]:
         """
         Get a mapping between sources and a bool mask representing all the elements that are relevant to them in the
@@ -96,7 +92,6 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
             for data_source in self._func_call.get_data_sources()
         }
 
-    @functools.lru_cache()
     def _get_data_sources_to_paths_in_data_sources(self) -> Dict[Source, np.ndarray]:
         """
         Get a mapping of sources to the source's indices that were referenced in `self._indices`
@@ -156,7 +151,6 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
 
 class ForwardsTranspositionalTranslator(NumpyForwardsPathTranslator):
 
-    @lru_cache()
     def _get_source_ids_mask(self):
         return get_data_source_ids_mask(self._func_call, {
             source: working_component_of_type(path, (list, np.ndarray), True)
