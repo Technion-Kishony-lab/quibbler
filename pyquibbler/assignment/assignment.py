@@ -37,12 +37,6 @@ class QuibChange(ABC):
         The path in which the quib is changed
         """
 
-    @abstractmethod
-    def apply(self) -> None:
-        """
-        Apply the change
-        """
-
 
 @dataclass(frozen=True)
 class QuibWithAssignment(QuibChange, ABC):
@@ -57,9 +51,6 @@ class QuibWithAssignment(QuibChange, ABC):
 
 
 class AssignmentToQuib(QuibWithAssignment):
-    def apply(self) -> None:
-        self.quib.handler.apply_assignment(self.assignment)
-
     def to_override(self) -> Override:
         return Override(self.quib, self.assignment)
 
