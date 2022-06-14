@@ -3,8 +3,7 @@ import pathlib
 import pickle
 
 import numpy as np
-from dataclasses import dataclass
-from typing import Any, Optional, Union, Dict, Hashable, List
+from typing import Any, Optional, Dict, Hashable, List
 
 from .assignment import Assignment
 from .exceptions import NoAssignmentFoundAtPathException
