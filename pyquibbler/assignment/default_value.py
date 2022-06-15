@@ -26,5 +26,8 @@ class Default(Singleton):
     >>> quib['year'] = default
     """
 
+    def __repr__(self):
+        return 'default'
+
 
 default = Default()

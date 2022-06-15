@@ -40,7 +40,6 @@ ELEMENTWISE_FUNCS_TO_INVERSE_FUNCS = {}
 ELEMENTWISE_INVERTERS = [ElementwiseNoShapeInverter, ElementwiseInverter]
 
 
-@functools.lru_cache()
 def get_inverse_funcs_for_func(func_name: str):
     return ELEMENTWISE_FUNCS_TO_INVERSE_FUNCS[func_name]
 

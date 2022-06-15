@@ -6,6 +6,7 @@ from pyquibbler.utilities.iterators import is_iterator_empty, \
     SHALLOW_MAX_LENGTH, SHALLOW_MAX_DEPTH, recursively_run_func_on_object
 from .iterators import iter_quibs_in_object, iter_quibs_in_args, iter_quibs_in_object_recursively
 from ..exceptions import NestedQuibException
+from ...assignment.default_value import Default
 
 
 def is_there_a_quib_in_object(obj, force_recursive: bool = False):
@@ -73,7 +74,7 @@ def is_saveable_as_txt(val: Any) -> bool:
     def set_false_if_repr_is_not_invertible(v):
         from numpy import ndarray, int64, int32
         nonlocal all_ok
-        all_ok &= isinstance(v, (str, int, float, ndarray, slice, type(None), int64, int32))
+        all_ok &= isinstance(v, (Default, str, int, float, ndarray, slice, type(None), int64, int32))
 
     # TODO: for dicts we need to check also that the keys are invertible
     recursively_run_func_on_object(func=set_false_if_repr_is_not_invertible, obj=val)
