@@ -2,6 +2,7 @@ import re
 import socket
 
 from pyquibbler import Quib
+from pyquibbler.env import REPR_WITH_OVERRIDES
 from pyquibbler.logger import logger
 
 
@@ -51,9 +52,12 @@ def get_serialized_quib(quib: Quib):
     else:
         raw_overrides = create_raw_overrides_from_override_repr(overrider_repr)
     logger.info("Sending {} for {}".format(overrider_repr, quib))
+    with REPR_WITH_OVERRIDES.temporary_set(False):
+        repr_ = repr(quib)
     return {
         "id": id(quib),
         "name": quib.name,
+        "repr": repr_,
         "overrides": raw_overrides,
         "synced": quib.handler.file_syncer.is_synced
     }
