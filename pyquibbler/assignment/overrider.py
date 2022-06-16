@@ -63,10 +63,9 @@ class Overrider:
         """
         Remove function_definitions in a specific path.
         """
-        if self._paths_to_assignments:
-            assignment_to_default = Assignment(path=path, value=default)
-            self.add_assignment(assignment_to_default)
-            return assignment_to_default
+        assignment_to_default = Assignment(path=path, value=default)
+        self.add_assignment(assignment_to_default)
+        return assignment_to_default
 
     def pop_assignment_at_path(self, path: Path, raise_on_not_found: bool = True):
         hashable_path = get_hashable_path(path)
@@ -184,7 +183,8 @@ class Overrider:
             with Project.get_or_create().stop_recording_undos():
                 exec(assignment_text, {
                     'array': np.array,
-                    'quib': quib
+                    'quib': quib,
+                    'default': default,
                 })
         except Exception:
             raise CannotLoadAssignmentsFromTextException(assignment_text) from None
