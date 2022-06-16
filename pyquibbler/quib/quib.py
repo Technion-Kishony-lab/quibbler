@@ -356,6 +356,7 @@ class QuibHandler:
                                                        quib=self.quib,
                                                        assignment_index=len(self.overrider) - 1)
             self.file_syncer.on_data_changed()
+            self.project.notify_of_overriding_changes(self.quib)
         self.invalidate_and_redraw_at_path(path=path)
 
     def apply_assignment(self, assignment: Assignment) -> None:
