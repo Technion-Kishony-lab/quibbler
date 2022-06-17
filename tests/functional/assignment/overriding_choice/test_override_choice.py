@@ -3,7 +3,7 @@ from typing import List, Tuple, Union
 from unittest.mock import Mock
 from pytest import raises, fixture, mark
 
-from pyquibbler import iquib, q, Assignment
+from pyquibbler import iquib, q, Assignment, default
 from pyquibbler.assignment import AssignmentToQuib, Override
 from pyquibbler.assignment import get_override_group_for_change, OverrideChoice, OverrideGroup, \
     OverrideRemoval
@@ -19,8 +19,11 @@ from pyquibbler.quib.get_value_context_manager import get_value_context
 from pyquibbler.quib.specialized_functions.proxy import create_proxy
 
 
-def get_overrides_for_assignment(quib, assignment):
-    return get_override_group_for_change(AssignmentToQuib(quib, assignment))
+def get_overrides_for_assignment(quib, assignment: Assignment):
+    if assignment.value is default:
+        return get_override_group_for_change(OverrideRemoval(quib, assignment.path))
+    else:
+        return get_override_group_for_change(AssignmentToQuib(quib, assignment))
 
 
 class ChooseOverrideDialogMockSideEffect:
@@ -53,6 +56,11 @@ class ChooseOverrideDialogMockSideEffect:
 @fixture
 def assignment():
     return Assignment(5, [])
+
+
+@fixture
+def default_assignment():
+    return Assignment(default, [])
 
 
 @fixture
@@ -147,6 +155,14 @@ def test_get_overrides_for_assignment_on_iquib(assignment):
     assert override_group == OverrideGroup([Override(quib, assignment)])
 
 
+def test_get_overrides_for_default_assignment_on_iquib(default_assignment):
+    quib = iquib(1)
+
+    override_group = get_overrides_for_assignment(quib, default_assignment)
+
+    assert override_group == OverrideGroup([OverrideRemoval(quib, default_assignment.path)])
+
+
 def test_get_overrides_for_assignment_on_quib_without_overridable_parents(assignment, parent_and_child):
     parent, child, parent_override, child_override = parent_and_child
     parent.allow_overriding = False
@@ -163,6 +179,14 @@ def test_get_overrides_for_assignment_on_non_overridable_quib_with_overridable_p
     override_group = get_overrides_for_assignment(child, assignment)
 
     assert override_group == parent_override
+
+
+def test_get_overrides_for_default_assignment_on_non_overridable_quib_with_overridable_parent(default_assignment, parent_and_child):
+    parent, child, parent_override, child_override = parent_and_child
+
+    override_group = get_overrides_for_assignment(child, default_assignment)
+
+    assert override_group == OverrideGroup([OverrideRemoval(parent, default_assignment.path), OverrideRemoval(child, default_assignment.path)])
 
 
 @mark.parametrize('parent_chosen', [True, False])
