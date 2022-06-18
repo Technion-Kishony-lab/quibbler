@@ -37,7 +37,7 @@ from pyquibbler.logger import logger
 from pyquibbler.project import Project
 from pyquibbler.inversion.exceptions import NoInvertersFoundException
 from pyquibbler.path import FailedToDeepAssignException, PathComponent, Path, Paths
-from pyquibbler.assignment import InvalidTypeException, get_override_group_for_change, \
+from pyquibbler.assignment import InvalidTypeException, get_override_group_for_quib_change, \
     AssignmentTemplate, Overrider, Assignment, AssignmentToQuib, create_assignment_template
 from pyquibbler.quib.func_calling.cache_mode import CacheMode
 from pyquibbler.quib.exceptions import OverridingNotAllowedException
@@ -357,7 +357,7 @@ class QuibHandler:
         if self.quib.is_iquib:
             self.override(assignment)
         else:
-            get_override_group_for_change(AssignmentToQuib(self.quib, assignment)).apply()
+            get_override_group_for_quib_change(AssignmentToQuib(self.quib, assignment)).apply()
 
     def get_inversions_for_assignment(self, assignment: Assignment) -> List[AssignmentToQuib]:
         """

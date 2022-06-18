@@ -206,7 +206,7 @@ class OverrideOptionsTree:
         return OverrideOptionsTree(quib_change.quib, options, diverged_quib, children, override_removals)
 
 
-def get_override_group_for_change(quib_change: AssignmentToQuib) -> OverrideGroup:
+def get_override_group_for_quib_change(quib_change: AssignmentToQuib) -> OverrideGroup:
     """
     Every assignment to a quib is translated at the end to a list of overrides to quibs in the graph.
     This function determines those overrides and returns them.
@@ -219,7 +219,7 @@ def get_override_group_for_change(quib_change: AssignmentToQuib) -> OverrideGrou
     return options_tree.choose_overrides()
 
 
-def get_overrides_for_quib_change_group(quib_changes: List[AssignmentToQuib]) -> OverrideGroup:
+def get_override_group_for_quib_changes(quib_changes: List[AssignmentToQuib]) -> OverrideGroup:
     """
     Get all overrides for a group of assignments, filter them to leave out contradictory assignments
     (assignments that cause overrides in the same quibs) and return the remaining overrides.
@@ -228,7 +228,7 @@ def get_overrides_for_quib_change_group(quib_changes: List[AssignmentToQuib]) ->
     result = OverrideGroup()
     for quib_change in quib_changes:
         try:
-            override_group = get_override_group_for_change(quib_change)
+            override_group = get_override_group_for_quib_change(quib_change)
         except CannotChangeQuibAtPathException:
             continue
         current_overridden_quibs = set(override.quib for override in override_group.quib_changes)

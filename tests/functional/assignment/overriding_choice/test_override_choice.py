@@ -5,7 +5,7 @@ from pytest import raises, fixture, mark
 
 from pyquibbler import iquib, q, Assignment, default
 from pyquibbler.assignment import AssignmentToQuib
-from pyquibbler.assignment import get_override_group_for_change, OverrideChoice, OverrideGroup
+from pyquibbler.assignment import get_override_group_for_quib_change, OverrideChoice, OverrideGroup
 from pyquibbler.assignment import OverrideOptionsTree, \
     CannotChangeQuibAtPathException
 from pyquibbler.assignment import OverrideChoiceType, \
@@ -20,9 +20,9 @@ from pyquibbler.quib.specialized_functions.proxy import create_proxy
 
 def get_overrides_for_assignment(quib, assignment: Assignment):
     if assignment.value is default:
-        return get_override_group_for_change(AssignmentToQuib.create_default(quib, assignment.path))
+        return get_override_group_for_quib_change(AssignmentToQuib.create_default(quib, assignment.path))
     else:
-        return get_override_group_for_change(AssignmentToQuib(quib, assignment))
+        return get_override_group_for_quib_change(AssignmentToQuib(quib, assignment))
 
 
 class ChooseOverrideDialogMockSideEffect:
@@ -121,7 +121,7 @@ def test_get_overrides_for_assignment_when_nothing_is_overridable(assignment, pa
 
     assignment = AssignmentToQuib(child, assignment)
     with raises(CannotChangeQuibAtPathException) as exc_info:
-        get_override_group_for_change(assignment)
+        get_override_group_for_quib_change(assignment)
     assert exc_info.value.quib_change is assignment
 
 
@@ -131,7 +131,7 @@ def test_get_overrides_for_assignment_when_inverse_assignment_not_implemented(as
     assignment = AssignmentToQuib(child, assignment)
 
     with raises(CannotChangeQuibAtPathException) as exc_info:
-        get_override_group_for_change(assignment)
+        get_override_group_for_quib_change(assignment)
     assert exc_info.value.quib_change is assignment
 
 
@@ -142,7 +142,7 @@ def test_get_overrides_for_assignment_when_diverged_inverse_assign_has_only_one_
 
     assignment = AssignmentToQuib(child, assignment_to_multiple)
     with raises(CannotChangeQuibAtPathException) as exc_info:
-        get_override_group_for_change(assignment)
+        get_override_group_for_quib_change(assignment)
     assert exc_info.value.quib_change is assignment
 
 
@@ -350,7 +350,7 @@ def test_get_overrides_for_assignment_when_can_assign_to_self(diverged_quib_grap
     child.allow_overriding = True
     child.assigned_quibs = [child]
     assignment = AssignmentToQuib(child, assignment_to_multiple)
-    override_group = get_override_group_for_change(assignment)
+    override_group = get_override_group_for_quib_change(assignment)
 
     assert override_group.quib_changes == [assignment]
 
@@ -361,7 +361,7 @@ def test_get_overrides_for_assignment_when_can_assign_to_parents(diverged_quib_g
     parent2.allow_overriding = True
     child.assigned_quibs = [parent1, parent2]
     assignment = AssignmentToQuib(child, assignment_to_multiple)
-    override_group = get_override_group_for_change(assignment)
+    override_group = get_override_group_for_quib_change(assignment)
 
     assert len(override_group.quib_changes) == 3  # Two overrides and one override removal
 
@@ -371,7 +371,7 @@ def test_raises_cannot_change_when_context_quib_cannot_be_inverted():
         # A function we don't know to invert
         child = q(lambda x: x, 10)
     with raises(CannotChangeQuibAtPathException):
-        get_override_group_for_change(AssignmentToQuib(child, Assignment(1, [])))
+        get_override_group_for_quib_change(AssignmentToQuib(child, Assignment(1, [])))
 
 
 def test_get_override_group_on_context_quibs():
@@ -381,5 +381,5 @@ def test_get_override_group_on_context_quibs():
         child = non_context_parent + context_parent
         child.allow_overriding = True
 
-    override_group = get_override_group_for_change(AssignmentToQuib(child, Assignment(2, [])))
+    override_group = get_override_group_for_quib_change(AssignmentToQuib(child, Assignment(2, [])))
     assert override_group.quib_changes == [AssignmentToQuib(non_context_parent, Assignment(1, []))]

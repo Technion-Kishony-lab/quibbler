@@ -4,6 +4,6 @@ from .assignment_template import AssignmentTemplate, RangeAssignmentTemplate, Bo
     BoundMaxBelowMinException, RangeStopBelowStartException, InvalidTypeException, \
     TypesMustBeSameInAssignmentTemplateException, create_assignment_template
 from .exceptions import CannotReverseException
-from .override_choice import get_override_group_for_change, OverrideChoice, OverrideGroup, \
+from .override_choice import get_override_group_for_quib_change, OverrideChoice, OverrideGroup, \
     override_dialog, AssignmentCancelledByUserException, OverrideOptionsTree, CannotChangeQuibAtPathException, \
     OverrideChoiceType

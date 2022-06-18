@@ -1,7 +1,7 @@
 from typing import Any, List, Tuple
 from matplotlib.pyplot import Axes
 
-from pyquibbler.assignment.override_choice import get_overrides_for_quib_change_group
+from pyquibbler.assignment.override_choice import get_override_group_for_quib_changes
 from pyquibbler.path import PathComponent
 from pyquibbler.assignment import AssignmentToQuib, Assignment
 from pyquibbler.assignment import OverrideGroup
@@ -51,4 +51,4 @@ def get_override_group_for_axes_set_lim(args: List[Any], lim: Tuple[float, float
                     path=[]))
             )
 
-    return get_overrides_for_quib_change_group(changes)
+    return get_override_group_for_quib_changes(changes)

@@ -2,7 +2,7 @@ from collections import defaultdict
 from typing import Any, List, Tuple, Union
 from matplotlib.backend_bases import PickEvent, MouseEvent, MouseButton
 
-from pyquibbler.assignment.override_choice import get_overrides_for_quib_change_group
+from pyquibbler.assignment.override_choice import get_override_group_for_quib_changes
 from pyquibbler.path import PathComponent
 from pyquibbler.assignment import AssignmentToQuib, Assignment
 from .graphics_inverse_assigner import graphics_inverse_assigner
@@ -108,7 +108,7 @@ def get_override_group_by_indices(x_arg_indices: List[int], y_arg_indices: List[
     else:
         changes = [*get_overrides_for_event(args, x_arg_indices, artist_index, indices, mouse_event.xdata),
                    *get_overrides_for_event(args, y_arg_indices, artist_index, indices, mouse_event.ydata)]
-    return get_overrides_for_quib_change_group(changes)
+    return get_override_group_for_quib_changes(changes)
 
 
 @graphics_inverse_assigner(['Axes.plot'])
