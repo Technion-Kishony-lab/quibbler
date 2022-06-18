@@ -68,8 +68,6 @@ class Overrider:
         """
         Adds an override to the overrider - data[key] = value.
         """
-        if assignment.is_default() and len(self) == 0 and not is_within_loading_assignments():
-            return
         assignment_without_indexed_cls = copy.deepcopy(assignment)
         for component in assignment_without_indexed_cls.path:
             component.indexed_cls = None

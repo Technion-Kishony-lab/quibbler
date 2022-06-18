@@ -3,7 +3,7 @@ from unittest import mock
 import numpy as np
 import pytest
 
-from pyquibbler import CacheMode
+from pyquibbler import CacheMode, default
 from pyquibbler.utilities.input_validation_utils import InvalidArgumentTypeException
 from pyquibbler.assignment import InvalidTypeException, BoundAssignmentTemplate, RangeAssignmentTemplate
 from pyquibbler.path.data_accessing import FailedToDeepAssignException
@@ -172,3 +172,9 @@ def test_quib_get_value_when_fully_overridden():
     quib = create_quib(mock.Mock(return_value=[1, 2, 3]), allow_overriding=True, cache_mode=CacheMode.OFF)
     quib.assign(7)
     assert quib.get_value() == 7
+
+
+def test_quib_wont_add_default_assignment_when_not_overridden():
+    quib = create_quib(mock.Mock(return_value=[1, 2, 3]), allow_overriding=True, cache_mode=CacheMode.ON)
+    quib.assign(default)
+    assert quib.handler._overrider is None

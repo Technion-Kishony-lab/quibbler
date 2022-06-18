@@ -24,9 +24,15 @@ class CannotReverseUnknownFuncException(CannotReverseException):
 
 
 class CommonAncestorBetweenArgumentsException(CannotReverseException):
-    pass
+    def __str__(self):
+        return 'Inverting an assignment of a function with two arguments sharing the same upstream ancestor' \
+               'is not allowed. \n'\
+               'Try setting ASSIGNMENT_RESTRICTIONS = True.'
 
 
 @dataclass
 class NoAssignmentFoundAtPathException(PyQuibblerException):
     path: Path
+
+    def __str__(self):
+        return 'Attempting to remove an overriding assignment which does not exist.'

@@ -330,6 +330,10 @@ class QuibHandler:
         """
         Overrides a part of the data the quib represents.
         """
+
+        if not self.is_overridden and assignment.is_default() and not is_within_loading_assignments():
+            return
+
         self._add_override(assignment)
 
         if not is_within_drag():

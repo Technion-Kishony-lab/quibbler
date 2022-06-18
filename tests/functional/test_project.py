@@ -3,7 +3,7 @@ from unittest import mock
 
 import pytest
 
-from pyquibbler import iquib, Assignment
+from pyquibbler import iquib, Assignment, default
 from pyquibbler.file_syncing import SaveFormat
 from pyquibbler.function_definitions import add_definition_for_function
 from pyquibbler.function_definitions.func_definition import create_func_definition
@@ -118,7 +118,7 @@ def test_undo_redo_undo(project):
 def test_undo_assignment_removal(project):
     a = iquib(5)
     a.assign(10)
-    a.handler.override(Assignment.create_default([]))
+    a.assign(default)
     assert a.get_value() == 5, "sanity"
 
     project.undo()
@@ -129,7 +129,7 @@ def test_undo_assignment_removal(project):
 def test_undo_assignment_removal_and_assignment(project):
     a = iquib(5)
     a.assign(10)
-    a.handler.override(Assignment.create_default([]))
+    a.assign(default)
     assert a.get_value() == 5, "sanity"
 
     project.undo()
@@ -180,6 +180,19 @@ def test_project_undo_group_doesnt_add_on_dragging(project):
 
     with pytest.raises(NothingToUndoException):
         project.undo()
+
+
+def test_undo_inverse_assign_override_group(project):
+    a = iquib(5)
+    b = a + 10
+    c = b * 2
+    c.assign(32)
+    assert a.get_value() == 6
+    assert c.get_value() == 32
+
+    project.undo()
+    assert a.get_value() == 5
+    assert c.get_value() == 30
 
 
 def test_project_undo_with_group_reverts_back_to_before_group_and_runs_graphics_quib_once(project):
