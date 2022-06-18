@@ -40,7 +40,6 @@ from pyquibbler.path import FailedToDeepAssignException, PathComponent, Path, Pa
 from pyquibbler.assignment import InvalidTypeException, get_override_group_for_quib_change, \
     AssignmentTemplate, Overrider, Assignment, AssignmentToQuib, create_assignment_template
 from pyquibbler.quib.func_calling.cache_mode import CacheMode
-from pyquibbler.quib.exceptions import OverridingNotAllowedException
 from pyquibbler.quib.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own
 from pyquibbler.quib.graphics import GraphicsUpdateType
 from pyquibbler.translation.translate import forwards_translate, NoTranslatorsFoundException, \
@@ -327,14 +326,10 @@ class QuibHandler:
         except InvalidTypeException as e:
             raise InvalidTypeException(e.type_) from None
 
-    def override(self, assignment: Assignment, 
-                 ignore_allow_overriding: bool = False):
+    def override(self, assignment: Assignment):
         """
         Overrides a part of the data the quib represents.
         """
-        if not self.allow_overriding and not ignore_allow_overriding:
-            raise OverridingNotAllowedException(self.quib, assignment)
-
         self._add_override(assignment)
 
         if not is_within_drag():
@@ -342,7 +337,6 @@ class QuibHandler:
                                                        assignment=assignment,
                                                        assignment_index=len(self.overrider) - 1)
             self.file_syncer.on_data_changed()
-
             self.project.notify_of_overriding_changes(self.quib)
 
     def apply_assignment(self, assignment: Assignment) -> None:

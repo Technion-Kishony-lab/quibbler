@@ -7,7 +7,6 @@ from pyquibbler import CacheMode
 from pyquibbler.utilities.input_validation_utils import InvalidArgumentTypeException
 from pyquibbler.assignment import InvalidTypeException, BoundAssignmentTemplate, RangeAssignmentTemplate
 from pyquibbler.path.data_accessing import FailedToDeepAssignException
-from pyquibbler.quib.exceptions import OverridingNotAllowedException
 from pyquibbler.quib.factory import create_quib
 from tests.functional.utils import slicer, get_mock_with_repr
 
@@ -119,17 +118,6 @@ def test_quib_get_override_mask_whole_array_override():
     quib = create_quib(func=mock.Mock(return_value=np.array([0, 1])), allow_overriding=True)
     quib.assign(np.array([0, 1, 2]))
     assert np.array_equal(quib.get_override_mask().get_value(), [True, True, True])
-
-
-def test_quib_override_when_overriding_not_allowed(quib):
-    override = mock.Mock()
-
-    with pytest.raises(OverridingNotAllowedException) as exc_info:
-        quib.handler.override(override)
-
-    assert exc_info.value.quib is quib
-    assert exc_info.value.override is override
-    assert isinstance(str(exc_info.value), str)
 
 
 @pytest.mark.regression

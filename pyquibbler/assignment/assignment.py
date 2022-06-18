@@ -54,7 +54,7 @@ class AssignmentToQuib:
             raise
 
     def apply(self) -> None:
-        self.quib.handler.override(self.assignment, ignore_allow_overriding=True)
+        self.quib.handler.override(self.assignment)
 
     @classmethod
     def create_default(cls, quib: Quib, path: Path):
