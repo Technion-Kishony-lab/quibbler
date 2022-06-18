@@ -327,13 +327,11 @@ class QuibHandler:
         except InvalidTypeException as e:
             raise InvalidTypeException(e.type_) from None
 
-    def override(self, assignment: Assignment, allow_overriding_from_now_on: bool = True,
+    def override(self, assignment: Assignment, 
                  ignore_allow_overriding: bool = False):
         """
         Overrides a part of the data the quib represents.
         """
-        if allow_overriding_from_now_on:
-            self.allow_overriding = True
         if not self.allow_overriding and not ignore_allow_overriding:
             raise OverridingNotAllowedException(self.quib, assignment)
 

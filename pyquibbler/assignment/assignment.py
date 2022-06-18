@@ -38,6 +38,10 @@ class Assignment:
 
 @dataclass(frozen=True)
 class AssignmentToQuib:
+    """
+    Assignment to a specific quib can either `apply` locally as override or inverted to a list of
+    assignments to upstream quibs.
+    """
     quib: Quib
     assignment: Assignment
 
@@ -50,7 +54,7 @@ class AssignmentToQuib:
             raise
 
     def apply(self) -> None:
-        self.quib.handler.override(self.assignment, allow_overriding_from_now_on=False, ignore_allow_overriding=True)
+        self.quib.handler.override(self.assignment, ignore_allow_overriding=True)
 
     @classmethod
     def create_default(cls, quib: Quib, path: Path):
