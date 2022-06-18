@@ -90,3 +90,16 @@ def test_overrider_keeps_order(overrider):
     new_data = overrider.override([20])
 
     assert new_data == [10]
+
+
+def test_overrider_loads_default_assignment_from_text():
+    overrider = Overrider()
+    overrider.load_from_assignment_text(assignment_text='quib[2] = default')
+    assert overrider[0] == Assignment.create_default([PathComponent(None, 2)])
+
+
+def test_overrider_wont_add_default_assignment_when_empty():
+    overrider = Overrider()
+    overrider.add_assignment(Assignment.create_default([]))
+    assert len(overrider) == 0
+
