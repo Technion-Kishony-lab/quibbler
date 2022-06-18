@@ -349,8 +349,7 @@ class QuibHandler:
 
     def apply_assignment(self, assignment: Assignment) -> None:
         """
-        Create an assignment with an Assignment object,
-        function_definitions the current values at the assignment's paths with the assignment's value
+        Apply an assignment to the quib locally or as inverse assignment to upstream quibs.
         """
         # TODO: it is necessary to immediately override iquibs because of how we handle "text" file loading- we need
         #  to not go through the normal flow because get_value will potentially fail as the quib in the `exec` statement

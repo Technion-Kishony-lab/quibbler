@@ -15,12 +15,13 @@ if TYPE_CHECKING:
     from pyquibbler.quib import Quib
 
 
-def is_assignment_allowed_from_quib_to_quib(from_quib, to_quib):
+def is_assignment_allowed_from_quib_to_quib(from_quib: Quib, to_quib: Quib):
     """
     Returns True/False indicating if from_quib allows assignments made to it to be translated
     into assignments to the to_quib.
     """
-    return True if from_quib.assigned_quibs is None else to_quib in from_quib.assigned_quibs
+    return to_quib.allow_overriding \
+           and (from_quib.assigned_quibs is None or to_quib in from_quib.assigned_quibs)
 
 
 @dataclass
@@ -66,7 +67,7 @@ class OverrideOptionsTree:
         assert (len(self.children) > 0) is (self.diverged_quib is not None)
 
     @property
-    def can_diverge(self):
+    def can_diverge(self) -> bool:
         """
         Return True if the original assignment can be translated into
         multiple assignment into ancestor quibs, and False otherwise.
@@ -81,7 +82,7 @@ class OverrideOptionsTree:
         return len(self.options) > 0 or self.can_diverge
 
     @property
-    def choice_context(self):
+    def choice_context(self) -> ChoiceContext:
         return ChoiceContext(tuple(option.quib for option in self.options), self.can_diverge)
 
     def get_override_choice(self) -> OverrideChoice:
@@ -134,7 +135,8 @@ class OverrideOptionsTree:
         return override_group
 
     @classmethod
-    def _get_children_from_diverged_inversions(cls, inversions: List[AssignmentToQuib], top_quib: Quib):
+    def _get_children_from_diverged_inversions(cls, inversions: List[AssignmentToQuib], top_quib: Quib) \
+            -> List[OverrideOptionsTree]:
         """
         For each diverged inversion, create a new OverrideOptionsTree instance, and return a list of all instances.
         If any inversion cannot be translated into an override, return an empty list.
@@ -151,7 +153,7 @@ class OverrideOptionsTree:
         return children
 
     @classmethod
-    def _convert_quib_change_to_change_in_context_quib(cls, quib_change: AssignmentToQuib):
+    def _convert_quib_change_to_change_in_context_quib(cls, quib_change: AssignmentToQuib) -> AssignmentToQuib:
         """
         Invert the given change until we get a change to a non-context quib.
         This is used to treat an assignment to a context-quib as an assignment to a non-context quib when building
@@ -192,7 +194,7 @@ class OverrideOptionsTree:
         last_inversion = None
         while len(inversions) == 1:
             inversion = inversions[0]
-            if inversion.quib.allow_overriding and is_assignment_allowed_from_quib_to_quib(top_quib, inversion.quib):
+            if is_assignment_allowed_from_quib_to_quib(top_quib, inversion.quib):
                 options.append(QuibChangeWithOverrideRemovals(inversion, override_removals[:]))
             override_removals.append(AssignmentToQuib.create_default(inversion.quib, inversion.assignment.path))
             inversions = inversion.get_inversions(True)
