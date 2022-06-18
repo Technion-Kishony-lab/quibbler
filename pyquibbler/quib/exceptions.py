@@ -7,7 +7,6 @@ from pyquibbler.quib.func_calling.cache_mode import CacheMode
 
 if TYPE_CHECKING:
     from pyquibbler.quib.quib import Quib
-    from pyquibbler import Assignment
 
 
 @dataclass

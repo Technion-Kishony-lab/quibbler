@@ -27,6 +27,7 @@ def is_within_loading_assignments():
 
 @contextlib.contextmanager
 def loading_assignments():
+    global WITHIN_LOADING_ASSIGNMENTS
     WITHIN_LOADING_ASSIGNMENTS = True
     yield
     WITHIN_LOADING_ASSIGNMENTS = False

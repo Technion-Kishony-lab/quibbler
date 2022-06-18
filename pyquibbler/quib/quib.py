@@ -43,8 +43,7 @@ from pyquibbler.assignment import InvalidTypeException, get_override_group_for_q
 from pyquibbler.quib.func_calling.cache_mode import CacheMode
 from pyquibbler.quib.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own
 from pyquibbler.quib.graphics import GraphicsUpdateType
-from pyquibbler.translation.translate import forwards_translate, NoTranslatorsFoundException, \
-    backwards_translate
+from pyquibbler.translation.translate import forwards_translate, NoTranslatorsFoundException
 from pyquibbler.cache import create_cache, CacheStatus
 from pyquibbler.file_syncing import SaveFormat, SAVE_FORMAT_TO_FILE_EXT, CannotSaveFunctionQuibsAsValueException, \
     ResponseToFileNotDefined, FileNotDefinedException, QuibFileSyncer, SAVE_FORMAT_TO_FQUIB_SAVE_FORMAT, \
@@ -996,7 +995,6 @@ class Quib:
         >>> a.get_value()
         [1, 'new value', 3]
         """
-        from pyquibbler import default
 
         key = copy_and_replace_quibs_with_vals(key)
         value = copy_and_replace_quibs_with_vals(value)
@@ -1004,8 +1002,6 @@ class Quib:
         self.handler.apply_assignment(Assignment(value, path))
 
     def __setitem__(self, key, value):
-        from pyquibbler import default
-
         key = copy_and_replace_quibs_with_vals(key)
         value = copy_and_replace_quibs_with_vals(value)
         path = [PathComponent(component=key, indexed_cls=self.get_type())]

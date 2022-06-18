@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any, List
+from typing import Any, List
 
 from pyquibbler.function_definitions.func_definition import FuncDefinition
 from pyquibbler.inversion.exceptions import NoInvertersFoundException, FailedToInvertException
@@ -40,7 +40,7 @@ def invert(func_call: SourceFuncCall, assignment: Assignment, previous_result):
     is_default = assignment.is_default()
     if is_default:
         actual_assignment = Assignment(value=deep_get(previous_result, assignment.path),
-                                path=assignment.path)
+                                       path=assignment.path)
     else:
         actual_assignment = assignment
 

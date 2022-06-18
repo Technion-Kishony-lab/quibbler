@@ -1,6 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import List, TYPE_CHECKING, Optional, Dict, ClassVar, Union
+from typing import List, TYPE_CHECKING, Optional, Dict, ClassVar
 
 from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.assignment import AssignmentToQuib
@@ -9,7 +9,6 @@ from .choice_context import ChoiceContext
 from .override_dialog import OverrideChoiceType, OverrideChoice
 from .types import OverrideGroup, QuibChangeWithOverrideRemovals
 from pyquibbler.env import ASSIGNMENT_RESTRICTIONS
-from ..assignment import Assignment
 
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib
@@ -20,8 +19,7 @@ def is_assignment_allowed_from_quib_to_quib(from_quib: Quib, to_quib: Quib):
     Returns True/False indicating if from_quib allows assignments made to it to be translated
     into assignments to the to_quib.
     """
-    return to_quib.allow_overriding \
-           and (from_quib.assigned_quibs is None or to_quib in from_quib.assigned_quibs)
+    return to_quib.allow_overriding and (from_quib.assigned_quibs is None or to_quib in from_quib.assigned_quibs)
 
 
 @dataclass
