@@ -7,9 +7,9 @@ from matplotlib import pyplot as plt
 
 from pyquibbler import CacheMode, iquib, Assignment
 from pyquibbler.env import GRAPHICS_LAZY
-from pyquibbler.assignment import AssignmentToQuib, Override
+from pyquibbler.assignment import AssignmentToQuib
 from pyquibbler.path.path_component import PathComponent
-from pyquibbler.assignment import get_override_group_for_change
+from pyquibbler.assignment import get_override_group_for_quib_change
 from tests.functional.utils import PathBuilder, get_func_mock
 from tests.functional.quib.test_quib.get_value.test_apply_along_axis import parametrize_data
 from tests.functional.quib.test_quib.get_value.utils import check_get_value_valid_at_path, collecting_quib
@@ -204,8 +204,8 @@ def test_assignment_to_quib_within_vectorize_is_translated_to_override_on_vector
     def get_override_group_for_assignment_to_child(quib):
         child = quib + iquib(1)
         child.allow_overriding = True
-        return get_override_group_for_change(AssignmentToQuib(child, Assignment(2, [])))
+        return get_override_group_for_quib_change(AssignmentToQuib(child, Assignment(2, [])))
 
     override_group = get_override_group_for_assignment_to_child(parent).get_value()[()]
 
-    assert override_group.quib_changes == [Override(parent, Assignment(1, []))]
+    assert override_group.quib_changes == [AssignmentToQuib(parent, Assignment(1, []))]

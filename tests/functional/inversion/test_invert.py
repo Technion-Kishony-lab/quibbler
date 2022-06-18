@@ -9,6 +9,9 @@ from pyquibbler.translation.source_func_call import SourceFuncCall
 
 
 def test_invert_raises_exception_on_unknown_func():
+    assignment = mock.Mock()
+    assignment.is_default = mock.Mock(return_value=False)
+
     with pytest.raises(NoInvertersFoundException):
         invert(
             func_call=SourceFuncCall.from_(func=mock.MagicMock(__name__='unknown'),
@@ -18,6 +21,6 @@ def test_invert_raises_exception_on_unknown_func():
                                            data_source_locations=[],
                                            parameter_source_locations=[]
                                            ),
-            assignment=mock.Mock(),
+            assignment=assignment,
             previous_result=0
         )

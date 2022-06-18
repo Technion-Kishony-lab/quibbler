@@ -118,7 +118,7 @@ def test_undo_redo_undo(project):
 def test_undo_assignment_removal(project):
     a = iquib(5)
     a.assign(10)
-    a.handler.remove_override([])
+    a.handler.override(Assignment.create_default([]))
     assert a.get_value() == 5, "sanity"
 
     project.undo()
@@ -129,7 +129,7 @@ def test_undo_assignment_removal(project):
 def test_undo_assignment_removal_and_assignment(project):
     a = iquib(5)
     a.assign(10)
-    a.handler.remove_override([])
+    a.handler.override(Assignment.create_default([]))
     assert a.get_value() == 5, "sanity"
 
     project.undo()

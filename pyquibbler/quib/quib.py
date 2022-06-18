@@ -10,6 +10,7 @@ import warnings
 import json_tricks
 import numpy as np
 
+from pyquibbler.assignment.overrider import is_within_loading_assignments
 from pyquibbler.function_definitions import get_definition_for_function, FuncArgsKwargs
 from pyquibbler.quib.types import FileAndLineNumber
 from pyquibbler.utilities.file_path import PathWithHyperLink
@@ -37,14 +38,12 @@ from pyquibbler.logger import logger
 from pyquibbler.project import Project
 from pyquibbler.inversion.exceptions import NoInvertersFoundException
 from pyquibbler.path import FailedToDeepAssignException, PathComponent, Path, Paths
-from pyquibbler.assignment import InvalidTypeException, OverrideRemoval, get_override_group_for_change, \
+from pyquibbler.assignment import InvalidTypeException, get_override_group_for_quib_change, \
     AssignmentTemplate, Overrider, Assignment, AssignmentToQuib, create_assignment_template
 from pyquibbler.quib.func_calling.cache_mode import CacheMode
-from pyquibbler.quib.exceptions import OverridingNotAllowedException
 from pyquibbler.quib.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own
 from pyquibbler.quib.graphics import GraphicsUpdateType
-from pyquibbler.translation.translate import forwards_translate, NoTranslatorsFoundException, \
-    backwards_translate
+from pyquibbler.translation.translate import forwards_translate, NoTranslatorsFoundException
 from pyquibbler.cache import create_cache, CacheStatus
 from pyquibbler.file_syncing import SaveFormat, SAVE_FORMAT_TO_FILE_EXT, CannotSaveFunctionQuibsAsValueException, \
     ResponseToFileNotDefined, FileNotDefinedException, QuibFileSyncer, SAVE_FORMAT_TO_FQUIB_SAVE_FORMAT, \
@@ -327,15 +326,10 @@ class QuibHandler:
         except InvalidTypeException as e:
             raise InvalidTypeException(e.type_) from None
 
-    def override(self, assignment: Assignment, allow_overriding_from_now_on=True):
+    def override(self, assignment: Assignment):
         """
         Overrides a part of the data the quib represents.
         """
-        if allow_overriding_from_now_on:
-            self.allow_overriding = True
-        if not self.allow_overriding:
-            raise OverridingNotAllowedException(self.quib, assignment)
-
         self._add_override(assignment)
 
         if not is_within_drag():
@@ -343,51 +337,16 @@ class QuibHandler:
                                                        assignment=assignment,
                                                        assignment_index=len(self.overrider) - 1)
             self.file_syncer.on_data_changed()
-
             self.project.notify_of_overriding_changes(self.quib)
-
-    def remove_override(self, path: Path):
-        """
-        Remove function_definitions in a specific path in the quib.
-        """
-        assignment_removal = self.overrider.return_assignments_to_default(path)
-        if assignment_removal is not None and not is_within_drag():
-            self.project.push_assignment_to_undo_stack(assignment=assignment_removal,
-                                                       quib=self.quib,
-                                                       assignment_index=len(self.overrider) - 1)
-            self.file_syncer.on_data_changed()
-            self.project.notify_of_overriding_changes(self.quib)
-        self.invalidate_and_redraw_at_path(path=path)
 
     def apply_assignment(self, assignment: Assignment) -> None:
         """
-        Create an assignment with an Assignment object,
-        function_definitions the current values at the assignment's paths with the assignment's value
+        Apply an assignment to the quib locally or as inverse assignment to upstream quibs.
         """
-        # TODO: it is necessary to immediately override iquibs because of how we handle "text" file loading- we need
-        #  to not go through the normal flow because get_value will potentially fail as the quib in the `exec` statement
-        #  is `None`
-        if self.quib.is_iquib:
+        if is_within_loading_assignments():
             self.override(assignment)
         else:
-            get_override_group_for_change(AssignmentToQuib(self.quib, assignment)).apply()
-
-    def get_inversions_for_override_removal(self, override_removal: OverrideRemoval) -> List[OverrideRemoval]:
-        """
-        Get a list of overide removals to parent quibs which could be applied instead of the given override removal
-        and produce the same change in the value of this quib.
-        """
-        from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation_with_sources_metadata
-        func_call, sources_to_quibs = get_func_call_for_translation_with_sources_metadata(self.quib_function_call)
-        try:
-            sources_to_paths = backwards_translate(func_call=func_call,
-                                                   path=override_removal.path,
-                                                   shape=self.quib_function_call.get_shape(),
-                                                   type_=self.quib_function_call.get_type())
-        except NoTranslatorsFoundException:
-            return []
-        else:
-            return [OverrideRemoval(sources_to_quibs[source], path) for source, path in sources_to_paths.items()]
+            get_override_group_for_quib_change(AssignmentToQuib(self.quib, assignment)).apply()
 
     def get_inversions_for_assignment(self, assignment: Assignment) -> List[AssignmentToQuib]:
         """
@@ -1036,26 +995,17 @@ class Quib:
         >>> a.get_value()
         [1, 'new value', 3]
         """
-        from pyquibbler import default
 
         key = copy_and_replace_quibs_with_vals(key)
         value = copy_and_replace_quibs_with_vals(value)
         path = [] if key is NoValue else [PathComponent(component=key, indexed_cls=self.get_type())]
-        if value is default:
-            self.handler.remove_override(path)
-        else:
-            self.handler.apply_assignment(Assignment(path=path, value=value))
+        self.handler.apply_assignment(Assignment(value, path))
 
     def __setitem__(self, key, value):
-        from pyquibbler import default
-
         key = copy_and_replace_quibs_with_vals(key)
         value = copy_and_replace_quibs_with_vals(value)
         path = [PathComponent(component=key, indexed_cls=self.get_type())]
-        if value is default:
-            self.handler.remove_override(path)
-        else:
-            self.handler.apply_assignment(Assignment(value=value, path=path))
+        self.handler.apply_assignment(Assignment(value, path))
 
     @property
     def assigned_quibs(self) -> Union[None, Set[Quib, ...]]:

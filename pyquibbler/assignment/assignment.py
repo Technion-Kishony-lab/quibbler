@@ -1,8 +1,8 @@
 from __future__ import annotations
 import numpy as np
-from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any, TYPE_CHECKING, List
+from .default_value import default
 
 from .exceptions import CannotReverseException
 from pyquibbler.path.path_component import Path
@@ -14,8 +14,11 @@ if TYPE_CHECKING:
 @dataclass
 class Assignment:
     """
-    A change performed on a quib.
+    A change to be performed on a quib.
+
+    value=default indicates an assignment which sets the value back to default.
     """
+
     value: Any
     path: Path = field(default_factory=list)
 
@@ -25,34 +28,22 @@ class Assignment:
         # array_equal works for all objects, and our value and paths might contain ndarrays
         return np.array_equal(self.value, other.value) and np.array_equal(self.path, other.path)
 
+    def is_default(self) -> bool:
+        return self.value is default
+
+    @classmethod
+    def create_default(cls, path: Path):
+        return cls(default, path)
+
 
 @dataclass(frozen=True)
-class QuibChange(ABC):
+class AssignmentToQuib:
+    """
+    Assignment to a specific quib can either `apply` locally as override or inverted to a list of
+    assignments to upstream quibs.
+    """
     quib: Quib
-
-    @property
-    @abstractmethod
-    def path(self):
-        """
-        The path in which the quib is changed
-        """
-
-
-@dataclass(frozen=True)
-class QuibWithAssignment(QuibChange, ABC):
-    """
-    An assignment to be performed on a specific quib.
-    """
     assignment: Assignment
-
-    @property
-    def path(self):
-        return self.assignment.path
-
-
-class AssignmentToQuib(QuibWithAssignment):
-    def to_override(self) -> Override:
-        return Override(self.quib, self.assignment)
 
     def get_inversions(self, return_empty_list_instead_of_raising=False) -> List[AssignmentToQuib]:
         try:
@@ -62,7 +53,9 @@ class AssignmentToQuib(QuibWithAssignment):
                 return []
             raise
 
-
-class Override(QuibWithAssignment):
     def apply(self) -> None:
-        self.quib.handler.override(self.assignment, allow_overriding_from_now_on=False)
+        self.quib.handler.override(self.assignment)
+
+    @classmethod
+    def create_default(cls, quib: Quib, path: Path):
+        return cls(quib, Assignment.create_default(path))

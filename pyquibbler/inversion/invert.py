@@ -1,13 +1,13 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any, List
+from typing import Any, List
 
 from pyquibbler.function_definitions.func_definition import FuncDefinition
 from pyquibbler.inversion.exceptions import NoInvertersFoundException, FailedToInvertException
+from pyquibbler.path import deep_get
 from pyquibbler.translation.source_func_call import SourceFuncCall
 from pyquibbler.utilities.multiple_instance_runner import MultipleInstanceRunner
 
-if TYPE_CHECKING:
-    from pyquibbler import Assignment
+from pyquibbler import Assignment, default
 
 
 class MultipleInverterRunner(MultipleInstanceRunner):
@@ -36,8 +36,20 @@ def invert(func_call: SourceFuncCall, assignment: Assignment, previous_result):
     """
     Get all the inversions for a given assignment on the result of a funccall
     """
-    inversals = MultipleInverterRunner(func_call, assignment, previous_result).run()
+
+    is_default = assignment.is_default()
+    if is_default:
+        actual_assignment = Assignment(value=deep_get(previous_result, assignment.path),
+                                       path=assignment.path)
+    else:
+        actual_assignment = assignment
+
+    inversals = MultipleInverterRunner(func_call, actual_assignment, previous_result).run()
+
     for inversal in inversals:
-        inversal.cast_assigned_value_by_source_value()
+        if is_default:
+            inversal.assignment.value = default
+        else:
+            inversal.cast_assigned_value_by_source_value()
 
     return inversals
