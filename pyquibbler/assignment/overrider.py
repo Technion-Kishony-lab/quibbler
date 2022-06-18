@@ -1,6 +1,7 @@
 import copy
 import pathlib
 import pickle
+import contextlib
 
 import numpy as np
 from typing import Any, Optional, Dict, Hashable, List
@@ -15,6 +16,20 @@ from ..path.data_accessing import deep_get, deep_assign_data_in_path
 from .default_value import default
 
 from pyquibbler.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
+
+
+WITHIN_LOADING_ASSIGNMENTS = False
+
+
+def is_within_loading_assignments():
+    return WITHIN_LOADING_ASSIGNMENTS
+
+
+@contextlib.contextmanager
+def loading_assignments():
+    WITHIN_LOADING_ASSIGNMENTS = True
+    yield
+    WITHIN_LOADING_ASSIGNMENTS = False
 
 
 PathsToAssignments = Dict[Hashable, Assignment]
@@ -52,6 +67,8 @@ class Overrider:
         """
         Adds an override to the overrider - data[key] = value.
         """
+        if assignment.is_default() and len(self) == 0 and not is_within_loading_assignments():
+            return
         assignment_without_indexed_cls = copy.deepcopy(assignment)
         for component in assignment_without_indexed_cls.path:
             component.indexed_cls = None
@@ -172,7 +189,7 @@ class Overrider:
             quib = iquib(None)
         try:
             from pyquibbler import Project
-            with Project.get_or_create().stop_recording_undos():
+            with Project.get_or_create().stop_recording_undos(), loading_assignments():
                 exec(assignment_text, {
                     'array': np.array,
                     'quib': quib,

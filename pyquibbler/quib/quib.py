@@ -10,6 +10,7 @@ import warnings
 import json_tricks
 import numpy as np
 
+from pyquibbler.assignment.overrider import is_within_loading_assignments
 from pyquibbler.function_definitions import get_definition_for_function, FuncArgsKwargs
 from pyquibbler.quib.types import FileAndLineNumber
 from pyquibbler.utilities.file_path import PathWithHyperLink
@@ -343,10 +344,7 @@ class QuibHandler:
         """
         Apply an assignment to the quib locally or as inverse assignment to upstream quibs.
         """
-        # TODO: it is necessary to immediately override iquibs because of how we handle "text" file loading- we need
-        #  to not go through the normal flow because get_value will potentially fail as the quib in the `exec` statement
-        #  is `None`
-        if self.quib.is_iquib:
+        if is_within_loading_assignments():
             self.override(assignment)
         else:
             get_override_group_for_quib_change(AssignmentToQuib(self.quib, assignment)).apply()
