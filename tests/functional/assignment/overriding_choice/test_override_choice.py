@@ -4,9 +4,8 @@ from unittest.mock import Mock
 from pytest import raises, fixture, mark
 
 from pyquibbler import iquib, q, Assignment, default
-from pyquibbler.assignment import AssignmentToQuib, Override
-from pyquibbler.assignment import get_override_group_for_change, OverrideChoice, OverrideGroup, \
-    OverrideRemoval
+from pyquibbler.assignment import AssignmentToQuib
+from pyquibbler.assignment import get_override_group_for_change, OverrideChoice, OverrideGroup
 from pyquibbler.assignment import OverrideOptionsTree, \
     CannotChangeQuibAtPathException
 from pyquibbler.assignment import OverrideChoiceType, \
@@ -21,7 +20,7 @@ from pyquibbler.quib.specialized_functions.proxy import create_proxy
 
 def get_overrides_for_assignment(quib, assignment: Assignment):
     if assignment.value is default:
-        return get_override_group_for_change(OverrideRemoval(quib, assignment.path))
+        return get_override_group_for_change(AssignmentToQuib.create_default(quib, assignment.path))
     else:
         return get_override_group_for_change(AssignmentToQuib(quib, assignment))
 
@@ -98,10 +97,10 @@ def parent_and_child(assignment):
     add = 1
     parent = iquib(1)
     child: Quib = parent + add
-    child_override = OverrideGroup([Override(child, assignment)])
+    child_override = OverrideGroup([AssignmentToQuib(child, assignment)])
 
-    parent_override = OverrideGroup([Override(parent, Assignment(assignment.value - add, [])),
-                                     OverrideRemoval(child, [])])
+    parent_override = OverrideGroup([AssignmentToQuib(parent, Assignment(assignment.value - add, [])),
+                                     AssignmentToQuib.create_default(child, [])])
     return parent, child, parent_override, child_override
 
 
@@ -152,7 +151,7 @@ def test_get_overrides_for_assignment_on_iquib(assignment):
 
     override_group = get_overrides_for_assignment(quib, assignment)
 
-    assert override_group == OverrideGroup([Override(quib, assignment)])
+    assert override_group == OverrideGroup([AssignmentToQuib(quib, assignment)])
 
 
 def test_get_overrides_for_default_assignment_on_iquib(default_assignment):
@@ -160,7 +159,7 @@ def test_get_overrides_for_default_assignment_on_iquib(default_assignment):
 
     override_group = get_overrides_for_assignment(quib, default_assignment)
 
-    assert override_group == OverrideGroup([OverrideRemoval(quib, default_assignment.path)])
+    assert override_group == OverrideGroup([AssignmentToQuib(quib, Assignment.create_default(default_assignment.path))])
 
 
 def test_get_overrides_for_assignment_on_quib_without_overridable_parents(assignment, parent_and_child):
@@ -186,7 +185,8 @@ def test_get_overrides_for_default_assignment_on_non_overridable_quib_with_overr
 
     override_group = get_overrides_for_assignment(child, default_assignment)
 
-    assert override_group == OverrideGroup([OverrideRemoval(parent, default_assignment.path), OverrideRemoval(child, default_assignment.path)])
+    assert override_group == OverrideGroup([AssignmentToQuib.create_default(parent, default_assignment.path),
+                                            AssignmentToQuib.create_default(child, default_assignment.path)])
 
 
 @mark.parametrize('parent_chosen', [True, False])
@@ -240,8 +240,8 @@ def test_override_choice_when_diverged_and_all_diverged_inversions_are_overridde
                                                                     path=[PathComponent(component=(None, None, None),
                                                                                         indexed_cls=np.ndarray)]))
 
-    assert len([o for o in override_group.quib_changes if isinstance(o, Override)]) == 2
-    assert len([o for o in override_group.quib_changes if isinstance(o, OverrideRemoval)]) == 3
+    assert len([o for o in override_group.quib_changes if not o.assignment.is_default()]) == 2
+    assert len([o for o in override_group.quib_changes if o.assignment.is_default()]) == 3
 
 
 def create_proxy_created_in_context(quib):
@@ -324,7 +324,7 @@ def test_get_overrides_for_assignment_does_not_use_cache_when_diverge_changes(di
     assignment2 = Assignment([999, 444], assignment_to_multiple.path)
     override_group = get_overrides_for_assignment(child, assignment2)
 
-    assert override_group == OverrideGroup([Override(child, assignment2)])
+    assert override_group == OverrideGroup([AssignmentToQuib(child, assignment2)])
 
 
 def test_get_overrides_for_assignment_does_not_use_cache_when_options_change(assignment, parent_and_child,
@@ -341,7 +341,7 @@ def test_get_overrides_for_assignment_does_not_use_cache_when_options_change(ass
     assignment2 = Assignment(assignment.value + 1, assignment.path)
     second_override_group = get_overrides_for_assignment(child, assignment2)
 
-    assert second_override_group == OverrideGroup([Override(child, assignment2)])
+    assert second_override_group == OverrideGroup([AssignmentToQuib(child, assignment2)])
 
 
 def test_get_overrides_for_assignment_when_can_assign_to_self(diverged_quib_graph, assignment_to_multiple):
@@ -352,7 +352,7 @@ def test_get_overrides_for_assignment_when_can_assign_to_self(diverged_quib_grap
     assignment = AssignmentToQuib(child, assignment_to_multiple)
     override_group = get_override_group_for_change(assignment)
 
-    assert override_group.quib_changes == [assignment.to_override()]
+    assert override_group.quib_changes == [assignment]
 
 
 def test_get_overrides_for_assignment_when_can_assign_to_parents(diverged_quib_graph, assignment_to_multiple):
@@ -382,4 +382,4 @@ def test_get_override_group_on_context_quibs():
         child.allow_overriding = True
 
     override_group = get_override_group_for_change(AssignmentToQuib(child, Assignment(2, [])))
-    assert override_group.quib_changes == [Override(non_context_parent, Assignment(1, []))]
+    assert override_group.quib_changes == [AssignmentToQuib(non_context_parent, Assignment(1, []))]

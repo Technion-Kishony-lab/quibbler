@@ -6,7 +6,7 @@ from pyquibbler.assignment.override_choice import get_overrides_for_quib_change_
 from pyquibbler.path import PathComponent
 from pyquibbler.assignment import AssignmentToQuib, Assignment
 from .graphics_inverse_assigner import graphics_inverse_assigner
-from pyquibbler.assignment import OverrideRemoval, OverrideGroup
+from pyquibbler.assignment import OverrideGroup
 
 from numpy import unravel_index
 
@@ -95,7 +95,7 @@ def get_override_removals_for_event(args: List[Any], arg_indices: List[int], art
     Assign data for an axes (x or y) to all relevant quib args
     """
     quibs_to_paths = get_quibs_to_paths_affected_by_event(args, arg_indices, artist_index, data_indices)
-    return [OverrideRemoval(quib, path)
+    return [AssignmentToQuib(quib, Assignment.create_default(path))
             for quib, paths in quibs_to_paths.items() for path in paths]
 
 

@@ -2,46 +2,17 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import List, Union
 
-from pyquibbler.assignment import AssignmentToQuib, QuibChange, CannotReverseException
-from pyquibbler.path.path_component import Path
-from pyquibbler.assignment import Override
+from pyquibbler.assignment import AssignmentToQuib
 
 
 @dataclass
 class QuibChangeWithOverrideRemovals:
-    change: QuibChange
-    override_removals: List[OverrideRemoval]
+    change: AssignmentToQuib
+    override_removals: List[AssignmentToQuib]
 
     @property
     def quib(self):
         return self.change.quib
-
-
-@dataclass(frozen=True)
-class OverrideRemoval(QuibChange):
-    """
-    Removal of overrides in a specific path on a specific quib.
-    """
-    _path: Path
-
-    @property
-    def path(self):
-        return self._path
-
-    def apply(self):
-        self.quib.handler.remove_override(self.path)
-
-    @classmethod
-    def from_quib_change(cls, change: QuibChange):
-        return cls(change.quib, change.path)
-
-    def get_inversions(self, return_empty_list_instead_of_raising=False) -> List[OverrideRemoval]:
-        try:
-            return self.quib.handler.get_inversions_for_override_removal(self)
-        except CannotReverseException:
-            if return_empty_list_instead_of_raising:
-                return []
-            raise
 
 
 @dataclass
@@ -52,7 +23,7 @@ class OverrideGroup:
     we remove overrides in all the indices that lead to the chosen override,
     so the override will actually cause the desired effect on the upstream quib.
     """
-    quib_changes: List[Union[Override, OverrideRemoval]] = field(default_factory=list)
+    quib_changes: List[AssignmentToQuib] = field(default_factory=list)
 
     def apply(self):
         from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
@@ -60,13 +31,12 @@ class OverrideGroup:
         with Project.get_or_create().start_undo_group():
             with aggregate_redraw_mode():
                 for quib_change in self.quib_changes:
-                    assert not isinstance(quib_change, AssignmentToQuib)
                     quib_change.apply()
 
     def __bool__(self):
         return len(self.quib_changes) > 0
 
-    def extend(self, extension: Union[OverrideGroup, List[OverrideRemoval]]):
+    def extend(self, extension: Union[OverrideGroup, List[AssignmentToQuib]]):
         """
         Add quib changes from a list or another override group.
         """

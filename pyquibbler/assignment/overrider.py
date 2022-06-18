@@ -59,14 +59,6 @@ class Overrider:
         self._active_assignment = assignment_without_indexed_cls
         self._add_to_paths_to_assignments(assignment_without_indexed_cls)
 
-    def return_assignments_to_default(self, path: Path):
-        """
-        Remove function_definitions in a specific path.
-        """
-        assignment_to_default = Assignment(path=path, value=default)
-        self.add_assignment(assignment_to_default)
-        return assignment_to_default
-
     def pop_assignment_at_path(self, path: Path, raise_on_not_found: bool = True):
         hashable_path = get_hashable_path(path)
         if raise_on_not_found and hashable_path not in self._paths_to_assignments:

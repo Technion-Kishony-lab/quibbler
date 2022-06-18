@@ -3,12 +3,13 @@ from dataclasses import dataclass
 from typing import List, TYPE_CHECKING, Optional, Dict, ClassVar, Union
 
 from pyquibbler.exceptions import PyQuibblerException
-from pyquibbler.assignment import AssignmentToQuib, QuibChange
+from pyquibbler.assignment import AssignmentToQuib
 
 from .choice_context import ChoiceContext
 from .override_dialog import OverrideChoiceType, OverrideChoice
-from .types import OverrideRemoval, OverrideGroup, QuibChangeWithOverrideRemovals
+from .types import OverrideGroup, QuibChangeWithOverrideRemovals
 from pyquibbler.env import ASSIGNMENT_RESTRICTIONS
+from ..assignment import Assignment
 
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib
@@ -24,7 +25,7 @@ def is_assignment_allowed_from_quib_to_quib(from_quib, to_quib):
 
 @dataclass
 class CannotChangeQuibAtPathException(PyQuibblerException):
-    quib_change: QuibChange
+    quib_change: AssignmentToQuib
 
     def __str__(self):
         return f'Cannot perform {self.quib_change} on {self.quib_change.quib}, because it cannot ' \
@@ -59,7 +60,7 @@ class OverrideOptionsTree:
     options: List[QuibChangeWithOverrideRemovals]
     diverged_quib: Optional[Quib]
     children: List[OverrideOptionsTree]
-    override_removals: List[OverrideRemoval]
+    override_removals: List[AssignmentToQuib]
 
     def __post_init__(self):
         assert (len(self.children) > 0) is (self.diverged_quib is not None)
@@ -150,7 +151,7 @@ class OverrideOptionsTree:
         return children
 
     @classmethod
-    def _convert_quib_change_to_change_in_context_quib(cls, quib_change: Union[AssignmentToQuib, OverrideRemoval]):
+    def _convert_quib_change_to_change_in_context_quib(cls, quib_change: AssignmentToQuib):
         """
         Invert the given change until we get a change to a non-context quib.
         This is used to treat an assignment to a context-quib as an assignment to a non-context quib when building
@@ -177,7 +178,7 @@ class OverrideOptionsTree:
                           for new_inversion in inversion.get_inversions(True)]
 
     @classmethod
-    def from_quib_change(cls, quib_change: Union[AssignmentToQuib, OverrideRemoval],
+    def from_quib_change(cls, quib_change: AssignmentToQuib,
                          top_quib: Optional[Quib] = None) -> OverrideOptionsTree:
         """
         Build an OverrideOptionsTree representing all the override options for the given assignment.
@@ -192,9 +193,8 @@ class OverrideOptionsTree:
         while len(inversions) == 1:
             inversion = inversions[0]
             if inversion.quib.allow_overriding and is_assignment_allowed_from_quib_to_quib(top_quib, inversion.quib):
-                override = inversion.to_override() if isinstance(inversion, AssignmentToQuib) else inversion
-                options.append(QuibChangeWithOverrideRemovals(override, override_removals[:]))
-            override_removals.append(OverrideRemoval.from_quib_change(inversion))
+                options.append(QuibChangeWithOverrideRemovals(inversion, override_removals[:]))
+            override_removals.append(AssignmentToQuib.create_default(inversion.quib, inversion.assignment.path))
             inversions = inversion.get_inversions(True)
             if inversions:
                 last_inversion = inversion
@@ -204,7 +204,7 @@ class OverrideOptionsTree:
         return OverrideOptionsTree(quib_change.quib, options, diverged_quib, children, override_removals)
 
 
-def get_override_group_for_change(quib_change: Union[AssignmentToQuib, OverrideRemoval]) -> OverrideGroup:
+def get_override_group_for_change(quib_change: AssignmentToQuib) -> OverrideGroup:
     """
     Every assignment to a quib is translated at the end to a list of overrides to quibs in the graph.
     This function determines those overrides and returns them.
@@ -217,7 +217,7 @@ def get_override_group_for_change(quib_change: Union[AssignmentToQuib, OverrideR
     return options_tree.choose_overrides()
 
 
-def get_overrides_for_quib_change_group(quib_changes: List[Union[AssignmentToQuib, OverrideRemoval]]) -> OverrideGroup:
+def get_overrides_for_quib_change_group(quib_changes: List[AssignmentToQuib]) -> OverrideGroup:
     """
     Get all overrides for a group of assignments, filter them to leave out contradictory assignments
     (assignments that cause overrides in the same quibs) and return the remaining overrides.
