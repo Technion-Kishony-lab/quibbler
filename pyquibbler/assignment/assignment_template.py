@@ -71,8 +71,12 @@ class AssignmentTemplate(ABC):
         pass
 
     def _convert_and_cast_number(self, data):
-        if not isinstance(data, (np.ndarray, int, float)):
+        try:
+            if not (isinstance(data, (np.ndarray, int, float)) or np.issubdtype(data, np.number)):
+                raise InvalidTypeException(type(data))
+        except TypeError:
             raise InvalidTypeException(type(data))
+
         data = self._convert_number(data)
         if isinstance(data, np.ndarray):
             casted_data = np.ndarray.astype(data, self._get_number_type())
