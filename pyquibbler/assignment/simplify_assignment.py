@@ -89,7 +89,6 @@ class AssignmentSimplifier:
                 sub_component = np.array(sub_component)
             if not isinstance(sub_component, np.ndarray):
                 continue
-            print(sub_component)
             if sub_component.dtype.type is np.bool_ \
                     and np.shape(sub_component) == (np.shape(self.last_data)[axis], ):
                 if np.sum(sub_component) == 1:

@@ -338,7 +338,7 @@ class QuibHandler:
 
             AssignmentSimplifier(assignment, self.get_value_valid_at_path(None)).simplify()
 
-            if self.assignment_template is not None:
+            if self.assignment_template is not None and not assignment.is_default():
                 assignment.value = self.assignment_template.convert(assignment.value)
 
         self._add_override(assignment)
