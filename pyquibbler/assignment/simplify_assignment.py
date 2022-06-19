@@ -7,14 +7,17 @@ from .assignment import Assignment
 def is_scalar(data) -> bool:
     return not isinstance(data, (list, tuple, np.ndarray))
 
+
 def is_array_of_size_one(data) -> bool:
     return isinstance(data, np.ndarray) and data.size == 1 \
            or isinstance(data, list) and len(data) == 1
+
 
 def convert_array_of_size_one_to_scalar(data):
     if is_array_of_size_one(data):
         return data[0]
     return data
+
 
 class AssignmentSimplifier:
 
