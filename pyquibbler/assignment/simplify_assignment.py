@@ -2,6 +2,7 @@ import numpy as np
 
 from typing import Any
 from .assignment import Assignment
+from .default_value import default
 
 
 def is_scalar(data) -> bool:
@@ -60,6 +61,18 @@ class AssignmentSimplifier:
         if len(self.path[0].component) == 1:
             self.path[0].component = self.path[0].component[0]
 
+    def _convert_value_to_match_array_dtype(self):
+        if not isinstance(self._data, np.ndarray):
+            return
+
+        if isinstance(self.value, np.ndarray):
+            self._assignment.value = np.array(self.value, dtype=self._data.dtype)
+        elif self.value is not default:
+            try:
+                self._assignment.value = self._data.dtype.type(self.value)
+            except ValueError:
+                pass
+
     def simplify(self) -> Assignment:
 
         path = self.path
@@ -70,6 +83,8 @@ class AssignmentSimplifier:
         self._make_first_component_tuple()
 
         self._simplify_assignment_of_array_with_size_one()
+
+        self._convert_value_to_match_array_dtype()
 
         self._convert_tuple_path_component_of_len_1_to_non_tuple()
 
