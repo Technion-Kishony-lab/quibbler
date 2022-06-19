@@ -258,11 +258,12 @@ class JupyterProject(Project):
         Note that we need to ensure this action can be "undone"
         """
         override_text = ""
-        if raw_override['left'] == 'quib':
-            override_text += f"quib.assign({raw_override['right']})"
+        left = raw_override['left']
+        right = raw_override['right']
+        if left == '' or left.isspace():
+            override_text += f"quib.assign({right})"
         else:
-            override_text += f"{raw_override['left']} = {raw_override['right']}"
-
+            override_text += f"quib[{left}] = {right}"
         overrider = Overrider()
         overrider.load_from_assignment_text(override_text)
         assignment = overrider[0]
