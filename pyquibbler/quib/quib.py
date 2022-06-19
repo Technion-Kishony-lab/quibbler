@@ -332,13 +332,14 @@ class QuibHandler:
         Overrides a part of the data the quib represents.
         """
 
-        if not self.is_overridden and assignment.is_default() and not is_within_loading_assignments():
-            return
+        if not is_within_loading_assignments():
+            if not self.is_overridden and assignment.is_default():
+                return
 
-        AssignmentSimplifier(assignment, self.get_value_valid_at_path(None)).simplify()
+            AssignmentSimplifier(assignment, self.get_value_valid_at_path(None)).simplify()
 
-        if self.assignment_template is not None:
-            assignment.value = self.assignment_template.convert(assignment.value)
+            if self.assignment_template is not None:
+                assignment.value = self.assignment_template.convert(assignment.value)
 
         self._add_override(assignment)
 
