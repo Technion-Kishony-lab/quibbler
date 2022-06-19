@@ -2,20 +2,21 @@ import numpy as np
 
 from typing import Any
 from .assignment import Assignment
+from .default_value import default
+from ..path import Path, PathComponent, deep_get
 
 
-def is_scalar(data) -> bool:
-    return not isinstance(data, (list, tuple, np.ndarray))
+def is_scalar_integer(data) -> bool:
+    return isinstance(data, (int, np.int32, np.int64))
 
 
 def is_array_of_size_one(data) -> bool:
-    return isinstance(data, np.ndarray) and data.size == 1 \
-           or isinstance(data, list) and len(data) == 1
+    return isinstance(data, (np.ndarray, list)) and np.size(data) == 1
 
 
 def convert_array_of_size_one_to_scalar(data):
-    if is_array_of_size_one(data):
-        return data[0]
+    while is_array_of_size_one(data):
+        data = data[0]
     return data
 
 
@@ -29,47 +30,90 @@ class AssignmentSimplifier:
         return self._assignment
 
     @property
-    def path(self):
+    def path(self) -> Path:
         return self._assignment.path
+
+    @property
+    def last_component(self) -> PathComponent:
+        return self._assignment.path[-1]
+
+    @property
+    def last_data(self) -> Any:
+        return deep_get(self._data, self.path[:-1])
 
     @property
     def value(self):
         return self._assignment.value
 
-    def _make_first_component_tuple(self):
-        if not isinstance(self.path[0].component, tuple):
-            self.path[0].component = (self.path[0].component,)
+    def _make_last_component_tuple(self):
+        if not isinstance(self.last_component.component, tuple):
+            self.last_component.component = (self.last_component.component,)
 
     def _simplify_assignment_of_array_with_size_one(self):
-        if len(self.path) != 1:
+        if not all(is_array_of_size_one(index) or is_scalar_integer(index) for index in self.last_component.component):
             return
 
-        if len(self.path[0].component) != np.ndim(self._data):
+        if not (is_array_of_size_one(self.value) or is_scalar_integer(self.value)):
             return
 
-        if not all(is_array_of_size_one(index) or is_scalar(index) for index in self.path[0].component):
-            return
-
-        if not (is_array_of_size_one(self.value) or is_scalar(self.value)):
-            return
-
-        self.path[0].component = tuple(convert_array_of_size_one_to_scalar(index) for index in self.path[0].component)
+        self.last_component.component = \
+            tuple(convert_array_of_size_one_to_scalar(index) for index in self.last_component.component)
         self._assignment.value = convert_array_of_size_one_to_scalar(self._assignment.value)
 
     def _convert_tuple_path_component_of_len_1_to_non_tuple(self):
-        if len(self.path[0].component) == 1:
-            self.path[0].component = self.path[0].component[0]
+        if len(self.last_component.component) == 1:
+            self.last_component.component = self.last_component.component[0]
+
+    def _convert_value_to_match_array_dtype(self):
+        if not isinstance(self.last_data, np.ndarray):
+            return
+
+        if isinstance(self.value, np.ndarray):
+            self._assignment.value = np.array(self.value, dtype=self.last_data.dtype)
+        elif self.value is not default:
+            try:
+                self._assignment.value = self._data.dtype.type(self.value)
+            except ValueError:
+                pass
+
+    def _convert_value_to_list(self):
+        if not (isinstance(self.last_data, np.ndarray) and isinstance(self._assignment.value, np.ndarray)):
+            return
+
+        self._assignment.value = self._assignment.value.tolist()
+
+    def _convert_bool_indexing(self):
+        new_last_component = list(self.last_component.component)
+        for axis, sub_component in enumerate(self.last_component.component):
+            if isinstance(sub_component, list):
+                sub_component = np.array(sub_component)
+            if not isinstance(sub_component, np.ndarray):
+                continue
+            print(sub_component)
+            if sub_component.dtype.type is np.bool_ \
+                    and np.shape(sub_component) == (np.shape(self.last_data)[axis], ):
+                if np.sum(sub_component) == 1:
+                    new_last_component[axis] = np.where(sub_component)[0].tolist()
+                elif np.all(sub_component):
+                    new_last_component[axis] = slice(None, None, None)
+        self.last_component.component = tuple(new_last_component)
 
     def simplify(self) -> Assignment:
-
-        path = self.path
-
-        if len(path) == 0:
+        if len(self.path) == 0 or not isinstance(self.last_data, (np.ndarray, list)) \
+                or isinstance(self.last_component.component, str):
             return self._assignment
 
-        self._make_first_component_tuple()
+        self._make_last_component_tuple()
 
-        self._simplify_assignment_of_array_with_size_one()
+        if len(self.last_component.component) == np.ndim(self.last_data):
+
+            self._convert_bool_indexing()
+
+            self._convert_value_to_match_array_dtype()
+
+            self._convert_value_to_list()
+
+            self._simplify_assignment_of_array_with_size_one()
 
         self._convert_tuple_path_component_of_len_1_to_non_tuple()
 

@@ -1,15 +1,11 @@
 import numpy as np
 import pytest
 from pytest import fixture
+from copy import deepcopy
 
 from pyquibbler.assignment import Assignment, AssignmentSimplifier
 from pyquibbler.path import deep_assign_data_in_path
 from pyquibbler.path.path_component import Path, PathComponent
-
-
-@fixture
-def assignment_simplifier():
-    return AssignmentSimplifier()
 
 
 def is_path_simple(path: Path):
@@ -30,6 +26,7 @@ def is_path_simple(path: Path):
     (100, (np.array([2]), [3]), np.arange(12).reshape(3, 4), True),
     (np.array([100]), (np.array([2]), [3]), np.arange(12).reshape(3, 4), True),
     ([100], (np.array([2]), [3]), np.arange(12).reshape(3, 4), True),
+    ([100], ([False, True, False], [False, False, True, False]), np.arange(12).reshape(3, 4), True),
 ], ids=[
     "not single value",
     "single value",
@@ -37,10 +34,11 @@ def is_path_simple(path: Path):
     "two-dimensional with ndarray",
     "simplify assigned_value",
     "simplify assigned_value list",
+    "bool indexing"
 ])
 def test(assigned_value, assigned_path, data, should_simplify):
     assignment = Assignment(assigned_value, [PathComponent(np.ndarray, assigned_path)])
-    simplied_assignment = AssignmentSimplifier(assignment, data).simplify()
+    simplied_assignment = AssignmentSimplifier(deepcopy(assignment), data).simplify()
 
     data_original_assignment = deep_assign_data_in_path(data, assignment.path, assignment.value)
     data_simplified_assignment = deep_assign_data_in_path(data, simplied_assignment.path, simplied_assignment.value)
