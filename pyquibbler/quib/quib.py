@@ -49,8 +49,7 @@ from pyquibbler.cache import create_cache, CacheStatus
 from pyquibbler.file_syncing import SaveFormat, SAVE_FORMAT_TO_FILE_EXT, CannotSaveFunctionQuibsAsValueException, \
     ResponseToFileNotDefined, FileNotDefinedException, QuibFileSyncer, SAVE_FORMAT_TO_FQUIB_SAVE_FORMAT, \
     FIRST_LINE_OF_FORMATTED_TXT_FILE
-from pyquibbler.quib.get_value_context_manager import get_value_context, is_within_get_value_context, \
-    IS_WITHIN_GET_VALUE_CONTEXT
+from pyquibbler.quib.get_value_context_manager import get_value_context, is_within_get_value_context
 
 if TYPE_CHECKING:
     from pyquibbler.function_definitions.func_definition import FuncDefinition
@@ -505,7 +504,7 @@ class QuibHandler:
             SaveFormat.BIN: self.overrider.load_from_binary,
             SaveFormat.TXT: self.overrider.load_from_txt}[self.actual_save_format](file_path)
         self.project.clear_undo_and_redo_stacks()
-        if not IS_WITHIN_GET_VALUE_CONTEXT:
+        if not is_within_get_value_context():
             for path in changed_paths:
                 self.invalidate_and_redraw_at_path(path)
 
