@@ -102,15 +102,12 @@ class Overrider:
         with timer("quib_overriding"):
             data = deep_copy_without_quibs_or_graphics(data)
             for assignment in self._paths_to_assignments.values():
-                if assignment.value is default:
+                if assignment.is_default():
                     value = deep_get(original_data, assignment.path)
-                    path = assignment.path
                 else:
-                    value = assignment.value if assignment_template is None \
-                        else assignment_template.convert(assignment.value)
-                    path = assignment.path
+                    value = assignment.value
                 with external_call_failed_exception_handling():
-                    data = deep_assign_data_in_path(data, path, value,
+                    data = deep_assign_data_in_path(data, assignment.path, value,
                                                     raise_on_failure=assignment == self._active_assignment)
 
         self._active_assignment = None

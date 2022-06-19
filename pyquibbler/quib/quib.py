@@ -11,6 +11,7 @@ import json_tricks
 import numpy as np
 
 from pyquibbler.assignment.overrider import is_within_loading_assignments
+from pyquibbler.assignment.simplify_assignment import AssignmentSimplifier
 from pyquibbler.function_definitions import get_definition_for_function, FuncArgsKwargs
 from pyquibbler.quib.types import FileAndLineNumber
 from pyquibbler.utilities.file_path import PathWithHyperLink
@@ -331,8 +332,14 @@ class QuibHandler:
         Overrides a part of the data the quib represents.
         """
 
-        if not self.is_overridden and assignment.is_default() and not is_within_loading_assignments():
-            return
+        if not is_within_loading_assignments():
+            if not self.is_overridden and assignment.is_default():
+                return
+
+            AssignmentSimplifier(assignment, self.get_value_valid_at_path(None)).simplify()
+
+            if self.assignment_template is not None:
+                assignment.value = self.assignment_template.convert(assignment.value)
 
         self._add_override(assignment)
 

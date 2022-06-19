@@ -19,10 +19,8 @@ def test_quib_must_assign_bool_to_overriding(quib):
 def test_quib_fails_when_not_matching_assignment_template():
     quib = create_quib(mock.Mock(return_value=[1, 2, 3]), allow_overriding=True)
     quib.set_assignment_template(1, 3)
-    quib.assign("hello johnny", 2)
-
     with pytest.raises(InvalidTypeException):
-        quib.get_value()
+        quib.assign("hello johnny", 2)
 
 
 @pytest.mark.parametrize(['args', 'expected_template'], [

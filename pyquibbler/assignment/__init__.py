@@ -7,3 +7,4 @@ from .exceptions import CannotReverseException
 from .override_choice import get_override_group_for_quib_change, OverrideChoice, OverrideGroup, \
     override_dialog, AssignmentCancelledByUserException, OverrideOptionsTree, CannotChangeQuibAtPathException, \
     OverrideChoiceType
+from .simplify_assignment import AssignmentSimplifier
