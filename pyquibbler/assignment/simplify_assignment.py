@@ -45,30 +45,31 @@ class AssignmentSimplifier:
     def value(self):
         return self._assignment.value
 
-    def _make_first_component_tuple(self):
-        if not isinstance(self.path[0].component, tuple):
-            self.path[0].component = (self.path[0].component,)
+    def _make_last_component_tuple(self):
+        if not isinstance(self.last_component.component, tuple):
+            self.last_component.component = (self.last_component.component,)
 
     def _simplify_assignment_of_array_with_size_one(self):
-        if not all(is_array_of_size_one(index) or is_scalar_integer(index) for index in self.path[0].component):
+        if not all(is_array_of_size_one(index) or is_scalar_integer(index) for index in self.last_component.component):
             return
 
         if not (is_array_of_size_one(self.value) or is_scalar_integer(self.value)):
             return
 
-        self.path[0].component = tuple(convert_array_of_size_one_to_scalar(index) for index in self.path[0].component)
+        self.last_component.component = \
+            tuple(convert_array_of_size_one_to_scalar(index) for index in self.last_component.component)
         self._assignment.value = convert_array_of_size_one_to_scalar(self._assignment.value)
 
     def _convert_tuple_path_component_of_len_1_to_non_tuple(self):
-        if len(self.path[0].component) == 1:
-            self.path[0].component = self.path[0].component[0]
+        if len(self.last_component.component) == 1:
+            self.last_component.component = self.last_component.component[0]
 
     def _convert_value_to_match_array_dtype(self):
         if not isinstance(self.last_data, np.ndarray):
             return
 
         if isinstance(self.value, np.ndarray):
-            self._assignment.value = np.array(self.value, dtype=self._data.dtype)
+            self._assignment.value = np.array(self.value, dtype=self.last_data.dtype)
         elif self.value is not default:
             try:
                 self._assignment.value = self._data.dtype.type(self.value)
@@ -76,7 +77,7 @@ class AssignmentSimplifier:
                 pass
 
     def _convert_value_to_list(self):
-        if not isinstance(self.last_data, np.ndarray):
+        if not (isinstance(self.last_data, np.ndarray) and isinstance(self._assignment.value, np.ndarray)):
             return
 
         self._assignment.value = self._assignment.value.tolist()
@@ -98,10 +99,11 @@ class AssignmentSimplifier:
         self.last_component.component = tuple(new_last_component)
 
     def simplify(self) -> Assignment:
-        if len(self.path) == 0 or not isinstance(self.last_data, (np.ndarray, list)):
+        if len(self.path) == 0 or not isinstance(self.last_data, (np.ndarray, list)) \
+                or isinstance(self.last_component.component, str):
             return self._assignment
 
-        self._make_first_component_tuple()
+        self._make_last_component_tuple()
 
         if len(self.last_component.component) == np.ndim(self.last_data):
 
