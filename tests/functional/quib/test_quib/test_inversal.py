@@ -118,6 +118,16 @@ def test_inverse_with_int_as_result_of_function_quib_after_slicing(create_quib_w
     assert np.array_equal(a.get_value(), np.array([3, 2, 3]))
 
 
+def test_inversion_create_nice_looking_assignments(create_quib_with_return_value):
+    a = create_quib_with_return_value(np.array([1, 2, 3]), allow_overriding=True)
+    b = a[0:1]
+    c = b[0]
+
+    c.assign(3)
+
+    assert str(a.get_override_list()) == 'quib[0] = 3'
+
+
 def test_invert_elementwise_operator(create_quib_with_return_value):
     a = create_quib_with_return_value(np.array([1, 2, 3]), allow_overriding=True)
     b = create_quib_with_return_value(np.array([1, 2, 3]))
