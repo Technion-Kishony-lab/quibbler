@@ -1,16 +1,16 @@
 import copy
+import dataclasses
 import pathlib
 import pickle
-import contextlib
+import re
 
 import numpy as np
 from typing import Any, Optional, Dict, Hashable, List
 
 from .assignment import Assignment
 from .exceptions import NoAssignmentFoundAtPathException
-from ..env import GET_VARIABLE_NAMES
 from ..path.hashable import get_hashable_path
-from pyquibbler.path.path_component import Path, Paths
+from pyquibbler.path.path_component import Path, Paths, PathComponent
 from .assignment_template import AssignmentTemplate
 from ..path.data_accessing import deep_get, deep_assign_data_in_path
 from .default_value import default
@@ -18,19 +18,18 @@ from .default_value import default
 from pyquibbler.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
 
 
-WITHIN_LOADING_ASSIGNMENTS = False
+@dataclasses.dataclass
+class GetReference:
+    reference_index: list = dataclasses.field(default_factory=list)
+
+    def __getitem__(self, idx):
+        self.reference_index.append(idx)
+        return self
 
 
-def is_within_loading_assignments():
-    return WITHIN_LOADING_ASSIGNMENTS
-
-
-@contextlib.contextmanager
-def loading_assignments():
-    global WITHIN_LOADING_ASSIGNMENTS
-    WITHIN_LOADING_ASSIGNMENTS = True
-    yield
-    WITHIN_LOADING_ASSIGNMENTS = False
+def parse_getitem_reference(text: str):
+    get_reference = eval(f"GetReference(){text}", {'array': np.array, 'GetReference': GetReference})
+    return get_reference.reference_index
 
 
 PathsToAssignments = Dict[Hashable, Assignment]
@@ -177,23 +176,26 @@ class Overrider:
             f.write(self.pretty_repr())
 
     def load_from_assignment_text(self, assignment_text: str):
-        from pyquibbler import iquib
-        from ..quib.exceptions import CannotLoadAssignmentsFromTextException
-        # TODO: We are using exec. This is very simple, but obviously highly risky.
-        #  Will be good to replace with a dedicated parser.
-        with GET_VARIABLE_NAMES.temporary_set(False):
-            quib = iquib(None)
+        self.clear_assignments()
         try:
-            from pyquibbler import Project
-            with Project.get_or_create().stop_recording_undos(), loading_assignments():
-                exec(assignment_text, {
-                    'array': np.array,
-                    'quib': quib,
-                    'default': default,
-                })
+            lines = assignment_text.split('\n')
+            for line in lines:
+                assert line.startswith('quib')
+                if ' = ' in line:
+                    left, value_text = line.split(' = ', 1)
+                    left = left[4:]  # remove 'quib'
+                    path = [PathComponent(None, component) for component in parse_getitem_reference(left)]
+                else:
+                    value_text = re.match(r".*\((.*?)\)", line).groups()[0]
+                    path = []
+
+                value = eval(value_text, {'array': np.array, 'default': default})
+                self.add_assignment(Assignment(value=value, path=path))
+
         except Exception:
+            from ..quib.exceptions import CannotLoadAssignmentsFromTextException
             raise CannotLoadAssignmentsFromTextException(assignment_text) from None
-        return self.replace_assignments(quib.handler.overrider._paths_to_assignments)
+        return [[]]
 
     def load_from_txt(self, file: pathlib.Path):
         """
