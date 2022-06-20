@@ -263,7 +263,7 @@ class JupyterProject(Project):
         if left == '' or left.isspace():
             override_text += f"quib.assign({right})"
         else:
-            override_text += f"quib[{left}] = {right}"
+            override_text += f"quib{left} = {right}"
         overrider = Overrider()
         overrider.load_from_assignment_text(override_text)
         assignment = overrider[0]

@@ -28,10 +28,9 @@ def is_within_jupyter_lab():
 
 def create_raw_override_from_override_line(line: str):
     if ' = ' in line:
-        left, right = line.split(" = ")
-        assert left.startswith('quib[')
-        assert left.endswith(']')
-        left = left[5:-1]
+        left, right = line.split(" = ", 1)
+        assert left.startswith('quib')
+        left = left[4:]
     else:
         left = ''
         right = re.match(r".*\((.*?)\)", line).groups()[0]
