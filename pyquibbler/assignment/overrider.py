@@ -1,4 +1,5 @@
 import copy
+import dataclasses
 import pathlib
 import pickle
 import re
@@ -17,25 +18,18 @@ from .default_value import default
 from pyquibbler.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
 
 
-class getslice:
+@dataclasses.dataclass
+class GetReference:
+    reference_index: list = dataclasses.field(default_factory=list)
+
     def __getitem__(self, idx):
-        return idx
+        self.reference_index.append(idx)
+        return self
 
 
 def parse_getitem_reference(text: str):
-    return eval(f"getslice()[{text}]", {'array': np.array, 'getslice': getslice})
-
-
-def first_level_parenthesis(string):
-    """Find all first-level [] parenthesized contents in string."""
-    stack = []
-    for i, c in enumerate(string):
-        if c == '[':
-            stack.append(i)
-        elif c == ']' and stack:
-            start = stack.pop()
-            if len(stack) == 0:
-                yield string[start + 1: i]
+    get_reference = eval(f"GetReference(){text}", {'array': np.array, 'GetReference': GetReference})
+    return get_reference.reference_index
 
 
 PathsToAssignments = Dict[Hashable, Assignment]
@@ -182,8 +176,6 @@ class Overrider:
             f.write(self.pretty_repr())
 
     def load_from_assignment_text(self, assignment_text: str):
-        from ..quib.exceptions import CannotLoadAssignmentsFromTextException
-
         self.clear_assignments()
         try:
             lines = assignment_text.split('\n')
@@ -191,8 +183,8 @@ class Overrider:
                 assert line.startswith('quib')
                 if ' = ' in line:
                     left, value_text = line.split(' = ', 1)
-                    path = [PathComponent(None, parse_getitem_reference(text_component))
-                            for text_component in first_level_parenthesis(left)]
+                    left = left[4:]  # remove 'quib'
+                    path = [PathComponent(None, component) for component in parse_getitem_reference(left)]
                 else:
                     value_text = re.match(r".*\((.*?)\)", line).groups()[0]
                     path = []
@@ -201,6 +193,7 @@ class Overrider:
                 self.add_assignment(Assignment(value=value, path=path))
 
         except Exception:
+            from ..quib.exceptions import CannotLoadAssignmentsFromTextException
             raise CannotLoadAssignmentsFromTextException(assignment_text) from None
         return [[]]
 
