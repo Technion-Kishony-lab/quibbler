@@ -102,3 +102,10 @@ def test_overrider_loads_multi_level_assignment_from_text():
     overrider = Overrider()
     overrider.load_from_assignment_text(assignment_text='quib[2][1] = default')
     assert overrider[0] == Assignment.create_default([PathComponent(None, 2), PathComponent(None, 1)])
+
+
+def test_overrider_loads_multi_level_nested_parenthesis_assignment_from_text():
+    overrider = Overrider()
+    overrider.load_from_assignment_text(assignment_text='quib[array([2])][[1, 2, 3], 5] = 23')
+    print(overrider[0])
+    assert overrider[0] == Assignment(value=23, path=[PathComponent(None, np.array([2])), PathComponent(None, ([1, 2, 3], 5))])
