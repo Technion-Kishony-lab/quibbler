@@ -96,3 +96,9 @@ def test_overrider_loads_default_assignment_from_text():
     overrider = Overrider()
     overrider.load_from_assignment_text(assignment_text='quib[2] = default')
     assert overrider[0] == Assignment.create_default([PathComponent(None, 2)])
+
+
+def test_overrider_loads_multi_level_assignment_from_text():
+    overrider = Overrider()
+    overrider.load_from_assignment_text(assignment_text='quib[2][1] = default')
+    assert overrider[0] == Assignment.create_default([PathComponent(None, 2), PathComponent(None, 1)])
