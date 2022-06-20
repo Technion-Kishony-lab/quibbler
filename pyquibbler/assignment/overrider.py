@@ -8,7 +8,6 @@ from typing import Any, Optional, Dict, Hashable, List
 
 from .assignment import Assignment
 from .exceptions import NoAssignmentFoundAtPathException
-from ..env import GET_VARIABLE_NAMES
 from ..path.hashable import get_hashable_path
 from pyquibbler.path.path_component import Path, Paths, PathComponent
 from .assignment_template import AssignmentTemplate
