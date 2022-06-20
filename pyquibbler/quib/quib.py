@@ -10,7 +10,6 @@ import warnings
 import json_tricks
 import numpy as np
 
-from pyquibbler.assignment.overrider import is_within_loading_assignments
 from pyquibbler.assignment.simplify_assignment import AssignmentSimplifier
 from pyquibbler.function_definitions import get_definition_for_function, FuncArgsKwargs
 from pyquibbler.quib.types import FileAndLineNumber
@@ -331,14 +330,13 @@ class QuibHandler:
         Overrides a part of the data the quib represents.
         """
 
-        if not is_within_loading_assignments():
-            if not self.is_overridden and assignment.is_default():
-                return
+        if not self.is_overridden and assignment.is_default():
+            return
 
-            AssignmentSimplifier(assignment, self.get_value_valid_at_path(None)).simplify()
+        AssignmentSimplifier(assignment, self.get_value_valid_at_path(None)).simplify()
 
-            if self.assignment_template is not None and not assignment.is_default():
-                assignment.value = self.assignment_template.convert(assignment.value)
+        if self.assignment_template is not None and not assignment.is_default():
+            assignment.value = self.assignment_template.convert(assignment.value)
 
         self._add_override(assignment)
 
@@ -353,10 +351,7 @@ class QuibHandler:
         """
         Apply an assignment to the quib locally or as inverse assignment to upstream quibs.
         """
-        if is_within_loading_assignments():
-            self.override(assignment)
-        else:
-            get_override_group_for_quib_change(AssignmentToQuib(self.quib, assignment)).apply()
+        get_override_group_for_quib_change(AssignmentToQuib(self.quib, assignment)).apply()
 
     def get_inversions_for_assignment(self, assignment: Assignment) -> List[AssignmentToQuib]:
         """
