@@ -60,8 +60,6 @@ class JupyterProject(Project):
         def _func(*args, **kwargs):
             if self._should_save_load_within_notebook:
                 self._open_project_directory_from_notebook_zip()
-            elif self.directory is None or str(self.directory) == str(self._tmp_save_directory):
-                raise Exception("No directory has been set")
 
             # If we're already within another wrapped file system func, we don't want to save data into notebook
             # and send the data to the client for this func
@@ -125,7 +123,7 @@ class JupyterProject(Project):
             jupyter_notebook = json.load(f)
             b64_encoded_zip_content = jupyter_notebook['metadata'].get('quibs_archive')
             if b64_encoded_zip_content is not None:
-                logger.info("Quibs exist! Unziping quibs archive into directory...")
+                logger.info("Quibs exist! Unzipping quibs archive into directory...")
                 raw_bytes = base64.b64decode(b64_encoded_zip_content)
                 buffer = io.BytesIO(raw_bytes)
                 zipfile.ZipFile(buffer).extractall(self.directory)
@@ -250,6 +248,9 @@ class JupyterProject(Project):
         When `True`, all save/loads will be kept within the notebook itself
         When `False`, the project will save to whichever directory it is specified to, without saving into the notebook
         """
+        if self._should_save_load_within_notebook and not should_save_load_within_notebook:
+            self._directory = None
+
         self._should_save_load_within_notebook = should_save_load_within_notebook
 
     def _upsert_assignment(self, quib_id: int, index: int, raw_override: Dict):
