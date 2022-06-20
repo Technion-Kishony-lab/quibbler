@@ -159,10 +159,10 @@ class FileSyncer(ABC):
                                   code_letter != code_letter.capitalize())
 
     @classmethod
-    def _get_load_action_verification(cls, file_change: FileComparison, is_synced: bool, need_file: bool) \
+    def _get_load_action_verification(cls, file_change: FileComparison, is_synced: bool, has_data: bool) \
             -> ActionVerification:
         code_letter = cls.FILECOMPARISON_TO_SAVE_LOAD_LETTERCODES[file_change][
-            1 + (1 - is_synced) * 4 + (1 - need_file) * 2]
+            1 + (1 - is_synced) * 4 + (1 - has_data) * 2]
         return ActionVerification(*cls.LOAD_LETTERCODE_TO_ACTION_BUTTON_QUESTION[code_letter.capitalize()],
                                   code_letter != code_letter.capitalize())
 
@@ -269,7 +269,7 @@ class FileSyncer(ABC):
 
     def get_load_command(self, file_comparison: Optional[FileComparison]) -> ActionVerification:
         file_comparison = file_comparison or self._get_file_comparison()
-        return self._get_load_action_verification(file_comparison, self.is_synced, self.need_file)
+        return self._get_load_action_verification(file_comparison, self.is_synced, self._has_data())
 
     def load(self):
         file_comparison = self._get_file_comparison()
@@ -300,7 +300,7 @@ class FileSyncer(ABC):
     def sync(self):
         file_comparison = self._get_file_comparison()
         save_command = self._get_save_action_verification(file_comparison, self.is_synced, self.need_file)
-        load_command = self._get_load_action_verification(file_comparison, self.is_synced, self.need_file)
+        load_command = self._get_load_action_verification(file_comparison, self.is_synced, self._has_data())
         if not save_command.action.is_action() and not load_command.action.is_action():
             action = SaveLoadAction.NOTHING
         elif load_command.action.is_action() \

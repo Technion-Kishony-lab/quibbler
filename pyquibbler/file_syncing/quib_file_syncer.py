@@ -23,7 +23,7 @@ class QuibFileSyncer(FileSyncer):
         return self.quib.file_path
 
     def _has_data(self) -> bool:
-        return len(self.quib.get_override_list()) > 0
+        return self.quib.handler.is_overridden
 
     def _should_create_empty_file_for_no_data(self) -> bool:
         return bool(KEEP_EMPTY_FILE)
@@ -44,7 +44,7 @@ class QuibFileSyncer(FileSyncer):
         return self.quib.name
 
     @property
-    def quib(self):
+    def quib(self) -> Quib:
         return self.quib_weakref()
 
     @property
