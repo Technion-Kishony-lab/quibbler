@@ -3,7 +3,6 @@ import pytest
 from pytest import fixture
 
 from pyquibbler.assignment import Overrider, Assignment
-from pyquibbler.assignment.overrider import parse_getitem_reference
 from pyquibbler.path.path_component import PathComponent
 from pyquibbler.path.data_accessing import FailedToDeepAssignException
 
@@ -97,6 +96,12 @@ def test_overrider_loads_default_assignment_from_text():
     overrider = Overrider()
     overrider.load_from_assignment_text(assignment_text='quib[2] = default')
     assert overrider[0] == Assignment.create_default([PathComponent(None, 2)])
+
+
+def test_overrider_loads_whole_object_assignment():
+    overrider = Overrider()
+    overrider.load_from_assignment_text(assignment_text='quib.assign([1, 2])')
+    assert overrider[0] == Assignment([1, 2], [])
 
 
 def test_overrider_loads_multi_level_assignment_from_text():

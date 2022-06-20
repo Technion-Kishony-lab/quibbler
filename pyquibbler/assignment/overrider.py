@@ -1,12 +1,11 @@
 import copy
-import dataclasses
 import pathlib
 import pickle
-import re
 
 import numpy as np
 from typing import Any, Optional, Dict, Hashable, List
 
+from dataclasses import dataclass, field
 from .assignment import Assignment
 from .exceptions import NoAssignmentFoundAtPathException
 from ..path.hashable import get_hashable_path
@@ -18,18 +17,25 @@ from .default_value import default
 from pyquibbler.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
 
 
-@dataclasses.dataclass
+@dataclass
 class GetReference:
-    reference_index: list = dataclasses.field(default_factory=list)
+    assignments: List[Assignment] = field(default_factory=list)
+    current_path: Path = field(default_factory=list)
 
-    def __getitem__(self, idx):
-        self.reference_index.append(idx)
+    def _add_key_to_path(self, key):
+        self.current_path.append(PathComponent(None, key))
+
+    def __getitem__(self, key):
+        self._add_key_to_path(key)
         return self
 
+    def __setitem__(self, key, value):
+        self._add_key_to_path(key)
+        self.assign(value)
 
-def parse_getitem_reference(text: str):
-    get_reference = eval(f"GetReference(){text}", {'array': np.array, 'GetReference': GetReference})
-    return get_reference.reference_index
+    def assign(self, value):
+        self.assignments.append(Assignment(value, self.current_path))
+        self.current_path = []
 
 
 PathsToAssignments = Dict[Hashable, Assignment]
@@ -178,20 +184,10 @@ class Overrider:
     def load_from_assignment_text(self, assignment_text: str):
         self.clear_assignments()
         try:
-            lines = assignment_text.split('\n')
-            for line in lines:
-                assert line.startswith('quib')
-                if ' = ' in line:
-                    left, value_text = line.split(' = ', 1)
-                    left = left[4:]  # remove 'quib'
-                    path = [PathComponent(None, component) for component in parse_getitem_reference(left)]
-                else:
-                    value_text = re.match(r".*\((.*?)\)", line).groups()[0]
-                    path = []
-
-                value = eval(value_text, {'array': np.array, 'default': default})
-                self.add_assignment(Assignment(value=value, path=path))
-
+            quib = GetReference()
+            exec(assignment_text, {'quib': quib, 'array': np.array, 'default': default})
+            for assignment in quib.assignments:
+                self.add_assignment(assignment)
         except Exception:
             from ..quib.exceptions import CannotLoadAssignmentsFromTextException
             raise CannotLoadAssignmentsFromTextException(assignment_text) from None
