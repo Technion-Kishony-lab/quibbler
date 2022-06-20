@@ -18,6 +18,15 @@ from .default_value import default
 from pyquibbler.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
 
 
+class getslice:
+    def __getitem__(self, idx):
+        return idx
+
+
+def parse_getitem_reference(text: str):
+    return eval(f"getslice()[{text}]", {'array': np.array, 'getslice': getslice})
+
+
 def first_level_parenthesis(string):
     """Find all first-level [] parenthesized contents in string."""
     stack = []
@@ -183,7 +192,7 @@ class Overrider:
                 assert line.startswith('quib')
                 if ' = ' in line:
                     left, value_text = line.split(' = ', 1)
-                    path = [PathComponent(None, eval(text_component, {'array': np.array}))
+                    path = [PathComponent(None, parse_getitem_reference(text_component))
                             for text_component in first_level_parenthesis(left)]
                 else:
                     value_text = re.match(r".*\((.*?)\)", line).groups()[0]
