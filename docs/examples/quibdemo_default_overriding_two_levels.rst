@@ -59,7 +59,7 @@ using overriding of function quibs.
     
     ax2 = plt.subplot(2, 1, 2)
     ax2.axis([-0.5, n_plates - 0.5, 0, 100])
-    ax2.set_ylabel('Well factor');
+    ax2.set_ylabel('Well factor')
     ax2.set_xticks(np.arange(n_plates));
 
 .. code:: python
@@ -76,7 +76,7 @@ using overriding of function quibs.
             x, y, marker='d', s=100, zorder=2, 
             cmap=ListedColormap(['green', 'red']),
             c=y.get_override_mask(), 
-            picker=True, pickradius=10);
+            picker=True, pickradius=10)
 
 .. code:: python
 
@@ -102,14 +102,5 @@ using overriding of function quibs.
     xx = np.ravel(x + np.reshape(dd, (n_wells, 1)), 'F')
     ax2.bar(xx, well_factor, color=(0.7, 0.7, 0.7), width=0.1)
     two_color_scatter(ax2, xx, well_factor);
-
-
-
-
-.. code:: none
-
-    scatter(<AxesSubplot:ylabel='Well factor'>, xx, well_factor, marker='d', s=100, zorder=2, cmap=<matplotlib.colors.ListedColormap object at 0x7f8fa8e1b7c0>, c=get_override_mask(well_factor), picker=True, pickradius=10)
-
-
 
 .. image:: ../images/demo_gif/quibdemo_default_overriding_two_levels.gif

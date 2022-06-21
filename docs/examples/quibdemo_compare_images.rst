@@ -97,7 +97,7 @@ by a report of a single “Cutting image …” and then 2\*\ *n*-1 “Comparing
 .. code:: python
 
     # Read and draw source image
-    file_name = iquib('../data_files/pipes.jpg')
+    file_name = iquib('pipes.jpg')
     image = plt.imread(file_name)
     
     plt.figure(1, figsize=[6, 6])
@@ -172,7 +172,7 @@ by a report of a single “Cutting image …” and then 2\*\ *n*-1 “Comparing
     
     
     show_adjacency(axs, np.expand_dims(image_ids, 1), image_ids, adjacents) \
-        .setp(graphics_update='drop');
+        .setp(graphics_update='drop')
     
     # colormap
     axclr = fig.add_axes([0.85, 0.15, 0.06, 0.7])

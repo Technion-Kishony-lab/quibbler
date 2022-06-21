@@ -20,11 +20,11 @@ Create a GUI by connecting quibs with widgets
 .. code:: python
 
     # Figure setup:
-    fig = plt.figure(figsize=(4,6))
+    fig = plt.figure(figsize=(4, 6))
     
     axs = fig.add_axes([0, 0.36, 1, 0.64])
-    axs.axis('square');
-    axs.axis((-10, 10, -10, 10));
+    axs.axis('square')
+    axs.axis((-10, 10, -10, 10))
     axs.axis('off')
     
     axs_slider1 = fig.add_axes([0.3, 0.16, 0.55, 0.03])
@@ -33,12 +33,12 @@ Create a GUI by connecting quibs with widgets
 .. code:: python
 
     # Defining quib input variables:
-    nPoints = iquib(120);
-    nCycles = iquib(30);
+    nPoints = iquib(120)
+    nCycles = iquib(30)
     
     # Define downstream function quib calculations based on the quib inputs:
-    phi = np.linspace(0, 2 * np.pi * nCycles, nPoints);
-    r = np.linspace(0, 10, nPoints);
+    phi = np.linspace(0, 2 * np.pi * nCycles, nPoints)
+    r = np.linspace(0, 10, nPoints)
     
     # Plot the data:
     axs.plot(r * np.cos(phi), r * np.sin(phi), 'r-');

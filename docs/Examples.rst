@@ -56,6 +56,7 @@ Simple quib-based apps
    examples/quibdemo_LotkaVolterra
    examples/quibdemo_fft
    examples/quibdemo_image_ROI
+   examples/quibdemo_image_probing
    examples/quibdemo_Mandelbrot
    examples/quibdemo_COVID_analysis
    examples/quibdemo_making_the_quib_icon

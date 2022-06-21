@@ -76,8 +76,8 @@ points.**
     y_center_fixed = iquib(np.array([8.]))
     
     # using x_star_circ as the first argument in the summation
-    x_changeable_star = x_star_circ + x_center_fixed;
-    y_changeable_star = y_star_circ + y_center_fixed;
+    x_changeable_star = x_star_circ + x_center_fixed
+    y_changeable_star = y_star_circ + y_center_fixed
     ax.text(x_center_fixed, y_center_fixed+np.min(y_star_circ)-0.2,'Change me!',
             horizontalalignment='center', verticalalignment='top')
     ax.plot(x_changeable_star, y_changeable_star, linewidth=2, color='c', picker=True);

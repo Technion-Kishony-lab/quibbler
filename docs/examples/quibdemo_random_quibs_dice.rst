@@ -32,22 +32,23 @@ Quibs of random functions - dice rolling
     num_dice = iquib(2)
     num_rolls = iquib(500)
     num_sides = iquib(6)
-    results = np.random.randint(1,num_sides+1,(num_rolls,num_dice));
+    results = np.random.randint(1, num_sides + 1, (num_rolls, num_dice));
 
 .. code:: python
 
     # Prepare figure
     fg = plt.figure()
     ax = fg.add_axes([0.15, 0.3, 0.7, 0.65])
-    ax.set_xlabel('Sum of ' + q(str,num_dice) + ' dice' )
+    ax.set_xlabel('Sum of ' + q(str, num_dice) + ' dice' )
     ax.set_ylabel('Number of rolls');
 
 .. code:: python
 
     # Histogram of sum of the dice in each roll
     sum_dice = np.sum(results, axis=1)
-    plt.hist(sum_dice, bins=np.arange(num_dice-0.5,num_dice*num_sides+1.5), ec='k', facecolor=[0.7,0.7,0.7])
-    ax.set_xlim([num_dice-0.7,num_dice*num_sides+0.7]);
+    plt.hist(sum_dice, bins=np.arange(num_dice - 0.5, num_dice * num_sides + 1.5), 
+             ec='k', facecolor=[0.7, 0.7, 0.7])
+    ax.set_xlim([num_dice - 0.7, num_dice*num_sides + 0.7]);
 
 .. code:: python
 
@@ -57,9 +58,10 @@ Quibs of random functions - dice rolling
         if n_dice == 1:
             # equal probability for each outcome 
             ps = np.zeros(total.shape)
-            ps[(1 <= total) & (total <= n_sides)] = 1/n_sides 
+            ps[(1 <= total) & (total <= n_sides)] = 1 / n_sides 
             return ps
-        return sum(1/n_sides * p_sum_dice(n_dice-1, n_sides, total-outcome) for outcome in range(1, n_sides+1)) 
+        return sum(1/n_sides * p_sum_dice(n_dice - 1, n_sides, total-outcome) 
+                   for outcome in range(1, n_sides+1)) 
     
     xx = np.arange(num_dice,num_dice*num_sides+1)
     p = q(p_sum_dice,num_dice,num_sides,xx)
@@ -95,22 +97,13 @@ Quibs of random functions - dice rolling
 
     # Add slider controls
     Slider(ax=fg.add_axes([0.23, 0.15, 0.4, 0.03]), label='Number of dice', 
-           valmin=1, valmax=5, valinit=num_dice, valstep=1);
+           valmin=1, valmax=5, valinit=num_dice, valstep=1)
     Slider(ax=fg.add_axes([0.23, 0.10, 0.4, 0.03]), label='Number of rolls', 
            valmin=10, valmax=1000, valinit=num_rolls, valstep=10);
 
 .. code:: python
 
     # Add randomize button
-    randomize = Button(fg.add_axes([0.23,0.03,0.16,0.05]),'Randomize')
+    randomize = Button(fg.add_axes([0.23, 0.03, 0.16, 0.05]),'Randomize')
     randomize.on_clicked(lambda x: reset_random_quibs());
-
-
-
-
-.. code:: none
-
-    0
-
-
 .. image:: ../images/demo_gif/quibdemo_random_quibs_dice.gif
