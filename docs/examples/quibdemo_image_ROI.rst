@@ -20,7 +20,7 @@ matplotlib.widgets.RectangleSelector.**
 
 .. code:: python
 
-    from pyquibbler import iquib, override_all, q
+    from pyquibbler import iquib, override_all
     override_all()
 
 .. code:: python
@@ -28,13 +28,12 @@ matplotlib.widgets.RectangleSelector.**
     import matplotlib.pyplot as plt
     from matplotlib.widgets import RectangleSelector
     import numpy as np
-    import os
     %matplotlib tk
 
 .. code:: python
 
     # Load an image:
-    filename = iquib(os.path.join('..','data_files','bacteria_in_droplets.tif')) # <-- input
+    filename = iquib('bacteria_in_droplets.tif')
     img_main = plt.imread(filename);
 
 .. code:: python
@@ -47,7 +46,7 @@ matplotlib.widgets.RectangleSelector.**
 .. code:: python
 
     # Define and plot a rectangle Region Of Interest (ROI)
-    ROI = iquib(np.array([250, 400, 300, 450])); # <-- input: xmin, xmax, ymin, ymax
+    ROI = iquib(np.array([250, 400, 300, 450]))
     rectprops = dict(edgecolor='w', alpha=0.7, fill=False, linewidth=3)
     RectangleSelector(ax, extents=ROI, rectprops=rectprops);
 
@@ -74,13 +73,13 @@ matplotlib.widgets.RectangleSelector.**
 .. code:: python
 
     # Calculate area above threshold for each color:
-    fraction_above_threshold = np.average(img_cut01, (0, 1)); 
+    fraction_above_threshold = np.average(img_cut01, (0, 1))
     
     # Plot detected areas:
     ax_area = fig2.add_axes([0.6, 0.4, 0.3, 0.55])
     ax_area.bar([1,2,3], fraction_above_threshold * 100, color=['r', 'g', 'b'])
     ax_area.axis([0.5, 3.5, 0, 1.5])
-    ax_area.set_ylabel('Total detected area, %');
+    ax_area.set_ylabel('Total detected area, %')
     ax_area.set_xticks([1, 2, 3])
     ax_area.set_xticklabels(['Red', 'Green', 'Blue']);
 

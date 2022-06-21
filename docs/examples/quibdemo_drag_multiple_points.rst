@@ -27,7 +27,7 @@ Multi-point dragging and widgets
 
     # Define x, y data points
     num_points = iquib(10)
-    x = np.arange(0., num_points);
+    x = np.arange(0., num_points)
     y = 100. - np.arange(0., num_points)**2
     
     # Add random noise

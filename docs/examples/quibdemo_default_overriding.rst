@@ -59,8 +59,8 @@ using overriding of function quibs.
 .. code:: python
 
     # Define and plot the default factor
-    default_factor = iquib(np.array([70]), **input_properties)
-    plt.plot([-0.5, n_plates - 0.5], default_factor[[0, 0]], 'k', 
+    default_factor = iquib(70, **input_properties)
+    plt.plot([-0.5, n_plates - 0.5], default_factor * np.array([1, 1]), 'k', 
              zorder=3, linewidth=2, picker=True);
 
 .. code:: python

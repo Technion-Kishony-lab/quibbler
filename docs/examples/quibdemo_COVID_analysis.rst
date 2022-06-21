@@ -24,7 +24,7 @@ COVID-19 analysis
 .. code:: python
 
     # Load data file of COVID statistics per countries
-    file_name = iquib('../data_files/COVID_Fatality.csv')
+    file_name = iquib('COVID_Fatality.csv')
     
     dtype = [("Country", str, 32), ("ConfirmedCases", int), ("Deaths", int),  ("Population", float)]
     fatality_table = np.genfromtxt(file_name, dtype=dtype, delimiter=',', names=True)

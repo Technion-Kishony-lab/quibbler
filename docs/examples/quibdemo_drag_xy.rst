@@ -26,7 +26,7 @@ Dragging graphics affects upstream quibs
 
     # Figure setup:
     fig1 = plt.figure(figsize=(4, 3))
-    plt.axis('square');
+    plt.axis('square')
     plt.axis([-10, 10, -10, 10]);
 
 .. code:: python
@@ -42,14 +42,14 @@ Dragging graphics affects upstream quibs
     # these downstream graphics will change when the marker is moved:
     
     # Text:
-    plt.text(-9, 9, q('X={:.2f}, Y={:.2f}'.format, X, Y), fontsize=16, va='top');
+    plt.text(-9, 9, q('X={:.2f}, Y={:.2f}'.format, X, Y), fontsize=16, va='top')
     
     # Rectangle:
     plt.plot(X * np.array([-1, 1, 1, -1, -1]), Y * np.array([-1, -1, 1, 1, -1]), 
-             'k--o', linewidth=1, picker=True);
+             'k--o', linewidth=1, picker=True)
     
     # Ellipse:
-    tt = np.linspace(0, 2 * np.pi, 50);
+    tt = np.linspace(0, 2 * np.pi, 50)
     plt.plot(X * np.cos(tt), Y * np.sin(tt), 'r-', linewidth=4);
 
 .. image:: ../images/demo_gif/quibdemo_drag_xy.gif
