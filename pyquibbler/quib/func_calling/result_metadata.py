@@ -7,14 +7,16 @@ from pyquibbler.utilities.general_utils import Shape
 
 
 def _get_shape_from_result(result: Any):
+    if isinstance(result, np.ndarray):
+        return np.shape(result)
+
     try:
-        shape = np.shape(result)
+        return np.shape(np.array(result, dtype=object))
     except ValueError:
         if hasattr(result, '__len__'):
-            shape = len(result),
+            return len(result),
         else:
-            shape = None
-    return shape
+            return None
 
 
 @dataclass

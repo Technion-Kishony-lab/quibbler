@@ -98,13 +98,15 @@ class AssignmentSimplifier:
         self.last_component.component = tuple(new_last_component)
 
     def simplify(self) -> Assignment:
+        from ..quib.func_calling.result_metadata import ResultMetadata
+
         if len(self.path) == 0 or not isinstance(self.last_data, (np.ndarray, list)) \
                 or isinstance(self.last_component.component, str):
             return self._assignment
 
         self._make_last_component_tuple()
 
-        if len(self.last_component.component) == np.ndim(self.last_data):
+        if len(self.last_component.component) == ResultMetadata.from_result(self.last_data).ndim:
 
             self._convert_bool_indexing()
 
