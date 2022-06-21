@@ -313,7 +313,7 @@ class QuibHandler:
 
     @property
     def is_overridden(self) -> bool:
-        return self._overrider is not None and len(self._overrider)
+        return self._overrider is not None and len(self._overrider) > 0
 
     def _add_override(self, assignment: Assignment):
         self.overrider.add_assignment(assignment)

@@ -141,7 +141,7 @@ class FileSyncer(ABC):
         # has_data:                          Yes       No        Yes       No
         #                              Save  Load Save Load Save Load Save Load
         FileComparison.SAME_FILE:      ('-', '-', '-', '-', 'S', 'o', 'D', 'l'),  # noqa: E241
-        FileComparison.NO_FILE:        ('-'  '-', 'V', 'V', 'C', 'c', 'V', 'V'),  # noqa: E241
+        FileComparison.NO_FILE:        ('-', '-', 'V', 'V', 'C', 'c', 'V', 'V'),  # noqa: E241
         FileComparison.CHANGED:        ('o', 'L', 'd', 'L', 'o', 'l', 'd', 'L'),  # noqa: E241
         FileComparison.DELETED:        ('r', 'c', 'V', 'V', 'r', 'c', 'V', 'V'),  # noqa: E241
         FileComparison.CREATED:        ('o', 'L', 'd', 'L', 'o', 'l', 'd', 'L'),  # noqa: E241
@@ -287,12 +287,6 @@ class FileSyncer(ABC):
             self._load_data_from_file(self._get_file_path())
         elif action == SaveLoadAction.CLEAR:
             self._clear_data()
-        else:
-            # TODO:
-            # For some reason, if we update the file metadata, we end up with a status NO_FILE which won't allow us to
-            # save in the future. We do want to be synced, but we certainly don't want that...
-            self.is_synced = True
-            return
 
         self._update_file_metadata()
         self.is_synced = True
