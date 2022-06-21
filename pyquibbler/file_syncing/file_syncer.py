@@ -261,20 +261,20 @@ class FileSyncer(ABC):
         file_comparison = file_comparison or self._get_file_comparison()
         return self._get_save_action_verification(file_comparison, self.is_synced, self.need_file)
 
-    def save(self):
+    def save(self, skip_user_verification: bool = False):
         file_comparison = self._get_file_comparison()
         save_command = self.get_save_command(file_comparison)
-        if self._verify_action(file_comparison, save_command):
+        if skip_user_verification or self._verify_action(file_comparison, save_command):
             self._do_action(save_command.action)
 
     def get_load_command(self, file_comparison: Optional[FileComparison]) -> ActionVerification:
         file_comparison = file_comparison or self._get_file_comparison()
         return self._get_load_action_verification(file_comparison, self.is_synced, self._has_data())
 
-    def load(self):
+    def load(self, skip_user_verification: bool = False):
         file_comparison = self._get_file_comparison()
         load_command = self.get_load_command(file_comparison)
-        if self._verify_action(file_comparison, load_command):
+        if skip_user_verification or self._verify_action(file_comparison, load_command):
             self._do_action(load_command.action)
 
     def _do_action(self, action: SaveLoadAction):

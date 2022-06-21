@@ -1605,7 +1605,10 @@ class Quib:
             return self.project.directory if save_directory is None \
                 else self.project.directory / save_directory
 
-    def save(self, response_to_file_not_defined: ResponseToFileNotDefined = ResponseToFileNotDefined.RAISE):
+    def save(self,
+             response_to_file_not_defined: ResponseToFileNotDefined = ResponseToFileNotDefined.RAISE,
+             skip_user_verification: bool = False,
+             ):
         """
         Save the quib assignments to file.
 
@@ -1618,10 +1621,13 @@ class Quib:
         Project.directory
         """
         if self._get_file_path(response_to_file_not_defined) is not None:
-            self.handler.file_syncer.save()
+            self.handler.file_syncer.save(skip_user_verification)
             self.project.notify_of_overriding_changes(self)
 
-    def load(self, response_to_file_not_defined: ResponseToFileNotDefined = ResponseToFileNotDefined.RAISE):
+    def load(self,
+             response_to_file_not_defined: ResponseToFileNotDefined = ResponseToFileNotDefined.RAISE,
+             skip_user_verification: bool = False,
+             ):
         """
         Load quib assignments from the quib's file.
 
@@ -1634,7 +1640,7 @@ class Quib:
         Project.directory
         """
         if self._get_file_path(response_to_file_not_defined) is not None:
-            self.handler.file_syncer.load()
+            self.handler.file_syncer.load(skip_user_verification)
             self.project.notify_of_overriding_changes(self)
 
     def sync(self, response_to_file_not_defined: ResponseToFileNotDefined = ResponseToFileNotDefined.RAISE):
