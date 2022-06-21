@@ -113,12 +113,18 @@ def test_overrider_loads_multi_level_assignment_from_text():
 def test_overrider_loads_multi_level_nested_parenthesis_assignment_from_text():
     overrider = Overrider()
     overrider.load_from_assignment_text(assignment_text='quib[array([2])][[1, 2, 3], 5] = 23')
-    print(overrider[0])
     assert overrider[0] == Assignment(value=23, path=[PathComponent(None, np.array([2])), PathComponent(None, ([1, 2, 3], 5))])
 
 
 def test_overrider_loads_slice_assignment_from_text():
     overrider = Overrider()
     overrider.load_from_assignment_text(assignment_text='quib[1:] = 23')
-    print(overrider[0])
     assert overrider[0] == Assignment(value=23, path=[PathComponent(None, slice(1, None, None))])
+
+
+def test_overrider_loads_multiple_assignments_from_text():
+    overrider = Overrider()
+    overrider.load_from_assignment_text(assignment_text='quib[1] = 10\nquib[2] = 20')
+    assert overrider[0] == Assignment(value=10, path=[PathComponent(None, 1)])
+    assert overrider[1] == Assignment(value=20, path=[PathComponent(None, 2)])
+
