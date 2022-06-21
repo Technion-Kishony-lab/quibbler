@@ -141,7 +141,7 @@ class FileSyncer(ABC):
         # has_data:                          Yes       No        Yes       No
         #                              Save  Load Save Load Save Load Save Load
         FileComparison.SAME_FILE:      ('-', '-', '-', '-', 'S', 'o', 'D', 'l'),  # noqa: E241
-        FileComparison.NO_FILE:        ('-'  '-', 'V', 'V', 'C', 'c', 'V', 'V'),  # noqa: E241
+        FileComparison.NO_FILE:        ('-', '-', 'V', 'V', 'C', 'c', 'V', 'V'),  # noqa: E241
         FileComparison.CHANGED:        ('o', 'L', 'd', 'L', 'o', 'l', 'd', 'L'),  # noqa: E241
         FileComparison.DELETED:        ('r', 'c', 'V', 'V', 'r', 'c', 'V', 'V'),  # noqa: E241
         FileComparison.CREATED:        ('o', 'L', 'd', 'L', 'o', 'l', 'd', 'L'),  # noqa: E241
@@ -159,10 +159,10 @@ class FileSyncer(ABC):
                                   code_letter != code_letter.capitalize())
 
     @classmethod
-    def _get_load_action_verification(cls, file_change: FileComparison, is_synced: bool, need_file: bool) \
+    def _get_load_action_verification(cls, file_change: FileComparison, is_synced: bool, has_data: bool) \
             -> ActionVerification:
         code_letter = cls.FILECOMPARISON_TO_SAVE_LOAD_LETTERCODES[file_change][
-            1 + (1 - is_synced) * 4 + (1 - need_file) * 2]
+            1 + (1 - is_synced) * 4 + (1 - has_data) * 2]
         return ActionVerification(*cls.LOAD_LETTERCODE_TO_ACTION_BUTTON_QUESTION[code_letter.capitalize()],
                                   code_letter != code_letter.capitalize())
 
@@ -261,20 +261,20 @@ class FileSyncer(ABC):
         file_comparison = file_comparison or self._get_file_comparison()
         return self._get_save_action_verification(file_comparison, self.is_synced, self.need_file)
 
-    def save(self):
+    def save(self, skip_user_verification: bool = False):
         file_comparison = self._get_file_comparison()
         save_command = self.get_save_command(file_comparison)
-        if self._verify_action(file_comparison, save_command):
+        if skip_user_verification or self._verify_action(file_comparison, save_command):
             self._do_action(save_command.action)
 
     def get_load_command(self, file_comparison: Optional[FileComparison]) -> ActionVerification:
         file_comparison = file_comparison or self._get_file_comparison()
-        return self._get_load_action_verification(file_comparison, self.is_synced, self.need_file)
+        return self._get_load_action_verification(file_comparison, self.is_synced, self._has_data())
 
-    def load(self):
+    def load(self, skip_user_verification: bool = False):
         file_comparison = self._get_file_comparison()
         load_command = self.get_load_command(file_comparison)
-        if self._verify_action(file_comparison, load_command):
+        if skip_user_verification or self._verify_action(file_comparison, load_command):
             self._do_action(load_command.action)
 
     def _do_action(self, action: SaveLoadAction):
@@ -287,12 +287,6 @@ class FileSyncer(ABC):
             self._load_data_from_file(self._get_file_path())
         elif action == SaveLoadAction.CLEAR:
             self._clear_data()
-        else:
-            # TODO:
-            # For some reason, if we update the file metadata, we end up with a status NO_FILE which won't allow us to
-            # save in the future. We do want to be synced, but we certainly don't want that...
-            self.is_synced = True
-            return
 
         self._update_file_metadata()
         self.is_synced = True
@@ -300,7 +294,7 @@ class FileSyncer(ABC):
     def sync(self):
         file_comparison = self._get_file_comparison()
         save_command = self._get_save_action_verification(file_comparison, self.is_synced, self.need_file)
-        load_command = self._get_load_action_verification(file_comparison, self.is_synced, self.need_file)
+        load_command = self._get_load_action_verification(file_comparison, self.is_synced, self._has_data())
         if not save_command.action.is_action() and not load_command.action.is_action():
             action = SaveLoadAction.NOTHING
         elif load_command.action.is_action() \

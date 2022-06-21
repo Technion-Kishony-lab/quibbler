@@ -50,7 +50,10 @@ class JupyterProject(Project):
         self._should_notify_client_of_quib_changes = True
         self.autoload_upon_first_get_value = True
 
-    def _wrap_file_system_func(self, func: Callable, save_and_send_after_op: bool = False):
+    def _wrap_file_system_func(self, func: Callable,
+                               save_and_send_after_op: bool = False,
+                               skip_user_verification: bool = False,
+                               ):
         """
         Wrap a file system function to do whatever is necessary before/after it.
         For example, if the save/load is within the jupyter notebook, make sure you open a tmp project directory for it
@@ -60,8 +63,6 @@ class JupyterProject(Project):
         def _func(*args, **kwargs):
             if self._should_save_load_within_notebook:
                 self._open_project_directory_from_notebook_zip()
-            elif self.directory is None or str(self.directory) == str(self._tmp_save_directory):
-                raise Exception("No directory has been set")
 
             # If we're already within another wrapped file system func, we don't want to save data into notebook
             # and send the data to the client for this func
@@ -70,7 +71,10 @@ class JupyterProject(Project):
             if zip_and_send:
                 self._within_zip_and_send_context = True
 
-            res = func(*args, **kwargs)
+            if skip_user_verification and self._should_save_load_within_notebook:
+                res = func(*args, **kwargs, skip_user_verification=True)
+            else:
+                res = func(*args, **kwargs)
 
             if zip_and_send:
                 logger.info("Zipping and sending to client")
@@ -97,7 +101,7 @@ class JupyterProject(Project):
         Override quib persistence functions to ensure we save to notebook (or load from notebook) where necessary
         """
         Quib.save = self._wrap_file_system_func(Quib.save, save_and_send_after_op=True)
-        Quib.load = self._wrap_file_system_func(Quib.load)
+        Quib.load = self._wrap_file_system_func(Quib.load, skip_user_verification=True)
         Quib.sync = self._wrap_file_system_func(Quib.sync, save_and_send_after_op=True)
 
     def _call_client(self, action_type: str, message_data):
@@ -125,7 +129,7 @@ class JupyterProject(Project):
             jupyter_notebook = json.load(f)
             b64_encoded_zip_content = jupyter_notebook['metadata'].get('quibs_archive')
             if b64_encoded_zip_content is not None:
-                logger.info("Quibs exist! Unziping quibs archive into directory...")
+                logger.info("Quibs exist! Unzipping quibs archive into directory...")
                 raw_bytes = base64.b64decode(b64_encoded_zip_content)
                 buffer = io.BytesIO(raw_bytes)
                 zipfile.ZipFile(buffer).extractall(self.directory)
@@ -250,6 +254,9 @@ class JupyterProject(Project):
         When `True`, all save/loads will be kept within the notebook itself
         When `False`, the project will save to whichever directory it is specified to, without saving into the notebook
         """
+        if self._should_save_load_within_notebook and not should_save_load_within_notebook:
+            self._directory = None
+
         self._should_save_load_within_notebook = should_save_load_within_notebook
 
     def _upsert_assignment(self, quib_id: int, index: int, raw_override: Dict):
