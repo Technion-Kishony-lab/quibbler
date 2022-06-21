@@ -15,6 +15,8 @@ class ArrayFileSyncer(FileSyncer):
     _file_name: str = field(default_factory=str)
     _data: np.ndarray = field(default_factory=lambda: np.zeros((1, 0), dtype=np.uint))
     should_create_empty_file_for_no_data: bool = True
+    save_count: int = 0
+    load_count: int = 0
 
     def __post_init__(self):
         super(ArrayFileSyncer, self).__init__()
@@ -30,9 +32,11 @@ class ArrayFileSyncer(FileSyncer):
 
     def _save_data_to_file(self, file_path: pathlib.Path):
         np.savetxt(str(file_path), self.data)
+        self.save_count += 1
 
     def _load_data_from_file(self, file_path: pathlib.Path):
         self.data = np.loadtxt(str(file_path))
+        self.load_count += 1
 
     def _clear_data(self):
         self.data = np.zeros((1, 0), dtype=np.uint)
@@ -88,6 +92,23 @@ def overwrite_file(path, data):
 def read_file(path):
     data = np.loadtxt(path)
     return np.array(data, dtype=np.uint)
+
+
+def test_save_then_save_again(file_path):
+    syncable_array = ArrayFileSyncer(file_path)
+    syncable_array.data = [1, 2, 3]
+    syncable_array.save()
+    syncable_array.save()
+    assert syncable_array.save_count == 1
+
+
+def test_load_then_load_again(file_path):
+    overwrite_file(file_path, [4, 5, 6])
+
+    syncable_array = ArrayFileSyncer(file_path)
+    syncable_array.load()
+    syncable_array.load()
+    assert syncable_array.load_count == 1
 
 
 def test_save_load(file_path):
