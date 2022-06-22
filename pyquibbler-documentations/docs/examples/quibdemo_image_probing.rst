@@ -29,7 +29,7 @@ Simple quib-app for probing image RGB
 .. code:: python
 
     # Load an image:
-    filename = iquib('bacteria_in_a_droplet.tif')
+    filename = iquib('bacteria_drop.tif')
     img = plt.imread(filename)
     
     # Show the image:
