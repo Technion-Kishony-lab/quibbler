@@ -39,7 +39,10 @@ class RectangleSelectorQuibFuncCall(WidgetQuibFuncCall):
             with timer("selector_change", lambda x: logger.info(f"selector change {x}")):
                 if self._widget_is_attempting_to_resize_when_not_allowed(extents):
                     return
-                self._inverse_assign(init_val, [PathComponent(component=slice(0, 4), indexed_cls=np.ndarray)], extents)
+                self._inverse_assign(init_val,
+                                     [PathComponent(component=slice(None, None, None),
+                                                    indexed_cls=np.ndarray)],
+                                     extents)
 
     def _on_release(self):
         if self._last_extents_change:
