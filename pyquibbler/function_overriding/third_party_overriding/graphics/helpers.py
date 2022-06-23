@@ -33,6 +33,8 @@ class PlotOverride(GraphicsOverride):
         if PLOT_WITH_PICKER_TRUE_BY_DEFAULT:
             if 'picker' not in kwargs:
                 kwargs['picker'] = True
+            elif kwargs['picker'] is False:
+                kwargs['picker'] = 0  # `picker=False` does not really turn off picking
 
 
 @dataclass
