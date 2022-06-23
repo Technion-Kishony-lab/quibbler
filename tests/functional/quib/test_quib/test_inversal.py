@@ -74,7 +74,7 @@ def test_assignment_to_list_after_np_function(create_quib_with_return_value):
     rotated.get_value()
     first_quib_arg[0][2] = 4.1
 
-    assert np.array_equiv(first_quib_arg.get_value(), [[[1, 2, 4.1]]])
+    assert np.array_equiv(first_quib_arg.get_value(), [[[1, 2, 4]]])
 
 
 @pytest.mark.regression
