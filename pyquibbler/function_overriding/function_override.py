@@ -51,6 +51,10 @@ class FuncOverride:
     def _call_wrapped_func(func, args, kwargs) -> Any:
         return func(*args, **kwargs)
 
+    @staticmethod
+    def _modify_kwargs(kwargs):
+        return
+
     def _create_quib_supporting_func(self):
         """
         Create a function which *can* support quibs (and return a quib as a result) if any argument is a quib
@@ -66,6 +70,7 @@ class FuncOverride:
             quib_locations = get_object_type_locations_in_args_kwargs(Quib, args, kwargs)
 
             if quib_locations:
+                self._modify_kwargs(kwargs)
                 flags = {**self._get_creation_flags(args, kwargs), **self._get_dynamic_flags(args, kwargs)}
                 if flags:
                     func_definition_for_quib = copy.deepcopy(func_definition)

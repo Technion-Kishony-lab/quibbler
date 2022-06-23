@@ -5,6 +5,7 @@ from typing import Any
 import matplotlib.widgets
 from matplotlib.axes import Axes
 
+from pyquibbler.env import PLOT_WITH_PICKER_TRUE_BY_DEFAULT
 from pyquibbler.function_overriding.function_override import FuncOverride
 from pyquibbler.function_overriding.third_party_overriding.general_helpers import override_with_cls
 from pyquibbler.quib.graphics import artist_wrapper
@@ -19,6 +20,19 @@ class GraphicsOverride(FuncOverride):
     """
 
     pass
+
+
+@dataclass
+class PlotOverride(GraphicsOverride):
+    """
+    An override of plt.plot
+    """
+
+    @staticmethod
+    def _modify_kwargs(kwargs):
+        if PLOT_WITH_PICKER_TRUE_BY_DEFAULT:
+            if 'picker' not in kwargs:
+                kwargs['picker'] = True
 
 
 @dataclass
@@ -65,6 +79,8 @@ class AxesLimOverride(AxesSetOverride):
 
 graphics_override = functools.partial(override_with_cls, GraphicsOverride, is_graphics=True)
 axes_override = functools.partial(graphics_override, Axes)
+
+plot_override = functools.partial(override_with_cls, PlotOverride, Axes, is_graphics=True)
 
 axes_setter_override = functools.partial(override_with_cls, AxesSetOverride, Axes, is_graphics=True,
                                          is_artist_setter=True)
