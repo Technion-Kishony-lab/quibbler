@@ -1,0 +1,32 @@
+{
+  "title": "Settings",
+  "description": "Settings.",
+  "jupyter.lab.menus": {
+    "main": [
+      {
+        "id": "pyquibbler-menu",
+        "label": "Quibbler",
+        "rank": 80,
+        "items": [
+          {
+            "command": "quibbler:save"
+          },
+          {
+            "command": "quibbler:load"
+          },
+          {
+            "command": "quibbler:sync"
+          },
+          {
+            "command": "quibbler:save-in-notebook"
+          },
+          {
+            "command": "quibbler:clear-data"
+          }
+        ]
+      }
+    ]
+  },
+  "additionalProperties": false,
+  "type": "object"
+}
