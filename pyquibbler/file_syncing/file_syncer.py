@@ -141,7 +141,7 @@ class FileSyncer(ABC):
         # has_data:                          Yes       No        Yes       No
         #                              Save  Load Save Load Save Load Save Load
         FileComparison.SAME_FILE:      ('-', '-', '-', '-', 'S', 'o', 'D', 'l'),  # noqa: E241
-        FileComparison.NO_FILE:        ('-'  '-', 'V', 'V', 'C', 'c', 'V', 'V'),  # noqa: E241
+        FileComparison.NO_FILE:        ('-', '-', 'V', 'V', 'C', 'c', 'V', 'V'),  # noqa: E241
         FileComparison.CHANGED:        ('o', 'L', 'd', 'L', 'o', 'l', 'd', 'L'),  # noqa: E241
         FileComparison.DELETED:        ('r', 'c', 'V', 'V', 'r', 'c', 'V', 'V'),  # noqa: E241
         FileComparison.CREATED:        ('o', 'L', 'd', 'L', 'o', 'l', 'd', 'L'),  # noqa: E241
@@ -163,6 +163,7 @@ class FileSyncer(ABC):
             -> ActionVerification:
         code_letter = cls.FILECOMPARISON_TO_SAVE_LOAD_LETTERCODES[file_change][
             1 + (1 - is_synced) * 4 + (1 - need_file) * 2]
+        logger.info(f"file_change - {file_change} is_synced - {is_synced} need file - {need_file}")
         return ActionVerification(*cls.LOAD_LETTERCODE_TO_ACTION_BUTTON_QUESTION[code_letter.capitalize()],
                                   code_letter != code_letter.capitalize())
 

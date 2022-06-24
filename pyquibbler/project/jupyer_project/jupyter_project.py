@@ -277,8 +277,8 @@ class JupyterProject(Project):
             quib.handler.overrider.pop_assignment_at_index(index)
         quib.handler.overrider.insert_assignment_at_index(assignment, index)
         quib.handler.file_syncer.on_data_changed()
-
         set_path_indexed_classes_from_quib(assignment.path, quib)
+
         quib.handler.invalidate_and_redraw_at_path(assignment.path)
 
         return get_serialized_quib(quib)
