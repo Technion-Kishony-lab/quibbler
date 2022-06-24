@@ -36,6 +36,6 @@ BOOL_RAISE_EXCEPTION = Flag(False)
 
 LOG_TO_STDOUT = Flag(False)
 
-LOG_TO_FILE = Flag(False)
+LOG_TO_FILE = Flag(True)
 
 SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS = Flag(True)
