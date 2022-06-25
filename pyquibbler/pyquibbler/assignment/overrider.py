@@ -93,8 +93,18 @@ class Overrider:
         return assignment
 
     def insert_assignment_at_index(self, assignment: Assignment, index: int):
+        hashable_path = get_hashable_path(assignment.path)
         new_paths_with_assignments = list(self._paths_to_assignments.items())
-        new_paths_with_assignments.insert(index, (get_hashable_path(assignment.path), assignment))
+        new_paths_with_assignments.insert(index, (hashable_path, assignment))
+
+        # We need to remove any assignments with the same path that came before this index so we don't accidentally
+        # use those (previous) assignments when running `dict` on the list
+        for i, (path, assignment) in enumerate(new_paths_with_assignments[:index][:]):
+            if hashable_path == path:
+                new_paths_with_assignments.pop(i)
+
+        from pyquibbler.logger import logger
+        logger.info(f"New paths with assignments {new_paths_with_assignments}")
         self._paths_to_assignments = dict(new_paths_with_assignments)
 
     def override(self, data: Any, assignment_template: Optional[AssignmentTemplate] = None):
