@@ -76,3 +76,22 @@ def test_plot_inverse_assigner(mock_plot, indices, artist_index, xdata, ydata, a
         expected_value = [expected_value]
     for index, expected in zip(quib_index, expected_value):
         assert np.array_equal(args[index].get_value(), expected)
+
+
+@pytest.mark.parametrize("indices,artist_index,xdata,ydata,args,arg_index,list_index,expected_value", [
+    ([0], 0, 100, 50, ([iquib(0), 0, 0],), 0, 0, 50),
+], ids=[
+    "ydata: one list arg",
+])
+def test_plot_inverse_assigner_of_list_arg(mock_plot, indices, artist_index, xdata, ydata, args, arg_index,
+                                           list_index, expected_value):
+    pick_event, mouse_event = create_mock_pick_event_and_mouse_event(indices, xdata, ydata, artist_index)
+
+    inverse_assign_drawing_func(
+        drawing_func=mock_plot,
+        args=(None, *args),
+        mouse_event=mouse_event,
+        pick_event=pick_event
+    )
+
+    assert np.array_equal(args[arg_index][list_index].get_value(), expected_value)
