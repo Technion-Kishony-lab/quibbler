@@ -133,6 +133,11 @@ In the quibbler root directory:
 
 ```jupyter lab build --minimize=False```
 
+If you are developing the client code, then to automatically build following changes, run:
+
+```jlpm run watch```
+
+
 #### Install pyquibbler:
 
 ```cd ../pyquibbler```
