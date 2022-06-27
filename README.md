@@ -109,6 +109,8 @@ specifically affected data items are re-calculated upon any upstream parameter c
 
 **See the https://readthedocs.com/ for a Getting-started tour and Documentations.**
 
+<br/>
+<br/>
 
 ### Installing for developers
 
@@ -142,8 +144,6 @@ If you are developing the client code, then to automatically build following cha
 
 ```cd ../pyquibbler```
 
-```pip install -e .```
-
 ```pip install -e .'[dev, sphinx]'```
 
 
@@ -164,9 +164,9 @@ To place it in this location, run `mv ~/Downloads/chromedriver /usr/local/bin/`
 4. After placing the chromedriver in your PATH, we need to make it executable. To do this, run
 `chmod 777 /usr/local/bin/chromedriver`
 
-5. Run the tests! Go to `tests/lab_extension` and run `pytest`. If tests fail, you can try two things:
+5. Run the tests! Go to `tests/lab_extension` and run `pytest`. If tests fail, you can try:
    1. when running the tests, make sure the chrome selenium opens is visible to you (there are issues with jupyter when it's not, as it doesn't load)
    2. restart pycharm
-   3. if getting "“chromedriver” cannot be opened because the developer cannot be verified.", try:
+   3. if getting `“chromedriver” cannot be opened because the developer cannot be verified`, try running:
    ```xattr -d com.apple.quarantine /usr/local/bin/chromedriver```
-
+   
