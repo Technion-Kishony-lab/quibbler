@@ -51,9 +51,9 @@ def reformat_file(file: str):
 
 sep = os.path.sep
 
-demo_notebooks_path = Path('../pyquibbler-documentations/examples')
-docs_notebooks_path = Path('../pyquibbler-documentations/docs_notebooks')
-docs_path = Path('../docs')
+demo_notebooks_path = Path('./examples')
+docs_notebooks_path = Path('./docs_notebooks')
+docs_path = Path('./docs')
 docs_demo_path = docs_path / 'examples'
 docs_demo_gif_path = docs_path / 'images' / 'demo_gif'
 
@@ -61,6 +61,8 @@ docs_demo_path.mkdir(parents=True, exist_ok=True)
 
 # convert all demo notebooks to rst and move to the doc folder
 os.system(f"jupyter nbconvert --to rst {demo_notebooks_path / 'quibdemo*.ipynb'}")
+print(os.getcwd())
+
 os.system(f"mv {demo_notebooks_path / 'quibdemo*.rst'}  {docs_demo_path}")
 
 # For each demo rst file, add a link to the corresponding GIF if exists:

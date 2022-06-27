@@ -11,7 +11,7 @@ build:
     python: "3.8"
 
 sphinx:
-  configuration: docs/conf.py
+  configuration: pyquibbler-documentations/docs/conf.py
 
 python:
   # Install our python package before building the docs

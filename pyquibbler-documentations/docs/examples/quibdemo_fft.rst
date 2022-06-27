@@ -57,7 +57,7 @@ Signal analysis with random noise
     signal = get_signal(t, w, signal_fnc_chosen, nSin)
         
     # Add Noise:
-    noise_amp = iquib(0)
+    noise_amp = iquib(0.0)
     noise = noise_amp * np.random.randn(num_time_points)
     
     measurement = signal + noise
