@@ -63,7 +63,7 @@ Signal analysis with random noise
     measurement = signal + noise
     
     # Bandwidth:
-    min_freq = iquib(0)
+    min_freq = iquib(0.0)
     max_freq = iquib(0.6)
     
     # FFT:
@@ -71,7 +71,7 @@ Signal analysis with random noise
     dfreqs = 1/total_time  # Frequency resolution
     freqs = np.concatenate([
         np.arange(0, (num_time_points - 1) / 2), 
-        np.arange(num_time_points/2, 0, -1)]) * dfreqs  # Frequency vector
+        np.arange(num_time_points / 2, 0, -1)]) * dfreqs  # Frequency vector
     
     # Apply band filter
     spectrum_filtered = spectrum * ((freqs>=min_freq) & (freqs<=max_freq))

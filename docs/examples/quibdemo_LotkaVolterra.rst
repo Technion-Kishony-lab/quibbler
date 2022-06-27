@@ -45,7 +45,7 @@ parameters are set interactively.**
 .. code:: python
 
     # Initial condition:
-    x0 = iquib([2, 0.5])
+    x0 = iquib([2.0, 0.5])
     
     # Parameters:
     abcd = iquib([1., 1., 1., 1.])

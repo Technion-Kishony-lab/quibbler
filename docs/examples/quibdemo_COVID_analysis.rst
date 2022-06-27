@@ -45,7 +45,7 @@ COVID-19 analysis
 .. code:: python
 
     # Define a threshold for high-rate countries
-    threshold = iquib(15)
+    threshold = iquib(15.)
     
     # Identify countries above/below threshold
     below_threshold = rate < threshold

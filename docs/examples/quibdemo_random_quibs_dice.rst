@@ -39,7 +39,7 @@ Quibs of random functions - dice rolling
     # Prepare figure
     fg = plt.figure()
     ax = fg.add_axes([0.15, 0.3, 0.7, 0.65])
-    ax.set_xlabel('Sum of ' + q(str, num_dice) + ' dice' )
+    ax.set_xlabel('Sum of ' + q(str, num_dice) + ' dice')
     ax.set_ylabel('Number of rolls');
 
 .. code:: python
@@ -48,7 +48,7 @@ Quibs of random functions - dice rolling
     sum_dice = np.sum(results, axis=1)
     plt.hist(sum_dice, bins=np.arange(num_dice - 0.5, num_dice * num_sides + 1.5), 
              ec='k', facecolor=[0.7, 0.7, 0.7])
-    ax.set_xlim([num_dice - 0.7, num_dice*num_sides + 0.7]);
+    ax.set_xlim([num_dice - 0.7, num_dice * num_sides + 0.7]);
 
 .. code:: python
 
@@ -85,13 +85,13 @@ Quibs of random functions - dice rolling
 .. code:: python
 
     # set ylim to max expected + 2 std
-    mx_count_expected = p_normal(mn,se,mn) * num_rolls
+    mx_count_expected = p_normal(mn, se, mn) * num_rolls
     ax.set_ylim([0, mx_count_expected + 2 * np.sqrt(mx_count_expected)]);
 
 .. code:: python
 
     # legend
-    plt.legend(['theoretical','normal','observed']);
+    plt.legend(['theoretical', 'normal', 'observed']);
 
 .. code:: python
 
@@ -104,6 +104,6 @@ Quibs of random functions - dice rolling
 .. code:: python
 
     # Add randomize button
-    randomize = Button(fg.add_axes([0.23, 0.03, 0.16, 0.05]),'Randomize')
+    randomize = Button(fg.add_axes([0.23, 0.03, 0.16, 0.05]), 'Randomize')
     randomize.on_clicked(lambda x: reset_random_quibs());
 .. image:: ../images/demo_gif/quibdemo_random_quibs_dice.gif
