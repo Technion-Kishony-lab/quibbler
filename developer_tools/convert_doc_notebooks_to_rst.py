@@ -51,8 +51,8 @@ def reformat_file(file: str):
 
 sep = os.path.sep
 
-demo_notebooks_path = Path('../pyquibbler-examples/examples')
-docs_notebooks_path = Path('../pyquibbler-examples/docs_notebooks')
+demo_notebooks_path = Path('../pyquibbler-documentations/examples')
+docs_notebooks_path = Path('../pyquibbler-documentations/docs_notebooks')
 docs_path = Path('../docs')
 docs_demo_path = docs_path / 'examples'
 docs_demo_gif_path = docs_path / 'images' / 'demo_gif'
