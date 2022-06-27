@@ -1,4 +1,4 @@
-name: jupyterlab-ext
+name: pyquibbler
 channels:
   - defaults
 dependencies:
@@ -7,4 +7,4 @@ dependencies:
   - jupyterlab=3
   - cookiecutter
   - git
-prefix: /Applications/anaconda3/envs/jupyterlab-ext
+prefix: /Applications/anaconda3/envs/pyquibbler
