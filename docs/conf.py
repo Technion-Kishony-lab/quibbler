@@ -12,7 +12,7 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('./puquibbler'))
+sys.path.insert(0, os.path.abspath('./pyquibbler'))
 
 # -- Project information -----------------------------------------------------
 
