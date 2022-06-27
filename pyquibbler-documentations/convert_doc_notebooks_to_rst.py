@@ -4,7 +4,10 @@ the created rst files are saved in the docs folder for sphinx
 """
 
 import os
+import shutil
 from pathlib import Path
+
+shutil.make_archive('docs/downloads/examples', 'zip', 'examples')
 
 
 def reformat_file(file: str):
