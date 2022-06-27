@@ -150,7 +150,7 @@ def add_override(driver):
         element = WebDriverWait(driver, 1).until(presence_of_element_located((By.XPATH, '//button[text()="Add Override"]')))
         element.click()
 
-        parent = element.find_element(by=By.XPATH, value="..")
+        parent = element.find_element(by=By.XPATH, value="../../..")
         inputs = parent.find_elements(by=By.TAG_NAME, value="input")
 
         left, right = inputs
@@ -184,7 +184,7 @@ def test_lab_extension_undo_happy_flow(driver, load_notebook, assert_no_failures
 
     raw_default_value = run_code("threshold.get_value()")
 
-    add_override("threshold", "quib", "5")
+    add_override("threshold", "", "5")
 
     raw_value_after_assignment = run_code("threshold.get_value()")
     # Sanity
