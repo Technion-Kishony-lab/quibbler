@@ -1,12 +1,14 @@
 from collections import defaultdict
-from typing import Any, List, Tuple, Union
+from typing import Any, List, Tuple, Union, Mapping
 from matplotlib.backend_bases import PickEvent, MouseEvent, MouseButton
 
 from pyquibbler.assignment.override_choice import get_override_group_for_quib_changes
-from pyquibbler.path import PathComponent
+from pyquibbler.assignment.simplify_assignment import convert_scalar_value
+from pyquibbler.path import PathComponent, Paths, deep_get
 from pyquibbler.assignment import AssignmentToQuib, Assignment
 from .graphics_inverse_assigner import graphics_inverse_assigner
 from pyquibbler.assignment import OverrideGroup
+from pyquibbler.quib.quib import Quib
 
 from numpy import unravel_index
 
@@ -50,7 +52,8 @@ def get_xdata_arg_indices_and_ydata_arg_indices(args: Tuple[List, List]):
     return x_data_arg_indexes, y_data_arg_indexes
 
 
-def get_quibs_to_paths_affected_by_event(args: List[Any], arg_indices: List[int], artist_index: int, data_indices: Any):
+def get_quibs_to_paths_affected_by_event(args: List[Any], arg_indices: List[int],
+                                         artist_index: int, data_indices: Any) -> Mapping[Quib, Paths]:
     from pyquibbler.quib import Quib
     quibs_to_paths = defaultdict(list)
     for arg_index in arg_indices:
@@ -92,7 +95,14 @@ def get_overrides_for_event(args: List[Any], arg_indices: List[int], artist_inde
         return []
 
     quibs_to_paths = get_quibs_to_paths_affected_by_event(args, arg_indices, artist_index, data_indices)
-    return [AssignmentToQuib(quib, Assignment(value=value, path=path))
+    return [AssignmentToQuib(quib,
+                             # we cast value by current value. so datetime or int work as expected.
+                             Assignment(
+                                 value=convert_scalar_value(
+                                     current_value=deep_get(quib.handler.get_value_valid_at_path(path), path),
+                                     assigned_value=value),
+                                 path=path)
+                             )
             for quib, paths in quibs_to_paths.items() for path in paths]
 
 

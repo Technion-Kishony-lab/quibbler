@@ -5,7 +5,8 @@ import pytest
 
 from pyquibbler import iquib
 from pyquibbler.quib.graphics.event_handling.graphics_inverse_assigner import inverse_assign_drawing_func
-
+from datetime import datetime
+from matplotlib.dates import date2num
 
 @pytest.fixture
 def mock_plot():
@@ -40,8 +41,13 @@ def test_plot_inverse_assigner_happy_flow(mock_plot):
     assert np.array_equal(q.get_value(), [20, 2, 3])
 
 
+date_array = np.array([datetime.strptime('2019-01-01','%Y-%m-%d'), datetime.strptime('2021-01-01','%Y-%m-%d')])
+new_date = datetime.strptime('2019-01-02','%Y-%m-%d')
+
+
 @pytest.mark.parametrize("indices,artist_index,xdata,ydata,args,quib_index,expected_value", [
     ([0], 0, 100, 50, (iquib([0, 0, 0]),), 0, [50, 0, 0]),
+    ([0], 0, 100, date2num(new_date), (iquib(date_array),), 0, np.array([new_date, date_array[1]])),
     ([0], 0, 100, 50, (iquib([0, 0, 0]), None), 0, [100, 0, 0]),
     ([0], 0, 100, 50, (iquib([0, 0, 0]), None, "i_is_fmt"), 0, [100, 0, 0]),
     ([0], 0, 100, 50, (None, None, "i_is_fmt", iquib([0, 0, 0]), None), 3, [100, 0, 0]),
@@ -52,6 +58,7 @@ def test_plot_inverse_assigner_happy_flow(mock_plot):
     ([1], 0, 4, 5, (iquib([[1], [2], [3]]),), 0, [[1], [5], [3]]),
 ], ids=[
     "ydata: one arg",
+    "ydata: one arg datetime",
     "xdata: two args",
     "xdata: three args",
     "xdata: second group after fmt",
