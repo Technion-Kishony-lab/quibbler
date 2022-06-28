@@ -1,13 +1,25 @@
-from typing import Optional, Dict
+from typing import Optional, Dict, Set
 from matplotlib.artist import Artist
 
 from pyquibbler.quib.quib import Quib
 
 SETTER_QUIBS_NAME = '_quibbler_artist_setter_quibs'
 CREATING_QUIB_NAME = '_quibbler_artist_creating_quib'
+UPSTREAM_CALLER_QUIBS_NAME = '_quibbler_artist_upstream_caller_quibs'
 
 
-def get_creating_quib(artist: Artist):
+def get_upstream_caller_quibs(artist: Artist) -> Set[Quib]:
+    if not hasattr(artist, UPSTREAM_CALLER_QUIBS_NAME):
+        setattr(artist, UPSTREAM_CALLER_QUIBS_NAME, set())
+    return getattr(artist, UPSTREAM_CALLER_QUIBS_NAME)
+
+
+def delete_upstream_caller_quibs_attr(artist: Artist):
+    if hasattr(artist, UPSTREAM_CALLER_QUIBS_NAME):
+        delattr(artist, UPSTREAM_CALLER_QUIBS_NAME)
+
+
+def get_creating_quib(artist: Artist) -> Optional[Quib]:
     return getattr(artist, CREATING_QUIB_NAME, None)
 
 
@@ -49,3 +61,4 @@ def delete_setting_quibs_attr(artist):
 def clear_all_quibs(artist):
     delete_creating_quib_attr(artist)
     delete_setting_quibs_attr(artist)
+    delete_upstream_caller_quibs_attr(artist)
