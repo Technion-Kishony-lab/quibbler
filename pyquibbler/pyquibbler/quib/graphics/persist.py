@@ -42,8 +42,11 @@ class PersistQuibOnCreatedArtists(RunFunctionWithQuibArg):
         This method will be given as a callback to the function runner whenever it creates artists.
         """
         for artist in new_artists:
-            artist_wrapper.set_creating_quib(artist, quib)
-            track_artist(artist)
+            if artist_wrapper.get_creating_quib(artist) is None:
+                artist_wrapper.set_creating_quib(artist, quib)
+                track_artist(artist)
+            else:
+                artist_wrapper.get_upstream_caller_quibs(artist).add(quib)
 
 
 class PersistQuibOnSettedArtist(RunFunctionWithQuibArg):
