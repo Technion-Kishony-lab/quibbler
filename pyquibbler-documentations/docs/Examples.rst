@@ -63,4 +63,7 @@ Simple quib-based apps
    examples/quibdemo_image_thresholding
 
 
-Download all examples :download:`zip <downloads/examples.zip>`
+Download examples
+^^^^^^^^^^^^^^^^^
+
+You can also download and try all examples locally (:download:`zip <zips_for_download/examples.zip>`).
