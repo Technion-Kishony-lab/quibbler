@@ -72,3 +72,10 @@ def test_transpositional_get_value_minors(create_quib_with_return_value):
     second = np.array([0, 1, first])
 
     assert np.array_equal(second.get_value(), np.array([0, 1, [1, 2]]))
+
+
+@pytest.mark.regression
+def test_transpositional_get_value_minors_2(create_quib_with_return_value):
+    a = iquib(np.array([1, 2, 3, 4]))
+    b = np.repeat([a], 3, 0)
+    assert np.array_equal(b.get_value(), np.repeat([a.get_value()], 3, 0))

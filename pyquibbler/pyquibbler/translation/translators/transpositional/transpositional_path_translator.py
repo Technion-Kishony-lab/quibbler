@@ -9,6 +9,7 @@ from pyquibbler.translation.translators.transpositional.utils import get_data_so
 from pyquibbler.translation.types import Source
 from pyquibbler.path.path_component import Path, Paths, PathComponent
 from pyquibbler.path.utils import working_component_of_type
+from pyquibbler.translation.utils import copy_and_replace_sources_with_vals
 from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices
 from pyquibbler.utils import get_original_func
 
@@ -38,6 +39,7 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
         if isinstance(major_data_source, Source):
             return np.shape(major_data_source.value)
 
+        major_data_source = copy_and_replace_sources_with_vals(major_data_source)
         major_data_source = np.array(major_data_source)
         minor_source = location.find_in_args_kwargs(self._func_call.args, self._func_call.kwargs)
         return np.shape(minor_source.value)[:major_data_source.ndim - len(location.path)]
@@ -138,7 +140,6 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
         return component
 
     def _get_path_in_source(self, source: Source):
-        # This is cached, will only run once
         data_sources_to_paths = self._get_data_sources_to_paths_in_data_sources()
 
         if source not in data_sources_to_paths:
