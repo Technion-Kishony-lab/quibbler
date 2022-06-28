@@ -77,7 +77,7 @@ def test_inverse_assign_full():
     data_source = Source(5)
 
     sources_to_results, _ = inverse(func=np.full, args=((1, 3), data_source),
-                                    indices=[[0], [1]],
+                                    indices=([0], [1]),
                                     value=10)
 
     assert sources_to_results[data_source] == 10
