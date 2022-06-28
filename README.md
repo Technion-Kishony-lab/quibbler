@@ -1,4 +1,4 @@
-<img src="quibicon.gif" width=300 align='right'>
+<img src="pyquibbler-documentations/docs/images/quibicon.gif" width=300 align='right'>
 
 # Quibbler
 **Interactive, traceable and efficient data analytics**
@@ -58,7 +58,7 @@ recalculated upon any such changes. Parameters are often buried in the code and
 re-specification of parameters is slow, undocumented and non-interactive.
 
 
-![Conceptual view of a data analysis pipeline](conceptual_view.gif)
+![Conceptual view of a data analysis pipeline](pyquibbler-documentations/docs/images/conceptual_view.gif)
 _**Conceptual view of data analysis pipelines:** Raw data (left) is gradually cleaned and 
 transformed as it is processed through multiple analysis steps, ultimately leading to
 key results and insights (right). These analysis steps often require choices and 
