@@ -38,6 +38,9 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "assignment_restrictions(on): mark test to run with or without assignment "
                                        "restrictions mode")
     config.addinivalue_line("markers", "pretty_repr(on): mark test to run with or without pretty repr")
+    config.addinivalue_line("markers", "get_variable_names(on): mark test to run with or without get variable name")
+    config.addinivalue_line("markers", "show_quib_exceptions_as_quib_traceback(True)(on): "
+                                       "mark test to run with traceback")
     # Copied from matplotlib to disable warning
     config.addinivalue_line("markers", "style: Set alternate Matplotlib style temporarily (deprecated).")
 
