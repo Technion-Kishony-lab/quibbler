@@ -5,6 +5,8 @@ from typing import Any
 from .assignment import Assignment
 from .default_value import default
 from ..path import Path, PathComponent, deep_get
+from datetime import datetime
+from matplotlib.dates import num2date
 
 
 def is_scalar(data) -> bool:
@@ -23,6 +25,14 @@ def convert_array_of_size_one_to_scalar(data):
     while is_array_of_size_one(data):
         data = data[0]
     return data
+
+
+def convert_scalar_value(current_value, assigned_value):
+    if is_scalar_integer(current_value):
+        return type(current_value)(round(assigned_value))
+    if isinstance(current_value, datetime) and isinstance(assigned_value, float):
+        return num2date(assigned_value).replace(tzinfo=None)
+    return type(current_value)(assigned_value)
 
 
 class AssignmentSimplifier:
@@ -111,7 +121,7 @@ class AssignmentSimplifier:
 
         try:
             if is_scalar(self.last_data) and is_scalar(self.value):
-                self._assignment.value = type(self.last_data)(self.value)
+                self._assignment.value = convert_scalar_value(self.last_data, self.value)
 
             if len(self.path) == 0 or not isinstance(self.second_to_last_data, (np.ndarray, list)) \
                     or isinstance(self.last_component.component, str):
