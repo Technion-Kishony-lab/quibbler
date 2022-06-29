@@ -48,8 +48,8 @@ class Unpacker:
                 if caller_frame is last_caller_frame and caller_instruction == last_caller_instruction:
                     # If next is called on us consecutively from the same bytecode, we are not going to learn any new
                     # information about the unpacking amount so we just quit and raise
-                    raise RuntimeError(f'Cannot determine unpacking amount for {self._indexable}.'
-                                       f'Try specifying the wanted amount.')
+                    raise RuntimeError(f'Cannot determine unpacking amount for {self._indexable}. '
+                                       f'Try specifying the desired amount, using Quib.iter_first(amount).')
             self._last_caller_info = caller_frame, caller_instruction
             unpack_amount = get_unpack_amount()
             if unpack_amount is not None:

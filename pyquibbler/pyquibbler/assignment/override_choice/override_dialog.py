@@ -10,8 +10,8 @@ from enum import Enum
 from pyquibbler.logger import logger
 from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.utils import Flag, Mutable
-from pyquibbler.env import OVERIDE_DIALOG_IN_SEPERATE_WINDOW, \
-    OVERIDE_DIALOG_AS_TEXT_FOR_GRAPHICS_ASSIGNMENT, OVERIDE_DIALOG_AS_TEXT_FOR_NON_GRAPHICS_ASSIGNMENT
+from pyquibbler.env import OVERRIDE_DIALOG_IN_SEPARATE_WINDOW, \
+    OVERRIDE_DIALOG_AS_TEXT_FOR_GRAPHICS_ASSIGNMENT, OVERRIDE_DIALOG_AS_TEXT_FOR_NON_GRAPHICS_ASSIGNMENT
 
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib
@@ -119,8 +119,8 @@ def choose_override_dialog(options: List[Quib], can_diverge: bool) -> OverrideCh
 
     invoking_axes = get_graphics_assignment_mode_axes()
     str_options = [quib.name for quib in options]
-    if invoking_axes is None and OVERIDE_DIALOG_AS_TEXT_FOR_NON_GRAPHICS_ASSIGNMENT \
-            or invoking_axes is not None and OVERIDE_DIALOG_AS_TEXT_FOR_GRAPHICS_ASSIGNMENT:
+    if invoking_axes is None and OVERRIDE_DIALOG_AS_TEXT_FOR_NON_GRAPHICS_ASSIGNMENT \
+            or invoking_axes is not None and OVERRIDE_DIALOG_AS_TEXT_FOR_GRAPHICS_ASSIGNMENT:
         choice_type, selected_index = choose_override_text_dialog(str_options, can_diverge)
     else:
         choice_type, selected_index = choose_override_graphics_dialog(str_options, can_diverge, invoking_axes)
@@ -138,7 +138,7 @@ def choose_override_graphics_dialog(str_options: List[str],
     widgets = []
     axeses = []
 
-    is_new_figure = OVERIDE_DIALOG_IN_SEPERATE_WINDOW or invoking_axes is None
+    is_new_figure = OVERRIDE_DIALOG_IN_SEPARATE_WINDOW or invoking_axes is None
     if is_new_figure:
         fig = plt.figure(figsize=(3, 2.5))
         shift = (0, 0)
