@@ -21,7 +21,7 @@ from weakref import WeakSet
 from matplotlib.artist import Artist
 
 from pyquibbler.env import LEN_RAISE_EXCEPTION, BOOL_RAISE_EXCEPTION, \
-    PRETTY_REPR, REPR_RETURNS_SHORT_NAME, REPR_WITH_OVERRIDES
+    PRETTY_REPR, REPR_RETURNS_SHORT_NAME, REPR_WITH_OVERRIDES, ITER_RAISE_EXCEPTION
 from pyquibbler.graphics import is_within_drag
 from pyquibbler.quib.quib_guard import guard_raise_if_not_allowed_access_to_quib, \
     CannotAccessQuibInScopeException
@@ -1211,8 +1211,10 @@ class Quib:
             return len(self.get_value_valid_at_path(None))
 
     def __iter__(self):
-        raise TypeError('Cannot iterate over quibs, as their size can vary. '
-                        'Try Quib.iter_first() to iterate over the n-first items of the quib.')
+        if ITER_RAISE_EXCEPTION:
+            raise TypeError('Cannot iterate over quibs, as their size can vary. '
+                            'Try Quib.iter_first() to iterate over the n-first items of the quib.')
+        return Unpacker(self)
 
     def iter_first(self, amount: Optional[int] = None):
         """
