@@ -30,10 +30,12 @@ from pyquibbler.project.jupyer_project.utils import is_within_jupyter_lab, find_
 class JupyterProject(Project):
     """
     Represents a project within a Jupyer Lab environment.
-    On override_all, if you are within a jupyter lab environment, the `current_project` will automatically be set to
-    an instance of JupterProject
+
+    On initialize_quibbler, if Python is running within a jupyter lab environment, the `current_project`
+    will automatically be set to an instance of JupterProject.
+
     JupyterProject is responsible for everything the normal project is, along with interfacing with the Quibbler
-    extension in jupyter
+    extension of Jupyter lab.
     """
 
     def __init__(self, directory: Optional[Path], quib_weakrefs,

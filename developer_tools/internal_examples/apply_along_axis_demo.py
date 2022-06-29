@@ -1,9 +1,9 @@
 import numpy as np
 from matplotlib import pyplot as plt, widgets
 
-from pyquibbler import q, override_all, iquib
+from pyquibbler import q, initialize_quibbler, iquib
 
-override_all()
+initialize_quibbler()
 
 count = iquib(6).setp(assignment_template=(2, 12, 2))
 

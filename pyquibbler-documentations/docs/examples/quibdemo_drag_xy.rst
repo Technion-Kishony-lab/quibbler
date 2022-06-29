@@ -16,10 +16,10 @@ Dragging graphics affects upstream quibs
 
 .. code:: python
 
-    from pyquibbler import iquib, override_all, q
+    from pyquibbler import iquib, initialize_quibbler, q
     import matplotlib.pyplot as plt
     import numpy as np
-    override_all()
+    initialize_quibbler()
     %matplotlib tk
 
 .. code:: python

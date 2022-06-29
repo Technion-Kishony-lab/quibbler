@@ -14,8 +14,8 @@ COVID-19 analysis
 
 .. code:: python
 
-    from pyquibbler import iquib, q, override_all
-    override_all()
+    from pyquibbler import iquib, q, initialize_quibbler
+    initialize_quibbler()
     from matplotlib import pyplot as plt
     import numpy as np
     

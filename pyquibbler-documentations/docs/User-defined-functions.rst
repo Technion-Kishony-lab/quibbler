@@ -24,7 +24,7 @@ Import
 
     import pyquibbler as qb
     from pyquibbler import q, quiby, quiby_function, iquib, Quib
-    qb.override_all()
+    qb.initialize_quibbler()
     import numpy as np
     import matplotlib.pyplot as plt
     import matplotlib.widgets as widgets

@@ -17,8 +17,8 @@ Quibs of random functions - dice rolling
 
 .. code:: python
 
-    from pyquibbler import iquib, override_all, q, quiby_function, reset_random_quibs
-    override_all()
+    from pyquibbler import iquib, initialize_quibbler, q, quiby_function, reset_random_quibs
+    initialize_quibbler()
     
     import matplotlib.pyplot as plt
     from matplotlib.widgets import Slider, Button

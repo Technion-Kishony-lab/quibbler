@@ -9,7 +9,7 @@ Initiation
    :toctree: functions
    :nosignatures:
 
-   override_all
+   initialize_quibbler
 
 Creating quibs
 --------------

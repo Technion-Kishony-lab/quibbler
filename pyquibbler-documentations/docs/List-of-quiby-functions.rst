@@ -15,7 +15,7 @@ Import
 
     import pyquibbler as qb
     from pyquibbler import iquib
-    qb.override_all()
+    qb.initialize_quibbler()
     import numpy as np
 
 .. code:: python

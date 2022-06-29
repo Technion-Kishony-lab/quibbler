@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import pytest
 
-from pyquibbler import override_all, iquib, Quib, quiby
+from pyquibbler import initialize_quibbler, iquib, Quib, quiby
 from pyquibbler.graphics.global_collecting import AxesCreatedDuringQuibEvaluationException
 
 

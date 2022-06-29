@@ -23,7 +23,7 @@ Import
 *Quibbler* for *python*, ``pyquibbler``, is conventionally imported as
 ``qb``. In addition, it is convenient to specifically import some
 often-used functions such as ``iquib`` (which will be explained below).
-Following import, we execute ``qb.override_all()`` which configures
+Following import, we execute ``qb.initialize_quibbler()`` which configures
 *NumPy* and *Matplotlib* functions to work with *Quibbler*. A typical
 import therefore looks as follows:
 
@@ -32,7 +32,7 @@ import therefore looks as follows:
     # Quibbler import:
     import pyquibbler as qb
     from pyquibbler import iquib
-    qb.override_all()
+    qb.initialize_quibbler()
     
     # Other imports:
     import numpy as np
