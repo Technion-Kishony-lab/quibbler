@@ -25,9 +25,9 @@ Import
 ``pyquibbler`` is customarily imported as ``qb``. In addition, it is
 convenient to directly import some often used functions such as
 ``iquib`` and ``quiby`` (which will be explained below). Following
-import, we need to execute ``qb.initialize_quibbler()`` which configure *NumPy*
-and *Matplotlib* functions to work with *Quibbler*. Imports of *NumPy*
-and *Matplotlib*, if needed, should follow the execution of
+import, we need to execute ``qb.initialize_quibbler()`` which configure
+*NumPy* and *Matplotlib* functions to work with *Quibbler*. Imports of
+*NumPy* and *Matplotlib*, if needed, should follow the execution of
 ``qb.initialize_quibbler()``. A typical import therefore looks like:
 
 .. code:: python
@@ -44,9 +44,12 @@ and *Matplotlib*, if needed, should follow the execution of
 Graphics backend
 ~~~~~~~~~~~~~~~~
 
-``pyquibbler`` works well with ``tk`` and ``widget``.
+``pyquibbler`` works well with the ``tk`` backend. In PyCharm, specify
+``matplotlib.use("TkAgg")``, in *Jupyter Lab*, specify
+``%matplotlib tk``.
 
-If you are using *Jupiter Notebook*, use for example:
+On a Mac system, ``matplotlib.use('macosx')``, or ``%matplotlib osx``
+are also recommeded (and are typically faster).
 
 .. code:: python
 
@@ -456,7 +459,7 @@ implemented using the ``quiby``-syntax include: ``len``, ``int``,
 the ``quiby`` function (and see also the :py:func:`~pyquibbler.quiby_function` decorator
 and the :py:func:`~pyquibbler.q` syntax).
 
-Calculation effeciency
+Calculation efficiency
 ~~~~~~~~~~~~~~~~~~~~~~
 
 As noted above, calculations in *Quibbler* are cached and are only

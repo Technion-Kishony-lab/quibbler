@@ -27,7 +27,7 @@ Simple quib-app for image analysis
 .. code:: python
 
     # Load an image:
-    filename = iquib('bacteria_drop.tif')
+    filename = iquib('bacteria_drop.tif') 
     img = plt.imread(filename)
     
     # Show the image:

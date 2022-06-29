@@ -112,8 +112,7 @@ by a report of a single “Cutting image …” and then 2\*\ *n*-1 “Comparing
     
     roi_default = iquib([[20, 100, 20, 100]], allow_overriding=False)
     
-    rois = np.repeat(roi_default, num_images, axis=0)
-    rois.setp(assignment_template=(0, 1000, 1), allow_overriding=True)
+    rois = np.repeat(roi_default, num_images, axis=0).setp(allow_overriding=True)
     
     similiarity_threshold = iquib(.1)
 
