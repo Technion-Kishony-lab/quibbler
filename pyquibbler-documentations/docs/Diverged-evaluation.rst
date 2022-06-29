@@ -41,7 +41,7 @@ For example:
     # Import Quibbler:
     import pyquibbler as qb
     from pyquibbler import iquib, q
-    qb.override_all()
+    qb.initialize_quibbler()
     
     # Other imports:
     import numpy as np

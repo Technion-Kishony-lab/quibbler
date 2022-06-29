@@ -15,7 +15,7 @@ from pyquibbler.utils import ensure_only_run_once_globally
 
 
 @ensure_only_run_once_globally
-def override_all():
+def initialize_quibbler():
     """
     Override all relavent functions, both operators and third party, to support Quibs
     """

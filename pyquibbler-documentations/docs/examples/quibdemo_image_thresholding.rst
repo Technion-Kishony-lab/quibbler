@@ -15,8 +15,8 @@ Simple quib-app for image analysis
 
 .. code:: python
 
-    from pyquibbler import iquib, override_all
-    override_all()
+    from pyquibbler import iquib, initialize_quibbler
+    initialize_quibbler()
 
 .. code:: python
 

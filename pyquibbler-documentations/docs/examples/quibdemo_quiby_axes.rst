@@ -15,8 +15,8 @@ Quiby setting of axes limits
 
 .. code:: python
 
-    from pyquibbler import iquib, q, override_all, undo, redo
-    override_all()
+    from pyquibbler import iquib, q, initialize_quibbler, undo, redo
+    initialize_quibbler()
     from matplotlib import pyplot as plt
     import numpy as np
     

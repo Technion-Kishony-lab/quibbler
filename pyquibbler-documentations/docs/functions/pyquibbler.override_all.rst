@@ -3,4 +3,4 @@
 
 .. currentmodule:: pyquibbler
 
-.. autofunction:: override_all
+.. autofunction:: initialize_quibbler

@@ -38,7 +38,7 @@ export const Requester = (comm: IComm) => {
             comm.send({action, parameters, requestId: uuid});
           } catch (error) {
             console.log("Failed with error", error);
-            throw new Error(`Cannot send ${action} - is pyquibbler running? (You need to run \`override_all\`)`)
+            throw new Error(`Cannot send ${action} - is pyquibbler running? (You need to run \`initialize_quibbler\`)`)
           }
         }, timeout);
       });

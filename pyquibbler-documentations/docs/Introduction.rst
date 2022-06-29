@@ -25,17 +25,17 @@ Import
 ``pyquibbler`` is customarily imported as ``qb``. In addition, it is
 convenient to directly import some often used functions such as
 ``iquib`` and ``quiby`` (which will be explained below). Following
-import, we need to execute ``qb.override_all()`` which configure *NumPy*
+import, we need to execute ``qb.initialize_quibbler()`` which configure *NumPy*
 and *Matplotlib* functions to work with *Quibbler*. Imports of *NumPy*
 and *Matplotlib*, if needed, should follow the execution of
-``qb.override_all()``. A typical import therefore looks like:
+``qb.initialize_quibbler()``. A typical import therefore looks like:
 
 .. code:: python
 
     # importing and initializing pyquibbler:
     import pyquibbler as qb
     from pyquibbler import iquib, quiby
-    qb.override_all()
+    qb.initialize_quibbler()
     
     # any other imports:
     import matplotlib.pyplot as plt

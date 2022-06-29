@@ -1,5 +1,5 @@
 import pytest
-from pyquibbler import q, iquib, override_all
+from pyquibbler import q, iquib, initialize_quibbler
 from pyquibbler.quib.external_call_failed_exception_handling import ExternalCallFailedException
 
 

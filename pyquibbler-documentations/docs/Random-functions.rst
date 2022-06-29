@@ -20,7 +20,7 @@ Import
 
     import pyquibbler as qb
     from pyquibbler import iquib
-    qb.override_all()
+    qb.initialize_quibbler()
     import numpy as np
 
 Quibs calling *NumPy* random functions are automatically defined as random quibs

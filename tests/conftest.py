@@ -8,7 +8,7 @@ from pyquibbler import CacheMode
 from pyquibbler.env import DEBUG, LAZY, ASSIGNMENT_RESTRICTIONS, PRETTY_REPR, \
     SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS, GET_VARIABLE_NAMES
 from pyquibbler.project import Project
-from pyquibbler.function_overriding import override_all
+from pyquibbler.function_overriding import initialize_quibbler
 from pyquibbler.quib.func_calling import CachedQuibFuncCall
 from pyquibbler.utils import Flag
 
@@ -26,8 +26,8 @@ def setup_environment_for_tests():
 
 
 @pytest.fixture(autouse=True, scope="session")
-def override_all_():
-    override_all()
+def initialize_quibbler_():
+    initialize_quibbler()
 
 
 def pytest_configure(config):

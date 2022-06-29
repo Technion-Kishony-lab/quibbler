@@ -45,7 +45,7 @@ by a report of a single “Cutting image …” and then 2\*\ *n*-1 “Comparing
     
     import pyquibbler as qb
     from pyquibbler import iquib, q, quiby
-    qb.override_all()
+    qb.initialize_quibbler()
     
     import numpy as np
     from scipy.sparse.csgraph import connected_components

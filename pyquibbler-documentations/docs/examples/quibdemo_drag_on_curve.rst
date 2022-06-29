@@ -15,8 +15,8 @@ Dragging graphics along a curved line
 
 .. code:: python
 
-    from pyquibbler import iquib, override_all, q
-    override_all()
+    from pyquibbler import iquib, initialize_quibbler, q
+    initialize_quibbler()
     import matplotlib.pyplot as plt
     import numpy as np
     %matplotlib tk

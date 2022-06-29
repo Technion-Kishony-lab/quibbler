@@ -9,7 +9,7 @@ import {getShowWithinNotebook} from "./globalConfig";
 
 /**
  * Represents a session between the client and a specific kernel. A session will create a requester once pyquibbler
- * is loaded (`override_all`)
+ * is loaded (`initialize_quibbler`)
  */
 export const Session = (panel: NotebookPanel,
                         kernel: IKernelConnection,
@@ -28,7 +28,7 @@ export const Session = (panel: NotebookPanel,
 
   const getRequester = () => {
     if (requester == null) {
-      throw new Error("No requester exists - you need to run `override_all` to initialize pyquibbler.");
+      throw new Error("No requester exists - you need to run `initialize_quibbler` to initialize pyquibbler.");
     }
     return requester;
   }

@@ -51,7 +51,7 @@ For example, consider the following code for choosing a coordinate x-y:
     # Imports
     import pyquibbler as qb
     from pyquibbler import iquib, q
-    qb.override_all()
+    qb.initialize_quibbler()
     import numpy as np
     import matplotlib.pyplot as plt
     from matplotlib.widgets import Slider

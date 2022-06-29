@@ -1,7 +1,7 @@
 import numpy as np
-from pyquibbler import override_all, q, iquib
+from pyquibbler import initialize_quibbler, q, iquib
 
-override_all()
+initialize_quibbler()
 
 a = iquib(np.array([1, 2, 3, 4]))
 b = np.repeat([a], 3, 0)

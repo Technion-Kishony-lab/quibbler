@@ -18,12 +18,12 @@ Signal analysis with random noise
 
 .. code:: python
 
-    from pyquibbler import iquib, override_all, q, quiby_function, reset_random_quibs
+    from pyquibbler import iquib, initialize_quibbler, q, quiby_function, reset_random_quibs
     import matplotlib.pyplot as plt
     import matplotlib.patches as patches
     from matplotlib import widgets
     import numpy as np
-    override_all()
+    initialize_quibbler()
     %matplotlib tk
 
 .. code:: python

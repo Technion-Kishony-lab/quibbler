@@ -32,8 +32,8 @@ the others accordingly.
 
 .. code:: python
 
-    from pyquibbler import iquib, override_all, q
-    override_all()
+    from pyquibbler import iquib, initialize_quibbler, q
+    initialize_quibbler()
     import matplotlib.pyplot as plt
     from matplotlib.widgets import TextBox, Slider
     import numpy as np

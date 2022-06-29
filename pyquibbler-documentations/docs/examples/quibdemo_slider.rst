@@ -10,8 +10,8 @@ Create a GUI by connecting quibs with widgets
 
 .. code:: python
 
-    from pyquibbler import iquib, override_all, q
-    override_all()
+    from pyquibbler import iquib, initialize_quibbler, q
+    initialize_quibbler()
     import matplotlib.pyplot as plt
     from matplotlib.widgets import Slider
     import numpy as np

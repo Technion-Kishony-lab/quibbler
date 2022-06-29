@@ -23,7 +23,7 @@ used for some presumed downstream processing of some *n* data items:
     # Imports
     import pyquibbler as qb
     from pyquibbler import iquib
-    qb.override_all()
+    qb.initialize_quibbler()
     import numpy as np
     import matplotlib.pyplot as plt
     %matplotlib tk
