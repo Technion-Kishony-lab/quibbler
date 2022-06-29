@@ -39,7 +39,7 @@ def kill_process_on(func: Callable):
 @pytest.fixture
 def driver():
     chrome_options = webdriver.ChromeOptions()
-    d = webdriver.Chrome(chrome_options=chrome_options)
+    d = webdriver.Chrome(options=chrome_options)
     yield d
     kill_process_on(lambda p: '--test-type=webdriver' in p.cmdline())
 

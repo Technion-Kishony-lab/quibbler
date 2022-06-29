@@ -140,7 +140,7 @@ def test_invert_elementwise_operator(create_quib_with_return_value):
 
 def test_invert_single_arg_elementwise_with_colon_slice(create_quib_with_return_value):
     n = create_quib_with_return_value(3, allow_overriding=True)
-    a = np.arange(n).setp(allow_overriding=True)
+    a = np.arange(1, n + 1).setp(allow_overriding=True)
     b = np.log2(a)
 
     b[:] = 3

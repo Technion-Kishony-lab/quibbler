@@ -151,7 +151,7 @@ def temp_axes():
 @pytest.mark.parametrize('pass_quibs', [True, False])
 def test_vectorize_does_not_redraw_valid_artists(temp_axes, pass_quibs):
     parent = iquib([[1, 2], [3, 4]])
-    vectorized_plot = np.vectorize(plt.plot, signature='(x)->()', otypes=[np.object], pass_quibs=pass_quibs,
+    vectorized_plot = np.vectorize(plt.plot, signature='(x)->()', otypes=[object], pass_quibs=pass_quibs,
                                    lazy=False)
     boy = vectorized_plot(parent)
 
