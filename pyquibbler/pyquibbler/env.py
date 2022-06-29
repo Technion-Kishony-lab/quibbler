@@ -34,6 +34,8 @@ LEN_RAISE_EXCEPTION = Flag(True)
 
 BOOL_RAISE_EXCEPTION = Flag(False)
 
+ITER_RAISE_EXCEPTION = Flag(False)
+
 LOG_TO_STDOUT = Flag(False)
 
 LOG_TO_FILE = Flag(False)
