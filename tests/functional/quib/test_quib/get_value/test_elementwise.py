@@ -56,3 +56,12 @@ def test_object_array():
     b = np.array(['nothing here', a], dtype=object)
 
     assert np.array_equal(b.get_value(), np.array(['nothing here', a.get_value()], dtype=object))
+
+
+@pytest.mark.regression
+def test_array_of_arrays():
+    a_value = np.array([0, 1, 2])
+    a = iquib(a_value)
+    b = np.array([a, None], dtype=object)  # use None to force np.array avoiding collapse to single array
+    b1 = b[0]
+    assert np.array_equal(np.exp2(b1).get_value(), np.exp2(a_value))
