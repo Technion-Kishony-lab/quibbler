@@ -28,7 +28,10 @@ class BackwardsGetItemTranslator(BackwardsTranspositionalTranslator):
                and not _getitem_path_component(self._func_call).references_field_in_field_array() \
                and len(self._path) > 0 \
                and not self._path[0].references_field_in_field_array() \
-               and isinstance(self._func_call.args[0].value, np.ndarray)
+               and isinstance(self._func_call.args[0].value, np.ndarray) \
+               and not (self._func_call.args[0].value.dtype.type is np.object_
+                        and isinstance(self._func_call.args[0].value[self._func_call.args[1]], np.ndarray))
+        # TODO: The above line is an ad hoc solution to the test_array_of_arrays bug
 
     def translate(self) -> Dict[Source, Path]:
         if self._can_squash_start_of_path():
