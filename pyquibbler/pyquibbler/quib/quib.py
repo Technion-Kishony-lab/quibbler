@@ -1425,6 +1425,8 @@ class Quib:
         """
         set of Quib: All quibs downstream of current quib.
 
+        Recursively find all the quibs that depend on the current quib.
+
         See Also
         --------
         ancestors, children, parents
@@ -1434,7 +1436,7 @@ class Quib:
     @property
     def parents(self) -> Set[Quib]:
         """
-        set of Quib: The set of quibs that this quib depends on.
+        set of Quib: The set of immediate upstream quibs that this quib depends on.
 
         See Also
         --------
@@ -1445,7 +1447,9 @@ class Quib:
     @cached_property
     def ancestors(self) -> Set[Quib]:
         """
-        set of Quib: All ancestors of the quib, going recursively up the tree.
+        set of Quib: All upstream quibs that this quib depends on.
+
+        Recursively scan upstream to find all the quibs that this quib depends on.
 
         See Also
         --------

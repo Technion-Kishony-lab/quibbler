@@ -223,7 +223,7 @@ labeled bacteria growing in a water-in-oil droplet).
 .. code:: python
 
     # Load an image from file:
-    filename = iquib(os.path.join('..','examples','data_files','bacteria_in_a_droplet.tif'))
+    filename = iquib(os.path.join('..','examples','data_files','bacteria_drop.tif'))
     img = plt.imread(filename)
     
     # Plot the image:
