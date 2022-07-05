@@ -54,6 +54,7 @@ Simple quib-based apps
 
    examples/quibdemo_fit_stocks
    examples/quibdemo_LotkaVolterra
+   examples/quibdemo_repressilator
    examples/quibdemo_fft
    examples/quibdemo_image_ROI
    examples/quibdemo_image_probing

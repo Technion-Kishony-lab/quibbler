@@ -1,5 +1,5 @@
-Build simple GUI for Lotka Volterra by equations
-------------------------------------------------
+A simple GUI for Lotka Volterra equations
+-----------------------------------------
 
 **A demo of Lotka-Volterra equation solver. Initial conditions and
 parameters are set interactively.**
