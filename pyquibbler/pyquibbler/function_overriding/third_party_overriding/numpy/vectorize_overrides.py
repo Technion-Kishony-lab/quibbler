@@ -2,7 +2,7 @@ from typing import Optional
 
 import numpy as np
 
-from pyquibbler.assignment.default_value import NoValue
+from pyquibbler.assignment.default_value import missing
 from pyquibbler.function_definitions import PositionalArgument, KeywordArgument, get_definition_for_function
 from pyquibbler.function_definitions.func_call import FuncArgsKwargs
 from pyquibbler.function_definitions.func_definition import FuncDefinition
@@ -50,18 +50,18 @@ class QVectorize(np.vectorize):
     """
 
     def __init__(self, *args,
-                 is_random: bool = NoValue,
-                 is_file_loading: bool = NoValue,
-                 is_graphics: Optional[bool] = NoValue,
-                 pass_quibs: bool = NoValue,
-                 lazy: Optional[bool] = NoValue,
+                 is_random: bool = missing,
+                 is_file_loading: bool = missing,
+                 is_graphics: Optional[bool] = missing,
+                 pass_quibs: bool = missing,
+                 lazy: Optional[bool] = missing,
                  signature=None,
                  cache=False,  # We don't need the underlying vectorize object to cache, we are doing that ourselves.
                  **kwargs):
         super().__init__(*args, signature=signature, cache=False, **kwargs)
         func_definition = get_definition_for_function(self.pyfunc)
         self.func_defintion_flags = {
-            name: value if value is not NoValue else getattr(func_definition, name)
+            name: value if value is not missing else getattr(func_definition, name)
             for name, value in (
                 ('is_random', is_random),
                 ('is_file_loading', is_file_loading),

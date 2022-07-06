@@ -33,5 +33,13 @@ class Default(Singleton):
 default = Default()
 
 
-class NoValue:
-    pass
+class Missing(Singleton):
+    """
+    Designates a missing value in a function call
+    """
+
+    def __repr__(self):
+        return 'missing'
+
+
+missing = Missing()
