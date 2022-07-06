@@ -1205,7 +1205,7 @@ class Quib:
     def __len__(self):
         if LEN_RAISE_EXCEPTION:
             raise TypeError('len(Q), where Q is a quib, is not allowed. '
-                            'To get a functional quib, use q(len,Q). '
+                            'To get a function quib, use q(len,Q), or quiby(q)(Q). '
                             'To get the len of the current value of Q, use len(Q.get_value()).')
         else:
             return len(self.get_value_valid_at_path(None))
@@ -1360,7 +1360,7 @@ class Quib:
     def __bool__(self):
         if BOOL_RAISE_EXCEPTION:
             raise TypeError('bool(Q), where Q is a quib, is not allowed. '
-                            'To get a functional quib, use q(bool, Q). '
+                            'To get a function quib, use q(bool, Q), or quib(bool)(Q). '
                             'To get bool of the current value of Q, use bool(Q.get_value()).')
         else:
             return bool(self.get_value())

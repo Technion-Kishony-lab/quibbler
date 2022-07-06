@@ -29,7 +29,7 @@ class CannotChangeQuibAtPathException(PyQuibblerException):
     def __str__(self):
         return f'Cannot perform {self.quib_change} on {self.quib_change.quib}, because it cannot ' \
                f'be overridden and an overridable parent quib to inverse assign into was not found.\n' \
-               f'Note that functional quibs are not overridable by default.\n' \
+               f'Note that function quibs are not overridable by default.\n' \
                f'To allow overriding, try using "{self.quib_change.quib}.allow_overriding = True"'
 
 
