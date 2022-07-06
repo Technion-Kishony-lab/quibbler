@@ -620,7 +620,7 @@ class Quib:
         The quib's value is given by ``value = func(*args, **kwargs)``,
         with any quibs in `args` or `kwargs` replaced by their values (unless ``pass_quibs=True``).
 
-        See also
+        See Also
         --------
         args, kwargs, pass_quibs, is_pure, is_random, is_graphics
 
@@ -645,7 +645,7 @@ class Quib:
         `args` is a tuple of all positional arguments, which could each be any object including quibs.
         Any quibs in `args` are replaced with their values when the function is called (unless ``pass_quibs=True``).
 
-        See also
+        See Also
         --------
         func, kwargs, pass_quibs
 
@@ -670,7 +670,7 @@ class Quib:
         `kwargs` is a dictionary of str keywords mapped to any object including non-quib or quib arguments.
         Any quibs in `kwargs` are replaced with their values when the function is called (unless ``pass_quibs=True``).
 
-        See also
+        See Also
         --------
         func, args, pass_quibs
 
@@ -822,8 +822,8 @@ class Quib:
         --------
         CacheMode, cache_status
 
-        Note
-        ----
+        Notes
+        -----
         Quibs with random functions and graphics quibs are always cached even when cache mode is ``'off'``.
 
         """
@@ -1312,8 +1312,8 @@ class Quib:
         --------
         get_value, get_ndim, get_shape
 
-        Note
-        ----
+        Notes
+        -----
         Calculating the type does not necessarily require calculating its entire value.
         """
         return self.handler.quib_function_call.get_type()
@@ -1334,8 +1334,8 @@ class Quib:
         --------
         get_value, get_ndim, get_type
 
-        Note
-        ----
+        Notes
+        -----
         Calculating the shape does not necessarily require calculating its entire value.
         """
         return self.handler.quib_function_call.get_shape()
@@ -1356,8 +1356,8 @@ class Quib:
         --------
         get_value, get_shape, get_type
 
-        Note
-        ----
+        Notes
+        -----
         Calculating ndim does not necessarily require calculating its entire value.
         """
         return self.handler.quib_function_call.get_ndim()
@@ -1695,6 +1695,14 @@ class Quib:
         The name must be a string starting with a letter and continuing with an alpha-numeric character. Spaces
         are also allowed.
 
+        See Also
+        --------
+        name, setp, pyquibbler.save_quibs, pyquibbler.load_quibs
+
+        Notes
+        -----
+        The `assigned_name` is also used for setting the file name for saving overrides.
+
         Examples
         --------
         Automatic naming based on quib's variable name:
@@ -1709,13 +1717,6 @@ class Quib:
         >>> data.assigned_name
         `my data`
 
-        See Also
-        --------
-        name, setp, pyquibbler.save_quibs, pyquibbler.load_quibs
-
-        Note
-        ----
-        The `assigned_name` is also used for setting the file name for saving overrides.
         """
         return self.handler.assigned_name
 
@@ -1741,6 +1742,14 @@ class Quib:
         The name of the quib can either be the given `assigned_name` if not `None`,
         or an automated name representing the function of the quib (the `functional_representation` attribute).
 
+        See Also
+        --------
+        assigned_name, setp, functional_representation
+
+        Notes
+        -----
+        Assigning into `name` is equivalent to assigning into `assigned_name`.
+
         Examples
         --------
         >>> number = iquib(7)
@@ -1751,14 +1760,6 @@ class Quib:
         >>> new_number.assigned_name = None
         >>> new_number.name
         `number + 3`
-
-        See Also
-        --------
-        assigned_name, setp, functional_representation
-
-        Note
-        ----
-        Assigning into `name` is equivalent to assigning into `assigned_name`.
         """
         return self.assigned_name or self.functional_representation
 
@@ -1776,7 +1777,7 @@ class Quib:
     @property
     def functional_representation(self) -> str:
         """
-        str: A string representing a functional representation of the quib.
+        str: A string representing the function and arguments of the quib.
 
         See Also
         --------
@@ -1790,14 +1791,14 @@ class Quib:
         --------
         >>> a = iquib(4)
         >>> b = (a + 10) ** 2
-        >>> a.functional_representation
+        >>> b.functional_representation
         '(a + 10) ** 2'
         """
         return str(self._get_functional_representation_expression())
 
     def get_math_expression(self) -> MathExpression:
         """
-        Returns a MathExpression object providing a str representation of the quib.
+        Returns a MathExpression object providing a string representation of the quib.
 
         See Also
         --------
@@ -1806,9 +1807,10 @@ class Quib:
         return NameMathExpression(self.assigned_name) if self.assigned_name is not None \
             else self._get_functional_representation_expression()
 
+    @property
     def ugly_repr(self) -> str:
         """
-        Returns a simple str representation of the quib.
+        str: a simple string representation of the quib.
 
         Returns
         -------
@@ -1821,12 +1823,20 @@ class Quib:
         functional_representation
         pretty_repr
         get_math_expression
+
+        Examples
+        --------
+        >>> a = iquib(4)
+        >>> b = np.sin(a)
+        >>> b.ugly_repr
+        "<Quib - <ufunc 'sin'>"
         """
         return f"<{self.__class__.__name__} - {self.func}"
 
+    @property
     def pretty_repr(self) -> str:
         """
-        Returns a pretty str representation of the quib.
+        str: a pretty string representation of the quib.
 
         Returns
         -------
@@ -1839,6 +1849,13 @@ class Quib:
         functional_representation
         ugly_repr
         get_math_expression
+
+        Examples
+        --------
+        >>> a = iquib(4)
+        >>> b = (a + 10) ** 2
+        >>> b.functional_representation
+        'b = (a + 10) ** 2'
         """
         return f"{self.assigned_name} = {self.functional_representation}" \
             if self.assigned_name is not None else self.functional_representation
@@ -1851,9 +1868,9 @@ class Quib:
             if REPR_RETURNS_SHORT_NAME:
                 return str(self.get_math_expression())
             elif REPR_WITH_OVERRIDES and self.handler.is_overridden:
-                return self.pretty_repr() + '\n' + self.handler.overrider.pretty_repr(self.assigned_name)
-            return self.pretty_repr()
-        return self.ugly_repr()
+                return self.pretty_repr + '\n' + self.handler.overrider.get_pretty_repr(self.assigned_name)
+            return self.pretty_repr
+        return self.ugly_repr
 
     def display_props(self) -> None:
         """

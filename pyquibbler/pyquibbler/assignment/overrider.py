@@ -189,7 +189,7 @@ class Overrider:
         if not self.can_save_to_txt():
             raise CannotSaveAssignmentsAsTextException()
         with open(file, "wt") as f:
-            f.write(self.pretty_repr())
+            f.write(self.get_pretty_repr())
 
     def load_from_assignment_text(self, assignment_text: str):
         self.clear_assignments()
@@ -215,7 +215,7 @@ class Overrider:
     repr
     """
 
-    def pretty_repr(self, name: str = None):
+    def get_pretty_repr(self, name: str = None):
         name = 'quib' if name is None else name
         from ..quib.pretty_converters.pretty_convert import getitem_converter
         pretty = ''
@@ -231,4 +231,4 @@ class Overrider:
         return pretty
 
     def __repr__(self):
-        return self.pretty_repr()
+        return self.get_pretty_repr()
