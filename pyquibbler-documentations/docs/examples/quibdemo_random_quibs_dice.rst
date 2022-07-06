@@ -17,7 +17,7 @@ Quibs of random functions - dice rolling
 
 .. code:: python
 
-    from pyquibbler import iquib, initialize_quibbler, q, quiby_function, reset_random_quibs
+    from pyquibbler import iquib, initialize_quibbler, q, quiby, reset_random_quibs
     initialize_quibbler()
     
     import matplotlib.pyplot as plt
@@ -63,14 +63,14 @@ Quibs of random functions - dice rolling
         return sum(1/n_sides * p_sum_dice(n_dice - 1, n_sides, total-outcome) 
                    for outcome in range(1, n_sides+1)) 
     
-    xx = np.arange(num_dice,num_dice*num_sides+1)
-    p = q(p_sum_dice,num_dice,num_sides,xx)
-    ax.plot(xx,p*num_rolls,'mo-');
+    xx = np.arange(num_dice, num_dice * num_sides + 1)
+    p = q(p_sum_dice, num_dice, num_sides, xx)
+    ax.plot(xx, p * num_rolls, 'mo-');
 
 .. code:: python
 
     # Plot normal approximation
-    @quiby_function()
+    @quiby
     def p_normal(m,s,x):
         return 1 / s / np.sqrt(2 * np.pi) * np.exp(-0.5 * ((x - m) / s)**2)
     
@@ -78,9 +78,9 @@ Quibs of random functions - dice rolling
     mean = np.average(np.arange(1, num_sides + 1))
     se = std * np.sqrt(num_dice)
     mn = mean * num_dice
-    xx = np.linspace(num_dice, num_dice*num_sides, 100)
+    xx = np.linspace(num_dice, num_dice * num_sides, 100)
     p = p_normal(mn, se, xx)
-    ax.plot(xx, p*num_rolls, 'r-');
+    ax.plot(xx, p * num_rolls, 'r-');
 
 .. code:: python
 

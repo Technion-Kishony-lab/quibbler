@@ -23,7 +23,7 @@ Import
 .. code:: python
 
     import pyquibbler as qb
-    from pyquibbler import q, quiby, quiby_function, iquib, Quib
+    from pyquibbler import q, quiby, iquib, Quib
     qb.initialize_quibbler()
     import numpy as np
     import matplotlib.pyplot as plt
@@ -111,26 +111,20 @@ For the example function above, we will implement:
 
 
 
-The advatage of ``quiby`` is that it also allows specifying properties
-of the quiby function, including ``lazy``, ``pass_quibs``,
-``is_random``, ``is_graphics``, ``is_file_loading``. See documentation
-of :py:func:`~pyquibbler.quiby`).
+The advatage of ``quiby`` is that it can also be used as a decorator and
+it allows specifying properties of the quiby function, including
+``lazy``, ``pass_quibs``, ``is_random``, ``is_graphics``,
+``is_file_loading``. See documentation of :py:func:`~pyquibbler.quiby`).
 
-``quiby`` can also be used as a decorator, or to more easily specify
-function properties with a decorator, use the :py:func:`~pyquibbler.quiby_function`
-decorator.
+Using quiby as a decorator
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The quiby_function decorator
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The *Quibbler* decorator :py:func:`~pyquibbler.quiby_function` converts any function to
-a quiby function, while allowing easy way to specify function propeties.
-
-For the example function above, we will implement:
+For the example above, we can implement the function ``add`` as a quiby
+function, using ``quiby`` as a decorator:
 
 .. code:: python
 
-    @quiby_function(is_graphics=False)
+    @quiby(is_graphics=False)
     def add(a, b):
         print(f'function add called with {a}, {b}')
         return a + b
@@ -186,7 +180,7 @@ arguments.
     axs.axis([0.5, 5.5, 0.5, 5.5])
     
     # Define a function that can make two alternative plots of the data.
-    @quiby_function(is_graphics=True, pass_quibs=True)
+    @quiby(is_graphics=True, pass_quibs=True)
     def plot_draggable_points(y: Quib, transpose: Quib):
         x = range(1, len(y.get_value()) + 1)
         if transpose:

@@ -13,6 +13,7 @@ quibs will then invalidate any downstream calculations that depend on
 these random values, causing re-evaluated of the random function upon
 downstream output request.
 
+
 Import
 ~~~~~~
 
@@ -164,11 +165,11 @@ User-defined randmon functions
 
 To implement quibs that call user defined random functions, we can set
 the ``is_random`` property of the function to ``True``, when converting
-it to a quiby function using the :py:func:`~pyquibbler.quiby_function` decorator:
+it to a quiby function using the :py:func:`~pyquibbler.quiby` decorator:
 
 .. code:: python
 
-    @qb.quiby_function(is_random=True)
+    @qb.quiby(is_random=True)
     def sum_of_dice(n: int):
         return np.sum(np.random.randint(1, 7, n))
     

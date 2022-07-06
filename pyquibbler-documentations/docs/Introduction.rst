@@ -456,8 +456,8 @@ If, instead, we want the quiby behavior of ``str``, we can use the
 Other common *Python* functions that are not quiby, yet can be
 implemented using the ``quiby``-syntax include: ``len``, ``int``,
 ``str``. User functions too can be converted to a quiby functions using
-the ``quiby`` function (and see also the :py:func:`~pyquibbler.quiby_function` decorator
-and the :py:func:`~pyquibbler.q` syntax).
+``quiby`` either as a function or as a decorator(and see also the
+:py:func:`~pyquibbler.q` syntax).
 
 Calculation efficiency
 ~~~~~~~~~~~~~~~~~~~~~~

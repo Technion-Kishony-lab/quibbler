@@ -1,5 +1,5 @@
 from .cache import CacheStatus
-from .decorators import quiby_function
+from pyquibbler.quib.factory import create_quib
 from pyquibbler.assignment import Assignment, AssignmentTemplate
 from pyquibbler.quib import CacheMode, iquib, Quib
 from .file_syncing import SaveFormat, ResponseToFileNotDefined

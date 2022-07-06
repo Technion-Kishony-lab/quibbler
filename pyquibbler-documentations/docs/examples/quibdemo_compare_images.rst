@@ -44,7 +44,7 @@ by a report of a single “Cutting image …” and then 2\*\ *n*-1 “Comparing
     # Imports:
     
     import pyquibbler as qb
-    from pyquibbler import iquib, q, quiby
+    from pyquibbler import iquib, q
     qb.initialize_quibbler()
     
     import numpy as np
@@ -149,6 +149,17 @@ by a report of a single “Cutting image …” and then 2\*\ *n*-1 “Comparing
     show_cut_images(grid_axes[:num_images], cut_images) \
         .setp(graphics_update='drop');
 
+
+.. code:: none
+
+    Cutting image 0
+    Cutting image 1
+    Cutting image 2
+    Cutting image 3
+    Cutting image 4
+    Cutting image 5
+
+
 .. code:: python
 
     # Calculate all pairwise image comparisons 
@@ -182,6 +193,47 @@ by a report of a single “Cutting image …” and then 2\*\ *n*-1 “Comparing
     axclr.set_xticks([])
     axclr.set_yticks([])
     axclr.set_ylabel('Similarity Threshold');
+
+
+.. code:: none
+
+    Comparing 0 -> 0
+    Comparing 0 -> 1
+    Comparing 0 -> 2
+    Comparing 0 -> 3
+    Comparing 0 -> 4
+    Comparing 0 -> 5
+    Comparing 1 -> 0
+    Comparing 1 -> 1
+    Comparing 1 -> 2
+    Comparing 1 -> 3
+    Comparing 1 -> 4
+    Comparing 1 -> 5
+    Comparing 2 -> 0
+    Comparing 2 -> 1
+    Comparing 2 -> 2
+    Comparing 2 -> 3
+    Comparing 2 -> 4
+    Comparing 2 -> 5
+    Comparing 3 -> 0
+    Comparing 3 -> 1
+    Comparing 3 -> 2
+    Comparing 3 -> 3
+    Comparing 3 -> 4
+    Comparing 3 -> 5
+    Comparing 4 -> 0
+    Comparing 4 -> 1
+    Comparing 4 -> 2
+    Comparing 4 -> 3
+    Comparing 4 -> 4
+    Comparing 4 -> 5
+    Comparing 5 -> 0
+    Comparing 5 -> 1
+    Comparing 5 -> 2
+    Comparing 5 -> 3
+    Comparing 5 -> 4
+    Comparing 5 -> 5
+
 
 .. code:: python
 
