@@ -25,10 +25,10 @@ Import
 ``pyquibbler`` is customarily imported as ``qb``. In addition, it is
 convenient to directly import some often used functions such as
 ``iquib`` and ``quiby`` (which will be explained below). Following
-import, we need to execute ``qb.initialize_quibbler()`` which configure
-*NumPy* and *Matplotlib* functions to work with *Quibbler*. Imports of
-*NumPy* and *Matplotlib*, if needed, should follow the execution of
-``qb.initialize_quibbler()``. A typical import therefore looks like:
+import, we need to execute ``qb.initialize_quibbler()`` which initiates
+*Quibbler* and configures *NumPy* and *Matplotlib* functions to work
+with *Quibbler*. Imports of *NumPy* and *Matplotlib*, if needed, should
+follow this initiation step. A typical import therefore looks like:
 
 .. code:: python
 
@@ -58,7 +58,7 @@ are also recommeded (and are typically faster).
 The quib object
 ---------------
 
-A ``Quib`` is an object that represents an output *value* as well as the
+A :py:class:`~pyquibbler.Quib` is an object that represents an output *value* as well as the
 *function* and *arguments* used to calculate this value. There are two
 major types of quibs: *input-quibs* (i-quibs) which take any *Python*
 object as their argument and present it as their value (their function
@@ -71,7 +71,7 @@ Input quib (i-quib)
 ~~~~~~~~~~~~~~~~~~~
 
 Any *Python* object can be transformed into an i-quib using the
-``iquib`` command. For example:
+:py:func:`~pyquibbler.iquib` command. For example:
 
 .. code:: python
 
@@ -88,15 +88,14 @@ Any *Python* object can be transformed into an i-quib using the
 
 
 Note that the string representation of a quib shows its *name* (in this
-case ‘my_lucky_number’; see :py:attr:``~pyquibbler.Quib.name`` property)
-and its *function* and *arguments* (in this case, ‘iquib(7)’; See
-:py:attr:``~pyquibbler.Quib.func``, :py:attr:``~pyquibbler.Quib.args``,
-:py:attr:``~pyquibbler.Quib.kwargs`` properties).
+case ‘my_lucky_number’; see :py:attr:`~pyquibbler.Quib.name` property) and its *function*
+and *arguments* (in this case, ‘iquib(7)’; See :py:attr:`~pyquibbler.Quib.func`,
+:py:attr:`~pyquibbler.Quib.args`, :py:attr:`~pyquibbler.Quib.kwargs` properties).
 
 Getting the quib’s value using get_value()
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To get the output *value* of the quib, we use the :py:attr:`~pyquibbler.Quib.get_value`
+To get the output *value* of the quib, we use the :py:meth:`~pyquibbler.Quib.get_value()`
 method:
 
 .. code:: python
@@ -170,7 +169,7 @@ assignment syntax:
 
 
 To completely replace the value of a quib, even with objects of a
-different type, use the ``assign()`` method:
+different type, use the :py:meth:`~pyquibbler.Quib.assign()` method:
 
 .. code:: python
 
@@ -194,14 +193,14 @@ Applying functions or operators to quib arguments creates a *function-quib* that
 
 *Quibbler* modifies standard functions and operators such that they can
 work directly with quib arguments, or with combinations of quibs and
-other objects, to create a *function quib*, whose function is to perform
-the indicated operation. Such Quibbler-supported functions, also called
-*quiby functions*, include many standard *Python*, *NumPy* and
-*Matplotlib* functions (see [full list[Quiby functions]]). Operators,
+other objects, to create a *function quib*, a quib whose function is to
+perform the indicated operation. Such Quibbler-supported functions, also
+called *quiby functions*, include many standard *Python*, *NumPy* and
+*Matplotlib* functions (see :doc:`full list<Quiby functions>`). Operators,
 such as ``+``, ``-``, ``<``, ``>``, ``**``, ``@``, are also quiby, and
 so are all types of indexing including slicing, field access, and
 advanced indexing. We can therefore easily define a chained network of
-functional quibs using standard *Python* syntax.
+function quibs using standard *Python* syntax.
 
 As a simple example, let’s start with an input quib ``z`` representing a
 numeric *NumPy* array:
@@ -227,7 +226,7 @@ would use a normal numeric *NumPy* array. For example:
 
 
 
-The statement above created ``z_sqr`` which is a functional quib whose
+The statement above created ``z_sqr`` which is a function quib whose
 *function* is to square the *value* of ``z``.
 
 We can similarly continue with additional downstream operations. Say,
@@ -253,11 +252,11 @@ Quibs are defined declaratively (lazy evaluation)
 In general, quib operations are declarative; they define a quib with a
 specified function and arguments, but do not immediately execute this
 function. For example, the statement above,
-``mean_z_zqr = np.average(z_sqr)`` creates a new quib whose function is
+``mean_z_zqr = np.average(z_sqr)`` created a new quib whose function is
 to perform ``np.average`` on the value of ``z_sqr``, but this averaging
-operation is not yet computed (deferred evaluation). Instead, as shown
-below, the quib’s function is only evaluated when we ask for the value
-of the quib.
+operation has not yet been computed (deferred evaluation). Instead, as
+shown below, the quib’s function is only evaluated the value of the quib
+is requested.
 
 Quib functions are only evaluated when their output value is needed
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -454,9 +453,9 @@ If, instead, we want the quiby behavior of ``str``, we can use the
 
 
 Other common *Python* functions that are not quiby, yet can be
-implemented using the ``quiby``-syntax include: ``len``, ``int``,
+implemented using the ``quiby`` syntax include: ``len``, ``int``,
 ``str``. User functions too can be converted to a quiby functions using
-``quiby`` either as a function or as a decorator(and see also the
+``quiby`` either as a function or as a decorator (and see also the
 :py:func:`~pyquibbler.q` syntax).
 
 Calculation efficiency
@@ -608,31 +607,32 @@ Using quibs with graphics functions readily creates interactive GUIs.
 We have seen that graphics quibs automatically refresh when upstream
 changes occur. Importantly, and even more powerfully, this
 data-to-graphics linkage can also be used reversely: changes to the
-graphics can propagate backwards to affect quib data. Indicating
-``picker=True`` for ``plt.plot`` allows the user to drag the graphics
-and such changes in the graphics are inverted to upstream changes in the
-data (see also separate chapters on :doc:`Graphics` and
-:doc:`Inverse-assignments`).
+graphics can propagate backwards to affect quib data. When we use
+``plt.plot`` on quib arguments, it creates interactive graphics allowing
+the user to drag objects and then translate graphics changes to
+assignments into the quib arguments of the plot. Such assignments can
+then *inverse-propagate* to upstream quibs (see also separate chapters
+on :doc:`Graphics` and :doc:`Inverse-assignments`).
 
 For example, let’s re-plot the data above, plotting both the input ``z``
-and the function quibs ``z_sqr`` and ``mean_z_sqr`` and indicating
-``picker=True``. As can be seen, the points can now be interactively
-dragged. Dragging ``z`` affect downstream results. More so, even
-``z_sqr`` can be dragged with these operations inverted to affect
-upstream ``z`` which in turn affects downstream ``mean_z_sqr``.
+and the function quibs ``z_sqr`` and ``mean_z_sqr``. As can be seen, the
+points can be interactively dragged. Dragging ``z`` affects downstream
+results. More so, even ``z_sqr`` can be dragged with these operations
+inverted to affect upstream ``z`` which in turn affects downstream
+``mean_z_sqr``.
 
 .. code:: python
 
     plt.figure()
     plt.subplot(2, 1, 1)
-    plt.plot(z, '-o', picker=True)
+    plt.plot(z, '-o')
     plt.ylabel('z');
     plt.ylim([0, 5]);
 
 .. code:: python
 
     plt.subplot(2, 1, 2)
-    plt.plot(z_sqr, '-o', picker=True)
+    plt.plot(z_sqr, '-o')
     plt.plot([0, 5], mean_z_sqr + [0, 0],'k--')
     plt.text(0, mean_z_sqr + 0.5, quiby('Average = {:.2f}'.format)(mean_z_sqr))
     plt.ylabel(str(z_sqr));
