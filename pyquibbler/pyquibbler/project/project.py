@@ -191,22 +191,28 @@ class Project:
         """
         GraphicsUpdateType: The default mode of updating graphics for all quibs.
 
-        Quibs whose own graphics_update is None adhere to the default graphics_update of the Project.
+        Quibs whose own graphics_update is ``None`` adhere to the default graphics_update of the Project.
 
         Can be set to `GraphicsUpdateType` or `str`:
 
-        ``'drag'``:     refresh immediately as upstream objects are dragged.
+        ``'drag'``: Update continuously as upstream quibs are being dragged,
+        or upon programmatic assignments to upstream quibs (default for graphics quibs).
 
-        ``'drop'``:     refresh at end of dragging upon graphic object drop.
+        ``'drop'``: Update only at the end of dragging of upstream quibs (at mouse 'drop'),
+        or upon programmatic assignments to upstream quibs.
 
-        ``'central'``:  do not automatically refresh. Refresh, centrally upon refresh_graphics().
+        ``'central'``:  Do not automatically update graphics upon upstream changes.
+        Only update upon explicit request for the quibs `get_value()`, or upon the
+        central redraw command: `refresh_graphics()`.
 
-        ``'never'``:    Never refresh.
+        ``'never'``: Do not automatically update graphics upon upstream changes.
+        Only update upon explicit request for the quibs `get_value()` (default for non-graphics quibs).
 
         See Also
         --------
         Quib.graphics_update
         GraphicsUpdateType
+        pyquibbler.refresh_graphics()
         """
         return self._graphics_update
 

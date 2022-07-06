@@ -23,7 +23,7 @@ Import
 *Quibbler* for *python*, ``pyquibbler``, is conventionally imported as
 ``qb``. In addition, it is convenient to specifically import some
 often-used functions such as ``iquib`` (which will be explained below).
-Following import, we execute ``qb.initialize_quibbler()`` which
+Following import, we execute ``qb.initialize_quibbler()``, which
 initializes *Quibbler* and configures *NumPy* and *Matplotlib* functions
 to work with *Quibbler*. A typical import therefore looks as follows:
 
@@ -43,16 +43,15 @@ Example of a minimal app
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 As a simple example, we will build towards a simple data analysis app
-for cutting a square image from a given source image with a specified
-width around chosen x-y coordinates.
+for cutting a square image from a source image with a specified width
+around a chosen x-y point.
 
-Writting such a code classically will require the use of callback
-functions to implement user interactions. Yet, in *Quibbler* we just
-need to define our parameters and plot them; the resulting graphics is
-automatically interactive.
+Writing such a code classically will require the use of callback
+functions to implement user interactions. In *Quibbler*, in contrast, we
+just need to define our parameters and plot them; the resulting graphics
+is automatically interactive.
 
-Let’s start with the following code for creating a draggable marker and
-live text at defined x-y coordinates:
+Let’s start with a code for interactively choosing our x-y point:
 
 .. code:: python
 
@@ -71,18 +70,18 @@ live text at defined x-y coordinates:
 
 .. image:: images/Quickstart_assign_xy_and_drag.gif
 
-As we can see, except for the use of the function :py:func:`~pyquibbler.iquib` (which
-will be explained below), the rest is a completely standard *Python*
-code for plotting a marker at position x=250, y=250 and adding next to
-it a text label with a these coordinates. Indeed, running this code
-plots the marker and the text as classically expected. Yet, unlike in
+As we can see, except for the use of the function :py:func:`~pyquibbler.iquib`
+(explained below), the rest is a completely standard *Python* code for
+plotting a marker at position x=250, y=250 and adding next to it a text
+label specifying the these coordinates. Indeed, running this code plots
+the marker and the text as classically expected. Yet, unlike in
 classical programming, in *Quibbler* the data items and graphics are all
 bi-directionally linked. First, assigning new values to an upstream
-variable, say assigning ``xy[0] = 100`` immediately refreshes all
-downstream graphics. Second, the plotted marker is in fact automatically
-draggable and, as we drag it, we see that it leads to changes in the
-upstream variable ``xy`` and in any dependent graphics, such as the text
-label and location.
+variable, say assigning ``xy[0] = 100``, immediately refreshes all
+downstream graphics. Second, the plotted marker is in fact draggable
+and, as we drag it, we see that it leads to changes in the upstream
+variable ``xy`` and in any dependent graphics, such as the text label
+and location.
 
 In *Quibbler*, thereby, we can easily get interactive functionality
 while using completely standard programming syntax and without the need
@@ -94,7 +93,7 @@ How does it work?
 
 Below, we briefly explain the above example, while providing a more
 general view of *Quibbler* functionality. You can also skip this section
-and continue with the building the example app below.
+and continue with building our image-cutting example app below.
 
 The quib object
 ^^^^^^^^^^^^^^^
@@ -133,11 +132,11 @@ standard programming syntax.
 In our case, ``x, y = xy`` creates the f-quibs ``x = xy[0]`` and
 ``y = xy[1]`` whose function is to reference ``xy`` at positions 0 and
 1, respectively. Next, the command ``plt.plot(x, y, ...)`` defines an
-f-quib whose function is to perform ``plt.plot`` on the values of ``x``
-and ``y``. Similarly, ``y + 30`` is a function quib that adds 30 to the
-value of ``y``, and then ``plt.text(...)`` is a function quib that calls
-the *Matplotlib* function ``plt.text`` with the values of its quib
-arguments.
+f-quib whose function is to perform ``plt.plot`` on the *values* of
+``x`` and ``y``. Similarly, ``y + 30`` is a function quib that adds 30
+to the value of ``y``, and then ``plt.text(...)`` is a function quib
+that calls the *Matplotlib* function ``plt.text`` with the values of its
+quib arguments.
 
 Upstream changes automatically propagate to affect the value of downstream quibs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -160,21 +159,21 @@ function are then *inverse-propagated* further upstream, ultimately
 actualized as changes to upstream quibs (typically reaching upstream
 i-quibs; see :doc:`Inverse-assignments`). In our case dragging the marker
 is initially translated into assignments to the ``x`` and ``y`` quibs.
-Since ``x`` and ``y`` are function quibs, the assignment is further
-inverse-propagated upstream to the i-quib ``xy`` where it is actualized.
-The resulting change in ``xy`` then percolates downstream to affect the
-plotted marker as well as text position and the text label.
+Since ``x`` and ``y`` are function quibs, these assignments are further
+inverse-propagated upstream to the i-quib ``xy`` where they are
+actualized. The resulting change in ``xy`` then percolates downstream to
+affect the plotted marker as well as text position and the text label.
 
 Building interactive data analysis apps
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The above principles can be used to build powerful bi-directional
+The above principles can be used to easily build powerful bi-directional
 relationships between data, parameters and graphics.
 
 Continuing towards building our image-extracting app, let us extend the
 coordinate-choosing code above, allowing the interactive specification
 of a square area around this chosen point. We will define and plot our
-square area, as a box extending length ``d`` from our defined x-y
+square area as a box extending length ``d`` from our defined x-y
 coordinates:
 
 .. code:: python
@@ -191,7 +190,7 @@ As we can see, this plot too is automatically interactive. Dragging any
 of the corners of the square is inverted into an assignment to the iquib
 ``d`` which then refreshes all other corners of the plotted square (to
 further understand how *Quibbler* chooses to invert these dragging
-actions into changes in ``d`` rather than in ``x`` and ``y``, see
+actions into changes in ``d`` rather than in ``x`` or ``y``, see
 :doc:`Inverse-assignments`, or the
 :doc:`examples/quibdemo_drag_whole_object_vs_individual_points` example).
 
@@ -230,28 +229,28 @@ case, we will create a slider with its value set to the function quib
 .. image:: images/Quickstart_widget_box_size.gif
 
 As we can see, the created widget is bi-directionally linked with the
-data. First, when we drag the square corners above, ``d`` changes and
-the slider automatically moves. Conversely, when we drag the slider,
-these interactions are inverted into assignments to ``box_size`` and,
-since ``box_size`` is a function quib, the change further propagates to
-affect ``d``, thereby refreshing the plotted square. Note that as ``d``
-is defined as an integer, ``box_size``, which is defined as
-``2 * d + 1`` must be, by definition, an odd number. Indeed, as we drag
-the slider, *Quibbler* restricts the dragging to odd numbers (to
-understand more on dragging between restricted values, see
-:doc:`examples/quibdemo_drag_fixed_values`.
+data. First, when we drag the square corners, ``d`` changes and the
+slider automatically moves. Conversely, when we drag the slider, these
+interactions are inverted into assignments to ``box_size`` and, since
+``box_size`` is a function quib, the change further propagates to affect
+``d``, thereby refreshing the plotted square. Note that as ``d`` is
+defined as an integer, ``box_size``, which is defined as ``2 * d + 1``
+is, by definition, an odd number. Indeed, as we drag the slider,
+*Quibbler* restricts the dragging to odd numbers (to understand more on
+dragging between restricted values, see
+:doc:`examples/quibdemo_drag_fixed_values`).
 
 Loading data from files
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 Function quibs can also implement functions that read data from files.
-Simply setting the file name as a quib, the standard file-accessing
-functions will create a function quib that loads the file.
+Simply setting the file name as a quib, a standard file-accessing
+function will create a function quib that loads the file.
 
 In our example, we will load and plot the source image that we want to
 cut based on our defined square. Let’s look at an example of a
 microscopy image of fluorescently-labeled bacteria growing inside small
-micro-droplets (credit: Einat Tamar):
+micro-droplets (credit: Einat Tamar, Kishony lab, Technion):
 
 .. code:: python
 
@@ -262,13 +261,16 @@ micro-droplets (credit: Einat Tamar):
 
 .. image:: images/Quickstart_load_image.gif
 
-Downstream data items are inherently linked with upstream parameter choice
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Concluding our image cutting app
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 We are now ready to conclude our app. We will use the quibs ``x``, ``y``
 and ``d``, defined above, to extract a square region from our source
-image. A plot of this sub-image will automatically update when there is
-a change in its upstream parameters.
+image. To do this, we will simply define
+``img_cut = img[y-d:y+d, x-d:x+d, :]``, which creates a function quib
+that performs the slicing operation. A plot of this sub-image will
+thereby automatically update when we move our center x-y point, or
+change the width of our defined square.
 
 Here thereby is our entire code:
 
@@ -321,6 +323,9 @@ our mind on the analysis from a data-oriented forward-looking
 standpoint, and let *Quibbler* deal with any asynchronous graphics or
 widget events.
 
+Other major features of *Quibbler*
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 Beyond **Interactivity**, other important capabilities of *Quibbler*,
 not demonstrated above, include:
 
@@ -329,10 +334,10 @@ identifies which specific downstream data items, or even specific
 elements thereof, are affected and only recalculates these affected
 items. See :doc:`Diverged-evaluation`.
 
-**2. Traceability** *Quibbler* allows us to easily probing which
-specific inputs affect a downstream result, and vise versa, which
-downstream results are affected by a given focal parameter. See
-:py:attr:`~pyquibbler.Quib.ancestors`, :py:attr:`~pyquibbler.Quib.descendants`.
+**2. Traceability** *Quibbler* allows us to easily probe which specific
+inputs affect a downstream result, and vise versa, which downstream
+results are affected by a given focal parameter. See :py:attr:`~pyquibbler.Quib.ancestors`,
+:py:attr:`~pyquibbler.Quib.descendants`.
 
 **3. Overriding**. Function quibs can be overridden, streamlining
 exception specifications to default behaviors. See
@@ -340,4 +345,5 @@ exception specifications to default behaviors. See
 
 **4. Transparency.** Inputs, as well as exceptions and overrides, are
 saved in simple human-readable files. See :doc:`Project-save-load` and the
-*Quibbler* Jupyer lab extension.
+*Quibbler* Jupyer lab extension (no docs yet).
+

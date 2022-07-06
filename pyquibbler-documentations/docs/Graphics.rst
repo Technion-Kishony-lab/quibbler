@@ -9,10 +9,10 @@ creating *graphics quibs* - quibs that represents “live”,
 reactive-interactive, graphics. Indeed, such graphics quibs are
 bi-directionally linked to their source data. Any changes to upstream
 quibs are propagated downstream to immediately affect the graphics; and,
-conversely, user interactions with the graphics (dragging, clicking)
-propagates backwards to affect the values of upstream quibs. Combining
-quibs with widgets and graphics, we can thereby readily create a highly
-interactive app-like analysis of our data.
+conversely, user interactions with the graphics (dragging, clicking) is
+inverse propagated backwards to affect the values of upstream quibs.
+Combining quibs with widgets and graphics, we can thereby readily create
+a highly interactive app-like analysis of our data.
 
 Notably, such interactive pipelines are naturally created in *Quibbler*
 without us needing to worry about the traditional, and often tedious,
@@ -29,7 +29,9 @@ things interactive and fun.
 
 Here, to demonstrate the key features of graphics quibs, we will build
 towards a simple example of building an interactive app for probing the
-RGB intensities of an image at a chosen point (x,y).
+RGB intensities of an image at a chosen point (x,y). This demo extends
+the simpler demo shown in :doc:`Quickstart`, touching on additional
+graphics aspects of *Quibbler*.
 
 Upstream changes automatically refresh downstream graphics quibs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -55,7 +57,6 @@ For example, consider the following code for choosing a coordinate x-y:
     import numpy as np
     import matplotlib.pyplot as plt
     from matplotlib.widgets import Slider
-    import os
     
     %matplotlib tk
 
@@ -68,12 +69,11 @@ For example, consider the following code for choosing a coordinate x-y:
     plt.axis([0, 100, 0, 100])
     
     # Define x-y coordinates of chosen point:
-    xy = iquib(np.array([50, 50]))
-    x = xy[0]
-    y = xy[1]
+    xy = iquib([50, 50])
+    x, y = xy
     
     # Plot the point as an 'x' marker:
-    plt.plot(x, y, 'xr', markersize=16, picker=True)
+    plt.plot(x, y, 'xr', markersize=16)
     
     # Add text indicating the coordinates of the point:
     text_label = q('x={}, y={}'.format, x, y)
@@ -90,25 +90,23 @@ User interactions with graphics are translated into upstream quib assignments
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The above example demonstrates how upstream changes affect downstream
-quib graphics. Importantly, this relationship can also go backwards:
+graphics quibs. Importantly, this relationship can also go backwards:
 changing the graphics of a graphics quib is translated into assignments
 to the corresponding upstream quib arguments, and from there, through
-inverse assignments, to any further upstream quibs.
+:doc:`inverse assignments<Inverse-assignments>`, to any further upstream
+quibs.
 
-Such *graphics-driven assignments* are currently supported for plt.plot
-and for common widgets (see below). To enable graphics-driven
-assignments for plt.plot, we indicate ``picker=True`` in the plot
-creation function.
+Such *graphics-driven assignments* are currently supported for
+``plt.plot``, ``plt.scatter`` and for common widgets (see below).
 
-In our point-choosing example code above, we used plt.plot with with
-``picker=True``, thereby moving the marker is enabled and such movements
-triggers graphics-driven assignments to the arguments of the plot, in
-this case to the quibs ``x`` and ``y``. As ``x`` and ``y`` are function
-quibs not allowing overriding (``allow_overriding=False`` by default for
-function quibs), these assignments propagate, through
-inverse-assignments, higher upstream to ``xy`` where they are ultimately
-actualized. Any quib graphics that depend on ``xy``, such as the text
-message, is then immediately refreshed:
+In our point-choosing example code above, moving the marker is
+translated into assignments to the arguments of the plot, namely to
+assignments to the quibs ``x`` and ``y``. Then, as ``x`` and ``y`` are
+function quibs (not allowing overriding; ``allow_overriding=False`` by
+default for function quibs), these assignments propagate higher
+upstream, through inverse-assignments, to ``xy`` where they are
+ultimately actualized. Any quib graphics that depend on ``xy``, such as
+the text message, is then immediately refreshed:
 
 .. image:: images/graphics_gif/graphics_xy_drag.gif
 
@@ -133,8 +131,8 @@ sliding markers for setting the x-y coordinates of our chosen point:
     plt.plot([x, x], [0, y], 'r--', linewidth=0.5)
     
     # Add horizontal and vertical draggable markers: 
-    plt.plot(1, y, '>r', markersize=16, picker=True)
-    plt.plot(x, 1, '^r', markersize=16, picker=True);
+    plt.plot(1, y, '>r', markersize=16)
+    plt.plot(x, 1, '^r', markersize=16);
 
 .. image:: images/graphics_gif/graphics_xy_drag_horz_vert.gif
 
@@ -143,15 +141,16 @@ For dragging on more complex paths, see: :doc:`examples/quibdemo_drag_on_curve`
 Quiby setters of axis attributes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Using a quibs as an argument to a setter of an axis property creates a
+Using a quib as an argument to a setter of an axis property creates a
 graphics quib that sets the property. Thereby, the specified axis
-property will automatically refresh upon upstream changes. Such quiby
+property will automatically refresh upon upstream changes. Such quibly
 behavior is supported for diverse axis properties including axis limits
-(i.e., ``set_xlim``, ``set_ylim``, ``plt.xlim``, ``plt.ylim``) axis
-ticks (``set_xticks``, ``set_yticks``, ``plt.xticks``, ``plt.yticks``),
-axis labels and title (i.e., ``set_xlabel``, ``set_ylabel``,
-``set_title``, ``plt.xlabel``, ``plt.ylabel``, ``plt.title``) and other
-attributes (e.g., ``set_visible``, ``set_facecolor``).
+(i.e., ``set_xlim``, ``set_ylim``, ``plt.xlim``, ``plt.ylim``,
+``plt.axis``) axis ticks (``set_xticks``, ``set_yticks``,
+``plt.xticks``, ``plt.yticks``), axis labels and title (i.e.,
+``set_xlabel``, ``set_ylabel``, ``set_title``, ``plt.xlabel``,
+``plt.ylabel``, ``plt.title``) and other attributes (e.g.,
+``set_visible``, ``set_facecolor``).
 
 As an example, let’s set the x-label and y-label of our
 coordinate-choosing axes to indicate the chosen x and y values. These
@@ -172,13 +171,13 @@ Quibs can be used as arguments to *Matplotlib* widget functions,
 creating bi-directionally linked widget graphics quibs. Like with other
 graphics quibs, widgets created with quib arguments automatically update
 upon upstream changes that affect their arguments. In addition, if a
-given quib is set as the initial value-setting kwarg of the widget, then
-interacting with the widget creates graphics-driven assignments to this
-given quib. This behavior allows to easily create interactive GUIs
-without a need for the classical, and more cumbersome, use of callback
-functions.
+given quib is set as the value kwarg of the widget, then interacting
+with the widget creates graphics-driven assignments to this given quib.
+This behavior allows to easily create interactive GUIs without a need
+for the classical, and more cumbersome, use of callback functions.
 
-Quib-supported widgets and their corresponding value-setting kwargs:
+Here is a list of quib-supported widgets and their corresponding
+value-setting kwargs:
 
 ::
 
@@ -188,9 +187,9 @@ Quib-supported widgets and their corresponding value-setting kwargs:
    RaioButtons(active=quib, ...)
    RectangleSelector(extents=quib, ...)
 
-(note that while normally *Matplotlib* does not allow specifying
+Note that while normally *Matplotlib* does not allow specifying
 ``extents`` as a parameter for RectangleSelector, such specification is
-supported in the *Quibbler* implementation of RectangleSelector)
+supported in the *Quibbler* implementation of RectangleSelector.
 
 For example, let’s define a box around our point x-y and create a Slider
 to control the size of this box:
@@ -218,12 +217,13 @@ Combining widgets and draggable graphics with quibs allows us to quickly
 and easily build powerful GUI-like interaction with our data. As an
 example, we apply below our point-choosing implementation to probe the
 RGB intensities of an image (here, an image of red, green and blue
-labeled bacteria growing in a water-in-oil droplet).
+labeled bacteria growing in a water-in-oil droplet; credit: Einat Tamar,
+Kishony lab, Technion).
 
 .. code:: python
 
     # Load an image from file:
-    filename = iquib(os.path.join('..','examples','data_files','bacteria_drop.tif'))
+    filename = iquib('bacteria_drop.tif')
     img = plt.imread(filename)
     
     # Plot the image:
@@ -233,12 +233,11 @@ labeled bacteria growing in a water-in-oil droplet).
     plt.setp(ax, xticks=[], yticks=[])
     
     # Define x-y coordinates of chosen point:
-    xy = iquib(np.array([50, 50]))
-    x = xy[0]
-    y = xy[1]
+    xy = iquib([50, 50])
+    x, y = xy
     
     # Plot the point as a white marker.
-    ax.plot(x, y, 'xw', markersize=12, picker=True)
+    ax.plot(x, y, 'xw', markersize=12)
     
     # Add text indicating the coordinates of the point:
     text_label = q('x={}, y={}'.format, x, y)
@@ -249,35 +248,32 @@ labeled bacteria growing in a water-in-oil droplet).
     ax.plot([x, x], [0, y], 'w--', linewidth=0.5)
     
     # Add horizontal and vertical draggable markers: 
-    ax.plot(1, y, '>w', markersize=16, picker=True)
-    ax.plot(x, 1, '^w', markersize=16, picker=True);
+    ax.plot(1, y, '>w', markersize=16)
+    ax.plot(x, 1, '^w', markersize=16);
     
     # Plot a square around the point (x,y):
     box_size = iquib(6) # size of the square
     plt.plot(x + box_size * np.array([-1, 1, 1, -1, -1]), 
-             y + box_size * np.array([-1, -1, 1, 1, -1]), 
-             'w-', picker=True);
+             y + box_size * np.array([-1, -1, 1, 1, -1]), 'w-');
     
     # Create a slider to control the box size:
     ax = plt.axes([0.15, 0.08, 0.3, 0.05])
     Slider(ax=ax, valmin=0, valmax=20, valstep=2, label="box size", valinit=box_size);
     
     # Cut and plot the boxed image:
-    img_cut = img[y - box_size:y + box_size + 1, x - box_size : x + box_size + 1, :]
+    img_cut = img[y - box_size : y + box_size + 1, x - box_size : x + box_size + 1, :]
     ax = plt.axes([0.6, 0.08, 0.3, 0.2])
     ax.imshow(img_cut, origin='lower');
-    ax.plot(x - (x - box_size), y - (y - box_size), 'xw', markersize=12, picker=True)
+    ax.plot(x - (x - box_size), y - (y - box_size), 'xw', markersize=12)
     ax.axis([-0.5, 2 * box_size + 0.5, -0.5, 2 * box_size + 0.5])
     plt.setp(ax, xticks=[], yticks=[])
     
     # Plot the RGB of the image at the chosen point:
     rgb_point = img[y, x, :]
     ax = plt.axes([0.6, 0.4, 0.3, 0.5])
-    ax.bar([1, 2, 3], rgb_point, color=['r', 'g', 'b']);
-    ax.axis([0.5, 3.5, 0, 255])
+    ax.bar(['Red', 'Green', 'Blue'], rgb_point, color=list('rgb'));
+    ax.set_ylim([0, 255])
     ax.set_ylabel('Intensity');
-    ax.set_xticks([1,2,3])
-    ax.set_xticklabels(['Red','Green','Blue']);
 
 .. image:: images/graphics_gif/graphics_rgb_probing_of_image.gif
 
@@ -285,15 +281,14 @@ A few notes on the above implementation. Beyond the use of draggable
 markers and widgets demoed in the introduction above, we also use here
 the following features:
 
--  Setting ``picker=True`` for the plot of the box allows dragging the
-   box leading to assignment into the ``x`` and ``y`` quibs (as they are
-   specified as the first argument in the ``+`` operator, see
-   :doc:`Inverse-assignments`).
+-  The plot of the box allows dragging the box leading to assignment
+   into the ``x`` and ``y`` quibs (as they are specified as the first
+   argument in the ``+`` operator, see :doc:`Inverse-assignments`).
 
 -  Using a quiby setter of the axis limits
    (``ax.axis([-0.5, 2 * box_size + 0.5, -0.5, 2 * box_size + 0.5])``)
-   dynamically changes the axis to fit the cut image as it size grows or
-   shrinks.
+   dynamically changes the axis to fit the cut image as its size grows
+   or shrinks.
 
 -  Plotting the x-marker in at the center of the cut image, we shift to
    new coordinates ``x - (x - box_size), y - (y - box_size)`` thereby
@@ -305,22 +300,7 @@ Graphics refresh mode
 ~~~~~~~~~~~~~~~~~~~~~
 
 For computationally heavy calculations, we might prefer to disable
-immediate recalculation for graphics quib. The ``graphics_update``
-property allows us to specify, for each given quib, when it will be
-updated. The following options are available:
-
-``'drag'``: Update continuously as upstream quibs are being dragged, or
-upon programmatic assignments to upstream quibs (default for graphics
-quibs).
-
-``'drop'``: Update only at the end of dragging of upstream quibs (at
-mouse ‘drop’), or upon programmatic assignments to upstream quibs.
-
-``'central'``: Do not automatically update graphics upon upstream
-changes. Only update upon explicit request for the quibs ``get_value()``
-or upon the central redraw command: ``qb.refresh_graphics()``
-
-``'never'``: Do not automatically update graphics upon upstream changes.
-Only update upon explicit request for the quibs ``get_value()`` (default
-for non-graphics quibs).
-
+immediate recalculation for graphics quibs. To define for each quib
+under what conditions it should be refreshed, see the
+:py:attr:`~pyquibbler.Quib.graphics_update` property and the central
+:py:func:`~pyquibbler.refresh_graphics` function.

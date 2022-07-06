@@ -893,23 +893,28 @@ class Quib:
     @property
     def graphics_update(self) -> GraphicsUpdateType:
         """
-        GraphicsUpdateType or None: Indicates whether the quib should refresh upon upstream assignments.
+        GraphicsUpdateType or None: Specifies when the quib should re-evaluate and refresh graphics.
 
         Can be set to a `GraphicsUpdateType`, or `str`:
 
-        ``'drag'``:     refresh immediately as upstream objects are dragged.
+        ``'drag'``: Update continuously as upstream quibs are being dragged,
+        or upon programmatic assignments to upstream quibs (default for graphics quibs).
 
-        ``'drop'``:     refresh at end of dragging upon graphic object drop.
+        ``'drop'``: Update only at the end of dragging of upstream quibs (at mouse 'drop'),
+        or upon programmatic assignments to upstream quibs.
 
-        ``'central'``:  do not automatically refresh. Refresh, centrally upon refresh_graphics().
+        ``'central'``:  Do not automatically update graphics upon upstream changes.
+        Only update upon explicit request for the quibs `get_value()`, or upon the
+        central redraw command: `refresh_graphics()`.
 
-        ``'never'``:    Never refresh.
+        ``'never'``: Do not automatically update graphics upon upstream changes.
+        Only update upon explicit request for the quibs `get_value()` (default for non-graphics quibs).
 
-        ``None``:       Yield to the default project's graphics_update
+        ``None``: Yield to the default project's graphics_update
 
         See Also
         --------
-        actual_graphics_update, GraphicsUpdateType, pyquibbler.refresh_graphics
+        actual_graphics_update, GraphicsUpdateType, Project.graphics_update, pyquibbler.refresh_graphics()
         """
         return self.handler.graphics_update
 
@@ -928,7 +933,7 @@ class Quib:
 
         See Also
         --------
-        graphics_update, pyquibbler.graphics_update
+        graphics_update, Project.graphics_update
         """
         return self.handler.actual_graphics_update
 
