@@ -1776,7 +1776,7 @@ class Quib:
     @property
     def functional_representation(self) -> str:
         """
-        str: A string representing a functional representation of the quib.
+        str: A string representing the function and arguments of the quib.
 
         See Also
         --------
@@ -1790,14 +1790,14 @@ class Quib:
         --------
         >>> a = iquib(4)
         >>> b = (a + 10) ** 2
-        >>> a.functional_representation
+        >>> b.functional_representation
         '(a + 10) ** 2'
         """
         return str(self._get_functional_representation_expression())
 
     def get_math_expression(self) -> MathExpression:
         """
-        Returns a MathExpression object providing a str representation of the quib.
+        Returns a MathExpression object providing a string representation of the quib.
 
         See Also
         --------
@@ -1808,7 +1808,7 @@ class Quib:
 
     def ugly_repr(self) -> str:
         """
-        Returns a simple str representation of the quib.
+        Returns a simple string representation of the quib.
 
         Returns
         -------
@@ -1821,12 +1821,20 @@ class Quib:
         functional_representation
         pretty_repr
         get_math_expression
+
+        Examples
+        --------
+        >>> a = iquib(4)
+        >>> b = np.sin(a)
+        >>> b.ugly_repr
+        "<Quib - <ufunc 'sin'>"
         """
         return f"<{self.__class__.__name__} - {self.func}"
 
+#    @property
     def pretty_repr(self) -> str:
         """
-        Returns a pretty str representation of the quib.
+        str: Returns a pretty string representation of the quib.
 
         Returns
         -------
@@ -1839,6 +1847,13 @@ class Quib:
         functional_representation
         ugly_repr
         get_math_expression
+
+        Examples
+        --------
+        >>> a = iquib(4)
+        >>> b = (a + 10) ** 2
+        >>> b.functional_representation
+        'b = (a + 10) ** 2'
         """
         return f"{self.assigned_name} = {self.functional_representation}" \
             if self.assigned_name is not None else self.functional_representation
