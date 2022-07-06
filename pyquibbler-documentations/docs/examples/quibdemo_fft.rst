@@ -18,7 +18,8 @@ Signal analysis with random noise
 
 .. code:: python
 
-    from pyquibbler import iquib, initialize_quibbler, q, quiby_function, reset_random_quibs
+    from pyquibbler import iquib, initialize_quibbler, q, \
+        quiby, reset_random_quibs
     import matplotlib.pyplot as plt
     import matplotlib.patches as patches
     from matplotlib import widgets
@@ -47,7 +48,7 @@ Signal analysis with random noise
     signal_fnc_chosen = iquib(1)
     
     # Signal as a function of time:
-    @quiby_function(True)
+    @quiby
     def get_signal(t, w, chosen, power):
         return {0: lambda s, n: s,
                 1: lambda s, n: (s > 0) * 2 - 1,
@@ -114,17 +115,14 @@ Signal analysis with random noise
 
     # sliders of quibs:
     slider_axs = [fig.add_axes([0.3, 0.2-i*0.04, 0.5, 0.02]) for i in range(5)]
-    widgets.Slider(ax=slider_axs[0], label='Number of points', 
-                   valmin=1, valmax=1000, valstep=2,   valinit=num_time_points)
-    widgets.Slider(ax=slider_axs[1], label='Period',           
-                   valmin=0, valmax=20,   valstep=1,   valinit=period)
-    widgets.Slider(ax=slider_axs[2], label='Total time',       
-                   valmin=0, valmax=200,  valstep=5,   valinit=total_time)
-    widgets.Slider(ax=slider_axs[3], label='Noise amplitude',  
-                   valmin=0, valmax=2,    valstep=0.1, valinit=noise_amp)
-    widgets.Slider(ax=slider_axs[4], label='Power of sin',     
-                   valmin=1, valmax=13,   valstep=1,   valinit=nSin)
-    
+    for i, label, valmin, valmax, valstep, valinit in (
+        (0, 'Number of points', 1, 1000, 2, num_time_points),
+        (1, 'Period', 0, 20, 1, period),
+        (2, 'Total time', 0, 200, 5, total_time),
+        (3, 'Noise amplitude', 0, 2, 0.1, noise_amp),
+        (4, 'Power of sin', 1, 13, 1, nSin)):
+        widgets.Slider(ax=slider_axs[i], label=label, valmin=valmin, 
+                       valmax=valmax, valstep=valstep, valinit=valinit)
     # Make the 'Power of sin' slider visible only when signal_fnc_chosen==3:
     is_sinN = q(lambda x: x==3, signal_fnc_chosen)
     a = slider_axs[4].set_visible(is_sinN);

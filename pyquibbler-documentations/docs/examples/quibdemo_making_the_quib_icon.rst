@@ -17,7 +17,7 @@ Making the quib icon
 
 .. code:: python
 
-    from pyquibbler import iquib, initialize_quibbler, quiby_function, quiby
+    from pyquibbler import iquib, initialize_quibbler, quiby
     initialize_quibbler()
     import numpy as np
     import matplotlib.pyplot as plt
