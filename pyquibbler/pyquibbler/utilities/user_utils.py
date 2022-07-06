@@ -1,8 +1,8 @@
+import functools
 from pathlib import Path
 from typing import Union, List, Callable, Type, Optional
 from types import ModuleType
 
-from pyquibbler import quiby_function
 from pyquibbler.project import Project
 from pyquibbler.quibapp import QuibApp
 
@@ -22,7 +22,7 @@ def copy_docs(original):
 # copy_docs = functools.partial(functools.wraps, assigned=['__doc__'], updated=[])
 
 
-def quiby(func: Callable,
+def quiby(func: Callable = None,
           lazy: Optional[bool] = None,
           pass_quibs: bool = False,
           is_random: bool = False,
@@ -71,7 +71,7 @@ def quiby(func: Callable,
 
     See Also
     --------
-    quiby_function, is_quiby, q
+    is_quiby, q
 
     Examples
     --------
@@ -82,13 +82,35 @@ def quiby(func: Callable,
     '2'
     """
 
-    return quiby_function(
-        lazy=lazy,
-        pass_quibs=pass_quibs,
-        is_random=is_random,
-        is_graphics=is_graphics,
-        is_file_loading=is_file_loading,
-    )(func)
+    if func is None:
+        return functools.partial(quiby,
+                                 lazy=lazy,
+                                 pass_quibs=pass_quibs,
+                                 is_random=is_random,
+                                 is_graphics=is_graphics,
+                                 is_file_loading=is_file_loading,
+                                 )
+    else:
+        from pyquibbler.function_definitions import get_definition_for_function
+
+        func_definition = get_definition_for_function(func, return_default=False)
+        if func_definition is None:
+            from pyquibbler.function_definitions.func_definition import FuncDefinition
+            func_definition = FuncDefinition(func=func,
+                                             lazy=lazy,
+                                             pass_quibs=pass_quibs,
+                                             is_random=is_random,
+                                             is_graphics=is_graphics,
+                                             is_file_loading=is_file_loading,
+                                             )
+
+        @functools.wraps(func)
+        def _wrapper(*args, **kwargs):
+            return create_quib(func=None, args=args, kwargs=kwargs, func_definition=func_definition)
+
+        _wrapper.func_definition = func_definition
+
+        return _wrapper
 
 
 def q(func, *args, **kwargs) -> Quib:
@@ -103,7 +125,7 @@ def q(func, *args, **kwargs) -> Quib:
 
     See Also
     --------
-    quiby, quiby_function, is_quiby, q
+    quiby, is_quiby, q
 
     Examples
     --------
@@ -248,7 +270,7 @@ def is_quiby(func: Callable) -> bool:
 
     See Also
     --------
-    q, quiby, quiby_function, list_quiby_funcs
+    q, quiby, list_quiby_funcs
 
     Examples
     --------
