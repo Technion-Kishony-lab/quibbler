@@ -1806,6 +1806,7 @@ class Quib:
         return NameMathExpression(self.assigned_name) if self.assigned_name is not None \
             else self._get_functional_representation_expression()
 
+    @property
     def ugly_repr(self) -> str:
         """
         Returns a simple string representation of the quib.
@@ -1868,7 +1869,7 @@ class Quib:
             elif REPR_WITH_OVERRIDES and self.handler.is_overridden:
                 return self.pretty_repr + '\n' + self.handler.overrider.get_pretty_repr(self.assigned_name)
             return self.pretty_repr
-        return self.ugly_repr()
+        return self.ugly_repr
 
     def display_props(self) -> None:
         """
