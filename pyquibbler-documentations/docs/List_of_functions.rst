@@ -22,7 +22,6 @@ Creating quibs
    iquib
    quiby
    q
-   quiby_function
    list_quiby_funcs
    is_quiby
 
