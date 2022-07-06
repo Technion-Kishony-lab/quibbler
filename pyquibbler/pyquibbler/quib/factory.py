@@ -63,7 +63,7 @@ def create_quib(func: Optional[Callable],
                 graphics_update: GraphicsUpdateType = None,
                 save_format: Optional[SaveFormat] = None,
                 save_directory: pathlib.Path = None,
-                assigned_name: Optional[str] = None,
+                assigned_name: Optional[str] = missing,
                 assignment_template: Union[None, tuple, AssignmentTemplate] = None,
                 assigned_quibs: Optional[Set[Quib]] = None,
                 register_as_child_of_parents: bool = True,
@@ -85,7 +85,7 @@ def create_quib(func: Optional[Callable],
         func_definition = func_definition or get_definition_for_function(func)
 
     cache_mode = cache_mode or CachedQuibFuncCall.DEFAULT_CACHE_MODE
-    assigned_name = get_quib_name() if assigned_name is None else assigned_name
+    assigned_name = get_quib_name() if assigned_name is missing else assigned_name
 
     quib = Quib(created_in=_get_file_name_and_line_no(),
                 func=get_original_func(func),

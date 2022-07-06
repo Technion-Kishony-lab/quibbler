@@ -94,6 +94,13 @@ def test_iquib_does_not_save_if_irrelevant(project):
     assert len(os.listdir(project.directory)) == 0
 
 
+@pytest.mark.get_variable_names(True)
+def test_unnamed_iquib(project):
+    a = iquib(1, assigned_name=None)
+
+    assert a.pretty_repr == 'iquib(1)'
+
+
 @pytest.mark.parametrize("obj", [
     np.array([1, 2, 3]),
     [1, 2, 3],

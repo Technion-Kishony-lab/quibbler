@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Any, Optional, Union
 
 from pyquibbler.assignment import AssignmentTemplate
+from pyquibbler.assignment.default_value import missing
 from pyquibbler.env import DEBUG
 from pyquibbler.exceptions import DebugException
 from pyquibbler.file_syncing import SaveFormat
@@ -59,11 +60,11 @@ def iquib(value: Any,
           allow_overriding: bool = True,
           save_format: Union[None, str, SaveFormat] = None,
           save_directory: Union[None, str, pathlib.Path] = None,
-          assigned_name: Optional[str] = None,
+          assigned_name: Optional[str] = missing,
           assignment_template: Union[None, tuple, AssignmentTemplate] = None,
           ) -> Quib:
     """
-    Returns an input-quib that represent a given object
+    Returns an input-quib that represents a given object
 
     Parameters
     ----------
@@ -82,7 +83,7 @@ def iquib(value: Any,
         default: None
 
     assigned_name: None, str
-        A name assigned to the quib. If none is specified the name is assigned based on the name of the
+        A name assigned to the quib. If assigned_name is not specified, the name is assigned based on the name of the
         variable to which the quib is assigned.
 
     assignment_template: None, tuple, AssignmentTemplate
@@ -99,11 +100,11 @@ def iquib(value: Any,
     Quib.allow_overriding, Quib.save_format, Quib.save_directory, Quib.assigned_name, Quib.assignment_template
     """
 
-    # iquib is implemented as a quib with an identity function
     if DEBUG:
         if is_there_a_quib_in_object(value, force_recursive=True):
             raise CannotNestQuibInIQuibException(value)
 
+    # iquib is implemented as a quib with an identity function
     return create_quib(
         func=identity_function,
         args=(value,),
@@ -115,5 +116,6 @@ def iquib(value: Any,
     )
 
 
-add_definition_for_function(func=identity_function, func_definition=iquib_definition,
+add_definition_for_function(func=identity_function,
+                            func_definition=iquib_definition,
                             quib_creating_func=iquib)
