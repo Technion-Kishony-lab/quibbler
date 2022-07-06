@@ -3,6 +3,7 @@ import pathlib
 from typing import Optional, Tuple, Callable, Any, Mapping, TYPE_CHECKING, Union, Set, List
 
 from pyquibbler.assignment import AssignmentTemplate
+from pyquibbler.assignment.default_value import missing
 from pyquibbler.env import GET_VARIABLE_NAMES, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS, LAZY, GRAPHICS_LAZY
 from pyquibbler.logger import logger
 from pyquibbler.project import Project
@@ -12,7 +13,7 @@ from pyquibbler.quib.graphics import GraphicsUpdateType
 from pyquibbler.quib.quib_guard import add_new_quib_to_guard_if_exists
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.types import FileAndLineNumber
-from pyquibbler.quib.utils.miscellaneous import NoValue, deep_copy_without_quibs_or_graphics
+from pyquibbler.quib.utils.miscellaneous import deep_copy_without_quibs_or_graphics
 from pyquibbler.quib.variable_metadata import get_var_name_being_set_outside_of_pyquibbler, \
     get_file_name_and_line_number_of_quib
 from pyquibbler.file_syncing.types import SaveFormat
@@ -57,7 +58,7 @@ def create_quib(func: Optional[Callable],
                 kwargs: Mapping[str, Any] = None,
                 func_definition: FuncDefinition = None,
                 cache_mode: CacheMode = None,
-                lazy: bool = NoValue,
+                lazy: bool = missing,
                 allow_overriding: bool = False,
                 graphics_update: GraphicsUpdateType = None,
                 save_format: Optional[SaveFormat] = None,
@@ -117,7 +118,7 @@ def create_quib(func: Optional[Callable],
         quib.handler.connect_to_parents()
 
     # evaluate now if not lazy
-    lazy = func_definition.lazy if lazy is NoValue else lazy
+    lazy = func_definition.lazy if lazy is missing else lazy
     if lazy is None:
         lazy = GRAPHICS_LAZY if func_definition.is_graphics else LAZY
     if not lazy:

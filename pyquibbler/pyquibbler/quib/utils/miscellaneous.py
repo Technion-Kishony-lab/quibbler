@@ -64,10 +64,6 @@ def copy_and_replace_quibs_with_vals(obj: Any):
     return result
 
 
-class NoValue:
-    pass
-
-
 def is_saveable_as_txt(val: Any) -> bool:
     all_ok = True
 

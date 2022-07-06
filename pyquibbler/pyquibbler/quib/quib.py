@@ -10,6 +10,7 @@ import warnings
 import json_tricks
 import numpy as np
 
+from pyquibbler.assignment.default_value import missing
 from pyquibbler.assignment.simplify_assignment import AssignmentSimplifier
 from pyquibbler.function_definitions import get_definition_for_function, FuncArgsKwargs
 from pyquibbler.quib.types import FileAndLineNumber
@@ -27,7 +28,7 @@ from pyquibbler.quib.quib_guard import guard_raise_if_not_allowed_access_to_quib
     CannotAccessQuibInScopeException
 from pyquibbler.quib.pretty_converters import MathExpression, FailedMathExpression, \
     NameMathExpression, pretty_convert
-from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals, NoValue
+from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals
 from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation_with_sources_metadata
 from pyquibbler.utilities.input_validation_utils import validate_user_input, InvalidArgumentValueException, \
     get_enum_by_str
@@ -960,7 +961,7 @@ class Quib:
         self.handler.allow_overriding = allow_overriding
 
     @raise_quib_call_exceptions_as_own
-    def assign(self, value: Any, key: Optional[Any] = NoValue) -> None:
+    def assign(self, value: Any, key: Optional[Any] = missing) -> None:
         """
         Assign a value to the whole quib, or to a specific key.
 
@@ -1008,7 +1009,7 @@ class Quib:
 
         key = copy_and_replace_quibs_with_vals(key)
         value = copy_and_replace_quibs_with_vals(value)
-        path = [] if key is NoValue else [PathComponent(component=key, indexed_cls=self.get_type())]
+        path = [] if key is missing else [PathComponent(component=key, indexed_cls=self.get_type())]
         self.handler.apply_assignment(Assignment(value, path))
 
     def __setitem__(self, key, value):
@@ -1129,15 +1130,15 @@ class Quib:
     """
 
     def setp(self,
-             allow_overriding: bool = NoValue,
-             assignment_template: Union[None, tuple, AssignmentTemplate] = NoValue,
-             save_directory: Union[None, str, pathlib.Path] = NoValue,
-             save_format: Union[None, str, SaveFormat] = NoValue,
-             cache_mode: Union[str, CacheMode] = NoValue,
-             assigned_name: Union[None, str] = NoValue,
-             name: Union[None, str] = NoValue,
-             graphics_update: Union[None, str] = NoValue,
-             assigned_quibs: Optional[Set[Quib]] = NoValue,
+             allow_overriding: bool = missing,
+             assignment_template: Union[None, tuple, AssignmentTemplate] = missing,
+             save_directory: Union[None, str, pathlib.Path] = missing,
+             save_format: Union[None, str, SaveFormat] = missing,
+             cache_mode: Union[str, CacheMode] = missing,
+             assigned_name: Union[None, str] = missing,
+             name: Union[None, str] = missing,
+             graphics_update: Union[None, str] = missing,
+             assigned_quibs: Optional[Set[Quib]] = missing,
              ) -> Quib:
         """
         Set one or more properties on a quib.
@@ -1191,12 +1192,12 @@ class Quib:
         for attr_name in ['allow_overriding', 'save_directory', 'save_format',
                           'cache_mode', 'assigned_name', 'name', 'graphics_update', 'assigned_quibs']:
             value = eval(attr_name)
-            if value is not NoValue:
+            if value is not missing:
                 setattr(self, attr_name, value)
-        if assignment_template is not NoValue:
+        if assignment_template is not missing:
             self.set_assignment_template(assignment_template)
 
-        if name is NoValue and assigned_name is NoValue and self.assigned_name is None:
+        if name is missing and assigned_name is missing and self.assigned_name is None:
             var_name = get_quib_name()
             if var_name:
                 self.assigned_name = var_name
