@@ -31,3 +31,7 @@ class Default(Singleton):
 
 
 default = Default()
+
+
+class NoValue:
+    pass

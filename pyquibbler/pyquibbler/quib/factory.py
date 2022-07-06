@@ -3,6 +3,7 @@ import pathlib
 from typing import Optional, Tuple, Callable, Any, Mapping, TYPE_CHECKING, Union, Set, List
 
 from pyquibbler.assignment import AssignmentTemplate
+from pyquibbler.assignment.default_value import NoValue
 from pyquibbler.env import GET_VARIABLE_NAMES, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS, LAZY, GRAPHICS_LAZY
 from pyquibbler.logger import logger
 from pyquibbler.project import Project
@@ -12,7 +13,7 @@ from pyquibbler.quib.graphics import GraphicsUpdateType
 from pyquibbler.quib.quib_guard import add_new_quib_to_guard_if_exists
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.types import FileAndLineNumber
-from pyquibbler.quib.utils.miscellaneous import NoValue, deep_copy_without_quibs_or_graphics
+from pyquibbler.quib.utils.miscellaneous import deep_copy_without_quibs_or_graphics
 from pyquibbler.quib.variable_metadata import get_var_name_being_set_outside_of_pyquibbler, \
     get_file_name_and_line_number_of_quib
 from pyquibbler.file_syncing.types import SaveFormat

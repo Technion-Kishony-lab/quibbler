@@ -2,6 +2,7 @@ from typing import Optional
 
 import numpy as np
 
+from pyquibbler.assignment.default_value import NoValue
 from pyquibbler.function_definitions import PositionalArgument, KeywordArgument, get_definition_for_function
 from pyquibbler.function_definitions.func_call import FuncArgsKwargs
 from pyquibbler.function_definitions.func_definition import FuncDefinition
@@ -9,7 +10,6 @@ from pyquibbler.function_overriding.function_override import FuncOverride
 from pyquibbler.quib.func_calling.func_calls.vectorize.vectorize_call \
     import VectorizeQuibFuncCall
 from pyquibbler.env import PRETTY_REPR
-from pyquibbler.quib.utils.miscellaneous import NoValue
 from pyquibbler.translation.translators.vectorize_translator import VectorizeForwardsPathTranslator, \
     VectorizeBackwardsPathTranslator
 
