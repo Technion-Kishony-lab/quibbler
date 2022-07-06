@@ -29,7 +29,7 @@ def test_iquib_is_overridable():
 def test_iquib_pretty_repr():
     quib = iquib(10)
 
-    assert quib.pretty_repr() == "quib = iquib(10)"
+    assert quib.pretty_repr == "quib = iquib(10)"
 
 
 def test_iquib_cannot_have_quibs():
@@ -48,7 +48,7 @@ def test_iquib_repr_doesnt_fail():
 def test_iquib_pretty_repr_str():
     a = iquib('a')
 
-    assert a.pretty_repr() == 'a = iquib(\'a\')'
+    assert a.pretty_repr == 'a = iquib(\'a\')'
 
 # File system
 @pytest.mark.parametrize(['save_format'], [

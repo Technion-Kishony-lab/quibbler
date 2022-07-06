@@ -1831,7 +1831,7 @@ class Quib:
         """
         return f"<{self.__class__.__name__} - {self.func}"
 
-#    @property
+    @property
     def pretty_repr(self) -> str:
         """
         str: Returns a pretty string representation of the quib.
@@ -1866,8 +1866,8 @@ class Quib:
             if REPR_RETURNS_SHORT_NAME:
                 return str(self.get_math_expression())
             elif REPR_WITH_OVERRIDES and self.handler.is_overridden:
-                return self.pretty_repr() + '\n' + self.handler.overrider.pretty_repr(self.assigned_name)
-            return self.pretty_repr()
+                return self.pretty_repr + '\n' + self.handler.overrider.get_pretty_repr(self.assigned_name)
+            return self.pretty_repr
         return self.ugly_repr()
 
     def display_props(self) -> None:

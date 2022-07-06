@@ -46,7 +46,7 @@ def create_raw_overrides_from_override_repr(overrider_repr):
 
 def get_serialized_quib(quib: Quib):
     overrider = quib.handler.overrider
-    overrider_repr = overrider.pretty_repr() if overrider.can_save_to_txt() else None
+    overrider_repr = overrider.get_pretty_repr() if overrider.can_save_to_txt() else None
     if overrider_repr is None:
         raw_overrides = None
     elif overrider_repr.strip() == "":

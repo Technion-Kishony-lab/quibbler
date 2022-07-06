@@ -27,7 +27,7 @@ def test_quib_pretty_repr_math_unary_operator():
     a = iquib(1)
     c = -a
 
-    assert c.pretty_repr() == 'c = -a'
+    assert c.pretty_repr == 'c = -a'
 
 
 @pytest.mark.parametrize("statement,expected", [

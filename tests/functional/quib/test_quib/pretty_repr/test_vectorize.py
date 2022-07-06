@@ -42,5 +42,5 @@ def test_vectorize_pretty_repr(vectorized_func_with_signature, signature):
     quib = vectorized_func_with_signature(a, b)
 
     with PRETTY_REPR.temporary_set(True):
-        assert quib.pretty_repr() == f"quib = np.vectorize(my_func, {signature})(a, b)"
+        assert quib.pretty_repr == f"quib = np.vectorize(my_func, {signature})(a, b)"
 
