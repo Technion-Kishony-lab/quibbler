@@ -95,9 +95,9 @@ The ‘assgined_name’ property
 The :py:attr:`~pyquibbler.Quib.assigned_name` property is a string indicating the name of
 the quib as assigned by the user. The ``assigned_name`` is set either by
 explicit assignment, or by inference according to the name of the
-variable to which the quib is assigned. This assigned name is displayed
-before the equal sign in the quib repr and can also be accessed by the
-``assigned_name`` property:
+variable to which the quib is first assigned. This assigned name is
+displayed before the equal sign in the quib repr and can also be
+accessed by the ``assigned_name`` property:
 
 .. code:: python
 
@@ -118,9 +118,9 @@ The quib’s assigned_name can be different than the name of the variable of the
 By default, upon creation of a new quib, its ``assigned_name`` is
 automatically set as the name of the variable of the quib (e.g., the
 statement ``numbers = np.arange(n**2 + 1)`` above, created a quib
-``numbers`` and assigned the name ‘numbers’ as its ``assigned_name``. In
-general though, a quib name does not need to be the same as the name of
-the variable holding the quib. To begin with, while each quib has a
+``numbers`` and assigned the string ‘numbers’ as its ``assigned_name``.
+In general though, a quib name does not need to be the same as the name
+of the variable holding the quib. To begin with, while each quib has a
 single ``assigned_name``, it can be pointed to by multiple different
 variables with different names (for example, if we set
 ``numbers_copy = numbers``, then ``numbers_copy.assigned_name`` will
@@ -152,7 +152,8 @@ The quib’s assigned_name is also used to name quib-associated files.
 
 Note that besides providing a comprehensive description of the quib, the
 quib’s ``assigned_name`` is also used to define the name of the quib’s
-linked input file if any (see :doc:`Project-save-load`).
+linked input file if any (see :doc:`Project-save-load`, :py:meth:`~pyquibbler.Quib.save()`,
+:py:meth:`~pyquibbler.Quib.load()`).
 
 Quibs without an assigned_name represent an intermediate analysis step.
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -212,7 +213,7 @@ if specified, or as its ``functional_representation`` if
 
 .. code:: python
 
-    total.set_assigned_name(None)
+    total.assigned_name = None
     total.name
 
 
@@ -224,7 +225,7 @@ if specified, or as its ``functional_representation`` if
 
 
 
-Setting the ``name`` property is equivalent to setting the
+Note: setting the ``name`` property is equivalent to setting the
 ``assigned_name`` property.
 
 The ‘functional_representation’ of a quib changes dynamically.
@@ -237,7 +238,7 @@ For example, if we set ``numbers`` to as un-named:
 
 .. code:: python
 
-    total.assigned_name = None
+    numbers.assigned_name = None
 
 then the name of the downstream quib ``total`` is updated:
 
