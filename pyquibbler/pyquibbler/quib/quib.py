@@ -1026,20 +1026,20 @@ class Quib:
     @property
     def assigned_quibs(self) -> Union[None, Set[Quib, ...]]:
         """
-        None or set of Quib: Set of quibs to which assignments to this quib could translate to and override.
+        None or set of Quib: Set of quibs to which assignments to this quib could inverse-translate.
 
         When ``assigned_quibs=None``, assignments to the quib are inverse-propagated to any upstream quibs
         whose ``allow_overriding=True``.
 
-        When ``assigned_quibs``is a set of `Quibs`, assignments to the quib are inverse-propagated to any upstream quibs
-        whose ``allow_overriding=True`` and that are specified in ``assigned_quibs``.
+        When ``assigned_quibs`` is a set of `Quibs`, assignments to the quib are inverse-propagated
+        to any upstream quibs in this set whose ``allow_overriding=True``.
 
         If multiple choices are available for inverse assignment, a dialog is presented to allow choosing between
         these options.
 
-        Setting ``assigned_quibs=set()`` prevent inverse assignments.
+        Setting ``assigned_quibs=set()`` prevents assignments.
 
-        To allow assignment to self, the str 'self' can be used within the set of quibs.
+        To allow assignment to self, the focal quib or str 'self' can be used within the set of quibs.
 
         Specifying a single quib, or 'self', is interpreted as a set containing this single quib.
 
