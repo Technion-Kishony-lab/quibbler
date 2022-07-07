@@ -91,7 +91,7 @@ class AssignmentSimplifier:
             self._assignment.value = np.array(self.value, dtype=self.second_to_last_data.dtype)
         elif self.value is not default:
             try:
-                self._assignment.value = self._data.dtype.type(self.value)
+                self._assignment.value = self.second_to_last_data.dtype.type(self.value)
             except ValueError:
                 pass
 
