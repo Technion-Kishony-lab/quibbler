@@ -1,10 +1,10 @@
-name: Build Wheel
+name: Build
 
 on: [push, pull_request]
 
 jobs:
   build_wheel:
-    name: Build Wheel
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
 
