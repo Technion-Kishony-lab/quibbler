@@ -8,6 +8,9 @@ on:
 jobs:
   build_pyquibbler:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./pyquibbler
     steps:
       - uses: actions/checkout@v3
 
@@ -19,7 +22,6 @@ jobs:
           pip install setuptools wheel twine
 
       - name: Build wheel
-        working-directory: ./pyquibbler
         run: python -mpip wheel . -w ./dist --no-deps
 
       - uses: actions/upload-artifact@v3
@@ -44,7 +46,6 @@ jobs:
       - name: Build the extension
         run: |
           set -eux
-          jlpm
           python -m pip install .
 
           jupyter labextension list 2>&1 | grep -ie "pyquibbler-labextension.*OK"
