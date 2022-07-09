@@ -9,6 +9,7 @@ import warnings
 
 import json_tricks
 import numpy as np
+from matplotlib import pyplot
 
 from pyquibbler.assignment.default_value import missing
 from pyquibbler.assignment.simplify_assignment import AssignmentSimplifier
@@ -22,7 +23,7 @@ from weakref import WeakSet
 from matplotlib.artist import Artist
 
 from pyquibbler.env import LEN_RAISE_EXCEPTION, BOOL_RAISE_EXCEPTION, \
-    PRETTY_REPR, REPR_RETURNS_SHORT_NAME, REPR_WITH_OVERRIDES, ITER_RAISE_EXCEPTION
+    PRETTY_REPR, REPR_RETURNS_SHORT_NAME, REPR_WITH_OVERRIDES, ITER_RAISE_EXCEPTION, WARN_ON_NON_TK_BACKEND
 from pyquibbler.graphics import is_within_drag
 from pyquibbler.quib.quib_guard import guard_raise_if_not_allowed_access_to_quib, \
     CannotAccessQuibInScopeException
@@ -446,6 +447,10 @@ class QuibHandler:
         The value will necessarily return in the shape of the actual result, but only the values at the given path
         are guaranteed to be valid
         """
+        if self.func_definition.is_graphics and WARN_ON_NON_TK_BACKEND and pyplot.get_backend() != 'TkAgg':
+            WARN_ON_NON_TK_BACKEND.set(False)  # We don't want to warn more than once
+            warnings.warn('PyQuibbler will run slower when not using Tk as the backend for matplotlib')
+
         try:
             guard_raise_if_not_allowed_access_to_quib(self.quib)
         except CannotAccessQuibInScopeException:
