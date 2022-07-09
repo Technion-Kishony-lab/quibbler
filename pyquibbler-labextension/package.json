@@ -11,11 +11,6 @@
   "bugs": {
     "url": "https://github.com/github_username/pyquibbler-labextension/issues"
   },
-  "license": "BSD-3-Clause",
-  "author": {
-    "name": "Maor",
-    "email": "maor.kern@gmail.com"
-  },
   "files": [
     "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
     "style/**/*.{css,js,eot,gif,html,jpg,json,png,svg,woff2,ttf}",
