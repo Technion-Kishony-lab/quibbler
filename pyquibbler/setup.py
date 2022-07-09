@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="pyquibbler",
-    version='0.1.2',
+    version='0.1.3',
     python_requires='>=3.8',
     long_description="Quibbler",
     packages=find_packages(),
