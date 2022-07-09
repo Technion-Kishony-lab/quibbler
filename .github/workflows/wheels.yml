@@ -67,6 +67,7 @@ jobs:
           path: ./pyquibbler-labextension/pyquibbler_labextension.tar.gz
 
   publish:
+    needs: [build_pyquibbler, build_extension]
     runs-on: ubuntu-latest
     steps:
       - name: Download artifacts
