@@ -10,4 +10,4 @@ if LOG_TO_STDOUT:
     logger.addHandler(logging.StreamHandler())
 
 if LOG_TO_FILE:
-    logger.addHandler(logging.FileHandler("/tmp/log.log"))
+    logger.addHandler(logging.FileHandler("/tmp/pyquibbler.log"))
