@@ -1,7 +1,8 @@
 name: Build and Publish
 
 on:
-  push: null
+  release:
+    types: [published]
 
 jobs:
   build_pyquibbler:
