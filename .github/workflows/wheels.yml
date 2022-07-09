@@ -13,7 +13,7 @@ jobs:
 
       - name: Build wheel
         working-directory: ./pyquibbler
-        run: python -mpip wheel -w ./dist
+        run: python -mpip wheel . -w ./dist --no-deps
 
       - uses: actions/upload-artifact@v3
         with:
