@@ -25,6 +25,7 @@ jobs:
 
       - uses: actions/upload-artifact@v3
         with:
+          name: pyquibbler
           path: ./pyquibbler/dist/*.whl
 
   build_extension:
@@ -62,5 +63,24 @@ jobs:
 
       - uses: actions/upload-artifact@v2
         with:
-          name: pyquibbler_labextension-sdist
+          name: pyquibbler_labextension
           path: ./pyquibbler-labextension/pyquibbler_labextension.tar.gz
+
+  publish:
+    needs: [build_pyquibbler, build_extension]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v2
+        with:
+          path: .
+      - name: Copy to dist
+        run: |
+          mkdir dist
+          cp -r pyquibbler/* dist/
+          cp -r pyquibbler_labextension/* dist/
+      - name: Publish distribution 📦 to Test PyPI
+        uses: pypa/gh-action-pypi-publish@master
+        with:
+          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+          repository_url: https://test.pypi.org/legacy/
