@@ -1,8 +1,9 @@
 name: Build and Publish
 
 on:
-  release:
-    types: [published]
+  push: null
+  pull_request: null
+
 
 jobs:
   build_pyquibbler:
@@ -63,4 +64,4 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: pyquibbler_labextension-sdist
-          path: pyquibbler_labextension.tar.gz
+          path: ./pyquibbler-labextension/pyquibbler_labextension.tar.gz
