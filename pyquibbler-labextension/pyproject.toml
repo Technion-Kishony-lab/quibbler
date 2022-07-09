@@ -11,7 +11,7 @@ factory = "jupyter_packaging.npm_builder"
 
 [tool.jupyter-packaging.build-args]
 build_cmd = "build:prod"
-npm = ["jlpm"]
+npm = ["npm"]
 
 [tool.check-manifest]
 ignore = ["pyquibbler_labextension/labextension/**", "yarn.lock", ".*", "package-lock.json"]
