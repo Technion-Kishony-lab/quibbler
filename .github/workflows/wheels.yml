@@ -57,14 +57,11 @@ jobs:
 
           pip install build
           python -m build --sdist
-          cp dist/*.tar.gz pyquibbler_labextension.tar.gz
-          pip uninstall -y "pyquibbler_labextension" jupyterlab
-          rm -rf pyquibbler_labextension
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: pyquibbler_labextension
-          path: ./pyquibbler-labextension/pyquibbler_labextension.tar.gz
+          path: ./pyquibbler-labextension/dist/*
 
   publish:
     needs: [build_pyquibbler, build_extension]
