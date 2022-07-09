@@ -46,6 +46,7 @@ jobs:
       - name: Build the extension
         run: |
           set -eux
+          npm install
           python -m pip install .
 
           jupyter labextension list 2>&1 | grep -ie "pyquibbler-labextension.*OK"
