@@ -25,7 +25,7 @@ jobs:
 
       - uses: actions/upload-artifact@v3
         with:
-          name: dist
+          name: pyquibbler-0.1.0-py3-none-any.whl
           path: ./pyquibbler/dist/*.whl
 #
 #  build_extension:
