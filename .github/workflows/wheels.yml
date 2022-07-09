@@ -37,8 +37,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Base Setup
-        uses: jupyterlab/maintainer-tools/.github/actions/base-setup@v1
+      - uses: actions/setup-python@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
 
       - name: Install dependencies
         run: python -m pip install -U jupyterlab~=3.1 check-manifest
