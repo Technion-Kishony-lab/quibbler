@@ -6,7 +6,7 @@ from unittest.mock import Mock
 import numpy as np
 import pytest
 
-from pyquibbler import iquib
+from pyquibbler import iquib, Project
 from pyquibbler.function_definitions import add_definition_for_function
 from pyquibbler.function_definitions.func_definition import create_func_definition
 from pyquibbler.quib.factory import create_quib
@@ -53,6 +53,17 @@ def test_redraw_in_aggregate_mode():
         quib.handler.invalidate_and_redraw_at_path([])
         quib.handler.invalidate_and_redraw_at_path([])
         quib.handler.invalidate_and_redraw_at_path([])
+
+    assert mock_func.call_count == 1
+
+
+def test_only_notify_override_changes_once_in_aggregate_mode():
+    mock_func = mock.Mock()
+    quib = iquib([1, 2])
+    Project.notify_of_overriding_changes = mock_func
+    with aggregate_redraw_mode():
+        quib[0] = 10
+        quib[1] = 20
 
     assert mock_func.call_count == 1
 
