@@ -68,9 +68,15 @@ class Project:
         self.autoload_upon_first_get_value = False
 
     @classmethod
-    def get_or_create(cls, directory: Optional[Path] = None):
+    def get_or_create(cls, directory: Optional[Path, str] = None):
         """
         Returns the current project.
+
+        Parameters
+        ----------
+        directory : Path, str or None, default None
+            The project directory, to which quibs are saved.
+            If None, the project directory is set based on the directory of __main__.
 
         See Also
         --------
@@ -253,7 +259,7 @@ class Project:
 
     @directory.setter
     @validate_user_input(path=(type(None), str, Path))
-    def directory(self, path: Optional[Path]):
+    def directory(self, path: Optional[Union[Path, str]]):
         if isinstance(path, str):
             path = Path(path)
         self._directory = None if path is None else path.resolve()

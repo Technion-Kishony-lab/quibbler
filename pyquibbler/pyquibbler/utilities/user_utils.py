@@ -87,19 +87,19 @@ def quiby(func: Callable = None,
     '2'
 
     >>> @quiby
-    >>> def display_variable(name: str, x:int):
-    >>>     return f'{name} = {x}'
-    >>>
+    ... def display_variable(name: str, x:int):
+    ...     return f'{name} = {x}'
+    ...
     >>> num = iquib(7)
     >>> display_num = display_variable('num', num)
     >>> display_num.get_value()
     'x = 7'
 
     >>> @quiby(is_random=True)
-    >>> def sum_of_dice(n: int):
-    >>>     dice = np.random.randint(1, 6, n)
-    >>>     return np.sum(dice)
-    >>>
+    ... def sum_of_dice(n: int):
+    ...     dice = np.random.randint(1, 6, n)
+    ...     return np.sum(dice)
+    ...
     >>> n = iquib(2)
     >>> sum_dice = sum_of_dice(n)
     >>> sum_dice.get_value()
@@ -158,7 +158,6 @@ def q(func, *args, **kwargs) -> Quib:
     --------
     >>> a = iquib(2)
     >>> b = q(str, a)
-
     >>> b.get_value()
     '2'
     """

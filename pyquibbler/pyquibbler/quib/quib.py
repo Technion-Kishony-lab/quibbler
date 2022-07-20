@@ -1223,7 +1223,7 @@ class Quib:
 
     def __iter__(self):
         """
-        Returns an iterator to a detected amount of elements requested from the quib.
+        Return an iterator to a detected amount of elements requested from the quib.
         """
         if ITER_RAISE_EXCEPTION:
             raise TypeError('Cannot iterate over quibs, as their size can vary. '
@@ -1232,7 +1232,7 @@ class Quib:
 
     def iter_first(self, amount: Optional[int] = None):
         """
-        Returns an iterator to the first `amount` elements of the quib.
+        Return an iterator to the first `amount` elements of the quib.
 
         ``a, b = quib.iter_first(2)`` is the same as ``a, b = quib[0], quib[1]``.
 
@@ -1249,9 +1249,9 @@ class Quib:
         Examples
         --------
         >>> @quiby
-            def sum_and_prod(x):
-                return np.sum(x), np.prod(x)
-        >>>
+        ... def sum_and_prod(x):
+        ...     return np.sum(x), np.prod(x)
+        ...
         >>> nums = iquib([10, 20, 30])
         >>> sum_nums, prod_nums = sum_and_prod(nums).iter_first()
         >>> sum_nums.get_value()
@@ -1287,9 +1287,9 @@ class Quib:
     @raise_quib_call_exceptions_as_own
     def get_value(self) -> Any:
         """
-        Returns the entire value of the quib.
+        Calculate the entire value of the quib.
 
-        Runs the function of the quib and returns the result.
+        Run the function of the quib and return the result, or return the value from the cache if valid.
 
         Returns
         -------
@@ -1305,9 +1305,9 @@ class Quib:
     @raise_quib_call_exceptions_as_own
     def get_type(self) -> Type:
         """
-        Returns the shape of the quib's value.
+        Return the type of the quib's value.
 
-        Implements ``type`` of the value of the quib.
+        Implement ``type`` of the value of the quib.
 
         Returns
         -------
@@ -1327,9 +1327,9 @@ class Quib:
     @raise_quib_call_exceptions_as_own
     def get_shape(self) -> Tuple[int, ...]:
         """
-        Returns the shape of the quib's value.
+        Return the shape of the quib's value.
 
-        Implements ``np.shape`` of the value of the quib.
+        Implement ``np.shape`` of the value of the quib.
 
         Returns
         -------
@@ -1349,9 +1349,9 @@ class Quib:
     @raise_quib_call_exceptions_as_own
     def get_ndim(self) -> int:
         """
-        Returns the number of dimensions of the quib's value.
+        Return the number of dimensions of the quib's value.
 
-        Implements ``np.ndim`` of the value of the quib.
+        Implement ``np.ndim`` of the value of the quib.
 
         Returns
         -------
@@ -1382,7 +1382,7 @@ class Quib:
 
     def get_override_list(self) -> Overrider:
         """
-        Returns an Overrider object representing a list of overrides performed on the quib.
+        Return an Overrider object representing a list of overrides performed on the quib.
 
         Returns
         -------
@@ -1397,7 +1397,7 @@ class Quib:
 
     def get_override_mask(self):
         """
-        Returns a quib whos value is the override mask of the current quib.
+        Return a quib whose value is the override mask of the current quib.
 
         Assuming this quib represents a numpy `ndarray`, return a quib representing its override mask.
 
@@ -1804,7 +1804,7 @@ class Quib:
 
     def get_math_expression(self) -> MathExpression:
         """
-        Returns a MathExpression object providing a string representation of the quib.
+        Return a MathExpression object providing a string representation of the quib.
 
         See Also
         --------
