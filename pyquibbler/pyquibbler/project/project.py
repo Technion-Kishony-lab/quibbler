@@ -68,7 +68,21 @@ class Project:
         self.autoload_upon_first_get_value = False
 
     @classmethod
-    def get_or_create(cls, directory: Optional[Path] = None):
+    def get_or_create(cls, directory: Optional[Path, str] = None):
+        """
+        Returns the current project.
+
+        Parameters
+        ----------
+        directory : Path, str or None, default None
+            The project directory, to which quibs are saved.
+            If None, the project directory is set based on the directory of __main__.
+
+        See Also
+        --------
+        pyquibbler.get_project
+        """
+
         if Project.current_project is None:
             main_module = sys.modules['__main__']
             directory = directory or (Path(main_module.__file__).parent if hasattr(main_module, '__file__') else None)
@@ -127,7 +141,7 @@ class Project:
 
     def reset_random_quibs(self):
         """
-        Reset and redraw all random quibs in the project.
+        Reset the value of all random quibs in the project.
 
         Invalidates the cache of all random quibs in the project.
         Any downstream graphics will refresh with new randomization.
@@ -141,7 +155,7 @@ class Project:
 
     def reset_file_loading_quibs(self):
         """
-        Reset and redraw all file-loading quibs in the project.
+        Reset the value of all file-loading quibs in the project.
 
         Invalidates the cache of all file-loading quibs in the project.
         Request for the value of these quibs will cause re-loading of their files.
@@ -156,10 +170,10 @@ class Project:
 
     def reset_impure_quibs(self):
         """
-        Reset and redraw all impure quibs in the project.
+        Reset the value of all impure quibs in the project.
 
-        Invalidates the cache of all impure quibs, inclduing random or file-loading quibs in the project.
-        Request for the value of these quibs will cause re-loading of their files.
+        Invalidates the cache of all impure quibs, including random or file-loading quibs, in the project.
+        Request for the value of these quibs will cause re-evaluation of their function.
         Any downstream graphics will automatically update.
 
         See Also
@@ -175,8 +189,8 @@ class Project:
 
         See Also
         --------
-        reset_file_loading_quibs, reset_random_quibs, reset_impure_quibs, Quib.graphics_update
-        Quib.is_graphics, GraphicsUpdateType
+        reset_file_loading_quibs, reset_random_quibs, reset_impure_quibs,
+        Quib.graphics_update, Quib.is_graphics, GraphicsUpdateType
         """
         for quib in self.quibs:
             if quib.graphics_update == GraphicsUpdateType.CENTRAL:
@@ -228,7 +242,7 @@ class Project:
     @property
     def directory(self) -> Optional[PathWithHyperLink]:
         """
-        PathWithHyperLink or None: The directory to which quib assignments are saved.
+        PathWithHyperLink or None: The directory to which quib assignments are saved by default.
 
         Can be set as a `str`, `Path`.
 
@@ -245,7 +259,7 @@ class Project:
 
     @directory.setter
     @validate_user_input(path=(type(None), str, Path))
-    def directory(self, path: Optional[Path]):
+    def directory(self, path: Optional[Union[Path, str]]):
         if isinstance(path, str):
             path = Path(path)
         self._directory = None if path is None else path.resolve()
@@ -261,6 +275,8 @@ class Project:
         """
         SaveFormat: The default file format for saving quibs.
 
+        Quibs whose own `save_format` is `None` yield to this default `save_format` of the Project.
+
         Can be set as `SaveFormat` or as `str`:
 
         ``'off'``: do not save
@@ -270,14 +286,12 @@ class Project:
         ``'bin'``: save quib assignments as a binary file (.quib)
 
         ``'value_txt'``:
-            for iquibs: save the value, rather than the assignments, as text (if possible).
-            for fquibs: save assignments as text (if possible).
+            for i-quibs: save the value, rather than the assignments, as text (if possible).
+            for f-quibs: save assignments as text (if possible).
 
         ``'value_bin'``:
-            for iquibs: save the value, rather than the assignments, as binary.
-            for fquibs: save assignments as binary.
-
-        Quibs whose own `save_format` is `None` yield to this default `save_format` of the Project.
+            for i-quibs: save the value, rather than the assignments, as binary.
+            for f-quibs: save assignments as binary.
 
         See Also
         --------
@@ -363,7 +377,7 @@ class Project:
             self._undo_action_groups.append(self._pushing_undo_group)
         self._pushing_undo_group = None
 
-    def can_undo(self):
+    def can_undo(self) -> bool:
         """
         Indicates whether an assignment undo exists.
 
@@ -389,7 +403,7 @@ class Project:
         """
         return len(self._undo_action_groups) > 0
 
-    def can_redo(self):
+    def can_redo(self) -> bool:
         """
         Indicates whether an assignment redo exists.
 
@@ -509,7 +523,8 @@ class Project:
         self._undo_action_groups.append(actions)
 
     def clear_undo_and_redo_stacks(self, *_, **__):
-        """
+        """clear_undo_and_redo_stacks()
+
         Clear the undo/redo stack.
 
         See Also
@@ -521,7 +536,7 @@ class Project:
 
     def push_assignment_to_undo_stack(self, quib: Quib, assignment: Assignment, assignment_index: int):
         """
-        Push a new assignment to the undo stack- this will be able to be undone if the `project.undo` is called.
+        Push a new assignment to the undo stack.
         """
         if not self._record_undos:
             return

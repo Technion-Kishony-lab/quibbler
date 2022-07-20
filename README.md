@@ -40,20 +40,20 @@ and event listeners.
 * **All-of-the-above using completely standard functions and programming syntax - there is very little to learn to get started!** 
 
 ## Rationale
-TTraceability, transparency, interactivity and efficiency are becoming increasingly
+Traceability, transparency, interactivity and efficiency are becoming increasingly
 important, yet challenging, in today’s data-rich worlds of science, engineering and biomedicine. 
 Throughout these fields, important insights are derived from highly complex data analysis
 pipelines, where, through chained transformation steps, raw data is gradually transformed 
 into simpler, more abstract and insightful forms. Understanding how a given downstream 
 focal result depends on upstream raw data is crucial, yet often challenging. 
 Not only are there multiple complex steps and algorithmic dependencies, but also, 
-each of these steps often requires multiple human specified parameter, interventions and informed
+each of these steps often requires multiple human-specified parameters, interventions and informed
 choices (setting thresholds, excluding data points, cleaning
 artifacts, etc.). It is therefore often difficult to know how a focal downstream result
 or key insight depends on the raw data sources and on any of the multiple manual
 interventions and decisions made throughout the pipeline. Conversely, it is typically 
 almost impossible to trace which downstream result is affected when the user changes an
-upstream parameters and which specific parts of the analysis must be
+upstream parameter and which specific parts of the analysis must be
 recalculated upon any such changes. Parameters are often buried in the code and
 re-specification of parameters is slow, undocumented and non-interactive.
 
@@ -66,13 +66,14 @@ specifications of key critical parameters (green boxes). While the data flow dow
 (left to right), the data analyst must have tools to transverse the pipeline upstream (red arrow), 
 questioning how a given downstream result or insight depends on the raw
 data and the many parameter choices throughout the analysis pipeline. 
-Changing and refining an upstream parameter (red '\') may affect one (or more) of 
-the data items, which requires recalculating only specific steps of the pipeline 
+Changing and refining an upstream parameter may affect one (or more) of 
+the data items, which requires recalculating specific downstream steps of the pipeline 
 (red left-to-right arrows). 
-In "diverged" analysis steps, data items are processed independently 
-and only the affected items must be recalculated (red frames), and in "converged" steps, 
+In "diverged" analysis steps, where data items are processed independently, 
+only the affected items must be recalculated (red frames), and in "converged" steps, 
 the entire calculation needs to be repeated. Strong analysis pipelines must facilitate 
-making such changes while interactively viewing their effect on downstream results (changing bars).
+making such changes, repeating only the required re-calculations, and allowing 
+interactive viewing of their effect on downstream results (changing bars).
 Through such an interactive process of parameter specifications, we ultimately refine the 
 insights we gain from our analysis._ 
 <br/>
@@ -103,8 +104,9 @@ pipeline transparent, understandable and reproducible.
 3. **Computation efficiency.** In *Quibbler*, intermediate calculations are cached 
 in memory and when an upstream parameter changes, only the specific cached calculations 
 that depend on this parameter are invalidated. *Quibbler* thereby avoids re-running 
-of complex codes and make sure only the very necessary steps of the analysis and only the 
-specifically affected data items are re-calculated upon any upstream parameter changes. 
+of computation-intensive functions and makes sure only the very necessary steps of the 
+analysis and only the specifically affected data items are re-calculated upon any 
+upstream parameter changes. 
 
 
 **See the https://readthedocs.com/ for a Getting-started tour and Documentations.**
