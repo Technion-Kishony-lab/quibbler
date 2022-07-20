@@ -14,6 +14,9 @@ TIMERS = {}
 class TimerNotFoundException(PyQuibblerException):
     name: str
 
+    def __str__(self):
+        return str
+
 
 @dataclass
 class Timer:
@@ -38,13 +41,13 @@ class Timer:
         """
         start_time = time.time()
         yield
-        end_time = time.time() - start_time
+        current_total_time = time.time() - start_time
 
-        self.total_time += end_time
+        self.total_time += current_total_time
         self.total_count += 1
 
         if callback is not None:
-            callback(end_time)
+            callback(current_total_time)
 
 
 def get_timer(name: str) -> Timer:
