@@ -189,8 +189,8 @@ class QuibHandler:
     def _iter_artists(self) -> Iterable[Artist]:
         return (artist for artists in self._iter_artist_lists() for artist in artists)
 
-    def get_axeses(self):
-        return {artist.axes for artist in self._iter_artists()}
+    def get_figures(self):
+        return {artist.figure for artist in self._iter_artists()}
 
     def _redraw(self) -> None:
         """

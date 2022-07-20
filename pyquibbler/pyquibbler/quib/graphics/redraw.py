@@ -1,7 +1,7 @@
 from __future__ import annotations
 import contextlib
 from typing import Set
-from matplotlib.axes import Axes
+from matplotlib.figure import Figure
 from matplotlib.pyplot import fignum_exists
 
 from pyquibbler.logger import logger
@@ -40,10 +40,10 @@ def _redraw_quibs_with_graphics():
         for quib in quibs_that_are_invalid:
             quib.handler.redraw_if_appropriate()
 
-    axeses = {axes
-              for quib in quibs_that_are_invalid for axes in quib.handler.get_axeses()}
+    figures = {figure
+              for quib in quibs_that_are_invalid for figure in quib.handler.get_figures()}
 
-    redraw_axeses(axeses)
+    redraw_figures(figures)
     QUIBS_TO_REDRAW.clear()
 
 
@@ -72,11 +72,11 @@ def notify_of_overriding_changes_or_add_in_aggregate_mode(quib: Quib):
         _notify_of_overriding_changes()
 
 
-def redraw_axeses(axeses: Set[Axes]):
+def redraw_figures(figures: Set[Figure]):
     """
-    Actual redrawing of axes- this should be WITHOUT rendering anything except for the new artists
+    Actual redrawing of figure- this should be WITHOUT rendering anything except for the new artists
     """
-    canvases = {axes.figure.canvas for axes in axeses if fignum_exists(axes.figure.number)}
-    with timer("redraw", lambda x: logger.info(f"redraw {len(axeses)} axeses, {len(canvases)} canvases {x}s")):
+    canvases = {figure.canvas for figure in figures if fignum_exists(figure.number)}
+    with timer("redraw", lambda x: logger.info(f"redraw {len(figures)} figures: {x}s")):
         for canvas in canvases:
             canvas.draw()
