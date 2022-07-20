@@ -4,7 +4,7 @@ Quickstart
 *Quibbler* allows easily creating highly interactive and efficient data
 analysis applications. Importantly, in *Quibbler*, efficiency and
 interactivity are enabled naturally, using completely standard *Python*,
-*NumPy* and *Matplotlib* programming syntax. There is therefore very
+*NumPy* and *Matplotlib* programming syntax. There is thereby very
 little to learn to get started.
 
 This page provides a minimal-demo quickstart to quickly get you up and
@@ -15,10 +15,16 @@ For additional demos, consider also the :doc:`Examples`.
 For a more methodological tour, see the :doc:`Introduction` and the
 complete :doc:`User Guide<index>`.
 
+Setting up
+~~~~~~~~~~
+
+Install
+^^^^^^^
+
 Before starting, please first :doc:`install Quibbler<Installation>`.
 
 Import
-~~~~~~
+^^^^^^
 
 *Quibbler* for *python*, ``pyquibbler``, is conventionally imported as
 ``qb``. In addition, it is convenient to specifically import some
@@ -37,14 +43,23 @@ to work with *Quibbler*. A typical import therefore looks as follows:
     # Other imports:
     import numpy as np
     import matplotlib.pyplot as plt
+
+Graphics backend
+^^^^^^^^^^^^^^^^
+
+``pyquibbler`` works well with the ``tk`` backend. In *PyCharm*, specify
+``matplotlib.use("TkAgg")``. In *Jupyter Lab*, specify:
+
+.. code:: python
+
     %matplotlib tk
 
 Example of a minimal app
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 As a simple example, we will build towards a simple data analysis app
-for cutting a square image from a source image with a specified width
-around a chosen x-y point.
+for cutting a square sub-image from a source image with a specified
+width around a chosen x-y point.
 
 Writing such a code classically will require the use of callback
 functions to implement user interactions. In *Quibbler*, in contrast, we
@@ -55,7 +70,7 @@ Let’s start with a code for interactively choosing our x-y point:
 
 .. code:: python
 
-    # Prepare figure
+    # Figure setup
     plt.figure(figsize=(4, 5))
     plt.axis('square')
     plt.axis([0, 500, 0, 500]);
@@ -73,15 +88,15 @@ Let’s start with a code for interactively choosing our x-y point:
 As we can see, except for the use of the function :py:func:`~pyquibbler.iquib`
 (explained below), the rest is a completely standard *Python* code for
 plotting a marker at position x=250, y=250 and adding next to it a text
-label specifying the these coordinates. Indeed, running this code plots
-the marker and the text as classically expected. Yet, unlike in
-classical programming, in *Quibbler* the data items and graphics are all
+label specifying these coordinates. Indeed, running this code plots the
+marker and the text as classically expected. Yet, unlike in classical
+programming, in *Quibbler* the data items and graphics are all
 bi-directionally linked. First, assigning new values to an upstream
 variable, say assigning ``xy[0] = 100``, immediately refreshes all
-downstream graphics. Second, the plotted marker is in fact draggable
-and, as we drag it, we see that it leads to changes in the upstream
-variable ``xy`` and in any dependent graphics, such as the text label
-and location.
+downstream graphics (the marker and the text move and the text label
+refreshes). Second, the plotted marker is in fact draggable and, as we
+drag it, we see that it leads to changes in the upstream variable ``xy``
+and in any dependent graphics, such as the text label and location.
 
 In *Quibbler*, thereby, we can easily get interactive functionality
 while using completely standard programming syntax and without the need
@@ -101,8 +116,8 @@ The quib object
 *Quibbler* functionality is based on the :py:class:`~pyquibbler.Quib` object. The quib is an
 object that represents an output *value* as well as the *function* and
 *arguments* used to calculate this value. There are two major types of
-quibs: input-quibs (i-quibs) which take a regular *Python* object as
-their argument and present it as their value, and function-quibs
+quibs: input quibs (i-quibs) which take a regular *Python* object as
+their argument and present it as their value, and function quibs
 (f-quibs) that calculate their output value by applying a given function
 to a given list of arguments, which could include other quibs and any
 other *Python* objects.
@@ -111,7 +126,7 @@ Input-quibs
 ^^^^^^^^^^^
 
 Input-quibs are created using the function :py:func:`~pyquibbler.iquib`, which
-transforms any regular *Python* object into a quib. In our case
+transforms any regular *Python* object into a quib. In our case,
 ``xy = iquib([250, 250])`` creates an i-quib ``xy`` whose value is the
 list ``[250, 250]``.
 
@@ -119,14 +134,15 @@ Function-quibs
 ^^^^^^^^^^^^^^
 
 Function-quibs are created naturally whenever we use quibs as part of
-standard expressions or functions. Indeed, *Quibbler* modifies standard
-functions and operators such that they can work directly with quibs.
-Such *Quibbler*-supported functions, also called *quiby* functions,
-include not only many standard *Python*, *NumPy* and *Matplotlib*
-functions (see :doc:`List-of-quiby-functions`), but also operators (such as
-``+``, ``-``, ``<``, ``>``, ``**``, ``@``, etc.), and any indexing
-syntax (e.g., if ``xy`` is a quib, ``x = xy[0]`` is a function quib). We
-can therefore easily define a chained network of function quibs using
+standard expressions, functions or statements. Indeed, *Quibbler*
+modifies standard functions and operators such that they can work
+directly with quibs. Such *Quibbler*-supported functions, also called
+*quiby* functions, include not only many standard *Python*, *NumPy* and
+*Matplotlib* functions (see :doc:`List-of-quiby-functions`), but also
+operators (such as ``+``, ``-``, ``<``, ``>``, ``**``, ``@``, etc.), and
+any indexing syntax (e.g., if ``xy`` is a quib, ``xy[0]`` is a function
+quib, whose function is to get the 0’th item from ``xq``). We can
+therefore easily define a chained network of function quibs using
 standard programming syntax.
 
 In our case, ``x, y = xy`` creates the f-quibs ``x = xy[0]`` and
@@ -154,13 +170,13 @@ Interaction with the graphics is inverse-propagated, leading to changes in upstr
 The relation above can also go backward. *Quibbler* allows dragging the
 plotted graphics while translating such user interactions with the
 graphics into assignments to the corresponding quib arguments of the
-plt.plot function. Such assignments into the arguments of the plot
-function are then *inverse-propagated* further upstream, ultimately
-actualized as changes to upstream quibs (typically reaching upstream
-i-quibs; see :doc:`Inverse-assignments`). In our case dragging the marker
-is initially translated into assignments to the ``x`` and ``y`` quibs.
-Since ``x`` and ``y`` are function quibs, these assignments are further
-inverse-propagated upstream to the i-quib ``xy`` where they are
+``plt.plot`` function. Such assignments into the arguments of the
+``plot`` function are then *inverse-propagated* further upstream,
+ultimately actualized as changes to upstream quibs (typically reaching
+upstream i-quibs; see :doc:`Inverse-assignments`). In our case dragging the
+marker is initially translated into assignments to the ``x`` and ``y``
+quibs. Since ``x`` and ``y`` are function quibs, these assignments are
+further inverse-propagated upstream to the i-quib ``xy`` where they are
 actualized. The resulting change in ``xy`` then percolates downstream to
 affect the plotted marker as well as text position and the text label.
 
@@ -345,5 +361,4 @@ exception specifications to default behaviors. See
 
 **4. Transparency.** Inputs, as well as exceptions and overrides, are
 saved in simple human-readable files. See :doc:`Project-save-load` and the
-*Quibbler* Jupyer lab extension (no docs yet).
-
+*Quibbler* Jupyter lab extension (no docs yet).

@@ -4,7 +4,7 @@ Assignments
 Rationale
 ~~~~~~~~~
 
-Data analysis pipelines are often heavily parametrized, necessitating
+Data analysis pipelines are often heavily parameterized, necessitating
 means to identify and change parameters easily, transparently, and
 interactively. Typically, though, interactive parameter specification is
 challenging. Firstly, underlying input parameters are often transformed
@@ -124,7 +124,7 @@ assignments, we can use the :py:meth:`~pyquibbler.Quib.assign()` method:
 Inverse assignments
 ~~~~~~~~~~~~~~~~~~~
 
-By default, assignments to functional quibs are propagated backwards to
+By default, assignments to function quibs are propagated backwards to
 alter upstream quibs. This *inverse assignment* process proceeds
 upstream until it reaches a quib, typically an i-quib, in which the
 assignment is ultimately *actualized* as an *override* to the quib value
@@ -194,7 +194,7 @@ and continuing with a sequence of different functional transformations:
 
 .. code:: python
 
-    b = a[0::2]  # -> [1, 2, 4, 16]
+    b = a[0::2]  # -> [1, 2, 4, 8]
     c = np.log2(b)  # -> [0, 1, 2, 3]
     d = np.flip(c)  # -> [3, 2, 1, 0]
     e = d + 10  # -> [13, 12, 11, 10]
@@ -215,7 +215,7 @@ then, assigning to the downstream f-quib:
 
     e[0] = 14
 
-is translated into upstream changes in the corresponding indeces of the
+is translated into upstream changes in the corresponding indices of the
 relevant source i-quibs. In our case, it sets ``a[6] = 16``:
 
 .. code:: python
@@ -265,8 +265,8 @@ date-of-birth (dob):
     ax = fig.add_axes([0.2, 0.5, 0.6, 0.17])
     ax.axis([0, 100, -1, 1])
     ax.plot(age, [0, 0], 'g-', lw=3)
-    ax.plot(age[0], 0, 'g>', markersize=16, picker=True)
-    ax.plot(age[1], 0, 'g<', markersize=16, picker=True)
+    ax.plot(age[0], 0, 'g>', markersize=16)
+    ax.plot(age[1], 0, 'g<', markersize=16)
     ax.set_xlabel('Age')
     ax.set_yticks([])
     ax.set_title(q(str, params));

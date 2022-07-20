@@ -44,12 +44,12 @@ follow this initiation step. A typical import therefore looks like:
 Graphics backend
 ~~~~~~~~~~~~~~~~
 
-``pyquibbler`` works well with the ``tk`` backend. In PyCharm, specify
+``pyquibbler`` works well with the ``tk`` backend. In *PyCharm*, specify
 ``matplotlib.use("TkAgg")``, in *Jupyter Lab*, specify
 ``%matplotlib tk``.
 
 On a Mac system, ``matplotlib.use('macosx')``, or ``%matplotlib osx``
-are also recommeded (and are typically faster).
+are also recommended (and are typically faster).
 
 .. code:: python
 
