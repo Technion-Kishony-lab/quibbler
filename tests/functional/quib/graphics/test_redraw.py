@@ -120,3 +120,14 @@ def test_quibs_deleted_after_axes_cla(figure, axes1):
 
     assert ref_a() is None
     assert ref_b() is None
+
+
+@pytest.mark.regression
+def test_quiby_legend(figure, axes1):
+    # used to fail because some of tge legend artists have axes=None. (they all have valid figure though)
+    a = iquib(['first', 'second'])
+    axes1.plot([1, 2, 3])
+    axes1.plot([2, 3, 4])
+    legend_quib = axes1.legend(a)
+    a[1] = 'replaced'
+    assert legend_quib.get_value().get_texts()[1].get_text() == 'replaced'
