@@ -332,6 +332,8 @@ class QuibHandler:
         Overrides a part of the data the quib represents.
         """
 
+        from pyquibbler.quib.graphics.redraw import notify_of_overriding_changes_or_add_in_aggregate_mode
+
         if not self.is_overridden and assignment.is_default():
             return
 
@@ -348,7 +350,7 @@ class QuibHandler:
                                                        assignment_index=len(self.overrider) - 1)
             self.file_syncer.on_data_changed()
 
-        self.project.notify_of_overriding_changes(self.quib)
+        notify_of_overriding_changes_or_add_in_aggregate_mode(self.quib)
 
     def apply_assignment(self, assignment: Assignment) -> None:
         """

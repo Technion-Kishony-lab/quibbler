@@ -11,6 +11,7 @@ from pyquibbler.quib.quib import Quib
 
 
 QUIBS_TO_REDRAW: Set[Quib] = set()
+QUIBS_TO_NOTIFY_OVERRIDING_CHANGES: Set[Quib] = set()
 IN_AGGREGATE_REDRAW_MODE = False
 
 
@@ -30,6 +31,7 @@ def aggregate_redraw_mode():
         finally:
             IN_AGGREGATE_REDRAW_MODE = False
         _redraw_quibs_with_graphics()
+        _notify_of_overriding_changes()
 
 
 def _redraw_quibs_with_graphics():
@@ -45,13 +47,29 @@ def _redraw_quibs_with_graphics():
     QUIBS_TO_REDRAW.clear()
 
 
+def _notify_of_overriding_changes():
+    with timer("override notify", lambda x: logger.info(f"notifying overriding changes for "
+                                                        f"{len(QUIBS_TO_NOTIFY_OVERRIDING_CHANGES)} quibs: {x}s")):
+        from pyquibbler import Project
+        project = Project.get_or_create()
+        for quib in QUIBS_TO_NOTIFY_OVERRIDING_CHANGES:
+            project.notify_of_overriding_changes(quib)
+
+    QUIBS_TO_NOTIFY_OVERRIDING_CHANGES.clear()
+
+
 def redraw_quibs_with_graphics_or_add_in_aggregate_mode(quibs: Set[Quib]):
     global QUIBS_TO_REDRAW
-    if IN_AGGREGATE_REDRAW_MODE:
-        QUIBS_TO_REDRAW |= quibs
-    else:
-        QUIBS_TO_REDRAW = quibs
+    QUIBS_TO_REDRAW |= quibs
+    if not IN_AGGREGATE_REDRAW_MODE:
         _redraw_quibs_with_graphics()
+
+
+def notify_of_overriding_changes_or_add_in_aggregate_mode(quib: Quib):
+    global QUIBS_TO_NOTIFY_OVERRIDING_CHANGES
+    QUIBS_TO_NOTIFY_OVERRIDING_CHANGES.add(quib)
+    if not IN_AGGREGATE_REDRAW_MODE:
+        _notify_of_overriding_changes()
 
 
 def redraw_axeses(axeses: Set[Axes]):
