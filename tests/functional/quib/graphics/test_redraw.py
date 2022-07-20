@@ -34,8 +34,8 @@ def axes2(figure) -> plt.Axes:
     return axes2
 
 
-def test_redraw_axes_happy_flow(figure, axes1):
-    redraw_axeses({axes1})
+def test_redraw_axes_happy_flow(figure):
+    redraw_figures({figure})
 
     figure.canvas.draw.assert_called_once()
 
@@ -68,17 +68,11 @@ def test_only_notify_override_changes_once_in_aggregate_mode():
     assert mock_func.call_count == 1
 
 
-def test_redraw_axeses_does_not_redraw_same_canvas_twice(figure, axes1, axes2):
-    redraw_axeses({axes1, axes2})
-
-    figure.canvas.draw.assert_called_once()
-
-
 # To prevent pyimageXX bug in TK on notebook. see issue: #119
 @pytest.mark.regression
-def test_redraw_after_figure_closed(figure, axes1):
+def test_redraw_after_figure_closed(figure):
     plt.close(figure)
-    redraw_axeses({axes1})
+    redraw_figures({figure})
     figure.canvas.draw.assert_not_called()
 
 
