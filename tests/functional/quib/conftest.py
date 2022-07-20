@@ -15,7 +15,7 @@ def create_mock_quib():
         mock_quib.get_shape.return_value = shape
         mock_quib.get_ndim.return_value = len(shape)
         mock_quib.handler = mock.Mock(spec=QuibHandler)
-        mock_quib.handler.get_axeses.return_value = []
+        mock_quib.handler.get_figures.return_value = []
         mock_quib.descendants = children or set()
         return mock_quib
     return _create

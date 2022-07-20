@@ -10,7 +10,7 @@ from pyquibbler import iquib, Project
 from pyquibbler.function_definitions import add_definition_for_function
 from pyquibbler.function_definitions.func_definition import create_func_definition
 from pyquibbler.quib.factory import create_quib
-from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode, redraw_axeses
+from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode, redraw_figures
 from weakref import ref
 
 
@@ -34,8 +34,8 @@ def axes2(figure) -> plt.Axes:
     return axes2
 
 
-def test_redraw_axes_happy_flow(figure, axes1):
-    redraw_axeses({axes1})
+def test_redraw_axes_happy_flow(figure):
+    redraw_figures({figure})
 
     figure.canvas.draw.assert_called_once()
 
@@ -68,17 +68,11 @@ def test_only_notify_override_changes_once_in_aggregate_mode():
     assert mock_func.call_count == 1
 
 
-def test_redraw_axeses_does_not_redraw_same_canvas_twice(figure, axes1, axes2):
-    redraw_axeses({axes1, axes2})
-
-    figure.canvas.draw.assert_called_once()
-
-
 # To prevent pyimageXX bug in TK on notebook. see issue: #119
 @pytest.mark.regression
-def test_redraw_after_figure_closed(figure, axes1):
+def test_redraw_after_figure_closed(figure):
     plt.close(figure)
-    redraw_axeses({axes1})
+    redraw_figures({figure})
     figure.canvas.draw.assert_not_called()
 
 
@@ -120,3 +114,14 @@ def test_quibs_deleted_after_axes_cla(figure, axes1):
 
     assert ref_a() is None
     assert ref_b() is None
+
+
+@pytest.mark.regression
+def test_quiby_legend(figure, axes1):
+    # used to fail because some of tge legend artists have axes=None. (they all have valid figure though)
+    a = iquib(['first', 'second'])
+    axes1.plot([1, 2, 3])
+    axes1.plot([2, 3, 4])
+    legend_quib = axes1.legend(a)
+    a[1] = 'replaced'
+    assert legend_quib.get_value().get_texts()[1].get_text() == 'replaced'

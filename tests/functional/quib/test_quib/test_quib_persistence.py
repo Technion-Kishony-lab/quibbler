@@ -10,7 +10,6 @@ from pyquibbler import iquib
 from pyquibbler.function_definitions import add_definition_for_function
 from pyquibbler.function_definitions.func_definition import create_func_definition
 from pyquibbler.quib.factory import create_quib
-from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode, redraw_axeses
 from weakref import ref
 
 
