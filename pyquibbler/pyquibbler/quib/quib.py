@@ -347,7 +347,8 @@ class QuibHandler:
                                                        assignment=assignment,
                                                        assignment_index=len(self.overrider) - 1)
             self.file_syncer.on_data_changed()
-            self.project.notify_of_overriding_changes(self.quib)
+
+        self.project.notify_of_overriding_changes(self.quib)
 
     def apply_assignment(self, assignment: Assignment) -> None:
         """
