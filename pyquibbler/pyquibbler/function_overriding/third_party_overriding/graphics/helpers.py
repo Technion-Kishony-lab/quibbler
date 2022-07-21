@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Any
 
 import matplotlib.widgets
+import matplotlib.patches
 from matplotlib.axes import Axes
 
 from pyquibbler.env import PLOT_WITH_PICKER_TRUE_BY_DEFAULT
@@ -81,6 +82,7 @@ class AxesLimOverride(AxesSetOverride):
 
 graphics_override = functools.partial(override_with_cls, GraphicsOverride, is_graphics=True)
 axes_override = functools.partial(graphics_override, Axes)
+patches_override = functools.partial(graphics_override, matplotlib.patches)
 
 plot_override = functools.partial(override_with_cls, PlotOverride, Axes, is_graphics=True)
 
