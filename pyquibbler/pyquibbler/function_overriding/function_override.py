@@ -1,5 +1,7 @@
 import copy
 import functools
+import warnings
+
 from dataclasses import dataclass
 from types import ModuleType
 from typing import Callable, Any, Dict, Union, Type, Optional, Tuple, Mapping
@@ -97,9 +99,12 @@ class FuncOverride:
         # copy all public attr. this takes care of np.ufuncs like np.add.reduce, np.add.outer, etc
         # note that functools.wraps does not take care of attributes in dir but not in __dict__
         # see issue: #345
-        for attr in dir(wrapped_func):
-            if not attr.startswith('_'):
-                setattr(_maybe_create_quib, attr, getattr(wrapped_func, attr))
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")  # to avoid some "attribute was deprecated" warnings
+            for attr in dir(wrapped_func):
+                if not attr.startswith('_'):
+                    setattr(_maybe_create_quib, attr, getattr(wrapped_func, attr))
 
         return _maybe_create_quib
 
