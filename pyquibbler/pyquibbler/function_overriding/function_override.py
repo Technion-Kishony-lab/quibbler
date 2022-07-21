@@ -107,14 +107,13 @@ class FuncOverride:
     def original_func(self):
         if self._original_func is None:
             # not overridden yet
-            return self._get_func_from_module_or_cls()
+            self._original_func = self._get_func_from_module_or_cls()
         return self._original_func
 
     def override(self) -> Callable:
         """
         Override the original function and make it quibbler supporting
         """
-        self._original_func = self._get_func_from_module_or_cls()
         maybe_create_quib = self._create_quib_supporting_func()
         setattr(self.module_or_cls, self.func_name, maybe_create_quib)
         return maybe_create_quib
