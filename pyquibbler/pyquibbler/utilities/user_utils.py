@@ -280,9 +280,9 @@ def list_quiby_funcs(module_or_cls: Union[None, ModuleType, Type] = None) -> Lis
     """
     from pyquibbler.function_definitions.definitions import FUNCS_TO_DEFINITIONS_MODULE_NAME_ISOVERRIDDEN
     from pyquibbler.function_overriding.third_party_overriding.numpy.vectorize_overrides import QVectorize
-    return [f"{getattr(mdl, '__name__', mdl)}: {func_name}" for definition, mdl, func_name, isoverriden in
+    return [f"{getattr(mdl, '__name__', mdl)}: {func_name}" for definition, mdl, func_name, isoverridden in
             FUNCS_TO_DEFINITIONS_MODULE_NAME_ISOVERRIDDEN.values()
-            if isoverriden and (module_or_cls is None or mdl is module_or_cls)
+            if isoverridden and (module_or_cls is None or mdl is module_or_cls)
             and mdl is not QVectorize]
 
 
