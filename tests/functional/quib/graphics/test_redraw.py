@@ -127,9 +127,25 @@ def test_quiby_legend(figure, axes1):
     assert legend_quib.get_value().get_texts()[1].get_text() == 'replaced'
 
 
-def test_implicit_color(figure, axes1):
+def test_plot_with_implicit_quiby_color_updates_when_color_changes(figure, axes1):
     color = iquib('r')
     p = axes1.plot([1, 2, 3], color)
     assert p.get_value()[0].get_color() == (1.0, 0.0, 0.0, 1)
     color.assign('b')
     assert p.get_value()[0].get_color() == (0.0, 0.0, 1.0, 1)
+
+
+def test_plot_with_no_color_spec_maintains_color_when_updates(figure, axes1):
+    data = iquib([1, 2, 3])
+    axes1.plot([3, 2, 1]) # advance the color cycle before the quib plot
+    p = axes1.plot(data)
+    line1 = p.get_value()[0]
+    axes1.plot([3,3, 3]) # to advance the color cycle after the quib plot
+
+    data[1] = 1
+    line2 = p.get_value()[0]
+
+    assert np.array_equal(line1._y, [1, 2, 3]), "sanity"
+    assert np.array_equal(line2._y, [1, 1, 3]), "sanity"
+
+    assert line2.get_color() == line1.get_color()
