@@ -10,36 +10,42 @@ from matplotlib.pyplot import Axes
 from pyquibbler.exceptions import PyQuibblerException
 
 
-class UponCreation(ABC):
+class UponMethodCall(ABC):
 
     cls: Type = NotImplemented
+    method_name: str = None
 
-    def __init__(self, thread_id: int = None,
-                 previous_init: Callable = None):
+    def __init__(self, thread_id: int = None):
         self._thread_id = thread_id or threading.get_ident()
-        self._previous_init = previous_init
+        self._original_method = None
 
     @abstractmethod
-    def _on_creation(self, obj, *args, **kwargs):
+    def _on_method_call(self, obj, *args, **kwargs):
         pass
 
-    def wrap_object_creation(self, func):
+    def wrap_object_method(self, func):
         @functools.wraps(func)
-        def wrapped_init(obj, *args, **kwargs):
+        def wrapped_method(obj, *args, **kwargs):
             res = func(obj, *args, **kwargs)
             if threading.get_ident() == self._thread_id:
-                self._on_creation(obj, *args, **kwargs)
+                self._on_method_call(obj, *args, **kwargs)
             return res
 
-        return wrapped_init
+        return wrapped_method
 
     def __enter__(self):
-        self._previous_init = self.cls.__init__
-        self.cls.__init__ = self.wrap_object_creation(self.cls.__init__)
+        func = getattr(self.cls, self.method_name)
+        self._original_method = func
+        setattr(self.cls, self.method_name, self.wrap_object_method(func))
         return self
 
     def __exit__(self, *_, **__):
-        self.cls.__init__ = self._previous_init
+        setattr(self.cls, self.method_name, self._original_method)
+
+
+class UponCreation(UponMethodCall, ABC):
+
+    method_name = '__init__'
 
 
 class GraphicsCollector(UponCreation, ABC):
@@ -50,16 +56,15 @@ class GraphicsCollector(UponCreation, ABC):
 
     cls: Type = NotImplemented
 
-    def __init__(self, objects_collected: List = None, thread_id: int = None,
-                 previous_init: Callable = None):
+    def __init__(self, objects_collected: List = None, thread_id: int = None):
         self._objects_collected = objects_collected or []
-        super(GraphicsCollector, self).__init__(thread_id=thread_id, previous_init=previous_init)
+        super(GraphicsCollector, self).__init__(thread_id=thread_id)
 
     @property
     def objects_collected(self):
         return self._objects_collected
 
-    def _on_creation(self, obj, *args, **kwargs):
+    def _on_method_call(self, obj, *args, **kwargs):
         self._objects_collected.append(obj)
 
 
@@ -84,5 +89,5 @@ class AxesCreationPreventor(UponCreation):
 
     cls = Axes
 
-    def _on_creation(self, obj, *args, **kwargs):
+    def _on_method_call(self, obj, *args, **kwargs):
         raise AxesCreatedDuringQuibEvaluationException()
