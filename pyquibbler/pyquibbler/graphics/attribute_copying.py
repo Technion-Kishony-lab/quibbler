@@ -10,12 +10,7 @@ from pyquibbler.graphics.utils import ArrayNameToArtists
 # from old artists to new artists.
 #
 # (attribute_to_copy_unless_included_in: {list of kwards})
-ATTRIBUTES_TO_COPY_UNLESS_IN_KWARGS = {
-    '_color': {'color'},
-    '_facecolor': {'facecolor'},
-    '_facecolors': {'facecolor', 'c', 'color'},
-    '_original_facecolor': {'facecolor', 'c', 'color'},
-}
+ATTRIBUTES_TO_COPY_UNLESS_IN_KWARGS = {}
 
 
 def _copy_attributes(kwargs_specified_in_artists_creation: Set[str],
