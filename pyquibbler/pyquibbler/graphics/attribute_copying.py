@@ -1,4 +1,4 @@
-from typing import List, Dict, Tuple, Set
+from typing import List, Dict, Tuple
 
 from matplotlib.artist import Artist
 from matplotlib.axes import Axes
@@ -10,28 +10,20 @@ from pyquibbler.graphics.utils import ArrayNameToArtists
 # from old artists to new artists.
 #
 # (attribute_to_copy_unless_included_in: {list of kwards})
-ATTRIBUTES_TO_COPY_UNLESS_IN_KWARGS = {
-    '_color': {'color'},
-    '_facecolor': {'facecolor'},
-    '_facecolors': {'facecolor', 'c', 'color'},
-    '_original_facecolor': {'facecolor', 'c', 'color'},
-}
+ATTRIBUTES_TO_COPY = {}
 
 
-def _copy_attributes(kwargs_specified_in_artists_creation: Set[str],
-                     new_artists: List[Artist], previous_artists: List[Artist]):
+def _copy_attributes(new_artists: List[Artist], previous_artists: List[Artist]):
     # We only want to update from the previous artists if their lengths are equal (if so, we assume they're
     # referencing the same artists)
     if len(new_artists) == len(previous_artists):
         for previous_artist, new_artist in zip(previous_artists, new_artists):
-            for attribute in ATTRIBUTES_TO_COPY_UNLESS_IN_KWARGS.keys():
-                if hasattr(previous_artist, attribute) and \
-                        not (kwargs_specified_in_artists_creation & ATTRIBUTES_TO_COPY_UNLESS_IN_KWARGS[attribute]):
+            for attribute in ATTRIBUTES_TO_COPY.keys():
+                if hasattr(previous_artist, attribute):
                     setattr(new_artist, attribute, getattr(previous_artist, attribute))
 
 
 def _update_position_and_attributes_of_created_artists(
-        kwargs_specified_in_artists_creation: Set[str],
         axes: Axes,
         array_name: str,
         new_artists: List[Artist],
@@ -49,11 +41,10 @@ def _update_position_and_attributes_of_created_artists(
     setattr(axes, array_name, complete_artists_array)
 
     if should_copy_artist_attributes:
-        _copy_attributes(kwargs_specified_in_artists_creation, new_artists, previous_artists)
+        _copy_attributes(new_artists, previous_artists)
 
 
-def update_new_artists_from_previous_artists(kwargs_specified_in_artists_creation: Set[str],
-                                             previous_axeses_to_array_names_to_indices_and_artists: Dict[
+def update_new_artists_from_previous_artists(previous_axeses_to_array_names_to_indices_and_artists: Dict[
                                                  Axes, Dict[str, Tuple[int, List[Artist]]]
                                              ],
                                              current_axeses_to_array_names_to_artists: Dict[
@@ -69,7 +60,6 @@ def update_new_artists_from_previous_artists(kwargs_specified_in_artists_creatio
                 array_names_to_indices_and_artists = previous_axeses_to_array_names_to_indices_and_artists[axes]
                 starting_index, previous_artists = array_names_to_indices_and_artists[array_name]
                 _update_position_and_attributes_of_created_artists(
-                    kwargs_specified_in_artists_creation,
                     axes=axes,
                     array_name=array_name,
                     new_artists=artists,

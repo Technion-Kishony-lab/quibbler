@@ -20,6 +20,14 @@ def test_global_graphics_collecting_mode_happy_flow(axes, data):
     assert isinstance(collector.objects_collected[0], Line2D)
 
 
+def test_global_graphics_collecting_stores_props_cycle_indices(axes):
+    axes._get_lines.prop_cycler.current_index = 2
+    with global_collecting.ColorCyclerIndexCollector() as collector:
+        axes.plot([10, 11, 12])
+
+    assert collector.color_cyclers_to_index[axes._get_lines.prop_cycler] == 2
+
+
 def test_global_graphics_collecting_within_collecting(axes):
     with global_collecting.ArtistsCollector() as collector, \
             global_collecting.ArtistsCollector() as nested_collector:
@@ -28,7 +36,7 @@ def test_global_graphics_collecting_within_collecting(axes):
     assert len(nested_collector.objects_collected) == 1
 
 
-def test_global_graphics_collecting_not_allowing_axes_ceation(axes):
+def test_global_graphics_collecting_not_allowing_axes_creation(axes):
     with global_collecting.AxesCreationPreventor():
         with pytest.raises(global_collecting.AxesCreatedDuringQuibEvaluationException):
             axes.figure.add_axes([0, 0, 1, 1])
