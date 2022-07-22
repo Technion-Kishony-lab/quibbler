@@ -1,4 +1,4 @@
-from typing import List, Dict, Tuple, Set
+from typing import List, Dict, Tuple
 
 from matplotlib.artist import Artist
 from matplotlib.axes import Axes

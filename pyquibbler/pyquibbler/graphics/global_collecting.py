@@ -2,7 +2,7 @@ from __future__ import annotations
 import functools
 import threading
 from abc import ABC, abstractmethod
-from typing import List, Callable, Type
+from typing import List, Type
 from matplotlib.artist import Artist
 from matplotlib.widgets import AxesWidget
 from matplotlib.pyplot import Axes

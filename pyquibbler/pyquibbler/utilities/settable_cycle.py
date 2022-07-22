@@ -38,4 +38,3 @@ class SettableColorCycle(SettableCycle):
             SettableColorCycle.on_next(self, self.current_index)
 
         return super().__next__()
-
