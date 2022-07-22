@@ -8,6 +8,7 @@ from matplotlib.widgets import AxesWidget
 from matplotlib.pyplot import Axes
 
 from pyquibbler.exceptions import PyQuibblerException
+from pyquibbler.utilities.settable_cycle import SettableColorCycle
 
 
 class UponMethodCall(ABC):
@@ -91,3 +92,24 @@ class AxesCreationPreventor(UponCreation):
 
     def _on_method_call(self, obj, *args, **kwargs):
         raise AxesCreatedDuringQuibEvaluationException()
+
+
+class ColorCyclerIndexCollector:
+
+    def __init__(self):
+        self._color_cyclers_to_index = dict()
+
+    @property
+    def color_cyclers_to_index(self):
+        return self._color_cyclers_to_index
+
+    def __enter__(self):
+        SettableColorCycle.on_next = self._on_next_index
+        return self
+
+    def __exit__(self, *_, **__):
+        SettableColorCycle.on_next = None
+
+    def _on_next_index(self, obj, index):
+        if obj not in self._color_cyclers_to_index:
+            self._color_cyclers_to_index[obj] = index

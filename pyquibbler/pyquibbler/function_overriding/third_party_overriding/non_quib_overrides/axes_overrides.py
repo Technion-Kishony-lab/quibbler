@@ -2,7 +2,7 @@ import functools
 import itertools
 from typing import Callable, Type
 
-from pyquibbler.graphics.settable_cycle import SettableCycle
+from pyquibbler.utilities.settable_cycle import SettableColorCycle
 from pyquibbler.graphics.utils import TYPES_TO_ARTIST_ARRAY_NAMES
 from pyquibbler.quib.graphics import artist_wrapper
 
@@ -27,7 +27,7 @@ def _get_wrapper_for_set_prop_cycle(func: Callable):
     def _wrapper(self, *args, **kwargs):
         itertools_cycle = itertools.cycle
         try:
-            itertools.cycle = SettableCycle
+            itertools.cycle = SettableColorCycle
             result = func(self, *args, **kwargs)
         finally:
             itertools.cycle = itertools_cycle

@@ -1,4 +1,4 @@
-from typing import Iterable
+from typing import Iterable, Callable
 
 
 class SettableCycle:
@@ -27,3 +27,15 @@ class SettableCycle:
         self.current_index %= len(self._list)
 
         return self._list[self.current_index]
+
+
+class SettableColorCycle(SettableCycle):
+
+    on_next: Callable = None
+
+    def __next__(self):
+        if SettableColorCycle.on_next:
+            SettableColorCycle.on_next(self, self.current_index)
+
+        return super().__next__()
+
