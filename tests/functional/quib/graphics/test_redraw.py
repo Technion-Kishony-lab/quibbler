@@ -125,3 +125,11 @@ def test_quiby_legend(figure, axes1):
     legend_quib = axes1.legend(a)
     a[1] = 'replaced'
     assert legend_quib.get_value().get_texts()[1].get_text() == 'replaced'
+
+
+def test_implicit_color(figure, axes1):
+    color = iquib('r')
+    p = axes1.plot([1, 2, 3], color)
+    assert p.get_value()[0].get_color() == (1.0, 0.0, 0.0, 1)
+    color.assign('b')
+    assert p.get_value()[0].get_color() == (0.0, 0.0, 1.0, 1)
