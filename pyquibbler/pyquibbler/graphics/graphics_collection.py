@@ -1,21 +1,24 @@
 import contextlib
 from dataclasses import dataclass, field
-from typing import List, Set
+from typing import List, Set, Dict
 
 from matplotlib.artist import Artist
 from matplotlib.widgets import AxesWidget
 
 from pyquibbler.graphics.attribute_copying import update_new_artists_from_previous_artists
-from pyquibbler.graphics.global_collecting import ArtistsCollector, AxesWidgetsCollector, AxesCreationPreventor
+from pyquibbler.graphics.global_collecting import ArtistsCollector, AxesWidgetsCollector, AxesCreationPreventor, \
+    ColorCyclerIndexCollector
 from pyquibbler.graphics.utils import get_artist_array, \
     get_axeses_to_array_names_to_starting_indices_and_artists, remove_artist,\
     get_axeses_to_array_names_to_artists
+from pyquibbler.utilities.settable_cycle import SettableColorCycle
 
 
 @dataclass
 class GraphicsCollection:
-    widgets: List = field(default_factory=list)
-    artists: List = field(default_factory=list)
+    widgets: List[AxesWidget] = field(default_factory=list)
+    artists: List[Artist] = field(default_factory=list)
+    color_cyclers_to_index: Dict[SettableColorCycle, int] = field(default_factory=dict)
 
     def _get_artists_still_in_axes(self):
         """
@@ -55,6 +58,16 @@ class GraphicsCollection:
         else:
             self.widgets = new_widgets
 
+    def _handle_called_color_cyclers(self, color_cyclers_to_index: Dict[SettableColorCycle, int]):
+        """
+        Handle color_cyclers that were used during the function call
+        """
+        self.color_cyclers_to_index = color_cyclers_to_index
+
+    def set_color_cyclers_back_to_pre_run_index(self):
+        for color_cycler, index in self.color_cyclers_to_index.items():
+            color_cycler.current_index = index
+
     @contextlib.contextmanager
     def track_and_handle_new_graphics(self, kwargs_specified_in_artists_creation: Set[str]):
         self.artists = self._get_artists_still_in_axes()
@@ -67,11 +80,15 @@ class GraphicsCollection:
 
         with ArtistsCollector() as artists_collector, \
                 AxesWidgetsCollector() as widgets_collector, \
+                ColorCyclerIndexCollector() as color_cycler_index_collector, \
                 AxesCreationPreventor():
             yield
 
         self._handle_new_widgets(new_widgets=widgets_collector.objects_collected)
+
         self._handle_new_artists(kwargs_specified_in_artists_creation,
                                  previous_axeses_to_array_names_to_indices_and_artists,
                                  new_artists=artists_collector.objects_collected,
                                  should_copy_artist_attributes=len(widgets_collector.objects_collected) == 0)
+
+        self._handle_called_color_cyclers(color_cycler_index_collector.color_cyclers_to_index)
