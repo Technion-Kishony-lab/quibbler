@@ -67,9 +67,7 @@ class CachedQuibFuncCall(QuibFuncCall):
         graphics_collection.set_color_cyclers_back_to_pre_run_index()
         with ExitStack() as stack:
             if self.func_definition.is_graphics is not False:
-                stack.enter_context(graphics_collection.track_and_handle_new_graphics(
-                    kwargs_specified_in_artists_creation=
-                    set(key for key, value in self.kwargs.items() if value is not None)))
+                stack.enter_context(graphics_collection.track_and_handle_new_graphics())
             stack.enter_context(QuibGuard(quibs_allowed_to_access))
             stack.enter_context(external_call_failed_exception_handling())
 

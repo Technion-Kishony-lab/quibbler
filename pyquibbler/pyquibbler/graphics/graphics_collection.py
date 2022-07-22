@@ -32,7 +32,6 @@ class GraphicsCollection:
         self.artists = []
 
     def _handle_new_artists(self,
-                            kwargs_specified_in_artists_creation,
                             previous_axeses_to_array_names_to_indices_and_artists,
                             new_artists: Set[Artist],
                             should_copy_artist_attributes: bool):
@@ -41,8 +40,7 @@ class GraphicsCollection:
         """
         self.artists = list(new_artists)
         current_axeses_to_array_names_to_artists = get_axeses_to_array_names_to_artists(new_artists)
-        update_new_artists_from_previous_artists(kwargs_specified_in_artists_creation,
-                                                 previous_axeses_to_array_names_to_indices_and_artists,
+        update_new_artists_from_previous_artists(previous_axeses_to_array_names_to_indices_and_artists,
                                                  current_axeses_to_array_names_to_artists,
                                                  should_copy_artist_attributes)
 
@@ -69,7 +67,7 @@ class GraphicsCollection:
             color_cycler.current_index = index
 
     @contextlib.contextmanager
-    def track_and_handle_new_graphics(self, kwargs_specified_in_artists_creation: Set[str]):
+    def track_and_handle_new_graphics(self):
         self.artists = self._get_artists_still_in_axes()
 
         # Get the *current* artists together with their starting indices (per axes per artists array) so we can
@@ -86,8 +84,7 @@ class GraphicsCollection:
 
         self._handle_new_widgets(new_widgets=widgets_collector.objects_collected)
 
-        self._handle_new_artists(kwargs_specified_in_artists_creation,
-                                 previous_axeses_to_array_names_to_indices_and_artists,
+        self._handle_new_artists(previous_axeses_to_array_names_to_indices_and_artists,
                                  new_artists=artists_collector.objects_collected,
                                  should_copy_artist_attributes=len(widgets_collector.objects_collected) == 0)
 
