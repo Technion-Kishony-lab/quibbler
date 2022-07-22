@@ -1,25 +1,13 @@
 import functools
+import itertools
 from typing import Callable, Type
 
-import matplotlib.widgets
-
+from pyquibbler.graphics.settable_cycle import SettableCycle
 from pyquibbler.graphics.utils import TYPES_TO_ARTIST_ARRAY_NAMES
-from pyquibbler.graphics.widgets import QRadioButtons, QSlider, QRectangleSelector
 from pyquibbler.quib.graphics import artist_wrapper
 
-widget_class_names_to_quib_supporting_widget = {
-    'RadioButtons': QRadioButtons,
-    'Slider': QSlider,
-    'RectangleSelector': QRectangleSelector
-}
 
-
-def switch_widgets_to_quib_supporting_widgets():
-    for widget_class_name, quib_supporting_widget in widget_class_names_to_quib_supporting_widget.items():
-        setattr(matplotlib.widgets, widget_class_name, quib_supporting_widget)
-
-
-def get_clear_axes_wrapper(func: Callable):
+def _get_wrapper_for_clear_axes(func: Callable):
 
     @functools.wraps(func)
     def _wrapper(self, *args, **kwargs):
@@ -33,14 +21,32 @@ def get_clear_axes_wrapper(func: Callable):
     return _wrapper
 
 
+def _get_wrapper_for_set_prop_cycle(func: Callable):
+
+    @functools.wraps(func)
+    def _wrapper(self, *args, **kwargs):
+        itertools_cycle = itertools.cycle
+        try:
+            itertools.cycle = SettableCycle
+            result = func(self, *args, **kwargs)
+        finally:
+            itertools.cycle = itertools_cycle
+        return result
+
+    return _wrapper
+
+
 def wrap_method(cls: Type, method_name: str, get_wrapper: Callable):
     func = getattr(cls, method_name)
     setattr(cls, method_name, get_wrapper(func))
 
 
-def override_clear_axes():
+def override_axes_methods():
     from matplotlib.axis import Axis
-    wrap_method(Axis, 'clear', get_clear_axes_wrapper)
+    wrap_method(Axis, 'clear', _get_wrapper_for_clear_axes)
 
     from matplotlib.axes._base import _AxesBase
-    wrap_method(_AxesBase, 'cla', get_clear_axes_wrapper)
+    wrap_method(_AxesBase, 'cla', _get_wrapper_for_clear_axes)
+
+    from matplotlib.axes._base import _process_plot_var_args
+    wrap_method(_process_plot_var_args, 'set_prop_cycle', _get_wrapper_for_set_prop_cycle)
