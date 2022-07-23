@@ -130,33 +130,39 @@ class ClassOverride(FuncOverride):
     Overrides the __new__ method of a class to detect quib arguments at object creation.
     """
 
-    @staticmethod
-    def _call_wrapped_func(func, args, kwargs) -> Any:
+    def _get_func_from_module_or_cls(self):
+        func = super()._get_func_from_module_or_cls()
 
-        cls, *args = args
+        if func is object.__new__:
+            def wrapped_func(cls, *args, **kwargs):
+                obj = func(cls)
+                obj.__init__(*args, **kwargs)
+                return obj
+        else:
+            def wrapped_func(cls, *args, **kwargs):
+                obj = func(cls, *args, **kwargs)
+                return obj
 
-        # There is a problem here related to a known issue with replacing __new__:
-        # https://stackoverflow.com/questions/70799600/how-exactly-does-python-find-new-and-choose-its-arguments
+        return wrapped_func
 
-        # I tried 3 possible options here:
-
-        # (1) using the object __new__
-        # obj = object.__new__(cls)
-        # obj.__init__(*args, **kwargs)
-
-        # (2) calling super()
-        # obj = super(func, cls).__new__(cls, *args, **kwargs)
-        # obj.__init__(*args, **kwargs)
-
-        # (3) calling __new__ directly, trying with and without argument.
-        try:
-            obj = func(cls, *args, **kwargs)
-        except TypeError:
-            obj = func(cls)
-        obj.__init__(*args, **kwargs)
-
-        return obj
+    # @staticmethod
+    # def _call_wrapped_func(func, args, kwargs) -> Any:
+    #
+    #     cls, *args = args
+    #
+    #     # Below is a workaround for a known problem related to replacing __new__:
+    #     # https://stackoverflow.com/questions/70799600/how-exactly-does-python-find-new-and-choose-its-arguments
+    #
+    #     if func is object.__new__:
+    #         obj = func(cls)
+    #     else:
+    #         obj = func(cls, *args, **kwargs)
+    #
+    #     obj.__init__(*args, **kwargs)
+    #
+    #     return obj
 
     def override(self) -> Callable:
+        super().override()
         self.module_or_cls.__quibbler_wrapped__ = self.original_func
-        return super().override()
+        return self.module_or_cls
