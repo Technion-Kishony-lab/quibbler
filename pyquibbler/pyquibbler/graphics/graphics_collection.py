@@ -5,7 +5,7 @@ from typing import List, Set, Dict
 from matplotlib.artist import Artist
 from matplotlib.widgets import AxesWidget
 
-from pyquibbler.graphics.attribute_copying import update_new_artists_from_previous_artists
+from pyquibbler.graphics.update_new_artists import update_new_artists_from_previous_artists
 from pyquibbler.graphics.global_collecting import ArtistsCollector, AxesWidgetsCollector, AxesCreationPreventor, \
     ColorCyclerIndexCollector
 from pyquibbler.graphics.utils import get_artist_array, \
