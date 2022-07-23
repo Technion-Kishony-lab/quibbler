@@ -13,7 +13,8 @@ from matplotlib.artist import Artist
 
 
 def track_artist(artist):
-    CanvasEventHandler.get_or_create_initialized_event_handler(artist.figure.canvas)
+    if artist.figure:
+        CanvasEventHandler.get_or_create_initialized_event_handler(artist.figure.canvas)
 
 
 @dataclasses.dataclass
