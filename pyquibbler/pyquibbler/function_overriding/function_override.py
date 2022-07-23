@@ -66,6 +66,9 @@ class FuncOverride:
         wrapped_func = self.original_func
         func_definition = self.func_definition
 
+        if hasattr(wrapped_func, '__quibbler_wrapped__'):
+            return wrapped_func
+
         @functools.wraps(wrapped_func)
         def _maybe_create_quib(*args, **kwargs):
 
