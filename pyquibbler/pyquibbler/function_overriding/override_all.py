@@ -51,6 +51,7 @@ def initialize_quibbler():
     ----
     Only need to run ``initialize_quibbler`` once. Additional calls are gracefully ignored.
     """
+
     create_jupyter_project_if_in_jupyter_lab()
 
     function_definitions = create_defintions_for_python_functions()
@@ -61,12 +62,14 @@ def initialize_quibbler():
             module_or_cls=None,
         )
 
+    switch_widgets_to_quib_supporting_widgets()
+
+    override_axes_methods()
+
     function_overrides: List[FuncOverride] = [*create_operator_overrides(),
                                               *create_graphics_overrides(),
                                               *create_numpy_overrides(),
                                               *create_quib_method_overrides()]
-    switch_widgets_to_quib_supporting_widgets()
-    override_axes_methods()
     for func_override in function_overrides:
         maybe_create_quib = func_override.override()
         add_definition_for_function(
