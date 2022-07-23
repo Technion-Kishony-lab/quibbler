@@ -2,13 +2,14 @@ from typing import List, Dict, Tuple
 
 from matplotlib.artist import Artist
 from matplotlib.axes import Axes
+from matplotlib.patches import Patch
 
 from pyquibbler.graphics.utils import ArrayNameToArtists
 
 ATTRIBUTES_TO_COPY = {}
 
 
-def _copy_attributes_from_previous_to_new_artists(new_artists: List[Artist], previous_artists: List[Artist]):
+def _copy_attributes_from_previous_to_new_artists(previous_artists: List[Artist], new_artists: List[Artist]):
     # Copy attributes from old to new artists
     # This functionality was used for copying auto-specified colors, which is not needed anymore as we are now using the
     # settable color cycler.
@@ -56,7 +57,15 @@ def update_new_artists_from_previous_artists(
                                                          new_artists=artists,
                                                          starting_index=starting_index)
                 if should_copy_artist_attributes:
-                    _copy_attributes_from_previous_to_new_artists(artists, previous_artists)
+                    _copy_attributes_from_previous_to_new_artists(previous_artists, artists)
 
             # Else, if the array name isn't in previous_array_names_to_indices_and_artists,
             # we don't need to update drawing order, or copy attributes
+
+
+def add_new_axesless_patches_to_axes(previous_artists: List[Artist], new_artists: List[Artist]):
+    if len(new_artists) == len(previous_artists):
+        for previous_artist, new_artist in zip(previous_artists, new_artists):
+            if new_artist.axes is None and previous_artist.axes is not None \
+                    and isinstance(new_artist, Patch) and isinstance(previous_artist, Patch):
+                previous_artist.axes.add_patch(new_artist)

@@ -3,9 +3,11 @@ from dataclasses import dataclass, field
 from typing import List, Set, Dict
 
 from matplotlib.artist import Artist
+from matplotlib.patches import Patch
 from matplotlib.widgets import AxesWidget
 
-from pyquibbler.graphics.update_new_artists import update_new_artists_from_previous_artists
+from pyquibbler.graphics.update_new_artists import update_new_artists_from_previous_artists, \
+    add_new_axesless_patches_to_axes
 from pyquibbler.graphics.global_collecting import ArtistsCollector, AxesWidgetsCollector, AxesCreationPreventor, \
     ColorCyclerIndexCollector
 from pyquibbler.graphics.utils import get_artist_array, \
@@ -33,12 +35,16 @@ class GraphicsCollection:
 
     def _handle_new_artists(self,
                             previous_axeses_to_array_names_to_indices_and_artists,
-                            new_artists: Set[Artist],
+                            previous_artists: List[Artist],
+                            new_artists: List[Artist],
                             should_copy_artist_attributes: bool):
         """
         Handle new artists and update graphics collection appropriately
         """
-        self.artists = list(new_artists)
+        self.artists = new_artists
+
+        add_new_axesless_patches_to_axes(previous_artists, new_artists)
+
         current_axeses_to_array_names_to_artists = get_axeses_to_array_names_to_artists(new_artists)
         update_new_artists_from_previous_artists(previous_axeses_to_array_names_to_indices_and_artists,
                                                  current_axeses_to_array_names_to_artists,
@@ -69,11 +75,12 @@ class GraphicsCollection:
     @contextlib.contextmanager
     def track_and_handle_new_graphics(self):
         self.artists = self._get_artists_still_in_axes()
+        previous_artists = self.artists
 
         # Get the *current* artists together with their starting indices (per axes per artists array) so we can
-        # place the new artists we create in their correct locations
+        # place the new artists we create in their correct drawing layer
         previous_axeses_to_array_names_to_indices_and_artists = \
-            get_axeses_to_array_names_to_starting_indices_and_artists(self.artists)
+            get_axeses_to_array_names_to_starting_indices_and_artists(previous_artists)
         self.remove_artists()
 
         with ArtistsCollector() as artists_collector, \
@@ -85,6 +92,7 @@ class GraphicsCollection:
         self._handle_new_widgets(new_widgets=widgets_collector.objects_collected)
 
         self._handle_new_artists(previous_axeses_to_array_names_to_indices_and_artists,
+                                 previous_artists=previous_artists,
                                  new_artists=artists_collector.objects_collected,
                                  should_copy_artist_attributes=len(widgets_collector.objects_collected) == 0)
 
