@@ -8,7 +8,7 @@ from matplotlib.axes import Axes
 
 from pyquibbler.env import PLOT_WITH_PICKER_TRUE_BY_DEFAULT
 from pyquibbler.function_overriding.function_override import FuncOverride
-from pyquibbler.function_overriding.third_party_overriding.general_helpers import override_with_cls
+from pyquibbler.function_overriding.third_party_overriding.general_helpers import override_with_cls, override_class
 from pyquibbler.quib.graphics import artist_wrapper
 
 from pyquibbler.quib.graphics.event_handling import CanvasEventHandler
@@ -81,8 +81,10 @@ class AxesLimOverride(AxesSetOverride):
 
 
 graphics_override = functools.partial(override_with_cls, GraphicsOverride, is_graphics=True)
+
 axes_override = functools.partial(graphics_override, Axes)
-patches_override = functools.partial(graphics_override, matplotlib.patches)
+
+patches_override = functools.partial(override_class, matplotlib.patches, is_graphics=True)
 
 plot_override = functools.partial(override_with_cls, PlotOverride, Axes, is_graphics=True)
 

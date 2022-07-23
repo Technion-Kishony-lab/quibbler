@@ -2,7 +2,7 @@ import functools
 from typing import List, Optional, Callable, Type, Tuple
 from pyquibbler.function_definitions.types import RawArgument
 from pyquibbler.function_definitions.func_definition import create_func_definition, FuncDefinition
-from pyquibbler.function_overriding.function_override import FuncOverride
+from pyquibbler.function_overriding.function_override import FuncOverride, ClassOverride
 
 
 def override_with_cls(override_cls,
@@ -46,3 +46,10 @@ def file_loading_override(module_or_cls, func_name: str):
 
 
 override = functools.partial(override_with_cls, FuncOverride)
+
+
+def override_class(module_or_cls, cls_to_override: str, **kwargs):
+    return override_with_cls(ClassOverride,
+                             module_or_cls,
+                             cls_to_override,
+                             **kwargs)

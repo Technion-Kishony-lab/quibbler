@@ -57,6 +57,10 @@ class FuncOverride:
     def _modify_kwargs(kwargs):
         return
 
+    @staticmethod
+    def create_quib(*args, **kwargs):
+        return create_quib(*args, **kwargs)
+
     def _create_quib_supporting_func(self):
         """
         Create a function which *can* support quibs (and return a quib as a result) if any argument is a quib
@@ -81,7 +85,7 @@ class FuncOverride:
                 else:
                     func_definition_for_quib = func_definition
 
-                return create_quib(
+                return self.create_quib(
                     func=wrapped_func,
                     args=args,
                     kwargs=kwargs,
@@ -122,3 +126,51 @@ class FuncOverride:
         maybe_create_quib = self._create_quib_supporting_func()
         setattr(self.module_or_cls, self.func_name, maybe_create_quib)
         return maybe_create_quib
+
+
+@dataclass
+class ClassOverride(FuncOverride):
+    """
+    Overrides the __new__ method of a class to detect quib arguments at object creation.
+    """
+
+    @staticmethod
+    def create_quib(cls, *args, **kwargs):
+        return create_quib(*args, **kwargs)
+
+    @staticmethod
+    def _call_wrapped_func(func, args, kwargs) -> Any:
+        cls, *args = args
+
+        # I tried 3 possible options here:
+
+        # (1)
+        # obj = object.__new__(cls)
+
+        # (2)
+        try:
+            obj = func.__new__(cls)
+        except TypeError:
+            obj = func.__new__(cls, *args, **kwargs)
+
+        # (3)
+        # obj = super(func, cls).__new__(cls, *args, **kwargs)
+
+        obj.__init__(*args, **kwargs)
+        return obj
+
+    def _create_quib_supporting_class(self):
+
+        maybe_create_quib = self._create_quib_supporting_func()
+        overridden_cls = self._get_func_from_module_or_cls()
+
+        class MaybeCreateQuib(overridden_cls):
+            def __new__(cls, *args, **kwargs):
+                return maybe_create_quib(cls, *args, **kwargs)
+
+        return MaybeCreateQuib
+
+    def override(self) -> Callable:
+        maybe_create_quib_class = self._create_quib_supporting_class()
+        setattr(self.module_or_cls, self.func_name, maybe_create_quib_class)
+        return maybe_create_quib_class
