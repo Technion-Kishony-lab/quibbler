@@ -50,6 +50,6 @@ override = functools.partial(override_with_cls, FuncOverride)
 
 def override_class(module_or_cls, cls_to_override: str, **kwargs):
     return override_with_cls(ClassOverride,
-                             module_or_cls,
-                             cls_to_override,
+                             getattr(module_or_cls, cls_to_override),
+                             '__new__',
                              **kwargs)

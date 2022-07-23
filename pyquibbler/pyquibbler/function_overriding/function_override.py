@@ -57,10 +57,6 @@ class FuncOverride:
     def _modify_kwargs(kwargs):
         return
 
-    @staticmethod
-    def create_quib(*args, **kwargs):
-        return create_quib(*args, **kwargs)
-
     def _create_quib_supporting_func(self):
         """
         Create a function which *can* support quibs (and return a quib as a result) if any argument is a quib
@@ -85,7 +81,7 @@ class FuncOverride:
                 else:
                     func_definition_for_quib = func_definition
 
-                return self.create_quib(
+                return create_quib(
                     func=wrapped_func,
                     args=args,
                     kwargs=kwargs,
@@ -135,42 +131,32 @@ class ClassOverride(FuncOverride):
     """
 
     @staticmethod
-    def create_quib(cls, *args, **kwargs):
-        return create_quib(*args, **kwargs)
-
-    @staticmethod
     def _call_wrapped_func(func, args, kwargs) -> Any:
+
         cls, *args = args
+
+        # There is a problem here related to a known issue with replacing __new__:
+        # https://stackoverflow.com/questions/70799600/how-exactly-does-python-find-new-and-choose-its-arguments
 
         # I tried 3 possible options here:
 
-        # (1)
+        # (1) using the object __new__
         # obj = object.__new__(cls)
+        # obj.__init__(*args, **kwargs)
 
-        # (2)
-        try:
-            obj = func.__new__(cls)
-        except TypeError:
-            obj = func.__new__(cls, *args, **kwargs)
-
-        # (3)
+        # (2) calling super()
         # obj = super(func, cls).__new__(cls, *args, **kwargs)
+        # obj.__init__(*args, **kwargs)
 
+        # (3) calling __new__ directly, trying with and without argument.
+        try:
+            obj = func(cls, *args, **kwargs)
+        except TypeError:
+            obj = func(cls)
         obj.__init__(*args, **kwargs)
+
         return obj
 
-    def _create_quib_supporting_class(self):
-
-        maybe_create_quib = self._create_quib_supporting_func()
-        overridden_cls = self._get_func_from_module_or_cls()
-
-        class MaybeCreateQuib(overridden_cls):
-            def __new__(cls, *args, **kwargs):
-                return maybe_create_quib(cls, *args, **kwargs)
-
-        return MaybeCreateQuib
-
     def override(self) -> Callable:
-        maybe_create_quib_class = self._create_quib_supporting_class()
-        setattr(self.module_or_cls, self.func_name, maybe_create_quib_class)
-        return maybe_create_quib_class
+        self.module_or_cls.__quibbler_wrapped__ = self.original_func
+        return super().override()
