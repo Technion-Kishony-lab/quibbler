@@ -39,15 +39,12 @@ def _update_drawing_order_of_created_artists(
     setattr(axes, array_name, complete_artists_array)   # insert new artists at previous drawing order
 
 
-def update_new_artists_from_previous_artists(previous_axeses_to_array_names_to_indices_and_artists: Dict[
-                                                 Axes, Dict[str, Tuple[int, List[Artist]]]
-                                             ],
-                                             current_axeses_to_array_names_to_artists: Dict[
-                                                 Axes, ArrayNameToArtists
-                                             ],
-                                             should_copy_artist_attributes):
+def update_new_artists_from_previous_artists(
+        previous_axeses_to_array_names_to_indices_and_artists: Dict[Axes, Dict[str, Tuple[int, List[Artist]]]],
+        current_axeses_to_array_names_to_artists: Dict[Axes, ArrayNameToArtists],
+        should_copy_artist_attributes: bool):
     """
-    Updates the drawing layer and attributes of the new artists from old ones
+    Updates the drawing order and attributes of the new artists from old ones
     """
     for axes, current_array_names_to_artists in current_axeses_to_array_names_to_artists.items():
         for array_name, artists in current_array_names_to_artists.items():

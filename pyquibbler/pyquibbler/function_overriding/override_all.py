@@ -17,7 +17,39 @@ from pyquibbler.utils import ensure_only_run_once_globally
 @ensure_only_run_once_globally
 def initialize_quibbler():
     """
-    Override all relavent functions, both operators and third party, to support Quibs
+    Initialize Quibbler to allow functions to work on quibs
+
+    Override all relevant functions, both operators and third party, to support Quibs.
+    Need to run once *before* importing from NumPy or Matplotlib.
+
+    See Also
+    --------
+    quiby, is_quiby, q, list_quiby_funcs, Project
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from pyquibbler import initialize_quibbler, is_quiby
+    >>> is_quiby(np.sin)
+    False
+    >>> initialize_quibbler()
+    >>> is_quiby(np.sin)
+    True
+
+    ``initialize_quibbler`` must be called before importing *from* NumPy or Matplotlib.
+    It will not work on functions already imported from these packages:
+
+    >>> from numpy import sin
+    >>> from pyquibbler import initialize_quibbler, is_quiby
+    >>> is_quiby(sin)
+    False
+    >>> initialize_quibbler()
+    >>> is_quiby(sin)
+    False
+
+    Note
+    ----
+    Only need to run ``initialize_quibbler`` once. Additional calls are gracefully ignored.
     """
     create_jupyter_project_if_in_jupyter_lab()
 

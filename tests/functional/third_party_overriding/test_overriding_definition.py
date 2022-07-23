@@ -19,8 +19,8 @@ def override(mock_module, func_name_to_override, func_mock_on_module):
 
 
 @pytest.fixture(autouse=True)
-def add_defintion(mock_module, func_name_to_override, func_mock_on_module, overridden_func):
-    def _add_defintion():
+def add_definition(mock_module, func_name_to_override, func_mock_on_module, overridden_func):
+    def _add_definition():
         definition = FuncOverride(func_name=func_name_to_override, module_or_cls=mock_module)
         add_definition_for_function(
             func=definition.original_func,
@@ -29,7 +29,7 @@ def add_defintion(mock_module, func_name_to_override, func_mock_on_module, overr
             func_name=definition.func_name,
             quib_creating_func=overridden_func,
         )
-    return _add_defintion
+    return _add_definition
 
 
 def test_overriding_definition_does_not_call_func(overridden_func, func_mock_on_module, override, quib):
@@ -64,8 +64,8 @@ def test_overriding_definition_defaults_to_evaluate_now_when_lazy_flag_set_to_fa
         func_mock_on_module.assert_called_once()
 
 
-def test_overridden_function_in_list_quiby_funcs(overridden_func, func_mock_on_module, add_defintion):
-    add_defintion()
+def test_overridden_function_in_list_quiby_funcs(overridden_func, func_mock_on_module, add_definition):
+    add_definition()
     assert list_quiby_funcs()[-1] == 'MockModule: hello_my_good_good_friend'
 
 
