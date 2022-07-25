@@ -361,4 +361,5 @@ exception specifications to default behaviors. See
 
 **4. Transparency.** Inputs, as well as exceptions and overrides, are
 saved in simple human-readable files. See :doc:`Project-save-load` and the
-*Quibbler* Jupyter lab extension (no docs yet).
+*Quibbler* Jupyter lab extension. See :doc:`Jupyter-lab-ext`.
+

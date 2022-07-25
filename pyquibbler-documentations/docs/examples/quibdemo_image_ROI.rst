@@ -1,22 +1,22 @@
-Simple quib-app for image analysis
-----------------------------------
+Interactive image cutting and thresholding
+------------------------------------------
 
-**A simple demo of a quib-based GUI with
-matplotlib.widgets.RectangleSelector.**
+**A simple demo of a quib-based GUI.**
 
 -  **Features**
 
    -  Graphics quibs
    -  Graphics-driven assignments
    -  Inverse assignments
+   -  Matplotlib widgets with quibs
 
 -  **Try me**
 
-   -  Try dragging the Region of Interest (ROI) in the main image or
-      dragging/resizing the rectangle around the cut image in the second
-      figure.
-   -  The ROI and downstream analysis showing the RGB components of the
-      ROI will update.
+   -  Try dragging/resizing the Region of Interest (ROI) in the main
+      image.
+   -  Try dragging/resizing the rectangle around the cut image in the
+      second figure.
+   -  Try moving the thresholds.
 
 .. code:: python
 
@@ -77,21 +77,18 @@ matplotlib.widgets.RectangleSelector.**
     
     # Plot detected areas:
     ax_area = fig2.add_axes([0.6, 0.4, 0.3, 0.55])
-    ax_area.bar([1,2,3], fraction_above_threshold * 100, color=['r', 'g', 'b'])
-    ax_area.axis([0.5, 3.5, 0, 1.5])
-    ax_area.set_ylabel('Total detected area, %')
-    ax_area.set_xticks([1, 2, 3])
-    ax_area.set_xticklabels(['Red', 'Green', 'Blue']);
+    rgb = ['Red', 'Green', 'Blue']
+    ax_area.bar(rgb, fraction_above_threshold * 100, color=list('rgb'))
+    ax_area.axis([-0.5, 2.5, 0, 1.5])
+    ax_area.set_ylabel('Total detected area, %');
 
 .. code:: python
 
     # Threshold controls
     ax_thr = fig2.add_axes([0.6, 0.05, 0.3, 0.2])
-    ax_thr.axis([0.5, 3.5, 0, 255])
+    ax_thr.axis([-0.5, 2.5, 0, 255])
     ax_thr.xaxis.grid(True)
-    ax_thr.set_xticks([1, 2, 3])
-    ax_thr.set_xticklabels(['Red', 'Green', 'Blue'])
-    ax_thr.plot([1, 2, 3], thresholds_rgb, 'sk', markersize=16, markerfacecolor='k', picker=True);
+    ax_thr.plot(rgb, thresholds_rgb, 'sk', markersize=16, markerfacecolor='k');
 
 .. code:: python
 
