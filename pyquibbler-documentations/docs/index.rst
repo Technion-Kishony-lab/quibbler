@@ -39,6 +39,7 @@ User guide
    Random-functions
    Quib-naming
    Project-save-load
+   Jupyter-lab-ext
 
 
 Functions
