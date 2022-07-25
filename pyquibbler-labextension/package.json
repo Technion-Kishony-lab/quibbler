@@ -5,11 +5,12 @@
   "keywords": [
     "jupyter",
     "jupyterlab",
-    "jupyterlab-extension"
+    "jupyterlab-extension",
+    "quibbler"
   ],
-  "homepage": "https://github.com/github_username/pyquibbler-labextension",
+  "homepage": "https://github.com/Technion-Kishony-lab/quibbler",
   "bugs": {
-    "url": "https://github.com/github_username/pyquibbler-labextension/issues"
+    "url": "https://github.com/Technion-Kishony-lab/quibbler/issues"
   },
   "files": [
     "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
@@ -21,7 +22,7 @@
   "style": "style/index.css",
   "repository": {
     "type": "git",
-    "url": "https://github.com/github_username/pyquibbler-labextension.git"
+    "url": "https://github.com/Technion-Kishony-lab/quibbler.git"
   },
   "scripts": {
     "build": "jlpm build:lib && jlpm build:labextension:dev",
