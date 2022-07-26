@@ -1435,9 +1435,28 @@ class Quib:
 
         See Also
         --------
-        ancestors, parents, descendants
+        ancestors, parents, descendants, named_children, quib_network
         """
         return set(self.handler.children)
+
+    @property
+    def named_children(self) -> Set[Quib]:
+        """
+        set of Quib: The set of named quibs that are immediate dependants of the current quib.
+
+        Named quibs are quibs with assigned name (`assigned_name` is not `None`).
+
+        See Also
+        --------
+        children, ancestors, parents, descendants, quib_network
+        """
+        named_children = set()
+        for child in self.children:
+            if child.assigned_name is None:
+                named_children |= child.named_children
+            else:
+                named_children.add(child)
+        return named_children
 
     @property
     def descendants(self) -> Set[Quib]:
@@ -1448,7 +1467,7 @@ class Quib:
 
         See Also
         --------
-        ancestors, children, parents
+        ancestors, children, parents, quib_network
         """
         return self.handler.get_descendants()
 
@@ -1459,9 +1478,28 @@ class Quib:
 
         See Also
         --------
-        ancestors, children, descendants
+        ancestors, children, descendants, named_parents, quib_network
         """
         return set(self.handler.parents)
+
+    @property
+    def named_parents(self) -> Set[Quib]:
+        """
+        set of Quib: The set of immediate upstream named quibs that this quib depends on.
+
+        Named quibs are quibs with assigned name (`assigned_name` is not `None`).
+
+        See Also
+        --------
+        parents, ancestors, parents, descendants, quib_network
+        """
+        named_parents = set()
+        for parent in self.parents:
+            if parent.assigned_name is None:
+                named_parents |= parent.named_parents
+            else:
+                named_parents.add(parent)
+        return named_parents
 
     @cached_property
     def ancestors(self) -> Set[Quib]:
@@ -1472,7 +1510,7 @@ class Quib:
 
         See Also
         --------
-        parents, children, descendants
+        parents, children, descendants, quib_network
         """
         ancestors = set()
         for parent in self.parents:
