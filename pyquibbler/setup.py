@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 from pathlib import Path
 
 setup_directory = Path(__file__).parent
-long_description = (setup_directory / ".." / "README.md").read_text()
+long_description = (setup_directory / "README.md").read_text()
 
 setup(
     name="pyquibbler",
