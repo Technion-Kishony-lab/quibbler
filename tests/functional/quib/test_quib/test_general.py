@@ -88,3 +88,23 @@ def test_quib_ancestors(create_quib_with_return_value):
 
     assert me.ancestors == {great_grandparent, grandparent, parent}
 
+
+def test_quib_named_parents(create_quib_with_return_value):
+    grandma = create_quib(func=mock.Mock(), assigned_name='grandma')
+    mom = create_quib(func=mock.Mock(), args=(grandma,), assigned_name='mom')
+    grandpa = create_quib(func=mock.Mock(), assigned_name='grandpa')
+    dad = create_quib(func=mock.Mock(), args=(grandpa,), assigned_name=None)  # unnamed
+    me = create_quib(func=mock.Mock(), args=(mom, dad))
+
+    assert me.named_parents == {mom, grandpa}
+
+
+def test_quib_named_children(create_quib_with_return_value):
+    me = create_quib(func=mock.Mock())
+    son = create_quib(func=mock.Mock(), args=(me,), assigned_name=None)  # unnamed
+    daughter = create_quib(func=mock.Mock(), args=(me,), assigned_name='daughter')
+    grand_son = create_quib(func=mock.Mock(), args=(son,), assigned_name='grandson')
+    grand_daughter = create_quib(func=mock.Mock(), args=(daughter,), assigned_name='grandpa')
+
+    assert me.named_children == {daughter, grand_son}
+
