@@ -308,6 +308,10 @@ class QuibHandler:
     """
 
     @property
+    def has_overrider(self) -> bool:
+        return self._overrider is not None
+
+    @property
     def overrider(self):
         if self._overrider is None:
             self._overrider = Overrider()
@@ -1388,20 +1392,21 @@ class Quib:
     overrides
     """
 
-    def get_override_list(self) -> Overrider:
+    def get_override_list(self) -> Optional[Overrider]:
         """
         Return an Overrider object representing a list of overrides performed on the quib.
 
         Returns
         -------
-        Overrider
+        Overrider or None
             an object holding a list of all the assignments to the quib.
+            `None` if quib is not overridden
 
         See Also
         --------
         assign, assigned_quibs, allow_overriding
         """
-        return self.handler.overrider
+        return self.handler.overrider if self.handler.has_overrider else None
 
     def get_override_mask(self):
         """
