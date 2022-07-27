@@ -30,7 +30,7 @@ class ElementwiseInverter(Inverter):
             arg_and_ancestors = {arg}
             from pyquibbler.quib import Quib
             if isinstance(arg, Quib):
-                arg_and_ancestors |= arg.ancestors
+                arg_and_ancestors |= arg.get_ancestors()
 
             if all_ancestors & arg_and_ancestors:
                 raise CommonAncestorBetweenArgumentsException(self, None)

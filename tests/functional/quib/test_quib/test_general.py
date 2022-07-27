@@ -77,7 +77,7 @@ def test_parents(create_quib_with_return_value):
     parent2 = create_quib(func=mock.Mock(), args=(grandparent,))
     me = create_quib(func=mock.Mock(), args=(0, parent1, 2), kwargs=dict(a=parent2, b=3))
 
-    assert me.parents == {parent1, parent2}
+    assert me.get_parents() == {parent1, parent2}
 
 
 def test_quib_ancestors(create_quib_with_return_value):
@@ -86,7 +86,7 @@ def test_quib_ancestors(create_quib_with_return_value):
     parent = create_quib(func=mock.Mock(), args=(grandparent,))
     me = create_quib(func=mock.Mock(), args=(parent,))
 
-    assert me.ancestors == {great_grandparent, grandparent, parent}
+    assert me.get_ancestors() == {great_grandparent, grandparent, parent}
 
 
 def test_quib_named_parents(create_quib_with_return_value):
@@ -96,7 +96,7 @@ def test_quib_named_parents(create_quib_with_return_value):
     dad = create_quib(func=mock.Mock(), args=(grandpa,), assigned_name=None)  # unnamed
     me = create_quib(func=mock.Mock(), args=(mom, dad))
 
-    assert me.named_parents == {mom, grandpa}
+    assert me.get_parents(True) == {mom, grandpa}
 
 
 def test_quib_named_children(create_quib_with_return_value):
@@ -106,5 +106,5 @@ def test_quib_named_children(create_quib_with_return_value):
     grand_son = create_quib(func=mock.Mock(), args=(son,), assigned_name='grandson')
     grand_daughter = create_quib(func=mock.Mock(), args=(daughter,), assigned_name='grandpa')
 
-    assert me.named_children == {daughter, grand_son}
+    assert me.get_children(True) == {daughter, grand_son}
 

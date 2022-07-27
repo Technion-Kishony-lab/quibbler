@@ -62,8 +62,7 @@ def quib_network(quib: Quib,
 
     See Also
     --------
-    Direction, Quib.parents, Quib.children, Quib.named_parents, Quib.named_children,
-    Quib.ancestors, Quib.descendants
+    Direction, Quib.get_parents, Quib.get_children, Quib.get_ancestors, Quib.get_descendants
     """
     direction = get_enum_by_str(Direction, direction, allow_none=True)
     direction = direction or Direction.BOTH
