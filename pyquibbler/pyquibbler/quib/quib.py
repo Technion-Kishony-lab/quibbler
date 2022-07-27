@@ -1465,7 +1465,7 @@ class Quib:
                 named_children.add(child)
         return named_children
 
-    def get_descendants(self, limit_to_named_quibs: bool = False) -> Set[Quib]:
+    def get_descendants(self, limit_to_named_quibs: bool = False, depth: Optional[int] = None) -> Set[Quib]:
         """
         Search for all quibs downstream of current quib.
 
@@ -1476,6 +1476,10 @@ class Quib:
         limit_to_named_quibs : True or False (default)
             indicates whether to limit to named quibs or also include unnamed quibs.
             Unnamed quibs are quibs whose `assigned_name` is `None`, typically representing intermediate calculations.
+
+        depth : int or None (default)
+            Depth of search, `0` for returns empty set, `1` returns the children, etc.
+            `None` for infinite.
 
         See Also
         --------
@@ -1493,9 +1497,11 @@ class Quib:
         {b = a + 1, c = (a + 2) * b, d = b * (c + 1)}
         """
         descendants = set()
-        for child in self.get_children(limit_to_named_quibs):
-            descendants.add(child)
-            descendants |= child.get_descendants(limit_to_named_quibs)
+        if depth is None or depth > 0:
+            for child in self.get_children(limit_to_named_quibs):
+                descendants.add(child)
+                descendants |= child.get_descendants(limit_to_named_quibs,
+                                                     depth if depth is None else depth - 1)
         return descendants
 
     def get_parents(self, limit_to_named_quibs: bool = False) -> Set[Quib]:
@@ -1537,7 +1543,7 @@ class Quib:
                 named_parents.add(parent)
         return named_parents
 
-    def get_ancestors(self, limit_to_named_quibs: bool = False) -> Set[Quib]:
+    def get_ancestors(self, limit_to_named_quibs: bool = False, depth: Optional[int] = None) -> Set[Quib]:
         """
         Search for all upstream quibs that this quib depends on.
 
@@ -1548,6 +1554,10 @@ class Quib:
         limit_to_named_quibs : True or False (default)
             indicates whether to limit to named quibs or also include unnamed quibs.
             Unnamed quibs are quibs whose `assigned_name` is `None`, typically representing intermediate calculations.
+
+        depth : int or None (default)
+            Depth of search, `0` for returns empty set, `1` returns the parents, etc.
+            `None` for infinite.
 
         See Also
         --------
@@ -1564,9 +1574,11 @@ class Quib:
         {a = iquib(1), b = iquib(3)}
         """
         ancestors = set()
-        for parent in self.get_parents(limit_to_named_quibs):
-            ancestors.add(parent)
-            ancestors |= parent.get_ancestors(limit_to_named_quibs)
+        if depth is None or depth > 0:
+            for parent in self.get_parents(limit_to_named_quibs):
+                ancestors.add(parent)
+                ancestors |= parent.get_ancestors(limit_to_named_quibs,
+                                                  depth if depth is None else depth - 1)
         return ancestors
     """
     File saving

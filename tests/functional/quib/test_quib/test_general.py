@@ -89,6 +89,14 @@ def test_quib_ancestors(create_quib_with_return_value):
     assert me.get_ancestors() == {great_grandparent, grandparent, parent}
 
 
+def test_quib_ancestors_with_depth(create_quib_with_return_value):
+    great_grandparent = create_quib_with_return_value(1)
+    grandparent = create_quib(func=mock.Mock(), args=(great_grandparent,))
+    parent = create_quib(func=mock.Mock(), args=(grandparent,))
+    me = create_quib(func=mock.Mock(), args=(parent,))
+    assert me.get_ancestors(depth=2) == {grandparent, parent}
+
+
 def test_quib_named_parents(create_quib_with_return_value):
     grandma = create_quib(func=mock.Mock(), assigned_name='grandma')
     mom = create_quib(func=mock.Mock(), args=(grandma,), assigned_name='mom')
