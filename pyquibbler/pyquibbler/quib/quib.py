@@ -159,7 +159,7 @@ class QuibHandler:
     def get_descendants(self):
         children = set(self.children)  # copy to prevent set changing during operation
         for child in self.children:
-            children |= child.descendants
+            children |= child.get_descendants()
         return children
 
     @property
@@ -1428,96 +1428,146 @@ class Quib:
     relationships
     """
 
-    @property
-    def children(self) -> Set[Quib]:
+    def get_children(self, limit_to_named_quibs:bool = False) -> Set[Quib]:
         """
-        set of Quib: The set of quibs that are immediate dependants of the current quib.
+        Return the set of quibs that are immediate dependants of the current quib.
+
+        Parameters
+        ----------
+        limit_to_named_quibs : True or False (default)
+            indicates whether to limit to named quibs or also include unnamed quibs.
+            Unnamed quibs are quibs whose `assigned_name` is `None`, typically representing intermediate calculations.
 
         See Also
         --------
-        ancestors, parents, descendants, named_children, quib_network
-        """
-        return set(self.handler.children)
+        get_ancestors, get_parents, get_descendants, quib_network
 
-    @property
-    def named_children(self) -> Set[Quib]:
-        """
-        set of Quib: The set of named quibs that are immediate dependants of the current quib.
-
-        Named quibs are quibs with assigned name (`assigned_name` is not `None`).
-
-        See Also
+        Examples
         --------
-        children, ancestors, parents, descendants, quib_network
+        >>> a = iquib(1)
+        >>> b = a + 1
+        >>> c = (a + 2) * b
+        >>> a.get_children()
+        {b = a + 1, a + 2}
+        >>> a.get_children(True)
+        {b = a + 1, c = (a + 2) * b}
         """
+
+        children = set(self.handler.children)
+        if not limit_to_named_quibs:
+            return children
+
         named_children = set()
-        for child in self.children:
+        for child in children:
             if child.assigned_name is None:
-                named_children |= child.named_children
+                named_children |= child.get_children(limit_to_named_quibs)
             else:
                 named_children.add(child)
         return named_children
 
-    @property
-    def descendants(self) -> Set[Quib]:
+    def get_descendants(self, limit_to_named_quibs: bool = False) -> Set[Quib]:
         """
-        set of Quib: All quibs downstream of current quib.
+        Search for all quibs downstream of current quib.
 
         Recursively find all the quibs that depend on the current quib.
 
-        See Also
-        --------
-        ancestors, children, parents, quib_network
-        """
-        return self.handler.get_descendants()
-
-    @property
-    def parents(self) -> Set[Quib]:
-        """
-        set of Quib: The set of immediate upstream quibs that this quib depends on.
+        Parameters
+        ----------
+        limit_to_named_quibs : True or False (default)
+            indicates whether to limit to named quibs or also include unnamed quibs.
+            Unnamed quibs are quibs whose `assigned_name` is `None`, typically representing intermediate calculations.
 
         See Also
         --------
-        ancestors, children, descendants, named_parents, quib_network
-        """
-        return set(self.handler.parents)
+        get_ancestors, children, parents, quib_network
 
-    @property
-    def named_parents(self) -> Set[Quib]:
+        Examples
+        --------
+        >>> a = iquib(1)
+        >>> b = a + 1
+        >>> c = (a + 2) * b
+        >>> d = b * (c + 1)
+        >>> a.get_descendants()
+        {b = a + 1, a + 2, c = (a + 2) * b, c + 1, d = b * (c + 1)}
+        >>> a.get_descendants(True)
+        {b = a + 1, c = (a + 2) * b, d = b * (c + 1)}
         """
-        set of Quib: The set of immediate upstream named quibs that this quib depends on.
+        descendants = set()
+        for child in self.get_children(limit_to_named_quibs):
+            descendants.add(child)
+            descendants |= child.get_descendants(limit_to_named_quibs)
+        return descendants
 
-        Named quibs are quibs with assigned name (`assigned_name` is not `None`).
+    def get_parents(self, limit_to_named_quibs: bool = False) -> Set[Quib]:
+        """
+        Return the set of quibs immediate upstream quibs to the current quib.
+
+        The parents are the immediate quibs that this quib depends on, namely all the quibs in the args and kwargs
+        of the quib function call.
+
+        Parameters
+        ----------
+        limit_to_named_quibs : True or False (default)
+            indicates whether to limit to named quibs or also include unnamed quibs.
+            Unnamed quibs are quibs whose `assigned_name` is `None`, typically representing intermediate calculations.
 
         See Also
         --------
-        parents, ancestors, parents, descendants, quib_network
+        args, kwargs, get_ancestors, children, descendants, named_parents, quib_network
+
+        Examples
+        --------
+        >>> a = iquib(1)
+        >>> b = iquib(3)
+        >>> c = (a + 2) * b
+        >>> c.get_parents()
+        {a + 2, b = iquib(3)}
+        >>> c.get_parents(True)
+        {a = iquib(1), b = iquib(3)}
         """
+        parents = set(self.handler.parents)
+        if not limit_to_named_quibs:
+            return parents
+
         named_parents = set()
-        for parent in self.parents:
+        for parent in parents:
             if parent.assigned_name is None:
-                named_parents |= parent.named_parents
+                named_parents |= parent.get_parents(limit_to_named_quibs)
             else:
                 named_parents.add(parent)
         return named_parents
 
-    @cached_property
-    def ancestors(self) -> Set[Quib]:
+    def get_ancestors(self, limit_to_named_quibs: bool = False) -> Set[Quib]:
         """
-        set of Quib: All upstream quibs that this quib depends on.
+        Search for all upstream quibs that this quib depends on.
 
         Recursively scan upstream to find all the quibs that this quib depends on.
 
+        Parameters
+        ----------
+        limit_to_named_quibs : True or False (default)
+            indicates whether to limit to named quibs or also include unnamed quibs.
+            Unnamed quibs are quibs whose `assigned_name` is `None`, typically representing intermediate calculations.
+
         See Also
         --------
-        parents, children, descendants, quib_network
+        get_parents, get_children, get_descendants, quib_network
+
+        Examples
+        --------
+        >>> a = iquib(1)
+        >>> b = iquib(3)
+        >>> c = (a + 2) * b
+        >>> c.get_ancestors()
+        {a = iquib(1), a + 2, b = iquib(3)}
+        >>> c.get_ancestors(True)
+        {a = iquib(1), b = iquib(3)}
         """
         ancestors = set()
-        for parent in self.parents:
+        for parent in self.get_parents(limit_to_named_quibs):
             ancestors.add(parent)
-            ancestors |= parent.ancestors
+            ancestors |= parent.get_ancestors(limit_to_named_quibs)
         return ancestors
-
     """
     File saving
     """
