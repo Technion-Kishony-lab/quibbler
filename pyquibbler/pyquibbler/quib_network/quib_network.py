@@ -28,7 +28,7 @@ NETWORK_STYLE = \
             'css': {
                 'content': 'data(name)',
                 'text-valign': 'top',
-                'color': 'black',
+                'background-color': '#00D7FF',
                 'font-size': 12,
             }
         },
@@ -47,21 +47,31 @@ NETWORK_STYLE = \
         {
             'selector': 'node.iquib',
             'css': {
-                'background-color': '#7A4069'
+                'shape': "diamond",
             }
         },
 
         {
             'selector': 'node.fquib',
             'css': {
-                'background-color': '#CA4E79'
+            }
+        },
+
+        {
+            'selector': 'node.origin',
+            'css': {
+                'border-color': '#5800FF',
+                'border-width': 6,
+                'font-size': 16,
             }
         },
     ]
 
 
 def get_quib_class(quib: Quib) -> str:
-    return 'iquib' if quib.is_iquib else 'fquib'
+    classes = ''
+    classes += 'iquib' if quib.is_iquib else 'fquib'
+    return classes
 
 
 class QuibNode(ipycytoscape.Node):
@@ -69,7 +79,7 @@ class QuibNode(ipycytoscape.Node):
         super().__init__()
         self.data['id'] = id
         self.data['name'] = name
-        self.classes = classes
+        self.classes += classes
 
     @classmethod
     def from_quib(cls, quib: Quib):
@@ -151,9 +161,15 @@ class QuibNetwork:
             self._links = self.get_connecting_links()
         return self._links
 
+    def create_quib_node(self, quib):
+        node = QuibNode.from_quib(quib)
+        if quib is self.origin_quib:
+            node.classes += ' origin'
+        return node
+
     def get_network_widget(self) -> ipycytoscape.CytoscapeWidget:
         network_widget = ipycytoscape.CytoscapeWidget()
-        network_widget.graph.add_nodes([QuibNode.from_quib(quib) for quib in self.quibs])
+        network_widget.graph.add_nodes([self.create_quib_node(quib) for quib in self.quibs])
         network_widget.graph.add_edges([QuibEdge(source, target) for source, target in self.links], directed=True)
         network_widget.set_style(NETWORK_STYLE)
         return network_widget
