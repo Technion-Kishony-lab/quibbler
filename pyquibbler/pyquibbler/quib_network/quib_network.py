@@ -52,12 +52,6 @@ NETWORK_STYLE = \
         },
 
         {
-            'selector': 'node.fquib',
-            'css': {
-            }
-        },
-
-        {
             'selector': 'node.origin',
             'css': {
                 'border-color': '#5800FF',
@@ -65,12 +59,23 @@ NETWORK_STYLE = \
                 'font-size': 16,
             }
         },
+
+        {
+            'selector': 'node.graphics',
+            'css': {
+                'shape': "diamond",
+            }
+        },
+
     ]
 
 
 def get_quib_class(quib: Quib) -> str:
     classes = ''
-    classes += 'iquib' if quib.is_iquib else 'fquib'
+    if quib.is_iquib:
+        classes += ' iquib'
+    if quib.is_graphics:
+        classes += ' graphics'
     return classes
 
 
