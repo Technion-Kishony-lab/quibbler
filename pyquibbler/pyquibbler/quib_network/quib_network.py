@@ -27,9 +27,11 @@ NETWORK_STYLE = \
             'selector': 'node',
             'css': {
                 'content': 'data(name)',
-                'text-valign': 'top',
+                'text-valign': 'center',
+                'text-halign': 'right',
                 'background-color': '#00D7FF',
-                'font-size': 12,
+                'border-color': 'black',
+                'border-width': 0.5,
             }
         },
 
@@ -48,14 +50,15 @@ NETWORK_STYLE = \
             'selector': 'node.iquib',
             'css': {
                 'shape': "diamond",
+                'text-valign': 'top',
+                'text-halign': 'center',
             }
         },
 
         {
             'selector': 'node.origin',
             'css': {
-                'border-color': '#5800FF',
-                'border-width': 6,
+                'background-color': '#D61C4E',
                 'font-size': 16,
             }
         },
@@ -63,12 +66,27 @@ NETWORK_STYLE = \
         {
             'selector': 'node.graphics',
             'css': {
-                'shape': "diamond",
+                'shape': "hexagon",
+            }
+        },
+
+        {
+            'selector': 'node.overridden',
+            'css': {
+                'border-color': '#5800FF',
+                'border-width': 6,
+                'border-style': 'dashed',
             }
         },
 
     ]
 
+NETWORK_LAYOUT = {
+    'name': 'dagre',  # can try: dagre elk
+    'spacingFactor': 1.2,
+    'nodeSpacing': 2,
+    'edgeLengthVal': 0,
+}
 
 def get_quib_class(quib: Quib) -> str:
     classes = ''
@@ -76,6 +94,8 @@ def get_quib_class(quib: Quib) -> str:
         classes += ' iquib'
     if quib.is_graphics:
         classes += ' graphics'
+    if quib.get_override_list() is not None and len(quib.get_override_list()) > 0:
+        classes += ' overridden'
     return classes
 
 
@@ -177,6 +197,7 @@ class QuibNetwork:
         network_widget.graph.add_nodes([self.create_quib_node(quib) for quib in self.quibs])
         network_widget.graph.add_edges([QuibEdge(source, target) for source, target in self.links], directed=True)
         network_widget.set_style(NETWORK_STYLE)
+        network_widget.set_layout(**NETWORK_LAYOUT)
         return network_widget
 
 
