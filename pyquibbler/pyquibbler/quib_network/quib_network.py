@@ -12,11 +12,24 @@ infinity = float('inf')
 NETWORK_STYLE = \
     [
         {
+            'selector': 'edge',
+            'style': {'width': 3, 'line-color': '#909090'}
+        },
+
+        {
+            'selector': 'edge.directed',
+            'style': {'curve-style': 'bezier',
+                      'target-arrow-shape': 'triangle',
+                      'target-arrow-color': '#909090'}
+        },
+
+        {
             'selector': 'node',
             'css': {
                 'content': 'data(name)',
-                'text-valign': 'center',
+                'text-valign': 'top',
                 'color': 'black',
+                'font-size': 12,
             }
         },
 
@@ -27,21 +40,21 @@ NETWORK_STYLE = \
                 'line-color': 'black',
                 'target-arrow-color': 'black',
                 'source-arrow-color': 'black',
-                'text-outline-color': 'black'
+                'text-outline-color': 'black',
             }
         },
 
         {
             'selector': 'node.iquib',
             'css': {
-                'background-color': 'red'
+                'background-color': '#7A4069'
             }
         },
 
         {
             'selector': 'node.fquib',
             'css': {
-                'background-color': 'green'
+                'background-color': '#CA4E79'
             }
         },
     ]
@@ -138,7 +151,7 @@ class QuibNetwork:
             self._links = self.get_connecting_links()
         return self._links
 
-    def get_network_widget(self):
+    def get_network_widget(self) -> ipycytoscape.CytoscapeWidget:
         network_widget = ipycytoscape.CytoscapeWidget()
         network_widget.graph.add_nodes([QuibNode.from_quib(quib) for quib in self.quibs])
         network_widget.graph.add_edges([QuibEdge(source, target) for source, target in self.links], directed=True)
@@ -146,14 +159,14 @@ class QuibNetwork:
         return network_widget
 
 
-# @validate_user_input(quib=Quib,
-#                      direction=(type(None), str, Direction),
-#                      depth=(type(None), int),
-#                      limit_to_named_quibs=bool)
+@validate_user_input(origin_quib=Quib,
+                     direction=(type(None), str, Direction),
+                     depth=(type(None), int),
+                     limit_to_named_quibs=bool)
 def quib_network(origin_quib: Quib,
                  direction: Union[None, str, Direction] = None,
                  depth: int = None,
-                 limit_to_named_quibs: bool = True) -> Set[Quib]:
+                 limit_to_named_quibs: bool = True) -> ipycytoscape.CytoscapeWidget:
     """
     Draw a network of quibs
 
