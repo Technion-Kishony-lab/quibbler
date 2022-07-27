@@ -1051,9 +1051,10 @@ class Quib:
 
         Setting ``assigned_quibs=set()`` prevents assignments.
 
-        To allow assignment to self, the focal quib or str 'self' can be used within the set of quibs.
+        To allow assignment to self, the focal quib or `'self'` can be used within the set of quibs.
+        When self is included the ``allow_overriding`` property is automatically set to ``True``.
 
-        Specifying a single quib, or 'self', is interpreted as a set containing this single quib.
+        Specifying a single quib, or `'self'`, is interpreted as a set containing this single quib.
 
         See Also
         --------
@@ -1078,6 +1079,9 @@ class Quib:
                     var_name='assigned_quibs',
                     message='a set of quibs.',
                 ) from None
+
+            if self in quibs:
+                self.allow_overriding = True
 
         self.handler.assigned_quibs = quibs
 
