@@ -1,93 +1,180 @@
-from typing import Union
-
+import dataclasses
 import ipycytoscape
-import ipywidgets as widgets
-import networkx as nx
 
-from .types import Direction, QuibNode
+from typing import Union, Set, List, Tuple, Optional
+from .types import Direction
 from .. import Quib
 from ..utilities.input_validation_utils import validate_user_input, get_enum_by_str
 
-
-NETWORK_STYLE = [
-    {
-        'selector': 'node.iquib',
-        'css': {
-            'background-color': 'red'
-        }
-    },
-    {
-        'selector': 'node.fquib',
-        'css': {
-            'background-color': 'green'
-        }
-    }]
+infinity = float('inf')
 
 
-def quib_class(quib: Quib) -> str:
-    if quib.is_iquib:
-        return 'iquib'
-    else:
-        return 'fquib'
+NETWORK_STYLE = \
+    [
+        {
+            'selector': 'node',
+            'css': {
+                'content': 'data(name)',
+                'text-valign': 'center',
+                'color': 'black',
+            }
+        },
+
+        {
+            'selector': ':selected',
+            'css': {
+                'background-color': 'black',
+                'line-color': 'black',
+                'target-arrow-color': 'black',
+                'source-arrow-color': 'black',
+                'text-outline-color': 'black'
+            }
+        },
+
+        {
+            'selector': 'node.iquib',
+            'css': {
+                'background-color': 'red'
+            }
+        },
+
+        {
+            'selector': 'node.fquib',
+            'css': {
+                'background-color': 'green'
+            }
+        },
+    ]
 
 
-def quib_node(quib: Quib) -> QuibNode:
-    return QuibNode(quib.name, classes=quib_class(quib))
+def get_quib_class(quib: Quib) -> str:
+    return 'iquib' if quib.is_iquib else 'fquib'
+
+
+class QuibNode(ipycytoscape.Node):
+    def __init__(self, id: int, name: str, classes: str = ""):
+        super().__init__()
+        self.data['id'] = id
+        self.data['name'] = name
+        self.classes = classes
+
+    @classmethod
+    def from_quib(cls, quib: Quib):
+        return cls(id(quib), quib.pretty_repr, classes=get_quib_class(quib))
+
+
+class QuibEdge(ipycytoscape.Edge):
+    def __init__(self, source, target):
+        super().__init__()
+        self.data['source'] = id(source)
+        self.data['target'] = id(target)
+        self.classes += " directed "
+
+@dataclasses.dataclass
+class QuibNetwork:
+    origin_quib: Quib
+    direction: Union[str, Direction] = Direction.BOTH
+    depth: int = infinity
+    limit_to_named_quibs: bool = True
+    _quibs: Optional[Set[Quib]] = None
+    _links: Optional[Set[Tuple[Quib, Quib]]] = None
+
+    def __post_init__(self):
+        self.depth = self.depth or infinity
+        self.direction = get_enum_by_str(Direction, self.direction, allow_none=True) or Direction.BOTH
+
+    @staticmethod
+    def _get_neighbour_quibs(quib: Quib, direction: Direction, limit_to_named_quibs: bool) -> Set[Quib]:
+        quibs = set()
+        if direction is not Direction.UPSTREAM:
+            quibs |= quib.get_children(limit_to_named_quibs=limit_to_named_quibs)
+        if direction is not Direction.DOWNSTREAM:
+            quibs |= quib.get_parents(limit_to_named_quibs=limit_to_named_quibs)
+        return quibs
+
+    def _get_quibs_connected_up_down_or_all(self, direction: Direction) -> Set[Quib]:
+
+        assert direction is not Direction.BOTH
+        quibs = set()
+
+        def _get_quibs_recursively(quib: Quib, depth: int):
+            nonlocal quibs
+            if quib in quibs:
+                return
+            quibs.add(quib)
+            if depth > 0:
+                for neighbour_quib in self._get_neighbour_quibs(quib, direction, self.limit_to_named_quibs):
+                    _get_quibs_recursively(neighbour_quib, depth - 1)
+        _get_quibs_recursively(self.origin_quib, self.depth)
+        return quibs
+
+    def get_quibs_connected_to_origin_quib(self) -> Set[Quib]:
+        if self.direction is Direction.BOTH:
+            quibs = self._get_quibs_connected_up_down_or_all(Direction.UPSTREAM) \
+                    | self._get_quibs_connected_up_down_or_all(Direction.DOWNSTREAM)
+        else:
+            quibs = self._get_quibs_connected_up_down_or_all(self.direction)
+
+        return quibs
+
+    def get_connecting_links(self) -> Set[Tuple[Quib,Quib]]:
+        quibs = self.quibs
+        links = set()
+        for i, quib in enumerate(quibs):
+            children = self._get_neighbour_quibs(quib, Direction.DOWNSTREAM, self.limit_to_named_quibs)
+            children &= quibs
+            links |= {(quib, child) for child in children}
+        return links
+
+    @property
+    def quibs(self) -> Set[Quib]:
+        if self._quibs is None:
+            self._quibs = self.get_quibs_connected_to_origin_quib()
+        return self._quibs
+
+    @property
+    def links(self) -> Set[Tuple[Quib,Quib]]:
+        if self._links is None:
+            self._links = self.get_connecting_links()
+        return self._links
+
+    def get_network_widget(self):
+        network_widget = ipycytoscape.CytoscapeWidget()
+        network_widget.graph.add_nodes([QuibNode.from_quib(quib) for quib in self.quibs])
+        network_widget.graph.add_edges([QuibEdge(source, target) for source, target in self.links], directed=True)
+        network_widget.set_style(NETWORK_STYLE)
+        return network_widget
 
 
 # @validate_user_input(quib=Quib,
 #                      direction=(type(None), str, Direction),
 #                      depth=(type(None), int),
-#                      include_unnamed_quibs=bool)
-def quib_network(quib: Quib,
+#                      limit_to_named_quibs=bool)
+def quib_network(origin_quib: Quib,
                  direction: Union[None, str, Direction] = None,
                  depth: int = None,
-                 include_unnamed_quibs: bool = False):
+                 limit_to_named_quibs: bool = True) -> Set[Quib]:
     """
     Draw a network of quibs
 
     Parameters
     ----------
-    quib : Quib
+    origin_quib : Quib
         The focal quib around which to extend the network
 
     direction : Direction or str
-        Direction of network extension, 'upstream', 'downstream', 'both' (default)
+        Direction of network extension, 'upstream', 'downstream', 'both', 'all' (default)
 
     depth : int or None
         The number of steps of network extension. `None` for infinity (default).
 
-    include_unnamed_quibs : True, False (default)
-        Whether to include also quibs with no name (whose `assigned_named` is `None`).
+    limit_to_named_quibs : True (default) or False
+        indicates whether to limit to named quibs or also include unnamed quibs.
+        Unnamed quibs are quibs whose `assigned_name` is `None`, typically representing intermediate calculations.
 
     See Also
     --------
     Direction, Quib.get_parents, Quib.get_children, Quib.get_ancestors, Quib.get_descendants
     """
-    direction = get_enum_by_str(Direction, direction, allow_none=True)
-    direction = direction or Direction.BOTH
 
-    graph = nx.Graph()
-    graph.add_node(quib_node(quib))
-    if direction is Direction.UPSTREAM or direction is Direction.BOTH:
-        if include_unnamed_quibs:
-            parents = quib.parents
-        else:
-            parents = quib.named_parents
-        for parent in parents:
-            graph.add_node(quib_node(parent))
-            graph.add_edge(quib_node(parent), quib_node(quib))
-
-    if direction is Direction.DOWNSTREAM or direction is Direction.BOTH:
-        if include_unnamed_quibs:
-            children = quib.children
-        else:
-            children = quib.named_children
-        for child in children:
-            graph.add_node(quib_node(child))
-            graph.add_edge(quib_node(quib), quib_node(child))
-
-    network_widget = ipycytoscape.CytoscapeWidget()
-    network_widget.graph.add_graph_from_networkx(graph, directed=True)
-    # network_widget.set_style(NETWORK_STYLE)
-    return network_widget
+    return QuibNetwork(origin_quib, direction, depth, limit_to_named_quibs).get_network_widget()

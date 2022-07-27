@@ -1,5 +1,3 @@
-import ipycytoscape
-
 from pyquibbler.utils import StrEnum
 
 
@@ -21,9 +19,6 @@ class Direction(StrEnum):
     BOTH = 'both'
     "``'both'``;  towards upstream and downstream"
 
+    ALL = 'all'
+    "``'all'``;  fully explore the network from the current quib"
 
-class QuibNode(ipycytoscape.Node):
-    def __init__(self, name, classes=''):
-        super().__init__()
-        self.data['id'] = name
-        self.classes = classes
