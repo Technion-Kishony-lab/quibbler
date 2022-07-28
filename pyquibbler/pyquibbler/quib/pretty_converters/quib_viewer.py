@@ -17,7 +17,7 @@ PROPERTY_LIST = (
 
 def _repr(value):
     """
-    repr for Enum, str, Path
+    repr for Enum, str, Path, function
     """
     if isinstance(value, enum.Enum):
         return value.name
@@ -25,7 +25,22 @@ def _repr(value):
         return f'"{value}"'
     if isinstance(value, pathlib.Path):
         return str(value)
+    if callable(value):
+        # replace '<function cos at 0x1194d8af0>' -> '<function cos>'
+        value = str(value)
+        if len(value) > 16 and value[-16:-12] == ' at ' and value[-1] == '>':
+            value = value[:-16] + '>'
     return value
+
+
+def replace_lt_gt(text: str):
+    text = text.replace('<', '&lt;')
+    text = text.replace('>', '&gt;')
+    return text
+
+
+def html_element(item, tag: str, props: str = '') -> str:
+    return f'<{tag} {props}>{item}</{tag}>'
 
 
 @dataclass
@@ -71,15 +86,45 @@ class QuibViewer:
         headers_to_prop_to_values = self.get_headers_to_props_to_values()
         for header, props_to_values in headers_to_prop_to_values.items():
             repr_ += f'{"--- " + header + " ---":>20}\n'
+            actual_value_str = ''
             for prop, values in props_to_values.items():
                 if len(values) == 1:
                     value, = values
-                    repr_ += f'{prop:>20}: {_repr(value)}'
                 else:
                     value, actual_value = values
-                    repr_ += f'{prop:>20}: {_repr(value)}'
                     if value is None:
-                        repr_ += f' -> {_repr(actual_value)}'
-                repr_ += '\n'
+                        actual_value_str = f' -> {_repr(actual_value)}'
+                value_str = f'{prop:>20}: {_repr(value)}'
+                repr_ += value_str + actual_value_str + '\n'
             repr_ += '\n'
+        return repr_
+
+    def _repr_html_(self):
+        repr_ = ''
+        repr_ += '<!DOCTYPE html>'
+        repr_ += '<html><body>'
+
+        repr_ += html_element(self.quib, 'h3')
+
+        headers_to_prop_to_values = self.get_headers_to_props_to_values()
+        for header, props_to_values in headers_to_prop_to_values.items():
+            repr_ += html_element(header, 'h5')
+            table = ''
+            for prop, values in props_to_values.items():
+                left = html_element(html_element(f'{prop}:', 'div', 'style="float:right; font-weight:bold"'), 'td', 'style="width:30%"')
+                actual_value_str = ''
+                if len(values) == 1:
+                    value, = values
+                else:
+                    value, actual_value = values
+                    if value is None:
+                        actual_value_str = replace_lt_gt(f' &rarr; {_repr(actual_value)}')
+                value_str = replace_lt_gt(f'{_repr(value)}')
+                right = html_element(html_element(value_str + actual_value_str, 'div', 'style="float:left"'), 'td')
+
+                row = html_element(left + right, 'tr', 'height:70%')
+                table += row
+            repr_ += html_element(table, 'table', 'style = "width:400px"')
+
+        repr_ += '</body></html>'
         return repr_
