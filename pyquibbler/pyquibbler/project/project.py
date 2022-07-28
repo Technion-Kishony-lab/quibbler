@@ -255,13 +255,13 @@ class Project:
         --------
         Quib.save_directory
         """
-        return None if self._directory is None else PathWithHyperLink(self._directory)
+        return self._directory
 
     @directory.setter
     @validate_user_input(path=(type(None), str, Path))
     def directory(self, path: Optional[Union[Path, str]]):
         if isinstance(path, str):
-            path = Path(path)
+            path = PathWithHyperLink(path)
         self._directory = None if path is None else path.resolve()
 
         for quib in self.quibs:

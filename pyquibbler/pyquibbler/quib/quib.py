@@ -16,7 +16,6 @@ from pyquibbler.assignment.simplify_assignment import AssignmentSimplifier
 from pyquibbler.function_definitions import get_definition_for_function, FuncArgsKwargs
 from pyquibbler.quib.types import FileAndLineNumber
 from pyquibbler.utilities.file_path import PathWithHyperLink
-from functools import cached_property
 from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Union, Iterable, Mapping, Callable, Iterator
 from weakref import WeakSet
 
@@ -77,7 +76,7 @@ class QuibHandler:
                  assigned_name: Optional[str],
                  created_in: Optional[FileAndLineNumber],
                  graphics_update: Optional[GraphicsUpdateType],
-                 save_directory: pathlib.Path,
+                 save_directory: PathWithHyperLink,
                  save_format: Optional[SaveFormat],
                  func: Optional[Callable],
                  args: Tuple[Any, ...] = (),
@@ -1676,8 +1675,8 @@ class Quib:
                     and self.handler.is_overridden:
                 warnings.warn(str(exception))
         else:
-            path = PathWithHyperLink(self.actual_save_directory /
-                                     (self.assigned_name + SAVE_FORMAT_TO_FILE_EXT[self.actual_save_format]))
+            path = self.actual_save_directory \
+                   / (self.assigned_name + SAVE_FORMAT_TO_FILE_EXT[self.actual_save_format])
 
         return path
 
@@ -1699,13 +1698,13 @@ class Quib:
         file_path
         Project.directory
         """
-        return PathWithHyperLink(self.handler.save_directory) if self.handler.save_directory else None
+        return self.handler.save_directory
 
     @save_directory.setter
     @validate_user_input(directory=(NoneType, str, pathlib.Path))
     def save_directory(self, directory: Union[None, str, pathlib.Path]):
         if isinstance(directory, str):
-            directory = pathlib.Path(directory)
+            directory = PathWithHyperLink(directory)
         self.handler.save_directory = directory
         self.handler.on_file_name_change()
 

@@ -3,7 +3,7 @@ import pathlib
 from dataclasses import dataclass
 from .. import Quib
 from ...env import REPR_RETURNS_SHORT_NAME
-
+from ...utilities.file_path import PathToNotebook
 
 PROPERTY_LIST = (
     ('Function', ('func', 'is_iquib', 'is_random', 'is_file_loading', 'is_graphics', 'pass_quibs')),
@@ -23,6 +23,8 @@ def _repr(value):
         return value.name
     if isinstance(value, str):
         return f'"{value}"'
+    if isinstance(value, PathToNotebook):
+        return repr(value)
     if isinstance(value, pathlib.Path):
         return str(value)
     if callable(value):
