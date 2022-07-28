@@ -57,6 +57,7 @@ if TYPE_CHECKING:
     from pyquibbler.assignment.override_choice import ChoiceContext
     from pyquibbler.assignment import OverrideChoice
     from pyquibbler.quib.func_calling import QuibFuncCall
+    from pyquibbler.quib.pretty_converters.quib_viewer import QuibViewer
 
 NoneType = type(None)
 
@@ -583,15 +584,6 @@ class Quib:
     """
     A Quib is an object representing a specific call of a function with it's arguments.
     """
-
-    PROPERTY_LIST = (
-        ('Function', ('func', 'is_iquib', 'is_random', 'is_file_loading', 'is_graphics', 'pass_quibs')),
-        ('Arguments', ('args', 'kwargs')),
-        ('File saving', (('save_format', 'actual_save_format'), 'file_path')),
-        ('Assignments', ('assignment_template', 'allow_overriding', 'assigned_quibs')),
-        ('Caching', ('cache_mode', 'cache_status')),
-        ('Graphics', (('graphics_update', 'actual_graphics_update'), 'is_graphics_quib')),
-    )
 
     def __init__(self,
                  quib_function_call: QuibFuncCall = None,
@@ -1995,40 +1987,21 @@ class Quib:
             return self.pretty_repr
         return self.ugly_repr
 
-    def display_props(self) -> None:
+    def display(self) -> QuibViewer:
         """
-        Display the properties of the quib.
+        Returns a QuibViewer which displays the properties of the quib.
 
         Returns
         -------
-        None
+        QuibViewer
+
+        See Also
+        --------
+        QuibViewer
         """
-        def _repr(value):
-            if isinstance(value, enum.Enum):
-                return value.name
-            if isinstance(value, str):
-                return f'"{value}"'
-            if isinstance(value, pathlib.Path):
-                return str(value)
-            return value
 
-        repr_ = ''
-        repr_ = repr_ + f'{"quib":>20}: {self}\n\n'
-        with REPR_RETURNS_SHORT_NAME.temporary_set(True):
-            for header, properties in self.PROPERTY_LIST:
-                repr_ = repr_ + f'{"--- " + header + " ---":>20}\n'
-                for prop in properties:
-                    if isinstance(prop, str):
-                        repr_ = repr_ + f'{prop:>20}: {_repr(getattr(self, prop))}'
-                    else:
-                        prop, actual_prop = prop
-                        repr_ = repr_ + f'{prop:>20}: {_repr(getattr(self, prop))}'
-                        if getattr(self, prop) is None:
-                            repr_ = repr_ + f' -> {_repr(getattr(self, actual_prop))}'
-                    repr_ = repr_ + '\n'
-                repr_ = repr_ + '\n'
-
-        print(repr_)
+        from .pretty_converters.quib_viewer import QuibViewer
+        return QuibViewer(self)
 
     @property
     def created_in(self) -> Optional[FileAndLineNumber]:
