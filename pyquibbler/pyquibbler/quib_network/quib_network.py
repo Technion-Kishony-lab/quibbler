@@ -249,27 +249,36 @@ def dependency_graph(focal_quib: Quib,
         The focal quib around which to extend the network.
 
     direction : Direction or {'upstream', 'downstream', 'both', 'all'}
-        Search from the focal quib the quibs that affect it ('upstream'), to quibs that it affects ('downstream'),
-        in both directions ('both', default), or expand the network independently of directions ('all',
-        returning all the quibs connected to the focal quib).
+
+        Determines how to expand the network from the focal_quib
+
+        * ``'upstream'`` : expand upstream to quibs that affect the focal quib.
+
+        * ``'downstream'`` : expand downstream to quibs affected by the focal quib.
+
+        *  ``'both'`` : interdependently expand both upstream and downstream (default)
+
+        * ``'all'`` : expand in both direction simultaneously, returning all the quibs connected to the focal quib.
+
         See example in the figure above.
 
-    depth : int or None (default)
+    depth : int or None
         The number of steps of network extension. `None` for infinity (default).
 
-    reverse_depth : int or None (default: 0)
-        The number of steps to extend network in the reverse direction. ``None`` for infinity;
-        ``0`` do not reverse (default).
+    reverse_depth : int or None
+        The number of steps to extend network in the reverse direction.
 
-        When ``direction='downstream'``, setting reverse_depth>0 is helpful to understand what other parameters affect
-        what the focal quib is affecting.  
+        ``None`` for infinity; ``0`` do not reverse (default).
 
-        When ``direction='upstream'``, setting reverse_depth>0 is helpful to understand what other results are affected
-        by the parameters that affect the focal quib.  
+        When ``direction='downstream'``, setting ``reverse_depth > 0`` is helpful to understand what
+        other parameters affect what the focal quib is affecting.
 
-    limit_to_named_quibs : True (default) or False
-        indicates whether to limit to named quibs or also include unnamed quibs. XX
-        Unnamed quibs are quibs whose `assigned_name` is `None`, typically representing intermediate calculations.
+        When ``direction='upstream'``, setting ``reverse_depth > 0`` is helpful to understand what
+        other results are affected by the parameters that affect the focal quib.
+
+    limit_to_named_quibs : True or False, default: True
+        Indicates whether to limit to named quibs or also include unnamed quibs.
+        Unnamed quibs are quibs whose ``assigned_name`` is `None`, typically representing intermediate calculations.
 
     Returns
     -------
