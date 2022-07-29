@@ -63,7 +63,7 @@ class QuibViewer:
     """
     quib: Quib
 
-    def get_headers_to_props_to_values(self):
+    def _get_headers_to_props_to_values(self):
         headers_to_props_to_values = dict()
         with REPR_RETURNS_SHORT_NAME.temporary_set(True):
             for header, properties in PROPERTY_LIST:
@@ -82,10 +82,10 @@ class QuibViewer:
                 headers_to_props_to_values[header] = props_to_values
         return headers_to_props_to_values
 
-    def __repr__(self):
+    def get_text_repr(self):
         repr_ = ''
         repr_ += f'{"quib":>20}: {self.quib}\n\n'
-        headers_to_prop_to_values = self.get_headers_to_props_to_values()
+        headers_to_prop_to_values = self._get_headers_to_props_to_values()
         for header, props_to_values in headers_to_prop_to_values.items():
             repr_ += f'{"--- " + header + " ---":>20}\n'
             actual_value_str = ''
@@ -101,19 +101,21 @@ class QuibViewer:
             repr_ += '\n'
         return repr_
 
-    def _repr_html_(self):
+    def get_html_repr(self):
         repr_ = ''
         repr_ += '<!DOCTYPE html>'
-        repr_ += '<html><body>'
+        repr_ += '<html>'
+        repr_ += '<div style="background-color:white">'
+        repr_ += html_element(self.quib, 'h3', 'style="font-size:14px"')
 
-        repr_ += html_element(self.quib, 'h3')
-
-        headers_to_prop_to_values = self.get_headers_to_props_to_values()
+        headers_to_prop_to_values = self._get_headers_to_props_to_values()
         for header, props_to_values in headers_to_prop_to_values.items():
-            repr_ += html_element(header, 'h5')
+            repr_ += html_element(header, 'h4', 'style="font-size:12px; margin-bottom: 0px; margin-top: 6px"')
             table = ''
             for prop, values in props_to_values.items():
-                left = html_element(html_element(f'{prop}:', 'div', 'style="float:right; font-weight:bold"'), 'td', 'style="width:30%"')
+                left = html_element(html_element(f'{prop}:',
+                                                 'div', 'style="float:right; font-weight:bold; font-size:10px"'),
+                                    'td', 'style="width:30%"')
                 actual_value_str = ''
                 if len(values) == 1:
                     value, = values
@@ -122,11 +124,20 @@ class QuibViewer:
                     if value is None:
                         actual_value_str = replace_lt_gt(f' &rarr; {_repr(actual_value)}')
                 value_str = replace_lt_gt(f'{_repr(value)}')
-                right = html_element(html_element(value_str + actual_value_str, 'div', 'style="float:left"'), 'td')
+                right = html_element(html_element(value_str + actual_value_str,
+                                                  'div', 'style="float:left; font-size:10px"'),
+                                     'td')
 
                 row = html_element(left + right, 'tr', 'height:70%')
                 table += row
             repr_ += html_element(table, 'table', 'style = "width:400px"')
 
-        repr_ += '</body></html>'
+        repr_ += '</div>'
+        repr_ += '</html>'
         return repr_
+
+    def _repr_html_(self):
+        return self.get_html_repr()
+
+    def __repr__(self):
+        return self.get_text_repr()

@@ -100,15 +100,17 @@ def get_quib_class(quib: Quib) -> str:
 
 
 class QuibNode(ipycytoscape.Node):
-    def __init__(self, id: int, name: str, classes: str = ""):
+    def __init__(self, id: int, name: str, tooltip: str, classes: str = ""):
         super().__init__()
         self.data['id'] = id
         self.data['name'] = name
+        self.data['tooltip'] = tooltip
         self.classes += classes
 
     @classmethod
     def from_quib(cls, quib: Quib):
-        return cls(id(quib), quib.pretty_repr, classes=get_quib_class(quib))
+        tooltip = quib.display().get_html_repr()
+        return cls(id(quib), quib.pretty_repr, tooltip, classes=get_quib_class(quib))
 
 
 class QuibEdge(ipycytoscape.Edge):
