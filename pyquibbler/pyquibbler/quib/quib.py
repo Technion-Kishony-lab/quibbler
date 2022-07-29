@@ -1913,7 +1913,14 @@ class Quib:
 
     def _get_functional_representation_expression(self) -> MathExpression:
         try:
-            return pretty_convert.get_pretty_value_of_func_with_args_and_kwargs(self.func, self.args, self.kwargs)
+            from matplotlib.axes import Axes
+            if self.handler.func_definition.is_graphics and len(self.args) > 0 \
+                    and isinstance(self.args[0], Axes):
+                return pretty_convert.get_pretty_value_of_func_with_args_and_kwargs(self.func,
+                                                                                    self.args[1:], self.kwargs)
+
+            return pretty_convert.get_pretty_value_of_func_with_args_and_kwargs(self.func,
+                                                                                self.args, self.kwargs)
         except Exception as e:
             logger.warning(f"Failed to get repr {e}")
             return FailedMathExpression()
