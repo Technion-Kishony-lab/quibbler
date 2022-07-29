@@ -162,7 +162,7 @@ class QuibNetwork:
     def _get_quibs_connected_to_focal_quib_up_or_down_then_reverse(self, direction: Direction) -> Set[Quib]:
         assert direction in [Direction.DOWNSTREAM, Direction.UPSTREAM]
         quibs = _get_quibs_connected_up_down_or_all(self.focal_quib,
-                                                    self.direction,
+                                                    direction,
                                                     self.depth,
                                                     self.limit_to_named_quibs)
 
@@ -171,7 +171,7 @@ class QuibNetwork:
                 if quib is not self.focal_quib:
                     quibs |= _get_quibs_connected_up_down_or_all(
                         self.focal_quib,
-                        reverse_direction(self.direction),
+                        reverse_direction(direction),
                         self.depth,
                         self.limit_to_named_quibs)
         return quibs
@@ -192,7 +192,7 @@ class QuibNetwork:
         quibs = self.quibs
         links = set()
         for i, quib in enumerate(quibs):
-            children = self._get_neighbour_quibs(quib, Direction.DOWNSTREAM, self.limit_to_named_quibs)
+            children = _get_neighbour_quibs(quib, Direction.DOWNSTREAM, self.limit_to_named_quibs)
             children &= quibs
             links |= {(quib, child) for child in children}
         return links

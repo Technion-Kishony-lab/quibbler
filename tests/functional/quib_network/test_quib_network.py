@@ -1,5 +1,6 @@
 import dataclasses
 from typing import Set
+from unittest.mock import Mock
 
 import pytest
 from pyquibbler.quib_network.quib_network import QuibNetwork
@@ -8,18 +9,25 @@ from pyquibbler.quib_network.quib_network import QuibNetwork
 @dataclasses.dataclass
 class MockQuib:
     pretty_repr: str
-    is_iquib: bool = True
     children: Set['MockQuib'] = dataclasses.field(default_factory=set)
     parents: Set['MockQuib'] = dataclasses.field(default_factory=set)
+    is_iquib: bool = False
+    is_graphics: bool = False
 
     def __hash__(self):
         return id(self)
+
+    def get_override_list(self):
+        return []
 
     def get_children(self, *args, **kwargs):
         return self.children
 
     def get_parents(self, *args, **kwargs):
         return self.parents
+
+    def display(self, *args, **kwargs):
+        return Mock()
 
     def __repr__(self):
         return self.pretty_repr
@@ -66,7 +74,7 @@ def nodes():
     (2, 'all', None, [0, 1, 2, 3, 4, 5, 6, 7]),
 ])
 def test_network_gets_correct_quibs_and_links(nodes, origin_num, direction, depth, expected_nodes_num):
-    network = QuibNetwork(origin_quib=nodes[origin_num], direction=direction, depth=10)
+    network = QuibNetwork(focal_quib=nodes[origin_num], direction=direction, depth=10)
     expected_nodes = {nodes[num] for num in expected_nodes_num}
     expected_links = set()
     for node in expected_nodes:
