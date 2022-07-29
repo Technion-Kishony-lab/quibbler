@@ -25,7 +25,7 @@ Creating quibs
    list_quiby_funcs
    is_quiby
 
-Save/Loda quibs
+Save/Load quibs
 ---------------
 .. currentmodule:: pyquibbler
 
@@ -76,3 +76,13 @@ Default value
    :nosignatures:
 
    default
+
+Quib network
+------------
+.. currentmodule:: pyquibbler
+
+.. autosummary::
+   :toctree: functions
+   :nosignatures:
+
+   dependency_graph

@@ -237,20 +237,42 @@ def dependency_graph(focal_quib: Quib,
     """
     Draw a network of quibs
 
+    Trace a focal quib upstream, downstream or both and draw a network of dependent quibs.
+
+    .. image:: /images/network_tracing.png
+
     Parameters
     ----------
-    origin_quib : Quib
-        The focal quib around which to extend the network
+    focal_quib : Quib
+        The focal quib around which to extend the network.
 
-    direction : Direction or str
-        Direction of network extension, 'upstream', 'downstream', 'both', 'all' (default)
+    direction : Direction or {'upstream', 'downstream', 'both', 'all'}
+        Search from the focal quib the quibs that affect it ('upstream'), to quibs that it affects ('downstream'),
+        in both directions ('both', default), or expand the network independently of directions ('all',
+        returning all the quibs connected to the focal quib).
+        See example in the figure above.
 
-    depth : int or None
+    depth : int or None (default)
         The number of steps of network extension. `None` for infinity (default).
 
+    reverse_depth : int or None (default: 0)
+        The number of steps to extend network in the reverse direction. ``None`` for infinity;
+        ``0`` do not reverse (default).
+
+        When ``direction='downstream'``, setting reverse_depth>0 is helpful to understand what other parameters affect
+        what the focal quib is affecting.  
+
+        When ``direction='upstream'``, setting reverse_depth>0 is helpful to understand what other results are affected
+        by the parameters that affect the focal quib.  
+
     limit_to_named_quibs : True (default) or False
-        indicates whether to limit to named quibs or also include unnamed quibs.
+        indicates whether to limit to named quibs or also include unnamed quibs. XX
         Unnamed quibs are quibs whose `assigned_name` is `None`, typically representing intermediate calculations.
+
+    Returns
+    -------
+    ipycytoscape.CytoscapeWidget
+        An ipycytoscape widget that represents the quib network.
 
     See Also
     --------
