@@ -287,20 +287,22 @@ class QuibNetwork:
         return w
 
     def get_network_widget(self) -> ipycytoscape.CytoscapeWidget:
-        legend_widget = self.get_legend_widget()
-        network_widget = ipycytoscape.CytoscapeWidget()
-        network_widget.graph.add_nodes([self.create_quib_node(quib) for quib in self.quibs])
-        network_widget.graph.add_edges([QuibEdge(id(source), id(target), is_data)
-                                        for source, target, is_data in self.links],
-                                       directed=True)
-        network_widget.set_style(NETWORK_STYLE)
-        network_widget.set_layout(**NETWORK_LAYOUT)
+        w = ipycytoscape.CytoscapeWidget()
+        w.graph.add_nodes([self.create_quib_node(quib) for quib in self.quibs])
+        w.graph.add_edges([QuibEdge(id(source), id(target), is_data)
+                           for source, target, is_data in self.links],
+                          directed=True)
+        w.set_style(NETWORK_STYLE)
+        w.set_layout(**NETWORK_LAYOUT)
+        return w
 
+    def get_network_widget_with_legend(self) -> ipywidgets.Box:
+        legend_widget = self.get_legend_widget()
+        network_widget = self.get_network_widget()
         box = ipywidgets.Box()
         box.children = [legend_widget, network_widget]
 
         return box
-
 
 @validate_user_input(focal_quib=Quib,
                      direction=(type(None), str, Direction),
@@ -311,7 +313,7 @@ def dependency_graph(focal_quib: Quib,
                      direction: Union[None, str, Direction] = None,
                      depth: Optional[int] = None,
                      reverse_depth: Optional[int] = 0,
-                     limit_to_named_quibs: bool = True) -> ipycytoscape.CytoscapeWidget:
+                     limit_to_named_quibs: bool = True) -> ipywidgets.Box:
     """
     Draw a network of quibs
 
@@ -366,4 +368,8 @@ def dependency_graph(focal_quib: Quib,
     Direction, Quib.get_parents, Quib.get_children, Quib.get_ancestors, Quib.get_descendants
     """
 
-    return QuibNetwork(focal_quib, direction, depth, reverse_depth, limit_to_named_quibs).get_network_widget()
+    return QuibNetwork(focal_quib=focal_quib,
+                       direction=direction,
+                       depth=depth,
+                       reverse_depth=reverse_depth,
+                       limit_to_named_quibs=limit_to_named_quibs).get_network_widget_with_legend()

@@ -87,7 +87,7 @@ def test_network_gets_correct_quibs_and_links(nodes, origin_num, direction, dept
     for node in expected_nodes:
         for child in node.get_children():
             if child in expected_nodes:
-                expected_links.add((node, child))
+                expected_links.add((node, child, True))
     print(expected_nodes)
     assert network.quibs == expected_nodes
     assert network.links == expected_links
