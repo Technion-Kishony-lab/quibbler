@@ -1,7 +1,7 @@
 import dataclasses
 import ipycytoscape
 
-from typing import Union, Set, List, Tuple, Optional
+from typing import Union, Set, Tuple, Optional
 
 import ipywidgets
 

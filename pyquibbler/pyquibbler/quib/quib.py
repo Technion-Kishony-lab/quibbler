@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import copy
-import enum
 import pathlib
 import pickle
 import weakref
@@ -1428,7 +1427,7 @@ class Quib:
     relationships
     """
 
-    def get_children(self, limit_to_named_quibs:bool = False) -> Set[Quib]:
+    def get_children(self, limit_to_named_quibs: bool = False) -> Set[Quib]:
         """
         Return the set of quibs that are immediate dependants of the current quib.
 
