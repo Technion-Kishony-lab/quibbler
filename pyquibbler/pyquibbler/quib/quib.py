@@ -1438,6 +1438,11 @@ class Quib:
             indicates whether to limit to named quibs or also include unnamed quibs.
             Unnamed quibs are quibs whose `assigned_name` is `None`, typically representing intermediate calculations.
 
+        Returns
+        -------
+        Set of Quib
+            The set of child quibs
+
         See Also
         --------
         get_ancestors, get_parents, get_descendants, quib_network
@@ -1481,6 +1486,11 @@ class Quib:
             Depth of search, `0` for returns empty set, `1` returns the children, etc.
             `None` for infinite.
 
+        Returns
+        -------
+        Set of Quib
+            The set of descendant quibs
+
         See Also
         --------
         get_ancestors, children, parents, quib_network
@@ -1516,6 +1526,11 @@ class Quib:
         limit_to_named_quibs : True or False (default)
             indicates whether to limit to named quibs or also include unnamed quibs.
             Unnamed quibs are quibs whose `assigned_name` is `None`, typically representing intermediate calculations.
+
+        Returns
+        -------
+        Set of Quib
+            The set of parent quibs
 
         See Also
         --------
@@ -1558,6 +1573,11 @@ class Quib:
         depth : int or None (default)
             Depth of search, `0` for returns empty set, `1` returns the parents, etc.
             `None` for infinite.
+
+        Returns
+        -------
+        Set of Quib
+            The set of ancestor quibs
 
         See Also
         --------
