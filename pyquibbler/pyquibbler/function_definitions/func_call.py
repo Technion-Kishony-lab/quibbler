@@ -142,7 +142,7 @@ class FuncCall(ABC):
         """
         Load the locations of all sources (data sources and parameter sources) so we don't need to search within
         our args kwargs every time we need them.
-        Further save re-seraching if locations is given (from _create_quib_supporting_func)
+        Further save re-searching if locations is given (from _create_quib_supporting_func)
         """
 
         if locations is None:

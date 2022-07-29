@@ -2,29 +2,40 @@ import dataclasses
 import ipycytoscape
 
 from typing import Union, Set, List, Tuple, Optional
+
+import ipywidgets
+
 from .types import Direction, reverse_direction
 from .. import Quib
 from ..utilities.input_validation_utils import validate_user_input, get_enum_by_str
 
 infinity = float('inf')
 
-# .tippy-tooltip.material-theme {
-#     background-color: #48aff0;
-#     font-size: 13px;
-#     font-weight: 600;
-# }
 NETWORK_STYLE = \
     [
         {
             'selector': 'edge',
-            'style': {'width': 3, 'line-color': '#909090'}
+            'style': {
+                'width': 3,
+                'line-color': '#909090'
+            }
         },
 
         {
             'selector': 'edge.directed',
-            'style': {'curve-style': 'bezier',
-                      'target-arrow-shape': 'triangle',
-                      'target-arrow-color': '#909090'}
+            'style': {
+                'curve-style': 'bezier',
+                'target-arrow-shape': 'triangle',
+                'target-arrow-color': '#909090'
+            }
+        },
+
+        {
+            'selector': 'edge.data_source',
+            'style': {
+                'line-color': '#00D7FF',
+                'target-arrow-color': '#00D7FF'
+            }
         },
 
         {
@@ -35,6 +46,7 @@ NETWORK_STYLE = \
                 'text-halign': 'right',
                 'background-color': '#00D7FF',
                 'border-color': 'black',
+                'font-size': 12,
                 'border-width': 0.5,
             }
         },
@@ -52,7 +64,13 @@ NETWORK_STYLE = \
             'selector': 'node.focal',
             'css': {
                 'background-color': '#D61C4E',
-                'font-size': 16,
+            }
+        },
+
+        {
+            'selector': 'node.null',
+            'css': {
+                'background-color': '#C0C0C0',
             }
         },
 
@@ -72,6 +90,17 @@ NETWORK_STYLE = \
             }
         },
 
+        {
+            'selector': 'node.hidden',
+            'css': {
+                'background-color': '#A0A0A0',
+                'width': 10,
+                'height': 10,
+                'text-valign': 'top',
+                'text-halign': 'center',
+            }
+        },
+
     ]
 
 NETWORK_LAYOUT = {
@@ -80,6 +109,7 @@ NETWORK_LAYOUT = {
     'nodeSpacing': 2,
     'edgeLengthVal': 0,
 }
+
 
 def get_quib_class(quib: Quib) -> str:
     classes = ''
@@ -93,12 +123,14 @@ def get_quib_class(quib: Quib) -> str:
 
 
 class QuibNode(ipycytoscape.Node):
-    def __init__(self, id: int, name: str, tooltip: str, classes: str = ""):
+    def __init__(self, id: int, name: str, tooltip: str, classes: str = "", position: Optional[Tuple[int, int]] = None):
         super().__init__()
         self.data['id'] = id
         self.data['name'] = name
         self.data['tooltip'] = tooltip
         self.classes += classes
+        if position is not None:
+            self.position = {'x': position[0], 'y': position[1]}
 
     @classmethod
     def from_quib(cls, quib: Quib):
@@ -107,11 +139,13 @@ class QuibNode(ipycytoscape.Node):
 
 
 class QuibEdge(ipycytoscape.Edge):
-    def __init__(self, source, target):
+    def __init__(self, source_id: int, target_id: int, is_data: bool):
         super().__init__()
-        self.data['source'] = id(source)
-        self.data['target'] = id(target)
+        self.data['source'] = source_id
+        self.data['target'] = target_id
         self.classes += " directed "
+        if is_data:
+            self.classes += " data_source "
 
 
 def _get_neighbour_quibs(quib: Quib, direction: Direction, limit_to_named_quibs: bool) -> Set[Quib]:
@@ -190,13 +224,14 @@ class QuibNetwork:
 
         return self._get_quibs_connected_to_focal_quib_up_or_down_then_reverse(self.direction)
 
-    def _get_connecting_links(self) -> Set[Tuple[Quib,Quib]]:
+    def _get_connecting_links(self) -> Set[Tuple[Quib, Quib]]:
         quibs = self.quibs
         links = set()
         for i, quib in enumerate(quibs):
-            children = _get_neighbour_quibs(quib, Direction.DOWNSTREAM, self.limit_to_named_quibs)
-            children &= quibs
-            links |= {(quib, child) for child in children}
+            parents = quib.get_parents(limit_to_named_quibs=self.limit_to_named_quibs)
+            data_parents = quib.get_parents(limit_to_named_quibs=self.limit_to_named_quibs, is_data_source=True)
+            parents &= quibs
+            links |= {(parent, quib, parent in data_parents) for parent in parents}
         return links
 
     @property
@@ -206,7 +241,7 @@ class QuibNetwork:
         return self._quibs
 
     @property
-    def links(self) -> Set[Tuple[Quib,Quib]]:
+    def links(self) -> Set[Tuple[Quib, Quib]]:
         if self._links is None:
             self._links = self._get_connecting_links()
         return self._links
@@ -217,13 +252,54 @@ class QuibNetwork:
             node.classes += ' focal'
         return node
 
+    def get_legend_widget(self):
+        labels_classes = (
+            ('input', 'iquib'),
+            ('function', ''),
+            ('focal', 'focal'),
+            ('overridden', 'overridden null'),
+            ('graphics', 'graphics'),
+        )
+        w = ipycytoscape.CytoscapeWidget()
+        first_row = 50
+        row_space = 50
+        x_location1 = 35
+        x_location2 = 100
+        for index, (label, class_) in enumerate(labels_classes):
+            node = QuibNode(index, label, '', class_, (x_location1, first_row + index * row_space))
+            w.graph.add_node(node)
+
+        is_data_label = (
+            (False, 'Parameter'),
+            (True, 'Data'),
+        )
+        for row, (is_data, label) in enumerate(is_data_label):
+            id_left, id_right = 10 + row, 12 + row
+            w.graph.add_node(QuibNode(id_left, label, '', 'hidden', (x_location1, first_row + (5 + row) * row_space)))
+            w.graph.add_node(QuibNode(id_right, '', '', 'hidden', (x_location2, first_row + (5 + row) * row_space)))
+            w.graph.add_edge(QuibEdge(id_left, id_right, is_data))
+        w.set_style(NETWORK_STYLE)
+        w.zooming_enabled = False
+        w.user_zooming_enabled = False
+        w.panning_enabled = False
+        w.user_panning_enabled = False
+        w.set_layout(name='preset')
+        return w
+
     def get_network_widget(self) -> ipycytoscape.CytoscapeWidget:
+        legend_widget = self.get_legend_widget()
         network_widget = ipycytoscape.CytoscapeWidget()
         network_widget.graph.add_nodes([self.create_quib_node(quib) for quib in self.quibs])
-        network_widget.graph.add_edges([QuibEdge(source, target) for source, target in self.links], directed=True)
+        network_widget.graph.add_edges([QuibEdge(id(source), id(target), is_data)
+                                        for source, target, is_data in self.links],
+                                       directed=True)
         network_widget.set_style(NETWORK_STYLE)
         network_widget.set_layout(**NETWORK_LAYOUT)
-        return network_widget
+
+        box = ipywidgets.Box()
+        box.children = [legend_widget, network_widget]
+
+        return box
 
 
 @validate_user_input(focal_quib=Quib,
@@ -291,4 +367,3 @@ def dependency_graph(focal_quib: Quib,
     """
 
     return QuibNetwork(focal_quib, direction, depth, reverse_depth, limit_to_named_quibs).get_network_widget()
-
