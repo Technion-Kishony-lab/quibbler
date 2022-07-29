@@ -283,6 +283,8 @@ class QuibNetwork:
         w.user_zooming_enabled = False
         w.panning_enabled = False
         w.user_panning_enabled = False
+        w.box_selection_enabled = False
+        w.layout.width = '25%'
         w.set_layout(name='preset')
         return w
 
@@ -303,6 +305,7 @@ class QuibNetwork:
         box.children = [legend_widget, network_widget]
 
         return box
+
 
 @validate_user_input(focal_quib=Quib,
                      direction=(type(None), str, Direction),
