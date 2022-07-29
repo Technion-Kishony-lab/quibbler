@@ -62,7 +62,6 @@ Simple quib-based apps
    examples/quibdemo_Mandelbrot
    examples/quibdemo_COVID_analysis
    examples/quibdemo_making_the_quib_icon
-   examples/quibdemo_image_thresholding
 
 
 Download examples
