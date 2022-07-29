@@ -24,8 +24,8 @@ class Direction(StrEnum):
 
 
 def reverse_direction(direction: Direction) -> Direction:
-    if Direction is Direction.UPSTREAM:
+    if direction is Direction.UPSTREAM:
         return Direction.DOWNSTREAM
-    if Direction is Direction.DOWNSTREAM:
+    if direction is Direction.DOWNSTREAM:
         return Direction.UPSTREAM
     return direction

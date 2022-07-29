@@ -131,14 +131,14 @@ def _get_quibs_connected_up_down_or_all(focal_quib: Quib,
     assert direction is not Direction.BOTH
     quibs = set() if quibs is None else quibs
 
-    def _get_quibs_recursively(quib: Quib, depth: int):
+    def _get_quibs_recursively(quib: Quib, depth_: int):
         nonlocal quibs
         if quib in quibs:
             return
         quibs.add(quib)
-        if depth > 0:
+        if depth_ > 0:
             for neighbour_quib in _get_neighbour_quibs(quib, direction, limit_to_named_quibs):
-                _get_quibs_recursively(neighbour_quib, depth - 1)
+                _get_quibs_recursively(neighbour_quib, depth_ - 1)
 
     _get_quibs_recursively(focal_quib, depth)
     return quibs
@@ -169,11 +169,13 @@ class QuibNetwork:
         if self.reverse_depth > 0:
             for quib in set(quibs):  # make a copy
                 if quib is not self.focal_quib:
-                    quibs |= _get_quibs_connected_up_down_or_all(
-                        self.focal_quib,
+                    add_quibs = _get_quibs_connected_up_down_or_all(
+                        quib,
                         reverse_direction(direction),
-                        self.depth,
-                        self.limit_to_named_quibs)
+                        self.reverse_depth,
+                        self.limit_to_named_quibs,
+                        quibs - {quib})
+                    quibs |= add_quibs
         return quibs
 
     def _get_quibs_connected_to_focal_quib(self) -> Set[Quib]:

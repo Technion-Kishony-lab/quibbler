@@ -47,6 +47,8 @@ def nodes():
            \      \
             3      7
 
+    ---- downstream --->
+
     """
 
     nodes = [MockQuib(str(num)) for num in range(8)]
@@ -67,15 +69,20 @@ def nodes():
     return nodes
 
 
-@pytest.mark.parametrize(['origin_num', 'direction', 'depth', 'expected_nodes_num'], [
-    (2, 'downstream', None, [2, 5, 6, 7]),
-    (2, 'upstream', None, [0, 1, 2, 4]),
-    (2, 'both', None, [0, 1, 2, 4, 5, 6, 7]),
-    (2, 'all', None, [0, 1, 2, 3, 4, 5, 6, 7]),
+@pytest.mark.parametrize(['origin_num', 'direction', 'depth', 'reverse_depth', 'expected_node_nums'], [
+    (2, 'downstream', None, 0, [2, 5, 6, 7]),
+    (2, 'upstream', None, 0, [0, 1, 2, 4]),
+    (2, 'both', None, 0, [0, 1, 2, 4, 5, 6, 7]),
+    (2, 'all', None, 0, [0, 1, 2, 3, 4, 5, 6, 7]),
+    (0, 'downstream', 0, 0, [0]),
+    (0, 'downstream', 2, 0, [0, 1, 2, 3]),
+    (1, 'downstream', 1, 0, [1, 2, 3]),
+    (1, 'downstream', 1, 1, [1, 2, 3, 4]),
+    (1, 'both', 1, 1, [0, 1, 2, 3, 4]),
 ])
-def test_network_gets_correct_quibs_and_links(nodes, origin_num, direction, depth, expected_nodes_num):
-    network = QuibNetwork(focal_quib=nodes[origin_num], direction=direction, depth=10)
-    expected_nodes = {nodes[num] for num in expected_nodes_num}
+def test_network_gets_correct_quibs_and_links(nodes, origin_num, direction, depth, reverse_depth, expected_node_nums):
+    network = QuibNetwork(focal_quib=nodes[origin_num], direction=direction, depth=depth, reverse_depth=reverse_depth)
+    expected_nodes = {nodes[num] for num in expected_node_nums}
     expected_links = set()
     for node in expected_nodes:
         for child in node.get_children():
