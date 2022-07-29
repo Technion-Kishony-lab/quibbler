@@ -2,13 +2,17 @@ import dataclasses
 import ipycytoscape
 
 from typing import Union, Set, List, Tuple, Optional
-from .types import Direction
+from .types import Direction, reverse_direction
 from .. import Quib
 from ..utilities.input_validation_utils import validate_user_input, get_enum_by_str
 
 infinity = float('inf')
 
-
+# .tippy-tooltip.material-theme {
+#     background-color: #48aff0;
+#     font-size: 13px;
+#     font-weight: 600;
+# }
 NETWORK_STYLE = \
     [
         {
@@ -36,17 +40,6 @@ NETWORK_STYLE = \
         },
 
         {
-            'selector': ':selected',
-            'css': {
-                'background-color': 'black',
-                'line-color': 'black',
-                'target-arrow-color': 'black',
-                'source-arrow-color': 'black',
-                'text-outline-color': 'black',
-            }
-        },
-
-        {
             'selector': 'node.iquib',
             'css': {
                 'shape': "diamond",
@@ -56,7 +49,7 @@ NETWORK_STYLE = \
         },
 
         {
-            'selector': 'node.origin',
+            'selector': 'node.focal',
             'css': {
                 'background-color': '#D61C4E',
                 'font-size': 16,
@@ -120,54 +113,82 @@ class QuibEdge(ipycytoscape.Edge):
         self.data['target'] = id(target)
         self.classes += " directed "
 
+
+def _get_neighbour_quibs(quib: Quib, direction: Direction, limit_to_named_quibs: bool) -> Set[Quib]:
+    quibs = set()
+    if direction is not Direction.UPSTREAM:
+        quibs |= quib.get_children(limit_to_named_quibs=limit_to_named_quibs)
+    if direction is not Direction.DOWNSTREAM:
+        quibs |= quib.get_parents(limit_to_named_quibs=limit_to_named_quibs)
+    return quibs
+
+
+def _get_quibs_connected_up_down_or_all(focal_quib: Quib,
+                                        direction: Direction,
+                                        depth: int,
+                                        limit_to_named_quibs: bool,
+                                        quibs: Optional[Set[Quib]] = None) -> Set[Quib]:
+    assert direction is not Direction.BOTH
+    quibs = set() if quibs is None else quibs
+
+    def _get_quibs_recursively(quib: Quib, depth: int):
+        nonlocal quibs
+        if quib in quibs:
+            return
+        quibs.add(quib)
+        if depth > 0:
+            for neighbour_quib in _get_neighbour_quibs(quib, direction, limit_to_named_quibs):
+                _get_quibs_recursively(neighbour_quib, depth - 1)
+
+    _get_quibs_recursively(focal_quib, depth)
+    return quibs
+
+
 @dataclasses.dataclass
 class QuibNetwork:
-    origin_quib: Quib
+    focal_quib: Quib
     direction: Union[str, Direction] = Direction.BOTH
     depth: int = infinity
+    reverse_depth: int = 0
     limit_to_named_quibs: bool = True
     _quibs: Optional[Set[Quib]] = None
     _links: Optional[Set[Tuple[Quib, Quib]]] = None
 
     def __post_init__(self):
-        self.depth = self.depth or infinity
+        self.depth = infinity if self.depth is None else self.depth
+        self.reverse_depth = infinity if self.reverse_depth is None else self.reverse_depth
         self.direction = get_enum_by_str(Direction, self.direction, allow_none=True) or Direction.BOTH
 
-    @staticmethod
-    def _get_neighbour_quibs(quib: Quib, direction: Direction, limit_to_named_quibs: bool) -> Set[Quib]:
-        quibs = set()
-        if direction is not Direction.UPSTREAM:
-            quibs |= quib.get_children(limit_to_named_quibs=limit_to_named_quibs)
-        if direction is not Direction.DOWNSTREAM:
-            quibs |= quib.get_parents(limit_to_named_quibs=limit_to_named_quibs)
+    def _get_quibs_connected_to_focal_quib_up_or_down_then_reverse(self, direction: Direction) -> Set[Quib]:
+        assert direction in [Direction.DOWNSTREAM, Direction.UPSTREAM]
+        quibs = _get_quibs_connected_up_down_or_all(self.focal_quib,
+                                                    self.direction,
+                                                    self.depth,
+                                                    self.limit_to_named_quibs)
+
+        if self.reverse_depth > 0:
+            for quib in set(quibs):  # make a copy
+                if quib is not self.focal_quib:
+                    quibs |= _get_quibs_connected_up_down_or_all(
+                        self.focal_quib,
+                        reverse_direction(self.direction),
+                        self.depth,
+                        self.limit_to_named_quibs)
         return quibs
 
-    def _get_quibs_connected_up_down_or_all(self, direction: Direction) -> Set[Quib]:
-
-        assert direction is not Direction.BOTH
-        quibs = set()
-
-        def _get_quibs_recursively(quib: Quib, depth: int):
-            nonlocal quibs
-            if quib in quibs:
-                return
-            quibs.add(quib)
-            if depth > 0:
-                for neighbour_quib in self._get_neighbour_quibs(quib, direction, self.limit_to_named_quibs):
-                    _get_quibs_recursively(neighbour_quib, depth - 1)
-        _get_quibs_recursively(self.origin_quib, self.depth)
-        return quibs
-
-    def get_quibs_connected_to_origin_quib(self) -> Set[Quib]:
+    def _get_quibs_connected_to_focal_quib(self) -> Set[Quib]:
         if self.direction is Direction.BOTH:
-            quibs = self._get_quibs_connected_up_down_or_all(Direction.UPSTREAM) \
-                    | self._get_quibs_connected_up_down_or_all(Direction.DOWNSTREAM)
-        else:
-            quibs = self._get_quibs_connected_up_down_or_all(self.direction)
+            return self._get_quibs_connected_to_focal_quib_up_or_down_then_reverse(Direction.UPSTREAM) \
+                   | self._get_quibs_connected_to_focal_quib_up_or_down_then_reverse(Direction.DOWNSTREAM)
+        elif self.direction is Direction.ALL:
+            return _get_quibs_connected_up_down_or_all(self.focal_quib,
+                                                       self.direction,
+                                                       self.depth,
+                                                       self.limit_to_named_quibs)
 
-        return quibs
+        return self._get_quibs_connected_to_focal_quib_up_or_down_then_reverse(self.direction)
 
-    def get_connecting_links(self) -> Set[Tuple[Quib,Quib]]:
+    def _get_connecting_links(self) -> Set[Tuple[Quib,Quib]]:
         quibs = self.quibs
         links = set()
         for i, quib in enumerate(quibs):
@@ -179,19 +200,19 @@ class QuibNetwork:
     @property
     def quibs(self) -> Set[Quib]:
         if self._quibs is None:
-            self._quibs = self.get_quibs_connected_to_origin_quib()
+            self._quibs = self._get_quibs_connected_to_focal_quib()
         return self._quibs
 
     @property
     def links(self) -> Set[Tuple[Quib,Quib]]:
         if self._links is None:
-            self._links = self.get_connecting_links()
+            self._links = self._get_connecting_links()
         return self._links
 
     def create_quib_node(self, quib):
         node = QuibNode.from_quib(quib)
-        if quib is self.origin_quib:
-            node.classes += ' origin'
+        if quib is self.focal_quib:
+            node.classes += ' focal'
         return node
 
     def get_network_widget(self) -> ipycytoscape.CytoscapeWidget:
@@ -203,14 +224,16 @@ class QuibNetwork:
         return network_widget
 
 
-@validate_user_input(origin_quib=Quib,
+@validate_user_input(focal_quib=Quib,
                      direction=(type(None), str, Direction),
                      depth=(type(None), int),
+                     reverse_depth=(type(None), int),
                      limit_to_named_quibs=bool)
-def quib_network(origin_quib: Quib,
-                 direction: Union[None, str, Direction] = None,
-                 depth: int = None,
-                 limit_to_named_quibs: bool = True) -> ipycytoscape.CytoscapeWidget:
+def dependency_graph(focal_quib: Quib,
+                     direction: Union[None, str, Direction] = None,
+                     depth: Optional[int] = None,
+                     reverse_depth: Optional[int] = 0,
+                     limit_to_named_quibs: bool = True) -> ipycytoscape.CytoscapeWidget:
     """
     Draw a network of quibs
 
@@ -234,4 +257,5 @@ def quib_network(origin_quib: Quib,
     Direction, Quib.get_parents, Quib.get_children, Quib.get_ancestors, Quib.get_descendants
     """
 
-    return QuibNetwork(origin_quib, direction, depth, limit_to_named_quibs).get_network_widget()
+    return QuibNetwork(focal_quib, direction, depth, reverse_depth, limit_to_named_quibs).get_network_widget()
+

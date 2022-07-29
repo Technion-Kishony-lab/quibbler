@@ -1,2 +1,2 @@
 from .types import Direction
-from .quib_network import quib_network
+from .quib_network import dependency_graph

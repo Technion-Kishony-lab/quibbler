@@ -22,3 +22,10 @@ class Direction(StrEnum):
     ALL = 'all'
     "``'all'``;  fully explore the network from the current quib"
 
+
+def reverse_direction(direction: Direction) -> Direction:
+    if Direction is Direction.UPSTREAM:
+        return Direction.DOWNSTREAM
+    if Direction is Direction.DOWNSTREAM:
+        return Direction.UPSTREAM
+    return direction
