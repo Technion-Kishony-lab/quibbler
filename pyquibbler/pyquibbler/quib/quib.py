@@ -1514,7 +1514,7 @@ class Quib:
                                                      depth if depth is None else depth - 1)
         return descendants
 
-    def get_parents(self, limit_to_named_quibs: bool = False) -> Set[Quib]:
+    def get_parents(self, limit_to_named_quibs: bool = False, is_data_source: Optional[bool] = None) -> Set[Quib]:
         """
         Return the set of quibs immediate upstream quibs to the current quib.
 
@@ -1523,9 +1523,12 @@ class Quib:
 
         Parameters
         ----------
-        limit_to_named_quibs : True or False (default)
+        limit_to_named_quibs : True or False. default: False
             indicates whether to limit to named quibs or also include unnamed quibs.
             Unnamed quibs are quibs whose `assigned_name` is `None`, typically representing intermediate calculations.
+
+        is_data_source : True, False or None. default: None
+            include only data sources (True) only paramter sources (False), or both (None, default).
 
         Returns
         -------
@@ -1546,7 +1549,15 @@ class Quib:
         >>> c.get_parents(True)
         {a = iquib(1), b = iquib(3)}
         """
-        parents = set(self.handler.parents)
+        data_parents = set(self.handler.quib_function_call.get_data_sources())
+        parameter_parents = set(self.handler.quib_function_call.get_parameter_sources())
+        if is_data_source is True:
+            parents = data_parents
+        elif is_data_source is False:
+            parents = parameter_parents
+        else:
+            parents = data_parents | parameter_parents
+
         if not limit_to_named_quibs:
             return parents
 
