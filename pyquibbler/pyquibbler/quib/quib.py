@@ -1434,7 +1434,7 @@ class Quib:
         Parameters
         ----------
         limit_to_named_quibs : True or False (default)
-            indicates whether to limit to named quibs or also include unnamed quibs.
+            indicates whether to limit to named and graphics quibs or also include unnamed quibs.
             Unnamed quibs are quibs whose `assigned_name` is `None`, typically representing intermediate calculations.
 
         Returns
@@ -1463,7 +1463,7 @@ class Quib:
 
         named_children = set()
         for child in children:
-            if child.assigned_name is None:
+            if child.assigned_name is None and not child.is_graphics_quib:
                 named_children |= child.get_children(limit_to_named_quibs)
             else:
                 named_children.add(child)
@@ -1523,7 +1523,7 @@ class Quib:
         Parameters
         ----------
         limit_to_named_quibs : True or False. default: False
-            indicates whether to limit to named quibs or also include unnamed quibs.
+            indicates whether to limit to named and graphics quibs or also include unnamed quibs.
             Unnamed quibs are quibs whose `assigned_name` is `None`, typically representing intermediate calculations.
 
         is_data_source : True, False or None. default: None
@@ -1562,7 +1562,7 @@ class Quib:
 
         named_parents = set()
         for parent in parents:
-            if parent.assigned_name is None:
+            if parent.assigned_name is None and not parent.is_graphics_quib:
                 named_parents |= parent.get_parents(limit_to_named_quibs)
             else:
                 named_parents.add(parent)

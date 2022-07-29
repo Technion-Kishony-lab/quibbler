@@ -358,7 +358,7 @@ def dependency_graph(focal_quib: Quib,
         other results are affected by the parameters that affect the focal quib.
 
     limit_to_named_quibs : True or False, default: True
-        Indicates whether to limit to named quibs or also include unnamed quibs.
+        Indicates whether to limit to named and graphics quibs or also include unnamed quibs.
         Unnamed quibs are quibs whose ``assigned_name`` is `None`, typically representing intermediate calculations.
 
     Returns
