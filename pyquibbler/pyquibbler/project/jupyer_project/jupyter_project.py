@@ -251,7 +251,7 @@ class JupyterProject(Project):
                 quib.handler.file_syncer.on_data_changed()
                 self.notify_of_overriding_changes(quib)
 
-    def _toggle_should_save_load_within_notebook(self, should_save_load_within_notebook: bool):
+    def _set_should_save_load_within_notebook(self, should_save_load_within_notebook: bool):
         """
         When `True`, all save/loads will be kept within the notebook itself
         When `False`, the project will save to whichever directory it is specified to, without saving into the notebook
@@ -319,7 +319,7 @@ class JupyterProject(Project):
             "loadedTrackedQuibs": self._get_loaded_tracked_quibs,
             "loadQuib": self._load_quib,
             "saveQuib": self._save_quib,
-            "setShouldSaveLoadWithinNotebook": self._toggle_should_save_load_within_notebook,
+            "setShouldSaveLoadWithinNotebook": self._set_should_save_load_within_notebook,
             "cleanup": self._cleanup,
         }
 
