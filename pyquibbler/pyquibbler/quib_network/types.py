@@ -21,4 +21,3 @@ class Direction(StrEnum):
 
     ALL = 'all'
     "``'all'``;  fully explore the network from the current quib"
-

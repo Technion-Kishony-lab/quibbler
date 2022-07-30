@@ -1,7 +1,7 @@
 import dataclasses
 import ipycytoscape
 
-from typing import Union, Set, List, Tuple, Optional
+from typing import Union, Set, Tuple, Optional
 from .types import Direction
 from .. import Quib
 from ..utilities.input_validation_utils import validate_user_input, get_enum_by_str
@@ -88,6 +88,7 @@ NETWORK_LAYOUT = {
     'edgeLengthVal': 0,
 }
 
+
 def get_quib_class(quib: Quib) -> str:
     classes = ''
     if quib.is_iquib:
@@ -117,6 +118,7 @@ class QuibEdge(ipycytoscape.Edge):
         self.data['source'] = id(source)
         self.data['target'] = id(target)
         self.classes += " directed "
+
 
 @dataclasses.dataclass
 class QuibNetwork:
@@ -165,7 +167,7 @@ class QuibNetwork:
 
         return quibs
 
-    def get_connecting_links(self) -> Set[Tuple[Quib,Quib]]:
+    def get_connecting_links(self) -> Set[Tuple[Quib, Quib]]:
         quibs = self.quibs
         links = set()
         for i, quib in enumerate(quibs):
@@ -181,7 +183,7 @@ class QuibNetwork:
         return self._quibs
 
     @property
-    def links(self) -> Set[Tuple[Quib,Quib]]:
+    def links(self) -> Set[Tuple[Quib, Quib]]:
         if self._links is None:
             self._links = self.get_connecting_links()
         return self._links

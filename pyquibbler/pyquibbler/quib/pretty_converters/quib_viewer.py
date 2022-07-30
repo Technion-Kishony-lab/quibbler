@@ -113,7 +113,8 @@ class QuibViewer:
             repr_ += html_element(header, 'h5')
             table = ''
             for prop, values in props_to_values.items():
-                left = html_element(html_element(f'{prop}:', 'div', 'style="float:right; font-weight:bold"'), 'td', 'style="width:30%"')
+                left = html_element(html_element(f'{prop}:', 'div', 'style="float:right; font-weight:bold"'), 'td',
+                                    'style="width:30%"')
                 actual_value_str = ''
                 if len(values) == 1:
                     value, = values

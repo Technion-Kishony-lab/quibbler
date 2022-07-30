@@ -58,22 +58,3 @@ def nodes():
 
     return nodes
 
-
-@pytest.mark.parametrize(['origin_num', 'direction', 'depth', 'expected_nodes_num'], [
-    (2, 'downstream', None, [2, 5, 6, 7]),
-    (2, 'upstream', None, [0, 1, 2, 4]),
-    (2, 'both', None, [0, 1, 2, 4, 5, 6, 7]),
-    (2, 'all', None, [0, 1, 2, 3, 4, 5, 6, 7]),
-])
-def test_network_gets_correct_quibs_and_links(nodes, origin_num, direction, depth, expected_nodes_num):
-    network = QuibNetwork(origin_quib=nodes[origin_num], direction=direction, depth=10)
-    expected_nodes = {nodes[num] for num in expected_nodes_num}
-    expected_links = set()
-    for node in expected_nodes:
-        for child in node.get_children():
-            if child in expected_nodes:
-                expected_links.add((node, child))
-    print(expected_nodes)
-    assert network.quibs == expected_nodes
-    assert network.links == expected_links
-    network.get_network_widget()
