@@ -6,6 +6,7 @@ from pyquibbler.project.project import Project, NothingToUndoException, NothingT
     NoProjectDirectoryException
 from matplotlib.widgets import Button, TextBox
 from pyquibbler.utilities.input_validation_utils import InvalidArgumentException
+from functools import partial
 
 APP_TITLE = 'Data Quibbler'
 
@@ -33,9 +34,15 @@ class QuibApp:
     current_project: Optional[Project] = None
 
     def __init__(self):
+        self.figure = None
+        self.ax = None
+        self._buttons = None
+        self._path_text = None
+
+    def create_app_figure(self):
         fig = figure_without_toolbar(num=APP_TITLE, figsize=(3.3, 1))
         fig.canvas.mpl_connect('close_event', self._on_figure_close)
-        self.app_figure = fig
+        self.figure = fig
 
         h = 0.20  # button height
         w = 0.14  # Button width
@@ -44,39 +51,33 @@ class QuibApp:
         spc = 0.03  # space between buttons
         mt = 0.22  # top margin
 
-        # Undo:
-        self._undo_button = Button(ax=fig.add_axes([mh, mv, w, h]), label='Undo')
-        self._undo_button.on_clicked(self.undo)
+        # buttons:
+        self._buttons = dict()
+        self._buttons['undo'] = Button(ax=fig.add_axes([mh, mv, w, h]), label='Undo')
+        self._buttons['redo'] = Button(ax=fig.add_axes([mh + w + spc, mv, w, h]), label='Redo')
+        self._buttons['save'] = Button(ax=fig.add_axes([1 - mh - w - 2 * (spc + w), mv, w, h]), label='Save')
+        self._buttons['load'] = Button(ax=fig.add_axes([1 - mh - w - 1 * (spc + w), mv, w, h]), label='Load')
+        self._buttons['sync'] = Button(ax=fig.add_axes([1 - mh - w - 0 * (spc + w), mv, w, h]), label='Sync')
 
-        # Redo:
-        self._redo_button = Button(ax=fig.add_axes([mh + w + spc, mv, w, h]), label='Redo')
-        self._redo_button.on_clicked(self.redo)
-
-        # Save:
-        self._save_button = Button(ax=fig.add_axes([1 - mh - w - 2 * (spc + w), mv, w, h]), label='Save')
-        self._save_button.on_clicked(self.save)
-
-        # Load:
-        self._load_button = Button(ax=fig.add_axes([1 - mh - w - 1 * (spc + w), mv, w, h]), label='Load')
-        self._load_button.on_clicked(self.load)
-
-        # Sync:
-        self._sync_button = Button(ax=fig.add_axes([1 - mh - w - 0 * (spc + w), mv, w, h]), label='Sync')
-        self._sync_button.on_clicked(self.sync)
+        project = self.current_project
+        buttons_funcs_exceptions = (
+            ('undo', project.undo, NothingToUndoException),
+            ('redo', project.redo, NothingToRedoException),
+            ('save', project.save_quibs, NoProjectDirectoryException),
+            ('load', project.load_quibs, NoProjectDirectoryException),
+            ('sync', project.sync_quibs, NoProjectDirectoryException),
+        )
+        for button, func, exception in buttons_funcs_exceptions:
+            call_func = partial(self.on_button_click, project_func=func, exception=exception)
+            self._buttons[button].on_clicked(call_func)
 
         # path:
-        axs = fig.add_axes([mh, 1 - mt - h, 1 - 2 * mh, h])
-        self._path_text = TextBox(ax=axs, label='', initial=self._get_project_path_str())
+        ax = fig.add_axes([mh, 1 - mt - h, 1 - 2 * mh, h])
+        self._path_text = TextBox(ax=ax, label='', initial=self._get_project_path_str())
         self._path_text.active = False
         self._path_text.on_submit(self._set_path)
         self.current_project.on_path_change = self._handle_path_change
-        axs.text(0, 1.1, 'path:', va='bottom', ha='left')
-
-        # path:
-        # axs = fig.add_axes([mh, 1 - mt - h, 1 - 2 * mh, h])
-        # self._path_text = axs.text(0, 0.5, self._get_project_path_str(), va='center', ha='left')
-        # axs.set_visible(False)
-        # self.current_project.on_path_change = self._handle_path_change
+        ax.text(0, 1.1, 'path:', va='bottom', ha='left')
 
     def _get_project_path_str(self):
         return '' if self.current_project.directory is None else str(self.current_project.directory)
@@ -95,13 +96,14 @@ class QuibApp:
         if cls.current_quibapp is None:
             cls.current_project = Project.get_or_create()
             cls.current_quibapp = cls()
+            cls.current_quibapp.create_app_figure()
         return cls.current_quibapp
 
     @classmethod
     def close(cls):
         current_quibapp = cls.current_quibapp
         if current_quibapp is not None:
-            plt.close(current_quibapp.app_figure)
+            plt.close(current_quibapp.figure)
             cls.current_project = None
             cls.current_quibapp = None
 
@@ -111,35 +113,13 @@ class QuibApp:
         cls.current_project.on_path_change = None
         cls.current_project = None
 
-    def undo(self, *args) -> None:
+    @classmethod
+    def on_button_click(cls, *args, project_func, exception) -> bool:
         try:
-            self.current_project.undo()
-        except NothingToUndoException:
-            self._display_message(NothingToUndoException())
+            project_func()
+        except exception as e:
+            cls._display_message(str(e))
 
-    def redo(self, *args) -> None:
-        try:
-            self.current_project.redo()
-        except NothingToRedoException:
-            self._display_message(NothingToRedoException())
-
-    def save(self, *args) -> None:
-        try:
-            self.current_project.save_quibs()
-        except NoProjectDirectoryException as e:
-            self._display_message(str(e))
-
-    def load(self, *args) -> None:
-        try:
-            self.current_project.load_quibs()
-        except NoProjectDirectoryException as e:
-            self._display_message(str(e))
-
-    def sync(self, *args) -> None:
-        try:
-            self.current_project.sync_quibs()
-        except NoProjectDirectoryException as e:
-            self._display_message(str(e))
-
-    def _display_message(self, msg):
+    @classmethod
+    def _display_message(cls, msg):
         print(msg)
