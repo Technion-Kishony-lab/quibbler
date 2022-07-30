@@ -12,7 +12,7 @@ def test_invert_raises_exception_on_unknown_func():
     assignment = mock.Mock()
     assignment.is_default = mock.Mock(return_value=False)
 
-    with pytest.raises(NoInvertersFoundException):
+    with pytest.raises(NoInvertersFoundException, match='.*'):
         invert(
             func_call=SourceFuncCall.from_(func=mock.MagicMock(__name__='unknown'),
                                            func_args=tuple(),

@@ -104,7 +104,7 @@ class IndexableCacheTest(CacheTest):
     def test_cache_set_invalid_all_raises_exception(self, cache, result):
         cache.set_valid_value_at_path([], result)
 
-        with pytest.raises(CannotInvalidateEntireCacheException):
+        with pytest.raises(CannotInvalidateEntireCacheException, match='.*'):
             cache.set_invalid_at_path([])
 
     def test_cache_does_not_match_result_of_unsupported_type(self, cache):

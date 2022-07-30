@@ -45,7 +45,7 @@ def test_quib_configure(quib):
 
 
 def test_quib_configure_with_invalid_value(quib):
-    with pytest.raises(InvalidArgumentTypeException):
+    with pytest.raises(InvalidArgumentTypeException, match='.*'):
         quib.setp(allow_overriding=3, name="pasten")
 
 

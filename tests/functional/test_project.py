@@ -88,7 +88,7 @@ def test_undo_too_much_raises_exception(project):
     a.assign(1)
 
     project.undo()
-    with pytest.raises(NothingToUndoException):
+    with pytest.raises(NothingToUndoException, match='.*'):
         project.undo()
 
 
@@ -158,7 +158,7 @@ def test_undo_redo_with_assignment_in_the_middle(project):
     project.undo()
     a.assign(12)
 
-    with pytest.raises(NothingToRedoException):
+    with pytest.raises(NothingToRedoException, match='.*'):
         project.redo()
 
 
@@ -167,7 +167,7 @@ def test_doesnt_record_when_dragging(project):
     with dragging():
         a.assign(10)
 
-    with pytest.raises(NothingToUndoException):
+    with pytest.raises(NothingToUndoException, match='.*'):
         project.undo()
 
 
@@ -178,7 +178,7 @@ def test_project_undo_group_doesnt_add_on_dragging(project):
             a.assign(10)
             a.assign(8)
 
-    with pytest.raises(NothingToUndoException):
+    with pytest.raises(NothingToUndoException, match='.*'):
         project.undo()
 
 
@@ -292,7 +292,7 @@ def test_project_correctly_set_valid_values(project, prop_name, set_value, get_v
     ('directory', 7, InvalidArgumentTypeException),
 ])
 def test_project_reject_set_invlid_properties(project, prop_name, set_value, exception):
-    with pytest.raises(exception):
+    with pytest.raises(exception, match='.*'):
         setattr(project, prop_name, set_value)
 
 

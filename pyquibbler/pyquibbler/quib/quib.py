@@ -46,8 +46,7 @@ from pyquibbler.quib.graphics import GraphicsUpdateType
 from pyquibbler.translation.translate import forwards_translate, NoTranslatorsFoundException
 from pyquibbler.cache import create_cache, CacheStatus
 from pyquibbler.file_syncing import SaveFormat, SAVE_FORMAT_TO_FILE_EXT, CannotSaveFunctionQuibsAsValueException, \
-    ResponseToFileNotDefined, FileNotDefinedException, QuibFileSyncer, SAVE_FORMAT_TO_FQUIB_SAVE_FORMAT, \
-    FIRST_LINE_OF_FORMATTED_TXT_FILE
+    ResponseToFileNotDefined, FileNotDefinedException, QuibFileSyncer, SAVE_FORMAT_TO_FQUIB_SAVE_FORMAT
 from pyquibbler.quib.get_value_context_manager import get_value_context, is_within_get_value_context
 
 if TYPE_CHECKING:
@@ -58,6 +57,8 @@ if TYPE_CHECKING:
     from pyquibbler.quib.pretty_converters.quib_viewer import QuibViewer
 
 NoneType = type(None)
+
+FIRST_LINE_OF_FORMATTED_TXT_FILE = '# Formatted Quibbler value file (keep this note)'
 
 
 class QuibHandler:
@@ -1881,10 +1882,10 @@ class Quib:
             self.handler.assigned_name = assigned_name
             self.handler.on_file_name_change()
         else:
-            raise InvalidArgumentValueException(
-                'name must be None or a string starting with a letter '
-                'and continuing alpha-numeric characters or spaces.'
-            )
+            raise InvalidArgumentValueException('assigned_name',
+                                                'name must be None or a string starting with a letter '
+                                                'and continuing alpha-numeric characters or spaces.'
+                                                )
 
     @property
     def name(self) -> Optional[str]:

@@ -105,20 +105,20 @@ def test_casting_assignment_template(template, data, expected):
 
 
 def test_cant_create_bound_assignment_template_with_max_smaller_than_min():
-    with raises(BoundMaxBelowMinException):
+    with raises(BoundMaxBelowMinException, match='.*'):
         BoundAssignmentTemplate(1., 0.9)
 
 
 def test_cant_create_range_assignment_template_with_stop_smaller_than_start():
-    with raises(RangeStopBelowStartException):
+    with raises(RangeStopBelowStartException, match='.*'):
         RangeAssignmentTemplate(1., 0.9, 3.)
 
 
 def test_cant_create_bound_assignment_template_with_different_types():
-    with raises(TypesMustBeSameInAssignmentTemplateException):
+    with raises(TypesMustBeSameInAssignmentTemplateException, match='.*'):
         BoundAssignmentTemplate(0, 1.)
 
 
 def test_cant_create_range_assignment_template_with_different_types():
-    with raises(TypesMustBeSameInAssignmentTemplateException):
+    with raises(TypesMustBeSameInAssignmentTemplateException, match='.*'):
         RangeAssignmentTemplate(0, 1, .1)

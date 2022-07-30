@@ -4,12 +4,11 @@ from abc import abstractmethod, ABC
 from dataclasses import dataclass
 from typing import Tuple, Any, Mapping, Optional, Callable, List, TYPE_CHECKING, Type, ClassVar, Dict, Set
 
-from .location import SourceLocation, create_source_location
-from .types import Argument
+from .location import SourceLocation
 from pyquibbler.quib.external_call_failed_exception_handling import \
     external_call_failed_exception_handling
 from pyquibbler.utilities.iterators import iter_args_and_names_in_function_call, \
-    get_paths_for_objects_of_type, get_object_type_locations_in_args_kwargs
+     get_object_type_locations_in_args_kwargs
 
 if TYPE_CHECKING:
     from pyquibbler.function_definitions import FuncDefinition
@@ -110,33 +109,6 @@ class FuncCall(ABC):
     @property
     def kwargs(self):
         return self.func_args_kwargs.kwargs
-
-    def _get_argument_used_in_current_func_call_for_argument(self, argument: Argument):
-        """
-        Get the argument actually used in this specific funccall corresponding to the given parameter `argument`.
-
-        For example, given:
-
-        def my_func(a):
-            pass
-
-        `a` could be referenced by both PositionalArgument(0) or KeywordArgument("a")
-
-        Given either of the arguments PositionalArgument(0) or KeywordArgument("a"), this func will return the one
-        actually being used in this instance
-        """
-        try:
-            create_source_location(argument=argument, path=[]).find_in_args_kwargs(self.args, self.kwargs)
-            return argument
-        except (KeyError, IndexError):
-            return self.func_definition.get_corresponding_argument(argument)
-
-    def _get_locations_within_arguments_and_values(self, arguments_and_values):
-        return [
-            create_source_location(self._get_argument_used_in_current_func_call_for_argument(argument), path)
-            for argument, value in arguments_and_values
-            for path in get_paths_for_objects_of_type(obj=value, type_=self.SOURCE_OBJECT_TYPE)
-        ]
 
     def load_source_locations(self, locations: List[SourceLocation] = None):
         """

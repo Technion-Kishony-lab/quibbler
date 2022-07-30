@@ -3,7 +3,9 @@ from typing import Set
 from unittest.mock import Mock
 
 import pytest
-from pyquibbler.quib_network.quib_network import QuibNetwork
+
+from pyquibbler import iquib
+from pyquibbler.quib_network.quib_network import QuibNetwork, dependency_graph
 
 
 @dataclasses.dataclass
@@ -92,3 +94,10 @@ def test_network_gets_correct_quibs_and_links(nodes, origin_num, direction, dept
     assert network.quibs == expected_nodes
     assert network.links == expected_links
     network.get_network_widget()
+
+
+def test_network_widget_is_created():
+    a = iquib(1)
+    b = a + 2
+    w = dependency_graph(a, bypass_intermediate_quibs=False)
+    assert {w.children[1].graph.nodes[0].data['id'], w.children[1].graph.nodes[1].data['id']} == {id(a), id(b)}

@@ -35,7 +35,7 @@ def test_iquib_pretty_repr():
 def test_iquib_cannot_have_quibs():
     quib = iquib(10)
 
-    with pytest.raises(CannotNestQuibInIQuibException):
+    with pytest.raises(CannotNestQuibInIQuibException, match='.*'):
         iquib(quib)
 
 

@@ -64,7 +64,7 @@ def test_quib_doesnt_get_name_if_it_is_created_in_context():
 
 
 def test_quib_cannot_assign_int_to_name(quib):
-    with pytest.raises(InvalidArgumentTypeException):
+    with pytest.raises(InvalidArgumentTypeException, match='.*'):
         quib.name = 1
 
 

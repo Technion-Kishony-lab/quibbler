@@ -38,7 +38,7 @@ def test_quib_forward_and_inverse_arithmetic_operators(create_quib_with_return_v
                                                                                   '__and__', '__xor__'}:
         # Bitwise operators don't work with floats
         result_quib = op(quib1, quib2)
-        with pytest.raises(TypeError):
+        with pytest.raises(TypeError, match='.*'):
             result_quib.get_value()
 
     else:
@@ -72,7 +72,7 @@ def test_quib_unary_operators(operator_name, val, create_quib_with_return_value)
 
     if isinstance(val, float) and operator_name in {'__invert__'}:
         # Bitwise operators don't work with floats
-        with pytest.raises(TypeError):
+        with pytest.raises(TypeError, match='.*'):
             result_quib.get_value()
     else:
         assert result_quib.get_value() == op(val)
@@ -102,7 +102,7 @@ def test_quib_add_with_float_does_not_return_not_implemented(create_quib_with_re
 def test_len_of_quib_not_allowed(create_quib_with_return_value):
     quib = create_quib_with_return_value([1, 2])
     with LEN_RAISE_EXCEPTION.temporary_set(True):
-        with pytest.raises(TypeError):
+        with pytest.raises(TypeError, match='.*'):
             len(quib)
 
 
@@ -115,7 +115,7 @@ def test_len_of_quib_allowed(create_quib_with_return_value):
 def test_bool_of_quib_not_allowed(create_quib_with_return_value):
     quib = create_quib_with_return_value(1)
     with BOOL_RAISE_EXCEPTION.temporary_set(True):
-        with pytest.raises(TypeError):
+        with pytest.raises(TypeError, match='.*'):
             bool(quib)
 
 

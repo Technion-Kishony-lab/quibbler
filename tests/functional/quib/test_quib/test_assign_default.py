@@ -6,6 +6,10 @@ from pyquibbler import iquib, q, default
 from pyquibbler.quib.quib import Quib
 
 
+def test_default_repr():
+    assert repr(default) == 'default'
+
+
 def test_quib_assign_default(create_quib_with_return_value):
     a = create_quib_with_return_value(np.array([1, 2, 3]), allow_overriding=False)
     b = (a + 10).setp(allow_overriding=True)
