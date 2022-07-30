@@ -1882,7 +1882,7 @@ class Quib:
             self.handler.assigned_name = assigned_name
             self.handler.on_file_name_change()
         else:
-            raise InvalidArgumentValueException(
+            raise InvalidArgumentValueException('assigned_name',
                 'name must be None or a string starting with a letter '
                 'and continuing alpha-numeric characters or spaces.'
             )

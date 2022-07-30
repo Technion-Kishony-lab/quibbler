@@ -15,7 +15,7 @@ class TimerNotFoundException(PyQuibblerException):
     name: str
 
     def __str__(self):
-        return str
+        return self.name
 
 
 @dataclass
