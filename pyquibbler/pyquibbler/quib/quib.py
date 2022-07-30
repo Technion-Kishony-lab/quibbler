@@ -1431,7 +1431,7 @@ class Quib:
     @property
     def children(self) -> Set[Quib]:
         """
-        set of Quib: The set of quibs that are immediate dependants of the current quib.
+        set of Quib: The set of quibs that are immediate dependants of the current quibX.
 
         See Also
         --------
