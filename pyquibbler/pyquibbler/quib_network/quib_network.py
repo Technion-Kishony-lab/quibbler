@@ -358,10 +358,10 @@ def dependency_graph(focal_quib: Quib,
         When ``direction='upstream'``, setting ``reverse_depth > 0`` is helpful to understand what
         other results are affected by the parameters that affect the focal quib.
 
-        bypass_intermediate_quibs : bool, default: True
-            Intermediate quibs are defined as unnamed and non-graphics
-            quibs (``assigned_name=None`` and ``is_graphics=False``), typically representing
-            intermediate calculations.
+    bypass_intermediate_quibs : bool, default: True
+        Intermediate quibs are defined as unnamed and non-graphics
+        quibs (``assigned_name=None`` and ``is_graphics=False``), typically representing
+        intermediate calculations.
 
     Returns
     -------
