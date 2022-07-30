@@ -987,10 +987,10 @@ class Quib:
         Parameters
         ----------
         value: any
-            a value to assign as an override to the quib's value.
+            A value to assign as an override to the quib's value.
 
         key: any
-            an optional key into which to assign the `value`.
+            An optional key into which to assign the `value`.
 
         See Also
         --------
@@ -1159,7 +1159,7 @@ class Quib:
         allow_overriding : bool, optional
             Specifies whether the quib is open for overriding assignments.
 
-        assigned_quibs : None or Set[Quib]], optional
+        assigned_quibs : None or Set[Quib], optional
             Indicates which upstream quibs to inverse-assign to.
 
         assignment_template : tuple or AssignmentTemplate, optional
@@ -1168,10 +1168,10 @@ class Quib:
         save_directory : str or pathlib.Path, optional
             The directory to which quib assignments are saved.
 
-        save_format : None, str, or SaveFormat, optional
+        save_format : None, {'off', 'txt', 'bin', 'value_txt', 'value_bin'}, or SaveFormat, optional
             The file format for saving quib assignments.
 
-        cache_mode : str or CacheMode, optional
+        cache_mode : {'auto', 'on', 'off'} or CacheMode, optional
             Indicates whether the quib caches its calculated value.
 
         assigned_name : None or str, optional
@@ -1429,14 +1429,15 @@ class Quib:
 
     def get_children(self, bypass_intermediate_quibs: bool = False) -> Set[Quib]:
         """
-        Return the set of quibs that are immediate dependants of the current quib.
+        Return the set of quibs that are immediately downstream of the current quib.
 
         Parameters
         ----------
-        bypass_intermediate_quibs : True or False (default)
-            indicates whether to bypass intermediate quibs.
-            Intermediate quibs are defined as unnamed and non-graphics quibs, typically representing
-            intermediate calculations (``assigned_name=None`` and ``is_graphics=False``).
+        bypass_intermediate_quibs : bool, default: False
+            Indicates whether to bypass intermediate quibs.
+            Intermediate quibs are defined as unnamed and non-graphics
+            quibs (``assigned_name=None`` and ``is_graphics=False``), typically representing
+            intermediate calculations.
 
         Returns
         -------
@@ -1474,18 +1475,19 @@ class Quib:
         """
         Search for all quibs downstream of current quib.
 
-        Recursively find all the quibs that depend on the current quib.
+        Recursively search downstream to find all the quibs that depend on the current quib.
 
         Parameters
         ----------
-        bypass_intermediate_quibs : True or False (default)
-            indicates whether to bypass intermediate quibs.
-            Intermediate quibs are defined as unnamed and non-graphics quibs, typically representing
-            intermediate calculations (``assigned_name=None`` and ``is_graphics=False``).
+        bypass_intermediate_quibs : bool, default: False
+            Indicates whether to bypass intermediate quibs.
+            Intermediate quibs are defined as unnamed and non-graphics
+            quibs (``assigned_name=None`` and ``is_graphics=False``), typically representing
+            intermediate calculations.
 
-        depth : int or None (default)
-            Depth of search, `0` for returns empty set, `1` returns the children, etc.
-            `None` for infinite.
+        depth : int or None
+            Depth of search, `0` returns empty set, `1` returns the children, etc.
+            `None` for infinite (default).
 
         Returns
         -------
@@ -1517,20 +1519,21 @@ class Quib:
 
     def get_parents(self, bypass_intermediate_quibs: bool = False, is_data_source: Optional[bool] = None) -> Set[Quib]:
         """
-        Return the set of quibs immediate upstream quibs to the current quib.
+        Return the set of quibs immediate upstream to the current quib.
 
-        The parents are the immediate quibs that this quib depends on, namely all the quibs in the args and kwargs
+        The parents are the immediate quibs that this quib depends on, namely the quibs in the args and kwargs
         of the quib function call.
 
         Parameters
         ----------
-        bypass_intermediate_quibs : True or False (default)
-            indicates whether to bypass intermediate quibs.
-            Intermediate quibs are defined as unnamed and non-graphics quibs, typically representing
-            intermediate calculations (``assigned_name=None`` and ``is_graphics=False``).
+        bypass_intermediate_quibs : bool, default: False
+            Indicates whether to bypass intermediate quibs.
+            Intermediate quibs are defined as unnamed and non-graphics
+            quibs (``assigned_name=None`` and ``is_graphics=False``), typically representing
+            intermediate calculations.
 
-        is_data_source : True, False or None. default: None
-            include only data sources (True) only paramter sources (False), or both (None, default).
+        is_data_source : bool or None. default: None
+            Include only data sources (`True`), only paramter sources (`False`), or both (`None`, default).
 
         Returns
         -------
@@ -1579,14 +1582,15 @@ class Quib:
 
         Parameters
         ----------
-        bypass_intermediate_quibs : True or False (default)
-            indicates whether to bypass intermediate quibs.
-            Intermediate quibs are defined as unnamed and non-graphics quibs, typically representing
-            intermediate calculations (``assigned_name=None`` and ``is_graphics=False``).
+        bypass_intermediate_quibs : bool, default: False
+            Indicates whether to bypass intermediate quibs.
+            Intermediate quibs are defined as unnamed and non-graphics
+            quibs (``assigned_name=None`` and ``is_graphics=False``), typically representing
+            intermediate calculations.
 
-        depth : int or None (default)
-            Depth of search, `0` for returns empty set, `1` returns the parents, etc.
-            `None` for infinite.
+        depth : int or None
+            Depth of search, `0` returns empty set, `1` returns the parents, etc.
+            `None` for infinite (default).
 
         Returns
         -------

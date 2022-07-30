@@ -229,7 +229,8 @@ class QuibNetwork:
         links = set()
         for i, quib in enumerate(quibs):
             parents = quib.get_parents(bypass_intermediate_quibs=self.bypass_intermediate_quibs)
-            data_parents = quib.get_parents(bypass_intermediate_quibs=self.bypass_intermediate_quibs, is_data_source=True)
+            data_parents = quib.get_parents(bypass_intermediate_quibs=self.bypass_intermediate_quibs,
+                                            is_data_source=True)
             parents &= quibs
             links |= {(parent, quib, parent in data_parents) for parent in parents}
         return links
@@ -320,7 +321,7 @@ def dependency_graph(focal_quib: Quib,
     """
     Draw a network of quibs
 
-    Trace a focal quib upstream, downstream or both and draw a network of dependent quibs.
+    Trace a focal quib upstream, downstream or both and draw an interactive network of dependent quibs.
 
     .. image:: /images/network_tracing.png
 
@@ -357,10 +358,10 @@ def dependency_graph(focal_quib: Quib,
         When ``direction='upstream'``, setting ``reverse_depth > 0`` is helpful to understand what
         other results are affected by the parameters that affect the focal quib.
 
-        bypass_intermediate_quibs : True or False, default: True
-            indicates whether to bypass intermediate quibs.
-            Intermediate quibs are defined as unnamed and non-graphics quibs, typically representing
-            intermediate calculations (``assigned_name=None`` and ``is_graphics=False``).
+        bypass_intermediate_quibs : bool, default: True
+            Intermediate quibs are defined as unnamed and non-graphics
+            quibs (``assigned_name=None`` and ``is_graphics=False``), typically representing
+            intermediate calculations.
 
     Returns
     -------
