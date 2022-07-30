@@ -25,6 +25,7 @@ from pyquibbler.project import Project
 from pyquibbler.project.jupyer_project.exceptions import NoQuibFoundException
 from pyquibbler.project.jupyer_project.flask_dialog_server import run_flask_app
 from pyquibbler.project.jupyer_project.utils import is_within_jupyter_lab, find_free_port, get_serialized_quib
+from pyquibbler.utilities.file_path import PathToNotebook
 
 
 class JupyterProject(Project):
@@ -119,11 +120,10 @@ class JupyterProject(Project):
         Open a project directory from the notebook's internal zip.
         The directory will be temporary, and will be deleted when the client calls "cleanup" (`_cleanup`)
         """
-        if self._tmp_save_directory is not None:
-            self._directory = self._tmp_save_directory
-            return
+        if self._tmp_save_directory is None:
+            self._tmp_save_directory = tempfile.mkdtemp()
 
-        self._directory = self._tmp_save_directory = tempfile.mkdtemp()
+        self._directory = PathToNotebook(self._tmp_save_directory)
 
         logger.info(f"Using notebook {self._jupyter_notebook_path}")
         logger.info(f"Loading quibs {self.directory}...")

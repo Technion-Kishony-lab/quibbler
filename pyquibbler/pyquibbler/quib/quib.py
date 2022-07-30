@@ -16,7 +16,6 @@ from pyquibbler.assignment.simplify_assignment import AssignmentSimplifier
 from pyquibbler.function_definitions import get_definition_for_function, FuncArgsKwargs
 from pyquibbler.quib.types import FileAndLineNumber
 from pyquibbler.utilities.file_path import PathWithHyperLink
-from functools import cached_property
 from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Union, Iterable, Mapping, Callable, Iterator
 from weakref import WeakSet
 
@@ -57,6 +56,7 @@ if TYPE_CHECKING:
     from pyquibbler.assignment.override_choice import ChoiceContext
     from pyquibbler.assignment import OverrideChoice
     from pyquibbler.quib.func_calling import QuibFuncCall
+    from pyquibbler.quib.pretty_converters.quib_viewer import QuibViewer
 
 NoneType = type(None)
 
@@ -76,7 +76,7 @@ class QuibHandler:
                  assigned_name: Optional[str],
                  created_in: Optional[FileAndLineNumber],
                  graphics_update: Optional[GraphicsUpdateType],
-                 save_directory: pathlib.Path,
+                 save_directory: PathWithHyperLink,
                  save_format: Optional[SaveFormat],
                  func: Optional[Callable],
                  args: Tuple[Any, ...] = (),
@@ -583,15 +583,6 @@ class Quib:
     """
     A Quib is an object representing a specific call of a function with it's arguments.
     """
-
-    PROPERTY_LIST = (
-        ('Function', ('func', 'is_iquib', 'is_random', 'is_file_loading', 'is_graphics', 'pass_quibs')),
-        ('Arguments', ('args', 'kwargs')),
-        ('File saving', (('save_format', 'actual_save_format'), 'file_path')),
-        ('Assignments', ('assignment_template', 'allow_overriding', 'assigned_quibs')),
-        ('Caching', ('cache_mode', 'cache_status')),
-        ('Graphics', (('graphics_update', 'actual_graphics_update'), 'is_graphics_quib')),
-    )
 
     def __init__(self,
                  quib_function_call: QuibFuncCall = None,
@@ -1447,6 +1438,11 @@ class Quib:
             indicates whether to limit to named quibs or also include unnamed quibs.
             Unnamed quibs are quibs whose `assigned_name` is `None`, typically representing intermediate calculations.
 
+        Returns
+        -------
+        Set of Quib
+            The set of child quibs
+
         See Also
         --------
         get_ancestors, get_parents, get_descendants, quib_network
@@ -1490,6 +1486,11 @@ class Quib:
             Depth of search, `0` for returns empty set, `1` returns the children, etc.
             `None` for infinite.
 
+        Returns
+        -------
+        Set of Quib
+            The set of descendant quibs
+
         See Also
         --------
         get_ancestors, children, parents, quib_network
@@ -1525,6 +1526,11 @@ class Quib:
         limit_to_named_quibs : True or False (default)
             indicates whether to limit to named quibs or also include unnamed quibs.
             Unnamed quibs are quibs whose `assigned_name` is `None`, typically representing intermediate calculations.
+
+        Returns
+        -------
+        Set of Quib
+            The set of parent quibs
 
         See Also
         --------
@@ -1567,6 +1573,11 @@ class Quib:
         depth : int or None (default)
             Depth of search, `0` for returns empty set, `1` returns the parents, etc.
             `None` for infinite.
+
+        Returns
+        -------
+        Set of Quib
+            The set of ancestor quibs
 
         See Also
         --------
@@ -1684,8 +1695,8 @@ class Quib:
                     and self.handler.is_overridden:
                 warnings.warn(str(exception))
         else:
-            path = PathWithHyperLink(self.actual_save_directory /
-                                     (self.assigned_name + SAVE_FORMAT_TO_FILE_EXT[self.actual_save_format]))
+            path = self.actual_save_directory \
+                   / (self.assigned_name + SAVE_FORMAT_TO_FILE_EXT[self.actual_save_format])
 
         return path
 
@@ -1707,13 +1718,13 @@ class Quib:
         file_path
         Project.directory
         """
-        return PathWithHyperLink(self.handler.save_directory) if self.handler.save_directory else None
+        return self.handler.save_directory
 
     @save_directory.setter
     @validate_user_input(directory=(NoneType, str, pathlib.Path))
     def save_directory(self, directory: Union[None, str, pathlib.Path]):
         if isinstance(directory, str):
-            directory = pathlib.Path(directory)
+            directory = PathWithHyperLink(directory)
         self.handler.save_directory = directory
         self.handler.on_file_name_change()
 
@@ -1995,40 +2006,21 @@ class Quib:
             return self.pretty_repr
         return self.ugly_repr
 
-    def display_props(self) -> None:
+    def display(self) -> QuibViewer:
         """
-        Display the properties of the quib.
+        Returns a QuibViewer which displays the properties of the quib.
 
         Returns
         -------
-        None
+        QuibViewer
+
+        See Also
+        --------
+        QuibViewer
         """
-        def _repr(value):
-            if isinstance(value, enum.Enum):
-                return value.name
-            if isinstance(value, str):
-                return f'"{value}"'
-            if isinstance(value, pathlib.Path):
-                return str(value)
-            return value
 
-        repr_ = ''
-        repr_ = repr_ + f'{"quib":>20}: {self}\n\n'
-        with REPR_RETURNS_SHORT_NAME.temporary_set(True):
-            for header, properties in self.PROPERTY_LIST:
-                repr_ = repr_ + f'{"--- " + header + " ---":>20}\n'
-                for prop in properties:
-                    if isinstance(prop, str):
-                        repr_ = repr_ + f'{prop:>20}: {_repr(getattr(self, prop))}'
-                    else:
-                        prop, actual_prop = prop
-                        repr_ = repr_ + f'{prop:>20}: {_repr(getattr(self, prop))}'
-                        if getattr(self, prop) is None:
-                            repr_ = repr_ + f' -> {_repr(getattr(self, actual_prop))}'
-                    repr_ = repr_ + '\n'
-                repr_ = repr_ + '\n'
-
-        print(repr_)
+        from .pretty_converters.quib_viewer import QuibViewer
+        return QuibViewer(self)
 
     @property
     def created_in(self) -> Optional[FileAndLineNumber]:
