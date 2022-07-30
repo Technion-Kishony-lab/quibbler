@@ -1427,15 +1427,16 @@ class Quib:
     relationships
     """
 
-    def get_children(self, limit_to_named_quibs: bool = False) -> Set[Quib]:
+    def get_children(self, bypass_intermediate_quibs: bool = False) -> Set[Quib]:
         """
         Return the set of quibs that are immediate dependants of the current quib.
 
         Parameters
         ----------
-        limit_to_named_quibs : True or False (default)
-            indicates whether to limit to named and graphics quibs or also include unnamed quibs.
-            Unnamed quibs are quibs whose `assigned_name` is `None`, typically representing intermediate calculations.
+        bypass_intermediate_quibs : True or False (default)
+            indicates whether to bypass intermediate quibs.
+            Intermediate quibs are defined as unnamed and non-graphics quibs, typically representing
+            intermediate calculations (``assigned_name=None`` and ``is_graphics=False``).
 
         Returns
         -------
@@ -1444,7 +1445,7 @@ class Quib:
 
         See Also
         --------
-        get_ancestors, get_parents, get_descendants, quib_network
+        get_ancestors, get_parents, get_descendants, dependency_graph
 
         Examples
         --------
@@ -1458,18 +1459,18 @@ class Quib:
         """
 
         children = set(self.handler.children)
-        if not limit_to_named_quibs:
+        if not bypass_intermediate_quibs:
             return children
 
         named_children = set()
         for child in children:
             if child.assigned_name is None and not child.is_graphics_quib:
-                named_children |= child.get_children(limit_to_named_quibs)
+                named_children |= child.get_children(bypass_intermediate_quibs)
             else:
                 named_children.add(child)
         return named_children
 
-    def get_descendants(self, limit_to_named_quibs: bool = False, depth: Optional[int] = None) -> Set[Quib]:
+    def get_descendants(self, bypass_intermediate_quibs: bool = False, depth: Optional[int] = None) -> Set[Quib]:
         """
         Search for all quibs downstream of current quib.
 
@@ -1477,9 +1478,10 @@ class Quib:
 
         Parameters
         ----------
-        limit_to_named_quibs : True or False (default)
-            indicates whether to limit to named quibs or also include unnamed quibs.
-            Unnamed quibs are quibs whose `assigned_name` is `None`, typically representing intermediate calculations.
+        bypass_intermediate_quibs : True or False (default)
+            indicates whether to bypass intermediate quibs.
+            Intermediate quibs are defined as unnamed and non-graphics quibs, typically representing
+            intermediate calculations (``assigned_name=None`` and ``is_graphics=False``).
 
         depth : int or None (default)
             Depth of search, `0` for returns empty set, `1` returns the children, etc.
@@ -1492,7 +1494,7 @@ class Quib:
 
         See Also
         --------
-        get_ancestors, children, parents, quib_network
+        get_ancestors, get_children, get_parents, dependency_graph
 
         Examples
         --------
@@ -1507,13 +1509,13 @@ class Quib:
         """
         descendants = set()
         if depth is None or depth > 0:
-            for child in self.get_children(limit_to_named_quibs):
+            for child in self.get_children(bypass_intermediate_quibs):
                 descendants.add(child)
-                descendants |= child.get_descendants(limit_to_named_quibs,
+                descendants |= child.get_descendants(bypass_intermediate_quibs,
                                                      depth if depth is None else depth - 1)
         return descendants
 
-    def get_parents(self, limit_to_named_quibs: bool = False, is_data_source: Optional[bool] = None) -> Set[Quib]:
+    def get_parents(self, bypass_intermediate_quibs: bool = False, is_data_source: Optional[bool] = None) -> Set[Quib]:
         """
         Return the set of quibs immediate upstream quibs to the current quib.
 
@@ -1522,9 +1524,10 @@ class Quib:
 
         Parameters
         ----------
-        limit_to_named_quibs : True or False. default: False
-            indicates whether to limit to named and graphics quibs or also include unnamed quibs.
-            Unnamed quibs are quibs whose `assigned_name` is `None`, typically representing intermediate calculations.
+        bypass_intermediate_quibs : True or False (default)
+            indicates whether to bypass intermediate quibs.
+            Intermediate quibs are defined as unnamed and non-graphics quibs, typically representing
+            intermediate calculations (``assigned_name=None`` and ``is_graphics=False``).
 
         is_data_source : True, False or None. default: None
             include only data sources (True) only paramter sources (False), or both (None, default).
@@ -1536,7 +1539,7 @@ class Quib:
 
         See Also
         --------
-        args, kwargs, get_ancestors, children, descendants, named_parents, quib_network
+        args, kwargs, get_ancestors, get_children, get_descendants, dependency_graph
 
         Examples
         --------
@@ -1557,18 +1560,18 @@ class Quib:
         else:
             parents = data_parents | parameter_parents
 
-        if not limit_to_named_quibs:
+        if not bypass_intermediate_quibs:
             return parents
 
         named_parents = set()
         for parent in parents:
             if parent.assigned_name is None and not parent.is_graphics_quib:
-                named_parents |= parent.get_parents(limit_to_named_quibs)
+                named_parents |= parent.get_parents(bypass_intermediate_quibs)
             else:
                 named_parents.add(parent)
         return named_parents
 
-    def get_ancestors(self, limit_to_named_quibs: bool = False, depth: Optional[int] = None) -> Set[Quib]:
+    def get_ancestors(self, bypass_intermediate_quibs: bool = False, depth: Optional[int] = None) -> Set[Quib]:
         """
         Search for all upstream quibs that this quib depends on.
 
@@ -1576,9 +1579,10 @@ class Quib:
 
         Parameters
         ----------
-        limit_to_named_quibs : True or False (default)
-            indicates whether to limit to named quibs or also include unnamed quibs.
-            Unnamed quibs are quibs whose `assigned_name` is `None`, typically representing intermediate calculations.
+        bypass_intermediate_quibs : True or False (default)
+            indicates whether to bypass intermediate quibs.
+            Intermediate quibs are defined as unnamed and non-graphics quibs, typically representing
+            intermediate calculations (``assigned_name=None`` and ``is_graphics=False``).
 
         depth : int or None (default)
             Depth of search, `0` for returns empty set, `1` returns the parents, etc.
@@ -1591,7 +1595,7 @@ class Quib:
 
         See Also
         --------
-        get_parents, get_children, get_descendants, quib_network
+        get_parents, get_children, get_descendants, dependency_graph
 
         Examples
         --------
@@ -1605,9 +1609,9 @@ class Quib:
         """
         ancestors = set()
         if depth is None or depth > 0:
-            for parent in self.get_parents(limit_to_named_quibs):
+            for parent in self.get_parents(bypass_intermediate_quibs):
                 ancestors.add(parent)
-                ancestors |= parent.get_ancestors(limit_to_named_quibs,
+                ancestors |= parent.get_ancestors(bypass_intermediate_quibs,
                                                   depth if depth is None else depth - 1)
         return ancestors
     """

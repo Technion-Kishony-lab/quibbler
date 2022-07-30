@@ -148,19 +148,19 @@ class QuibEdge(ipycytoscape.Edge):
             self.classes += " data_source "
 
 
-def _get_neighbour_quibs(quib: Quib, direction: Direction, limit_to_named_quibs: bool) -> Set[Quib]:
+def _get_neighbour_quibs(quib: Quib, direction: Direction, bypass_intermediate_quibs: bool) -> Set[Quib]:
     quibs = set()
     if direction is not Direction.UPSTREAM:
-        quibs |= quib.get_children(limit_to_named_quibs=limit_to_named_quibs)
+        quibs |= quib.get_children(bypass_intermediate_quibs=bypass_intermediate_quibs)
     if direction is not Direction.DOWNSTREAM:
-        quibs |= quib.get_parents(limit_to_named_quibs=limit_to_named_quibs)
+        quibs |= quib.get_parents(bypass_intermediate_quibs=bypass_intermediate_quibs)
     return quibs
 
 
 def _get_quibs_connected_up_down_or_all(focal_quib: Quib,
                                         direction: Direction,
                                         depth: int,
-                                        limit_to_named_quibs: bool,
+                                        bypass_intermediate_quibs: bool,
                                         quibs: Optional[Set[Quib]] = None) -> Set[Quib]:
     assert direction is not Direction.BOTH
     quibs = set() if quibs is None else quibs
@@ -171,7 +171,7 @@ def _get_quibs_connected_up_down_or_all(focal_quib: Quib,
             return
         quibs.add(quib)
         if depth_ > 0:
-            for neighbour_quib in _get_neighbour_quibs(quib, direction, limit_to_named_quibs):
+            for neighbour_quib in _get_neighbour_quibs(quib, direction, bypass_intermediate_quibs):
                 _get_quibs_recursively(neighbour_quib, depth_ - 1)
 
     _get_quibs_recursively(focal_quib, depth)
@@ -184,7 +184,7 @@ class QuibNetwork:
     direction: Union[str, Direction] = Direction.BOTH
     depth: int = infinity
     reverse_depth: int = 0
-    limit_to_named_quibs: bool = True
+    bypass_intermediate_quibs: bool = True
     _quibs: Optional[Set[Quib]] = None
     _links: Optional[Set[Tuple[Quib, Quib]]] = None
 
@@ -198,7 +198,7 @@ class QuibNetwork:
         quibs = _get_quibs_connected_up_down_or_all(self.focal_quib,
                                                     direction,
                                                     self.depth,
-                                                    self.limit_to_named_quibs)
+                                                    self.bypass_intermediate_quibs)
 
         if self.reverse_depth > 0:
             for quib in set(quibs):  # make a copy
@@ -207,7 +207,7 @@ class QuibNetwork:
                         quib,
                         reverse_direction(direction),
                         self.reverse_depth,
-                        self.limit_to_named_quibs,
+                        self.bypass_intermediate_quibs,
                         quibs - {quib})
                     quibs |= add_quibs
         return quibs
@@ -220,7 +220,7 @@ class QuibNetwork:
             return _get_quibs_connected_up_down_or_all(self.focal_quib,
                                                        self.direction,
                                                        self.depth,
-                                                       self.limit_to_named_quibs)
+                                                       self.bypass_intermediate_quibs)
 
         return self._get_quibs_connected_to_focal_quib_up_or_down_then_reverse(self.direction)
 
@@ -228,8 +228,8 @@ class QuibNetwork:
         quibs = self.quibs
         links = set()
         for i, quib in enumerate(quibs):
-            parents = quib.get_parents(limit_to_named_quibs=self.limit_to_named_quibs)
-            data_parents = quib.get_parents(limit_to_named_quibs=self.limit_to_named_quibs, is_data_source=True)
+            parents = quib.get_parents(bypass_intermediate_quibs=self.bypass_intermediate_quibs)
+            data_parents = quib.get_parents(bypass_intermediate_quibs=self.bypass_intermediate_quibs, is_data_source=True)
             parents &= quibs
             links |= {(parent, quib, parent in data_parents) for parent in parents}
         return links
@@ -311,12 +311,12 @@ class QuibNetwork:
                      direction=(type(None), str, Direction),
                      depth=(type(None), int),
                      reverse_depth=(type(None), int),
-                     limit_to_named_quibs=bool)
+                     bypass_intermediate_quibs=bool)
 def dependency_graph(focal_quib: Quib,
                      direction: Union[None, str, Direction] = None,
                      depth: Optional[int] = None,
                      reverse_depth: Optional[int] = 0,
-                     limit_to_named_quibs: bool = True) -> ipywidgets.Box:
+                     bypass_intermediate_quibs: bool = True) -> ipywidgets.Box:
     """
     Draw a network of quibs
 
@@ -357,14 +357,15 @@ def dependency_graph(focal_quib: Quib,
         When ``direction='upstream'``, setting ``reverse_depth > 0`` is helpful to understand what
         other results are affected by the parameters that affect the focal quib.
 
-    limit_to_named_quibs : True or False, default: True
-        Indicates whether to limit to named and graphics quibs or also include unnamed quibs.
-        Unnamed quibs are quibs whose ``assigned_name`` is `None`, typically representing intermediate calculations.
+        bypass_intermediate_quibs : True or False, default: True
+            indicates whether to bypass intermediate quibs.
+            Intermediate quibs are defined as unnamed and non-graphics quibs, typically representing
+            intermediate calculations (``assigned_name=None`` and ``is_graphics=False``).
 
     Returns
     -------
-    ipycytoscape.CytoscapeWidget
-        An ipycytoscape widget that represents the quib network.
+    ipywidgets.Box
+        An ipycytoscape.Box containing two ipycytoscape widgets, for the legend and the quib network.
 
     See Also
     --------
@@ -375,4 +376,4 @@ def dependency_graph(focal_quib: Quib,
                        direction=direction,
                        depth=depth,
                        reverse_depth=reverse_depth,
-                       limit_to_named_quibs=limit_to_named_quibs).get_network_widget_with_legend()
+                       bypass_intermediate_quibs=bypass_intermediate_quibs).get_network_widget_with_legend()

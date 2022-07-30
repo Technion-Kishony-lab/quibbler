@@ -73,11 +73,11 @@ quibs, typically representing intermediate results. For example:
 
 
 To byass these intermediate quibs and get the more relevant, named
-quibs, we can use the ``limit_to_named_quibs`` option:
+quibs, we can use the ``bypass_intermediate_quibs`` option:
 
 .. code:: python
 
-    c.get_parents(limit_to_named_quibs=True)
+    c.get_parents(bypass_intermediate_quibs=True)
 
 
 
@@ -121,7 +121,7 @@ Again, we can limit to named quibs:
 
 .. code:: python
 
-    d.get_ancestors(limit_to_named_quibs=True)
+    d.get_ancestors(bypass_intermediate_quibs=True)
 
 
 
