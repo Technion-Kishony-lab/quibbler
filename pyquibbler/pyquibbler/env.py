@@ -8,11 +8,6 @@ GRAPHICS_LAZY = Flag(False)
 
 PLOT_WITH_PICKER_TRUE_BY_DEFAULT = Flag(True)
 
-# Assignment restrictions are incomplete at the moment -
-# they consider changes to the same quib contradictory, while
-# only changes to the same paths should be.
-ASSIGNMENT_RESTRICTIONS = Flag(False)
-
 OVERRIDE_DIALOG_IN_SEPARATE_WINDOW = Flag(False)
 
 OVERRIDE_DIALOG_AS_TEXT_FOR_GRAPHICS_ASSIGNMENT = Flag(False)

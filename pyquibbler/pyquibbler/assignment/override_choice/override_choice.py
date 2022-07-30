@@ -8,7 +8,6 @@ from pyquibbler.assignment import AssignmentToQuib
 from .choice_context import ChoiceContext
 from .override_dialog import OverrideChoiceType, OverrideChoice
 from .types import OverrideGroup, QuibChangeWithOverrideRemovals
-from pyquibbler.env import ASSIGNMENT_RESTRICTIONS
 
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib
@@ -230,7 +229,6 @@ def get_override_group_for_quib_changes(quib_changes: List[AssignmentToQuib]) ->
         except CannotChangeQuibAtPathException:
             continue
         current_overridden_quibs = set(override.quib for override in override_group.quib_changes)
-        if not ASSIGNMENT_RESTRICTIONS or not current_overridden_quibs.intersection(all_overridden_quibs):
-            all_overridden_quibs.update(current_overridden_quibs)
-            result.extend(override_group)
+        all_overridden_quibs.update(current_overridden_quibs)
+        result.extend(override_group)
     return result

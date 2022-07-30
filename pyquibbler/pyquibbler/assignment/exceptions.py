@@ -23,13 +23,6 @@ class CannotReverseUnknownFuncException(CannotReverseException):
         return f'Reverse assignment is not implemented for {self.function_quib.func}'
 
 
-class CommonAncestorBetweenArgumentsException(CannotReverseException):
-    def __str__(self):
-        return 'Inverting an assignment of a function with two arguments sharing the same upstream ancestor' \
-               'is not allowed. \n'\
-               'Try setting ASSIGNMENT_RESTRICTIONS = True.'
-
-
 @dataclass
 class NoAssignmentFoundAtPathException(PyQuibblerException):
     path: Path

@@ -5,7 +5,7 @@ import pytest
 from pytest import fixture
 
 from pyquibbler import CacheMode
-from pyquibbler.env import DEBUG, LAZY, ASSIGNMENT_RESTRICTIONS, PRETTY_REPR, \
+from pyquibbler.env import DEBUG, LAZY, PRETTY_REPR, \
     SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS, GET_VARIABLE_NAMES
 from pyquibbler.project import Project
 from pyquibbler.function_overriding import initialize_quibbler
@@ -93,11 +93,6 @@ def setup_show_quib_exceptions_as_quib_traceback(request):
 def setup_get_variable_names(request):
     yield from setup_flag(GET_VARIABLE_NAMES, DEFAULT_GET_VARIABLE_NAMES,
                           request)
-
-
-@fixture(autouse=True)
-def setup_assignment_restrictions(request):
-    yield from setup_flag(ASSIGNMENT_RESTRICTIONS, DEFAULT_ASSIGNMENT_RESTRICTIONS, request)
 
 
 @fixture(scope='session', autouse=True)
