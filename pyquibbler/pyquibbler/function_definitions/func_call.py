@@ -4,7 +4,7 @@ from abc import abstractmethod, ABC
 from dataclasses import dataclass
 from typing import Tuple, Any, Mapping, Optional, Callable, List, TYPE_CHECKING, Type, ClassVar, Dict, Set
 
-from .location import SourceLocation, create_source_location
+from .location import SourceLocation
 from .types import Argument
 from pyquibbler.quib.external_call_failed_exception_handling import \
     external_call_failed_exception_handling
