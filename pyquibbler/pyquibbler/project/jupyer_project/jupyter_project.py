@@ -344,6 +344,11 @@ class JupyterProject(Project):
         if self._should_notify_client_of_quib_changes and quib.assigned_name:
             self._call_client(action_type="quibChange", message_data=get_serialized_quib(quib))
 
+    def get_save_within_notebook_state(self):
+        # When we just wake up, we are not initially synchronized with the "SAve/Load inside notebook" state of the
+        # client.
+        self._call_client(action_type="getShouldSaveLoadWithinNotebook", message_data={})
+
     def text_dialog(self, title: str, message: str, buttons_and_options: Iterable[Tuple[str, str]]) -> str:
         # Any text dialog needs to be send to the frontend as an alert
         answer_queue = multiprocessing.Queue()
@@ -364,3 +369,4 @@ def create_jupyter_project_if_in_jupyter_lab():
         project = JupyterProject.get_or_create()
         project.override_quib_persistence_functions()
         project.listen_for_events()
+        project.get_save_within_notebook_state()

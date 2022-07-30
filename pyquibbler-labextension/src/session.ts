@@ -5,7 +5,7 @@ import {Widget} from "@lumino/widgets";
 import {QuibsEditorWidget} from "./QuibsEditorWidget/QuibsEditor";
 import {IRequester, Requester} from "./requester";
 import {Cell, ICellModel} from "@jupyterlab/cells";
-import {getShowWithinNotebook} from "./globalConfig";
+import {getShouldSaveLoadWithinNotebook, getShowWithinNotebook} from "./globalConfig";
 
 /**
  * Represents a session between the client and a specific kernel. A session will create a requester once pyquibbler
@@ -89,6 +89,12 @@ export const Session = (panel: NotebookPanel,
         }
         case 'quibsArchiveUpdate': {
           onRemoteQuibsArchiveChange(panel, data);
+          break;
+        }
+        case 'getShouldSaveLoadWithinNotebook': {
+          getRequester().request("setShouldSaveLoadWithinNotebook", {
+            should_save_load_within_notebook: getShouldSaveLoadWithinNotebook()
+          });
           break;
         }
         case "quibChange": {
