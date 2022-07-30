@@ -3,7 +3,6 @@ from __future__ import annotations
 import matplotlib.pyplot as plt
 from typing import Optional, Dict
 
-from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
 from pyquibbler.project.project import Project, NothingToUndoException, NothingToRedoException, \

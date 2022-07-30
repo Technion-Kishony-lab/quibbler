@@ -1883,9 +1883,9 @@ class Quib:
             self.handler.on_file_name_change()
         else:
             raise InvalidArgumentValueException('assigned_name',
-                'name must be None or a string starting with a letter '
-                'and continuing alpha-numeric characters or spaces.'
-            )
+                                                'name must be None or a string starting with a letter '
+                                                'and continuing alpha-numeric characters or spaces.'
+                                                )
 
     @property
     def name(self) -> Optional[str]:

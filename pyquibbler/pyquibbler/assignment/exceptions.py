@@ -6,8 +6,6 @@ from pyquibbler.exceptions import PyQuibblerException
 
 
 if TYPE_CHECKING:
-    from pyquibbler import Assignment
-    from pyquibbler.quib import Quib
     from pyquibbler.path import Path
 
 

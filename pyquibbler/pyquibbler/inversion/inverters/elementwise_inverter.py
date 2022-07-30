@@ -6,9 +6,8 @@ from pyquibbler import Assignment
 from pyquibbler.translation.source_func_call import SourceFuncCall
 from pyquibbler.inversion.inverter import Inverter
 from pyquibbler.path.utils import working_component
-from pyquibbler.utilities.iterators import iter_objects_of_type_in_object_shallowly
 from pyquibbler.translation.translate import backwards_translate
-from pyquibbler.translation.types import Source, Inversal
+from pyquibbler.translation.types import Inversal
 from pyquibbler.translation.translators.elementwise.generic_inverse_functions import \
     create_inverse_single_arg_func, create_inverse_func_from_indexes_to_funcs
 

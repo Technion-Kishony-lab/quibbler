@@ -5,11 +5,10 @@ from dataclasses import dataclass
 from typing import Tuple, Any, Mapping, Optional, Callable, List, TYPE_CHECKING, Type, ClassVar, Dict, Set
 
 from .location import SourceLocation
-from .types import Argument
 from pyquibbler.quib.external_call_failed_exception_handling import \
     external_call_failed_exception_handling
 from pyquibbler.utilities.iterators import iter_args_and_names_in_function_call, \
-    get_paths_for_objects_of_type, get_object_type_locations_in_args_kwargs
+     get_object_type_locations_in_args_kwargs
 
 if TYPE_CHECKING:
     from pyquibbler.function_definitions import FuncDefinition
