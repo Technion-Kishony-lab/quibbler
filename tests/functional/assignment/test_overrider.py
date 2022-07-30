@@ -65,7 +65,7 @@ def test_overrider_remove_assignment(overrider):
 def test_overrider_raises_exception_when_out_of_bounds_on_active_assignment(overrider):
     overrider.add_assignment(Assignment(value=10, path=[PathComponent(component=10, indexed_cls=list)]))
 
-    with pytest.raises(FailedToDeepAssignException):
+    with pytest.raises(FailedToDeepAssignException, match='.*'):
         overrider.override([])
 
 

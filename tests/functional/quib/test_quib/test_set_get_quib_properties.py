@@ -46,7 +46,7 @@ def test_correctly_set_valid_values(prop_name, set_value, get_value):
 ])
 def test_reject_set_invlid_properties(prop_name, set_value, exception):
     a = iquib(2)
-    with pytest.raises(exception):
+    with pytest.raises(exception, match='.*'):
         setattr(a, prop_name, set_value)
 
 
