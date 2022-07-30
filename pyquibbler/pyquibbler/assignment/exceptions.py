@@ -12,18 +12,6 @@ if TYPE_CHECKING:
 
 
 @dataclass
-class CannotReverseException(PyQuibblerException):
-    function_quib: Quib
-    assignment: Assignment
-
-
-@dataclass
-class CannotReverseUnknownFuncException(CannotReverseException):
-    def __str__(self):
-        return f'Reverse assignment is not implemented for {self.function_quib.func}'
-
-
-@dataclass
 class NoAssignmentFoundAtPathException(PyQuibblerException):
     path: Path
 

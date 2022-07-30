@@ -4,7 +4,6 @@ from dataclasses import dataclass, field
 from typing import Any, TYPE_CHECKING, List
 from .default_value import default
 
-from .exceptions import CannotReverseException
 from pyquibbler.path.path_component import Path
 
 if TYPE_CHECKING:
@@ -46,12 +45,7 @@ class AssignmentToQuib:
     assignment: Assignment
 
     def get_inversions(self, return_empty_list_instead_of_raising=False) -> List[AssignmentToQuib]:
-        try:
-            return self.quib.handler.get_inversions_for_assignment(self.assignment)
-        except CannotReverseException:
-            if return_empty_list_instead_of_raising:
-                return []
-            raise
+        return self.quib.handler.get_inversions_for_assignment(self.assignment)
 
     def apply(self) -> None:
         self.quib.handler.override(self.assignment)
