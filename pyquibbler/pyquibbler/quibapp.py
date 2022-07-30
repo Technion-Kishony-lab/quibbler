@@ -1,7 +1,11 @@
 from __future__ import annotations
 
 import matplotlib.pyplot as plt
-from typing import Optional
+from typing import Optional, Dict
+
+from matplotlib.axes import Axes
+from matplotlib.figure import Figure
+
 from pyquibbler.project.project import Project, NothingToUndoException, NothingToRedoException, \
     NoProjectDirectoryException
 from matplotlib.widgets import Button, TextBox
@@ -34,9 +38,8 @@ class QuibApp:
     current_project: Optional[Project] = None
 
     def __init__(self):
-        self.figure = None
-        self.ax = None
-        self._buttons = None
+        self.figure: Optional[Figure] = None
+        self._buttons: Optional[Dict[str, Button]] = None
         self._path_text = None
 
     def create_app_figure(self):

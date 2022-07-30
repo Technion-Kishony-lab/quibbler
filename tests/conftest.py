@@ -4,12 +4,13 @@ from pathlib import Path
 import pytest
 from pytest import fixture
 
-from pyquibbler import CacheMode
+from pyquibbler import CacheMode, quibapp
 from pyquibbler.env import DEBUG, LAZY, PRETTY_REPR, \
     SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS, GET_VARIABLE_NAMES
 from pyquibbler.project import Project
 from pyquibbler.function_overriding import initialize_quibbler
 from pyquibbler.quib.func_calling import CachedQuibFuncCall
+from pyquibbler.quibapp import QuibApp
 from pyquibbler.utils import Flag
 
 DEFAULT_DEBUG = True
@@ -116,3 +117,11 @@ def project(tmpdir):
     yield Project.get_or_create(directory=Path(path))
     Project.current_project = None
     shutil.rmtree(path)
+
+
+@fixture()
+def quibapp_(tmpdir):
+    app = QuibApp.get_or_create()
+    yield app
+    app.close()
+
