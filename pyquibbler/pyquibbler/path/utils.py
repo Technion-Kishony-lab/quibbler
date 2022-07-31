@@ -20,13 +20,13 @@ def working_component_of_type(path: Path, type_: Union[Type, Tuple[Type, ...]], 
 
 
 def translate_bool_vector_to_slice_if_possible(bool_index: bool) -> Union[None, slice]:
-    indeces, = np.nonzero(bool_index)
-    if len(indeces) == 0:
-        return(slice(0, 0))
-    if len(indeces) == 1:
-        return (slice(indeces[0], indeces[0] + 1))
+    indices, = np.nonzero(bool_index)
+    if len(indices) == 0:
+        return slice(0, 0)
+    if len(indices) == 1:
+        return slice(indices[0], indices[0] + 1)
 
-    diff_indices = np.diff(indeces)
+    diff_indices = np.diff(indices)
     if np.all(diff_indices == diff_indices[0]):
-        return slice(indeces[0], indeces[-1] + 1, diff_indices[0])
+        return slice(indices[0], indices[-1] + 1, diff_indices[0])
     return None
