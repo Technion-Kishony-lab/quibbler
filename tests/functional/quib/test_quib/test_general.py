@@ -45,7 +45,7 @@ def test_quib_configure(quib):
 
 
 def test_quib_configure_with_invalid_value(quib):
-    with pytest.raises(InvalidArgumentTypeException):
+    with pytest.raises(InvalidArgumentTypeException, match='.*'):
         quib.setp(allow_overriding=3, name="pasten")
 
 
@@ -77,7 +77,7 @@ def test_parents(create_quib_with_return_value):
     parent2 = create_quib(func=mock.Mock(), args=(grandparent,))
     me = create_quib(func=mock.Mock(), args=(0, parent1, 2), kwargs=dict(a=parent2, b=3))
 
-    assert me.parents == {parent1, parent2}
+    assert me.get_parents() == {parent1, parent2}
 
 
 def test_quib_ancestors(create_quib_with_return_value):
@@ -86,5 +86,33 @@ def test_quib_ancestors(create_quib_with_return_value):
     parent = create_quib(func=mock.Mock(), args=(grandparent,))
     me = create_quib(func=mock.Mock(), args=(parent,))
 
-    assert me.ancestors == {great_grandparent, grandparent, parent}
+    assert me.get_ancestors() == {great_grandparent, grandparent, parent}
+
+
+def test_quib_ancestors_with_depth(create_quib_with_return_value):
+    great_grandparent = create_quib_with_return_value(1)
+    grandparent = create_quib(func=mock.Mock(), args=(great_grandparent,))
+    parent = create_quib(func=mock.Mock(), args=(grandparent,))
+    me = create_quib(func=mock.Mock(), args=(parent,))
+    assert me.get_ancestors(depth=2) == {grandparent, parent}
+
+
+def test_quib_named_parents(create_quib_with_return_value):
+    grandma = create_quib(func=mock.Mock(), assigned_name='grandma')
+    mom = create_quib(func=mock.Mock(), args=(grandma,), assigned_name='mom')
+    grandpa = create_quib(func=mock.Mock(), assigned_name='grandpa')
+    dad = create_quib(func=mock.Mock(), args=(grandpa,), assigned_name=None)  # unnamed
+    me = create_quib(func=mock.Mock(), args=(mom, dad))
+
+    assert me.get_parents(True) == {mom, grandpa}
+
+
+def test_quib_named_children(create_quib_with_return_value):
+    me = create_quib(func=mock.Mock())
+    son = create_quib(func=mock.Mock(), args=(me,), assigned_name=None)  # unnamed
+    daughter = create_quib(func=mock.Mock(), args=(me,), assigned_name='daughter')
+    grand_son = create_quib(func=mock.Mock(), args=(son,), assigned_name='grandson')
+    grand_daughter = create_quib(func=mock.Mock(), args=(daughter,), assigned_name='grandpa')
+
+    assert me.get_children(True) == {daughter, grand_son}
 

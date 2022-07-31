@@ -26,7 +26,7 @@ class QuibGuard:
     def __init__(self, quibs_allowed: Set):
         self._quibs_allowed = set(quibs_allowed)
         for quib in quibs_allowed:
-            self._quibs_allowed.update(quib.ancestors)
+            self._quibs_allowed.update(quib.get_ancestors())
 
     def __enter__(self):
         self._QUIB_GUARDS.append(self)

@@ -36,7 +36,7 @@ class MathPrecedence(enum.IntEnum):
 
 
 @dataclass
-class OperatorDefintion():
+class OperatorDefinition():
     symbol: str
     precedence: MathPrecedence
     commutative: bool = True
@@ -46,28 +46,28 @@ class OperatorDefintion():
 
 
 class Operator(enum.Enum):
-    POW = OperatorDefintion('**', MathPrecedence.EXPONENTIATION)
-    NEG = OperatorDefintion('-', MathPrecedence.POSNEG)
-    POS = OperatorDefintion('+', MathPrecedence.POSNEG)
-    NOT = OperatorDefintion('~', MathPrecedence.POSNEG)
-    MUL = OperatorDefintion('*', MathPrecedence.MULDIV)
-    MATMUL = OperatorDefintion('@', MathPrecedence.MULDIV)
-    TRUEDIV = OperatorDefintion('/', MathPrecedence.MULDIV, False)
-    FLOORDIV = OperatorDefintion('//', MathPrecedence.MULDIV, False)
-    MOD = OperatorDefintion('%', MathPrecedence.MULDIV, False)
-    ADD = OperatorDefintion('+', MathPrecedence.ADDSUB)
-    SUB = OperatorDefintion('-', MathPrecedence.ADDSUB, False)
-    LSHIFT = OperatorDefintion('<<', MathPrecedence.BITWISE_SHIFT)
-    RSHIFT = OperatorDefintion('>>', MathPrecedence.BITWISE_SHIFT)
-    AND = OperatorDefintion('&', MathPrecedence.BITWISE_AND)
-    XOR = OperatorDefintion('^', MathPrecedence.BITWISE_XOR)
-    OR = OperatorDefintion('|', MathPrecedence.BITWISE_OR)
-    LT = OperatorDefintion('<', MathPrecedence.COMPARISON)
-    GT = OperatorDefintion('>', MathPrecedence.COMPARISON)
-    LE = OperatorDefintion('<=', MathPrecedence.COMPARISON)
-    GE = OperatorDefintion('>=', MathPrecedence.COMPARISON)
-    EQ = OperatorDefintion('==', MathPrecedence.COMPARISON)
-    NE = OperatorDefintion('!=', MathPrecedence.COMPARISON)
+    POW = OperatorDefinition('**', MathPrecedence.EXPONENTIATION)
+    NEG = OperatorDefinition('-', MathPrecedence.POSNEG)
+    POS = OperatorDefinition('+', MathPrecedence.POSNEG)
+    NOT = OperatorDefinition('~', MathPrecedence.POSNEG)
+    MUL = OperatorDefinition('*', MathPrecedence.MULDIV)
+    MATMUL = OperatorDefinition('@', MathPrecedence.MULDIV)
+    TRUEDIV = OperatorDefinition('/', MathPrecedence.MULDIV, False)
+    FLOORDIV = OperatorDefinition('//', MathPrecedence.MULDIV, False)
+    MOD = OperatorDefinition('%', MathPrecedence.MULDIV, False)
+    ADD = OperatorDefinition('+', MathPrecedence.ADDSUB)
+    SUB = OperatorDefinition('-', MathPrecedence.ADDSUB, False)
+    LSHIFT = OperatorDefinition('<<', MathPrecedence.BITWISE_SHIFT)
+    RSHIFT = OperatorDefinition('>>', MathPrecedence.BITWISE_SHIFT)
+    AND = OperatorDefinition('&', MathPrecedence.BITWISE_AND)
+    XOR = OperatorDefinition('^', MathPrecedence.BITWISE_XOR)
+    OR = OperatorDefinition('|', MathPrecedence.BITWISE_OR)
+    LT = OperatorDefinition('<', MathPrecedence.COMPARISON)
+    GT = OperatorDefinition('>', MathPrecedence.COMPARISON)
+    LE = OperatorDefinition('<=', MathPrecedence.COMPARISON)
+    GE = OperatorDefinition('>=', MathPrecedence.COMPARISON)
+    EQ = OperatorDefinition('==', MathPrecedence.COMPARISON)
+    NE = OperatorDefinition('!=', MathPrecedence.COMPARISON)
 
 
 class MathExpression(ABC):

@@ -171,7 +171,7 @@ def test_vectorize_does_not_redraw_valid_artists(temp_axes, pass_quibs):
 def test_vectorize_with_empty_data_and_no_otypes(data, use_quib):
     data = iquib(data) if use_quib else data
     vectorized = np.vectorize(lambda x: x, lazy=False)
-    with pytest.raises(ValueError) as exc_info:
+    with pytest.raises(ValueError, match='.*') as exc_info:
         vectorized(data)
 
     assert exc_info.value.args[0] == 'cannot call `vectorize` on size 0 inputs unless `otypes` is set'

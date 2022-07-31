@@ -63,14 +63,3 @@ class KeywordSourceLocation(SourceLocation):
 
     def find_in_args_kwargs(self, args: Args, kwargs: Kwargs):
         return deep_get(kwargs, self.full_path)
-
-
-def create_source_location(argument: Argument, path: Path) -> SourceLocation:
-    """
-    Create a location of a source- this location indicates where the source is within the args kwargs,
-    and provides helper utilities to get and set values to the source's location within the args kwargs
-    """
-    if isinstance(argument, PositionalArgument):
-        return PositionalSourceLocation(argument, path)
-    else:
-        return KeywordSourceLocation(argument, path)

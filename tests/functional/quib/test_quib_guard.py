@@ -6,7 +6,7 @@ from pyquibbler.quib.quib_guard import CannotAccessQuibInScopeException, QuibGua
 
 def test_doesnt_allow_global_access():
     quib = iquib([49])
-    with pytest.raises(CannotAccessQuibInScopeException):
+    with pytest.raises(CannotAccessQuibInScopeException, match='.*'):
         with QuibGuard(set()):
             quib[0].get_value()
 
@@ -14,7 +14,7 @@ def test_doesnt_allow_global_access():
 def test_doesnt_allow_global_access_when_given_quibs():
     quib = iquib([49])
     other_quib = iquib([48])
-    with pytest.raises(CannotAccessQuibInScopeException):
+    with pytest.raises(CannotAccessQuibInScopeException, match='.*'):
         with QuibGuard({other_quib}):
             quib[0].get_value()
 
@@ -38,7 +38,7 @@ def test_quib_guard_within_quib_guard_gives_last_quib_guard_and_raises():
     quib = iquib(3)
     with QuibGuard({quib}):
         with QuibGuard(set()):
-            with pytest.raises(CannotAccessQuibInScopeException):
+            with pytest.raises(CannotAccessQuibInScopeException, match='.*'):
                 quib.get_value()
 
 

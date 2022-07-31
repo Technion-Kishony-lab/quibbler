@@ -11,7 +11,7 @@ from pyquibbler.quib.factory import create_quib
 
 
 def test_quib_set_cache_behaviour_forces_correct_type(quib):
-    with pytest.raises(InvalidArgumentTypeException):
+    with pytest.raises(InvalidArgumentTypeException, match='.*'):
         quib.cache_mode = 1
 
 
@@ -22,7 +22,7 @@ def test_quib_setp(quib):
 
 
 def test_quib_setp_with_invalid_cache_mode(quib):
-    with pytest.raises(UnknownEnumException):
+    with pytest.raises(UnknownEnumException, match='.*'):
         quib.setp(cache_mode='ondfdd')
 
 

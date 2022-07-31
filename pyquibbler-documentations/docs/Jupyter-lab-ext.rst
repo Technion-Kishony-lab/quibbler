@@ -73,7 +73,7 @@ shown on the left and the assigned value on the right.
 Graphics-driven assignments
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Interaction with graphics is :doc:`inverse propagated<inverse-assignments>`
+Interaction with graphics is :doc:`inverse propagated<Inverse-assignments>`
 to override upstream quibs. Such graphics-driven assignments can be
 viewed, in real time, in the Overriding Editor.
 

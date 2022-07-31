@@ -12,14 +12,14 @@ from tests.functional.utils import slicer, get_mock_with_repr
 
 
 def test_quib_must_assign_bool_to_overriding(quib):
-    with pytest.raises(InvalidArgumentTypeException):
+    with pytest.raises(InvalidArgumentTypeException, match='.*'):
         quib.allow_overriding = 1
 
 
 def test_quib_fails_when_not_matching_assignment_template():
     quib = create_quib(mock.Mock(return_value=[1, 2, 3]), allow_overriding=True)
     quib.set_assignment_template(1, 3)
-    with pytest.raises(InvalidTypeException):
+    with pytest.raises(InvalidTypeException, match='.*'):
         quib.assign("hello johnny", 2)
 
 
@@ -37,7 +37,7 @@ def test_set_and_get_assignment_template(args, expected_template, quib):
 
 @pytest.mark.parametrize('args', [(), (1, 2, 3, 4)])
 def test_set_assignment_template_with_wrong_number_of_args_raises_typeerror(args, quib):
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError, match='.*'):
         quib.set_assignment_template(*args)
 
 
@@ -152,7 +152,7 @@ def test_quib_fails_when_given_invalid_assignment_on_first_get_value():
     quib = create_quib(mock.Mock(return_value=[1, 2, 3]), allow_overriding=True)
     quib.assign(1, 4)
 
-    with pytest.raises(FailedToDeepAssignException):
+    with pytest.raises(FailedToDeepAssignException, match='.*'):
         quib.get_value()
 
 

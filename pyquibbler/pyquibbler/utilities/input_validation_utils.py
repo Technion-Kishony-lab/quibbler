@@ -47,7 +47,7 @@ def validate_user_input(**vars_to_expected_types):
         @functools.wraps(func)
         def _wrapper(*args, **kwargs):
             from pyquibbler.function_definitions.func_call import FuncArgsKwargs
-            arg_values = FuncArgsKwargs(func, args, kwargs, False)
+            arg_values = FuncArgsKwargs(func, args, kwargs, True)
             for var_name, expected_types in vars_to_expected_types.items():
                 if not isinstance(arg_values[var_name], expected_types):
                     raise InvalidArgumentTypeException(var_name=var_name, expected_type=expected_types)

@@ -3,14 +3,11 @@ import warnings
 import numpy as np
 
 from pyquibbler import Assignment
-from pyquibbler.assignment.exceptions import CommonAncestorBetweenArgumentsException
-from pyquibbler.env import ASSIGNMENT_RESTRICTIONS
 from pyquibbler.translation.source_func_call import SourceFuncCall
 from pyquibbler.inversion.inverter import Inverter
 from pyquibbler.path.utils import working_component
-from pyquibbler.utilities.iterators import iter_objects_of_type_in_object_shallowly
 from pyquibbler.translation.translate import backwards_translate
-from pyquibbler.translation.types import Source, Inversal
+from pyquibbler.translation.types import Inversal
 from pyquibbler.translation.translators.elementwise.generic_inverse_functions import \
     create_inverse_single_arg_func, create_inverse_func_from_indexes_to_funcs
 
@@ -20,27 +17,7 @@ class ElementwiseInverter(Inverter):
     def __init__(self, func_call: SourceFuncCall, assignment, previous_result):
         super().__init__(func_call, assignment, previous_result)
 
-    def raise_if_multiple_args_have_common_ancestor(self):
-        """
-        Raise an exception if we have multiple parents with a common ancestor- we do not know how to solve for x if
-        x is on both sides of the equation
-        """
-        all_ancestors = set()
-        for arg in iter_objects_of_type_in_object_shallowly(Source, self._func_call.args):
-            arg_and_ancestors = {arg}
-            from pyquibbler.quib import Quib
-            if isinstance(arg, Quib):
-                arg_and_ancestors |= arg.ancestors
-
-            if all_ancestors & arg_and_ancestors:
-                raise CommonAncestorBetweenArgumentsException(self, None)
-
-            all_ancestors |= arg_and_ancestors
-
     def get_inversals(self):
-        if ASSIGNMENT_RESTRICTIONS:
-            self.raise_if_multiple_args_have_common_ancestor()
-
         component = working_component(self._assignment.path)
         source_to_change = list(self._func_call.get_data_sources())[0]
 

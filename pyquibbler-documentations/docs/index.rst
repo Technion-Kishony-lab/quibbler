@@ -40,6 +40,7 @@ User guide
    Quib-naming
    Project-save-load
    Jupyter-lab-ext
+   Quib-relationships
 
 
 Functions

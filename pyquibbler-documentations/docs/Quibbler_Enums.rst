@@ -11,3 +11,4 @@ Quibbler special property classes
    CacheMode
    CacheStatus
    AssignmentTemplate
+   Direction

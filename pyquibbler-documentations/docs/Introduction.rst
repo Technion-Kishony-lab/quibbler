@@ -196,11 +196,11 @@ work directly with quib arguments, or with combinations of quibs and
 other objects, to create a *function quib*, a quib whose function is to
 perform the indicated operation. Such Quibbler-supported functions, also
 called *quiby functions*, include many standard *Python*, *NumPy* and
-*Matplotlib* functions (see :doc:`full list<Quiby functions>`). Operators,
-such as ``+``, ``-``, ``<``, ``>``, ``**``, ``@``, are also quiby, and
-so are all types of indexing including slicing, field access, and
-advanced indexing. We can therefore easily define a chained network of
-function quibs using standard *Python* syntax.
+*Matplotlib* functions (see :doc:`full list<List-of-quiby-functions>`).
+Operators, such as ``+``, ``-``, ``<``, ``>``, ``**``, ``@``, are also
+quiby, and so are all types of indexing including slicing, field access,
+and advanced indexing. We can therefore easily define a chained network
+of function quibs using standard *Python* syntax.
 
 As a simple example, let’s start with an input quib ``z`` representing a
 numeric *NumPy* array:

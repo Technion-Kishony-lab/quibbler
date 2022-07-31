@@ -12,10 +12,6 @@ class Inverter(ABC):
         self._assignment = assignment
         self._previous_result = previous_result
 
-    @classmethod
-    def from_(cls, func_call, assignment, previous_result):
-        return cls(func_call, assignment, previous_result)
-
     @abstractmethod
     def get_inversals(self):
         pass

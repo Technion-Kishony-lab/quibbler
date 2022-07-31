@@ -21,5 +21,5 @@ def test_graphics_quiby_function_doesnt_fail_when_creating_axes():
 
     plt.close("all")
     data = iquib([1, 2])
-    with pytest.raises(AxesCreatedDuringQuibEvaluationException):
+    with pytest.raises(AxesCreatedDuringQuibEvaluationException, match='.*'):
         quiby(plot_draggable, is_graphics=True)(data)

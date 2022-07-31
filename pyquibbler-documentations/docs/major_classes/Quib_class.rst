@@ -41,10 +41,10 @@ pyquibbler.Quib
 
    .. autosummary::
 
-      ~Quib.children
-      ~Quib.parents
-      ~Quib.descendants
-      ~Quib.ancestors
+      ~Quib.get_children
+      ~Quib.get_parents
+      ~Quib.get_descendants
+      ~Quib.get_ancestors
 
 
    .. rubric:: Assignments
@@ -85,7 +85,7 @@ pyquibbler.Quib
       ~Quib.functional_representation
       ~Quib.pretty_repr
       ~Quib.ugly_repr
-      ~Quib.display_props
+      ~Quib.display
 
 
    .. rubric:: Graphics

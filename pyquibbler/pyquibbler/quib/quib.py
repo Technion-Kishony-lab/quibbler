@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import copy
-import enum
 import pathlib
 import pickle
 import weakref
@@ -16,7 +15,6 @@ from pyquibbler.assignment.simplify_assignment import AssignmentSimplifier
 from pyquibbler.function_definitions import get_definition_for_function, FuncArgsKwargs
 from pyquibbler.quib.types import FileAndLineNumber
 from pyquibbler.utilities.file_path import PathWithHyperLink
-from functools import cached_property
 from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Union, Iterable, Mapping, Callable, Iterator
 from weakref import WeakSet
 
@@ -48,8 +46,7 @@ from pyquibbler.quib.graphics import GraphicsUpdateType
 from pyquibbler.translation.translate import forwards_translate, NoTranslatorsFoundException
 from pyquibbler.cache import create_cache, CacheStatus
 from pyquibbler.file_syncing import SaveFormat, SAVE_FORMAT_TO_FILE_EXT, CannotSaveFunctionQuibsAsValueException, \
-    ResponseToFileNotDefined, FileNotDefinedException, QuibFileSyncer, SAVE_FORMAT_TO_FQUIB_SAVE_FORMAT, \
-    FIRST_LINE_OF_FORMATTED_TXT_FILE
+    ResponseToFileNotDefined, FileNotDefinedException, QuibFileSyncer, SAVE_FORMAT_TO_FQUIB_SAVE_FORMAT
 from pyquibbler.quib.get_value_context_manager import get_value_context, is_within_get_value_context
 
 if TYPE_CHECKING:
@@ -57,8 +54,11 @@ if TYPE_CHECKING:
     from pyquibbler.assignment.override_choice import ChoiceContext
     from pyquibbler.assignment import OverrideChoice
     from pyquibbler.quib.func_calling import QuibFuncCall
+    from pyquibbler.quib.pretty_converters.quib_viewer import QuibViewer
 
 NoneType = type(None)
+
+FIRST_LINE_OF_FORMATTED_TXT_FILE = '# Formatted Quibbler value file (keep this note)'
 
 
 class QuibHandler:
@@ -76,7 +76,7 @@ class QuibHandler:
                  assigned_name: Optional[str],
                  created_in: Optional[FileAndLineNumber],
                  graphics_update: Optional[GraphicsUpdateType],
-                 save_directory: pathlib.Path,
+                 save_directory: PathWithHyperLink,
                  save_format: Optional[SaveFormat],
                  func: Optional[Callable],
                  args: Tuple[Any, ...] = (),
@@ -159,7 +159,7 @@ class QuibHandler:
     def get_descendants(self):
         children = set(self.children)  # copy to prevent set changing during operation
         for child in self.children:
-            children |= child.descendants
+            children |= child.get_descendants()
         return children
 
     @property
@@ -306,6 +306,10 @@ class QuibHandler:
     """
     assignments
     """
+
+    @property
+    def has_overrider(self) -> bool:
+        return self._overrider is not None
 
     @property
     def overrider(self):
@@ -579,15 +583,6 @@ class Quib:
     """
     A Quib is an object representing a specific call of a function with it's arguments.
     """
-
-    PROPERTY_LIST = (
-        ('Function', ('func', 'is_iquib', 'is_random', 'is_file_loading', 'is_graphics', 'pass_quibs')),
-        ('Arguments', ('args', 'kwargs')),
-        ('File saving', (('save_format', 'actual_save_format'), 'file_path')),
-        ('Assignments', ('assignment_template', 'allow_overriding', 'assigned_quibs')),
-        ('Caching', ('cache_mode', 'cache_status')),
-        ('Graphics', (('graphics_update', 'actual_graphics_update'), 'is_graphics_quib')),
-    )
 
     def __init__(self,
                  quib_function_call: QuibFuncCall = None,
@@ -993,10 +988,10 @@ class Quib:
         Parameters
         ----------
         value: any
-            a value to assign as an override to the quib's value.
+            A value to assign as an override to the quib's value.
 
         key: any
-            an optional key into which to assign the `value`.
+            An optional key into which to assign the `value`.
 
         See Also
         --------
@@ -1047,9 +1042,10 @@ class Quib:
 
         Setting ``assigned_quibs=set()`` prevents assignments.
 
-        To allow assignment to self, the focal quib or str 'self' can be used within the set of quibs.
+        To allow assignment to self, the focal quib or `'self'` can be used within the set of quibs.
+        When self is included the ``allow_overriding`` property is automatically set to ``True``.
 
-        Specifying a single quib, or 'self', is interpreted as a set containing this single quib.
+        Specifying a single quib, or `'self'`, is interpreted as a set containing this single quib.
 
         See Also
         --------
@@ -1074,6 +1070,9 @@ class Quib:
                     var_name='assigned_quibs',
                     message='a set of quibs.',
                 ) from None
+
+            if self in quibs:
+                self.allow_overriding = True
 
         self.handler.assigned_quibs = quibs
 
@@ -1161,7 +1160,7 @@ class Quib:
         allow_overriding : bool, optional
             Specifies whether the quib is open for overriding assignments.
 
-        assigned_quibs : None or Set[Quib]], optional
+        assigned_quibs : None or Set[Quib], optional
             Indicates which upstream quibs to inverse-assign to.
 
         assignment_template : tuple or AssignmentTemplate, optional
@@ -1170,10 +1169,10 @@ class Quib:
         save_directory : str or pathlib.Path, optional
             The directory to which quib assignments are saved.
 
-        save_format : None, str, or SaveFormat, optional
+        save_format : None, {'off', 'txt', 'bin', 'value_txt', 'value_bin'}, or SaveFormat, optional
             The file format for saving quib assignments.
 
-        cache_mode : str or CacheMode, optional
+        cache_mode : {'auto', 'on', 'off'} or CacheMode, optional
             Indicates whether the quib caches its calculated value.
 
         assigned_name : None or str, optional
@@ -1388,20 +1387,21 @@ class Quib:
     overrides
     """
 
-    def get_override_list(self) -> Overrider:
+    def get_override_list(self) -> Optional[Overrider]:
         """
         Return an Overrider object representing a list of overrides performed on the quib.
 
         Returns
         -------
-        Overrider
+        Overrider or None
             an object holding a list of all the assignments to the quib.
+            `None` if quib is not overridden
 
         See Also
         --------
         assign, assigned_quibs, allow_overriding
         """
-        return self.handler.overrider
+        return self.handler.overrider if self.handler.has_overrider else None
 
     def get_override_mask(self):
         """
@@ -1428,58 +1428,197 @@ class Quib:
     relationships
     """
 
-    @property
-    def children(self) -> Set[Quib]:
+    def get_children(self, bypass_intermediate_quibs: bool = False) -> Set[Quib]:
         """
-        set of Quib: The set of quibs that are immediate dependants of the current quib.
+        Return the set of quibs that are immediately downstream of the current quib.
+
+        Parameters
+        ----------
+        bypass_intermediate_quibs : bool, default: False
+            Indicates whether to bypass intermediate quibs.
+            Intermediate quibs are defined as unnamed and non-graphics
+            quibs (``assigned_name=None`` and ``is_graphics=False``), typically representing
+            intermediate calculations.
+
+        Returns
+        -------
+        Set of Quib
+            The set of child quibs
 
         See Also
         --------
-        ancestors, parents, descendants
-        """
-        return set(self.handler.children)
+        get_ancestors, get_parents, get_descendants, dependency_graph
 
-    @property
-    def descendants(self) -> Set[Quib]:
+        Examples
+        --------
+        >>> a = iquib(1)
+        >>> b = a + 1
+        >>> c = (a + 2) * b
+        >>> a.get_children()
+        {b = a + 1, a + 2}
+        >>> a.get_children(True)
+        {b = a + 1, c = (a + 2) * b}
         """
-        set of Quib: All quibs downstream of current quib.
 
-        Recursively find all the quibs that depend on the current quib.
+        children = set(self.handler.children)
+        if not bypass_intermediate_quibs:
+            return children
+
+        named_children = set()
+        for child in children:
+            if child.assigned_name is None and not child.is_graphics_quib:
+                named_children |= child.get_children(bypass_intermediate_quibs)
+            else:
+                named_children.add(child)
+        return named_children
+
+    def get_descendants(self, bypass_intermediate_quibs: bool = False, depth: Optional[int] = None) -> Set[Quib]:
+        """
+        Search for all quibs downstream of current quib.
+
+        Recursively search downstream to find all the quibs that depend on the current quib.
+
+        Parameters
+        ----------
+        bypass_intermediate_quibs : bool, default: False
+            Indicates whether to bypass intermediate quibs.
+            Intermediate quibs are defined as unnamed and non-graphics
+            quibs (``assigned_name=None`` and ``is_graphics=False``), typically representing
+            intermediate calculations.
+
+        depth : int or None
+            Depth of search, `0` returns empty set, `1` returns the children, etc.
+            `None` for infinite (default).
+
+        Returns
+        -------
+        Set of Quib
+            The set of descendant quibs
 
         See Also
         --------
-        ancestors, children, parents
-        """
-        return self.handler.get_descendants()
+        get_ancestors, get_children, get_parents, dependency_graph
 
-    @property
-    def parents(self) -> Set[Quib]:
+        Examples
+        --------
+        >>> a = iquib(1)
+        >>> b = a + 1
+        >>> c = (a + 2) * b
+        >>> d = b * (c + 1)
+        >>> a.get_descendants()
+        {b = a + 1, a + 2, c = (a + 2) * b, c + 1, d = b * (c + 1)}
+        >>> a.get_descendants(True)
+        {b = a + 1, c = (a + 2) * b, d = b * (c + 1)}
         """
-        set of Quib: The set of immediate upstream quibs that this quib depends on.
+        descendants = set()
+        if depth is None or depth > 0:
+            for child in self.get_children(bypass_intermediate_quibs):
+                descendants.add(child)
+                descendants |= child.get_descendants(bypass_intermediate_quibs,
+                                                     depth if depth is None else depth - 1)
+        return descendants
+
+    def get_parents(self, bypass_intermediate_quibs: bool = False, is_data_source: Optional[bool] = None) -> Set[Quib]:
+        """
+        Return the set of quibs immediate upstream to the current quib.
+
+        The parents are the immediate quibs that this quib depends on, namely the quibs in the args and kwargs
+        of the quib function call.
+
+        Parameters
+        ----------
+        bypass_intermediate_quibs : bool, default: False
+            Indicates whether to bypass intermediate quibs.
+            Intermediate quibs are defined as unnamed and non-graphics
+            quibs (``assigned_name=None`` and ``is_graphics=False``), typically representing
+            intermediate calculations.
+
+        is_data_source : bool or None. default: None
+            Include only data sources (`True`), only paramter sources (`False`), or both (`None`, default).
+
+        Returns
+        -------
+        Set of Quib
+            The set of parent quibs
 
         See Also
         --------
-        ancestors, children, descendants
-        """
-        return set(self.handler.parents)
+        args, kwargs, get_ancestors, get_children, get_descendants, dependency_graph
 
-    @cached_property
-    def ancestors(self) -> Set[Quib]:
+        Examples
+        --------
+        >>> a = iquib(1)
+        >>> b = iquib(3)
+        >>> c = (a + 2) * b
+        >>> c.get_parents()
+        {a + 2, b = iquib(3)}
+        >>> c.get_parents(True)
+        {a = iquib(1), b = iquib(3)}
         """
-        set of Quib: All upstream quibs that this quib depends on.
+        data_parents = set(self.handler.quib_function_call.get_data_sources())
+        parameter_parents = set(self.handler.quib_function_call.get_parameter_sources())
+        if is_data_source is True:
+            parents = data_parents
+        elif is_data_source is False:
+            parents = parameter_parents
+        else:
+            parents = data_parents | parameter_parents
+
+        if not bypass_intermediate_quibs:
+            return parents
+
+        named_parents = set()
+        for parent in parents:
+            if parent.assigned_name is None and not parent.is_graphics_quib:
+                named_parents |= parent.get_parents(bypass_intermediate_quibs)
+            else:
+                named_parents.add(parent)
+        return named_parents
+
+    def get_ancestors(self, bypass_intermediate_quibs: bool = False, depth: Optional[int] = None) -> Set[Quib]:
+        """
+        Search for all upstream quibs that this quib depends on.
 
         Recursively scan upstream to find all the quibs that this quib depends on.
 
+        Parameters
+        ----------
+        bypass_intermediate_quibs : bool, default: False
+            Indicates whether to bypass intermediate quibs.
+            Intermediate quibs are defined as unnamed and non-graphics
+            quibs (``assigned_name=None`` and ``is_graphics=False``), typically representing
+            intermediate calculations.
+
+        depth : int or None
+            Depth of search, `0` returns empty set, `1` returns the parents, etc.
+            `None` for infinite (default).
+
+        Returns
+        -------
+        Set of Quib
+            The set of ancestor quibs
+
         See Also
         --------
-        parents, children, descendants
+        get_parents, get_children, get_descendants, dependency_graph
+
+        Examples
+        --------
+        >>> a = iquib(1)
+        >>> b = iquib(3)
+        >>> c = (a + 2) * b
+        >>> c.get_ancestors()
+        {a = iquib(1), a + 2, b = iquib(3)}
+        >>> c.get_ancestors(True)
+        {a = iquib(1), b = iquib(3)}
         """
         ancestors = set()
-        for parent in self.parents:
-            ancestors.add(parent)
-            ancestors |= parent.ancestors
+        if depth is None or depth > 0:
+            for parent in self.get_parents(bypass_intermediate_quibs):
+                ancestors.add(parent)
+                ancestors |= parent.get_ancestors(bypass_intermediate_quibs,
+                                                  depth if depth is None else depth - 1)
         return ancestors
-
     """
     File saving
     """
@@ -1575,8 +1714,8 @@ class Quib:
                     and self.handler.is_overridden:
                 warnings.warn(str(exception))
         else:
-            path = PathWithHyperLink(self.actual_save_directory /
-                                     (self.assigned_name + SAVE_FORMAT_TO_FILE_EXT[self.actual_save_format]))
+            path = self.actual_save_directory \
+                   / (self.assigned_name + SAVE_FORMAT_TO_FILE_EXT[self.actual_save_format])
 
         return path
 
@@ -1598,13 +1737,13 @@ class Quib:
         file_path
         Project.directory
         """
-        return PathWithHyperLink(self.handler.save_directory) if self.handler.save_directory else None
+        return self.handler.save_directory
 
     @save_directory.setter
     @validate_user_input(directory=(NoneType, str, pathlib.Path))
     def save_directory(self, directory: Union[None, str, pathlib.Path]):
         if isinstance(directory, str):
-            directory = pathlib.Path(directory)
+            directory = PathWithHyperLink(directory)
         self.handler.save_directory = directory
         self.handler.on_file_name_change()
 
@@ -1743,10 +1882,10 @@ class Quib:
             self.handler.assigned_name = assigned_name
             self.handler.on_file_name_change()
         else:
-            raise InvalidArgumentValueException(
-                'name must be None or a string starting with a letter '
-                'and continuing alpha-numeric characters or spaces.'
-            )
+            raise InvalidArgumentValueException('assigned_name',
+                                                'name must be None or a string starting with a letter '
+                                                'and continuing alpha-numeric characters or spaces.'
+                                                )
 
     @property
     def name(self) -> Optional[str]:
@@ -1783,7 +1922,14 @@ class Quib:
 
     def _get_functional_representation_expression(self) -> MathExpression:
         try:
-            return pretty_convert.get_pretty_value_of_func_with_args_and_kwargs(self.func, self.args, self.kwargs)
+            from matplotlib.axes import Axes
+            if self.handler.func_definition.is_graphics and len(self.args) > 0 \
+                    and isinstance(self.args[0], Axes):
+                return pretty_convert.get_pretty_value_of_func_with_args_and_kwargs(self.func,
+                                                                                    self.args[1:], self.kwargs)
+
+            return pretty_convert.get_pretty_value_of_func_with_args_and_kwargs(self.func,
+                                                                                self.args, self.kwargs)
         except Exception as e:
             logger.warning(f"Failed to get repr {e}")
             return FailedMathExpression()
@@ -1886,40 +2032,21 @@ class Quib:
             return self.pretty_repr
         return self.ugly_repr
 
-    def display_props(self) -> None:
+    def display(self) -> QuibViewer:
         """
-        Display the properties of the quib.
+        Returns a QuibViewer which displays the properties of the quib.
 
         Returns
         -------
-        None
+        QuibViewer
+
+        See Also
+        --------
+        QuibViewer
         """
-        def _repr(value):
-            if isinstance(value, enum.Enum):
-                return value.name
-            if isinstance(value, str):
-                return f'"{value}"'
-            if isinstance(value, pathlib.Path):
-                return str(value)
-            return value
 
-        repr_ = ''
-        repr_ = repr_ + f'{"quib":>20}: {self}\n\n'
-        with REPR_RETURNS_SHORT_NAME.temporary_set(True):
-            for header, properties in self.PROPERTY_LIST:
-                repr_ = repr_ + f'{"--- " + header + " ---":>20}\n'
-                for prop in properties:
-                    if isinstance(prop, str):
-                        repr_ = repr_ + f'{prop:>20}: {_repr(getattr(self, prop))}'
-                    else:
-                        prop, actual_prop = prop
-                        repr_ = repr_ + f'{prop:>20}: {_repr(getattr(self, prop))}'
-                        if getattr(self, prop) is None:
-                            repr_ = repr_ + f' -> {_repr(getattr(self, actual_prop))}'
-                    repr_ = repr_ + '\n'
-                repr_ = repr_ + '\n'
-
-        print(repr_)
+        from .pretty_converters.quib_viewer import QuibViewer
+        return QuibViewer(self)
 
     @property
     def created_in(self) -> Optional[FileAndLineNumber]:

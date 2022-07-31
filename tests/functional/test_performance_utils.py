@@ -52,7 +52,7 @@ def test_timer_calls_callback(mock_time):
 
 
 def test_timer_raises_exception_for_unknown_timer(mock_time):
-    with pytest.raises(TimerNotFoundException):
+    with pytest.raises(TimerNotFoundException, match='.*'):
         get_timer('unknown')
 
 
