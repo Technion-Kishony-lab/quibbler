@@ -66,7 +66,8 @@ class GraphicsCollector(UponCreation, ABC):
         return self._objects_collected
 
     def _on_method_call(self, obj, *args, **kwargs):
-        self._objects_collected.append(obj)
+        if obj not in self._objects_collected:
+            self._objects_collected.append(obj)
 
 
 class ArtistsCollector(GraphicsCollector):
