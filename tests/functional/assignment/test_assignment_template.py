@@ -93,6 +93,9 @@ def test_assignment_template_convert(data, expected):
 
     # Regression- casts float
     (BoundAssignmentTemplate(1, 10), 1.7, 1),
+
+    # Regression - precision
+    (RangeAssignmentTemplate(0., 1., 0.01), np.log(2), 0.69),
 ])
 def test_casting_assignment_template(template, data, expected):
     result = template.convert(data)

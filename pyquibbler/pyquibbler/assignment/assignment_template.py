@@ -120,6 +120,17 @@ class BoundAssignmentTemplate(AssignmentTemplate):
         return get_number_in_bounds(number, self.minimum, self.maximum)
 
 
+def number_of_digits(value: Any):
+    s = str(value)
+    before_e = s.split('e')[0]
+    return len(before_e) - before_e.__contains__('.')
+
+
+def round_to_num_digits(value: Any, max_digits):
+    s = ('{:.' + str(max_digits - 1) + 'e}').format(value)
+    return type(value)(s)
+
+
 @dataclass
 class RangeAssignmentTemplate(AssignmentTemplate):
     """
@@ -129,20 +140,27 @@ class RangeAssignmentTemplate(AssignmentTemplate):
     start: Any
     stop: Any
     step: Any
+    _num_digits: int = None
 
     def __post_init__(self):
         if self.stop < self.start:
             raise RangeStopBelowStartException(self.start, self.stop)
         if (type(self.start) != type(self.stop)) or (type(self.start) != type(self.step)): # noqa
             raise TypesMustBeSameInAssignmentTemplateException()
+        self._num_digits = max(number_of_digits(self.start), number_of_digits(self.stop), number_of_digits(self.step))
 
     def _get_number_type(self) -> Type:
         return type(self.start)
 
     def _convert_number(self, number: Any):
-        rounded = np.round((number - self.start) / self.step)
-        bound = get_number_in_bounds(rounded, 0, np.floor((self.stop - self.start) / self.step))
-        return self.start + bound * self.step
+        num_steps = np.round((number - self.start) / self.step)
+        max_steps = np.floor((self.stop - self.start) / self.step)
+        bound_num_steps = get_number_in_bounds(num_steps, 0, max_steps)
+        value = self.start + bound_num_steps * self.step
+
+        # to prevent: RangeAssignmentTemplate(0., 1., 0.01).convert(np.log(2)) -> 0.6900000000000001
+        value = round_to_num_digits(value, self._num_digits)
+        return value
 
 
 def create_assignment_template(*args):
