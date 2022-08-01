@@ -91,7 +91,6 @@ class FuncOverride:
                     func_definition=func_definition_for_quib,
                     quib_locations=quib_locations,
                 )
-
             return self._call_wrapped_func(wrapped_func, args, kwargs)
 
         # _maybe_create_quib.func_definition = func_definition
@@ -136,34 +135,23 @@ class ClassOverride(FuncOverride):
     def _get_func_from_module_or_cls(self):
         func = super()._get_func_from_module_or_cls()
 
-        if func is object.__new__:
-            def wrapped_func(cls, *args, **kwargs):
+        @functools.wraps(func)
+        def wrapped_new(cls, *args, should_call_init=True, **kwargs):
+            if func is object.__new__:
                 obj = func(cls)
-                obj.__init__(*args, **kwargs)
-                return obj
-        else:
-            def wrapped_func(cls, *args, **kwargs):
+            else:
                 obj = func(cls, *args, **kwargs)
-                return obj
 
-        return wrapped_func
+            if should_call_init:
+                obj.__init__(*args, **kwargs)
 
-    # @staticmethod
-    # def _call_wrapped_func(func, args, kwargs) -> Any:
-    #
-    #     cls, *args = args
-    #
-    #     # Below is a workaround for a known problem related to replacing __new__:
-    #     # https://stackoverflow.com/questions/70799600/how-exactly-does-python-find-new-and-choose-its-arguments
-    #
-    #     if func is object.__new__:
-    #         obj = func(cls)
-    #     else:
-    #         obj = func(cls, *args, **kwargs)
-    #
-    #     obj.__init__(*args, **kwargs)
-    #
-    #     return obj
+            return obj
+
+        return wrapped_new
+
+    @staticmethod
+    def _call_wrapped_func(func, args, kwargs) -> Any:
+        return func(should_call_init=False, *args, **kwargs)
 
     def override(self) -> Callable:
         super().override()
