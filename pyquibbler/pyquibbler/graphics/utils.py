@@ -63,24 +63,29 @@ def remove_artist(artist: Artist):
         artist_array.remove(artist)
 
 
-def get_axeses_to_array_names_to_starting_indices_and_artists(artists: List[Artist]) \
-        -> Dict[Axes, Dict[str, Tuple[int, List[Artist]]]]:
+def remove_artists(artists: Iterable[Artist]):
+    for artist in artists:
+        remove_artist(artist)
+
+
+def get_axeses_to_array_names_to_starting_indices(artists: List[Artist]) \
+        -> Dict[Axes, Dict[str, int]]:
     """
     Creates a mapping of axes -> artists_array_name -> (starting_index, artists)
     """
-    axeses_to_array_names_to_indices_and_artists = {}
+    axeses_to_array_names_to_indices = {}
     for axes, array_names_to_artists in get_axeses_to_array_names_to_artists(artists).items():
-        array_names_to_indices_and_artists = {}
-        axeses_to_array_names_to_indices_and_artists[axes] = array_names_to_indices_and_artists
+        array_names_to_indices = {}
+        axeses_to_array_names_to_indices[axes] = array_names_to_indices
 
         for array_name, array_artists in array_names_to_artists.items():
             array = getattr(array_artists[0].axes, array_name)
             artists_set = set(array_artists)
             # Get the index of the artist that appears first in the array
             index = next(i for i, artist in enumerate(array) if artist in artists_set)
-            array_names_to_indices_and_artists[array_name] = (index, array_artists)
+            array_names_to_indices[array_name] = index
 
-    return axeses_to_array_names_to_indices_and_artists
+    return axeses_to_array_names_to_indices
 
 
 @contextmanager

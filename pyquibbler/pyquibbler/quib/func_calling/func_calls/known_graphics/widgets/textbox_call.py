@@ -6,7 +6,7 @@ from .widget_call import WidgetQuibFuncCall
 
 class TextBoxQuibFuncCall(WidgetQuibFuncCall):
 
-    def _on_change(self, new_value: float):
+    def _on_change(self, new_value: str):
         val = self.func_args_kwargs.get('initial')
         if isinstance(val, Quib):
             self._inverse_assign(val, [], new_value)
