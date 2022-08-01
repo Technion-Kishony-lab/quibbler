@@ -1,6 +1,7 @@
 import gc
 
 import pytest
+from matplotlib.artist import Artist
 from matplotlib.widgets import AxesWidget
 
 from pyquibbler.utilities.performance_utils import track_instances_of_class, \
@@ -28,3 +29,17 @@ def get_live_widgets():
     yield _get
 
     TRACKED_CLASSES_TO_WEAKREFS[AxesWidget] = set()
+
+
+@pytest.fixture()
+def get_live_artists(axes):
+    axes.figure.canvas.draw()
+    track_instances_of_class(Artist)
+
+    def _get():
+        gc.collect()
+        return list(get_all_instances_in_tracked_class(Artist))
+
+    yield _get
+
+    TRACKED_CLASSES_TO_WEAKREFS[Artist] = set()
