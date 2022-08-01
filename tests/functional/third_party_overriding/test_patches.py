@@ -44,3 +44,4 @@ def test_patch_update(axes, get_only_patch_from_axes):
     w.assign(10)
     assert p.get_value() is get_only_patch_from_axes()
     assert check_rectangle_location(p.get_value(), ((1, 2), 10, 4))
+    

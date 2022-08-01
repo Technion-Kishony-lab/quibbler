@@ -144,6 +144,8 @@ class ClassOverride(FuncOverride):
 
             return obj
 
+        wrapped_new.wrapped__new__ = True
+
         return wrapped_new
 
     @staticmethod

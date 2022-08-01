@@ -1927,6 +1927,11 @@ class Quib:
                     and isinstance(self.args[0], Axes):
                 return pretty_convert.get_pretty_value_of_func_with_args_and_kwargs(self.func,
                                                                                     self.args[1:], self.kwargs)
+            if getattr(self.func, 'wrapped__new__', False):
+                cls_name = str(self.args[0])
+                short_cls_name = cls_name.split('.')[-1][:-2]
+                return pretty_convert.get_pretty_value_of_func_with_args_and_kwargs(short_cls_name,
+                                                                                    self.args[1:], self.kwargs)
 
             return pretty_convert.get_pretty_value_of_func_with_args_and_kwargs(self.func,
                                                                                 self.args, self.kwargs)
