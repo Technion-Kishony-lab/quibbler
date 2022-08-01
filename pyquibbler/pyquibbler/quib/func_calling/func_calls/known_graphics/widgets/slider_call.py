@@ -13,5 +13,6 @@ class SliderQuibFuncCall(WidgetQuibFuncCall):
     def _connect_callbacks(self, widget: QSlider):
         widget.on_changed(self._on_change_slider)
 
-        # TODO: this line perhaps should be disabled. it causes the overriding dialog to appear twice.
-        widget.on_release = self._on_change_slider
+        # This line is now disabled. it causes the overriding dialog to appear twice.
+        # and it leads to two evaluations of randomization in the dice demo.
+        # widget.on_release = self._on_change_slider
