@@ -33,8 +33,6 @@ def create_graphics_overrides():
             'FancyBboxPatch',
             'Patch',
             'RegularPolygon',
-            'Shadow',
-            'Wedge',
         )),
 
         *(axes_override(func_name) for func_name in (
