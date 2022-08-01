@@ -19,12 +19,6 @@ ATTRIBUTES_TO_TRANSFER_PER_WIDGET = {
         'valstep',
         'valfmt'
     },
-    QRectangleSelector: {
-        '_corner_handles',
-        '_edge_handles',
-        '_center_handle',
-        'to_draw'
-    }
 }
 
 
