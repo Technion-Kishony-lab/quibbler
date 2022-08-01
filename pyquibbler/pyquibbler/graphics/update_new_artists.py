@@ -1,21 +1,34 @@
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Set
 
 from matplotlib.artist import Artist
 from matplotlib.axes import Axes
-from matplotlib.patches import Patch
+from matplotlib.patches import Patch, Rectangle
+from matplotlib.text import Text
+from matplotlib.lines import Line2D
 
 from pyquibbler.graphics.utils import ArrayNameToArtists
 
-ATTRIBUTES_TO_COPY = {}
+ATTRIBUTES_TO_COPY = {
+    Rectangle: {'_x0', '_y0', '_width', '_height'},
+    Patch: {'_path'},
+    Text: {'_text'},
+    Line2D: {'_xorig', '_yorig', '_x', '_y', '_xy', '_x_filled',
+             '_path', '_transformed_path'}
+}
+
+
+def get_attributes_to_copy(artist: Artist) -> Set[str]:
+    return next((attributes for artist_type, attributes in ATTRIBUTES_TO_COPY.items()
+                 if isinstance(artist, artist_type)),
+                set())
 
 
 def copy_attributes_from_new_to_previous_artists(previous_artists: List[Artist], new_artists: List[Artist]):
     # We only want to update from the new artists if their lengths are equal
     if len(new_artists) == len(previous_artists):
         for previous_artist, new_artist in zip(previous_artists, new_artists):
-            for attribute in ATTRIBUTES_TO_COPY.keys():
-                if hasattr(previous_artist, attribute) and hasattr(new_artist, attribute):
-                    setattr(previous_artist, attribute, getattr(new_artist, attribute))
+            for attribute in get_attributes_to_copy(previous_artist):
+                setattr(previous_artist, attribute, getattr(new_artist, attribute))
 
 
 def _update_drawing_order_of_created_artists(
