@@ -46,7 +46,17 @@ def test_rectangle_selector_move(axes, get_only_live_widget, get_live_artists, g
 
     assert len(get_live_widgets()) == 1
     new_roi = roi.get_value()
-    # We are apparently not exact and the values are coming out to be .399997 instead of .4, so we're rounding.
-    # If this turns out to be a real issue, we need to fix and create regression around this
-    new_roi = list(map(lambda x: round(x, 1), new_roi))
-    assert np.array_equal(new_roi, [0.4, 1., 0.4, 1.])
+
+    assert np.array_equal(np.round(new_roi, 4), [0.4, 1., 0.4, 1.])
+
+
+def test_rectangle_selector_update(axes, get_only_live_widget, get_live_artists, get_live_widgets,
+                                   roi, rectangle_selector):
+
+    widget = rectangle_selector.get_value()
+    bbox = widget._rect_bbox
+    assert np.array_equal(np.round(bbox, 4), [0.2, 0.2, 0.6, 0.6])
+
+    roi[0] = 0.3
+    bbox = widget._rect_bbox
+    assert np.array_equal(np.round(bbox, 4), [0.3, 0.2, 0.5, 0.6])
