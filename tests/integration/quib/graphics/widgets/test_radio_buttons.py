@@ -29,6 +29,8 @@ def radio_buttons(axes, active_quib):
 def test_radio_buttons_set_active_multiple_times(axes, get_only_live_widget, get_live_artists, get_live_widgets,
                                                  radio_buttons, active_quib):
     widget = get_only_live_widget()
+    original_num_artists = len(get_live_artists())
+
     with count_redraws(radio_buttons) as redraw_count:
         widget.set_active(0)
         widget.set_active(1)
@@ -36,7 +38,7 @@ def test_radio_buttons_set_active_multiple_times(axes, get_only_live_widget, get
 
     assert len(axes.patches) == 3
     assert len(axes.texts) == 3
-    assert len(get_live_artists()) == 6
+    assert len(get_live_artists()) == original_num_artists
     assert len(get_live_widgets()) == 1
 
     assert active_quib.get_value() == 2

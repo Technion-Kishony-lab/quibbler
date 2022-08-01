@@ -31,7 +31,7 @@ def test_rectangle_selector_move(axes, get_only_live_widget, get_live_artists, g
 
     assert len(axes.patches) == 1
     assert len(axes.lines) == 3
-    assert len(get_live_artists()) == 4
+    original_num_artists = len(get_live_artists())
 
     with count_redraws(rectangle_selector) as redraw_count:
         create_button_press_event(middle_x, middle_y)
@@ -42,7 +42,7 @@ def test_rectangle_selector_move(axes, get_only_live_widget, get_live_artists, g
 
     assert len(axes.patches) == 1
     assert len(axes.lines) == 3
-    assert len(get_live_artists()) == 4
+    assert len(get_live_artists()) == original_num_artists
 
     assert len(get_live_widgets()) == 1
     new_roi = roi.get_value()

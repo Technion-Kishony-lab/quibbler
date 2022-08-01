@@ -20,8 +20,12 @@ def textbox_quib(axes, input_quib):
     return widget
 
 
-def test_textbox(input_quib, textbox_quib, create_button_press_event, create_button_release_event, get_axes_start, get_axes_middle,
+def test_textbox(input_quib, textbox_quib, get_live_artists, create_button_press_event,
+                 create_button_release_event, get_axes_start, get_axes_middle,
                  get_axes_end, create_key_press_and_release_event, axes):
+
+    original_num_artists = len(get_live_artists())
+
     textbox = textbox_quib.get_value()
     assert textbox.text_disp is axes.texts[1], "sanity"
 
@@ -32,3 +36,4 @@ def test_textbox(input_quib, textbox_quib, create_button_press_event, create_but
     assert textbox.text_disp is axes.texts[1]
 
     assert input_quib.get_value() == 'h'
+    assert len(get_live_artists()) == original_num_artists

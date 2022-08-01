@@ -56,11 +56,13 @@ def test_slider_graphics_function_quib_press_and_motion_notify_changes_and_keeps
 
 @pytest.mark.regression
 @quibbler_image_comparison(baseline_images=['multiple_times'])
-def test_slider_graphics_function_quib_calls_multiple_times(axes, get_live_widgets, input_quib,
+def test_slider_graphics_function_quib_calls_multiple_times(axes, get_live_widgets, get_live_artists, input_quib,
                                                             create_button_press_event,
                                                             create_motion_notify_event,
                                                             create_button_release_event, get_axes_start,
                                                             slider_quib, get_axes_end, get_axes_middle):
+    original_num_artists = len(get_live_artists())
+
     with count_redraws(slider_quib) as redraw_count:
         create_button_press_event(*get_axes_start())
         create_motion_notify_event(*get_axes_end())
@@ -72,3 +74,4 @@ def test_slider_graphics_function_quib_calls_multiple_times(axes, get_live_widge
 
     assert redraw_count.count == 4  # press * 2 + motion * 2
     assert len(get_live_widgets()) == 1
+    assert len(get_live_artists()) == original_num_artists
