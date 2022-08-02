@@ -73,12 +73,10 @@ class Overrider:
         """
         Adds an override to the overrider - data[key] = value.
         """
-        assignment_without_indexed_cls = copy.deepcopy(assignment)
-        for component in assignment_without_indexed_cls.path:
-            component.indexed_cls = None
+        assignment = copy.deepcopy(assignment).remove_class_from_path()
 
-        self._active_assignment = assignment_without_indexed_cls
-        self._add_to_paths_to_assignments(assignment_without_indexed_cls)
+        self._active_assignment = assignment
+        self._add_to_paths_to_assignments(assignment)
 
     def pop_assignment_at_path(self, path: Path, raise_on_not_found: bool = True):
         hashable_path = get_hashable_path(path)

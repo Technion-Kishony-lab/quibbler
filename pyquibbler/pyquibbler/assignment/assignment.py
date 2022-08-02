@@ -30,6 +30,10 @@ class Assignment:
     def is_default(self) -> bool:
         return self.value is default
 
+    def remove_class_from_path(self):
+        for component in self.path:
+            component.indexed_cls = None
+
     @classmethod
     def create_default(cls, path: Path):
         return cls(default, path)
