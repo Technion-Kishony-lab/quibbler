@@ -3,10 +3,10 @@ import pathlib
 import pickle
 
 import numpy as np
-from typing import Any, Optional, Dict, Hashable, List
+from typing import Any, Optional, Dict, Hashable, List, Union
 
 from dataclasses import dataclass, field
-from .assignment import Assignment
+from .assignment import Assignment, AssignmentWithTolerance, convert_assignment_with_tolerance_to_pretty_assignment
 from .exceptions import NoAssignmentFoundAtPathException
 from ..path.hashable import get_hashable_path
 from pyquibbler.path.path_component import Path, Paths, PathComponent
@@ -69,12 +69,14 @@ class Overrider:
             self._paths_to_assignments.pop(hashable_path)
         self._paths_to_assignments[hashable_path] = assignment
 
-    def add_assignment(self, assignment: Assignment):
+    def add_assignment(self, assignment: Union[Assignment, AssignmentWithTolerance]):
         """
         Adds an override to the overrider - data[key] = value.
         """
-        assignment = copy.deepcopy(assignment).remove_class_from_path()
-
+        assignment = copy.deepcopy(assignment)
+        assignment.remove_class_from_path()
+        if isinstance(assignment, AssignmentWithTolerance):
+            assignment = convert_assignment_with_tolerance_to_pretty_assignment(assignment)
         self._active_assignment = assignment
         self._add_to_paths_to_assignments(assignment)
 
