@@ -201,13 +201,13 @@ def recursively_compare_objects_type(obj1: Any, obj2: Any, type_only=True) -> bo
             and all(recursively_compare_objects_type(val1, val2, type_only)
                     for val1, val2 in zip(obj1.values(), obj2.values()))
 
-    if isinstance(obj1, np.ndarray) and obj1.dtype is object:
+    if isinstance(obj1, np.ndarray) and obj1.dtype.type is np.object_:
         if obj1.shape != obj2.shape:
             return False
 
         return np.all(np.vectorize(recursively_compare_objects_type)(obj1, obj2, type_only))
 
-    if isinstance(obj1, np.ndarray) and obj1.dtype is not object:
+    if isinstance(obj1, np.ndarray) and obj1.dtype.type is not np.object_:
         return obj1.dtype is obj2.dtype and (type_only or np.array_equal(obj1, obj2))
 
     return False
@@ -219,13 +219,13 @@ def recursively_cast_one_object_by_other(template: Any, obj: Any) -> Any:
     if isinstance(template, (float, int, str)):
         return type(template)(obj)
 
-    if isinstance(template, np.ndarray) and template.dtype is object:
+    if isinstance(template, np.ndarray) and template.dtype.type is np.object_:
         obj = np.array(obj, dtype=object)
         if template.shape != obj.shape:
             raise CannotCastObjectByOtherObjectException()
         return np.vectorize(recursively_cast_one_object_by_other, otypes=[object])(template, obj)
 
-    if isinstance(template, np.ndarray) and template.dtype is not object:
+    if isinstance(template, np.ndarray) and template.dtype.type is not np.object_:
         return np.array(obj, dtype=template.dtype)
 
     if type(obj) is not type(template):
