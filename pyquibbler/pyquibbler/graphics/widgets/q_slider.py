@@ -1,5 +1,9 @@
+from numbers import Number
+
+import numpy as np
 from matplotlib.widgets import Slider
 
+from pyquibbler.assignment.assignment_template import round_to_num_digits
 from pyquibbler.graphics.drag_context_manager import enter_dragging, exit_dragging, releasing
 
 
@@ -25,3 +29,14 @@ class QSlider(Slider):
                 with releasing():
                     self.on_release(self.val)
             exit_dragging()
+
+    def _stepped_value(self, val):
+        """Return *val* coerced to closest number in the ``valstep`` grid."""
+
+        val = super()._stepped_value(val)
+
+        if isinstance(self.valstep, Number):
+            val = round_to_num_digits(val, 15)  # prevents values like 1.0000000000001
+
+        return val
+

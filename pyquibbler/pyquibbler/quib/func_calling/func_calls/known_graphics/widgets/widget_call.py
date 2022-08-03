@@ -1,6 +1,8 @@
 from typing import Callable, Tuple, Any, Mapping, Set
 
 from matplotlib.widgets import AxesWidget
+
+from pyquibbler.assignment.assignment import AssignmentWithTolerance
 from pyquibbler.path.path_component import Path
 from pyquibbler.graphics.graphics_collection import GraphicsCollection
 from pyquibbler.quib import Quib
@@ -19,10 +21,16 @@ class WidgetQuibFuncCall(CachedQuibFuncCall):
     def _get_axis(self):
         return self.func_args_kwargs.get('ax')
 
-    def _inverse_assign(self, quib: Quib, path: Path, value: Any):
+    def _inverse_assign(self, quib: Quib, path: Path, value: Any, tolerance: Any = None):
         from pyquibbler import Assignment
         with graphics_assignment_mode(self._get_axis()):
-            quib.handler.apply_assignment(Assignment(value=value, path=path))
+            if tolerance is None:
+                quib.handler.apply_assignment(Assignment(value=value, path=path))
+            else:
+                quib.handler.apply_assignment(AssignmentWithTolerance(value=value,
+                                                                      path=path,
+                                                                      value_up=value + tolerance,
+                                                                      value_down=value - tolerance))
 
     def _run_single_call(self, func: Callable, graphics_collection: GraphicsCollection,
                          args: Tuple[Any, ...], kwargs: Mapping[str, Any], quibs_allowed_to_access: Set[Quib]):
