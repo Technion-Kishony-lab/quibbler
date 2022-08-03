@@ -1,13 +1,18 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
+from typing import Union, Any
 
+from pyquibbler.assignment.assignment import Assignment
+from pyquibbler.function_definitions import FuncCall
 from pyquibbler.path.data_accessing import deep_assign_data_in_path
 from pyquibbler.translation.source_func_call import SourceFuncCall
 
 
 class Inverter(ABC):
 
-    def __init__(self, func_call: SourceFuncCall, assignment, previous_result):
+    def __init__(self, func_call: Union[FuncCall, SourceFuncCall],
+                 assignment: Assignment,
+                 previous_result: Any):
         self._func_call = func_call
         self._assignment = assignment
         self._previous_result = previous_result

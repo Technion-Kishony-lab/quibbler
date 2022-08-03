@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Type
 from dataclasses import dataclass
 
+from pyquibbler.assignment.simplify_assignment import is_scalar
 from pyquibbler.exceptions import DebugException, PyQuibblerException
 from pyquibbler.utilities.input_validation_utils import InvalidArgumentTypeException
 from pyquibbler.utilities.iterators import recursively_run_func_on_object
@@ -126,9 +127,19 @@ def number_of_digits(value: Any):
     return len(before_e) - before_e.__contains__('.')
 
 
-def round_to_num_digits(value: Any, max_digits):
-    s = ('{:.' + str(max_digits - 1) + 'e}').format(value)
-    return type(value)(s)
+def round_if_precision_is_not_inf(value, decimals):
+    if abs(decimals) > 100:  # inf
+        return value
+
+    return np.round(value, decimals)
+
+
+def round_to_num_digits(value, num_digits):
+    d = num_digits - np.int64(np.floor(np.log10(np.abs(value)))) - 1
+    if is_scalar(value):
+        return round_if_precision_is_not_inf(value, d)
+    else:
+        return np.vectorize(round_if_precision_is_not_inf)(value, d)
 
 
 @dataclass
