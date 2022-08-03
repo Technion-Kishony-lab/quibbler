@@ -4,7 +4,7 @@ from pyquibbler.env import LAZY
 from pyquibbler.function_overriding.function_override import FuncOverride
 from pyquibbler.function_definitions.definitions import add_definition_for_function
 from pyquibbler import list_quiby_funcs, is_quiby
-from pyquibbler.function_overriding.third_party_overriding.general_helpers import override_with_cls
+from pyquibbler.function_overriding.third_party_overriding.general_helpers import override_with_cls, override_class
 
 
 @pytest.fixture(autouse=True)
@@ -73,3 +73,15 @@ def test_overridden_function_is_quiby(mock_module, func_name_to_override, overri
     assert not is_quiby(getattr(mock_module, func_name_to_override)), 'sanity'
     override()
     assert is_quiby(getattr(mock_module, func_name_to_override))
+
+
+def test_overridden_class_is_quiby():
+    class Mdl:
+        class Cls: pass
+
+    override = override_class(Mdl, 'Cls')
+    assert not is_quiby(Mdl.Cls.__new__), 'sanity'
+    assert not is_quiby(Mdl.Cls), 'sanity'
+    override.override()
+    assert is_quiby(Mdl.Cls.__new__)
+    assert is_quiby(Mdl.Cls)

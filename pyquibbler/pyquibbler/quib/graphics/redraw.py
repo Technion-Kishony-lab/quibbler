@@ -41,7 +41,7 @@ def _redraw_quibs_with_graphics():
             quib.handler.redraw_if_appropriate()
 
     figures = {figure
-               for quib in quibs_that_are_invalid for figure in quib.handler.get_figures()}
+               for quib in quibs_that_are_invalid for figure in quib.handler.get_figures() if figure is not None}
 
     redraw_figures(figures)
     QUIBS_TO_REDRAW.clear()

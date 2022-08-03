@@ -155,7 +155,16 @@ def test_getitem_pretty_repr_with_quib_as_item():
 
 
 @pytest.mark.get_variable_names(True)
-def test_getitem_pretty_repr_str_format():
+def test_pretty_repr_str_format():
     a = iquib(3)
     b = iquib(7)
     assert q('a = {}, b = {}'.format, a, b).pretty_repr == '"a = {}, b = {}".format(a, b)'
+
+
+@pytest.mark.get_variable_names(True)
+def test_pretty_repr_class_override():
+    from matplotlib.patches import Rectangle
+    xy = iquib((3, 2))
+    w = iquib(7)
+    r = Rectangle(xy, w, 4, color='r')
+    assert r.pretty_repr == "r = Rectangle(xy, w, 4, color='r')"

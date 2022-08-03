@@ -3,7 +3,7 @@
 import matplotlib.image
 from pyquibbler.function_overriding.third_party_overriding.general_helpers import file_loading_override
 from pyquibbler.function_overriding.third_party_overriding.graphics.helpers import axes_override, \
-    axes_setter_override, widget_override, axes_lim_override, plot_override
+    axes_setter_override, widget_override, axes_lim_override, plot_override, patches_override
 from pyquibbler.quib.func_calling.func_calls import RadioButtonsQuibFuncCall, SliderQuibFuncCall, \
     RectangleSelectorQuibFuncCall,  CheckButtonsQuibFuncCall
 from pyquibbler.quib.func_calling.func_calls.known_graphics.plot_call import PlotQuibFuncCall
@@ -17,6 +17,23 @@ def create_graphics_overrides():
 
         plot_override(
             'scatter'),
+
+        *(patches_override(func_name) for func_name in (
+            'Arc',
+            'Arrow',
+            'ArrowStyle',
+            'BoxStyle',
+            'Circle',
+            'CirclePolygon',
+            'ConnectionPatch',
+            'ConnectionStyle',
+            'Ellipse',
+            'FancyArrow',
+            'FancyArrowPatch',
+            'FancyBboxPatch',
+            'Patch',
+            'RegularPolygon',
+        )),
 
         *(axes_override(func_name) for func_name in (
             'imshow',

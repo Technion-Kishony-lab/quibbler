@@ -1,5 +1,7 @@
 import copy
 import functools
+import warnings
+
 from dataclasses import dataclass
 from types import ModuleType
 from typing import Callable, Any, Dict, Union, Type, Optional, Tuple, Mapping
@@ -64,6 +66,9 @@ class FuncOverride:
         wrapped_func = self.original_func
         func_definition = self.func_definition
 
+        if hasattr(wrapped_func, '__quibbler_wrapped__'):
+            return wrapped_func
+
         @functools.wraps(wrapped_func)
         def _maybe_create_quib(*args, **kwargs):
 
@@ -86,7 +91,6 @@ class FuncOverride:
                     func_definition=func_definition_for_quib,
                     quib_locations=quib_locations,
                 )
-
             return self._call_wrapped_func(wrapped_func, args, kwargs)
 
         # _maybe_create_quib.func_definition = func_definition
@@ -97,9 +101,12 @@ class FuncOverride:
         # copy all public attr. this takes care of np.ufuncs like np.add.reduce, np.add.outer, etc
         # note that functools.wraps does not take care of attributes in dir but not in __dict__
         # see issue: #345
-        for attr in dir(wrapped_func):
-            if not attr.startswith('_'):
-                setattr(_maybe_create_quib, attr, getattr(wrapped_func, attr))
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")  # to avoid some "attribute was deprecated" warnings
+            for attr in dir(wrapped_func):
+                if not attr.startswith('_'):
+                    setattr(_maybe_create_quib, attr, getattr(wrapped_func, attr))
 
         return _maybe_create_quib
 
@@ -107,14 +114,48 @@ class FuncOverride:
     def original_func(self):
         if self._original_func is None:
             # not overridden yet
-            return self._get_func_from_module_or_cls()
+            self._original_func = self._get_func_from_module_or_cls()
         return self._original_func
 
     def override(self) -> Callable:
         """
         Override the original function and make it quibbler supporting
         """
-        self._original_func = self._get_func_from_module_or_cls()
         maybe_create_quib = self._create_quib_supporting_func()
         setattr(self.module_or_cls, self.func_name, maybe_create_quib)
         return maybe_create_quib
+
+
+@dataclass
+class ClassOverride(FuncOverride):
+    """
+    Overrides the __new__ method of a class to detect quib arguments at object creation.
+    """
+
+    def _get_func_from_module_or_cls(self):
+        func = super()._get_func_from_module_or_cls()
+
+        @functools.wraps(func)
+        def wrapped_new(cls, *args, should_call_init=True, **kwargs):
+
+            # A workaround for a known issue related to overloading __new__
+            # https://stackoverflow.com/questions/70799600/how-exactly-does-python-find-new-and-choose-its-arguments
+            obj = func(cls) if func is object.__new__ else func(cls, *args, **kwargs)
+
+            if should_call_init:
+                obj.__init__(*args, **kwargs)
+
+            return obj
+
+        wrapped_new.wrapped__new__ = True
+
+        return wrapped_new
+
+    @staticmethod
+    def _call_wrapped_func(func, args, kwargs) -> Any:
+        return func(should_call_init=False, *args, **kwargs)
+
+    def override(self) -> Callable:
+        super().override()
+        self.module_or_cls.__quibbler_wrapped__ = self.original_func
+        return self.module_or_cls
