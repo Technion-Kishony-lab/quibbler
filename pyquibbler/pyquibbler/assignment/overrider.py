@@ -3,10 +3,10 @@ import pathlib
 import pickle
 
 import numpy as np
-from typing import Any, Optional, Dict, Hashable, List, Union
+from typing import Any, Optional, Dict, Hashable, List
 
 from dataclasses import dataclass, field
-from .assignment import Assignment, AssignmentWithTolerance, convert_assignment_with_tolerance_to_pretty_assignment
+from .assignment import Assignment
 from .exceptions import NoAssignmentFoundAtPathException
 from ..path.hashable import get_hashable_path
 from pyquibbler.path.path_component import Path, Paths, PathComponent

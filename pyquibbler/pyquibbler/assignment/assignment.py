@@ -58,9 +58,10 @@ class AssignmentWithTolerance(Assignment):
         """
         Convert this AssignmentWithTolerance into 3 separate normal Assignments.
         """
-        return Assignment(self.value, self.path), \
-               Assignment(self.value_up, self.path), \
-               Assignment(self.value_down, self.path)
+        return \
+            Assignment(self.value, self.path), \
+            Assignment(self.value_up, self.path), \
+            Assignment(self.value_down, self.path)
 
     def get_relative_error(self):
         return np.abs((self.value_up - self.value_down) / 2 / self.value)

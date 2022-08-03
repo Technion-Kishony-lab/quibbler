@@ -31,6 +31,10 @@ class MultipleInverterRunner(MultipleInstanceRunner):
         """
         Run the inverter 3 times to get the nominal inverted value and the plus/minus tolerance
         """
+
+        # TODO: will be better to implement this within each inverter. For example, in the transpositional inverter
+        #  there is no need to get the path 3 times.
+
         inversals_nominal_up_down = \
             (runner(
                 func_call=self._func_call,
@@ -48,7 +52,7 @@ class MultipleInverterRunner(MultipleInstanceRunner):
                              assignment=inversal.assignment,
                              value_up=inversal_up.assignment.value,
                              value_down=inversal_down.assignment.value,
-                             )
+                         )
                          )
             )
         return inversals
