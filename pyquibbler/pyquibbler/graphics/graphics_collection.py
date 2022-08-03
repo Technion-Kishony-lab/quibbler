@@ -10,7 +10,7 @@ from pyquibbler.graphics.update_new_artists import update_new_artists_from_previ
 from pyquibbler.graphics.global_collecting import ArtistsCollector, AxesWidgetsCollector, AxesCreationPreventor, \
     ColorCyclerIndexCollector
 from pyquibbler.graphics.utils import get_artist_array, \
-    get_axeses_to_array_names_to_starting_indices, remove_artist, \
+    get_axeses_to_array_names_to_starting_indices, \
     get_axeses_to_array_names_to_artists, remove_artists
 from pyquibbler.utilities.settable_cycle import SettableColorCycle
 

@@ -1,6 +1,5 @@
 from numbers import Number
 
-import numpy as np
 from matplotlib.widgets import Slider
 
 from pyquibbler.assignment.assignment_template import round_to_num_digits
@@ -39,4 +38,3 @@ class QSlider(Slider):
             val = round_to_num_digits(val, 15)  # prevents values like 1.0000000000001
 
         return val
-

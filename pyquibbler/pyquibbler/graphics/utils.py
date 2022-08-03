@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import List, Tuple, Dict, Iterable
+from typing import List, Dict, Iterable
 from contextlib import contextmanager
 
 from matplotlib.axes import Axes
