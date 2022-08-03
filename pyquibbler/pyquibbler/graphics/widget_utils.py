@@ -4,7 +4,6 @@ from typing import List
 from matplotlib.widgets import AxesWidget, Button, Slider
 
 from pyquibbler.exceptions import PyQuibblerException
-from pyquibbler.graphics.widgets import QRectangleSelector
 
 ATTRIBUTES_TO_TRANSFER_PER_WIDGET = {
     Button: {
@@ -19,12 +18,6 @@ ATTRIBUTES_TO_TRANSFER_PER_WIDGET = {
         'valstep',
         'valfmt'
     },
-    QRectangleSelector: {
-        '_corner_handles',
-        '_edge_handles',
-        '_center_handle',
-        'to_draw'
-    }
 }
 
 

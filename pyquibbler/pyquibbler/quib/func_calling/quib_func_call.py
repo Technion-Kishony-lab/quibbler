@@ -25,7 +25,7 @@ class QuibFuncCall(FuncCall):
     """
 
     artists_creation_callback: Optional[Callable] = None
-    graphics_collections: Optional[np.ndarray] = None
+    graphics_collections: Optional[np.ndarray[GraphicsCollection]] = None
     method_cache: Mapping[CachedCall, Any] = field(default_factory=dict)
     cache: Optional[Cache] = None
     _caching: bool = False

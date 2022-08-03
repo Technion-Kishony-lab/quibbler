@@ -1,27 +1,37 @@
-from typing import List, Dict, Tuple
+from typing import List, Dict, Set
 
 from matplotlib.artist import Artist
 from matplotlib.axes import Axes
-from matplotlib.patches import Patch
+from matplotlib.patches import Patch, Rectangle
+from matplotlib.text import Text
+from matplotlib.lines import Line2D
 
 from pyquibbler.graphics.utils import ArrayNameToArtists
 
-ATTRIBUTES_TO_COPY = {}
+ATTRIBUTES_TO_COPY = {
+    Rectangle: {'_x0', '_y0', '_width', '_height'},
+    Patch: {'_path'},
+    Text: {'_text'},
+
+    # need to copy '_invalidx', '_invalidy' because the new artists may not be valid (drawn) yet
+    # this happens in the RectangleSelector
+    Line2D: {'_xorig', '_yorig', '_x', '_y', '_xy', '_x_filled',
+             '_path', '_transformed_path', '_invalidx', '_invalidy'}
+}
 
 
-def _copy_attributes_from_previous_to_new_artists(previous_artists: List[Artist], new_artists: List[Artist]):
-    # Copy attributes from old to new artists
-    # This functionality was used for copying auto-specified colors, which is not needed anymore as we are now using the
-    # settable color cycler.
-    # It is left here for now for possible future need.
+def get_attributes_to_copy(artist: Artist) -> Set[str]:
+    return next((attributes for artist_type, attributes in ATTRIBUTES_TO_COPY.items()
+                 if isinstance(artist, artist_type)),
+                set())
 
-    # We only want to update from the previous artists if their lengths are equal (if so, we assume they're
-    # referencing the same artists)
+
+def copy_attributes_from_new_to_previous_artists(previous_artists: List[Artist], new_artists: List[Artist]):
+    # We only want to update from the new artists if their lengths are equal
     if len(new_artists) == len(previous_artists):
         for previous_artist, new_artist in zip(previous_artists, new_artists):
-            for attribute in ATTRIBUTES_TO_COPY.keys():
-                if hasattr(previous_artist, attribute):
-                    setattr(new_artist, attribute, getattr(previous_artist, attribute))
+            for attribute in get_attributes_to_copy(previous_artist):
+                setattr(previous_artist, attribute, getattr(new_artist, attribute))
 
 
 def _update_drawing_order_of_created_artists(
@@ -41,23 +51,20 @@ def _update_drawing_order_of_created_artists(
 
 
 def update_new_artists_from_previous_artists(
-        previous_axeses_to_array_names_to_indices_and_artists: Dict[Axes, Dict[str, Tuple[int, List[Artist]]]],
-        current_axeses_to_array_names_to_artists: Dict[Axes, ArrayNameToArtists],
-        should_copy_artist_attributes: bool):
+        previous_axeses_to_array_names_to_indices: Dict[Axes, Dict[str, int]],
+        current_axeses_to_array_names_to_artists: Dict[Axes, ArrayNameToArtists]):
     """
     Updates the drawing order and attributes of the new artists from old ones
     """
     for axes, current_array_names_to_artists in current_axeses_to_array_names_to_artists.items():
         for array_name, artists in current_array_names_to_artists.items():
-            if array_name in previous_axeses_to_array_names_to_indices_and_artists.get(axes, {}):
-                array_names_to_indices_and_artists = previous_axeses_to_array_names_to_indices_and_artists[axes]
-                starting_index, previous_artists = array_names_to_indices_and_artists[array_name]
+            if array_name in previous_axeses_to_array_names_to_indices.get(axes, {}):
+                array_names_to_indices = previous_axeses_to_array_names_to_indices[axes]
+                starting_index = array_names_to_indices[array_name]
                 _update_drawing_order_of_created_artists(axes=axes,
                                                          array_name=array_name,
                                                          new_artists=artists,
                                                          starting_index=starting_index)
-                if should_copy_artist_attributes:
-                    _copy_attributes_from_previous_to_new_artists(previous_artists, artists)
 
             # Else, if the array name isn't in previous_array_names_to_indices_and_artists,
             # we don't need to update drawing order, or copy attributes
