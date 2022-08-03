@@ -10,6 +10,8 @@ import json_tricks
 import numpy as np
 from matplotlib import pyplot
 
+from pyquibbler.assignment.assignment import AssignmentWithTolerance, \
+    convert_assignment_with_tolerance_to_pretty_assignment
 from pyquibbler.assignment.default_value import missing
 from pyquibbler.assignment.simplify_assignment import AssignmentSimplifier
 from pyquibbler.function_definitions import get_definition_for_function, FuncArgsKwargs
@@ -331,9 +333,11 @@ class QuibHandler:
         except InvalidTypeException as e:
             raise InvalidTypeException(e.type_) from None
 
-    def override(self, assignment: Assignment):
+    def override(self, assignment: Union[Assignment, AssignmentWithTolerance]):
         """
         Overrides a part of the data the quib represents.
+        We are shaping the assignment and making it "pretty" in three steps:
+        rounding according to tolerance, simplify, template
         """
 
         from pyquibbler.quib.graphics.redraw import notify_of_overriding_changes_or_add_in_aggregate_mode
@@ -341,8 +345,14 @@ class QuibHandler:
         if not self.is_overridden and assignment.is_default():
             return
 
+        # step 1: round by tolerance:
+        if isinstance(assignment, AssignmentWithTolerance):
+            assignment = convert_assignment_with_tolerance_to_pretty_assignment(assignment)
+
+        # step 2: simplify to make it "pretty":
         AssignmentSimplifier(assignment, self.get_value_valid_at_path(None)).simplify()
 
+        # step 3: template the value according to user defined assignment_template:
         if self.assignment_template is not None and not assignment.is_default():
             assignment.value = self.assignment_template.convert(assignment.value)
 

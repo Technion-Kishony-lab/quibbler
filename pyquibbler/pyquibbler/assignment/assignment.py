@@ -2,6 +2,7 @@ from __future__ import annotations
 import numpy as np
 from dataclasses import dataclass, field
 from typing import Any, TYPE_CHECKING, List
+
 from .default_value import default
 
 from pyquibbler.path.path_component import Path
@@ -42,16 +43,27 @@ class Assignment:
 
 @dataclass
 class AssignmentWithTolerance(Assignment):
+    """
+    An assignment whose value is known up to a given tolerance.
+    Assignment-with-tolerance are created in graphics-driven assignments to reflect the resolution of the mouse event.
+    These tolerances are then followed upstream as part of the process of inverse-assignment,
+    allowing rounding the actual override to the correct number of significant digits.
+    """
+
+    # The upper and lower limits of the assignment value:
     value_up: Any = None
     value_down: Any = None
 
     def get_assignments_nominal_up_down(self):
-        return Assignment(self.value, self.path),\
+        """
+        Convert this AssignmentWithTolerance into 3 separate normal Assignments.
+        """
+        return Assignment(self.value, self.path), \
                Assignment(self.value_up, self.path), \
                Assignment(self.value_down, self.path)
 
-    def get_tolerance(self):
-        return np.abs(self.value_up - self.value_down) / 2
+    def get_relative_error(self):
+        return np.abs((self.value_up - self.value_down) / 2 / self.value)
 
     @classmethod
     def from_assignment_and_up_down_values(cls, assignment: Assignment,
@@ -72,13 +84,16 @@ class AssignmentWithTolerance(Assignment):
 def convert_assignment_with_tolerance_to_pretty_assignment(
         assignment: AssignmentWithTolerance) -> Assignment:
 
-    relative_error = assignment.get_tolerance() / assignment.value
-    num_digits = -np.log10(relative_error)
+    from .assignment_template import round_to_num_digits
 
-    # TODO: maybe better to round each value in the array with its own number rof digits
-    num_digits = int(np.ceil(np.max(num_digits)))
+    value = assignment.value
+    try:
+        relative_error = assignment.get_relative_error()
+        num_digits = np.int64(np.ceil(-np.log10(relative_error)))
+        value = round_to_num_digits(value, num_digits)
+    except TypeError:
+        pass
 
-    value = np.round(assignment.value, num_digits)
     return Assignment(value=value, path=assignment.path)
 
 

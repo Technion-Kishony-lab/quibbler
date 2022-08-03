@@ -69,14 +69,12 @@ class Overrider:
             self._paths_to_assignments.pop(hashable_path)
         self._paths_to_assignments[hashable_path] = assignment
 
-    def add_assignment(self, assignment: Union[Assignment, AssignmentWithTolerance]):
+    def add_assignment(self, assignment: Assignment):
         """
         Adds an override to the overrider - data[key] = value.
         """
         assignment = copy.deepcopy(assignment)
         assignment.remove_class_from_path()
-        if isinstance(assignment, AssignmentWithTolerance):
-            assignment = convert_assignment_with_tolerance_to_pretty_assignment(assignment)
         self._active_assignment = assignment
         self._add_to_paths_to_assignments(assignment)
 
