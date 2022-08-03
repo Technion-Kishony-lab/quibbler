@@ -1,9 +1,8 @@
 import contextlib
 from dataclasses import dataclass, field
-from typing import List, Set, Dict
+from typing import List, Dict
 
 from matplotlib.artist import Artist
-from matplotlib.patches import Patch
 from matplotlib.widgets import AxesWidget
 
 from pyquibbler.graphics.update_new_artists import update_new_artists_from_previous_artists, \

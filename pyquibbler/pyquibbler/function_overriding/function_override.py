@@ -137,6 +137,9 @@ class ClassOverride(FuncOverride):
 
         @functools.wraps(func)
         def wrapped_new(cls, *args, should_call_init=True, **kwargs):
+
+            # A workaround for a known issue related to overloading __new__
+            # https://stackoverflow.com/questions/70799600/how-exactly-does-python-find-new-and-choose-its-arguments
             obj = func(cls) if func is object.__new__ else func(cls, *args, **kwargs)
 
             if should_call_init:
