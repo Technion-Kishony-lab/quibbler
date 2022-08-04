@@ -168,3 +168,11 @@ def test_pretty_repr_class_override():
     w = iquib(7)
     r = Rectangle(xy, w, 4, color='r')
     assert r.pretty_repr == "r = Rectangle(xy, w, 4, color='r')"
+
+
+@pytest.mark.get_variable_names(True)
+def test_pretty_plt_function():
+    import matplotlib.pyplot as plt
+    x = iquib(1)
+    h = plt.plot(x, x ** 2, color='r')
+    assert h.pretty_repr == "h = plot(x, x ** 2, color='r')"
