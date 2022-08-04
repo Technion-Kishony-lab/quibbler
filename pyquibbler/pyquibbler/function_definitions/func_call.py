@@ -8,7 +8,7 @@ from typing import Tuple, Any, Mapping, Optional, Callable, List, TYPE_CHECKING,
 from .location import SourceLocation
 from pyquibbler.quib.external_call_failed_exception_handling import \
     external_call_failed_exception_handling
-from pyquibbler.utilities.iterators import get_object_type_locations_in_args_kwargs
+from pyquibbler.utilities.iterators import get_object_type_locations_in_args_kwargs, recursively_compare_objects_type
 from ..utils import get_signature_for_func
 
 if TYPE_CHECKING:
@@ -31,29 +31,24 @@ class FuncArgsKwargs:
     args: Tuple[Any, ...]
     kwargs: Dict[str, Any]
 
-    @staticmethod
-    def _get_arguments_without_equal_to_defaults(arguments, sig: Signature, defaults_to_include: Set[str]):
+    def get_kwargs_without_those_equal_to_defaults(self, arguments: Optional[Mapping[str: Any]] = None):
         """
         Remove arguments which exist as default arguments with the same value.
         """
+        arguments = self.kwargs if arguments is None else arguments
+        sig = get_signature_for_func(self.func)
         new_arguments = []
         parameters = sig.parameters
         for name, value in arguments.items():
-            if name in defaults_to_include or not (name in parameters and parameters[name].default == value):
+            if not (name in parameters and recursively_compare_objects_type(parameters[name].default, value)):
                 new_arguments.append((name, value))
 
         return dict(new_arguments)
 
-    def _iter_args_and_names_in_function_call(self,
-                                              defaults_to_include: Union[None, set[str]],
-                                              remove_arguments_equal_to_defaults: bool,
-                                              ):
+    def _iter_args_and_names_in_function_call(self, include_defaults: bool = True):
         """
         Given a specific function call - func, args, kwargs - return an iterator to (name, val) tuples
         of all arguments that would have been passed to the function.
-
-        defaults_to_include:
-            None: all defaults, or set of names of default kwargs to include
         """
         sig = get_signature_for_func(self.func)
         bound_args = sig.bind(*self.args, **self.kwargs)
@@ -61,31 +56,19 @@ class FuncArgsKwargs:
         arguments = bound_args.arguments
 
         # Add defaults:
-        if defaults_to_include is None or len(defaults_to_include) > 0:
+        if include_defaults:
             bound_args.apply_defaults()
-            arguments_with_defaults = bound_args.arguments
-            if defaults_to_include is None:
-                arguments = arguments_with_defaults
-            else:
-                arguments = {**arguments, **{k: arguments_with_defaults[k] for k in defaults_to_include}}
-        
-        # Remove arguments with value equal to default: 
-        if remove_arguments_equal_to_defaults:
-            arguments = self._get_arguments_without_equal_to_defaults(arguments, sig,
-                                                                      defaults_to_include=defaults_to_include)
+        arguments = bound_args.arguments
 
         return arguments.items()
 
-    def get_args_values_by_name_and_position(self,
-                                             defaults_to_include: Union[None, set[str]] = None,
-                                             remove_arguments_equal_to_defaults: bool = False
-                                             ) -> Tuple[Mapping[str, Any], Tuple[Any, ...]]:
+    def get_args_values_by_name_and_position(self, include_defaults: bool = True) \
+            -> Tuple[Mapping[str, Any], Tuple[Any, ...]]:
         # We use external_call_failed_exception_handling here as if the user provided the wrong arguments to the
         # function we'll fail here
         with external_call_failed_exception_handling():
             try:
-                arg_values_by_name = dict(self._iter_args_and_names_in_function_call(
-                    defaults_to_include, remove_arguments_equal_to_defaults))
+                arg_values_by_name = dict(self._iter_args_and_names_in_function_call(include_defaults))
                 arg_values_by_position = tuple(arg_values_by_name.values())
             except (ValueError, TypeError):
                 arg_values_by_name = self.kwargs
@@ -93,14 +76,10 @@ class FuncArgsKwargs:
         return arg_values_by_name, arg_values_by_position
 
     def get_arg_values_by_name(self, include_defaults: bool = True) -> Mapping[str, Any]:
-        return self.get_args_values_by_name_and_position(
-            defaults_to_include=None if include_defaults else set()
-        )[0]
+        return self.get_args_values_by_name_and_position(include_defaults)[0]
 
     def get_arg_values_by_position(self, include_defaults: bool = True) -> Tuple[Any, ...]:
-        return self.get_args_values_by_name_and_position(
-            defaults_to_include=None if include_defaults else set()
-        )[1]
+        return self.get_args_values_by_name_and_position(include_defaults)[1]
 
     def __hash__(self):
         return id(self)

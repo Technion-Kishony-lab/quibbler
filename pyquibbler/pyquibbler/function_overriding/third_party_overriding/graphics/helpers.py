@@ -81,21 +81,21 @@ class AxesLimOverride(AxesSetOverride):
 
 
 graphics_override = functools.partial(override_with_cls, GraphicsOverride, is_graphics=True,
-                                      remove_arguments_equal_to_defaults=True)
+                                      should_remove_arguments_equal_to_defaults=True)
 
 axes_override = functools.partial(graphics_override, Axes)
 
 patches_override = functools.partial(override_class, matplotlib.patches, is_graphics=True)
 
 plot_override = functools.partial(override_with_cls, PlotOverride, Axes, is_graphics=True,
-                                  remove_arguments_equal_to_defaults=True)
+                                  should_remove_arguments_equal_to_defaults=True)
 
 axes_setter_override = functools.partial(override_with_cls, AxesSetOverride, Axes, is_graphics=True,
                                          is_artist_setter=True,
-                                         remove_arguments_equal_to_defaults=True)
+                                         should_remove_arguments_equal_to_defaults=True)
 
 widget_override = functools.partial(graphics_override, matplotlib.widgets)
 
 axes_lim_override = functools.partial(override_with_cls, AxesLimOverride,
                                       Axes, is_graphics=True, is_artist_setter=True,
-                                      remove_arguments_equal_to_defaults=True)
+                                      should_remove_arguments_equal_to_defaults=True)
