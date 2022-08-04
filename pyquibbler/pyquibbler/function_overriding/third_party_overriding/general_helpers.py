@@ -1,5 +1,5 @@
 import functools
-from typing import List, Optional, Callable, Type, Tuple
+from typing import List, Optional, Callable, Type, Tuple, Set
 from pyquibbler.function_definitions.types import RawArgument
 from pyquibbler.function_definitions.func_definition import create_func_definition, FuncDefinition
 from pyquibbler.function_overriding.function_override import FuncOverride, ClassOverride
@@ -18,10 +18,11 @@ def override_with_cls(override_cls,
                       is_artist_setter: bool = False,
                       is_graphics: bool = False,
                       func: Optional[Callable] = None,
+                      defaults_to_include: Optional[Set[str]] = None,
+                      remove_arguments_equal_to_defaults: bool = False,
                       func_definition_cls: Optional[Type[FuncDefinition]] = None,
                       allowed_kwarg_flags: Tuple[str] = (),
-                      **kwargs
-                      ):
+                      **kwargs):
     return override_cls(
         func_name=func_name,
         module_or_cls=module_or_cls,
@@ -36,8 +37,10 @@ def override_with_cls(override_cls,
                                                inverters=inverters,
                                                backwards_path_translators=backwards_path_translators,
                                                forwards_path_translators=forwards_path_translators,
-                                               quib_function_call_cls=quib_function_call_cls, func=func,
-                                               func_definition_cls=func_definition_cls, **kwargs)
+                                               quib_function_call_cls=quib_function_call_cls,
+                                               func=func,
+                                               func_definition_cls=func_definition_cls,
+                                               **kwargs)
     )
 
 

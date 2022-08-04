@@ -101,20 +101,6 @@ def get_object_type_locations_in_args_kwargs(object_type, args: Tuple[Any, ...],
     return positional_locations + keyword_locations
 
 
-def iter_args_and_names_in_function_call(func: Callable, args: Tuple[Any, ...], kwargs: Mapping[str, Any],
-                                         apply_defaults: bool):
-    """
-    Given a specific function call - func, args, kwargs - return an iterator to (name, val) tuples
-    of all arguments that would have been passed to the function.
-    If apply_defaults is True, add the default values from the function to the iterator.
-    """
-    sig = get_signature_for_func(func)
-    bound_args = sig.bind(*args, **kwargs)
-    if apply_defaults:
-        bound_args.apply_defaults()
-    return bound_args.arguments.items()
-
-
 def recursively_run_func_on_object(func: Callable, obj: Any,
                                    path: Optional[Path] = None, max_depth: Optional[int] = None,
                                    max_length: Optional[int] = None,

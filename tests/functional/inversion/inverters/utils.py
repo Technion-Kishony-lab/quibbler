@@ -22,12 +22,7 @@ def inverse(func: Callable, indices: Any, value: Any, args: Tuple[Any, ...] = No
     kwargs = kwargs or {}
     previous_value = SourceFuncCall.from_(func, args, kwargs).run()
     inversals = invert(
-        func_call=SourceFuncCall.from_(
-            func=func,
-            func_args=args,
-            func_kwargs=kwargs,
-            include_defaults=False
-        ),
+        func_call=SourceFuncCall.from_(func, args, kwargs),
         previous_result=previous_value,
         assignment=Assignment(path=[PathComponent(indexed_cls=type(previous_value),
                                                   component=indices)] if not empty_path else [],

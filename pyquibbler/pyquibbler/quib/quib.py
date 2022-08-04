@@ -109,7 +109,7 @@ class QuibHandler:
         self.save_directory = save_directory
 
         self.save_format = save_format
-        self.func_args_kwargs = FuncArgsKwargs(func, args, kwargs, include_defaults=True)
+        self.func_args_kwargs = FuncArgsKwargs(func, args, kwargs)
         self.func_definition = func_definition
 
         self.cache_mode = cache_mode

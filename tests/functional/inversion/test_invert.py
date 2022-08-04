@@ -17,7 +17,6 @@ def test_invert_raises_exception_on_unknown_func():
             func_call=SourceFuncCall.from_(func=mock.MagicMock(__name__='unknown'),
                                            func_args=tuple(),
                                            func_kwargs={},
-                                           include_defaults=True,
                                            data_source_locations=[],
                                            parameter_source_locations=[]
                                            ),

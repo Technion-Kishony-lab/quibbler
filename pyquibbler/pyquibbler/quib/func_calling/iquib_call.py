@@ -24,4 +24,4 @@ class IQuibFuncCall(QuibFuncCall):
         """
         Simply return the value of the argument
         """
-        return self.func_args_kwargs[0]
+        return self.func_args_kwargs.get_arg_values_by_position()[0]
