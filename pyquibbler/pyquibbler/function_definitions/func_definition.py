@@ -40,6 +40,7 @@ class FuncDefinition:
     backwards_path_translators: List[Type[BackwardsPathTranslator]] = field(repr=False, default_factory=list)
     forwards_path_translators: List[Type[ForwardsPathTranslator]] = field(repr=False, default_factory=list)
     quib_function_call_cls: Type[QuibFuncCall] = field(repr=False, default_factory=get_default_quib_func_call)
+    kwargs_to_ignore_in_repr: Optional[Set[str]] = None
 
     def __hash__(self):
         return id(self)
@@ -125,6 +126,7 @@ def create_func_definition(raw_data_source_arguments: List[RawArgument] = None,
                            quib_function_call_cls: Type[QuibFuncCall] = None,
                            func: Optional[Callable] = None,
                            func_definition_cls: Optional[FuncDefinition] = None,
+                           kwargs_to_ignore_in_repr: Optional[Set[str]] = None,
                            **kwargs) -> FuncDefinition:
     """
     Create a definition for a function- this will allow quibbler to utilize Quibs with the function in a more
@@ -148,5 +150,6 @@ def create_func_definition(raw_data_source_arguments: List[RawArgument] = None,
         pass_quibs=pass_quibs,
         lazy=lazy,
         is_artist_setter=is_artist_setter,
+        kwargs_to_ignore_in_repr=kwargs_to_ignore_in_repr,
         **kwargs
     )

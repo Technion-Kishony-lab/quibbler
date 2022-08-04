@@ -1931,20 +1931,25 @@ class Quib:
         self.assigned_name = name
 
     def _get_functional_representation_expression(self) -> MathExpression:
+        args = self.args
+        kwargs = self.kwargs
+        if self.handler.func_definition.kwargs_to_ignore_in_repr:
+            kwargs = {k: v for k, v in kwargs.items()
+                      if k not in self.handler.func_definition.kwargs_to_ignore_in_repr}
         try:
             from matplotlib.axes import Axes
-            if self.handler.func_definition.is_graphics and len(self.args) > 0 \
-                    and isinstance(self.args[0], Axes):
+            if self.handler.func_definition.is_graphics and len(args) > 0 \
+                    and isinstance(args[0], Axes):
                 return pretty_convert.get_pretty_value_of_func_with_args_and_kwargs(self.func,
-                                                                                    self.args[1:], self.kwargs)
+                                                                                    args[1:], kwargs)
             if getattr(self.func, 'wrapped__new__', False):
-                cls_name = str(self.args[0])
+                cls_name = str(args[0])
                 short_cls_name = cls_name.split('.')[-1][:-2]
                 return pretty_convert.get_pretty_value_of_func_with_args_and_kwargs(short_cls_name,
-                                                                                    self.args[1:], self.kwargs)
+                                                                                    args[1:], kwargs)
 
             return pretty_convert.get_pretty_value_of_func_with_args_and_kwargs(self.func,
-                                                                                self.args, self.kwargs)
+                                                                                args, kwargs)
         except Exception as e:
             logger.warning(f"Failed to get repr {e}")
             return FailedMathExpression()
