@@ -4,7 +4,7 @@ import pytest
 from matplotlib import widgets
 
 from pyquibbler import iquib
-from tests.integration.quib.graphics.widgets.utils import count_redraws, quibbler_image_comparison
+from tests.integration.quib.graphics.widgets.utils import count_redraws, quibbler_image_comparison, count_canvas_draws
 
 
 @pytest.fixture
@@ -33,11 +33,13 @@ def test_rectangle_selector_move(axes, get_only_live_widget, get_live_artists, g
     assert len(axes.lines) == 3
     original_num_artists = len(get_live_artists())
 
-    with count_redraws(rectangle_selector) as redraw_count:
+    with count_redraws(rectangle_selector) as redraw_count, \
+            count_canvas_draws(axes.figure.canvas) as canvas_redraw_count:
         create_button_press_event(middle_x, middle_y)
         create_motion_notify_event(new_x, new_y)
         create_button_release_event(new_x, new_y)
 
+    print(canvas_redraw_count.count)
     assert redraw_count.count == 2  # motion_notify and button_release
 
     assert len(axes.patches) == 1
