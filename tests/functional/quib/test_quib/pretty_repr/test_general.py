@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import pytest
 
@@ -171,8 +172,22 @@ def test_pretty_repr_class_override():
 
 
 @pytest.mark.get_variable_names(True)
-def test_pretty_plt_function():
-    import matplotlib.pyplot as plt
+def test_pretty_plt_plot(axes):
     x = iquib(1)
     h = plt.plot(x, x ** 2, color='r')
     assert h.pretty_repr == "h = plot(x, x ** 2, color='r')"
+
+
+@pytest.mark.get_variable_names(True)
+def test_pretty_plt_bar(axes):
+    heights = iquib([1, 2, 3])
+    h = plt.bar(['r', 'g', 'b'], heights)
+    assert h.pretty_repr == "h = bar(['r', 'g', 'b'], heights)"
+
+
+# This test only broke within Jupyter lab
+@pytest.mark.get_variable_names(True)
+def test_pretty_plt_imshow(axes):
+    img = iquib(np.zeros((3, 4)))
+    plt.imshow(img)
+    assert next(iter(img.get_children())).pretty_repr == "imshow(img)"
