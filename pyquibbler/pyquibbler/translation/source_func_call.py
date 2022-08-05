@@ -24,13 +24,12 @@ class SourceFuncCall(FuncCall):
     def from_(cls, func: Callable,
               func_args: Tuple[Any, ...],
               func_kwargs: Mapping[str, Any],
-              include_defaults: bool = False,
               func_definition: 'FuncDefinition' = None,
               data_source_locations: Optional[List[SourceLocation]] = None,
               parameter_source_locations: Optional[List[SourceLocation]] = None,
               *args, **kwargs):
         func_definition = func_definition or get_definition_for_function(func)
-        source_func_call = cls(func_args_kwargs=FuncArgsKwargs(func, func_args, func_kwargs, include_defaults),
+        source_func_call = cls(func_args_kwargs=FuncArgsKwargs(func, func_args, func_kwargs),
                                func_definition=func_definition,
                                data_source_locations=data_source_locations,
                                parameter_source_locations=parameter_source_locations,

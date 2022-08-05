@@ -40,11 +40,17 @@ def graphics_quib(quib) -> Quib:
 
 
 @pytest.fixture
-def axes() -> plt.Axes:
+def figure() -> plt.Figure:
     from matplotlib import pyplot as plt
     plt.close("all")
-    plt.gcf().set_size_inches(8, 6)
-    return plt.gca()
+    fig = plt.gcf()
+    fig.set_size_inches(8, 6)
+    return fig
+
+
+@pytest.fixture
+def axes(figure) -> plt.Axes:
+    return figure.gca()
 
 
 @pytest.fixture()

@@ -7,11 +7,11 @@ from typing import Tuple, Any, Mapping, Optional, Callable, List, TYPE_CHECKING,
 from .location import SourceLocation
 from pyquibbler.quib.external_call_failed_exception_handling import \
     external_call_failed_exception_handling
-from pyquibbler.utilities.iterators import iter_args_and_names_in_function_call, \
-     get_object_type_locations_in_args_kwargs
+from pyquibbler.utilities.iterators import get_object_type_locations_in_args_kwargs, recursively_compare_objects_type
+from ..utils import get_signature_for_func
 
 if TYPE_CHECKING:
-    from pyquibbler.function_definitions import FuncDefinition
+    from .func_definition import FuncDefinition
 
 
 @dataclass
@@ -29,46 +29,62 @@ class FuncArgsKwargs:
     func: Callable
     args: Tuple[Any, ...]
     kwargs: Dict[str, Any]
-    include_defaults: bool
 
-    def get_args_values_by_name_and_position(self) -> Tuple[Mapping[str, Any], Tuple[Any, ...]]:
+    def get_kwargs_without_those_equal_to_defaults(self, arguments: Optional[Mapping[str: Any]] = None):
+        """
+        Remove arguments which exist as default arguments with the same value.
+        """
+        arguments = self.kwargs if arguments is None else arguments
+        sig = get_signature_for_func(self.func)
+        new_arguments = []
+        parameters = sig.parameters
+        for name, value in arguments.items():
+            if not (name in parameters and recursively_compare_objects_type(parameters[name].default, value)):
+                new_arguments.append((name, value))
+
+        return dict(new_arguments)
+
+    def _iter_args_and_names_in_function_call(self, include_defaults: bool = True):
+        """
+        Given a specific function call - func, args, kwargs - return an iterator to (name, val) tuples
+        of all arguments that would have been passed to the function.
+        """
+        sig = get_signature_for_func(self.func)
+        bound_args = sig.bind(*self.args, **self.kwargs)
+
+        arguments = bound_args.arguments
+
+        # Add defaults:
+        if include_defaults:
+            bound_args.apply_defaults()
+        arguments = bound_args.arguments
+
+        return arguments.items()
+
+    def get_args_values_by_name_and_position(self, include_defaults: bool = True) \
+            -> Tuple[Mapping[str, Any], Tuple[Any, ...]]:
         # We use external_call_failed_exception_handling here as if the user provided the wrong arguments to the
         # function we'll fail here
         with external_call_failed_exception_handling():
             try:
-                arg_values_by_name = dict(iter_args_and_names_in_function_call(self.func, self.args,
-                                                                               self.kwargs, self.include_defaults))
+                arg_values_by_name = dict(self._iter_args_and_names_in_function_call(include_defaults))
                 arg_values_by_position = tuple(arg_values_by_name.values())
             except (ValueError, TypeError):
                 arg_values_by_name = self.kwargs
                 arg_values_by_position = self.args
         return arg_values_by_name, arg_values_by_position
 
-    @property
-    def arg_values_by_name(self) -> Mapping[str, Any]:
-        return self.get_args_values_by_name_and_position()[0]
+    def get_arg_values_by_name(self, include_defaults: bool = True) -> Mapping[str, Any]:
+        return self.get_args_values_by_name_and_position(include_defaults)[0]
 
-    @property
-    def arg_values_by_position(self) -> Tuple[Any, ...]:
-        return self.get_args_values_by_name_and_position()[1]
+    def get_arg_values_by_position(self, include_defaults: bool = True) -> Tuple[Any, ...]:
+        return self.get_args_values_by_name_and_position(include_defaults)[1]
 
     def __hash__(self):
         return id(self)
 
-    def __getitem__(self, item):
-        from pyquibbler.function_definitions import KeywordArgument, PositionalArgument
-
-        if isinstance(item, KeywordArgument):
-            return self.arg_values_by_name[item.keyword]
-        elif isinstance(item, PositionalArgument):
-            return self.arg_values_by_position[item.index]
-
-        if isinstance(item, str):
-            return self.arg_values_by_name[item]
-        return self.arg_values_by_position[item]
-
-    def get(self, keyword: str, default: Optional = None) -> Optional[Any]:
-        return self.arg_values_by_name.get(keyword, default)
+    def get(self, keyword: str, default: Optional = None, include_defaults: bool = True) -> Optional[Any]:
+        return self.get_arg_values_by_name(include_defaults).get(keyword, default)
 
 
 @dataclass

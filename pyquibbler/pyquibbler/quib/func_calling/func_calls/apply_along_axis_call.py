@@ -44,7 +44,7 @@ class ApplyAlongAxisQuibFuncCall(CachedQuibFuncCall):
         oned_slice = input_array[item]
         new_args, new_kwargs = self._get_args_and_kwargs_valid_at_quibs_to_paths(quibs_to_valid_paths={})
 
-        func_args_kwargs = FuncArgsKwargs(func=self.func, args=new_args, kwargs=new_kwargs, include_defaults=False)
+        func_args_kwargs = FuncArgsKwargs(self.func, new_args, new_kwargs)
 
         with remove_created_graphics():
             with external_call_failed_exception_handling():
@@ -74,7 +74,7 @@ class ApplyAlongAxisQuibFuncCall(CachedQuibFuncCall):
 
     @property
     def core_axis(self) -> int:
-        axis = self.func_args_kwargs['axis']
+        axis = self.func_args_kwargs.get('axis')
         if isinstance(axis, Quib):
             # since this is a parameter quib, we always need it completely valid in order to run anything
             axis = axis.get_value()
@@ -83,7 +83,7 @@ class ApplyAlongAxisQuibFuncCall(CachedQuibFuncCall):
     @property
     def arr(self) -> Quib:
         from pyquibbler.utilities.user_utils import q
-        arr_ = self.func_args_kwargs['arr']
+        arr_ = self.func_args_kwargs.get('arr')
         # ensure we're dealing with an ndarray- because we're not always running apply_along_axis which takes care of
         # this for us (for example, when getting a sample result) we do this on any access to the array to ensure no
         # issues if we were passed a list
@@ -91,7 +91,7 @@ class ApplyAlongAxisQuibFuncCall(CachedQuibFuncCall):
 
     @property
     def func1d(self) -> Callable:
-        return self.func_args_kwargs['func1d']
+        return self.func_args_kwargs.get('func1d')
 
     def _get_oned_slice_for_running_func1d(self, indices: Tuple):
         """
@@ -140,8 +140,8 @@ class ApplyAlongAxisQuibFuncCall(CachedQuibFuncCall):
         indices = True if len(valid_path) == 0 else valid_path[0].component
         ni, nk = self.arr.get_shape()[:self.core_axis], self.arr.get_shape()[self.core_axis + 1:]
         out = self.run([None])
-        func_args_kwargs = FuncArgsKwargs(func=self.func, args=self.args, kwargs=self.kwargs, include_defaults=False)
-        args_by_name = func_args_kwargs.arg_values_by_name
+        func_args_kwargs = FuncArgsKwargs(self.func, self.args, self.kwargs)
+        args_by_name = func_args_kwargs.get_arg_values_by_name()
         bool_mask = create_bool_mask_with_true_at_indices(self.get_shape(), indices)
         for ii in ndindex(ni):
             for kk in ndindex(nk):

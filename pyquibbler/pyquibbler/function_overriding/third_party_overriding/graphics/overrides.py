@@ -42,7 +42,6 @@ def create_graphics_overrides():
             'hist',
             'pie',
             'legend',
-            '_sci',
             'matshow',
         )),
 

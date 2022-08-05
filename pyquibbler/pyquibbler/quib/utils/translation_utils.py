@@ -29,15 +29,11 @@ def get_func_call_for_translation_with_sources_metadata(func_call: QuibFuncCall)
         transform_parameter_func=_transform_parameter_quib
     )
 
-    return SourceFuncCall.from_(
-        data_source_locations=func_call.data_source_locations,
-        parameter_source_locations=func_call.parameter_source_locations,
-        func=func_call.func,
-        func_args=new_args,
-        func_kwargs=new_kwargs,
-        func_definition=func_call.func_definition,
-        include_defaults=True
-    ), data_sources_to_quibs
+    return SourceFuncCall.from_(func_call.func, new_args, new_kwargs,
+                                data_source_locations=func_call.data_source_locations,
+                                parameter_source_locations=func_call.parameter_source_locations,
+                                func_definition=func_call.func_definition,
+                                ), data_sources_to_quibs
 
 
 def get_func_call_for_translation_without_sources_metadata(func_call: QuibFuncCall):
@@ -60,12 +56,8 @@ def get_func_call_for_translation_without_sources_metadata(func_call: QuibFuncCa
         transform_parameter_func=_transform_parameter_quib
     )
 
-    return SourceFuncCall.from_(
-        data_source_locations=func_call.data_source_locations,
-        parameter_source_locations=func_call.parameter_source_locations,
-        func=func_call.func,
-        func_args=new_args,
-        func_kwargs=new_kwargs,
-        func_definition=func_call.func_definition,
-        include_defaults=True
-    ), data_sources_to_quibs
+    return SourceFuncCall.from_(func_call.func, new_args, new_kwargs,
+                                data_source_locations=func_call.data_source_locations,
+                                parameter_source_locations=func_call.parameter_source_locations,
+                                func_definition=func_call.func_definition,
+                                ), data_sources_to_quibs

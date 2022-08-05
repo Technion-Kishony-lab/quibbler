@@ -37,7 +37,7 @@ def _get_wrapper_for_set_prop_cycle(func: Callable):
     return _wrapper
 
 
-def _get_wrapper_for_add_patch(func: Callable):
+def _get_wrapper_for_funcs_that_can_work_on_quibs_returning_non_quibs(func: Callable):
 
     @functools.wraps(func)
     def _wrapper(self, p):
@@ -60,7 +60,11 @@ def override_axes_methods():
 
     from matplotlib.axes._base import _AxesBase
     wrap_method(_AxesBase, 'cla', _get_wrapper_for_clear_axes)
-    wrap_method(_AxesBase, 'add_patch', _get_wrapper_for_add_patch)
+
+    for func in (
+            'add_patch',
+            '_sci'):
+        wrap_method(_AxesBase, func, _get_wrapper_for_funcs_that_can_work_on_quibs_returning_non_quibs)
 
     from matplotlib.axes._base import _process_plot_var_args
     wrap_method(_process_plot_var_args, 'set_prop_cycle', _get_wrapper_for_set_prop_cycle)

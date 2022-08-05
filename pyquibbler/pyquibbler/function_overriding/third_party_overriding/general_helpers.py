@@ -18,14 +18,15 @@ def override_with_cls(override_cls,
                       is_artist_setter: bool = False,
                       is_graphics: bool = False,
                       func: Optional[Callable] = None,
+                      should_remove_arguments_equal_to_defaults: bool = False,
                       func_definition_cls: Optional[Type[FuncDefinition]] = None,
                       allowed_kwarg_flags: Tuple[str] = (),
-                      **kwargs
-                      ):
+                      **kwargs):
     return override_cls(
         func_name=func_name,
         module_or_cls=module_or_cls,
         allowed_kwarg_flags=allowed_kwarg_flags,
+        should_remove_arguments_equal_to_defaults=should_remove_arguments_equal_to_defaults,
         func_definition=create_func_definition(raw_data_source_arguments=data_source_arguments,
                                                is_random=is_random,
                                                is_file_loading=is_file_loading,
@@ -36,8 +37,10 @@ def override_with_cls(override_cls,
                                                inverters=inverters,
                                                backwards_path_translators=backwards_path_translators,
                                                forwards_path_translators=forwards_path_translators,
-                                               quib_function_call_cls=quib_function_call_cls, func=func,
-                                               func_definition_cls=func_definition_cls, **kwargs)
+                                               quib_function_call_cls=quib_function_call_cls,
+                                               func=func,
+                                               func_definition_cls=func_definition_cls,
+                                               **kwargs)
     )
 
 

@@ -4,7 +4,6 @@ from typing import Tuple, Any, Mapping, Type, Optional, Callable
 from pyquibbler.env import DEBUG
 from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.path import Path, PathComponent, Paths
-from pyquibbler.utils import get_signature_for_func
 from dataclasses import dataclass
 SHALLOW_MAX_DEPTH = 2
 SHALLOW_MAX_LENGTH = 100
@@ -99,20 +98,6 @@ def get_object_type_locations_in_args_kwargs(object_type, args: Tuple[Any, ...],
     keyword_locations = [KeywordSourceLocation(KeywordArgument(path[0].component), path[1:]) for
                          path in get_paths_for_objects_of_type(kwargs, object_type)]
     return positional_locations + keyword_locations
-
-
-def iter_args_and_names_in_function_call(func: Callable, args: Tuple[Any, ...], kwargs: Mapping[str, Any],
-                                         apply_defaults: bool):
-    """
-    Given a specific function call - func, args, kwargs - return an iterator to (name, val) tuples
-    of all arguments that would have been passed to the function.
-    If apply_defaults is True, add the default values from the function to the iterator.
-    """
-    sig = get_signature_for_func(func)
-    bound_args = sig.bind(*args, **kwargs)
-    if apply_defaults:
-        bound_args.apply_defaults()
-    return bound_args.arguments.items()
 
 
 def recursively_run_func_on_object(func: Callable, obj: Any,
@@ -210,7 +195,7 @@ def recursively_compare_objects_type(obj1: Any, obj2: Any, type_only=True) -> bo
     if isinstance(obj1, np.ndarray) and obj1.dtype.type is not np.object_:
         return obj1.dtype is obj2.dtype and (type_only or np.array_equal(obj1, obj2))
 
-    return False
+    return obj1 == obj2
 
 
 def recursively_cast_one_object_by_other(template: Any, obj: Any) -> Any:
