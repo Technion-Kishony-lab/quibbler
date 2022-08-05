@@ -30,7 +30,6 @@ class FuncOverride:
     allowed_kwarg_flags: Tuple[str] = ()
     should_remove_arguments_equal_to_defaults: bool = False
     _original_func: Callable = None
-    
 
     @classmethod
     def from_func(cls, func: Callable, module_or_cls, func_definition=None, *args, **kwargs):
@@ -82,7 +81,7 @@ class FuncOverride:
                 flags = {**self._get_creation_flags(args, kwargs), **self._get_dynamic_flags(args, kwargs)}
                 if self.should_remove_arguments_equal_to_defaults:
                     kwargs = FuncArgsKwargs(wrapped_func, args, kwargs).get_kwargs_without_those_equal_to_defaults()
-                
+
                 if flags:
                     func_definition_for_quib = copy.deepcopy(func_definition)
                     for key, value in flags.items():

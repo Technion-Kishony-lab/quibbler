@@ -1,5 +1,5 @@
 import dataclasses
-from typing import Callable, Tuple, Any, Mapping, TYPE_CHECKING, Optional, List, Union
+from typing import Callable, Tuple, Any, Mapping, TYPE_CHECKING, Optional, List
 
 from pyquibbler.function_definitions import get_definition_for_function, SourceLocation
 from pyquibbler.function_definitions.func_call import FuncCall, FuncArgsKwargs

@@ -4,7 +4,6 @@ from typing import Tuple, Any, Mapping, Type, Optional, Callable
 from pyquibbler.env import DEBUG
 from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.path import Path, PathComponent, Paths
-from pyquibbler.utils import get_signature_for_func
 from dataclasses import dataclass
 SHALLOW_MAX_DEPTH = 2
 SHALLOW_MAX_LENGTH = 100
