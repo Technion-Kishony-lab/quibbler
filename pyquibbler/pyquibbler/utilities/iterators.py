@@ -195,7 +195,7 @@ def recursively_compare_objects_type(obj1: Any, obj2: Any, type_only=True) -> bo
     if isinstance(obj1, np.ndarray) and obj1.dtype.type is not np.object_:
         return obj1.dtype is obj2.dtype and (type_only or np.array_equal(obj1, obj2))
 
-    return False
+    return obj1 == obj2
 
 
 def recursively_cast_one_object_by_other(template: Any, obj: Any) -> Any:
