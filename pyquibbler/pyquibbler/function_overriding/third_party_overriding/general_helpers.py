@@ -2,7 +2,7 @@ import functools
 from typing import List, Optional, Callable, Type, Tuple
 from pyquibbler.function_definitions.types import RawArgument
 from pyquibbler.function_definitions.func_definition import create_func_definition, FuncDefinition
-from pyquibbler.function_overriding.function_override import FuncOverride, ClassOverride
+from pyquibbler.function_overriding.function_override import FuncOverride, ClassOverride, NotImplementedOverride
 
 
 def override_with_cls(override_cls,
@@ -56,3 +56,11 @@ def override_class(module_or_cls, cls_to_override: str, **kwargs):
                              getattr(module_or_cls, cls_to_override),
                              '__new__',
                              **kwargs)
+
+
+def override_not_implemented(module_or_cls,
+                             func_name: str,
+                             message: str = ''):
+    return NotImplementedOverride(module_or_cls=module_or_cls,
+                                  func_name=func_name,
+                                  message=message)

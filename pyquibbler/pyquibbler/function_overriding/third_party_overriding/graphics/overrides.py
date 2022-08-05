@@ -1,7 +1,10 @@
 # flake8: noqa
 
 import matplotlib.image
-from pyquibbler.function_overriding.third_party_overriding.general_helpers import file_loading_override
+from matplotlib.axes import Axes
+
+from pyquibbler.function_overriding.third_party_overriding.general_helpers import file_loading_override, \
+    override_not_implemented
 from pyquibbler.function_overriding.third_party_overriding.graphics.helpers import axes_override, \
     axes_setter_override, widget_override, axes_lim_override, plot_override, patches_override
 from pyquibbler.quib.func_calling.func_calls import RadioButtonsQuibFuncCall, SliderQuibFuncCall, \
@@ -44,15 +47,15 @@ def create_graphics_overrides():
             'annotate',
             'arrow',
             # 'autoscale',
-            # 'axes',
+            # 'axes',  # Overloaded as not implemented
             'axhline',
             'axhspan',
-            # 'axis',  'axis does not work on quibs. use set_xlim, set_ylim instead'
+            # 'axis',
             'axline',
             'axvline',
             'axvspan',
             'bar',
-            # 'bar_label',  'bar_label does not work with quibs. set the labels in the bar creation method'
+            # 'bar_label',  # Overloaded as not implemented
             'barbs',
             'barh',
             'boxplot',
@@ -70,7 +73,7 @@ def create_graphics_overrides():
             'fill_between',
             'fill_betweenx',
             # 'findobj',
-            # 'grid', "Not implemented"
+            # 'grid',  # Overloaded as not implemented
             'hexbin',
             'hist',
             'hist2d',
@@ -176,6 +179,14 @@ def create_graphics_overrides():
             'set_yticklabels',
             'set_yticks',
             #'set_zorder'
+        )),
+
+        *(override_not_implemented(module_or_cls=Axes,
+                                   func_name=func_name,
+                                   message=message) for func_name, message in (
+            ('axis', 'Use plt.xlim, plt.ylim, or ax.set_xlim, ax.set_ylim instead.'),
+            ('grid', ''),
+            ('bar_label', 'Set the labels in the bar creation method'),
         )),
 
         *(axes_lim_override(func_name) for func_name in (
