@@ -194,4 +194,3 @@ class NotImplementedOverride(FuncOverride):
             return wrapped_func(*args, **kwargs)
 
         return _issue_exception_when_applyto_quibs
-
