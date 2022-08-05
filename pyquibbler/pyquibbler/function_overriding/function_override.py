@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from types import ModuleType
 from typing import Callable, Any, Dict, Union, Type, Optional, Tuple, Mapping
 
+from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.function_definitions import FuncArgsKwargs
 from pyquibbler.function_definitions.func_definition import FuncDefinition
 from pyquibbler.utilities.iterators import get_object_type_locations_in_args_kwargs
@@ -30,11 +31,6 @@ class FuncOverride:
     allowed_kwarg_flags: Tuple[str] = ()
     should_remove_arguments_equal_to_defaults: bool = False
     _original_func: Callable = None
-
-    @classmethod
-    def from_func(cls, func: Callable, module_or_cls, func_definition=None, *args, **kwargs):
-        return cls(func_name=func.__name__, module_or_cls=module_or_cls,
-                   func_definition=func_definition, *args, **kwargs)
 
     def _get_creation_flags(self, args, kwargs):
         """
@@ -164,3 +160,37 @@ class ClassOverride(FuncOverride):
         super().override()
         self.module_or_cls.__quibbler_wrapped__ = self.original_func
         return self.module_or_cls
+
+
+@dataclass
+class NotImplementedFunc(PyQuibblerException):
+    func: Callable = None
+    message: str = ''
+
+    def __str__(self):
+        return f'Function {self.func.__qualname__} is not implemented to work with quibs. \n{self.message}\n'
+
+
+@dataclass
+class NotImplementedOverride(FuncOverride):
+    """
+    Overrides the function to issue an exception if called with quib arguments.
+    """
+
+    message: str = ''
+
+    def _create_quib_supporting_func(self):
+
+        wrapped_func = self.original_func
+
+        @functools.wraps(wrapped_func)
+        def _issue_exception_when_applyto_quibs(*args, **kwargs):
+
+            quib_locations = get_object_type_locations_in_args_kwargs(Quib, args, kwargs)
+
+            if quib_locations:
+                raise NotImplementedFunc(wrapped_func, self.message) from None
+
+            return wrapped_func(*args, **kwargs)
+
+        return _issue_exception_when_applyto_quibs
