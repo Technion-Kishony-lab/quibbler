@@ -75,6 +75,12 @@ class MathExpression(ABC):
     def __str__(self):
         pass
 
+    def get_str(self, with_spaces: bool = True):
+        return self.__str__()
+
+    def get_math_expression(self):
+        return self
+
     @property
     @abstractmethod
     def precedence(self) -> MathPrecedence:
@@ -107,7 +113,7 @@ class FailedMathExpression(StringMathExpression):
         self.label_precedence = MathPrecedence.PARENTHESIS
 
 
-def add_parenthesis_if_needed(expr: MathExpression, needed: bool = False):
+def add_parenthesis_if_needed(expr: MathExpression, needed: bool = False) -> MathExpression:
     return StringMathExpression(f'({expr})', MathPrecedence.PARENTHESIS) if needed else expr
 
 
@@ -154,6 +160,10 @@ class BinaryOperatorExpression(OperatorExpression):
     right_side: Any = None
 
     def __str__(self):
+        return self.get_str()
+
+    def get_str(self, with_spaces: bool = True):
+
         left_side = object_to_math_expression(self.left_side)
         left_side = add_parenthesis_if_needed(left_side,
                                               left_side.precedence < self.precedence
@@ -166,7 +176,16 @@ class BinaryOperatorExpression(OperatorExpression):
                                                    and self.precedence == MathPrecedence.COMPARISON)
                                                or not self.commutative and right_side.precedence == self.precedence)
 
-        return f"{left_side} {self.symbol} {right_side}"
+        add_spaces_left = left_side.precedence <= self.precedence and with_spaces
+        add_spaces_right = right_side.precedence <= self.precedence and with_spaces
+        add_space = with_spaces \
+            or (left_side.precedence > self.precedence and isinstance(left_side, BinaryOperatorExpression)) \
+            or (right_side.precedence > self.precedence and isinstance(right_side, BinaryOperatorExpression))
+
+        space = ' ' if add_space else ''
+        return f"{left_side.get_str(add_spaces_left)}" \
+               f"{space}{self.symbol}{space}" \
+               f"{right_side.get_str(add_spaces_right)}"
 
 
 @dataclass
