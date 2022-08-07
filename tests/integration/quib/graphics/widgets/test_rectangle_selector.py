@@ -60,3 +60,32 @@ def test_rectangle_selector_update(axes, get_only_live_widget, get_live_artists,
     roi[0] = 0.3
     bbox = widget._rect_bbox
     assert np.array_equal(np.round(bbox, 4), [0.3, 0.2, 0.5, 0.6])
+
+
+# @pytest.mark.skip
+@pytest.mark.benchmark()
+def test_rectangle_selector_speed(axes,
+                                  roi, rectangle_selector, get_axes_middle, create_button_press_event,
+                                  create_motion_notify_event, create_button_release_event):
+    import time
+
+    middle_x, middle_y = get_axes_middle()
+    axes_x, axes_y, width, height = axes.bbox.bounds
+    new_x = axes_x + width * .7
+    new_y = axes_y + height * .7
+
+    start = time.time()
+
+    for i in range(50):
+        create_button_press_event(middle_x, middle_y)
+        create_motion_notify_event(new_x, new_y)
+        create_button_release_event(new_x, new_y)
+
+        create_button_press_event(new_x, new_y)
+        create_motion_notify_event(middle_x, middle_y)
+        create_button_release_event(middle_x, middle_y)
+
+    end = time.time()
+
+    print()
+    print(end - start)
