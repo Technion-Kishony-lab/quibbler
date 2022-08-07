@@ -373,6 +373,8 @@ class Project:
     def start_undo_group(self):
         self._pushing_undo_group = []
         yield
+
+    def push_pending_undo_group(self):
         if self._pushing_undo_group:
             self._undo_action_groups.append(self._pushing_undo_group)
         self._pushing_undo_group = None

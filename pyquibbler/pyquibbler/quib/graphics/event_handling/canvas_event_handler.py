@@ -9,7 +9,6 @@ from pyquibbler.logger import logger
 from pyquibbler.utilities.performance_utils import timer
 from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
 from pyquibbler.quib.graphics.event_handling import graphics_inverse_assigner
-from pyquibbler.assignment.override_choice.types import OverrideGroup
 from pyquibbler.quib.graphics import artist_wrapper
 
 from matplotlib.axes import Axes
@@ -63,8 +62,6 @@ class CanvasEventHandler:
         self.canvas = canvas
         self.current_pick_event: Optional[PickEvent] = None
         self.current_pick_quib: Optional[Quib] = None
-        self._last_mouse_event_with_overrides: Optional[PickEvent] = None
-        self._last_axis_event_with_overrides = {}
         self._assignment_lock = Lock()
 
         self.EVENT_HANDLERS = {
@@ -78,20 +75,10 @@ class CanvasEventHandler:
         pressed()
 
     def _handle_button_release(self, _mouse_event: MouseEvent):
-        if self._last_mouse_event_with_overrides:
-            with releasing():
-                self._inverse_from_mouse_event(self._last_mouse_event_with_overrides)
-        self._last_mouse_event_with_overrides = None
         self.current_pick_event = None
         self.current_pick_quib = None
-
-        if self._last_axis_event_with_overrides:
-            with releasing():
-                override_group = OverrideGroup()
-                for override_group_x_or_y in self._last_axis_event_with_overrides.values():
-                    override_group.extend(override_group_x_or_y)
-                override_group.apply()
-        self._last_axis_event_with_overrides = {}
+        from pyquibbler.project import Project
+        Project.get_or_create().push_pending_undo_group()
         released()
 
     def _handle_pick_event(self, pick_event: PickEvent):
@@ -114,12 +101,10 @@ class CanvasEventHandler:
         with timer("motion_notify", lambda x: logger.info(f"motion notify {x}")), \
                 aggregate_redraw_mode(), \
                 graphics_assignment_mode(mouse_event.inaxes):
-            override_group = graphics_inverse_assigner.inverse_assign_drawing_func(drawing_func=drawing_quib.func,
-                                                                                   args=drawing_quib.args,
-                                                                                   mouse_event=mouse_event,
-                                                                                   pick_event=pick_event)
-            if override_group is not None and override_group:
-                self._last_mouse_event_with_overrides = mouse_event
+            graphics_inverse_assigner.inverse_assign_drawing_func(drawing_func=drawing_quib.func,
+                                                                  args=drawing_quib.args,
+                                                                  mouse_event=mouse_event,
+                                                                  pick_event=pick_event)
 
     def _inverse_assign_axis_limits(self,
                                     drawing_func: Callable,
@@ -132,13 +117,11 @@ class CanvasEventHandler:
         """
         with timer("axis_lim_notify", lambda x: logger.info(f"axis-lim notify {x}")), \
                 graphics_assignment_mode(set_lim_quib.args[0]):
-            override_group = graphics_inverse_assigner.inverse_assign_axes_lim_func(
+            graphics_inverse_assigner.inverse_assign_axes_lim_func(
                 args=set_lim_quib.args,
                 lim=lim,
                 is_override_removal=is_override_removal,
             )
-            if override_group:
-                self._last_axis_event_with_overrides[drawing_func.__name__] = override_group
 
     @contextmanager
     def _try_acquire_assignment_lock(self):
