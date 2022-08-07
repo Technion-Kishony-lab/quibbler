@@ -6,7 +6,9 @@ from matplotlib.widgets import RectangleSelector
 
 from pyquibbler.utils import Mutable
 
-from .. import dragging
+from .. import dragging, is_within_drag
+from ...quib.get_value_context_manager import is_within_get_value_context
+from ...quib.graphics.redraw import skip_canvas_draws
 
 
 @dataclass
@@ -24,6 +26,7 @@ class QRectangleSelector(RectangleSelector):
     CURRENT_SELECTOR = Locked(Mutable(None))
 
     def __init__(self, ax, onselect=None, extents=None, allow_resize=True, interactive=None, **kwargs):
+        self.created_in_get_value_context = False
         self.changed_callback = None
         if interactive is None:
             interactive = True
@@ -34,6 +37,7 @@ class QRectangleSelector(RectangleSelector):
         if extents is not None:
             self.extents = extents
         self.release_callback = None
+        self.created_in_get_value_context = is_within_get_value_context()
 
     def is_current_event_a_move_event(self):
         return 'move' in self.state or self.active_handle == 'C'
@@ -70,3 +74,7 @@ class QRectangleSelector(RectangleSelector):
         if self.changed_callback is not None:
             # Important to use self.extents and not extents because it sorts the coordinates
             self.changed_callback(self.extents)
+
+    def update(self):
+        with skip_canvas_draws(should_skip=self.created_in_get_value_context):
+            super().update()

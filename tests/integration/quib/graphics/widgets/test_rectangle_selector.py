@@ -39,7 +39,7 @@ def test_rectangle_selector_move(axes, get_only_live_widget, get_live_artists, g
         create_motion_notify_event(new_x, new_y)
         create_button_release_event(new_x, new_y)
 
-    print(canvas_redraw_count.count)
+    assert canvas_redraw_count.count == 2
     assert redraw_count.count == 2  # motion_notify and button_release
 
     assert len(axes.patches) == 1
