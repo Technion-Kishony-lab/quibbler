@@ -6,7 +6,7 @@ from matplotlib.widgets import RectangleSelector
 
 from pyquibbler.utils import Mutable
 
-from .. import dragging, is_within_drag
+from .. import dragging
 from ...quib.get_value_context_manager import is_within_get_value_context
 from ...quib.graphics.redraw import skip_canvas_draws
 

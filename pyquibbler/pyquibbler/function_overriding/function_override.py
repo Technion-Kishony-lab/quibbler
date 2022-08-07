@@ -9,7 +9,6 @@ from typing import Callable, Any, Dict, Union, Type, Optional, Tuple, Mapping
 from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.function_definitions import FuncArgsKwargs
 from pyquibbler.function_definitions.func_definition import FuncDefinition
-from pyquibbler.quib.get_value_context_manager import is_within_get_value_context
 from pyquibbler.quib.graphics.event_handling.canvas_event_handler import is_within_graphics_assignment_mode
 from pyquibbler.utilities.iterators import get_object_type_locations_in_args_kwargs
 from pyquibbler.quib.quib import Quib

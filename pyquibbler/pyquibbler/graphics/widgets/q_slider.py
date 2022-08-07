@@ -5,7 +5,6 @@ from matplotlib.widgets import Slider
 from pyquibbler.assignment.assignment_template import round_to_num_digits
 from pyquibbler.graphics.drag_context_manager import enter_dragging, exit_dragging, releasing
 from pyquibbler.quib.get_value_context_manager import is_within_get_value_context
-from pyquibbler.quib.graphics.redraw import skip_canvas_draws
 
 
 class QSlider(Slider):

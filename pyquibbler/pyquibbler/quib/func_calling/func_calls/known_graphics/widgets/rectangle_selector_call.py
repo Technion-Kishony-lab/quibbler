@@ -1,7 +1,6 @@
 from typing import Callable, Tuple, Any, Mapping, Set
 
 import numpy as np
-from matplotlib.widgets import AxesWidget
 
 from pyquibbler.assignment import AssignmentToQuib
 from pyquibbler.assignment.assignment import AssignmentWithTolerance
