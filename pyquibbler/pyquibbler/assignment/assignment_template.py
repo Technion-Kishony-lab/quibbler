@@ -128,10 +128,10 @@ def number_of_digits(value: Any):
 
 
 def round_if_precision_is_not_inf(value, decimals):
-    if abs(decimals) > 100:  # inf
-        return value
+    if -100 < decimals < 100:  # check not inf
+        return np.round(value, decimals)
 
-    return np.round(value, decimals)
+    return value
 
 
 def round_to_num_digits(value, num_digits):

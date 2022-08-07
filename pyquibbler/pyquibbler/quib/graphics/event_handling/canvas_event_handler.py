@@ -131,7 +131,6 @@ class CanvasEventHandler:
         Reverse axis limit change
         """
         with timer("axis_lim_notify", lambda x: logger.info(f"axis-lim notify {x}")), \
-                aggregate_redraw_mode(), \
                 graphics_assignment_mode(set_lim_quib.args[0]):
             override_group = graphics_inverse_assigner.inverse_assign_axes_lim_func(
                 args=set_lim_quib.args,
