@@ -19,6 +19,18 @@ def rectangle_selector(roi, axes):
     return selector
 
 
+@pytest.fixture
+def roi_list():
+    return [iquib(.2), iquib(.8), iquib(.2), iquib(.8)]
+
+
+@pytest.fixture
+def rectangle_selector_list_extents(roi_list, axes):
+    selector = widgets.RectangleSelector(axes, extents=roi_list)
+    plt.pause(0.1)
+    return selector
+
+
 @quibbler_image_comparison(baseline_images=['move'])
 def test_rectangle_selector_move(axes, get_only_live_widget, get_live_artists, get_live_widgets,
                                  roi, rectangle_selector, get_axes_middle, create_button_press_event,
@@ -48,6 +60,40 @@ def test_rectangle_selector_move(axes, get_only_live_widget, get_live_artists, g
 
     assert len(get_live_widgets()) == 1
     new_roi = roi.get_value()
+
+    assert np.array_equal(np.round(new_roi, 4), [0.4, 1., 0.4, 1.])
+
+
+@quibbler_image_comparison(baseline_images=['move_list'])
+def test_rectangle_selector_list_extent_move(axes, get_only_live_widget, get_live_artists, get_live_widgets,
+                                             roi_list, rectangle_selector_list_extents, get_axes_middle,
+                                             create_button_press_event,
+                                             create_motion_notify_event, create_button_release_event):
+
+    middle_x, middle_y = get_axes_middle()
+    axes_x, axes_y, width, height = axes.bbox.bounds
+    new_x = axes_x + width * .7
+    new_y = axes_y + height * .7
+
+    assert len(axes.patches) == 1
+    assert len(axes.lines) == 3
+    original_num_artists = len(get_live_artists())
+
+    with count_redraws(rectangle_selector_list_extents) as redraw_count, \
+            count_canvas_draws(axes.figure.canvas) as canvas_redraw_count:
+        create_button_press_event(middle_x, middle_y)
+        create_motion_notify_event(new_x, new_y)
+        create_button_release_event(new_x, new_y)
+
+    assert canvas_redraw_count.count == 2
+    assert redraw_count.count == 2  # motion_notify and button_release
+
+    assert len(axes.patches) == 1
+    assert len(axes.lines) == 3
+    assert len(get_live_artists()) == original_num_artists
+
+    assert len(get_live_widgets()) == 1
+    new_roi = [roi_item.get_value() for roi_item in roi_list]
 
     assert np.array_equal(np.round(new_roi, 4), [0.4, 1., 0.4, 1.])
 
