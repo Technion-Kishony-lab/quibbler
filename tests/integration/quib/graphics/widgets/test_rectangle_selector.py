@@ -110,7 +110,7 @@ def test_rectangle_selector_update(axes, get_only_live_widget, get_live_artists,
     assert np.array_equal(np.round(bbox, 4), [0.3, 0.2, 0.5, 0.6])
 
 
-# @pytest.mark.skip
+@pytest.mark.skip
 @pytest.mark.benchmark()
 def test_rectangle_selector_speed(axes,
                                   roi, rectangle_selector, get_axes_middle, create_button_press_event,
