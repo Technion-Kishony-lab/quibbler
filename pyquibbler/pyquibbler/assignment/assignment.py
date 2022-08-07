@@ -1,7 +1,7 @@
 from __future__ import annotations
 import numpy as np
 from dataclasses import dataclass, field
-from typing import Any, TYPE_CHECKING, List
+from typing import Any, TYPE_CHECKING, List, Union
 
 from .default_value import default
 
@@ -105,7 +105,7 @@ class AssignmentToQuib:
     assignments to upstream quibs.
     """
     quib: Quib
-    assignment: Assignment
+    assignment: Union[Assignment, AssignmentWithTolerance]
 
     def get_inversions(self, return_empty_list_instead_of_raising=False) -> List[AssignmentToQuib]:
         return self.quib.handler.get_inversions_for_assignment(self.assignment)

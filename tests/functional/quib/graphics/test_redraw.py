@@ -57,6 +57,17 @@ def test_redraw_in_aggregate_mode():
     assert mock_func.call_count == 1
 
 
+def tests_artists_are_garbage_collected_upon_redraw(axes, get_live_artists):
+    xy = iquib([0.6, 0.4])
+    print(len(get_live_artists()))
+    axes.axis([0, 1, 0, 1])
+    axes.plot(xy[0], xy[1], 'x')
+    axes.text(xy[0], xy[1], 'label')
+    assert len(get_live_artists()) == 2
+    xy[1] = 0.3
+    assert len(get_live_artists()) == 2
+
+
 def test_only_notify_override_changes_once_in_aggregate_mode():
     mock_func = mock.Mock()
     quib = iquib([1, 2])

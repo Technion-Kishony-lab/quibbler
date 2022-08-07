@@ -2,7 +2,9 @@ import shutil
 from pathlib import Path
 
 import pytest
+from matplotlib.artist import Artist
 from pytest import fixture
+import gc
 
 from pyquibbler import CacheMode, quibapp
 from pyquibbler.env import DEBUG, LAZY, PRETTY_REPR, \
@@ -11,6 +13,8 @@ from pyquibbler.project import Project
 from pyquibbler.function_overriding import initialize_quibbler
 from pyquibbler.quib.func_calling import CachedQuibFuncCall
 from pyquibbler.quibapp import QuibApp
+from pyquibbler.utilities.performance_utils import track_instances_of_class, get_all_instances_in_tracked_class, \
+    TRACKED_CLASSES_TO_WEAKREFS
 from pyquibbler.utils import Flag
 
 DEFAULT_DEBUG = True
@@ -125,3 +129,16 @@ def quibapp_(tmpdir):
     yield app
     app.close()
 
+
+@fixture()
+def get_live_artists(axes):
+    axes.figure.canvas.draw()
+    track_instances_of_class(Artist)
+
+    def _get():
+        gc.collect()
+        return list(get_all_instances_in_tracked_class(Artist))
+
+    yield _get
+
+    TRACKED_CLASSES_TO_WEAKREFS[Artist] = set()

@@ -3,6 +3,7 @@ import contextlib
 from typing import Set
 from matplotlib.figure import Figure
 from matplotlib.pyplot import fignum_exists
+from matplotlib._pylab_helpers import Gcf
 
 from pyquibbler.logger import logger
 from pyquibbler.utilities.performance_utils import timer
@@ -18,8 +19,7 @@ IN_AGGREGATE_REDRAW_MODE = False
 @contextlib.contextmanager
 def aggregate_redraw_mode():
     """
-    In aggregate redraw mode, no axeses will be redrawn until the end of the context manager (unless force=True
-    was used when redrawing)
+    In aggregate redraw mode, no axeses will be redrawn until the end of the context manager
     """
     global IN_AGGREGATE_REDRAW_MODE
     if IN_AGGREGATE_REDRAW_MODE:
@@ -34,9 +34,31 @@ def aggregate_redraw_mode():
         _notify_of_overriding_changes()
 
 
+@contextlib.contextmanager
+def skip_canvas_draws(should_skip: bool = True):
+
+    original_canvas_draw = None
+    if should_skip:
+        figure_managers = Gcf.get_all_fig_managers()
+        if figure_managers:
+
+            def _skip_draw(*args, **kwargs):
+                return
+
+            canvas_class = type(figure_managers[0].canvas)
+            original_canvas_draw = canvas_class.draw
+            canvas_class.draw = _skip_draw
+
+    yield
+
+    if original_canvas_draw is not None:
+        canvas_class.draw = original_canvas_draw
+
+
 def _redraw_quibs_with_graphics():
     quibs_that_are_invalid = [quib for quib in QUIBS_TO_REDRAW if quib.cache_status != CacheStatus.ALL_VALID]
-    with timer("quib redraw", lambda x: logger.info(f"redrawing {len(quibs_that_are_invalid)} quibs: {x}s")):
+    with timer("quib redraw", lambda x: logger.info(f"redrawing {len(quibs_that_are_invalid)} quibs: {x}s")), \
+            skip_canvas_draws():
         for quib in quibs_that_are_invalid:
             quib.handler.redraw_if_appropriate()
 

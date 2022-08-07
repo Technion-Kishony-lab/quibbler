@@ -3,7 +3,7 @@ import pytest
 from matplotlib import widgets
 
 from pyquibbler import iquib
-from tests.integration.quib.graphics.widgets.utils import count_redraws, quibbler_image_comparison
+from tests.integration.quib.graphics.widgets.utils import count_redraws, quibbler_image_comparison, count_canvas_draws
 
 
 @pytest.fixture()
@@ -29,6 +29,8 @@ def slider_quib(axes, input_quib):
 def test_slider_graphics_function_quib_press_and_release_changes(axes, get_live_widgets, slider_quib, input_quib,
                                                                  create_button_press_event,
                                                                  create_button_release_event, get_axes_start):
+    assert len(get_live_widgets()) == 1
+
     create_button_press_event(*get_axes_start())
     create_button_release_event(*get_axes_start())
 
@@ -63,7 +65,8 @@ def test_slider_graphics_function_quib_calls_multiple_times(axes, get_live_widge
                                                             slider_quib, get_axes_end, get_axes_middle):
     original_num_artists = len(get_live_artists())
 
-    with count_redraws(slider_quib) as redraw_count:
+    with count_redraws(slider_quib) as redraw_count, \
+            count_canvas_draws(axes.figure.canvas) as canvas_redraw_count:
         create_button_press_event(*get_axes_start())
         create_motion_notify_event(*get_axes_end())
         create_button_release_event(*get_axes_end())
@@ -72,6 +75,7 @@ def test_slider_graphics_function_quib_calls_multiple_times(axes, get_live_widge
         create_motion_notify_event(*get_axes_end())
         create_button_release_event(*get_axes_end())
 
-    assert redraw_count.count == 4  # press * 2 + motion * 2
+    assert canvas_redraw_count.count == 4
+    assert redraw_count.count == 4  # 2 x press + 2 x motion
     assert len(get_live_widgets()) == 1
     assert len(get_live_artists()) == original_num_artists
