@@ -29,6 +29,8 @@ def slider_quib(axes, input_quib):
 def test_slider_graphics_function_quib_press_and_release_changes(axes, get_live_widgets, slider_quib, input_quib,
                                                                  create_button_press_event,
                                                                  create_button_release_event, get_axes_start):
+    assert len(get_live_widgets()) == 1
+
     create_button_press_event(*get_axes_start())
     create_button_release_event(*get_axes_start())
 
@@ -73,7 +75,7 @@ def test_slider_graphics_function_quib_calls_multiple_times(axes, get_live_widge
         create_motion_notify_event(*get_axes_end())
         create_button_release_event(*get_axes_end())
 
-    print(canvas_redraw_count.count)
-    assert redraw_count.count == 4  # press * 2 + motion * 2
+    assert canvas_redraw_count.count == 4
+    assert redraw_count.count == 4  # 2 x press + 2 x motion
     assert len(get_live_widgets()) == 1
     assert len(get_live_artists()) == original_num_artists

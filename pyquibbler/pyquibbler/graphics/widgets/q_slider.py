@@ -4,13 +4,17 @@ from matplotlib.widgets import Slider
 
 from pyquibbler.assignment.assignment_template import round_to_num_digits
 from pyquibbler.graphics.drag_context_manager import enter_dragging, exit_dragging, releasing
+from pyquibbler.quib.get_value_context_manager import is_within_get_value_context
+from pyquibbler.quib.graphics.redraw import skip_canvas_draws
 
 
 class QSlider(Slider):
     def __init__(self, ax, label, valmin, valmax, valinit, **kwargs):
+        self.created_in_get_value_context = False
         self.on_release = None
         self._drag_active = False
         super().__init__(ax, label, valmin, valmax, valinit, **kwargs)
+        self.created_in_get_value_context = is_within_get_value_context()
 
     @property
     def drag_active(self):
@@ -38,3 +42,12 @@ class QSlider(Slider):
             val = round_to_num_digits(val, 15)  # prevents values like 1.0000000000001
 
         return val
+
+    def set_val(self, val):
+        if self.created_in_get_value_context:
+            drawon = self.drawon
+            self.drawon = False
+            super().set_val(val)
+            self.drawon = drawon
+        else:
+            super().set_val(val)
