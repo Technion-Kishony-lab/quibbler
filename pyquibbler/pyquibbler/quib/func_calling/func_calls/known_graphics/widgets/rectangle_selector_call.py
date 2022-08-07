@@ -1,7 +1,12 @@
-import numpy as np
+from typing import Callable, Tuple, Any, Mapping, Set
 
-from pyquibbler.graphics import releasing
+import numpy as np
+from matplotlib.widgets import AxesWidget
+
+from pyquibbler.function_definitions import KeywordArgument
+from pyquibbler.graphics import releasing, GraphicsCollection
 from pyquibbler.graphics.widgets import QRectangleSelector
+from pyquibbler.quib import Quib
 from pyquibbler.logger import logger
 from .widget_call import WidgetQuibFuncCall
 from pyquibbler.path import PathComponent
@@ -56,3 +61,21 @@ class RectangleSelectorQuibFuncCall(WidgetQuibFuncCall):
     def _connect_callbacks(self, widget: QRectangleSelector):
         widget.changed_callback = self._on_changed
         widget.release_callback = self._on_release
+
+    def _run_single_call(self, func: Callable, graphics_collection: GraphicsCollection,
+                         args: Tuple[Any, ...], kwargs: Mapping[str, Any], quibs_allowed_to_access: Set[Quib]):
+        previous_widgets = graphics_collection.widgets
+
+        # speed-up by changing the current widget instead of creating a new one:
+        if len(previous_widgets) == 1:
+            previous_widget = list(previous_widgets)[0]
+
+            # TODO: generalize to cases where other kwargs, not just 'extents', are also quibs
+            if isinstance(previous_widget, QRectangleSelector) \
+                    and len(self.parameter_source_locations) == 1 \
+                    and self.parameter_source_locations[0].argument == KeywordArgument(keyword='extents'):
+                previous_widget.set_extents_without_callback(self.func_args_kwargs.get('extents').get_value())
+
+                return previous_widget
+
+        return super()._run_single_call(func, graphics_collection, args, kwargs, quibs_allowed_to_access)
