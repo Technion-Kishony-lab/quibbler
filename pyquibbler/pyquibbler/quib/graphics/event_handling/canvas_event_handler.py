@@ -37,6 +37,10 @@ def get_graphics_assignment_mode_axes() -> Optional[Axes]:
     return GRAPHICS_ASSIGNMENT_MODE_AXES
 
 
+def is_within_graphics_assignment_mode() -> bool:
+    return GRAPHICS_ASSIGNMENT_MODE_AXES is not None
+
+
 class CanvasEventHandler:
     """
     Handles all events from the canvas (such as press, drag, and pick), inverse assigning to the relevant quibs
