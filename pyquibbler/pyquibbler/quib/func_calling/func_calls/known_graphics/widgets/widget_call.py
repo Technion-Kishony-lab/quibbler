@@ -1,8 +1,10 @@
-from typing import Callable, Tuple, Any, Mapping, Set
+from typing import Callable, Tuple, Any, Mapping, Set, List
 
+from matplotlib.axes import Axes
 from matplotlib.widgets import AxesWidget
 
-from pyquibbler.assignment.assignment import AssignmentWithTolerance
+from pyquibbler.assignment.assignment import AssignmentWithTolerance, AssignmentToQuib
+from pyquibbler.assignment.override_choice import get_override_group_for_quib_changes
 from pyquibbler.path.path_component import Path
 from pyquibbler.graphics.graphics_collection import GraphicsCollection
 from pyquibbler.quib import Quib
@@ -18,7 +20,7 @@ class WidgetQuibFuncCall(CachedQuibFuncCall):
         """
         pass
 
-    def _get_axis(self):
+    def _get_axis(self) -> Axes:
         return self.func_args_kwargs.get('ax')
 
     def _inverse_assign(self, quib: Quib, path: Path, value: Any, tolerance: Any = None):
@@ -31,6 +33,10 @@ class WidgetQuibFuncCall(CachedQuibFuncCall):
                                                                       path=path,
                                                                       value_up=value + tolerance,
                                                                       value_down=value - tolerance))
+
+    def _inverse_assign_multiple_quibs(self, quib_changes: List[AssignmentToQuib]):
+        with graphics_assignment_mode(self._get_axis()):
+            get_override_group_for_quib_changes(quib_changes).apply()
 
     def _run_single_call(self, func: Callable, graphics_collection: GraphicsCollection,
                          args: Tuple[Any, ...], kwargs: Mapping[str, Any], quibs_allowed_to_access: Set[Quib]):
