@@ -174,9 +174,9 @@ def test_doesnt_record_when_dragging(project):
 def test_project_undo_group_doesnt_add_on_dragging(project):
     a = iquib(5)
     with dragging():
-        with project.start_undo_group():
-            a.assign(10)
-            a.assign(8)
+        project.start_pending_undo_group()
+        a.assign(10)
+        a.assign(8)
 
     with pytest.raises(NothingToUndoException, match='.*'):
         project.undo()
@@ -200,7 +200,8 @@ def test_project_undo_with_group_reverts_back_to_before_group_and_runs_graphics_
     mock_func = mock.Mock()
     add_definition_for_function(mock_func, create_func_definition(is_graphics=True))
     _ = create_quib(func=mock_func, args=(a,), lazy=False)
-    with project.start_undo_group():
+    project.start_pending_undo_group()
+    with dragging():
         a.handler.override(Assignment(
             path=[],
             value=10
@@ -209,6 +210,7 @@ def test_project_undo_with_group_reverts_back_to_before_group_and_runs_graphics_
             path=[],
             value=8
         ))
+    project.push_pending_undo_group_to_undo_stack()
     count = mock_func.call_count
 
     project.undo()

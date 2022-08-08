@@ -358,11 +358,13 @@ class QuibHandler:
 
         self._add_override(assignment)
 
-        self.project.push_assignment_to_undo_stack(quib=self.quib,
-                                                   assignment=assignment,
-                                                   assignment_index=len(self.overrider) - 1)
 
+        self.project.push_assignment_to_pending_undo_group(quib=self.quib,
+                                                           assignment=assignment,
+                                                           assignment_index=len(self.overrider) - 1)
         if not is_within_drag():
+            self.project.push_pending_undo_group_to_undo_stack()
+
             self.file_syncer.on_data_changed()
 
         notify_of_overriding_changes_or_add_in_aggregate_mode(self.quib)

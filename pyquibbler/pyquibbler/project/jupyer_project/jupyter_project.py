@@ -278,7 +278,7 @@ class JupyterProject(Project):
         assignment = overrider[0]
 
         quib = self._find_quib_by_id(quib_id)
-        self.push_assignment_to_undo_stack(
+        self.push_single_assignment_to_undo_stack(
             quib=quib,
             assignment=assignment,
             assignment_index=index

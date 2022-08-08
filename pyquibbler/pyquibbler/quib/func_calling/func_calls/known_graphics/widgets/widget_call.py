@@ -23,20 +23,27 @@ class WidgetQuibFuncCall(CachedQuibFuncCall):
     def _get_axis(self) -> Axes:
         return self.func_args_kwargs.get('ax')
 
-    def _inverse_assign(self, quib: Quib, path: Path, value: Any, tolerance: Any = None):
+    def _inverse_assign(self, quib: Quib, path: Path, value: Any, tolerance: Any = None, on_drag: bool = False):
         from pyquibbler import Assignment
-        with graphics_assignment_mode(self._get_axis()):
-            if tolerance is None:
-                quib.handler.apply_assignment(Assignment(value=value, path=path))
-            else:
-                quib.handler.apply_assignment(AssignmentWithTolerance(value=value,
-                                                                      path=path,
-                                                                      value_up=value + tolerance,
-                                                                      value_down=value - tolerance))
 
-    def _inverse_assign_multiple_quibs(self, quib_changes: List[AssignmentToQuib]):
+        if tolerance is None:
+            assignment = Assignment(value=value, path=path)
+        else:
+            assignment = AssignmentWithTolerance(value=value,
+                                                 path=path,
+                                                 value_up=value + tolerance,
+                                                 value_down=value - tolerance)
+        self._inverse_assign_multiple_quibs([AssignmentToQuib(quib, assignment)], on_drag)
+
+    def _inverse_assign_multiple_quibs(self, quib_changes: List[AssignmentToQuib], on_drag: bool = False):
         with graphics_assignment_mode(self._get_axis()):
             get_override_group_for_quib_changes(quib_changes).apply()
+        if not on_drag:
+            self._on_release()
+
+    def _on_release(self, *_, **__):
+        from pyquibbler import Project
+        Project.get_or_create().push_pending_undo_group_to_undo_stack()
 
     def _run_single_call(self, func: Callable, graphics_collection: GraphicsCollection,
                          args: Tuple[Any, ...], kwargs: Mapping[str, Any], quibs_allowed_to_access: Set[Quib]):

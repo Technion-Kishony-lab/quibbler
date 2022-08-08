@@ -15,7 +15,6 @@ from pyquibbler.path import PathComponent
 
 
 class RectangleSelectorQuibFuncCall(WidgetQuibFuncCall):
-    _last_extents_change = None
 
     def _widget_is_attempting_to_resize_when_not_allowed(self, extents):
         """
@@ -37,7 +36,6 @@ class RectangleSelectorQuibFuncCall(WidgetQuibFuncCall):
         )
 
     def _on_changed(self, extents):
-        self._last_extents_change = extents
         init_val = self.func_args_kwargs.get('extents')
 
         from pyquibbler import timer
@@ -71,16 +69,7 @@ class RectangleSelectorQuibFuncCall(WidgetQuibFuncCall):
                                                           value_up=extents[index] + tolerance[index],
                                                           value_down=extents[index] - tolerance[index]
                                                           )))
-            self._inverse_assign_multiple_quibs(quib_changes)
-
-    def _on_release(self):
-        if self._last_extents_change:
-            # we unfortunately ALSO need this concept of releasing because _on_release can be called while still within
-            # dragging (this appears to be matplotlib internal implementation)
-            # By saying `releasing` we ensure this will be recorded for undo/redo
-            with releasing():
-                self._on_changed(self._last_extents_change)
-            self._last_extents_change = None
+            self._inverse_assign_multiple_quibs(quib_changes, on_drag=True)
 
     def _connect_callbacks(self, widget: QRectangleSelector):
         widget.changed_callback = self._on_changed

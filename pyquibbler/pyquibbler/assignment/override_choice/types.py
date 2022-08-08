@@ -28,10 +28,10 @@ class OverrideGroup:
     def apply(self):
         from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
         from pyquibbler.project import Project
-        with Project.get_or_create().start_undo_group():
-            with aggregate_redraw_mode():
-                for quib_change in self.quib_changes:
-                    quib_change.apply()
+        Project.get_or_create().start_pending_undo_group()
+        with aggregate_redraw_mode():
+            for quib_change in self.quib_changes:
+                quib_change.apply()
 
     def __bool__(self):
         return len(self.quib_changes) > 0
