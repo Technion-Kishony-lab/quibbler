@@ -162,26 +162,6 @@ def test_undo_redo_with_assignment_in_the_middle(project):
         project.redo()
 
 
-def test_doesnt_record_when_dragging(project):
-    a = iquib(5)
-    with dragging():
-        a.assign(10)
-
-    with pytest.raises(NothingToUndoException, match='.*'):
-        project.undo()
-
-
-def test_project_undo_group_doesnt_add_on_dragging(project):
-    a = iquib(5)
-    with dragging():
-        project.start_pending_undo_group()
-        a.assign(10)
-        a.assign(8)
-
-    with pytest.raises(NothingToUndoException, match='.*'):
-        project.undo()
-
-
 def test_undo_inverse_assign_override_group(project):
     a = iquib(5)
     b = a + 10

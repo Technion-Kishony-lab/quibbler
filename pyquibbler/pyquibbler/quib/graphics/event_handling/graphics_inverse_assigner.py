@@ -36,7 +36,7 @@ def inverse_assign_drawing_func(drawing_func: Callable,
         except AssignmentCancelledByUserException:
             pass
         else:
-            override_group.apply()
+            override_group.apply(on_drag=True)
             return override_group
 
 
@@ -57,5 +57,5 @@ def inverse_assign_axes_lim_func(args: Iterable[Any],
     except AssignmentCancelledByUserException:
         pass
     else:
-        override_group.apply()
+        override_group.apply(on_drag=True)
         return override_group
