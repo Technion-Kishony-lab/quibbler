@@ -39,7 +39,8 @@ class FuncArgsKwargs:
         new_arguments = []
         parameters = sig.parameters
         for name, value in arguments.items():
-            if not (name in parameters and recursively_compare_objects_type(parameters[name].default, value)):
+            if not (name in parameters and recursively_compare_objects_type(parameters[name].default, value,
+                                                                            type_only=False)):
                 new_arguments.append((name, value))
 
         return dict(new_arguments)

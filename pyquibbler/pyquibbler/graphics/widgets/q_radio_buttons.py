@@ -18,6 +18,7 @@ class QRadioButtons(RadioButtons):
         self.created_in_get_value_context = is_within_get_value_context()
 
     def set_active(self, index: int):
+        self.selected_index = index
         if self.created_in_get_value_context:
             drawon = self.drawon
             self.drawon = False

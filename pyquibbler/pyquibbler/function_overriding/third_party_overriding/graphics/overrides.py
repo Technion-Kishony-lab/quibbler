@@ -47,10 +47,10 @@ def create_graphics_overrides():
             'annotate',
             'arrow',
             # 'autoscale',
-            # 'axes',  # Overloaded as not implemented
+            # 'axes',
             'axhline',
             'axhspan',
-            # 'axis',
+            # 'axis',  # calls xlim, ylim, seems ok. 
             'axline',
             'axvline',
             'axvspan',
@@ -184,7 +184,6 @@ def create_graphics_overrides():
         *(override_not_implemented(module_or_cls=Axes,
                                    func_name=func_name,
                                    message=message) for func_name, message in (
-            ('axis', 'Use plt.xlim, plt.ylim, or ax.set_xlim, ax.set_ylim instead.'),
             ('grid', ''),
             ('bar_label', 'Set the labels in the bar creation method'),
         )),
