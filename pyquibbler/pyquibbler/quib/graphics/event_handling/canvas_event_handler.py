@@ -73,13 +73,12 @@ class CanvasEventHandler:
 
     def _handle_button_press(self, _mouse_event: MouseEvent):
         pressed()
-        from pyquibbler.project import Project
-        Project.get_or_create().start_pending_undo_group()
 
     def _handle_button_release(self, _mouse_event: MouseEvent):
+        if self.current_pick_event is not None:
+            end_dragging()
         self.current_pick_event = None
         self.current_pick_quib = None
-        end_dragging()
         released()
 
     def _handle_pick_event(self, pick_event: PickEvent):
