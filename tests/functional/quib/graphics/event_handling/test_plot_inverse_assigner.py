@@ -48,9 +48,27 @@ new_date = datetime.strptime('2019-01-02','%Y-%m-%d')
 
 
 @pytest.mark.parametrize("indices,artist_index,xdata,ydata,args,quib_index,expected_value", [
+    ([0], 0, 100, 50, (iquib([0, 0, 0]),), 0, [50, 0, 0]),
     ([0], 0, 100, date2num(new_date), (iquib(date_array),), 0, np.array([new_date, date_array[1]])),
+    ([0], 0, 100, 50, (iquib([0, 0, 0]), None), 0, [100, 0, 0]),
+    ([0], 0, 100, 50, (iquib([0, 0, 0]), None, "i_is_fmt"), 0, [100, 0, 0]),
+    ([0], 0, 100, 50, (None, None, "i_is_fmt", iquib([0, 0, 0]), None), 3, [100, 0, 0]),
+    ([0], 0, 100, 50, (None, None, "i_is_fmt", None, iquib([0, 0, 0])), 4, [50, 0, 0]),
+    ([0], 0, 100, 50, (None, None, None, iquib([0, 0, 0])), 3, [50, 0, 0]),
+    ([1, 2], 0, 55, 66, (iquib([0, 0, 0]), iquib([0, 0, 0])), [0, 1], ([0, 55, 55], [0, 66, 66])),
+    ([0], 0, 1, 2, (iquib(100), iquib(200)), [0, 1], (1, 2)),
+    ([1], 0, 4, 5, (iquib([[1], [2], [3]]),), 0, [[1], [5], [3]]),
 ], ids=[
+    "ydata: one arg",
     "ydata: one arg datetime",
+    "xdata: two args",
+    "xdata: three args",
+    "xdata: second group after fmt",
+    "ydata: second group after fmt",
+    "ydata: no fmt",
+    "xdata&ydata: two marker drag",
+    "xdata&ydata: input number",
+    "ydata: input 2d array",
 ])
 def test_plot_inverse_assigner(mock_plot, indices, artist_index, xdata, ydata, args, quib_index, expected_value):
     pick_event, mouse_event = create_mock_pick_event_and_mouse_event(indices, xdata, ydata, artist_index)
