@@ -10,6 +10,7 @@ from pyquibbler.graphics.graphics_collection import GraphicsCollection
 from pyquibbler.quib import Quib
 from pyquibbler.quib.func_calling import CachedQuibFuncCall
 from pyquibbler.quib.graphics.event_handling.canvas_event_handler import graphics_assignment_mode
+from pyquibbler.quib.graphics.redraw import end_dragging
 
 
 class WidgetQuibFuncCall(CachedQuibFuncCall):
@@ -33,8 +34,7 @@ class WidgetQuibFuncCall(CachedQuibFuncCall):
             get_override_group_for_quib_changes(quib_changes).apply(is_dragging=on_drag)
 
     def _on_release(self, *_, **__):
-        from pyquibbler import Project
-        Project.get_or_create().push_pending_undo_group_to_undo_stack()
+        end_dragging()
 
     def _run_single_call(self, func: Callable, graphics_collection: GraphicsCollection,
                          args: Tuple[Any, ...], kwargs: Mapping[str, Any], quibs_allowed_to_access: Set[Quib]):

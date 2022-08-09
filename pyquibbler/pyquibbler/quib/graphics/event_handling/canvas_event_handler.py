@@ -75,8 +75,7 @@ class CanvasEventHandler:
         pressed()
 
     def _handle_button_release(self, _mouse_event: MouseEvent):
-        if self.current_pick_event is not None:
-            end_dragging()
+        end_dragging()
         self.current_pick_event = None
         self.current_pick_quib = None
         released()
