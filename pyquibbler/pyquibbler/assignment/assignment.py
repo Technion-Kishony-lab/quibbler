@@ -1,11 +1,14 @@
 from __future__ import annotations
 import numpy as np
 from dataclasses import dataclass, field
-from typing import Any, TYPE_CHECKING, List, Union
+from typing import Any, TYPE_CHECKING, List, Union, Optional, Callable
+
+from matplotlib.axes import Axes
 
 from .default_value import default
 
 from pyquibbler.path.path_component import Path
+from ..env import GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION
 
 if TYPE_CHECKING:
     from pyquibbler.quib.quib import Quib
@@ -82,6 +85,21 @@ class AssignmentWithTolerance(Assignment):
                    value_down=value - tolerance)
 
 
+def create_assignment(value: Any, path: Path,
+                      tolerance: Optional[Any] = None,
+                      convert_func: Optional[Callable] = None) -> Union[Assignment, AssignmentWithTolerance]:
+
+    convert_func = convert_func if convert_func is not None else lambda x: x
+
+    if tolerance is None:
+        return Assignment(convert_func(value), path)
+
+    return AssignmentWithTolerance(value=convert_func(value),
+                                   path=path,
+                                   value_up=convert_func(value + tolerance),
+                                   value_down=convert_func(value - tolerance))
+
+
 def convert_assignment_with_tolerance_to_pretty_assignment(
         assignment: AssignmentWithTolerance) -> Assignment:
 
@@ -96,6 +114,16 @@ def convert_assignment_with_tolerance_to_pretty_assignment(
         pass
 
     return Assignment(value=value, path=assignment.path)
+
+
+def get_axes_x_y_tolerance(ax: Axes):
+    n = GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.val
+    if n is None:
+        return None, None
+    xlim = ax.get_xlim()
+    ylim = ax.get_ylim()
+    return (xlim[1] - xlim[0]) / n, \
+           (ylim[1] - ylim[0]) / n
 
 
 @dataclass(frozen=True)

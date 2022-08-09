@@ -3,7 +3,7 @@ from typing import Callable, Tuple, Any, Mapping, Set, List
 from matplotlib.axes import Axes
 from matplotlib.widgets import AxesWidget
 
-from pyquibbler.assignment.assignment import AssignmentWithTolerance, AssignmentToQuib
+from pyquibbler.assignment.assignment import AssignmentToQuib, create_assignment
 from pyquibbler.assignment.override_choice import get_override_group_for_quib_changes
 from pyquibbler.path.path_component import Path
 from pyquibbler.graphics.graphics_collection import GraphicsCollection
@@ -24,15 +24,8 @@ class WidgetQuibFuncCall(CachedQuibFuncCall):
         return self.func_args_kwargs.get('ax')
 
     def _inverse_assign(self, quib: Quib, path: Path, value: Any, tolerance: Any = None, on_drag: bool = False):
-        from pyquibbler import Assignment
 
-        if tolerance is None:
-            assignment = Assignment(value=value, path=path)
-        else:
-            assignment = AssignmentWithTolerance(value=value,
-                                                 path=path,
-                                                 value_up=value + tolerance,
-                                                 value_down=value - tolerance)
+        assignment = create_assignment(value, path, tolerance)
         self._inverse_assign_multiple_quibs([AssignmentToQuib(quib, assignment)], on_drag)
 
     def _inverse_assign_multiple_quibs(self, quib_changes: List[AssignmentToQuib], on_drag: bool = False):

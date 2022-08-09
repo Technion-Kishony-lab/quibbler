@@ -3,8 +3,7 @@ from typing import Callable, Tuple, Any, Mapping, Set
 import numpy as np
 
 from pyquibbler.assignment import AssignmentToQuib
-from pyquibbler.assignment.assignment import AssignmentWithTolerance
-from pyquibbler.env import GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION
+from pyquibbler.assignment.assignment import AssignmentWithTolerance, get_axes_x_y_tolerance
 from pyquibbler.function_definitions import KeywordArgument
 from pyquibbler.graphics import GraphicsCollection
 from pyquibbler.graphics.widgets import QRectangleSelector
@@ -35,16 +34,6 @@ class RectangleSelectorQuibFuncCall(WidgetQuibFuncCall):
                 previous_value[3] - previous_value[2] != extents[3] - extents[2]
         )
 
-    def _get_tolerance(self):
-        ax = self._get_axis()
-        if GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.val is None:
-            tolerance = None
-        else:
-            tolerance_x = (ax.get_xlim()[1] - ax.get_xlim()[0]) / GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.val
-            tolerance_y = (ax.get_ylim()[1] - ax.get_ylim()[0]) / GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.val
-            tolerance = np.array([tolerance_x, tolerance_x, tolerance_y, tolerance_y])
-        return tolerance
-
     def _on_changed(self, extents):
         init_val = self.func_args_kwargs.get('extents')
 
@@ -55,25 +44,28 @@ class RectangleSelectorQuibFuncCall(WidgetQuibFuncCall):
             return
 
         with timer("selector_change", lambda x: logger.info(f"selector change {x}")):
-            tolerance = self._get_tolerance()
+
+            tolerance_x, tolerance_y = get_axes_x_y_tolerance(self._get_axis())
+            tolerance = None if tolerance_x is None else np.array([tolerance_x, tolerance_x, tolerance_y, tolerance_y])
 
             if isinstance(init_val, Quib):
                 self._inverse_assign(init_val,
                                      [PathComponent(component=slice(None, None, None),
                                                     indexed_cls=np.ndarray)],
                                      extents,
-                                     tolerance=tolerance)
+                                     tolerance=tolerance,
+                                     on_drag=True)
             elif len(init_val) == 4:
                 quib_changes = list()
                 for index, init_val_item in enumerate(init_val):
                     if isinstance(init_val_item, Quib):
-                        quib_changes.append(AssignmentToQuib(quib=init_val_item,
-                                                             assignment=AssignmentWithTolerance
-                                                             (path=[],
-                                                              value=extents[index],
-                                                              value_up=extents[index] + tolerance[index],
-                                                              value_down=extents[index] - tolerance[index]
-                                                              )))
+                        quib_changes.append(AssignmentToQuib(
+                            quib=init_val_item,
+                            assignment=AssignmentWithTolerance.from_value_path_tolerance(
+                                path=[],
+                                value=extents[index],
+                                tolerance=tolerance[index])
+                        ))
                 self._inverse_assign_multiple_quibs(quib_changes, on_drag=True)
 
     def _connect_callbacks(self, widget: QRectangleSelector):
