@@ -80,9 +80,9 @@ def _notify_of_overriding_changes():
     QUIBS_TO_NOTIFY_OVERRIDING_CHANGES.clear()
 
 
-def redraw_quibs_with_graphics_or_add_in_aggregate_mode(quibs: Set[Quib]):
+def redraw_quib_with_graphics_or_add_in_aggregate_mode(quib: Quib):
     global QUIBS_TO_REDRAW
-    QUIBS_TO_REDRAW |= quibs
+    QUIBS_TO_REDRAW.add(quib)
     if not IN_AGGREGATE_REDRAW_MODE:
         _redraw_quibs_with_graphics()
 

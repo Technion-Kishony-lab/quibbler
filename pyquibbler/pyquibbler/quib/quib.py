@@ -194,31 +194,19 @@ class QuibHandler:
     def get_figures(self):
         return {artist.figure for artist in self._iter_artists()}
 
-    def _redraw(self) -> None:
-        """
-        Redraw all artists that directly or indirectly depend on this quib.
-        """
-        from pyquibbler.quib.graphics.redraw import redraw_quibs_with_graphics_or_add_in_aggregate_mode
-        quibs = self._get_descendant_graphics_quibs_recursively()
-        redraw_quibs_with_graphics_or_add_in_aggregate_mode(quibs)
-
-    def _get_descendant_graphics_quibs_recursively(self) -> Set[Quib]:
-        """
-        Get all artists that directly or indirectly depend on this quib.
-        """
-        return {child for child in self.get_descendants() if child.is_graphics_quib}
-
     """
     Invalidation
     """
 
     def invalidate_self(self, path: Path):
         """
-        This method is called whenever a quib itself is invalidated; subclasses will override this with their
-        implementations for invalidations.
-        For example, a simple implementation for a quib which is a function could be setting a boolean to true or
-        false signifying validity
+        Invalidate the quib itself.
         """
+        from pyquibbler.quib.graphics.redraw import redraw_quib_with_graphics_or_add_in_aggregate_mode
+
+        if self.quib.is_graphics_quib:
+            redraw_quib_with_graphics_or_add_in_aggregate_mode(self.quib)
+
         if len(path) == 0:
             self.quib_function_call.on_type_change()
 
@@ -235,8 +223,6 @@ class QuibHandler:
 
         with timer("quib_invalidation", lambda x: logger.info(f"invalidate {x}")):
             self._invalidate_children_at_path(path)
-
-        self._redraw()
 
     def _invalidate_children_at_path(self, path: Path) -> None:
         """
@@ -336,8 +322,6 @@ class QuibHandler:
     def override(self, assignment: Union[Assignment, AssignmentWithTolerance]):
         """
         Overrides a part of the data the quib represents.
-        We are shaping the assignment and making it "pretty" in three steps:
-        rounding according to tolerance, simplify, template
         """
 
         from pyquibbler.quib.graphics.redraw import notify_of_overriding_changes_or_add_in_aggregate_mode
@@ -345,6 +329,7 @@ class QuibHandler:
         if not self.is_overridden and assignment.is_default():
             return
 
+        # We are shaping the assignment and making it "pretty" in three steps:
         # step 1: round by tolerance:
         if isinstance(assignment, AssignmentWithTolerance):
             assignment = convert_assignment_with_tolerance_to_pretty_assignment(assignment)
@@ -357,7 +342,6 @@ class QuibHandler:
             assignment.value = self.assignment_template.convert(assignment.value)
 
         self._add_override(assignment)
-
 
         self.project.push_assignment_to_pending_undo_group(quib=self.quib,
                                                            assignment=assignment,
