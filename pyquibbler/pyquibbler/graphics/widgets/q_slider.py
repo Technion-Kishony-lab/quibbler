@@ -3,7 +3,6 @@ from numbers import Number
 from matplotlib.widgets import Slider
 
 from pyquibbler.assignment.assignment_template import round_to_num_digits
-from pyquibbler.graphics.drag_context_manager import enter_dragging, exit_dragging, releasing
 from pyquibbler.quib.get_value_context_manager import is_within_get_value_context
 
 
@@ -25,12 +24,12 @@ class QSlider(Slider):
             return
         self._drag_active = value
         if value:
-            enter_dragging()
+            # enter_dragging()
+            pass
         else:
             if self.on_release:
-                with releasing():
-                    self.on_release(self.val)
-            exit_dragging()
+                self.on_release(self.val)
+            # exit_dragging()
 
     def _stepped_value(self, val):
         """Return *val* coerced to closest number in the ``valstep`` grid."""

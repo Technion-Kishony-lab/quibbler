@@ -4,10 +4,10 @@ from typing import Optional, Tuple, Callable
 from matplotlib.backend_bases import MouseEvent, PickEvent, MouseButton
 
 from pyquibbler.env import END_DRAG_IMMEDIATELY
-from pyquibbler.graphics import releasing, pressed, released
+from pyquibbler.graphics import pressed, released
 from pyquibbler.logger import logger
+from pyquibbler.quib.graphics.redraw import end_dragging
 from pyquibbler.utilities.performance_utils import timer
-from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
 from pyquibbler.quib.graphics.event_handling import graphics_inverse_assigner
 from pyquibbler.quib.graphics import artist_wrapper
 
@@ -79,8 +79,7 @@ class CanvasEventHandler:
     def _handle_button_release(self, _mouse_event: MouseEvent):
         self.current_pick_event = None
         self.current_pick_quib = None
-        from pyquibbler.project import Project
-        Project.get_or_create().push_pending_undo_group_to_undo_stack()
+        end_dragging()
         released()
 
     def _handle_pick_event(self, pick_event: PickEvent):
@@ -101,7 +100,6 @@ class CanvasEventHandler:
 
         drawing_quib = self.current_pick_quib
         with timer("motion_notify", lambda x: logger.info(f"motion notify {x}")), \
-                aggregate_redraw_mode(), \
                 graphics_assignment_mode(mouse_event.inaxes):
             graphics_inverse_assigner.inverse_assign_drawing_func(drawing_func=drawing_quib.func,
                                                                   args=drawing_quib.args,
@@ -139,9 +137,7 @@ class CanvasEventHandler:
                 self._assignment_lock.release()
 
     def _handle_motion_notify(self, mouse_event: MouseEvent):
-        from pyquibbler.graphics import dragging
-        with dragging():
-            self._inverse_from_mouse_event(mouse_event)
+        self._inverse_from_mouse_event(mouse_event)
 
     def _inverse_from_mouse_event(self, mouse_event):
         if self.current_pick_event is not None:
@@ -177,16 +173,14 @@ class CanvasEventHandler:
         """
         This method is called by the overridden set_xlim, set_ylim
         """
-        from pyquibbler.graphics import dragging
         name = drawing_func.__name__
         set_lim_quib = artist_wrapper.get_setter_quib(ax, name)
         if isinstance(set_lim_quib, Quib):
             with self._try_acquire_assignment_lock() as locked:
                 if locked:
-                    with dragging():
-                        self._inverse_assign_axis_limits(
-                            drawing_func=drawing_func,
-                            set_lim_quib=set_lim_quib,
-                            lim=lim,
-                            is_override_removal=False,
-                        )
+                    self._inverse_assign_axis_limits(
+                        drawing_func=drawing_func,
+                        set_lim_quib=set_lim_quib,
+                        lim=lim,
+                        is_override_removal=False,
+                    )

@@ -24,7 +24,7 @@ from matplotlib.artist import Artist
 
 from pyquibbler.env import LEN_RAISE_EXCEPTION, BOOL_RAISE_EXCEPTION, \
     PRETTY_REPR, REPR_RETURNS_SHORT_NAME, REPR_WITH_OVERRIDES, ITER_RAISE_EXCEPTION, WARN_ON_UNSUPPORTED_BACKEND
-from pyquibbler.graphics import is_within_drag, SUPPORTED_BACKENDS
+from pyquibbler.graphics import SUPPORTED_BACKENDS
 from pyquibbler.quib.quib_guard import guard_raise_if_not_allowed_access_to_quib, \
     CannotAccessQuibInScopeException
 from pyquibbler.quib.pretty_converters import MathExpression, FailedMathExpression, \
@@ -176,7 +176,7 @@ class QuibHandler:
     def actual_graphics_update(self):
         return self.graphics_update or self.project.graphics_update
 
-    def redraw_if_appropriate(self) -> None:
+    def redraw_if_appropriate(self, is_drag: bool = False) -> bool:
         """
         Redraws the quib if it's appropriate
         """

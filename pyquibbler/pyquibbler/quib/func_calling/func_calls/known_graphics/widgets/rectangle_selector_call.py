@@ -6,7 +6,7 @@ from pyquibbler.assignment import AssignmentToQuib
 from pyquibbler.assignment.assignment import AssignmentWithTolerance
 from pyquibbler.env import GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION
 from pyquibbler.function_definitions import KeywordArgument
-from pyquibbler.graphics import releasing, GraphicsCollection
+from pyquibbler.graphics import GraphicsCollection
 from pyquibbler.graphics.widgets import QRectangleSelector
 from pyquibbler.quib import Quib
 from pyquibbler.logger import logger
@@ -53,7 +53,7 @@ class RectangleSelectorQuibFuncCall(WidgetQuibFuncCall):
 
         if self._widget_is_attempting_to_resize_when_not_allowed(extents):
             return
-        
+
         with timer("selector_change", lambda x: logger.info(f"selector change {x}")):
             tolerance = self._get_tolerance()
 

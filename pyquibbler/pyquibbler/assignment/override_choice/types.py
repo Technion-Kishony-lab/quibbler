@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 from typing import List, Union
 
 from pyquibbler.assignment import AssignmentToQuib
+from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
 
 
 @dataclass
@@ -25,14 +26,13 @@ class OverrideGroup:
     """
     quib_changes: List[AssignmentToQuib] = field(default_factory=list)
 
-    def apply(self, on_drag: bool = False):
-        from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
+    def apply(self, is_dragging: bool = False):
         from pyquibbler.project import Project
         Project.get_or_create().start_pending_undo_group()
-        with aggregate_redraw_mode():
+        with aggregate_redraw_mode(is_dragging):
             for quib_change in self.quib_changes:
                 quib_change.apply()
-        if not on_drag:
+        if not is_dragging:
             Project.get_or_create().push_pending_undo_group_to_undo_stack()
 
     def __bool__(self):

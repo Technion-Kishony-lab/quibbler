@@ -17,6 +17,7 @@ from pyquibbler.quib.graphics import GraphicsUpdateType
 from pyquibbler.file_syncing.types import SaveFormat, ResponseToFileNotDefined
 from ..logger import logger
 from ..path.path_component import set_path_indexed_classes_from_quib
+from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
 
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib
@@ -130,7 +131,6 @@ class Project:
     @staticmethod
     def _reset_list_of_quibs(quibs):
         # We aggregate to ensure we don't redraw axes more than once
-        from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
         with aggregate_redraw_mode():
             for quib in quibs:
                 quib.invalidate()
@@ -338,7 +338,6 @@ class Project:
         Quib.save_format, Quib.actual_save_format, Project.save_format
         Quib.load
         """
-        from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
         if self.directory is None:
             raise NoProjectDirectoryException(action='load')
         with aggregate_redraw_mode():
@@ -358,7 +357,6 @@ class Project:
         Quib.save_format, Quib.actual_save_format, Project.save_format
         Quib.sync
         """
-        from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
         if self.directory is None:
             raise NoProjectDirectoryException(action='sync')
         with aggregate_redraw_mode():
@@ -438,7 +436,6 @@ class Project:
         >>> a.get_value()
         [1, 2, 3]
         """
-        from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
         try:
             actions = self._undo_action_groups.pop(-1)
         except IndexError:
@@ -482,7 +479,6 @@ class Project:
         except IndexError:
             raise NothingToRedoException() from None
 
-        from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
         with aggregate_redraw_mode():
             for action in actions:
                 action.redo()

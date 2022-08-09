@@ -1,7 +1,7 @@
 from typing import Callable, List, Any, Iterable, Tuple
 from matplotlib.backend_bases import MouseEvent, PickEvent
 
-from pyquibbler.assignment import AssignmentToQuib
+from pyquibbler.assignment import AssignmentToQuib, OverrideGroup
 from pyquibbler.assignment import AssignmentCancelledByUserException
 from pyquibbler.quib.graphics.event_handling.set_lim_inverse_assigner import get_override_group_for_axes_set_lim
 
@@ -32,11 +32,13 @@ def inverse_assign_drawing_func(drawing_func: Callable,
     inverse_assigner_func = GRAPHICS_REVERSE_ASSIGNERS.get(drawing_func.__qualname__)
     if inverse_assigner_func is not None:
         try:
-            override_group = inverse_assigner_func(pick_event=pick_event, mouse_event=mouse_event, args=args)
+            override_group: OverrideGroup = inverse_assigner_func(pick_event=pick_event,
+                                                                  mouse_event=mouse_event,
+                                                                  args=args)
         except AssignmentCancelledByUserException:
             pass
         else:
-            override_group.apply(on_drag=True)
+            override_group.apply(is_dragging=True)
             return override_group
 
 
@@ -57,5 +59,5 @@ def inverse_assign_axes_lim_func(args: Iterable[Any],
     except AssignmentCancelledByUserException:
         pass
     else:
-        override_group.apply(on_drag=True)
+        override_group.apply(is_dragging=True)
         return override_group

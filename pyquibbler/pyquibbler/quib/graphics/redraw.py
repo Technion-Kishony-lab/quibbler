@@ -1,15 +1,16 @@
 from __future__ import annotations
 import contextlib
-from typing import Set, Dict
+from typing import Set, Dict, TYPE_CHECKING
 from matplotlib.figure import Figure
 from matplotlib.pyplot import fignum_exists
 from matplotlib._pylab_helpers import Gcf
 
-from pyquibbler import GraphicsUpdateType
+from pyquibbler.quib.graphics import GraphicsUpdateType
 from pyquibbler.logger import logger
 from pyquibbler.utilities.performance_utils import timer
-from pyquibbler.cache.cache import CacheStatus
-from pyquibbler.quib.quib import Quib
+
+if TYPE_CHECKING:
+    from pyquibbler.quib.quib import Quib
 
 
 QUIBS_TO_REDRAW: Dict[GraphicsUpdateType, Set[Quib]] = {GraphicsUpdateType.DRAG: set(), GraphicsUpdateType.DROP: set()}
@@ -18,7 +19,7 @@ IN_AGGREGATE_REDRAW_MODE = False
 
 
 @contextlib.contextmanager
-def aggregate_redraw_mode():
+def aggregate_redraw_mode(is_dragging: bool = False):
     """
     In aggregate redraw mode, no axeses will be redrawn until the end of the context manager
     """
@@ -33,6 +34,14 @@ def aggregate_redraw_mode():
             IN_AGGREGATE_REDRAW_MODE = False
         _redraw_quibs_with_graphics(GraphicsUpdateType.DRAG)
         _notify_of_overriding_changes()
+        if not is_dragging:
+            end_dragging()
+
+
+def end_dragging():
+    from pyquibbler import Project
+    _redraw_quibs_with_graphics(GraphicsUpdateType.DROP)
+    Project.get_or_create().push_pending_undo_group_to_undo_stack()
 
 
 @contextlib.contextmanager
