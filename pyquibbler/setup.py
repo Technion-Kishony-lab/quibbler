@@ -1,10 +1,15 @@
 from setuptools import setup, find_packages
+from pathlib import Path
+
+setup_directory = Path(__file__).parent
+long_description = (setup_directory / "README.md").read_text()
 
 setup(
     name="pyquibbler",
     version='0.1.3',
     python_requires='>=3.8',
-    long_description="Quibbler",
+    long_description=long_description,
+    long_description_content_type='text/markdown',
     packages=find_packages(),
     install_requires=["matplotlib==3.4.3",
                       "numpy==1.23.0",
