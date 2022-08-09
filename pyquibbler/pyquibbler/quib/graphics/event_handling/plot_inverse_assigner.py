@@ -15,6 +15,12 @@ from pyquibbler.quib.quib import Quib
 from numpy import unravel_index
 
 
+def _is_arg_str(arg):
+    if isinstance(arg, Quib):
+        arg = arg.get_value()
+    return isinstance(arg, str)
+
+
 def get_xdata_arg_indices_and_ydata_arg_indices(args: Tuple[List, List]):
     """
     Gets a list of indices of arguments referencing `xdata`s, and a list of indices of arguments referencing `ydata`
@@ -37,14 +43,14 @@ def get_xdata_arg_indices_and_ydata_arg_indices(args: Tuple[List, List]):
         return [], [1]
 
     if len(args) == 3:
-        if isinstance(args[2], str):
+        if _is_arg_str(args[2]):
             return [], [1]
 
     i = 1
     while i < len(args):
         step = 2
         potential_fmt_index = i + 2
-        if potential_fmt_index < len(args) and isinstance(args[potential_fmt_index], str):
+        if potential_fmt_index < len(args) and _is_arg_str(args[potential_fmt_index]):
             step += 1
         x_data_arg_indexes.append(i)
         y_data_arg_indexes.append(i + 1)

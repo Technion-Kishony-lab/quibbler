@@ -48,7 +48,6 @@ def create_mock_pick_event_right_click(indices, artist_index):
     return pick_event
 
 
-
 def test_plot_inverse_assigner_happy_flow(mock_plot):
     q = iquib(np.array([1, 2, 3]))
     pick_event, mouse_event = create_mock_pick_event_and_mouse_event([0], 10, 20, 0)
@@ -70,6 +69,7 @@ new_date = datetime.strptime('2019-01-02','%Y-%m-%d')
 @pytest.mark.parametrize("indices,artist_index,xdata,ydata,args,quib_index,expected_value,tolerance", [
     ([0], 0, 100, 50, (iquib([0, 0, 0]),), 0, [50, 0, 0], None),
     ([0], 0, 100, 50, (iquib([0, 0, 0]), 'r'), 0, [50, 0, 0], None),
+    ([0], 0, 100, 50, (iquib([0, 0, 0]), iquib('r')), 0, [50, 0, 0], None),
     ([0], 0, 100., 50.123456, (iquib([0., 0., 0.]),), 0, [50.123456, 0, 0], None),
     ([0], 0, 100., 50.123456, (iquib([0., 0., 0.]),), 0, [50.1, 0, 0], 1000),
     ([0], 0, 100., 50.123456, (iquib([0., 0., 0.]),), 0, [50.0, 0, 0], 100),
@@ -77,6 +77,7 @@ new_date = datetime.strptime('2019-01-02','%Y-%m-%d')
     ([0], 0, 100, date2num(new_date), (iquib(date_array),), 0, np.array([new_date, date_array[1]]), None),
     ([0], 0, 100, 50, (iquib([0, 0, 0]), None), 0, [100, 0, 0], None),
     ([0], 0, 100, 50, (iquib([0, 0, 0]), None, "i_is_fmt"), 0, [100, 0, 0], None),
+    ([0], 0, 100, 50, (iquib([0, 0, 0]), None, iquib("i_is_fmt")), 0, [100, 0, 0], None),
     ([0], 0, 100, 50, (None, None, "i_is_fmt", iquib([0, 0, 0]), None), 3, [100, 0, 0], None),
     ([0], 0, 100, 50, (None, None, "i_is_fmt", None, iquib([0, 0, 0])), 4, [50, 0, 0], None),
     ([0], 0, 100, 50, (None, None, None, iquib([0, 0, 0])), 3, [50, 0, 0], None),
@@ -85,7 +86,8 @@ new_date = datetime.strptime('2019-01-02','%Y-%m-%d')
     ([1], 0, 4, 5, (iquib([[1], [2], [3]]),), 0, [[1], [5], [3]], None),
 ], ids=[
     "ydata: one arg",
-    "ydata: two args",
+    "ydata: y, str",
+    "ydata: y, iquib(str)",
     "ydata: one arg, tolerance none",
     "ydata: one arg, tolerance 1000",
     "ydata: one arg, tolerance 100",
@@ -93,6 +95,7 @@ new_date = datetime.strptime('2019-01-02','%Y-%m-%d')
     "ydata: one arg datetime",
     "xdata: two args",
     "xdata: three args",
+    "xdata: three args, iquib(str)",
     "xdata: second group after fmt",
     "ydata: second group after fmt",
     "ydata: no fmt",
