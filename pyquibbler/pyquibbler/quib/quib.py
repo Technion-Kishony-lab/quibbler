@@ -180,10 +180,7 @@ class QuibHandler:
         """
         Redraws the quib if it's appropriate
         """
-        graphics_update = self.actual_graphics_update
-        if graphics_update == GraphicsUpdateType.DRAG \
-                or graphics_update == GraphicsUpdateType.DROP and not is_within_drag():
-            self.quib.get_value()
+        self.quib.get_value()
 
     def _iter_artist_lists(self) -> Iterable[List[Artist]]:
         return map(lambda g: g.artists, self.quib_function_call.flat_graphics_collections())
@@ -205,7 +202,7 @@ class QuibHandler:
         from pyquibbler.quib.graphics.redraw import redraw_quib_with_graphics_or_add_in_aggregate_mode
 
         if self.quib.is_graphics_quib:
-            redraw_quib_with_graphics_or_add_in_aggregate_mode(self.quib)
+            redraw_quib_with_graphics_or_add_in_aggregate_mode(self.quib, self.actual_graphics_update)
 
         if len(path) == 0:
             self.quib_function_call.on_type_change()
