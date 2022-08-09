@@ -134,7 +134,7 @@ def get_override_removals_for_event(args: List[Any], arg_indices: List[int], art
 
 
 def get_pick_event_xy_tolerance(pick_event: PickEvent):
-    n = GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION
+    n = GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.val
     if n is None:
         return None, None
     ax = pick_event.artist.axes

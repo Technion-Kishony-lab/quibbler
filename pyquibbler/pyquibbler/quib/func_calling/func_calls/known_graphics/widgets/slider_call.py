@@ -9,8 +9,8 @@ class SliderQuibFuncCall(WidgetQuibFuncCall):
         from pyquibbler.quib.quib import Quib
         val = self.func_args_kwargs.get('valinit')
         if isinstance(val, Quib):
-            if widget.valstep is None and GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION is not None:
-                tolerance = (widget.valmax - widget.valmin) / GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION
+            if widget.valstep is None and GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.val is not None:
+                tolerance = (widget.valmax - widget.valmin) / GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.val
             else:
                 tolerance = None
             self._inverse_assign(val, [], new_value, tolerance=tolerance, on_drag=True)

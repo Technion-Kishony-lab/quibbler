@@ -42,11 +42,11 @@ class RectangleSelectorQuibFuncCall(WidgetQuibFuncCall):
         from pyquibbler.quib import Quib
 
         ax = self._get_axis()
-        if GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION is None:
+        if GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.val is None:
             tolerance = None
         else:
-            tolerance_x = (ax.get_xlim()[1] - ax.get_xlim()[0]) / GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION
-            tolerance_y = (ax.get_ylim()[1] - ax.get_ylim()[0]) / GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION
+            tolerance_x = (ax.get_xlim()[1] - ax.get_xlim()[0]) / GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.val
+            tolerance_y = (ax.get_ylim()[1] - ax.get_ylim()[0]) / GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.val
             tolerance = np.array([tolerance_x, tolerance_x, tolerance_y, tolerance_y])
 
         if isinstance(init_val, Quib):
