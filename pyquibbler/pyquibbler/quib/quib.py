@@ -177,9 +177,9 @@ class QuibHandler:
     def actual_graphics_update(self):
         return self.graphics_update or self.project.graphics_update
 
-    def redraw_if_appropriate(self, is_drag: bool = False) -> bool:
+    def reevaluate_graphic_quib(self):
         """
-        Redraws the quib if it's appropriate
+        Redraws the quib
         """
         self.quib.get_value()
 

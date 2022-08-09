@@ -71,7 +71,7 @@ def _redraw_quibs_with_graphics(graphics_update: GraphicsUpdateType):
     with timer("quib redraw", lambda x: logger.info(f"redrawing {len(quibs)} quibs: {x}s")), \
             skip_canvas_draws():
         for quib in quibs:
-            quib.handler.redraw_if_appropriate()
+            quib.handler.reevaluate_graphic_quib()
 
     figures = {figure for quib in quibs for figure in quib.handler.get_figures() if figure is not None}
 
