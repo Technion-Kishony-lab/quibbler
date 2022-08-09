@@ -15,6 +15,7 @@ from pyquibbler.assignment.assignment import AssignmentWithTolerance, \
 from pyquibbler.assignment.default_value import missing
 from pyquibbler.assignment.simplify_assignment import AssignmentSimplifier
 from pyquibbler.function_definitions import get_definition_for_function, FuncArgsKwargs
+from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
 from pyquibbler.quib.types import FileAndLineNumber
 from pyquibbler.utilities.file_path import PathWithHyperLink
 from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Union, Iterable, Mapping, Callable, Iterator
@@ -209,7 +210,7 @@ class QuibHandler:
 
         self.quib_function_call.invalidate_cache_at_path(path)
 
-    def invalidate_and_redraw_at_path(self, path: Optional[Path] = None) -> None:
+    def _invalidate_and_redraw_at_path(self, path: Optional[Path] = None) -> None:
         """
         Perform all actions needed after the quib was mutated (whether by function_definitions or inverse assignment).
         If path is not given, the whole quib is invalidated.
@@ -220,6 +221,14 @@ class QuibHandler:
 
         with timer("quib_invalidation", lambda x: logger.info(f"invalidate {x}")):
             self._invalidate_children_at_path(path)
+
+    def invalidate_and_aggregate_redraw_at_path(self, path: Optional[Path] = None) -> None:
+        """
+        Perform all actions needed after the quib was mutated (whether by function_definitions or inverse assignment).
+        If path is not given, the whole quib is invalidated.
+        """
+        with aggregate_redraw_mode():
+            self._invalidate_and_redraw_at_path(path)
 
     def _invalidate_children_at_path(self, path: Path) -> None:
         """
@@ -310,7 +319,7 @@ class QuibHandler:
         self.overrider.add_assignment(assignment)
 
         try:
-            self.invalidate_and_redraw_at_path(assignment.path)
+            self._invalidate_and_redraw_at_path(assignment.path)
         except FailedToDeepAssignException as e:
             raise FailedToDeepAssignException(exception=e.exception, path=e.path) from None
         except InvalidTypeException as e:
@@ -511,14 +520,14 @@ class QuibHandler:
         self.project.clear_undo_and_redo_stacks()
         if not is_within_get_value_context():
             for path in changed_paths:
-                self.invalidate_and_redraw_at_path(path)
+                self.invalidate_and_aggregate_redraw_at_path(path)
 
     def clear_all_overrides(self):
         changed_paths = self.overrider.clear_assignments()
 
         self.project.clear_undo_and_redo_stacks()
         for path in changed_paths:
-            self.invalidate_and_redraw_at_path(path)
+            self.invalidate_and_aggregate_redraw_at_path(path)
 
     def _replace_value_after_load(self, value) -> Paths:
         self._add_override(Assignment(value=value, path=[]))
@@ -849,7 +858,7 @@ class Quib:
         pyquibbler.reset_file_loading_quibs, pyquibbler.reset_random_quibs, pyquibbler.reset_impure_quibs
         """
         self.handler.invalidate_self([])
-        self.handler.invalidate_and_redraw_at_path([])
+        self.handler.invalidate_and_aggregate_redraw_at_path([])
 
     """
     Graphics

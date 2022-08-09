@@ -289,7 +289,7 @@ class JupyterProject(Project):
         quib.handler.file_syncer.on_data_changed()
         set_path_indexed_classes_from_quib(assignment.path, quib)
 
-        quib.handler.invalidate_and_redraw_at_path(assignment.path)
+        quib.handler.invalidate_and_aggregate_redraw_at_path(assignment.path)
 
         return get_serialized_quib(quib)
 

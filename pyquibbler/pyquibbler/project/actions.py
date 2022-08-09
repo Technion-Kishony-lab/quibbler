@@ -52,7 +52,7 @@ class AssignmentAction(Action, ABC):
 
     def run_post_action(self):
         self.quib.handler.file_syncer.on_data_changed()
-        self.quib.handler.invalidate_and_redraw_at_path(self.relevant_path)
+        self.quib.handler.invalidate_and_aggregate_redraw_at_path(self.relevant_path)
 
 
 @dataclass

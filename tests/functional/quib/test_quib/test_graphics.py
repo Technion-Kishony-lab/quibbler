@@ -40,7 +40,7 @@ def test_quib_func_creates_artist(parent_quib, artist_graphics_quib, mock_axes):
 def test_quib_removes_artists_on_rerun(parent_quib, artist_graphics_quib, mock_axes):
     artist_graphics_quib.get_value()
 
-    parent_quib.handler.invalidate_and_redraw_at_path()
+    parent_quib.handler.invalidate_and_aggregate_redraw_at_path()
 
     assert len(mock_axes.artists) == 1
 
@@ -60,7 +60,7 @@ def test_graphics_quib_copy_color(axes, create_quib_with_return_value):
     plot_quib = axes.plot(quib)
     artist_color_upon_creation = plot_quib.get_value()[0].get_color()
 
-    quib.handler.invalidate_and_redraw_at_path()
+    quib.handler.invalidate_and_aggregate_redraw_at_path()
 
     artist_color_after_redraw = plot_quib.get_value()[0].get_color()
     assert artist_color_upon_creation == artist_color_after_redraw
@@ -89,7 +89,7 @@ def test_graphics_quib_update_on_drag(graphics_update, should_have_called, quib,
                                       create_quib_with_return_value):
     graphics_quib.graphics_update = graphics_update
     with aggregate_redraw_mode(is_dragging=True):
-        quib.handler.invalidate_and_redraw_at_path([])
+        quib.handler.invalidate_and_aggregate_redraw_at_path([])
 
     assert len(graphics_quib.func.mock_calls) == (1 if should_have_called else 0)
 
@@ -97,7 +97,7 @@ def test_graphics_quib_update_on_drag(graphics_update, should_have_called, quib,
 def test_graphics_quib_update_on_drop(quib, graphics_quib):
     graphics_quib.graphics_update = GraphicsUpdateType.DROP
 
-    quib.handler.invalidate_and_redraw_at_path([])
+    quib.handler.invalidate_and_aggregate_redraw_at_path([])
 
     assert len(graphics_quib.func.mock_calls) == 1
 
@@ -106,7 +106,7 @@ def test_graphics_quib_update_on_drop(quib, graphics_quib):
 def test_graphics_quib_which_should_never_update(graphics_update, quib, graphics_quib):
     graphics_quib.graphics_update = graphics_update
 
-    quib.handler.invalidate_and_redraw_at_path([])
+    quib.handler.invalidate_and_aggregate_redraw_at_path([])
 
     assert len(graphics_quib.func.mock_calls) == 0
 
@@ -137,7 +137,7 @@ def test_replacing_graphics_function_quib(axes, create_quib_with_return_value, r
         lazy=False
     )
 
-    first_quib.handler.invalidate_and_redraw_at_path(path=[...])
+    first_quib.handler.invalidate_and_aggregate_redraw_at_path(path=[...])
 
     assert replacing_func.call_count == 2
 
@@ -155,11 +155,10 @@ def test_replacing_graphics_function_quib_doesnt_remove_quib_after_invalidation_
         lazy=False,
     )
     # Second time to potentially remove from axes (this was the bug)
-    with aggregate_redraw_mode():
-        first_quib.handler.invalidate_and_redraw_at_path(path=path)
+    first_quib.handler.invalidate_and_aggregate_redraw_at_path(path=path)
+
     # Third time to make sure we DID stay attached to our parent
-    with aggregate_redraw_mode():
-        first_quib.handler.invalidate_and_redraw_at_path(path=path)
+    first_quib.handler.invalidate_and_aggregate_redraw_at_path(path=path)
 
     assert replacing_func.call_count == 3
 

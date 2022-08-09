@@ -594,7 +594,7 @@ class Project:
 
         # TODO: This shouldn't be necessary
         set_path_indexed_classes_from_quib(assignment.path, quib)
-        quib.handler.invalidate_and_redraw_at_path(assignment.path)
+        quib.handler.invalidate_and_aggregate_redraw_at_path(assignment.path)
 
         self.notify_of_overriding_changes(quib)
 

@@ -254,7 +254,7 @@ def test_apply_along_axis_removes_and_recreates_artists(create_artist_and_return
 
     quib.get_value()
     artists_before_invalidation = list(mock_axes.artists)
-    parent.handler.invalidate_and_redraw_at_path([PathComponent(component=0, indexed_cls=np.ndarray)])
+    parent.handler.invalidate_and_aggregate_redraw_at_path([PathComponent(component=0, indexed_cls=np.ndarray)])
     quib.get_value()
 
     assert len(mock_axes.artists) == 2

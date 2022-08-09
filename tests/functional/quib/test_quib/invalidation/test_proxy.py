@@ -9,6 +9,6 @@ def test_proxy_never_invalidates():
     child = proxy[0]
     child.get_value()
 
-    arg.handler.invalidate_and_redraw_at_path([])
+    arg.handler.invalidate_and_aggregate_redraw_at_path([])
 
     assert child.cache_status == CacheStatus.ALL_VALID
