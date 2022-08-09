@@ -54,7 +54,7 @@ new_date = datetime.strptime('2019-01-02','%Y-%m-%d')
 ])
 def test_plot_inverse_assigner(mock_plot, indices, artist_index, xdata, ydata, args, quib_index, expected_value):
     pick_event, mouse_event = create_mock_pick_event_and_mouse_event(indices, xdata, ydata, artist_index)
-
+ 
     inverse_assign_drawing_func(
         drawing_func=mock_plot,
         args=(None, *args),

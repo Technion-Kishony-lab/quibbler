@@ -192,7 +192,7 @@ def test_inverse_assignment_from_axis_lim(create_quib_with_return_value, axes):
 
 
 @pytest.mark.regression
-def test_inverse_assignment_is_not_invoked_when_mouse_key_is_not_down(create_quib_with_return_value, axes):
+def test_inverse_assignment_from_axis_lim_is_not_invoked_when_mouse_key_is_not_down(create_quib_with_return_value, axes):
     from pyquibbler.graphics import pressed, released
     quib = create_quib_with_return_value(2., allow_overriding=True)
     axes.set_xlim([0., quib])
