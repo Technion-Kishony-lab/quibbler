@@ -3,7 +3,7 @@ from typing import Any, List, Tuple
 import numpy as np
 from matplotlib.pyplot import Axes
 
-from pyquibbler.assignment.assignment import get_axes_x_y_tolerance, AssignmentWithTolerance, create_assignment
+from pyquibbler.assignment.assignment import create_assignment
 from pyquibbler.assignment.override_choice import get_override_group_for_quib_changes
 from pyquibbler.env import GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION
 from pyquibbler.path import PathComponent
@@ -24,7 +24,6 @@ def get_override_group_for_axes_set_lim(args: List[Any], lim: Tuple[float, float
         else (lim[1] - lim[0]) / GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.val
 
     if len(args) == 2 and isinstance(args[1], Quib):
-
 
         # set_xlim(ax, quib)
         quib = args[1]
