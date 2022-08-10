@@ -1,4 +1,3 @@
-import dataclasses
 from typing import Callable, Tuple, Any, Mapping, Set, Optional
 
 import numpy as np
@@ -20,8 +19,13 @@ class RectangleSelectorQuibFuncCall(WidgetQuibFuncCall):
     def _get_control_variable() -> Optional[str]:
         return 'extents'
 
-    def _register_axes_for_right_click(self):
-        pass  # unlike other widgets, RectangleSelector does not take a whole axes
+    def _set_rightclick_callback(self, widget: QRectangleSelector):
+        # unlike other widgets, rectangle_selector does take a whole axes for itself.
+        # Instead, we set the widget's artists for right-click callback.
+        picker_artists = [widget._center_handle.artist]  # can add here the corners if we want
+        for picker_artist in picker_artists:
+            picker_artist.set_picker(True)
+            picker_artist._quibbler_on_rightclick = self._on_right_click
 
     def _widget_is_attempting_to_resize_when_not_allowed(self, extents):
         """

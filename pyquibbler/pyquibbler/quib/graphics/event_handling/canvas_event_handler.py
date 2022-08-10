@@ -1,6 +1,8 @@
 from contextlib import contextmanager
 from threading import Lock
-from typing import Optional, Tuple, Callable
+from typing import Optional, Tuple, Callable, Union
+
+from matplotlib.artist import Artist
 from matplotlib.backend_bases import MouseEvent, PickEvent, MouseButton
 
 from pyquibbler.env import END_DRAG_IMMEDIATELY
@@ -71,12 +73,18 @@ class CanvasEventHandler:
             'pick_event': self._handle_pick_event
         }
 
-    def _handle_button_press(self, _mouse_event: MouseEvent):
-        if _mouse_event.button is MouseButton.RIGHT:
-            on_rightclick = getattr(_mouse_event.inaxes, '_quibbler_on_rightclick', None)
-            if on_rightclick is not None:
-                on_rightclick(_mouse_event)
+    @staticmethod
+    def _call_object_rightclick_callback_if_exists(obj: Union[Axes, Artist], mouse_event) -> bool:
+        on_rightclick = getattr(obj, '_quibbler_on_rightclick', None)
+        has_rightclick_callback = on_rightclick is not None
+        if has_rightclick_callback:
+            on_rightclick(mouse_event)
 
+        return has_rightclick_callback
+
+    def _handle_button_press(self, mouse_event: MouseEvent):
+        if mouse_event.button is MouseButton.RIGHT:
+            self._call_object_rightclick_callback_if_exists(mouse_event.inaxes, mouse_event)
         pressed()
 
     def _handle_button_release(self, _mouse_event: MouseEvent):
@@ -89,7 +97,8 @@ class CanvasEventHandler:
         self.current_pick_event = pick_event
         self.current_pick_quib = artist_wrapper.get_creating_quib(pick_event.artist)
         if pick_event.mouseevent.button is MouseButton.RIGHT:
-            self._inverse_from_mouse_event(pick_event.mouseevent)
+            if not self._call_object_rightclick_callback_if_exists(pick_event.artist, pick_event.mouseevent):
+                self._inverse_from_mouse_event(pick_event.mouseevent)
 
     def _inverse_assign_graphics(self, mouse_event: MouseEvent):
         """

@@ -29,7 +29,7 @@ class WidgetQuibFuncCall(CachedQuibFuncCall):
     def _get_axis(self) -> Axes:
         return self.func_args_kwargs.get('ax')
 
-    def _register_axes_for_right_click(self):
+    def _set_rightclick_callback(self, widget: AxesWidget):
         self._get_axis()._quibbler_on_rightclick = self._on_right_click
 
     def _on_right_click(self, _mouse_event):
@@ -74,6 +74,6 @@ class WidgetQuibFuncCall(CachedQuibFuncCall):
         else:
             # This widget never existed- we're creating it for the first time, so we need to connect callbacks
             self._connect_callbacks(res)
-            self._register_axes_for_right_click()
+            self._set_rightclick_callback(res)
 
         return res
