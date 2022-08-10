@@ -166,3 +166,37 @@ def test_rectangle_selector_undo(axes,
 
     redo()
     assert roi.get_value()[0] == 0.4
+
+
+def test_rectangle_selector_right_click_reset_to_default(axes,
+                                                         roi, rectangle_selector, get_axes_middle,
+                                                         create_button_press_event,
+                                                         create_motion_notify_event, create_button_release_event):
+
+    middle_x, middle_y = get_axes_middle()
+    axes_x, axes_y, width, height = axes.bbox.bounds
+    new_x1 = axes_x + width * .6
+    new_y1 = axes_y + height * .6
+
+    assert roi.get_value()[0] == 0.2
+    create_button_press_event(middle_x, middle_y)
+
+    create_motion_notify_event(new_x1, new_y1)
+    create_button_release_event(new_x1, new_y1)
+    assert roi.get_value()[0] == 0.3
+
+    create_button_press_event(new_x1, new_y1, button=3)  # right-click
+    create_button_release_event(new_x1, new_y1)
+    assert roi.get_value()[0] == 0.2
+
+    undo()
+    assert roi.get_value()[0] == 0.3
+
+    undo()
+    assert roi.get_value()[0] == 0.2
+
+    redo()
+    assert roi.get_value()[0] == 0.3
+
+    redo()
+    assert roi.get_value()[0] == 0.2
