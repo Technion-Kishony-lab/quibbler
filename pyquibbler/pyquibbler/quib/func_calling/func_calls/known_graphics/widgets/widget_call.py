@@ -1,9 +1,10 @@
-from typing import Callable, Tuple, Any, Mapping, Set, List
+import dataclasses
+from typing import Callable, Tuple, Any, Mapping, Set, List, Optional, Iterable
 
 from matplotlib.axes import Axes
 from matplotlib.widgets import AxesWidget
 
-from pyquibbler.assignment.assignment import AssignmentToQuib, create_assignment
+from pyquibbler.assignment.assignment import AssignmentToQuib, create_assignment, Assignment
 from pyquibbler.assignment.override_choice import get_override_group_for_quib_changes
 from pyquibbler.path.path_component import Path
 from pyquibbler.graphics.graphics_collection import GraphicsCollection
@@ -15,6 +16,10 @@ from pyquibbler.quib.graphics.redraw import end_dragging
 
 class WidgetQuibFuncCall(CachedQuibFuncCall):
 
+    @staticmethod
+    def _get_control_variable() -> Optional[str]:
+        return None
+
     def _connect_callbacks(self, widget: AxesWidget):
         """
         Add any logic here for connecting callbacks to your widget
@@ -23,6 +28,25 @@ class WidgetQuibFuncCall(CachedQuibFuncCall):
 
     def _get_axis(self) -> Axes:
         return self.func_args_kwargs.get('ax')
+
+    def _register_axes_for_right_click(self):
+        self._get_axis()._quibbler_on_rightclick = self._on_right_click
+
+    def _on_right_click(self, _mouse_event):
+
+        ctrl = self.func_args_kwargs.get(self._get_control_variable())
+
+        if isinstance(ctrl, Quib):
+            changes = [AssignmentToQuib(ctrl, Assignment.create_default([]))]
+        elif isinstance(ctrl, Iterable):
+            changes = []
+            for sub_ctrl in ctrl:
+                if isinstance(sub_ctrl, Quib):
+                    changes.append(AssignmentToQuib(sub_ctrl, Assignment.create_default([])))
+        else:
+            return
+
+        self._inverse_assign_multiple_quibs(changes)
 
     def _inverse_assign(self, quib: Quib, path: Path, value: Any, tolerance: Any = None, on_drag: bool = False):
 
@@ -50,5 +74,6 @@ class WidgetQuibFuncCall(CachedQuibFuncCall):
         else:
             # This widget never existed- we're creating it for the first time, so we need to connect callbacks
             self._connect_callbacks(res)
+            self._register_axes_for_right_click()
 
         return res

@@ -1,9 +1,17 @@
+import dataclasses
+from typing import Optional
+
 from pyquibbler.env import GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION
 from pyquibbler.graphics.widgets import QSlider
 from pyquibbler.quib.func_calling.func_calls.known_graphics.widgets.widget_call import WidgetQuibFuncCall
 
 
+@dataclasses.dataclass
 class SliderQuibFuncCall(WidgetQuibFuncCall):
+
+    @staticmethod
+    def _get_control_variable() -> Optional[str]:
+        return 'valinit'
 
     def _on_change_slider(self, new_value, widget: QSlider):
         from pyquibbler.quib.quib import Quib

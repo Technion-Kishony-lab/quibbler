@@ -1,4 +1,6 @@
+import dataclasses
 import functools
+from typing import Optional
 
 from matplotlib.widgets import CheckButtons
 
@@ -7,6 +9,10 @@ from .widget_call import WidgetQuibFuncCall
 
 
 class CheckButtonsQuibFuncCall(WidgetQuibFuncCall):
+
+    @staticmethod
+    def _get_control_variable() -> Optional[str]:
+        return 'actives'
 
     def on_change_checkbuttons(self, widget, new_value):
         from pyquibbler.quib.quib import Quib

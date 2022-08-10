@@ -1,4 +1,5 @@
-from typing import Callable, Tuple, Any, Mapping, Set
+import dataclasses
+from typing import Callable, Tuple, Any, Mapping, Set, Optional
 
 import numpy as np
 
@@ -14,6 +15,13 @@ from pyquibbler.path import PathComponent
 
 
 class RectangleSelectorQuibFuncCall(WidgetQuibFuncCall):
+
+    @staticmethod
+    def _get_control_variable() -> Optional[str]:
+        return 'extents'
+
+    def _register_axes_for_right_click(self):
+        pass  # unlike other widgets, RectangleSelector does not take a whole axes
 
     def _widget_is_attempting_to_resize_when_not_allowed(self, extents):
         """

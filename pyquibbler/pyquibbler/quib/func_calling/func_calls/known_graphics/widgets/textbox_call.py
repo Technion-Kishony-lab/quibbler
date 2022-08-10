@@ -1,3 +1,6 @@
+import dataclasses
+from typing import Optional
+
 from matplotlib.widgets import TextBox
 
 from pyquibbler.quib import Quib
@@ -5,6 +8,10 @@ from .widget_call import WidgetQuibFuncCall
 
 
 class TextBoxQuibFuncCall(WidgetQuibFuncCall):
+
+    @staticmethod
+    def _get_control_variable() -> Optional[str]:
+        return 'initial'
 
     def _on_change(self, new_value: str):
         val = self.func_args_kwargs.get('initial')

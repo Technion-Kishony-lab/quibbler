@@ -72,6 +72,11 @@ class CanvasEventHandler:
         }
 
     def _handle_button_press(self, _mouse_event: MouseEvent):
+        if _mouse_event.button is MouseButton.RIGHT:
+            on_rightclick = getattr(_mouse_event.inaxes, '_quibbler_on_rightclick', None)
+            if on_rightclick is not None:
+                on_rightclick(_mouse_event)
+
         pressed()
 
     def _handle_button_release(self, _mouse_event: MouseEvent):

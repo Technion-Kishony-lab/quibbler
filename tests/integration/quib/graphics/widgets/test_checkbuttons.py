@@ -1,7 +1,7 @@
 import pytest
 from matplotlib import pyplot as plt, widgets
 
-from pyquibbler import iquib
+from pyquibbler import iquib, undo, redo
 from tests.integration.quib.graphics.widgets.utils import count_redraws, quibbler_image_comparison
 
 
@@ -90,3 +90,25 @@ def test_unset_quib_in_checkbox_of_list_of_quibs(get_only_live_widget, checkbox_
     assert [quib.get_value() for quib in list_of_bool_quibs] == [False, False, False]
     assert redraw_count.count == 2
 
+
+def test_rightclick_set_list_of_quibs_to_default(get_only_live_widget, checkbox_list_of_quibs, list_of_bool_quibs,
+                                                 get_axes_middle, create_button_press_event,
+                                                 create_motion_notify_event, create_button_release_event
+                                                 ):
+    widget = get_only_live_widget()
+
+    widget.set_active(1)
+    widget.set_active(2)
+
+    assert [quib.get_value() for quib in list_of_bool_quibs] == [False, True, True], "sanity"
+
+    create_button_press_event(*get_axes_middle(), button=3)  # right-click
+    create_button_release_event(*get_axes_middle(), button=3)
+
+    assert [quib.get_value() for quib in list_of_bool_quibs] == [False, False, False]
+
+    undo()
+    assert [quib.get_value() for quib in list_of_bool_quibs] == [False, True, True]
+
+    redo()
+    assert [quib.get_value() for quib in list_of_bool_quibs] == [False, False, False]
