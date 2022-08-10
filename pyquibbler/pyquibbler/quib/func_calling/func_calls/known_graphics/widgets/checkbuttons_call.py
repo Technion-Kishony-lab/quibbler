@@ -1,4 +1,3 @@
-import dataclasses
 import functools
 from typing import Optional
 

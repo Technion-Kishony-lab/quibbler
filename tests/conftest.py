@@ -1,6 +1,7 @@
 import shutil
 from pathlib import Path
 
+import matplotlib
 import pytest
 from matplotlib.artist import Artist
 from pytest import fixture
@@ -17,6 +18,8 @@ from pyquibbler.utilities.performance_utils import track_instances_of_class, get
     TRACKED_CLASSES_TO_WEAKREFS
 from pyquibbler.utils import Flag
 
+from matplotlib.widgets import Slider as OriginalSlider
+
 DEFAULT_DEBUG = True
 DEFAULT_LAZY = True
 DEFAULT_ASSIGNMENT_RESTRICTIONS = False
@@ -24,6 +27,7 @@ DEFAULT_PRETTY_REPR = True
 DEFAULT_SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACK = False
 DEFAULT_GET_VARIABLE_NAMES = False
 DEFAULT_GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION = 1000
+
 
 @fixture(scope="session", autouse=True)
 def setup_environment_for_tests():
@@ -149,3 +153,8 @@ def get_live_artists(axes):
     yield _get
 
     TRACKED_CLASSES_TO_WEAKREFS[Artist] = set()
+
+
+@pytest.fixture
+def original_slider():
+    return OriginalSlider

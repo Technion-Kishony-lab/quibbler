@@ -29,13 +29,14 @@ def slider_quib(axes, input_quib):
 def test_slider_graphics_function_quib_press_and_release_changes(axes, get_live_widgets, slider_quib, input_quib,
                                                                  create_button_press_event,
                                                                  create_button_release_event, get_axes_start):
-    assert len(get_live_widgets()) == 1
+
+    initial_live_widgets = len(get_live_widgets())
 
     create_button_press_event(*get_axes_start())
     create_button_release_event(*get_axes_start())
 
     assert input_quib.get_value() == 0
-    assert len(get_live_widgets()) == 1
+    assert len(get_live_widgets()) == initial_live_widgets
 
 
 @quibbler_image_comparison(baseline_images=['keeps_same_widget'])

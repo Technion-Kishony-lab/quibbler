@@ -27,4 +27,3 @@ def is_within_get_value_context() -> bool:
 
 def get_value_context_pass_quibs() -> Optional[bool]:
     return GET_VALUE_CONTEXT_PASS_QUIBS
-

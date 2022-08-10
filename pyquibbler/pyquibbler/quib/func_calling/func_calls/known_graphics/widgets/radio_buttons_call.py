@@ -1,4 +1,3 @@
-import dataclasses
 from typing import Optional
 
 from matplotlib.widgets import RadioButtons

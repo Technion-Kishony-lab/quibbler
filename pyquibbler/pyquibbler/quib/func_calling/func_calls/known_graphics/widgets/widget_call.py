@@ -1,4 +1,3 @@
-import dataclasses
 from typing import Callable, Tuple, Any, Mapping, Set, List, Optional, Iterable
 
 from matplotlib.axes import Axes
