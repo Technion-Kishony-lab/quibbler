@@ -44,6 +44,12 @@ class Assignment:
         return cls(default, path)
 
 
+def convert_to_array(value: Any):
+    if isinstance(value, (list, tuple)):
+        return np.array(value)
+    return value
+
+
 @dataclass
 class AssignmentWithTolerance(Assignment):
     """
@@ -56,6 +62,7 @@ class AssignmentWithTolerance(Assignment):
     # The upper and lower limits of the assignment value:
     value_up: Any = None
     value_down: Any = None
+    equal_number_of_digits: bool = True
 
     def get_assignments_nominal_up_down(self):
         """
@@ -67,7 +74,8 @@ class AssignmentWithTolerance(Assignment):
             Assignment(self.value_down, self.path)
 
     def get_relative_error(self):
-        return np.abs((self.value_up - self.value_down) / 2 / self.value)
+        return np.abs((convert_to_array(self.value_up) - convert_to_array(self.value_down))
+                      / 2 / convert_to_array(self.value))
 
     @classmethod
     def from_assignment_and_up_down_values(cls, assignment: Assignment,
@@ -84,6 +92,22 @@ class AssignmentWithTolerance(Assignment):
                    value_up=value + tolerance,
                    value_down=value - tolerance)
 
+    def get_pretty_assignment(self) -> Assignment:
+
+        from .assignment_template import round_to_num_digits
+
+        value = self.value
+        try:
+            relative_error = self.get_relative_error()
+            num_digits = np.int64(np.ceil(-np.log10(relative_error)))
+            if self.equal_number_of_digits and isinstance(num_digits, np.ndarray):
+                num_digits = max(num_digits)
+            value = round_to_num_digits(value, num_digits)
+        except TypeError:
+            pass
+
+        return Assignment(value=value, path=self.path)
+
 
 def create_assignment(value: Any, path: Path,
                       tolerance: Optional[Any] = None,
@@ -94,26 +118,15 @@ def create_assignment(value: Any, path: Path,
     if tolerance is None:
         return Assignment(convert_func(value), path)
 
+    value_numeric = convert_to_array(value)
+    tolerance_numeric = convert_to_array(tolerance)
+    value_up = type(value)(value_numeric + tolerance_numeric)
+    value_down = type(value)(value_numeric - tolerance_numeric)
+
     return AssignmentWithTolerance(value=convert_func(value),
                                    path=path,
-                                   value_up=convert_func(value + tolerance),
-                                   value_down=convert_func(value - tolerance))
-
-
-def convert_assignment_with_tolerance_to_pretty_assignment(
-        assignment: AssignmentWithTolerance) -> Assignment:
-
-    from .assignment_template import round_to_num_digits
-
-    value = assignment.value
-    try:
-        relative_error = assignment.get_relative_error()
-        num_digits = np.int64(np.ceil(-np.log10(relative_error)))
-        value = round_to_num_digits(value, num_digits)
-    except TypeError:
-        pass
-
-    return Assignment(value=value, path=assignment.path)
+                                   value_up=convert_func(value_up),
+                                   value_down=convert_func(value_down))
 
 
 def get_axes_x_y_tolerance(ax: Axes):

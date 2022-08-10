@@ -10,8 +10,7 @@ import json_tricks
 import numpy as np
 from matplotlib import pyplot
 
-from pyquibbler.assignment.assignment import AssignmentWithTolerance, \
-    convert_assignment_with_tolerance_to_pretty_assignment
+from pyquibbler.assignment.assignment import AssignmentWithTolerance
 from pyquibbler.assignment.default_value import missing
 from pyquibbler.assignment.simplify_assignment import AssignmentSimplifier
 from pyquibbler.function_definitions import get_definition_for_function, FuncArgsKwargs
@@ -338,7 +337,7 @@ class QuibHandler:
         # We are shaping the assignment and making it "pretty" in three steps:
         # step 1: round by tolerance:
         if isinstance(assignment, AssignmentWithTolerance):
-            assignment = convert_assignment_with_tolerance_to_pretty_assignment(assignment)
+            assignment = assignment.get_pretty_assignment()
 
         # step 2: simplify to make it "pretty":
         AssignmentSimplifier(assignment, self.get_value_valid_at_path(None)).simplify()

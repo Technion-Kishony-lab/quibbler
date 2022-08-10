@@ -1,6 +1,5 @@
 from typing import Any, List, Tuple
 
-import numpy as np
 from matplotlib.pyplot import Axes
 
 from pyquibbler.assignment.assignment import create_assignment
@@ -28,7 +27,7 @@ def get_override_group_for_axes_set_lim(args: List[Any], lim: Tuple[float, float
         # set_xlim(ax, quib)
         quib = args[1]
         changes = [AssignmentToQuib(quib, create_assignment(
-            value=np.array(lim),
+            value=lim,
             path=[PathComponent(quib.get_type(), slice(0, 2))],
             tolerance=tolerance
         ))]
