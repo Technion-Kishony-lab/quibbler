@@ -1,5 +1,5 @@
 from typing import Callable, List, Any, Iterable, Tuple
-from matplotlib.backend_bases import MouseEvent, PickEvent
+from matplotlib.backend_bases import MouseEvent, PickEvent, MouseButton
 
 from pyquibbler.assignment import AssignmentToQuib, OverrideGroup
 from pyquibbler.assignment import AssignmentCancelledByUserException
@@ -38,7 +38,7 @@ def inverse_assign_drawing_func(drawing_func: Callable,
         except AssignmentCancelledByUserException:
             pass
         else:
-            override_group.apply(is_dragging=True)
+            override_group.apply(is_dragging=pick_event.mouseevent.button is not MouseButton.RIGHT)
             return override_group
 
 
