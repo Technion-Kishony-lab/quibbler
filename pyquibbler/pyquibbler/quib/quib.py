@@ -468,7 +468,7 @@ class QuibHandler:
         except CannotAccessQuibInScopeException:
             raise
 
-        with get_value_context():
+        with get_value_context(self.quib.pass_quibs):
             if not self._has_ever_called_get_value and Project.get_or_create().autoload_upon_first_get_value:
                 self.quib.load(ResponseToFileNotDefined.IGNORE)
 

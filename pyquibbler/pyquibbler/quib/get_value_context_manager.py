@@ -1,24 +1,30 @@
 from contextlib import contextmanager
+from typing import Optional
 
-IS_WITHIN_GET_VALUE_CONTEXT = False
+GET_VALUE_CONTEXT_PASS_QUIBS: Optional[bool] = None
 
 
 @contextmanager
-def get_value_context():
+def get_value_context(pass_quibs: bool = False):
     """
     Change IS_WITHIN_GET_VALUE_CONTEXT while in the process of running get_value.
     This has to be a static method as the IS_WITHIN_GET_VALUE_CONTEXT is a global state for all quib types
     """
-    global IS_WITHIN_GET_VALUE_CONTEXT
-    if IS_WITHIN_GET_VALUE_CONTEXT:
+    global GET_VALUE_CONTEXT_PASS_QUIBS
+    if GET_VALUE_CONTEXT_PASS_QUIBS is not None:
         yield
     else:
-        IS_WITHIN_GET_VALUE_CONTEXT = True
+        GET_VALUE_CONTEXT_PASS_QUIBS = pass_quibs
         try:
             yield
         finally:
-            IS_WITHIN_GET_VALUE_CONTEXT = False
+            GET_VALUE_CONTEXT_PASS_QUIBS = None
 
 
 def is_within_get_value_context() -> bool:
-    return IS_WITHIN_GET_VALUE_CONTEXT
+    return GET_VALUE_CONTEXT_PASS_QUIBS is not None
+
+
+def get_value_context_pass_quibs() -> Optional[bool]:
+    return GET_VALUE_CONTEXT_PASS_QUIBS
+
