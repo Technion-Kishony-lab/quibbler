@@ -1,12 +1,11 @@
-from typing import Callable, Tuple, Any, Mapping, Set
+from typing import Callable, Tuple, Any, Mapping, Set, Optional
 
 import numpy as np
 
 from pyquibbler.assignment import AssignmentToQuib
-from pyquibbler.assignment.assignment import AssignmentWithTolerance
-from pyquibbler.env import GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION
+from pyquibbler.assignment.assignment import AssignmentWithTolerance, get_axes_x_y_tolerance
 from pyquibbler.function_definitions import KeywordArgument
-from pyquibbler.graphics import releasing, GraphicsCollection
+from pyquibbler.graphics import GraphicsCollection
 from pyquibbler.graphics.widgets import QRectangleSelector
 from pyquibbler.quib import Quib
 from pyquibbler.logger import logger
@@ -15,7 +14,18 @@ from pyquibbler.path import PathComponent
 
 
 class RectangleSelectorQuibFuncCall(WidgetQuibFuncCall):
-    _last_extents_change = None
+
+    @staticmethod
+    def _get_control_variable() -> Optional[str]:
+        return 'extents'
+
+    def _set_rightclick_callback(self, widget: QRectangleSelector):
+        # unlike other widgets, rectangle_selector does take a whole axes for itself.
+        # Instead, we set the widget's artists for right-click callback.
+        picker_artists = [widget._center_handle.artist]  # can add here the corners if we want
+        for picker_artist in picker_artists:
+            picker_artist.set_picker(True)
+            picker_artist._quibbler_on_rightclick = self._on_right_click
 
     def _widget_is_attempting_to_resize_when_not_allowed(self, extents):
         """
@@ -37,50 +47,38 @@ class RectangleSelectorQuibFuncCall(WidgetQuibFuncCall):
         )
 
     def _on_changed(self, extents):
-        self._last_extents_change = extents
         init_val = self.func_args_kwargs.get('extents')
 
         from pyquibbler import timer
         from pyquibbler.quib import Quib
 
-        ax = self._get_axis()
-        if GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION is None:
-            tolerance = None
-        else:
-            tolerance_x = (ax.get_xlim()[1] - ax.get_xlim()[0]) / GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION
-            tolerance_y = (ax.get_ylim()[1] - ax.get_ylim()[0]) / GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION
-            tolerance = np.array([tolerance_x, tolerance_x, tolerance_y, tolerance_y])
+        if self._widget_is_attempting_to_resize_when_not_allowed(extents):
+            return
 
-        if isinstance(init_val, Quib):
-            with timer("selector_change", lambda x: logger.info(f"selector change {x}")):
-                if self._widget_is_attempting_to_resize_when_not_allowed(extents):
-                    return
+        with timer("selector_change", lambda x: logger.info(f"selector change {x}")):
+
+            tolerance_x, tolerance_y = get_axes_x_y_tolerance(self._get_axis())
+            tolerance = None if tolerance_x is None else np.array([tolerance_x, tolerance_x, tolerance_y, tolerance_y])
+
+            if isinstance(init_val, Quib):
                 self._inverse_assign(init_val,
                                      [PathComponent(component=slice(None, None, None),
                                                     indexed_cls=np.ndarray)],
                                      extents,
-                                     tolerance=tolerance)
-        elif len(init_val) == 4:
-            quib_changes = list()
-            for index, init_val_item in enumerate(init_val):
-                if isinstance(init_val_item, Quib):
-                    quib_changes.append(AssignmentToQuib(quib=init_val_item,
-                                                         assignment=AssignmentWithTolerance
-                                                         (path=[],
-                                                          value=extents[index],
-                                                          value_up=extents[index] + tolerance[index],
-                                                          value_down=extents[index] - tolerance[index]
-                                                          )))
-            self._inverse_assign_multiple_quibs(quib_changes)
-
-    def _on_release(self):
-        if self._last_extents_change:
-            # we unfortunately ALSO need this concept of releasing because _on_release can be called while still within
-            # dragging (this appears to be matplotlib internal implementation)
-            # By saying `releasing` we ensure this will be recorded for undo/redo
-            with releasing():
-                self._on_changed(self._last_extents_change)
-            self._last_extents_change = None
+                                     tolerance=tolerance,
+                                     on_drag=True)
+            elif len(init_val) == 4:
+                quib_changes = list()
+                for index, init_val_item in enumerate(init_val):
+                    if isinstance(init_val_item, Quib):
+                        quib_changes.append(AssignmentToQuib(
+                            quib=init_val_item,
+                            assignment=AssignmentWithTolerance.from_value_path_tolerance(
+                                path=[],
+                                value=extents[index],
+                                tolerance=tolerance[index])
+                        ))
+                self._inverse_assign_multiple_quibs(quib_changes, on_drag=True)
 
     def _connect_callbacks(self, widget: QRectangleSelector):
         widget.changed_callback = self._on_changed

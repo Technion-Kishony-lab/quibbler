@@ -7,13 +7,12 @@ from pyquibbler import iquib, Assignment, default
 from pyquibbler.file_syncing import SaveFormat
 from pyquibbler.function_definitions import add_definition_for_function
 from pyquibbler.function_definitions.func_definition import create_func_definition
-from pyquibbler.graphics import dragging
 from pyquibbler.project import Project, NothingToUndoException, NothingToRedoException
 from pyquibbler.quib.factory import create_quib
 from pyquibbler.quib.graphics import GraphicsUpdateType
+from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
 from pyquibbler.utilities.file_path import PathWithHyperLink
-from pyquibbler.utilities.input_validation_utils import InvalidArgumentTypeException, UnknownEnumException, \
-    InvalidArgumentValueException
+from pyquibbler.utilities.input_validation_utils import InvalidArgumentTypeException, UnknownEnumException
 
 
 def test_get_or_create_only_creates_one_instance():
@@ -162,26 +161,6 @@ def test_undo_redo_with_assignment_in_the_middle(project):
         project.redo()
 
 
-def test_doesnt_record_when_dragging(project):
-    a = iquib(5)
-    with dragging():
-        a.assign(10)
-
-    with pytest.raises(NothingToUndoException, match='.*'):
-        project.undo()
-
-
-def test_project_undo_group_doesnt_add_on_dragging(project):
-    a = iquib(5)
-    with dragging():
-        with project.start_undo_group():
-            a.assign(10)
-            a.assign(8)
-
-    with pytest.raises(NothingToUndoException, match='.*'):
-        project.undo()
-
-
 def test_undo_inverse_assign_override_group(project):
     a = iquib(5)
     b = a + 10
@@ -200,7 +179,8 @@ def test_project_undo_with_group_reverts_back_to_before_group_and_runs_graphics_
     mock_func = mock.Mock()
     add_definition_for_function(mock_func, create_func_definition(is_graphics=True))
     _ = create_quib(func=mock_func, args=(a,), lazy=False)
-    with project.start_undo_group():
+    project.start_pending_undo_group()
+    with aggregate_redraw_mode(is_dragging=True):
         a.handler.override(Assignment(
             path=[],
             value=10
@@ -209,6 +189,7 @@ def test_project_undo_with_group_reverts_back_to_before_group_and_runs_graphics_
             path=[],
             value=8
         ))
+    project.push_pending_undo_group_to_undo_stack()
     count = mock_func.call_count
 
     project.undo()

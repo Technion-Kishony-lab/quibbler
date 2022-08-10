@@ -1,4 +1,4 @@
-from pyquibbler.utils import Flag
+from pyquibbler.utils import Flag, Mutable
 
 DEBUG = Flag(False)
 
@@ -9,7 +9,7 @@ GRAPHICS_LAZY = Flag(False)
 PLOT_WITH_PICKER_TRUE_BY_DEFAULT = Flag(True)
 
 # Effective number of pixels in mouse events. None for infinity
-GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION = 1000
+GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION = Mutable(1000)
 
 OVERRIDE_DIALOG_IN_SEPARATE_WINDOW = Flag(False)
 

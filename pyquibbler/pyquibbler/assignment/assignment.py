@@ -1,11 +1,14 @@
 from __future__ import annotations
 import numpy as np
 from dataclasses import dataclass, field
-from typing import Any, TYPE_CHECKING, List, Union
+from typing import Any, TYPE_CHECKING, List, Union, Optional, Callable
+
+from matplotlib.axes import Axes
 
 from .default_value import default
 
 from pyquibbler.path.path_component import Path
+from ..env import GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION
 
 if TYPE_CHECKING:
     from pyquibbler.quib.quib import Quib
@@ -41,6 +44,12 @@ class Assignment:
         return cls(default, path)
 
 
+def convert_to_array(value: Any):
+    if isinstance(value, (list, tuple)):
+        return np.array(value)
+    return value
+
+
 @dataclass
 class AssignmentWithTolerance(Assignment):
     """
@@ -53,6 +62,7 @@ class AssignmentWithTolerance(Assignment):
     # The upper and lower limits of the assignment value:
     value_up: Any = None
     value_down: Any = None
+    equal_number_of_digits: bool = True
 
     def get_assignments_nominal_up_down(self):
         """
@@ -64,7 +74,8 @@ class AssignmentWithTolerance(Assignment):
             Assignment(self.value_down, self.path)
 
     def get_relative_error(self):
-        return np.abs((self.value_up - self.value_down) / 2 / self.value)
+        return np.abs((convert_to_array(self.value_up) - convert_to_array(self.value_down))
+                      / 2 / convert_to_array(self.value))
 
     @classmethod
     def from_assignment_and_up_down_values(cls, assignment: Assignment,
@@ -81,21 +92,51 @@ class AssignmentWithTolerance(Assignment):
                    value_up=value + tolerance,
                    value_down=value - tolerance)
 
+    def get_pretty_assignment(self) -> Assignment:
 
-def convert_assignment_with_tolerance_to_pretty_assignment(
-        assignment: AssignmentWithTolerance) -> Assignment:
+        from .assignment_template import round_to_num_digits
 
-    from .assignment_template import round_to_num_digits
+        value = self.value
+        try:
+            relative_error = self.get_relative_error()
+            num_digits = np.int64(np.ceil(-np.log10(relative_error)))
+            if self.equal_number_of_digits and isinstance(num_digits, np.ndarray):
+                num_digits = max(num_digits)
+            value = round_to_num_digits(value, num_digits)
+        except TypeError:
+            pass
 
-    value = assignment.value
-    try:
-        relative_error = assignment.get_relative_error()
-        num_digits = np.int64(np.ceil(-np.log10(relative_error)))
-        value = round_to_num_digits(value, num_digits)
-    except TypeError:
-        pass
+        return Assignment(value=value, path=self.path)
 
-    return Assignment(value=value, path=assignment.path)
+
+def create_assignment(value: Any, path: Path,
+                      tolerance: Optional[Any] = None,
+                      convert_func: Optional[Callable] = None) -> Union[Assignment, AssignmentWithTolerance]:
+
+    convert_func = convert_func if convert_func is not None else lambda x: x
+
+    if tolerance is None:
+        return Assignment(convert_func(value), path)
+
+    value_numeric = convert_to_array(value)
+    tolerance_numeric = convert_to_array(tolerance)
+    value_up = type(value)(value_numeric + tolerance_numeric)
+    value_down = type(value)(value_numeric - tolerance_numeric)
+
+    return AssignmentWithTolerance(value=convert_func(value),
+                                   path=path,
+                                   value_up=convert_func(value_up),
+                                   value_down=convert_func(value_down))
+
+
+def get_axes_x_y_tolerance(ax: Axes):
+    n = GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.val
+    if n is None:
+        return None, None
+    xlim = ax.get_xlim()
+    ylim = ax.get_ylim()
+    return (xlim[1] - xlim[0]) / n, \
+           (ylim[1] - ylim[0]) / n
 
 
 @dataclass(frozen=True)

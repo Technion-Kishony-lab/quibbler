@@ -6,7 +6,6 @@ from matplotlib.widgets import RectangleSelector
 
 from pyquibbler.utils import Mutable
 
-from .. import dragging
 from ...quib.get_value_context_manager import is_within_get_value_context
 from ...quib.graphics.redraw import skip_canvas_draws
 
@@ -51,8 +50,7 @@ class QRectangleSelector(RectangleSelector):
                 with self.CURRENT_SELECTOR.unlock() as current_selector:
                     if current_selector.val is None or current_selector.val is self:
                         current_selector.val = self
-                        with dragging():
-                            return super()._onmove(event)
+                        return super()._onmove(event)
 
     def _release(self, event):
         with self.CURRENT_SELECTOR.unlock() as current_selector:

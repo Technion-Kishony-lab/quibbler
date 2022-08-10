@@ -17,6 +17,7 @@ from pyquibbler.quib.graphics import GraphicsUpdateType
 from pyquibbler.file_syncing.types import SaveFormat, ResponseToFileNotDefined
 from ..logger import logger
 from ..path.path_component import set_path_indexed_classes_from_quib
+from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
 
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib
@@ -57,7 +58,7 @@ class Project:
     def __init__(self, directory: Optional[Path], quib_weakrefs: Set[ReferenceType[Quib]]):
         self._directory = directory
         self._quib_weakrefs = quib_weakrefs
-        self._pushing_undo_group = None
+        self._pending_undo_group: Optional[List] = None
         self._undo_action_groups: List[List[Action]] = []
         self._redo_action_groups: List[List[Action]] = []
         self._quib_refs_to_paths_to_assignment_actions = defaultdict(dict)
@@ -130,7 +131,6 @@ class Project:
     @staticmethod
     def _reset_list_of_quibs(quibs):
         # We aggregate to ensure we don't redraw axes more than once
-        from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
         with aggregate_redraw_mode():
             for quib in quibs:
                 quib.invalidate()
@@ -338,7 +338,6 @@ class Project:
         Quib.save_format, Quib.actual_save_format, Project.save_format
         Quib.load
         """
-        from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
         if self.directory is None:
             raise NoProjectDirectoryException(action='load')
         with aggregate_redraw_mode():
@@ -358,7 +357,6 @@ class Project:
         Quib.save_format, Quib.actual_save_format, Project.save_format
         Quib.sync
         """
-        from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
         if self.directory is None:
             raise NoProjectDirectoryException(action='sync')
         with aggregate_redraw_mode():
@@ -368,14 +366,6 @@ class Project:
     """
     undo/redo
     """""
-
-    @contextlib.contextmanager
-    def start_undo_group(self):
-        self._pushing_undo_group = []
-        yield
-        if self._pushing_undo_group:
-            self._undo_action_groups.append(self._pushing_undo_group)
-        self._pushing_undo_group = None
 
     def can_undo(self) -> bool:
         """
@@ -428,24 +418,6 @@ class Project:
         """
         return len(self._redo_action_groups) > 0
 
-    def _set_previous_assignment_action_for_quib_at_relevant_path(self,
-                                                                  quib: Quib,
-                                                                  path,
-                                                                  previous_assignment_action:
-                                                                  Optional[AddAssignmentAction]):
-        """
-        Set's the last released assignment action for a quib at that assignment's path.
-         This is important as for every action we undo, we need to know to "where to return"- ie what was the last
-         assignment at that path that we need to return to.
-         We can't simply remove the assignment we want to undo because we may have *overwritten* another assignment
-        """
-        weak_ref = weakref.ref(quib, lambda k: self._quib_refs_to_paths_to_assignment_actions.pop(k))
-        paths_to_released_assignments = self._quib_refs_to_paths_to_assignment_actions[weak_ref]
-        from pyquibbler.path import get_hashable_path
-        paths_to_released_assignments[
-            get_hashable_path(path)
-        ] = previous_assignment_action
-
     def undo(self):
         """
         Undo the last quib assignment.
@@ -464,7 +436,6 @@ class Project:
         >>> a.get_value()
         [1, 2, 3]
         """
-        from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
         try:
             actions = self._undo_action_groups.pop(-1)
         except IndexError:
@@ -508,7 +479,6 @@ class Project:
         except IndexError:
             raise NothingToRedoException() from None
 
-        from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
         with aggregate_redraw_mode():
             for action in actions:
                 action.redo()
@@ -534,7 +504,48 @@ class Project:
         self._undo_action_groups = []
         self._redo_action_groups = []
 
-    def push_assignment_to_undo_stack(self, quib: Quib, assignment: Assignment, assignment_index: int):
+    def start_pending_undo_group(self):
+        self._pending_undo_group = []
+
+    def push_assignment_to_pending_undo_group(self, quib: Quib, assignment: Assignment, assignment_index: int):
+        self._pending_undo_group.append((weakref.ref(quib), assignment, assignment_index))
+
+    def push_single_assignment_to_undo_stack(self, quib: Quib, assignment: Assignment, assignment_index: int):
+        self.start_pending_undo_group()
+        self.push_assignment_to_pending_undo_group(quib, assignment, assignment_index)
+        self.push_pending_undo_group_to_undo_stack()
+
+    def push_pending_undo_group_to_undo_stack(self):
+        if self._pending_undo_group:
+            pushing_undo_group = []
+            for quib_ref, assignment, assignment_index in self._pending_undo_group:
+                quib = quib_ref()
+                if quib is not None:
+                    pushing_undo_group.insert(0, self._get_assignment_action(quib, assignment, assignment_index))
+
+            self._pending_undo_group = []
+            self._undo_action_groups.append(pushing_undo_group)
+            self._redo_action_groups.clear()
+
+    def _set_previous_assignment_action_for_quib_at_relevant_path(self,
+                                                                  quib: Quib,
+                                                                  path,
+                                                                  previous_assignment_action:
+                                                                  Optional[AddAssignmentAction]):
+        """
+        Set's the last released assignment action for a quib at that assignment's path.
+         This is important as for every action we undo, we need to know to "where to return"- ie what was the last
+         assignment at that path that we need to return to.
+         We can't simply remove the assignment we want to undo because we may have *overwritten* another assignment
+        """
+        weak_ref = weakref.ref(quib, lambda k: self._quib_refs_to_paths_to_assignment_actions.pop(k))
+        paths_to_released_assignments = self._quib_refs_to_paths_to_assignment_actions[weak_ref]
+        from pyquibbler.path import get_hashable_path
+        paths_to_released_assignments[
+            get_hashable_path(path)
+        ] = previous_assignment_action
+
+    def _get_assignment_action(self, quib: Quib, assignment: Assignment, assignment_index: int):
         """
         Push a new assignment to the undo stack.
         """
@@ -554,12 +565,7 @@ class Project:
             previous_assignment_action=previous_assignment_action
         )
         self._set_previous_assignment_action_for_quib_at_relevant_path(quib, assignment.path, assignment_action)
-        if self._pushing_undo_group is not None:
-            self._pushing_undo_group.insert(0, assignment_action)
-        else:
-            self._undo_action_groups.append([assignment_action])
-
-        self._redo_action_groups.clear()
+        return assignment_action
 
     def remove_assignment_from_quib(self, quib: Quib, assignment_index: int):
         """
@@ -588,7 +594,7 @@ class Project:
 
         # TODO: This shouldn't be necessary
         set_path_indexed_classes_from_quib(assignment.path, quib)
-        quib.handler.invalidate_and_redraw_at_path(assignment.path)
+        quib.handler.invalidate_and_aggregate_redraw_at_path(assignment.path)
 
         self.notify_of_overriding_changes(quib)
 

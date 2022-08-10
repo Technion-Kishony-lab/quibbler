@@ -10,20 +10,20 @@ from pyquibbler.utilities.performance_utils import track_instances_of_class, TRA
 
 @pytest.fixture
 def create_button_press_event(axes):
-    def _create(x, y):
+    def _create(x, y, button: int = 1):
         # We use FigureCanvasBase directly and not as a method because some backends (for example the TkAgg) have
         # a different signature for this method
-        FigureCanvasBase.button_press_event(axes.figure.canvas, x, y, button=1)
+        FigureCanvasBase.button_press_event(axes.figure.canvas, x, y, button=button)
 
     return _create
 
 
 @pytest.fixture
 def create_button_release_event(axes):
-    def _create(x, y):
+    def _create(x, y, button: int = 1):
         # We use FigureCanvasBase directly and not as a method because some backends (for example the TkAgg) have
         # a different signature for this method
-        FigureCanvasBase.button_release_event(axes.figure.canvas, x, y, button=1)
+        FigureCanvasBase.button_release_event(axes.figure.canvas, x, y, button=button)
 
     return _create
 

@@ -16,7 +16,7 @@ ATTRIBUTES_TO_COPY = {
     # need to copy '_invalidx', '_invalidy' because the new artists may not be valid (drawn) yet
     # this happens in the RectangleSelector
     Line2D: {'_xorig', '_yorig', '_x', '_y', '_xy', '_x_filled',
-             '_path', '_transformed_path', '_invalidx', '_invalidy'}
+             '_path', '_transformed_path', '_invalidx', '_invalidy', '_visible'}
 }
 
 

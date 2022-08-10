@@ -1,6 +1,7 @@
 import shutil
 from pathlib import Path
 
+import matplotlib
 import pytest
 from matplotlib.artist import Artist
 from pytest import fixture
@@ -8,7 +9,7 @@ import gc
 
 from pyquibbler import CacheMode, quibapp
 from pyquibbler.env import DEBUG, LAZY, PRETTY_REPR, \
-    SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS, GET_VARIABLE_NAMES
+    SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS, GET_VARIABLE_NAMES, GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION
 from pyquibbler.project import Project
 from pyquibbler.function_overriding import initialize_quibbler
 from pyquibbler.quib.func_calling import CachedQuibFuncCall
@@ -17,12 +18,15 @@ from pyquibbler.utilities.performance_utils import track_instances_of_class, get
     TRACKED_CLASSES_TO_WEAKREFS
 from pyquibbler.utils import Flag
 
+from matplotlib.widgets import Slider as OriginalSlider
+
 DEFAULT_DEBUG = True
 DEFAULT_LAZY = True
 DEFAULT_ASSIGNMENT_RESTRICTIONS = False
 DEFAULT_PRETTY_REPR = True
 DEFAULT_SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACK = False
 DEFAULT_GET_VARIABLE_NAMES = False
+DEFAULT_GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION = 1000
 
 
 @fixture(scope="session", autouse=True)
@@ -64,6 +68,7 @@ def pytest_generate_tests(metafunc):
     parametrize_flag_fixture(metafunc, 'assignment_restrictions', 'setup_assignment_restrictions')
     parametrize_flag_fixture(metafunc, 'pretty_repr', 'setup_pretty_repr')
     parametrize_flag_fixture(metafunc, 'get_variable_names', 'setup_get_variable_names')
+    parametrize_flag_fixture(metafunc, 'graphics_driven_assignment_resolution', 'setup_graphics_driven_assignment_resolution')
     parametrize_flag_fixture(metafunc, 'show_quib_exceptions_as_quib_traceback', 'setup_show_quib_exceptions_as_quib_traceback')
 
 
@@ -97,6 +102,12 @@ def setup_show_quib_exceptions_as_quib_traceback(request):
 @fixture(autouse=True)
 def setup_get_variable_names(request):
     yield from setup_flag(GET_VARIABLE_NAMES, DEFAULT_GET_VARIABLE_NAMES,
+                          request)
+
+
+@fixture(autouse=True)
+def setup_graphics_driven_assignment_resolution(request):
+    yield from setup_flag(GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION, DEFAULT_GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION,
                           request)
 
 
@@ -142,3 +153,8 @@ def get_live_artists(axes):
     yield _get
 
     TRACKED_CLASSES_TO_WEAKREFS[Artist] = set()
+
+
+@pytest.fixture
+def original_slider():
+    return OriginalSlider

@@ -14,5 +14,4 @@ def test_function_defined_as_unimplemented_does_runs_on_non_quibs(axes):
 def test_function_defined_as_unimplemented_raises_exception_on_quibs(axes):
     x = iquib(7)
     with pytest.raises(NotImplementedFunc, match='.*'):
-        axes.axis([0, x, 0, 5])
-
+        axes.grid(x)

@@ -278,7 +278,7 @@ class JupyterProject(Project):
         assignment = overrider[0]
 
         quib = self._find_quib_by_id(quib_id)
-        self.push_assignment_to_undo_stack(
+        self.push_single_assignment_to_undo_stack(
             quib=quib,
             assignment=assignment,
             assignment_index=index
@@ -289,7 +289,7 @@ class JupyterProject(Project):
         quib.handler.file_syncer.on_data_changed()
         set_path_indexed_classes_from_quib(assignment.path, quib)
 
-        quib.handler.invalidate_and_redraw_at_path(assignment.path)
+        quib.handler.invalidate_and_aggregate_redraw_at_path(assignment.path)
 
         return get_serialized_quib(quib)
 

@@ -1,9 +1,12 @@
 from typing import Any, List, Tuple
+
 from matplotlib.pyplot import Axes
 
+from pyquibbler.assignment.assignment import create_assignment
 from pyquibbler.assignment.override_choice import get_override_group_for_quib_changes
+from pyquibbler.env import GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION
 from pyquibbler.path import PathComponent
-from pyquibbler.assignment import AssignmentToQuib, Assignment
+from pyquibbler.assignment import AssignmentToQuib
 from pyquibbler.assignment import OverrideGroup
 
 
@@ -15,13 +18,19 @@ def get_override_group_for_axes_set_lim(args: List[Any], lim: Tuple[float, float
     from pyquibbler.quib import Quib
     assert len(args) > 1
     assert isinstance(args[0], Axes)
+
+    tolerance = None if GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.val is None \
+        else (lim[1] - lim[0]) / GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.val
+
     if len(args) == 2 and isinstance(args[1], Quib):
 
         # set_xlim(ax, quib)
         quib = args[1]
-        changes = [AssignmentToQuib(quib, Assignment(
+        changes = [AssignmentToQuib(quib, create_assignment(
             value=lim,
-            path=[PathComponent(quib.get_type(), slice(0, 2))]))]
+            path=[PathComponent(quib.get_type(), slice(0, 2))],
+            tolerance=tolerance
+        ))]
     else:
         if len(args) == 2:
             assert len(args[1]) == 2
@@ -40,15 +49,19 @@ def get_override_group_for_axes_set_lim(args: List[Any], lim: Tuple[float, float
         changes = []
         if isinstance(min_, Quib):
             changes.append(
-                AssignmentToQuib(min_, Assignment(
+                AssignmentToQuib(min_, create_assignment(
                     value=lim[0],
-                    path=[]))
+                    path=[],
+                    tolerance=tolerance
+                ))
             )
         if isinstance(max_, Quib):
             changes.append(
-                AssignmentToQuib(max_, Assignment(
+                AssignmentToQuib(max_, create_assignment(
                     value=lim[1],
-                    path=[]))
+                    path=[],
+                    tolerance=tolerance
+                ))
             )
 
     return get_override_group_for_quib_changes(changes)

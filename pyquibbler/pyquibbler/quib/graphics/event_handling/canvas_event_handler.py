@@ -1,15 +1,16 @@
 from contextlib import contextmanager
 from threading import Lock
-from typing import Optional, Tuple, Callable
+from typing import Optional, Tuple, Callable, Union
+
+from matplotlib.artist import Artist
 from matplotlib.backend_bases import MouseEvent, PickEvent, MouseButton
 
 from pyquibbler.env import END_DRAG_IMMEDIATELY
-from pyquibbler.graphics import releasing, pressed, released
+from pyquibbler.graphics import pressed, released
 from pyquibbler.logger import logger
+from pyquibbler.quib.graphics.redraw import end_dragging
 from pyquibbler.utilities.performance_utils import timer
-from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
 from pyquibbler.quib.graphics.event_handling import graphics_inverse_assigner
-from pyquibbler.assignment.override_choice.types import OverrideGroup
 from pyquibbler.quib.graphics import artist_wrapper
 
 from matplotlib.axes import Axes
@@ -63,8 +64,6 @@ class CanvasEventHandler:
         self.canvas = canvas
         self.current_pick_event: Optional[PickEvent] = None
         self.current_pick_quib: Optional[Quib] = None
-        self._last_mouse_event_with_overrides: Optional[PickEvent] = None
-        self._last_axis_event_with_overrides = {}
         self._assignment_lock = Lock()
 
         self.EVENT_HANDLERS = {
@@ -74,31 +73,32 @@ class CanvasEventHandler:
             'pick_event': self._handle_pick_event
         }
 
-    def _handle_button_press(self, _mouse_event: MouseEvent):
+    @staticmethod
+    def _call_object_rightclick_callback_if_exists(obj: Union[Axes, Artist], mouse_event) -> bool:
+        on_rightclick = getattr(obj, '_quibbler_on_rightclick', None)
+        has_rightclick_callback = on_rightclick is not None
+        if has_rightclick_callback:
+            on_rightclick(mouse_event)
+
+        return has_rightclick_callback
+
+    def _handle_button_press(self, mouse_event: MouseEvent):
+        if mouse_event.button is MouseButton.RIGHT:
+            self._call_object_rightclick_callback_if_exists(mouse_event.inaxes, mouse_event)
         pressed()
 
     def _handle_button_release(self, _mouse_event: MouseEvent):
-        if self._last_mouse_event_with_overrides:
-            with releasing():
-                self._inverse_from_mouse_event(self._last_mouse_event_with_overrides)
-        self._last_mouse_event_with_overrides = None
+        end_dragging()
         self.current_pick_event = None
         self.current_pick_quib = None
-
-        if self._last_axis_event_with_overrides:
-            with releasing():
-                override_group = OverrideGroup()
-                for override_group_x_or_y in self._last_axis_event_with_overrides.values():
-                    override_group.extend(override_group_x_or_y)
-                override_group.apply()
-        self._last_axis_event_with_overrides = {}
         released()
 
     def _handle_pick_event(self, pick_event: PickEvent):
         self.current_pick_event = pick_event
         self.current_pick_quib = artist_wrapper.get_creating_quib(pick_event.artist)
         if pick_event.mouseevent.button is MouseButton.RIGHT:
-            self._inverse_from_mouse_event(pick_event.mouseevent)
+            if not self._call_object_rightclick_callback_if_exists(pick_event.artist, pick_event.mouseevent):
+                self._inverse_from_mouse_event(pick_event.mouseevent)
 
     def _inverse_assign_graphics(self, mouse_event: MouseEvent):
         """
@@ -112,14 +112,11 @@ class CanvasEventHandler:
 
         drawing_quib = self.current_pick_quib
         with timer("motion_notify", lambda x: logger.info(f"motion notify {x}")), \
-                aggregate_redraw_mode(), \
                 graphics_assignment_mode(mouse_event.inaxes):
-            override_group = graphics_inverse_assigner.inverse_assign_drawing_func(drawing_func=drawing_quib.func,
-                                                                                   args=drawing_quib.args,
-                                                                                   mouse_event=mouse_event,
-                                                                                   pick_event=pick_event)
-            if override_group is not None and override_group:
-                self._last_mouse_event_with_overrides = mouse_event
+            graphics_inverse_assigner.inverse_assign_drawing_func(drawing_func=drawing_quib.func,
+                                                                  args=drawing_quib.args,
+                                                                  mouse_event=mouse_event,
+                                                                  pick_event=pick_event)
 
     def _inverse_assign_axis_limits(self,
                                     drawing_func: Callable,
@@ -132,13 +129,11 @@ class CanvasEventHandler:
         """
         with timer("axis_lim_notify", lambda x: logger.info(f"axis-lim notify {x}")), \
                 graphics_assignment_mode(set_lim_quib.args[0]):
-            override_group = graphics_inverse_assigner.inverse_assign_axes_lim_func(
+            graphics_inverse_assigner.inverse_assign_axes_lim_func(
                 args=set_lim_quib.args,
                 lim=lim,
                 is_override_removal=is_override_removal,
             )
-            if override_group:
-                self._last_axis_event_with_overrides[drawing_func.__name__] = override_group
 
     @contextmanager
     def _try_acquire_assignment_lock(self):
@@ -154,9 +149,7 @@ class CanvasEventHandler:
                 self._assignment_lock.release()
 
     def _handle_motion_notify(self, mouse_event: MouseEvent):
-        from pyquibbler.graphics import dragging
-        with dragging():
-            self._inverse_from_mouse_event(mouse_event)
+        self._inverse_from_mouse_event(mouse_event)
 
     def _inverse_from_mouse_event(self, mouse_event):
         if self.current_pick_event is not None:
@@ -192,16 +185,14 @@ class CanvasEventHandler:
         """
         This method is called by the overridden set_xlim, set_ylim
         """
-        from pyquibbler.graphics import dragging
         name = drawing_func.__name__
         set_lim_quib = artist_wrapper.get_setter_quib(ax, name)
         if isinstance(set_lim_quib, Quib):
             with self._try_acquire_assignment_lock() as locked:
                 if locked:
-                    with dragging():
-                        self._inverse_assign_axis_limits(
-                            drawing_func=drawing_func,
-                            set_lim_quib=set_lim_quib,
-                            lim=lim,
-                            is_override_removal=False,
-                        )
+                    self._inverse_assign_axis_limits(
+                        drawing_func=drawing_func,
+                        set_lim_quib=set_lim_quib,
+                        lim=lim,
+                        is_override_removal=False,
+                    )

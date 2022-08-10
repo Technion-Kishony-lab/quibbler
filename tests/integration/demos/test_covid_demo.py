@@ -77,4 +77,4 @@ def test_covid_demo(get_axes_middle, create_button_press_event, create_motion_no
         create_motion_notify_event(middle_x, marker_y)
         create_button_release_event(middle_x, marker_y)
 
-    assert canvas_redraw_count.count == 2  # motion + release
+    assert canvas_redraw_count.count == 1  # motion

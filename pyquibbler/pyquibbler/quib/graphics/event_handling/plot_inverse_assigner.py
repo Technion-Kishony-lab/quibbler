@@ -1,11 +1,11 @@
 from collections import defaultdict
+from functools import partial
 from typing import Any, List, Tuple, Union, Mapping
 from matplotlib.backend_bases import PickEvent, MouseEvent, MouseButton
 
-from pyquibbler.assignment.assignment import AssignmentWithTolerance
+from pyquibbler.assignment.assignment import get_axes_x_y_tolerance, create_assignment
 from pyquibbler.assignment.override_choice import get_override_group_for_quib_changes
 from pyquibbler.assignment.simplify_assignment import convert_scalar_value
-from pyquibbler.env import GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION
 from pyquibbler.path import PathComponent, Paths, deep_get
 from pyquibbler.assignment import AssignmentToQuib, Assignment
 from .graphics_inverse_assigner import graphics_inverse_assigner
@@ -13,6 +13,12 @@ from pyquibbler.assignment import OverrideGroup
 from pyquibbler.quib.quib import Quib
 
 from numpy import unravel_index
+
+
+def _is_arg_str(arg):
+    if isinstance(arg, Quib):
+        arg = arg.get_value()
+    return isinstance(arg, str)
 
 
 def get_xdata_arg_indices_and_ydata_arg_indices(args: Tuple[List, List]):
@@ -37,14 +43,14 @@ def get_xdata_arg_indices_and_ydata_arg_indices(args: Tuple[List, List]):
         return [], [1]
 
     if len(args) == 3:
-        if isinstance(args[2], str):
+        if _is_arg_str(args[2]):
             return [], [1]
 
     i = 1
     while i < len(args):
         step = 2
         potential_fmt_index = i + 2
-        if potential_fmt_index < len(args) and isinstance(args[potential_fmt_index], str):
+        if potential_fmt_index < len(args) and _is_arg_str(args[potential_fmt_index]):
             step += 1
         x_data_arg_indexes.append(i)
         y_data_arg_indexes.append(i + 1)
@@ -102,24 +108,10 @@ def get_overrides_for_event(args: List[Any], arg_indices: List[int], artist_inde
     overrides = []
     for quib, paths in quibs_to_paths.items():
         for path in paths:
-            # we cast value and the tolerance by current value. so datetime or int work as expected.
             current_value = deep_get(quib.handler.get_value_valid_at_path(path), path)
-            if tolerance:
-                assignment = AssignmentWithTolerance(
-                    path=path,
-                    value=convert_scalar_value(current_value=current_value,
-                                               assigned_value=value),
-                    value_up=convert_scalar_value(current_value=current_value,
-                                                  assigned_value=value + tolerance),
-                    value_down=convert_scalar_value(current_value=current_value,
-                                                    assigned_value=value - tolerance),
-                )
-            else:
-                assignment = Assignment(
-                    path=path,
-                    value=convert_scalar_value(current_value=current_value,
-                                               assigned_value=value),
-                )
+            # we cast value and the tolerance by current value. so datetime or int work as expected:
+            assignment = create_assignment(value, path, tolerance,
+                                           convert_func=partial(convert_scalar_value, current_value))
             overrides.append(AssignmentToQuib(quib, assignment))
     return overrides
 
@@ -133,17 +125,6 @@ def get_override_removals_for_event(args: List[Any], arg_indices: List[int], art
             for quib, paths in quibs_to_paths.items() for path in paths]
 
 
-def get_pick_event_xy_tolerance(pick_event: PickEvent):
-    n = GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION
-    if n is None:
-        return None, None
-    ax = pick_event.artist.axes
-    xlim = ax.get_xlim()
-    ylim = ax.get_ylim()
-    return (xlim[1] - xlim[0]) / n, \
-           (ylim[1] - ylim[0]) / n
-
-
 def get_override_group_by_indices(x_arg_indices: List[int], y_arg_indices: List[int], artist_index: Union[None, int],
                                   pick_event: PickEvent, mouse_event: MouseEvent, args: List[Any]) -> OverrideGroup:
     indices = pick_event.ind
@@ -151,7 +132,7 @@ def get_override_group_by_indices(x_arg_indices: List[int], y_arg_indices: List[
         arg_indices = x_arg_indices + y_arg_indices
         changes = get_override_removals_for_event(args, arg_indices, artist_index, indices)
     else:
-        tolerance_x, tolerance_y = get_pick_event_xy_tolerance(pick_event)
+        tolerance_x, tolerance_y = get_axes_x_y_tolerance(pick_event.artist.axes)
         changes = [*get_overrides_for_event(args, x_arg_indices, artist_index, indices,
                                             mouse_event.xdata, tolerance_x),
                    *get_overrides_for_event(args, y_arg_indices, artist_index, indices,

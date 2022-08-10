@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 from matplotlib import widgets
 
-from pyquibbler import iquib
+from pyquibbler import iquib, undo, redo
 from tests.integration.quib.graphics.widgets.utils import count_redraws, quibbler_image_comparison, count_canvas_draws
 
 
@@ -51,8 +51,8 @@ def test_rectangle_selector_move(axes, get_only_live_widget, get_live_artists, g
         create_motion_notify_event(new_x, new_y)
         create_button_release_event(new_x, new_y)
 
-    assert canvas_redraw_count.count == 2
-    assert redraw_count.count == 2  # motion_notify and button_release
+    assert canvas_redraw_count.count == 1
+    assert redraw_count.count == 1  # motion_notify
 
     assert len(axes.patches) == 1
     assert len(axes.lines) == 3
@@ -85,8 +85,8 @@ def test_rectangle_selector_list_extent_move(axes, get_only_live_widget, get_liv
         create_motion_notify_event(new_x, new_y)
         create_button_release_event(new_x, new_y)
 
-    assert canvas_redraw_count.count == 2
-    assert redraw_count.count == 2  # motion_notify and button_release
+    assert canvas_redraw_count.count == 1
+    assert redraw_count.count == 1  # motion_notify
 
     assert len(axes.patches) == 1
     assert len(axes.lines) == 3
@@ -137,3 +137,66 @@ def test_rectangle_selector_speed(axes,
 
     print()
     print(end - start)
+
+
+def test_rectangle_selector_undo(axes,
+                                 roi, rectangle_selector, get_axes_middle, create_button_press_event,
+                                 create_motion_notify_event, create_button_release_event):
+
+    middle_x, middle_y = get_axes_middle()
+    axes_x, axes_y, width, height = axes.bbox.bounds
+    new_x1 = axes_x + width * .6
+    new_y1 = axes_y + height * .6
+    new_x2 = axes_x + width * .7
+    new_y2 = axes_y + height * .7
+
+    assert roi.get_value()[0] == 0.2
+    create_button_press_event(middle_x, middle_y)
+
+    create_motion_notify_event(new_x1, new_y1)
+    assert roi.get_value()[0] == 0.3
+
+    create_motion_notify_event(new_x2, new_y2)
+    assert roi.get_value()[0] == 0.4
+
+    create_button_release_event(new_x2, new_y2)
+
+    undo()
+    assert roi.get_value()[0] == 0.2
+
+    redo()
+    assert roi.get_value()[0] == 0.4
+
+
+def test_rectangle_selector_right_click_reset_to_default(axes,
+                                                         roi, rectangle_selector, get_axes_middle,
+                                                         create_button_press_event,
+                                                         create_motion_notify_event, create_button_release_event):
+
+    middle_x, middle_y = get_axes_middle()
+    axes_x, axes_y, width, height = axes.bbox.bounds
+    new_x1 = axes_x + width * .6
+    new_y1 = axes_y + height * .6
+
+    assert roi.get_value()[0] == 0.2
+    create_button_press_event(middle_x, middle_y)
+
+    create_motion_notify_event(new_x1, new_y1)
+    create_button_release_event(new_x1, new_y1)
+    assert roi.get_value()[0] == 0.3
+
+    create_button_press_event(new_x1, new_y1, button=3)  # right-click
+    create_button_release_event(new_x1, new_y1)
+    assert roi.get_value()[0] == 0.2
+
+    undo()
+    assert roi.get_value()[0] == 0.3
+
+    undo()
+    assert roi.get_value()[0] == 0.2
+
+    redo()
+    assert roi.get_value()[0] == 0.3
+
+    redo()
+    assert roi.get_value()[0] == 0.2

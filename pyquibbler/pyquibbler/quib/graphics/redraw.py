@@ -1,23 +1,25 @@
 from __future__ import annotations
 import contextlib
-from typing import Set
+from typing import Set, Dict, TYPE_CHECKING
 from matplotlib.figure import Figure
 from matplotlib.pyplot import fignum_exists
 from matplotlib._pylab_helpers import Gcf
 
+from pyquibbler.quib.graphics import GraphicsUpdateType
 from pyquibbler.logger import logger
 from pyquibbler.utilities.performance_utils import timer
-from pyquibbler.cache.cache import CacheStatus
-from pyquibbler.quib.quib import Quib
+
+if TYPE_CHECKING:
+    from pyquibbler.quib.quib import Quib
 
 
-QUIBS_TO_REDRAW: Set[Quib] = set()
+QUIBS_TO_REDRAW: Dict[GraphicsUpdateType, Set[Quib]] = {GraphicsUpdateType.DRAG: set(), GraphicsUpdateType.DROP: set()}
 QUIBS_TO_NOTIFY_OVERRIDING_CHANGES: Set[Quib] = set()
 IN_AGGREGATE_REDRAW_MODE = False
 
 
 @contextlib.contextmanager
-def aggregate_redraw_mode():
+def aggregate_redraw_mode(is_dragging: bool = False):
     """
     In aggregate redraw mode, no axeses will be redrawn until the end of the context manager
     """
@@ -30,8 +32,16 @@ def aggregate_redraw_mode():
             yield
         finally:
             IN_AGGREGATE_REDRAW_MODE = False
-        _redraw_quibs_with_graphics()
+        _redraw_quibs_with_graphics(GraphicsUpdateType.DRAG)
         _notify_of_overriding_changes()
+        if not is_dragging:
+            end_dragging()
+
+
+def end_dragging():
+    from pyquibbler import Project
+    _redraw_quibs_with_graphics(GraphicsUpdateType.DROP)
+    Project.get_or_create().push_pending_undo_group_to_undo_stack()
 
 
 @contextlib.contextmanager
@@ -55,18 +65,18 @@ def skip_canvas_draws(should_skip: bool = True):
         canvas_class.draw = original_canvas_draw
 
 
-def _redraw_quibs_with_graphics():
-    quibs_that_are_invalid = [quib for quib in QUIBS_TO_REDRAW if quib.cache_status != CacheStatus.ALL_VALID]
-    with timer("quib redraw", lambda x: logger.info(f"redrawing {len(quibs_that_are_invalid)} quibs: {x}s")), \
+def _redraw_quibs_with_graphics(graphics_update: GraphicsUpdateType):
+    global QUIBS_TO_REDRAW
+    quibs = QUIBS_TO_REDRAW[graphics_update]
+    with timer("quib redraw", lambda x: logger.info(f"redrawing {len(quibs)} quibs: {x}s")), \
             skip_canvas_draws():
-        for quib in quibs_that_are_invalid:
-            quib.handler.redraw_if_appropriate()
+        for quib in quibs:
+            quib.handler.reevaluate_graphic_quib()
 
-    figures = {figure
-               for quib in quibs_that_are_invalid for figure in quib.handler.get_figures() if figure is not None}
+    figures = {figure for quib in quibs for figure in quib.handler.get_figures() if figure is not None}
 
     redraw_figures(figures)
-    QUIBS_TO_REDRAW.clear()
+    quibs.clear()
 
 
 def _notify_of_overriding_changes():
@@ -80,11 +90,14 @@ def _notify_of_overriding_changes():
     QUIBS_TO_NOTIFY_OVERRIDING_CHANGES.clear()
 
 
-def redraw_quibs_with_graphics_or_add_in_aggregate_mode(quibs: Set[Quib]):
+def redraw_quib_with_graphics_or_add_in_aggregate_mode(quib: Quib, graphics_update: GraphicsUpdateType):
     global QUIBS_TO_REDRAW
-    QUIBS_TO_REDRAW |= quibs
+    if not (graphics_update == GraphicsUpdateType.DRAG or graphics_update == GraphicsUpdateType.DROP):
+        return
+
+    QUIBS_TO_REDRAW[graphics_update].add(quib)
     if not IN_AGGREGATE_REDRAW_MODE:
-        _redraw_quibs_with_graphics()
+        _redraw_quibs_with_graphics(graphics_update)
 
 
 def notify_of_overriding_changes_or_add_in_aggregate_mode(quib: Quib):

@@ -1,9 +1,15 @@
+from typing import Optional
+
 from matplotlib.widgets import RadioButtons
 
 from pyquibbler.quib.func_calling.func_calls.known_graphics.widgets.widget_call import WidgetQuibFuncCall
 
 
 class RadioButtonsQuibFuncCall(WidgetQuibFuncCall):
+
+    @staticmethod
+    def _get_control_variable() -> Optional[str]:
+        return 'actives'
 
     def _on_clicked(self, new_value):
         from pyquibbler.quib import Quib

@@ -93,6 +93,7 @@ class Overrider:
     def insert_assignment_at_index(self, assignment: Assignment, index: int):
         hashable_path = get_hashable_path(assignment.path)
         new_paths_with_assignments = list(self._paths_to_assignments.items())
+        index = min(index, len(new_paths_with_assignments))  # see test_drag_xy_undo
         new_paths_with_assignments.insert(index, (hashable_path, assignment))
 
         # We need to remove any assignments with the same path that came before this index so we don't accidentally

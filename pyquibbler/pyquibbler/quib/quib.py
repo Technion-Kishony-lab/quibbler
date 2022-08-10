@@ -10,11 +10,11 @@ import json_tricks
 import numpy as np
 from matplotlib import pyplot
 
-from pyquibbler.assignment.assignment import AssignmentWithTolerance, \
-    convert_assignment_with_tolerance_to_pretty_assignment
+from pyquibbler.assignment.assignment import AssignmentWithTolerance
 from pyquibbler.assignment.default_value import missing
 from pyquibbler.assignment.simplify_assignment import AssignmentSimplifier
 from pyquibbler.function_definitions import get_definition_for_function, FuncArgsKwargs
+from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
 from pyquibbler.quib.types import FileAndLineNumber
 from pyquibbler.utilities.file_path import PathWithHyperLink
 from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Union, Iterable, Mapping, Callable, Iterator
@@ -24,7 +24,7 @@ from matplotlib.artist import Artist
 
 from pyquibbler.env import LEN_RAISE_EXCEPTION, BOOL_RAISE_EXCEPTION, \
     PRETTY_REPR, REPR_RETURNS_SHORT_NAME, REPR_WITH_OVERRIDES, ITER_RAISE_EXCEPTION, WARN_ON_UNSUPPORTED_BACKEND
-from pyquibbler.graphics import is_within_drag, SUPPORTED_BACKENDS
+from pyquibbler.graphics import SUPPORTED_BACKENDS
 from pyquibbler.quib.quib_guard import guard_raise_if_not_allowed_access_to_quib, \
     CannotAccessQuibInScopeException
 from pyquibbler.quib.pretty_converters import MathExpression, FailedMathExpression, \
@@ -176,14 +176,11 @@ class QuibHandler:
     def actual_graphics_update(self):
         return self.graphics_update or self.project.graphics_update
 
-    def redraw_if_appropriate(self) -> None:
+    def reevaluate_graphic_quib(self):
         """
-        Redraws the quib if it's appropriate
+        Redraws the quib
         """
-        graphics_update = self.actual_graphics_update
-        if graphics_update == GraphicsUpdateType.DRAG \
-                or graphics_update == GraphicsUpdateType.DROP and not is_within_drag():
-            self.quib.get_value()
+        self.quib.get_value()
 
     def _iter_artist_lists(self) -> Iterable[List[Artist]]:
         return map(lambda g: g.artists, self.quib_function_call.flat_graphics_collections())
@@ -194,37 +191,25 @@ class QuibHandler:
     def get_figures(self):
         return {artist.figure for artist in self._iter_artists()}
 
-    def _redraw(self) -> None:
-        """
-        Redraw all artists that directly or indirectly depend on this quib.
-        """
-        from pyquibbler.quib.graphics.redraw import redraw_quibs_with_graphics_or_add_in_aggregate_mode
-        quibs = self._get_descendant_graphics_quibs_recursively()
-        redraw_quibs_with_graphics_or_add_in_aggregate_mode(quibs)
-
-    def _get_descendant_graphics_quibs_recursively(self) -> Set[Quib]:
-        """
-        Get all artists that directly or indirectly depend on this quib.
-        """
-        return {child for child in self.get_descendants() if child.is_graphics_quib}
-
     """
     Invalidation
     """
 
     def invalidate_self(self, path: Path):
         """
-        This method is called whenever a quib itself is invalidated; subclasses will override this with their
-        implementations for invalidations.
-        For example, a simple implementation for a quib which is a function could be setting a boolean to true or
-        false signifying validity
+        Invalidate the quib itself.
         """
+        from pyquibbler.quib.graphics.redraw import redraw_quib_with_graphics_or_add_in_aggregate_mode
+
+        if self.quib.is_graphics_quib:
+            redraw_quib_with_graphics_or_add_in_aggregate_mode(self.quib, self.actual_graphics_update)
+
         if len(path) == 0:
             self.quib_function_call.on_type_change()
 
         self.quib_function_call.invalidate_cache_at_path(path)
 
-    def invalidate_and_redraw_at_path(self, path: Optional[Path] = None) -> None:
+    def _invalidate_and_redraw_at_path(self, path: Optional[Path] = None) -> None:
         """
         Perform all actions needed after the quib was mutated (whether by function_definitions or inverse assignment).
         If path is not given, the whole quib is invalidated.
@@ -236,7 +221,13 @@ class QuibHandler:
         with timer("quib_invalidation", lambda x: logger.info(f"invalidate {x}")):
             self._invalidate_children_at_path(path)
 
-        self._redraw()
+    def invalidate_and_aggregate_redraw_at_path(self, path: Optional[Path] = None) -> None:
+        """
+        Perform all actions needed after the quib was mutated (whether by function_definitions or inverse assignment).
+        If path is not given, the whole quib is invalidated.
+        """
+        with aggregate_redraw_mode():
+            self._invalidate_and_redraw_at_path(path)
 
     def _invalidate_children_at_path(self, path: Path) -> None:
         """
@@ -327,7 +318,7 @@ class QuibHandler:
         self.overrider.add_assignment(assignment)
 
         try:
-            self.invalidate_and_redraw_at_path(assignment.path)
+            self._invalidate_and_redraw_at_path(assignment.path)
         except FailedToDeepAssignException as e:
             raise FailedToDeepAssignException(exception=e.exception, path=e.path) from None
         except InvalidTypeException as e:
@@ -336,8 +327,6 @@ class QuibHandler:
     def override(self, assignment: Union[Assignment, AssignmentWithTolerance]):
         """
         Overrides a part of the data the quib represents.
-        We are shaping the assignment and making it "pretty" in three steps:
-        rounding according to tolerance, simplify, template
         """
 
         from pyquibbler.quib.graphics.redraw import notify_of_overriding_changes_or_add_in_aggregate_mode
@@ -345,9 +334,10 @@ class QuibHandler:
         if not self.is_overridden and assignment.is_default():
             return
 
+        # We are shaping the assignment and making it "pretty" in three steps:
         # step 1: round by tolerance:
         if isinstance(assignment, AssignmentWithTolerance):
-            assignment = convert_assignment_with_tolerance_to_pretty_assignment(assignment)
+            assignment = assignment.get_pretty_assignment()
 
         # step 2: simplify to make it "pretty":
         AssignmentSimplifier(assignment, self.get_value_valid_at_path(None)).simplify()
@@ -358,11 +348,11 @@ class QuibHandler:
 
         self._add_override(assignment)
 
-        if not is_within_drag():
-            self.project.push_assignment_to_undo_stack(quib=self.quib,
-                                                       assignment=assignment,
-                                                       assignment_index=len(self.overrider) - 1)
-            self.file_syncer.on_data_changed()
+        self.project.push_assignment_to_pending_undo_group(quib=self.quib,
+                                                           assignment=assignment,
+                                                           assignment_index=len(self.overrider) - 1)
+
+        self.file_syncer.on_data_changed()
 
         notify_of_overriding_changes_or_add_in_aggregate_mode(self.quib)
 
@@ -478,7 +468,7 @@ class QuibHandler:
         except CannotAccessQuibInScopeException:
             raise
 
-        with get_value_context():
+        with get_value_context(self.quib.pass_quibs):
             if not self._has_ever_called_get_value and Project.get_or_create().autoload_upon_first_get_value:
                 self.quib.load(ResponseToFileNotDefined.IGNORE)
 
@@ -529,14 +519,14 @@ class QuibHandler:
         self.project.clear_undo_and_redo_stacks()
         if not is_within_get_value_context():
             for path in changed_paths:
-                self.invalidate_and_redraw_at_path(path)
+                self.invalidate_and_aggregate_redraw_at_path(path)
 
     def clear_all_overrides(self):
         changed_paths = self.overrider.clear_assignments()
 
         self.project.clear_undo_and_redo_stacks()
         for path in changed_paths:
-            self.invalidate_and_redraw_at_path(path)
+            self.invalidate_and_aggregate_redraw_at_path(path)
 
     def _replace_value_after_load(self, value) -> Paths:
         self._add_override(Assignment(value=value, path=[]))
@@ -867,7 +857,7 @@ class Quib:
         pyquibbler.reset_file_loading_quibs, pyquibbler.reset_random_quibs, pyquibbler.reset_impure_quibs
         """
         self.handler.invalidate_self([])
-        self.handler.invalidate_and_redraw_at_path([])
+        self.handler.invalidate_and_aggregate_redraw_at_path([])
 
     """
     Graphics
