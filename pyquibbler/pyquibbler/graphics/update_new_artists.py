@@ -10,7 +10,7 @@ from pyquibbler.graphics.utils import ArrayNameToArtists
 
 ATTRIBUTES_TO_COPY = {
     Rectangle: {'_x0', '_y0', '_width', '_height'},
-    Patch: {'_path'},
+    Patch: {'_path', '_facecolor'},
     Text: {'_text'},
 
     # need to copy '_invalidx', '_invalidy' because the new artists may not be valid (drawn) yet

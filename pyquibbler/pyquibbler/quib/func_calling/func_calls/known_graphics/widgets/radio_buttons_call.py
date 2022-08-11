@@ -9,7 +9,7 @@ class RadioButtonsQuibFuncCall(WidgetQuibFuncCall):
 
     @staticmethod
     def _get_control_variable() -> Optional[str]:
-        return 'actives'
+        return 'active'
 
     def _on_clicked(self, new_value):
         from pyquibbler.quib import Quib
