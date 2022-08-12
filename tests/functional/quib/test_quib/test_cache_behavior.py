@@ -6,7 +6,6 @@ from pyquibbler.function_definitions import add_definition_for_function
 from pyquibbler.function_definitions.func_definition import FuncDefinition
 from pyquibbler.utilities.input_validation_utils import InvalidArgumentTypeException, UnknownEnumException
 from pyquibbler.quib.func_calling.cache_mode import CacheMode
-from pyquibbler.quib.exceptions import InvalidCacheBehaviorForQuibException
 from pyquibbler.quib.factory import create_quib
 
 

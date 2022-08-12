@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 from pyquibbler.env import GET_VARIABLE_NAMES
-from pyquibbler.quib.exceptions import CannotSaveValueAsTextException, CannotSaveAssignmentsAsTextException
+from pyquibbler.quib.exceptions import CannotSaveAssignmentsAsTextException
 from pyquibbler.quib.specialized_functions.iquib import iquib, CannotNestQuibInIQuibException
 from pyquibbler.file_syncing.types import SaveFormat
 from pyquibbler.quib import Quib
