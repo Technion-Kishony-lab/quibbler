@@ -156,6 +156,14 @@ def test_quib_fails_when_given_invalid_assignment_on_first_get_value():
         quib.get_value()
 
 
+def test_quib_fails_during_invalidation_when_given_invalid_assignment():
+    quib = create_quib(mock.Mock(return_value=np.array([1, 2, 3])), allow_overriding=True)
+    b = quib + 10
+    b.get_value()
+    with pytest.raises(FailedToDeepAssignException, match='.*'):
+        quib.assign(1, 4)
+
+
 def test_full_overriding_prevents_get_value():
     a = create_quib(mock.Mock(return_value=[1, 2, 3]), allow_overriding=True)
     a.assign([11, 12, 13, 14])

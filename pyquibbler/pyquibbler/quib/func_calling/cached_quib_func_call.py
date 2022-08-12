@@ -170,10 +170,11 @@ class CachedQuibFuncCall(QuibFuncCall):
             self.cache = _ensure_cache_matches_result(self.cache, result)
 
             if truncated_path is not None:
-                value = get_cached_data_at_truncated_path_given_result_at_uncached_path(self.cache,
-                                                                                        result,
-                                                                                        truncated_path,
-                                                                                        uncached_path)
+                with external_call_failed_exception_handling():
+                    value = get_cached_data_at_truncated_path_given_result_at_uncached_path(self.cache,
+                                                                                            result,
+                                                                                            truncated_path,
+                                                                                            uncached_path)
 
                 try:
                     self.cache.set_valid_value_at_path(truncated_path, value)

@@ -362,7 +362,7 @@ class QuibHandler:
         func_call, data_sources_to_quibs = get_func_call_for_translation_with_sources_metadata(self.quib_function_call)
 
         try:
-            value = self.quib.get_value()
+            value = self.get_value_valid_at_path([])
             # TODO: better implement with the line below. But need to take care of out-of-range assignments:
             # value = self.get_value_valid_at_path(assignment.path)
 
