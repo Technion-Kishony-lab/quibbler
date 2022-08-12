@@ -11,7 +11,7 @@ from pyquibbler.utilities.input_validation_utils import InvalidArgumentTypeExcep
 @pytest.mark.parametrize(['prop_name', 'set_value', 'get_value'], [
     ('pass_quibs', True, True),
     ('save_format', 'off', SaveFormat.OFF),
-    ('save_format', SaveFormat.VALUE_TXT, SaveFormat.VALUE_TXT),
+    ('save_format', SaveFormat.TXT, SaveFormat.TXT),
     ('cache_mode', 'off', CacheMode.OFF),
     ('graphics_update', 'never', GraphicsUpdateType.NEVER),
     ('allow_overriding', False, False),

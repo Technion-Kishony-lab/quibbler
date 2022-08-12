@@ -255,7 +255,7 @@ def test_undo_redos_clear_from_stack_on_removal(project):
 
 @pytest.mark.parametrize(['prop_name', 'set_value', 'get_value'], [
     ('save_format', 'off', SaveFormat.OFF),
-    ('save_format', SaveFormat.VALUE_TXT, SaveFormat.VALUE_TXT),
+    ('save_format', SaveFormat.TXT, SaveFormat.TXT),
     ('graphics_update', 'never', GraphicsUpdateType.NEVER),
     ('directory', '/my_folder', PathWithHyperLink('/my_folder')),
     ('directory', None, None),
