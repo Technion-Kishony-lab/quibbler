@@ -2,11 +2,9 @@ from __future__ import annotations
 
 import copy
 import pathlib
-import pickle
 import weakref
 import warnings
 
-import json_tricks
 import numpy as np
 from matplotlib import pyplot
 
@@ -33,8 +31,7 @@ from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals
 from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation_with_sources_metadata
 from pyquibbler.utilities.input_validation_utils import validate_user_input, InvalidArgumentValueException, \
     get_enum_by_str
-from pyquibbler.utilities.iterators import recursively_run_func_on_object, recursively_compare_objects_type, \
-    recursively_cast_one_object_by_other
+from pyquibbler.utilities.iterators import recursively_run_func_on_object
 from pyquibbler.utilities.unpacker import Unpacker
 from pyquibbler.logger import logger
 from pyquibbler.project import Project
