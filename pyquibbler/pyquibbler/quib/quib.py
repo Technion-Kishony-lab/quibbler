@@ -527,56 +527,6 @@ class QuibHandler:
         for path in changed_paths:
             self.invalidate_and_aggregate_redraw_at_path(path)
 
-    def _replace_value_after_load(self, value) -> Paths:
-        self._add_override(Assignment(value=value, path=[]))
-        self.project.clear_undo_and_redo_stacks()
-
-        # TODO: check which specific elements changed.
-        return [[]]
-
-    def _save_value_as_binary(self, file_path: pathlib.Path):
-        with open(file_path, 'wb') as f:
-            pickle.dump(self.get_value_valid_at_path([]), f)
-
-    def _load_value_from_binary(self, file) -> Paths:
-        with open(file, 'rb') as f:
-            return self._replace_value_after_load(pickle.load(f))
-
-    def _save_value_as_txt(self, file_path: pathlib.Path):
-        """
-        Save an iquib value as a text file
-
-        Note:
-            * This method is only defined for iquibs.
-            * The value must be of the same type as the original value of the iquib
-            * Will fail with CannotSaveValueAsTextException if the iquib's value cannot be represented as text.
-        """
-        arg = self.quib_function_call.args[0]
-        value = self.get_value_valid_at_path([])
-        with open(file_path, 'w') as f:
-            if not recursively_compare_objects_type(arg, value):
-                f.write(FIRST_LINE_OF_FORMATTED_TXT_FILE + '\n\n')
-                json_tricks.dump(value, f, primitives=False)
-            else:
-                json_tricks.dump(value, f, primitives=True)
-
-    def _load_value_from_txt(self, file_path):
-        """
-        Load the quib value from the corresponding text file
-        """
-
-        with open(file_path, 'r') as f:
-            is_formatted = f.readline() == FIRST_LINE_OF_FORMATTED_TXT_FILE + '\n'
-
-        with open(file_path, 'r') as f:
-            value = json_tricks.load(f)
-
-        if not is_formatted:
-            arg = self.quib_function_call.args[0]
-            value = recursively_cast_one_object_by_other(arg, value)
-
-        return self._replace_value_after_load(value)
-
 
 class Quib:
     """
