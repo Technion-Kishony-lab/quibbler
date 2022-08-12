@@ -54,8 +54,6 @@ def test_iquib_pretty_repr_str():
 @pytest.mark.parametrize(['save_format'], [
     (SaveFormat.TXT,),
     (SaveFormat.BIN,),
-    (SaveFormat.VALUE_TXT,),
-    (SaveFormat.VALUE_BIN,),
 ])
 def test_iquib_save_and_load(save_format: SaveFormat):
     save_name = "example_quib"
@@ -109,7 +107,7 @@ def test_unnamed_iquib(project):
 ])
 @pytest.mark.get_variable_names(True)
 def test_save_txt_and_load_iquib_ndarray(obj, tmpdir):
-    a = iquib(obj).setp(save_format=SaveFormat.VALUE_TXT)
+    a = iquib(None).setp(save_format=SaveFormat.TXT)
     a.assign(obj)
 
     a.save()

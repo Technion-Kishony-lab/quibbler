@@ -285,14 +285,6 @@ class Project:
 
         ``'bin'``: save quib assignments as a binary file (.quib)
 
-        ``'value_txt'``:
-            for i-quibs: save the value, rather than the assignments, as text (if possible).
-            for f-quibs: save assignments as text (if possible).
-
-        ``'value_bin'``:
-            for i-quibs: save the value, rather than the assignments, as binary.
-            for f-quibs: save assignments as binary.
-
         See Also
         --------
         Quib.save_format

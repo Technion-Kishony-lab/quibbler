@@ -23,27 +23,10 @@ class SaveFormat(StrEnum):
     BIN = 'bin'
     "``'bin'``;  save assignments as a binary file (.quib)"
 
-    VALUE_TXT = 'value_txt'
-    "``'value_txt'``; save the value, rather than the assignments, as text (.txt, for iquibs only)."
-
-    VALUE_BIN = 'value_bin'
-    "``'value_bin'``; save the value, rather than the assignments, as binary (.quib, for iquibs only)."
-
 
 SAVE_FORMAT_TO_FILE_EXT = {
     SaveFormat.BIN: '.quib',
     SaveFormat.TXT: '.txt',
-    SaveFormat.VALUE_TXT: '.txt',
-    SaveFormat.VALUE_BIN: '.quib',
-}
-
-
-SAVE_FORMAT_TO_FQUIB_SAVE_FORMAT = {
-    SaveFormat.OFF: SaveFormat.OFF,
-    SaveFormat.TXT: SaveFormat.TXT,
-    SaveFormat.BIN: SaveFormat.BIN,
-    SaveFormat.VALUE_TXT: SaveFormat.TXT,
-    SaveFormat.VALUE_BIN: SaveFormat.BIN,
 }
 
 
@@ -70,9 +53,3 @@ class FileNotDefinedException(PyQuibblerException):
         if self.actual_save_format == SaveFormat.OFF:
             messages.append('set the save_format')
         return 'To save/load/sync a quib, you must ' + ' and '.join(messages) + '.'
-
-
-class CannotSaveFunctionQuibsAsValueException(PyQuibblerException):
-
-    def __str__(self):
-        return "Saving as value is only allowed for iquibs."

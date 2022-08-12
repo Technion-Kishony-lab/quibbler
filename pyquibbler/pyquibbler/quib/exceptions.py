@@ -54,7 +54,7 @@ class CannotSaveValueAsTextException(PyQuibblerException):
 
     def __str__(self):
         return "The iquib's value contain objects that cannot be saved as text." \
-               "To save the iquib set the save_format to binary (quib.save_format = 'bin', or 'value_bin')"
+               "To save the iquib set the save_format to binary (quib.save_format = 'bin')"
 
 
 @dataclass

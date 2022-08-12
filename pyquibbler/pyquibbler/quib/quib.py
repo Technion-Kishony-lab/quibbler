@@ -2,11 +2,9 @@ from __future__ import annotations
 
 import copy
 import pathlib
-import pickle
 import weakref
 import warnings
 
-import json_tricks
 import numpy as np
 from matplotlib import pyplot
 
@@ -33,8 +31,7 @@ from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals
 from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation_with_sources_metadata
 from pyquibbler.utilities.input_validation_utils import validate_user_input, InvalidArgumentValueException, \
     get_enum_by_str
-from pyquibbler.utilities.iterators import recursively_run_func_on_object, recursively_compare_objects_type, \
-    recursively_cast_one_object_by_other
+from pyquibbler.utilities.iterators import recursively_run_func_on_object
 from pyquibbler.utilities.unpacker import Unpacker
 from pyquibbler.logger import logger
 from pyquibbler.project import Project
@@ -47,8 +44,8 @@ from pyquibbler.quib.external_call_failed_exception_handling import raise_quib_c
 from pyquibbler.quib.graphics import GraphicsUpdateType
 from pyquibbler.translation.translate import forwards_translate, NoTranslatorsFoundException
 from pyquibbler.cache import create_cache, CacheStatus
-from pyquibbler.file_syncing import SaveFormat, SAVE_FORMAT_TO_FILE_EXT, CannotSaveFunctionQuibsAsValueException, \
-    ResponseToFileNotDefined, FileNotDefinedException, QuibFileSyncer, SAVE_FORMAT_TO_FQUIB_SAVE_FORMAT
+from pyquibbler.file_syncing import SaveFormat, SAVE_FORMAT_TO_FILE_EXT, \
+    ResponseToFileNotDefined, FileNotDefinedException, QuibFileSyncer
 from pyquibbler.quib.get_value_context_manager import get_value_context, is_within_get_value_context
 
 if TYPE_CHECKING:
@@ -488,10 +485,7 @@ class QuibHandler:
 
     @property
     def actual_save_format(self):
-        actual_save_format = self.save_format if self.save_format else self.project.save_format
-        if not self.is_iquib:
-            actual_save_format = SAVE_FORMAT_TO_FQUIB_SAVE_FORMAT[actual_save_format]
-        return actual_save_format
+        return self.save_format if self.save_format else self.project.save_format
 
     def on_project_directory_change(self):
         if not (self.save_directory is not None and self.save_directory.is_absolute()):
@@ -503,19 +497,21 @@ class QuibHandler:
     def save_assignments_or_value(self, file_path: pathlib.Path):
         if self.actual_save_format is SaveFormat.OFF:
             return
-        {SaveFormat.VALUE_TXT: self._save_value_as_txt,
-         SaveFormat.VALUE_BIN: self._save_value_as_binary,
-         SaveFormat.BIN: self.overrider.save_as_binary,
-         SaveFormat.TXT: self.overrider.save_as_txt}[self.actual_save_format](file_path)
+        if self.actual_save_format is SaveFormat.BIN:
+            self.overrider.save_as_binary(file_path)
+        if self.actual_save_format is SaveFormat.TXT:
+            self.overrider.save_as_txt(file_path)
 
     def load_from_assignment_file_or_value_file(self, file_path: pathlib.Path):
         if self.actual_save_format is SaveFormat.OFF:
             return
-        changed_paths = {
-            SaveFormat.VALUE_TXT: self._load_value_from_txt,
-            SaveFormat.VALUE_BIN: self._load_value_from_binary,
-            SaveFormat.BIN: self.overrider.load_from_binary,
-            SaveFormat.TXT: self.overrider.load_from_txt}[self.actual_save_format](file_path)
+        if self.actual_save_format is SaveFormat.BIN:
+            changed_paths = self.overrider.load_from_binary(file_path)
+        elif self.actual_save_format is SaveFormat.TXT:
+            changed_paths = self.overrider.load_from_txt(file_path)
+        else:
+            assert False
+
         self.project.clear_undo_and_redo_stacks()
         if not is_within_get_value_context():
             for path in changed_paths:
@@ -527,56 +523,6 @@ class QuibHandler:
         self.project.clear_undo_and_redo_stacks()
         for path in changed_paths:
             self.invalidate_and_aggregate_redraw_at_path(path)
-
-    def _replace_value_after_load(self, value) -> Paths:
-        self._add_override(Assignment(value=value, path=[]))
-        self.project.clear_undo_and_redo_stacks()
-
-        # TODO: check which specific elements changed.
-        return [[]]
-
-    def _save_value_as_binary(self, file_path: pathlib.Path):
-        with open(file_path, 'wb') as f:
-            pickle.dump(self.get_value_valid_at_path([]), f)
-
-    def _load_value_from_binary(self, file) -> Paths:
-        with open(file, 'rb') as f:
-            return self._replace_value_after_load(pickle.load(f))
-
-    def _save_value_as_txt(self, file_path: pathlib.Path):
-        """
-        Save an iquib value as a text file
-
-        Note:
-            * This method is only defined for iquibs.
-            * The value must be of the same type as the original value of the iquib
-            * Will fail with CannotSaveValueAsTextException if the iquib's value cannot be represented as text.
-        """
-        arg = self.quib_function_call.args[0]
-        value = self.get_value_valid_at_path([])
-        with open(file_path, 'w') as f:
-            if not recursively_compare_objects_type(arg, value):
-                f.write(FIRST_LINE_OF_FORMATTED_TXT_FILE + '\n\n')
-                json_tricks.dump(value, f, primitives=False)
-            else:
-                json_tricks.dump(value, f, primitives=True)
-
-    def _load_value_from_txt(self, file_path):
-        """
-        Load the quib value from the corresponding text file
-        """
-
-        with open(file_path, 'r') as f:
-            is_formatted = f.readline() == FIRST_LINE_OF_FORMATTED_TXT_FILE + '\n'
-
-        with open(file_path, 'r') as f:
-            value = json_tricks.load(f)
-
-        if not is_formatted:
-            arg = self.quib_function_call.args[0]
-            value = recursively_cast_one_object_by_other(arg, value)
-
-        return self._replace_value_after_load(value)
 
 
 class Quib:
@@ -1169,7 +1115,7 @@ class Quib:
         save_directory : str or pathlib.Path, optional
             The directory to which quib assignments are saved.
 
-        save_format : None, {'off', 'txt', 'bin', 'value_txt', 'value_bin'}, or SaveFormat, optional
+        save_format : None, {'off', 'txt', 'bin'}, or SaveFormat, optional
             The file format for saving quib assignments.
 
         cache_mode : {'auto', 'on', 'off'} or CacheMode, optional
@@ -1646,9 +1592,7 @@ class Quib:
 
         ``'txt'`` - save assignments as text file.
 
-        ``'binary'`` - save assignments as a binary file.
-
-        ``'value_txt'`` - save the quib value as a text file.
+        ``'bin'`` - save assignments as a binary file.
 
         ``None`` - yield to the Project default save_format
 
@@ -1662,8 +1606,6 @@ class Quib:
     @validate_user_input(save_format=(NoneType, str, SaveFormat))
     def save_format(self, save_format):
         save_format = get_enum_by_str(SaveFormat, save_format, allow_none=True)
-        if (save_format in [SaveFormat.VALUE_BIN, SaveFormat.VALUE_TXT]) and not self.is_iquib:
-            raise CannotSaveFunctionQuibsAsValueException()
 
         self.handler.save_format = save_format
         self.handler.on_file_name_change()

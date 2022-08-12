@@ -35,7 +35,7 @@ def test_sync_quibs_with_files_project_initiation(project):
 
 
 def test_sync_quibs_with_files_and_then_file_change(project, monkeypatch):
-    a = iquib(np.array([1., 2., 3.])).setp(name='a', save_format='value_txt')
+    a = iquib(np.array([1., 2., 3.])).setp(name='a', save_format='txt')
     a[1] = 10
 
     project.sync_quibs()
@@ -51,10 +51,10 @@ def test_sync_quibs_with_files_and_then_file_change(project, monkeypatch):
 @pytest.mark.get_variable_names(True)
 def test_quib_get_value_with_autoload(project):
     project.autoload_upon_first_get_value = True
-    a = iquib([1, 2, 3]).setp(save_format="value_txt")
+    a = iquib([1, 2, 3]).setp(save_format="txt")
     a[0] = 2
     a.save()
-    a = iquib([1, 2, 3], save_format="value_txt")
+    a = iquib([1, 2, 3], save_format="txt")
 
     result = a.get_value()  # Should autoload at this point
 
