@@ -1,9 +1,12 @@
+from unittest import mock
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pytest
 
+from pyquibbler.env import PRETTY_REPR
 from pyquibbler.quib.specialized_functions.iquib import iquib
-from pyquibbler import q, quiby
+from pyquibbler import q, quiby, create_quib
 
 
 @pytest.mark.get_variable_names(True)
@@ -191,3 +194,10 @@ def test_pretty_plt_imshow(axes):
     img = iquib(np.zeros((3, 4)))
     plt.imshow(img)
     assert next(iter(img.get_children())).pretty_repr == "imshow(img)"
+
+
+def test_ugly_repr():
+    with PRETTY_REPR.temporary_set(False):
+        a = iquib(17)
+        b = a + 10
+        assert repr(b) == '<Quib - <built-in function add>>'

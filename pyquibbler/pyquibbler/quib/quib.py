@@ -155,12 +155,6 @@ class QuibHandler:
         for parent in self.parents:
             parent.handler.remove_child(self.quib)
 
-    def get_descendants(self):
-        children = set(self.children)  # copy to prevent set changing during operation
-        for child in self.children:
-            children |= child.get_descendants()
-        return children
-
     @property
     def is_iquib(self):
         return getattr(self.func_args_kwargs.func, '__name__', None) == 'iquib'
@@ -368,7 +362,7 @@ class QuibHandler:
         func_call, data_sources_to_quibs = get_func_call_for_translation_with_sources_metadata(self.quib_function_call)
 
         try:
-            value = self.quib.get_value()
+            value = self.get_value_valid_at_path([])
             # TODO: better implement with the line below. But need to take care of out-of-range assignments:
             # value = self.get_value_valid_at_path(assignment.path)
 
@@ -1874,7 +1868,7 @@ class Quib:
                     and isinstance(args[0], Axes):
                 return pretty_convert.get_pretty_value_of_func_with_args_and_kwargs(self.func,
                                                                                     args[1:], kwargs)
-            if getattr(self.func, 'wrapped__new__', False):
+            if getattr(self.func, 'wrapped__new__', False) and len(args) > 0:
                 cls_name = str(args[0])
                 short_cls_name = cls_name.split('.')[-1][:-2]
                 return pretty_convert.get_pretty_value_of_func_with_args_and_kwargs(short_cls_name,
@@ -1943,7 +1937,7 @@ class Quib:
         >>> b.ugly_repr
         "<Quib - <ufunc 'sin'>"
         """
-        return f"<{self.__class__.__name__} - {self.func}"
+        return f"<{self.__class__.__name__} - {self.func}>"
 
     @property
     def pretty_repr(self) -> str:

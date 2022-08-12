@@ -5,6 +5,7 @@ import numpy as np
 import pytest
 
 from pyquibbler import Quib
+from pyquibbler.env import ITER_RAISE_EXCEPTION
 from pyquibbler.utilities.input_validation_utils import InvalidArgumentTypeException
 from pyquibbler.quib.factory import create_quib
 
@@ -16,11 +17,32 @@ def test_quib_get_shape():
     assert quib.get_shape() == arr.shape
 
 
+def test_quib_get_ndim():
+    arr = np.array([1, 2, 3])
+    quib = create_quib(mock.Mock(return_value=arr))
+
+    assert quib.get_ndim() == 1
+
+
 def test_quib_iter_first(quib):
     quib.func.return_value = [1, 2, 3]
     first, second = quib.iter_first()
 
     assert (first.get_value(), second.get_value()) == tuple(quib.func.return_value[:2])
+
+
+def test_quib_iter(quib):
+    quib.func.return_value = [1, 2, 3]
+    first, second = quib
+
+    assert (first.get_value(), second.get_value()) == tuple(quib.func.return_value[:2])
+
+
+def test_quib_iter_exception(quib):
+    quib.func.return_value = [1, 2, 3]
+    with ITER_RAISE_EXCEPTION.temporary_set(True):
+        with pytest.raises(TypeError):
+            first, second = quib
 
 
 # TODO: when operators are in motion
@@ -70,49 +92,4 @@ def test_cant_mutate_function_quib_args_after_creation():
 
     function_quib.func.assert_called_once_with([], 'cool', a=[])
 
-
-def test_parents(create_quib_with_return_value):
-    grandparent = create_quib_with_return_value(2)
-    parent1 = create_quib_with_return_value(1)
-    parent2 = create_quib(func=mock.Mock(), args=(grandparent,))
-    me = create_quib(func=mock.Mock(), args=(0, parent1, 2), kwargs=dict(a=parent2, b=3))
-
-    assert me.get_parents() == {parent1, parent2}
-
-
-def test_quib_ancestors(create_quib_with_return_value):
-    great_grandparent = create_quib_with_return_value(1)
-    grandparent = create_quib(func=mock.Mock(), args=(great_grandparent,))
-    parent = create_quib(func=mock.Mock(), args=(grandparent,))
-    me = create_quib(func=mock.Mock(), args=(parent,))
-
-    assert me.get_ancestors() == {great_grandparent, grandparent, parent}
-
-
-def test_quib_ancestors_with_depth(create_quib_with_return_value):
-    great_grandparent = create_quib_with_return_value(1)
-    grandparent = create_quib(func=mock.Mock(), args=(great_grandparent,))
-    parent = create_quib(func=mock.Mock(), args=(grandparent,))
-    me = create_quib(func=mock.Mock(), args=(parent,))
-    assert me.get_ancestors(depth=2) == {grandparent, parent}
-
-
-def test_quib_named_parents(create_quib_with_return_value):
-    grandma = create_quib(func=mock.Mock(), assigned_name='grandma')
-    mom = create_quib(func=mock.Mock(), args=(grandma,), assigned_name='mom')
-    grandpa = create_quib(func=mock.Mock(), assigned_name='grandpa')
-    dad = create_quib(func=mock.Mock(), args=(grandpa,), assigned_name=None)  # unnamed
-    me = create_quib(func=mock.Mock(), args=(mom, dad))
-
-    assert me.get_parents(True) == {mom, grandpa}
-
-
-def test_quib_named_children(create_quib_with_return_value):
-    me = create_quib(func=mock.Mock())
-    son = create_quib(func=mock.Mock(), args=(me,), assigned_name=None)  # unnamed
-    daughter = create_quib(func=mock.Mock(), args=(me,), assigned_name='daughter')
-    grand_son = create_quib(func=mock.Mock(), args=(son,), assigned_name='grandson')
-    grand_daughter = create_quib(func=mock.Mock(), args=(daughter,), assigned_name='grandpa')
-
-    assert me.get_children(True) == {daughter, grand_son}
 
