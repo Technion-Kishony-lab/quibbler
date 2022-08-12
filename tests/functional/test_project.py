@@ -272,7 +272,7 @@ def test_project_correctly_set_valid_values(project, prop_name, set_value, get_v
     ('graphics_update', True, InvalidArgumentTypeException),
     ('directory', 7, InvalidArgumentTypeException),
 ])
-def test_project_reject_set_invlid_properties(project, prop_name, set_value, exception):
+def test_project_reject_set_invalid_properties(project, prop_name, set_value, exception):
     with pytest.raises(exception, match='.*'):
         setattr(project, prop_name, set_value)
 
@@ -312,3 +312,11 @@ def test_undo_after_remove_assignment(project):
     project.undo()
 
     assert quib.get_value() == 3
+
+
+def test_set_project_directory_affects_quib_directory(project):
+    quib = iquib(1)
+    project.directory = 'test'
+    assert(str(quib.actual_save_directory).endswith('test'))
+    project.directory = None
+    assert quib.actual_save_directory is None
