@@ -103,7 +103,7 @@ class JupyterProject(Project):
         """
         Override quib persistence functions to ensure we save to notebook (or load from notebook) where necessary
         """
-        Quib.save = self._wrap_file_system_func(Quib.save, save_and_send_after_op=True)
+        Quib.save = self._wrap_file_system_func(Quib.save, skip_user_verification=True, save_and_send_after_op=True)
         Quib.load = self._wrap_file_system_func(Quib.load, skip_user_verification=True)
         Quib.sync = self._wrap_file_system_func(Quib.sync, save_and_send_after_op=True)
 
