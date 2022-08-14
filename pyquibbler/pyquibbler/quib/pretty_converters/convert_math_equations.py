@@ -239,6 +239,9 @@ UNARY_RIGHT_FUNCS_TO_OPERATORS = {
 
     operator.not_: Operator.NOT,
     np.logical_not: Operator.NOT,
+
+    operator.invert: Operator.NOT,
+    np.invert: Operator.NOT,
 }
 
 BINARY_FUNCS_TO_OPERATORS = {
