@@ -62,6 +62,7 @@ class JupyterProject(Project):
         For example, if the save/load is within the jupyter notebook, make sure you open a tmp project directory for it
         You also need in certain situations to notify the client of the fs operation so it doesn't overwrite the changes
         """
+
         @functools.wraps(func)
         def _func(*args, **kwargs):
             if self._should_save_load_within_notebook:
@@ -349,6 +350,11 @@ class JupyterProject(Project):
         # client.
         self._call_client(action_type="getShouldSaveLoadWithinNotebook", message_data={})
 
+    def set_undo_redo_buttons_enable_state(self):
+        self._call_client(action_type="setUndoRedoButtons", message_data={'undoEnabled': str(self.can_undo()),
+                                                                          'redoEnabled': str(self.can_redo()),
+                                                                          })
+
     def text_dialog(self, title: str, message: str, buttons_and_options: Iterable[Tuple[str, str]]) -> str:
         # Any text dialog needs to be send to the frontend as an alert
         answer_queue = multiprocessing.Queue()
@@ -370,3 +376,4 @@ def create_jupyter_project_if_in_jupyter_lab():
         project.override_quib_persistence_functions()
         project.listen_for_events()
         project.get_save_within_notebook_state()
+        project.set_undo_redo_buttons_enable_state()

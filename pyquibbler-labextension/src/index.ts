@@ -64,7 +64,9 @@ const plugin: JupyterFrontEndPlugin<void> = {
       }
 
       if (!kernelIdsToSessions.has(kernel.id)) {
-        kernelIdsToSessions.set(kernel.id, Session(panel, kernel, handleRemoteQuibsArchiveChange));
+        kernelIdsToSessions.set(kernel.id, Session(panel, kernel, undoButton, redoButton,
+        handleRemoteQuibsArchiveChange),
+        );
       }
 
       return kernelIdsToSessions.get(kernel.id);

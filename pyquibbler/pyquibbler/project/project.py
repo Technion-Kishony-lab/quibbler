@@ -444,6 +444,7 @@ class Project:
                                                                                    action.previous_assignment_action)
 
         self._redo_action_groups.append(actions)
+        self.set_undo_redo_buttons_enable_state()
 
     def redo(self):
         """
@@ -483,6 +484,7 @@ class Project:
                                                                                    action)
 
         self._undo_action_groups.append(actions)
+        self.set_undo_redo_buttons_enable_state()
 
     def clear_undo_and_redo_stacks(self, *_, **__):
         """clear_undo_and_redo_stacks()
@@ -495,6 +497,7 @@ class Project:
         """
         self._undo_action_groups = []
         self._redo_action_groups = []
+        self.set_undo_redo_buttons_enable_state()
 
     def start_pending_undo_group(self):
         self._pending_undo_group = []
@@ -518,6 +521,7 @@ class Project:
             self._pending_undo_group = []
             self._undo_action_groups.append(pushing_undo_group)
             self._redo_action_groups.clear()
+            self.set_undo_redo_buttons_enable_state()
 
     def _set_previous_assignment_action_for_quib_at_relevant_path(self,
                                                                   quib: Quib,
@@ -583,6 +587,7 @@ class Project:
 
         self._redo_action_groups.clear()
         quib.handler.file_syncer.on_data_changed()
+        self.set_undo_redo_buttons_enable_state()
 
         # TODO: This shouldn't be necessary
         set_path_indexed_classes_from_quib(assignment.path, quib)
@@ -591,6 +596,9 @@ class Project:
         self.notify_of_overriding_changes(quib)
 
     def notify_of_overriding_changes(self, quib: Quib):
+        pass
+
+    def set_undo_redo_buttons_enable_state(self):
         pass
 
     #  TODO: should be replaced with more fancy dialog box
