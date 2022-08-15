@@ -108,6 +108,28 @@ def click_undo(driver):
 
 
 @pytest.fixture()
+def is_undo_enabled(driver):
+    def _is_enabled():
+        label = driver.find_element(by=By.XPATH,
+                                    value='//span[@class="jp-ToolbarButtonComponent-label" and text()="Undo"]')
+        button = label.find_element(By.XPATH, "./..").find_element(By.XPATH, "./..")
+        return button.is_enabled()
+
+    return _is_enabled
+
+
+@pytest.fixture()
+def is_redo_enabled(driver):
+    def _is_enabled():
+        label = driver.find_element(by=By.XPATH,
+                                    value='//span[@class="jp-ToolbarButtonComponent-label" and text()="Redo"]')
+        button = label.find_element(By.XPATH, "./..").find_element(By.XPATH, "./..")
+        return button.is_enabled()
+
+    return _is_enabled
+
+
+@pytest.fixture()
 def run_cells(driver):
     def _run_cell():
         elements = driver.find_elements(by=By.CLASS_NAME, value="jp-CodeCell")
@@ -168,29 +190,36 @@ def test_lab_extension_happy_flow(driver, load_notebook, assert_no_failures, run
     assert_no_failures()
 
 
-def test_lab_extension_shows_error_on_undo_with_no_assignments(driver, load_notebook, assert_no_failures,
-                                                               click_undo):
-    click_undo()
-
-    assert len(driver.find_elements(by=By.CLASS_NAME, value="swal2-container")) > 0
+def test_lab_extension_undo__redo_is_initially_disabled(driver, load_notebook, assert_no_failures, is_undo_enabled, is_redo_enabled):
+    assert is_undo_enabled() is False
+    assert is_redo_enabled() is False
 
     assert_no_failures()
 
 
 def test_lab_extension_undo_happy_flow(driver, load_notebook, assert_no_failures,
-                                       click_undo, run_cells, run_code, add_override):
+                                       click_undo, run_cells, run_code, add_override, is_undo_enabled, is_redo_enabled):
     run_cells()
     assert_no_failures()
 
     raw_default_value = run_code("threshold.get_value()")
 
+    assert is_undo_enabled() is False
+    assert is_redo_enabled() is False
+
     add_override("threshold", "", "5")
+
+    assert is_undo_enabled() is True
+    assert is_redo_enabled() is False
 
     raw_value_after_assignment = run_code("threshold.get_value()")
     # Sanity
     assert raw_value_after_assignment == "5" != raw_default_value
 
     click_undo()
+
+    assert is_undo_enabled() is False
+    assert is_redo_enabled() is True
 
     raw_value_after_undo = run_code("threshold.get_value()")
     assert raw_value_after_undo == raw_default_value != raw_value_after_assignment
