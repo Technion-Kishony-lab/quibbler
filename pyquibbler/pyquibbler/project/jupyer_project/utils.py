@@ -14,7 +14,12 @@ def find_free_port():
 
 def is_within_jupyter_lab():
     try:
+        # noinspection PyPackageRequirements
         from IPython import get_ipython
+
+        # noinspection PyPackageRequirements
+        from ipykernel.comm import Comm  # noqa: F401
+
         shell = get_ipython().__class__.__name__
         if shell == 'ZMQInteractiveShell':
             return True   # Jupyter notebook or qtconsole

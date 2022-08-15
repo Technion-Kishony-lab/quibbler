@@ -13,9 +13,6 @@ import ipynbname
 from pathlib import Path
 from typing import Optional, Iterable, Tuple, Callable, Dict
 
-from IPython import get_ipython
-from ipykernel.comm import Comm
-
 from pyquibbler import Quib
 from pyquibbler.assignment import Overrider
 from pyquibbler.file_syncing import SaveFormat, ResponseToFileNotDefined
@@ -113,6 +110,10 @@ class JupyterProject(Project):
         self._comm.send({'type': action_type, "data": message_data})
 
     def register_quib(self, quib: Quib):
+
+        # noinspection PyPackageRequirements
+        from IPython import get_ipython
+
         super(JupyterProject, self).register_quib(quib)
         self._tracked_quibs.setdefault(get_ipython().execution_count, []).append(quib)
 
@@ -306,6 +307,10 @@ class JupyterProject(Project):
         and will run the relevant method for the event.
         It will then send BACK the response with the `request_id` specificed in the original event
         """
+
+        # noinspection PyPackageRequirements
+        from ipykernel.comm import Comm
+
         self._jupyter_notebook_path = os.environ.get("JUPYTER_NOTEBOOK", ipynbname.path())
         self._comm = Comm(target_name='pyquibbler')
         action_names_to_funcs = {
