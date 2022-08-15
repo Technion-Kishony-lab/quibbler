@@ -349,6 +349,18 @@ class JupyterProject(Project):
         # client.
         self._call_client(action_type="getShouldSaveLoadWithinNotebook", message_data={})
 
+    def request_save_load_within_notebook_state(self):
+        # When we just wake up, we are not initially synchronized with the "SAve/Load inside notebook" state of the
+        # client.
+        answer_queue = multiprocessing.Queue()
+        port = find_free_port()
+        process = Process(target=run_flask_app, args=(port, answer_queue))
+        process.start()
+
+        self._comm.send({"type": "requestShouldSaveLoadWithinNotebook", "data": {"port": port}})
+
+        self._should_save_load_within_notebook = answer_queue.get(block=True)
+
     def text_dialog(self, title: str, message: str, buttons_and_options: Iterable[Tuple[str, str]]) -> str:
         # Any text dialog needs to be send to the frontend as an alert
         answer_queue = multiprocessing.Queue()
@@ -369,4 +381,4 @@ def create_jupyter_project_if_in_jupyter_lab():
         project = JupyterProject.get_or_create()
         project.override_quib_persistence_functions()
         project.listen_for_events()
-        project.get_save_within_notebook_state()
+        project.request_save_load_within_notebook_state()

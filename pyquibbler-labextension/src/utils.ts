@@ -1,6 +1,7 @@
 import Swal from 'sweetalert2';
 import {JupyterFrontEnd} from '@jupyterlab/application';
 import axios from 'axios';
+import {getShouldSaveLoadWithinNotebook} from "./globalConfig";
 
 
 export const showDialog = (options: any) => {
@@ -34,6 +35,15 @@ export const showRequestDialog = async (title: string, text: string, options: {[
 
   await axios.post(`http://localhost:${port}/answer`, {
     option: value
+  })
+
+}
+
+
+export const sendSaveLoadWithinNotebook = async (port: number) => {
+
+  await axios.post(`http://localhost:${port}/answer`, {
+    option: getShouldSaveLoadWithinNotebook()
   })
 
 }

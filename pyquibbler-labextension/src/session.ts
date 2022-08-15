@@ -1,6 +1,6 @@
 import {NotebookPanel} from "@jupyterlab/notebook";
 import {IComm, IKernelConnection} from "@jupyterlab/services/lib/kernel/kernel";
-import {showDialog, showError, showRequestDialog} from "./utils";
+import {sendSaveLoadWithinNotebook, showDialog, showError, showRequestDialog} from "./utils";
 import {Widget} from "@lumino/widgets";
 import {QuibsEditorWidget} from "./QuibsEditorWidget/QuibsEditor";
 import {IRequester, Requester} from "./requester";
@@ -85,6 +85,10 @@ export const Session = (panel: NotebookPanel,
           break;
         case 'requestDialog': {
           showRequestDialog(data.title, data.message, data.options, data.port);
+          break;
+        }
+        case 'requestShouldSaveLoadWithinNotebook': {
+          sendSaveLoadWithinNotebook(data.port);
           break;
         }
         case 'quibsArchiveUpdate': {
