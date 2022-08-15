@@ -7,10 +7,12 @@ export class ButtonExtension implements DocumentRegistry.IWidgetExtension<Notebo
 
   private readonly label: string;
   private readonly callback: () => void;
+  button: ToolbarButton
 
   constructor(label: string, callback: () => void) {
     this.label = label;
     this.callback = callback;
+    this.button = new ToolbarButton();
   }
 
   createNew(panel: NotebookPanel): IDisposable {
@@ -20,7 +22,8 @@ export class ButtonExtension implements DocumentRegistry.IWidgetExtension<Notebo
     });
 
     panel.toolbar.insertItem(10, this.label, button);
-
+    button.enabled = false
+    this.button = button
     return button;
   }
 }

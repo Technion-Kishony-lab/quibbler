@@ -6,6 +6,7 @@ import {QuibsEditorWidget} from "./QuibsEditorWidget/QuibsEditor";
 import {IRequester, Requester} from "./requester";
 import {Cell, ICellModel} from "@jupyterlab/cells";
 import {getShouldSaveLoadWithinNotebook, getShowWithinNotebook} from "./globalConfig";
+import {ButtonExtension} from './toolbarButtonExtension';
 
 /**
  * Represents a session between the client and a specific kernel. A session will create a requester once pyquibbler
@@ -13,6 +14,8 @@ import {getShouldSaveLoadWithinNotebook, getShowWithinNotebook} from "./globalCo
  */
 export const Session = (panel: NotebookPanel,
                         kernel: IKernelConnection,
+                        undoButton: ButtonExtension,
+                        redoButton: ButtonExtension,
                         onRemoteQuibsArchiveChange: (panel: any, newQuibsArchive: any) => void ) => {
 
   let comm: IComm | null = null;
@@ -95,6 +98,11 @@ export const Session = (panel: NotebookPanel,
           getRequester().request("setShouldSaveLoadWithinNotebook", {
             should_save_load_within_notebook: getShouldSaveLoadWithinNotebook()
           });
+          break;
+        }
+        case 'setUndoRedoButtons': {
+          undoButton.button.enabled = data.undoEnabled == 'True';
+          redoButton.button.enabled = data.redoEnabled == 'True';
           break;
         }
         case "quibChange": {
