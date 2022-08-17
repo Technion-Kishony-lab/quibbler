@@ -46,6 +46,7 @@ Random quibs
    :maxdepth: 1
 
    examples/quibdemo_random_quibs_dice
+   examples/quibdemo_percolation
 
 Simple quib-based apps
 ----------------------
