@@ -563,6 +563,22 @@ class Project:
         self._set_previous_assignment_action_for_quib_at_relevant_path(quib, assignment.path, assignment_action)
         return assignment_action
 
+    def upsert_assignment_to_quib(self, quib, index, assignment):
+        self.push_single_assignment_to_undo_stack(
+            quib=quib,
+            assignment=assignment,
+            assignment_index=index
+        )
+        if len(quib.handler.overrider) > index:
+            quib.handler.overrider.pop_assignment_at_index(index)
+        quib.handler.overrider.insert_assignment_at_index(assignment, index)
+        quib.handler.file_syncer.on_data_changed()
+
+        # TODO: This shouldn't be necessary
+        set_path_indexed_classes_from_quib(assignment.path, quib)
+
+        quib.handler.invalidate_and_aggregate_redraw_at_path(assignment.path)
+
     def remove_assignment_from_quib(self, quib: Quib, assignment_index: int):
         """
         Remove an assignment from the quib, ensuring that it will be able to be "undone" and "redone"
@@ -591,8 +607,8 @@ class Project:
 
         # TODO: This shouldn't be necessary
         set_path_indexed_classes_from_quib(assignment.path, quib)
-        quib.handler.invalidate_and_aggregate_redraw_at_path(assignment.path)
 
+        quib.handler.invalidate_and_aggregate_redraw_at_path(assignment.path)
         self.notify_of_overriding_changes(quib)
 
     def notify_of_overriding_changes(self, quib: Quib):

@@ -27,10 +27,10 @@ from pyquibbler.utilities.file_path import PathToNotebook
 
 class JupyterProject(Project):
     """
-    Represents a project within a Jupyer Lab environment.
+    Represents a project within a Jupyter Lab environment.
 
     On initialize_quibbler, if Python is running within a jupyter lab environment, the `current_project`
-    will automatically be set to an instance of JupterProject.
+    will automatically be set to an instance of JupyterProject.
 
     JupyterProject is responsible for everything the normal project is, along with interfacing with the Quibbler
     extension of Jupyter lab.
@@ -170,7 +170,7 @@ class JupyterProject(Project):
 
     def _get_loaded_tracked_quibs(self, execution_count: int):
         """
-        Get all quibs that can be overriden from frontend
+        Get all quibs that can be overridden from frontend
         (both allow_overriding and have assigned_name) tracked during running of cells, loaded
         """
         if execution_count not in self._tracked_quibs:
@@ -207,7 +207,7 @@ class JupyterProject(Project):
 
     def _find_quib_by_id(self, quib_id: int) -> Quib:
         """
-        Fina a quib with a given id (this is python's object id)
+        Find a quib with a given id (this is python's object id)
         """
         for quib_ref in self._quib_weakrefs:
             quib = quib_ref()
@@ -280,18 +280,7 @@ class JupyterProject(Project):
         assignment = overrider[0]
 
         quib = self._find_quib_by_id(quib_id)
-        self.push_single_assignment_to_undo_stack(
-            quib=quib,
-            assignment=assignment,
-            assignment_index=index
-        )
-        if len(quib.handler.overrider) > index:
-            quib.handler.overrider.pop_assignment_at_index(index)
-        quib.handler.overrider.insert_assignment_at_index(assignment, index)
-        quib.handler.file_syncer.on_data_changed()
-        set_path_indexed_classes_from_quib(assignment.path, quib)
-
-        quib.handler.invalidate_and_aggregate_redraw_at_path(assignment.path)
+        self.upsert_assignment_to_quib(quib, index, assignment)
 
         return get_serialized_quib(quib)
 
