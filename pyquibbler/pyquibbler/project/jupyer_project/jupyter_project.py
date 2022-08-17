@@ -6,6 +6,7 @@ import multiprocessing
 import os
 import shutil
 import tempfile
+import warnings
 import zipfile
 from multiprocessing import Process
 
@@ -366,6 +367,10 @@ class JupyterProject(Project):
 
 def create_jupyter_project_if_in_jupyter_lab():
     if is_within_jupyter_lab():
+        try:
+            import ipywidgets
+        except ImportError:
+            warnings.warn('Please install `ipywidgets` to view quibs as interactive widgets.\n')
         project = JupyterProject.get_or_create()
         project.override_quib_persistence_functions()
         project.listen_for_events()
