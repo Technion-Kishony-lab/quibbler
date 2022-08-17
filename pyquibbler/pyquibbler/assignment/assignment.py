@@ -9,6 +9,7 @@ from .default_value import default
 
 from pyquibbler.path.path_component import Path
 from ..env import GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION
+from ..quib.pretty_converters.pretty_convert import getitem_converter
 
 if TYPE_CHECKING:
     from pyquibbler.quib.quib import Quib
@@ -42,6 +43,12 @@ class Assignment:
     @classmethod
     def create_default(cls, path: Path):
         return cls(default, path)
+
+    def get_pretty_path(self):
+        return ''.join([str(getitem_converter(None, ('', cmp.component))) for cmp in self.path])
+
+    def get_pretty_value(self):
+        return repr(self.value)
 
 
 def convert_to_array(value: Any):

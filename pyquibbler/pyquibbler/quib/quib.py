@@ -296,7 +296,7 @@ class QuibHandler:
         return self._overrider is not None
 
     @property
-    def overrider(self):
+    def overrider(self) -> Overrider:
         if self._overrider is None:
             self._overrider = Overrider()
         return self._overrider

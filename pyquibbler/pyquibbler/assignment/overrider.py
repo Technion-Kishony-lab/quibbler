@@ -216,13 +216,12 @@ class Overrider:
 
     def get_pretty_repr(self, name: str = None):
         name = 'quib' if name is None else name
-        from ..quib.pretty_converters.pretty_convert import getitem_converter
         pretty = ''
         for assignment in self._paths_to_assignments.values():
-            pretty_value = repr(assignment.value) if isinstance(assignment, Assignment) else 'default'
+            pretty_value = repr(assignment.value)
             pretty += '\n' + name
             if assignment.path:
-                pretty += ''.join([str(getitem_converter(None, ('', cmp.component))) for cmp in assignment.path])
+                pretty += assignment.get_pretty_path()
                 pretty += ' = ' + pretty_value
             else:
                 pretty += '.assign(' + pretty_value + ')'
