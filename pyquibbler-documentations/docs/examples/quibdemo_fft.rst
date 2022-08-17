@@ -20,10 +20,11 @@ Signal analysis with random noise
 
     from pyquibbler import iquib, initialize_quibbler, q, \
         quiby, reset_random_quibs
+    import numpy as np
     import matplotlib.pyplot as plt
     import matplotlib.patches as patches
     from matplotlib import widgets
-    import numpy as np
+    from matplotlib.patches import Rectangle
     initialize_quibbler()
     %matplotlib tk
 
@@ -54,9 +55,9 @@ Signal analysis with random noise
                 1: lambda s, n: (s > 0) * 2 - 1,
                 2: lambda s, n: np.arcsin(s),
                 3: lambda s, n: s ** n}[chosen](np.sin(w * t), power)
-        
+    
     signal = get_signal(t, w, signal_fnc_chosen, nSin)
-        
+    
     # Add Noise:
     noise_amp = iquib(0.0)
     noise = noise_amp * np.random.randn(num_time_points)
@@ -89,27 +90,30 @@ Signal analysis with random noise
 
     # signal vs time 
     fig.clf()
-    axs1 = fig.add_axes((0.15, 0.78, 0.75, 0.2))
-    axs1.set_ylim([np.min(measurement) - 0.5 - noise_amp, 
+    ax1 = fig.add_axes((0.15, 0.78, 0.75, 0.2))
+    ax1.set_ylim([np.min(measurement) - 0.5 - noise_amp, 
                    np.max(measurement) + 0.5 + noise_amp])
-    axs1.set_xlim([0, total_time])
-    axs1.set_xlabel('Time (sec)')
-    axs1.set_ylabel('Signal')
-    axs1.plot(t,np.real(measurement), '.-', color=[0.8, 0, 0])
-    axs1.plot(t,np.real(S0), '.-', color=[0, 0.7, 0]);
+    ax1.set_xlim([0, total_time])
+    ax1.set_xlabel('Time (sec)')
+    ax1.set_ylabel('Signal')
+    ax1.plot(t,np.real(measurement), '.-', color=[0.8, 0, 0])
+    ax1.plot(t,np.real(S0), '.-', color=[0, 0.7, 0]);
 
 .. code:: python
 
     # spectrum
-    axs2 = fig.add_axes((0.15, 0.5, 0.75, 0.2))
+    ax2 = fig.add_axes((0.15, 0.5, 0.75, 0.2))
     yl = np.max(np.abs(spectrum)) * 1.1
-    axs2.axis([-dfreqs, np.max(freqs) + dfreqs, 0, yl])
-    axs2.set_xlabel('Frequency (1/sec)')
-    axs2.set_ylabel('Amplitude')
-    axs2.plot(freqs, np.abs(spectrum), 'r.-')
-    axs2.plot(freqs, np.abs(spectrum_filtered), 'g.-')
-    axs2.plot(min_freq, 0, 'k^', markersize=18, picker=True)
-    axs2.plot(max_freq, 0, 'k^', markersize=18, picker=True);
+    ax2.axis([-dfreqs, np.max(freqs) + dfreqs, 0, yl])
+    ax2.set_xlabel('Frequency (1/sec)')
+    ax2.set_ylabel('Amplitude')
+    ax2.plot(freqs, np.abs(spectrum), 'r.-')
+    # axs2.plot(freqs, np.abs(spectrum_filtered), 'g.-')
+    width = max_freq - min_freq
+    band = Rectangle((min_freq, 0), width, yl, facecolor=(0.8, 1, 0.8))
+    ax2.add_patch(band)
+    ax2.plot(min_freq, 0, 'k^', markersize=22, picker=True)
+    ax2.plot(max_freq, 0, 'k^', markersize=22, picker=True);
 
 .. code:: python
 

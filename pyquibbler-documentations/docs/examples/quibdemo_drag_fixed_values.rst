@@ -20,6 +20,7 @@ Dragging graphics between fixed points
     initialize_quibbler()
     import matplotlib.pyplot as plt
     import numpy as np
+    from matplotlib.patches import Rectangle
     %matplotlib tk
 
 .. code:: python
@@ -57,8 +58,9 @@ Dragging graphics between fixed points
 
 .. code:: python
 
-    # Plot the black sqaure, with text, and a draggable corner
+    # Plot the black sqaure, with text
+    square = Rectangle((0, 0), x, x, facecolor='c')
+    ax2.add_patch(square)
     ax2.plot([0, x, x, 0, 0], [0, 0, x, x, 0], 'k-', linewidth=4)
-    ax2.text(x/2, x/2, q("area: {:.0f}".format, x_square), ha='center',  va='center')
-    ax2.plot(x, x, 'sc', markersize=14, picker=True);
+    ax2.text(x/2, x/2, q("area: {:.0f}".format, x_square), ha='center',  va='center');
 .. image:: ../images/demo_gif/quibdemo_drag_fixed_values.gif

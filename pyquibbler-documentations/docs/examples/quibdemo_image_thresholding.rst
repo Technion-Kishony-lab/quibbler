@@ -47,8 +47,7 @@ Simple quib-app for image thresholding
     ax.axis([-0.5, 2.5, 0, 255])
     ax.xaxis.grid(True)
     rgb = list('RGB')
-    ax.plot(rgb, thresholds_rgb, 'sk', 
-            markersize=16, markerfacecolor='k');
+    ax.plot(rgb, thresholds_rgb, 'sk', markersize=16);
     ax.set_ylabel('thresholds');
 
 .. code:: python
@@ -76,7 +75,7 @@ Simple quib-app for image thresholding
     
     fg = plt.figure(figsize=(4, 3))
     ax = fg.gca()
-    ax.plot(rgb, log_thresholds_rgb, 'sk', markersize=16, markerfacecolor='k')
+    ax.plot(rgb, log_thresholds_rgb, 'sk', markersize=16)
     ax.axis([-0.5, 2.5, 0, 8])
     ax.xaxis.grid(True)
 .. image:: ../images/demo_gif/quibdemo_image_thresholding.gif

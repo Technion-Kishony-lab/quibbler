@@ -37,7 +37,7 @@ the others accordingly.
     import matplotlib.pyplot as plt
     from matplotlib.widgets import TextBox, Slider
     import numpy as np
-    %matplotlib tk
+    %matplotlib osx
 
 .. code:: python
 
@@ -48,22 +48,21 @@ the others accordingly.
     axs2 = fig.add_axes([0.1, 0.50, 0.8, 0.23])
     axs3 = fig.add_axes([0.1, 0.20, 0.8, 0.23])
     
-    axs1.set_xticks([1, 2])
-    axs1.set_xticklabels(['X','Y'])
-    
     axs2.axis('square')
-    lim2 = iquib([0,8])
+    lim2 = iquib([0, 8])
     axs2.set_xlim(lim2)
     axs2.set_ylim(lim2)
     axs2.set_xlabel('X')
     axs2.set_ylabel('Y')
+    axs2.plot(lim2, lim2, 'k-')
     
     axs3.axis('square')
-    lim3 = iquib([-1,3])
+    lim3 = iquib([-1, 3])
     axs3.set_xlim(lim3)
     axs3.set_ylim(lim3)
     axs3.set_xlabel('log2(X)')
     axs3.set_ylabel('log2(Y)')
+    axs3.plot(lim3, lim3, 'k-')
     
     axs_slider_x = fig.add_axes([0.1, 0.07, 0.3, 0.03])
     axs_slider_y = fig.add_axes([0.6, 0.07, 0.3, 0.03])
@@ -75,30 +74,27 @@ the others accordingly.
 
 .. code:: python
 
-    # Define an input quib XY, representing X,Y coordinates:
+    # Define an input quib XY, representing X-Y coordinates:
     xy = iquib([7., 2.])
-    x = xy[0];
-    y = xy[1];
+    x, y = xy;
 
 .. code:: python
 
-    # Present the same data in many different co-adjusting graphical objects. 
+    # Present the same data in multiple co-adjusting graphical objects. 
     # Changing any one of the representaiotn will propagate backwards to change to 
-    # the iquib XY thereby affecting all other representations.
+    # the iquib xy, thereby affecting all other representations.
     
     # (1) Bar representation:
-    axs1.bar([1, 2], xy) # Bars
+    axs1.bar(['X', 'Y'], xy) # Bars
     
     # (2) Point above bars:
-    marker_props = {'markersize': 18, 'markerfacecolor': 'r', 'picker': True}
-    axs1.plot([1, 2], xy, 's', **marker_props)
+    marker_props = {'markersize': 18, 'markerfacecolor': 'r'}
+    axs1.plot(xy, 's', **marker_props)
     
     # (3) X-Y representation in linear scale:
-    axs2.plot(lim2, lim2, 'k-')
     axs2.plot(x, y, marker='o', **marker_props)
     
     # (4) X-Y representation in log scale:
-    axs3.plot(lim3, lim3, 'k-')
     axs3.plot(np.log2(x), np.log2(y), 'o', **marker_props)
     
     # (5) Text representation:
@@ -106,12 +102,10 @@ the others accordingly.
               transform = axs3.transAxes, fontsize=12)
     
     # (6) TextBox
-    x_round = np.round(x, decimals=2)
-    y_round = np.round(y, decimals=2)
-    TextBox(ax=axs_txt_x, label=None, initial=q(str, x_round))
-    TextBox(ax=axs_txt_y, label=None, initial=q(str, y_round))
+    TextBox(ax=axs_txt_x, label=None, initial=q(str, x))
+    TextBox(ax=axs_txt_y, label=None, initial=q(str, y))
     
     # (7) Sliders
-    Slider(ax=axs_slider_x, label=None, valmin=0, valmax=8, valstep=0.1, valinit=x)
+    Slider(ax=axs_slider_x, label=None, valmin=0, valmax=8, valstep=None, valinit=x)
     Slider(ax=axs_slider_y, label=None, valmin=0, valmax=8, valstep=0.1, valinit=y);
 .. image:: ../images/demo_gif/quibdemo_same_data_in_many_forms.gif
