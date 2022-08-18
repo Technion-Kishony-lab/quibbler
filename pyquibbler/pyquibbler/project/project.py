@@ -437,6 +437,7 @@ class Project:
                 action.undo()
                 if isinstance(action, AssignmentAction):
                     self.notify_of_overriding_changes(action.quib)
+                    action.quib.handler.on_overrides_changes()
 
                 if isinstance(action, AddAssignmentAction):
                     self._set_previous_assignment_action_for_quib_at_relevant_path(action.quib,
@@ -477,6 +478,7 @@ class Project:
                 action.redo()
                 if isinstance(action, AssignmentAction):
                     self.notify_of_overriding_changes(action.quib)
+                    action.quib.handler.on_overrides_changes()
 
                 if isinstance(action, AddAssignmentAction):
                     self._set_previous_assignment_action_for_quib_at_relevant_path(action.quib,
@@ -610,6 +612,7 @@ class Project:
 
         quib.handler.invalidate_and_aggregate_redraw_at_path(assignment.path)
         self.notify_of_overriding_changes(quib)
+        quib.handler.on_overrides_changes()
 
     def notify_of_overriding_changes(self, quib: Quib):
         pass
