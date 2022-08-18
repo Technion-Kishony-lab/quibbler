@@ -12,6 +12,7 @@ from pyquibbler.assignment.assignment import AssignmentWithTolerance
 from pyquibbler.assignment.default_value import missing
 from pyquibbler.assignment.simplify_assignment import AssignmentSimplifier
 from pyquibbler.function_definitions import get_definition_for_function, FuncArgsKwargs
+from pyquibbler.ipywidget_viewer.quib_widget import QuibWidget
 from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
 from pyquibbler.quib.types import FileAndLineNumber
 from pyquibbler.utilities.file_path import PathWithHyperLink
@@ -112,6 +113,7 @@ class QuibHandler:
         self.cache_mode = cache_mode
 
         self._has_ever_called_get_value = has_ever_called_get_value
+        self._widget: Optional[QuibWidget] = None
 
     """
     relationships
@@ -518,6 +520,38 @@ class QuibHandler:
         for path in changed_paths:
             self.invalidate_and_aggregate_redraw_at_path(path)
 
+    """
+    Widget
+    """
+
+    def on_name_change(self, assigned_name_changed: bool = True):
+        if self._widget:
+            self._widget.refresh_name()
+
+        if assigned_name_changed or self.assigned_name is None:
+            for child in self.children:
+                child.handler.on_name_change(False)
+
+    def on_overrides_changes(self):
+        if self._widget:
+            self._widget.refresh_assignments()
+
+    def display_widget(self) -> bool:
+        try:
+            from IPython.display import display
+            import ipywidgets
+        except ImportError:
+            return False
+
+        if self._widget is None:
+            widget = QuibWidget(self._quib_weakref)
+            widget.build_widget()
+            widget.refresh()
+            self._widget = widget
+
+        display(self._widget.get_widget())
+
+        return True
 
 class Quib:
     """
@@ -1725,6 +1759,7 @@ class Quib:
         """
         if self._get_file_path(response_to_file_not_defined) is not None:
             self.handler.file_syncer.save(skip_user_verification)
+            self.handler.on_overrides_changes()
             self.project.notify_of_overriding_changes(self)
 
     def load(self,
@@ -1744,6 +1779,7 @@ class Quib:
         """
         if self._get_file_path(response_to_file_not_defined) is not None:
             self.handler.file_syncer.load(skip_user_verification)
+            self.handler.on_overrides_changes()
             self.project.notify_of_overriding_changes(self)
 
     def sync(self, response_to_file_not_defined: ResponseToFileNotDefined = ResponseToFileNotDefined.RAISE):
@@ -1766,6 +1802,7 @@ class Quib:
         """
         if self._get_file_path(response_to_file_not_defined) is not None:
             self.handler.file_syncer.sync()
+            self.handler.on_overrides_changes()
             self.project.notify_of_overriding_changes(self)
 
     """
@@ -1817,6 +1854,7 @@ class Quib:
                 and assigned_name[0].isalpha() and all([c.isalnum() or c in ' _' for c in assigned_name]):
             self.handler.assigned_name = assigned_name
             self.handler.on_file_name_change()
+            self.handler.on_name_change()
         else:
             raise InvalidArgumentValueException('assigned_name',
                                                 'name must be None or a string starting with a letter '
@@ -2020,3 +2058,12 @@ class Quib:
         save_format
         """
         return self.handler.is_iquib
+
+    def _on_widget_change(self, v):
+        self.assigned_name = v['new']
+
+    def _repr_html_(self) -> Optional[str]:
+        if self.handler.display_widget():
+            return ''
+
+        return None

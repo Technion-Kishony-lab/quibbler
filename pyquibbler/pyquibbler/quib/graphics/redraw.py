@@ -86,6 +86,7 @@ def _notify_of_overriding_changes():
         project = Project.get_or_create()
         for quib in QUIBS_TO_NOTIFY_OVERRIDING_CHANGES:
             project.notify_of_overriding_changes(quib)
+            quib.handler.on_overrides_changes()
 
     QUIBS_TO_NOTIFY_OVERRIDING_CHANGES.clear()
 
