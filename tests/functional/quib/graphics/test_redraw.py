@@ -68,17 +68,6 @@ def tests_artists_are_garbage_collected_upon_redraw(axes, get_live_artists):
     assert len(get_live_artists()) == 2
 
 
-def test_only_notify_override_changes_once_in_aggregate_mode():
-    mock_func = mock.Mock()
-    quib = iquib([1, 2])
-    Project.notify_of_overriding_changes = mock_func
-    with aggregate_redraw_mode():
-        quib[0] = 10
-        quib[1] = 20
-
-    assert mock_func.call_count == 1
-
-
 # To prevent pyimageXX bug in TK on notebook. see issue: #119
 @pytest.mark.regression
 def test_redraw_after_figure_closed(figure):
