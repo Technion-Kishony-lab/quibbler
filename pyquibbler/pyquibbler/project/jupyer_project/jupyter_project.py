@@ -12,17 +12,14 @@ from multiprocessing import Process
 
 import ipynbname
 from pathlib import Path
-from typing import Optional, Iterable, Tuple, Callable, Dict
+from typing import Optional, Iterable, Tuple, Callable
 
 from pyquibbler import Quib
-from pyquibbler.assignment import Overrider
 from pyquibbler.file_syncing import SaveFormat, ResponseToFileNotDefined
 from pyquibbler.logger import logger
-from pyquibbler.path.path_component import set_path_indexed_classes_from_quib
 from pyquibbler.project import Project
-from pyquibbler.project.jupyer_project.exceptions import NoQuibFoundException
 from pyquibbler.project.jupyer_project.flask_dialog_server import run_flask_app
-from pyquibbler.project.jupyer_project.utils import is_within_jupyter_lab, find_free_port, get_serialized_quib
+from pyquibbler.project.jupyer_project.utils import is_within_jupyter_lab, find_free_port
 from pyquibbler.utilities.file_path import PathToNotebook
 
 
@@ -44,11 +41,8 @@ class JupyterProject(Project):
         self._tmp_save_directory = None
         self._should_save_load_within_notebook = True
         self._comm = None
-        self._tracked_quibs = {}
-        self._last_requested_execution_count = 0
         self._save_format = SaveFormat.TXT
         self._within_zip_and_send_context = False
-        self._should_notify_client_of_quib_changes = True
         self.autoload_upon_first_get_value = True
 
     def _wrap_file_system_func(self, func: Callable,
@@ -110,14 +104,6 @@ class JupyterProject(Project):
         logger.info(f"Sending to client {action_type} {message_data}")
         self._comm.send({'type': action_type, "data": message_data})
 
-    def register_quib(self, quib: Quib):
-
-        # noinspection PyPackageRequirements
-        from IPython import get_ipython
-
-        super(JupyterProject, self).register_quib(quib)
-        self._tracked_quibs.setdefault(get_ipython().execution_count, []).append(quib)
-
     def _open_project_directory_from_notebook_zip(self):
         """
         Open a project directory from the notebook's internal zip.
@@ -169,62 +155,6 @@ class JupyterProject(Project):
 
         self._comm.send({"type": "quibsArchiveUpdate", "data": base64_message})
 
-    def _get_loaded_tracked_quibs(self, execution_count: int):
-        """
-        Get all quibs that can be overridden from frontend
-        (both allow_overriding and have assigned_name) tracked during running of cells, loaded
-        """
-        if execution_count not in self._tracked_quibs:
-            return {
-                "quibs": []
-            }
-
-        tracked_quibs = self._tracked_quibs.pop(execution_count)
-        quibs_to_send = [quib for quib in tracked_quibs if quib.assigned_name and quib.allow_overriding]
-
-        try:
-            self._should_notify_client_of_quib_changes = False
-            for quib in quibs_to_send:
-                quib.load()
-        finally:
-            self._should_notify_client_of_quib_changes = True
-
-        dumped_quibs = {
-            "quibs": [
-                get_serialized_quib(quib)
-                for quib in quibs_to_send
-            ]
-        }
-        return dumped_quibs
-
-    def _load_quib(self, quib_id: int):
-        """
-        Load a quib with a given id (this is python's object id)
-        """
-        quib = self._find_quib_by_id(quib_id)
-        quib.load()
-        logger.info(f"Loading quib {quib.name}, override count {len(quib.handler.overrider)}")
-        return get_serialized_quib(quib)
-
-    def _find_quib_by_id(self, quib_id: int) -> Quib:
-        """
-        Find a quib with a given id (this is python's object id)
-        """
-        for quib_ref in self._quib_weakrefs:
-            quib = quib_ref()
-            if quib is not None and id(quib) == quib_id:
-                return quib
-        raise NoQuibFoundException(quib_id)
-
-    def _save_quib(self, quib_id: int):
-        """
-        Save the quib to file.
-        Note that we don't need to ensure this is saved to the notebook, as `Quib.save` is already wrapped to save to
-        notebook when applicable
-        """
-        found_quib = self._find_quib_by_id(quib_id)
-        found_quib.save()
-
     def _cleanup(self):
         """
         Cleanup any temporary directories created for the JupyterProject (this should be called when the user finishes
@@ -264,33 +194,6 @@ class JupyterProject(Project):
 
         self._should_save_load_within_notebook = should_save_load_within_notebook
 
-    def _upsert_assignment(self, quib_id: int, index: int, raw_override: Dict):
-        """
-        Upsert (update or insert) an assignment at a given index of a quib's overridden assignments.
-        Note that we need to ensure this action can be "undone"
-        """
-        override_text = ""
-        left = raw_override['left']
-        right = raw_override['right']
-        if left == '' or left.isspace():
-            override_text += f"quib.assign({right})"
-        else:
-            override_text += f"quib{left} = {right}"
-        overrider = Overrider()
-        overrider.load_from_assignment_text(override_text)
-        assignment = overrider[0]
-
-        quib = self._find_quib_by_id(quib_id)
-        self.upsert_assignment_to_quib(quib, index, assignment)
-
-        return get_serialized_quib(quib)
-
-    def _remove_assignment_with_quib_id_at_index(self, quib_id: int, index: int):
-        quib = self._find_quib_by_id(quib_id)
-        if index < len(quib.handler.overrider):
-            self.remove_assignment_from_quib(quib, index)
-        return get_serialized_quib(quib)
-
     def listen_for_events(self):
         """
         Listen for all events from frontend- this will create a callback for any event coming from the frontend,
@@ -310,11 +213,6 @@ class JupyterProject(Project):
             "load": self.load_quibs,
             "sync": self.sync_quibs,
             "clearData": self._clear_save_data,
-            "upsertAssignment": self._upsert_assignment,
-            "removeAssignment": self._remove_assignment_with_quib_id_at_index,
-            "loadedTrackedQuibs": self._get_loaded_tracked_quibs,
-            "loadQuib": self._load_quib,
-            "saveQuib": self._save_quib,
             "setShouldSaveLoadWithinNotebook": self._set_should_save_load_within_notebook,
             "cleanup": self._cleanup,
         }
@@ -332,13 +230,6 @@ class JupyterProject(Project):
                 raise
             else:
                 self._comm.send({'type': "response", "data": res, "requestId": request_id})
-
-    def notify_of_overriding_changes(self, quib: Quib):
-        # We need to notify the frontend if there was a change in a quib (this is not always called upon a change-
-        # if the frontend initiated the change and JupyterProject is the one to handle it, we simply return the quib
-        # so as not to cause races)
-        if self._should_notify_client_of_quib_changes and quib.assigned_name:
-            self._call_client(action_type="quibChange", message_data=get_serialized_quib(quib))
 
     def get_save_within_notebook_state(self):
         # When we just wake up, we are not initially synchronized with the "SAve/Load inside notebook" state of the
@@ -370,7 +261,7 @@ def create_jupyter_project_if_in_jupyter_lab():
         try:
             import ipywidgets
         except ImportError:
-            warnings.warn('Please install `ipywidgets` to view quibs as interactive widgets.\n')
+            warnings.warn('Please install `ipywidgets` to allow viewing quibs as interactive widgets.\n')
         project = JupyterProject.get_or_create()
         project.override_quib_persistence_functions()
         project.listen_for_events()

@@ -1760,7 +1760,6 @@ class Quib:
         if self._get_file_path(response_to_file_not_defined) is not None:
             self.handler.file_syncer.save(skip_user_verification)
             self.handler.on_overrides_changes()
-            self.project.notify_of_overriding_changes(self)
 
     def load(self,
              response_to_file_not_defined: ResponseToFileNotDefined = ResponseToFileNotDefined.RAISE,
@@ -1780,7 +1779,6 @@ class Quib:
         if self._get_file_path(response_to_file_not_defined) is not None:
             self.handler.file_syncer.load(skip_user_verification)
             self.handler.on_overrides_changes()
-            self.project.notify_of_overriding_changes(self)
 
     def sync(self, response_to_file_not_defined: ResponseToFileNotDefined = ResponseToFileNotDefined.RAISE):
         """
@@ -1803,7 +1801,6 @@ class Quib:
         if self._get_file_path(response_to_file_not_defined) is not None:
             self.handler.file_syncer.sync()
             self.handler.on_overrides_changes()
-            self.project.notify_of_overriding_changes(self)
 
     """
     Repr

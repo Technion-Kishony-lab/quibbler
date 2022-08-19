@@ -1,11 +1,7 @@
 import {NotebookPanel} from "@jupyterlab/notebook";
 import {IComm, IKernelConnection} from "@jupyterlab/services/lib/kernel/kernel";
-import {showDialog, showError, showRequestDialog} from "./utils";
-import {Widget} from "@lumino/widgets";
-import {QuibsEditorWidget} from "./QuibsEditorWidget/QuibsEditor";
+import {showDialog, showRequestDialog} from "./utils";
 import {IRequester, Requester} from "./requester";
-import {Cell, ICellModel} from "@jupyterlab/cells";
-import {getShouldSaveLoadWithinNotebook, getShowWithinNotebook} from "./globalConfig";
 import {ButtonExtension} from './toolbarButtonExtension';
 
 /**
@@ -20,7 +16,6 @@ export const Session = (panel: NotebookPanel,
 
   let comm: IComm | null = null;
   let requester: IRequester | null = null;
-  const cellsToQuibWidgets = new Map();
 
   kernel.statusChanged.connect((k,
                                 status) => {
@@ -94,22 +89,9 @@ export const Session = (panel: NotebookPanel,
           onRemoteQuibsArchiveChange(panel, data);
           break;
         }
-        case 'getShouldSaveLoadWithinNotebook': {
-          getRequester().request("setShouldSaveLoadWithinNotebook", {
-            should_save_load_within_notebook: getShouldSaveLoadWithinNotebook()
-          });
-          break;
-        }
         case 'setUndoRedoButtons': {
           undoButton.button.enabled = data.undoEnabled == 'True';
           redoButton.button.enabled = data.redoEnabled == 'True';
-          break;
-        }
-        case "quibChange": {
-          console.log("Received quib change", data);
-          for (let quibWidget of cellsToQuibWidgets.values()) {
-            quibWidget.changeQuib(data);
-          }
           break;
         }
         case "response": {
@@ -131,36 +113,6 @@ export const Session = (panel: NotebookPanel,
   return {
     runAction: (action: string, parameters: any) => {
       return getRequester().request(action, parameters)
-    },
-
-    handleCellExecution: (executedCell: Cell<ICellModel>) => {
-      console.log("Asking for tracked quibs...");
-      getRequester().request('loadedTrackedQuibs', {
-        // @ts-ignore
-        execution_count: executedCell.inputArea.model.executionCount
-      }).then(data => {
-        if (!executedCell) {
-            showError("No executing cell");
-            return;
-          }
-
-          const previousWidget = cellsToQuibWidgets.get(executedCell);
-          if (previousWidget !== undefined) {
-            Widget.detach(previousWidget);
-          }
-
-          if (getShowWithinNotebook()) {
-            const element = executedCell.node.getElementsByClassName("jp-Cell-outputWrapper")[0];
-            const widget = new QuibsEditorWidget(data.quibs, getRequester());
-            // @ts-ignore
-            Widget.attach(widget, executedCell.node, element);
-            cellsToQuibWidgets.set(executedCell, widget);
-          }
-          else {
-            cellsToQuibWidgets.delete(executedCell);
-          }
-
-      })
     },
   }
 }

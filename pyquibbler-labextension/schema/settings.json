@@ -22,9 +22,6 @@
           },
           {
             "command": "quibbler:clear-data"
-          },
-          {
-            "command": "quibbler:show-quibs"
           }
         ]
       }
