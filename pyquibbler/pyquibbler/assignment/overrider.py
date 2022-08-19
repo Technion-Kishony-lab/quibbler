@@ -17,6 +17,9 @@ from .default_value import default
 from pyquibbler.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
 
 
+ASSIGNMENT_VALUE_TEXT_DICT = {'array': np.array, 'default': default}
+
+
 @dataclass
 class GetReference:
     assignments: List[Assignment] = field(default_factory=list)
@@ -194,7 +197,7 @@ class Overrider:
         self.clear_assignments()
         try:
             quib = GetReference()
-            exec(assignment_text, {'quib': quib, 'array': np.array, 'default': default})
+            exec(assignment_text, {'quib': quib, **ASSIGNMENT_VALUE_TEXT_DICT})
             for assignment in quib.assignments:
                 self.add_assignment(assignment)
         except Exception:

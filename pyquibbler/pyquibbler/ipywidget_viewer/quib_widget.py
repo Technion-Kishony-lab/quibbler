@@ -53,8 +53,10 @@ class QuibWidget:
         self._get_name_widget().value = self.quib.pretty_repr
 
     def _create_assignment_box(self, assignment_index: int, text: str = '') -> widgets.HBox:
-        assignment_text_box = widgets.Textarea(text, continuous_update=False,
-                                               layout=widgets.Layout(width='200px', height='20px'))
+        assignment_text_box = widgets.Text(text, continuous_update=False,
+                                           layout=widgets.Layout(width='200px'))  # , height='20px'
+        assignment_text_box.observe(lambda change: self._on_edit_assignment(assignment_index, change), names='value')
+
         assignment_delete_button = _create_button(icon='minus', tooltip='click to delete line', width='30px')
         assignment_delete_button.on_click(lambda *_: self._on_delete_assignment(assignment_index), )
         return widgets.HBox([assignment_text_box, assignment_delete_button])
@@ -91,8 +93,28 @@ class QuibWidget:
         widget.children = children
         self._get_add_button_widget().disabled = True
 
-    def _edit_assignment(self):
-        pass
+    def _on_edit_assignment(self, assignment_index, change):
+        override_text: str = change['new']
+        override_text = override_text.strip()
+
+        if override_text.startswith('='):
+            # '= value'
+            override_text = f'quib.assign({override_text[1:]})'
+        else:
+            try:
+                eval(override_text, ASSIGNMENT_VALUE_TEXT_DICT)
+                # 'value'
+                override_text = f'quib.assign({override_text})'
+            except Exception:
+                # 'path = value'
+                override_text = f'quib{override_text}'
+
+        overrider = Overrider()
+        overrider.load_from_assignment_text(override_text)
+        assignment = overrider[0]
+
+        from pyquibbler import Project
+        Project.get_or_create().upsert_assignment_to_quib(self.quib, assignment_index, assignment)
 
     def build_widget(self):
         save = _create_button(label='Save', width='40px')

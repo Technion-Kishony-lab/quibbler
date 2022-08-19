@@ -580,6 +580,7 @@ class Project:
         set_path_indexed_classes_from_quib(assignment.path, quib)
 
         quib.handler.invalidate_and_aggregate_redraw_at_path(assignment.path)
+        quib.handler.on_overrides_changes()
 
     def remove_assignment_from_quib(self, quib: Quib, assignment_index: int):
         """
