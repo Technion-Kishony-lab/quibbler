@@ -15,6 +15,12 @@ def _create_button(label: str = '', icon: str = '',
                           layout=widgets.Layout(width=width, height=height, display='flex', align_items='center'))
 
 
+class WidgetQuibDeletedException(PyQuibblerException):
+
+    def __str__(self):
+        return 'Cannot find quib. Disabling widget.'
+
+
 @dataclasses.dataclass
 class QuibWidget:
     quib_ref: Optional[ReferenceType] = None
@@ -34,7 +40,14 @@ class QuibWidget:
 
     @property
     def quib(self):
+        if self.quib_ref() is None:
+            self.disable_widget()
+            raise WidgetQuibDeletedException()
+
         return self.quib_ref()
+
+    def disable_widget(self):
+        self.get_widget().children = (widgets.Label(value='OBSOLETE: ' + self._get_name_widget().value),)
 
     def refresh_name(self):
         self._get_name_widget().value = self.quib.pretty_repr
