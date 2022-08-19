@@ -1,12 +1,12 @@
+from __future__ import annotations
 import dataclasses
-from _weakref import ReferenceType
-from typing import Optional, TYPE_CHECKING
-
 import ipywidgets as widgets
 
 from pyquibbler.assignment import Overrider
 from pyquibbler.assignment.overrider import ASSIGNMENT_VALUE_TEXT_DICT
 from pyquibbler.exceptions import PyQuibblerException
+from _weakref import ReferenceType
+from typing import Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib
@@ -26,7 +26,11 @@ class WidgetQuibDeletedException(PyQuibblerException):
 
 @dataclasses.dataclass
 class QuibWidget:
-    quib_ref: Optional[ReferenceType] = None
+    """
+    Creates and control a quib widget composed of several ipywidgets.
+    """
+
+    quib_ref: Optional[ReferenceType[Quib]] = None
     _widget: Optional[widgets.VBox] = None
 
     def get_widget(self):
@@ -48,7 +52,7 @@ class QuibWidget:
         return self._widget.children[2].children[0].children[1]
 
     @property
-    def quib(self):
+    def quib(self) -> Quib:
         if self.quib_ref() is None:
             self.disable_widget()
             raise WidgetQuibDeletedException()
@@ -58,7 +62,7 @@ class QuibWidget:
     def disable_widget(self):
         self.get_widget().children = (widgets.Label(value='OBSOLETE: ' + self._get_name_widget().value),)
 
-    def refresh_name(self):
+    def _refresh_name(self):
         self._get_name_widget().value = self.quib.pretty_repr
 
     def _create_assignment_box(self, assignment_index: int, text: str = '') -> widgets.HBox:
@@ -70,7 +74,7 @@ class QuibWidget:
         assignment_delete_button.on_click(lambda *_: self._on_delete_assignment(assignment_index), )
         return widgets.HBox([assignment_text_box, assignment_delete_button])
 
-    def refresh_assignments(self):
+    def _refresh_assignments(self):
         assignments_widgets = []
         for index, assignment in enumerate(self.quib.handler.overrider._paths_to_assignments.values()):
             assignment_text = assignment.get_pretty_path() + ' = ' + assignment.get_pretty_value()
@@ -79,11 +83,15 @@ class QuibWidget:
         self._get_assignment_widget().children = assignments_widgets
         self._get_add_button_widget().disabled = False
 
+    def _refresh_save_load_button_disable_state(self):
+        disabled = self.quib.handler.file_syncer.is_synced
+        self._get_save_button_widget().disabled = disabled
+        self._get_load_button_widget().disabled = disabled
+
     def refresh(self):
-        self.refresh_name()
-        self.refresh_assignments()
-        self._get_save_button_widget().disabled = self.quib.handler.file_syncer.is_synced
-        self._get_load_button_widget().disabled = self.quib.handler.file_syncer.is_synced
+        self._refresh_name()
+        self._refresh_assignments()
+        self._refresh_save_load_button_disable_state()
 
     def _on_delete_assignment(self, assignment_index: int):
         if assignment_index >= len(self.quib.handler.overrider):
