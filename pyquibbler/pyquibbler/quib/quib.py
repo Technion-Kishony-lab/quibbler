@@ -526,7 +526,7 @@ class QuibHandler:
 
     def on_name_change(self, assigned_name_changed: bool = True):
         if self._widget:
-            self._widget.refresh_name()
+            self._widget.refresh()
 
         if assigned_name_changed or self.assigned_name is None:
             for child in self.children:
@@ -534,7 +534,7 @@ class QuibHandler:
 
     def on_overrides_changes(self):
         if self._widget:
-            self._widget.refresh_assignments()
+            self._widget.refresh()
 
     def display_widget(self) -> bool:
         try:

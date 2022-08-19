@@ -4,6 +4,9 @@ from typing import Optional, TYPE_CHECKING
 
 import ipywidgets as widgets
 
+from pyquibbler.assignment import Overrider
+from pyquibbler.assignment.overrider import ASSIGNMENT_VALUE_TEXT_DICT
+from pyquibbler.exceptions import PyQuibblerException
 
 if TYPE_CHECKING:
     from pyquibbler.quib import Quib
@@ -37,6 +40,12 @@ class QuibWidget:
 
     def _get_add_button_widget(self) -> widgets.Button:
         return self._widget.children[2].children[1]
+
+    def _get_save_button_widget(self) -> widgets.Button:
+        return self._widget.children[2].children[0].children[0]
+
+    def _get_load_button_widget(self) -> widgets.Button:
+        return self._widget.children[2].children[0].children[1]
 
     @property
     def quib(self):
@@ -73,8 +82,8 @@ class QuibWidget:
     def refresh(self):
         self.refresh_name()
         self.refresh_assignments()
-
-        #    widget.observe(self._on_widget_change, names='value')
+        self._get_save_button_widget().disabled = self.quib.handler.file_syncer.is_synced
+        self._get_load_button_widget().disabled = self.quib.handler.file_syncer.is_synced
 
     def _on_delete_assignment(self, assignment_index: int):
         if assignment_index >= len(self.quib.handler.overrider):
@@ -118,7 +127,9 @@ class QuibWidget:
 
     def build_widget(self):
         save = _create_button(label='Save', width='40px')
+        save.on_click(lambda *_: self.quib.save())
         load = _create_button(label='Load', width='40px')
+        load.on_click(lambda *_: self.quib.load())
         add = _create_button(icon='plus', width='30px', tooltip='click to add a new line')
         add.on_click(self._add_empty_assignment)
         name = widgets.Label(value='')
