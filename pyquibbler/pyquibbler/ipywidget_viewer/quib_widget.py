@@ -77,7 +77,11 @@ class QuibWidget:
     def _refresh_assignments(self):
         assignments_widgets = []
         for index, assignment in enumerate(self.quib.handler.overrider._paths_to_assignments.values()):
-            assignment_text = assignment.get_pretty_path() + ' = ' + assignment.get_pretty_value()
+            if len(assignment.path) == 0:
+                assignment_text = '= ' + assignment.get_pretty_value()
+            else:
+                assignment_text = assignment.get_pretty_path() + ' = ' + assignment.get_pretty_value()
+
             assignments_widgets.append(self._create_assignment_box(index, assignment_text))
 
         self._get_assignment_widget().children = assignments_widgets

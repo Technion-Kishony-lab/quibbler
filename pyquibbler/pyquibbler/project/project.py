@@ -570,14 +570,20 @@ class Project:
             assignment_index=index
         )
         if len(quib.handler.overrider) > index:
-            quib.handler.overrider.pop_assignment_at_index(index)
+            old_assignment = quib.handler.overrider.pop_assignment_at_index(index)
+        else:
+            old_assignment = None
         quib.handler.overrider.insert_assignment_at_index(assignment, index)
         quib.handler.file_syncer.on_data_changed()
 
-        # TODO: This shouldn't be necessary
+        # TODO: set_path_indexed_classes_from_quib shouldn't be necessary
         set_path_indexed_classes_from_quib(assignment.path, quib)
 
         quib.handler.invalidate_and_aggregate_redraw_at_path(assignment.path)
+        if old_assignment is not None:
+            # TODO: set_path_indexed_classes_from_quib shouldn't be necessary
+            set_path_indexed_classes_from_quib(old_assignment.path, quib)
+            quib.handler.invalidate_and_aggregate_redraw_at_path(old_assignment.path)
         quib.handler.on_overrides_changes()
 
     def remove_assignment_from_quib(self, quib: Quib, assignment_index: int):
