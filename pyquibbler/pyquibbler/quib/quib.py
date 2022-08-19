@@ -2063,7 +2063,8 @@ class Quib:
         self.assigned_name = v['new']
 
     def _repr_html_(self) -> Optional[str]:
-        if self.handler.display_widget():
-            return ''
+        if self.allow_overriding or self.handler.has_overrider:
+            if self.handler.display_widget():
+                return ''
 
         return None
