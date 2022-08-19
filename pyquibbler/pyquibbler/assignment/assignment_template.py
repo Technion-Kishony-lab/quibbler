@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Type
 from dataclasses import dataclass
 
-from pyquibbler.assignment.simplify_assignment import is_scalar
+from pyquibbler.assignment.utils import round_to_num_digits, number_of_digits
 from pyquibbler.exceptions import DebugException, PyQuibblerException
 from pyquibbler.utilities.input_validation_utils import InvalidArgumentTypeException
 from pyquibbler.utilities.iterators import recursively_run_func_on_object
@@ -119,27 +119,6 @@ class BoundAssignmentTemplate(AssignmentTemplate):
 
     def _convert_number(self, number: Any):
         return get_number_in_bounds(number, self.minimum, self.maximum)
-
-
-def number_of_digits(value: Any):
-    s = str(value)
-    before_e = s.split('e')[0]
-    return len(before_e) - before_e.__contains__('.')
-
-
-def round_if_precision_is_not_inf(value, decimals):
-    if -100 < decimals < 100:  # check not inf
-        return np.round(value, decimals)
-
-    return value
-
-
-def round_to_num_digits(value, num_digits):
-    d = num_digits - np.int64(np.floor(np.log10(np.abs(value)))) - 1
-    if is_scalar(value):
-        return round_if_precision_is_not_inf(value, d)
-    else:
-        return np.vectorize(round_if_precision_is_not_inf)(value, d)
 
 
 @dataclass

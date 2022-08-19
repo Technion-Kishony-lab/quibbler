@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-from pyquibbler import iquib, Quib
-from pyquibbler.assignment.assignment import AssignmentWithTolerance
+from pyquibbler import iquib
+from pyquibbler.assignment import AssignmentWithTolerance
 from pyquibbler.path import PathComponent
 
 

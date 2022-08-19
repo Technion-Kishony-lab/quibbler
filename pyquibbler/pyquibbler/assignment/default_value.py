@@ -1,10 +1,4 @@
-class Singleton(object):
-    _instance = None
-
-    def __new__(cls, *args, **kwargs):
-        if not isinstance(cls._instance, cls):
-            cls._instance = object.__new__(cls, *args, **kwargs)
-        return cls._instance
+from pyquibbler.utils import Singleton
 
 
 class Default(Singleton):
@@ -39,15 +33,3 @@ class Default(Singleton):
 
 
 default = Default()
-
-
-class Missing(Singleton):
-    """
-    Designates a missing value in a function call
-    """
-
-    def __repr__(self):
-        return 'missing'
-
-
-missing = Missing()

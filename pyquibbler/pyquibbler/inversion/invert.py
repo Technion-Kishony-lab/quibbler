@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Any, List, Type, Union
 
-from pyquibbler.assignment.assignment import AssignmentWithTolerance
+from pyquibbler.assignment import AssignmentWithTolerance
 from pyquibbler.function_definitions.func_definition import FuncDefinition
 from pyquibbler.inversion.exceptions import NoInvertersFoundException, FailedToInvertException
 from pyquibbler.inversion.inverter import Inverter

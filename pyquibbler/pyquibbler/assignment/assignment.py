@@ -3,12 +3,10 @@ import numpy as np
 from dataclasses import dataclass, field
 from typing import Any, TYPE_CHECKING, List, Union, Optional, Callable
 
-from matplotlib.axes import Axes
-
 from .default_value import default
 
 from pyquibbler.path.path_component import Path
-from ..env import GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION
+from .utils import convert_to_array, get_number_of_digits
 from ..quib.pretty_converters.pretty_convert import getitem_converter
 
 if TYPE_CHECKING:
@@ -49,12 +47,6 @@ class Assignment:
 
     def get_pretty_value(self):
         return repr(self.value)
-
-
-def convert_to_array(value: Any):
-    if isinstance(value, (list, tuple)):
-        return np.array(value)
-    return value
 
 
 @dataclass
@@ -106,7 +98,7 @@ class AssignmentWithTolerance(Assignment):
         value = self.value
         try:
             relative_error = self.get_relative_error()
-            num_digits = np.int64(np.ceil(-np.log10(relative_error)))
+            num_digits = -get_number_of_digits(relative_error)
             if self.equal_number_of_digits and isinstance(num_digits, np.ndarray):
                 num_digits = max(num_digits)
             value = round_to_num_digits(value, num_digits)
@@ -134,16 +126,6 @@ def create_assignment(value: Any, path: Path,
                                    path=path,
                                    value_up=convert_func(value_up),
                                    value_down=convert_func(value_down))
-
-
-def get_axes_x_y_tolerance(ax: Axes):
-    n = GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.val
-    if n is None:
-        return None, None
-    xlim = ax.get_xlim()
-    ylim = ax.get_ylim()
-    return (xlim[1] - xlim[0]) / n, \
-           (ylim[1] - ylim[0]) / n
 
 
 @dataclass(frozen=True)

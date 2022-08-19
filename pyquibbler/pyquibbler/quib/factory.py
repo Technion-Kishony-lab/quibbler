@@ -3,7 +3,7 @@ import pathlib
 from typing import Optional, Tuple, Callable, Any, Mapping, TYPE_CHECKING, Union, Set, List
 
 from pyquibbler.assignment import AssignmentTemplate
-from pyquibbler.assignment.default_value import missing
+from pyquibbler.utilities.missing_value import missing
 from pyquibbler.env import GET_VARIABLE_NAMES, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS, LAZY, GRAPHICS_LAZY
 from pyquibbler.logger import logger
 from pyquibbler.project import Project

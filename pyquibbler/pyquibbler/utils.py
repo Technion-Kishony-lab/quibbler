@@ -6,6 +6,18 @@ from dataclasses import dataclass
 from enum import Enum
 
 
+class Singleton(object):
+    """
+    A base class for allowing only one instance
+    """
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if not isinstance(cls._instance, cls):
+            cls._instance = object.__new__(cls, *args, **kwargs)
+        return cls._instance
+
+
 def ensure_only_run_once_globally(func: Callable):
     """
     Decorator to ensure the function is only run once (globally)
