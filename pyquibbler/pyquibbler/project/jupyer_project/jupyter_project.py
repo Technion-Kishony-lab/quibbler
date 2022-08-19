@@ -259,7 +259,8 @@ class JupyterProject(Project):
 def create_jupyter_project_if_in_jupyter_lab():
     if is_within_jupyter_lab():
         try:
-            import ipywidgets
+            # noinspection PyPackageRequirements
+            import ipywidgets  # noqa: F401
         except ImportError:
             warnings.warn('Please install `ipywidgets` to allow viewing quibs as interactive widgets.\n')
         project = JupyterProject.get_or_create()
