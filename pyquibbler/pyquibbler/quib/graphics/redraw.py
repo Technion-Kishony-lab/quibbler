@@ -82,10 +82,8 @@ def _redraw_quibs_with_graphics(graphics_update: GraphicsUpdateType):
 def _notify_of_overriding_changes():
     with timer("override notify", lambda x: logger.info(f"notifying overriding changes for "
                                                         f"{len(QUIBS_TO_NOTIFY_OVERRIDING_CHANGES)} quibs: {x}s")):
-        from pyquibbler import Project
-        project = Project.get_or_create()
         for quib in QUIBS_TO_NOTIFY_OVERRIDING_CHANGES:
-            project.notify_of_overriding_changes(quib)
+            quib.handler.on_overrides_changes()
 
     QUIBS_TO_NOTIFY_OVERRIDING_CHANGES.clear()
 

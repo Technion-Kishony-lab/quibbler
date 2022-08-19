@@ -3,14 +3,13 @@ import {
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
 import {
-  INotebookTracker, NotebookActions, NotebookPanel,
+  INotebookTracker, NotebookPanel,
 } from '@jupyterlab/notebook';
 import {getFirstVisibleNotebookPanel, showError} from './utils';
 import {IDocumentManager} from '@jupyterlab/docmanager';
 import {ButtonExtension} from './toolbarButtonExtension';
 import {Session} from "./session";
 import {getShouldSaveLoadWithinNotebook, setShouldSaveLoadWithinNotebook} from "./globalConfig";
-import {getShowWithinNotebook, setShowWithinNotebook} from "./globalConfig";
 
 
 /**
@@ -38,12 +37,6 @@ const plugin: JupyterFrontEndPlugin<void> = {
     const getCurrentNotebookPanel = () => {
       return getFirstVisibleNotebookPanel(app);
     }
-
-    NotebookActions.executed.connect((_, {cell, success, notebook}) => {
-      // @ts-ignore
-      const session = getOrRegisterSession(getCurrentNotebookPanel());
-      session.handleCellExecution(cell);
-    });
 
 
     const handleRemoteQuibsArchiveChange = (panel: any, data: any) => {
@@ -175,14 +168,6 @@ const plugin: JupyterFrontEndPlugin<void> = {
           });
         })
       }
-    });
-
-    commands.addCommand('quibbler:show-quibs', {
-      label: 'Show Quibs under Notebook cells',
-      execute: (args: any) => {
-        setShowWithinNotebook(!getShowWithinNotebook())
-      },
-      isToggled: () => getShowWithinNotebook()
     });
 
     notebooks.widgetAdded.connect((sender: any, nbPanel: NotebookPanel) => {

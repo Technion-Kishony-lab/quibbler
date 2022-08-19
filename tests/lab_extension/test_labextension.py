@@ -163,27 +163,6 @@ def run_code(driver):
     return _run
 
 
-@pytest.fixture()
-def add_override(driver):
-    def _add(quib_name, left_input_val, right_input_val):
-        element = driver.find_element(by=By.XPATH, value=f'//div[text()="{quib_name}"]')
-        element.click()
-
-        element = WebDriverWait(driver, 1).until(presence_of_element_located((By.XPATH, '//button[text()="Add Override"]')))
-        element.click()
-
-        parent = element.find_element(by=By.XPATH, value="../../..")
-        inputs = parent.find_elements(by=By.TAG_NAME, value="input")
-
-        left, right = inputs
-        left.send_keys("")
-        right.send_keys("")
-        left.send_keys(left_input_val)
-        right.send_keys(right_input_val)
-        right.send_keys(Keys.ENTER)
-    return _add
-
-
 def test_lab_extension_happy_flow(driver, load_notebook, assert_no_failures, run_cells):
     run_cells()
 
@@ -198,7 +177,7 @@ def test_lab_extension_undo__redo_is_initially_disabled(driver, load_notebook, a
 
 
 def test_lab_extension_undo_happy_flow(driver, load_notebook, assert_no_failures,
-                                       click_undo, run_cells, run_code, add_override, is_undo_enabled, is_redo_enabled):
+                                       click_undo, run_cells, run_code, is_undo_enabled, is_redo_enabled):
     run_cells()
     assert_no_failures()
 
@@ -207,7 +186,7 @@ def test_lab_extension_undo_happy_flow(driver, load_notebook, assert_no_failures
     assert is_undo_enabled() is False
     assert is_redo_enabled() is False
 
-    add_override("threshold", "", "5")
+    run_code("threshold.assign(5); 'ok'")
 
     assert is_undo_enabled() is True
     assert is_redo_enabled() is False

@@ -436,7 +436,7 @@ class Project:
             for action in actions:
                 action.undo()
                 if isinstance(action, AssignmentAction):
-                    self.notify_of_overriding_changes(action.quib)
+                    action.quib.handler.on_overrides_changes()
 
                 if isinstance(action, AddAssignmentAction):
                     self._set_previous_assignment_action_for_quib_at_relevant_path(action.quib,
@@ -476,7 +476,7 @@ class Project:
             for action in actions:
                 action.redo()
                 if isinstance(action, AssignmentAction):
-                    self.notify_of_overriding_changes(action.quib)
+                    action.quib.handler.on_overrides_changes()
 
                 if isinstance(action, AddAssignmentAction):
                     self._set_previous_assignment_action_for_quib_at_relevant_path(action.quib,
@@ -563,6 +563,29 @@ class Project:
         self._set_previous_assignment_action_for_quib_at_relevant_path(quib, assignment.path, assignment_action)
         return assignment_action
 
+    def upsert_assignment_to_quib(self, quib, index, assignment):
+        self.push_single_assignment_to_undo_stack(
+            quib=quib,
+            assignment=assignment,
+            assignment_index=index
+        )
+        if len(quib.handler.overrider) > index:
+            old_assignment = quib.handler.overrider.pop_assignment_at_index(index)
+        else:
+            old_assignment = None
+        quib.handler.overrider.insert_assignment_at_index(assignment, index)
+        quib.handler.file_syncer.on_data_changed()
+
+        # TODO: set_path_indexed_classes_from_quib shouldn't be necessary
+        set_path_indexed_classes_from_quib(assignment.path, quib)
+
+        quib.handler.invalidate_and_aggregate_redraw_at_path(assignment.path)
+        if old_assignment is not None:
+            # TODO: set_path_indexed_classes_from_quib shouldn't be necessary
+            set_path_indexed_classes_from_quib(old_assignment.path, quib)
+            quib.handler.invalidate_and_aggregate_redraw_at_path(old_assignment.path)
+        quib.handler.on_overrides_changes()
+
     def remove_assignment_from_quib(self, quib: Quib, assignment_index: int):
         """
         Remove an assignment from the quib, ensuring that it will be able to be "undone" and "redone"
@@ -591,9 +614,9 @@ class Project:
 
         # TODO: This shouldn't be necessary
         set_path_indexed_classes_from_quib(assignment.path, quib)
-        quib.handler.invalidate_and_aggregate_redraw_at_path(assignment.path)
 
-        self.notify_of_overriding_changes(quib)
+        quib.handler.invalidate_and_aggregate_redraw_at_path(assignment.path)
+        quib.handler.on_overrides_changes()
 
     def notify_of_overriding_changes(self, quib: Quib):
         pass
