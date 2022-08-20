@@ -1,4 +1,7 @@
 from __future__ import annotations
+
+import warnings
+
 import numpy as np
 from dataclasses import dataclass, field
 from typing import Any, TYPE_CHECKING, List, Union, Optional, Callable
@@ -6,7 +9,7 @@ from typing import Any, TYPE_CHECKING, List, Union, Optional, Callable
 from .default_value import default
 
 from pyquibbler.path.path_component import Path
-from .utils import convert_to_array, get_number_of_digits
+from .rounding import get_number_of_digits
 from ..quib.pretty_converters.pretty_convert import getitem_converter
 
 if TYPE_CHECKING:
@@ -72,9 +75,11 @@ class AssignmentWithTolerance(Assignment):
             Assignment(self.value_up, self.path), \
             Assignment(self.value_down, self.path)
 
+    @np.errstate(divide='ignore', invalid='ignore')
     def get_relative_error(self):
-        return np.abs((convert_to_array(self.value_up) - convert_to_array(self.value_down))
-                      / 2 / convert_to_array(self.value))
+        diff = (np.array(self.value_up) - np.array(self.value_down)) / 2
+        relative_error = diff / np.array(self.value)
+        return np.abs(relative_error)
 
     @classmethod
     def from_assignment_and_up_down_values(cls, assignment: Assignment,
@@ -117,8 +122,8 @@ def create_assignment(value: Any, path: Path,
     if tolerance is None:
         return Assignment(convert_func(value), path)
 
-    value_numeric = convert_to_array(value)
-    tolerance_numeric = convert_to_array(tolerance)
+    value_numeric = np.array(value)
+    tolerance_numeric = np.array(tolerance)
     value_up = type(value)(value_numeric + tolerance_numeric)
     value_down = type(value)(value_numeric - tolerance_numeric)
 

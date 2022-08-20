@@ -2,7 +2,7 @@ from numbers import Number
 
 from matplotlib.widgets import Slider
 
-from pyquibbler.assignment.utils import round_to_num_digits
+from pyquibbler.assignment.rounding import round_to_num_digits
 from pyquibbler.quib.get_value_context_manager import is_within_get_value_context
 
 

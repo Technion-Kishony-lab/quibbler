@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Type
 from dataclasses import dataclass
 
-from pyquibbler.assignment.utils import round_to_num_digits, number_of_digits
+from .rounding import round_to_num_digits, number_of_digits
 from pyquibbler.exceptions import DebugException, PyQuibblerException
 from pyquibbler.utilities.input_validation_utils import InvalidArgumentTypeException
 from pyquibbler.utilities.iterators import recursively_run_func_on_object
