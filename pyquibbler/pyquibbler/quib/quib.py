@@ -15,9 +15,10 @@ from matplotlib.axes import Axes
 from pyquibbler.logger import logger
 from pyquibbler.utilities.performance_utils import timer
 
-# Environment:
-from pyquibbler.env import LEN_RAISE_EXCEPTION, BOOL_RAISE_EXCEPTION, \
-    PRETTY_REPR, REPR_RETURNS_SHORT_NAME, REPR_WITH_OVERRIDES, ITER_RAISE_EXCEPTION, WARN_ON_UNSUPPORTED_BACKEND
+# Input validation:
+from pyquibbler.utilities.input_validation_utils import validate_user_input, InvalidArgumentValueException, \
+    get_enum_by_str
+from pyquibbler.utilities.missing_value import missing
 
 # Assignments:
 from pyquibbler.assignment import \
@@ -31,17 +32,10 @@ from pyquibbler.file_syncing import SaveFormat, SAVE_FORMAT_TO_FILE_EXT, \
     ResponseToFileNotDefined, FileNotDefinedException, QuibFileSyncer
 from pyquibbler.utilities.file_path import PathWithHyperLink
 
-# Input validation:
-from pyquibbler.utilities.input_validation_utils import validate_user_input, InvalidArgumentValueException, \
-    get_enum_by_str
-from pyquibbler.utilities.missing_value import missing
-
+# Create new quibs:
+from pyquibbler.env import LEN_RAISE_EXCEPTION, BOOL_RAISE_EXCEPTION, ITER_RAISE_EXCEPTION
 from pyquibbler.utilities.iterators import recursively_run_func_on_object
 from pyquibbler.utilities.unpacker import Unpacker
-
-# Cache:
-from pyquibbler.cache import create_cache, CacheStatus
-from pyquibbler.quib.func_calling.cache_mode import CacheMode
 
 # get_value:
 from pyquibbler.quib.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own
@@ -50,16 +44,9 @@ from pyquibbler.quib.quib_guard import guard_raise_if_not_allowed_access_to_quib
     CannotAccessQuibInScopeException
 from pyquibbler.function_definitions import get_definition_for_function, FuncArgsKwargs
 
-# repr:
-from pyquibbler.quib.pretty_converters import MathExpression, FailedMathExpression, \
-    NameMathExpression, pretty_convert
-
-# Graphics:
-from pyquibbler.quib.graphics import GraphicsUpdateType, aggregate_redraw_mode, \
-    redraw_quib_with_graphics_or_add_in_aggregate_mode
-from pyquibbler.quib.graphics.persist import PersistQuibOnCreatedArtists, PersistQuibOnSettedArtist
-from pyquibbler.graphics import SUPPORTED_BACKENDS
-from pyquibbler.quib.graphics.redraw import notify_of_overriding_changes_or_add_in_aggregate_mode
+# Cache:
+from pyquibbler.cache import create_cache, CacheStatus
+from pyquibbler.quib.func_calling.cache_mode import CacheMode
 
 # Translations and inversion:
 from pyquibbler.translation.translate import forwards_translate, NoTranslatorsFoundException
@@ -68,8 +55,19 @@ from pyquibbler.path import FailedToDeepAssignException, PathComponent, Path, Pa
 from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation_with_sources_metadata
 from pyquibbler.inversion.invert import invert
 
+# Graphics:
+from pyquibbler.graphics import SUPPORTED_BACKENDS
+from pyquibbler.quib.graphics import GraphicsUpdateType, aggregate_redraw_mode, \
+    redraw_quib_with_graphics_or_add_in_aggregate_mode
+from pyquibbler.quib.graphics.persist import PersistQuibOnCreatedArtists, PersistQuibOnSettedArtist
+from pyquibbler.quib.graphics.redraw import notify_of_overriding_changes_or_add_in_aggregate_mode
+
+# repr:
+from pyquibbler.env import PRETTY_REPR, REPR_RETURNS_SHORT_NAME, REPR_WITH_OVERRIDES, WARN_ON_UNSUPPORTED_BACKEND
+from pyquibbler.quib.pretty_converters import MathExpression, FailedMathExpression, \
+    NameMathExpression, pretty_convert
+
 from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Union, Iterable, Mapping, Callable, Iterator
-from weakref import WeakSet
 
 if TYPE_CHECKING:
     from pyquibbler.function_definitions.func_definition import FuncDefinition
@@ -119,7 +117,7 @@ class QuibHandler:
         self.assignment_template = assignment_template
         self.assigned_name = assigned_name
 
-        self.children = WeakSet()
+        self.children = weakref.WeakSet()
         self._overrider: Optional[Overrider] = None
         self.file_syncer: QuibFileSyncer = QuibFileSyncer(quib_weakref)
         self.allow_overriding = allow_overriding
