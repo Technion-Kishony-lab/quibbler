@@ -2,12 +2,12 @@ import numpy as np
 
 from typing import Any
 from .utils import is_scalar
+from pyquibbler.utilities.numpy_original_functions import \
+    np_log10, np_abs, np_vectorize, np_maximum, np_minimum, np_round
 
 
 # should be a number larger than the max number of digits of np.int64, but not
 # too large because then np.round fails.
-from pyquibbler.utilities.numpy_original_functions import np_log10, np_abs, np_vectorize, np_maximum, np_minimum, np_round
-
 INFINITE_NUMBER_OF_DIGITS = 100
 
 

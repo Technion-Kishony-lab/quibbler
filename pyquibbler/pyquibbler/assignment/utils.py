@@ -1,8 +1,6 @@
 import numbers
 import numpy as np
 
-from typing import Any, Iterable
-
 from matplotlib.axes import Axes
 from datetime import datetime
 from matplotlib.dates import num2date
