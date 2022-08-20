@@ -1,7 +1,7 @@
 from unittest import mock
 
 from pyquibbler import iquib, quiby
-from pyquibbler.quib import Quib
+from pyquibbler.quib.quib import Quib
 
 
 def test_quibbler_user_function_lazy():

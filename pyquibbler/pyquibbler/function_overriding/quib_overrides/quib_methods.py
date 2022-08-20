@@ -5,7 +5,7 @@ from pyquibbler.translation.translators.elementwise.elementwise_translator impor
 
 
 def create_quib_method_overrides():
-    from pyquibbler.quib import Quib
+    from pyquibbler.quib.quib import Quib
     from pyquibbler.function_definitions.func_definition import create_func_definition
     return [FuncOverride(func_name='get_override_mask', module_or_cls=Quib,
                          func_definition=create_func_definition(

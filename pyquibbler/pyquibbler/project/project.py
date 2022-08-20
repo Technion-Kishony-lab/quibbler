@@ -13,14 +13,13 @@ from pyquibbler.utilities.input_validation_utils import validate_user_input
 from pyquibbler.utilities.file_path import PathWithHyperLink
 from pyquibbler.exceptions import PyQuibblerException
 from .actions import Action, AddAssignmentAction, AssignmentAction, RemoveAssignmentAction
-from pyquibbler.quib.graphics import GraphicsUpdateType
+from pyquibbler.quib.graphics import GraphicsUpdateType, aggregate_redraw_mode
 from pyquibbler.file_syncing.types import SaveFormat, ResponseToFileNotDefined
 from ..logger import logger
 from ..path.path_component import set_path_indexed_classes_from_quib
-from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
 
 if TYPE_CHECKING:
-    from pyquibbler.quib import Quib
+    from pyquibbler.quib.quib import Quib
     from pyquibbler.assignment import Assignment
 
 

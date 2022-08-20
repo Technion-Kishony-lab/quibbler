@@ -14,7 +14,7 @@ from pyquibbler.env import OVERRIDE_DIALOG_IN_SEPARATE_WINDOW, \
     OVERRIDE_DIALOG_AS_TEXT_FOR_GRAPHICS_ASSIGNMENT, OVERRIDE_DIALOG_AS_TEXT_FOR_NON_GRAPHICS_ASSIGNMENT
 
 if TYPE_CHECKING:
-    from pyquibbler.quib import Quib
+    from pyquibbler.quib.quib import Quib
 
 UNSET = object()
 

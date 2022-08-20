@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from matplotlib.backend_bases import FigureCanvasBase
 from matplotlib.figure import Figure
 
-from pyquibbler.quib import Quib
+from pyquibbler.quib.quib import Quib
 
 from matplotlib.testing.decorators import image_comparison
 

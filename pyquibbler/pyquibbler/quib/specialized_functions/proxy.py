@@ -9,7 +9,7 @@ from pyquibbler.translation.backwards_path_translator import BackwardsPathTransl
 from pyquibbler.translation.types import Source, Inversal
 
 if TYPE_CHECKING:
-    from pyquibbler.quib import Quib
+    from pyquibbler.quib.quib import Quib
 
 
 def create_proxy(quib: Quib) -> Quib:

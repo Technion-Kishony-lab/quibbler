@@ -1,7 +1,10 @@
-from typing import Optional, Dict, Set
+from __future__ import annotations
+from typing import Optional, Dict, Set, TYPE_CHECKING
 from matplotlib.artist import Artist
 
-from pyquibbler.quib.quib import Quib
+if TYPE_CHECKING:
+    from pyquibbler.quib.quib import Quib
+
 
 SETTER_QUIBS_NAME = '_quibbler_artist_setter_quibs'
 CREATING_QUIB_NAME = '_quibbler_artist_creating_quib'

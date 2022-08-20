@@ -1,15 +1,18 @@
 from __future__ import annotations
 import dataclasses
 from abc import ABC, abstractmethod
-from typing import Iterable
 
 from pyquibbler.quib.graphics import artist_wrapper
 from pyquibbler.quib.graphics.event_handling import CanvasEventHandler
 
 from weakref import ReferenceType
-from pyquibbler.quib.quib import Quib
 from pyquibbler.function_definitions import FuncArgsKwargs
 from matplotlib.artist import Artist
+
+from typing import Iterable, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pyquibbler.quib.quib import Quib
 
 
 def track_artist(artist):

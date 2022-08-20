@@ -6,47 +6,68 @@ import weakref
 import warnings
 
 import numpy as np
-from matplotlib import pyplot
 
+# Matplotlib types:
+from matplotlib.artist import Artist
+from matplotlib.axes import Axes
+
+# Debugging and performance:
+from pyquibbler.logger import logger
+from pyquibbler.utilities.performance_utils import timer
+
+# Input validation:
+from pyquibbler.utilities.input_validation_utils import validate_user_input, InvalidArgumentValueException, \
+    get_enum_by_str
+from pyquibbler.utilities.missing_value import missing
+
+# Assignments:
 from pyquibbler.assignment import \
     AssignmentWithTolerance, AssignmentSimplifier, default, InvalidTypeException, create_assignment_template, \
     get_override_group_for_quib_change, AssignmentTemplate, Overrider, Assignment, AssignmentToQuib
-from pyquibbler.utilities.missing_value import missing
-from pyquibbler.function_definitions import get_definition_for_function, FuncArgsKwargs
-from pyquibbler.ipywidget_viewer.quib_widget import QuibWidget
-from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
-from pyquibbler.quib.types import FileAndLineNumber
-from pyquibbler.utilities.file_path import PathWithHyperLink
-from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Union, Iterable, Mapping, Callable, Iterator
-from weakref import WeakSet
-
-from matplotlib.artist import Artist
-
-from pyquibbler.env import LEN_RAISE_EXCEPTION, BOOL_RAISE_EXCEPTION, \
-    PRETTY_REPR, REPR_RETURNS_SHORT_NAME, REPR_WITH_OVERRIDES, ITER_RAISE_EXCEPTION, WARN_ON_UNSUPPORTED_BACKEND
-from pyquibbler.graphics import SUPPORTED_BACKENDS
-from pyquibbler.quib.quib_guard import guard_raise_if_not_allowed_access_to_quib, \
-    CannotAccessQuibInScopeException
-from pyquibbler.quib.pretty_converters import MathExpression, FailedMathExpression, \
-    NameMathExpression, pretty_convert
 from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals
-from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation_with_sources_metadata
-from pyquibbler.utilities.input_validation_utils import validate_user_input, InvalidArgumentValueException, \
-    get_enum_by_str
-from pyquibbler.utilities.iterators import recursively_run_func_on_object
-from pyquibbler.utilities.unpacker import Unpacker
-from pyquibbler.logger import logger
+
+# Save/Load:
 from pyquibbler.project import Project
-from pyquibbler.inversion.exceptions import NoInvertersFoundException
-from pyquibbler.path import FailedToDeepAssignException, PathComponent, Path, Paths
-from pyquibbler.quib.func_calling.cache_mode import CacheMode
-from pyquibbler.quib.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own
-from pyquibbler.quib.graphics import GraphicsUpdateType
-from pyquibbler.translation.translate import forwards_translate, NoTranslatorsFoundException
-from pyquibbler.cache import create_cache, CacheStatus
 from pyquibbler.file_syncing import SaveFormat, SAVE_FORMAT_TO_FILE_EXT, \
     ResponseToFileNotDefined, FileNotDefinedException, QuibFileSyncer
+from pyquibbler.utilities.file_path import PathWithHyperLink
+
+# Create new quibs:
+from pyquibbler.env import LEN_RAISE_EXCEPTION, BOOL_RAISE_EXCEPTION, ITER_RAISE_EXCEPTION
+from pyquibbler.utilities.iterators import recursively_run_func_on_object
+from pyquibbler.utilities.unpacker import Unpacker
+
+# get_value:
+from pyquibbler.quib.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own
 from pyquibbler.quib.get_value_context_manager import get_value_context, is_within_get_value_context
+from pyquibbler.quib.quib_guard import guard_raise_if_not_allowed_access_to_quib, \
+    CannotAccessQuibInScopeException
+from pyquibbler.function_definitions import get_definition_for_function, FuncArgsKwargs
+
+# Cache:
+from pyquibbler.cache import create_cache, CacheStatus
+from pyquibbler.quib.func_calling.cache_mode import CacheMode
+
+# Translations and inversion:
+from pyquibbler.translation.translate import forwards_translate, NoTranslatorsFoundException
+from pyquibbler.inversion.exceptions import NoInvertersFoundException
+from pyquibbler.path import FailedToDeepAssignException, PathComponent, Path, Paths
+from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation_with_sources_metadata
+from pyquibbler.inversion.invert import invert
+
+# Graphics:
+from pyquibbler.graphics import SUPPORTED_BACKENDS
+from pyquibbler.quib.graphics import GraphicsUpdateType, aggregate_redraw_mode, \
+    redraw_quib_with_graphics_or_add_in_aggregate_mode
+from pyquibbler.quib.graphics.persist import PersistQuibOnCreatedArtists, PersistQuibOnSettedArtist
+from pyquibbler.quib.graphics.redraw import notify_of_overriding_changes_or_add_in_aggregate_mode
+
+# repr:
+from pyquibbler.env import PRETTY_REPR, REPR_RETURNS_SHORT_NAME, REPR_WITH_OVERRIDES, WARN_ON_UNSUPPORTED_BACKEND
+from pyquibbler.quib.pretty_converters import MathExpression, FailedMathExpression, \
+    NameMathExpression, pretty_convert
+
+from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Union, Iterable, Mapping, Callable, Iterator
 
 if TYPE_CHECKING:
     from pyquibbler.function_definitions.func_definition import FuncDefinition
@@ -54,6 +75,8 @@ if TYPE_CHECKING:
     from pyquibbler.assignment import OverrideChoice
     from pyquibbler.quib.func_calling import QuibFuncCall
     from pyquibbler.quib.pretty_converters.quib_viewer import QuibViewer
+    from pyquibbler.ipywidget_viewer.quib_widget import QuibWidget
+    from pyquibbler.quib.types import FileAndLineNumber
 
 NoneType = type(None)
 
@@ -94,7 +117,7 @@ class QuibHandler:
         self.assignment_template = assignment_template
         self.assigned_name = assigned_name
 
-        self.children = WeakSet()
+        self.children = weakref.WeakSet()
         self._overrider: Optional[Overrider] = None
         self.file_syncer: QuibFileSyncer = QuibFileSyncer(quib_weakref)
         self.allow_overriding = allow_overriding
@@ -191,8 +214,6 @@ class QuibHandler:
         """
         Invalidate the quib itself.
         """
-        from pyquibbler.quib.graphics.redraw import redraw_quib_with_graphics_or_add_in_aggregate_mode
-
         if self.quib.is_graphics_quib:
             redraw_quib_with_graphics_or_add_in_aggregate_mode(self.quib, self.actual_graphics_update)
 
@@ -206,7 +227,6 @@ class QuibHandler:
         Perform all actions needed after the quib was mutated (whether by function_definitions or inverse assignment).
         If path is not given, the whole quib is invalidated.
         """
-        from pyquibbler import timer
         if path is None:
             path = []
 
@@ -283,7 +303,6 @@ class QuibHandler:
             func_definition=self.func_definition,
             cache_mode=self.cache_mode,
         )
-        from pyquibbler.quib.graphics.persist import PersistQuibOnCreatedArtists, PersistQuibOnSettedArtist
         persist_quib_callback = PersistQuibOnSettedArtist if definition.is_artist_setter \
             else PersistQuibOnCreatedArtists
         self.quib_function_call.artists_creation_callback = persist_quib_callback(weakref.ref(self.quib))
@@ -320,9 +339,6 @@ class QuibHandler:
         """
         Overrides a part of the data the quib represents.
         """
-
-        from pyquibbler.quib.graphics.redraw import notify_of_overriding_changes_or_add_in_aggregate_mode
-
         if not self.is_overridden and assignment.is_default():
             return
 
@@ -359,7 +375,6 @@ class QuibHandler:
         Get a list of assignments to parent quibs which could be applied instead of the given assignment
         and produce the same change in the value of this quib.
         """
-        from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation_with_sources_metadata
         func_call, data_sources_to_quibs = get_func_call_for_translation_with_sources_metadata(self.quib_function_call)
 
         try:
@@ -367,7 +382,6 @@ class QuibHandler:
             # TODO: better implement with the line below. But need to take care of out-of-range assignments:
             # value = self.get_value_valid_at_path(assignment.path)
 
-            from pyquibbler.inversion.invert import invert
             inversals = invert(func_call=func_call,
                                previous_result=value,
                                assignment=assignment)
@@ -445,14 +459,14 @@ class QuibHandler:
         The value will necessarily return in the shape of the actual result, but only the values at the given path
         are guaranteed to be valid
         """
-        if self.func_definition.is_graphics \
-                and WARN_ON_UNSUPPORTED_BACKEND \
-                and pyplot.get_backend() not in SUPPORTED_BACKENDS:
-            WARN_ON_UNSUPPORTED_BACKEND.set(False)  # We don't want to warn more than once
-            warnings.warn('PyQuibbler is only optimized for the following Matplotlib backends: \n'
-                          f'{SUPPORTED_BACKENDS}. \n'
-                          'In Jupyter lab, use: %matplotlib tk. \n'
-                          'In PyCharm, use: matplotlib.use("TkAgg").')
+        if WARN_ON_UNSUPPORTED_BACKEND and self.func_definition.is_graphics:
+            from matplotlib import pyplot
+            if pyplot.get_backend() not in SUPPORTED_BACKENDS:
+                WARN_ON_UNSUPPORTED_BACKEND.set(False)  # We don't want to warn more than once
+                warnings.warn('PyQuibbler is only optimized for the following Matplotlib backends: \n'
+                              f'{SUPPORTED_BACKENDS}. \n'
+                              'In Jupyter lab, use: %matplotlib tk. \n'
+                              'In PyCharm, use: matplotlib.use("TkAgg").')
 
         try:
             guard_raise_if_not_allowed_access_to_quib(self.quib)
@@ -544,6 +558,7 @@ class QuibHandler:
             return False
 
         if self._widget is None:
+            from pyquibbler.ipywidget_viewer.quib_widget import QuibWidget
             widget = QuibWidget(self._quib_weakref)
             widget.build_widget()
             widget.refresh()
@@ -1899,7 +1914,6 @@ class Quib:
             kwargs = {k: v for k, v in kwargs.items()
                       if k not in self.handler.func_definition.kwargs_to_ignore_in_repr}
         try:
-            from matplotlib.axes import Axes
             if self.handler.func_definition.is_graphics and len(args) > 0 \
                     and isinstance(args[0], Axes):
                 return pretty_convert.get_pretty_value_of_func_with_args_and_kwargs(self.func,
