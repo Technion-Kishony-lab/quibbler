@@ -2,7 +2,7 @@ import functools
 import itertools
 from typing import Callable, Type
 
-from pyquibbler import Quib
+from pyquibbler.quib.quib import Quib
 from pyquibbler.utilities.settable_cycle import SettableColorCycle
 from pyquibbler.graphics.utils import TYPES_TO_ARTIST_ARRAY_NAMES
 from pyquibbler.quib.graphics import artist_wrapper
