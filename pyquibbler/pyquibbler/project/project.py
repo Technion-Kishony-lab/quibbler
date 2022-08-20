@@ -3,7 +3,6 @@ from __future__ import annotations
 import contextlib
 import dataclasses
 import weakref
-from _weakref import ReferenceType
 from collections import defaultdict
 from pathlib import Path
 import sys
@@ -54,9 +53,9 @@ class Project:
 
     current_project = None
 
-    def __init__(self, directory: Optional[Path], quib_weakrefs: Set[ReferenceType[Quib]]):
+    def __init__(self, directory: Optional[Path]):
         self._directory = directory
-        self._quib_weakrefs = quib_weakrefs
+        self._quib_refs: Set[weakref.ReferenceType[Quib]] = set()
         self._pending_undo_group: Optional[List] = None
         self._undo_action_groups: List[List[Action]] = []
         self._redo_action_groups: List[List[Action]] = []
@@ -86,7 +85,7 @@ class Project:
         if Project.current_project is None:
             main_module = sys.modules['__main__']
             directory = directory or (Path(main_module.__file__).parent if hasattr(main_module, '__file__') else None)
-            Project.current_project = cls(directory=directory, quib_weakrefs=set())
+            Project.current_project = cls(directory=directory)
         return Project.current_project
 
     @contextlib.contextmanager
@@ -113,19 +112,19 @@ class Project:
         set of Quib
         """
         refs_to_remove = set()
-        for quib_weakref in self._quib_weakrefs:
-            if quib_weakref() is None:
-                refs_to_remove.add(quib_weakref)
+        for quib_ref in self._quib_refs:
+            if quib_ref() is None:
+                refs_to_remove.add(quib_ref)
         for ref in refs_to_remove:
-            self._quib_weakrefs.remove(ref)
+            self._quib_refs.remove(ref)
 
-        return {quib_weakref() for quib_weakref in self._quib_weakrefs}
+        return {quib_ref() for quib_ref in self._quib_refs}
 
     def register_quib(self, quib: Quib):
         """
         Register a quib to the project
         """
-        self._quib_weakrefs.add(weakref.ref(quib))
+        self._quib_refs.add(weakref.ref(quib))
 
     @staticmethod
     def _reset_list_of_quibs(quibs):

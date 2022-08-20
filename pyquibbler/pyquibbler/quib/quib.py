@@ -109,8 +109,8 @@ class QuibHandler:
                  ):
         kwargs = kwargs or {}
 
-        quib_weakref = weakref.ref(quib)
-        self._quib_weakref = quib_weakref
+        quib_ref = weakref.ref(quib)
+        self._quib_ref = quib_ref
         self._override_choice_cache = {}
         self.quib_function_call = quib_function_call
 
@@ -119,7 +119,7 @@ class QuibHandler:
 
         self.children = weakref.WeakSet()
         self._overrider: Optional[Overrider] = None
-        self.file_syncer: QuibFileSyncer = QuibFileSyncer(quib_weakref)
+        self.file_syncer: QuibFileSyncer = QuibFileSyncer(quib_ref)
         self.allow_overriding = allow_overriding
         self.assigned_quibs = None
         self.created_in_get_value_context = is_within_get_value_context()
@@ -143,7 +143,7 @@ class QuibHandler:
 
     @property
     def quib(self):
-        return self._quib_weakref()
+        return self._quib_ref()
 
     @property
     def project(self) -> Project:
@@ -559,7 +559,7 @@ class QuibHandler:
 
         if self._widget is None:
             from pyquibbler.ipywidget_viewer.quib_widget import QuibWidget
-            widget = QuibWidget(self._quib_weakref)
+            widget = QuibWidget(self._quib_ref)
             widget.build_widget()
             widget.refresh()
             self._widget = widget

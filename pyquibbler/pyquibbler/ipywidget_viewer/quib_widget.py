@@ -5,11 +5,12 @@ import ipywidgets as widgets
 from pyquibbler.assignment.assignment_to_from_text \
     import convert_simplified_text_to_assignment, convert_assignment_to_simplified_text
 from pyquibbler.exceptions import PyQuibblerException
-from _weakref import ReferenceType
+
 from typing import Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pyquibbler.quib.quib import Quib
+    from weakref import ReferenceType
 
 
 def _create_button(label: str = '', icon: str = '',
