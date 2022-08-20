@@ -213,7 +213,7 @@ class QuibHandler:
     Invalidation
     """
 
-    def invalidate_self(self, path: Path):
+    def invalidate_self(self, path: Path, invalidate_cache=True):
         """
         Invalidate the quib itself.
         """
@@ -223,7 +223,8 @@ class QuibHandler:
         if len(path) == 0:
             self.quib_function_call.on_type_change()
 
-        self.quib_function_call.invalidate_cache_at_path(path)
+        if invalidate_cache:
+            self.quib_function_call.invalidate_cache_at_path(path)
 
     def _invalidate_and_redraw_at_path(self, path: Optional[Path] = None) -> None:
         """
@@ -234,6 +235,9 @@ class QuibHandler:
             path = []
 
         with timer("quib_invalidation", lambda x: logger.info(f"invalidate {x}")):
+            # since overrides are added after pulling from the cache, there is no need to invalidtae the
+            # cache of the specific quib in which the de novo overriding occurs
+            self.invalidate_self(path, invalidate_cache=False)
             self._invalidate_children_at_path(path)
 
     def invalidate_and_aggregate_redraw_at_path(self, path: Optional[Path] = None) -> None:
