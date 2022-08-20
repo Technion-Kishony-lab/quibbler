@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 
 from pyquibbler.env import LEN_RAISE_EXCEPTION, BOOL_RAISE_EXCEPTION
-from pyquibbler.quib import Quib
+from pyquibbler.quib.quib import Quib
 
 operator_names = {
     '__add__',

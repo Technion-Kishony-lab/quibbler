@@ -8,7 +8,7 @@ from pyquibbler.utils import Flag
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from pyquibbler.quib import Quib
+    from pyquibbler.quib.quib import Quib
 
 
 KEEP_EMPTY_FILE = Flag(False)

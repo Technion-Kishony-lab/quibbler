@@ -12,7 +12,7 @@ from pyquibbler.assignment import OverrideChoiceType, \
     AssignmentCancelledByUserException
 from pyquibbler.assignment import override_choice as override_choice_module
 from pyquibbler.path import PathComponent
-from pyquibbler.quib import Quib
+from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.factory import create_quib
 from pyquibbler.quib.get_value_context_manager import get_value_context
 from pyquibbler.quib.specialized_functions.proxy import create_proxy

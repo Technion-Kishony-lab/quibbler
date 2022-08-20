@@ -6,7 +6,7 @@ from matplotlib.widgets import AxesWidget
 from pyquibbler.assignment import AssignmentToQuib, create_assignment, Assignment, get_override_group_for_quib_changes
 from pyquibbler.path.path_component import Path
 from pyquibbler.graphics.graphics_collection import GraphicsCollection
-from pyquibbler.quib import Quib
+from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.func_calling import CachedQuibFuncCall
 from pyquibbler.quib.graphics.event_handling.canvas_event_handler import graphics_assignment_mode
 from pyquibbler.quib.graphics.redraw import end_dragging

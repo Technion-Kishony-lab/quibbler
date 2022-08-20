@@ -6,7 +6,7 @@ from pyquibbler.assignment import AssignmentToQuib, AssignmentWithTolerance, get
 from pyquibbler.function_definitions import KeywordArgument
 from pyquibbler.graphics import GraphicsCollection
 from pyquibbler.graphics.widgets import QRectangleSelector
-from pyquibbler.quib import Quib
+from pyquibbler.quib.quib import Quib
 from pyquibbler.logger import logger
 from .widget_call import WidgetQuibFuncCall
 from pyquibbler.path import PathComponent
@@ -32,7 +32,7 @@ class RectangleSelectorQuibFuncCall(WidgetQuibFuncCall):
         and attempt to resize even when the user did not request to resize- we here check if the widget attempted to
         resize when it should not have been able to
         """
-        from pyquibbler.quib import Quib
+        from pyquibbler.quib.quib import Quib
         init_val = self.func_args_kwargs.get('extents')
         allow_resize = self.func_args_kwargs.get('allow_resize')
         if isinstance(init_val, Quib):
@@ -49,7 +49,7 @@ class RectangleSelectorQuibFuncCall(WidgetQuibFuncCall):
         init_val = self.func_args_kwargs.get('extents')
 
         from pyquibbler import timer
-        from pyquibbler.quib import Quib
+        from pyquibbler.quib.quib import Quib
 
         if self._widget_is_attempting_to_resize_when_not_allowed(extents):
             return

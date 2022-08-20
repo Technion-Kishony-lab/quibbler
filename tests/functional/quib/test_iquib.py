@@ -9,7 +9,7 @@ from pyquibbler.env import GET_VARIABLE_NAMES
 from pyquibbler.quib.exceptions import CannotSaveAssignmentsAsTextException
 from pyquibbler.quib.specialized_functions.iquib import iquib, CannotNestQuibInIQuibException
 from pyquibbler.file_syncing.types import SaveFormat
-from pyquibbler.quib import Quib
+from pyquibbler.quib.quib import Quib
 
 def test_iquib_get_value_returns_argument():
     quib = iquib(3)

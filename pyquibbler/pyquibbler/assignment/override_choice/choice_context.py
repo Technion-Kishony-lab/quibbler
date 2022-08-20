@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Tuple
 
 if TYPE_CHECKING:
-    from pyquibbler.quib import Quib
+    from pyquibbler.quib.quib import Quib
 
 
 @dataclass(frozen=True)

@@ -66,7 +66,7 @@ def get_xdata_arg_indices_and_ydata_arg_indices(args: Tuple[List, List]):
 
 def get_quibs_to_paths_affected_by_event(args: List[Any], arg_indices: List[int],
                                          artist_index: int, data_indices: Any) -> Mapping[Quib, Paths]:
-    from pyquibbler.quib import Quib
+    from pyquibbler.quib.quib import Quib
     quibs_to_paths = defaultdict(list)
     for arg_index in arg_indices:
         arg = args[arg_index]

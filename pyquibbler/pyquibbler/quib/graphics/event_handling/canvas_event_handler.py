@@ -19,7 +19,7 @@ from matplotlib.axes import Axes
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from pyquibbler.quib import Quib
+    from pyquibbler.quib.quib import Quib
 
 
 GRAPHICS_ASSIGNMENT_MODE_AXES: Optional[Axes] = None
@@ -192,7 +192,7 @@ class CanvasEventHandler:
         """
         name = drawing_func.__name__
         set_lim_quib = artist_wrapper.get_setter_quib(ax, name)
-        from pyquibbler.quib import Quib
+        from pyquibbler.quib.quib import Quib
         if isinstance(set_lim_quib, Quib):
             with self._try_acquire_assignment_lock() as locked:
                 if locked:

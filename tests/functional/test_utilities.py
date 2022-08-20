@@ -1,7 +1,7 @@
 from pytest import mark, raises, fixture
 
 from pyquibbler import iquib
-from pyquibbler.quib import Quib
+from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.exceptions import NestedQuibException
 from pyquibbler.quib.utils import miscellaneous
 from pyquibbler.quib.utils.iterators import iter_quibs_in_args, iter_quibs_in_object

@@ -9,7 +9,7 @@ from _weakref import ReferenceType
 from typing import Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from pyquibbler.quib import Quib
+    from pyquibbler.quib.quib import Quib
 
 
 def _create_button(label: str = '', icon: str = '',

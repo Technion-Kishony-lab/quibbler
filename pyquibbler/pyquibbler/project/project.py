@@ -19,7 +19,7 @@ from ..logger import logger
 from ..path.path_component import set_path_indexed_classes_from_quib
 
 if TYPE_CHECKING:
-    from pyquibbler.quib import Quib
+    from pyquibbler.quib.quib import Quib
     from pyquibbler.assignment import Assignment
 
 

@@ -8,7 +8,7 @@ from typing import Optional, TYPE_CHECKING
 from pyquibbler.assignment import Assignment
 
 if TYPE_CHECKING:
-    from pyquibbler.quib import Quib
+    from pyquibbler.quib.quib import Quib
 
 
 class Action(ABC):

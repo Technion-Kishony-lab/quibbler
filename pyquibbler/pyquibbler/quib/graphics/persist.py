@@ -12,7 +12,7 @@ from matplotlib.artist import Artist
 from typing import Iterable, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from pyquibbler.quib import Quib
+    from pyquibbler.quib.quib import Quib
 
 
 def track_artist(artist):

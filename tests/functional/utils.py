@@ -3,7 +3,7 @@ from unittest.mock import Mock
 from dataclasses import dataclass, field
 from typing import List
 
-from pyquibbler.quib import Quib
+from pyquibbler.quib.quib import Quib
 from pyquibbler.path import PathComponent, Path
 
 

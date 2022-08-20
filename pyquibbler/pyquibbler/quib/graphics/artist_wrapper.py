@@ -3,7 +3,7 @@ from typing import Optional, Dict, Set, TYPE_CHECKING
 from matplotlib.artist import Artist
 
 if TYPE_CHECKING:
-    from pyquibbler.quib import Quib
+    from pyquibbler.quib.quib import Quib
 
 
 SETTER_QUIBS_NAME = '_quibbler_artist_setter_quibs'

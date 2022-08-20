@@ -2,7 +2,7 @@ from typing import Optional
 
 from matplotlib.widgets import TextBox
 
-from pyquibbler.quib import Quib
+from pyquibbler.quib.quib import Quib
 from .widget_call import WidgetQuibFuncCall
 
 

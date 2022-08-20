@@ -7,7 +7,7 @@ from typing import List, Optional, Callable, Tuple
 from pyquibbler.function_definitions.func_definition import ElementWiseFuncDefinition
 from pyquibbler.function_overriding.function_override import FuncOverride
 from pyquibbler.function_overriding.third_party_overriding.general_helpers import override_with_cls
-from pyquibbler.quib import Quib
+from pyquibbler.quib.quib import Quib
 from pyquibbler.translation.translators.elementwise.elementwise_translator import BackwardsElementwisePathTranslator, \
     ForwardsElementwisePathTranslator
 from pyquibbler.utilities.operators_with_reverse import REVERSE_OPERATOR_NAMES_TO_FUNCS

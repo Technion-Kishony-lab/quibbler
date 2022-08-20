@@ -13,7 +13,7 @@ from pyquibbler.path import PathComponent
 
 def get_override_group_for_axes_set_lim(args: List[Any], lim: Tuple[float, float], is_override_removal: bool) \
         -> OverrideGroup:
-    from pyquibbler.quib import Quib
+    from pyquibbler.quib.quib import Quib
     assert len(args) > 1
     assert isinstance(args[0], Axes)
 
