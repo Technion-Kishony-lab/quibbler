@@ -28,7 +28,8 @@ class WidgetQuibDeletedException(PyQuibblerException):
 @dataclasses.dataclass
 class QuibWidget:
     """
-    Creates and control a quib widget composed of several ipywidgets.
+    Creates and control a quib widget allowing viewing and editing and load/save of quib overrides
+    The quib widget is Composed of several ipywidgets.
     """
 
     quib_ref: Optional[ReferenceType[Quib]] = None
