@@ -3,13 +3,11 @@ from functools import partial
 from typing import Any, List, Tuple, Union, Mapping
 from matplotlib.backend_bases import PickEvent, MouseEvent, MouseButton
 
-from pyquibbler.assignment.assignment import get_axes_x_y_tolerance, create_assignment
-from pyquibbler.assignment.override_choice import get_override_group_for_quib_changes
-from pyquibbler.assignment.simplify_assignment import convert_scalar_value
+from pyquibbler.assignment import get_axes_x_y_tolerance, create_assignment, OverrideGroup, \
+    get_override_group_for_quib_changes, AssignmentToQuib, Assignment
+from pyquibbler.assignment.utils import convert_scalar_value
 from pyquibbler.path import PathComponent, Paths, deep_get
-from pyquibbler.assignment import AssignmentToQuib, Assignment
 from .graphics_inverse_assigner import graphics_inverse_assigner
-from pyquibbler.assignment import OverrideGroup
 from pyquibbler.quib.quib import Quib
 
 from numpy import unravel_index

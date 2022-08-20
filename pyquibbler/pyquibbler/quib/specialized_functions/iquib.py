@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import Any, Optional, Union
 
 from pyquibbler.assignment import AssignmentTemplate
-from pyquibbler.assignment.default_value import missing
+from pyquibbler.utilities.missing_value import missing
 from pyquibbler.env import DEBUG
 from pyquibbler.exceptions import DebugException
 from pyquibbler.file_syncing import SaveFormat

@@ -2,12 +2,10 @@ from typing import Any, List, Tuple
 
 from matplotlib.pyplot import Axes
 
-from pyquibbler.assignment.assignment import create_assignment
-from pyquibbler.assignment.override_choice import get_override_group_for_quib_changes
+from pyquibbler.assignment import create_assignment, AssignmentToQuib, OverrideGroup, \
+    get_override_group_for_quib_changes
 from pyquibbler.env import GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION
 from pyquibbler.path import PathComponent
-from pyquibbler.assignment import AssignmentToQuib
-from pyquibbler.assignment import OverrideGroup
 
 
 # TODO: might be helpful to implement is_override_removal=True which will be called for example upon

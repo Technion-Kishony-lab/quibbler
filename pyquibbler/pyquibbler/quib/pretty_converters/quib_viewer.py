@@ -1,9 +1,8 @@
 import enum
 import pathlib
 from dataclasses import dataclass
-from .. import Quib
-from ...env import REPR_RETURNS_SHORT_NAME
-from ...utilities.file_path import PathToNotebook
+from pyquibbler import Quib, PathToNotebook
+from pyquibbler.env import REPR_RETURNS_SHORT_NAME
 
 PROPERTY_LIST = (
     ('Function', ('func', 'is_iquib', 'is_random', 'is_file_loading', 'is_graphics', 'pass_quibs')),

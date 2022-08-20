@@ -1,38 +1,11 @@
 import numpy as np
-import numbers
 
 from typing import Any
 from .assignment import Assignment
 from .default_value import default
+from .utils import is_scalar_integer, is_array_of_size_one, is_scalar, convert_array_of_size_one_to_scalar, \
+    convert_scalar_value
 from ..path import Path, PathComponent, deep_get
-from datetime import datetime
-from matplotlib.dates import num2date
-
-
-def is_scalar(data) -> bool:
-    return isinstance(data, numbers.Number)
-
-
-def is_scalar_integer(data) -> bool:
-    return isinstance(data, numbers.Integral)
-
-
-def is_array_of_size_one(data) -> bool:
-    return isinstance(data, (np.ndarray, list)) and np.size(data) == 1
-
-
-def convert_array_of_size_one_to_scalar(data):
-    while is_array_of_size_one(data):
-        data = data[0]
-    return data
-
-
-def convert_scalar_value(current_value, assigned_value):
-    if is_scalar_integer(current_value):
-        return type(current_value)(round(assigned_value))
-    if isinstance(current_value, datetime) and isinstance(assigned_value, float):
-        return num2date(assigned_value).replace(tzinfo=None)
-    return type(current_value)(assigned_value)
 
 
 class AssignmentSimplifier:

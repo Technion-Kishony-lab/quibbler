@@ -3,8 +3,7 @@ from typing import Callable, Tuple, Any, Mapping, Set, List, Optional, Iterable
 from matplotlib.axes import Axes
 from matplotlib.widgets import AxesWidget
 
-from pyquibbler.assignment.assignment import AssignmentToQuib, create_assignment, Assignment
-from pyquibbler.assignment.override_choice import get_override_group_for_quib_changes
+from pyquibbler.assignment import AssignmentToQuib, create_assignment, Assignment, get_override_group_for_quib_changes
 from pyquibbler.path.path_component import Path
 from pyquibbler.graphics.graphics_collection import GraphicsCollection
 from pyquibbler.quib import Quib

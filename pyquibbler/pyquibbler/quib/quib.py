@@ -8,9 +8,10 @@ import warnings
 import numpy as np
 from matplotlib import pyplot
 
-from pyquibbler.assignment.assignment import AssignmentWithTolerance
-from pyquibbler.assignment.default_value import missing
-from pyquibbler.assignment.simplify_assignment import AssignmentSimplifier
+from pyquibbler.assignment import \
+    AssignmentWithTolerance, AssignmentSimplifier, default, InvalidTypeException, create_assignment_template, \
+    get_override_group_for_quib_change, AssignmentTemplate, Overrider, Assignment, AssignmentToQuib
+from pyquibbler.utilities.missing_value import missing
 from pyquibbler.function_definitions import get_definition_for_function, FuncArgsKwargs
 from pyquibbler.ipywidget_viewer.quib_widget import QuibWidget
 from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
@@ -38,8 +39,6 @@ from pyquibbler.logger import logger
 from pyquibbler.project import Project
 from pyquibbler.inversion.exceptions import NoInvertersFoundException
 from pyquibbler.path import FailedToDeepAssignException, PathComponent, Path, Paths
-from pyquibbler.assignment import InvalidTypeException, get_override_group_for_quib_change, \
-    AssignmentTemplate, Overrider, Assignment, AssignmentToQuib, create_assignment_template
 from pyquibbler.quib.func_calling.cache_mode import CacheMode
 from pyquibbler.quib.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own
 from pyquibbler.quib.graphics import GraphicsUpdateType
@@ -401,7 +400,6 @@ class QuibHandler:
         Apply an assignment to a cache, setting valid if it was an assignment and invalid if it was an assignmentremoval
         """
         try:
-            from pyquibbler.assignment.default_value import default
             if assignment.value is not default:
                 # Our cache only accepts shallow paths, so any validation to a non-shallow path is not necessarily
                 # overridden at the first component completely- so we ignore it

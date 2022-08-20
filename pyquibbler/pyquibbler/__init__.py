@@ -1,11 +1,12 @@
 from .cache import CacheStatus
-from pyquibbler.quib.factory import create_quib
-from pyquibbler.assignment import Assignment, AssignmentTemplate
-from pyquibbler.quib import CacheMode, iquib, Quib
+from .quib.factory import create_quib
+from .assignment import Assignment, AssignmentTemplate
+from .quib import CacheMode, iquib, Quib
 from .file_syncing import SaveFormat, ResponseToFileNotDefined
 from .quib.graphics import GraphicsUpdateType
 from .function_overriding import initialize_quibbler
 from .quib_network import dependency_graph, Direction
+from .utilities.file_path import PathToNotebook
 from .utilities.performance_utils import timer
 from .utilities.user_utils import \
     get_project, \
@@ -18,4 +19,4 @@ from .utilities.user_utils import \
     list_quiby_funcs, is_quiby, \
     quibapp
 from .assignment.default_value import default
-from pyquibbler.project import Project
+from .project import Project

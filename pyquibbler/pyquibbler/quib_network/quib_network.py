@@ -6,8 +6,8 @@ from typing import Union, Set, Tuple, Optional
 import ipywidgets
 
 from .types import Direction, reverse_direction
-from .. import Quib
-from ..utilities.input_validation_utils import validate_user_input, get_enum_by_str
+from pyquibbler import Quib
+from pyquibbler.utilities.input_validation_utils import validate_user_input, get_enum_by_str
 
 infinity = float('inf')
 

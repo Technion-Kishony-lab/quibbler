@@ -2,8 +2,7 @@ from typing import Callable, Tuple, Any, Mapping, Set, Optional
 
 import numpy as np
 
-from pyquibbler.assignment import AssignmentToQuib
-from pyquibbler.assignment.assignment import AssignmentWithTolerance, get_axes_x_y_tolerance
+from pyquibbler.assignment import AssignmentToQuib, AssignmentWithTolerance, get_axes_x_y_tolerance
 from pyquibbler.function_definitions import KeywordArgument
 from pyquibbler.graphics import GraphicsCollection
 from pyquibbler.graphics.widgets import QRectangleSelector
