@@ -127,22 +127,6 @@ def test_quib_widget_add_and_delete_assignment(quib, quib_widget, get_assignment
     assert quib.get_value() == 1
 
 
-@pytest.mark.parametrize(['initial_value', 'override_text', 'final_value'], [
-    ([1, 2, 3], '[1] = 0', [1, 0, 3]),
-    ([1, 2, 3], '   [1] =0  ', [1, 0, 3]),
-    ([1, 2, 3], ' "=0"', "=0"),
-    ([1, 2, 3], ' = "wow"', "wow"),
-    ([1, 2, 3], ' = array([1])', np.array([1])),
-    ([1, 2, 3], ' = default', 1),  # original quib value
-    ({'a': 1, 'b':[1, 2]}, " ['b'][1] = 3.14", {'a': 1, 'b':[1, 3.14]}),
-])
-def test_parsing_assignment_text(quib, quib_widget, get_assignment_text, initial_value, override_text, final_value):
-    quib.assign(initial_value)
-    quib_widget._get_add_button_widget().click()
-    get_assignment_text(1).value = override_text
-    assert quib.get_value() == final_value
-
-
 def test_quib_widget_delete_assignment(quib, quib_widget, get_assignment_delete):
     quib.assign([0, 1, 2])
     quib[1] = 10
