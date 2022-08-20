@@ -34,9 +34,8 @@ class JupyterProject(Project):
     extension of Jupyter lab.
     """
 
-    def __init__(self, directory: Optional[Path], quib_weakrefs,
-                 jupyter_notebook_path: Optional[Path] = None):
-        super().__init__(directory, quib_weakrefs)
+    def __init__(self, directory: Optional[Path], jupyter_notebook_path: Optional[Path] = None):
+        super().__init__(directory)
         self._jupyter_notebook_path = jupyter_notebook_path
         self._tmp_save_directory = None
         self._should_save_load_within_notebook = True
@@ -178,7 +177,7 @@ class JupyterProject(Project):
             shutil.rmtree(self._tmp_save_directory)
             os.makedirs(self._tmp_save_directory)
 
-        for quib_ref in self._quib_weakrefs:
+        for quib_ref in self._quib_refs:
             quib = quib_ref()
             if quib is not None and quib.assigned_name and quib.allow_overriding:
                 quib.handler.file_syncer.on_data_changed()

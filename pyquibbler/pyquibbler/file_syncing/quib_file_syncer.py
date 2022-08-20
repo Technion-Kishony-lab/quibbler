@@ -15,8 +15,8 @@ KEEP_EMPTY_FILE = Flag(False)
 
 
 class QuibFileSyncer(FileSyncer):
-    def __init__(self, quib_weakref: weakref.ReferenceType["Quib"]):
-        self.quib_weakref = quib_weakref
+    def __init__(self, quib_ref: weakref.ReferenceType["Quib"]):
+        self.quib_ref = quib_ref
         super(QuibFileSyncer, self).__init__()
 
     def _get_file_path(self) -> Optional[pathlib.Path]:
@@ -45,7 +45,7 @@ class QuibFileSyncer(FileSyncer):
 
     @property
     def quib(self) -> Quib:
-        return self.quib_weakref()
+        return self.quib_ref()
 
     @property
     def handler(self):

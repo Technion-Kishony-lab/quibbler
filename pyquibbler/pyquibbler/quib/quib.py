@@ -109,8 +109,8 @@ class QuibHandler:
                  ):
         kwargs = kwargs or {}
 
-        quib_weakref = weakref.ref(quib)
-        self._quib_weakref = quib_weakref
+        quib_ref = weakref.ref(quib)
+        self._quib_ref = quib_ref
         self._override_choice_cache = {}
         self.quib_function_call = quib_function_call
 
@@ -119,7 +119,7 @@ class QuibHandler:
 
         self.children = weakref.WeakSet()
         self._overrider: Optional[Overrider] = None
-        self.file_syncer: QuibFileSyncer = QuibFileSyncer(quib_weakref)
+        self.file_syncer: QuibFileSyncer = QuibFileSyncer(quib_ref)
         self.allow_overriding = allow_overriding
         self.assigned_quibs = None
         self.created_in_get_value_context = is_within_get_value_context()
@@ -136,6 +136,7 @@ class QuibHandler:
 
         self._has_ever_called_get_value = has_ever_called_get_value
         self._widget: Optional[QuibWidget] = None
+        self.callbacks: Set[Callable] = set()
 
     """
     relationships
@@ -143,7 +144,7 @@ class QuibHandler:
 
     @property
     def quib(self):
-        return self._quib_weakref()
+        return self._quib_ref()
 
     @property
     def project(self) -> Project:
@@ -193,9 +194,11 @@ class QuibHandler:
 
     def reevaluate_graphic_quib(self):
         """
-        Redraws the quib
+        Reevaluate the quib and call any assigned callbacks after its value has been invalidated
         """
-        self.quib.get_value()
+        value = self.quib.get_value()
+        for callback in self.callbacks:
+            callback(value)
 
     def _iter_artist_lists(self) -> Iterable[List[Artist]]:
         return map(lambda g: g.artists, self.quib_function_call.flat_graphics_collections())
@@ -210,7 +213,7 @@ class QuibHandler:
     Invalidation
     """
 
-    def invalidate_self(self, path: Path):
+    def invalidate_self(self, path: Path, invalidate_cache=True):
         """
         Invalidate the quib itself.
         """
@@ -220,7 +223,8 @@ class QuibHandler:
         if len(path) == 0:
             self.quib_function_call.on_type_change()
 
-        self.quib_function_call.invalidate_cache_at_path(path)
+        if invalidate_cache:
+            self.quib_function_call.invalidate_cache_at_path(path)
 
     def _invalidate_and_redraw_at_path(self, path: Optional[Path] = None) -> None:
         """
@@ -231,6 +235,9 @@ class QuibHandler:
             path = []
 
         with timer("quib_invalidation", lambda x: logger.info(f"invalidate {x}")):
+            # since overrides are added after pulling from the cache, there is no need to invalidtae the
+            # cache of the specific quib in which the de novo overriding occurs
+            self.invalidate_self(path, invalidate_cache=False)
             self._invalidate_children_at_path(path)
 
     def invalidate_and_aggregate_redraw_at_path(self, path: Optional[Path] = None) -> None:
@@ -559,7 +566,7 @@ class QuibHandler:
 
         if self._widget is None:
             from pyquibbler.ipywidget_viewer.quib_widget import QuibWidget
-            widget = QuibWidget(self._quib_weakref)
+            widget = QuibWidget(self._quib_ref)
             widget.build_widget()
             widget.refresh()
             self._widget = widget
@@ -879,15 +886,19 @@ class Quib:
         or if its function's is graphics-auto-detect (``is_graphics=None``) and a call to the function
         created graphics.
 
+        Additionally, quibs with assigned callback functions are also defined as graphics.
+
         A quib defined as graphics will get auto-refreshed based on the `graphics_update`.
 
         See Also
         --------
+        add_callback
         is_graphics, graphics_update
         pyquibbler.refresh_graphics
         """
         return self.handler.quib_function_call.func_can_create_graphics \
-            and not self.handler.created_in_get_value_context
+            and not self.handler.created_in_get_value_context \
+            or len(self.handler.callbacks) > 0
 
     @property
     def graphics_update(self) -> GraphicsUpdateType:
@@ -1127,6 +1138,7 @@ class Quib:
 
         self.handler.assignment_template = create_assignment_template(*args)
         return self
+
     """
     setp
     """
@@ -1258,6 +1270,68 @@ class Quib:
         6000
         """
         return Unpacker(self, amount)
+
+    """
+    callback
+    """
+
+    def add_callback(self, callback: Callable):
+        """
+        Add a function to call when the quib value changes.
+
+        The callback function will be called when the quib value changes, with the new value of the quib as
+        an argument.
+        The callback is executed upon drag, drop or centrally, as specified by the quib's graphics_update.
+
+        Parameters
+        ----------
+        callback : Callable
+            The function to call upon a change to the quib value.
+            The function is called as ``callback(new_value)``
+
+        See also
+        --------
+        is_graphics, graphics_update, remove_callback, get_callbacks
+        """
+        old_is_graphics_quib = self.is_graphics_quib
+        self.handler.callbacks.add(callback)
+
+        if not old_is_graphics_quib and self.is_graphics_quib:
+            self.get_value()
+
+    def remove_callback(self, callback: Callable):
+        """
+        Remove a function from the callback set.
+
+        Remove a function that was added to the quib callbacks.
+
+        Parameters
+        ----------
+        callback : Callable
+            The function to remove
+
+        See also
+        --------
+        get_callbacks, add_callback, is_graphics, graphics_update
+        """
+        self.handler.callbacks.remove(callback)
+
+    def get_callbacks(self) -> Set[Callable]:
+        """
+        Return the set of callback functions.
+
+        Return the set of functions that the quib calls upon value change.
+
+        Returns
+        -------
+        Set of Callable
+            The set of callback functions
+
+        See also
+        --------
+        add_callback, remove_callback
+        """
+        return self.handler.callbacks
 
     """
     get_value
