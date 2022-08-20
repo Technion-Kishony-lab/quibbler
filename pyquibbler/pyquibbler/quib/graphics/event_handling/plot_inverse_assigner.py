@@ -1,3 +1,4 @@
+from __future__ import annotations
 from collections import defaultdict
 from functools import partial
 from typing import Any, List, Tuple, Union, Mapping
@@ -8,12 +9,17 @@ from pyquibbler.assignment import get_axes_x_y_tolerance, create_assignment, Ove
 from pyquibbler.assignment.utils import convert_scalar_value
 from pyquibbler.path import PathComponent, Paths, deep_get
 from .graphics_inverse_assigner import graphics_inverse_assigner
-from pyquibbler.quib.quib import Quib
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pyquibbler.quib.quib import Quib
 
 from numpy import unravel_index
 
 
 def _is_arg_str(arg):
+    from pyquibbler.quib.quib import Quib
     if isinstance(arg, Quib):
         arg = arg.get_value()
     return isinstance(arg, str)
