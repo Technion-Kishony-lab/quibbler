@@ -1,6 +1,7 @@
 from typing import List
 
 from .function_override import FuncOverride
+from .third_party_overriding.ipywidgets.overrides import override_ipywidgets_if_installed
 from .third_party_overriding.non_quib_overrides import override_axes_methods, switch_widgets_to_quib_supporting_widgets
 from .defintion_without_override.python_functions import create_defintions_for_python_functions
 from .quib_overrides.operators.overrides import create_operator_overrides
@@ -73,6 +74,8 @@ def initialize_quibbler():
     switch_widgets_to_quib_supporting_widgets()
 
     override_axes_methods()
+
+    override_ipywidgets_if_installed()
 
     function_overrides: List[FuncOverride] = [*create_operator_overrides(),
                                               *create_graphics_overrides(),
