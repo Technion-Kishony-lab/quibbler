@@ -3,42 +3,20 @@ import pathlib
 import pickle
 
 import numpy as np
+
 from typing import Any, Optional, Dict, Hashable, List
 
-from dataclasses import dataclass, field
 from .assignment import Assignment
-from .exceptions import NoAssignmentFoundAtPathException
-from ..path.hashable import get_hashable_path
-from pyquibbler.path.path_component import Path, Paths, PathComponent
+from .assignment_to_from_text import convert_executable_text_to_assignments, convert_assignments_to_executable_text
 from .assignment_template import AssignmentTemplate
-from ..path.data_accessing import deep_get, deep_assign_data_in_path
 from .default_value import default
+from .exceptions import NoAssignmentFoundAtPathException
+
+from pyquibbler.path.hashable import get_hashable_path
+from pyquibbler.path.path_component import Path, Paths
+from pyquibbler.path.data_accessing import deep_get, deep_assign_data_in_path
 
 from pyquibbler.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
-
-
-ASSIGNMENT_VALUE_TEXT_DICT = {'array': np.array, 'default': default}
-
-
-@dataclass
-class GetReference:
-    assignments: List[Assignment] = field(default_factory=list)
-    current_path: Path = field(default_factory=list)
-
-    def _add_key_to_path(self, key):
-        self.current_path.append(PathComponent(None, key))
-
-    def __getitem__(self, key):
-        self._add_key_to_path(key)
-        return self
-
-    def __setitem__(self, key, value):
-        self._add_key_to_path(key)
-        self.assign(value)
-
-    def assign(self, value):
-        self.assignments.append(Assignment(value, self.current_path))
-        self.current_path = []
 
 
 PathsToAssignments = Dict[Hashable, Assignment]
@@ -193,16 +171,10 @@ class Overrider:
         with open(file, "wt") as f:
             f.write(self.get_pretty_repr())
 
-    def load_from_assignment_text(self, assignment_text: str):
+    def load_from_assignments_text(self, assignment_text: str):
         self.clear_assignments()
-        try:
-            quib = GetReference()
-            exec(assignment_text, {'quib': quib, **ASSIGNMENT_VALUE_TEXT_DICT})
-            for assignment in quib.assignments:
-                self.add_assignment(assignment)
-        except Exception:
-            from ..quib.exceptions import CannotLoadAssignmentsFromTextException
-            raise CannotLoadAssignmentsFromTextException(assignment_text) from None
+        for assignment in convert_executable_text_to_assignments(assignment_text):
+            self.add_assignment(assignment)
         return [[]]
 
     def load_from_txt(self, file: pathlib.Path):
@@ -211,25 +183,14 @@ class Overrider:
         """
         with open(file, mode='r') as f:
             assignment_text_commands = f.read()
-        return self.load_from_assignment_text(assignment_text_commands)
+        return self.load_from_assignments_text(assignment_text_commands)
 
     """
     repr
     """
 
     def get_pretty_repr(self, name: str = None):
-        name = 'quib' if name is None else name
-        pretty = ''
-        for assignment in self._paths_to_assignments.values():
-            pretty_value = repr(assignment.value)
-            pretty += '\n' + name
-            if assignment.path:
-                pretty += assignment.get_pretty_path()
-                pretty += ' = ' + pretty_value
-            else:
-                pretty += '.assign(' + pretty_value + ')'
-        pretty = pretty[1:] if pretty else pretty
-        return pretty
+        return convert_assignments_to_executable_text(self._paths_to_assignments.values(), name)
 
     def __repr__(self):
         return self.get_pretty_repr()

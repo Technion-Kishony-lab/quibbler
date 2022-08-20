@@ -8,6 +8,14 @@ from matplotlib.widgets import Slider
 mpl.use('macosx')
 # mpl.use("TkAgg")
 
+
+import ipywidgets
+class A:
+    pass
+
+ipywidgets.Text(value='kuki')
+
+
 # Figure setup:
 fig = plt.figure(figsize=(4, 6))
 

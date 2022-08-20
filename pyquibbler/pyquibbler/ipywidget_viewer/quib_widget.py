@@ -2,8 +2,8 @@ from __future__ import annotations
 import dataclasses
 import ipywidgets as widgets
 
-from pyquibbler.assignment import Overrider
-from pyquibbler.assignment.overrider import ASSIGNMENT_VALUE_TEXT_DICT
+from pyquibbler.assignment.assignment_to_from_text \
+    import convert_simplified_text_to_assignment, convert_assignment_to_simplified_text
 from pyquibbler.exceptions import PyQuibblerException
 from _weakref import ReferenceType
 from typing import Optional, TYPE_CHECKING
@@ -77,11 +77,7 @@ class QuibWidget:
     def _refresh_assignments(self):
         assignments_widgets = []
         for index, assignment in enumerate(self.quib.handler.overrider._paths_to_assignments.values()):
-            if len(assignment.path) == 0:
-                assignment_text = '= ' + assignment.get_pretty_value()
-            else:
-                assignment_text = assignment.get_pretty_path() + ' = ' + assignment.get_pretty_value()
-
+            assignment_text = convert_assignment_to_simplified_text(assignment)
             assignments_widgets.append(self._create_assignment_box(index, assignment_text))
 
         self._get_assignment_widget().children = assignments_widgets
@@ -116,24 +112,7 @@ class QuibWidget:
 
     def _on_edit_assignment(self, assignment_index, change):
         override_text: str = change['new']
-        override_text = override_text.strip()
-
-        if override_text.startswith('='):
-            # '= value'
-            override_text = f'quib.assign({override_text[1:]})'
-        else:
-            try:
-                eval(override_text, ASSIGNMENT_VALUE_TEXT_DICT)
-                # 'value'
-                override_text = f'quib.assign({override_text})'
-            except Exception:
-                # 'path = value'
-                override_text = f'quib{override_text}'
-
-        overrider = Overrider()
-        overrider.load_from_assignment_text(override_text)
-        assignment = overrider[0]
-
+        assignment = convert_simplified_text_to_assignment(override_text)
         from pyquibbler import Project
         Project.get_or_create().upsert_assignment_to_quib(self.quib, assignment_index, assignment)
 
