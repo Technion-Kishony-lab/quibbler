@@ -7,8 +7,7 @@ from pyquibbler.function_definitions import add_definition_for_function
 from pyquibbler.function_definitions.func_definition import create_func_definition
 from pyquibbler.path import PathComponent
 from pyquibbler.quib.factory import create_quib
-from pyquibbler.quib.graphics import GraphicsUpdateType
-from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
+from pyquibbler.quib.graphics import GraphicsUpdateType, aggregate_redraw_mode
 
 
 @pytest.fixture()

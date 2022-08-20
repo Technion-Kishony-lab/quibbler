@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from typing import List, Union
 
 from pyquibbler.assignment import AssignmentToQuib
-from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode
+from pyquibbler.quib.graphics import aggregate_redraw_mode
 
 
 @dataclass
