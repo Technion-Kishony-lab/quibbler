@@ -50,5 +50,22 @@ def count_redraws(widget_quib: Quib):
     widget_quib.handler.reevaluate_graphic_quib = previous_redraw
 
 
+@contextlib.contextmanager
+def count_invalidations(widget_quib: Quib):
+    previous_invalidate_self = widget_quib.handler.invalidate_self
+    invalidate_count = RedrawCount(0)
+
+    def invalidate(*args, **kwargs):
+        nonlocal invalidate_count
+        invalidate_count.count += 1
+        return previous_invalidate_self(*args, **kwargs)
+
+    widget_quib.handler.invalidate_self = invalidate
+
+    yield invalidate_count
+
+    widget_quib.handler.invalidate_self = previous_invalidate_self
+
+
 quibbler_image_comparison = functools.partial(image_comparison, remove_text=True, extensions=['png'],
                                               savefig_kwarg=dict(dpi=100))
