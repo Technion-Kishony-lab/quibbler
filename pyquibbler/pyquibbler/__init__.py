@@ -10,7 +10,7 @@ from .utilities.file_path import PathToNotebook
 from .utilities.performance_utils import timer
 from .utilities.user_utils import \
     get_project, \
-    q, quiby, \
+    q, quiby, obj2quib, \
     reset_random_quibs, reset_file_loading_quibs, reset_impure_quibs, \
     set_project_directory, get_project_directory, \
     save_quibs, load_quibs, sync_quibs, \

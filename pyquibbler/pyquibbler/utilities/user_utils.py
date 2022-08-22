@@ -1,6 +1,6 @@
 import functools
 from pathlib import Path
-from typing import Union, List, Callable, Type, Optional
+from typing import Union, List, Callable, Type, Optional, Any
 from types import ModuleType
 
 from pyquibbler.project import Project
@@ -162,6 +162,44 @@ def q(func, *args, **kwargs) -> Quib:
     '2'
     """
     return create_quib(func=func, args=args, kwargs=kwargs)
+
+
+def obj2quib(obj: Any) -> Quib:
+    """
+    Create a quib from an object containing quibs.
+
+    Convert an object containing quibs to a quib whose value represents the object.
+
+    Parameters
+    ----------
+    obj : any object
+        The object to convert to quib. Can contain nested lists, tuples, dicts and quibs.
+
+    See also
+    --------
+    quiby, q, iquib
+
+    Examples
+    --------
+    >>> a = iquib(3)
+    >>> my_list = obj2quib([1, 2, a, 4])
+    >>> a.assign(7)
+    >>> my_list.get_value()
+    [1, 2, 7, 4]
+
+    Note
+    ----
+    If the argument obj is a quib, the function returns this quib.
+    """
+
+    # TODO: need to implement translation and inversion for list, tuple and dict.
+    if isinstance(obj, (list, tuple)):
+        return q(type(obj), [obj2quib(sub_obj) for sub_obj in obj])
+
+    if isinstance(obj, dict):
+        return q(dict, [(obj2quib(sub_key), obj2quib(sub_obj)) for sub_key, sub_obj in obj.items()])
+
+    return obj
 
 
 def get_project() -> Project:
