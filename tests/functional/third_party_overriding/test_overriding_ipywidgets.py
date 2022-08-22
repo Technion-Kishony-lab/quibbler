@@ -80,10 +80,35 @@ def test_widget_sets_an_in_between_value(widget, quib):
     assert widget.value == 9.
 
 
-def test_widget_value_rounding():
+def test_slider_value_rounding():
     a = iquib(1.)
     b = 5 * a
     w = ipywidgets.FloatSlider(value=b)
     w.value = 32.7
-    assert a.get_value() == 6.54
+    assert a.get_value() == 6.54  # without tolerance-rounding, we get 32.8 / 5 -> 6.540000000000001
 
+
+def test_tuple_quib_as_widget_value():
+    a = iquib((1., 5.))
+    w = ipywidgets.FloatRangeSlider(value=a)
+
+    w.value = [5., 9.]
+    assert a.get_value() == (5., 9.)
+
+
+def test_list_quib_as_widget_value():
+    a = iquib([1., 5.])
+    w = ipywidgets.FloatRangeSlider(value=a)
+
+    w.value = [5., 9.]
+    assert a.get_value() == [5., 9.]
+
+
+def test_list_of_quibs_as_widget_value():
+    a = iquib(1.)
+    b = iquib(4.)
+    w = ipywidgets.FloatRangeSlider(value=[a, b])
+
+    w.value = (2., 6.)
+    assert b.get_value() == 6.
+    assert a.get_value() == 2.
