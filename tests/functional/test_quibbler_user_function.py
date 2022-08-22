@@ -1,6 +1,8 @@
 from unittest import mock
 
-from pyquibbler import iquib, quiby
+import pytest
+
+from pyquibbler import iquib, quiby, obj2quib
 from pyquibbler.quib.quib import Quib
 
 
@@ -67,3 +69,14 @@ def test_quiby_creates_quiby_function():
 
     assert isinstance(res, Quib)
     assert mock_func.call_count == 0
+
+
+@pytest.mark.parametrize(['obj', 'expected_value'], [
+    ([iquib(1)], [1]),
+    ([iquib(1), 2, 3], [1, 2, 3]),
+    ((iquib(1), 2, 3), (1, 2, 3)),
+    ({'a': 1, 'b': iquib(2)}, {'a': 1, 'b': 2}),
+    ((iquib(1), {'a': 10, 'b': iquib(20)}, 3), (1, {'a': 10, 'b': 20}, 3)),
+])
+def test_obj2quib(obj, expected_value):
+    assert obj2quib(obj).get_value() == expected_value
