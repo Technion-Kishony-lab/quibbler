@@ -20,6 +20,7 @@ Creating quibs
    :nosignatures:
 
    iquib
+   obj2quib
    quiby
    q
    list_quiby_funcs

@@ -165,6 +165,32 @@ def q(func, *args, **kwargs) -> Quib:
 
 
 def obj2quib(obj: Any) -> Quib:
+    """
+    Create a quib from an object containing quibs.
+
+    Convert an object containing quibs to a quib whose value represents the object.
+
+    Parameters
+    ----------
+    obj : any object
+        The object to convert to quib. Can contain nested lists, tuples, dicts and quibs.
+
+    See also
+    --------
+    quiby, q, iquib
+
+    Examples
+    --------
+    >>> a = iquib(3)
+    >>> my_list = obj2quib([1, 2, a, 4])
+    >>> a.assign(7)
+    >>> my_list.get_value()
+    [1, 2, 7, 4]
+
+    Note
+    ----
+    If the argument obj is a quib, the function returns this quib.
+    """
 
     # TODO: need to implement translation and inversion for list, tuple and dict.
     if isinstance(obj, (list, tuple)):
