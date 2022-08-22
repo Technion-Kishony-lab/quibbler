@@ -1,12 +1,16 @@
-import dataclasses
+from __future__ import annotations
+
 import functools
 import contextlib
 
-from typing import Dict, Optional, Callable
-
-import ipywidgets
-
 from pyquibbler.quib.quib import Quib
+from typing import Dict, Optional, Callable, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    # noinspection PyPackageRequirements
+    import ipywidgets
+    # noinspection PyPackageRequirements
+    from traitlets import TraitType
 
 
 TRAIT_TO_QUIBY_WIDGET_ATTR = '_quibbler_trait_to_quiby_widget'
@@ -24,12 +28,12 @@ def is_ipywidgets_installed() -> bool:
     return True
 
 
-def _actual_set(widget, trait, value):
-    """ The snippet from TraitType.set the does the bare set of the trait"""
+def _bare_set(widget, trait, value):
+    """ The snippet from TraitType.set that does the bare set of the trait"""
     widget._trait_values[trait] = value
 
 
-def _get_or_create_trait_to_quiby_widget_trait(widget) -> Dict[str, Quib]:
+def _get_or_create_trait_to_quiby_widget_trait(widget) -> Dict:
     if not hasattr(widget, TRAIT_TO_QUIBY_WIDGET_ATTR):
         setattr(widget, TRAIT_TO_QUIBY_WIDGET_ATTR, {})
 
@@ -39,23 +43,11 @@ def _get_or_create_trait_to_quiby_widget_trait(widget) -> Dict[str, Quib]:
 class QuibyWidgetTrait:
     original_set: Optional[Callable] = None
 
-    def __init__(self, quib: Quib, trait, widget: ipywidgets.Widget):
+    def __init__(self, quib: Quib, trait: TraitType, widget: ipywidgets.Widget):
         self.quib = quib
         self.trait = trait
         self.widget = widget
-        self._within_widget_set: bool = False
         self._within_quib_set: bool = False
-
-    @contextlib.contextmanager
-    def within_widget_set_context(self):
-        if self._within_widget_set:
-            yield
-        else:
-            self._within_widget_set = True
-            try:
-                yield
-            finally:
-                self._within_widget_set = False
 
     @contextlib.contextmanager
     def within_quib_set_context(self):
@@ -78,15 +70,13 @@ class QuibyWidgetTrait:
         }
 
     def _on_widget_change(self, change):
-        new_value = change['new']
         if not self._within_quib_set:
-            with self.within_widget_set_context():
-                self.quib.assign(new_value)
+            new_value = change['new']
+            self.quib.assign(new_value)
 
     def _on_quib_change(self, value):
-        if not self._within_widget_set:
-            with self.within_quib_set_context():
-                QuibyWidgetTrait.original_set(self.trait, self.widget, value)
+        with self.within_quib_set_context():
+            QuibyWidgetTrait.original_set(self.trait, self.widget, value)
 
     def set_widget_to_update_quib_upon_change(self):
         # TODO: Implement push to undo/redo on mouse drop.
@@ -109,7 +99,7 @@ def get_wrapper_for_trait_type_set():
     def quiby_set(self, obj, value):
         if isinstance(value, Quib):
             # We cannot call original_set because it buffers future update to the quib.
-            _actual_set(obj, self.name, value.get_value())
+            _bare_set(obj, self.name, value.get_value())
 
             manager = QuibyWidgetTrait(quib=value, trait=self, widget=obj)
             manager.set_widget_to_update_quib_upon_change()
