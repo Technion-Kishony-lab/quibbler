@@ -78,3 +78,12 @@ def test_widget_sets_an_in_between_value(widget, quib):
     widget.value = 8.7
     assert quib.get_value() == 9
     assert widget.value == 9.
+
+
+def test_widget_value_rounding():
+    a = iquib(1.)
+    b = 5 * a
+    w = ipywidgets.FloatSlider(value=b)
+    w.value = 32.7
+    assert a.get_value() == 6.54
+
