@@ -1,4 +1,5 @@
 import functools
+
 from typing import Dict
 
 from pyquibbler.quib.quib import Quib
@@ -19,12 +20,26 @@ def is_ipywidgets_installed() -> bool:
     return True
 
 
+def get_widgets_requiring_tolerance_assignment():
+    # noinspection PyPackageRequirements
+    import ipywidgets
+    return {
+        ipywidgets.FloatSlider,
+        ipywidgets.FloatRangeSlider,
+    }
+
+
 def _get_or_create_trait_to_quib(widget) -> Dict[str, Quib]:
     if not hasattr(widget, TRAIT_TO_QUIB_ATTR):
         setattr(widget, TRAIT_TO_QUIB_ATTR, {})
 
     return getattr(widget, TRAIT_TO_QUIB_ATTR)
 
+
+# TODO: Implement push to undo/redo on mouse drop.
+#  possibly using:
+#  w = ipyevents.Event(source=widget, watched_events=['mouseup'])
+#  w.on_dom_event(on_drop)
 
 def get_wrapper_for_trait_type_set():
 
