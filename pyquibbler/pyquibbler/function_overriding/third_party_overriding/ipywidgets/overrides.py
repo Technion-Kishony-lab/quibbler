@@ -1,11 +1,15 @@
+import dataclasses
 import functools
+import contextlib
 
-from typing import Dict
+from typing import Dict, Optional, Callable
+
+import ipywidgets
 
 from pyquibbler.quib.quib import Quib
 
 
-TRAIT_TO_QUIB_ATTR = '_quibbler_trait_to_quib'
+TRAIT_TO_QUIBY_WIDGET_ATTR = '_quibbler_trait_to_quiby_widget'
 
 
 def is_ipywidgets_installed() -> bool:
@@ -20,57 +24,101 @@ def is_ipywidgets_installed() -> bool:
     return True
 
 
-def get_widgets_requiring_tolerance_assignment():
-    # noinspection PyPackageRequirements
-    import ipywidgets
-    return {
-        ipywidgets.FloatSlider,
-        ipywidgets.FloatRangeSlider,
-    }
-
-
 def _actual_set(widget, trait, value):
     """ The snippet from TraitType.set the does the bare set of the trait"""
     widget._trait_values[trait] = value
 
 
-def set_widget_to_update_quib_upon_change(widget, trait, quib):
-    # TODO: Implement push to undo/redo on mouse drop.
-    #  We will need for this to get mouse release from the widget, possibly using:
-    #  w = ipyevents.Event(source=widget, watched_events=['mouseup'])
-    #  w.on_dom_event(on_drop)
+def _get_or_create_trait_to_quiby_widget_trait(widget) -> Dict[str, Quib]:
+    if not hasattr(widget, TRAIT_TO_QUIBY_WIDGET_ATTR):
+        setattr(widget, TRAIT_TO_QUIBY_WIDGET_ATTR, {})
 
-    def on_widget_change(change):
+    return getattr(widget, TRAIT_TO_QUIBY_WIDGET_ATTR)
+
+
+class QuibyWidgetTrait:
+    original_set: Optional[Callable] = None
+
+    def __init__(self, quib: Quib, trait, widget: ipywidgets.Widget):
+        self.quib = quib
+        self.trait = trait
+        self.widget = widget
+        self._within_widget_set: bool = False
+        self._within_quib_set: bool = False
+
+    @contextlib.contextmanager
+    def within_widget_set_context(self):
+        if self._within_widget_set:
+            yield
+        else:
+            self._within_widget_set = True
+            try:
+                yield
+            finally:
+                self._within_widget_set = False
+
+    @contextlib.contextmanager
+    def within_quib_set_context(self):
+        if self._within_quib_set:
+            yield
+        else:
+            self._within_quib_set = True
+            try:
+                yield
+            finally:
+                self._within_quib_set = False
+
+    @staticmethod
+    def get_widgets_requiring_tolerance_assignment():
+        # noinspection PyPackageRequirements
+        import ipywidgets
+        return {
+            ipywidgets.FloatSlider,
+            ipywidgets.FloatRangeSlider,
+        }
+
+    def _on_widget_change(self, change):
         new_value = change['new']
-        quib.assign(new_value)
+        if not self._within_quib_set:
+            with self.within_widget_set_context():
+                self.quib.assign(new_value)
 
-    widget.observe(on_widget_change, trait)
+    def _on_quib_change(self, value):
+        if not self._within_widget_set:
+            with self.within_quib_set_context():
+                QuibyWidgetTrait.original_set(self.trait, self.widget, value)
 
+    def set_widget_to_update_quib_upon_change(self):
+        # TODO: Implement push to undo/redo on mouse drop.
+        #  We will need for this to get mouse release from the widget, possibly using:
+        #  w = ipyevents.Event(source=widget, watched_events=['mouseup'])
+        #  w.on_dom_event(on_drop)
+        self.widget.observe(self._on_widget_change, self.trait.name)
 
-def set_quib_to_update_widget_upon_change(widget, trait, quib):
-
-    def on_quib_change(new_value):
-        _actual_set(widget, trait, new_value)
-
-    quib.add_callback(on_quib_change)
+    def set_quib_to_update_widget_upon_change(self):
+        self.quib.add_callback(self._on_quib_change)
 
 
 def get_wrapper_for_trait_type_set():
 
     # noinspection PyPackageRequirements
     from traitlets import TraitType
-    original_set = TraitType.set
+    QuibyWidgetTrait.original_set = TraitType.set
 
-    @functools.wraps(original_set)
+    @functools.wraps(QuibyWidgetTrait.original_set)
     def quiby_set(self, obj, value):
         if isinstance(value, Quib):
             # We cannot call original_set because it buffers future update to the quib.
             _actual_set(obj, self.name, value.get_value())
 
-            set_widget_to_update_quib_upon_change(obj, self.name, value)
-            set_quib_to_update_widget_upon_change(obj, self.name, value)
+            manager = QuibyWidgetTrait(quib=value, trait=self, widget=obj)
+            manager.set_widget_to_update_quib_upon_change()
+            manager.set_quib_to_update_widget_upon_change()
+
+            trait_to_quiby_widget_trait = _get_or_create_trait_to_quiby_widget_trait(obj)
+            trait_to_quiby_widget_trait[self.name] = manager
         else:
-            original_set(self, obj, value)
+            QuibyWidgetTrait.original_set(self, obj, value)
 
     return quiby_set
 
