@@ -31,6 +31,10 @@ def get_wrapper_for_trait_type_set():
     # noinspection PyPackageRequirements
     from traitlets import TraitType
 
+    def actual_set(self, obj, value):
+        new_value = self._validate(obj, value)
+        obj._trait_values[self.name] = new_value
+
     func = TraitType.set
 
     @functools.wraps(func)
@@ -48,7 +52,8 @@ def get_wrapper_for_trait_type_set():
             quib.add_callback(on_quib_change)
 
             value = quib.get_value()
-
+            actual_set(self, obj, value)
+            return
         else:
             quib = _get_or_create_trait_to_quib(obj).get(self.name, None)
             if quib is not None:
