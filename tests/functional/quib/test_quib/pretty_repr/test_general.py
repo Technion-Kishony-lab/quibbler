@@ -6,7 +6,7 @@ import pytest
 
 from pyquibbler.env import PRETTY_REPR
 from pyquibbler.quib.specialized_functions.iquib import iquib
-from pyquibbler import q, quiby, create_quib
+from pyquibbler import q, quiby, create_quib, obj2quib
 
 
 @pytest.mark.get_variable_names(True)
@@ -194,6 +194,14 @@ def test_pretty_plt_imshow(axes):
     img = iquib(np.zeros((3, 4)))
     plt.imshow(img)
     assert next(iter(img.get_children())).pretty_repr == "imshow(img)"
+
+
+@pytest.mark.get_variable_names(True)
+def test_pretty_obj2quib():
+    a = iquib(1)
+    b = obj2quib([0, a, 1])
+
+    assert b.pretty_repr == "b = obj2quib([0, a, 1])"
 
 
 def test_ugly_repr():

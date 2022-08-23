@@ -3,12 +3,17 @@ from typing import Any
 from pyquibbler import Quib, q
 
 
-def identity_function_for_obj2quib(v):
+def identity_function_for_obj2quib_list_tuple(v):
     return v
 
 
-# For the functional_representation:
-identity_function_for_obj2quib.__name__ = 'obj2quib'
+def identity_function_for_obj2quib_dict(v):
+    return v
+
+
+# For functional_representation:
+identity_function_for_obj2quib_list_tuple.__name__ = 'obj2quib'
+identity_function_for_obj2quib_dict.__name__ = 'obj2quib'
 
 
 def obj2quib(obj: Any) -> Quib:
@@ -41,9 +46,11 @@ def obj2quib(obj: Any) -> Quib:
 
     # TODO: need to implement translation and inversion for list, tuple and dict.
     if isinstance(obj, (list, tuple)):
-        return q(identity_function_for_obj2quib, type(obj)([obj2quib(sub_obj) for sub_obj in obj]))
+        return q(identity_function_for_obj2quib_list_tuple,
+                 type(obj)([obj2quib(sub_obj) for sub_obj in obj]))
 
     if isinstance(obj, dict):
-        return q(identity_function_for_obj2quib, {obj2quib(sub_key): obj2quib(sub_obj) for sub_key, sub_obj in obj.items()})
+        return q(identity_function_for_obj2quib_dict,
+                 {obj2quib(sub_key): obj2quib(sub_obj) for sub_key, sub_obj in obj.items()})
 
     return obj
