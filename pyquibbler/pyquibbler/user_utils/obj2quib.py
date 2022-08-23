@@ -1,6 +1,7 @@
 from typing import Any
 
-from pyquibbler import Quib, q
+from pyquibbler.quib.quib import Quib
+from .quiby_funcs import q
 
 
 def identity_function_for_obj2quib_list_tuple(v):

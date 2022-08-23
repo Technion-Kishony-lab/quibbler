@@ -5,10 +5,11 @@ from dataclasses import dataclass
 from typing import Tuple, Any, Mapping, Optional, Callable, List, TYPE_CHECKING, Type, ClassVar, Dict, Set
 
 from .location import SourceLocation
-from pyquibbler.quib.external_call_failed_exception_handling import \
-    external_call_failed_exception_handling
 from pyquibbler.utilities.iterators import get_object_type_locations_in_args_kwargs, recursively_compare_objects
-from ..utils import get_signature_for_func
+from .types import iter_arg_ids_and_values, KeywordArgument, PositionalArgument
+from pyquibbler.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
+from pyquibbler.utilities.iterators import get_object_type_locations_in_args_kwargs, recursively_compare_objects_type
+from pyquibbler.utils import get_signature_for_func
 
 if TYPE_CHECKING:
     from .func_definition import FuncDefinition
@@ -85,6 +86,10 @@ class FuncArgsKwargs:
 
     def get(self, keyword: str, default: Optional = None, include_defaults: bool = True) -> Optional[Any]:
         return self.get_arg_values_by_name(include_defaults).get(keyword, default)
+
+    def get_all_arguments(self):
+        return [KeywordArgument(key) if isinstance(key, str) else PositionalArgument(key)
+                for key, _ in iter_arg_ids_and_values(self.args, self.kwargs)]
 
 
 @dataclass

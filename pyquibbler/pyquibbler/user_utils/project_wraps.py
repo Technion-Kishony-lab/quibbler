@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Union
 
-from pyquibbler import Project
+from pyquibbler.project import Project
 
 
 def copy_docs(original):

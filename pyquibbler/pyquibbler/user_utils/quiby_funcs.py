@@ -2,7 +2,9 @@ import functools
 from types import ModuleType
 from typing import Union, Type, List, Callable, Optional
 
-from pyquibbler import reset_random_quibs, create_quib, Quib
+from .project_wraps import reset_random_quibs
+from pyquibbler.quib.quib import Quib
+from pyquibbler.quib.factory import create_quib
 
 
 def list_quiby_funcs(module_or_cls: Union[None, ModuleType, Type] = None) -> List[str]:

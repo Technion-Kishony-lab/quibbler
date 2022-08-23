@@ -1,13 +1,13 @@
 from __future__ import annotations
 import numpy as np
-from typing import Tuple, Iterable, Optional, Dict, Union, Any, TYPE_CHECKING
+from typing import Tuple, Iterable, Optional, Dict, Union, TYPE_CHECKING
 from string import ascii_letters
-from itertools import islice, chain
+from itertools import islice
 
-from pyquibbler.utilities.general_utils import Args, Kwargs, Shape
+from pyquibbler.utilities.general_utils import Shape
 
 if TYPE_CHECKING:
-    from .vectorize_metadata import ArgsMetadata, ArgId
+    from .vectorize_metadata import ArgsMetadata
 
 
 def get_core_axes(core_ndim: int) -> Tuple[int, ...]:
@@ -23,10 +23,6 @@ def construct_core_dims_str(ndim: int, names: Iterable[str]) -> str:
     return a core dimension specification as used in a numpy ufunc signature.
     """
     return f'({",".join(islice(names, ndim))})'
-
-
-def iter_arg_ids_and_values(args: Args, kwargs: Kwargs) -> Iterable[Tuple[ArgId, Any]]:
-    return chain(enumerate(args), kwargs.items())
 
 
 def construct_signature(args_core_ndims: Iterable[int], results_core_ndims: Iterable[int]) -> str:
