@@ -164,6 +164,14 @@ def q(func, *args, **kwargs) -> Quib:
     return create_quib(func=func, args=args, kwargs=kwargs)
 
 
+def identity_function_for_obj2quib(v):
+    return v
+
+
+# For the functional_representation:
+identity_function_for_obj2quib.__name__ = 'obj2quib'
+
+
 def obj2quib(obj: Any) -> Quib:
     """
     Create a quib from an object containing quibs.
@@ -194,10 +202,10 @@ def obj2quib(obj: Any) -> Quib:
 
     # TODO: need to implement translation and inversion for list, tuple and dict.
     if isinstance(obj, (list, tuple)):
-        return q(type(obj), [obj2quib(sub_obj) for sub_obj in obj])
+        return q(identity_function_for_obj2quib, type(obj)([obj2quib(sub_obj) for sub_obj in obj]))
 
     if isinstance(obj, dict):
-        return q(dict, [(obj2quib(sub_key), obj2quib(sub_obj)) for sub_key, sub_obj in obj.items()])
+        return q(identity_function_for_obj2quib, {obj2quib(sub_key): obj2quib(sub_obj) for sub_key, sub_obj in obj.items()})
 
     return obj
 
