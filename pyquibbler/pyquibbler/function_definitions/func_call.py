@@ -7,7 +7,7 @@ from typing import Tuple, Any, Mapping, Optional, Callable, List, TYPE_CHECKING,
 from .location import SourceLocation
 from pyquibbler.quib.external_call_failed_exception_handling import \
     external_call_failed_exception_handling
-from pyquibbler.utilities.iterators import get_object_type_locations_in_args_kwargs, recursively_compare_objects_type
+from pyquibbler.utilities.iterators import get_object_type_locations_in_args_kwargs, recursively_compare_objects
 from ..utils import get_signature_for_func
 
 if TYPE_CHECKING:
@@ -39,8 +39,7 @@ class FuncArgsKwargs:
         new_arguments = []
         parameters = sig.parameters
         for name, value in arguments.items():
-            if not (name in parameters and recursively_compare_objects_type(parameters[name].default, value,
-                                                                            type_only=False)):
+            if not (name in parameters and recursively_compare_objects(parameters[name].default, value)):
                 new_arguments.append((name, value))
 
         return dict(new_arguments)

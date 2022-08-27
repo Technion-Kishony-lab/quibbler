@@ -163,7 +163,7 @@ def get_paths_for_objects_of_type(obj: Any, type_: Type) -> Paths:
     return paths
 
 
-def recursively_compare_objects_type(obj1: Any, obj2: Any, type_only=True) -> bool:
+def recursively_compare_objects(obj1: Any, obj2: Any, type_only=False) -> bool:
     # recursively compare object types (type_only=True), or type and value (type_only=False)
 
     if type(obj1) is not type(obj2):
@@ -175,22 +175,22 @@ def recursively_compare_objects_type(obj1: Any, obj2: Any, type_only=True) -> bo
     if isinstance(obj1, (tuple, list, set)):
         if len(obj1) != len(obj2):
             return False
-        return all(recursively_compare_objects_type(sub_obj1, sub_obj2, type_only)
+        return all(recursively_compare_objects(sub_obj1, sub_obj2, type_only)
                    for sub_obj1, sub_obj2 in zip(obj1, obj2))
 
     if isinstance(obj1, dict):
         if len(obj1) != len(obj2):
             return False
-        return all(recursively_compare_objects_type(key1, key2, type_only)
+        return all(recursively_compare_objects(key1, key2, type_only)
                    for key1, key2 in zip(obj1.keys(), obj2.keys())) \
-            and all(recursively_compare_objects_type(val1, val2, type_only)
+            and all(recursively_compare_objects(val1, val2, type_only)
                     for val1, val2 in zip(obj1.values(), obj2.values()))
 
     if isinstance(obj1, np.ndarray) and obj1.dtype.type is np.object_:
         if obj1.shape != obj2.shape:
             return False
 
-        return np.all(np.vectorize(recursively_compare_objects_type)(obj1, obj2, type_only))
+        return np.all(np.vectorize(recursively_compare_objects)(obj1, obj2, type_only))
 
     if isinstance(obj1, np.ndarray) and obj1.dtype.type is not np.object_:
         return obj1.dtype is obj2.dtype and (type_only or np.array_equal(obj1, obj2))
