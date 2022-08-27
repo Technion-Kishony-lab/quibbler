@@ -39,4 +39,7 @@ def round_to_num_digits(value, num_digits):
     if is_scalar(value):
         return round_if_precision_is_not_inf(value, d)
     else:
-        return np_vectorize(round_if_precision_is_not_inf)(value, d)
+        rounded_value_as_array = np_vectorize(round_if_precision_is_not_inf)(value, d)
+        if not isinstance(value, np.ndarray):
+            rounded_value_as_array = type(value)(rounded_value_as_array.tolist())
+        return rounded_value_as_array

@@ -3,8 +3,15 @@ from __future__ import annotations
 import functools
 import contextlib
 
+import numpy as np
+
+from pyquibbler.assignment.utils import is_scalar
+from pyquibbler.user_utils.obj2quib import obj2quib
+from pyquibbler.assignment import AssignmentToQuib, get_override_group_for_quib_changes, create_assignment
 from pyquibbler.quib.quib import Quib
-from typing import Dict, Optional, Callable, TYPE_CHECKING
+from typing import Dict, Optional, Callable, TYPE_CHECKING, Any
+
+from pyquibbler.utilities.iterators import is_iterator_empty, iter_objects_of_type_in_object
 
 if TYPE_CHECKING:
     # noinspection PyPackageRequirements
@@ -28,9 +35,10 @@ def is_ipywidgets_installed() -> bool:
     return True
 
 
-def _bare_set(widget, trait, value):
+def _bare_set(self, obj, value):
     """ The snippet from TraitType.set that does the bare set of the trait"""
-    widget._trait_values[trait] = value
+    new_value = self._validate(obj, value)
+    obj._trait_values[self.name] = new_value
 
 
 def _get_or_create_trait_to_quiby_widget_trait(widget) -> Dict:
@@ -60,19 +68,14 @@ class QuibyWidgetTrait:
             finally:
                 self._within_quib_set = False
 
-    @staticmethod
-    def get_widgets_requiring_tolerance_assignment():
-        # noinspection PyPackageRequirements
-        import ipywidgets
-        return {
-            ipywidgets.FloatSlider,
-            ipywidgets.FloatRangeSlider,
-        }
-
     def _on_widget_change(self, change):
         if not self._within_quib_set:
             new_value = change['new']
-            self.quib.assign(new_value)
+            quib_type = self.quib.get_type()
+            if np.issubdtype(quib_type, np.integer):
+                new_value = round(new_value)
+            new_value = self.quib.get_type()(new_value)
+            self._inverse_assign(value=new_value)
 
     def _on_quib_change(self, value):
         with self.within_quib_set_context():
@@ -88,6 +91,35 @@ class QuibyWidgetTrait:
     def set_quib_to_update_widget_upon_change(self):
         self.quib.add_callback(self._on_quib_change)
 
+    def _inverse_assign(self, value: Any, on_drag: bool = False):
+        assignment = create_assignment(value, path=[], tolerance=self.get_tolerance(value))
+        get_override_group_for_quib_changes([AssignmentToQuib(self.quib, assignment)]) \
+            .apply(is_dragging=on_drag)
+
+    def get_tolerance(self, value):
+        return None
+
+
+class FloatSliderQuibyWidgetTrait(QuibyWidgetTrait):
+    def get_tolerance(self, value):
+        if is_scalar(value):
+            return value * 1e-15
+        return type(value)(np.array(value) * 1e-15)
+
+
+def get_widget_to_quiby_widget_trait() -> dict:
+    # noinspection PyPackageRequirements
+    import ipywidgets
+    return {
+        ipywidgets.FloatSlider: FloatSliderQuibyWidgetTrait,
+        ipywidgets.FloatRangeSlider: FloatSliderQuibyWidgetTrait,
+        ipywidgets.FloatLogSlider: FloatSliderQuibyWidgetTrait,
+    }
+
+
+def get_quiby_widget_trait_type(widget):
+    return get_widget_to_quiby_widget_trait().get(type(widget), QuibyWidgetTrait)
+
 
 def get_wrapper_for_trait_type_set():
 
@@ -97,11 +129,16 @@ def get_wrapper_for_trait_type_set():
 
     @functools.wraps(QuibyWidgetTrait.original_set)
     def quiby_set(self, obj, value):
+        if isinstance(value, (list, tuple)) \
+                and not is_iterator_empty(iter_objects_of_type_in_object(object_type=Quib, obj=value)):
+            value = obj2quib(value)
+
         if isinstance(value, Quib):
             # We cannot call original_set because it buffers future update to the quib.
-            _bare_set(obj, self.name, value.get_value())
+            _bare_set(self, obj, value.get_value())
 
-            manager = QuibyWidgetTrait(quib=value, trait=self, widget=obj)
+            manager_type = get_quiby_widget_trait_type(obj)
+            manager = manager_type(quib=value, trait=self, widget=obj)
             manager.set_widget_to_update_quib_upon_change()
             manager.set_quib_to_update_widget_upon_change()
 
