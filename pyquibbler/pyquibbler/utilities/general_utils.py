@@ -2,7 +2,6 @@ from __future__ import annotations
 from typing import Any, Tuple, Dict
 
 from pyquibbler.utilities.numpy_original_functions import np_zeros
-from pyquibbler.utils import get_original_func
 
 import numpy as np
 

@@ -1,5 +1,5 @@
 import operator
-from typing import Callable, List, Union
+from typing import Callable
 from typing import Tuple, Any, Mapping
 
 import numpy as np
