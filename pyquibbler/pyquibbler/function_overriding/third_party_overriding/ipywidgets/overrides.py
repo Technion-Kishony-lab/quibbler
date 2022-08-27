@@ -26,9 +26,9 @@ TRAIT_TO_QUIBY_WIDGET_ATTR = '_quibbler_trait_to_quiby_widget'
 def is_ipywidgets_installed() -> bool:
     try:
         # noinspection PyPackageRequirements
-        import ipywidgets
+        import ipywidgets   # noqa: F401
         # noinspection PyPackageRequirements
-        import traitlets
+        import traitlets   # noqa: F401
     except ImportError:
         return False
 
