@@ -103,14 +103,20 @@ def deep_assign_data_in_path(data: Any, path: Path,
         if should_copy_objects_referenced:
             new_element = copy.copy(new_element)
 
-        if (isinstance(component.component, (tuple, np.ndarray)) and not isinstance(new_element, np.ndarray)) or \
-                (isinstance(new_element, np.ndarray) and hasattr(new_element, 'base')):
+        need_to_convert_back_to_original_type = False
+        if isinstance(component.component, (tuple, np.ndarray)) and not isinstance(new_element, np.ndarray):
             # We can't access a regular list with a tuple, so we're forced to convert to a numpy array
+            original_type = type(new_element)
+            new_element = np.array(new_element, dtype=object)
+            need_to_convert_back_to_original_type = True
+        elif isinstance(new_element, np.ndarray) and hasattr(new_element, 'base'):
             new_element = np.array(new_element)
 
         try:
             setter = SETTERS.get(component.indexed_cls, set_key_to_value)
             new_element = setter(new_element, component.component, last_element)
+            if need_to_convert_back_to_original_type:
+                new_element = original_type(new_element.tolist())
         except IndexError as e:
             if raise_on_failure:
                 raise FailedToDeepAssignException(path=path, exception=e)

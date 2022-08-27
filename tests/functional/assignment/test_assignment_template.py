@@ -4,7 +4,7 @@ from pytest import mark, raises
 
 from pyquibbler.assignment import AssignmentTemplate, BoundAssignmentTemplate, RangeAssignmentTemplate, \
     BoundMaxBelowMinException, RangeStopBelowStartException, TypesMustBeSameInAssignmentTemplateException
-from pyquibbler.utilities.iterators import recursively_compare_objects_type
+from pyquibbler.utilities.iterators import recursively_compare_objects
 
 
 class ExampleAssignmentTemplate(AssignmentTemplate):
@@ -103,8 +103,7 @@ def test_casting_assignment_template(template, data, expected):
         assert result.dtype == expected.dtype
         assert np.array_equal(result, expected)
     else:
-        assert result == expected
-        assert recursively_compare_objects_type(result, expected)
+        assert recursively_compare_objects(result, expected)
 
 
 def test_cant_create_bound_assignment_template_with_max_smaller_than_min():

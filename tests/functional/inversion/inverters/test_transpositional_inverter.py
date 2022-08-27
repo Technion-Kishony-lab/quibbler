@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 
 from pyquibbler.translation.types import Source
+from pyquibbler.utilities.iterators import recursively_compare_objects
 from tests.functional.inversion.inverters.utils import inverse
 
 
@@ -92,16 +93,8 @@ def test_inverse_assign_reshape():
 
 
 def test_inverse_assign_list_within_list():
-    data_source = Source(np.arange(9))
+    data_source = Source([[1, 2, 3, 4]])
 
-    sources_to_results, _ = inverse(func=np.reshape, args=(data_source, (3, 3)), value=10, indices=(0, 0))
+    sources_to_results, _ = inverse(func=np.array, args=(data_source,), value=10, indices=(0, 0))
 
-    assert np.array_equal(sources_to_results[data_source], np.array([10, 1, 2, 3, 4, 5, 6, 7, 8]))
-
-
-def test_inverse_np_array():
-    data_souce = Source([[1, 2, 3, 4]])
-
-    sources_to_results, _ = inverse(func=np.array, args=(data_souce,), value=10, indices=(0, 0))
-
-    assert np.array_equal(sources_to_results[data_souce], np.array([[10, 2, 3, 4]]))
+    assert recursively_compare_objects(sources_to_results[data_source], [[10, 2, 3, 4]])
