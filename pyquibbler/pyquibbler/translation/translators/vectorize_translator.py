@@ -7,7 +7,8 @@ from pyquibbler.translation.exceptions import FailedToTranslateException
 from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices, unbroadcast_bool_mask
 from pyquibbler.path import PathComponent
 from pyquibbler.path.path_component import Path
-from pyquibbler.quib.func_calling.func_calls.vectorize.utils import iter_arg_ids_and_values, get_core_axes
+from pyquibbler.quib.func_calling.func_calls.vectorize.utils import get_core_axes
+from pyquibbler.function_definitions.types import iter_arg_ids_and_values
 from pyquibbler.translation.backwards_path_translator import BackwardsPathTranslator
 from pyquibbler.translation.forwards_path_translator import ForwardsPathTranslator
 from pyquibbler.translation.types import Source

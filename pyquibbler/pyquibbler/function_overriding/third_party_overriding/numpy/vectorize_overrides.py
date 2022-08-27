@@ -29,7 +29,7 @@ class VectorizeCallDefinition(FuncDefinition):
         We are using func_args_kwargs.args and func_args_kwargs.kwargs instead of the full args dict on purpose,
         to match vectorize function behavior.
         """
-        from pyquibbler.quib.func_calling.func_calls.vectorize.utils import iter_arg_ids_and_values
+        from pyquibbler.function_definitions.types import iter_arg_ids_and_values
         vectorize, *args = func_args_kwargs.args
         # We do + 1 to positional arguments because `vectorize` was zero and we removed it.
         return [KeywordArgument(key) if isinstance(key, str) else PositionalArgument(key + 1)

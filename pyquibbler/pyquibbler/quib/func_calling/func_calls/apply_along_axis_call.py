@@ -14,6 +14,7 @@ from pyquibbler.graphics.utils import remove_created_graphics
 from pyquibbler.quib.func_calling import CachedQuibFuncCall
 from pyquibbler.quib.func_calling.utils import cache_method_until_full_invalidation
 from pyquibbler.quib.quib import Quib
+from pyquibbler.user_utils.quiby_funcs import q
 
 
 class ApplyAlongAxisQuibFuncCall(CachedQuibFuncCall):
@@ -82,7 +83,6 @@ class ApplyAlongAxisQuibFuncCall(CachedQuibFuncCall):
 
     @property
     def arr(self) -> Quib:
-        from pyquibbler.utilities.user_utils import q
         arr_ = self.func_args_kwargs.get('arr')
         # ensure we're dealing with an ndarray- because we're not always running apply_along_axis which takes care of
         # this for us (for example, when getting a sample result) we do this on any access to the array to ensure no

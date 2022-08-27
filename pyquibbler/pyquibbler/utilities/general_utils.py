@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import Any, Tuple, Dict
-from pyquibbler.utils import get_original_func
+
+from pyquibbler.utilities.numpy_original_functions import np_zeros
 
 import numpy as np
 
@@ -13,7 +14,7 @@ def create_bool_mask_with_true_at_indices(shape: tuple, indices: Any) -> np.ndar
     """
     Create an array of False in a given shape with True at `indices`.
     """
-    res = get_original_func(np.zeros)(shape, dtype=bool)
+    res = np_zeros(shape, dtype=bool)
     res[indices] = True
     return res
 

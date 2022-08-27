@@ -1,5 +1,5 @@
 import operator
-from typing import Callable, List, Union
+from typing import Callable
 from typing import Tuple, Any, Mapping
 
 import numpy as np
@@ -28,7 +28,7 @@ def _convert_slice(slice_: slice) -> str:
     return pretty
 
 
-def getitem_converter(func: Union[Callable, type(None)], args: Tuple[Any, ...]) -> MathExpression:
+def getitem_converter(func: Callable, args: Tuple[Any, ...]) -> MathExpression:
 
     assert len(args) == 2
     obj, item = args
@@ -41,8 +41,8 @@ def getitem_converter(func: Union[Callable, type(None)], args: Tuple[Any, ...]) 
     return StringMathExpression(f"{obj}[{item_repr}]", MathPrecedence.SUBSCRIPTION)
 
 
-def vectorize_call_converter(func: Callable, pretty_arg_names: List[str]) -> MathExpression:
-    func_being_called, *args = pretty_arg_names
+def vectorize_call_converter(func: Callable, args: Tuple[Any, ...]) -> MathExpression:
+    func_being_called, *args = args
     return StringMathExpression(f"{func_being_called}({', '.join(repr(arg) for arg in args)})",
                                 MathPrecedence.FUNCTION_CALL)
 

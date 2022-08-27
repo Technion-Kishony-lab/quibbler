@@ -42,7 +42,7 @@ class NumpyBackwardsPathTranslator(BackwardsPathTranslator):
 
 class NumpyForwardsPathTranslator(ForwardsPathTranslator):
     """
-    Holds basic logic for how to forwards translate a path for numpy functions- subclass this for any translator of a
+    Holds basic logic for how to forward translate a path for numpy functions- subclass this for any translator of a
     numpy function.
     """
 
@@ -71,14 +71,16 @@ class NumpyForwardsPathTranslator(ForwardsPathTranslator):
             # this function's quib result must be an ndarray- if it were a single item (say a PyObj, int, dict, list)
             # we'd expect it to be completely True (as it is ONE single object). If it is not a single item, it is by
             # definition an ndarray
-            assert issubclass(self._type, (np.ndarray, list)) or np.all(bool_mask_in_output_array)
-            assert issubclass(self._type, (np.ndarray, list)) or isinstance(bool_mask_in_output_array, np.bool_) \
+
+            allowed_types = (np.ndarray, list, tuple)
+            assert issubclass(self._type, allowed_types) or np.all(bool_mask_in_output_array)
+            assert issubclass(self._type, allowed_types) or isinstance(bool_mask_in_output_array, np.bool_) \
                    or (bool_mask_in_output_array.shape == () and bool_mask_in_output_array.dtype == np.bool_)
 
-            if not issubclass(self._type, (np.ndarray, list)) and np.all(bool_mask_in_output_array):
+            if not issubclass(self._type, allowed_types) and np.all(bool_mask_in_output_array):
                 return [path[1:]]
 
-            if len(path) > 0 and issubclass(path[0].indexed_cls, (list, np.ndarray)):
+            if len(path) > 0 and issubclass(path[0].indexed_cls, allowed_types):
                 # If we are in a situation in which the first component is a referencing an ndarray or list, then the
                 # `bool_mask_in_output_array` is already a combination of the first component with the
                 # self._func_call.func- therefore, we are going to replace the first component with the
@@ -87,7 +89,8 @@ class NumpyForwardsPathTranslator(ForwardsPathTranslator):
             else:
                 rest_of_path = path
 
-            if len(path) > 0 and issubclass(path[0].indexed_cls, list) and issubclass(self._type, list):
+            if len(path) > 0 and issubclass(path[0].indexed_cls, (list, tuple)) \
+                    and issubclass(self._type, (list, tuple)):
                 assert np.ndim(bool_mask_in_output_array) == 1
                 slice_index = translate_bool_vector_to_slice_if_possible(bool_mask_in_output_array)
                 if slice_index:

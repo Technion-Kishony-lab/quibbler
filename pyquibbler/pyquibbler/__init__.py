@@ -8,15 +8,11 @@ from .function_overriding import initialize_quibbler
 from .quib_network import dependency_graph, Direction
 from .utilities.file_path import PathToNotebook
 from .utilities.performance_utils import timer
-from .utilities.user_utils import \
-    get_project, \
-    q, quiby, obj2quib, \
-    reset_random_quibs, reset_file_loading_quibs, reset_impure_quibs, \
-    set_project_directory, get_project_directory, \
-    save_quibs, load_quibs, sync_quibs, \
-    undo, redo, can_redo, can_undo, \
-    refresh_graphics, \
-    list_quiby_funcs, is_quiby, \
-    quibapp
+from .user_utils.gui_apps import quibapp
+from .user_utils.quiby_funcs import list_quiby_funcs, is_quiby, quiby, q
+from .user_utils.project_wraps import get_project, reset_random_quibs, reset_file_loading_quibs, reset_impure_quibs, \
+    get_project_directory, set_project_directory, load_quibs, save_quibs, sync_quibs, undo, redo, can_undo, can_redo, \
+    refresh_graphics
+from .user_utils.obj2quib import obj2quib
 from .assignment.default_value import default
 from .project import Project

@@ -1,5 +1,14 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Union, List, Set
+from itertools import chain
+from typing import Union, List, Set, Iterable, Tuple, Any
+
+from pyquibbler.utilities.general_utils import Args, Kwargs
+
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from pyquibbler.quib.func_calling.func_calls.vectorize.vectorize_metadata import ArgId
 
 
 @dataclass(frozen=True)
@@ -28,3 +37,7 @@ def convert_raw_data_source_arguments_to_data_source_arguments(
         else KeywordArgument(data_source_argument)
         for data_source_argument in data_source_arguments
     }
+
+
+def iter_arg_ids_and_values(args: Args, kwargs: Kwargs) -> Iterable[Tuple[ArgId, Any]]:
+    return chain(enumerate(args), kwargs.items())

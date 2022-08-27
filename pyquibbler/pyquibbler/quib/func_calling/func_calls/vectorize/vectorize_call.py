@@ -10,7 +10,8 @@ from pyquibbler.quib.external_call_failed_exception_handling import external_cal
 from pyquibbler.quib.func_calling import CachedQuibFuncCall
 from pyquibbler.quib.func_calling.utils import cache_method_until_full_invalidation
 from pyquibbler.quib.func_calling.func_calls.vectorize.utils import alter_signature, copy_vectorize, \
-    get_indices_array, iter_arg_ids_and_values
+    get_indices_array
+from pyquibbler.function_definitions.types import iter_arg_ids_and_values
 from pyquibbler.quib.func_calling.func_calls.vectorize.vectorize_metadata \
     import VectorizeCall, VectorizeMetadata
 from pyquibbler.quib.quib import Quib

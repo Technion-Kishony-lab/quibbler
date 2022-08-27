@@ -9,12 +9,8 @@ if TYPE_CHECKING:
     from pyquibbler.function_definitions.func_call import FuncCall
 
 
-class InversionException(PyQuibblerException):
-    pass
-
-
 @dataclass
-class FailedToInvertException(InversionException):
+class FailedToInvertException(PyQuibblerException):
 
     func_call: FuncCall
 

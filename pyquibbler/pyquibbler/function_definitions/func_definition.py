@@ -92,10 +92,7 @@ class FuncDefinition:
         return corresponding_dict.get(argument, None)
 
     def get_data_source_arguments(self, func_args_kwargs: FuncArgsKwargs):
-        from pyquibbler.quib.func_calling.func_calls.vectorize.utils import iter_arg_ids_and_values
-        all_arguments = [KeywordArgument(key) if isinstance(key, str) else PositionalArgument(key)
-                         for key, _ in iter_arg_ids_and_values(func_args_kwargs.args, func_args_kwargs.kwargs)]
-        return [argument for argument in all_arguments
+        return [argument for argument in func_args_kwargs.get_all_arguments()
                 if (argument in self.data_source_arguments)
                 or (self.get_corresponding_argument(argument) in self.data_source_arguments)]
 
