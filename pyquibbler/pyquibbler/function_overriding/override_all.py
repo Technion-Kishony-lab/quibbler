@@ -5,7 +5,7 @@ from pyquibbler.function_overriding.function_override import FuncOverride
 from pyquibbler.function_overriding.third_party_overriding.non_quib_overrides \
     import override_axes_methods, switch_widgets_to_quib_supporting_widgets
 from pyquibbler.function_overriding.defintion_without_override.python_functions import \
-    create_defintions_for_python_functions
+    create_definitions_for_python_functions
 from pyquibbler.function_overriding.quib_overrides.operators.overrides import create_operator_overrides
 from pyquibbler.function_overriding.quib_overrides.quib_methods import create_quib_method_overrides
 from pyquibbler.function_overriding.third_party_overriding.numpy.overrides import create_numpy_overrides
@@ -54,7 +54,7 @@ def initialize_quibbler():
 
     create_jupyter_project_if_in_jupyter_lab()
 
-    function_definitions = create_defintions_for_python_functions()
+    function_definitions = create_definitions_for_python_functions()
     for func_definition in function_definitions:
         add_definition_for_function(
             func=func_definition.func,

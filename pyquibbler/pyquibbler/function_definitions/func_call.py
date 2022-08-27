@@ -8,7 +8,6 @@ from .location import SourceLocation
 from pyquibbler.utilities.iterators import get_object_type_locations_in_args_kwargs, recursively_compare_objects
 from .types import iter_arg_ids_and_values, KeywordArgument, PositionalArgument
 from pyquibbler.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
-from pyquibbler.utilities.iterators import get_object_type_locations_in_args_kwargs, recursively_compare_objects_type
 from pyquibbler.utils import get_signature_for_func
 
 if TYPE_CHECKING:

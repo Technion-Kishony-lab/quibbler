@@ -9,13 +9,14 @@ from pyquibbler.translation.translators.shape_only.shape_only_translators import
     BackwardsShapeOnlyPathTranslator, ForwardsShapeOnlyPathTranslator
 from pyquibbler.inversion.inverters.casting_inverter import \
     StrCastingInverter, NumericCastingInverter, BoolCastingInverter
-from pyquibbler.utilities.user_utils import identity_function_for_obj2quib
+from pyquibbler.user_utils.obj2quib import \
+    identity_function_list2quib, identity_function_dict2quib, identity_function_tuple2quib
 
 if TYPE_CHECKING:
     from pyquibbler.function_definitions.func_definition import FuncDefinition
 
 
-def create_defintions_for_python_functions() -> List[FuncDefinition]:
+def create_definitions_for_python_functions() -> List[FuncDefinition]:
     from pyquibbler.function_definitions.func_definition import create_func_definition
     return [
         create_func_definition(
@@ -43,7 +44,7 @@ def create_defintions_for_python_functions() -> List[FuncDefinition]:
             backwards_path_translators=[BackwardsTranspositionalTranslator],
             forwards_path_translators=[ForwardsTranspositionalTranslator],
          )
-             for func in [list, tuple, identity_function_for_obj2quib]),
+             for func in [list, tuple, identity_function_list2quib, identity_function_tuple2quib]),
 
         # TODO: need definition for dict (to have fully functional obj2quib inversion and translation)
     ]

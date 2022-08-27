@@ -8,6 +8,7 @@ from pyquibbler.translation.types import Inversal
 from pyquibbler.path.path_component import PathComponent
 from pyquibbler.path.utils import working_component
 from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices
+from pyquibbler.utilities.numpy_original_functions import np_logical_and
 
 
 class TranspositionalInverter(Inverter):
@@ -48,7 +49,6 @@ class TranspositionalInverter(Inverter):
         return inversals
 
     def get_inversals(self):
-        from pyquibbler.utilities.numpy_original_functions import np_logical_and
 
         sources_to_paths_in_sources = BackwardsTranspositionalTranslator(
             func_call=self._func_call,

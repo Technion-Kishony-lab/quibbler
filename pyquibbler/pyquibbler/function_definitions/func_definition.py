@@ -97,12 +97,6 @@ class FuncDefinition:
                 or (self.get_corresponding_argument(argument) in self.data_source_arguments)]
 
 
-class AllDataFuncDefinition(FuncDefinition):
-
-    def get_data_source_arguments(self, func_args_kwargs: FuncArgsKwargs):
-        return func_args_kwargs.get_all_arguments()
-
-
 @dataclass
 class ElementWiseFuncDefinition(FuncDefinition):
     """
