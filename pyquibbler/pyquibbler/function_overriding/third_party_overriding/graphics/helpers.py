@@ -5,6 +5,7 @@ from typing import Any
 import matplotlib.widgets
 import matplotlib.patches
 from matplotlib.axes import Axes
+from mpl_toolkits.mplot3d import Axes3D
 
 from pyquibbler.env import PLOT_WITH_PICKER_TRUE_BY_DEFAULT
 from pyquibbler.function_overriding.function_override import FuncOverride
@@ -84,6 +85,8 @@ graphics_override = functools.partial(override_with_cls, GraphicsOverride, is_gr
                                       should_remove_arguments_equal_to_defaults=True)
 
 axes_override = functools.partial(graphics_override, Axes)
+
+axes3d_override = functools.partial(graphics_override, Axes3D)
 
 patches_override = functools.partial(override_class, matplotlib.patches, is_graphics=True)
 
