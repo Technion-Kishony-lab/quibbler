@@ -57,6 +57,8 @@ def elementwise_operator_override(func_name,
                                   ):
     if is_reverse:
         func_name = '__r' + func_name[2:]
+        inverse_funcs = tuple({0: inv_func[1], 1: inv_func[0]} if isinstance(inv_func, dict)
+                              else inv_func for inv_func in inverse_funcs)
 
     return override_with_cls(OperatorOverride, Quib,
                              func_name, data_source_indexes,
