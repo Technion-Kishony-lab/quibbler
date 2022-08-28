@@ -251,3 +251,12 @@ def test_invert_array_with_quib_elements(create_quib_with_return_value):
     ab[:] = 0
 
     assert np.array_equal(ab.get_value(), np.array([0, 0]))
+
+
+def test_inverse_operator():
+    a = iquib(20)
+    b = 100 - a
+    assert b.get_value() == 80, "sanity"
+    b.assign(70)
+    assert b.get_value() == 70
+    assert a.get_value() == 30

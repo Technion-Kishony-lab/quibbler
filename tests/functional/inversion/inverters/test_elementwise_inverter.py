@@ -1,3 +1,5 @@
+import operator
+
 import numpy as np
 import pytest
 from typing import Iterable
@@ -7,11 +9,12 @@ from tests.functional.inversion.inverters.utils import inverse
 
 
 @pytest.mark.parametrize("func,func_args,indices,value,quib_arg_index,expected_value", [
-    (np.add, (Source(np.array([2, 2, 2])), np.array([5, 5, 5])), 0, 10, 0, np.array([5, 2, 2])),
+    (np.add, (Source(np.array([2, 2, 2])), np.array([5, 5, 5])), 0, 9, 0, np.array([4, 2, 2])),
     (np.add, (Source(np.array([[1, 2, 3], [4, 5, 6]])), np.array([5, 5, 5])), ([1], [2]), 100, 0, np.array([[1, 2, 3], [4, 5, 95]])),
     (np.add, (Source(np.array([5, 5, 5])), np.array([[1, 2, 3]])), ([0], [0]), 100, 0, np.array([99, 5, 5])),
     (np.subtract, (Source(np.array([5, 5, 5])), np.array([1, 1, 1])), ([0],), 0, 0, np.array([1, 5, 5])),
     (np.subtract, (np.array([10, 10, 10]), Source(np.array([1, 1, 1]))),  ([0],), 0, 1, np.array([10, 1, 1])),
+    (np.subtract, (np.array([10, 10, 10]), Source(np.array([1, 1, 1]))),  ([0],), 3, 1, np.array([7, 1, 1])),
     (np.multiply, (Source(np.array([1, 1, 1])), np.array([10, 10, 10])), ([0],), 100, 0, np.array([10, 1, 1])),
     (np.divide, (Source(np.array([20, 20, 20])), np.array([5, 5, 5])), ([0],), 5, 0, np.array([25, 20, 20])),
     (np.divide, (np.array([20, 20, 20]), Source(np.array([5, 5, 5]))), ([0],), 5, 1, np.array([4, 5, 5])),
@@ -26,6 +29,7 @@ from tests.functional.inversion.inverters.utils import inverse
     "add: result with different shape than quib",
     "subtract: first arg is quib",
     "subtract: second arg is quib",
+    "subtract: second arg is quib, non-zero",
     "multiply",
     "divide: first arg is quib",
     "divide: second arg is quib",
@@ -37,6 +41,21 @@ from tests.functional.inversion.inverters.utils import inverse
 ])
 def test_inverse_elementwise_two_arguments(func, func_args, indices, value, quib_arg_index, expected_value):
     sources_to_results, _ = inverse(func, indices=indices, value=value, args=func_args, empty_path=indices is None)
+
+    value = sources_to_results[func_args[quib_arg_index]]
+    if isinstance(expected_value, Iterable):
+        assert np.array_equal(value, expected_value)
+    else:
+        assert value == expected_value
+        assert np.shape(value) == np.shape(expected_value)
+
+
+@pytest.mark.parametrize("func,func_args,value,quib_arg_index,expected_value", [
+    (operator.add, (Source(2), 5), 10, 0, 5),
+    (operator.sub, (100, Source(20)), 70, 1, 30),
+])
+def test_inverse_operator_two_arguments(func, func_args, value, quib_arg_index, expected_value):
+    sources_to_results, _ = inverse(func, indices=None, value=value, args=func_args, empty_path=True)
 
     value = sources_to_results[func_args[quib_arg_index]]
     if isinstance(expected_value, Iterable):
