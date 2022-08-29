@@ -28,7 +28,7 @@ GRAPHICS_ASSIGNMENT_MODE_AXES: Optional[Axes] = None
 @contextmanager
 def graphics_assignment_mode(axes: Axes):
     """
-    In graphics assinment mode. Indicating the axes invoking the assignment.
+    In graphics assignment mode. Indicating the axes invoking the assignment.
     """
 
     global GRAPHICS_ASSIGNMENT_MODE_AXES

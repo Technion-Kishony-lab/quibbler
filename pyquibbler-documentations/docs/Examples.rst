@@ -16,7 +16,7 @@ Graphics-driven assignments
    examples/quibdemo_same_data_in_many_forms
    examples/quibdemo_quiby_axes
 
-Quib-linked widgets
+Quib-linked Matplotlib widgets
 -------------------
 .. toctree::
    :maxdepth: 1
@@ -24,6 +24,13 @@ Quib-linked widgets
    examples/quibdemo_slider
    examples/quibdemo_CheckButtons
    examples/quibdemo_drag_multiple_points
+
+Quib-linked ipywidgets
+-------------------
+.. toctree::
+   :maxdepth: 1
+
+   examples/quibdemo_ipywidgets_quadratic_eq
 
 Overriding
 ----------

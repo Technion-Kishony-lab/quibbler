@@ -65,8 +65,8 @@ def iter_objects_of_type_in_object_shallowly(object_type: Type, obj: Any):
     return iter_objects_of_type_in_object_recursively(object_type, obj, SHALLOW_MAX_DEPTH, SHALLOW_MAX_LENGTH)
 
 
-def iter_objects_of_type_in_object(object_type: Type, obj: Any, force_recursive: bool = False):
-    if force_recursive:
+def iter_objects_of_type_in_object(object_type: Type, obj: Any, recursive: bool = False):
+    if recursive:
         return iter_objects_of_type_in_object_recursively(object_type, obj)
     result = iter_objects_of_type_in_object_shallowly(object_type, obj)
     if DEBUG:
