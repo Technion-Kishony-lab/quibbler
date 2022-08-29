@@ -113,11 +113,38 @@ def get_wrapper_for_trait_type_set():
     return quiby_set
 
 
+def get_wrapper_for_range_widget_init(class_to_override):
+    original__init__ = class_to_override.__init__
+
+    @functools.wraps(original__init__)
+    def _quibbler__init__(self, *args, **kwargs):
+        try:
+            original__init__(self, *args, **kwargs)
+        except TypeError:
+            if not isinstance(kwargs['value'], Quib):
+                raise
+            super(class_to_override, self).__init__(*args, **kwargs)
+
+    return _quibbler__init__
+
+
 def override_ipywidgets_if_installed():
+    """Allow ipywidgets to work with quib arguments"""
+
+    # ipywidgets is not a required package for quibbler. We only override it if it is installed:
     if not is_ipywidgets_installed():
         return
 
     # noinspection PyPackageRequirements
     from traitlets import TraitType
+    # noinspection PyPackageRequirements
+    from ipywidgets.widgets.widget_int import _BoundedIntRange
+    # noinspection PyPackageRequirements
+    from ipywidgets.widgets.widget_float import _BoundedFloatRange
 
+    # Replace the base set for all widget traits:
     TraitType.set = get_wrapper_for_trait_type_set()
+
+    # Replace init for widgets that check input validity in their init:
+    _BoundedIntRange.__init__ = get_wrapper_for_range_widget_init(_BoundedIntRange)
+    _BoundedFloatRange.__init__ = get_wrapper_for_range_widget_init(_BoundedFloatRange)
