@@ -86,3 +86,5 @@ for rst_path in rst_paths:
     reformat_file(str(rst_path))
 
 os.system(f"mv {docs_notebooks_path / '*.rst'} {docs_path}")
+
+print('Notebook conversion to rst completed.')

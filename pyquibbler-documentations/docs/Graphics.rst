@@ -304,3 +304,11 @@ immediate recalculation for graphics quibs. To define for each quib
 under what conditions it should be refreshed, see the
 :py:attr:`~pyquibbler.Quib.graphics_update` property and the central
 :py:func:`~pyquibbler.refresh_graphics` function.
+
+See also
+~~~~~~~~
+
+-  :doc:`Quiby-ipywidgets`
+
+-  :doc:`Inverse-assignments`
+

@@ -20,7 +20,5 @@
       ~SaveFormat.OFF
       ~SaveFormat.TXT
       ~SaveFormat.BIN
-      ~SaveFormat.VALUE_TXT
-      ~SaveFormat.VALUE_BIN
    
    

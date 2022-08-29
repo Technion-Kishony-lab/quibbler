@@ -52,15 +52,16 @@ COVID-19 analysis
 
 .. code:: python
 
+    # List high-rate countries
+    text_props = {'va': 'top', 'ha': 'right', 'color': 'r'}
+    plt.text(18, 68, 'High-rate countries', fontsize=14, **text_props)
+    plt.text(18, 63, q("\n".join, fatality_table[above_threshold]['Country']), **text_props);
+
+.. code:: python
+
     # Plot pie chart
     totals = np.array([np.sum(~above_threshold), np.sum(above_threshold)])
     ax = plt.axes([0.2, 0.5, 0.3, 0.3])
     plt.pie(totals, colors=['g', 'r'], labels=totals);
 
-.. code:: python
-
-    # List high-rate countries
-    text_props = {'va': 'top', 'ha': 'right', 'color': 'r'}
-    plt.text(18, 68, 'High-rate countries', fontsize=14, **text_props)
-    plt.text(18, 63, q("\n".join, fatality_table[above_threshold]['Country']), **text_props);
 .. image:: ../images/demo_gif/quibdemo_COVID_analysis.gif
