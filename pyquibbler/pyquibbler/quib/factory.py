@@ -34,7 +34,7 @@ def get_quib_name() -> Optional[str]:
         try:
             return get_var_name_being_set_outside_of_pyquibbler()
         except Exception as e:
-            logger.warning(f"Failed to get name, exception {e}")
+            logger.warning(f"Failed to get name, exception:\n{e}")
 
     return None
 
