@@ -17,7 +17,7 @@ Graphics-driven assignments
    examples/quibdemo_quiby_axes
 
 Quib-linked Matplotlib widgets
--------------------
+------------------------------
 .. toctree::
    :maxdepth: 1
 
@@ -26,7 +26,7 @@ Quib-linked Matplotlib widgets
    examples/quibdemo_drag_multiple_points
 
 Quib-linked ipywidgets
--------------------
+----------------------
 .. toctree::
    :maxdepth: 1
 
