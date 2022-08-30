@@ -7,7 +7,7 @@ import pathlib
 
 class SaveFormat(StrEnum):
     """
-    Define the format for saving quib assignments:
+    Define the file format for saving quib assignments:
 
     See Also
     --------
@@ -15,13 +15,13 @@ class SaveFormat(StrEnum):
     """
 
     OFF = 'off'
-    "``'off'``;  do not save"
+    "``'off'`` - do not save"
 
     TXT = 'txt'
-    "``'txt'``;  save assignments as text if possible (.txt)"
+    "``'txt'`` - save assignments as text if possible (.txt)"
 
     BIN = 'bin'
-    "``'bin'``;  save assignments as a binary file (.quib)"
+    "``'bin'`` - save assignments as a binary file (.quib)"
 
 
 SAVE_FORMAT_TO_FILE_EXT = {
@@ -39,7 +39,10 @@ class ResponseToFileNotDefined(StrEnum):
 
 @dataclass
 class FileNotDefinedException(PyQuibblerException):
-
+    """
+    There are several reasons for a quib not having a defined file to save to.
+    Here, we identify the specific reason.
+    """
     quib_assigned_name: Optional[str]
     actual_save_directory: Optional[pathlib.Path]
     actual_save_format: Optional[SaveFormat]

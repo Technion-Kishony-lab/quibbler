@@ -620,7 +620,8 @@ class Quib:
         """
         Callable: The function run by the quib.
 
-        A quib calls its function ``func``, with its arguments ``args`` and its keyworded variables ``kwargs``.
+        A quib calls its function ``func``, with its positional arguments ``args``
+        and its keyworded arguments ``kwargs``.
 
         The quib's value is given by ``value = func(*args, **kwargs)``,
         with any quibs in `args` or `kwargs` replaced by their values (unless ``pass_quibs=True``).
@@ -641,9 +642,10 @@ class Quib:
     @property
     def args(self) -> Tuple[Any]:
         """
-        tuple of any: The arguments to be passed to the function run by the quib.
+        tuple of any: The positional arguments to be passed to the function run by the quib.
 
-        A quib calls its function ``func``, with its arguments ``args`` and its keyworded variables ``kwargs``.
+        A quib calls its function ``func``, with its positional arguments ``args``
+        and its keyworded arguments ``kwargs``.
 
         The quib's value is given by ``value = func(*args, **kwargs)``.
 
@@ -668,7 +670,8 @@ class Quib:
         """
         dict of str to any: The keyworded arguments for the function run by the quib.
 
-        A quib calls its function ``func``, with its arguments ``args`` and its keyworded variables ``kwargs``.
+        A quib calls its function ``func``, with its positional arguments ``args``
+        and its keyworded arguments ``kwargs``.
 
         The quib's value is given by ``value = func(*args, **kwargs)``.
 
@@ -719,8 +722,8 @@ class Quib:
         This behaviour guarentees mathematical consistency (for example, if ``r`` is a random quib ``s = r - r``
         will always give a value of 0).
 
-        The quib can be re-evaluated (randomized), by invalidating its value either locally using `invalidate()`
-        or centrally, using `qb.reset_random_quibs()`
+        The quib can be re-evaluated (randomized), by invalidating its value either locally using ``invalidate()``
+        or centrally, using ``qb.reset_random_quibs()``
 
         See Also
         --------
@@ -745,8 +748,8 @@ class Quib:
         A quib whose value depends on the content of external files automatically caches its value.
         Thereby, repeated calls to the quib return the same results even if the file changes.
 
-        The quib can be re-evaluated, by invalidating its value either locally using `invalidate()`
-        or centrally, using `qb.reset_file_loading_quibs()`
+        The quib can be re-evaluated, by invalidating its value either locally using ``invalidate()``
+        or centrally, using ``qb.reset_file_loading_quibs()``
 
         See Also
         --------
@@ -1703,19 +1706,21 @@ class Quib:
     @property
     def save_format(self) -> SaveFormat:
         """
-        SaveFormat: The file format in which quib assignments are saved.
+        SaveFormat: The file format in which quib overriding assignments are saved.
 
         Can be set as `SaveFormat` or as `str`, or `None`:
 
-        ``'txt'`` - save assignments as text file.
+        ``'txt'`` - save overriding assignments as text file.
 
-        ``'bin'`` - save assignments as a binary file.
+        ``'bin'`` - save overriding assignments as a binary file.
 
-        ``None`` - yield to the Project default save_format
+        ``'off'`` - do not save overriding assignments of this quib.
+
+        ``None`` - yield to the Project save_format (default).
 
         See Also
         --------
-        SaveFormat
+        SaveFormat, actual_save_format, Project.SaveFormat
         """
         return self.handler.save_format
 
