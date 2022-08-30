@@ -1231,59 +1231,6 @@ class Quib:
         return self
 
     """
-    iterations
-    """
-
-    def __len__(self):
-        if LEN_RAISE_EXCEPTION:
-            raise TypeError('len(Q), where Q is a quib, is not allowed. '
-                            'To get a function quib, use q(len,Q), or quiby(q)(Q). '
-                            'To get the len of the current value of Q, use len(Q.get_value()).')
-        else:
-            return len(self.get_value_valid_at_path(None))
-
-    def __iter__(self):
-        """
-        Return an iterator to a detected amount of elements requested from the quib.
-        """
-        if ITER_RAISE_EXCEPTION:
-            raise TypeError('Cannot iterate over quibs, as their size can vary. '
-                            'Try Quib.iter_first() to iterate over the n-first items of the quib.')
-        return Unpacker(self)
-
-    def iter_first(self, amount: Optional[int] = None):
-        """
-        Return an iterator to the first `amount` elements of the quib.
-
-        ``a, b = quib.iter_first(2)`` is the same as ``a, b = quib[0], quib[1]``.
-
-        When ``amount=None``, quibbler will try to detect the correct amount automatically, and
-        might fail with a RuntimeError.
-        For example, ``a, b = iquib([1, 2]).iter_first()`` is the same as ``a, b = iquib([1, 2]).iter_first(2)``.
-        And even if the quib is larger than the unpacked amount, the iterator will still yield only the first
-        items - ``a, b = iquib([1, 2, 3, 4]).iter_first()`` is the same as ``a, b = iquib([1, 2, 3, 4]).iter_first(2)``.
-
-        Returns
-        -------
-        Iterator of Quib
-
-        Examples
-        --------
-        >>> @quiby
-        ... def sum_and_prod(x):
-        ...     return np.sum(x), np.prod(x)
-        ...
-        >>> nums = iquib([10, 20, 30])
-        >>> sum_nums, prod_nums = sum_and_prod(nums).iter_first()
-        >>> sum_nums.get_value()
-        60
-
-        >>> prod_nums.get_value()
-        6000
-        """
-        return Unpacker(self, amount)
-
-    """
     callback
     """
 
@@ -1451,6 +1398,14 @@ class Quib:
         """
         return self.handler.quib_function_call.get_ndim()
 
+    def __len__(self):
+        if LEN_RAISE_EXCEPTION:
+            raise TypeError('len(Q), where Q is a quib, is not allowed. '
+                            'To get a function quib, use q(len,Q), or quiby(q)(Q). '
+                            'To get the len of the current value of Q, use len(Q.get_value()).')
+        else:
+            return len(self.get_value_valid_at_path(None))
+
     def __bool__(self):
         if BOOL_RAISE_EXCEPTION:
             raise TypeError('bool(Q), where Q is a quib, is not allowed. '
@@ -1458,6 +1413,47 @@ class Quib:
                             'To get bool of the current value of Q, use bool(Q.get_value()).')
         else:
             return bool(self.get_value())
+
+    def __iter__(self):
+        """
+        Return an iterator to a detected amount of elements requested from the quib.
+        """
+        if ITER_RAISE_EXCEPTION:
+            raise TypeError('Cannot iterate over quibs, as their size can vary. '
+                            'Try Quib.iter_first() to iterate over the n-first items of the quib.')
+        return Unpacker(self)
+
+    def iter_first(self, amount: Optional[int] = None):
+        """
+        Return an iterator to the first `amount` elements of the quib.
+
+        ``a, b = quib.iter_first(2)`` is the same as ``a, b = quib[0], quib[1]``.
+
+        When ``amount=None``, quibbler will try to detect the correct amount automatically, and
+        might fail with a RuntimeError.
+        For example, ``a, b = iquib([1, 2]).iter_first()`` is the same as ``a, b = iquib([1, 2]).iter_first(2)``.
+        And even if the quib is larger than the unpacked amount, the iterator will still yield only the first
+        items - ``a, b = iquib([1, 2, 3, 4]).iter_first()`` is the same as ``a, b = iquib([1, 2, 3, 4]).iter_first(2)``.
+
+        Returns
+        -------
+        Iterator of Quib
+
+        Examples
+        --------
+        >>> @quiby
+        ... def sum_and_prod(x):
+        ...     return np.sum(x), np.prod(x)
+        ...
+        >>> nums = iquib([10, 20, 30])
+        >>> sum_nums, prod_nums = sum_and_prod(nums).iter_first()
+        >>> sum_nums.get_value()
+        60
+
+        >>> prod_nums.get_value()
+        6000
+        """
+        return Unpacker(self, amount)
 
     """
     overrides
