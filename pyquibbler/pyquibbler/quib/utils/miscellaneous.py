@@ -9,11 +9,11 @@ from ..exceptions import NestedQuibException
 from ...assignment.default_value import Default
 
 
-def is_there_a_quib_in_object(obj, force_recursive: bool = False):
+def is_there_a_quib_in_object(obj, recursive: bool = False):
     """
     Returns true if there is a quib object nested inside the given object and false otherwise.
     """
-    return not is_iterator_empty(iter_quibs_in_object(obj, force_recursive))
+    return not is_iterator_empty(iter_quibs_in_object(obj, recursive))
 
 
 def is_there_a_quib_in_args(args, kwargs):
@@ -59,7 +59,7 @@ def copy_and_replace_quibs_with_vals(obj: Any):
                                             max_length=SHALLOW_MAX_LENGTH, obj=obj)
     if DEBUG:
         nested_quibs = set(iter_quibs_in_object_recursively(result))
-        if nested_quibs:
+        if is_there_a_quib_in_object(result, recursive=True):
             raise NestedQuibException(obj, nested_quibs)
     return result
 

@@ -1,6 +1,8 @@
 import enum
 import pathlib
+
 from dataclasses import dataclass
+
 from pyquibbler import Quib, PathToNotebook
 from pyquibbler.env import REPR_RETURNS_SHORT_NAME
 

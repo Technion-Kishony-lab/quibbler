@@ -321,9 +321,10 @@ def dependency_graph(focal_quib: Quib,
     """
     Draw a network of quibs
 
-    Trace a focal quib upstream, downstream or both and draw an interactive network of dependent quibs.
+    Trace a focal quib upstream, downstream or in both directions and draw a network of dependent quibs.
 
     .. image:: /images/network_tracing.png
+
 
     Parameters
     ----------

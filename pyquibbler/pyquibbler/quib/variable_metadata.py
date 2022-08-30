@@ -1,16 +1,10 @@
-
 import ast
 from dataclasses import dataclass
 from typing import Optional
 
 from varname.utils import ASSIGN_TYPES, get_node, node_name, AssignType
 
-from pyquibbler.exceptions import PyQuibblerException
-from pyquibbler.quib.types import FileAndLineNumber
-
-
-class CannotFindNodeException(PyQuibblerException):
-    pass
+from .types import FileAndLineNumber
 
 
 AST_ASSIGNMENTS_TO_VAR_NAME_STATES = {}

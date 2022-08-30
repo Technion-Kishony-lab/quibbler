@@ -23,7 +23,7 @@ class CannotNestQuibInIQuibException(DebugException):
     value: Any
 
     def __str__(self):
-        return 'Cannot create an input quib that contains another quib'
+        return 'Cannot create an input quib that contains another quib.'
 
 
 def identity_function(v):
@@ -101,7 +101,7 @@ def iquib(value: Any,
     """
 
     if DEBUG:
-        if is_there_a_quib_in_object(value, force_recursive=True):
+        if is_there_a_quib_in_object(value, recursive=True):
             raise CannotNestQuibInIQuibException(value)
 
     # iquib is implemented as a quib with an identity function

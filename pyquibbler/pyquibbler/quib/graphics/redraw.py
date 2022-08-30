@@ -1,14 +1,17 @@
 from __future__ import annotations
+
 import contextlib
-from typing import Set, Dict, TYPE_CHECKING
+
+from typing import Set, Dict
 from matplotlib.figure import Figure
 from matplotlib.pyplot import fignum_exists
 from matplotlib._pylab_helpers import Gcf
 
-from pyquibbler.quib.graphics import GraphicsUpdateType
+from .graphics_update import GraphicsUpdateType
 from pyquibbler.logger import logger
 from pyquibbler.utilities.performance_utils import timer
 
+from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pyquibbler.quib.quib import Quib
 

@@ -1,10 +1,9 @@
 import operator
-from typing import Callable
-from typing import Tuple, Any, Mapping
-
 import numpy as np
 
-from pyquibbler.quib.pretty_converters.convert_math_equations import OPERATOR_FUNCS_TO_MATH_CONVERTERS, \
+from typing import Callable, Tuple, Any, Mapping
+
+from .convert_math_equations import OPERATOR_FUNCS_TO_MATH_CONVERTERS, \
     MathExpression, StringMathExpression, MathPrecedence
 from pyquibbler.env import REPR_RETURNS_SHORT_NAME
 

@@ -1,13 +1,14 @@
 from __future__ import annotations
-from typing import Any, TYPE_CHECKING, Dict
+from typing import Any, Dict
 
 from pyquibbler.function_definitions import add_definition_for_function
 from pyquibbler.function_definitions.func_definition import create_func_definition
 from pyquibbler.inversion.inverter import Inverter
-from pyquibbler.path.path_component import Path
+from pyquibbler.path import Path
 from pyquibbler.translation.backwards_path_translator import BackwardsPathTranslator
 from pyquibbler.translation.types import Source, Inversal
 
+from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pyquibbler.quib.quib import Quib
 

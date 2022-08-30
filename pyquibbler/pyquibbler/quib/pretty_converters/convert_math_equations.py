@@ -1,11 +1,12 @@
 import enum
-from pyquibbler.utilities.operators_with_reverse import REVERSE_OPERATOR_NAMES_TO_FUNCS
 import operator
+import numpy as np
+
 from dataclasses import dataclass
 from typing import Callable, Tuple, Any
 from abc import ABC, abstractmethod
 
-import numpy as np
+from pyquibbler.utilities.operators_with_reverse import REVERSE_OPERATOR_NAMES_TO_FUNCS
 
 
 SPACE = ' '

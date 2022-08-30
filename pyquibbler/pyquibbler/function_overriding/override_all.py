@@ -1,5 +1,8 @@
 from typing import List
 
+from pyquibbler.utils import ensure_only_run_once_globally
+from pyquibbler.project.jupyer_project.jupyter_project import create_jupyter_project_if_in_jupyter_lab
+from pyquibbler.function_definitions import add_definition_for_function
 from .defintion_without_override.python_functions import create_definitions_for_python_functions
 from .function_override import FuncOverride
 from .third_party_overriding.ipywidgets.overrides import override_ipywidgets_if_installed
@@ -8,9 +11,6 @@ from .quib_overrides.operators.overrides import create_operator_overrides
 from .quib_overrides.quib_methods import create_quib_method_overrides
 from .third_party_overriding.numpy.overrides import create_numpy_overrides
 from .third_party_overriding.graphics.overrides import create_graphics_overrides
-from pyquibbler.utils import ensure_only_run_once_globally
-from pyquibbler.project.jupyer_project.jupyter_project import create_jupyter_project_if_in_jupyter_lab
-from pyquibbler.function_definitions import add_definition_for_function
 
 
 @ensure_only_run_once_globally

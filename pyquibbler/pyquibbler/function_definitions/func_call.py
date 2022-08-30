@@ -2,14 +2,15 @@ from __future__ import annotations
 
 from abc import abstractmethod, ABC
 from dataclasses import dataclass
-from typing import Tuple, Any, Mapping, Optional, Callable, List, TYPE_CHECKING, Type, ClassVar, Dict, Set
+from typing import Tuple, Any, Mapping, Optional, Callable, List, Type, ClassVar, Dict, Set
 
-from .location import SourceLocation
 from pyquibbler.utilities.iterators import get_object_type_locations_in_args_kwargs, recursively_compare_objects
-from .types import iter_arg_ids_and_values, KeywordArgument, PositionalArgument
 from pyquibbler.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
 from pyquibbler.utils import get_signature_for_func
+from .location import SourceLocation
+from .types import iter_arg_ids_and_values, KeywordArgument, PositionalArgument
 
+from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .func_definition import FuncDefinition
 

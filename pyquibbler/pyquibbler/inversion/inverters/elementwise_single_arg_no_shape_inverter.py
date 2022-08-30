@@ -2,13 +2,13 @@ import warnings
 
 import numpy as np
 
-from pyquibbler import Assignment
-from ..generic_inverse_functions import create_inverse_single_arg_func
-from ..inverter import Inverter
-from ..exceptions import FailedToInvertException
+from pyquibbler.assignment import Assignment
 from pyquibbler.path.path_component import PathComponent
 from pyquibbler.path.data_accessing import deep_get
 from pyquibbler.translation.types import Source, Inversal
+from ..generic_inverse_functions import create_inverse_single_arg_func
+from ..inverter import Inverter
+from ..exceptions import FailedToInvertException
 
 
 def is_path_component_open_ended(component: PathComponent):

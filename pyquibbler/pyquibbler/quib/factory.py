@@ -1,26 +1,27 @@
 from __future__ import annotations
 import pathlib
-from typing import Optional, Tuple, Callable, Any, Mapping, TYPE_CHECKING, Union, Set, List
+from typing import Optional, Tuple, Callable, Any, Mapping, Union, Set, List
 
 from pyquibbler.assignment import AssignmentTemplate
 from pyquibbler.utilities.missing_value import missing
 from pyquibbler.env import GET_VARIABLE_NAMES, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS, LAZY, GRAPHICS_LAZY
 from pyquibbler.logger import logger
 from pyquibbler.project import Project
-from pyquibbler.quib.func_calling import CachedQuibFuncCall
-from pyquibbler.quib.get_value_context_manager import is_within_get_value_context
-from pyquibbler.quib.graphics import GraphicsUpdateType
-from pyquibbler.quib.quib_guard import add_new_quib_to_guard_if_exists
-from pyquibbler.quib.quib import Quib
-from pyquibbler.quib.types import FileAndLineNumber
-from pyquibbler.quib.utils.miscellaneous import deep_copy_without_quibs_or_graphics
-from pyquibbler.quib.variable_metadata import get_var_name_being_set_outside_of_pyquibbler, \
-    get_file_name_and_line_number_of_quib
 from pyquibbler.file_syncing.types import SaveFormat
 from pyquibbler.function_definitions.func_definition import FuncDefinition
 from pyquibbler.function_definitions import get_definition_for_function, SourceLocation
 from pyquibbler.utils import get_original_func
+from .func_calling import CachedQuibFuncCall
+from .get_value_context_manager import is_within_get_value_context
+from .graphics import GraphicsUpdateType
+from .quib_guard import add_new_quib_to_guard_if_exists
+from .quib import Quib
+from .types import FileAndLineNumber
+from .utils.miscellaneous import deep_copy_without_quibs_or_graphics
+from .variable_metadata import get_var_name_being_set_outside_of_pyquibbler, \
+    get_file_name_and_line_number_of_quib
 
+from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pyquibbler import CacheMode
 

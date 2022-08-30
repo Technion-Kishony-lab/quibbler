@@ -1,18 +1,16 @@
 # flake8: noqa
 
 import math
-
 import numpy as np
 
-from pyquibbler.function_overriding.third_party_overriding.numpy.helpers import numpy_override, \
-    numpy_override_random, numpy_override_read_file, \
-    numpy_override_transpositional, numpy_override_reduction, numpy_override_accumulation, \
-    elementwise, single_arg_elementwise, numpy_override_shape_only
-from pyquibbler.function_overriding.third_party_overriding.numpy.vectorize_overrides import create_vectorize_overrides
 from pyquibbler.quib.func_calling.func_calls.apply_along_axis_call import ApplyAlongAxisQuibFuncCall
 from pyquibbler.translation.translators.apply_along_axis_translator import ApplyAlongAxisForwardsTranslator
-from pyquibbler.function_overriding.third_party_overriding.numpy.inverse_functions import \
-    inv_sin, inv_cos, inv_tan, keep_sign
+from .inverse_functions import inv_sin, inv_cos, inv_tan, keep_sign
+from .vectorize_overrides import create_vectorize_overrides
+from .helpers import numpy_override, numpy_override_random, numpy_override_read_file, \
+    numpy_override_transpositional, numpy_override_reduction, numpy_override_accumulation, \
+    elementwise, single_arg_elementwise, numpy_override_shape_only
+
 
 def identity(x):
     return x

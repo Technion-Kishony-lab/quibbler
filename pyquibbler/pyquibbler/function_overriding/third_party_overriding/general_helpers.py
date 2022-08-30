@@ -1,8 +1,9 @@
 import functools
 from typing import List, Optional, Callable, Type, Tuple
+
 from pyquibbler.function_definitions.types import RawArgument
 from pyquibbler.function_definitions.func_definition import create_func_definition, FuncDefinition
-from pyquibbler.function_overriding.function_override import FuncOverride, ClassOverride, NotImplementedOverride
+from ..function_override import FuncOverride, ClassOverride, NotImplementedOverride
 
 
 def override_with_cls(override_cls,
