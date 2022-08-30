@@ -3,24 +3,24 @@ from pyquibbler.utils import StrEnum
 
 class Direction(StrEnum):
     """
-    Define upstream, downstream directions in quib graph:
+    Define upstream/downstream directions in quib dependency graph.
 
     See Also
     --------
-    quib_network
+    dependency_graph
     """
 
     UPSTREAM = 'upstream'
-    "``'upstream'``;  towards quibs affecting current quib"
+    "Towards quibs affecting current quib (``'upstream'``)."
 
     DOWNSTREAM = 'downstream'
-    "``'downstream'``;  towards quibs affected by current quib"
+    "Towards quibs affected by current quib (``'downstream'``)."
 
     BOTH = 'both'
-    "``'both'``;  towards upstream and downstream"
+    "Towards both upstream and downstream directions (``'both'``)."
 
     ALL = 'all'
-    "``'all'``;  fully explore the network from the current quib"
+    "Fully explore the network from the current quib (``'all'``)."
 
 
 def reverse_direction(direction: Direction) -> Direction:

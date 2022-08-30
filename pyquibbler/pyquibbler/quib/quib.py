@@ -797,11 +797,11 @@ class Quib:
         """
         CacheStatus: The status of the quib's cache.
 
-        ``ALL_INVALID``: the cache is fully invalid, or the quib is not caching.
+        ``ALL_INVALID`` : the cache is fully invalid, or the quib is not caching.
 
-        ``ALL_VALID``: The cache is fully valid.
+        ``ALL_VALID`` : The cache is fully valid.
 
-        ``PARTIAL``: Only part of the quib's cache is valid.
+        ``PARTIAL`` : Only part of the quib's cache is valid.
 
         See Also
         --------
@@ -867,11 +867,11 @@ class Quib:
         """
         bool or None: Specifies whether the function runs by the quib is a graphics function.
 
-        ``True``    for known graphics functions
+        ``True`` : known graphics functions
 
-        ``False``   for known non-graphics functions
+        ``False`` : known non-graphics functions
 
-        ``None``    auto-detect, for functions that may create graphics (such as for user functions).
+        ``None`` : auto-detect. Used for functions that may create graphics (default for user functions).
 
         See Also
         --------
@@ -884,13 +884,14 @@ class Quib:
         """
         bool: Specifies whether the quib is a graphics quib.
 
-        A quib is defined as graphics if its function is a known graphics function (``is_graphics=True``),
+        A quib is defined as a graphics quib if its function is a known graphics function (``is_graphics=True``),
         or if its function's is graphics-auto-detect (``is_graphics=None``) and a call to the function
         created graphics.
 
-        Additionally, quibs with assigned callback functions are also defined as graphics.
+        Additionally, quibs with assigned `callback` functions are also defined as graphics.
 
-        A quib defined as graphics will get auto-refreshed based on the `graphics_update`.
+        A quib defined as a graphics quib will automatically-refreshes upon upstream changes,
+        based on its `graphics_update` property.
 
         See Also
         --------
@@ -903,24 +904,24 @@ class Quib:
             or len(self.handler.callbacks) > 0
 
     @property
-    def graphics_update(self) -> GraphicsUpdateType:
+    def graphics_update(self) -> Optional[GraphicsUpdateType]:
         """
         GraphicsUpdateType or None: Specifies when the quib should re-evaluate and refresh graphics.
 
         Can be set to a `GraphicsUpdateType`, or `str`:
 
-        ``'drag'``: Update continuously as upstream quibs are being dragged,
+        ``'drag'`` : Update continuously as upstream quibs are being dragged,
         or upon programmatic assignments to upstream quibs (default for graphics quibs).
 
-        ``'drop'``: Update only at the end of dragging of upstream quibs (at mouse 'drop'),
+        ``'drop'`` : Update only at the end of dragging of upstream quibs (at mouse 'drop'),
         or upon programmatic assignments to upstream quibs.
 
-        ``'central'``:  Do not automatically update graphics upon upstream changes.
+        ``'central'`` :  Do not automatically update graphics upon upstream changes.
         Only update upon explicit request for the quibs `get_value()`, or upon the
         central redraw command: `refresh_graphics()`.
 
-        ``'never'``: Do not automatically update graphics upon upstream changes.
-        Only update upon explicit request for the quibs `get_value()` (default for non-graphics quibs).
+        ``'never'`` : Do not automatically update graphics upon upstream changes.
+        Only update upon explicit request for the quibs `get_value()`.
 
         ``None``: Yield to the default project's graphics_update
 
@@ -940,8 +941,8 @@ class Quib:
         """
         The actual graphics update mode of the quib.
 
-        The quib's ``actual_graphics_update`` is its ``graphics_update`` if not ``None``.
-        Otherwise it defaults to the project's ``graphics_update``.
+        The quib's ``actual_graphics_update`` is specified by its ``graphics_update`` if not ``None``.
+        Otherwise, it defaults to the project's ``graphics_update``.
 
         See Also
         --------
@@ -956,13 +957,13 @@ class Quib:
     @property
     def allow_overriding(self) -> bool:
         """
-        bool: Indicates whether the quib can be overridden.
+        bool: Indicates whether the quib's value can be overridden.
 
-        The default for `allow_overriding` is `True` for iquibs and `False` in function quibs.
+        The default for `allow_overriding` is `True` for input quibs (iquibs) and `False` in function quibs (fquibs).
 
         See Also
         --------
-        assign, assigned_quibs
+        iquib, assign, assigned_quibs
         """
         return self.handler.allow_overriding
 
@@ -976,24 +977,19 @@ class Quib:
         """
         Assign a value to the whole quib, or to a specific key.
 
-        This method is used to assign a value to a quib. Assigned values can override the
-        default value of the focal quib, or can inverse propagate to override the value of
-        an upstream quib (inverse propagation is controlled by `assigned_quibs`, `allow_overriding`).
-
         Assuming ``w`` is a quib:
 
-        ``w.assign(value)`` overrides the quib's value as a whole.
+        ``w.assign(value)`` assigns a new value to the quib as a whole.
 
-        ``w.assign(value, key)`` overrides the quib at the specified key. This option is equivalent to
-        ``w[key] = valye``.
-
+        ``w.assign(value, key)`` assigns the quib at the specified key. This option is equivalent to
+        ``w[key] = value``.
 
         Parameters
         ----------
         value: any
-            A value to assign as an override to the quib's value.
+            A value to assign as to the quib at the specified `key`.
 
-        key: any
+        key: any (optional)
             An optional key into which to assign the `value`.
 
         See Also
@@ -1003,19 +999,25 @@ class Quib:
 
         Examples
         --------
-        Whole-object assignment
+        Whole-object assignment:
 
         >>> a = iquib([1, 2, 3])
         >>> a.assign('new value')
         >>> a.get_value()
         'new value'
 
-        Item-specific assignment
+        Item-specific assignment:
 
         >>> a = iquib([1, 2, 3])
         >>> a.assign('new value', 1)
         >>> a.get_value()
         [1, 'new value', 3]
+
+        Note
+        ----
+        Assigned values can override the value of the focal quib, or can inverse propagate to override the values of
+        upstream quibs. The level at which the assignment is actulaized is controlled by the `assigned_quibs` property
+        of the focal quib to which the assignment is made and by the `allow_overriding` property of upstream quibs.
         """
 
         key = copy_and_replace_quibs_with_vals(key)
@@ -1032,23 +1034,26 @@ class Quib:
     @property
     def assigned_quibs(self) -> Union[None, Set[Quib, ...]]:
         """
-        None or set of Quib: Set of quibs to which assignments to this quib could inverse-translate.
+        None or set of Quib: Specifies the quibs to which assignments to this quib could inverse-translate.
 
-        When ``assigned_quibs=None``, assignments to the quib are inverse-propagated to any upstream quibs
+        Options:
+
+        `None` : assignments to the quib are inverse-propagated and can be actualized as overrides at any upstream quib
         whose ``allow_overriding=True``.
 
-        When ``assigned_quibs`` is a set of `Quibs`, assignments to the quib are inverse-propagated
-        to any upstream quibs in this set whose ``allow_overriding=True``.
+        `set of Quibs` : assignments to the quib are inverse-propagated and can be actualized as overrides at
+        any upstream quibs in the specified set whose ``allow_overriding=True``.
 
         If multiple choices are available for inverse assignment, a dialog is presented to allow choosing between
         these options.
 
-        Setting ``assigned_quibs=set()`` prevents assignments.
+        `set()` : prevents assignments to this quib.
 
-        To allow assignment to self, the focal quib or `'self'` can be used within the set of quibs.
-        When self is included the ``allow_overriding`` property is automatically set to ``True``.
+        To allow assignments to actualize as overrides of the focal quib to which the assignments are made,
+        the focal quib or `'self'` can be used within the set of quibs specified by `assigned quibs`.
+        When self is included, the ``allow_overriding`` property is automatically set to ``True``.
 
-        Specifying a single quib, or `'self'`, is interpreted as a set containing this single quib.
+        Specifying a single quib, or `'self'`, instead of a set is interpreted as a set containing this single quib.
 
         See Also
         --------
@@ -1080,9 +1085,9 @@ class Quib:
         self.handler.assigned_quibs = quibs
 
     @property
-    def assignment_template(self) -> AssignmentTemplate:
+    def assignment_template(self) -> Optional[AssignmentTemplate]:
         """
-        AssignmentTemplate: Dictates type and range restricting assignments to the quib.
+        AssignmentTemplate or None: Dictates type and range restricting assignments to the quib.
 
         See Also
         --------
@@ -1101,7 +1106,7 @@ class Quib:
         """
         Sets an assignment template for the quib.
 
-        The assignment template restricts the values of any future assignments to the quib.
+        The assignment template restricts the values of overriding assignments to the quib.
 
         Options:
 
@@ -1136,6 +1141,11 @@ class Quib:
         >>> a.assign(170)
         >>> a.get_value()
         100
+
+        Note
+        ----
+        Setting the `assignment_template` only affects future overrides to the quib.
+        It does not alter exisitng overrides.
         """
 
         self.handler.assignment_template = create_assignment_template(*args)
@@ -1291,7 +1301,7 @@ class Quib:
             The function to call upon a change to the quib value.
             The function is called as ``callback(new_value)``
 
-        See also
+        See Also
         --------
         is_graphics, graphics_update, remove_callback, get_callbacks
         """
@@ -1312,7 +1322,7 @@ class Quib:
         callback : Callable
             The function to remove
 
-        See also
+        See Also
         --------
         get_callbacks, add_callback, is_graphics, graphics_update
         """
@@ -1329,7 +1339,7 @@ class Quib:
         Set of Callable
             The set of callback functions
 
-        See also
+        See Also
         --------
         add_callback, remove_callback
         """
@@ -1710,9 +1720,9 @@ class Quib:
 
         Can be set as `SaveFormat` or as `str`, or `None`:
 
-        ``'txt'`` - save overriding assignments as text file.
+        ``'txt'`` - save overriding assignments as text file (extension '.txt').
 
-        ``'bin'`` - save overriding assignments as a binary file.
+        ``'bin'`` - save overriding assignments as a binary file (extension '.quib').
 
         ``'off'`` - do not save overriding assignments of this quib.
 
@@ -1737,13 +1747,14 @@ class Quib:
         """
         SaveFormat: The actual save_format used by the quib.
 
-        The quib's ``actual_save_format`` is its save_format if defined.
-        Otherwise it defaults to the project's ``save_format``.
+        The quib's ``actual_save_format`` is its `save_format` if defined.
+        Otherwise, it defaults to the project's ``save_format``.
 
         See Also
         --------
         save_format
         SaveFormat
+        Project.save_format
         """
         return self.handler.actual_save_format
 
@@ -1753,7 +1764,8 @@ class Quib:
         pathlib.Path or None: The full path for the file where quib assignments are saved.
 
         The path is defined as the [actual_save_directory]/[assigned_name].ext
-        ext is determined by the actual_save_format
+
+        `ext` is determined by the actual_save_format
 
         See Also
         --------
@@ -1788,17 +1800,19 @@ class Quib:
         """
         PathWithHyperLink: The directory where quib assignments are saved.
 
-        Can be set to a str or Path object.
+        Can be set to a `str` or `Path` objects.
 
-        If the directory is absolute, it is used as is.
+        Options:
 
-        If directory is relative, it is used relative to the project directory.
+        absolute file path : The quib's file will be saved at the specified path.
 
-        If directory is `None`, the project directory is used.
+        relative file path : The quib's file will be saved at the specified path relative to the project directory.
+
+        `None` (default) : The quib's file will be saved to the project directory.
 
         See Also
         --------
-        file_path
+        file_path, actual_save_directory
         Project.directory
         """
         return self.handler.save_directory
@@ -1816,9 +1830,10 @@ class Quib:
         """
         pathlib.Path or None: The actual directory where quib file is saved.
 
-        By default, the quib's save_directory is ``None`` and the ``actual_save_directory`` defaults to the
-        project's ``save_directory``.
-        Otherwise, if the quib's ``save_directory`` is defined as an absolute directory then it is used as is,
+        By default, the quib's `save_directory` is `None` and the `actual_save_directory` defaults to the
+        project's `save_directory`.
+
+        Otherwise, if the quib's `save_directory` is defined as an absolute path then it is used as is,
         and if it is defined as a relative path it is used relative to the project's directory.
 
         See Also
@@ -1841,7 +1856,7 @@ class Quib:
              skip_user_verification: bool = False,
              ):
         """
-        Save the quib assignments to file.
+        Save the quib assignments to the quib's file.
 
         See Also
         --------
@@ -2032,7 +2047,11 @@ class Quib:
 
     def get_math_expression(self) -> MathExpression:
         """
-        Return a MathExpression object providing a string representation of the quib.
+        Return a `MathExpression` object providing a string representation of the quib.
+
+        Returns
+        -------
+        MathExpression
 
         See Also
         --------
@@ -2146,6 +2165,7 @@ class Quib:
         --------
         func
         save_format
+        quibbler.iquib
         """
         return self.handler.is_iquib
 

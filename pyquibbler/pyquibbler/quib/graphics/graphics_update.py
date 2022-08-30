@@ -3,7 +3,7 @@ from pyquibbler.utils import StrEnum
 
 class GraphicsUpdateType(StrEnum):
     """
-    Options for specifying when to refresh a graphics quib upon upstream assignments.
+    Options for specifying when to refresh a graphics quib.
 
     See Also
     --------
@@ -14,10 +14,10 @@ class GraphicsUpdateType(StrEnum):
     "Refresh immediately as graphics object are dragged (``'drag'``)."
 
     DROP = 'drop'
-    "refresh at end of dragging, upon graphic object drop (``'drop'``)."
+    "Refresh at end of dragging, upon mouse drop (``'drop'``)."
 
     CENTRAL = 'central'
-    "Do not refresh automaitcally; only refresh upon explicit ``refresh_graphics`` command (``'central'``)."
+    "Do not refresh automatically; only refresh upon explicit `refresh_graphics` command (``'central'``)."
 
     NEVER = 'never'
     "Do not refresh (``'never'``)."

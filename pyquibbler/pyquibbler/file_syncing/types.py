@@ -7,7 +7,7 @@ import pathlib
 
 class SaveFormat(StrEnum):
     """
-    Define the file format for saving quib assignments:
+    Define the file format for saving quib assignments.
 
     See Also
     --------
@@ -15,13 +15,13 @@ class SaveFormat(StrEnum):
     """
 
     OFF = 'off'
-    "``'off'`` - do not save"
+    "Do not save (``'off'``)."
 
     TXT = 'txt'
-    "``'txt'`` - save assignments as text if possible (.txt)"
+    "Save assignments as text if possible (``'txt'``; File extension '.txt')."
 
     BIN = 'bin'
-    "``'bin'`` - save assignments as a binary file (.quib)"
+    "Save assignments as a binary file (``'bin'``; File extension '.quib')."
 
 
 SAVE_FORMAT_TO_FILE_EXT = {
