@@ -1,30 +1,34 @@
-Quibbler integration with Jupyter lab
--------------------------------------
+Using Quibbler with Jupyter lab
+-------------------------------
 
-The *pyquibbler-labextension* is a *Jupyter lab* extension that provides
-added *Quibbler* functionality within Jupyter notebooks. In particular,
-the Jupyter lab extensions allows:
+*Quibbler* provides several user-interface functionalities available
+when working within within the *Jupyer lab* environment:
 
--  Integrated Undo/Redo functionality.
+-  Save/Load quib assignments within the notebook*.
 
--  View and edit quib assignments.
+-  Integrated Undo/Redo buttons*.
 
--  Save/Load quib assignments within the notebook.
+-  View and edit quib properties, assignments and value.
 
-**Note.** Running *Quibbler* in Jupyter lab does *not* require the
-Jupyter lab extension. All the power of *Quibbler* including interactive
-graphics etc works independent of the *Jupyter lab* extension. The
-extension only provides the additional integrated functionality as
-listed above and described below.
+-  Display a quib-dependency graph.
 
-Installation
-~~~~~~~~~~~~
+\* The two first features require the ``pyquibbler-labextension`` (see
+installation below).
+
+Installing the Jupyter lab Quibbler extension
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To install the *pyquibbler-labextension*, first make sure you have
 installed *Jupyter lab* (``pip install jupyterlab``). Then simply
 install the extension with:
 
 ``pip install pyquibbler-labextension``
+
+**Note.** Using *Quibbler* in Jupyter lab *does not* require the
+*Jupyter lab* extension. All the power of *Quibbler* including
+interactive graphics etc works independently of the *Jupyter lab*
+extension. The extension only provides the additional functionalities of
+save/load into the notebook and the integrated undo/redo buttons.
 
 Fire it up
 ~~~~~~~~~~
@@ -51,49 +55,41 @@ demo :doc:`examples/quibdemo_image_thresholding`:
 Viewing and editing quib assignments
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The *Quibbler* lab extension provides an “Override Editor”, allowing
-easily viewing and editing the list of overriding assignments made to
-each quib. This functionality is enabled by checking the “Show Quibs
-under Notebook cells” option in the *Quibbler* menu. Then, when we
-execute a given notebook cell, any newly created overriding-accepting
-quibs will automatically appear as push buttons below the notebook cell
-(overriding-accepting quibs include input quibs, or function quibs whose
-:py:attr:`~pyquibbler.Quib.allow_overriding` is set to ``True``; see
-:doc:`Overriding-default-functionality`).
+Quibs are displayed in Jupyter lab as interactive “Quib Editors”. To
+display a given quib, simply execute its variable at the end of a
+Jupyter lab cell:
 
-| For example, here is how this looks in our
-| :doc:`examples/quibdemo_image_thresholding`:
-
-.. image:: images/labext_quib_editor.gif
-
-Pressing the quib’s push button opens its Overriding Editor. In the
-Editor, override assignments are listed as lines, with assignment path
-shown on the left and the assigned value on the right.
+In the Quib Editor, override assignments are listed as lines of
+assignment text.
 
 Graphics-driven assignments
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Interaction with graphics is :doc:`inverse propagated<Inverse-assignments>`
 to override upstream quibs. Such graphics-driven assignments can be
-viewed, in real time, in the Overriding Editor.
+viewed, in real time, in the Quib Editor.
 
 Manual assignments
 ^^^^^^^^^^^^^^^^^^
 
 Overriding assignments can be made manually by entering the path and
-value. The assignment path can be any Python acceptable syntax, like
-``[1]`` for list or arrays, ``[3,:]`` for arrays, or ``['year']`` for
-dicts. Deep assignment paths are also allowed, like ``[0][2]``.
+value of the assignment. The assignment path can be any Python
+acceptable syntax, like ``[1]`` for list or arrays, ``[3,:]`` for
+arrays, or ``['year']`` for dicts. Deep assignment paths are also
+allowed, like ``[0][2]``. For example, to override the value of a list
+quib at element 2 with a new value 97, add an assignment text: “[2] =
+97”.
 
 To make an assignment that replaces the whole quib value (equivalent to
-:py:meth:`~pyquibbler.Quib.assign()`), leave the assignment path empty (see example in
-:doc:`examples/quibdemo_COVID_analysis`).
+:py:meth:`~pyquibbler.Quib.assign()`), do not specify a path, just type in the new value
+for the quib directly (e.g., “[2, 3]”), or append it with an equal sign
+(e.g., “= [2, 3]”).
 
-New overriding assignments can be added by pressing the ``Add Override``
-button.
+New overriding assignments can be added by pressing the ``+`` button.
 
-Assignments can be removed by pressing the circular ‘x’ button on the
-right, leading to the quib resuming its default value.
+Assignments can be removed by pressing the circular ``-`` button on the
+right of each assignment. Removing an assignment leads to the quib
+resuming its default value.
 
 Saving quib overriding assignments into Jupyter notebook
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -108,17 +104,27 @@ and convenient. To enable saving quib assignments into the notebook
 check the “Save/Load inside Notebook” option in the Jupyter lab
 *Quibbler* menu.
 
+.. image:: images/labext_quibbler_menu.gif
+
 Once enabled, quib assignments can easily be saved/loaded, either
 globally for the entire notebook by choosing Save/Load from the
 *Quibbler* menu (equivalent to :py:func:`~pyquibbler.save_quibs`, :py:func:`~pyquibbler.load_quibs`), or
-individually by clicking the Save/Load buttons at the bottom of the
-Overriding Editor of the relevant quib (equivalent to the quibs’ methods
+individually by clicking the Save/Load buttons at the bottom of the Quib
+Editor of the relevant quib (equivalent to the quibs’ methods
 :py:meth:`~pyquibbler.Quib.save()`, :py:meth:`~pyquibbler.Quib.load()`).
 
-**Note.** Hitting Save will both save the quib assignments into the
-notebook and save the notebook to file.
+**Note.** Hitting the Save button will both save the quib assignments
+into the notebook and save the notebook to file.
 
-.. image:: images/labext_quib_save.gif
+.. image:: images/quib_editor_save_load.gif
+
+Display a quib dependency graph
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Within Jupyter lab, we can use the :py:func:`~pyquibbler.dependency_graph` function to
+display the network of quibs upstream/downstream of a given focal quib.
+
+See :doc:`Quib-relationships` for more detail and an example graph.
 
 See also
 ~~~~~~~~
@@ -128,3 +134,6 @@ See also
 -  :doc:`Inverse-assignments`
 
 -  :doc:`Overriding-default-functionality`
+
+-  :doc:`Quib-relationships`
+
