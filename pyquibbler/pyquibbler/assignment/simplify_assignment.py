@@ -9,7 +9,10 @@ from ..path import Path, PathComponent, deep_get
 
 
 class AssignmentSimplifier:
-
+    """
+    Takes an Assignment into some data object and simplifies the assignment
+    so that it is easier to read as text.
+    """
     def __init__(self, assignment: Assignment, data: Any):
         self._assignment = assignment
         self._data = data
@@ -90,6 +93,9 @@ class AssignmentSimplifier:
         self.last_component.component = tuple(new_last_component)
 
     def simplify(self) -> Assignment:
+        """
+        Call this method to get the simplified assignment.
+        """
         from ..quib.func_calling.result_metadata import ResultMetadata
 
         try:

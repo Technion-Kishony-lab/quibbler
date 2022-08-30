@@ -6,7 +6,7 @@ from typing import Any, TYPE_CHECKING, List, Union, Optional, Callable
 
 from .default_value import default
 from pyquibbler.path.path_component import Path
-from .rounding import get_number_of_digits
+from .rounding import floor_log10
 from ..quib.pretty_converters.pretty_convert import getitem_converter
 
 if TYPE_CHECKING:
@@ -100,7 +100,7 @@ class AssignmentWithTolerance(Assignment):
         value = self.value
         try:
             relative_error = self.get_relative_error()
-            num_digits = -get_number_of_digits(relative_error)
+            num_digits = -floor_log10(relative_error)
             if self.equal_number_of_digits and isinstance(num_digits, np.ndarray):
                 num_digits = max(num_digits)
             value = round_to_num_digits(value, num_digits)

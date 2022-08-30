@@ -24,7 +24,7 @@ PathsToAssignments = Dict[Hashable, Assignment]
 
 class Overrider:
     """
-    Gathers function_definitions assignments performed on a quib in order to apply them on a quib value.
+    Gathers assignments performed on a quib and apply these assignments on the quib's value.
     """
 
     def __init__(self):

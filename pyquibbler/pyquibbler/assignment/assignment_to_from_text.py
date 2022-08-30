@@ -17,6 +17,12 @@ ASSIGNMENT_VALUE_TEXT_DICT = {'array': np.array, 'default': default}
 
 @dataclass
 class GetReference:
+    """
+    A dummy object that records a list of assignments made to it.
+
+    Mimicking a quib, a GetReference object accepts deep assignments
+    as well as the .assign(value) syntax.
+    """
     assignments: List[Assignment] = field(default_factory=list)
     current_path: Path = field(default_factory=list)
 
@@ -37,6 +43,15 @@ class GetReference:
 
 
 def convert_executable_text_to_assignments(assignment_text: str) -> List[Assignment]:
+    """
+    Convert text with multiple assignment statements into a list of assignments.
+    The text should refer to an object named 'quib'.
+
+    For example, assignment_text may include lines like these:
+    quib[1] = 7
+    quib[1,:]['name'] = 'Joe'
+    quib.assign(972)
+    """
     try:
         quib = GetReference()
         exec(assignment_text, {'quib': quib, **ASSIGNMENT_VALUE_TEXT_DICT})
@@ -46,6 +61,9 @@ def convert_executable_text_to_assignments(assignment_text: str) -> List[Assignm
 
 
 def convert_assignments_to_executable_text(assignments: Iterable[Assignment], name: Optional[str] = None) -> str:
+    """
+    Convert list of Assignments to text.
+    """
     name = 'quib' if name is None else name
     pretty = ''
     for assignment in assignments:
@@ -61,6 +79,17 @@ def convert_assignments_to_executable_text(assignments: Iterable[Assignment], na
 
 
 def convert_simplified_text_to_assignment(assignment_text: str) -> Assignment:
+    """
+    Convert an assignment text into an Assignment.
+
+    Accepts three forms of text:
+
+    'value' -> Assignment(path=[], value), like quib.assign(value)
+
+    '= value' -> Assignment(path=[], value), like quib.assign(value)
+
+    '[comp0][comp1]...[compN] = value' -> Assignment(path=[comp0, comp1, ..., compN], value)
+    """
     assignment_text = assignment_text.strip()
 
     if assignment_text.startswith('='):
@@ -84,6 +113,15 @@ def convert_simplified_text_to_assignment(assignment_text: str) -> Assignment:
 
 
 def convert_assignment_to_simplified_text(assignment: Assignment) -> str:
+    """
+    Convert an Assignment to text.
+
+    full, no-path assignment:
+    Assignment(path=[], value)  ->  '= value'
+
+    at-path assignment:
+    Assignment(path=[comp0, comp1, ..., compN], value) -> '[comp0][comp1]...[compN] = value'
+    """
     if len(assignment.path) == 0:
         return '= ' + assignment.get_pretty_value()
 
