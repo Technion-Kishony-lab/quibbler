@@ -104,7 +104,8 @@ and convenient. To enable saving quib assignments into the notebook
 check the “Save/Load inside Notebook” option in the Jupyter lab
 *Quibbler* menu.
 
-.. image:: images/labext_quibbler_menu.gif
+.. image:: images/labext_quibbler_menu.png
+  :width: 200
 
 Once enabled, quib assignments can easily be saved/loaded, either
 globally for the entire notebook by choosing Save/Load from the
