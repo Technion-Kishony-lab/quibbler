@@ -80,8 +80,6 @@ if TYPE_CHECKING:
 
 NoneType = type(None)
 
-FIRST_LINE_OF_FORMATTED_TXT_FILE = '# Formatted Quibbler value file (keep this note)'
-
 
 class QuibHandler:
     """

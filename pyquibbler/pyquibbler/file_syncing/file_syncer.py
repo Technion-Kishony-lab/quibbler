@@ -44,7 +44,7 @@ class SaveLoadAction(Enum):
     NONE = 1  # do nothing
     SAVE = 2  # save to file
     DELETE = 3  # delete the file
-    LOAD = 4  # laod date from file
+    LOAD = 4  # load date from file
     CLEAR = 5  # clear the data
 
     def is_action(self):

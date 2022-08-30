@@ -26,7 +26,7 @@ def is_ipywidgets_installed() -> bool:
 
 
 def _bare_set(self, obj, value):
-    """ The snippet from TraitType.set that does the bare set of the trait"""
+    """The snippet from TraitType.set that does the bare set of the trait"""
     new_value = self._validate(obj, value)
     obj._trait_values[self.name] = new_value
 

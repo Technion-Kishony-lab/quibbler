@@ -3,10 +3,11 @@ from __future__ import annotations
 import pathlib
 import weakref
 from typing import Optional
-from .file_syncer import FileSyncer
-from pyquibbler.utils import Flag
-from typing import TYPE_CHECKING
 
+from pyquibbler.utils import Flag
+from .file_syncer import FileSyncer
+
+from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pyquibbler.quib.quib import Quib
 
