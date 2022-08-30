@@ -3,7 +3,6 @@ from __future__ import annotations
 import copy
 import pathlib
 import weakref
-import warnings
 
 import numpy as np
 
@@ -68,6 +67,8 @@ from pyquibbler.quib.pretty_converters import MathExpression, FailedMathExpressi
     NameMathExpression, pretty_convert
 
 from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Union, Iterable, Mapping, Callable, Iterator
+
+from pyquibbler.utilities.warning_messages import no_header_warn
 
 if TYPE_CHECKING:
     from pyquibbler.function_definitions.func_definition import FuncDefinition
@@ -468,10 +469,10 @@ class QuibHandler:
             from matplotlib import pyplot
             if pyplot.get_backend() not in SUPPORTED_BACKENDS:
                 WARN_ON_UNSUPPORTED_BACKEND.set(False)  # We don't want to warn more than once
-                warnings.warn('PyQuibbler is only optimized for the following Matplotlib backends: \n'
-                              f'{SUPPORTED_BACKENDS}. \n'
-                              'In Jupyter lab, use: %matplotlib tk. \n'
-                              'In PyCharm, use: matplotlib.use("TkAgg").')
+                no_header_warn('PyQuibbler is only optimized for the following Matplotlib backends: \n'
+                               f'{", ".join(SUPPORTED_BACKENDS)}.\n'
+                               'In Jupyter lab, use: %matplotlib tk.\n'
+                               'In PyCharm, use: matplotlib.use("TkAgg").')
 
         try:
             guard_raise_if_not_allowed_access_to_quib(self.quib)
@@ -1770,7 +1771,7 @@ class Quib:
             elif response_to_file_not_defined == ResponseToFileNotDefined.WARN \
                     or response_to_file_not_defined == ResponseToFileNotDefined.WARN_IF_DATA \
                     and self.handler.is_overridden:
-                warnings.warn(str(exception))
+                no_header_warn(str(exception))
         else:
             path = self.actual_save_directory \
                    / (self.assigned_name + SAVE_FORMAT_TO_FILE_EXT[self.actual_save_format])
