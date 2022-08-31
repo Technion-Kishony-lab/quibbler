@@ -556,10 +556,8 @@ class QuibHandler:
 
     def display_widget(self) -> bool:
         try:
-            # noinspection PyPackageRequirements
-            from IPython.display import display
-            # noinspection PyPackageRequirements
-            import ipywidgets   # noqa: F401
+            from pyquibbler.optional_packages.get_IPython import display
+            from pyquibbler.optional_packages.get_ipywidgets import ipywidgets   # noqa: F401
         except ImportError:
             return False
 

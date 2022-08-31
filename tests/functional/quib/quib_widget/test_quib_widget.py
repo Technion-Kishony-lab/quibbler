@@ -1,6 +1,6 @@
-import ipywidgets
-import numpy as np
 import pytest
+
+import ipywidgets
 
 from pyquibbler import iquib, CacheStatus
 from pyquibbler.ipywidget_viewer.quib_widget import QuibWidget, WidgetQuibDeletedException
@@ -34,7 +34,6 @@ def child_widget(child) -> QuibWidget:
 
 @pytest.fixture
 def get_assignment_text(quib_widget):
-
     def _get(index: int) -> ipywidgets.Text:
         return quib_widget._get_assignment_widget().children[index].children[0]
 
@@ -43,7 +42,6 @@ def get_assignment_text(quib_widget):
 
 @pytest.fixture
 def get_assignment_delete(quib_widget):
-
     def _get(index: int) -> ipywidgets.Button:
         return quib_widget._get_assignment_widget().children[index].children[1]
 
@@ -100,9 +98,12 @@ def test_quib_widget_update_only_invalidates_old_and_new_path(quib, quib_widget,
     quib.assign([0, 1, 2])
     quib[1] = 100
 
-    a0 = quib[0]; a0.get_value()
-    a1 = quib[1]; a1.get_value()
-    a2 = quib[2]; a2.get_value()
+    a0 = quib[0];
+    a0.get_value()
+    a1 = quib[1];
+    a1.get_value()
+    a2 = quib[2];
+    a2.get_value()
 
     assert a0.cache_status is CacheStatus.ALL_VALID
     assert a1.cache_status is CacheStatus.ALL_VALID
@@ -132,7 +133,7 @@ def test_quib_widget_delete_assignment(quib, quib_widget, get_assignment_delete)
     quib[1] = 10
     quib[2] = 20
 
-    assert quib.get_value() == [0, 10, 20],  "sanity"
+    assert quib.get_value() == [0, 10, 20], "sanity"
 
     get_assignment_delete(1).click()
     assert quib.get_value() == [0, 1, 20]

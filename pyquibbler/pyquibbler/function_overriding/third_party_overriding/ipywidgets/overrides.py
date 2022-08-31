@@ -13,18 +13,6 @@ from pyquibbler.utilities.iterators import is_iterator_empty, iter_objects_of_ty
 TRAIT_TO_QUIBY_WIDGET_ATTR = '_quibbler_trait_to_quiby_widget'
 
 
-def is_ipywidgets_installed() -> bool:
-    try:
-        # noinspection PyPackageRequirements
-        import ipywidgets   # noqa: F401
-        # noinspection PyPackageRequirements
-        import traitlets   # noqa: F401
-    except ImportError:
-        return False
-
-    return True
-
-
 def _bare_set(self, obj, value):
     """The snippet from TraitType.set that does the bare set of the trait"""
     new_value = self._validate(obj, value)
@@ -40,8 +28,7 @@ def _get_or_create_trait_to_quiby_widget_trait(widget) -> Dict:
 
 def get_wrapper_for_trait_type_set():
 
-    # noinspection PyPackageRequirements
-    from traitlets import TraitType
+    from pyquibbler.optional_packages.get_ipywidgets import TraitType
     QuibyWidgetTrait.original_set = TraitType.set
 
     @functools.wraps(QuibyWidgetTrait.original_set)
@@ -82,19 +69,20 @@ def get_wrapper_for_range_widget_init(class_to_override):
     return _quibbler__init__
 
 
-def override_ipywidgets_if_installed():
-    """Allow ipywidgets to work with quib arguments"""
+def override_ipywidgets_if_installed() -> bool:
+    """
+    Configure ipywidgets to work with quib arguments
 
-    # ipywidgets is not a required package for quibbler. We only override it if it is installed:
-    if not is_ipywidgets_installed():
-        return
+    Returns bool indicating whether ipywidgets is installed.
+    """
 
-    # noinspection PyPackageRequirements
-    from traitlets import TraitType
-    # noinspection PyPackageRequirements
-    from ipywidgets.widgets.widget_int import _BoundedIntRange
-    # noinspection PyPackageRequirements
-    from ipywidgets.widgets.widget_float import _BoundedFloatRange
+    # We do not want to make ipywidgets a required package for quibbler.
+    # We only override it if it is installed:
+    try:
+        from pyquibbler.optional_packages.get_ipywidgets import TraitType
+        from pyquibbler.optional_packages.get_ipywidgets import _BoundedIntRange, _BoundedFloatRange
+    except ImportError:
+        return False
 
     # Replace the base set for all widget traits:
     TraitType.set = get_wrapper_for_trait_type_set()
@@ -102,3 +90,5 @@ def override_ipywidgets_if_installed():
     # Replace init for widgets that check input validity in their init:
     _BoundedIntRange.__init__ = get_wrapper_for_range_widget_init(_BoundedIntRange)
     _BoundedFloatRange.__init__ = get_wrapper_for_range_widget_init(_BoundedFloatRange)
+
+    return True

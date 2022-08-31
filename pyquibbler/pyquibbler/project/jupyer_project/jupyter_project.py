@@ -6,7 +6,6 @@ import multiprocessing
 import os
 import shutil
 import tempfile
-import warnings
 import zipfile
 from multiprocessing import Process
 
@@ -200,8 +199,7 @@ class JupyterProject(Project):
         It will then send BACK the response with the `request_id` specificed in the original event
         """
 
-        # noinspection PyPackageRequirements
-        from ipykernel.comm import Comm
+        from pyquibbler.optional_packages.get_IPython import Comm
 
         self._jupyter_notebook_path = os.environ.get("JUPYTER_NOTEBOOK", ipynbname.path())
         self._comm = Comm(target_name='pyquibbler')
@@ -255,15 +253,13 @@ class JupyterProject(Project):
         return answer_queue.get(block=True)
 
 
-def create_jupyter_project_if_in_jupyter_lab():
-    if is_within_jupyter_lab():
-        try:
-            # noinspection PyPackageRequirements
-            import ipywidgets  # noqa: F401
-        except ImportError:
-            warnings.warn('Please install `ipywidgets` to allow viewing quibs as interactive widgets.\n')
+def create_jupyter_project_if_in_jupyter_lab() -> bool:
+    within_jupyter_lab = is_within_jupyter_lab()
+    if within_jupyter_lab:
         project = JupyterProject.get_or_create()
         project.override_quib_persistence_functions()
         project.listen_for_events()
         project.get_save_within_notebook_state()
         project.set_undo_redo_buttons_enable_state()
+
+    return within_jupyter_lab

@@ -17,7 +17,11 @@ setup(
                       "ipynbname==2021.3.2",
                       "flask==2.1.1",
                       "flask_cors==3.0.10",
+
+                      # We might want to re-consider whether to make these packages a requirement:
                       "ipycytoscape",
+                      "ipywidgets",
+                      "IPython",
                       ],
     extras_require={
         'dev': [

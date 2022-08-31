@@ -1,11 +1,17 @@
+import pytest
 import dataclasses
+
 from typing import Set
 from unittest.mock import Mock
 
-import pytest
-
 from pyquibbler import iquib
-from pyquibbler.quib_network.quib_network import QuibNetwork, dependency_graph
+from pyquibbler.optional_packages.emulate_missing_packages import EMULATE_MISSING_PACKAGES
+
+
+# @pytest.fixture(autouse=True, scope='module')
+# def setup_no_missing_packages():
+#     with EMULATE_MISSING_PACKAGES.temporary_set([]):
+#         yield
 
 
 @dataclasses.dataclass
@@ -83,6 +89,7 @@ def nodes():
     (1, 'both', 1, 1, [0, 1, 2, 3, 4]),
 ])
 def test_network_gets_correct_quibs_and_links(nodes, origin_num, direction, depth, reverse_depth, expected_node_nums):
+    from pyquibbler.quib_network.quib_network import QuibNetwork
     network = QuibNetwork(focal_quib=nodes[origin_num], direction=direction, depth=depth, reverse_depth=reverse_depth)
     expected_nodes = {nodes[num] for num in expected_node_nums}
     expected_links = set()
@@ -97,6 +104,7 @@ def test_network_gets_correct_quibs_and_links(nodes, origin_num, direction, dept
 
 
 def test_network_widget_is_created():
+    from pyquibbler.quib_network.quib_network import dependency_graph
     a = iquib(1)
     b = a + 2
     w = dependency_graph(a, bypass_intermediate_quibs=False)

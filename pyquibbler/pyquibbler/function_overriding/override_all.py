@@ -11,6 +11,7 @@ from .quib_overrides.operators.overrides import create_operator_overrides
 from .quib_overrides.quib_methods import create_quib_method_overrides
 from .third_party_overriding.numpy.overrides import create_numpy_overrides
 from .third_party_overriding.graphics.overrides import create_graphics_overrides
+from ..utilities.warning_messages import no_header_warn
 
 
 @ensure_only_run_once_globally
@@ -51,7 +52,7 @@ def initialize_quibbler():
     Only need to run ``initialize_quibbler`` once. Additional calls are gracefully ignored.
     """
 
-    create_jupyter_project_if_in_jupyter_lab()
+    within_jupyterlab = create_jupyter_project_if_in_jupyter_lab()
 
     function_definitions = create_definitions_for_python_functions()
     for func_definition in function_definitions:
@@ -65,7 +66,11 @@ def initialize_quibbler():
 
     override_axes_methods()
 
-    override_ipywidgets_if_installed()
+    ipywidgets_installed = override_ipywidgets_if_installed()
+
+    if not ipywidgets_installed and within_jupyterlab:
+        no_header_warn('It is not a requirement, but do consider installing ipywidgets to '
+                       'further enhance pyquibbler interactivity in Jupyter lab.\n')
 
     function_overrides: List[FuncOverride] = [*create_operator_overrides(),
                                               *create_graphics_overrides(),

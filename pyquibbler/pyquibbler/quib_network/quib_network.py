@@ -1,13 +1,28 @@
 import dataclasses
-import ipycytoscape
 
+from pyquibbler.optional_packages.exceptions import MissingPackagesForFunctionException
 from typing import Union, Set, Tuple, Optional
-
-import ipywidgets
-
-from .types import Direction, reverse_direction
 from pyquibbler import Quib
 from pyquibbler.utilities.input_validation_utils import validate_user_input, get_enum_by_str
+from .types import Direction, reverse_direction
+
+
+# Verify that we have the required packages installed
+# (These are specific packages and hence we do not specify them as official requirements for pyquibbler)
+missing_packages = []
+try:
+    from pyquibbler.optional_packages.get_ipywidgets import ipywidgets  # noqa
+except ImportError:
+    missing_packages.append('ipywidgets')
+
+try:
+    from pyquibbler.optional_packages.get_ipycytoscape import ipycytoscape  # noqa
+except ImportError:
+    missing_packages.append('ipycytoscape')
+
+if missing_packages:
+    raise MissingPackagesForFunctionException('dependency_graph', missing_packages)
+
 
 infinity = float('inf')
 

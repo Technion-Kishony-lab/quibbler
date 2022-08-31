@@ -1,8 +1,7 @@
 from __future__ import annotations
 import dataclasses
 
-# noinspection PyPackageRequirements
-import ipywidgets as widgets
+from pyquibbler.optional_packages.get_ipywidgets import ipywidgets as widgets
 
 from pyquibbler.assignment.assignment_to_from_text \
     import convert_simplified_text_to_assignment, convert_assignment_to_simplified_text
