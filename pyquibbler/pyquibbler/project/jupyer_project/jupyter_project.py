@@ -239,7 +239,7 @@ class JupyterProject(Project):
                                                                           })
 
     def text_dialog(self, title: str, message: str, buttons_and_options: Iterable[Tuple[str, str]]) -> str:
-        # Any text dialog needs to be send to the frontend as an alert
+        # Any text dialog needs to be sent to the frontend as an alert
         answer_queue = multiprocessing.Queue()
         port = find_free_port()
         process = Process(target=run_flask_app, args=(port, answer_queue))

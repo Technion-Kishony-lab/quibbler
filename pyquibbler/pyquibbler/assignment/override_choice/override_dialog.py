@@ -16,6 +16,9 @@ from pyquibbler.env import OVERRIDE_DIALOG_IN_SEPARATE_WINDOW, \
 from .exceptions import AssignmentCancelledByUserException
 
 from typing import TYPE_CHECKING
+
+from pyquibbler.project import Project
+
 if TYPE_CHECKING:
     from pyquibbler.quib.quib import Quib
 
@@ -23,8 +26,9 @@ UNSET = object()
 
 
 class OverrideChoiceType(Enum):
-    OVERRIDE = 0
-    DIVERGE = 1
+    CANCEL = 0
+    OVERRIDE = 1
+    DIVERGE = 2
 
 
 @dataclass
@@ -64,7 +68,7 @@ def show_fig(fig, choice_type):
     return figure_closed.val
 
 
-def add_axes_by_inches(fig, position):
+def add_axes_by_inches(fig, position) -> Axes:
     from mpl_toolkits.axes_grid1 import Divider, Size
     h = [Size.Fixed(position[0]), Size.Fixed(position[2])]
     v = [Size.Fixed(position[1]), Size.Fixed(position[3])]
@@ -117,23 +121,19 @@ def choose_override_dialog(options: List[Quib], can_diverge: bool) -> OverrideCh
     str_options = [quib.name for quib in options]
     if invoking_axes is None and OVERRIDE_DIALOG_AS_TEXT_FOR_NON_GRAPHICS_ASSIGNMENT \
             or invoking_axes is not None and OVERRIDE_DIALOG_AS_TEXT_FOR_GRAPHICS_ASSIGNMENT:
-        choice_type, selected_index = choose_override_text_dialog(str_options, can_diverge)
+        override_choice = choose_override_text_dialog(str_options, can_diverge)
     else:
-        choice_type, selected_index = choose_override_graphics_dialog(str_options, can_diverge, invoking_axes)
-    if choice_type is None:
+        override_choice = choose_override_graphics_dialog(str_options, can_diverge, invoking_axes)
+    if override_choice.choice_type is OverrideChoiceType.CANCEL:
         raise AssignmentCancelledByUserException()
-    return OverrideChoice(choice_type, selected_index)
+    return override_choice
 
 
 def choose_override_graphics_dialog(str_options: List[str],
                                     can_diverge: bool,
                                     invoking_axes: Optional[Axes]
-                                    ) -> (Optional[OverrideChoiceType], int):
-
-    # Used to keep references to the widgets so they won't be garbage collected
-    widgets = []
+                                    ) -> OverrideChoice:
     axeses = []
-
     is_new_figure = OVERRIDE_DIALOG_IN_SEPARATE_WINDOW or invoking_axes is None
     if is_new_figure:
         fig = plt.figure(figsize=(3, 2.5))
@@ -146,66 +146,50 @@ def choose_override_graphics_dialog(str_options: List[str],
         axeses.append(background_ax)
 
     radio_ax, radio = pretty_radio_buttons(fig, [0.2 + shift[0], 1 + shift[1], 2.6, 1.3], str_options)
-    widgets.append(radio)  # This is not strictly needed but left here to prevent a bug
-    axeses.append(radio_ax)
 
     choice_type = Mutable(UNSET)
-    button_specs = [('Cancel', None),
+    button_specs = [('Cancel', OverrideChoiceType.CANCEL),
                     ('Override', OverrideChoiceType.OVERRIDE)]
     if can_diverge:
         button_specs.append(('Diverge', OverrideChoiceType.DIVERGE))
 
     for i, (label, button_choice) in enumerate(button_specs):
         ax = add_axes_by_inches(fig, [2 - i * 1.0 + 0.15 + shift[0], 0.1 + shift[1], 0.7, 0.3])
-        button = create_button(ax, label, partial(choice_type.set, button_choice))
-        widgets.append(button)
+        create_button(ax, label, partial(choice_type.set, button_choice))
         axeses.append(ax)
 
     figure_closed = show_fig(fig, choice_type)
     if figure_closed:
-        choice_type.set(None)
+        choice_type.set(OverrideChoiceType.CANCEL)
     else:
         for axes in axeses:
             axes.remove()
         fig.canvas.draw()
         if is_new_figure:
             plt.close(fig)
-    return choice_type.val, radio.selected_index
+    if choice_type.val is OverrideChoiceType.OVERRIDE:
+        return OverrideChoice(choice_type.val, radio.selected_index)
+    return OverrideChoice(choice_type.val)
 
 
 def choose_override_text_dialog(str_options: List[str],
                                 can_diverge: bool,
-                                ) -> (Optional[OverrideChoiceType], int):
+                                ) -> OverrideChoice:
 
-    print('Overriding choices:')
-    if can_diverge:
-        print(f'({0}) {"[Diverge]"}')
+    buttons_to_str_and_choice = dict()
     for index, str_option in enumerate(str_options):
-        print(f'({index + 1}) {str_option}')
+        buttons_to_str_and_choice[str(index + 1)] = \
+            (str_option, OverrideChoice(OverrideChoiceType.OVERRIDE, index))
 
-    print('')
-    selected_index = None
-    choice_type = None
-    choice = None
-    while choice is None:
-        choice = input('Choose the number of the quib to override \n'
-                       '(press enter without a choice to cancel): ')
-        if len(choice) == 0:
-            print('Cancel')
-            break
-        else:
-            try:
-                choice = int(choice)
-            except ValueError:
-                choice = None
-            if choice == 0 and can_diverge:
-                choice_type = OverrideChoiceType.DIVERGE
-                print('Diverging...')
-            elif 1 <= choice <= len(str_options):
-                choice_type = OverrideChoiceType.OVERRIDE
-                selected_index = choice - 1
-                print('Overriding: ', str_options[selected_index])
-            else:
-                choice = None
+    if can_diverge:
+        buttons_to_str_and_choice['D'] = ('[Diverge]', OverrideChoice(OverrideChoiceType.DIVERGE))
 
-    return choice_type, selected_index
+    buttons_to_str_and_choice['C'] = ('[Cancel]', OverrideChoice(OverrideChoiceType.CANCEL))
+
+    selected_button = Project.get_or_create().text_dialog(
+        title='Overriding choice',
+        message='Choose the quib to override:',
+        buttons_and_options={button: str_and_choice[0] for button, str_and_choice in buttons_to_str_and_choice.items()}
+    )
+
+    return buttons_to_str_and_choice[selected_button][1]

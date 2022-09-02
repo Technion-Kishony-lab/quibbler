@@ -7,6 +7,7 @@ from pyquibbler.assignment import override_dialog, AssignmentCancelledByUserExce
 from pyquibbler.env import OVERRIDE_DIALOG_AS_TEXT_FOR_NON_GRAPHICS_ASSIGNMENT
 from pyquibbler import iquib
 
+
 @fixture
 def button_callbacks():
     return {}
@@ -68,15 +69,17 @@ def test_override_dialog_diverge_button(monkeypatch, override_options, button_ca
 
 
 def test_override_text_dialog(monkeypatch, capsys):
-    monkeypatch.setattr('builtins.input', lambda _: "2")
+    monkeypatch.setattr('builtins.input', lambda *_: "2")
     a = iquib(10).setp(allow_overriding=True, name='input')
     b = (a + 1).setp(allow_overriding=True, name='add_one')
     b.assign(100)
-    assert capsys.readouterr().out == \
-           'Overriding choices:\n' \
-           '(1) add_one\n' \
-           '(2) input\n' \
-           '\n' \
-           'Overriding:  input\n'
+    out = capsys.readouterr().out
+    print(out)
+    assert out == \
+           'Overriding choice\n' \
+           'Choose the quib to override:\n' \
+           '1 :  add_one\n' \
+           '2 :  input\n' \
+           'C :  [Cancel]\n' \
 
     assert a.get_value() == 99

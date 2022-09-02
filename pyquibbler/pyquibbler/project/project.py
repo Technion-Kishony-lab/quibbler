@@ -631,5 +631,4 @@ class Project:
         while True:
             choice = input()
             if choice in buttons_and_options.keys():
-                break
-        return choice
+                return choice

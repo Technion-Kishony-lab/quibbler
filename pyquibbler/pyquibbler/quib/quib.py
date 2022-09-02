@@ -22,7 +22,8 @@ from pyquibbler.utilities.missing_value import missing
 # Assignments:
 from pyquibbler.assignment import \
     AssignmentWithTolerance, AssignmentSimplifier, default, InvalidTypeException, create_assignment_template, \
-    get_override_group_for_quib_change, AssignmentTemplate, Overrider, Assignment, AssignmentToQuib
+    get_override_group_for_quib_change, AssignmentTemplate, Overrider, Assignment, AssignmentToQuib, \
+    AssignmentCancelledByUserException
 from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals
 
 # Save/Load:
@@ -374,7 +375,10 @@ class QuibHandler:
         """
         Apply an assignment to the quib locally or as inverse assignment to upstream quibs.
         """
-        get_override_group_for_quib_change(AssignmentToQuib(self.quib, assignment)).apply()
+        try:
+            get_override_group_for_quib_change(AssignmentToQuib(self.quib, assignment)).apply()
+        except AssignmentCancelledByUserException:
+            pass
 
     def get_inversions_for_assignment(self, assignment: Assignment) -> List[AssignmentToQuib]:
         """
