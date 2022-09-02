@@ -2,15 +2,16 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from typing import List, Optional, Iterable
+from typing import List, Optional, Iterable, Any
 
 import numpy as np
 
-from .default_value import default
+from .default_value import default, Default
 from .assignment import Assignment
 
 from pyquibbler.path import Path, PathComponent
-from pyquibbler.quib.exceptions import CannotLoadAssignmentsFromTextException
+from pyquibbler.utilities.iterators import recursively_run_func_on_object
+from .exceptions import CannotConvertTextToAssignmentsException, CannotConvertAssignmentsToTextException
 
 ASSIGNMENT_VALUE_TEXT_DICT = {'array': np.array, 'default': default}
 
@@ -42,6 +43,19 @@ class GetReference:
         self.current_path = []
 
 
+def is_saveable_as_txt(val: Any) -> bool:
+    all_ok = True
+
+    def set_false_if_repr_is_not_invertible(v):
+        from numpy import ndarray, int64, int32, bool_
+        nonlocal all_ok
+        all_ok &= isinstance(v, (Default, bool, str, int, float, ndarray, slice, type(None), int64, int32, bool_))
+
+    # TODO: for dicts we need to check also that the keys are saveable
+    recursively_run_func_on_object(func=set_false_if_repr_is_not_invertible, obj=val)
+    return all_ok
+
+
 def convert_executable_text_to_assignments(assignment_text: str) -> List[Assignment]:
     """
     Convert text with multiple assignment statements into a list of assignments.
@@ -57,16 +71,21 @@ def convert_executable_text_to_assignments(assignment_text: str) -> List[Assignm
         exec(assignment_text, {'quib': quib, **ASSIGNMENT_VALUE_TEXT_DICT})
         return quib.assignments
     except Exception:
-        raise CannotLoadAssignmentsFromTextException(assignment_text) from None
+        raise CannotConvertTextToAssignmentsException(assignment_text) from None
 
 
-def convert_assignments_to_executable_text(assignments: Iterable[Assignment], name: Optional[str] = None) -> str:
+def convert_assignments_to_executable_text(
+        assignments: Iterable[Assignment], name: Optional[str] = None, raise_if_not_reversible: bool = False) -> str:
     """
     Convert list of Assignments to text.
     """
     name = 'quib' if name is None else name
     pretty = ''
     for assignment in assignments:
+        if raise_if_not_reversible:
+            if not is_saveable_as_txt([cmp.component for cmp in assignment.path]) \
+                    or not is_saveable_as_txt(assignment.value):
+                raise CannotConvertAssignmentsToTextException()
         pretty_value = assignment.get_pretty_value()
         pretty += '\n' + name
         if assignment.path:
@@ -107,7 +126,7 @@ def convert_simplified_text_to_assignment(assignment_text: str) -> Assignment:
     assignments = convert_executable_text_to_assignments(assignment_text)
 
     if len(assignments) != 1:
-        raise CannotLoadAssignmentsFromTextException(assignment_text) from None
+        raise CannotConvertTextToAssignmentsException(assignment_text) from None
 
     return assignments[0]
 

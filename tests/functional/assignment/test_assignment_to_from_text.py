@@ -4,6 +4,7 @@ import pytest
 from pyquibbler import default, Assignment
 from pyquibbler.assignment.assignment_to_from_text \
     import convert_simplified_text_to_assignment, convert_assignment_to_simplified_text
+from pyquibbler.assignment.exceptions import CannotConvertTextToAssignmentsException
 from pyquibbler.path import PathComponent
 
 
@@ -20,6 +21,15 @@ def test_convert_simplified_text_to_assignment(override_text, expected_path, exp
     assignment = convert_simplified_text_to_assignment(override_text)
     assert [component.component for component in assignment.path] == expected_path
     assert assignment.value == expected_value
+
+
+@pytest.mark.parametrize(['override_text'], [
+    ("hi there",),
+    ("[] = 7",),
+])
+def test_cannot_convert_simplified_text_to_assignment(override_text):
+    with pytest.raises(CannotConvertTextToAssignmentsException, match='.*'):
+        convert_simplified_text_to_assignment(override_text)
 
 
 @pytest.mark.parametrize(['components', 'value', 'expected_text'], [

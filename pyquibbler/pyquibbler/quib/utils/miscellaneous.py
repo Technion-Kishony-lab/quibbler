@@ -62,16 +62,3 @@ def copy_and_replace_quibs_with_vals(obj: Any):
         if is_there_a_quib_in_object(result, recursive=True):
             raise NestedQuibException(obj, nested_quibs)
     return result
-
-
-def is_saveable_as_txt(val: Any) -> bool:
-    all_ok = True
-
-    def set_false_if_repr_is_not_invertible(v):
-        from numpy import ndarray, int64, int32, bool_
-        nonlocal all_ok
-        all_ok &= isinstance(v, (Default, bool, str, int, float, ndarray, slice, type(None), int64, int32, bool_))
-
-    # TODO: for dicts we need to check also that the keys are saveable
-    recursively_run_func_on_object(func=set_false_if_repr_is_not_invertible, obj=val)
-    return all_ok

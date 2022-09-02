@@ -5,11 +5,12 @@ from unittest import mock
 import numpy as np
 import pytest
 
+from pyquibbler.assignment.exceptions import CannotConvertAssignmentsToTextException
 from pyquibbler.env import GET_VARIABLE_NAMES
-from pyquibbler.quib.exceptions import CannotSaveAssignmentsAsTextException
 from pyquibbler.quib.specialized_functions.iquib import iquib, CannotNestQuibInIQuibException
 from pyquibbler.file_syncing.types import SaveFormat
 from pyquibbler.quib.quib import Quib
+
 
 def test_iquib_get_value_returns_argument():
     quib = iquib(3)
@@ -128,14 +129,11 @@ def test_save_raises_exception_when_cannot_save_as_text(tmpdir):
     a = iquib(np.array([mock.Mock()])).setp(save_format=SaveFormat.TXT, name='my_quib')
     a.assign(A(), 0)
 
-    try:
+    with pytest.raises(CannotConvertAssignmentsToTextException, match='.*'):
         a.save()
-    except CannotSaveAssignmentsAsTextException:
-        quib_files = os.listdir(f"{tmpdir}")
-        assert len(quib_files) == 0
-        return
 
-    assert False
+    quib_files = os.listdir(f"{tmpdir}")
+    assert len(quib_files) == 0
 
 
 def test_save_iquib_with_save_path(tmpdir):
