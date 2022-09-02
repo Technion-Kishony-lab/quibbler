@@ -120,7 +120,7 @@ def test_get_overrides_for_assignment_when_nothing_is_overridable(assignment, pa
     parent.allow_overriding = False
 
     assignment = AssignmentToQuib(child, assignment)
-    with raises(CannotChangeQuibAtPathException) as exc_info:
+    with raises(CannotChangeQuibAtPathException, match='.*') as exc_info:
         get_override_group_for_quib_change(assignment)
     assert exc_info.value.quib_change is assignment
 
@@ -130,7 +130,7 @@ def test_get_overrides_for_assignment_when_inverse_assignment_not_implemented(as
     child = create_quib(func=lambda x: x, args=(parent,))
     assignment = AssignmentToQuib(child, assignment)
 
-    with raises(CannotChangeQuibAtPathException) as exc_info:
+    with raises(CannotChangeQuibAtPathException, match='.*') as exc_info:
         get_override_group_for_quib_change(assignment)
     assert exc_info.value.quib_change is assignment
 
@@ -141,7 +141,7 @@ def test_get_overrides_for_assignment_when_diverged_inverse_assign_has_only_one_
     grandparent2.allow_overriding = False
 
     assignment = AssignmentToQuib(child, assignment_to_multiple)
-    with raises(CannotChangeQuibAtPathException) as exc_info:
+    with raises(CannotChangeQuibAtPathException, match='.*') as exc_info:
         get_override_group_for_quib_change(assignment)
     assert exc_info.value.quib_change is assignment
 
@@ -214,7 +214,7 @@ def test_override_choice_when_cancelled(assignment, choose_override_dialog_mock,
          False)
     )
 
-    with raises(AssignmentCancelledByUserException):
+    with raises(AssignmentCancelledByUserException, match='.*'):
         get_overrides_for_assignment(child, assignment)
 
 
@@ -228,7 +228,7 @@ def test_override_choice_when_diverged_parent_is_cancelled(diverged_quib_graph, 
         (AssignmentCancelledByUserException(), [parent1, grandparent1], False)
     )
 
-    with raises(AssignmentCancelledByUserException):
+    with raises(AssignmentCancelledByUserException, match='.*'):
         get_overrides_for_assignment(child, assignment_to_multiple)
 
 
@@ -299,10 +299,10 @@ def test_get_overrides_for_assignment_doesnt_cache_cancel(assignment, parent_and
         (AssignmentCancelledByUserException(), [child, parent], False)
     )
 
-    with raises(AssignmentCancelledByUserException):
+    with raises(AssignmentCancelledByUserException, match='.*'):
         get_overrides_for_assignment(child, assignment)
     # If this doesn't invoke a dialog, the dialog mock will fail the test
-    with raises(AssignmentCancelledByUserException):
+    with raises(AssignmentCancelledByUserException, match='.*'):
         get_overrides_for_assignment(child, Assignment(assignment.value + 1, assignment.path))
 
 
@@ -370,7 +370,7 @@ def test_raises_cannot_change_when_context_quib_cannot_be_inverted():
     with get_value_context():
         # A function we don't know to invert
         child = q(lambda x: x, 10)
-    with raises(CannotChangeQuibAtPathException):
+    with raises(CannotChangeQuibAtPathException, match='.*'):
         get_override_group_for_quib_change(AssignmentToQuib(child, Assignment(1, [])))
 
 

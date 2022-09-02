@@ -1,29 +1,25 @@
 from __future__ import annotations
+
 from dataclasses import dataclass
 from functools import partial
-from matplotlib.axes import Axes
-import matplotlib.pyplot as plt
-from matplotlib.widgets import Button
-from typing import List, Callable, Optional, TYPE_CHECKING
+from typing import List, Callable, Optional
 from enum import Enum
 
+import matplotlib.pyplot as plt
+from matplotlib.axes import Axes
+from matplotlib.widgets import Button
+
 from pyquibbler.logger import logger
-from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.utils import Flag, Mutable
 from pyquibbler.env import OVERRIDE_DIALOG_IN_SEPARATE_WINDOW, \
     OVERRIDE_DIALOG_AS_TEXT_FOR_GRAPHICS_ASSIGNMENT, OVERRIDE_DIALOG_AS_TEXT_FOR_NON_GRAPHICS_ASSIGNMENT
+from .exceptions import AssignmentCancelledByUserException
 
+from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pyquibbler.quib.quib import Quib
 
 UNSET = object()
-
-
-@dataclass
-class AssignmentCancelledByUserException(PyQuibblerException):
-
-    def __str__(self):
-        return "User cancel inverse assignment dialog."
 
 
 class OverrideChoiceType(Enum):
@@ -192,7 +188,8 @@ def choose_override_text_dialog(str_options: List[str],
     choice_type = None
     choice = None
     while choice is None:
-        choice = input('Choose the number of the quib to override \n(press enter without a choice to cancel): ')
+        choice = input('Choose the number of the quib to override \n'
+                       '(press enter without a choice to cancel): ')
         if len(choice) == 0:
             print('Cancel')
             break
