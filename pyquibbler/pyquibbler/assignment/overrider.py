@@ -10,6 +10,7 @@ from pyquibbler.path.hashable import get_hashable_path
 from pyquibbler.path.path_component import Path, Paths
 from pyquibbler.path.data_accessing import deep_get, deep_assign_data_in_path
 from pyquibbler.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
+from pyquibbler.utilities.iterators import recursively_run_func_on_object
 
 from .assignment import Assignment
 from .assignment_to_from_text import convert_executable_text_to_assignments, convert_assignments_to_executable_text
@@ -119,7 +120,6 @@ class Overrider:
                 if isinstance(path[-1].component, slice):
                     inner_data = deep_get(mask, path[:-1])
                     if not isinstance(inner_data, np.ndarray):
-                        from pyquibbler.utilities.iterators import recursively_run_func_on_object
                         val = recursively_run_func_on_object(lambda x: val, inner_data)
                 mask = deep_assign_data_in_path(mask, path, val)
             else:
