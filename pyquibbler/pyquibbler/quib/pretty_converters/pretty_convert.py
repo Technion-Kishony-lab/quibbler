@@ -3,9 +3,10 @@ import numpy as np
 
 from typing import Callable, Tuple, Any, Mapping
 
-from .convert_math_equations import OPERATOR_FUNCS_TO_MATH_CONVERTERS, \
-    MathExpression, StringMathExpression, MathPrecedence
 from pyquibbler.env import REPR_RETURNS_SHORT_NAME
+from .math_expression import MathExpression, StringMathExpression
+from .convert_math_equations import OPERATOR_FUNCS_TO_MATH_CONVERTERS
+from .math_precedence import MathPrecedence
 
 
 def _convert_sub_item(sub_item: Any) -> str:
