@@ -4,54 +4,22 @@ from typing import Optional, Tuple, Callable, Any, Mapping, Union, Set, List
 
 from pyquibbler.assignment import AssignmentTemplate
 from pyquibbler.utilities.missing_value import missing
-from pyquibbler.env import GET_VARIABLE_NAMES, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS, LAZY, GRAPHICS_LAZY
-from pyquibbler.logger import logger
+from pyquibbler.env import LAZY, GRAPHICS_LAZY
 from pyquibbler.project import Project
 from pyquibbler.file_syncing.types import SaveFormat
 from pyquibbler.function_definitions.func_definition import FuncDefinition
 from pyquibbler.function_definitions import get_definition_for_function, SourceLocation
 from pyquibbler.utils import get_original_func
 from .func_calling import CachedQuibFuncCall
-from .get_value_context_manager import is_within_get_value_context
 from .graphics import GraphicsUpdateType
 from .quib_guard import add_new_quib_to_guard_if_exists
 from .quib import Quib
-from .types import FileAndLineNumber
 from .utils.miscellaneous import deep_copy_without_quibs_or_graphics
-from .variable_metadata import get_var_name_being_set_outside_of_pyquibbler, \
-    get_file_name_and_line_number_of_quib
+from .variable_metadata import get_file_name_and_line_no, get_quib_name
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pyquibbler import CacheMode
-
-
-def get_quib_name() -> Optional[str]:
-    """
-    Get the quib's name- this can potentially return None
-    if the context makes getting the file name and line no irrelevant
-    """
-    if GET_VARIABLE_NAMES and not is_within_get_value_context():
-        try:
-            return get_var_name_being_set_outside_of_pyquibbler()
-        except Exception as e:
-            logger.warning(f"Failed to get name, exception:\n{e}")
-
-    return None
-
-
-def _get_file_name_and_line_no() -> Optional[FileAndLineNumber]:
-    """
-    Get the file name and line no where the quib was created (outside of pyquibbler)- this can potentially return Nones
-    if the context makes getting the file name and line no irrelevant
-    """
-    if SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS and not is_within_get_value_context():
-        try:
-            return get_file_name_and_line_number_of_quib()
-        except Exception as e:
-            logger.warning(f"Failed to get file name + lineno, exception {e}")
-
-    return None
 
 
 def create_quib(func: Optional[Callable],
@@ -88,7 +56,7 @@ def create_quib(func: Optional[Callable],
     cache_mode = cache_mode or CachedQuibFuncCall.DEFAULT_CACHE_MODE
     assigned_name = get_quib_name() if assigned_name is missing else assigned_name
 
-    quib = Quib(created_in=_get_file_name_and_line_no(),
+    quib = Quib(created_in=get_file_name_and_line_no(),
                 func=get_original_func(func),
                 args=deep_copy_without_quibs_or_graphics(args),
                 kwargs=deep_copy_without_quibs_or_graphics(kwargs),

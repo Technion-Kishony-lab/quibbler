@@ -10,9 +10,10 @@ import numpy as np
 from matplotlib.artist import Artist
 from matplotlib.axes import Axes
 
-# Debugging and performance:
+# Debugging, warning and performance:
 from pyquibbler.logger import logger
 from pyquibbler.utilities.performance_utils import timer
+from pyquibbler.utilities.warning_messages import no_header_warn
 
 # Input validation:
 from pyquibbler.utilities.input_validation_utils import validate_user_input, InvalidArgumentValueException, \
@@ -36,6 +37,7 @@ from pyquibbler.utilities.file_path import PathWithHyperLink
 from pyquibbler.env import LEN_RAISE_EXCEPTION, BOOL_RAISE_EXCEPTION, ITER_RAISE_EXCEPTION
 from pyquibbler.utilities.iterators import recursively_run_func_on_object
 from pyquibbler.utilities.unpacker import Unpacker
+from pyquibbler.quib.variable_metadata import get_quib_name
 
 # get_value:
 from pyquibbler.quib.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own
@@ -68,8 +70,6 @@ from pyquibbler.quib.pretty_converters import MathExpression, FailedMathExpressi
     NameMathExpression, pretty_convert
 
 from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Union, Iterable, Mapping, Callable, Iterator
-
-from pyquibbler.utilities.warning_messages import no_header_warn
 
 if TYPE_CHECKING:
     from pyquibbler.function_definitions.func_definition import FuncDefinition
@@ -470,10 +470,10 @@ class QuibHandler:
         are guaranteed to be valid
         """
         if WARN_ON_UNSUPPORTED_BACKEND and self.func_definition.is_graphics:
-            from matplotlib import pyplot
-            if pyplot.get_backend() not in SUPPORTED_BACKENDS:
+            from matplotlib.pyplot import get_backend
+            if get_backend() not in SUPPORTED_BACKENDS:
                 WARN_ON_UNSUPPORTED_BACKEND.set(False)  # We don't want to warn more than once
-                no_header_warn('PyQuibbler is only optimized for the following Matplotlib backends: \n'
+                no_header_warn('PyQuibbler is only optimized for the following Matplotlib backends:\n'
                                f'{", ".join(SUPPORTED_BACKENDS)}.\n'
                                'In Jupyter lab, use: %matplotlib tk.\n'
                                'In PyCharm, use: matplotlib.use("TkAgg").')
@@ -566,6 +566,7 @@ class QuibHandler:
             return False
 
         if self._widget is None:
+            # We do not import QuibWidget globally to avoid importing ipywidgets if not installed
             from pyquibbler.ipywidget_viewer.quib_widget import QuibWidget
             widget = QuibWidget(self._quib_ref)
             widget.build_widget()
@@ -1176,7 +1177,7 @@ class Quib:
         allow_overriding : bool, optional
             Specifies whether the quib is open for overriding assignments.
 
-        assigned_quibs : None or Set[Quib], optional
+        assigned_quibs : None, Set[Quib], or 'self', optional
             Indicates which upstream quibs to inverse-assign to.
 
         assignment_template : tuple or AssignmentTemplate, optional
@@ -1185,7 +1186,7 @@ class Quib:
         save_directory : str or pathlib.Path, optional
             The directory to which quib assignments are saved.
 
-        save_format : None, {'off', 'txt', 'bin'}, or SaveFormat, optional
+        save_format : {None, 'off', 'txt', 'bin'} or SaveFormat, optional
             The file format for saving quib assignments.
 
         cache_mode : {'auto', 'on', 'off'} or CacheMode, optional
@@ -1197,7 +1198,7 @@ class Quib:
         name : None or str, optional
             The name of the quib.
 
-        graphics_update : None or str, optional
+        graphics_update : {None, 'drag', 'drop', 'central', 'never'} or GraphicsUpdateType, optional
             For graphics quibs, indicates when they should be refreshed.
 
         Returns
@@ -1212,11 +1213,10 @@ class Quib:
 
 
         Examples
-            >>> a = iquib(7).setp(assigned_name='my_number')
-            >>> b = (2 * a).setp(allow_overriding=True)
+            >>> a = iquib(7)
+            >>> b = (2 * a).setp(allow_overriding=True, assigned_name='two_times_a')
         """
 
-        from pyquibbler.quib.factory import get_quib_name
         for attr_name in ['allow_overriding', 'save_directory', 'save_format',
                           'cache_mode', 'assigned_name', 'name', 'graphics_update', 'assigned_quibs']:
             value = eval(attr_name)
