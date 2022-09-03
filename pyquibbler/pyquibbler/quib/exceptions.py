@@ -2,7 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Set, Any
 
-from pyquibbler.exceptions import PyQuibblerException, DebugException
+from pyquibbler.exceptions import DebugException
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:

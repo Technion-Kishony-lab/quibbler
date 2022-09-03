@@ -21,7 +21,5 @@ class IQuibFuncCall(QuibFuncCall):
         return False
 
     def run(self, valid_paths: List[Union[None, Path]]) -> Any:
-        """
-        Simply return the value of the argument
-        """
-        return self.func_args_kwargs.get_arg_values_by_position()[0]
+        # func is identity_function, so we this will simply return the "value", which is the first argument:
+        return self.func_args_kwargs.func(self.func_args_kwargs.get_arg_values_by_position()[0])
