@@ -149,7 +149,7 @@ class QuibNode(ipycytoscape.Node):
 
     @classmethod
     def from_quib(cls, quib: Quib):
-        tooltip = quib.display().get_html_repr()
+        tooltip = quib.display_properties().get_html_repr()
         return cls(id(quib), quib.pretty_repr, tooltip, classes=get_quib_class(quib))
 
 

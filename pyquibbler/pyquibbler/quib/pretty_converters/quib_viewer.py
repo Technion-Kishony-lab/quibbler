@@ -3,10 +3,13 @@ import pathlib
 
 from dataclasses import dataclass
 
-from pyquibbler import Quib, PathToNotebook
+from pyquibbler.utilities.file_path import PathToNotebook
+from pyquibbler.quib.quib import Quib
 from pyquibbler.env import REPR_RETURNS_SHORT_NAME
 
-PROPERTY_LIST = (
+
+# Use a tuple ('prop', 'actual_prop') for properties that have a project default
+HEADER_TO_PROPERTIES = (
     ('Function', ('func', 'is_iquib', 'is_random', 'is_file_loading', 'is_graphics', 'pass_quibs')),
     ('Arguments', ('args', 'kwargs')),
     ('File saving', (('save_format', 'actual_save_format'), 'file_path')),
@@ -36,9 +39,10 @@ def _repr(value):
     return value
 
 
-def replace_lt_gt(text: str):
+def replace_lt_gt_newline(text: str):
     text = text.replace('<', '&lt;')
     text = text.replace('>', '&gt;')
+    text = text.replace('\n', '<br>')
     return text
 
 
@@ -47,7 +51,7 @@ def html_element(item, tag: str, props: str = '') -> str:
 
 
 @dataclass
-class QuibViewer:
+class QuibPropertiesViewer:
     """
     Display quib properties
 
@@ -60,14 +64,14 @@ class QuibViewer:
 
     See Also
     --------
-    Quib.display
+    Quib.display_properties
     """
     quib: Quib
 
     def _get_headers_to_props_to_values(self):
         headers_to_props_to_values = dict()
         with REPR_RETURNS_SHORT_NAME.temporary_set(True):
-            for header, properties in PROPERTY_LIST:
+            for header, properties in HEADER_TO_PROPERTIES:
                 props_to_values = dict()
                 for prop in properties:
                     is_actual_property = isinstance(prop, tuple)
@@ -123,8 +127,8 @@ class QuibViewer:
                 else:
                     value, actual_value = values
                     if value is None:
-                        actual_value_str = replace_lt_gt(f' &rarr; {_repr(actual_value)}')
-                value_str = replace_lt_gt(f'{_repr(value)}')
+                        actual_value_str = replace_lt_gt_newline(f' &rarr; {_repr(actual_value)}')
+                value_str = replace_lt_gt_newline(f'{_repr(value)}')
                 right = html_element(html_element(value_str + actual_value_str,
                                                   'div', 'style="float:left; font-size:10px"'),
                                      'td')

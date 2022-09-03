@@ -34,7 +34,7 @@ class MockQuib:
     def get_parents(self, *args, **kwargs):
         return self.parents
 
-    def display(self, *args, **kwargs):
+    def display_properties(self, *args, **kwargs):
         return Mock()
 
     def __repr__(self):
