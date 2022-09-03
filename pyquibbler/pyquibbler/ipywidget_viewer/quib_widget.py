@@ -55,6 +55,18 @@ class QuibWidget:
     def _get_load_button_widget(self) -> widgets.Button:
         return self._widget.children[2].children[0].children[1]
 
+    def show_quib_properties(self):
+        """
+        Create a pop-up window displaying the quib's properties
+        """
+        s = '<script type="text/Javascript">'
+        s += 'var win = window.open("", "Title", "toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=yes, resizable=yes, width=300, height=500, top="+(screen.height-400)+", left="+(screen.width-840));'
+        s += 'win.document.body.innerHTML = \'' + self.quib.display().get_html_repr() + '\';'
+        s += '</script>'
+
+        from IPython.display import HTML
+        HTML(s)
+
     @property
     def quib(self) -> Quib:
         if self.quib_ref() is None:
