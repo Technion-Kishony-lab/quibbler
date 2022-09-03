@@ -66,7 +66,11 @@ class QuibPropertiesViewer:
     --------
     Quib.display_properties
     """
+
     quib: Quib
+    """
+    The quib whose properties to display.
+    """
 
     def _get_headers_to_props_to_values(self):
         headers_to_props_to_values = dict()
@@ -87,7 +91,10 @@ class QuibPropertiesViewer:
                 headers_to_props_to_values[header] = props_to_values
         return headers_to_props_to_values
 
-    def get_text_repr(self):
+    def get_text_repr(self) -> str:
+        """
+        Return a text representation of the properties of the quib.
+        """
         repr_ = ''
         repr_ += f'{"quib":>20}: {self.quib}\n\n'
         headers_to_prop_to_values = self._get_headers_to_props_to_values()
@@ -106,7 +113,10 @@ class QuibPropertiesViewer:
             repr_ += '\n'
         return repr_
 
-    def get_html_repr(self):
+    def get_html_repr(self) -> str:
+        """
+        Return an html representation of the properties of the quib.
+        """
         repr_ = ''
         repr_ += '<!DOCTYPE html>'
         repr_ += '<html>'
@@ -142,6 +152,7 @@ class QuibPropertiesViewer:
         return repr_
 
     def _repr_html_(self):
+        # this function will be call when inside jupyter lab.
         return self.get_html_repr()
 
     def __repr__(self):

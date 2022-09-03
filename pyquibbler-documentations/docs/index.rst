@@ -61,6 +61,7 @@ Classes
    major_classes/Quib_class
    major_classes/Project_class
    Quibbler_Enums
+   Quibbler_display_classes
 
 
 Index

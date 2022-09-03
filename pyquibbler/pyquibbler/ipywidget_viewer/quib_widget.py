@@ -29,8 +29,9 @@ class WidgetQuibDeletedException(PyQuibblerException):
 @dataclasses.dataclass
 class QuibWidget:
     """
-    Creates and control a quib widget allowing viewing, editing and load/save of quib overrides.
-    The quib widget is Composed of several ipywidgets.
+    Creates and control a quib widget allowing viewing, editing and save/load of quib overrides.
+
+    QuibWidgets are created automatically when a quib is displayed in Jupyter lab.
     """
 
     quib_ref: Optional[ReferenceType[Quib]] = None

@@ -77,7 +77,7 @@ if TYPE_CHECKING:
     from pyquibbler.assignment import OverrideChoice
     from pyquibbler.quib.func_calling import QuibFuncCall
     from pyquibbler.quib.quib_properties_viewer import QuibPropertiesViewer
-    from pyquibbler.ipywidget_viewer.quib_widget import QuibWidget
+    from pyquibbler.ipywidget_viewer import QuibWidget
     from pyquibbler.quib.types import FileAndLineNumber
 
 NoneType = type(None)
