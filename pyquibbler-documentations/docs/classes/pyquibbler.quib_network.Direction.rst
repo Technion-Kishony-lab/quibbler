@@ -1,7 +1,7 @@
-﻿pyquibbler.Direction
-====================
+﻿pyquibbler.quib\_network.Direction
+==================================
 
-.. currentmodule:: pyquibbler
+.. currentmodule:: pyquibbler.quib_network
 
 .. autoclass:: Direction
 

@@ -122,8 +122,9 @@ into the notebook and save the notebook to file.
 Display a quib dependency graph
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Within Jupyter lab, we can use the :py:func:`~pyquibbler.dependency_graph` function to
-display the network of quibs upstream/downstream of a given focal quib.
+Within Jupyter lab, we can use the :py:func:`~pyquibbler.quib_network.dependency_graph`
+function to display the network of quibs upstream/downstream of a given
+focal quib.
 
 See :doc:`Quib-relationships` for more detail and an example graph.
 

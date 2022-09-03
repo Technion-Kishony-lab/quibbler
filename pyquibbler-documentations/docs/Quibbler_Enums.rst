@@ -11,4 +11,12 @@ Quibbler special property classes
    CacheMode
    CacheStatus
    AssignmentTemplate
+
+
+.. currentmodule:: pyquibbler.quib_network
+
+.. autosummary::
+   :toctree: classes
+   :nosignatures:
+
    Direction

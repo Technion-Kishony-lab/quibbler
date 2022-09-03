@@ -1521,7 +1521,7 @@ class Quib:
 
         See Also
         --------
-        get_ancestors, get_parents, get_descendants, dependency_graph
+        get_ancestors, get_parents, get_descendants, ~pyquibbler.quib_network.dependency_graph
 
         Examples
         --------
@@ -1571,7 +1571,7 @@ class Quib:
 
         See Also
         --------
-        get_ancestors, get_children, get_parents, dependency_graph
+        get_ancestors, get_children, get_parents, ~pyquibbler.quib_network.dependency_graph
 
         Examples
         --------
@@ -1617,7 +1617,7 @@ class Quib:
 
         See Also
         --------
-        args, kwargs, get_ancestors, get_children, get_descendants, dependency_graph
+        args, kwargs, get_ancestors, get_children, get_descendants, ~pyquibbler.quib_network.dependency_graph
 
         Examples
         --------
@@ -1674,7 +1674,7 @@ class Quib:
 
         See Also
         --------
-        get_parents, get_children, get_descendants, dependency_graph
+        get_parents, get_children, get_descendants, ~pyquibbler.quib_network.dependency_graph
 
         Examples
         --------

@@ -50,7 +50,7 @@ or immediately downstream to it (children) using the
 
 .. code:: none
 
-    {b < a, c = a + b}
+    {c = a + b}
 
 
 
@@ -113,7 +113,7 @@ or all the quibs that are affected by a focal quib, we use the
 
 .. code:: none
 
-    {a = iquib(1), b = a + 10, b * 2, c = b * 2 + a}
+    {a = iquib(1), b = a + 10, b * 2, c = b*2 + a}
 
 
 
@@ -128,7 +128,7 @@ Again, we can limit to named quibs:
 
 .. code:: none
 
-    {a = iquib(1), b = a + 10, c = b * 2 + a}
+    {a = iquib(1), b = a + 10, c = b*2 + a}
 
 
 
@@ -152,11 +152,12 @@ Displaying the dependency graph
 
 When working within *Jupyter lab* (either with or without the
 *pyquibbler-labextension*), we can graphically display the relationship
-graph of connected quibs, using the :py:func:`~pyquibbler.dependency_graph` function.
+graph of connected quibs, using the :py:func:`~pyquibbler.quib_network.dependency_graph`
+function.
 
 .. code:: python
 
-    from pyquibbler import dependency_graph
+    from pyquibbler.quib_network import dependency_graph
 
 .. code:: python
 
@@ -166,4 +167,4 @@ graph of connected quibs, using the :py:func:`~pyquibbler.dependency_graph` func
 
 The dependency graph allows multiple options for restricting the network
 to quibs affecting or affected by a focal quib. See the function
-documentation for more detail (:py:func:`~pyquibbler.dependency_graph`)
+documentation for more detail (:py:func:`~pyquibbler.quib_network.dependency_graph`)

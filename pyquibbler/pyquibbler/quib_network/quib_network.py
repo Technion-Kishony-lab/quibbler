@@ -304,7 +304,11 @@ def dependency_graph(focal_quib: Quib,
 
     See Also
     --------
-    Direction, Quib.get_parents, Quib.get_children, Quib.get_ancestors, Quib.get_descendants
+    Direction,
+    ~pyquibbler.Quib.get_parents,
+    ~pyquibbler.Quib.get_children,
+    ~pyquibbler.Quib.get_ancestors,
+    ~pyquibbler.Quib.get_descendants
     """
 
     return QuibNetwork(focal_quib=focal_quib,

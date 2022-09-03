@@ -80,7 +80,7 @@ Default value
 
 Quib network
 ------------
-.. currentmodule:: pyquibbler
+.. currentmodule:: pyquibbler.quib_network
 
 .. autosummary::
    :toctree: functions

@@ -46,7 +46,7 @@ def reformat_file(file: str):
     os.system(r"sed -i '' -E 's/\[\[Quib.([_[:alnum:]]{1,50}\(\))\]\]/:py:meth:`~pyquibbler.Quib.\1`/g' " + file)
 
     # [[qb.xxx]] -> :py:func:`~pyquibbler.xxx`
-    os.system(r"sed -i '' -E 's/\[\[qb.([_[:alnum:]]{1,50})\]\]/:py:func:`~pyquibbler.\1`/g' " + file)
+    os.system(r"sed -i '' -E 's/\[\[qb.([_\.[:alnum:]]{1,50})\]\]/:py:func:`~pyquibbler.\1`/g' " + file)
 
     # [[/imagesXXX]] -> .. image:: imagesXXX
     os.system(r"sed -i '' -E 's/\[\[[/]images([-/_[:alnum:].]{1,90})\]\]/.. image:: images\1/g' " + file)
