@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Tuple, Dict
 from abc import ABC, abstractmethod
 
 from .operators import Operator
@@ -23,6 +23,26 @@ class MathExpression(ABC):
     @abstractmethod
     def precedence(self) -> MathPrecedence:
         pass
+
+
+@dataclass
+class FunctionCallMathExpression(MathExpression):
+    func_name: str
+    args: Tuple[Any, ...]
+    kwargs: Dict[str: Any]
+
+    def get_pretty_args(self):
+        return [repr(arg) for arg in self.args]
+
+    def get_pretty_kwargs(self):
+        return [f'{key}={repr(val)}' for key, val in self.kwargs.items()]
+
+    def __str__(self):
+        return f'{self.func_name}({", ".join([*self.get_pretty_args(), *self.get_pretty_kwargs])})',
+
+    @property
+    def precedence(self) -> MathPrecedence:
+        return MathPrecedence.FUNCTION_CALL
 
 
 @dataclass
@@ -56,11 +76,11 @@ def add_parenthesis_if_needed(expr: MathExpression, needed: bool = False) -> Mat
 
 
 @dataclass
-class ValueMathExpression(MathExpression):
-    value: Any
+class ObjectMathExpression(MathExpression):
+    obj: Any
 
     def __str__(self):
-        return repr(self.value)
+        return repr(self.obj)
 
     @property
     def precedence(self) -> MathPrecedence:
@@ -69,7 +89,7 @@ class ValueMathExpression(MathExpression):
 
 def object_to_math_expression(obj: Any):
     return obj.get_math_expression() if hasattr(obj, 'get_math_expression') \
-            else ValueMathExpression(obj)
+            else ObjectMathExpression(obj)
 
 
 @dataclass

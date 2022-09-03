@@ -66,8 +66,7 @@ from pyquibbler.quib.graphics.redraw import notify_of_overriding_changes_or_add_
 
 # repr:
 from pyquibbler.env import PRETTY_REPR, REPR_RETURNS_SHORT_NAME, REPR_WITH_OVERRIDES, WARN_ON_UNSUPPORTED_BACKEND
-from pyquibbler.quib.pretty_converters import MathExpression, FailedMathExpression, \
-    NameMathExpression, pretty_convert
+from pyquibbler.quib.pretty_converters import MathExpression, FailedMathExpression, NameMathExpression, pretty_convert
 
 from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Union, Iterable, Mapping, Callable, Iterator
 

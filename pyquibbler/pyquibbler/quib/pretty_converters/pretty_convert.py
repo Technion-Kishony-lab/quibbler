@@ -4,73 +4,30 @@ import numpy as np
 from typing import Callable, Tuple, Any, Mapping
 
 from pyquibbler.env import REPR_RETURNS_SHORT_NAME
-from .math_expression import MathExpression, StringMathExpression
+from .get_item import getitem_converter
+from .math_expression import MathExpression, FunctionCallMathExpression
 from .convert_math_equations import OPERATOR_FUNCS_TO_MATH_CONVERTERS
-from .math_precedence import MathPrecedence
 
 
-def _convert_sub_item(sub_item: Any) -> str:
-    if isinstance(sub_item, slice):
-        return _convert_slice(sub_item)
-    if isinstance(sub_item, type(Ellipsis)):
-        return '...'
-    return repr(sub_item)
-
-
-def _convert_slice(slice_: slice) -> str:
-    pretty = ':'
-    if slice_.start is not None:
-        pretty = f"{slice_.start}{pretty}"
-    if slice_.stop is not None:
-        pretty = f"{pretty}{slice_.stop}"
-    if slice_.step is not None:
-        pretty = f"{pretty}:{slice_.step}"
-    return pretty
-
-
-def getitem_converter(func: Callable, args: Tuple[Any, ...]) -> MathExpression:
-
-    assert len(args) == 2
-    obj, item = args
-    if isinstance(item, tuple):
-        item_repr = ", ".join(_convert_sub_item(sub_item) for sub_item in item)
-        if len(item) == 1:
-            item_repr = f"({item_repr},)"
-    else:
-        item_repr = _convert_sub_item(item)
-    return StringMathExpression(f"{obj}[{item_repr}]", MathPrecedence.SUBSCRIPTION)
-
-
-def vectorize_call_converter(func: Callable, args: Tuple[Any, ...]) -> MathExpression:
+def vectorize_call_converter(func: Callable, args: Tuple[Any, ...]) -> FunctionCallMathExpression:
     func_being_called, *args = args
-    return StringMathExpression(f"{func_being_called}({', '.join(repr(arg) for arg in args)})",
-                                MathPrecedence.FUNCTION_CALL)
+    return FunctionCallMathExpression(str(func_being_called), args, {})
 
 
 def function_call_converter(func: Callable,
                             args: Tuple[Any, ...],
-                            kwargs: Mapping[str, Any]) -> MathExpression:
+                            kwargs: Mapping[str, Any]) -> FunctionCallMathExpression:
     func_name = getattr(func, '__name__', str(func))
-    pretty_args, pretty_kwargs = get_pretty_args_and_kwargs(args, kwargs)
-    return StringMathExpression(f'{func_name}({", ".join(map(str, [*pretty_args, *pretty_kwargs]))})',
-                                MathPrecedence.FUNCTION_CALL)
+    return FunctionCallMathExpression(func_name, args, kwargs)
 
 
 def str_format_call_converter(func: Callable,
                               args: Tuple[Any, ...],
-                              kwargs: Mapping[str, Any]) -> MathExpression:
+                              kwargs: Mapping[str, Any]) -> FunctionCallMathExpression:
     func_name = getattr(func, '__name__', str(func))
     str_ = getattr(func, '__reduce__')()[1][0]
-    pretty_args, pretty_kwargs = get_pretty_args_and_kwargs(args, kwargs)
-    return StringMathExpression(f'"{str_}".{func_name}({", ".join(map(str, [*pretty_args, *pretty_kwargs]))})',
-                                MathPrecedence.FUNCTION_CALL)
-
-
-def get_pretty_args_and_kwargs(args: Tuple[Any, ...], kwargs: Mapping[str, Any]):
-    pretty_args = [repr(arg) for arg in args]
-    pretty_kwargs = [f'{key}={repr(val)}' for key, val in kwargs.items()]
-
-    return pretty_args, pretty_kwargs
+    str_format_name = f'"{str_}".{func_name}'
+    return FunctionCallMathExpression(str_format_name, args, kwargs)
 
 
 def is_str_format(func: Callable) -> bool:
