@@ -3,12 +3,12 @@ from typing import Any, Dict, Optional, Type, Tuple
 
 import numpy as np
 
-from pyquibbler.path.path_component import PathComponent, Path, Paths
-from pyquibbler.path import working_component, translate_bool_vector_to_slice_if_possible
-from pyquibbler.translation.backwards_path_translator import BackwardsPathTranslator
-from pyquibbler.translation.exceptions import FailedToTranslateException
-from pyquibbler.translation.forwards_path_translator import ForwardsPathTranslator
-from pyquibbler.translation.types import Source, NoMetadataSource
+from pyquibbler.path import working_component, translate_bool_vector_to_slice_if_possible, Path, Paths, PathComponent
+
+from .backwards_path_translator import BackwardsPathTranslator
+from .exceptions import FailedToTranslateException
+from .forwards_path_translator import ForwardsPathTranslator
+from .types import Source, NoMetadataSource
 
 
 class NumpyBackwardsPathTranslator(BackwardsPathTranslator):

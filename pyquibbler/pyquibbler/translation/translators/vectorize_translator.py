@@ -1,18 +1,20 @@
 from __future__ import annotations
-from typing import Dict, Any, Set, TYPE_CHECKING, Optional, Tuple, Type, List
+from typing import Dict, Any, Set, Optional, Tuple, Type, List
 
 import numpy as np
 
-from pyquibbler.translation.exceptions import FailedToTranslateException
 from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices, unbroadcast_bool_mask
 from pyquibbler.path import PathComponent
 from pyquibbler.path.path_component import Path
 from pyquibbler.quib.func_calling.func_calls.vectorize.utils import get_core_axes
 from pyquibbler.function_definitions.types import iter_arg_ids_and_values
-from pyquibbler.translation.backwards_path_translator import BackwardsPathTranslator
-from pyquibbler.translation.forwards_path_translator import ForwardsPathTranslator
-from pyquibbler.translation.types import Source
 
+from ..exceptions import FailedToTranslateException
+from ..backwards_path_translator import BackwardsPathTranslator
+from ..forwards_path_translator import ForwardsPathTranslator
+from ..types import Source
+
+from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pyquibbler.quib.func_calling.func_calls.vectorize.vectorize_metadata import ArgId
 

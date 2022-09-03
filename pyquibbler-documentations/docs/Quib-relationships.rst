@@ -162,13 +162,6 @@ graph of connected quibs, using the :py:func:`~pyquibbler.dependency_graph` func
 
     dependency_graph(c)
 
-
-
-.. code:: none
-
-    Box(children=(CytoscapeWidget(cytoscape_layout={'name': 'preset'}, cytoscape_style=[{'selector': 'edge', 'styl…
-
-
 .. image:: images/dependency_graph_1.png
 
 The dependency graph allows multiple options for restricting the network

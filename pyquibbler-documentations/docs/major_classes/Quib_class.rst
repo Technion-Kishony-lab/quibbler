@@ -85,7 +85,7 @@ pyquibbler.Quib
       ~Quib.functional_representation
       ~Quib.pretty_repr
       ~Quib.ugly_repr
-      ~Quib.display
+      ~Quib.display_properties
 
 
    .. rubric:: Graphics

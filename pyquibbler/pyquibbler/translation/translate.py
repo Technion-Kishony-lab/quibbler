@@ -2,12 +2,13 @@ from typing import Type, Dict, List
 
 from pyquibbler.function_definitions.func_definition import FuncDefinition
 from pyquibbler.utilities.multiple_instance_runner import MultipleInstanceRunner
-from pyquibbler.path.path_component import Path, Paths
+from pyquibbler.path import Path, Paths
 from pyquibbler.function_definitions.func_call import FuncCall
-from pyquibbler.translation.backwards_path_translator import BackwardsPathTranslator
-from pyquibbler.translation.exceptions import FailedToTranslateException, NoTranslatorsFoundException
-from pyquibbler.translation.forwards_path_translator import ForwardsPathTranslator
-from pyquibbler.translation.types import Source
+
+from .backwards_path_translator import BackwardsPathTranslator
+from .exceptions import FailedToTranslateException, NoTranslatorsFoundException
+from .forwards_path_translator import ForwardsPathTranslator
+from .types import Source
 
 
 class MultipleBackwardsTranslatorRunner(MultipleInstanceRunner):

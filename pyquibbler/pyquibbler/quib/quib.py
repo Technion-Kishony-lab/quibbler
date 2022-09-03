@@ -312,7 +312,7 @@ class QuibHandler:
         )
         persist_quib_callback = PersistQuibOnSettedArtist if definition.is_artist_setter \
             else PersistQuibOnCreatedArtists
-        self.quib_function_call.artists_creation_callback = persist_quib_callback(weakref.ref(self.quib))
+        self.quib_function_call.artists_creation_callback = persist_quib_callback(self._quib_ref)
 
     """
     assignments
@@ -580,7 +580,7 @@ class QuibHandler:
 
 class Quib:
     """
-    A Quib is an object representing a specific call of a function with it's arguments.
+    A Quib represents the output of a call to a specific function with specific arguments.
     """
 
     def __init__(self,
@@ -2128,7 +2128,7 @@ class Quib:
 
     def display_properties(self) -> QuibPropertiesViewer:
         """
-        Returns a QuibViewer which displays the properties of the quib.
+        Returns a QuibPropertiesViewer which displays the properties of the quib.
 
         Returns
         -------
@@ -2136,7 +2136,7 @@ class Quib:
 
         See Also
         --------
-        QuibViewer
+        QuibPropertiesViewer
         """
 
         from pyquibbler.quib.quib_properties_viewer import QuibPropertiesViewer

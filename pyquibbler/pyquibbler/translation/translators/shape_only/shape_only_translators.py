@@ -3,9 +3,10 @@ from typing import Dict
 import numpy as np
 
 from pyquibbler.path.path_component import PathComponent, Path, Paths
-from pyquibbler.translation.forwards_path_translator import ForwardsPathTranslator
-from pyquibbler.translation.backwards_path_translator import BackwardsPathTranslator
-from pyquibbler.translation.types import Source
+
+from ...forwards_path_translator import ForwardsPathTranslator
+from ...backwards_path_translator import BackwardsPathTranslator
+from ...types import Source
 
 
 class BackwardsShapeOnlyPathTranslator(BackwardsPathTranslator):
