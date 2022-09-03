@@ -76,7 +76,7 @@ if TYPE_CHECKING:
     from pyquibbler.assignment.override_choice import ChoiceContext
     from pyquibbler.assignment import OverrideChoice
     from pyquibbler.quib.func_calling import QuibFuncCall
-    from pyquibbler.quib.pretty_converters.quib_viewer import QuibPropertiesViewer
+    from pyquibbler.quib.quib_properties_viewer import QuibPropertiesViewer
     from pyquibbler.ipywidget_viewer.quib_widget import QuibWidget
     from pyquibbler.quib.types import FileAndLineNumber
 
@@ -2136,7 +2136,7 @@ class Quib:
         QuibViewer
         """
 
-        from .pretty_converters.quib_viewer import QuibPropertiesViewer
+        from pyquibbler.quib.quib_properties_viewer import QuibPropertiesViewer
         return QuibPropertiesViewer(self)
 
     @property
