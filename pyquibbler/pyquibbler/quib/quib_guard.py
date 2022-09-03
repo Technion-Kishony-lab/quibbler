@@ -1,9 +1,11 @@
 from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Set, TYPE_CHECKING
+from typing import Set
 
 from pyquibbler.exceptions import PyQuibblerException
 
+from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pyquibbler.quib.quib import Quib
 
@@ -18,7 +20,7 @@ class CannotAccessQuibInScopeException(PyQuibblerException):
 
 class QuibGuard:
     """
-    A quib guard allows you to specify places in which only certain quibs (and their recursive children)
+    A quib guard allows us to specify places in which only certain quibs (and their recursive children)
     are allowed to be accessed
     """
     _QUIB_GUARDS = []

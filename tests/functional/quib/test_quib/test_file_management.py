@@ -3,6 +3,7 @@ import os
 import pytest
 import numpy as np
 
+import pyquibbler as qb
 from pyquibbler import Quib
 from pyquibbler import iquib
 from pyquibbler.file_syncing.types import FileNotDefinedException, ResponseToFileNotDefined
@@ -16,34 +17,53 @@ def test_quib_wont_save_without_assigned_name(create_quib_with_return_value):
         example_quib.save(ResponseToFileNotDefined.RAISE)
 
 
-def test_sync_quibs_with_files_project_initiation(project):
+def test_sync_quibs_with_files_project_initiation():
     a = iquib(np.array([1., 2., 3.])).setp(name='a')
-    b: Quib = (a + 10).setp(allow_overriding=True, name='b')
-    b.assigned_quibs = {b}
+    b: Quib = (a + 10).setp(allow_overriding=True, name='b', assigned_quibs='self')
     b[1] = 20
     a[2] = 30
 
-    project.sync_quibs()
+    qb.sync_quibs()
 
     # re-initiate the project:
     del a, b
     a = iquib(np.array([1., 2., 3.])).setp(name='a')
-    b: Quib = (a + 10).setp(allow_overriding=True, name='b')
+    b: Quib = (a + 10).setp(allow_overriding=True, name='b', assigned_quibs='self')
 
-    project.sync_quibs()
+    qb.sync_quibs()
+    assert np.array_equal(a.get_value(), [1., 2., 30.])
     assert np.array_equal(b.get_value(), [11., 20., 40.])
 
 
-def test_sync_quibs_with_files_and_then_file_change(project, monkeypatch):
+def test_project_save_load_quibs(monkeypatch):
+    a = iquib(np.array([1., 2., 3.])).setp(name='a')
+    b: Quib = (a + 10).setp(allow_overriding=True, name='b', assigned_quibs='self')
+    b[1] = 20
+    a[2] = 30
+
+    qb.save_quibs()
+
+    b[1] = 21
+    a[2] = 31
+    assert np.array_equal(a.get_value(), [1., 2., 31.]), "sanity"
+    assert np.array_equal(b.get_value(), [11., 21., 41.]), "sanity"
+
+    monkeypatch.setattr('builtins.input', lambda: "1")  # overwrite
+    qb.load_quibs()
+    assert np.array_equal(a.get_value(), [1., 2., 30.])
+    assert np.array_equal(b.get_value(), [11., 20., 40.])
+
+
+def test_sync_quibs_with_files_and_then_file_change(monkeypatch):
     a = iquib(np.array([1., 2., 3.])).setp(name='a', save_format='txt')
     a[1] = 10
 
-    project.sync_quibs()
+    qb.sync_quibs()
     assert np.array_equal(a.get_value(), [1., 10., 3.]), 'sanity'
 
     os.remove(a.file_path)
     monkeypatch.setattr('builtins.input', lambda: "2")
-    project.sync_quibs()
+    qb.sync_quibs()
 
     assert np.array_equal(a.get_value(), [1., 2., 3.])
 

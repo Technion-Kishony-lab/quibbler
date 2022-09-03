@@ -1,6 +1,6 @@
 import numpy as np
 
-from pyquibbler import Assignment
+from pyquibbler.assignment import Assignment
 from pyquibbler.inversion.inverter import Inverter
 from pyquibbler.translation.translate import backwards_translate
 from pyquibbler.translation.types import Inversal

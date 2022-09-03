@@ -1,17 +1,13 @@
-
 import ast
 from dataclasses import dataclass
 from typing import Optional
 
 from varname.utils import ASSIGN_TYPES, get_node, node_name, AssignType
 
-from pyquibbler.exceptions import PyQuibblerException
-from pyquibbler.quib.types import FileAndLineNumber
-
-
-class CannotFindNodeException(PyQuibblerException):
-    pass
-
+from pyquibbler.env import GET_VARIABLE_NAMES, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS
+from pyquibbler.logger import logger
+from .get_value_context_manager import is_within_get_value_context
+from .types import FileAndLineNumber
 
 AST_ASSIGNMENTS_TO_VAR_NAME_STATES = {}
 
@@ -84,3 +80,31 @@ def get_var_name_being_set_outside_of_pyquibbler() -> Optional[str]:
         AST_ASSIGNMENTS_TO_VAR_NAME_STATES.pop(node)
 
     return current_name
+
+
+def get_quib_name() -> Optional[str]:
+    """
+    Get the quib's name- this can potentially return None
+    if the context makes getting the file name and line no irrelevant
+    """
+    if GET_VARIABLE_NAMES and not is_within_get_value_context():
+        try:
+            return get_var_name_being_set_outside_of_pyquibbler()
+        except Exception as e:
+            logger.warning(f"Failed to get name, exception:\n{e}")
+
+    return None
+
+
+def get_file_name_and_line_no() -> Optional[FileAndLineNumber]:
+    """
+    Get the file name and line no where the quib was created (outside of pyquibbler)- this can potentially return Nones
+    if the context makes getting the file name and line no irrelevant
+    """
+    if SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS and not is_within_get_value_context():
+        try:
+            return get_file_name_and_line_number_of_quib()
+        except Exception as e:
+            logger.warning(f"Failed to get file name + lineno, exception:\n{e}")
+
+    return None

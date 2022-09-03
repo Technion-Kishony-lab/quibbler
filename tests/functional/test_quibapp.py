@@ -38,7 +38,7 @@ def test_quibapp_clears_upon_close(quibapp_):
 def test_quibapp_undo_exception(quibapp_, simulate_button_press, capsys):
     undo_button = quibapp_._buttons['undo']
     simulate_button_press(undo_button)
-    assert capsys.readouterr().out == 'There are no actions left to undo\n'
+    assert capsys.readouterr().out == 'There are no actions left to undo.\n'
 
 
 def test_quibapp_undo(quibapp_, simulate_button_press):

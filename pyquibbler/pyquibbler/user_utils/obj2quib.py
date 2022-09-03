@@ -33,7 +33,7 @@ def obj2quib(obj: Any) -> Quib:
     obj : any object
         The object to convert to quib. Can contain nested lists, tuples, dicts and quibs.
 
-    See also
+    See Also
     --------
     quiby, q, iquib
 

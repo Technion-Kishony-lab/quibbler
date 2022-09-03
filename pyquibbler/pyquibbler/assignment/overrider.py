@@ -6,25 +6,24 @@ import numpy as np
 
 from typing import Any, Optional, Dict, Hashable, List
 
+from pyquibbler.path.hashable import get_hashable_path
+from pyquibbler.path.path_component import Path, Paths
+from pyquibbler.path.data_accessing import deep_get, deep_assign_data_in_path
+from pyquibbler.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
+from pyquibbler.utilities.iterators import recursively_run_func_on_object
+
 from .assignment import Assignment
 from .assignment_to_from_text import convert_executable_text_to_assignments, convert_assignments_to_executable_text
 from .assignment_template import AssignmentTemplate
 from .default_value import default
-from .exceptions import NoAssignmentFoundAtPathException
-
-from pyquibbler.path.hashable import get_hashable_path
-from pyquibbler.path.path_component import Path, Paths
-from pyquibbler.path.data_accessing import deep_get, deep_assign_data_in_path
-
-from pyquibbler.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
-
+from .exceptions import NoAssignmentFoundAtPathException, CannotConvertAssignmentsToTextException
 
 PathsToAssignments = Dict[Hashable, Assignment]
 
 
 class Overrider:
     """
-    Gathers function_definitions assignments performed on a quib in order to apply them on a quib value.
+    Gathers assignments performed on a quib and apply these assignments on the quib's value.
     """
 
     def __init__(self):
@@ -121,7 +120,6 @@ class Overrider:
                 if isinstance(path[-1].component, slice):
                     inner_data = deep_get(mask, path[:-1])
                     if not isinstance(inner_data, np.ndarray):
-                        from pyquibbler.utilities.iterators import recursively_run_func_on_object
                         val = recursively_run_func_on_object(lambda x: val, inner_data)
                 mask = deep_assign_data_in_path(mask, path, val)
             else:
@@ -156,20 +154,11 @@ class Overrider:
         with open(file, 'rb') as f:
             return self.replace_assignments(pickle.load(f))
 
-    def can_save_to_txt(self) -> bool:
-        from pyquibbler.quib.utils.miscellaneous import is_saveable_as_txt
-        for assignment in self._paths_to_assignments.values():
-            if not is_saveable_as_txt([cmp.component for cmp in assignment.path]) \
-                    or isinstance(assignment, Assignment) and not is_saveable_as_txt(assignment.value):
-                return False
-        return True
-
     def save_as_txt(self, file: pathlib.Path):
-        from pyquibbler.quib.exceptions import CannotSaveAssignmentsAsTextException
-        if not self.can_save_to_txt():
-            raise CannotSaveAssignmentsAsTextException()
+        text = convert_assignments_to_executable_text(self._paths_to_assignments.values(),
+                                                      raise_if_not_reversible=True)
         with open(file, "wt") as f:
-            f.write(self.get_pretty_repr())
+            f.write(text)
 
     def load_from_assignments_text(self, assignment_text: str):
         self.clear_assignments()
@@ -190,7 +179,11 @@ class Overrider:
     """
 
     def get_pretty_repr(self, name: str = None):
-        return convert_assignments_to_executable_text(self._paths_to_assignments.values(), name)
+        try:
+            text = convert_assignments_to_executable_text(self._paths_to_assignments.values(), name)
+        except CannotConvertAssignmentsToTextException:
+            text = '[Cannot convert assignments to text]'
+        return text
 
     def __repr__(self):
         return self.get_pretty_repr()

@@ -1,117 +1,38 @@
 import dataclasses
-import ipycytoscape
 
+from pyquibbler.optional_packages.exceptions import MissingPackagesForFunctionException
 from typing import Union, Set, Tuple, Optional
-
-import ipywidgets
-
-from .types import Direction, reverse_direction
 from pyquibbler import Quib
 from pyquibbler.utilities.input_validation_utils import validate_user_input, get_enum_by_str
 
+from .network_properties import NETWORK_STYLE, NETWORK_LAYOUT
+from .types import Direction, reverse_direction
+
+
+# Verify that we have the required packages installed
+# (These are specific packages and hence we do not specify them as official requirements for pyquibbler)
+missing_packages = []
+try:
+    from pyquibbler.optional_packages.get_ipywidgets import ipywidgets  # noqa
+except ImportError:
+    missing_packages.append('ipywidgets')
+
+try:
+    from pyquibbler.optional_packages.get_ipycytoscape import ipycytoscape  # noqa
+except ImportError:
+    missing_packages.append('ipycytoscape')
+
+if missing_packages:
+    raise MissingPackagesForFunctionException('dependency_graph', missing_packages)
+
+
 infinity = float('inf')
-
-NETWORK_STYLE = \
-    [
-        {
-            'selector': 'edge',
-            'style': {
-                'width': 3,
-                'line-color': '#909090'
-            }
-        },
-
-        {
-            'selector': 'edge.directed',
-            'style': {
-                'curve-style': 'bezier',
-                'target-arrow-shape': 'triangle',
-                'target-arrow-color': '#909090'
-            }
-        },
-
-        {
-            'selector': 'edge.data_source',
-            'style': {
-                'line-color': '#00D7FF',
-                'target-arrow-color': '#00D7FF'
-            }
-        },
-
-        {
-            'selector': 'node',
-            'css': {
-                'content': 'data(name)',
-                'text-valign': 'center',
-                'text-halign': 'right',
-                'background-color': '#00D7FF',
-                'border-color': 'black',
-                'font-size': 12,
-                'border-width': 0.5,
-            }
-        },
-
-        {
-            'selector': 'node.iquib',
-            'css': {
-                'shape': "diamond",
-                'text-valign': 'top',
-                'text-halign': 'center',
-            }
-        },
-
-        {
-            'selector': 'node.focal',
-            'css': {
-                'background-color': '#D61C4E',
-            }
-        },
-
-        {
-            'selector': 'node.null',
-            'css': {
-                'background-color': '#C0C0C0',
-            }
-        },
-
-        {
-            'selector': 'node.graphics',
-            'css': {
-                'shape': "hexagon",
-            }
-        },
-
-        {
-            'selector': 'node.overridden',
-            'css': {
-                'border-color': '#5800FF',
-                'border-width': 6,
-                'border-style': 'dashed',
-            }
-        },
-
-        {
-            'selector': 'node.hidden',
-            'css': {
-                'background-color': '#A0A0A0',
-                'width': 10,
-                'height': 10,
-                'text-valign': 'top',
-                'text-halign': 'center',
-            }
-        },
-
-    ]
-
-NETWORK_LAYOUT = {
-    'name': 'dagre',  # can try: dagre elk
-    'spacingFactor': 1.2,
-    'nodeSpacing': 2,
-    'edgeLengthVal': 0,
-}
 
 
 def get_quib_class(quib: Quib) -> str:
+    """
+    Return a string containing the classes of the quib: 'iquib', 'graphics', 'overridden'.
+    """
     classes = ''
     if quib.is_iquib:
         classes += ' iquib'
@@ -123,6 +44,9 @@ def get_quib_class(quib: Quib) -> str:
 
 
 class QuibNode(ipycytoscape.Node):
+    """
+    A node in a quib network.
+    """
     def __init__(self, id: int, name: str, tooltip: str, classes: str = "", position: Optional[Tuple[int, int]] = None):
         super().__init__()
         self.data['id'] = id
@@ -134,11 +58,14 @@ class QuibNode(ipycytoscape.Node):
 
     @classmethod
     def from_quib(cls, quib: Quib):
-        tooltip = quib.display().get_html_repr()
+        tooltip = quib.display_properties().get_html_repr()
         return cls(id(quib), quib.pretty_repr, tooltip, classes=get_quib_class(quib))
 
 
 class QuibEdge(ipycytoscape.Edge):
+    """
+    An edge between a source and a target quib nodes.
+    """
     def __init__(self, source_id: int, target_id: int, is_data: bool):
         super().__init__()
         self.data['source'] = source_id
@@ -162,6 +89,9 @@ def _get_quibs_connected_up_down_or_all(focal_quib: Quib,
                                         depth: int,
                                         bypass_intermediate_quibs: bool,
                                         quibs: Optional[Set[Quib]] = None) -> Set[Quib]:
+    """
+    Starting from a focal quib, recursively explore the quib network upstream, downstream or in all directions.
+    """
     assert direction is not Direction.BOTH
     quibs = set() if quibs is None else quibs
 
@@ -180,6 +110,9 @@ def _get_quibs_connected_up_down_or_all(focal_quib: Quib,
 
 @dataclasses.dataclass
 class QuibNetwork:
+    """
+    A network of quibs extending from a focal quib.
+    """
     focal_quib: Quib
     direction: Union[str, Direction] = Direction.BOTH
     depth: int = infinity
@@ -321,9 +254,10 @@ def dependency_graph(focal_quib: Quib,
     """
     Draw a network of quibs
 
-    Trace a focal quib upstream, downstream or both and draw an interactive network of dependent quibs.
+    Trace a focal quib upstream, downstream or in both directions and draw a network of dependent quibs.
 
     .. image:: /images/network_tracing.png
+
 
     Parameters
     ----------
@@ -366,7 +300,7 @@ def dependency_graph(focal_quib: Quib,
     Returns
     -------
     ipywidgets.Box
-        An ipycytoscape.Box containing two ipycytoscape widgets, for the legend and the quib network.
+        An ipycytoscape.Box containing the legend and the quib network widgets.
 
     See Also
     --------

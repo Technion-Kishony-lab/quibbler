@@ -53,7 +53,7 @@ def get_number_in_bounds(number, minimum, maximum):
 @dataclass
 class AssignmentTemplate(ABC):
     """
-    Converts assignment to a quib according to specified type and range constraints
+    Convert an assignment to a quib according to specified type and range constraints
 
     See Also
     --------
@@ -154,6 +154,13 @@ class RangeAssignmentTemplate(AssignmentTemplate):
 
 
 def create_assignment_template(*args):
+    """
+    Create an AssignmentTemplate with a type dependent on number of args.
+
+    (template) -> template
+    (min, max) -> BoundAssignmentTemplate(min, max)
+    (start, stop, step) -> RangeAssignmentTemplate(start, stop, step)
+    """
     if len(args) == 1 and isinstance(args[0], tuple):
         args = args[0]
 

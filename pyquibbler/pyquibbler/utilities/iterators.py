@@ -16,8 +16,9 @@ class CannotCastObjectByOtherObjectException(PyQuibblerException):
         return "New object cannot be casted by previous object."
 
 
-def iter_objects_of_type_in_object_recursively(object_type: Type,
-                                               obj, max_depth: Optional[int] = None, max_length: Optional[int] = None):
+def iter_objects_of_type_in_object_recursively(object_type: Type, obj,
+                                               max_depth: Optional[int] = None,
+                                               max_length: Optional[int] = None):
     """
     Returns an iterator for objects of a type nested in the given python object.
     Objects that appear more than once will not be repeated.

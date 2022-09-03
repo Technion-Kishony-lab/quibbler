@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import functools
 from dataclasses import dataclass, field
-from typing import Set, Type, List, TYPE_CHECKING, Callable, Optional
+from typing import Set, Type, List, Callable, Optional
 
 from pyquibbler.function_definitions.func_call import FuncArgsKwargs
 from pyquibbler.function_definitions.types import RawArgument, Argument, PositionalArgument, KeywordArgument, \
@@ -11,6 +11,7 @@ from pyquibbler.translation.backwards_path_translator import BackwardsPathTransl
 from pyquibbler.translation.forwards_path_translator import ForwardsPathTranslator
 from pyquibbler.utils import get_signature_for_func
 
+from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pyquibbler.quib.func_calling import QuibFuncCall
     from pyquibbler.inversion.inverter import Inverter

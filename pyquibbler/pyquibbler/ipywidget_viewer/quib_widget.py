@@ -1,6 +1,7 @@
 from __future__ import annotations
 import dataclasses
-import ipywidgets as widgets
+
+from pyquibbler.optional_packages.get_ipywidgets import ipywidgets as widgets
 
 from pyquibbler.assignment.assignment_to_from_text \
     import convert_simplified_text_to_assignment, convert_assignment_to_simplified_text
@@ -28,7 +29,7 @@ class WidgetQuibDeletedException(PyQuibblerException):
 @dataclasses.dataclass
 class QuibWidget:
     """
-    Creates and control a quib widget allowing viewing and editing and load/save of quib overrides
+    Creates and control a quib widget allowing viewing, editing and load/save of quib overrides.
     The quib widget is Composed of several ipywidgets.
     """
 

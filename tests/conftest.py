@@ -1,15 +1,15 @@
 import shutil
 from pathlib import Path
 
-import matplotlib
 import pytest
 from matplotlib.artist import Artist
 from pytest import fixture
 import gc
 
-from pyquibbler import CacheMode, quibapp
+from pyquibbler import CacheMode
 from pyquibbler.env import DEBUG, LAZY, PRETTY_REPR, \
     SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS, GET_VARIABLE_NAMES, GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION
+from pyquibbler.optional_packages.emulate_missing_packages import EMULATE_MISSING_PACKAGES
 from pyquibbler.project import Project
 from pyquibbler.function_overriding import initialize_quibbler
 from pyquibbler.quib.func_calling import CachedQuibFuncCall
@@ -20,6 +20,7 @@ from pyquibbler.utils import Flag
 
 from matplotlib.widgets import Slider as OriginalSlider
 
+DEFAULT_EMULATE_MISSING_PACKAGES = []
 DEFAULT_DEBUG = True
 DEFAULT_LAZY = True
 DEFAULT_ASSIGNMENT_RESTRICTIONS = False
@@ -29,13 +30,18 @@ DEFAULT_GET_VARIABLE_NAMES = False
 DEFAULT_GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION = 1000
 
 
-@fixture(scope="session", autouse=True)
+@fixture(autouse=True, scope="session")
 def setup_environment_for_tests():
     CachedQuibFuncCall.DEFAULT_CACHE_MODE = CacheMode.ON
 
 
+@fixture(autouse=True, scope="session")
+def setup_missing_packages(request):
+    yield from setup_flag(EMULATE_MISSING_PACKAGES, DEFAULT_EMULATE_MISSING_PACKAGES, request)
+
+
 @pytest.fixture(autouse=True, scope="session")
-def initialize_quibbler_():
+def initialize_quibbler_(setup_missing_packages):
     initialize_quibbler()
 
 

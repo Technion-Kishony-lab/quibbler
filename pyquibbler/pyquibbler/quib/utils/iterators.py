@@ -20,9 +20,9 @@ def iter_quibs_in_object_recursively(obj, max_depth: Optional[int] = None, max_l
     return iter_objects_of_type_in_object_recursively(Quib, obj, max_depth, max_length)
 
 
-def iter_quibs_in_object(obj, force_recursive: bool = False):
+def iter_quibs_in_object(obj, recursive: bool = False):
     from pyquibbler.quib.quib import Quib
-    return iter_objects_of_type_in_object(Quib, obj, force_recursive)
+    return iter_objects_of_type_in_object(Quib, obj, recursive)
 
 
 def iter_quibs_in_args(args: Tuple[Any, ...], kwargs: Mapping[str, Any]):

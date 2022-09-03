@@ -9,6 +9,9 @@ from pyquibbler.env import GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION
 
 
 def get_axes_x_y_tolerance(ax: Axes):
+    """
+    Return the resolution in x-axis and y-axis in which a point can be specified in a given axes.
+    """
     n = GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.val
     if n is None:
         return None, None
@@ -37,6 +40,9 @@ def convert_array_of_size_one_to_scalar(data):
 
 
 def convert_scalar_value(current_value, assigned_value):
+    """
+    Convert an assigned_value to match the type of a current_value.
+    """
     if is_scalar_integer(current_value):
         return type(current_value)(round(assigned_value))
     if isinstance(current_value, datetime) and isinstance(assigned_value, float):

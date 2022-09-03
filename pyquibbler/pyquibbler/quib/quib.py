@@ -3,7 +3,6 @@ from __future__ import annotations
 import copy
 import pathlib
 import weakref
-import warnings
 
 import numpy as np
 
@@ -11,9 +10,10 @@ import numpy as np
 from matplotlib.artist import Artist
 from matplotlib.axes import Axes
 
-# Debugging and performance:
+# Debugging, warning and performance:
 from pyquibbler.logger import logger
 from pyquibbler.utilities.performance_utils import timer
+from pyquibbler.utilities.warning_messages import no_header_warn
 
 # Input validation:
 from pyquibbler.utilities.input_validation_utils import validate_user_input, InvalidArgumentValueException, \
@@ -23,7 +23,8 @@ from pyquibbler.utilities.missing_value import missing
 # Assignments:
 from pyquibbler.assignment import \
     AssignmentWithTolerance, AssignmentSimplifier, default, InvalidTypeException, create_assignment_template, \
-    get_override_group_for_quib_change, AssignmentTemplate, Overrider, Assignment, AssignmentToQuib
+    get_override_group_for_quib_change, AssignmentTemplate, Overrider, Assignment, AssignmentToQuib, \
+    AssignmentCancelledByUserException
 from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals
 
 # Save/Load:
@@ -36,6 +37,7 @@ from pyquibbler.utilities.file_path import PathWithHyperLink
 from pyquibbler.env import LEN_RAISE_EXCEPTION, BOOL_RAISE_EXCEPTION, ITER_RAISE_EXCEPTION
 from pyquibbler.utilities.iterators import recursively_run_func_on_object
 from pyquibbler.utilities.unpacker import Unpacker
+from pyquibbler.quib.variable_metadata import get_quib_name
 
 # get_value:
 from pyquibbler.quib.external_call_failed_exception_handling import raise_quib_call_exceptions_as_own
@@ -64,8 +66,8 @@ from pyquibbler.quib.graphics.redraw import notify_of_overriding_changes_or_add_
 
 # repr:
 from pyquibbler.env import PRETTY_REPR, REPR_RETURNS_SHORT_NAME, REPR_WITH_OVERRIDES, WARN_ON_UNSUPPORTED_BACKEND
-from pyquibbler.quib.pretty_converters import MathExpression, FailedMathExpression, \
-    NameMathExpression, pretty_convert
+from pyquibbler.quib.pretty_converters import MathExpression, FailedMathExpression, NameMathExpression, \
+    get_math_expression_of_func_with_args_and_kwargs, FunctionCallMathExpression
 
 from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Union, Iterable, Mapping, Callable, Iterator
 
@@ -74,13 +76,11 @@ if TYPE_CHECKING:
     from pyquibbler.assignment.override_choice import ChoiceContext
     from pyquibbler.assignment import OverrideChoice
     from pyquibbler.quib.func_calling import QuibFuncCall
-    from pyquibbler.quib.pretty_converters.quib_viewer import QuibViewer
+    from pyquibbler.quib.quib_properties_viewer import QuibPropertiesViewer
     from pyquibbler.ipywidget_viewer.quib_widget import QuibWidget
     from pyquibbler.quib.types import FileAndLineNumber
 
 NoneType = type(None)
-
-FIRST_LINE_OF_FORMATTED_TXT_FILE = '# Formatted Quibbler value file (keep this note)'
 
 
 class QuibHandler:
@@ -375,7 +375,10 @@ class QuibHandler:
         """
         Apply an assignment to the quib locally or as inverse assignment to upstream quibs.
         """
-        get_override_group_for_quib_change(AssignmentToQuib(self.quib, assignment)).apply()
+        try:
+            get_override_group_for_quib_change(AssignmentToQuib(self.quib, assignment)).apply()
+        except AssignmentCancelledByUserException:
+            pass
 
     def get_inversions_for_assignment(self, assignment: Assignment) -> List[AssignmentToQuib]:
         """
@@ -467,13 +470,13 @@ class QuibHandler:
         are guaranteed to be valid
         """
         if WARN_ON_UNSUPPORTED_BACKEND and self.func_definition.is_graphics:
-            from matplotlib import pyplot
-            if pyplot.get_backend() not in SUPPORTED_BACKENDS:
+            from matplotlib.pyplot import get_backend
+            if get_backend() not in SUPPORTED_BACKENDS:
                 WARN_ON_UNSUPPORTED_BACKEND.set(False)  # We don't want to warn more than once
-                warnings.warn('PyQuibbler is only optimized for the following Matplotlib backends: \n'
-                              f'{SUPPORTED_BACKENDS}. \n'
-                              'In Jupyter lab, use: %matplotlib tk. \n'
-                              'In PyCharm, use: matplotlib.use("TkAgg").')
+                no_header_warn('PyQuibbler is only optimized for the following Matplotlib backends:\n'
+                               f'{", ".join(SUPPORTED_BACKENDS)}.\n'
+                               'In Jupyter lab, use: %matplotlib tk.\n'
+                               'In PyCharm, use: matplotlib.use("TkAgg").')
 
         try:
             guard_raise_if_not_allowed_access_to_quib(self.quib)
@@ -557,14 +560,13 @@ class QuibHandler:
 
     def display_widget(self) -> bool:
         try:
-            # noinspection PyPackageRequirements
-            from IPython.display import display
-            # noinspection PyPackageRequirements
-            import ipywidgets   # noqa: F401
+            from pyquibbler.optional_packages.get_IPython import display
+            from pyquibbler.optional_packages.get_ipywidgets import ipywidgets   # noqa: F401
         except ImportError:
             return False
 
         if self._widget is None:
+            # We do not import QuibWidget globally to avoid importing ipywidgets if not installed
             from pyquibbler.ipywidget_viewer.quib_widget import QuibWidget
             widget = QuibWidget(self._quib_ref)
             widget.build_widget()
@@ -621,7 +623,8 @@ class Quib:
         """
         Callable: The function run by the quib.
 
-        A quib calls its function ``func``, with its arguments ``args`` and its keyworded variables ``kwargs``.
+        A quib calls its function ``func``, with its positional arguments ``args``
+        and its keyworded arguments ``kwargs``.
 
         The quib's value is given by ``value = func(*args, **kwargs)``,
         with any quibs in `args` or `kwargs` replaced by their values (unless ``pass_quibs=True``).
@@ -642,9 +645,10 @@ class Quib:
     @property
     def args(self) -> Tuple[Any]:
         """
-        tuple of any: The arguments to be passed to the function run by the quib.
+        tuple of any: The positional arguments to be passed to the function run by the quib.
 
-        A quib calls its function ``func``, with its arguments ``args`` and its keyworded variables ``kwargs``.
+        A quib calls its function ``func``, with its positional arguments ``args``
+        and its keyworded arguments ``kwargs``.
 
         The quib's value is given by ``value = func(*args, **kwargs)``.
 
@@ -669,7 +673,8 @@ class Quib:
         """
         dict of str to any: The keyworded arguments for the function run by the quib.
 
-        A quib calls its function ``func``, with its arguments ``args`` and its keyworded variables ``kwargs``.
+        A quib calls its function ``func``, with its positional arguments ``args``
+        and its keyworded arguments ``kwargs``.
 
         The quib's value is given by ``value = func(*args, **kwargs)``.
 
@@ -720,8 +725,8 @@ class Quib:
         This behaviour guarentees mathematical consistency (for example, if ``r`` is a random quib ``s = r - r``
         will always give a value of 0).
 
-        The quib can be re-evaluated (randomized), by invalidating its value either locally using `invalidate()`
-        or centrally, using `qb.reset_random_quibs()`
+        The quib can be re-evaluated (randomized), by invalidating its value either locally using ``invalidate()``
+        or centrally, using ``qb.reset_random_quibs()``
 
         See Also
         --------
@@ -746,8 +751,8 @@ class Quib:
         A quib whose value depends on the content of external files automatically caches its value.
         Thereby, repeated calls to the quib return the same results even if the file changes.
 
-        The quib can be re-evaluated, by invalidating its value either locally using `invalidate()`
-        or centrally, using `qb.reset_file_loading_quibs()`
+        The quib can be re-evaluated, by invalidating its value either locally using ``invalidate()``
+        or centrally, using ``qb.reset_file_loading_quibs()``
 
         See Also
         --------
@@ -795,11 +800,11 @@ class Quib:
         """
         CacheStatus: The status of the quib's cache.
 
-        ``ALL_INVALID``: the cache is fully invalid, or the quib is not caching.
+        ``ALL_INVALID`` : the cache is fully invalid, or the quib is not caching.
 
-        ``ALL_VALID``: The cache is fully valid.
+        ``ALL_VALID`` : The cache is fully valid.
 
-        ``PARTIAL``: Only part of the quib's cache is valid.
+        ``PARTIAL`` : Only part of the quib's cache is valid.
 
         See Also
         --------
@@ -865,11 +870,11 @@ class Quib:
         """
         bool or None: Specifies whether the function runs by the quib is a graphics function.
 
-        ``True``    for known graphics functions
+        ``True`` : known graphics functions
 
-        ``False``   for known non-graphics functions
+        ``False`` : known non-graphics functions
 
-        ``None``    auto-detect, for functions that may create graphics (such as for user functions).
+        ``None`` : auto-detect. Used for functions that may create graphics (default for user functions).
 
         See Also
         --------
@@ -882,13 +887,14 @@ class Quib:
         """
         bool: Specifies whether the quib is a graphics quib.
 
-        A quib is defined as graphics if its function is a known graphics function (``is_graphics=True``),
+        A quib is defined as a graphics quib if its function is a known graphics function (``is_graphics=True``),
         or if its function's is graphics-auto-detect (``is_graphics=None``) and a call to the function
         created graphics.
 
-        Additionally, quibs with assigned callback functions are also defined as graphics.
+        Additionally, quibs with assigned `callback` functions are also defined as graphics.
 
-        A quib defined as graphics will get auto-refreshed based on the `graphics_update`.
+        A quib defined as a graphics quib will automatically-refreshes upon upstream changes,
+        based on its `graphics_update` property.
 
         See Also
         --------
@@ -901,24 +907,24 @@ class Quib:
             or len(self.handler.callbacks) > 0
 
     @property
-    def graphics_update(self) -> GraphicsUpdateType:
+    def graphics_update(self) -> Optional[GraphicsUpdateType]:
         """
         GraphicsUpdateType or None: Specifies when the quib should re-evaluate and refresh graphics.
 
         Can be set to a `GraphicsUpdateType`, or `str`:
 
-        ``'drag'``: Update continuously as upstream quibs are being dragged,
+        ``'drag'`` : Update continuously as upstream quibs are being dragged,
         or upon programmatic assignments to upstream quibs (default for graphics quibs).
 
-        ``'drop'``: Update only at the end of dragging of upstream quibs (at mouse 'drop'),
+        ``'drop'`` : Update only at the end of dragging of upstream quibs (at mouse 'drop'),
         or upon programmatic assignments to upstream quibs.
 
-        ``'central'``:  Do not automatically update graphics upon upstream changes.
+        ``'central'`` :  Do not automatically update graphics upon upstream changes.
         Only update upon explicit request for the quibs `get_value()`, or upon the
         central redraw command: `refresh_graphics()`.
 
-        ``'never'``: Do not automatically update graphics upon upstream changes.
-        Only update upon explicit request for the quibs `get_value()` (default for non-graphics quibs).
+        ``'never'`` : Do not automatically update graphics upon upstream changes.
+        Only update upon explicit request for the quibs `get_value()`.
 
         ``None``: Yield to the default project's graphics_update
 
@@ -938,8 +944,8 @@ class Quib:
         """
         The actual graphics update mode of the quib.
 
-        The quib's ``actual_graphics_update`` is its ``graphics_update`` if not ``None``.
-        Otherwise it defaults to the project's ``graphics_update``.
+        The quib's ``actual_graphics_update`` is specified by its ``graphics_update`` if not ``None``.
+        Otherwise, it defaults to the project's ``graphics_update``.
 
         See Also
         --------
@@ -954,13 +960,13 @@ class Quib:
     @property
     def allow_overriding(self) -> bool:
         """
-        bool: Indicates whether the quib can be overridden.
+        bool: Indicates whether the quib's value can be overridden.
 
-        The default for `allow_overriding` is `True` for iquibs and `False` in function quibs.
+        The default for `allow_overriding` is `True` for input quibs (iquibs) and `False` in function quibs (fquibs).
 
         See Also
         --------
-        assign, assigned_quibs
+        iquib, assign, assigned_quibs
         """
         return self.handler.allow_overriding
 
@@ -974,24 +980,19 @@ class Quib:
         """
         Assign a value to the whole quib, or to a specific key.
 
-        This method is used to assign a value to a quib. Assigned values can override the
-        default value of the focal quib, or can inverse propagate to override the value of
-        an upstream quib (inverse propagation is controlled by `assigned_quibs`, `allow_overriding`).
-
         Assuming ``w`` is a quib:
 
-        ``w.assign(value)`` overrides the quib's value as a whole.
+        ``w.assign(value)`` assigns a new value to the quib as a whole.
 
-        ``w.assign(value, key)`` overrides the quib at the specified key. This option is equivalent to
-        ``w[key] = valye``.
-
+        ``w.assign(value, key)`` assigns the quib at the specified key. This option is equivalent to
+        ``w[key] = value``.
 
         Parameters
         ----------
         value: any
-            A value to assign as an override to the quib's value.
+            A value to assign as to the quib at the specified `key`.
 
-        key: any
+        key: any (optional)
             An optional key into which to assign the `value`.
 
         See Also
@@ -1001,19 +1002,25 @@ class Quib:
 
         Examples
         --------
-        Whole-object assignment
+        Whole-object assignment:
 
         >>> a = iquib([1, 2, 3])
         >>> a.assign('new value')
         >>> a.get_value()
         'new value'
 
-        Item-specific assignment
+        Item-specific assignment:
 
         >>> a = iquib([1, 2, 3])
         >>> a.assign('new value', 1)
         >>> a.get_value()
         [1, 'new value', 3]
+
+        Note
+        ----
+        Assigned values can override the value of the focal quib, or can inverse propagate to override the values of
+        upstream quibs. The level at which the assignment is actulaized is controlled by the `assigned_quibs` property
+        of the focal quib to which the assignment is made and by the `allow_overriding` property of upstream quibs.
         """
 
         key = copy_and_replace_quibs_with_vals(key)
@@ -1030,23 +1037,26 @@ class Quib:
     @property
     def assigned_quibs(self) -> Union[None, Set[Quib, ...]]:
         """
-        None or set of Quib: Set of quibs to which assignments to this quib could inverse-translate.
+        None or set of Quib: Specifies the quibs to which assignments to this quib could inverse-translate.
 
-        When ``assigned_quibs=None``, assignments to the quib are inverse-propagated to any upstream quibs
+        Options:
+
+        `None` : assignments to the quib are inverse-propagated and can be actualized as overrides at any upstream quib
         whose ``allow_overriding=True``.
 
-        When ``assigned_quibs`` is a set of `Quibs`, assignments to the quib are inverse-propagated
-        to any upstream quibs in this set whose ``allow_overriding=True``.
+        `set of Quibs` : assignments to the quib are inverse-propagated and can be actualized as overrides at
+        any upstream quibs in the specified set whose ``allow_overriding=True``.
 
         If multiple choices are available for inverse assignment, a dialog is presented to allow choosing between
         these options.
 
-        Setting ``assigned_quibs=set()`` prevents assignments.
+        `set()` : prevents assignments to this quib.
 
-        To allow assignment to self, the focal quib or `'self'` can be used within the set of quibs.
-        When self is included the ``allow_overriding`` property is automatically set to ``True``.
+        To allow assignments to actualize as overrides of the focal quib to which the assignments are made,
+        the focal quib or `'self'` can be used within the set of quibs specified by `assigned quibs`.
+        When self is included, the ``allow_overriding`` property is automatically set to ``True``.
 
-        Specifying a single quib, or `'self'`, is interpreted as a set containing this single quib.
+        Specifying a single quib, or `'self'`, instead of a set is interpreted as a set containing this single quib.
 
         See Also
         --------
@@ -1078,9 +1088,9 @@ class Quib:
         self.handler.assigned_quibs = quibs
 
     @property
-    def assignment_template(self) -> AssignmentTemplate:
+    def assignment_template(self) -> Optional[AssignmentTemplate]:
         """
-        AssignmentTemplate: Dictates type and range restricting assignments to the quib.
+        AssignmentTemplate or None: Dictates type and range restricting assignments to the quib.
 
         See Also
         --------
@@ -1099,7 +1109,7 @@ class Quib:
         """
         Sets an assignment template for the quib.
 
-        The assignment template restricts the values of any future assignments to the quib.
+        The assignment template restricts the values of overriding assignments to the quib.
 
         Options:
 
@@ -1134,6 +1144,11 @@ class Quib:
         >>> a.assign(170)
         >>> a.get_value()
         100
+
+        Note
+        ----
+        Setting the `assignment_template` only affects future overrides to the quib.
+        It does not alter exisitng overrides.
         """
 
         self.handler.assignment_template = create_assignment_template(*args)
@@ -1162,7 +1177,7 @@ class Quib:
         allow_overriding : bool, optional
             Specifies whether the quib is open for overriding assignments.
 
-        assigned_quibs : None or Set[Quib], optional
+        assigned_quibs : None, Set[Quib], or 'self', optional
             Indicates which upstream quibs to inverse-assign to.
 
         assignment_template : tuple or AssignmentTemplate, optional
@@ -1171,7 +1186,7 @@ class Quib:
         save_directory : str or pathlib.Path, optional
             The directory to which quib assignments are saved.
 
-        save_format : None, {'off', 'txt', 'bin'}, or SaveFormat, optional
+        save_format : {None, 'off', 'txt', 'bin'} or SaveFormat, optional
             The file format for saving quib assignments.
 
         cache_mode : {'auto', 'on', 'off'} or CacheMode, optional
@@ -1183,7 +1198,7 @@ class Quib:
         name : None or str, optional
             The name of the quib.
 
-        graphics_update : None or str, optional
+        graphics_update : {None, 'drag', 'drop', 'central', 'never'} or GraphicsUpdateType, optional
             For graphics quibs, indicates when they should be refreshed.
 
         Returns
@@ -1198,11 +1213,10 @@ class Quib:
 
 
         Examples
-            >>> a = iquib(7).setp(assigned_name='my_number')
-            >>> b = (2 * a).setp(allow_overriding=True)
+            >>> a = iquib(7)
+            >>> b = (2 * a).setp(allow_overriding=True, assigned_name='two_times_a')
         """
 
-        from pyquibbler.quib.factory import get_quib_name
         for attr_name in ['allow_overriding', 'save_directory', 'save_format',
                           'cache_mode', 'assigned_name', 'name', 'graphics_update', 'assigned_quibs']:
             value = eval(attr_name)
@@ -1217,59 +1231,6 @@ class Quib:
                 self.assigned_name = var_name
 
         return self
-
-    """
-    iterations
-    """
-
-    def __len__(self):
-        if LEN_RAISE_EXCEPTION:
-            raise TypeError('len(Q), where Q is a quib, is not allowed. '
-                            'To get a function quib, use q(len,Q), or quiby(q)(Q). '
-                            'To get the len of the current value of Q, use len(Q.get_value()).')
-        else:
-            return len(self.get_value_valid_at_path(None))
-
-    def __iter__(self):
-        """
-        Return an iterator to a detected amount of elements requested from the quib.
-        """
-        if ITER_RAISE_EXCEPTION:
-            raise TypeError('Cannot iterate over quibs, as their size can vary. '
-                            'Try Quib.iter_first() to iterate over the n-first items of the quib.')
-        return Unpacker(self)
-
-    def iter_first(self, amount: Optional[int] = None):
-        """
-        Return an iterator to the first `amount` elements of the quib.
-
-        ``a, b = quib.iter_first(2)`` is the same as ``a, b = quib[0], quib[1]``.
-
-        When ``amount=None``, quibbler will try to detect the correct amount automatically, and
-        might fail with a RuntimeError.
-        For example, ``a, b = iquib([1, 2]).iter_first()`` is the same as ``a, b = iquib([1, 2]).iter_first(2)``.
-        And even if the quib is larger than the unpacked amount, the iterator will still yield only the first
-        items - ``a, b = iquib([1, 2, 3, 4]).iter_first()`` is the same as ``a, b = iquib([1, 2, 3, 4]).iter_first(2)``.
-
-        Returns
-        -------
-        Iterator of Quib
-
-        Examples
-        --------
-        >>> @quiby
-        ... def sum_and_prod(x):
-        ...     return np.sum(x), np.prod(x)
-        ...
-        >>> nums = iquib([10, 20, 30])
-        >>> sum_nums, prod_nums = sum_and_prod(nums).iter_first()
-        >>> sum_nums.get_value()
-        60
-
-        >>> prod_nums.get_value()
-        6000
-        """
-        return Unpacker(self, amount)
 
     """
     callback
@@ -1289,7 +1250,7 @@ class Quib:
             The function to call upon a change to the quib value.
             The function is called as ``callback(new_value)``
 
-        See also
+        See Also
         --------
         is_graphics, graphics_update, remove_callback, get_callbacks
         """
@@ -1310,7 +1271,7 @@ class Quib:
         callback : Callable
             The function to remove
 
-        See also
+        See Also
         --------
         get_callbacks, add_callback, is_graphics, graphics_update
         """
@@ -1327,7 +1288,7 @@ class Quib:
         Set of Callable
             The set of callback functions
 
-        See also
+        See Also
         --------
         add_callback, remove_callback
         """
@@ -1439,6 +1400,14 @@ class Quib:
         """
         return self.handler.quib_function_call.get_ndim()
 
+    def __len__(self):
+        if LEN_RAISE_EXCEPTION:
+            raise TypeError('len(Q), where Q is a quib, is not allowed. '
+                            'To get a function quib, use q(len,Q), or quiby(q)(Q). '
+                            'To get the len of the current value of Q, use len(Q.get_value()).')
+        else:
+            return len(self.get_value_valid_at_path(None))
+
     def __bool__(self):
         if BOOL_RAISE_EXCEPTION:
             raise TypeError('bool(Q), where Q is a quib, is not allowed. '
@@ -1446,6 +1415,47 @@ class Quib:
                             'To get bool of the current value of Q, use bool(Q.get_value()).')
         else:
             return bool(self.get_value())
+
+    def __iter__(self):
+        """
+        Return an iterator to a detected amount of elements requested from the quib.
+        """
+        if ITER_RAISE_EXCEPTION:
+            raise TypeError('Cannot iterate over quibs, as their size can vary. '
+                            'Try Quib.iter_first() to iterate over the n-first items of the quib.')
+        return Unpacker(self)
+
+    def iter_first(self, amount: Optional[int] = None):
+        """
+        Return an iterator to the first `amount` elements of the quib.
+
+        ``a, b = quib.iter_first(2)`` is the same as ``a, b = quib[0], quib[1]``.
+
+        When ``amount=None``, quibbler will try to detect the correct amount automatically, and
+        might fail with a RuntimeError.
+        For example, ``a, b = iquib([1, 2]).iter_first()`` is the same as ``a, b = iquib([1, 2]).iter_first(2)``.
+        And even if the quib is larger than the unpacked amount, the iterator will still yield only the first
+        items - ``a, b = iquib([1, 2, 3, 4]).iter_first()`` is the same as ``a, b = iquib([1, 2, 3, 4]).iter_first(2)``.
+
+        Returns
+        -------
+        Iterator of Quib
+
+        Examples
+        --------
+        >>> @quiby
+        ... def sum_and_prod(x):
+        ...     return np.sum(x), np.prod(x)
+        ...
+        >>> nums = iquib([10, 20, 30])
+        >>> sum_nums, prod_nums = sum_and_prod(nums).iter_first()
+        >>> sum_nums.get_value()
+        60
+
+        >>> prod_nums.get_value()
+        6000
+        """
+        return Unpacker(self, amount)
 
     """
     overrides
@@ -1704,19 +1714,21 @@ class Quib:
     @property
     def save_format(self) -> SaveFormat:
         """
-        SaveFormat: The file format in which quib assignments are saved.
+        SaveFormat: The file format in which quib overriding assignments are saved.
 
         Can be set as `SaveFormat` or as `str`, or `None`:
 
-        ``'txt'`` - save assignments as text file.
+        ``'txt'`` - save overriding assignments as text file (extension '.txt').
 
-        ``'bin'`` - save assignments as a binary file.
+        ``'bin'`` - save overriding assignments as a binary file (extension '.quib').
 
-        ``None`` - yield to the Project default save_format
+        ``'off'`` - do not save overriding assignments of this quib.
+
+        ``None`` - yield to the Project save_format (default).
 
         See Also
         --------
-        SaveFormat
+        SaveFormat, actual_save_format, Project.SaveFormat
         """
         return self.handler.save_format
 
@@ -1733,13 +1745,14 @@ class Quib:
         """
         SaveFormat: The actual save_format used by the quib.
 
-        The quib's ``actual_save_format`` is its save_format if defined.
-        Otherwise it defaults to the project's ``save_format``.
+        The quib's ``actual_save_format`` is its `save_format` if defined.
+        Otherwise, it defaults to the project's ``save_format``.
 
         See Also
         --------
         save_format
         SaveFormat
+        Project.save_format
         """
         return self.handler.actual_save_format
 
@@ -1749,7 +1762,8 @@ class Quib:
         pathlib.Path or None: The full path for the file where quib assignments are saved.
 
         The path is defined as the [actual_save_directory]/[assigned_name].ext
-        ext is determined by the actual_save_format
+
+        `ext` is determined by the actual_save_format
 
         See Also
         --------
@@ -1772,7 +1786,7 @@ class Quib:
             elif response_to_file_not_defined == ResponseToFileNotDefined.WARN \
                     or response_to_file_not_defined == ResponseToFileNotDefined.WARN_IF_DATA \
                     and self.handler.is_overridden:
-                warnings.warn(str(exception))
+                no_header_warn(str(exception))
         else:
             path = self.actual_save_directory \
                    / (self.assigned_name + SAVE_FORMAT_TO_FILE_EXT[self.actual_save_format])
@@ -1784,17 +1798,19 @@ class Quib:
         """
         PathWithHyperLink: The directory where quib assignments are saved.
 
-        Can be set to a str or Path object.
+        Can be set to a `str` or `Path` objects.
 
-        If the directory is absolute, it is used as is.
+        Options:
 
-        If directory is relative, it is used relative to the project directory.
+        absolute file path : The quib's file will be saved at the specified path.
 
-        If directory is `None`, the project directory is used.
+        relative file path : The quib's file will be saved at the specified path relative to the project directory.
+
+        `None` (default) : The quib's file will be saved to the project directory.
 
         See Also
         --------
-        file_path
+        file_path, actual_save_directory
         Project.directory
         """
         return self.handler.save_directory
@@ -1812,9 +1828,10 @@ class Quib:
         """
         pathlib.Path or None: The actual directory where quib file is saved.
 
-        By default, the quib's save_directory is ``None`` and the ``actual_save_directory`` defaults to the
-        project's ``save_directory``.
-        Otherwise, if the quib's ``save_directory`` is defined as an absolute directory then it is used as is,
+        By default, the quib's `save_directory` is `None` and the `actual_save_directory` defaults to the
+        project's `save_directory`.
+
+        Otherwise, if the quib's `save_directory` is defined as an absolute path then it is used as is,
         and if it is defined as a relative path it is used relative to the project's directory.
 
         See Also
@@ -1837,7 +1854,7 @@ class Quib:
              skip_user_verification: bool = False,
              ):
         """
-        Save the quib assignments to file.
+        Save the quib assignments to the quib's file.
 
         See Also
         --------
@@ -1990,16 +2007,15 @@ class Quib:
         try:
             if self.handler.func_definition.is_graphics and len(args) > 0 \
                     and isinstance(args[0], Axes):
-                return pretty_convert.get_pretty_value_of_func_with_args_and_kwargs(self.func,
-                                                                                    args[1:], kwargs)
+                # graphics functions - do not include Axes arg:
+                return get_math_expression_of_func_with_args_and_kwargs(self.func, args[1:], kwargs)
             if getattr(self.func, 'wrapped__new__', False) and len(args) > 0:
+                # class-overriding quib (function is class.__new__):
                 cls_name = str(args[0])
                 short_cls_name = cls_name.split('.')[-1][:-2]
-                return pretty_convert.get_pretty_value_of_func_with_args_and_kwargs(short_cls_name,
-                                                                                    args[1:], kwargs)
+                return FunctionCallMathExpression(short_cls_name, args[1:], kwargs)
 
-            return pretty_convert.get_pretty_value_of_func_with_args_and_kwargs(self.func,
-                                                                                args, kwargs)
+            return get_math_expression_of_func_with_args_and_kwargs(self.func, args, kwargs)
         except Exception as e:
             logger.warning(f"Failed to get repr {e}")
             return FailedMathExpression()
@@ -2024,11 +2040,19 @@ class Quib:
         >>> b.functional_representation
         '(a + 10) ** 2'
         """
-        return str(self._get_functional_representation_expression())
+        try:
+            return str(self._get_functional_representation_expression())
+        except Exception as e:
+            logger.warning(f"Failed to get repr {e}")
+            return str(FailedMathExpression())
 
     def get_math_expression(self) -> MathExpression:
         """
-        Return a MathExpression object providing a string representation of the quib.
+        Return a `MathExpression` object providing a string representation of the quib.
+
+        Returns
+        -------
+        MathExpression
 
         See Also
         --------
@@ -2102,21 +2126,21 @@ class Quib:
             return self.pretty_repr
         return self.ugly_repr
 
-    def display(self) -> QuibViewer:
+    def display_properties(self) -> QuibPropertiesViewer:
         """
         Returns a QuibViewer which displays the properties of the quib.
 
         Returns
         -------
-        QuibViewer
+        QuibPropertiesViewer
 
         See Also
         --------
         QuibViewer
         """
 
-        from .pretty_converters.quib_viewer import QuibViewer
-        return QuibViewer(self)
+        from pyquibbler.quib.quib_properties_viewer import QuibPropertiesViewer
+        return QuibPropertiesViewer(self)
 
     @property
     def created_in(self) -> Optional[FileAndLineNumber]:
@@ -2142,11 +2166,9 @@ class Quib:
         --------
         func
         save_format
+        quibbler.iquib
         """
         return self.handler.is_iquib
-
-    def _on_widget_change(self, v):
-        self.assigned_name = v['new']
 
     def _repr_html_(self) -> Optional[str]:
         if self.allow_overriding or self.handler.is_overridden:

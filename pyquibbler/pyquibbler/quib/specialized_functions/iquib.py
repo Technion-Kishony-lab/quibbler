@@ -9,12 +9,9 @@ from pyquibbler.exceptions import DebugException
 from pyquibbler.file_syncing import SaveFormat
 from pyquibbler.function_definitions import add_definition_for_function
 from pyquibbler.function_definitions.func_definition import create_func_definition
-from pyquibbler.path.path_component import Path, Paths
 from pyquibbler.quib.factory import create_quib
 from pyquibbler.quib.utils.miscellaneous import is_there_a_quib_in_object
 
-from pyquibbler.translation.forwards_path_translator import ForwardsPathTranslator
-from pyquibbler.translation.types import Source
 from pyquibbler.quib.quib import Quib
 
 
@@ -23,23 +20,15 @@ class CannotNestQuibInIQuibException(DebugException):
     value: Any
 
     def __str__(self):
-        return 'Cannot create an input quib that contains another quib'
+        return 'Cannot create an input quib that contains another quib.'
 
 
 def identity_function(v):
     return v
 
 
-# We do this for the functional_representation to look correct
+# For the pretty functional_representation:
 identity_function.__name__ = 'iquib'
-
-
-class IQuibForwardsPathTranslator(ForwardsPathTranslator):
-
-    SHOULD_ATTEMPT_WITHOUT_SHAPE_AND_TYPE = True
-
-    def _forward_translate_source(self, source: Source, path: Path) -> Paths:
-        return [path]
 
 
 def get_iquib_func_call():
@@ -52,7 +41,7 @@ iquib_definition = create_func_definition(
     is_random=False,
     lazy=False,
     raw_data_source_arguments=[0],
-    forwards_path_translators=[IQuibForwardsPathTranslator],
+    forwards_path_translators=[],
     quib_function_call_cls=get_iquib_func_call())
 
 
@@ -74,7 +63,7 @@ def iquib(value: Any,
     allow_overriding : bool, default True
         Whether to allow overriding assignments to the quib.
 
-    save_format : None, str, SaveFormat
+    save_format : {None, 'off', 'txt', 'bin'} or SaveFormat
         The format in which quib assignments are saved to file.
         default: None
 
@@ -85,6 +74,7 @@ def iquib(value: Any,
     assigned_name: None, str
         A name assigned to the quib. If assigned_name is not specified, the name is assigned based on the name of the
         variable to which the quib is assigned.
+        default: None
 
     assignment_template: None, tuple, AssignmentTemplate
         A template to restrict quib assignments
@@ -101,7 +91,7 @@ def iquib(value: Any,
     """
 
     if DEBUG:
-        if is_there_a_quib_in_object(value, force_recursive=True):
+        if is_there_a_quib_in_object(value, recursive=True):
             raise CannotNestQuibInIQuibException(value)
 
     # iquib is implemented as a quib with an identity function

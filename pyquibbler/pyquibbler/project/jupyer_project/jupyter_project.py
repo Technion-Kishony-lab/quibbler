@@ -6,7 +6,6 @@ import multiprocessing
 import os
 import shutil
 import tempfile
-import warnings
 import zipfile
 from multiprocessing import Process
 
@@ -177,9 +176,8 @@ class JupyterProject(Project):
             shutil.rmtree(self._tmp_save_directory)
             os.makedirs(self._tmp_save_directory)
 
-        for quib_ref in self._quib_refs:
-            quib = quib_ref()
-            if quib is not None and quib.assigned_name and quib.allow_overriding:
+        for quib in self.quibs:
+            if quib.assigned_name and quib.allow_overriding:
                 quib.handler.file_syncer.on_data_changed()
                 self.notify_of_overriding_changes(quib)
 
@@ -200,8 +198,7 @@ class JupyterProject(Project):
         It will then send BACK the response with the `request_id` specificed in the original event
         """
 
-        # noinspection PyPackageRequirements
-        from ipykernel.comm import Comm
+        from pyquibbler.optional_packages.get_IPython import Comm
 
         self._jupyter_notebook_path = os.environ.get("JUPYTER_NOTEBOOK", ipynbname.path())
         self._comm = Comm(target_name='pyquibbler')
@@ -241,7 +238,7 @@ class JupyterProject(Project):
                                                                           })
 
     def text_dialog(self, title: str, message: str, buttons_and_options: Iterable[Tuple[str, str]]) -> str:
-        # Any text dialog needs to be send to the frontend as an alert
+        # Any text dialog needs to be sent to the frontend as an alert
         answer_queue = multiprocessing.Queue()
         port = find_free_port()
         process = Process(target=run_flask_app, args=(port, answer_queue))
@@ -255,15 +252,13 @@ class JupyterProject(Project):
         return answer_queue.get(block=True)
 
 
-def create_jupyter_project_if_in_jupyter_lab():
-    if is_within_jupyter_lab():
-        try:
-            # noinspection PyPackageRequirements
-            import ipywidgets  # noqa: F401
-        except ImportError:
-            warnings.warn('Please install `ipywidgets` to allow viewing quibs as interactive widgets.\n')
+def create_jupyter_project_if_in_jupyter_lab() -> bool:
+    within_jupyter_lab = is_within_jupyter_lab()
+    if within_jupyter_lab:
         project = JupyterProject.get_or_create()
         project.override_quib_persistence_functions()
         project.listen_for_events()
         project.get_save_within_notebook_state()
         project.set_undo_redo_buttons_enable_state()
+
+    return within_jupyter_lab

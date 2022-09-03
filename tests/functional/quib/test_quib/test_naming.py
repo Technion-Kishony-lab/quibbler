@@ -37,13 +37,8 @@ def test_quib_with_valid_set_name():
 def test_quib_with_invalid_set_name():
     my_quib = create_quib(func=mock.Mock(return_value=1))
     name = "hello quib!"
-
-    try:
+    with pytest.raises(InvalidArgumentValueException, match='.*'):
         my_quib.name = name
-    except InvalidArgumentValueException:
-        pass
-    else:
-        assert False
 
 
 @pytest.mark.get_variable_names(True)

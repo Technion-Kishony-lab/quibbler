@@ -2,10 +2,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import List, TYPE_CHECKING, Optional, Dict, ClassVar
 
-from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.assignment import AssignmentToQuib
 
 from .choice_context import ChoiceContext
+from .exceptions import CannotChangeQuibAtPathException
 from .override_dialog import OverrideChoiceType, OverrideChoice
 from .types import OverrideGroup, QuibChangeWithOverrideRemovals
 
@@ -13,23 +13,12 @@ if TYPE_CHECKING:
     from pyquibbler.quib.quib import Quib
 
 
-def is_assignment_allowed_from_quib_to_quib(from_quib: Quib, to_quib: Quib):
+def is_assignment_allowed_from_quib_to_quib(from_quib: Quib, to_quib: Quib) -> bool:
     """
     Returns True/False indicating if from_quib allows assignments made to it to be translated
     into assignments to the to_quib.
     """
     return to_quib.allow_overriding and (from_quib.assigned_quibs is None or to_quib in from_quib.assigned_quibs)
-
-
-@dataclass
-class CannotChangeQuibAtPathException(PyQuibblerException):
-    quib_change: AssignmentToQuib
-
-    def __str__(self):
-        return f'Cannot perform {self.quib_change} on {self.quib_change.quib}, because it cannot ' \
-               f'be overridden and an overridable parent quib to inverse assign into was not found.\n' \
-               f'Note that function quibs are not overridable by default.\n' \
-               f'To allow overriding, try using "{self.quib_change.quib}.allow_overriding = True"'
 
 
 @dataclass

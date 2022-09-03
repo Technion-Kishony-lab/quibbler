@@ -10,10 +10,7 @@ from pyquibbler.quib.quib import Quib
 from typing import Optional, Callable, TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    # noinspection PyPackageRequirements
-    import ipywidgets
-    # noinspection PyPackageRequirements
-    from traitlets import TraitType
+    from pyquibbler.optional_packages.get_ipywidgets import ipywidgets, TraitType
 
 
 class QuibyWidgetTrait:
@@ -76,8 +73,7 @@ class FloatSliderQuibyWidgetTrait(QuibyWidgetTrait):
 
 
 def get_widget_to_quiby_widget_trait() -> dict:
-    # noinspection PyPackageRequirements
-    import ipywidgets
+    from pyquibbler.optional_packages.get_ipywidgets import ipywidgets
     return {
         ipywidgets.FloatSlider: FloatSliderQuibyWidgetTrait,
         ipywidgets.FloatRangeSlider: FloatSliderQuibyWidgetTrait,

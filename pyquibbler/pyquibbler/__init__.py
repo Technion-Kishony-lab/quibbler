@@ -5,7 +5,6 @@ from .quib import CacheMode, iquib, Quib
 from .file_syncing import SaveFormat, ResponseToFileNotDefined
 from .quib.graphics import GraphicsUpdateType
 from .function_overriding import initialize_quibbler
-from .quib_network import dependency_graph, Direction
 from .utilities.file_path import PathToNotebook
 from .utilities.performance_utils import timer
 from .user_utils.gui_apps import quibapp
