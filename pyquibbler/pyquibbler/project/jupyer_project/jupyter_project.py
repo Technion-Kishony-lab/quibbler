@@ -176,9 +176,8 @@ class JupyterProject(Project):
             shutil.rmtree(self._tmp_save_directory)
             os.makedirs(self._tmp_save_directory)
 
-        for quib_ref in self._quib_refs:
-            quib = quib_ref()
-            if quib is not None and quib.assigned_name and quib.allow_overriding:
+        for quib in self.quibs:
+            if quib.assigned_name and quib.allow_overriding:
                 quib.handler.file_syncer.on_data_changed()
                 self.notify_of_overriding_changes(quib)
 

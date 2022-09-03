@@ -8,6 +8,7 @@ from pyquibbler.file_syncing import SaveFormat
 from pyquibbler.function_definitions import add_definition_for_function
 from pyquibbler.function_definitions.func_definition import create_func_definition
 from pyquibbler.project import Project, NothingToUndoException, NothingToRedoException
+from pyquibbler.project.exceptions import NoProjectDirectoryException
 from pyquibbler.quib.factory import create_quib
 from pyquibbler.quib.graphics import GraphicsUpdateType, aggregate_redraw_mode
 from pyquibbler.utilities.file_path import PathWithHyperLink
@@ -24,6 +25,24 @@ def random_func_with_side_effect():
     func.side_effect = [1, 2]
     add_definition_for_function(func=func, func_definition=create_func_definition(is_random=True))
     return func
+
+
+def test_project_raises_on_missing_directory(project):
+    project.directory = None
+    with pytest.raises(NoProjectDirectoryException, match='.*'):
+        project.save_quibs()
+
+
+def test_quib_added_to_project_when_created(project):
+    quib = iquib(1)
+    assert quib in project.quibs
+
+
+def test_quib_removed_from_project_when_deleted(project):
+    quib = iquib(1)
+    assert len(project.quibs) == 1,  "sanity"
+    del quib
+    assert len(project.quibs) == 0
 
 
 def test_reset_impure_quibs_clears_their_cache(random_func_with_side_effect):

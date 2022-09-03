@@ -1,51 +1,31 @@
 from __future__ import annotations
 
-import contextlib
-import dataclasses
 import weakref
 from collections import defaultdict
 from pathlib import Path
 import sys
-from pyquibbler.utilities.input_validation_utils import get_enum_by_str
-from typing import Optional, Set, TYPE_CHECKING, List, Callable, Union, Mapping
-from pyquibbler.utilities.input_validation_utils import validate_user_input
+from typing import Optional, Set, List, Callable, Union, Mapping
+
+from pyquibbler.utilities.input_validation_utils import get_enum_by_str, validate_user_input
 from pyquibbler.utilities.file_path import PathWithHyperLink
-from pyquibbler.exceptions import PyQuibblerException
-from .actions import Action, AddAssignmentAction, AssignmentAction, RemoveAssignmentAction
 from pyquibbler.quib.graphics import GraphicsUpdateType, aggregate_redraw_mode
 from pyquibbler.file_syncing.types import SaveFormat, ResponseToFileNotDefined
-from ..logger import logger
-from ..path.path_component import set_path_indexed_classes_from_quib
+from pyquibbler.path.path_component import set_path_indexed_classes_from_quib
 
+from .actions import Action, AddAssignmentAction, AssignmentAction, RemoveAssignmentAction
+from .exceptions import NoProjectDirectoryException, NothingToUndoException, NothingToRedoException
+
+from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pyquibbler.quib.quib import Quib
     from pyquibbler.assignment import Assignment
 
 
-class NothingToUndoException(PyQuibblerException):
-
-    def __str__(self):
-        return "There are no actions left to undo"
-
-
-class NothingToRedoException(PyQuibblerException):
-
-    def __str__(self):
-        return "There are no actions left to redo"
-
-
-@dataclasses.dataclass
-class NoProjectDirectoryException(PyQuibblerException):
-    action: str
-
-    def __str__(self):
-        return f"The project directory is not defined.\n" \
-               f"To {self.action} quibs, set the project directory (see set_project_directory)."
-
-
 class Project:
     """
     Quibbler project providing save/load and undo/redo functionality.
+
+    Keeps a weakref set of all quibs to manage the quibs centrally.
     """
 
     DEFAULT_GRAPHICS_UPDATE = GraphicsUpdateType.DRAG
@@ -55,14 +35,13 @@ class Project:
 
     def __init__(self, directory: Optional[Path]):
         self._directory = directory
-        self._quib_refs: Set[weakref.ReferenceType[Quib]] = set()
+        self._quib_refs: weakref.WeakSet[Quib] = weakref.WeakSet()
         self._pending_undo_group: Optional[List] = None
         self._undo_action_groups: List[List[Action]] = []
         self._redo_action_groups: List[List[Action]] = []
         self._quib_refs_to_paths_to_assignment_actions = defaultdict(dict)
         self._save_format: SaveFormat = self.DEFAULT_SAVE_FORMAT
         self._graphics_update: GraphicsUpdateType = self.DEFAULT_GRAPHICS_UPDATE
-        self._record_undos = True
         self.on_path_change: Optional[Callable] = None
         self.autoload_upon_first_get_value = False
 
@@ -88,16 +67,6 @@ class Project:
             Project.current_project = cls(directory=directory)
         return Project.current_project
 
-    @contextlib.contextmanager
-    def stop_recording_undos(self):
-        if not self._record_undos:
-            yield
-            return
-
-        self._record_undos = False
-        yield
-        self._record_undos = True
-
     """
     quibs
     """
@@ -105,26 +74,17 @@ class Project:
     @property
     def quibs(self) -> Set[Quib]:
         """
-        Get all quibs in the project.
+        Set of Quib: All quibs in the project.
 
-        Returns
-        -------
-        set of Quib
+        Maintains the set of all quibs in the project.
         """
-        refs_to_remove = set()
-        for quib_ref in self._quib_refs:
-            if quib_ref() is None:
-                refs_to_remove.add(quib_ref)
-        for ref in refs_to_remove:
-            self._quib_refs.remove(ref)
-
-        return {quib_ref() for quib_ref in self._quib_refs}
+        return set(self._quib_refs)
 
     def register_quib(self, quib: Quib):
         """
-        Register a quib to the project
+        Register a quib to the project.
         """
-        self._quib_refs.add(weakref.ref(quib))
+        self._quib_refs.add(quib)
 
     @staticmethod
     def _reset_list_of_quibs(quibs):
@@ -268,6 +228,10 @@ class Project:
         if self.on_path_change:
             self.on_path_change(path)
 
+    def _raise_if_directory_is_not_defined(self, action: str):
+        if self.directory is None:
+            raise NoProjectDirectoryException(action=action)
+
     @property
     def save_format(self) -> SaveFormat:
         """
@@ -309,9 +273,7 @@ class Project:
         Quib.save_format, Quib.actual_save_format, Project.save_format
         Quib.save
         """
-        logger.info(f"Began saving to directory {self.directory}")
-        if self.directory is None:
-            raise NoProjectDirectoryException(action='save')
+        self._raise_if_directory_is_not_defined('save')
         for quib in self.quibs:
             quib.save(response_to_file_not_defined)
 
@@ -328,8 +290,7 @@ class Project:
         Quib.save_format, Quib.actual_save_format, Project.save_format
         Quib.load
         """
-        if self.directory is None:
-            raise NoProjectDirectoryException(action='load')
+        self._raise_if_directory_is_not_defined('load')
         with aggregate_redraw_mode():
             for quib in self.quibs:
                 quib.load(response_to_file_not_defined)
@@ -347,8 +308,7 @@ class Project:
         Quib.save_format, Quib.actual_save_format, Project.save_format
         Quib.sync
         """
-        if self.directory is None:
-            raise NoProjectDirectoryException(action='sync')
+        self._raise_if_directory_is_not_defined('sync')
         with aggregate_redraw_mode():
             for quib in self.quibs:
                 quib.sync(response_to_file_not_defined)
@@ -543,9 +503,6 @@ class Project:
         """
         Push a new assignment to the undo stack.
         """
-        if not self._record_undos:
-            return
-
         from pyquibbler.project import AddAssignmentAction
         from pyquibbler.path import get_hashable_path
         assignment_hashable_path = get_hashable_path(assignment.path)
@@ -622,7 +579,6 @@ class Project:
     def set_undo_redo_buttons_enable_state(self):
         pass
 
-    #  TODO: should be replaced with more fancy dialog box
     def text_dialog(self, title: str, message: str, buttons_and_options: Mapping[str, str]) -> str:
         print(title)
         print(message)

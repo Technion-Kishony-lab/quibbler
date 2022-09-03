@@ -51,6 +51,7 @@ def test_iquib_pretty_repr_str():
 
     assert a.pretty_repr == 'a = iquib(\'a\')'
 
+
 # File system
 @pytest.mark.parametrize(['save_format'], [
     (SaveFormat.TXT,),

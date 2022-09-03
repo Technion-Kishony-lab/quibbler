@@ -18,8 +18,7 @@ def test_quib_wont_save_without_assigned_name(create_quib_with_return_value):
 
 def test_sync_quibs_with_files_project_initiation(project):
     a = iquib(np.array([1., 2., 3.])).setp(name='a')
-    b: Quib = (a + 10).setp(allow_overriding=True, name='b')
-    b.assigned_quibs = {b}
+    b: Quib = (a + 10).setp(allow_overriding=True, name='b', assigned_quibs='self')
     b[1] = 20
     a[2] = 30
 
@@ -28,9 +27,29 @@ def test_sync_quibs_with_files_project_initiation(project):
     # re-initiate the project:
     del a, b
     a = iquib(np.array([1., 2., 3.])).setp(name='a')
-    b: Quib = (a + 10).setp(allow_overriding=True, name='b')
+    b: Quib = (a + 10).setp(allow_overriding=True, name='b', assigned_quibs='self')
 
     project.sync_quibs()
+    assert np.array_equal(a.get_value(), [1., 2., 30.])
+    assert np.array_equal(b.get_value(), [11., 20., 40.])
+
+
+def test_project_save_load_quibs(project, monkeypatch):
+    a = iquib(np.array([1., 2., 3.])).setp(name='a')
+    b: Quib = (a + 10).setp(allow_overriding=True, name='b', assigned_quibs='self')
+    b[1] = 20
+    a[2] = 30
+
+    project.save_quibs()
+
+    b[1] = 21
+    a[2] = 31
+    assert np.array_equal(a.get_value(), [1., 2., 31.]), "sanity"
+    assert np.array_equal(b.get_value(), [11., 21., 41.]), "sanity"
+
+    monkeypatch.setattr('builtins.input', lambda: "1")  # overwrite
+    project.load_quibs()
+    assert np.array_equal(a.get_value(), [1., 2., 30.])
     assert np.array_equal(b.get_value(), [11., 20., 40.])
 
 
