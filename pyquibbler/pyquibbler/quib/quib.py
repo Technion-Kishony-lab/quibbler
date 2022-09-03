@@ -66,7 +66,8 @@ from pyquibbler.quib.graphics.redraw import notify_of_overriding_changes_or_add_
 
 # repr:
 from pyquibbler.env import PRETTY_REPR, REPR_RETURNS_SHORT_NAME, REPR_WITH_OVERRIDES, WARN_ON_UNSUPPORTED_BACKEND
-from pyquibbler.quib.pretty_converters import MathExpression, FailedMathExpression, NameMathExpression, pretty_convert
+from pyquibbler.quib.pretty_converters import MathExpression, FailedMathExpression, NameMathExpression, \
+    get_math_expression_of_func_with_args_and_kwargs, FunctionCallMathExpression
 
 from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Union, Iterable, Mapping, Callable, Iterator
 
@@ -2006,16 +2007,15 @@ class Quib:
         try:
             if self.handler.func_definition.is_graphics and len(args) > 0 \
                     and isinstance(args[0], Axes):
-                return pretty_convert.get_pretty_value_of_func_with_args_and_kwargs(self.func,
-                                                                                    args[1:], kwargs)
+                # graphics functions - do not include Axes arg:
+                return get_math_expression_of_func_with_args_and_kwargs(self.func, args[1:], kwargs)
             if getattr(self.func, 'wrapped__new__', False) and len(args) > 0:
+                # class-overriding quib (function is class.__new__):
                 cls_name = str(args[0])
                 short_cls_name = cls_name.split('.')[-1][:-2]
-                return pretty_convert.get_pretty_value_of_func_with_args_and_kwargs(short_cls_name,
-                                                                                    args[1:], kwargs)
+                return FunctionCallMathExpression(short_cls_name, args[1:], kwargs)
 
-            return pretty_convert.get_pretty_value_of_func_with_args_and_kwargs(self.func,
-                                                                                args, kwargs)
+            return get_math_expression_of_func_with_args_and_kwargs(self.func, args, kwargs)
         except Exception as e:
             logger.warning(f"Failed to get repr {e}")
             return FailedMathExpression()
@@ -2040,7 +2040,11 @@ class Quib:
         >>> b.functional_representation
         '(a + 10) ** 2'
         """
-        return str(self._get_functional_representation_expression())
+        try:
+            return str(self._get_functional_representation_expression())
+        except Exception as e:
+            logger.warning(f"Failed to get repr {e}")
+            return str(FailedMathExpression())
 
     def get_math_expression(self) -> MathExpression:
         """

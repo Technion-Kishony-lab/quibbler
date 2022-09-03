@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from typing import Callable, Tuple, Any
 
-from pyquibbler.quib.pretty_converters import MathExpression
-from pyquibbler.quib.pretty_converters.math_precedence import MathPrecedence
+from .math_expression import MathExpression
+from ..math_precedence import MathPrecedence
 
 
 def _convert_sub_item(sub_item: Any) -> str:
@@ -29,7 +29,7 @@ class GetItemExpression(MathExpression):
     obj: Any
     item: Any
 
-    def __str__(self):
+    def get_str(self, with_spaces: bool = True):
         if isinstance(self.item, tuple):
             item_repr = ", ".join(_convert_sub_item(sub_item) for sub_item in self.item)
             if len(self.item) == 1:

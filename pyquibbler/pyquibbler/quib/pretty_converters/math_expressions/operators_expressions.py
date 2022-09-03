@@ -1,95 +1,12 @@
 from dataclasses import dataclass
-from typing import Any, Tuple, Dict
-from abc import ABC, abstractmethod
+from typing import Any, Callable, Tuple
+from abc import ABC
 
-from .operators import Operator
-from .math_precedence import MathPrecedence
-
-SPACE = ' '
-
-
-class MathExpression(ABC):
-    @abstractmethod
-    def __str__(self):
-        pass
-
-    def get_str(self, with_spaces: bool = True):
-        return self.__str__()
-
-    def get_math_expression(self):
-        return self
-
-    @property
-    @abstractmethod
-    def precedence(self) -> MathPrecedence:
-        pass
-
-
-@dataclass
-class FunctionCallMathExpression(MathExpression):
-    func_name: str
-    args: Tuple[Any, ...]
-    kwargs: Dict[str: Any]
-
-    def get_pretty_args(self):
-        return [repr(arg) for arg in self.args]
-
-    def get_pretty_kwargs(self):
-        return [f'{key}={repr(val)}' for key, val in self.kwargs.items()]
-
-    def __str__(self):
-        return f'{self.func_name}({", ".join([*self.get_pretty_args(), *self.get_pretty_kwargs])})',
-
-    @property
-    def precedence(self) -> MathPrecedence:
-        return MathPrecedence.FUNCTION_CALL
-
-
-@dataclass
-class StringMathExpression(MathExpression):
-    label: str
-    label_precedence: MathPrecedence = None
-
-    def __str__(self):
-        return self.label
-
-    @property
-    def precedence(self) -> MathPrecedence:
-        return self.label_precedence
-
-
-class NameMathExpression(StringMathExpression):
-    @property
-    def precedence(self) -> int:
-        return MathPrecedence.VAR_NAME_WITH_SPACES if SPACE in self.label \
-            else MathPrecedence.VAR_NAME
-
-
-class FailedMathExpression(StringMathExpression):
-    def __init__(self):
-        self.label = "[exception during repr]"
-        self.label_precedence = MathPrecedence.PARENTHESIS
-
-
-def add_parenthesis_if_needed(expr: MathExpression, needed: bool = False) -> MathExpression:
-    return StringMathExpression(f'({expr})', MathPrecedence.PARENTHESIS) if needed else expr
-
-
-@dataclass
-class ObjectMathExpression(MathExpression):
-    obj: Any
-
-    def __str__(self):
-        return repr(self.obj)
-
-    @property
-    def precedence(self) -> MathPrecedence:
-        return MathPrecedence.VAR_NAME
-
-
-def object_to_math_expression(obj: Any):
-    return obj.get_math_expression() if hasattr(obj, 'get_math_expression') \
-            else ObjectMathExpression(obj)
+from ..math_precedence import MathPrecedence
+from .math_expression import MathExpression
+from .simple_expressions import object_to_math_expression, add_parenthesis_if_needed
+from ..operators import Operator, BINARY_FUNCS_TO_OPERATORS, REVERSE_BINARY_FUNCS_TO_OPERATORS, \
+    UNARY_RIGHT_FUNCS_TO_OPERATORS
 
 
 @dataclass
@@ -116,9 +33,6 @@ class OperatorExpression(MathExpression, ABC):
 class BinaryOperatorExpression(OperatorExpression):
     left_side: Any = None
     right_side: Any = None
-
-    def __str__(self):
-        return self.get_str()
 
     def get_str(self, with_spaces: bool = True):
 
@@ -150,7 +64,7 @@ class BinaryOperatorExpression(OperatorExpression):
 class LeftUnaryOperatorExpression(OperatorExpression):
     right_side: Any = None
 
-    def __str__(self):
+    def get_str(self, with_spaces: bool = True):
         right_side = object_to_math_expression(self.right_side)
         right_side = add_parenthesis_if_needed(right_side,
                                                right_side.precedence < self.precedence
@@ -159,3 +73,46 @@ class LeftUnaryOperatorExpression(OperatorExpression):
                                                or not self.commutative and right_side.precedence == self.precedence)
 
         return f"{self.symbol}{right_side}"
+
+
+def convert_binary_func_to_mathematical_expression(func: Callable,
+                                                   args: Tuple[Any, ...]) -> MathExpression:
+    """
+    Convert the binary func and args to mathematical expression
+    """
+    operator = BINARY_FUNCS_TO_OPERATORS[func]
+    return BinaryOperatorExpression(operator=operator, left_side=args[0], right_side=args[1])
+
+
+def convert_reverse_binary_func_to_mathematical_expression(func: Callable,
+                                                           args: Tuple[Any, ...]) -> MathExpression:
+    """
+    Convert the reverse binary func and args to mathematical expression
+    """
+    operator = REVERSE_BINARY_FUNCS_TO_OPERATORS[func]
+    return BinaryOperatorExpression(operator=operator, left_side=args[1], right_side=args[0])
+
+
+def convert_unary_right_func_to_mathematical_expression(func: Callable,
+                                                        args: Tuple[Any, ...]) -> MathExpression:
+    """
+    Convert the unary func and pretty arg to mathematical expression
+    """
+    operator = UNARY_RIGHT_FUNCS_TO_OPERATORS[func]
+    return LeftUnaryOperatorExpression(operator=operator, right_side=args[0])
+
+
+OPERATOR_FUNCS_TO_MATH_CONVERTERS = {
+    **{
+        func: convert_binary_func_to_mathematical_expression
+        for func in BINARY_FUNCS_TO_OPERATORS.keys()
+    },
+    **{
+        func: convert_reverse_binary_func_to_mathematical_expression
+        for func in REVERSE_BINARY_FUNCS_TO_OPERATORS.keys()
+    },
+    **{
+        func: convert_unary_right_func_to_mathematical_expression
+        for func in UNARY_RIGHT_FUNCS_TO_OPERATORS.keys()
+    },
+}
