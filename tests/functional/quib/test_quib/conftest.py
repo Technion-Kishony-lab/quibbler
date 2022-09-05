@@ -61,7 +61,7 @@ def create_artist(mock_axes):
         artist = Artist()
         artist.axes = mock_axes
         artist.figure = mock.Mock()
-        mock_axes.artists.append(artist)
+        mock_axes._children.append(artist)
         return artist
 
     return _create

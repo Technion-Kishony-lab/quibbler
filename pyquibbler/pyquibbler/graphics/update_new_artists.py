@@ -6,7 +6,6 @@ from matplotlib.patches import Patch, Rectangle
 from matplotlib.text import Text
 from matplotlib.lines import Line2D
 
-from pyquibbler.graphics.utils import ArrayNameToArtists
 
 ATTRIBUTES_TO_COPY = {
     Rectangle: {'_x0', '_y0', '_width', '_height'},
@@ -36,38 +35,30 @@ def copy_attributes_from_new_to_previous_artists(previous_artists: List[Artist],
 
 def _update_drawing_order_of_created_artists(
         axes: Axes,
-        array_name: str,
         new_artists: List[Artist],
         starting_index: int):
     """
     Updates the drawing order (layer) of the new artists according to the given previous starting index
-    for a particular axes and array name.
+    for a particular axes.
     """
-    array = getattr(axes, array_name)
+    array = axes._children
     end_index = len(array) - len(new_artists)
     complete_artists_array = array[:starting_index] + new_artists + array[starting_index:end_index]
-
-    setattr(axes, array_name, complete_artists_array)   # insert new artists at previous drawing order
+    axes._children = complete_artists_array
 
 
 def update_new_artists_from_previous_artists(
-        previous_axeses_to_array_names_to_indices: Dict[Axes, Dict[str, int]],
-        current_axeses_to_array_names_to_artists: Dict[Axes, ArrayNameToArtists]):
+        axeses_to_previous_indices: Dict[Axes, int],
+        axeses_to_new_artists: Dict[Axes, List[Artist]]):
     """
     Updates the drawing order and attributes of the new artists from old ones
     """
-    for axes, current_array_names_to_artists in current_axeses_to_array_names_to_artists.items():
-        for array_name, artists in current_array_names_to_artists.items():
-            if array_name in previous_axeses_to_array_names_to_indices.get(axes, {}):
-                array_names_to_indices = previous_axeses_to_array_names_to_indices[axes]
-                starting_index = array_names_to_indices[array_name]
-                _update_drawing_order_of_created_artists(axes=axes,
-                                                         array_name=array_name,
-                                                         new_artists=artists,
-                                                         starting_index=starting_index)
-
-            # Else, if the array name isn't in previous_array_names_to_indices_and_artists,
-            # we don't need to update drawing order, or copy attributes
+    for axes, new_artists in axeses_to_new_artists.items():
+        if axes in axeses_to_previous_indices:
+            previous_index = axeses_to_previous_indices[axes]
+            _update_drawing_order_of_created_artists(axes=axes,
+                                                     new_artists=new_artists,
+                                                     starting_index=previous_index)
 
 
 def add_new_axesless_patches_to_axes(previous_artists: List[Artist], new_artists: List[Artist]):

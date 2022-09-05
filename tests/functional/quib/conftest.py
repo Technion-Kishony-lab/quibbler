@@ -25,5 +25,5 @@ def create_mock_quib():
 def mock_axes():
     axes = mock.Mock()
     axes.figure.canvas.supports_blit = False
-    axes.artists = []
+    axes._children = []
     return axes

@@ -4,63 +4,38 @@ from contextlib import contextmanager
 
 from matplotlib.axes import Axes
 from matplotlib.artist import Artist
-from matplotlib.collections import Collection
-from matplotlib.image import AxesImage
-from matplotlib.lines import Line2D
-from matplotlib.patches import Patch
-from matplotlib.spines import Spine
-from matplotlib.table import Table
-from matplotlib.text import Text
 
 from pyquibbler.graphics.global_collecting import ArtistsCollector, AxesWidgetsCollector, AxesCreationPreventor
 
-ArrayNameToArtists = Dict[str, List[Artist]]
 
-TYPES_TO_ARTIST_ARRAY_NAMES = {
-    Line2D: "lines",
-    Collection: "collections",
-    Patch: "patches",
-    Text: "texts",
-    Spine: "spines",
-    Table: "tables",
-    AxesImage: "images"
-}
-
-
-def get_artist_array_name(artist: Artist):
-    return next((
-        array_name
-        for type_, array_name in TYPES_TO_ARTIST_ARRAY_NAMES.items()
-        if isinstance(artist, type_)
-    ), "artists")
-
-
-def get_artist_array(artist: Artist):
-    if artist.axes is None:
-        return []
-
-    return getattr(artist.axes, get_artist_array_name(artist))
-
-
-def get_axeses_to_array_names_to_artists(artists: Iterable[Artist]) -> Dict[Axes, ArrayNameToArtists]:
+def get_axeses_to_artists(artists: Iterable[Artist]) -> Dict[Axes, List[Artist]]:
     """
-    Creates a mapping of axes -> artist_array_name (e.g. `lines`) -> artists
+    Map axes -> artists
     """
-    axeses_to_array_names_to_artists = defaultdict(lambda: defaultdict(list))
+    axeses_to_artists = defaultdict(list)
     for artist in artists:
-        axeses_to_array_names_to_artists[artist.axes][get_artist_array_name(artist)].append(artist)
-    return axeses_to_array_names_to_artists
+        axeses_to_artists[artist.axes].append(artist)
+    return axeses_to_artists
 
 
 def remove_artist(artist: Artist):
     """
-    Remove an artist from its artist array (does NOT redraw)
+    Remove an artist from its axes (does NOT redraw)
     """
     from pyquibbler.quib.graphics import artist_wrapper
     artist_wrapper.clear_all_quibs(artist)
-    artist_array = get_artist_array(artist)
-    if artist in artist_array:  # artists not in artist array have been observed in the wild
-        artist_array.remove(artist)
+    if artist.axes:
+        artist_array = artist.axes._children
+        
+        try:
+            artist.remove()
+        except NotImplementedError:
+            pass
+
+        try:
+            artist_array.remove(artist)
+        except ValueError:
+            pass  # artists not in artist array have been observed in the wild
 
 
 def remove_artists(artists: Iterable[Artist]):
@@ -68,24 +43,18 @@ def remove_artists(artists: Iterable[Artist]):
         remove_artist(artist)
 
 
-def get_axeses_to_array_names_to_starting_indices(artists: List[Artist]) \
-        -> Dict[Axes, Dict[str, int]]:
+def get_axeses_to_starting_indices(artists: List[Artist]) -> Dict[Axes, int]:
     """
-    Creates a mapping of axes -> artists_array_name -> (starting_index, artists)
+    Map axes -> starting_index
     """
-    axeses_to_array_names_to_indices = {}
-    for axes, array_names_to_artists in get_axeses_to_array_names_to_artists(artists).items():
-        array_names_to_indices = {}
-        axeses_to_array_names_to_indices[axes] = array_names_to_indices
+    axeses_to_indices = {}
+    for axes, artists in get_axeses_to_artists(artists).items():
+        array = axes._children
+        # Get the index of the artist that appears first in the array
+        index = next(i for i, artist in enumerate(array) if artist in artists)
+        axeses_to_indices[axes] = index
 
-        for array_name, array_artists in array_names_to_artists.items():
-            array = getattr(array_artists[0].axes, array_name)
-            artists_set = set(array_artists)
-            # Get the index of the artist that appears first in the array
-            index = next(i for i, artist in enumerate(array) if artist in artists_set)
-            array_names_to_indices[array_name] = index
-
-    return axeses_to_array_names_to_indices
+    return axeses_to_indices
 
 
 @contextmanager
@@ -94,8 +63,8 @@ def remove_created_graphics():
             AxesWidgetsCollector() as widgets_collector, \
             AxesCreationPreventor():
         yield
-    for artist in collector.objects_collected:
-        remove_artist(artist)
+
+    remove_artists(collector.objects_collected)
 
     for widget in widgets_collector.objects_collected:
         widget.set_active(False)

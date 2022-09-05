@@ -10,9 +10,7 @@ from .update_new_artists import update_new_artists_from_previous_artists, \
     add_new_axesless_patches_to_axes, copy_attributes_from_new_to_previous_artists
 from .global_collecting import ArtistsCollector, AxesWidgetsCollector, AxesCreationPreventor, \
     ColorCyclerIndexCollector
-from .utils import get_artist_array, \
-    get_axeses_to_array_names_to_starting_indices, \
-    get_axeses_to_array_names_to_artists, remove_artists
+from .utils import get_axeses_to_starting_indices, get_axeses_to_artists, remove_artists
 
 
 @dataclass
@@ -25,7 +23,8 @@ class GraphicsCollection:
         """
         Remove any artists that we created that were removed by another means other than us (for example, cla())
         """
-        return [artist for artist in self.artists if artist in get_artist_array(artist)]
+        res = [artist for artist in self.artists if artist.axes is not None and artist in artist.axes._children]
+        return res
 
     def remove_artists(self):
         remove_artists(self.artists)
@@ -43,18 +42,17 @@ class GraphicsCollection:
             copy_attributes_from_new_to_previous_artists(previous_artists, new_artists)
             remove_artists(new_artists)
         else:
-            # Get the starting indices of the previous artists (per axes per artists array), so we can
+            # Get the starting indices of the previous artists (per axes), so that we can
             # place the new artists in the correct drawing layer
-            previous_axeses_to_array_names_to_indices = \
-                get_axeses_to_array_names_to_starting_indices(previous_artists)
+            previous_axeses_to_starting_indices = get_axeses_to_starting_indices(previous_artists)
 
-            current_axeses_to_array_names_to_artists = get_axeses_to_array_names_to_artists(new_artists)
+            current_axeses_to_artists = get_axeses_to_artists(new_artists)
             self.remove_artists()
             self.artists = new_artists
             add_new_axesless_patches_to_axes(previous_artists, new_artists)
 
-            update_new_artists_from_previous_artists(previous_axeses_to_array_names_to_indices,
-                                                     current_axeses_to_array_names_to_artists)
+            update_new_artists_from_previous_artists(previous_axeses_to_starting_indices,
+                                                     current_axeses_to_artists)
 
     def _handle_new_widgets(self, new_widgets: List[AxesWidget]):
         """

@@ -66,6 +66,7 @@ def tests_artists_are_garbage_collected_upon_redraw(axes, get_live_artists):
     assert len(get_live_artists()) == 2
     xy[1] = 0.3
     assert len(get_live_artists()) == 2
+    axes.remove()
 
 
 # To prevent pyimageXX bug in TK on notebook. see issue: #119
