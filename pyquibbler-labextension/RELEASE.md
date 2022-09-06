@@ -1,21 +1,23 @@
 # Making a new release of pyquibbler_labextension
 
-The extension can be published to `PyPI` and `npm` manually or using the [Jupyter Releaser](https://github.com/jupyter-server/jupyter_releaser).
+The extension can be published to `PyPI` and `npm` manually,
+or using the [Jupyter Releaser](https://github.com/jupyter-server/jupyter_releaser).
 
 ## Manual release
 
 ### Python package
 
 This extension can be distributed as Python
-packages. All of the Python
-packaging instructions in the `pyproject.toml` file to wrap your extension in a
-Python package. Before generating a package, we first need to install `build`.
+packages. All of the Python packaging instructions in the `pyproject.toml` file 
+to wrap your extension in a Python package. Before generating a package, 
+we first need to install `build`.
 
 ```bash
 pip install build twine
 ```
 
-To create a Python source package (`.tar.gz`) and the binary package (`.whl`) in the `dist/` directory, do:
+To create a Python source package (`.tar.gz`) and the binary package (`.whl`) 
+in the `dist/` directory, do:
 
 ```bash
 python -m build
@@ -56,6 +58,8 @@ Here is a summary of the steps to cut a new release:
 
 ## Publishing to `conda-forge`
 
-If the package is not on conda forge yet, check the documentation to learn how to add it: https://conda-forge.org/docs/maintainer/adding_pkgs.html
+If the package is not on conda forge yet, check the documentation to learn how 
+to add it: https://conda-forge.org/docs/maintainer/adding_pkgs.html
 
-Otherwise a bot should pick up the new version publish to PyPI, and open a new PR on the feedstock repository automatically.
+Otherwise, a bot should pick up the new version publish to PyPI, and open 
+a new PR on the feedstock repository automatically.

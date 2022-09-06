@@ -18,7 +18,7 @@ propagate downstream, pinpointing which specific steps and specific data items o
 even specific slices or elements thereof are affected, thereby vastly saving unnecessary 
 recalculations. *Quibbler*, therefore, facilitates hands-on interactions with data 
 in ways that are not only flexible, fun and interactive, but also traceable, 
-well-documented, and highly effecient.
+well-documented, and highly efficient.
 
 
 ## Main Features
@@ -114,61 +114,18 @@ upstream parameter changes.
 <br/>
 <br/>
 
-### Installing for developers
+### Installing for users:
 
-To install pyquibbler and the pyquibbler-labext, follow these steps:
+To install run:
 
-#### Create environment:
+```pip install pyquibbler```
 
-```conda create -n pyquibbler --override-channels --strict-channel-priority -c conda-forge -c nodefaults jupyterlab=3 cookiecutter nodejs jupyter-packaging git```
+If you have Jupyter lab installed, you can also add the pyquibbler Jupyter Lab extensions:
 
-```conda activate pyquibbler```
-
-#### Install pyquibbler-labextension:
-In the quibbler root directory:
-
-```cd pyquibbler-labextension```
-
-```pip install -e .```
-
-```jupyter labextension develop . --overwrite```
-
-```jlpm run build```
-
-```jupyter lab build --minimize=False```
-
-If you are developing the client code, then to automatically build following changes, run:
-
-```jlpm run watch```
+```pip install pyquibbler_labextension```
 
 
-#### Install pyquibbler:
+### Installing for development
 
-```cd ../pyquibbler```
+To install pyquibbler for development, see [here](INSTALL.md).
 
-```pip install -e .'[dev, sphinx]'```
-
-
-#### Install chromedriver
-To run the tests, you'll need the chromedriver (which allows selenium to run a browser it's in control of)
-and then add it to your path:
-
-1. Go to https://chromedriver.chromium.org/downloads, and download the chromedriver corresponding to your chrome version and operating system.
-You can check your chrome version by clicking on chrome and going to "About Google Chrome".
-You should see 102.0.x. After clicking on the correct version, you'll be able to choose your operating system.
-
-2. Unzip the chromedriver (by clicking on the archive)
-
-3. After downloading your chromedriver, go to your terminal. Run `echo $PATH`. This will show you a set of locations seperated by a colon where executable files are expected to be found.
-You need to place your chromedriver in one of them. If `/usr/local/bin` is in your PATH, the experts at Quibbler recommend placing it there. 
-To place it in this location, run `mv ~/Downloads/chromedriver /usr/local/bin/`
-
-4. After placing the chromedriver in your PATH, we need to make it executable. To do this, run
-`chmod 777 /usr/local/bin/chromedriver`
-
-5. Run the tests! Go to `tests/lab_extension` and run `pytest`. If tests fail, you can try:
-   1. when running the tests, make sure the chrome selenium opens is visible to you (there are issues with jupyter when it's not, as it doesn't load)
-   2. restart pycharm
-   3. if getting `“chromedriver” cannot be opened because the developer cannot be verified`, try running:
-   ```xattr -d com.apple.quarantine /usr/local/bin/chromedriver```
-   
