@@ -47,9 +47,9 @@ class GraphicsCollection:
             previous_axeses_to_starting_indices = get_axeses_to_starting_indices(previous_artists)
 
             current_axeses_to_artists = get_axeses_to_artists(new_artists)
+            add_new_axesless_patches_to_axes(previous_artists, new_artists)
             self.remove_artists()
             self.artists = new_artists
-            add_new_axesless_patches_to_axes(previous_artists, new_artists)
 
             update_new_artists_from_previous_artists(previous_axeses_to_starting_indices,
                                                      current_axeses_to_artists)

@@ -21,7 +21,7 @@ class RectangleSelectorQuibFuncCall(WidgetQuibFuncCall):
     def _set_rightclick_callback(self, widget: QRectangleSelector):
         # unlike other widgets, rectangle_selector does take a whole axes for itself.
         # Instead, we set the widget's artists for right-click callback.
-        picker_artists = [widget._center_handle.artist]  # can add here the corners if we want
+        picker_artists = widget._center_handle.artists  # can add here the corners if we want
         for picker_artist in picker_artists:
             picker_artist.set_picker(True)
             picker_artist._quibbler_on_rightclick = self._on_right_click
