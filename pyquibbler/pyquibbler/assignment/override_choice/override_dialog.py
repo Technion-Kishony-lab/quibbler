@@ -134,6 +134,7 @@ def choose_override_graphics_dialog(str_options: List[str],
                                     invoking_axes: Optional[Axes]
                                     ) -> OverrideChoice:
     axeses = []
+    buttons = []
     is_new_figure = OVERRIDE_DIALOG_IN_SEPARATE_WINDOW or invoking_axes is None
     if is_new_figure:
         fig = plt.figure(figsize=(3, 2.5))
@@ -146,7 +147,8 @@ def choose_override_graphics_dialog(str_options: List[str],
         axeses.append(background_ax)
 
     radio_ax, radio = pretty_radio_buttons(fig, [0.2 + shift[0], 1 + shift[1], 2.6, 1.3], str_options)
-
+    axeses.append(radio_ax)
+    
     choice_type = Mutable(UNSET)
     button_specs = [('Cancel', OverrideChoiceType.CANCEL),
                     ('Override', OverrideChoiceType.OVERRIDE)]
@@ -155,8 +157,9 @@ def choose_override_graphics_dialog(str_options: List[str],
 
     for i, (label, button_choice) in enumerate(button_specs):
         ax = add_axes_by_inches(fig, [2 - i * 1.0 + 0.15 + shift[0], 0.1 + shift[1], 0.7, 0.3])
-        create_button(ax, label, partial(choice_type.set, button_choice))
+        button = create_button(ax, label, partial(choice_type.set, button_choice))
         axeses.append(ax)
+        buttons.append(button)
 
     figure_closed = show_fig(fig, choice_type)
     if figure_closed:
