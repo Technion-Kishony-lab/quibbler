@@ -25,10 +25,13 @@ def remove_artist(artist: Artist):
     from pyquibbler.quib.graphics import artist_wrapper
     artist_wrapper.clear_all_quibs(artist)
     if artist.axes:
-        artist_array = artist.axes._children
+
+        ax = artist.axes
+        artist_array = ax._children
         
         try:
             artist.remove()
+            artist.axes = ax
         except NotImplementedError:
             pass
 
