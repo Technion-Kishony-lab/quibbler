@@ -46,7 +46,7 @@ def quiby(func: Callable = None,
           is_random: bool = False,
           is_graphics: Optional[bool] = False,
           is_file_loading: bool = False
-          ):
+          ) -> Callable[..., Quib]:
     """
     Convert a regular function into a quiby function.
 
@@ -150,7 +150,7 @@ def quiby(func: Callable = None,
                                              )
 
         @functools.wraps(func)
-        def _wrapper(*args, **kwargs):
+        def _wrapper(*args, **kwargs) -> Quib:
             return create_quib(func=None, args=args, kwargs=kwargs, func_definition=func_definition)
 
         _wrapper.func_definition = func_definition

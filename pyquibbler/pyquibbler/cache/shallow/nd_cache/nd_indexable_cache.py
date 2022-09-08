@@ -29,6 +29,10 @@ class NdIndexableCache(ShallowCache):
 
     def _set_valid_value_at_path_component(self, path_component: PathComponent, value):
         self._invalid_mask[path_component.component] = False
+
+        if not self._value.flags.writeable:
+            # To resolve failed test: test_quib_representing_read_only_array
+            self._value = self._value.copy()
         self._value[path_component.component] = value
 
     @staticmethod
