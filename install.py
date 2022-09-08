@@ -9,8 +9,20 @@ from pathlib import Path
 HERE = Path(__file__).parent.resolve()
 
 
+def show_failure_message_and_exist(message: str):
+    try:
+        import click  # noqa
+        click.echo(click.style(message, fg='red', bold=True))
+    except ImportError:
+        print(message)
+    exit(1)
+
+
 def install_package_from_directory(directory: Path, what):
-    subprocess.check_call([sys.executable, "-m", "pip", "install", '-e', what], cwd=str(directory))
+    try:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", '-e', what], cwd=str(directory))
+    except subprocess.CalledProcessError as e:
+        show_failure_message_and_exist(f'Failed to install. Exception :\n{e}')
 
 
 @contextlib.contextmanager
@@ -20,12 +32,7 @@ def exit_on_fail_with_message(message: str):
     except Exception as e:
         print(traceback.format_exc())
         print(f'exception : \n{e}')
-        try:
-            import click  # noqa
-            click.echo(click.style(message, fg='red', bold=True))
-        except ImportError:
-            print(message)
-        exit(1)
+        show_failure_message_and_exist(message)
 
 
 def install_click_if_necessary():
@@ -51,7 +58,7 @@ def install_pyquibbler():
     click.echo("Installing pyquibbler (development)...")
     pyquibbler_directory = HERE / 'pyquibbler'
     with exit_on_fail_with_message("Failed to install pyquibbler"):
-        install_package_from_directory(pyquibbler_directory, '".[dev, sphinx]"')
+        install_package_from_directory(pyquibbler_directory, ".[dev, sphinx]")
     click.echo(click.style("\nSuccessfully installed pyquibbler!", fg='green', bold=True))
 
 
