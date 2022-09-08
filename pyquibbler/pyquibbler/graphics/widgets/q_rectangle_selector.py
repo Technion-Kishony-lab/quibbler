@@ -2,6 +2,8 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 from threading import RLock
 from typing import Any
+
+from matplotlib.backend_bases import MouseButton
 from matplotlib.widgets import RectangleSelector
 
 from pyquibbler.utilities.basic_types import Mutable
@@ -52,7 +54,17 @@ class QRectangleSelector(RectangleSelector):
                         current_selector.val = self
                         return super()._onmove(event)
 
+    def _press(self, event):
+        # we ignore RIGHT click as it is reserved for resetting to default:
+        if event.button is MouseButton.RIGHT:
+            return
+        super()._press(event)
+
     def _release(self, event):
+        # we ignore RIGHT click as it is reserved for resetting to default:
+        if event.button is MouseButton.RIGHT:
+            return
+        
         with self.CURRENT_SELECTOR.unlock() as current_selector:
             if self.event_is_relevant_to_current_selector() and current_selector.val is self:
                 release_result = super()._release(event)
