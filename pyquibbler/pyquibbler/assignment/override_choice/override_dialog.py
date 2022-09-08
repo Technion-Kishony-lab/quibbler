@@ -148,7 +148,7 @@ def choose_override_graphics_dialog(str_options: List[str],
 
     radio_ax, radio = pretty_radio_buttons(fig, [0.2 + shift[0], 1 + shift[1], 2.6, 1.3], str_options)
     axeses.append(radio_ax)
-    
+
     choice_type = Mutable(UNSET)
     button_specs = [('Cancel', OverrideChoiceType.CANCEL),
                     ('Override', OverrideChoiceType.OVERRIDE)]
