@@ -41,10 +41,10 @@ class QRectangleSelector(RectangleSelector):
         self.created_in_get_value_context = is_within_get_value_context()
 
     def is_current_event_a_move_event(self):
-        return 'move' in self.state or self.active_handle == 'C'
+        return 'move' in self._state or self._active_handle == 'C'
 
     def event_is_relevant_to_current_selector(self) -> bool:
-        return (self.active_handle and self.active_handle != 'C') or self.is_current_event_a_move_event()
+        return (self._active_handle and self._active_handle != 'C') or self.is_current_event_a_move_event()
 
     def _onmove(self, event):
         if self.event_is_relevant_to_current_selector():
@@ -58,7 +58,15 @@ class QRectangleSelector(RectangleSelector):
         # we ignore RIGHT click as it is reserved for resetting to default:
         if event.button is MouseButton.RIGHT:
             return
-        super()._press(event)
+
+        # we are not calling the super method because it resets the widget if
+        # the mouse event is not close to the handles.
+        # Instead, just run the part from super that check for handle selection:
+        if self._interactive and self._selection_artist.get_visible():
+            self._set_active_handle(event)
+            self._extents_on_press = self.extents
+        else:
+            self._active_handle = None
 
     def _release(self, event):
         # we ignore RIGHT click as it is reserved for resetting to default:
