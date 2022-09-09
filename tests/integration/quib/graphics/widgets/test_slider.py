@@ -27,30 +27,22 @@ def slider_quib(axes, input_quib):
 
 @quibbler_image_comparison(baseline_images=['press_and_release_changes'])
 def test_slider_graphics_function_quib_press_and_release_changes(axes, get_live_widgets, slider_quib, input_quib,
-                                                                 create_button_press_event,
-                                                                 create_button_release_event, get_axes_start):
+                                                                 create_axes_mouse_press_move_release_events):
 
     initial_live_widgets = len(get_live_widgets())
 
-    create_button_press_event(*get_axes_start())
-    create_button_release_event(*get_axes_start())
+    create_axes_mouse_press_move_release_events(['left'])
 
     assert input_quib.get_value() == 0
     assert len(get_live_widgets()) == initial_live_widgets
 
 
 @quibbler_image_comparison(baseline_images=['keeps_same_widget'])
-def test_slider_graphics_function_quib_press_and_motion_notify_changes_and_keeps_same_widget(axes,
-                                                                                             get_live_widgets,
-                                                                                             create_button_press_event,
-                                                                                             get_axes_end,
-                                                                                             get_axes_middle,
-                                                                                             create_motion_notify_event,
-                                                                                             slider_quib, input_quib,
-                                                                                             ):
+def test_slider_graphics_function_quib_press_and_motion_notify_changes_and_keeps_same_widget(
+        axes, create_axes_mouse_press_move_release_events, get_live_widgets, slider_quib, input_quib):
+
     widget = slider_quib.get_value()
-    create_button_press_event(*get_axes_end())
-    create_motion_notify_event(*get_axes_middle())
+    create_axes_mouse_press_move_release_events(['left', 'middle'])
 
     assert input_quib.get_value() == 1
     assert slider_quib.get_value() is widget
@@ -60,21 +52,13 @@ def test_slider_graphics_function_quib_press_and_motion_notify_changes_and_keeps
 @pytest.mark.regression
 @quibbler_image_comparison(baseline_images=['multiple_times'])
 def test_slider_graphics_function_quib_calls_multiple_times(axes, get_live_widgets, get_live_artists, input_quib,
-                                                            create_button_press_event,
-                                                            create_motion_notify_event,
-                                                            create_button_release_event, get_axes_start,
-                                                            slider_quib, get_axes_end, get_axes_middle):
+                                                            create_axes_mouse_press_move_release_events, slider_quib):
     original_num_artists = len(get_live_artists())
 
     with count_redraws(slider_quib) as redraw_count, \
             count_canvas_draws(axes.figure.canvas) as canvas_redraw_count:
-        create_button_press_event(*get_axes_start())
-        create_motion_notify_event(*get_axes_end())
-        create_button_release_event(*get_axes_end())
-
-        create_button_press_event(*get_axes_start())
-        create_motion_notify_event(*get_axes_end())
-        create_button_release_event(*get_axes_end())
+        create_axes_mouse_press_move_release_events(['left', 'right'])
+        create_axes_mouse_press_move_release_events(['left', 'right'])
 
     assert canvas_redraw_count.count == 4
     assert redraw_count.count == 4  # 2 x press + 2 x motion
@@ -82,40 +66,32 @@ def test_slider_graphics_function_quib_calls_multiple_times(axes, get_live_widge
     assert len(get_live_artists()) == original_num_artists
 
 
-def test_slider_undo_redo(axes, get_live_widgets, get_live_artists, input_quib,
-                          create_button_press_event,
-                          create_motion_notify_event,
-                          create_button_release_event, get_axes_start,
-                          slider_quib, get_axes_end, get_axes_middle):
+def test_slider_undo_redo(axes, get_live_widgets, get_live_artists, input_quib, slider_quib,
+                          create_axes_mouse_press_move_release_events):
 
         assert input_quib.get_value() == 2
 
-        create_button_press_event(*get_axes_middle())
+        create_axes_mouse_press_move_release_events(['middle'], release=False)
         assert input_quib.get_value() == 1
 
-        create_motion_notify_event(*get_axes_start())
+        create_axes_mouse_press_move_release_events(['middle', 'left'], press=False, release=False)
         assert input_quib.get_value() == 0
-        create_button_release_event(*get_axes_start())
+        create_axes_mouse_press_move_release_events(['left'], press=False)
         assert input_quib.get_value() == 0
 
         undo()
         assert input_quib.get_value() == 2
 
 
-def test_slider_rightclick_sets_to_default(axes, get_live_widgets, get_live_artists, input_quib,
-                                           create_button_press_event,
-                                           create_motion_notify_event,
-                                           create_button_release_event, get_axes_start,
-                                           slider_quib, get_axes_end, get_axes_middle):
+def test_slider_rightclick_sets_to_default(axes, get_live_widgets, get_live_artists, input_quib, slider_quib,
+                                           create_axes_mouse_press_move_release_events):
 
         assert input_quib.get_value() == 2
 
-        create_button_press_event(*get_axes_middle())
-        create_button_release_event(*get_axes_middle())
+        create_axes_mouse_press_move_release_events(['middle'])
         assert input_quib.get_value() == 1
 
-        create_button_press_event(*get_axes_middle(), button=3)  # right-click
-        create_button_release_event(*get_axes_middle(), button=3)
+        create_axes_mouse_press_move_release_events(['middle'], button=3)  # right-click
 
         assert input_quib.get_value() == 2
 

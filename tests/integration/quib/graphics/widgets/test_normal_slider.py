@@ -27,21 +27,12 @@ def slider(axes, callback):
     return slider
 
 
-def test_slider_press_and_motion_notify_changes(axes,
-                                                create_button_press_event,
-                                                create_button_release_event,
-                                                get_axes_end,
-                                                get_axes_middle,
-                                                create_motion_notify_event,
-                                                slider, callback
-                                                ):
+def test_slider_press_and_motion_notify_changes(axes, slider, callback, create_axes_mouse_press_move_release_events):
 
     assert isinstance(slider, QSlider)
     assert slider.val == 2
 
-    create_button_press_event(*get_axes_end())
-    create_motion_notify_event(*get_axes_middle())
-    create_button_release_event(*get_axes_middle())
+    create_axes_mouse_press_move_release_events(['right', 'middle'])
 
     assert slider.val == 1
     callback.assert_called_once()

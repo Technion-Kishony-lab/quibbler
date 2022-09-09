@@ -4,8 +4,7 @@ from tests.integration.quib.graphics.widgets.utils import count_redraws, quibble
 
 
 @quibbler_image_comparison(baseline_images=['covid_demo'])
-def test_covid_demo(get_axes_middle, create_button_press_event, create_motion_notify_event, create_button_release_event,
-                    axes, get_live_artists):
+def test_covid_demo(create_axes_mouse_press_move_release_events, axes, get_live_artists):
     from pyquibbler import iquib, q, initialize_quibbler
     from matplotlib import pyplot as plt
     import numpy as np
@@ -66,15 +65,7 @@ def test_covid_demo(get_axes_middle, create_button_press_event, create_motion_no
 
     plt.pause(0.1)
 
-    middle_x, middle_y = get_axes_middle()
-
-    x, y, width, height = axes.bbox.bounds
-    marker_y = y + 5
-    beginning_x = width * (threshold / max_xlim).get_value() + x
-
     with count_canvas_draws(axes.figure.canvas) as canvas_redraw_count:
-        create_button_press_event(beginning_x, marker_y)
-        create_motion_notify_event(middle_x, marker_y)
-        create_button_release_event(middle_x, marker_y)
+        create_axes_mouse_press_move_release_events([(15, 0), (12.5, 0), (10, 0)])
 
-    assert canvas_redraw_count.count == 1  # motion
+    assert canvas_redraw_count.count == 2  # 2 x motion
