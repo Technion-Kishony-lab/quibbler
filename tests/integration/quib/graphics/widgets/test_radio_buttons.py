@@ -49,15 +49,13 @@ def test_radio_buttons_set_active_multiple_times(axes, get_only_live_widget, get
 
 
 def test_radio_buttons_rightclick_resets_value(axes, get_only_live_widget, get_live_artists, get_live_widgets,
-                                               radio_buttons, active_quib, create_button_press_event,
-                                               create_button_release_event, get_axes_middle):
+                                               radio_buttons, active_quib, create_axes_mouse_press_move_release_events):
     widget = get_only_live_widget()
     assert active_quib.get_value() == 1
 
     widget.set_active(0)
     assert active_quib.get_value() == 0
 
-    create_button_press_event(*get_axes_middle(), button=3)  # right-click
-    create_button_release_event(*get_axes_middle(), button=3)
+    create_axes_mouse_press_move_release_events(['middle'], button=3)  # right-click
 
     assert active_quib.get_value() == 1

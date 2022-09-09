@@ -14,11 +14,15 @@ from pyquibbler.project import Project
 from pyquibbler.function_overriding import initialize_quibbler
 from pyquibbler.quib.func_calling import CachedQuibFuncCall
 from pyquibbler.quibapp import QuibApp
-from pyquibbler.utilities.performance_utils import track_instances_of_class, get_all_instances_in_tracked_class, \
-    TRACKED_CLASSES_TO_WEAKREFS
+
 from pyquibbler.utils import Flag
 
 from matplotlib.widgets import Slider as OriginalSlider
+from matplotlib.backend_bases import FigureCanvasBase
+
+from pyquibbler.utilities.performance_utils import track_instances_of_class, TRACKED_CLASSES_TO_WEAKREFS, \
+    get_all_instances_in_tracked_class
+
 
 DEFAULT_EMULATE_MISSING_PACKAGES = []
 DEFAULT_DEBUG = True
@@ -164,3 +168,69 @@ def get_live_artists(axes):
 @pytest.fixture
 def original_slider():
     return OriginalSlider
+
+
+"""
+mouse events
+"""
+
+
+def convert_normalized_axes_xy_to_figure_xy(ax, xy):
+    x0, y0, width, height = ax.bbox.bounds
+    x_start, y_start = x0 + 1, y0 + 1
+    x_end, y_end = x0 + width - 1, y0 + height - 1
+    x, y = xy
+    return (1 - x) * x_start + x * x_end, (1 - y) * y_start + y * y_end
+
+
+def convert_axes_xy_to_normalized_xy(ax, xy):
+    if isinstance(xy, str):
+        return xy
+    xlim, ylim = ax.get_xlim(), ax.get_ylim()
+    xx = (xy[0] - xlim[0]) / (xlim[1] - xlim[0])
+    yy = (xy[1] - ylim[0]) / (ylim[1] - ylim[0])
+    return xx, yy
+
+
+def convert_str_xy_to_normalized_xy(xy):
+    if not isinstance(xy, str):
+        return xy
+    if xy == 'middle':
+        return 0.5, 0.5
+    if xy == 'left':
+        return 0., 0.5
+    if xy == 'right':
+        return 1., 0.5
+
+@pytest.fixture
+def create_axes_mouse_press_move_release_events(axes):
+    def _create(xys, button: int = 1, press: bool = True, release: bool = True, normalized: bool = False):
+
+        if not normalized:
+            xys = [convert_axes_xy_to_normalized_xy(axes, xy) for xy in xys]
+
+        xys = [convert_str_xy_to_normalized_xy(xy) for xy in xys]
+        xys = [convert_normalized_axes_xy_to_figure_xy(axes, xy) for xy in xys]
+
+        _xy_init = xys[0]
+        _xy_end = xys[-1]
+
+        # We use FigureCanvasBase directly and not as a method because some backends (for example the TkAgg) have
+        # a different signature for this method
+        if press:
+            FigureCanvasBase.button_press_event(axes.figure.canvas, _xy_init[0], _xy_init[1], button=button)
+        for _xy in xys[1:]:
+            FigureCanvasBase.motion_notify_event(axes.figure.canvas, _xy[0], _xy[1])
+        if release:
+            FigureCanvasBase.button_release_event(axes.figure.canvas, _xy_end[0], _xy_end[1], button=button)
+
+    return _create
+
+
+@pytest.fixture
+def create_key_press_and_release_event(axes):
+    def _create(key):
+        FigureCanvasBase.key_press_event(axes.figure.canvas, key)
+        FigureCanvasBase.key_release_event(axes.figure.canvas, key)
+
+    return _create
