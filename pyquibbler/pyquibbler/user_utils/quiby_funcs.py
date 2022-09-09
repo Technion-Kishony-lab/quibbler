@@ -50,11 +50,11 @@ def quiby(func: Callable = None,
     """
     Convert a regular function into a quiby function.
 
-    Converts any function `func` to a function that can work on quib arguments (quiby function.
+    Converts any function `func` to a function that can work on quib arguments ("quiby" function).
     When such quiby function is called, it creates a function quib that implement
     the original function.
 
-    quiby can also be used as a decorator of user functions, either directly without parameters, or with
+    `quiby` can also be used as a decorator of user functions, either directly, or as a function with
     parameter specification (see examples).
 
     Parameters
@@ -63,24 +63,24 @@ def quiby(func: Callable = None,
         The function to convert.
 
     lazy : bool or None, default None
-        Indicates whether the created function quib evaluates immediately (lazy=False), or only when
-        its value is requested (lazy=True). When lazy=None (default), the function is evaluated immediately
-        only if it is declared as a graphics function (is_graphics=True).
+        Indicates whether the created function quib evaluates immediately (`lazy=False`), or only when
+        its value is requested (`lazy=True`). When `lazy=None` (default), the function is evaluated immediately
+        only if it is a declared graphics function (`is_graphics=True`).
 
     pass_quibs : bool, default False
-        Indicates whether the function is called with quib arguments (pass_quibs=True), or with the
-        values of the quib arguments (pass_quibs=False, default).
+        Indicates whether the function should be called with quib arguments (`pass_quibs=True`), or with the
+        values of the quib arguments (`pass_quibs=False`, default).
 
     is_random : bool, default False
         Indicates a random function. Random functions are automatically cached and can be invalidated
-        centrally to re-randomize (see reset_random_quibs).
+        centrally to re-randomize (see `reset_random_quibs`).
 
     is_graphics : bool or None, default: False
-        Specifies whether the function creates graphics. If True, the function will be re-evaluated upon any
-        upstream quib changes (according to the quib's `graphics_update`), and any graphics it creates
+        Specifies whether the function creates graphics. If `True`, the function will be re-evaluated upon any
+        upstream quib changes (according to the quib's `graphics_update` property), and any graphics it creates
         will be redrawn.
-        is_graphics=None will search for graphics and define the quib as a graphics quib if
-        any graphics was created.
+        `is_graphics=None` will search for graphics during the call to the function and the quib will
+        automatically be defined as a graphics quib if any graphics was created.
 
     is_file_loading : bool, default: False
         Indicates whether the function's returned value depends on reading of an external file.
