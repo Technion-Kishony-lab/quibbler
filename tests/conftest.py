@@ -1,7 +1,9 @@
 import shutil
+from functools import partial
 from pathlib import Path
 
 import pytest
+from matplotlib import pyplot as plt
 from matplotlib.artist import Artist
 from pytest import fixture
 import gc
@@ -202,29 +204,35 @@ def convert_str_xy_to_normalized_xy(xy):
     if xy == 'right':
         return 1., 0.5
 
+
+def create_mouse_press_move_release_events(ax, xys, button: int = 1,
+                                           press: bool = True, release: bool = True, normalized: bool = False,
+                                           pause: float = None):
+
+    if not normalized:
+        xys = [convert_axes_xy_to_normalized_xy(ax, xy) for xy in xys]
+
+    xys = [convert_str_xy_to_normalized_xy(xy) for xy in xys]
+    xys = [convert_normalized_axes_xy_to_figure_xy(ax, xy) for xy in xys]
+
+    _xy_init = xys[0]
+    _xy_end = xys[-1]
+
+    # We use FigureCanvasBase directly and not as a method because some backends (for example the TkAgg) have
+    # a different signature for this method
+    if press:
+        FigureCanvasBase.button_press_event(ax.figure.canvas, _xy_init[0], _xy_init[1], button=button)
+    for _xy in xys[1:]:
+        FigureCanvasBase.motion_notify_event(ax.figure.canvas, _xy[0], _xy[1])
+        if pause is not None:
+            plt.pause(pause)
+    if release:
+        FigureCanvasBase.button_release_event(ax.figure.canvas, _xy_end[0], _xy_end[1], button=button)
+
+
 @pytest.fixture
 def create_axes_mouse_press_move_release_events(axes):
-    def _create(xys, button: int = 1, press: bool = True, release: bool = True, normalized: bool = False):
-
-        if not normalized:
-            xys = [convert_axes_xy_to_normalized_xy(axes, xy) for xy in xys]
-
-        xys = [convert_str_xy_to_normalized_xy(xy) for xy in xys]
-        xys = [convert_normalized_axes_xy_to_figure_xy(axes, xy) for xy in xys]
-
-        _xy_init = xys[0]
-        _xy_end = xys[-1]
-
-        # We use FigureCanvasBase directly and not as a method because some backends (for example the TkAgg) have
-        # a different signature for this method
-        if press:
-            FigureCanvasBase.button_press_event(axes.figure.canvas, _xy_init[0], _xy_init[1], button=button)
-        for _xy in xys[1:]:
-            FigureCanvasBase.motion_notify_event(axes.figure.canvas, _xy[0], _xy[1])
-        if release:
-            FigureCanvasBase.button_release_event(axes.figure.canvas, _xy_end[0], _xy_end[1], button=button)
-
-    return _create
+    return partial(create_mouse_press_move_release_events, axes)
 
 
 @pytest.fixture
