@@ -1,4 +1,4 @@
-from pyquibbler.utils import Singleton
+from pyquibbler.utilities.basic_types import Singleton
 
 
 class Missing(Singleton):

@@ -4,11 +4,12 @@ import functools
 from dataclasses import dataclass, field
 from typing import Set, Type, List, Callable, Optional
 
+from pyquibbler.translation import BackwardsPathTranslator, ForwardsPathTranslator
+
 from .func_call import FuncArgsKwargs
 from .types import RawArgument, Argument, PositionalArgument, KeywordArgument, \
     convert_raw_data_source_arguments_to_data_source_arguments
-from pyquibbler.translation import BackwardsPathTranslator, ForwardsPathTranslator
-from pyquibbler.utils import get_signature_for_func
+from .utils import get_signature_for_func
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:

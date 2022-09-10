@@ -1,5 +1,6 @@
 import numpy as np
-from pyquibbler.utils import get_original_func
+
+from pyquibbler.utilities.get_original_func import get_original_func
 
 np_logical_and = get_original_func(np.logical_and)
 np_logical_or = get_original_func(np.logical_or)

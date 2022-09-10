@@ -1,4 +1,4 @@
-from pyquibbler.utils import StrEnum
+from pyquibbler.utilities.basic_types import StrEnum
 
 
 class Direction(StrEnum):

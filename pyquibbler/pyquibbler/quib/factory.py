@@ -9,7 +9,7 @@ from pyquibbler.project import Project
 from pyquibbler.file_syncing.types import SaveFormat
 from pyquibbler.function_definitions.func_definition import FuncDefinition
 from pyquibbler.function_definitions import get_definition_for_function, SourceLocation
-from pyquibbler.utils import get_original_func
+from pyquibbler.utilities.get_original_func import get_original_func
 from .func_calling import CachedQuibFuncCall
 from .graphics import GraphicsUpdateType
 from .quib_guard import add_new_quib_to_guard_if_exists

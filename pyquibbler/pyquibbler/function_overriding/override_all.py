@@ -1,6 +1,6 @@
 from typing import List
 
-from pyquibbler.utils import ensure_only_run_once_globally
+from pyquibbler.utilities.run_once import ensure_only_run_once_globally
 from pyquibbler.project.jupyer_project.jupyter_project import create_jupyter_project_if_in_jupyter_lab
 from pyquibbler.function_definitions import add_definition_for_function
 from .defintion_without_override.python_functions import create_definitions_for_python_functions

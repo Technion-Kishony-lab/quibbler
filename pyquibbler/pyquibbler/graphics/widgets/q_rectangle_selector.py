@@ -4,7 +4,7 @@ from threading import RLock
 from typing import Any
 from matplotlib.widgets import RectangleSelector
 
-from pyquibbler.utils import Mutable
+from pyquibbler.utilities.basic_types import Mutable
 
 from ...quib.get_value_context_manager import is_within_get_value_context
 from ...quib.graphics.redraw import skip_canvas_draws

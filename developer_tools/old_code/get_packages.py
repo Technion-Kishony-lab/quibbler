@@ -1,8 +1,7 @@
 from typing import List
 
 from pyquibbler.optional_packages.exceptions import PyQuibblerMissingPackageException
-from pyquibbler.utils import Mutable
-from pyquibbler.optional_packages.get_ipywidgets import ipywidgets
+from pyquibbler.utilities.run_once import Mutable
 
 EMULATE_MISSING_PACKAGES = Mutable([])
 

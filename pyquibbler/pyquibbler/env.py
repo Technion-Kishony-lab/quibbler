@@ -1,4 +1,4 @@
-from pyquibbler.utils import Flag, Mutable
+from pyquibbler.utilities.basic_types import Flag, Mutable
 
 DEBUG = Flag(False)
 

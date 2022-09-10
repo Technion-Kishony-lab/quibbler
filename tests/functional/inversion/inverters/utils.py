@@ -1,15 +1,11 @@
 from typing import Callable, Any, Tuple, Mapping
 
 from pyquibbler import Assignment
-from pyquibbler.function_definitions import get_definition_for_function
-from pyquibbler.function_definitions.func_call import FuncCall, FuncArgsKwargs
 from pyquibbler.inversion.invert import invert
 from pyquibbler.path.data_accessing import deep_assign_data_in_path
-from pyquibbler.utils import get_original_func
+from pyquibbler.utilities.get_original_func import get_original_func
 from pyquibbler.translation.source_func_call import SourceFuncCall
 from pyquibbler.path import PathComponent
-from pyquibbler.translation.types import Source
-from pyquibbler.utilities.iterators import get_paths_for_objects_of_type
 
 
 def inverse(func: Callable, indices: Any, value: Any, args: Tuple[Any, ...] = None, kwargs: Mapping[str, Any] = None,

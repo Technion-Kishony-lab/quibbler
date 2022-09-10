@@ -6,7 +6,8 @@ from typing import Tuple, Any, Mapping, Optional, Callable, List, Type, ClassVar
 
 from pyquibbler.utilities.iterators import get_object_type_locations_in_args_kwargs, recursively_compare_objects
 from pyquibbler.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
-from pyquibbler.utils import get_signature_for_func
+
+from .utils import get_signature_for_func
 from .location import SourceLocation
 from .types import iter_arg_ids_and_values, KeywordArgument, PositionalArgument
 

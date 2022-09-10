@@ -3,21 +3,20 @@ from typing import Optional, Dict
 
 import numpy as np
 
+from pyquibbler.quib.quib import Quib
 from pyquibbler.path.path_component import Path
-from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices
-from pyquibbler.graphics.utils import remove_created_graphics
+from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals
 from pyquibbler.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
 from pyquibbler.quib.func_calling import CachedQuibFuncCall
-from pyquibbler.quib.func_calling.utils import cache_method_until_full_invalidation
-from pyquibbler.quib.func_calling.func_calls.vectorize.utils import alter_signature, copy_vectorize, \
-    get_indices_array
-from pyquibbler.function_definitions.types import iter_arg_ids_and_values
-from pyquibbler.quib.func_calling.func_calls.vectorize.vectorize_metadata \
-    import VectorizeCall, VectorizeMetadata
-from pyquibbler.quib.quib import Quib
+from pyquibbler.quib.func_calling.utils import cache_method_until_full_invalidation, convert_args_and_kwargs
 from pyquibbler.quib.specialized_functions.proxy import create_proxy
-from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals
-from pyquibbler.utils import convert_args_and_kwargs
+from pyquibbler.function_definitions.types import iter_arg_ids_and_values
+from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices
+from pyquibbler.graphics.utils import remove_created_graphics
+
+from .vectorize_metadata import VectorizeCall, VectorizeMetadata
+from .utils import alter_signature, copy_vectorize, \
+    get_indices_array
 
 
 class VectorizeQuibFuncCall(CachedQuibFuncCall):

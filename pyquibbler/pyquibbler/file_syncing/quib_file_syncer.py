@@ -4,7 +4,7 @@ import pathlib
 import weakref
 from typing import Optional
 
-from pyquibbler.utils import Flag
+from pyquibbler.utilities.basic_types import Flag
 from .file_syncer import FileSyncer
 
 from typing import TYPE_CHECKING

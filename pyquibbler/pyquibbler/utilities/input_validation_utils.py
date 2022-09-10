@@ -4,7 +4,7 @@ from typing import Type, Union, Tuple, Optional
 from abc import ABC, abstractmethod
 
 from pyquibbler.exceptions import PyQuibblerException
-from pyquibbler.utils import StrEnum
+from pyquibbler.utilities.basic_types import StrEnum
 
 
 @dataclass

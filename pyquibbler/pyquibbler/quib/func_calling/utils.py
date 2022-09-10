@@ -1,11 +1,12 @@
 from __future__ import annotations
-from dataclasses import dataclass
-from functools import wraps
-from typing import Callable, Tuple, Any, Dict, TYPE_CHECKING
 
 import numpy as np
+from dataclasses import dataclass
+from functools import wraps
+from typing import Callable, Tuple, Any, Dict, Mapping
 
 
+from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pyquibbler.quib.func_calling.quib_func_call import QuibFuncCall
 
@@ -36,3 +37,11 @@ def cache_method_until_full_invalidation(func: Callable) -> Callable:
 
 def create_array_from_func(func, shape):
     return np.vectorize(lambda _: func(), otypes=[object])(np.empty(shape))
+
+
+def convert_args_and_kwargs(converter: Callable, args: Tuple[Any, ...], kwargs: Mapping[str, Any]):
+    """
+    Apply the given converter on all given arg and kwarg values.
+    """
+    return (tuple(converter(i, val) for i, val in enumerate(args)),
+            {name: converter(name, val) for name, val in kwargs.items()})

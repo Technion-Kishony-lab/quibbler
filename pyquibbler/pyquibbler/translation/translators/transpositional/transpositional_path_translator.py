@@ -2,16 +2,17 @@ import numpy as np
 from typing import Dict, Any
 
 from pyquibbler.function_definitions import SourceLocation
+from pyquibbler.path.path_component import Path, Paths, PathComponent
+from pyquibbler.path.utils import working_component_of_type
+from pyquibbler.utilities.get_original_func import get_original_func
+from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices
+
 from pyquibbler.translation.numpy_translator import NumpyForwardsPathTranslator
 from pyquibbler.translation.numpy_translator import NumpyBackwardsPathTranslator
 from pyquibbler.translation.source_func_call import SourceFuncCall
 from pyquibbler.translation.translators.transpositional.utils import get_data_source_ids_mask
 from pyquibbler.translation.types import Source
-from pyquibbler.path.path_component import Path, Paths, PathComponent
-from pyquibbler.path.utils import working_component_of_type
 from pyquibbler.translation.utils import copy_and_replace_sources_with_vals
-from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices
-from pyquibbler.utils import get_original_func
 
 
 class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):

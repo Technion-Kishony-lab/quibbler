@@ -17,7 +17,7 @@ from pyquibbler.function_overriding import initialize_quibbler
 from pyquibbler.quib.func_calling import CachedQuibFuncCall
 from pyquibbler.quibapp import QuibApp
 
-from pyquibbler.utils import Flag
+from pyquibbler.utilities.basic_types import Flag
 
 from matplotlib.widgets import Slider as OriginalSlider
 from matplotlib.backend_bases import FigureCanvasBase

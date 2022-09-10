@@ -1,4 +1,4 @@
-from pyquibbler.utils import StrEnum
+from pyquibbler.utilities.basic_types import StrEnum
 from dataclasses import dataclass
 from typing import Optional
 from pyquibbler.exceptions import PyQuibblerException
