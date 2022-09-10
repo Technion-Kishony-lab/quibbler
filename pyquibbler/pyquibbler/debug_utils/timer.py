@@ -40,7 +40,7 @@ class Timer:
         Returns a context manager that will time whatever is ran within it
         """
         start_time = time.time()
-        yield
+        yield self
         current_total_time = time.time() - start_time
 
         self.total_time += current_total_time

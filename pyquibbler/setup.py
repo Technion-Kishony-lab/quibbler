@@ -28,6 +28,7 @@ setup(
             'pytest',
             'pytest-pep8',
             'pytest-cov',
+            'pytest-benchmark',
             'selenium',
             'requests',
             'interruptingcow',
