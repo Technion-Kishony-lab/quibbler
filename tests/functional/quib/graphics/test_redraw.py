@@ -37,7 +37,7 @@ def axes2(figure) -> plt.Axes:
 def test_redraw_axes_happy_flow(figure):
     redraw_figures({figure})
 
-    figure.canvas.draw.assert_called_once()
+    figure.canvas.draw_idle.assert_called_once()
 
 
 def test_redraw_in_aggregate_mode():

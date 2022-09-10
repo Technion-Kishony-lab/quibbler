@@ -72,7 +72,7 @@ class QRectangleSelector(RectangleSelector):
         # we ignore RIGHT click as it is reserved for resetting to default:
         if event.button is MouseButton.RIGHT:
             return
-        
+
         with self.CURRENT_SELECTOR.unlock() as current_selector:
             if self.event_is_relevant_to_current_selector() and current_selector.val is self:
                 release_result = super()._release(event)

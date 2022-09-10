@@ -113,4 +113,7 @@ def redraw_figures(figures: Set[Figure]):
     canvases = {figure.canvas for figure in figures if fignum_exists(figure.number)}
     with timeit("redraw", f"redraw {len(figures)} figures"):
         for canvas in canvases:
-            canvas.draw()
+            # `canvas.draw()` worked with tk. did not with osx.
+            # based on https://matplotlib.org/stable/api/animation_api.html, we use instead:
+            canvas.draw_idle()
+            canvas.start_event_loop(0.001)

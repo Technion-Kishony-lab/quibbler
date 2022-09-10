@@ -28,7 +28,7 @@ def remove_artist(artist: Artist):
 
         ax = artist.axes
         artist_array = ax._children
-        
+
         try:
             artist.remove()
             artist.axes = ax
