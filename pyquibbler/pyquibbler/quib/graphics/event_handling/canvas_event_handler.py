@@ -8,9 +8,8 @@ from matplotlib.backend_bases import MouseEvent, PickEvent, MouseButton
 
 from pyquibbler.env import END_DRAG_IMMEDIATELY
 from pyquibbler.graphics import pressed, released
-from pyquibbler.logger import logger
 from pyquibbler.quib.graphics.redraw import end_dragging
-from pyquibbler.utilities.performance_utils import timer
+from pyquibbler.debug_utils.timer import timeit
 from pyquibbler.quib.graphics.event_handling import graphics_inverse_assigner
 from pyquibbler.quib.graphics import artist_wrapper
 
@@ -116,8 +115,7 @@ class CanvasEventHandler:
             return
 
         drawing_quib = self.current_pick_quib
-        with timer("motion_notify", lambda x: logger.info(f"motion notify {x}")), \
-                graphics_assignment_mode(mouse_event.inaxes):
+        with timeit("motion_notify", "motion notify"), graphics_assignment_mode(mouse_event.inaxes):
             graphics_inverse_assigner.inverse_assign_drawing_func(drawing_func=drawing_quib.func,
                                                                   args=drawing_quib.args,
                                                                   mouse_event=mouse_event,
@@ -132,8 +130,7 @@ class CanvasEventHandler:
         """
         Reverse axis limit change
         """
-        with timer("axis_lim_notify", lambda x: logger.info(f"axis-lim notify {x}")), \
-                graphics_assignment_mode(set_lim_quib.args[0]):
+        with timeit("axis_lim_notify", "axis-lim notify"), graphics_assignment_mode(set_lim_quib.args[0]):
             graphics_inverse_assigner.inverse_assign_axes_lim_func(
                 args=set_lim_quib.args,
                 lim=lim,

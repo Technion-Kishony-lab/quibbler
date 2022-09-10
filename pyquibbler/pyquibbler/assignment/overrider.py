@@ -10,7 +10,9 @@ from pyquibbler.path.hashable import get_hashable_path
 from pyquibbler.path.path_component import Path, Paths
 from pyquibbler.path.data_accessing import deep_get, deep_assign_data_in_path
 from pyquibbler.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
+from pyquibbler.quib.utils import deep_copy_without_quibs_or_graphics
 from pyquibbler.utilities.iterators import recursively_run_func_on_object
+from pyquibbler.debug_utils import timeit
 
 from .assignment import Assignment
 from .assignment_to_from_text import convert_executable_text_to_assignments, convert_assignments_to_executable_text
@@ -82,7 +84,7 @@ class Overrider:
             if hashable_path == path:
                 new_paths_with_assignments.pop(i)
 
-        from pyquibbler.logger import logger
+        from pyquibbler.debug_utils.logger import logger
         logger.info(f"New paths with assignments {new_paths_with_assignments}")
         self._paths_to_assignments = dict(new_paths_with_assignments)
 
@@ -90,10 +92,8 @@ class Overrider:
         """
         Deep copies the argument and returns said data with applied overrides
         """
-        from pyquibbler.quib.utils import deep_copy_without_quibs_or_graphics
-        from pyquibbler import timer
         original_data = data
-        with timer("quib_overriding"):
+        with timeit("quib_overriding"):
             data = deep_copy_without_quibs_or_graphics(data)
             for assignment in self._paths_to_assignments.values():
                 if assignment.is_default():

@@ -11,8 +11,7 @@ from matplotlib.artist import Artist
 from matplotlib.axes import Axes
 
 # Debugging, warning and performance:
-from pyquibbler.logger import logger
-from pyquibbler.utilities.performance_utils import timer
+from pyquibbler.debug_utils import timeit, logger
 from pyquibbler.utilities.warning_messages import no_header_warn
 
 # Input validation:
@@ -234,7 +233,7 @@ class QuibHandler:
         if path is None:
             path = []
 
-        with timer("quib_invalidation", lambda x: logger.info(f"invalidate {x}")):
+        with timeit("quib_invalidation", "invalidate"):
             # since overrides are added after pulling from the cache, there is no need to invalidtae the
             # cache of the specific quib in which the de novo overriding occurs
             self.invalidate_self(path, invalidate_cache=False)

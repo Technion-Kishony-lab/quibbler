@@ -1,10 +1,9 @@
 import gc
 
 import pytest
-from matplotlib.artist import Artist
 from matplotlib.widgets import AxesWidget
 
-from pyquibbler.utilities.performance_utils import track_instances_of_class, \
+from pyquibbler.debug_utils.track_instances import track_instances_of_class, \
     get_all_instances_in_tracked_class, TRACKED_CLASSES_TO_WEAKREFS
 
 

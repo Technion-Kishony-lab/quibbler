@@ -15,7 +15,7 @@ from typing import Optional, Iterable, Tuple, Callable
 
 from pyquibbler import Quib
 from pyquibbler.file_syncing import SaveFormat, ResponseToFileNotDefined
-from pyquibbler.logger import logger
+from pyquibbler.debug_utils.logger import logger
 from pyquibbler.project import Project
 from pyquibbler.project.jupyer_project.flask_dialog_server import run_flask_app
 from pyquibbler.project.jupyer_project.utils import is_within_jupyter_lab, find_free_port

@@ -5,7 +5,7 @@ from enum import Enum
 import pathlib
 from typing import Optional
 
-from pyquibbler.logger import logger
+from pyquibbler.debug_utils.logger import logger
 
 """
 This file follows the logic of file-syncing from MatQuibbler

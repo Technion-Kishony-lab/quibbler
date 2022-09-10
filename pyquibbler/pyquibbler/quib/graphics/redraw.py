@@ -7,9 +7,9 @@ from matplotlib.figure import Figure
 from matplotlib.pyplot import fignum_exists
 from matplotlib._pylab_helpers import Gcf
 
+from pyquibbler.debug_utils import timeit
+
 from .graphics_update import GraphicsUpdateType
-from pyquibbler.logger import logger
-from pyquibbler.utilities.performance_utils import timer
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
@@ -71,8 +71,7 @@ def skip_canvas_draws(should_skip: bool = True):
 def _redraw_quibs_with_graphics(graphics_update: GraphicsUpdateType):
     global QUIBS_TO_REDRAW
     quibs = QUIBS_TO_REDRAW[graphics_update]
-    with timer("quib redraw", lambda x: logger.info(f"redrawing {len(quibs)} quibs: {x}s")), \
-            skip_canvas_draws():
+    with timeit("quib redraw", f"redrawing {len(quibs)} quibs"), skip_canvas_draws():
         for quib in quibs:
             quib.handler.reevaluate_graphic_quib()
 
@@ -83,8 +82,7 @@ def _redraw_quibs_with_graphics(graphics_update: GraphicsUpdateType):
 
 
 def _notify_of_overriding_changes():
-    with timer("override notify", lambda x: logger.info(f"notifying overriding changes for "
-                                                        f"{len(QUIBS_TO_NOTIFY_OVERRIDING_CHANGES)} quibs: {x}s")):
+    with timeit("override_notify", f"notifying overriding changes for {len(QUIBS_TO_NOTIFY_OVERRIDING_CHANGES)} quibs"):
         for quib in QUIBS_TO_NOTIFY_OVERRIDING_CHANGES:
             quib.handler.on_overrides_changes()
 
@@ -113,6 +111,6 @@ def redraw_figures(figures: Set[Figure]):
     Actual redrawing of figure- this should be WITHOUT rendering anything except for the new artists
     """
     canvases = {figure.canvas for figure in figures if fignum_exists(figure.number)}
-    with timer("redraw", lambda x: logger.info(f"redraw {len(figures)} figures: {x}s")):
+    with timeit("redraw", f"redraw {len(figures)} figures"):
         for canvas in canvases:
             canvas.draw()

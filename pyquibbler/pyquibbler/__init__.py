@@ -7,7 +7,7 @@ from .quib.graphics import GraphicsUpdateType
 from .function_overriding import initialize_quibbler
 from .quib.quib_properties_viewer import QuibPropertiesViewer
 from .utilities.file_path import PathToNotebook
-from .utilities.performance_utils import timer
+from pyquibbler.debug_utils.timer import timer, timeit
 from .user_utils.gui_apps import quibapp
 from .user_utils.quiby_funcs import list_quiby_funcs, is_quiby, quiby, q
 from .user_utils.project_wraps import get_project, reset_random_quibs, reset_file_loading_quibs, reset_impure_quibs, \

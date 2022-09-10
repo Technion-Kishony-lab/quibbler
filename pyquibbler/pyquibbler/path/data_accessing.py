@@ -6,7 +6,7 @@ import numpy as np
 
 from pyquibbler.env import DEBUG
 from pyquibbler.exceptions import PyQuibblerException
-from pyquibbler.logger import logger
+from pyquibbler.debug_utils.logger import logger
 from pyquibbler.path import Path
 
 

@@ -22,7 +22,7 @@ from pyquibbler.utilities.basic_types import Flag
 from matplotlib.widgets import Slider as OriginalSlider
 from matplotlib.backend_bases import FigureCanvasBase
 
-from pyquibbler.utilities.performance_utils import track_instances_of_class, TRACKED_CLASSES_TO_WEAKREFS, \
+from pyquibbler.debug_utils.track_instances import track_instances_of_class, TRACKED_CLASSES_TO_WEAKREFS, \
     get_all_instances_in_tracked_class
 
 

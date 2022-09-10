@@ -5,7 +5,7 @@ from typing import Optional
 from varname.utils import ASSIGN_TYPES, get_node, node_name, AssignType
 
 from pyquibbler.env import GET_VARIABLE_NAMES, SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS
-from pyquibbler.logger import logger
+from pyquibbler.debug_utils.logger import logger
 from .get_value_context_manager import is_within_get_value_context
 from .types import FileAndLineNumber
 

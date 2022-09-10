@@ -7,9 +7,9 @@ from pyquibbler.function_definitions import KeywordArgument
 from pyquibbler.graphics import GraphicsCollection
 from pyquibbler.graphics.widgets import QRectangleSelector
 from pyquibbler.quib.quib import Quib
-from pyquibbler.logger import logger
-from .widget_call import WidgetQuibFuncCall
 from pyquibbler.path import PathComponent
+from pyquibbler.debug_utils import timeit
+from .widget_call import WidgetQuibFuncCall
 
 
 class RectangleSelectorQuibFuncCall(WidgetQuibFuncCall):
@@ -48,13 +48,10 @@ class RectangleSelectorQuibFuncCall(WidgetQuibFuncCall):
     def _on_changed(self, extents):
         init_val = self.func_args_kwargs.get('extents')
 
-        from pyquibbler import timer
-        from pyquibbler.quib.quib import Quib
-
         if self._widget_is_attempting_to_resize_when_not_allowed(extents):
             return
 
-        with timer("selector_change", lambda x: logger.info(f"selector change {x}")):
+        with timeit("selector_change", "selector change"):
 
             tolerance_x, tolerance_y = get_axes_x_y_tolerance(self._get_axis())
             tolerance = None if tolerance_x is None else np.array([tolerance_x, tolerance_x, tolerance_y, tolerance_y])
