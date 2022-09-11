@@ -241,7 +241,7 @@ def test_apply_along_axis_get_shape_does_not_create_artists(create_artist_and_re
 
     quib.get_shape()
 
-    assert len(mock_axes.artists) == 0
+    assert len(mock_axes._children) == 0
 
 
 def test_apply_along_axis_removes_and_recreates_artists(create_artist_and_return_1, mock_axes):
@@ -253,12 +253,12 @@ def test_apply_along_axis_removes_and_recreates_artists(create_artist_and_return
     )
 
     quib.get_value()
-    artists_before_invalidation = list(mock_axes.artists)
+    artists_before_invalidation = list(mock_axes._children)
     parent.handler.invalidate_and_aggregate_redraw_at_path([PathComponent(component=0, indexed_cls=np.ndarray)])
     quib.get_value()
 
-    assert len(mock_axes.artists) == 2
-    assert set(mock_axes.artists) != set(artists_before_invalidation)
+    assert len(mock_axes._children) == 2
+    assert set(mock_axes._children) != set(artists_before_invalidation)
 
 
 def test_apply_along_axis_does_not_remove_artists_that_are_not_his(create_artist_and_return_1, mock_axes):
@@ -268,10 +268,10 @@ def test_apply_along_axis_does_not_remove_artists_that_are_not_his(create_artist
         func=create_artist_and_return_1
     )
     quib.get_value_valid_at_path([PathComponent(component=0, indexed_cls=np.ndarray)])
-    artists = list(mock_axes.artists)
+    artists = list(mock_axes._children)
     assert len(artists) == 1, "Sanity check"
 
     quib.get_value_valid_at_path([PathComponent(component=1, indexed_cls=np.ndarray)])
 
-    assert len(mock_axes.artists) == 2
-    assert len(set(artists) & set(mock_axes.artists)) == 1
+    assert len(mock_axes._children) == 2
+    assert len(set(artists) & set(mock_axes._children)) == 1

@@ -53,6 +53,9 @@ def test_slider_graphics_function_quib_press_and_motion_notify_changes_and_keeps
 @quibbler_image_comparison(baseline_images=['multiple_times'])
 def test_slider_graphics_function_quib_calls_multiple_times(axes, get_live_widgets, get_live_artists, input_quib,
                                                             create_axes_mouse_press_move_release_events, slider_quib):
+    for a in axes.get_children():
+        a.get_children()  # makes the axes create all its x/y-tick artists
+
     original_num_artists = len(get_live_artists())
 
     with count_redraws(slider_quib) as redraw_count, \

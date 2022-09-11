@@ -4,7 +4,6 @@ from typing import Callable, Type
 
 from pyquibbler.quib.quib import Quib
 from pyquibbler.utilities.settable_cycle import SettableColorCycle
-from pyquibbler.graphics.utils import TYPES_TO_ARTIST_ARRAY_NAMES
 from pyquibbler.quib.graphics import artist_wrapper
 
 
@@ -13,10 +12,9 @@ def _get_wrapper_for_clear_axes(func: Callable):
     @functools.wraps(func)
     def _wrapper(self, *args, **kwargs):
         artist_wrapper.clear_all_quibs(self)
-        for array_name in TYPES_TO_ARTIST_ARRAY_NAMES.values():
-            if hasattr(self, array_name):
-                for artist in getattr(self, array_name):
-                    artist_wrapper.clear_all_quibs(artist)
+        if hasattr(self, '_children'):
+            for artist in self._children:
+                artist_wrapper.clear_all_quibs(artist)
         return func(self, *args, **kwargs)
 
     return _wrapper

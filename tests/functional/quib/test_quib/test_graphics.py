@@ -33,15 +33,14 @@ def test_quib_func_creates_graphics_returns_true_if_created_graphics(parent_quib
 def test_quib_func_creates_artist(parent_quib, artist_graphics_quib, mock_axes):
     artist_graphics_quib.get_value()
 
-    assert len(mock_axes.artists) == 1
+    assert len(mock_axes._children) == 1
 
 
 def test_quib_removes_artists_on_rerun(parent_quib, artist_graphics_quib, mock_axes):
     artist_graphics_quib.get_value()
-
     parent_quib.handler.invalidate_and_aggregate_redraw_at_path()
 
-    assert len(mock_axes.artists) == 1
+    assert len(mock_axes._children) == 1
 
 
 @pytest.mark.regression
