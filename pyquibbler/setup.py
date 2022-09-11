@@ -6,7 +6,7 @@ long_description = (setup_directory / "README.md").read_text(encoding="utf-8")
 
 setup(
     name="pyquibbler",
-    version='0.1.3',
+    version='0.1.5',
     python_requires='>=3.8',
     long_description=long_description,
     long_description_content_type='text/markdown',

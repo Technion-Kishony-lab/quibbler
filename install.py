@@ -38,6 +38,7 @@ def exit_on_fail_with_message(message: str):
 def install_click_if_necessary():
     print("Checking if click is installed...")
     try:
+        print("Click is installed, proceeding...")
         import click  # noqa
     except ImportError:
         print("Click is not installed, installing click...")
@@ -59,7 +60,7 @@ def install_pyquibbler():
     pyquibbler_directory = HERE / 'pyquibbler'
     with exit_on_fail_with_message("Failed to install pyquibbler"):
         install_package_from_directory(pyquibbler_directory, ".[dev, sphinx]")
-    click.echo(click.style("\nSuccessfully installed pyquibbler!", fg='green', bold=True))
+    click.echo(click.style("\nSuccessfully installed pyquibbler!\n", fg='green', bold=True))
 
 
 def install_labextension():
@@ -75,7 +76,7 @@ def install_labextension():
         click.echo("-- Building jupyter extension...")
         subprocess.check_output(['jupyter', 'labextension', 'build'],
                                 cwd=str(lab_extension_directory))
-    click.echo(click.style("\nSuccessfully installed pyquibbler jupyter-lab extension!", fg='green', bold=True))
+    click.echo(click.style("\nSuccessfully installed pyquibbler jupyter-lab extension!\n", fg='green', bold=True))
 
 
 def run_click_command_line():
