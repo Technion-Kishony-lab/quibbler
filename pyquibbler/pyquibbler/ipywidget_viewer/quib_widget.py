@@ -66,7 +66,6 @@ class QuibWidget:
     _plus_button: Optional[widgets.Button] = None
     _assignments_box: Optional[widgets.VBox] = None
     _value_html: Optional[widgets.HTML] = None
-    _props_output: Optional[widgets.Output] = None
 
     def get_widget(self):
         return self._main_box
@@ -108,10 +107,14 @@ class QuibWidget:
         self._name_label.value = self.quib.pretty_repr
 
     def _toggle_show_value(self):
+        children = self._main_box.children
         if self._value_button.value:
-            self._value_html.value = q(html_repr, self.quib)
+            self._value_html = widgets.HTML(q(html_repr, self.quib))
+            children = [*children, self._value_html]
         else:
-            self._value_html.value = ''
+            self._value_html = None
+            children = children[:-1]
+        self._main_box.children = children
 
     def _create_assignment_box(self, assignment_index: int, text: str = '') -> widgets.HBox:
         assignment_text_box = widgets.Text(text, continuous_update=False,
@@ -177,7 +180,7 @@ class QuibWidget:
 
         self._props_button = _create_button(label='Props', width='40px',
                                             callback=self.show_quib_properties_as_pop_up,
-                                            tooltip="Show quib's value")
+                                            tooltip="Show quib's properties")
 
         self._value_button = _create_toggle_button(label='Value', width='40px', callback=self._toggle_show_value,
                                                    tooltip="Show quib's value")
@@ -185,8 +188,6 @@ class QuibWidget:
         self._name_label = widgets.Label(value='')
 
         self._assignments_box = widgets.VBox([])
-        self._value_html = widgets.HTML('')
-        self._props_output = widgets.Output()
 
         if with_overrides:
             buttons = widgets.HBox([self._value_button, self._props_button, self._save_button, self._load_button],
@@ -200,6 +201,4 @@ class QuibWidget:
             self._name_label,
             self._assignments_box,
             buttons,
-            self._value_html,
-            self._props_output,
         ])
