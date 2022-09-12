@@ -2200,8 +2200,7 @@ class Quib:
         return self.handler.is_iquib
 
     def _repr_html_(self) -> Optional[str]:
-        if self.allow_overriding or self.handler.is_overridden:
-            if self.handler.display_widget():
-                return ''
+        if self.handler.display_widget():
+            return ''
 
         return None
