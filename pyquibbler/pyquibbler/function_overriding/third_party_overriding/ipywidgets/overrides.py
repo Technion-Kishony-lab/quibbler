@@ -13,12 +13,6 @@ from pyquibbler.utilities.iterators import is_iterator_empty, iter_objects_of_ty
 TRAIT_TO_QUIBY_WIDGET_ATTR = '_quibbler_trait_to_quiby_widget'
 
 
-def _bare_set(self, obj, value):
-    """The snippet from TraitType.set that does the bare set of the trait"""
-    new_value = self._validate(obj, value)
-    obj._trait_values[self.name] = new_value
-
-
 def _get_or_create_trait_to_quiby_widget_trait(widget) -> Dict:
     if not hasattr(widget, TRAIT_TO_QUIBY_WIDGET_ATTR):
         setattr(widget, TRAIT_TO_QUIBY_WIDGET_ATTR, {})
@@ -38,8 +32,7 @@ def get_wrapper_for_trait_type_set():
             value = obj2quib(value)
 
         if isinstance(value, Quib):
-            # We cannot call original_set because it buffers future update to the quib.
-            _bare_set(self, obj, value.get_value())
+            QuibyWidgetTrait.original_set(self, obj, value.get_value())
 
             manager_type = get_quiby_widget_trait_type(obj)
             manager = manager_type(quib=value, trait=self, widget=obj)
