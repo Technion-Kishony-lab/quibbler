@@ -17,8 +17,26 @@ if TYPE_CHECKING:
     from weakref import ReferenceType
 
 
+ASSIGNMENT_TOOLTIP = '\n'.join((
+    'Add assignment.',
+    '',
+    'To fully override, use "= value", e.g.:',
+    '',
+    '       = array([10, 20])',
+    '',
+    'or, just specify the assigned value. e.g.:',
+    '',
+    '       array([10, 20])',
+    '',
+    'To override a specific element,',
+    'use assignment syntax. e.g.:',
+    '',
+    '       [2] = 7',
+))
+
+
 def _create_button(label: str = '', icon: str = '',
-                   width: str = '40px', height: str = '20px', callback: Callable = None, **kwargs):
+                   width: str = 'auto', height: str = '20px', callback: Callable = None, **kwargs):
     button = widgets.Button(description=label, icon=icon, **kwargs,
                             layout=widgets.Layout(width=width, height=height, display='flex', align_items='center'))
     if callback:
@@ -28,7 +46,7 @@ def _create_button(label: str = '', icon: str = '',
 
 
 def _create_toggle_button(label: str = '', icon: str = '',
-                          width: str = '40px', height: str = '20px', callback: Callable = None, **kwargs):
+                          width: str = 'auto', height: str = '20px', callback: Callable = None, **kwargs):
     button = widgets.ToggleButton(
         description=label, icon=icon, **kwargs,
         layout=widgets.Layout(width=width, height=height, display='flex', align_items='center'))
@@ -124,7 +142,8 @@ class QuibWidget:
 
     def _create_assignment_box(self, assignment_index: int, text: str = '') -> widgets.HBox:
         assignment_text_box = widgets.Text(text, continuous_update=False,
-                                           layout=widgets.Layout(width='200px'))  # , height='20px'
+                                           description_tooltip=ASSIGNMENT_TOOLTIP,
+                                           layout=widgets.Layout(width='250px'))  # , height='20px'
         assignment_text_box.observe(lambda change: self._on_edit_assignment(assignment_index, change), names='value')
 
         assignment_delete_button = _create_button(icon='minus', tooltip='Delete assignment', width='30px',
@@ -175,20 +194,19 @@ class QuibWidget:
     def build_widget(self):
         with_overrides = self.quib.allow_overriding or self.quib.handler.is_overridden
 
-        self._save_button = _create_button(label='Save', width='40px', callback=self._save_quib,
+        self._save_button = _create_button(label='Save', callback=self._save_quib,
                                            tooltip='Save assignments to file')
 
-        self._load_button = _create_button(label='Load', width='40px', callback=self._load_quib,
+        self._load_button = _create_button(label='Load', callback=self._load_quib,
                                            tooltip='Load assignments from file')
 
-        self._plus_button = _create_button(icon='plus', width='30px', callback=self._add_empty_assignment,
+        self._plus_button = _create_button(icon='plus', callback=self._add_empty_assignment,
                                            tooltip='Add a new assignment')
 
-        self._props_button = _create_button(label='Props', width='40px',
-                                            callback=self.show_quib_properties_as_pop_up,
+        self._props_button = _create_button(label='Props', callback=self.show_quib_properties_as_pop_up,
                                             tooltip="Show quib's properties")
 
-        self._value_button = _create_toggle_button(label='Value', width='40px', callback=self._toggle_show_value,
+        self._value_button = _create_toggle_button(label='Value', callback=self._toggle_show_value,
                                                    tooltip="Show quib's value")
 
         self._name_label = widgets.Label(value='')
@@ -197,11 +215,11 @@ class QuibWidget:
 
         if with_overrides:
             buttons = widgets.HBox([self._value_button, self._props_button, self._save_button, self._load_button],
-                                   layout=widgets.Layout(width='204px'))
+                                   layout=widgets.Layout(width='254px'))
             buttons = widgets.HBox([buttons, self._plus_button])
         else:
             buttons = widgets.HBox([self._value_button, self._props_button],
-                                   layout=widgets.Layout(width='204px'))
+                                   layout=widgets.Layout(width='254px'))
 
         self._main_box = widgets.VBox([
             self._name_label,
