@@ -1,7 +1,7 @@
 from __future__ import annotations
 import dataclasses
 
-from typing import Optional, Callable, Type
+from typing import Optional, Callable
 
 from pyquibbler.user_utils.quiby_funcs import q
 from pyquibbler.optional_packages.get_ipywidgets import ipywidgets as widgets
@@ -28,7 +28,7 @@ def _create_button(label: str = '', icon: str = '',
 
 
 def _create_toggle_button(label: str = '', icon: str = '',
-                   width: str = '40px', height: str = '20px', callback: Callable = None, **kwargs):
+                          width: str = '40px', height: str = '20px', callback: Callable = None, **kwargs):
     button = widgets.ToggleButton(
         description=label, icon=icon, **kwargs,
         layout=widgets.Layout(width=width, height=height, display='flex', align_items='center'))
@@ -78,7 +78,9 @@ class QuibWidget:
         from pyquibbler.optional_packages.get_IPython import display, HTML
 
         s = '<script type="text/Javascript">'
-        s += 'var win = window.open("", "Title", "toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=yes, resizable=yes, width=300, height=500, top="+(screen.height-400)+", left="+(screen.width-840));'
+        s += 'var win = window.open("", "Title", "toolbar=no, location=no, directories=no, status=no, menubar=no, ' \
+             'scrollbars=yes, resizable=yes, width=300, height=500, top="+(screen.height-400)+", ' \
+             'left="+(screen.width-840));'
         s += 'win.document.body.innerHTML = \'' + self.quib.display_properties().get_html_repr() + '\';'
         s += '</script>'
 
