@@ -106,6 +106,12 @@ class QuibWidget:
     def _refresh_name(self):
         self._name_label.value = self.quib.pretty_repr
 
+    def _save_quib(self):
+        self.quib.save()
+
+    def _load_quib(self):
+        self.quib.load()
+
     def _toggle_show_value(self):
         children = self._main_box.children
         if self._value_button.value:
@@ -169,10 +175,10 @@ class QuibWidget:
     def build_widget(self):
         with_overrides = self.quib.allow_overriding or self.quib.handler.is_overridden
 
-        self._save_button = _create_button(label='Save', width='40px', callback=self.quib.save,
+        self._save_button = _create_button(label='Save', width='40px', callback=self._save_quib,
                                            tooltip='Save assignments to file')
 
-        self._load_button = _create_button(label='Load', width='40px', callback=self.quib.load,
+        self._load_button = _create_button(label='Load', width='40px', callback=self._load_quib,
                                            tooltip='Load assignments from file')
 
         self._plus_button = _create_button(icon='plus', width='30px', callback=self._add_empty_assignment,
