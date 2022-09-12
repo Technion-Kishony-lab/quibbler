@@ -35,7 +35,7 @@ def child_widget(child) -> QuibWidget:
 @pytest.fixture
 def get_assignment_text(quib_widget):
     def _get(index: int) -> ipywidgets.Text:
-        return quib_widget._get_assignment_widget().children[index].children[0]
+        return quib_widget._assignments_box.children[index].children[0]
 
     return _get
 
@@ -43,7 +43,7 @@ def get_assignment_text(quib_widget):
 @pytest.fixture
 def get_assignment_delete(quib_widget):
     def _get(index: int) -> ipywidgets.Button:
-        return quib_widget._get_assignment_widget().children[index].children[1]
+        return quib_widget._assignments_box.children[index].children[1]
 
     return _get
 
@@ -52,21 +52,16 @@ def test_iquib_creates_widget(quib, quib_widget):
     assert isinstance(quib_widget, QuibWidget)
 
 
-def test_quib_without_overridding_does_not_create_widget(quib):
-    quib.allow_overriding = False
-    assert quib._repr_html_() is None
-
-
 def test_widget_names_refresh_when_quib_name_changes(quib, quib_widget, child, child_widget):
     child.allow_overriding = True  # so that it create a QuibWidget
     child._repr_html_()
 
-    assert quib_widget._get_name_widget().value == 'quib = iquib(1)'
-    assert child.handler._widget._get_name_widget().value == 'child = quib + 2'
+    assert quib_widget._name_label.value == 'quib = iquib(1)'
+    assert child.handler._widget._name_label.value == 'child = quib + 2'
 
     quib.assigned_name = 'new_quib'
-    assert quib_widget._get_name_widget().value == 'new_quib = iquib(1)'
-    assert child_widget._get_name_widget().value == 'child = new_quib + 2'
+    assert quib_widget._name_label.value == 'new_quib = iquib(1)'
+    assert child_widget._name_label.value == 'child = new_quib + 2'
 
 
 def test_widget_disabled_when_quib_deleted():
@@ -98,11 +93,11 @@ def test_quib_widget_update_only_invalidates_old_and_new_path(quib, quib_widget,
     quib.assign([0, 1, 2])
     quib[1] = 100
 
-    a0 = quib[0];
+    a0 = quib[0]
     a0.get_value()
-    a1 = quib[1];
+    a1 = quib[1]
     a1.get_value()
-    a2 = quib[2];
+    a2 = quib[2]
     a2.get_value()
 
     assert a0.cache_status is CacheStatus.ALL_VALID
@@ -117,13 +112,13 @@ def test_quib_widget_update_only_invalidates_old_and_new_path(quib, quib_widget,
 
 
 def test_quib_widget_add_assignment(quib, quib_widget, get_assignment_text):
-    quib_widget._get_add_button_widget().click()
+    quib_widget._plus_button.click()
     get_assignment_text(0).value = '{"name": "lion", "age": 7}'
     assert quib.get_value() == {"name": "lion", "age": 7}
 
 
 def test_quib_widget_add_and_delete_assignment(quib, quib_widget, get_assignment_delete):
-    quib_widget._get_add_button_widget().click()
+    quib_widget._plus_button.click()
     get_assignment_delete(0).click()
     assert quib.get_value() == 1
 
