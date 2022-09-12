@@ -21,6 +21,7 @@ class QuibyWidgetTrait:
         self.trait = trait
         self.widget = widget
         self._within_quib_set: bool = False
+        self._immediately_after_quib_set = True
 
     @contextlib.contextmanager
     def within_quib_set_context(self):
@@ -34,13 +35,15 @@ class QuibyWidgetTrait:
                 self._within_quib_set = False
 
     def _on_widget_change(self, change):
-        if not self._within_quib_set:
+        if not self._within_quib_set and not self._immediately_after_quib_set:
             new_value = change['new']
             quib_type = self.quib.get_type()
             if np.issubdtype(quib_type, np.integer):
                 new_value = round(new_value)
             new_value = self.quib.get_type()(new_value)
             self._inverse_assign(value=new_value)
+        else:
+            self._immediately_after_quib_set = False
 
     def _on_quib_change(self, value):
         with self.within_quib_set_context():
