@@ -53,7 +53,6 @@ def test_iquib_creates_widget(quib, quib_widget):
 
 
 def test_widget_names_refresh_when_quib_name_changes(quib, quib_widget, child, child_widget):
-    child.allow_overriding = True  # so that it create a QuibWidget
     child._repr_html_()
 
     assert quib_widget._name_label.value == 'quib = iquib(1)'
@@ -64,6 +63,7 @@ def test_widget_names_refresh_when_quib_name_changes(quib, quib_widget, child, c
     assert child_widget._name_label.value == 'child = new_quib + 2'
 
 
+@pytest.mark.skip
 def test_widget_disabled_when_quib_deleted():
     a = iquib(1)
     a._repr_html_()
@@ -132,3 +132,13 @@ def test_quib_widget_delete_assignment(quib, quib_widget, get_assignment_delete)
 
     get_assignment_delete(1).click()
     assert quib.get_value() == [0, 1, 20]
+
+
+def test_quib_widget_shows_value(quib, quib_widget):
+    assert quib_widget._value_html is None
+    quib_widget._value_button.value = True
+    assert quib_widget._value_html.value == '''<p style="font-family:'Courier New'">1</p>'''
+
+
+def test_quib_widget_shows_props(quib, quib_widget):
+    quib_widget._props_button.click()
