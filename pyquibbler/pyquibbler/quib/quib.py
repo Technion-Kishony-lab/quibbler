@@ -547,15 +547,15 @@ class QuibHandler:
     """
 
     def on_name_change(self, assigned_name_changed: bool = True):
-        if not assigned_name_changed:  # parent name changed
-            from pyquibbler.function_overriding.quib_overrides.quib_methods import ORIGINAL_GET_QUIBY_NAME
-            if self.func_args_kwargs.func is ORIGINAL_GET_QUIBY_NAME:
-                self.invalidate_self([])
-                self._invalidate_and_redraw_at_path([])
+        from pyquibbler.function_overriding.quib_overrides.quib_methods import ORIGINAL_GET_QUIBY_NAME
 
         has_name_changed = assigned_name_changed or self.assigned_name is None
-        if has_name_changed:
-            for child in self.children:
+        for child in self.children:
+            if child.handler.func_args_kwargs.func is ORIGINAL_GET_QUIBY_NAME:
+                child.handler.invalidate_self([])
+                child.handler._invalidate_and_redraw_at_path([])
+
+            if has_name_changed:
                 child.handler.on_name_change(False)
 
     def on_overrides_changes(self):
