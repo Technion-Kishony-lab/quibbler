@@ -53,7 +53,7 @@ from pyquibbler.quib.func_calling.cache_mode import CacheMode
 from pyquibbler.translation.translate import forwards_translate, NoTranslatorsFoundException
 from pyquibbler.inversion.exceptions import NoInvertersFoundException
 from pyquibbler.path import FailedToDeepAssignException, PathComponent, Path, Paths
-from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation_with_sources_metadata
+from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation
 from pyquibbler.inversion.invert import invert
 
 # Graphics:
@@ -258,8 +258,6 @@ class QuibHandler:
     def _invalidate_quib_with_children_at_path(self, invalidator_quib: Quib, path: Path):
         """
         Invalidate a quib and it's children at a given path.
-        This method should be overriden if there is any 'special' implementation for either invalidating oneself
-        or for translating a path for invalidation
         """
         new_paths = self._get_paths_for_children_invalidation(invalidator_quib, path)
         for new_path in new_paths:
@@ -269,9 +267,7 @@ class QuibHandler:
                     self._invalidate_children_at_path(new_path)
 
     def _forward_translate_with_retrieving_metadata(self, invalidator_quib: Quib, path: Path) -> Paths:
-        func_call, sources_to_quibs = get_func_call_for_translation_with_sources_metadata(
-            self.quib_function_call
-        )
+        func_call, sources_to_quibs = get_func_call_for_translation(self.quib_function_call, with_meta_data=None)
         quibs_to_sources = {quib: source for source, quib in sources_to_quibs.items()}
         sources_to_forwarded_paths = forwards_translate(
             func_call=func_call,
@@ -291,12 +287,17 @@ class QuibHandler:
         and if/when failure does grace us, we attempt again with shape and type.
         If we have no translators, we forward the path to invalidate all, as we have no more specific way to do it
         """
-        # We always invalidate all if it's a parameter source quib
-        if invalidator_quib not in self.quib_function_call.get_data_sources() \
-                or path == [] \
-                or not self.quib_function_call._result_metadata:
+
+        # If the quib is already fully invalid, all quibs downstream must also be fully invalid.
+        # We can therefore stop the invalidation cascade.
+        if self.quib_function_call._result_metadata is None:
+            return []
+
+        # If the invalidator quib is a parameter source, the current quib must be fully invalidated.
+        if invalidator_quib not in self.quib_function_call.get_data_sources():
             return [[]]
 
+        # If the quib is a data source, we translate the path (if possible):
         try:
             return self._forward_translate_with_retrieving_metadata(invalidator_quib, path)
         except NoTranslatorsFoundException:
@@ -384,7 +385,7 @@ class QuibHandler:
         Get a list of assignments to parent quibs which could be applied instead of the given assignment
         and produce the same change in the value of this quib.
         """
-        func_call, data_sources_to_quibs = get_func_call_for_translation_with_sources_metadata(self.quib_function_call)
+        func_call, data_sources_to_quibs = get_func_call_for_translation(self.quib_function_call, with_meta_data=True)
 
         try:
             value = self.get_value_valid_at_path([])
@@ -549,7 +550,14 @@ class QuibHandler:
         if self._widget:
             self._widget.refresh()
 
-        if assigned_name_changed or self.assigned_name is None:
+        if not assigned_name_changed:  # parent name changed
+            from pyquibbler.quib.specialized_functions.quiby_name import get_quiby_name
+            if self.func_args_kwargs.func is get_quiby_name:
+                self.invalidate_self([])
+                self._invalidate_and_redraw_at_path([])
+
+        has_name_changed = assigned_name_changed or self.assigned_name is None
+        if has_name_changed:
             for child in self.children:
                 child.handler.on_name_change(False)
 
@@ -1952,9 +1960,10 @@ class Quib:
     @assigned_name.setter
     @validate_user_input(assigned_name=(str, NoneType))
     def assigned_name(self, assigned_name: Optional[str]):
-        if assigned_name is None \
-                or len(assigned_name) \
-                and assigned_name[0].isalpha() and all([c.isalnum() or c in ' _' for c in assigned_name]):
+        is_name_valid = assigned_name is None \
+                        or len(assigned_name) \
+                        and assigned_name[0].isalpha() and all([c.isalnum() or c in ' _' for c in assigned_name])
+        if is_name_valid:
             self.handler.assigned_name = assigned_name
             self.handler.on_file_name_change()
             self.handler.on_name_change()
