@@ -15,8 +15,7 @@ from pyquibbler.quib import consts
 from pyquibbler.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.quib_guard import QuibGuard
-from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation_with_sources_metadata, \
-    get_func_call_for_translation_without_sources_metadata
+from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation
 from pyquibbler.translation import NoTranslatorsFoundException
 from pyquibbler.translation.translate import backwards_translate
 
@@ -95,7 +94,7 @@ class CachedQuibFuncCall(QuibFuncCall):
 
         try_with_shape = False
         try:
-            func_call, sources_to_quibs = get_func_call_for_translation_without_sources_metadata(func_call=self)
+            func_call, sources_to_quibs = get_func_call_for_translation(func_call=self, with_meta_data=False)
             sources_to_paths = backwards_translate(
                 func_call=func_call,
                 path=valid_path,
@@ -104,7 +103,7 @@ class CachedQuibFuncCall(QuibFuncCall):
             try_with_shape = True
 
         if try_with_shape:
-            func_call, sources_to_quibs = get_func_call_for_translation_with_sources_metadata(func_call=self)
+            func_call, sources_to_quibs = get_func_call_for_translation(func_call=self, with_meta_data=True)
             try:
                 sources_to_paths = backwards_translate(
                     func_call=func_call,
