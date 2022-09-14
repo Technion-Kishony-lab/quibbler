@@ -89,7 +89,7 @@ def test_graphics_quib_update_on_drag(graphics_update, should_have_called, quib,
     with aggregate_redraw_mode(is_dragging=True):
         quib.handler.invalidate_and_aggregate_redraw_at_path([])
 
-    assert len(graphics_quib.func.mock_calls) == (1 if should_have_called else 0)
+    assert graphics_quib.func.call_count == (2 if should_have_called else 1)
 
 
 def test_graphics_quib_update_on_drop(quib, graphics_quib):
@@ -97,16 +97,18 @@ def test_graphics_quib_update_on_drop(quib, graphics_quib):
 
     quib.handler.invalidate_and_aggregate_redraw_at_path([])
 
-    assert len(graphics_quib.func.mock_calls) == 1
+    assert graphics_quib.func.call_count == 2
 
 
 @pytest.mark.parametrize("graphics_update", ["never", "central"])
 def test_graphics_quib_which_should_never_update(graphics_update, quib, graphics_quib):
     graphics_quib.graphics_update = graphics_update
 
+    assert graphics_quib.func.call_count == 1, "sanity"
+
     quib.handler.invalidate_and_aggregate_redraw_at_path([])
 
-    assert len(graphics_quib.func.mock_calls) == 0
+    assert graphics_quib.func.call_count == 1
 
 
 @pytest.fixture()

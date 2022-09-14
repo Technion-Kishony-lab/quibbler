@@ -1,6 +1,6 @@
 from unittest import mock
 
-from pyquibbler.utilities.run_once import ensure_only_run_once_globally
+from pyquibbler.utilities.decorators import ensure_only_run_once_globally
 
 
 def test_ensure_run_once_globally_runs_once():

@@ -81,6 +81,7 @@ pyquibbler.Quib
 
       ~Quib.name
       ~Quib.assigned_name
+      ~Quib.get_quiby_name
       ~Quib.created_in
       ~Quib.functional_representation
       ~Quib.pretty_repr

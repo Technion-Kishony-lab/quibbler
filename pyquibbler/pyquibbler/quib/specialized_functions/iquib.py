@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Any, Optional, Union
 
 from pyquibbler.assignment import AssignmentTemplate
+from pyquibbler.utilities.decorators import assign_func_name
 from pyquibbler.utilities.missing_value import missing
 from pyquibbler.env import DEBUG
 from pyquibbler.exceptions import DebugException
@@ -11,6 +12,7 @@ from pyquibbler.function_definitions import add_definition_for_function
 from pyquibbler.function_definitions.func_definition import create_func_definition
 from pyquibbler.quib.factory import create_quib
 from pyquibbler.quib.utils.miscellaneous import is_there_a_quib_in_object
+from pyquibbler.quib.func_calling.iquib_call import IQuibFuncCall
 
 from pyquibbler.quib.quib import Quib
 
@@ -23,17 +25,9 @@ class CannotNestQuibInIQuibException(DebugException):
         return 'Cannot create an input quib that contains another quib.'
 
 
+@assign_func_name('iquib')  # For the pretty functional_representation
 def identity_function(v):
     return v
-
-
-# For the pretty functional_representation:
-identity_function.__name__ = 'iquib'
-
-
-def get_iquib_func_call():
-    from pyquibbler.quib.func_calling.iquib_call import IQuibFuncCall
-    return IQuibFuncCall
 
 
 iquib_definition = create_func_definition(
@@ -42,7 +36,7 @@ iquib_definition = create_func_definition(
     lazy=False,
     raw_data_source_arguments=[0],
     forwards_path_translators=[],
-    quib_function_call_cls=get_iquib_func_call())
+    quib_function_call_cls=IQuibFuncCall)
 
 
 def iquib(value: Any,

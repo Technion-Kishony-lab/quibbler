@@ -229,6 +229,7 @@ def test_function_quib_forward_invalidation_path_with_changing_shapes(create_qui
     grandparent = create_quib(func=mock.Mock())
     parent = create_quib(func=mock.Mock())
     grandparent.handler.add_child(parent)
+    parent.handler.quib_function_call._result_metadata = True
     mock_quib = create_mock_quib(shape=(3, 1), get_value_result=[[1, 2, 3]])
     parent.handler.add_child(mock_quib)
 
