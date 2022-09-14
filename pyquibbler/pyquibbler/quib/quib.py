@@ -547,18 +547,15 @@ class QuibHandler:
     """
 
     def on_name_change(self, assigned_name_changed: bool = True):
-        if self._widget:
-            self._widget.refresh()
-
-        if not assigned_name_changed:  # parent name changed
-            from pyquibbler.function_overriding.quib_overrides.quib_methods import ORIGINAL_GET_QUIBY_NAME
-            if self.func_args_kwargs.func is ORIGINAL_GET_QUIBY_NAME:
-                self.invalidate_self([])
-                self._invalidate_and_redraw_at_path([])
+        from pyquibbler.function_overriding.quib_overrides.quib_methods import ORIGINAL_GET_QUIBY_NAME
 
         has_name_changed = assigned_name_changed or self.assigned_name is None
-        if has_name_changed:
-            for child in self.children:
+        for child in self.children:
+            if child.handler.func_args_kwargs.func is ORIGINAL_GET_QUIBY_NAME:
+                child.handler.invalidate_self([])
+                child.handler._invalidate_and_redraw_at_path([])
+
+            if has_name_changed:
                 child.handler.on_name_change(False)
 
     def on_overrides_changes(self):
@@ -2013,9 +2010,14 @@ class Quib:
         self.assigned_name = name
 
     # This method is overridden by `create_quib_method_overrides`
-    def get_quiby_name(self) -> str:
+    def get_quiby_name(self, as_repr: bool = False) -> str:
         """
         Create a new quib representing the name of the current quib.
+
+        Parameters
+        ----------
+        as_repr : bool, Default False
+            Whether to return just "name" (`as_repr=False`), or "name = func(...)" (`as_repr=True`).
 
         Returns
         -------
@@ -2025,7 +2027,10 @@ class Quib:
         --------
         q, quiby, Quib.name, Quib.assigned_name
         """
-        return self.name
+        if isinstance(as_repr, Quib):
+            as_repr = as_repr.get_value()
+
+        return self.pretty_repr if as_repr else self.name
 
     def _get_functional_representation_expression(self) -> MathExpression:
         args = self.args
@@ -2200,8 +2205,7 @@ class Quib:
         return self.handler.is_iquib
 
     def _repr_html_(self) -> Optional[str]:
-        if self.allow_overriding or self.handler.is_overridden:
-            if self.handler.display_widget():
-                return ''
+        if self.handler.display_widget():
+            return ''
 
         return None

@@ -1,23 +1,63 @@
 from __future__ import annotations
 import dataclasses
 
+from typing import Optional, Callable
+
+from pyquibbler.user_utils.quiby_funcs import q
 from pyquibbler.optional_packages.get_ipywidgets import ipywidgets as widgets
 
-from pyquibbler.assignment.assignment_to_from_text \
-    import convert_simplified_text_to_assignment, convert_assignment_to_simplified_text
+from pyquibbler.assignment.assignment_to_from_text import \
+    convert_simplified_text_to_assignment, convert_assignment_to_simplified_text
 from pyquibbler.exceptions import PyQuibblerException
 
-from typing import Optional, TYPE_CHECKING
 
+from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pyquibbler.quib.quib import Quib
     from weakref import ReferenceType
 
 
+ASSIGNMENT_TOOLTIP = '\n'.join((
+    'Add assignment.',
+    '',
+    'To fully override, use "= value", e.g.:',
+    '',
+    '       = array([10, 20])',
+    '',
+    'or, just specify the assigned value. e.g.:',
+    '',
+    '       array([10, 20])',
+    '',
+    'To override a specific element,',
+    'use assignment syntax. e.g.:',
+    '',
+    '       [2] = 7',
+))
+
+
 def _create_button(label: str = '', icon: str = '',
-                   width: str = '40px', height: str = '20px', **kwargs):
-    return widgets.Button(description=label, icon=icon, **kwargs,
-                          layout=widgets.Layout(width=width, height=height, display='flex', align_items='center'))
+                   width: str = 'auto', height: str = '20px', callback: Callable = None, **kwargs):
+    button = widgets.Button(description=label, icon=icon, **kwargs,
+                            layout=widgets.Layout(width=width, height=height, display='flex', align_items='center'))
+    if callback:
+        button.on_click(lambda *_: callback())
+
+    return button
+
+
+def _create_toggle_button(label: str = '', icon: str = '',
+                          width: str = 'auto', height: str = '20px', callback: Callable = None, **kwargs):
+    button = widgets.ToggleButton(
+        description=label, icon=icon, **kwargs,
+        layout=widgets.Layout(width=width, height=height, display='flex', align_items='center'))
+    if callback:
+        button.observe(lambda *_: callback(), names='value')
+
+    return button
+
+
+def html_repr(obj) -> str:
+    return f'''<p style="font-family:'Courier New'">{repr(obj)}</p>'''
 
 
 class WidgetQuibDeletedException(PyQuibblerException):
@@ -35,25 +75,40 @@ class QuibWidget:
     """
 
     quib_ref: Optional[ReferenceType[Quib]] = None
-    _widget: Optional[widgets.VBox] = None
+    _name_label: Optional[widgets.Label] = None
+    _main_box: Optional[widgets.VBox] = None
+    _value_button: Optional[widgets.ToggleButton] = None
+    _props_button: Optional[widgets.Button] = None
+    _save_button: Optional[widgets.Button] = None
+    _load_button: Optional[widgets.Button] = None
+    _plus_button: Optional[widgets.Button] = None
+    _assignments_box: Optional[widgets.VBox] = None
+    _value_html: Optional[widgets.HTML] = None
 
     def get_widget(self):
-        return self._widget
+        return self._main_box
 
-    def _get_name_widget(self) -> widgets.Label:
-        return self._widget.children[0]
+    def show_quib_properties_as_pop_up(self):
+        """
+        Create a pop-up window displaying the quib's properties
+        """
+        from pyquibbler.optional_packages.get_IPython import display, HTML
 
-    def _get_assignment_widget(self) -> widgets.HBox:
-        return self._widget.children[1]
+        s = '<script type="text/Javascript">'
+        s += 'var win = window.open("", "Title", "toolbar=no, location=no, directories=no, status=no, menubar=no, ' \
+             'scrollbars=yes, resizable=yes, width=300, height=500, top="+(screen.height-400)+", ' \
+             'left="+(screen.width-840));'
+        s += 'win.document.body.innerHTML = \'' + self.quib.display_properties().get_html_repr() + '\';'
+        s += '</script>'
 
-    def _get_add_button_widget(self) -> widgets.Button:
-        return self._widget.children[2].children[1]
+        output = widgets.Output()
+        children = self._main_box.children
+        children_with_output = [*children, output]
+        self._main_box.children = children_with_output
+        with output:
+            display(HTML(s))
 
-    def _get_save_button_widget(self) -> widgets.Button:
-        return self._widget.children[2].children[0].children[0]
-
-    def _get_load_button_widget(self) -> widgets.Button:
-        return self._widget.children[2].children[0].children[1]
+        self._main_box.children = children
 
     @property
     def quib(self) -> Quib:
@@ -64,18 +119,32 @@ class QuibWidget:
         return self.quib_ref()
 
     def disable_widget(self):
-        self.get_widget().children = (widgets.Label(value='OBSOLETE: ' + self._get_name_widget().value),)
+        self.get_widget().children = (widgets.Label(value='OBSOLETE: ' + self._name_label.value), )
 
-    def _refresh_name(self):
-        self._get_name_widget().value = self.quib.pretty_repr
+    def _save_quib(self):
+        self.quib.save()
+
+    def _load_quib(self):
+        self.quib.load()
+
+    def _toggle_show_value(self):
+        children = self._main_box.children
+        if self._value_button.value:
+            self._value_html = widgets.HTML(q(html_repr, self.quib))
+            children = [*children, self._value_html]
+        else:
+            self._value_html = None
+            children = children[:-1]
+        self._main_box.children = children
 
     def _create_assignment_box(self, assignment_index: int, text: str = '') -> widgets.HBox:
         assignment_text_box = widgets.Text(text, continuous_update=False,
-                                           layout=widgets.Layout(width='200px'))  # , height='20px'
+                                           description_tooltip=ASSIGNMENT_TOOLTIP,
+                                           layout=widgets.Layout(width='250px'))  # , height='20px'
         assignment_text_box.observe(lambda change: self._on_edit_assignment(assignment_index, change), names='value')
 
-        assignment_delete_button = _create_button(icon='minus', tooltip='click to delete line', width='30px')
-        assignment_delete_button.on_click(lambda *_: self._on_delete_assignment(assignment_index), )
+        assignment_delete_button = _create_button(icon='minus', tooltip='Delete assignment', width='30px',
+                                                  callback=lambda *_: self._on_delete_assignment(assignment_index))
         return widgets.HBox([assignment_text_box, assignment_delete_button])
 
     def _refresh_assignments(self):
@@ -84,35 +153,33 @@ class QuibWidget:
             assignment_text = convert_assignment_to_simplified_text(assignment)
             assignments_widgets.append(self._create_assignment_box(index, assignment_text))
 
-        self._get_assignment_widget().children = assignments_widgets
-        self._get_add_button_widget().disabled = False
+        self._assignments_box.children = assignments_widgets
+        self._plus_button.disabled = False
 
     def _refresh_save_load_button_disable_state(self):
         disabled = self.quib.handler.file_syncer.is_synced
-        self._get_save_button_widget().disabled = disabled
-        self._get_load_button_widget().disabled = disabled
+        self._save_button.disabled = disabled
+        self._load_button.disabled = disabled
 
     def refresh(self):
-        self._refresh_name()
         self._refresh_assignments()
         self._refresh_save_load_button_disable_state()
 
     def _on_delete_assignment(self, assignment_index: int):
         if assignment_index >= len(self.quib.handler.overrider):
-            children = list(self._get_assignment_widget().children)
+            children = list(self._assignments_box.children)
             children.pop(assignment_index)
-            self._get_assignment_widget().children = children
-            self._get_add_button_widget().disabled = False
+            self._assignments_box.children = children
+            self._plus_button.disabled = False
         else:
             from pyquibbler import Project
             Project.get_or_create().remove_assignment_from_quib(self.quib, assignment_index)
 
     def _add_empty_assignment(self, *_):
-        widget = self._get_assignment_widget()
-        children = list(widget.children)
+        children = list(self._assignments_box.children)
         children.append(self._create_assignment_box(len(children)))
-        widget.children = children
-        self._get_add_button_widget().disabled = True
+        self._assignments_box.children = children
+        self._plus_button.disabled = True
 
     def _on_edit_assignment(self, assignment_index, change):
         override_text: str = change['new']
@@ -121,21 +188,37 @@ class QuibWidget:
         Project.get_or_create().upsert_assignment_to_quib(self.quib, assignment_index, assignment)
 
     def build_widget(self):
-        save = _create_button(label='Save', width='40px')
-        save.on_click(lambda *_: self.quib.save())
-        load = _create_button(label='Load', width='40px')
-        load.on_click(lambda *_: self.quib.load())
-        add = _create_button(icon='plus', width='30px', tooltip='click to add a new line')
-        add.on_click(self._add_empty_assignment)
-        name = widgets.Label(value='')
+        with_overrides = self.quib.allow_overriding or self.quib.handler.is_overridden
 
-        assignments = widgets.VBox([])
+        self._save_button = _create_button(label='Save', callback=self._save_quib,
+                                           tooltip='Save assignments to file')
 
-        save_load = widgets.HBox([save, load], layout=widgets.Layout(width='204px'))
-        buttons = widgets.HBox([save_load, add])
+        self._load_button = _create_button(label='Load', callback=self._load_quib,
+                                           tooltip='Load assignments from file')
 
-        widget = widgets.VBox([name,
-                               assignments,
-                               buttons])
+        self._plus_button = _create_button(icon='plus', callback=self._add_empty_assignment,
+                                           tooltip='Add a new assignment')
 
-        self._widget = widget
+        self._props_button = _create_button(label='Props', callback=self.show_quib_properties_as_pop_up,
+                                            tooltip="Show quib's properties")
+
+        self._value_button = _create_toggle_button(label='Value', callback=self._toggle_show_value,
+                                                   tooltip="Show quib's value")
+
+        self._name_label = widgets.Label(value=self.quib.get_quiby_name(as_repr=True))
+
+        self._assignments_box = widgets.VBox([])
+
+        if with_overrides:
+            buttons = widgets.HBox([self._value_button, self._props_button, self._save_button, self._load_button],
+                                   layout=widgets.Layout(width='254px'))
+            buttons = widgets.HBox([buttons, self._plus_button])
+        else:
+            buttons = widgets.HBox([self._value_button, self._props_button],
+                                   layout=widgets.Layout(width='254px'))
+
+        self._main_box = widgets.VBox([
+            self._name_label,
+            self._assignments_box,
+            buttons,
+        ])

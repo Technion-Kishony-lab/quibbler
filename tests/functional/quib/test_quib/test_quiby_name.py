@@ -29,6 +29,19 @@ def test_quiby_name_value_is_name_of_parent(a):
     assert a_name.get_value() == 'a'
 
 
+def test_quiby_name_value_is_repr_of_parent(a):
+    a_name = a.get_quiby_name(as_repr=True)
+    assert a_name.get_value() == 'a = iquib(1)'
+
+
+def test_quiby_name_as_repr_can_be_a_quib(a):
+    as_repr = iquib(False)
+    a_name = a.get_quiby_name(as_repr=as_repr)
+    assert a_name.get_value() == 'a'
+    as_repr.assign(True)
+    assert a_name.get_value() == 'a = iquib(1)'
+
+
 def test_quiby_name_invalidates_when_parent_name_changes(a):
     a_name = a.get_quiby_name().setp(cache_mode='on')
     assert a_name.get_value() == 'a'
