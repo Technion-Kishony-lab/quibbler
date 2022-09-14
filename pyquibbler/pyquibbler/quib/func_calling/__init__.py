@@ -1,2 +1,2 @@
-from .quib_func_call import QuibFuncCall
+from .quib_func_call import QuibFuncCall, WholeValueNonGraphicQuibFuncCall
 from .cached_quib_func_call import CachedQuibFuncCall

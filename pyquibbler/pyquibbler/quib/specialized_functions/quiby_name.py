@@ -1,32 +1,26 @@
-from pyquibbler import create_quib
-from pyquibbler.function_definitions import add_definition_for_function
-from pyquibbler.function_definitions.func_definition import create_func_definition
-from pyquibbler.quib.quib import Quib
 from pyquibbler.translation.translators.quiby_name.quiby_name import \
     BackwardsQuibyNameTranslator, ForwardsQuibyNameTranslator
+from pyquibbler.utilities.decorators import assign_func_name
+from pyquibbler.function_definitions import add_definition_for_function
+from pyquibbler.function_definitions.func_definition import create_func_definition
+from pyquibbler.quib.factory import create_quib
+from pyquibbler.quib.quib import Quib
+from pyquibbler.quib.func_calling.quiby_name_func_call import QuibyNameFuncCall
 
 
+@assign_func_name('quiby_name')  # For the pretty functional_representation
 def get_quiby_name(quib: Quib):
     return quib.name
-
-
-# For the pretty functional_representation:
-get_quiby_name.__name__ = 'quiby_name'
-
-
-def get_quiby_name_func_call():
-    from pyquibbler.quib.func_calling.quiby_namne_func_call import QuibyNameFuncCall
-    return QuibyNameFuncCall
 
 
 quiby_name_definition = create_func_definition(
     is_graphics=False,
     is_random=False,
     lazy=True,
-    raw_data_source_arguments=[],
+    raw_data_source_arguments=[0],
     backwards_path_translators=[BackwardsQuibyNameTranslator],
     forwards_path_translators=[ForwardsQuibyNameTranslator],
-    quib_function_call_cls=get_quiby_name_func_call(),
+    quib_function_call_cls=QuibyNameFuncCall,
 )
 
 

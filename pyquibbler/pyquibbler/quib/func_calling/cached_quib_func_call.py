@@ -13,14 +13,16 @@ from pyquibbler.graphics.graphics_collection import GraphicsCollection
 from pyquibbler.path import Path
 from pyquibbler.quib import consts
 from pyquibbler.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
-from pyquibbler.quib.func_calling import QuibFuncCall
-from pyquibbler.quib.func_calling.cache_mode import CacheMode
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.quib_guard import QuibGuard
 from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation_with_sources_metadata, \
     get_func_call_for_translation_without_sources_metadata
 from pyquibbler.translation import NoTranslatorsFoundException
 from pyquibbler.translation.translate import backwards_translate
+
+from .quib_func_call import QuibFuncCall
+from .cache_mode import CacheMode
+from .result_metadata import ResultMetadata
 
 
 class CachedQuibFuncCall(QuibFuncCall):
@@ -242,4 +244,5 @@ class CachedQuibFuncCall(QuibFuncCall):
         if not self._caching:
             self.cache = None
 
+        self._result_metadata = ResultMetadata.from_result(result)
         return result

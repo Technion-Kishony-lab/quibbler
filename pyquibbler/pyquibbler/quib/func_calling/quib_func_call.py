@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional, Type, Tuple, Dict, Callable, Mapping, Any
+from typing import Optional, Type, Tuple, Dict, Callable, Mapping, Any, List, Union
 
 import numpy as np
 
@@ -111,3 +111,22 @@ class QuibFuncCall(FuncCall):
 
     def get_result_metadata(self) -> Dict:
         return {}
+
+
+class WholeValueNonGraphicQuibFuncCall(QuibFuncCall):
+
+    @property
+    def created_graphics(self) -> bool:
+        return False
+
+    @property
+    def func_can_create_graphics(self):
+        return False
+
+    def _run(self) -> Any:
+        pass
+
+    def run(self, valid_paths: List[Union[None, Path]]) -> Any:
+        result = self._run()
+        self._result_metadata = ResultMetadata.from_result(result)
+        return result

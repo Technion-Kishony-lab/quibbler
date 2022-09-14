@@ -18,3 +18,15 @@ def ensure_only_run_once_globally(func: Callable):
             return res
 
     return _wrapper
+
+
+def assign_func_name(name: str):
+    """
+    Assign the __name__ property of a function.
+    """
+
+    def _assign(func):
+        func.__name__ = name
+        return func
+
+    return _assign
