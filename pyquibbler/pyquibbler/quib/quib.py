@@ -1484,21 +1484,27 @@ class Quib:
         """
         return self.handler.overrider if self.handler.has_overrider else None
 
+    # Method gets overridden by `create_quib_method_overrides`
     def get_override_mask(self):
         """
-        Return a quib whose value is the override mask of the current quib.
+        Create a new quib whose value is the override mask of the current quib.
 
         Assuming this quib represents a numpy `ndarray`, return a quib representing its override mask.
 
         The override mask is a boolean array of the same shape, in which every value is
         set to True if the matching value in the array is overridden, and False otherwise.
 
+        Returns
+        -------
+        Quib
+            A quib representing the override mask of the current quib.
+
         See Also
         --------
         get_override_list
         """
-        from pyquibbler.quib.specialized_functions import proxy
-        quib = self.args[0] if self.func == proxy else self
+        from pyquibbler.quib.specialized_functions.proxy import get_parent_of_proxy
+        quib = get_parent_of_proxy(self)
         if issubclass(quib.get_type(), np.ndarray):
             mask = np.zeros(quib.get_shape(), dtype=bool)
         else:

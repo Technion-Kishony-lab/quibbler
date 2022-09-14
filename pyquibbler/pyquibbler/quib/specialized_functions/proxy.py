@@ -51,3 +51,9 @@ proxy_definition = create_func_definition(raw_data_source_arguments=[0], inverte
                                           backwards_path_translators=[ProxyBackwardsPathTranslator])
 
 add_definition_for_function(func=proxy, func_definition=proxy_definition, quib_creating_func=create_proxy)
+
+
+def get_parent_of_proxy(quib: Quib):
+    while quib.func is proxy:
+        quib = quib.args[0]
+    return quib
