@@ -551,8 +551,8 @@ class QuibHandler:
             self._widget.refresh()
 
         if not assigned_name_changed:  # parent name changed
-            from pyquibbler.quib.specialized_functions.quiby_name import get_quiby_name
-            if self.func_args_kwargs.func is get_quiby_name:
+            from pyquibbler.function_overriding.quib_overrides.quib_methods import ORIGINAL_GET_QUIBY_NAME
+            if self.func_args_kwargs.func is ORIGINAL_GET_QUIBY_NAME:
                 self.invalidate_self([])
                 self._invalidate_and_redraw_at_path([])
 
@@ -2005,6 +2005,21 @@ class Quib:
     @name.setter
     def name(self, name: str):
         self.assigned_name = name
+
+    # This method is overridden by `create_quib_method_overrides`
+    def get_quiby_name(self) -> str:
+        """
+        Create a new quib representing the name of the current quib.
+
+        Returns
+        -------
+        Quib
+
+        See Also
+        --------
+        q, quiby, Quib.name, Quib.assigned_name
+        """
+        return self.name
 
     def _get_functional_representation_expression(self) -> MathExpression:
         args = self.args

@@ -13,7 +13,7 @@ import ipynbname
 from pathlib import Path
 from typing import Optional, Iterable, Tuple, Callable
 
-from pyquibbler import Quib
+from pyquibbler.quib.quib import Quib
 from pyquibbler.file_syncing import SaveFormat, ResponseToFileNotDefined
 from pyquibbler.debug_utils.logger import logger
 from pyquibbler.project import Project

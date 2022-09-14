@@ -2,7 +2,6 @@ from .cache import CacheStatus
 from .quib.factory import create_quib
 from .assignment import Assignment, AssignmentTemplate
 from .quib import CacheMode, iquib, Quib
-from .quib.specialized_functions.quiby_name import quiby_name
 from .file_syncing import SaveFormat, ResponseToFileNotDefined
 from .quib.graphics import GraphicsUpdateType
 from .function_overriding import initialize_quibbler
