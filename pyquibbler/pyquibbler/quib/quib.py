@@ -547,9 +547,6 @@ class QuibHandler:
     """
 
     def on_name_change(self, assigned_name_changed: bool = True):
-        if self._widget:
-            self._widget.refresh()
-
         if not assigned_name_changed:  # parent name changed
             from pyquibbler.function_overriding.quib_overrides.quib_methods import ORIGINAL_GET_QUIBY_NAME
             if self.func_args_kwargs.func is ORIGINAL_GET_QUIBY_NAME:

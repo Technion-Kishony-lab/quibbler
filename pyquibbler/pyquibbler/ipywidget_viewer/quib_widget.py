@@ -121,9 +121,6 @@ class QuibWidget:
     def disable_widget(self):
         self.get_widget().children = (widgets.Label(value='OBSOLETE: ' + self._name_label.value), )
 
-    def _refresh_name(self):
-        self._name_label.value = self.quib.pretty_repr
-
     def _save_quib(self):
         self.quib.save()
 
@@ -165,7 +162,6 @@ class QuibWidget:
         self._load_button.disabled = disabled
 
     def refresh(self):
-        self._refresh_name()
         self._refresh_assignments()
         self._refresh_save_load_button_disable_state()
 
@@ -209,7 +205,7 @@ class QuibWidget:
         self._value_button = _create_toggle_button(label='Value', callback=self._toggle_show_value,
                                                    tooltip="Show quib's value")
 
-        self._name_label = widgets.Label(value='')
+        self._name_label = widgets.Label(value=self.quib.get_quiby_name(as_repr=True))
 
         self._assignments_box = widgets.VBox([])
 
