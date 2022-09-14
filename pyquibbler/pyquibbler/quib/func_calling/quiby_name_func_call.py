@@ -13,4 +13,4 @@ class QuibyNameFuncCall(WholeValueNonGraphicQuibFuncCall):
 
     def _run(self) -> Any:
         # func is get_quib_name
-        return self.func_args_kwargs.func(self.func_args_kwargs.get_arg_values_by_position()[0])
+        return self.func_args_kwargs.func(*self.func_args_kwargs.args, **self.func_args_kwargs.kwargs)

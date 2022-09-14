@@ -2013,9 +2013,14 @@ class Quib:
         self.assigned_name = name
 
     # This method is overridden by `create_quib_method_overrides`
-    def get_quiby_name(self) -> str:
+    def get_quiby_name(self, as_repr: bool = False) -> str:
         """
         Create a new quib representing the name of the current quib.
+
+        Parameters
+        ----------
+        as_repr : bool, Default False
+            Whether to return just "name" (`as_repr=False`), or "name = func(...)" (`as_repr=True`).
 
         Returns
         -------
@@ -2025,7 +2030,10 @@ class Quib:
         --------
         q, quiby, Quib.name, Quib.assigned_name
         """
-        return self.name
+        if isinstance(as_repr, Quib):
+            as_repr = as_repr.get_value()
+
+        return self.pretty_repr if as_repr else self.name
 
     def _get_functional_representation_expression(self) -> MathExpression:
         args = self.args
