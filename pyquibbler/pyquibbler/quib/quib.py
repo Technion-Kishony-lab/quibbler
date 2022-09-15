@@ -1966,22 +1966,23 @@ class Quib:
         is_name_valid = assigned_name is None \
                         or len(assigned_name) \
                         and assigned_name[0].isalpha() and all([c.isalnum() or c in ' _' for c in assigned_name])
-        if is_name_valid:
-            self.handler.assigned_name = assigned_name
-            self.handler.on_file_name_change()
-            self.handler.on_name_change()
-        else:
+
+        if not is_name_valid:
             raise InvalidArgumentValueException('assigned_name',
-                                                'name must be None or a string starting with a letter '
-                                                'and continuing alpha-numeric characters or spaces.'
+                                                'None or a string starting with a letter '
+                                                'and continuing with alpha-numeric characters or spaces.'
                                                 )
+
+        self.handler.assigned_name = assigned_name
+        self.handler.on_file_name_change()
+        self.handler.on_name_change()
 
     @property
     def name(self) -> Optional[str]:
         """
         str: The name of the quib.
 
-        The name of the quib can either be the given `assigned_name` if not `None`,
+        The name of the quib is either the `assigned_name` if not `None`,
         or an automated name representing the function of the quib (the `functional_representation` attribute).
 
         See Also
