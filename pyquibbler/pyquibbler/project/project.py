@@ -92,6 +92,24 @@ class Project:
             for quib in quibs:
                 quib.invalidate()
 
+    def is_name_used(self, name: str, focal_quib: Optional[Quib] = None):
+        """
+        Check if a given name is used by any quib other than a focal quib.
+
+        Parameters
+        ----------
+            name: str
+                Specifies the name we are looking for in all quibs besides the focal quib.
+
+            focal_quib: Quib or None
+                The focal quib. None for no focal quib.
+        """
+
+        for quib in self.quibs:
+            if quib is not focal_quib and quib.assigned_name == name:
+                return True
+        return False
+
     """
     central quib commands
     """

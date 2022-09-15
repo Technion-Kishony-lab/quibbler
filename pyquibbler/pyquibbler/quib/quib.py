@@ -2017,6 +2017,11 @@ class Quib:
                                                 'and continuing with alpha-numeric characters or spaces.'
                                                 )
 
+        if isinstance(assigned_name, str) and self.project.is_name_used(assigned_name, self):
+            raise InvalidArgumentValueException('assigned_name',
+                                                'unique. It has to be different than names assigned to other quibs.'
+                                                )
+
         self.handler.assigned_name = assigned_name
         self.handler.on_file_name_change()
         self.handler.on_name_change()
