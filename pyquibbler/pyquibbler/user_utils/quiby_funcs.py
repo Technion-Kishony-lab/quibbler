@@ -2,6 +2,7 @@ import functools
 from types import ModuleType
 from typing import Union, Type, List, Callable, Optional
 
+from pyquibbler.function_overriding.is_initiated import warn_if_quibbler_not_initiated
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.factory import create_quib
 
@@ -12,6 +13,8 @@ def list_quiby_funcs(module_or_cls: Union[None, ModuleType, Type] = None) -> Lis
 
     Returns a list of functions overridden to be able to work with quib arguments.
     """
+    warn_if_quibbler_not_initiated()
+
     from pyquibbler.function_definitions.definitions import FUNCS_TO_DEFINITIONS_MODULE_NAME_ISOVERRIDDEN
     from pyquibbler.function_overriding.third_party_overriding.numpy.vectorize_overrides import QVectorize
     return [f"{getattr(mdl, '__name__', mdl)}: {func_name}" for definition, mdl, func_name, isoverridden in
@@ -37,6 +40,8 @@ def is_quiby(func: Callable) -> bool:
     >>> is_quiby(np.sin)  # -> True
     >>> is_quiby(len)  # -> False
     """
+    warn_if_quibbler_not_initiated()
+
     return hasattr(func, '__quibbler_wrapped__')
 
 
@@ -127,6 +132,8 @@ def quiby(func: Callable = None,
     27
     """
 
+    warn_if_quibbler_not_initiated()
+
     if func is None:
         return functools.partial(quiby,
                                  lazy=lazy,
@@ -179,4 +186,7 @@ def q(func, *args, **kwargs) -> Quib:
     >>> b.get_value()
     '2'
     """
+
+    warn_if_quibbler_not_initiated()
+
     return create_quib(func=func, args=args, kwargs=kwargs)

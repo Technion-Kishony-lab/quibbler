@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Any, Optional, Union
 
 from pyquibbler.assignment import AssignmentTemplate
+from pyquibbler.function_overriding.is_initiated import warn_if_quibbler_not_initiated
 from pyquibbler.utilities.decorators import assign_func_name
 from pyquibbler.utilities.missing_value import missing
 from pyquibbler.env import DEBUG
@@ -83,6 +84,8 @@ def iquib(value: Any,
     q, quiby, Quib.get_value
     Quib.allow_overriding, Quib.save_format, Quib.save_directory, Quib.assigned_name, Quib.assignment_template
     """
+
+    warn_if_quibbler_not_initiated()
 
     if DEBUG:
         if is_there_a_quib_in_object(value, recursive=True):
