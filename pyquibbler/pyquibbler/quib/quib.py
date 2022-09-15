@@ -553,7 +553,7 @@ class QuibHandler:
         for child in self.children:
             if child.handler.func_args_kwargs.func is ORIGINAL_GET_QUIBY_NAME:
                 child.handler.invalidate_self([])
-                child.handler._invalidate_and_redraw_at_path([])
+                child.handler.invalidate_and_aggregate_redraw_at_path([])
 
             if has_name_changed:
                 child.handler.on_name_change(False)
