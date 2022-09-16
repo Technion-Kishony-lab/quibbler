@@ -473,10 +473,10 @@ class QuibHandler:
             from matplotlib.pyplot import get_backend
             if get_backend() not in SUPPORTED_BACKENDS:
                 WARN_ON_UNSUPPORTED_BACKEND.set(False)  # We don't want to warn more than once
-                no_header_warn('PyQuibbler is only optimized for the following Matplotlib backends:\n'
-                               f'{", ".join(SUPPORTED_BACKENDS)}.\n'
-                               'In Jupyter lab, use: %matplotlib tk.\n'
-                               'In PyCharm, use: matplotlib.use("TkAgg").')
+                no_header_warn(('PyQuibbler is only optimized for the following Matplotlib backends:',
+                               f'{", ".join(SUPPORTED_BACKENDS)}.',
+                               'In Jupyter, use: %matplotlib tk.',
+                               'In PyCharm, use:  matplotlib.use("TkAgg").'))
 
         try:
             guard_raise_if_not_allowed_access_to_quib(self.quib)
