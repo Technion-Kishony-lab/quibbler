@@ -4,7 +4,7 @@ from .assignment import Assignment, AssignmentTemplate
 from .quib import CacheMode, iquib, Quib
 from .file_syncing import SaveFormat, ResponseToFileNotDefined
 from .quib.graphics import GraphicsUpdateType
-from .function_overriding import initialize_quibbler
+from .function_overriding.override_all import initialize_quibbler
 from .quib.quib_properties_viewer import QuibPropertiesViewer
 from .utilities.file_path import PathToNotebook
 from pyquibbler.debug_utils.timer import timer, timeit

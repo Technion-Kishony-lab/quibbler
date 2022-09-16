@@ -12,6 +12,7 @@ from matplotlib.axes import Axes
 
 # Debugging, warning and performance:
 from pyquibbler.debug_utils import timeit, logger
+from pyquibbler.quib.exceptions import LenBoolEtcException
 from pyquibbler.utilities.warning_messages import no_header_warn
 
 # Input validation:
@@ -33,7 +34,7 @@ from pyquibbler.file_syncing import SaveFormat, SAVE_FORMAT_TO_FILE_EXT, \
 from pyquibbler.utilities.file_path import PathWithHyperLink
 
 # Create new quibs:
-from pyquibbler.env import LEN_RAISE_EXCEPTION, BOOL_RAISE_EXCEPTION, ITER_RAISE_EXCEPTION
+from pyquibbler.env import LEN_BOOL_ETC_RAISE_EXCEPTION, ITER_RAISE_EXCEPTION
 from pyquibbler.utilities.iterators import recursively_run_func_on_object
 from pyquibbler.utilities.unpacker import Unpacker
 from pyquibbler.quib.variable_metadata import get_quib_name
@@ -473,10 +474,10 @@ class QuibHandler:
             from matplotlib.pyplot import get_backend
             if get_backend() not in SUPPORTED_BACKENDS:
                 WARN_ON_UNSUPPORTED_BACKEND.set(False)  # We don't want to warn more than once
-                no_header_warn('PyQuibbler is only optimized for the following Matplotlib backends:\n'
-                               f'{", ".join(SUPPORTED_BACKENDS)}.\n'
-                               'In Jupyter lab, use: %matplotlib tk.\n'
-                               'In PyCharm, use: matplotlib.use("TkAgg").')
+                no_header_warn(('PyQuibbler is only optimized for the following Matplotlib backends:',
+                                f'{", ".join(SUPPORTED_BACKENDS)}.',
+                                'In Jupyter, use: %matplotlib tk.',
+                                'In PyCharm, use:  matplotlib.use("TkAgg").'))
 
         try:
             guard_raise_if_not_allowed_access_to_quib(self.quib)
@@ -1405,20 +1406,28 @@ class Quib:
         return self.handler.quib_function_call.get_ndim()
 
     def __len__(self):
-        if LEN_RAISE_EXCEPTION:
-            raise TypeError('len(Q), where Q is a quib, is not allowed. '
-                            'To get a function quib, use q(len,Q), or quiby(q)(Q). '
-                            'To get the len of the current value of Q, use len(Q.get_value()).')
+        if LEN_BOOL_ETC_RAISE_EXCEPTION:
+            raise LenBoolEtcException('len')
         else:
             return len(self.get_value_valid_at_path(None))
 
     def __bool__(self):
-        if BOOL_RAISE_EXCEPTION:
-            raise TypeError('bool(Q), where Q is a quib, is not allowed. '
-                            'To get a function quib, use q(bool, Q), or quib(bool)(Q). '
-                            'To get bool of the current value of Q, use bool(Q.get_value()).')
+        if LEN_BOOL_ETC_RAISE_EXCEPTION:
+            raise LenBoolEtcException('bool')
         else:
             return bool(self.get_value())
+
+    def __float__(self):
+        if LEN_BOOL_ETC_RAISE_EXCEPTION:
+            raise LenBoolEtcException('float')
+        else:
+            return float(self.get_value())
+
+    def __complex__(self):
+        if LEN_BOOL_ETC_RAISE_EXCEPTION:
+            raise LenBoolEtcException('complex')
+        else:
+            return complex(self.get_value())
 
     def __iter__(self):
         """

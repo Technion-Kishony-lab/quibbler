@@ -51,6 +51,13 @@ class ExternalCallFailedException(PyQuibblerException):
                f"\n\n{self.traceback}"
 
 
+def get_traceback_outside_of_quibbler(tb):
+    while tb is not None and cached_getmodule(tb.tb_frame.f_code) is not None \
+            and cached_getmodule(tb.tb_frame.f_code).__name__.startswith("pyquibbler"):
+        tb = tb.tb_next
+    return tb
+
+
 @contextlib.contextmanager
 def external_call_failed_exception_handling():
     """
@@ -64,11 +71,8 @@ def external_call_failed_exception_handling():
         if not SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS:
             raise
 
-        # get traceback outside of pyquibbler
         type_, exc, tb = sys.exc_info()
-        while tb is not None and cached_getmodule(tb.tb_frame.f_code) is not None \
-                and cached_getmodule(tb.tb_frame.f_code).__name__.startswith("pyquibbler"):
-            tb = tb.tb_next
+        tb = get_traceback_outside_of_quibbler(tb)
 
         if tb is None:
             formatted_tb = ''.join(traceback.format_exception_only(type_, value=exc))

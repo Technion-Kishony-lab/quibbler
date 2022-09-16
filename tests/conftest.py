@@ -13,7 +13,7 @@ from pyquibbler.env import DEBUG, LAZY, PRETTY_REPR, \
     SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS, GET_VARIABLE_NAMES, GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION
 from pyquibbler.optional_packages.emulate_missing_packages import EMULATE_MISSING_PACKAGES
 from pyquibbler.project import Project
-from pyquibbler.function_overriding import initialize_quibbler
+from pyquibbler import initialize_quibbler
 from pyquibbler.quib.func_calling import CachedQuibFuncCall
 from pyquibbler.quibapp import QuibApp
 
