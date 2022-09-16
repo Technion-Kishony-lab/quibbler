@@ -4,7 +4,7 @@ from pyquibbler.utilities.decorators import ensure_only_run_once_globally
 from pyquibbler.project.jupyer_project.jupyter_project import create_jupyter_project_if_in_jupyter_lab
 from pyquibbler.function_definitions import add_definition_for_function
 from .defintion_without_override.python_functions import create_definitions_for_python_functions
-from .exceptionhook import override_excepthook
+from .exceptionhook import override_jupyterlab_excepthook
 from .function_override import FuncOverride
 from .is_initiated import IS_QUIBBLER_INITIATED
 from .third_party_overriding.ipywidgets.overrides import override_ipywidgets_if_installed
@@ -87,8 +87,7 @@ def initialize_quibbler():
             func_name=func_override.func_name,
             quib_creating_func=maybe_create_quib)
 
-<<<<<<< HEAD
+    if within_jupyterlab:
+        override_jupyterlab_excepthook()
+
     IS_QUIBBLER_INITIATED.set(True)
-=======
-    override_excepthook()
->>>>>>> 1f42a90... add simple exceptionhook
