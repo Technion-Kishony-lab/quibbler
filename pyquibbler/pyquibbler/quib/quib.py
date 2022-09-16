@@ -288,10 +288,10 @@ class QuibHandler:
         If we have no translators, we forward the path to invalidate all, as we have no more specific way to do it
         """
 
-        # If the quib is already fully invalid, all quibs downstream must also be fully invalid.
-        # We can therefore stop the invalidation cascade.
+        # We cannot assume the if the quib is already fully invalid, all quibs downstream are also be fully invalid.
+        # Quibs with pass_quibs=True can still be valid. So we must continue to fully invalidate:
         if self.quib_function_call._result_metadata is None:
-            return []
+            return [[]]
 
         # If the invalidator quib is a parameter source, the current quib must be fully invalidated.
         if invalidator_quib not in self.quib_function_call.get_data_sources():

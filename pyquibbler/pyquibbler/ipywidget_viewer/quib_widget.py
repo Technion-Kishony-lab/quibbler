@@ -3,7 +3,7 @@ import dataclasses
 
 from typing import Optional, Callable
 
-from pyquibbler.user_utils.quiby_funcs import q
+from pyquibbler.user_utils.quiby_funcs import quiby
 from pyquibbler.optional_packages.get_ipywidgets import ipywidgets as widgets
 
 from pyquibbler.assignment.assignment_to_from_text import \
@@ -56,8 +56,13 @@ def _create_toggle_button(label: str = '', icon: str = '',
     return button
 
 
-def html_repr(obj) -> str:
-    return f'''<p style="font-family:'Courier New'">{repr(obj)}</p>'''
+@quiby(pass_quibs=True)
+def html_repr(quib: Quib) -> str:
+    try:
+        value = quib.get_value()
+        return f'''<p style="font-family:'Courier New'">{repr(value)}</p>'''
+    except Exception:
+        return 'EXCEPTION DURING GET_VALUE()'
 
 
 class WidgetQuibDeletedException(PyQuibblerException):
@@ -130,7 +135,7 @@ class QuibWidget:
     def _toggle_show_value(self):
         children = self._main_box.children
         if self._value_button.value:
-            self._value_html = widgets.HTML(q(html_repr, self.quib))
+            self._value_html = widgets.HTML(html_repr(self.quib))
             children = [*children, self._value_html]
         else:
             self._value_html = None

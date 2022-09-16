@@ -140,5 +140,16 @@ def test_quib_widget_shows_value(quib, quib_widget):
     assert quib_widget._value_html.value == '''<p style="font-family:'Courier New'">1</p>'''
 
 
+def test_quib_widget_shows_value_exception(quib, child, child_widget):
+    child_widget._value_button.value = True
+    assert child_widget._value_html.value == '''<p style="font-family:'Courier New'">3</p>'''
+
+    quib.assign(['cannot add'])
+    assert child_widget._value_html.value == 'EXCEPTION DURING GET_VALUE()'
+
+    quib.assign(7)
+    assert child_widget._value_html.value == '''<p style="font-family:'Courier New'">9</p>'''
+
+
 def test_quib_widget_shows_props(quib, quib_widget):
     quib_widget._props_button.click()
