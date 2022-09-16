@@ -34,7 +34,7 @@ from pyquibbler.file_syncing import SaveFormat, SAVE_FORMAT_TO_FILE_EXT, \
 from pyquibbler.utilities.file_path import PathWithHyperLink
 
 # Create new quibs:
-from pyquibbler.env import LEN_BOOL_ETC_RAISE_EXCEPTION, LEN_BOOL_ETC_RAISE_EXCEPTION, ITER_RAISE_EXCEPTION
+from pyquibbler.env import LEN_BOOL_ETC_RAISE_EXCEPTION, ITER_RAISE_EXCEPTION
 from pyquibbler.utilities.iterators import recursively_run_func_on_object
 from pyquibbler.utilities.unpacker import Unpacker
 from pyquibbler.quib.variable_metadata import get_quib_name
@@ -475,9 +475,9 @@ class QuibHandler:
             if get_backend() not in SUPPORTED_BACKENDS:
                 WARN_ON_UNSUPPORTED_BACKEND.set(False)  # We don't want to warn more than once
                 no_header_warn(('PyQuibbler is only optimized for the following Matplotlib backends:',
-                               f'{", ".join(SUPPORTED_BACKENDS)}.',
-                               'In Jupyter, use: %matplotlib tk.',
-                               'In PyCharm, use:  matplotlib.use("TkAgg").'))
+                                f'{", ".join(SUPPORTED_BACKENDS)}.',
+                                'In Jupyter, use: %matplotlib tk.',
+                                'In PyCharm, use:  matplotlib.use("TkAgg").'))
 
         try:
             guard_raise_if_not_allowed_access_to_quib(self.quib)

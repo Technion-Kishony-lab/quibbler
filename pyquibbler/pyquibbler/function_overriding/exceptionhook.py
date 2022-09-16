@@ -2,10 +2,7 @@ import sys
 import logging
 from typing import Optional, Callable
 
-from varname.utils import cached_getmodule
-
 from pyquibbler.exceptions import PyQuibblerException
-from pyquibbler.quib.external_call_failed_exception_handling import get_traceback_outside_of_quibbler
 from pyquibbler.quib.get_value_context_manager import is_within_get_value_context
 from pyquibbler.utilities.warning_messages import no_header_warn
 
@@ -44,6 +41,7 @@ def handle_exception(exc_type, exc_value, exc_traceback):
 
 def override_jupyterlab_excepthook():
     global original_showtraceback
+    from pyquibbler.optional_packages.get_IPython import get_ipython
 
     ipython = get_ipython()
     original_showtraceback = ipython._showtraceback
