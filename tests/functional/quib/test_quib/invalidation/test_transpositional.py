@@ -3,7 +3,7 @@ from unittest import mock
 import numpy as np
 import pytest
 
-from pyquibbler import iquib
+from pyquibbler import iquib, default
 from pyquibbler.cache.cache import CacheStatus
 from pyquibbler.quib.factory import create_quib
 from tests.functional.utils import PathBuilder
@@ -285,3 +285,16 @@ def test_assignments_with_quib_index():
 ])
 def test_transpose_invalidation(data, indices_to_invalidate, axes):
     check_invalidation(lambda q: np.transpose(q, axes=axes), data, indices_to_invalidate)
+
+
+@pytest.mark.regression
+def test_ravel_with_default():
+    a = iquib(np.array([1, 2]))
+    b = np.ravel(a).setp(cache_mode='on')
+    assert b.get_value()[0] == 1, "sanity"
+
+    a[0] = 7
+    assert b.get_value()[0] == 7
+
+    a[0] = default
+    assert b.get_value()[0] == 1
