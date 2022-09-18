@@ -62,7 +62,7 @@ def html_repr(quib: Quib) -> str:
         value = quib.get_value()
         return f'''<p style="font-family:'Courier New'">{repr(value)}</p>'''
     except Exception:
-        return 'EXCEPTION DURING GET_VALUE()'
+        return '''<p style="color:red">EXCEPTION DURING GET_VALUE()</p>'''
 
 
 class WidgetQuibDeletedException(PyQuibblerException):
