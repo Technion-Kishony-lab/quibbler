@@ -288,13 +288,13 @@ def test_transpose_invalidation(data, indices_to_invalidate, axes):
 
 
 @pytest.mark.regression
-def test_ravel_with_default():
-    a = iquib(np.array([1, 2]))
+def test_view_should_not_cache():
+    a = iquib(np.array([0, 0]))
     b = np.ravel(a).setp(cache_mode='on')
-    assert b.get_value()[0] == 1, "sanity"
+    b.get_value()
 
     a[0] = 7
-    assert b.get_value()[0] == 7
+    assert a.args[0][0] == 0, "sanity"
 
-    a[0] = default
-    assert b.get_value()[0] == 1
+    b.get_value()
+    assert a.args[0][0] == 0
