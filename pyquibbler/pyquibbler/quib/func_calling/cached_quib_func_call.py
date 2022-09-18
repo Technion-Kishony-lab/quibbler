@@ -5,6 +5,8 @@ from sys import getsizeof
 from time import perf_counter
 from typing import Optional, Tuple, Dict, Any, Set, Mapping, Callable, List, Union
 
+import numpy as np
+
 from pyquibbler.cache.cache_utils import _truncate_path_to_match_shallow_caches, _ensure_cache_matches_result, \
     get_cached_data_at_truncated_path_given_result_at_uncached_path
 from pyquibbler.cache import PathCannotHaveComponentsException, get_uncached_paths_matching_path
@@ -43,6 +45,9 @@ class CachedQuibFuncCall(QuibFuncCall):
         Note that there is no accurate way (and no efficient way to even approximate) the complete size of composite
         types in python, so we only measure the outer size of the object.
         """
+        if isinstance(result, np.ndarray) and result.base is not None:
+            # array "view"
+            return False
         cache_mode = self._get_cache_behavior()
         if cache_mode is CacheMode.ON:
             return True
