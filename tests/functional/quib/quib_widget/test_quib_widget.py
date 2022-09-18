@@ -145,7 +145,7 @@ def test_quib_widget_shows_value_exception(quib, child, child_widget):
     assert child_widget._value_html.value == '''<p style="font-family:'Courier New'">3</p>'''
 
     quib.assign(['cannot add'])
-    assert child_widget._value_html.value == 'EXCEPTION DURING GET_VALUE()'
+    assert child_widget._value_html.value == '''<p style="color:red">EXCEPTION DURING GET_VALUE()</p>'''
 
     quib.assign(7)
     assert child_widget._value_html.value == '''<p style="font-family:'Courier New'">9</p>'''
