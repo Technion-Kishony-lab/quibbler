@@ -94,21 +94,14 @@ def test_rectangle_selector_update(axes, get_only_live_widget, get_live_artists,
     assert np.array_equal(np.round(bbox, 4), [0.3, 0.2, 0.5, 0.6])
 
 
-@pytest.mark.skip
 @pytest.mark.benchmark()
-def test_rectangle_selector_speed(axes, roi, rectangle_selector, create_axes_mouse_press_move_release_events):
-    import time
-
-    start = time.time()
-
-    for i in range(50):
+def test_rectangle_selector_speed(benchmark, axes, roi, rectangle_selector,
+                                  create_axes_mouse_press_move_release_events):
+    def drag_n_drop():
         create_axes_mouse_press_move_release_events([(0.5, 0.5), (0.6, 0.6)])
         create_axes_mouse_press_move_release_events([(0.6, 0.6), (0.5, 0.5)])
 
-    end = time.time()
-
-    print()
-    print(end - start)
+    benchmark(drag_n_drop)
 
 
 def test_rectangle_selector_undo(axes, roi, rectangle_selector, create_axes_mouse_press_move_release_events):
