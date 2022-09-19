@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from typing import Any, TYPE_CHECKING, List, Union, Optional, Callable
 
 from .default_value import default
-from pyquibbler.path.path_component import Path
+from pyquibbler.path import Path
 from .rounding import floor_log10
 from ..quib.pretty_converters.pretty_convert import getitem_converter
 

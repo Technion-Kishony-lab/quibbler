@@ -2,8 +2,7 @@ from abc import abstractmethod
 
 from typing import Dict, Optional, Tuple, Type
 
-from pyquibbler.path.path_component import Path
-from pyquibbler.path.utils import working_component
+from pyquibbler.path import Path, working_component
 
 from .source_func_call import SourceFuncCall
 from .types import Source

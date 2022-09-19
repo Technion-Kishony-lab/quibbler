@@ -6,9 +6,10 @@ import numpy as np
 
 from pyquibbler.function_definitions.func_call import FuncCall
 from pyquibbler.path import PathComponent
-from pyquibbler.translation.numpy_translator import NumpyForwardsPathTranslator, NumpyBackwardsPathTranslator
 from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices
-from pyquibbler.translation.types import Source
+
+from ...types import Source
+from ...numpy_translator import NumpyForwardsPathTranslator, NumpyBackwardsPathTranslator
 
 
 @dataclass

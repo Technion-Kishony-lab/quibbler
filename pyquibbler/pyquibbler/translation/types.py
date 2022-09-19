@@ -1,25 +1,10 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from enum import Enum
-from typing import Any, TYPE_CHECKING
+from typing import Any
 
 import numpy as np
 
 from .exceptions import FailedToTranslateException
-
-if TYPE_CHECKING:
-    from pyquibbler.function_definitions.types import Argument
-
-
-@dataclass(frozen=True)
-class ArgumentWithValue:
-    argument: Argument
-    value: Any
-
-
-class SourceType(Enum):
-    DATA = 0
-    PARAMETER = 1
 
 
 @dataclass(frozen=True)

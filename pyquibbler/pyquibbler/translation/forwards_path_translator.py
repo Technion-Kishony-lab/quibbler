@@ -5,6 +5,8 @@ from pyquibbler.function_definitions import FuncCall
 from pyquibbler.path.path_component import Path, Paths
 from .types import Source
 
+from .types import Source
+
 
 class ForwardsPathTranslator:
     """
