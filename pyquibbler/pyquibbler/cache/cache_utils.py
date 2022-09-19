@@ -1,20 +1,17 @@
 from __future__ import annotations
-from typing import Optional, Any, TYPE_CHECKING
+from typing import Optional, Any
 
 import numpy as np
 
-from pyquibbler.path import deep_get, deep_assign_data_in_path, Path, PathComponent
+from pyquibbler.path import deep_get, deep_assign_data_in_path, Path
 
+from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pyquibbler.cache import Cache
 
 
-def is_path_component_nd(component: PathComponent):
-    return component.indexed_cls == np.ndarray
-
-
 def is_path_nd(path: Path):
-    return len(path) and is_path_component_nd(path[0])
+    return len(path) and path[0].is_ndarray()
 
 
 def get_cached_data_at_truncated_path_given_result_at_uncached_path(cache, result, truncated_path, uncached_path):
@@ -78,7 +75,7 @@ def _truncate_path_to_match_shallow_caches(path: Optional[Path]):
                 len(first_two_components) == 2
                 and first_two_components[0].references_field_in_field_array()
                 and not first_two_components[1].references_field_in_field_array()
-                and first_two_components[1].indexed_cls == np.ndarray
+                and first_two_components[1].is_ndarray()
         ):
             # We are in a situation in which we have a field, and then indexes- these are always interchangable
             # by definition, so we switch them to get the indexes in order to behave in the same fashion-

@@ -71,7 +71,7 @@ class TranspositionalInverter(Inverter):
         sources_to_single_paths_in_result = {}
         for source, paths in sources_to_paths_in_result.items():
             path = paths[0]
-            if len(path) > 0 and path[0].indexed_cls == np.ndarray:
+            if len(path) > 0 and path[0].is_ndarray():
                 path[0] = PathComponent(
                     indexed_cls=np.ndarray,
                     component=np_logical_and(working_component(path), boolean_mask)

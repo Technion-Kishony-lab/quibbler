@@ -5,7 +5,6 @@ import numpy as np
 from pyquibbler.path import PathComponent, Paths
 from pyquibbler.cache.shallow.shallow_cache import ShallowCache
 from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices
-from pyquibbler.cache.cache_utils import is_path_component_nd
 
 
 class IndexableCache(ShallowCache):
@@ -29,7 +28,7 @@ class IndexableCache(ShallowCache):
                and self._original_type == type(result)
 
     def _get_uncached_paths_at_path_component(self, path_component: PathComponent) -> Paths:
-        if is_path_component_nd(path_component):
+        if path_component.is_ndarray():
             boolean_mask_of_indices = create_bool_mask_with_true_at_indices(self._shape(), path_component.component)
 
             return self._filter_empty_paths([
@@ -52,7 +51,7 @@ class IndexableCache(ShallowCache):
 
     def _set_invalid_mask_at_path_component(self, path_component: PathComponent, value: bool):
         component = path_component.component
-        if is_path_component_nd(path_component):
+        if path_component.is_ndarray():
             nd_invalid_mask = self._invalid_mask_broadcasted()
             nd_invalid_mask[component] = value
             self._invalid_mask = self._unbroadcast_invalid_mask(nd_invalid_mask)
@@ -72,7 +71,7 @@ class IndexableCache(ShallowCache):
             # as python allows accessing slices out of bounds
 
     def _set_valid_value_at_path_component(self, path_component: PathComponent, value):
-        if is_path_component_nd(path_component):
+        if path_component.is_ndarray():
             array_value = np.array(self._value, dtype=object)
             array_value[path_component.component] = value
             self._value = array_value.tolist()

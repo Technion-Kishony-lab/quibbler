@@ -23,6 +23,9 @@ class PathComponent:
                 (isinstance(self.component, str) or
                  (isinstance(self.component, list) and isinstance(self.component[0], str))))
 
+    def is_ndarray(self) -> bool:
+        return self.indexed_cls == np.ndarray
+
 
 Path = List[PathComponent]
 
