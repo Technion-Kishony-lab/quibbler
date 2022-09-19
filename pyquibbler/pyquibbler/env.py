@@ -23,7 +23,7 @@ GRAPHICS_LAZY = Flag(False)
 
 """ Graphics """
 
-PLOT_WITH_PICKER_TRUE_BY_DEFAULT = Flag(True)
+DRAGGABLE_PLOTS_BY_DEFAULT = Flag(True)
 
 GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION = Mutable(1000)  # Number of pixels in mouse events. None for infinity
 
@@ -41,7 +41,7 @@ OVERRIDE_DIALOG_AS_TEXT_FOR_NON_GRAPHICS_ASSIGNMENT = Flag(True)
 
 """ repr """
 
-SHOW_QUIB_WIDGETS_IN_JUPYTER_LAB = Flag(True)
+SHOW_QUIBS_AS_WIDGETS_IN_JUPYTER_LAB = Flag(True)
 
 PRETTY_REPR = Flag(True)
 

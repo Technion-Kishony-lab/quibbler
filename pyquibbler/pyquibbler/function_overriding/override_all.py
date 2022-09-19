@@ -1,6 +1,5 @@
 from typing import List
 
-from pyquibbler.utilities.decorators import ensure_only_run_once_globally
 from pyquibbler.project.jupyer_project.jupyter_project import create_jupyter_project_if_in_jupyter_lab
 from pyquibbler.function_definitions import add_definition_for_function
 from .defintion_without_override.python_functions import create_definitions_for_python_functions
@@ -13,16 +12,32 @@ from .quib_overrides.operators.overrides import create_operator_overrides
 from .quib_overrides.quib_methods import create_quib_method_overrides
 from .third_party_overriding.numpy.overrides import create_numpy_overrides
 from .third_party_overriding.graphics.overrides import create_graphics_overrides
+from ..env import DRAGGABLE_PLOTS_BY_DEFAULT, SHOW_QUIBS_AS_WIDGETS_IN_JUPYTER_LAB
 from ..utilities.warning_messages import no_header_warn
 
 
-@ensure_only_run_once_globally
-def initialize_quibbler():
+def initialize_quibbler(draggable_plots: bool = True, show_quibs_as_widgets: bool = True):
     """
     Initialize Quibbler to allow functions to work on quibs
 
     Override all relevant functions, both operators and third party, to support Quibs.
     Need to run once *before* importing from NumPy or Matplotlib.
+
+    Parameters
+    ----------
+    draggable_plots: bool, Default True
+        Indicates whether plots created by matplotlib `plot` and `scatter` commands
+        are draggable by default, allowing graphics-based assignments.
+
+        When set to `True`, plots are automatically draggable, unless `picker=False`
+        is specified as a kwarg in a `plot` or `scatter` function call.
+
+        When set to `False`, plots are only draggable if `picker=True` is
+        specified in the `plot` or `scatter` function calls.
+
+    show_quibs_as_widgets: bool, Default True
+        Indicates whether to display quibs as interactive widgets
+        (only applicable within Jupyter Lab).
 
     See Also
     --------
@@ -51,8 +66,15 @@ def initialize_quibbler():
 
     Note
     ----
-    Only need to run ``initialize_quibbler`` once. Additional calls are gracefully ignored.
+    You only need to call ``initialize_quibbler`` once at the beginning of your script.
+    Additional calls, though, are harmless and can be used to re-specify `draggable_plots` and `show_quibs_as_widgets`.
     """
+
+    DRAGGABLE_PLOTS_BY_DEFAULT.set(draggable_plots)
+    SHOW_QUIBS_AS_WIDGETS_IN_JUPYTER_LAB.set(show_quibs_as_widgets)
+
+    if IS_QUIBBLER_INITIATED:
+        return
 
     within_jupyterlab = create_jupyter_project_if_in_jupyter_lab()
 
