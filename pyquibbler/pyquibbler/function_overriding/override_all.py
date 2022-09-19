@@ -13,9 +13,11 @@ from .quib_overrides.quib_methods import create_quib_method_overrides
 from .third_party_overriding.numpy.overrides import create_numpy_overrides
 from .third_party_overriding.graphics.overrides import create_graphics_overrides
 from ..env import DRAGGABLE_PLOTS_BY_DEFAULT, SHOW_QUIBS_AS_WIDGETS_IN_JUPYTER_LAB
+from ..utilities.input_validation_utils import validate_user_input
 from ..utilities.warning_messages import no_header_warn
 
 
+@validate_user_input(draggable_plots=bool, show_quibs_as_widgets=bool)
 def initialize_quibbler(draggable_plots: bool = True, show_quibs_as_widgets: bool = True):
     """
     Initialize Quibbler to allow functions to work on quibs

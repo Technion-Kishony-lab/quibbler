@@ -1439,6 +1439,7 @@ class Quib:
                             'Try Quib.iter_first() to iterate over the n-first items of the quib.')
         return Unpacker(self)
 
+    @validate_user_input(amount=(NoneType, int))
     def iter_first(self, amount: Optional[int] = None):
         """
         Return an iterator to the first `amount` elements of the quib.
@@ -1522,6 +1523,7 @@ class Quib:
     relationships
     """
 
+    @validate_user_input(bypass_intermediate_quibs=bool)
     def get_children(self, bypass_intermediate_quibs: bool = False) -> Set[Quib]:
         """
         Return the set of quibs that are immediately downstream of the current quib.
@@ -1566,6 +1568,7 @@ class Quib:
                 named_children.add(child)
         return named_children
 
+    @validate_user_input(bypass_intermediate_quibs=bool, depth=(NoneType, int))
     def get_descendants(self, bypass_intermediate_quibs: bool = False, depth: Optional[int] = None) -> Set[Quib]:
         """
         Search for all quibs downstream of current quib.
@@ -1612,6 +1615,7 @@ class Quib:
                                                      depth if depth is None else depth - 1)
         return descendants
 
+    @validate_user_input(bypass_intermediate_quibs=bool, is_data_source=(NoneType, bool))
     def get_parents(self, bypass_intermediate_quibs: bool = False, is_data_source: Optional[bool] = None) -> Set[Quib]:
         """
         Return the set of quibs immediate upstream to the current quib.
@@ -1669,6 +1673,7 @@ class Quib:
                 named_parents.add(parent)
         return named_parents
 
+    @validate_user_input(bypass_intermediate_quibs=bool, depth=(NoneType, int))
     def get_ancestors(self, bypass_intermediate_quibs: bool = False, depth: Optional[int] = None) -> Set[Quib]:
         """
         Search for all upstream quibs that this quib depends on.
