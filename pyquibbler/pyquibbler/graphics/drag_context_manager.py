@@ -12,5 +12,4 @@ def released():
 
 
 def is_pressed() -> bool:
-    global IS_PRESSED
     return IS_PRESSED

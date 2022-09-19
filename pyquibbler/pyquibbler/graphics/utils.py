@@ -5,7 +5,7 @@ from contextlib import contextmanager
 from matplotlib.axes import Axes
 from matplotlib.artist import Artist
 
-from pyquibbler.graphics.global_collecting import ArtistsCollector, AxesWidgetsCollector, AxesCreationPreventor
+from .global_collecting import ArtistsCollector, AxesWidgetsCollector, AxesCreationPreventor
 
 
 def get_axeses_to_artists(artists: Iterable[Artist]) -> Dict[Axes, List[Artist]]:
