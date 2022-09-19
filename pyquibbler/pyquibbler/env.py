@@ -1,5 +1,6 @@
 from pyquibbler.utilities.basic_types import Flag, Mutable
 
+
 """ Debug """
 
 DEBUG = Flag(False)
@@ -24,8 +25,7 @@ GRAPHICS_LAZY = Flag(False)
 
 PLOT_WITH_PICKER_TRUE_BY_DEFAULT = Flag(True)
 
-# Effective number of pixels in mouse events. None for infinity
-GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION = Mutable(1000)
+GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION = Mutable(1000)  # Number of pixels in mouse events. None for infinity
 
 WARN_ON_UNSUPPORTED_BACKEND = Flag(True)
 
@@ -41,6 +41,8 @@ OVERRIDE_DIALOG_AS_TEXT_FOR_NON_GRAPHICS_ASSIGNMENT = Flag(True)
 
 """ repr """
 
+SHOW_QUIB_WIDGETS_IN_JUPYTER_LAB = Flag(True)
+
 PRETTY_REPR = Flag(True)
 
 REPR_RETURNS_SHORT_NAME = Flag(False)
@@ -55,4 +57,3 @@ GET_VARIABLE_NAMES = Flag(True)
 LEN_BOOL_ETC_RAISE_EXCEPTION = Flag(True)
 
 ITER_RAISE_EXCEPTION = Flag(False)
-

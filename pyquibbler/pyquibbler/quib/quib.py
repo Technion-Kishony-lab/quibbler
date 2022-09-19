@@ -68,6 +68,7 @@ from pyquibbler.quib.graphics.redraw import notify_of_overriding_changes_or_add_
 from pyquibbler.env import PRETTY_REPR, REPR_RETURNS_SHORT_NAME, REPR_WITH_OVERRIDES, WARN_ON_UNSUPPORTED_BACKEND
 from pyquibbler.quib.pretty_converters import MathExpression, FailedMathExpression, NameMathExpression, \
     get_math_expression_of_func_with_args_and_kwargs, FunctionCallMathExpression
+from pyquibbler.env import SHOW_QUIB_WIDGETS_IN_JUPYTER_LAB
 
 from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Union, Iterable, Mapping, Callable, Iterator
 
@@ -2215,7 +2216,7 @@ class Quib:
         return self.handler.is_iquib
 
     def _repr_html_(self) -> Optional[str]:
-        if self.handler.display_widget():
+        if SHOW_QUIB_WIDGETS_IN_JUPYTER_LAB and self.handler.display_widget():
             return ''
 
         return None
