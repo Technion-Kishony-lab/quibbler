@@ -43,7 +43,7 @@ def initialize_quibbler(draggable_plots: bool = True, show_quibs_as_widgets: boo
 
     See Also
     --------
-    quiby, is_quiby, q, list_quiby_funcs, Project
+    quiby, is_quiby, q, list_quiby_funcs, Project, Quib.display
 
     Examples
     --------
@@ -68,8 +68,9 @@ def initialize_quibbler(draggable_plots: bool = True, show_quibs_as_widgets: boo
 
     Note
     ----
-    You only need to call ``initialize_quibbler`` once at the beginning of your script.
-    Additional calls, though, are harmless and can be used to re-specify `draggable_plots` and `show_quibs_as_widgets`.
+    ``initialize_quibbler`` need only be called once at the beginning of the script, after pyquibbler is imported.
+    Additional calls, though, are harmless and can even be useful as a means to re-specify
+    `draggable_plots` and `show_quibs_as_widgets`.
     """
 
     DRAGGABLE_PLOTS_BY_DEFAULT.set(draggable_plots)
