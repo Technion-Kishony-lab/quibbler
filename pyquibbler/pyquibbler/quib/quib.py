@@ -68,6 +68,8 @@ from pyquibbler.quib.graphics.redraw import notify_of_overriding_changes_or_add_
 from pyquibbler.env import PRETTY_REPR, REPR_RETURNS_SHORT_NAME, REPR_WITH_OVERRIDES, WARN_ON_UNSUPPORTED_BACKEND
 from pyquibbler.quib.pretty_converters import MathExpression, FailedMathExpression, NameMathExpression, \
     get_math_expression_of_func_with_args_and_kwargs, FunctionCallMathExpression
+from pyquibbler.env import SHOW_QUIBS_AS_WIDGETS_IN_JUPYTER_LAB
+from pyquibbler.quib.exceptions import CannotDisplayQuibWidget
 
 from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Union, Iterable, Mapping, Callable, Iterator
 
@@ -563,12 +565,12 @@ class QuibHandler:
         if self._widget:
             self._widget.refresh()
 
-    def display_widget(self) -> bool:
+    def display_widget(self):
         try:
             from pyquibbler.optional_packages.get_IPython import display
             from pyquibbler.optional_packages.get_ipywidgets import ipywidgets   # noqa: F401
         except ImportError:
-            return False
+            raise CannotDisplayQuibWidget()
 
         if self._widget is None:
             # We do not import QuibWidget globally to avoid importing ipywidgets if not installed
@@ -579,8 +581,6 @@ class QuibHandler:
             self._widget = widget
 
         display(self._widget.get_widget())
-
-        return True
 
 
 class Quib:
@@ -1438,6 +1438,7 @@ class Quib:
                             'Try Quib.iter_first() to iterate over the n-first items of the quib.')
         return Unpacker(self)
 
+    @validate_user_input(amount=(NoneType, int))
     def iter_first(self, amount: Optional[int] = None):
         """
         Return an iterator to the first `amount` elements of the quib.
@@ -1521,6 +1522,7 @@ class Quib:
     relationships
     """
 
+    @validate_user_input(bypass_intermediate_quibs=bool)
     def get_children(self, bypass_intermediate_quibs: bool = False) -> Set[Quib]:
         """
         Return the set of quibs that are immediately downstream of the current quib.
@@ -1565,6 +1567,7 @@ class Quib:
                 named_children.add(child)
         return named_children
 
+    @validate_user_input(bypass_intermediate_quibs=bool, depth=(NoneType, int))
     def get_descendants(self, bypass_intermediate_quibs: bool = False, depth: Optional[int] = None) -> Set[Quib]:
         """
         Search for all quibs downstream of current quib.
@@ -1611,6 +1614,7 @@ class Quib:
                                                      depth if depth is None else depth - 1)
         return descendants
 
+    @validate_user_input(bypass_intermediate_quibs=bool, is_data_source=(NoneType, bool))
     def get_parents(self, bypass_intermediate_quibs: bool = False, is_data_source: Optional[bool] = None) -> Set[Quib]:
         """
         Return the set of quibs immediate upstream to the current quib.
@@ -1668,6 +1672,7 @@ class Quib:
                 named_parents.add(parent)
         return named_parents
 
+    @validate_user_input(bypass_intermediate_quibs=bool, depth=(NoneType, int))
     def get_ancestors(self, bypass_intermediate_quibs: bool = False, depth: Optional[int] = None) -> Set[Quib]:
         """
         Search for all upstream quibs that this quib depends on.
@@ -2215,7 +2220,33 @@ class Quib:
         return self.handler.is_iquib
 
     def _repr_html_(self) -> Optional[str]:
-        if self.handler.display_widget():
-            return ''
+        if SHOW_QUIBS_AS_WIDGETS_IN_JUPYTER_LAB:
+            try:
+                self.handler.display_widget()
+                return ''
+            except CannotDisplayQuibWidget:
+                pass
+        return None  # indicating that _repr_html_ was not successful
 
-        return None
+    def display(self):
+        """
+        Display the quib as q QuibWidget.
+
+        Display a QuibWidget allowing interactive viewing of the quib value and properties and
+        editing of quib overrides.
+
+        See Also
+        --------
+        display_properties, QuibWidget, pretty_repr, functional_representation
+
+        Note
+        ----
+        (1) Displaying a quib widget is only supported within Jupyter Lab and with the ipywidgets package installed.
+
+        (2) Quibs are automatically displayed as QuibWidgets in Jupyter Lab, if `pyquibbler` is initiated with
+        `initialize_quibbler(show_quibs_as_widgets=True)` (default).
+        """
+        try:
+            self.handler.display_widget()
+        except CannotDisplayQuibWidget:
+            raise

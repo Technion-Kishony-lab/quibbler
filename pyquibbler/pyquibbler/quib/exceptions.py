@@ -28,3 +28,10 @@ class LenBoolEtcException(PyQuibblerException, TypeError):
         return f'{func}(Q), where Q is a quib, is not allowed.\n' \
                f'To create a function quib, use q({func}, Q), or quiby({func})(Q).\n' \
                f'To get the {func} of the current value of Q, use {func}(Q.get_value()).'
+
+
+class CannotDisplayQuibWidget(PyQuibblerException):
+
+    def __str__(self):
+        return 'Cannot display the quib as a QuibWidget.\n' \
+               'To display QuibWidget you must be in Jupyter Lab and with ipywidgets installed.\n'

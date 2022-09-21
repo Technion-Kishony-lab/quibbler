@@ -35,6 +35,8 @@ class InvalidArgumentTypeException(InvalidArgumentException):
 
     def _must_be_message(self):
         types = self.expected_type if isinstance(self.expected_type, tuple) else (self.expected_type,)
+        if len(types) == 1:
+            return f'of type {types[0].__name__}'
         return f'of types {", ".join(map(lambda t: t.__name__, types))}'
 
 

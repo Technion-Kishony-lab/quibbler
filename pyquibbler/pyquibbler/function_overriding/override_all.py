@@ -1,6 +1,5 @@
 from typing import List
 
-from pyquibbler.utilities.decorators import ensure_only_run_once_globally
 from pyquibbler.project.jupyer_project.jupyter_project import create_jupyter_project_if_in_jupyter_lab
 from pyquibbler.function_definitions import add_definition_for_function
 from .defintion_without_override.python_functions import create_definitions_for_python_functions
@@ -13,20 +12,39 @@ from .quib_overrides.operators.overrides import create_operator_overrides
 from .quib_overrides.quib_methods import create_quib_method_overrides
 from .third_party_overriding.numpy.overrides import create_numpy_overrides
 from .third_party_overriding.graphics.overrides import create_graphics_overrides
+from ..env import DRAGGABLE_PLOTS_BY_DEFAULT, SHOW_QUIBS_AS_WIDGETS_IN_JUPYTER_LAB
+from ..utilities.input_validation_utils import validate_user_input
 from ..utilities.warning_messages import no_header_warn
 
 
-@ensure_only_run_once_globally
-def initialize_quibbler():
+@validate_user_input(draggable_plots=bool, show_quibs_as_widgets=bool)
+def initialize_quibbler(draggable_plots: bool = True, show_quibs_as_widgets: bool = True):
     """
     Initialize Quibbler to allow functions to work on quibs
 
-    Override all relevant functions, both operators and third party, to support Quibs.
-    Need to run once *before* importing from NumPy or Matplotlib.
+    Initiate quibbler and override all relevant functions and operators in NumPy, Matplotlib,
+    and ipywidgets to support Quibs.
+
+    Parameters
+    ----------
+    draggable_plots: bool, default True
+        Indicates whether plots created by matplotlib `plot` and `scatter`
+        are mouse draggable by default (namely, allowing graphics-based assignments).
+
+        When set to `True`, plots are automatically draggable. Indicate `picker=False`
+        in a `plot` or `scatter` function call to prevent dragging for a specific plot.
+
+        When set to `False`, plots are not draggable, unless `picker=True` is
+        specified in the `plot` or `scatter` function calls.
+
+    show_quibs_as_widgets: bool, default True
+        Indicates whether to display quibs as interactive widgets.
+        When set to False, quibs can still be displayed as widgets using the quib's display method.
+        (Note that `show_quibs_as_widgets` is only applicable within Jupyter Lab).
 
     See Also
     --------
-    quiby, is_quiby, q, list_quiby_funcs, Project
+    quiby, is_quiby, q, list_quiby_funcs, Project, Quib.display
 
     Examples
     --------
@@ -51,8 +69,17 @@ def initialize_quibbler():
 
     Note
     ----
-    Only need to run ``initialize_quibbler`` once. Additional calls are gracefully ignored.
+    ``initialize_quibbler`` need only be called once at the beginning of the script,
+    after pyquibbler is imported.
+    Additional calls, though, are harmless and can even be useful as a means to re-specify
+    `draggable_plots` and `show_quibs_as_widgets`.
     """
+
+    DRAGGABLE_PLOTS_BY_DEFAULT.set(draggable_plots)
+    SHOW_QUIBS_AS_WIDGETS_IN_JUPYTER_LAB.set(show_quibs_as_widgets)
+
+    if IS_QUIBBLER_INITIATED:
+        return
 
     within_jupyterlab = create_jupyter_project_if_in_jupyter_lab()
 

@@ -7,7 +7,7 @@ import matplotlib.patches
 from matplotlib.axes import Axes
 from mpl_toolkits.mplot3d import Axes3D
 
-from pyquibbler.env import PLOT_WITH_PICKER_TRUE_BY_DEFAULT
+from pyquibbler.env import DRAGGABLE_PLOTS_BY_DEFAULT
 from pyquibbler.function_overriding.function_override import FuncOverride
 from pyquibbler.function_overriding.third_party_overriding.general_helpers import override_with_cls, override_class
 from pyquibbler.quib.graphics import artist_wrapper
@@ -32,7 +32,7 @@ class PlotOverride(GraphicsOverride):
 
     @staticmethod
     def _modify_kwargs(kwargs):
-        if PLOT_WITH_PICKER_TRUE_BY_DEFAULT:
+        if DRAGGABLE_PLOTS_BY_DEFAULT:
             if 'picker' not in kwargs:
                 kwargs['picker'] = True
             elif kwargs['picker'] is False:

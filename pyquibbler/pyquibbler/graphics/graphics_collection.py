@@ -6,6 +6,7 @@ from matplotlib.artist import Artist
 from matplotlib.widgets import AxesWidget
 
 from pyquibbler.utilities.settable_cycle import SettableColorCycle
+
 from .update_new_artists import update_new_artists_from_previous_artists, \
     add_new_axesless_patches_to_axes, copy_attributes_from_new_to_previous_artists
 from .global_collecting import ArtistsCollector, AxesWidgetsCollector, AxesCreationPreventor, \

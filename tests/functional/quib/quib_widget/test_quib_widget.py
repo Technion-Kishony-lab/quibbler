@@ -153,3 +153,10 @@ def test_quib_widget_shows_value_exception(quib, child, child_widget):
 
 def test_quib_widget_shows_props(quib, quib_widget):
     quib_widget._props_button.click()
+
+
+def test_display_method_creates_widget():
+    a = iquib(1)
+    assert a.handler._widget is None
+    a.display()
+    assert isinstance(a.handler._widget, QuibWidget)
