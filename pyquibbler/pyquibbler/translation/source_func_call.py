@@ -3,7 +3,7 @@ from typing import Callable, Tuple, Any, Mapping, TYPE_CHECKING, Optional, List
 
 from pyquibbler.function_definitions import get_definition_for_function, SourceLocation
 from pyquibbler.function_definitions.func_call import FuncCall, FuncArgsKwargs
-from pyquibbler.translation.types import Source
+from .types import Source
 
 if TYPE_CHECKING:
     from pyquibbler.function_definitions.func_definition import FuncDefinition

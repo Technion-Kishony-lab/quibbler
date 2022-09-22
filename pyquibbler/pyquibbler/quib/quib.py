@@ -2230,7 +2230,7 @@ class Quib:
 
     def display(self):
         """
-        Display the quib as q QuibWidget.
+        Display the quib as a QuibWidget.
 
         Display a QuibWidget allowing interactive viewing of the quib value and properties and
         editing of quib overrides.
@@ -2241,10 +2241,10 @@ class Quib:
 
         Note
         ----
-        (1) Displaying a quib widget is only supported within Jupyter Lab and with the ipywidgets package installed.
+        1. Displaying a quib widget is only supported within Jupyter Lab and with the ipywidgets package installed.
 
-        (2) Quibs are automatically displayed as QuibWidgets in Jupyter Lab, if `pyquibbler` is initiated with
-        `initialize_quibbler(show_quibs_as_widgets=True)` (default).
+        2. Quibs are automatically displayed as QuibWidgets in Jupyter Lab, if `pyquibbler` is initiated with
+           `initialize_quibbler(show_quibs_as_widgets=True)` (default).
         """
         try:
             self.handler.display_widget()

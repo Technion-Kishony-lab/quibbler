@@ -5,7 +5,7 @@ from typing import Any, TYPE_CHECKING
 
 import numpy as np
 
-from pyquibbler.translation.exceptions import FailedToTranslateException
+from .exceptions import FailedToTranslateException
 
 if TYPE_CHECKING:
     from pyquibbler.function_definitions.types import Argument

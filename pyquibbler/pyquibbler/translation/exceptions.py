@@ -1,11 +1,13 @@
 from __future__ import annotations
+
+from abc import ABC
 from dataclasses import dataclass
 from typing import Callable
 
 from pyquibbler.exceptions import PyQuibblerException
 
 
-class TranslationException(PyQuibblerException):
+class TranslationException(ABC, PyQuibblerException):
     pass
 
 
