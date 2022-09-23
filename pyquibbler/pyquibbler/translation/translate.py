@@ -61,7 +61,7 @@ class MultipleForwardsTranslatorRunner(MultipleInstanceRunner):
             type_=self._type,
             sources_to_paths=self._sources_to_paths,
             **self._extra_kwargs_for_translator
-        ).translate()
+        ).forward_translate()
 
     def _get_runners_from_definition(self, definition: FuncDefinition) -> List:
         return definition.forwards_path_translators

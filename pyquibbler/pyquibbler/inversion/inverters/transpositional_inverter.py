@@ -62,7 +62,7 @@ class TranspositionalInverter(Inverter):
             shape=np.shape(self._previous_result),
             type_=type(self._previous_result),
             should_forward_empty_paths_to_empty_paths=False
-        ).translate()
+        ).forward_translate()
         assert all(len(paths) == 1 for paths in sources_to_paths_in_result.values())
 
         boolean_mask = create_bool_mask_with_true_at_indices(np.shape(self._previous_result),

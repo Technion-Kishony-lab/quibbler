@@ -34,7 +34,7 @@ class ForwardsPathTranslator:
     def _forward_translate_source(self, source: Source, path: Path) -> Paths:
         pass
 
-    def translate(self) -> Dict[Source, Paths]:
+    def forward_translate(self) -> Dict[Source, Paths]:
         return {
             source: self._forward_translate_source(source, path)
             for source, path in self._sources_to_paths.items()
