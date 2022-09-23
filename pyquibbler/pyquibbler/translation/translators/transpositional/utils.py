@@ -1,24 +1,22 @@
 import numpy as np
-from typing import Dict
 
 from pyquibbler.translation.source_func_call import SourceFuncCall
 from pyquibbler.translation.types import Source
 from pyquibbler.function_definitions.func_call import FuncCall
 
 
-def get_data_source_ids_mask(func_call: FuncCall, sources_to_indices: Dict[Source, np.ndarray] = None) -> np.ndarray:
+def get_data_source_mask(func_call: FuncCall, source: Source, indices: np.ndarray) -> np.ndarray:
     """
-    Runs the function with each source's id instead of it's values
+    Runs the function with True at the source position
     """
 
-    sources_to_indices = sources_to_indices or {}
-
-    def replace_source_with_id(obj):
-        res = np.full(np.shape(obj.value), 0)
-        res[sources_to_indices.get(obj, True)] = id(obj)
+    def replace_source_with_bool(obj):
+        res = np.full(np.shape(obj.value), False)
+        if obj is source:
+            res[indices] = True
         return res
 
-    args, kwargs = func_call.transform_sources_in_args_kwargs(transform_data_source_func=replace_source_with_id)
+    args, kwargs = func_call.transform_sources_in_args_kwargs(transform_data_source_func=replace_source_with_bool)
     return SourceFuncCall.from_(func_call.func, args, kwargs,
                                 func_definition=func_call.func_definition,
                                 data_source_locations=[],

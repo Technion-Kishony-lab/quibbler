@@ -10,7 +10,7 @@ from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_ind
 from pyquibbler.translation.numpy_translator import NumpyForwardsPathTranslator
 from pyquibbler.translation.numpy_translator import NumpyBackwardsPathTranslator
 from pyquibbler.translation.source_func_call import SourceFuncCall
-from pyquibbler.translation.translators.transpositional.utils import get_data_source_ids_mask
+from pyquibbler.translation.translators.transpositional.utils import get_data_source_mask
 from pyquibbler.translation.types import Source
 from pyquibbler.translation.utils import copy_and_replace_sources_with_vals
 
@@ -151,13 +151,9 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
 
 class ForwardsTranspositionalTranslator(NumpyForwardsPathTranslator):
 
-    def _get_source_ids_mask(self):
-        return get_data_source_ids_mask(self._func_call, {
-            self._source: working_component_of_type(self._path, (list, np.ndarray), True)
-        })
-
     def _forward_translate_indices_to_bool_mask(self, source: Source, indices: Any):
-        return np.equal(self._get_source_ids_mask(), id(source))
+        return np.equal(get_data_source_mask(self._func_call, source,
+                                             working_component_of_type(self._path, (list, np.ndarray), True)), True)
 
     def _forward_translate_source(self, source: Source, path: Path) -> Paths:
         """
