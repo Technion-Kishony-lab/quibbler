@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from .vectorize_metadata import ArgsMetadata
 
 
-def get_core_axes(core_ndim: int) -> Tuple[int, ...]:
+def get_core_axes(core_ndim: int) -> Shape:
     """
     Return the numbers of the core axes given the amount of core dimensions.
     """

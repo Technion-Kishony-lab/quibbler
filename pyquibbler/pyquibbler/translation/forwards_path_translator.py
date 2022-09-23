@@ -3,8 +3,8 @@ from typing import Dict, Optional, Tuple, Type
 
 from pyquibbler.function_definitions import FuncCall
 from pyquibbler.path.path_component import Path, Paths
-from .types import Source
 
+from pyquibbler.utilities.general_utils import Shape
 from .types import Source
 
 
@@ -23,7 +23,7 @@ class ForwardsPathTranslator:
 
     def __init__(self,
                  func_call: Type[FuncCall], sources_to_paths: Dict[Source, Path],
-                 shape: Optional[Tuple[int, ...]],
+                 shape: Optional[Shape],
                  type_: Optional[Type]):
         self._func_call = func_call
         self._sources_to_paths = sources_to_paths

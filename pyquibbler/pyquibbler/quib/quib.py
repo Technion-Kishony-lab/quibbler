@@ -13,6 +13,7 @@ from matplotlib.axes import Axes
 # Debugging, warning and performance:
 from pyquibbler.debug_utils import timeit, logger
 from pyquibbler.quib.exceptions import LenBoolEtcException
+from pyquibbler.utilities.general_utils import Shape
 from pyquibbler.utilities.warning_messages import no_header_warn
 
 # Input validation:
@@ -1365,7 +1366,7 @@ class Quib:
         return self.handler.quib_function_call.get_type()
 
     @raise_quib_call_exceptions_as_own
-    def get_shape(self) -> Tuple[int, ...]:
+    def get_shape(self) -> Shape:
         """
         Return the shape of the quib's value.
 

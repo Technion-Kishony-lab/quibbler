@@ -3,7 +3,7 @@ from typing import Dict, Any, Set, Optional, Tuple, Type, List
 
 import numpy as np
 
-from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices, unbroadcast_bool_mask
+from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices, unbroadcast_bool_mask, Shape
 from pyquibbler.path import PathComponent
 from pyquibbler.path.path_component import Path
 from pyquibbler.quib.func_calling.func_calls.vectorize.utils import get_core_axes
@@ -31,7 +31,7 @@ class VectorizeBackwardsPathTranslator(BackwardsPathTranslator):
 
     SHOULD_ATTEMPT_WITHOUT_SHAPE_AND_TYPE = True
 
-    def __init__(self, func_call, shape: Optional[Tuple[int, ...]], type_: Optional[Type], path,
+    def __init__(self, func_call, shape: Optional[Shape], type_: Optional[Type], path,
                  vectorize_metadata=None):
         super().__init__(func_call, shape, type_, path)
         self._vectorize_metadata = vectorize_metadata
@@ -72,7 +72,7 @@ class VectorizeBackwardsPathTranslator(BackwardsPathTranslator):
 class VectorizeForwardsPathTranslator(ForwardsPathTranslator):
 
     def __init__(self, func_call, sources_to_paths: Dict[Source, Path],
-                 shape: Optional[Tuple[int, ...]], type_: Optional[Type], vectorize_metadata):
+                 shape: Optional[Shape], type_: Optional[Type], vectorize_metadata):
         super().__init__(func_call, sources_to_paths, shape, type_)
         self._vectorize_metadata = vectorize_metadata
 

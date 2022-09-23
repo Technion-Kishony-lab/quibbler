@@ -15,6 +15,7 @@ from pyquibbler.quib.func_calling.exceptions import CannotCalculateShapeExceptio
 from pyquibbler.quib.func_calling.result_metadata import ResultMetadata
 from pyquibbler.quib.func_calling.utils import create_array_from_func, CachedCall
 from pyquibbler.quib.quib import Quib
+from pyquibbler.utilities.general_utils import Shape
 
 
 @dataclass
@@ -75,7 +76,7 @@ class QuibFuncCall(FuncCall):
         """
         return self._get_metadata().type
 
-    def get_shape(self) -> Tuple[int, ...]:
+    def get_shape(self) -> Shape:
         """
         Assuming this quib represents a numpy ndarray, returns a quib of its shape.
         """

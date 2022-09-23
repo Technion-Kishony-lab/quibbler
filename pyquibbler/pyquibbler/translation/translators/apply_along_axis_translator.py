@@ -4,7 +4,7 @@ from typing import Tuple
 import numpy as np
 
 from pyquibbler.translation.numpy_translator import NumpyForwardsPathTranslator
-from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices
+from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices, Shape
 from pyquibbler.function_definitions.func_call import FuncCall
 from pyquibbler.translation.translators.axeswise.axiswise_translator import Arg
 from pyquibbler.translation.types import Source
@@ -13,7 +13,7 @@ from pyquibbler.translation.types import Source
 @dataclass
 class ApplyAlongAxis:
     func_call: FuncCall
-    result_shape: Tuple[int, ...]
+    result_shape: Shape
 
     @property
     def arr(self):

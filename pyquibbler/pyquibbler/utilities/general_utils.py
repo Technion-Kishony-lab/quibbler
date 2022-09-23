@@ -8,6 +8,7 @@ import numpy as np
 
 Args = Tuple[Any, ...]
 Kwargs = Dict[str, Any]
+Shape = Tuple[int, ...]
 
 
 def create_bool_mask_with_true_at_indices(shape: tuple, indices: Any) -> np.ndarray:
@@ -19,7 +20,7 @@ def create_bool_mask_with_true_at_indices(shape: tuple, indices: Any) -> np.ndar
     return res
 
 
-def unbroadcast_bool_mask(bool_mask: np.ndarray, original_shape: Tuple[int, ...]) -> np.ndarray:
+def unbroadcast_bool_mask(bool_mask: np.ndarray, original_shape: Shape) -> np.ndarray:
     """
     Given a bool mask representing changes in an array which is a result of a broadcast, return an "un-broadcast"
     array in the given original shape (the shape before broadcasting) in which each boolean is true
@@ -34,6 +35,3 @@ def unbroadcast_bool_mask(bool_mask: np.ndarray, original_shape: Tuple[int, ...]
                                                 if result_len != quib_len)
     reduced_bool_mask = np.any(reduced_bool_mask, axis=broadcast_loop_dimensions_to_reduce, keepdims=True)
     return np.broadcast_to(reduced_bool_mask, original_shape)
-
-
-Shape = Tuple[int, ...]
