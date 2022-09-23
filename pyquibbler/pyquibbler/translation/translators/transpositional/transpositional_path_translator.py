@@ -153,8 +153,7 @@ class ForwardsTranspositionalTranslator(NumpyForwardsPathTranslator):
 
     def _get_source_ids_mask(self):
         return get_data_source_ids_mask(self._func_call, {
-            source: working_component_of_type(path, (list, np.ndarray), True)
-            for source, path in self._sources_to_paths.items()
+            self._source: working_component_of_type(self._path, (list, np.ndarray), True)
         })
 
     def _forward_translate_indices_to_bool_mask(self, source: Source, indices: Any):

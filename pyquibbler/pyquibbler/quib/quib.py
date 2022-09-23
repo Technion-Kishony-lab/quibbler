@@ -273,16 +273,14 @@ class QuibHandler:
     def _forward_translate_with_retrieving_metadata(self, invalidator_quib: Quib, path: Path) -> Paths:
         func_call, sources_to_quibs = get_func_call_for_translation(self.quib_function_call, with_meta_data=None)
         quibs_to_sources = {quib: source for source, quib in sources_to_quibs.items()}
-        sources_to_forwarded_paths = forwards_translate(
+        return forwards_translate(
             func_call=func_call,
-            sources_to_paths={
-                quibs_to_sources[invalidator_quib]: path
-            },
+            source=quibs_to_sources[invalidator_quib],
+            path=path,
             shape=self.quib_function_call.get_shape(),
             type_=self.quib_function_call.get_type(),
             **self.quib_function_call.get_result_metadata()
         )
-        return sources_to_forwarded_paths.get(quibs_to_sources[invalidator_quib], [])
 
     def _get_paths_for_children_invalidation(self, invalidator_quib: Quib,
                                              path: Path) -> Paths:

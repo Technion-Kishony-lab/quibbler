@@ -1,4 +1,4 @@
-from typing import Type, Dict, List
+from typing import Type, Dict, List, Optional
 
 from pyquibbler.function_definitions.func_definition import FuncDefinition
 from pyquibbler.utilities.multiple_instance_runner import MultipleInstanceRunner
@@ -9,6 +9,7 @@ from .backwards_path_translator import BackwardsPathTranslator
 from .exceptions import FailedToTranslateException, NoTranslatorsFoundException
 from .forwards_path_translator import ForwardsPathTranslator
 from .types import Source
+from ..utilities.general_utils import Shape
 
 
 class MultipleBackwardsTranslatorRunner(MultipleInstanceRunner):
@@ -44,10 +45,15 @@ class MultipleForwardsTranslatorRunner(MultipleInstanceRunner):
     expected_runner_exception = FailedToTranslateException
     exception_to_raise_on_none_found = NoTranslatorsFoundException
 
-    def __init__(self, func_call: FuncCall, sources_to_paths, shape=None, type_=None,
+    def __init__(self, func_call: FuncCall,
+                 source: Source,
+                 path: Path,
+                 shape: Optional[Shape] = None,
+                 type_: Optional[Type] = None,
                  extra_kwargs_for_translator: Dict = None):
         super().__init__(func_call)
-        self._sources_to_paths = sources_to_paths
+        self._source = source
+        self._path = path
         self._shape = shape
         self._type = type_
         self._extra_kwargs_for_translator = extra_kwargs_for_translator
@@ -59,7 +65,8 @@ class MultipleForwardsTranslatorRunner(MultipleInstanceRunner):
             func_call=self._func_call,
             shape=self._shape,
             type_=self._type,
-            sources_to_paths=self._sources_to_paths,
+            source=self._source,
+            path=self._path,
             **self._extra_kwargs_for_translator
         ).forward_translate()
 
@@ -68,7 +75,7 @@ class MultipleForwardsTranslatorRunner(MultipleInstanceRunner):
 
 
 def backwards_translate(func_call: FuncCall,
-                        path, shape=None, type_=None, **kwargs) -> Dict[Source, Path]:
+                        path, shape: Optional[Shape] = None, type_: Optional[Type] = None, **kwargs) -> Dict[Source, Path]:
     """
     Backwards translate a path given a func_call
     This gives a mapping of sources to paths that were referenced in given path in the result of the function
@@ -78,10 +85,11 @@ def backwards_translate(func_call: FuncCall,
 
 
 def forwards_translate(func_call: FuncCall,
-                       sources_to_paths, shape=None, type_=None, **kwargs) -> Dict[Source, Paths]:
+                       source: Source, path: Path, shape: Optional[Shape] = None, type_: Optional[Type] = None,
+                       **kwargs) -> Paths:
     """
     Forwards translate a mapping of sources to paths through a function, giving for each source a list of paths that
     were affected by the given path for the source
     """
-    return MultipleForwardsTranslatorRunner(func_call=func_call, sources_to_paths=sources_to_paths,
+    return MultipleForwardsTranslatorRunner(func_call=func_call, source=source, path=path,
                                             shape=shape, type_=type_, extra_kwargs_for_translator=kwargs).run()

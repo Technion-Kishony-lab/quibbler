@@ -4,12 +4,13 @@ from typing import Any, Dict, Optional, Type, Tuple
 import numpy as np
 
 from pyquibbler.path import working_component, translate_bool_vector_to_slice_if_possible, Path, Paths, PathComponent
+from pyquibbler.function_definitions import FuncCall
+from pyquibbler.utilities.general_utils import Shape
 
 from .backwards_path_translator import BackwardsPathTranslator
 from .exceptions import FailedToTranslateException
 from .forwards_path_translator import ForwardsPathTranslator
 from .types import Source, NoMetadataSource
-from ..utilities.general_utils import Shape
 
 
 class NumpyBackwardsPathTranslator(BackwardsPathTranslator):
@@ -49,9 +50,14 @@ class NumpyForwardsPathTranslator(ForwardsPathTranslator):
 
     SHOULD_ATTEMPT_WITHOUT_SHAPE_AND_TYPE = True
 
-    def __init__(self, func_call, sources_to_paths: Dict[Source, Path], shape: Optional[Shape],
-                 type_: Optional[Type], should_forward_empty_paths_to_empty_paths: bool = True):
-        super().__init__(func_call, sources_to_paths, shape, type_)
+    def __init__(self,
+                 func_call: Type[FuncCall],
+                 source: Source,
+                 path: Path,
+                 shape: Optional[Shape],
+                 type_: Optional[Type],
+                 should_forward_empty_paths_to_empty_paths: bool = True):
+        super().__init__(func_call, source, path, shape, type_)
         self._should_forward_empty_paths_to_empty_paths = should_forward_empty_paths_to_empty_paths
 
     @abstractmethod

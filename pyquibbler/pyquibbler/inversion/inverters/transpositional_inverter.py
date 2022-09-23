@@ -56,13 +56,14 @@ class TranspositionalInverter(Inverter):
             shape=np.shape(self._previous_result),
             type_=type(self._previous_result)
         ).backwards_translate()
-        sources_to_paths_in_result = ForwardsTranspositionalTranslator(
+        sources_to_paths_in_result = {source: ForwardsTranspositionalTranslator(
             func_call=self._func_call,
-            sources_to_paths=sources_to_paths_in_sources,
+            source=source,
+            path=path,
             shape=np.shape(self._previous_result),
             type_=type(self._previous_result),
             should_forward_empty_paths_to_empty_paths=False
-        ).forward_translate()
+        ).forward_translate() for source, path in sources_to_paths_in_sources.items()}
         assert all(len(paths) == 1 for paths in sources_to_paths_in_result.values())
 
         boolean_mask = create_bool_mask_with_true_at_indices(np.shape(self._previous_result),

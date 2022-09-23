@@ -22,11 +22,14 @@ class ForwardsPathTranslator:
     SHOULD_ATTEMPT_WITHOUT_SHAPE_AND_TYPE = False
 
     def __init__(self,
-                 func_call: Type[FuncCall], sources_to_paths: Dict[Source, Path],
+                 func_call: Type[FuncCall],
+                 source: Source,
+                 path: Path,
                  shape: Optional[Shape],
                  type_: Optional[Type]):
         self._func_call = func_call
-        self._sources_to_paths = sources_to_paths
+        self._source = source
+        self._path = path
         self._shape = shape
         self._type = type_
 
@@ -34,8 +37,5 @@ class ForwardsPathTranslator:
     def _forward_translate_source(self, source: Source, path: Path) -> Paths:
         pass
 
-    def forward_translate(self) -> Dict[Source, Paths]:
-        return {
-            source: self._forward_translate_source(source, path)
-            for source, path in self._sources_to_paths.items()
-        }
+    def forward_translate(self) -> Paths:
+        return self._forward_translate_source(self._source, self._path)

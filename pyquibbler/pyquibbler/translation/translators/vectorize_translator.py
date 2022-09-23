@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Dict, Any, Set, Optional, Tuple, Type, List
+from typing import Dict, Any, Set, Optional, Type, List
 
 import numpy as np
 
@@ -8,6 +8,7 @@ from pyquibbler.path import PathComponent
 from pyquibbler.path.path_component import Path
 from pyquibbler.quib.func_calling.func_calls.vectorize.utils import get_core_axes
 from pyquibbler.function_definitions.types import iter_arg_ids_and_values
+from pyquibbler.function_definitions import FuncCall
 
 from ..exceptions import FailedToTranslateException
 from ..backwards_path_translator import BackwardsPathTranslator
@@ -71,9 +72,14 @@ class VectorizeBackwardsPathTranslator(BackwardsPathTranslator):
 
 class VectorizeForwardsPathTranslator(ForwardsPathTranslator):
 
-    def __init__(self, func_call, sources_to_paths: Dict[Source, Path],
-                 shape: Optional[Shape], type_: Optional[Type], vectorize_metadata):
-        super().__init__(func_call, sources_to_paths, shape, type_)
+    def __init__(self,
+                 func_call: Type[FuncCall],
+                 source: Source,
+                 path: Path,
+                 shape: Optional[Shape],
+                 type_: Optional[Type],
+                 vectorize_metadata):
+        super().__init__(func_call, source, path, shape, type_)
         self._vectorize_metadata = vectorize_metadata
 
     def _forward_translate_indices_to_bool_mask(self, source: Source, indices: Any):
