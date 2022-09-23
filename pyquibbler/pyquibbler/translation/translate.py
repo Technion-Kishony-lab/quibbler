@@ -36,7 +36,7 @@ class MultipleBackwardsTranslatorRunner(MultipleInstanceRunner):
             type_=self._type,
             **self._extra_kwargs_for_translator
         )
-        return translator.translate()
+        return translator.backwards_translate()
 
 
 class MultipleForwardsTranslatorRunner(MultipleInstanceRunner):

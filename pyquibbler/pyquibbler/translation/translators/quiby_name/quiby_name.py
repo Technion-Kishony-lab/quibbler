@@ -11,7 +11,7 @@ class BackwardsQuibyNameTranslator(BackwardsPathTranslator):
     """
     We need no data from the sources.
     """
-    def translate(self) -> Dict[Source, Path]:
+    def backwards_translate(self) -> Dict[Source, Path]:
         sources_to_paths = {}
         for source in self._func_call.get_data_sources():
             sources_to_paths[source] = []

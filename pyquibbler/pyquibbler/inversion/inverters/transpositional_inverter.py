@@ -55,7 +55,7 @@ class TranspositionalInverter(Inverter):
             path=self._assignment.path,
             shape=np.shape(self._previous_result),
             type_=type(self._previous_result)
-        ).translate()
+        ).backwards_translate()
         sources_to_paths_in_result = ForwardsTranspositionalTranslator(
             func_call=self._func_call,
             sources_to_paths=sources_to_paths_in_sources,

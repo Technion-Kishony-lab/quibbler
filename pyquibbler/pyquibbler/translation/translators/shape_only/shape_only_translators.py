@@ -13,7 +13,7 @@ class BackwardsShapeOnlyPathTranslator(BackwardsPathTranslator):
     """
     We only need the shape of sources. Not their value.
     """
-    def translate(self) -> Dict[Source, Path]:
+    def backwards_translate(self) -> Dict[Source, Path]:
         sources_to_paths = {}
         for source in self._func_call.get_data_sources():
             sources_to_paths[source] = [PathComponent(np.ndarray, None)]

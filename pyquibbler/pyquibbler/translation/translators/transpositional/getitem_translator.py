@@ -33,9 +33,9 @@ class BackwardsGetItemTranslator(BackwardsTranspositionalTranslator):
                         and isinstance(self._func_call.args[0].value[self._func_call.args[1]], np.ndarray))
         # TODO: The above line is an ad hoc solution to the test_array_of_arrays bug
 
-    def translate(self) -> Dict[Source, Path]:
+    def backwards_translate(self) -> Dict[Source, Path]:
         if self._can_squash_start_of_path():
-            return super(BackwardsGetItemTranslator, self).translate()
+            return super(BackwardsGetItemTranslator, self).backwards_translate()
         return {
             self._func_call.args[0]: [_getitem_path_component(self._func_call), *self._path]
         }

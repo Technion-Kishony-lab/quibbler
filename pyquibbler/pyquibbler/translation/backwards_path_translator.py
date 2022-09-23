@@ -33,7 +33,7 @@ class BackwardsPathTranslator:
         return working_component(self._path)
 
     @abstractmethod
-    def translate(self) -> Dict[Source, Path]:
+    def backwards_translate(self) -> Dict[Source, Path]:
         """
         Translate the path back to a mapping between sources and their respective paths which have an equivalence to
         self._path
