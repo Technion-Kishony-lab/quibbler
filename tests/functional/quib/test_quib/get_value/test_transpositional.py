@@ -37,9 +37,10 @@ def test_transpositional_get_value_with_fields(data, indices_to_get_value_at):
 @pytest.mark.parametrize('direction', [-1, 1])
 @pytest.mark.parametrize('concat_with_quib', [True, False])
 @pytest.mark.parametrize('indices_to_get_value_at', [0, 1, 2, -1])
-def test_concatenate_get_value_valid_at_path(direction, concat_with_quib, indices_to_get_value_at):
-    # It's important for the regression that one of the elements here is zero
-    to_concat = np.array([0, 1])
+@pytest.mark.parametrize('to_concat', [[0, 1],  # It's important for the regression that one of the elements here is 0
+                                       [0., 1.]])  # It's important for the regression that array is not int
+def test_concatenate_get_value_valid_at_path(direction, concat_with_quib, indices_to_get_value_at, to_concat):
+
     if concat_with_quib:
         to_concat = iquib(to_concat)
     path = [PathComponent(np.ndarray, indices_to_get_value_at)]
