@@ -16,34 +16,51 @@ class CannotCastObjectByOtherObjectException(PyQuibblerException):
         return "New object cannot be casted by previous object."
 
 
-def iter_objects_of_type_in_object_recursively(object_type: Type, obj,
-                                               max_depth: Optional[int] = None,
-                                               max_length: Optional[int] = None):
+def iter_objects_matching_criteria_in_object_recursively(func: Callable, obj: Any,
+                                                         max_depth: Optional[int] = None,
+                                                         max_length: Optional[int] = None,
+                                                         prevent_repetitions: bool = True):
     """
-    Returns an iterator for objects of a type nested in the given python object.
-    Objects that appear more than once will not be repeated.
+    Returns an iterator for objects matching a criteria defined by func (func should return True/False).
+    If prevent_repetitions=True, objects that appear more than once will not be repeated.
     When `max_depth` is given, limits the depth in which quibs are looked for.
     `max_depth=0` means only `obj` itself will be checked and replaced,
     `max_depth=1` means `obj` and all objects it directly references, and so on.
     When `max_length` is given, does not recurse into iterables larger than `max_length`.
     """
     objects = set()
-    if isinstance(obj, object_type):
-        if obj not in objects:
-            objects.add(obj)
+    if func(obj):
+        if prevent_repetitions:
+            if obj not in objects:
+                objects.add(obj)
+                yield obj
+        else:
             yield obj
+
     elif max_depth is None or max_depth > 0:
         # Recurse into composite objects
         if isinstance(obj, slice):
             obj = (obj.start, obj.stop, obj.step)
+        if isinstance(obj, np.ndarray) and obj.dtype.type is np.object_:
+            obj = tuple(obj.ravel())
         if isinstance(obj, (tuple, list, set)):
             # This is a fixed-size collection
             if max_length is None or len(obj) <= max_length:
                 # The collection is small enough
                 next_max_depth = None if max_depth is None else max_depth - 1
                 for sub_obj in obj:
-                    yield from iter_objects_of_type_in_object_recursively(object_type,
-                                                                          sub_obj, next_max_depth, max_length)
+                    yield from iter_objects_matching_criteria_in_object_recursively(func, sub_obj,
+                                                                                    next_max_depth, max_length,
+                                                                                    prevent_repetitions)
+
+
+def iter_objects_of_type_in_object_recursively(object_type: Type, obj,
+                                               max_depth: Optional[int] = None,
+                                               max_length: Optional[int] = None):
+    def is_type(sub_obj):
+        return isinstance(sub_obj, object_type)
+
+    yield from iter_objects_matching_criteria_in_object_recursively(is_type, obj, max_depth, max_length)
 
 
 def is_iterator_empty(iterator):

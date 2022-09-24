@@ -42,10 +42,12 @@ def deep_get(obj: Any, path: Path):
 
         if component.indexed_cls == slice:
             obj = getattr(obj, component.component)
+        elif component.indexed_cls == np.ndarray and component.component is True:
+            pass
         else:
             try:
                 obj = obj[component.component]
-            except TypeError:
+            except (TypeError, IndexError):
                 # We don't want to fail if it's a list that's being accessed as an nparray
                 obj = np.array(obj)[component.component]
     return obj

@@ -64,14 +64,20 @@ def breakdown_path(data: Any, path: Path):
     assert isinstance(data, np.ndarray)
     is_field_array = data.dtype.names is not None
     if is_field_array:
-        assert 1 <= len(path) <= 2
-        first_components, first_is_field = breakdown_component(data.shape, path[0])
+        assert 0 <= len(path) <= 2
+        if len(path) >= 1:
+            first_components, first_is_field = breakdown_component(data.shape, path[0])
+        else:
+            first_components = data.dtype.names
+            first_is_field = True
         if len(path) == 2:
             second_components, second_is_field = breakdown_component(data.shape, path[1])
             assert second_is_field != first_is_field
         else:
-            second_components = get_indices_at_path(data.shape, []) if first_is_field else data.dtype.names
-        return [[PathComponent(np.ndarray, tuple(first_component)), PathComponent(np.ndarray, second_component)]
+            second_is_field = not first_is_field
+            second_components =  data.dtype.names if second_is_field else get_indices_at_path(data.shape, [])
+        return [[PathComponent(np.ndarray, first_component if first_is_field else tuple(first_component)),
+                 PathComponent(np.ndarray, second_component if second_is_field else tuple(second_component))]
                 for first_component in first_components
                 for second_component in second_components]
     return [[PathComponent(np.ndarray, tuple(index))] for index in get_indices_at_path(data.shape, path)]

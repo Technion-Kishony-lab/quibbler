@@ -2,6 +2,7 @@ import numpy as np
 from typing import Dict, Any
 
 from pyquibbler.function_definitions import SourceLocation
+from pyquibbler.path import deep_get
 from pyquibbler.path.path_component import Path, Paths, PathComponent
 from pyquibbler.path.utils import working_component_of_type
 from pyquibbler.utilities.get_original_func import get_original_func
@@ -10,9 +11,11 @@ from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_ind
 from pyquibbler.translation.numpy_translator import NumpyForwardsPathTranslator
 from pyquibbler.translation.numpy_translator import NumpyBackwardsPathTranslator
 from pyquibbler.translation.source_func_call import SourceFuncCall
-from pyquibbler.translation.translators.transpositional.utils import get_data_source_mask
+from pyquibbler.translation.translators.transpositional.utils import get_data_source_mask, get_data_source_indices, \
+    find_all_indices
 from pyquibbler.translation.types import Source
 from pyquibbler.translation.utils import copy_and_replace_sources_with_vals
+from pyquibbler.utilities.numpy_original_functions import np_zeros
 
 
 class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
@@ -140,13 +143,36 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
             return True
         return component
 
-    def _get_path_in_source(self, source: Source):
+    def _get_path_in_source_(self, source: Source):
         data_sources_to_paths = self._get_data_sources_to_paths_in_data_sources()
 
         if source not in data_sources_to_paths:
             return None
 
         return data_sources_to_paths[source]
+
+    def _get_path_in_source(self, source: Source):
+        result = get_data_source_indices(self._func_call, source)
+        result = deep_get(result, [PathComponent(np.ndarray, self._working_component)])
+
+        indices = find_all_indices(result)
+        if np.size(indices):
+            mask = np_zeros(np.size(source.value), dtype=bool)
+            mask[indices] = True
+            mask = mask.reshape(np.shape(source.value))
+            # if np.all(mask):
+            if np.array_equal(mask, np.array(True)):
+                new = []
+            else:
+                new = [PathComponent(np.ndarray, mask)]
+        else:
+            new = None
+
+        old = self._get_path_in_source_(source)
+        print()
+        print(new)
+        print(old)
+        return new
 
 
 class ForwardsTranspositionalTranslator(NumpyForwardsPathTranslator):
