@@ -3,7 +3,8 @@ import numpy as np
 from pyquibbler.translation.source_func_call import SourceFuncCall
 from pyquibbler.translation.types import Source
 from pyquibbler.function_definitions.func_call import FuncCall
-from pyquibbler.utilities.iterators import iter_objects_matching_criteria_in_object_recursively
+from pyquibbler.utilities.iterators import iter_objects_matching_criteria_in_object_recursively, \
+    recursively_replace_objects_in_object
 
 
 def get_data_source_mask(func_call: FuncCall, source: Source, indices: np.ndarray) -> np.ndarray:
@@ -32,15 +33,21 @@ def get_data_source_indices(func_call: FuncCall, source: Source) -> np.ndarray:
     Runs the function with the source replaced with array of linear indices
     """
 
-    def replace_source_with_indices(current_source: Source):
-        shape = np.shape(current_source.value)
+    def replace_source_with_indices(obj):
+        is_focal_source = obj is source
+        if isinstance(obj, Source):
+            obj = obj.value
 
-        if current_source is source:
-            size = np.size(current_source.value)
+        shape = np.shape(obj)
+        if is_focal_source:
+            size = np.size(obj.value)
             return np.arange(OFFSET, OFFSET + size).reshape(shape)
         return np.full(shape, -1)
 
-    args, kwargs = func_call.transform_sources_in_args_kwargs(transform_data_source_func=replace_source_with_indices)
+    args = tuple(recursively_replace_objects_in_object(replace_source_with_indices, arg) for arg in func_call.args)
+    kwargs = {key: recursively_replace_objects_in_object(replace_source_with_indices, value)
+              for key, value in func_call.kwargs}
+
     return SourceFuncCall.from_(func_call.func, args, kwargs,
                                 func_definition=func_call.func_definition,
                                 data_source_locations=[],

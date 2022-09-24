@@ -16,6 +16,22 @@ class CannotCastObjectByOtherObjectException(PyQuibblerException):
         return "New object cannot be casted by previous object."
 
 
+def recursively_replace_objects_in_object(func: Callable, obj: Any):
+    """
+    Recursively replace each sub_object in obj with func(sub_object)
+    """
+    new_obj = func(obj)
+    if new_obj is not obj:
+        return new_obj
+    if isinstance(obj, (tuple, list, set)):
+        return type(obj)(recursively_replace_objects_in_object(func, sub_obj) for sub_obj in obj)
+    if isinstance(obj, dict):
+        return {key: recursively_replace_objects_in_object(func, sub_obj) for key, sub_obj in obj.items()}
+    if isinstance(obj, np.ndarray) and obj.dtype.type is np.object_:
+        return np.array((recursively_replace_objects_in_object(func, sub_obj) for sub_obj in obj), dtype=object)
+
+
+
 def iter_objects_matching_criteria_in_object_recursively(func: Callable, obj: Any,
                                                          max_depth: Optional[int] = None,
                                                          max_length: Optional[int] = None,
