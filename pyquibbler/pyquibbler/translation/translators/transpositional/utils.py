@@ -3,8 +3,7 @@ import numpy as np
 from pyquibbler.translation.source_func_call import SourceFuncCall
 from pyquibbler.translation.types import Source
 from pyquibbler.function_definitions.func_call import FuncCall
-from pyquibbler.utilities.iterators import iter_objects_of_type_in_object_recursively, \
-    iter_objects_matching_criteria_in_object_recursively
+from pyquibbler.utilities.iterators import iter_objects_matching_criteria_in_object_recursively
 
 
 def get_data_source_mask(func_call: FuncCall, source: Source, indices: np.ndarray) -> np.ndarray:

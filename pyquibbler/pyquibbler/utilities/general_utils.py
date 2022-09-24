@@ -11,7 +11,7 @@ Kwargs = Dict[str, Any]
 Shape = Tuple[int, ...]
 
 
-def create_bool_mask_with_true_at_indices(shape: tuple, indices: Any) -> np.ndarray:
+def create_bool_mask_with_true_at_indices(shape: Shape, indices: Any) -> np.ndarray:
     """
     Create an array of False in a given shape with True at `indices`.
     """
