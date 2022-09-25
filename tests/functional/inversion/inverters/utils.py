@@ -9,7 +9,7 @@ from pyquibbler.path import PathComponent
 
 
 def inverse(func: Callable, indices: Any, value: Any, args: Tuple[Any, ...] = None, kwargs: Mapping[str, Any] = None,
-            empty_path: bool = False):
+            empty_path: bool = False, assignment: Assignment = None):
     func = get_original_func(func)
     if indices is not None and empty_path is True:
         raise Exception("The indices cannot be set if empty path is True")
@@ -17,12 +17,13 @@ def inverse(func: Callable, indices: Any, value: Any, args: Tuple[Any, ...] = No
     args = args or tuple()
     kwargs = kwargs or {}
     previous_value = SourceFuncCall.from_(func, args, kwargs).run()
+    assignment = assignment or Assignment(path=[PathComponent(indexed_cls=type(previous_value),
+                                                              component=indices)] if not empty_path else [],
+                                          value=value)
     inversals = invert(
         func_call=SourceFuncCall.from_(func, args, kwargs),
         previous_result=previous_value,
-        assignment=Assignment(path=[PathComponent(indexed_cls=type(previous_value),
-                                                  component=indices)] if not empty_path else [],
-                              value=value)
+        assignment=assignment
     )
 
     return ({

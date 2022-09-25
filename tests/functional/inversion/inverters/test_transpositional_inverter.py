@@ -1,6 +1,8 @@
 import numpy as np
 import pytest
 
+from pyquibbler import Assignment
+from pyquibbler.path import PathComponent
 from pyquibbler.translation.types import Source
 from pyquibbler.user_utils.obj2quib import identity_function_list2quib, identity_function_tuple2quib
 from pyquibbler.utilities.iterators import recursively_compare_objects
@@ -116,3 +118,18 @@ def test_inverse_assign_tuple2quib():
 
     assert recursively_compare_objects(sources_to_results[data_source], (1, 2, 10, 4))
 
+
+def test_inverse_array_with_ragged_lists():
+    data_source1 = Source([[1, 2, 3]])
+    data_source2 = Source([[4, 5]])
+
+    # np.array([data_source1, data_source2])[1][0] = 10
+    sources_to_results, _ = inverse(func=np.array,
+                                    args=([data_source1, data_source2],),
+                                    kwargs={'dtype': object},
+                                    value=10,
+                                    indices=None,
+                                    assignment=Assignment(value=10,
+                                                          path=[PathComponent(component=1, indexed_cls=list),
+                                                                PathComponent(component=0, indexed_cls=np.ndarray)]))
+    assert np.array_equal(sources_to_results[data_source2], np.array([[10, 2, 3]]))
