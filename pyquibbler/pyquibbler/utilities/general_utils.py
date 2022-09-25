@@ -35,3 +35,19 @@ def unbroadcast_bool_mask(bool_mask: np.ndarray, original_shape: Shape) -> np.nd
                                                 if result_len != quib_len)
     reduced_bool_mask = np.any(reduced_bool_mask, axis=broadcast_loop_dimensions_to_reduce, keepdims=True)
     return np.broadcast_to(reduced_bool_mask, original_shape)
+
+
+def is_object_array(obj):
+    """
+    Check if obj is an array of objects
+    """
+
+    return isinstance(obj, np.ndarray) and obj.dtype.type is np.object_
+
+
+def is_non_object_array(obj):
+    """
+    Check if obj is a normal array (non object)
+    """
+
+    return isinstance(obj, np.ndarray) and obj.dtype.type is not np.object_

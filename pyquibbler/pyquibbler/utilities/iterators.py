@@ -5,6 +5,9 @@ from pyquibbler.env import DEBUG
 from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.path import Path, PathComponent, Paths
 from dataclasses import dataclass
+
+from .general_utils import is_object_array, is_non_object_array
+
 SHALLOW_MAX_DEPTH = 2
 SHALLOW_MAX_LENGTH = 100
 
@@ -27,7 +30,7 @@ def recursively_replace_objects_in_object(func: Callable, obj: Any):
         return type(obj)(recursively_replace_objects_in_object(func, sub_obj) for sub_obj in obj)
     if isinstance(obj, dict):
         return {key: recursively_replace_objects_in_object(func, sub_obj) for key, sub_obj in obj.items()}
-    if isinstance(obj, np.ndarray) and obj.dtype.type is np.object_:
+    if is_object_array(obj, np.ndarray):
         return np.array((recursively_replace_objects_in_object(func, sub_obj) for sub_obj in obj), dtype=object)
 
 
@@ -57,7 +60,7 @@ def iter_objects_matching_criteria_in_object_recursively(func: Callable, obj: An
         # Recurse into composite objects
         if isinstance(obj, slice):
             obj = (obj.start, obj.stop, obj.step)
-        if isinstance(obj, np.ndarray) and obj.dtype.type is np.object_:
+        if is_object_array(obj):
             obj = tuple(obj.ravel())
         if isinstance(obj, (tuple, list, set)):
             # This is a fixed-size collection
@@ -220,13 +223,13 @@ def recursively_compare_objects(obj1: Any, obj2: Any, type_only=False) -> bool:
             and all(recursively_compare_objects(val1, val2, type_only)
                     for val1, val2 in zip(obj1.values(), obj2.values()))
 
-    if isinstance(obj1, np.ndarray) and obj1.dtype.type is np.object_:
+    if is_object_array(obj1):
         if obj1.shape != obj2.shape:
             return False
 
         return np.all(np.vectorize(recursively_compare_objects)(obj1, obj2, type_only))
 
-    if isinstance(obj1, np.ndarray) and obj1.dtype.type is not np.object_:
+    if is_non_object_array(obj1):
         return obj1.dtype is obj2.dtype and (type_only or np.array_equal(obj1, obj2))
 
     return obj1 == obj2
@@ -238,13 +241,13 @@ def recursively_cast_one_object_by_other(template: Any, obj: Any) -> Any:
     if isinstance(template, (float, int, str)):
         return type(template)(obj)
 
-    if isinstance(template, np.ndarray) and template.dtype.type is np.object_:
+    if is_object_array(template):
         obj = np.array(obj, dtype=object)
         if template.shape != obj.shape:
             raise CannotCastObjectByOtherObjectException()
         return np.vectorize(recursively_cast_one_object_by_other, otypes=[object])(template, obj)
 
-    if isinstance(template, np.ndarray) and template.dtype.type is not np.object_:
+    if is_non_object_array(template):
         return np.array(obj, dtype=template.dtype)
 
     if type(obj) is not type(template):
