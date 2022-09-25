@@ -1,52 +1,87 @@
+from typing import Any, Union, Tuple
+
 import numpy as np
 
+from pyquibbler.function_definitions import KeywordArgument
 from pyquibbler.translation.source_func_call import SourceFuncCall
 from pyquibbler.translation.types import Source
 from pyquibbler.function_definitions.func_call import FuncCall
-from pyquibbler.utilities.iterators import iter_objects_matching_criteria_in_object_recursively, \
-    recursively_replace_objects_in_object
+from pyquibbler.utilities.general_utils import is_same_shapes, is_scalar_np
+from pyquibbler.utilities.get_original_func import get_original_func
+from pyquibbler.utilities.iterators import is_focal_object_in_object, get_paths_for_object
+from pyquibbler.utilities.missing_value import missing
+
+from .types import IndexCode, _non_focal_source_scalar, MAXIMAL_NON_FOCAL_SOURCE
 
 
-def get_data_source_mask(func_call: FuncCall, source: Source, indices: np.ndarray) -> np.ndarray:
+def convert_arg_and_source_to_array_of_indices(arg: Any,
+                                               focal_source: Source,
+                                               path_in_source: Any = missing) -> np.ndarray:
     """
-    Runs the function with True at the source position
+    Convert arg to an array of int64 with values matching the linear indexing of focal_source,
+    or specifying other elements according to IndexCode.
     """
+    is_focal_source = arg is focal_source
+    is_source = isinstance(arg, Source)
+    if is_source:
+        arg = arg.value
 
-    def replace_source_with_bool(current_source: Source):
-        res = np.full(np.shape(current_source.value), False)
-        if current_source is source:
-            res[indices] = True
-        return res
+    if is_focal_source:
+        if is_scalar_np(arg):
+            return IndexCode.FOCAL_SOURCE_SCALAR
+        if path_in_source is missing:
+            return np.arange(np.size(arg)).reshape(np.shape(arg))
+        else:
+            val = np.full(np.shape(arg), IndexCode.NON_CHOSEN_ELEMENT)
+            val[path_in_source] = IndexCode.CHOSEN_ELEMENT
+            return val
 
-    args, kwargs = func_call.transform_sources_in_args_kwargs(transform_data_source_func=replace_source_with_bool)
-    return SourceFuncCall.from_(func_call.func, args, kwargs,
-                                func_definition=func_call.func_definition,
-                                data_source_locations=[],
-                                parameter_source_locations=func_call.parameter_source_locations).run()
+    if is_scalar_np(arg):
+        # a non-source scalar can contain the focal source (for example if arg is dict):
+        # TODO: is_focal_object_in_object search could be avoided using the known source location
+        return _non_focal_source_scalar(not is_source and is_focal_object_in_object(focal_source, arg))
+
+    if isinstance(arg, np.ndarray):
+        return np.full(np.shape(arg), IndexCode.OTHERS_ELEMENT)
+
+    converted_sub_args = [convert_arg_and_source_to_array_of_indices(sub_arg, focal_source) for sub_arg in arg]
+    if is_same_shapes(converted_sub_args):
+        return np.array(converted_sub_args)
+
+    return np.array([
+        _non_focal_source_scalar(np.any(sub_arg > MAXIMAL_NON_FOCAL_SOURCE))
+        for sub_arg in converted_sub_args])
 
 
-OFFSET = 123456789
+def convert_args_and_source_to_arrays_of_indices(args: Any,
+                                                 focal_source: Source,
+                                                 path_in_source: Any = missing,
+                                                 is_multi_arg: bool = False) \
+        -> Union[Tuple[np.ndarray, ...], np.ndarray]:
+
+    if is_multi_arg:
+        return tuple(convert_arg_and_source_to_array_of_indices(arg, focal_source, path_in_source) for arg in args)
+    return convert_arg_and_source_to_array_of_indices(args, focal_source, path_in_source)
 
 
-def get_data_source_indices(func_call: FuncCall, source: Source) -> np.ndarray:
+def get_data_source_indices(func_call: FuncCall, focal_source: Source, path_in_source: Any = missing) -> np.ndarray:
     """
     Runs the function with the source replaced with array of linear indices
     """
 
-    def replace_source_with_indices(obj):
-        is_focal_source = obj is source
-        if isinstance(obj, Source):
-            obj = obj.value
+    args = list(func_call.args)
+    kwargs = func_call.kwargs
+    is_concat = func_call.func is get_original_func(np.concatenate)
 
-        shape = np.shape(obj)
-        if is_focal_source:
-            size = np.size(obj.value)
-            return np.arange(OFFSET, OFFSET + size).reshape(shape)
-        return np.full(shape, -1)
-
-    args = tuple(recursively_replace_objects_in_object(replace_source_with_indices, arg) for arg in func_call.args)
-    kwargs = {key: recursively_replace_objects_in_object(replace_source_with_indices, value)
-              for key, value in func_call.kwargs}
+    for data_argument in func_call.func_definition.get_data_source_arguments(func_call.func_args_kwargs):
+        if isinstance(data_argument, KeywordArgument):
+            args_or_kwargs = kwargs
+            element_in_args_or_kwargs = data_argument.keyword
+        else:
+            args_or_kwargs = args
+            element_in_args_or_kwargs = data_argument.index
+        args_or_kwargs[element_in_args_or_kwargs] = convert_args_and_source_to_arrays_of_indices(
+            args_or_kwargs[element_in_args_or_kwargs], focal_source, path_in_source, is_concat)
 
     return SourceFuncCall.from_(func_call.func, args, kwargs,
                                 func_definition=func_call.func_definition,
@@ -54,17 +89,9 @@ def get_data_source_indices(func_call: FuncCall, source: Source) -> np.ndarray:
                                 parameter_source_locations=func_call.parameter_source_locations).run()
 
 
-def find_all_indices(obj: np.ndarray):
-
-    def is_non_object_array(sub_obj):
-        return isinstance(sub_obj, np.ndarray) and sub_obj.dtype.type is not np.object_ \
-               or isinstance(sub_obj, np.int64) and sub_obj >= OFFSET
-
-    arrays = iter_objects_matching_criteria_in_object_recursively(is_non_object_array, obj, prevent_repetitions=False)
-    list_of_arrays_of_indices = [[array - OFFSET] if isinstance(array, np.int64)
-                                 else array[array >= OFFSET] - OFFSET for array in arrays]
-
-    if list_of_arrays_of_indices:
-        return np.concatenate(list_of_arrays_of_indices)
-
-    return np.zeros(0)
+def get_data_source_mask(func_call: FuncCall, focal_source: Source, indices: np.ndarray) -> np.ndarray:
+    """
+    Runs the function with True at the source position
+    """
+    data_source_index_code = get_data_source_indices(func_call, focal_source, indices)
+    return data_source_index_code > MAXIMAL_NON_FOCAL_SOURCE

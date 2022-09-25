@@ -6,11 +6,10 @@ from pyquibbler.path.path_component import Path, Paths, PathComponent
 from pyquibbler.path.utils import working_component_of_type
 from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices
 
-from pyquibbler.translation.numpy_translator import NumpyForwardsPathTranslator
-from pyquibbler.translation.numpy_translator import NumpyBackwardsPathTranslator
-from pyquibbler.translation.translators.transpositional.utils \
-    import get_data_source_mask, get_data_source_indices, find_all_indices
 from pyquibbler.translation.types import Source
+from pyquibbler.translation.numpy_translator import NumpyForwardsPathTranslator, NumpyBackwardsPathTranslator
+from .types import IndexCode, MAXIMAL_NON_FOCAL_SOURCE
+from .utils import get_data_source_mask, get_data_source_indices
 
 
 class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
@@ -19,9 +18,21 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
         result = get_data_source_indices(self._func_call, source)
         result = deep_get(result, [PathComponent(np.ndarray, self._working_component)])
 
-        indices = find_all_indices(result)
+        result = np.array(result)
+
+        indices = result[result > MAXIMAL_NON_FOCAL_SOURCE]
+
         if np.size(indices) == 0:
+            # Source not part of result
             return None
+
+        if np.any(indices == IndexCode.SCALAR_CONTAINING_FOCAL_SOURCE):
+            # The entire source is needed, contained in one element of the array (minor-source)
+            return []
+
+        if np.any(indices == IndexCode.FOCAL_SOURCE_SCALAR):
+            # The entire source is needed as one element of the array (uni-source)
+            return []
 
         mask = create_bool_mask_with_true_at_indices((np.size(source.value), ), indices)
         mask = mask.reshape(np.shape(source.value))

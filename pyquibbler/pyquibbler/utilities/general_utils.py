@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, Tuple, Dict
+from typing import Any, Tuple, Dict, List
 
 from pyquibbler.utilities.numpy_original_functions import np_zeros
 
@@ -41,7 +41,6 @@ def is_object_array(obj):
     """
     Check if obj is an array of objects
     """
-
     return isinstance(obj, np.ndarray) and obj.dtype.type is np.object_
 
 
@@ -49,5 +48,31 @@ def is_non_object_array(obj):
     """
     Check if obj is a normal array (non object)
     """
-
     return isinstance(obj, np.ndarray) and obj.dtype.type is not np.object_
+
+
+def is_scalar_np(obj) -> bool:
+    """
+    Check if obj is a scalar, in the sense that np.shape(obj) = () [but without running np.shape]
+    """
+    if np.isscalar(obj):
+        return True
+    if isinstance(obj, dict):
+        return True
+    try:
+        len(obj)
+    except TypeError:
+        return True
+    return False
+
+
+def is_same_shapes(args: List) -> bool:
+    """
+    Check if all elements of args have the same shape
+    """
+    if len(args) <= 1:
+        return True
+
+    return all(np.shape(arg) == np.shape(args[0]) for arg in args)
+
+
