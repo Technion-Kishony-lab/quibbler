@@ -3,7 +3,7 @@ import numpy as np
 from typing import Any
 from .assignment import Assignment
 from .default_value import default
-from .utils import is_scalar_integer, is_array_of_size_one, is_scalar, convert_array_of_size_one_to_scalar, \
+from .utils import is_integer_scalar, is_array_of_size_one, is_numeric_scalar, convert_array_of_size_one_to_scalar, \
     convert_scalar_value
 from ..path import Path, PathComponent, deep_get
 
@@ -45,10 +45,10 @@ class AssignmentSimplifier:
             self.last_component.component = (self.last_component.component,)
 
     def _simplify_assignment_of_array_with_size_one(self):
-        if not all(is_array_of_size_one(index) or is_scalar_integer(index) for index in self.last_component.component):
+        if not all(is_array_of_size_one(index) or is_integer_scalar(index) for index in self.last_component.component):
             return
 
-        if not (is_array_of_size_one(self.value) or is_scalar(self.value) or self.value is default):
+        if not (is_array_of_size_one(self.value) or is_numeric_scalar(self.value) or self.value is default):
             return
 
         self.last_component.component = \
@@ -99,7 +99,7 @@ class AssignmentSimplifier:
         from ..quib.func_calling.result_metadata import ResultMetadata
 
         try:
-            if is_scalar(self.last_data) and is_scalar(self.value):
+            if is_numeric_scalar(self.last_data) and is_numeric_scalar(self.value):
                 self._assignment.value = convert_scalar_value(self.last_data, self.value)
 
             if len(self.path) == 0 or not isinstance(self.second_to_last_data, (np.ndarray, list)) \
