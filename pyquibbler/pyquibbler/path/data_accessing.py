@@ -27,7 +27,10 @@ def deep_get(obj: Any, path: Path):
     Get the data from an object in a given path.
     """
     for component in path:
-        if isinstance(obj, np.ndarray) and component.indexed_cls is not None and component.indexed_cls != np.ndarray:
+        cmp = component.component
+        cls = component.indexed_cls
+        is_component_nd = cls == np.ndarray
+        if isinstance(obj, np.ndarray) and cls is not None and not is_component_nd:
             # We allow specifying a path component that can reference multiple places in the array - for example,
             # if given a path
             # [PathComponent(np.ndarray, [True, True]), PathComponent(dict, "name"])]
@@ -40,16 +43,16 @@ def deep_get(obj: Any, path: Path):
             assert len(flattened) == 1
             obj = flattened[0]
 
-        if component.indexed_cls == slice:
-            obj = getattr(obj, component.component)
-        elif component.indexed_cls == np.ndarray and component.component is True:
+        if cls == slice:
+            obj = getattr(obj, cmp)
+        elif is_component_nd and cmp is True:
             pass
+        elif is_component_nd and isinstance(obj, (list, tuple)):
+            obj = np.array(obj, dtype=object)[cmp]
+        elif isinstance(cmp, tuple) and len(cmp) == 1 and isinstance(obj, (list, tuple)):
+            obj = obj[cmp[0]]
         else:
-            try:
-                obj = obj[component.component]
-            except (TypeError, IndexError):
-                # We don't want to fail if it's a list that's being accessed as an nparray
-                obj = np.array(obj)[component.component]
+            obj = obj[cmp]
     return obj
 
 
