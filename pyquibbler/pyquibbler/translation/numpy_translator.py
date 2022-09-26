@@ -4,7 +4,7 @@ from typing import Any, Dict, Optional, Type, Tuple
 import numpy as np
 
 from pyquibbler.path import working_component, translate_bool_vector_to_slice_if_possible, Path, Paths, PathComponent
-from pyquibbler.function_definitions import FuncCall
+from pyquibbler.function_definitions import FuncCall, SourceLocation
 from pyquibbler.utilities.general_utils import Shape
 
 from .backwards_path_translator import BackwardsPathTranslator
@@ -21,7 +21,7 @@ class NumpyBackwardsPathTranslator(BackwardsPathTranslator):
     """
 
     @abstractmethod
-    def _get_path_in_source(self, source: Source):
+    def _get_path_in_source(self, source: Source, location: SourceLocation):
         pass
 
     def _split_path(self):
@@ -35,8 +35,8 @@ class NumpyBackwardsPathTranslator(BackwardsPathTranslator):
     def backwards_translate(self) -> Dict[Source, Path]:
         sources_to_paths = {}
         working, rest = self._split_path()
-        for source in self._func_call.get_data_sources():
-            new_path = self._get_path_in_source(source)
+        for source, location in zip(self._func_call.get_data_sources(), self._func_call.data_source_locations):
+            new_path = self._get_path_in_source(source, location)
             if new_path is not None:
                 sources_to_paths[source] = [*new_path, *rest]
         return sources_to_paths
@@ -53,26 +53,31 @@ class NumpyForwardsPathTranslator(ForwardsPathTranslator):
     def __init__(self,
                  func_call: Type[FuncCall],
                  source: Source,
+                 source_location: SourceLocation,
                  path: Path,
                  shape: Optional[Shape],
                  type_: Optional[Type],
                  should_forward_empty_paths_to_empty_paths: bool = True):
-        super().__init__(func_call, source, path, shape, type_)
+        super().__init__(func_call, source, source_location, path, shape, type_)
         self._should_forward_empty_paths_to_empty_paths = should_forward_empty_paths_to_empty_paths
 
     @abstractmethod
-    def _forward_translate_indices_to_bool_mask(self, source: Source, indices: Any) -> np.ndarray:
+    def _forward_translate_indices_to_bool_mask(self, source: Source, source_location: SourceLocation,
+                                                indices: Any) -> np.ndarray:
         pass
 
-    def _forward_translate_source(self, source: Source, path: Path) -> Paths:
+    def forward_translate(self) -> Paths:
+
+        path = self._path
         # TODO: THIS AUTO RETURNING OF [[]] IS INCORRECT IF PATH IS EMPTY, IN SOME EDGE CASES THIS DOESN'T HOLD
         if len(path) == 0 and self._should_forward_empty_paths_to_empty_paths:
             return [[]]
 
-        if isinstance(source, NoMetadataSource):
+        if isinstance(self._source, NoMetadataSource):
             raise FailedToTranslateException()
 
-        bool_mask_in_output_array = self._forward_translate_indices_to_bool_mask(source, working_component(path))
+        bool_mask_in_output_array = \
+            self._forward_translate_indices_to_bool_mask(self._source, self._source_location, working_component(path))
         if np.any(bool_mask_in_output_array):
             # If there exist both True's and False's in the boolean mask,
             # this function's quib result must be an ndarray- if it were a single item (say a PyObj, int, dict, list)

@@ -5,10 +5,10 @@ import numpy as np
 
 from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices, unbroadcast_bool_mask, Shape
 from pyquibbler.path import PathComponent
-from pyquibbler.path.path_component import Path
+from pyquibbler.path.path_component import Path, Paths
 from pyquibbler.quib.func_calling.func_calls.vectorize.utils import get_core_axes
 from pyquibbler.function_definitions.types import iter_arg_ids_and_values
-from pyquibbler.function_definitions import FuncCall
+from pyquibbler.function_definitions import FuncCall, SourceLocation
 
 from ..exceptions import FailedToTranslateException
 from ..backwards_path_translator import BackwardsPathTranslator
@@ -75,26 +75,29 @@ class VectorizeForwardsPathTranslator(ForwardsPathTranslator):
     def __init__(self,
                  func_call: Type[FuncCall],
                  source: Source,
+                 source_location: SourceLocation,
                  path: Path,
                  shape: Optional[Shape],
                  type_: Optional[Type],
                  vectorize_metadata):
-        super().__init__(func_call, source, path, shape, type_)
+        super().__init__(func_call, source, source_location, path, shape, type_)
         self._vectorize_metadata = vectorize_metadata
 
-    def _forward_translate_indices_to_bool_mask(self, source: Source, indices: Any):
+    def _forward_translate_indices_to_bool_mask(self, source: Source, source_location: SourceLocation, indices: Any):
         source_bool_mask = create_bool_mask_with_true_at_indices(np.shape(source.value), indices)
         core_ndim = max(self._vectorize_metadata.args_metadata[arg_id].core_ndim
                         for arg_id in _get_arg_ids_for_source(source, self._func_call.args, self._func_call.kwargs))
         source_bool_mask = np.any(source_bool_mask, axis=get_core_axes(core_ndim))
         return np.broadcast_to(source_bool_mask, self._vectorize_metadata.result_loop_shape)
 
-    def _forward_translate_source(self, source: Source, path: Path) -> List[Optional[Path]]:
+    def forward_translate(self) -> Paths:
+        path = self._path
         if len(path) == 0:
             return [[]]
 
         working_component, *rest_of_path = path
-        bool_mask_in_output_array = self._forward_translate_indices_to_bool_mask(source, working_component.component)
+        bool_mask_in_output_array = \
+            self._forward_translate_indices_to_bool_mask(self._source, self._source_location, working_component.component)
         if not np.any(bool_mask_in_output_array):
             return []
         starting_path = [PathComponent(np.ndarray, bool_mask_in_output_array), *rest_of_path]

@@ -115,14 +115,6 @@ def iter_objects_of_type_in_object(object_type: Type, obj: Any, recursive: bool 
     return result
 
 
-def is_focal_object_in_object(focal_object: Any, obj: Any):
-
-    def _is_focal_object(sub_obj):
-        return sub_obj is focal_object
-
-    return not is_iterator_empty(iter_objects_matching_criteria_in_object_recursively(_is_focal_object, obj))
-
-
 def iter_object_type_in_args_kwargs(object_type, args: Tuple[Any, ...], kwargs: Mapping[str, Any]):
     """
     Returns an iterator for all objects of a type nested in the given args and kwargs.
@@ -204,20 +196,6 @@ def get_paths_for_objects_of_type(obj: Any, type_: Type) -> Paths:
             paths.append(path)
 
     recursively_run_func_on_object(func=add_path_if_isinstance, obj=obj, with_path=True)
-    return paths
-
-
-def get_paths_for_object(obj: Any, focal_object: Any) -> Paths:
-    """
-    Get paths for all occurrences of a focal_object in object
-    """
-    paths = []
-
-    def add_path_if_found(path, inner_obj):
-        if inner_obj is focal_object:
-            paths.append(path)
-
-    recursively_run_func_on_object(func=add_path_if_found, obj=obj, with_path=True)
     return paths
 
 

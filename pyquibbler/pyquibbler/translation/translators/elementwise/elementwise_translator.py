@@ -2,6 +2,7 @@ from typing import Any
 
 import numpy as np
 
+from pyquibbler.function_definitions import SourceLocation
 from pyquibbler.path.path_component import PathComponent
 from pyquibbler.translation.numpy_translator import NumpyBackwardsPathTranslator
 from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices, unbroadcast_bool_mask
@@ -24,7 +25,7 @@ class BackwardsElementwisePathTranslator(NumpyBackwardsPathTranslator):
 
         return unbroadcast_bool_mask(result_bool_mask, np.shape(source.value))
 
-    def _get_path_in_source(self, source: Source):
+    def _get_path_in_source(self, source: Source, location: SourceLocation):
         changed_indices = self._get_indices_to_change(source)
         new_path = [] if changed_indices.ndim == 0 else [PathComponent(self._type, changed_indices)]
         return new_path
@@ -32,7 +33,7 @@ class BackwardsElementwisePathTranslator(NumpyBackwardsPathTranslator):
 
 class ForwardsElementwisePathTranslator(NumpyForwardsPathTranslator):
 
-    def _forward_translate_indices_to_bool_mask(self, source: Source, indices: Any):
+    def _forward_translate_indices_to_bool_mask(self, source: Source, source_location: SourceLocation, indices: Any):
         """
         Create a boolean mask representing the source at certain indices in the result.
         For a simple operation (eg `source=[1, 2, 3]`, `source + [2, 3, 4]`, and we forward path `(0, 0)`),

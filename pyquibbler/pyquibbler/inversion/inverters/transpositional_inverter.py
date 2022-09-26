@@ -56,9 +56,16 @@ class TranspositionalInverter(Inverter):
             shape=np.shape(self._previous_result),
             type_=type(self._previous_result)
         ).backwards_translate()
+
+        sources_to_locations = {source: location for source, location in
+                                zip(self._func_call.get_data_sources(), self._func_call.data_source_locations)}
+
+        sources_to_paths_in_sources = {source: path for source, path in sources_to_paths_in_sources.items() if
+                                       path is not None}
         sources_to_paths_in_result = {source: ForwardsTranspositionalTranslator(
             func_call=self._func_call,
             source=source,
+            source_location=sources_to_locations[source],
             path=path,
             shape=np.shape(self._previous_result),
             type_=type(self._previous_result),

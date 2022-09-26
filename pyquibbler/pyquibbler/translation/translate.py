@@ -9,6 +9,7 @@ from .backwards_path_translator import BackwardsPathTranslator
 from .exceptions import FailedToTranslateException, NoTranslatorsFoundException
 from .forwards_path_translator import ForwardsPathTranslator
 from .types import Source
+from ..function_definitions import SourceLocation
 from ..utilities.general_utils import Shape
 
 
@@ -47,12 +48,14 @@ class MultipleForwardsTranslatorRunner(MultipleInstanceRunner):
 
     def __init__(self, func_call: FuncCall,
                  source: Source,
+                 source_location: SourceLocation,
                  path: Path,
                  shape: Optional[Shape] = None,
                  type_: Optional[Type] = None,
                  extra_kwargs_for_translator: Dict = None):
         super().__init__(func_call)
         self._source = source
+        self._source_location = source_location
         self._path = path
         self._shape = shape
         self._type = type_
@@ -66,6 +69,7 @@ class MultipleForwardsTranslatorRunner(MultipleInstanceRunner):
             shape=self._shape,
             type_=self._type,
             source=self._source,
+            source_location=self._source_location,
             path=self._path,
             **self._extra_kwargs_for_translator
         ).forward_translate()
@@ -84,12 +88,17 @@ def backwards_translate(func_call: FuncCall,
                                              extra_kwargs_for_translator=kwargs).run()
 
 
-def forwards_translate(func_call: FuncCall,
-                       source: Source, path: Path, shape: Optional[Shape] = None, type_: Optional[Type] = None,
+def forwards_translate(func_call: FuncCall, source: Source, source_location: SourceLocation,
+                       path: Path, shape: Optional[Shape] = None, type_: Optional[Type] = None,
                        **kwargs) -> Paths:
     """
     Forwards translate a mapping of sources to paths through a function, giving for each source a list of paths that
     were affected by the given path for the source
     """
-    return MultipleForwardsTranslatorRunner(func_call=func_call, source=source, path=path,
-                                            shape=shape, type_=type_, extra_kwargs_for_translator=kwargs).run()
+    return MultipleForwardsTranslatorRunner(func_call=func_call,
+                                            source=source,
+                                            source_location=source_location,
+                                            path=path,
+                                            shape=shape,
+                                            type_=type_,
+                                            extra_kwargs_for_translator=kwargs).run()

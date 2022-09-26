@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from typing import Dict, Optional, Tuple, Type
 
-from pyquibbler.function_definitions import FuncCall
+from pyquibbler.function_definitions import FuncCall, SourceLocation
 from pyquibbler.path.path_component import Path, Paths
 
 from pyquibbler.utilities.general_utils import Shape
@@ -24,18 +24,17 @@ class ForwardsPathTranslator:
     def __init__(self,
                  func_call: Type[FuncCall],
                  source: Source,
+                 source_location: SourceLocation,
                  path: Path,
                  shape: Optional[Shape],
                  type_: Optional[Type]):
         self._func_call = func_call
         self._source = source
+        self._source_location = source_location
         self._path = path
         self._shape = shape
         self._type = type_
 
     @abstractmethod
-    def _forward_translate_source(self, source: Source, path: Path) -> Paths:
-        pass
-
     def forward_translate(self) -> Paths:
-        return self._forward_translate_source(self._source, self._path)
+        pass

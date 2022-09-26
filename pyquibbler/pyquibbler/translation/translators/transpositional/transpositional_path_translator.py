@@ -1,6 +1,7 @@
 import numpy as np
 from typing import Any
 
+from pyquibbler.function_definitions import SourceLocation
 from pyquibbler.path import deep_get
 from pyquibbler.path.path_component import Path, Paths, PathComponent
 from pyquibbler.path.utils import working_component_of_type
@@ -14,8 +15,8 @@ from .utils import get_data_source_mask, get_data_source_indices
 
 class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
 
-    def _get_path_in_source(self, source: Source):
-        result = get_data_source_indices(self._func_call, source)
+    def _get_path_in_source(self, source: Source, location: SourceLocation):
+        result = get_data_source_indices(self._func_call, source, location)
         result = deep_get(result, [PathComponent(np.ndarray, self._working_component)])
 
         result = np.array(result)
@@ -44,21 +45,22 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
 
 class ForwardsTranspositionalTranslator(NumpyForwardsPathTranslator):
 
-    def _forward_translate_indices_to_bool_mask(self, source: Source, indices: Any):
-        return np.equal(get_data_source_mask(self._func_call, source,
+    def _forward_translate_indices_to_bool_mask(self, source: Source, source_location: SourceLocation, indices: Any):
+        return np.equal(get_data_source_mask(self._func_call, source, source_location,
                                              working_component_of_type(self._path, (list, np.ndarray), True)), True)
 
-    def _forward_translate_source(self, source: Source, path: Path) -> Paths:
+    def forward_translate(self) -> Paths:
         """
         There are two things we can potentially do:
         1. Translate the invalidation path given the current function source (eg if this function source is rotate,
         take the invalidated indices, rotate them and invalidate children with the resulting indices)
         2. Pass on the current path to all our children
         """
+        path = self._path
         if len(path) > 0 and path[0].references_field_in_field_array():
             # The path at the first component references a field, and therefore we cannot translate it given a
             # normal transpositional function (neither does it make any difference, as transpositional functions
             # don't change fields)
             return [path]
 
-        return super(ForwardsTranspositionalTranslator, self)._forward_translate_source(source, path)
+        return super(ForwardsTranspositionalTranslator, self).forward_translate()

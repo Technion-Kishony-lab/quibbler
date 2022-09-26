@@ -3,6 +3,7 @@ from typing import Tuple
 
 import numpy as np
 
+from pyquibbler.function_definitions import SourceLocation
 from pyquibbler.translation.numpy_translator import NumpyForwardsPathTranslator
 from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices, Shape
 from pyquibbler.function_definitions.func_call import FuncCall
@@ -51,7 +52,8 @@ class ApplyAlongAxisForwardsTranslator(NumpyForwardsPathTranslator):
         return tuple(range(axis, axis + func_result_ndim) if axis >= 0 else
                      range(axis, axis - func_result_ndim, -1))
 
-    def _forward_translate_indices_to_bool_mask(self, source: Source, indices: np.ndarray):
+    def _forward_translate_indices_to_bool_mask(self, source: Source, source_location: SourceLocation,
+                                                indices: np.ndarray):
         """
         Calculate forward index translation for apply_along_axis by applying np.any on the boolean mask.
         After that we expand and broadcast the reduced mask to match the actual result shape, which is dependent

@@ -2,12 +2,13 @@ from typing import Dict
 
 import numpy as np
 
+from pyquibbler.function_definitions import SourceLocation
 from pyquibbler.function_definitions.func_call import FuncCall
 from pyquibbler.translation.translators.transpositional.transpositional_path_translator import \
     BackwardsTranspositionalTranslator, ForwardsTranspositionalTranslator
 from pyquibbler.translation.types import Source
 from pyquibbler.path import PathComponent
-from pyquibbler.path.path_component import Path
+from pyquibbler.path.path_component import Path, Paths
 from pyquibbler.translation.utils import copy_and_replace_sources_with_vals
 
 
@@ -43,12 +44,14 @@ class BackwardsGetItemTranslator(BackwardsTranspositionalTranslator):
 
 class ForwardsGetItemTranslator(ForwardsTranspositionalTranslator):
 
-    def _forward_translate_source(self, source: Source, path: Path):
+    def forward_translate(self) -> Paths:
+
+        path = self._path
         if len(path) == 0:
             return [[]]
 
-        working_component, *rest_of_path = path
-        if isinstance(source.value, np.ndarray):
+        working_component, *rest_of_path = self._path
+        if isinstance(self._source.value, np.ndarray):
             if (not _getitem_path_component(self._func_call).references_field_in_field_array()
                     and not working_component.references_field_in_field_array()):
                 # This means:
@@ -58,7 +61,7 @@ class ForwardsGetItemTranslator(ForwardsTranspositionalTranslator):
                 # Therefore, we translate the indices and invalidate our children with the new indices (which are an
                 # intersection between our getitem and the path to invalidate- if this intersections yields nothing,
                 # we do NOT invalidate our children)
-                return super(ForwardsGetItemTranslator, self)._forward_translate_source(source=source, path=path)
+                return super(ForwardsGetItemTranslator, self).forward_translate()
 
             elif (
                     _getitem_path_component(self._func_call).references_field_in_field_array()
@@ -75,8 +78,8 @@ class ForwardsGetItemTranslator(ForwardsTranspositionalTranslator):
                 # interchangeable when indexing structured ndarrays
                 return [path]
 
-        if isinstance(source.value, list) and len(path) == 1 and working_component.indexed_cls is list:
-            return super(ForwardsGetItemTranslator, self)._forward_translate_source(source=source, path=path)
+        if isinstance(self._source.value, list) and len(path) == 1 and working_component.indexed_cls is list:
+            return super(ForwardsGetItemTranslator, self).forward_translate()
 
         # We come to our default scenario- if
         # 1. The invalidator quib is not an ndarray

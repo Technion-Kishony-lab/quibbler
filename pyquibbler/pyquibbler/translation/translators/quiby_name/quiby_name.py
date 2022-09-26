@@ -1,5 +1,6 @@
 from typing import Dict
 
+from pyquibbler.function_definitions import SourceLocation
 from pyquibbler.path.path_component import Path, Paths
 
 from ...forwards_path_translator import ForwardsPathTranslator
@@ -22,5 +23,5 @@ class ForwardsQuibyNameTranslator(ForwardsPathTranslator):
     """
     We are not affected by change the sources.
     """
-    def _forward_translate_source(self, source: Source, path: Path) -> Paths:
+    def forward_translate(self) -> Paths:
         return []
