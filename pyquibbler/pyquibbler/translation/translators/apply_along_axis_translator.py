@@ -52,17 +52,16 @@ class ApplyAlongAxisForwardsTranslator(NumpyForwardsPathTranslator):
         return tuple(range(axis, axis + func_result_ndim) if axis >= 0 else
                      range(axis, axis - func_result_ndim, -1))
 
-    def _forward_translate_indices_to_bool_mask(self, source: Source, source_location: SourceLocation,
-                                                indices: np.ndarray):
+    def _forward_translate_indices_to_bool_mask(self, indices: np.ndarray):
         """
         Calculate forward index translation for apply_along_axis by applying np.any on the boolean mask.
         After that we expand and broadcast the reduced mask to match the actual result shape, which is dependent
         on the applied function return type.
         """
-        boolean_mask = create_bool_mask_with_true_at_indices(np.shape(source.value), indices)
+        boolean_mask = create_bool_mask_with_true_at_indices(np.shape(self._source.value), indices)
         args_dict = self._get_translation_related_arg_dict()
         axis = args_dict.pop('axis')
-        dims_to_expand = self._get_expanded_dims(axis, np.shape(source.value))
+        dims_to_expand = self._get_expanded_dims(axis, np.shape(self._source.value))
         applied = np.apply_along_axis(np.any,
                                       axis,
                                       boolean_mask,

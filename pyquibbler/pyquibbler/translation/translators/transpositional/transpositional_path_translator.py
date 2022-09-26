@@ -10,13 +10,14 @@ from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_ind
 from pyquibbler.translation.types import Source
 from pyquibbler.translation.numpy_translator import NumpyForwardsPathTranslator, NumpyBackwardsPathTranslator
 from .types import IndexCode, MAXIMAL_NON_FOCAL_SOURCE
-from .utils import get_data_source_mask, get_data_source_indices
+from .utils import get_data_source_indices, run_func_call_with_new_args_kwargs
 
 
 class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
 
     def _get_path_in_source(self, source: Source, location: SourceLocation):
-        result = get_data_source_indices(self._func_call, source, location)
+        args, kwargs = get_data_source_indices(self._func_call, source, location)
+        result = run_func_call_with_new_args_kwargs(self._func_call, args, kwargs)
         result = deep_get(result, [PathComponent(np.ndarray, self._working_component)])
 
         result = np.array(result)
@@ -45,9 +46,11 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
 
 class ForwardsTranspositionalTranslator(NumpyForwardsPathTranslator):
 
-    def _forward_translate_indices_to_bool_mask(self, source: Source, source_location: SourceLocation, indices: Any):
-        return np.equal(get_data_source_mask(self._func_call, source, source_location,
-                                             working_component_of_type(self._path, (list, np.ndarray), True)), True)
+    def _forward_translate_indices_to_bool_mask(self, indices: Any):
+        args, kwargs = get_data_source_indices(self._func_call, self._source, self._source_location,
+                                               working_component_of_type(self._path, (list, np.ndarray), True))
+        data_source_index_code = run_func_call_with_new_args_kwargs(self._func_call, args, kwargs)
+        return np.equal(data_source_index_code > MAXIMAL_NON_FOCAL_SOURCE, True)
 
     def forward_translate(self) -> Paths:
         """

@@ -1,4 +1,4 @@
-from typing import Any, Union, Tuple
+from typing import Any, Union, Tuple, Dict
 
 import numpy as np
 
@@ -86,7 +86,7 @@ def convert_args_and_source_to_arrays_of_indices(args: Any,
 def get_data_source_indices(func_call: FuncCall,
                             focal_source: Source,
                             focal_source_location=SourceLocation,
-                            path_in_source: Any = missing) -> np.ndarray:
+                            path_in_source: Any = missing) -> Tuple[Tuple[Any], Dict[str, Any]]:
     """
     Runs the function with the source replaced with array of linear indices
     """
@@ -94,7 +94,6 @@ def get_data_source_indices(func_call: FuncCall,
     args = list(func_call.args)
     kwargs = func_call.kwargs
     is_concat = func_call.func is get_original_func(np.concatenate)
-    path_to_source = focal_source_location
     for data_argument in func_call.func_definition.get_data_source_arguments(func_call.func_args_kwargs):
         if isinstance(data_argument, KeywordArgument):
             args_or_kwargs = kwargs
@@ -110,18 +109,11 @@ def get_data_source_indices(func_call: FuncCall,
             args_or_kwargs[element_in_args_or_kwargs],
             missing if path_to_source is missing else focal_source, path_to_source, path_in_source, is_concat)
 
+        return tuple(args), kwargs
+
+
+def run_func_call_with_new_args_kwargs(func_call: FuncCall, args: Tuple[Any], kwargs: Dict[str, Any]) -> np.ndarray:
     return SourceFuncCall.from_(func_call.func, args, kwargs,
                                 func_definition=func_call.func_definition,
                                 data_source_locations=[],
                                 parameter_source_locations=func_call.parameter_source_locations).run()
-
-
-def get_data_source_mask(func_call: FuncCall,
-                         focal_source: Source,
-                         focal_source_location: SourceLocation,
-                         indices: np.ndarray) -> np.ndarray:
-    """
-    Runs the function with True at the source position
-    """
-    data_source_index_code = get_data_source_indices(func_call, focal_source, focal_source_location, indices)
-    return data_source_index_code > MAXIMAL_NON_FOCAL_SOURCE

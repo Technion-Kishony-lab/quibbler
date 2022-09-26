@@ -62,8 +62,7 @@ class NumpyForwardsPathTranslator(ForwardsPathTranslator):
         self._should_forward_empty_paths_to_empty_paths = should_forward_empty_paths_to_empty_paths
 
     @abstractmethod
-    def _forward_translate_indices_to_bool_mask(self, source: Source, source_location: SourceLocation,
-                                                indices: Any) -> np.ndarray:
+    def _forward_translate_indices_to_bool_mask(self, indices: Any) -> np.ndarray:
         pass
 
     def forward_translate(self) -> Paths:
@@ -77,7 +76,7 @@ class NumpyForwardsPathTranslator(ForwardsPathTranslator):
             raise FailedToTranslateException()
 
         bool_mask_in_output_array = \
-            self._forward_translate_indices_to_bool_mask(self._source, self._source_location, working_component(path))
+            self._forward_translate_indices_to_bool_mask(working_component(path))
         if np.any(bool_mask_in_output_array):
             # If there exist both True's and False's in the boolean mask,
             # this function's quib result must be an ndarray- if it were a single item (say a PyObj, int, dict, list)

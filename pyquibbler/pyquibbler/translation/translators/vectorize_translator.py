@@ -83,10 +83,10 @@ class VectorizeForwardsPathTranslator(ForwardsPathTranslator):
         super().__init__(func_call, source, source_location, path, shape, type_)
         self._vectorize_metadata = vectorize_metadata
 
-    def _forward_translate_indices_to_bool_mask(self, source: Source, source_location: SourceLocation, indices: Any):
-        source_bool_mask = create_bool_mask_with_true_at_indices(np.shape(source.value), indices)
+    def _forward_translate_indices_to_bool_mask(self, indices: Any):
+        source_bool_mask = create_bool_mask_with_true_at_indices(np.shape(self._source.value), indices)
         core_ndim = max(self._vectorize_metadata.args_metadata[arg_id].core_ndim
-                        for arg_id in _get_arg_ids_for_source(source, self._func_call.args, self._func_call.kwargs))
+                        for arg_id in _get_arg_ids_for_source(self._source, self._func_call.args, self._func_call.kwargs))
         source_bool_mask = np.any(source_bool_mask, axis=get_core_axes(core_ndim))
         return np.broadcast_to(source_bool_mask, self._vectorize_metadata.result_loop_shape)
 
@@ -97,7 +97,7 @@ class VectorizeForwardsPathTranslator(ForwardsPathTranslator):
 
         working_component, *rest_of_path = path
         bool_mask_in_output_array = \
-            self._forward_translate_indices_to_bool_mask(self._source, self._source_location, working_component.component)
+            self._forward_translate_indices_to_bool_mask(working_component.component)
         if not np.any(bool_mask_in_output_array):
             return []
         starting_path = [PathComponent(np.ndarray, bool_mask_in_output_array), *rest_of_path]

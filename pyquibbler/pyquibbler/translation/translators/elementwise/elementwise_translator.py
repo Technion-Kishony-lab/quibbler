@@ -33,7 +33,7 @@ class BackwardsElementwisePathTranslator(NumpyBackwardsPathTranslator):
 
 class ForwardsElementwisePathTranslator(NumpyForwardsPathTranslator):
 
-    def _forward_translate_indices_to_bool_mask(self, source: Source, source_location: SourceLocation, indices: Any):
+    def _forward_translate_indices_to_bool_mask(self, indices: Any):
         """
         Create a boolean mask representing the source at certain indices in the result.
         For a simple operation (eg `source=[1, 2, 3]`, `source + [2, 3, 4]`, and we forward path `(0, 0)`),
@@ -51,6 +51,6 @@ class ForwardsElementwisePathTranslator(NumpyForwardsPathTranslator):
          [True, False, False],
          [True, False, False]]
                 """
-        bool_mask = create_bool_mask_with_true_at_indices(np.shape(source.value), indices)
+        bool_mask = create_bool_mask_with_true_at_indices(np.shape(self._source.value), indices)
 
         return np.broadcast_to(bool_mask, self._shape)

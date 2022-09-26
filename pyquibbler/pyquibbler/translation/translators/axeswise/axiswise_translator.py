@@ -64,7 +64,7 @@ class AxiswiseForwardsPathTranslator(NumpyForwardsPathTranslator):
     def _forward_translate_bool_mask(self, args_dict, boolean_mask, source: Source):
         pass
 
-    def _forward_translate_indices_to_bool_mask(self, source: Source, source_location: SourceLocation, indices: Any):
-        source_bool_mask = create_bool_mask_with_true_at_indices(np.shape(source.value), indices)
+    def _forward_translate_indices_to_bool_mask(self, indices: Any):
+        source_bool_mask = create_bool_mask_with_true_at_indices(np.shape(self._source.value), indices)
         args_dict = _get_translation_related_arg_dict(self._func_call, self.TRANSLATION_RELATED_ARGS)
-        return self._forward_translate_bool_mask(args_dict, source_bool_mask, source)
+        return self._forward_translate_bool_mask(args_dict, source_bool_mask, self._source)
