@@ -68,6 +68,7 @@ def test_elementwise_on_scalar_quib_and_array():
     b.get_value()
 
 
+@pytest.mark.allow_array_with_dtype_object(True)
 def test_object_array():
     a = iquib([1, 2])
     b = np.array(['nothing here', a], dtype=object)

@@ -9,7 +9,7 @@ from .inverse_functions import inv_sin, inv_cos, inv_tan, keep_sign
 from .vectorize_overrides import create_vectorize_overrides
 from .helpers import numpy_override, numpy_override_random, numpy_override_read_file, \
     numpy_override_transpositional, numpy_override_reduction, numpy_override_accumulation, \
-    elementwise, single_arg_elementwise, numpy_override_shape_only
+    elementwise, single_arg_elementwise, numpy_override_shape_only, numpy_array_override
 
 
 def identity(x):
@@ -185,6 +185,11 @@ def create_numpy_overrides():
           )),
 
         # Transpositional
+        *(numpy_array_override(func_name, data_sources)
+            for func_name, data_sources in (
+            ('array', [0]),
+          )),
+
         *(numpy_override_transpositional(func_name, data_sources)
           for func_name, data_sources in (
             ('rot90',       [0]),
@@ -193,7 +198,6 @@ def create_numpy_overrides():
             ('full',        ['fill_value']),
             ('reshape',     [0]),
             ('transpose',   [0]),
-            ('array',       [0]),
             ('swapaxes',    [0]),
             ('tile',        [0]),
             ('asarray',     [0]),

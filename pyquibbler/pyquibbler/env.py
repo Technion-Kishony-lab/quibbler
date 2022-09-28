@@ -21,6 +21,10 @@ LAZY = Flag(True)
 GRAPHICS_LAZY = Flag(False)
 
 
+""" Quib creation """
+
+ALLOW_ARRAY_WITH_DTYPE_OBJECT = Flag(False)
+
 """ Graphics """
 
 DRAGGABLE_PLOTS_BY_DEFAULT = Flag(True)

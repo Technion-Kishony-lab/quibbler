@@ -3,8 +3,10 @@ from typing import List, Callable, Tuple, Union, Optional, Dict
 
 import numpy as np
 
+from pyquibbler.env import ALLOW_ARRAY_WITH_DTYPE_OBJECT
+from pyquibbler.function_overriding.function_override import FuncOverride
 from pyquibbler.function_overriding.third_party_overriding.general_helpers import RawArgument, override, \
-    file_loading_override
+    file_loading_override, override_with_cls
 from pyquibbler.inversion import TranspositionalInverter
 from pyquibbler.translation.translators import ForwardsTranspositionalTranslator, BackwardsTranspositionalTranslator, \
     AccumulationBackwardsPathTranslator, AccumulationForwardsPathTranslator, ReductionAxiswiseBackwardsPathTranslator, \
@@ -12,6 +14,17 @@ from pyquibbler.translation.translators import ForwardsTranspositionalTranslator
 from pyquibbler.inversion.inverters.elementwise_inverter import ElementwiseInverter
 from pyquibbler.inversion.inverters.elementwise_single_arg_no_shape_inverter import ElementwiseNoShapeInverter
 from pyquibbler.function_definitions.func_definition import ElementWiseFuncDefinition
+
+
+class NumpyArrayOverride(FuncOverride):
+
+    # We do not create quib for np.array([quib, ...], dtype=object).
+    # This way, we can allow building object arrays containing quibs.
+
+    @staticmethod
+    def should_create_quib(func, args, kwargs):
+        return ALLOW_ARRAY_WITH_DTYPE_OBJECT or kwargs.get('dtype', None) is not object
+
 
 numpy_override = functools.partial(override, np)
 
@@ -22,6 +35,11 @@ numpy_override_read_file = functools.partial(file_loading_override, np)
 numpy_override_transpositional = functools.partial(numpy_override, inverters=[TranspositionalInverter],
                                                    backwards_path_translators=[BackwardsTranspositionalTranslator],
                                                    forwards_path_translators=[ForwardsTranspositionalTranslator])
+
+numpy_array_override = functools.partial(override_with_cls, NumpyArrayOverride, np,
+                                         inverters=[TranspositionalInverter],
+                                         backwards_path_translators=[BackwardsTranspositionalTranslator],
+                                         forwards_path_translators=[ForwardsTranspositionalTranslator])
 
 numpy_override_accumulation = functools.partial(numpy_override, data_source_arguments=[0],
                                                 backwards_path_translators=[AccumulationBackwardsPathTranslator],
