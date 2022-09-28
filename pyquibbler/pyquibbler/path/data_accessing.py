@@ -7,7 +7,7 @@ import numpy as np
 from pyquibbler.env import DEBUG
 from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.debug_utils.logger import logger
-from .path_component import Path
+from .path_component import Path, OutFromArray
 
 
 @dataclass
@@ -28,8 +28,9 @@ def deep_get(obj: Any, path: Path):
     """
     for component in path:
         cmp = component.component
-        cls = component.indexed_cls
-        is_component_nd = cls == np.ndarray
+        cls = type(obj) if component.indexed_cls is None else component.indexed_cls
+        is_component_nd = issubclass(cls, np.ndarray)
+
         if isinstance(obj, np.ndarray) and cls is not None and not is_component_nd:
             # We allow specifying a path component that can reference multiple places in the array - for example,
             # if given a path
@@ -53,6 +54,10 @@ def deep_get(obj: Any, path: Path):
             obj = obj[cmp[0]]
         else:
             obj = obj[cmp]
+        if cls == OutFromArray:
+            assert obj.size == 1
+            obj = obj.reshape(tuple())[tuple()]  # get element out of array (works for any number of dimensions)
+
     return obj
 
 

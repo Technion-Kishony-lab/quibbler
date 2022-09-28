@@ -7,6 +7,10 @@ if TYPE_CHECKING:
     from pyquibbler import Quib
 
 
+class OutFromArray(np.ndarray):
+    pass
+
+
 @dataclass
 class PathComponent:
     indexed_cls: Type

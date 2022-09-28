@@ -3,7 +3,7 @@ from typing import Any
 
 from pyquibbler.function_definitions import SourceLocation
 from pyquibbler.path import deep_get
-from pyquibbler.path.path_component import Path, Paths, PathComponent
+from pyquibbler.path.path_component import Path, Paths, PathComponent, OutFromArray
 from pyquibbler.path.utils import working_component_of_type
 from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices
 
@@ -68,12 +68,14 @@ class ForwardsTranspositionalTranslator(NumpyForwardsPathTranslator):
             return [path]
 
         working_component, rest_of_path = working_component_of_type(self._path, (list, np.ndarray))
+        is_scalar_result = not isinstance(np.array(self._source.value)[working_component], np.ndarray)
         args, kwargs, remaining_path = \
             get_data_source_indices(self._func_call, self._source, self._source_location, working_component)
         result_index_code = run_func_call_with_new_args_kwargs(self._func_call, args, kwargs)
         result_mask = result_index_code > MAXIMAL_NON_FOCAL_SOURCE
 
-        translated_path = [PathComponent(np.ndarray, result_mask), *remaining_path]
+        translated_path = [PathComponent(OutFromArray if is_scalar_result else np.ndarray, result_mask),
+                           *remaining_path]
         if np.any(result_index_code[result_mask] == IndexCode.SCALAR_CONTAINING_FOCAL_SOURCE):
             translated_path = translated_path + self._path
         else:
