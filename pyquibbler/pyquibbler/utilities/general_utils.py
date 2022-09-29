@@ -76,3 +76,21 @@ def is_same_shapes(args: List) -> bool:
     return all(np.shape(arg) == np.shape(args[0]) for arg in args)
 
 
+def get_shared_shape(args: List) -> Shape:
+    """
+    Get the shape in the first dimensions which are shared by all args
+    """
+    if len(args) == 0:
+        return tuple()
+
+    shapes = list(map(np.shape, args))
+    shape0 = shapes[0]
+    min_dim = min(map(len, shapes))
+
+    if min_dim == 0:
+        return tuple()
+
+    for i in range(min_dim):
+        if not all(shape[i] == shape0[i] for shape in shapes):
+            return shape0[:i]
+    return shape0[:i+1]

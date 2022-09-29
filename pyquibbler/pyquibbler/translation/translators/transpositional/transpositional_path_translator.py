@@ -16,7 +16,7 @@ from .utils import get_data_source_indices, run_func_call_with_new_args_kwargs
 class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
 
     def _get_path_in_source(self, source: Source, location: SourceLocation):
-        args, kwargs = get_data_source_indices(self._func_call, source, location)
+        args, kwargs, _ = get_data_source_indices(self._func_call, source, location)
         result = run_func_call_with_new_args_kwargs(self._func_call, args, kwargs)
         result = deep_get(result, [PathComponent(np.ndarray, self._working_component)])
 
@@ -47,10 +47,11 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
 class ForwardsTranspositionalTranslator(NumpyForwardsPathTranslator):
 
     def _forward_translate_indices_to_bool_mask(self, indices: Any):
-        args, kwargs = get_data_source_indices(self._func_call, self._source, self._source_location,
-                                               working_component_of_type(self._path, (list, np.ndarray), True))
-        data_source_index_code = run_func_call_with_new_args_kwargs(self._func_call, args, kwargs)
-        return np.equal(data_source_index_code > MAXIMAL_NON_FOCAL_SOURCE, True)
+        working_component, _ = working_component_of_type(self._path, (list, np.ndarray))
+        args, kwargs, _ = get_data_source_indices(self._func_call, self._source, self._source_location,
+                                                  working_component)
+        result_index_code = run_func_call_with_new_args_kwargs(self._func_call, args, kwargs)
+        return np.equal(result_index_code > MAXIMAL_NON_FOCAL_SOURCE, True)
 
     def forward_translate(self) -> Paths:
         """
@@ -66,4 +67,15 @@ class ForwardsTranspositionalTranslator(NumpyForwardsPathTranslator):
             # don't change fields)
             return [path]
 
-        return super(ForwardsTranspositionalTranslator, self).forward_translate()
+        working_component, rest_of_path = working_component_of_type(self._path, (list, np.ndarray))
+        args, kwargs, remaining_path = \
+            get_data_source_indices(self._func_call, self._source, self._source_location, working_component)
+        result_index_code = run_func_call_with_new_args_kwargs(self._func_call, args, kwargs)
+        result_mask = result_index_code > MAXIMAL_NON_FOCAL_SOURCE
+
+        translated_path = [PathComponent(np.ndarray, result_mask), *remaining_path]
+        if np.any(result_index_code[result_mask] == IndexCode.SCALAR_CONTAINING_FOCAL_SOURCE):
+            translated_path = translated_path + self._path
+        else:
+            translated_path = translated_path + rest_of_path
+        return [translated_path]

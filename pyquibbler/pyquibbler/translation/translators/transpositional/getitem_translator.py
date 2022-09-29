@@ -61,7 +61,7 @@ class ForwardsGetItemTranslator(ForwardsTranspositionalTranslator):
                 # Therefore, we translate the indices and invalidate our children with the new indices (which are an
                 # intersection between our getitem and the path to invalidate- if this intersections yields nothing,
                 # we do NOT invalidate our children)
-                return super(ForwardsGetItemTranslator, self).forward_translate()
+                return super(ForwardsTranspositionalTranslator, self).forward_translate()
 
             elif (
                     _getitem_path_component(self._func_call).references_field_in_field_array()
@@ -79,7 +79,7 @@ class ForwardsGetItemTranslator(ForwardsTranspositionalTranslator):
                 return [path]
 
         if isinstance(self._source.value, list) and len(path) == 1 and working_component.indexed_cls is list:
-            return super(ForwardsGetItemTranslator, self).forward_translate()
+            return super(ForwardsTranspositionalTranslator, self).forward_translate()
 
         # We come to our default scenario- if
         # 1. The invalidator quib is not an ndarray

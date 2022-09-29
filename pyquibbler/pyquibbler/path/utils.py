@@ -15,8 +15,9 @@ def working_component(path: Path):
     return path[0].component if len(path) > 0 else True
 
 
-def working_component_of_type(path: Path, type_: Union[Type, Tuple[Type, ...]], option_if_not_found: Any):
-    return path[0].component if len(path) > 0 and issubclass(path[0].indexed_cls, type_) else option_if_not_found
+def working_component_of_type(path: Path, type_: Union[Type, Tuple[Type, ...]]):
+    return (path[0].component, path[1:]) if len(path) > 0 and issubclass(path[0].indexed_cls, type_) else \
+        (True, path)
 
 
 def translate_bool_vector_to_slice_if_possible(bool_index: bool) -> Union[None, slice]:
