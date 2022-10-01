@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import Any, Tuple, Dict, List
+from numpy.typing import NDArray, ArrayLike
 
 from pyquibbler.utilities.numpy_original_functions import np_zeros
 
@@ -11,7 +12,7 @@ Kwargs = Dict[str, Any]
 Shape = Tuple[int, ...]
 
 
-def create_bool_mask_with_true_at_indices(shape: Shape, indices: Any) -> np.ndarray:
+def create_bool_mask_with_true_at_indices(shape: Shape, indices: Any) -> NDArray[bool]:
     """
     Create an array of False in a given shape with True at `indices`.
     """
@@ -20,7 +21,7 @@ def create_bool_mask_with_true_at_indices(shape: Shape, indices: Any) -> np.ndar
     return res
 
 
-def unbroadcast_bool_mask(bool_mask: np.ndarray, original_shape: Shape) -> np.ndarray:
+def unbroadcast_bool_mask(bool_mask: np.ndarray, original_shape: Shape) -> NDArray:
     """
     Given a bool mask representing changes in an array which is a result of a broadcast, return an "un-broadcast"
     array in the given original shape (the shape before broadcasting) in which each boolean is true
@@ -66,7 +67,7 @@ def is_scalar_np(obj) -> bool:
     return False
 
 
-def is_same_shapes(args: List) -> bool:
+def is_same_shapes(args: List[ArrayLike]) -> bool:
     """
     Check if all elements of args have the same shape
     """
@@ -76,7 +77,7 @@ def is_same_shapes(args: List) -> bool:
     return all(np.shape(arg) == np.shape(args[0]) for arg in args)
 
 
-def get_shared_shape(args: List) -> Shape:
+def get_shared_shape(args: List[ArrayLike]) -> Shape:
     """
     Get the shape in the first dimensions which are shared by all args
     """
@@ -94,3 +95,16 @@ def get_shared_shape(args: List) -> Shape:
         if not all(shape[i] == shape0[i] for shape in shapes):
             return shape0[:i]
     return shape0[:i+1]
+
+
+def de_array_by_template(array: NDArray, obj: Any) -> Any:
+    """
+    This reverses the operation array = np.array(obj). It creates a new object that follows the template of `obj`,
+    with the elements of `array`.
+    """
+
+    if isinstance(obj, (list, tuple)):
+        return type(obj)(de_array_by_template(sub_array, sub_obj)
+                         for sub_array, sub_obj in zip(array, obj))
+
+    return array

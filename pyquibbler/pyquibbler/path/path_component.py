@@ -24,6 +24,13 @@ class PathComponent:
     def is_nd_reference(self):
         return isinstance(self.component, (tuple, list, np.ndarray))
 
+    def is_compound(self):
+        return isinstance(self.component, tuple) and len(self.component) > 1
+
+    def get_multi_step_path(self) -> 'Path':
+        if not self.is_compound():
+            return [self]
+        return list(PathComponent(self.indexed_cls, cmp) for cmp in self.component)
 
 Path = List[PathComponent]
 
