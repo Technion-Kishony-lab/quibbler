@@ -7,7 +7,7 @@ import numpy as np
 from pyquibbler.env import DEBUG
 from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.debug_utils.logger import logger
-from .path_component import Path, OutFromArray
+from .path_component import Path
 
 
 @dataclass
@@ -28,21 +28,8 @@ def deep_get(obj: Any, path: Path):
     """
     for component in path:
         cmp = component.component
-        cls = type(obj) if component.indexed_cls is None else component.indexed_cls
-        is_component_nd = issubclass(cls, np.ndarray)
-
-        if isinstance(obj, np.ndarray) and cls is not None and not is_component_nd:
-            # We allow specifying a path component that can reference multiple places in the array - for example,
-            # if given a path
-            # [PathComponent(np.ndarray, [True, True]), PathComponent(dict, "name"])]
-            # This path would reference both names of the two dictionaries in the ndarray. This is very important when
-            # it comes to invalidation, as it negates the necessity of needing two paths.
-            # In deep get, this means we need to be able to get a field after an array - but there must necessarily be
-            # only one value in the array, otherwise we wouldn't know which to return (e.g. in the above example-
-            # which name?)
-            flattened = np.array(obj.flat)
-            assert len(flattened) == 1
-            obj = flattened[0]
+        cls = type(obj)
+        is_component_nd = component.is_nd_reference()
 
         if cls == slice:
             obj = getattr(obj, cmp)
@@ -54,7 +41,7 @@ def deep_get(obj: Any, path: Path):
             obj = obj[cmp[0]]
         else:
             obj = obj[cmp]
-        if cls == OutFromArray:
+        if component.extract_element_out_of_array:
             assert obj.size == 1
             obj = obj.reshape(tuple())[tuple()]  # get element out of array (works for any number of dimensions)
 
@@ -113,8 +100,9 @@ def deep_assign_data_in_path(data: Any, path: Path,
         if should_copy_objects_referenced:
             new_element = copy.copy(new_element)
 
+        cmp = component.component
         need_to_convert_back_to_original_type = False
-        if isinstance(component.component, (tuple, np.ndarray)) and not isinstance(new_element, np.ndarray):
+        if isinstance(component.component, (tuple, np.ndarray, list)) and not isinstance(new_element, np.ndarray):
             # We can't access a regular list with a tuple, so we're forced to convert to a numpy array
             original_type = type(new_element)
             new_element = np.array(new_element, dtype=object)
@@ -123,8 +111,8 @@ def deep_assign_data_in_path(data: Any, path: Path,
             new_element = np.array(new_element)
 
         try:
-            setter = SETTERS.get(component.indexed_cls, set_key_to_value)
-            new_element = setter(new_element, component.component, last_element)
+            setter = SETTERS.get(type(new_element), set_key_to_value)
+            new_element = setter(new_element, cmp, last_element)
             if need_to_convert_back_to_original_type:
                 new_element = original_type(new_element.tolist())
         except IndexError as e:
@@ -136,7 +124,7 @@ def deep_assign_data_in_path(data: Any, path: Path,
                     (f"Attempted out of range assignment:"
                      f"\n\tdata: {data}"
                      f"\n\tpath: {path}"
-                     f"\n\tfailed path component: {component.component}"
+                     f"\n\tfailed path component: {cmp}"
                      f"\n\texception: {e}")
                 )
 

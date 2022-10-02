@@ -1,8 +1,7 @@
-from typing import Dict
+from typing import Dict, Type
 
 import numpy as np
 
-from pyquibbler.function_definitions import SourceLocation
 from pyquibbler.function_definitions.func_call import FuncCall
 from pyquibbler.translation.translators.transpositional.transpositional_path_translator import \
     BackwardsTranspositionalTranslator, ForwardsTranspositionalTranslator
@@ -12,7 +11,7 @@ from pyquibbler.path.path_component import Path, Paths
 from pyquibbler.translation.utils import copy_and_replace_sources_with_vals
 
 
-def _getitem_path_component(func_call: FuncCall):
+def _getitem_path_component(func_call: FuncCall) -> PathComponent:
     data = func_call.args[0]
     component = func_call.args[1]
     # We can't have a quib in our path, as this would mean we wouldn't be able to understand where it's necessary
@@ -22,13 +21,22 @@ def _getitem_path_component(func_call: FuncCall):
     return PathComponent(indexed_cls=type(accessed), component=component)
 
 
+def _type_of_referenced_object(func_call: FuncCall):
+    data = func_call.args[0]
+    return type(data) if not isinstance(data, Source) else type(data.value)
+
+
+def _referencing_field_in_field_array(func_call: FuncCall):
+    return _getitem_path_component(func_call).referencing_field_in_field_array(_type_of_referenced_object(func_call))
+
+
 class BackwardsGetItemTranslator(BackwardsTranspositionalTranslator):
 
     def _can_squash_start_of_path(self):
         return issubclass(self._type, np.ndarray) \
-               and not _getitem_path_component(self._func_call).references_field_in_field_array() \
+               and not _referencing_field_in_field_array(self._func_call) \
                and len(self._path) > 0 \
-               and not self._path[0].references_field_in_field_array() \
+               and not self._path[0].referencing_field_in_field_array(_type_of_referenced_object(self._func_call)) \
                and isinstance(self._func_call.args[0].value, np.ndarray) \
                and not (self._func_call.args[0].value.dtype.type is np.object_
                         and isinstance(self._func_call.args[0].value[self._func_call.args[1]], np.ndarray))
@@ -51,9 +59,11 @@ class ForwardsGetItemTranslator(ForwardsTranspositionalTranslator):
             return [[]]
 
         working_component, *rest_of_path = self._path
+        working_component_references_field_in_field_array = \
+            working_component.referencing_field_in_field_array(_type_of_referenced_object(self._func_call))
         if isinstance(self._source.value, np.ndarray):
-            if (not _getitem_path_component(self._func_call).references_field_in_field_array()
-                    and not working_component.references_field_in_field_array()):
+            if (not _referencing_field_in_field_array(self._func_call)
+                    and not working_component_references_field_in_field_array):
                 # This means:
                 # 1. The invalidator quib's result is an ndarray, (We're a getitem on that said ndarray)
                 # 2. Both the path to invalidate and the `item` of the getitem are translatable indices
@@ -64,9 +74,9 @@ class ForwardsGetItemTranslator(ForwardsTranspositionalTranslator):
                 return super(ForwardsTranspositionalTranslator, self).forward_translate()
 
             elif (
-                    _getitem_path_component(self._func_call).references_field_in_field_array()
+                    _referencing_field_in_field_array(self._func_call)
                     !=
-                    working_component.references_field_in_field_array()
+                    working_component_references_field_in_field_array
                     and
                     issubclass(self._type, np.ndarray)
             ):
@@ -78,7 +88,7 @@ class ForwardsGetItemTranslator(ForwardsTranspositionalTranslator):
                 # interchangeable when indexing structured ndarrays
                 return [path]
 
-        if isinstance(self._source.value, list) and len(path) == 1 and working_component.indexed_cls is list:
+        if isinstance(self._source.value, list) and len(path) == 1:
             return super(ForwardsTranspositionalTranslator, self).forward_translate()
 
         # We come to our default scenario- if

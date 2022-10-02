@@ -55,8 +55,6 @@ class Overrider:
         """
         Adds an override to the overrider - data[key] = value.
         """
-        assignment = copy.deepcopy(assignment)
-        assignment.remove_class_from_path()
         self._active_assignment = assignment
         self._add_to_paths_to_assignments(assignment)
 

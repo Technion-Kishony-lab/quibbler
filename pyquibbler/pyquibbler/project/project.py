@@ -10,7 +10,6 @@ from pyquibbler.utilities.input_validation_utils import get_enum_by_str, validat
 from pyquibbler.utilities.file_path import PathWithHyperLink
 from pyquibbler.quib.graphics import GraphicsUpdateType, aggregate_redraw_mode
 from pyquibbler.file_syncing.types import SaveFormat, ResponseToFileNotDefined
-from pyquibbler.path.path_component import set_path_indexed_classes_from_quib
 
 from .actions import Action, AddAssignmentAction, AssignmentAction, RemoveAssignmentAction
 from .exceptions import NoProjectDirectoryException, NothingToUndoException, NothingToRedoException
@@ -531,13 +530,9 @@ class Project:
         quib.handler.overrider.insert_assignment_at_index(assignment, index)
         quib.handler.file_syncer.on_data_changed()
 
-        # TODO: set_path_indexed_classes_from_quib shouldn't be necessary
-        set_path_indexed_classes_from_quib(assignment.path, quib)
 
         quib.handler.invalidate_and_aggregate_redraw_at_path(assignment.path)
         if old_assignment is not None:
-            # TODO: set_path_indexed_classes_from_quib shouldn't be necessary
-            set_path_indexed_classes_from_quib(old_assignment.path, quib)
             quib.handler.invalidate_and_aggregate_redraw_at_path(old_assignment.path)
         quib.handler.on_overrides_changes()
 
@@ -566,9 +561,6 @@ class Project:
         self._redo_action_groups.clear()
         quib.handler.file_syncer.on_data_changed()
         self.set_undo_redo_buttons_enable_state()
-
-        # TODO: This shouldn't be necessary
-        set_path_indexed_classes_from_quib(assignment.path, quib)
 
         quib.handler.invalidate_and_aggregate_redraw_at_path(assignment.path)
         quib.handler.on_overrides_changes()

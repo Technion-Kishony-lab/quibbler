@@ -30,7 +30,7 @@ def _get_arg_ids_for_source(source: Source, args, kwargs) -> Set[ArgId]:
 
 class VectorizeBackwardsPathTranslator(BackwardsPathTranslator):
 
-    SHOULD_ATTEMPT_WITHOUT_SHAPE_AND_TYPE = True
+    SHOULD_ATTEMPT_WITHOUT_SHAPE_AND_TYPE = False
 
     def __init__(self, func_call, shape: Optional[Shape], type_: Optional[Type], path,
                  vectorize_metadata=None):
@@ -51,11 +51,15 @@ class VectorizeBackwardsPathTranslator(BackwardsPathTranslator):
         reduced_bool_mask = np.any(result_bool_mask, axis=result_core_axes)
         return unbroadcast_bool_mask(reduced_bool_mask, quib_loop_shape)
 
-    def _get_source_path_in_source(self, source: Source, filtered_path_in_result: Path):
+    def _get_source_path_in_source(self, source: Source, filtered_path_in_result: Path) -> Path:
         """
         Given a path in the result, return the path in the given quib on which the result path depends.
         """
-        if len(filtered_path_in_result) == 0 or filtered_path_in_result[0].indexed_cls is tuple:
+        if len(filtered_path_in_result) == 0:
+            return []
+
+        # TODO: if the result is a tuple, we should better translate the rest of the path, path[1:]
+        if self._vectorize_metadata.is_result_a_tuple:
             return []
 
         if self._shape is None:

@@ -33,4 +33,4 @@ def test_assignment_with_tolerance(x0, a, b, new_y, new_dy, component, expected)
         tolerance=new_dy)
 
     y.handler.apply_assignment(assignment)
-    assert x.handler.overrider.get(assignment.remove_class_from_path()).value == expected
+    assert x.handler.overrider.get(assignment.path).value == expected

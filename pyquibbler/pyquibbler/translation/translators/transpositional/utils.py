@@ -12,7 +12,7 @@ from pyquibbler.utilities.get_original_func import get_original_func
 from pyquibbler.utilities.missing_value import missing, Missing
 
 from .types import IndexCode, _non_focal_source_scalar, MAXIMAL_NON_FOCAL_SOURCE
-deep_get
+
 
 def convert_arg_and_source_to_array_of_indices(arg: Any,
                                                focal_source: Union[Source, Missing] = missing,

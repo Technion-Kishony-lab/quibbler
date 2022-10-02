@@ -22,7 +22,7 @@ class ForwardsPathTranslator:
     SHOULD_ATTEMPT_WITHOUT_SHAPE_AND_TYPE = False
 
     def __init__(self,
-                 func_call: Type[FuncCall],
+                 func_call: FuncCall,
                  source: Source,
                  source_location: SourceLocation,
                  path: Path,
@@ -38,3 +38,6 @@ class ForwardsPathTranslator:
     @abstractmethod
     def forward_translate(self) -> Paths:
         pass
+
+    def _source_type(self):
+        return type(self._source.value)

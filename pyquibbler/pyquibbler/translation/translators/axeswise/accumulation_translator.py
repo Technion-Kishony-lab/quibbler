@@ -1,5 +1,6 @@
 import numpy as np
 
+from pyquibbler.utilities.numpy_original_functions import np_logical_or
 from .axiswise_translator import AxiswiseBackwardsPathTranslator, AxiswiseForwardsPathTranslator, Arg
 from ...types import Source
 
@@ -15,7 +16,6 @@ class AccumulationForwardsPathTranslator(AxiswiseForwardsPathTranslator):
         Calculate forward index translation for reduction functions by accumulating the boolean arrays
         with the same accumulation params.
         """
-        from pyquibbler.utilities.numpy_original_functions import np_logical_or
         axis = args_dict.pop('axis')
         if axis is None:
             boolean_mask = boolean_mask.flat
@@ -28,7 +28,6 @@ class AccumulationBackwardsPathTranslator(AxiswiseBackwardsPathTranslator):
     TRANSLATION_RELATED_ARGS = ACCUMULATION_ARGS
 
     def _backwards_translate_bool_mask(self, args_dict, source: Source, component: np.ndarray) -> np.ndarray:
-        from pyquibbler.utilities.numpy_original_functions import np_logical_or
         result_core_axis = args_dict.pop('axis')
         need_reshape = False
         if result_core_axis is None:

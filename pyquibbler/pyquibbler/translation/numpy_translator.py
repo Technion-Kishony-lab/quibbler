@@ -27,7 +27,7 @@ class NumpyBackwardsPathTranslator(BackwardsPathTranslator):
     def _split_path(self):
         components_at_end = self._path[1:]
         current_components = self._path[0:1]
-        if len(self._path) > 0 and self._path[0].references_field_in_field_array():
+        if len(self._path) > 0 and self._path[0].referencing_field_in_field_array(self._type):
             components_at_end = [self._path[0], *components_at_end]
             current_components = []
         return current_components, components_at_end
@@ -91,7 +91,7 @@ class NumpyForwardsPathTranslator(ForwardsPathTranslator):
             if not issubclass(self._type, allowed_types) and np.all(bool_mask_in_output_array):
                 return [path[1:]]
 
-            if len(path) > 0 and issubclass(path[0].indexed_cls, allowed_types):
+            if len(path) > 0 and issubclass(self._source_type(), allowed_types):
                 # If we are in a situation in which the first component is a referencing an ndarray or list, then the
                 # `bool_mask_in_output_array` is already a combination of the first component with the
                 # self._func_call.func- therefore, we are going to replace the first component with the
@@ -100,7 +100,7 @@ class NumpyForwardsPathTranslator(ForwardsPathTranslator):
             else:
                 rest_of_path = path
 
-            if len(path) > 0 and issubclass(path[0].indexed_cls, (list, tuple)) \
+            if len(path) > 0 and issubclass(self._source_type(), (list, tuple)) \
                     and issubclass(self._type, (list, tuple)):
                 assert np.ndim(bool_mask_in_output_array) == 1
                 slice_index = translate_bool_vector_to_slice_if_possible(bool_mask_in_output_array)

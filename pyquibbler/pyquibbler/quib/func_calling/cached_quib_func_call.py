@@ -172,7 +172,7 @@ class CachedQuibFuncCall(QuibFuncCall):
         for uncached_path in uncached_paths:
             result = self._run_on_path(uncached_path)
 
-            truncated_path = _truncate_path_to_match_shallow_caches(uncached_path)
+            truncated_path = _truncate_path_to_match_shallow_caches(uncached_path, result)
             self.cache = _ensure_cache_matches_result(self.cache, result)
 
             if truncated_path is not None:

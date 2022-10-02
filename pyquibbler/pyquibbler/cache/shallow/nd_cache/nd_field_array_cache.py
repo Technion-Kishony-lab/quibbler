@@ -38,7 +38,7 @@ class NdFieldArrayShallowCache(NdIndexableCache):
 
     def _get_uncached_paths_at_path_component(self,
                                               path_component):
-        if path_component.references_field_in_field_array():
+        if path_component.referencing_field_in_field_array(type(self._value)):
             paths = [[PathComponent(indexed_cls=np.ndarray, component=path_component.component),
                       PathComponent(indexed_cls=np.ndarray,
                                     component=np.array(self._invalid_mask[path_component.component]))]]

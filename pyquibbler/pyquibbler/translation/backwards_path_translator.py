@@ -22,7 +22,7 @@ class BackwardsPathTranslator:
     # raise `FailedToTranslateException` if you fail in order to attempt WITH shape + type
     SHOULD_ATTEMPT_WITHOUT_SHAPE_AND_TYPE = False
 
-    def __init__(self, func_call: SourceFuncCall, shape: Optional[Shape], type_: Optional[Type], path):
+    def __init__(self, func_call: SourceFuncCall, shape: Optional[Shape], type_: Optional[Type], path: Path):
         self._func_call = func_call
         self._shape = shape
         self._path = path
