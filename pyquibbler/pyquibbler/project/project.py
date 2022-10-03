@@ -529,8 +529,6 @@ class Project:
             old_assignment = None
         quib.handler.overrider.insert_assignment_at_index(assignment, index)
         quib.handler.file_syncer.on_data_changed()
-
-
         quib.handler.invalidate_and_aggregate_redraw_at_path(assignment.path)
         if old_assignment is not None:
             quib.handler.invalidate_and_aggregate_redraw_at_path(old_assignment.path)

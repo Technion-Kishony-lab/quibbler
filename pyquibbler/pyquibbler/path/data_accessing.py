@@ -102,16 +102,17 @@ def deep_assign_data_in_path(data: Any, path: Path,
 
         cmp = component.component
         need_to_convert_back_to_original_type = False
-        if isinstance(component.component, (tuple, np.ndarray, list)) and not isinstance(new_element, np.ndarray):
-            # We can't access a regular list with a tuple, so we're forced to convert to a numpy array
+        if component.is_nd_reference() and not isinstance(new_element, np.ndarray):
+            # We are trying to access a nom-array object, like list or tuple, with array-style indexing
             original_type = type(new_element)
             new_element = np.array(new_element, dtype=object)
             need_to_convert_back_to_original_type = True
         elif isinstance(new_element, np.ndarray) and hasattr(new_element, 'base'):
+            # new_element is a view. we need to make a copy.
             new_element = np.array(new_element)
 
+        setter = SETTERS.get(type(new_element), set_key_to_value)
         try:
-            setter = SETTERS.get(type(new_element), set_key_to_value)
             new_element = setter(new_element, cmp, last_element)
             if need_to_convert_back_to_original_type:
                 new_element = original_type(new_element.tolist())

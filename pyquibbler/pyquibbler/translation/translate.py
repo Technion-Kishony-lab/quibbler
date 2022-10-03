@@ -5,9 +5,8 @@ from pyquibbler.utilities.multiple_instance_runner import MultipleInstanceRunner
 from pyquibbler.path import Path, Paths
 from pyquibbler.function_definitions.func_call import FuncCall
 
-from .backwards_path_translator import BackwardsPathTranslator
+from .base_translators import BackwardsPathTranslator, ForwardsPathTranslator
 from .exceptions import FailedToTranslateException, NoTranslatorsFoundException
-from .forwards_path_translator import ForwardsPathTranslator
 from .types import Source
 from ..function_definitions import SourceLocation
 from ..utilities.general_utils import Shape
@@ -78,8 +77,8 @@ class MultipleForwardsTranslatorRunner(MultipleInstanceRunner):
         return definition.forwards_path_translators
 
 
-def backwards_translate(func_call: FuncCall,
-                        path, shape: Optional[Shape] = None, type_: Optional[Type] = None, **kwargs) -> Dict[Source, Path]:
+def backwards_translate(func_call: FuncCall, path: Path,
+                        shape: Optional[Shape] = None, type_: Optional[Type] = None, **kwargs) -> Dict[Source, Path]:
     """
     Backwards translate a path given a func_call
     This gives a mapping of sources to paths that were referenced in given path in the result of the function

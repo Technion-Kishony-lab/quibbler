@@ -1,6 +1,6 @@
 from __future__ import annotations
 import numpy as np
-from typing import Tuple, Iterable, Optional, Dict, Union, TYPE_CHECKING
+from typing import Iterable, Optional, Dict, Union, TYPE_CHECKING
 from string import ascii_letters
 from itertools import islice
 

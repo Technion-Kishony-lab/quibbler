@@ -12,34 +12,37 @@ from pyquibbler.translation.utils import copy_and_replace_sources_with_vals
 
 
 def _getitem_path_component(func_call: FuncCall) -> PathComponent:
-    data = func_call.args[0]
     component = func_call.args[1]
-    # We can't have a quib in our path, as this would mean we wouldn't be able to understand where it's necessary
-    # to get_value's/reverse assign
     component = copy_and_replace_sources_with_vals(component)
-    accessed = copy_and_replace_sources_with_vals(data)
     return PathComponent(component)
 
 
-def _type_of_referenced_object(func_call: FuncCall):
+def _type_of_referenced_object(func_call: FuncCall) -> Type:
     data = func_call.args[0]
-    return type(data) if not isinstance(data, Source) else type(data.value)
+    return type(data.value) if isinstance(data, Source) else type(data)
 
 
-def _referencing_field_in_field_array(func_call: FuncCall):
+def _referencing_field_in_field_array(func_call: FuncCall) -> bool:
     return _getitem_path_component(func_call).referencing_field_in_field_array(_type_of_referenced_object(func_call))
 
 
 class BackwardsGetItemTranslator(BackwardsTranspositionalTranslator):
 
-    def _can_squash_start_of_path(self):
+    def _referenced_value(self):
+        return copy_and_replace_sources_with_vals(self._func_call.args[0])
+
+    def _getitem_component(self):
+        return copy_and_replace_sources_with_vals(self._func_call.args[1])
+
+    def _can_squash_start_of_path(self) -> bool:
+        data = self._referenced_value()
+        component = self._getitem_component()
         return issubclass(self._type, np.ndarray) \
-               and not _referencing_field_in_field_array(self._func_call) \
-               and len(self._path) > 0 \
-               and not self._path[0].referencing_field_in_field_array(_type_of_referenced_object(self._func_call)) \
-               and isinstance(self._func_call.args[0].value, np.ndarray) \
-               and not (self._func_call.args[0].value.dtype.type is np.object_
-                        and isinstance(self._func_call.args[0].value[self._func_call.args[1]], np.ndarray))
+            and not _referencing_field_in_field_array(self._func_call) \
+            and len(self._path) > 0 \
+            and not self._path[0].referencing_field_in_field_array(_type_of_referenced_object(self._func_call)) \
+            and isinstance(data, np.ndarray) \
+            and not (data.dtype.type is np.object_ and isinstance(data[component], np.ndarray))
         # TODO: The above line is an ad hoc solution to the test_array_of_arrays bug
 
     def backwards_translate(self) -> Dict[Source, Path]:
@@ -59,11 +62,11 @@ class ForwardsGetItemTranslator(ForwardsTranspositionalTranslator):
             return [[]]
 
         working_component, *rest_of_path = self._path
-        working_component_references_field_in_field_array = \
+        is_working_component_referencing_field_in_field_array = \
             working_component.referencing_field_in_field_array(_type_of_referenced_object(self._func_call))
         if isinstance(self._source.value, np.ndarray):
             if (not _referencing_field_in_field_array(self._func_call)
-                    and not working_component_references_field_in_field_array):
+                    and not is_working_component_referencing_field_in_field_array):
                 # This means:
                 # 1. The invalidator quib's result is an ndarray, (We're a getitem on that said ndarray)
                 # 2. Both the path to invalidate and the `item` of the getitem are translatable indices
@@ -76,7 +79,7 @@ class ForwardsGetItemTranslator(ForwardsTranspositionalTranslator):
             elif (
                     _referencing_field_in_field_array(self._func_call)
                     !=
-                    working_component_references_field_in_field_array
+                    is_working_component_referencing_field_in_field_array
                     and
                     issubclass(self._type, np.ndarray)
             ):

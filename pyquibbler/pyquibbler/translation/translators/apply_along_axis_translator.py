@@ -1,14 +1,11 @@
 from dataclasses import dataclass
-from typing import Tuple
 
 import numpy as np
 
-from pyquibbler.function_definitions import SourceLocation
 from pyquibbler.translation.numpy_translator import NumpyForwardsPathTranslator
 from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices, Shape
 from pyquibbler.function_definitions.func_call import FuncCall
 from pyquibbler.translation.translators.axeswise.axiswise_translator import Arg
-from pyquibbler.translation.types import Source
 
 
 @dataclass

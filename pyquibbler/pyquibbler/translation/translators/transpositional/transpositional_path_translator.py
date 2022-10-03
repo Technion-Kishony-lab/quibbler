@@ -3,7 +3,7 @@ from typing import Any
 
 from pyquibbler.function_definitions import SourceLocation
 from pyquibbler.path import deep_get
-from pyquibbler.path.path_component import Path, Paths, PathComponent
+from pyquibbler.path.path_component import Paths, PathComponent
 from pyquibbler.path.utils import working_component_of_type
 from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices
 

@@ -1,10 +1,8 @@
 from typing import Dict
 
-from pyquibbler.function_definitions import SourceLocation
 from pyquibbler.path.path_component import Path, Paths
 
-from ...forwards_path_translator import ForwardsPathTranslator
-from ...backwards_path_translator import BackwardsPathTranslator
+from ...base_translators import ForwardsPathTranslator, BackwardsPathTranslator
 from ...types import Source
 
 

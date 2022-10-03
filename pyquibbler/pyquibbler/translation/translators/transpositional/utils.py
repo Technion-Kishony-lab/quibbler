@@ -3,22 +3,23 @@ from typing import Any, Union, Tuple, Dict
 import numpy as np
 
 from pyquibbler.function_definitions import KeywordArgument, SourceLocation
-from pyquibbler.path import Path, deep_get
+from pyquibbler.path import Path
 from pyquibbler.translation.source_func_call import SourceFuncCall
 from pyquibbler.translation.types import Source
 from pyquibbler.function_definitions.func_call import FuncCall
-from pyquibbler.utilities.general_utils import is_same_shapes, is_scalar_np, get_shared_shape
+from pyquibbler.utilities.general_utils import is_scalar_np, get_shared_shape
 from pyquibbler.utilities.get_original_func import get_original_func
 from pyquibbler.utilities.missing_value import missing, Missing
 
 from .types import IndexCode, _non_focal_source_scalar, MAXIMAL_NON_FOCAL_SOURCE
+from numpy.typing import NDArray
 
 
-def convert_arg_and_source_to_array_of_indices(arg: Any,
-                                               focal_source: Union[Source, Missing] = missing,
-                                               path_to_source: Union[Path, Missing] = missing,
-                                               path_in_source: Union[Any, Missing] = missing
-                                               ) -> Tuple[np.ndarray, Path]:
+def convert_arg_and_source_to_array_of_index_codes(arg: Any,
+                                                   focal_source: Union[Source, Missing] = missing,
+                                                   path_to_source: Union[Path, Missing] = missing,
+                                                   path_in_source: Union[Any, Missing] = missing
+                                                   ) -> Tuple[NDArray[Union[np.int64, IndexCode]], Path]:
     """
     Convert arg to an array of int64 with values matching the linear indexing of focal_source,
     or specifying other elements according to IndexCode.
@@ -49,10 +50,11 @@ def convert_arg_and_source_to_array_of_indices(arg: Any,
     for sub_arg_index, sub_arg in enumerate(arg):
         if source_index != sub_arg_index:
             converted_sub_arg, _ = \
-                convert_arg_and_source_to_array_of_indices(sub_arg)
+                convert_arg_and_source_to_array_of_index_codes(sub_arg)
         else:
             converted_sub_arg, new_path_to_source = \
-                convert_arg_and_source_to_array_of_indices(sub_arg, focal_source, path_to_source[1:], path_in_source)
+                convert_arg_and_source_to_array_of_index_codes(sub_arg, focal_source, path_to_source[1:],
+                                                               path_in_source)
         converted_sub_args.append(converted_sub_arg)
 
     shared_shape = get_shared_shape(converted_sub_args)
@@ -80,13 +82,14 @@ def convert_args_and_source_to_arrays_of_indices(args: Any,
         for index, arg in enumerate(args):
             if path_to_source[0].component == index:
                 converted_arg, remaining_path = \
-                    convert_arg_and_source_to_array_of_indices(arg, focal_source, path_to_source[1:], path_in_source)
+                    convert_arg_and_source_to_array_of_index_codes(arg, focal_source, path_to_source[1:],
+                                                                   path_in_source)
             else:
                 converted_arg, _ = \
-                    convert_arg_and_source_to_array_of_indices(arg)
+                    convert_arg_and_source_to_array_of_index_codes(arg)
             new_arg.append(converted_arg)
         return tuple(new_arg), remaining_path
-    return convert_arg_and_source_to_array_of_indices(args, focal_source, path_to_source, path_in_source)
+    return convert_arg_and_source_to_array_of_index_codes(args, focal_source, path_to_source, path_in_source)
 
 
 def get_data_source_indices(func_call: FuncCall,

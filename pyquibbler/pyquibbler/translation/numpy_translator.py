@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Any, Dict, Optional, Type, Tuple
+from typing import Any, Dict, Optional, Type
 
 import numpy as np
 
@@ -7,9 +7,8 @@ from pyquibbler.path import working_component, translate_bool_vector_to_slice_if
 from pyquibbler.function_definitions import FuncCall, SourceLocation
 from pyquibbler.utilities.general_utils import Shape
 
-from .backwards_path_translator import BackwardsPathTranslator
+from .base_translators import BackwardsPathTranslator, ForwardsPathTranslator
 from .exceptions import FailedToTranslateException
-from .forwards_path_translator import ForwardsPathTranslator
 from .types import Source, NoMetadataSource
 
 

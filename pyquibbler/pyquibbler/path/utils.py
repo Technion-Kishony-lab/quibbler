@@ -1,5 +1,5 @@
 import copy
-from typing import Any, Type, Union, Tuple
+from typing import Any, Union, Tuple
 
 import numpy as np
 

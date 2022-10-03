@@ -11,8 +11,7 @@ from pyquibbler.function_definitions.types import iter_arg_ids_and_values
 from pyquibbler.function_definitions import FuncCall, SourceLocation
 
 from ..exceptions import FailedToTranslateException
-from ..backwards_path_translator import BackwardsPathTranslator
-from ..forwards_path_translator import ForwardsPathTranslator
+from ..base_translators import BackwardsPathTranslator, ForwardsPathTranslator
 from ..types import Source
 
 from typing import TYPE_CHECKING
@@ -90,7 +89,8 @@ class VectorizeForwardsPathTranslator(ForwardsPathTranslator):
     def _forward_translate_indices_to_bool_mask(self, indices: Any):
         source_bool_mask = create_bool_mask_with_true_at_indices(np.shape(self._source.value), indices)
         core_ndim = max(self._vectorize_metadata.args_metadata[arg_id].core_ndim
-                        for arg_id in _get_arg_ids_for_source(self._source, self._func_call.args, self._func_call.kwargs))
+                        for arg_id in
+                        _get_arg_ids_for_source(self._source, self._func_call.args, self._func_call.kwargs))
         source_bool_mask = np.any(source_bool_mask, axis=get_core_axes(core_ndim))
         return np.broadcast_to(source_bool_mask, self._vectorize_metadata.result_loop_shape)
 

@@ -1,12 +1,8 @@
 from typing import Dict
 
-import numpy as np
-
-from pyquibbler.function_definitions import SourceLocation
 from pyquibbler.path.path_component import PathComponent, Path, Paths
 
-from ...forwards_path_translator import ForwardsPathTranslator
-from ...backwards_path_translator import BackwardsPathTranslator
+from ...base_translators import ForwardsPathTranslator, BackwardsPathTranslator
 from ...types import Source
 
 
@@ -29,6 +25,6 @@ class ForwardsShapeOnlyPathTranslator(ForwardsPathTranslator):
     def forward_translate(self) -> Paths:
         path = self._path
         is_list_extension_possible = len(path) \
-                            and self._source_type() is list \
-                            and isinstance(path[0].component, slice)
+            and self._source_type() is list \
+            and isinstance(path[0].component, slice)
         return [] if len(path) and not is_list_extension_possible else [[]]

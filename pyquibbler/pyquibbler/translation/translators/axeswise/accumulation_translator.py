@@ -7,22 +7,6 @@ from ...types import Source
 ACCUMULATION_ARGS = [Arg('axis')]
 
 
-class AccumulationForwardsPathTranslator(AxiswiseForwardsPathTranslator):
-
-    TRANSLATION_RELATED_ARGS = ACCUMULATION_ARGS
-
-    def _forward_translate_bool_mask(self, args_dict, boolean_mask, source: Source):
-        """
-        Calculate forward index translation for reduction functions by accumulating the boolean arrays
-        with the same accumulation params.
-        """
-        axis = args_dict.pop('axis')
-        if axis is None:
-            boolean_mask = boolean_mask.flat
-            axis = 0
-        return np_logical_or.accumulate(boolean_mask, axis=axis, **args_dict)
-
-
 class AccumulationBackwardsPathTranslator(AxiswiseBackwardsPathTranslator):
 
     TRANSLATION_RELATED_ARGS = ACCUMULATION_ARGS
@@ -39,3 +23,19 @@ class AccumulationBackwardsPathTranslator(AxiswiseBackwardsPathTranslator):
         if need_reshape:
             bool_mask = np.reshape(bool_mask, np.shape(source.value))
         return bool_mask
+
+
+class AccumulationForwardsPathTranslator(AxiswiseForwardsPathTranslator):
+
+    TRANSLATION_RELATED_ARGS = ACCUMULATION_ARGS
+
+    def _forward_translate_bool_mask(self, args_dict, boolean_mask, source: Source):
+        """
+        Calculate forward index translation for reduction functions by accumulating the boolean arrays
+        with the same accumulation params.
+        """
+        axis = args_dict.pop('axis')
+        if axis is None:
+            boolean_mask = boolean_mask.flat
+            axis = 0
+        return np_logical_or.accumulate(boolean_mask, axis=axis, **args_dict)

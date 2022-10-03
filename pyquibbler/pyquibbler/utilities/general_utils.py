@@ -94,7 +94,7 @@ def get_shared_shape(args: List[ArrayLike]) -> Shape:
     for i in range(min_dim):
         if not all(shape[i] == shape0[i] for shape in shapes):
             return shape0[:i]
-    return shape0[:i+1]
+    return shape0[:i + 1]
 
 
 def de_array_by_template(array: NDArray, obj: Any) -> Any:

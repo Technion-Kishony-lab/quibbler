@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Type, Any, List, TYPE_CHECKING
+from typing import Any, List
 
 import numpy as np
 
