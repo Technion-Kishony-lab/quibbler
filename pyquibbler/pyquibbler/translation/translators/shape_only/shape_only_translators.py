@@ -17,7 +17,7 @@ class BackwardsShapeOnlyPathTranslator(BackwardsPathTranslator):
     def backwards_translate(self) -> Dict[Source, Path]:
         sources_to_paths = {}
         for source in self._func_call.get_data_sources():
-            sources_to_paths[source] = [PathComponent(np.ndarray, None)]
+            sources_to_paths[source] = [PathComponent(None)]
         return sources_to_paths
 
 

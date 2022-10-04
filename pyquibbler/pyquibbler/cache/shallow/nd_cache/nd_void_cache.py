@@ -29,9 +29,7 @@ class NdVoidCache(NdIndexableCache):
 
         if path_component.component is True or path_component.component is ...:
             return [
-                [PathComponent(indexed_cls=np.void, component=name)]
-                for name in self._invalid_mask.dtype.names
-                if self._invalid_mask[name]
+                [PathComponent(name)] for name in self._invalid_mask.dtype.names if self._invalid_mask[name]
             ]
 
         if bool(self._invalid_mask[path_component.component]) is True:

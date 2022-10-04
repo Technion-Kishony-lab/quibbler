@@ -37,7 +37,7 @@ def is_path_simple(path: Path):
     "bool indexing"
 ])
 def test(assigned_value, assigned_path, data, should_simplify):
-    assignment = Assignment(assigned_value, [PathComponent(np.ndarray, assigned_path)])
+    assignment = Assignment(assigned_value, [PathComponent(assigned_path)])
     simplied_assignment = AssignmentSimplifier(deepcopy(assignment), data).simplify()
 
     data_original_assignment = deep_assign_data_in_path(data, assignment.path, assignment.value)

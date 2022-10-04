@@ -32,8 +32,7 @@ class IndexableCache(ShallowCache):
             boolean_mask_of_indices = create_bool_mask_with_true_at_indices(self._shape(), path_component.component)
 
             return self._filter_empty_paths([
-                [PathComponent(indexed_cls=np.ndarray,
-                               component=np.logical_and(boolean_mask_of_indices, self._invalid_mask_broadcasted()))]
+                [PathComponent(np.logical_and(boolean_mask_of_indices, self._invalid_mask_broadcasted()))]
             ])
 
         mask = [(i, obj) for i, obj in enumerate(self._value)]
@@ -44,7 +43,7 @@ class IndexableCache(ShallowCache):
             data = [data]
 
         return [
-            [PathComponent(indexed_cls=list, component=i)]
+            [PathComponent(i)]
             for i, value in data
             if self._invalid_mask[i] is True
         ]
@@ -98,7 +97,7 @@ class IndexableCache(ShallowCache):
 
     def _get_all_uncached_paths(self) -> Paths:
         return [
-            [PathComponent(indexed_cls=list, component=i)]
+            [PathComponent(i)]
             for i, value in enumerate(self._value)
             if self._invalid_mask[i] is True
         ]

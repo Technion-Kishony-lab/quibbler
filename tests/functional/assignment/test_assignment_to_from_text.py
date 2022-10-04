@@ -39,6 +39,6 @@ def test_cannot_convert_simplified_text_to_assignment(override_text):
     ([(1, slice(None, None, None)), np.array([False, True])], default, '[1, :][array([False,  True])] = default'),
 ])
 def test_convert_assignment_to_simplified_text(components, value, expected_text):
-    assignment = Assignment(path=[PathComponent(component=component, indexed_cls=None) for component in components],
+    assignment = Assignment(path=[PathComponent(component) for component in components],
                             value=value)
     assert convert_assignment_to_simplified_text(assignment) == expected_text

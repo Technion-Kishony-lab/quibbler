@@ -28,7 +28,7 @@ class GetReference:
     current_path: Path = field(default_factory=list)
 
     def _add_key_to_path(self, key):
-        self.current_path.append(PathComponent(None, key))
+        self.current_path.append(PathComponent(key))
 
     def __getitem__(self, key):
         self._add_key_to_path(key)

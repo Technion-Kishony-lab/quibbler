@@ -58,8 +58,7 @@ class RectangleSelectorQuibFuncCall(WidgetQuibFuncCall):
 
             if isinstance(init_val, Quib):
                 self._inverse_assign(init_val,
-                                     [PathComponent(component=slice(None, None, None),
-                                                    indexed_cls=np.ndarray)],
+                                     [PathComponent(slice(None, None, None))],
                                      extents,
                                      tolerance=tolerance,
                                      on_drag=True)

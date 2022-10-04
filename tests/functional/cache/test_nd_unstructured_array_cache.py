@@ -51,7 +51,7 @@ class TestNdUnstructuredArrayCache(IndexableCacheTest):
         assert not cache.matches_result(np.full((2, 3), "hello mike"))
 
     def test_cache_get_cache_status_on_partial(self, cache):
-        cache.set_valid_value_at_path([PathComponent(component=(1, 1), indexed_cls=np.ndarray)], 5)
+        cache.set_valid_value_at_path([PathComponent((1, 1))], 5)
 
         assert cache.get_cache_status() == CacheStatus.PARTIAL
 
@@ -68,5 +68,5 @@ class TestNdUnstructuredArrayCache(IndexableCacheTest):
                                                                                                  uncached_path_components)
 
     def set_completely_invalid(self, result, cache):
-        cache.set_invalid_at_path([PathComponent(indexed_cls=np.ndarray, component=True)])
+        cache.set_invalid_at_path([PathComponent(True)])
 

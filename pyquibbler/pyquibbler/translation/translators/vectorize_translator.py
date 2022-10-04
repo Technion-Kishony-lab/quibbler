@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Dict, Any, Set, Optional, Type, List
+from typing import Dict, Any, Set, Optional, Type
 
 import numpy as np
 
@@ -67,7 +67,7 @@ class VectorizeBackwardsPathTranslator(BackwardsPathTranslator):
 
         working_component, *rest_of_path = filtered_path_in_result
         indices_in_data_source = self._backwards_translate_indices_to_bool_mask(source, working_component.component)
-        return [PathComponent(self._type, indices_in_data_source)]
+        return [PathComponent(indices_in_data_source)]
 
     def backwards_translate(self) -> Dict[Source, Path]:
         return {source: self._get_source_path_in_source(source, self._path)
@@ -104,9 +104,9 @@ class VectorizeForwardsPathTranslator(ForwardsPathTranslator):
             self._forward_translate_indices_to_bool_mask(working_component.component)
         if not np.any(bool_mask_in_output_array):
             return []
-        starting_path = [PathComponent(np.ndarray, bool_mask_in_output_array), *rest_of_path]
+        starting_path = [PathComponent(bool_mask_in_output_array), *rest_of_path]
 
         if self._vectorize_metadata.is_result_a_tuple:
-            return [[PathComponent(tuple, i), *starting_path] for i in range(self._vectorize_metadata.tuple_length)]
+            return [[PathComponent(i), *starting_path] for i in range(self._vectorize_metadata.tuple_length)]
         else:
             return [starting_path]

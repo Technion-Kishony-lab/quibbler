@@ -39,7 +39,7 @@ class PositionalSourceLocation(SourceLocation):
 
     @property
     def full_path(self):
-        return [PathComponent(component=self.argument.index, indexed_cls=tuple), *self.path]
+        return [PathComponent(self.argument.index), *self.path]
 
     def find_in_args_kwargs(self, args: Args, kwargs: Kwargs):
         return deep_get(args, self.full_path)
@@ -55,7 +55,7 @@ class KeywordSourceLocation(SourceLocation):
 
     @property
     def full_path(self):
-        return [PathComponent(component=self.argument.keyword, indexed_cls=dict), *self.path]
+        return [PathComponent(self.argument.keyword), *self.path]
 
     def set_in_args_kwargs(self, args: Args, kwargs: Kwargs, value):
         new_kwargs = deep_assign_data_in_path(kwargs, self.full_path, value)

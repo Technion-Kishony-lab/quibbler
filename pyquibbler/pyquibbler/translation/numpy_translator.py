@@ -105,11 +105,11 @@ class NumpyForwardsPathTranslator(ForwardsPathTranslator):
                 assert np.ndim(bool_mask_in_output_array) == 1
                 slice_index = translate_bool_vector_to_slice_if_possible(bool_mask_in_output_array)
                 if slice_index:
-                    return [[PathComponent(self._type, slice_index),
+                    return [[PathComponent(slice_index),
                              *rest_of_path]]
                 return [[]]  # TODO: may need to treat as list of paths
 
-            return [[PathComponent(self._type, bool_mask_in_output_array),
+            return [[PathComponent(bool_mask_in_output_array),
                      *rest_of_path]]
 
         return []

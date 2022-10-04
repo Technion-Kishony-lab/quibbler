@@ -1039,7 +1039,7 @@ class Quib:
     def __setitem__(self, key, value):
         key = copy_and_replace_quibs_with_vals(key)
         value = copy_and_replace_quibs_with_vals(value)
-        path = [PathComponent(component=key, indexed_cls=self.get_type())]
+        path = [PathComponent(key)]
         self.handler.apply_assignment(Assignment(value, path))
 
     @property

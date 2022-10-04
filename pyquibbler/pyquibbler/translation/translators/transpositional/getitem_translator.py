@@ -18,7 +18,7 @@ def _getitem_path_component(func_call: FuncCall) -> PathComponent:
     # to get_value's/reverse assign
     component = copy_and_replace_sources_with_vals(component)
     accessed = copy_and_replace_sources_with_vals(data)
-    return PathComponent(indexed_cls=type(accessed), component=component)
+    return PathComponent(component)
 
 
 def _type_of_referenced_object(func_call: FuncCall):

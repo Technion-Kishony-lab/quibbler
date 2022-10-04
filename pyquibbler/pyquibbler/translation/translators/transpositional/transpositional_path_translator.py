@@ -18,7 +18,7 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
     def _get_path_in_source(self, source: Source, location: SourceLocation):
         args, kwargs, _ = get_data_source_indices(self._func_call, source, location)
         result = run_func_call_with_new_args_kwargs(self._func_call, args, kwargs)
-        result = deep_get(result, [PathComponent(np.ndarray, self._working_component)])
+        result = deep_get(result, [PathComponent(self._working_component)])
 
         result = np.array(result)
 
@@ -41,7 +41,7 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
         if np.array_equal(mask, np.array(True)):
             return []
         else:
-            return [PathComponent(np.ndarray, mask)]
+            return [PathComponent(mask)]
 
 
 class ForwardsTranspositionalTranslator(NumpyForwardsPathTranslator):
@@ -75,7 +75,7 @@ class ForwardsTranspositionalTranslator(NumpyForwardsPathTranslator):
         result_index_code = run_func_call_with_new_args_kwargs(self._func_call, args, kwargs)
         result_mask = result_index_code > MAXIMAL_NON_FOCAL_SOURCE
 
-        translated_path = [PathComponent(np.ndarray, result_mask, is_scalar_result),
+        translated_path = [PathComponent(result_mask, extract_element_out_of_array=is_scalar_result),
                            *remaining_path]
         if np.any(result_index_code[result_mask] == IndexCode.SCALAR_CONTAINING_FOCAL_SOURCE):
             translated_path = translated_path + self._path

@@ -32,7 +32,7 @@ class DictCache(ShallowCache):
     def _get_uncached_paths_at_path_component(self,
                                               path_component: PathComponent) -> List[List[PathComponent]]:
         return [
-            [PathComponent(component=k, indexed_cls=dict)]
+            [PathComponent(k)]
             for k, v in self._value.items()
             if self._invalid_mask[k] is True
             and k == path_component.component
@@ -40,7 +40,7 @@ class DictCache(ShallowCache):
 
     def _get_all_uncached_paths(self) -> List[List[PathComponent]]:
         return [
-            [PathComponent(component=k, indexed_cls=dict)]
+            [PathComponent(k)]
             for k, v in self._value.items()
             if self._invalid_mask[k] is True
         ]

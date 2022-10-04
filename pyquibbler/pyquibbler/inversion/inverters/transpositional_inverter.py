@@ -25,7 +25,7 @@ class TranspositionalInverter(Inverter):
                 # The forwards translation of TranspositionalTranslator
                 # does not promise to get a correct shape given the path it translates-
                 # for example, given
-                # `np.transpose(a), path=[PathComponent(np.ndarray, component=0)]`
+                # `np.transpose(a), path=[PathComponent(0)]`
                 # with `a` as the forward translated ndarray source, it could translate this to
                 # np.array([True, False, False, ...]) (of course matching shape of result)
                 # Even though this now means that the result of `deep_get` will be a 1d array.
@@ -80,15 +80,9 @@ class TranspositionalInverter(Inverter):
         for source, paths in sources_to_paths_in_result.items():
             path = paths[0]
             if len(path) > 0:
-                path[0] = PathComponent(
-                    indexed_cls=np.ndarray,
-                    component=np_logical_and(working_component(path), boolean_mask)
-                )
+                path[0] = PathComponent(np_logical_and(working_component(path), boolean_mask))
             else:
-                path.insert(0, PathComponent(
-                    indexed_cls=np.ndarray,
-                    component=boolean_mask
-                ))
+                path.insert(0, PathComponent(boolean_mask))
             sources_to_single_paths_in_result[source] = path
 
         return self._create_inversals_from_paths(sources_to_paths_in_sources, sources_to_single_paths_in_result)

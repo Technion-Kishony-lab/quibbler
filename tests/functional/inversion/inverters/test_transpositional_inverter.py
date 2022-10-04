@@ -130,8 +130,8 @@ def test_inverse_array_with_ragged_lists():
                                     value=10,
                                     indices=None,
                                     assignment=Assignment(value=10,
-                                                          path=[PathComponent(component=1, indexed_cls=np.ndarray),
-                                                                PathComponent(component=0, indexed_cls=list),
+                                                          path=[PathComponent(1),
+                                                                PathComponent(0),
                                                                 ]))
 
     assert np.array_equal(sources_to_results[data_source2], np.array([10, 5]))

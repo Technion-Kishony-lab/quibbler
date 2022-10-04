@@ -76,11 +76,11 @@ def breakdown_path(data: Any, path: Path):
         else:
             second_is_field = not first_is_field
             second_components =  data.dtype.names if second_is_field else get_indices_at_path(data.shape, [])
-        return [[PathComponent(np.ndarray, first_component if first_is_field else tuple(first_component)),
-                 PathComponent(np.ndarray, second_component if second_is_field else tuple(second_component))]
+        return [[PathComponent(first_component if first_is_field else tuple(first_component)),
+                 PathComponent(second_component if second_is_field else tuple(second_component))]
                 for first_component in first_components
                 for second_component in second_components]
-    return [[PathComponent(np.ndarray, tuple(index))] for index in get_indices_at_path(data.shape, path)]
+    return [[PathComponent(tuple(index))] for index in get_indices_at_path(data.shape, path)]
 
 
 def equals_at_path(data1, data2, path):

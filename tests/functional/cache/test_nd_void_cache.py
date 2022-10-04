@@ -44,7 +44,7 @@ class TestNdVoidCache(IndexableCacheTest):
         return obj
 
     def test_cache_get_cache_status_on_partial(self, cache):
-        cache.set_valid_value_at_path([PathComponent(component=0, indexed_cls=np.void)], 5)
+        cache.set_valid_value_at_path([PathComponent(0)], 5)
 
         assert cache.get_cache_status() == CacheStatus.PARTIAL
 
@@ -62,4 +62,4 @@ class TestNdVoidCache(IndexableCacheTest):
 
     def set_completely_invalid(self, result, cache):
         for name in result.dtype.names:
-            cache.set_invalid_at_path([PathComponent(indexed_cls=np.ndarray, component=name)])
+            cache.set_invalid_at_path([PathComponent(name)])

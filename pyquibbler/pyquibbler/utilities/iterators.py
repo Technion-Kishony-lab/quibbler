@@ -150,14 +150,14 @@ def recursively_run_func_on_object(func: Callable, obj: Any,
         if isinstance(obj, (tuple, list, set)) and (max_length is None or len(obj) <= max_length):
             return type(obj)((recursively_run_func_on_object(
                 func, sub_obj,
-                [*path, PathComponent(type(obj), i)] if with_path else None,
+                [*path, PathComponent(i)] if with_path else None,
                 next_max_depth,
                 with_path=with_path)
                 for i, sub_obj in enumerate(obj)))
         elif isinstance(obj, dict) and (max_length is None or len(obj) <= max_length):
             return type(obj)({key: recursively_run_func_on_object(
                 func, sub_obj,
-                [*path, PathComponent(type(obj), key)] if with_path else None,
+                [*path, PathComponent(key)] if with_path else None,
                 next_max_depth,
                 with_path=with_path)
                 for key, sub_obj in obj.items()})
@@ -165,17 +165,17 @@ def recursively_run_func_on_object(func: Callable, obj: Any,
             return slice(
                 recursively_run_func_on_object(
                     func, obj.start,
-                    [*path, PathComponent(slice, "start")] if with_path else None,
+                    [*path, PathComponent("start")] if with_path else None,
                     next_max_depth,
                     with_path=with_path),
                 recursively_run_func_on_object(
                     func, obj.stop,
-                    [*path, PathComponent(slice, "stop")] if with_path else None,
+                    [*path, PathComponent("stop")] if with_path else None,
                     next_max_depth,
                     with_path=with_path),
                 recursively_run_func_on_object(
                     func, obj.step,
-                    [*path, PathComponent(slice, "step")] if with_path else None,
+                    [*path, PathComponent("step")] if with_path else None,
                     next_max_depth,
                     with_path=with_path), )
     return func(path, obj) if with_path else func(obj)

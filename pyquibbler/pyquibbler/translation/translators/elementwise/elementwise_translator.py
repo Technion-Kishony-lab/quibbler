@@ -27,7 +27,7 @@ class BackwardsElementwisePathTranslator(NumpyBackwardsPathTranslator):
 
     def _get_path_in_source(self, source: Source, location: SourceLocation):
         changed_indices = self._get_indices_to_change(source)
-        new_path = [] if changed_indices.ndim == 0 else [PathComponent(self._type, changed_indices)]
+        new_path = [] if changed_indices.ndim == 0 else [PathComponent(changed_indices)]
         return new_path
 
 

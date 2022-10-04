@@ -16,10 +16,7 @@ def test_elementwise_function_quib_does_not_request_unneeded_indices_on_get_valu
     fake_quib.get_shape.return_value = (2,)
     b = np.add(fake_quib, 1)
 
-    result = b.get_value_valid_at_path([PathComponent(
-        indexed_cls=np.ndarray,
-        component=1
-    )])
+    result = b.get_value_valid_at_path([PathComponent(1)])
 
     assert result[1] == 3
     calls_requesting_values = [c for c in fake_quib.get_value_valid_at_path.mock_calls if c.args != (None,)]
@@ -50,7 +47,7 @@ def test_elementwise_function_quib_does_not_request_unneeded_indices_on_get_valu
 @pytest.mark.parametrize('data', [np.arange(24).reshape((2, 3, 4))])
 @pytest.mark.parametrize('indices_to_get_value_at', [-1, 0, (1, 1), (1, 2, 3), [True, False], (0, ...)])
 def test_elementwise_get_value(data, indices_to_get_value_at):
-    path_to_get_value_at = [PathComponent(np.ndarray, indices_to_get_value_at)]
+    path_to_get_value_at = [PathComponent(indices_to_get_value_at)]
     check_get_value_valid_at_path(lambda x: np.add(x, 1), data, path_to_get_value_at)
 
 

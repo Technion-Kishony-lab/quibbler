@@ -19,7 +19,7 @@ from tests.functional.quib.test_quib.get_value.utils import check_get_value_vali
     (None, 4),
 ])
 def test_accumulation_axiswise_get_value_valid_at_path(axis, data, indices_to_get_value_at):
-    path_to_get_value_at = [PathComponent(np.ndarray, indices_to_get_value_at)]
+    path_to_get_value_at = [PathComponent(indices_to_get_value_at)]
     check_get_value_valid_at_path(lambda quib: np.cumsum(quib, axis=axis), data, path_to_get_value_at)
 
 @pytest.mark.parametrize('indices_to_get_value_at, expected_a_calls, expected_b_calls', [

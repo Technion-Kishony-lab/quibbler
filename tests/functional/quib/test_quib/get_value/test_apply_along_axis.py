@@ -33,7 +33,7 @@ parametrize_where = pytest.mark.parametrize('where', [True, False, [[[True], [Fa
 @pytest.mark.parametrize('indices_to_get_value_at', [0, (0, 0), (-1, ...)])
 def test_apply_along_axis_get_value_valid_at_path(indices_to_get_value_at, axis, func_out_dims, data):
     func1d = lambda slice: np.sum(slice).reshape((1,) * func_out_dims)
-    path_to_get_value_at = [PathComponent(np.ndarray, indices_to_get_value_at)]
+    path_to_get_value_at = [PathComponent(indices_to_get_value_at)]
 
     check_get_value_valid_at_path(lambda quib: np.apply_along_axis(func1d, axis, quib), data, path_to_get_value_at)
 
@@ -129,7 +129,7 @@ def test_apply_along_axis_get_value(input_shape, apply_result_shape, axis, compo
     quib = create_lazy_apply_along_axis_quib(arr=arr, func=func, axis=axis, pass_quibs=pass_quibs)
     quib.get_shape()  # We need to call get_shape to cache it as get_shape is a zero cost operation in overall scheme
     # and is allowed to be called without consequence by the quib
-    path = [PathComponent(component=component, indexed_cls=np.ndarray) for component in components]
+    path = [PathComponent(component) for component in components]
     running_in_quib = True
 
     res = quib.get_value_valid_at_path(path)
@@ -261,7 +261,7 @@ def test_apply_along_axis_removes_and_recreates_artists(create_artist_and_return
 
     quib.get_value()
     artists_before_invalidation = list(mock_axes._children)
-    parent.handler.invalidate_and_aggregate_redraw_at_path([PathComponent(component=0, indexed_cls=np.ndarray)])
+    parent.handler.invalidate_and_aggregate_redraw_at_path([PathComponent(0)])
     quib.get_value()
 
     assert len(mock_axes._children) == 2
@@ -274,11 +274,11 @@ def test_apply_along_axis_does_not_remove_artists_that_are_not_his(create_artist
         axis=0,
         func=create_artist_and_return_1
     )
-    quib.get_value_valid_at_path([PathComponent(component=0, indexed_cls=np.ndarray)])
+    quib.get_value_valid_at_path([PathComponent(0)])
     artists = list(mock_axes._children)
     assert len(artists) == 1, "Sanity check"
 
-    quib.get_value_valid_at_path([PathComponent(component=1, indexed_cls=np.ndarray)])
+    quib.get_value_valid_at_path([PathComponent(1)])
 
     assert len(mock_axes._children) == 2
     assert len(set(artists) & set(mock_axes._children)) == 1

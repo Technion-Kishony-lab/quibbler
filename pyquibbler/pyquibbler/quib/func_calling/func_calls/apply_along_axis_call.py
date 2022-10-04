@@ -40,7 +40,7 @@ class ApplyAlongAxisQuibFuncCall(CachedQuibFuncCall):
         if self._pass_quibs:
             input_array = create_proxy(self.arr)
         else:
-            input_array = self.arr.get_value_valid_at_path([PathComponent(component=item, indexed_cls=np.ndarray)])
+            input_array = self.arr.get_value_valid_at_path([PathComponent(item)])
 
         oned_slice = input_array[item]
         new_args, new_kwargs = self._get_args_and_kwargs_valid_at_quibs_to_paths(quibs_to_valid_paths={})

@@ -37,4 +37,4 @@ def test_quib_representing_read_only_array():
         return b
 
     x = get_read_only_array()
-    assert x.get_value_valid_at_path([PathComponent(component=[False, True, False], indexed_cls=np.ndarray)])[1] == 0.
+    assert x.get_value_valid_at_path([PathComponent([False, True, False])])[1] == 0.

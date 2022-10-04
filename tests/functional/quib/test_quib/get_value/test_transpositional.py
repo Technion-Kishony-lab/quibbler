@@ -19,7 +19,7 @@ def test_can_getitem_on_object_without_diverged_cache():
 @pytest.mark.parametrize('data', [np.arange(24).reshape((2, 3, 4))])
 @pytest.mark.parametrize('indices_to_get_value_at', [-1, 0, (1, 1), (2, 1, 3), [True, False, False], (0, ...)])
 def test_transpositional_get_value(data, indices_to_get_value_at):
-    path_to_get_value_at = [PathComponent(np.ndarray, indices_to_get_value_at)]
+    path_to_get_value_at = [PathComponent(indices_to_get_value_at)]
     check_get_value_valid_at_path(np.rot90, data, path_to_get_value_at)
 
 
@@ -29,7 +29,7 @@ def test_transpositional_get_value(data, indices_to_get_value_at):
     (0,), (slice(0, 2)), 'name', slice(None), slice(None, 2)
 ])
 def test_transpositional_get_value_with_fields(data, indices_to_get_value_at):
-    path_to_get_value_at = [PathComponent(np.ndarray, indices_to_get_value_at)]
+    path_to_get_value_at = [PathComponent(indices_to_get_value_at)]
     check_get_value_valid_at_path(lambda x: x[0], data, path_to_get_value_at)
 
 
@@ -43,7 +43,7 @@ def test_concatenate_get_value_valid_at_path(direction, concat_with_quib, indice
 
     if concat_with_quib:
         to_concat = iquib(to_concat)
-    path = [PathComponent(np.ndarray, indices_to_get_value_at)]
+    path = [PathComponent(indices_to_get_value_at)]
     check_get_value_valid_at_path(lambda q: np.concatenate((q, to_concat)[::direction]), np.array([0, 1]), path)
 
 

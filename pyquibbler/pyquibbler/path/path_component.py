@@ -3,13 +3,9 @@ from typing import Type, Any, List, TYPE_CHECKING
 
 import numpy as np
 
-if TYPE_CHECKING:
-    from pyquibbler import Quib
-
 
 @dataclass
 class PathComponent:
-    indexed_cls: Type
     component: Any
     extract_element_out_of_array: bool = False
 
@@ -30,11 +26,14 @@ class PathComponent:
     def get_multi_step_path(self) -> 'Path':
         if not self.is_compound():
             return [self]
-        return list(PathComponent(self.indexed_cls, cmp) for cmp in self.component)
+        return list(PathComponent(cmp) for cmp in self.component)
+
+    def __repr__(self):
+        s = repr(self.component)
+        if self.extract_element_out_of_array:
+            s = s + ' E'
+        return '{' + s + '}'
 
 Path = List[PathComponent]
 
 Paths = List[Path]
-
-
-

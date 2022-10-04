@@ -7,7 +7,7 @@ from pyquibbler.utilities.iterators import recursively_compare_objects
 
 
 def ndcmp(cmp) -> PathComponent:
-    return PathComponent(np.ndarray, cmp)
+    return PathComponent(cmp)
 
 
 @pytest.mark.parametrize('path,obj,expected_within,expected_after', [

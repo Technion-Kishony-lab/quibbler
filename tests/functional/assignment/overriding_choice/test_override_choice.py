@@ -64,7 +64,7 @@ def default_assignment():
 
 @fixture
 def assignment_to_multiple():
-    return Assignment(value=[3, 4], path=[PathComponent(component=(None, None, None), indexed_cls=np.ndarray)])
+    return Assignment(value=[3, 4], path=[PathComponent((None, None, None))])
 
 
 @fixture(autouse=True)
@@ -237,8 +237,7 @@ def test_override_choice_when_diverged_and_all_diverged_inversions_are_overridde
     grandparent1, parent1, grandparent2, parent2, child, parent1_override = diverged_quib_graph
 
     override_group = get_overrides_for_assignment(child, Assignment(value=[3, 4],
-                                                                    path=[PathComponent(component=(None, None, None),
-                                                                                        indexed_cls=np.ndarray)]))
+                                                                    path=[PathComponent((None, None, None))]))
 
     assert len([o for o in override_group.quib_changes if not o.assignment.is_default()]) == 2
     assert len([o for o in override_group.quib_changes if o.assignment.is_default()]) == 3
