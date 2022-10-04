@@ -69,7 +69,8 @@ class ForwardsTranspositionalTranslator(NumpyForwardsPathTranslator):
 
         working_component, rest_of_path = working_component_of_type(self._path,
                                                                     isinstance(self._source.value, (list, np.ndarray)))
-        is_scalar_result = not isinstance(np.array(self._source.value)[working_component], np.ndarray)
+        is_scalar_result = \
+            not isinstance(deep_get(np.array(self._source.value), [PathComponent(working_component)]), np.ndarray)
         args, kwargs, remaining_path = \
             get_data_source_indices(self._func_call, self._source, self._source_location, working_component)
         result_index_code = run_func_call_with_new_args_kwargs(self._func_call, args, kwargs)

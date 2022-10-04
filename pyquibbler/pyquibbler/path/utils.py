@@ -3,7 +3,7 @@ from typing import Any, Union, Tuple
 
 import numpy as np
 
-from .path_component import Path, PathComponent
+from .path_component import Path, PathComponent, SpecialComponent
 from .data_accessing import deep_get
 
 
@@ -14,11 +14,11 @@ def working_component(path: Path):
 
     If no component is found (path is empty), the path expresses getting "everything"- so we give a true value
     """
-    return path[0].component if len(path) > 0 else True
+    return path[0].component if len(path) > 0 else SpecialComponent.ALL
 
 
 def working_component_of_type(path: Path, separate: bool):
-    return (path[0].component, path[1:]) if len(path) > 0 and separate else (True, path)
+    return (path[0].component, path[1:]) if len(path) > 0 and separate else (SpecialComponent.ALL, path)
 
 
 def translate_bool_vector_to_slice_if_possible(bool_index: bool) -> Union[None, slice]:

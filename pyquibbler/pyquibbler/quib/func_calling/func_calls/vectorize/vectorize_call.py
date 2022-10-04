@@ -4,7 +4,7 @@ from typing import Optional, Dict
 import numpy as np
 
 from pyquibbler.quib.quib import Quib
-from pyquibbler.path.path_component import Path
+from pyquibbler.path.path_component import Path, SpecialComponent
 from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals
 from pyquibbler.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
 from pyquibbler.quib.func_calling import CachedQuibFuncCall
@@ -125,7 +125,7 @@ class VectorizeQuibFuncCall(CachedQuibFuncCall):
            instructs it to run the user function or return an empty result.
         3. Vectorize the wrapper and run it with the boolean mask in addition to the original arguments
         """
-        valid_indices = True if len(valid_path) == 0 else valid_path[0].component
+        valid_indices = SpecialComponent.ALL if len(valid_path) == 0 else valid_path[0].component
         bool_mask = create_bool_mask_with_true_at_indices(self.get_shape(), valid_indices)
         bool_mask = np.any(bool_mask, axis=self._vectorize_metadata.result_core_axes)
         # The logic in this wrapper should be as minimal as possible (including attribute access, etc.)

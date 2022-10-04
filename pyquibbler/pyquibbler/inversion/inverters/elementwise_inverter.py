@@ -9,6 +9,7 @@ from pyquibbler.translation.types import Inversal
 from pyquibbler.path.utils import working_component
 from ..inverter import Inverter
 from ..generic_inverse_functions import create_inverse_single_arg_func, create_inverse_func_from_indexes_to_funcs
+from ...path import SpecialComponent
 
 
 class ElementwiseInverter(Inverter):
@@ -40,7 +41,7 @@ class ElementwiseInverter(Inverter):
                                                           source_to_change,
                                                           relevant_path_in_source)
         value_to_set = new_quib_argument_value \
-            if component is True \
+            if component is True or component is SpecialComponent.ALL or component is SpecialComponent.WHOLE \
             else new_quib_argument_value[component]
         return [
             Inversal(

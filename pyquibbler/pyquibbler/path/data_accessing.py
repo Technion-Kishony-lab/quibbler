@@ -1,13 +1,15 @@
 import copy
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Dict, Tuple
+from numpy.typing import NDArray
 
 import numpy as np
 
 from pyquibbler.env import DEBUG
 from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.debug_utils.logger import logger
-from .path_component import Path
+
+from .path_component import Path, SpecialComponent
 
 
 @dataclass
@@ -35,6 +37,8 @@ def deep_get(obj: Any, path: Path):
             obj = getattr(obj, cmp)
         elif is_component_nd and cmp is True:
             pass
+        elif is_component_nd and cmp is SpecialComponent.ALL:
+            pass
         elif is_component_nd and isinstance(obj, (list, tuple)):
             obj = np.array(obj, dtype=object)[cmp]
         elif isinstance(cmp, tuple) and len(cmp) == 1 and isinstance(obj, (list, tuple)):
@@ -57,10 +61,26 @@ def set_for_slice(sl_, attribute, value):
         return slice(sl_.start, sl_.stop, value)
 
 
-def set_for_tuple(tpl, index, value):
+def set_for_tuple(tpl: Tuple, index: int, value):
     lst = list(tpl)
     lst[index] = value
     return tuple(lst)
+
+
+def set_for_ndarray(obj: NDArray, component, value):
+    if component is SpecialComponent.ALL:
+        component = True
+    obj[component] = value
+    return obj
+
+
+def set_for_dict(obj: Dict, key, value):
+    if key is SpecialComponent.ALL:
+        for k in obj.keys():
+            obj[k] = value
+    else:
+        obj[key] = value
+    return obj
 
 
 def set_key_to_value(obj, key, value):
@@ -70,7 +90,9 @@ def set_key_to_value(obj, key, value):
 
 SETTERS = {
     slice: set_for_slice,
-    tuple: set_for_tuple
+    tuple: set_for_tuple,
+    dict: set_for_dict,
+    np.ndarray: set_for_ndarray,
 }
 
 
@@ -102,12 +124,13 @@ def deep_assign_data_in_path(data: Any, path: Path,
 
         cmp = component.component
         need_to_convert_back_to_original_type = False
-        if component.is_nd_reference() and not isinstance(new_element, np.ndarray):
-            # We are trying to access a nom-array object, like list or tuple, with array-style indexing
+        if component.is_nd_reference() and isinstance(new_element, (list, tuple)):
+            # We are trying to access a non-array object, like or tuple, with array-style indexing
             original_type = type(new_element)
             new_element = np.array(new_element, dtype=object)
             need_to_convert_back_to_original_type = True
-        elif isinstance(new_element, np.ndarray) and hasattr(new_element, 'base'):
+        elif isinstance(new_element, np.ndarray) and hasattr(new_element, 'base') \
+                and should_copy_objects_referenced:
             # new_element is a view. we need to make a copy.
             new_element = np.array(new_element)
 

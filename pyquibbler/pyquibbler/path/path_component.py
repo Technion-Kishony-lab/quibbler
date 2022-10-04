@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import Any, List
+from enum import Enum
 
 import numpy as np
 
@@ -18,7 +19,7 @@ class PathComponent:
                  (isinstance(self.component, list) and isinstance(self.component[0], str))))
 
     def is_nd_reference(self):
-        return isinstance(self.component, (tuple, list, np.ndarray))
+        return isinstance(self.component, (bool, tuple, list, np.ndarray, SpecialComponent))
 
     def is_compound(self):
         return isinstance(self.component, tuple) and len(self.component) > 1
@@ -33,6 +34,13 @@ class PathComponent:
         if self.extract_element_out_of_array:
             s = s + ' E'
         return '{' + s + '}'
+
+
+class SpecialComponent(Enum):
+    WHOLE = 'whole'  # whole object
+    ALL = 'all'  # keep shape, change all elements
+    SHAPE = 'shape'  # shape only
+
 
 Path = List[PathComponent]
 

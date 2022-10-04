@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import Any, Tuple, Dict, List
 from numpy.typing import NDArray, ArrayLike
 
+from pyquibbler.path import deep_assign_data_in_path, PathComponent
 from pyquibbler.utilities.numpy_original_functions import np_zeros
 
 import numpy as np
@@ -17,7 +18,7 @@ def create_bool_mask_with_true_at_indices(shape: Shape, indices: Any) -> NDArray
     Create an array of False in a given shape with True at `indices`.
     """
     res = np_zeros(shape, dtype=bool)
-    res[indices] = True
+    deep_assign_data_in_path(res, [PathComponent(indices)], True, should_copy_objects_referenced=False)
     return res
 
 

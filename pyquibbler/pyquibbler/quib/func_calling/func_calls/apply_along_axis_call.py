@@ -3,8 +3,7 @@ from typing import Optional, Any, Callable, Tuple, Mapping
 import numpy as np
 from numpy import ndindex, s_
 
-from pyquibbler.path import PathComponent
-from pyquibbler.path import Path
+from pyquibbler.path import Path, PathComponent, SpecialComponent
 from pyquibbler.quib.external_call_failed_exception_handling import \
     external_call_failed_exception_handling
 from pyquibbler.quib.specialized_functions.proxy import create_proxy
@@ -137,7 +136,7 @@ class ApplyAlongAxisQuibFuncCall(CachedQuibFuncCall):
         representing indices *after* the loop dimension. We then select everything in between the two index tuples,
         which is a 1d slice.
         """
-        indices = True if len(valid_path) == 0 else valid_path[0].component
+        indices = SpecialComponent.ALL if len(valid_path) == 0 else valid_path[0].component
         ni, nk = self.arr.get_shape()[:self.core_axis], self.arr.get_shape()[self.core_axis + 1:]
         out = self.run([None])
         func_args_kwargs = FuncArgsKwargs(self.func, self.args, self.kwargs)
