@@ -55,10 +55,8 @@ class NumpyForwardsPathTranslator(ForwardsPathTranslator):
                  source_location: SourceLocation,
                  path: Path,
                  shape: Optional[Shape],
-                 type_: Optional[Type],
-                 should_forward_empty_paths_to_empty_paths: bool = True):
+                 type_: Optional[Type]):
         super().__init__(func_call, source, source_location, path, shape, type_)
-        self._should_forward_empty_paths_to_empty_paths = should_forward_empty_paths_to_empty_paths
 
     @abstractmethod
     def forward_translate_initial_path_to_bool_mask(self, path: Path) -> np.ndarray:
@@ -68,7 +66,7 @@ class NumpyForwardsPathTranslator(ForwardsPathTranslator):
 
         path = self._path
         # TODO: THIS AUTO RETURNING OF [[]] IS INCORRECT IF PATH IS EMPTY, IN SOME EDGE CASES THIS DOESN'T HOLD
-        if len(path) == 0 and self._should_forward_empty_paths_to_empty_paths:
+        if len(path) == 0:
             return [[]]
 
         if isinstance(self._source, NoMetadataSource):

@@ -9,6 +9,7 @@ from pyquibbler.translation.types import Source
 from pyquibbler.translation.numpy_translator import NumpyForwardsPathTranslator, NumpyBackwardsPathTranslator
 from .types import IndexCode, is_focal_element
 from .utils import convert_args_kwargs_to_source_index_codes, run_func_call_with_new_args_kwargs
+from ... import ForwardsPathTranslator
 
 
 class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
@@ -42,13 +43,7 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
             return [PathComponent(mask)]
 
 
-class ForwardsTranspositionalTranslator(NumpyForwardsPathTranslator):
-
-    def forward_translate_initial_path_to_bool_mask(self, path: Path):
-        args, kwargs, _, _, _ = convert_args_kwargs_to_source_index_codes(self._func_call, self._source,
-                                                                    self._source_location, self._path)
-        result_index_code = run_func_call_with_new_args_kwargs(self._func_call, args, kwargs)
-        return np.equal(is_focal_element(result_index_code), True)
+class ForwardsTranspositionalTranslator(ForwardsPathTranslator):
 
     def forward_translate(self) -> Paths:
         """
