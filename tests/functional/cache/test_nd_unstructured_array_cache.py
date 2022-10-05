@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from pyquibbler.path import PathComponent
-from pyquibbler.path.data_accessing import deep_assign_data_in_path
+from pyquibbler.path.data_accessing import deep_set
 from pyquibbler.cache.cache import CacheStatus
 from pyquibbler.cache.shallow.nd_cache import NdUnstructuredArrayCache
 from tests.functional.cache.cache_test import IndexableCacheTest
@@ -41,7 +41,7 @@ class TestNdUnstructuredArrayCache(IndexableCacheTest):
         if len(path) == 0:
             obj[:] = value
         else:
-            obj = deep_assign_data_in_path(obj, path, value)
+            obj = deep_set(obj, path, value)
         return obj
 
     def test_nd_cache_does_not_match_nd_array_of_different_shape(self, cache):

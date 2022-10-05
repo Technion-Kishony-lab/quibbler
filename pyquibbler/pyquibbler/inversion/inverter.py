@@ -4,7 +4,7 @@ from typing import Union, Any
 
 from pyquibbler.assignment import Assignment
 from pyquibbler.function_definitions import FuncCall
-from pyquibbler.path.data_accessing import deep_assign_data_in_path
+from pyquibbler.path.data_accessing import deep_set
 from pyquibbler.translation.source_func_call import SourceFuncCall
 
 
@@ -22,7 +22,5 @@ class Inverter(ABC):
         pass
 
     def _get_result_with_assignment_set(self):
-        return deep_assign_data_in_path(self._previous_result,
-                                        self._assignment.path,
-                                        self._assignment.value,
-                                        should_copy_objects_referenced=True)
+        return deep_set(self._previous_result, self._assignment.path, self._assignment.value,
+                        should_copy_objects_referenced=True)

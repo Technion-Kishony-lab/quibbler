@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 from pyquibbler.function_definitions import PositionalArgument
 from pyquibbler.function_definitions.types import Argument, KeywordArgument
-from pyquibbler.path import PathComponent, Path, deep_get, deep_assign_data_in_path
+from pyquibbler.path import PathComponent, Path, deep_get, deep_set
 from pyquibbler.utilities.general_utils import Args, Kwargs
 
 
@@ -45,7 +45,7 @@ class PositionalSourceLocation(SourceLocation):
         return deep_get(args, self.full_path)
 
     def set_in_args_kwargs(self, args: Args, kwargs: Kwargs, value):
-        new_args = deep_assign_data_in_path(args, self.full_path, value)
+        new_args = deep_set(args, self.full_path, value)
         return new_args, kwargs
 
 
@@ -58,7 +58,7 @@ class KeywordSourceLocation(SourceLocation):
         return [PathComponent(self.argument.keyword), *self.path]
 
     def set_in_args_kwargs(self, args: Args, kwargs: Kwargs, value):
-        new_kwargs = deep_assign_data_in_path(kwargs, self.full_path, value)
+        new_kwargs = deep_set(kwargs, self.full_path, value)
         return args, new_kwargs
 
     def find_in_args_kwargs(self, args: Args, kwargs: Kwargs):

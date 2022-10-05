@@ -96,10 +96,10 @@ SETTERS = {
 }
 
 
-def deep_assign_data_in_path(data: Any, path: Path,
-                             value: Any,
-                             raise_on_failure: bool = False,
-                             should_copy_objects_referenced: bool = True):
+def deep_set(data: Any, path: Path,
+             value: Any,
+             raise_on_failure: bool = False,
+             should_copy_objects_referenced: bool = True):
     """
     Go path by path setting value, each time ensuring we don't lost copied values (for example if there was
     fancy indexing) by making sure to set recursively back anything that made an assignment/

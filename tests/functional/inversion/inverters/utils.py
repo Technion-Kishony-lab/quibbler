@@ -2,7 +2,7 @@ from typing import Callable, Any, Tuple, Mapping
 
 from pyquibbler import Assignment
 from pyquibbler.inversion.invert import invert
-from pyquibbler.path.data_accessing import deep_assign_data_in_path
+from pyquibbler.path.data_accessing import deep_set
 from pyquibbler.utilities.get_original_func import get_original_func
 from pyquibbler.translation.source_func_call import SourceFuncCall
 from pyquibbler.path import PathComponent
@@ -25,9 +25,7 @@ def inverse(func: Callable, indices: Any, value: Any, args: Tuple[Any, ...] = No
     )
 
     return ({
-                inversal.source: deep_assign_data_in_path(inversal.source.value,
-                                                          inversal.assignment.path,
-                                                          inversal.assignment.value)
+                inversal.source: deep_set(inversal.source.value, inversal.assignment.path, inversal.assignment.value)
                 for inversal in inversals
             },
             inversals)

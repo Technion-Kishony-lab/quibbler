@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Optional, Any
 
-from pyquibbler.path import deep_get, deep_assign_data_in_path, Path
+from pyquibbler.path import deep_get, deep_set, Path
 from .cache import Cache
 from .holistic_cache import HolisticCache
 
@@ -14,7 +14,7 @@ def get_cached_data_at_truncated_path_given_result_at_uncached_path(cache, resul
     if isinstance(cache, HolisticCache):
         value = valid_value
     else:
-        new_data = deep_assign_data_in_path(data, uncached_path, valid_value)
+        new_data = deep_set(data, uncached_path, valid_value)
         value = deep_get(new_data, truncated_path)
 
     return value
