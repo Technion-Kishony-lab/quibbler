@@ -9,7 +9,7 @@ from typing import Callable, Any, Dict, Union, Type, Optional, Tuple, Mapping
 from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.function_definitions import FuncArgsKwargs
 from pyquibbler.function_definitions.func_definition import FuncDefinition
-from pyquibbler.utilities.iterators import get_object_type_locations_in_args_kwargs
+from pyquibbler.function_definitions.location import get_object_type_locations_in_args_kwargs
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.factory import create_quib
 
