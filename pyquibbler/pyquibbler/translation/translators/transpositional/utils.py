@@ -1,3 +1,4 @@
+import copy
 from typing import Any, Union, Tuple, Dict
 
 import numpy as np
@@ -6,7 +7,7 @@ from pyquibbler.function_definitions import KeywordArgument, SourceLocation
 from pyquibbler.path import Path, deep_set, split_path_at_end_of_object, deep_get
 from pyquibbler.translation.source_func_call import SourceFuncCall
 from pyquibbler.translation.types import Source
-from pyquibbler.function_definitions.func_call import FuncCall
+from pyquibbler.function_definitions.func_call import FuncCall, FuncArgsKwargs
 from pyquibbler.utilities.general_utils import is_scalar_np, get_shared_shape, is_same_shapes
 from pyquibbler.utilities.get_original_func import get_original_func
 from pyquibbler.utilities.missing_value import missing, Missing
@@ -23,6 +24,7 @@ def _convert_an_arg_to_array_of_source_index_codes(arg: Any,
                                                    focal_source: Union[Source, Missing] = missing,
                                                    path_to_source: Union[Path, Missing] = missing,
                                                    path_in_source: Union[Path, Missing] = missing,
+                                                   convert_to_bool_mask: bool = False
                                                    ) -> Tuple[IndexCodeArray, Path, Path, Path]:
     """
     Convert a given arg to an array of int64 with values matching the linear indexing of focal_source,
@@ -98,6 +100,8 @@ def _convert_an_arg_to_array_of_source_index_codes(arg: Any,
         return np.array(converted_sub_args), remaining_path_to_source
 
     arg_index_array, _remaining_path_to_source = _convert_obj_to_index_array(arg, path_to_source)
+    if convert_to_bool_mask:
+        arg_index_array = is_focal_element(arg_index_array)
     return arg_index_array, _remaining_path_to_source, path_in_source_array, path_in_source_element
 
 
@@ -105,7 +109,8 @@ def _convert_an_arg_or_multi_arg_to_array_of_source_index_codes(args: Union[Tupl
                                                                 focal_source: Source,
                                                                 path_to_source: Path = missing,
                                                                 path_in_source: Path = missing,
-                                                                is_multi_arg: bool = False) \
+                                                                is_multi_arg: bool = False,
+                                                                convert_to_bool_mask: bool = False) \
         -> Tuple[
             Union[Tuple[IndexCodeArray, ...], IndexCodeArray],
             Union[Path, Missing],
@@ -123,30 +128,32 @@ def _convert_an_arg_or_multi_arg_to_array_of_source_index_codes(args: Union[Tupl
         for index, arg in enumerate(args):
             if path_to_source[0].component == index:
                 converted_arg, remaining_path_to_source, path_in_source_array, remaining_path_in_source = \
-                    _convert_an_arg_to_array_of_source_index_codes(arg, focal_source, path_to_source[1:],
-                                                                   path_in_source)
+                    _convert_an_arg_to_array_of_source_index_codes(arg, focal_source,
+                                                                   path_to_source[1:], path_in_source,
+                                                                   convert_to_bool_mask=convert_to_bool_mask)
             else:
                 converted_arg, _, _, _ = \
-                    _convert_an_arg_to_array_of_source_index_codes(arg)
+                    _convert_an_arg_to_array_of_source_index_codes(arg, convert_to_bool_mask=convert_to_bool_mask)
+            if convert_to_bool_mask:
+                converted_arg = is_focal_element(converted_arg)
             new_arg.append(converted_arg)
         return tuple(new_arg), remaining_path_to_source, path_in_source_array, remaining_path_in_source
-    return _convert_an_arg_to_array_of_source_index_codes(args, focal_source, path_to_source, path_in_source)
+    return _convert_an_arg_to_array_of_source_index_codes(args, focal_source,
+                                                          path_to_source, path_in_source,
+                                                          convert_to_bool_mask=convert_to_bool_mask)
 
 
 def convert_args_kwargs_to_source_index_codes(func_call: FuncCall,
                                               focal_source: Source,
                                               focal_source_location=SourceLocation,
                                               path_in_source: Path = missing,
-                                              ) -> Tuple[Tuple[Union[Any, IndexCodeArray]],
-                                                         Dict[str, Union[Any, IndexCodeArray]],
-                                                         Path,
-                                                         Path,
-                                                         Path]:
+                                              convert_to_bool_mask: bool = False,
+                                              ) -> Tuple[FuncArgsKwargs, Path, Path, Path]:
     """
     Convert data arguments in args/kwargs to arrays of index codes for the indicated focal source.
     """
     args = list(func_call.args)
-    kwargs = func_call.kwargs
+    kwargs = copy.copy(func_call.kwargs)
     is_concat = func_call.func is get_original_func(np.concatenate)
     for data_argument in func_call.func_definition.get_data_source_arguments(func_call.func_args_kwargs):
         if isinstance(data_argument, KeywordArgument):
@@ -164,16 +171,17 @@ def convert_args_kwargs_to_source_index_codes(func_call: FuncCall,
             _convert_an_arg_or_multi_arg_to_array_of_source_index_codes(
                 args_or_kwargs[element_in_args_or_kwargs],
                 missing if path_to_source is missing else focal_source,
-                path_to_source, path_in_source, is_concat)
+                path_to_source, path_in_source, is_multi_arg=is_concat, convert_to_bool_mask=convert_to_bool_mask)
 
-        return tuple(args), kwargs, remaining_path_to_source, path_in_source_array, remaining_path_in_source
+        return FuncArgsKwargs(func_call.func, tuple(args), kwargs), \
+            remaining_path_to_source, path_in_source_array, remaining_path_in_source
 
 
-def run_func_call_with_new_args_kwargs(func_call: FuncCall, args: Tuple[Any], kwargs: Dict[str, Any]) -> np.ndarray:
+def run_func_call_with_new_args_kwargs(func_call: FuncCall, func_args_kwargs: FuncArgsKwargs) -> np.ndarray:
     """
     Runs the function with the given args, kwargs
     """
-    return SourceFuncCall.from_(func_call.func, args, kwargs,
+    return SourceFuncCall.from_(func_call.func, func_args_kwargs.args, func_args_kwargs.kwargs,
                                 func_definition=func_call.func_definition,
                                 data_source_locations=[],
                                 parameter_source_locations=func_call.parameter_source_locations).run()

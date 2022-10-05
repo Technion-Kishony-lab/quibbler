@@ -60,9 +60,9 @@ class BackwardsGetItemTranslator(BackwardsTranspositionalTranslator):
 class ForwardsGetItemTranslator(NumpyForwardsPathTranslator):
 
     def forward_translate_initial_path_to_bool_mask(self, path: Path):
-        args, kwargs, _, _, _ = \
+        func_args_kwargs, _, _, _ = \
             convert_args_kwargs_to_source_index_codes(self._func_call, self._source, self._source_location, self._path)
-        result_index_code = run_func_call_with_new_args_kwargs(self._func_call, args, kwargs)
+        result_index_code = run_func_call_with_new_args_kwargs(self._func_call, func_args_kwargs)
         return is_focal_element(result_index_code)
 
     def forward_translate(self) -> Paths:
