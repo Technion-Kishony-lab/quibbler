@@ -3,7 +3,7 @@ from typing import Any, Union, Tuple, Dict
 import numpy as np
 
 from pyquibbler.function_definitions import KeywordArgument, SourceLocation
-from pyquibbler.path import Path
+from pyquibbler.path import Path, deep_set
 from pyquibbler.translation.source_func_call import SourceFuncCall
 from pyquibbler.translation.types import Source
 from pyquibbler.function_definitions.func_call import FuncCall
@@ -18,7 +18,7 @@ from numpy.typing import NDArray
 def _convert_an_arg_to_array_of_source_index_codes(arg: Any,
                                                    focal_source: Union[Source, Missing] = missing,
                                                    path_to_source: Union[Path, Missing] = missing,
-                                                   path_in_source: Union[Any, Missing] = missing
+                                                   path_in_source: Union[Path, Missing] = missing,
                                                    ) -> Tuple[NDArray[Union[np.int64, IndexCode]], Path]:
     """
     Convert a given arg to an array of int64 with values matching the linear indexing of focal_source,
@@ -36,7 +36,7 @@ def _convert_an_arg_to_array_of_source_index_codes(arg: Any,
             return np.arange(np.size(arg)).reshape(np.shape(arg)), path_to_source
         else:
             val = np.full(np.shape(arg), IndexCode.NON_CHOSEN_ELEMENT)
-            val[path_in_source] = IndexCode.CHOSEN_ELEMENT
+            deep_set(val, path_in_source, IndexCode.CHOSEN_ELEMENT, should_copy_objects_referenced=False)
             return val, path_to_source
 
     if is_scalar_np(arg):
@@ -120,7 +120,8 @@ def convert_args_kwargs_to_source_index_codes(func_call: FuncCall,
         else:
             path_to_source = missing
         args_or_kwargs[element_in_args_or_kwargs], remaining_path = _convert_an_arg_or_multi_arg_to_array_of_source_index_codes(
-            args_or_kwargs[element_in_args_or_kwargs], missing if path_to_source is missing else focal_source,
+            args_or_kwargs[element_in_args_or_kwargs],
+            missing if path_to_source is missing else focal_source,
             path_to_source, path_in_source, is_concat)
 
         return tuple(args), kwargs, remaining_path

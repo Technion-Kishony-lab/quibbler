@@ -47,9 +47,9 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
 class ForwardsTranspositionalTranslator(NumpyForwardsPathTranslator):
 
     def forward_translate_initial_path_to_bool_mask(self, path: Path):
-        working_component, _ = working_component_of_type(self._path, isinstance(self._source.value, (list, np.ndarray)))
+        working_path, _ = working_component_of_type(self._path, isinstance(self._source.value, (list, np.ndarray)))
         args, kwargs, _ = convert_args_kwargs_to_source_index_codes(self._func_call, self._source,
-                                                                    self._source_location, working_component)
+                                                                    self._source_location, working_path)
         result_index_code = run_func_call_with_new_args_kwargs(self._func_call, args, kwargs)
         return np.equal(result_index_code > MAXIMAL_NON_FOCAL_SOURCE, True)
 
@@ -67,13 +67,13 @@ class ForwardsTranspositionalTranslator(NumpyForwardsPathTranslator):
             # don't change fields)
             return [path]
 
-        working_component, rest_of_path = working_component_of_type(self._path,
+        working_path, rest_of_path = working_component_of_type(self._path,
                                                                     isinstance(self._source.value, (list, np.ndarray)))
         is_scalar_result = \
-            not isinstance(deep_get(np.array(self._source.value), [PathComponent(working_component)]), np.ndarray)
+            not isinstance(deep_get(np.array(self._source.value), working_path), np.ndarray)
         args, kwargs, remaining_path = \
             convert_args_kwargs_to_source_index_codes(self._func_call, self._source, self._source_location,
-                                                      working_component)
+                                                      working_path)
         result_index_code = run_func_call_with_new_args_kwargs(self._func_call, args, kwargs)
         result_mask = result_index_code > MAXIMAL_NON_FOCAL_SOURCE
 

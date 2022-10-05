@@ -28,7 +28,7 @@ def initial_path(path: Path) -> Path:
 
 
 def working_component_of_type(path: Path, separate: bool):
-    return (path[0].component, path[1:]) if len(path) > 0 and separate else (SpecialComponent.ALL, path)
+    return (path[:1], path[1:]) if len(path) > 0 and separate else ([PathComponent(SpecialComponent.ALL)], path)
 
 
 def translate_bool_vector_to_slice_if_possible(bool_index: bool) -> Union[None, slice]:
