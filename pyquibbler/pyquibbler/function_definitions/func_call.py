@@ -54,16 +54,13 @@ class FuncArgsKwargs:
         sig = get_signature_for_func(self.func)
         bound_args = sig.bind(*self.args, **self.kwargs)
 
-        arguments = bound_args.arguments
-
-        # Add defaults:
         if include_defaults:
             bound_args.apply_defaults()
         arguments = bound_args.arguments
 
         return arguments.items()
 
-    def get_args_values_by_name_and_position(self, include_defaults: bool = True) \
+    def get_args_values_by_keyword_and_position(self, include_defaults: bool = True) \
             -> Tuple[Mapping[str, Any], Tuple[Any, ...]]:
         # We use external_call_failed_exception_handling here as if the user provided the wrong arguments to the
         # function we'll fail here
@@ -76,17 +73,17 @@ class FuncArgsKwargs:
                 arg_values_by_position = self.args
         return arg_values_by_name, arg_values_by_position
 
-    def get_arg_values_by_name(self, include_defaults: bool = True) -> Mapping[str, Any]:
-        return self.get_args_values_by_name_and_position(include_defaults)[0]
+    def get_arg_values_by_keyword(self, include_defaults: bool = True) -> Mapping[str, Any]:
+        return self.get_args_values_by_keyword_and_position(include_defaults)[0]
 
     def get_arg_values_by_position(self, include_defaults: bool = True) -> Tuple[Any, ...]:
-        return self.get_args_values_by_name_and_position(include_defaults)[1]
+        return self.get_args_values_by_keyword_and_position(include_defaults)[1]
 
     def __hash__(self):
         return id(self)
 
     def get(self, keyword: str, default: Optional = None, include_defaults: bool = True) -> Optional[Any]:
-        return self.get_arg_values_by_name(include_defaults).get(keyword, default)
+        return self.get_arg_values_by_keyword(include_defaults).get(keyword, default)
 
     def get_all_arguments(self):
         return [KeywordArgument(key) if isinstance(key, str) else PositionalArgument(key)

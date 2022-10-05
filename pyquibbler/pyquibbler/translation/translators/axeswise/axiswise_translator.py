@@ -30,7 +30,7 @@ class ArgWithDefault(Arg):
 
 
 def _get_translation_related_arg_dict(func_call: FuncCall, translation_related_args: List[Arg]):
-    arg_dict = {key: val for key, val in func_call.func_args_kwargs.get_arg_values_by_name().items()
+    arg_dict = {key: val for key, val in func_call.func_args_kwargs.get_arg_values_by_keyword().items()
                 if not isinstance(val, np._globals._NoValueType)}
     return {arg.name: arg.get_value(arg_dict) for arg in translation_related_args}
 

@@ -140,7 +140,7 @@ class ApplyAlongAxisQuibFuncCall(CachedQuibFuncCall):
         ni, nk = self.arr.get_shape()[:self.core_axis], self.arr.get_shape()[self.core_axis + 1:]
         out = self.run([None])
         func_args_kwargs = FuncArgsKwargs(self.func, self.args, self.kwargs)
-        args_by_name = func_args_kwargs.get_arg_values_by_name()
+        args_by_name = func_args_kwargs.get_arg_values_by_keyword()
         bool_mask = create_bool_mask_with_true_at_indices(self.get_shape(), indices)
         for ii in ndindex(ni):
             for kk in ndindex(nk):
