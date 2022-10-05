@@ -1,25 +1,25 @@
 from enum import Enum
 
 import numpy as np
+from numpy.typing import NDArray
 
 
 class IndexCode(np.int64, Enum):
     """
     Codes for array elements representing a focal source or other objects
     """
-    OTHERS_ELEMENT = -6
-    NON_CHOSEN_ELEMENT = -5
-    SCALAR_NOT_CONTAINING_FOCAL_SOURCE = -4
-    SCALAR_CONTAINING_FOCAL_SOURCE = -3
-    FOCAL_SOURCE_SCALAR = -2
-    CHOSEN_ELEMENT = -1
-    # otherwise, source elements are represented by their linear index (int >= 0)
+    OTHERS_ELEMENT = -7
+    NON_CHOSEN_ELEMENT = -6
+    SCALAR_NOT_CONTAINING_FOCAL_SOURCE = -5
+    LIST_NOT_CONTAINING_CHOSEN_ELEMENTS = -4
+    LIST_CONTAINING_CHOSEN_ELEMENTS = -3
+    SCALAR_CONTAINING_FOCAL_SOURCE = -2
+    FOCAL_SOURCE_SCALAR = -1
+    # otherwise, source elements are represented by their linear index (np.int64 >= 0)
 
 
-MAXIMAL_NON_FOCAL_SOURCE = IndexCode.SCALAR_NOT_CONTAINING_FOCAL_SOURCE
+MAXIMAL_NON_CHOSEN_ELEMENTS = IndexCode.LIST_NOT_CONTAINING_CHOSEN_ELEMENTS
 
 
-def _non_focal_source_scalar(containing_focal_source: bool) -> IndexCode:
-    return IndexCode.SCALAR_CONTAINING_FOCAL_SOURCE \
-        if containing_focal_source \
-        else IndexCode.SCALAR_NOT_CONTAINING_FOCAL_SOURCE
+def is_focal_element(obj: NDArray):
+    return obj > MAXIMAL_NON_CHOSEN_ELEMENTS

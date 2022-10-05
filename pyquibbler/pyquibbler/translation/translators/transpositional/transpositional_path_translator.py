@@ -1,28 +1,26 @@
 import numpy as np
-from typing import Any
 
 from pyquibbler.function_definitions import SourceLocation
 from pyquibbler.path import deep_get
 from pyquibbler.path.path_component import Path, Paths, PathComponent
-from pyquibbler.path.utils import working_component_of_type
 from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices
 
 from pyquibbler.translation.types import Source
 from pyquibbler.translation.numpy_translator import NumpyForwardsPathTranslator, NumpyBackwardsPathTranslator
-from .types import IndexCode, MAXIMAL_NON_FOCAL_SOURCE
+from .types import IndexCode, is_focal_element
 from .utils import convert_args_kwargs_to_source_index_codes, run_func_call_with_new_args_kwargs
 
 
 class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
 
     def _get_path_in_source(self, source: Source, location: SourceLocation):
-        args, kwargs, _ = convert_args_kwargs_to_source_index_codes(self._func_call, source, location)
+        args, kwargs, _, _, _ = convert_args_kwargs_to_source_index_codes(self._func_call, source, location)
         result = run_func_call_with_new_args_kwargs(self._func_call, args, kwargs)
         result = deep_get(result, self._working_path)
 
         result = np.array(result)
 
-        indices = result[result > MAXIMAL_NON_FOCAL_SOURCE]
+        indices = result[is_focal_element(result)]
 
         if np.size(indices) == 0:
             # Source not part of result
@@ -47,11 +45,10 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
 class ForwardsTranspositionalTranslator(NumpyForwardsPathTranslator):
 
     def forward_translate_initial_path_to_bool_mask(self, path: Path):
-        working_path, _ = working_component_of_type(self._path, isinstance(self._source.value, (list, np.ndarray)))
-        args, kwargs, _ = convert_args_kwargs_to_source_index_codes(self._func_call, self._source,
-                                                                    self._source_location, working_path)
+        args, kwargs, _, _, _ = convert_args_kwargs_to_source_index_codes(self._func_call, self._source,
+                                                                    self._source_location, self._path)
         result_index_code = run_func_call_with_new_args_kwargs(self._func_call, args, kwargs)
-        return np.equal(result_index_code > MAXIMAL_NON_FOCAL_SOURCE, True)
+        return np.equal(is_focal_element(result_index_code), True)
 
     def forward_translate(self) -> Paths:
         """
@@ -67,20 +64,16 @@ class ForwardsTranspositionalTranslator(NumpyForwardsPathTranslator):
             # don't change fields)
             return [path]
 
-        working_path, rest_of_path = working_component_of_type(self._path,
-                                                                    isinstance(self._source.value, (list, np.ndarray)))
-        is_scalar_result = \
-            not isinstance(deep_get(np.array(self._source.value), working_path), np.ndarray)
-        args, kwargs, remaining_path = \
-            convert_args_kwargs_to_source_index_codes(self._func_call, self._source, self._source_location,
-                                                      working_path)
+        args, kwargs, remaining_path_to_source, within_array_path, within_element_path = \
+            convert_args_kwargs_to_source_index_codes(self._func_call, self._source, self._source_location, self._path)
+        is_scalar_result = not isinstance(deep_get(np.array(self._source.value), within_array_path), np.ndarray)
         result_index_code = run_func_call_with_new_args_kwargs(self._func_call, args, kwargs)
-        result_mask = result_index_code > MAXIMAL_NON_FOCAL_SOURCE
+        result_mask = is_focal_element(result_index_code)
 
         translated_path = [PathComponent(result_mask, extract_element_out_of_array=is_scalar_result),
-                           *remaining_path]
+                           *remaining_path_to_source]
         if np.any(result_index_code[result_mask] == IndexCode.SCALAR_CONTAINING_FOCAL_SOURCE):
             translated_path = translated_path + self._path
         else:
-            translated_path = translated_path + rest_of_path
+            translated_path = translated_path + within_element_path
         return [translated_path]

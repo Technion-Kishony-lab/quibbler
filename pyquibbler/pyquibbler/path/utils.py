@@ -27,10 +27,6 @@ def initial_path(path: Path) -> Path:
     return path[:1] if len(path) > 0 else [PathComponent(SpecialComponent.ALL)]
 
 
-def working_component_of_type(path: Path, separate: bool):
-    return (path[:1], path[1:]) if len(path) > 0 and separate else ([PathComponent(SpecialComponent.ALL)], path)
-
-
 def translate_bool_vector_to_slice_if_possible(bool_index: bool) -> Union[None, slice]:
     indices, = np.nonzero(bool_index)
     if len(indices) == 0:

@@ -3,79 +3,115 @@ from typing import Any, Union, Tuple, Dict
 import numpy as np
 
 from pyquibbler.function_definitions import KeywordArgument, SourceLocation
-from pyquibbler.path import Path, deep_set
+from pyquibbler.path import Path, deep_set, split_path_at_end_of_object, deep_get
 from pyquibbler.translation.source_func_call import SourceFuncCall
 from pyquibbler.translation.types import Source
 from pyquibbler.function_definitions.func_call import FuncCall
-from pyquibbler.utilities.general_utils import is_scalar_np, get_shared_shape
+from pyquibbler.utilities.general_utils import is_scalar_np, get_shared_shape, is_same_shapes
 from pyquibbler.utilities.get_original_func import get_original_func
 from pyquibbler.utilities.missing_value import missing, Missing
 
-from .types import IndexCode, _non_focal_source_scalar, MAXIMAL_NON_FOCAL_SOURCE
+from .types import IndexCode, is_focal_element
+from .exceptions import PyQuibblerRaggedArrayException
+
 from numpy.typing import NDArray
+
+IndexCodeArray = NDArray[Union[np.int64, IndexCode]]
 
 
 def _convert_an_arg_to_array_of_source_index_codes(arg: Any,
                                                    focal_source: Union[Source, Missing] = missing,
                                                    path_to_source: Union[Path, Missing] = missing,
                                                    path_in_source: Union[Path, Missing] = missing,
-                                                   ) -> Tuple[NDArray[Union[np.int64, IndexCode]], Path]:
+                                                   ) -> Tuple[IndexCodeArray, Path, Path, Path]:
     """
     Convert a given arg to an array of int64 with values matching the linear indexing of focal_source,
     or specifying other elements according to IndexCode.
+    returns:
+     1. the array of index codes
+     2. remaining path to source (if source is within an element in the array)
+     3. path in source array
+     4. remaining path in source (if the path_in_source includes deep referencing within an array element)
     """
-    is_focal_source = arg is focal_source
-    is_source = isinstance(arg, Source)
-    if is_source:
-        arg = arg.value
 
-    if is_focal_source:
-        if is_scalar_np(arg):
-            return IndexCode.FOCAL_SOURCE_SCALAR, path_to_source
-        if path_in_source is missing:
-            return np.arange(np.size(arg)).reshape(np.shape(arg)), path_to_source
-        else:
-            val = np.full(np.shape(arg), IndexCode.NON_CHOSEN_ELEMENT)
-            deep_set(val, path_in_source, IndexCode.CHOSEN_ELEMENT, should_copy_objects_referenced=False)
-            return val, path_to_source
+    path_in_source_array = missing
+    path_in_source_element = missing
 
-    if is_scalar_np(arg):
-        return _non_focal_source_scalar(focal_source is not missing), path_to_source
+    def _convert_obj_to_index_array(obj: Any, remaining_path_to_source: Path = missing) -> Tuple[IndexCodeArray, Path]:
+        """
+        convert obj to index array. returns the index array and the remaining path to the source.
+        """
+        nonlocal path_in_source_array, path_in_source_element
 
-    if isinstance(arg, np.ndarray):
-        return np.full(np.shape(arg), IndexCode.OTHERS_ELEMENT), path_to_source
+        is_focal_source = obj is focal_source
+        if isinstance(obj, Source):
+            obj = obj.value
 
-    converted_sub_args = []
-    source_index = None if path_to_source is missing else path_to_source[0].component
-    for sub_arg_index, sub_arg in enumerate(arg):
-        if source_index != sub_arg_index:
-            converted_sub_arg, _ = \
-                _convert_an_arg_to_array_of_source_index_codes(sub_arg)
-        else:
-            converted_sub_arg, new_path_to_source = \
-                _convert_an_arg_to_array_of_source_index_codes(sub_arg, focal_source, path_to_source[1:],
-                                                               path_in_source)
-        converted_sub_args.append(converted_sub_arg)
+        if is_focal_source:
+            if is_scalar_np(obj):
+                path_in_source_array, path_in_source_element = [], path_in_source
+                return IndexCode.FOCAL_SOURCE_SCALAR, remaining_path_to_source
 
-    shared_shape = get_shared_shape(converted_sub_args)
+            full_index_array = np.arange(np.size(obj)).reshape(np.shape(obj))
+            if path_in_source is missing:
+                return full_index_array, remaining_path_to_source
+            else:
+                path_in_source_array, path_in_source_element, _ = split_path_at_end_of_object(full_index_array,
+                                                                                              path_in_source)
+                chosen_index_array = np.full(np.shape(obj), IndexCode.NON_CHOSEN_ELEMENT)
+                deep_set(chosen_index_array, path_in_source_array, deep_get(full_index_array, path_in_source_array),
+                         should_copy_objects_referenced=False)
+                return chosen_index_array, remaining_path_to_source
 
-    if path_to_source is not missing:
-        path_to_source = path_to_source[len(path_to_source) - len(new_path_to_source)
-                                        - (len(shared_shape) - len(converted_sub_args[source_index].shape)):]
-    for sub_arg_index, converted_sub_arg in enumerate(converted_sub_args):
-        if converted_sub_arg.shape != shared_shape:
-            converted_sub_args[sub_arg_index] = \
-                np.full(shared_shape, _non_focal_source_scalar(np.any(converted_sub_arg > MAXIMAL_NON_FOCAL_SOURCE)))
+        if is_scalar_np(obj):
+            if remaining_path_to_source is missing:
+                return IndexCode.SCALAR_NOT_CONTAINING_FOCAL_SOURCE, remaining_path_to_source
+            path_in_source_array = []
+            path_in_source_element = path_in_source
+            return IndexCode.SCALAR_CONTAINING_FOCAL_SOURCE, remaining_path_to_source
 
-    return np.array(converted_sub_args), path_to_source
+        if isinstance(obj, np.ndarray):
+            return np.full(np.shape(obj), IndexCode.OTHERS_ELEMENT), remaining_path_to_source
+
+        if len(obj) == 0:
+            return np.array(obj), remaining_path_to_source
+
+        source_index = None if remaining_path_to_source is missing else remaining_path_to_source[0].component
+        converted_sub_args = [None if source_index == sub_arg_index else
+                              _convert_obj_to_index_array(sub_arg)[0] for sub_arg_index, sub_arg in enumerate(obj)]
+        if remaining_path_to_source is not missing:
+            converted_sub_args[source_index], remaining_path_to_source = \
+                _convert_obj_to_index_array(obj[source_index], remaining_path_to_source[1:])
+
+        shared_shape = get_shared_shape(converted_sub_args)
+
+        for sub_arg_index, converted_sub_arg in enumerate(converted_sub_args):
+            if converted_sub_arg.shape != shared_shape:
+                if np.any(is_focal_element(converted_sub_arg)):
+                    collapsed_sub_arg = np.full(shared_shape, IndexCode.LIST_CONTAINING_CHOSEN_ELEMENTS)
+                    if path_in_source is not missing:
+                        path_in_source_array, path_in_source_element, _ = \
+                            split_path_at_end_of_object(collapsed_sub_arg, path_in_source)
+                else:
+                    collapsed_sub_arg = np.full(shared_shape, IndexCode.LIST_NOT_CONTAINING_CHOSEN_ELEMENTS)
+                converted_sub_args[sub_arg_index] = collapsed_sub_arg
+        return np.array(converted_sub_args), remaining_path_to_source
+
+    arg_index_array, _remaining_path_to_source = _convert_obj_to_index_array(arg, path_to_source)
+    return arg_index_array, _remaining_path_to_source, path_in_source_array, path_in_source_element
 
 
-def _convert_an_arg_or_multi_arg_to_array_of_source_index_codes(args: Any,
+def _convert_an_arg_or_multi_arg_to_array_of_source_index_codes(args: Union[Tuple[Any, ...], Any],
                                                                 focal_source: Source,
-                                                                path_to_source: Path,
-                                                                path_in_source: Any = missing,
+                                                                path_to_source: Path = missing,
+                                                                path_in_source: Path = missing,
                                                                 is_multi_arg: bool = False) \
-        -> Tuple[Union[Tuple[np.ndarray, ...], np.ndarray], Path]:
+        -> Tuple[
+            Union[Tuple[IndexCodeArray, ...], IndexCodeArray],
+            Union[Path, Missing],
+            Union[Path, Missing],
+            Union[Path, Missing],
+            ]:
     """
     Convert given arg(s) to an array of int64 with values matching the linear indexing of focal_source,
     or specifying other elements according to IndexCode.
@@ -83,25 +119,29 @@ def _convert_an_arg_or_multi_arg_to_array_of_source_index_codes(args: Any,
     """
     if is_multi_arg:
         new_arg = []
-        remaining_path = missing
+        remaining_path_to_source, path_in_source_array, remaining_path_in_source = missing, missing, missing
         for index, arg in enumerate(args):
             if path_to_source[0].component == index:
-                converted_arg, remaining_path = \
+                converted_arg, remaining_path_to_source, path_in_source_array, remaining_path_in_source = \
                     _convert_an_arg_to_array_of_source_index_codes(arg, focal_source, path_to_source[1:],
                                                                    path_in_source)
             else:
-                converted_arg, _ = \
+                converted_arg, _, _, _ = \
                     _convert_an_arg_to_array_of_source_index_codes(arg)
             new_arg.append(converted_arg)
-        return tuple(new_arg), remaining_path
+        return tuple(new_arg), remaining_path_to_source, path_in_source_array, remaining_path_in_source
     return _convert_an_arg_to_array_of_source_index_codes(args, focal_source, path_to_source, path_in_source)
 
 
 def convert_args_kwargs_to_source_index_codes(func_call: FuncCall,
                                               focal_source: Source,
                                               focal_source_location=SourceLocation,
-                                              path_in_source: Any = missing,
-                                              ) -> Tuple[Tuple[Any], Dict[str, Any], Path]:
+                                              path_in_source: Path = missing,
+                                              ) -> Tuple[Tuple[Union[Any, IndexCodeArray]],
+                                                         Dict[str, Union[Any, IndexCodeArray]],
+                                                         Path,
+                                                         Path,
+                                                         Path]:
     """
     Convert data arguments in args/kwargs to arrays of index codes for the indicated focal source.
     """
@@ -119,12 +159,14 @@ def convert_args_kwargs_to_source_index_codes(func_call: FuncCall,
             path_to_source = focal_source_location.path
         else:
             path_to_source = missing
-        args_or_kwargs[element_in_args_or_kwargs], remaining_path = _convert_an_arg_or_multi_arg_to_array_of_source_index_codes(
-            args_or_kwargs[element_in_args_or_kwargs],
-            missing if path_to_source is missing else focal_source,
-            path_to_source, path_in_source, is_concat)
+        args_or_kwargs[element_in_args_or_kwargs], remaining_path_to_source, \
+            path_in_source_array, remaining_path_in_source = \
+            _convert_an_arg_or_multi_arg_to_array_of_source_index_codes(
+                args_or_kwargs[element_in_args_or_kwargs],
+                missing if path_to_source is missing else focal_source,
+                path_to_source, path_in_source, is_concat)
 
-        return tuple(args), kwargs, remaining_path
+        return tuple(args), kwargs, remaining_path_to_source, path_in_source_array, remaining_path_in_source
 
 
 def run_func_call_with_new_args_kwargs(func_call: FuncCall, args: Tuple[Any], kwargs: Dict[str, Any]) -> np.ndarray:
