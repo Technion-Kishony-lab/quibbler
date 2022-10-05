@@ -92,10 +92,11 @@ def convert_args_and_source_to_arrays_of_indices(args: Any,
     return convert_arg_and_source_to_array_of_index_codes(args, focal_source, path_to_source, path_in_source)
 
 
-def get_data_source_indices(func_call: FuncCall,
-                            focal_source: Source,
-                            focal_source_location=SourceLocation,
-                            path_in_source: Any = missing) -> Tuple[Tuple[Any], Dict[str, Any], Path]:
+def translate_args_kwargs_to_source_index_codes(func_call: FuncCall,
+                                                focal_source: Source,
+                                                focal_source_location=SourceLocation,
+                                                path_in_source: Any = missing,
+                                                ) -> Tuple[Tuple[Any], Dict[str, Any], Path]:
     """
     Runs the function with the source replaced with array of linear indices
     """

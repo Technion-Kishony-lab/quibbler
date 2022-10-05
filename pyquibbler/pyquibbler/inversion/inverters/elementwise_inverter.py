@@ -6,7 +6,7 @@ from pyquibbler.assignment import Assignment
 from pyquibbler.translation.source_func_call import SourceFuncCall
 from pyquibbler.translation.translate import backwards_translate
 from pyquibbler.translation.types import Inversal
-from pyquibbler.path.utils import working_component
+from pyquibbler.path import initial_path, deep_get
 from ..inverter import Inverter
 from ..generic_inverse_functions import create_inverse_single_arg_func, create_inverse_func_from_indexes_to_funcs
 from ...path import SpecialComponent
@@ -18,7 +18,7 @@ class ElementwiseInverter(Inverter):
         super().__init__(func_call, assignment, previous_result)
 
     def get_inversals(self):
-        component = working_component(self._assignment.path)
+        working_path = initial_path(self._assignment.path)
         source_to_change = list(self._func_call.get_data_sources())[0]
 
         relevant_path_in_source = backwards_translate(func_call=self._func_call,
@@ -27,8 +27,8 @@ class ElementwiseInverter(Inverter):
                                                       path=self._assignment.path)[source_to_change]
 
         inverse_func = self._func_call.func_definition.inverse_func_with_input
-        with warnings.catch_warnings():
 
+        with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             if isinstance(inverse_func, dict):
                 actual_inverse_func = create_inverse_func_from_indexes_to_funcs(inverse_func)
@@ -40,9 +40,8 @@ class ElementwiseInverter(Inverter):
                                                           self._func_call.kwargs,
                                                           source_to_change,
                                                           relevant_path_in_source)
-        value_to_set = new_quib_argument_value \
-            if component is True or component is SpecialComponent.ALL or component is SpecialComponent.WHOLE \
-            else new_quib_argument_value[component]
+
+        value_to_set = deep_get(new_quib_argument_value, working_path)
         return [
             Inversal(
                 source=source_to_change,

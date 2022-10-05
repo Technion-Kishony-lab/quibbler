@@ -3,9 +3,9 @@ from typing import Any
 import numpy as np
 
 from pyquibbler.function_definitions import SourceLocation
-from pyquibbler.path.path_component import PathComponent
+from pyquibbler.path.path_component import Path, PathComponent
 from pyquibbler.translation.numpy_translator import NumpyBackwardsPathTranslator
-from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices, unbroadcast_bool_mask
+from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices, unbroadcast_bool_mask, create_bool_mask_with_true_at_path
 from pyquibbler.translation.numpy_translator import NumpyForwardsPathTranslator
 from pyquibbler.translation.types import Source
 
@@ -21,7 +21,7 @@ class BackwardsElementwisePathTranslator(NumpyBackwardsPathTranslator):
         and broadcast it's index grid to the shape of the result, so we can see the corresponding quib indices for the
         result indices
         """
-        result_bool_mask = create_bool_mask_with_true_at_indices(self._shape, self._working_component)
+        result_bool_mask = create_bool_mask_with_true_at_path(self._shape, self._working_path)
 
         return unbroadcast_bool_mask(result_bool_mask, np.shape(source.value))
 
@@ -33,7 +33,7 @@ class BackwardsElementwisePathTranslator(NumpyBackwardsPathTranslator):
 
 class ForwardsElementwisePathTranslator(NumpyForwardsPathTranslator):
 
-    def _forward_translate_indices_to_bool_mask(self, indices: Any):
+    def forward_translate_initial_path_to_bool_mask(self, path: Path):
         """
         Create a boolean mask representing the source at certain indices in the result.
         For a simple operation (eg `source=[1, 2, 3]`, `source + [2, 3, 4]`, and we forward path `(0, 0)`),
@@ -51,6 +51,6 @@ class ForwardsElementwisePathTranslator(NumpyForwardsPathTranslator):
          [True, False, False],
          [True, False, False]]
                 """
-        bool_mask = create_bool_mask_with_true_at_indices(np.shape(self._source.value), indices)
+        bool_mask = create_bool_mask_with_true_at_path(np.shape(self._source.value), path)
 
         return np.broadcast_to(bool_mask, self._shape)

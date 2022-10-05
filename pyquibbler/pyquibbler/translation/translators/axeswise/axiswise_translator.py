@@ -6,8 +6,8 @@ import numpy as np
 
 from pyquibbler.function_definitions import SourceLocation
 from pyquibbler.function_definitions.func_call import FuncCall
-from pyquibbler.path import PathComponent
-from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices
+from pyquibbler.path import Path, PathComponent
+from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices, create_bool_mask_with_true_at_path
 
 from ...types import Source
 from ...numpy_translator import NumpyForwardsPathTranslator, NumpyBackwardsPathTranslator
@@ -44,7 +44,7 @@ class AxiswiseBackwardsPathTranslator(NumpyBackwardsPathTranslator):
         pass
 
     def _backwards_translate_indices_to_bool_mask(self, source: Source) -> Any:
-        result_bool_mask = create_bool_mask_with_true_at_indices(self._shape, self._working_component)
+        result_bool_mask = create_bool_mask_with_true_at_path(self._shape, self._working_path)
         args_dict = _get_translation_related_arg_dict(self._func_call, self.TRANSLATION_RELATED_ARGS)
         return self._backwards_translate_bool_mask(args_dict, source, result_bool_mask)
 
@@ -64,7 +64,7 @@ class AxiswiseForwardsPathTranslator(NumpyForwardsPathTranslator):
     def _forward_translate_bool_mask(self, args_dict, boolean_mask, source: Source):
         pass
 
-    def _forward_translate_indices_to_bool_mask(self, indices: Any):
-        source_bool_mask = create_bool_mask_with_true_at_indices(np.shape(self._source.value), indices)
+    def forward_translate_initial_path_to_bool_mask(self, path: Path):
+        source_bool_mask = create_bool_mask_with_true_at_path(np.shape(self._source.value), path)
         args_dict = _get_translation_related_arg_dict(self._func_call, self.TRANSLATION_RELATED_ARGS)
         return self._forward_translate_bool_mask(args_dict, source_bool_mask, self._source)

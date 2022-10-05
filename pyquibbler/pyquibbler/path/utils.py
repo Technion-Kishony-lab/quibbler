@@ -7,7 +7,7 @@ from .path_component import Path, PathComponent, SpecialComponent
 from .data_accessing import deep_get
 
 
-def working_component(path: Path):
+def working_component_old(path: Path):
     """
     Get the first working component value you can from the path- this will always be entirely "squashed", so you will
     get a component that expresses everything possible before needing to go another step "deeper" in
@@ -15,6 +15,16 @@ def working_component(path: Path):
     If no component is found (path is empty), the path expresses getting "everything"- so we give a true value
     """
     return path[0].component if len(path) > 0 else SpecialComponent.ALL
+
+
+def initial_path(path: Path) -> Path:
+    """
+    Get the first working component value you can from the path- this will always be entirely "squashed", so you will
+    get a component that expresses everything possible before needing to go another step "deeper" in
+
+    If no component is found (path is empty), the path expresses getting "everything"- so we give a true value
+    """
+    return path[:1] if len(path) > 0 else [PathComponent(SpecialComponent.ALL)]
 
 
 def working_component_of_type(path: Path, separate: bool):
@@ -62,9 +72,10 @@ def split_path_at_end_of_object(obj: Any, path: Path) -> Tuple[Path, Path, Any]:
         else:
             try:
                 obj = deep_get(obj, [cmp])
-                path_within_object.append(cmp)
-                remaining_path.pop(0)
             except Exception:
                 break
-
+            path_within_object.append(cmp)
+            remaining_path.pop(0)
+    if len(path_within_object) == 0:
+        path_within_object = [PathComponent(SpecialComponent.ALL)]
     return path_within_object, remaining_path, obj

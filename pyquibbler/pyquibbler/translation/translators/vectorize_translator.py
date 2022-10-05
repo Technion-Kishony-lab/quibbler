@@ -3,7 +3,7 @@ from typing import Dict, Any, Set, Optional, Type
 
 import numpy as np
 
-from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices, unbroadcast_bool_mask, Shape
+from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices, unbroadcast_bool_mask, Shape, create_bool_mask_with_true_at_path
 from pyquibbler.path import PathComponent
 from pyquibbler.path.path_component import Path, Paths
 from pyquibbler.quib.func_calling.func_calls.vectorize.utils import get_core_axes
@@ -86,8 +86,8 @@ class VectorizeForwardsPathTranslator(ForwardsPathTranslator):
         super().__init__(func_call, source, source_location, path, shape, type_)
         self._vectorize_metadata = vectorize_metadata
 
-    def _forward_translate_indices_to_bool_mask(self, indices: Any):
-        source_bool_mask = create_bool_mask_with_true_at_indices(np.shape(self._source.value), indices)
+    def forward_translate_initial_path_to_bool_mask(self, path: Path):
+        source_bool_mask = create_bool_mask_with_true_at_path(np.shape(self._source.value), path)
         core_ndim = max(self._vectorize_metadata.args_metadata[arg_id].core_ndim
                         for arg_id in
                         _get_arg_ids_for_source(self._source, self._func_call.args, self._func_call.kwargs))
@@ -99,9 +99,10 @@ class VectorizeForwardsPathTranslator(ForwardsPathTranslator):
         if len(path) == 0:
             return [[]]
 
-        working_component, *rest_of_path = path
+        working_path = path[:1]
+        rest_of_path = path[1:]
         bool_mask_in_output_array = \
-            self._forward_translate_indices_to_bool_mask(working_component.component)
+            self.forward_translate_initial_path_to_bool_mask(working_path)
         if not np.any(bool_mask_in_output_array):
             return []
         starting_path = [PathComponent(bool_mask_in_output_array), *rest_of_path]

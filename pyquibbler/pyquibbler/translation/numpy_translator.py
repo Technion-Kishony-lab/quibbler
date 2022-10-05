@@ -3,7 +3,7 @@ from typing import Any, Dict, Optional, Type
 
 import numpy as np
 
-from pyquibbler.path import working_component, translate_bool_vector_to_slice_if_possible, Path, Paths, PathComponent
+from pyquibbler.path import working_component_old, translate_bool_vector_to_slice_if_possible, Path, Paths, PathComponent, initial_path
 from pyquibbler.function_definitions import FuncCall, SourceLocation
 from pyquibbler.utilities.general_utils import Shape
 
@@ -61,7 +61,7 @@ class NumpyForwardsPathTranslator(ForwardsPathTranslator):
         self._should_forward_empty_paths_to_empty_paths = should_forward_empty_paths_to_empty_paths
 
     @abstractmethod
-    def _forward_translate_indices_to_bool_mask(self, indices: Any) -> np.ndarray:
+    def forward_translate_initial_path_to_bool_mask(self, path: Path) -> np.ndarray:
         pass
 
     def forward_translate(self) -> Paths:
@@ -75,7 +75,7 @@ class NumpyForwardsPathTranslator(ForwardsPathTranslator):
             raise FailedToTranslateException()
 
         bool_mask_in_output_array = \
-            self._forward_translate_indices_to_bool_mask(working_component(path))
+            self.forward_translate_initial_path_to_bool_mask(initial_path(path))
         if np.any(bool_mask_in_output_array):
             # If there exist both True's and False's in the boolean mask,
             # this function's quib result must be an ndarray- if it were a single item (say a PyObj, int, dict, list)

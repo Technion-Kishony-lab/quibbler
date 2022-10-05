@@ -3,7 +3,7 @@ from abc import abstractmethod
 from typing import Dict, Optional, Type
 
 from pyquibbler.utilities.general_utils import Shape
-from pyquibbler.path import Path, Paths, working_component
+from pyquibbler.path import Path, Paths, working_component_old, initial_path
 from pyquibbler.function_definitions import FuncCall, SourceLocation
 
 from .source_func_call import SourceFuncCall
@@ -30,8 +30,8 @@ class BackwardsPathTranslator:
         self._type = type_
 
     @property
-    def _working_component(self):
-        return working_component(self._path)
+    def _working_path(self):
+        return initial_path(self._path)
 
     @abstractmethod
     def backwards_translate(self) -> Dict[Source, Path]:

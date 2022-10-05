@@ -3,22 +3,22 @@ from typing import Any
 
 from pyquibbler.function_definitions import SourceLocation
 from pyquibbler.path import deep_get
-from pyquibbler.path.path_component import Paths, PathComponent
+from pyquibbler.path.path_component import Path, Paths, PathComponent
 from pyquibbler.path.utils import working_component_of_type
 from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices
 
 from pyquibbler.translation.types import Source
 from pyquibbler.translation.numpy_translator import NumpyForwardsPathTranslator, NumpyBackwardsPathTranslator
 from .types import IndexCode, MAXIMAL_NON_FOCAL_SOURCE
-from .utils import get_data_source_indices, run_func_call_with_new_args_kwargs
+from .utils import translate_args_kwargs_to_source_index_codes, run_func_call_with_new_args_kwargs
 
 
 class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
 
     def _get_path_in_source(self, source: Source, location: SourceLocation):
-        args, kwargs, _ = get_data_source_indices(self._func_call, source, location)
+        args, kwargs, _ = translate_args_kwargs_to_source_index_codes(self._func_call, source, location)
         result = run_func_call_with_new_args_kwargs(self._func_call, args, kwargs)
-        result = deep_get(result, [PathComponent(self._working_component)])
+        result = deep_get(result, self._working_path)
 
         result = np.array(result)
 
@@ -46,10 +46,10 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
 
 class ForwardsTranspositionalTranslator(NumpyForwardsPathTranslator):
 
-    def _forward_translate_indices_to_bool_mask(self, indices: Any):
+    def forward_translate_initial_path_to_bool_mask(self, path: Path):
         working_component, _ = working_component_of_type(self._path, isinstance(self._source.value, (list, np.ndarray)))
-        args, kwargs, _ = get_data_source_indices(self._func_call, self._source, self._source_location,
-                                                  working_component)
+        args, kwargs, _ = translate_args_kwargs_to_source_index_codes(self._func_call, self._source,
+                                                                      self._source_location, working_component)
         result_index_code = run_func_call_with_new_args_kwargs(self._func_call, args, kwargs)
         return np.equal(result_index_code > MAXIMAL_NON_FOCAL_SOURCE, True)
 
@@ -72,7 +72,8 @@ class ForwardsTranspositionalTranslator(NumpyForwardsPathTranslator):
         is_scalar_result = \
             not isinstance(deep_get(np.array(self._source.value), [PathComponent(working_component)]), np.ndarray)
         args, kwargs, remaining_path = \
-            get_data_source_indices(self._func_call, self._source, self._source_location, working_component)
+            translate_args_kwargs_to_source_index_codes(self._func_call, self._source, self._source_location,
+                                                        working_component)
         result_index_code = run_func_call_with_new_args_kwargs(self._func_call, args, kwargs)
         result_mask = result_index_code > MAXIMAL_NON_FOCAL_SOURCE
 

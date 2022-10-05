@@ -6,8 +6,8 @@ from pyquibbler.assignment import Assignment
 from pyquibbler.translation.translators import BackwardsTranspositionalTranslator, ForwardsTranspositionalTranslator
 from pyquibbler.translation.types import Inversal
 from pyquibbler.path.path_component import PathComponent
-from pyquibbler.path.utils import working_component
-from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices
+from pyquibbler.path.utils import working_component_old, initial_path
+from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices, create_bool_mask_with_true_at_path
 from pyquibbler.utilities.numpy_original_functions import np_logical_and
 
 
@@ -31,9 +31,8 @@ class TranspositionalInverter(Inverter):
                 # Even though this now means that the result of `deep_get` will be a 1d array.
                 # We check if we want to load this as a single object if the assignment_value is an ndarray, and the
                 # path in the source referenced a single value
-                load_as_single = isinstance(assignment_value, np.ndarray) and not isinstance(
-                    deep_get(data_source.value, path), np.ndarray
-                )
+                load_as_single = isinstance(assignment_value, np.ndarray) \
+                    and not isinstance(deep_get(data_source.value, path), np.ndarray)
                 if load_as_single:
                     flattened = np.array(assignment_value.flat)
                     assert len(flattened) == 1
@@ -73,14 +72,14 @@ class TranspositionalInverter(Inverter):
         ).forward_translate() for source, path in sources_to_paths_in_sources.items()}
         assert all(len(paths) == 1 for paths in sources_to_paths_in_result.values())
 
-        boolean_mask = create_bool_mask_with_true_at_indices(np.shape(self._previous_result),
-                                                             working_component(self._assignment.path))
+        boolean_mask = create_bool_mask_with_true_at_path(np.shape(self._previous_result),
+                                                          initial_path(self._assignment.path))
 
         sources_to_single_paths_in_result = {}
         for source, paths in sources_to_paths_in_result.items():
             path = paths[0]
             if len(path) > 0:
-                path[0] = PathComponent(np_logical_and(working_component(path), boolean_mask))
+                path[0] = PathComponent(np_logical_and(working_component_old(path), boolean_mask))
             else:
                 path.insert(0, PathComponent(boolean_mask))
             sources_to_single_paths_in_result[source] = path
