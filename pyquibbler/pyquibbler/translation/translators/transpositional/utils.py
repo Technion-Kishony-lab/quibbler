@@ -15,13 +15,13 @@ from .types import IndexCode, _non_focal_source_scalar, MAXIMAL_NON_FOCAL_SOURCE
 from numpy.typing import NDArray
 
 
-def convert_arg_and_source_to_array_of_index_codes(arg: Any,
+def _convert_an_arg_to_array_of_source_index_codes(arg: Any,
                                                    focal_source: Union[Source, Missing] = missing,
                                                    path_to_source: Union[Path, Missing] = missing,
                                                    path_in_source: Union[Any, Missing] = missing
                                                    ) -> Tuple[NDArray[Union[np.int64, IndexCode]], Path]:
     """
-    Convert arg to an array of int64 with values matching the linear indexing of focal_source,
+    Convert a given arg to an array of int64 with values matching the linear indexing of focal_source,
     or specifying other elements according to IndexCode.
     """
     is_focal_source = arg is focal_source
@@ -50,10 +50,10 @@ def convert_arg_and_source_to_array_of_index_codes(arg: Any,
     for sub_arg_index, sub_arg in enumerate(arg):
         if source_index != sub_arg_index:
             converted_sub_arg, _ = \
-                convert_arg_and_source_to_array_of_index_codes(sub_arg)
+                _convert_an_arg_to_array_of_source_index_codes(sub_arg)
         else:
             converted_sub_arg, new_path_to_source = \
-                convert_arg_and_source_to_array_of_index_codes(sub_arg, focal_source, path_to_source[1:],
+                _convert_an_arg_to_array_of_source_index_codes(sub_arg, focal_source, path_to_source[1:],
                                                                path_in_source)
         converted_sub_args.append(converted_sub_arg)
 
@@ -70,37 +70,41 @@ def convert_arg_and_source_to_array_of_index_codes(arg: Any,
     return np.array(converted_sub_args), path_to_source
 
 
-def convert_args_and_source_to_arrays_of_indices(args: Any,
-                                                 focal_source: Source,
-                                                 path_to_source: Path,
-                                                 path_in_source: Any = missing,
-                                                 is_multi_arg: bool = False) \
+def _convert_an_arg_or_multi_arg_to_array_of_source_index_codes(args: Any,
+                                                                focal_source: Source,
+                                                                path_to_source: Path,
+                                                                path_in_source: Any = missing,
+                                                                is_multi_arg: bool = False) \
         -> Tuple[Union[Tuple[np.ndarray, ...], np.ndarray], Path]:
-
+    """
+    Convert given arg(s) to an array of int64 with values matching the linear indexing of focal_source,
+    or specifying other elements according to IndexCode.
+    `args` can be a single data argument, or a list/tuple containing data arguments (for example, for np.concatenate)
+    """
     if is_multi_arg:
         new_arg = []
+        remaining_path = missing
         for index, arg in enumerate(args):
             if path_to_source[0].component == index:
                 converted_arg, remaining_path = \
-                    convert_arg_and_source_to_array_of_index_codes(arg, focal_source, path_to_source[1:],
+                    _convert_an_arg_to_array_of_source_index_codes(arg, focal_source, path_to_source[1:],
                                                                    path_in_source)
             else:
                 converted_arg, _ = \
-                    convert_arg_and_source_to_array_of_index_codes(arg)
+                    _convert_an_arg_to_array_of_source_index_codes(arg)
             new_arg.append(converted_arg)
         return tuple(new_arg), remaining_path
-    return convert_arg_and_source_to_array_of_index_codes(args, focal_source, path_to_source, path_in_source)
+    return _convert_an_arg_to_array_of_source_index_codes(args, focal_source, path_to_source, path_in_source)
 
 
-def translate_args_kwargs_to_source_index_codes(func_call: FuncCall,
-                                                focal_source: Source,
-                                                focal_source_location=SourceLocation,
-                                                path_in_source: Any = missing,
-                                                ) -> Tuple[Tuple[Any], Dict[str, Any], Path]:
+def convert_args_kwargs_to_source_index_codes(func_call: FuncCall,
+                                              focal_source: Source,
+                                              focal_source_location=SourceLocation,
+                                              path_in_source: Any = missing,
+                                              ) -> Tuple[Tuple[Any], Dict[str, Any], Path]:
     """
-    Runs the function with the source replaced with array of linear indices
+    Convert data arguments in args/kwargs to arrays of index codes for the indicated focal source.
     """
-
     args = list(func_call.args)
     kwargs = func_call.kwargs
     is_concat = func_call.func is get_original_func(np.concatenate)
@@ -115,14 +119,17 @@ def translate_args_kwargs_to_source_index_codes(func_call: FuncCall,
             path_to_source = focal_source_location.path
         else:
             path_to_source = missing
-        args_or_kwargs[element_in_args_or_kwargs], remaining_path = convert_args_and_source_to_arrays_of_indices(
-            args_or_kwargs[element_in_args_or_kwargs],
-            missing if path_to_source is missing else focal_source, path_to_source, path_in_source, is_concat)
+        args_or_kwargs[element_in_args_or_kwargs], remaining_path = _convert_an_arg_or_multi_arg_to_array_of_source_index_codes(
+            args_or_kwargs[element_in_args_or_kwargs], missing if path_to_source is missing else focal_source,
+            path_to_source, path_in_source, is_concat)
 
         return tuple(args), kwargs, remaining_path
 
 
 def run_func_call_with_new_args_kwargs(func_call: FuncCall, args: Tuple[Any], kwargs: Dict[str, Any]) -> np.ndarray:
+    """
+    Runs the function with the given args, kwargs
+    """
     return SourceFuncCall.from_(func_call.func, args, kwargs,
                                 func_definition=func_call.func_definition,
                                 data_source_locations=[],

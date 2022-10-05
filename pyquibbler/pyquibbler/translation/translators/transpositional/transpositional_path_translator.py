@@ -10,13 +10,13 @@ from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_ind
 from pyquibbler.translation.types import Source
 from pyquibbler.translation.numpy_translator import NumpyForwardsPathTranslator, NumpyBackwardsPathTranslator
 from .types import IndexCode, MAXIMAL_NON_FOCAL_SOURCE
-from .utils import translate_args_kwargs_to_source_index_codes, run_func_call_with_new_args_kwargs
+from .utils import convert_args_kwargs_to_source_index_codes, run_func_call_with_new_args_kwargs
 
 
 class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
 
     def _get_path_in_source(self, source: Source, location: SourceLocation):
-        args, kwargs, _ = translate_args_kwargs_to_source_index_codes(self._func_call, source, location)
+        args, kwargs, _ = convert_args_kwargs_to_source_index_codes(self._func_call, source, location)
         result = run_func_call_with_new_args_kwargs(self._func_call, args, kwargs)
         result = deep_get(result, self._working_path)
 
@@ -48,8 +48,8 @@ class ForwardsTranspositionalTranslator(NumpyForwardsPathTranslator):
 
     def forward_translate_initial_path_to_bool_mask(self, path: Path):
         working_component, _ = working_component_of_type(self._path, isinstance(self._source.value, (list, np.ndarray)))
-        args, kwargs, _ = translate_args_kwargs_to_source_index_codes(self._func_call, self._source,
-                                                                      self._source_location, working_component)
+        args, kwargs, _ = convert_args_kwargs_to_source_index_codes(self._func_call, self._source,
+                                                                    self._source_location, working_component)
         result_index_code = run_func_call_with_new_args_kwargs(self._func_call, args, kwargs)
         return np.equal(result_index_code > MAXIMAL_NON_FOCAL_SOURCE, True)
 
@@ -72,8 +72,8 @@ class ForwardsTranspositionalTranslator(NumpyForwardsPathTranslator):
         is_scalar_result = \
             not isinstance(deep_get(np.array(self._source.value), [PathComponent(working_component)]), np.ndarray)
         args, kwargs, remaining_path = \
-            translate_args_kwargs_to_source_index_codes(self._func_call, self._source, self._source_location,
-                                                        working_component)
+            convert_args_kwargs_to_source_index_codes(self._func_call, self._source, self._source_location,
+                                                      working_component)
         result_index_code = run_func_call_with_new_args_kwargs(self._func_call, args, kwargs)
         result_mask = result_index_code > MAXIMAL_NON_FOCAL_SOURCE
 
