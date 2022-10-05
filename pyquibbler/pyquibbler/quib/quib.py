@@ -981,7 +981,7 @@ class Quib:
         self.handler.allow_overriding = allow_overriding
 
     @raise_quib_call_exceptions_as_own
-    def assign(self, value: Any, key: Optional[Any] = missing) -> None:
+    def assign(self, value: Any, *keys) -> None:
         """
         Assign a value to the whole quib, or to a specific key.
 
@@ -989,16 +989,19 @@ class Quib:
 
         ``w.assign(value)`` assigns a new value to the quib as a whole.
 
-        ``w.assign(value, key)`` assigns the quib at the specified key. This option is equivalent to
+        ``w.assign(value, key)`` assigns the quib at the specified key. This is equivalent to
         ``w[key] = value``.
+
+        ``w.assign(value, key1, key2, ..., keyN)`` assigns the quib at the specified path of keys. Equivalent to
+        ``w[key1][key2]...[kenN] = value``.
 
         Parameters
         ----------
         value: any
             A value to assign as to the quib at the specified `key`.
 
-        key: any (optional)
-            An optional key into which to assign the `value`.
+        keys: any (optional)
+            An optional list of arguments representing the keys into which to assign the `value`.
 
         See Also
         --------
@@ -1028,9 +1031,9 @@ class Quib:
         of the focal quib to which the assignment is made and by the `allow_overriding` property of upstream quibs.
         """
 
-        key = copy_and_replace_quibs_with_vals(key)
+        keys = copy_and_replace_quibs_with_vals(keys)
         value = copy_and_replace_quibs_with_vals(value)
-        path = [] if key is missing else [PathComponent(component=key, indexed_cls=self.get_type())]
+        path = [PathComponent(key) for key in keys]
         self.handler.apply_assignment(Assignment(value, path))
 
     def __setitem__(self, key, value):

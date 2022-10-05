@@ -29,7 +29,7 @@ def deep_copy_without_quibs_or_graphics(obj: Any, max_depth: Optional[int] = Non
     from pyquibbler.quib.quib import Quib
 
     def copy_if_not_quib_or_artist(o):
-        if isinstance(o, (Quib, Artist, AxesWidget)):
+        if isinstance(o, (Quib, Artist, AxesWidget)) or callable(o):
             return o
         return copy(o)
 
