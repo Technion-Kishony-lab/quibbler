@@ -10,7 +10,7 @@ from pyquibbler.path import Path, PathComponent
 from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices, create_bool_mask_with_true_at_path
 
 from ...types import Source
-from ...numpy_translator import NumpyForwardsPathTranslator, NumpyBackwardsPathTranslator
+from ...numpy_translator import OldNumpyForwardsPathTranslator, NumpyBackwardsPathTranslator
 
 
 @dataclass
@@ -55,16 +55,3 @@ class AxiswiseBackwardsPathTranslator(NumpyBackwardsPathTranslator):
         indices_in_data_source = self._backwards_translate_indices_to_bool_mask(source)
         return [PathComponent(indices_in_data_source)]
 
-
-class AxiswiseForwardsPathTranslator(NumpyForwardsPathTranslator):
-
-    TRANSLATION_RELATED_ARGS: List[Arg]
-
-    @abstractmethod
-    def _forward_translate_bool_mask(self, args_dict, boolean_mask, source: Source):
-        pass
-
-    def forward_translate_initial_path_to_bool_mask(self, path: Path):
-        source_bool_mask = create_bool_mask_with_true_at_path(np.shape(self._source.value), path)
-        args_dict = _get_translation_related_arg_dict(self._func_call, self.TRANSLATION_RELATED_ARGS)
-        return self._forward_translate_bool_mask(args_dict, source_bool_mask, self._source)

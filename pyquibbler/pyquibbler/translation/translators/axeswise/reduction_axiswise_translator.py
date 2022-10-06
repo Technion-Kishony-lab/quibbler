@@ -1,8 +1,16 @@
-import numpy as np
+from typing import List
 
-from pyquibbler.translation.translators.axeswise.axiswise_translator import AxiswiseForwardsPathTranslator, \
+import numpy as np
+from numpy.typing import NDArray
+
+from pyquibbler.function_definitions import FuncArgsKwargs
+from pyquibbler.path import Path
+from pyquibbler.translation.numpy_translation_utils import run_func_call_with_new_args_kwargs
+from pyquibbler.translation.numpy_translator import NewNumpyForwardsPathTranslator
+from pyquibbler.translation.translators.axeswise.axiswise_translator import \
     Arg, ArgWithDefault, AxiswiseBackwardsPathTranslator
 from pyquibbler.translation.types import Source
+from pyquibbler.utilities.numpy_original_functions import np_sum
 
 REDUCTION_ARGS = [Arg('axis'), ArgWithDefault('keepdims', False), ArgWithDefault('where', True)]
 
@@ -22,14 +30,15 @@ class ReductionAxiswiseBackwardsPathTranslator(AxiswiseBackwardsPathTranslator):
         return np_logical_and(bool_mask, args_dict['where'])
 
 
-class ReductionAxiswiseForwardsPathTranslator(AxiswiseForwardsPathTranslator):
+class ReductionAxiswiseForwardsPathTranslator(NewNumpyForwardsPathTranslator):
 
-    TRANSLATION_RELATED_ARGS = REDUCTION_ARGS
+    def _should_extract_element_out_of_array(self, within_source_array_path: Path) -> bool:
+        return False
 
-    def _forward_translate_bool_mask(self, args_dict, boolean_mask, source: Source):
-        """
-        Calculate forward index translation for reduction functions by reducing the boolean arrays
-        with the same reduction params.
-        """
-        from pyquibbler.utilities.numpy_original_functions import np_logical_or
-        return np_logical_or.reduce(boolean_mask, **args_dict)
+    def forward_translate_masked_data_arguments_to_result_mask(self,
+                                                               masked_func_args_kwargs: FuncArgsKwargs,
+                                                               masked_data_arguments: List[NDArray[bool]]
+                                                               ) -> NDArray[bool]:
+        # to find accumulated effect, we use np.sum on the bool mask and then test for >0.
+        masked_func_args_kwargs.func = np_sum
+        return run_func_call_with_new_args_kwargs(self._func_call, masked_func_args_kwargs) > 0

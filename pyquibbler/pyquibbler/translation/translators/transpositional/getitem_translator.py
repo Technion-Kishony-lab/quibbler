@@ -3,11 +3,11 @@ from typing import Dict, Type
 import numpy as np
 
 from pyquibbler.function_definitions.func_call import FuncCall
-from pyquibbler.translation.numpy_translator import NumpyForwardsPathTranslator
+from pyquibbler.translation.numpy_translator import OldNumpyForwardsPathTranslator
 from pyquibbler.translation.translators.transpositional.transpositional_path_translator import \
-    BackwardsTranspositionalTranslator, ForwardsTranspositionalTranslator
+    BackwardsTranspositionalTranslator
 from pyquibbler.translation.translators.transpositional.types import is_focal_element
-from pyquibbler.translation.translators.transpositional.utils import convert_args_kwargs_to_source_index_codes, \
+from pyquibbler.translation.numpy_translation_utils import convert_args_kwargs_to_source_index_codes, \
     run_func_call_with_new_args_kwargs
 from pyquibbler.translation.types import Source
 from pyquibbler.path import PathComponent
@@ -57,7 +57,7 @@ class BackwardsGetItemTranslator(BackwardsTranspositionalTranslator):
         }
 
 
-class ForwardsGetItemTranslator(NumpyForwardsPathTranslator):
+class ForwardsGetItemTranslator(OldNumpyForwardsPathTranslator):
 
     def forward_translate_initial_path_to_bool_mask(self, path: Path):
         func_args_kwargs, _, _, _ = \

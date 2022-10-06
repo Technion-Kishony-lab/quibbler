@@ -1,7 +1,14 @@
-import numpy as np
+from typing import List
 
-from pyquibbler.utilities.numpy_original_functions import np_logical_or
-from .axiswise_translator import AxiswiseBackwardsPathTranslator, AxiswiseForwardsPathTranslator, Arg
+import numpy as np
+from numpy._typing import NDArray
+
+from pyquibbler.function_definitions import FuncArgsKwargs
+from pyquibbler.path import Path
+from pyquibbler.utilities.numpy_original_functions import np_logical_or, np_cum_sum
+from .axiswise_translator import AxiswiseBackwardsPathTranslator, Arg
+from ...numpy_translation_utils import run_func_call_with_new_args_kwargs
+from ...numpy_translator import NewNumpyForwardsPathTranslator
 from ...types import Source
 
 ACCUMULATION_ARGS = [Arg('axis')]
@@ -25,17 +32,16 @@ class AccumulationBackwardsPathTranslator(AxiswiseBackwardsPathTranslator):
         return bool_mask
 
 
-class AccumulationForwardsPathTranslator(AxiswiseForwardsPathTranslator):
+class AccumulationForwardsPathTranslator(NewNumpyForwardsPathTranslator):
 
-    TRANSLATION_RELATED_ARGS = ACCUMULATION_ARGS
+    def _should_extract_element_out_of_array(self, within_source_array_path: Path) -> bool:
+        return False
 
-    def _forward_translate_bool_mask(self, args_dict, boolean_mask, source: Source):
-        """
-        Calculate forward index translation for reduction functions by accumulating the boolean arrays
-        with the same accumulation params.
-        """
-        axis = args_dict.pop('axis')
-        if axis is None:
-            boolean_mask = boolean_mask.flat
-            axis = 0
-        return np_logical_or.accumulate(boolean_mask, axis=axis, **args_dict)
+    def forward_translate_masked_data_arguments_to_result_mask(self,
+                                                               masked_func_args_kwargs: FuncArgsKwargs,
+                                                               masked_data_arguments: List[NDArray[bool]]
+                                                               ) -> NDArray[bool]:
+        # to find accumulated effect, we use cumsum on the bool mask and then test for >0.
+        # cumsum, unlike np.logical_or.accumulate, knows how to deal with axis=None
+        masked_func_args_kwargs.func = np_cum_sum
+        return run_func_call_with_new_args_kwargs(self._func_call, masked_func_args_kwargs) > 0

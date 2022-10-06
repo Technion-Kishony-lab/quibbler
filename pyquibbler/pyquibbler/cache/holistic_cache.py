@@ -2,7 +2,7 @@ from functools import wraps
 
 from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.cache.cache import Cache
-from pyquibbler.path import Path, Paths
+from pyquibbler.path import Path, Paths, SpecialComponent
 
 
 class PathCannotHaveComponentsException(PyQuibblerException):
@@ -11,12 +11,14 @@ class PathCannotHaveComponentsException(PyQuibblerException):
         return "This shallow cache does not support specifying paths that are not `all` (ie `[]`)"
 
 
-def raise_if_path_is_not_empty(func):
+def raise_if_path_is_not_all(func):
     @wraps(func)
-    def _wrapper(self, path, *args, **kwargs):
-        if len(path) > 0:
-            raise PathCannotHaveComponentsException()
-        return func(self, path, *args, **kwargs)
+    def _wrapper(self, path:Path, *args, **kwargs):
+        if len(path) == 0 \
+                or len(path) == 1 and path[0].component in [True, SpecialComponent.WHOLE, SpecialComponent.ALL]:
+            return func(self, path, *args, **kwargs)
+        raise PathCannotHaveComponentsException()
+
     return _wrapper
 
 
@@ -36,12 +38,12 @@ class HolisticCache(Cache):
     def create_invalid_cache_from_result(cls, result):
         return cls(value=result, invalid=True)
 
-    @raise_if_path_is_not_empty
+    @raise_if_path_is_not_all
     def set_valid_value_at_path(self, path: Path, value) -> None:
         self._invalid = False
         self._value = value
 
-    @raise_if_path_is_not_empty
+    @raise_if_path_is_not_all
     def set_invalid_at_path(self, path: Path) -> None:
         self._invalid = True
 

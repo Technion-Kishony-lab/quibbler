@@ -1,12 +1,13 @@
-from typing import Any
+from typing import Any, List
 
 import numpy as np
+from numpy.typing import NDArray
 
-from pyquibbler.function_definitions import SourceLocation
+from pyquibbler.function_definitions import SourceLocation, FuncArgsKwargs
 from pyquibbler.path.path_component import Path, PathComponent
-from pyquibbler.translation.numpy_translator import NumpyBackwardsPathTranslator
+from pyquibbler.translation.numpy_translator import NumpyBackwardsPathTranslator, NewNumpyForwardsPathTranslator
 from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices, unbroadcast_bool_mask, create_bool_mask_with_true_at_path
-from pyquibbler.translation.numpy_translator import NumpyForwardsPathTranslator
+from pyquibbler.translation.numpy_translator import OldNumpyForwardsPathTranslator
 from pyquibbler.translation.types import Source
 
 
@@ -31,26 +32,15 @@ class BackwardsElementwisePathTranslator(NumpyBackwardsPathTranslator):
         return new_path
 
 
-class ForwardsElementwisePathTranslator(NumpyForwardsPathTranslator):
+class ForwardsElementwisePathTranslator(NewNumpyForwardsPathTranslator):
 
-    def forward_translate_initial_path_to_bool_mask(self, path: Path):
+    def forward_translate_masked_data_arguments_to_result_mask(self,
+                                                               masked_func_args_kwargs: FuncArgsKwargs,
+                                                               masked_data_arguments: List[NDArray[bool]]
+                                                               ) -> NDArray[bool]:
         """
-        Create a boolean mask representing the source at certain indices in the result.
-        For a simple operation (eg `source=[1, 2, 3]`, `source + [2, 3, 4]`, and we forward path `(0, 0)`),
-        the `True`'s will be in the location of the indices (`[True, False, False]`)- but if
-        the source was broadcasted, we need to make sure we get a boolean mask representing where the indices
-        were in the entire result.
-
-        For example- if we have
-        ```
-        source = [[1, 2, 3]]
-        sum_ = source + [[1], [2], [3]]
-        ```
-        and we forward at (0, 0), we need to create a mask broadcasted like the argument was, ie
-        [[True, False, False],
-         [True, False, False],
-         [True, False, False]]
-                """
-        bool_mask = create_bool_mask_with_true_at_path(np.shape(self._source.value), path)
-
-        return np.broadcast_to(bool_mask, self._shape)
+        Create a boolean mask representing the affected data source elements in the output array.
+        """
+        if len(masked_data_arguments) == 1:
+            return masked_data_arguments[0]
+        return np.logical_or(masked_data_arguments[0], masked_data_arguments[1])

@@ -1,14 +1,17 @@
 from abc import abstractmethod
-from typing import Any, Dict, Optional, Type
+from typing import Dict, Optional, Type, List
 
 import numpy as np
+from numpy.typing import NDArray
 
-from pyquibbler.path import working_component_old, translate_bool_vector_to_slice_if_possible, Path, Paths, PathComponent, initial_path
-from pyquibbler.function_definitions import FuncCall, SourceLocation
+from pyquibbler.path import translate_bool_vector_to_slice_if_possible, Path, Paths, \
+    PathComponent, initial_path, deep_get
+from pyquibbler.function_definitions import FuncCall, SourceLocation, FuncArgsKwargs
 from pyquibbler.utilities.general_utils import Shape
 
 from .base_translators import BackwardsPathTranslator, ForwardsPathTranslator
 from .exceptions import FailedToTranslateException
+from pyquibbler.translation.numpy_translation_utils import convert_args_kwargs_to_source_index_codes
 from .types import Source, NoMetadataSource
 
 
@@ -41,7 +44,7 @@ class NumpyBackwardsPathTranslator(BackwardsPathTranslator):
         return sources_to_paths
 
 
-class NumpyForwardsPathTranslator(ForwardsPathTranslator):
+class OldNumpyForwardsPathTranslator(ForwardsPathTranslator):
     """
     Holds basic logic for how to forward translate a path for numpy functions- subclass this for any translator of a
     numpy function.
@@ -110,3 +113,51 @@ class NumpyForwardsPathTranslator(ForwardsPathTranslator):
                      *rest_of_path]]
 
         return []
+
+
+class NewNumpyForwardsPathTranslator(ForwardsPathTranslator):
+    """
+    Basic logic for forward translating a path for numpy functions.
+    Translates path of sources in data arguments to affected elements in the data arguments converted to numpy array.
+    """
+
+    SHOULD_ATTEMPT_WITHOUT_SHAPE_AND_TYPE = False
+
+    def __init__(self,
+                 func_call: FuncCall,
+                 source: Source,
+                 source_location: SourceLocation,
+                 path: Path,
+                 shape: Optional[Shape],
+                 type_: Optional[Type]):
+        super().__init__(func_call, source, source_location, path, shape, type_)
+
+    @abstractmethod
+    def forward_translate_masked_data_arguments_to_result_mask(self,
+                                                               masked_func_args_kwargs: FuncArgsKwargs,
+                                                               masked_data_arguments: List[NDArray[bool]]
+                                                               ) -> NDArray[bool]:
+        pass
+
+    def _should_extract_element_out_of_array(self, within_source_array_path: Path) -> bool:
+        return not isinstance(deep_get(np.array(self._source.value), within_source_array_path), np.ndarray)
+
+    def forward_translate(self) -> Paths:
+
+        masked_func_args_kwargs, remaining_path_to_source, within_array_path, within_element_path = \
+            convert_args_kwargs_to_source_index_codes(self._func_call, self._source, self._source_location, self._path,
+                                                      convert_to_bool_mask=True)
+
+        masked_data_arguments = [
+            masked_func_args_kwargs.get_arg_value_by_argument(argument) for
+            argument in self._func_call.func_definition.get_data_source_arguments(self._func_call.func_args_kwargs)
+        ]
+
+        result_mask = \
+            self.forward_translate_masked_data_arguments_to_result_mask(masked_func_args_kwargs, masked_data_arguments)
+
+        translated_path = [
+            PathComponent(result_mask,
+                          extract_element_out_of_array=self._should_extract_element_out_of_array(within_array_path))] \
+            + remaining_path_to_source + within_element_path
+        return [translated_path]

@@ -1,11 +1,13 @@
 from dataclasses import dataclass
+from typing import List
 
 import numpy as np
+from numpy.typing import NDArray
 
-from pyquibbler.translation.numpy_translator import NumpyForwardsPathTranslator
+from pyquibbler.translation.numpy_translator import OldNumpyForwardsPathTranslator, NewNumpyForwardsPathTranslator
 from pyquibbler.path import Path
 from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices, Shape, create_bool_mask_with_true_at_path
-from pyquibbler.function_definitions.func_call import FuncCall
+from pyquibbler.function_definitions.func_call import FuncCall, FuncArgsKwargs
 from pyquibbler.translation.translators.axeswise.axiswise_translator import Arg
 
 
@@ -29,7 +31,7 @@ class ApplyAlongAxis:
                      range(self.axis, self.axis - func_result_ndim, -1))
 
 
-class ApplyAlongAxisForwardsTranslator(NumpyForwardsPathTranslator):
+class ApplyAlongAxisForwardsTranslator(NewNumpyForwardsPathTranslator):
     TRANSLATION_RELATED_ARGS = [Arg('axis')]
 
     def _get_translation_related_arg_dict(self):
@@ -50,20 +52,23 @@ class ApplyAlongAxisForwardsTranslator(NumpyForwardsPathTranslator):
         return tuple(range(axis, axis + func_result_ndim) if axis >= 0 else
                      range(axis, axis - func_result_ndim, -1))
 
-    def forward_translate_initial_path_to_bool_mask(self, path: Path):
+    def _should_extract_element_out_of_array(self, within_source_array_path: Path) -> bool:
+        return False
+
+    def forward_translate_masked_data_arguments_to_result_mask(self,
+                                                               masked_func_args_kwargs: FuncArgsKwargs,
+                                                               masked_data_arguments: List[NDArray[bool]]
+                                                               ) -> NDArray[bool]:
         """
         Calculate forward index translation for apply_along_axis by applying np.any on the boolean mask.
         After that we expand and broadcast the reduced mask to match the actual result shape, which is dependent
         on the applied function return type.
         """
-        boolean_mask = create_bool_mask_with_true_at_path(np.shape(self._source.value), path)
+        boolean_mask = masked_data_arguments[0]
         args_dict = self._get_translation_related_arg_dict()
         axis = args_dict.pop('axis')
         dims_to_expand = self._get_expanded_dims(axis, np.shape(self._source.value))
-        applied = np.apply_along_axis(np.any,
-                                      axis,
-                                      boolean_mask,
-                                      **args_dict)
+        applied = np.any(boolean_mask, axis)
         expanded = np.expand_dims(applied, dims_to_expand)
         broadcast = np.broadcast_to(expanded, self._shape)
         return broadcast

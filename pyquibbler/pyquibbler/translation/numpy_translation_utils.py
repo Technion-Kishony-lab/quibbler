@@ -12,8 +12,8 @@ from pyquibbler.utilities.general_utils import is_scalar_np, get_shared_shape, i
 from pyquibbler.utilities.get_original_func import get_original_func
 from pyquibbler.utilities.missing_value import missing, Missing
 
-from .types import IndexCode, is_focal_element
-from .exceptions import PyQuibblerRaggedArrayException
+from pyquibbler.translation.translators.transpositional.types import IndexCode, is_focal_element
+from pyquibbler.translation.translators.transpositional.exceptions import PyQuibblerRaggedArrayException
 
 from numpy.typing import NDArray
 
@@ -106,7 +106,7 @@ def _convert_an_arg_to_array_of_source_index_codes(arg: Any,
 
 
 def _convert_an_arg_or_multi_arg_to_array_of_source_index_codes(args: Union[Tuple[Any, ...], Any],
-                                                                focal_source: Source,
+                                                                focal_source: Source = missing,
                                                                 path_to_source: Path = missing,
                                                                 path_in_source: Path = missing,
                                                                 is_multi_arg: bool = False,
@@ -134,8 +134,6 @@ def _convert_an_arg_or_multi_arg_to_array_of_source_index_codes(args: Union[Tupl
             else:
                 converted_arg, _, _, _ = \
                     _convert_an_arg_to_array_of_source_index_codes(arg, convert_to_bool_mask=convert_to_bool_mask)
-            if convert_to_bool_mask:
-                converted_arg = is_focal_element(converted_arg)
             new_arg.append(converted_arg)
         return tuple(new_arg), remaining_path_to_source, path_in_source_array, remaining_path_in_source
     return _convert_an_arg_to_array_of_source_index_codes(args, focal_source,
@@ -155,6 +153,7 @@ def convert_args_kwargs_to_source_index_codes(func_call: FuncCall,
     args = list(func_call.args)
     kwargs = copy.copy(func_call.kwargs)
     is_concat = func_call.func is get_original_func(np.concatenate)
+    remaining_path_to_source, path_in_source_array, remaining_path_in_source = missing, missing, missing
     for data_argument in func_call.func_definition.get_data_source_arguments(func_call.func_args_kwargs):
         if isinstance(data_argument, KeywordArgument):
             args_or_kwargs = kwargs
@@ -163,25 +162,28 @@ def convert_args_kwargs_to_source_index_codes(func_call: FuncCall,
             args_or_kwargs = args
             element_in_args_or_kwargs = data_argument.index
         if focal_source_location.argument == data_argument:
-            path_to_source = focal_source_location.path
+            index_array, remaining_path_to_source, path_in_source_array, remaining_path_in_source = \
+                _convert_an_arg_or_multi_arg_to_array_of_source_index_codes(
+                    args_or_kwargs[element_in_args_or_kwargs], focal_source,
+                    path_to_source=focal_source_location.path, path_in_source=path_in_source,
+                    is_multi_arg=is_concat, convert_to_bool_mask=convert_to_bool_mask)
         else:
-            path_to_source = missing
-        args_or_kwargs[element_in_args_or_kwargs], remaining_path_to_source, \
-            path_in_source_array, remaining_path_in_source = \
-            _convert_an_arg_or_multi_arg_to_array_of_source_index_codes(
-                args_or_kwargs[element_in_args_or_kwargs],
-                missing if path_to_source is missing else focal_source,
-                path_to_source, path_in_source, is_multi_arg=is_concat, convert_to_bool_mask=convert_to_bool_mask)
+            index_array, _, _, _ = \
+                _convert_an_arg_or_multi_arg_to_array_of_source_index_codes(
+                    args_or_kwargs[element_in_args_or_kwargs],
+                    is_multi_arg=is_concat, convert_to_bool_mask=convert_to_bool_mask)
 
-        return FuncArgsKwargs(func_call.func, tuple(args), kwargs), \
-            remaining_path_to_source, path_in_source_array, remaining_path_in_source
+        args_or_kwargs[element_in_args_or_kwargs] = index_array
+
+    return FuncArgsKwargs(func_call.func, tuple(args), kwargs), \
+        remaining_path_to_source, path_in_source_array, remaining_path_in_source
 
 
 def run_func_call_with_new_args_kwargs(func_call: FuncCall, func_args_kwargs: FuncArgsKwargs) -> np.ndarray:
     """
     Runs the function with the given args, kwargs
     """
-    return SourceFuncCall.from_(func_call.func, func_args_kwargs.args, func_args_kwargs.kwargs,
+    return SourceFuncCall.from_(func_args_kwargs.func, func_args_kwargs.args, func_args_kwargs.kwargs,
                                 func_definition=func_call.func_definition,
                                 data_source_locations=[],
                                 parameter_source_locations=func_call.parameter_source_locations).run()
