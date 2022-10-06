@@ -47,25 +47,13 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
 
 
 class ForwardsTranspositionalTranslator(NewNumpyForwardsPathTranslator):
-
+    """
+    Forward translate numpy transpositional functions (like array, rot90, flip).
+    Works by applying the function to the data args replaced with bool mask
+    """
     def forward_translate_masked_data_arguments_to_result_mask(self,
                                                                masked_func_args_kwargs: FuncArgsKwargs,
                                                                masked_data_arguments: List[NDArray[bool]]
                                                                ) -> NDArray[bool]:
+        # We simply apply the quib function to the boolean-transformed arguments
         return run_func_call_with_new_args_kwargs(self._func_call, masked_func_args_kwargs)
-
-    def forward_translate(self) -> Paths:
-        """
-        There are two things we can potentially do:
-        1. Translate the invalidation path given the current function source (eg if this function source is rotate,
-        take the invalidated indices, rotate them and invalidate children with the resulting indices)
-        2. Pass on the current path to all our children
-        """
-        path = self._path
-        if len(path) > 0 and path[0].referencing_field_in_field_array(self._source_type()):
-            # The path at the first component references a field, and therefore we cannot translate it given a
-            # normal transpositional function (neither does it make any difference, as transpositional functions
-            # don't change fields)
-            return [path]
-
-        return super().forward_translate()

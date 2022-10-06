@@ -104,6 +104,7 @@ def test_quib_widget_update_only_invalidates_old_and_new_path(quib, quib_widget,
     assert a1.cache_status is CacheStatus.ALL_VALID
     assert a2.cache_status is CacheStatus.ALL_VALID
 
+    assert get_assignment_text(1).value == '[1] = 100', "sanity"
     get_assignment_text(1).value = '[2] = 101'
 
     assert a0.cache_status is CacheStatus.ALL_VALID

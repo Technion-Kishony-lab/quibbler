@@ -3,12 +3,8 @@ from typing import Dict, Type
 import numpy as np
 
 from pyquibbler.function_definitions.func_call import FuncCall
-from pyquibbler.translation.numpy_translator import OldNumpyForwardsPathTranslator
 from pyquibbler.translation.translators.transpositional.transpositional_path_translator import \
-    BackwardsTranspositionalTranslator
-from pyquibbler.translation.translators.transpositional.types import is_focal_element
-from pyquibbler.translation.numpy_translation_utils import convert_args_kwargs_to_source_index_codes, \
-    run_func_call_with_new_args_kwargs
+    BackwardsTranspositionalTranslator, ForwardsTranspositionalTranslator
 from pyquibbler.translation.types import Source
 from pyquibbler.path import PathComponent
 from pyquibbler.path.path_component import Path, Paths
@@ -51,19 +47,13 @@ class BackwardsGetItemTranslator(BackwardsTranspositionalTranslator):
 
     def backwards_translate(self) -> Dict[Source, Path]:
         if self._can_squash_start_of_path():
-            return super(BackwardsGetItemTranslator, self).backwards_translate()
+            return super().backwards_translate()
         return {
             self._func_call.args[0]: [_getitem_path_component(self._func_call), *self._path]
         }
 
 
-class ForwardsGetItemTranslator(OldNumpyForwardsPathTranslator):
-
-    def forward_translate_initial_path_to_bool_mask(self, path: Path):
-        func_args_kwargs, _, _, _ = \
-            convert_args_kwargs_to_source_index_codes(self._func_call, self._source, self._source_location, self._path)
-        result_index_code = run_func_call_with_new_args_kwargs(self._func_call, func_args_kwargs)
-        return is_focal_element(result_index_code)
+class ForwardsGetItemTranslator(ForwardsTranspositionalTranslator):
 
     def forward_translate(self) -> Paths:
 
@@ -84,7 +74,7 @@ class ForwardsGetItemTranslator(OldNumpyForwardsPathTranslator):
                 # Therefore, we translate the indices and invalidate our children with the new indices (which are an
                 # intersection between our getitem and the path to invalidate- if this intersections yields nothing,
                 # we do NOT invalidate our children)
-                return super(ForwardsGetItemTranslator, self).forward_translate()
+                return super().forward_translate()
 
             elif (
                     _referencing_field_in_field_array(self._func_call)
@@ -102,7 +92,7 @@ class ForwardsGetItemTranslator(OldNumpyForwardsPathTranslator):
                 return [path]
 
         if isinstance(self._source.value, list) and len(path) == 1:
-            return super(ForwardsGetItemTranslator, self).forward_translate()
+            return super().forward_translate()
 
         # We come to our default scenario- if
         # 1. The invalidator quib is not an ndarray

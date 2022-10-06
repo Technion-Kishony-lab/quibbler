@@ -8,6 +8,7 @@ from pyquibbler.path import translate_bool_vector_to_slice_if_possible, Path, Pa
     PathComponent, initial_path, deep_get
 from pyquibbler.function_definitions import FuncCall, SourceLocation, FuncArgsKwargs
 from pyquibbler.utilities.general_utils import Shape
+from pyquibbler.utilities.numpy_original_functions import np_True
 
 from .base_translators import BackwardsPathTranslator, ForwardsPathTranslator
 from .exceptions import FailedToTranslateException
@@ -144,7 +145,7 @@ class NewNumpyForwardsPathTranslator(ForwardsPathTranslator):
 
     def forward_translate(self) -> Paths:
 
-        masked_func_args_kwargs, remaining_path_to_source, within_array_path, within_element_path = \
+        masked_func_args_kwargs, remaining_path_to_source, within_source_array_path, within_source_element_path = \
             convert_args_kwargs_to_source_index_codes(self._func_call, self._source, self._source_location, self._path,
                                                       convert_to_bool_mask=True)
 
@@ -156,8 +157,11 @@ class NewNumpyForwardsPathTranslator(ForwardsPathTranslator):
         result_mask = \
             self.forward_translate_masked_data_arguments_to_result_mask(masked_func_args_kwargs, masked_data_arguments)
 
-        translated_path = [
-            PathComponent(result_mask,
-                          extract_element_out_of_array=self._should_extract_element_out_of_array(within_array_path))] \
-            + remaining_path_to_source + within_element_path
-        return [translated_path]
+        if not np.any(result_mask):
+            return []
+
+        if result_mask is True or result_mask is np_True:
+            within_target_array_path = []
+        else:
+            within_target_array_path = [PathComponent(result_mask, extract_element_out_of_array=False)]
+        return [within_target_array_path + remaining_path_to_source + within_source_element_path]

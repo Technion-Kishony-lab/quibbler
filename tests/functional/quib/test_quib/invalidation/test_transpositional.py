@@ -27,6 +27,22 @@ def getitem_quib(rot90_quib):
     return getitem_quib_
 
 
+def test_getitem_basic_invalidation():
+    a = iquib([0, 1])
+    a0 = a[0]
+    a1 = a[1]
+
+    a0.get_value()
+    a1.get_value()
+
+    assert a0.cache_status is CacheStatus.ALL_VALID
+    assert a1.cache_status is CacheStatus.ALL_VALID
+
+    a[1] = 7
+    assert a0.cache_status is CacheStatus.ALL_VALID
+    assert a1.cache_status is CacheStatus.ALL_INVALID
+
+
 def test_invalidate_and_redraw_invalidates_that_which_should_be_invalidated(rot90_quib, getitem_quib):
     rot90_quib.handler.invalidate_and_aggregate_redraw_at_path(PathBuilder(rot90_quib)[0, 0].path)
 

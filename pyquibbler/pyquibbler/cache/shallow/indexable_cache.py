@@ -78,9 +78,7 @@ class IndexableCache(ShallowCache):
 
     def _get_all_uncached_paths(self) -> Paths:
         return [
-            [PathComponent(i)]
-            for i, value in enumerate(self._value)
-            if self._invalid_mask[i] is True
+            [PathComponent(i)] for i, _ in enumerate(self._value) if self._invalid_mask[i]
         ]
 
     def _shape(self):

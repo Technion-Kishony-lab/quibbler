@@ -13,11 +13,13 @@ class PathCannotHaveComponentsException(PyQuibblerException):
 
 def raise_if_path_is_not_all(func):
     @wraps(func)
-    def _wrapper(self, path:Path, *args, **kwargs):
-        if len(path) == 0 \
-                or len(path) == 1 and path[0].component in [True, SpecialComponent.WHOLE, SpecialComponent.ALL]:
+    def _wrapper(self, path: Path, *args, **kwargs):
+        if not(len(path) == 0
+               or len(path) == 1 and path[0].component in [False, True, SpecialComponent.WHOLE, SpecialComponent.ALL]):
+            raise PathCannotHaveComponentsException()
+
+        if len(path) == 0 or path[0].component is not False:
             return func(self, path, *args, **kwargs)
-        raise PathCannotHaveComponentsException()
 
     return _wrapper
 
@@ -25,7 +27,7 @@ def raise_if_path_is_not_all(func):
 class HolisticCache(Cache):
     """
     A holistic cache cannot be referenced by a field or item within it- it's an all or nothing cache. This is ideal
-    for things which cannot be broken up into parts, like numbers (as opposed to lists)
+    for things which cannot be broken up into parts, like numbers (as opposed to lists, or arrays)
     """
 
     SUPPORTING_TYPES = (object,)
