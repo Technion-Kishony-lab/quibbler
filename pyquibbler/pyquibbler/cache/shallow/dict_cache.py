@@ -22,13 +22,6 @@ class DictCache(ShallowCache):
         return super(DictCache, self).matches_result(result) \
                and list(result.keys()) == list(self._value.keys())
 
-    def _set_valid_value_at_path_component(self, path_component: PathComponent, value):
-        self._invalid_mask[path_component.component] = False
-        self._value[path_component.component] = value
-
-    def _set_invalid_at_path_component(self, path_component: PathComponent):
-        self._invalid_mask[path_component.component] = True
-
     def _get_uncached_paths_at_path_component(self,
                                               path_component: PathComponent) -> List[List[PathComponent]]:
         return [

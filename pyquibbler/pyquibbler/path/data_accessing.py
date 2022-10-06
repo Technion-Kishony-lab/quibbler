@@ -1,6 +1,6 @@
 import copy
 from dataclasses import dataclass
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Tuple, List, Iterable
 from numpy.typing import NDArray
 
 import numpy as np
@@ -70,6 +70,9 @@ def set_for_tuple(tpl: Tuple, index: int, value):
 def set_for_ndarray(obj: NDArray, component, value):
     if component is SpecialComponent.ALL:
         component = True
+    if not obj.flags.writeable:
+        # To resolve failed test: test_quib_representing_read_only_array
+        obj = obj.copy()
     obj[component] = value
     return obj
 
@@ -89,10 +92,10 @@ def set_key_to_value(obj, key, value):
 
 
 SETTERS = {
-    slice: set_for_slice,
     tuple: set_for_tuple,
     dict: set_for_dict,
     np.ndarray: set_for_ndarray,
+    slice: set_for_slice,
 }
 
 
@@ -124,7 +127,8 @@ def deep_set(data: Any, path: Path,
 
         cmp = component.component
         need_to_convert_back_to_original_type = False
-        if component.is_nd_reference() and isinstance(new_element, (list, tuple)):
+        if (component.is_nd_reference() or isinstance(cmp, slice) and not isinstance(last_element, Iterable)) \
+                and isinstance(new_element, (list, tuple)):
             # We are trying to access a non-array object, like or tuple, with array-style indexing
             original_type = type(new_element)
             new_element = np.array(new_element, dtype=object)

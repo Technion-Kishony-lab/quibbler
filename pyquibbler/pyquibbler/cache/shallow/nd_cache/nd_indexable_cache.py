@@ -17,23 +17,12 @@ class NdIndexableCache(ShallowCache):
         return super(NdIndexableCache, self).matches_result(result) \
                and result.shape == self.get_value().shape and result.dtype == self.get_value().dtype
 
-    def _set_invalid_at_path_component(self, path_component: PathComponent):
-        self._invalid_mask[path_component.component] = True
-
     def _set_valid_at_all_paths(self):
         mask = np.full(self._value.shape, False, dtype=self._invalid_mask.dtype)
         if isinstance(self._invalid_mask, np.void):
             self._invalid_mask = np.void(mask)
         else:
             self._invalid_mask = mask
-
-    def _set_valid_value_at_path_component(self, path_component: PathComponent, value):
-        self._invalid_mask[path_component.component] = False
-
-        if not self._value.flags.writeable:
-            # To resolve failed test: test_quib_representing_read_only_array
-            self._value = self._value.copy()
-        self._value[path_component.component] = value
 
     @staticmethod
     def _filter_empty_paths(paths):
