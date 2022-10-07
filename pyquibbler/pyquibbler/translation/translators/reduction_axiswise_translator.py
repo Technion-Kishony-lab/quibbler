@@ -6,7 +6,7 @@ from numpy.typing import NDArray
 from pyquibbler.function_definitions import FuncArgsKwargs
 from pyquibbler.path import Path
 from pyquibbler.translation.array_translation_utils import run_func_call_with_new_args_kwargs
-from pyquibbler.translation.translators.numpy_translator import NewNumpyForwardsPathTranslator
+from pyquibbler.translation.translators.numpy_translator import NumpyForwardsPathTranslator
 from pyquibbler.translation.translators.axiswise_translator import \
     Arg, ArgWithDefault, AxiswiseBackwardsPathTranslator
 from pyquibbler.translation.types import Source
@@ -30,10 +30,7 @@ class ReductionAxiswiseBackwardsPathTranslator(AxiswiseBackwardsPathTranslator):
         return np_logical_and(bool_mask, args_dict['where'])
 
 
-class ReductionAxiswiseForwardsPathTranslator(NewNumpyForwardsPathTranslator):
-
-    def _should_extract_element_out_of_array(self, within_source_array_path: Path) -> bool:
-        return False
+class ReductionAxiswiseForwardsPathTranslator(NumpyForwardsPathTranslator):
 
     def forward_translate_masked_data_arguments_to_result_mask(self,
                                                                masked_func_args_kwargs: FuncArgsKwargs,

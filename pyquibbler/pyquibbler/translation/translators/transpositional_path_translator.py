@@ -10,7 +10,7 @@ from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_ind
 
 from pyquibbler.translation.types import Source
 from pyquibbler.translation.translators.numpy_translator import NumpyBackwardsPathTranslator, \
-    NewNumpyForwardsPathTranslator
+    NumpyForwardsPathTranslator
 from pyquibbler.translation.array_index_codes import IndexCode, is_focal_element
 from pyquibbler.translation.array_translation_utils import convert_args_kwargs_to_source_index_codes, \
     run_func_call_with_new_args_kwargs
@@ -47,7 +47,7 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
             return [PathComponent(mask)]
 
 
-class ForwardsTranspositionalTranslator(NewNumpyForwardsPathTranslator):
+class ForwardsTranspositionalTranslator(NumpyForwardsPathTranslator):
     """
     Forward translate numpy transpositional functions (like array, rot90, flip).
     Works by applying the function to the data args replaced with bool mask

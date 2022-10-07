@@ -4,7 +4,7 @@ from typing import List
 import numpy as np
 from numpy.typing import NDArray
 
-from pyquibbler.translation.translators.numpy_translator import NewNumpyForwardsPathTranslator
+from pyquibbler.translation.translators.numpy_translator import NumpyForwardsPathTranslator
 from pyquibbler.path import Path
 from pyquibbler.utilities.general_utils import Shape
 from pyquibbler.function_definitions.func_call import FuncCall, FuncArgsKwargs
@@ -31,7 +31,7 @@ class ApplyAlongAxis:
                      range(self.axis, self.axis - func_result_ndim, -1))
 
 
-class ApplyAlongAxisForwardsTranslator(NewNumpyForwardsPathTranslator):
+class ApplyAlongAxisForwardsTranslator(NumpyForwardsPathTranslator):
     TRANSLATION_RELATED_ARGS = [Arg('axis')]
 
     def _get_translation_related_arg_dict(self):
@@ -51,9 +51,6 @@ class ApplyAlongAxisForwardsTranslator(NewNumpyForwardsPathTranslator):
         assert func_result_ndim >= 0, func_result_ndim
         return tuple(range(axis, axis + func_result_ndim) if axis >= 0 else
                      range(axis, axis - func_result_ndim, -1))
-
-    def _should_extract_element_out_of_array(self, within_source_array_path: Path) -> bool:
-        return False
 
     def forward_translate_masked_data_arguments_to_result_mask(self,
                                                                masked_func_args_kwargs: FuncArgsKwargs,

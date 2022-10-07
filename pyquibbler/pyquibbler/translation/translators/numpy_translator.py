@@ -6,8 +6,7 @@ from numpy.typing import NDArray
 
 from pyquibbler.path import Path, Paths, \
     PathComponent, deep_get
-from pyquibbler.function_definitions import FuncCall, SourceLocation, FuncArgsKwargs
-from pyquibbler.utilities.general_utils import Shape
+from pyquibbler.function_definitions import SourceLocation, FuncArgsKwargs
 from pyquibbler.utilities.numpy_original_functions import np_True
 
 from pyquibbler.translation.base_translators import BackwardsPathTranslator, ForwardsPathTranslator
@@ -44,32 +43,30 @@ class NumpyBackwardsPathTranslator(BackwardsPathTranslator):
         return sources_to_paths
 
 
-class NewNumpyForwardsPathTranslator(ForwardsPathTranslator):
+class NumpyForwardsPathTranslator(ForwardsPathTranslator):
     """
     Basic logic for forward translating a path for numpy functions.
-    Translates path of sources in data arguments to affected elements in the data arguments converted to numpy array.
+    Converts the data arguments to boolean arrays with indicating the affected elements in the source.
+
+    sub-classes should encode the mapping from this boolean mask of the data arguments to a boolean mask the shape
+    of the target, indicating affected elements in the target.
     """
 
     SHOULD_ATTEMPT_WITHOUT_SHAPE_AND_TYPE = False
-
-    def __init__(self,
-                 func_call: FuncCall,
-                 source: Source,
-                 source_location: SourceLocation,
-                 path: Path,
-                 shape: Optional[Shape],
-                 type_: Optional[Type]):
-        super().__init__(func_call, source, source_location, path, shape, type_)
 
     @abstractmethod
     def forward_translate_masked_data_arguments_to_result_mask(self,
                                                                masked_func_args_kwargs: FuncArgsKwargs,
                                                                masked_data_arguments: List[NDArray[bool]]
                                                                ) -> NDArray[bool]:
-        pass
+        """
+        Forward translate boolean masks of the data sources (indicating the affected element)
+        to a boolean mask of the function output.
 
-    def _should_extract_element_out_of_array(self, within_source_array_path: Path) -> bool:
-        return not isinstance(deep_get(np.array(self._source.value), within_source_array_path), np.ndarray)
+        sub-methods can use either masked_data_arguments, which is a list containing the masks of the data arguments,
+        or the masked_func_args_kwargs, where the data args have been replaced with their boolean masks.
+        """
+        pass
 
     def forward_translate(self) -> Paths:
 
