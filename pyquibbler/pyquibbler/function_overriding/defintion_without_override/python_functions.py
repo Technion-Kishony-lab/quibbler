@@ -5,12 +5,12 @@ from typing import List, TYPE_CHECKING
 
 from pyquibbler.inversion import TranspositionalInverter
 from pyquibbler.translation.translators import BackwardsTranspositionalTranslator, ForwardsTranspositionalTranslator
-from pyquibbler.translation.translators.shape_only.shape_only_translators import \
+from pyquibbler.translation.translators.shape_only_translators import \
     BackwardsShapeOnlyPathTranslator, ForwardsShapeOnlyPathTranslator
 from pyquibbler.inversion.inverters.casting_inverter import \
     StrCastingInverter, NumericCastingInverter, BoolCastingInverter
 from pyquibbler.user_utils.obj2quib import \
-    identity_function_list2quib, identity_function_dict2quib, identity_function_tuple2quib
+    identity_function_list2quib, identity_function_tuple2quib
 
 if TYPE_CHECKING:
     from pyquibbler.function_definitions.func_definition import FuncDefinition

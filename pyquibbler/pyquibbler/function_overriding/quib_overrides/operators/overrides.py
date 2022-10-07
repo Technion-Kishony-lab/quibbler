@@ -5,7 +5,7 @@ from pyquibbler.function_overriding.third_party_overriding.numpy.helpers import 
 from pyquibbler.function_overriding.third_party_overriding.numpy.overrides import create_numpy_overrides
 from pyquibbler.inversion.inverters.getitem_inverter import GetItemInverter
 from pyquibbler.translation.translators import BackwardsGetItemTranslator
-from pyquibbler.translation.translators.transpositional.getitem_translator import ForwardsGetItemTranslator
+from pyquibbler.translation.translators.getitem_translator import ForwardsGetItemTranslator
 
 
 def create_operator_overrides():

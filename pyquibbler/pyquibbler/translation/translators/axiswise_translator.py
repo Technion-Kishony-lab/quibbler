@@ -9,8 +9,8 @@ from pyquibbler.function_definitions.func_call import FuncCall
 from pyquibbler.path import PathComponent
 from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_path
 
-from ...types import Source
-from ...numpy_translator import NumpyBackwardsPathTranslator
+from pyquibbler.translation.types import Source
+from pyquibbler.translation.translators.numpy_translator import NumpyBackwardsPathTranslator
 
 
 @dataclass

@@ -65,9 +65,9 @@ def get_inverse_funcs_for_func(func_name: str):
 def elementwise(func_name: str, data_source_arguments: List[RawArgument],
                 inverse_func_with_input: Union[None, Callable, Dict] = None,
                 inverse_func_without_input: Union[None, Callable, Dict] = None):
-    from pyquibbler.translation.translators.elementwise.elementwise_translator import \
+    from pyquibbler.translation.translators.elementwise_translator import \
         BackwardsElementwisePathTranslator
-    from pyquibbler.translation.translators.elementwise.elementwise_translator import ForwardsElementwisePathTranslator
+    from pyquibbler.translation.translators.elementwise_translator import ForwardsElementwisePathTranslator
 
     is_inverse = inverse_func_with_input or inverse_func_without_input
     if is_inverse:

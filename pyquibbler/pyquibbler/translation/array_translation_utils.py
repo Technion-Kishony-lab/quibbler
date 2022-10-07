@@ -1,22 +1,23 @@
 import copy
+
 from typing import Any, Union, Tuple
 
 import numpy as np
 
 from pyquibbler.function_definitions import KeywordArgument, SourceLocation
 from pyquibbler.path import Path, deep_set, split_path_at_end_of_object, deep_get
-from pyquibbler.translation.source_func_call import SourceFuncCall
-from pyquibbler.translation.types import Source
 from pyquibbler.function_definitions.func_call import FuncCall, FuncArgsKwargs
-from pyquibbler.utilities.general_utils import is_scalar_np, get_shared_shape
+from pyquibbler.utilities.general_utils import is_scalar_np, get_shared_shape, is_same_shapes
 from pyquibbler.utilities.get_original_func import get_original_func
 from pyquibbler.utilities.missing_value import missing, Missing
 
-from pyquibbler.translation.translators.transpositional.types import IndexCode, is_focal_element
+from .array_index_codes import IndexCode, is_focal_element, IndexCodeArray
+from .exceptions import PyQuibblerRaggedArrayException
+from .source_func_call import SourceFuncCall
+from .types import Source
 
-from numpy.typing import NDArray
 
-IndexCodeArray = NDArray[Union[np.int64, IndexCode]]
+ALLOW_RAGGED_ARRAYS = True
 
 
 def _convert_an_arg_to_array_of_source_index_codes(arg: Any,
@@ -26,19 +27,47 @@ def _convert_an_arg_to_array_of_source_index_codes(arg: Any,
                                                    convert_to_bool_mask: bool = False
                                                    ) -> Tuple[IndexCodeArray, Path, Path, Path]:
     """
-    Convert a given arg to an array of int64 with values matching the linear indexing of focal_source,
-    or specifying other elements according to IndexCode.
-    returns:
-     1. the array of index codes
-     2. remaining path to source (if source is within an element in the array)
-     3. path in source array
-     4. remaining path in source (if the path_in_source includes deep referencing within an array element)
+    Convert a given arg to an IndexCodeArray, which is an array of np.int64 with values wither matching
+    the linear indexing of focal_source, or specifying other elements according to IndexCode.
+
+    Parameters
+    ----------
+        `arg`: an object to convert to an index-code array, can be a scalar, an array,
+        or array-like (nested list, tulple, arrays). This is typically the data argument of a numpy function.
+        `arg` can be, or contain Sources.
+
+        focal_source: the source whose indexes we want to encode.
+            If `missing`, the array will be encoded fully as IndexCode.OTHERS_ELEMENT.
+
+        path_to_source: the path to the focal source. `missing` for no focal source.
+
+        path_in_source: a path in the focal source specifying chosen array elements, to be encoded as
+            linear indices.  Source elements not in the path_in_source, are encoded as IndexCode.NON_CHOSEN_ELEMENT
+            If `missing`, all elements are encoded as indices.
+
+        convert_to_bool_mask: a bool indicating whether to convert the array to boolean mask designating True for
+            chosen source array elements, False otherwise.
+
+    Returns
+    -------
+     1. arg_index_array:
+            The index-code array representing `arg`
+
+     2. remaining_path_to_source
+        Remaining path to the source. If source is part of the array, the remaining path is []. If the source is
+        a minor source, not part of the array but rather included within an element of the array, then the
+        remaining_path_to_source is the path from the array element to the source.
+
+     3. path_in_source_array, path_in_source_element
+        The input parameter path_in_source, is broken into path_in_source_array, path_in_source_element,
+        representing the part of the path that is within the source array, and the part, if any, that is
+        within an element of the source array.
     """
 
     path_in_source_array = missing
     path_in_source_element = missing
 
-    def _convert_obj_to_index_array(obj: Any, remaining_path_to_source: Path = missing) -> Tuple[IndexCodeArray, Path]:
+    def _convert_obj_to_index_array(obj: Any, _remaining_path_to_source: Path = missing) -> Tuple[IndexCodeArray, Path]:
         """
         convert obj to index array. returns the index array and the remaining path to the source.
         """
@@ -51,57 +80,65 @@ def _convert_an_arg_to_array_of_source_index_codes(arg: Any,
         if is_focal_source:
             if is_scalar_np(obj):
                 path_in_source_array, path_in_source_element = [], path_in_source
-                return IndexCode.FOCAL_SOURCE_SCALAR, remaining_path_to_source
+                return IndexCode.FOCAL_SOURCE_SCALAR, _remaining_path_to_source
 
             full_index_array = np.arange(np.size(obj)).reshape(np.shape(obj))
             if path_in_source is missing:
-                return full_index_array, remaining_path_to_source
+                return full_index_array, _remaining_path_to_source
             else:
                 path_in_source_array, path_in_source_element, _ = split_path_at_end_of_object(full_index_array,
                                                                                               path_in_source)
                 chosen_index_array = np.full(np.shape(obj), IndexCode.NON_CHOSEN_ELEMENT)
                 deep_set(chosen_index_array, path_in_source_array, deep_get(full_index_array, path_in_source_array),
                          should_copy_objects_referenced=False)
-                return chosen_index_array, remaining_path_to_source
+                return chosen_index_array, _remaining_path_to_source
 
         if is_scalar_np(obj):
-            if remaining_path_to_source is missing:
-                return IndexCode.SCALAR_NOT_CONTAINING_FOCAL_SOURCE, remaining_path_to_source
+            if _remaining_path_to_source is missing:
+                return IndexCode.SCALAR_NOT_CONTAINING_FOCAL_SOURCE, _remaining_path_to_source
             path_in_source_array = []
             path_in_source_element = path_in_source
-            return IndexCode.SCALAR_CONTAINING_FOCAL_SOURCE, remaining_path_to_source
+            return IndexCode.SCALAR_CONTAINING_FOCAL_SOURCE, _remaining_path_to_source
 
         if isinstance(obj, np.ndarray):
-            return np.full(np.shape(obj), IndexCode.OTHERS_ELEMENT), remaining_path_to_source
+            return np.full(np.shape(obj), IndexCode.OTHERS_ELEMENT), _remaining_path_to_source
 
         if len(obj) == 0:
-            return np.array(obj), remaining_path_to_source
+            return np.array(obj), _remaining_path_to_source
 
-        source_index = None if remaining_path_to_source is missing else remaining_path_to_source[0].component
+        source_index = None if _remaining_path_to_source is missing else _remaining_path_to_source[0].component
         converted_sub_args = [None if source_index == sub_arg_index else
                               _convert_obj_to_index_array(sub_arg)[0] for sub_arg_index, sub_arg in enumerate(obj)]
-        if remaining_path_to_source is not missing:
-            converted_sub_args[source_index], remaining_path_to_source = \
-                _convert_obj_to_index_array(obj[source_index], remaining_path_to_source[1:])
+        if _remaining_path_to_source is not missing:
+            converted_sub_args[source_index], _remaining_path_to_source = \
+                _convert_obj_to_index_array(obj[source_index], _remaining_path_to_source[1:])
 
-        shared_shape = get_shared_shape(converted_sub_args)
+        if not is_same_shapes(converted_sub_args):
+            # If the arrays are not same shape, their size will be squashed by numpy, yielding an object array
+            # containing the squashed arrays.  We simulate that by an array with elements coded as
+            # IndexCode.LIST_CONTAINING_CHOSEN_ELEMENTS, or IndexCode.LIST_NOT_CONTAINING_CHOSEN_ELEMENTS
+            if not ALLOW_RAGGED_ARRAYS:
+                raise PyQuibblerRaggedArrayException()
 
-        for sub_arg_index, converted_sub_arg in enumerate(converted_sub_args):
-            if converted_sub_arg.shape != shared_shape:
-                if np.any(is_focal_element(converted_sub_arg)):
-                    collapsed_sub_arg = np.full(shared_shape, IndexCode.LIST_CONTAINING_CHOSEN_ELEMENTS)
-                    if path_in_source is not missing:
-                        path_in_source_array, path_in_source_element, _ = \
-                            split_path_at_end_of_object(collapsed_sub_arg, path_in_source)
-                else:
-                    collapsed_sub_arg = np.full(shared_shape, IndexCode.LIST_NOT_CONTAINING_CHOSEN_ELEMENTS)
-                converted_sub_args[sub_arg_index] = collapsed_sub_arg
-        return np.array(converted_sub_args), remaining_path_to_source
+            shared_shape = get_shared_shape(converted_sub_args)
 
-    arg_index_array, _remaining_path_to_source = _convert_obj_to_index_array(arg, path_to_source)
+            for sub_arg_index, converted_sub_arg in enumerate(converted_sub_args):
+                if converted_sub_arg.shape != shared_shape:
+                    if np.any(is_focal_element(converted_sub_arg)):
+                        collapsed_sub_arg = np.full(shared_shape, IndexCode.LIST_CONTAINING_CHOSEN_ELEMENTS)
+                        if path_in_source is not missing:
+                            path_in_source_array, path_in_source_element, _ = \
+                                split_path_at_end_of_object(collapsed_sub_arg, path_in_source)
+                    else:
+                        collapsed_sub_arg = np.full(shared_shape, IndexCode.LIST_NOT_CONTAINING_CHOSEN_ELEMENTS)
+                    converted_sub_args[sub_arg_index] = collapsed_sub_arg
+
+        return np.array(converted_sub_args), _remaining_path_to_source
+
+    arg_index_array, remaining_path_to_source = _convert_obj_to_index_array(arg, path_to_source)
     if convert_to_bool_mask:
         arg_index_array = is_focal_element(arg_index_array)
-    return arg_index_array, _remaining_path_to_source, path_in_source_array, path_in_source_element
+    return arg_index_array, remaining_path_to_source, path_in_source_array, path_in_source_element
 
 
 def _convert_an_arg_or_multi_arg_to_array_of_source_index_codes(

@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Union
 
 import numpy as np
 from numpy.typing import NDArray
@@ -16,6 +17,9 @@ class IndexCode(np.int64, Enum):
     SCALAR_CONTAINING_FOCAL_SOURCE = -2
     FOCAL_SOURCE_SCALAR = -1
     # otherwise, source elements are represented by their linear index (np.int64 >= 0)
+
+
+IndexCodeArray = NDArray[Union[np.int64, IndexCode]]
 
 
 MAXIMAL_NON_CHOSEN_ELEMENTS = IndexCode.LIST_NOT_CONTAINING_CHOSEN_ELEMENTS

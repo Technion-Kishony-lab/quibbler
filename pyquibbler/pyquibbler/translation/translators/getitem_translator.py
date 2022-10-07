@@ -3,7 +3,7 @@ from typing import Dict, Type
 import numpy as np
 
 from pyquibbler.function_definitions.func_call import FuncCall
-from pyquibbler.translation.translators.transpositional.transpositional_path_translator import \
+from pyquibbler.translation.translators.transpositional_path_translator import \
     BackwardsTranspositionalTranslator, ForwardsTranspositionalTranslator
 from pyquibbler.translation.types import Source
 from pyquibbler.path import PathComponent

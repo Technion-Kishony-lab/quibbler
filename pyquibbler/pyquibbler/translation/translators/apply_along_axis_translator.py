@@ -4,11 +4,11 @@ from typing import List
 import numpy as np
 from numpy.typing import NDArray
 
-from pyquibbler.translation.numpy_translator import NewNumpyForwardsPathTranslator
+from pyquibbler.translation.translators.numpy_translator import NewNumpyForwardsPathTranslator
 from pyquibbler.path import Path
 from pyquibbler.utilities.general_utils import Shape
 from pyquibbler.function_definitions.func_call import FuncCall, FuncArgsKwargs
-from pyquibbler.translation.translators.axeswise.axiswise_translator import Arg
+from pyquibbler.translation.translators.axiswise_translator import Arg
 
 
 @dataclass

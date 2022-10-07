@@ -10,9 +10,9 @@ from pyquibbler.function_definitions import FuncCall, SourceLocation, FuncArgsKw
 from pyquibbler.utilities.general_utils import Shape
 from pyquibbler.utilities.numpy_original_functions import np_True
 
-from .base_translators import BackwardsPathTranslator, ForwardsPathTranslator
-from pyquibbler.translation.numpy_translation_utils import convert_args_kwargs_to_source_index_codes
-from .types import Source
+from pyquibbler.translation.base_translators import BackwardsPathTranslator, ForwardsPathTranslator
+from pyquibbler.translation.array_translation_utils import convert_args_kwargs_to_source_index_codes
+from pyquibbler.translation.types import Source
 
 
 class NumpyBackwardsPathTranslator(BackwardsPathTranslator):

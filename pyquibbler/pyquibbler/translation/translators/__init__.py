@@ -1,6 +1,6 @@
-from .transpositional.transpositional_path_translator import ForwardsTranspositionalTranslator, \
-    BackwardsTranspositionalTranslator
-from .transpositional.getitem_translator import BackwardsGetItemTranslator
-from .axeswise import ReductionAxiswiseForwardsPathTranslator, ReductionAxiswiseBackwardsPathTranslator, \
-    AccumulationForwardsPathTranslator, AccumulationBackwardsPathTranslator
-from .shape_only.shape_only_translators import BackwardsShapeOnlyPathTranslator, ForwardsShapeOnlyPathTranslator
+from .transpositional_path_translator import ForwardsTranspositionalTranslator, BackwardsTranspositionalTranslator
+from .getitem_translator import BackwardsGetItemTranslator
+from .reduction_axiswise_translator import ReductionAxiswiseForwardsPathTranslator, \
+    ReductionAxiswiseBackwardsPathTranslator
+from .accumulation_translator import AccumulationForwardsPathTranslator, AccumulationBackwardsPathTranslator
+from.shape_only_translators import BackwardsShapeOnlyPathTranslator, ForwardsShapeOnlyPathTranslator

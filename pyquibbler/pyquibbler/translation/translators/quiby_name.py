@@ -2,8 +2,8 @@ from typing import Dict
 
 from pyquibbler.path.path_component import Path, Paths
 
-from ...base_translators import ForwardsPathTranslator, BackwardsPathTranslator
-from ...types import Source
+from pyquibbler.translation.base_translators import ForwardsPathTranslator, BackwardsPathTranslator
+from pyquibbler.translation.types import Source
 
 
 class BackwardsQuibyNameTranslator(BackwardsPathTranslator):

@@ -5,9 +5,9 @@ from numpy.typing import NDArray
 
 from pyquibbler.function_definitions import FuncArgsKwargs
 from pyquibbler.path import Path
-from pyquibbler.translation.numpy_translation_utils import run_func_call_with_new_args_kwargs
-from pyquibbler.translation.numpy_translator import NewNumpyForwardsPathTranslator
-from pyquibbler.translation.translators.axeswise.axiswise_translator import \
+from pyquibbler.translation.array_translation_utils import run_func_call_with_new_args_kwargs
+from pyquibbler.translation.translators.numpy_translator import NewNumpyForwardsPathTranslator
+from pyquibbler.translation.translators.axiswise_translator import \
     Arg, ArgWithDefault, AxiswiseBackwardsPathTranslator
 from pyquibbler.translation.types import Source
 from pyquibbler.utilities.numpy_original_functions import np_sum

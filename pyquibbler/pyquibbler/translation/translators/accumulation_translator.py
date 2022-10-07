@@ -6,10 +6,10 @@ from numpy._typing import NDArray
 from pyquibbler.function_definitions import FuncArgsKwargs
 from pyquibbler.path import Path
 from pyquibbler.utilities.numpy_original_functions import np_logical_or, np_cum_sum
-from .axiswise_translator import AxiswiseBackwardsPathTranslator, Arg
-from ...numpy_translation_utils import run_func_call_with_new_args_kwargs
-from ...numpy_translator import NewNumpyForwardsPathTranslator
-from ...types import Source
+from pyquibbler.translation.translators.axiswise_translator import AxiswiseBackwardsPathTranslator, Arg
+from pyquibbler.translation.array_translation_utils import run_func_call_with_new_args_kwargs
+from pyquibbler.translation.translators.numpy_translator import NewNumpyForwardsPathTranslator
+from pyquibbler.translation.types import Source
 
 ACCUMULATION_ARGS = [Arg('axis')]
 

@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from pyquibbler.quib.quib import Quib
 from pyquibbler.function_overriding.function_override import FuncOverride
-from pyquibbler.translation.translators.elementwise.elementwise_translator import BackwardsElementwisePathTranslator, \
+from pyquibbler.translation.translators.elementwise_translator import BackwardsElementwisePathTranslator, \
     ForwardsElementwisePathTranslator
 from pyquibbler.quib.func_calling.quiby_name_func_call import QuibyNameFuncCall
-from pyquibbler.translation.translators.quiby_name.quiby_name import BackwardsQuibyNameTranslator, \
+from pyquibbler.translation.translators.quiby_name import BackwardsQuibyNameTranslator, \
     ForwardsQuibyNameTranslator
 
 ORIGINAL_GET_QUIBY_NAME = Quib.get_quiby_name
