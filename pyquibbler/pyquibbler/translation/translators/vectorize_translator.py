@@ -3,7 +3,8 @@ from typing import Dict, Any, Set, Optional, Type
 
 import numpy as np
 
-from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices, unbroadcast_bool_mask, Shape, create_bool_mask_with_true_at_path
+from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices, unbroadcast_bool_mask, Shape, \
+    create_bool_mask_with_true_at_path
 from pyquibbler.path import PathComponent
 from pyquibbler.path.path_component import Path, Paths
 from pyquibbler.quib.func_calling.func_calls.vectorize.utils import get_core_axes

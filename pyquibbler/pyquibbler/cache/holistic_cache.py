@@ -14,8 +14,8 @@ class PathCannotHaveComponentsException(PyQuibblerException):
 def raise_if_path_is_not_all(func):
     @wraps(func)
     def _wrapper(self, path: Path, *args, **kwargs):
-        if not(len(path) == 0
-               or len(path) == 1 and path[0].component in [False, True, SpecialComponent.WHOLE, SpecialComponent.ALL]):
+        if not (len(path) == 0
+                or len(path) == 1 and path[0].component in [False, True, SpecialComponent.WHOLE, SpecialComponent.ALL]):
             raise PathCannotHaveComponentsException()
 
         if len(path) == 0 or path[0].component is not False:

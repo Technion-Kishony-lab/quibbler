@@ -9,7 +9,6 @@ from pyquibbler.translation.types import Inversal
 from pyquibbler.path import initial_path, deep_get
 from ..inverter import Inverter
 from ..generic_inverse_functions import create_inverse_single_arg_func, create_inverse_func_from_indexes_to_funcs
-from ...path import SpecialComponent
 
 
 class ElementwiseInverter(Inverter):

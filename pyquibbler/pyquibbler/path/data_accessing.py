@@ -1,6 +1,6 @@
 import copy
 from dataclasses import dataclass
-from typing import Any, Dict, Tuple, List, Iterable
+from typing import Any, Dict, Tuple, Iterable
 from numpy.typing import NDArray
 
 import numpy as np

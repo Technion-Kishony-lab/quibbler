@@ -6,11 +6,11 @@ import numpy as np
 
 from pyquibbler.function_definitions import SourceLocation
 from pyquibbler.function_definitions.func_call import FuncCall
-from pyquibbler.path import Path, PathComponent
-from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices, create_bool_mask_with_true_at_path
+from pyquibbler.path import PathComponent
+from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_path
 
 from ...types import Source
-from ...numpy_translator import OldNumpyForwardsPathTranslator, NumpyBackwardsPathTranslator
+from ...numpy_translator import NumpyBackwardsPathTranslator
 
 
 @dataclass
@@ -54,4 +54,3 @@ class AxiswiseBackwardsPathTranslator(NumpyBackwardsPathTranslator):
             return []
         indices_in_data_source = self._backwards_translate_indices_to_bool_mask(source)
         return [PathComponent(indices_in_data_source)]
-

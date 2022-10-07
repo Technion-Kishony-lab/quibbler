@@ -1,5 +1,5 @@
 import copy
-from typing import Any, Union, Tuple, Dict
+from typing import Any, Union, Tuple
 
 import numpy as np
 
@@ -8,12 +8,11 @@ from pyquibbler.path import Path, deep_set, split_path_at_end_of_object, deep_ge
 from pyquibbler.translation.source_func_call import SourceFuncCall
 from pyquibbler.translation.types import Source
 from pyquibbler.function_definitions.func_call import FuncCall, FuncArgsKwargs
-from pyquibbler.utilities.general_utils import is_scalar_np, get_shared_shape, is_same_shapes
+from pyquibbler.utilities.general_utils import is_scalar_np, get_shared_shape
 from pyquibbler.utilities.get_original_func import get_original_func
 from pyquibbler.utilities.missing_value import missing, Missing
 
 from pyquibbler.translation.translators.transpositional.types import IndexCode, is_focal_element
-from pyquibbler.translation.translators.transpositional.exceptions import PyQuibblerRaggedArrayException
 
 from numpy.typing import NDArray
 
@@ -105,18 +104,15 @@ def _convert_an_arg_to_array_of_source_index_codes(arg: Any,
     return arg_index_array, _remaining_path_to_source, path_in_source_array, path_in_source_element
 
 
-def _convert_an_arg_or_multi_arg_to_array_of_source_index_codes(args: Union[Tuple[Any, ...], Any],
-                                                                focal_source: Source = missing,
-                                                                path_to_source: Path = missing,
-                                                                path_in_source: Path = missing,
-                                                                is_multi_arg: bool = False,
-                                                                convert_to_bool_mask: bool = False) \
+def _convert_an_arg_or_multi_arg_to_array_of_source_index_codes(
+        args: Union[Tuple[Any, ...], Any], focal_source: Source = missing,
+        path_to_source: Path = missing, path_in_source: Path = missing,
+        is_multi_arg: bool = False, convert_to_bool_mask: bool = False) \
         -> Tuple[
             Union[Tuple[IndexCodeArray, ...], IndexCodeArray],
             Union[Path, Missing],
             Union[Path, Missing],
-            Union[Path, Missing],
-            ]:
+            Union[Path, Missing]]:
     """
     Convert given arg(s) to an array of int64 with values matching the linear indexing of focal_source,
     or specifying other elements according to IndexCode.

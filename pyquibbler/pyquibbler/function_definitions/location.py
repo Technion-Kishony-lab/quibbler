@@ -78,5 +78,3 @@ def get_object_type_locations_in_args_kwargs(object_type, args: Tuple[Any, ...],
     keyword_locations = [KeywordSourceLocation(KeywordArgument(path[0].component), path[1:]) for
                          path in get_paths_for_objects_of_type(kwargs, object_type)]
     return positional_locations + keyword_locations
-
-

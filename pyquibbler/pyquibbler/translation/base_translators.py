@@ -3,7 +3,7 @@ from abc import abstractmethod
 from typing import Dict, Optional, Type
 
 from pyquibbler.utilities.general_utils import Shape
-from pyquibbler.path import Path, Paths, working_component_old, initial_path
+from pyquibbler.path import Path, Paths, initial_path
 from pyquibbler.function_definitions import FuncCall, SourceLocation
 
 from .source_func_call import SourceFuncCall

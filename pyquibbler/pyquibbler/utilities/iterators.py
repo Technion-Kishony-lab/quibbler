@@ -1,5 +1,5 @@
 import numpy as np
-from typing import Tuple, Any, Mapping, Type, Optional, Callable, List
+from typing import Tuple, Any, Mapping, Type, Optional, Callable
 
 from pyquibbler.env import DEBUG
 from pyquibbler.exceptions import PyQuibblerException

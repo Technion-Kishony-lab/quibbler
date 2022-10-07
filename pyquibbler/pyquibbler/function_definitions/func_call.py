@@ -95,6 +95,7 @@ class FuncArgsKwargs:
         else:
             return self.kwargs[argument.keyword]
 
+
 @dataclass
 class FuncCall(ABC):
     """

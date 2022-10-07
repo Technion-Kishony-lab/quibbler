@@ -7,7 +7,7 @@ from pyquibbler.translation.translators import BackwardsTranspositionalTranslato
 from pyquibbler.translation.types import Inversal
 from pyquibbler.path.path_component import PathComponent
 from pyquibbler.path.utils import working_component_old, initial_path
-from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices, create_bool_mask_with_true_at_path
+from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_path
 from pyquibbler.utilities.numpy_original_functions import np_logical_and
 
 

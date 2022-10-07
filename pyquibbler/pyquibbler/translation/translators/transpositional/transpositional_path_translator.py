@@ -5,14 +5,15 @@ from numpy.typing import NDArray
 
 from pyquibbler.function_definitions import SourceLocation, FuncArgsKwargs
 from pyquibbler.path import deep_get
-from pyquibbler.path.path_component import Paths, PathComponent
+from pyquibbler.path.path_component import PathComponent
 from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices
 
 from pyquibbler.translation.types import Source
 from pyquibbler.translation.numpy_translator import NumpyBackwardsPathTranslator, \
     NewNumpyForwardsPathTranslator
 from .types import IndexCode, is_focal_element
-from pyquibbler.translation.numpy_translation_utils import convert_args_kwargs_to_source_index_codes, run_func_call_with_new_args_kwargs
+from pyquibbler.translation.numpy_translation_utils import convert_args_kwargs_to_source_index_codes, \
+    run_func_call_with_new_args_kwargs
 
 
 class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):

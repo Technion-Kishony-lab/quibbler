@@ -4,10 +4,9 @@ import numpy as np
 from numpy.typing import NDArray
 
 from pyquibbler.function_definitions import SourceLocation, FuncArgsKwargs
-from pyquibbler.path.path_component import Path, PathComponent
+from pyquibbler.path.path_component import PathComponent
 from pyquibbler.translation.numpy_translator import NumpyBackwardsPathTranslator, NewNumpyForwardsPathTranslator
-from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices, unbroadcast_bool_mask, create_bool_mask_with_true_at_path
-from pyquibbler.translation.numpy_translator import OldNumpyForwardsPathTranslator
+from pyquibbler.utilities.general_utils import unbroadcast_bool_mask, create_bool_mask_with_true_at_path
 from pyquibbler.translation.types import Source
 
 
