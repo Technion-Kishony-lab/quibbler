@@ -4,6 +4,7 @@ from typing import List
 import numpy as np
 from numpy.typing import NDArray
 
+from pyquibbler.translation.array_translation_utils import ArrayPathTranslator
 from pyquibbler.translation.translators.numpy_translator import NumpyForwardsPathTranslator
 from pyquibbler.path import Path
 from pyquibbler.utilities.general_utils import Shape
@@ -53,15 +54,14 @@ class ApplyAlongAxisForwardsTranslator(NumpyForwardsPathTranslator):
                      range(axis, axis - func_result_ndim, -1))
 
     def forward_translate_masked_data_arguments_to_result_mask(self,
-                                                               masked_func_args_kwargs: FuncArgsKwargs,
-                                                               masked_data_arguments: List[NDArray[bool]]
+                                                               data_argument_to_mask_converter: ArrayPathTranslator,
                                                                ) -> NDArray[bool]:
         """
         Calculate forward index translation for apply_along_axis by applying np.any on the boolean mask.
         After that we expand and broadcast the reduced mask to match the actual result shape, which is dependent
         on the applied function return type.
         """
-        boolean_mask = masked_data_arguments[0]
+        boolean_mask = data_argument_to_mask_converter.get_masked_data_arguments()[0]
         args_dict = self._get_translation_related_arg_dict()
         axis = args_dict.pop('axis')
         dims_to_expand = self._get_expanded_dims(axis, np.shape(self._source.value))

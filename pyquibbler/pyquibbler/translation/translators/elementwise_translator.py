@@ -5,6 +5,7 @@ from numpy.typing import NDArray
 
 from pyquibbler.function_definitions import SourceLocation, FuncArgsKwargs
 from pyquibbler.path.path_component import PathComponent
+from pyquibbler.translation.array_translation_utils import ArrayPathTranslator
 from pyquibbler.translation.translators.numpy_translator import NumpyBackwardsPathTranslator, NumpyForwardsPathTranslator
 from pyquibbler.utilities.general_utils import unbroadcast_bool_mask, create_bool_mask_with_true_at_path
 from pyquibbler.translation.types import Source
@@ -34,12 +35,13 @@ class BackwardsElementwisePathTranslator(NumpyBackwardsPathTranslator):
 class ForwardsElementwisePathTranslator(NumpyForwardsPathTranslator):
 
     def forward_translate_masked_data_arguments_to_result_mask(self,
-                                                               masked_func_args_kwargs: FuncArgsKwargs,
-                                                               masked_data_arguments: List[NDArray[bool]]
+                                                               data_argument_to_mask_converter: ArrayPathTranslator,
                                                                ) -> NDArray[bool]:
         """
         Create a boolean mask representing the affected data source elements in the output array.
         """
+        masked_data_arguments = data_argument_to_mask_converter.get_masked_data_arguments()
+
         if len(masked_data_arguments) == 1:
             # single arg function
             return masked_data_arguments[0]

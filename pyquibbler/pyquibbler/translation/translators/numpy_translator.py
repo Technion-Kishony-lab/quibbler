@@ -10,7 +10,7 @@ from pyquibbler.function_definitions import SourceLocation, FuncArgsKwargs
 from pyquibbler.utilities.numpy_original_functions import np_True
 
 from pyquibbler.translation.base_translators import BackwardsPathTranslator, ForwardsPathTranslator
-from pyquibbler.translation.array_translation_utils import convert_args_kwargs_to_source_index_codes
+from pyquibbler.translation.array_translation_utils import ArrayPathTranslator
 from pyquibbler.translation.types import Source
 
 
@@ -56,8 +56,7 @@ class NumpyForwardsPathTranslator(ForwardsPathTranslator):
 
     @abstractmethod
     def forward_translate_masked_data_arguments_to_result_mask(self,
-                                                               masked_func_args_kwargs: FuncArgsKwargs,
-                                                               masked_data_arguments: List[NDArray[bool]]
+                                                               data_argument_to_mask_converter: ArrayPathTranslator,
                                                                ) -> NDArray[bool]:
         """
         Forward translate boolean masks of the data sources (indicating the affected element)
@@ -70,17 +69,16 @@ class NumpyForwardsPathTranslator(ForwardsPathTranslator):
 
     def forward_translate(self) -> Paths:
 
-        masked_func_args_kwargs, remaining_path_to_source, within_source_array_path, within_source_element_path = \
-            convert_args_kwargs_to_source_index_codes(self._func_call, self._source, self._source_location, self._path,
-                                                      convert_to_bool_mask=True)
+        data_argument_to_mask_converter = \
+            ArrayPathTranslator(func_call=self._func_call, focal_source=self._source,
+                                focal_source_location=self._source_location, path_in_source=self._path,
+                                convert_to_bool_mask=True)
 
-        masked_data_arguments = [
-            masked_func_args_kwargs.get_arg_value_by_argument(argument) for
-            argument in self._func_call.func_definition.get_data_source_arguments(self._func_call.func_args_kwargs)
-        ]
+        remaining_path_to_source = data_argument_to_mask_converter.get_path_from_array_element_to_source()
+        within_source_element_path = data_argument_to_mask_converter.get_path_in_source_element()
 
         result_mask = \
-            self.forward_translate_masked_data_arguments_to_result_mask(masked_func_args_kwargs, masked_data_arguments)
+            self.forward_translate_masked_data_arguments_to_result_mask(data_argument_to_mask_converter)
 
         if not np.any(result_mask):
             return []

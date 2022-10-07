@@ -1,16 +1,11 @@
-from typing import List
-
 import numpy as np
 from numpy.typing import NDArray
 
-from pyquibbler.function_definitions import FuncArgsKwargs
-from pyquibbler.path import Path
-from pyquibbler.translation.array_translation_utils import run_func_call_with_new_args_kwargs
-from pyquibbler.translation.translators.numpy_translator import NumpyForwardsPathTranslator
-from pyquibbler.translation.translators.axiswise_translator import \
-    Arg, ArgWithDefault, AxiswiseBackwardsPathTranslator
-from pyquibbler.translation.types import Source
 from pyquibbler.utilities.numpy_original_functions import np_sum
+from pyquibbler.translation.array_translation_utils import run_func_call_with_new_args_kwargs, ArrayPathTranslator
+from pyquibbler.translation.types import Source
+from .numpy_translator import NumpyForwardsPathTranslator
+from .axiswise_translator import Arg, ArgWithDefault, AxiswiseBackwardsPathTranslator
 
 REDUCTION_ARGS = [Arg('axis'), ArgWithDefault('keepdims', False), ArgWithDefault('where', True)]
 
@@ -33,9 +28,9 @@ class ReductionAxiswiseBackwardsPathTranslator(AxiswiseBackwardsPathTranslator):
 class ReductionAxiswiseForwardsPathTranslator(NumpyForwardsPathTranslator):
 
     def forward_translate_masked_data_arguments_to_result_mask(self,
-                                                               masked_func_args_kwargs: FuncArgsKwargs,
-                                                               masked_data_arguments: List[NDArray[bool]]
+                                                               data_argument_to_mask_converter: ArrayPathTranslator,
                                                                ) -> NDArray[bool]:
         # to find accumulated effect, we use np.sum on the bool mask and then test for >0.
+        masked_func_args_kwargs = data_argument_to_mask_converter.get_func_args_kwargs()
         masked_func_args_kwargs.func = np_sum
         return run_func_call_with_new_args_kwargs(self._func_call, masked_func_args_kwargs) > 0
