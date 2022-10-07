@@ -3,7 +3,7 @@ import pytest
 
 from pyquibbler import iquib
 from tests.functional.quib.test_quib.get_value.test_apply_along_axis import parametrize_indices_to_invalidate, \
-    parametrize_data
+    parametrize_data, parametrize_path_to_invalidate
 from tests.functional.quib.test_quib.invalidation.utils import check_invalidation
 
 
@@ -17,6 +17,19 @@ def test_vectorize_invalidation(indices_to_invalidate, data, excluded, func):
         kwargs['excluded'] = excluded
 
     check_invalidation(np.vectorize(func, **kwargs), data, indices_to_invalidate)
+
+
+@parametrize_path_to_invalidate
+@parametrize_data
+@pytest.mark.parametrize('excluded', [{0}, set(), None])
+@pytest.mark.parametrize('func', [lambda x: np.sum(x), lambda x: (np.sum(x), np.sum(x))])
+def test_vectorize_invalidation_with_list_arg(path_to_invalidate, data, excluded, func):
+    data = data.tolist()
+    kwargs = {}
+    if excluded is not None:
+        kwargs['excluded'] = excluded
+
+    check_invalidation(np.vectorize(func, **kwargs), data, path_to_invalidate)
 
 
 def test_vectorize_invalidation_with_non_numpy_return_value():
