@@ -30,9 +30,9 @@ class FailedToDeepAssignException(PyQuibblerException):
     exception: IndexError
 
     def __str__(self):
-        return f"The path {''.join([f'[{p.component}]' for p in self.path])} " \
-               f"was invalid in the data, and therefore could not be assigned with- " \
-               f"failed on {self.exception}"
+        return f"The path: \n {''.join([f'[{repr(p.component)}]' for p in self.path])} \n" \
+               f"was invalid in the data, and therefore could not be assigned into.\n" \
+               f"Failed on {self.exception}"
 
 
 def deep_get(obj: Any, path: Path):

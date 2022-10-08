@@ -29,10 +29,6 @@ class BackwardsPathTranslator:
         self._path = path
         self._type = type_
 
-    @property
-    def _working_path(self):
-        return initial_path(self._path)
-
     @abstractmethod
     def backwards_translate(self) -> Dict[Source, Path]:
         """

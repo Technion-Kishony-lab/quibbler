@@ -327,7 +327,4 @@ def test_apply_along_axis_invalidation_manual(should_array, path, expected_inval
     get_a.assign(5)
     invalid_mask = copy.copy(b.handler.quib_function_call.cache._invalid_mask)
     assert np.array_equal(b.get_value(), [4, 7])
-    print('---')
-    print(invalid_mask)
-    print(expected_invalid_mask)
     assert np.array_equal(invalid_mask, expected_invalid_mask)

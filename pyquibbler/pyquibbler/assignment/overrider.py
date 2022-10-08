@@ -99,7 +99,7 @@ class Overrider:
                     value = assignment.value
                 with external_call_failed_exception_handling():
                     data = deep_set(data, assignment.path, value,
-                                    raise_on_failure=assignment == self._active_assignment)
+                                    raise_on_failure=assignment is self._active_assignment)
 
         self._active_assignment = None
         return data

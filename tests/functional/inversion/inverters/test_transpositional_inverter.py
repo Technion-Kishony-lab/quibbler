@@ -100,7 +100,7 @@ def test_inverse_assign_list_within_list():
 
     sources_to_results, _ = inverse(func=np.array, args=(data_source,), value=10, indices=(0, 0))
 
-    assert recursively_compare_objects(sources_to_results[data_source], [[10, 2, 3, 4]])
+    assert sources_to_results[data_source] == [[10, 2, 3, 4]]
 
 
 def test_inverse_assign_list2quib():

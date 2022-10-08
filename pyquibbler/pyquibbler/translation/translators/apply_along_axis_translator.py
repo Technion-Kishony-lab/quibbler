@@ -6,7 +6,7 @@ from numpy.typing import NDArray
 from pyquibbler.translation.array_translation_utils import ArrayPathTranslator
 from pyquibbler.translation.translators.numpy_translator import NumpyForwardsPathTranslator, Arg
 from pyquibbler.utilities.general_utils import Shape
-from pyquibbler.function_definitions.func_call import FuncCall, FuncArgsKwargs
+from pyquibbler.function_definitions.func_call import FuncCall
 
 
 @dataclass

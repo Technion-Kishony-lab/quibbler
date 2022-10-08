@@ -1,59 +1,74 @@
+from abc import abstractmethod
 from typing import Dict, Type
 
 import numpy as np
 
-from pyquibbler.function_definitions.func_call import FuncCall
-from pyquibbler.translation.translators.transpositional_path_translator import \
-    BackwardsTranspositionalTranslator, ForwardsTranspositionalTranslator
-from pyquibbler.translation.types import Source
-from pyquibbler.path import PathComponent
-from pyquibbler.path.path_component import Path, Paths
-from pyquibbler.translation.utils import copy_and_replace_sources_with_vals
+from pyquibbler.path import PathComponent, Path, Paths
+
+from .transpositional_path_translator import BackwardsTranspositionalTranslator, ForwardsTranspositionalTranslator
+from ..utils import copy_and_replace_sources_with_vals
+from ..types import Source
 
 
-def _getitem_path_component(func_call: FuncCall) -> PathComponent:
-    component = func_call.args[1]
-    component = copy_and_replace_sources_with_vals(component)
-    return PathComponent(component)
+class BaseGetItemTranslator:
 
+    @property
+    def _referenced_object(self):
+        return self._func_call.args[0]
 
-def _type_of_referenced_object(func_call: FuncCall) -> Type:
-    data = func_call.args[0]
-    return type(data.value) if isinstance(data, Source) else type(data)
-
-
-def _referencing_field_in_field_array(func_call: FuncCall) -> bool:
-    return _getitem_path_component(func_call).referencing_field_in_field_array(_type_of_referenced_object(func_call))
-
-
-class BackwardsGetItemTranslator(BackwardsTranspositionalTranslator):
-
+    @property
     def _referenced_value(self):
-        return copy_and_replace_sources_with_vals(self._func_call.args[0])
+        return copy_and_replace_sources_with_vals(self._referenced_object)
 
+    @property
     def _getitem_component(self):
         return copy_and_replace_sources_with_vals(self._func_call.args[1])
 
-    def _can_squash_start_of_path(self) -> bool:
-        data = self._referenced_value()
-        component = self._getitem_component()
-        return issubclass(self._type, np.ndarray) \
-            and not _referencing_field_in_field_array(self._func_call) \
-            and len(self._path) > 0 \
-            and not self._path[0].referencing_field_in_field_array(_type_of_referenced_object(self._func_call)) \
-            and isinstance(data, np.ndarray) \
-            and not (data.dtype.type is np.object_ and isinstance(data[component], np.ndarray))
-        # TODO: The above line is an ad hoc solution to the test_array_of_arrays bug
+    def _get_getitem_path_component(self) -> PathComponent:
+        return PathComponent(self._getitem_component)
+
+    def _get_type_of_referenced_value(self) -> Type:
+        return type(self._referenced_value)
+
+    def _getitem_of_a_field_in_array(self) -> bool:
+        return self._get_getitem_path_component().referencing_field_in_field_array(self._get_type_of_referenced_value())
+
+    def _getitem_of_array(self) -> bool:
+        return issubclass(self._get_type_of_referenced_value(), np.ndarray)
+
+    def _getitem_of_list_to_list(self) -> bool:
+        return issubclass(self._get_type_of_referenced_value(), (list, tuple)) \
+            and self._get_getitem_path_component().is_list_to_list_reference()
+
+    @abstractmethod
+    def _is_path_referencing_field_in_field_array(self) -> bool:
+        pass
+
+    def _can_use_numpy_transposition(self) -> bool:
+        """
+        We can use the BackwardsTranspositionalTranslator if we are referencing an array, with indices (not field).
+        """
+        return len(self._path) > 0 \
+            and (self._getitem_of_array() or self._getitem_of_list_to_list()) \
+            and not self._getitem_of_a_field_in_array() \
+            and not self._is_path_referencing_field_in_field_array()
+
+
+class BackwardsGetItemTranslator(BackwardsTranspositionalTranslator, BaseGetItemTranslator):
+
+    def _is_path_referencing_field_in_field_array(self) -> bool:
+        return self._path[0].referencing_field_in_field_array(self._type)
 
     def backwards_translate(self) -> Dict[Source, Path]:
-        if self._can_squash_start_of_path():
+        if self._can_use_numpy_transposition():
             return super().backwards_translate()
-        return {
-            self._func_call.args[0]: [_getitem_path_component(self._func_call), *self._path]
-        }
+        return {self._referenced_object: [self._get_getitem_path_component(), *self._path]}
 
 
-class ForwardsGetItemTranslator(ForwardsTranspositionalTranslator):
+class ForwardsGetItemTranslator(ForwardsTranspositionalTranslator, BaseGetItemTranslator):
+
+    def _is_path_referencing_field_in_field_array(self) -> bool:
+        return self._path[0].referencing_field_in_field_array(self._get_type_of_referenced_value())
 
     def forward_translate(self) -> Paths:
 
@@ -61,56 +76,14 @@ class ForwardsGetItemTranslator(ForwardsTranspositionalTranslator):
         if len(path) == 0:
             return [[]]
 
-        working_component, *rest_of_path = self._path
-        is_working_component_referencing_field_in_field_array = \
-            working_component.referencing_field_in_field_array(_type_of_referenced_object(self._func_call))
-        if isinstance(self._source.value, np.ndarray):
-            if (not _referencing_field_in_field_array(self._func_call)
-                    and not is_working_component_referencing_field_in_field_array):
-                # This means:
-                # 1. The invalidator quib's result is an ndarray, (We're a getitem on that said ndarray)
-                # 2. Both the path to invalidate and the `item` of the getitem are translatable indices
-                #
-                # Therefore, we translate the indices and invalidate our children with the new indices (which are an
-                # intersection between our getitem and the path to invalidate- if this intersections yields nothing,
-                # we do NOT invalidate our children)
-                return super().forward_translate()
-
-            elif (
-                    _referencing_field_in_field_array(self._func_call)
-                    !=
-                    is_working_component_referencing_field_in_field_array
-                    and
-                    issubclass(self._type, np.ndarray)
-            ):
-                # This means
-                # 1. Both this function quib's result and the invalidator's result are ndarrays
-                # 2. One of the paths references a field in a field array, the other does not
-                #
-                # Therefore, we want to pass on this invalidation path to our children since indices and field names are
-                # interchangeable when indexing structured ndarrays
-                return [path]
-
-        if isinstance(self._source.value, list):
+        if self._can_use_numpy_transposition():
             return super().forward_translate()
 
-        # We come to our default scenario- if
-        # 1. The invalidator quib is not an ndarray
-        # or
-        # 2. The current getitem is not an ndarray
-        # or
-        # 3. The invalidation is for a field and the current getitem is for a field
-        #
-        # We want to check equality of the invalidation path and our getitem - essentially saying we don't have
-        # anything to interpret in the invalidation path more than simply checking it's equality to our current
-        # getitem's `item`.
-        # For example, if we have a getitem on a dict, and we are requested to be
-        # invalidated at a certain item on the dict,
-        # we simply want to check if our getitem's item is equal to the invalidations item (ie it's path).
-        # If so, invalidate. This is true for field arrays as well (We do need to
-        # add support for indexing multiple fields).
-        assert not isinstance(working_component.component, np.ndarray)
-        if _getitem_path_component(self._func_call).component == working_component.component:
+        if self._getitem_of_a_field_in_array() ^ self._is_path_referencing_field_in_field_array():
+            return [path]
+
+        working_component, *rest_of_path = self._path
+        if self._get_getitem_path_component().component == working_component.component:
             return [rest_of_path]
 
         # The item in our getitem was not equal to the path to invalidate
