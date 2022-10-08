@@ -21,6 +21,9 @@ class PathComponent:
     def is_nd_reference(self):
         return isinstance(self.component, (bool, tuple, list, np.ndarray, SpecialComponent))
 
+    def is_list_to_list_reference(self):
+        return isinstance(self.component, slice) or self.component is Ellipsis
+
     def is_compound(self):
         return isinstance(self.component, tuple) and len(self.component) > 1
 

@@ -126,7 +126,7 @@ def deep_set(data: Any, path: Path,
 
     elements = [data]
     for component in pre_components:
-        last_element = elements[-1][component.component]
+        last_element = deep_get(elements[-1], [component])
         elements.append(last_element)
 
     last_element = value
@@ -138,8 +138,7 @@ def deep_set(data: Any, path: Path,
         cmp = component.component
         is_non_array_indexed_by_array_style_indexing = isinstance(new_element, (list, tuple)) \
             and (component.is_nd_reference()
-                 or cmp is Ellipsis
-                 or isinstance(cmp, slice) and not isinstance(last_element, Iterable))
+                 or component.is_list_to_list_reference() and not isinstance(last_element, Iterable))
         if is_non_array_indexed_by_array_style_indexing:
             # To access an array-like object (list or tuple, potentially nested), with array-style indexing
             # we convert to nd.array and then back
