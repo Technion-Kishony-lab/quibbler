@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from pyquibbler.path import Path, PathComponent, split_path_at_end_of_object
-from pyquibbler.utilities.general_utils import de_array_by_template
+from pyquibbler.path.data_accessing import de_array_by_template
 from pyquibbler.utilities.iterators import recursively_compare_objects
 
 

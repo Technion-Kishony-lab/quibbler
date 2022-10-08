@@ -105,16 +105,3 @@ def get_shared_shape(args: List[ArrayLike]) -> Shape:
         if not all(shape[i] == shape0[i] for shape in shapes):
             return shape0[:i]
     return shape0[:i + 1]
-
-
-def de_array_by_template(array: NDArray, obj: Any) -> Any:
-    """
-    This reverses the operation array = np.array(obj). It creates a new object that follows the template of `obj`,
-    with the elements of `array`.
-    """
-
-    if isinstance(obj, (list, tuple)):
-        return type(obj)(de_array_by_template(sub_array, sub_obj)
-                         for sub_array, sub_obj in zip(array, obj))
-
-    return array

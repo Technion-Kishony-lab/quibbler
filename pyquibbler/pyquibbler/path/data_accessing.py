@@ -5,11 +5,22 @@ from numpy.typing import NDArray
 
 import numpy as np
 
-from pyquibbler.env import DEBUG
 from pyquibbler.exceptions import PyQuibblerException
-from pyquibbler.debug_utils.logger import logger
 
 from .path_component import Path, SpecialComponent
+
+
+def de_array_by_template(array: NDArray, obj: Any) -> Any:
+    """
+    This reverses the operation array = np.array(obj). It creates a new object that follows the template of `obj`,
+    with the elements of `array`.
+    """
+
+    if isinstance(obj, (list, tuple)):
+        return type(obj)(de_array_by_template(sub_array, sub_obj)
+                         for sub_array, sub_obj in zip(array, obj))
+
+    return array
 
 
 @dataclass
@@ -31,23 +42,23 @@ def deep_get(obj: Any, path: Path):
     for component in path:
         cmp = component.component
         cls = type(obj)
-        is_component_nd = component.is_nd_reference()
 
         if cls == slice:
             obj = getattr(obj, cmp)
-        elif is_component_nd and cmp is True:
+        elif cmp is True:
             pass
-        elif is_component_nd and cmp is SpecialComponent.ALL:
+        elif cmp is SpecialComponent.ALL:
             pass
-        elif is_component_nd and isinstance(obj, (list, tuple)):
-            obj = np.array(obj, dtype=object)[cmp]
         elif isinstance(cmp, tuple) and len(cmp) == 1 and isinstance(obj, (list, tuple)):
             obj = obj[cmp[0]]
+        elif component.is_nd_reference() and isinstance(obj, (list, tuple)):
+            obj = np.array(obj, dtype=object)[cmp]
         else:
             obj = obj[cmp]
+
         if component.extract_element_out_of_array:
-            assert obj.size == 1
-            obj = obj.reshape(tuple())[tuple()]  # get element out of array (works for any number of dimensions)
+            assert isinstance(obj, np.ndarray) and obj.size == 1
+            obj = obj.reshape(tuple())[tuple()]  # get element out of a size-1 array with any number of dimensions
 
     return obj
 
@@ -105,9 +116,8 @@ def deep_set(data: Any, path: Path,
              should_copy_objects_referenced: bool = True):
     """
     Go path by path setting value, each time ensuring we don't lost copied values (for example if there was
-    fancy indexing) by making sure to set recursively back anything that made an assignment/
-    We don't do this recursively for performance reasons- there could potentially be a very long string of
-    assignments given to the user's whims
+    fancy indexing) by making sure to set recursively back anything that made an assignment.
+    We don't do this recursively for performance reasons
     """
     if len(path) == 0:
         return value
@@ -126,13 +136,15 @@ def deep_set(data: Any, path: Path,
             new_element = copy.copy(new_element)
 
         cmp = component.component
-        need_to_convert_back_to_original_type = False
-        if (component.is_nd_reference() or isinstance(cmp, slice) and not isinstance(last_element, Iterable)) \
-                and isinstance(new_element, (list, tuple)):
-            # We are trying to access a non-array object, like or tuple, with array-style indexing
-            original_type = type(new_element)
+        is_non_array_indexed_by_array_style_indexing = isinstance(new_element, (list, tuple)) \
+            and (component.is_nd_reference()
+                 or cmp is Ellipsis
+                 or isinstance(cmp, slice) and not isinstance(last_element, Iterable))
+        if is_non_array_indexed_by_array_style_indexing:
+            # To access an array-like object (list or tuple, potentially nested), with array-style indexing
+            # we convert to nd.array and then back
+            original_new_element = new_element
             new_element = np.array(new_element, dtype=object)
-            need_to_convert_back_to_original_type = True
         elif isinstance(new_element, np.ndarray) and hasattr(new_element, 'base') \
                 and should_copy_objects_referenced:
             # new_element is a view. we need to make a copy.
@@ -141,20 +153,11 @@ def deep_set(data: Any, path: Path,
         setter = SETTERS.get(type(new_element), set_key_to_value)
         try:
             new_element = setter(new_element, cmp, last_element)
-            if need_to_convert_back_to_original_type:
-                new_element = original_type(new_element.tolist())
         except IndexError as e:
             if raise_on_failure:
                 raise FailedToDeepAssignException(path=path, exception=e)
-
-            if DEBUG:
-                logger.warning(
-                    (f"Attempted out of range assignment:"
-                     f"\n\tdata: {data}"
-                     f"\n\tpath: {path}"
-                     f"\n\tfailed path component: {cmp}"
-                     f"\n\texception: {e}")
-                )
+        if is_non_array_indexed_by_array_style_indexing:
+            new_element = de_array_by_template(new_element, original_new_element)
 
         last_element = new_element
     return last_element
