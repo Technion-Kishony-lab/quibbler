@@ -9,14 +9,14 @@ from pyquibbler.path.path_component import PathComponent
 from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices
 
 from pyquibbler.translation.types import Source
-from pyquibbler.translation.translators.numpy_translator import NewNumpyBackwardsPathTranslator, \
+from pyquibbler.translation.translators.numpy_translator import NumpyBackwardsPathTranslator, \
     NumpyForwardsPathTranslator
 from pyquibbler.translation.array_index_codes import IndexCode, is_focal_element
 from pyquibbler.translation.array_translation_utils import ArrayPathTranslator, \
     run_func_call_with_new_args_kwargs
 
 
-class BackwardsTranspositionalTranslator(NewNumpyBackwardsPathTranslator):
+class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
 
     def _get_indices_in_source(self,
                                data_argument_to_source_index_code_converter: ArrayPathTranslator,

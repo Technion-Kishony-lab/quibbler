@@ -1,35 +1,39 @@
-from typing import List
+from typing import List, Tuple
 
 import numpy as np
 from numpy._typing import NDArray
 
-from pyquibbler.function_definitions import FuncArgsKwargs
-from pyquibbler.path import Path
 from pyquibbler.utilities.numpy_original_functions import np_logical_or, np_cumsum
-from pyquibbler.translation.translators.axiswise_translator import AxiswiseBackwardsPathTranslator, Arg
 from pyquibbler.translation.array_translation_utils import run_func_call_with_new_args_kwargs, ArrayPathTranslator
-from pyquibbler.translation.translators.numpy_translator import NumpyForwardsPathTranslator
-from pyquibbler.translation.types import Source
-
-ACCUMULATION_ARGS = [Arg('axis')]
+from pyquibbler.translation.translators.numpy_translator import NumpyForwardsPathTranslator, \
+    NumpyBackwardsPathTranslator, Arg
 
 
-class AccumulationBackwardsPathTranslator(AxiswiseBackwardsPathTranslator):
+class AccumulationBackwardsPathTranslator(NumpyBackwardsPathTranslator):
 
-    TRANSLATION_RELATED_ARGS = ACCUMULATION_ARGS
+    TRANSLATION_RELATED_ARGS: List[Arg] = [Arg('axis')]
 
-    def _backwards_translate_bool_mask(self, args_dict, source: Source, component: np.ndarray) -> np.ndarray:
+    def _get_indices_in_source(self,
+                               data_argument_to_source_index_code_converter: ArrayPathTranslator,
+                               result_bool_mask: NDArray[bool]) -> Tuple[NDArray[np.int64], NDArray[bool]]:
+        """
+        In accumulation functions, like cumsum, the value of an element j depends on all elements up to j in
+        the data argument.
+        To find all elements before the last requested element along the accumulation axis,
+        we flip the target mask along accumulation axis, then use np_logical_or.accumulate and flip back.
+        """
+        data_argument_index_array = data_argument_to_source_index_code_converter.get_masked_data_argument_of_source()
+        args_dict = self._get_translation_related_arg_dict()
         result_core_axis = args_dict.pop('axis')
-        need_reshape = False
-        if result_core_axis is None:
+        need_reshape = result_core_axis is None
+        if need_reshape:
             result_core_axis = 0
-            need_reshape = True
-        bool_mask = np.flip(component, axis=result_core_axis)
+        bool_mask = np.flip(result_bool_mask, axis=result_core_axis)
         bool_mask = np_logical_or.accumulate(bool_mask, axis=result_core_axis, **args_dict)
         bool_mask = np.flip(bool_mask, axis=result_core_axis)
         if need_reshape:
-            bool_mask = np.reshape(bool_mask, np.shape(source.value))
-        return bool_mask
+            bool_mask = np.reshape(bool_mask, np.shape(data_argument_index_array))
+        return data_argument_index_array, bool_mask
 
 
 class AccumulationForwardsPathTranslator(NumpyForwardsPathTranslator):

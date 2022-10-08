@@ -1,11 +1,11 @@
 from abc import abstractmethod
-from typing import Dict, List, Tuple
+from dataclasses import dataclass
+from typing import Dict, List, Tuple, Any
 
 import numpy as np
 from numpy.typing import NDArray
 
 from pyquibbler.path import Path, Paths, PathComponent, split_path_at_end_of_object
-from pyquibbler.function_definitions import SourceLocation
 from pyquibbler.translation.array_index_codes import IndexCode, is_focal_element
 from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_path, create_bool_mask_with_true_at_indices
 from pyquibbler.utilities.numpy_original_functions import np_True
@@ -15,12 +15,30 @@ from pyquibbler.translation.array_translation_utils import ArrayPathTranslator
 from pyquibbler.translation.types import Source
 
 
-class NewNumpyBackwardsPathTranslator(BackwardsPathTranslator):
+@dataclass
+class Arg:
+    name: str
+
+    def get_value(self, arg_dict: Dict[str, Any]) -> Any:
+        return arg_dict[self.name]
+
+
+@dataclass
+class ArgWithDefault(Arg):
+    default: Any
+
+    def get_value(self, arg_dict: Dict[str, Any]) -> Any:
+        return arg_dict.get(self.name, self.default)
+
+
+class NumpyBackwardsPathTranslator(BackwardsPathTranslator):
     """
     Holds basic logic for how to backwards translate a path for numpy functions- subclass this for any translator of a
     numpy function.
     Mainly concerns surrounding logic with deep paths
     """
+
+    TRANSLATION_RELATED_ARGS: List[Arg] = []
 
     @abstractmethod
     def _get_indices_in_source(self,
@@ -32,6 +50,11 @@ class NewNumpyBackwardsPathTranslator(BackwardsPathTranslator):
         (2) a mask indicating chosen elements.
         """
         pass
+
+    def _get_translation_related_arg_dict(self):
+        arg_dict = {key: val for key, val in self._func_call.func_args_kwargs.get_arg_values_by_keyword().items()
+                    if not isinstance(val, np._globals._NoValueType)}
+        return {arg.name: arg.get_value(arg_dict) for arg in self.TRANSLATION_RELATED_ARGS}
 
     def backwards_translate(self) -> Dict[Source, Path]:
         sources_to_paths = {}
@@ -70,35 +93,6 @@ class NewNumpyBackwardsPathTranslator(BackwardsPathTranslator):
             if source_path is not None:
                 sources_to_paths[source] = source_path + path_within_array_element
 
-        return sources_to_paths
-
-
-class NumpyBackwardsPathTranslator(BackwardsPathTranslator):
-    """
-    Holds basic logic for how to backwards translate a path for numpy functions- subclass this for any translator of a
-    numpy function.
-    Mainly concerns surrounding logic with deep paths
-    """
-
-    @abstractmethod
-    def _get_path_in_source(self, source: Source, location: SourceLocation):
-        pass
-
-    def _split_path(self):
-        components_at_end = self._path[1:]
-        current_components = self._path[0:1]
-        if len(self._path) > 0 and self._path[0].referencing_field_in_field_array(self._type):
-            components_at_end = [self._path[0], *components_at_end]
-            current_components = []
-        return current_components, components_at_end
-
-    def backwards_translate(self) -> Dict[Source, Path]:
-        sources_to_paths = {}
-        working, rest = self._split_path()
-        for source, location in zip(self._func_call.get_data_sources(), self._func_call.data_source_locations):
-            new_path = self._get_path_in_source(source, location)
-            if new_path is not None:
-                sources_to_paths[source] = [*new_path, *rest]
         return sources_to_paths
 
 

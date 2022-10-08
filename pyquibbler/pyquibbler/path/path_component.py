@@ -29,6 +29,12 @@ class PathComponent:
             return [self]
         return list(PathComponent(cmp) for cmp in self.component)
 
+    def __eq__(self, other):
+        from pyquibbler.utilities.iterators import recursively_compare_objects
+        return isinstance(other, PathComponent) \
+            and self.extract_element_out_of_array == other.extract_element_out_of_array \
+            and recursively_compare_objects(self.component, other.component)
+
     def __repr__(self):
         s = repr(self.component)
         if self.extract_element_out_of_array:

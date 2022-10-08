@@ -6,11 +6,11 @@ from numpy.typing import NDArray
 from pyquibbler.translation.array_index_codes import is_focal_element
 from pyquibbler.translation.array_translation_utils import ArrayPathTranslator
 from pyquibbler.translation.translators.numpy_translator import \
-    NumpyForwardsPathTranslator, NewNumpyBackwardsPathTranslator
+    NumpyForwardsPathTranslator, NumpyBackwardsPathTranslator
 from pyquibbler.utilities.general_utils import unbroadcast_bool_mask
 
 
-class BackwardsElementwisePathTranslator(NewNumpyBackwardsPathTranslator):
+class BackwardsElementwisePathTranslator(NumpyBackwardsPathTranslator):
 
     def _get_indices_in_source(self,
                                data_argument_to_source_index_code_converter: ArrayPathTranslator,

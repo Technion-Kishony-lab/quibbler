@@ -3,6 +3,7 @@ import pytest
 
 from pyquibbler import CacheMode
 from pyquibbler.path import PathComponent
+from pyquibbler.utilities.iterators import recursively_compare_objects
 from tests.functional.quib.test_quib.get_value.test_apply_along_axis import parametrize_keepdims, \
     parametrize_where, parametrize_data
 from tests.functional.quib.test_quib.get_value.utils import collecting_quib, check_get_value_valid_at_path
@@ -26,7 +27,7 @@ def test_reduction_function_gets_whole_value_of_data_source_parents_when_whole_v
     with data.collect_valid_paths() as valid_paths:
         fquib.get_value()
 
-    assert valid_paths == [[]]
+    assert recursively_compare_objects(valid_paths, [[PathComponent(np.array([True,  True,  True]))]])
 
 
 @parametrize_data
