@@ -50,7 +50,7 @@ class HolisticCache(Cache):
         self._invalid = True
 
     def get_uncached_paths(self, path: Path) -> Paths:
-        return [path] if self._invalid else []
+        return [[]] if self._invalid else []
 
     def _is_completely_invalid(self):
         return self._invalid

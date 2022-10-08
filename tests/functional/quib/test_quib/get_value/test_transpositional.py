@@ -8,12 +8,11 @@ from tests.functional.quib.test_quib.get_value.utils import check_get_value_vali
 
 def test_can_getitem_on_object_without_diverged_cache():
     """
-    If the function doesn't have a diverged cache it should request full validity from its parents,
-    so it won't try to update the cache in a specific path component
+    If the quib doesn't have a diverged cache, it should only re-calculate the whole object.
     """
     obj = type('TypeACacheIsNotImplementedFor', (), dict(__getitem__=lambda self, item: item))()
     quib = iquib([obj])
-    quib[0][0].get_value()
+    quib[0][7].get_value()
 
 
 @pytest.mark.parametrize('data', [np.arange(24).reshape((2, 3, 4))])
