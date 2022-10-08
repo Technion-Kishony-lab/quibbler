@@ -17,6 +17,7 @@ def ndcmp(cmp) -> PathComponent:
     [[ndcmp(1), ndcmp(2), ndcmp(0)], np.zeros((2, 3)), [ndcmp(1), ndcmp(2)], [ndcmp(0)]],
     [[ndcmp((1, 2)), ndcmp(0)], np.zeros((2, 3)), [ndcmp((1, 2))], [ndcmp(0)]],
     [[ndcmp((1, 2, 0))], np.zeros((2, 3)), [ndcmp((1, 2))], [ndcmp((0,))]],
+    [[ndcmp(([1], [2]))], np.zeros((2, 3)), [ndcmp(([1], [2]))], []],
 ])
 def test_split_path_at_end_of_object(path, obj, expected_within, expected_after):
     within, after, _ = split_path_at_end_of_object(obj, path)

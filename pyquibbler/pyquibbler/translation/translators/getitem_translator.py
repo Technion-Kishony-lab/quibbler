@@ -91,7 +91,7 @@ class ForwardsGetItemTranslator(ForwardsTranspositionalTranslator):
                 # interchangeable when indexing structured ndarrays
                 return [path]
 
-        if isinstance(self._source.value, list) and len(path) == 1:
+        if isinstance(self._source.value, list):
             return super().forward_translate()
 
         # We come to our default scenario- if

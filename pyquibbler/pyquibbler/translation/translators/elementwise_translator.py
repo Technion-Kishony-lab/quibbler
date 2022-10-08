@@ -1,19 +1,20 @@
-from typing import Any, List
+from typing import Any, List, Tuple
 
 import numpy as np
 from numpy.typing import NDArray
 
-from pyquibbler.function_definitions import SourceLocation, FuncArgsKwargs
-from pyquibbler.path.path_component import PathComponent
+from pyquibbler.translation.array_index_codes import is_focal_element
 from pyquibbler.translation.array_translation_utils import ArrayPathTranslator
-from pyquibbler.translation.translators.numpy_translator import NumpyBackwardsPathTranslator, NumpyForwardsPathTranslator
-from pyquibbler.utilities.general_utils import unbroadcast_bool_mask, create_bool_mask_with_true_at_path
-from pyquibbler.translation.types import Source
+from pyquibbler.translation.translators.numpy_translator import \
+    NumpyForwardsPathTranslator, NewNumpyBackwardsPathTranslator
+from pyquibbler.utilities.general_utils import unbroadcast_bool_mask
 
 
-class BackwardsElementwisePathTranslator(NumpyBackwardsPathTranslator):
+class BackwardsElementwisePathTranslator(NewNumpyBackwardsPathTranslator):
 
-    def _get_indices_to_change(self, source: Source) -> Any:
+    def _get_indices_in_source(self,
+                               data_argument_to_source_index_code_converter: ArrayPathTranslator,
+                               result_bool_mask: NDArray[bool]) -> Tuple[NDArray[np.int64], NDArray[bool]]:
         """
         Get the relevant indices for the argument quib that will need to be changed
 
@@ -22,14 +23,9 @@ class BackwardsElementwisePathTranslator(NumpyBackwardsPathTranslator):
         and broadcast it's index grid to the shape of the result, so we can see the corresponding quib indices for the
         result indices
         """
-        result_bool_mask = create_bool_mask_with_true_at_path(self._shape, self._working_path)
-
-        return unbroadcast_bool_mask(result_bool_mask, np.shape(source.value))
-
-    def _get_path_in_source(self, source: Source, location: SourceLocation):
-        changed_indices = self._get_indices_to_change(source)
-        new_path = [] if changed_indices.ndim == 0 else [PathComponent(changed_indices)]
-        return new_path
+        data_argument_index_array = data_argument_to_source_index_code_converter.get_masked_data_argument_of_source()
+        bool_mask_of_data_argument = unbroadcast_bool_mask(result_bool_mask, np.shape(data_argument_index_array))
+        return data_argument_index_array, bool_mask_of_data_argument
 
 
 class ForwardsElementwisePathTranslator(NumpyForwardsPathTranslator):

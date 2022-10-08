@@ -1,17 +1,76 @@
 from abc import abstractmethod
-from typing import Dict, Optional, Type, List
+from typing import Dict, List, Tuple
 
 import numpy as np
 from numpy.typing import NDArray
 
-from pyquibbler.path import Path, Paths, \
-    PathComponent, deep_get
-from pyquibbler.function_definitions import SourceLocation, FuncArgsKwargs
+from pyquibbler.path import Path, Paths, PathComponent, split_path_at_end_of_object
+from pyquibbler.function_definitions import SourceLocation
+from pyquibbler.translation.array_index_codes import IndexCode, is_focal_element
+from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_path, create_bool_mask_with_true_at_indices
 from pyquibbler.utilities.numpy_original_functions import np_True
 
 from pyquibbler.translation.base_translators import BackwardsPathTranslator, ForwardsPathTranslator
 from pyquibbler.translation.array_translation_utils import ArrayPathTranslator
 from pyquibbler.translation.types import Source
+
+
+class NewNumpyBackwardsPathTranslator(BackwardsPathTranslator):
+    """
+    Holds basic logic for how to backwards translate a path for numpy functions- subclass this for any translator of a
+    numpy function.
+    Mainly concerns surrounding logic with deep paths
+    """
+
+    @abstractmethod
+    def _get_indices_in_source(self,
+                               data_argument_to_source_index_code_converter: ArrayPathTranslator,
+                               result_bool_mask: NDArray[bool]) -> Tuple[NDArray[np.int64], NDArray[bool]]:
+        """
+        Return two same-size nd-arrays:
+        (1) an array of index codes of the source
+        (2) a mask indicating chosen elements.
+        """
+        pass
+
+    def backwards_translate(self) -> Dict[Source, Path]:
+        sources_to_paths = {}
+        for source, location in zip(self._func_call.get_data_sources(), self._func_call.data_source_locations):
+            data_argument_to_source_index_code_converter = \
+                ArrayPathTranslator(func_call=self._func_call, focal_source=source,
+                                    focal_source_location=location, convert_to_bool_mask=False)
+            result_bool_mask = create_bool_mask_with_true_at_path(self._shape, self._working_path)
+
+            path_in_array, path_within_array_element, _ = split_path_at_end_of_object(result_bool_mask, self._path)
+
+            source_index_array, chosen_elements = \
+                self._get_indices_in_source(data_argument_to_source_index_code_converter, result_bool_mask)
+
+            source_indices = source_index_array[chosen_elements & is_focal_element(source_index_array)]
+
+            if np.size(source_indices) == 0:
+                # Source not part of result
+                source_path = None
+
+            elif np.any(source_indices == IndexCode.SCALAR_CONTAINING_FOCAL_SOURCE):
+                # The entire source is needed, contained in one element of the array (minor-source)
+                source_path = []
+
+            elif np.any(source_indices == IndexCode.FOCAL_SOURCE_SCALAR):
+                # The entire source is needed as one element of the array (uni-source)
+                source_path = []
+            else:
+                mask = create_bool_mask_with_true_at_indices((np.size(source.value),), source_indices)
+                mask = mask.reshape(np.shape(source.value))
+                if np.array_equal(mask, np.array(True)):
+                    source_path = []
+                else:
+                    source_path = [PathComponent(mask)]
+
+            if source_path is not None:
+                sources_to_paths[source] = source_path + path_within_array_element
+
+        return sources_to_paths
 
 
 class NumpyBackwardsPathTranslator(BackwardsPathTranslator):

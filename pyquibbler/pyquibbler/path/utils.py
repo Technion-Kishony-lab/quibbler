@@ -57,21 +57,20 @@ def split_path_at_end_of_object(obj: Any, path: Path) -> Tuple[Path, Path, Any]:
     path_within_object = []
     remaining_path = copy.copy(path)
     for cmp in path:
-        if cmp.is_compound():
-            broken_path = cmp.get_multi_step_path()
-            broken_path_to_end, broken_path_after, obj = split_path_at_end_of_object(obj, broken_path)
-            broken_path_to_end = squash_path(broken_path_to_end)
-            broken_path_after = squash_path(broken_path_after)
-            path_within_object += broken_path_to_end
-            remaining_path.pop(0)
-            remaining_path = broken_path_after + remaining_path
-        else:
-            try:
-                obj = deep_get(obj, [cmp])
-            except Exception:
-                break
-            path_within_object.append(cmp)
-            remaining_path.pop(0)
+        try:
+            obj = deep_get(obj, [cmp])
+        except Exception:
+            if cmp.is_compound():
+                broken_path = cmp.get_multi_step_path()
+                broken_path_to_end, broken_path_after, obj = split_path_at_end_of_object(obj, broken_path)
+                broken_path_to_end = squash_path(broken_path_to_end)
+                broken_path_after = squash_path(broken_path_after)
+                path_within_object += broken_path_to_end
+                remaining_path.pop(0)
+                remaining_path = broken_path_after + remaining_path
+            break
+        path_within_object.append(cmp)
+        remaining_path.pop(0)
     if len(path_within_object) == 0:
         path_within_object = [PathComponent(SpecialComponent.ALL)]
     return path_within_object, remaining_path, obj

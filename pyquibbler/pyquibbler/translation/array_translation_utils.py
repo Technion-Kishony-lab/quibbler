@@ -266,6 +266,14 @@ class ArrayPathTranslator:
             argument in self.func_call.func_definition.get_data_source_arguments(self.func_call.func_args_kwargs)
         ]
 
+    @convert_args_before_run
+    def get_masked_data_argument_of_source(self):
+        """
+        the index-converted data argument of the focal source
+        """
+        return self._func_args_kwargs.get_arg_value_by_argument(self.focal_source_location.argument)
+
+
 def run_func_call_with_new_args_kwargs(func_call: FuncCall, func_args_kwargs: FuncArgsKwargs) -> np.ndarray:
     """
     Runs the function with the given args, kwargs
