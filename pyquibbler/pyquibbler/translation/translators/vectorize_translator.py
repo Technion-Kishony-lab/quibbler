@@ -1,7 +1,8 @@
 from __future__ import annotations
-from typing import Dict, Any, Set, Optional, Type
+from typing import Dict, Any, Set, Optional, Type, List, Tuple
 
 import numpy as np
+from numpy.typing import NDArray
 
 from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices, unbroadcast_bool_mask, Shape, \
     create_bool_mask_with_true_at_path
@@ -9,10 +10,12 @@ from pyquibbler.path import PathComponent
 from pyquibbler.path.path_component import Path, Paths
 from pyquibbler.quib.func_calling.func_calls.vectorize.utils import get_core_axes
 from pyquibbler.function_definitions.types import iter_arg_ids_and_values
-from pyquibbler.function_definitions import FuncCall, SourceLocation
+from pyquibbler.function_definitions import FuncCall, SourceLocation, FuncArgsKwargs
+from .numpy_translator import NumpyForwardsPathTranslator, NumpyBackwardsPathTranslator
+from ..array_translation_utils import ArrayPathTranslator
 
 from ..exceptions import FailedToTranslateException
-from ..base_translators import BackwardsPathTranslator, ForwardsPathTranslator
+from ..base_translators import BackwardsPathTranslator
 from ..types import Source
 
 from typing import TYPE_CHECKING
@@ -28,7 +31,7 @@ def _get_arg_ids_for_source(source: Source, args, kwargs) -> Set[ArgId]:
     return {arg_id for arg_id, arg in iter_arg_ids_and_values(args[1:], kwargs) if source is arg}
 
 
-class VectorizeBackwardsPathTranslator(BackwardsPathTranslator):
+class VectorizeBackwardsPathTranslator(NumpyBackwardsPathTranslator):
 
     SHOULD_ATTEMPT_WITHOUT_SHAPE_AND_TYPE = False
 
@@ -37,25 +40,25 @@ class VectorizeBackwardsPathTranslator(BackwardsPathTranslator):
         super().__init__(func_call, shape, type_, path)
         self._vectorize_metadata = vectorize_metadata
 
-    def _backwards_translate_indices_to_bool_mask(self, source: Source, indices: Any) -> Any:
-        """
-        Translate indices in result backwards to indices in a data source, by calling any on result
-        core dimensions and un-broadcasting the loop dimensions into the argument loop dimension.
-        """
+    def _get_indices_in_source(self,
+                               data_argument_to_source_index_code_converter: ArrayPathTranslator,
+                               result_bool_mask: NDArray[bool]) -> Tuple[NDArray[np.int64], NDArray[bool]]:
+        source = data_argument_to_source_index_code_converter.focal_source
+        data_arg_source_index_code = data_argument_to_source_index_code_converter.get_masked_data_argument_of_source()
         vectorize_metadata = self._vectorize_metadata
         quib_arg_id = _get_arg_ids_for_source(source, self._func_call.args, self._func_call.kwargs).pop()
         quib_loop_shape = vectorize_metadata.args_metadata[quib_arg_id].loop_shape
-        result_bool_mask = create_bool_mask_with_true_at_indices(self._shape, indices)
         result_core_axes = vectorize_metadata.result_core_axes
-        # Reduce result core dimensions
+        # Reduce result core dimensions:
         reduced_bool_mask = np.any(result_bool_mask, axis=result_core_axes)
-        return unbroadcast_bool_mask(reduced_bool_mask, quib_loop_shape)
+        reduced_bool_mask = unbroadcast_bool_mask(reduced_bool_mask, quib_loop_shape)
+        return data_arg_source_index_code, reduced_bool_mask
 
-    def _get_source_path_in_source(self, source: Source, filtered_path_in_result: Path) -> Path:
+    def _get_source_path(self, source: Source, location: SourceLocation):
         """
         Given a path in the result, return the path in the given quib on which the result path depends.
         """
-        if len(filtered_path_in_result) == 0:
+        if len(self._path) == 0:
             return []
 
         # TODO: if the result is a tuple, we should better translate the rest of the path, path[1:]
@@ -65,19 +68,13 @@ class VectorizeBackwardsPathTranslator(BackwardsPathTranslator):
         if self._shape is None:
             raise FailedToTranslateException()
 
-        working_component, *rest_of_path = filtered_path_in_result
-        indices_in_data_source = self._backwards_translate_indices_to_bool_mask(source, working_component.component)
-        return [PathComponent(indices_in_data_source)]
-
-    def backwards_translate(self) -> Dict[Source, Path]:
-        return {source: self._get_source_path_in_source(source, self._path)
-                for source in self._func_call.get_data_sources()}
+        return super()._get_source_path(source, location)
 
 
-class VectorizeForwardsPathTranslator(ForwardsPathTranslator):
+class VectorizeForwardsPathTranslator(NumpyForwardsPathTranslator):
 
     def __init__(self,
-                 func_call: Type[FuncCall],
+                 func_call: FuncCall,
                  source: Source,
                  source_location: SourceLocation,
                  path: Path,
@@ -87,28 +84,21 @@ class VectorizeForwardsPathTranslator(ForwardsPathTranslator):
         super().__init__(func_call, source, source_location, path, shape, type_)
         self._vectorize_metadata = vectorize_metadata
 
-    def forward_translate_initial_path_to_bool_mask(self, path: Path):
-        source_bool_mask = create_bool_mask_with_true_at_path(np.shape(self._source.value), path)
+    def forward_translate_masked_data_arguments_to_result_mask(self,
+                                                               data_argument_to_mask_converter: ArrayPathTranslator,
+                                                               ) -> NDArray[bool]:
+        data_arg_bool_mask = data_argument_to_mask_converter.get_masked_data_argument_of_source()
         core_ndim = max(self._vectorize_metadata.args_metadata[arg_id].core_ndim
                         for arg_id in
                         _get_arg_ids_for_source(self._source, self._func_call.args, self._func_call.kwargs))
-        source_bool_mask = np.any(source_bool_mask, axis=get_core_axes(core_ndim))
-        return np.broadcast_to(source_bool_mask, self._vectorize_metadata.result_loop_shape)
+        data_arg_bool_mask = np.any(data_arg_bool_mask, axis=get_core_axes(core_ndim))
+        return np.broadcast_to(data_arg_bool_mask, self._vectorize_metadata.result_loop_shape)
 
     def forward_translate(self) -> Paths:
-        path = self._path
-        if len(path) == 0:
-            return [[]]
 
-        working_path = path[:1]
-        rest_of_path = path[1:]
-        bool_mask_in_output_array = \
-            self.forward_translate_initial_path_to_bool_mask(working_path)
-        if not np.any(bool_mask_in_output_array):
-            return []
-        starting_path = [PathComponent(bool_mask_in_output_array), *rest_of_path]
+        paths = super().forward_translate()
 
-        if self._vectorize_metadata.is_result_a_tuple:
-            return [[PathComponent(i), *starting_path] for i in range(self._vectorize_metadata.tuple_length)]
-        else:
-            return [starting_path]
+        if len(paths) == 0 or not self._vectorize_metadata.is_result_a_tuple:
+            return paths
+
+        return [[PathComponent(i)] + paths[0] for i in range(self._vectorize_metadata.tuple_length)]

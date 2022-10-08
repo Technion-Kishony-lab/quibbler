@@ -5,6 +5,7 @@ from typing import Dict, List, Tuple, Any
 import numpy as np
 from numpy.typing import NDArray
 
+from pyquibbler.function_definitions import SourceLocation
 from pyquibbler.path import Path, Paths, PathComponent, split_path_at_end_of_object, deep_set
 from pyquibbler.translation.array_index_codes import IndexCode, is_focal_element
 from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_path, \
@@ -57,49 +58,53 @@ class NumpyBackwardsPathTranslator(BackwardsPathTranslator):
                     if not isinstance(val, np._globals._NoValueType)}
         return {arg.name: arg.get_value(arg_dict) for arg in self.TRANSLATION_RELATED_ARGS}
 
+    def _get_source_path(self, source: Source, location: SourceLocation):
+
+        data_argument_to_source_index_code_converter = \
+            ArrayPathTranslator(func_call=self._func_call, focal_source=source,
+                                focal_source_location=location, convert_to_bool_mask=False)
+
+        result_bool_mask = np_zeros(self._shape, dtype=bool)
+        path_in_array, path_within_array_element, extracted_result_mask = \
+            split_path_at_end_of_object(result_bool_mask, self._path)
+        deep_set(result_bool_mask, path_in_array, True, should_copy_objects_referenced=False)
+
+        source_index_array, chosen_elements = \
+            self._get_indices_in_source(data_argument_to_source_index_code_converter, result_bool_mask)
+
+        source_indices = source_index_array[chosen_elements & is_focal_element(source_index_array)]
+
+        if np.size(source_indices) == 0:
+            # Source not part of result
+            return None
+
+        if np.any(source_indices == IndexCode.SCALAR_CONTAINING_FOCAL_SOURCE):
+            # The entire source is needed, contained in one element of the array (minor-source)
+            return []
+
+        if np.any(source_indices == IndexCode.FOCAL_SOURCE_SCALAR):
+            # The entire source is needed as one element of the array (uni-source)
+            return []
+
+        mask = create_bool_mask_with_true_at_indices((np.size(source.value),), source_indices)
+        mask = mask.reshape(np.shape(source.value))
+        if np.array_equal(mask, np.array(True)):
+            source_path = []
+        else:
+            if np_sum(mask) == 1 and is_scalar_np(extracted_result_mask):
+                indices = tuple(x[0] for x in np.nonzero(mask))
+                source_path = [PathComponent(indices)]
+            else:
+                source_path = [PathComponent(mask)]
+
+        return source_path + path_within_array_element
+
     def backwards_translate(self) -> Dict[Source, Path]:
         sources_to_paths = {}
         for source, location in zip(self._func_call.get_data_sources(), self._func_call.data_source_locations):
-            data_argument_to_source_index_code_converter = \
-                ArrayPathTranslator(func_call=self._func_call, focal_source=source,
-                                    focal_source_location=location, convert_to_bool_mask=False)
-
-            result_bool_mask = np_zeros(self._shape, dtype=bool)
-            path_in_array, path_within_array_element, extracted_result_mask = \
-                split_path_at_end_of_object(result_bool_mask, self._path)
-            deep_set(result_bool_mask, path_in_array, True, should_copy_objects_referenced=False)
-
-            source_index_array, chosen_elements = \
-                self._get_indices_in_source(data_argument_to_source_index_code_converter, result_bool_mask)
-
-            source_indices = source_index_array[chosen_elements & is_focal_element(source_index_array)]
-
-            if np.size(source_indices) == 0:
-                # Source not part of result
-                source_path = None
-
-            elif np.any(source_indices == IndexCode.SCALAR_CONTAINING_FOCAL_SOURCE):
-                # The entire source is needed, contained in one element of the array (minor-source)
-                source_path = []
-
-            elif np.any(source_indices == IndexCode.FOCAL_SOURCE_SCALAR):
-                # The entire source is needed as one element of the array (uni-source)
-                source_path = []
-
-            else:
-                mask = create_bool_mask_with_true_at_indices((np.size(source.value),), source_indices)
-                mask = mask.reshape(np.shape(source.value))
-                if np.array_equal(mask, np.array(True)):
-                    source_path = []
-                else:
-                    if np_sum(mask) == 1 and is_scalar_np(extracted_result_mask):
-                        indices = tuple(x[0] for x in np.nonzero(mask))
-                        source_path = [PathComponent(indices)]
-                    else:
-                        source_path = [PathComponent(mask)]
-
+            source_path = self._get_source_path(source, location)
             if source_path is not None:
-                sources_to_paths[source] = source_path + path_within_array_element
+                sources_to_paths[source] = source_path
 
         return sources_to_paths
 
