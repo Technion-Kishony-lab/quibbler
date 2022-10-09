@@ -115,8 +115,8 @@ class FuncCall(ABC):
 
     data_source_locations: Optional[List[SourceLocation]] = None
     parameter_source_locations: Optional[List[SourceLocation]] = None
-    _data_sources: Optional[Set[Any]] = None
-    _parameter_sources: Optional[Set[Any]] = None
+    _data_sources: Optional[List[Any]] = None
+    _parameter_sources: Optional[List[Any]] = None
     func_args_kwargs: FuncArgsKwargs = None
     func_definition: FuncDefinition = None
 
@@ -191,19 +191,19 @@ class FuncCall(ABC):
 
         return new_args, new_kwargs
 
-    def get_data_sources(self):
+    def get_data_sources(self) -> List:
         if self._data_sources is None:
-            sources = set()
+            sources = list()
             for location in self.data_source_locations:
-                sources.add(location.find_in_args_kwargs(self.args, self.kwargs))
+                sources.append(location.find_in_args_kwargs(self.args, self.kwargs))
             self._data_sources = sources
         return self._data_sources
 
-    def get_parameter_sources(self):
+    def get_parameter_sources(self) -> List:
         if self._parameter_sources is None:
-            sources = set()
+            sources = list()
             for location in self.parameter_source_locations:
-                sources.add(location.find_in_args_kwargs(self.args, self.kwargs))
+                sources.append(location.find_in_args_kwargs(self.args, self.kwargs))
             self._parameter_sources = sources
         return self._parameter_sources
 
