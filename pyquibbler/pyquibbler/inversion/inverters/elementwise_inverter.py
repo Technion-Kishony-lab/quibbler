@@ -18,7 +18,7 @@ class ElementwiseInverter(Inverter):
 
     def get_inversals(self):
         working_path = initial_path(self._assignment.path)
-        source_to_change = list(self._func_call.get_data_sources())[0]
+        source_to_change = self._func_call.get_data_sources()[0]
 
         relevant_path_in_source = backwards_translate(func_call=self._func_call,
                                                       shape=np.shape(self._previous_result),
