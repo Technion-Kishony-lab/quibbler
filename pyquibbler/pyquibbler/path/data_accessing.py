@@ -49,16 +49,15 @@ def deep_get(obj: Any, path: Path):
             pass
         elif cmp is SpecialComponent.ALL:
             pass
+        elif cmp is SpecialComponent.OUT_OF_ARRAY:
+            assert isinstance(obj, np.ndarray) and obj.size == 1
+            obj = obj[0]  # get element out of a 1-dim array of size-1
         elif isinstance(cmp, tuple) and len(cmp) == 1 and isinstance(obj, (list, tuple)):
             obj = obj[cmp[0]]
         elif component.is_nd_reference() and isinstance(obj, (list, tuple)):
             obj = np.array(obj, dtype=object)[cmp]
         else:
             obj = obj[cmp]
-
-        if component.extract_element_out_of_array:
-            assert isinstance(obj, np.ndarray) and obj.size == 1
-            obj = obj.reshape(tuple())[tuple()]  # get element out of a size-1 array with any number of dimensions
 
     return obj
 
@@ -149,6 +148,9 @@ def deep_set(data: Any, path: Path,
             # new_element is a view. we need to make a copy.
             new_element = np.array(new_element)
 
+        if cmp is SpecialComponent.OUT_OF_ARRAY:
+            assert isinstance(new_element, np.ndarray)
+            cmp = slice(None, None, None)
         setter = SETTERS.get(type(new_element), set_key_to_value)
         try:
             new_element = setter(new_element, cmp, last_element)

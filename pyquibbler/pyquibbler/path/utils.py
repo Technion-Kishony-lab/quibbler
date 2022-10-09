@@ -7,16 +7,6 @@ from .path_component import Path, PathComponent, SpecialComponent
 from .data_accessing import deep_get
 
 
-def working_component_old(path: Path):
-    """
-    Get the first working component value you can from the path- this will always be entirely "squashed", so you will
-    get a component that expresses everything possible before needing to go another step "deeper" in
-
-    If no component is found (path is empty), the path expresses getting "everything"- so we give a true value
-    """
-    return path[0].component if len(path) > 0 else SpecialComponent.ALL
-
-
 def initial_path(path: Path) -> Path:
     """
     Get the first working component value you can from the path- this will always be entirely "squashed", so you will

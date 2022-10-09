@@ -26,7 +26,7 @@ def convert_an_arg_to_array_of_source_index_codes(arg: Any,
                                                   path_to_source: Optional[Path] = None,
                                                   path_in_source: Optional[Path] = None,
                                                   ) \
-        -> Tuple[IndexCodeArray, Optional[Path], Optional[Path], Optional[Path]]:
+        -> Tuple[IndexCodeArray, Optional[Path], Optional[Path], Optional[Path], Optional[bool]]:
     """
     Convert a given arg to an IndexCodeArray, which is an array of np.int64 with values wither matching
     the linear indexing of focal_source, or specifying other elements according to IndexCode.
@@ -67,13 +67,14 @@ def convert_an_arg_to_array_of_source_index_codes(arg: Any,
 
     path_in_source_array: Optional[Path] = None
     path_in_source_element: Optional[Path] = None
+    is_extracting_element_out_of_source_array: Optional[bool] = None
 
     def _convert_obj_to_index_array(obj: Any, _remaining_path_to_source: Path = None) -> \
             Tuple[Union[IndexCode, IndexCodeArray], Optional[Path]]:
         """
         convert obj to index array. returns the index array and the remaining path to the source.
         """
-        nonlocal path_in_source_array, path_in_source_element
+        nonlocal path_in_source_array, path_in_source_element, is_extracting_element_out_of_source_array
 
         is_focal_source = obj is focal_source
         if isinstance(obj, Source):
@@ -82,14 +83,16 @@ def convert_an_arg_to_array_of_source_index_codes(arg: Any,
         if is_focal_source:
             if is_scalar_np(obj):
                 path_in_source_array, path_in_source_element = [], path_in_source
+                is_extracting_element_out_of_source_array = True
                 return IndexCode.FOCAL_SOURCE_SCALAR, _remaining_path_to_source
 
             full_index_array = np.arange(np.size(obj)).reshape(np.shape(obj))
             if path_in_source is None:
                 return full_index_array, _remaining_path_to_source
             else:
-                path_in_source_array, path_in_source_element, _ = split_path_at_end_of_object(full_index_array,
-                                                                                              path_in_source)
+                path_in_source_array, path_in_source_element, referenced_part_of_source_array = \
+                    split_path_at_end_of_object(full_index_array, path_in_source)
+                is_extracting_element_out_of_source_array = is_scalar_np(referenced_part_of_source_array)
                 chosen_index_array = np.full(np.shape(obj), IndexCode.NON_CHOSEN_ELEMENT)
                 deep_set(chosen_index_array, path_in_source_array, deep_get(full_index_array, path_in_source_array),
                          should_copy_objects_referenced=False)
@@ -139,7 +142,8 @@ def convert_an_arg_to_array_of_source_index_codes(arg: Any,
 
     arg_index_array, remaining_path_to_source = _convert_obj_to_index_array(arg, path_to_source)
 
-    return arg_index_array, remaining_path_to_source, path_in_source_array, path_in_source_element
+    return arg_index_array, remaining_path_to_source, path_in_source_array, path_in_source_element, \
+           is_extracting_element_out_of_source_array
 
 
 def convert_args_before_run(func):
@@ -173,16 +177,19 @@ class ArrayPathTranslator:
     _remaining_path_to_source: Path = None
     _path_in_source_array: Path = None
     _path_in_source_element: Path = None
+    _is_extracting_element_out_of_source_array: bool = None
     _func_args_kwargs: FuncArgsKwargs = None
 
     def _convert_an_arg_to_array_of_source_index_codes(self, arg: Any, path_to_source: Optional[Path] = None,
                                                        ) -> IndexCodeArray:
-        arg_index_array, remaining_path_to_source, path_in_source_array, path_in_source_element = \
+        arg_index_array, remaining_path_to_source, path_in_source_array, path_in_source_element,\
+            is_extracting_element_out_of_source_array = \
             convert_an_arg_to_array_of_source_index_codes(arg, self.focal_source, path_to_source, self.path_in_source)
         if path_to_source is not None:
             self._path_in_source_array = path_in_source_array
             self._path_in_source_element = path_in_source_element
             self._remaining_path_to_source = remaining_path_to_source
+            self._is_extracting_element_out_of_source_array = is_extracting_element_out_of_source_array
 
         if self.convert_to_bool_mask:
             arg_index_array = is_focal_element(arg_index_array)
@@ -255,6 +262,10 @@ class ArrayPathTranslator:
     @convert_args_before_run
     def get_source_path_split_at_end_of_array(self):
         return self._path_in_source_array, self._path_in_source_element
+
+    @convert_args_before_run
+    def get_is_extracting_element_out_of_source_array(self):
+        return self._is_extracting_element_out_of_source_array
 
     @convert_args_before_run
     def get_masked_data_arguments(self):

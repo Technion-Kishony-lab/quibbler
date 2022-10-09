@@ -1,15 +1,18 @@
+import functools
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import Dict, List, Tuple, Any
+from typing import Dict, List, Tuple, Any, Optional, Type
 
 import numpy as np
 from numpy.typing import NDArray
 
 from pyquibbler.function_definitions import SourceLocation
-from pyquibbler.path import Path, Paths, PathComponent, split_path_at_end_of_object, deep_set
+from pyquibbler.path import Path, Paths, PathComponent, split_path_at_end_of_object, deep_set, deep_get, \
+    SpecialComponent
+from pyquibbler.translation import SourceFuncCall
 from pyquibbler.translation.array_index_codes import IndexCode, is_focal_element
 from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_path, \
-    create_bool_mask_with_true_at_indices, is_scalar_np
+    create_bool_mask_with_true_at_indices, is_scalar_np, Shape
 from pyquibbler.utilities.numpy_original_functions import np_True, np_zeros, np_sum
 
 from pyquibbler.translation.base_translators import BackwardsPathTranslator, ForwardsPathTranslator
@@ -33,6 +36,17 @@ class ArgWithDefault(Arg):
         return arg_dict.get(self.name, self.default)
 
 
+def run_after_calculating_result_bool_mask(func):
+
+    @functools.wraps(func)
+    def wrapper(self, *args, **kwargs):
+        if self._result_bool_mask is None:
+            self._calculate_result_bool_mask_and_split_path()
+        return func(self, *args, **kwargs)
+
+    return wrapper
+
+
 class NumpyBackwardsPathTranslator(BackwardsPathTranslator):
     """
     Holds basic logic for how to backwards translate a path for numpy functions- subclass this for any translator of a
@@ -41,6 +55,14 @@ class NumpyBackwardsPathTranslator(BackwardsPathTranslator):
     """
 
     TRANSLATION_RELATED_ARGS: List[Arg] = []
+
+    def __init__(self, func_call: SourceFuncCall, shape: Optional[Shape], type_: Optional[Type], path: Path):
+        super().__init__(func_call, shape, type_, path)
+        self._result_bool_mask: Optional[NDArray[bool]] = None
+        self._path_in_array: Optional[Path] = None
+        self._remaining_path: Optional[Path] = None
+        self._is_getting_element_out_of_array: Optional[bool] = None
+
 
     @abstractmethod
     def _get_indices_in_source(self,
@@ -64,13 +86,8 @@ class NumpyBackwardsPathTranslator(BackwardsPathTranslator):
             ArrayPathTranslator(func_call=self._func_call, focal_source=source,
                                 focal_source_location=location, convert_to_bool_mask=False)
 
-        result_bool_mask = np_zeros(self._shape, dtype=bool)
-        path_in_array, path_within_array_element, extracted_result_mask = \
-            split_path_at_end_of_object(result_bool_mask, self._path)
-        deep_set(result_bool_mask, path_in_array, True, should_copy_objects_referenced=False)
-
         source_index_array, chosen_elements = \
-            self._get_indices_in_source(data_argument_to_source_index_code_converter, result_bool_mask)
+            self._get_indices_in_source(data_argument_to_source_index_code_converter, self._result_bool_mask)
 
         source_indices = source_index_array[chosen_elements & is_focal_element(source_index_array)]
 
@@ -91,20 +108,37 @@ class NumpyBackwardsPathTranslator(BackwardsPathTranslator):
         if np.array_equal(mask, np.array(True)):
             source_path = []
         else:
-            if np_sum(mask) == 1 and is_scalar_np(extracted_result_mask):
+            if np_sum(mask) == 1 and self._is_getting_element_out_of_array:
                 indices = tuple(x[0] for x in np.nonzero(mask))
                 source_path = [PathComponent(indices)]
             else:
                 source_path = [PathComponent(mask)]
 
-        return source_path + path_within_array_element
+        return source_path
 
+    def _calculate_result_bool_mask_and_split_path(self):
+        result_bool_mask = np_zeros(self._shape, dtype=bool)
+        self._path_in_array, self._remaining_path, extracted_result = \
+            split_path_at_end_of_object(result_bool_mask, self._path)
+        deep_set(result_bool_mask, self._path_in_array, True, should_copy_objects_referenced=False)
+        self._result_bool_mask = result_bool_mask
+        self._is_getting_element_out_of_array = is_scalar_np(extracted_result)
+
+    @run_after_calculating_result_bool_mask
+    def get_result_bool_mask_and_split_path(self):
+        return self._result_bool_mask, self._path_in_array, self._remaining_path
+
+    @run_after_calculating_result_bool_mask
+    def is_getting_element_out_of_array(self):
+        return self._is_getting_element_out_of_array
+
+    @run_after_calculating_result_bool_mask
     def backwards_translate(self) -> Dict[Source, Path]:
         sources_to_paths = {}
         for source, location in zip(self._func_call.get_data_sources(), self._func_call.data_source_locations):
             source_path = self._get_source_path(source, location)
             if source_path is not None:
-                sources_to_paths[source] = source_path
+                sources_to_paths[source] = source_path + self._remaining_path
 
         return sources_to_paths
 
@@ -119,6 +153,7 @@ class NumpyForwardsPathTranslator(ForwardsPathTranslator):
     """
 
     SHOULD_ATTEMPT_WITHOUT_SHAPE_AND_TYPE = False
+    ADD_OUT_OF_ARRAY_COMPONENT = False
 
     @abstractmethod
     def forward_translate_masked_data_arguments_to_result_mask(self,
@@ -141,7 +176,8 @@ class NumpyForwardsPathTranslator(ForwardsPathTranslator):
                                 convert_to_bool_mask=True)
 
         remaining_path_to_source = data_argument_to_mask_converter.get_path_from_array_element_to_source()
-        within_source_element_path = data_argument_to_mask_converter.get_path_in_source_element()
+        path_in_source_array, path_in_source_element = \
+            data_argument_to_mask_converter.get_source_path_split_at_end_of_array()
 
         result_mask = \
             self.forward_translate_masked_data_arguments_to_result_mask(data_argument_to_mask_converter)
@@ -150,7 +186,15 @@ class NumpyForwardsPathTranslator(ForwardsPathTranslator):
             return []
 
         if result_mask is True or result_mask is np_True:
+            # our func has extracted an element out of the array
             within_target_array_path = []
+            if len(path_in_source_element) > 0 and path_in_source_element[0].component is SpecialComponent.OUT_OF_ARRAY:
+                path_in_source_element.pop(0)
         else:
-            within_target_array_path = [PathComponent(result_mask, extract_element_out_of_array=False)]
-        return [within_target_array_path + remaining_path_to_source + within_source_element_path]
+            within_target_array_path = [
+                PathComponent(result_mask)
+            ]
+            if self.ADD_OUT_OF_ARRAY_COMPONENT and \
+                    data_argument_to_mask_converter.get_is_extracting_element_out_of_source_array():
+                within_target_array_path += [PathComponent(SpecialComponent.OUT_OF_ARRAY)]
+        return [within_target_array_path + remaining_path_to_source + path_in_source_element]

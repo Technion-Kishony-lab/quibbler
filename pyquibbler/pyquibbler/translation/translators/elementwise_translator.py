@@ -30,6 +30,7 @@ class BackwardsElementwisePathTranslator(NumpyBackwardsPathTranslator):
 
 
 class ForwardsElementwisePathTranslator(NumpyForwardsPathTranslator):
+    ADD_OUT_OF_ARRAY_COMPONENT = True
 
     def forward_translate_masked_data_arguments_to_result_mask(self,
                                                                data_argument_to_mask_converter: ArrayPathTranslator,

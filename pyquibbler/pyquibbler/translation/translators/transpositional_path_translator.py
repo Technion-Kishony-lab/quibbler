@@ -35,6 +35,8 @@ class ForwardsTranspositionalTranslator(NumpyForwardsPathTranslator):
     Forward translate numpy transpositional functions (like array, rot90, flip).
     Works by applying the function to the data args replaced with bool mask
     """
+    ADD_OUT_OF_ARRAY_COMPONENT = True
+
     def forward_translate_masked_data_arguments_to_result_mask(self,
                                                                data_argument_to_mask_converter: ArrayPathTranslator,
                                                                ) -> NDArray[bool]:

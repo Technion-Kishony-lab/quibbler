@@ -8,7 +8,6 @@ import numpy as np
 @dataclass
 class PathComponent:
     component: Any
-    extract_element_out_of_array: bool = False
 
     def referencing_field_in_field_array(self, type_) -> bool:
         """
@@ -35,13 +34,10 @@ class PathComponent:
     def __eq__(self, other):
         from pyquibbler.utilities.iterators import recursively_compare_objects
         return isinstance(other, PathComponent) \
-            and self.extract_element_out_of_array == other.extract_element_out_of_array \
             and recursively_compare_objects(self.component, other.component)
 
     def __repr__(self):
         s = repr(self.component)
-        if self.extract_element_out_of_array:
-            s = s + ' E'
         return '{' + s + '}'
 
 
@@ -49,6 +45,7 @@ class SpecialComponent(Enum):
     WHOLE = 'whole'  # whole object
     ALL = 'all'  # keep shape, change all elements
     SHAPE = 'shape'  # shape only
+    OUT_OF_ARRAY = 'out_of_array'  # extract element(s) out of array
 
 
 Path = List[PathComponent]

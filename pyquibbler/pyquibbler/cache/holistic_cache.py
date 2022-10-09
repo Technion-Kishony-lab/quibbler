@@ -1,8 +1,9 @@
+import numpy as np
 from functools import wraps
 
 from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.cache.cache import Cache
-from pyquibbler.path import Path, Paths, SpecialComponent
+from pyquibbler.path import Path, Paths, SpecialComponent, deep_get
 
 
 class PathCannotHaveComponentsException(PyQuibblerException):
@@ -11,15 +12,21 @@ class PathCannotHaveComponentsException(PyQuibblerException):
         return "This shallow cache does not support specifying paths that are not `all` (ie `[]`)"
 
 
-def raise_if_path_is_not_all(func):
+def skip_if_path_is_false_or_raise_if_path_is_not_all(func):
     @wraps(func)
     def _wrapper(self, path: Path, *args, **kwargs):
-        if not (len(path) == 0
-                or len(path) == 1 and path[0].component in [False, True, SpecialComponent.WHOLE, SpecialComponent.ALL]):
-            raise PathCannotHaveComponentsException()
-
-        if len(path) == 0 or path[0].component is not False:
-            return func(self, path, *args, **kwargs)
+        if len(path) > 0:
+            fake_value = np.int64(3)
+            try:
+                get_fake_value = deep_get(fake_value, path)
+            except Exception:
+                raise PathCannotHaveComponentsException()
+            if np.size(get_fake_value) == 0:
+                # the path references 'nothing'
+                return
+            if np.size(get_fake_value) != 1 or not np.all(get_fake_value == fake_value):
+                raise PathCannotHaveComponentsException()
+        return func(self, [], *args, **kwargs)
 
     return _wrapper
 
@@ -40,12 +47,12 @@ class HolisticCache(Cache):
     def create_invalid_cache_from_result(cls, result):
         return cls(value=result, invalid=True)
 
-    @raise_if_path_is_not_all
+    @skip_if_path_is_false_or_raise_if_path_is_not_all
     def set_valid_value_at_path(self, path: Path, value) -> None:
         self._invalid = False
         self._value = value
 
-    @raise_if_path_is_not_all
+    @skip_if_path_is_false_or_raise_if_path_is_not_all
     def set_invalid_at_path(self, path: Path) -> None:
         self._invalid = True
 

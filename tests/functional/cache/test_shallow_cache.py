@@ -3,6 +3,7 @@ from unittest import mock
 import pytest
 
 from pyquibbler.cache.holistic_cache import HolisticCache, PathCannotHaveComponentsException
+from pyquibbler.path import PathComponent
 from tests.functional.cache.cache_test import CacheTest
 
 
@@ -19,8 +20,8 @@ class TestShallowCache(CacheTest):
 
     def test_shallow_cache_does_not_allow_specifying_paths_in_invalidate(self, cache):
         with pytest.raises(PathCannotHaveComponentsException, match='.*'):
-            cache.set_invalid_at_path([mock.Mock()])
+            cache.set_invalid_at_path([PathComponent(7)])
 
     def test_shallow_cache_does_not_allow_specifying_paths_in_set_valid(self, cache):
         with pytest.raises(PathCannotHaveComponentsException, match='.*'):
-            cache.set_valid_value_at_path([mock.Mock()], 1)
+            cache.set_valid_value_at_path([PathComponent(7)], 1)
