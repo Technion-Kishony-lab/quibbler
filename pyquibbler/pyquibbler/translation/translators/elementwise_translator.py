@@ -7,7 +7,7 @@ from pyquibbler.translation.array_index_codes import is_focal_element
 from pyquibbler.translation.array_translation_utils import ArrayPathTranslator
 from pyquibbler.translation.translators.numpy_translator import \
     NumpyForwardsPathTranslator, NumpyBackwardsPathTranslator
-from pyquibbler.utilities.general_utils import unbroadcast_bool_mask
+from pyquibbler.utilities.general_utils import unbroadcast_or_broadcast_bool_mask
 
 
 class BackwardsElementwisePathTranslator(NumpyBackwardsPathTranslator):
@@ -24,7 +24,8 @@ class BackwardsElementwisePathTranslator(NumpyBackwardsPathTranslator):
         result indices
         """
         data_argument_index_array = data_argument_to_source_index_code_converter.get_masked_data_argument_of_source()
-        bool_mask_of_data_argument = unbroadcast_bool_mask(result_bool_mask, np.shape(data_argument_index_array))
+        bool_mask_of_data_argument = unbroadcast_or_broadcast_bool_mask(result_bool_mask,
+                                                                        np.shape(data_argument_index_array))
         return data_argument_index_array, bool_mask_of_data_argument
 
 

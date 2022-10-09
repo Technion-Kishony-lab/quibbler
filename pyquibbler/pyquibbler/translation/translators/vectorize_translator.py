@@ -4,7 +4,7 @@ from typing import Dict, Any, Set, Optional, Type, List, Tuple
 import numpy as np
 from numpy.typing import NDArray
 
-from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices, unbroadcast_bool_mask, Shape, \
+from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices, unbroadcast_or_broadcast_bool_mask, Shape, \
     create_bool_mask_with_true_at_path
 from pyquibbler.path import PathComponent
 from pyquibbler.path.path_component import Path, Paths
@@ -50,8 +50,8 @@ class VectorizeBackwardsPathTranslator(NumpyBackwardsPathTranslator):
         quib_loop_shape = vectorize_metadata.args_metadata[quib_arg_id].loop_shape
         result_core_axes = vectorize_metadata.result_core_axes
         # Reduce result core dimensions:
-        reduced_bool_mask = np.any(result_bool_mask, axis=result_core_axes)
-        reduced_bool_mask = unbroadcast_bool_mask(reduced_bool_mask, quib_loop_shape)
+        reduced_bool_mask = np.any(result_bool_mask, axis=result_core_axes, keepdims=True)
+        reduced_bool_mask = unbroadcast_or_broadcast_bool_mask(reduced_bool_mask, np.shape(data_arg_source_index_code))
         return data_arg_source_index_code, reduced_bool_mask
 
     def _get_source_path(self, source: Source, location: SourceLocation):

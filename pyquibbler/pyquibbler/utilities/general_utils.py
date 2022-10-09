@@ -13,15 +13,6 @@ Kwargs = Dict[str, Any]
 Shape = Tuple[int, ...]
 
 
-def create_bool_mask_with_true_at_indices(shape: Shape, indices: Any) -> NDArray[bool]:
-    """
-    Create an array of False in a given shape with True at `indices`.
-    """
-    res = np_zeros(shape, dtype=bool)
-    deep_set(res, [PathComponent(indices)], True, should_copy_objects_referenced=False)
-    return res
-
-
 def create_bool_mask_with_true_at_path(shape: Shape, path: Path) -> NDArray[bool]:
     """
     Create an array of False in a given shape with True at the given `path`.
@@ -31,14 +22,24 @@ def create_bool_mask_with_true_at_path(shape: Shape, path: Path) -> NDArray[bool
     return res
 
 
-def unbroadcast_bool_mask(bool_mask: np.ndarray, original_shape: Shape) -> NDArray:
+def create_bool_mask_with_true_at_indices(shape: Shape, indices: Any) -> NDArray[bool]:
+    """
+    Create an array of False in a given shape with True at `indices`.
+    """
+    return create_bool_mask_with_true_at_path(shape, [PathComponent(indices)])
+
+
+def unbroadcast_or_broadcast_bool_mask(bool_mask: np.ndarray, original_shape: Shape) -> NDArray:
     """
     Given a bool mask representing changes in an array which is a result of a broadcast, return an "un-broadcast"
     array in the given original shape (the shape before broadcasting) in which each boolean is true
     if any of its broadcast bools was true.
+
+    If array has less dimensions than the original_shape, then we broadcast instead of unbroadcast.
     """
     new_broadcast_ndim = bool_mask.ndim - len(original_shape)
-    assert new_broadcast_ndim >= 0
+    if new_broadcast_ndim < 0:
+        return np.broadcast_to(bool_mask, original_shape)
     new_broadcast_axes = tuple(range(0, new_broadcast_ndim))
     reduced_bool_mask = np.any(bool_mask, axis=new_broadcast_axes)
     broadcast_loop_dimensions_to_reduce = tuple(i for i, (result_len, quib_len) in
