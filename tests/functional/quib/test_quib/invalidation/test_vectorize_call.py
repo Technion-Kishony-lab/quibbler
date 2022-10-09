@@ -21,7 +21,7 @@ def test_vectorize_invalidation(indices_to_invalidate, data, excluded, func):
 
 def test_vectorize_invalidation_with_non_numpy_return_value():
     vec = np.vectorize(lambda a: int(np.sum(a)), signature='(a)->()')
-    check_invalidation(lambda quib: vec(quib), [1, 2, 3], 0)
+    check_invalidation(lambda quib: vec(quib), [1, 2, 3], [0])
 
 
 @parametrize_indices_to_invalidate
@@ -43,7 +43,7 @@ def test_vectorize_invalidation_with_quib_as_kwarg(excluded):
     if excluded is not None:
         kwargs['excluded'] = excluded
     vec = np.vectorize(lambda a, b: a + b)
-    check_invalidation(lambda quib: vec(5, b=quib), [1, 2, 3], 0)
+    check_invalidation(lambda quib: vec(5, b=quib), [1, 2, 3], [0])
 
 
 @parametrize_indices_to_invalidate

@@ -36,7 +36,8 @@ def check_invalidation(func, data, indices_to_invalidate):
     children = breakdown_quib(result)
 
     original_values = {child: child.get_value() for child in children}
-    input_quib[indices_to_invalidate] = 999
+
+    input_quib.assign(999, *indices_to_invalidate)
 
     invalidated_children = {child for child in children if child.cache_status == CacheStatus.ALL_INVALID}
     changed_children = {child for child in children if not np.array_equal(child.get_value(), original_values[child])}

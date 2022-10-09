@@ -216,7 +216,7 @@ def test_invalidate_and_redraw_invalidates_all_when_minor_parameter_changes():
 @pytest.mark.regression
 @pytest.mark.parametrize('direction', [-1, 1])
 @pytest.mark.parametrize('concat_with_quib', [True, False])
-@pytest.mark.parametrize('indices_to_invalidate', [0, 1])
+@pytest.mark.parametrize('indices_to_invalidate', [[0], [1]])
 def test_concatenate_invalidation(direction, concat_with_quib, indices_to_invalidate):
     to_concat = [2, 3]
     if concat_with_quib:
@@ -275,13 +275,13 @@ def test_assignments_with_quib_index():
 
 @pytest.mark.regression
 @pytest.mark.parametrize(['data', 'indices_to_invalidate', 'axes'], [
-    (np.arange(24).reshape((2, 3, 4)), 0, None),
-    (np.arange(24).reshape((2, 3, 4)), (1, 0, 3), None),
-    (np.arange(24).reshape((2, 3, 4)), 0, (2, 0, 1)),
-    (np.arange(24).reshape((2, 3, 4)), (1, 0, 3), (2, 0, 1)),
-    (np.arange(5), 2, None),
-    (np.arange(5), 2, 0),
-    (np.array([]), ..., None),
+    (np.arange(24).reshape((2, 3, 4)), [0], None),
+    (np.arange(24).reshape((2, 3, 4)), [(1, 0, 3)], None),
+    (np.arange(24).reshape((2, 3, 4)), [0], (2, 0, 1)),
+    (np.arange(24).reshape((2, 3, 4)), [(1, 0, 3)], (2, 0, 1)),
+    (np.arange(5), [2], None),
+    (np.arange(5), [2], 0),
+    (np.array([]), [...], None),
 ])
 def test_transpose_invalidation(data, indices_to_invalidate, axes):
     check_invalidation(lambda q: np.transpose(q, axes=axes), data, indices_to_invalidate)
