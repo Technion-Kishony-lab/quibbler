@@ -1,6 +1,7 @@
 # flake8: noqa
 
-from pyquibbler.function_overriding.quib_overrides.operators.helpers import operator_override, elementwise_operator_override
+from pyquibbler.function_overriding.quib_overrides.operators.helpers import operator_override, \
+    binary_elementwise_operator_override, unary_elementwise_operator_override
 from pyquibbler.function_overriding.third_party_overriding.numpy.helpers import get_inverse_funcs_for_func
 from pyquibbler.function_overriding.third_party_overriding.numpy.overrides import create_numpy_overrides
 from pyquibbler.inversion.inverters.getitem_inverter import GetItemInverter
@@ -15,9 +16,9 @@ def create_operator_overrides():
     return [
 
         # Binary operators with reverse
-        *(elementwise_operator_override(
-            operator_name, [0, 1],
-            inverse_funcs=get_inverse_funcs_for_func(inverter_from), is_reverse=is_rev)
+        *(binary_elementwise_operator_override(operator_name,
+                                               inverse_funcs=get_inverse_funcs_for_func(inverter_from),
+                                               is_reverse=is_rev)
           for is_rev in [False, True]
           for operator_name, inverter_from in (
             ('__add__',         'add'),
@@ -35,9 +36,8 @@ def create_operator_overrides():
           )),
 
         # Binary operators without reverse:
-        *(elementwise_operator_override(
-            operator_name, [0, 1],
-            inverse_funcs=get_inverse_funcs_for_func(inverter_from))
+        *(binary_elementwise_operator_override(operator_name,
+                                               inverse_funcs=get_inverse_funcs_for_func(inverter_from))
           for operator_name, inverter_from in (
               ('__ne__',        'not_equal'),
               ('__lt__',        'less'),
@@ -49,10 +49,9 @@ def create_operator_overrides():
         operator_override('__matmul__', []),
 
         # Unary operators
-        *(elementwise_operator_override(
-            operator_name, [0],
-            inverse_funcs=get_inverse_funcs_for_func(inverter_from))
-            for operator_name, inverter_from in (
+        *(unary_elementwise_operator_override(operator_name,
+                                              inverse_funcs=get_inverse_funcs_for_func(inverter_from))
+          for operator_name, inverter_from in (
 
             # arithmetics:
             ('__neg__',         'negative'),

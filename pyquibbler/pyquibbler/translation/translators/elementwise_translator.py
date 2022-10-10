@@ -9,7 +9,21 @@ from ..array_translation_utils import ArrayPathTranslator
 from .numpy_translator import NumpyForwardsPathTranslator, NumpyBackwardsPathTranslator
 
 
-class BackwardsElementwisePathTranslator(NumpyBackwardsPathTranslator):
+# BACKWARDS:
+
+class BackwardsUnaryElementwisePathTranslator(NumpyBackwardsPathTranslator):
+
+    def _get_indices_in_source(self,
+                               data_argument_to_source_index_code_converter: ArrayPathTranslator,
+                               result_bool_mask: NDArray[bool]) -> Tuple[NDArray[np.int64], NDArray[bool]]:
+        """
+        The argument data indices are identical to the target result indices
+        """
+        data_argument_index_array = data_argument_to_source_index_code_converter.get_masked_data_argument_of_source()
+        return data_argument_index_array, result_bool_mask
+
+
+class BackwardsBinaryElementwisePathTranslator(NumpyBackwardsPathTranslator):
 
     def _get_indices_in_source(self,
                                data_argument_to_source_index_code_converter: ArrayPathTranslator,
@@ -28,20 +42,29 @@ class BackwardsElementwisePathTranslator(NumpyBackwardsPathTranslator):
         return data_argument_index_array, bool_mask_of_data_argument
 
 
-class ForwardsElementwisePathTranslator(NumpyForwardsPathTranslator):
+# FORWARD:
+
+class ForwardsUnaryElementwisePathTranslator(NumpyForwardsPathTranslator):
     ADD_OUT_OF_ARRAY_COMPONENT = True
 
     def forward_translate_masked_data_arguments_to_result_mask(self,
                                                                data_argument_to_mask_converter: ArrayPathTranslator,
                                                                ) -> NDArray[bool]:
         """
-        Create a boolean mask representing the affected data source elements in the output array.
+        The target is affected exactly at the same indices that the source is affected.
         """
         masked_data_arguments = data_argument_to_mask_converter.get_masked_data_arguments()
+        return masked_data_arguments[0]
 
-        if len(masked_data_arguments) == 1:
-            # single arg function
-            return masked_data_arguments[0]
 
-        # binary operators and dual arg functions:
+class ForwardsBinaryElementwisePathTranslator(NumpyForwardsPathTranslator):
+    ADD_OUT_OF_ARRAY_COMPONENT = True
+
+    def forward_translate_masked_data_arguments_to_result_mask(self,
+                                                               data_argument_to_mask_converter: ArrayPathTranslator,
+                                                               ) -> NDArray[bool]:
+        """
+        The target is affected at the indices of the source, broadcasted by the shape of the other data argument.
+        """
+        masked_data_arguments = data_argument_to_mask_converter.get_masked_data_arguments()
         return np.logical_or(masked_data_arguments[0], masked_data_arguments[1])

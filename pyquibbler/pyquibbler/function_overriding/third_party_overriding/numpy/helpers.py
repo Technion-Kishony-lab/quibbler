@@ -8,10 +8,12 @@ from pyquibbler.function_overriding.function_override import FuncOverride
 from pyquibbler.function_overriding.third_party_overriding.general_helpers import RawArgument, override, \
     file_loading_override, override_with_cls
 from pyquibbler.inversion import TranspositionalInverter
-from pyquibbler.translation.translators import ForwardsTranspositionalTranslator, BackwardsTranspositionalTranslator, \
-    AccumulationBackwardsPathTranslator, AccumulationForwardsPathTranslator, ReductionAxiswiseBackwardsPathTranslator, \
-    ReductionAxiswiseForwardsPathTranslator, ForwardsShapeOnlyPathTranslator, BackwardsShapeOnlyPathTranslator
-from pyquibbler.inversion.inverters.elementwise_inverter import ElementwiseInverter
+from pyquibbler.translation.translators import \
+    BackwardsTranspositionalTranslator, ForwardsTranspositionalTranslator, \
+    AccumulationBackwardsPathTranslator, AccumulationForwardsPathTranslator, \
+    ReductionAxiswiseBackwardsPathTranslator, ReductionAxiswiseForwardsPathTranslator, \
+    BackwardsShapeOnlyPathTranslator, ForwardsShapeOnlyPathTranslator
+from pyquibbler.inversion.inverters.elementwise_inverter import BinaryElementwiseInverter, UnaryElementwiseInverter
 from pyquibbler.inversion.inverters.elementwise_single_arg_no_shape_inverter import ElementwiseNoShapeInverter
 from pyquibbler.function_definitions.func_definition import ElementWiseFuncDefinition
 
@@ -55,7 +57,8 @@ numpy_override_shape_only = functools.partial(numpy_override, data_source_argume
 
 ELEMENTWISE_FUNCS_TO_INVERSE_FUNCS = {}
 
-ELEMENTWISE_INVERTERS = [ElementwiseNoShapeInverter, ElementwiseInverter]
+BINARY_ELEMENTWISE_INVERTERS = [ElementwiseNoShapeInverter, BinaryElementwiseInverter]
+UNARY_ELEMENTWISE_INVERTERS = [ElementwiseNoShapeInverter, UnaryElementwiseInverter]
 
 
 def get_inverse_funcs_for_func(func_name: str):
@@ -65,9 +68,9 @@ def get_inverse_funcs_for_func(func_name: str):
 def elementwise(func_name: str, data_source_arguments: List[RawArgument],
                 inverse_func_with_input: Union[None, Callable, Dict] = None,
                 inverse_func_without_input: Union[None, Callable, Dict] = None):
+
     from pyquibbler.translation.translators.elementwise_translator import \
-        BackwardsElementwisePathTranslator
-    from pyquibbler.translation.translators.elementwise_translator import ForwardsElementwisePathTranslator
+        BackwardsBinaryElementwisePathTranslator, ForwardsBinaryElementwisePathTranslator
 
     is_inverse = inverse_func_with_input or inverse_func_without_input
     if is_inverse:
@@ -76,9 +79,9 @@ def elementwise(func_name: str, data_source_arguments: List[RawArgument],
     return numpy_override(
         func_name=func_name,
         data_source_arguments=data_source_arguments,
-        backwards_path_translators=[BackwardsElementwisePathTranslator],
-        forwards_path_translators=[ForwardsElementwisePathTranslator],
-        inverters=ELEMENTWISE_INVERTERS if is_inverse else [],
+        backwards_path_translators=[BackwardsBinaryElementwisePathTranslator],
+        forwards_path_translators=[ForwardsBinaryElementwisePathTranslator],
+        inverters=BINARY_ELEMENTWISE_INVERTERS if is_inverse else [],
         inverse_func_with_input=inverse_func_with_input,
         inverse_func_without_input=inverse_func_without_input,
         func_definition_cls=ElementWiseFuncDefinition,
@@ -87,14 +90,27 @@ def elementwise(func_name: str, data_source_arguments: List[RawArgument],
 
 def single_arg_elementwise(func_name: str,
                            inverse_func: Union[None, Callable, Tuple[Union[Optional[Callable]]]]):
+
+    from pyquibbler.translation.translators.elementwise_translator import \
+        BackwardsUnaryElementwisePathTranslator, ForwardsUnaryElementwisePathTranslator
+
     if inverse_func is None:
         inverse_func = (None, None)
     if not isinstance(inverse_func, tuple):
         inverse_func = (inverse_func, None)
     inverse_func_without_input, inverse_func_with_input = inverse_func
-    return elementwise(
-        func_name,
+
+    is_inverse = inverse_func_with_input or inverse_func_without_input
+    if is_inverse:
+        ELEMENTWISE_FUNCS_TO_INVERSE_FUNCS[func_name] = (inverse_func_with_input, inverse_func_without_input)
+
+    return numpy_override(
+        func_name=func_name,
         data_source_arguments=[0],
+        backwards_path_translators=[BackwardsUnaryElementwisePathTranslator],
+        forwards_path_translators=[ForwardsUnaryElementwisePathTranslator],
+        inverters=UNARY_ELEMENTWISE_INVERTERS if is_inverse else [],
         inverse_func_with_input=inverse_func_with_input,
         inverse_func_without_input=inverse_func_without_input,
+        func_definition_cls=ElementWiseFuncDefinition,
     )

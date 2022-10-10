@@ -8,10 +8,13 @@ from pyquibbler.function_definitions.func_definition import ElementWiseFuncDefin
 from pyquibbler.function_overriding.function_override import FuncOverride
 from pyquibbler.function_overriding.third_party_overriding.general_helpers import override_with_cls
 from pyquibbler.quib.quib import Quib
-from pyquibbler.translation.translators.elementwise_translator import BackwardsElementwisePathTranslator, \
-    ForwardsElementwisePathTranslator
+from pyquibbler.translation.translators.elementwise_translator import \
+    BackwardsBinaryElementwisePathTranslator, ForwardsBinaryElementwisePathTranslator, \
+    BackwardsUnaryElementwisePathTranslator, ForwardsUnaryElementwisePathTranslator
+
 from pyquibbler.utilities.operators_with_reverse import REVERSE_OPERATOR_NAMES_TO_FUNCS
-from pyquibbler.function_overriding.third_party_overriding.numpy.helpers import ELEMENTWISE_INVERTERS
+from pyquibbler.function_overriding.third_party_overriding.numpy.helpers import \
+    BINARY_ELEMENTWISE_INVERTERS, UNARY_ELEMENTWISE_INVERTERS
 
 
 @dataclass
@@ -50,22 +53,40 @@ def operator_override(func_name,
                              )
 
 
-def elementwise_operator_override(func_name,
-                                  data_source_indexes: Optional[List] = None,
-                                  inverse_funcs: Optional[Tuple[Callable]] = None,
-                                  is_reverse: bool = False,
-                                  ):
+def binary_elementwise_operator_override(func_name,
+                                         inverse_funcs: Optional[Tuple[Callable]] = None,
+                                         is_reverse: bool = False,
+                                         ):
     if is_reverse:
         func_name = '__r' + func_name[2:]
         inverse_funcs = tuple({0: inv_func[1], 1: inv_func[0]} if isinstance(inv_func, dict)
                               else inv_func for inv_func in inverse_funcs)
 
     return override_with_cls(OperatorOverride, Quib,
-                             func_name, data_source_indexes,
-                             inverters=ELEMENTWISE_INVERTERS,
-                             backwards_path_translators=[BackwardsElementwisePathTranslator],
-                             forwards_path_translators=[ForwardsElementwisePathTranslator],
+                             func_name,
+                             data_source_arguments=[0, 1],
+                             inverters=BINARY_ELEMENTWISE_INVERTERS,
+                             backwards_path_translators=[BackwardsBinaryElementwisePathTranslator],
+                             forwards_path_translators=[ForwardsBinaryElementwisePathTranslator],
                              inverse_func_with_input=None if not inverse_funcs else inverse_funcs[0],
                              inverse_func_without_input=None if not inverse_funcs else inverse_funcs[1],
                              func_definition_cls=ElementWiseFuncDefinition,
                              )
+
+
+def unary_elementwise_operator_override(func_name,
+                                        inverse_funcs: Optional[Tuple[Callable]] = None,
+                                        ):
+
+    return override_with_cls(OperatorOverride, Quib,
+                             func_name,
+                             data_source_arguments=[0],
+                             inverters=UNARY_ELEMENTWISE_INVERTERS,
+                             backwards_path_translators=[BackwardsUnaryElementwisePathTranslator],
+                             forwards_path_translators=[ForwardsUnaryElementwisePathTranslator],
+                             inverse_func_with_input=None if not inverse_funcs else inverse_funcs[0],
+                             inverse_func_without_input=None if not inverse_funcs else inverse_funcs[1],
+                             func_definition_cls=ElementWiseFuncDefinition,
+                             )
+
+
