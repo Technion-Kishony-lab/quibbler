@@ -143,7 +143,7 @@ def convert_an_arg_to_array_of_source_index_codes(arg: Any,
     arg_index_array, remaining_path_to_source = _convert_obj_to_index_array(arg, path_to_source)
 
     return arg_index_array, remaining_path_to_source, path_in_source_array, path_in_source_element, \
-           is_extracting_element_out_of_source_array
+        is_extracting_element_out_of_source_array
 
 
 def convert_args_before_run(func):
@@ -205,7 +205,8 @@ class ArrayPathTranslator:
         """
         Convert given arg(s) to an array of int64 with values matching the linear indexing of focal_source,
         or specifying other elements according to IndexCode.
-        `args` can be a single data argument, or a list/tuple containing data arguments (for example, for np.concatenate)
+        `args` can be a single data argument, or a list/tuple containing data arguments
+            (for example, for np.concatenate)
         """
         if self.is_func_of_multi_arg_data_argument():
             new_arg = []
@@ -237,8 +238,8 @@ class ArrayPathTranslator:
                         path_to_source=self.focal_source_location.path)
             else:
                 index_array = self._convert_an_arg_or_multi_arg_to_array_of_source_index_codes(
-                        args_or_kwargs[element_in_args_or_kwargs])
-    
+                    args_or_kwargs[element_in_args_or_kwargs])
+
             args_or_kwargs[element_in_args_or_kwargs] = index_array
 
         self._func_args_kwargs = FuncArgsKwargs(self.func_call.func, tuple(args), kwargs)

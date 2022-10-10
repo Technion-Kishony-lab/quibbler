@@ -3,7 +3,7 @@ from functools import wraps
 
 from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.cache.cache import Cache
-from pyquibbler.path import Path, Paths, SpecialComponent, deep_get
+from pyquibbler.path import Path, Paths, deep_get
 
 
 class PathCannotHaveComponentsException(PyQuibblerException):

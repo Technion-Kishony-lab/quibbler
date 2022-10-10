@@ -1,13 +1,12 @@
-from typing import Any, List, Tuple
+from typing import Tuple
 
 import numpy as np
 from numpy.typing import NDArray
 
-from pyquibbler.translation.array_index_codes import is_focal_element
-from pyquibbler.translation.array_translation_utils import ArrayPathTranslator
-from pyquibbler.translation.translators.numpy_translator import \
-    NumpyForwardsPathTranslator, NumpyBackwardsPathTranslator
 from pyquibbler.utilities.general_utils import unbroadcast_or_broadcast_bool_mask
+
+from ..array_translation_utils import ArrayPathTranslator
+from .numpy_translator import NumpyForwardsPathTranslator, NumpyBackwardsPathTranslator
 
 
 class BackwardsElementwisePathTranslator(NumpyBackwardsPathTranslator):

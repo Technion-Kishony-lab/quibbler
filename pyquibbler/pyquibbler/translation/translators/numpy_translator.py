@@ -7,17 +7,15 @@ import numpy as np
 from numpy.typing import NDArray
 
 from pyquibbler.function_definitions import SourceLocation
-from pyquibbler.path import Path, Paths, PathComponent, split_path_at_end_of_object, deep_set, deep_get, \
-    SpecialComponent
-from pyquibbler.translation import SourceFuncCall
-from pyquibbler.translation.array_index_codes import IndexCode, is_focal_element
-from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_path, \
-    create_bool_mask_with_true_at_indices, is_scalar_np, Shape
+from pyquibbler.path import Path, Paths, PathComponent, split_path_at_end_of_object, deep_set, SpecialComponent
+from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices, is_scalar_np, Shape
 from pyquibbler.utilities.numpy_original_functions import np_True, np_zeros, np_sum
 
-from pyquibbler.translation.base_translators import BackwardsPathTranslator, ForwardsPathTranslator
-from pyquibbler.translation.array_translation_utils import ArrayPathTranslator
-from pyquibbler.translation.types import Source
+from ..source_func_call import SourceFuncCall
+from ..array_index_codes import IndexCode, is_focal_element
+from ..base_translators import BackwardsPathTranslator, ForwardsPathTranslator
+from ..array_translation_utils import ArrayPathTranslator
+from ..types import Source
 
 
 @dataclass
@@ -62,7 +60,6 @@ class NumpyBackwardsPathTranslator(BackwardsPathTranslator):
         self._path_in_array: Optional[Path] = None
         self._remaining_path: Optional[Path] = None
         self._is_getting_element_out_of_array: Optional[bool] = None
-
 
     @abstractmethod
     def _get_indices_in_source(self,

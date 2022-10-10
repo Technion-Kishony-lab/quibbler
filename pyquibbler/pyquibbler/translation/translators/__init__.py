@@ -3,4 +3,4 @@ from .getitem_translator import BackwardsGetItemTranslator
 from .reduction_axiswise_translator import ReductionAxiswiseForwardsPathTranslator, \
     ReductionAxiswiseBackwardsPathTranslator
 from .accumulation_translator import AccumulationForwardsPathTranslator, AccumulationBackwardsPathTranslator
-from.shape_only_translators import BackwardsShapeOnlyPathTranslator, ForwardsShapeOnlyPathTranslator
+from .shape_only_translators import BackwardsShapeOnlyPathTranslator, ForwardsShapeOnlyPathTranslator

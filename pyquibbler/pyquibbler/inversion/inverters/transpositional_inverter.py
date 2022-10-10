@@ -61,9 +61,9 @@ class TranspositionalInverter(NumpyInverter):
     BACKWARDS_TRANSLATOR_TYPE: Type[BackwardsPathTranslator] = BackwardsTranspositionalTranslator
     FORWARDS_TRANSLATOR_TYPE: Type[ForwardsPathTranslator] = ForwardsTranspositionalTranslator
 
-    def _create_inversals_from_paths(self,
-                                     sources_to_path_in_source: Dict[Source, Path],
-                                     sources_to_assignment_value: Dict[Source, Any]):
+    def _create_inversals_from_source_paths_and_extracted_target_values(self,
+                                                                        sources_to_path_in_source: Dict[Source, Path],
+                                                                        sources_to_assignment_value: Dict[Source, Any]):
         return [
             Inversal(
                 source=source,
@@ -109,4 +109,5 @@ class TranspositionalInverter(NumpyInverter):
         result_with_assignment_set = self._get_result_with_assignment_set()
         sources_to_assignment_value = {source: deep_get(result_with_assignment_set, path)
                                        for source, path in sources_to_bool_mask_path_in_result.items()}
-        return self._create_inversals_from_paths(sources_to_path_in_source, sources_to_assignment_value)
+        return self._create_inversals_from_source_paths_and_extracted_target_values(sources_to_path_in_source,
+                                                                                    sources_to_assignment_value)
