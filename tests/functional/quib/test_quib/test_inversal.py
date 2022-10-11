@@ -282,3 +282,13 @@ def test_deep_assign_into_array():
 
     b[0]['name'] = 'kishony'
     assert a0.get_value()['name'] == 'kishony'
+
+
+def test_inverse_element_wise_of_list_of_quibs():
+    a = iquib(1)
+    b = iquib(2)
+
+    c = np.exp2([0, a, b])
+    c[1] = 8
+
+    assert a.get_value() == 3
