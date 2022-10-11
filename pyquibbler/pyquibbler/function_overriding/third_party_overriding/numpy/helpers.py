@@ -1,5 +1,5 @@
 import functools
-from typing import List, Callable, Tuple, Union, Optional, Dict
+from typing import Callable, Tuple, Union, Optional, Dict
 
 import numpy as np
 
@@ -17,7 +17,8 @@ from pyquibbler.translation.translators import \
     BackwardsBinaryElementwisePathTranslator, ForwardsBinaryElementwisePathTranslator, \
     BackwardsUnaryElementwisePathTranslator, ForwardsUnaryElementwisePathTranslator
 
-from pyquibbler.inversion.inverters.transpositional_inverter import TranspositionalInverter
+from pyquibbler.inversion.inverters.transpositional_inverter import \
+    TranspositionalOneToManyInverter, TranspositionalOneToOneInverter
 from pyquibbler.inversion.inverters.elementwise_inverter import BinaryElementwiseInverter, UnaryElementwiseInverter
 from pyquibbler.inversion.inverters.elementwise_single_arg_no_shape_inverter import UnaryElementwiseNoShapeInverter
 
@@ -41,12 +42,18 @@ numpy_override_random = functools.partial(override, np.random, is_random=True)
 
 numpy_override_read_file = functools.partial(file_loading_override, np)
 
-numpy_override_transpositional = functools.partial(numpy_override, inverters=[TranspositionalInverter],
-                                                   backwards_path_translators=[BackwardsTranspositionalTranslator],
-                                                   forwards_path_translators=[ForwardsTranspositionalTranslator])
+numpy_override_transpositional_one_to_many = \
+    functools.partial(numpy_override, inverters=[TranspositionalOneToManyInverter],
+                      backwards_path_translators=[BackwardsTranspositionalTranslator],
+                      forwards_path_translators=[ForwardsTranspositionalTranslator])
+
+numpy_override_transpositional_one_to_one = \
+    functools.partial(numpy_override, inverters=[TranspositionalOneToOneInverter],
+                      backwards_path_translators=[BackwardsTranspositionalTranslator],
+                      forwards_path_translators=[ForwardsTranspositionalTranslator])
 
 numpy_array_override = functools.partial(override_with_cls, NumpyArrayOverride, np,
-                                         inverters=[TranspositionalInverter],
+                                         inverters=[TranspositionalOneToOneInverter],
                                          backwards_path_translators=[BackwardsTranspositionalTranslator],
                                          forwards_path_translators=[ForwardsTranspositionalTranslator])
 

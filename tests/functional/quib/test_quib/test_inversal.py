@@ -292,6 +292,15 @@ def test_inverse_element_wise_of_list_of_quibs():
     c[1] = 8
 
     assert a.get_value() == 3
+    assert b.get_value() == 2
+
+
+def test_inverse_binary_element_wise_of_list_of_quibs():
+    a = iquib(np.array([1, 2, 3]))
+    b = iquib(20)
+    c = [[10], [b], [30]] + a
+    c[1, 1] = 102
+    assert b.get_value() == 100
 
 
 def test_elementwise_single_arg_inversal():

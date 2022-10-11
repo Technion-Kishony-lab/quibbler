@@ -87,5 +87,3 @@ def unary_elementwise_operator_override(func_name,
                              inverse_func_requires_input=inverse_func_requires_input,
                              func_definition_cls=UnaryElementWiseFuncDefinition,
                              )
-
-

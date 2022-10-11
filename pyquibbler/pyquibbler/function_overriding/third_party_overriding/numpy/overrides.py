@@ -8,8 +8,9 @@ from pyquibbler.translation.translators.apply_along_axis_translator import Apply
 from .inverse_functions import inv_sin, inv_cos, inv_tan, keep_sign
 from .vectorize_overrides import create_vectorize_overrides
 from .helpers import numpy_override, numpy_override_random, numpy_override_read_file, \
-    numpy_override_transpositional, numpy_override_reduction, numpy_override_accumulation, \
-    binary_elementwise, unary_elementwise, numpy_override_shape_only, numpy_array_override
+  numpy_override_transpositional_one_to_many, numpy_override_transpositional_one_to_one, \
+  numpy_override_reduction, numpy_override_accumulation, \
+  binary_elementwise, unary_elementwise, numpy_override_shape_only, numpy_array_override
 
 
 def identity(x):
@@ -190,22 +191,27 @@ def create_numpy_overrides():
             ('array', [0]),
           )),
 
-        *(numpy_override_transpositional(func_name, data_sources)
+        *(numpy_override_transpositional_one_to_one(func_name, data_sources)
           for func_name, data_sources in (
             ('rot90',       [0]),
             ('concatenate', [0]),
-            ('repeat',      [0]),
-            ('full',        ['fill_value']),
             ('reshape',     [0]),
             ('transpose',   [0]),
             ('swapaxes',    [0]),
-            ('tile',        [0]),
             ('asarray',     [0]),
             ('squeeze',     [0]),
             ('expand_dims', [0]),
             ('ravel',       [0]),
             ('squeeze',     [0]),
             ('flip',        [0]),
+          )),
+
+        *(numpy_override_transpositional_one_to_many(func_name, data_sources)
+          for func_name, data_sources in (
+            ('repeat',      [0]),
+            ('full',        ['fill_value']),
+            ('tile',        [0]),
+            ('broadcast_to', [0]),
           )),
 
         # Shape-only, data-independent

@@ -1,21 +1,8 @@
 import numpy as np
 
 from pyquibbler.assignment import Assignment
-from pyquibbler.path.path_component import PathComponent
 from pyquibbler.translation.types import Source, Inversal
 from .elementwise_inverter import BaseUnaryElementWiseInverter
-
-
-def is_path_component_open_ended(component: PathComponent):
-    def is_sub_component_open_ended(sub_component) -> bool:
-        return isinstance(sub_component, slice) and ((sub_component.stop is None) or (sub_component.stop < 0))
-
-    component = component.component
-
-    if isinstance(component, tuple):
-        return any(map(is_sub_component_open_ended, component))
-
-    return is_sub_component_open_ended(component)
 
 
 class UnaryElementwiseNoShapeInverter(BaseUnaryElementWiseInverter):

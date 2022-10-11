@@ -3,7 +3,7 @@
 from __future__ import annotations
 from typing import List, TYPE_CHECKING
 
-from pyquibbler.inversion import TranspositionalInverter
+from pyquibbler.inversion.inverters.transpositional_inverter import TranspositionalOneToOneInverter
 from pyquibbler.translation.translators import BackwardsTranspositionalTranslator, ForwardsTranspositionalTranslator
 from pyquibbler.translation.translators.shape_only_translators import \
     BackwardsShapeOnlyPathTranslator, ForwardsShapeOnlyPathTranslator
@@ -40,7 +40,7 @@ def create_definitions_for_python_functions() -> List[FuncDefinition]:
         *(create_func_definition(
             func=func,
             raw_data_source_arguments=[0],
-            inverters=[TranspositionalInverter],
+            inverters=[TranspositionalOneToOneInverter],
             backwards_path_translators=[BackwardsTranspositionalTranslator],
             forwards_path_translators=[ForwardsTranspositionalTranslator],
          )

@@ -1,3 +1,4 @@
+from abc import ABC
 from typing import Any, Type
 
 import numpy as np
@@ -15,6 +16,7 @@ from pyquibbler.translation.translators.elementwise_translator import \
 
 from .numpy_inverter import NumpyInverter
 from ..inverter import Inverter
+from ...quib.pretty_converters.operators import REVERSE_BINARY_FUNCS_TO_OPERATORS
 
 
 class BaseUnaryElementWiseInverter(Inverter):
@@ -29,28 +31,44 @@ class BaseUnaryElementWiseInverter(Inverter):
         return self._func_call.func_definition.inverse_func
 
 
-class BaseBinaryElementWiseInverter(Inverter):
+class BaseBinaryElementWiseInverter(Inverter, ABC):
     """ Base class for inversion that run an inverse function on each array element"""
 
     @property
     def inverse_funcs(self):
         return self._func_call.func_definition.inverse_funcs
 
+    @staticmethod
+    def _switch_argument(argument_index):
+        return 1 - argument_index
+
+    def get_indices_of_argument_to_invert_to_and_other_argument(self):
+        # By definition, our default is the left (first) argument.
+        # But, if our quib is a reverse operator, then args have been switched. arg[1] is the default arg.
+        default_arg = 1 if self._func_call.func in REVERSE_BINARY_FUNCS_TO_OPERATORS else 0
+
+        # If there is no quib in the default argument, then we switch to the other
+        if any(location.argument.index == default_arg for location in self._get_data_sources_to_locations().values()):
+            # There is at least one source in the default argument. So we invert to this argument.
+            argument_to_invert_to = default_arg
+        else:
+            argument_to_invert_to = self._switch_argument(default_arg)
+
+        other_argument = self._switch_argument(argument_to_invert_to)
+
+        return argument_to_invert_to, other_argument
+
 
 class BinaryElementwiseInverter(NumpyInverter, BaseBinaryElementWiseInverter):
     BACKWARDS_TRANSLATOR_TYPE: Type[BackwardsPathTranslator] = BackwardsBinaryElementwisePathTranslator
     FORWARDS_TRANSLATOR_TYPE: Type[ForwardsPathTranslator] = ForwardsBinaryElementwisePathTranslator
+    IS_ONE_TO_MANY_FUNC: bool = True  # because of broadcasting
 
     def _invert_value(self, source: Source, source_location: SourceLocation, path_in_source: Path,
                       result_value: Any, path_in_result: Path) -> Any:
 
-        if any(location.argument.index == 0 for location in self._get_data_sources_to_locations().values()):
-            # There is at least one source in the first (left) argument. So we invert to this argument.
-            argument_to_invert_to = 0
-            other_argument = 1
-        else:
-            argument_to_invert_to = 1
-            other_argument = 0
+        argument_to_invert_to, other_argument = self.get_indices_of_argument_to_invert_to_and_other_argument()
+
         if source_location.argument.index != argument_to_invert_to:
             return missing
 
@@ -65,6 +83,7 @@ class BinaryElementwiseInverter(NumpyInverter, BaseBinaryElementWiseInverter):
 class UnaryElementwiseInverter(NumpyInverter, BaseUnaryElementWiseInverter):
     BACKWARDS_TRANSLATOR_TYPE: Type[BackwardsPathTranslator] = BackwardsUnaryElementwisePathTranslator
     FORWARDS_TRANSLATOR_TYPE: Type[ForwardsPathTranslator] = ForwardsUnaryElementwisePathTranslator
+    IS_ONE_TO_MANY_FUNC: bool = False
 
     def _invert_value(self, source: Source, source_location: SourceLocation, path_in_source: Path,
                       result_value: Any, path_in_result: Path) -> Any:

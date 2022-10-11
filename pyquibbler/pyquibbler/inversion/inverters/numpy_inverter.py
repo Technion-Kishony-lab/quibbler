@@ -25,6 +25,9 @@ class NumpyInverter(Inverter, ABC):
     BACKWARDS_TRANSLATOR_TYPE: Type[BackwardsPathTranslator] = NumpyBackwardsPathTranslator
     FORWARDS_TRANSLATOR_TYPE: Type[ForwardsPathTranslator] = NumpyForwardsPathTranslator
 
+    # can one element in the argument affect multiple elements in the result
+    IS_ONE_TO_MANY_FUNC: bool = False
+
     def _get_data_sources_to_locations(self) -> Dict[Source, SourceLocation]:
         return {source: location for source, location
                 in zip(self._func_call.get_data_sources(), self._func_call.data_source_locations)}
@@ -85,12 +88,13 @@ class NumpyInverter(Inverter, ABC):
         # (3) intersect with the boolean mask with the target:
         boolean_mask, path_in_array, remaining_path = backwards_translator.get_result_bool_mask_and_split_path()
 
-        for source, path in sources_to_bool_mask_path_in_result.items():
-            if not np_all(boolean_mask):
-                if len(path) > 0:
-                    path[0] = PathComponent(np_logical_and(path[0].component, boolean_mask))
-                else:
-                    path.insert(0, PathComponent(boolean_mask))
+        if self.IS_ONE_TO_MANY_FUNC:
+            for source, path in sources_to_bool_mask_path_in_result.items():
+                if not np_all(boolean_mask):
+                    if len(path) > 0:
+                        path[0] = PathComponent(np_logical_and(path[0].component, boolean_mask))
+                    else:
+                        path.insert(0, PathComponent(boolean_mask))
 
         return self._create_inversals_from_source_paths(sources_to_path_in_source, sources_to_bool_mask_path_in_result)
 
