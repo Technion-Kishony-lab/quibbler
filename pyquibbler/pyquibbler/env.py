@@ -61,3 +61,7 @@ GET_VARIABLE_NAMES = Flag(True)
 LEN_BOOL_ETC_RAISE_EXCEPTION = Flag(True)
 
 ITER_RAISE_EXCEPTION = Flag(False)
+
+""" Others """
+
+INPUT_AWARE_INVERSION = Flag(True)

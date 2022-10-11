@@ -7,6 +7,8 @@ from pyquibbler.function_definitions import FuncCall
 from pyquibbler.path.data_accessing import deep_set
 from pyquibbler.translation.source_func_call import SourceFuncCall
 
+from .exceptions import FailedToInvertException
+
 
 class Inverter(ABC):
 
@@ -16,6 +18,9 @@ class Inverter(ABC):
         self._func_call = func_call
         self._assignment = assignment
         self._previous_result = previous_result
+
+    def _raise_faile_to_invert_exception(self):
+        raise FailedToInvertException(self._func_call)
 
     @abstractmethod
     def get_inversals(self):

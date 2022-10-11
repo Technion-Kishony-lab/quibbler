@@ -4,7 +4,8 @@ from dataclasses import dataclass
 
 from typing import List, Optional, Callable, Tuple
 
-from pyquibbler.function_definitions.func_definition import ElementWiseFuncDefinition
+from pyquibbler.function_definitions.func_definition import \
+    UnaryElementWiseFuncDefinition, BinaryElementWiseFuncDefinition
 from pyquibbler.function_overriding.function_override import FuncOverride
 from pyquibbler.function_overriding.third_party_overriding.general_helpers import override_with_cls
 from pyquibbler.quib.quib import Quib
@@ -59,8 +60,7 @@ def binary_elementwise_operator_override(func_name,
                                          ):
     if is_reverse:
         func_name = '__r' + func_name[2:]
-        inverse_funcs = tuple({0: inv_func[1], 1: inv_func[0]} if isinstance(inv_func, dict)
-                              else inv_func for inv_func in inverse_funcs)
+        inverse_funcs = {0: inverse_funcs[1], 1: inverse_funcs[0]}
 
     return override_with_cls(OperatorOverride, Quib,
                              func_name,
@@ -68,25 +68,24 @@ def binary_elementwise_operator_override(func_name,
                              inverters=BINARY_ELEMENTWISE_INVERTERS,
                              backwards_path_translators=[BackwardsBinaryElementwisePathTranslator],
                              forwards_path_translators=[ForwardsBinaryElementwisePathTranslator],
-                             inverse_func_with_input=None if not inverse_funcs else inverse_funcs[0],
-                             inverse_func_without_input=None if not inverse_funcs else inverse_funcs[1],
-                             func_definition_cls=ElementWiseFuncDefinition,
+                             inverse_funcs=inverse_funcs,
+                             func_definition_cls=BinaryElementWiseFuncDefinition,
                              )
 
 
 def unary_elementwise_operator_override(func_name,
-                                        inverse_funcs: Optional[Tuple[Callable]] = None,
+                                        inverse_func_and_is_input_required: Tuple[Callable, bool] = None,
                                         ):
-
+    inverse_func, inverse_func_requires_input = inverse_func_and_is_input_required
     return override_with_cls(OperatorOverride, Quib,
                              func_name,
                              data_source_arguments=[0],
                              inverters=UNARY_ELEMENTWISE_INVERTERS,
                              backwards_path_translators=[BackwardsUnaryElementwisePathTranslator],
                              forwards_path_translators=[ForwardsUnaryElementwisePathTranslator],
-                             inverse_func_with_input=None if not inverse_funcs else inverse_funcs[0],
-                             inverse_func_without_input=None if not inverse_funcs else inverse_funcs[1],
-                             func_definition_cls=ElementWiseFuncDefinition,
+                             inverse_func=inverse_func,
+                             inverse_func_requires_input=inverse_func_requires_input,
+                             func_definition_cls=UnaryElementWiseFuncDefinition,
                              )
 
 

@@ -292,3 +292,12 @@ def test_inverse_element_wise_of_list_of_quibs():
     c[1] = 8
 
     assert a.get_value() == 3
+
+
+def test_elementwise_single_arg_inversal():
+    a = iquib([1, 2])
+    b = np.exp2(a)
+    b.get_value()
+    b[1] = 8
+
+    assert a.get_value() == [1, 3]

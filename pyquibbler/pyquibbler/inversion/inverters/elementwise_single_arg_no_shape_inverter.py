@@ -1,14 +1,9 @@
-import warnings
-
 import numpy as np
 
 from pyquibbler.assignment import Assignment
 from pyquibbler.path.path_component import PathComponent
-from pyquibbler.path.data_accessing import deep_get
 from pyquibbler.translation.types import Source, Inversal
-from ..generic_inverse_functions import create_inverse_single_arg_func
-from ..inverter import Inverter
-from ..exceptions import FailedToInvertException
+from .elementwise_inverter import BaseUnaryElementWiseInverter
 
 
 def is_path_component_open_ended(component: PathComponent):
@@ -23,44 +18,38 @@ def is_path_component_open_ended(component: PathComponent):
     return is_sub_component_open_ended(component)
 
 
-class ElementwiseNoShapeInverter(Inverter):
+class UnaryElementwiseNoShapeInverter(BaseUnaryElementWiseInverter):
+    """
+    An inverter of functions like np.exp(quib) = scalar. Simply invert the scalar keep the path unchanged.
+    Such assignment are valid even if the shape of the quib changes.
+    For example, if
+    a = iquib([1, 2, 3])
+    b = np.exp2(a)  # -> [2, 4, 8]
+    then
+    b[:] = 16
+    will translate into a[:] = 4 which golds valid even if the shape of a changes
+    This can only be done if the function does not depend on the input and when we are assigning
+    a scalar (or size=1 array)
+    """
+    @property
+    def source_to_change(self):
+        return self._func_call.args[0]
+
+    def can_inverse(self):
+        return isinstance(self.source_to_change, Source) \
+            and np.size(self._assignment.value) == 1 \
+            and not self.inverse_func_requires_input
 
     def get_inversals(self):
-        if len(self._func_call.args) != 1 \
-                or not isinstance(self._func_call.args[0], Source) \
-                or len(self._assignment.path) > 1:
-            raise FailedToInvertException(self._func_call)
-
-        source_to_change = self._func_call.args[0]
-
-        assignment_path = self._assignment.path
-
-        func_definition = self._func_call.func_definition
-        inverse_func_with_input = func_definition.inverse_func_with_input
-        inverse_func_without_input = func_definition.inverse_func_without_input
-
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            if len(assignment_path) and is_path_component_open_ended(assignment_path[0]) \
-                    or np.shape(self._assignment.value) != np.shape(deep_get(self._previous_result, assignment_path)) \
-                    or inverse_func_with_input is None:
-                # assignment is open-ended (e.g., quib[:,1] = value, or quib[0:-1] = val), or is broadcasted
-                # Under these conditions, if we want to keep the shape of the assigned value, we cannot adjust the
-                # value at each element based on the value of the args.
-                value_to_set = inverse_func_without_input(self._assignment.value)
-            else:
-                source_to_change_at_value_shape = Source(deep_get(source_to_change.value, assignment_path))
-                inverse_func_with_input = create_inverse_single_arg_func(inverse_func_with_input)
-                value_to_set = inverse_func_with_input(self._assignment.value,
-                                                       [source_to_change_at_value_shape],
-                                                       self._func_call.kwargs,
-                                                       source_to_change_at_value_shape,
-                                                       assignment_path)
+        if not self.can_inverse():
+            raise self._raise_faile_to_invert_exception()
+        value = self._assignment.value
+        value_to_set = self.inverse_func(value)
         return [
             Inversal(
-                source=source_to_change,
+                source=self.source_to_change,
                 assignment=Assignment(
-                    path=assignment_path,
+                    path=self._assignment.path,
                     value=value_to_set
                 )
             )

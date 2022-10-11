@@ -5,7 +5,6 @@ import numpy as np
 from pyquibbler import Assignment
 from pyquibbler.inversion.inverter import Inverter
 from pyquibbler.translation.types import Source, Inversal
-from pyquibbler.inversion.exceptions import FailedToInvertException
 from abc import ABC, abstractmethod
 
 
@@ -20,7 +19,7 @@ class CastingInverter(Inverter, ABC):
         if len(self._func_call.args) != 1 \
                 or not isinstance(self._func_call.args[0], Source) \
                 or len(self._assignment.path) > 0:
-            raise FailedToInvertException(self._func_call)
+            raise self._raise_faile_to_invert_exception()
 
         source_to_change = self._func_call.args[0]
 
@@ -38,7 +37,7 @@ class CastingInverter(Inverter, ABC):
                     assigned_value=assigned_value,
                 )
             except Exception:
-                raise FailedToInvertException(self._func_call)
+                self._raise_faile_to_invert_exception()
         return [
             Inversal(
                 source=source_to_change,

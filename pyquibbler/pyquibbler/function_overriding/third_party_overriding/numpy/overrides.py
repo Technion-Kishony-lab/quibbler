@@ -9,7 +9,7 @@ from .inverse_functions import inv_sin, inv_cos, inv_tan, keep_sign
 from .vectorize_overrides import create_vectorize_overrides
 from .helpers import numpy_override, numpy_override_random, numpy_override_read_file, \
     numpy_override_transpositional, numpy_override_reduction, numpy_override_accumulation, \
-    elementwise, single_arg_elementwise, numpy_override_shape_only, numpy_array_override
+    binary_elementwise, unary_elementwise, numpy_override_shape_only, numpy_array_override
 
 
 def identity(x):
@@ -67,7 +67,7 @@ def create_numpy_overrides():
           )),
 
         # Binary
-        *(elementwise(func_name, [0, 1], {0: invs[0], 1: invs[1]})
+        *(binary_elementwise(func_name, {0: invs[0], 1: invs[1]})
           for func_name, invs in (
             # Arithmetic
             ('add',           (np.subtract, np.subtract)),
@@ -110,7 +110,7 @@ def create_numpy_overrides():
           )),
 
         # Single argument
-        *(single_arg_elementwise(func_name, inverse_func)
+        *(unary_elementwise(func_name, inverse_func)
           for func_name, inverse_func in (
             # square, sqrt
             ('sqrt',        np.square),

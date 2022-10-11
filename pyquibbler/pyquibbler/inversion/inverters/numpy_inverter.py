@@ -3,7 +3,7 @@ from typing import Type, Dict, Any, List
 
 import numpy as np
 
-from pyquibbler.utilities.numpy_original_functions import np_logical_and
+from pyquibbler.utilities.numpy_original_functions import np_logical_and, np_all
 from pyquibbler.utilities.missing_value import missing
 from pyquibbler.function_definitions import SourceLocation
 from pyquibbler.path import Path, PathComponent, deep_get
@@ -25,7 +25,7 @@ class NumpyInverter(Inverter, ABC):
     BACKWARDS_TRANSLATOR_TYPE: Type[BackwardsPathTranslator] = NumpyBackwardsPathTranslator
     FORWARDS_TRANSLATOR_TYPE: Type[ForwardsPathTranslator] = NumpyForwardsPathTranslator
 
-    def _get_data_sources_to_locations(self):
+    def _get_data_sources_to_locations(self) -> Dict[Source, SourceLocation]:
         return {source: location for source, location
                 in zip(self._func_call.get_data_sources(), self._func_call.data_source_locations)}
 
@@ -86,30 +86,32 @@ class NumpyInverter(Inverter, ABC):
         boolean_mask, path_in_array, remaining_path = backwards_translator.get_result_bool_mask_and_split_path()
 
         for source, path in sources_to_bool_mask_path_in_result.items():
-            if len(path) > 0:
-                path[0] = PathComponent(np_logical_and(path[0].component, boolean_mask))
-            else:
-                path.insert(0, PathComponent(boolean_mask))
+            if not np_all(boolean_mask):
+                if len(path) > 0:
+                    path[0] = PathComponent(np_logical_and(path[0].component, boolean_mask))
+                else:
+                    path.insert(0, PathComponent(boolean_mask))
 
-        # (4) get value from the result with the new assignment:
+        return self._create_inversals_from_source_paths(sources_to_path_in_source, sources_to_bool_mask_path_in_result)
+
+    def _create_inversals_from_source_paths(self,
+                                            sources_to_path_in_source: Dict[Source, Path],
+                                            sources_to_path_in_result: Dict[Source, Path]
+                                            ) -> List[Inversal]:
+
         result_with_assignment_set = self._get_result_with_assignment_set()
-        sources_to_assignment_value = {source: deep_get(result_with_assignment_set, path)
-                                       for source, path in sources_to_bool_mask_path_in_result.items()}
-        return self._create_inversals_from_source_paths_and_extracted_target_values(sources_to_path_in_source,
-                                                                                    sources_to_assignment_value)
-
-    def _create_inversals_from_source_paths_and_extracted_target_values(self,
-                                                                        sources_to_path_in_source: Dict[Source, Path],
-                                                                        sources_to_target_values: Dict[Source, Any]
-                                                                        ) -> List[Inversal]:
         sources_to_locations = self._get_data_sources_to_locations()
         inversals = []
         for source, path_in_source in sources_to_path_in_source.items():
-            if source not in sources_to_target_values:
+            if source not in sources_to_path_in_result:
                 continue
-            target_value = sources_to_target_values[source]
+
+            # (4) get value from the result with the new assignment, at path matching the current source:
+            path_in_result = sources_to_path_in_result[source]
+            target_value = deep_get(result_with_assignment_set, path_in_result)
+
             location = sources_to_locations[source]
-            inverted_value = self._invert_value(source, location, path_in_source, target_value)
+            inverted_value = self._invert_value(source, location, path_in_source, target_value, path_in_result)
             if inverted_value is not missing:
                 inversals.append(Inversal(
                     source=source,
@@ -121,6 +123,6 @@ class NumpyInverter(Inverter, ABC):
         return inversals
 
     @abstractmethod
-    def _invert_value(self, source: Source, source_location: SourceLocation, path_in_source: Path, value: Any)\
-            -> Any:
+    def _invert_value(self, source: Source, source_location: SourceLocation, path_in_source: Path,
+                      result_value: Any, path_in_result: Path) -> Any:
         pass

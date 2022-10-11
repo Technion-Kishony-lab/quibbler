@@ -2,7 +2,8 @@
 
 from pyquibbler.function_overriding.quib_overrides.operators.helpers import operator_override, \
     binary_elementwise_operator_override, unary_elementwise_operator_override
-from pyquibbler.function_overriding.third_party_overriding.numpy.helpers import get_inverse_funcs_for_func
+from pyquibbler.function_overriding.third_party_overriding.numpy.helpers import \
+    get_unary_inverse_funcs_for_func, get_binary_inverse_funcs_for_func
 from pyquibbler.function_overriding.third_party_overriding.numpy.overrides import create_numpy_overrides
 from pyquibbler.inversion.inverters.getitem_inverter import GetItemInverter
 from pyquibbler.translation.translators import BackwardsGetItemTranslator
@@ -17,7 +18,7 @@ def create_operator_overrides():
 
         # Binary operators with reverse
         *(binary_elementwise_operator_override(operator_name,
-                                               inverse_funcs=get_inverse_funcs_for_func(inverter_from),
+                                               inverse_funcs=get_binary_inverse_funcs_for_func(inverter_from),
                                                is_reverse=is_rev)
           for is_rev in [False, True]
           for operator_name, inverter_from in (
@@ -37,7 +38,7 @@ def create_operator_overrides():
 
         # Binary operators without reverse:
         *(binary_elementwise_operator_override(operator_name,
-                                               inverse_funcs=get_inverse_funcs_for_func(inverter_from))
+                                               inverse_funcs=get_binary_inverse_funcs_for_func(inverter_from))
           for operator_name, inverter_from in (
               ('__ne__',        'not_equal'),
               ('__lt__',        'less'),
@@ -49,8 +50,8 @@ def create_operator_overrides():
         operator_override('__matmul__', []),
 
         # Unary operators
-        *(unary_elementwise_operator_override(operator_name,
-                                              inverse_funcs=get_inverse_funcs_for_func(inverter_from))
+        *(unary_elementwise_operator_override(
+            operator_name, inverse_func_and_is_input_required=get_unary_inverse_funcs_for_func(inverter_from))
           for operator_name, inverter_from in (
 
             # arithmetics:

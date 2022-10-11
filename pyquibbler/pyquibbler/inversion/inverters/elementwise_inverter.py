@@ -1,93 +1,76 @@
-import warnings
+from typing import Any, Type
 
 import numpy as np
 
-from pyquibbler.assignment import Assignment
-from pyquibbler.translation.source_func_call import SourceFuncCall
-from pyquibbler.translation.translate import backwards_translate
-from pyquibbler.translation.types import Inversal
-from pyquibbler.path import initial_path, deep_get
+from pyquibbler.utilities.missing_value import missing
+from pyquibbler.path import deep_get, Path
+from pyquibbler.function_definitions import SourceLocation
+
+from pyquibbler.translation import ForwardsPathTranslator, BackwardsPathTranslator
+from pyquibbler.translation.types import Source
+from pyquibbler.translation.utils import copy_and_replace_sources_with_vals
+from pyquibbler.translation.translators.elementwise_translator import \
+    BackwardsUnaryElementwisePathTranslator, ForwardsUnaryElementwisePathTranslator, \
+    BackwardsBinaryElementwisePathTranslator, ForwardsBinaryElementwisePathTranslator
+
+from .numpy_inverter import NumpyInverter
 from ..inverter import Inverter
-from ..generic_inverse_functions import create_inverse_single_arg_func, create_inverse_func_from_indexes_to_funcs
 
 
-class BinaryElementwiseInverter(Inverter):
+class BaseUnaryElementWiseInverter(Inverter):
+    """ Base class for inversion that run an inverse function on each array element"""
 
-    def __init__(self, func_call: SourceFuncCall, assignment, previous_result):
-        super().__init__(func_call, assignment, previous_result)
+    @property
+    def inverse_func_requires_input(self):
+        return self._func_call.func_definition.inverse_func_requires_input
 
-    def get_inversals(self):
-        working_path = initial_path(self._assignment.path)
-        source_to_change = self._func_call.get_data_sources()[0]
-
-        relevant_path_in_source = backwards_translate(func_call=self._func_call,
-                                                      shape=np.shape(self._previous_result),
-                                                      type_=type(self._previous_result),
-                                                      path=self._assignment.path)[source_to_change]
-
-        inverse_func = self._func_call.func_definition.inverse_func_with_input
-
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            if isinstance(inverse_func, dict):
-                actual_inverse_func = create_inverse_func_from_indexes_to_funcs(inverse_func)
-            else:
-                actual_inverse_func = create_inverse_single_arg_func(inverse_func)
-
-            new_quib_argument_value = actual_inverse_func(self._get_result_with_assignment_set(),
-                                                          self._func_call.args,
-                                                          self._func_call.kwargs,
-                                                          source_to_change,
-                                                          relevant_path_in_source)
-
-        value_to_set = deep_get(new_quib_argument_value, working_path)
-        return [
-            Inversal(
-                source=source_to_change,
-                assignment=Assignment(
-                    path=relevant_path_in_source,
-                    value=value_to_set
-                )
-            )
-        ]
+    @property
+    def inverse_func(self):
+        return self._func_call.func_definition.inverse_func
 
 
-class UnaryElementwiseInverter(Inverter):
+class BaseBinaryElementWiseInverter(Inverter):
+    """ Base class for inversion that run an inverse function on each array element"""
 
-    def __init__(self, func_call: SourceFuncCall, assignment, previous_result):
-        super().__init__(func_call, assignment, previous_result)
+    @property
+    def inverse_funcs(self):
+        return self._func_call.func_definition.inverse_funcs
 
-    def get_inversals(self):
-        working_path = initial_path(self._assignment.path)
-        source_to_change = self._func_call.get_data_sources()[0]
 
-        relevant_path_in_source = backwards_translate(func_call=self._func_call,
-                                                      shape=np.shape(self._previous_result),
-                                                      type_=type(self._previous_result),
-                                                      path=self._assignment.path)[source_to_change]
+class BinaryElementwiseInverter(NumpyInverter, BaseBinaryElementWiseInverter):
+    BACKWARDS_TRANSLATOR_TYPE: Type[BackwardsPathTranslator] = BackwardsBinaryElementwisePathTranslator
+    FORWARDS_TRANSLATOR_TYPE: Type[ForwardsPathTranslator] = ForwardsBinaryElementwisePathTranslator
 
-        inverse_func = self._func_call.func_definition.inverse_func_with_input
+    def _invert_value(self, source: Source, source_location: SourceLocation, path_in_source: Path,
+                      result_value: Any, path_in_result: Path) -> Any:
 
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            if isinstance(inverse_func, dict):
-                actual_inverse_func = create_inverse_func_from_indexes_to_funcs(inverse_func)
-            else:
-                actual_inverse_func = create_inverse_single_arg_func(inverse_func)
+        if any(location.argument.index == 0 for location in self._get_data_sources_to_locations().values()):
+            # There is at least one source in the first (left) argument. So we invert to this argument.
+            argument_to_invert_to = 0
+            other_argument = 1
+        else:
+            argument_to_invert_to = 1
+            other_argument = 0
+        if source_location.argument.index != argument_to_invert_to:
+            return missing
 
-            new_quib_argument_value = actual_inverse_func(self._get_result_with_assignment_set(),
-                                                          self._func_call.args,
-                                                          self._func_call.kwargs,
-                                                          source_to_change,
-                                                          relevant_path_in_source)
+        inverse_func = self.inverse_funcs[argument_to_invert_to]
 
-        value_to_set = deep_get(new_quib_argument_value, working_path)
-        return [
-            Inversal(
-                source=source_to_change,
-                assignment=Assignment(
-                    path=relevant_path_in_source,
-                    value=value_to_set
-                )
-            )
-        ]
+        other_argument_value = copy_and_replace_sources_with_vals(self._func_call.args[other_argument])
+        other_argument_value = np.broadcast_to(other_argument_value, np.shape(self._previous_result))
+        other_argument_value = deep_get(other_argument_value, path_in_result)
+        return inverse_func(result_value, other_argument_value)
+
+
+class UnaryElementwiseInverter(NumpyInverter, BaseUnaryElementWiseInverter):
+    BACKWARDS_TRANSLATOR_TYPE: Type[BackwardsPathTranslator] = BackwardsUnaryElementwisePathTranslator
+    FORWARDS_TRANSLATOR_TYPE: Type[ForwardsPathTranslator] = ForwardsUnaryElementwisePathTranslator
+
+    def _invert_value(self, source: Source, source_location: SourceLocation, path_in_source: Path,
+                      result_value: Any, path_in_result: Path) -> Any:
+
+        if self.inverse_func_requires_input:
+            previous_input_value = deep_get(source.value, path_in_source)
+            return self.inverse_func(result_value, previous_input_value)
+
+        return self.inverse_func(result_value)

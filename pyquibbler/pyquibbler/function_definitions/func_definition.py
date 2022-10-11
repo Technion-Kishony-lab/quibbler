@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import functools
 from dataclasses import dataclass, field
-from typing import Set, Type, List, Callable, Optional
+from typing import Set, Type, List, Callable, Optional, Dict
 
 from pyquibbler.translation import BackwardsPathTranslator, ForwardsPathTranslator
 
@@ -99,16 +99,28 @@ class FuncDefinition:
 
 
 @dataclass
-class ElementWiseFuncDefinition(FuncDefinition):
+class UnaryElementWiseFuncDefinition(FuncDefinition):
     """
     Represents a definition of functions that act element-wise on a single arg
     """
 
-    inverse_func_without_input: Optional[Callable] = field(repr=False, default=None)
-    inverse_func_with_input: Optional[Callable] = field(repr=False, default=None)
+    inverse_func: Optional[Callable, Dict[int, Callable]] = field(repr=False, default=None)
+    inverse_func_requires_input: Optional[bool] = None
 
 
-ElementWiseFuncDefinition.__hash__ = FuncDefinition.__hash__
+UnaryElementWiseFuncDefinition.__hash__ = FuncDefinition.__hash__
+
+
+@dataclass
+class BinaryElementWiseFuncDefinition(FuncDefinition):
+    """
+    Represents a definition of functions that act element-wise on two args
+    """
+
+    inverse_funcs: Optional[Dict[int, Optional[Callable]]] = field(repr=False, default=None)
+
+
+BinaryElementWiseFuncDefinition.__hash__ = FuncDefinition.__hash__
 
 
 def create_func_definition(raw_data_source_arguments: List[RawArgument] = None,

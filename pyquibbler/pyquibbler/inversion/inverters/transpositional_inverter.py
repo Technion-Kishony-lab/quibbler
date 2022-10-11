@@ -13,6 +13,6 @@ class TranspositionalInverter(NumpyInverter):
     BACKWARDS_TRANSLATOR_TYPE: Type[BackwardsPathTranslator] = BackwardsTranspositionalTranslator
     FORWARDS_TRANSLATOR_TYPE: Type[ForwardsPathTranslator] = ForwardsTranspositionalTranslator
 
-    def _invert_value(self, source: Source, source_location: SourceLocation, path_in_source: Path, value: Any)\
-            -> Any:
-        return value
+    def _invert_value(self, source: Source, source_location: SourceLocation, path_in_source: Path,
+                      result_value: Any, path_in_result: Path) -> Any:
+        return result_value
