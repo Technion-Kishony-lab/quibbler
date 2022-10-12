@@ -7,6 +7,7 @@ from pyquibbler.path import Path, PathComponent, Paths
 from dataclasses import dataclass
 
 from .general_utils import is_object_array, is_non_object_array
+from .numpy_original_functions import np_full
 
 SHALLOW_MAX_DEPTH = 2
 SHALLOW_MAX_LENGTH = 100
@@ -122,6 +123,9 @@ def iter_object_type_in_args_kwargs(object_type, args: Tuple[Any, ...], kwargs: 
     return iter_objects_of_type_in_object(object_type, (*args, *kwargs.values()))
 
 
+ITERATE_ON_OBJECT_ARRAYS = False
+
+
 def recursively_run_func_on_object(func: Callable, obj: Any,
                                    path: Optional[Path] = None, max_depth: Optional[int] = None,
                                    max_length: Optional[int] = None,
@@ -164,6 +168,17 @@ def recursively_run_func_on_object(func: Callable, obj: Any,
                     [*path, PathComponent("step")] if with_path else None,
                     next_max_depth,
                     with_path=with_path), )
+        elif ITERATE_ON_OBJECT_ARRAYS and is_object_array(obj):
+            new_array = np_full(obj.shape, None, dtype=object)
+            for indices, value in np.ndenumerate(obj):
+                new_array[indices] = \
+                    recursively_run_func_on_object(
+                        func, obj[indices],
+                        [*path, PathComponent(indices)] if with_path else None,
+                        next_max_depth,
+                        with_path=with_path)
+            return new_array
+
     return func(path, obj) if with_path else func(obj)
 
 

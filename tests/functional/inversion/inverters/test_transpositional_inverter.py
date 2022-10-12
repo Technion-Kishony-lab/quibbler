@@ -4,7 +4,7 @@ import pytest
 from pyquibbler import Assignment
 from pyquibbler.path import PathComponent
 from pyquibbler.translation.types import Source
-from pyquibbler.user_utils.obj2quib import identity_function_list2quib, identity_function_tuple2quib
+from pyquibbler.user_utils.obj2quib import identity_function_obj2quib
 from pyquibbler.utilities.iterators import recursively_compare_objects
 from tests.functional.inversion.inverters.utils import inverse
 
@@ -106,7 +106,7 @@ def test_inverse_assign_list_within_list():
 def test_inverse_assign_list2quib():
     data_source = Source([1, 2, 3, 4])
 
-    sources_to_results, _ = inverse(func=identity_function_list2quib, args=(data_source,), value=10, indices=2)
+    sources_to_results, _ = inverse(func=identity_function_obj2quib, args=(data_source,), value=10, indices=2)
 
     assert recursively_compare_objects(sources_to_results[data_source], [1, 2, 10, 4])
 
@@ -114,6 +114,6 @@ def test_inverse_assign_list2quib():
 def test_inverse_assign_tuple2quib():
     data_source = Source((1, 2, 3, 4))
 
-    sources_to_results, _ = inverse(func=identity_function_tuple2quib, args=(data_source,), value=10, indices=2)
+    sources_to_results, _ = inverse(func=identity_function_obj2quib, args=(data_source,), value=10, indices=2)
 
     assert recursively_compare_objects(sources_to_results[data_source], (1, 2, 10, 4))

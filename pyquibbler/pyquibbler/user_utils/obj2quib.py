@@ -1,25 +1,27 @@
 from typing import Any
 
+from pyquibbler import create_quib
+from pyquibbler.function_definitions.location import get_object_type_locations_in_args_kwargs
+from pyquibbler.inversion.inverters.obj2quib_inverter import Obj2QuibInverter
 from pyquibbler.quib.quib import Quib
-from .quiby_funcs import q
+from pyquibbler.function_definitions import add_definition_for_function
+from pyquibbler.function_definitions.func_definition import create_func_definition
+from pyquibbler.translation.translators.obj2_quib_translator import \
+    BackwardsObj2QuibTranslator, ForwardsObj2QuibTranslator
 
 
-def identity_function_list2quib(v):
-    return v
-
-
-def identity_function_tuple2quib(v):
-    return v
-
-
-def identity_function_dict2quib(v):
+def identity_function_obj2quib(v):
     return v
 
 
 # For functional_representation:
-identity_function_list2quib.__name__ = 'obj2quib'
-identity_function_tuple2quib.__name__ = 'obj2quib'
-identity_function_dict2quib.__name__ = 'obj2quib'
+identity_function_obj2quib.__name__ = 'obj2quib'
+
+
+obj2quib_definition = create_func_definition(raw_data_source_arguments=[0],
+                                             inverters=[Obj2QuibInverter],
+                                             forwards_path_translators=[ForwardsObj2QuibTranslator],
+                                             backwards_path_translators=[BackwardsObj2QuibTranslator])
 
 
 def obj2quib(obj: Any) -> Quib:
@@ -54,17 +56,17 @@ def obj2quib(obj: Any) -> Quib:
     If the argument obj is a quib, the function returns this quib.
     """
 
-    # TODO: need to implement translation and inversion for list, tuple and dict.
-    if isinstance(obj, list):
-        return q(identity_function_list2quib,
-                 list([obj2quib(sub_obj) for sub_obj in obj]))
+    # TODO: source search is implemented here, to make it easier to allow adding an exceptional
+    #  searching also within object-arrays for this special case of obj2quib (if we want).
+    locations = get_object_type_locations_in_args_kwargs(Quib, (obj, ), {})
 
-    if isinstance(obj, tuple):
-        return q(identity_function_tuple2quib,
-                 tuple([obj2quib(sub_obj) for sub_obj in obj]))
+    return create_quib(
+        func=identity_function_obj2quib,
+        quib_locations=locations,
+        args=(obj,),
+    )
 
-    if isinstance(obj, dict):
-        return q(identity_function_dict2quib,
-                 {obj2quib(sub_key): obj2quib(sub_obj) for sub_key, sub_obj in obj.items()})
 
-    return obj
+add_definition_for_function(func=identity_function_obj2quib,
+                            func_definition=obj2quib_definition,
+                            quib_creating_func=obj2quib)
