@@ -4,7 +4,7 @@ from typing import Tuple, Mapping, Any, List
 
 from pyquibbler.path import PathComponent, Path, deep_get, deep_set
 
-from .types import Argument, KeywordArgument, PositionalArgument
+from .types import Argument, KeywordArgument, PositionalArgument, SubArgument
 
 from pyquibbler.utilities.general_utils import Args, Kwargs
 from ..utilities.iterators import get_paths_for_objects_of_type
@@ -31,6 +31,17 @@ class SourceLocation(ABC):
         Given args and kwargs, set to the value referenced by the location's argument and path
         """
         pass
+
+    def get_path_in_argument(self, argument: Argument):
+        """
+        Returns None if not in argument, or otherwise the path in the argument
+        """
+        if self.argument == argument:
+            return self.path
+        if isinstance(argument, SubArgument) \
+                and self.argument == argument.argument and self.path[0].component == argument.sub_index:
+            return self.path[1:]
+        return None
 
 
 class PositionalSourceLocation(SourceLocation):

@@ -23,7 +23,7 @@ class VectorizeOverride(FuncOverride):
 
 class VectorizeCallDefinition(FuncDefinition):
 
-    def get_data_source_arguments(self, func_args_kwargs: FuncArgsKwargs):
+    def get_data_arguments(self, func_args_kwargs: FuncArgsKwargs):
         """
         Given a call to a vectorized function, return the arguments which act as data sources.
         We are using func_args_kwargs.args and func_args_kwargs.kwargs instead of the full args dict on purpose,

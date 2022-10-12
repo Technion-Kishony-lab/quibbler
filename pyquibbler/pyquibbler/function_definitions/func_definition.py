@@ -8,7 +8,7 @@ from pyquibbler.translation import BackwardsPathTranslator, ForwardsPathTranslat
 
 from .func_call import FuncArgsKwargs
 from .types import RawArgument, Argument, PositionalArgument, KeywordArgument, \
-    convert_raw_data_source_arguments_to_data_source_arguments
+    convert_raw_data_arguments_to_data_argument_designations, DataArgumentDesignation, SubArgument
 from .utils import get_signature_for_func
 
 from typing import TYPE_CHECKING
@@ -30,7 +30,7 @@ class FuncDefinition:
     """
 
     func: Optional[Callable] = None
-    data_source_arguments: Set[Argument] = field(repr=False, default_factory=set)
+    data_argument_designations: List[DataArgumentDesignation] = field(repr=False, default_factory=list)
     is_random: bool = False
     is_file_loading: bool = False
     is_graphics: Optional[bool] = False  # None for 'maybe'
@@ -92,10 +92,38 @@ class FuncDefinition:
             corresponding_dict = self.get_keyword_to_positional_arguments()
         return corresponding_dict.get(argument, None)
 
-    def get_data_source_arguments(self, func_args_kwargs: FuncArgsKwargs):
-        return [argument for argument in func_args_kwargs.get_all_arguments()
-                if (argument in self.data_source_arguments)
-                or (self.get_corresponding_argument(argument) in self.data_source_arguments)]
+    def get_data_arguments(self, func_args_kwargs: FuncArgsKwargs) -> List[Argument]:
+        """
+        Returns the data arguments in the function call
+        Takes care of cases like np.concatenate, where the function argument is a tuple containing multiple
+        data arguments.
+        """
+        data_arguments = []
+        designated_data_arguments = [data_argument_designation.argument
+                                     for data_argument_designation in self.data_argument_designations]
+
+        for func_call_argument in func_args_kwargs.get_all_arguments():
+            data_argument_designation = None
+            if func_call_argument in designated_data_arguments:
+                data_argument_designation = \
+                    self.data_argument_designations[designated_data_arguments.index(func_call_argument)]
+            if not data_argument_designation:
+                corresponding_func_call_argument = self.get_corresponding_argument(func_call_argument)
+                if corresponding_func_call_argument in designated_data_arguments:
+                    data_argument_designation = \
+                        self.data_argument_designations[designated_data_arguments.index(corresponding_func_call_argument)]
+            if not data_argument_designation:
+                continue
+
+            if data_argument_designation.is_multi_arg:
+                argument_value = func_args_kwargs.get_arg_value_by_argument(func_call_argument)
+                assert isinstance(argument_value, tuple)
+                for index in range(len(argument_value)):
+                    data_arguments.append(SubArgument(func_call_argument, sub_index=index))
+            else:
+                data_arguments.append(func_call_argument)
+
+        return data_arguments
 
 
 @dataclass
@@ -146,13 +174,13 @@ def create_func_definition(raw_data_source_arguments: List[RawArgument] = None,
     func_definition_cls = func_definition_cls or FuncDefinition
     quib_function_call_cls = quib_function_call_cls or get_default_quib_func_call()
     raw_data_source_arguments = raw_data_source_arguments or set()
-    data_source_arguments = convert_raw_data_source_arguments_to_data_source_arguments(raw_data_source_arguments)
+    data_argument_designations = convert_raw_data_arguments_to_data_argument_designations(raw_data_source_arguments)
     return func_definition_cls(
         func=func,
         is_random=is_random,
         is_graphics=is_graphics,
         is_file_loading=is_file_loading,
-        data_source_arguments=data_source_arguments,
+        data_argument_designations=data_argument_designations,
         inverters=inverters or [],
         backwards_path_translators=backwards_path_translators or [],
         forwards_path_translators=forwards_path_translators or [],

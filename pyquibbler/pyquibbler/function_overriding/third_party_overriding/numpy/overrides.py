@@ -3,6 +3,7 @@
 import math
 import numpy as np
 
+from pyquibbler.function_definitions.types import DataArgumentDesignation, PositionalArgument
 from pyquibbler.quib.func_calling.func_calls.apply_along_axis_call import ApplyAlongAxisQuibFuncCall
 from pyquibbler.translation.translators.apply_along_axis_translator import ApplyAlongAxisForwardsTranslator
 from .inverse_functions import inv_sin, inv_cos, inv_tan, keep_sign
@@ -194,7 +195,7 @@ def create_numpy_overrides():
         *(numpy_override_transpositional_one_to_one(func_name, data_sources)
           for func_name, data_sources in (
             ('rot90',       [0]),
-            ('concatenate', [0]),
+            ('concatenate', [DataArgumentDesignation(PositionalArgument(0), is_multi_arg=True)]),
             ('reshape',     [0]),
             ('transpose',   [0]),
             ('swapaxes',    [0]),

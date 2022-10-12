@@ -195,54 +195,19 @@ class ArrayPathTranslator:
             arg_index_array = is_focal_element(arg_index_array)
         return arg_index_array
 
-    def is_func_of_multi_arg_data_argument(self):
-        # TODO: this needs to be part of the function definition.
-        return self.func_call.func is get_original_func(np.concatenate)
-
-    def _convert_an_arg_or_multi_arg_to_array_of_source_index_codes(self, args: Union[Tuple[Any, ...], Any],
-                                                                    path_to_source: Path = None) \
-            -> Union[Tuple[IndexCodeArray, ...], IndexCodeArray]:
-        """
-        Convert given arg(s) to an array of int64 with values matching the linear indexing of focal_source,
-        or specifying other elements according to IndexCode.
-        `args` can be a single data argument, or a list/tuple containing data arguments
-            (for example, for np.concatenate)
-        """
-        if self.is_func_of_multi_arg_data_argument():
-            new_arg = []
-            for index, arg in enumerate(args):
-                if path_to_source[0].component == index:
-                    converted_arg = self._convert_an_arg_to_array_of_source_index_codes(arg, path_to_source[1:])
-                else:
-                    converted_arg = self._convert_an_arg_to_array_of_source_index_codes(arg)
-                new_arg.append(converted_arg)
-            return tuple(new_arg)
-        return self._convert_an_arg_to_array_of_source_index_codes(args, path_to_source)
-
     def convert_data_arguments_to_source_index_codes(self):
         """
         Convert data arguments in args/kwargs to arrays of index codes for the indicated focal source.
         """
-        args = list(self.func_call.args)
-        kwargs = copy.copy(self.func_call.kwargs)
-        for data_argument in self.func_call.func_definition.get_data_source_arguments(self.func_call.func_args_kwargs):
-            if isinstance(data_argument, KeywordArgument):
-                args_or_kwargs = kwargs
-                element_in_args_or_kwargs = data_argument.keyword
-            else:
-                args_or_kwargs = args
-                element_in_args_or_kwargs = data_argument.index
-            if self.focal_source_location.argument == data_argument:
-                index_array = self._convert_an_arg_or_multi_arg_to_array_of_source_index_codes(
-                        args_or_kwargs[element_in_args_or_kwargs],
-                        path_to_source=self.focal_source_location.path)
-            else:
-                index_array = self._convert_an_arg_or_multi_arg_to_array_of_source_index_codes(
-                    args_or_kwargs[element_in_args_or_kwargs])
+        new_func_args_kwargs = FuncArgsKwargs(self.func_call.func, args=list(self.func_call.args),
+                                              kwargs=copy.copy(self.func_call.kwargs))
+        for data_argument in self.func_call.func_definition.get_data_arguments(self.func_call.func_args_kwargs):
+            data_argument_value = new_func_args_kwargs.get_arg_value_by_argument(data_argument)
+            path_to_source = self.focal_source_location.get_path_in_argument(data_argument)
+            index_array = self._convert_an_arg_to_array_of_source_index_codes(data_argument_value, path_to_source)
+            new_func_args_kwargs.set_arg_value_by_argument(index_array, data_argument)
 
-            args_or_kwargs[element_in_args_or_kwargs] = index_array
-
-        self._func_args_kwargs = FuncArgsKwargs(self.func_call.func, tuple(args), kwargs)
+        self._func_args_kwargs = new_func_args_kwargs
 
     @convert_args_before_run
     def get_func_args_kwargs(self):
@@ -275,7 +240,7 @@ class ArrayPathTranslator:
         """
         return [
             self._func_args_kwargs.get_arg_value_by_argument(argument) for
-            argument in self.func_call.func_definition.get_data_source_arguments(self.func_call.func_args_kwargs)
+            argument in self.func_call.func_definition.get_data_arguments(self.func_call.func_args_kwargs)
         ]
 
     @convert_args_before_run
