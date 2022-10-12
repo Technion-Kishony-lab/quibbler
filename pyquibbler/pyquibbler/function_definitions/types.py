@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from itertools import chain
-from typing import Union, List, Set, Iterable, Tuple, Any
+from typing import Union, List, Iterable, Tuple, Any
 
 from pyquibbler.utilities.general_utils import Args, Kwargs
 
@@ -43,7 +43,8 @@ RawArgument = Union[str, int]
 
 
 def convert_raw_data_arguments_to_data_argument_designations(
-        data_source_arguments: List[Union[RawArgument, DataArgumentDesignation]] = None) -> List[DataArgumentDesignation]:
+        data_source_arguments: List[Union[RawArgument, DataArgumentDesignation]] = None
+                                                            ) -> List[DataArgumentDesignation]:
     data_source_arguments = data_source_arguments or list()
 
     def _convert(raw_argument):

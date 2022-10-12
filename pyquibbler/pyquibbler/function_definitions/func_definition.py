@@ -111,7 +111,8 @@ class FuncDefinition:
                 corresponding_func_call_argument = self.get_corresponding_argument(func_call_argument)
                 if corresponding_func_call_argument in designated_data_arguments:
                     data_argument_designation = \
-                        self.data_argument_designations[designated_data_arguments.index(corresponding_func_call_argument)]
+                        self.data_argument_designations[
+                            designated_data_arguments.index(corresponding_func_call_argument)]
             if not data_argument_designation:
                 continue
 

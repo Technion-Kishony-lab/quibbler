@@ -6,17 +6,15 @@ from typing import Any, Union, Tuple, Optional
 
 import numpy as np
 
-from pyquibbler.function_definitions import KeywordArgument, SourceLocation
+from pyquibbler.function_definitions import SourceLocation
 from pyquibbler.path import Path, deep_set, split_path_at_end_of_object, deep_get
 from pyquibbler.function_definitions.func_call import FuncCall, FuncArgsKwargs
 from pyquibbler.utilities.general_utils import is_scalar_np, get_shared_shape, is_same_shapes
-from pyquibbler.utilities.get_original_func import get_original_func
 
 from .array_index_codes import IndexCode, is_focal_element, IndexCodeArray
 from .exceptions import PyQuibblerRaggedArrayException
 from .source_func_call import SourceFuncCall
 from .types import Source
-
 
 ALLOW_RAGGED_ARRAYS = True
 
@@ -88,7 +86,7 @@ def convert_an_arg_to_array_of_source_index_codes(arg: Any,
 
             full_index_array = np.arange(np.size(obj)).reshape(np.shape(obj))
             if path_in_source is None:
-                return full_index_array, _remaining_path_to_source
+                chosen_index_array = full_index_array
             else:
                 path_in_source_array, path_in_source_element, referenced_part_of_source_array = \
                     split_path_at_end_of_object(full_index_array, path_in_source)
@@ -96,7 +94,9 @@ def convert_an_arg_to_array_of_source_index_codes(arg: Any,
                 chosen_index_array = np.full(np.shape(obj), IndexCode.NON_CHOSEN_ELEMENT)
                 deep_set(chosen_index_array, path_in_source_array, deep_get(full_index_array, path_in_source_array),
                          should_copy_objects_referenced=False)
-                return chosen_index_array, _remaining_path_to_source
+            return chosen_index_array, _remaining_path_to_source
+            # index_coded_source_value = de_array_by_template(chosen_index_array, obj)
+            # return index_coded_source_value, _remaining_path_to_source
 
         if is_scalar_np(obj):
             if _remaining_path_to_source is None:
@@ -109,7 +109,7 @@ def convert_an_arg_to_array_of_source_index_codes(arg: Any,
             return np.full(np.shape(obj), IndexCode.OTHERS_ELEMENT), _remaining_path_to_source
 
         if len(obj) == 0:
-            return np.array(obj), _remaining_path_to_source
+            return np.array(obj, dtype=np.int64), _remaining_path_to_source
 
         source_index = None if _remaining_path_to_source is None else _remaining_path_to_source[0].component
         converted_sub_args = [None if source_index == sub_arg_index else
@@ -128,7 +128,7 @@ def convert_an_arg_to_array_of_source_index_codes(arg: Any,
             shared_shape = get_shared_shape(converted_sub_args)
 
             for sub_arg_index, converted_sub_arg in enumerate(converted_sub_args):
-                if converted_sub_arg.shape != shared_shape:
+                if np.shape(converted_sub_arg) != shared_shape:
                     if np.any(is_focal_element(converted_sub_arg)):
                         collapsed_sub_arg = np.full(shared_shape, IndexCode.LIST_CONTAINING_CHOSEN_ELEMENTS)
                         if path_in_source is not None:

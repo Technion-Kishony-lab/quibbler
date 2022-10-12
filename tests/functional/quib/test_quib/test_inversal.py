@@ -310,3 +310,10 @@ def test_elementwise_single_arg_inversal():
     b[1] = 8
 
     assert a.get_value() == [1, 3]
+
+
+def test_inverse_array_with_ragged_lists():
+    quib1 = iquib([1, 2, 3])
+    quib2 = iquib([4, 5])
+    ar = np.array([quib1, quib2], dtype=object)
+    ar[1][0] = 10
