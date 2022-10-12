@@ -315,10 +315,3 @@ def test_view_should_not_cache():
     b.get_value()
     assert a.args[0][0] == 0
 
-
-def test_list_addition():
-    a = iquib([0, 1, 2])
-    b = (a + [3, 4]).setp(cache_mode='on')
-    assert b.get_value() == [0, 1, 2, 3, 4]
-    a[1] = 11
-    assert b.get_value() == [0, 11, 2, 3, 4]

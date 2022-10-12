@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Optional, Any
 
-from pyquibbler.path import deep_get, deep_set, Path
+from pyquibbler.path import deep_get, deep_set, Path, Paths
 from .cache import Cache
 from .holistic_cache import HolisticCache
 
@@ -50,7 +50,7 @@ def _truncate_path_to_match_shallow_caches(path: Optional[Path], result):
     return [path[0]]
 
 
-def get_uncached_paths_matching_path(cache: Optional[Cache], path: Path):
+def get_uncached_paths_matching_path(cache: Optional[Cache], path: Path) -> Paths:
     """
     Get a list of paths that are uncached within the given path- these paths must be a subset of the given path
     (or the path itself)

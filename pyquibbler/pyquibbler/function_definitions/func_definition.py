@@ -118,7 +118,6 @@ class FuncDefinition:
 
             if data_argument_designation.is_multi_arg:
                 argument_value = func_args_kwargs.get_arg_value_by_argument(func_call_argument)
-                assert isinstance(argument_value, tuple)
                 for index in range(len(argument_value)):
                     data_arguments.append(SubArgument(func_call_argument, sub_index=index))
             else:

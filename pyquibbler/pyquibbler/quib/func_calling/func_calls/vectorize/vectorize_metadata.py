@@ -199,7 +199,7 @@ class VectorizeCall:
         return self.vectorize.pyfunc(*args, **kwargs)
 
     def __call__(self):
-        # If we pass quibs to the wrapper, we will create a new graphics quib, so we use the original vectorize
+        # If we pass quibs to the wrapper, we will create a new quib, so we use the original vectorize
         return np.vectorize.__quibbler_wrapped__.__call__(self.vectorize, *self.args, **self.kwargs)
 
     def _get_args_and_results_core_ndims(self, results_dtypes):
