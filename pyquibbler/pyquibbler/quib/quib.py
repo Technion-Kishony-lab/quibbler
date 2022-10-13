@@ -1515,6 +1515,10 @@ class Quib:
         --------
         get_override_list
         """
+
+        # Method gets overridden by `create_quib_method_overrides`, which makes it quiby with pass-quibs=True
+        # So self is a proxy quib of the original "self" quib.
+        #
         from pyquibbler.quib.specialized_functions.proxy import get_parent_of_proxy
         quib = get_parent_of_proxy(self)
         if issubclass(quib.get_type(), np.ndarray):

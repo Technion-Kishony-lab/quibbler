@@ -28,12 +28,7 @@ class ResultMetadata:
     @classmethod
     def from_result(cls, result):
         type_ = type(result)
-
         shape = _get_shape_from_result(result)
-
-        if shape:
-            ndim = len(shape)
-        else:
-            ndim = None
+        ndim = None if shape is None else len(shape)
 
         return cls(type=type_, shape=shape, ndim=ndim)

@@ -36,7 +36,7 @@ class NumpyArrayOverride(FuncOverride):
         return ALLOW_ARRAY_WITH_DTYPE_OBJECT or kwargs.get('dtype', None) is not object
 
 
-numpy_override = functools.partial(override, np)
+numpy_override = functools.partial(override, np, pre_known_result_type=np.ndarray)
 
 numpy_override_random = functools.partial(override, np.random, is_random=True)
 

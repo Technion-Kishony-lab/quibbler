@@ -20,12 +20,14 @@ def create_definitions_for_python_functions() -> List[FuncDefinition]:
         create_func_definition(
             func=len,
             raw_data_source_arguments=[0],
+            pre_known_result_type=int,
             backwards_path_translators=[BackwardsShapeOnlyPathTranslator],
             forwards_path_translators=[ForwardsShapeOnlyPathTranslator]),
 
         *(create_func_definition(
             func=func,
             raw_data_source_arguments=[0],
+            pre_known_result_type=func,
             inverters=[inverter])
             for func, inverter in [
 
@@ -41,6 +43,7 @@ def create_definitions_for_python_functions() -> List[FuncDefinition]:
             inverters=[TranspositionalOneToOneInverter],
             backwards_path_translators=[BackwardsTranspositionalTranslator],
             forwards_path_translators=[ForwardsTranspositionalTranslator],
+            pre_known_result_type=func,
          )
              for func in [list, tuple]),
 

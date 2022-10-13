@@ -3,6 +3,7 @@ from __future__ import annotations
 import functools
 from dataclasses import dataclass, field
 from typing import Set, Type, List, Callable, Optional, Dict
+from pyquibbler.utilities.general_utils import Args, Kwargs
 
 from pyquibbler.translation import BackwardsPathTranslator, ForwardsPathTranslator
 
@@ -42,9 +43,13 @@ class FuncDefinition:
     forwards_path_translators: List[Type[ForwardsPathTranslator]] = field(repr=False, default_factory=list)
     quib_function_call_cls: Type[QuibFuncCall] = field(repr=False, default_factory=get_default_quib_func_call)
     kwargs_to_ignore_in_repr: Optional[Set[str]] = None
+    pre_known_result_type: Optional[Type] = None
 
     def __hash__(self):
         return id(self)
+
+    def get_result_type_if_known_from_raw_args_kwargs(self, args: Args, kwargs: Kwargs):
+        return self.pre_known_result_type
 
     @property
     def is_impure(self):
@@ -163,6 +168,7 @@ def create_func_definition(raw_data_source_arguments: List[RawArgument] = None,
                            forwards_path_translators: List[Type[ForwardsPathTranslator]] = None,
                            quib_function_call_cls: Type[QuibFuncCall] = None,
                            func: Optional[Callable] = None,
+                           pre_known_result_type: Optional[Type] = None,
                            func_definition_cls: Optional[FuncDefinition] = None,
                            kwargs_to_ignore_in_repr: Optional[Set[str]] = None,
                            **kwargs) -> FuncDefinition:
@@ -186,6 +192,7 @@ def create_func_definition(raw_data_source_arguments: List[RawArgument] = None,
         forwards_path_translators=forwards_path_translators or [],
         quib_function_call_cls=quib_function_call_cls,
         pass_quibs=pass_quibs,
+        pre_known_result_type=pre_known_result_type,
         lazy=lazy,
         is_artist_setter=is_artist_setter,
         kwargs_to_ignore_in_repr=kwargs_to_ignore_in_repr,
