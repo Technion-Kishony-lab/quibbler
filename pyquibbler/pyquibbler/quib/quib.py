@@ -2075,7 +2075,7 @@ class Quib:
 
             return get_math_expression_of_func_with_args_and_kwargs(self.func, args, kwargs)
         except Exception as e:
-            logger.warning(f"Failed to get repr {e}")
+            logger.warning(f"Failed to get repr:\n{e}")
             return FailedMathExpression()
 
     @property
@@ -2101,7 +2101,7 @@ class Quib:
         try:
             return str(self._get_functional_representation_expression())
         except Exception as e:
-            logger.warning(f"Failed to get repr {e}")
+            logger.warning(f"Failed to get repr:\n{e}")
             return str(FailedMathExpression())
 
     def get_math_expression(self) -> MathExpression:

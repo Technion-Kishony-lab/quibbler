@@ -62,7 +62,7 @@ def show_fig(fig, choice_type):
         try:
             plt.pause(0.05)
         except Exception as e:
-            logger.warning(f"Error in plt.pause: {e}")
+            logger.warning(f"Error in plt.pause:\n{e}")
             # This throws a TclError on windows with tkinter backend when the figure is closed
             break
     return figure_closed.val
