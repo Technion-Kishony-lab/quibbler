@@ -1,15 +1,15 @@
 from typing import List, Tuple
 
 import numpy as np
-from numpy._typing import NDArray
+from numpy.typing import NDArray
 
 from pyquibbler.utilities.numpy_original_functions import np_logical_or, np_cumsum
-from pyquibbler.translation.array_translation_utils import run_func_call_with_new_args_kwargs, ArrayPathTranslator
-from pyquibbler.translation.translators.numpy_translator import NumpyForwardsPathTranslator, \
-    NumpyBackwardsPathTranslator, Arg
+
+from ..array_translation_utils import run_func_call_with_new_args_kwargs, ArrayPathTranslator
+from .numpy_translator import NumpyBackwardsPathTranslator, NumpyForwardsPathTranslator, Arg
 
 
-class AccumulationBackwardsPathTranslator(NumpyBackwardsPathTranslator):
+class AxisAccumulationBackwardsPathTranslator(NumpyBackwardsPathTranslator):
 
     TRANSLATION_RELATED_ARGS: List[Arg] = [Arg('axis')]
 
@@ -36,7 +36,7 @@ class AccumulationBackwardsPathTranslator(NumpyBackwardsPathTranslator):
         return data_argument_index_array, bool_mask
 
 
-class AccumulationForwardsPathTranslator(NumpyForwardsPathTranslator):
+class AxisAccumulationForwardsPathTranslator(NumpyForwardsPathTranslator):
 
     def forward_translate_masked_data_arguments_to_result_mask(self,
                                                                data_argument_to_mask_converter: ArrayPathTranslator,

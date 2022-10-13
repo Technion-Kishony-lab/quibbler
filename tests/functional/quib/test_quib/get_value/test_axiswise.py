@@ -9,8 +9,6 @@ from tests.functional.quib.test_quib.get_value.utils import check_get_value_vali
 @parametrize_data
 @pytest.mark.parametrize(['axis', 'indices_to_get_value_at'], [
     (-1, 0),
-    (0, 0),
-    (1, (1, 0)),
     (2, (0, 0)),
 ])
 def test_axiswise_get_value_valid_at_path(axis, data, indices_to_get_value_at):

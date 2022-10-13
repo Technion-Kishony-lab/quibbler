@@ -69,6 +69,8 @@ class NumpyBackwardsPathTranslator(BackwardsPathTranslator):
         Return two same-size nd-arrays:
         (1) an array of index codes of the source
         (2) a mask indicating chosen elements.
+        These arrays must be of the same size but they do not need to be at the size of the function argument.
+        For example, for some converters, like np.concat, it is easier to return these at the size of the result.
         """
         pass
 

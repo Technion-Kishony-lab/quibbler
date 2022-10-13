@@ -3,13 +3,13 @@ from typing import List, Tuple
 import numpy as np
 from numpy.typing import NDArray
 
-from pyquibbler.utilities.numpy_original_functions import np_logical_and
-from pyquibbler.utilities.numpy_original_functions import np_sum
-from pyquibbler.translation.array_translation_utils import run_func_call_with_new_args_kwargs, ArrayPathTranslator
-from .numpy_translator import NumpyForwardsPathTranslator, Arg, ArgWithDefault, NumpyBackwardsPathTranslator
+from pyquibbler.utilities.numpy_original_functions import np_logical_and, np_sum
+
+from ..array_translation_utils import run_func_call_with_new_args_kwargs, ArrayPathTranslator
+from .numpy_translator import NumpyBackwardsPathTranslator, NumpyForwardsPathTranslator, Arg, ArgWithDefault
 
 
-class ReductionAxiswiseBackwardsPathTranslator(NumpyBackwardsPathTranslator):
+class AxisReductionBackwardsPathTranslator(NumpyBackwardsPathTranslator):
 
     TRANSLATION_RELATED_ARGS: List[Arg] = \
         [Arg('axis'), ArgWithDefault('keepdims', False), ArgWithDefault('where', True)]
@@ -30,7 +30,7 @@ class ReductionAxiswiseBackwardsPathTranslator(NumpyBackwardsPathTranslator):
         return data_argument_index_array, np_logical_and(result_bool_mask, args_dict['where'])
 
 
-class ReductionAxiswiseForwardsPathTranslator(NumpyForwardsPathTranslator):
+class AxisReductionForwardsPathTranslator(NumpyForwardsPathTranslator):
 
     def forward_translate_masked_data_arguments_to_result_mask(self,
                                                                data_argument_to_mask_converter: ArrayPathTranslator,

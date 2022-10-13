@@ -10,7 +10,7 @@ from .inverse_functions import inv_sin, inv_cos, inv_tan, keep_sign
 from .vectorize_overrides import create_vectorize_overrides
 from .helpers import numpy_override, numpy_override_random, numpy_override_read_file, \
   numpy_override_transpositional_one_to_many, numpy_override_transpositional_one_to_one, \
-  numpy_override_reduction, numpy_override_accumulation, \
+  numpy_override_reduction, numpy_override_accumulation, numpy_override_axis_wise, \
   binary_elementwise, unary_elementwise, numpy_override_shape_only, numpy_array_override
 
 
@@ -21,7 +21,7 @@ def identity(x):
 def create_numpy_overrides():
 
     return [
-        # Reduction
+        # Axis-Reduction
         *(numpy_override_reduction(func_name)
           for func_name in (
             # min / max:
@@ -52,13 +52,9 @@ def create_numpy_overrides():
             'var',
             'std',
             'median',
-
-            # other:
-            'diff',
-            'sort',
           )),
 
-        # Accumulation
+        # Axis-Accumulation
         *(numpy_override_accumulation(func_name)
           for func_name in (
             'cumsum',
@@ -68,7 +64,15 @@ def create_numpy_overrides():
             'nancumprod',
           )),
 
-        # Binary
+        # Axis-wise (any function along an axis)
+
+        *(numpy_override_axis_wise(func_name)
+          for func_name in (
+            'diff',  # TODO: need to write more specific translators that only invalidate/request neighbouring elements
+            'sort',
+          )),
+
+        # Binary (two arguments)
         *(binary_elementwise(func_name, {0: invs[0], 1: invs[1]})
           for func_name, invs in (
             # Arithmetic

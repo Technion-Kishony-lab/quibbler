@@ -11,8 +11,9 @@ from pyquibbler.function_overriding.third_party_overriding.general_helpers impor
 
 from pyquibbler.translation.translators import \
     BackwardsTranspositionalTranslator, ForwardsTranspositionalTranslator, \
-    AccumulationBackwardsPathTranslator, AccumulationForwardsPathTranslator, \
-    ReductionAxiswiseBackwardsPathTranslator, ReductionAxiswiseForwardsPathTranslator, \
+    AxisAccumulationBackwardsPathTranslator, AxisAccumulationForwardsPathTranslator, \
+    AxisReductionBackwardsPathTranslator, AxisReductionForwardsPathTranslator, \
+    AxisAllToAllBackwardsPathTranslator, AxisAllToAllForwardsPathTranslator, \
     BackwardsShapeOnlyPathTranslator, ForwardsShapeOnlyPathTranslator, \
     BackwardsBinaryElementwisePathTranslator, ForwardsBinaryElementwisePathTranslator, \
     BackwardsUnaryElementwisePathTranslator, ForwardsUnaryElementwisePathTranslator
@@ -58,12 +59,16 @@ numpy_array_override = functools.partial(override_with_cls, NumpyArrayOverride, 
                                          forwards_path_translators=[ForwardsTranspositionalTranslator])
 
 numpy_override_accumulation = functools.partial(numpy_override, data_source_arguments=[0],
-                                                backwards_path_translators=[AccumulationBackwardsPathTranslator],
-                                                forwards_path_translators=[AccumulationForwardsPathTranslator])
+                                                backwards_path_translators=[AxisAccumulationBackwardsPathTranslator],
+                                                forwards_path_translators=[AxisAccumulationForwardsPathTranslator])
 
 numpy_override_reduction = functools.partial(numpy_override, data_source_arguments=[0],
-                                             backwards_path_translators=[ReductionAxiswiseBackwardsPathTranslator],
-                                             forwards_path_translators=[ReductionAxiswiseForwardsPathTranslator])
+                                             backwards_path_translators=[AxisReductionBackwardsPathTranslator],
+                                             forwards_path_translators=[AxisReductionForwardsPathTranslator])
+
+numpy_override_axis_wise = functools.partial(numpy_override, data_source_arguments=[0],
+                                             backwards_path_translators=[AxisAllToAllBackwardsPathTranslator],
+                                             forwards_path_translators=[AxisAllToAllForwardsPathTranslator])
 
 numpy_override_shape_only = functools.partial(numpy_override, data_source_arguments=[0],
                                               backwards_path_translators=[BackwardsShapeOnlyPathTranslator],
