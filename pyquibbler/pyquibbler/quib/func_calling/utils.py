@@ -48,3 +48,16 @@ def convert_args_and_kwargs(converter: Callable, args: Args, kwargs: Kwargs):
     """
     return (tuple(converter(i, val) for i, val in enumerate(args)),
             {name: converter(name, val) for name, val in kwargs.items()})
+
+
+def get_shape_from_result(result: Any):
+    if isinstance(result, np.ndarray):
+        return np.shape(result)
+
+    try:
+        return np.shape(np.array(result, dtype=object))
+    except ValueError:
+        if hasattr(result, '__len__'):
+            return len(result),
+        else:
+            return None

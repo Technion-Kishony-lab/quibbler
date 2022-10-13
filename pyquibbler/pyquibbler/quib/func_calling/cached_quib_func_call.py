@@ -24,7 +24,6 @@ from pyquibbler.translation.translate import backwards_translate
 
 from .quib_func_call import QuibFuncCall
 from .cache_mode import CacheMode
-from .result_metadata import ResultMetadata
 
 
 class CachedQuibFuncCall(QuibFuncCall):
@@ -62,7 +61,6 @@ class CachedQuibFuncCall(QuibFuncCall):
     def _reset_cache(self):
         self.cache = None
         self._caching = True if self._get_cache_behavior() == CacheMode.ON else False
-        self._result_metadata = None
 
     def on_type_change(self):
         self._reset_cache()
@@ -249,5 +247,5 @@ class CachedQuibFuncCall(QuibFuncCall):
         if not self._caching:
             self.cache = None
 
-        self._result_metadata = ResultMetadata.from_result(result)
+        self._update_shape_and_type_from_result(result)
         return result

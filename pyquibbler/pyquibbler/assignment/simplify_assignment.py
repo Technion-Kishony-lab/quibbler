@@ -96,7 +96,6 @@ class AssignmentSimplifier:
         """
         Call this method to get the simplified assignment.
         """
-        from ..quib.func_calling.result_metadata import ResultMetadata
 
         try:
             if is_numeric_scalar(self.last_data) and is_numeric_scalar(self.value):
@@ -108,7 +107,7 @@ class AssignmentSimplifier:
 
             self._make_last_component_tuple()
 
-            if len(self.last_component.component) == ResultMetadata.from_result(self.second_to_last_data).ndim:
+            if len(self.last_component.component) == np.ndim(self.second_to_last_data):
 
                 self._convert_bool_indexing()
 

@@ -27,7 +27,7 @@ def get_func_call_for_translation(func_call: QuibFuncCall, with_meta_data: Optio
 
     def _transform_data_quib(quib: Quib):
         if with_meta_data is True \
-                or with_meta_data is None and quib.handler.quib_function_call._result_metadata is not None:
+                or with_meta_data is None and quib.handler.quib_function_call.result_shape is not None:
             source = Source(quib.get_value_valid_at_path(None))
         else:
             source = NoMetadataSource()

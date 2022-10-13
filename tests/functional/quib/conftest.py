@@ -1,5 +1,6 @@
 from unittest import mock
 
+import numpy as np
 import pytest
 
 from pyquibbler.quib.quib import Quib, QuibHandler
@@ -16,7 +17,8 @@ def create_mock_quib():
         mock_quib.get_ndim.return_value = len(shape)
         mock_quib.handler = mock.Mock(spec=QuibHandler)
         mock_quib.handler.quib_function_call = mock.Mock()
-        mock_quib.handler.quib_function_call._result_metadata = True
+        mock_quib.handler.quib_function_call.result_shape = np.shape(get_value_result)
+        mock_quib.handler.quib_function_call.result_type = type(get_value_result)
         mock_quib.handler.get_figures.return_value = []
         mock_quib.get_descendants.return_value = children or set()
         return mock_quib
