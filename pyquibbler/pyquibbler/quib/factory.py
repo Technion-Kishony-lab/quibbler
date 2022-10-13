@@ -1,9 +1,10 @@
 from __future__ import annotations
 import pathlib
-from typing import Optional, Tuple, Callable, Any, Mapping, Union, Set, List
+from typing import Optional, Callable, Union, Set, List
 
 from pyquibbler.assignment import AssignmentTemplate
 from pyquibbler.utilities.missing_value import missing
+from pyquibbler.utilities.general_utils import Kwargs, Args
 from pyquibbler.env import LAZY, GRAPHICS_LAZY
 from pyquibbler.project import Project
 from pyquibbler.file_syncing.types import SaveFormat
@@ -23,8 +24,8 @@ if TYPE_CHECKING:
 
 
 def create_quib(func: Optional[Callable],
-                args: Tuple[Any, ...] = (),
-                kwargs: Mapping[str, Any] = None,
+                args: Args = (),
+                kwargs: Kwargs = None,
                 func_definition: FuncDefinition = None,
                 cache_mode: CacheMode = None,
                 lazy: bool = missing,

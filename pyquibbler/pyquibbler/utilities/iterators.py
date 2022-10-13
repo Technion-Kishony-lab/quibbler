@@ -1,13 +1,15 @@
 import numpy as np
-from typing import Tuple, Any, Mapping, Type, Optional, Callable
+from dataclasses import dataclass
+
+from typing import Any, Type, Optional, Callable
+from .general_utils import is_object_array, is_non_object_array, Kwargs, Args
+
+from .numpy_original_functions import np_full
 
 from pyquibbler.env import DEBUG
 from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.path import Path, PathComponent, Paths
-from dataclasses import dataclass
 
-from .general_utils import is_object_array, is_non_object_array
-from .numpy_original_functions import np_full
 
 SHALLOW_MAX_DEPTH = 2
 SHALLOW_MAX_LENGTH = 100
@@ -116,7 +118,7 @@ def iter_objects_of_type_in_object(object_type: Type, obj: Any, recursive: bool 
     return result
 
 
-def iter_object_type_in_args_kwargs(object_type, args: Tuple[Any, ...], kwargs: Mapping[str, Any]):
+def iter_object_type_in_args_kwargs(object_type, args: Args, kwargs: Kwargs):
     """
     Returns an iterator for all objects of a type nested in the given args and kwargs.
     """

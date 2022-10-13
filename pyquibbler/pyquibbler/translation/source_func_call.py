@@ -1,5 +1,7 @@
 import dataclasses
-from typing import Callable, Tuple, Any, Mapping, Optional, List
+
+from typing import Callable, Optional, List
+from pyquibbler.utilities.general_utils import Args, Kwargs
 
 from pyquibbler.function_definitions import get_definition_for_function, SourceLocation
 from pyquibbler.function_definitions.func_call import FuncCall, FuncArgsKwargs
@@ -24,8 +26,8 @@ class SourceFuncCall(FuncCall):
 
     @classmethod
     def from_(cls, func: Callable,
-              func_args: Tuple[Any, ...],
-              func_kwargs: Mapping[str, Any],
+              func_args: Args,
+              func_kwargs: Kwargs,
               func_definition: 'FuncDefinition' = None,
               data_source_locations: Optional[List[SourceLocation]] = None,
               parameter_source_locations: Optional[List[SourceLocation]] = None,

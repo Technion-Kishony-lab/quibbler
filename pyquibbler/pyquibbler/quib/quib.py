@@ -6,6 +6,10 @@ import weakref
 
 import numpy as np
 
+# Typing
+from pyquibbler.utilities.general_utils import Shape, Args, Kwargs
+from typing import Set, Any, Optional, Tuple, Type, List, Union, Iterable, Mapping, Callable
+
 # Matplotlib types:
 from matplotlib.artist import Artist
 from matplotlib.axes import Axes
@@ -13,7 +17,6 @@ from matplotlib.axes import Axes
 # Debugging, warning and performance:
 from pyquibbler.debug_utils import timeit, logger
 from pyquibbler.quib.exceptions import LenBoolEtcException
-from pyquibbler.utilities.general_utils import Shape
 from pyquibbler.utilities.warning_messages import no_header_warn
 
 # Input validation:
@@ -72,8 +75,7 @@ from pyquibbler.quib.pretty_converters import MathExpression, FailedMathExpressi
 from pyquibbler.env import SHOW_QUIBS_AS_WIDGETS_IN_JUPYTER_LAB
 from pyquibbler.quib.exceptions import CannotDisplayQuibWidget
 
-from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Union, Iterable, Mapping, Callable
-
+from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pyquibbler.function_definitions.func_definition import FuncDefinition
     from pyquibbler.assignment.override_choice import ChoiceContext
@@ -104,8 +106,8 @@ class QuibHandler:
                  save_directory: PathWithHyperLink,
                  save_format: Optional[SaveFormat],
                  func: Optional[Callable],
-                 args: Tuple[Any, ...] = (),
-                 kwargs: Mapping[str, Any] = None,
+                 args: Args = (),
+                 kwargs: Kwargs = None,
                  func_definition: FuncDefinition = None,
                  cache_mode: CacheMode = None,
                  has_ever_called_get_value: bool = False
@@ -598,8 +600,8 @@ class Quib:
                  save_directory: Optional[pathlib.Path] = None,
                  save_format: Optional[SaveFormat] = None,
                  func: Optional[Callable] = None,
-                 args: Tuple[Any, ...] = (),
-                 kwargs: Mapping[str, Any] = None,
+                 args: Args = (),
+                 kwargs: Kwargs = None,
                  func_definition: FuncDefinition = None,
                  cache_mode: CacheMode = None,
                  ):
@@ -648,7 +650,7 @@ class Quib:
         return self.handler.quib_function_call.func
 
     @property
-    def args(self) -> Tuple[Any]:
+    def args(self) -> Args:
         """
         tuple of any: The positional arguments to be passed to the function run by the quib.
 
@@ -674,7 +676,7 @@ class Quib:
         return self.handler.quib_function_call.args
 
     @property
-    def kwargs(self) -> Mapping[str, Any]:
+    def kwargs(self) -> Kwargs:
         """
         dict of str to any: The keyworded arguments for the function run by the quib.
 

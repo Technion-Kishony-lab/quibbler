@@ -7,6 +7,9 @@ from typing import Callable, Tuple, Any, Dict, Mapping
 
 
 from typing import TYPE_CHECKING
+
+from pyquibbler.utilities.general_utils import Args, Kwargs
+
 if TYPE_CHECKING:
     from pyquibbler.quib.func_calling.quib_func_call import QuibFuncCall
 
@@ -39,7 +42,7 @@ def create_array_from_func(func, shape):
     return np.vectorize(lambda _: func(), otypes=[object])(np.empty(shape))
 
 
-def convert_args_and_kwargs(converter: Callable, args: Tuple[Any, ...], kwargs: Mapping[str, Any]):
+def convert_args_and_kwargs(converter: Callable, args: Args, kwargs: Kwargs):
     """
     Apply the given converter on all given arg and kwarg values.
     """

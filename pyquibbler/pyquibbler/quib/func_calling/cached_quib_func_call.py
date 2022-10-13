@@ -3,11 +3,12 @@ from __future__ import annotations
 from contextlib import ExitStack
 from sys import getsizeof
 from time import perf_counter
-from typing import Optional, Tuple, Dict, Any, Set, Mapping, Callable, List, Union
+from typing import Optional, Dict, Any, Set, Callable, List, Union
 
 import numpy as np
 
-from pyquibbler.cache.cache_utils import _truncate_path_to_match_shallow_caches, _ensure_cache_matches_result, \
+from pyquibbler.utilities.general_utils import Args, Kwargs
+from pyquibbler.cache.cache_utils import truncate_path_to_match_shallow_caches, ensure_cache_matches_result, \
     get_cached_data_at_truncated_path_given_result_at_uncached_path
 from pyquibbler.cache import PathCannotHaveComponentsException, get_uncached_paths_matching_path
 
@@ -68,7 +69,7 @@ class CachedQuibFuncCall(QuibFuncCall):
         super(CachedQuibFuncCall, self).on_type_change()
 
     def _run_single_call(self, func: Callable, graphics_collection: GraphicsCollection,
-                         args: Tuple[Any, ...], kwargs: Mapping[str, Any], quibs_allowed_to_access: Set[Quib]):
+                         args: Args, kwargs: Kwargs, quibs_allowed_to_access: Set[Quib]):
 
         graphics_collection.set_color_cyclers_back_to_pre_run_index()
         with ExitStack() as stack:
@@ -164,7 +165,7 @@ class CachedQuibFuncCall(QuibFuncCall):
         if len(uncached_paths) == 0:
             if self.cache is None:
                 result = self._run_on_path(None)
-                self.cache = _ensure_cache_matches_result(self.cache, result)
+                self.cache = ensure_cache_matches_result(self.cache, result)
             return self.cache.get_value()
 
         result = None
@@ -172,8 +173,8 @@ class CachedQuibFuncCall(QuibFuncCall):
         for uncached_path in uncached_paths:
             result = self._run_on_path(uncached_path)
 
-            truncated_path = _truncate_path_to_match_shallow_caches(uncached_path, result)
-            self.cache = _ensure_cache_matches_result(self.cache, result)
+            truncated_path = truncate_path_to_match_shallow_caches(uncached_path, result)
+            self.cache = ensure_cache_matches_result(self.cache, result)
 
             if truncated_path is not None:
                 with external_call_failed_exception_handling():

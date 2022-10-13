@@ -20,7 +20,7 @@ def get_cached_data_at_truncated_path_given_result_at_uncached_path(cache, resul
     return value
 
 
-def _ensure_cache_matches_result(cache: Optional[Cache], new_result: Any) -> Cache:
+def ensure_cache_matches_result(cache: Optional[Cache], new_result: Any) -> Cache:
     """
     Ensure there exists a current cache matching the given result; if the held cache does not match,
     this function will now recreate the cache to match it
@@ -31,7 +31,7 @@ def _ensure_cache_matches_result(cache: Optional[Cache], new_result: Any) -> Cac
     return cache
 
 
-def _truncate_path_to_match_shallow_caches(path: Optional[Path], result):
+def truncate_path_to_match_shallow_caches(path: Optional[Path], result):
     """
     Truncate a path so it can be used by shallow caches- we only want to cache and store elements at their first
     component in their path

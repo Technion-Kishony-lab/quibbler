@@ -1,5 +1,6 @@
 from typing import Optional, Any, Mapping, Tuple
 
+from pyquibbler.utilities.general_utils import Args, Kwargs
 from pyquibbler.utilities.iterators import iter_objects_of_type_in_object_recursively, iter_objects_of_type_in_object, \
     iter_object_type_in_args_kwargs
 
@@ -25,7 +26,7 @@ def iter_quibs_in_object(obj, recursive: bool = False):
     return iter_objects_of_type_in_object(Quib, obj, recursive)
 
 
-def iter_quibs_in_args(args: Tuple[Any, ...], kwargs: Mapping[str, Any]):
+def iter_quibs_in_args(args: Args, kwargs: Kwargs):
     """
     Returns an iterator for all quib objects nested in the given args and kwargs.
     """

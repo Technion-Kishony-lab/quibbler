@@ -2,6 +2,7 @@ from typing import Callable, Tuple, Any, Mapping, Set, Optional
 
 import numpy as np
 
+from pyquibbler.utilities.general_utils import Kwargs, Args
 from pyquibbler.assignment import AssignmentToQuib, AssignmentWithTolerance, get_axes_x_y_tolerance
 from pyquibbler.function_definitions import KeywordArgument
 from pyquibbler.graphics import GraphicsCollection
@@ -80,7 +81,7 @@ class RectangleSelectorQuibFuncCall(WidgetQuibFuncCall):
         widget.release_callback = self._on_release
 
     def _run_single_call(self, func: Callable, graphics_collection: GraphicsCollection,
-                         args: Tuple[Any, ...], kwargs: Mapping[str, Any], quibs_allowed_to_access: Set[Quib]):
+                         args: Args, kwargs: Kwargs, quibs_allowed_to_access: Set[Quib]):
         previous_widgets = graphics_collection.widgets
 
         # speed-up by changing the current widget instead of creating a new one:

@@ -3,6 +3,7 @@ from typing import Callable, Tuple, Any, Mapping, Set, List, Optional, Iterable
 from matplotlib.axes import Axes
 from matplotlib.widgets import AxesWidget
 
+from pyquibbler.utilities.general_utils import Args, Kwargs
 from pyquibbler.assignment import AssignmentToQuib, create_assignment, Assignment, get_override_group_for_quib_changes
 from pyquibbler.path.path_component import Path
 from pyquibbler.graphics.graphics_collection import GraphicsCollection
@@ -59,7 +60,7 @@ class WidgetQuibFuncCall(CachedQuibFuncCall):
         end_dragging()
 
     def _run_single_call(self, func: Callable, graphics_collection: GraphicsCollection,
-                         args: Tuple[Any, ...], kwargs: Mapping[str, Any], quibs_allowed_to_access: Set[Quib]):
+                         args: Args, kwargs: Kwargs, quibs_allowed_to_access: Set[Quib]):
         previous_widgets = graphics_collection.widgets
         res = super(WidgetQuibFuncCall, self)._run_single_call(func, graphics_collection, args, kwargs,
                                                                quibs_allowed_to_access)

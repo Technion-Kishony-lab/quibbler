@@ -79,8 +79,7 @@ class KeywordSourceLocation(SourceLocation):
         return deep_get(kwargs, self.full_path)
 
 
-def get_object_type_locations_in_args_kwargs(object_type, args: Tuple[Any, ...], kwargs: Mapping[str, Any]) \
-        -> List[SourceLocation]:
+def get_object_type_locations_in_args_kwargs(object_type, args: Args, kwargs: Kwargs) -> List[SourceLocation]:
     """
     Find all objects of a given type in args and kwargs and return their locations
     """

@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 
 import numpy as np
+
+from typing import List
 from numpy.typing import NDArray
 
 from pyquibbler.translation.array_translation_utils import ArrayPathTranslator
@@ -30,7 +32,7 @@ class ApplyAlongAxis:
 
 
 class ApplyAlongAxisForwardsTranslator(NumpyForwardsPathTranslator):
-    TRANSLATION_RELATED_ARGS = [Arg('axis')]
+    TRANSLATION_RELATED_ARGS: List[Arg] = [Arg('axis')]
 
     def _get_translation_related_arg_dict(self):
         arg_dict = {key: val for key, val in self._func_call.func_args_kwargs.get_arg_values_by_keyword().items()

@@ -7,7 +7,7 @@ from pyquibbler.path import Path, PathComponent, SpecialComponent
 from pyquibbler.quib.external_call_failed_exception_handling import \
     external_call_failed_exception_handling
 from pyquibbler.quib.specialized_functions.proxy import create_proxy
-from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices, Shape
+from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices, Shape, Args, Kwargs
 from pyquibbler.function_definitions.func_call import FuncArgsKwargs
 from pyquibbler.graphics.utils import remove_created_graphics
 from pyquibbler.quib.func_calling import CachedQuibFuncCall
@@ -107,8 +107,8 @@ class ApplyAlongAxisQuibFuncCall(CachedQuibFuncCall):
                                requested_indices_bool_mask: np.ndarray,
                                indices_before_axis: Tuple,
                                indices_after_axis: Tuple,
-                               func1d_args: Tuple[Any, ...],
-                               func1d_kwargs: Mapping[str, Any]):
+                               func1d_args: Args,
+                               func1d_kwargs: Kwargs):
         """
         Get a result at the indices given as arguments- this does not necessarily mean that func1d will be run; if the
         bool mask is not True within the given indices, then the result of this iteration was not requested (at

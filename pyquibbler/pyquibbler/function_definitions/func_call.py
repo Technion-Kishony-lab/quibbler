@@ -5,7 +5,9 @@ from dataclasses import dataclass
 from typing import Tuple, Any, Mapping, Optional, Callable, List, Type, ClassVar, Dict, Union
 
 from pyquibbler.utilities.iterators import recursively_compare_objects
+from pyquibbler.utilities.general_utils import Kwargs, Args
 from pyquibbler.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
+from pyquibbler.path import deep_set, PathComponent
 
 from .utils import get_signature_for_func
 from .location import SourceLocation, get_object_type_locations_in_args_kwargs
@@ -13,7 +15,6 @@ from .types import iter_arg_ids_and_values, KeywordArgument, PositionalArgument,
 
 from typing import TYPE_CHECKING
 
-from ..path import deep_set, PathComponent
 
 if TYPE_CHECKING:
     from .func_definition import FuncDefinition
@@ -35,7 +36,7 @@ class FuncArgsKwargs:
     args: Union[Tuple[Any, ...], List[Any, ...]]
     kwargs: Dict[str, Any]
 
-    def get_kwargs_without_those_equal_to_defaults(self, arguments: Optional[Mapping[str: Any]] = None):
+    def get_kwargs_without_those_equal_to_defaults(self, arguments: Optional[Kwargs] = None):
         """
         Remove arguments which exist as default arguments with the same value.
         """
@@ -64,7 +65,7 @@ class FuncArgsKwargs:
         return arguments.items()
 
     def get_args_values_by_keyword_and_position(self, include_defaults: bool = True) \
-            -> Tuple[Mapping[str, Any], Tuple[Any, ...]]:
+            -> Tuple[Kwargs, Args]:
         # We use external_call_failed_exception_handling here as if the user provided the wrong arguments to the
         # function we'll fail here
         with external_call_failed_exception_handling():
@@ -76,10 +77,10 @@ class FuncArgsKwargs:
                 arg_values_by_position = self.args
         return arg_values_by_name, arg_values_by_position
 
-    def get_arg_values_by_keyword(self, include_defaults: bool = True) -> Mapping[str, Any]:
+    def get_arg_values_by_keyword(self, include_defaults: bool = True) -> Kwargs:
         return self.get_args_values_by_keyword_and_position(include_defaults)[0]
 
-    def get_arg_values_by_position(self, include_defaults: bool = True) -> Tuple[Any, ...]:
+    def get_arg_values_by_position(self, include_defaults: bool = True) -> Args:
         return self.get_args_values_by_keyword_and_position(include_defaults)[1]
 
     def __hash__(self):
