@@ -9,7 +9,7 @@ from ...utilities.iterators import iter_objects_of_type_in_object_recursively
 
 class Obj2QuibBackwardsPathTranslator(BackwardsPathTranslator):
 
-    SHOULD_ATTEMPT_WITHOUT_SHAPE_AND_TYPE = True
+    NEED_SHAPE_AND_TYPE = False
 
     def backwards_translate(self) -> Dict[Source, Path]:
         path_within_object, remaining_path, obj = split_path_at_end_of_object(self._func_call.args[0], self._path)

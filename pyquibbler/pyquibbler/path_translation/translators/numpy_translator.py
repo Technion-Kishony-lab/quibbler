@@ -151,7 +151,6 @@ class NumpyForwardsPathTranslator(ForwardsPathTranslator):
     of the target, indicating affected elements in the target.
     """
 
-    SHOULD_ATTEMPT_WITHOUT_SHAPE_AND_TYPE = False
     ADD_OUT_OF_ARRAY_COMPONENT = False
 
     @abstractmethod

@@ -18,10 +18,18 @@ class BackwardsPathTranslator:
     translator in the `function_overriding.third_party_overriding` package.
     """
 
-    # Override this in your translator if you have the ability to translate without needing shape + type. If you can
-    # only work without shape and type in specific situations,
-    # raise `FailedToTranslateException` if you fail in order to attempt WITH shape + type
-    SHOULD_ATTEMPT_WITHOUT_SHAPE_AND_TYPE = False
+    # Specified whether the translator needs shape and type of the function result and the sources.
+    # Options:
+    # False: Does not use shape and type.
+    # None: May need shape and type. The translator will raise `FailedToTranslateException` if shape + type are needed
+    # and were not given.
+    # True: The translator can only work with shape and type.
+    #
+    # Order of runs:
+    # False and None are run first without shape and type
+    # True and None are run second with shape and type
+
+    NEED_SHAPE_AND_TYPE = True
 
     def __init__(self, func_call: SourceFuncCall, shape: Optional[Shape], type_: Optional[Type], path: Path):
         self._func_call = func_call

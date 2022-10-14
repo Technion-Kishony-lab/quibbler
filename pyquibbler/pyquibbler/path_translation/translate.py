@@ -25,11 +25,15 @@ class MultipleBackwardsTranslatorRunner(MultipleFuncCallInstanceRunner):
         self._extra_kwargs_for_translator = extra_kwargs_for_translator
 
     def _get_runners_from_definition(self, definition: FuncDefinition) -> List[Type[BackwardsPathTranslator]]:
-        return definition.backwards_path_translators
+        runners = definition.backwards_path_translators
+        if self._type is None:
+            # only run runners that may work without shape and type (NEED_SHAPE_AND_TYPE is False or None)
+            return [runner for runner in runners if runner.NEED_SHAPE_AND_TYPE is not True]
+        else:
+            # only run runners that may work when shape and type are given (NEED_SHAPE_AND_TYPE is True or None)
+            return [runner for runner in runners if runner.NEED_SHAPE_AND_TYPE is not False]
 
     def _run_runner(self, runner: Type[BackwardsPathTranslator]):
-        if not runner.SHOULD_ATTEMPT_WITHOUT_SHAPE_AND_TYPE and self._type is None:
-            raise FailedToTranslateException()
         translator = runner(
             func_call=self._func_call,
             path=self._path,

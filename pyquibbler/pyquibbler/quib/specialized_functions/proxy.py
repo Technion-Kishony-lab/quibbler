@@ -26,7 +26,7 @@ def proxy(quib_value: Any):
 
 class ProxyBackwardsPathTranslator(BackwardsPathTranslator):
 
-    SHOULD_ATTEMPT_WITHOUT_SHAPE_AND_TYPE = True
+    NEED_SHAPE_AND_TYPE = False
 
     def backwards_translate(self) -> Dict[Source, Path]:
         return {

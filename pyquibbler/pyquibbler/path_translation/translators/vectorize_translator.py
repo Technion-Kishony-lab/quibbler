@@ -31,8 +31,6 @@ def _get_arg_ids_for_source(source: Source, args, kwargs) -> Set[ArgId]:
 
 class VectorizeBackwardsPathTranslator(NumpyBackwardsPathTranslator):
 
-    SHOULD_ATTEMPT_WITHOUT_SHAPE_AND_TYPE = False
-
     def __init__(self, func_call, shape: Optional[Shape], type_: Optional[Type], path,
                  vectorize_metadata=None):
         super().__init__(func_call, shape, type_, path)

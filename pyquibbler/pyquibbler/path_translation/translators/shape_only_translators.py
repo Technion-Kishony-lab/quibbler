@@ -8,7 +8,8 @@ from pyquibbler.path_translation.types import Source
 
 class ShapeOnlyBackwardsPathTranslator(BackwardsPathTranslator):
     """
-    We only need the shape of sources. Not their value.
+    For functions like, np.ones_like, np.zeros_like, np.shape,
+    we only need the shape of sources. Not their value.
     """
     def backwards_translate(self) -> Dict[Source, Path]:
         sources_to_paths = {}

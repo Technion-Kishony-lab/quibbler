@@ -96,17 +96,15 @@ class CachedQuibFuncCall(QuibFuncCall):
         if not self.get_data_sources():
             return {}
 
-        try_with_shape = False
         try:
+            # try without shape and type
             func_call, sources_to_quibs = get_func_call_for_translation(func_call=self, with_meta_data=False)
             sources_to_paths = backwards_translate(
                 func_call=func_call,
                 path=valid_path,
             )
         except NoTranslatorsWorkedException:
-            try_with_shape = True
-
-        if try_with_shape:
+            # try with shape and type
             func_call, sources_to_quibs = get_func_call_for_translation(func_call=self, with_meta_data=True)
             try:
                 sources_to_paths = backwards_translate(
@@ -117,7 +115,8 @@ class CachedQuibFuncCall(QuibFuncCall):
                     **self.get_result_metadata()
                 )
             except NoTranslatorsWorkedException:
-                return {}
+                # as a backup, request everything if cannot translate:
+                sources_to_paths = {source: [] for source in sources_to_quibs}
 
         return {
             quib: sources_to_paths.get(source, None)
