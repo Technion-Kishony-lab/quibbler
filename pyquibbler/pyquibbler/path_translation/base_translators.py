@@ -45,12 +45,6 @@ class ForwardsPathTranslator:
     Normally, you will create a forwardspathtranslator for a specific set of functions and then add it as the
     translator in the `function_overriding.third_party_overriding` package.
     """
-
-    # Override this in your translator if you have the ability to translate without needing shape + type. If you can
-    # only work without shape and type in specific situations,
-    # raise `FailedToTranslateException` if you fail in order to attempt WITH shape + type
-    SHOULD_ATTEMPT_WITHOUT_SHAPE_AND_TYPE = False
-
     def __init__(self,
                  func_call: FuncCall,
                  source: Source,

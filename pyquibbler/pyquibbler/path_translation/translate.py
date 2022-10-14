@@ -61,8 +61,6 @@ class MultipleForwardsTranslatorRunner(MultipleFuncCallInstanceRunner):
         self._extra_kwargs_for_translator = extra_kwargs_for_translator
 
     def _run_runner(self, runner: Type[ForwardsPathTranslator]):
-        if not runner.SHOULD_ATTEMPT_WITHOUT_SHAPE_AND_TYPE and self._type is None:
-            raise FailedToTranslateException()
         return runner(
             func_call=self._func_call,
             shape=self._shape,
