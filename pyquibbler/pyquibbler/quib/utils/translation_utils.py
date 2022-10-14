@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pyquibbler.translation import SourceFuncCall, Source, NoMetadataSource
+from pyquibbler.path_translation import SourceFuncCall, Source, NoMetadataSource
 
 from typing import TYPE_CHECKING, Optional
 if TYPE_CHECKING:

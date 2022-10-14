@@ -3,17 +3,17 @@ from typing import Any, List, Type, Union
 
 from pyquibbler.assignment import AssignmentWithTolerance, Assignment, default
 from pyquibbler.function_definitions.func_definition import FuncDefinition
-from pyquibbler.inversion.exceptions import NoInvertersFoundException, FailedToInvertException
+from pyquibbler.inversion.exceptions import NoInvertersWorkedException, FailedToInvertException
 from pyquibbler.inversion.inverter import Inverter
 from pyquibbler.path import deep_get
-from pyquibbler.translation.source_func_call import SourceFuncCall
-from pyquibbler.translation.types import Inversal
-from pyquibbler.utilities.multiple_instance_runner import MultipleInstanceRunner
+from pyquibbler.path_translation.source_func_call import SourceFuncCall
+from pyquibbler.path_translation.types import Inversal
+from pyquibbler.utilities.multiple_instance_runner import MultipleFuncCallInstanceRunner
 
 
-class MultipleInverterRunner(MultipleInstanceRunner):
+class MultipleInverterRunner(MultipleFuncCallInstanceRunner):
 
-    exception_to_raise_on_none_found = NoInvertersFoundException
+    exception_to_raise_on_none_found = NoInvertersWorkedException
     expected_runner_exception = FailedToInvertException
 
     def __init__(self, func_call: SourceFuncCall, assignment: Union[Assignment, AssignmentWithTolerance],

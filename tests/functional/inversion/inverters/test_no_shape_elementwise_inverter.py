@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from typing import Iterable
 
-from pyquibbler.translation.types import Source
+from pyquibbler.path_translation.types import Source
 from tests.functional.inversion.inverters.utils import inverse
 
 

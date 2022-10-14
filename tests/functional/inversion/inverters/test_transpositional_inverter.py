@@ -3,7 +3,7 @@ import pytest
 
 from pyquibbler import Assignment
 from pyquibbler.path import PathComponent
-from pyquibbler.translation.types import Source
+from pyquibbler.path_translation.types import Source
 from pyquibbler.user_utils.obj2quib import identity_function_obj2quib
 from pyquibbler.utilities.iterators import recursively_compare_objects
 from tests.functional.inversion.inverters.utils import inverse

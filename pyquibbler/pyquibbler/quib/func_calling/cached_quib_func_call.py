@@ -19,8 +19,8 @@ from pyquibbler.quib.external_call_failed_exception_handling import external_cal
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.quib_guard import QuibGuard
 from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation
-from pyquibbler.translation import NoTranslatorsFoundException
-from pyquibbler.translation.translate import backwards_translate
+from pyquibbler.path_translation import NoTranslatorsWorkedException
+from pyquibbler.path_translation.translate import backwards_translate
 
 from .quib_func_call import QuibFuncCall
 from .cache_mode import CacheMode
@@ -103,7 +103,7 @@ class CachedQuibFuncCall(QuibFuncCall):
                 func_call=func_call,
                 path=valid_path,
             )
-        except NoTranslatorsFoundException:
+        except NoTranslatorsWorkedException:
             try_with_shape = True
 
         if try_with_shape:
@@ -116,7 +116,7 @@ class CachedQuibFuncCall(QuibFuncCall):
                     type_=self.get_type(),
                     **self.get_result_metadata()
                 )
-            except NoTranslatorsFoundException:
+            except NoTranslatorsWorkedException:
                 return {}
 
         return {

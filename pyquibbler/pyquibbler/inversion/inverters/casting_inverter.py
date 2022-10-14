@@ -4,7 +4,7 @@ import numpy as np
 
 from pyquibbler import Assignment
 from pyquibbler.inversion.inverter import Inverter
-from pyquibbler.translation.types import Source, Inversal
+from pyquibbler.path_translation.types import Source, Inversal
 from abc import ABC, abstractmethod
 
 

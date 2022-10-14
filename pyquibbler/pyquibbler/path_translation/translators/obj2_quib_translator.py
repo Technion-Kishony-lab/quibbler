@@ -7,7 +7,7 @@ from ..types import Source
 from ...utilities.iterators import iter_objects_of_type_in_object_recursively
 
 
-class BackwardsObj2QuibTranslator(BackwardsPathTranslator):
+class Obj2QuibBackwardsPathTranslator(BackwardsPathTranslator):
 
     SHOULD_ATTEMPT_WITHOUT_SHAPE_AND_TYPE = True
 
@@ -21,7 +21,7 @@ class BackwardsObj2QuibTranslator(BackwardsPathTranslator):
         return {source: [] for source in sources_within_the_referenced_path}
 
 
-class ForwardsObj2QuibTranslator(ForwardsPathTranslator):
+class Obj2QuibForwardsPathTranslator(ForwardsPathTranslator):
 
     def forward_translate(self) -> Paths:
         return [self._source_location.path + self._path]

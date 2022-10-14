@@ -9,14 +9,14 @@ from pyquibbler.function_overriding.function_override import FuncOverride
 from pyquibbler.function_overriding.third_party_overriding.general_helpers import override, \
     file_loading_override, override_with_cls
 
-from pyquibbler.translation.translators import \
-    BackwardsTranspositionalTranslator, ForwardsTranspositionalTranslator, \
+from pyquibbler.path_translation.translators import \
+    TranspositionalBackwardsPathTranslator, TranspositionalForwardsPathTranslator, \
     AxisAccumulationBackwardsPathTranslator, AxisAccumulationForwardsPathTranslator, \
     AxisReductionBackwardsPathTranslator, AxisReductionForwardsPathTranslator, \
     AxisAllToAllBackwardsPathTranslator, AxisAllToAllForwardsPathTranslator, \
-    BackwardsShapeOnlyPathTranslator, ForwardsShapeOnlyPathTranslator, \
-    BackwardsBinaryElementwisePathTranslator, ForwardsBinaryElementwisePathTranslator, \
-    BackwardsUnaryElementwisePathTranslator, ForwardsUnaryElementwisePathTranslator
+    ShapeOnlyBackwardsPathTranslator, ShapeOnlyForwardsPathTranslator, \
+    BinaryElementwiseBackwardsPathTranslator, BinaryElementwiseForwardsPathTranslator, \
+    UnaryElementwiseBackwardsPathTranslator, UnaryElementwiseForwardsPathTranslator
 
 from pyquibbler.inversion.inverters.transpositional_inverter import \
     TranspositionalOneToManyInverter, TranspositionalOneToOneInverter
@@ -45,18 +45,18 @@ numpy_override_read_file = functools.partial(file_loading_override, np)
 
 numpy_override_transpositional_one_to_many = \
     functools.partial(numpy_override, inverters=[TranspositionalOneToManyInverter],
-                      backwards_path_translators=[BackwardsTranspositionalTranslator],
-                      forwards_path_translators=[ForwardsTranspositionalTranslator])
+                      backwards_path_translators=[TranspositionalBackwardsPathTranslator],
+                      forwards_path_translators=[TranspositionalForwardsPathTranslator])
 
 numpy_override_transpositional_one_to_one = \
     functools.partial(numpy_override, inverters=[TranspositionalOneToOneInverter],
-                      backwards_path_translators=[BackwardsTranspositionalTranslator],
-                      forwards_path_translators=[ForwardsTranspositionalTranslator])
+                      backwards_path_translators=[TranspositionalBackwardsPathTranslator],
+                      forwards_path_translators=[TranspositionalForwardsPathTranslator])
 
 numpy_array_override = functools.partial(override_with_cls, NumpyArrayOverride, np,
                                          inverters=[TranspositionalOneToOneInverter],
-                                         backwards_path_translators=[BackwardsTranspositionalTranslator],
-                                         forwards_path_translators=[ForwardsTranspositionalTranslator])
+                                         backwards_path_translators=[TranspositionalBackwardsPathTranslator],
+                                         forwards_path_translators=[TranspositionalForwardsPathTranslator])
 
 numpy_override_accumulation = functools.partial(numpy_override, data_source_arguments=[0],
                                                 backwards_path_translators=[AxisAccumulationBackwardsPathTranslator],
@@ -71,8 +71,8 @@ numpy_override_axis_wise = functools.partial(numpy_override, data_source_argumen
                                              forwards_path_translators=[AxisAllToAllForwardsPathTranslator])
 
 numpy_override_shape_only = functools.partial(numpy_override, data_source_arguments=[0],
-                                              backwards_path_translators=[BackwardsShapeOnlyPathTranslator],
-                                              forwards_path_translators=[ForwardsShapeOnlyPathTranslator])
+                                              backwards_path_translators=[ShapeOnlyBackwardsPathTranslator],
+                                              forwards_path_translators=[ShapeOnlyForwardsPathTranslator])
 
 UNARY_ELEMENTWISE_FUNCS_TO_INVERSE_FUNCS = {}
 BINARY_ELEMENTWISE_FUNCS_TO_INVERSE_FUNCS = {}
@@ -99,8 +99,8 @@ def binary_elementwise(func_name: str,
     return numpy_override(
         func_name=func_name,
         data_source_arguments=[0, 1],
-        backwards_path_translators=[BackwardsBinaryElementwisePathTranslator],
-        forwards_path_translators=[ForwardsBinaryElementwisePathTranslator],
+        backwards_path_translators=[BinaryElementwiseBackwardsPathTranslator],
+        forwards_path_translators=[BinaryElementwiseForwardsPathTranslator],
         inverters=BINARY_ELEMENTWISE_INVERTERS if is_inverse else [],
         inverse_funcs=inverse_funcs,
         func_definition_cls=BinaryElementWiseFuncDefinition,
@@ -124,8 +124,8 @@ def unary_elementwise(func_name: str,
     return numpy_override(
         func_name=func_name,
         data_source_arguments=[0],
-        backwards_path_translators=[BackwardsUnaryElementwisePathTranslator],
-        forwards_path_translators=[ForwardsUnaryElementwisePathTranslator],
+        backwards_path_translators=[UnaryElementwiseBackwardsPathTranslator],
+        forwards_path_translators=[UnaryElementwiseForwardsPathTranslator],
         inverters=UNARY_ELEMENTWISE_INVERTERS if inverse_func else [],
         inverse_func=inverse_func,
         inverse_func_requires_input=inverse_func_requires_input,

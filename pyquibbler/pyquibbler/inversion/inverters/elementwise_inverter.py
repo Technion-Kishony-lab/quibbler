@@ -7,12 +7,12 @@ from pyquibbler.utilities.missing_value import missing
 from pyquibbler.path import deep_get, Path
 from pyquibbler.function_definitions import SourceLocation
 
-from pyquibbler.translation import ForwardsPathTranslator, BackwardsPathTranslator
-from pyquibbler.translation.types import Source
-from pyquibbler.translation.utils import copy_and_replace_sources_with_vals
-from pyquibbler.translation.translators.elementwise_translator import \
-    BackwardsUnaryElementwisePathTranslator, ForwardsUnaryElementwisePathTranslator, \
-    BackwardsBinaryElementwisePathTranslator, ForwardsBinaryElementwisePathTranslator
+from pyquibbler.path_translation import ForwardsPathTranslator, BackwardsPathTranslator
+from pyquibbler.path_translation.types import Source
+from pyquibbler.path_translation.utils import copy_and_replace_sources_with_vals
+from pyquibbler.path_translation.translators.elementwise_translator import \
+    UnaryElementwiseBackwardsPathTranslator, UnaryElementwiseForwardsPathTranslator, \
+    BinaryElementwiseBackwardsPathTranslator, BinaryElementwiseForwardsPathTranslator
 
 from .numpy_inverter import NumpyInverter
 from ..inverter import Inverter
@@ -60,8 +60,8 @@ class BaseBinaryElementWiseInverter(Inverter, ABC):
 
 
 class BinaryElementwiseInverter(NumpyInverter, BaseBinaryElementWiseInverter):
-    BACKWARDS_TRANSLATOR_TYPE: Type[BackwardsPathTranslator] = BackwardsBinaryElementwisePathTranslator
-    FORWARDS_TRANSLATOR_TYPE: Type[ForwardsPathTranslator] = ForwardsBinaryElementwisePathTranslator
+    BACKWARDS_TRANSLATOR_TYPE: Type[BackwardsPathTranslator] = BinaryElementwiseBackwardsPathTranslator
+    FORWARDS_TRANSLATOR_TYPE: Type[ForwardsPathTranslator] = BinaryElementwiseForwardsPathTranslator
     IS_ONE_TO_MANY_FUNC: bool = True  # because of broadcasting
 
     def _invert_value(self, source: Source, source_location: SourceLocation, path_in_source: Path,
@@ -81,8 +81,8 @@ class BinaryElementwiseInverter(NumpyInverter, BaseBinaryElementWiseInverter):
 
 
 class UnaryElementwiseInverter(NumpyInverter, BaseUnaryElementWiseInverter):
-    BACKWARDS_TRANSLATOR_TYPE: Type[BackwardsPathTranslator] = BackwardsUnaryElementwisePathTranslator
-    FORWARDS_TRANSLATOR_TYPE: Type[ForwardsPathTranslator] = ForwardsUnaryElementwisePathTranslator
+    BACKWARDS_TRANSLATOR_TYPE: Type[BackwardsPathTranslator] = UnaryElementwiseBackwardsPathTranslator
+    FORWARDS_TRANSLATOR_TYPE: Type[ForwardsPathTranslator] = UnaryElementwiseForwardsPathTranslator
     IS_ONE_TO_MANY_FUNC: bool = False
 
     def _invert_value(self, source: Source, source_location: SourceLocation, path_in_source: Path,

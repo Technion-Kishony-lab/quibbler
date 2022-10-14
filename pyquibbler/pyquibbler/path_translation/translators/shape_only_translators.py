@@ -2,11 +2,11 @@ from typing import Dict
 
 from pyquibbler.path.path_component import PathComponent, Path, Paths
 
-from pyquibbler.translation.base_translators import ForwardsPathTranslator, BackwardsPathTranslator
-from pyquibbler.translation.types import Source
+from pyquibbler.path_translation.base_translators import ForwardsPathTranslator, BackwardsPathTranslator
+from pyquibbler.path_translation.types import Source
 
 
-class BackwardsShapeOnlyPathTranslator(BackwardsPathTranslator):
+class ShapeOnlyBackwardsPathTranslator(BackwardsPathTranslator):
     """
     We only need the shape of sources. Not their value.
     """
@@ -17,7 +17,7 @@ class BackwardsShapeOnlyPathTranslator(BackwardsPathTranslator):
         return sources_to_paths
 
 
-class ForwardsShapeOnlyPathTranslator(ForwardsPathTranslator):
+class ShapeOnlyForwardsPathTranslator(ForwardsPathTranslator):
     """
     We are only affected if sources change their shape. Element-wise changes are not affecting us.
     We need to take care of lists that can change their size due to assignment.

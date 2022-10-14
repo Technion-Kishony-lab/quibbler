@@ -5,7 +5,7 @@ from typing import Union, Any
 from pyquibbler.assignment import Assignment
 from pyquibbler.function_definitions import FuncCall
 from pyquibbler.path.data_accessing import deep_set
-from pyquibbler.translation.source_func_call import SourceFuncCall
+from pyquibbler.path_translation.source_func_call import SourceFuncCall
 
 from .exceptions import FailedToInvertException
 

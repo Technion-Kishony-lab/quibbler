@@ -5,8 +5,8 @@ import numpy as np
 from typing import List
 from numpy.typing import NDArray
 
-from pyquibbler.translation.array_translation_utils import ArrayPathTranslator
-from pyquibbler.translation.translators.numpy_translator import NumpyForwardsPathTranslator, Arg
+from pyquibbler.path_translation.array_translation_utils import ArrayPathTranslator
+from pyquibbler.path_translation.translators.numpy_translator import NumpyForwardsPathTranslator, Arg
 from pyquibbler.utilities.general_utils import Shape
 from pyquibbler.function_definitions.func_call import FuncCall
 
@@ -31,7 +31,7 @@ class ApplyAlongAxis:
                      range(self.axis, self.axis - func_result_ndim, -1))
 
 
-class ApplyAlongAxisForwardsTranslator(NumpyForwardsPathTranslator):
+class ApplyAlongAxisForwardsPathTranslator(NumpyForwardsPathTranslator):
     TRANSLATION_RELATED_ARGS: List[Arg] = [Arg('axis')]
 
     def _get_translation_related_arg_dict(self):

@@ -4,7 +4,7 @@ import pytest
 from pyquibbler import quiby
 from pyquibbler.function_definitions.types import DataArgumentDesignation, \
     convert_raw_data_arguments_to_data_argument_designations
-from pyquibbler.translation.translators import AxisAllToAllBackwardsPathTranslator, AxisAllToAllForwardsPathTranslator
+from pyquibbler.path_translation.translators import AxisAllToAllBackwardsPathTranslator, AxisAllToAllForwardsPathTranslator
 from tests.functional.quib.test_quib.get_value.test_apply_along_axis import parametrize_indices_to_invalidate, \
     parametrize_data
 from tests.functional.quib.test_quib.invalidation.utils import check_invalidation

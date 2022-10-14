@@ -55,8 +55,8 @@ from pyquibbler.cache import create_cache, CacheStatus
 from pyquibbler.quib.func_calling.cache_mode import CacheMode
 
 # Translations and inversion:
-from pyquibbler.translation.translate import forwards_translate, NoTranslatorsFoundException
-from pyquibbler.inversion.exceptions import NoInvertersFoundException
+from pyquibbler.path_translation.translate import forwards_translate, NoTranslatorsWorkedException
+from pyquibbler.inversion.exceptions import NoInvertersWorkedException
 from pyquibbler.path import FailedToDeepAssignException, PathComponent, Path, Paths
 from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation
 from pyquibbler.inversion.invert import invert
@@ -305,7 +305,7 @@ class QuibHandler:
         # If the quib is a data source, we translate the path (if possible):
         try:
             return self._forward_translate_with_retrieving_metadata(invalidator_quib, path)
-        except NoTranslatorsFoundException:
+        except NoTranslatorsWorkedException:
             return [[]]
 
     def reset_quib_func_call(self):
@@ -400,7 +400,7 @@ class QuibHandler:
             inversals = invert(func_call=func_call,
                                previous_result=value,
                                assignment=assignment)
-        except NoInvertersFoundException:
+        except NoInvertersWorkedException:
             return []
 
         return [

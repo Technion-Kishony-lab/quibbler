@@ -2,16 +2,16 @@ from typing import Type, Any
 
 from pyquibbler.path import Path
 from pyquibbler.function_definitions import SourceLocation
-from pyquibbler.translation import BackwardsPathTranslator, ForwardsPathTranslator, Source
-from pyquibbler.translation.translators import BackwardsTranspositionalTranslator, ForwardsTranspositionalTranslator
+from pyquibbler.path_translation import BackwardsPathTranslator, ForwardsPathTranslator, Source
+from pyquibbler.path_translation.translators import TranspositionalBackwardsPathTranslator, TranspositionalForwardsPathTranslator
 
 from .numpy_inverter import NumpyInverter
 
 
 class TranspositionalOneToOneInverter(NumpyInverter):
 
-    BACKWARDS_TRANSLATOR_TYPE: Type[BackwardsPathTranslator] = BackwardsTranspositionalTranslator
-    FORWARDS_TRANSLATOR_TYPE: Type[ForwardsPathTranslator] = ForwardsTranspositionalTranslator
+    BACKWARDS_TRANSLATOR_TYPE: Type[BackwardsPathTranslator] = TranspositionalBackwardsPathTranslator
+    FORWARDS_TRANSLATOR_TYPE: Type[ForwardsPathTranslator] = TranspositionalForwardsPathTranslator
     IS_ONE_TO_MANY_FUNC: bool = False
 
     def _invert_value(self, source: Source, source_location: SourceLocation, path_in_source: Path,

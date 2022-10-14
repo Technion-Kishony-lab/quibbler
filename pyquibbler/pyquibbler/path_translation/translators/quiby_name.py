@@ -2,11 +2,11 @@ from typing import Dict
 
 from pyquibbler.path.path_component import Path, Paths
 
-from pyquibbler.translation.base_translators import ForwardsPathTranslator, BackwardsPathTranslator
-from pyquibbler.translation.types import Source
+from pyquibbler.path_translation.base_translators import ForwardsPathTranslator, BackwardsPathTranslator
+from pyquibbler.path_translation.types import Source
 
 
-class BackwardsQuibyNameTranslator(BackwardsPathTranslator):
+class QuibyNameBackwardsPathTranslator(BackwardsPathTranslator):
     """
     We need no data from the sources.
     """
@@ -17,7 +17,7 @@ class BackwardsQuibyNameTranslator(BackwardsPathTranslator):
         return sources_to_paths
 
 
-class ForwardsQuibyNameTranslator(ForwardsPathTranslator):
+class QuibyNameForwardsPathTranslator(ForwardsPathTranslator):
     """
     We are not affected by change the sources.
     """

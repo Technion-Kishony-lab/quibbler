@@ -1,7 +1,7 @@
 from pyquibbler.assignment import Assignment
 from pyquibbler.inversion.inverter import Inverter
 from pyquibbler.path import split_path_at_end_of_object, deep_get
-from pyquibbler.translation.types import Inversal, Source
+from pyquibbler.path_translation.types import Inversal, Source
 from pyquibbler.utilities.iterators import get_paths_for_objects_of_type
 
 

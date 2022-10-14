@@ -1,20 +1,20 @@
 from typing import Type, Dict, List, Optional
 
 from pyquibbler.function_definitions.func_definition import FuncDefinition
-from pyquibbler.utilities.multiple_instance_runner import MultipleInstanceRunner
+from pyquibbler.utilities.multiple_instance_runner import MultipleFuncCallInstanceRunner
 from pyquibbler.path import Path, Paths
 from pyquibbler.function_definitions.func_call import FuncCall
 
 from .base_translators import BackwardsPathTranslator, ForwardsPathTranslator
-from .exceptions import FailedToTranslateException, NoTranslatorsFoundException
+from .exceptions import FailedToTranslateException, NoTranslatorsWorkedException
 from .types import Source
 from ..function_definitions import SourceLocation
 from ..utilities.general_utils import Shape
 
 
-class MultipleBackwardsTranslatorRunner(MultipleInstanceRunner):
+class MultipleBackwardsTranslatorRunner(MultipleFuncCallInstanceRunner):
     expected_runner_exception = FailedToTranslateException
-    exception_to_raise_on_none_found = NoTranslatorsFoundException
+    exception_to_raise_on_none_found = NoTranslatorsWorkedException
 
     def __init__(self, func_call: FuncCall, path: Path, shape, type_: Type,
                  extra_kwargs_for_translator):
@@ -24,7 +24,7 @@ class MultipleBackwardsTranslatorRunner(MultipleInstanceRunner):
         self._type = type_
         self._extra_kwargs_for_translator = extra_kwargs_for_translator
 
-    def _get_runners_from_definition(self, definition: FuncDefinition) -> List:
+    def _get_runners_from_definition(self, definition: FuncDefinition) -> List[Type[BackwardsPathTranslator]]:
         return definition.backwards_path_translators
 
     def _run_runner(self, runner: Type[BackwardsPathTranslator]):
@@ -40,10 +40,10 @@ class MultipleBackwardsTranslatorRunner(MultipleInstanceRunner):
         return translator.backwards_translate()
 
 
-class MultipleForwardsTranslatorRunner(MultipleInstanceRunner):
+class MultipleForwardsTranslatorRunner(MultipleFuncCallInstanceRunner):
 
     expected_runner_exception = FailedToTranslateException
-    exception_to_raise_on_none_found = NoTranslatorsFoundException
+    exception_to_raise_on_none_found = NoTranslatorsWorkedException
 
     def __init__(self, func_call: FuncCall,
                  source: Source,
@@ -73,7 +73,7 @@ class MultipleForwardsTranslatorRunner(MultipleInstanceRunner):
             **self._extra_kwargs_for_translator
         ).forward_translate()
 
-    def _get_runners_from_definition(self, definition: FuncDefinition) -> List:
+    def _get_runners_from_definition(self, definition: FuncDefinition) -> List[Type[ForwardsPathTranslator]]:
         return definition.forwards_path_translators
 
 

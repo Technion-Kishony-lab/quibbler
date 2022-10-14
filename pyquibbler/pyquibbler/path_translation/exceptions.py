@@ -1,25 +1,20 @@
 from __future__ import annotations
 
-from abc import ABC
 from dataclasses import dataclass
 from typing import Callable
 
 from pyquibbler.exceptions import PyQuibblerException
 
 
-class TranslationException(ABC, PyQuibblerException):
-    pass
-
-
 @dataclass
-class FailedToTranslateException(TranslationException):
+class FailedToTranslateException(PyQuibblerException):
 
     def __str__(self):
         return "Failed to translate func call"
 
 
 @dataclass
-class NoTranslatorsFoundException(PyQuibblerException):
+class NoTranslatorsWorkedException(PyQuibblerException):
 
     func: Callable
 

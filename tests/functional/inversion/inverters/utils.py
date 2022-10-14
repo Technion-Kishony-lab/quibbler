@@ -4,7 +4,7 @@ from pyquibbler import Assignment
 from pyquibbler.inversion.invert import invert
 from pyquibbler.path.data_accessing import deep_set
 from pyquibbler.utilities.get_original_func import get_original_func
-from pyquibbler.translation.source_func_call import SourceFuncCall
+from pyquibbler.path_translation.source_func_call import SourceFuncCall
 from pyquibbler.path import PathComponent
 
 

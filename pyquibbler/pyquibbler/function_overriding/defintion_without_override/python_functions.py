@@ -4,9 +4,9 @@ from __future__ import annotations
 from typing import List, TYPE_CHECKING
 
 from pyquibbler.inversion.inverters.transpositional_inverter import TranspositionalOneToOneInverter
-from pyquibbler.translation.translators import BackwardsTranspositionalTranslator, ForwardsTranspositionalTranslator
-from pyquibbler.translation.translators.shape_only_translators import \
-    BackwardsShapeOnlyPathTranslator, ForwardsShapeOnlyPathTranslator
+from pyquibbler.path_translation.translators import TranspositionalBackwardsPathTranslator, TranspositionalForwardsPathTranslator
+from pyquibbler.path_translation.translators.shape_only_translators import \
+    ShapeOnlyBackwardsPathTranslator, ShapeOnlyForwardsPathTranslator
 from pyquibbler.inversion.inverters.casting_inverter import \
     StrCastingInverter, NumericCastingInverter, BoolCastingInverter
 
@@ -21,8 +21,8 @@ def create_definitions_for_python_functions() -> List[FuncDefinition]:
             func=len,
             raw_data_source_arguments=[0],
             pre_known_result_type=int,
-            backwards_path_translators=[BackwardsShapeOnlyPathTranslator],
-            forwards_path_translators=[ForwardsShapeOnlyPathTranslator]),
+            backwards_path_translators=[ShapeOnlyBackwardsPathTranslator],
+            forwards_path_translators=[ShapeOnlyForwardsPathTranslator]),
 
         *(create_func_definition(
             func=func,
@@ -41,8 +41,8 @@ def create_definitions_for_python_functions() -> List[FuncDefinition]:
             func=func,
             raw_data_source_arguments=[0],
             inverters=[TranspositionalOneToOneInverter],
-            backwards_path_translators=[BackwardsTranspositionalTranslator],
-            forwards_path_translators=[ForwardsTranspositionalTranslator],
+            backwards_path_translators=[TranspositionalBackwardsPathTranslator],
+            forwards_path_translators=[TranspositionalForwardsPathTranslator],
             pre_known_result_type=func,
          )
              for func in [list, tuple]),

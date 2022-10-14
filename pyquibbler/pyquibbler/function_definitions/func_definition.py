@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from typing import Set, Type, List, Callable, Optional, Dict
 from pyquibbler.utilities.general_utils import Args, Kwargs
 
-from pyquibbler.translation import BackwardsPathTranslator, ForwardsPathTranslator
+from pyquibbler.path_translation import BackwardsPathTranslator, ForwardsPathTranslator
 
 from .func_call import FuncArgsKwargs
 from .types import RawArgument, Argument, PositionalArgument, KeywordArgument, \

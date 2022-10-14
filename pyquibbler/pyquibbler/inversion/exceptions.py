@@ -1,10 +1,10 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
 from typing import Callable
 
 from pyquibbler.exceptions import PyQuibblerException
 
+from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pyquibbler.function_definitions.func_call import FuncCall
 
@@ -19,7 +19,7 @@ class FailedToInvertException(PyQuibblerException):
 
 
 @dataclass
-class NoInvertersFoundException(PyQuibblerException):
+class NoInvertersWorkedException(PyQuibblerException):
 
     func: Callable
 

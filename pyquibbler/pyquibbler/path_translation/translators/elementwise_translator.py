@@ -11,7 +11,7 @@ from .numpy_translator import NumpyForwardsPathTranslator, NumpyBackwardsPathTra
 
 # BACKWARDS:
 
-class BackwardsUnaryElementwisePathTranslator(NumpyBackwardsPathTranslator):
+class UnaryElementwiseBackwardsPathTranslator(NumpyBackwardsPathTranslator):
 
     def _get_indices_in_source(self,
                                data_argument_to_source_index_code_converter: ArrayPathTranslator,
@@ -23,7 +23,7 @@ class BackwardsUnaryElementwisePathTranslator(NumpyBackwardsPathTranslator):
         return data_argument_index_array, result_bool_mask
 
 
-class BackwardsBinaryElementwisePathTranslator(NumpyBackwardsPathTranslator):
+class BinaryElementwiseBackwardsPathTranslator(NumpyBackwardsPathTranslator):
 
     def _get_indices_in_source(self,
                                data_argument_to_source_index_code_converter: ArrayPathTranslator,
@@ -44,7 +44,7 @@ class BackwardsBinaryElementwisePathTranslator(NumpyBackwardsPathTranslator):
 
 # FORWARD:
 
-class ForwardsUnaryElementwisePathTranslator(NumpyForwardsPathTranslator):
+class UnaryElementwiseForwardsPathTranslator(NumpyForwardsPathTranslator):
     ADD_OUT_OF_ARRAY_COMPONENT = True
 
     def forward_translate_masked_data_arguments_to_result_mask(self,
@@ -57,7 +57,7 @@ class ForwardsUnaryElementwisePathTranslator(NumpyForwardsPathTranslator):
         return masked_data_arguments[0]
 
 
-class ForwardsBinaryElementwisePathTranslator(NumpyForwardsPathTranslator):
+class BinaryElementwiseForwardsPathTranslator(NumpyForwardsPathTranslator):
     ADD_OUT_OF_ARRAY_COMPONENT = True
 
     def forward_translate_masked_data_arguments_to_result_mask(self,

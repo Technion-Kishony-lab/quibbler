@@ -6,8 +6,8 @@ from pyquibbler.inversion.inverters.obj2quib_inverter import Obj2QuibInverter
 from pyquibbler.quib.quib import Quib
 from pyquibbler.function_definitions import add_definition_for_function
 from pyquibbler.function_definitions.func_definition import create_func_definition
-from pyquibbler.translation.translators.obj2_quib_translator import \
-    BackwardsObj2QuibTranslator, ForwardsObj2QuibTranslator
+from pyquibbler.path_translation.translators.obj2_quib_translator import \
+    Obj2QuibBackwardsPathTranslator, Obj2QuibForwardsPathTranslator
 
 
 def identity_function_obj2quib(v):
@@ -20,8 +20,8 @@ identity_function_obj2quib.__name__ = 'obj2quib'
 
 obj2quib_definition = create_func_definition(raw_data_source_arguments=[0],
                                              inverters=[Obj2QuibInverter],
-                                             forwards_path_translators=[ForwardsObj2QuibTranslator],
-                                             backwards_path_translators=[BackwardsObj2QuibTranslator])
+                                             forwards_path_translators=[Obj2QuibForwardsPathTranslator],
+                                             backwards_path_translators=[Obj2QuibBackwardsPathTranslator])
 
 
 def obj2quib(obj: Any) -> Quib:

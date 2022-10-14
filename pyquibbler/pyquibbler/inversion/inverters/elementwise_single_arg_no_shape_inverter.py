@@ -1,7 +1,7 @@
 import numpy as np
 
 from pyquibbler.assignment import Assignment
-from pyquibbler.translation.types import Source, Inversal
+from pyquibbler.path_translation.types import Source, Inversal
 from .elementwise_inverter import BaseUnaryElementWiseInverter
 
 

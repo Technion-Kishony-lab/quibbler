@@ -5,7 +5,7 @@ import numpy as np
 
 from pyquibbler.path import PathComponent, Path, Paths
 
-from .transpositional_path_translator import BackwardsTranspositionalTranslator, ForwardsTranspositionalTranslator
+from .transpositional_path_translator import TranspositionalBackwardsPathTranslator, TranspositionalForwardsPathTranslator
 from ..utils import copy_and_replace_sources_with_vals
 from ..types import Source
 
@@ -46,7 +46,7 @@ class BaseGetItemTranslator:
 
     def _can_use_numpy_transposition(self) -> bool:
         """
-        We can use the BackwardsTranspositionalTranslator if we are referencing an array, with indices (not field).
+        We can use the TranspositionalBackwardsPathTranslator if we are referencing an array, with indices (not field).
         """
         return len(self._path) > 0 \
             and (self._getitem_of_array() or self._getitem_of_list_to_list()) \
@@ -54,7 +54,7 @@ class BaseGetItemTranslator:
             and not self._is_path_referencing_field_in_field_array()
 
 
-class BackwardsGetItemTranslator(BackwardsTranspositionalTranslator, BaseGetItemTranslator):
+class GetItemBackwardsPathTranslator(TranspositionalBackwardsPathTranslator, BaseGetItemTranslator):
 
     def _is_path_referencing_field_in_field_array(self) -> bool:
         return self._path[0].referencing_field_in_field_array(self._type)
@@ -65,7 +65,7 @@ class BackwardsGetItemTranslator(BackwardsTranspositionalTranslator, BaseGetItem
         return {self._referenced_object: [self._get_getitem_path_component(), *self._path]}
 
 
-class ForwardsGetItemTranslator(ForwardsTranspositionalTranslator, BaseGetItemTranslator):
+class GetItemForwardsPathTranslator(TranspositionalForwardsPathTranslator, BaseGetItemTranslator):
 
     def _is_path_referencing_field_in_field_array(self) -> bool:
         return self._path[0].referencing_field_in_field_array(self._get_type_of_referenced_value())

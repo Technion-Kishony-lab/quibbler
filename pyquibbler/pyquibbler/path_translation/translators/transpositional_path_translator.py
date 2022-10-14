@@ -3,13 +3,13 @@ from typing import Tuple
 import numpy as np
 from numpy.typing import NDArray
 
-from pyquibbler.translation.translators.numpy_translator import NumpyBackwardsPathTranslator, \
+from pyquibbler.path_translation.translators.numpy_translator import NumpyBackwardsPathTranslator, \
     NumpyForwardsPathTranslator
-from pyquibbler.translation.array_translation_utils import ArrayPathTranslator, \
+from pyquibbler.path_translation.array_translation_utils import ArrayPathTranslator, \
     run_func_call_with_new_args_kwargs
 
 
-class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
+class TranspositionalBackwardsPathTranslator(NumpyBackwardsPathTranslator):
 
     def _get_indices_in_source(self,
                                data_argument_to_source_index_code_converter: ArrayPathTranslator,
@@ -23,7 +23,7 @@ class BackwardsTranspositionalTranslator(NumpyBackwardsPathTranslator):
         return result, result_bool_mask
 
 
-class ForwardsTranspositionalTranslator(NumpyForwardsPathTranslator):
+class TranspositionalForwardsPathTranslator(NumpyForwardsPathTranslator):
     """
     Forward translate numpy transpositional functions (like array, rot90, flip).
     Works by applying the function to the data args replaced with bool mask

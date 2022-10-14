@@ -6,8 +6,8 @@ from pyquibbler.function_overriding.third_party_overriding.numpy.helpers import 
     get_unary_inverse_funcs_for_func, get_binary_inverse_funcs_for_func
 from pyquibbler.function_overriding.third_party_overriding.numpy.overrides import create_numpy_overrides
 from pyquibbler.inversion.inverters.getitem_inverter import GetItemInverter
-from pyquibbler.translation.translators import BackwardsGetItemTranslator
-from pyquibbler.translation.translators.getitem_translator import ForwardsGetItemTranslator
+from pyquibbler.path_translation.translators import GetItemBackwardsPathTranslator
+from pyquibbler.path_translation.translators.getitem_translator import GetItemForwardsPathTranslator
 
 
 def create_operator_overrides():
@@ -70,7 +70,7 @@ def create_operator_overrides():
         # Get item
         operator_override(
             '__getitem__', [0], inverters=[GetItemInverter],
-            backwards_path_translators=[BackwardsGetItemTranslator],
-            forwards_path_translators=[ForwardsGetItemTranslator]
+            backwards_path_translators=[GetItemBackwardsPathTranslator],
+            forwards_path_translators=[GetItemForwardsPathTranslator]
         )
     ]

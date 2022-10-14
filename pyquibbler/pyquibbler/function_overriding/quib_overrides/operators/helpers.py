@@ -9,9 +9,9 @@ from pyquibbler.function_definitions.func_definition import \
 from pyquibbler.function_overriding.function_override import FuncOverride
 from pyquibbler.function_overriding.third_party_overriding.general_helpers import override_with_cls
 from pyquibbler.quib.quib import Quib
-from pyquibbler.translation.translators.elementwise_translator import \
-    BackwardsBinaryElementwisePathTranslator, ForwardsBinaryElementwisePathTranslator, \
-    BackwardsUnaryElementwisePathTranslator, ForwardsUnaryElementwisePathTranslator
+from pyquibbler.path_translation.translators.elementwise_translator import \
+    BinaryElementwiseBackwardsPathTranslator, BinaryElementwiseForwardsPathTranslator, \
+    UnaryElementwiseBackwardsPathTranslator, UnaryElementwiseForwardsPathTranslator
 
 from pyquibbler.utilities.operators_with_reverse import REVERSE_OPERATOR_NAMES_TO_FUNCS
 from pyquibbler.function_overriding.third_party_overriding.numpy.helpers import \
@@ -66,8 +66,8 @@ def binary_elementwise_operator_override(func_name,
                              func_name,
                              data_source_arguments=[0, 1],
                              inverters=BINARY_ELEMENTWISE_INVERTERS,
-                             backwards_path_translators=[BackwardsBinaryElementwisePathTranslator],
-                             forwards_path_translators=[ForwardsBinaryElementwisePathTranslator],
+                             backwards_path_translators=[BinaryElementwiseBackwardsPathTranslator],
+                             forwards_path_translators=[BinaryElementwiseForwardsPathTranslator],
                              inverse_funcs=inverse_funcs,
                              func_definition_cls=BinaryElementWiseFuncDefinition,
                              )
@@ -81,8 +81,8 @@ def unary_elementwise_operator_override(func_name,
                              func_name,
                              data_source_arguments=[0],
                              inverters=UNARY_ELEMENTWISE_INVERTERS,
-                             backwards_path_translators=[BackwardsUnaryElementwisePathTranslator],
-                             forwards_path_translators=[ForwardsUnaryElementwisePathTranslator],
+                             backwards_path_translators=[UnaryElementwiseBackwardsPathTranslator],
+                             forwards_path_translators=[UnaryElementwiseForwardsPathTranslator],
                              inverse_func=inverse_func,
                              inverse_func_requires_input=inverse_func_requires_input,
                              func_definition_cls=UnaryElementWiseFuncDefinition,
