@@ -11,11 +11,11 @@ from pyquibbler.function_overriding.third_party_overriding.general_helpers impor
 from pyquibbler.quib.quib import Quib
 from pyquibbler.path_translation.translators.elementwise_translator import \
     BinaryElementwiseBackwardsPathTranslator, BinaryElementwiseForwardsPathTranslator, \
-    UnaryElementwiseBackwardsPathTranslator, UnaryElementwiseForwardsPathTranslator
+    UnaryElementwiseForwardsPathTranslator
 
 from pyquibbler.utilities.operators_with_reverse import REVERSE_OPERATOR_NAMES_TO_FUNCS
 from pyquibbler.function_overriding.third_party_overriding.numpy.helpers import \
-    BINARY_ELEMENTWISE_INVERTERS, UNARY_ELEMENTWISE_INVERTERS
+    BINARY_ELEMENTWISE_INVERTERS, UNARY_ELEMENTWISE_INVERTERS, UNARY_ELEMENTWISE_BACKWARDS_TRANSLATORS
 
 
 @dataclass
@@ -81,7 +81,7 @@ def unary_elementwise_operator_override(func_name,
                              func_name,
                              data_source_arguments=[0],
                              inverters=UNARY_ELEMENTWISE_INVERTERS,
-                             backwards_path_translators=[UnaryElementwiseBackwardsPathTranslator],
+                             backwards_path_translators=UNARY_ELEMENTWISE_BACKWARDS_TRANSLATORS,
                              forwards_path_translators=[UnaryElementwiseForwardsPathTranslator],
                              inverse_func=inverse_func,
                              inverse_func_requires_input=inverse_func_requires_input,

@@ -25,6 +25,8 @@ from pyquibbler.inversion.inverters.elementwise_single_arg_no_shape_inverter imp
 
 from pyquibbler.function_definitions.func_definition import \
     UnaryElementWiseFuncDefinition, BinaryElementWiseFuncDefinition
+from pyquibbler.path_translation.translators.elementwise_translator import \
+    UnaryElementwiseNoShapeBackwardsPathTranslator
 
 
 class NumpyArrayOverride(FuncOverride):
@@ -80,6 +82,8 @@ BINARY_ELEMENTWISE_FUNCS_TO_INVERSE_FUNCS = {}
 BINARY_ELEMENTWISE_INVERTERS = [BinaryElementwiseInverter]
 UNARY_ELEMENTWISE_INVERTERS = [UnaryElementwiseNoShapeInverter, UnaryElementwiseInverter]
 
+UNARY_ELEMENTWISE_BACKWARDS_TRANSLATORS = [UnaryElementwiseNoShapeBackwardsPathTranslator,
+                                           UnaryElementwiseBackwardsPathTranslator]
 
 def get_binary_inverse_funcs_for_func(func_name: str):
     return BINARY_ELEMENTWISE_FUNCS_TO_INVERSE_FUNCS[func_name]
@@ -124,7 +128,7 @@ def unary_elementwise(func_name: str,
     return numpy_override(
         func_name=func_name,
         data_source_arguments=[0],
-        backwards_path_translators=[UnaryElementwiseBackwardsPathTranslator],
+        backwards_path_translators=UNARY_ELEMENTWISE_BACKWARDS_TRANSLATORS,
         forwards_path_translators=[UnaryElementwiseForwardsPathTranslator],
         inverters=UNARY_ELEMENTWISE_INVERTERS if inverse_func else [],
         inverse_func=inverse_func,

@@ -1,15 +1,40 @@
-from typing import Tuple
+from typing import Tuple, Dict
 
 import numpy as np
 from numpy.typing import NDArray
 
 from pyquibbler.utilities.general_utils import unbroadcast_or_broadcast_bool_mask
+from .. import Source, BackwardsPathTranslator
 
 from ..array_translation_utils import ArrayPathTranslator
 from .numpy_translator import NumpyForwardsPathTranslator, NumpyBackwardsPathTranslator
 
 
 # BACKWARDS:
+from ..exceptions import FailedToTranslateException
+from ...path import Path
+
+
+class UnaryElementwiseNoShapeBackwardsPathTranslator(BackwardsPathTranslator):
+    """
+    If the argument is a source, it is very easy to translate: the source data indices are simply
+    identical to the target result indices.
+    """
+
+    NEED_SHAPE_AND_TYPE = False
+
+    @property
+    def source_to_change(self):
+        return self._func_call.args[0]
+
+    def can_translate(self):
+        return isinstance(self.source_to_change, Source)
+
+    def backwards_translate(self) -> Dict[Source, Path]:
+        if self.can_translate():
+            return {self.source_to_change: self._path}
+        raise FailedToTranslateException()
+
 
 class UnaryElementwiseBackwardsPathTranslator(NumpyBackwardsPathTranslator):
 
