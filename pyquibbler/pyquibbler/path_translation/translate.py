@@ -1,37 +1,46 @@
+from abc import ABC
 from typing import Type, Dict, List, Optional
 
-from pyquibbler.function_definitions.func_definition import FuncDefinition
-from pyquibbler.utilities.multiple_instance_runner import MultipleFuncCallInstanceRunner
+from pyquibbler.utilities.multiple_instance_runner import RunCondition, MultipleInstanceRunner
 from pyquibbler.path import Path, Paths
 from pyquibbler.function_definitions.func_call import FuncCall
 
-from .base_translators import BackwardsPathTranslator, ForwardsPathTranslator
+from .base_translators import BackwardsPathTranslator, ForwardsPathTranslator, BackwardsTranslationRunCondition
 from .exceptions import FailedToTranslateException, NoTranslatorsWorkedException
 from .types import Source
 from ..function_definitions import SourceLocation
 from ..utilities.general_utils import Shape
 
 
-class MultipleBackwardsTranslatorRunner(MultipleFuncCallInstanceRunner):
-    expected_runner_exception = FailedToTranslateException
-    exception_to_raise_on_none_found = NoTranslatorsWorkedException
+class MultipleFuncCallInstanceRunner(MultipleInstanceRunner, ABC):
 
-    def __init__(self, func_call: FuncCall, path: Path, shape, type_: Type,
+    def __init__(self, run_condition: Optional[RunCondition], func_call: FuncCall):
+        super().__init__(run_condition=run_condition)
+        self._func_call = func_call
+
+    def _get_exception_message(self):
+        return self._func_call
+
+
+class MultipleBackwardsTranslatorRunner(MultipleFuncCallInstanceRunner):
+    EXPECTED_RUNNER_EXCEPTION = FailedToTranslateException
+    EXPECTED_TO_RAISE_ON_NONE_WORKED = NoTranslatorsWorkedException
+
+    def __init__(self,
+                 run_condition: BackwardsTranslationRunCondition,
+                 func_call: FuncCall,
+                 path: Path,
+                 shape: Optional[Shape],
+                 type_: Optional[Type],
                  extra_kwargs_for_translator):
-        super().__init__(func_call)
+        super().__init__(run_condition, func_call)
         self._path = path
         self._shape = shape
         self._type = type_
         self._extra_kwargs_for_translator = extra_kwargs_for_translator
 
-    def _get_runners_from_definition(self, definition: FuncDefinition) -> List[Type[BackwardsPathTranslator]]:
-        runners = definition.backwards_path_translators
-        if self._type is None:
-            # only run runners that may work without shape and type (NEED_SHAPE_AND_TYPE is False or None)
-            return [runner for runner in runners if runner.NEED_SHAPE_AND_TYPE is not True]
-        else:
-            # only run runners that may work when shape and type are given (NEED_SHAPE_AND_TYPE is True or None)
-            return [runner for runner in runners if runner.NEED_SHAPE_AND_TYPE is not False]
+    def _get_all_runners(self) -> List[Type[BackwardsPathTranslator]]:
+        return self._func_call.func_definition.backwards_path_translators
 
     def _run_runner(self, runner: Type[BackwardsPathTranslator]):
         translator = runner(
@@ -45,18 +54,18 @@ class MultipleBackwardsTranslatorRunner(MultipleFuncCallInstanceRunner):
 
 
 class MultipleForwardsTranslatorRunner(MultipleFuncCallInstanceRunner):
+    EXPECTED_RUNNER_EXCEPTION = FailedToTranslateException
+    EXPECTED_TO_RAISE_ON_NONE_WORKED = NoTranslatorsWorkedException
 
-    expected_runner_exception = FailedToTranslateException
-    exception_to_raise_on_none_found = NoTranslatorsWorkedException
-
-    def __init__(self, func_call: FuncCall,
+    def __init__(self,
+                 func_call: FuncCall,
                  source: Source,
                  source_location: SourceLocation,
                  path: Path,
-                 shape: Optional[Shape] = None,
-                 type_: Optional[Type] = None,
+                 shape: Shape,
+                 type_: Type,
                  extra_kwargs_for_translator: Dict = None):
-        super().__init__(func_call)
+        super().__init__(None, func_call)
         self._source = source
         self._source_location = source_location
         self._path = path
@@ -75,17 +84,22 @@ class MultipleForwardsTranslatorRunner(MultipleFuncCallInstanceRunner):
             **self._extra_kwargs_for_translator
         ).forward_translate()
 
-    def _get_runners_from_definition(self, definition: FuncDefinition) -> List[Type[ForwardsPathTranslator]]:
-        return definition.forwards_path_translators
+    def _get_all_runners(self) -> List[Type[ForwardsPathTranslator]]:
+        return self._func_call.func_definition.forwards_path_translators
 
 
-def backwards_translate(func_call: FuncCall, path: Path,
-                        shape: Optional[Shape] = None, type_: Optional[Type] = None, **kwargs) -> Dict[Source, Path]:
+def backwards_translate(run_condition:BackwardsTranslationRunCondition,
+                        func_call: FuncCall,
+                        path: Path,
+                        shape: Optional[Shape] = None,
+                        type_: Optional[Type] = None,
+                        **kwargs) -> Dict[Source, Path]:
     """
     Backwards translate a path given a func_call
     This gives a mapping of sources to paths that were referenced in given path in the result of the function
     """
-    return MultipleBackwardsTranslatorRunner(func_call=func_call, path=path, shape=shape, type_=type_,
+    return MultipleBackwardsTranslatorRunner(run_condition=run_condition, func_call=func_call,
+                                             path=path, shape=shape, type_=type_,
                                              extra_kwargs_for_translator=kwargs).run()
 
 

@@ -27,6 +27,7 @@ from pyquibbler.function_definitions.func_definition import \
     UnaryElementWiseFuncDefinition, BinaryElementWiseFuncDefinition
 from pyquibbler.path_translation.translators.elementwise_translator import \
     UnaryElementwiseNoShapeBackwardsPathTranslator
+from pyquibbler.type_translation.translators import ElementwiseTypeTranslator
 
 
 class NumpyArrayOverride(FuncOverride):
@@ -39,7 +40,7 @@ class NumpyArrayOverride(FuncOverride):
         return ALLOW_ARRAY_WITH_DTYPE_OBJECT or kwargs.get('dtype', None) is not object
 
 
-numpy_override = functools.partial(override, np, pre_known_result_type=np.ndarray)
+numpy_override = functools.partial(override, np)
 
 numpy_override_random = functools.partial(override, np.random, is_random=True)
 
@@ -105,6 +106,7 @@ def binary_elementwise(func_name: str,
         data_source_arguments=[0, 1],
         backwards_path_translators=[BinaryElementwiseBackwardsPathTranslator],
         forwards_path_translators=[BinaryElementwiseForwardsPathTranslator],
+        result_type_or_type_translators=[ElementwiseTypeTranslator],
         inverters=BINARY_ELEMENTWISE_INVERTERS if is_inverse else [],
         inverse_funcs=inverse_funcs,
         func_definition_cls=BinaryElementWiseFuncDefinition,
@@ -130,6 +132,7 @@ def unary_elementwise(func_name: str,
         data_source_arguments=[0],
         backwards_path_translators=UNARY_ELEMENTWISE_BACKWARDS_TRANSLATORS,
         forwards_path_translators=[UnaryElementwiseForwardsPathTranslator],
+        result_type_or_type_translators=[ElementwiseTypeTranslator],
         inverters=UNARY_ELEMENTWISE_INVERTERS if inverse_func else [],
         inverse_func=inverse_func,
         inverse_func_requires_input=inverse_func_requires_input,

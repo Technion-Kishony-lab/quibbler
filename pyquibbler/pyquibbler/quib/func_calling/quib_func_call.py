@@ -15,6 +15,7 @@ from pyquibbler.graphics.graphics_collection import GraphicsCollection
 from pyquibbler.path import Path
 
 from .utils import create_array_from_func, CachedCall, get_shape_from_result
+from ...type_translation.translate import translate_type
 
 
 @dataclass
@@ -72,8 +73,9 @@ class QuibFuncCall(FuncCall):
         return self.result_type
 
     def _calculate_type(self):
-        if self.func_definition.pre_known_result_type:
-            self.result_type = self.func_definition.pre_known_result_type
+        if self.func_definition.result_type_or_type_translators:
+            # translate_type()
+            self.result_type = self.func_definition.result_type_or_type_translators
         else:
             self.run([None])  # this will update the type
 

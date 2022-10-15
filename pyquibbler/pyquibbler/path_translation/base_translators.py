@@ -8,28 +8,23 @@ from pyquibbler.function_definitions import FuncCall, SourceLocation
 
 from .source_func_call import SourceFuncCall
 from .types import Source
+from ..utilities.multiple_instance_runner import ConditionalRunner, RunCondition
 
 
-class BackwardsPathTranslator:
+class BackwardsTranslationRunCondition(RunCondition):
+    NO_SHAPE_AND_TYPE = 1
+    WITH_SHAPE_AND_TYPE = 2
+
+
+class BackwardsPathTranslator(ConditionalRunner):
     """
-    A backwards path translator knows how to translate a path in a FuncCall's result back into paths of the FuncCall's
+    A BackwardsPathTranslator translates a path in a FuncCall's result back into paths of the FuncCall's
     sources.
-    Normally, you will create a backwardspathtranslator for a specific set of functions and then add it as the
-    translator in the `function_overriding.third_party_overriding` package.
+    We create a specialized BackwardsPathTranslator for a specific type of functions, and add it to
+    their FuncDefinition in the `function_overriding.third_party_overriding` package.
     """
-
     # Specified whether the translator needs shape and type of the function result and the sources.
-    # Options:
-    # False: Does not use shape and type.
-    # None: May need shape and type. The translator will raise `FailedToTranslateException` if shape + type are needed
-    # and were not given.
-    # True: The translator can only work with shape and type.
-    #
-    # Order of runs:
-    # False and None are run first without shape and type
-    # True and None are run second with shape and type
-
-    NEED_SHAPE_AND_TYPE = True
+    RUN_CONDITIONS = [BackwardsTranslationRunCondition.WITH_SHAPE_AND_TYPE]
 
     def __init__(self, func_call: SourceFuncCall, shape: Optional[Shape], type_: Optional[Type], path: Path):
         self._func_call = func_call
@@ -48,9 +43,9 @@ class BackwardsPathTranslator:
 
 class ForwardsPathTranslator:
     """
-    A forwardspathtranslator knows how to translate a path forwards from a given mapping of sources to paths to a
+    A ForwardsPathTranslator translates a path forwards from a given path of the sources to a
     mapping between each source and where that path will be in the result (a list of paths).
-    Normally, you will create a forwardspathtranslator for a specific set of functions and then add it as the
+    Normally, we create a ForwardsPathTranslator for a specific type of functions and then add it as the
     translator in the `function_overriding.third_party_overriding` package.
     """
     def __init__(self,

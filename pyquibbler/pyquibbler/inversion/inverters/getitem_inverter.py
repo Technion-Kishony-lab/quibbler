@@ -2,6 +2,7 @@ import numpy as np
 
 from pyquibbler.assignment import Assignment
 from pyquibbler.inversion.inverter import Inverter
+from pyquibbler.path_translation.base_translators import BackwardsTranslationRunCondition
 from pyquibbler.path_translation.translate import backwards_translate
 from pyquibbler.path_translation.types import Inversal
 
@@ -10,6 +11,7 @@ class GetItemInverter(Inverter):
 
     def get_inversals(self):
         sources_to_paths_in_sources = backwards_translate(
+            run_condition=BackwardsTranslationRunCondition.WITH_SHAPE_AND_TYPE,
             func_call=self._func_call,
             path=self._assignment.path,
             shape=np.shape(self._previous_result),

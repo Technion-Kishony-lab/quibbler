@@ -24,6 +24,7 @@ from pyquibbler.path_translation.translate import backwards_translate
 
 from .quib_func_call import QuibFuncCall
 from .cache_mode import CacheMode
+from ...path_translation.base_translators import BackwardsTranslationRunCondition
 
 
 class CachedQuibFuncCall(QuibFuncCall):
@@ -100,6 +101,7 @@ class CachedQuibFuncCall(QuibFuncCall):
             # try without shape and type
             func_call, sources_to_quibs = get_func_call_for_translation(func_call=self, with_meta_data=False)
             sources_to_paths = backwards_translate(
+                run_condition=BackwardsTranslationRunCondition.NO_SHAPE_AND_TYPE,
                 func_call=func_call,
                 path=valid_path,
             )
@@ -108,6 +110,7 @@ class CachedQuibFuncCall(QuibFuncCall):
             func_call, sources_to_quibs = get_func_call_for_translation(func_call=self, with_meta_data=True)
             try:
                 sources_to_paths = backwards_translate(
+                    run_condition=BackwardsTranslationRunCondition.WITH_SHAPE_AND_TYPE,
                     func_call=func_call,
                     path=valid_path,
                     shape=self.get_shape(),

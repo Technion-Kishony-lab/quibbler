@@ -3,17 +3,17 @@ from typing import Tuple, Dict
 import numpy as np
 from numpy.typing import NDArray
 
+from pyquibbler.path import Path
 from pyquibbler.utilities.general_utils import unbroadcast_or_broadcast_bool_mask
-from .. import Source, BackwardsPathTranslator
+from ..source_func_call import Source
 
 from ..array_translation_utils import ArrayPathTranslator
+from ..base_translators import BackwardsTranslationRunCondition, BackwardsPathTranslator
+from ..exceptions import FailedToTranslateException
 from .numpy_translator import NumpyForwardsPathTranslator, NumpyBackwardsPathTranslator
 
 
 # BACKWARDS:
-from ..exceptions import FailedToTranslateException
-from ...path import Path
-
 
 class UnaryElementwiseNoShapeBackwardsPathTranslator(BackwardsPathTranslator):
     """
@@ -21,7 +21,7 @@ class UnaryElementwiseNoShapeBackwardsPathTranslator(BackwardsPathTranslator):
     identical to the target result indices.
     """
 
-    NEED_SHAPE_AND_TYPE = False
+    RUN_CONDITIONS = [BackwardsTranslationRunCondition.NO_SHAPE_AND_TYPE]
 
     @property
     def source_to_change(self):

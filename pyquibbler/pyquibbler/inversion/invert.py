@@ -1,29 +1,30 @@
 from __future__ import annotations
-from typing import Any, List, Type, Union
+from typing import Any, List, Type, Union, Optional
 
 from pyquibbler.assignment import AssignmentWithTolerance, Assignment, default
-from pyquibbler.function_definitions.func_definition import FuncDefinition
 from pyquibbler.inversion.exceptions import NoInvertersWorkedException, FailedToInvertException
 from pyquibbler.inversion.inverter import Inverter
 from pyquibbler.path import deep_get
 from pyquibbler.path_translation.source_func_call import SourceFuncCall
+from pyquibbler.path_translation.translate import MultipleFuncCallInstanceRunner
 from pyquibbler.path_translation.types import Inversal
-from pyquibbler.utilities.multiple_instance_runner import MultipleFuncCallInstanceRunner
 
 
 class MultipleInverterRunner(MultipleFuncCallInstanceRunner):
 
-    exception_to_raise_on_none_found = NoInvertersWorkedException
-    expected_runner_exception = FailedToInvertException
+    EXPECTED_TO_RAISE_ON_NONE_WORKED = NoInvertersWorkedException
+    EXPECTED_RUNNER_EXCEPTION = FailedToInvertException
 
-    def __init__(self, func_call: SourceFuncCall, assignment: Union[Assignment, AssignmentWithTolerance],
+    def __init__(self,
+                 func_call: SourceFuncCall,
+                 assignment: Union[Assignment, AssignmentWithTolerance],
                  previous_result: Any):
-        super().__init__(func_call)
+        super().__init__(None, func_call)
         self._assignment = assignment
         self._previous_result = previous_result
 
-    def _get_runners_from_definition(self, definition: FuncDefinition) -> List[Type[Inverter]]:
-        return definition.inverters
+    def _get_all_runners(self) -> List[Type[Inverter]]:
+        return self._func_call.func_definition.inverters
 
     def _get_inversals_from_tolerance_assignment(self, runner: Type[Inverter]) -> List[Inversal]:
         """

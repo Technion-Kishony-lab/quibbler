@@ -18,6 +18,9 @@ def identity(x):
     return x
 
 
+nd = np.ndarray
+
+
 def create_numpy_overrides():
 
     return [
@@ -55,7 +58,7 @@ def create_numpy_overrides():
           )),
 
         # Axis-Accumulation
-        *(numpy_override_accumulation(func_name)
+        *(numpy_override_accumulation(func_name, result_type_or_type_translators=nd)
           for func_name in (
             'cumsum',
             'cumprod',
@@ -66,7 +69,7 @@ def create_numpy_overrides():
 
         # Axis-wise (any function along an axis)
 
-        *(numpy_override_axis_wise(func_name)
+        *(numpy_override_axis_wise(func_name, result_type_or_type_translators=nd)
           for func_name in (
             'diff',  # TODO: need to write more specific translators that only invalidate/request neighbouring elements
             'sort',
@@ -191,61 +194,62 @@ def create_numpy_overrides():
           )),
 
         # Transpositional
-        *(numpy_array_override(func_name, data_sources)
+        *(numpy_array_override(func_name, data_sources, result_type_or_type_translators=nd)
             for func_name, data_sources in (
             ('array', [0]),
           )),
 
-        *(numpy_override_transpositional_one_to_one(func_name, data_sources)
-          for func_name, data_sources in (
-            ('rot90',       [0]),
-            ('concatenate', [DataArgumentDesignation(PositionalArgument(0), is_multi_arg=True)]),
-            ('reshape',     [0]),
-            ('transpose',   [0]),
-            ('swapaxes',    [0]),
-            ('asarray',     [0]),
-            ('squeeze',     [0]),
-            ('expand_dims', [0]),
-            ('ravel',       [0]),
-            ('squeeze',     [0]),
-            ('flip',        [0]),
+        *(numpy_override_transpositional_one_to_one(func_name, data_sources,
+                                                    result_type_or_type_translators=result_type)
+          for func_name, data_sources, result_type in (
+            ('rot90',       [0],  nd),
+            ('concatenate', [DataArgumentDesignation(PositionalArgument(0), is_multi_arg=True)], nd),
+            ('reshape',     [0],  nd),
+            ('transpose',   [0],  nd),
+            ('swapaxes',    [0],  nd),
+            ('asarray',     [0],  nd),
+            ('squeeze',     [0],  nd),
+            ('expand_dims', [0],  nd),
+            ('ravel',       [0],  nd),
+            ('flip',        [0],  []),
           )),
 
-        *(numpy_override_transpositional_one_to_many(func_name, data_sources)
-          for func_name, data_sources in (
-            ('repeat',      [0]),
-            ('full',        ['fill_value']),
-            ('tile',        [0]),
-            ('broadcast_to', [0]),
+        *(numpy_override_transpositional_one_to_many(func_name, data_sources,
+                                                     result_type_or_type_translators=result_type)
+          for func_name, data_sources, result_type in (
+            ('repeat',      [0],  nd),
+            ('full',        ['fill_value'], nd),
+            ('tile',        [0],  nd),
+            ('broadcast_to', [0], nd),
           )),
 
         # Shape-only, data-independent
         # TODO: need to implement correct translators
-        *(numpy_override_shape_only(func_name)
-          for func_name in (
-            'ones_like',
-            'zeros_like',
-            'shape',
+        *(numpy_override_shape_only(func_name, result_type_or_type_translators=result_type)
+          for func_name, result_type in (
+            ('ones_like',    nd),
+            ('zeros_like',   nd),
+            ('shape',        tuple),
           )),
 
         # Data-less
-        *(numpy_override(func_name)
-          for func_name in (
-            'arange',
-            'polyfit',
-            'interp',
-            'linspace',
-            'polyval',
-            'corrcoef',
-            'array2string',
-            'zeros',
-            'ones',
-            'eye',
-            'identity',
+        *(numpy_override(func_name, result_type_or_type_translators=result_type)
+          for func_name, result_type in (
+            ('arange',       nd),
+            ('polyfit',      nd),
+            ('interp',       nd),
+            ('linspace',     nd),
+            ('polyval',      nd),
+            ('corrcoef',     nd),
+            ('array2string', str),
+            ('zeros',        nd),
+            ('ones',         nd),
+            ('eye',          nd),
+            ('identity',     nd),
           )),
 
         # Read from files
-        *(numpy_override_read_file(func_name)
+        *(numpy_override_read_file(func_name, result_type_or_type_translators=nd)
           for func_name in (
             'genfromtxt',
             'load',
@@ -253,7 +257,7 @@ def create_numpy_overrides():
           )),
 
         # Random
-        *(numpy_override_random(func_name)
+        *(numpy_override_random(func_name, result_type_or_type_translators=nd)
           for func_name in (
             'rand',
             'randn',
@@ -261,7 +265,9 @@ def create_numpy_overrides():
           )),
 
         # apply_along_axis
-        numpy_override('apply_along_axis', data_source_arguments=["arr"],
+        numpy_override('apply_along_axis',
+                       data_source_arguments=["arr"],
+                       result_type_or_type_translators=nd,
                        is_graphics=None,
                        allowed_kwarg_flags=('is_random', 'is_file_loading', 'is_graphics', 'pass_quibs', 'lazy'),
                        forwards_path_translators=[ApplyAlongAxisForwardsPathTranslator],

@@ -8,6 +8,9 @@ from pyquibbler.path import Path
 from pyquibbler.path_translation import BackwardsPathTranslator, Source, Inversal
 
 from typing import TYPE_CHECKING
+
+from pyquibbler.path_translation.base_translators import BackwardsTranslationRunCondition
+
 if TYPE_CHECKING:
     from pyquibbler.quib.quib import Quib
 
@@ -26,7 +29,7 @@ def proxy(quib_value: Any):
 
 class ProxyBackwardsPathTranslator(BackwardsPathTranslator):
 
-    NEED_SHAPE_AND_TYPE = False
+    RUN_CONDITIONS = [BackwardsTranslationRunCondition.NO_SHAPE_AND_TYPE]
 
     def backwards_translate(self) -> Dict[Source, Path]:
         return {

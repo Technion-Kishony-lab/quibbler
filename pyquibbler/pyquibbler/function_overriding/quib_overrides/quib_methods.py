@@ -25,7 +25,7 @@ def create_quib_method_overrides():
                              quib_function_call_cls=QuibyNameFuncCall,
                              raw_data_source_arguments=[0],
                              pass_quibs=True,
-                             pre_known_result_type=str,
+                             result_type_or_type_translators=str,
                              backwards_path_translators=[QuibyNameBackwardsPathTranslator],
                              forwards_path_translators=[QuibyNameForwardsPathTranslator])),
             ]
