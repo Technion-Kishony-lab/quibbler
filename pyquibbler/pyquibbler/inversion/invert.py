@@ -22,40 +22,7 @@ class MultipleInverterRunner(MultipleFuncCallInstanceRunner):
     def _get_all_runners(self) -> List[Type[Inverter]]:
         return self._func_call.func_definition.inverters
 
-    def _get_inversals_from_tolerance_assignment(self, runner: Type[Inverter]) -> List[Inversal]:
-        """
-        Run the inverter 3 times to get the nominal inverted value and the plus/minus tolerance
-        """
-
-        # TODO: will be better to implement this up/down tolerance within each inverter.
-        #  For example, in the transpositional inverter there is no need to get the path 3 times.
-
-        inversals_nominal_up_down = \
-            (runner(
-                func_call=self._func_call,
-                assignment=assignment,
-                previous_result=self._previous_result
-            ).get_inversals()
-             for assignment in
-             self._assignment.get_assignments_nominal_up_down())
-
-        inversals = []
-        for inversal, inversal_up, inversal_down in zip(*inversals_nominal_up_down):
-            inversals.append(
-                Inversal(source=inversal.source,
-                         assignment=AssignmentWithTolerance.from_assignment_and_up_down_values(
-                             assignment=inversal.assignment,
-                             value_up=inversal_up.assignment.value,
-                             value_down=inversal_down.assignment.value,
-                         )
-                         )
-            )
-        return inversals
-
     def _run_runner(self, runner: Type[Inverter]) -> List[Inversal]:
-        if isinstance(self._assignment, AssignmentWithTolerance):
-            return self._get_inversals_from_tolerance_assignment(runner)
-
         return runner(
             func_call=self._func_call,
             assignment=self._assignment,

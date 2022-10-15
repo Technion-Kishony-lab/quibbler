@@ -42,12 +42,7 @@ class ProxyInverter(Inverter):
 
     def get_inversals(self):
         source = self._func_call.args[0]
-        return [
-            Inversal(
-                source=source,
-                assignment=self._assignment
-            )
-        ]
+        return [Inversal(source=source, assignment=self._assignment)]
 
 
 proxy_definition = create_func_definition(raw_data_source_arguments=[0], inverters=[ProxyInverter],

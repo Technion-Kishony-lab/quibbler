@@ -40,11 +40,18 @@ class BaseBinaryElementWiseInverter(Inverter, ABC):
 
     @staticmethod
     def _switch_argument(argument_index):
+        """
+        Switch from the index of two arguments to the other
+        """
         return 1 - argument_index
 
     def get_indices_of_argument_to_invert_to_and_other_argument(self):
-        # By definition, our default is the left (first) argument.
-        # But, if our quib is a reverse operator, then args have been switched. arg[1] is the default arg.
+        """
+        Returns the index of the argument to which we invert, and the other argument.
+
+        By definition, our default is the left (first) argument.
+        But, if our quib is a reverse operator, then args have been switched. arg[1] is the default arg.
+        """
         default_arg = 1 if self._func_call.func in REVERSE_BINARY_FUNCS_TO_OPERATORS else 0
 
         # If there is no quib in the default argument, then we switch to the other

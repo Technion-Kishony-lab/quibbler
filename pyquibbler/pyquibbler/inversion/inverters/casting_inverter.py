@@ -3,6 +3,7 @@ import warnings
 import numpy as np
 
 from pyquibbler import Assignment
+from pyquibbler.assignment.assignment import create_assignment_from_nominal_down_up_values
 from pyquibbler.inversion.inverter import Inverter
 from pyquibbler.path_translation.types import Source, Inversal
 from abc import ABC, abstractmethod
@@ -19,34 +20,28 @@ class CastingInverter(Inverter, ABC):
         if len(self._func_call.args) != 1 \
                 or not isinstance(self._func_call.args[0], Source) \
                 or len(self._assignment.path) > 0:
-            raise self._raise_faile_to_invert_exception()
+            self._raise_fail_to_invert_exception()
 
         source_to_change = self._func_call.args[0]
-
-        assignment_path = []
+        assigned_nominal_down_up_values = self._get_assignment_nominal_down_up_values()
 
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             try:
-                assigned_value = self._assignment.value
                 type_ = self._func_call.func
-                if not isinstance(assigned_value, type_):
-                    assigned_value = type_(assigned_value)
-                value_to_set = self._get_value_to_set(
+                assigned_nominal_down_up_values = [type_(assigned_value)
+                                                   for assigned_value in assigned_nominal_down_up_values]
+                nominal_down_up_values_to_set = [self._get_value_to_set(
                     source_to_change_value=source_to_change.value,
                     assigned_value=assigned_value,
-                )
+                ) for assigned_value in assigned_nominal_down_up_values]
             except Exception:
-                self._raise_faile_to_invert_exception()
-        return [
-            Inversal(
-                source=source_to_change,
-                assignment=Assignment(
-                    path=assignment_path,
-                    value=value_to_set
-                )
-            )
-        ]
+                self._raise_fail_to_invert_exception()
+        new_assignment = create_assignment_from_nominal_down_up_values(
+            nominal_down_up_values=nominal_down_up_values_to_set,
+            path=[])
+
+        return [Inversal(source=source_to_change, assignment=new_assignment)]
 
 
 class NumericCastingInverter(CastingInverter):

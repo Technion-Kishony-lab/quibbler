@@ -1,6 +1,6 @@
 import numpy as np
 
-from pyquibbler.assignment import Assignment
+from pyquibbler.assignment.assignment import create_assignment_from_nominal_down_up_values
 from pyquibbler.path_translation.types import Source, Inversal
 from .elementwise_inverter import BaseUnaryElementWiseInverter
 
@@ -29,15 +29,10 @@ class UnaryElementwiseNoShapeInverter(BaseUnaryElementWiseInverter):
 
     def get_inversals(self):
         if not self.can_inverse():
-            raise self._raise_faile_to_invert_exception()
-        value = self._assignment.value
-        value_to_set = self.inverse_func(value)
-        return [
-            Inversal(
-                source=self.source_to_change,
-                assignment=Assignment(
-                    path=self._assignment.path,
-                    value=value_to_set
-                )
-            )
-        ]
+            raise self._raise_fail_to_invert_exception()
+        value_nominal_down_up = self._get_assignment_nominal_down_up_values()
+        nominal_down_up_values_to_set = [self.inverse_func(value) for value in value_nominal_down_up]
+        new_assignment = create_assignment_from_nominal_down_up_values(
+            nominal_down_up_values=nominal_down_up_values_to_set,
+            path=self._assignment.path)
+        return [Inversal(source=self.source_to_change, assignment=new_assignment)]

@@ -7,13 +7,14 @@ from pyquibbler.utilities.numpy_original_functions import np_logical_and, np_all
 from pyquibbler.utilities.missing_value import missing
 from pyquibbler.function_definitions import SourceLocation
 from pyquibbler.path import Path, PathComponent, deep_get
-from pyquibbler.assignment import Assignment
+from pyquibbler.assignment import Assignment, AssignmentWithTolerance
 
 from pyquibbler.path_translation import Source, BackwardsPathTranslator, ForwardsPathTranslator, Inversal
 from pyquibbler.path_translation.translators.numpy_translator import \
     NumpyBackwardsPathTranslator, NumpyForwardsPathTranslator
 
 from ..inverter import Inverter
+from ...assignment.assignment import create_assignment_from_nominal_down_up_values
 
 
 class NumpyInverter(Inverter, ABC):
@@ -103,7 +104,7 @@ class NumpyInverter(Inverter, ABC):
                                             sources_to_path_in_result: Dict[Source, Path]
                                             ) -> List[Inversal]:
 
-        result_with_assignment_set = self._get_result_with_assignment_set()
+        result_with_assignment_nominal_down_up = self._get_result_with_assignment_nominal_down_up()
         sources_to_locations = self._get_data_sources_to_locations()
         inversals = []
         for source, path_in_source in sources_to_path_in_source.items():
@@ -112,21 +113,25 @@ class NumpyInverter(Inverter, ABC):
 
             # (4) get value from the result with the new assignment, at path matching the current source:
             path_in_result = sources_to_path_in_result[source]
-            target_value = deep_get(result_with_assignment_set, path_in_result)
+            target_value_nominal_down_up = tuple(deep_get(result_with_assignment, path_in_result)
+                                                 for result_with_assignment in result_with_assignment_nominal_down_up)
 
             location = sources_to_locations[source]
-            inverted_value = self._invert_value(source, location, path_in_source, target_value, path_in_result)
-            if inverted_value is not missing:
-                inversals.append(Inversal(
-                    source=source,
-                    assignment=Assignment(
-                        path=path_in_source,
-                        value=inverted_value
-                    )
-                ))
+            inverted_value_nominal_down_up = tuple(self._invert_value(source, location, path_in_source,
+                                                                      target_value, path_in_result)
+                                                   for target_value in target_value_nominal_down_up)
+            if inverted_value_nominal_down_up[0] is not missing:
+                new_assignment = create_assignment_from_nominal_down_up_values(
+                    nominal_down_up_values=inverted_value_nominal_down_up, path=path_in_source)
+                inversals.append(Inversal(source=source, assignment=new_assignment))
+
         return inversals
 
     @abstractmethod
     def _invert_value(self, source: Source, source_location: SourceLocation, path_in_source: Path,
                       result_value: Any, path_in_result: Path) -> Any:
+        """
+        Apply the inverse function of the numeric value to assign
+        Returns `missing` if cannot invert
+        """
         pass

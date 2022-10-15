@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 from dataclasses import dataclass, field
-from typing import Any, TYPE_CHECKING, List, Union, Optional, Callable
+from typing import Any, TYPE_CHECKING, List, Union, Optional, Callable, Tuple, Iterable
 
 from .default_value import default
 from pyquibbler.path import Path
@@ -109,7 +109,7 @@ def create_assignment(value: Any, path: Path,
                       tolerance: Optional[Any] = None,
                       convert_func: Optional[Callable] = None) -> Union[Assignment, AssignmentWithTolerance]:
 
-    convert_func = convert_func if convert_func is not None else lambda x: x
+    convert_func = convert_func or (lambda x: x)
 
     if tolerance is None:
         return Assignment(convert_func(value), path)
@@ -123,6 +123,27 @@ def create_assignment(value: Any, path: Path,
                                    path=path,
                                    value_up=convert_func(value_up),
                                    value_down=convert_func(value_down))
+
+
+def create_assignment_from_nominal_down_up_values(nominal_down_up_values: Union[List, Tuple], path: Path):
+    """
+    Create Assignment or AssignmentWithTolerance
+    If value_nominal_down_up is a len=3 tuple, use its values, as nominal, down, up, to create AssignmentWithTolerance.
+
+    If value_nominal_down_up is a len=1 tuple, use its value as the nominal value for creating a regular Assignment.
+    """
+    assignment = Assignment(
+        path=path,
+        value=nominal_down_up_values[0]
+    )
+    if len(nominal_down_up_values) == 3:
+        # assignment with tolerance:
+        assignment = AssignmentWithTolerance.from_assignment_and_up_down_values(
+            assignment=assignment,
+            value_down=nominal_down_up_values[1],
+            value_up=nominal_down_up_values[2],
+        )
+    return assignment
 
 
 @dataclass(frozen=True)
