@@ -33,7 +33,7 @@ class TypeTranslator(ConditionalRunner):
     def get_type(self) -> Optional[Type]:
         """
         Return the type of the result.
-        Return None if the type cannot be determined without executing the function.
+        Raise FailedToTypeTranslateException if the type cannot be determined
         """
         pass
 
@@ -59,3 +59,13 @@ class ElementwiseTypeTranslator(TypeTranslator):
             return type(self._func(*representative_values))
         except Exception:
             raise FailedToTypeTranslateException(self._func)
+
+
+class SameAsArgumentTypeTranslator(TypeTranslator):
+    """
+    The type of functions like obj2quib is simply the type of their argument.
+    """
+    RUN_CONDITIONS: Optional[List[TypeTranslateRunCondition]] = [TypeTranslateRunCondition.WITH_ARGUMENTS_TYPES]
+
+    def get_type(self) -> Optional[Type]:
+        return self._data_arguments_types[0]

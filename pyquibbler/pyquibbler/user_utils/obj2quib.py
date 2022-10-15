@@ -1,13 +1,17 @@
 from typing import Any
 
+# create quib
 from pyquibbler import create_quib
 from pyquibbler.function_definitions.location import get_object_type_locations_in_args_kwargs
-from pyquibbler.inversion.inverters.obj2quib_inverter import Obj2QuibInverter
 from pyquibbler.quib.quib import Quib
 from pyquibbler.function_definitions import add_definition_for_function
 from pyquibbler.function_definitions.func_definition import create_func_definition
+
+# translation/inversion
+from pyquibbler.inversion.inverters.obj2quib_inverter import Obj2QuibInverter
 from pyquibbler.path_translation.translators.obj2_quib_translator import \
     Obj2QuibBackwardsPathTranslator, Obj2QuibForwardsPathTranslator
+from pyquibbler.type_translation.translators import SameAsArgumentTypeTranslator
 
 
 def identity_function_obj2quib(v):
@@ -21,7 +25,8 @@ identity_function_obj2quib.__name__ = 'obj2quib'
 obj2quib_definition = create_func_definition(raw_data_source_arguments=[0],
                                              inverters=[Obj2QuibInverter],
                                              forwards_path_translators=[Obj2QuibForwardsPathTranslator],
-                                             backwards_path_translators=[Obj2QuibBackwardsPathTranslator])
+                                             backwards_path_translators=[Obj2QuibBackwardsPathTranslator],
+                                             result_type_or_type_translators=[SameAsArgumentTypeTranslator])
 
 
 def obj2quib(obj: Any) -> Quib:

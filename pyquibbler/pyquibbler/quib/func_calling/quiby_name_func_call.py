@@ -7,8 +7,7 @@ from pyquibbler.quib.func_calling.quib_func_call import WholeValueNonGraphicQuib
 
 class QuibyNameFuncCall(WholeValueNonGraphicQuibFuncCall):
     """
-    Represents a FuncCall with identity function applied to a single argument with no quibs.
-    No need to cache. Also no graphics.
+    Represents a FuncCall that of a quiby_name quib: returning the name of its quib argument.
     """
 
     def _run(self) -> Any:
