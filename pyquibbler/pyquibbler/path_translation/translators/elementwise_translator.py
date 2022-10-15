@@ -1,3 +1,4 @@
+from abc import ABC
 from typing import Tuple, Dict
 
 import numbers
@@ -6,6 +7,7 @@ from numpy.typing import NDArray
 
 from pyquibbler.path import Path
 from pyquibbler.utilities.general_utils import unbroadcast_or_broadcast_bool_mask
+from pyquibbler.utilities.multiple_instance_runner import ConditionalRunner
 
 from ..source_func_call import Source
 from ..array_translation_utils import ArrayPathTranslator
@@ -13,12 +15,11 @@ from ..base_translators import BackwardsTranslationRunCondition, BackwardsPathTr
 from .numpy_translator import NumpyForwardsPathTranslator, NumpyBackwardsPathTranslator
 
 
-class ElementwisePathTranslator:
-    def can_translate(self) -> bool:
+class ElementwisePathTranslator(ConditionalRunner, ABC):
+    def can_try(self) -> bool:
         # we check that the result is numeric or ndarray.
         # For example, if we are the `+` operator acting on two lists then the result is a concatenated list
         # which we cannot translate using this translator.
-
         return issubclass(self._type, numbers.Number) or issubclass(self._type, np.ndarray)
 
 
@@ -37,7 +38,7 @@ class UnaryElementwiseNoShapeBackwardsPathTranslator(BackwardsPathTranslator):
     def source_to_change(self):
         return self._func_call.args[0]
 
-    def can_translate(self):
+    def can_try(self) -> bool:
         return isinstance(self.source_to_change, Source)
 
     def _backwards_translate(self) -> Dict[Source, Path]:

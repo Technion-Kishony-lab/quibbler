@@ -6,11 +6,10 @@ from pyquibbler.assignment import Assignment, AssignmentWithTolerance
 from pyquibbler.function_definitions import FuncCall
 from pyquibbler.path.data_accessing import deep_set
 from pyquibbler.path_translation.source_func_call import SourceFuncCall
+from pyquibbler.utilities.multiple_instance_runner import ConditionalRunner
 
-from .exceptions import FailedToInvertException
 
-
-class Inverter(ABC):
+class Inverter(ConditionalRunner, ABC):
 
     def __init__(self, func_call: Union[FuncCall, SourceFuncCall],
                  assignment: Assignment,
@@ -19,8 +18,8 @@ class Inverter(ABC):
         self._assignment = assignment
         self._previous_result = previous_result
 
-    def _raise_fail_to_invert_exception(self):
-        raise FailedToInvertException(self._func_call)
+    def _try_run(self):
+        return self.get_inversals()
 
     @abstractmethod
     def get_inversals(self):

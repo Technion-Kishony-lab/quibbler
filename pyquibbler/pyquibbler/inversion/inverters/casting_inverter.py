@@ -20,7 +20,7 @@ class CastingInverter(Inverter, ABC):
         if len(self._func_call.args) != 1 \
                 or not isinstance(self._func_call.args[0], Source) \
                 or len(self._assignment.path) > 0:
-            self._raise_fail_to_invert_exception()
+            self._raise_run_failed_exception()
 
         source_to_change = self._func_call.args[0]
         assigned_nominal_down_up_values = self._get_assignment_nominal_down_up_values()
@@ -36,7 +36,7 @@ class CastingInverter(Inverter, ABC):
                     assigned_value=assigned_value,
                 ) for assigned_value in assigned_nominal_down_up_values]
             except Exception:
-                self._raise_fail_to_invert_exception()
+                self._raise_run_failed_exception()
         new_assignment = create_assignment_from_nominal_down_up_values(
             nominal_down_up_values=nominal_down_up_values_to_set,
             path=[])

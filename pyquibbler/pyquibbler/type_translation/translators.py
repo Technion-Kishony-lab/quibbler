@@ -1,9 +1,10 @@
+from __future__ import annotations
+
 from abc import abstractmethod
 from typing import Optional, Type, List
 
 from pyquibbler.utilities.multiple_instance_runner import ConditionalRunner
 
-from .exceptions import FailedToTypeTranslateException
 from .run_conditions import TypeTranslateRunCondition
 from .utils import get_representative_value_of_type, CannotFindRepresentativeValueForType
 
@@ -19,7 +20,7 @@ class TypeTranslator(ConditionalRunner):
     RUN_CONDITIONS: Optional[List[TypeTranslateRunCondition]] = None
 
     def __init__(self,
-                 func_definition: 'FuncDefinition',
+                 func_definition: FuncDefinition,
                  data_arguments_types: Optional[List[Type]],
                  ):
         self._func_definition = func_definition
@@ -37,6 +38,9 @@ class TypeTranslator(ConditionalRunner):
         """
         pass
 
+    def _try_run(self):
+        return self.get_type()
+
 
 class ElementwiseTypeTranslator(TypeTranslator):
     """
@@ -53,17 +57,17 @@ class ElementwiseTypeTranslator(TypeTranslator):
         try:
             representative_values = (get_representative_value_of_type(type_) for type_ in self._data_arguments_types)
         except CannotFindRepresentativeValueForType:
-            raise FailedToTypeTranslateException(self._func)
+            self._raise_run_failed_exception(self._func)
 
         try:
             return type(self._func(*representative_values))
         except Exception:
-            raise FailedToTypeTranslateException(self._func)
+            self._raise_run_failed_exception(self._func)
 
 
 class SameAsArgumentTypeTranslator(TypeTranslator):
     """
-    The type of functions like obj2quib is simply the type of their argument.
+    The type of the result returned by functions like obj2quib is simply the type of their argument.
     """
     RUN_CONDITIONS: Optional[List[TypeTranslateRunCondition]] = [TypeTranslateRunCondition.WITH_ARGUMENTS_TYPES]
 

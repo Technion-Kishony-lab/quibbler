@@ -4,13 +4,14 @@ from typing import Dict, Type
 import numpy as np
 
 from pyquibbler.path import PathComponent, Path, Paths
+from pyquibbler.utilities.multiple_instance_runner import ConditionalRunner
 
-from .transpositional_path_translator import TranspositionalBackwardsPathTranslator, TranspositionalForwardsPathTranslator
+from ..base_translators import BackwardsPathTranslator, ForwardsPathTranslator
 from ..utils import copy_and_replace_sources_with_vals
 from ..types import Source
 
 
-class BaseGetItemTranslator:
+class BaseGetItemTranslator(ConditionalRunner):
 
     @property
     def _referenced_object(self):
@@ -44,28 +45,27 @@ class BaseGetItemTranslator:
     def _is_path_referencing_field_in_field_array(self) -> bool:
         pass
 
-    def _can_use_numpy_transposition(self) -> bool:
+    def can_try(self) -> bool:
         """
-        We can use the TranspositionalBackwardsPathTranslator if we are referencing an array, with indices (not field).
+        We do not use this translator if we are referring an array, with indices (not field).
+        In this case, the TranspositionalBackwardsPathTranslator will be used.
         """
-        return len(self._path) > 0 \
-            and (self._getitem_of_array() or self._getitem_of_list_to_list()) \
-            and not self._getitem_of_a_field_in_array() \
-            and not self._is_path_referencing_field_in_field_array()
+        return not (len(self._path) > 0
+                    and (self._getitem_of_array() or self._getitem_of_list_to_list())
+                    and not self._getitem_of_a_field_in_array()
+                    and not self._is_path_referencing_field_in_field_array())
 
 
-class GetItemBackwardsPathTranslator(TranspositionalBackwardsPathTranslator, BaseGetItemTranslator):
+class GetItemBackwardsPathTranslator(BackwardsPathTranslator, BaseGetItemTranslator):
 
     def _is_path_referencing_field_in_field_array(self) -> bool:
         return self._path[0].referencing_field_in_field_array(self._type)
 
     def _backwards_translate(self) -> Dict[Source, Path]:
-        if self._can_use_numpy_transposition():
-            return super()._backwards_translate()
         return {self._referenced_object: [self._get_getitem_path_component(), *self._path]}
 
 
-class GetItemForwardsPathTranslator(TranspositionalForwardsPathTranslator, BaseGetItemTranslator):
+class GetItemForwardsPathTranslator(ForwardsPathTranslator, BaseGetItemTranslator):
 
     def _is_path_referencing_field_in_field_array(self) -> bool:
         return self._path[0].referencing_field_in_field_array(self._get_type_of_referenced_value())
@@ -75,9 +75,6 @@ class GetItemForwardsPathTranslator(TranspositionalForwardsPathTranslator, BaseG
         path = self._path
         if len(path) == 0:
             return [[]]
-
-        if self._can_use_numpy_transposition():
-            return super()._forward_translate()
 
         if self._getitem_of_a_field_in_array() ^ self._is_path_referencing_field_in_field_array():
             return [path]

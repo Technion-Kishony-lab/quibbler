@@ -6,23 +6,44 @@ from typing import List, Any, Optional, Type
 from pyquibbler.exceptions import PyQuibblerException
 
 
-class RunnerFailedException(PyQuibblerException, ABC):
+# Exceptions:
+
+class BaseRunnerFailedException(PyQuibblerException, ABC):
+    """
+    A base class of exceptions runners should raise if they do not manage to perform their job.
+    These exceptions are caught by MultipleInstanceRunner.
+    """
+
+
+class RunnerCannotRunException(BaseRunnerFailedException):
     """
     A base class of exceptions runners should raise if they do not manage to perform their job.
     """
-    pass
+    def __str__(self):
+        return "Conditions were not met for runner to run."
 
 
 @dataclasses.dataclass
+class RunnerFailedException(BaseRunnerFailedException):
+    """
+    A base class of exceptions runners should raise if they do not manage to perform their job.
+    """
+
+    message: Any
+
+    def __str__(self):
+        return f"Conditions were not met for runner to run.\n{self.message}"
+
+
 class NoRunnerWorkedException(PyQuibblerException):
     """
     An exception raised if no runners were successful.
     """
-    message: Any
-
     def __str__(self):
-        return f'No runner managed to do the work.\n{self.message}'
+        return 'No runner managed to do the work.'
 
+
+# Run condition, and conditional runner:
 
 class RunCondition(Enum):
     """
@@ -31,7 +52,7 @@ class RunCondition(Enum):
     pass
 
 
-class ConditionalRunner:
+class ConditionalRunner(ABC):
     """
     A runner that runs only when the run_condition of the MultipleInstanceRunner matches the list of RUN_CONDITIONS
     of the runner.
@@ -42,8 +63,28 @@ class ConditionalRunner:
     # None to run at all conditions.
     RUN_CONDITIONS: Optional[List[RunCondition]] = None
 
+    def can_try(self) -> bool:
+        """
+        Perform additional tests, beyond RunCondition, to decide if runner can try running.
+        """
+        return True
 
-class MultipleInstanceRunner(ABC):
+    def try_run(self):
+        if self.can_try():
+            return self._try_run()
+        raise RunnerCannotRunException()
+
+    @abstractmethod
+    def _try_run(self):
+        pass
+
+    def _raise_run_failed_exception(self, message: Any = ''):
+        raise RunnerFailedException(message)
+
+
+# multiple instance runner:
+
+class MultipleInstanceRunner:
     """
     Attempting to backward translate paths, type or shape, or to invert, we are taking an escalating approach.
     We try to see if we can do this without shape and type, and if not, we add more information which may ultimately
@@ -53,47 +94,36 @@ class MultipleInstanceRunner(ABC):
     trying ot sequentially run all the runners that can work in this condition. If nothing works, the condition is
     escalated.
 
-    A runner that cannot do the translation job should raise RunnerFailedException.
-    Note that a runner can elect to run in more than one condition, raising RunnerFailedException the first time
+    A runner that cannot do the translation job should raise BaseRunnerFailedException.
+    Note that a runner can elect to run in more than one condition, raising BaseRunnerFailedException the first time
     it is called to be called again with more data.
 
     If no runners managed to run successfully, we raise NoRunnerWorkedException.
     """
 
-    def __init__(self, run_condition: Optional[RunCondition]):
-        # Run only runners matching run_condition.
+    def __init__(self, run_condition: Optional[RunCondition], runners: List[Type[ConditionalRunner]], *args, **kwargs):
+        # Run only runners matching run_condition and whose can_try returns True.
         # run_condition=None will run all runners.
         self._run_condition = run_condition
+        self._runners = runners
 
-    @abstractmethod
-    def _get_all_runners(self) -> List[Type[ConditionalRunner]]:
-        """
-        Returns the list of all runners
-        """
-        pass
+        # args/kwargs to transfer to the runner:
+        self._args = args
+        self._kwargs = kwargs
 
     def _get_runners_matching_condition(self) -> List[Type[ConditionalRunner]]:
         """
         Returns the list of relevant runners matching the run condition
         """
-        all_runners = self._get_all_runners()
         if self._run_condition is None:
-            return all_runners
-        return [runner for runner in all_runners
+            return self._runners
+        return [runner for runner in self._runners
                 if runner.RUN_CONDITIONS is None or self._run_condition in runner.RUN_CONDITIONS]
-
-    @abstractmethod
-    def _get_exception_message(self):
-        pass
-
-    @abstractmethod
-    def _run_runner(self, runner: Any):
-        pass
 
     def run(self):
         for runner in self._get_runners_matching_condition():
             try:
-                return self._run_runner(runner)
-            except RunnerFailedException:
+                return runner(*self._args, **self._kwargs).try_run()
+            except BaseRunnerFailedException:
                 pass
-        raise NoRunnerWorkedException(self._get_exception_message())
+        raise NoRunnerWorkedException()

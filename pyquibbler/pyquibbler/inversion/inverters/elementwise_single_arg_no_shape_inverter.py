@@ -22,14 +22,12 @@ class UnaryElementwiseNoShapeInverter(BaseUnaryElementWiseInverter):
     def source_to_change(self):
         return self._func_call.args[0]
 
-    def can_inverse(self):
+    def can_try(self) -> bool:
         return isinstance(self.source_to_change, Source) \
             and np.size(self._assignment.value) == 1 \
             and not self.inverse_func_requires_input
 
     def get_inversals(self):
-        if not self.can_inverse():
-            raise self._raise_fail_to_invert_exception()
         value_nominal_down_up = self._get_assignment_nominal_down_up_values()
         nominal_down_up_values_to_set = [self.inverse_func(value) for value in value_nominal_down_up]
         new_assignment = create_assignment_from_nominal_down_up_values(

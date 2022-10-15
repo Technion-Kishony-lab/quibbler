@@ -1,5 +1,3 @@
-from dataclasses import dataclass
-
 import numpy as np
 
 from typing import List
@@ -7,28 +5,6 @@ from numpy.typing import NDArray
 
 from pyquibbler.path_translation.array_translation_utils import ArrayPathTranslator
 from pyquibbler.path_translation.translators.numpy_translator import NumpyForwardsPathTranslator, Arg
-from pyquibbler.utilities.general_utils import Shape
-from pyquibbler.function_definitions.func_call import FuncCall
-
-
-@dataclass
-class ApplyAlongAxis:
-    func_call: FuncCall
-    result_shape: Shape
-
-    @property
-    def arr(self):
-        return self.func_call.func_args_kwargs['arr']
-
-    @property
-    def axis(self):
-        return self.func_call.func_args_kwargs['axis']
-
-    def get_expanded_dims(self):
-        func_result_ndim = len(self.result_shape) - len(np.shape(self.arr)) + 1
-        assert func_result_ndim >= 0, func_result_ndim
-        return tuple(range(self.axis, self.axis + func_result_ndim) if self.axis >= 0 else
-                     range(self.axis, self.axis - func_result_ndim, -1))
 
 
 class ApplyAlongAxisForwardsPathTranslator(NumpyForwardsPathTranslator):
@@ -38,13 +14,6 @@ class ApplyAlongAxisForwardsPathTranslator(NumpyForwardsPathTranslator):
         arg_dict = {key: val for key, val in self._func_call.func_args_kwargs.get_arg_values_by_keyword().items()
                     if not isinstance(val, np._globals._NoValueType)}
         return {arg.name: arg.get_value(arg_dict) for arg in self.TRANSLATION_RELATED_ARGS}
-
-    @property
-    def apply_along_axis(self):
-        return ApplyAlongAxis(
-            func_call=self._func_call,
-            result_shape=self._shape
-        )
 
     def _get_expanded_dims(self, axis, source_shape):
         func_result_ndim = len(self._shape) - len(source_shape) + 1

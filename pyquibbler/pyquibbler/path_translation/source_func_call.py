@@ -1,3 +1,4 @@
+from __future__ import annotations
 import dataclasses
 
 from typing import Callable, Optional, List
@@ -15,7 +16,7 @@ if TYPE_CHECKING:
 
 @dataclasses.dataclass
 class SourceFuncCall(FuncCall):
-    func_definition: 'FuncDefinition' = None
+    func_definition: FuncDefinition = None
     func_args_kwargs: FuncArgsKwargs = None
 
     """
@@ -28,7 +29,7 @@ class SourceFuncCall(FuncCall):
     def from_(cls, func: Callable,
               func_args: Args,
               func_kwargs: Kwargs,
-              func_definition: 'FuncDefinition' = None,
+              func_definition: FuncDefinition = None,
               data_source_locations: Optional[List[SourceLocation]] = None,
               parameter_source_locations: Optional[List[SourceLocation]] = None,
               *args, **kwargs):

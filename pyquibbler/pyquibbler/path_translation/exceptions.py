@@ -1,14 +1,10 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-
 from pyquibbler.exceptions import PyQuibblerException
-from pyquibbler.utilities.multiple_instance_runner import RunnerFailedException
+from pyquibbler.utilities.multiple_instance_runner import BaseRunnerFailedException
 
 
-@dataclass
-class FailedToTranslateException(RunnerFailedException):
-
+class FailedToTranslateException(BaseRunnerFailedException):
     def __str__(self):
         return "Failed to translate func call"
 

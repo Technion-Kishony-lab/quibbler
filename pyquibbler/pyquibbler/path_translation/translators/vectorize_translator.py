@@ -10,10 +10,9 @@ from pyquibbler.path.path_component import Path, Paths
 from pyquibbler.quib.func_calling.func_calls.vectorize.utils import get_core_axes
 from pyquibbler.function_definitions.types import iter_arg_ids_and_values
 from pyquibbler.function_definitions import FuncCall, SourceLocation
+
 from .numpy_translator import NumpyForwardsPathTranslator, NumpyBackwardsPathTranslator
 from ..array_translation_utils import ArrayPathTranslator
-
-from ..exceptions import FailedToTranslateException
 from ..types import Source
 
 from typing import TYPE_CHECKING
@@ -59,7 +58,7 @@ class VectorizeBackwardsPathTranslator(NumpyBackwardsPathTranslator):
             return []
 
         if self._shape is None:
-            raise FailedToTranslateException()
+            self._raise_run_failed_exception()
 
         return super()._get_source_path(source, location)
 
