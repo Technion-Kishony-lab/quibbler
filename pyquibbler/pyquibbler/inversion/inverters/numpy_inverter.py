@@ -57,7 +57,7 @@ class NumpyInverter(Inverter, ABC):
         sources_to_bool_mask_path_in_result = dict()
         for source, path_in_source in sources_to_paths_in_sources.items():
             forwards_translator = self._create_forwards_translator(source, sources_to_locations[source], path_in_source)
-            bool_mask_paths_in_result = forwards_translator.forward_translate()
+            bool_mask_paths_in_result = forwards_translator._forward_translate()
             assert len(bool_mask_paths_in_result) == 1
             sources_to_bool_mask_path_in_result[source] = bool_mask_paths_in_result[0]
         return sources_to_bool_mask_path_in_result
@@ -79,7 +79,7 @@ class NumpyInverter(Inverter, ABC):
         """
         # (1) backward translate:
         backwards_translator = self._create_backwards_translator()
-        sources_to_path_in_source = backwards_translator.backwards_translate()
+        sources_to_path_in_source = backwards_translator._backwards_translate()
 
         # (2) forward translate:
         sources_to_bool_mask_path_in_result = \

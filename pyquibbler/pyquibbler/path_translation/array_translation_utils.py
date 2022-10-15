@@ -9,7 +9,8 @@ import numpy as np
 from pyquibbler.function_definitions import SourceLocation
 from pyquibbler.path import Path, deep_set, split_path_at_end_of_object, deep_get
 from pyquibbler.function_definitions.func_call import FuncCall, FuncArgsKwargs
-from pyquibbler.utilities.general_utils import is_scalar_np, get_shared_shape, is_same_shapes
+from pyquibbler.utilities.general_utils import get_shared_shape, is_same_shapes
+from pyquibbler.assignment.utils import is_scalar_np
 
 from .array_index_codes import IndexCode, is_focal_element, IndexCodeArray
 from .exceptions import PyQuibblerRaggedArrayException

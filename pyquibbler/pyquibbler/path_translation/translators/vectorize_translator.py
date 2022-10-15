@@ -87,9 +87,9 @@ class VectorizeForwardsPathTranslator(NumpyForwardsPathTranslator):
         data_arg_bool_mask = np.any(data_arg_bool_mask, axis=get_core_axes(core_ndim))
         return np.broadcast_to(data_arg_bool_mask, self._vectorize_metadata.result_loop_shape)
 
-    def forward_translate(self) -> Paths:
+    def _forward_translate(self) -> Paths:
 
-        paths = super().forward_translate()
+        paths = super()._forward_translate()
 
         if len(paths) == 0 or not self._vectorize_metadata.is_result_a_tuple:
             return paths

@@ -31,7 +31,7 @@ class ProxyBackwardsPathTranslator(BackwardsPathTranslator):
 
     RUN_CONDITIONS = [BackwardsTranslationRunCondition.NO_SHAPE_AND_TYPE]
 
-    def backwards_translate(self) -> Dict[Source, Path]:
+    def _backwards_translate(self) -> Dict[Source, Path]:
         return {
             source: self._path
             for source in self._func_call.get_data_sources()

@@ -63,21 +63,6 @@ def is_non_object_array(obj):
     return isinstance(obj, np.ndarray) and obj.dtype.type is not np.object_
 
 
-def is_scalar_np(obj) -> bool:
-    """
-    Check if obj is a scalar, in the sense that np.shape(obj) = () [but without running np.shape]
-    """
-    if np.isscalar(obj):
-        return True
-    if isinstance(obj, dict):
-        return True
-    try:
-        len(obj)
-    except TypeError:
-        return True
-    return False
-
-
 def is_same_shapes(args: List[ArrayLike]) -> bool:
     """
     Check if all elements of args have the same shape

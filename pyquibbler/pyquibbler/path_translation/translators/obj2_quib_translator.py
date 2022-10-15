@@ -11,7 +11,7 @@ class Obj2QuibBackwardsPathTranslator(BackwardsPathTranslator):
 
     RUN_CONDITIONS = [BackwardsTranslationRunCondition.NO_SHAPE_AND_TYPE]
 
-    def backwards_translate(self) -> Dict[Source, Path]:
+    def _backwards_translate(self) -> Dict[Source, Path]:
         path_within_object, remaining_path, obj = split_path_at_end_of_object(self._func_call.args[0], self._path)
 
         if isinstance(obj, Source):
@@ -23,5 +23,5 @@ class Obj2QuibBackwardsPathTranslator(BackwardsPathTranslator):
 
 class Obj2QuibForwardsPathTranslator(ForwardsPathTranslator):
 
-    def forward_translate(self) -> Paths:
+    def _forward_translate(self) -> Paths:
         return [self._source_location.path + self._path]

@@ -59,9 +59,9 @@ class GetItemBackwardsPathTranslator(TranspositionalBackwardsPathTranslator, Bas
     def _is_path_referencing_field_in_field_array(self) -> bool:
         return self._path[0].referencing_field_in_field_array(self._type)
 
-    def backwards_translate(self) -> Dict[Source, Path]:
+    def _backwards_translate(self) -> Dict[Source, Path]:
         if self._can_use_numpy_transposition():
-            return super().backwards_translate()
+            return super()._backwards_translate()
         return {self._referenced_object: [self._get_getitem_path_component(), *self._path]}
 
 
@@ -70,14 +70,14 @@ class GetItemForwardsPathTranslator(TranspositionalForwardsPathTranslator, BaseG
     def _is_path_referencing_field_in_field_array(self) -> bool:
         return self._path[0].referencing_field_in_field_array(self._get_type_of_referenced_value())
 
-    def forward_translate(self) -> Paths:
+    def _forward_translate(self) -> Paths:
 
         path = self._path
         if len(path) == 0:
             return [[]]
 
         if self._can_use_numpy_transposition():
-            return super().forward_translate()
+            return super()._forward_translate()
 
         if self._getitem_of_a_field_in_array() ^ self._is_path_referencing_field_in_field_array():
             return [path]

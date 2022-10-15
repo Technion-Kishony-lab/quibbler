@@ -4,7 +4,7 @@ from typing import Any
 from .assignment import Assignment
 from .default_value import default
 from .utils import is_integer_scalar, is_array_of_size_one, is_numeric_scalar, convert_array_of_size_one_to_scalar, \
-    convert_scalar_value
+    convert_scalar_value, is_scalar_np
 from ..path import Path, PathComponent, deep_get
 
 
@@ -48,7 +48,7 @@ class AssignmentSimplifier:
         if not all(is_array_of_size_one(index) or is_integer_scalar(index) for index in self.last_component.component):
             return
 
-        if not (is_array_of_size_one(self.value) or is_numeric_scalar(self.value) or self.value is default):
+        if not (is_array_of_size_one(self.value) or is_scalar_np(self.value) or self.value is default):
             return
 
         self.last_component.component = \

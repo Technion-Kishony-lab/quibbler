@@ -8,8 +8,9 @@ from numpy.typing import NDArray
 
 from pyquibbler.function_definitions import SourceLocation
 from pyquibbler.path import Path, Paths, PathComponent, split_path_at_end_of_object, deep_set, SpecialComponent
-from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices, is_scalar_np, Shape
+from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices, Shape
 from pyquibbler.utilities.numpy_original_functions import np_True, np_zeros, np_sum
+from pyquibbler.assignment.utils import is_scalar_np
 
 from ..source_func_call import SourceFuncCall
 from ..array_index_codes import IndexCode, is_focal_element
@@ -34,7 +35,7 @@ class ArgWithDefault(Arg):
         return arg_dict.get(self.name, self.default)
 
 
-def run_after_calculating_result_bool_mask(func):
+def calculate_result_bool_mask_before_run(func):
 
     @functools.wraps(func)
     def wrapper(self, *args, **kwargs):
@@ -123,16 +124,16 @@ class NumpyBackwardsPathTranslator(BackwardsPathTranslator):
         self._result_bool_mask = result_bool_mask
         self._is_getting_element_out_of_array = is_scalar_np(extracted_result)
 
-    @run_after_calculating_result_bool_mask
+    @calculate_result_bool_mask_before_run
     def get_result_bool_mask_and_split_path(self):
         return self._result_bool_mask, self._path_in_array, self._remaining_path
 
-    @run_after_calculating_result_bool_mask
+    @calculate_result_bool_mask_before_run
     def is_getting_element_out_of_array(self):
         return self._is_getting_element_out_of_array
 
-    @run_after_calculating_result_bool_mask
-    def backwards_translate(self) -> Dict[Source, Path]:
+    @calculate_result_bool_mask_before_run
+    def _backwards_translate(self) -> Dict[Source, Path]:
         sources_to_paths = {}
         for source, location in zip(self._func_call.get_data_sources(), self._func_call.data_source_locations):
             source_path = self._get_source_path(source, location)
@@ -166,7 +167,7 @@ class NumpyForwardsPathTranslator(ForwardsPathTranslator):
         """
         pass
 
-    def forward_translate(self) -> Paths:
+    def _forward_translate(self) -> Paths:
 
         data_argument_to_mask_converter = \
             ArrayPathTranslator(func_call=self._func_call, focal_source=self._source,

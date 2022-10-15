@@ -21,6 +21,21 @@ def get_axes_x_y_tolerance(ax: Axes):
            (ylim[1] - ylim[0]) / n
 
 
+def is_scalar_np(obj) -> bool:
+    """
+    Check if obj is a scalar, in the sense that np.shape(obj) = () [but without running np.shape]
+    """
+    if np.isscalar(obj):
+        return True
+    if isinstance(obj, dict):
+        return True
+    try:
+        len(obj)
+    except TypeError:
+        return True
+    return False
+
+
 def is_numeric_scalar(data) -> bool:
     return isinstance(data, numbers.Number)
 

@@ -10,7 +10,7 @@ class QuibyNameBackwardsPathTranslator(BackwardsPathTranslator):
     """
     We need no data from the sources.
     """
-    def backwards_translate(self) -> Dict[Source, Path]:
+    def _backwards_translate(self) -> Dict[Source, Path]:
         sources_to_paths = {}
         for source in self._func_call.get_data_sources():
             sources_to_paths[source] = []
@@ -21,5 +21,5 @@ class QuibyNameForwardsPathTranslator(ForwardsPathTranslator):
     """
     We are not affected by change the sources.
     """
-    def forward_translate(self) -> Paths:
+    def _forward_translate(self) -> Paths:
         return []

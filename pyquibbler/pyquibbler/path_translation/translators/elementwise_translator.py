@@ -1,19 +1,29 @@
 from typing import Tuple, Dict
 
+import numbers
 import numpy as np
 from numpy.typing import NDArray
 
 from pyquibbler.path import Path
 from pyquibbler.utilities.general_utils import unbroadcast_or_broadcast_bool_mask
-from ..source_func_call import Source
 
+from ..source_func_call import Source
 from ..array_translation_utils import ArrayPathTranslator
 from ..base_translators import BackwardsTranslationRunCondition, BackwardsPathTranslator
-from ..exceptions import FailedToTranslateException
 from .numpy_translator import NumpyForwardsPathTranslator, NumpyBackwardsPathTranslator
 
 
+class ElementwisePathTranslator:
+    def can_translate(self) -> bool:
+        # we check that the result is numeric or ndarray.
+        # For example, if we are the `+` operator acting on two lists then the result is a concatenated list
+        # which we cannot translate using this translator.
+
+        return issubclass(self._type, numbers.Number) or issubclass(self._type, np.ndarray)
+
+
 # BACKWARDS:
+
 
 class UnaryElementwiseNoShapeBackwardsPathTranslator(BackwardsPathTranslator):
     """
@@ -30,13 +40,11 @@ class UnaryElementwiseNoShapeBackwardsPathTranslator(BackwardsPathTranslator):
     def can_translate(self):
         return isinstance(self.source_to_change, Source)
 
-    def backwards_translate(self) -> Dict[Source, Path]:
-        if self.can_translate():
-            return {self.source_to_change: self._path}
-        raise FailedToTranslateException()
+    def _backwards_translate(self) -> Dict[Source, Path]:
+        return {self.source_to_change: self._path}
 
 
-class UnaryElementwiseBackwardsPathTranslator(NumpyBackwardsPathTranslator):
+class UnaryElementwiseBackwardsPathTranslator(ElementwisePathTranslator, NumpyBackwardsPathTranslator):
 
     def _get_indices_in_source(self,
                                data_argument_to_source_index_code_converter: ArrayPathTranslator,
@@ -48,7 +56,7 @@ class UnaryElementwiseBackwardsPathTranslator(NumpyBackwardsPathTranslator):
         return data_argument_index_array, result_bool_mask
 
 
-class BinaryElementwiseBackwardsPathTranslator(NumpyBackwardsPathTranslator):
+class BinaryElementwiseBackwardsPathTranslator(ElementwisePathTranslator, NumpyBackwardsPathTranslator):
 
     def _get_indices_in_source(self,
                                data_argument_to_source_index_code_converter: ArrayPathTranslator,
@@ -69,7 +77,7 @@ class BinaryElementwiseBackwardsPathTranslator(NumpyBackwardsPathTranslator):
 
 # FORWARD:
 
-class UnaryElementwiseForwardsPathTranslator(NumpyForwardsPathTranslator):
+class UnaryElementwiseForwardsPathTranslator(ElementwisePathTranslator, NumpyForwardsPathTranslator):
     ADD_OUT_OF_ARRAY_COMPONENT = True
 
     def forward_translate_masked_data_arguments_to_result_mask(self,
@@ -82,7 +90,7 @@ class UnaryElementwiseForwardsPathTranslator(NumpyForwardsPathTranslator):
         return masked_data_arguments[0]
 
 
-class BinaryElementwiseForwardsPathTranslator(NumpyForwardsPathTranslator):
+class BinaryElementwiseForwardsPathTranslator(ElementwisePathTranslator, NumpyForwardsPathTranslator):
     ADD_OUT_OF_ARRAY_COMPONENT = True
 
     def forward_translate_masked_data_arguments_to_result_mask(self,

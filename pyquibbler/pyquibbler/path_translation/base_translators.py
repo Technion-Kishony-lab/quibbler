@@ -5,6 +5,7 @@ from typing import Dict, Optional, Type
 from pyquibbler.utilities.general_utils import Shape
 from pyquibbler.path import Path, Paths
 from pyquibbler.function_definitions import FuncCall, SourceLocation
+from .exceptions import FailedToTranslateException
 
 from .source_func_call import SourceFuncCall
 from .types import Source
@@ -32,13 +33,21 @@ class BackwardsPathTranslator(ConditionalRunner):
         self._path = path
         self._type = type_
 
+    def can_translate(self) -> bool:
+        return True
+
     @abstractmethod
-    def backwards_translate(self) -> Dict[Source, Path]:
+    def _backwards_translate(self) -> Dict[Source, Path]:
         """
         Translate the path back to a mapping between sources and their respective paths which have an equivalence to
         self._path
         """
         pass
+
+    def backwards_translate(self) -> Dict[Source, Path]:
+        if not self.can_translate():
+            raise FailedToTranslateException()
+        return self._backwards_translate()
 
 
 class ForwardsPathTranslator:
@@ -62,9 +71,17 @@ class ForwardsPathTranslator:
         self._shape = shape
         self._type = type_
 
+    def can_translate(self) -> bool:
+        return True
+
     @abstractmethod
-    def forward_translate(self) -> Paths:
+    def _forward_translate(self) -> Paths:
         pass
+
+    def forward_translate(self) -> Paths:
+        if not self.can_translate():
+            raise FailedToTranslateException()
+        return self._forward_translate()
 
     def _source_type(self):
         return type(self._source.value)
