@@ -1,30 +1,37 @@
 from __future__ import annotations
 
+import numpy as np
+
 from contextlib import ExitStack
 from sys import getsizeof
 from time import perf_counter
+
+# typing
 from typing import Optional, Dict, Any, Set, Callable, List, Union
-
-import numpy as np
-
 from pyquibbler.utilities.general_utils import Args, Kwargs
+from pyquibbler.quib.quib import Quib
+from .quib_func_call import QuibFuncCall
+
+# cache
 from pyquibbler.cache.cache_utils import truncate_path_to_match_shallow_caches, ensure_cache_matches_result, \
     get_cached_data_at_truncated_path_given_result_at_uncached_path
 from pyquibbler.cache import PathCannotHaveComponentsException, get_uncached_paths_matching_path
+from .cache_mode import CacheMode
 
+# graphics
 from pyquibbler.graphics.graphics_collection import GraphicsCollection
-from pyquibbler.path import Path
+
+# run
 from pyquibbler.quib import consts
 from pyquibbler.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
-from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.quib_guard import QuibGuard
-from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation
-from pyquibbler.path_translation import NoTranslatorsWorkedException
-from pyquibbler.path_translation.translate import backwards_translate
 
-from .quib_func_call import QuibFuncCall
-from .cache_mode import CacheMode
-from ...path_translation.base_translators import BackwardsTranslationRunCondition
+# translation
+from pyquibbler.utilities.multiple_instance_runner import NoRunnerWorkedException
+from pyquibbler.path import Path
+from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation
+from pyquibbler.path_translation.translate import backwards_translate
+from pyquibbler.path_translation.base_translators import BackwardsTranslationRunCondition
 
 
 class CachedQuibFuncCall(QuibFuncCall):
@@ -105,7 +112,7 @@ class CachedQuibFuncCall(QuibFuncCall):
                 func_call=func_call,
                 path=valid_path,
             )
-        except NoTranslatorsWorkedException:
+        except NoRunnerWorkedException:
             # try with shape and type
             func_call, sources_to_quibs = get_func_call_for_translation(func_call=self, with_meta_data=True)
             try:
@@ -117,7 +124,7 @@ class CachedQuibFuncCall(QuibFuncCall):
                     type_=self.get_type(),
                     **self.get_result_metadata()
                 )
-            except NoTranslatorsWorkedException:
+            except NoRunnerWorkedException:
                 # as a backup, request everything if cannot translate:
                 sources_to_paths = {source: [] for source in sources_to_quibs}
 

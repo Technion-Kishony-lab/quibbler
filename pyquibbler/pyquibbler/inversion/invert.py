@@ -2,7 +2,6 @@ from __future__ import annotations
 from typing import Any, List, Type, Union, Optional
 
 from pyquibbler.assignment import AssignmentWithTolerance, Assignment, default
-from pyquibbler.inversion.exceptions import NoInvertersWorkedException, FailedToInvertException
 from pyquibbler.inversion.inverter import Inverter
 from pyquibbler.path import deep_get
 from pyquibbler.path_translation.source_func_call import SourceFuncCall
@@ -11,9 +10,6 @@ from pyquibbler.path_translation.types import Inversal
 
 
 class MultipleInverterRunner(MultipleFuncCallInstanceRunner):
-
-    EXPECTED_TO_RAISE_ON_NONE_WORKED = NoInvertersWorkedException
-    EXPECTED_RUNNER_EXCEPTION = FailedToInvertException
 
     def __init__(self,
                  func_call: SourceFuncCall,

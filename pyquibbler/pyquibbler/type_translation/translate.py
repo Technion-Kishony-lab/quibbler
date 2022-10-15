@@ -4,13 +4,10 @@ from pyquibbler.utilities.multiple_instance_runner import MultipleInstanceRunner
 from pyquibbler.function_definitions.func_definition import FuncDefinition
 
 from .translators import TypeTranslator
-from .exceptions import FailedToTypeTranslateException, NoTypeTranslatorsWorkedException
 from .run_conditions import TypeTranslateRunCondition
 
 
 class MultipleTypeTranslatorRunner(MultipleInstanceRunner):
-    EXPECTED_RUNNER_EXCEPTION = FailedToTypeTranslateException
-    EXPECTED_TO_RAISE_ON_NONE_WORKED = NoTypeTranslatorsWorkedException
 
     def __init__(self,
                  run_condition: TypeTranslateRunCondition,

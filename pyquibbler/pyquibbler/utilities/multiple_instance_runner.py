@@ -1,3 +1,4 @@
+import dataclasses
 from abc import ABC, abstractmethod
 from enum import Enum
 from typing import List, Any, Optional, Type
@@ -5,9 +6,27 @@ from typing import List, Any, Optional, Type
 from pyquibbler.exceptions import PyQuibblerException
 
 
+class RunnerFailedException(PyQuibblerException, ABC):
+    """
+    A base class of exceptions runners should raise if they do not manage to perform their job.
+    """
+    pass
+
+
+@dataclasses.dataclass
+class NoRunnerWorkedException(PyQuibblerException):
+    """
+    An exception raised if no runners were successful.
+    """
+    message: Any
+
+    def __str__(self):
+        return f'No runner managed to do the work.\n{self.message}'
+
+
 class RunCondition(Enum):
     """
-    Defines the condition at which a runner can run
+    Defines the condition at which a runner can run.
     """
     pass
 
@@ -34,14 +53,12 @@ class MultipleInstanceRunner(ABC):
     trying ot sequentially run all the runners that can work in this condition. If nothing works, the condition is
     escalated.
 
-    A runner that cannot do the translation job should raise EXPECTED_RUNNER_EXCEPTION.
-    Note that a runner can elect to run in more than one condition, raising EXPECTED_RUNNER_EXCEPTION the first time
+    A runner that cannot do the translation job should raise RunnerFailedException.
+    Note that a runner can elect to run in more than one condition, raising RunnerFailedException the first time
     it is called to be called again with more data.
 
-    If not runners managed to run successfully, we raise EXPECTED_TO_RAISE_ON_NONE_WORKED.
+    If no runners managed to run successfully, we raise NoRunnerWorkedException.
     """
-    EXPECTED_RUNNER_EXCEPTION: Optional[Type[PyQuibblerException]] = None
-    EXPECTED_TO_RAISE_ON_NONE_WORKED: Type[PyQuibblerException] = NotImplemented
 
     def __init__(self, run_condition: Optional[RunCondition]):
         # Run only runners matching run_condition.
@@ -77,6 +94,6 @@ class MultipleInstanceRunner(ABC):
         for runner in self._get_runners_matching_condition():
             try:
                 return self._run_runner(runner)
-            except self.EXPECTED_RUNNER_EXCEPTION:
+            except RunnerFailedException:
                 pass
-        raise self.EXPECTED_TO_RAISE_ON_NONE_WORKED(self._get_exception_message())
+        raise NoRunnerWorkedException(self._get_exception_message())

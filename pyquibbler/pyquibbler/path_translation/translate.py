@@ -6,7 +6,7 @@ from pyquibbler.path import Path, Paths
 from pyquibbler.function_definitions.func_call import FuncCall
 
 from .base_translators import BackwardsPathTranslator, ForwardsPathTranslator, BackwardsTranslationRunCondition
-from .exceptions import FailedToTranslateException, NoTranslatorsWorkedException
+from .exceptions import FailedToTranslateException
 from .types import Source
 from ..function_definitions import SourceLocation
 from ..utilities.general_utils import Shape
@@ -23,8 +23,6 @@ class MultipleFuncCallInstanceRunner(MultipleInstanceRunner, ABC):
 
 
 class MultipleBackwardsTranslatorRunner(MultipleFuncCallInstanceRunner):
-    EXPECTED_RUNNER_EXCEPTION = FailedToTranslateException
-    EXPECTED_TO_RAISE_ON_NONE_WORKED = NoTranslatorsWorkedException
 
     def __init__(self,
                  run_condition: BackwardsTranslationRunCondition,
@@ -54,8 +52,6 @@ class MultipleBackwardsTranslatorRunner(MultipleFuncCallInstanceRunner):
 
 
 class MultipleForwardsTranslatorRunner(MultipleFuncCallInstanceRunner):
-    EXPECTED_RUNNER_EXCEPTION = FailedToTranslateException
-    EXPECTED_TO_RAISE_ON_NONE_WORKED = NoTranslatorsWorkedException
 
     def __init__(self,
                  func_call: FuncCall,
