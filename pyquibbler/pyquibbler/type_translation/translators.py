@@ -46,7 +46,7 @@ class ElementwiseTypeTranslator(TypeTranslator):
     type(np.sin([1])) -> np.ndarray
     """
 
-    RUN_CONDITIONS: Optional[List[TypeTranslateRunCondition]] = TypeTranslateRunCondition.WITH_ARGUMENTS_TYPES
+    RUN_CONDITIONS: Optional[List[TypeTranslateRunCondition]] = [TypeTranslateRunCondition.WITH_ARGUMENTS_TYPES]
 
     def get_type(self) -> Optional[Type]:
 
@@ -56,6 +56,6 @@ class ElementwiseTypeTranslator(TypeTranslator):
             raise FailedToTypeTranslateException(self._func)
 
         try:
-            return self._func(*representative_values)
+            return type(self._func(*representative_values))
         except Exception:
             raise FailedToTypeTranslateException(self._func)

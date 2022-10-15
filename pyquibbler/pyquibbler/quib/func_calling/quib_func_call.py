@@ -3,19 +3,27 @@ from __future__ import annotations
 import numpy as np
 
 from dataclasses import dataclass, field
+
+# types:
 from typing import Optional, Type, Dict, Callable, Any, List, Union
-
-from pyquibbler.utilities.general_utils import Shape
-
-from pyquibbler.quib.func_calling.cache_mode import CacheMode
 from pyquibbler.quib.quib import Quib
-from pyquibbler.cache import Cache
+from pyquibbler.utilities.general_utils import Shape
 from pyquibbler.function_definitions import FuncCall
+
+# graphics
 from pyquibbler.graphics.graphics_collection import GraphicsCollection
+
+# cache
+from pyquibbler.quib.func_calling.cache_mode import CacheMode
+from pyquibbler.cache import Cache
+
+# translation
 from pyquibbler.path import Path
+from pyquibbler.type_translation.run_conditions import TypeTranslateRunCondition
+from pyquibbler.type_translation.translate import translate_type
+from pyquibbler.utilities.multiple_instance_runner import NoRunnerWorkedException
 
 from .utils import create_array_from_func, CachedCall, get_shape_from_result
-from ...type_translation.translate import translate_type
 
 
 @dataclass
@@ -72,12 +80,36 @@ class QuibFuncCall(FuncCall):
             self._calculate_type()
         return self.result_type
 
+    def _get_data_argument_types(self) -> List[Type]:
+        """
+        Get the type of the data arguments.
+        """
+        data_argument_values = [self.func_args_kwargs.get_arg_value_by_argument(data_argument)
+                                for data_argument in self.func_definition.get_data_arguments(self.func_args_kwargs)]
+
+        return [data_argument_value.get_type() if isinstance(data_argument_value, Quib)
+                else type(data_argument_value)
+                for data_argument_value in data_argument_values]
+
     def _calculate_type(self):
-        if self.func_definition.result_type_or_type_translators:
-            # translate_type()
+        if not isinstance(self.func_definition.result_type_or_type_translators, list):
+            # result_type_or_type_translators is the pre-determined type
             self.result_type = self.func_definition.result_type_or_type_translators
         else:
-            self.run([None])  # this will update the type
+            # result_type_or_type_translators is a list of get_type runners
+            try:
+                # try getting the type of the result without the type of the arguments:
+                self.result_type = translate_type(run_condition=TypeTranslateRunCondition.NO_ARGUMENTS_TYPES,
+                                                  func_definition=self.func_definition)
+            except NoRunnerWorkedException:
+                try:
+                    # try getting the type of the result based on the type of the arguments:
+                    self.result_type = translate_type(run_condition=TypeTranslateRunCondition.WITH_ARGUMENTS_TYPES,
+                                                      func_definition=self.func_definition,
+                                                      data_arguments_types=self._get_data_argument_types())
+                except NoRunnerWorkedException:
+                    # we must call teh function to update the type:
+                    self.run([None])
 
     def get_shape(self) -> Shape:
         """

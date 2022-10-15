@@ -31,13 +31,16 @@ class MultipleTypeTranslatorRunner(MultipleInstanceRunner):
         return translator.get_type()
 
 
-def translate_type(func_definition: FuncDefinition,
-                   data_arguments_types: Optional[List[Type]]) -> Optional[Type]:
+def translate_type(
+        run_condition: TypeTranslateRunCondition,
+        func_definition: FuncDefinition,
+        data_arguments_types: Optional[List[Type]] = None) -> Optional[Type]:
     """
     Try getting the type of the quib value without evaluating the function.
     Return None if type cannot be calculated.
     """
     return MultipleTypeTranslatorRunner(
+        run_condition=run_condition,
         func_definition=func_definition,
         data_arguments_types=data_arguments_types,
-    ).run()
+                                       ).run()
