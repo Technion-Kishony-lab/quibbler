@@ -7,6 +7,8 @@ from pyquibbler.utilities.missing_value import missing
 from pyquibbler.path import deep_get, Path
 from pyquibbler.function_definitions import SourceLocation
 
+from pyquibbler.quib.pretty_converters.operators import REVERSE_BINARY_FUNCS_TO_OPERATORS
+
 from pyquibbler.path_translation import ForwardsPathTranslator, BackwardsPathTranslator
 from pyquibbler.path_translation.types import Source
 from pyquibbler.path_translation.utils import copy_and_replace_sources_with_vals
@@ -16,7 +18,6 @@ from pyquibbler.path_translation.translators.elementwise import \
 
 from .numpy import NumpyInverter
 from ..inverter import Inverter
-from ...quib.pretty_converters.operators import REVERSE_BINARY_FUNCS_TO_OPERATORS
 
 
 class BaseUnaryElementWiseInverter(Inverter):

@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from pyquibbler.function_definitions import add_definition_for_function
 from pyquibbler.function_definitions.func_definition import create_func_definition
@@ -40,7 +40,7 @@ class ProxyBackwardsPathTranslator(BackwardsPathTranslator):
 
 class ProxyInverter(Inverter):
 
-    def get_inversals(self):
+    def get_inversals(self) -> List[Inversal]:
         source = self._func_call.args[0]
         return [Inversal(source=source, assignment=self._assignment)]
 

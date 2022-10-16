@@ -18,7 +18,8 @@ class GetItemInverter(Inverter):
             shape=np.shape(self._previous_result),
             type_=type(self._previous_result)
         )
-        assert len(sources_to_paths_in_sources) == 1
+        if len(sources_to_paths_in_sources) != 1:
+            self._raise_run_failed_exception()
 
         source = list(sources_to_paths_in_sources.keys())[0]
         path_in_source = sources_to_paths_in_sources[source]

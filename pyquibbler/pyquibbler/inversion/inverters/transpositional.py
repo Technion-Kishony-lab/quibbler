@@ -10,7 +10,10 @@ from .numpy import NumpyInverter
 
 
 class TranspositionalOneToOneInverter(NumpyInverter):
-
+    """
+    Inverts assignments to transpositional functions (like `rot90`, `transpose`, `concatenate`, etc).
+    Uses the transpositional path translators (based on array index code masks).
+    """
     BACKWARDS_TRANSLATOR_TYPE: Type[BackwardsPathTranslator] = TranspositionalBackwardsPathTranslator
     FORWARDS_TRANSLATOR_TYPE: Type[ForwardsPathTranslator] = TranspositionalForwardsPathTranslator
     IS_ONE_TO_MANY_FUNC: bool = False
@@ -21,4 +24,8 @@ class TranspositionalOneToOneInverter(NumpyInverter):
 
 
 class TranspositionalOneToManyInverter(TranspositionalOneToOneInverter):
+    """
+    Inverts assignments to transpositional functions that can create multiple copies of each element.
+    (like `full`, `repeat`, etc).
+    """
     IS_ONE_TO_MANY_FUNC: bool = True

@@ -62,7 +62,7 @@ class NumpyInverter(Inverter, ABC):
             sources_to_bool_mask_path_in_result[source] = bool_mask_paths_in_result[0]
         return sources_to_bool_mask_path_in_result
 
-    def get_inversals(self):
+    def get_inversals(self) -> List[Inversal]:
         """
         The strategy is to assign to the result and then use deep_get to get the right value for each source.
         To figure out the path and value for each source, we follow 4 steps (for each source):

@@ -1,10 +1,11 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import Union, Any, Tuple
+from typing import Union, Any, Tuple, List
 
 from pyquibbler.assignment import Assignment, AssignmentWithTolerance
 from pyquibbler.function_definitions import FuncCall
 from pyquibbler.path.data_accessing import deep_set
+from pyquibbler.path_translation.types import Inversal
 from pyquibbler.path_translation.source_func_call import SourceFuncCall
 from pyquibbler.utilities.multiple_instance_runner import ConditionalRunner
 
@@ -22,7 +23,7 @@ class Inverter(ConditionalRunner, ABC):
         return self.get_inversals()
 
     @abstractmethod
-    def get_inversals(self):
+    def get_inversals(self) -> List[Inversal]:
         pass
 
     def _get_assignment_nominal_down_up_values(self) -> Tuple[Any]:

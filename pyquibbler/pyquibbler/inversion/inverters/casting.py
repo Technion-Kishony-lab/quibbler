@@ -1,4 +1,5 @@
 import warnings
+from typing import List
 
 import numpy as np
 from abc import ABC, abstractmethod
@@ -15,7 +16,7 @@ class CastingInverter(Inverter, ABC):
     def _get_value_to_set(source_to_change_value, assigned_value):
         pass
 
-    def get_inversals(self):
+    def get_inversals(self) -> List[Inversal]:
         if len(self._func_call.args) != 1 \
                 or not isinstance(self._func_call.args[0], Source) \
                 or len(self._assignment.path) > 0:

@@ -1,14 +1,17 @@
+from typing import List
+
 from pyquibbler.assignment import Assignment
 from pyquibbler.assignment.assignment import create_assignment_from_nominal_down_up_values
-from pyquibbler.inversion.inverter import Inverter
 from pyquibbler.path import split_path_at_end_of_object, deep_get
 from pyquibbler.path_translation.types import Inversal, Source
 from pyquibbler.utilities.iterators import get_paths_for_objects_of_type
 
+from ..inverter import Inverter
+
 
 class Obj2QuibInverter(Inverter):
 
-    def get_inversals(self):
+    def get_inversals(self) -> List[Inversal]:
         assignment_path = self._assignment.path
         path_within_object, remaining_path, obj = split_path_at_end_of_object(self._func_call.args[0],
                                                                               path=assignment_path)
