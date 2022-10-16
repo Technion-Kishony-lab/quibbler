@@ -9,7 +9,17 @@ from pyquibbler.path_translation.array_translation_utils import ArrayPathTransla
     run_func_call_with_new_args_kwargs
 
 
-class TranspositionalBackwardsPathTranslator(NumpyBackwardsPathTranslator):
+class TranspositionalPathTranslator:
+    def _get_result_mask(self, data_argument_to_source_index_code_converter: ArrayPathTranslator):
+        func_args_kwargs = data_argument_to_source_index_code_converter.get_func_args_kwargs()
+        return run_func_call_with_new_args_kwargs(self._func_call, func_args_kwargs)
+
+
+class TranspositionalBackwardsPathTranslator(NumpyBackwardsPathTranslator, TranspositionalPathTranslator):
+    """
+    Backward translate numpy transpositional functions (like array, rot90, flip).
+    Works by applying the function to the data args replaced with index codes.
+    """
 
     def _get_indices_in_source(self,
                                data_argument_to_source_index_code_converter: ArrayPathTranslator,
@@ -17,13 +27,11 @@ class TranspositionalBackwardsPathTranslator(NumpyBackwardsPathTranslator):
         """
         We transform the indices of the source to the target by applying the transposition function.
         """
-        func_args_kwargs = data_argument_to_source_index_code_converter.get_func_args_kwargs()
-        result = run_func_call_with_new_args_kwargs(self._func_call, func_args_kwargs)
-
+        result = self._get_result_mask(data_argument_to_source_index_code_converter)
         return result, result_bool_mask
 
 
-class TranspositionalForwardsPathTranslator(NumpyForwardsPathTranslator):
+class TranspositionalForwardsPathTranslator(NumpyForwardsPathTranslator, TranspositionalPathTranslator):
     """
     Forward translate numpy transpositional functions (like array, rot90, flip).
     Works by applying the function to the data args replaced with bool mask
@@ -33,6 +41,8 @@ class TranspositionalForwardsPathTranslator(NumpyForwardsPathTranslator):
     def forward_translate_masked_data_arguments_to_result_mask(self,
                                                                data_argument_to_mask_converter: ArrayPathTranslator,
                                                                ) -> NDArray[bool]:
-        # We simply apply the quib function to the boolean-transformed arguments
-        masked_func_args_kwargs = data_argument_to_mask_converter.get_func_args_kwargs()
-        return run_func_call_with_new_args_kwargs(self._func_call, masked_func_args_kwargs)
+        """
+        We simply apply the quib function to the boolean-transformed arguments
+        """
+        result = self._get_result_mask(data_argument_to_mask_converter)
+        return result
