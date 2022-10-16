@@ -9,7 +9,7 @@ from pyquibbler.utilities.multiple_instance_runner import ConditionalRunner
 
 from ..array_translation_utils import ArrayPathTranslator, run_func_call_with_new_args_kwargs
 
-from .numpy_translator import NumpyForwardsPathTranslator, NumpyBackwardsPathTranslator
+from .numpy import NumpyForwardsPathTranslator, NumpyBackwardsPathTranslator
 from ..source_func_call import Source
 
 

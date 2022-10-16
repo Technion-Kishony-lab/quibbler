@@ -6,7 +6,7 @@ from numpy.typing import NDArray
 from pyquibbler.utilities.numpy_original_functions import np_any
 
 from ..array_translation_utils import run_func_call_with_new_args_kwargs, ArrayPathTranslator
-from .numpy_translator import Arg, NumpyBackwardsPathTranslator, NumpyForwardsPathTranslator
+from .numpy import Arg, NumpyBackwardsPathTranslator, NumpyForwardsPathTranslator
 
 
 class AxisAllToAllBackwardsPathTranslator(NumpyBackwardsPathTranslator):

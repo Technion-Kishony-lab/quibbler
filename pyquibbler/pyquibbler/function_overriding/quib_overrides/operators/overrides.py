@@ -5,10 +5,10 @@ from pyquibbler.function_overriding.quib_overrides.operators.helpers import oper
 from pyquibbler.function_overriding.third_party_overriding.numpy.helpers import \
     get_unary_inverse_funcs_for_func, get_binary_inverse_funcs_for_func
 from pyquibbler.function_overriding.third_party_overriding.numpy.overrides import create_numpy_overrides
-from pyquibbler.inversion.inverters.getitem_inverter import GetItemInverter
-from pyquibbler.path_translation.translators.transpositional_translator import \
+from pyquibbler.inversion.inverters.getitem import GetItemInverter
+from pyquibbler.path_translation.translators.transpositional import \
     TranspositionalBackwardsPathTranslator, TranspositionalForwardsPathTranslator
-from pyquibbler.path_translation.translators.getitem_translator import \
+from pyquibbler.path_translation.translators.getitem import \
     GetItemBackwardsPathTranslator, GetItemForwardsPathTranslator
 
 

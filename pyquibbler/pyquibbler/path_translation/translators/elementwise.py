@@ -12,7 +12,7 @@ from pyquibbler.utilities.multiple_instance_runner import ConditionalRunner
 from ..source_func_call import Source
 from ..array_translation_utils import ArrayPathTranslator
 from ..base_translators import BackwardsTranslationRunCondition, BackwardsPathTranslator
-from .numpy_translator import NumpyForwardsPathTranslator, NumpyBackwardsPathTranslator
+from .numpy import NumpyForwardsPathTranslator, NumpyBackwardsPathTranslator
 
 
 class ElementwisePathTranslator(ConditionalRunner, ABC):

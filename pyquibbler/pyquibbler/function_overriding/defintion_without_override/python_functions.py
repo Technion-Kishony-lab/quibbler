@@ -3,11 +3,11 @@
 from __future__ import annotations
 from typing import List, TYPE_CHECKING
 
-from pyquibbler.inversion.inverters.transpositional_inverter import TranspositionalOneToOneInverter
+from pyquibbler.inversion.inverters.transpositional import TranspositionalOneToOneInverter
 from pyquibbler.path_translation.translators import TranspositionalBackwardsPathTranslator, TranspositionalForwardsPathTranslator
-from pyquibbler.path_translation.translators.shape_only_translators import \
+from pyquibbler.path_translation.translators.shape_only import \
     ShapeOnlyBackwardsPathTranslator, ShapeOnlyForwardsPathTranslator
-from pyquibbler.inversion.inverters.casting_inverter import \
+from pyquibbler.inversion.inverters.casting import \
     StrCastingInverter, NumericCastingInverter, BoolCastingInverter
 
 if TYPE_CHECKING:

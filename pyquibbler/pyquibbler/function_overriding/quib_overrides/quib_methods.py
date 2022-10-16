@@ -3,7 +3,7 @@ from __future__ import annotations
 from pyquibbler.quib.quib import Quib
 from pyquibbler.function_overriding.function_override import FuncOverride
 from pyquibbler.quib.func_calling.quiby_name_func_call import QuibyNameFuncCall
-from pyquibbler.path_translation.translators.elementwise_translator import UnaryElementwiseBackwardsPathTranslator, \
+from pyquibbler.path_translation.translators.elementwise import UnaryElementwiseBackwardsPathTranslator, \
     UnaryElementwiseForwardsPathTranslator
 from pyquibbler.path_translation.translators.quiby_name import QuibyNameBackwardsPathTranslator, \
     QuibyNameForwardsPathTranslator

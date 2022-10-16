@@ -10,11 +10,11 @@ from pyquibbler.function_definitions import SourceLocation
 from pyquibbler.path_translation import ForwardsPathTranslator, BackwardsPathTranslator
 from pyquibbler.path_translation.types import Source
 from pyquibbler.path_translation.utils import copy_and_replace_sources_with_vals
-from pyquibbler.path_translation.translators.elementwise_translator import \
+from pyquibbler.path_translation.translators.elementwise import \
     UnaryElementwiseBackwardsPathTranslator, UnaryElementwiseForwardsPathTranslator, \
     BinaryElementwiseBackwardsPathTranslator, BinaryElementwiseForwardsPathTranslator
 
-from .numpy_inverter import NumpyInverter
+from .numpy import NumpyInverter
 from ..inverter import Inverter
 from ...quib.pretty_converters.operators import REVERSE_BINARY_FUNCS_TO_OPERATORS
 

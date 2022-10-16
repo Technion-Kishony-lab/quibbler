@@ -4,8 +4,8 @@ from pyquibbler.path import Path
 from pyquibbler.function_definitions import SourceLocation
 from pyquibbler.path_translation import BackwardsPathTranslator, ForwardsPathTranslator, Source
 
-from .numpy_inverter import NumpyInverter
-from pyquibbler.path_translation.translators.list_addition_translator import \
+from .numpy import NumpyInverter
+from pyquibbler.path_translation.translators.list_addition import \
     ListAdditionBackwardsPathTranslator, ListAdditionForwardsPathTranslator
 
 

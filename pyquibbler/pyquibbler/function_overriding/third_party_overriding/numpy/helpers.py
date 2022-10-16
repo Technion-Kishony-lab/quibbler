@@ -18,14 +18,14 @@ from pyquibbler.path_translation.translators import \
     BinaryElementwiseBackwardsPathTranslator, BinaryElementwiseForwardsPathTranslator, \
     UnaryElementwiseBackwardsPathTranslator, UnaryElementwiseForwardsPathTranslator
 
-from pyquibbler.inversion.inverters.transpositional_inverter import \
+from pyquibbler.inversion.inverters.transpositional import \
     TranspositionalOneToManyInverter, TranspositionalOneToOneInverter
-from pyquibbler.inversion.inverters.elementwise_inverter import BinaryElementwiseInverter, UnaryElementwiseInverter
-from pyquibbler.inversion.inverters.elementwise_single_arg_no_shape_inverter import UnaryElementwiseNoShapeInverter
+from pyquibbler.inversion.inverters.elementwise import BinaryElementwiseInverter, UnaryElementwiseInverter
+from pyquibbler.inversion.inverters.elementwise_single_arg_no_shape import UnaryElementwiseNoShapeInverter
 
 from pyquibbler.function_definitions.func_definition import \
     UnaryElementWiseFuncDefinition, BinaryElementWiseFuncDefinition
-from pyquibbler.path_translation.translators.elementwise_translator import \
+from pyquibbler.path_translation.translators.elementwise import \
     UnaryElementwiseNoShapeBackwardsPathTranslator
 from pyquibbler.type_translation.translators import ElementwiseTypeTranslator
 

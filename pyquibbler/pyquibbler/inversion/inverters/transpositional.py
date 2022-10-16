@@ -5,7 +5,7 @@ from pyquibbler.function_definitions import SourceLocation
 from pyquibbler.path_translation import BackwardsPathTranslator, ForwardsPathTranslator, Source
 from pyquibbler.path_translation.translators import TranspositionalBackwardsPathTranslator, TranspositionalForwardsPathTranslator
 
-from .numpy_inverter import NumpyInverter
+from .numpy import NumpyInverter
 
 
 class TranspositionalOneToOneInverter(NumpyInverter):

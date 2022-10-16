@@ -10,7 +10,7 @@ from pyquibbler.path import Path, PathComponent, deep_get
 from pyquibbler.assignment import Assignment, AssignmentWithTolerance
 
 from pyquibbler.path_translation import Source, BackwardsPathTranslator, ForwardsPathTranslator, Inversal
-from pyquibbler.path_translation.translators.numpy_translator import \
+from pyquibbler.path_translation.translators.numpy import \
     NumpyBackwardsPathTranslator, NumpyForwardsPathTranslator
 
 from ..inverter import Inverter

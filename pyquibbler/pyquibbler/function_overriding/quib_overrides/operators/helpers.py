@@ -12,13 +12,13 @@ from pyquibbler.function_overriding.third_party_overriding.general_helpers impor
 from pyquibbler.utilities.operators_with_reverse import REVERSE_OPERATOR_NAMES_TO_FUNCS
 
 # translators and inverters:
-from pyquibbler.inversion.inverters.list_addition_inverter import ListAdditionInverter
+from pyquibbler.inversion.inverters.list_addition import ListAdditionInverter
 
-from pyquibbler.path_translation.translators.elementwise_translator import \
+from pyquibbler.path_translation.translators.elementwise import \
     BinaryElementwiseBackwardsPathTranslator, BinaryElementwiseForwardsPathTranslator, \
     UnaryElementwiseForwardsPathTranslator
 
-from pyquibbler.path_translation.translators.list_addition_translator import \
+from pyquibbler.path_translation.translators.list_addition import \
     ListAdditionBackwardsPathTranslator, ListAdditionForwardsPathTranslator
 
 from pyquibbler.type_translation.translators import ElementwiseTypeTranslator

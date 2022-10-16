@@ -10,7 +10,7 @@ from pyquibbler.function_overriding.function_override import FuncOverride
 from pyquibbler.quib.func_calling.func_calls.vectorize.vectorize_call \
     import VectorizeQuibFuncCall
 from pyquibbler.env import PRETTY_REPR
-from pyquibbler.path_translation.translators.vectorize_translator import VectorizeForwardsPathTranslator, \
+from pyquibbler.path_translation.translators.vectorize import VectorizeForwardsPathTranslator, \
     VectorizeBackwardsPathTranslator
 
 

@@ -11,7 +11,7 @@ from pyquibbler.quib.func_calling.func_calls.vectorize.utils import get_core_axe
 from pyquibbler.function_definitions.types import iter_arg_ids_and_values
 from pyquibbler.function_definitions import FuncCall, SourceLocation
 
-from .numpy_translator import NumpyForwardsPathTranslator, NumpyBackwardsPathTranslator
+from .numpy import NumpyForwardsPathTranslator, NumpyBackwardsPathTranslator
 from ..array_translation_utils import ArrayPathTranslator
 from ..types import Source
 

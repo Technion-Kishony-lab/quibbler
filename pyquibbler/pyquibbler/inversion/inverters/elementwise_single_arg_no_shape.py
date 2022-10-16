@@ -2,7 +2,7 @@ import numpy as np
 
 from pyquibbler.assignment.assignment import create_assignment_from_nominal_down_up_values
 from pyquibbler.path_translation.types import Source, Inversal
-from .elementwise_inverter import BaseUnaryElementWiseInverter
+from .elementwise import BaseUnaryElementWiseInverter
 
 
 class UnaryElementwiseNoShapeInverter(BaseUnaryElementWiseInverter):

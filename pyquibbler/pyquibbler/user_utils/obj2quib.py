@@ -8,8 +8,8 @@ from pyquibbler.function_definitions import add_definition_for_function
 from pyquibbler.function_definitions.func_definition import create_func_definition
 
 # translation/inversion
-from pyquibbler.inversion.inverters.obj2quib_inverter import Obj2QuibInverter
-from pyquibbler.path_translation.translators.obj2_quib_translator import \
+from pyquibbler.inversion.inverters.obj2quib import Obj2QuibInverter
+from pyquibbler.path_translation.translators.obj2quib import \
     Obj2QuibBackwardsPathTranslator, Obj2QuibForwardsPathTranslator
 from pyquibbler.type_translation.translators import SameAsArgumentTypeTranslator
 

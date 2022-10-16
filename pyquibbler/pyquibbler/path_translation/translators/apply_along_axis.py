@@ -4,7 +4,7 @@ from typing import List
 from numpy.typing import NDArray
 
 from pyquibbler.path_translation.array_translation_utils import ArrayPathTranslator
-from pyquibbler.path_translation.translators.numpy_translator import NumpyForwardsPathTranslator, Arg
+from pyquibbler.path_translation.translators.numpy import NumpyForwardsPathTranslator, Arg
 
 
 class ApplyAlongAxisForwardsPathTranslator(NumpyForwardsPathTranslator):

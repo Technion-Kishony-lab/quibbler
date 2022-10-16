@@ -5,7 +5,7 @@ import numpy as np
 
 from pyquibbler.function_definitions.types import DataArgumentDesignation, PositionalArgument
 from pyquibbler.quib.func_calling.func_calls.apply_along_axis_call import ApplyAlongAxisQuibFuncCall
-from pyquibbler.path_translation.translators.apply_along_axis_translator import ApplyAlongAxisForwardsPathTranslator
+from pyquibbler.path_translation.translators.apply_along_axis import ApplyAlongAxisForwardsPathTranslator
 from .inverse_functions import inv_sin, inv_cos, inv_tan, keep_sign
 from .vectorize_overrides import create_vectorize_overrides
 from .helpers import numpy_override, numpy_override_random, numpy_override_read_file, \

@@ -3,7 +3,7 @@ from typing import Tuple
 import numpy as np
 from numpy.typing import NDArray
 
-from pyquibbler.path_translation.translators.numpy_translator import NumpyBackwardsPathTranslator, \
+from pyquibbler.path_translation.translators.numpy import NumpyBackwardsPathTranslator, \
     NumpyForwardsPathTranslator
 from pyquibbler.path_translation.array_translation_utils import ArrayPathTranslator, \
     run_func_call_with_new_args_kwargs
