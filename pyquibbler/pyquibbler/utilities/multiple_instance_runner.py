@@ -86,14 +86,18 @@ class MultipleInstanceRunner:
     require us to evaluate the quib function, which we do at last resort.
 
     The MultipleInstanceRunner takes care of this escalating trying approach. It gets the run condition and
-    trying ot sequentially run all the runners that can work in this condition. If nothing works, the condition is
+    tries to sequentially run all the runners that can work in this condition. If nothing works, the condition is
     escalated.
 
-    A runner that cannot do the translation job should raise BaseRunnerFailedException.
-    Note that a runner can elect to run in more than one condition, raising BaseRunnerFailedException the first time
-    it is called to be called again with more data.
+    A runner is elected to do the job in three steps:
+    (1) To get created, its RUN_CONDITIONS list must include the RunCondition.
+    (2) Once created, it's can_try() function is called. Based on the data it can decide whether it wants to
+    try running.
+    (3) try_run is then called. If during the call the runner sees conditions that preclude completing the job,
+    it can raise BaseRunnerFailedException.
 
-    If no runners managed to run successfully, we raise NoRunnerWorkedException.
+    If no runners managed to run successfully, we raise NoRunnerWorkedException, and we should then be called again
+    with a higher RunCondition state.
     """
 
     def __init__(self, run_condition: Optional[RunCondition],

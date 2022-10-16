@@ -17,10 +17,16 @@ from .numpy import NumpyForwardsPathTranslator, NumpyBackwardsPathTranslator
 
 class ElementwisePathTranslator(ConditionalRunner, ABC):
     def can_try(self) -> bool:
-        # we check that the result is numeric or ndarray.
-        # For example, if we are the `+` operator acting on two lists then the result is a concatenated list
+        # If we are an operator, we check that the result is numeric or ndarray.
+        # For example, if we are the `+` operator acting on two lists, then the result is a concatenated list
         # which we cannot translate using this translator.
-        return issubclass(self._type, numbers.Number) or issubclass(self._type, np.ndarray)
+        if self._func_call.func_definition.is_operator:
+            # we are an operator. to know whether we can run, we need the type of the function result
+            if self._type is None:
+                # we don't have the type, so we cannot run
+                return False
+            return issubclass(self._type, numbers.Number) or issubclass(self._type, np.ndarray)
+        return True
 
 
 # BACKWARDS:
@@ -32,7 +38,8 @@ class UnaryElementwiseNoShapeBackwardsPathTranslator(BackwardsPathTranslator):
     identical to the target result indices.
     """
 
-    RUN_CONDITIONS = [BackwardsTranslationRunCondition.NO_SHAPE_AND_TYPE]
+    RUN_CONDITIONS = [BackwardsTranslationRunCondition.NO_SHAPE_AND_TYPE,
+                      BackwardsTranslationRunCondition.WITH_SHAPE_AND_TYPE]
 
     @property
     def source_to_change(self):

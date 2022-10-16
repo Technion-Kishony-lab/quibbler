@@ -89,6 +89,7 @@ def binary_operator_override(func_name,
                              result_type_or_type_translators=[ElementwiseTypeTranslator],
                              inverse_funcs=inverse_funcs,
                              func_definition_cls=BinaryElementWiseFuncDefinition,
+                             is_operator=True,
                              )
 
 
@@ -106,4 +107,5 @@ def unary_operator_override(func_name,
                              inverse_func=inverse_func,
                              inverse_func_requires_input=inverse_func_requires_input,
                              func_definition_cls=UnaryElementWiseFuncDefinition,
+                             is_operator=True,
                              )
