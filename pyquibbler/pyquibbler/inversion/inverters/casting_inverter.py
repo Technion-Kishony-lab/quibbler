@@ -1,12 +1,11 @@
 import warnings
 
 import numpy as np
+from abc import ABC, abstractmethod
 
-from pyquibbler import Assignment
 from pyquibbler.assignment.assignment import create_assignment_from_nominal_down_up_values
 from pyquibbler.inversion.inverter import Inverter
 from pyquibbler.path_translation.types import Source, Inversal
-from abc import ABC, abstractmethod
 
 
 class CastingInverter(Inverter, ABC):
@@ -35,7 +34,7 @@ class CastingInverter(Inverter, ABC):
                     source_to_change_value=source_to_change.value,
                     assigned_value=assigned_value,
                 ) for assigned_value in assigned_nominal_down_up_values]
-            except Exception:
+            except TypeError:
                 self._raise_run_failed_exception()
         new_assignment = create_assignment_from_nominal_down_up_values(
             nominal_down_up_values=nominal_down_up_values_to_set,
@@ -62,7 +61,7 @@ class BoolCastingInverter(NumericCastingInverter):
     @staticmethod
     def _get_value_to_set(source_to_change_value, assigned_value):
         if isinstance(source_to_change_value, str):
-            raise Exception
+            raise TypeError
         return super(BoolCastingInverter, BoolCastingInverter)._get_value_to_set(source_to_change_value, assigned_value)
 
 
@@ -74,7 +73,8 @@ class StrCastingInverter(CastingInverter):
         if source_to_change_type is list \
                 or source_to_change_type is np.ndarray:
             value_to_set = eval(assigned_value)
-            assert isinstance(value_to_set, list)
+            if not isinstance(value_to_set, list):
+                raise TypeError
             if source_to_change_type is np.ndarray:
                 value_to_set = np.array(value_to_set)
             return value_to_set

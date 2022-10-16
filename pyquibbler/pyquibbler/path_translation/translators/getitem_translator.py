@@ -9,6 +9,7 @@ from pyquibbler.utilities.multiple_instance_runner import ConditionalRunner
 from ..base_translators import BackwardsPathTranslator, ForwardsPathTranslator
 from ..utils import copy_and_replace_sources_with_vals
 from ..types import Source
+from ...utilities.numpy_original_functions import np_all
 
 
 class BaseGetItemTranslator(ConditionalRunner):
@@ -56,6 +57,19 @@ class BaseGetItemTranslator(ConditionalRunner):
                     and not self._is_path_referencing_field_in_field_array())
 
 
+def are_path_components_identical(component1, component2) -> bool:
+    is_array1 = isinstance(component1, np.ndarray)
+    is_array2 = isinstance(component2, np.ndarray)
+    if is_array1 and is_array2:
+        return np_all(component1 == component2)
+    if is_array1 and not is_array2:
+        return component1[component2]
+    if is_array2 and not is_array1:
+        return component2[component1]
+    if not is_array1 and not is_array2:
+        return component1 == component2
+
+
 class GetItemBackwardsPathTranslator(BackwardsPathTranslator, BaseGetItemTranslator):
 
     def _is_path_referencing_field_in_field_array(self) -> bool:
@@ -80,7 +94,7 @@ class GetItemForwardsPathTranslator(ForwardsPathTranslator, BaseGetItemTranslato
             return [path]
 
         working_component, *rest_of_path = self._path
-        if self._get_getitem_path_component().component == working_component.component:
+        if are_path_components_identical(self._get_getitem_path_component().component, working_component.component):
             return [rest_of_path]
 
         # The item in our getitem was not equal to the path to invalidate
