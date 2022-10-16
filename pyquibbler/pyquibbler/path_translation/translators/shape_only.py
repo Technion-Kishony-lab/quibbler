@@ -25,7 +25,8 @@ class ShapeOnlyForwardsPathTranslator(ForwardsPathTranslator):
     """
     def _forward_translate(self) -> Paths:
         path = self._path
-        is_list_extension_possible = len(path) \
-                                     and self._get_source_type() is list \
-                                     and isinstance(path[0].component, slice)
+        is_list_extension_possible = \
+            len(path) \
+            and self._get_source_type() is list \
+            and isinstance(path[0].component, slice)
         return [] if len(path) and not is_list_extension_possible else [[]]

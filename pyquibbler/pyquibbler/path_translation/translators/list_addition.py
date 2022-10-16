@@ -73,4 +73,3 @@ class ListAdditionForwardsPathTranslator(NumpyForwardsPathTranslator, ListAdditi
         result = run_func_call_with_new_args_kwargs(self._func_call, masked_func_args_kwargs)
         result = np.array(result)
         return result
-

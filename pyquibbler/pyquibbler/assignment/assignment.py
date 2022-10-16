@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 from dataclasses import dataclass, field
-from typing import Any, TYPE_CHECKING, List, Union, Optional, Callable, Tuple, Iterable
+from typing import Any, TYPE_CHECKING, List, Union, Optional, Callable, Tuple
 
 from .default_value import default
 from pyquibbler.path import Path

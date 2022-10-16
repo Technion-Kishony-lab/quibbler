@@ -93,8 +93,8 @@ def binary_operator_override(func_name,
 
 
 def unary_operator_override(func_name,
-                                        inverse_func_and_is_input_required: Tuple[Callable, bool] = None,
-                                        ):
+                            inverse_func_and_is_input_required: Tuple[Callable, bool] = None,
+                            ):
     inverse_func, inverse_func_requires_input = inverse_func_and_is_input_required
     return override_with_cls(OperatorOverride, Quib,
                              func_name,

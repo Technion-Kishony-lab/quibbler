@@ -1,4 +1,4 @@
-from typing import Optional, Any, Callable, Tuple, Mapping
+from typing import Optional, Any, Callable, Tuple
 
 import numpy as np
 from numpy import ndindex, s_

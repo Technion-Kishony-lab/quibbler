@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 from dataclasses import dataclass
 from functools import wraps
-from typing import Callable, Tuple, Any, Dict, Mapping
+from typing import Callable, Tuple, Any, Dict
 
 
 from typing import TYPE_CHECKING

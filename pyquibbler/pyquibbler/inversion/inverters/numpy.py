@@ -7,14 +7,13 @@ from pyquibbler.utilities.numpy_original_functions import np_logical_and, np_all
 from pyquibbler.utilities.missing_value import missing
 from pyquibbler.function_definitions import SourceLocation
 from pyquibbler.path import Path, PathComponent, deep_get
-from pyquibbler.assignment import Assignment, AssignmentWithTolerance
+from pyquibbler.assignment.assignment import create_assignment_from_nominal_down_up_values
 
 from pyquibbler.path_translation import Source, BackwardsPathTranslator, ForwardsPathTranslator, Inversal
 from pyquibbler.path_translation.translators.numpy import \
     NumpyBackwardsPathTranslator, NumpyForwardsPathTranslator
 
 from ..inverter import Inverter
-from ...assignment.assignment import create_assignment_from_nominal_down_up_values
 
 
 class NumpyInverter(Inverter, ABC):

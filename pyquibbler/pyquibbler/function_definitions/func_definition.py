@@ -4,8 +4,6 @@ import functools
 from dataclasses import dataclass, field
 from typing import Set, Type, List, Callable, Optional, Dict, Union
 
-from pyquibbler.utilities.general_utils import Args, Kwargs
-
 from pyquibbler.path_translation import BackwardsPathTranslator, ForwardsPathTranslator
 from pyquibbler.type_translation.translators import TypeTranslator
 

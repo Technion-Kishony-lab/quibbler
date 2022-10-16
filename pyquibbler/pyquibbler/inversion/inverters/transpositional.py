@@ -3,7 +3,8 @@ from typing import Type, Any
 from pyquibbler.path import Path
 from pyquibbler.function_definitions import SourceLocation
 from pyquibbler.path_translation import BackwardsPathTranslator, ForwardsPathTranslator, Source
-from pyquibbler.path_translation.translators import TranspositionalBackwardsPathTranslator, TranspositionalForwardsPathTranslator
+from pyquibbler.path_translation.translators.transpositional import \
+    TranspositionalBackwardsPathTranslator, TranspositionalForwardsPathTranslator
 
 from .numpy import NumpyInverter
 

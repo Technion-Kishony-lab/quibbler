@@ -86,6 +86,7 @@ UNARY_ELEMENTWISE_INVERTERS = [UnaryElementwiseNoShapeInverter, UnaryElementwise
 UNARY_ELEMENTWISE_BACKWARDS_TRANSLATORS = [UnaryElementwiseNoShapeBackwardsPathTranslator,
                                            UnaryElementwiseBackwardsPathTranslator]
 
+
 def get_binary_inverse_funcs_for_func(func_name: str):
     return BINARY_ELEMENTWISE_FUNCS_TO_INVERSE_FUNCS[func_name]
 

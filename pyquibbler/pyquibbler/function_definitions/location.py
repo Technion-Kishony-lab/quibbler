@@ -1,13 +1,12 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Tuple, Mapping, Any, List
+from typing import List
 
 from pyquibbler.path import PathComponent, Path, deep_get, deep_set
+from pyquibbler.utilities.general_utils import Args, Kwargs
+from pyquibbler.utilities.iterators import get_paths_for_objects_of_type
 
 from .types import Argument, KeywordArgument, PositionalArgument, SubArgument
-
-from pyquibbler.utilities.general_utils import Args, Kwargs
-from ..utilities.iterators import get_paths_for_objects_of_type
 
 
 @dataclass

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import abstractmethod, ABC
 from dataclasses import dataclass
-from typing import Tuple, Any, Mapping, Optional, Callable, List, Type, ClassVar, Dict, Union
+from typing import Tuple, Any, Optional, Callable, List, Type, ClassVar, Dict, Union
 
 from pyquibbler.utilities.iterators import recursively_compare_objects
 from pyquibbler.utilities.general_utils import Kwargs, Args

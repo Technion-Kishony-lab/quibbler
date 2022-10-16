@@ -8,7 +8,7 @@ import numpy as np
 
 # Typing
 from pyquibbler.utilities.general_utils import Shape, Args, Kwargs
-from typing import Set, Any, Optional, Tuple, Type, List, Union, Iterable, Mapping, Callable
+from typing import Set, Any, Optional, Type, List, Union, Iterable, Callable
 
 # Matplotlib types:
 from matplotlib.artist import Artist

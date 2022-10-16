@@ -1,10 +1,11 @@
 import numpy as np
 
-from pyquibbler.assignment.assignment import Assignment, create_assignment_from_nominal_down_up_values
-from pyquibbler.inversion.inverter import Inverter
+from pyquibbler.assignment.assignment import create_assignment_from_nominal_down_up_values
 from pyquibbler.path_translation.base_translators import BackwardsTranslationRunCondition
 from pyquibbler.path_translation.translate import backwards_translate
 from pyquibbler.path_translation.types import Inversal
+
+from ..inverter import Inverter
 
 
 class GetItemInverter(Inverter):

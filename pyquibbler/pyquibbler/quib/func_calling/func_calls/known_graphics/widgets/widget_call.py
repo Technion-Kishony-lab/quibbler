@@ -1,4 +1,4 @@
-from typing import Callable, Tuple, Any, Mapping, Set, List, Optional, Iterable
+from typing import Callable, Any, Set, List, Optional, Iterable
 
 from matplotlib.axes import Axes
 from matplotlib.widgets import AxesWidget
