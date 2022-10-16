@@ -3,20 +3,26 @@ import operator
 from dataclasses import dataclass
 
 from typing import List, Optional, Callable, Tuple
+from pyquibbler.quib.quib import Quib
 
 from pyquibbler.function_definitions.func_definition import \
     UnaryElementWiseFuncDefinition, BinaryElementWiseFuncDefinition
 from pyquibbler.function_overriding.function_override import FuncOverride
 from pyquibbler.function_overriding.third_party_overriding.general_helpers import override_with_cls
-from pyquibbler.quib.quib import Quib
+from pyquibbler.utilities.operators_with_reverse import REVERSE_OPERATOR_NAMES_TO_FUNCS
+
+# translators and inverters:
+from pyquibbler.inversion.inverters.list_addition_inverter import ListAdditionInverter
+
 from pyquibbler.path_translation.translators.elementwise_translator import \
     BinaryElementwiseBackwardsPathTranslator, BinaryElementwiseForwardsPathTranslator, \
     UnaryElementwiseForwardsPathTranslator
-from pyquibbler.type_translation.translators import ElementwiseTypeTranslator
+
 from pyquibbler.path_translation.translators.list_addition_translator import \
     ListAdditionBackwardsPathTranslator, ListAdditionForwardsPathTranslator
 
-from pyquibbler.utilities.operators_with_reverse import REVERSE_OPERATOR_NAMES_TO_FUNCS
+from pyquibbler.type_translation.translators import ElementwiseTypeTranslator
+
 from pyquibbler.function_overriding.third_party_overriding.numpy.helpers import \
     BINARY_ELEMENTWISE_INVERTERS, UNARY_ELEMENTWISE_INVERTERS, UNARY_ELEMENTWISE_BACKWARDS_TRANSLATORS
 
@@ -68,14 +74,16 @@ def binary_operator_override(func_name,
 
     backwards_path_translators = [BinaryElementwiseBackwardsPathTranslator]
     forwards_path_translators = [BinaryElementwiseForwardsPathTranslator]
+    inverters = BINARY_ELEMENTWISE_INVERTERS
     if add_list_translation:
-        backwards_path_translators.append(ListAdditionBackwardsPathTranslator)
-        forwards_path_translators.append(ListAdditionForwardsPathTranslator)
+        backwards_path_translators.insert(0, ListAdditionBackwardsPathTranslator)
+        forwards_path_translators.insert(0, ListAdditionForwardsPathTranslator)
+        inverters.insert(0, ListAdditionInverter)
 
     return override_with_cls(OperatorOverride, Quib,
                              func_name,
                              data_source_arguments=[0, 1],
-                             inverters=BINARY_ELEMENTWISE_INVERTERS,
+                             inverters=inverters,
                              backwards_path_translators=backwards_path_translators,
                              forwards_path_translators=forwards_path_translators,
                              result_type_or_type_translators=[ElementwiseTypeTranslator],
