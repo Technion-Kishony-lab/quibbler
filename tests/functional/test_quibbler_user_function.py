@@ -42,6 +42,25 @@ def test_quibbler_user_function_with_quibs():
     assert arg_quib.get_value() == quib.get_value()
 
 
+def test_quibbler_user_function_with_quibs_does_not_create_chained_proxies():
+    mock_func = mock.Mock()
+    user_function = quiby(lazy=False, pass_quibs=True)(mock_func)
+    quib = iquib(6)
+
+    res = user_function(name=quib)
+
+    assert isinstance(res, Quib)
+    assert len(mock_func.mock_calls) == 1
+    arg_quib_first_call = mock_func.mock_calls[0].kwargs['name']
+    assert isinstance(arg_quib_first_call, Quib)
+    assert arg_quib_first_call.get_value() == quib.get_value()
+
+    quib.assign(7)
+    res.get_value()
+    arg_quib_second_call = mock_func.mock_calls[1].kwargs['name']
+    assert arg_quib_second_call is arg_quib_first_call
+
+
 def test_quibbler_user_function_change_defintion_after_declearation():
     mock_func = mock.Mock()
     user_function = quiby(lazy=False)(mock_func)
