@@ -14,9 +14,6 @@ def translate_type(
     Try getting the type of the quib value without evaluating the function.
     Return None if type cannot be calculated.
     """
-    return MultipleInstanceRunner(
-        run_condition=run_condition,
-        runners=func_definition.result_type_or_type_translators,
-        func_definition=func_definition,
-        data_arguments_types=data_arguments_types,
-    ).run()
+    return MultipleInstanceRunner(run_condition=run_condition,
+                                  runner_types=func_definition.result_type_or_type_translators,
+                                  func_definition=func_definition, data_arguments_types=data_arguments_types).run()

@@ -20,10 +20,8 @@ def invert(func_call: SourceFuncCall, assignment: Assignment, previous_result) -
     else:
         actual_assignment = assignment
 
-    inversals = MultipleInstanceRunner(run_condition=None,
-                                       runners=func_call.func_definition.inverters,
-                                       func_call=func_call,
-                                       assignment=actual_assignment,
+    inversals = MultipleInstanceRunner(run_condition=None, runner_types=func_call.func_definition.inverters,
+                                       func_call=func_call, assignment=actual_assignment,
                                        previous_result=previous_result).run()
 
     for inversal in inversals:

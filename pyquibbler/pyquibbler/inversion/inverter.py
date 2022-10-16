@@ -18,7 +18,7 @@ class Inverter(ConditionalRunner, ABC):
         self._assignment = assignment
         self._previous_result = previous_result
 
-    def _try_run(self):
+    def try_run(self):
         return self.get_inversals()
 
     @abstractmethod

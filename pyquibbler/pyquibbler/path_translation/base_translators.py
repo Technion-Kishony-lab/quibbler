@@ -40,7 +40,7 @@ class BackwardsPathTranslator(ConditionalRunner):
         """
         pass
 
-    def _try_run(self):
+    def try_run(self):
         return self._backwards_translate()
 
 
@@ -69,7 +69,7 @@ class ForwardsPathTranslator(ConditionalRunner):
     def _forward_translate(self) -> Paths:
         pass
 
-    def _try_run(self):
+    def try_run(self):
         return self._forward_translate()
 
     def _get_source_type(self):
