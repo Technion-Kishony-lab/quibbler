@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import List
 
 from pyquibbler.assignment import Assignment, default
-from pyquibbler.path import deep_get
+from pyquibbler.path.data_accessing import deep_get
 from pyquibbler.path_translation.source_func_call import SourceFuncCall
 from pyquibbler.path_translation.types import Inversal
 from pyquibbler.utilities.multiple_instance_runner import MultipleInstanceRunner

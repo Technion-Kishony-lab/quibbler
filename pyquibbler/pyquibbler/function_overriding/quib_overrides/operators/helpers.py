@@ -12,14 +12,14 @@ from pyquibbler.function_overriding.third_party_overriding.general_helpers impor
 from pyquibbler.utilities.operators_with_reverse import REVERSE_OPERATOR_NAMES_TO_FUNCS
 
 # translators and inverters:
-from pyquibbler.inversion.inverters.list_addition import ListAdditionInverter
+from pyquibbler.inversion.inverters.list_operators import ListOperatorInverter
 
 from pyquibbler.path_translation.translators.elementwise import \
     BinaryElementwiseBackwardsPathTranslator, BinaryElementwiseForwardsPathTranslator, \
     UnaryElementwiseForwardsPathTranslator
 
-from pyquibbler.path_translation.translators.list_addition import \
-    ListAdditionBackwardsPathTranslator, ListAdditionForwardsPathTranslator
+from pyquibbler.path_translation.translators.list_operators import \
+    ListOperatorBackwardsPathTranslator, ListOperatorForwardsPathTranslator
 
 from pyquibbler.type_translation.translators import ElementwiseTypeTranslator
 
@@ -66,19 +66,20 @@ def operator_override(func_name,
 def binary_operator_override(func_name,
                              inverse_funcs: Optional[Tuple[Callable]] = None,
                              is_reverse: bool = False,
-                             add_list_translation: bool = False,
                              ):
-    if is_reverse:
-        func_name = '__r' + func_name[2:]
-        inverse_funcs = {0: inverse_funcs[1], 1: inverse_funcs[0]}
-
     backwards_path_translators = [BinaryElementwiseBackwardsPathTranslator]
     forwards_path_translators = [BinaryElementwiseForwardsPathTranslator]
     inverters = BINARY_ELEMENTWISE_INVERTERS
-    if add_list_translation:
-        backwards_path_translators.insert(0, ListAdditionBackwardsPathTranslator)
-        forwards_path_translators.insert(0, ListAdditionForwardsPathTranslator)
-        inverters.insert(0, ListAdditionInverter)
+
+    # add special translators/invertors for list addition and multiplication:
+    if func_name in ['__add__', '__mul__']:
+        backwards_path_translators.insert(0, ListOperatorBackwardsPathTranslator)
+        forwards_path_translators.insert(0, ListOperatorForwardsPathTranslator)
+        inverters.insert(0, ListOperatorInverter)
+
+    if is_reverse:
+        func_name = '__r' + func_name[2:]
+        inverse_funcs = {0: inverse_funcs[1], 1: inverse_funcs[0]}
 
     return override_with_cls(OperatorOverride, Quib,
                              func_name,

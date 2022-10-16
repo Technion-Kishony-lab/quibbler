@@ -1,10 +1,10 @@
 import copy
 import dataclasses
+import numpy as np
+
 from functools import wraps
 
 from typing import Any, Union, Tuple, Optional
-
-import numpy as np
 
 from pyquibbler.function_definitions import SourceLocation
 from pyquibbler.path import Path, deep_set, split_path_at_end_of_object, deep_get
@@ -196,19 +196,27 @@ class ArrayPathTranslator:
             arg_index_array = is_focal_element(arg_index_array)
         return arg_index_array
 
+    def create_new_func_args_kwargs(self):
+        self._func_args_kwargs = FuncArgsKwargs(self.func_call.func, args=list(self.func_call.args),
+                                                kwargs=copy.copy(self.func_call.kwargs))
+        return self._func_args_kwargs
+
+    def convert_a_data_argument(self, data_argument):
+        """
+        Convert a given data argument in args/kwargs to arrays of index codes for the indicated focal source.
+        """
+        data_argument_value = self._func_args_kwargs.get_arg_value_by_argument(data_argument)
+        path_to_source = self.focal_source_location.get_path_in_argument(data_argument)
+        index_array = self._convert_an_arg_to_array_of_source_index_codes(data_argument_value, path_to_source)
+        self._func_args_kwargs.set_arg_value_by_argument(index_array, data_argument)
+
     def convert_data_arguments_to_source_index_codes(self):
         """
-        Convert data arguments in args/kwargs to arrays of index codes for the indicated focal source.
+        Convert all data arguments in args/kwargs to arrays of index codes for the indicated focal source.
         """
-        new_func_args_kwargs = FuncArgsKwargs(self.func_call.func, args=list(self.func_call.args),
-                                              kwargs=copy.copy(self.func_call.kwargs))
+        self.create_new_func_args_kwargs()
         for data_argument in self.func_call.func_definition.get_data_arguments(self.func_call.func_args_kwargs):
-            data_argument_value = new_func_args_kwargs.get_arg_value_by_argument(data_argument)
-            path_to_source = self.focal_source_location.get_path_in_argument(data_argument)
-            index_array = self._convert_an_arg_to_array_of_source_index_codes(data_argument_value, path_to_source)
-            new_func_args_kwargs.set_arg_value_by_argument(index_array, data_argument)
-
-        self._func_args_kwargs = new_func_args_kwargs
+            self.convert_a_data_argument(data_argument)
 
     @convert_args_before_run
     def get_func_args_kwargs(self):

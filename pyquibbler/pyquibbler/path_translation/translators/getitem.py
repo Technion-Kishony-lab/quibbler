@@ -9,7 +9,7 @@ from pyquibbler.utilities.multiple_instance_runner import ConditionalRunner
 from ..base_translators import BackwardsPathTranslator, ForwardsPathTranslator
 from ..utils import copy_and_replace_sources_with_vals
 from ..types import Source
-from ...utilities.numpy_original_functions import np_all
+from ...utilities.numpy_original_functions import np_all, np_any
 
 
 class BaseGetItemTranslator(ConditionalRunner):
@@ -57,17 +57,21 @@ class BaseGetItemTranslator(ConditionalRunner):
                     and not self._is_path_referencing_field_in_field_array())
 
 
-def are_path_components_identical(component1, component2) -> bool:
-    is_array1 = isinstance(component1, np.ndarray)
-    is_array2 = isinstance(component2, np.ndarray)
-    if is_array1 and is_array2:
-        return np_all(component1 == component2)
-    if is_array1 and not is_array2:
+def get_shared_component(component1, component2):
+    is_bool_array1 = isinstance(component1, np.ndarray) and component1.dtype.type is np.bool_
+    is_bool_array2 = isinstance(component2, np.ndarray) and component2.dtype.type is np.bool_
+
+    if not is_bool_array1 and not is_bool_array2:
+        # TODO: this is not right for complex indexing
+        return np.array_equal(component1, component2)
+    if is_bool_array1 and is_bool_array2:
+        return component1 & component2
+
+    # One is a bool array. the other not.
+    if is_bool_array1:
         return component1[component2]
-    if is_array2 and not is_array1:
+    else:
         return component2[component1]
-    if not is_array1 and not is_array2:
-        return component1 == component2
 
 
 class GetItemBackwardsPathTranslator(BackwardsPathTranslator, BaseGetItemTranslator):
@@ -94,8 +98,12 @@ class GetItemForwardsPathTranslator(ForwardsPathTranslator, BaseGetItemTranslato
             return [path]
 
         working_component, *rest_of_path = self._path
-        if are_path_components_identical(self._get_getitem_path_component().component, working_component.component):
+        shared_component = get_shared_component(self._get_getitem_path_component().component,
+                                                working_component.component)
+        if np_all(shared_component):
             return [rest_of_path]
+        if np_any(shared_component):
+            return [[PathComponent(shared_component)] + rest_of_path]
 
         # The item in our getitem was not equal to the path to invalidate
         return []

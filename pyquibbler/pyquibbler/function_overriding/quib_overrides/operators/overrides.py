@@ -18,21 +18,15 @@ def create_operator_overrides():
 
     return [
 
-        # Binary operators with reverse, numeric and list operators
-        *(binary_operator_override(operator_name, inverse_funcs=get_binary_inverse_funcs_for_func(inverter_from),
-                                   is_reverse=is_rev, add_list_translation=True)
-          for is_rev in [False, True]
-          for operator_name, inverter_from in (
-            ('__add__',         'add'),
-            ('__mul__',         'multiply'),
-          )),
-
         # Binary operators with reverse, numeric operators
+        # Note that binary_operator_override has a special exception within for __add__ and __mul__
         *(binary_operator_override(operator_name, inverse_funcs=get_binary_inverse_funcs_for_func(inverter_from),
                                    is_reverse=is_rev)
           for is_rev in [False, True]
           for operator_name, inverter_from in (
+            ('__add__',         'add'),         # translators for list addition will also be added
             ('__sub__',         'subtract'),
+            ('__mul__',         'multiply'),    # translators for list multiplication will also be added
             ('__truediv__',     'true_divide'),
             ('__floordiv__',    'floor_divide'),
             ('__mod__',         'mod'),

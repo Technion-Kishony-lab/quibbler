@@ -80,7 +80,7 @@ class NumpyBackwardsPathTranslator(BackwardsPathTranslator):
                     if not isinstance(val, np._globals._NoValueType)}
         return {arg.name: arg.get_value(arg_dict) for arg in self.TRANSLATION_RELATED_ARGS}
 
-    def _get_source_path(self, source: Source, location: SourceLocation):
+    def _get_source_path(self, source: Source, location: SourceLocation) -> Path:
 
         data_argument_to_source_index_code_converter = \
             ArrayPathTranslator(func_call=self._func_call, focal_source=source,

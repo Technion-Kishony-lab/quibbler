@@ -46,7 +46,7 @@ class VectorizeBackwardsPathTranslator(NumpyBackwardsPathTranslator):
         reduced_bool_mask = unbroadcast_or_broadcast_bool_mask(reduced_bool_mask, np.shape(data_arg_source_index_code))
         return data_arg_source_index_code, reduced_bool_mask
 
-    def _get_source_path(self, source: Source, location: SourceLocation):
+    def _get_source_path(self, source: Source, location: SourceLocation) -> Path:
         """
         Given a path in the result, return the path in the given quib on which the result path depends.
         """
