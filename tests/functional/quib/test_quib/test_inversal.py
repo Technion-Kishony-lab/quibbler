@@ -298,3 +298,10 @@ def test_elementwise_single_arg_inversal():
     b[1] = 8
 
     assert a.get_value() == [1, 3]
+
+
+def test_inversion_of_binary_many_to_one_function():
+    x = iquib(-1.)
+    y = x ** 2
+    y.assign(4.)
+    assert x.get_value() == -2
