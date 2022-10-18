@@ -4,11 +4,16 @@ import contextlib
 import functools
 import sys
 import traceback
+from typing import List, Tuple
 
 from varname.utils import cached_getmodule
 
 from pyquibbler.env import SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS
 from pyquibbler.exceptions import PyQuibblerException
+
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from pyquibbler.quib.quib import Quib
 
 
 def get_user_friendly_name_for_requested_evaluation(func, args, kwargs):
@@ -18,7 +23,8 @@ def get_user_friendly_name_for_requested_evaluation(func, args, kwargs):
     func_name = func.__name__
     if func_name != 'get_value_valid_at_path':
         return func_name + '()'
-    valid_path = args[1] if len(args) > 0 else kwargs.get('path')
+
+    valid_path = args[0] if len(args) > 0 else kwargs.get('path')
     if valid_path is None:
         return 'get_blank_value()'
     elif len(valid_path) == 0:
@@ -29,7 +35,7 @@ def get_user_friendly_name_for_requested_evaluation(func, args, kwargs):
 
 class ExternalCallFailedException(PyQuibblerException):
 
-    def __init__(self, quibs_with_calls, exception, tb):
+    def __init__(self, quibs_with_calls: List[Tuple[Quib, str], ...], exception: Exception, tb):
         self.quibs_with_calls = quibs_with_calls
         self.exception = exception
         self.traceback = tb
@@ -89,17 +95,13 @@ def raise_quib_call_exceptions_as_own(func):
     Raise any quib call failed exceptions as though they were your own (so as to prevent long tracebacks)
     """
     @functools.wraps(func)
-    def _wrapper(*args, **kwargs):
+    def _wrapper(quib, *args, **kwargs):
         try:
-            return func(*args, **kwargs)
+            return func(quib, *args, **kwargs)
         except ExternalCallFailedException as e:
             # We want to remove any context
-            quib = args[0]
             new_quib_with_call = (quib, get_user_friendly_name_for_requested_evaluation(func, args, kwargs))
-            quibs_with_calls = e.quibs_with_calls
-            exc = ExternalCallFailedException(exception=e.exception,
-                                              quibs_with_calls=[*quibs_with_calls, new_quib_with_call],
-                                              tb=e.traceback)
-            raise exc from None
+            e.quibs_with_calls.append(new_quib_with_call)
+            raise e from None
 
     return _wrapper
