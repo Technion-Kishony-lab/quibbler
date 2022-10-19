@@ -52,7 +52,7 @@ def create_operator_overrides():
 
         # Unary operators
         *(unary_operator_override(operator_name,
-                                  inverse_func_and_is_input_required=get_unary_inverse_funcs_for_func(inverter_from))
+                                  inverse_func=get_unary_inverse_funcs_for_func(inverter_from))
           for operator_name, inverter_from in (
 
             # arithmetics:

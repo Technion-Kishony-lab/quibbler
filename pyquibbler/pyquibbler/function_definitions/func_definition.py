@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import functools
 from dataclasses import dataclass, field
-from typing import Set, Type, List, Callable, Optional, Dict, Union
+from typing import Set, Type, List, Callable, Optional, Dict, Union, Tuple
 
 from pyquibbler.path_translation import BackwardsPathTranslator, ForwardsPathTranslator
 from pyquibbler.type_translation.translators import TypeTranslator
@@ -13,6 +13,9 @@ from .types import RawArgument, Argument, PositionalArgument, KeywordArgument, \
 from .utils import get_signature_for_func
 
 from typing import TYPE_CHECKING
+
+from ..function_overriding.third_party_overriding.numpy.inverse_functions import InverseFunc
+
 if TYPE_CHECKING:
     from pyquibbler.quib.func_calling import QuibFuncCall
     from pyquibbler.inversion.inverter import Inverter
@@ -130,28 +133,15 @@ class FuncDefinition:
 
 
 @dataclass
-class UnaryElementWiseFuncDefinition(FuncDefinition):
+class ElementWiseFuncDefinition(FuncDefinition):
     """
     Represents a definition of functions that act element-wise on a single arg
     """
 
-    inverse_func: Optional[Callable, Dict[int, Callable]] = field(repr=False, default=None)
-    inverse_func_requires_input: Optional[bool] = None
+    inverse_funcs: Tuple[Optional[InverseFunc]] = field(repr=False, default_factory=tuple)
 
 
-UnaryElementWiseFuncDefinition.__hash__ = FuncDefinition.__hash__
-
-
-@dataclass
-class BinaryElementWiseFuncDefinition(FuncDefinition):
-    """
-    Represents a definition of functions that act element-wise on two args
-    """
-
-    inverse_funcs: Optional[Dict[int, Optional[Callable]]] = field(repr=False, default=None)
-
-
-BinaryElementWiseFuncDefinition.__hash__ = FuncDefinition.__hash__
+ElementWiseFuncDefinition.__hash__ = FuncDefinition.__hash__
 
 
 def create_func_definition(raw_data_source_arguments: List[RawArgument] = None,

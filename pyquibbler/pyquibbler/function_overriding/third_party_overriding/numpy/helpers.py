@@ -23,11 +23,12 @@ from pyquibbler.inversion.inverters.transpositional import \
 from pyquibbler.inversion.inverters.elementwise import BinaryElementwiseInverter, UnaryElementwiseInverter
 from pyquibbler.inversion.inverters.elementwise_single_arg_no_shape import UnaryElementwiseNoShapeInverter
 
-from pyquibbler.function_definitions.func_definition import \
-    UnaryElementWiseFuncDefinition, BinaryElementWiseFuncDefinition
+from pyquibbler.function_definitions.func_definition import ElementWiseFuncDefinition
 from pyquibbler.path_translation.translators.elementwise import \
     UnaryElementwiseNoShapeBackwardsPathTranslator
 from pyquibbler.type_translation.translators import ElementwiseTypeTranslator
+
+from .inverse_functions import RawInverseFunc, InverseFunc
 
 
 class NumpyArrayOverride(FuncOverride):
@@ -77,8 +78,8 @@ numpy_override_shape_only = functools.partial(numpy_override, data_source_argume
                                               backwards_path_translators=[ShapeOnlyBackwardsPathTranslator],
                                               forwards_path_translators=[ShapeOnlyForwardsPathTranslator])
 
-UNARY_ELEMENTWISE_FUNCS_TO_INVERSE_FUNCS = {}
-BINARY_ELEMENTWISE_FUNCS_TO_INVERSE_FUNCS = {}
+UNARY_ELEMENTWISE_FUNCS_TO_INVERSE_FUNCS: Dict[str, InverseFunc] = {}
+BINARY_ELEMENTWISE_FUNCS_TO_INVERSE_FUNCS: Dict[str, Tuple[Optional[InverseFunc]]] = {}
 
 BINARY_ELEMENTWISE_INVERTERS = [BinaryElementwiseInverter]
 UNARY_ELEMENTWISE_INVERTERS = [UnaryElementwiseNoShapeInverter, UnaryElementwiseInverter]
@@ -87,19 +88,18 @@ UNARY_ELEMENTWISE_BACKWARDS_TRANSLATORS = [UnaryElementwiseNoShapeBackwardsPathT
                                            UnaryElementwiseBackwardsPathTranslator]
 
 
-def get_binary_inverse_funcs_for_func(func_name: str):
+def get_binary_inverse_funcs_for_func(func_name: str) -> Tuple[Optional[InverseFunc]]:
     return BINARY_ELEMENTWISE_FUNCS_TO_INVERSE_FUNCS[func_name]
 
 
-def get_unary_inverse_funcs_for_func(func_name: str):
+def get_unary_inverse_funcs_for_func(func_name: str) -> InverseFunc:
     return UNARY_ELEMENTWISE_FUNCS_TO_INVERSE_FUNCS[func_name]
 
 
-def binary_elementwise(func_name: str,
-                       inverse_funcs: Dict[int, Optional[Callable]]):
+def binary_elementwise(func_name: str, raw_inverse_funcs: Tuple[Optional[RawInverseFunc]]):
+    inverse_funcs = tuple(None if raw_inverse_func is None else InverseFunc.from_raw_inverse_func(raw_inverse_func)
+                          for raw_inverse_func in raw_inverse_funcs)
 
-    is_inverse = inverse_funcs[0] or inverse_funcs[1]
-    # if is_inverse:
     BINARY_ELEMENTWISE_FUNCS_TO_INVERSE_FUNCS[func_name] = inverse_funcs
 
     return numpy_override(
@@ -108,25 +108,17 @@ def binary_elementwise(func_name: str,
         backwards_path_translators=[BinaryElementwiseBackwardsPathTranslator],
         forwards_path_translators=[BinaryElementwiseForwardsPathTranslator],
         result_type_or_type_translators=[ElementwiseTypeTranslator],
-        inverters=BINARY_ELEMENTWISE_INVERTERS if is_inverse else [],
+        inverters=BINARY_ELEMENTWISE_INVERTERS,
         inverse_funcs=inverse_funcs,
-        func_definition_cls=BinaryElementWiseFuncDefinition,
+        func_definition_cls=ElementWiseFuncDefinition,
     )
 
 
-def unary_elementwise(func_name: str,
-                      inverse_func: Union[None, Callable, Tuple[Callable]]):
+def unary_elementwise(func_name: str, raw_inverse_func: Optional[RawInverseFunc]):
 
-    inverse_func_requires_input = False
-    if isinstance(inverse_func, tuple):
-        if INPUT_AWARE_INVERSION:
-            inverse_func = inverse_func[1]
-            inverse_func_requires_input = True
-        else:
-            inverse_func = inverse_func[0]
+    inverse_func = None if raw_inverse_func is None else InverseFunc.from_raw_inverse_func(raw_inverse_func)
 
-    if inverse_func:
-        UNARY_ELEMENTWISE_FUNCS_TO_INVERSE_FUNCS[func_name] = (inverse_func, inverse_func_requires_input)
+    UNARY_ELEMENTWISE_FUNCS_TO_INVERSE_FUNCS[func_name] = inverse_func
 
     return numpy_override(
         func_name=func_name,
@@ -134,8 +126,7 @@ def unary_elementwise(func_name: str,
         backwards_path_translators=UNARY_ELEMENTWISE_BACKWARDS_TRANSLATORS,
         forwards_path_translators=[UnaryElementwiseForwardsPathTranslator],
         result_type_or_type_translators=[ElementwiseTypeTranslator],
-        inverters=UNARY_ELEMENTWISE_INVERTERS if inverse_func else [],
-        inverse_func=inverse_func,
-        inverse_func_requires_input=inverse_func_requires_input,
-        func_definition_cls=UnaryElementWiseFuncDefinition,
+        inverters=UNARY_ELEMENTWISE_INVERTERS,
+        inverse_funcs=(inverse_func, ),
+        func_definition_cls=ElementWiseFuncDefinition,
     )

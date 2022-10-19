@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Any, Type
+from typing import Any, Type, Tuple, Optional
 
 import numpy as np
 
@@ -8,6 +8,7 @@ from pyquibbler.path import deep_get, Path
 from pyquibbler.function_definitions import SourceLocation
 
 from pyquibbler.quib.pretty_converters.operators import REVERSE_BINARY_FUNCS_TO_OPERATORS
+from pyquibbler.function_overriding.third_party_overriding.numpy.inverse_functions import InverseFunc
 
 from pyquibbler.path_translation import ForwardsPathTranslator, BackwardsPathTranslator
 from pyquibbler.path_translation.types import Source
@@ -20,24 +21,18 @@ from .numpy import NumpyInverter
 from ..inverter import Inverter
 
 
-class BaseUnaryElementWiseInverter(Inverter):
+class BaseUnaryElementWiseInverter(Inverter, ABC):
     """ Base class for inversion that run an inverse function on each array element"""
 
-    @property
-    def inverse_func_requires_input(self):
-        return self._func_call.func_definition.inverse_func_requires_input
-
-    @property
-    def inverse_func(self):
-        return self._func_call.func_definition.inverse_func
+    def get_inverse_func_and_raise_if_none(self, argument_index) -> InverseFunc:
+        inverse_func = self._func_call.func_definition.inverse_funcs[argument_index]
+        if inverse_func is None:
+            self._raise_run_failed_exception()
+        return inverse_func
 
 
-class BaseBinaryElementWiseInverter(Inverter, ABC):
+class BaseBinaryElementWiseInverter(BaseUnaryElementWiseInverter, ABC):
     """ Base class for inversion that run an inverse function on each array element"""
-
-    @property
-    def inverse_funcs(self):
-        return self._func_call.func_definition.inverse_funcs
 
     @staticmethod
     def _switch_argument(argument_index):
@@ -46,7 +41,7 @@ class BaseBinaryElementWiseInverter(Inverter, ABC):
         """
         return 1 - argument_index
 
-    def get_indices_of_argument_to_invert_to_and_other_argument(self):
+    def get_indices_of_argument_to_invert_to_and_of_other_argument(self):
         """
         Returns the index of the argument to which we invert, and the other argument.
 
@@ -75,17 +70,22 @@ class BinaryElementwiseInverter(NumpyInverter, BaseBinaryElementWiseInverter):
     def _invert_value(self, source: Source, source_location: SourceLocation, path_in_source: Path,
                       result_value: Any, path_in_result: Path) -> Any:
 
-        argument_to_invert_to, other_argument = self.get_indices_of_argument_to_invert_to_and_other_argument()
+        argument_to_invert_to, other_argument = self.get_indices_of_argument_to_invert_to_and_of_other_argument()
 
         if source_location.argument.index != argument_to_invert_to:
             return missing
 
-        inverse_func = self.inverse_funcs[argument_to_invert_to]
+        inverse_func = self.get_inverse_func_and_raise_if_none(argument_to_invert_to)
 
         other_argument_value = copy_and_replace_sources_with_vals(self._func_call.args[other_argument])
         other_argument_value = np.broadcast_to(other_argument_value, np.shape(self._previous_result))
         other_argument_value = deep_get(other_argument_value, path_in_result)
-        return inverse_func(result_value, other_argument_value)
+
+        if inverse_func.requires_previous_input:
+            previous_input_value = deep_get(source.value, path_in_source)
+            return inverse_func.inv_func(result_value, other_argument_value, previous_input_value)
+
+        return inverse_func.inv_func(result_value, other_argument_value)
 
 
 class UnaryElementwiseInverter(NumpyInverter, BaseUnaryElementWiseInverter):
@@ -96,8 +96,10 @@ class UnaryElementwiseInverter(NumpyInverter, BaseUnaryElementWiseInverter):
     def _invert_value(self, source: Source, source_location: SourceLocation, path_in_source: Path,
                       result_value: Any, path_in_result: Path) -> Any:
 
-        if self.inverse_func_requires_input:
-            previous_input_value = deep_get(source.value, path_in_source)
-            return self.inverse_func(result_value, previous_input_value)
+        inverse_func = self.get_inverse_func_and_raise_if_none(0)
 
-        return self.inverse_func(result_value)
+        if inverse_func.requires_previous_input:
+            previous_input_value = deep_get(source.value, path_in_source)
+            return inverse_func.inv_func(result_value, previous_input_value)
+
+        return inverse_func.inv_func(result_value)
