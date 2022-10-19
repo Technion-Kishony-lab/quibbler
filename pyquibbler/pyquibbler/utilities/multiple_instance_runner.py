@@ -15,29 +15,21 @@ class BaseRunnerFailedException(PyQuibblerException, ABC):
     """
 
 
-class RunnerCannotRunException(BaseRunnerFailedException):
-    """
-    A base class of exceptions runners should raise if they do not manage to perform their job.
-    """
-    def __str__(self):
-        return "Conditions were not met for runner to run."
-
-
 @dataclasses.dataclass
 class RunnerFailedException(BaseRunnerFailedException):
     """
-    A base class of exceptions runners should raise if they do not manage to perform their job.
+    A generic exception runners should raise if they do not manage to perform their job.
     """
 
     message: Any
 
     def __str__(self):
-        return f"Conditions were not met for runner to run.\n{self.message}"
+        return f"Runner failed performing job.\n{self.message}"
 
 
 class NoRunnerWorkedException(PyQuibblerException):
     """
-    An exception raised if no runners were successful.
+    An exception raised by Multiple InstanceRunner if no runners were successful.
     """
     def __str__(self):
         return 'No runner managed to do the work.'
@@ -47,33 +39,47 @@ class NoRunnerWorkedException(PyQuibblerException):
 
 class RunCondition(Enum):
     """
-    Defines the condition at which a runner can run.
+    Defines the condition of a run.
     """
     pass
 
 
 class ConditionalRunner(ABC):
     """
-    A runner that runs only when the run_condition of the MultipleInstanceRunner matches the list of RUN_CONDITIONS
-    of the runner.
+    A runner that runs only when:
+    (a) the run_condition matches the runner's list of RUN_CONDITIONS.
+    (b) the runner returns True when asked if it can_try.
     """
 
-    # Define the list of run condition at which the runner should run.
-    # [] to not run at all
+    # Define the list of run condition at which the runner should be asked whether it wants to try.
+    # [] to run only if the run_condition is None.
     # None to run at all conditions.
     RUN_CONDITIONS: Optional[List[RunCondition]] = None
 
+    @classmethod
+    def is_matching_run_condition(cls, run_condition: RunCondition) -> bool:
+        return run_condition is None \
+               or cls.RUN_CONDITIONS is None \
+               or run_condition in cls.RUN_CONDITIONS
+
     def can_try(self) -> bool:
         """
-        Perform additional tests, beyond RunCondition, to decide if runner can try running.
+        Assuming RUN_CONDITIONS are met, perform additional tests to decide if runner can try running.
         """
         return True
 
     @abstractmethod
     def try_run(self):
+        """
+        Try running. Return the result if possible. If not, raise an instance of BaseRunnerFailedException.
+        Or, call _raise_run_failed_exception().
+        """
         pass
 
     def _raise_run_failed_exception(self, message: Any = ''):
+        """
+        Should be called to terminate try_run without success.
+        """
         raise RunnerFailedException(message)
 
 
@@ -111,21 +117,16 @@ class MultipleInstanceRunner:
         self._args = args
         self._kwargs = kwargs
 
-    def _get_runner_types_matching_condition(self) -> List[Type[ConditionalRunner]]:
-        """
-        Returns the list of relevant runners matching the run condition
-        """
-        if self._run_condition is None:
-            return self._runner_types
-        return [runner for runner in self._runner_types
-                if runner.RUN_CONDITIONS is None or self._run_condition in runner.RUN_CONDITIONS]
-
     def run(self):
-        for runner_type in self._get_runner_types_matching_condition():
-            runner = runner_type(*self._args, **self._kwargs)
-            if runner.can_try():
-                try:
-                    return runner_type(*self._args, **self._kwargs).try_run()
-                except BaseRunnerFailedException:
-                    pass
+        """
+        Call all the matching runners until one of them succeeds.
+        """
+        for runner_type in self._runner_types:
+            if runner_type.is_matching_run_condition(self._run_condition):
+                runner = runner_type(*self._args, **self._kwargs)
+                if runner.can_try():
+                    try:
+                        return runner.try_run()
+                    except BaseRunnerFailedException:
+                        pass
         raise NoRunnerWorkedException()
