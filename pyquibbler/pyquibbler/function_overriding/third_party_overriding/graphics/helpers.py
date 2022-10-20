@@ -1,11 +1,16 @@
 import functools
 from dataclasses import dataclass
-from typing import Any
 
 import matplotlib.widgets
 import matplotlib.patches
+import numpy as np
 from matplotlib.axes import Axes
 from mpl_toolkits.mplot3d import Axes3D
+
+from typing import Any, Tuple, List, Optional
+from pyquibbler.quib.quib import Quib
+from pyquibbler.function_definitions import SourceLocation
+from pyquibbler.utilities.general_utils import Args, Kwargs
 
 from pyquibbler.env import DRAGGABLE_PLOTS_BY_DEFAULT
 from pyquibbler.function_overriding.function_override import FuncOverride
@@ -13,6 +18,8 @@ from pyquibbler.function_overriding.third_party_overriding.general_helpers impor
 from pyquibbler.quib.graphics import artist_wrapper
 
 from pyquibbler.quib.graphics.event_handling import CanvasEventHandler
+from pyquibbler.quib.graphics.event_handling.plot_inverse_assigner import get_xdata_arg_indices_and_ydata_arg_indices
+from pyquibbler.utilities.iterators import iter_objects_of_type_in_object_recursively, is_iterator_empty
 
 
 @dataclass
@@ -24,6 +31,14 @@ class GraphicsOverride(FuncOverride):
     pass
 
 
+def transform_to_array_if_containing_quibs(obj):
+    if isinstance(obj, (list, tuple)) \
+            and not is_iterator_empty(iter_objects_of_type_in_object_recursively(Quib, obj)):
+        return np.array(obj)
+    return obj
+
+
+
 @dataclass
 class PlotOverride(GraphicsOverride):
     """
@@ -31,12 +46,28 @@ class PlotOverride(GraphicsOverride):
     """
 
     @staticmethod
-    def _modify_kwargs(kwargs):
+    def _modify_args_kwargs(args: Args, kwargs: Kwargs, quib_locations: List[SourceLocation]
+                            ) -> Tuple[Args, Kwargs, Optional[List[SourceLocation]]]:
+        
+        # Impose quibbler default value for `picker`:
         if DRAGGABLE_PLOTS_BY_DEFAULT:
             if 'picker' not in kwargs:
                 kwargs['picker'] = True
             elif kwargs['picker'] is False:
                 kwargs['picker'] = 0  # `picker=False` does not really turn off picking
+
+        # Convert quib-containing data args to quib arrays:
+        x_data_arg_indices, y_data_arg_indices = get_xdata_arg_indices_and_ydata_arg_indices(args)
+        data_arg_indices = x_data_arg_indices + y_data_arg_indices
+        args = list(args)
+        for index in data_arg_indices:
+            arg = args[index]
+            new_arg = transform_to_array_if_containing_quibs(arg)
+            if new_arg is not arg:
+                args[index] = new_arg
+                quib_locations = None  # location will get re-calculated within FuncCall
+        args = tuple(args)
+        return args, kwargs, quib_locations
 
 
 @dataclass

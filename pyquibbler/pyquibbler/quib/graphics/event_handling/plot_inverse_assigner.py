@@ -1,8 +1,10 @@
 from __future__ import annotations
 from collections import defaultdict
 from functools import partial
-from typing import Any, List, Tuple, Union, Mapping
 from matplotlib.backend_bases import PickEvent, MouseEvent, MouseButton
+
+from typing import Any, List, Tuple, Union, Mapping, Dict
+from pyquibbler.utilities.general_utils import Args
 
 from pyquibbler.assignment import get_axes_x_y_tolerance, create_assignment, OverrideGroup, \
     get_override_group_for_quib_changes, AssignmentToQuib, Assignment
@@ -25,7 +27,7 @@ def _is_arg_str(arg):
     return isinstance(arg, str)
 
 
-def get_xdata_arg_indices_and_ydata_arg_indices(args: Tuple[List, List]):
+def get_xdata_arg_indices_and_ydata_arg_indices(args: Args) -> Tuple[List[int], List[int]]:
     """
     Gets a list of indices of arguments referencing `xdata`s, and a list of indices of arguments referencing `ydata`
 
