@@ -365,6 +365,21 @@ def test_get_overrides_for_assignment_when_can_assign_to_parents(diverged_quib_g
     assert len(override_group.quib_changes) == 3  # Two overrides and one override removal
 
 
+def test_get_overrides_for_assignment_with_differed_assigned_quibs(diverged_quib_graph, assignment_to_multiple):
+    grandparent1, parent1, grandparent2, parent2, child, parent1_override = diverged_quib_graph
+    parent1.allow_overriding = True
+    parent2.allow_overriding = True
+    grandparent1.allow_overriding = True
+    grandparent2.allow_overriding = True
+    parent1.assigned_quibs = 'self'
+    parent2.assigned_quibs = grandparent2
+    child.assigned_quibs = None  # assigned quibs will be chosen based on assigned_quibs of upstream quibs
+    assignment = AssignmentToQuib(child, assignment_to_multiple)
+    override_group = get_override_group_for_quib_change(assignment)
+
+    assert len(override_group.quib_changes) == 4  # Two overrides and two override removal
+
+
 def test_raises_cannot_change_when_context_quib_cannot_be_inverted():
     with get_value_context():
         # A function we don't know to invert

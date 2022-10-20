@@ -1047,26 +1047,32 @@ class Quib:
     @property
     def assigned_quibs(self) -> Union[None, Set[Quib, ...]]:
         """
-        None or set of Quib: Specifies the quibs to which assignments to this quib could inverse-translate.
+        None or set of Quib: Specifies the quibs to which assignments to this quib could inverse-translate to.
 
         Options:
 
-        `None` : assignments to the quib are inverse-propagated and can be actualized as overrides at any upstream quib
-        whose ``allow_overriding=True``.
+        `set of Quibs` :
+            Assignments to the quib can be actualized as overrides at any upstream quibs included in the specified set
+            and whose ``allow_overriding=True``.
 
-        `set of Quibs` : assignments to the quib are inverse-propagated and can be actualized as overrides at
-        any upstream quibs in the specified set whose ``allow_overriding=True``.
+        `Quib` :
+        Specifying a single quib, instead of a set, is interpreted as a set containing this single quib.
+
+        `set()` :
+            Prevents assignments to this quib.
+
+        `'self'` :
+            To allow assignments to actualize locally, as overrides of the focal quib to which the assignments are made,
+            the focal quib itself, or `'self'`, can be used alone or as part of the set of quibs.
+            When self is included, the ``allow_overriding`` property is automatically set to ``True``.
+
+        `None` : (default)
+            Assignments to the quib can be actualized as overrides at any upstream quib whose ``allow_overriding=True``.
+            If while inverting the assignment an upstream quib is encountered with defined assigned_quibs (not `None`),
+            the set it defines is used for choosing upstream quibs for assignments.
 
         If multiple choices are available for inverse assignment, a dialog is presented to allow choosing between
         these options.
-
-        `set()` : prevents assignments to this quib.
-
-        To allow assignments to actualize as overrides of the focal quib to which the assignments are made,
-        the focal quib or `'self'` can be used within the set of quibs specified by `assigned quibs`.
-        When self is included, the ``allow_overriding`` property is automatically set to ``True``.
-
-        Specifying a single quib, or `'self'`, instead of a set is interpreted as a set containing this single quib.
 
         See Also
         --------

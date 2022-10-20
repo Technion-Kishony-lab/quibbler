@@ -33,7 +33,7 @@ def convert_an_arg_to_array_of_source_index_codes(arg: Any,
     Parameters
     ----------
         `arg`: an object to convert to an index-code array, can be a scalar, an array,
-        or array-like (nested list, tulple, arrays). This is typically the data argument of a numpy function.
+        or array-like (nested lists, tuples, arrays). This is typically the data argument of a numpy function.
         `arg` can be, or contain Sources.
 
         focal_source: the source whose indexes we want to encode.
