@@ -174,7 +174,7 @@ class VectorizeMetadata:
 
 
 @dataclass
-class VectorizeCall:
+class VectorizeCaller:
     vectorize: np.vectorize
     args: Args
     kwargs: Kwargs

@@ -14,15 +14,14 @@ from pyquibbler.function_definitions.types import iter_arg_ids_and_values
 from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices
 from pyquibbler.graphics.utils import remove_created_graphics
 
-from .vectorize_metadata import VectorizeCall, VectorizeMetadata
-from .utils import alter_signature, copy_vectorize, \
-    get_indices_array
+from .vectorize_metadata import VectorizeCaller, VectorizeMetadata
+from .utils import alter_signature, copy_vectorize, get_indices_array
 
 
 class VectorizeQuibFuncCall(CachedQuibFuncCall):
 
-    def _wrap_vectorize_call_to_pass_quibs(self, call: VectorizeCall, args_metadata,
-                                           results_core_ndims) -> VectorizeCall:
+    def _wrap_vectorize_caller_to_pass_quibs(self, call: VectorizeCaller, args_metadata,
+                                             results_core_ndims) -> VectorizeCaller:
         """
         Given a vectorize call and some metadata, return a new vectorize call that passes quibs to the vectorize pyfunc.
         This is done by wrapping the original pyfunc. The quibs in args and kwargs are replaced with
@@ -68,22 +67,22 @@ class VectorizeQuibFuncCall(CachedQuibFuncCall):
 
         quibs_to_guard = {*non_excluded_quib_args.values(), *excluded_quib_args.values()}
         new_vectorize = copy_vectorize(call.vectorize, func=wrapper, signature=signature)
-        return VectorizeCall(new_vectorize, args, kwargs, quibs_to_guard)
+        return VectorizeCaller(new_vectorize, args, kwargs, quibs_to_guard)
 
-    def _get_vectorize_call(self, args_metadata, results_core_ndims, valid_path) -> VectorizeCall:
+    def _get_vectorize_caller(self, args_metadata, results_core_ndims, valid_path) -> VectorizeCaller:
         """
-        Get a VectorizeCall object to actually call vectorize with.
+        Get a VectorizeCaller object to actually call vectorize with.
         If asked to pass quibs, return a modified call that passes quibs.
         """
         if self._pass_quibs:
             (vectorize, *args), kwargs = self.args, self.kwargs
-            call = VectorizeCall(vectorize, args, kwargs)
-            call = self._wrap_vectorize_call_to_pass_quibs(call, args_metadata, results_core_ndims)
+            call = VectorizeCaller(vectorize, args, kwargs)
+            call = self._wrap_vectorize_caller_to_pass_quibs(call, args_metadata, results_core_ndims)
         else:
             quibs_to_paths = {} if valid_path is None else self._backwards_translate_path(valid_path)
             new_args, new_kwargs = self._get_args_and_kwargs_valid_at_quibs_to_paths(quibs_to_paths)
             (vectorize, *args), kwargs = new_args, new_kwargs
-            call = VectorizeCall(vectorize, args, kwargs)
+            call = VectorizeCaller(vectorize, args, kwargs)
         return call
 
     def _get_sample_result(self, args_metadata, results_core_ndims):
@@ -91,7 +90,7 @@ class VectorizeQuibFuncCall(CachedQuibFuncCall):
         Run the vectorized function on sample arguments to get s single sample result.
         Remove any graphics that were created during the call.
         """
-        call = self._get_vectorize_call(args_metadata, results_core_ndims, None)
+        call = self._get_vectorize_caller(args_metadata, results_core_ndims, None)
         with remove_created_graphics(), external_call_failed_exception_handling():
             return call.get_sample_result(args_metadata)
 
@@ -103,7 +102,7 @@ class VectorizeQuibFuncCall(CachedQuibFuncCall):
         """
         new_args, new_kwargs = self._get_args_and_kwargs_valid_at_quibs_to_paths(quibs_to_valid_paths={})
         (vectorize, *args), kwargs = new_args, new_kwargs
-        return VectorizeCall(vectorize, args, kwargs).get_metadata(self._get_sample_result)
+        return VectorizeCaller(vectorize, args, kwargs).get_metadata(self._get_sample_result)
 
     @cache_method_until_full_invalidation
     def _get_loop_shape(self):
@@ -118,7 +117,7 @@ class VectorizeQuibFuncCall(CachedQuibFuncCall):
         """
         return self.args[0]
 
-    def _wrap_vectorize_call_to_calc_only_needed(self, call: VectorizeCall, valid_path, otypes):
+    def _wrap_vectorize_caller_to_calc_only_needed(self, call: VectorizeCaller, valid_path, otypes):
         """
         1. Create a bool mask with the same shape as the broadcast loop dimensions
         2. Create a wrapper for the pyfunc that receives the same arguments, and an additional boolean that
@@ -146,7 +145,7 @@ class VectorizeQuibFuncCall(CachedQuibFuncCall):
             else '(),' * len(args_to_add) + call.vectorize.signature
         vectorize = copy_vectorize(call.vectorize, func=wrapper, excluded=wrapper_excluded, signature=wrapper_signature,
                                    otypes=otypes)
-        return VectorizeCall(vectorize, (*args_to_add, *call.args), call.kwargs)
+        return VectorizeCaller(vectorize, (*args_to_add, *call.args), call.kwargs)
 
     @cache_method_until_full_invalidation
     def get_result_metadata(self) -> Dict:
@@ -162,8 +161,8 @@ class VectorizeQuibFuncCall(CachedQuibFuncCall):
         if valid_path is None:
             return np.zeros(vectorize_metadata.result_shape, dtype=vectorize_metadata.result_dtype)
 
-        call = self._get_vectorize_call(vectorize_metadata.args_metadata,
-                                        vectorize_metadata.result_or_results_core_ndims, valid_path)
-        call = self._wrap_vectorize_call_to_calc_only_needed(call, valid_path, vectorize_metadata.otypes)
+        call = self._get_vectorize_caller(vectorize_metadata.args_metadata,
+                                          vectorize_metadata.result_or_results_core_ndims, valid_path)
+        call = self._wrap_vectorize_caller_to_calc_only_needed(call, valid_path, vectorize_metadata.otypes)
 
         return call()

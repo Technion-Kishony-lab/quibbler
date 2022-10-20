@@ -7,8 +7,7 @@ from pyquibbler.function_definitions import PositionalArgument, KeywordArgument,
 from pyquibbler.function_definitions.func_call import FuncArgsKwargs
 from pyquibbler.function_definitions.func_definition import FuncDefinition
 from pyquibbler.function_overriding.function_override import FuncOverride
-from pyquibbler.quib.func_calling.func_calls.vectorize.vectorize_call \
-    import VectorizeQuibFuncCall
+from pyquibbler.quib.func_calling.func_calls.vectorize.vectorize_call import VectorizeQuibFuncCall
 from pyquibbler.env import PRETTY_REPR
 from pyquibbler.path_translation.translators.vectorize import VectorizeForwardsPathTranslator, \
     VectorizeBackwardsPathTranslator
