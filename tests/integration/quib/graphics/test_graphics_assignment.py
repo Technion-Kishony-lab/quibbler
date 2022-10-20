@@ -56,3 +56,13 @@ def test_drag_xy_undo(axes, create_axes_mouse_press_move_release_events, get_liv
 
     redo()
     assert xy.get_value() == [5, 5]
+
+
+def test_drag_multi_plot(axes, create_axes_mouse_press_move_release_events):
+    x1 = iquib([10, 20, 30])
+    x2 = iquib([40, 50, 60])
+    axes.plot([x1, x2])
+    create_axes_mouse_press_move_release_events(((0, 20), (0, 23)))
+
+    assert x1.get_value() == [10, 23, 30]
+    assert x2.get_value() == [40, 50, 60]
