@@ -58,7 +58,7 @@ from pyquibbler.quib.func_calling.cache_mode import CacheMode
 from pyquibbler.utilities.multiple_instance_runner import NoRunnerWorkedException
 from pyquibbler.path_translation.translate import forwards_translate
 from pyquibbler.path import FailedToDeepAssignException, PathComponent, Path, Paths
-from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation
+from pyquibbler.path_translation.create_source_func_call import get_func_call_for_translation
 from pyquibbler.inversion.invert import invert
 
 # Graphics:

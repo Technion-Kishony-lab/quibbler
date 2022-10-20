@@ -29,7 +29,7 @@ from pyquibbler.quib.quib_guard import QuibGuard
 # translation
 from pyquibbler.utilities.multiple_instance_runner import NoRunnerWorkedException
 from pyquibbler.path import Path
-from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation
+from pyquibbler.path_translation.create_source_func_call import get_func_call_for_translation
 from pyquibbler.path_translation.translate import backwards_translate
 from pyquibbler.path_translation.base_translators import BackwardsTranslationRunCondition
 
