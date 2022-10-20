@@ -2,7 +2,7 @@ import math
 import operator
 from dataclasses import dataclass
 
-from typing import List, Optional, Callable, Tuple
+from typing import List, Optional, Tuple
 
 from pyquibbler.quib.quib import Quib
 

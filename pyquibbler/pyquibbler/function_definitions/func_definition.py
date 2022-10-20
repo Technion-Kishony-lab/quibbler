@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import functools
 from dataclasses import dataclass, field
-from typing import Set, Type, List, Callable, Optional, Dict, Union, Tuple
+from typing import Set, Type, List, Callable, Optional, Union, Tuple
 
 from pyquibbler.path_translation import BackwardsPathTranslator, ForwardsPathTranslator
 from pyquibbler.type_translation.translators import TypeTranslator

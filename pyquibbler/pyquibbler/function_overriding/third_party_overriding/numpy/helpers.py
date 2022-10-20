@@ -1,9 +1,9 @@
 import functools
-from typing import Callable, Tuple, Union, Optional, Dict
+from typing import Tuple, Optional, Dict
 
 import numpy as np
 
-from pyquibbler.env import ALLOW_ARRAY_WITH_DTYPE_OBJECT, INPUT_AWARE_INVERSION
+from pyquibbler.env import ALLOW_ARRAY_WITH_DTYPE_OBJECT
 
 from pyquibbler.function_overriding.function_override import FuncOverride
 from pyquibbler.function_overriding.third_party_overriding.general_helpers import override, \

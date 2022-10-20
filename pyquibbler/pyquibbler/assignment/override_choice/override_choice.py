@@ -1,6 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import List, TYPE_CHECKING, Optional, Dict, ClassVar, Set
+from typing import List, TYPE_CHECKING, Optional, Dict, ClassVar
 
 from pyquibbler.assignment import AssignmentToQuib
 

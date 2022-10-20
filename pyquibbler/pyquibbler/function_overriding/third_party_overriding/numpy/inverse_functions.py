@@ -10,7 +10,7 @@ pi = np.pi
 
 RawInverseFunc = Union[Callable, Tuple[Callable, Callable]]
 """
-Specifies a single nominal inverse function, or a tuple of a nominal and an input-dependent inverse function. 
+Specifies a single nominal inverse function, or a tuple of a nominal and an input-dependent inverse function.
 """
 
 

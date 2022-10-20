@@ -3,7 +3,7 @@ from collections import defaultdict
 from functools import partial
 from matplotlib.backend_bases import PickEvent, MouseEvent, MouseButton
 
-from typing import Any, List, Tuple, Union, Mapping, Dict
+from typing import Any, List, Tuple, Union, Mapping
 from pyquibbler.utilities.general_utils import Args
 
 from pyquibbler.assignment import get_axes_x_y_tolerance, create_assignment, OverrideGroup, \

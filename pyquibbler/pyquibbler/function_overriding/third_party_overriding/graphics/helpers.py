@@ -38,7 +38,6 @@ def transform_to_array_if_containing_quibs(obj):
     return obj
 
 
-
 @dataclass
 class PlotOverride(GraphicsOverride):
     """
@@ -48,7 +47,7 @@ class PlotOverride(GraphicsOverride):
     @staticmethod
     def _modify_args_kwargs(args: Args, kwargs: Kwargs, quib_locations: List[SourceLocation]
                             ) -> Tuple[Args, Kwargs, Optional[List[SourceLocation]]]:
-        
+
         # Impose quibbler default value for `picker`:
         if DRAGGABLE_PLOTS_BY_DEFAULT:
             if 'picker' not in kwargs:

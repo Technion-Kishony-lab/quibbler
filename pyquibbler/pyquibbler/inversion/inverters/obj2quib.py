@@ -1,6 +1,5 @@
 from typing import List
 
-from pyquibbler.assignment import Assignment
 from pyquibbler.assignment.assignment import create_assignment_from_nominal_down_up_values
 from pyquibbler.path import split_path_at_end_of_object, deep_get
 from pyquibbler.path_translation.types import Inversal, Source
