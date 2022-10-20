@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from typing import List, Any, Optional, Type
 
+from pyquibbler.env import SAFE_MODE
 from pyquibbler.exceptions import PyQuibblerException
 
 
@@ -129,4 +130,10 @@ class MultipleInstanceRunner:
                         return runner.try_run()
                     except BaseRunnerFailedException:
                         pass
+                    except Exception as e:
+                        if SAFE_MODE:
+                            pass
+                        else:
+                            raise e
+
         raise NoRunnerWorkedException()

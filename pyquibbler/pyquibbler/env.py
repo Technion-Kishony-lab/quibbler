@@ -13,6 +13,7 @@ END_DRAG_IMMEDIATELY = Flag(False)  # Useful when debugging graphics inverse ass
 
 SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS = Flag(True)
 
+SAFE_MODE = Flag(True)  # Catch and properly ignore path translation and inversion exceptions.
 
 """ Lazy """
 
