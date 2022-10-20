@@ -23,7 +23,7 @@ from pyquibbler.type_translation.run_conditions import TypeTranslateRunCondition
 from pyquibbler.type_translation.translate import translate_type
 from pyquibbler.utilities.multiple_instance_runner import NoRunnerWorkedException
 
-from .utils import create_array_from_func, CachedCall, get_shape_from_result
+from .utils import create_array_from_func, get_shape_from_result
 
 
 @dataclass
@@ -35,7 +35,7 @@ class QuibFuncCall(FuncCall):
 
     artists_creation_callback: Optional[Callable] = None
     graphics_collections: Optional[np.ndarray[GraphicsCollection]] = None
-    method_cache: Dict[CachedCall, Any] = field(default_factory=dict)
+    method_cache: Dict[Callable, Any] = field(default_factory=dict)
     cache: Optional[Cache] = None
     _caching: bool = False
     result_type: Optional[Type] = None
