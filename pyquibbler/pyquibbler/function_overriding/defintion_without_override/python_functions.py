@@ -47,5 +47,5 @@ def create_definitions_for_python_functions() -> List[FuncDefinition]:
          )
              for func in [list, tuple]),
 
-        # TODO: need definition for dict (to have fully functional obj2quib inversion and translation)
+        # TODO: need definition for dict
     ]

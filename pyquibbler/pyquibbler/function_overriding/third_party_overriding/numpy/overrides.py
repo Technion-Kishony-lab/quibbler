@@ -241,7 +241,6 @@ def create_numpy_overrides():
           )),
 
         # Shape-only, data-independent
-        # TODO: need to implement correct translators
         *(numpy_override_shape_only(func_name, result_type_or_type_translators=result_type)
           for func_name, result_type in (
             ('ones_like',    nd),

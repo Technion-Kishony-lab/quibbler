@@ -61,8 +61,8 @@ def obj2quib(obj: Any) -> Quib:
     If the argument obj is a quib, the function returns this quib.
     """
 
-    # TODO: source search is implemented here, to make it easier to allow adding an exceptional
-    #  searching also within object-arrays for this special case of obj2quib (if we want).
+    # TODO: We do the source search here. This is done to make it easier, in the future, to allow adding an exception
+    #  for searching also within object-arrays for this special case of obj2quib (if we want).
     locations = get_object_type_locations_in_args_kwargs(Quib, (obj, ), {})
 
     return create_quib(
