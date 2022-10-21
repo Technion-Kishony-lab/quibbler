@@ -209,3 +209,29 @@ def test_assignment_to_quib_within_vectorize_is_translated_to_override_on_vector
     override_group = get_override_group_for_assignment_to_child(parent).get_value()[()]
 
     assert override_group.quib_changes == [AssignmentToQuib(parent, Assignment(1, []))]
+
+
+@pytest.fixture
+def func_x2y():
+    @functools.partial(np.vectorize, signature='()->()')
+    def f_(x):
+        return x
+
+    return f_
+
+
+@pytest.fixture
+def func_y2z():
+    @functools.partial(np.vectorize, signature='()->(m)')
+    def f_(x):
+        assert x == 4  # the bug is calling with x=0
+        return np.array([1, 2, 3]) + x
+
+    return f_
+
+
+def test_vectorize_sample_call_should_send_valid_arguments(func_x2y, func_y2z):
+    a = iquib([4, 5])
+    b = func_x2y(a)
+    c = func_y2z(b)
+    assert c.get_shape() == (2, 3)
