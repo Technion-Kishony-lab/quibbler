@@ -235,3 +235,10 @@ def test_vectorize_sample_call_should_send_valid_arguments(func_x2y, func_y2z):
     b = func_x2y(a)
     c = func_y2z(b)
     assert c.get_shape() == (2, 3)
+
+
+def test_vectorize_sample_call_with_minor_data_sources(func_x2y, func_y2z):
+    a = iquib([4, 5])
+    b = func_x2y(a)
+    c = func_y2z([b, [14, 15]])
+    assert c.get_shape() == (2, 2, 3)
