@@ -46,6 +46,12 @@ def test_concatenate_get_value_valid_at_path(direction, concat_with_quib, indice
     check_get_value_valid_at_path(lambda q: np.concatenate((q, to_concat)[::direction]), np.array([0, 1]), path)
 
 
+@pytest.mark.parametrize('indices_to_get_value_at', [0, 1, 2, -1])
+def test_concatenate_of_quib_to_itself_get_value_valid_at_path(indices_to_get_value_at):
+    path = [PathComponent(indices_to_get_value_at)]
+    check_get_value_valid_at_path(lambda q: np.concatenate((q, q)), np.array([0, 1]), path)
+
+
 def filter_out_none_calls(mock_calls):
     return [
         mock_call
