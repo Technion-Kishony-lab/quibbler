@@ -274,16 +274,25 @@ class QuibHandler:
 
     def _forward_translate_with_retrieving_metadata(self, invalidator_quib: Quib, path: Path) -> Paths:
         func_call, sources_to_quibs = get_func_call_for_translation(self.quib_function_call, with_meta_data=None)
-        invalidator_quib_index = list(sources_to_quibs.values()).index(invalidator_quib)
-        return forwards_translate(
-            func_call=func_call,
-            source=list(sources_to_quibs)[invalidator_quib_index],
-            source_location=self.quib_function_call.data_source_locations[invalidator_quib_index],
-            path=path,
-            shape=self.quib_function_call.get_shape(),
-            type_=self.quib_function_call.get_type(),
-            **self.quib_function_call.get_result_metadata()
-        )
+
+        # a quib can appear more than once in the data sources. For example, np.concatenate((w, w))
+        invalidator_quib_indices = [i for i, quib in enumerate(list(sources_to_quibs.values()))
+                                    if quib is invalidator_quib]
+
+        invalidation_paths = []
+        for invalidator_quib_index in invalidator_quib_indices:
+            invalidation_paths_of_current_invalidator_quib_appearance = \
+                forwards_translate(
+                    func_call=func_call,
+                    source=list(sources_to_quibs)[invalidator_quib_index],
+                    source_location=self.quib_function_call.data_source_locations[invalidator_quib_index],
+                    path=path,
+                    shape=self.quib_function_call.get_shape(),
+                    type_=self.quib_function_call.get_type(),
+                    **self.quib_function_call.get_result_metadata()
+                )
+            invalidation_paths.extend(invalidation_paths_of_current_invalidator_quib_appearance)
+        return invalidation_paths
 
     def _get_paths_for_children_invalidation(self, invalidator_quib: Quib,
                                              path: Path) -> Paths:
