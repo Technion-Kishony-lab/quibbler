@@ -240,6 +240,25 @@ def test_concatenate_invalidation(direction, concat_with_quib, indices_to_invali
     check_invalidation(lambda q: np.concatenate((q, to_concat)[::direction]), [0, 1], indices_to_invalidate)
 
 
+def test_concatenate_quib_to_itself_invalidation():
+    a = iquib([10, 20])
+    b = np.concatenate((a, [0], a))
+    b.get_value()
+    b0 = b[0];  b0.get_value()
+    b1 = b[1];  b1.get_value()
+    b2 = b[2];  b2.get_value()
+    b3 = b[3];  b3.get_value()
+    b4 = b[4];  b4.get_value()
+
+    a.assign(999, 1)
+
+    assert b0.cache_status is CacheStatus.ALL_VALID
+    assert b1.cache_status is CacheStatus.ALL_INVALID
+    assert b2.cache_status is CacheStatus.ALL_VALID
+    assert b3.cache_status is CacheStatus.ALL_VALID
+    assert b4.cache_status is CacheStatus.ALL_INVALID
+
+
 @pytest.mark.regression
 def test_function_quib_forward_invalidation_path_with_changing_shapes(create_quib_with_return_value, create_mock_quib):
     grandparent = create_quib(func=mock.Mock())
