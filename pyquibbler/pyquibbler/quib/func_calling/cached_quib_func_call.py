@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import numpy as np
-
 from contextlib import ExitStack
 from sys import getsizeof
 from time import perf_counter
@@ -53,9 +51,6 @@ class CachedQuibFuncCall(QuibFuncCall):
         Note that there is no accurate way (and no efficient way to even approximate) the complete size of composite
         types in python, so we only measure the outer size of the object.
         """
-        if isinstance(result, np.ndarray) and result.base is not None:
-            # array "view"
-            return False
         cache_mode = self._get_cache_behavior()
         if cache_mode is CacheMode.ON:
             return True
@@ -258,6 +253,8 @@ class CachedQuibFuncCall(QuibFuncCall):
 
         if self._should_cache(result, elapsed_seconds):
             self._caching = True
+            self.cache.make_a_copy_if_value_is_a_view()
+
         if not self._caching:
             self.cache = None
 

@@ -104,3 +104,6 @@ class Cache(ABC):
         (not specifically an np reference here) as the real value.
         """
         return self._value
+
+    def make_a_copy_if_value_is_a_view(self):
+        pass
