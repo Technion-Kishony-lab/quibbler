@@ -5,12 +5,8 @@ import numpy as np
 
 from pyquibbler import CacheMode
 from pyquibbler.function_definitions import PositionalSourceLocation, FuncArgsKwargs, get_definition_for_function
-from pyquibbler.path_translation import SourceFuncCall
-from pyquibbler.path_translation.array_translation_utils import convert_an_arg_to_array_of_source_index_codes
-from pyquibbler.path_translation.base_translators import BackwardsTranslationRunCondition
-from pyquibbler.path_translation.translate import backwards_translate
 from pyquibbler.quib.quib import Quib
-from pyquibbler.path.path_component import Path, SpecialComponent, PathComponent, Paths
+from pyquibbler.path.path_component import Path, SpecialComponent, PathComponent
 from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals
 from pyquibbler.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
 from pyquibbler.quib.func_calling import CachedQuibFuncCall
