@@ -1,7 +1,7 @@
 import functools
 from typing import List, Optional, Callable, Type, Tuple, Union
 
-from pyquibbler.function_definitions.types import RawArgument
+from pyquibbler.function_definitions.types import ArgId
 from pyquibbler.function_definitions.func_definition import create_func_definition, FuncDefinition
 from pyquibbler.type_translation import TypeTranslator
 from ..function_override import FuncOverride, ClassOverride, NotImplementedOverride
@@ -10,7 +10,7 @@ from ..function_override import FuncOverride, ClassOverride, NotImplementedOverr
 def override_with_cls(override_cls,
                       module_or_cls,
                       func_name: str,
-                      data_source_arguments: List[RawArgument] = None,
+                      data_source_arguments: List[ArgId] = None,
                       forwards_path_translators: Optional[List] = None,
                       backwards_path_translators: Optional[List] = None,
                       inverters: Optional[List] = None,

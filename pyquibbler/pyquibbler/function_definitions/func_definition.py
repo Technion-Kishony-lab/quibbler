@@ -8,7 +8,7 @@ from pyquibbler.path_translation import BackwardsPathTranslator, ForwardsPathTra
 from pyquibbler.type_translation.translators import TypeTranslator
 
 from .func_call import FuncArgsKwargs
-from .types import RawArgument, Argument, PositionalArgument, KeywordArgument, \
+from .types import ArgId, Argument, PositionalArgument, KeywordArgument, \
     convert_raw_data_arguments_to_data_argument_designations, DataArgumentDesignation, SubArgument
 from .utils import get_signature_for_func
 
@@ -144,7 +144,7 @@ class ElementWiseFuncDefinition(FuncDefinition):
 ElementWiseFuncDefinition.__hash__ = FuncDefinition.__hash__
 
 
-def create_func_definition(raw_data_source_arguments: List[RawArgument] = None,
+def create_func_definition(raw_data_source_arguments: List[ArgId] = None,
                            is_random: bool = False,
                            is_file_loading: bool = False,
                            is_graphics: Optional[bool] = False,

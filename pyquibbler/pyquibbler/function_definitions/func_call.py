@@ -11,7 +11,8 @@ from pyquibbler.path import deep_set, PathComponent
 
 from .utils import get_signature_for_func
 from .location import SourceLocation, get_object_type_locations_in_args_kwargs
-from .types import iter_arg_ids_and_values, KeywordArgument, PositionalArgument, Argument, SubArgument
+from .types import iter_arg_ids_and_values, KeywordArgument, PositionalArgument, Argument, SubArgument, ArgId, \
+    convert_argument_id_to_argument
 
 from typing import TYPE_CHECKING
 
@@ -93,7 +94,10 @@ class FuncArgsKwargs:
         return [KeywordArgument(key) if isinstance(key, str) else PositionalArgument(key)
                 for key, _ in iter_arg_ids_and_values(self.args, self.kwargs)]
 
-    def get_arg_value_by_argument(self, argument: Argument):
+    def get_arg_value_by_argument(self, argument: Union[Argument, ArgId]):
+        if not isinstance(argument, Argument):
+            argument = convert_argument_id_to_argument(argument)
+
         if isinstance(argument, PositionalArgument):
             return self.args[argument.index]
         elif isinstance(argument, KeywordArgument):

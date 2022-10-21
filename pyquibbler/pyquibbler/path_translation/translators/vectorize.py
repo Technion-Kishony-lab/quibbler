@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Set, Optional, Type, Tuple
+from typing import Optional, Type, Tuple
 
 import numpy as np
 from numpy.typing import NDArray
@@ -8,24 +8,11 @@ from pyquibbler.utilities.general_utils import unbroadcast_or_broadcast_bool_mas
 from pyquibbler.path import PathComponent
 from pyquibbler.path.path_component import Path, Paths
 from pyquibbler.quib.func_calling.func_calls.vectorize.utils import get_core_axes
-from pyquibbler.function_definitions.types import iter_arg_ids_and_values
 from pyquibbler.function_definitions import FuncCall, SourceLocation
 
 from .numpy import NumpyForwardsPathTranslator, NumpyBackwardsPathTranslator
 from ..array_translation_utils import ArrayPathTranslator
 from ..types import Source
-
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from pyquibbler.quib.func_calling.func_calls.vectorize.vectorize_metadata import ArgId
-
-
-def _get_arg_ids_for_source(source: Source, args, kwargs) -> Set[ArgId]:
-    """
-    Given a parent quib, get all arg_ids it is given with.
-    For example, in the call `f(q, x=q)`, `_get_arg_ids_for_quib(q)` will return `{0, 'x'}`
-    """
-    return {arg_id for arg_id, arg in iter_arg_ids_and_values(args[1:], kwargs) if source is arg}
 
 
 class VectorizeBackwardsPathTranslator(NumpyBackwardsPathTranslator):
@@ -80,9 +67,12 @@ class VectorizeForwardsPathTranslator(NumpyForwardsPathTranslator):
                                                                data_argument_to_mask_converter: ArrayPathTranslator,
                                                                ) -> NDArray[bool]:
         data_arg_bool_mask = data_argument_to_mask_converter.get_masked_data_argument_of_source()
-        core_ndim = max(self._vectorize_metadata.args_metadata[arg_id].core_ndim
-                        for arg_id in
-                        _get_arg_ids_for_source(self._source, self._func_call.args, self._func_call.kwargs))
+
+        arg_id = data_argument_to_mask_converter.focal_source_location.argument.get_arg_id()
+        if isinstance(arg_id, int):
+            arg_id = arg_id - 1  # accounting for the func at position 0
+        core_ndim = self._vectorize_metadata.args_metadata[arg_id].core_ndim
+
         data_arg_bool_mask = np.any(data_arg_bool_mask, axis=get_core_axes(core_ndim))
         return np.broadcast_to(data_arg_bool_mask, self._vectorize_metadata.result_loop_shape)
 
