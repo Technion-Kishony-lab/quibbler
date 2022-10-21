@@ -45,6 +45,9 @@ class VectorizeArgMetadata:
     def loop_ndim(self) -> int:
         return len(self.loop_shape)
 
+    def get_sample_component(self):
+        return (0,) * self.loop_ndim
+
 
 @dataclass
 class VectorizeMetadata:
@@ -189,7 +192,7 @@ class VectorizeCaller:
         if meta is None:
             return arg_value
         # We should only use the loop shape and not the core shape, as the core shape changes with pass_quibs=True
-        return np.asarray(arg_value)[(0,) * meta.loop_ndim]
+        return np.asarray(arg_value)[meta.get_sample_component()]
 
     def get_sample_result(self, args_metadata: ArgsMetadata) -> Any:
         """

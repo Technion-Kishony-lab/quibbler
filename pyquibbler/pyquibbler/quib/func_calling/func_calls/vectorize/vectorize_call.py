@@ -4,7 +4,7 @@ from typing import Optional, Dict
 import numpy as np
 
 from pyquibbler.quib.quib import Quib
-from pyquibbler.path.path_component import Path, SpecialComponent
+from pyquibbler.path.path_component import Path, SpecialComponent, PathComponent
 from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals
 from pyquibbler.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
 from pyquibbler.quib.func_calling import CachedQuibFuncCall
@@ -13,6 +13,7 @@ from pyquibbler.quib.specialized_functions.proxy import create_proxy
 from pyquibbler.function_definitions.types import iter_arg_ids_and_values
 from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices
 from pyquibbler.graphics.utils import remove_created_graphics
+from pyquibbler.utilities.missing_value import missing
 
 from .vectorize_metadata import VectorizeCaller, VectorizeMetadata
 from .utils import alter_signature, copy_vectorize, get_indices_array
@@ -79,7 +80,18 @@ class VectorizeQuibFuncCall(CachedQuibFuncCall):
             call = VectorizeCaller(vectorize, args, kwargs)
             call = self._wrap_vectorize_caller_to_pass_quibs(call, args_metadata, results_core_ndims)
         else:
-            quibs_to_paths = {} if valid_path is None else self._backwards_translate_path(valid_path)
+            if valid_path is missing:
+                # get paths for sample result
+                quibs_to_paths = {}
+                for arg_id, arg_metadata in args_metadata.items():
+                    if isinstance(arg_id, int):
+                        arg_id += 1  # accounting for func at position 0
+                    arg = self.func_args_kwargs.get_arg_value_by_argument(arg_id)
+                    if isinstance(arg, Quib):
+                        quibs_to_paths[arg] = [PathComponent(arg_metadata.get_sample_component())]
+                    # TODO: take care of args containing quibs
+            else:
+                quibs_to_paths = self._backwards_translate_path(valid_path)
             new_args, new_kwargs = self._get_args_and_kwargs_valid_at_quibs_to_paths(quibs_to_paths)
             (vectorize, *args), kwargs = new_args, new_kwargs
             call = VectorizeCaller(vectorize, args, kwargs)
@@ -90,7 +102,7 @@ class VectorizeQuibFuncCall(CachedQuibFuncCall):
         Run the vectorized function on sample arguments to get s single sample result.
         Remove any graphics that were created during the call.
         """
-        call = self._get_vectorize_caller(args_metadata, results_core_ndims, None)
+        call = self._get_vectorize_caller(args_metadata, results_core_ndims, missing)
         with remove_created_graphics(), external_call_failed_exception_handling():
             return call.get_sample_result(args_metadata)
 
