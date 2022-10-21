@@ -128,10 +128,15 @@ class CachedQuibFuncCall(QuibFuncCall):
                 # as a backup, request everything if cannot translate:
                 sources_to_paths = {source: [] for source in sources_to_quibs}
 
-        return {
-            quib: sources_to_paths.get(source, None)
-            for source, quib in sources_to_quibs.items()
-        }
+        quibs_to_paths = {}
+        for source, quib in sources_to_quibs.items():
+            if source in sources_to_paths:
+                paths = sources_to_paths[source]
+                if quib in quibs_to_paths:
+                    quibs_to_paths[quib] += paths
+                else:
+                    quibs_to_paths[quib] = paths
+        return quibs_to_paths
 
     def _proxify_args(self):
         from pyquibbler.quib.specialized_functions.proxy import create_proxy
