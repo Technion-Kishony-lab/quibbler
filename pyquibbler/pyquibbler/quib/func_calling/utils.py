@@ -40,7 +40,7 @@ def get_shape_from_result(result: Any):
         return np.shape(result)
 
     try:
-        return np.shape(np.array(result, dtype=object))
+        return np.shape(np.asarray(result, dtype=object))
     except ValueError:
         if hasattr(result, '__len__'):
             return len(result),

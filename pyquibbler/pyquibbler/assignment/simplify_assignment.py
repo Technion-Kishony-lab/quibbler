@@ -1,11 +1,15 @@
 import numpy as np
 
 from typing import Any
+
+from pyquibbler.utilities.numpy_original_functions import np_sum, np_all, np_array
+
+from pyquibbler.path import Path, PathComponent, deep_get
+
 from .assignment import Assignment
 from .default_value import default
 from .utils import is_integer_scalar, is_array_of_size_one, is_numeric_scalar, convert_array_of_size_one_to_scalar, \
     convert_scalar_value, is_scalar_np
-from ..path import Path, PathComponent, deep_get
 
 
 class AssignmentSimplifier:
@@ -64,7 +68,7 @@ class AssignmentSimplifier:
             return
 
         if isinstance(self.value, np.ndarray):
-            self._assignment.value = np.array(self.value, dtype=self.second_to_last_data.dtype)
+            self._assignment.value = np_array(self.value, dtype=self.second_to_last_data.dtype)
         elif self.value is not default:
             try:
                 self._assignment.value = self.second_to_last_data.dtype.type(self.value)
@@ -81,14 +85,14 @@ class AssignmentSimplifier:
         new_last_component = list(self.last_component.component)
         for axis, sub_component in enumerate(self.last_component.component):
             if isinstance(sub_component, list):
-                sub_component = np.array(sub_component)
+                sub_component = np_array(sub_component)
             if not isinstance(sub_component, np.ndarray):
                 continue
             if sub_component.dtype.type is np.bool_ \
                     and np.shape(sub_component) == (np.shape(self.second_to_last_data)[axis], ):
-                if np.sum(sub_component) == 1:
+                if np_sum(sub_component) == 1:
                     new_last_component[axis] = np.where(sub_component)[0].tolist()
-                elif np.all(sub_component):
+                elif np_all(sub_component):
                     new_last_component[axis] = slice(None, None, None)
         self.last_component.component = tuple(new_last_component)
 

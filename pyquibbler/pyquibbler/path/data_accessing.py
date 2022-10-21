@@ -1,9 +1,12 @@
 import copy
+import numpy as np
+
 from dataclasses import dataclass
+
 from typing import Any, Dict, Tuple, Iterable
 from numpy.typing import NDArray
 
-import numpy as np
+from pyquibbler.utilities.numpy_original_functions import np_array
 
 from pyquibbler.exceptions import PyQuibblerException
 
@@ -55,7 +58,7 @@ def deep_get(obj: Any, path: Path):
         elif isinstance(cmp, tuple) and len(cmp) == 1 and isinstance(obj, (list, tuple)):
             obj = obj[cmp[0]]
         elif component.is_nd_reference() and isinstance(obj, (list, tuple)):
-            obj = np.array(obj, dtype=object)[cmp]
+            obj = np_array(obj, dtype=object)[cmp]
         else:
             obj = obj[cmp]
 
@@ -142,11 +145,11 @@ def deep_set(data: Any, path: Path,
             # To access an array-like object (list or tuple, potentially nested), with array-style indexing
             # we convert to nd.array and then back
             original_new_element = new_element
-            new_element = np.array(new_element, dtype=object)
+            new_element = np_array(new_element, dtype=object)
         elif isinstance(new_element, np.ndarray) and hasattr(new_element, 'base') \
                 and should_copy_objects_referenced:
             # new_element is a view. we need to make a copy.
-            new_element = np.array(new_element)
+            new_element = np_array(new_element)
 
         if cmp is SpecialComponent.OUT_OF_ARRAY:
             assert isinstance(new_element, np.ndarray)

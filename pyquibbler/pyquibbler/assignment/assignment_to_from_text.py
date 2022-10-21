@@ -4,16 +4,16 @@ from dataclasses import dataclass, field
 
 from typing import List, Optional, Iterable, Any
 
-import numpy as np
-
 from .default_value import default, Default
 from .assignment import Assignment
 
 from pyquibbler.path import Path, PathComponent
+from pyquibbler.utilities.numpy_original_functions import np_array
 from pyquibbler.utilities.iterators import recursively_run_func_on_object
 from .exceptions import CannotConvertTextToAssignmentsException, CannotConvertAssignmentsToTextException
 
-ASSIGNMENT_VALUE_TEXT_DICT = {'array': np.array, 'default': default}
+
+ASSIGNMENT_VALUE_TEXT_DICT = {'array': np_array, 'default': default}
 
 
 @dataclass

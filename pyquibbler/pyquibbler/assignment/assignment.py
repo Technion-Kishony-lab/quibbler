@@ -4,10 +4,13 @@ import numpy as np
 from dataclasses import dataclass, field
 from typing import Any, TYPE_CHECKING, List, Union, Optional, Callable, Tuple
 
-from .default_value import default
+from pyquibbler.utilities.numpy_original_functions import np_array
+
+from pyquibbler.quib.pretty_converters.pretty_convert import getitem_converter
 from pyquibbler.path import Path
+
+from .default_value import default
 from .rounding import floor_log10
-from ..quib.pretty_converters.pretty_convert import getitem_converter
 
 if TYPE_CHECKING:
     from pyquibbler.quib.quib import Quib
@@ -69,8 +72,8 @@ class AssignmentWithTolerance(Assignment):
 
     @np.errstate(divide='ignore', invalid='ignore')
     def get_relative_error(self):
-        diff = (np.array(self.value_up) - np.array(self.value_down)) / 2
-        relative_error = diff / np.array(self.value)
+        diff = (np_array(self.value_up) - np_array(self.value_down)) / 2
+        relative_error = diff / np_array(self.value)
         return np.abs(relative_error)
 
     @classmethod
@@ -114,8 +117,8 @@ def create_assignment(value: Any, path: Path,
     if tolerance is None:
         return Assignment(convert_func(value), path)
 
-    value_numeric = np.array(value)
-    tolerance_numeric = np.array(tolerance)
+    value_numeric = np_array(value)
+    tolerance_numeric = np_array(tolerance)
     value_up = type(value)(value_numeric + tolerance_numeric)
     value_down = type(value)(value_numeric - tolerance_numeric)
 
