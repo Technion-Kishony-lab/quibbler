@@ -3,17 +3,24 @@ from typing import Optional, Dict
 
 import numpy as np
 
+from pyquibbler import CacheMode
+from pyquibbler.function_definitions import PositionalSourceLocation, FuncArgsKwargs, get_definition_for_function
+from pyquibbler.path_translation import SourceFuncCall
+from pyquibbler.path_translation.array_translation_utils import convert_an_arg_to_array_of_source_index_codes
+from pyquibbler.path_translation.base_translators import BackwardsTranslationRunCondition
+from pyquibbler.path_translation.translate import backwards_translate
 from pyquibbler.quib.quib import Quib
-from pyquibbler.path.path_component import Path, SpecialComponent, PathComponent
+from pyquibbler.path.path_component import Path, SpecialComponent, PathComponent, Paths
 from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals
 from pyquibbler.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
 from pyquibbler.quib.func_calling import CachedQuibFuncCall
 from pyquibbler.quib.func_calling.utils import cache_method_until_full_invalidation, convert_args_and_kwargs
 from pyquibbler.quib.specialized_functions.proxy import create_proxy
-from pyquibbler.function_definitions.types import iter_arg_ids_and_values
+from pyquibbler.function_definitions.types import iter_arg_ids_and_values, PositionalArgument
 from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices
 from pyquibbler.graphics.utils import remove_created_graphics
 from pyquibbler.utilities.missing_value import missing
+from pyquibbler.utilities.numpy_original_functions import np_array
 
 from .vectorize_metadata import VectorizeCaller, VectorizeMetadata
 from .utils import alter_signature, copy_vectorize, get_indices_array
@@ -70,6 +77,39 @@ class VectorizeQuibFuncCall(CachedQuibFuncCall):
         new_vectorize = copy_vectorize(call.vectorize, func=wrapper, signature=signature)
         return VectorizeCaller(new_vectorize, args, kwargs, quibs_to_guard)
 
+    def get_paths_for_sample_call(self, args_metadata) -> Dict[Quib, Path]:
+        quibs_to_single_paths = {}
+        for arg_id, arg_metadata in args_metadata.items():
+
+            if isinstance(arg_id, int):
+                arg_id += 1  # accounting for func at position 0
+
+            arg = self.func_args_kwargs.get_arg_value_by_argument(arg_id)
+            arg_sample_path = [PathComponent(arg_metadata.get_sample_component())]
+
+            # we convert the `arg` path to paths of the sources within it using a np.array(arg) func_call:
+            source_locations_in_arg = [
+                PositionalSourceLocation(PositionalArgument(0), location.path)
+                for location in self.data_source_locations if location.argument.get_arg_id() == arg_id]
+            array_func_call = CachedQuibFuncCall(
+                data_source_locations=source_locations_in_arg,
+                parameter_source_locations=[],
+                func_args_kwargs=FuncArgsKwargs(np_array, (arg,), {}),
+                func_definition=get_definition_for_function(np_array),
+                cache_mode=CacheMode.OFF,
+            )
+            current_arg_quibs_to_single_paths = array_func_call.backwards_translate_path(arg_sample_path)
+
+            for quib, path in current_arg_quibs_to_single_paths.items():
+                if quib in quibs_to_single_paths:
+                    # TODO: in case the same quib source appears in different args, we need to take the union of the
+                    #  two rquested paths. For now, we are taking the entire quib:
+                    quibs_to_single_paths[quib] = []
+                else:
+                    quibs_to_single_paths[quib] = path
+
+        return quibs_to_single_paths
+
     def _get_vectorize_caller(self, args_metadata, results_core_ndims, valid_path) -> VectorizeCaller:
         """
         Get a VectorizeCaller object to actually call vectorize with.
@@ -81,17 +121,9 @@ class VectorizeQuibFuncCall(CachedQuibFuncCall):
             call = self._wrap_vectorize_caller_to_pass_quibs(call, args_metadata, results_core_ndims)
         else:
             if valid_path is missing:
-                # get paths for sample result
-                quibs_to_paths = {}
-                for arg_id, arg_metadata in args_metadata.items():
-                    if isinstance(arg_id, int):
-                        arg_id += 1  # accounting for func at position 0
-                    arg = self.func_args_kwargs.get_arg_value_by_argument(arg_id)
-                    if isinstance(arg, Quib):
-                        quibs_to_paths[arg] = [PathComponent(arg_metadata.get_sample_component())]
-                    # TODO: take care of args containing quibs
+                quibs_to_paths = self.get_paths_for_sample_call(args_metadata)
             else:
-                quibs_to_paths = self._backwards_translate_path(valid_path)
+                quibs_to_paths = self.backwards_translate_path(valid_path)
             new_args, new_kwargs = self._get_args_and_kwargs_valid_at_quibs_to_paths(quibs_to_paths)
             (vectorize, *args), kwargs = new_args, new_kwargs
             call = VectorizeCaller(vectorize, args, kwargs)

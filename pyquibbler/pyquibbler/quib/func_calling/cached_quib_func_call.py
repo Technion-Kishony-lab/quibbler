@@ -96,7 +96,7 @@ class CachedQuibFuncCall(QuibFuncCall):
 
         return res
 
-    def _backwards_translate_path(self, valid_path: Path) -> Dict[Quib, Path]:
+    def backwards_translate_path(self, valid_path: Path) -> Dict[Quib, Path]:
         """
         Backwards translate a path- first attempt without shape + type, and then if G-d's good graces fail us and we
         find we are without the ability to do this, try with shape + type
@@ -157,7 +157,7 @@ class CachedQuibFuncCall(QuibFuncCall):
         if self._pass_quibs:
             args, kwargs, quibs_allowed_to_access = self._proxify_args()
         else:
-            quibs_to_paths = {} if valid_path is None else self._backwards_translate_path(valid_path)
+            quibs_to_paths = {} if valid_path is None else self.backwards_translate_path(valid_path)
             args, kwargs = self._get_args_and_kwargs_valid_at_quibs_to_paths(quibs_to_paths)
             quibs_allowed_to_access = set()
 
