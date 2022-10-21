@@ -3,13 +3,15 @@ from __future__ import annotations
 from .types import Source, NoMetadataSource
 from .source_func_call import SourceFuncCall
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Tuple, Dict
+
 if TYPE_CHECKING:
     from pyquibbler.quib.func_calling import QuibFuncCall
     from pyquibbler.quib.quib import Quib
 
 
-def get_func_call_for_translation(func_call: QuibFuncCall, with_meta_data: Optional[bool] = None):
+def get_func_call_for_translation(func_call: QuibFuncCall, with_meta_data: Optional[bool] = None
+                                  ) -> Tuple[SourceFuncCall, Dict[Source, Quib]]:
     """
     Get a source func call along with the newly created data sources to the quibs they represent
 

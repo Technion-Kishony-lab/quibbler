@@ -2,8 +2,8 @@ from typing import Type, Dict, Optional
 
 from pyquibbler.utilities.multiple_instance_runner import MultipleInstanceRunner
 from pyquibbler.path import Path, Paths
-from pyquibbler.function_definitions.func_call import FuncCall
 
+from .source_func_call import SourceFuncCall
 from .base_translators import BackwardsTranslationRunCondition
 from .types import Source
 from ..function_definitions import SourceLocation
@@ -11,7 +11,7 @@ from ..utilities.general_utils import Shape
 
 
 def backwards_translate(run_condition: BackwardsTranslationRunCondition,
-                        func_call: FuncCall,
+                        func_call: SourceFuncCall,
                         path: Path,
                         shape: Optional[Shape] = None,
                         type_: Optional[Type] = None,
@@ -25,7 +25,7 @@ def backwards_translate(run_condition: BackwardsTranslationRunCondition,
                                   func_call=func_call, path=path, shape=shape, type_=type_, **kwargs).run()
 
 
-def forwards_translate(func_call: FuncCall, source: Source, source_location: SourceLocation,
+def forwards_translate(func_call: SourceFuncCall, source: Source, source_location: SourceLocation,
                        path: Path, shape: Optional[Shape] = None, type_: Optional[Type] = None,
                        **kwargs) -> Paths:
     """
