@@ -320,17 +320,3 @@ def test_assignments_with_quib_index():
 ])
 def test_transpose_invalidation(data, indices_to_invalidate, axes):
     check_invalidation(lambda q: np.transpose(q, axes=axes), data, indices_to_invalidate)
-
-
-@pytest.mark.regression
-def test_view_should_not_cache():
-    a = iquib(np.array([0, 0]))
-    b = np.ravel(a).setp(cache_mode='on')
-    b.get_value()
-
-    a[0] = 7
-    assert a.args[0][0] == 0, "sanity"
-
-    b.get_value()
-    assert a.args[0][0] == 0
-
