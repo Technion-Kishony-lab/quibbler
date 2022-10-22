@@ -69,16 +69,15 @@ class AxesLimOverride(AxesSetOverride):
         When mouse is pressed, changes to axis limits are reported to CanvasEventHandler for inverse assignment.
         Otherwise, the normal behavior of AxesSetOverrise is invoked.
         """
-        from pyquibbler.graphics import is_pressed
-        if is_pressed():
-            result = func(*args, **kwargs)
-
+        # from pyquibbler.graphics import is_pressed
+        # if is_pressed():
+        if kwargs.pop('called_from_drag_pan', False):
             ax = args[0]
+            lim = args[1]
             CanvasEventHandler.get_or_create_initialized_event_handler(ax.figure.canvas). \
-                handle_axes_limits_changed(ax, func, result)
-            return result
-
-        return AxesSetOverride._call_wrapped_func(func, args, kwargs)
+                handle_axes_drag_pan(ax, func, lim)
+        else:
+            return AxesSetOverride._call_wrapped_func(func, args, kwargs)
 
 
 graphics_override = functools.partial(override_with_cls, GraphicsOverride, is_graphics=True,
