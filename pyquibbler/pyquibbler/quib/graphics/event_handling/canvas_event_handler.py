@@ -11,8 +11,6 @@ from matplotlib.axes import Axes
 from pyquibbler.debug_utils.timer import timeit
 from pyquibbler.env import END_DRAG_IMMEDIATELY
 
-from pyquibbler.graphics import pressed, released
-
 from .. import artist_wrapper
 from ..redraw import end_dragging
 from ..event_handling import graphics_inverse_assigner
@@ -90,13 +88,11 @@ class CanvasEventHandler:
     def _handle_button_press(self, mouse_event: MouseEvent):
         if mouse_event.button is MouseButton.RIGHT:
             self._call_object_rightclick_callback_if_exists(mouse_event.inaxes, mouse_event)
-        pressed()
 
     def _handle_button_release(self, _mouse_event: MouseEvent):
         end_dragging()
         self.current_pick_event = None
         self.current_pick_quib = None
-        released()
 
     def _handle_pick_event(self, pick_event: PickEvent):
         self.current_pick_event = pick_event
