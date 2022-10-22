@@ -65,9 +65,10 @@ class AxesLimOverride(AxesSetOverride):
     @staticmethod
     def _call_wrapped_func(func, args, kwargs) -> Any:
         """
-        An override of a set_xlim, set_ylim to allow tracking limit changes to axes.
-        When mouse is pressed, changes to axis limits are reported to CanvasEventHandler for inverse assignment.
-        Otherwise, the normal behavior of AxesSetOverrise is invoked.
+        An override of a set_xlim, set_ylim to implement inverse assignment from axes drag_pan.
+        axes.drag_pan is overridden to indicate 'called_from_drag_pan', and this flag is caught here,
+        triggering report to CanvasEventHandler for inverse assignment.
+        Otherwise, the normal behavior of AxesSetOverride is invoked.
         """
         if kwargs.pop('called_from_drag_pan', False):
             ax = args[0]
