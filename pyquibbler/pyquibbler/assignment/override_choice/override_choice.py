@@ -155,7 +155,7 @@ class OverrideOptionsTree:
             if non_context_inversions:
                 return non_context_inversions[0]
             inversions = [new_inversion for inversion in inversions
-                          for new_inversion in inversion.get_inversions(True)]
+                          for new_inversion in inversion.get_inversions()]
 
     @classmethod
     def from_quib_change(cls, quib_change: AssignmentToQuib,
@@ -176,7 +176,7 @@ class OverrideOptionsTree:
             if inversion.quib.allow_overriding and (target_quibs is None or inversion.quib in target_quibs):
                 options.append(QuibChangeWithOverrideRemovals(inversion, override_removals[:]))
             override_removals.append(AssignmentToQuib.create_default(inversion.quib, inversion.assignment.path))
-            inversions = inversion.get_inversions(True)
+            inversions = inversion.get_inversions()
             if inversions:
                 last_inversion = inversion
 

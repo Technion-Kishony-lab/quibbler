@@ -4,7 +4,6 @@ import contextlib
 
 import numpy as np
 
-from pyquibbler.assignment.utils import is_numeric_scalar
 from pyquibbler.assignment import AssignmentToQuib, get_override_group_for_quib_changes, create_assignment
 from pyquibbler.quib.quib import Quib
 from typing import Optional, Callable, TYPE_CHECKING, Any
@@ -70,9 +69,9 @@ class QuibyWidgetTrait:
 
 class FloatSliderQuibyWidgetTrait(QuibyWidgetTrait):
     def get_tolerance(self, value):
-        if is_numeric_scalar(value):
-            return value * 1e-15
-        return type(value)(np.array(value) * 1e-15)
+        if isinstance(value, (list, tuple)):
+            return type(value)(np.array(value) * 1e-15)
+        return value * 1e-15
 
 
 def get_widget_to_quiby_widget_trait() -> dict:
