@@ -70,9 +70,9 @@ class QuibyWidgetTrait:
 
 class FloatSliderQuibyWidgetTrait(QuibyWidgetTrait):
     def get_tolerance(self, value):
-        if is_scalar(value):
-            return value * 1e-15
-        return type(value)(np.array(value) * 1e-15)
+        if isinstance(value, (list, tuple)):
+            return type(value)(np.array(value) * 1e-15)
+        return value * 1e-15
 
 
 def get_widget_to_quiby_widget_trait() -> dict:

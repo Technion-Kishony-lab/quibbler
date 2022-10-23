@@ -4,11 +4,12 @@ import numpy as np
 from dataclasses import dataclass, field
 from typing import Any, TYPE_CHECKING, List, Union, Optional, Callable
 
-from .default_value import default
+from pyquibbler.quib.pretty_converters.math_expressions.get_item_expression import GetItemExpression
 from pyquibbler.path.path_component import Path
+
+from .default_value import default
 from .rounding import floor_log10
 from .utils import is_scalar
-from ..quib.pretty_converters.pretty_convert import getitem_converter
 
 if TYPE_CHECKING:
     from pyquibbler.quib.quib import Quib
@@ -44,7 +45,7 @@ class Assignment:
         return cls(default, path)
 
     def get_pretty_path(self):
-        return ''.join([str(getitem_converter(None, ('', cmp.component))) for cmp in self.path])
+        return ''.join([str(GetItemExpression('', cmp.component)) for cmp in self.path])
 
     def get_pretty_value(self):
         return repr(self.value)
@@ -153,7 +154,7 @@ class AssignmentToQuib:
     quib: Quib
     assignment: Union[Assignment, AssignmentWithTolerance]
 
-    def get_inversions(self, return_empty_list_instead_of_raising=False) -> List[AssignmentToQuib]:
+    def get_inversions(self) -> List[AssignmentToQuib]:
         return self.quib.handler.get_inversions_for_assignment(self.assignment)
 
     def apply(self) -> None:
