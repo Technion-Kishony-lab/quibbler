@@ -4,7 +4,6 @@ import contextlib
 
 import numpy as np
 
-from pyquibbler.assignment.utils import is_scalar
 from pyquibbler.assignment import AssignmentToQuib, get_override_group_for_quib_changes, create_assignment
 from pyquibbler.quib.quib import Quib
 from typing import Optional, Callable, TYPE_CHECKING, Any

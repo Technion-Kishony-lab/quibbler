@@ -60,7 +60,6 @@ def _get_wrapper_for_drag_pan(func: Callable):
     return _wrapper
 
 
-
 def wrap_method(cls: Type, method_name: str, get_wrapper: Callable):
     func = getattr(cls, method_name)
     setattr(cls, method_name, get_wrapper(func))
