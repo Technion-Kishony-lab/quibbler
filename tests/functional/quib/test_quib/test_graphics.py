@@ -1,5 +1,6 @@
 from unittest import mock
 
+import numpy as np
 import pytest
 from matplotlib.axes import Axes
 
@@ -180,20 +181,25 @@ def test_replacing_graphics_function_quib_is_removed_after_call_with_no_quibs(cr
 
 
 @pytest.mark.regression
-def test_inverse_assignment_from_axis_lim(create_quib_with_return_value, axes):
-    from pyquibbler.graphics import pressed, released
+def test_inverse_assignment_from_axis_lim_scalar(create_quib_with_return_value, axes):
     quib = create_quib_with_return_value(2., allow_overriding=True)
     axes.set_xlim([0., quib])
 
-    pressed()  # simulate mouse key down
-    axes.set_xlim([1., 3.])
-    released()
+    axes.set_xlim(np.array([1., 3.]), called_from_drag_pan=True)
     assert quib.get_value() == 3.
 
 
 @pytest.mark.regression
-def test_inverse_assignment_from_axis_lim_is_not_invoked_when_mouse_key_is_not_down(create_quib_with_return_value, axes):
-    from pyquibbler.graphics import pressed, released
+def test_inverse_assignment_from_axis_lim_vector(create_quib_with_return_value, axes):
+    quib = create_quib_with_return_value(np.array([0., 2.]), allow_overriding=True)
+    axes.set_xlim(quib)
+
+    axes.set_xlim(np.array([1., 3.]), called_from_drag_pan=True)
+    assert np.array_equal(quib.get_value(), [1., 3.])
+
+
+@pytest.mark.regression
+def test_inverse_assignment_is_not_invoked_when_axis_lim_is_set_manually(create_quib_with_return_value, axes):
     quib = create_quib_with_return_value(2., allow_overriding=True)
     axes.set_xlim([0., quib])
 

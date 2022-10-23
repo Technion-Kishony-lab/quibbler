@@ -1,22 +1,21 @@
 from __future__ import annotations
+
 from contextlib import contextmanager
 from threading import Lock
 from typing import Optional, Tuple, Callable, Union
 
 from matplotlib.artist import Artist
 from matplotlib.backend_bases import MouseEvent, PickEvent, MouseButton
-
-from pyquibbler.env import END_DRAG_IMMEDIATELY
-from pyquibbler.graphics import pressed, released
-from pyquibbler.quib.graphics.redraw import end_dragging
-from pyquibbler.debug_utils.timer import timeit
-from pyquibbler.quib.graphics.event_handling import graphics_inverse_assigner
-from pyquibbler.quib.graphics import artist_wrapper
-
 from matplotlib.axes import Axes
 
-from typing import TYPE_CHECKING
+from pyquibbler.debug_utils.timer import timeit
+from pyquibbler.env import END_DRAG_IMMEDIATELY
 
+from .. import artist_wrapper
+from ..redraw import end_dragging
+from ..event_handling import graphics_inverse_assigner
+
+from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pyquibbler.quib.quib import Quib
 
@@ -89,13 +88,11 @@ class CanvasEventHandler:
     def _handle_button_press(self, mouse_event: MouseEvent):
         if mouse_event.button is MouseButton.RIGHT:
             self._call_object_rightclick_callback_if_exists(mouse_event.inaxes, mouse_event)
-        pressed()
 
     def _handle_button_release(self, _mouse_event: MouseEvent):
         end_dragging()
         self.current_pick_event = None
         self.current_pick_quib = None
-        released()
 
     def _handle_pick_event(self, pick_event: PickEvent):
         self.current_pick_event = pick_event
@@ -183,7 +180,7 @@ class CanvasEventHandler:
 
         handler_ids.append(self.canvas.mpl_connect('close_event', disconnect))
 
-    def handle_axes_limits_changed(self, ax: Axes, drawing_func: Callable, lim: Tuple[float, float]):
+    def handle_axes_drag_pan(self, ax: Axes, drawing_func: Callable, lim: Tuple[float, float]):
         """
         This method is called by the overridden set_xlim, set_ylim
         """
@@ -199,3 +196,5 @@ class CanvasEventHandler:
                         lim=lim,
                         is_override_removal=False,
                     )
+        else:
+            drawing_func(ax, lim)

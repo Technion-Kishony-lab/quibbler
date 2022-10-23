@@ -47,6 +47,19 @@ def _get_wrapper_for_funcs_that_can_work_on_quibs_returning_non_quibs(func: Call
     return _wrapper
 
 
+def _get_wrapper_for_drag_pan(func: Callable):
+
+    @functools.wraps(func)
+    def _wrapper(self, button, key, x, y):
+        # copied from original drag_pan, except adding `called_from_drag_pan=True`:
+        points = self._get_pan_points(button, key, x, y)
+        if points is not None:
+            self.set_xlim(points[:, 0], called_from_drag_pan=True)
+            self.set_ylim(points[:, 1], called_from_drag_pan=True)
+
+    return _wrapper
+
+
 def wrap_method(cls: Type, method_name: str, get_wrapper: Callable):
     func = getattr(cls, method_name)
     setattr(cls, method_name, get_wrapper(func))
@@ -58,6 +71,7 @@ def override_axes_methods():
 
     from matplotlib.axes._base import _AxesBase
     wrap_method(_AxesBase, 'cla', _get_wrapper_for_clear_axes)
+    wrap_method(_AxesBase, 'drag_pan', _get_wrapper_for_drag_pan)
 
     for func in (
             'add_patch',

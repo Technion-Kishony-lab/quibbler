@@ -4,10 +4,12 @@ import numpy as np
 from dataclasses import dataclass, field
 from typing import Any, TYPE_CHECKING, List, Union, Optional, Callable
 
-from .default_value import default
+from pyquibbler.quib.pretty_converters.math_expressions.get_item_expression import GetItemExpression
 from pyquibbler.path.path_component import Path
+
+from .default_value import default
 from .rounding import floor_log10
-from ..quib.pretty_converters.pretty_convert import getitem_converter
+from .utils import is_scalar
 
 if TYPE_CHECKING:
     from pyquibbler.quib.quib import Quib
@@ -43,7 +45,7 @@ class Assignment:
         return cls(default, path)
 
     def get_pretty_path(self):
-        return ''.join([str(getitem_converter(None, ('', cmp.component))) for cmp in self.path])
+        return ''.join([str(GetItemExpression('', cmp.component)) for cmp in self.path])
 
     def get_pretty_value(self):
         return repr(self.value)
@@ -114,20 +116,33 @@ def create_assignment(value: Any, path: Path,
                       tolerance: Optional[Any] = None,
                       convert_func: Optional[Callable] = None) -> Union[Assignment, AssignmentWithTolerance]:
 
-    convert_func = convert_func if convert_func is not None else lambda x: x
-
     if tolerance is None:
-        return Assignment(convert_func(value), path)
+        if convert_func:
+            value = convert_func(value)
+        return Assignment(value, path)
 
-    value_numeric = np.array(value)
-    tolerance_numeric = np.array(tolerance)
-    value_up = type(value)(value_numeric + tolerance_numeric)
-    value_down = type(value)(value_numeric - tolerance_numeric)
+    original_type = type(value)
+    value_is_list_or_tuple = isinstance(value, (list, tuple))
+    if value_is_list_or_tuple:
+        value = np.array(value)
 
-    return AssignmentWithTolerance(value=convert_func(value),
+    value_up = value + tolerance
+    value_down = value - tolerance
+
+    if is_scalar(value) or value_is_list_or_tuple:
+        value = original_type(value)
+        value_up = original_type(value_up)
+        value_down = original_type(value_down)
+
+    if convert_func:
+        value = convert_func(value)
+        value_up = convert_func(value_up)
+        value_down = convert_func(value_down)
+
+    return AssignmentWithTolerance(value=value,
                                    path=path,
-                                   value_up=convert_func(value_up),
-                                   value_down=convert_func(value_down))
+                                   value_up=value_up,
+                                   value_down=value_down)
 
 
 @dataclass(frozen=True)
@@ -139,7 +154,7 @@ class AssignmentToQuib:
     quib: Quib
     assignment: Union[Assignment, AssignmentWithTolerance]
 
-    def get_inversions(self, return_empty_list_instead_of_raising=False) -> List[AssignmentToQuib]:
+    def get_inversions(self) -> List[AssignmentToQuib]:
         return self.quib.handler.get_inversions_for_assignment(self.assignment)
 
     def apply(self) -> None:
