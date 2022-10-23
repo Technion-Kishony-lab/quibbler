@@ -50,7 +50,8 @@ def quiby(func: Callable = None,
           pass_quibs: bool = False,
           is_random: bool = False,
           is_graphics: Optional[bool] = False,
-          is_file_loading: bool = False
+          is_file_loading: bool = False,
+          **kwargs,
           ) -> Callable[..., Quib]:
     """
     Convert a regular function into a quiby function.
@@ -141,6 +142,7 @@ def quiby(func: Callable = None,
                                  is_random=is_random,
                                  is_graphics=is_graphics,
                                  is_file_loading=is_file_loading,
+                                 **kwargs,
                                  )
     else:
         from pyquibbler.function_definitions import get_definition_for_function
@@ -154,6 +156,7 @@ def quiby(func: Callable = None,
                                              is_random=is_random,
                                              is_graphics=is_graphics,
                                              is_file_loading=is_file_loading,
+                                             **kwargs,
                                              )
 
         @functools.wraps(func)

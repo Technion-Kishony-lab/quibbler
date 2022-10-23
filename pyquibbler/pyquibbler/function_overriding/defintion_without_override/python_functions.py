@@ -3,14 +3,12 @@
 from __future__ import annotations
 from typing import List, TYPE_CHECKING
 
-from pyquibbler.inversion import TranspositionalInverter
-from pyquibbler.translation.translators import BackwardsTranspositionalTranslator, ForwardsTranspositionalTranslator
-from pyquibbler.translation.translators.shape_only.shape_only_translators import \
-    BackwardsShapeOnlyPathTranslator, ForwardsShapeOnlyPathTranslator
-from pyquibbler.inversion.inverters.casting_inverter import \
+from pyquibbler.inversion.inverters.transpositional import TranspositionalOneToOneInverter
+from pyquibbler.path_translation.translators import TranspositionalBackwardsPathTranslator, TranspositionalForwardsPathTranslator
+from pyquibbler.path_translation.translators.shape_only import \
+    ShapeOnlyBackwardsPathTranslator, ShapeOnlyForwardsPathTranslator
+from pyquibbler.inversion.inverters.casting import \
     StrCastingInverter, NumericCastingInverter, BoolCastingInverter
-from pyquibbler.user_utils.obj2quib import \
-    identity_function_list2quib, identity_function_dict2quib, identity_function_tuple2quib
 
 if TYPE_CHECKING:
     from pyquibbler.function_definitions.func_definition import FuncDefinition
@@ -22,12 +20,14 @@ def create_definitions_for_python_functions() -> List[FuncDefinition]:
         create_func_definition(
             func=len,
             raw_data_source_arguments=[0],
-            backwards_path_translators=[BackwardsShapeOnlyPathTranslator],
-            forwards_path_translators=[ForwardsShapeOnlyPathTranslator]),
+            result_type_or_type_translators=int,
+            backwards_path_translators=[ShapeOnlyBackwardsPathTranslator],
+            forwards_path_translators=[ShapeOnlyForwardsPathTranslator]),
 
         *(create_func_definition(
             func=func,
             raw_data_source_arguments=[0],
+            result_type_or_type_translators=func,
             inverters=[inverter])
             for func, inverter in [
 
@@ -40,11 +40,12 @@ def create_definitions_for_python_functions() -> List[FuncDefinition]:
         *(create_func_definition(
             func=func,
             raw_data_source_arguments=[0],
-            inverters=[TranspositionalInverter],
-            backwards_path_translators=[BackwardsTranspositionalTranslator],
-            forwards_path_translators=[ForwardsTranspositionalTranslator],
+            inverters=[TranspositionalOneToOneInverter],
+            backwards_path_translators=[TranspositionalBackwardsPathTranslator],
+            forwards_path_translators=[TranspositionalForwardsPathTranslator],
+            result_type_or_type_translators=func,
          )
-             for func in [list, tuple, identity_function_list2quib, identity_function_tuple2quib]),
+             for func in [list, tuple]),
 
-        # TODO: need definition for dict (to have fully functional obj2quib inversion and translation)
+        # TODO: need definition for dict
     ]

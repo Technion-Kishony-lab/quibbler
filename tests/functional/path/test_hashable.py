@@ -12,7 +12,7 @@ from pyquibbler.path import PathComponent, get_hashable_path
     [([slice(None, None,  None)],)],
 ])
 def test_hash_path(components_in_path):
-    path = [PathComponent(component=c, indexed_cls=object) for c in components_in_path]
+    path = [PathComponent(c) for c in components_in_path]
 
     # Make sure we don't raise an exception
     hash(get_hashable_path(path))

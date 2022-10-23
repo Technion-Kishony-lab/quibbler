@@ -8,18 +8,17 @@ from tests.functional.quib.test_quib.get_value.utils import check_get_value_vali
 
 def test_can_getitem_on_object_without_diverged_cache():
     """
-    If the function doesn't have a diverged cache it should request full validity from its parents,
-    so it won't try to update the cache in a specific path component
+    If the quib doesn't have a diverged cache, it should only re-calculate the whole object.
     """
     obj = type('TypeACacheIsNotImplementedFor', (), dict(__getitem__=lambda self, item: item))()
     quib = iquib([obj])
-    quib[0][0].get_value()
+    quib[0][7].get_value()
 
 
 @pytest.mark.parametrize('data', [np.arange(24).reshape((2, 3, 4))])
 @pytest.mark.parametrize('indices_to_get_value_at', [-1, 0, (1, 1), (2, 1, 3), [True, False, False], (0, ...)])
 def test_transpositional_get_value(data, indices_to_get_value_at):
-    path_to_get_value_at = [PathComponent(np.ndarray, indices_to_get_value_at)]
+    path_to_get_value_at = [PathComponent(indices_to_get_value_at)]
     check_get_value_valid_at_path(np.rot90, data, path_to_get_value_at)
 
 
@@ -29,7 +28,7 @@ def test_transpositional_get_value(data, indices_to_get_value_at):
     (0,), (slice(0, 2)), 'name', slice(None), slice(None, 2)
 ])
 def test_transpositional_get_value_with_fields(data, indices_to_get_value_at):
-    path_to_get_value_at = [PathComponent(np.ndarray, indices_to_get_value_at)]
+    path_to_get_value_at = [PathComponent(indices_to_get_value_at)]
     check_get_value_valid_at_path(lambda x: x[0], data, path_to_get_value_at)
 
 
@@ -37,13 +36,20 @@ def test_transpositional_get_value_with_fields(data, indices_to_get_value_at):
 @pytest.mark.parametrize('direction', [-1, 1])
 @pytest.mark.parametrize('concat_with_quib', [True, False])
 @pytest.mark.parametrize('indices_to_get_value_at', [0, 1, 2, -1])
-def test_concatenate_get_value_valid_at_path(direction, concat_with_quib, indices_to_get_value_at):
-    # It's important for the regression that one of the elements here is zero
-    to_concat = np.array([0, 1])
+@pytest.mark.parametrize('to_concat', [[0, 1],  # It's important for the regression that one of the elements here is 0
+                                       [0., 1.]])  # It's important for the regression that array is not int
+def test_concatenate_get_value_valid_at_path(direction, concat_with_quib, indices_to_get_value_at, to_concat):
+
     if concat_with_quib:
         to_concat = iquib(to_concat)
-    path = [PathComponent(np.ndarray, indices_to_get_value_at)]
+    path = [PathComponent(indices_to_get_value_at)]
     check_get_value_valid_at_path(lambda q: np.concatenate((q, to_concat)[::direction]), np.array([0, 1]), path)
+
+
+@pytest.mark.parametrize('indices_to_get_value_at', [0, 1, 2, -1])
+def test_concatenate_of_quib_to_itself_get_value_valid_at_path(indices_to_get_value_at):
+    path = [PathComponent(indices_to_get_value_at)]
+    check_get_value_valid_at_path(lambda q: np.concatenate((q, q)), np.array([0, 1]), path)
 
 
 def filter_out_none_calls(mock_calls):

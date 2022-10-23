@@ -27,6 +27,22 @@ def getitem_quib(rot90_quib):
     return getitem_quib_
 
 
+def test_getitem_basic_invalidation():
+    a = iquib([0, 1])
+    a0 = a[0]
+    a1 = a[1]
+
+    a0.get_value()
+    a1.get_value()
+
+    assert a0.cache_status is CacheStatus.ALL_VALID
+    assert a1.cache_status is CacheStatus.ALL_VALID
+
+    a[1] = 7
+    assert a0.cache_status is CacheStatus.ALL_VALID
+    assert a1.cache_status is CacheStatus.ALL_INVALID
+
+
 def test_invalidate_and_redraw_invalidates_that_which_should_be_invalidated(rot90_quib, getitem_quib):
     rot90_quib.handler.invalidate_and_aggregate_redraw_at_path(PathBuilder(rot90_quib)[0, 0].path)
 
@@ -216,7 +232,7 @@ def test_invalidate_and_redraw_invalidates_all_when_minor_parameter_changes():
 @pytest.mark.regression
 @pytest.mark.parametrize('direction', [-1, 1])
 @pytest.mark.parametrize('concat_with_quib', [True, False])
-@pytest.mark.parametrize('indices_to_invalidate', [0, 1])
+@pytest.mark.parametrize('indices_to_invalidate', [[0], [1]])
 def test_concatenate_invalidation(direction, concat_with_quib, indices_to_invalidate):
     to_concat = [2, 3]
     if concat_with_quib:
@@ -224,12 +240,31 @@ def test_concatenate_invalidation(direction, concat_with_quib, indices_to_invali
     check_invalidation(lambda q: np.concatenate((q, to_concat)[::direction]), [0, 1], indices_to_invalidate)
 
 
+def test_concatenate_quib_to_itself_invalidation():
+    a = iquib([10, 20])
+    b = np.concatenate((a, [0], a))
+    b.get_value()
+    b0 = b[0];  b0.get_value()
+    b1 = b[1];  b1.get_value()
+    b2 = b[2];  b2.get_value()
+    b3 = b[3];  b3.get_value()
+    b4 = b[4];  b4.get_value()
+
+    a.assign(999, 1)
+
+    assert b0.cache_status is CacheStatus.ALL_VALID
+    assert b1.cache_status is CacheStatus.ALL_INVALID
+    assert b2.cache_status is CacheStatus.ALL_VALID
+    assert b3.cache_status is CacheStatus.ALL_VALID
+    assert b4.cache_status is CacheStatus.ALL_INVALID
+
+
 @pytest.mark.regression
 def test_function_quib_forward_invalidation_path_with_changing_shapes(create_quib_with_return_value, create_mock_quib):
     grandparent = create_quib(func=mock.Mock())
     parent = create_quib(func=mock.Mock())
     grandparent.handler.add_child(parent)
-    parent.handler.quib_function_call._result_metadata = True
+    parent.handler.quib_function_call.result_shape = tuple()
     mock_quib = create_mock_quib(shape=(3, 1), get_value_result=[[1, 2, 3]])
     parent.handler.add_child(mock_quib)
 
@@ -275,26 +310,13 @@ def test_assignments_with_quib_index():
 
 @pytest.mark.regression
 @pytest.mark.parametrize(['data', 'indices_to_invalidate', 'axes'], [
-    (np.arange(24).reshape((2, 3, 4)), 0, None),
-    (np.arange(24).reshape((2, 3, 4)), (1, 0, 3), None),
-    (np.arange(24).reshape((2, 3, 4)), 0, (2, 0, 1)),
-    (np.arange(24).reshape((2, 3, 4)), (1, 0, 3), (2, 0, 1)),
-    (np.arange(5), 2, None),
-    (np.arange(5), 2, 0),
-    (np.array([]), ..., None),
+    (np.arange(24).reshape((2, 3, 4)), [0], None),
+    (np.arange(24).reshape((2, 3, 4)), [(1, 0, 3)], None),
+    (np.arange(24).reshape((2, 3, 4)), [0], (2, 0, 1)),
+    (np.arange(24).reshape((2, 3, 4)), [(1, 0, 3)], (2, 0, 1)),
+    (np.arange(5), [2], None),
+    (np.arange(5), [2], 0),
+    (np.array([]), [...], None),
 ])
 def test_transpose_invalidation(data, indices_to_invalidate, axes):
     check_invalidation(lambda q: np.transpose(q, axes=axes), data, indices_to_invalidate)
-
-
-@pytest.mark.regression
-def test_view_should_not_cache():
-    a = iquib(np.array([0, 0]))
-    b = np.ravel(a).setp(cache_mode='on')
-    b.get_value()
-
-    a[0] = 7
-    assert a.args[0][0] == 0, "sanity"
-
-    b.get_value()
-    assert a.args[0][0] == 0

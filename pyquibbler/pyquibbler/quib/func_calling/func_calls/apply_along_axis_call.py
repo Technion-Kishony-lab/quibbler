@@ -1,14 +1,13 @@
-from typing import Optional, Any, Callable, Tuple, Mapping
+from typing import Optional, Any, Callable, Tuple
 
 import numpy as np
 from numpy import ndindex, s_
 
-from pyquibbler.path import PathComponent
-from pyquibbler.path import Path
+from pyquibbler.path import Path, PathComponent, SpecialComponent
 from pyquibbler.quib.external_call_failed_exception_handling import \
     external_call_failed_exception_handling
 from pyquibbler.quib.specialized_functions.proxy import create_proxy
-from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices
+from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices, Shape, Args, Kwargs
 from pyquibbler.function_definitions.func_call import FuncArgsKwargs
 from pyquibbler.graphics.utils import remove_created_graphics
 from pyquibbler.quib.func_calling import CachedQuibFuncCall
@@ -40,7 +39,7 @@ class ApplyAlongAxisQuibFuncCall(CachedQuibFuncCall):
         if self._pass_quibs:
             input_array = create_proxy(self.arr)
         else:
-            input_array = self.arr.get_value_valid_at_path([PathComponent(component=item, indexed_cls=np.ndarray)])
+            input_array = self.arr.get_value_valid_at_path([PathComponent(item)])
 
         oned_slice = input_array[item]
         new_args, new_kwargs = self._get_args_and_kwargs_valid_at_quibs_to_paths(quibs_to_valid_paths={})
@@ -108,8 +107,8 @@ class ApplyAlongAxisQuibFuncCall(CachedQuibFuncCall):
                                requested_indices_bool_mask: np.ndarray,
                                indices_before_axis: Tuple,
                                indices_after_axis: Tuple,
-                               func1d_args: Tuple[Any, ...],
-                               func1d_kwargs: Mapping[str, Any]):
+                               func1d_args: Args,
+                               func1d_kwargs: Kwargs):
         """
         Get a result at the indices given as arguments- this does not necessarily mean that func1d will be run; if the
         bool mask is not True within the given indices, then the result of this iteration was not requested (at
@@ -137,11 +136,11 @@ class ApplyAlongAxisQuibFuncCall(CachedQuibFuncCall):
         representing indices *after* the loop dimension. We then select everything in between the two index tuples,
         which is a 1d slice.
         """
-        indices = True if len(valid_path) == 0 else valid_path[0].component
+        indices = SpecialComponent.ALL if len(valid_path) == 0 else valid_path[0].component
         ni, nk = self.arr.get_shape()[:self.core_axis], self.arr.get_shape()[self.core_axis + 1:]
         out = self.run([None])
         func_args_kwargs = FuncArgsKwargs(self.func, self.args, self.kwargs)
-        args_by_name = func_args_kwargs.get_arg_values_by_name()
+        args_by_name = func_args_kwargs.get_arg_values_by_keyword()
         bool_mask = create_bool_mask_with_true_at_indices(self.get_shape(), indices)
         for ii in ndindex(ni):
             for kk in ndindex(nk):
@@ -154,7 +153,7 @@ class ApplyAlongAxisQuibFuncCall(CachedQuibFuncCall):
         return out
 
     @cache_method_until_full_invalidation
-    def _get_loop_shape(self) -> Tuple[int, ...]:
+    def _get_loop_shape(self) -> Shape:
         return tuple([s for i, s in enumerate(self.arr.get_shape()) if i != self.core_axis])
 
     def _run_on_path(self, valid_path: Optional[Path]):

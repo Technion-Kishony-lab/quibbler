@@ -148,7 +148,7 @@ def test_replacing_graphics_function_quib_doesnt_remove_quib_after_invalidation_
         axes, create_quib_with_return_value, replacing_func
 ):
     first_quib = create_quib_with_return_value(5)
-    path = [PathComponent(component=..., indexed_cls=first_quib.get_type())]
+    path = [PathComponent(...)]
     # First time to create quib, attach to parent, attach to axes
     _ = create_quib(
         func=replacing_func,

@@ -1,7 +1,7 @@
 import numpy as np
 
 from typing import Any
-from .utils import is_scalar
+from .utils import is_numeric_scalar
 from pyquibbler.utilities.numpy_original_functions import \
     np_log10, np_abs, np_vectorize, np_maximum, np_minimum, np_round
 
@@ -46,7 +46,7 @@ def round_to_num_digits(value, num_digits):
     Round a scalar or an array to the specified number of digits.
     """
     d = num_digits - floor_log10(value) - 1
-    if is_scalar(value):
+    if is_numeric_scalar(value):
         return round_if_precision_is_not_inf(value, d)
     else:
         rounded_value_as_array = np_vectorize(round_if_precision_is_not_inf)(value, d)

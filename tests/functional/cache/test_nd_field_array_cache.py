@@ -3,7 +3,7 @@ import pytest
 from numpy.lib.recfunctions import structured_to_unstructured
 
 from pyquibbler.path import PathComponent
-from pyquibbler.path.data_accessing import deep_assign_data_in_path
+from pyquibbler.path.data_accessing import deep_set
 from pyquibbler.cache.cache import CacheStatus
 from pyquibbler.cache.shallow.nd_cache import NdFieldArrayShallowCache
 from tests.functional.cache.cache_test import IndexableCacheTest
@@ -49,7 +49,7 @@ class TestNdFieldArrayCache(IndexableCacheTest):
         if len(path) == 0:
             obj[:] = value
         else:
-            obj = deep_assign_data_in_path(obj, path, value)
+            obj = deep_set(obj, path, value)
         return obj
 
     @pytest.mark.parametrize("component", [
@@ -57,7 +57,7 @@ class TestNdFieldArrayCache(IndexableCacheTest):
         "age"
     ])
     def test_cache_get_cache_status_on_partial(self, cache, component):
-        cache.set_valid_value_at_path([PathComponent(component=component, indexed_cls=np.ndarray)], 5)
+        cache.set_valid_value_at_path([PathComponent(component)], 5)
 
         assert cache.get_cache_status() == CacheStatus.PARTIAL
 
@@ -75,4 +75,4 @@ class TestNdFieldArrayCache(IndexableCacheTest):
                                                                                                  uncached_path_components)
 
     def set_completely_invalid(self, result, cache):
-        cache.set_invalid_at_path([PathComponent(indexed_cls=np.ndarray, component=True)])
+        cache.set_invalid_at_path([PathComponent(True)])

@@ -2,18 +2,18 @@ from __future__ import annotations
 import numpy as np
 from functools import partial
 from dataclasses import dataclass, field
-from typing import Any, Dict, Optional, List, Tuple, Union, Callable, Set, TYPE_CHECKING
+from typing import Any, Dict, Optional, List, Tuple, Callable, Set
 
 from pyquibbler.utilities.general_utils import Args, Kwargs, Shape
 from pyquibbler.quib.func_calling.utils import convert_args_and_kwargs
-from pyquibbler.function_definitions.types import iter_arg_ids_and_values
+from pyquibbler.function_definitions.types import iter_arg_ids_and_values, ArgId
 
 from .utils import get_core_axes
 
+from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pyquibbler.quib.quib import Quib
 
-ArgId = Union[int, str]
 ArgsMetadata: Dict[ArgId, VectorizeArgMetadata]
 
 
@@ -44,6 +44,9 @@ class VectorizeArgMetadata:
     @property
     def loop_ndim(self) -> int:
         return len(self.loop_shape)
+
+    def get_sample_component(self):
+        return (0,) * self.loop_ndim
 
 
 @dataclass
@@ -174,14 +177,14 @@ class VectorizeMetadata:
 
 
 @dataclass
-class VectorizeCall:
+class VectorizeCaller:
     vectorize: np.vectorize
     args: Args
     kwargs: Kwargs
     quibs_to_guard: Set[Quib] = field(default_factory=set)
 
     @staticmethod
-    def get_sample_arg_core(args_metadata: ArgsMetadata, arg_id: Union[str, int], arg_value: Any) -> Any:
+    def get_sample_arg_core(args_metadata: ArgsMetadata, arg_id: ArgId, arg_value: Any) -> Any:
         """
         Get a sample core value from an array to call a non-vectorized function with.
         """
@@ -189,7 +192,7 @@ class VectorizeCall:
         if meta is None:
             return arg_value
         # We should only use the loop shape and not the core shape, as the core shape changes with pass_quibs=True
-        return np.asarray(arg_value)[(0,) * meta.loop_ndim]
+        return np.asarray(arg_value)[meta.get_sample_component()]
 
     def get_sample_result(self, args_metadata: ArgsMetadata) -> Any:
         """
@@ -199,7 +202,7 @@ class VectorizeCall:
         return self.vectorize.pyfunc(*args, **kwargs)
 
     def __call__(self):
-        # If we pass quibs to the wrapper, we will create a new graphics quib, so we use the original vectorize
+        # If we pass quibs to the wrapper, we will create a new quib, so we use the original vectorize
         return np.vectorize.__quibbler_wrapped__.__call__(self.vectorize, *self.args, **self.kwargs)
 
     def _get_args_and_results_core_ndims(self, results_dtypes):

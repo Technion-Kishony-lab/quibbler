@@ -13,6 +13,7 @@ END_DRAG_IMMEDIATELY = Flag(False)  # Useful when debugging graphics inverse ass
 
 SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS = Flag(True)
 
+SAFE_MODE = Flag(True)  # Catch and properly ignore path translation and inversion exceptions.
 
 """ Lazy """
 
@@ -20,6 +21,10 @@ LAZY = Flag(True)
 
 GRAPHICS_LAZY = Flag(False)
 
+
+""" Quib creation """
+
+ALLOW_ARRAY_WITH_DTYPE_OBJECT = Flag(False)
 
 """ Graphics """
 
@@ -57,3 +62,7 @@ GET_VARIABLE_NAMES = Flag(True)
 LEN_BOOL_ETC_RAISE_EXCEPTION = Flag(True)
 
 ITER_RAISE_EXCEPTION = Flag(False)
+
+""" Others """
+
+INPUT_AWARE_INVERSION = Flag(True)

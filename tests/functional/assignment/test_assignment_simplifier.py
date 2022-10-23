@@ -4,7 +4,7 @@ from pytest import fixture
 from copy import deepcopy
 
 from pyquibbler.assignment import Assignment, AssignmentSimplifier
-from pyquibbler.path import deep_assign_data_in_path
+from pyquibbler.path import deep_set
 from pyquibbler.path.path_component import Path, PathComponent
 
 
@@ -37,11 +37,11 @@ def is_path_simple(path: Path):
     "bool indexing"
 ])
 def test(assigned_value, assigned_path, data, should_simplify):
-    assignment = Assignment(assigned_value, [PathComponent(np.ndarray, assigned_path)])
+    assignment = Assignment(assigned_value, [PathComponent(assigned_path)])
     simplied_assignment = AssignmentSimplifier(deepcopy(assignment), data).simplify()
 
-    data_original_assignment = deep_assign_data_in_path(data, assignment.path, assignment.value)
-    data_simplified_assignment = deep_assign_data_in_path(data, simplied_assignment.path, simplied_assignment.value)
+    data_original_assignment = deep_set(data, assignment.path, assignment.value)
+    data_simplified_assignment = deep_set(data, simplied_assignment.path, simplied_assignment.value)
 
     assert np.array_equal(data_simplified_assignment, data_original_assignment)
 

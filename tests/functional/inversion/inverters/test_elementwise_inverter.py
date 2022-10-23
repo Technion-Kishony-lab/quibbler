@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 from typing import Iterable
 
-from pyquibbler.translation.types import Source
+from pyquibbler.path_translation.types import Source
 from tests.functional.inversion.inverters.utils import inverse
 
 
@@ -70,13 +70,13 @@ def test_inverse_operator_two_arguments(func, func_args, value, quib_arg_index, 
     (np.abs, Source(-10), None, 15, -15),
     (np.square, Source(10), None, 81, 9),
     (np.square, Source(-10), None, 81, -9),
-    (np.square, Source(np.array([-3, 3, -4, 4])), slice(None, None, None), 81, np.array([9, 9, 9, 9])),
-    (np.square, Source(np.array([-3, 3, -4, 4])), slice(None, None, None), [81, 81, 81, 81], np.array([9, 9, 9, 9])),
-    (np.square, Source(np.array([-3, 3, -4, 4])), slice(None, -1, None), [81, 81, 81], np.array([9, 9, 9, 4])),
+    (np.square, Source(np.array([-3, 3, -4, 4])), slice(None, None, None), 81, np.array([-9, 9, -9, 9])),
+    (np.square, Source(np.array([-3, 3, -4, 4])), slice(None, None, None), [81, 81, 81, 81], np.array([-9, 9, -9, 9])),
+    (np.square, Source(np.array([-3, 3, -4, 4])), slice(None, -1, None), [81, 81, 81], np.array([-9, 9, -9, 4])),
     (np.square, Source(np.array([-3, 3, -4, 4])), slice(None, 3, None), [81, 81, 81], np.array([-9, 9, -9, 4])),
     (np.square, Source(np.array([-3, 3, -4, 4])), 2, 81, np.array([-3, 3, -9, 4])),
     (np.square, Source(np.array([-3, 3, -4, 4])), [0, 1, 2, 3], [81, 81, 81, 81], np.array([-9, 9, -9, 9])),
-    (np.square, Source(np.array([-3, 3, -4, 4])), [0, 1, 2, 3], 81, np.array([9, 9, 9, 9])),
+    (np.square, Source(np.array([-3, 3, -4, 4])), [0, 1, 2, 3], 81, np.array([-9, 9, -9, 9])),
     (np.negative, Source(1.8), None, 3,  -3),
 ], ids=[
     "abs: positive",

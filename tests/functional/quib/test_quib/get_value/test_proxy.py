@@ -9,7 +9,7 @@ def test_proxy_get_value():
     proxy = create_proxy(path_collector_quib)
 
     with path_collector_quib.collect_valid_paths() as valid_paths:
-        res = proxy.get_value_valid_at_path([PathComponent(component=0, indexed_cls=list)])
+        res = proxy.get_value_valid_at_path([PathComponent(0)])
 
-    assert valid_paths == [[PathComponent(indexed_cls=list, component=0)]]
+    assert valid_paths == [[PathComponent(0)]]
     assert res == val

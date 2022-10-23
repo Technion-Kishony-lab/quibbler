@@ -1,13 +1,16 @@
 from __future__ import annotations
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from pyquibbler.function_definitions import add_definition_for_function
 from pyquibbler.function_definitions.func_definition import create_func_definition
 from pyquibbler.inversion.inverter import Inverter
 from pyquibbler.path import Path
-from pyquibbler.translation import BackwardsPathTranslator, Source, Inversal
+from pyquibbler.path_translation import BackwardsPathTranslator, Source, Inversal
 
 from typing import TYPE_CHECKING
+
+from pyquibbler.path_translation.base_translators import BackwardsTranslationRunCondition
+
 if TYPE_CHECKING:
     from pyquibbler.quib.quib import Quib
 
@@ -26,9 +29,9 @@ def proxy(quib_value: Any):
 
 class ProxyBackwardsPathTranslator(BackwardsPathTranslator):
 
-    SHOULD_ATTEMPT_WITHOUT_SHAPE_AND_TYPE = True
+    RUN_CONDITIONS = [BackwardsTranslationRunCondition.NO_SHAPE_AND_TYPE]
 
-    def translate(self) -> Dict[Source, Path]:
+    def _backwards_translate(self) -> Dict[Source, Path]:
         return {
             source: self._path
             for source in self._func_call.get_data_sources()
@@ -37,14 +40,9 @@ class ProxyBackwardsPathTranslator(BackwardsPathTranslator):
 
 class ProxyInverter(Inverter):
 
-    def get_inversals(self):
+    def get_inversals(self) -> List[Inversal]:
         source = self._func_call.args[0]
-        return [
-            Inversal(
-                source=source,
-                assignment=self._assignment
-            )
-        ]
+        return [Inversal(source=source, assignment=self._assignment)]
 
 
 proxy_definition = create_func_definition(raw_data_source_arguments=[0], inverters=[ProxyInverter],

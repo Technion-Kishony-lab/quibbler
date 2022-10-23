@@ -1,8 +1,10 @@
 from __future__ import annotations
 from collections import defaultdict
 from functools import partial
-from typing import Any, List, Tuple, Union, Mapping
 from matplotlib.backend_bases import PickEvent, MouseEvent, MouseButton
+
+from typing import Any, List, Tuple, Union, Mapping
+from pyquibbler.utilities.general_utils import Args
 
 from pyquibbler.assignment import get_axes_x_y_tolerance, create_assignment, OverrideGroup, \
     get_override_group_for_quib_changes, AssignmentToQuib, Assignment
@@ -25,7 +27,7 @@ def _is_arg_str(arg):
     return isinstance(arg, str)
 
 
-def get_xdata_arg_indices_and_ydata_arg_indices(args: Tuple[List, List]):
+def get_xdata_arg_indices_and_ydata_arg_indices(args: Args) -> Tuple[List[int], List[int]]:
     """
     Gets a list of indices of arguments referencing `xdata`s, and a list of indices of arguments referencing `ydata`
 
@@ -79,15 +81,15 @@ def get_quibs_to_paths_affected_by_event(args: List[Any], arg_indices: List[int]
                     if len(shape) == 0:
                         path = []
                     elif len(shape) == 1:
-                        path = [PathComponent(arg.get_type(), data_index)]
+                        path = [PathComponent(data_index)]
                     else:
                         assert len(shape) == 2, 'Matplotlib is not supposed to support plotting 3d data'
-                        path = [PathComponent(arg[0].get_type(), data_index),
+                        path = [PathComponent(data_index),
                                 # Plot args should be array-like, so quib[0].get_type() should be representative
-                                PathComponent(arg.get_type(), artist_index)]
+                                PathComponent(artist_index)]
                 else:
                     # for scatter:
-                    path = [PathComponent(arg.get_type(), unravel_index(data_index, shape))]
+                    path = [PathComponent(unravel_index(data_index, shape))]
                 quibs_to_paths[arg].append(path)
         elif isinstance(arg, list):
             for data_index in data_indices:

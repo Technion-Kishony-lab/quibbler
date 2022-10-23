@@ -3,7 +3,7 @@ from unittest import mock
 import numpy as np
 import pytest
 
-from pyquibbler import iquib
+from pyquibbler import iquib, q
 from pyquibbler.quib.factory import create_quib
 from pyquibbler.quib.quib import Quib
 from pyquibbler.path.path_component import PathComponent
@@ -16,10 +16,7 @@ def test_elementwise_function_quib_does_not_request_unneeded_indices_on_get_valu
     fake_quib.get_shape.return_value = (2,)
     b = np.add(fake_quib, 1)
 
-    result = b.get_value_valid_at_path([PathComponent(
-        indexed_cls=np.ndarray,
-        component=1
-    )])
+    result = b.get_value_valid_at_path([PathComponent(1)])
 
     assert result[1] == 3
     calls_requesting_values = [c for c in fake_quib.get_value_valid_at_path.mock_calls if c.args != (None,)]
@@ -30,10 +27,27 @@ def test_elementwise_function_quib_does_not_request_unneeded_indices_on_get_valu
     assert bool(np.array([False, True])[component.component]) is True
 
 
+def test_elementwise_function_quib_does_not_request_unneeded_indices_on_get_value_of_minor_sources():
+    mock_func = mock.Mock(return_value=3)
+    a = q(mock_func)
+    b = np.exp2([1, 2, a, 4])
+
+    mock_func.assert_not_called()
+
+    b.get_value_valid_at_path([PathComponent(0)])
+    assert mock_func.call_count == 1  # it was only called for get_shape()
+
+    b.get_value_valid_at_path([PathComponent(1)])
+    assert mock_func.call_count == 1  # it was only called for get_shape()
+
+    b.get_value_valid_at_path([PathComponent(2)])
+    assert mock_func.call_count == 2  # now it called for get_value()
+
+
 @pytest.mark.parametrize('data', [np.arange(24).reshape((2, 3, 4))])
 @pytest.mark.parametrize('indices_to_get_value_at', [-1, 0, (1, 1), (1, 2, 3), [True, False], (0, ...)])
 def test_elementwise_get_value(data, indices_to_get_value_at):
-    path_to_get_value_at = [PathComponent(np.ndarray, indices_to_get_value_at)]
+    path_to_get_value_at = [PathComponent(indices_to_get_value_at)]
     check_get_value_valid_at_path(lambda x: np.add(x, 1), data, path_to_get_value_at)
 
 
@@ -51,6 +65,7 @@ def test_elementwise_on_scalar_quib_and_array():
     b.get_value()
 
 
+@pytest.mark.allow_array_with_dtype_object(True)
 def test_object_array():
     a = iquib([1, 2])
     b = np.array(['nothing here', a], dtype=object)

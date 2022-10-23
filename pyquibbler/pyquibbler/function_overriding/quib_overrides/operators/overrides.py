@@ -1,11 +1,15 @@
 # flake8: noqa
 
-from pyquibbler.function_overriding.quib_overrides.operators.helpers import operator_override, elementwise_operator_override
-from pyquibbler.function_overriding.third_party_overriding.numpy.helpers import get_inverse_funcs_for_func
+from pyquibbler.function_overriding.quib_overrides.operators.helpers import operator_override, \
+    binary_operator_override, unary_operator_override
+from pyquibbler.function_overriding.third_party_overriding.numpy.helpers import \
+    get_unary_inverse_funcs_for_func, get_binary_inverse_funcs_for_func
 from pyquibbler.function_overriding.third_party_overriding.numpy.overrides import create_numpy_overrides
-from pyquibbler.inversion.inverters.getitem_inverter import GetItemInverter
-from pyquibbler.translation.translators import BackwardsGetItemTranslator
-from pyquibbler.translation.translators.transpositional.getitem_translator import ForwardsGetItemTranslator
+from pyquibbler.inversion.inverters.getitem import GetItemInverter
+from pyquibbler.path_translation.translators.transpositional import \
+    TranspositionalBackwardsPathTranslator, TranspositionalForwardsPathTranslator
+from pyquibbler.path_translation.translators.getitem import \
+    GetItemBackwardsPathTranslator, GetItemForwardsPathTranslator
 
 
 def create_operator_overrides():
@@ -14,15 +18,15 @@ def create_operator_overrides():
 
     return [
 
-        # Binary operators with reverse
-        *(elementwise_operator_override(
-            operator_name, [0, 1],
-            inverse_funcs=get_inverse_funcs_for_func(inverter_from), is_reverse=is_rev)
+        # Binary operators with reverse, numeric operators
+        # Note that binary_operator_override has a special exception within for __add__ and __mul__
+        *(binary_operator_override(operator_name, inverse_funcs=get_binary_inverse_funcs_for_func(inverter_from),
+                                   is_reverse=is_rev)
           for is_rev in [False, True]
           for operator_name, inverter_from in (
-            ('__add__',         'add'),
+            ('__add__',         'add'),         # translators for list addition will also be added
             ('__sub__',         'subtract'),
-            ('__mul__',         'multiply'),
+            ('__mul__',         'multiply'),    # translators for list multiplication will also be added
             ('__truediv__',     'true_divide'),
             ('__floordiv__',    'floor_divide'),
             ('__mod__',         'mod'),
@@ -35,9 +39,7 @@ def create_operator_overrides():
           )),
 
         # Binary operators without reverse:
-        *(elementwise_operator_override(
-            operator_name, [0, 1],
-            inverse_funcs=get_inverse_funcs_for_func(inverter_from))
+        *(binary_operator_override(operator_name, inverse_funcs=get_binary_inverse_funcs_for_func(inverter_from))
           for operator_name, inverter_from in (
               ('__ne__',        'not_equal'),
               ('__lt__',        'less'),
@@ -49,10 +51,9 @@ def create_operator_overrides():
         operator_override('__matmul__', []),
 
         # Unary operators
-        *(elementwise_operator_override(
-            operator_name, [0],
-            inverse_funcs=get_inverse_funcs_for_func(inverter_from))
-            for operator_name, inverter_from in (
+        *(unary_operator_override(operator_name,
+                                  inverse_func=get_unary_inverse_funcs_for_func(inverter_from))
+          for operator_name, inverter_from in (
 
             # arithmetics:
             ('__neg__',         'negative'),
@@ -70,7 +71,7 @@ def create_operator_overrides():
         # Get item
         operator_override(
             '__getitem__', [0], inverters=[GetItemInverter],
-            backwards_path_translators=[BackwardsGetItemTranslator],
-            forwards_path_translators=[ForwardsGetItemTranslator]
+            backwards_path_translators=[GetItemBackwardsPathTranslator, TranspositionalBackwardsPathTranslator],
+            forwards_path_translators=[GetItemForwardsPathTranslator, TranspositionalForwardsPathTranslator]
         )
     ]

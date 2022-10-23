@@ -24,7 +24,7 @@ class NdUnstructuredArrayCache(NdIndexableCache):
         return cls(result, invalid_mask=mask)
 
     def _get_all_uncached_paths(self) -> List[List[PathComponent]]:
-        return self._get_uncached_paths_at_path_component(PathComponent(component=True, indexed_cls=type(self._value)))
+        return self._get_uncached_paths_at_path_component(PathComponent(True))
 
     def _is_completely_invalid(self):
         return np.all(self._invalid_mask)
@@ -33,6 +33,5 @@ class NdUnstructuredArrayCache(NdIndexableCache):
         boolean_mask_of_indices = create_bool_mask_with_true_at_indices(self._value.shape, path_component.component)
 
         return self._filter_empty_paths([
-                    [PathComponent(indexed_cls=np.ndarray,
-                                   component=np.logical_and(boolean_mask_of_indices, self._invalid_mask))]
+                    [PathComponent(np.logical_and(boolean_mask_of_indices, self._invalid_mask))]
                 ])

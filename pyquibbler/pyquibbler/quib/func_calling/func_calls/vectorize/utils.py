@@ -1,6 +1,6 @@
 from __future__ import annotations
 import numpy as np
-from typing import Tuple, Iterable, Optional, Dict, Union, TYPE_CHECKING
+from typing import Iterable, Optional, Dict, Union, TYPE_CHECKING
 from string import ascii_letters
 from itertools import islice
 
@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from .vectorize_metadata import ArgsMetadata
 
 
-def get_core_axes(core_ndim: int) -> Tuple[int, ...]:
+def get_core_axes(core_ndim: int) -> Shape:
     """
     Return the numbers of the core axes given the amount of core dimensions.
     """

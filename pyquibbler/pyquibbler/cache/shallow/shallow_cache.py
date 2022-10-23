@@ -4,7 +4,7 @@ from typing import Any
 
 from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.cache.cache import Cache
-from pyquibbler.path import PathComponent, Path, Paths
+from pyquibbler.path import PathComponent, Path, Paths, deep_set
 
 
 class CannotInvalidateEntireCacheException(PyQuibblerException):
@@ -33,19 +33,11 @@ class ShallowCache(Cache):
         """
         pass
 
-    @abstractmethod
     def _set_valid_value_at_path_component(self, path_component: PathComponent, value: Any):
         """
         Set a path to a valid value at a specific component
         """
-        pass
-
-    @abstractmethod
-    def _set_invalid_at_path_component(self, path_component: PathComponent):
-        """
-        Invalidate at a specific path
-        """
-        pass
+        self._value = deep_set(self._value, [path_component], value, should_copy_objects_referenced=False)
 
     @abstractmethod
     def _get_all_uncached_paths(self) -> Paths:
@@ -65,15 +57,21 @@ class ShallowCache(Cache):
     def set_valid_value_at_path(self, path: Path, value: Any) -> None:
         if len(path) != 0:
             self._set_valid_value_at_path_component(path[0], value)
+            self._set_invalid_mask_at_non_empty_path(path, False)
         else:
             self._set_valid_at_all_paths()
             self._value = value
 
     def set_invalid_at_path(self, path: Path) -> None:
+        self._set_invalid_mask_at_path(path, True)
+
+    def _set_invalid_mask_at_non_empty_path(self, path: Path, value: bool) -> None:
+        self._invalid_mask = deep_set(self._invalid_mask, path[:1], value, should_copy_objects_referenced=False)
+
+    def _set_invalid_mask_at_path(self, path: Path, value: bool) -> None:
         if len(path) == 0:
             raise CannotInvalidateEntireCacheException()
-
-        self._set_invalid_at_path_component(path[0])
+        self._set_invalid_mask_at_non_empty_path(path, value)
 
     def get_uncached_paths(self, path: Path):
         if len(path) == 0:

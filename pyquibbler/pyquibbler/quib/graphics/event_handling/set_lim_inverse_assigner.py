@@ -26,7 +26,7 @@ def get_override_group_for_axes_set_lim(args: List[Any], lim: Tuple[float, float
         quib = args[1]
         changes = [AssignmentToQuib(quib, create_assignment(
             value=lim,
-            path=[PathComponent(quib.get_type(), slice(0, 2))],
+            path=[PathComponent(slice(0, 2))],
             tolerance=tolerance
         ))]
     else:

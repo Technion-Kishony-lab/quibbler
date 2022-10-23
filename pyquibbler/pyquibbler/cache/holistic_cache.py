@@ -1,8 +1,9 @@
+import numpy as np
 from functools import wraps
 
 from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.cache.cache import Cache
-from pyquibbler.path import Path, Paths
+from pyquibbler.path import Path, Paths, deep_get
 
 
 class PathCannotHaveComponentsException(PyQuibblerException):
@@ -11,19 +12,29 @@ class PathCannotHaveComponentsException(PyQuibblerException):
         return "This shallow cache does not support specifying paths that are not `all` (ie `[]`)"
 
 
-def raise_if_path_is_not_empty(func):
+def skip_if_path_is_false_or_raise_if_path_is_not_all(func):
     @wraps(func)
-    def _wrapper(self, path, *args, **kwargs):
+    def _wrapper(self, path: Path, *args, **kwargs):
         if len(path) > 0:
-            raise PathCannotHaveComponentsException()
-        return func(self, path, *args, **kwargs)
+            fake_value = np.int64(3)
+            try:
+                get_fake_value = deep_get(fake_value, path)
+            except Exception:
+                raise PathCannotHaveComponentsException()
+            if np.size(get_fake_value) == 0:
+                # the path references 'nothing'
+                return
+            if np.size(get_fake_value) != 1 or not np.all(get_fake_value == fake_value):
+                raise PathCannotHaveComponentsException()
+        return func(self, [], *args, **kwargs)
+
     return _wrapper
 
 
 class HolisticCache(Cache):
     """
     A holistic cache cannot be referenced by a field or item within it- it's an all or nothing cache. This is ideal
-    for things which cannot be broken up into parts, like numbers (as opposed to lists)
+    for things which cannot be broken up into parts, like numbers (as opposed to lists, or arrays)
     """
 
     SUPPORTING_TYPES = (object,)
@@ -36,17 +47,17 @@ class HolisticCache(Cache):
     def create_invalid_cache_from_result(cls, result):
         return cls(value=result, invalid=True)
 
-    @raise_if_path_is_not_empty
+    @skip_if_path_is_false_or_raise_if_path_is_not_all
     def set_valid_value_at_path(self, path: Path, value) -> None:
         self._invalid = False
         self._value = value
 
-    @raise_if_path_is_not_empty
+    @skip_if_path_is_false_or_raise_if_path_is_not_all
     def set_invalid_at_path(self, path: Path) -> None:
         self._invalid = True
 
     def get_uncached_paths(self, path: Path) -> Paths:
-        return [path] if self._invalid else []
+        return [[]] if self._invalid else []
 
     def _is_completely_invalid(self):
         return self._invalid

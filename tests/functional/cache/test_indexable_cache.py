@@ -52,16 +52,16 @@ class TestIndexableCache(IndexableCacheTest):
         assert not cache.matches_result([1, 2, 3, 4])
 
     def test_cache_get_cache_status_on_partial(self, cache):
-        cache.set_valid_value_at_path([PathComponent(indexed_cls=list, component=slice(1, None, None))], [10, 10])
+        cache.set_valid_value_at_path([PathComponent(slice(1, None, None))], [10, 10])
     
         assert cache.get_cache_status() == CacheStatus.PARTIAL
 
     def test_list_cache_get_cache_status_when_completely_invalid_piece_by_piece(self, cache):
         cache.set_valid_value_at_path([], [10, 10, 10])
     
-        cache.set_invalid_at_path([PathComponent(component=0, indexed_cls=list)])
-        cache.set_invalid_at_path([PathComponent(component=1, indexed_cls=list)])
-        cache.set_invalid_at_path([PathComponent(component=2, indexed_cls=list)])
+        cache.set_invalid_at_path([PathComponent(0)])
+        cache.set_invalid_at_path([PathComponent(1)])
+        cache.set_invalid_at_path([PathComponent(2)])
 
         assert cache.get_cache_status() == CacheStatus.ALL_INVALID
 
@@ -85,11 +85,11 @@ class TestIndexableCache(IndexableCacheTest):
 
     def set_completely_invalid(self, result, cache):
         for i in range(len(result)):
-            cache.set_invalid_at_path([PathComponent(component=i, indexed_cls=type(result))])
+            cache.set_invalid_at_path([PathComponent(i)])
 
     @pytest.mark.regression
     def test_set_valid_out_of_bounds_doesnt_raise_exception(self, cache, result):
-        cache.set_valid_value_at_path([PathComponent(component=slice(4, 5), indexed_cls=type(result))], [])
+        cache.set_valid_value_at_path([PathComponent(slice(4, 5))], [])
 
         # we're really asserting the above doesn't raise an exception- but let's make sure nothing changed
         assert cache.get_cache_status() == CacheStatus.ALL_INVALID

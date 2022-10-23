@@ -1,39 +1,53 @@
 from dataclasses import dataclass
-from typing import Type, Any, List, TYPE_CHECKING
+from typing import Any, List
+from enum import Enum
 
 import numpy as np
-
-if TYPE_CHECKING:
-    from pyquibbler import Quib
 
 
 @dataclass
 class PathComponent:
-    indexed_cls: Type
     component: Any
 
-    def references_field_in_field_array(self) -> bool:
+    def referencing_field_in_field_array(self, type_) -> bool:
         """
-        Whether or not the component references a field in a field array
-        It's important to note that this method is necessary as we need to dynamically decide whether a __setitem__
-        assignment is a field assignment or not. This is in contrast to setattr for example where we could have had a
-        special PathComponent for it, as the interface for setting an attribute is different.
+        Indicated whether the component references a field in a field array
         """
-        return (issubclass(self.indexed_cls, np.ndarray) and
+        return (issubclass(type_, np.ndarray) and
                 (isinstance(self.component, str) or
                  (isinstance(self.component, list) and isinstance(self.component[0], str))))
+
+    def is_nd_reference(self):
+        return isinstance(self.component, (bool, tuple, list, np.ndarray, SpecialComponent))
+
+    def is_list_to_list_reference(self):
+        return isinstance(self.component, slice) or self.component is Ellipsis
+
+    def is_compound(self):
+        return isinstance(self.component, tuple) and len(self.component) > 1
+
+    def get_multi_step_path(self) -> 'Path':
+        if not self.is_compound():
+            return [self]
+        return list(PathComponent(cmp) for cmp in self.component)
+
+    def __eq__(self, other):
+        from pyquibbler.utilities.iterators import recursively_compare_objects
+        return isinstance(other, PathComponent) \
+            and recursively_compare_objects(self.component, other.component)
+
+    def __repr__(self):
+        s = repr(self.component)
+        return '{' + s + '}'
+
+
+class SpecialComponent(Enum):
+    WHOLE = 'whole'  # whole object
+    ALL = 'all'  # keep shape, change all elements
+    SHAPE = 'shape'  # shape only
+    OUT_OF_ARRAY = 'out_of_array'  # extract element(s) out of array
 
 
 Path = List[PathComponent]
 
 Paths = List[Path]
-
-
-def set_path_indexed_classes_from_quib(path: Path, quib: 'Quib'):
-    """
-    Set indexed classes for a path based on a quibs types (deeply by the path)
-    TODO: This should not be necessary! This should be able to happen on the fly via PathComponent
-    """
-    for component in path:
-        component.indexed_cls = quib.get_type()
-        quib = quib[component.component]

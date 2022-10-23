@@ -13,14 +13,6 @@ if TYPE_CHECKING:
     from pyquibbler.quib.quib import Quib
 
 
-def is_assignment_allowed_from_quib_to_quib(from_quib: Quib, to_quib: Quib) -> bool:
-    """
-    Returns True/False indicating if from_quib allows assignments made to it to be translated
-    into assignments to the to_quib.
-    """
-    return to_quib.allow_overriding and (from_quib.assigned_quibs is None or to_quib in from_quib.assigned_quibs)
-
-
 @dataclass
 class OverrideOptionsTree:
     """
@@ -167,27 +159,28 @@ class OverrideOptionsTree:
 
     @classmethod
     def from_quib_change(cls, quib_change: AssignmentToQuib,
-                         top_quib: Optional[Quib] = None) -> OverrideOptionsTree:
+                         target_quibs: Optional[Quib] = None) -> OverrideOptionsTree:
         """
         Build an OverrideOptionsTree representing all the override options for the given assignment.
         """
         quib_change = cls._convert_quib_change_to_change_in_context_quib(quib_change)
-        if top_quib is None:
-            top_quib = quib_change.quib
+        if target_quibs is None:
+            target_quibs = quib_change.quib.assigned_quibs
         options: List[QuibChangeWithOverrideRemovals] = []
         inversions = [quib_change]
         override_removals = []
         last_inversion = None
         while len(inversions) == 1:
             inversion = inversions[0]
-            if is_assignment_allowed_from_quib_to_quib(top_quib, inversion.quib):
+            target_quibs = inversion.quib.assigned_quibs if target_quibs is None else target_quibs
+            if inversion.quib.allow_overriding and (target_quibs is None or inversion.quib in target_quibs):
                 options.append(QuibChangeWithOverrideRemovals(inversion, override_removals[:]))
             override_removals.append(AssignmentToQuib.create_default(inversion.quib, inversion.assignment.path))
             inversions = inversion.get_inversions()
             if inversions:
                 last_inversion = inversion
 
-        children = cls._get_children_from_diverged_inversions(inversions, top_quib)
+        children = cls._get_children_from_diverged_inversions(inversions, target_quibs)
         diverged_quib = None if not children else last_inversion.quib
         return OverrideOptionsTree(quib_change.quib, options, diverged_quib, children, override_removals)
 

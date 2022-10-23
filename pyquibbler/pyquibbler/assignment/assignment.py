@@ -2,14 +2,16 @@ from __future__ import annotations
 
 import numpy as np
 from dataclasses import dataclass, field
-from typing import Any, TYPE_CHECKING, List, Union, Optional, Callable
+from typing import Any, TYPE_CHECKING, List, Union, Optional, Callable, Tuple
+
+from pyquibbler.utilities.numpy_original_functions import np_array
 
 from pyquibbler.quib.pretty_converters.math_expressions.get_item_expression import GetItemExpression
 from pyquibbler.path.path_component import Path
 
 from .default_value import default
 from .rounding import floor_log10
-from .utils import is_scalar
+from .utils import is_numeric_scalar
 
 if TYPE_CHECKING:
     from pyquibbler.quib.quib import Quib
@@ -34,11 +36,6 @@ class Assignment:
 
     def is_default(self) -> bool:
         return self.value is default
-
-    def remove_class_from_path(self) -> Path:
-        for component in self.path:
-            component.indexed_cls = None
-        return self.path
 
     @classmethod
     def create_default(cls, path: Path):
@@ -76,8 +73,8 @@ class AssignmentWithTolerance(Assignment):
 
     @np.errstate(divide='ignore', invalid='ignore')
     def get_relative_error(self):
-        diff = (np.array(self.value_up) - np.array(self.value_down)) / 2
-        relative_error = diff / np.array(self.value)
+        diff = (np_array(self.value_up) - np_array(self.value_down)) / 2
+        relative_error = diff / np_array(self.value)
         return np.abs(relative_error)
 
     @classmethod
@@ -129,7 +126,7 @@ def create_assignment(value: Any, path: Path,
     value_up = value + tolerance
     value_down = value - tolerance
 
-    if is_scalar(value) or value_is_list_or_tuple:
+    if is_numeric_scalar(value) or value_is_list_or_tuple:
         value = original_type(value)
         value_up = original_type(value_up)
         value_down = original_type(value_down)
@@ -143,6 +140,27 @@ def create_assignment(value: Any, path: Path,
                                    path=path,
                                    value_up=value_up,
                                    value_down=value_down)
+
+
+def create_assignment_from_nominal_down_up_values(nominal_down_up_values: Union[List, Tuple], path: Path):
+    """
+    Create Assignment or AssignmentWithTolerance
+    If value_nominal_down_up is a len=3 tuple, use its values, as nominal, down, up, to create AssignmentWithTolerance.
+
+    If value_nominal_down_up is a len=1 tuple, use its value as the nominal value for creating a regular Assignment.
+    """
+    assignment = Assignment(
+        path=path,
+        value=nominal_down_up_values[0]
+    )
+    if len(nominal_down_up_values) == 3:
+        # assignment with tolerance:
+        assignment = AssignmentWithTolerance.from_assignment_and_up_down_values(
+            assignment=assignment,
+            value_down=nominal_down_up_values[1],
+            value_up=nominal_down_up_values[2],
+        )
+    return assignment
 
 
 @dataclass(frozen=True)

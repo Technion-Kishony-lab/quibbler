@@ -3,23 +3,28 @@
 import math
 import numpy as np
 
+from pyquibbler.function_definitions.types import DataArgumentDesignation, PositionalArgument
 from pyquibbler.quib.func_calling.func_calls.apply_along_axis_call import ApplyAlongAxisQuibFuncCall
-from pyquibbler.translation.translators.apply_along_axis_translator import ApplyAlongAxisForwardsTranslator
-from .inverse_functions import inv_sin, inv_cos, inv_tan, keep_sign
+from pyquibbler.path_translation.translators.apply_along_axis import ApplyAlongAxisForwardsPathTranslator
+from .inverse_functions import inv_sin, inv_cos, inv_tan, keep_sign, inv_power
 from .vectorize_overrides import create_vectorize_overrides
 from .helpers import numpy_override, numpy_override_random, numpy_override_read_file, \
-    numpy_override_transpositional, numpy_override_reduction, numpy_override_accumulation, \
-    elementwise, single_arg_elementwise, numpy_override_shape_only
+  numpy_override_transpositional_one_to_many, numpy_override_transpositional_one_to_one, \
+  numpy_override_reduction, numpy_override_accumulation, numpy_override_axis_wise, \
+  binary_elementwise, unary_elementwise, numpy_override_shape_only, numpy_array_override
 
 
 def identity(x):
     return x
 
 
+nd = np.ndarray
+
+
 def create_numpy_overrides():
 
     return [
-        # Reduction
+        # Axis-Reduction
         *(numpy_override_reduction(func_name)
           for func_name in (
             # min / max:
@@ -50,14 +55,10 @@ def create_numpy_overrides():
             'var',
             'std',
             'median',
-
-            # other:
-            'diff',
-            'sort',
           )),
 
-        # Accumulation
-        *(numpy_override_accumulation(func_name)
+        # Axis-Accumulation
+        *(numpy_override_accumulation(func_name, result_type_or_type_translators=nd)
           for func_name in (
             'cumsum',
             'cumprod',
@@ -66,15 +67,31 @@ def create_numpy_overrides():
             'nancumprod',
           )),
 
-        # Binary
-        *(elementwise(func_name, [0, 1], {0: invs[0], 1: invs[1]})
-          for func_name, invs in (
+        # Axis-wise (any function along an axis)
+        *(numpy_override_axis_wise(func_name, result_type_or_type_translators=nd)
+          for func_name in (
+            'diff',  # TODO: need to write more specific translators that only invalidate/request neighbouring elements
+            'sort',
+          )),
+
+        # Elementwise - Binary (two arguments)
+        # For each function we provide a tuple specifying the RawInverseFunc for each of the two arguments.
+        # namely, for y = func(x1, x2), we provide:
+        # (new_x1 = inv_func1(new_y, x2), new_x2 = inv_func2(new_y, x1))
+        #
+        # Note: When inverting many-to-one functions (specifically, the power function with an even power),
+        # an element of the tuple can itself be a tuple specifying the nominal and input-dependent inverse functions:
+        #  (new_x1 = inv_func1_nominal(new_y, x2),
+        #   new_x1 = inv_func1_based_on_previous_value(new_y, x2, previous_x1))
+        #
+        *(binary_elementwise(func_name, raw_inverse_funcs)
+          for func_name, raw_inverse_funcs in (
             # Arithmetic
             ('add',           (np.subtract, np.subtract)),
             ('subtract',      (np.add, lambda result, other: np.subtract(other, result))),
             ('divide',        (np.multiply, lambda result, other: np.divide(other, result))),
             ('multiply',      (np.divide, np.divide)),
-            ('power',         (lambda x, n: x ** (1 / n), lambda result, other: math.log(result, other))),
+            ('power',         ((lambda new_y, n: new_y ** (1 / n), inv_power), lambda result, other: math.log(result, other))),
             ('true_divide',   (np.multiply, lambda result, other: np.divide(other, result))),
 
             # Integers
@@ -109,8 +126,13 @@ def create_numpy_overrides():
             ('less_equal',    (None, None)),
           )),
 
-        # Single argument
-        *(single_arg_elementwise(func_name, inverse_func)
+        # Elementwise - Single argument
+        # Note: When inverting many-to-one functions, we provide a tuple specifying
+        # the nominal and input-dependent inverse functions:
+        #  (new_x1 = inv_func1_nominal(new_y),
+        #   new_x1 = inv_func1_based_on_previous_value(new_y, previous_x1))
+        #
+        *(unary_elementwise(func_name, inverse_func)
           for func_name, inverse_func in (
             # square, sqrt
             ('sqrt',        np.square),
@@ -162,7 +184,7 @@ def create_numpy_overrides():
             ('log',         np.exp),
             ('log2',        np.exp2),
             ('log1p',       np.expm1),
-            ('log10',       lambda x: 10 ** x),
+            ('log10',       lambda new_y: 10 ** new_y),
 
             # rounding
             ('ceil',        identity),
@@ -185,52 +207,65 @@ def create_numpy_overrides():
           )),
 
         # Transpositional
-        *(numpy_override_transpositional(func_name, data_sources)
-          for func_name, data_sources in (
-            ('rot90',       [0]),
-            ('concatenate', [0]),
-            ('repeat',      [0]),
-            ('full',        ['fill_value']),
-            ('reshape',     [0]),
-            ('transpose',   [0]),
-            ('array',       [0]),
-            ('swapaxes',    [0]),
-            ('tile',        [0]),
-            ('asarray',     [0]),
-            ('squeeze',     [0]),
-            ('expand_dims', [0]),
-            ('ravel',       [0]),
-            ('squeeze',     [0]),
-            ('flip',        [0]),
+        # np.array is special because we need to check for dtype=object
+        *(numpy_array_override(func_name, data_sources, result_type_or_type_translators=nd)
+            for func_name, data_sources in (
+            ('array', [0]),
+          )),
+
+        # Other Transpositional
+        *(numpy_override_transpositional_one_to_one(func_name, data_sources,
+                                                    result_type_or_type_translators=result_type)
+          for func_name, data_sources, result_type in (
+            ('rot90',       [0],  nd),
+            ('reshape',     [0],  nd),
+            ('transpose',   [0],  nd),
+            ('swapaxes',    [0],  nd),
+            ('asarray',     [0],  nd),
+            ('squeeze',     [0],  nd),
+            ('expand_dims', [0],  nd),
+            ('ravel',       [0],  nd),
+            ('flip',        [0],  []),
+
+            # np.concatenate has an argument that multiple data arguments:
+            ('concatenate', [DataArgumentDesignation(PositionalArgument(0), is_multi_arg=True)], nd),
+          )),
+
+        *(numpy_override_transpositional_one_to_many(func_name, data_sources,
+                                                     result_type_or_type_translators=result_type)
+          for func_name, data_sources, result_type in (
+            ('repeat',      [0],  nd),
+            ('full',        ['fill_value'], nd),
+            ('tile',        [0],  nd),
+            ('broadcast_to', [0], nd),
           )),
 
         # Shape-only, data-independent
-        # TODO: need to implement correct translators
-        *(numpy_override_shape_only(func_name)
-          for func_name in (
-            'ones_like',
-            'zeros_like',
-            'shape',
+        *(numpy_override_shape_only(func_name, result_type_or_type_translators=result_type)
+          for func_name, result_type in (
+            ('ones_like',    nd),
+            ('zeros_like',   nd),
+            ('shape',        tuple),
           )),
 
         # Data-less
-        *(numpy_override(func_name)
-          for func_name in (
-            'arange',
-            'polyfit',
-            'interp',
-            'linspace',
-            'polyval',
-            'corrcoef',
-            'array2string',
-            'zeros',
-            'ones',
-            'eye',
-            'identity',
+        *(numpy_override(func_name, result_type_or_type_translators=result_type)
+          for func_name, result_type in (
+            ('arange',       nd),
+            ('polyfit',      nd),
+            ('interp',       nd),
+            ('linspace',     nd),
+            ('polyval',      nd),
+            ('corrcoef',     nd),
+            ('array2string', str),
+            ('zeros',        nd),
+            ('ones',         nd),
+            ('eye',          nd),
+            ('identity',     nd),
           )),
 
         # Read from files
-        *(numpy_override_read_file(func_name)
+        *(numpy_override_read_file(func_name, result_type_or_type_translators=nd)
           for func_name in (
             'genfromtxt',
             'load',
@@ -238,7 +273,7 @@ def create_numpy_overrides():
           )),
 
         # Random
-        *(numpy_override_random(func_name)
+        *(numpy_override_random(func_name, result_type_or_type_translators=nd)
           for func_name in (
             'rand',
             'randn',
@@ -246,10 +281,12 @@ def create_numpy_overrides():
           )),
 
         # apply_along_axis
-        numpy_override('apply_along_axis', data_source_arguments=["arr"],
+        numpy_override('apply_along_axis',
+                       data_source_arguments=["arr"],
+                       result_type_or_type_translators=nd,
                        is_graphics=None,
                        allowed_kwarg_flags=('is_random', 'is_file_loading', 'is_graphics', 'pass_quibs', 'lazy'),
-                       forwards_path_translators=[ApplyAlongAxisForwardsTranslator],
+                       forwards_path_translators=[ApplyAlongAxisForwardsPathTranslator],
                        quib_function_call_cls=ApplyAlongAxisQuibFuncCall),
 
         # vectorize

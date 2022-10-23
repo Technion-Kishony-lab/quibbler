@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from pyquibbler.path import PathComponent
-from pyquibbler.path.data_accessing import deep_assign_data_in_path
+from pyquibbler.path.data_accessing import deep_set
 from pyquibbler.cache.cache import CacheStatus
 from pyquibbler.cache.shallow.nd_cache import NdUnstructuredArrayCache
 from tests.functional.cache.cache_test import IndexableCacheTest
@@ -41,7 +41,7 @@ class TestNdUnstructuredArrayCache(IndexableCacheTest):
         if len(path) == 0:
             obj[:] = value
         else:
-            obj = deep_assign_data_in_path(obj, path, value)
+            obj = deep_set(obj, path, value)
         return obj
 
     def test_nd_cache_does_not_match_nd_array_of_different_shape(self, cache):
@@ -51,7 +51,7 @@ class TestNdUnstructuredArrayCache(IndexableCacheTest):
         assert not cache.matches_result(np.full((2, 3), "hello mike"))
 
     def test_cache_get_cache_status_on_partial(self, cache):
-        cache.set_valid_value_at_path([PathComponent(component=(1, 1), indexed_cls=np.ndarray)], 5)
+        cache.set_valid_value_at_path([PathComponent((1, 1))], 5)
 
         assert cache.get_cache_status() == CacheStatus.PARTIAL
 
@@ -68,5 +68,5 @@ class TestNdUnstructuredArrayCache(IndexableCacheTest):
                                                                                                  uncached_path_components)
 
     def set_completely_invalid(self, result, cache):
-        cache.set_invalid_at_path([PathComponent(indexed_cls=np.ndarray, component=True)])
+        cache.set_invalid_at_path([PathComponent(True)])
 

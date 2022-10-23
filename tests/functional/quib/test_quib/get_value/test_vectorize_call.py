@@ -19,7 +19,7 @@ from tests.functional.quib.test_quib.get_value.utils import check_get_value_vali
 @pytest.mark.parametrize('func', [lambda x: np.sum(x)])
 @pytest.mark.parametrize('indices_to_get_value_at', [0, (0, 0), (-1, ...)])
 def test_vectorize_get_value_valid_at_path(data, func, indices_to_get_value_at):
-    path_to_get_value_at = [PathComponent(np.ndarray, indices_to_get_value_at)]
+    path_to_get_value_at = [PathComponent(indices_to_get_value_at)]
     check_get_value_valid_at_path(np.vectorize(func), data, path_to_get_value_at)
 
 
@@ -51,7 +51,7 @@ def test_vectorize_get_value_valid_at_path_with_excluded_quib(pass_quibs):
 ])
 def test_vectorize_get_value_valid_at_path_when_args_have_different_loop_dimensions(quib_data, non_quib_data):
     func = lambda quib: np.vectorize(lambda x, y: x + y)(quib, quib_data)
-    check_get_value_valid_at_path(func, non_quib_data, [PathComponent(np.ndarray, 0)])
+    check_get_value_valid_at_path(func, non_quib_data, [PathComponent(0)])
 
 
 @pytest.mark.parametrize('indices_to_get_value_at', [0, (1, 1), (1, ..., 2)])
@@ -61,7 +61,7 @@ def test_vectorize_get_value_at_path_with_core_dims(indices_to_get_value_at):
     func = lambda a, b: np.array([np.sum(a) + np.sum(b)] * 6)
     vec = np.vectorize(func, signature='(a,b),(c)->(d)')
     check_get_value_valid_at_path(lambda quib: vec(non_quib_data, quib), quib_data,
-                                  [PathComponent(np.ndarray, indices_to_get_value_at)])
+                                  [PathComponent(indices_to_get_value_at)])
 
 
 def test_vectorize_partial_calculation():
@@ -209,3 +209,36 @@ def test_assignment_to_quib_within_vectorize_is_translated_to_override_on_vector
     override_group = get_override_group_for_assignment_to_child(parent).get_value()[()]
 
     assert override_group.quib_changes == [AssignmentToQuib(parent, Assignment(1, []))]
+
+
+@pytest.fixture
+def func_x2y():
+    @functools.partial(np.vectorize, signature='()->()')
+    def f_(x):
+        return x
+
+    return f_
+
+
+@pytest.fixture
+def func_y2z():
+    @functools.partial(np.vectorize, signature='()->(m)')
+    def f_(x):
+        assert x == 4  # the bug is calling with x=0
+        return np.array([1, 2, 3]) + x
+
+    return f_
+
+
+def test_vectorize_sample_call_should_send_valid_arguments(func_x2y, func_y2z):
+    a = iquib([4, 5])
+    b = func_x2y(a)
+    c = func_y2z(b)
+    assert c.get_shape() == (2, 3)
+
+
+def test_vectorize_sample_call_with_minor_data_sources(func_x2y, func_y2z):
+    a = iquib([4, 5])
+    b = func_x2y(a)
+    c = func_y2z([b, [14, 15]])
+    assert c.get_shape() == (2, 2, 3)

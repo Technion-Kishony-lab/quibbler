@@ -1,15 +1,16 @@
 import functools
-from typing import List, Optional, Callable, Type, Tuple
+from typing import List, Optional, Callable, Type, Tuple, Union
 
-from pyquibbler.function_definitions.types import RawArgument
+from pyquibbler.function_definitions.types import ArgId
 from pyquibbler.function_definitions.func_definition import create_func_definition, FuncDefinition
+from pyquibbler.type_translation import TypeTranslator
 from ..function_override import FuncOverride, ClassOverride, NotImplementedOverride
 
 
 def override_with_cls(override_cls,
                       module_or_cls,
                       func_name: str,
-                      data_source_arguments: List[RawArgument] = None,
+                      data_source_arguments: List[ArgId] = None,
                       forwards_path_translators: Optional[List] = None,
                       backwards_path_translators: Optional[List] = None,
                       inverters: Optional[List] = None,
@@ -19,6 +20,7 @@ def override_with_cls(override_cls,
                       is_artist_setter: bool = False,
                       is_graphics: bool = False,
                       func: Optional[Callable] = None,
+                      result_type_or_type_translators: Optional[Union[Type, List[Type[TypeTranslator]]]] = None,
                       should_remove_arguments_equal_to_defaults: bool = False,
                       func_definition_cls: Optional[Type[FuncDefinition]] = None,
                       allowed_kwarg_flags: Tuple[str] = (),
@@ -40,13 +42,14 @@ def override_with_cls(override_cls,
                                                forwards_path_translators=forwards_path_translators,
                                                quib_function_call_cls=quib_function_call_cls,
                                                func=func,
+                                               result_type_or_type_translators=result_type_or_type_translators,
                                                func_definition_cls=func_definition_cls,
                                                **kwargs)
     )
 
 
-def file_loading_override(module_or_cls, func_name: str):
-    return FuncOverride(module_or_cls, func_name, FuncDefinition(is_file_loading=True))
+def file_loading_override(module_or_cls, func_name: str, **kwargs):
+    return FuncOverride(module_or_cls, func_name, FuncDefinition(is_file_loading=True, **kwargs))
 
 
 override = functools.partial(override_with_cls, FuncOverride)

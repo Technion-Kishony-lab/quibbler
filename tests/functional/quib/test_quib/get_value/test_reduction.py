@@ -3,6 +3,7 @@ import pytest
 
 from pyquibbler import CacheMode
 from pyquibbler.path import PathComponent
+from pyquibbler.utilities.iterators import recursively_compare_objects
 from tests.functional.quib.test_quib.get_value.test_apply_along_axis import parametrize_keepdims, \
     parametrize_where, parametrize_data
 from tests.functional.quib.test_quib.get_value.utils import collecting_quib, check_get_value_valid_at_path
@@ -26,7 +27,7 @@ def test_reduction_function_gets_whole_value_of_data_source_parents_when_whole_v
     with data.collect_valid_paths() as valid_paths:
         fquib.get_value()
 
-    assert valid_paths == [[]]
+    assert recursively_compare_objects(valid_paths, [[PathComponent(np.array([True,  True,  True]))]])
 
 
 @parametrize_data
@@ -48,7 +49,7 @@ def test_reduction_axiswise_get_value_valid_at_path(axis, data, keepdims, where,
         kwargs['keepdims'] = keepdims
     if where is not None:
         kwargs['where'] = where
-    path_to_get_value_at = [PathComponent(np.ndarray, indices_to_get_value_at)]
+    path_to_get_value_at = [PathComponent(indices_to_get_value_at)]
     check_get_value_valid_at_path(lambda quib: np.sum(quib, **kwargs), data, path_to_get_value_at)
 
 
@@ -58,7 +59,7 @@ def test_quib_get_value_valid_at_path_with_data_source_kwarg():
     quib = np.sum(a=parent, axis=1)
     quib.cache_mode = CacheMode.OFF
     with parent.collect_valid_paths() as paths:
-        quib.get_value_valid_at_path([PathComponent(np.ndarray, 0)])
+        quib.get_value_valid_at_path([PathComponent(0)])
 
     assert len(paths) == 1
     assert [] not in paths

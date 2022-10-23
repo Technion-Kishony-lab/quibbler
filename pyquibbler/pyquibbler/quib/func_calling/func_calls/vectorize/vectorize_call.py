@@ -3,26 +3,29 @@ from typing import Optional, Dict
 
 import numpy as np
 
+from pyquibbler import CacheMode
+from pyquibbler.function_definitions import PositionalSourceLocation, FuncArgsKwargs, get_definition_for_function
 from pyquibbler.quib.quib import Quib
-from pyquibbler.path.path_component import Path
+from pyquibbler.path.path_component import Path, SpecialComponent, PathComponent
 from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals
 from pyquibbler.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
 from pyquibbler.quib.func_calling import CachedQuibFuncCall
 from pyquibbler.quib.func_calling.utils import cache_method_until_full_invalidation, convert_args_and_kwargs
 from pyquibbler.quib.specialized_functions.proxy import create_proxy
-from pyquibbler.function_definitions.types import iter_arg_ids_and_values
+from pyquibbler.function_definitions.types import iter_arg_ids_and_values, PositionalArgument
 from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices
 from pyquibbler.graphics.utils import remove_created_graphics
+from pyquibbler.utilities.missing_value import missing
+from pyquibbler.utilities.numpy_original_functions import np_array
 
-from .vectorize_metadata import VectorizeCall, VectorizeMetadata
-from .utils import alter_signature, copy_vectorize, \
-    get_indices_array
+from .vectorize_metadata import VectorizeCaller, VectorizeMetadata
+from .utils import alter_signature, copy_vectorize, get_indices_array
 
 
 class VectorizeQuibFuncCall(CachedQuibFuncCall):
 
-    def _wrap_vectorize_call_to_pass_quibs(self, call: VectorizeCall, args_metadata,
-                                           results_core_ndims) -> VectorizeCall:
+    def _wrap_vectorize_caller_to_pass_quibs(self, call: VectorizeCaller, args_metadata,
+                                             results_core_ndims) -> VectorizeCaller:
         """
         Given a vectorize call and some metadata, return a new vectorize call that passes quibs to the vectorize pyfunc.
         This is done by wrapping the original pyfunc. The quibs in args and kwargs are replaced with
@@ -68,22 +71,58 @@ class VectorizeQuibFuncCall(CachedQuibFuncCall):
 
         quibs_to_guard = {*non_excluded_quib_args.values(), *excluded_quib_args.values()}
         new_vectorize = copy_vectorize(call.vectorize, func=wrapper, signature=signature)
-        return VectorizeCall(new_vectorize, args, kwargs, quibs_to_guard)
+        return VectorizeCaller(new_vectorize, args, kwargs, quibs_to_guard)
 
-    def _get_vectorize_call(self, args_metadata, results_core_ndims, valid_path) -> VectorizeCall:
+    def get_paths_for_sample_call(self, args_metadata) -> Dict[Quib, Path]:
+        quibs_to_single_paths = {}
+        for arg_id, arg_metadata in args_metadata.items():
+
+            if isinstance(arg_id, int):
+                arg_id += 1  # accounting for func at position 0
+
+            arg = self.func_args_kwargs.get_arg_value_by_argument(arg_id)
+            arg_sample_path = [PathComponent(arg_metadata.get_sample_component())]
+
+            # we convert the `arg` path to paths of the sources within it using a np.array(arg) func_call:
+            source_locations_in_arg = [
+                PositionalSourceLocation(PositionalArgument(0), location.path)
+                for location in self.data_source_locations if location.argument.get_arg_id() == arg_id]
+            array_func_call = CachedQuibFuncCall(
+                data_source_locations=source_locations_in_arg,
+                parameter_source_locations=[],
+                func_args_kwargs=FuncArgsKwargs(np_array, (arg,), {}),
+                func_definition=get_definition_for_function(np_array),
+                cache_mode=CacheMode.OFF,
+            )
+            current_arg_quibs_to_single_paths = array_func_call.backwards_translate_path(arg_sample_path)
+
+            for quib, path in current_arg_quibs_to_single_paths.items():
+                if quib in quibs_to_single_paths:
+                    # TODO: in case the same quib source appears in different args, we need to take the union of the
+                    #  two rquested paths. For now, we are taking the entire quib:
+                    quibs_to_single_paths[quib] = []
+                else:
+                    quibs_to_single_paths[quib] = path
+
+        return quibs_to_single_paths
+
+    def _get_vectorize_caller(self, args_metadata, results_core_ndims, valid_path) -> VectorizeCaller:
         """
-        Get a VectorizeCall object to actually call vectorize with.
+        Get a VectorizeCaller object to actually call vectorize with.
         If asked to pass quibs, return a modified call that passes quibs.
         """
         if self._pass_quibs:
             (vectorize, *args), kwargs = self.args, self.kwargs
-            call = VectorizeCall(vectorize, args, kwargs)
-            call = self._wrap_vectorize_call_to_pass_quibs(call, args_metadata, results_core_ndims)
+            call = VectorizeCaller(vectorize, args, kwargs)
+            call = self._wrap_vectorize_caller_to_pass_quibs(call, args_metadata, results_core_ndims)
         else:
-            quibs_to_paths = {} if valid_path is None else self._backwards_translate_path(valid_path)
+            if valid_path is missing:
+                quibs_to_paths = self.get_paths_for_sample_call(args_metadata)
+            else:
+                quibs_to_paths = self.backwards_translate_path(valid_path)
             new_args, new_kwargs = self._get_args_and_kwargs_valid_at_quibs_to_paths(quibs_to_paths)
             (vectorize, *args), kwargs = new_args, new_kwargs
-            call = VectorizeCall(vectorize, args, kwargs)
+            call = VectorizeCaller(vectorize, args, kwargs)
         return call
 
     def _get_sample_result(self, args_metadata, results_core_ndims):
@@ -91,7 +130,7 @@ class VectorizeQuibFuncCall(CachedQuibFuncCall):
         Run the vectorized function on sample arguments to get s single sample result.
         Remove any graphics that were created during the call.
         """
-        call = self._get_vectorize_call(args_metadata, results_core_ndims, None)
+        call = self._get_vectorize_caller(args_metadata, results_core_ndims, missing)
         with remove_created_graphics(), external_call_failed_exception_handling():
             return call.get_sample_result(args_metadata)
 
@@ -103,7 +142,7 @@ class VectorizeQuibFuncCall(CachedQuibFuncCall):
         """
         new_args, new_kwargs = self._get_args_and_kwargs_valid_at_quibs_to_paths(quibs_to_valid_paths={})
         (vectorize, *args), kwargs = new_args, new_kwargs
-        return VectorizeCall(vectorize, args, kwargs).get_metadata(self._get_sample_result)
+        return VectorizeCaller(vectorize, args, kwargs).get_metadata(self._get_sample_result)
 
     @cache_method_until_full_invalidation
     def _get_loop_shape(self):
@@ -118,14 +157,14 @@ class VectorizeQuibFuncCall(CachedQuibFuncCall):
         """
         return self.args[0]
 
-    def _wrap_vectorize_call_to_calc_only_needed(self, call: VectorizeCall, valid_path, otypes):
+    def _wrap_vectorize_caller_to_calc_only_needed(self, call: VectorizeCaller, valid_path, otypes):
         """
         1. Create a bool mask with the same shape as the broadcast loop dimensions
         2. Create a wrapper for the pyfunc that receives the same arguments, and an additional boolean that
            instructs it to run the user function or return an empty result.
         3. Vectorize the wrapper and run it with the boolean mask in addition to the original arguments
         """
-        valid_indices = True if len(valid_path) == 0 else valid_path[0].component
+        valid_indices = SpecialComponent.ALL if len(valid_path) == 0 else valid_path[0].component
         bool_mask = create_bool_mask_with_true_at_indices(self.get_shape(), valid_indices)
         bool_mask = np.any(bool_mask, axis=self._vectorize_metadata.result_core_axes)
         # The logic in this wrapper should be as minimal as possible (including attribute access, etc.)
@@ -146,7 +185,7 @@ class VectorizeQuibFuncCall(CachedQuibFuncCall):
             else '(),' * len(args_to_add) + call.vectorize.signature
         vectorize = copy_vectorize(call.vectorize, func=wrapper, excluded=wrapper_excluded, signature=wrapper_signature,
                                    otypes=otypes)
-        return VectorizeCall(vectorize, (*args_to_add, *call.args), call.kwargs)
+        return VectorizeCaller(vectorize, (*args_to_add, *call.args), call.kwargs)
 
     @cache_method_until_full_invalidation
     def get_result_metadata(self) -> Dict:
@@ -162,8 +201,8 @@ class VectorizeQuibFuncCall(CachedQuibFuncCall):
         if valid_path is None:
             return np.zeros(vectorize_metadata.result_shape, dtype=vectorize_metadata.result_dtype)
 
-        call = self._get_vectorize_call(vectorize_metadata.args_metadata,
-                                        vectorize_metadata.result_or_results_core_ndims, valid_path)
-        call = self._wrap_vectorize_call_to_calc_only_needed(call, valid_path, vectorize_metadata.otypes)
+        call = self._get_vectorize_caller(vectorize_metadata.args_metadata,
+                                          vectorize_metadata.result_or_results_core_ndims, valid_path)
+        call = self._wrap_vectorize_caller_to_calc_only_needed(call, valid_path, vectorize_metadata.otypes)
 
         return call()

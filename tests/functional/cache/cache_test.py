@@ -112,7 +112,7 @@ class IndexableCacheTest(CacheTest):
 
     def test_cache_set_valid_partial_and_get_uncached_paths(self, cache, result, valid_components,
                                                               uncached_path_components, valid_value):
-        valid_path = [PathComponent(component=v, indexed_cls=type(result))
+        valid_path = [PathComponent(v)
                       for v in valid_components]
 
         result_with_valid_value = self.get_result_with_value_broadcasted_to_path(copy(result),
@@ -121,8 +121,7 @@ class IndexableCacheTest(CacheTest):
 
         cache.set_valid_value_at_path(valid_path, broadcasted_value)
 
-        uncached_path = [PathComponent(component=u, indexed_cls=type(result)) for u in
-                                          uncached_path_components]
+        uncached_path = [PathComponent(u) for u in uncached_path_components]
         paths = cache.get_uncached_paths(uncached_path)
 
         self.assert_uncached_paths_match_expected_value(result, valid_path, paths, uncached_path, False)
@@ -130,11 +129,9 @@ class IndexableCacheTest(CacheTest):
     def test_cache_set_invalid_partial_and_get_uncached_paths(self,  cache, result, invalid_components,
                                                               uncached_path_components):
         cache.set_valid_value_at_path([], deep_copy_without_quibs_or_graphics(result))
-        invalid_path = [PathComponent(component=v, indexed_cls=type(result))
-                      for v in invalid_components]
+        invalid_path = [PathComponent(v) for v in invalid_components]
         cache.set_invalid_at_path(invalid_path)
-        filter_path = [PathComponent(component=u, indexed_cls=type(result)) for u in
-                                          uncached_path_components]
+        filter_path = [PathComponent(u) for u in uncached_path_components]
         uncached_paths = cache.get_uncached_paths(filter_path)
 
         self.assert_uncached_paths_match_expected_value(result, invalid_path, uncached_paths,

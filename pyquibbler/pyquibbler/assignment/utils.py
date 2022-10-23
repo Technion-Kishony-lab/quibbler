@@ -21,11 +21,26 @@ def get_axes_x_y_tolerance(ax: Axes):
            (ylim[1] - ylim[0]) / n
 
 
-def is_scalar(data) -> bool:
+def is_scalar_np(obj) -> bool:
+    """
+    Check if obj is a scalar, in the sense that np.shape(obj) = () [but without running np.shape]
+    """
+    if np.isscalar(obj):
+        return True
+    if isinstance(obj, dict):
+        return True
+    try:
+        len(obj)
+    except TypeError:
+        return True
+    return False
+
+
+def is_numeric_scalar(data) -> bool:
     return isinstance(data, numbers.Number)
 
 
-def is_scalar_integer(data) -> bool:
+def is_integer_scalar(data) -> bool:
     return isinstance(data, numbers.Integral)
 
 
@@ -43,7 +58,7 @@ def convert_scalar_value(current_value, assigned_value):
     """
     Convert an assigned_value to match the type of a current_value.
     """
-    if is_scalar_integer(current_value):
+    if is_integer_scalar(current_value):
         return type(current_value)(round(assigned_value))
     if isinstance(current_value, datetime) and isinstance(assigned_value, float):
         return num2date(assigned_value).replace(tzinfo=None)

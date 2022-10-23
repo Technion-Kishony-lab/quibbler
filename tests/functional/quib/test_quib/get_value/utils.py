@@ -7,7 +7,7 @@ from typing import Any
 
 from pyquibbler import CacheMode, Assignment, iquib
 from pyquibbler.path.path_component import PathComponent, Path
-from pyquibbler.path.data_accessing import deep_get, deep_assign_data_in_path
+from pyquibbler.path.data_accessing import deep_get, deep_set
 from tests.functional.utils import PathBuilder
 
 
@@ -64,17 +64,23 @@ def breakdown_path(data: Any, path: Path):
     assert isinstance(data, np.ndarray)
     is_field_array = data.dtype.names is not None
     if is_field_array:
-        assert 1 <= len(path) <= 2
-        first_components, first_is_field = breakdown_component(data.shape, path[0])
+        assert 0 <= len(path) <= 2
+        if len(path) >= 1:
+            first_components, first_is_field = breakdown_component(data.shape, path[0])
+        else:
+            first_components = data.dtype.names
+            first_is_field = True
         if len(path) == 2:
             second_components, second_is_field = breakdown_component(data.shape, path[1])
             assert second_is_field != first_is_field
         else:
-            second_components = get_indices_at_path(data.shape, []) if first_is_field else data.dtype.names
-        return [[PathComponent(np.ndarray, tuple(first_component)), PathComponent(np.ndarray, second_component)]
+            second_is_field = not first_is_field
+            second_components =  data.dtype.names if second_is_field else get_indices_at_path(data.shape, [])
+        return [[PathComponent(first_component if first_is_field else tuple(first_component)),
+                 PathComponent(second_component if second_is_field else tuple(second_component))]
                 for first_component in first_components
                 for second_component in second_components]
-    return [[PathComponent(np.ndarray, tuple(index))] for index in get_indices_at_path(data.shape, path)]
+    return [[PathComponent(tuple(index))] for index in get_indices_at_path(data.shape, path)]
 
 
 def equals_at_path(data1, data2, path):
@@ -101,7 +107,7 @@ def check_get_value_valid_at_path(func, data, path_to_get_value_at):
     faulty_sub_paths = []
     for path in requested_paths:
         for sub_path in breakdown_path(data, path):
-            changed_data = deep_assign_data_in_path(deepcopy(data), sub_path, 999)
+            changed_data = deep_set(deepcopy(data), sub_path, 999)
             result_with_change = func(changed_data)
             if equals_at_path(result_with_change, result, path_to_get_value_at):
                 faulty_sub_paths.append(sub_path)

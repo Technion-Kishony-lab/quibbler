@@ -1,4 +1,3 @@
-import copy
 import pathlib
 import pickle
 
@@ -8,7 +7,7 @@ from typing import Any, Optional, Dict, Hashable, List
 
 from pyquibbler.path.hashable import get_hashable_path
 from pyquibbler.path.path_component import Path, Paths
-from pyquibbler.path.data_accessing import deep_get, deep_assign_data_in_path
+from pyquibbler.path.data_accessing import deep_get, deep_set
 from pyquibbler.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
 from pyquibbler.quib.utils import deep_copy_without_quibs_or_graphics
 from pyquibbler.utilities.iterators import recursively_run_func_on_object
@@ -55,8 +54,6 @@ class Overrider:
         """
         Adds an override to the overrider - data[key] = value.
         """
-        assignment = copy.deepcopy(assignment)
-        assignment.remove_class_from_path()
         self._active_assignment = assignment
         self._add_to_paths_to_assignments(assignment)
 
@@ -101,8 +98,8 @@ class Overrider:
                 else:
                     value = assignment.value
                 with external_call_failed_exception_handling():
-                    data = deep_assign_data_in_path(data, assignment.path, value,
-                                                    raise_on_failure=assignment == self._active_assignment)
+                    data = deep_set(data, assignment.path, value,
+                                    raise_on_failure=assignment is self._active_assignment)
 
         self._active_assignment = None
         return data
@@ -121,7 +118,7 @@ class Overrider:
                     inner_data = deep_get(mask, path[:-1])
                     if not isinstance(inner_data, np.ndarray):
                         val = recursively_run_func_on_object(lambda x: val, inner_data)
-                mask = deep_assign_data_in_path(mask, path, val)
+                mask = deep_set(mask, path, val)
             else:
                 if val:
                     mask = np.ones(np.shape(assignment.value), dtype=bool)

@@ -1,10 +1,12 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from typing import List
 
-from pyquibbler.function_definitions import PositionalArgument
-from pyquibbler.function_definitions.types import Argument, KeywordArgument
-from pyquibbler.path import PathComponent, Path, deep_get, deep_assign_data_in_path
+from pyquibbler.path import PathComponent, Path, deep_get, deep_set
 from pyquibbler.utilities.general_utils import Args, Kwargs
+from pyquibbler.utilities.iterators import get_paths_for_objects_of_type
+
+from .types import Argument, KeywordArgument, PositionalArgument, SubArgument
 
 
 @dataclass
@@ -29,6 +31,17 @@ class SourceLocation(ABC):
         """
         pass
 
+    def get_path_in_argument(self, argument: Argument):
+        """
+        Returns None if not in argument, or otherwise the path in the argument
+        """
+        if self.argument == argument:
+            return self.path
+        if isinstance(argument, SubArgument) \
+                and self.argument == argument.argument and self.path[0].component == argument.sub_index:
+            return self.path[1:]
+        return None
+
 
 class PositionalSourceLocation(SourceLocation):
 
@@ -39,13 +52,13 @@ class PositionalSourceLocation(SourceLocation):
 
     @property
     def full_path(self):
-        return [PathComponent(component=self.argument.index, indexed_cls=tuple), *self.path]
+        return [PathComponent(self.argument.index), *self.path]
 
     def find_in_args_kwargs(self, args: Args, kwargs: Kwargs):
         return deep_get(args, self.full_path)
 
     def set_in_args_kwargs(self, args: Args, kwargs: Kwargs, value):
-        new_args = deep_assign_data_in_path(args, self.full_path, value)
+        new_args = deep_set(args, self.full_path, value)
         return new_args, kwargs
 
 
@@ -55,11 +68,22 @@ class KeywordSourceLocation(SourceLocation):
 
     @property
     def full_path(self):
-        return [PathComponent(component=self.argument.keyword, indexed_cls=dict), *self.path]
+        return [PathComponent(self.argument.keyword), *self.path]
 
     def set_in_args_kwargs(self, args: Args, kwargs: Kwargs, value):
-        new_kwargs = deep_assign_data_in_path(kwargs, self.full_path, value)
+        new_kwargs = deep_set(kwargs, self.full_path, value)
         return args, new_kwargs
 
     def find_in_args_kwargs(self, args: Args, kwargs: Kwargs):
         return deep_get(kwargs, self.full_path)
+
+
+def get_object_type_locations_in_args_kwargs(object_type, args: Args, kwargs: Kwargs) -> List[SourceLocation]:
+    """
+    Find all objects of a given type in args and kwargs and return their locations
+    """
+    positional_locations = [PositionalSourceLocation(PositionalArgument(path[0].component), path[1:]) for
+                            path in get_paths_for_objects_of_type(args, object_type)]
+    keyword_locations = [KeywordSourceLocation(KeywordArgument(path[0].component), path[1:]) for
+                         path in get_paths_for_objects_of_type(kwargs, object_type)]
+    return positional_locations + keyword_locations

@@ -2,16 +2,21 @@ from __future__ import annotations
 
 from abc import abstractmethod, ABC
 from dataclasses import dataclass
-from typing import Tuple, Any, Mapping, Optional, Callable, List, Type, ClassVar, Dict, Set
+from typing import Tuple, Any, Optional, Callable, List, Type, ClassVar, Dict, Union
 
-from pyquibbler.utilities.iterators import get_object_type_locations_in_args_kwargs, recursively_compare_objects
+from pyquibbler.utilities.iterators import recursively_compare_objects
+from pyquibbler.utilities.general_utils import Kwargs, Args
 from pyquibbler.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
+from pyquibbler.path import deep_set, PathComponent
 
 from .utils import get_signature_for_func
-from .location import SourceLocation
-from .types import iter_arg_ids_and_values, KeywordArgument, PositionalArgument
+from .location import SourceLocation, get_object_type_locations_in_args_kwargs
+from .types import iter_arg_ids_and_values, KeywordArgument, PositionalArgument, Argument, SubArgument, ArgId, \
+    convert_argument_id_to_argument
 
 from typing import TYPE_CHECKING
+
+
 if TYPE_CHECKING:
     from .func_definition import FuncDefinition
 
@@ -29,10 +34,10 @@ class FuncArgsKwargs:
     """
 
     func: Callable
-    args: Tuple[Any, ...]
+    args: Union[Tuple[Any, ...], List[Any, ...]]
     kwargs: Dict[str, Any]
 
-    def get_kwargs_without_those_equal_to_defaults(self, arguments: Optional[Mapping[str: Any]] = None):
+    def get_kwargs_without_those_equal_to_defaults(self, arguments: Optional[Kwargs] = None):
         """
         Remove arguments which exist as default arguments with the same value.
         """
@@ -54,17 +59,14 @@ class FuncArgsKwargs:
         sig = get_signature_for_func(self.func)
         bound_args = sig.bind(*self.args, **self.kwargs)
 
-        arguments = bound_args.arguments
-
-        # Add defaults:
         if include_defaults:
             bound_args.apply_defaults()
         arguments = bound_args.arguments
 
         return arguments.items()
 
-    def get_args_values_by_name_and_position(self, include_defaults: bool = True) \
-            -> Tuple[Mapping[str, Any], Tuple[Any, ...]]:
+    def get_args_values_by_keyword_and_position(self, include_defaults: bool = True) \
+            -> Tuple[Kwargs, Args]:
         # We use external_call_failed_exception_handling here as if the user provided the wrong arguments to the
         # function we'll fail here
         with external_call_failed_exception_handling():
@@ -76,21 +78,45 @@ class FuncArgsKwargs:
                 arg_values_by_position = self.args
         return arg_values_by_name, arg_values_by_position
 
-    def get_arg_values_by_name(self, include_defaults: bool = True) -> Mapping[str, Any]:
-        return self.get_args_values_by_name_and_position(include_defaults)[0]
+    def get_arg_values_by_keyword(self, include_defaults: bool = True) -> Kwargs:
+        return self.get_args_values_by_keyword_and_position(include_defaults)[0]
 
-    def get_arg_values_by_position(self, include_defaults: bool = True) -> Tuple[Any, ...]:
-        return self.get_args_values_by_name_and_position(include_defaults)[1]
+    def get_arg_values_by_position(self, include_defaults: bool = True) -> Args:
+        return self.get_args_values_by_keyword_and_position(include_defaults)[1]
 
     def __hash__(self):
         return id(self)
 
     def get(self, keyword: str, default: Optional = None, include_defaults: bool = True) -> Optional[Any]:
-        return self.get_arg_values_by_name(include_defaults).get(keyword, default)
+        return self.get_arg_values_by_keyword(include_defaults).get(keyword, default)
 
-    def get_all_arguments(self):
+    def get_all_arguments(self) -> List[Argument]:
         return [KeywordArgument(key) if isinstance(key, str) else PositionalArgument(key)
                 for key, _ in iter_arg_ids_and_values(self.args, self.kwargs)]
+
+    def get_arg_value_by_argument(self, argument: Union[Argument, ArgId]):
+        if not isinstance(argument, Argument):
+            argument = convert_argument_id_to_argument(argument)
+
+        if isinstance(argument, PositionalArgument):
+            return self.args[argument.index]
+        elif isinstance(argument, KeywordArgument):
+            return self.kwargs[argument.keyword]
+        elif isinstance(argument, SubArgument):
+            return self.get_arg_value_by_argument(argument.argument)[argument.sub_index]
+        assert False
+
+    def set_arg_value_by_argument(self, value: Any, argument: Argument):
+        if isinstance(argument, PositionalArgument):
+            self.args = deep_set(self.args, [PathComponent(argument.index)], value)
+        elif isinstance(argument, KeywordArgument):
+            self.kwargs[argument.keyword] = value
+        elif isinstance(argument, SubArgument):
+            tuple_of_subargs = self.get_arg_value_by_argument(argument.argument)
+            tuple_of_subargs = deep_set(tuple_of_subargs, [PathComponent(argument.sub_index)], value)
+            self.set_arg_value_by_argument(tuple_of_subargs, argument.argument)
+        else:
+            assert False
 
 
 @dataclass
@@ -112,8 +138,8 @@ class FuncCall(ABC):
 
     data_source_locations: Optional[List[SourceLocation]] = None
     parameter_source_locations: Optional[List[SourceLocation]] = None
-    _data_sources: Optional[Set[Any]] = None
-    _parameter_sources: Optional[Set[Any]] = None
+    _data_sources: Optional[List[Any]] = None
+    _parameter_sources: Optional[List[Any]] = None
     func_args_kwargs: FuncArgsKwargs = None
     func_definition: FuncDefinition = None
 
@@ -147,9 +173,11 @@ class FuncCall(ABC):
         self.data_source_locations = []
         self.parameter_source_locations = []
         data_arguments = \
-            self.func_definition.get_data_source_arguments(self.func_args_kwargs)
-        for location in locations:
-            if location.argument in data_arguments:
+            self.func_definition.get_data_arguments(self.func_args_kwargs)
+        big_data_arguments = [data_argument.argument if isinstance(data_argument, SubArgument) else data_argument
+                              for data_argument in data_arguments]
+        for location_index, location in enumerate(locations):
+            if location.argument in big_data_arguments:
                 self.data_source_locations.append(location)
             else:
                 self.parameter_source_locations.append(location)
@@ -188,19 +216,19 @@ class FuncCall(ABC):
 
         return new_args, new_kwargs
 
-    def get_data_sources(self):
+    def get_data_sources(self) -> List:
         if self._data_sources is None:
-            sources = set()
+            sources = list()
             for location in self.data_source_locations:
-                sources.add(location.find_in_args_kwargs(self.args, self.kwargs))
+                sources.append(location.find_in_args_kwargs(self.args, self.kwargs))
             self._data_sources = sources
         return self._data_sources
 
-    def get_parameter_sources(self):
+    def get_parameter_sources(self) -> List:
         if self._parameter_sources is None:
-            sources = set()
+            sources = list()
             for location in self.parameter_source_locations:
-                sources.add(location.find_in_args_kwargs(self.args, self.kwargs))
+                sources.append(location.find_in_args_kwargs(self.args, self.kwargs))
             self._parameter_sources = sources
         return self._parameter_sources
 

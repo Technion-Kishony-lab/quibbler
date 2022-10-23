@@ -3,27 +3,33 @@ from __future__ import annotations
 from contextlib import ExitStack
 from sys import getsizeof
 from time import perf_counter
-from typing import Optional, Tuple, Dict, Any, Set, Mapping, Callable, List, Union
 
-import numpy as np
+# typing
+from typing import Optional, Dict, Any, Set, Callable, List, Union
+from pyquibbler.utilities.general_utils import Args, Kwargs
+from pyquibbler.quib.quib import Quib
+from .quib_func_call import QuibFuncCall
 
-from pyquibbler.cache.cache_utils import _truncate_path_to_match_shallow_caches, _ensure_cache_matches_result, \
+# cache
+from pyquibbler.cache.cache_utils import truncate_path_to_match_shallow_caches, ensure_cache_matches_result, \
     get_cached_data_at_truncated_path_given_result_at_uncached_path
 from pyquibbler.cache import PathCannotHaveComponentsException, get_uncached_paths_matching_path
+from .cache_mode import CacheMode
 
+# graphics
 from pyquibbler.graphics.graphics_collection import GraphicsCollection
-from pyquibbler.path import Path
+
+# run
 from pyquibbler.quib import consts
 from pyquibbler.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
-from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.quib_guard import QuibGuard
-from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation
-from pyquibbler.translation import NoTranslatorsFoundException
-from pyquibbler.translation.translate import backwards_translate
 
-from .quib_func_call import QuibFuncCall
-from .cache_mode import CacheMode
-from .result_metadata import ResultMetadata
+# translation
+from pyquibbler.utilities.multiple_instance_runner import NoRunnerWorkedException
+from pyquibbler.path import Path
+from pyquibbler.path_translation.create_source_func_call import get_func_call_for_translation
+from pyquibbler.path_translation.translate import backwards_translate
+from pyquibbler.path_translation.base_translators import BackwardsTranslationRunCondition
 
 
 class CachedQuibFuncCall(QuibFuncCall):
@@ -45,9 +51,6 @@ class CachedQuibFuncCall(QuibFuncCall):
         Note that there is no accurate way (and no efficient way to even approximate) the complete size of composite
         types in python, so we only measure the outer size of the object.
         """
-        if isinstance(result, np.ndarray) and result.base is not None:
-            # array "view"
-            return False
         cache_mode = self._get_cache_behavior()
         if cache_mode is CacheMode.ON:
             return True
@@ -61,14 +64,13 @@ class CachedQuibFuncCall(QuibFuncCall):
     def _reset_cache(self):
         self.cache = None
         self._caching = True if self._get_cache_behavior() == CacheMode.ON else False
-        self._result_metadata = None
 
     def on_type_change(self):
         self._reset_cache()
         super(CachedQuibFuncCall, self).on_type_change()
 
     def _run_single_call(self, func: Callable, graphics_collection: GraphicsCollection,
-                         args: Tuple[Any, ...], kwargs: Mapping[str, Any], quibs_allowed_to_access: Set[Quib]):
+                         args: Args, kwargs: Kwargs, quibs_allowed_to_access: Set[Quib]):
 
         graphics_collection.set_color_cyclers_back_to_pre_run_index()
         with ExitStack() as stack:
@@ -89,7 +91,7 @@ class CachedQuibFuncCall(QuibFuncCall):
 
         return res
 
-    def _backwards_translate_path(self, valid_path: Path) -> Dict[Quib, Path]:
+    def backwards_translate_path(self, valid_path: Path) -> Dict[Quib, Path]:
         """
         Backwards translate a path- first attempt without shape + type, and then if G-d's good graces fail us and we
         find we are without the ability to do this, try with shape + type
@@ -97,33 +99,39 @@ class CachedQuibFuncCall(QuibFuncCall):
         if not self.get_data_sources():
             return {}
 
-        try_with_shape = False
         try:
+            # try without shape and type
             func_call, sources_to_quibs = get_func_call_for_translation(func_call=self, with_meta_data=False)
             sources_to_paths = backwards_translate(
+                run_condition=BackwardsTranslationRunCondition.NO_SHAPE_AND_TYPE,
                 func_call=func_call,
                 path=valid_path,
             )
-        except NoTranslatorsFoundException:
-            try_with_shape = True
-
-        if try_with_shape:
+        except NoRunnerWorkedException:
+            # try with shape and type
             func_call, sources_to_quibs = get_func_call_for_translation(func_call=self, with_meta_data=True)
             try:
                 sources_to_paths = backwards_translate(
+                    run_condition=BackwardsTranslationRunCondition.WITH_SHAPE_AND_TYPE,
                     func_call=func_call,
                     path=valid_path,
                     shape=self.get_shape(),
                     type_=self.get_type(),
                     **self.get_result_metadata()
                 )
-            except NoTranslatorsFoundException:
-                return {}
+            except NoRunnerWorkedException:
+                # as a backup, request everything if cannot translate:
+                sources_to_paths = {source: [] for source in sources_to_quibs}
 
-        return {
-            quib: sources_to_paths.get(source, None)
-            for source, quib in sources_to_quibs.items()
-        }
+        quibs_to_paths = {}
+        for source, quib in sources_to_quibs.items():
+            if source in sources_to_paths:
+                paths = sources_to_paths[source]
+                if quib in quibs_to_paths:
+                    quibs_to_paths[quib] += paths
+                else:
+                    quibs_to_paths[quib] = paths
+        return quibs_to_paths
 
     def _proxify_args(self):
         from pyquibbler.quib.specialized_functions.proxy import create_proxy
@@ -144,7 +152,7 @@ class CachedQuibFuncCall(QuibFuncCall):
         if self._pass_quibs:
             args, kwargs, quibs_allowed_to_access = self._proxify_args()
         else:
-            quibs_to_paths = {} if valid_path is None else self._backwards_translate_path(valid_path)
+            quibs_to_paths = {} if valid_path is None else self.backwards_translate_path(valid_path)
             args, kwargs = self._get_args_and_kwargs_valid_at_quibs_to_paths(quibs_to_paths)
             quibs_allowed_to_access = set()
 
@@ -164,7 +172,7 @@ class CachedQuibFuncCall(QuibFuncCall):
         if len(uncached_paths) == 0:
             if self.cache is None:
                 result = self._run_on_path(None)
-                self.cache = _ensure_cache_matches_result(self.cache, result)
+                self.cache = ensure_cache_matches_result(self.cache, result)
             return self.cache.get_value()
 
         result = None
@@ -172,8 +180,8 @@ class CachedQuibFuncCall(QuibFuncCall):
         for uncached_path in uncached_paths:
             result = self._run_on_path(uncached_path)
 
-            truncated_path = _truncate_path_to_match_shallow_caches(uncached_path)
-            self.cache = _ensure_cache_matches_result(self.cache, result)
+            truncated_path = truncate_path_to_match_shallow_caches(uncached_path, result)
+            self.cache = ensure_cache_matches_result(self.cache, result)
 
             if truncated_path is not None:
                 with external_call_failed_exception_handling():
@@ -245,8 +253,10 @@ class CachedQuibFuncCall(QuibFuncCall):
 
         if self._should_cache(result, elapsed_seconds):
             self._caching = True
+            self.cache.make_a_copy_if_value_is_a_view()
+
         if not self._caching:
             self.cache = None
 
-        self._result_metadata = ResultMetadata.from_result(result)
+        self._update_shape_and_type_from_result(result)
         return result

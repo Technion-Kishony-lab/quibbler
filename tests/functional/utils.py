@@ -22,7 +22,8 @@ class PathBuilder:
     path: Path = field(default_factory=list)
 
     def __getitem__(self, item):
-        return PathBuilder(self.quib[item], [*self.path, PathComponent(self.quib.get_type(), item)])
+        self.quib.get_type()  # legacy from when PathComponent had type
+        return PathBuilder(self.quib[item], [*self.path, PathComponent(item)])
 
 
 def get_func_mock(func):

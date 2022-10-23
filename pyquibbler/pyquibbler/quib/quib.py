@@ -6,6 +6,10 @@ import weakref
 
 import numpy as np
 
+# Typing
+from pyquibbler.utilities.general_utils import Shape, Args, Kwargs
+from typing import Set, Any, Optional, Type, List, Union, Iterable, Callable
+
 # Matplotlib types:
 from matplotlib.artist import Artist
 from matplotlib.axes import Axes
@@ -51,10 +55,10 @@ from pyquibbler.cache import create_cache, CacheStatus
 from pyquibbler.quib.func_calling.cache_mode import CacheMode
 
 # Translations and inversion:
-from pyquibbler.translation.translate import forwards_translate, NoTranslatorsFoundException
-from pyquibbler.inversion.exceptions import NoInvertersFoundException
+from pyquibbler.utilities.multiple_instance_runner import NoRunnerWorkedException
+from pyquibbler.path_translation.translate import forwards_translate
 from pyquibbler.path import FailedToDeepAssignException, PathComponent, Path, Paths
-from pyquibbler.quib.utils.translation_utils import get_func_call_for_translation
+from pyquibbler.path_translation.create_source_func_call import get_func_call_for_translation
 from pyquibbler.inversion.invert import invert
 
 # Graphics:
@@ -71,8 +75,7 @@ from pyquibbler.quib.pretty_converters import MathExpression, FailedMathExpressi
 from pyquibbler.env import SHOW_QUIBS_AS_WIDGETS_IN_JUPYTER_LAB
 from pyquibbler.quib.exceptions import CannotDisplayQuibWidget
 
-from typing import Set, Any, TYPE_CHECKING, Optional, Tuple, Type, List, Union, Iterable, Mapping, Callable, Iterator
-
+from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pyquibbler.function_definitions.func_definition import FuncDefinition
     from pyquibbler.assignment.override_choice import ChoiceContext
@@ -103,8 +106,8 @@ class QuibHandler:
                  save_directory: PathWithHyperLink,
                  save_format: Optional[SaveFormat],
                  func: Optional[Callable],
-                 args: Tuple[Any, ...] = (),
-                 kwargs: Mapping[str, Any] = None,
+                 args: Args = (),
+                 kwargs: Kwargs = None,
                  func_definition: FuncDefinition = None,
                  cache_mode: CacheMode = None,
                  has_ever_called_get_value: bool = False
@@ -153,8 +156,8 @@ class QuibHandler:
         return Project.get_or_create()
 
     @property
-    def parents(self) -> Iterator[Quib]:
-        return self.quib_function_call.get_data_sources() | self.quib_function_call.get_parameter_sources()
+    def parents(self) -> List[Quib]:
+        return self.quib_function_call.get_data_sources() + self.quib_function_call.get_parameter_sources()
 
     def add_child(self, quib: Quib) -> None:
         """
@@ -271,17 +274,25 @@ class QuibHandler:
 
     def _forward_translate_with_retrieving_metadata(self, invalidator_quib: Quib, path: Path) -> Paths:
         func_call, sources_to_quibs = get_func_call_for_translation(self.quib_function_call, with_meta_data=None)
-        quibs_to_sources = {quib: source for source, quib in sources_to_quibs.items()}
-        sources_to_forwarded_paths = forwards_translate(
-            func_call=func_call,
-            sources_to_paths={
-                quibs_to_sources[invalidator_quib]: path
-            },
-            shape=self.quib_function_call.get_shape(),
-            type_=self.quib_function_call.get_type(),
-            **self.quib_function_call.get_result_metadata()
-        )
-        return sources_to_forwarded_paths.get(quibs_to_sources[invalidator_quib], [])
+
+        # a quib can appear more than once in the data sources. For example, np.concatenate((w, w))
+        invalidator_quib_indices = [i for i, quib in enumerate(list(sources_to_quibs.values()))
+                                    if quib is invalidator_quib]
+
+        invalidation_paths = []
+        for invalidator_quib_index in invalidator_quib_indices:
+            invalidation_paths_of_current_invalidator_quib_appearance = \
+                forwards_translate(
+                    func_call=func_call,
+                    source=list(sources_to_quibs)[invalidator_quib_index],
+                    source_location=self.quib_function_call.data_source_locations[invalidator_quib_index],
+                    path=path,
+                    shape=self.quib_function_call.get_shape(),
+                    type_=self.quib_function_call.get_type(),
+                    **self.quib_function_call.get_result_metadata()
+                )
+            invalidation_paths.extend(invalidation_paths_of_current_invalidator_quib_appearance)
+        return invalidation_paths
 
     def _get_paths_for_children_invalidation(self, invalidator_quib: Quib,
                                              path: Path) -> Paths:
@@ -291,9 +302,9 @@ class QuibHandler:
         If we have no translators, we forward the path to invalidate all, as we have no more specific way to do it
         """
 
-        # We cannot assume the if the quib is already fully invalid, all quibs downstream are also be fully invalid.
+        # We cannot assume that if the quib is already fully invalid, all quibs downstream are also be fully invalid.
         # Quibs with pass_quibs=True can still be valid. So we must continue to fully invalidate:
-        if self.quib_function_call._result_metadata is None:
+        if self.quib_function_call.result_shape is None:
             return [[]]
 
         # If the invalidator quib is a parameter source, the current quib must be fully invalidated.
@@ -303,7 +314,7 @@ class QuibHandler:
         # If the quib is a data source, we translate the path (if possible):
         try:
             return self._forward_translate_with_retrieving_metadata(invalidator_quib, path)
-        except NoTranslatorsFoundException:
+        except NoRunnerWorkedException:
             return [[]]
 
     def reset_quib_func_call(self):
@@ -398,7 +409,7 @@ class QuibHandler:
             inversals = invert(func_call=func_call,
                                previous_result=value,
                                assignment=assignment)
-        except NoInvertersFoundException:
+        except NoRunnerWorkedException:
             return []
 
         return [
@@ -598,8 +609,8 @@ class Quib:
                  save_directory: Optional[pathlib.Path] = None,
                  save_format: Optional[SaveFormat] = None,
                  func: Optional[Callable] = None,
-                 args: Tuple[Any, ...] = (),
-                 kwargs: Mapping[str, Any] = None,
+                 args: Args = (),
+                 kwargs: Kwargs = None,
                  func_definition: FuncDefinition = None,
                  cache_mode: CacheMode = None,
                  ):
@@ -648,7 +659,7 @@ class Quib:
         return self.handler.quib_function_call.func
 
     @property
-    def args(self) -> Tuple[Any]:
+    def args(self) -> Args:
         """
         tuple of any: The positional arguments to be passed to the function run by the quib.
 
@@ -674,7 +685,7 @@ class Quib:
         return self.handler.quib_function_call.args
 
     @property
-    def kwargs(self) -> Mapping[str, Any]:
+    def kwargs(self) -> Kwargs:
         """
         dict of str to any: The keyworded arguments for the function run by the quib.
 
@@ -981,7 +992,7 @@ class Quib:
         self.handler.allow_overriding = allow_overriding
 
     @raise_quib_call_exceptions_as_own
-    def assign(self, value: Any, key: Optional[Any] = missing) -> None:
+    def assign(self, value: Any, *keys) -> None:
         """
         Assign a value to the whole quib, or to a specific key.
 
@@ -989,16 +1000,19 @@ class Quib:
 
         ``w.assign(value)`` assigns a new value to the quib as a whole.
 
-        ``w.assign(value, key)`` assigns the quib at the specified key. This option is equivalent to
+        ``w.assign(value, key)`` assigns the quib at the specified key. This is equivalent to
         ``w[key] = value``.
+
+        ``w.assign(value, key1, key2, ..., keyN)`` assigns the quib at the specified path of keys. Equivalent to
+        ``w[key1][key2]...[kenN] = value``.
 
         Parameters
         ----------
         value: any
             A value to assign as to the quib at the specified `key`.
 
-        key: any (optional)
-            An optional key into which to assign the `value`.
+        keys: any (optional)
+            An optional list of arguments representing the keys into which to assign the `value`.
 
         See Also
         --------
@@ -1028,40 +1042,46 @@ class Quib:
         of the focal quib to which the assignment is made and by the `allow_overriding` property of upstream quibs.
         """
 
-        key = copy_and_replace_quibs_with_vals(key)
+        keys = copy_and_replace_quibs_with_vals(keys)
         value = copy_and_replace_quibs_with_vals(value)
-        path = [] if key is missing else [PathComponent(component=key, indexed_cls=self.get_type())]
+        path = [PathComponent(key) for key in keys]
         self.handler.apply_assignment(Assignment(value, path))
 
     def __setitem__(self, key, value):
         key = copy_and_replace_quibs_with_vals(key)
         value = copy_and_replace_quibs_with_vals(value)
-        path = [PathComponent(component=key, indexed_cls=self.get_type())]
+        path = [PathComponent(key)]
         self.handler.apply_assignment(Assignment(value, path))
 
     @property
     def assigned_quibs(self) -> Union[None, Set[Quib, ...]]:
         """
-        None or set of Quib: Specifies the quibs to which assignments to this quib could inverse-translate.
+        None or set of Quib: Specifies the quibs to which assignments to this quib could inverse-translate to.
 
         Options:
 
-        `None` : assignments to the quib are inverse-propagated and can be actualized as overrides at any upstream quib
-        whose ``allow_overriding=True``.
+        `set of Quibs` :
+            Assignments to the quib can be actualized as overrides at any upstream quibs included in the specified set
+            and whose ``allow_overriding=True``.
 
-        `set of Quibs` : assignments to the quib are inverse-propagated and can be actualized as overrides at
-        any upstream quibs in the specified set whose ``allow_overriding=True``.
+        `Quib` :
+        Specifying a single quib, instead of a set, is interpreted as a set containing this single quib.
+
+        `set()` :
+            Prevents assignments to this quib.
+
+        `'self'` :
+            To allow assignments to actualize locally, as overrides of the focal quib to which the assignments are made,
+            the focal quib itself, or `'self'`, can be used alone or as part of the set of quibs.
+            When self is included, the ``allow_overriding`` property is automatically set to ``True``.
+
+        `None` : (default)
+            Assignments to the quib can be actualized as overrides at any upstream quib whose ``allow_overriding=True``.
+            If while inverting the assignment an upstream quib is encountered with defined assigned_quibs (not `None`),
+            the set it defines is used for choosing upstream quibs for assignments.
 
         If multiple choices are available for inverse assignment, a dialog is presented to allow choosing between
         these options.
-
-        `set()` : prevents assignments to this quib.
-
-        To allow assignments to actualize as overrides of the focal quib to which the assignments are made,
-        the focal quib or `'self'` can be used within the set of quibs specified by `assigned quibs`.
-        When self is included, the ``allow_overriding`` property is automatically set to ``True``.
-
-        Specifying a single quib, or `'self'`, instead of a set is interpreted as a set containing this single quib.
 
         See Also
         --------
@@ -1362,7 +1382,7 @@ class Quib:
         return self.handler.quib_function_call.get_type()
 
     @raise_quib_call_exceptions_as_own
-    def get_shape(self) -> Tuple[int, ...]:
+    def get_shape(self) -> Shape:
         """
         Return the shape of the quib's value.
 
@@ -1510,6 +1530,10 @@ class Quib:
         --------
         get_override_list
         """
+
+        # Method gets overridden by `create_quib_method_overrides`, which makes it quiby with pass-quibs=True
+        # So self is a proxy quib of the original "self" quib.
+        #
         from pyquibbler.quib.specialized_functions.proxy import get_parent_of_proxy
         quib = get_parent_of_proxy(self)
         if issubclass(quib.get_type(), np.ndarray):
@@ -2066,7 +2090,7 @@ class Quib:
 
             return get_math_expression_of_func_with_args_and_kwargs(self.func, args, kwargs)
         except Exception as e:
-            logger.warning(f"Failed to get repr {e}")
+            logger.warning(f"Failed to get repr:\n{e}")
             return FailedMathExpression()
 
     @property
@@ -2092,7 +2116,7 @@ class Quib:
         try:
             return str(self._get_functional_representation_expression())
         except Exception as e:
-            logger.warning(f"Failed to get repr {e}")
+            logger.warning(f"Failed to get repr:\n{e}")
             return str(FailedMathExpression())
 
     def get_math_expression(self) -> MathExpression:

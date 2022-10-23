@@ -2,17 +2,16 @@ from unittest import mock
 
 import pytest
 
-from pyquibbler.function_definitions.func_call import FuncCall
-from pyquibbler.inversion.exceptions import NoInvertersFoundException
 from pyquibbler.inversion.invert import invert
-from pyquibbler.translation.source_func_call import SourceFuncCall
+from pyquibbler.path_translation.source_func_call import SourceFuncCall
+from pyquibbler.utilities.multiple_instance_runner import NoRunnerWorkedException
 
 
 def test_invert_raises_exception_on_unknown_func():
     assignment = mock.Mock()
     assignment.is_default = mock.Mock(return_value=False)
 
-    with pytest.raises(NoInvertersFoundException, match='.*'):
+    with pytest.raises(NoRunnerWorkedException, match='.*'):
         invert(
             func_call=SourceFuncCall.from_(func=mock.MagicMock(__name__='unknown'),
                                            func_args=tuple(),

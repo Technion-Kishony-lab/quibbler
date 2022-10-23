@@ -4,14 +4,15 @@ import warnings
 
 from dataclasses import dataclass
 from types import ModuleType
-from typing import Callable, Any, Dict, Union, Type, Optional, Tuple, Mapping
+from typing import Callable, Any, Dict, Union, Type, Optional, Tuple, Mapping, List
 
 from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.function_definitions import FuncArgsKwargs
 from pyquibbler.function_definitions.func_definition import FuncDefinition
-from pyquibbler.utilities.iterators import get_object_type_locations_in_args_kwargs
+from pyquibbler.function_definitions.location import get_object_type_locations_in_args_kwargs, SourceLocation
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.factory import create_quib
+from pyquibbler.utilities.general_utils import Args, Kwargs
 
 
 def get_flags_from_kwargs(flag_names: Tuple[str, ...], kwargs: Dict[str, Any]) -> Mapping[str, Any]:
@@ -32,13 +33,13 @@ class FuncOverride:
     should_remove_arguments_equal_to_defaults: bool = False
     _original_func: Callable = None
 
-    def _get_creation_flags(self, args, kwargs):
+    def _get_creation_flags(self, args: Args, kwargs: Kwargs):
         """
         Get all the creation flags for creating a quib
         """
         return {}
 
-    def _get_dynamic_flags(self, args, kwargs):
+    def _get_dynamic_flags(self, args: Args, kwargs: Kwargs):
         """
         Get flags found in the quib creation call
         """
@@ -48,12 +49,17 @@ class FuncOverride:
         return getattr(self.module_or_cls, self.func_name)
 
     @staticmethod
-    def _call_wrapped_func(func, args, kwargs) -> Any:
+    def _call_wrapped_func(func, args: Args, kwargs: Kwargs) -> Any:
         return func(*args, **kwargs)
 
     @staticmethod
-    def _modify_kwargs(kwargs):
-        return
+    def _modify_args_kwargs(args: Args, kwargs: Kwargs, quib_locations: List[SourceLocation]
+                            ) -> Tuple[Args, Kwargs, Optional[List[SourceLocation]]]:
+        return args, kwargs, quib_locations
+
+    @staticmethod
+    def should_create_quib(func, args, kwargs):
+        return True
 
     def _create_quib_supporting_func(self):
         """
@@ -77,8 +83,8 @@ class FuncOverride:
 
             quib_locations = get_object_type_locations_in_args_kwargs(Quib, args, kwargs)
 
-            if quib_locations:
-                self._modify_kwargs(kwargs)
+            if quib_locations and self.should_create_quib(wrapped_func, args, kwargs):
+                args, kwargs, quib_locations = self._modify_args_kwargs(args, kwargs, quib_locations)
                 flags = {**self._get_creation_flags(args, kwargs), **self._get_dynamic_flags(args, kwargs)}
                 if self.should_remove_arguments_equal_to_defaults:
                     kwargs = FuncArgsKwargs(wrapped_func, args, kwargs).get_kwargs_without_those_equal_to_defaults()
@@ -190,7 +196,7 @@ class NotImplementedOverride(FuncOverride):
         wrapped_func = self.original_func
 
         @functools.wraps(wrapped_func)
-        def _issue_exception_when_applyto_quibs(*args, **kwargs):
+        def _issue_exception_when_apply_to_quibs(*args, **kwargs):
 
             quib_locations = get_object_type_locations_in_args_kwargs(Quib, args, kwargs)
 
@@ -199,4 +205,4 @@ class NotImplementedOverride(FuncOverride):
 
             return wrapped_func(*args, **kwargs)
 
-        return _issue_exception_when_applyto_quibs
+        return _issue_exception_when_apply_to_quibs

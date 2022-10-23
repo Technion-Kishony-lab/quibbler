@@ -64,7 +64,7 @@ def default_assignment():
 
 @fixture
 def assignment_to_multiple():
-    return Assignment(value=[3, 4], path=[PathComponent(component=(None, None, None), indexed_cls=np.ndarray)])
+    return Assignment(value=[3, 4], path=[PathComponent((None, None, None))])
 
 
 @fixture(autouse=True)
@@ -237,8 +237,7 @@ def test_override_choice_when_diverged_and_all_diverged_inversions_are_overridde
     grandparent1, parent1, grandparent2, parent2, child, parent1_override = diverged_quib_graph
 
     override_group = get_overrides_for_assignment(child, Assignment(value=[3, 4],
-                                                                    path=[PathComponent(component=(None, None, None),
-                                                                                        indexed_cls=np.ndarray)]))
+                                                                    path=[PathComponent((None, None, None))]))
 
     assert len([o for o in override_group.quib_changes if not o.assignment.is_default()]) == 2
     assert len([o for o in override_group.quib_changes if o.assignment.is_default()]) == 3
@@ -364,6 +363,21 @@ def test_get_overrides_for_assignment_when_can_assign_to_parents(diverged_quib_g
     override_group = get_override_group_for_quib_change(assignment)
 
     assert len(override_group.quib_changes) == 3  # Two overrides and one override removal
+
+
+def test_get_overrides_for_assignment_with_differed_assigned_quibs(diverged_quib_graph, assignment_to_multiple):
+    grandparent1, parent1, grandparent2, parent2, child, parent1_override = diverged_quib_graph
+    parent1.allow_overriding = True
+    parent2.allow_overriding = True
+    grandparent1.allow_overriding = True
+    grandparent2.allow_overriding = True
+    parent1.assigned_quibs = 'self'
+    parent2.assigned_quibs = grandparent2
+    child.assigned_quibs = None  # assigned quibs will be chosen based on assigned_quibs of upstream quibs
+    assignment = AssignmentToQuib(child, assignment_to_multiple)
+    override_group = get_override_group_for_quib_change(assignment)
+
+    assert len(override_group.quib_changes) == 4  # Two overrides and two override removal
 
 
 def test_raises_cannot_change_when_context_quib_cannot_be_inverted():

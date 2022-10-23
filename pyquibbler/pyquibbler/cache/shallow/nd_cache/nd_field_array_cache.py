@@ -28,8 +28,8 @@ class NdFieldArrayShallowCache(NdIndexableCache):
         boolean_mask_of_indices = create_bool_mask_with_true_at_indices(self._value.shape, indices)
 
         return [
-            [PathComponent(indexed_cls=np.ndarray, component=name),
-             PathComponent(indexed_cls=np.ndarray, component=np.logical_and(
+            [PathComponent(name),
+             PathComponent(np.logical_and(
                  boolean_mask_of_indices,
                  self._invalid_mask[name]
              ))]
@@ -38,10 +38,9 @@ class NdFieldArrayShallowCache(NdIndexableCache):
 
     def _get_uncached_paths_at_path_component(self,
                                               path_component):
-        if path_component.references_field_in_field_array():
-            paths = [[PathComponent(indexed_cls=np.ndarray, component=path_component.component),
-                      PathComponent(indexed_cls=np.ndarray,
-                                    component=np.array(self._invalid_mask[path_component.component]))]]
+        if path_component.referencing_field_in_field_array(type(self._value)):
+            paths = [[PathComponent(path_component.component),
+                      PathComponent(np.array(self._invalid_mask[path_component.component]))]]
         else:
             paths = self._create_paths_for_indices(path_component.component)
 

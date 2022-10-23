@@ -2,10 +2,9 @@ from typing import List, Any, Type
 
 import numpy as np
 
-from pyquibbler.path import PathComponent, Paths
+from pyquibbler.path import PathComponent, Paths, Path
 from pyquibbler.cache.shallow.shallow_cache import ShallowCache
 from pyquibbler.utilities.general_utils import create_bool_mask_with_true_at_indices
-from pyquibbler.cache.cache_utils import is_path_component_nd
 
 
 class IndexableCache(ShallowCache):
@@ -29,12 +28,11 @@ class IndexableCache(ShallowCache):
                and self._original_type == type(result)
 
     def _get_uncached_paths_at_path_component(self, path_component: PathComponent) -> Paths:
-        if is_path_component_nd(path_component):
+        if isinstance(self._value, np.ndarray) or path_component.is_nd_reference():
             boolean_mask_of_indices = create_bool_mask_with_true_at_indices(self._shape(), path_component.component)
 
             return self._filter_empty_paths([
-                [PathComponent(indexed_cls=np.ndarray,
-                               component=np.logical_and(boolean_mask_of_indices, self._invalid_mask_broadcasted()))]
+                [PathComponent(np.logical_and(boolean_mask_of_indices, self._invalid_mask_broadcasted()))]
             ])
 
         mask = [(i, obj) for i, obj in enumerate(self._value)]
@@ -45,14 +43,15 @@ class IndexableCache(ShallowCache):
             data = [data]
 
         return [
-            [PathComponent(indexed_cls=list, component=i)]
+            [PathComponent(i)]
             for i, value in data
             if self._invalid_mask[i] is True
         ]
 
-    def _set_invalid_mask_at_path_component(self, path_component: PathComponent, value: bool):
+    def _set_invalid_mask_at_non_empty_path(self, path: Path, value: bool) -> None:
+        path_component = path[0]
         component = path_component.component
-        if is_path_component_nd(path_component):
+        if isinstance(self._value, np.ndarray) or path_component.is_nd_reference():
             nd_invalid_mask = self._invalid_mask_broadcasted()
             nd_invalid_mask[component] = value
             self._invalid_mask = self._unbroadcast_invalid_mask(nd_invalid_mask)
@@ -71,26 +70,6 @@ class IndexableCache(ShallowCache):
             # `a = iquib([1, 2, 3]); b = a[4:5]; b.get_value();
             # as python allows accessing slices out of bounds
 
-    def _set_valid_value_at_path_component(self, path_component: PathComponent, value):
-        if is_path_component_nd(path_component):
-            array_value = np.array(self._value, dtype=object)
-            array_value[path_component.component] = value
-            self._value = array_value.tolist()
-
-            # TODO: the above solution does not correctly account for
-            #  a list containing lists and arrays.
-            # For example, if we have
-            # _value = [[1, 2], np.array([3, 4])]
-            # then it will change to:
-            # _value = [[1, 2], [3, 4]]
-        else:
-            self._value[path_component.component] = value
-
-        self._set_invalid_mask_at_path_component(path_component, False)
-
-    def _set_invalid_at_path_component(self, path_component: PathComponent):
-        self._set_invalid_mask_at_path_component(path_component, True)
-
     def _is_completely_invalid(self):
         return all(self._invalid_mask)
 
@@ -99,9 +78,7 @@ class IndexableCache(ShallowCache):
 
     def _get_all_uncached_paths(self) -> Paths:
         return [
-            [PathComponent(indexed_cls=list, component=i)]
-            for i, value in enumerate(self._value)
-            if self._invalid_mask[i] is True
+            [PathComponent(i)] for i, _ in enumerate(self._value) if self._invalid_mask[i]
         ]
 
     def _shape(self):

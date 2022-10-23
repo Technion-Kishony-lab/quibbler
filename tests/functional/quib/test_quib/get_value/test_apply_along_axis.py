@@ -1,9 +1,14 @@
+import contextlib
+import copy
+import dataclasses
 import itertools
+from functools import partial
+from typing import Callable
 
 from pyquibbler import iquib
 from pyquibbler.env import GRAPHICS_LAZY
 from pyquibbler.path import PathComponent
-from pyquibbler.path.data_accessing import deep_get
+from pyquibbler.path.data_accessing import deep_get, deep_set
 from pyquibbler.quib.quib import Quib
 from tests.functional.utils import get_func_mock
 from tests.functional.quib.test_quib.get_value.utils import check_get_value_valid_at_path
@@ -14,7 +19,10 @@ import pytest
 # A 3d array in which every dimension has a different size
 parametrize_data = pytest.mark.parametrize('data', [np.arange(24).reshape((2, 3, 4))])
 parametrize_indices_to_invalidate = pytest.mark.parametrize('indices_to_invalidate',
-                                                     [-1, 0, (0, 0), (0, 1, 2), (0, ...), [True, False]])
+                                                     [[-1], [0], [(0, 0)], [(0, 1, 2)], [(0, ...)], [[True, False]]])
+parametrize_path_to_invalidate = pytest.mark.parametrize('path_to_invalidate',[
+[1, 2, 3],
+])
 parametrize_keepdims = pytest.mark.parametrize('keepdims', [True, False, None])
 parametrize_where = pytest.mark.parametrize('where', [True, False, [[[True], [False], [True]]], None])
 
@@ -25,15 +33,14 @@ parametrize_where = pytest.mark.parametrize('where', [True, False, [[[True], [Fa
 @pytest.mark.parametrize('indices_to_get_value_at', [0, (0, 0), (-1, ...)])
 def test_apply_along_axis_get_value_valid_at_path(indices_to_get_value_at, axis, func_out_dims, data):
     func1d = lambda slice: np.sum(slice).reshape((1,) * func_out_dims)
-    path_to_get_value_at = [PathComponent(np.ndarray, indices_to_get_value_at)]
+    path_to_get_value_at = [PathComponent(indices_to_get_value_at)]
 
     check_get_value_valid_at_path(lambda quib: np.apply_along_axis(func1d, axis, quib), data, path_to_get_value_at)
 
 
 def create_lazy_apply_along_axis_quib(func, arr, axis, args=None, kwargs=None, pass_quibs=False) -> Quib:
-    with GRAPHICS_LAZY.temporary_set(False):
-        return np.apply_along_axis(func, axis, iquib(arr) if not isinstance(arr, Quib) else arr,
-                                   *(args or []), **(kwargs or {}), pass_quibs=pass_quibs)
+    return np.apply_along_axis(func, axis, iquib(arr) if not isinstance(arr, Quib) else arr,
+                               *(args or []), **(kwargs or {}), pass_quibs=pass_quibs)
 
 
 @pytest.mark.parametrize('shape, axis, func1d_res', [
@@ -122,7 +129,7 @@ def test_apply_along_axis_get_value(input_shape, apply_result_shape, axis, compo
     quib = create_lazy_apply_along_axis_quib(arr=arr, func=func, axis=axis, pass_quibs=pass_quibs)
     quib.get_shape()  # We need to call get_shape to cache it as get_shape is a zero cost operation in overall scheme
     # and is allowed to be called without consequence by the quib
-    path = [PathComponent(component=component, indexed_cls=np.ndarray) for component in components]
+    path = [PathComponent(component) for component in components]
     running_in_quib = True
 
     res = quib.get_value_valid_at_path(path)
@@ -254,7 +261,7 @@ def test_apply_along_axis_removes_and_recreates_artists(create_artist_and_return
 
     quib.get_value()
     artists_before_invalidation = list(mock_axes._children)
-    parent.handler.invalidate_and_aggregate_redraw_at_path([PathComponent(component=0, indexed_cls=np.ndarray)])
+    parent.handler.invalidate_and_aggregate_redraw_at_path([PathComponent(0)])
     quib.get_value()
 
     assert len(mock_axes._children) == 2
@@ -267,11 +274,57 @@ def test_apply_along_axis_does_not_remove_artists_that_are_not_his(create_artist
         axis=0,
         func=create_artist_and_return_1
     )
-    quib.get_value_valid_at_path([PathComponent(component=0, indexed_cls=np.ndarray)])
+    quib.get_value_valid_at_path([PathComponent(0)])
     artists = list(mock_axes._children)
     assert len(artists) == 1, "Sanity check"
 
-    quib.get_value_valid_at_path([PathComponent(component=1, indexed_cls=np.ndarray)])
+    quib.get_value_valid_at_path([PathComponent(1)])
 
     assert len(mock_axes._children) == 2
     assert len(set(artists) & set(mock_axes._children)) == 1
+
+
+def sum_val(vec):
+    sum = 0
+    for x in vec:
+        sum += x['val']
+    return sum
+
+
+@pytest.mark.parametrize("function_type", [1, 2, 3])
+@pytest.mark.parametrize("should_array, path, expected_invalid_mask", [
+    (True, [PathComponent(1), PathComponent(1)], [False, True]),
+    (True, [PathComponent((1, 1))], [False, True]),
+    (False, [PathComponent(1), PathComponent(1)], [False, True]),
+])
+def test_apply_along_axis_invalidation_manual(should_array, path, expected_invalid_mask, function_type):
+
+    array_like_int = [[1, 2], [3, 4]]
+    array_like_dict = [[{'val': 1}, {'val': 2}], [{'val': 3}, {'val': 4}]]
+
+    if function_type == 3:
+        array_like = array_like_dict
+    else:
+        array_like = array_like_int
+
+    if should_array:
+        array_like = np.array(array_like)
+
+    a = iquib(array_like)
+
+    if function_type == 1:
+        b = np.sum(a, axis=0)
+    elif function_type == 2:
+        b = np.apply_along_axis(np.sum, 0, a)
+    else:
+        b = np.apply_along_axis(sum_val, 0, a)
+        path.append(PathComponent('val'))
+
+    b.setp(cache_mode='on')
+
+    assert np.array_equal(b.get_value(), [4, 6])
+    get_a = deep_get(a, path)
+    get_a.assign(5)
+    invalid_mask = copy.copy(b.handler.quib_function_call.cache._invalid_mask)
+    assert np.array_equal(b.get_value(), [4, 7])
+    assert np.array_equal(invalid_mask, expected_invalid_mask)

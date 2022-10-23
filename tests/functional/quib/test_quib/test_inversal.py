@@ -5,7 +5,7 @@ import numpy as np
 # should be here
 import pytest
 
-from pyquibbler import iquib, q
+from pyquibbler import iquib, q, obj2quib
 from pyquibbler.quib.quib import Quib
 
 
@@ -260,3 +260,48 @@ def test_inverse_operator():
     b.assign(70)
     assert b.get_value() == 70
     assert a.get_value() == 30
+
+
+def test_deep_assign_into_array():
+    a0 = iquib({'name': 'roy'})
+    a1 = iquib({'name': 'maor'})
+    b = np.array([a0, a1])
+    assert b.get_value()[0]['name'] == 'roy'
+
+    b[0]['name'] = 'kishony'
+    assert a0.get_value()['name'] == 'kishony'
+
+
+def test_inverse_element_wise_of_list_of_quibs():
+    a = iquib(1)
+    b = iquib(2)
+
+    c = np.exp2([0, a, b])
+    c[1] = 8
+
+    assert a.get_value() == 3
+    assert b.get_value() == 2
+
+
+def test_inverse_binary_element_wise_of_list_of_quibs():
+    a = iquib(np.array([1, 2, 3]))
+    b = iquib(20)
+    c = [[10], [b], [30]] + a
+    c[1, 1] = 102
+    assert b.get_value() == 100
+
+
+def test_elementwise_single_arg_inversal():
+    a = iquib([1, 2])
+    b = np.exp2(a)
+    b.get_value()
+    b[1] = 8
+
+    assert a.get_value() == [1, 3]
+
+
+def test_inversion_of_binary_many_to_one_function():
+    x = iquib(-1.)
+    y = x ** 2
+    y.assign(4.)
+    assert x.get_value() == -2

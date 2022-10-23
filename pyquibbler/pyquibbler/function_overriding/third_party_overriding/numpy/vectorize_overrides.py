@@ -7,10 +7,9 @@ from pyquibbler.function_definitions import PositionalArgument, KeywordArgument,
 from pyquibbler.function_definitions.func_call import FuncArgsKwargs
 from pyquibbler.function_definitions.func_definition import FuncDefinition
 from pyquibbler.function_overriding.function_override import FuncOverride
-from pyquibbler.quib.func_calling.func_calls.vectorize.vectorize_call \
-    import VectorizeQuibFuncCall
+from pyquibbler.quib.func_calling.func_calls.vectorize.vectorize_call import VectorizeQuibFuncCall
 from pyquibbler.env import PRETTY_REPR
-from pyquibbler.translation.translators.vectorize_translator import VectorizeForwardsPathTranslator, \
+from pyquibbler.path_translation.translators.vectorize import VectorizeForwardsPathTranslator, \
     VectorizeBackwardsPathTranslator
 
 
@@ -23,7 +22,7 @@ class VectorizeOverride(FuncOverride):
 
 class VectorizeCallDefinition(FuncDefinition):
 
-    def get_data_source_arguments(self, func_args_kwargs: FuncArgsKwargs):
+    def get_data_arguments(self, func_args_kwargs: FuncArgsKwargs):
         """
         Given a call to a vectorized function, return the arguments which act as data sources.
         We are using func_args_kwargs.args and func_args_kwargs.kwargs instead of the full args dict on purpose,

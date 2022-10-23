@@ -10,7 +10,8 @@ import gc
 
 from pyquibbler import CacheMode
 from pyquibbler.env import DEBUG, LAZY, PRETTY_REPR, \
-    SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS, GET_VARIABLE_NAMES, GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION
+    SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS, GET_VARIABLE_NAMES, GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION, \
+    ALLOW_ARRAY_WITH_DTYPE_OBJECT, SAFE_MODE
 from pyquibbler.optional_packages.emulate_missing_packages import EMULATE_MISSING_PACKAGES
 from pyquibbler.project import Project
 from pyquibbler import initialize_quibbler
@@ -28,10 +29,12 @@ from pyquibbler.debug_utils.track_instances import track_instances_of_class, TRA
 
 DEFAULT_EMULATE_MISSING_PACKAGES = []
 DEFAULT_DEBUG = True
+DEFAULT_ALLOW_ARRAY_WITH_DTYPE_OBJECT = False
 DEFAULT_LAZY = True
 DEFAULT_ASSIGNMENT_RESTRICTIONS = False
 DEFAULT_PRETTY_REPR = True
 DEFAULT_SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACK = False
+DEFAULT_SAFE_MODE = False
 DEFAULT_GET_VARIABLE_NAMES = False
 DEFAULT_GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION = 1000
 
@@ -76,18 +79,25 @@ def parametrize_flag_fixture(metafunc, name, fixture_name):
 
 def pytest_generate_tests(metafunc):
     parametrize_flag_fixture(metafunc, 'debug', 'setup_debug')
+    parametrize_flag_fixture(metafunc, 'allow_array_with_dtype_object', 'setup_allow_array_with_dtype_object')
     parametrize_flag_fixture(metafunc, 'evaluate', 'setup_evaluate_now')
     parametrize_flag_fixture(metafunc, 'assignment_restrictions', 'setup_assignment_restrictions')
     parametrize_flag_fixture(metafunc, 'pretty_repr', 'setup_pretty_repr')
     parametrize_flag_fixture(metafunc, 'get_variable_names', 'setup_get_variable_names')
     parametrize_flag_fixture(metafunc, 'graphics_driven_assignment_resolution', 'setup_graphics_driven_assignment_resolution')
     parametrize_flag_fixture(metafunc, 'show_quib_exceptions_as_quib_traceback', 'setup_show_quib_exceptions_as_quib_traceback')
+    parametrize_flag_fixture(metafunc, 'safe_mode', 'setup_safe_mode')
 
 
 def setup_flag(flag: Flag, default: bool, request):
     val = getattr(request, 'param', default)
     with flag.temporary_set(val):
         yield
+
+
+@fixture(autouse=True)
+def setup_allow_array_with_dtype_object(request):
+    yield from setup_flag(ALLOW_ARRAY_WITH_DTYPE_OBJECT, DEFAULT_ALLOW_ARRAY_WITH_DTYPE_OBJECT, request)
 
 
 @fixture(autouse=True)
@@ -109,6 +119,11 @@ def setup_pretty_repr(request):
 def setup_show_quib_exceptions_as_quib_traceback(request):
     yield from setup_flag(SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS, DEFAULT_SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACK,
                           request)
+
+
+@fixture(autouse=True)
+def setup_safe_mode(request):
+    yield from setup_flag(SAFE_MODE, DEFAULT_SAFE_MODE, request)
 
 
 @fixture(autouse=True)

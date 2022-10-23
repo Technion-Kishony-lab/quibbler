@@ -16,7 +16,7 @@ def test_quib_does_not_request_shape_or_parents_shapes_on_first_attempt(create_m
     parent = create_mock_quib()
     quib = create_quib(func=lambda a: a, args=(parent,))
     backwards_path_translator = mock.Mock()
-    backwards_path_translator.return_value.translate.return_value = {}
+    backwards_path_translator.return_value._backwards_translate.return_value = {}
     add_definition_for_function(func=quib.func, func_definition=create_func_definition(
         raw_data_source_arguments=[0], backwards_path_translators=[backwards_path_translator]))
 
@@ -37,4 +37,4 @@ def test_quib_representing_read_only_array():
         return b
 
     x = get_read_only_array()
-    assert x.get_value_valid_at_path([PathComponent(component=[False, True, False], indexed_cls=np.ndarray)])[1] == 0.
+    assert x.get_value_valid_at_path([PathComponent([False, True, False])])[1] == 0.
