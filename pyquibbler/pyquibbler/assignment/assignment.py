@@ -6,15 +6,12 @@ from typing import Any, TYPE_CHECKING, List, Union, Optional, Callable, Tuple
 
 from pyquibbler.utilities.numpy_original_functions import np_array
 
-from pyquibbler.quib.pretty_converters.pretty_convert import getitem_converter
-from pyquibbler.path import Path
-
 from pyquibbler.quib.pretty_converters.math_expressions.get_item_expression import GetItemExpression
 from pyquibbler.path.path_component import Path
 
 from .default_value import default
 from .rounding import floor_log10
-from .utils import is_scalar
+from .utils import is_numeric_scalar
 
 if TYPE_CHECKING:
     from pyquibbler.quib.quib import Quib
@@ -129,7 +126,7 @@ def create_assignment(value: Any, path: Path,
     value_up = value + tolerance
     value_down = value - tolerance
 
-    if is_scalar(value) or value_is_list_or_tuple:
+    if is_numeric_scalar(value) or value_is_list_or_tuple:
         value = original_type(value)
         value_up = original_type(value_up)
         value_down = original_type(value_down)
