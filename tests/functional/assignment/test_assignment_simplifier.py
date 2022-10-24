@@ -1,6 +1,5 @@
 import numpy as np
 import pytest
-from pytest import fixture
 from copy import deepcopy
 
 from pyquibbler.assignment import Assignment, AssignmentSimplifier
@@ -16,7 +15,7 @@ def is_path_simple(path: Path):
         return False
     if not isinstance(component, tuple):
         component = (component, )
-    return all(isinstance(index, (int, np.int64)) for index in component)
+    return all(isinstance(index, (int, slice, np.int64)) for index in component)
 
 
 @pytest.mark.parametrize("assigned_value, assigned_path, data, should_simplify", [
@@ -27,6 +26,7 @@ def is_path_simple(path: Path):
     (np.array([100]), (np.array([2]), [3]), np.arange(12).reshape(3, 4), True),
     ([100], (np.array([2]), [3]), np.arange(12).reshape(3, 4), True),
     ([100], ([False, True, False], [False, False, True, False]), np.arange(12).reshape(3, 4), True),
+    ([100, 101, 102], ([[False, False, False], [True, True, True]],), np.arange(6).reshape(2, 3), True),
 ], ids=[
     "not single value",
     "single value",
@@ -34,17 +34,18 @@ def is_path_simple(path: Path):
     "two-dimensional with ndarray",
     "simplify assigned_value",
     "simplify assigned_value list",
-    "bool indexing"
+    "bool indexing",
+    "bool whole-array indexing",
 ])
-def test(assigned_value, assigned_path, data, should_simplify):
+def test_assignment_simplify(assigned_value, assigned_path, data, should_simplify):
     assignment = Assignment(assigned_value, [PathComponent(assigned_path)])
-    simplied_assignment = AssignmentSimplifier(deepcopy(assignment), data).simplify()
+    simplified_assignment = AssignmentSimplifier(deepcopy(assignment), data).simplify()
 
     data_original_assignment = deep_set(data, assignment.path, assignment.value)
-    data_simplified_assignment = deep_set(data, simplied_assignment.path, simplied_assignment.value)
+    data_simplified_assignment = deep_set(data, simplified_assignment.path, simplified_assignment.value)
 
     assert np.array_equal(data_simplified_assignment, data_original_assignment)
 
     if should_simplify:
-        assert is_path_simple(simplied_assignment.path)
-        assert not isinstance(simplied_assignment.value, np.ndarray)
+        assert is_path_simple(simplified_assignment.path)
+        assert not isinstance(simplified_assignment.value, np.ndarray)
