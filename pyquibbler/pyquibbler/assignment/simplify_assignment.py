@@ -84,17 +84,40 @@ class AssignmentSimplifier:
     def _convert_bool_indexing(self):
         new_last_component = list(self.last_component.component)
         for axis, sub_component in enumerate(self.last_component.component):
-            if isinstance(sub_component, list):
-                sub_component = np_array(sub_component)
-            if not isinstance(sub_component, np.ndarray):
-                continue
-            if sub_component.dtype.type is np.bool_ \
+            if isinstance(sub_component, np.ndarray) and sub_component.dtype.type is np.bool_ \
                     and np.shape(sub_component) == (np.shape(self.second_to_last_data)[axis], ):
                 if np_sum(sub_component) == 1:
                     new_last_component[axis] = np.where(sub_component)[0].tolist()
                 elif np_all(sub_component):
                     new_last_component[axis] = slice(None, None, None)
         self.last_component.component = tuple(new_last_component)
+
+    def _convert_last_sub_components_from_lists_to_arrays(self):
+        self.last_component.component = tuple(
+            np.array(sub_component) if isinstance(sub_component, list)
+            else sub_component for sub_component in self.last_component.component)
+
+    def _convert_last_sub_components_from_arrays_to_lists(self):
+        self.last_component.component = tuple(
+            sub_component.tolist() if isinstance(sub_component, np.ndarray)
+            else sub_component for sub_component in self.last_component.component)
+
+    def _convert_whole_array_bool_indexing(self):
+        if len(self.last_component.component) != 1:
+            return
+
+        sub_component = self.last_component.component[0]
+        data_shape = np.shape(self.second_to_last_data)
+        if isinstance(sub_component, np.ndarray) and sub_component.dtype.type is np.bool_ \
+                and sub_component.shape == data_shape:
+            # whole-array bool indexing
+            per_axes_indices = [indices[sub_component] for indices in np.indices(sub_component.shape)]
+            for axis, indices in enumerate(per_axes_indices):
+                if np.all(indices == indices[0]):
+                    per_axes_indices[axis] = indices[0]
+                elif np.array_equal(indices, np.arange(data_shape[axis])):
+                    per_axes_indices[axis] = slice(None, None, None)
+            self.last_component.component = tuple(per_axes_indices)
 
     def simplify(self) -> Assignment:
         """
@@ -111,6 +134,10 @@ class AssignmentSimplifier:
 
             self._make_last_component_tuple()
 
+            self._convert_last_sub_components_from_lists_to_arrays()
+
+            self._convert_whole_array_bool_indexing()
+
             if len(self.last_component.component) == np.ndim(self.second_to_last_data):
 
                 self._convert_bool_indexing()
@@ -120,6 +147,8 @@ class AssignmentSimplifier:
                 self._convert_value_to_list()
 
                 self._simplify_assignment_of_array_with_size_one()
+
+            self._convert_last_sub_components_from_arrays_to_lists()
 
             self._convert_tuple_path_component_of_len_1_to_non_tuple()
         except (ValueError, IndexError, TypeError, KeyError):
