@@ -4,6 +4,7 @@ from typing import Optional
 from pyquibbler.env import GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION
 from pyquibbler.graphics.widgets import QSlider
 from pyquibbler.quib.func_calling.func_calls.known_graphics.widgets.widget_call import WidgetQuibFuncCall
+from pyquibbler.quib.quib import Quib
 
 
 @dataclasses.dataclass
@@ -14,7 +15,6 @@ class SliderQuibFuncCall(WidgetQuibFuncCall):
         return 'valinit'
 
     def _on_change_slider(self, new_value, widget: QSlider):
-        from pyquibbler.quib.quib import Quib
         val = self.func_args_kwargs.get('valinit')
         if isinstance(val, Quib):
             if widget.valstep is None and GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.val is not None:

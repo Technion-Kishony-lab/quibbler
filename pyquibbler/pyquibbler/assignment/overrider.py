@@ -11,7 +11,8 @@ from pyquibbler.path.data_accessing import deep_get, deep_set
 from pyquibbler.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
 from pyquibbler.quib.utils import deep_copy_without_quibs_or_graphics
 from pyquibbler.utilities.iterators import recursively_run_func_on_object
-from pyquibbler.debug_utils import timeit
+
+from pyquibbler.debug_utils import timeit, logger
 
 from .assignment import Assignment
 from .assignment_to_from_text import convert_executable_text_to_assignments, convert_assignments_to_executable_text
@@ -81,7 +82,6 @@ class Overrider:
             if hashable_path == path:
                 new_paths_with_assignments.pop(i)
 
-        from pyquibbler.debug_utils.logger import logger
         logger.info(f"New paths with assignments {new_paths_with_assignments}")
         self._paths_to_assignments = dict(new_paths_with_assignments)
 

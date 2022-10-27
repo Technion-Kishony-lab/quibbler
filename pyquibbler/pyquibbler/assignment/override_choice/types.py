@@ -4,6 +4,7 @@ from typing import List, Union
 
 from pyquibbler.assignment import AssignmentToQuib
 from pyquibbler.quib.graphics import aggregate_redraw_mode
+from pyquibbler.project import Project
 
 
 @dataclass
@@ -27,7 +28,6 @@ class OverrideGroup:
     quib_changes: List[AssignmentToQuib] = field(default_factory=list)
 
     def apply(self, is_dragging: bool = False):
-        from pyquibbler.project import Project
         Project.get_or_create().start_pending_undo_group()
         with aggregate_redraw_mode(is_dragging):
             for quib_change in self.quib_changes:
