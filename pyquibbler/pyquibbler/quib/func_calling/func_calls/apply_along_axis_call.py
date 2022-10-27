@@ -101,7 +101,8 @@ class ApplyAlongAxisQuibFuncCall(CachedQuibFuncCall):
         """
         if self._pass_quibs:
             return create_proxy(self.arr[indices])
-        return self.arr[indices].get_value()
+        path = [PathComponent(indices)]
+        return self.arr.get_value_valid_at_path(path)[indices]
 
     def _get_result_at_indices(self,
                                requested_indices_bool_mask: np.ndarray,

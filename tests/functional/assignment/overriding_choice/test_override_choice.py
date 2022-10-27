@@ -390,7 +390,7 @@ def test_raises_cannot_change_when_context_quib_cannot_be_inverted():
 
 def test_get_override_group_on_context_quibs():
     non_context_parent = iquib(0)
-    with get_value_context():
+    with get_value_context(pass_quibs=True):
         context_parent = iquib(1)
         child = non_context_parent + context_parent
         child.allow_overriding = True
