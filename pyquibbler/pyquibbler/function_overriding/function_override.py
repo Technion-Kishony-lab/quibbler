@@ -10,6 +10,7 @@ from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.function_definitions import FuncArgsKwargs
 from pyquibbler.function_definitions.func_definition import FuncDefinition
 from pyquibbler.function_definitions.location import get_object_type_locations_in_args_kwargs, SourceLocation
+from pyquibbler.quib.get_value_context_manager import get_value_context_pass_quibs
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.factory import create_quib
 from pyquibbler.utilities.general_utils import Args, Kwargs
@@ -76,33 +77,29 @@ class FuncOverride:
         @functools.wraps(wrapped_func)
         def _maybe_create_quib(*args, **kwargs):
 
-            # TODO: good to implement a condition here so that we don't waste time searching args, kwargs
-            #  during get_value and inverse assignment. Though, just setting
-            #  'if not (get_value_context_pass_quibs() is False)'
-            #  doesn't work - leads to failed tests in apply_along_axis
+            if get_value_context_pass_quibs() is not False:
+                quib_locations = get_object_type_locations_in_args_kwargs(Quib, args, kwargs)
 
-            quib_locations = get_object_type_locations_in_args_kwargs(Quib, args, kwargs)
+                if quib_locations and self.should_create_quib(wrapped_func, args, kwargs):
+                    args, kwargs, quib_locations = self._modify_args_kwargs(args, kwargs, quib_locations)
+                    flags = {**self._get_creation_flags(args, kwargs), **self._get_dynamic_flags(args, kwargs)}
+                    if self.should_remove_arguments_equal_to_defaults:
+                        kwargs = FuncArgsKwargs(wrapped_func, args, kwargs).get_kwargs_without_those_equal_to_defaults()
 
-            if quib_locations and self.should_create_quib(wrapped_func, args, kwargs):
-                args, kwargs, quib_locations = self._modify_args_kwargs(args, kwargs, quib_locations)
-                flags = {**self._get_creation_flags(args, kwargs), **self._get_dynamic_flags(args, kwargs)}
-                if self.should_remove_arguments_equal_to_defaults:
-                    kwargs = FuncArgsKwargs(wrapped_func, args, kwargs).get_kwargs_without_those_equal_to_defaults()
+                    if flags:
+                        func_definition_for_quib = copy.deepcopy(func_definition)
+                        for key, value in flags.items():
+                            setattr(func_definition_for_quib, key, value)
+                    else:
+                        func_definition_for_quib = func_definition
 
-                if flags:
-                    func_definition_for_quib = copy.deepcopy(func_definition)
-                    for key, value in flags.items():
-                        setattr(func_definition_for_quib, key, value)
-                else:
-                    func_definition_for_quib = func_definition
-
-                return create_quib(
-                    func=wrapped_func,
-                    args=args,
-                    kwargs=kwargs,
-                    func_definition=func_definition_for_quib,
-                    quib_locations=quib_locations,
-                )
+                    return create_quib(
+                        func=wrapped_func,
+                        args=args,
+                        kwargs=kwargs,
+                        func_definition=func_definition_for_quib,
+                        quib_locations=quib_locations,
+                    )
 
             return self._call_wrapped_func(wrapped_func, args, kwargs)
 
