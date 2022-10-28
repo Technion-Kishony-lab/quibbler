@@ -33,7 +33,6 @@ class RectangleSelectorQuibFuncCall(WidgetQuibFuncCall):
         and attempt to resize even when the user did not request to resize- we here check if the widget attempted to
         resize when it should not have been able to
         """
-        from pyquibbler.quib.quib import Quib
         init_val = self.func_args_kwargs.get('extents')
         allow_resize = self.func_args_kwargs.get('allow_resize')
         if isinstance(init_val, Quib):

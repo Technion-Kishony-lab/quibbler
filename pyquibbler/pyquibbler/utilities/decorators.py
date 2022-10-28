@@ -1,6 +1,8 @@
 import functools
 from typing import Callable
 
+import numpy as np
+
 
 def ensure_only_run_once_globally(func: Callable):
     """
@@ -30,3 +32,32 @@ def assign_func_name(name: str):
         return func
 
     return _assign
+
+
+def squash_recursive_calls(func: Callable):
+    """
+    When the function is running, additional calls to the function
+    are squashed, so that when the run is completed only the last pending
+    call is executed.
+    """
+    pending_args = None
+    pending_kwargs = None
+
+    @functools.wraps(func)
+    def _wrapper(*args, **kwargs):
+        nonlocal pending_args, pending_kwargs
+        already_running = pending_args is not None
+        pending_args, pending_kwargs = args, kwargs
+
+        if already_running:
+            return
+
+        while pending_args is not None:
+            args = pending_args
+            kwargs = pending_kwargs
+            func(*args, **kwargs)
+            if pending_args is args and pending_kwargs is pending_kwargs:
+                pending_args = None
+                pending_kwargs = None
+
+    return _wrapper

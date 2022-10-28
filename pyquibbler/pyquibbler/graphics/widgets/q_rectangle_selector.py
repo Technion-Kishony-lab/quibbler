@@ -10,6 +10,7 @@ from pyquibbler.utilities.basic_types import Mutable
 
 from ...quib.get_value_context_manager import is_within_get_value_context
 from ...quib.graphics.redraw import skip_canvas_draws
+from ...utilities.decorators import squash_recursive_calls
 
 
 @dataclass
@@ -46,6 +47,7 @@ class QRectangleSelector(RectangleSelector):
     def event_is_relevant_to_current_selector(self) -> bool:
         return (self._active_handle and self._active_handle != 'C') or self.is_current_event_a_move_event()
 
+    @squash_recursive_calls
     def _onmove(self, event):
         if self.event_is_relevant_to_current_selector():
             if self.allow_resize or self.is_current_event_a_move_event():
