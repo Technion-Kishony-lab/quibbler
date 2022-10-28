@@ -6,6 +6,7 @@ from typing import Set, Dict
 from matplotlib.figure import Figure
 from matplotlib.pyplot import fignum_exists
 from matplotlib._pylab_helpers import Gcf
+from matplotlib.pyplot import get_backend
 
 from pyquibbler.debug_utils import timeit
 
@@ -113,7 +114,13 @@ def redraw_figures(figures: Set[Figure]):
     canvases = {figure.canvas for figure in figures if fignum_exists(figure.number)}
     with timeit("redraw", f"redraw {len(figures)} figures"):
         for canvas in canvases:
-            # `canvas.draw()` worked with tk. did not with osx.
-            # based on https://matplotlib.org/stable/api/animation_api.html, we use instead:
-            canvas.draw_idle()
-            canvas.start_event_loop(0.001)
+            if get_backend() == 'TkAgg':
+                # `canvas.start_event_loop(0.001)` works with tk, but cause some times the kernel to
+                # get stuck when dragging rectangle_selector in jupyterlab.
+                # canvas.draw() works better with tk
+                canvas.draw()
+            else:
+                # `canvas.draw()` does not work with osx. it just doesn't redraw.
+                # based on https://matplotlib.org/stable/api/animation_api.html, we use instead:
+                canvas.draw_idle()
+                canvas.start_event_loop(0.001)
