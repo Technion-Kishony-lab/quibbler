@@ -7,10 +7,9 @@ from matplotlib.backend_bases import MouseButton
 from matplotlib.widgets import RectangleSelector
 
 from pyquibbler.utilities.basic_types import Mutable
+from pyquibbler.utilities.decorators import squash_recursive_calls
 
-from ...quib.get_value_context_manager import is_within_get_value_context
-from ...quib.graphics.redraw import skip_canvas_draws
-from ...utilities.decorators import squash_recursive_calls
+from pyquibbler.quib.get_value_context_manager import is_within_get_value_context
 
 
 @dataclass

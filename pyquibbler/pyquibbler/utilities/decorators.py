@@ -1,8 +1,6 @@
 import functools
 from typing import Callable
 
-import numpy as np
-
 
 def ensure_only_run_once_globally(func: Callable):
     """

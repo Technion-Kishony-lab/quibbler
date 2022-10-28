@@ -1,15 +1,15 @@
-from typing import Callable, Set, Optional
+from typing import Optional
 
 import numpy as np
 
-from pyquibbler.utilities.general_utils import Kwargs, Args
-from pyquibbler.assignment import AssignmentToQuib, AssignmentWithTolerance, get_axes_x_y_tolerance
-from pyquibbler.function_definitions import KeywordArgument
-from pyquibbler.graphics import GraphicsCollection
-from pyquibbler.graphics.widgets import QRectangleSelector
-from pyquibbler.quib.quib import Quib
-from pyquibbler.path import PathComponent
 from pyquibbler.debug_utils import timeit
+
+from pyquibbler.quib.quib import Quib
+
+from pyquibbler.assignment import AssignmentToQuib, AssignmentWithTolerance, get_axes_x_y_tolerance
+from pyquibbler.graphics.widgets import QRectangleSelector
+from pyquibbler.path import PathComponent
+
 from .widget_call import WidgetQuibFuncCall
 
 
