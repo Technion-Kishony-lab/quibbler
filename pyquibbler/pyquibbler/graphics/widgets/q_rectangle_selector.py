@@ -88,14 +88,16 @@ class QRectangleSelector(RectangleSelector):
 
     @extents.setter
     def extents(self, extents):
-        super(type(self), type(self)).extents.fset(self, extents)
-        if self.changed_callback is not None:
-            # Important to use self.extents and not extents because it sorts the coordinates
-            self.changed_callback(self.extents)
+        if self.created_in_get_value_context:
+            extents = sorted(extents[:2]) + sorted(extents[2:])
+            if self.changed_callback is not None:
+                self.changed_callback(extents)
+        else:
+            super(type(self), type(self)).extents.fset(self, extents)
 
     def set_extents_without_callback(self, extents):
         super(type(self), type(self)).extents.fset(self, extents)
 
     def update(self):
-        with skip_canvas_draws(should_skip=self.created_in_get_value_context):
+        if not self.created_in_get_value_context:
             super().update()
