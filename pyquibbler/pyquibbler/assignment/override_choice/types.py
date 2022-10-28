@@ -32,8 +32,6 @@ class OverrideGroup:
         with aggregate_redraw_mode(is_dragging):
             for quib_change in self.quib_changes:
                 quib_change.apply()
-        if not is_dragging:
-            Project.get_or_create().push_pending_undo_group_to_undo_stack()
 
     def __bool__(self):
         return len(self.quib_changes) > 0
