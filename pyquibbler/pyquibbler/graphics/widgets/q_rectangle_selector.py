@@ -7,9 +7,9 @@ from matplotlib.backend_bases import MouseButton
 from matplotlib.widgets import RectangleSelector
 
 from pyquibbler.utilities.basic_types import Mutable
+from pyquibbler.utilities.decorators import squash_recursive_calls
 
-from ...quib.get_value_context_manager import is_within_get_value_context
-from ...quib.graphics.redraw import skip_canvas_draws
+from pyquibbler.quib.get_value_context_manager import is_within_get_value_context
 
 
 @dataclass
@@ -46,6 +46,7 @@ class QRectangleSelector(RectangleSelector):
     def event_is_relevant_to_current_selector(self) -> bool:
         return (self._active_handle and self._active_handle != 'C') or self.is_current_event_a_move_event()
 
+    @squash_recursive_calls
     def _onmove(self, event):
         if self.event_is_relevant_to_current_selector():
             if self.allow_resize or self.is_current_event_a_move_event():
@@ -88,14 +89,16 @@ class QRectangleSelector(RectangleSelector):
 
     @extents.setter
     def extents(self, extents):
-        super(type(self), type(self)).extents.fset(self, extents)
-        if self.changed_callback is not None:
-            # Important to use self.extents and not extents because it sorts the coordinates
-            self.changed_callback(self.extents)
+        if self.created_in_get_value_context:
+            extents = sorted(extents[:2]) + sorted(extents[2:])
+            if self.changed_callback is not None:
+                self.changed_callback(extents)
+        else:
+            super(type(self), type(self)).extents.fset(self, extents)
 
     def set_extents_without_callback(self, extents):
         super(type(self), type(self)).extents.fset(self, extents)
 
     def update(self):
-        with skip_canvas_draws(should_skip=self.created_in_get_value_context):
+        if not self.created_in_get_value_context:
             super().update()

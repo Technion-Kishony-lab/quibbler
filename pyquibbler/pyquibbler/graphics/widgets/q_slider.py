@@ -4,9 +4,16 @@ from matplotlib.widgets import Slider
 
 from pyquibbler.assignment.rounding import round_to_num_digits
 from pyquibbler.quib.get_value_context_manager import is_within_get_value_context
+from pyquibbler.utilities.decorators import squash_recursive_calls
 
 
 class QSlider(Slider):
+    """
+    Like Slider but with:
+    * on_release
+    * rounding step_value
+
+    """
     def __init__(self, ax, label, valmin, valmax, valinit, **kwargs):
         self.created_in_get_value_context = False
         self.on_release = None
@@ -23,13 +30,8 @@ class QSlider(Slider):
         if self._drag_active is value:
             return
         self._drag_active = value
-        if value:
-            # enter_dragging()
-            pass
-        else:
-            if self.on_release:
-                self.on_release(self.val)
-            # exit_dragging()
+        if not value and self.on_release:
+            self.on_release(self.val)
 
     def _stepped_value(self, val):
         """Return *val* coerced to closest number in the ``valstep`` grid."""
@@ -41,6 +43,9 @@ class QSlider(Slider):
 
         return val
 
+    # we drop drag events created during redraw due to continuous drag
+    # otherwise, kernel can get stuck (observed in jupyterlab with tk backend).
+    @squash_recursive_calls
     def set_val(self, val):
         if self.created_in_get_value_context:
             drawon = self.drawon

@@ -12,6 +12,7 @@ from pyquibbler.path.path_component import Path
 from .default_value import default
 from .rounding import floor_log10
 from .utils import is_numeric_scalar
+from .assignment_template import round_to_num_digits
 
 if TYPE_CHECKING:
     from pyquibbler.quib.quib import Quib
@@ -93,8 +94,6 @@ class AssignmentWithTolerance(Assignment):
                    value_down=value - tolerance)
 
     def get_pretty_assignment(self) -> Assignment:
-
-        from .assignment_template import round_to_num_digits
 
         value = self.value
         try:

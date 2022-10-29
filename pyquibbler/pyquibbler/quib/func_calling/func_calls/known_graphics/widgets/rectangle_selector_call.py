@@ -1,15 +1,15 @@
-from typing import Callable, Set, Optional
+from typing import Optional
 
 import numpy as np
 
-from pyquibbler.utilities.general_utils import Kwargs, Args
-from pyquibbler.assignment import AssignmentToQuib, AssignmentWithTolerance, get_axes_x_y_tolerance
-from pyquibbler.function_definitions import KeywordArgument
-from pyquibbler.graphics import GraphicsCollection
-from pyquibbler.graphics.widgets import QRectangleSelector
-from pyquibbler.quib.quib import Quib
-from pyquibbler.path import PathComponent
 from pyquibbler.debug_utils import timeit
+
+from pyquibbler.quib.quib import Quib
+
+from pyquibbler.assignment import AssignmentToQuib, AssignmentWithTolerance, get_axes_x_y_tolerance
+from pyquibbler.graphics.widgets import QRectangleSelector
+from pyquibbler.path import PathComponent
+
 from .widget_call import WidgetQuibFuncCall
 
 
@@ -33,7 +33,6 @@ class RectangleSelectorQuibFuncCall(WidgetQuibFuncCall):
         and attempt to resize even when the user did not request to resize- we here check if the widget attempted to
         resize when it should not have been able to
         """
-        from pyquibbler.quib.quib import Quib
         init_val = self.func_args_kwargs.get('extents')
         allow_resize = self.func_args_kwargs.get('allow_resize')
         if isinstance(init_val, Quib):
@@ -79,22 +78,3 @@ class RectangleSelectorQuibFuncCall(WidgetQuibFuncCall):
     def _connect_callbacks(self, widget: QRectangleSelector):
         widget.changed_callback = self._on_changed
         widget.release_callback = self._on_release
-
-    def _run_single_call(self, func: Callable, graphics_collection: GraphicsCollection,
-                         args: Args, kwargs: Kwargs, quibs_allowed_to_access: Set[Quib]):
-        previous_widgets = graphics_collection.widgets
-
-        # speed-up by changing the current widget instead of creating a new one:
-        if len(previous_widgets) == 1:
-            previous_widget = list(previous_widgets)[0]
-
-            # TODO: generalize to cases where other kwargs, not just 'extents', are also quibs
-            if isinstance(previous_widget, QRectangleSelector) \
-                    and len(self.parameter_source_locations) == 1 \
-                    and self.parameter_source_locations[0].argument == KeywordArgument(keyword='extents') \
-                    and self.parameter_source_locations[0].path == []:
-                previous_widget.set_extents_without_callback(self.func_args_kwargs.get('extents').get_value())
-
-                return previous_widget
-
-        return super()._run_single_call(func, graphics_collection, args, kwargs, quibs_allowed_to_access)
