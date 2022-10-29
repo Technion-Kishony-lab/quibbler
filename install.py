@@ -2,6 +2,7 @@
 import contextlib
 import subprocess
 import sys
+import os
 import traceback
 from pathlib import Path
 
@@ -21,6 +22,15 @@ def show_failure_message_and_exist(message: str):
 def install_package_from_directory(directory: Path, what):
     try:
         subprocess.check_call([sys.executable, "-m", "pip", "install", '-e', what], cwd=str(directory))
+    except subprocess.CalledProcessError as e:
+        show_failure_message_and_exist(f'Failed to install. Exception :\n{e}')
+
+
+def install_package_from_conda(package: str):
+    import click  # noqa
+    click.echo(f'Installing: {package}')
+    try:
+        subprocess.check_call(["conda", "install", "-y", package])
     except subprocess.CalledProcessError as e:
         show_failure_message_and_exist(f'Failed to install. Exception :\n{e}')
 
@@ -68,6 +78,9 @@ def install_labextension():
     click.echo("Installing pyquibbler jupyter extension (development)...")
     lab_extension_directory = HERE / 'pyquibbler-labextension'
     with exit_on_fail_with_message("Failed to install pyquibbler jupyter extension"):
+        install_package_from_conda('cookiecutter')
+        install_package_from_conda('nodejs')
+        install_package_from_conda('jupyter-packaging')
         click.echo("-- Running `pip install`...")
         install_package_from_directory(lab_extension_directory, '.')
         click.echo("-- Symlinking jupyter extension...")
