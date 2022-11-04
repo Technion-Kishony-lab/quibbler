@@ -63,6 +63,8 @@ LEN_BOOL_ETC_RAISE_EXCEPTION = Flag(True)
 
 ITER_RAISE_EXCEPTION = Flag(False)
 
+UNPACKER_CAN_GET_LEN = Flag(True)
+
 """ Others """
 
 INPUT_AWARE_INVERSION = Flag(True)
