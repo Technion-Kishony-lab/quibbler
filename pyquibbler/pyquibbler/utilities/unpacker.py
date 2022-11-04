@@ -67,12 +67,13 @@ class Unpacker:
                             else:
                                 self._amount = len(self._indexable)
                         except TypeError:
-                            # If next is called on us consecutively from the same bytecode, we are not going to learn any new
-                            # information about the unpacking amount so we just quit and raise
                             raise CannotDetermineNumberOfIterations(self._indexable)
                     else:
+                        # If next is called on us consecutively from the same bytecode,
+                        # we are not going to learn any new information about the unpacking amount,
+                        # so we just quit and raise
                         raise CannotDetermineNumberOfIterations(self._indexable)
-                    
+
             self._last_caller_info = caller_frame, caller_instruction
             unpack_amount = get_unpack_amount()
             if unpack_amount is not None:
