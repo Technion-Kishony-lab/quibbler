@@ -16,7 +16,7 @@ from matplotlib.axes import Axes
 
 # Debugging, warning and performance:
 from pyquibbler.debug_utils import timeit, logger
-from pyquibbler.quib.exceptions import LenBoolEtcException
+from pyquibbler.quib.exceptions import LenBoolEtcException, CannotIterQuibsException
 from pyquibbler.utilities.warning_messages import no_header_warn
 
 # Input validation:
@@ -1454,8 +1454,7 @@ class Quib:
         Return an iterator to a detected amount of elements requested from the quib.
         """
         if ITER_RAISE_EXCEPTION:
-            raise TypeError('Cannot iterate over quibs, as their size can vary. '
-                            'Try Quib.iter_first() to iterate over the n-first items of the quib.')
+            raise CannotIterQuibsException()
         return Unpacker(self)
 
     @validate_user_input(amount=(NoneType, int))

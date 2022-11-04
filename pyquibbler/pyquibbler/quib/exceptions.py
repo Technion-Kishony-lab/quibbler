@@ -30,6 +30,13 @@ class LenBoolEtcException(PyQuibblerException, TypeError):
                f'To get the {func} of the current value of Q, use {func}(Q.get_value()).'
 
 
+class CannotIterQuibsException(PyQuibblerException, TypeError):
+
+    def __str__(self):
+        return 'Cannot iterate over quibs, as their size can vary.\n' \
+               'Try Quib.iter_first() to iterate over the n-first items of the quib.'
+
+
 class CannotDisplayQuibWidget(PyQuibblerException):
 
     def __str__(self):

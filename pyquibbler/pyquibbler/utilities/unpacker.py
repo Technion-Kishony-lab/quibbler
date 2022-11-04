@@ -1,6 +1,19 @@
+import dataclasses
 from inspect import currentframe
 from opcode import opname
 from typing import Any, Optional
+
+from pyquibbler.env import UNPACKER_CAN_GET_LEN
+from pyquibbler.exceptions import PyQuibblerException
+
+
+@dataclasses.dataclass
+class CannotDetermineNumberOfIterations(PyQuibblerException):
+    indexed_object: Any
+
+    def __str__(self):
+        return f'Cannot determine unpacking amount for {self.indexed_object}.\n' \
+               f'Try specifying the desired amount, using Quib.iter_first(amount).'
 
 
 def get_unpack_amount(frame: Optional = None, raise_if_no_unpack=False) -> Optional[int]:
@@ -46,10 +59,21 @@ class Unpacker:
             if self._last_caller_info is not None:
                 last_caller_frame, last_caller_instruction = self._last_caller_info
                 if caller_frame is last_caller_frame and caller_instruction == last_caller_instruction:
-                    # If next is called on us consecutively from the same bytecode, we are not going to learn any new
-                    # information about the unpacking amount so we just quit and raise
-                    raise RuntimeError(f'Cannot determine unpacking amount for {self._indexable}. '
-                                       f'Try specifying the desired amount, using Quib.iter_first(amount).')
+                    if UNPACKER_CAN_GET_LEN:
+                        from pyquibbler.quib.quib import Quib
+                        try:
+                            if isinstance(self._indexable, Quib):
+                                self._amount = len(self._indexable.get_value_valid_at_path(None))
+                            else:
+                                self._amount = len(self._indexable)
+                        except TypeError:
+                            raise CannotDetermineNumberOfIterations(self._indexable)
+                    else:
+                        # If next is called on us consecutively from the same bytecode,
+                        # we are not going to learn any new information about the unpacking amount,
+                        # so we just quit and raise
+                        raise CannotDetermineNumberOfIterations(self._indexable)
+
             self._last_caller_info = caller_frame, caller_instruction
             unpack_amount = get_unpack_amount()
             if unpack_amount is not None:

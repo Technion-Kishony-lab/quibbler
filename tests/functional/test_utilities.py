@@ -1,3 +1,6 @@
+import dataclasses
+from typing import Tuple
+
 from pytest import mark, raises, fixture
 
 from pyquibbler import iquib
@@ -7,7 +10,7 @@ from pyquibbler.quib.utils import miscellaneous
 from pyquibbler.quib.utils.iterators import iter_quibs_in_args, iter_quibs_in_object
 from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals, is_there_a_quib_in_args
 from pyquibbler.utilities.iterators import is_iterator_empty, iter_objects_of_type_in_object_recursively
-from pyquibbler.utilities.unpacker import Unpacker
+from pyquibbler.utilities.unpacker import Unpacker, CannotDetermineNumberOfIterations
 from tests.functional.utils import slicer
 
 iquib1 = iquib(1)
@@ -123,7 +126,15 @@ def test_iter_quibs_in_object_raises_when_receives_nested_quibs():
 
 @fixture
 def unpacker_value():
-    return (1, 2, 3)
+
+    @dataclasses.dataclass
+    class NoLenIter:
+        value: Tuple
+
+        def __getitem__(self, item):
+            return self.value[item]
+
+    return NoLenIter((1, 2, 3))
 
 
 @fixture
@@ -133,7 +144,7 @@ def unpacker(unpacker_value):
 
 @fixture
 def unpacker_with_set_length(unpacker_value):
-    return Unpacker(unpacker_value, len(unpacker_value))
+    return Unpacker(unpacker_value, len(unpacker_value.value))
 
 
 def test_unpacker_with_normal_unpack_of_one(unpacker, unpacker_value):
@@ -181,7 +192,7 @@ def test_unpacker_after_next(unpacker, unpacker_value):
 
 
 def test_unpacker_raises_with_star_unpack(unpacker):
-    with raises(RuntimeError):
+    with raises(CannotDetermineNumberOfIterations):
         a, *b = unpacker
 
 
