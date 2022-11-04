@@ -2,27 +2,20 @@ from matplotlib.axes import Axes
 from matplotlib.widgets import RadioButtons
 from typing import List
 
-from pyquibbler.quib.get_value_context_manager import is_within_get_value_context
+from .base_q_widget import QWidget
 
 
-class QRadioButtons(RadioButtons):
+class QRadioButtons(QWidget, RadioButtons):
     """
-    Radio buttons we additional features:
-        - They expose the selected index via the selected_index attribute
+    Like Radio buttons, also featuring:
+        - Exposing selected index via the selected_index attribute
     """
 
     def __init__(self, ax: Axes, labels: List[str], active=0, **kwargs):
-        self.created_in_get_value_context = False
-        super().__init__(ax, labels, active=active, **kwargs)
         self.selected_index = active
-        self.created_in_get_value_context = is_within_get_value_context()
+        super().__init__(ax, labels, active=active, **kwargs)
 
     def set_active(self, index: int):
         self.selected_index = index
-        if self.created_in_get_value_context:
-            drawon = self.drawon
-            self.drawon = False
-            super().set_active(index)
-            self.drawon = drawon
-        else:
+        with self.avoid_redraws_if_created_in_get_value_context():
             super().set_active(index)

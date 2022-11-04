@@ -35,3 +35,19 @@ def test_textbox(input_quib, textbox_quib, get_live_artists, axes,
 
     assert input_quib.get_value() == 'h'
     assert len(get_live_artists()) == original_num_artists
+
+
+def test_text_box_with_numeric_value(axes,
+                                     create_axes_mouse_press_move_release_events, create_key_press_and_release_event):
+    x = iquib(7)
+    widgets.TextBox(
+            ax=axes,
+            label="number",
+            initial=x
+        )
+    plt.pause(0.01)
+    create_axes_mouse_press_move_release_events(['middle'])
+    create_key_press_and_release_event('9')
+    create_key_press_and_release_event('enter')
+
+    assert x.get_value() == 79
