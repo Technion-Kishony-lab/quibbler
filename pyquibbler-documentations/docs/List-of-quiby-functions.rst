@@ -1,22 +1,25 @@
 List of quiby functions
 -----------------------
 
-Quiby functions are functions modified to work directly on quib
-arguments. When a quiby function is applied on quiby arguments, it
-creates a new quib whose function is to perform the original function on
-the value of its quib arguments.
-
-To test if a given function is quiby, use ``is_quiby``:
-
-Import
-^^^^^^
+Quiby functions are functions that have been modified to work directly
+on quib arguments. When a quiby function is applied on quib arguments,
+it creates a new quib, whose function is to perform the original
+function on the *value* of its quib arguments.
 
 .. code:: python
 
+    # Imports
     import pyquibbler as qb
     from pyquibbler import iquib
     qb.initialize_quibbler()
     import numpy as np
+
+Checking if a function is ‘quiby’:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To check whether a given function is quiby, use ``is_quiby``.
+
+For example, ``np.sin`` is a quiby function:
 
 .. code:: python
 
@@ -31,6 +34,30 @@ Import
 
 
 
+We can therefore use it directly on quib arguments:
+
+.. code:: python
+
+    x = iquib(1.5)
+    np.sin(x)
+
+
+
+.. code:: none
+
+    VBox(children=(Label(value='sin(x)'), HBox(children=(HBox(children=(ToggleButton(value=False, description='Val…
+
+
+
+
+.. raw:: html
+
+    
+
+
+
+On the other hand, ``int`` is not a quiby function:
+
 .. code:: python
 
     qb.is_quiby(int)
@@ -44,9 +71,11 @@ Import
 
 
 
+Applying ``int`` directly on a quib argument will raise an exception.
+
 Note though that any non-quiby functions, like ``int``, or any user
-function can be converted be a quiby function using the ``quiby``
-method. See :doc:`User-defined-functions`.
+function can be converted be a quiby function using the function
+``quiby``. See :doc:`User-defined-functions`.
 
 List of all built-in quiby functions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -62,8 +91,9 @@ To see all available quiby functiuons, use ``list_quiby_funcs()``:
 
 .. code:: none
 
-    ['None: <function identity_function at 0x7f8ae1178670>',
-     'None: <function proxy at 0x7f8ae1178ee0>',
+    ['None: <function identity_function at 0x159afd3f0>',
+     'None: <function proxy at 0x159afd750>',
+     'None: <function identity_function_obj2quib at 0x159f7af80>',
      'Quib: __add__',
      'Quib: __sub__',
      'Quib: __mul__',
@@ -104,26 +134,153 @@ To see all available quiby functiuons, use ``list_quiby_funcs()``:
      'Quib: __ceil__',
      'Quib: __getitem__',
      'Axes: plot',
-     'Axes: imshow',
-     'Axes: text',
-     'Axes: bar',
-     'Axes: hist',
-     'Axes: pie',
-     'Axes: legend',
-     'Axes: _sci',
-     'Axes: matshow',
      'Axes: scatter',
-     'Axes: set_xticks',
-     'Axes: set_yticks',
-     'Axes: set_xticklabels',
-     'Axes: set_yticklabels',
-     'Axes: set_xlabel',
-     'Axes: set_ylabel',
+     'Arc: __new__',
+     'Arrow: __new__',
+     'ArrowStyle: __new__',
+     'BoxStyle: __new__',
+     'Circle: __new__',
+     'CirclePolygon: __new__',
+     'ConnectionPatch: __new__',
+     'ConnectionStyle: __new__',
+     'Ellipse: __new__',
+     'FancyArrow: __new__',
+     'FancyArrowPatch: __new__',
+     'FancyBboxPatch: __new__',
+     'Patch: __new__',
+     'RegularPolygon: __new__',
+     'Axes: acorr',
+     'Axes: angle_spectrum',
+     'Axes: annotate',
+     'Axes: arrow',
+     'Axes: axhline',
+     'Axes: axhspan',
+     'Axes: axline',
+     'Axes: axvline',
+     'Axes: axvspan',
+     'Axes: bar',
+     'Axes: barbs',
+     'Axes: barh',
+     'Axes: boxplot',
+     'Axes: broken_barh',
+     'Axes: cohere',
+     'Axes: contour',
+     'Axes: contourf',
+     'Axes: csd',
+     'Axes: errorbar',
+     'Axes: eventplot',
+     'Axes: fill',
+     'Axes: fill_between',
+     'Axes: fill_betweenx',
+     'Axes: hexbin',
+     'Axes: hist',
+     'Axes: hist2d',
+     'Axes: hlines',
+     'Axes: imshow',
+     'Axes: legend',
+     'Axes: loglog',
+     'Axes: magnitude_spectrum',
+     'Axes: matshow',
+     'Axes: pcolor',
+     'Axes: pcolormesh',
+     'Axes: phase_spectrum',
+     'Axes: pie',
+     'Axes: plot_date',
+     'Axes: psd',
+     'Axes: quiver',
+     'Axes: semilogx',
+     'Axes: semilogy',
+     'Axes: specgram',
+     'Axes: spy',
+     'Axes: stackplot',
+     'Axes: stairs',
+     'Axes: stem',
+     'Axes: step',
+     'Axes: streamplot',
+     'Axes: table',
+     'Axes3D: text2D',
+     'Axes: tricontour',
+     'Axes: tricontourf',
+     'Axes: tripcolor',
+     'Axes: triplot',
+     'Axes: violinplot',
+     'Axes: vlines',
+     'Axes: xcorr',
+     'Axes: set_alpha',
+     'Axes: set_aspect',
+     'Axes: set_facecolor',
+     'Axes: set_fc',
+     'Axes: set_position',
      'Axes: set_title',
      'Axes: set_visible',
-     'Axes: set_facecolor',
+     'Axes: set_xlabel',
+     'Axes: set_xscale',
+     'Axes: set_xticklabels',
+     'Axes: set_xticks',
+     'Axes: set_ylabel',
+     'Axes: set_yscale',
+     'Axes: set_yticklabels',
+     'Axes: set_yticks',
+     'Axes: grid',
+     'Axes: bar_label',
      'Axes: set_xlim',
      'Axes: set_ylim',
+     'Axes3D: acorr',
+     'Axes3D: arrow',
+     'Axes3D: axhline',
+     'Axes3D: axhspan',
+     'Axes3D: axis',
+     'Axes3D: axline',
+     'Axes3D: axvline',
+     'Axes3D: axvspan',
+     'Axes3D: bar',
+     'Axes3D: bar3d',
+     'Axes3D: barbs',
+     'Axes3D: barh',
+     'Axes3D: boxplot',
+     'Axes3D: broken_barh',
+     'Axes3D: bxp',
+     'Axes3D: contour3D',
+     'Axes3D: contourf3D',
+     'Axes3D: csd',
+     'Axes3D: errorbar',
+     'Axes3D: eventplot',
+     'Axes3D: fill',
+     'Axes3D: fill_between',
+     'Axes3D: fill_betweenx',
+     'Axes3D: hist',
+     'Axes3D: hist2d',
+     'Axes3D: hlines',
+     'Axes3D: imshow',
+     'Axes3D: legend',
+     'Axes3D: loglog',
+     'Axes3D: matshow',
+     'Axes3D: pie',
+     'Axes3D: plot3D',
+     'Axes3D: plot_date',
+     'Axes3D: plot_surface',
+     'Axes3D: plot_trisurf',
+     'Axes3D: plot_wireframe',
+     'Axes3D: quiver3D',
+     'Axes3D: scatter3D',
+     'Axes3D: secondary_xaxis',
+     'Axes3D: secondary_yaxis',
+     'Axes3D: semilogx',
+     'Axes3D: semilogy',
+     'Axes3D: stackplot',
+     'Axes3D: stairs',
+     'Axes3D: stem3D',
+     'Axes3D: text3D',
+     'Axes3D: tricontour',
+     'Axes3D: tricontourf',
+     'Axes3D: tripcolor',
+     'Axes3D: triplot',
+     'Axes3D: tunit_cube',
+     'Axes3D: tunit_edges',
+     'Axes3D: violin',
+     'Axes3D: violinplot',
+     'Axes3D: vlines',
+     'Axes3D: voxels',
      'matplotlib.widgets: RadioButtons',
      'matplotlib.widgets: Slider',
      'matplotlib.widgets: CheckButtons',
@@ -147,13 +304,13 @@ To see all available quiby functiuons, use ``list_quiby_funcs()``:
      'numpy: var',
      'numpy: std',
      'numpy: median',
-     'numpy: diff',
-     'numpy: sort',
      'numpy: cumsum',
      'numpy: cumprod',
      'numpy: cumproduct',
      'numpy: nancumsum',
      'numpy: nancumprod',
+     'numpy: diff',
+     'numpy: sort',
      'numpy: add',
      'numpy: subtract',
      'numpy: true_divide',
@@ -224,20 +381,21 @@ To see all available quiby functiuons, use ``list_quiby_funcs()``:
      'numpy: trunc',
      'numpy: i0',
      'numpy: sinc',
+     'numpy: array',
      'numpy: rot90',
-     'numpy: concatenate',
-     'numpy: repeat',
-     'numpy: full',
      'numpy: reshape',
      'numpy: transpose',
-     'numpy: array',
      'numpy: swapaxes',
-     'numpy: tile',
      'numpy: asarray',
      'numpy: squeeze',
      'numpy: expand_dims',
      'numpy: ravel',
-     'numpy: squeeze',
+     'numpy: flip',
+     'numpy: concatenate',
+     'numpy: repeat',
+     'numpy: full',
+     'numpy: tile',
+     'numpy: broadcast_to',
      'numpy: ones_like',
      'numpy: zeros_like',
      'numpy: shape',
@@ -260,7 +418,8 @@ To see all available quiby functiuons, use ``list_quiby_funcs()``:
      'numpy.random: randint',
      'numpy: apply_along_axis',
      'numpy: vectorize',
-     'Quib: get_override_mask']
+     'Quib: get_override_mask',
+     'Quib: get_quiby_name']
 
 
 

@@ -37,7 +37,7 @@ the others accordingly.
     import matplotlib.pyplot as plt
     from matplotlib.widgets import TextBox, Slider
     import numpy as np
-    %matplotlib osx
+    %matplotlib tk
 
 .. code:: python
 
@@ -102,8 +102,8 @@ the others accordingly.
               transform = axs3.transAxes, fontsize=12)
     
     # (6) TextBox
-    TextBox(ax=axs_txt_x, label=None, initial=q(str, x))
-    TextBox(ax=axs_txt_y, label=None, initial=q(str, y))
+    TextBox(ax=axs_txt_x, label=None, initial=x)
+    TextBox(ax=axs_txt_y, label=None, initial=y)
     
     # (7) Sliders
     Slider(ax=axs_slider_x, label=None, valmin=0, valmax=8, valstep=None, valinit=x)

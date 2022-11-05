@@ -75,6 +75,5 @@ using overriding of function quibs.
     
     plt.scatter(x, per_item_factor, marker='s', s=150, zorder=2, 
                 cmap=ListedColormap(['grey', 'red']),
-                c=per_item_factor.get_override_mask(), 
-                picker=True, pickradius=20);
+                c=per_item_factor.get_override_mask());
 .. image:: ../images/demo_gif/quibdemo_default_overriding.gif

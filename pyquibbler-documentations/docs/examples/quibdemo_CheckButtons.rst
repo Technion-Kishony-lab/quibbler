@@ -22,19 +22,18 @@ Quib-linked CheckButtons widget
 
 .. code:: python
 
-    # Prepare figure, axes
+    # Prepare figure
     plt.figure(figsize=(3, 3))
     ax = plt.gca()
 
 .. code:: python
 
-    # Define input quib for colors:
-    colors = iquib([False, True, True])
+    # Define input quib for colors
+    colors = iquib([True, True, True])
 
 .. code:: python
 
     # Define a quib-widget
-    # (Interaction with the widget changes the quib)
     widgets.CheckButtons(ax=ax, labels=['Red', 'Green', 'Blue'], actives=colors);
 
 .. code:: python
