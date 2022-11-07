@@ -33,7 +33,7 @@ Simple quib-app for probing image RGB
     # Choose and plot an x-y point:
     xy = iquib([50, 45])
     x, y = xy
-    plt.plot(x, y, 'w+', markersize=18, picker=True)
+    plt.plot(x, y, 'w+', markersize=18)
     plt.text(5, 10, xy, color='w', fontsize=14)
     
     # Plot the RGB at the chosen point:

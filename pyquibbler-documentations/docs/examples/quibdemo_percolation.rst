@@ -63,5 +63,6 @@ Random simulations of lattice percolation
     # Randomization button
     ax = fig.add_axes([0.75, 0.02, 0.2, 0.03])
     randomize_button = Button(ax, label='Randomize')
-    randomize_button.on_clicked(lambda x: reset_random_quibs());
+    randomize_button.on_clicked(lambda _: reset_random_quibs());
+
 .. image:: ../images/demo_gif/quibdemo_percolation.gif

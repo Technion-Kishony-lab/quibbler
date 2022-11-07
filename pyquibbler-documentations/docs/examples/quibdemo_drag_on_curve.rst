@@ -23,7 +23,7 @@ Dragging graphics along a curved line
 
 .. code:: python
 
-    # define and plot a curve:
+    # Define and plot a curve:
     curve_function = lambda v: 4 * v ** 2 - v ** 3
     graph_xs = np.arange(0, 4, .2)
     graph_ys = curve_function(graph_xs)
@@ -31,15 +31,17 @@ Dragging graphics along a curved line
     plt.plot(graph_xs, graph_ys, 'k')
     plt.axis([0, 4, 0, 12])
     
-    # define x-y quibs:
+    # Define x-y quibs:
     point_x = iquib(3.)
     point_y = q(curve_function, point_x)
     
-    # Plot the point, use picker=True to allow dragging
-    plt.plot(point_x, point_y, marker='o', markerfacecolor='c', 
-             markersize=18, picker=True, pickradius=20)
+    # Plot the x-y point:
+    plt.plot(point_x, point_y, 
+             marker='o', markerfacecolor='c', 
+             markersize=18, pickradius=20)
     
-    # Define and plot text (this text will change when the marker is dragged):
+    # Define and plot text:
     xy_str = q("X={:.2f}, Y={:.2f}".format, point_x, point_y)
-    plt.text(point_x, point_y + .6, xy_str, ha="center", va="bottom", fontsize=13);
+    plt.text(point_x, point_y + .6, xy_str, 
+             ha="center", va="bottom", fontsize=13);
 .. image:: ../images/demo_gif/quibdemo_drag_on_curve.gif

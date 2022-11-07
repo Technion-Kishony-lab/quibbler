@@ -31,10 +31,10 @@ using overriding of function quibs.
 
 .. code:: python
 
-    from functools import partial
     from pyquibbler import iquib, initialize_quibbler, q
     initialize_quibbler()
     import matplotlib.pyplot as plt
+    from matplotlib.colors import ListedColormap
     import numpy as np
     %matplotlib tk
 
@@ -54,19 +54,20 @@ using overriding of function quibs.
 .. code:: python
 
     # Common properties
-    input_properties = {'assignment_template':(0, 100, 1), 'allow_overriding':True}
+    input_properties = {'assignment_template':(0, 100, 1), 
+                        'allow_overriding':True}
 
 .. code:: python
 
     # Define and plot the default factor
     default_factor = iquib(70, **input_properties)
-    plt.plot([-0.5, n_plates - 0.5], default_factor * np.array([1, 1]), 'k', 
+    plt.plot([-0.5, n_plates - 0.5], 
+             default_factor * np.array([1, 1]), 'k', 
              zorder=3, linewidth=2, picker=True);
 
 .. code:: python
 
     # Define and plot the per-item factor
-    from matplotlib.colors import ListedColormap
     per_item_factor = np.repeat(default_factor, n_plates, 0) \
         .setp(**input_properties, assigned_quibs='self')
     
@@ -75,5 +76,6 @@ using overriding of function quibs.
     
     plt.scatter(x, per_item_factor, marker='s', s=150, zorder=2, 
                 cmap=ListedColormap(['grey', 'red']),
+                vmin=0, vmax=1,
                 c=per_item_factor.get_override_mask());
 .. image:: ../images/demo_gif/quibdemo_default_overriding.gif

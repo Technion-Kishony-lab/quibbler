@@ -103,12 +103,13 @@ Making the quib icon
     # add the dot abobe the 'i'
     axs.plot(point_position[0] + icon_props['uiWidth'] + icon_props['uiShift'], 
              point_position[1] + 1, 
-             marker='o', markersize=icon_props['LineWidth']*icon_props['PointWidth'], picker=True);
+             marker='o', markersize=icon_props['LineWidth']*icon_props['PointWidth']);
 
 .. code:: python
 
     # Plot the handle-markers
-    options = {'markersize':icon_props['LineWidth'], 'picker':True, 'visible':is_handles_visible}
+    options = {'markersize':icon_props['LineWidth'], 
+               'visible':is_handles_visible}
     
     axs.plot(icon_props['Width'], 0, 'dk', **options)
     axs.plot(icon_props['qbCurve'] + icon_props['Width'], 0, 'dk', **options)

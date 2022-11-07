@@ -6,12 +6,12 @@ Overriding default values (two-levels)
 Say we have several “plates”, and each of these plates has several
 “wells”, and we want to apply a function to each well in each plate with
 some default factor. We need a way to choose this factor globally, but
-we might sometimes need to adjust it for specific plates and even for
-specific wells within the plates. Essentially, we would like to copy the
-“default factor” for each plate and copy the plate factor for each well,
-while allowing “overriding” of these copies at each level. In
-*Quibbler*, as shown here, such behavior is achieved quite seamlessly
-using overriding of function quibs.
+we might sometimes need to adjust it for a specific plate and even for a
+specific well within a plate. Essentially, we would like to replicate
+the “default factor” for each plate and then to replicate these plate
+factors for each well, while allowing “overriding” of these copies at
+each level. In *Quibbler*, as shown here, such behavior is achieved
+quite seamlessly using overriding of function quibs.
 
 -  **Features**
 
@@ -34,10 +34,10 @@ using overriding of function quibs.
 
 .. code:: python
 
-    from functools import partial
     from pyquibbler import iquib, initialize_quibbler, q
     initialize_quibbler()
     import matplotlib.pyplot as plt
+    from matplotlib.colors import ListedColormap
     import numpy as np
     %matplotlib tk
 
@@ -69,34 +69,41 @@ using overriding of function quibs.
         'assignment_template': (0, 100, 1), 
         'allow_overriding': True
     }
-    
+
+.. code:: python
+
+    # Scatter with two colors
     def two_color_scatter(ax, x, y):
-        from matplotlib.colors import ListedColormap
-        return ax.scatter(
-            x, y, marker='d', s=100, zorder=2, 
-            cmap=ListedColormap(['green', 'red']),
-            c=y.get_override_mask(), 
-            picker=True, pickradius=10)
+        return ax.scatter(x, y, 
+                          marker='d', s=100, zorder=2, 
+                          cmap=ListedColormap(['green', 'red']),
+                          c=y.get_override_mask(),
+                          vmin = 0, vmax = 1,
+                          pickradius=10)
 
 .. code:: python
 
     # Define and plot the default factor
     default_factor = iquib(70).setp(**input_properties)
-    ax1.plot([-0.5, n_plates-0.5], default_factor + np.array([0, 0]), 'k', 
-             linewidth=5, picker=True);
+    ax1.plot([-0.5, n_plates-0.5], 
+             default_factor + np.array([0, 0]), 
+             'k', 
+             linewidth=5);
 
 .. code:: python
 
     # Define and plot the per-plate factor
-    plate_factor = np.repeat(default_factor, n_plates, 0).setp(**input_properties)
+    plate_factor = np.repeat(default_factor, n_plates, 0)
+    plate_factor.setp(**input_properties)
     x = np.arange(n_plates)
     ax1.bar(x, plate_factor, color=(0.7, 0.7, 0.7))
     two_color_scatter(ax1, x, plate_factor);
 
 .. code:: python
 
-    # Define the per-plate-per-well factor
-    well_factor = np.repeat(plate_factor, n_wells, 0).setp(**input_properties, name='Well_factor')
+    # Define and plot the per-plate-per-well factor
+    well_factor = np.repeat(plate_factor, n_wells, 0)
+    well_factor.setp(**input_properties)
     dd = np.linspace(-0.4, 0.4, n_wells + 1)
     dd = (dd[0:-1] + dd[1:]) / 2.
     xx = np.ravel(x + np.reshape(dd, (n_wells, 1)), 'F')

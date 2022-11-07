@@ -61,7 +61,8 @@ Interactive zooming on Mandelbrot
     # image resolution:
     resolution = iquib(200) 
     
-    # number of iterations for calculating convergence of the mandelbrot set:
+    # number of iterations for calculating convergence of the 
+    # Mandelbrot set:
     depth = iquib(200) 
     
     # selection areas for each of the panels:
@@ -82,18 +83,175 @@ Interactive zooming on Mandelbrot
         axs.imshow(img, extent=XYs[k])
         axs.set_xticks([])
         axs.set_yticks([])
-        axs.text(0.03,0.97,str(k), transform = axs.transAxes, fontsize=16, va='top',ha='left')
+        axs.text(0.03,0.97,str(k), transform = axs.transAxes, 
+                 fontsize=16, va='top',ha='left')
     
         # ROI selector:
         if k<2:
             RectangleSelector(axs, extents=XYs[k+1], 
-                              rectprops=dict(edgecolor='black', alpha=0.7, fill=False, linewidth=3))
+                rectprops=dict(edgecolor='black', alpha=0.7, 
+                               fill=False, linewidth=3))
     
     # plot the depth slider
     axs = fig.add_axes([0.35,0.08,0.4,0.03])
-    Slider(ax=axs, label='depth', valmin=0, valmax=200, valstep=1, valinit=depth);
+    Slider(ax=axs, label='depth', valmin=0, valmax=200, valstep=1, 
+           valinit=depth);
     
     # plot the resolution slider
     axs = fig.add_axes([0.35,0.03,0.4,0.03])
-    Slider(ax=axs, label='resolution', valmin=10, valmax=300, valstep=10, valinit=resolution);
+    Slider(ax=axs, label='resolution', valmin=10, valmax=300, valstep=10, 
+           valinit=resolution);
+
+
+.. code:: none
+
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+    /Users/roykishony/Git/quibbler/pyquibbler/pyquibbler/graphics/widgets/q_rectangle_selector.py:36: MatplotlibDeprecationWarning: The 'rectprops' parameter of __init__() has been renamed 'props' since Matplotlib 3.5; support for the old name will be dropped two minor releases later.
+      super().__init__(ax, onselect, interactive=interactive, **kwargs)
+
 .. image:: ../images/demo_gif/quibdemo_Mandelbrot.gif

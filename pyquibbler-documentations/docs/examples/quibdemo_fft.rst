@@ -89,7 +89,6 @@ Signal analysis with random noise
 .. code:: python
 
     # signal vs time 
-    fig.clf()
     ax1 = fig.add_axes((0.15, 0.78, 0.75, 0.2))
     ax1.set_ylim([np.min(measurement) - 0.5 - noise_amp, 
                    np.max(measurement) + 0.5 + noise_amp])
@@ -108,12 +107,11 @@ Signal analysis with random noise
     ax2.set_xlabel('Frequency (1/sec)')
     ax2.set_ylabel('Amplitude')
     ax2.plot(freqs, np.abs(spectrum), 'r.-')
-    # axs2.plot(freqs, np.abs(spectrum_filtered), 'g.-')
     width = max_freq - min_freq
     band = Rectangle((min_freq, 0), width, yl, facecolor=(0.8, 1, 0.8))
     ax2.add_patch(band)
-    ax2.plot(min_freq, 0, 'k^', markersize=22, picker=True)
-    ax2.plot(max_freq, 0, 'k^', markersize=22, picker=True);
+    ax2.plot(min_freq, 0, 'k^', markersize=22)
+    ax2.plot(max_freq, 0, 'k^', markersize=22);
 
 .. code:: python
 
@@ -145,4 +143,5 @@ Signal analysis with random noise
         ax=fig.add_axes([0.05, 0.26, 0.2, 0.03], xticks=[], yticks=[]), 
         label='Randomize')
     randomize_button.on_clicked(lambda x: reset_random_quibs());
+
 .. image:: ../images/demo_gif/quibdemo_fft.gif

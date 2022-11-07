@@ -74,8 +74,8 @@ parameters are set interactively.**
     axs.plot(t, y[1, :], 'b', linewidth=1)
     
     # Plot initial conditions:
-    axs.plot(-1, x0[0], marker='>', markerfacecolor='r', markersize=16, picker=True)
-    axs.plot(-1, x0[1], marker='>', markerfacecolor='b', markersize=16, picker=True)
+    axs.plot(-1, x0[0], marker='>', markerfacecolor='r', markersize=16)
+    axs.plot(-1, x0[1], marker='>', markerfacecolor='b', markersize=16)
     axs.plot([0, 0], [0, mx], 'k-', linewidth=0.5)
     
     # Add legend:

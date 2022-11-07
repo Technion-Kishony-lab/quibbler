@@ -29,8 +29,7 @@ Dragging graphics between fixed points
     fig = plt.figure(figsize=(5, 6))
     
     ax1 = fig.add_axes([0.1, 0.1, 0.8, 0.06])
-    ax1.set_ylim([0, 1])
-    ax1.set_xlim([0, 36.5])
+    ax1.axis([0, 36.5, 0, 1])
     area_options = np.array(range(0, 7)) ** 2
     ax1.set_xticks(area_options)
     ax1.set_xticklabels(area_options, fontsize=12)
@@ -54,7 +53,7 @@ Dragging graphics between fixed points
 
     # Plot draggable x_square. 
     # (the marker position will be limitted to square numbers)
-    ax1.plot(x_square, 0.5, 'dc', markersize=18, picker=True, pickradius=25);
+    ax1.plot(x_square, 0.5, 'dc', markersize=18, pickradius=25);
 
 .. code:: python
 
@@ -62,5 +61,6 @@ Dragging graphics between fixed points
     square = Rectangle((0, 0), x, x, facecolor='c')
     ax2.add_patch(square)
     ax2.plot([0, x, x, 0, 0], [0, 0, x, x, 0], 'k-', linewidth=4)
-    ax2.text(x/2, x/2, q("area: {:.0f}".format, x_square), ha='center',  va='center');
+    ax2.text(x/2, x/2, q("area: {:.0f}".format, x_square), 
+             ha='center',  va='center');
 .. image:: ../images/demo_gif/quibdemo_drag_fixed_values.gif

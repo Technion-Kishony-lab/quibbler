@@ -42,7 +42,7 @@ Quiby setting of axes limits
     ax0.plot(xx, yy, 'r-')
     ax0.set_xlim(x_limits_fixed)
     ax0.set_ylim(y_limits_fixed)
-    ax0.plot(x_seperator + np.array([0, 0]), y_limits_fixed, '--k', picker=True)
+    ax0.plot(x_seperator + np.array([0, 0]), y_limits_fixed, '--k')
     
     # left panel:
     ax1 = fig.add_subplot(2, 2, 3)

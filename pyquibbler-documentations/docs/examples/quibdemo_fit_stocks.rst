@@ -65,12 +65,12 @@ values**
     extrapulate_range = t > t_final
     plt.plot(t[extrapulate_range], np.polyval(p, t[extrapulate_range]), 'r:')
     
-    # Plot the fit parameters using picker=True to allow interactive dragging:
+    # Plot the fit parameters:
     a11 = np.array([1, 1])
-    plt.plot(t_final * a11, [0, np.polyval(p, t_final)], 'k--', lw=1, picker=True)
-    plt.plot(t_initial * a11, [0, np.polyval(p, t_initial)], 'k--', lw=1, picker=True)
+    plt.plot(t_final * a11, [0, np.polyval(p, t_final)], 'k--', lw=1)
+    plt.plot(t_initial * a11, [0, np.polyval(p, t_initial)], 'k--', lw=1)
     
-    # Add the slider for the polynomial degree
+    # Add the slider for the polynomial degree:
     ax = plt.axes([0.3, 0.8, 0.3, 0.03])
     Slider(ax=ax, valmin=0, valmax=3, valinit=n, valstep=1, label='degree');
 .. image:: ../images/demo_gif/quibdemo_fit_stocks.gif
