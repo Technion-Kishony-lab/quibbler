@@ -7,12 +7,12 @@ points.**
 -  **Features:**
 
    -  Graphics-driven assignments
-   -  Directing the path of inverse assignments
-   -  Dragging invidual points versus whole object
+   -  Directing inverse assignments of binary operators
+   -  Dragging individual points versus whole object
 
 -  **Try me:**
 
-   -  Try dragging the ‘Move me!’ - it will move as a whole.
+   -  Try dragging the ‘Move me!’ star - it will move as a whole.
    -  Try dragging the ‘Change me!’ star - it will change individual
       points.
 
@@ -65,7 +65,8 @@ points.**
     # (to which the inverse-assignment is channeled):
     x_movable_star = x_center_movable + x_star_circ
     y_movable_star = y_center_movable + y_star_circ
-    ax.text(x_center_movable, y_center_movable + np.min(y_star_circ) - 0.2, 
+    ax.text(x_center_movable, 
+            y_center_movable + np.min(y_star_circ) - 0.2, 
             'Move me!', ha='center', va='top')
     ax.plot(x_movable_star, y_movable_star, linewidth=2, color='m');
 
@@ -78,7 +79,8 @@ points.**
     # using x_star_circ as the first argument in the summation
     x_changeable_star = x_star_circ + x_center_fixed
     y_changeable_star = y_star_circ + y_center_fixed
-    ax.text(x_center_fixed, y_center_fixed + np.min(y_star_circ) - 0.2, 
+    ax.text(x_center_fixed, 
+            y_center_fixed + np.min(y_star_circ) - 0.2, 
             'Change me!', ha='center', va='top')
     ax.plot(x_changeable_star, y_changeable_star, linewidth=2, color='c');
 

@@ -42,15 +42,17 @@ Multi-point dragging and widgets
     ax = plt.axes([0.2, 0.2, 0.7, 0.6])
     
     # Plot the x-y points. Setting picker=True to allow dragging
-    ax.plot(x, y, marker='o', markersize=12, markerfacecolor='y',
-            linestyle='None', picker=True, pickradius=15)
+    ax.plot(x, y, 
+            marker='o', markersize=12, markerfacecolor='y',
+            linestyle='None', pickradius=15)
     
     # Define polynomial fit degree:
     n_poly = iquib(2)
     
     # Connect polynomial fit with slider:
-    axSlider = plt.axes([0.25, 0.1, 0.65, 0.03])
-    freq_slider = widgets.Slider(ax=axSlider, valmin=0, valmax=5, valstep=1,
+    ax_slider = plt.axes([0.25, 0.1, 0.65, 0.03])
+    freq_slider = widgets.Slider(
+        ax=ax_slider, valmin=0, valmax=5, valstep=1,
         label=q("poly deg {:.0f}".format, n_poly), valinit=n_poly)
     
     # Perform and plot the polynomial fit:

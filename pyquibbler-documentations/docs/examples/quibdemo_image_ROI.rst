@@ -92,7 +92,7 @@ Interactive image cutting and thresholding
 
 .. code:: python
 
-    # Add a rectangle "draggable" ROI around the extracted image:
+    # Add a "draggable" rectangle ROI around the extracted image:
     shifted_ROI = ROI - ROI[[0, 0, 2, 2]]
     shrinked_shifted_ROI = shifted_ROI + [7, -7, +7, -7]
     RectangleSelector(ax_cut, extents=shrinked_shifted_ROI, rectprops=rectprops);

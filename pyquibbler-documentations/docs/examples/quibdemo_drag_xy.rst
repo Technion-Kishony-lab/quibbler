@@ -33,8 +33,7 @@ Dragging graphics affects upstream quibs
 
     # Define input quibs for x-y coordinates:
     xy = iquib(np.array([3., 4.]))
-    x = xy[0]
-    y = xy[1]
+    x, y = xy
 
 .. code:: python
 
@@ -42,11 +41,13 @@ Dragging graphics affects upstream quibs
     # these downstream graphics will change when the marker is moved:
     
     # Text:
-    plt.text(-9, 9, q('X={:.2f}, Y={:.2f}'.format, x, y), fontsize=16, va='top')
+    plt.text(-9, 9, q('X={:.2f}, Y={:.2f}'.format, x, y), 
+             fontsize=16, va='top')
     
     # Rectangle:
-    plt.plot(x * np.array([-1, 1, 1, -1, -1]), y * np.array([-1, -1, 1, 1, -1]), 
-             'k--o', linewidth=1, picker=True)
+    plt.plot(x * np.array([-1, 1, 1, -1, -1]), 
+             y * np.array([-1, -1, 1, 1, -1]), 
+             'k--o', linewidth=1)
     
     # Ellipse:
     phi = np.linspace(0, 2 * np.pi, 50)

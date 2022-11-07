@@ -36,17 +36,10 @@ Based on code by Justin Bois, Michael Elowitz (Caltech).
     from pyquibbler import iquib, initialize_quibbler, quiby
     initialize_quibbler()
     import matplotlib.pyplot as plt
-    import numpy as np
-    %matplotlib tk
-
-.. code:: python
-
-    import scipy.integrate
-    import scipy.optimize
-
-.. code:: python
-
     from matplotlib.widgets import Slider
+    import numpy as np
+    import scipy.integrate
+    %matplotlib tk
 
 .. code:: python
 
@@ -90,7 +83,8 @@ Based on code by Justin Bois, Michael Elowitz (Caltech).
     
     @quiby
     def _solve_repressilator(beta, gamma, rho, n, t, x_init):
-        x = scipy.integrate.odeint(repressilator_rhs, x_init, t, args=(beta, gamma, rho, n))
+        x = scipy.integrate.odeint(repressilator_rhs, x_init, t, 
+                                   args=(beta, gamma, rho, n))
         return x.transpose()
 
 .. code:: python
@@ -101,6 +95,7 @@ Based on code by Justin Bois, Michael Elowitz (Caltech).
     plt.figure(figsize=(4, 3))
     plt.plot(t, x1, 'r', t, x2, 'g', t, x3, 'b');
     
+    # Plot initial conditions:
     plt.plot(0, initial_m_x[3], 'ro')
     plt.plot(0, initial_m_x[4], 'go')
     plt.plot(0, initial_m_x[5], 'bo');

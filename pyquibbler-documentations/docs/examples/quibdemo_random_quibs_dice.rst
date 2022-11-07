@@ -54,7 +54,8 @@ Quibs of random functions - dice rolling
 
     # Plot exact distribution
     def p_sum_dice(n_dice, n_sides, total):
-        # Returns the probability of getting a sum n when rolling num_dice dice with num_sides sides
+        # Returns the probability of getting a sum n when rolling 
+        # num_dice dice with num_sides sides
         if n_dice == 1:
             # equal probability for each outcome 
             ps = np.zeros(total.shape)
@@ -105,5 +106,5 @@ Quibs of random functions - dice rolling
 
     # Add randomize button
     randomize = Button(fg.add_axes([0.23, 0.03, 0.16, 0.05]), 'Randomize')
-    randomize.on_clicked(lambda x: reset_random_quibs());
+    randomize.on_clicked(lambda _: reset_random_quibs());
 .. image:: ../images/demo_gif/quibdemo_random_quibs_dice.gif
