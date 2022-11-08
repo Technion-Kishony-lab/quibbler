@@ -70,8 +70,7 @@ def test_exception_in_overrider_deep():
     a.allow_overriding = True
     a[2] = [20, 30]
     a[2][1] = 31
-    a[2] = 7
-    with pytest.raises(ExternalCallFailedException, match='.*') as r:
-        a.get_value()
+    assert a.get_value() == [0, 1, [20, 31], 3]
 
-    assert r.value.quibs_with_calls == [(a, 'get_value()')]
+    a[2] = 7
+    assert a.get_value() == [0, 1, 7, 3]

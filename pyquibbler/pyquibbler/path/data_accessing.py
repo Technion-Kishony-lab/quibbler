@@ -157,7 +157,7 @@ def deep_set(data: Any, path: Path,
         setter = SETTERS.get(type(new_element), set_key_to_value)
         try:
             new_element = setter(new_element, cmp, last_element)
-        except IndexError as e:
+        except (IndexError, TypeError) as e:
             if raise_on_failure:
                 raise FailedToDeepAssignException(path=path, exception=e)
         if is_non_array_indexed_by_array_style_indexing:

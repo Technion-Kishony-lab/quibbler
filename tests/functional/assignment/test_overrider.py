@@ -77,6 +77,18 @@ def test_overrider_doesnt_raise_exception_when_out_of_bounds_on_non_active_assig
     assert new_data == 0
 
 
+@pytest.mark.regression
+def test_overrider_doesnt_raise_exception_when_wrong_type(overrider):
+    overrider.add_assignment(Assignment(value=1, path=[PathComponent('a')]))
+    # we create another assignment to make the previous not the active assignment
+    overrider.add_assignment(Assignment(value=0, path=[]))
+
+    # We only truly want to make sure the above assignment didn't cause an exception
+    new_data = overrider.override([])
+
+    assert new_data == 0
+
+
 def test_overrider_keeps_order(overrider):
     overrider.add_assignment(Assignment(value=[5], path=[]))
     overrider.add_assignment(Assignment.create_default([PathComponent(0)]))
