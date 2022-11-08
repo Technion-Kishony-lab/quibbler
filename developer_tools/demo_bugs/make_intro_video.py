@@ -21,14 +21,14 @@ def natural_like_type(message, interval, pause_interval=None):
 
 
 
-case = 9
+case = 10
 time.sleep(4)
 
 if case == 1:
     natural_like_type(
-        "xy = [100, 100]\n"
+        "xy = [125, 125]\n"
         "x, y = xy\n"
-        "plt.plot(x, y, marker='o', color='Orange')\n"
+        "plt.plot(x, y, marker='+')\n"
         "plt.title(xy)\n",
         interval=0.02)
 
@@ -40,7 +40,7 @@ if case == 2:
     "phi = np.linspace(0, 2 * np.pi, 30)\n"
     "x_circle = radius * np.cos(phi)\n"
     "y_circle = radius * np.sin(phi)\n"
-    "plt.plot(x_circle + x, y_circle + y, color='Orange')\n",
+    "plt.plot(x_circle + x, y_circle + y, linewidth=3)\n",
     interval = 0.02)
 
 if case == 3:
@@ -113,4 +113,11 @@ if case == 9:
         "plt.figure()\n"
         "plt.bar(['R', 'G', 'B'], fraction_above_threshold*100, color=rgb)\n"
         "plt.ylabel('area above threshold, %')\n",
+        interval=0.02)
+
+if case == 10:
+    natural_like_type(
+        "\n"
+        "from pyquibbler.quib_network import dependency_graph\n"
+        "dependency_graph(fraction_above_threshold)",
         interval=0.02)
