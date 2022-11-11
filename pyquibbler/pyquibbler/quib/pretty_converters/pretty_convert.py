@@ -3,8 +3,9 @@ import numpy as np
 
 from typing import Callable, Tuple, Any, Dict
 
+from .math_expressions.getattr_expression import getattr_converter
 from .math_expressions.math_expression import MathExpression
-from .math_expressions.get_item_expression import getitem_converter
+from .math_expressions.getitem_expression import getitem_converter
 from .math_expressions.func_call_expression import \
     is_str_format, str_format_call_converter, function_call_converter, vectorize_call_converter
 from .math_expressions.operators_expressions import OPERATOR_FUNCS_TO_MATH_CONVERTERS
@@ -24,6 +25,8 @@ def get_math_expression_of_func_with_args_and_kwargs(func: Callable,
         return str_format_call_converter(func, args, kwargs)
     if not kwargs and func is operator.getitem:
         return getitem_converter(func, args)
+    if not kwargs and func is getattr:
+        return getattr_converter(func, args)
     if func is np.vectorize.__call__.__wrapped__:
         return vectorize_call_converter(func, args, kwargs)
 
