@@ -1424,6 +1424,10 @@ class Quib:
         """
         return self.handler.quib_function_call.get_ndim()
 
+    """
+    Overload methods
+    """
+
     def __len__(self):
         if LEN_BOOL_ETC_RAISE_EXCEPTION:
             raise LenBoolEtcException('len')
@@ -1488,6 +1492,10 @@ class Quib:
         6000
         """
         return Unpacker(self, amount)
+
+    def __getattr__(self, item):
+        from pyquibbler.quib.specialized_functions.getattr import create_getattr_quib
+        return create_getattr_quib(self, item)
 
     """
     overrides
