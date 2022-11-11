@@ -91,9 +91,9 @@ To see all available quiby functiuons, use ``list_quiby_funcs()``:
 
 .. code:: none
 
-    ['None: <function identity_function at 0x159afd3f0>',
-     'None: <function proxy at 0x159afd750>',
-     'None: <function identity_function_obj2quib at 0x159f7af80>',
+    ['None: <function identity_function at 0x1559c9fc0>',
+     'None: <function proxy at 0x1559ca320>',
+     'None: <function identity_function_obj2quib at 0x155e43b50>',
      'Quib: __add__',
      'Quib: __sub__',
      'Quib: __mul__',
@@ -419,7 +419,13 @@ To see all available quiby functiuons, use ``list_quiby_funcs()``:
      'numpy: apply_along_axis',
      'numpy: vectorize',
      'Quib: get_override_mask',
-     'Quib: get_quiby_name']
+     'Quib: get_quiby_name',
+     'np.ndarray.T',
+     'np.ndarray.imag',
+     'np.ndarray.ndim',
+     'np.ndarray.real',
+     'np.ndarray.shape',
+     'np.ndarray.size']
 
 
 
