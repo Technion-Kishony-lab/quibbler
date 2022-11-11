@@ -78,6 +78,9 @@ def test_inverse_operator_two_arguments(func, func_args, value, quib_arg_index, 
     (np.square, Source(np.array([-3, 3, -4, 4])), [0, 1, 2, 3], [81, 81, 81, 81], np.array([-9, 9, -9, 9])),
     (np.square, Source(np.array([-3, 3, -4, 4])), [0, 1, 2, 3], 81, np.array([-9, 9, -9, 9])),
     (np.negative, Source(1.8), None, 3,  -3),
+    (np.sin, Source(6.), None, 0, 2*np.pi),
+    (np.cos, Source(6.), None, 1, 2*np.pi),
+    (np.tan, Source(6.), None, 0, 2 * np.pi),
 ], ids=[
     "abs: positive",
     "abs: negative",
@@ -91,6 +94,9 @@ def test_inverse_operator_two_arguments(func, func_args, value, quib_arg_index, 
     "square: array[[0,1,2,3]] = array",
     "square: array[[0,1,2,3]] = scalar",
     "negative: scalar",
+    "sin: scalar",
+    "cos: scalar",
+    "tan: scalar",
 ])
 def test_inverse_elementwise_single_argument(func, func_arg, indices, value, expected_value):
     sources_to_results, _ = inverse(func, indices=indices, value=value, args=(func_arg,), empty_path=indices is None)
