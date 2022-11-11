@@ -1,4 +1,4 @@
-from typing import List, Optional, Dict
+from typing import List, Dict
 
 from pyquibbler.project.jupyer_project.jupyter_project import create_jupyter_project_if_in_jupyter_lab
 from pyquibbler.function_definitions import add_definition_for_function
