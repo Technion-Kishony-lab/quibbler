@@ -219,7 +219,7 @@ class ArrayPathTranslator:
             self.convert_a_data_argument(data_argument)
 
     @convert_args_before_run
-    def get_func_args_kwargs(self):
+    def get_func_args_kwargs(self) -> FuncArgsKwargs:
         return self._func_args_kwargs
 
     @convert_args_before_run

@@ -1,6 +1,6 @@
 import pytest
 from unittest import mock
-from pyquibbler import iquib, CacheStatus
+from pyquibbler import iquib, CacheStatus, Quib
 from pyquibbler.quib.graphics import aggregate_redraw_mode
 
 
@@ -10,7 +10,7 @@ def func():
 
 
 @pytest.fixture
-def quib():
+def quib() -> Quib:
     return iquib(1)
 
 

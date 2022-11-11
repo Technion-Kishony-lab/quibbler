@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, Tuple, Dict, List, Type
+from typing import Any, Tuple, Dict, List
 from numpy.typing import NDArray, ArrayLike
 
 from pyquibbler.path import deep_set, PathComponent, Path
@@ -8,7 +8,7 @@ from pyquibbler.utilities.numpy_original_functions import np_zeros
 import numpy as np
 
 
-Args: Type[tuple] = Tuple[Any, ...]
+Args = Tuple[Any, ...]
 Kwargs = Dict[str, Any]
 Shape = Tuple[int, ...]
 

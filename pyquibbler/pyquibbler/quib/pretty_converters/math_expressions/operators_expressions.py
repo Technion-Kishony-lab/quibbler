@@ -1,7 +1,8 @@
 from dataclasses import dataclass
-from typing import Any, Callable, Tuple
+from typing import Any, Callable
 from abc import ABC
 
+from pyquibbler.utilities.general_utils import Args
 from ..math_precedence import MathPrecedence
 from .math_expression import MathExpression
 from .simple_expressions import object_to_math_expression, add_parenthesis_if_needed
@@ -75,8 +76,7 @@ class LeftUnaryOperatorExpression(OperatorExpression):
         return f"{self.symbol}{right_side}"
 
 
-def convert_binary_func_to_mathematical_expression(func: Callable,
-                                                   args: Tuple[Any, ...]) -> MathExpression:
+def convert_binary_func_to_mathematical_expression(func: Callable, args: Args) -> MathExpression:
     """
     Convert the binary func and args to mathematical expression
     """
@@ -84,8 +84,7 @@ def convert_binary_func_to_mathematical_expression(func: Callable,
     return BinaryOperatorExpression(operator=operator, left_side=args[0], right_side=args[1])
 
 
-def convert_reverse_binary_func_to_mathematical_expression(func: Callable,
-                                                           args: Tuple[Any, ...]) -> MathExpression:
+def convert_reverse_binary_func_to_mathematical_expression(func: Callable, args: Args) -> MathExpression:
     """
     Convert the reverse binary func and args to mathematical expression
     """
@@ -93,8 +92,7 @@ def convert_reverse_binary_func_to_mathematical_expression(func: Callable,
     return BinaryOperatorExpression(operator=operator, left_side=args[1], right_side=args[0])
 
 
-def convert_unary_right_func_to_mathematical_expression(func: Callable,
-                                                        args: Tuple[Any, ...]) -> MathExpression:
+def convert_unary_right_func_to_mathematical_expression(func: Callable, args: Args) -> MathExpression:
     """
     Convert the unary func and pretty arg to mathematical expression
     """

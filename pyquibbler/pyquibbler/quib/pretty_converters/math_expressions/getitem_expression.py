@@ -1,6 +1,7 @@
 from dataclasses import dataclass
-from typing import Callable, Tuple, Any
+from typing import Callable, Any
 
+from pyquibbler.utilities.general_utils import Args
 from .math_expression import MathExpression
 from ..math_precedence import MathPrecedence
 
@@ -43,6 +44,6 @@ class GetItemExpression(MathExpression):
         return MathPrecedence.SUBSCRIPTION
 
 
-def getitem_converter(func: Callable, args: Tuple[Any, ...]) -> GetItemExpression:
+def getitem_converter(func: Callable, args: Args) -> GetItemExpression:
     obj, item = args
     return GetItemExpression(obj, item)

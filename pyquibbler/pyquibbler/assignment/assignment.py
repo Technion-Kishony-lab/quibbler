@@ -6,7 +6,7 @@ from typing import Any, TYPE_CHECKING, List, Union, Optional, Callable, Tuple
 
 from pyquibbler.utilities.numpy_original_functions import np_array
 
-from pyquibbler.quib.pretty_converters.math_expressions.get_item_expression import GetItemExpression
+from pyquibbler.quib.pretty_converters.math_expressions.getitem_expression import GetItemExpression
 from pyquibbler.path.path_component import Path
 
 from .default_value import default

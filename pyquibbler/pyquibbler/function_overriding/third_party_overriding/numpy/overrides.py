@@ -246,6 +246,8 @@ def create_numpy_overrides():
             ('ones_like',    nd),
             ('zeros_like',   nd),
             ('shape',        tuple),
+            ('size',         int),
+            ('ndim',         int),
           )),
 
         # Data-less

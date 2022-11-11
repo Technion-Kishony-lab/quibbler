@@ -1,7 +1,12 @@
-from typing import List
+from typing import List, Dict
 
 from pyquibbler.project.jupyer_project.jupyter_project import create_jupyter_project_if_in_jupyter_lab
 from pyquibbler.function_definitions import add_definition_for_function
+from pyquibbler.function_definitions.func_definition import FuncDefinition
+from pyquibbler.utilities.input_validation_utils import validate_user_input
+from pyquibbler.utilities.warning_messages import no_header_warn
+from pyquibbler.env import DRAGGABLE_PLOTS_BY_DEFAULT, SHOW_QUIBS_AS_WIDGETS_IN_JUPYTER_LAB
+
 from .defintion_without_override.python_functions import create_definitions_for_python_functions
 from .exceptionhook import override_jupyterlab_excepthook
 from .function_override import FuncOverride
@@ -12,9 +17,10 @@ from .quib_overrides.operators.overrides import create_operator_overrides
 from .quib_overrides.quib_methods import create_quib_method_overrides
 from .third_party_overriding.numpy.overrides import create_numpy_overrides
 from .third_party_overriding.graphics.overrides import create_graphics_overrides
-from ..env import DRAGGABLE_PLOTS_BY_DEFAULT, SHOW_QUIBS_AS_WIDGETS_IN_JUPYTER_LAB
-from ..utilities.input_validation_utils import validate_user_input
-from ..utilities.warning_messages import no_header_warn
+from .third_party_overriding.numpy.quiby_attributes import get_numpy_attributes_to_definitions
+
+
+ATTRIBUTES_TO_DEFINITIONS: Dict[str, FuncDefinition] = {}
 
 
 @validate_user_input(draggable_plots=bool, show_quibs_as_widgets=bool)
@@ -113,6 +119,8 @@ def initialize_quibbler(draggable_plots: bool = True, show_quibs_as_widgets: boo
             module_or_cls=func_override.module_or_cls,
             func_name=func_override.func_name,
             quib_creating_func=maybe_create_quib)
+
+    ATTRIBUTES_TO_DEFINITIONS.update(get_numpy_attributes_to_definitions())
 
     if within_jupyterlab:
         override_jupyterlab_excepthook()
