@@ -121,12 +121,11 @@ class QuibHandler:
 
         self.assignment_template = assignment_template
         self.assigned_name = assigned_name
-
-        self.children = weakref.WeakSet()
+        self.children: weakref.WeakSet[Quib] = weakref.WeakSet()
         self._overrider: Optional[Overrider] = None
         self.file_syncer: QuibFileSyncer = QuibFileSyncer(quib_ref)
         self.allow_overriding = allow_overriding
-        self.assigned_quibs = None
+        self.assigned_quibs: Optional[Set[Quib]] = None
         self.created_in_get_value_context = is_within_get_value_context()
         self.created_in: Optional[FileAndLineNumber] = created_in
         self.graphics_update = graphics_update
@@ -134,7 +133,7 @@ class QuibHandler:
         self.save_directory = save_directory
 
         self.save_format = save_format
-        self.func_args_kwargs = FuncArgsKwargs(func, args, kwargs)
+        self.func_args_kwargs: FuncArgsKwargs = FuncArgsKwargs(func, args, kwargs)
         self.func_definition = func_definition
 
         self.cache_mode = cache_mode
