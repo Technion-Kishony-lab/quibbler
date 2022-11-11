@@ -8,7 +8,7 @@ from pyquibbler.utilities.numpy_original_functions import np_zeros
 import numpy as np
 
 
-Args: Type[tuple] = Tuple[Any, ...]
+Args = Tuple[Any, ...]
 Kwargs = Dict[str, Any]
 Shape = Tuple[int, ...]
 
