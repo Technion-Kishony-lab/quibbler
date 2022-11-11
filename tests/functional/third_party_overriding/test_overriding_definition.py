@@ -66,7 +66,7 @@ def test_overriding_definition_defaults_to_evaluate_now_when_lazy_flag_set_to_fa
 
 def test_overridden_function_in_list_quiby_funcs(overridden_func, func_mock_on_module, add_definition):
     add_definition()
-    assert list_quiby_funcs()[-1] == 'MockModule: hello_my_good_good_friend'
+    assert 'MockModule: hello_my_good_good_friend' in list_quiby_funcs()
 
 
 def test_overridden_function_is_quiby(mock_module, func_name_to_override, override):
