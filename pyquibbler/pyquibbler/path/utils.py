@@ -7,19 +7,6 @@ from .path_component import Path, PathComponent, SpecialComponent
 from .data_accessing import deep_get
 
 
-def translate_bool_vector_to_slice_if_possible(bool_index: bool) -> Union[None, slice]:
-    indices, = np.nonzero(bool_index)
-    if len(indices) == 0:
-        return slice(0, 0)
-    if len(indices) == 1:
-        return slice(indices[0], indices[0] + 1)
-
-    diff_indices = np.diff(indices)
-    if np.all(diff_indices == diff_indices[0]):
-        return slice(indices[0], indices[-1] + 1, diff_indices[0])
-    return None
-
-
 def squash_path(path: Path) -> Path:
     if len(path) == 0:
         return []
