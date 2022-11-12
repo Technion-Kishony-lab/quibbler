@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import dataclasses
+from dataclasses import dataclass
 
 from typing import Iterable
 from abc import ABC, abstractmethod
@@ -21,7 +21,7 @@ def track_artist(artist):
         CanvasEventHandler.get_or_create_initialized_event_handler(artist.figure.canvas)
 
 
-@dataclasses.dataclass
+@dataclass
 class RunFunctionWithQuibArg(ABC):
     weak_ref_quib: ReferenceType[Quib]
 

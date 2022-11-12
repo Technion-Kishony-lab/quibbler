@@ -1,11 +1,11 @@
-import dataclasses
+from dataclasses import dataclass
 from typing import Type, Mapping
 
 from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.utilities.missing_value import missing
 
 
-@dataclasses.dataclass
+@dataclass
 class CannotFindRepresentativeValueForType(PyQuibblerException):
     type_: Type
 

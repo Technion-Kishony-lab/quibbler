@@ -1,4 +1,4 @@
-import dataclasses
+from dataclasses import dataclass
 from abc import ABC, abstractmethod
 from enum import Enum
 from typing import List, Any, Optional, Type
@@ -16,7 +16,7 @@ class BaseRunnerFailedException(PyQuibblerException, ABC):
     """
 
 
-@dataclasses.dataclass
+@dataclass
 class RunnerFailedException(BaseRunnerFailedException):
     """
     A generic exception runners should raise if they do not manage to perform their job.

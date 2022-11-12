@@ -1,4 +1,4 @@
-import dataclasses
+from dataclasses import dataclass
 
 import numpy as np
 from typing import Callable, Union, Tuple
@@ -14,7 +14,7 @@ Specifies a single nominal inverse function, or a tuple of a nominal and an inpu
 """
 
 
-@dataclasses.dataclass
+@dataclass
 class InverseFunc:
     """
     An inverse function.

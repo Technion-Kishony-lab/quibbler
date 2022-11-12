@@ -1,10 +1,10 @@
-import dataclasses
+from dataclasses import dataclass
 
 from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.function_overriding.override_all import ATTRIBUTES_TO_DEFINITIONS
 
 
-@dataclasses.dataclass
+@dataclass
 class PyQuibblerAttributeError(PyQuibblerException, AttributeError):
     item: str
 

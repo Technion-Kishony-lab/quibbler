@@ -1,4 +1,4 @@
-import dataclasses
+from dataclasses import dataclass
 from typing import Optional
 
 from pyquibbler.env import GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION
@@ -7,7 +7,7 @@ from pyquibbler.quib.func_calling.func_calls.known_graphics.widgets.widget_call 
 from pyquibbler.quib.quib import Quib
 
 
-@dataclasses.dataclass
+@dataclass
 class SliderQuibFuncCall(WidgetQuibFuncCall):
 
     @staticmethod

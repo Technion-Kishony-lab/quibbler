@@ -1,5 +1,5 @@
 from __future__ import annotations
-import dataclasses
+from dataclasses import dataclass
 
 from typing import Optional, Callable, Union, List, Tuple
 
@@ -77,7 +77,7 @@ class WidgetQuibDeletedException(PyQuibblerException):
         return 'Cannot find quib. Disabling widget.'
 
 
-@dataclasses.dataclass
+@dataclass
 class QuibWidget:
     """
     Creates and control a quib widget allowing viewing, editing and save/load of quib overrides.
