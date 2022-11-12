@@ -1,7 +1,9 @@
 from dataclasses import dataclass
 
 from pyquibbler.exceptions import PyQuibblerException
+from pyquibbler.function_overriding.attribute_override import MethodOverride
 from pyquibbler.function_overriding.override_all import ATTRIBUTES_TO_ATTRIBUTE_OVERRIDES
+from pyquibbler.quib.specialized_functions.quiby_methods import QuibyMethod
 
 
 @dataclass
@@ -19,6 +21,9 @@ def create_getattr_quib_or_quiby_method(quib, item):
     if attribute_override is None:
         raise PyQuibblerAttributeError(item)
 
-    return create_quib(func=getattr,
-                       args=(quib, item),
-                       func_definition=attribute_override.func_definition)
+    if isinstance(attribute_override, MethodOverride):
+        return QuibyMethod(quib, method_override=attribute_override)
+    else:
+        return create_quib(func=getattr,
+                           args=(quib, item),
+                           func_definition=attribute_override.func_definition)
