@@ -1,9 +1,9 @@
-from typing import Dict
-
 import numpy as np
 
+from typing import Dict
+
 from pyquibbler.function_definitions import get_definition_for_function
-from pyquibbler.function_definitions.func_definition import FuncDefinition
+from pyquibbler.function_overriding.attribute_override import AttributeOverride
 
 ATTRIBUTES_TO_FUNCS = {
     'T': np.transpose,
@@ -15,7 +15,9 @@ ATTRIBUTES_TO_FUNCS = {
 }
 
 
-def get_numpy_attributes_to_definitions() -> Dict[str, FuncDefinition]:
+def get_numpy_attributes_to_attribute_overrides() -> Dict[str, AttributeOverride]:
     return {
-        attribute: get_definition_for_function(func) for attribute, func in ATTRIBUTES_TO_FUNCS.items()
+        attribute: AttributeOverride(attribute=attribute,
+                                     func_definition=get_definition_for_function(func))
+        for attribute, func in ATTRIBUTES_TO_FUNCS.items()
     }
