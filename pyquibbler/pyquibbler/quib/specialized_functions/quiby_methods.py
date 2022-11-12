@@ -1,13 +1,8 @@
 from dataclasses import dataclass
-from typing import Any
 
+from pyquibbler.quib.quib import Quib
 from pyquibbler.function_definitions.func_definition import FuncDefinition
 from pyquibbler.function_overriding.attribute_override import MethodOverride
-from pyquibbler.quib.quib import Quib
-
-METHODS_TO_DEFINITIONS = {
-    'sum': None,
-}
 
 
 @dataclass
