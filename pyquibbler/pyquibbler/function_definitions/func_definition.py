@@ -1,21 +1,18 @@
 from __future__ import annotations
 
-import functools
 from dataclasses import dataclass, field
 from typing import Set, Type, List, Callable, Optional, Union, Tuple
 
 from pyquibbler.path_translation import BackwardsPathTranslator, ForwardsPathTranslator
 from pyquibbler.type_translation.translators import TypeTranslator
+from pyquibbler.function_overriding.third_party_overriding.numpy.inverse_functions import InverseFunc
 
 from .func_call import FuncArgsKwargs
-from .types import ArgId, Argument, PositionalArgument, KeywordArgument, \
+from .types import ArgId, Argument, \
     convert_raw_data_arguments_to_data_argument_designations, DataArgumentDesignation, SubArgument
-from .utils import get_signature_for_func
+from .utils import get_corresponding_argument
 
 from typing import TYPE_CHECKING
-
-from ..function_overriding.third_party_overriding.numpy.inverse_functions import InverseFunc
-
 if TYPE_CHECKING:
     from pyquibbler.quib.func_calling import QuibFuncCall
     from pyquibbler.inversion.inverter import Inverter
@@ -33,7 +30,6 @@ class FuncDefinition:
     This includes which arguments are data_sources, how to translate paths, how to invert, how to run the function, etc
     """
 
-    func: Optional[Callable] = None
     data_argument_designations: List[DataArgumentDesignation] = field(repr=False, default_factory=list)
     is_random: bool = False
     is_file_loading: bool = False
@@ -56,48 +52,6 @@ class FuncDefinition:
     def is_impure(self):
         return self.is_file_loading or self.is_random
 
-    def get_parameters(self):
-        try:
-            sig = get_signature_for_func(self.func)
-            return sig.parameters
-        except (ValueError, TypeError):
-            return {}
-
-    @functools.lru_cache()
-    def get_positional_to_keyword_arguments(self):
-        return {
-            PositionalArgument(i): KeywordArgument(name) if parameter.kind.name != "POSITIONAL_ONLY" else None
-            for i, (name, parameter) in enumerate(self.get_parameters().items())
-        }
-
-    @functools.lru_cache()
-    def get_keyword_to_positional_arguments(self):
-        return {
-            KeywordArgument(name): PositionalArgument(i) if parameter.kind.name != "KEYWORD_ONLY" else None
-            for i, (name, parameter) in enumerate(self.get_parameters().items())
-        }
-
-    def get_corresponding_argument(self, argument):
-        """
-        Get the argument of the opposite type (positional v keyword) which corresponds to the same argument
-
-        For example, given:
-
-        def my_func(a):
-            pass
-
-        `a` could be referenced by both PositionalArgument(0) or KeywordArgument("a")
-
-        In this instance:
-            If given PositionalArgument(0) will return KeywordArgument("a")
-            If given KeywordArgument("a") will return PositionalArgument(0)
-        """
-        if isinstance(argument, PositionalArgument):
-            corresponding_dict = self.get_positional_to_keyword_arguments()
-        else:
-            corresponding_dict = self.get_keyword_to_positional_arguments()
-        return corresponding_dict.get(argument, None)
-
     def get_data_arguments(self, func_args_kwargs: FuncArgsKwargs) -> List[Argument]:
         """
         Returns the data arguments in the function call
@@ -114,7 +68,7 @@ class FuncDefinition:
                 data_argument_designation = \
                     self.data_argument_designations[designated_data_arguments.index(func_call_argument)]
             if not data_argument_designation:
-                corresponding_func_call_argument = self.get_corresponding_argument(func_call_argument)
+                corresponding_func_call_argument = get_corresponding_argument(func_args_kwargs.func, func_call_argument)
                 if corresponding_func_call_argument in designated_data_arguments:
                     data_argument_designation = \
                         self.data_argument_designations[
@@ -138,6 +92,7 @@ class ElementWiseFuncDefinition(FuncDefinition):
     Represents a definition of functions that act element-wise on a single arg
     """
 
+    func: Optional[Callable] = None
     inverse_funcs: Tuple[Optional[InverseFunc]] = field(repr=False, default_factory=tuple)
 
 
@@ -155,7 +110,6 @@ def create_func_definition(raw_data_source_arguments: List[ArgId] = None,
                            backwards_path_translators: List[Type[BackwardsPathTranslator]] = None,
                            forwards_path_translators: List[Type[ForwardsPathTranslator]] = None,
                            quib_function_call_cls: Type[QuibFuncCall] = None,
-                           func: Optional[Callable] = None,
                            result_type_or_type_translators: Union[Type, List[Type[TypeTranslator]]] = None,
                            func_definition_cls: Optional[FuncDefinition] = None,
                            kwargs_to_ignore_in_repr: Optional[Set[str]] = None,
@@ -170,7 +124,6 @@ def create_func_definition(raw_data_source_arguments: List[ArgId] = None,
     raw_data_source_arguments = raw_data_source_arguments or set()
     data_argument_designations = convert_raw_data_arguments_to_data_argument_designations(raw_data_source_arguments)
     return func_definition_cls(
-        func=func,
         is_random=is_random,
         is_graphics=is_graphics,
         is_file_loading=is_file_loading,

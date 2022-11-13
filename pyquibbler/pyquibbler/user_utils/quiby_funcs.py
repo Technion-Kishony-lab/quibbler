@@ -153,8 +153,7 @@ def quiby(func: Callable = None,
         func_definition = get_definition_for_function(func, return_default=False)
         if func_definition is None:
             from pyquibbler.function_definitions.func_definition import FuncDefinition
-            func_definition = FuncDefinition(func=func,
-                                             lazy=lazy,
+            func_definition = FuncDefinition(lazy=lazy,
                                              pass_quibs=pass_quibs,
                                              is_random=is_random,
                                              is_graphics=is_graphics,
@@ -164,7 +163,7 @@ def quiby(func: Callable = None,
 
         @functools.wraps(func)
         def _wrapper(*args, **kwargs) -> Quib:
-            return create_quib(func=None, args=args, kwargs=kwargs, func_definition=func_definition)
+            return create_quib(func=func, args=args, kwargs=kwargs, func_definition=func_definition)
 
         _wrapper.func_definition = func_definition
 

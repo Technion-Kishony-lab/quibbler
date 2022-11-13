@@ -90,9 +90,9 @@ def initialize_quibbler(draggable_plots: bool = True, show_quibs_as_widgets: boo
     within_jupyterlab = create_jupyter_project_if_in_jupyter_lab()
 
     function_definitions = create_definitions_for_python_functions()
-    for func_definition in function_definitions:
+    for func, func_definition in function_definitions.items():
         add_definition_for_function(
-            func=func_definition.func,
+            func=func,
             func_definition=func_definition,
             module_or_cls=None,
         )

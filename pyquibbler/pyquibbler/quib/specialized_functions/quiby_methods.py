@@ -5,7 +5,7 @@ from pyquibbler.function_definitions.func_definition import FuncDefinition
 from pyquibbler.function_overriding.attribute_override import MethodOverride
 
 
-@dataclass
+@dataclass(frozen=True)
 class CallObjectMethod:
     method: str
     func_definition: FuncDefinition

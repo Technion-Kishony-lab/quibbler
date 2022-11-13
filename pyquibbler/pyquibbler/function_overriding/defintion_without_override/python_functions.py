@@ -1,7 +1,7 @@
 # flake8: noqa
 
 from __future__ import annotations
-from typing import List, TYPE_CHECKING
+from typing import List, TYPE_CHECKING, Callable, Dict
 
 from pyquibbler.inversion.inverters.transpositional import TranspositionalOneToOneInverter
 from pyquibbler.path_translation.translators import TranspositionalBackwardsPathTranslator, TranspositionalForwardsPathTranslator
@@ -14,38 +14,37 @@ if TYPE_CHECKING:
     from pyquibbler.function_definitions.func_definition import FuncDefinition
 
 
-def create_definitions_for_python_functions() -> List[FuncDefinition]:
+def create_definitions_for_python_functions() -> Dict[Callable, FuncDefinition]:
     from pyquibbler.function_definitions.func_definition import create_func_definition
-    return [
-        create_func_definition(
-            func=len,
+    return {
+        # shape only:
+        len: create_func_definition(
             raw_data_source_arguments=[0],
             result_type_or_type_translators=int,
             backwards_path_translators=[ShapeOnlyBackwardsPathTranslator],
             forwards_path_translators=[ShapeOnlyForwardsPathTranslator]),
 
-        *(create_func_definition(
-            func=func,
+        # casting:
+        **{func: create_func_definition(
             raw_data_source_arguments=[0],
             result_type_or_type_translators=func,
             inverters=[inverter])
             for func, inverter in [
-
             (str,   StrCastingInverter),
             (int,   NumericCastingInverter),
             (float, NumericCastingInverter),
             (bool,  BoolCastingInverter),
-        ]),
+        ]},
 
-        *(create_func_definition(
-            func=func,
+        # transpositional:
+        **{func: create_func_definition(
             raw_data_source_arguments=[0],
             inverters=[TranspositionalOneToOneInverter],
             backwards_path_translators=[TranspositionalBackwardsPathTranslator],
             forwards_path_translators=[TranspositionalForwardsPathTranslator],
             result_type_or_type_translators=func,
          )
-             for func in [list, tuple]),
+             for func in [list, tuple]},
 
         # TODO: need definition for dict
-    ]
+    }

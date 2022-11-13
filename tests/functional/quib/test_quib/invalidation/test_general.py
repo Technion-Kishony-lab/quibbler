@@ -14,8 +14,7 @@ def test_quib_does_not_request_shape_or_parents_shapes_on_first_attempt(create_m
     forwards_path_translator = mock.Mock()
     forwards_path_translator.return_value._forward_translate.return_value = {}
     func.func_definition = create_func_definition(raw_data_source_arguments=[0],
-                                                  forwards_path_translators=[forwards_path_translator],
-                                                  func=func)
+                                                  forwards_path_translators=[forwards_path_translator])
     parent_quib = create_quib(func=func, args=(1,))
     quib = create_quib(func=lambda a: a, args=(parent_quib,))
     parent_quib.handler.invalidate_and_aggregate_redraw_at_path([])
