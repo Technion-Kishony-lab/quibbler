@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 from dataclasses import dataclass, field
 from typing import Set, Type, List, Callable, Optional, Union, Tuple
 
@@ -99,7 +100,8 @@ class ElementWiseFuncDefinition(FuncDefinition):
 ElementWiseFuncDefinition.__hash__ = FuncDefinition.__hash__
 
 
-def create_func_definition(raw_data_source_arguments: List[ArgId] = None,
+def create_func_definition(base_func_definition: Optional[FuncDefinition] = None,
+                           raw_data_source_arguments: List[ArgId] = None,
                            is_random: bool = False,
                            is_file_loading: bool = False,
                            is_graphics: Optional[bool] = False,
@@ -118,24 +120,44 @@ def create_func_definition(raw_data_source_arguments: List[ArgId] = None,
     Create a definition for a function- this will allow quibbler to utilize Quibs with the function in a more
     specific manner (and not just use default behavior), for whichever parameters you give.
     """
-
-    func_definition_cls = func_definition_cls or FuncDefinition
     quib_function_call_cls = quib_function_call_cls or get_default_quib_func_call()
     raw_data_source_arguments = raw_data_source_arguments or set()
     data_argument_designations = convert_raw_data_arguments_to_data_argument_designations(raw_data_source_arguments)
-    return func_definition_cls(
-        is_random=is_random,
-        is_graphics=is_graphics,
-        is_file_loading=is_file_loading,
-        data_argument_designations=data_argument_designations,
-        inverters=inverters or [],
-        backwards_path_translators=backwards_path_translators or [],
-        forwards_path_translators=forwards_path_translators or [],
-        quib_function_call_cls=quib_function_call_cls,
-        pass_quibs=pass_quibs,
-        result_type_or_type_translators=result_type_or_type_translators or [],
-        lazy=lazy,
-        is_artist_setter=is_artist_setter,
-        kwargs_to_ignore_in_repr=kwargs_to_ignore_in_repr,
-        **kwargs
-    )
+    if base_func_definition and (func_definition_cls is None or type(base_func_definition) == func_definition_cls):
+        # use base_func_definition as the default upon which to make changes:
+        func_definition = copy.copy(base_func_definition)
+        func_definition.is_random=is_random,
+        func_definition.is_graphics=is_graphics,
+        func_definition.is_file_loading=is_file_loading,
+        func_definition.data_argument_designations=data_argument_designations,
+        func_definition.inverters=inverters or [],
+        func_definition.backwards_path_translators=backwards_path_translators or [],
+        func_definition.forwards_path_translators=forwards_path_translators or [],
+        func_definition.quib_function_call_cls=quib_function_call_cls,
+        func_definition.pass_quibs=pass_quibs,
+        func_definition.result_type_or_type_translators=result_type_or_type_translators or [],
+        func_definition.lazy=lazy,
+        func_definition.is_artist_setter=is_artist_setter,
+        func_definition.kwargs_to_ignore_in_repr=kwargs_to_ignore_in_repr,
+        if func_definition == base_func_definition:
+            return base_func_definition
+        return func_definition
+    else:
+        # create a new definition from scratch:
+        func_definition_cls = func_definition_cls or FuncDefinition
+        return func_definition_cls(
+            is_random=is_random,
+            is_graphics=is_graphics,
+            is_file_loading=is_file_loading,
+            data_argument_designations=data_argument_designations,
+            inverters=inverters or [],
+            backwards_path_translators=backwards_path_translators or [],
+            forwards_path_translators=forwards_path_translators or [],
+            quib_function_call_cls=quib_function_call_cls,
+            pass_quibs=pass_quibs,
+            result_type_or_type_translators=result_type_or_type_translators or [],
+            lazy=lazy,
+            is_artist_setter=is_artist_setter,
+            kwargs_to_ignore_in_repr=kwargs_to_ignore_in_repr,
+            **kwargs
+        )

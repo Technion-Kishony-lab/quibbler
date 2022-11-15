@@ -57,7 +57,8 @@ def operator_override(func_name,
         func_name = '__r' + func_name[2:]
 
     return override_with_cls(OperatorOverride, Quib,
-                             func_name, data_source_indexes,
+                             func_name,
+                             data_source_arguments=data_source_indexes,
                              inverters=inverters,
                              backwards_path_translators=backwards_path_translators,
                              forwards_path_translators=forwards_path_translators,

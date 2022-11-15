@@ -208,13 +208,14 @@ def create_numpy_overrides():
 
         # Transpositional
         # np.array is special because we need to check for dtype=object
-        *(numpy_array_override(func_name, data_sources, result_type_or_type_translators=nd)
+        *(numpy_array_override(func_name, data_source_arguments=data_sources, result_type_or_type_translators=nd)
             for func_name, data_sources in (
             ('array', [0]),
           )),
 
         # Other Transpositional
-        *(numpy_override_transpositional_one_to_one(func_name, data_sources,
+        *(numpy_override_transpositional_one_to_one(func_name,
+                                                    data_source_arguments=data_sources,
                                                     result_type_or_type_translators=result_type)
           for func_name, data_sources, result_type in (
             ('rot90',       [0],  nd),
@@ -231,7 +232,8 @@ def create_numpy_overrides():
             ('concatenate', [DataArgumentDesignation(PositionalArgument(0), is_multi_arg=True)], nd),
           )),
 
-        *(numpy_override_transpositional_one_to_many(func_name, data_sources,
+        *(numpy_override_transpositional_one_to_many(func_name,
+                                                     data_source_arguments=data_sources,
                                                      result_type_or_type_translators=result_type)
           for func_name, data_sources, result_type in (
             ('repeat',      [0],  nd),

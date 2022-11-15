@@ -10,6 +10,7 @@ from ..function_override import FuncOverride, ClassOverride, NotImplementedOverr
 def override_with_cls(override_cls,
                       module_or_cls,
                       func_name: str,
+                      base_func_definition: Optional[FuncDefinition] = None,
                       data_source_arguments: List[ArgId] = None,
                       forwards_path_translators: Optional[List] = None,
                       backwards_path_translators: Optional[List] = None,
@@ -24,12 +25,14 @@ def override_with_cls(override_cls,
                       func_definition_cls: Optional[Type[FuncDefinition]] = None,
                       allowed_kwarg_flags: Tuple[str] = (),
                       **kwargs):
+    print(func_name)
     return override_cls(
         func_name=func_name,
         module_or_cls=module_or_cls,
         allowed_kwarg_flags=allowed_kwarg_flags,
         should_remove_arguments_equal_to_defaults=should_remove_arguments_equal_to_defaults,
-        func_definition=create_func_definition(raw_data_source_arguments=data_source_arguments,
+        func_definition=create_func_definition(base_func_definition=base_func_definition,
+                                               raw_data_source_arguments=data_source_arguments,
                                                is_random=is_random,
                                                is_file_loading=is_file_loading,
                                                is_graphics=is_graphics,
