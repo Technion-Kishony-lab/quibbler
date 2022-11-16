@@ -7,7 +7,7 @@ from pyquibbler import CacheMode
 from pyquibbler import create_quib, quiby, Quib
 
 from pyquibbler.function_definitions import add_definition_for_function
-from pyquibbler.function_definitions.func_definition import FuncDefinition, create_func_definition
+from pyquibbler.function_definitions.func_definition import FuncDefinition, create_or_reuse_func_definition
 from pyquibbler.path import PathComponent
 from pyquibbler.quib.factory import create_quib
 
@@ -17,7 +17,7 @@ def test_quib_does_not_request_shape_or_parents_shapes_on_first_attempt(create_m
     quib = create_quib(func=lambda a: a, args=(parent,))
     backwards_path_translator = mock.Mock()
     backwards_path_translator.return_value._backwards_translate.return_value = {}
-    add_definition_for_function(func=quib.func, func_definition=create_func_definition(
+    add_definition_for_function(func=quib.func, func_definition=create_or_reuse_func_definition(
         raw_data_source_arguments=[0], backwards_path_translators=[backwards_path_translator]))
 
     quib.get_value()

@@ -5,7 +5,7 @@ import pytest
 from matplotlib.axes import Axes
 
 from pyquibbler.function_definitions import add_definition_for_function
-from pyquibbler.function_definitions.func_definition import create_func_definition
+from pyquibbler.function_definitions.func_definition import create_or_reuse_func_definition
 from pyquibbler.path import PathComponent
 from pyquibbler.quib.factory import create_quib
 from pyquibbler.quib.graphics import GraphicsUpdateType, aggregate_redraw_mode
@@ -116,9 +116,8 @@ def test_graphics_quib_which_should_never_update(graphics_update, quib, graphics
 def replacing_func():
     mock_func = mock.Mock()
     mock_func.__name__ = "myfunc"
-    add_definition_for_function(func=mock_func, func_definition=create_func_definition(
-        is_graphics=True,
-        is_artist_setter=True),
+    add_definition_for_function(func=mock_func, func_definition=create_or_reuse_func_definition(is_graphics=True,
+                                                                                                is_artist_setter=True),
                                 )
     return mock_func
 

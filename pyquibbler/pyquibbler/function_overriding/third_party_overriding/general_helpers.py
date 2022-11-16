@@ -2,7 +2,7 @@ import functools
 from typing import List, Optional, Type, Tuple, Union
 
 from pyquibbler.function_definitions.types import ArgId
-from pyquibbler.function_definitions.func_definition import create_func_definition, FuncDefinition
+from pyquibbler.function_definitions.func_definition import create_or_reuse_func_definition, FuncDefinition
 from pyquibbler.type_translation import TypeTranslator
 from ..function_override import FuncOverride, ClassOverride, NotImplementedOverride
 
@@ -30,21 +30,16 @@ def override_with_cls(override_cls,
         module_or_cls=module_or_cls,
         allowed_kwarg_flags=allowed_kwarg_flags,
         should_remove_arguments_equal_to_defaults=should_remove_arguments_equal_to_defaults,
-        func_definition=create_func_definition(base_func_definition=base_func_definition,
-                                               raw_data_source_arguments=data_source_arguments,
-                                               is_random=is_random,
-                                               is_file_loading=is_file_loading,
-                                               is_graphics=is_graphics,
-                                               pass_quibs=pass_quibs,
-                                               lazy=lazy,
-                                               is_artist_setter=is_artist_setter,
-                                               inverters=inverters,
-                                               backwards_path_translators=backwards_path_translators,
-                                               forwards_path_translators=forwards_path_translators,
-                                               quib_function_call_cls=quib_function_call_cls,
-                                               result_type_or_type_translators=result_type_or_type_translators,
-                                               func_definition_cls=func_definition_cls,
-                                               **kwargs)
+        func_definition=create_or_reuse_func_definition(base_func_definition=base_func_definition,
+                                                        raw_data_source_arguments=data_source_arguments,
+                                                        is_random=is_random, is_file_loading=is_file_loading,
+                                                        is_graphics=is_graphics, pass_quibs=pass_quibs, lazy=lazy,
+                                                        is_artist_setter=is_artist_setter, inverters=inverters,
+                                                        backwards_path_translators=backwards_path_translators,
+                                                        forwards_path_translators=forwards_path_translators,
+                                                        quib_function_call_cls=quib_function_call_cls,
+                                                        result_type_or_type_translators=result_type_or_type_translators,
+                                                        func_definition_cls=func_definition_cls, **kwargs)
     )
 
 

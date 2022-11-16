@@ -8,7 +8,7 @@ import pytest
 
 from pyquibbler import iquib
 from pyquibbler.function_definitions import add_definition_for_function
-from pyquibbler.function_definitions.func_definition import create_func_definition
+from pyquibbler.function_definitions.func_definition import create_or_reuse_func_definition
 from pyquibbler.quib.factory import create_quib
 from weakref import ref
 

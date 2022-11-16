@@ -195,13 +195,13 @@ def create_graphics_overrides():
 
         *(axes3d_override(func_name) for func_name in (
 
-            # Obtained by:
+            # The list below is obtained by:
             # [attr for attr in dir(Axes3D)
             #  if not any([attr.startswith(init_name) for init_name in
             #  ('_', 'set', 'get', 'add', 'format', 'xaxis', 'yaxis', 'zaxis', 'convert' ,'invert',
             #  'remove', 'update', 'w_')])]
             #
-            #  then commented out manually:
+            #  specific functions to not override were then commented out manually:
 
             'acorr',
             # 'angle_spectrum',

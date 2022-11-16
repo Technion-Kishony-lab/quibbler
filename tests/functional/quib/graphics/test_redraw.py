@@ -8,7 +8,7 @@ import pytest
 
 from pyquibbler import iquib, Project
 from pyquibbler.function_definitions import add_definition_for_function
-from pyquibbler.function_definitions.func_definition import create_func_definition
+from pyquibbler.function_definitions.func_definition import create_or_reuse_func_definition
 from pyquibbler.quib.factory import create_quib
 from pyquibbler.quib.graphics.redraw import aggregate_redraw_mode, redraw_figures
 from weakref import ref
@@ -43,8 +43,8 @@ def test_redraw_axes_happy_flow(figure):
 def test_redraw_in_aggregate_mode():
     mock_func = mock.Mock()
     quib = iquib(1)
-    add_definition_for_function(func=mock_func, func_definition=create_func_definition(is_graphics=True,
-                                                                                       is_artist_setter=True))
+    add_definition_for_function(func=mock_func, func_definition=create_or_reuse_func_definition(is_graphics=True,
+                                                                                                is_artist_setter=True))
     _ = create_quib(func=mock_func, args=(quib,))
     assert mock_func.call_count == 1, "sanity"
 

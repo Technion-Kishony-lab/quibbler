@@ -6,7 +6,7 @@ from matplotlib.artist import Artist
 
 from pyquibbler import Quib
 from pyquibbler.function_definitions import add_definition_for_function
-from pyquibbler.function_definitions.func_definition import create_func_definition
+from pyquibbler.function_definitions.func_definition import create_or_reuse_func_definition
 from pyquibbler.quib.factory import create_quib
 
 
@@ -31,7 +31,7 @@ def quib():
 @pytest.fixture()
 def graphics_quib(quib) -> Quib:
     func = mock.Mock()
-    add_definition_for_function(func=func, func_definition=create_func_definition(is_graphics=True))
+    add_definition_for_function(func=func, func_definition=create_or_reuse_func_definition(is_graphics=True))
     return create_quib(
         func=func,
         args=(quib,),

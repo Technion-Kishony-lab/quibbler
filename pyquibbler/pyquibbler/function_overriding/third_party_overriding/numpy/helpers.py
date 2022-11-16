@@ -6,8 +6,7 @@ import numpy as np
 from pyquibbler.env import ALLOW_ARRAY_WITH_DTYPE_OBJECT
 
 from pyquibbler.function_overriding.function_override import FuncOverride
-from pyquibbler.function_overriding.third_party_overriding.general_helpers import override, \
-    file_loading_override, override_with_cls
+from pyquibbler.function_overriding.third_party_overriding.general_helpers import override, override_with_cls
 
 from pyquibbler.path_translation.translators import \
     TranspositionalBackwardsPathTranslator, TranspositionalForwardsPathTranslator, \
@@ -23,7 +22,7 @@ from pyquibbler.inversion.inverters.transpositional import \
 from pyquibbler.inversion.inverters.elementwise import BinaryElementwiseInverter, UnaryElementwiseInverter
 from pyquibbler.inversion.inverters.elementwise_single_arg_no_shape import UnaryElementwiseNoShapeInverter
 
-from pyquibbler.function_definitions.func_definition import ElementWiseFuncDefinition, create_func_definition
+from pyquibbler.function_definitions.func_definition import ElementWiseFuncDefinition, create_or_reuse_func_definition
 from pyquibbler.path_translation.translators.elementwise import \
     UnaryElementwiseNoShapeBackwardsPathTranslator
 from pyquibbler.type_translation.translators import ElementwiseTypeTranslator
@@ -43,39 +42,35 @@ class NumpyArrayOverride(FuncOverride):
 
 numpy_override = partial(override, np)
 
-FUNC_DEFINITION_RANDOM = create_func_definition(is_random=True)
+FUNC_DEFINITION_RANDOM = create_or_reuse_func_definition(is_random=True)
 
-FUNC_DEFINITION_FILE_LOADING = create_func_definition(is_file_loading=True)
+FUNC_DEFINITION_FILE_LOADING = create_or_reuse_func_definition(is_file_loading=True)
 
-FUNC_DEFINITION_TRANSPOSITIONAL_ONE_TO_ONE = create_func_definition(
-    raw_data_source_arguments=[0],
-    inverters=[TranspositionalOneToOneInverter],
-    backwards_path_translators=[TranspositionalBackwardsPathTranslator],
-    forwards_path_translators=[TranspositionalForwardsPathTranslator])
+FUNC_DEFINITION_TRANSPOSITIONAL_ONE_TO_ONE = create_or_reuse_func_definition(raw_data_source_arguments=[0], inverters=[
+    TranspositionalOneToOneInverter], backwards_path_translators=[TranspositionalBackwardsPathTranslator],
+                                                                             forwards_path_translators=[
+                                                                                 TranspositionalForwardsPathTranslator])
 
-FUNC_DEFINITION_TRANSPOSITIONAL_ONE_TO_MANY = create_func_definition(
-    base_func_definition=FUNC_DEFINITION_TRANSPOSITIONAL_ONE_TO_ONE,
-    inverters=[TranspositionalOneToManyInverter])
+FUNC_DEFINITION_TRANSPOSITIONAL_ONE_TO_MANY = create_or_reuse_func_definition(
+    base_func_definition=FUNC_DEFINITION_TRANSPOSITIONAL_ONE_TO_ONE, inverters=[TranspositionalOneToManyInverter])
 
-FUNC_DEFINITION_ACCUMULATION = create_func_definition(
-    raw_data_source_arguments=[0],
-    backwards_path_translators=[AxisAccumulationBackwardsPathTranslator],
-    forwards_path_translators=[AxisAccumulationForwardsPathTranslator])
+FUNC_DEFINITION_ACCUMULATION = create_or_reuse_func_definition(raw_data_source_arguments=[0],
+                                                               backwards_path_translators=[
+                                                                   AxisAccumulationBackwardsPathTranslator],
+                                                               forwards_path_translators=[
+                                                                   AxisAccumulationForwardsPathTranslator])
 
-FUNC_DEFINITION_REDUCTION = create_func_definition(
-    raw_data_source_arguments=[0],
-    backwards_path_translators=[AxisReductionBackwardsPathTranslator],
-    forwards_path_translators=[AxisReductionForwardsPathTranslator])
+FUNC_DEFINITION_REDUCTION = create_or_reuse_func_definition(raw_data_source_arguments=[0], backwards_path_translators=[
+    AxisReductionBackwardsPathTranslator], forwards_path_translators=[AxisReductionForwardsPathTranslator])
 
-FUNC_DEFINITION_AXIS_ALL_TO_ALL = create_func_definition(
-    raw_data_source_arguments=[0],
-    backwards_path_translators=[AxisAllToAllBackwardsPathTranslator],
-    forwards_path_translators=[AxisAllToAllForwardsPathTranslator])
+FUNC_DEFINITION_AXIS_ALL_TO_ALL = create_or_reuse_func_definition(raw_data_source_arguments=[0],
+                                                                  backwards_path_translators=[
+                                                                      AxisAllToAllBackwardsPathTranslator],
+                                                                  forwards_path_translators=[
+                                                                      AxisAllToAllForwardsPathTranslator])
 
-FUNC_DEFINITION_SHAPE_ONLY = create_func_definition(
-    raw_data_source_arguments=[0],
-    backwards_path_translators=[ShapeOnlyBackwardsPathTranslator],
-    forwards_path_translators=[ShapeOnlyForwardsPathTranslator])
+FUNC_DEFINITION_SHAPE_ONLY = create_or_reuse_func_definition(raw_data_source_arguments=[0], backwards_path_translators=[
+    ShapeOnlyBackwardsPathTranslator], forwards_path_translators=[ShapeOnlyForwardsPathTranslator])
 
 numpy_override_random = partial(override, np.random, base_func_definition=FUNC_DEFINITION_RANDOM)
 

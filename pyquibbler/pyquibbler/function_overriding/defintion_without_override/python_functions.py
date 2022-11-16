@@ -15,20 +15,17 @@ if TYPE_CHECKING:
 
 
 def create_definitions_for_python_functions() -> Dict[Callable, FuncDefinition]:
-    from pyquibbler.function_definitions.func_definition import create_func_definition
+    from pyquibbler.function_definitions.func_definition import create_or_reuse_func_definition
     return {
         # shape only:
-        len: create_func_definition(
-            raw_data_source_arguments=[0],
-            result_type_or_type_translators=int,
-            backwards_path_translators=[ShapeOnlyBackwardsPathTranslator],
-            forwards_path_translators=[ShapeOnlyForwardsPathTranslator]),
+        len: create_or_reuse_func_definition(raw_data_source_arguments=[0],
+                                             backwards_path_translators=[ShapeOnlyBackwardsPathTranslator],
+                                             forwards_path_translators=[ShapeOnlyForwardsPathTranslator],
+                                             result_type_or_type_translators=int),
 
         # casting:
-        **{func: create_func_definition(
-            raw_data_source_arguments=[0],
-            result_type_or_type_translators=func,
-            inverters=[inverter])
+        **{func: create_or_reuse_func_definition(raw_data_source_arguments=[0], inverters=[inverter],
+                                                 result_type_or_type_translators=func)
             for func, inverter in [
             (str,   StrCastingInverter),
             (int,   NumericCastingInverter),
@@ -37,13 +34,11 @@ def create_definitions_for_python_functions() -> Dict[Callable, FuncDefinition]:
         ]},
 
         # transpositional:
-        **{func: create_func_definition(
-            raw_data_source_arguments=[0],
-            inverters=[TranspositionalOneToOneInverter],
-            backwards_path_translators=[TranspositionalBackwardsPathTranslator],
-            forwards_path_translators=[TranspositionalForwardsPathTranslator],
-            result_type_or_type_translators=func,
-         )
+        **{func: create_or_reuse_func_definition(raw_data_source_arguments=[0],
+                                                 inverters=[TranspositionalOneToOneInverter],
+                                                 backwards_path_translators=[TranspositionalBackwardsPathTranslator],
+                                                 forwards_path_translators=[TranspositionalForwardsPathTranslator],
+                                                 result_type_or_type_translators=func)
              for func in [list, tuple]},
 
         # TODO: need definition for dict
