@@ -113,7 +113,7 @@ def create_func_definition(base_func_definition: Optional[FuncDefinition] = None
                            forwards_path_translators: List[Type[ForwardsPathTranslator]] = None,
                            quib_function_call_cls: Type[QuibFuncCall] = None,
                            result_type_or_type_translators: Union[Type, List[Type[TypeTranslator]]] = None,
-                           func_definition_cls: Optional[FuncDefinition] = None,
+                           func_definition_cls: Optional[Type[FuncDefinition]] = None,
                            kwargs_to_ignore_in_repr: Optional[Set[str]] = None,
                            **kwargs) -> FuncDefinition:
     """
@@ -123,22 +123,26 @@ def create_func_definition(base_func_definition: Optional[FuncDefinition] = None
     quib_function_call_cls = quib_function_call_cls or get_default_quib_func_call()
     raw_data_source_arguments = raw_data_source_arguments or set()
     data_argument_designations = convert_raw_data_arguments_to_data_argument_designations(raw_data_source_arguments)
-    if base_func_definition and (func_definition_cls is None or type(base_func_definition) == func_definition_cls):
+    if base_func_definition:
+        func_definition_cls = func_definition_cls or type(base_func_definition)
+    if base_func_definition and (type(base_func_definition) == func_definition_cls):
         # use base_func_definition as the default upon which to make changes:
-        func_definition = copy.copy(base_func_definition)
-        func_definition.is_random=is_random,
-        func_definition.is_graphics=is_graphics,
-        func_definition.is_file_loading=is_file_loading,
-        func_definition.data_argument_designations=data_argument_designations,
-        func_definition.inverters=inverters or [],
-        func_definition.backwards_path_translators=backwards_path_translators or [],
-        func_definition.forwards_path_translators=forwards_path_translators or [],
-        func_definition.quib_function_call_cls=quib_function_call_cls,
-        func_definition.pass_quibs=pass_quibs,
-        func_definition.result_type_or_type_translators=result_type_or_type_translators or [],
-        func_definition.lazy=lazy,
-        func_definition.is_artist_setter=is_artist_setter,
-        func_definition.kwargs_to_ignore_in_repr=kwargs_to_ignore_in_repr,
+        func_definition = func_definition_cls(
+            is_random=is_random or base_func_definition.is_random,
+            is_graphics=is_graphics or base_func_definition.is_graphics,
+            is_file_loading=is_file_loading or base_func_definition.is_file_loading,
+            data_argument_designations=data_argument_designations or base_func_definition.data_argument_designations,
+            inverters=inverters or base_func_definition.inverters,
+            backwards_path_translators=backwards_path_translators or base_func_definition.backwards_path_translators,
+            forwards_path_translators=forwards_path_translators or base_func_definition.forwards_path_translators,
+            quib_function_call_cls=quib_function_call_cls or base_func_definition.quib_function_call_cls,
+            pass_quibs=pass_quibs or base_func_definition.pass_quibs,
+            result_type_or_type_translators=result_type_or_type_translators or base_func_definition.result_type_or_type_translators,
+            lazy=lazy or base_func_definition.lazy,
+            is_artist_setter=is_artist_setter or base_func_definition.is_artist_setter,
+            kwargs_to_ignore_in_repr=kwargs_to_ignore_in_repr or base_func_definition.kwargs_to_ignore_in_repr,
+            **kwargs
+        )
         if func_definition == base_func_definition:
             return base_func_definition
         return func_definition

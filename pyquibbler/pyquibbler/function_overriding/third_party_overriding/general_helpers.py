@@ -25,7 +25,6 @@ def override_with_cls(override_cls,
                       func_definition_cls: Optional[Type[FuncDefinition]] = None,
                       allowed_kwarg_flags: Tuple[str] = (),
                       **kwargs):
-    print(func_name)
     return override_cls(
         func_name=func_name,
         module_or_cls=module_or_cls,

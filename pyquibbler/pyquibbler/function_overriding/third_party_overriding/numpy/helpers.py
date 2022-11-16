@@ -1,4 +1,4 @@
-import functools
+from functools import partial
 from typing import Tuple, Optional, Dict
 
 import numpy as np
@@ -23,7 +23,7 @@ from pyquibbler.inversion.inverters.transpositional import \
 from pyquibbler.inversion.inverters.elementwise import BinaryElementwiseInverter, UnaryElementwiseInverter
 from pyquibbler.inversion.inverters.elementwise_single_arg_no_shape import UnaryElementwiseNoShapeInverter
 
-from pyquibbler.function_definitions.func_definition import ElementWiseFuncDefinition
+from pyquibbler.function_definitions.func_definition import ElementWiseFuncDefinition, create_func_definition
 from pyquibbler.path_translation.translators.elementwise import \
     UnaryElementwiseNoShapeBackwardsPathTranslator
 from pyquibbler.type_translation.translators import ElementwiseTypeTranslator
@@ -41,42 +41,59 @@ class NumpyArrayOverride(FuncOverride):
         return ALLOW_ARRAY_WITH_DTYPE_OBJECT or kwargs.get('dtype', None) is not object
 
 
-numpy_override = functools.partial(override, np)
+numpy_override = partial(override, np)
 
-numpy_override_random = functools.partial(override, np.random, is_random=True)
+FUNC_DEFINITION_RANDOM = create_func_definition(is_random=True)
 
-numpy_override_read_file = functools.partial(file_loading_override, np)
+FUNC_DEFINITION_FILE_LOADING = create_func_definition(is_file_loading=True)
 
-numpy_override_transpositional_one_to_many = \
-    functools.partial(numpy_override, inverters=[TranspositionalOneToManyInverter],
-                      backwards_path_translators=[TranspositionalBackwardsPathTranslator],
-                      forwards_path_translators=[TranspositionalForwardsPathTranslator])
+FUNC_DEFINITION_TRANSPOSITIONAL_ONE_TO_ONE = create_func_definition(
+    raw_data_source_arguments=[0],
+    inverters=[TranspositionalOneToOneInverter],
+    backwards_path_translators=[TranspositionalBackwardsPathTranslator],
+    forwards_path_translators=[TranspositionalForwardsPathTranslator])
 
-numpy_override_transpositional_one_to_one = \
-    functools.partial(numpy_override, inverters=[TranspositionalOneToOneInverter],
-                      backwards_path_translators=[TranspositionalBackwardsPathTranslator],
-                      forwards_path_translators=[TranspositionalForwardsPathTranslator])
+FUNC_DEFINITION_TRANSPOSITIONAL_ONE_TO_MANY = create_func_definition(
+    base_func_definition=FUNC_DEFINITION_TRANSPOSITIONAL_ONE_TO_ONE,
+    inverters=[TranspositionalOneToManyInverter])
 
-numpy_array_override = functools.partial(override_with_cls, NumpyArrayOverride, np,
-                                         inverters=[TranspositionalOneToOneInverter],
-                                         backwards_path_translators=[TranspositionalBackwardsPathTranslator],
-                                         forwards_path_translators=[TranspositionalForwardsPathTranslator])
+FUNC_DEFINITION_ACCUMULATION = create_func_definition(
+    raw_data_source_arguments=[0],
+    backwards_path_translators=[AxisAccumulationBackwardsPathTranslator],
+    forwards_path_translators=[AxisAccumulationForwardsPathTranslator])
 
-numpy_override_accumulation = functools.partial(numpy_override, data_source_arguments=[0],
-                                                backwards_path_translators=[AxisAccumulationBackwardsPathTranslator],
-                                                forwards_path_translators=[AxisAccumulationForwardsPathTranslator])
+FUNC_DEFINITION_REDUCTION = create_func_definition(
+    raw_data_source_arguments=[0],
+    backwards_path_translators=[AxisReductionBackwardsPathTranslator],
+    forwards_path_translators=[AxisReductionForwardsPathTranslator])
 
-numpy_override_reduction = functools.partial(numpy_override, data_source_arguments=[0],
-                                             backwards_path_translators=[AxisReductionBackwardsPathTranslator],
-                                             forwards_path_translators=[AxisReductionForwardsPathTranslator])
+FUNC_DEFINITION_AXIS_ALL_TO_ALL = create_func_definition(
+    raw_data_source_arguments=[0],
+    backwards_path_translators=[AxisAllToAllBackwardsPathTranslator],
+    forwards_path_translators=[AxisAllToAllForwardsPathTranslator])
 
-numpy_override_axis_wise = functools.partial(numpy_override, data_source_arguments=[0],
-                                             backwards_path_translators=[AxisAllToAllBackwardsPathTranslator],
-                                             forwards_path_translators=[AxisAllToAllForwardsPathTranslator])
+FUNC_DEFINITION_SHAPE_ONLY = create_func_definition(
+    raw_data_source_arguments=[0],
+    backwards_path_translators=[ShapeOnlyBackwardsPathTranslator],
+    forwards_path_translators=[ShapeOnlyForwardsPathTranslator])
 
-numpy_override_shape_only = functools.partial(numpy_override, data_source_arguments=[0],
-                                              backwards_path_translators=[ShapeOnlyBackwardsPathTranslator],
-                                              forwards_path_translators=[ShapeOnlyForwardsPathTranslator])
+numpy_override_random = partial(override, np.random, base_func_definition=FUNC_DEFINITION_RANDOM)
+
+numpy_override_read_file = partial(numpy_override, base_func_definition=FUNC_DEFINITION_FILE_LOADING)
+
+numpy_override_transpositional_one_to_many = partial(numpy_override,
+                                                     base_func_definition=FUNC_DEFINITION_TRANSPOSITIONAL_ONE_TO_MANY)
+
+numpy_override_transpositional_one_to_one = partial(numpy_override,
+                                                    base_func_definition=FUNC_DEFINITION_TRANSPOSITIONAL_ONE_TO_ONE)
+
+numpy_array_override = partial(override_with_cls, NumpyArrayOverride, np,
+                               base_func_definition=FUNC_DEFINITION_TRANSPOSITIONAL_ONE_TO_ONE)
+
+numpy_override_accumulation = partial(numpy_override, base_func_definition=FUNC_DEFINITION_ACCUMULATION)
+numpy_override_reduction = partial(numpy_override, base_func_definition=FUNC_DEFINITION_REDUCTION)
+numpy_override_axis_wise = partial(numpy_override, base_func_definition=FUNC_DEFINITION_AXIS_ALL_TO_ALL)
+numpy_override_shape_only = partial(numpy_override, base_func_definition=FUNC_DEFINITION_SHAPE_ONLY)
 
 UNARY_ELEMENTWISE_FUNCS_TO_INVERSE_FUNCS: Dict[str, InverseFunc] = {}
 BINARY_ELEMENTWISE_FUNCS_TO_INVERSE_FUNCS: Dict[str, Tuple[Optional[InverseFunc]]] = {}
