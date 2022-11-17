@@ -8,24 +8,10 @@ from pyquibbler.env import ALLOW_ARRAY_WITH_DTYPE_OBJECT
 from pyquibbler.function_overriding.function_override import FuncOverride
 from pyquibbler.function_overriding.third_party_overriding.general_helpers import override, override_with_cls
 
-from pyquibbler.path_translation.translators import \
-    TranspositionalBackwardsPathTranslator, TranspositionalForwardsPathTranslator, \
-    AxisAccumulationBackwardsPathTranslator, AxisAccumulationForwardsPathTranslator, \
-    AxisReductionBackwardsPathTranslator, AxisReductionForwardsPathTranslator, \
-    AxisAllToAllBackwardsPathTranslator, AxisAllToAllForwardsPathTranslator, \
-    ShapeOnlyBackwardsPathTranslator, ShapeOnlyForwardsPathTranslator, \
-    BinaryElementwiseBackwardsPathTranslator, BinaryElementwiseForwardsPathTranslator, \
-    UnaryElementwiseBackwardsPathTranslator, UnaryElementwiseForwardsPathTranslator
-
-from pyquibbler.inversion.inverters.transpositional import \
-    TranspositionalOneToManyInverter, TranspositionalOneToOneInverter
-from pyquibbler.inversion.inverters.elementwise import BinaryElementwiseInverter, UnaryElementwiseInverter
-from pyquibbler.inversion.inverters.elementwise_single_arg_no_shape import UnaryElementwiseNoShapeInverter
-
-from pyquibbler.function_definitions.func_definition import ElementWiseFuncDefinition, create_or_reuse_func_definition
-from pyquibbler.path_translation.translators.elementwise import \
-    UnaryElementwiseNoShapeBackwardsPathTranslator
-from pyquibbler.type_translation.translators import ElementwiseTypeTranslator
+from .func_definitions import FUNC_DEFINITION_RANDOM, FUNC_DEFINITION_TRANSPOSITIONAL_ONE_TO_ONE, \
+    FUNC_DEFINITION_TRANSPOSITIONAL_ONE_TO_MANY, FUNC_DEFINITION_SHAPE_ONLY, FUNC_DEFINITION_AXIS_ALL_TO_ALL, \
+    FUNC_DEFINITION_ACCUMULATION, FUNC_DEFINITION_REDUCTION, FUNC_DEFINITION_FILE_LOADING, \
+    FUNC_DEFINITION_UNARY_ELEMENTWISE, FUNC_DEFINITION_BINARY_ELEMENTWISE
 
 from .inverse_functions import RawInverseFunc, InverseFunc
 
@@ -41,36 +27,6 @@ class NumpyArrayOverride(FuncOverride):
 
 
 numpy_override = partial(override, np)
-
-FUNC_DEFINITION_RANDOM = create_or_reuse_func_definition(is_random=True)
-
-FUNC_DEFINITION_FILE_LOADING = create_or_reuse_func_definition(is_file_loading=True)
-
-FUNC_DEFINITION_TRANSPOSITIONAL_ONE_TO_ONE = create_or_reuse_func_definition(raw_data_source_arguments=[0], inverters=[
-    TranspositionalOneToOneInverter], backwards_path_translators=[TranspositionalBackwardsPathTranslator],
-                                                                             forwards_path_translators=[
-                                                                                 TranspositionalForwardsPathTranslator])
-
-FUNC_DEFINITION_TRANSPOSITIONAL_ONE_TO_MANY = create_or_reuse_func_definition(
-    base_func_definition=FUNC_DEFINITION_TRANSPOSITIONAL_ONE_TO_ONE, inverters=[TranspositionalOneToManyInverter])
-
-FUNC_DEFINITION_ACCUMULATION = create_or_reuse_func_definition(raw_data_source_arguments=[0],
-                                                               backwards_path_translators=[
-                                                                   AxisAccumulationBackwardsPathTranslator],
-                                                               forwards_path_translators=[
-                                                                   AxisAccumulationForwardsPathTranslator])
-
-FUNC_DEFINITION_REDUCTION = create_or_reuse_func_definition(raw_data_source_arguments=[0], backwards_path_translators=[
-    AxisReductionBackwardsPathTranslator], forwards_path_translators=[AxisReductionForwardsPathTranslator])
-
-FUNC_DEFINITION_AXIS_ALL_TO_ALL = create_or_reuse_func_definition(raw_data_source_arguments=[0],
-                                                                  backwards_path_translators=[
-                                                                      AxisAllToAllBackwardsPathTranslator],
-                                                                  forwards_path_translators=[
-                                                                      AxisAllToAllForwardsPathTranslator])
-
-FUNC_DEFINITION_SHAPE_ONLY = create_or_reuse_func_definition(raw_data_source_arguments=[0], backwards_path_translators=[
-    ShapeOnlyBackwardsPathTranslator], forwards_path_translators=[ShapeOnlyForwardsPathTranslator])
 
 numpy_override_random = partial(override, np.random, base_func_definition=FUNC_DEFINITION_RANDOM)
 
@@ -93,13 +49,6 @@ numpy_override_shape_only = partial(numpy_override, base_func_definition=FUNC_DE
 UNARY_ELEMENTWISE_FUNCS_TO_INVERSE_FUNCS: Dict[str, InverseFunc] = {}
 BINARY_ELEMENTWISE_FUNCS_TO_INVERSE_FUNCS: Dict[str, Tuple[Optional[InverseFunc]]] = {}
 
-BINARY_ELEMENTWISE_INVERTERS = [BinaryElementwiseInverter]
-UNARY_ELEMENTWISE_INVERTERS = [UnaryElementwiseNoShapeInverter, UnaryElementwiseInverter]
-
-UNARY_ELEMENTWISE_BACKWARDS_TRANSLATORS = [UnaryElementwiseNoShapeBackwardsPathTranslator,
-                                           UnaryElementwiseBackwardsPathTranslator]
-
-
 def get_binary_inverse_funcs_for_func(func_name: str) -> Tuple[Optional[InverseFunc]]:
     return BINARY_ELEMENTWISE_FUNCS_TO_INVERSE_FUNCS[func_name]
 
@@ -116,13 +65,8 @@ def binary_elementwise(func_name: str, raw_inverse_funcs: Tuple[Optional[RawInve
 
     return numpy_override(
         func_name=func_name,
-        data_source_arguments=[0, 1],
-        backwards_path_translators=[BinaryElementwiseBackwardsPathTranslator],
-        forwards_path_translators=[BinaryElementwiseForwardsPathTranslator],
-        result_type_or_type_translators=[ElementwiseTypeTranslator],
-        inverters=BINARY_ELEMENTWISE_INVERTERS,
+        base_func_definition=FUNC_DEFINITION_BINARY_ELEMENTWISE,
         inverse_funcs=inverse_funcs,
-        func_definition_cls=ElementWiseFuncDefinition,
     )
 
 
@@ -134,11 +78,6 @@ def unary_elementwise(func_name: str, raw_inverse_func: Optional[RawInverseFunc]
 
     return numpy_override(
         func_name=func_name,
-        data_source_arguments=[0],
-        backwards_path_translators=UNARY_ELEMENTWISE_BACKWARDS_TRANSLATORS,
-        forwards_path_translators=[UnaryElementwiseForwardsPathTranslator],
-        result_type_or_type_translators=[ElementwiseTypeTranslator],
-        inverters=UNARY_ELEMENTWISE_INVERTERS,
+        base_func_definition=FUNC_DEFINITION_UNARY_ELEMENTWISE,
         inverse_funcs=(inverse_func, ),
-        func_definition_cls=ElementWiseFuncDefinition,
     )

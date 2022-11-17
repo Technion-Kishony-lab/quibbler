@@ -51,6 +51,9 @@ override = functools.partial(override_with_cls, FuncOverride)
 
 
 def override_class(module_or_cls, cls_to_override: str, **kwargs):
+    """
+    Override a class so that its __new__ method can create a quib.
+    """
     return override_with_cls(ClassOverride,
                              getattr(module_or_cls, cls_to_override),
                              '__new__',
@@ -60,6 +63,9 @@ def override_class(module_or_cls, cls_to_override: str, **kwargs):
 def override_not_implemented(module_or_cls,
                              func_name: str,
                              message: str = ''):
+    """
+    Override a function to provide a warning that it cannot be used with quibs."
+    """
     return NotImplementedOverride(module_or_cls=module_or_cls,
                                   func_name=func_name,
                                   message=message)
