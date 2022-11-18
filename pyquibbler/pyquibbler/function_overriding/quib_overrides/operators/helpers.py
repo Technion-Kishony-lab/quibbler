@@ -11,7 +11,8 @@ from pyquibbler.function_overriding.third_party_overriding.general_helpers impor
 from pyquibbler.utilities.operators_with_reverse import REVERSE_OPERATOR_NAMES_TO_FUNCS
 
 from pyquibbler.function_overriding.third_party_overriding.numpy.func_definitions import \
-    FUNC_DEFINITION_UNARY_ELEMENTWISE, FUNC_DEFINITION_BINARY_ELEMENTWISE, FUNC_DEFINITION_BINARY_ELEMENTWISE_AND_LIST
+    FUNC_DEFINITION_UNARY_ELEMENTWISE, FUNC_DEFINITION_BINARY_ELEMENTWISE
+from .func_definitions import FUNC_DEFINITION_BINARY_ELEMENTWISE_AND_LIST
 from pyquibbler.function_overriding.third_party_overriding.numpy.inverse_functions import InverseFunc
 
 

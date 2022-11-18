@@ -1,4 +1,3 @@
-from pyquibbler.inversion.inverters.list_operators import ListOperatorInverter
 from pyquibbler.path_translation.translators import \
     TranspositionalBackwardsPathTranslator, TranspositionalForwardsPathTranslator, \
     AxisAccumulationBackwardsPathTranslator, AxisAccumulationForwardsPathTranslator, \
@@ -7,9 +6,6 @@ from pyquibbler.path_translation.translators import \
     ShapeOnlyBackwardsPathTranslator, ShapeOnlyForwardsPathTranslator, \
     BinaryElementwiseBackwardsPathTranslator, BinaryElementwiseForwardsPathTranslator, \
     UnaryElementwiseBackwardsPathTranslator, UnaryElementwiseForwardsPathTranslator
-
-from pyquibbler.path_translation.translators.list_operators import \
-    ListOperatorBackwardsPathTranslator, ListOperatorForwardsPathTranslator
 
 from pyquibbler.inversion.inverters.transpositional import \
     TranspositionalOneToManyInverter, TranspositionalOneToOneInverter
@@ -78,9 +74,3 @@ FUNC_DEFINITION_BINARY_ELEMENTWISE = create_or_reuse_func_definition(
     result_type_or_type_translators=[ElementwiseTypeTranslator],
     inverters=[BinaryElementwiseInverter],
     func_definition_cls=ElementWiseFuncDefinition)
-
-FUNC_DEFINITION_BINARY_ELEMENTWISE_AND_LIST = create_or_reuse_func_definition(
-    base_func_definition=FUNC_DEFINITION_BINARY_ELEMENTWISE,
-    backwards_path_translators=[ListOperatorBackwardsPathTranslator, BinaryElementwiseBackwardsPathTranslator],
-    forwards_path_translators=[ListOperatorForwardsPathTranslator, BinaryElementwiseForwardsPathTranslator],
-    inverters=[ListOperatorInverter, BinaryElementwiseInverter])
