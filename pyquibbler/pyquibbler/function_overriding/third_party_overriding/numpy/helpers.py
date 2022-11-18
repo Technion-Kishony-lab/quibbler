@@ -49,6 +49,7 @@ numpy_override_shape_only = partial(numpy_override, base_func_definition=FUNC_DE
 UNARY_ELEMENTWISE_FUNCS_TO_INVERSE_FUNCS: Dict[str, InverseFunc] = {}
 BINARY_ELEMENTWISE_FUNCS_TO_INVERSE_FUNCS: Dict[str, Tuple[Optional[InverseFunc]]] = {}
 
+
 def get_binary_inverse_funcs_for_func(func_name: str) -> Tuple[Optional[InverseFunc]]:
     return BINARY_ELEMENTWISE_FUNCS_TO_INVERSE_FUNCS[func_name]
 
