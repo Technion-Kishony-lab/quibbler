@@ -5,7 +5,7 @@ from matplotlib.axes import Axes
 
 from pyquibbler.function_overriding.third_party_overriding.general_helpers import file_loading_override, \
     override_not_implemented
-from pyquibbler.function_overriding.third_party_overriding.graphics.helpers import axes_override, \
+from pyquibbler.function_overriding.third_party_overriding.matplotlib.helpers import axes_override, \
     axes_setter_override, widget_override, axes_lim_override, plot_override, patches_override, axes3d_override
 from pyquibbler.quib.func_calling.func_calls import RadioButtonsQuibFuncCall, SliderQuibFuncCall, \
     RectangleSelectorQuibFuncCall,  CheckButtonsQuibFuncCall

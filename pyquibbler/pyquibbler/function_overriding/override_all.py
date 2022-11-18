@@ -16,7 +16,7 @@ from .third_party_overriding.non_quib_overrides import override_axes_methods, sw
 from .quib_overrides.operators.overrides import create_operator_overrides
 from .quib_overrides.quib_methods import create_quib_method_overrides
 from .third_party_overriding.numpy.overrides import create_numpy_overrides
-from .third_party_overriding.graphics.overrides import create_graphics_overrides
+from .third_party_overriding.matplotlib.overrides import create_graphics_overrides
 from .third_party_overriding.numpy.quiby_attributes import get_numpy_attributes_to_attribute_overrides, \
     get_numpy_methods_to_method_overrides
 
