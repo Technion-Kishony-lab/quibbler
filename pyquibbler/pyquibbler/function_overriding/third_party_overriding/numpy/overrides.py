@@ -81,8 +81,10 @@ def create_numpy_overrides():
         #
         # Note: When inverting many-to-one functions (specifically, the power function with an even power),
         # an element of the tuple can itself be a tuple specifying the nominal and input-dependent inverse functions:
-        #  (new_x1 = inv_func1_nominal(new_y, x2),
-        #   new_x1 = inv_func1_based_on_previous_value(new_y, x2, previous_x1))
+        #  (
+        #   new_x1 = inv_func1_nominal(new_y, x2),
+        #   new_x1 = inv_func1_based_on_previous_value(new_y, x2, previous_x1)
+        #  )
         #
         *(binary_elementwise(func_name, raw_inverse_funcs)
           for func_name, raw_inverse_funcs in (
@@ -129,8 +131,10 @@ def create_numpy_overrides():
         # Elementwise - Single argument
         # Note: When inverting many-to-one functions, we provide a tuple specifying
         # the nominal and input-dependent inverse functions:
-        #  (new_x1 = inv_func1_nominal(new_y),
-        #   new_x1 = inv_func1_based_on_previous_value(new_y, previous_x1))
+        #  (
+        #   new_x1 = inv_func1_nominal(new_y),
+        #   new_x1 = inv_func1_based_on_previous_value(new_y, previous_x1)
+        #  )
         #
         *(unary_elementwise(func_name, inverse_func)
           for func_name, inverse_func in (
@@ -208,13 +212,14 @@ def create_numpy_overrides():
 
         # Transpositional
         # np.array is special because we need to check for dtype=object
-        *(numpy_array_override(func_name, data_sources, result_type_or_type_translators=nd)
+        *(numpy_array_override(func_name, data_source_arguments=data_sources, result_type_or_type_translators=nd)
             for func_name, data_sources in (
             ('array', [0]),
           )),
 
         # Other Transpositional
-        *(numpy_override_transpositional_one_to_one(func_name, data_sources,
+        *(numpy_override_transpositional_one_to_one(func_name,
+                                                    data_source_arguments=data_sources,
                                                     result_type_or_type_translators=result_type)
           for func_name, data_sources, result_type in (
             ('rot90',       [0],  nd),
@@ -225,13 +230,15 @@ def create_numpy_overrides():
             ('squeeze',     [0],  nd),
             ('expand_dims', [0],  nd),
             ('ravel',       [0],  nd),
+            ('diagonal',    [0],  nd),
             ('flip',        [0],  []),
 
-            # np.concatenate has an argument that multiple data arguments:
+            # np.concatenate has an argument that contains multiple data arguments:
             ('concatenate', [DataArgumentDesignation(PositionalArgument(0), is_multi_arg=True)], nd),
           )),
 
-        *(numpy_override_transpositional_one_to_many(func_name, data_sources,
+        *(numpy_override_transpositional_one_to_many(func_name,
+                                                     data_source_arguments=data_sources,
                                                      result_type_or_type_translators=result_type)
           for func_name, data_sources, result_type in (
             ('repeat',      [0],  nd),
@@ -264,6 +271,9 @@ def create_numpy_overrides():
             ('ones',         nd),
             ('eye',          nd),
             ('identity',     nd),
+            ('ptp',          []),
+            ('nonzero',   tuple),  # TODO: needs specifically tailored path translators
+            ('trace',        []),  # TODO: needs specifically tailored path translators
           )),
 
         # Read from files

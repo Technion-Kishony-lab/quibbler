@@ -1,5 +1,5 @@
 import pytest
-import dataclasses
+from dataclasses import dataclass, field
 
 from typing import Set
 from unittest.mock import Mock
@@ -14,11 +14,11 @@ from pyquibbler.optional_packages.emulate_missing_packages import EMULATE_MISSIN
 #         yield
 
 
-@dataclasses.dataclass
+@dataclass
 class MockQuib:
     pretty_repr: str
-    children: Set['MockQuib'] = dataclasses.field(default_factory=set)
-    parents: Set['MockQuib'] = dataclasses.field(default_factory=set)
+    children: Set['MockQuib'] = field(default_factory=set)
+    parents: Set['MockQuib'] = field(default_factory=set)
     is_iquib: bool = False
     is_graphics: bool = False
 

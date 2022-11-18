@@ -1,5 +1,5 @@
 from __future__ import annotations
-import dataclasses
+from dataclasses import dataclass
 
 from typing import Callable, Optional, List
 from pyquibbler.utilities.general_utils import Args, Kwargs
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from pyquibbler.function_definitions.func_definition import FuncDefinition
 
 
-@dataclasses.dataclass
+@dataclass
 class SourceFuncCall(FuncCall):
     func_definition: FuncDefinition = None
     func_args_kwargs: FuncArgsKwargs = None

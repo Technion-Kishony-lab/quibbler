@@ -21,7 +21,7 @@ class QuibChangeWithOverrideRemovals:
 class OverrideGroup:
     """
     A group of overrides to be applied together, and the relevant override removals.
-    When function_definitions a quib as a result of an upstream assignment,
+    When overriding a quib as a result of an upstream assignment,
     we remove overrides in all the indices that lead to the chosen override,
     so the override will actually cause the desired effect on the upstream quib.
     """

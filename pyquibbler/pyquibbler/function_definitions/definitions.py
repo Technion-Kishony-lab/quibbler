@@ -33,10 +33,11 @@ def get_definition_for_function(func: Callable, return_default: bool = True) -> 
     """
     Get a definition for the function
     """
-    from pyquibbler.function_definitions.func_definition import FuncDefinition
+    from pyquibbler.function_definitions.func_definition import FUNC_DEFINITION_DEFAULT, FuncDefinition
     if hasattr(func, 'func_definition') and isinstance(func.func_definition, FuncDefinition):
         return func.func_definition
     if func in FUNCS_TO_DEFINITIONS_MODULE_NAME_ISOVERRIDDEN:
         return FUNCS_TO_DEFINITIONS_MODULE_NAME_ISOVERRIDDEN[func][0]
+
     # Default function definition
-    return FuncDefinition(is_graphics=None) if return_default else None
+    return FUNC_DEFINITION_DEFAULT if return_default else None

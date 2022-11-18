@@ -1,7 +1,5 @@
 import copy
-from typing import Any, Union, Tuple
-
-import numpy as np
+from typing import Any, Tuple
 
 from .path_component import Path, PathComponent, SpecialComponent
 from .data_accessing import deep_get

@@ -1,4 +1,4 @@
-import dataclasses
+from dataclasses import dataclass
 
 from pyquibbler.exceptions import PyQuibblerException
 
@@ -15,7 +15,7 @@ class NothingToRedoException(PyQuibblerException):
         return "There are no actions left to redo."
 
 
-@dataclasses.dataclass
+@dataclass
 class NoProjectDirectoryException(PyQuibblerException):
     action: str
 

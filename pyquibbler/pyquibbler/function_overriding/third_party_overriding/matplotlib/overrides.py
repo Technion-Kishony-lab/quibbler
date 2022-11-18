@@ -3,10 +3,10 @@
 import matplotlib.image
 from matplotlib.axes import Axes
 
-from pyquibbler.function_overriding.third_party_overriding.general_helpers import file_loading_override, \
-    override_not_implemented
-from pyquibbler.function_overriding.third_party_overriding.graphics.helpers import axes_override, \
-    axes_setter_override, widget_override, axes_lim_override, plot_override, patches_override, axes3d_override
+from pyquibbler.function_overriding.third_party_overriding.general_helpers import override_not_implemented
+from pyquibbler.function_overriding.third_party_overriding.matplotlib.helpers import axes_override, \
+    axes_setter_override, widget_override, axes_lim_override, plot_override, patches_override, axes3d_override, \
+    graphics_override_read_file
 from pyquibbler.quib.func_calling.func_calls import RadioButtonsQuibFuncCall, SliderQuibFuncCall, \
     RectangleSelectorQuibFuncCall,  CheckButtonsQuibFuncCall
 from pyquibbler.quib.func_calling.func_calls.known_graphics.plot_call import PlotQuibFuncCall
@@ -195,13 +195,13 @@ def create_graphics_overrides():
 
         *(axes3d_override(func_name) for func_name in (
 
-            # Obtained by:
+            # The list below is obtained by:
             # [attr for attr in dir(Axes3D)
             #  if not any([attr.startswith(init_name) for init_name in
             #  ('_', 'set', 'get', 'add', 'format', 'xaxis', 'yaxis', 'zaxis', 'convert' ,'invert',
             #  'remove', 'update', 'w_')])]
             #
-            #  then commented out manually:
+            #  specific functions to not override were then commented out manually:
 
             'acorr',
             # 'angle_spectrum',
@@ -349,5 +349,5 @@ def create_graphics_overrides():
             ('TextBox',             TextBoxQuibFuncCall),
         )),
 
-        file_loading_override(matplotlib.image, 'imread')
+        graphics_override_read_file(matplotlib.image, 'imread')
     ]

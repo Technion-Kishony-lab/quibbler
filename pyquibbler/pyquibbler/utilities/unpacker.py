@@ -1,4 +1,4 @@
-import dataclasses
+from dataclasses import dataclass
 from inspect import currentframe
 from opcode import opname
 from typing import Any, Optional
@@ -7,7 +7,7 @@ from pyquibbler.env import UNPACKER_CAN_GET_LEN
 from pyquibbler.exceptions import PyQuibblerException
 
 
-@dataclasses.dataclass
+@dataclass
 class CannotDetermineNumberOfIterations(PyQuibblerException):
     indexed_object: Any
 

@@ -12,7 +12,7 @@ from .numpy import NumpyBackwardsPathTranslator, NumpyForwardsPathTranslator, Ar
 class AxisReductionBackwardsPathTranslator(NumpyBackwardsPathTranslator):
 
     TRANSLATION_RELATED_ARGS: List[Arg] = \
-        [Arg('axis'), ArgWithDefault('keepdims', False), ArgWithDefault('where', True)]
+        [ArgWithDefault('axis', None), ArgWithDefault('keepdims', False), ArgWithDefault('where', True)]
 
     def _get_indices_in_source(self,
                                data_argument_to_source_index_code_converter: ArrayPathTranslator,

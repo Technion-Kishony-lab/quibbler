@@ -1,7 +1,7 @@
 import pytest
 
 from pyquibbler.env import GRAPHICS_LAZY
-from pyquibbler.function_overriding.third_party_overriding.graphics.helpers import graphics_override
+from pyquibbler.function_overriding.third_party_overriding.matplotlib.helpers import graphics_override
 
 
 @pytest.fixture(autouse=True)

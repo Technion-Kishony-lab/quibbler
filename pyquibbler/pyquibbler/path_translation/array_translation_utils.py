@@ -1,5 +1,5 @@
 import copy
-import dataclasses
+from dataclasses import dataclass
 import numpy as np
 
 from functools import wraps
@@ -159,7 +159,7 @@ def convert_args_before_run(func):
     return wrapper
 
 
-@dataclasses.dataclass
+@dataclass
 class ArrayPathTranslator:
     """
     Convert the data arguments of a function call (func)call) to index code arrays (IndexCodeArray), representing

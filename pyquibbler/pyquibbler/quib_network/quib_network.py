@@ -1,4 +1,4 @@
-import dataclasses
+from dataclasses import dataclass
 
 from pyquibbler.optional_packages.exceptions import MissingPackagesForFunctionException
 from typing import Union, Set, Tuple, Optional
@@ -108,7 +108,7 @@ def _get_quibs_connected_up_down_or_all(focal_quib: Quib,
     return quibs
 
 
-@dataclasses.dataclass
+@dataclass
 class QuibNetwork:
     """
     A network of quibs extending from a focal quib.

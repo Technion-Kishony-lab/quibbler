@@ -1,4 +1,4 @@
-import dataclasses
+from dataclasses import dataclass
 from typing import Tuple
 
 from pytest import mark, raises, fixture
@@ -127,7 +127,7 @@ def test_iter_quibs_in_object_raises_when_receives_nested_quibs():
 @fixture
 def unpacker_value():
 
-    @dataclasses.dataclass
+    @dataclass
     class NoLenIter:
         value: Tuple
 

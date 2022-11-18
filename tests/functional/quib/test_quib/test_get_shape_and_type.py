@@ -6,7 +6,7 @@ import pytest
 
 from pyquibbler import create_quib, obj2quib
 from pyquibbler.function_definitions import FuncArgsKwargs
-from pyquibbler.function_definitions.func_definition import create_func_definition
+from pyquibbler.function_definitions.func_definition import create_or_reuse_func_definition
 from pyquibbler.quib.func_calling import QuibFuncCall
 from pyquibbler.quib.quib import QuibHandler, Quib
 
@@ -26,10 +26,10 @@ class NoRunNoTypeQuibFuncCall(NoRunQuibFuncCall):
 
 def create_type_only_quib(arg):
     return Quib(quib_function_call=NoRunQuibFuncCall(func_args_kwargs=FuncArgsKwargs(None, (arg,), {}),
-                func_definition=create_func_definition()))
+                                                     func_definition=create_or_reuse_func_definition()))
 
 
-no_value_or_shape_quib = Quib(quib_function_call=NoRunQuibFuncCall(), func_definition=create_func_definition())
+no_value_or_shape_quib = Quib(quib_function_call=NoRunQuibFuncCall(), func_definition=create_or_reuse_func_definition())
 
 
 @pytest.mark.parametrize("func, args, expected_type", [

@@ -1,10 +1,12 @@
-import dataclasses
+from dataclasses import dataclass
 
 from pyquibbler.exceptions import PyQuibblerException
-from pyquibbler.function_overriding.override_all import ATTRIBUTES_TO_DEFINITIONS
+from pyquibbler.function_overriding.attribute_override import MethodOverride
+from pyquibbler.function_overriding.override_all import ATTRIBUTES_TO_ATTRIBUTE_OVERRIDES
+from pyquibbler.quib.specialized_functions.quiby_methods import QuibyMethod
 
 
-@dataclasses.dataclass
+@dataclass
 class PyQuibblerAttributeError(PyQuibblerException, AttributeError):
     item: str
 
@@ -12,17 +14,16 @@ class PyQuibblerAttributeError(PyQuibblerException, AttributeError):
         return f"Quib has no attribute {self.item}."
 
 
-def create_getattr_quib(quib, item):
+def create_getattr_quib_or_quiby_method(quib, item):
     from pyquibbler.quib.factory import create_quib
 
-    type_and_definition = ATTRIBUTES_TO_DEFINITIONS.get(item, None)
-    if type_and_definition is None:
+    attribute_override = ATTRIBUTES_TO_ATTRIBUTE_OVERRIDES.get(item, None)
+    if attribute_override is None:
         raise PyQuibblerAttributeError(item)
 
-    func_definition = type_and_definition
-
-    getattr_quib = create_quib(func=getattr,
-                               args=(quib, item),
-                               func_definition=func_definition)
-
-    return getattr_quib
+    if isinstance(attribute_override, MethodOverride):
+        return QuibyMethod(quib, method_override=attribute_override)
+    else:
+        return create_quib(func=getattr,
+                           args=(quib, item),
+                           func_definition=attribute_override.func_definition)
