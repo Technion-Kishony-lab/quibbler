@@ -116,8 +116,7 @@ def create_or_reuse_func_definition(base_func_definition: Optional[FuncDefinitio
                                     kwargs_to_ignore_in_repr: Optional[Set[str]] = None,
                                     **kwargs) -> FuncDefinition:
     """
-    Create a definition for a function- this will allow quibbler to utilize Quibs with the function in a more
-    specific manner (and not just use default behavior), for whichever parameters you give.
+    Create a definition for a function from scratch or based on a specified `base_func_definition`.
     """
     raw_data_source_arguments = raw_data_source_arguments or []
     data_argument_designations = convert_raw_data_arguments_to_data_argument_designations(raw_data_source_arguments)
@@ -163,3 +162,6 @@ def create_or_reuse_func_definition(base_func_definition: Optional[FuncDefinitio
             kwargs_to_ignore_in_repr=kwargs_to_ignore_in_repr,
             **kwargs
         )
+
+
+FUNC_DEFINITION_DEFAULT = FuncDefinition(is_graphics=None)
