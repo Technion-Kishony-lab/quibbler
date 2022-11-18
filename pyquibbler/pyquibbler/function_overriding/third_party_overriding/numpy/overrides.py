@@ -226,6 +226,7 @@ def create_numpy_overrides():
             ('squeeze',     [0],  nd),
             ('expand_dims', [0],  nd),
             ('ravel',       [0],  nd),
+            ('diagonal',    [0],  nd),
             ('flip',        [0],  []),
 
             # np.concatenate has an argument that multiple data arguments:
@@ -266,6 +267,9 @@ def create_numpy_overrides():
             ('ones',         nd),
             ('eye',          nd),
             ('identity',     nd),
+            ('ptp',          []),
+            ('nonzero',   tuple),  # TODO: needs specifically tailored path translators
+            ('trace',        []),  # TODO: needs specifically tailored path translators
           )),
 
         # Read from files
