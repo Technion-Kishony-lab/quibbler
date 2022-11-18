@@ -6,7 +6,7 @@ from pyquibbler.function_definitions import get_definition_for_function
 from pyquibbler.function_definitions.func_definition import FuncDefinition
 from pyquibbler.function_overriding.attribute_override import AttributeOverride, MethodOverride
 from .func_definitions import FUNC_DEFINITION_TRANSPOSITIONAL_ONE_TO_ONE, FUNC_DEFINITION_SHAPE_ONLY, \
-    FUNC_DEFINITION_REDUCTION
+    FUNC_DEFINITION_REDUCTION, FUNC_DEFINITION_UNARY_ELEMENTWISE, FUNC_DEFINITION_ELEMENTWISE_IDENTITY
 
 # quiby attributes to func or FuncDefinition.
 #  `None` to get the function definition of the corresponding np function
@@ -71,7 +71,7 @@ METHODS_TO_FUNCS_OR_FUNC_DEFINITIONS = {
     # 'take',
     # 'tobytes',
     # 'tofile',
-    'tolist': FUNC_DEFINITION_TRANSPOSITIONAL_ONE_TO_ONE,
+    'tolist': FUNC_DEFINITION_ELEMENTWISE_IDENTITY,
     # 'tostring',
     'trace': None,
     'transpose': None,

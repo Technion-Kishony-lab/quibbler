@@ -93,6 +93,8 @@ class ElementWiseFuncDefinition(FuncDefinition):
     """
 
     func: Optional[Callable] = None
+
+    # inverse_funcs is a tuple specifying the inverse function for each argument of func
     inverse_funcs: Tuple[Optional[InverseFunc]] = field(repr=False, default_factory=tuple)
 
 

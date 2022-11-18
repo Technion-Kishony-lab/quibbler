@@ -81,8 +81,10 @@ def create_numpy_overrides():
         #
         # Note: When inverting many-to-one functions (specifically, the power function with an even power),
         # an element of the tuple can itself be a tuple specifying the nominal and input-dependent inverse functions:
-        #  (new_x1 = inv_func1_nominal(new_y, x2),
-        #   new_x1 = inv_func1_based_on_previous_value(new_y, x2, previous_x1))
+        #  (
+        #   new_x1 = inv_func1_nominal(new_y, x2),
+        #   new_x1 = inv_func1_based_on_previous_value(new_y, x2, previous_x1)
+        #  )
         #
         *(binary_elementwise(func_name, raw_inverse_funcs)
           for func_name, raw_inverse_funcs in (
@@ -129,8 +131,10 @@ def create_numpy_overrides():
         # Elementwise - Single argument
         # Note: When inverting many-to-one functions, we provide a tuple specifying
         # the nominal and input-dependent inverse functions:
-        #  (new_x1 = inv_func1_nominal(new_y),
-        #   new_x1 = inv_func1_based_on_previous_value(new_y, previous_x1))
+        #  (
+        #   new_x1 = inv_func1_nominal(new_y),
+        #   new_x1 = inv_func1_based_on_previous_value(new_y, previous_x1)
+        #  )
         #
         *(unary_elementwise(func_name, inverse_func)
           for func_name, inverse_func in (
@@ -229,7 +233,7 @@ def create_numpy_overrides():
             ('diagonal',    [0],  nd),
             ('flip',        [0],  []),
 
-            # np.concatenate has an argument that multiple data arguments:
+            # np.concatenate has an argument that contains multiple data arguments:
             ('concatenate', [DataArgumentDesignation(PositionalArgument(0), is_multi_arg=True)], nd),
           )),
 

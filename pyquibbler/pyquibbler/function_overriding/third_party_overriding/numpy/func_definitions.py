@@ -1,3 +1,4 @@
+from pyquibbler.function_overriding.third_party_overriding.numpy.inverse_functions import InverseFunc
 from pyquibbler.path_translation.translators import \
     TranspositionalBackwardsPathTranslator, TranspositionalForwardsPathTranslator, \
     AxisAccumulationBackwardsPathTranslator, AxisAccumulationForwardsPathTranslator, \
@@ -21,6 +22,11 @@ from pyquibbler.function_definitions.func_definition import create_or_reuse_func
 """
 Basic func definitions
 """
+
+
+def identity(x):
+    return x
+
 
 FUNC_DEFINITION_RANDOM = create_or_reuse_func_definition(
     is_random=True)
@@ -59,7 +65,7 @@ FUNC_DEFINITION_SHAPE_ONLY = create_or_reuse_func_definition(
     forwards_path_translators=[ShapeOnlyForwardsPathTranslator])
 
 FUNC_DEFINITION_UNARY_ELEMENTWISE = create_or_reuse_func_definition(
-    raw_data_source_arguments=[0, 1],
+    raw_data_source_arguments=[0],
     backwards_path_translators=[UnaryElementwiseNoShapeBackwardsPathTranslator,
                                 UnaryElementwiseBackwardsPathTranslator],
     forwards_path_translators=[UnaryElementwiseForwardsPathTranslator],
@@ -74,3 +80,9 @@ FUNC_DEFINITION_BINARY_ELEMENTWISE = create_or_reuse_func_definition(
     result_type_or_type_translators=[ElementwiseTypeTranslator],
     inverters=[BinaryElementwiseInverter],
     func_definition_cls=ElementWiseFuncDefinition)
+
+FUNC_DEFINITION_ELEMENTWISE_IDENTITY = create_or_reuse_func_definition(
+    base_func_definition=FUNC_DEFINITION_UNARY_ELEMENTWISE,
+    func=identity,
+    inverse_funcs=(InverseFunc.from_raw_inverse_func(identity), ),
+)
