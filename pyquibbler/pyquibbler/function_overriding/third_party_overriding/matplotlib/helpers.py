@@ -20,6 +20,8 @@ from pyquibbler.quib.graphics import artist_wrapper
 from pyquibbler.quib.graphics.event_handling import CanvasEventHandler
 from pyquibbler.quib.graphics.event_handling.plot_inverse_assigner import get_xdata_arg_indices_and_ydata_arg_indices
 from pyquibbler.utilities.iterators import iter_objects_of_type_in_object_recursively, is_iterator_empty
+from .func_definitions import FUNC_DEFINITION_GRAPHICS, FUNC_DEFINITION_GRAPHICS_AXES_SETTER
+from ..numpy.func_definitions import FUNC_DEFINITION_FILE_LOADING
 
 
 @dataclass
@@ -109,24 +111,32 @@ class AxesLimOverride(AxesSetOverride):
             return AxesSetOverride._call_wrapped_func(func, args, kwargs)
 
 
-graphics_override = partial(override_with_cls, GraphicsOverride, is_graphics=True,
+graphics_override = partial(override_with_cls, GraphicsOverride,
+                            base_func_definition=FUNC_DEFINITION_GRAPHICS,
                             should_remove_arguments_equal_to_defaults=True)
+
+graphics_override_read_file = partial(override_with_cls, GraphicsOverride,
+                                      base_func_definition=FUNC_DEFINITION_FILE_LOADING)
 
 axes_override = partial(graphics_override, Axes)
 
 axes3d_override = partial(graphics_override, Axes3D)
 
-patches_override = partial(override_class, matplotlib.patches, is_graphics=True)
+patches_override = partial(override_class, matplotlib.patches,
+                           base_func_definition=FUNC_DEFINITION_GRAPHICS)
 
-plot_override = partial(override_with_cls, PlotOverride, Axes, is_graphics=True,
-                        should_remove_arguments_equal_to_defaults=True, kwargs_to_ignore_in_repr={'picker'})
+plot_override = partial(override_with_cls, PlotOverride, Axes,
+                        base_func_definition=FUNC_DEFINITION_GRAPHICS,
+                        should_remove_arguments_equal_to_defaults=True,
+                        kwargs_to_ignore_in_repr={'picker'})
 
-axes_setter_override = partial(override_with_cls, AxesSetOverride, Axes, is_graphics=True,
-                               is_artist_setter=True,
+axes_setter_override = partial(override_with_cls, AxesSetOverride, Axes,
+                               base_func_definition=FUNC_DEFINITION_GRAPHICS_AXES_SETTER,
                                should_remove_arguments_equal_to_defaults=True)
 
 widget_override = partial(graphics_override, matplotlib.widgets)
 
 axes_lim_override = partial(override_with_cls, AxesLimOverride,
-                            Axes, is_graphics=True, is_artist_setter=True,
+                            Axes,
+                            base_func_definition=FUNC_DEFINITION_GRAPHICS_AXES_SETTER,
                             should_remove_arguments_equal_to_defaults=True)
