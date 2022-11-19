@@ -37,6 +37,16 @@ class CannotIterQuibsException(PyQuibblerException, TypeError):
                'Try Quib.iter_first() to iterate over the n-first items of the quib.'
 
 
+class QuibsShouldPrecedeException(PyQuibblerException, TypeError):
+
+    def __str__(self):
+        return '\n' \
+               'Binary operators which combine a numpy.ndarrays with a quib\n' \
+               'are only supported with the quib appearing as the first argument.\n' \
+               'For instance, if W is a quib and A is an array, use `W + A` rather than `A + W`.\n' \
+               'Or, to implement `A - W`, use `-W + A`.\n'
+
+
 class CannotDisplayQuibWidget(PyQuibblerException):
 
     def __str__(self):

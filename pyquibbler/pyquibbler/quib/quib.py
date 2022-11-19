@@ -16,7 +16,7 @@ from matplotlib.axes import Axes
 
 # Debugging, warning and performance:
 from pyquibbler.debug_utils import timeit, logger
-from pyquibbler.quib.exceptions import LenBoolEtcException, CannotIterQuibsException
+from pyquibbler.quib.exceptions import LenBoolEtcException, CannotIterQuibsException, QuibsShouldPrecedeException
 from pyquibbler.utilities.warning_messages import no_header_warn
 
 # Input validation:
@@ -1496,6 +1496,10 @@ class Quib:
     def __getattr__(self, item):
         from pyquibbler.quib.specialized_functions.getattr import create_getattr_quib_or_quiby_method
         return create_getattr_quib_or_quiby_method(self, item)
+
+    def __array_wrap__(self, result):
+        raise QuibsShouldPrecedeException()
+
 
     """
     overrides
