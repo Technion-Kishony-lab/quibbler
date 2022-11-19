@@ -1500,7 +1500,6 @@ class Quib:
     def __array_wrap__(self, result):
         raise QuibsShouldPrecedeException()
 
-
     """
     overrides
     """
