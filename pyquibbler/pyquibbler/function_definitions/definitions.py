@@ -23,8 +23,6 @@ def add_definition_for_function(func: Callable,
     func_name = func_name if func_name else str(func)
     FUNCS_TO_DEFINITIONS_MODULE_NAME_ISOVERRIDDEN[func] = \
         (func_definition, module_or_cls, func_name, quib_creating_func is not None)
-    if func_definition:
-        func_definition.func = func
     if quib_creating_func:
         quib_creating_func.func_definition = func_definition
 

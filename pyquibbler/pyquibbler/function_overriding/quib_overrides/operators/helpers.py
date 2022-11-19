@@ -15,23 +15,27 @@ from pyquibbler.function_overriding.third_party_overriding.numpy.func_definition
 from .func_definitions import FUNC_DEFINITION_BINARY_ELEMENTWISE_AND_LIST
 from pyquibbler.function_overriding.third_party_overriding.numpy.inverse_functions import InverseFunc
 
+SPECIAL_FUNCS = {
+    '__round__': round,
+    '__ceil__': math.ceil,
+    '__trunc__': math.trunc,
+    '__floor__': math.floor,
+    '__getitem__': operator.getitem
+}
+
+
+def get_operator_func(func_name):
+    if func_name in SPECIAL_FUNCS:
+        return SPECIAL_FUNCS[func_name]
+    if func_name in REVERSE_OPERATOR_NAMES_TO_FUNCS:
+        return REVERSE_OPERATOR_NAMES_TO_FUNCS[func_name]
+    return getattr(operator, func_name)
+
 
 @dataclass
 class OperatorOverride(FuncOverride):
-    SPECIAL_FUNCS = {
-        '__round__': round,
-        '__ceil__': math.ceil,
-        '__trunc__': math.trunc,
-        '__floor__': math.floor,
-        '__getitem__': operator.getitem
-    }
-
     def _get_func_from_module_or_cls(self):
-        if self.func_name in self.SPECIAL_FUNCS:
-            return self.SPECIAL_FUNCS[self.func_name]
-        if self.func_name in REVERSE_OPERATOR_NAMES_TO_FUNCS:
-            return REVERSE_OPERATOR_NAMES_TO_FUNCS[self.func_name]
-        return getattr(operator, self.func_name)
+        return get_operator_func(self.func_name)
 
 
 def operator_override(func_name,
@@ -58,6 +62,8 @@ def binary_operator_override(func_name,
                              is_reverse: bool = False,
                              ):
 
+    func = get_operator_func(func_name)
+
     # add special translators/invertors for list addition and multiplication:
     if func_name in ['__add__', '__mul__']:
         base_func_definition = FUNC_DEFINITION_BINARY_ELEMENTWISE_AND_LIST
@@ -71,6 +77,7 @@ def binary_operator_override(func_name,
     return override_with_cls(OperatorOverride, Quib,
                              func_name,
                              base_func_definition=base_func_definition,
+                             func=func,
                              inverse_funcs=inverse_funcs,
                              is_operator=True,
                              )
@@ -79,9 +86,11 @@ def binary_operator_override(func_name,
 def unary_operator_override(func_name,
                             inverse_func: InverseFunc,
                             ):
+    func = get_operator_func(func_name)
     return override_with_cls(OperatorOverride, Quib,
                              func_name,
                              base_func_definition=FUNC_DEFINITION_UNARY_ELEMENTWISE,
+                             func=func,
                              inverse_funcs=(inverse_func, ),
                              is_operator=True,
                              )

@@ -59,6 +59,7 @@ def get_unary_inverse_funcs_for_func(func_name: str) -> InverseFunc:
 
 
 def binary_elementwise(func_name: str, raw_inverse_funcs: Tuple[Optional[RawInverseFunc]]):
+    func = getattr(np, func_name)
     inverse_funcs = tuple(None if raw_inverse_func is None else InverseFunc.from_raw_inverse_func(raw_inverse_func)
                           for raw_inverse_func in raw_inverse_funcs)
 
@@ -67,12 +68,13 @@ def binary_elementwise(func_name: str, raw_inverse_funcs: Tuple[Optional[RawInve
     return numpy_override(
         func_name=func_name,
         base_func_definition=FUNC_DEFINITION_BINARY_ELEMENTWISE,
+        func=func,
         inverse_funcs=inverse_funcs,
     )
 
 
 def unary_elementwise(func_name: str, raw_inverse_func: Optional[RawInverseFunc]):
-
+    func = getattr(np, func_name)
     inverse_func = None if raw_inverse_func is None else InverseFunc.from_raw_inverse_func(raw_inverse_func)
 
     UNARY_ELEMENTWISE_FUNCS_TO_INVERSE_FUNCS[func_name] = inverse_func
@@ -80,5 +82,6 @@ def unary_elementwise(func_name: str, raw_inverse_func: Optional[RawInverseFunc]
     return numpy_override(
         func_name=func_name,
         base_func_definition=FUNC_DEFINITION_UNARY_ELEMENTWISE,
+        func=func,
         inverse_funcs=(inverse_func, ),
     )
