@@ -15,7 +15,7 @@ def is_path_simple(path: Path):
         return False
     if not isinstance(component, tuple):
         component = (component, )
-    return all(isinstance(index, (int, slice, np.int64)) for index in component)
+    return all(isinstance(index, (int, slice, np.int32, np.int64)) for index in component)
 
 
 @pytest.mark.parametrize("assigned_value, assigned_path, data, should_simplify", [
