@@ -294,7 +294,7 @@ def test_undo_redos_clear_from_stack_on_removal():
     ('save_format', 'off', SaveFormat.OFF),
     ('save_format', SaveFormat.TXT, SaveFormat.TXT),
     ('graphics_update', 'never', GraphicsUpdateType.NEVER),
-    ('directory', '/my_folder', PathWithHyperLink('/my_folder')),
+    ('directory', '/my_folder', PathWithHyperLink('/my_folder').resolve()),
     ('directory', None, None),
 ])
 def test_project_correctly_set_valid_values(project, prop_name, set_value, get_value):

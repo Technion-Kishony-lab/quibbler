@@ -1,8 +1,6 @@
-import logging
 import os
 import shutil
 import subprocess
-import time
 from contextlib import suppress
 from pathlib import Path
 
@@ -21,10 +19,6 @@ JUPYTER_PORT = 10_000
 NOTEBOOK_ELEMENT_COUNT = 5  # TODO: We use this to make sure we're loaded- is there a better way?
 NOTEBOOKS_PATH = (Path(__file__).parent / "notebooks").absolute()
 NOTEBOOK_URL = f"http://localhost:{JUPYTER_PORT}/lab/tree/example_notebook.ipynb"
-
-logger = logging.getLogger('pyquibblerTestLogger')
-logger.setLevel(logging.DEBUG)
-logger.addHandler(logging.FileHandler("/tmp/test_log.log"))
 
 
 def kill_process_on(func: Callable):
