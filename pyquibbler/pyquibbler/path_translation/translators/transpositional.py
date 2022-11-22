@@ -1,12 +1,12 @@
 from typing import Tuple
 
-import numpy as np
 from numpy.typing import NDArray
 
 from pyquibbler.path_translation.translators.numpy import NumpyBackwardsPathTranslator, \
     NumpyForwardsPathTranslator
 from pyquibbler.path_translation.array_translation_utils import ArrayPathTranslator, \
     run_func_call_with_new_args_kwargs
+from ..array_index_codes import INDEX_TYPE
 
 
 class TranspositionalPathTranslator:
@@ -23,7 +23,7 @@ class TranspositionalBackwardsPathTranslator(NumpyBackwardsPathTranslator, Trans
 
     def _get_indices_in_source(self,
                                data_argument_to_source_index_code_converter: ArrayPathTranslator,
-                               result_bool_mask: NDArray[bool]) -> Tuple[NDArray[np.int64], NDArray[bool]]:
+                               result_bool_mask: NDArray[bool]) -> Tuple[NDArray[INDEX_TYPE], NDArray[bool]]:
         """
         We transform the indices of the source to the target by applying the transposition function.
         """

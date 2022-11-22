@@ -20,7 +20,7 @@ class InvalidTypeException(PyQuibblerException):
     type_: Type
 
     def __str__(self):
-        return f"The type {repr(self.type_)} is incompatible with the given assignment template "
+        return f"The type {repr(self.type_)} is incompatible with the given assignment template."
 
 
 @dataclass

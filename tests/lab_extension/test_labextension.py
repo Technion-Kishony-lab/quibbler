@@ -1,4 +1,3 @@
-import logging
 import os
 import shutil
 import subprocess
@@ -6,7 +5,6 @@ import time
 from contextlib import suppress
 from pathlib import Path
 
-import interruptingcow
 import psutil
 import pytest
 import requests
@@ -21,10 +19,6 @@ JUPYTER_PORT = 10_000
 NOTEBOOK_ELEMENT_COUNT = 5  # TODO: We use this to make sure we're loaded- is there a better way?
 NOTEBOOKS_PATH = (Path(__file__).parent / "notebooks").absolute()
 NOTEBOOK_URL = f"http://localhost:{JUPYTER_PORT}/lab/tree/example_notebook.ipynb"
-
-logger = logging.getLogger('pyquibblerTestLogger')
-logger.setLevel(logging.DEBUG)
-logger.addHandler(logging.FileHandler("/tmp/test_log.log"))
 
 
 def kill_process_on(func: Callable):
@@ -71,14 +65,13 @@ def start_jupyter_lab(notebooks_path):
         "--NotebookApp.password=''"
     ], cwd=notebooks_path, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-    with interruptingcow.timeout(seconds=5):
-        while True:
-            try:
-                requests.get(NOTEBOOK_URL)
-            except requests.ConnectionError:
-                pass
-            else:
-                break
+    for try_number in range(10):
+        try:
+            requests.get(NOTEBOOK_URL)
+        except requests.ConnectionError:
+            time.sleep(0.5)
+        else:
+            break
     yield
     process.kill()
 

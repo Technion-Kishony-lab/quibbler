@@ -13,6 +13,7 @@ from pyquibbler.function_definitions import FuncCall, SourceLocation
 from .numpy import NumpyForwardsPathTranslator, NumpyBackwardsPathTranslator
 from ..array_translation_utils import ArrayPathTranslator
 from ..types import Source
+from ..array_index_codes import INDEX_TYPE
 
 
 class VectorizeBackwardsPathTranslator(NumpyBackwardsPathTranslator):
@@ -24,7 +25,7 @@ class VectorizeBackwardsPathTranslator(NumpyBackwardsPathTranslator):
 
     def _get_indices_in_source(self,
                                data_argument_to_source_index_code_converter: ArrayPathTranslator,
-                               result_bool_mask: NDArray[bool]) -> Tuple[NDArray[np.int64], NDArray[bool]]:
+                               result_bool_mask: NDArray[bool]) -> Tuple[NDArray[INDEX_TYPE], NDArray[bool]]:
         data_arg_source_index_code = data_argument_to_source_index_code_converter.get_masked_data_argument_of_source()
         vectorize_metadata = self._vectorize_metadata
         result_core_axes = vectorize_metadata.result_core_axes

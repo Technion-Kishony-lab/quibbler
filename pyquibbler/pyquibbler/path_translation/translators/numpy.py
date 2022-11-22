@@ -17,6 +17,7 @@ from ..array_index_codes import IndexCode, is_focal_element
 from ..base_translators import BackwardsPathTranslator, ForwardsPathTranslator
 from ..array_translation_utils import ArrayPathTranslator
 from ..types import Source
+from ..array_index_codes import INDEX_TYPE
 
 
 @dataclass
@@ -65,7 +66,7 @@ class NumpyBackwardsPathTranslator(BackwardsPathTranslator):
     @abstractmethod
     def _get_indices_in_source(self,
                                data_argument_to_source_index_code_converter: ArrayPathTranslator,
-                               result_bool_mask: NDArray[bool]) -> Tuple[NDArray[np.int64], NDArray[bool]]:
+                               result_bool_mask: NDArray[bool]) -> Tuple[NDArray[INDEX_TYPE], NDArray[bool]]:
         """
         Return two same-size nd-arrays:
         (1) an array of index codes of the source

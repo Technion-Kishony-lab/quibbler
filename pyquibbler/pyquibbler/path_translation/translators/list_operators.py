@@ -11,6 +11,7 @@ from pyquibbler.function_definitions import PositionalArgument, SourceLocation
 from ..array_translation_utils import ArrayPathTranslator, run_func_call_with_new_args_kwargs
 from ..types import Source
 from ..utils import copy_and_replace_sources_with_vals
+from ..array_index_codes import INDEX_TYPE
 
 from .numpy import NumpyForwardsPathTranslator, NumpyBackwardsPathTranslator
 
@@ -95,7 +96,7 @@ class ListOperatorBackwardsPathTranslator(ListOperatorPathTranslator, NumpyBackw
 
     def _get_indices_in_source(self,
                                data_argument_to_source_index_code_converter: ArrayPathTranslator,
-                               result_bool_mask: NDArray[bool]) -> Tuple[NDArray[np.int64], NDArray[bool]]:
+                               result_bool_mask: NDArray[bool]) -> Tuple[NDArray[INDEX_TYPE], NDArray[bool]]:
         """
         We transform the indices of the source to the target by transferring the object arrays back to lists
         and applying the list addition/multiplication function.

@@ -5,6 +5,7 @@ from numpy.typing import NDArray
 
 from pyquibbler.utilities.numpy_original_functions import np_any
 
+from ..array_index_codes import INDEX_TYPE
 from ..array_translation_utils import run_func_call_with_new_args_kwargs, ArrayPathTranslator
 from .numpy import Arg, NumpyBackwardsPathTranslator, NumpyForwardsPathTranslator
 
@@ -15,7 +16,7 @@ class AxisAllToAllBackwardsPathTranslator(NumpyBackwardsPathTranslator):
 
     def _get_indices_in_source(self,
                                data_argument_to_source_index_code_converter: ArrayPathTranslator,
-                               result_bool_mask: NDArray[bool]) -> Tuple[NDArray[np.int64], NDArray[bool]]:
+                               result_bool_mask: NDArray[bool]) -> Tuple[NDArray[INDEX_TYPE], NDArray[bool]]:
         """
         In axiswise functions, like np.sort, the value of an element j depends on all elements along the axis.
         We therefore use np.any and broadasting to the shape of the argument

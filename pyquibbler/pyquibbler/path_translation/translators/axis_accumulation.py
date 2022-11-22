@@ -5,6 +5,7 @@ from numpy.typing import NDArray
 
 from pyquibbler.utilities.numpy_original_functions import np_logical_or, np_cumsum
 
+from ..array_index_codes import INDEX_TYPE
 from ..array_translation_utils import run_func_call_with_new_args_kwargs, ArrayPathTranslator
 from .numpy import NumpyBackwardsPathTranslator, NumpyForwardsPathTranslator, Arg
 
@@ -15,7 +16,7 @@ class AxisAccumulationBackwardsPathTranslator(NumpyBackwardsPathTranslator):
 
     def _get_indices_in_source(self,
                                data_argument_to_source_index_code_converter: ArrayPathTranslator,
-                               result_bool_mask: NDArray[bool]) -> Tuple[NDArray[np.int64], NDArray[bool]]:
+                               result_bool_mask: NDArray[bool]) -> Tuple[NDArray[INDEX_TYPE], NDArray[bool]]:
         """
         In accumulation functions, like cumsum, the value of an element j depends on all elements up to j in
         the data argument.
