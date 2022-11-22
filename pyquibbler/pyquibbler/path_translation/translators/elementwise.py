@@ -12,6 +12,7 @@ from pyquibbler.utilities.multiple_instance_runner import ConditionalRunner
 from ..source_func_call import Source
 from ..array_translation_utils import ArrayPathTranslator
 from ..base_translators import BackwardsTranslationRunCondition, BackwardsPathTranslator
+from ..array_index_codes import INDEX_TYPE
 from .numpy import NumpyForwardsPathTranslator, NumpyBackwardsPathTranslator
 
 
@@ -56,7 +57,7 @@ class UnaryElementwiseBackwardsPathTranslator(ElementwisePathTranslator, NumpyBa
 
     def _get_indices_in_source(self,
                                data_argument_to_source_index_code_converter: ArrayPathTranslator,
-                               result_bool_mask: NDArray[bool]) -> Tuple[NDArray[np.int64], NDArray[bool]]:
+                               result_bool_mask: NDArray[bool]) -> Tuple[NDArray[INDEX_TYPE], NDArray[bool]]:
         """
         The argument data indices are identical to the target result indices
         """
@@ -68,7 +69,7 @@ class BinaryElementwiseBackwardsPathTranslator(ElementwisePathTranslator, NumpyB
 
     def _get_indices_in_source(self,
                                data_argument_to_source_index_code_converter: ArrayPathTranslator,
-                               result_bool_mask: NDArray[bool]) -> Tuple[NDArray[np.int64], NDArray[bool]]:
+                               result_bool_mask: NDArray[bool]) -> Tuple[NDArray[INDEX_TYPE], NDArray[bool]]:
         """
         Get the relevant indices for the argument quib that will need to be changed
 

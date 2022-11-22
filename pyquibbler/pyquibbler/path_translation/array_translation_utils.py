@@ -12,7 +12,7 @@ from pyquibbler.function_definitions.func_call import FuncCall, FuncArgsKwargs
 from pyquibbler.utilities.general_utils import get_shared_shape, is_same_shapes
 from pyquibbler.assignment.utils import is_scalar_np
 
-from .array_index_codes import IndexCode, is_focal_element, IndexCodeArray
+from .array_index_codes import INDEX_TYPE, IndexCode, is_focal_element, IndexCodeArray
 from .exceptions import PyQuibblerRaggedArrayException
 from .source_func_call import SourceFuncCall
 from .types import Source
@@ -27,7 +27,7 @@ def convert_an_arg_to_array_of_source_index_codes(arg: Any,
                                                   ) \
         -> Tuple[IndexCodeArray, Optional[Path], Optional[Path], Optional[Path], Optional[bool]]:
     """
-    Convert a given arg to an IndexCodeArray, which is an array of np.int64 with values wither matching
+    Convert a given arg to an IndexCodeArray, which is an array of INDEX_TYPE with values either matching
     the linear indexing of focal_source, or specifying other elements according to IndexCode.
 
     Parameters
@@ -85,7 +85,7 @@ def convert_an_arg_to_array_of_source_index_codes(arg: Any,
                 is_extracting_element_out_of_source_array = True
                 return IndexCode.FOCAL_SOURCE_SCALAR, _remaining_path_to_source
 
-            full_index_array = np.arange(np.size(obj)).reshape(np.shape(obj))
+            full_index_array = np.arange(np.size(obj), dtype=INDEX_TYPE).reshape(np.shape(obj))
             if path_in_source is None:
                 chosen_index_array = full_index_array
             else:
@@ -110,7 +110,7 @@ def convert_an_arg_to_array_of_source_index_codes(arg: Any,
             return np.full(np.shape(obj), IndexCode.OTHERS_ELEMENT), _remaining_path_to_source
 
         if len(obj) == 0:
-            return np.array(obj, dtype=np.int64), _remaining_path_to_source
+            return np.array(obj, dtype=INDEX_TYPE), _remaining_path_to_source
 
         source_index = None if _remaining_path_to_source is None else _remaining_path_to_source[0].component
         converted_sub_args = [None if source_index == sub_arg_index else
