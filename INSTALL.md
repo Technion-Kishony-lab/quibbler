@@ -28,7 +28,7 @@ Follow these four steps:
 
 #### 3. Install Jupyter lab (optional):
 
-```pip install jupyterlab``` 
+```pip install jupyterlab```
 
 #### 4. Run the 'install.py' script: 
 
@@ -36,6 +36,10 @@ Follow these four steps:
 
 This will install *pyquibbler*, and if *Jupyter Lab* is installed it will also offer 
 to install the *pyquibbler Jupyter Lab extension*.      
+
+Note: On *Windows*, if you wish installing the *pyquibbler juputer-lab extension*, you need first to [enable device 
+for development](https://learn.microsoft.com/en-us/windows/apps/get-started/enable-your-device-for-development).
+
 
 #### 5. Install chromedriver (for lab tests)
 

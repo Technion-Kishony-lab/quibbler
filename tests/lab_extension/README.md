@@ -12,11 +12,12 @@ After clicking on the correct version, you'll be able to choose your operating s
 need to click the downloaded archive to unzip it. 
 
 #### 2. Place the chromedriver in your path 
-After downloading and unzipping chromedriver, go to your terminal and run `echo $PATH`. 
-This will show you a set of locations seperated by a colon where executable files are expected to be found.
-You need to place your downloaded chromedriver in one of them. 
-If `/usr/local/bin` is in your PATH, we recommend placing it there. 
-To place it in this location, run 
+After downloading and unzipping chromedriver, go to your terminal and run `echo $PATH` (or `path` on Windows). 
+This will show you a set of locations separated by a colon where executable files are expected to be found.
+You need to place your downloaded chromedriver in one of them (if `/usr/local/bin` is in your PATH, we recommend
+placing it there).
+
+For example, to place it in the /usr/local/bin folder, run 
 
    `mv ~/Downloads/chromedriver /usr/local/bin/`
 
