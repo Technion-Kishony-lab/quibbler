@@ -34,7 +34,6 @@ setup(
             'pytest-benchmark',
             'selenium',
             'requests',
-            'interruptingcow',
             'psutil',
             'pytest-benchmark',
         ],

@@ -1,10 +1,10 @@
 import os
 import shutil
 import subprocess
+import time
 from contextlib import suppress
 from pathlib import Path
 
-import interruptingcow
 import psutil
 import pytest
 import requests
@@ -65,14 +65,13 @@ def start_jupyter_lab(notebooks_path):
         "--NotebookApp.password=''"
     ], cwd=notebooks_path, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-    with interruptingcow.timeout(seconds=5):
-        while True:
-            try:
-                requests.get(NOTEBOOK_URL)
-            except requests.ConnectionError:
-                pass
-            else:
-                break
+    for try_number in range(10):
+        try:
+            requests.get(NOTEBOOK_URL)
+        except requests.ConnectionError:
+            time.sleep(0.5)
+        else:
+            break
     yield
     process.kill()
 
