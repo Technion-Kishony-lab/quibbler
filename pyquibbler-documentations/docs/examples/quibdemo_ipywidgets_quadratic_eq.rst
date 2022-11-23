@@ -23,7 +23,10 @@ implemented with quiby ipywidgets.**
     import numpy as np
     import ipywidgets as ipyw
     import warnings
-    
+
+.. code:: python
+
+    # Note: running in widget mode requires installing pip install ipympl
     %matplotlib widget
 
 .. code:: python
@@ -70,4 +73,13 @@ implemented with quiby ipywidgets.**
         ipyw.Label(q('Solution 2: {:6.3f}'.format, solution2)),
         output
     ])
+
+
+
+
+.. code:: none
+
+    VBox(children=(FloatSlider(value=2.0, description='a', max=10.0, min=-10.0), FloatSlider(value=1.0, descriptio…
+
+
 .. image:: ../images/demo_gif/quibdemo_ipywidgets_quadratic_eq.gif
