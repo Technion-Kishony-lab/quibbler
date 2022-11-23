@@ -1,4 +1,4 @@
-from pyquibbler.quibapp import QuibApp
+from .quibapp import QuibApp
 
 
 def quibapp():

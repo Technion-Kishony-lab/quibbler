@@ -3,7 +3,7 @@ from matplotlib.widgets import Button
 import pytest
 
 from pyquibbler import iquib
-from pyquibbler.quibapp import QuibApp
+from pyquibbler.user_utils.quibapp import QuibApp
 
 
 @pytest.fixture

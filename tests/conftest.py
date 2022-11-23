@@ -16,7 +16,7 @@ from pyquibbler.optional_packages.emulate_missing_packages import EMULATE_MISSIN
 from pyquibbler.project import Project
 from pyquibbler import initialize_quibbler
 from pyquibbler.quib.func_calling import CachedQuibFuncCall
-from pyquibbler.quibapp import QuibApp
+from pyquibbler.user_utils.quibapp import QuibApp
 
 from pyquibbler.utilities.basic_types import Flag
 
