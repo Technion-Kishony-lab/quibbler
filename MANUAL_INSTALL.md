@@ -6,7 +6,7 @@ For users, we recommend installing using `pip install` (see [here](INSTALL.md)).
 For development, we recommend installing using the `install.py` script 
 ([here](INSTALL.md)). 
 
-If you instead prefer to install manually, follow these steps: 
+If `install.py` fails, or you otherwise prefer to install manually, follow these steps: 
 
 #### 1. Create environment:
 
