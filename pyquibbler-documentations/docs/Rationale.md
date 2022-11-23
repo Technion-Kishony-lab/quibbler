@@ -40,7 +40,7 @@ insights we gain from our analysis._
 <br/>
 <br/>
 
-#### Quibbler: interactive, traceable, transparent, and efficient data analysis pipelines
+### Quibbler: interactive, traceable, transparent, and efficient data analysis pipelines
 
 Addressing the above challenges, *Quibbler* offers a data analysis toolset built on three
 key principles:
@@ -63,7 +63,7 @@ and parameters that led to any key observation, making the results of the analys
 pipeline transparent, understandable and reproducible. 
 
 
-3. **Computation efficiency.** In *Quibbler*, intermediate calculations are cached 
+**3. Computation efficiency.** In *Quibbler*, intermediate calculations are cached 
 in memory and when an upstream parameter changes, only the specific cached calculations 
 that depend on this parameter are invalidated. *Quibbler* thereby avoids re-running 
 of computation-intensive functions and makes sure only the very necessary steps of the 

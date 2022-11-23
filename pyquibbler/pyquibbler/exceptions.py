@@ -10,5 +10,5 @@ class PyQuibblerException(Exception, metaclass=ABCMeta):
 
 
 @dataclass
-class DebugException(PyQuibblerException):
+class DebugException(PyQuibblerException, metaclass=ABCMeta):
     pass
