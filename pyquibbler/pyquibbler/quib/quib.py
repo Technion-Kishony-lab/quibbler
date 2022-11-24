@@ -2074,6 +2074,16 @@ class Quib:
         See Also
         --------
         q, quiby, Quib.name, Quib.assigned_name
+
+        Examples
+        --------
+        >>> t = iquib(5)
+        >>> y = iquib(7)
+        >>> plt.plot(t, y, 'o')
+        >>> plt.xlabel(x.get_quiby_name())
+        >>> # This will create a figure with x-axis label 't'
+
+        >>> t.name = 'time'  # -> the figure x-axis label will immediately change to 'time'
         """
         if isinstance(as_repr, Quib):
             as_repr = as_repr.get_value()
