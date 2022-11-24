@@ -275,4 +275,4 @@ See also:
 ^^^^^^^^^
 
 :py:attr:`~pyquibbler.Quib.name`, :py:attr:`~pyquibbler.Quib.assigned_name`,
-:py:attr:`~pyquibbler.Quib.functional_representation`
+:py:attr:`~pyquibbler.Quib.functional_representation`, :py:attr:`~pyquibbler.Quib.get_quiby_name`
