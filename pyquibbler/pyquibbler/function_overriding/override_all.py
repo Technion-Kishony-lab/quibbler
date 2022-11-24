@@ -45,7 +45,7 @@ def initialize_quibbler(draggable_plots: bool = True, show_quibs_as_widgets: boo
 
     show_quibs_as_widgets: bool, default True
         Indicates whether to display quibs as interactive widgets.
-        When set to False, quibs can still be displayed as widgets using the quib's display method.
+        When set to False, quibs can still be displayed as widgets using the quib's `display()` method.
         (Note that `show_quibs_as_widgets` is only applicable within Jupyter Lab).
 
     See Also

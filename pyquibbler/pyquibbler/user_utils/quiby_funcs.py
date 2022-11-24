@@ -9,20 +9,26 @@ from pyquibbler.quib.factory import create_quib
 
 def list_quiby_funcs(module_or_cls: Union[None, ModuleType, Type] = None) -> List[str]:
     """
-    Returns a list of "quiby" functions.
+    List quiby functions.
 
-    Returns a list of functions overridden to be able to work with quib arguments.
+    Returns a list of string descriptions of all functions overridden to be able to work with quib arguments.
+
+    Parameters
+    ----------
+    module_or_cls: ModuleType, optional (default: None)
+        Specifies a module (numpy, matplotlib, ipywidgets). When specified, only functions belonging to the indicated
+        module are listed.
     """
     warn_if_quibbler_not_initiated()
 
-    from pyquibbler.function_definitions.definitions import FUNCS_TO_DEFINITIONS_MODULE_NAME_ISOVERRIDDEN
+    from pyquibbler.function_definitions.definitions import FUNCS_TO_FUNC_INFO
     from pyquibbler.function_overriding.third_party_overriding.numpy.vectorize_overrides import QVectorize
     from pyquibbler.function_overriding.override_all import ATTRIBUTES_TO_ATTRIBUTE_OVERRIDES
     return \
-        [f"{getattr(mdl, '__name__', mdl)}: {func_name}" for definition, mdl, func_name, isoverridden in
-         FUNCS_TO_DEFINITIONS_MODULE_NAME_ISOVERRIDDEN.values()
-         if isoverridden and (module_or_cls is None or mdl is module_or_cls)
-         and mdl is not QVectorize] \
+        [f"{getattr(func_info.module_or_cls, '__name__', func_info.module_or_cls)}: {func_info.func_name}"
+         for func_info in FUNCS_TO_FUNC_INFO.values()
+         if func_info.is_overridden and (module_or_cls is None or func_info.module_or_cls is module_or_cls)
+         and func_info.module_or_cls is not QVectorize] \
         + [f"np.ndarray.{attribute}" for attribute in ATTRIBUTES_TO_ATTRIBUTE_OVERRIDES]
 
 
