@@ -1323,21 +1323,59 @@ class Quib:
     """
 
     @raise_quib_call_exceptions_as_own
-    def get_value_valid_at_path(self, path: Optional[Path]) -> Any:
+    def get_value_valid_at_path(self, path: Union[None, Path, List[Any]]) -> Any:
         """
-        Get the value of the quib, valid at the path given in the argument.
+        Get the value of the quib, calculated only for a requested path.
 
-        The value will necessarily return with the shape of the actual result, but only the
-        values at the given path are guaranteed to be valid.
+        ``value = quib.get_value_valid_at_path([c0, c1, ..., cN])``
+        returns ``value`` which has the same shape as the real value of the quib (``quib.get_value()``),
+        but with data that is only guaranteed to be correct at the specified path. Namely, ``value`` is only guanteed
+        to be valid at ``value[c0][c1]...[cmpN]``.
+
+        This can save calculations of heavy to calculate arrays, allowing to calculate only part of the array.
+
+        Parameters
+        ----------
+        path: list of components, or None
+            ``path=[c0, c1, ..., cN]``: indicates requesting a returned value valid at the indicated path.
+             Namely, the returned ``value`` will be valid at ``value[c0][c1]...[cN].
+
+            ``None``: indicates requesting a value with the correct shape and type, but where none of the data
+            elements may be valid.
+
+            ``[]``: indicates requesting a fully valid value.
 
         Returns
         -------
-        any
+        value: any
+            a value with the same shape as the real value of the quib, but guaranteed to be valid
+            only at the specified `path`.
 
         See Also
         --------
         get_value
+
+        Examples
+        --------
+        >>> def square(x):
+        >>>     print(f'Calculating square of {x}')
+        >>>     return x**2
+
+        >>> a = iquib([0, 1, 2, 3])
+        >>> a_sqr = np.vectorize(square, otypes=(int,))(a)
+        >>> a_sqr.get_value_valid_at_path([2])  # requesting value valid at a_sqr[2]
+        Calculating square of 2
+        array([2, 2, 4, 2])
+
+        Note
+        ----
+        As a simpler alternative to ``quib.get_value_valid_at_path([c1, c2, ..., cN])[c0][c1]...[cN]``, you can
+        also use the more natual syntax ``quib[c0][c1]...[cN].get_value()``, which similarly will only calculate
+        the requested part of the array.
         """
+        if path:
+            path = [component if isinstance(component, PathComponent) else PathComponent(component)
+                    for component in path]
         return self.handler.get_value_valid_at_path(path)
 
     @raise_quib_call_exceptions_as_own
@@ -1355,6 +1393,13 @@ class Quib:
         See Also
         --------
         get_shape, get_ndim, get_type
+
+        Examples
+        --------
+        >>> a = iquib(3)
+        >>> b = a ** 2  # lazy evaluation
+        >>> b.get_value()  # the calculation only occurs when the quib value is requested
+        9
         """
         return self.handler.get_value_valid_at_path([])
 
@@ -1376,7 +1421,7 @@ class Quib:
 
         Notes
         -----
-        Calculating the type does not necessarily require calculating its entire value.
+        Calculating the type of a quib does not necessarily require calculating its entire value.
         """
         return self.handler.quib_function_call.get_type()
 
@@ -1398,7 +1443,7 @@ class Quib:
 
         Notes
         -----
-        Calculating the shape does not necessarily require calculating its entire value.
+        Calculating the shape of a quib does not necessarily require calculating its entire value.
         """
         return self.handler.quib_function_call.get_shape()
 
@@ -1420,7 +1465,7 @@ class Quib:
 
         Notes
         -----
-        Calculating ndim does not necessarily require calculating its entire value.
+        Calculating ndim of a quib does not necessarily require calculating its entire value.
         """
         return self.handler.quib_function_call.get_ndim()
 
@@ -2259,6 +2304,15 @@ class Quib:
         func
         save_format
         quibbler.iquib
+
+        Examples
+        --------
+        >>> a = iquib(4)
+        >>> b = a + 10
+        >>> a.is_iquib()
+        True
+        >>> b.is_iquib()
+        False
         """
         return self.handler.is_iquib
 
