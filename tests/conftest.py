@@ -10,7 +10,7 @@ import gc
 
 from pyquibbler import CacheMode
 from pyquibbler.env import DEBUG, LAZY, PRETTY_REPR, \
-    SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS, GET_VARIABLE_NAMES, GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION, \
+    SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS, GET_VARIABLE_NAMES, IS_TOLERANCE_IN_GRAPHIC_DRIVEN_ASSIGNMENTS, \
     ALLOW_ARRAY_WITH_DTYPE_OBJECT, SAFE_MODE
 from pyquibbler.optional_packages.emulate_missing_packages import EMULATE_MISSING_PACKAGES
 from pyquibbler.project import Project
@@ -36,7 +36,7 @@ DEFAULT_PRETTY_REPR = True
 DEFAULT_SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACK = False
 DEFAULT_SAFE_MODE = False
 DEFAULT_GET_VARIABLE_NAMES = False
-DEFAULT_GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION = 1000
+DEFAULT_IS_TOLERANCE_IN_GRAPHIC_DRIVEN_ASSIGNMENTS = True
 
 
 @fixture(autouse=True, scope="session")
@@ -84,7 +84,7 @@ def pytest_generate_tests(metafunc):
     parametrize_flag_fixture(metafunc, 'assignment_restrictions', 'setup_assignment_restrictions')
     parametrize_flag_fixture(metafunc, 'pretty_repr', 'setup_pretty_repr')
     parametrize_flag_fixture(metafunc, 'get_variable_names', 'setup_get_variable_names')
-    parametrize_flag_fixture(metafunc, 'graphics_driven_assignment_resolution', 'setup_graphics_driven_assignment_resolution')
+    parametrize_flag_fixture(metafunc, 'graphics_driven_assignment_tolerance', 'setup_graphics_driven_assignment_tolerance')
     parametrize_flag_fixture(metafunc, 'show_quib_exceptions_as_quib_traceback', 'setup_show_quib_exceptions_as_quib_traceback')
     parametrize_flag_fixture(metafunc, 'safe_mode', 'setup_safe_mode')
 
@@ -133,8 +133,8 @@ def setup_get_variable_names(request):
 
 
 @fixture(autouse=True)
-def setup_graphics_driven_assignment_resolution(request):
-    yield from setup_flag(GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION, DEFAULT_GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION,
+def setup_graphics_driven_assignment_tolerance(request):
+    yield from setup_flag(IS_TOLERANCE_IN_GRAPHIC_DRIVEN_ASSIGNMENTS, DEFAULT_IS_TOLERANCE_IN_GRAPHIC_DRIVEN_ASSIGNMENTS,
                           request)
 
 

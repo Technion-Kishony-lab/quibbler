@@ -5,7 +5,7 @@ import pytest
 from matplotlib.backend_bases import MouseButton
 
 from pyquibbler import iquib
-from pyquibbler.env import GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION
+from pyquibbler.env import IS_TOLERANCE_IN_GRAPHIC_DRIVEN_ASSIGNMENTS
 from pyquibbler.quib.graphics.event_handling.graphics_inverse_assigner import inverse_assign_drawing_func
 from datetime import datetime
 from matplotlib.dates import date2num
@@ -48,13 +48,13 @@ def create_mock_pick_event_right_click(indices, artist_index):
     return pick_event
 
 
-def test_plot_inverse_assigner_happy_flow(mock_plot):
+def test_plot_inverse_assigner_happy_flow(axes, mock_plot):
     q = iquib(np.array([1, 2, 3]))
     pick_event, mouse_event = create_mock_pick_event_and_mouse_event([0], 10, 20, 0)
 
     inverse_assign_drawing_func(
         drawing_func=mock_plot,
-        args=(None, q),
+        args=(axes, q),
         mouse_event=mouse_event,
         pick_event=pick_event
     )
@@ -67,31 +67,27 @@ new_date = datetime.strptime('2019-01-02','%Y-%m-%d')
 
 
 @pytest.mark.parametrize("indices,artist_index,xdata,ydata,args,quib_index,expected_value,tolerance", [
-    ([0], 0, 100, 50, (iquib([0, 0, 0]),), 0, [50, 0, 0], None),
-    ([0], 0, 100, 50, (iquib([0, 0, 0]), 'fmt'), 0, [50, 0, 0], None),
-    ([0], 0, 100, 50, (iquib([0, 0, 0]), iquib('fmt')), 0, [50, 0, 0], None),
-    ([0], 0, 100., 50.123456, (iquib([0., 0., 0.]),), 0, [50.123456, 0, 0], None),
-    ([0], 0, 100., 50.123456, (iquib([0., 0., 0.]),), 0, [50.1, 0, 0], 1000),
-    ([0], 0, 100., 50.123456, (iquib([0., 0., 0.]),), 0, [50.0, 0, 0], 100),
-    ([0], 0, 100., 50.123456, (iquib([0., 0., 0.]),), 0, [50.0, 0, 0], 10),
-    ([0], 0, 100, date2num(new_date), (iquib(date_array),), 0, np.array([new_date, date_array[1]]), None),
-    ([0], 0, 100, 50, (iquib([0, 0, 0]), None), 0, [100, 0, 0], None),
-    ([0], 0, 100, 50, (iquib([0, 0, 0]), None, "fmt"), 0, [100, 0, 0], None),
-    ([0], 0, 100, 50, (iquib([0, 0, 0]), None, iquib("fmt")), 0, [100, 0, 0], None),
-    ([0], 0, 100, 50, (None, None, "fmt", iquib([0, 0, 0]), None), 3, [100, 0, 0], None),
-    ([0], 0, 100, 50, (None, None, "fmt", None, iquib([0, 0, 0])), 4, [50, 0, 0], None),
-    ([0], 0, 100, 50, (None, None, None, iquib([0, 0, 0])), 3, [50, 0, 0], None),
-    ([1, 2], 0, 55, 66, (iquib([0, 0, 0]), iquib([0, 0, 0])), [0, 1], ([0, 55, 55], [0, 66, 66]), None),
-    ([0], 0, 1, 2, (iquib(100), iquib(200)), [0, 1], (1, 2), None),
-    ([1], 0, 4, 5, (iquib([[1], [2], [3]]),), 0, [[1], [5], [3]], None),
+    ([0], 0, 100, 50, (iquib([0, 0, 0]),), 0, [50, 0, 0], False),
+    ([0], 0, 100, 50, (iquib([0, 0, 0]), 'fmt'), 0, [50, 0, 0], False),
+    ([0], 0, 100, 50, (iquib([0, 0, 0]), iquib('fmt')), 0, [50, 0, 0], False),
+    ([0], 0, 100., 50.123456, (iquib([0., 0., 0.]),), 0, [50.123456, 0, 0], False),
+    ([0], 0, 100., 50.123456, (iquib([0., 0., 0.]),), 0, [50.123, 0, 0], True),
+    ([0], 0, 100, date2num(new_date), (iquib(date_array),), 0, np.array([new_date, date_array[1]]), False),
+    ([0], 0, 100, 50, (iquib([0, 0, 0]), None), 0, [100, 0, 0], False),
+    ([0], 0, 100, 50, (iquib([0, 0, 0]), None, "fmt"), 0, [100, 0, 0], False),
+    ([0], 0, 100, 50, (iquib([0, 0, 0]), None, iquib("fmt")), 0, [100, 0, 0], False),
+    ([0], 0, 100, 50, (None, None, "fmt", iquib([0, 0, 0]), None), 3, [100, 0, 0], False),
+    ([0], 0, 100, 50, (None, None, "fmt", None, iquib([0, 0, 0])), 4, [50, 0, 0], False),
+    ([0], 0, 100, 50, (None, None, None, iquib([0, 0, 0])), 3, [50, 0, 0], False),
+    ([1, 2], 0, 55, 66, (iquib([0, 0, 0]), iquib([0, 0, 0])), [0, 1], ([0, 55, 55], [0, 66, 66]), False),
+    ([0], 0, 1, 2, (iquib(100), iquib(200)), [0, 1], (1, 2), False),
+    ([1], 0, 4, 5, (iquib([[1], [2], [3]]),), 0, [[1], [5], [3]], False),
 ], ids=[
     "ydata: one arg",
     "ydata: y, str",
     "ydata: y, iquib(str)",
     "ydata: one arg, tolerance none",
-    "ydata: one arg, tolerance 1000",
-    "ydata: one arg, tolerance 100",
-    "ydata: one arg, tolerance 10",
+    "ydata: one arg, tolerance",
     "ydata: one arg datetime",
     "xdata: two args",
     "xdata: three args",
@@ -103,13 +99,13 @@ new_date = datetime.strptime('2019-01-02','%Y-%m-%d')
     "xdata&ydata: input number",
     "ydata: input 2d array",
 ])
-def test_plot_inverse_assigner(mock_plot, indices, artist_index, xdata, ydata, args, quib_index, expected_value, tolerance):
+def test_plot_inverse_assigner(mock_plot, indices, artist_index, xdata, ydata, args, quib_index, expected_value, tolerance, axes):
     pick_event, mouse_event = create_mock_pick_event_and_mouse_event(indices, xdata, ydata, artist_index)
 
-    with GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.temporary_set(tolerance):
+    with IS_TOLERANCE_IN_GRAPHIC_DRIVEN_ASSIGNMENTS.temporary_set(tolerance):
         inverse_assign_drawing_func(
             drawing_func=mock_plot,
-            args=(None, *args),
+            args=(axes, *args),
             mouse_event=mouse_event,
             pick_event=pick_event
         )
@@ -121,19 +117,19 @@ def test_plot_inverse_assigner(mock_plot, indices, artist_index, xdata, ydata, a
         assert np.array_equal(args[index].get_value(), expected)
 
 
-@pytest.mark.graphics_driven_assignment_resolution(1000)
+@pytest.mark.graphics_driven_assignment_tolerance(True)
 @pytest.mark.parametrize("indices,artist_index,xdata,ydata,args,arg_index,list_index,expected_value", [
     ([0], 0, 100, 50, ([iquib(0), 0, 0],), 0, 0, 50),
 ], ids=[
     "ydata: one list arg",
 ])
 def test_plot_inverse_assigner_of_list_arg(mock_plot, indices, artist_index, xdata, ydata, args, arg_index,
-                                           list_index, expected_value):
+                                           list_index, expected_value, axes):
     pick_event, mouse_event = create_mock_pick_event_and_mouse_event(indices, xdata, ydata, artist_index)
 
     inverse_assign_drawing_func(
         drawing_func=mock_plot,
-        args=(None, *args),
+        args=(axes, *args),
         mouse_event=mouse_event,
         pick_event=pick_event
     )
@@ -160,14 +156,14 @@ def test_plot_inverse_assigner_removal(mock_plot):
 
 
 @pytest.mark.parametrize("indices,artist_index,xdata,ydata,args,quib_index,expected_value,tolerance", [
-    ([0], 0, 1, 2, (iquib([30, 50, 100]), iquib([10, 20, 30])), [0, 1], ([1, 50, 100], [2, 20, 30]), None),
+    ([0], 0, 1, 2, (iquib([30, 50, 100]), iquib([10, 20, 30])), [0, 1], ([1, 50, 100], [2, 20, 30]), False),
 ], ids=[
     "xdata&ydata",
 ])
 def test_scatter_inverse_assigner(mock_scatter, indices, artist_index, xdata, ydata, args, quib_index, expected_value, tolerance):
     pick_event, mouse_event = create_mock_pick_event_and_mouse_event(indices, xdata, ydata, artist_index)
 
-    with GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.temporary_set(tolerance):
+    with IS_TOLERANCE_IN_GRAPHIC_DRIVEN_ASSIGNMENTS.temporary_set(tolerance):
         inverse_assign_drawing_func(
             drawing_func=mock_scatter,
             args=(None, *args),

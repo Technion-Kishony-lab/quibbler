@@ -119,7 +119,7 @@ class CanvasEventHandler:
                                                                   pick_event=pick_event)
 
     def _inverse_assign_axis_limits(self,
-                                    drawing_func: Callable,
+                                    func_name: str,
                                     set_lim_quib: Quib,
                                     lim: Tuple[float, float],
                                     is_override_removal: bool = False,
@@ -129,6 +129,7 @@ class CanvasEventHandler:
         """
         with timeit("axis_lim_notify", "axis-lim notify"), graphics_assignment_mode(set_lim_quib.args[0]):
             graphics_inverse_assigner.inverse_assign_axes_lim_func(
+                func_name=func_name,
                 args=set_lim_quib.args,
                 lim=lim,
                 is_override_removal=is_override_removal,
@@ -184,14 +185,14 @@ class CanvasEventHandler:
         """
         This method is called by the overridden set_xlim, set_ylim
         """
-        name = drawing_func.__name__
-        set_lim_quib = artist_wrapper.get_setter_quib(ax, name)
+        func_name = drawing_func.__name__
+        set_lim_quib = artist_wrapper.get_setter_quib(ax, func_name)
         from pyquibbler.quib.quib import Quib
         if isinstance(set_lim_quib, Quib):
             with self._try_acquire_assignment_lock() as locked:
                 if locked:
                     self._inverse_assign_axis_limits(
-                        drawing_func=drawing_func,
+                        func_name=func_name,
                         set_lim_quib=set_lim_quib,
                         lim=lim,
                         is_override_removal=False,

@@ -42,7 +42,8 @@ def inverse_assign_drawing_func(drawing_func: Callable,
             return override_group
 
 
-def inverse_assign_axes_lim_func(args: Iterable[Any],
+def inverse_assign_axes_lim_func(func_name: str,
+                                 args: Iterable[Any],
                                  lim: Tuple[float, float],
                                  is_override_removal: bool,
                                  ):
@@ -52,6 +53,7 @@ def inverse_assign_axes_lim_func(args: Iterable[Any],
 
     try:
         override_group = get_override_group_for_axes_set_lim(
+            func_name=func_name,
             args=args,
             lim=lim,
             is_override_removal=is_override_removal,

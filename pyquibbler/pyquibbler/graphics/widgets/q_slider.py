@@ -3,6 +3,7 @@ from numbers import Number
 from matplotlib.widgets import Slider
 
 from pyquibbler.assignment.rounding import round_to_num_digits
+from pyquibbler.assignment.utils import get_axes_x_y_tolerance
 from pyquibbler.utilities.decorators import squash_recursive_calls
 from .base_q_widget import QWidget
 
@@ -45,3 +46,9 @@ class QSlider(QWidget, Slider):
     def set_val(self, val):
         with self.avoid_redraws_if_created_in_get_value_context():
             super().set_val(val)
+
+    def get_tolerance(self):
+        if self.valstep is None:
+            tolerance_x, tolerance_y = get_axes_x_y_tolerance(self.ax)
+            return tolerance_x if self.orientation == 'horizontal' else tolerance_y
+        return None
