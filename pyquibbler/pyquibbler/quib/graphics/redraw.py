@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import contextlib
 
-from typing import Set, Dict
+from typing import Set, Dict, Optional
 from matplotlib.figure import Figure
 from matplotlib.pyplot import fignum_exists
 from matplotlib._pylab_helpers import Gcf
@@ -23,9 +23,14 @@ IN_AGGREGATE_REDRAW_MODE = False
 
 
 @contextlib.contextmanager
-def aggregate_redraw_mode(is_dragging: bool = False):
+def aggregate_redraw_mode(is_dragging: Optional[bool] = False):
     """
     In aggregate redraw mode, no axeses will be redrawn until the end of the context manager
+
+    is_dragging:
+        True: only update GraphicsUpdateType.DRAG and notify of overriding changes (so ipywidgets are also updated)
+        False: like above and also update GraphicsUpdateType.DROP
+        None: do not update any graphics and do not notify
     """
     global IN_AGGREGATE_REDRAW_MODE
     if IN_AGGREGATE_REDRAW_MODE:
@@ -36,9 +41,10 @@ def aggregate_redraw_mode(is_dragging: bool = False):
             yield
         finally:
             IN_AGGREGATE_REDRAW_MODE = False
-        _redraw_quibs_with_graphics(GraphicsUpdateType.DRAG)
-        _notify_of_overriding_changes()
-        if not is_dragging:
+        if is_dragging is not None:
+            _redraw_quibs_with_graphics(GraphicsUpdateType.DRAG)
+            _notify_of_overriding_changes()
+        if is_dragging is False:
             end_dragging()
 
 
