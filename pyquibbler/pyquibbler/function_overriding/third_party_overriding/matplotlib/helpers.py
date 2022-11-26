@@ -58,8 +58,9 @@ class PlotOverride(GraphicsOverride):
                 kwargs['picker'] = 0  # `picker=False` does not really turn off picking
 
         # Convert quib-containing data args to quib arrays:
-        x_data_arg_indices, y_data_arg_indices = get_xdata_arg_indices_and_ydata_arg_indices(args)
+        x_data_arg_indices, y_data_arg_indices, _ = get_xdata_arg_indices_and_ydata_arg_indices(args)
         data_arg_indices = x_data_arg_indices + y_data_arg_indices
+        data_arg_indices = [data_arg_index for data_arg_index in data_arg_indices if data_arg_index is not None]
         args = list(args)
         for index in data_arg_indices:
             arg = args[index]
