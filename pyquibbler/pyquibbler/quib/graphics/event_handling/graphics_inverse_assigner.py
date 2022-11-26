@@ -4,6 +4,7 @@ from matplotlib.backend_bases import MouseEvent, PickEvent, MouseButton
 from pyquibbler.assignment import AssignmentToQuib, OverrideGroup
 from pyquibbler.assignment import AssignmentCancelledByUserException
 from pyquibbler.quib.graphics.event_handling.set_lim_inverse_assigner import get_override_group_for_axes_set_lim
+from pyquibbler.utilities.general_utils import Args
 
 GRAPHICS_REVERSE_ASSIGNERS = {}
 
@@ -22,7 +23,7 @@ def graphics_inverse_assigner(graphics_func_names_to_handle: List[str]):
 
 
 def inverse_assign_drawing_func(drawing_func: Callable,
-                                args: Iterable[Any],
+                                args: Args,
                                 pick_event: PickEvent,
                                 mouse_event: MouseEvent):
     """

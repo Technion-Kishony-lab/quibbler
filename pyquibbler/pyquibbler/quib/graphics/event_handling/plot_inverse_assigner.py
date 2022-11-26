@@ -66,7 +66,7 @@ def get_xdata_arg_indices_and_ydata_arg_indices(args: Args) -> Tuple[List[int], 
     return x_data_arg_indexes, y_data_arg_indexes
 
 
-def get_quibs_to_paths_affected_by_event(args: List[Any], arg_indices: List[int],
+def get_quibs_to_paths_affected_by_event(args: Args, arg_indices: List[int],
                                          artist_index: int, data_indices: Any) -> Mapping[Quib, Paths]:
     from pyquibbler.quib.quib import Quib
     quibs_to_paths = defaultdict(list)
@@ -102,7 +102,7 @@ def get_quibs_to_paths_affected_by_event(args: List[Any], arg_indices: List[int]
     return quibs_to_paths
 
 
-def get_overrides_for_event(args: List[Any], arg_indices: List[int], artist_index: int, data_indices: Any,
+def get_overrides_for_event(args: Args, arg_indices: List[int], artist_index: int, data_indices: Any,
                             value: Any, tolerance: Any):
     """
     Assign data for an axes (x or y) to all relevant quib args
@@ -124,7 +124,7 @@ def get_overrides_for_event(args: List[Any], arg_indices: List[int], artist_inde
     return overrides
 
 
-def get_override_removals_for_event(args: List[Any], arg_indices: List[int], artist_index: int, data_indices: Any):
+def get_override_removals_for_event(args: Args, arg_indices: List[int], artist_index: int, data_indices: Any):
     """
     Assign data for an axes (x or y) to all relevant quib args
     """
@@ -134,7 +134,7 @@ def get_override_removals_for_event(args: List[Any], arg_indices: List[int], art
 
 
 def get_override_group_by_indices(x_arg_indices: List[int], y_arg_indices: List[int], artist_index: Union[None, int],
-                                  pick_event: PickEvent, mouse_event: MouseEvent, args: List[Any]) -> OverrideGroup:
+                                  pick_event: PickEvent, mouse_event: MouseEvent, args: Args) -> OverrideGroup:
     indices = pick_event.ind
     if pick_event.mouseevent.button is MouseButton.RIGHT:
         arg_indices = x_arg_indices + y_arg_indices
@@ -149,15 +149,15 @@ def get_override_group_by_indices(x_arg_indices: List[int], y_arg_indices: List[
 
 
 @graphics_inverse_assigner(['Axes.plot'])
-def get_override_group_for_axes_plot(pick_event: PickEvent, mouse_event: MouseEvent, args: List[Any]) \
+def get_override_group_for_axes_plot(pick_event: PickEvent, mouse_event: MouseEvent, args: Args) \
         -> OverrideGroup:
-    x_arg_indices, y_arg_indices = get_xdata_arg_indices_and_ydata_arg_indices(tuple(args))
+    x_arg_indices, y_arg_indices = get_xdata_arg_indices_and_ydata_arg_indices(args)
     artist_index = pick_event.artist._index_in_plot
     return get_override_group_by_indices(x_arg_indices, y_arg_indices, artist_index, pick_event, mouse_event, args)
 
 
 @graphics_inverse_assigner(['Axes.scatter'])
-def get_override_group_for_axes_scatter(pick_event: PickEvent, mouse_event: MouseEvent, args: List[Any]) \
+def get_override_group_for_axes_scatter(pick_event: PickEvent, mouse_event: MouseEvent, args: Args) \
         -> OverrideGroup:
     x_arg_indices, y_arg_indices = [1], [2]
     artist_index = None
