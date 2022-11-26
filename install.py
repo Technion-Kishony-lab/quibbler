@@ -30,7 +30,8 @@ def install_package_from_conda(package: str):
     import click  # noqa
     click.echo(f'Installing: {package}')
     try:
-        subprocess.check_call(["conda", "install", "-y", package], shell=True)
+        need_shell = sys.platform == 'win32'
+        subprocess.check_call(["conda", "install", "-y", package], shell=need_shell)
     except subprocess.CalledProcessError as e:
         show_failure_message_and_exist(f'Failed to install. Exception :\n{e}')
 
