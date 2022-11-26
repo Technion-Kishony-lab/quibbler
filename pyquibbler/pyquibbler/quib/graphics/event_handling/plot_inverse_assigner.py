@@ -82,11 +82,13 @@ def get_quibs_to_paths_affected_by_event(args: List[Any], arg_indices: List[int]
                         path = []
                     elif len(shape) == 1:
                         path = [PathComponent(data_index)]
+                    elif len(shape) == 2:
+                        path = [
+                            PathComponent(data_index),
+                            PathComponent(0 if shape[1] == 1 else artist_index)  # de-broadcast if needed
+                        ]
                     else:
-                        assert len(shape) == 2, 'Matplotlib is not supposed to support plotting 3d data'
-                        path = [PathComponent(data_index),
-                                # Plot args should be array-like, so quib[0].get_type() should be representative
-                                PathComponent(artist_index)]
+                        assert False, 'Matplotlib is not supposed to support plotting data arguments with >2 dimensions'
                 else:
                     # for scatter:
                     path = [PathComponent(unravel_index(data_index, shape))]
