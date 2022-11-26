@@ -85,6 +85,7 @@ new_date = datetime.strptime('2019-01-02','%Y-%m-%d')
     ([0], 0, 1, 2, (iquib(100), iquib(200)), [0, 1], (1, 2), None),
     ([1], 0, 4, 5, (iquib([[1], [2], [3]]),), 0, [[1], [5], [3]], None),
     ([1], 1, 8, 10, ([[4, 5], [6, 7], [8, 9]], iquib([[1], [2], [3]]),), 1, [[1], [10], [3]], None),
+    ([1], 2, 8, 10, ([[4, 5], [6, 7], [8, 9]], [[1], [2], [3]], [[4, 5], [6, 7], [8, 9]], iquib([[1], [2], [3]]),), 3, [[1], [10], [3]], None),
 ], ids=[
     "ydata: one arg",
     "ydata: y, str",
@@ -104,6 +105,7 @@ new_date = datetime.strptime('2019-01-02','%Y-%m-%d')
     "xdata&ydata: input number",
     "ydata: input 2d array",
     "ydata: input nx1 array, broadcasting",
+    "ydata: multiple x-y pairs",
 ])
 def test_plot_inverse_assigner(mock_plot, indices, artist_index, xdata, ydata, args, quib_index, expected_value, tolerance):
     pick_event, mouse_event = create_mock_pick_event_and_mouse_event(indices, xdata, ydata, artist_index)
