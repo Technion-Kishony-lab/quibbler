@@ -50,6 +50,12 @@ class XY(NamedTuple):
         """
         return 'x' if self.x is not None else 'y'
 
+    def get_value_not_none(self) -> Any:
+        """
+        Return self.x if only x is defined, self.y if only 'y' is defined.
+        """
+        return self.x if self.x is not None else self.y
+
 
 class PointXY(XY):
     def __sub__(self, other) -> PointXY:

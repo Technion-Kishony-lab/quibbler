@@ -146,7 +146,7 @@ def get_data_number_and_index_from_artist_index(args: Args, x_data_arg_indices, 
 
 
 def get_quibs_and_paths_affected_by_event(arg: Any, data_index: Optional[int], point_indices: List[int]
-                                          ) -> List[Tuple[Quib, Path]]:
+                                          ) -> List[Optional[Tuple[Quib, Path]]]:
     from pyquibbler.quib.quib import Quib
     quibs_and_paths = []
     for point_index in point_indices:
@@ -176,34 +176,38 @@ def get_quibs_and_paths_affected_by_event(arg: Any, data_index: Optional[int], p
             if isinstance(quib, Quib):
                 quibs_and_paths.append((quib, []))
                 continue
-        quibs_and_paths.append((None, None))
+        quibs_and_paths.append(None)
 
     return quibs_and_paths
 
 
-def get_overrides_for_event(arg: Any, data_index: Optional[int], point_indices: List[int],
-                            value: Any = default, tolerance: Any = None,
-                            ) -> List[Optional[AssignmentToQuib]]:
+def get_assignment_from_quib_and_path(quib_and_path: Optional[Tuple[Quib, Path]],
+                                      value: Any = default, tolerance: Any = None,
+                                      ) -> Optional[AssignmentToQuib]:
     """
-    Assign mouse coordinate (x or y) to corresponding arg
+    Get assignments of mouse coordinate (x or y) to corresponding arg
     """
-    quibs_and_paths = get_quibs_and_paths_affected_by_event(arg, data_index, point_indices)
-    overrides = []
-    for quib, path in quibs_and_paths:
-        if quib is None or value is None:
-            # mouse_event.xdata and mouse_event.ydata can be None if the mouse is outside the figure
-            override = None
-        else:
-            if value is default:
-                assignment = Assignment.create_default(path)
-            else:
-                current_value = deep_get(quib.handler.get_value_valid_at_path(path), path)
-                # we cast value and the tolerance by current value. so datetime or int work as expected:
-                assignment = create_assignment(value, path, tolerance,
-                                               convert_func=partial(convert_scalar_value, current_value))
-            override = AssignmentToQuib(quib, assignment)
-        overrides.append(override)
-    return overrides
+    if quib_and_path is None or value is None:
+        # mouse_event.xdata and mouse_event.ydata can be None if the mouse is outside the figure
+        return None
+    quib, path = quib_and_path
+    if value is default:
+        assignment = Assignment.create_default(path)
+    else:
+        current_value = deep_get(quib.handler.get_value_valid_at_path(path), path)
+        # we cast value and the tolerance by current value. so datetime or int work as expected:
+        assignment = create_assignment(value, path, tolerance,
+                                       convert_func=partial(convert_scalar_value, current_value))
+    return AssignmentToQuib(quib, assignment)
+
+
+def get_plot_arg_assignments_for_event(quibs_and_paths: List[Optional[Tuple[Quib, Path]]],
+                                       value: Any = default, tolerance: Any = None,
+                                       ) -> List[Optional[AssignmentToQuib]]:
+    """
+    Get assignments of mouse coordinate (x or y) to corresponding arg
+    """
+    return [get_assignment_from_quib_and_path(quib_and_path, value, tolerance) for quib_and_path in quibs_and_paths]
 
 
 def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
@@ -242,47 +246,55 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
     """
     point_indices = pick_event.ind
     ax = pick_event.artist.axes
+    quibs_and_paths = XY.from_func(get_quibs_and_paths_affected_by_event, xy_args, data_index, point_indices)
+
     if pick_event.mouseevent.button is MouseButton.RIGHT:
-        changes = XY.from_func(get_overrides_for_event, xy_args, data_index, point_indices, default)
+        changes = XY.from_func(get_plot_arg_assignments_for_event, quibs_and_paths, default)
         changes = [change for change in changes.x + changes.y if change is not None]
         return get_override_group_for_quib_changes(changes)
 
     tolerance = get_axes_x_y_tolerance(ax)
     xy_mouse = PointXY(mouse_event.xdata, mouse_event.ydata)
-    changes = XY.from_func(get_overrides_for_event, xy_args, data_index, point_indices, xy_mouse, tolerance)
     if not isinstance(ax, Axes):
         # for testing
+        changes = XY.from_func(get_plot_arg_assignments_for_event, quibs_and_paths, xy_mouse, tolerance)
         changes = [change for change in changes.x + changes.y if change is not None]
         return get_override_group_for_quib_changes(changes)
 
     all_overrides = OverrideGroup()
-    xy_changes = [XY(change_x, change_y) for change_x, change_y in zip(changes.x, changes.y)]
-    for xy_change in xy_changes:
-        xy_override = XY.from_func(_get_override_group_for_quib_change_or_none, xy_change)
+    for quib_and_path in [XY(quib_and_path_x, quib_and_path_y)
+                             for quib_and_path_x, quib_and_path_y in zip(quibs_and_paths.x, quibs_and_paths.y)]:
         overrides = OverrideGroup()
-        if xy_change.x is None and xy_change.y is None:
+        if quib_and_path.x is None and quib_and_path.y is None:
             # both x and y are not quibs
-            pass
-        elif xy_change.is_xor():
+            continue
+        elif quib_and_path.is_xor():
             # either only x is a quib or only y is a quib
-            overrides = getattr(xy_override, xy_change.get_xy_not_none()) or overrides
+            xy_change = XY.from_func(get_assignment_from_quib_and_path, quib_and_path, xy_mouse, tolerance)
+            override = _get_override_group_for_quib_change_or_none(xy_change.get_value_not_none())
+            overrides = override or overrides
         else:
             # both x and y are quibs:
+            xy_change = XY.from_func(get_assignment_from_quib_and_path, quib_and_path, xy_mouse)
             xy_old = _get_xy_current_point_from_xy_change(xy_change)
             xy_assigned_value = PointXY.from_func(lambda xy: xy.assignment.value, xy_change)
-            xy_order = 'xy' if mouse_event.xy_dominance == 'x' else 'yx'
-            for chosen_xy in xy_order:
-                chosen_override = getattr(xy_override, chosen_xy)
-                if chosen_override is None:
+
+            is_mouse_dx_larger_than_dy = \
+                np.diff(np.abs(ax.transData.transform(xy_mouse) - ax.transData.transform(xy_old))) < 0
+            xy_order = (0, 1) if is_mouse_dx_larger_than_dy else (1, 0)  # start with the larger mouse move
+            for focal_xy in xy_order:
+                other_xy = 1 - focal_xy
+                focal_override = _get_override_group_for_quib_change_or_none(xy_change[focal_xy])
+                if focal_override is None:
                     continue
-                chosen_override.apply(is_dragging=None)
+                focal_override.apply(is_dragging=None)
                 xy_new = _get_xy_current_point_from_xy_change(xy_change)
                 xy_closest = get_closest_point_on_line_in_axes(ax, xy_old, xy_new, xy_assigned_value)
-                chosen_xy_change = getattr(xy_change, chosen_xy)
-                chosen_xy_change.assignment.value = getattr(xy_closest, chosen_xy)
-                overrides.extend(get_override_group_for_quib_change(chosen_xy_change))
-                other_xy = 'x' if chosen_xy == 'y' else 'y'
-                if getattr(xy_old, other_xy) != getattr(xy_new, other_xy):
+                adjusted_change = get_assignment_from_quib_and_path(quib_and_path[focal_xy], xy_closest[focal_xy],
+                                                                    tolerance[focal_xy])
+                overrides.extend(get_override_group_for_quib_change(adjusted_change))
+
+                if xy_old[other_xy] != xy_new[other_xy]:
                     # x-y values are dependent
                     break
         all_overrides.extend(overrides)
