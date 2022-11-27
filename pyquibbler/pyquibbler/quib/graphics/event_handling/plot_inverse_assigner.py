@@ -217,7 +217,7 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
     the key here is to account for cases where dragging could be restricted to a curve, in which case we want to choose
     the point along the curve closest to the mouse.
 
-    The function treats these 5 possibilities:
+    The function treats these 6 possibilities:
 
     1. x, y are not quibs
         dragging is disabled
@@ -259,50 +259,32 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
     xy_changes = [XY(change_x, change_y) for change_x, change_y in zip(changes.x, changes.y)]
     for xy_change in xy_changes:
         xy_override = XY.from_func(_get_override_group_for_quib_change_or_none, xy_change)
+        overrides = OverrideGroup()
         if xy_change.x is None and xy_change.y is None:
-            # 1. both x and y are not quibs
-            overrides = []
+            # both x and y are not quibs
+            pass
         elif xy_change.is_xor():
-            # 2. either only x is a quib or only y is a quib
-            override = getattr(xy_override, xy_override.get_xy_not_none())
-            overrides = [] if override is None else override
+            # either only x is a quib or only y is a quib
+            overrides = getattr(xy_override, xy_change.get_xy_not_none()) or overrides
         else:
             # both x and y are quibs:
-            current_xy = _get_xy_current_point_from_xy_change(xy_change)
-            assigned_xy = PointXY.from_func(lambda xy: xy.assignment.value, xy_change)
-            if not xy_override.x and not xy_override.y:
-                # 3. neither x nor y can be inverted
-                overrides = []
-            elif xy_override.is_xor():
-                # 4. only x can be inverted, or only y can be inverted
-                chosen_xy = xy_override.get_xy_not_none()
-                chosen_xy_change = getattr(xy_change, chosen_xy)
+            xy_old = _get_xy_current_point_from_xy_change(xy_change)
+            xy_assigned_value = PointXY.from_func(lambda xy: xy.assignment.value, xy_change)
+            xy_order = 'xy' if mouse_event.xy_dominance == 'x' else 'yx'
+            for chosen_xy in xy_order:
                 chosen_override = getattr(xy_override, chosen_xy)
+                if chosen_override is None:
+                    continue
                 chosen_override.apply(is_dragging=None)
-                apply_chosen_get_xy = _get_xy_current_point_from_xy_change(xy_change)
-                xy_closest = get_closest_point_on_line_in_axes(ax, current_xy, apply_chosen_get_xy, assigned_xy)
+                xy_new = _get_xy_current_point_from_xy_change(xy_change)
+                xy_closest = get_closest_point_on_line_in_axes(ax, xy_old, xy_new, xy_assigned_value)
+                chosen_xy_change = getattr(xy_change, chosen_xy)
                 chosen_xy_change.assignment.value = getattr(xy_closest, chosen_xy)
-                overrides = get_override_group_for_quib_change(chosen_xy_change)
-            else:
-                # 5. both x and y can be inverted
-                xy_are_dependent = False
-                for chosen_xy in ('x', 'y'):
-                    other_xy = 'x' if chosen_xy == 'y' else 'y'
-                    chosen_xy_change = getattr(xy_change, chosen_xy)
-                    chosen_override = getattr(xy_override, chosen_xy)
-                    chosen_override.apply(is_dragging=None)
-                    apply_chosen_get_xy = _get_xy_current_point_from_xy_change(xy_change)
-                    other_old_value = getattr(current_xy, other_xy)
-                    other_new_value = getattr(apply_chosen_get_xy, other_xy)
-                    if other_new_value != other_old_value:
-                        # 6. x and y are dependent
-                        xy_are_dependent = True
-                        xy_closest = get_closest_point_on_line_in_axes(ax, current_xy, apply_chosen_get_xy, assigned_xy)
-                        chosen_xy_change.assignment.value = getattr(xy_closest, chosen_xy)
-                        overrides = get_override_group_for_quib_change(chosen_xy_change)
-                        break
-                if not xy_are_dependent:
-                    overrides = xy_override.x + xy_override.y
+                overrides.extend(get_override_group_for_quib_change(chosen_xy_change))
+                other_xy = 'x' if chosen_xy == 'y' else 'y'
+                if getattr(xy_old, other_xy) != getattr(xy_new, other_xy):
+                    # x-y values are dependent
+                    break
         all_overrides.extend(overrides)
     return all_overrides
 
