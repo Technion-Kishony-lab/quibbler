@@ -2,18 +2,18 @@ from __future__ import annotations
 
 import numpy as np
 from dataclasses import dataclass, field
-from typing import Any, TYPE_CHECKING, List, Union, Optional, Callable, Tuple
+from typing import Any, List, Union, Optional, Callable, Tuple
 
 from pyquibbler.utilities.numpy_original_functions import np_array
-
 from pyquibbler.quib.pretty_converters.math_expressions.getitem_expression import GetItemExpression
-from pyquibbler.path.path_component import Path
+from pyquibbler.path import Path, deep_get
 
 from .default_value import default
 from .rounding import floor_log10
 from .utils import is_numeric_scalar
 from .assignment_template import round_to_num_digits
 
+from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pyquibbler.quib.quib import Quib
 
@@ -170,6 +170,12 @@ class AssignmentToQuib:
     """
     quib: Quib
     assignment: Union[Assignment, AssignmentWithTolerance]
+
+    def get_value_valid_at_path(self):
+        return self.quib.get_value_valid_at_path(self.assignment.path)
+
+    def get_value_at_path(self):
+        return deep_get(self.get_value_valid_at_path(), self.assignment.path)
 
     def get_inversions(self) -> List[AssignmentToQuib]:
         return self.quib.handler.get_inversions_for_assignment(self.assignment)

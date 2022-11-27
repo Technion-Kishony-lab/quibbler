@@ -46,3 +46,8 @@ class OverrideGroup:
             self.quib_changes.extend(extension)
         else:
             raise TypeError(type(extension))
+
+    def __add__(self, other: OverrideGroup):
+        if not isinstance(other, OverrideGroup):
+            raise TypeError(type(other))
+        return OverrideGroup(self.quib_changes + other.quib_changes)

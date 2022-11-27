@@ -14,5 +14,4 @@ def test_drag_along_shallow_slope(create_axes_mouse_press_move_release_events, a
     plot_quib = axes.plot(marker_x, marker_y, marker='o')
 
     create_axes_mouse_press_move_release_events(((0, 0), (0.5, 0)))
-    assert marker_x.get_value() == 0.5
-
+    assert marker_x.get_value() == 0.496

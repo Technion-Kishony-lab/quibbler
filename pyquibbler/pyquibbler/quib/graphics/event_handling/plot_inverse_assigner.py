@@ -3,19 +3,23 @@ from __future__ import annotations
 import numpy as np
 
 from functools import partial
+
+from matplotlib.axes import Axes
 from matplotlib.backend_bases import PickEvent, MouseEvent, MouseButton
 
 from typing import Any, List, Tuple, Union, Optional
 
+from pyquibbler.quib.types import XY, PointXY
 from pyquibbler.utilities.general_utils import Args
 
 from pyquibbler.assignment import get_axes_x_y_tolerance, create_assignment, OverrideGroup, \
-    get_override_group_for_quib_changes, AssignmentToQuib, Assignment, default
+    get_override_group_for_quib_changes, AssignmentToQuib, Assignment, default, get_override_group_for_quib_change
 from pyquibbler.assignment.utils import convert_scalar_value
 from pyquibbler.path import PathComponent, Path, deep_get
 from pyquibbler.utilities.numpy_original_functions import np_shape
 
 from .graphics_inverse_assigner import graphics_inverse_assigner
+from .utils import get_closest_point_on_line_in_axes
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
@@ -23,6 +27,14 @@ if TYPE_CHECKING:
 
 
 ArgIndices = List[Optional[int]]
+
+
+def _get_override_group_for_quib_change_or_none(quib_change: Optional[AssignmentToQuib]) -> Optional[OverrideGroup]:
+    return None if quib_change is None else get_override_group_for_quib_change(quib_change, should_raise=False)
+
+
+def _get_xy_current_point_from_xy_change(xy_change: XY):
+    return PointXY.from_func(lambda xy: xy.get_value_at_path(), xy_change)
 
 
 def _is_arg_str(arg):
@@ -175,19 +187,78 @@ def get_overrides_for_event(arg: Any, data_index: Optional[int], point_indices: 
     return overrides
 
 
-def get_override_group_by_indices(x_arg: Any, y_arg: Any, data_index: Union[None, int],
+def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
                                   pick_event: PickEvent, mouse_event: MouseEvent) -> OverrideGroup:
+    """
+    get overrides for a mouse event for each picked index
+    the key here is to account for cases where dragging is restricted to a curve in space, either because
+    only x or y can be inverted, or both can be inverted and are dependent.
+    """
     point_indices = pick_event.ind
+    ax = pick_event.artist.axes
     if pick_event.mouseevent.button is MouseButton.RIGHT:
-        changes_x = get_overrides_for_event(x_arg, data_index, point_indices, default)
-        changes_y = get_overrides_for_event(y_arg, data_index, point_indices, default)
-    else:
-        tolerance_x, tolerance_y = get_axes_x_y_tolerance(pick_event.artist.axes)
-        changes_x = get_overrides_for_event(x_arg, data_index, point_indices, mouse_event.xdata, tolerance_x)
-        changes_y = get_overrides_for_event(y_arg, data_index, point_indices, mouse_event.ydata, tolerance_y)
-    changes = changes_x + changes_y
-    changes = [change for change in changes if change if not None]
-    return get_override_group_for_quib_changes(changes)
+        changes = XY.from_func(get_overrides_for_event, xy_args, data_index, point_indices, default)
+        changes = [change for change in changes.x + changes.y if change is not None]
+        return get_override_group_for_quib_changes(changes)
+
+    tolerance = get_axes_x_y_tolerance(ax)
+    xy_mouse = PointXY(mouse_event.xdata, mouse_event.ydata)
+    changes = XY.from_func(get_overrides_for_event, xy_args, data_index, point_indices, xy_mouse, tolerance)
+    if not isinstance(ax, Axes):
+        # for testing
+        changes = [change for change in changes.x + changes.y if change is not None]
+        return get_override_group_for_quib_changes(changes)
+
+    all_overrides = OverrideGroup()
+    xy_changes = [XY(change_x, change_y) for change_x, change_y in zip(changes.x, changes.y)]
+    for xy_change in xy_changes:
+        xy_override = XY.from_func(_get_override_group_for_quib_change_or_none, xy_change)
+        if xy_change.x is None and xy_change.y is None:
+            # both x and y are not quibs
+            overrides = []
+        elif xy_change.is_xor():
+            # either only x is a quib or only y is a quib
+            override = getattr(xy_override, xy_override.get_xy_not_none())
+            overrides = [] if override is None else override
+        else:
+            # both x and y are quibs:
+            current_xy = _get_xy_current_point_from_xy_change(xy_change)
+            assigned_xy = PointXY.from_func(lambda xy: xy.assignment.value, xy_change)
+            if not xy_override.x and not xy_override.y:
+                # neither x nor y can be inverted
+                overrides = []
+            elif xy_override.is_xor():
+                # only x can be inverted, or only y can be inverted
+                chosen_xy = xy_override.get_xy_not_none()
+                chosen_xy_change = getattr(xy_change, chosen_xy)
+                chosen_override = getattr(xy_override, chosen_xy)
+                chosen_override.apply(is_dragging=None)
+                apply_chosen_get_xy = _get_xy_current_point_from_xy_change(xy_change)
+                xy_closest = get_closest_point_on_line_in_axes(ax, current_xy, apply_chosen_get_xy, assigned_xy)
+                chosen_xy_change.assignment.value = getattr(xy_closest, chosen_xy)
+                overrides = get_override_group_for_quib_change(chosen_xy_change)
+            else:
+                # both x and y can be inverted
+                xy_are_dependent = False
+                for chosen_xy in ('x', 'y'):
+                    other_xy = 'x' if chosen_xy == 'y' else 'y'
+                    chosen_xy_change = getattr(xy_change, chosen_xy)
+                    chosen_override = getattr(xy_override, chosen_xy)
+                    chosen_override.apply(is_dragging=None)
+                    apply_chosen_get_xy = _get_xy_current_point_from_xy_change(xy_change)
+                    other_old_value = getattr(current_xy, other_xy)
+                    other_new_value = getattr(apply_chosen_get_xy, other_xy)
+                    if other_new_value != other_old_value:
+                        # x and y are dependent
+                        xy_are_dependent = True
+                        xy_closest = get_closest_point_on_line_in_axes(ax, current_xy, apply_chosen_get_xy, assigned_xy)
+                        chosen_xy_change.assignment.value = getattr(xy_closest, chosen_xy)
+                        overrides = get_override_group_for_quib_change(chosen_xy_change)
+                        break
+                if not xy_are_dependent:
+                    overrides = xy_override.x + xy_override.y
+        all_overrides.extend(overrides)
+    return all_overrides
 
 
 @graphics_inverse_assigner(['Axes.plot'])
@@ -201,10 +272,10 @@ def get_override_group_for_axes_plot(pick_event: PickEvent, mouse_event: MouseEv
     y_arg_index = y_arg_indices[data_number]
     x_arg = None if x_arg_index is None else args[x_arg_index]
     y_arg = args[y_arg_index]
-    return get_override_group_by_indices(x_arg, y_arg, data_index, pick_event, mouse_event)
+    return get_override_group_by_indices(XY(x_arg, y_arg), data_index, pick_event, mouse_event)
 
 
 @graphics_inverse_assigner(['Axes.scatter'])
 def get_override_group_for_axes_scatter(pick_event: PickEvent, mouse_event: MouseEvent, args: Args) \
         -> OverrideGroup:
-    return get_override_group_by_indices(args[1], args[2], None, pick_event, mouse_event)
+    return get_override_group_by_indices(XY(args[1], args[2]), None, pick_event, mouse_event)
