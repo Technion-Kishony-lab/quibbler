@@ -56,7 +56,6 @@ def get_xdata_arg_indices_and_ydata_arg_indices(args: Args) -> Tuple[ArgIndices,
     B. (ydata, fmt, ...)
     C. (xdata, ydata, ...)
     D. (xdata, ydata, fmt, ...)
-
     """
 
     x_data_arg_indices = []
@@ -110,6 +109,25 @@ def _get_number_of_columns(arg: Any):
 
 def get_data_number_and_index_from_artist_index(args: Args, x_data_arg_indices, y_data_arg_indices, artist_index: int
                                                 ) -> Tuple[int, int]:
+    """
+    Returns the x-y pair number (data_number) and their column (data_column) that correspond to a given artist_index
+    produced by a plt.plot command.
+
+    plt.plot(x0, y0, [fmt], x1, y1, [fmt], ...)
+
+    x0, y0 are data_number=0
+    x1, y1 are data_number=1
+    etc
+
+    for example,
+    plt.plot(x34, y34, 'o', x7, y7, 'x', x52, y5, '.', x41, y47)
+    where x34 is an array of shape = (3, 4)
+
+    will create a list of 4 + 1 + 2 + 7 = 14 artists
+    artist_index = 9 will yield:
+        data_number = 3 (namely, x41, y47)
+        column_index = 2 (it is created by the data in the column 2 of x41, y47. x is broadcasted)
+    """
     data_number = -1
     total_number_of_artists = 0
     while artist_index >= total_number_of_artists:
@@ -123,7 +141,8 @@ def get_data_number_and_index_from_artist_index(args: Args, x_data_arg_indices, 
             num_columns_x = _get_number_of_columns(args[x_index])
             num_artists = num_columns_x if num_columns_y == 1 else num_columns_y  # broadcast
         total_number_of_artists += num_artists
-    return data_number, artist_index - (total_number_of_artists - num_artists)
+    column_index = artist_index - (total_number_of_artists - num_artists)
+    return data_number, column_index
 
 
 def get_quibs_and_paths_affected_by_event(arg: Any, data_index: Optional[int], point_indices: List[int]
@@ -190,8 +209,35 @@ def get_overrides_for_event(arg: Any, data_index: Optional[int], point_indices: 
 def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
                                   pick_event: PickEvent, mouse_event: MouseEvent) -> OverrideGroup:
     """
-    get overrides for a mouse event for each picked index
-    the key here is to account for cases where dragging is restricted to a curve in space, either because
+    Get overrides for a mouse event for an artist created by a plt.plot command in correspondence with the
+    `data_index` column of the given data arguments xy_args.x, xy_args.y.
+
+    `data_index=None`: denotes artist produced by plt.scatter (where the x and y arguments are treated as flatten)
+
+    the key here is to account for cases where dragging could be restricted to a curve, in which case we want to choose
+    the point along the curve closest to the mouse.
+
+    The function treats these 5 possibilities:
+
+    1. x, y are not quibs
+        dragging is disabled
+
+    2. only x or only y are quibs:
+        if x is a quib, assign mouse-x to it (if inversion is possible). (same for y)
+
+    3. both x and y are quibs, but neither can be inverted.
+        dragging is disabled
+
+    4. both x and y are quibs, but only one can be inverted:
+        get a drag-line by applying the inversion of the invertible quib
+        and find the point on the line closest to the mouse and assign to the invertible quib.
+
+    5. both x and y can be inverted, and the inversion of one affects the other.
+        get the drag-line and invert to the closest point
+
+    6. both x and y can be inverted without affecting each other.
+        return the two inversions.
+
     only x or y are quibs, or because both are quibs and their values are dependent on the shared upstream override.
     """
     point_indices = pick_event.ind
@@ -214,10 +260,10 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
     for xy_change in xy_changes:
         xy_override = XY.from_func(_get_override_group_for_quib_change_or_none, xy_change)
         if xy_change.x is None and xy_change.y is None:
-            # both x and y are not quibs
+            # 1. both x and y are not quibs
             overrides = []
         elif xy_change.is_xor():
-            # either only x is a quib or only y is a quib
+            # 2. either only x is a quib or only y is a quib
             override = getattr(xy_override, xy_override.get_xy_not_none())
             overrides = [] if override is None else override
         else:
@@ -225,10 +271,10 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
             current_xy = _get_xy_current_point_from_xy_change(xy_change)
             assigned_xy = PointXY.from_func(lambda xy: xy.assignment.value, xy_change)
             if not xy_override.x and not xy_override.y:
-                # neither x nor y can be inverted
+                # 3. neither x nor y can be inverted
                 overrides = []
             elif xy_override.is_xor():
-                # only x can be inverted, or only y can be inverted
+                # 4. only x can be inverted, or only y can be inverted
                 chosen_xy = xy_override.get_xy_not_none()
                 chosen_xy_change = getattr(xy_change, chosen_xy)
                 chosen_override = getattr(xy_override, chosen_xy)
@@ -238,7 +284,7 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
                 chosen_xy_change.assignment.value = getattr(xy_closest, chosen_xy)
                 overrides = get_override_group_for_quib_change(chosen_xy_change)
             else:
-                # both x and y can be inverted
+                # 5. both x and y can be inverted
                 xy_are_dependent = False
                 for chosen_xy in ('x', 'y'):
                     other_xy = 'x' if chosen_xy == 'y' else 'y'
@@ -249,7 +295,7 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
                     other_old_value = getattr(current_xy, other_xy)
                     other_new_value = getattr(apply_chosen_get_xy, other_xy)
                     if other_new_value != other_old_value:
-                        # x and y are dependent
+                        # 6. x and y are dependent
                         xy_are_dependent = True
                         xy_closest = get_closest_point_on_line_in_axes(ax, current_xy, apply_chosen_get_xy, assigned_xy)
                         chosen_xy_change.assignment.value = getattr(xy_closest, chosen_xy)
@@ -264,6 +310,9 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
 @graphics_inverse_assigner(['Axes.plot'])
 def get_override_group_for_axes_plot(pick_event: PickEvent, mouse_event: MouseEvent, args: Args) \
         -> OverrideGroup:
+    """
+    Returns a group of overrides implementing a mouse interaction with graphics created by `plt.plot(...)`.
+    """
     x_arg_indices, y_arg_indices, _ = get_xdata_arg_indices_and_ydata_arg_indices(args)
     artist_index = pick_event.artist._index_in_plot
     data_number, data_index = \
@@ -278,4 +327,7 @@ def get_override_group_for_axes_plot(pick_event: PickEvent, mouse_event: MouseEv
 @graphics_inverse_assigner(['Axes.scatter'])
 def get_override_group_for_axes_scatter(pick_event: PickEvent, mouse_event: MouseEvent, args: Args) \
         -> OverrideGroup:
+    """
+    Returns a group of overrides implementing a mouse interaction with graphics created by `plt.scatter(...)`.
+    """
     return get_override_group_by_indices(XY(args[1], args[2]), None, pick_event, mouse_event)
