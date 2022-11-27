@@ -67,6 +67,7 @@ class CanvasEventHandler:
         self.canvas = canvas
         self.current_pick_event: Optional[PickEvent] = None
         self.current_pick_quib: Optional[Quib] = None
+        self._previous_mouse_event: Optional[MouseEvent] = None
         self._assignment_lock = Lock()
 
         self.EVENT_HANDLERS = {
@@ -93,6 +94,7 @@ class CanvasEventHandler:
         end_dragging()
         self.current_pick_event = None
         self.current_pick_quib = None
+        self._previous_mouse_event = None
 
     def _handle_pick_event(self, pick_event: PickEvent):
         self.current_pick_event = pick_event
@@ -156,7 +158,14 @@ class CanvasEventHandler:
                 if locked:
                     # If not locked, there is already another motion handler running, we just drop this one.
                     # This could happen if changes are slow or if a dialog is open
+                    if self._previous_mouse_event is None:
+                        xy_dominance = None
+                    else:
+                        xy_dominance = 'x' if abs(mouse_event.x - self._previous_mouse_event.x) > \
+                                              abs(mouse_event.y - self._previous_mouse_event.y) else 'y'
+                    mouse_event.xy_dominance = xy_dominance
                     self._inverse_assign_graphics(mouse_event)
+                    self._previous_mouse_event = mouse_event
                     if END_DRAG_IMMEDIATELY:
                         self.current_pick_event = None
                         self.current_pick_quib = None
