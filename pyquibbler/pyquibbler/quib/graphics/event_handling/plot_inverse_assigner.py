@@ -192,7 +192,7 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
     """
     get overrides for a mouse event for each picked index
     the key here is to account for cases where dragging is restricted to a curve in space, either because
-    only x or y can be inverted, or both can be inverted and are dependent.
+    only x or y are quibs, or because both are quibs and their values are dependent on the shared upstream override.
     """
     point_indices = pick_event.ind
     ax = pick_event.artist.axes

@@ -1,9 +1,4 @@
-from __future__ import annotations
-
-from typing import Optional
-
 from matplotlib.axes import Axes
-from matplotlib.backend_bases import MouseEvent, LocationEvent
 
 from pyquibbler.quib.types import PointXY
 

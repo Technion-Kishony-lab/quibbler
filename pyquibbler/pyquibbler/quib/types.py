@@ -1,6 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Optional, NamedTuple, Any, Iterable
+from typing import Optional, NamedTuple, Any
 
 
 @dataclass
@@ -51,7 +51,6 @@ class XY(NamedTuple):
         return 'x' if self.x is not None else 'y'
 
 
-
 class PointXY(XY):
     def __sub__(self, other) -> PointXY:
         return PointXY(self.x - other.x, self.y - other.y)
@@ -63,4 +62,4 @@ class PointXY(XY):
         return PointXY(abs(self.x), abs(self.y))
 
     def __bool__(self) -> bool:
-        return not(self.x is None or self.y is None)
+        return not (self.x is None or self.y is None)
