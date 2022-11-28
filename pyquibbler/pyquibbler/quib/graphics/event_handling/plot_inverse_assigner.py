@@ -253,15 +253,19 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
         changes = [change for change in changes.x + changes.y if change is not None]
         return get_override_group_for_quib_changes(changes)
 
-    tolerance = get_axes_x_y_tolerance(ax)
+    all_overrides = OverrideGroup()
     xy_mouse = PointXY(mouse_event.xdata, mouse_event.ydata)
+    if xy_mouse.x is None or xy_mouse.y is None:
+        # out of axes
+        return all_overrides
+
+    tolerance = get_axes_x_y_tolerance(ax)
     if not isinstance(ax, Axes):
         # for testing
         changes = XY.from_func(get_plot_arg_assignments_for_event, quibs_and_paths, xy_mouse, tolerance)
         changes = [change for change in changes.x + changes.y if change is not None]
         return get_override_group_for_quib_changes(changes)
 
-    all_overrides = OverrideGroup()
     for quib_and_path in [XY(quib_and_path_x, quib_and_path_y)
                           for quib_and_path_x, quib_and_path_y in zip(quibs_and_paths.x, quibs_and_paths.y)]:
         overrides = OverrideGroup()
