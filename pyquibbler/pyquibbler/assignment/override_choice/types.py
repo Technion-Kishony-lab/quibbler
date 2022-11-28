@@ -1,6 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
-from typing import List, Union
+from typing import List, Union, Optional
 
 from pyquibbler.assignment import AssignmentToQuib
 from pyquibbler.quib.graphics import aggregate_redraw_mode
@@ -27,7 +27,7 @@ class OverrideGroup:
     """
     quib_changes: List[AssignmentToQuib] = field(default_factory=list)
 
-    def apply(self, is_dragging: bool = False):
+    def apply(self, is_dragging: Optional[bool] = False):
         Project.get_or_create().start_pending_undo_group()
         with aggregate_redraw_mode(is_dragging):
             for quib_change in self.quib_changes:
@@ -46,3 +46,8 @@ class OverrideGroup:
             self.quib_changes.extend(extension)
         else:
             raise TypeError(type(extension))
+
+    def __add__(self, other: OverrideGroup):
+        if not isinstance(other, OverrideGroup):
+            raise TypeError(type(other))
+        return OverrideGroup(self.quib_changes + other.quib_changes)
