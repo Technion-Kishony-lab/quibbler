@@ -263,7 +263,7 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
 
     all_overrides = OverrideGroup()
     for quib_and_path in [XY(quib_and_path_x, quib_and_path_y)
-                             for quib_and_path_x, quib_and_path_y in zip(quibs_and_paths.x, quibs_and_paths.y)]:
+                          for quib_and_path_x, quib_and_path_y in zip(quibs_and_paths.x, quibs_and_paths.y)]:
         overrides = OverrideGroup()
         if quib_and_path.x is None and quib_and_path.y is None:
             # both x and y are not quibs
@@ -289,9 +289,9 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
                     continue
                 focal_override.apply(is_dragging=None)
                 xy_new = _get_xy_current_point_from_xy_change(xy_change)
-                xy_closest = get_closest_point_on_line_in_axes(ax, xy_old, xy_new, xy_assigned_value)
+                xy_closest, slope = get_closest_point_on_line_in_axes(ax, xy_old, xy_new, xy_assigned_value)
                 adjusted_change = get_assignment_from_quib_and_path(quib_and_path[focal_xy], xy_closest[focal_xy],
-                                                                    tolerance[focal_xy])
+                                                                    tolerance[focal_xy] * slope[focal_xy])
                 overrides.extend(get_override_group_for_quib_change(adjusted_change))
 
                 if xy_old[other_xy] != xy_new[other_xy]:
