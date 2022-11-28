@@ -296,7 +296,10 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
                 xy_closest, slope = get_closest_point_on_line_in_axes(ax, xy_old, xy_new, xy_assigned_value)
                 adjusted_change = get_assignment_from_quib_and_path(quib_and_path[focal_xy], xy_closest[focal_xy],
                                                                     tolerance[focal_xy] * slope[focal_xy])
-                overrides.extend(get_override_group_for_quib_change(adjusted_change))
+                along_line_override = _get_override_group_for_quib_change_or_none(adjusted_change)
+                if along_line_override is None:
+                    continue
+                overrides.extend(along_line_override)
 
                 if xy_old[other_xy] != xy_new[other_xy]:
                     # x-y values are dependent

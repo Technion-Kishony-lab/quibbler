@@ -116,15 +116,33 @@ class NumpyInverter(Inverter, ABC):
                                                  for result_with_assignment in result_with_assignment_nominal_down_up)
 
             location = sources_to_locations[source]
-            inverted_value_nominal_down_up = tuple(self._invert_value(source, location, path_in_source,
-                                                                      target_value, path_in_result)
-                                                   for target_value in target_value_nominal_down_up)
+            inverted_value_nominal_down_up = \
+                tuple(
+                    self._get_invert_value_or_raise_if_nan(source, location, path_in_source,
+                                                           target_value, path_in_result)
+                    for target_value in target_value_nominal_down_up
+                )
             if inverted_value_nominal_down_up[0] is not missing:
                 new_assignment = create_assignment_from_nominal_down_up_values(
                     nominal_down_up_values=inverted_value_nominal_down_up, path=path_in_source)
                 inversals.append(Inversal(source=source, assignment=new_assignment))
 
         return inversals
+
+    def _get_invert_value_or_raise_if_nan(self, source: Source, source_location: SourceLocation, path_in_source: Path,
+                                          result_value: Any, path_in_result: Path) -> Any:
+        previous_err = np.seterr(all='raise')
+        try:
+            value = self._invert_value(source, source_location, path_in_source, result_value, path_in_result)
+        except (RuntimeError, FloatingPointError):
+            self._raise_run_failed_exception()
+        finally:
+            np.seterr(**previous_err)
+        if isinstance(value, np.ndarray) \
+                and (value.dtype.type is np.float64 or value.dtype.type is np.float32) \
+                and np.any(np.isnan(value)):
+            self._raise_run_failed_exception()
+        return value
 
     @abstractmethod
     def _invert_value(self, source: Source, source_location: SourceLocation, path_in_source: Path,
