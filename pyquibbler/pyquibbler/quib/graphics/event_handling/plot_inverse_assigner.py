@@ -169,7 +169,10 @@ def get_quibs_and_paths_affected_by_event(arg: Any, data_index: Optional[int], p
                     assert False, 'Matplotlib is not supposed to support plotting data arguments with >2 dimensions'
             else:
                 # plt.scatter:
-                path = [PathComponent(np.unravel_index(point_index, shape))]
+                if len(shape) == 0:
+                    path = []
+                else:
+                    path = [PathComponent(np.unravel_index(point_index, shape))]
             quibs_and_paths.append((arg, path))
             continue
         if isinstance(arg, list):
@@ -337,3 +340,25 @@ def get_override_group_for_axes_scatter(pick_event: PickEvent, mouse_event: Mous
     """
     args = func_args_kwargs.args
     return get_override_group_by_indices(XY(args[1], args[2]), None, pick_event, mouse_event)
+
+
+
+FUNC_NAME_TO_ARGS = {
+    'axvline': XY('x', None),
+    'axhline': XY(None, 'y'),
+}
+
+
+@graphics_inverse_assigner([
+    'Axes.axvline',
+    'Axes.axhline',
+])
+def get_override_group_for_axes_scatter(pick_event: PickEvent, mouse_event: MouseEvent,
+                                        func_args_kwargs: FuncArgsKwargs) \
+        -> OverrideGroup:
+    """
+    Returns a group of overrides implementing a mouse interaction with graphics created by `plt.scatter(...)`.
+    """
+    arg_names = FUNC_NAME_TO_ARGS[func_args_kwargs.func.__name__]
+    args = XY.from_func(lambda z: None if z is None else func_args_kwargs.get(z), arg_names)
+    return get_override_group_by_indices(args, None, pick_event, mouse_event)
