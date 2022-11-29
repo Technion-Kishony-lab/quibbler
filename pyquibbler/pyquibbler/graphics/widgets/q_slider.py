@@ -11,10 +11,10 @@ class QWidgetSlider(QWidget):
     """
     Base class for Quibbler Sliders
     """
-    def __init__(self, ax, label, valmin, valmax, valinit, **kwargs):
+    def __init__(self, *args, **kwargs):
         self.on_release = None
         self._drag_active = False
-        super().__init__(ax, label, valmin, valmax, valinit, **kwargs)
+        super().__init__(*args, **kwargs)
 
     @property
     def drag_active(self):
@@ -51,7 +51,8 @@ class QSlider(QWidgetSlider, Slider):
     * rounding step_value
 
     """
-    pass
+    def __init__(self, ax, label, valmin, valmax, valinit=0.5, **kwargs):
+        super().__init__(ax, label, valmin, valmax, valinit, **kwargs)
 
 
 class QRangeSlider(QWidgetSlider, RangeSlider):
@@ -60,4 +61,5 @@ class QRangeSlider(QWidgetSlider, RangeSlider):
     * on_release callback, which is called when drag is released
     * rounding step_value
     """
-    pass
+    def __init__(self, ax, label, valmin, valmax, valinit=None, **kwargs):
+        super().__init__(ax, label, valmin, valmax, valinit, **kwargs)
