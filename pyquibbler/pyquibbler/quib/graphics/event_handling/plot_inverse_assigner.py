@@ -11,7 +11,7 @@ from typing import Any, List, Tuple, Union, Optional
 
 from pyquibbler.function_definitions import FuncArgsKwargs
 from pyquibbler.quib.types import XY, PointXY
-from pyquibbler.utilities.general_utils import Args, Kwargs
+from pyquibbler.utilities.general_utils import Args
 
 from pyquibbler.assignment import get_axes_x_y_tolerance, create_assignment, OverrideGroup, \
     get_override_group_for_quib_changes, AssignmentToQuib, Assignment, default, get_override_group_for_quib_change
@@ -314,8 +314,7 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
 
 @graphics_inverse_assigner(['Axes.plot'])
 def get_override_group_for_axes_plot(pick_event: PickEvent, mouse_event: MouseEvent,
-                                     func_args_kwargs: FuncArgsKwargs) \
-        -> OverrideGroup:
+                                     func_args_kwargs: FuncArgsKwargs) -> OverrideGroup:
     """
     Returns a group of overrides implementing a mouse interaction with graphics created by `plt.plot(...)`.
     """
@@ -333,14 +332,12 @@ def get_override_group_for_axes_plot(pick_event: PickEvent, mouse_event: MouseEv
 
 @graphics_inverse_assigner(['Axes.scatter'])
 def get_override_group_for_axes_scatter(pick_event: PickEvent, mouse_event: MouseEvent,
-                                        func_args_kwargs: FuncArgsKwargs) \
-        -> OverrideGroup:
+                                        func_args_kwargs: FuncArgsKwargs) -> OverrideGroup:
     """
     Returns a group of overrides implementing a mouse interaction with graphics created by `plt.scatter(...)`.
     """
     args = func_args_kwargs.args
     return get_override_group_by_indices(XY(args[1], args[2]), None, pick_event, mouse_event)
-
 
 
 FUNC_NAME_TO_ARGS = {
@@ -353,9 +350,8 @@ FUNC_NAME_TO_ARGS = {
     'Axes.axvline',
     'Axes.axhline',
 ])
-def get_override_group_for_axes_scatter(pick_event: PickEvent, mouse_event: MouseEvent,
-                                        func_args_kwargs: FuncArgsKwargs) \
-        -> OverrideGroup:
+def get_override_group_for_axes_lines(pick_event: PickEvent, mouse_event: MouseEvent,
+                                      func_args_kwargs: FuncArgsKwargs) -> OverrideGroup:
     """
     Returns a group of overrides implementing a mouse interaction with graphics created by `plt.scatter(...)`.
     """

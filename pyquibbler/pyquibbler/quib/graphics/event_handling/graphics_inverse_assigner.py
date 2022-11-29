@@ -5,7 +5,7 @@ from pyquibbler.assignment import AssignmentToQuib, OverrideGroup
 from pyquibbler.assignment import AssignmentCancelledByUserException
 from pyquibbler.function_definitions import FuncArgsKwargs
 from pyquibbler.quib.graphics.event_handling.set_lim_inverse_assigner import get_override_group_for_axes_set_lim
-from pyquibbler.utilities.general_utils import Args, Kwargs
+from pyquibbler.utilities.general_utils import Args
 
 GRAPHICS_REVERSE_ASSIGNERS = {}
 
