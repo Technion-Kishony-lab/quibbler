@@ -1,6 +1,8 @@
-from typing import Any, List, Tuple
+from typing import Tuple
 
 from matplotlib.pyplot import Axes
+
+from pyquibbler.utilities.general_utils import Args
 
 from pyquibbler.assignment import create_assignment, AssignmentToQuib, OverrideGroup, \
     get_override_group_for_quib_changes
@@ -11,7 +13,8 @@ from pyquibbler.path import PathComponent
 # TODO: might be helpful to implement is_override_removal=True which will be called for example upon
 #  right click the axis
 
-def get_override_group_for_axes_set_lim(args: List[Any], lim: Tuple[float, float], is_override_removal: bool) \
+
+def get_override_group_for_axes_set_lim(args: Args, lim: Tuple[float, float], is_override_removal: bool) \
         -> OverrideGroup:
     from pyquibbler.quib.quib import Quib
     assert len(args) > 1
