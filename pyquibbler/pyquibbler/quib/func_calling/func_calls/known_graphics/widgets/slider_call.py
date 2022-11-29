@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional, Union
 
-from pyquibbler.assignment import AssignmentToQuib, AssignmentWithTolerance, create_assignment
+from pyquibbler.assignment import AssignmentToQuib, create_assignment
 from pyquibbler.env import GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION
 from pyquibbler.graphics.widgets import QSlider, QRangeSlider
 from pyquibbler.quib.func_calling.func_calls.known_graphics.widgets.widget_call import WidgetQuibFuncCall

@@ -61,4 +61,3 @@ class QRangeSlider(QWidgetSlider, RangeSlider):
     * rounding step_value
     """
     pass
-
