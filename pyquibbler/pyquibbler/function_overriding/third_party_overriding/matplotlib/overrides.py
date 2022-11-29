@@ -344,6 +344,7 @@ def create_graphics_overrides():
         *(widget_override(func_name, quib_function_call_cls=cls) for func_name, cls in (
             ('RadioButtons',        RadioButtonsQuibFuncCall),
             ('Slider',              SliderQuibFuncCall),
+            ('RangeSlider',         SliderQuibFuncCall),
             ('CheckButtons',        CheckButtonsQuibFuncCall),
             ('RectangleSelector',   RectangleSelectorQuibFuncCall),
             ('TextBox',             TextBoxQuibFuncCall),

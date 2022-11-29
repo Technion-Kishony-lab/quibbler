@@ -1,18 +1,15 @@
 from numbers import Number
 
-from matplotlib.widgets import Slider
+from matplotlib.widgets import Slider, RangeSlider
 
 from pyquibbler.assignment.rounding import round_to_num_digits
 from pyquibbler.utilities.decorators import squash_recursive_calls
 from .base_q_widget import QWidget
 
 
-class QSlider(QWidget, Slider):
+class QWidgetSlider(QWidget):
     """
-    Like Slider but with:
-    * on_release callback, which is called when drag is released
-    * rounding step_value
-
+    Base class for Quibbler Sliders
     """
     def __init__(self, ax, label, valmin, valmax, valinit, **kwargs):
         self.on_release = None
@@ -45,3 +42,22 @@ class QSlider(QWidget, Slider):
     def set_val(self, val):
         with self.avoid_redraws_if_created_in_get_value_context():
             super().set_val(val)
+
+
+class QSlider(QWidgetSlider, Slider):
+    """
+    Like Slider but with:
+    * on_release callback, which is called when drag is released
+    * rounding step_value
+
+    """
+    pass
+
+
+class QRangeSlider(QWidgetSlider, RangeSlider):
+    """
+    Like RangeSlider but with:
+    * on_release callback, which is called when drag is released
+    * rounding step_value
+    """
+    pass
