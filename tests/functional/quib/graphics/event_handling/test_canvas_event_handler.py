@@ -2,6 +2,7 @@ from unittest import mock
 
 import pytest
 
+from pyquibbler.function_definitions import FuncArgsKwargs
 from pyquibbler.quib.graphics.event_handling import graphics_inverse_assigner, CanvasEventHandler
 
 
@@ -63,17 +64,17 @@ def test_canvas_event_handler_plot_drag_without_pick_event_does_nothing(canvas_e
 def test_canvas_event_handler_plot_drag(canvas_event_handler, mock_inverse_graphics_function):
     pick_event = mock.Mock()
     drawing_quib = mock.Mock()
-    drawing_quib.func = mock.Mock()
-    drawing_quib.args = mock.Mock()
+    drawing_quib.handler = mock.Mock()
+    drawing_quib.handler.func_args_kwargs = mock.Mock()
     pick_event.artist._quibbler_artist_creating_quib = drawing_quib
     canvas_event_handler._handle_pick_event(pick_event)
     mouse_event = mock.Mock()
     canvas_event_handler._handle_motion_notify(mouse_event)
 
-    mock_inverse_graphics_function.assert_called_once_with(drawing_func=drawing_quib.func,
-                                                           args=drawing_quib.args,
-                                                           mouse_event=mouse_event,
-                                                           pick_event=pick_event)
+    mock_inverse_graphics_function.assert_called_once_with(
+        func_args_kwargs=drawing_quib.handler.func_args_kwargs,
+        mouse_event=mouse_event,
+        pick_event=pick_event)
 
 
 def test_canvas_event_handler_plot_drag_after_releasing(canvas_event_handler, mock_inverse_graphics_function):

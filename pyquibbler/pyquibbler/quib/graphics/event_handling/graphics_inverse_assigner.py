@@ -1,8 +1,9 @@
-from typing import Callable, List, Any, Iterable, Tuple
+from typing import Callable, List, Any, Tuple
 from matplotlib.backend_bases import MouseEvent, PickEvent, MouseButton
 
 from pyquibbler.assignment import AssignmentToQuib, OverrideGroup
 from pyquibbler.assignment import AssignmentCancelledByUserException
+from pyquibbler.function_definitions import FuncArgsKwargs
 from pyquibbler.quib.graphics.event_handling.set_lim_inverse_assigner import get_override_group_for_axes_set_lim
 from pyquibbler.utilities.general_utils import Args, Kwargs
 
@@ -22,20 +23,22 @@ def graphics_inverse_assigner(graphics_func_names_to_handle: List[str]):
     return _decorator
 
 
-def inverse_assign_drawing_func(drawing_func: Callable,
-                                args: Args,
+def inverse_assign_drawing_func(func_args_kwargs: FuncArgsKwargs,
                                 pick_event: PickEvent,
-                                mouse_event: MouseEvent):
+                                mouse_event: MouseEvent,
+                                ):
     """
     Reverse a graphics function quib, assigning to all it's arguments values based on pick event and mouse event
     """
     assert pick_event is not None
+    drawing_func = func_args_kwargs.func
     inverse_assigner_func = GRAPHICS_REVERSE_ASSIGNERS.get(drawing_func.__qualname__)
     if inverse_assigner_func is not None:
         try:
             override_group: OverrideGroup = inverse_assigner_func(pick_event=pick_event,
                                                                   mouse_event=mouse_event,
-                                                                  args=args)
+                                                                  func_args_kwargs=func_args_kwargs,
+                                                                  )
         except AssignmentCancelledByUserException:
             pass
         else:
