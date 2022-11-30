@@ -66,3 +66,13 @@ def test_drag_multi_plot(axes, create_axes_mouse_press_move_release_events):
 
     assert x1.get_value() == [10, 23, 30]
     assert x2.get_value() == [40, 50, 60]
+
+
+def testy_drag_axvline(axes, create_axes_mouse_press_move_release_events):
+    x = iquib(10)
+    axes.axis([0, 100, 0, 100])
+    axes.axvline(x)
+
+    create_axes_mouse_press_move_release_events(((10, 2), (23, 4)))
+
+    assert x.get_value() == 23

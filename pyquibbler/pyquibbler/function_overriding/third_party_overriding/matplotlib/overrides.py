@@ -18,8 +18,11 @@ def create_graphics_overrides():
         plot_override(
             'plot', quib_function_call_cls=PlotQuibFuncCall),
 
-        plot_override(
-            'scatter'),
+        *(plot_override(func_name) for func_name in (
+            'scatter',
+            'axvline',
+            'axhline',
+        )),
 
         *(patches_override(func_name) for func_name in (
             'Arc',
@@ -48,11 +51,11 @@ def create_graphics_overrides():
             'arrow',
             # 'autoscale',
             # 'axes',
-            'axhline',
+            # 'axhline',  # implemented as plot_override
             'axhspan',
             # 'axis',  # calls xlim, ylim, seems ok. 
             'axline',
-            'axvline',
+            # 'axvline',  # implemented as plot_override
             'axvspan',
             'bar',
             # 'bar_label',  # Overloaded as not implemented

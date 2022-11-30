@@ -115,10 +115,10 @@ class CanvasEventHandler:
 
         drawing_quib = self.current_pick_quib
         with timeit("motion_notify", "motion notify"), graphics_assignment_mode(mouse_event.inaxes):
-            graphics_inverse_assigner.inverse_assign_drawing_func(drawing_func=drawing_quib.func,
-                                                                  args=drawing_quib.args,
-                                                                  mouse_event=mouse_event,
-                                                                  pick_event=pick_event)
+            graphics_inverse_assigner.inverse_assign_drawing_func(
+                func_args_kwargs=drawing_quib.handler.func_args_kwargs,
+                mouse_event=mouse_event,
+                pick_event=pick_event)
 
     def _inverse_assign_axis_limits(self,
                                     drawing_func: Callable,
