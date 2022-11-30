@@ -8,7 +8,7 @@ from pyquibbler.function_overriding.third_party_overriding.matplotlib.helpers im
     axes_setter_override, widget_override, axes_lim_override, plot_override, patches_override, axes3d_override, \
     graphics_override_read_file
 from pyquibbler.quib.func_calling.func_calls import RadioButtonsQuibFuncCall, SliderQuibFuncCall, \
-    RectangleSelectorQuibFuncCall,  CheckButtonsQuibFuncCall
+    RangeSliderQuibFuncCall, RectangleSelectorQuibFuncCall,  CheckButtonsQuibFuncCall
 from pyquibbler.quib.func_calling.func_calls.known_graphics.plot_call import PlotQuibFuncCall
 from pyquibbler.quib.func_calling.func_calls.known_graphics.widgets.textbox_call import TextBoxQuibFuncCall
 
@@ -347,7 +347,7 @@ def create_graphics_overrides():
         *(widget_override(func_name, quib_function_call_cls=cls) for func_name, cls in (
             ('RadioButtons',        RadioButtonsQuibFuncCall),
             ('Slider',              SliderQuibFuncCall),
-            ('RangeSlider',         SliderQuibFuncCall),
+            ('RangeSlider',         RangeSliderQuibFuncCall),
             ('CheckButtons',        CheckButtonsQuibFuncCall),
             ('RectangleSelector',   RectangleSelectorQuibFuncCall),
             ('TextBox',             TextBoxQuibFuncCall),
