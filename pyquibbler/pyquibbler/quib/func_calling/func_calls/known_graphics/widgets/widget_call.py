@@ -17,6 +17,9 @@ class WidgetQuibFuncCall(CachedQuibFuncCall):
 
     @staticmethod
     def _get_control_variable() -> Optional[str]:
+        """
+        The name of the widget attribute that is controlled by the widget.
+        """
         return None
 
     def _connect_callbacks(self, widget: AxesWidget):
@@ -32,9 +35,7 @@ class WidgetQuibFuncCall(CachedQuibFuncCall):
         self._get_axis()._quibbler_on_rightclick = self._on_right_click
 
     def _on_right_click(self, _mouse_event):
-
         ctrl = self.func_args_kwargs.get(self._get_control_variable())
-
         if isinstance(ctrl, Quib):
             changes = [AssignmentToQuib(ctrl, Assignment.create_default([]))]
         elif isinstance(ctrl, Iterable):
@@ -48,7 +49,6 @@ class WidgetQuibFuncCall(CachedQuibFuncCall):
         self._inverse_assign_multiple_quibs(changes)
 
     def _inverse_assign(self, quib: Quib, path: Path, value: Any, tolerance: Any = None, on_drag: bool = False):
-
         assignment = create_assignment(value, path, tolerance)
         self._inverse_assign_multiple_quibs([AssignmentToQuib(quib, assignment)], on_drag)
 

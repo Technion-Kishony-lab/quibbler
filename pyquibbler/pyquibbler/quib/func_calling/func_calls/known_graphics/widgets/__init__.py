@@ -1,4 +1,4 @@
-from .slider_call import SliderQuibFuncCall
+from .slider_call import SliderQuibFuncCall, RangeSliderQuibFuncCall
 from .radio_buttons_call import RadioButtonsQuibFuncCall
 from .rectangle_selector_call import RectangleSelectorQuibFuncCall
 from .checkbuttons_call import CheckButtonsQuibFuncCall

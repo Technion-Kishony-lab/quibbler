@@ -1,23 +1,16 @@
 from dataclasses import dataclass
 from typing import List
 
-from matplotlib.widgets import AxesWidget, Button, Slider
+from matplotlib.widgets import AxesWidget, Button
 
 from pyquibbler.exceptions import PyQuibblerException
+from pyquibbler.graphics.widgets import QRangeSlider, QSlider
+
 
 ATTRIBUTES_TO_TRANSFER_PER_WIDGET = {
-    Button: {
-        "hovercolor"
-    },
-    Slider: {
-        'orientation',
-        'closedmin',
-        'closedmax',
-        'valmin',
-        'valmax',
-        'valstep',
-        'valfmt'
-    },
+    Button: {"hovercolor"},
+    QSlider: {'val'},
+    QRangeSlider: {'val'}
 }
 
 
