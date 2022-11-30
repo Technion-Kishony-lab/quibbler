@@ -18,7 +18,7 @@ from pyquibbler.function_overriding.third_party_overriding.general_helpers impor
 from pyquibbler.quib.graphics import artist_wrapper
 
 from pyquibbler.quib.graphics.event_handling import CanvasEventHandler
-from pyquibbler.quib.graphics.event_handling.plot_inverse_assigner import get_xdata_arg_indices_and_ydata_arg_indices
+from pyquibbler.quib.graphics.event_handling.plt_plot_parser import get_xdata_arg_indices_and_ydata_arg_indices
 from pyquibbler.utilities.iterators import iter_objects_of_type_in_object_recursively, is_iterator_empty
 from .func_definitions import FUNC_DEFINITION_GRAPHICS, FUNC_DEFINITION_GRAPHICS_AXES_SETTER
 from ..numpy.func_definitions import FUNC_DEFINITION_FILE_LOADING
