@@ -73,13 +73,14 @@ def test_range_slider_graphics_function_quib_press_and_release_changes_with_list
 def test_range_slider_graphics_function_quib_press_and_motion_notify_changes_and_keeps_same_widget(
         axes, create_axes_mouse_press_move_release_events, get_live_widgets, range_slider_quib, input_quib1, input_quib2):
 
+    initial_live_widgets = len(get_live_widgets())
     widget = range_slider_quib.get_value()
 
     create_axes_mouse_press_move_release_events(['middle', 'right'])
     assert [input_quib1.get_value(), input_quib2.get_value()] == [1, 4]
 
     assert range_slider_quib.get_value() is widget
-    assert len(get_live_widgets()) == 1
+    assert len(get_live_widgets()) == initial_live_widgets
 
 
 def test_range_slider_rightclick_sets_to_default(axes, get_live_widgets, get_live_artists, input_quib1, input_quib2, range_slider_quib,

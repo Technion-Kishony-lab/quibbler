@@ -38,6 +38,7 @@ def test_rectangle_selector_move(axes, get_only_live_widget, get_live_artists, g
     assert len(axes.patches) == 1
     assert len(axes.lines) == 3
     original_num_artists = len(get_live_artists())
+    original_num_widgets = len(get_live_widgets())
 
     with count_redraws(rectangle_selector) as redraw_count, \
             count_canvas_draws(axes.figure.canvas) as canvas_redraw_count:
@@ -50,7 +51,7 @@ def test_rectangle_selector_move(axes, get_only_live_widget, get_live_artists, g
     assert len(axes.lines) == 3
     assert len(get_live_artists()) == original_num_artists
 
-    assert len(get_live_widgets()) == 1
+    assert len(get_live_widgets()) == original_num_widgets
     new_roi = roi.get_value()
 
     assert np.array_equal(new_roi, [0.3, 0.9, 0.3, 0.9])
