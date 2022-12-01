@@ -96,9 +96,6 @@ class QRectangleSelector(RectangleSelector):
         else:
             super(type(self), type(self)).extents.fset(self, extents)
 
-    def set_extents_without_callback(self, extents):
-        super(type(self), type(self)).extents.fset(self, extents)
-
     def update(self):
         if not self.created_in_get_value_context:
             super().update()
