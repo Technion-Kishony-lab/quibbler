@@ -41,18 +41,16 @@ class RangeSliderQuibFuncCall(SliderQuibFuncCall):
         val = self.func_args_kwargs.get(self._get_control_variable())
         quib_changes = list()
         if isinstance(val, Quib):
-            previous_value = val.get_value()
             for index in range(2):
-                if previous_value[index] != new_value[index]:
-                    quib_changes.append(AssignmentToQuib(
-                        quib=val,
-                        assignment=create_assignment(path=[PathComponent(index)],
-                                                     value=new_value[index],
-                                                     tolerance=self._get_tolerance(widget))
-                    ))
+                quib_changes.append(AssignmentToQuib(
+                    quib=val,
+                    assignment=create_assignment(path=[PathComponent(index)],
+                                                 value=new_value[index],
+                                                 tolerance=self._get_tolerance(widget))
+                ))
         else:
             for index, val_item in enumerate(val):
-                if isinstance(val_item, Quib) and val_item.get_value() != new_value[index]:
+                if isinstance(val_item, Quib):
                     quib_changes.append(AssignmentToQuib(
                         quib=val_item,
                         assignment=create_assignment(path=[],
