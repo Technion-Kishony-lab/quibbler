@@ -1,5 +1,5 @@
 import functools
-from typing import Callable
+from typing import Callable, Optional
 
 
 def ensure_only_run_once_globally(func: Callable):
@@ -32,30 +32,37 @@ def assign_func_name(name: str):
     return _assign
 
 
-def squash_recursive_calls(func: Callable):
+def squash_recursive_calls(prevent_squash: Optional[Callable]):
     """
     When the function is running, additional calls to the function
     are squashed, so that when the run is completed only the last pending
     call is executed.
     """
-    pending_args = None
-    pending_kwargs = None
 
-    @functools.wraps(func)
-    def _wrapper(*args, **kwargs):
-        nonlocal pending_args, pending_kwargs
-        already_running = pending_args is not None
-        pending_args, pending_kwargs = args, kwargs
+    def decorator(func: Callable):
+        pending_args = None
+        pending_kwargs = None
 
-        if already_running:
-            return
+        @functools.wraps(func)
+        def _wrapper(*args, **kwargs):
+            if prevent_squash and prevent_squash(args, kwargs):
+                return func(*args, **kwargs)
 
-        while pending_args is not None:
-            args = pending_args
-            kwargs = pending_kwargs
-            func(*args, **kwargs)
-            if pending_args is args and pending_kwargs is pending_kwargs:
-                pending_args = None
-                pending_kwargs = None
+            nonlocal pending_args, pending_kwargs
+            already_running = pending_args is not None
+            pending_args, pending_kwargs = args, kwargs
 
-    return _wrapper
+            if already_running:
+                return
+
+            while pending_args is not None:
+                args = pending_args
+                kwargs = pending_kwargs
+                func(*args, **kwargs)
+                if pending_args is args and pending_kwargs is pending_kwargs:
+                    pending_args = None
+                    pending_kwargs = None
+
+        return _wrapper
+
+    return decorator

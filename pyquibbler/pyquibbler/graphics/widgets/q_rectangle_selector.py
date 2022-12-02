@@ -5,6 +5,7 @@ from typing import Any
 
 from matplotlib.backend_bases import MouseButton
 from matplotlib.widgets import RectangleSelector
+from pyquibbler.graphics.widgets.utils import prevent_squash
 
 from pyquibbler.utilities.basic_types import Mutable
 from pyquibbler.utilities.decorators import squash_recursive_calls
@@ -46,7 +47,7 @@ class QRectangleSelector(RectangleSelector):
     def event_is_relevant_to_current_selector(self) -> bool:
         return (self._active_handle and self._active_handle != 'C') or self.is_current_event_a_move_event()
 
-    @squash_recursive_calls
+    @squash_recursive_calls(prevent_squash=prevent_squash)
     def _onmove(self, event):
         if self.event_is_relevant_to_current_selector():
             if self.allow_resize or self.is_current_event_a_move_event():

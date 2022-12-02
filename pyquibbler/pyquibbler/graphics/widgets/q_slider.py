@@ -4,6 +4,7 @@ import numpy as np
 from matplotlib.widgets import Slider, RangeSlider
 
 from pyquibbler.assignment.rounding import round_to_num_digits
+from pyquibbler.graphics.widgets.utils import prevent_squash
 from pyquibbler.utilities.decorators import squash_recursive_calls
 from .base_q_widget import QWidget
 
@@ -43,7 +44,7 @@ class QWidgetSlider(QWidget):
 
     # we drop drag events created during redraw due to continuous drag
     # otherwise, kernel can get stuck (observed in jupyterlab with tk backend).
-    @squash_recursive_calls
+    @squash_recursive_calls(prevent_squash=prevent_squash)
     def set_val(self, val):
         if self.created_in_get_value_context:
             val = self._convert_val(val)
