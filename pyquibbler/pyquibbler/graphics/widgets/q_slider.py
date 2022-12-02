@@ -1,8 +1,10 @@
 from numbers import Number
 
+import numpy as np
 from matplotlib.widgets import Slider, RangeSlider
 
 from pyquibbler.assignment.rounding import round_to_num_digits
+from pyquibbler.graphics.widgets.utils import prevent_squash
 from pyquibbler.utilities.decorators import squash_recursive_calls
 from .base_q_widget import QWidget
 
@@ -36,11 +38,18 @@ class QWidgetSlider(QWidget):
             val = round_to_num_digits(val, 15)  # prevents values like 1.0000000000001
         return val
 
+    @staticmethod
+    def _convert_val(val):
+        return val
+
     # we drop drag events created during redraw due to continuous drag
     # otherwise, kernel can get stuck (observed in jupyterlab with tk backend).
-    @squash_recursive_calls
+    @squash_recursive_calls(prevent_squash=prevent_squash)
     def set_val(self, val):
-        with self.avoid_redraws_if_created_in_get_value_context():
+        if self.created_in_get_value_context:
+            val = self._convert_val(val)
+            self._observers.process("changed", val)
+        else:
             super().set_val(val)
 
 
@@ -63,3 +72,7 @@ class QRangeSlider(QWidgetSlider, RangeSlider):
     """
     def __init__(self, ax, label, valmin, valmax, valinit=None, **kwargs):
         super().__init__(ax, label, valmin, valmax, valinit, **kwargs)
+
+    @staticmethod
+    def _convert_val(val):
+        return np.sort(np.asanyarray(val))
