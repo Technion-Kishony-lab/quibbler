@@ -3,6 +3,9 @@
 # Quibbler
 **Interactive, reproducible and efficient data analytics**
 
+![GitHub](https://img.shields.io/github/license/Technion-Kishony-lab/quibbler)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/Technion-Kishony-lab/quibbler)
+
 
 ## What is it?
 *Quibbler* is a toolset for building highly interactive, yet reproducible, 
@@ -20,8 +23,9 @@ recalculations. *Quibbler*, therefore, facilitates hands-on interactions with da
 in ways that are not only flexible, fun and interactive, but also traceable, 
 well-documented, and highly efficient.
 
-
 ## Main Features
+<img src="pyquibbler-documentations/docs/images/quibbler_promo.gif" width=300 align='right'>
+
 Here are a few of the things that *Quibbler* does:
 
 * Easily build powerful GUI-like interaction with data, without a need for callbacks 
@@ -42,7 +46,7 @@ there is very little to learn to get started!_**
 
 
 ## Documentations
-See https://readthedocs.com/ for a getting-started tour and documentations.
+For complete documentations and a getting-started tour, see [readthedocs](https://quibbler.readthedocs.io/en/latest/).
 
 
 ## Installation 
@@ -68,6 +72,7 @@ by Maor Kern, Maor Kleinberger and Roy Kishony.
 ## Related products
 
 * [Streamlit](https://streamlit.io/)
+* [Plotly](https://plotly.com/)
 * [Shiny](https://shiny.rstudio.com/)
 * [ipywidgets](https://github.com/jupyter-widgets/ipywidgets)
 * [bokeh](http://bokeh.org)
