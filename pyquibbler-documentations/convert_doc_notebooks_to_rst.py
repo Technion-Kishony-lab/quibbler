@@ -7,7 +7,7 @@ import os
 import shutil
 from pathlib import Path
 
-shutil.make_archive('docs/downloads/examples', 'zip', 'examples')
+shutil.make_archive('docs/zips_for_download/examples', 'zip', 'examples')
 
 
 def reformat_file(file: str):
