@@ -23,6 +23,8 @@ from tests.functional.inversion.inverters.utils import inverse
     (np.add, (Source(np.array([2])), np.array([5, 5, 5])), 0, 12, 0, np.array([7])),
     (np.add, (Source(2), np.array([5, 5, 5])), 0, 12, 0, 7),
     (np.add, (Source(2), np.array([5, 5, 5])), [False, True, False], 100, 0, 95),
+    (np.arctan2, (3, Source(2.)), None, np.pi / 4, 1, 3),
+    (np.arctan2, (Source(2.), 3), None, np.pi / 4, 0, 3),
 ], ids=[
     "add: simple",
     "add: multiple dimensions",
@@ -38,15 +40,17 @@ from tests.functional.inversion.inverters.utils import inverse
     "add: 1-size broadcasting to vector",
     "add: scalar broadcasting to vector",
     "add: scalar broadcasting to vector with boolean indexing",
+    "arctan2: first agr",
+    "arctan2: second agr",
 ])
 def test_inverse_elementwise_two_arguments(func, func_args, indices, value, quib_arg_index, expected_value):
     sources_to_results, _ = inverse(func, indices=indices, value=value, args=func_args, empty_path=indices is None)
 
     value = sources_to_results[func_args[quib_arg_index]]
     if isinstance(expected_value, Iterable):
-        assert np.array_equal(value, expected_value)
+        assert np.allclose(value, expected_value)
     else:
-        assert value == expected_value
+        assert np.allclose(value, expected_value)
         assert np.shape(value) == np.shape(expected_value)
 
 

@@ -96,6 +96,9 @@ def create_numpy_overrides():
             ('power',         ((lambda new_y, n: new_y ** (1 / n), inv_power), lambda result, other: math.log(result, other))),
             ('true_divide',   (np.multiply, lambda result, other: np.divide(other, result))),
 
+            # trigonometric
+            ('arctan2',       (lambda a, x: x * np.tan(a), lambda a, y: y / np.tan(a))),
+
             # Integers
             ('left_shift',    (None, None)),  # TODO: write inverse
             ('right_shift',   (None, None)),  # TODO: write inverse
