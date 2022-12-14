@@ -1,6 +1,6 @@
 {
   "name": "pyquibbler-labextension",
-  "version": "0.1.2",
+  "version": "0.2.1",
   "description": "PyQuibbler lab extension",
   "keywords": [
     "jupyter",
