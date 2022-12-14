@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Optional, Callable
 
 from pyquibbler.exceptions import PyQuibblerException
+from pyquibbler.env import DEBUG
 
 from .logger import logger
 
@@ -71,7 +72,15 @@ def timer(name: str, callback: Optional[Callable] = None):
     return new_timer.timing(callback=callback)
 
 
+@contextlib.contextmanager
+def null_timer():
+    yield
+
+
 def timeit(name: str, message: Optional[str] = None):
+    if not DEBUG:
+        return null_timer()
+
     if message is None:
         return timer(name)
 
