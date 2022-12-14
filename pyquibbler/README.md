@@ -23,6 +23,18 @@ recalculations. *Quibbler*, therefore, facilitates hands-on interactions with da
 in ways that are not only flexible, fun and interactive, but also traceable, 
 well-documented, and highly efficient.
 
+
+### "Best Quibble" competition
+We just launched *Quibbler* in [PyData Tel-Aviv](https://pydata.org/telaviv2022/).
+We are seeking engagement from users and developers and are also eager to learn of 
+the range of applications for *Quibbler*. 
+To get it fun and going, we are announcing a competition for the best **"Quibble"** - 
+a short elegant quib-based code that demonstrates fun interactive graphics and/or hints 
+to ideas of applications. 
+
+For details (and prizes!) see: [Best Quibble Award](https://kishony.technion.ac.il/best-quibble-award/)   
+
+
 ## Main Features
 <img src="pyquibbler-documentations/docs/images/quibbler_promo.gif" width=300 align='right'>
 
