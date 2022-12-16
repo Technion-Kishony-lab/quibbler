@@ -1,4 +1,5 @@
 import socket
+import sys
 
 
 def find_free_port():
@@ -19,3 +20,7 @@ def is_within_jupyter_lab() -> bool:
             return False  # Other type (?)
     except (NameError, ImportError):
         return False      # Probably standard Python interpreter
+
+
+def is_within_colab() -> bool:
+    return 'google.colab' in sys.modules
