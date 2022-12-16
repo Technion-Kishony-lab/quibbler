@@ -19,6 +19,7 @@ from .third_party_overriding.numpy.overrides import create_numpy_overrides
 from .third_party_overriding.matplotlib.overrides import create_graphics_overrides
 from .third_party_overriding.numpy.quiby_attributes import get_numpy_attributes_to_attribute_overrides, \
     get_numpy_methods_to_method_overrides
+from ..project.jupyer_project.utils import is_within_colab
 
 ATTRIBUTES_TO_ATTRIBUTE_OVERRIDES: Dict[str, AttributeOverride] = {}
 
@@ -106,6 +107,13 @@ def initialize_quibbler(draggable_plots: bool = True, show_quibs_as_widgets: boo
     if not ipywidgets_installed and within_jupyterlab:
         no_header_warn('It is not a requirement, but do consider installing ipywidgets to '
                        'further enhance pyquibbler interactivity in Jupyter lab.\n')
+
+    if is_within_colab():
+        no_header_warn('To learn how to set up Quibbler to work within colab, see here:\n'
+                       'https://colab.research.google.com/drive/1kZ3m8DdImiS0FJv8_VOZO8VuQdPkCBg8?usp=sharing\n'
+                       '\n'
+                       'Note though that Quibbler is not well optimized for work within colab\n'
+                       'and any interactive graphics will be very slow.\n')
 
     function_overrides: List[FuncOverride] = [*create_operator_overrides(),
                                               *create_graphics_overrides(),
