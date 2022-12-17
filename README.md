@@ -1,4 +1,4 @@
-<img src="pyquibbler-documentations/docs/images/quibicon.gif" width=300 align='right'>
+<img src="https://github.com/Technion-Kishony-lab/quibbler/blob/master/pyquibbler-documentations/docs/images/quibicon.gif?raw=true" width=300 align='right'>
 
 # Quibbler
 **Interactive, reproducible and efficient data analytics**
@@ -36,7 +36,7 @@ For details (and prizes!) see: [Best Quibble Award](https://kishony.technion.ac.
 
 
 ## Main Features
-<img src="pyquibbler-documentations/docs/images/quibbler_promo.gif" width=300 align='right'>
+<img src="https://github.com/Technion-Kishony-lab/quibbler/blob/master/pyquibbler-documentations/docs/images/quibbler_promo.gif?raw=true" width=300 align='right'>
 
 Here are a few of the things that *Quibbler* does:
 
@@ -63,6 +63,9 @@ For complete documentations and a getting-started tour, see [readthedocs](https:
 
 ## Installation 
 
+We recommend installing *Quibbler* in a new virtual environment 
+(see [creating a new environment](https://github.com/Technion-Kishony-lab/quibbler/blob/master/INSTALL.md)). 
+
 To install run:
 
 `pip install pyquibbler`
@@ -71,15 +74,20 @@ If are using *Jupyter lab*, you can also add the *pyquibbler Jupyter Lab extensi
 
 `pip install pyquibbler_labextension`
 
-For developers, see [here](INSTALL.md).
+To install for developers, 
+see our guide [here](https://github.com/Technion-Kishony-lab/quibbler/blob/master/INSTALL.md).
 
 ## Credit
 
 Quibbler was created by Roy Kishony, initially implemented as a Matlab toolbox. 
 
-Quibbler for Python, *pyquibbler*, was developed at the 
-[Kishony lab, Technion - Israel Institute of Technology](https://kishony.technion.ac.il/), 
+The first release of Quibbler for Python, *pyquibbler*, was developed at the 
+[Kishony lab](https://kishony.technion.ac.il/quibbler/), 
+[Technion - Israel Institute of Technology](https://www.technion.ac.il/), 
 by Maor Kern, Maor Kleinberger and Roy Kishony.
+
+We very much welcome any thoughts, suggestions and ideas and of course welcome PR contributions 
+(for some proposed directions, see our pending [issues](https://github.com/Technion-Kishony-lab/quibbler/issues)). 
 
 ## Related products
 

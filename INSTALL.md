@@ -1,5 +1,15 @@
 ## Install pyquibbler
 
+
+### Create a new virtual environment
+
+If you are using conda, we recommend creating a new environment for `pyquibbler` installation.
+
+```conda create --name pyquibbler python=3.10``` 
+
+```conda activate pyquibbler```
+
+
 ### Install for users
 
 You can simply install *pyquibbler* using pip: 
@@ -20,17 +30,11 @@ Follow these four steps:
 
 ```git clone https://github.com/Technion-Kishony-lab/quibbler```
 
-#### 2. Create and activate a new virtual environment:
-
-```conda create --name pyquibbler python=3.10``` 
-
-```conda activate pyquibbler```
-
-#### 3. Install Jupyter lab (optional):
+#### 2. Install Jupyter lab (optional):
 
 ```pip install jupyterlab```
 
-#### 4. Run the 'install.py' script: 
+#### 3. Run the 'install.py' script: 
 
 ```python install.py```
 
@@ -41,7 +45,7 @@ Note: On *Windows*, if you wish installing the *pyquibbler juputer-lab extension
 for development](https://learn.microsoft.com/en-us/windows/apps/get-started/enable-your-device-for-development).
 
 
-#### 5. Install chromedriver (for lab tests)
+#### 4. Install chromedriver (for lab tests)
 
 If you are developing the *pyquibbler jupyter-lab extension*, to be able to run 
 the specific jupyterlab-extension tests, you will also need to install 
