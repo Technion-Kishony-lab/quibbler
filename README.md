@@ -24,7 +24,7 @@ in ways that are not only flexible, fun and interactive, but also traceable,
 well-documented, and highly efficient.
 
 
-### "Best Quibble" competition
+### Checkout our "Best Quibble" competition!
 We just launched *Quibbler* in [PyData Tel-Aviv](https://pydata.org/telaviv2022/).
 We are seeking engagement from users and developers and are also eager to learn of 
 the range of applications for *Quibbler*. 
@@ -57,9 +57,10 @@ and event listeners.
 there is very little to learn to get started!_** 
 
 
-## Documentations
-For complete documentations and a getting-started tour, see [readthedocs](https://quibbler.readthedocs.io/en/latest/).
+## Documentations and Examples
+For complete documentations and a getting-started tour, see [readthedocs](https://quibbler.readthedocs.io/en/latest/). 
 
+For simple demos and small apps, see our [Examples](https://quibbler.readthedocs.io/en/latest/Examples.html).  
 
 ## Installation 
 
