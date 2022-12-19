@@ -11,7 +11,7 @@ from pyquibbler.utilities.file_path import PathWithHyperLink
 from pyquibbler.quib.graphics import GraphicsUpdateType, aggregate_redraw_mode
 from pyquibbler.file_syncing.types import SaveFormat, ResponseToFileNotDefined
 
-from .actions import Action, AddAssignmentAction, AssignmentAction, RemoveAssignmentAction
+from .actions import AssignmentAction, AddAssignmentAction, RemoveAssignmentAction
 from .exceptions import NoProjectDirectoryException, NothingToUndoException, NothingToRedoException
 
 from typing import TYPE_CHECKING
@@ -36,8 +36,8 @@ class Project:
         self._directory = directory
         self._quib_refs: weakref.WeakSet[Quib] = weakref.WeakSet()
         self._pending_undo_group: Optional[List] = None
-        self._undo_action_groups: List[List[Action]] = []
-        self._redo_action_groups: List[List[Action]] = []
+        self._undo_action_groups: List[List[AssignmentAction]] = []
+        self._redo_action_groups: List[List[AssignmentAction]] = []
         self._quib_refs_to_paths_to_assignment_actions = defaultdict(dict)
         self._save_format: SaveFormat = self.DEFAULT_SAVE_FORMAT
         self._graphics_update: GraphicsUpdateType = self.DEFAULT_GRAPHICS_UPDATE
@@ -446,13 +446,12 @@ class Project:
     def start_pending_undo_group(self):
         self._pending_undo_group = []
 
-    # def _remove_actions_of_specified_quib(self):
     def upsert_assignment_to_pending_undo_group(self, quib: Quib,
                                                 assignment: Assignment = None,
                                                 assignment_index: int = None,
                                                 old_assignment: Assignment = None,
                                                 old_assignment_index: int = None):
-        quib_ref = weakref.ref(quib)
+        quib_ref = weakref.ref(quib, self.clear_undo_and_redo_stacks)
         if old_assignment:
             self._pending_undo_group.append(
                 RemoveAssignmentAction(quib_ref=quib_ref,
@@ -472,37 +471,6 @@ class Project:
             self._pending_undo_group = []
             self._redo_action_groups.clear()
             self.set_undo_redo_buttons_enable_state()
-
-    def upsert_assignment_to_quib(self, quib: Quib, index: int, assignment: Assignment):
-        if len(quib.handler.overrider) > index:
-            old_assignment = quib.handler.overrider.pop_assignment_at_index(index)
-        else:
-            old_assignment = None
-        quib.handler.overrider.insert_assignment_at_index(assignment, index)
-        self.start_pending_undo_group()
-        self.upsert_assignment_to_pending_undo_group(quib=quib, assignment=assignment, assignment_index=index,
-                                                     old_assignment=old_assignment, old_assignment_index=index)
-        quib.handler.file_syncer.on_data_changed()
-        quib.handler.invalidate_and_aggregate_redraw_at_path(assignment.path)
-        if old_assignment is not None:
-            quib.handler.invalidate_and_aggregate_redraw_at_path(old_assignment.path)
-        quib.handler.on_overrides_changes()
-
-    def remove_assignment_from_quib(self, quib: Quib, assignment_index: int):
-        """
-        Remove an assignment from the quib, ensuring that it will be able to be "undone" and "redone"
-        should `undo`/`redo` be called
-        """
-        assignment = quib.handler.overrider.pop_assignment_at_index(assignment_index)
-        self.start_pending_undo_group()
-        self.upsert_assignment_to_pending_undo_group(quib=quib, old_assignment=assignment,
-                                                     old_assignment_index=assignment_index)
-        self._redo_action_groups.clear()
-        quib.handler.file_syncer.on_data_changed()
-        self.set_undo_redo_buttons_enable_state()
-
-        quib.handler.invalidate_and_aggregate_redraw_at_path(assignment.path)
-        quib.handler.on_overrides_changes()
 
     def set_undo_redo_buttons_enable_state(self):
         pass

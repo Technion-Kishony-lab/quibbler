@@ -185,8 +185,7 @@ class QuibWidget:
             self._assignments_box.children = children
             self._plus_button.disabled = False
         else:
-            from pyquibbler import Project
-            Project.get_or_create().remove_assignment_from_quib(self.quib, assignment_index)
+            self.quib.handler.upsert_override(None, assignment_index)
 
     def _add_empty_assignment(self, *_):
         children = list(self._assignments_box.children)
@@ -197,8 +196,7 @@ class QuibWidget:
     def _on_edit_assignment(self, assignment_index, change):
         override_text: str = change['new']
         assignment = convert_simplified_text_to_assignment(override_text)
-        from pyquibbler import Project
-        Project.get_or_create().upsert_assignment_to_quib(self.quib, assignment_index, assignment)
+        self.quib.handler.upsert_override(assignment, assignment_index)
 
     def _toggle_show_overrides(self):
         if self._assignments_button.value:

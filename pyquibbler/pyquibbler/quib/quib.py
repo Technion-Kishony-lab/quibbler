@@ -384,6 +384,25 @@ class QuibHandler:
 
         notify_of_overriding_changes_or_add_in_aggregate_mode(self.quib)
 
+    def upsert_override(self, assignment: Optional[Assignment], index: Optional[int]):
+        if index is None:
+            index = len(self.overrider)
+        old_assignment = self.overrider.pop_assignment_at_index(index) if len(self.overrider) > index \
+            else None
+        if assignment:
+            self.overrider.insert_assignment_at_index(assignment, index)
+        self.project.start_pending_undo_group()
+        self.project.upsert_assignment_to_pending_undo_group(quib=self.quib,
+                                                             assignment=assignment, assignment_index=index,
+                                                             old_assignment=old_assignment, old_assignment_index=index)
+        self.file_syncer.on_data_changed()
+        if assignment:
+            self.invalidate_and_aggregate_redraw_at_path(assignment.path)
+        if old_assignment:
+            self.invalidate_and_aggregate_redraw_at_path(old_assignment.path)
+        self.on_overrides_changes()
+        self.project.set_undo_redo_buttons_enable_state()
+
     def apply_assignment(self, assignment: Assignment) -> None:
         """
         Apply an assignment to the quib locally or as inverse assignment to upstream quibs.
