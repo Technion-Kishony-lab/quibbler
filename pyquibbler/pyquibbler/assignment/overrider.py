@@ -3,7 +3,7 @@ import pickle
 
 import numpy as np
 
-from typing import Any, Optional, Dict, Hashable, List
+from typing import Any, Optional, Dict, Hashable, List, Tuple
 
 from pyquibbler.path.hashable import get_hashable_path
 from pyquibbler.path.path_component import Path, Paths
@@ -44,19 +44,24 @@ class Overrider:
         # TODO: invalidate only the changed paths
         return [[]]
 
-    def _add_to_paths_to_assignments(self, assignment: Assignment):
+    def _add_to_paths_to_assignments(self, assignment: Assignment) -> Tuple[int, Assignment]:
         hashable_path = get_hashable_path(assignment.path)
         # We need to first remove and then add to make sure the new key value pair are now first in the dict
         if hashable_path in self._paths_to_assignments:
-            self._paths_to_assignments.pop(hashable_path)
+            old_assignment_index = list(self._paths_to_assignments.keys()).index(hashable_path)
+            old_assignment = self._paths_to_assignments.pop(hashable_path)
+        else:
+            old_assignment_index = None
+            old_assignment = None
         self._paths_to_assignments[hashable_path] = assignment
+        return old_assignment_index, old_assignment
 
-    def add_assignment(self, assignment: Assignment):
+    def add_assignment(self, assignment: Assignment) -> Tuple[int, Assignment]:
         """
         Adds an override to the overrider - data[key] = value.
         """
         self._active_assignment = assignment
-        self._add_to_paths_to_assignments(assignment)
+        return self._add_to_paths_to_assignments(assignment)
 
     def pop_assignment_at_path(self, path: Path, raise_on_not_found: bool = True):
         hashable_path = get_hashable_path(path)
@@ -64,7 +69,7 @@ class Overrider:
             raise NoAssignmentFoundAtPathException(path=path)
         return self._paths_to_assignments.pop(hashable_path, None)
 
-    def pop_assignment_at_index(self, index: int):
+    def pop_assignment_at_index(self, index: int) -> Assignment:
         new_paths_with_assignments = list(self._paths_to_assignments.items())
         _, assignment = new_paths_with_assignments.pop(index)
         self._paths_to_assignments = dict(new_paths_with_assignments)
