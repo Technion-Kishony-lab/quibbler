@@ -342,7 +342,7 @@ def test_undo_after_undo():
 def test_undo_after_remove_assignment(project):
     quib = iquib(1)
     quib.assign(3)
-    project.remove_assignment_from_quib(quib=quib, assignment_index=0)
+    quib.handler.upsert_override(None, )
     # Sanity
     assert quib.get_value() == 1
 
