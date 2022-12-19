@@ -346,7 +346,11 @@ class QuibHandler:
         return self._overrider is not None and len(self._overrider) > 0
 
     def _add_override(self, assignment: Assignment):
-        self.overrider.add_assignment(assignment)
+        old_assignment_index, old_assignment = self.overrider.add_assignment(assignment)
+        self.project.upsert_assignment_to_pending_undo_group(quib=self.quib, assignment=assignment,
+                                                             assignment_index=len(self.overrider) - 1,
+                                                             old_assignment=old_assignment,
+                                                             old_assignment_index=old_assignment_index)
 
         try:
             self._invalidate_and_redraw_at_path(assignment.path)
@@ -375,10 +379,6 @@ class QuibHandler:
             assignment.value = self.assignment_template.convert(assignment.value)
 
         self._add_override(assignment)
-
-        self.project.push_assignment_to_pending_undo_group(quib=self.quib,
-                                                           assignment=assignment,
-                                                           assignment_index=len(self.overrider) - 1)
 
         self.file_syncer.on_data_changed()
 
