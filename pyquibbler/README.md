@@ -1,4 +1,4 @@
-<img src="https://github.com/Technion-Kishony-lab/quibbler/blob/master/pyquibbler-documentations/docs/images/quibicon.gif?raw=true" width=300 align='right'>
+<img src="https://github.com/Technion-Kishony-lab/quibbler/blob/master/pyquibbler-documentations/docs/images/quibicon.gif?raw=true" width=250 align='right'>
 
 # Quibbler
 **Interactive, reproducible and efficient data analytics**
