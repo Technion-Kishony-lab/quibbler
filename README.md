@@ -1,4 +1,4 @@
-<img src="https://github.com/Technion-Kishony-lab/quibbler/blob/master/pyquibbler-documentations/docs/images/quibicon.gif?raw=true" width=320 align='right'>
+<img src="https://github.com/Technion-Kishony-lab/quibbler/blob/master/pyquibbler-documentations/docs/images/quibbler_promo.gif?raw=true" width=320 align='right'>
 
 # Quibbler
 **Interactive, reproducible and efficient data analytics**
@@ -37,7 +37,6 @@ For details (and prizes!) see: [Best Quibble Award](https://kishony.technion.ac.
 
 
 ## Main Features
-<img src="https://github.com/Technion-Kishony-lab/quibbler/blob/master/pyquibbler-documentations/docs/images/quibbler_promo.gif?raw=true" width=320 align='right'>
 
 **Interactivity** 
 
