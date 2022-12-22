@@ -11,15 +11,17 @@ from multiprocessing import Process
 
 import ipynbname
 from pathlib import Path
-from typing import Optional, Iterable, Tuple, Callable
+from typing import Optional, Iterable, Tuple, Callable, Union
 
+from pyquibbler.utilities.warning_messages import no_header_warn
 from pyquibbler.quib.quib import Quib
 from pyquibbler.file_syncing import SaveFormat, ResponseToFileNotDefined
 from pyquibbler.debug_utils.logger import logger
-from pyquibbler.project import Project
-from pyquibbler.project.jupyer_project.flask_dialog_server import run_flask_app
-from pyquibbler.project.jupyer_project.utils import is_within_jupyter_lab, find_free_port
 from pyquibbler.utilities.file_path import PathToNotebook
+
+from ..project import Project
+from .flask_dialog_server import run_flask_app
+from .utils import is_within_jupyter_lab, find_free_port
 
 
 class JupyterProject(Project):
@@ -102,26 +104,37 @@ class JupyterProject(Project):
         logger.info(f"Sending to client {action_type} {message_data}")
         self._comm.send({'type': action_type, "data": message_data})
 
+    def _get_notebook_content(self):
+        if self._jupyter_notebook_path is None:
+            return None
+        try:
+            with open(self._jupyter_notebook_path, 'r') as f:
+                return json.load(f)
+        except FileNotFoundError:
+            self._jupyter_notebook_path = None
+            return None
+
     def _open_project_directory_from_notebook_zip(self):
         """
         Open a project directory from the notebook's internal zip.
         The directory will be temporary, and will be deleted when the client calls "cleanup" (`_cleanup`)
         """
+        notebook_content = self._get_notebook_content()
+        if notebook_content is None:
+            return
+
         if self._tmp_save_directory is None:
             self._tmp_save_directory = tempfile.mkdtemp()
-
         self._directory = PathToNotebook(self._tmp_save_directory)
 
         logger.info(f"Using notebook {self._jupyter_notebook_path}")
         logger.info(f"Loading quibs {self.directory}...")
-        with open(self._jupyter_notebook_path, 'r') as f:
-            jupyter_notebook = json.load(f)
-            b64_encoded_zip_content = jupyter_notebook['metadata'].get('quibs_archive')
-            if b64_encoded_zip_content is not None:
-                logger.info("Quibs exist! Unzipping quibs archive into directory...")
-                raw_bytes = base64.b64decode(b64_encoded_zip_content)
-                buffer = io.BytesIO(raw_bytes)
-                zipfile.ZipFile(buffer).extractall(self.directory)
+        b64_encoded_zip_content = notebook_content['metadata'].get('quibs_archive')
+        if b64_encoded_zip_content is not None:
+            logger.info("Quibs exist! Unzipping quibs archive into directory...")
+            raw_bytes = base64.b64decode(b64_encoded_zip_content)
+            buffer = io.BytesIO(raw_bytes)
+            zipfile.ZipFile(buffer).extractall(self.directory)
 
     def _create_zip_buffer_from_save_directory(self):
         """
@@ -141,11 +154,12 @@ class JupyterProject(Project):
         Send the quibs archive to the client- the client is responsible for writing it into the notebook.
         This needs to be called whenever there are changed to quib files (`_wrap_file_system_func` calls this func)
         """
+        notebook_content = self._get_notebook_content()
+        if notebook_content is None:
+            return
+
         logger.info(f"Saving zip into notebook's metadata..., {self._directory}")
         zip_buffer = self._create_zip_buffer_from_save_directory()
-
-        with open(self._jupyter_notebook_path, 'r') as f:
-            notebook_content = json.load(f)
 
         base64_bytes = base64.b64encode(zip_buffer.getvalue())
         base64_message = base64_bytes.decode('ascii')
@@ -165,9 +179,11 @@ class JupyterProject(Project):
         """
         Clear the saved quib data within the notebook
         """
-        with open(self._jupyter_notebook_path, 'r') as f:
-            notebook_content = json.load(f)
-            notebook_content['metadata']['quibs_archive'] = None
+        notebook_content = self._get_notebook_content()
+        if notebook_content is None:
+            return
+
+        notebook_content['metadata']['quibs_archive'] = None
 
         with open(self._jupyter_notebook_path, 'w') as f:
             f.write(json.dumps(notebook_content, indent=2))
@@ -191,16 +207,69 @@ class JupyterProject(Project):
 
         self._should_save_load_within_notebook = should_save_load_within_notebook
 
+    def _refresh_jupyter_notebook_path(self):
+        try:
+            self._jupyter_notebook_path = ipynbname.path()
+        except FileNotFoundError:
+            self._jupyter_notebook_path = os.environ.get("JUPYTER_NOTEBOOK")
+        if self._jupyter_notebook_path is None:
+            no_header_warn(
+                'ibynbname was unable to identify the filename of the Jupyter notebook.\n'
+                'Saving quibs to Jupyter notebook is disabled.\n'
+                'To enable saving quibs to Jupyter notebook, you can manually set the notebook file path, using:\n'
+                '`qb.get_project().set_jupyter_notebook_path(...)`\n')
+
+    def get_jupyter_notebook_path(self):
+        """
+        Returns the path of the Jupyter notebook.
+
+        When working withing Jupyter lab, Quibbler can save quibs to the Jupyter notebook.
+        The jupyter_notebook_path designates the location of the notebook.
+        The path location is typically set automatically as the Notebook in which Quibbler is running.
+
+        See Also
+        --------
+        set_jupyter_notebook_path
+        """
+        return self._jupyter_notebook_path
+
+    def set_jupyter_notebook_path(self, path: Optional[Union[Path, str]]):
+        """
+        Set the file name of Jupyter notebook.
+
+        When working withing Jupyter lab, Quibbler can save quibs to the Jupyter notebook.
+        The jupyter_notebook_path designates the location of the notebook.
+        The path location is typically set automatically as the Notebook in which Quibbler is running.
+        If automatic setting fails, you can use set_jupyter_notebook_path to manually set the notebook path.
+
+        Parameters
+        ----------
+        path: str or Path
+            Absolute or relative path to the Jupyter notebook.
+
+        See Also
+        --------
+        get_jupyter_notebook_path
+        """
+        if isinstance(path, str):
+            path = Path(path)
+        path = path.resolve()
+        if path.suffix != '.ipynb':
+            raise ValueError('jupyter_notebook_path must be set to a valid Jupyter file with extension ".ipynb"')
+        if not path.exists():
+            raise ValueError('Notebook file not found.')
+        self._jupyter_notebook_path = path
+
     def listen_for_events(self):
         """
         Listen for all events from frontend- this will create a callback for any event coming from the frontend,
         and will run the relevant method for the event.
-        It will then send BACK the response with the `request_id` specificed in the original event
+        It will then send BACK the response with the `request_id` specified in the original event
         """
 
         from pyquibbler.optional_packages.get_IPython import Comm
 
-        self._jupyter_notebook_path = os.environ.get("JUPYTER_NOTEBOOK", ipynbname.path())
+        self._refresh_jupyter_notebook_path()
         self._comm = Comm(target_name='pyquibbler')
         action_names_to_funcs = {
             "undo": self.undo,

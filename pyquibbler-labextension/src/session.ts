@@ -26,7 +26,8 @@ export const Session = (panel: NotebookPanel,
 
   const getRequester = () => {
     if (requester == null) {
-      throw new Error("No requester exists - you need to run `initialize_quibbler` to initialize pyquibbler.");
+      throw new Error("Jupyter is not connected with pyquibbler.  " +
+          "Run `initialize_quibbler(jupyterlab_extension=True)` to connect.");
     }
     return requester;
   }
