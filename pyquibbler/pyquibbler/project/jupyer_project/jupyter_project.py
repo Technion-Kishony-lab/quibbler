@@ -102,26 +102,37 @@ class JupyterProject(Project):
         logger.info(f"Sending to client {action_type} {message_data}")
         self._comm.send({'type': action_type, "data": message_data})
 
+
+    def _get_notebook_content(self):
+        if self._jupyter_notebook_path is None:
+            return None
+        try:
+            with open(self._jupyter_notebook_path, 'r') as f:
+                return json.load(f)
+        except FileNotFoundError:
+            return None
+
     def _open_project_directory_from_notebook_zip(self):
         """
         Open a project directory from the notebook's internal zip.
         The directory will be temporary, and will be deleted when the client calls "cleanup" (`_cleanup`)
         """
+        notebook_content = self._get_notebook_content()
+        if notebook_content is None:
+            return
+
         if self._tmp_save_directory is None:
             self._tmp_save_directory = tempfile.mkdtemp()
-
         self._directory = PathToNotebook(self._tmp_save_directory)
 
         logger.info(f"Using notebook {self._jupyter_notebook_path}")
         logger.info(f"Loading quibs {self.directory}...")
-        with open(self._jupyter_notebook_path, 'r') as f:
-            jupyter_notebook = json.load(f)
-            b64_encoded_zip_content = jupyter_notebook['metadata'].get('quibs_archive')
-            if b64_encoded_zip_content is not None:
-                logger.info("Quibs exist! Unzipping quibs archive into directory...")
-                raw_bytes = base64.b64decode(b64_encoded_zip_content)
-                buffer = io.BytesIO(raw_bytes)
-                zipfile.ZipFile(buffer).extractall(self.directory)
+        b64_encoded_zip_content = notebook_content['metadata'].get('quibs_archive')
+        if b64_encoded_zip_content is not None:
+            logger.info("Quibs exist! Unzipping quibs archive into directory...")
+            raw_bytes = base64.b64decode(b64_encoded_zip_content)
+            buffer = io.BytesIO(raw_bytes)
+            zipfile.ZipFile(buffer).extractall(self.directory)
 
     def _create_zip_buffer_from_save_directory(self):
         """
@@ -141,11 +152,12 @@ class JupyterProject(Project):
         Send the quibs archive to the client- the client is responsible for writing it into the notebook.
         This needs to be called whenever there are changed to quib files (`_wrap_file_system_func` calls this func)
         """
+        notebook_content = self._get_notebook_content()
+        if notebook_content is None:
+            return
+
         logger.info(f"Saving zip into notebook's metadata..., {self._directory}")
         zip_buffer = self._create_zip_buffer_from_save_directory()
-
-        with open(self._jupyter_notebook_path, 'r') as f:
-            notebook_content = json.load(f)
 
         base64_bytes = base64.b64encode(zip_buffer.getvalue())
         base64_message = base64_bytes.decode('ascii')
@@ -165,9 +177,11 @@ class JupyterProject(Project):
         """
         Clear the saved quib data within the notebook
         """
-        with open(self._jupyter_notebook_path, 'r') as f:
-            notebook_content = json.load(f)
-            notebook_content['metadata']['quibs_archive'] = None
+        notebook_content = self._get_notebook_content()
+        if notebook_content is None:
+            return
+
+        notebook_content['metadata']['quibs_archive'] = None
 
         with open(self._jupyter_notebook_path, 'w') as f:
             f.write(json.dumps(notebook_content, indent=2))
