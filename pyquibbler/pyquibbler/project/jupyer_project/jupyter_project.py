@@ -102,7 +102,6 @@ class JupyterProject(Project):
         logger.info(f"Sending to client {action_type} {message_data}")
         self._comm.send({'type': action_type, "data": message_data})
 
-
     def _get_notebook_content(self):
         if self._jupyter_notebook_path is None:
             return None
@@ -110,6 +109,7 @@ class JupyterProject(Project):
             with open(self._jupyter_notebook_path, 'r') as f:
                 return json.load(f)
         except FileNotFoundError:
+            self._jupyter_notebook_path = None
             return None
 
     def _open_project_directory_from_notebook_zip(self):
@@ -205,16 +205,22 @@ class JupyterProject(Project):
 
         self._should_save_load_within_notebook = should_save_load_within_notebook
 
+    def _refresh_jupyter_notebook_path(self):
+        try:
+            self._jupyter_notebook_path = os.environ.get("JUPYTER_NOTEBOOK", ipynbname.path())
+        except FileNotFoundError:
+            self._jupyter_notebook_path = None
+
     def listen_for_events(self):
         """
         Listen for all events from frontend- this will create a callback for any event coming from the frontend,
         and will run the relevant method for the event.
-        It will then send BACK the response with the `request_id` specificed in the original event
+        It will then send BACK the response with the `request_id` specified in the original event
         """
 
         from pyquibbler.optional_packages.get_IPython import Comm
 
-        self._jupyter_notebook_path = os.environ.get("JUPYTER_NOTEBOOK", ipynbname.path())
+        self._refresh_jupyter_notebook_path()
         self._comm = Comm(target_name='pyquibbler')
         action_names_to_funcs = {
             "undo": self.undo,
