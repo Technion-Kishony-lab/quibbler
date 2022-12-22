@@ -1,4 +1,4 @@
-<img src="https://github.com/Technion-Kishony-lab/quibbler/blob/master/pyquibbler-documentations/docs/images/quibicon.gif?raw=true" width=250 align='right'>
+<img src="https://github.com/Technion-Kishony-lab/quibbler/blob/master/pyquibbler-documentations/docs/images/quibicon.gif?raw=true" width=320 align='right'>
 
 # Quibbler
 **Interactive, reproducible and efficient data analytics**
@@ -21,10 +21,10 @@ propagate downstream, pinpointing which specific data items, or
 even specific elements thereof, are affected, thereby vastly saving unnecessary 
 recalculations. *Quibbler*, therefore, facilitates hands-on interactions with data 
 in ways that are not only flexible, fun and interactive, but also traceable, 
-well-documented, and highly efficient.
+reproducible, and computationally efficient.
 
 
-### Checkout our "Best Quibble" competition!
+### Check out our "Best Quibble" competition!
 We just launched *Quibbler* in [PyData Tel-Aviv](https://pydata.org/telaviv2022/).
 We are seeking engagement from users and developers and are also eager to learn of 
 the range of applications for *Quibbler*. 
@@ -32,33 +32,46 @@ To get it fun and going, we are announcing a competition for the best **"Quibble
 a short elegant quib-based code that demonstrates fun interactive graphics and/or hints 
 to ideas of applications. 
 
+The competition is open to everyone. 
 For details (and prizes!) see: [Best Quibble Award](https://kishony.technion.ac.il/best-quibble-award/)   
 
 
 ## Main Features
-<img src="https://github.com/Technion-Kishony-lab/quibbler/blob/master/pyquibbler-documentations/docs/images/quibbler_promo.gif?raw=true" width=300 align='right'>
+<img src="https://github.com/Technion-Kishony-lab/quibbler/blob/master/pyquibbler-documentations/docs/images/quibbler_promo.gif?raw=true" width=320 align='right'>
 
-Here are a few of the things that *Quibbler* does:
+**Interactivity** 
 
-* Easily build powerful GUI-like interaction with data, without a need for callbacks 
-and event listeners. 
+* Creating [interactive graphics](https://quibbler.readthedocs.io/en/latest/Quickstart.html) is as 
+simple as calling standard Matplotlib graphics functions with arguments that represent your parameter values.
 
-* Interactive specification of inputs and overrides of parameter values.
+* Any data presented graphically is automatically live and interactive 
+(no need for the tedious programming of callback functions).
 
-* Automatically create human-readable records of user interventions and parameter specifications.
+**Traceability and Reproducibility**
+* Trace which specific data items and analysis parameters affect focal downstream results (see 
+[dependency graph](https://quibbler.readthedocs.io/en/latest/Quib-relationships.html)).  
 
-* Independently calculate, cache and validate/invalidate individual slices of heavy-to-calculate arrays. 
+* Inherent [undo/redo](https://quibbler.readthedocs.io/en/latest/Jupyter-lab-ext.html) functionality.
 
-* Present a dependency graph between raw data and downstream results.  
+* [Save/load](https://quibbler.readthedocs.io/en/latest/Project-save-load.html) parameter values as 
+human-readable records (either as external text files, 
+or [inside Jupyter notebook](https://quibbler.readthedocs.io/en/latest/Jupyter-lab-ext.html)).
 
-* Provide inherent undo/redo functionalities.
+**Computational efficiency**
+* Upon parameter changes, *Quibbler* pinpoints and only recalculates the specifically affected array elements 
+of downstream analysis steps ([here](https://quibbler.readthedocs.io/en/latest/Diverged-evaluation.html)).
 
-* **_All-of-the-above using completely standard functions and programming syntax - 
-there is very little to learn to get started!_** 
+**All-of-the-above using completely standard functions and programming syntax - 
+_just "iquib" your inputs and your code comes to life!_** 
 
 
-## Documentations and Examples
-For complete documentations and a getting-started tour, see [readthedocs](https://quibbler.readthedocs.io/en/latest/). 
+Quibbler currently supports natural coding syntax with all Python operators, slicing, getitem, Numpy functions, 
+Matplotlib graphics, Matplotlib widgets, and ipywidgets. It further provides an easy way to incorporate 
+any user function or functions from any other (non-graphics) packages. 
+Support for other graphics packages, besides Matplotlib, will be offered in future releases.       
+
+## Documentation and Examples
+For complete documentation and a getting-started tour, see [readthedocs](https://quibbler.readthedocs.io/en/latest/). 
 
 For simple demos and small apps, see our [Examples](https://quibbler.readthedocs.io/en/latest/Examples.html).  
 
@@ -90,12 +103,14 @@ by Maor Kern, Maor Kleinberger and Roy Kishony.
 We very much welcome any thoughts, suggestions and ideas and of course welcome PR contributions 
 (for some proposed directions, see our pending [issues](https://github.com/Technion-Kishony-lab/quibbler/issues)). 
 
-## Related products
+## Related packages
 
+* [Matplotlib](https://github.com/matplotlib/matplotlib)
 * [Streamlit](https://streamlit.io/)
 * [Plotly](https://plotly.com/)
 * [Shiny](https://shiny.rstudio.com/)
 * [ipywidgets](https://github.com/jupyter-widgets/ipywidgets)
 * [bokeh](http://bokeh.org)
+* [HoloViz](https://holoviz.org/)
 * [Vega-Altair](https://altair-viz.github.io/)
 * [Datashader](https://datashader.org/)
