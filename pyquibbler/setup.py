@@ -5,8 +5,22 @@ setup_directory = Path(__file__).parent
 long_description = (setup_directory / "README.md").read_text(encoding="utf-8")
 
 setup(
+    classifiers=[
+        'Framework :: Matplotlib',
+        'Framework :: Jupyter',
+        'Intended Audience :: Developers',
+        'Intended Audience :: Education',
+        'Intended Audience :: Science/Research',
+        'Intended Audience :: Healthcare Industry',
+        'Intended Audience :: Information Technology',
+        'Topic :: Scientific/Engineering',
+        'Topic :: Scientific/Engineering :: Visualization',
+        'License :: OSI Approved :: MIT License',
+        'Programming Language :: Python',
+        'Operating System :: OS Independent',
+    ],
     name="pyquibbler",
-    version='0.2.2',
+    version='0.2.3',
     python_requires='>=3.8',
     long_description=long_description,
     long_description_content_type='text/markdown',
