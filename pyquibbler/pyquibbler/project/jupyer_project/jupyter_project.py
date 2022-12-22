@@ -11,15 +11,17 @@ from multiprocessing import Process
 
 import ipynbname
 from pathlib import Path
-from typing import Optional, Iterable, Tuple, Callable
+from typing import Optional, Iterable, Tuple, Callable, Union
 
+from pyquibbler.utilities.warning_messages import no_header_warn
 from pyquibbler.quib.quib import Quib
 from pyquibbler.file_syncing import SaveFormat, ResponseToFileNotDefined
 from pyquibbler.debug_utils.logger import logger
-from pyquibbler.project import Project
-from pyquibbler.project.jupyer_project.flask_dialog_server import run_flask_app
-from pyquibbler.project.jupyer_project.utils import is_within_jupyter_lab, find_free_port
 from pyquibbler.utilities.file_path import PathToNotebook
+
+from ..project import Project
+from .flask_dialog_server import run_flask_app
+from .utils import is_within_jupyter_lab, find_free_port
 
 
 class JupyterProject(Project):
@@ -207,9 +209,56 @@ class JupyterProject(Project):
 
     def _refresh_jupyter_notebook_path(self):
         try:
-            self._jupyter_notebook_path = os.environ.get("JUPYTER_NOTEBOOK", ipynbname.path())
+            self._jupyter_notebook_path = ipynbname.path()
         except FileNotFoundError:
-            self._jupyter_notebook_path = None
+            self._jupyter_notebook_path = os.environ.get("JUPYTER_NOTEBOOK")
+        if self._jupyter_notebook_path is None:
+            no_header_warn(
+                'ibynbname was unable to identify the filename of the Jupyter notebook.\n'
+                'Saving quibs to Jupyter notebook is disabled.\n'
+                'To enable saving quibs to Jupyter notebook, you can manually set the notebook file path, using:\n'
+                '`qb.get_project().set_jupyter_notebook_path(...)`\n')
+
+    def get_jupyter_notebook_path(self):
+        """
+        Returns the path of the Jupyter notebook.
+
+        When working withing Jupyter lab, Quibbler can save quibs to the Jupyter notebook.
+        The jupyter_notebook_path designates the location of the notebook.
+        The path location is typically set automatically as the Notebook in which Quibbler is running.
+
+        See Also
+        --------
+        set_jupyter_notebook_path
+        """
+        return self._jupyter_notebook_path
+
+    def set_jupyter_notebook_path(self, path: Optional[Union[Path, str]]):
+        """
+        Set the file name of Jupyter notebook.
+
+        When working withing Jupyter lab, Quibbler can save quibs to the Jupyter notebook.
+        The jupyter_notebook_path designates the location of the notebook.
+        The path location is typically set automatically as the Notebook in which Quibbler is running.
+        If automatic setting fails, you can use set_jupyter_notebook_path to manually set the notebook path.
+
+        Parameters
+        ----------
+        path: str or Path
+            Absolute or relative path to the Jupyter notebook.
+
+        See Also
+        --------
+        get_jupyter_notebook_path
+        """
+        if isinstance(path, str):
+            path = Path(path)
+        path = path.resolve()
+        if path.suffix != '.ipynb':
+            raise ValueError('jupyter_notebook_path must be set to a valid Jupyter file with extension ".ipynb"')
+        if not path.exists():
+            raise ValueError('Notebook file not found.')
+        self._jupyter_notebook_path = path
 
     def listen_for_events(self):
         """
