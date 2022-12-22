@@ -24,8 +24,10 @@ from ..project.jupyer_project.utils import is_within_colab
 ATTRIBUTES_TO_ATTRIBUTE_OVERRIDES: Dict[str, AttributeOverride] = {}
 
 
-@validate_user_input(draggable_plots=bool, show_quibs_as_widgets=bool)
-def initialize_quibbler(draggable_plots: bool = True, show_quibs_as_widgets: bool = True):
+@validate_user_input(draggable_plots=bool, show_quibs_as_widgets=bool, jupyterlab_extension=bool)
+def initialize_quibbler(draggable_plots: bool = True,
+                        show_quibs_as_widgets: bool = True,
+                        jupyterlab_extension: bool = True):
     """
     Initialize Quibbler to allow functions to work on quibs
 
@@ -45,9 +47,13 @@ def initialize_quibbler(draggable_plots: bool = True, show_quibs_as_widgets: boo
         specified in the `plot` or `scatter` function calls.
 
     show_quibs_as_widgets: bool, default True
-        Indicates whether to display quibs as interactive widgets.
+        Indicates whether to display quibs as interactive widgets within Jupyter Lab.
         When set to False, quibs can still be displayed as widgets using the quib's `display()` method.
         (Note that `show_quibs_as_widgets` is only applicable within Jupyter Lab).
+
+    jupyterlab_extension: bool, default True
+        Indicates whether to connect with the pyquibbler_labextension to allow save/load of quibs to the
+        Jupyter notebook.
 
     See Also
     --------
@@ -88,7 +94,7 @@ def initialize_quibbler(draggable_plots: bool = True, show_quibs_as_widgets: boo
     if IS_QUIBBLER_INITIATED:
         return
 
-    within_jupyterlab = create_jupyter_project_if_in_jupyter_lab()
+    within_jupyterlab = jupyterlab_extension and create_jupyter_project_if_in_jupyter_lab()
 
     func_definitions = create_definitions_for_python_functions()
     for func, func_definition in func_definitions.items():
