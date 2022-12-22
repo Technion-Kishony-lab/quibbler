@@ -69,6 +69,21 @@ Matplotlib graphics, Matplotlib widgets, and ipywidgets. It further provides an 
 any user function or functions from any other (non-graphics) packages. 
 Support for other graphics packages, besides Matplotlib, will be offered in future releases.       
 
+## Minimal app
+```python
+from pyquibbler import initialize_quibbler, iquib
+initialize_quibbler()
+import matplotlib.pyplot as plt
+
+x = iquib(0.5)
+plt.plot([0, 1], [0, 1])
+plt.plot(x, x, marker='o')
+plt.title(x)
+```
+
+<img src="https://github.com/Technion-Kishony-lab/quibbler/blob/master/pyquibbler-documentations/docs/images/minimal_app.gif?raw=true width=250">
+
+
 ## Documentation and Examples
 For complete documentation and a getting-started tour, see [readthedocs](https://quibbler.readthedocs.io/en/latest/). 
 
