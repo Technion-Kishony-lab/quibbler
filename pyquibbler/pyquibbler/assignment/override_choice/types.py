@@ -28,10 +28,13 @@ class OverrideGroup:
     quib_changes: List[AssignmentToQuib] = field(default_factory=list)
 
     def apply(self, is_dragging: Optional[bool] = False):
-        Project.get_or_create().start_pending_undo_group()
+        project = Project.get_or_create()
+        project.start_pending_undo_group()
         with aggregate_redraw_mode(is_dragging):
             for quib_change in self.quib_changes:
                 quib_change.apply()
+        if is_dragging is not None:
+            project.squash_pending_group_into_last_undo()
 
     def __bool__(self):
         return len(self.quib_changes) > 0

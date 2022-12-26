@@ -168,6 +168,7 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
             overrides = override or overrides
         else:
             # both x and y are quibs:
+            from pyquibbler import Project
             xy_change = XY.from_func(get_assignment_from_quib_and_path, quib_and_path, xy_mouse)
             xy_old = _get_xy_current_point_from_xy_change(xy_change)
             xy_assigned_value = PointXY.from_func(lambda xy: xy.assignment.value, xy_change)
@@ -182,6 +183,7 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
                     continue
                 focal_override.apply(is_dragging=None)
                 xy_new = _get_xy_current_point_from_xy_change(xy_change)
+                Project.get_or_create().silently_undo_pending_group()
                 xy_closest, slope = get_closest_point_on_line_in_axes(ax, xy_old, xy_new, xy_assigned_value)
                 adjusted_change = get_assignment_from_quib_and_path(quib_and_path[focal_xy], xy_closest[focal_xy],
                                                                     tolerance[focal_xy] * slope[focal_xy])
