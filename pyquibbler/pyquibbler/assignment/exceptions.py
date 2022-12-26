@@ -10,14 +10,6 @@ if TYPE_CHECKING:
 
 
 @dataclass
-class NoAssignmentFoundAtPathException(PyQuibblerException):
-    path: Path
-
-    def __str__(self):
-        return 'Attempting to remove an overriding assignment which does not exist.'
-
-
-@dataclass
 class CannotConvertTextToAssignmentsException(PyQuibblerException):
     text: str
 

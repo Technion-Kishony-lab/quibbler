@@ -346,11 +346,12 @@ class QuibHandler:
         return self._overrider is not None and len(self._overrider) > 0
 
     def _add_override(self, assignment: Assignment):
-        old_assignment_index, old_assignment = self.overrider.add_assignment(assignment)
-        self.project.upsert_assignment_to_pending_undo_group(quib=self.quib, assignment=assignment,
-                                                             assignment_index=len(self.overrider) - 1,
+        old_assignment, old_next_assignment = self.overrider.add_assignment(assignment)
+        self.project.upsert_assignment_to_pending_undo_group(quib=self.quib,
+                                                             assignment=assignment,
+                                                             next_assignment=None,
                                                              old_assignment=old_assignment,
-                                                             old_assignment_index=old_assignment_index)
+                                                             old_next_assignment=old_next_assignment)
 
         try:
             self._invalidate_and_redraw_at_path(assignment.path)
@@ -384,24 +385,29 @@ class QuibHandler:
 
         notify_of_overriding_changes_or_add_in_aggregate_mode(self.quib)
 
-    def upsert_override(self, assignment: Optional[Assignment], index: Optional[int]):
+    def upsert_override_at_index(self, assignment: Optional[Assignment], index: Optional[int]):
         if index is None:
             index = len(self.overrider)
-        old_assignment = self.overrider.pop_assignment_at_index(index) if len(self.overrider) > index \
-            else None
+        old_assignment, old_next_assignment = \
+            self.overrider.pop_assignment_at_index(index) if len(self.overrider) > index else (None, None)
         if assignment:
-            self.overrider.insert_assignment_at_index(assignment, index)
-        self.project.start_pending_undo_group()
-        self.project.upsert_assignment_to_pending_undo_group(quib=self.quib,
-                                                             assignment=assignment, assignment_index=index,
-                                                             old_assignment=old_assignment, old_assignment_index=index)
+            next_assignment = self.overrider.insert_assignment_at_index(index, assignment)
+        else:
+            next_assignment = None
+        project = self.project
+        project.start_pending_undo_group()
+        project.upsert_assignment_to_pending_undo_group(quib=self.quib,
+                                                        assignment=assignment,
+                                                        next_assignment=next_assignment,
+                                                        old_assignment=old_assignment,
+                                                        old_next_assignment=old_next_assignment)
+        project.push_pending_undo_group_to_undo_stack()
         self.file_syncer.on_data_changed()
         if assignment:
             self.invalidate_and_aggregate_redraw_at_path(assignment.path)
         if old_assignment:
             self.invalidate_and_aggregate_redraw_at_path(old_assignment.path)
         self.on_overrides_changes()
-        self.project.set_undo_redo_buttons_enable_state()
 
     def apply_assignment(self, assignment: Assignment) -> None:
         """
@@ -484,7 +490,7 @@ class QuibHandler:
         if not self.is_overridden:
             return [path]
 
-        assignments = list(self.overrider)
+        assignments = self.overrider.get_assignments()
         original_value = copy.deepcopy(self.get_value_valid_at_path(None))
         cache = create_cache(original_value)
         for assignment in assignments:

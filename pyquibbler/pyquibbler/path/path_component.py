@@ -34,7 +34,7 @@ class PathComponent:
     def __eq__(self, other):
         from pyquibbler.utilities.iterators import recursively_compare_objects
         return isinstance(other, PathComponent) \
-            and recursively_compare_objects(self.component, other.component)
+            and recursively_compare_objects(self.component, other.component, type_only=None)
 
     def __repr__(self):
         s = repr(self.component)

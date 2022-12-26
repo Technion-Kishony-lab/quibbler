@@ -51,7 +51,9 @@ def start_dragging():
     from pyquibbler import Project
     global IN_DRAGGING_MODE
     IN_DRAGGING_MODE = True
-    Project.get_or_create().push_empty_group_to_undo_stack()
+    project = Project.get_or_create()
+    project.push_empty_group_to_undo_stack()
+    project.start_pending_undo_group()
 
 
 def end_dragging():
