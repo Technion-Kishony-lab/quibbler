@@ -4,9 +4,11 @@ import contextlib
 import functools
 import sys
 import traceback
-from typing import List, Tuple
-
 from varname.utils import cached_getmodule
+
+from typing import List, Tuple, Callable
+
+from pyquibbler.utilities.general_utils import Args, Kwargs
 
 from pyquibbler.env import SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS
 from pyquibbler.exceptions import PyQuibblerException
@@ -16,7 +18,7 @@ if TYPE_CHECKING:
     from pyquibbler.quib.quib import Quib
 
 
-def get_user_friendly_name_for_requested_evaluation(func, args, kwargs):
+def get_user_friendly_name_for_requested_evaluation(func: Callable, args: Args, kwargs: Kwargs):
     """
     Get a user-friendly name representing the call to get_value_valid_at_path
     """

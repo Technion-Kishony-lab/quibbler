@@ -1,5 +1,5 @@
 from functools import partial
-from typing import Tuple, Optional, Dict
+from typing import Tuple, Optional, Dict, Callable
 
 import numpy as np
 
@@ -7,6 +7,7 @@ from pyquibbler.env import ALLOW_ARRAY_WITH_DTYPE_OBJECT
 
 from pyquibbler.function_overriding.function_override import FuncOverride
 from pyquibbler.function_overriding.third_party_overriding.general_helpers import override, override_with_cls
+from pyquibbler.utilities.general_utils import Args, Kwargs
 
 from .func_definitions import FUNC_DEFINITION_RANDOM, FUNC_DEFINITION_TRANSPOSITIONAL_ONE_TO_ONE, \
     FUNC_DEFINITION_TRANSPOSITIONAL_ONE_TO_MANY, FUNC_DEFINITION_SHAPE_ONLY, FUNC_DEFINITION_AXIS_ALL_TO_ALL, \
@@ -22,7 +23,7 @@ class NumpyArrayOverride(FuncOverride):
     # This way, we can allow building object arrays containing quibs.
 
     @staticmethod
-    def should_create_quib(func, args, kwargs):
+    def should_create_quib(func: Callable, args: Args, kwargs: Kwargs):
         return ALLOW_ARRAY_WITH_DTYPE_OBJECT or kwargs.get('dtype', None) is not object
 
 

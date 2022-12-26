@@ -59,7 +59,7 @@ class FuncOverride:
         return args, kwargs, quib_locations
 
     @staticmethod
-    def should_create_quib(func, args, kwargs):
+    def should_create_quib(func: Callable, args: Args, kwargs: Kwargs):
         return True
 
     def _create_quib_supporting_func(self):
