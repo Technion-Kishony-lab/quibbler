@@ -54,8 +54,15 @@ class AssignmentAction(Action, ABC):
         self.quib.handler.invalidate_and_aggregate_redraw_at_path(self.assignment.path)
         self.quib.handler.on_overrides_changes()
 
+    def __lt__(self, other: AssignmentAction) -> bool:
+        """
+        To allow sorting by quib_ref and then by assignment_index
+        """
+        if id(self.quib_ref) == id(other.quib_ref):
+            return self.assignment_index < other.assignment_index
+        return id(self.quib_ref) < id(other.quib_ref)
 
-@dataclass
+
 class AddAssignmentAction(AssignmentAction):
 
     def _undo(self):
@@ -65,7 +72,6 @@ class AddAssignmentAction(AssignmentAction):
         self.insert_assignment_at_index()
 
 
-@dataclass
 class RemoveAssignmentAction(AssignmentAction):
 
     def _undo(self):

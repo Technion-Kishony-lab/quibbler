@@ -465,6 +465,26 @@ class Project:
                                     assignment_index=assignment_index)
             )
 
+    def squash_pending_group_into_last_undo(self):
+        """
+        Combine the pending group into the last undo group while removing Add-Remove action pairs
+        acting on the same quib at the same path.
+        """
+        actions = self._undo_action_groups.pop(-1)
+        actions.extend(self._pending_undo_group)
+        actions.sort()
+        index = 0
+        while index + 1 < len(actions):
+            action0, action1 = actions[index:index+2]
+            if action0.quib_ref == action1.quib_ref \
+                    and action0.assignment_index == action1.assignment_index \
+                    and isinstance(action0, AddAssignmentAction) \
+                    and isinstance(action1, RemoveAssignmentAction):
+                del actions[index:index+2]
+            else:
+                index += 1
+        self._undo_action_groups.append(actions)
+
     def push_pending_undo_group_to_undo_stack(self):
         if self._pending_undo_group:
             self._undo_action_groups.append(self._pending_undo_group)
