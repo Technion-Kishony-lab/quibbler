@@ -20,6 +20,7 @@ if TYPE_CHECKING:
 QUIBS_TO_REDRAW: Dict[GraphicsUpdateType, Set[Quib]] = {GraphicsUpdateType.DRAG: set(), GraphicsUpdateType.DROP: set()}
 QUIBS_TO_NOTIFY_OVERRIDING_CHANGES: Set[Quib] = set()
 IN_AGGREGATE_REDRAW_MODE = False
+IN_DRAGGING_MODE = False
 
 
 @contextlib.contextmanager
@@ -32,8 +33,6 @@ def aggregate_redraw_mode(is_dragging: Optional[bool] = False):
         False: like above and also update GraphicsUpdateType.DROP
         None: do not update any graphics and do not notify
     """
-    from pyquibbler import Project
-
     global IN_AGGREGATE_REDRAW_MODE
     if IN_AGGREGATE_REDRAW_MODE:
         yield
@@ -45,16 +44,22 @@ def aggregate_redraw_mode(is_dragging: Optional[bool] = False):
             IN_AGGREGATE_REDRAW_MODE = False
         if is_dragging is not None:
             _redraw_quibs_with_graphics(GraphicsUpdateType.DRAG)
-            Project.get_or_create().push_pending_undo_group_to_undo_stack()
             _notify_of_overriding_changes()
-        if is_dragging is False:
-            end_dragging()
+
+
+def start_dragging():
+    from pyquibbler import Project
+    global IN_DRAGGING_MODE
+    IN_DRAGGING_MODE = True
+    Project.get_or_create().push_empty_group_to_undo_stack()
 
 
 def end_dragging():
     from pyquibbler import Project
+    global IN_DRAGGING_MODE
+    IN_DRAGGING_MODE = False
     _redraw_quibs_with_graphics(GraphicsUpdateType.DROP)
-    Project.get_or_create().push_pending_undo_group_to_undo_stack()
+    Project.get_or_create().squash_pending_group_into_last_undo()
 
 
 @contextlib.contextmanager

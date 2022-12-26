@@ -58,7 +58,7 @@ class AssignmentAction(Action, ABC):
         """
         To allow sorting by quib_ref and then by assignment_index
         """
-        if id(self.quib_ref) == id(other.quib_ref):
+        if id(self.quib_ref()) == id(other.quib_ref()):
             return self.assignment_index < other.assignment_index
         return id(self.quib_ref) < id(other.quib_ref)
 

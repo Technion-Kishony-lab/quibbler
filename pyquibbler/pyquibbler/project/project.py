@@ -446,6 +446,12 @@ class Project:
     def start_pending_undo_group(self):
         self._pending_undo_group = []
 
+    def silently_undo_pending_group(self):
+        actions = self._pending_undo_group
+        with aggregate_redraw_mode(is_dragging=None):
+            for action in actions[-1::-1]:
+                action.undo()
+
     def upsert_assignment_to_pending_undo_group(self, quib: Quib,
                                                 assignment: Assignment = None,
                                                 assignment_index: int = None,
@@ -485,12 +491,16 @@ class Project:
                 index += 1
         self._undo_action_groups.append(actions)
 
+    def push_empty_group_to_undo_stack(self):
+        self._undo_action_groups.append([])
+
     def push_pending_undo_group_to_undo_stack(self):
-        if self._pending_undo_group:
-            self._undo_action_groups.append(self._pending_undo_group)
-            self._pending_undo_group = []
-            self._redo_action_groups.clear()
-            self.set_undo_redo_buttons_enable_state()
+        if not self._pending_undo_group:
+            return
+        self._undo_action_groups.append(self._pending_undo_group)
+        self._pending_undo_group = []
+        self._redo_action_groups.clear()
+        self.set_undo_redo_buttons_enable_state()
 
     def set_undo_redo_buttons_enable_state(self):
         pass
