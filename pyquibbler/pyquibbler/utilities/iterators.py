@@ -199,13 +199,19 @@ def get_paths_for_objects_of_type(obj: Any, type_: Type) -> Paths:
 
 
 def recursively_compare_objects(obj1: Any, obj2: Any, type_only=False) -> bool:
-    # recursively compare object types (type_only=True), or type and value (type_only=False)
+    """
+    recursively compare two objects
 
-    if type(obj1) is not type(obj2):
+    only compare types (type_only=True)
+    compare type and value (type_only=False)
+    compare value only (type_only=None)
+    """
+
+    if type_only is not None and type(obj1) is not type(obj2):
         return False
 
     if isinstance(obj1, (float, int, str)):
-        return type_only or obj1 == obj2
+        return type_only is True or obj1 == obj2
 
     if isinstance(obj1, (tuple, list, set)):
         if len(obj1) != len(obj2):
@@ -228,7 +234,7 @@ def recursively_compare_objects(obj1: Any, obj2: Any, type_only=False) -> bool:
         return np.all(np.vectorize(recursively_compare_objects)(obj1, obj2, type_only))
 
     if is_non_object_array(obj1):
-        return obj1.dtype is obj2.dtype and (type_only or np.array_equal(obj1, obj2))
+        return obj1.dtype is obj2.dtype and (type_only is True or np.array_equal(obj1, obj2))
 
     return obj1 == obj2
 

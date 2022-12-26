@@ -42,7 +42,7 @@ def inverse_assign_drawing_func(func_args_kwargs: FuncArgsKwargs,
         except AssignmentCancelledByUserException:
             pass
         else:
-            override_group.apply(is_dragging=pick_event.mouseevent.button is not MouseButton.RIGHT)
+            override_group.apply()
             return override_group
 
 
@@ -63,5 +63,5 @@ def inverse_assign_axes_lim_func(args: Args,
     except AssignmentCancelledByUserException:
         pass
     else:
-        override_group.apply(is_dragging=True)
+        override_group.apply()
         return override_group

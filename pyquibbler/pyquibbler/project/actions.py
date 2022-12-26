@@ -36,46 +36,38 @@ class Action(ABC):
 @dataclass
 class AssignmentAction(Action, ABC):
     quib_ref: ReferenceType[Quib]
-    assignment_index: int
     assignment: Assignment
+    next_assignment: Optional[Assignment]
 
     @property
     def quib(self) -> Quib:
         return self.quib_ref()
 
-    def pop_assignment_at_index(self):
-        self.quib.handler.overrider.pop_assignment_at_index(self.assignment_index)
+    def delete_assignment(self):
+        self.quib.handler.overrider.pop_assignment_before_assignment(self.next_assignment)
 
-    def insert_assignment_at_index(self):
-        self.quib.handler.overrider.insert_assignment_at_index(self.assignment, self.assignment_index)
+    def add_assignment(self):
+        self.quib.handler.overrider.add_new_assignment_before_assignment(self.assignment, self.next_assignment)
 
     def run_post_action(self):
         self.quib.handler.file_syncer.on_data_changed()
         self.quib.handler.invalidate_and_aggregate_redraw_at_path(self.assignment.path)
         self.quib.handler.on_overrides_changes()
 
-    def __lt__(self, other: AssignmentAction) -> bool:
-        """
-        To allow sorting by quib_ref and then by assignment_index
-        """
-        if id(self.quib_ref()) == id(other.quib_ref()):
-            return self.assignment_index < other.assignment_index
-        return id(self.quib_ref) < id(other.quib_ref)
-
 
 class AddAssignmentAction(AssignmentAction):
 
     def _undo(self):
-        self.pop_assignment_at_index()
+        self.delete_assignment()
 
     def _redo(self):
-        self.insert_assignment_at_index()
+        self.add_assignment()
 
 
 class RemoveAssignmentAction(AssignmentAction):
 
     def _undo(self):
-        self.insert_assignment_at_index()
+        self.add_assignment()
 
     def _redo(self):
-        self.pop_assignment_at_index()
+        self.delete_assignment()

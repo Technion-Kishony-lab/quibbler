@@ -452,23 +452,24 @@ class Project:
             for action in actions[-1::-1]:
                 action.undo()
 
-    def upsert_assignment_to_pending_undo_group(self, quib: Quib,
-                                                assignment: Assignment = None,
-                                                assignment_index: int = None,
-                                                old_assignment: Assignment = None,
-                                                old_assignment_index: int = None):
+    def upsert_assignment_to_pending_undo_group(self,
+                                                quib: Quib,
+                                                assignment: Optional[Assignment] = None,
+                                                next_assignment: Optional[Assignment] = None,
+                                                old_assignment: Optional[Assignment] = None,
+                                                old_next_assignment: Optional[Assignment] = None):
         quib_ref = weakref.ref(quib, self.clear_undo_and_redo_stacks)
         if old_assignment:
             self._pending_undo_group.append(
                 RemoveAssignmentAction(quib_ref=quib_ref,
                                        assignment=old_assignment,
-                                       assignment_index=old_assignment_index)
+                                       next_assignment=old_next_assignment)
             )
         if assignment:
             self._pending_undo_group.append(
                 AddAssignmentAction(quib_ref=quib_ref,
                                     assignment=assignment,
-                                    assignment_index=assignment_index)
+                                    next_assignment=next_assignment)
             )
 
     def squash_pending_group_into_last_undo(self):
