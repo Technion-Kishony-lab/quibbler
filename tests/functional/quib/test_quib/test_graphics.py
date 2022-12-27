@@ -97,8 +97,6 @@ def test_graphics_quib_update_on_drag(graphics_update, should_have_called, quib,
 
 
 def test_graphics_quib_update_on_drop(quib, graphics_quib):
-    from pyquibbler.quib.graphics.redraw import QUIBS_TO_REDRAW, QUIBS_TO_NOTIFY_OVERRIDING_CHANGES, IN_AGGREGATE_REDRAW_MODE, IN_DRAGGING_MODE
-
     graphics_quib.graphics_update = GraphicsUpdateType.DROP
 
     quib.handler.invalidate_and_aggregate_redraw_at_path([])
