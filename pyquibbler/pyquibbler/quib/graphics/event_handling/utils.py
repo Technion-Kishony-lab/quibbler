@@ -50,3 +50,15 @@ def get_closest_point_on_line_in_axes(ax: Axes, xy1: PointXY, xy2: PointXY, xy_p
     )
 
     return PointXY.from_array_like(ax.transData.inverted().transform(xy)), slope
+
+
+def get_sqr_distance_in_axes(ax: Axes, xy1: PointXY, xy2: PointXY) -> float:
+    """
+    Returns the square distance in pixels between two points in axes
+    """
+
+    xy1 = PointXY.from_array_like(ax.transData.transform(xy1))
+    xy2 = PointXY.from_array_like(ax.transData.transform(xy2))
+    d = xy1 - xy2
+
+    return d.x ** 2 + d.y ** 2
