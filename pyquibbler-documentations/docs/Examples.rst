@@ -62,6 +62,7 @@ Simple quib-based apps
    :maxdepth: 1
 
    examples/quibdemo_fit_stocks
+   examples/quibdemo_pythagoras
    examples/quibdemo_LotkaVolterra
    examples/quibdemo_repressilator
    examples/quibdemo_fft
