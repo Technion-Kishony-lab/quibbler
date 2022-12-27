@@ -451,6 +451,7 @@ class Project:
         with aggregate_redraw_mode(temporarily=True):
             for action in actions[-1::-1]:
                 action.undo()
+        self.start_pending_undo_group()
 
     def upsert_assignment_to_pending_undo_group(self,
                                                 quib: Quib,

@@ -3,9 +3,8 @@ from dataclasses import dataclass, field
 from typing import List, Union
 
 from pyquibbler.assignment import AssignmentToQuib
+from pyquibbler.project.undo_group import undo_group_mode
 from pyquibbler.quib.graphics import aggregate_redraw_mode
-from pyquibbler.project import Project
-from pyquibbler.quib.graphics.redraw import is_dragging
 
 
 @dataclass
@@ -29,16 +28,9 @@ class OverrideGroup:
     quib_changes: List[AssignmentToQuib] = field(default_factory=list)
 
     def apply(self, temporarily: bool = False):
-        project = Project.get_or_create()
-        project.start_pending_undo_group()
-        with aggregate_redraw_mode(temporarily):
+        with undo_group_mode(temporarily), aggregate_redraw_mode(temporarily):
             for quib_change in self.quib_changes:
                 quib_change.apply()
-        if not temporarily:
-            if is_dragging():
-                project.squash_pending_group_into_last_undo()
-            else:
-                project.push_pending_undo_group_to_undo_stack()
 
     def __bool__(self):
         return len(self.quib_changes) > 0
