@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import contextlib
+import weakref
 
 from typing import Set, Dict, Optional
 from matplotlib.figure import Figure
@@ -16,9 +17,9 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pyquibbler.quib.quib import Quib
 
-
-QUIBS_TO_REDRAW: Dict[GraphicsUpdateType, Set[Quib]] = {GraphicsUpdateType.DRAG: set(), GraphicsUpdateType.DROP: set()}
-QUIBS_TO_NOTIFY_OVERRIDING_CHANGES: Set[Quib] = set()
+QUIBS_TO_REDRAW: Dict[GraphicsUpdateType, weakref.WeakSet[Quib]] = {GraphicsUpdateType.DRAG: weakref.WeakSet(),
+                                                                    GraphicsUpdateType.DROP: weakref.WeakSet()}
+QUIBS_TO_NOTIFY_OVERRIDING_CHANGES: weakref.WeakSet[Quib] = weakref.WeakSet()
 IN_AGGREGATE_REDRAW_MODE = False
 IN_DRAGGING_MODE = False
 
@@ -99,15 +100,15 @@ def skip_canvas_draws(should_skip: bool = True):
 
 def _redraw_quibs_with_graphics(graphics_update: GraphicsUpdateType):
     global QUIBS_TO_REDRAW
-    quibs = QUIBS_TO_REDRAW[graphics_update]
-    with timeit("quib redraw", f"redrawing {len(quibs)} quibs"), skip_canvas_draws():
-        for quib in quibs:
+    quib_refs = QUIBS_TO_REDRAW[graphics_update]
+    with timeit("quib redraw", f"redrawing {len(quib_refs)} quibs"), skip_canvas_draws():
+        for quib in quib_refs:
             quib.handler.reevaluate_graphic_quib()
 
-    figures = {figure for quib in quibs for figure in quib.handler.get_figures() if figure is not None}
+    figures = {figure for quib in quib_refs for figure in quib.handler.get_figures() if figure is not None}
 
     redraw_figures(figures)
-    quibs.clear()
+    quib_refs.clear()
 
 
 def _notify_of_overriding_changes():
