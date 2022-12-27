@@ -10,7 +10,7 @@ from pyquibbler.graphics.graphics_collection import GraphicsCollection
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.func_calling import CachedQuibFuncCall
 from pyquibbler.quib.graphics.event_handling.canvas_event_handler import graphics_assignment_mode
-from pyquibbler.quib.graphics.redraw import end_dragging
+from pyquibbler.quib.graphics.redraw import start_dragging, end_dragging
 
 
 class WidgetQuibFuncCall(CachedQuibFuncCall):
@@ -54,7 +54,10 @@ class WidgetQuibFuncCall(CachedQuibFuncCall):
 
     def _inverse_assign_multiple_quibs(self, quib_changes: List[AssignmentToQuib], on_drag: bool = False):
         with graphics_assignment_mode(self._get_axis()):
-            get_override_group_for_quib_changes(quib_changes).apply(is_dragging=on_drag)
+            get_override_group_for_quib_changes(quib_changes).apply()
+
+    def _on_press(self, *_, **__):
+        start_dragging()
 
     def _on_release(self, *_, **__):
         end_dragging()

@@ -181,7 +181,7 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
                 focal_override = _get_override_group_for_quib_change_or_none(xy_change[focal_xy])
                 if focal_override is None:
                     continue
-                focal_override.apply(is_dragging=None)
+                focal_override.apply(temporarily=True)
                 xy_new = _get_xy_current_point_from_xy_change(xy_change)
                 Project.get_or_create().silently_undo_pending_group()
                 xy_closest, slope = get_closest_point_on_line_in_axes(ax, xy_old, xy_new, xy_assigned_value)

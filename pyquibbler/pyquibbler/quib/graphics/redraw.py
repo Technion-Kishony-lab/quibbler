@@ -24,7 +24,7 @@ IN_DRAGGING_MODE = False
 
 
 @contextlib.contextmanager
-def aggregate_redraw_mode(is_dragging: Optional[bool] = False):
+def aggregate_redraw_mode(temporarily: bool = False):
     """
     In aggregate redraw mode, no axeses will be redrawn until the end of the context manager
 
@@ -42,14 +42,18 @@ def aggregate_redraw_mode(is_dragging: Optional[bool] = False):
             yield
         finally:
             IN_AGGREGATE_REDRAW_MODE = False
-        if is_dragging is not None:
+        if not temporarily:
             _redraw_quibs_with_graphics(GraphicsUpdateType.DRAG)
+            if not is_dragging():
+                _redraw_quibs_with_graphics(GraphicsUpdateType.DROP)
             _notify_of_overriding_changes()
 
 
 def start_dragging():
     from pyquibbler import Project
     global IN_DRAGGING_MODE
+    if IN_DRAGGING_MODE:
+        return
     IN_DRAGGING_MODE = True
     project = Project.get_or_create()
     project.push_empty_group_to_undo_stack()
@@ -59,9 +63,17 @@ def start_dragging():
 def end_dragging():
     from pyquibbler import Project
     global IN_DRAGGING_MODE
+    if not IN_DRAGGING_MODE:
+        return
     IN_DRAGGING_MODE = False
     _redraw_quibs_with_graphics(GraphicsUpdateType.DROP)
-    Project.get_or_create().squash_pending_group_into_last_undo()
+    project = Project.get_or_create()
+    project.remove_last_undo_group_if_empty()
+    project.set_undo_redo_buttons_enable_state()
+
+
+def is_dragging():
+    return IN_DRAGGING_MODE
 
 
 @contextlib.contextmanager

@@ -448,7 +448,7 @@ class Project:
 
     def silently_undo_pending_group(self):
         actions = self._pending_undo_group
-        with aggregate_redraw_mode(is_dragging=None):
+        with aggregate_redraw_mode(temporarily=True):
             for action in actions[-1::-1]:
                 action.undo()
 
@@ -474,26 +474,38 @@ class Project:
 
     def squash_pending_group_into_last_undo(self):
         """
-        Combine the pending group into the last undo group while removing Add-Remove action pairs
-        acting on the same quib at the same path.
+        Combine the pending group into the last undo group while removing Add-Remove action pairs acting on
+        the same assignment.
         """
         actions = self._undo_action_groups.pop(-1)
         actions.extend(self._pending_undo_group)
-        actions.sort()
-        index = 0
-        while index + 1 < len(actions):
-            action0, action1 = actions[index:index+2]
-            if action0.quib_ref == action1.quib_ref \
-                    and action0.assignment_index == action1.assignment_index \
-                    and isinstance(action0, AddAssignmentAction) \
-                    and isinstance(action1, RemoveAssignmentAction):
-                del actions[index:index+2]
-            else:
-                index += 1
+        self._pending_undo_group = []
+        remove_index = 1
+        while remove_index < len(actions):
+            remove_action = actions[remove_index]
+            if isinstance(remove_action, RemoveAssignmentAction):
+                for add_index in range(remove_index - 1, -1, -1):
+                    add_action = actions[add_index]
+                    if isinstance(add_action, AddAssignmentAction) \
+                            and add_action.assignment is remove_action.assignment:
+                        # need to change the "next_assignment" pointers of assignments that pointed to the one we delete
+                        for action in actions[add_index + 1:remove_index]:
+                            if action.next_assignment is add_action.assignment:
+                                action.next_assignment = add_action.next_assignment
+                        del actions[remove_index]
+                        del actions[add_index]
+                        remove_index -= 2
+                        break
+            remove_index += 1
         self._undo_action_groups.append(actions)
+        self._redo_action_groups.clear()
 
     def push_empty_group_to_undo_stack(self):
         self._undo_action_groups.append([])
+
+    def remove_last_undo_group_if_empty(self):
+        while len(self._undo_action_groups) > 0 and len(self._undo_action_groups[-1]) == 0:
+            self._undo_action_groups.pop(-1)
 
     def push_pending_undo_group_to_undo_stack(self):
         if not self._pending_undo_group:

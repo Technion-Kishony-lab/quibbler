@@ -15,6 +15,8 @@ from selenium.webdriver.support.expected_conditions import presence_of_element_l
 from selenium.webdriver.support.wait import WebDriverWait
 from typing import Callable
 
+from pyquibbler import Project
+
 JUPYTER_PORT = 10_000
 NOTEBOOK_ELEMENT_COUNT = 5  # TODO: We use this to make sure we're loaded- is there a better way?
 NOTEBOOKS_PATH = (Path(__file__).parent / "notebooks").absolute()
@@ -171,6 +173,9 @@ def test_lab_extension_undo__redo_is_initially_disabled(driver, load_notebook, a
 
 def test_lab_extension_undo_happy_flow(driver, load_notebook, assert_no_failures,
                                        click_undo, run_cells, run_code, is_undo_enabled, is_redo_enabled):
+
+    Project.get_or_create().clear_undo_and_redo_stacks()
+
     run_cells()
     assert_no_failures()
 
