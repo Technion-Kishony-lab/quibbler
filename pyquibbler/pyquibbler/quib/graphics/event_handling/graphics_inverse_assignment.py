@@ -184,9 +184,15 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
                 focal_override.apply(temporarily=True)
                 xy_new = _get_xy_current_point_from_xy_change(xy_change)
                 Project.get_or_create().silently_undo_pending_group()
+                if xy_assigned_value[focal_xy] - xy_old[focal_xy] == 0:
+                    overshoot = 1
+                else:
+                    overshoot = (xy_new[focal_xy] - xy_old[focal_xy]) / (xy_assigned_value[focal_xy] - xy_old[focal_xy])
                 xy_closest, slope = get_closest_point_on_line_in_axes(ax, xy_old, xy_new, xy_assigned_value)
-                adjusted_change = get_assignment_from_quib_and_path(quib_and_path[focal_xy], xy_closest[focal_xy],
-                                                                    tolerance[focal_xy] * slope[focal_xy])
+                adjusted_change = get_assignment_from_quib_and_path(
+                    quib_and_path=quib_and_path[focal_xy],
+                    value=xy_old[focal_xy] + (xy_closest[focal_xy] - xy_old[focal_xy]) / overshoot,
+                    tolerance=tolerance[focal_xy] * slope[focal_xy])
                 along_line_override = _get_override_group_for_quib_change_or_none(adjusted_change)
                 if along_line_override is None:
                     continue
