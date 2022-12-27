@@ -196,6 +196,22 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
                 along_line_override = _get_override_group_for_quib_change_or_none(adjusted_change)
                 if along_line_override is None:
                     continue
+
+                # Improve results using an iterative numeric solution (too slow in practice)
+                # See test_drag_same_arg_binary_operator_non_linear
+                #
+                # from .utils import get_sqr_distance_in_axes
+                # def _distance_to_mouse(assigned_values):
+                #     along_line_override.quib_changes[0].assignment.value = assigned_values[0]
+                #     along_line_override.apply(temporarily=True)
+                #     xy_new = _get_xy_current_point_from_xy_change(xy_change)
+                #     Project.get_or_create().silently_undo_pending_group()
+                #     return get_sqr_distance_in_axes(ax, xy_new, xy_assigned_value)
+                #
+                # from scipy.optimize import fmin
+                # assigned_value = fmin(_distance_to_mouse, [along_line_override.quib_changes[0].assignment.value],
+                #                       xtol=1e10, ftol=1)
+
                 overrides.extend(along_line_override)
 
                 if xy_old[other_xy] != xy_new[other_xy]:
