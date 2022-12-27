@@ -217,7 +217,7 @@ def test_project_undo_with_group_reverts_back_to_before_group_and_runs_graphics_
     add_definition_for_function(mock_func, create_or_reuse_func_definition(is_graphics=True))
     _ = create_quib(func=mock_func, args=(a,), lazy=False)
     project.start_pending_undo_group()
-    with aggregate_redraw_mode(is_dragging=True):
+    with aggregate_redraw_mode():
         a.handler.override(Assignment(
             path=[],
             value=10

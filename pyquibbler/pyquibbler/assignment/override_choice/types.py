@@ -1,10 +1,11 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
-from typing import List, Union, Optional
+from typing import List, Union
 
 from pyquibbler.assignment import AssignmentToQuib
 from pyquibbler.quib.graphics import aggregate_redraw_mode
 from pyquibbler.project import Project
+from pyquibbler.quib.graphics.redraw import is_dragging
 
 
 @dataclass
@@ -27,16 +28,17 @@ class OverrideGroup:
     """
     quib_changes: List[AssignmentToQuib] = field(default_factory=list)
 
-    def apply(self, is_dragging: Optional[bool] = False):
+    def apply(self, temporarily: bool = False):
         project = Project.get_or_create()
         project.start_pending_undo_group()
-        with aggregate_redraw_mode(is_dragging):
+        with aggregate_redraw_mode(temporarily):
             for quib_change in self.quib_changes:
                 quib_change.apply()
-        if is_dragging is True:
-            project.squash_pending_group_into_last_undo()
-        if is_dragging is False:
-            project.push_pending_undo_group_to_undo_stack()
+        if not temporarily:
+            if is_dragging():
+                project.squash_pending_group_into_last_undo()
+            else:
+                project.push_pending_undo_group_to_undo_stack()
 
     def __bool__(self):
         return len(self.quib_changes) > 0

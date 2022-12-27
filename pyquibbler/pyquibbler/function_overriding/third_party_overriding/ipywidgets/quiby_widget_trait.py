@@ -61,7 +61,7 @@ class QuibyWidgetTrait:
     def _inverse_assign(self, value: Any, on_drag: bool = False):
         assignment = create_assignment(value, path=[], tolerance=self.get_tolerance(value))
         get_override_group_for_quib_changes([AssignmentToQuib(self.quib, assignment)]) \
-            .apply(is_dragging=on_drag)
+            .apply()
 
     def get_tolerance(self, value):
         return None
