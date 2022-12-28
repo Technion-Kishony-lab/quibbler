@@ -76,12 +76,12 @@ initialize_quibbler()
 import matplotlib.pyplot as plt
 
 x = iquib(0.5)
-plt.plot([0, 1], [0, 1])
-plt.plot(x, x, marker='o')
-plt.title(x)
+plt.plot([0, 1], [1, 0], '-')
+plt.plot([0, x, x], [1 - x, 1 - x, 0], 'D--')
+plt.title(x, fontsize=20)
 ```
 
-<img src="https://github.com/Technion-Kishony-lab/quibbler/blob/master/pyquibbler-documentations/docs/images/minimal_app.gif?raw=true width=250">
+<img src="https://github.com/Technion-Kishony-lab/quibbler/blob/master/pyquibbler-documentations/docs/images/minimal_app_3.gif?raw=true width=250">
 
 
 ## Documentation and Examples
