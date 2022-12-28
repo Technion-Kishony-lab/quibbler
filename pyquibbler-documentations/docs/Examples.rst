@@ -14,6 +14,7 @@ Graphics-driven assignments
    examples/quibdemo_drag_whole_object_vs_individual_points
    examples/quibdemo_dragging_fixed_object
    examples/quibdemo_same_data_in_many_forms
+   examples/quibdemo_periodic_functions
    examples/quibdemo_quiby_axes
 
 Quib-linked Matplotlib widgets
@@ -61,6 +62,7 @@ Simple quib-based apps
    :maxdepth: 1
 
    examples/quibdemo_fit_stocks
+   examples/quibdemo_pythagoras
    examples/quibdemo_LotkaVolterra
    examples/quibdemo_repressilator
    examples/quibdemo_fft
