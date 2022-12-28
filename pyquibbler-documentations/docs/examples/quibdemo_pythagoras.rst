@@ -56,3 +56,4 @@ squares.**
     plt.text(-b/2, b/2, round(b**2, 1), **props)
     plt.text((a+b)/2, (a+b)/2, round(a**2 + b**2, 1), **props);
 
+.. image:: ../images/demo_gif/quibdemo_pythagoras.gif

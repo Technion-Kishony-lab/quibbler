@@ -46,3 +46,4 @@ Dragging graphics of periodic functions
     plot_hand(t, r=0.9, color='k', linewidth=2)
     plt.title(q('{:02.0f}:{:02.0f}'.format, t // 1, 60 * (t - t // 1)));
 
+.. image:: ../images/demo_gif/quibdemo_periodic_functions.gif
