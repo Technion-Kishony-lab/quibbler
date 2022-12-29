@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import weakref
-from collections import defaultdict
+
 from pathlib import Path
 import sys
 from typing import Optional, Set, List, Callable, Union, Mapping

@@ -172,15 +172,15 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
         if quib_and_path.x is None and quib_and_path.y is None:
             # both x and y are not quibs
             continue
-        # TODO: need to unify the two treatments below, for only x or y dragging and both x and y dragging.
+        # TODO: need to unify the two treatments below, for either x or y dragging, and for both x and y dragging.
         elif quib_and_path.is_xor():
             # either only x is a quib or only y is a quib
             focal_xy = 1 if quib_and_path[0] is None else 0
             focal_quib_and_path = quib_and_path[focal_xy]
             focal_change = get_assignment_from_quib_and_path(focal_quib_and_path, adjusted_xy_mouse[focal_xy])
+            focal_override = _get_override_group_for_quib_change_or_none(focal_change)
             x_or_y_old = focal_change.get_value_at_path()
             x_or_y_assigned_value = focal_change.assignment.value
-            focal_override = _get_override_group_for_quib_change_or_none(focal_change)
             focal_override.apply(temporarily=True)
             x_or_y_new = focal_change.get_value_at_path()
             Project.get_or_create().undo_pending_group(temporarily=True)
