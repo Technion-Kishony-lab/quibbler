@@ -101,22 +101,23 @@ def skip_canvas_draws(should_skip: bool = True):
 def _redraw_quibs_with_graphics(graphics_update: GraphicsUpdateType):
     global QUIBS_TO_REDRAW
     quib_refs = QUIBS_TO_REDRAW[graphics_update]
+    quibs = set(quib_refs)
     with timeit("quib redraw", f"redrawing {len(quib_refs)} quibs"), skip_canvas_draws():
-        for quib in quib_refs:
+        for quib in quibs:
             quib.handler.reevaluate_graphic_quib()
+            quib_refs.remove(quib)
 
-    figures = {figure for quib in quib_refs for figure in quib.handler.get_figures() if figure is not None}
+    figures = {figure for quib in quibs for figure in quib.handler.get_figures() if figure is not None}
 
     redraw_figures(figures)
-    quib_refs.clear()
 
 
 def _notify_of_overriding_changes():
     with timeit("override_notify", f"notifying overriding changes for {len(QUIBS_TO_NOTIFY_OVERRIDING_CHANGES)} quibs"):
-        for quib in QUIBS_TO_NOTIFY_OVERRIDING_CHANGES:
+        quibs = set(QUIBS_TO_NOTIFY_OVERRIDING_CHANGES)
+        for quib in quibs:
             quib.handler.on_overrides_changes()
-
-    QUIBS_TO_NOTIFY_OVERRIDING_CHANGES.clear()
+            QUIBS_TO_NOTIFY_OVERRIDING_CHANGES.remove(quib)
 
 
 def redraw_quib_with_graphics_or_add_in_aggregate_mode(quib: Quib, graphics_update: GraphicsUpdateType):
