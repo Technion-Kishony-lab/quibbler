@@ -3,7 +3,9 @@ from typing import Optional
 
 
 def deep_get_referrers(obj, depth: int, number_sequence=None):
-    if depth<0:
+    if obj is None:
+        return
+    if depth < 0:
         return
     number_sequence = number_sequence or []
     refs = gc.get_referrers(obj)
