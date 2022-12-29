@@ -1,4 +1,5 @@
 from pyquibbler import iquib, quiby
+from pyquibbler.quib.graphics.graphics_assignment_mode import graphics_assignment_mode
 
 
 @quiby(is_graphics=True)
@@ -12,5 +13,6 @@ def test_prevent_assignments_causing_exception():
     a = iquib(1)
     validate = validate_input(a)
 
-    a.assign(-1)
+    with graphics_assignment_mode(True):
+        a.assign(-1)
     assert a.get_value() == 1
