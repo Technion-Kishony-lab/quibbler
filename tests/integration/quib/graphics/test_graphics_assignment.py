@@ -76,3 +76,12 @@ def testy_drag_axvline(axes, create_axes_mouse_press_move_release_events):
     create_axes_mouse_press_move_release_events(((10, 2), (23, 4)))
 
     assert x.get_value() == 23
+
+
+def test_keep_fixed_mouse_distance_from_picked_point(axes, create_axes_mouse_press_move_release_events):
+    x = iquib([10.1, 10.2, 30])
+    axes.plot(x, x, 'o')
+    create_axes_mouse_press_move_release_events(((10, 10), (16, 16)))
+
+    assert x.get_value() == [16.1, 16.2, 30]
+

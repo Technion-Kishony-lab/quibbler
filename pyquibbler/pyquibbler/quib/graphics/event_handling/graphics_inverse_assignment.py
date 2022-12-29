@@ -138,7 +138,7 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
     6. both x and y can be inverted without affecting each other.
         return the two inversions.
 
-    We also corrects for overshoot assignment due to binary operators. See test_drag_same_arg_binary_operator
+    We also correct for overshoot assignment due to binary operators. See test_drag_same_arg_binary_operator
     """
 
     point_indices = pick_event.ind
@@ -164,8 +164,10 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
         return get_override_group_for_quib_changes(changes)
 
     from pyquibbler import Project
-    for quib_and_path in [XY(quib_and_path_x, quib_and_path_y)
-                          for quib_and_path_x, quib_and_path_y in zip(quibs_and_paths.x, quibs_and_paths.y)]:
+    for quib_and_path, adjust_xy in [(XY(quib_and_path_x, quib_and_path_y), PointXY(dxy[0], dxy[1]))
+                                     for quib_and_path_x, quib_and_path_y, dxy
+                                     in zip(quibs_and_paths.x, quibs_and_paths.y, pick_event.dxy)]:
+        adjusted_xy_mouse = xy_mouse + adjust_xy
         overrides = OverrideGroup()
         if quib_and_path.x is None and quib_and_path.y is None:
             # both x and y are not quibs
@@ -175,7 +177,7 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
             # either only x is a quib or only y is a quib
             focal_xy = 1 if quib_and_path[0] is None else 0
             focal_quib_and_path = quib_and_path[focal_xy]
-            focal_change = get_assignment_from_quib_and_path(focal_quib_and_path, xy_mouse[focal_xy])
+            focal_change = get_assignment_from_quib_and_path(focal_quib_and_path, adjusted_xy_mouse[focal_xy])
             x_or_y_old = focal_change.get_value_at_path()
             x_or_y_assigned_value = focal_change.assignment.value
             focal_override = _get_override_group_for_quib_change_or_none(focal_change)
@@ -194,12 +196,12 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
             overrides = focal_override or overrides
         else:
             # both x and y are quibs:
-            xy_change = XY.from_func(get_assignment_from_quib_and_path, quib_and_path, xy_mouse)
+            xy_change = XY.from_func(get_assignment_from_quib_and_path, quib_and_path, adjusted_xy_mouse)
             xy_old = _get_xy_current_point_from_xy_change(xy_change)
             xy_assigned_value = PointXY.from_func(lambda xy: xy.assignment.value, xy_change)
 
             is_mouse_dx_larger_than_dy = \
-                np.diff(np.abs(ax.transData.transform(xy_mouse) - ax.transData.transform(xy_old))) < 0
+                np.diff(np.abs(ax.transData.transform(adjusted_xy_mouse) - ax.transData.transform(xy_old))) < 0
             xy_order = (0, 1) if is_mouse_dx_larger_than_dy else (1, 0)  # start with the larger mouse move
             for focal_xy in xy_order:
                 other_xy = 1 - focal_xy
