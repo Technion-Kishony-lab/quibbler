@@ -35,6 +35,7 @@ def create_mock_pick_event_and_mouse_event(indices, x_data, y_data, artist_index
     pick_event.artist._index_in_plot = artist_index
     pick_event.artist.axes.get_xlim = mock.Mock(return_value=[0, 100])
     pick_event.artist.axes.get_ylim = mock.Mock(return_value=[0, 100])
+    pick_event.dxy = np.tile([[0, 0]], (len(indices), 1))
 
     return pick_event, mouse_event
 
