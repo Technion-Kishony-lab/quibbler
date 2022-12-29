@@ -38,7 +38,6 @@ class Project:
         self._pending_undo_group: Optional[List] = None
         self._undo_action_groups: List[List[AssignmentAction]] = []
         self._redo_action_groups: List[List[AssignmentAction]] = []
-        self._quib_refs_to_paths_to_assignment_actions = defaultdict(dict)
         self._save_format: SaveFormat = self.DEFAULT_SAVE_FORMAT
         self._graphics_update: GraphicsUpdateType = self.DEFAULT_GRAPHICS_UPDATE
         self.on_path_change: Optional[Callable] = None
@@ -446,9 +445,9 @@ class Project:
     def start_pending_undo_group(self):
         self._pending_undo_group = []
 
-    def silently_undo_pending_group(self):
+    def undo_pending_group(self, temporarily: bool = False):
         actions = self._pending_undo_group
-        with aggregate_redraw_mode(temporarily=True):
+        with aggregate_redraw_mode(temporarily):
             for action in actions[-1::-1]:
                 action.undo()
         self.start_pending_undo_group()
