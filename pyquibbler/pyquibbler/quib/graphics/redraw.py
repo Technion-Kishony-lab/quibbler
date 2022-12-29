@@ -91,11 +91,11 @@ def skip_canvas_draws(should_skip: bool = True):
             canvas_class = type(figure_managers[0].canvas)
             original_canvas_draw = canvas_class.draw
             canvas_class.draw = _skip_draw
-
-    yield
-
-    if original_canvas_draw is not None:
-        canvas_class.draw = original_canvas_draw
+    try:
+        yield
+    finally:
+        if original_canvas_draw is not None:
+            canvas_class.draw = original_canvas_draw
 
 
 def _redraw_quibs_with_graphics(graphics_update: GraphicsUpdateType):
