@@ -3,7 +3,7 @@ from __future__ import annotations
 import contextlib
 import weakref
 
-from typing import Set, Dict, Optional
+from typing import Set, Dict
 from matplotlib.figure import Figure
 from matplotlib.pyplot import fignum_exists
 from matplotlib._pylab_helpers import Gcf

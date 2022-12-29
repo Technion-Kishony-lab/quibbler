@@ -1,5 +1,5 @@
 from typing import Callable, List, Any, Tuple
-from matplotlib.backend_bases import MouseEvent, PickEvent, MouseButton
+from matplotlib.backend_bases import MouseEvent, PickEvent
 
 from pyquibbler.assignment import AssignmentToQuib, OverrideGroup
 from pyquibbler.assignment import AssignmentCancelledByUserException
