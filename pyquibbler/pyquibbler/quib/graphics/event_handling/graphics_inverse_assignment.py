@@ -99,6 +99,13 @@ def get_plot_arg_assignments_for_event(quibs_and_paths: List[Optional[Tuple[Quib
     return [get_assignment_from_quib_and_path(quib_and_path, value, tolerance) for quib_and_path in quibs_and_paths]
 
 
+def _calculate_assignment_overshoot(old_val, new_val, assigned_val):
+    if assigned_val == old_val or new_val == old_val:
+        return 1
+    else:
+        return (new_val - old_val) / (assigned_val - old_val)
+
+
 def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
                                   pick_event: PickEvent, mouse_event: MouseEvent) -> OverrideGroup:
     """
@@ -126,13 +133,14 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
         and find the point on the line closest to the mouse and assign to the invertible quib.
 
     5. both x and y can be inverted, and the inversion of one affects the other.
-        get the drag-line and invert to the closest point
+        get the drag-line by assigning on the axis with larger mouse movement, and invert to the closest point
 
     6. both x and y can be inverted without affecting each other.
         return the two inversions.
 
-    only x or y are quibs, or because both are quibs and their values are dependent on the shared upstream override.
+    We also corrects for overshoot assignment due to binary operators. See test_drag_same_arg_binary_operator
     """
+
     point_indices = pick_event.ind
     ax = pick_event.artist.axes
     quibs_and_paths = XY.from_func(get_quibs_and_paths_affected_by_event, xy_args, data_index, point_indices)
@@ -155,20 +163,37 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
         changes = [change for change in changes.x + changes.y if change is not None]
         return get_override_group_for_quib_changes(changes)
 
+    from pyquibbler import Project
     for quib_and_path in [XY(quib_and_path_x, quib_and_path_y)
                           for quib_and_path_x, quib_and_path_y in zip(quibs_and_paths.x, quibs_and_paths.y)]:
         overrides = OverrideGroup()
         if quib_and_path.x is None and quib_and_path.y is None:
             # both x and y are not quibs
             continue
+        # TODO: need to unify the two treatments below, for only x or y dragging and both x and y dragging.
         elif quib_and_path.is_xor():
             # either only x is a quib or only y is a quib
-            xy_change = XY.from_func(get_assignment_from_quib_and_path, quib_and_path, xy_mouse, tolerance)
-            override = _get_override_group_for_quib_change_or_none(xy_change.get_value_not_none())
-            overrides = override or overrides
+            focal_xy = 1 if quib_and_path[0] is None else 0
+            focal_quib_and_path = quib_and_path[focal_xy]
+            focal_change = get_assignment_from_quib_and_path(focal_quib_and_path, xy_mouse[focal_xy])
+            x_or_y_old = focal_change.get_value_at_path()
+            x_or_y_assigned_value = focal_change.assignment.value
+            focal_override = _get_override_group_for_quib_change_or_none(focal_change)
+            focal_override.apply(temporarily=True)
+            x_or_y_new = focal_change.get_value_at_path()
+            Project.get_or_create().undo_pending_group()
+            overshoot = _calculate_assignment_overshoot(
+                old_val=x_or_y_old,
+                new_val=x_or_y_new,
+                assigned_val=x_or_y_assigned_value)
+            adjusted_change = get_assignment_from_quib_and_path(
+                quib_and_path=focal_quib_and_path,
+                value=x_or_y_old + (x_or_y_assigned_value - x_or_y_old) / overshoot,
+                tolerance=tolerance[focal_xy])
+            focal_override = _get_override_group_for_quib_change_or_none(adjusted_change)
+            overrides = focal_override or overrides
         else:
             # both x and y are quibs:
-            from pyquibbler import Project
             xy_change = XY.from_func(get_assignment_from_quib_and_path, quib_and_path, xy_mouse)
             xy_old = _get_xy_current_point_from_xy_change(xy_change)
             xy_assigned_value = PointXY.from_func(lambda xy: xy.assignment.value, xy_change)
@@ -184,10 +209,10 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
                 focal_override.apply(temporarily=True)
                 xy_new = _get_xy_current_point_from_xy_change(xy_change)
                 Project.get_or_create().undo_pending_group()
-                if xy_assigned_value[focal_xy] - xy_old[focal_xy] == 0:
-                    overshoot = 1
-                else:
-                    overshoot = (xy_new[focal_xy] - xy_old[focal_xy]) / (xy_assigned_value[focal_xy] - xy_old[focal_xy])
+                overshoot = _calculate_assignment_overshoot(
+                    old_val=xy_old[focal_xy],
+                    new_val=xy_new[focal_xy],
+                    assigned_val=xy_assigned_value[focal_xy])
                 xy_closest, slope = get_closest_point_on_line_in_axes(ax, xy_old, xy_new, xy_assigned_value)
                 adjusted_change = get_assignment_from_quib_and_path(
                     quib_and_path=quib_and_path[focal_xy],
