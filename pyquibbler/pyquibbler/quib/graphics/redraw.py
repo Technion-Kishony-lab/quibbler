@@ -67,8 +67,12 @@ def end_dragging():
     if not IN_DRAGGING_MODE:
         return
     IN_DRAGGING_MODE = False
-    _redraw_quibs_with_graphics(GraphicsUpdateType.DROP)
     project = Project.get_or_create()
+    try:
+        _redraw_quibs_with_graphics(GraphicsUpdateType.DROP)
+    except Exception:
+        project.undo()
+
     project.remove_last_undo_group_if_empty()
     project.set_undo_redo_buttons_enable_state()
 
