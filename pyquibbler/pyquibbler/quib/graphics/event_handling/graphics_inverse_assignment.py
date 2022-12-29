@@ -181,7 +181,7 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
             focal_override = _get_override_group_for_quib_change_or_none(focal_change)
             focal_override.apply(temporarily=True)
             x_or_y_new = focal_change.get_value_at_path()
-            Project.get_or_create().undo_pending_group()
+            Project.get_or_create().undo_pending_group(temporarily=True)
             overshoot = _calculate_assignment_overshoot(
                 old_val=x_or_y_old,
                 new_val=x_or_y_new,
@@ -208,7 +208,7 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
                     continue
                 focal_override.apply(temporarily=True)
                 xy_new = _get_xy_current_point_from_xy_change(xy_change)
-                Project.get_or_create().undo_pending_group()
+                Project.get_or_create().undo_pending_group(temporarily=True)
                 overshoot = _calculate_assignment_overshoot(
                     old_val=xy_old[focal_xy],
                     new_val=xy_new[focal_xy],
