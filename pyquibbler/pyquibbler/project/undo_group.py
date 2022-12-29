@@ -20,7 +20,7 @@ def undo_group_mode(temporarily: bool = False):
         project.start_pending_undo_group()
         yield
     except Exception:
-        project.silently_undo_pending_group()
+        project.undo_pending_group(False)
     else:
         if not temporarily:
             if is_dragging():

@@ -183,7 +183,7 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
                     continue
                 focal_override.apply(temporarily=True)
                 xy_new = _get_xy_current_point_from_xy_change(xy_change)
-                Project.get_or_create().silently_undo_pending_group()
+                Project.get_or_create().undo_pending_group()
                 if xy_assigned_value[focal_xy] - xy_old[focal_xy] == 0:
                     overshoot = 1
                 else:
