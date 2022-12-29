@@ -13,6 +13,7 @@ from pyquibbler.debug_utils.logger import logger
 from pyquibbler.utilities.basic_types import Flag, Mutable
 from pyquibbler.env import OVERRIDE_DIALOG_IN_SEPARATE_WINDOW, \
     OVERRIDE_DIALOG_AS_TEXT_FOR_GRAPHICS_ASSIGNMENT, OVERRIDE_DIALOG_AS_TEXT_FOR_NON_GRAPHICS_ASSIGNMENT
+from pyquibbler.quib.graphics.graphics_assignment_mode import get_graphics_assignment_mode_axes
 from .exceptions import AssignmentCancelledByUserException
 
 from typing import TYPE_CHECKING
@@ -114,9 +115,6 @@ def choose_override_dialog(options: List[Quib], can_diverge: bool) -> OverrideCh
     Open a popup dialog to offer the user a choice between override options.
     If can_diverge is true, offer the user to diverge the override instead of choosing an override option.
     """
-
-    from pyquibbler.quib.graphics.event_handling.canvas_event_handler import get_graphics_assignment_mode_axes
-
     invoking_axes = get_graphics_assignment_mode_axes()
     str_options = [quib.name for quib in options]
     if invoking_axes is None and OVERRIDE_DIALOG_AS_TEXT_FOR_NON_GRAPHICS_ASSIGNMENT \
