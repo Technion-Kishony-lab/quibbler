@@ -43,6 +43,20 @@ def test_drag_same_arg_binary_operator(create_axes_mouse_press_move_release_even
     create_axes_mouse_press_move_release_events(((2, 2), (3, 3)))
     assert abs(xx.get_value() - 3) < 0.01
 
+
+def test_drag_same_arg_binary_operator_single_axis(create_axes_mouse_press_move_release_events, axes):
+
+    axes.set_xlim(-1, 4)
+    axes.set_ylim(-1, 4)
+
+    x = iquib(1.)
+    xx = x + x
+    axes.plot(xx, 1, marker='o')
+
+    create_axes_mouse_press_move_release_events(((2, 1), (3, 1)))
+    assert abs(xx.get_value() - 3) < 0.01
+
+
 # stong non-linear functions with binary operators are not currently solved correctly.
 # See "Improve results with numeric solution" in graphics_inverse_assignment
 @pytest.mark.skip
