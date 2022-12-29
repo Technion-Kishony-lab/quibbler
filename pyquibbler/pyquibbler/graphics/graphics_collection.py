@@ -83,7 +83,11 @@ class GraphicsCollection:
                 AxesWidgetsCollector() as widgets_collector, \
                 ColorCyclerIndexCollector() as color_cycler_index_collector, \
                 AxesCreationPreventor():
-            yield
+            raised_exception = None
+            try:
+                yield
+            except Exception as e:
+                raised_exception = e
 
         should_keep_previous_artists = len(widgets_collector.objects_collected) > 0 and len(self.widgets) > 0
 
@@ -94,3 +98,6 @@ class GraphicsCollection:
                                  should_keep_previous_artists=should_keep_previous_artists)
 
         self._handle_called_color_cyclers(color_cycler_index_collector.color_cyclers_to_index)
+
+        if raised_exception:
+            raise raised_exception
