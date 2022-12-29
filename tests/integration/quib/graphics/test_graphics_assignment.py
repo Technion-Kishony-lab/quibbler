@@ -97,3 +97,26 @@ def test_keep_fixed_mouse_distance_from_picked_point(axes, create_axes_mouse_pre
 
     assert x.get_value() == [16.1, 16.2, 30]
 
+
+def test_drag_one_object_to_affect_another_1d(axes, create_axes_mouse_press_move_release_events):
+    x = iquib(5.)
+    dx = x - x
+    axes.axis([-10, 10, -10, 10])
+    axes.plot(dx, 0, 'o')
+    create_axes_mouse_press_move_release_events(((0, 0), (2, 0)))
+
+    assert abs(x.get_value() - 7) < 0.02
+
+
+def test_drag_one_object_to_affect_another_2d(axes, create_axes_mouse_press_move_release_events):
+    x = iquib(5.)
+    y = iquib(5.)
+    dx = x - x
+    dy = y - y
+    axes.axis([-10, 10, -10, 10])
+    axes.plot(dx, dy, 'o')
+    create_axes_mouse_press_move_release_events(((0, 0), (2, 2)))
+
+    assert abs(x.get_value() - 7) < 0.02
+    assert abs(y.get_value() - 7) < 0.02
+
