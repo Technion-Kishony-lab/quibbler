@@ -14,35 +14,11 @@ from pyquibbler.env import END_DRAG_IMMEDIATELY
 from .. import artist_wrapper
 from ..redraw import end_dragging, start_dragging
 from ..event_handling import graphics_inverse_assigner
+from ..graphics_assignment_mode import graphics_assignment_mode
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pyquibbler.quib.quib import Quib
-
-
-GRAPHICS_ASSIGNMENT_MODE_AXES: Optional[Axes] = None
-
-
-@contextmanager
-def graphics_assignment_mode(axes: Axes):
-    """
-    In graphics assignment mode. Indicating the axes invoking the assignment.
-    """
-
-    global GRAPHICS_ASSIGNMENT_MODE_AXES
-    GRAPHICS_ASSIGNMENT_MODE_AXES = axes
-    try:
-        yield
-    finally:
-        GRAPHICS_ASSIGNMENT_MODE_AXES = None
-
-
-def get_graphics_assignment_mode_axes() -> Optional[Axes]:
-    return GRAPHICS_ASSIGNMENT_MODE_AXES
-
-
-def is_within_graphics_assignment_mode() -> bool:
-    return GRAPHICS_ASSIGNMENT_MODE_AXES is not None
 
 
 class CanvasEventHandler:
