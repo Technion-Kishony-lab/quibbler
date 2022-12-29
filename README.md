@@ -1,11 +1,10 @@
-<img src="https://github.com/Technion-Kishony-lab/quibbler/blob/master/pyquibbler-documentations/docs/images/quibbler_promo.gif?raw=true" width=320 align='right'>
-
 # Quibbler
 **Interactive, reproducible and efficient data analytics**
 
 ![GitHub](https://img.shields.io/github/license/Technion-Kishony-lab/quibbler)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/Technion-Kishony-lab/quibbler)
 
+https://user-images.githubusercontent.com/62783755/209929327-67766771-f271-40f0-8f3a-76deb88310b7.mp4
 
 ## What is it?
 *Quibbler* is a toolset for building highly interactive, yet reproducible, 
