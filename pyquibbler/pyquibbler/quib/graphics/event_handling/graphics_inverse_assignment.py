@@ -100,10 +100,10 @@ def get_plot_arg_assignments_for_event(quibs_and_paths: List[Optional[Tuple[Quib
 
 
 def _calculate_assignment_overshoot(old_val, new_val, assigned_val):
-    if assigned_val == old_val or new_val == old_val:
-        return 1
+    if new_val == old_val:
+        return None
     else:
-        return (new_val - old_val) / (assigned_val - old_val)
+        return (assigned_val - old_val) / (new_val - old_val)
 
 
 def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
@@ -172,7 +172,7 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
         if quib_and_path.x is None and quib_and_path.y is None:
             # both x and y are not quibs
             continue
-        # TODO: need to unify the two treatments below, for either x or y dragging, and for both x and y dragging.
+        # TODO: need to unify the two treatments below, for horizontal/vertical dragging, and for both x-y dragging.
         elif quib_and_path.is_xor():
             # either only x is a quib or only y is a quib
             focal_xy = 1 if quib_and_path[0] is None else 0
@@ -188,11 +188,12 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
                 old_val=x_or_y_old,
                 new_val=x_or_y_new,
                 assigned_val=x_or_y_assigned_value)
-            adjusted_change = get_assignment_from_quib_and_path(
-                quib_and_path=focal_quib_and_path,
-                value=x_or_y_old + (x_or_y_assigned_value - x_or_y_old) / overshoot,
-                tolerance=tolerance[focal_xy])
-            focal_override = _get_override_group_for_quib_change_or_none(adjusted_change)
+            if overshoot is not None:
+                adjusted_change = get_assignment_from_quib_and_path(
+                    quib_and_path=focal_quib_and_path,
+                    value=x_or_y_old + (x_or_y_assigned_value - x_or_y_old) * overshoot,
+                    tolerance=tolerance[focal_xy])
+                focal_override = _get_override_group_for_quib_change_or_none(adjusted_change)
             overrides = focal_override or overrides
         else:
             # both x and y are quibs:
@@ -215,12 +216,15 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
                     old_val=xy_old[focal_xy],
                     new_val=xy_new[focal_xy],
                     assigned_val=xy_assigned_value[focal_xy])
-                xy_closest, slope = get_closest_point_on_line_in_axes(ax, xy_old, xy_new, xy_assigned_value)
-                adjusted_change = get_assignment_from_quib_and_path(
-                    quib_and_path=quib_and_path[focal_xy],
-                    value=xy_old[focal_xy] + (xy_closest[focal_xy] - xy_old[focal_xy]) / overshoot,
-                    tolerance=tolerance[focal_xy] * slope[focal_xy])
-                along_line_override = _get_override_group_for_quib_change_or_none(adjusted_change)
+                if overshoot is not None:
+                    xy_closest, slope = get_closest_point_on_line_in_axes(ax, xy_old, xy_new, xy_assigned_value)
+                    adjusted_change = get_assignment_from_quib_and_path(
+                        quib_and_path=quib_and_path[focal_xy],
+                        value=xy_old[focal_xy] + (xy_closest[focal_xy] - xy_old[focal_xy]) * overshoot,
+                        tolerance=tolerance[focal_xy] * slope[focal_xy])
+                    along_line_override = _get_override_group_for_quib_change_or_none(adjusted_change)
+                else:
+                    along_line_override = focal_override
                 if along_line_override is None:
                     continue
 
