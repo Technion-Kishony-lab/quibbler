@@ -7,6 +7,8 @@
 https://user-images.githubusercontent.com/62783755/209929327-67766771-f271-40f0-8f3a-76deb88310b7.mp4
 
 ## What is it?
+<img src="pyquibbler-documentations/docs/images/quibicon.gif" width=250 align='right'>
+
 *Quibbler* is a toolset for building highly interactive, yet reproducible, 
 transparent and efficient data analysis pipelines. *Quibbler* allows using standard 
 *Python* syntax to process data through any series of analysis steps, while 
@@ -97,7 +99,7 @@ To install run:
 
 `pip install pyquibbler`
 
-If are using *Jupyter lab*, you can also add the *pyquibbler Jupyter Lab extensions*:
+If you are using *Jupyter lab*, you can also add the *pyquibbler Jupyter Lab extensions*:
 
 `pip install pyquibbler_labextension`
 
