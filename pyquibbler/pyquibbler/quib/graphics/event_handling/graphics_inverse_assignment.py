@@ -1,13 +1,8 @@
 from __future__ import annotations
 
-import numpy as np
-
-from functools import partial
-
-from matplotlib.axes import Axes
 from matplotlib.backend_bases import PickEvent, MouseEvent, MouseButton
 
-from typing import Any, List, Tuple, Union, Optional
+from typing import Any, Tuple, Union, Optional
 
 from pyquibbler.quib.types import XY, PointXY
 
@@ -167,7 +162,7 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
                 adjusted_change = get_assignment_from_quib_and_path(
                     quib_and_path=xy_quib_and_path[focal_xy],
                     value=xy_old[focal_xy] + (adjusted_assigned_value - xy_old[focal_xy]) * overshoot,
-                    tolerance=None if tolerance[focal_xy] is None else tolerance[focal_xy]* adjustment_to_tolerance)
+                    tolerance=None if tolerance[focal_xy] is None else tolerance[focal_xy] * adjustment_to_tolerance)
                 override = get_override_group_for_quib_change(adjusted_change, should_raise=False)
                 if override is None:
                     continue

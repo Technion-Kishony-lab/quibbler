@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import numpy as np
 from dataclasses import dataclass, field
-from typing import Any, List, Union, Optional, Callable, Tuple
+from typing import Any, List, Union, Optional, Tuple
 
 from pyquibbler.utilities.numpy_original_functions import np_array
 from pyquibbler.quib.pretty_converters.math_expressions.getitem_expression import GetItemExpression
-from pyquibbler.path import Path, deep_get
+from pyquibbler.path import Path
 
 from .default_value import default
 from .rounding import floor_log10
