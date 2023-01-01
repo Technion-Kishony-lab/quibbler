@@ -64,28 +64,21 @@ RushHour: dragging with algorithmically specified constraints
     # This will prevent dragging cars on top of each other
     @quiby(is_graphics=True)
     def check_valid(xx, yy, dxx, dyy):
-        print('x')
         z = np.zeros((l*d, l*d), dtype=np.int8)
         for x, y, dx, dy in zip(xx, yy, dxx, dyy):
             if dy < 0:
                 x, y, dx, dy = y, x, -dy, dx
             if x < 0 or y < 0 or x + dx > l*d or y + dy > l*d:
-                raise Exception('out of range')
+                raise ValueError('out of range')
             z[x:x+dx, y:y+dy] += 1
         
         if np.any(z>1):
             print('raising')
-            raise Exception('overlap')
+            raise ValueError('overlap')
         
         if yy[0] == 4 * d:
             ax.set_title('Yeh!', fontsize=24)
     
     check = check_valid(xv, yv, dxv, dyv);
-
-
-.. code:: none
-
-    x
-
 
 .. image:: ../images/demo_gif/quibdemo_rushhour.gif
