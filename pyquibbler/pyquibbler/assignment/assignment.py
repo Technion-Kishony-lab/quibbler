@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import numpy as np
 from dataclasses import dataclass, field
-from typing import Any, List, Union, Optional, Callable, Tuple
+from typing import Any, List, Union, Optional, Tuple
 
 from pyquibbler.utilities.numpy_original_functions import np_array
 from pyquibbler.quib.pretty_converters.math_expressions.getitem_expression import GetItemExpression
-from pyquibbler.path import Path, deep_get
+from pyquibbler.path import Path
 
 from .default_value import default
 from .rounding import floor_log10
@@ -109,13 +109,13 @@ class AssignmentWithTolerance(Assignment):
 
 
 def create_assignment(value: Any, path: Path,
-                      tolerance: Optional[Any] = None,
-                      convert_func: Optional[Callable] = None) -> Union[Assignment, AssignmentWithTolerance]:
+                      tolerance: Optional[Any] = None) -> Union[Assignment, AssignmentWithTolerance]:
 
     if tolerance is None:
-        if convert_func:
-            value = convert_func(value)
         return Assignment(value, path)
+
+    if value is default:
+        return Assignment.create_default(path)
 
     original_type = type(value)
     value_is_list_or_tuple = isinstance(value, (list, tuple))
@@ -129,11 +129,6 @@ def create_assignment(value: Any, path: Path,
         value = original_type(value)
         value_up = original_type(value_up)
         value_down = original_type(value_down)
-
-    if convert_func:
-        value = convert_func(value)
-        value_up = convert_func(value_up)
-        value_down = convert_func(value_down)
 
     return AssignmentWithTolerance(value=value,
                                    path=path,
@@ -173,9 +168,6 @@ class AssignmentToQuib:
 
     def get_value_valid_at_path(self):
         return self.quib.get_value_valid_at_path(self.assignment.path)
-
-    def get_value_at_path(self):
-        return deep_get(self.get_value_valid_at_path(), self.assignment.path)
 
     def get_inversions(self) -> List[AssignmentToQuib]:
         return self.quib.handler.get_inversions_for_assignment(self.assignment)

@@ -12,37 +12,15 @@ from pyquibbler.debug_utils.timer import timeit
 from pyquibbler.env import END_DRAG_IMMEDIATELY
 
 from .. import artist_wrapper
-from ..redraw import end_dragging
+from ..redraw import end_dragging, start_dragging
 from ..event_handling import graphics_inverse_assigner
+from ..graphics_assignment_mode import graphics_assignment_mode
+
+from .enhance_pick_event import _enhance_pick_event
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pyquibbler.quib.quib import Quib
-
-
-GRAPHICS_ASSIGNMENT_MODE_AXES: Optional[Axes] = None
-
-
-@contextmanager
-def graphics_assignment_mode(axes: Axes):
-    """
-    In graphics assignment mode. Indicating the axes invoking the assignment.
-    """
-
-    global GRAPHICS_ASSIGNMENT_MODE_AXES
-    GRAPHICS_ASSIGNMENT_MODE_AXES = axes
-    try:
-        yield
-    finally:
-        GRAPHICS_ASSIGNMENT_MODE_AXES = None
-
-
-def get_graphics_assignment_mode_axes() -> Optional[Axes]:
-    return GRAPHICS_ASSIGNMENT_MODE_AXES
-
-
-def is_within_graphics_assignment_mode() -> bool:
-    return GRAPHICS_ASSIGNMENT_MODE_AXES is not None
 
 
 class CanvasEventHandler:
@@ -87,6 +65,7 @@ class CanvasEventHandler:
         return has_rightclick_callback
 
     def _handle_button_press(self, mouse_event: MouseEvent):
+        start_dragging()
         if mouse_event.button is MouseButton.RIGHT:
             self._call_object_rightclick_callback_if_exists(mouse_event.inaxes, mouse_event)
 
@@ -97,6 +76,8 @@ class CanvasEventHandler:
         self._previous_mouse_event = None
 
     def _handle_pick_event(self, pick_event: PickEvent):
+        start_dragging()
+        _enhance_pick_event(pick_event)
         self.current_pick_event = pick_event
         self.current_pick_quib = artist_wrapper.get_creating_quib(pick_event.artist)
         if pick_event.mouseevent.button is MouseButton.RIGHT:

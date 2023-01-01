@@ -61,6 +61,9 @@ class PointXY(XY):
     def __sub__(self, other) -> PointXY:
         return PointXY(self.x - other.x, self.y - other.y)
 
+    def __add__(self, other) -> PointXY:
+        return PointXY(self.x + other.x, self.y + other.y)
+
     def __mul__(self, other) -> PointXY:
         return PointXY(self.x * other.x, self.y * other.y)
 

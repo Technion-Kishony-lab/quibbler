@@ -1,21 +1,17 @@
 from __future__ import annotations
 
-import numpy as np
-
-from functools import partial
-
-from matplotlib.axes import Axes
 from matplotlib.backend_bases import PickEvent, MouseEvent, MouseButton
 
-from typing import Any, List, Tuple, Union, Optional
+from typing import Any, Tuple, Union, Optional
 
 from pyquibbler.quib.types import XY, PointXY
 
 from pyquibbler.assignment import get_axes_x_y_tolerance, create_assignment, OverrideGroup, \
     get_override_group_for_quib_changes, AssignmentToQuib, Assignment, default, get_override_group_for_quib_change
 from pyquibbler.assignment.utils import convert_scalar_value
-from pyquibbler.path import PathComponent, Path, deep_get
+from pyquibbler.path import Path, deep_get
 
+from .affected_args_and_paths import get_quibs_and_paths_affected_by_event
 from .utils import get_closest_point_on_line_in_axes
 
 from typing import TYPE_CHECKING
@@ -23,51 +19,12 @@ if TYPE_CHECKING:
     from pyquibbler.quib.quib import Quib
 
 
-def _get_override_group_for_quib_change_or_none(quib_change: Optional[AssignmentToQuib]) -> Optional[OverrideGroup]:
-    return None if quib_change is None else get_override_group_for_quib_change(quib_change, should_raise=False)
+def _get_quib__value_at_path(quib_and_path: Tuple[Union[Quib, Any], Path]):
+    if quib_and_path is None:
+        return None
 
-
-def _get_xy_current_point_from_xy_change(xy_change: XY):
-    return PointXY.from_func(lambda xy: xy.get_value_at_path(), xy_change)
-
-
-def get_quibs_and_paths_affected_by_event(arg: Any, data_index: Optional[int], point_indices: List[int]
-                                          ) -> List[Optional[Tuple[Quib, Path]]]:
-    from pyquibbler.quib.quib import Quib
-    quibs_and_paths = []
-    for point_index in point_indices:
-        if isinstance(arg, Quib):
-            # Support indexing of lists when more than one marker is dragged
-            shape = arg.get_shape()
-            if data_index is not None:
-                # plt.plot:
-                if len(shape) == 0:
-                    path = []
-                elif len(shape) == 1:
-                    path = [PathComponent(point_index)]
-                elif len(shape) == 2:
-                    path = [
-                        PathComponent(point_index),
-                        PathComponent(0 if shape[1] == 1 else data_index)  # de-broadcast if needed
-                    ]
-                else:
-                    assert False, 'Matplotlib is not supposed to support plotting data arguments with >2 dimensions'
-            else:
-                # plt.scatter:
-                if len(shape) == 0:
-                    path = []
-                else:
-                    path = [PathComponent(np.unravel_index(point_index, shape))]
-            quibs_and_paths.append((arg, path))
-            continue
-        if isinstance(arg, list):
-            quib = arg[data_index]
-            if isinstance(quib, Quib):
-                quibs_and_paths.append((quib, []))
-                continue
-        quibs_and_paths.append(None)
-
-    return quibs_and_paths
+    quib, path = quib_and_path
+    return deep_get(quib.get_value_valid_at_path(path), path)
 
 
 def get_assignment_from_quib_and_path(quib_and_path: Optional[Tuple[Quib, Path]],
@@ -77,26 +34,27 @@ def get_assignment_from_quib_and_path(quib_and_path: Optional[Tuple[Quib, Path]]
     Get assignments of mouse coordinate (x or y) to corresponding arg
     """
     if quib_and_path is None or value is None:
-        # mouse_event.xdata and mouse_event.ydata can be None if the mouse is outside the figure
         return None
     quib, path = quib_and_path
     if value is default:
         assignment = Assignment.create_default(path)
     else:
-        current_value = deep_get(quib.handler.get_value_valid_at_path(path), path)
-        # we cast value and the tolerance by current value. so datetime or int work as expected:
-        assignment = create_assignment(value, path, tolerance,
-                                       convert_func=partial(convert_scalar_value, current_value))
+        assignment = create_assignment(value, path, tolerance)
     return AssignmentToQuib(quib, assignment)
 
 
-def get_plot_arg_assignments_for_event(quibs_and_paths: List[Optional[Tuple[Quib, Path]]],
-                                       value: Any = default, tolerance: Any = None,
-                                       ) -> List[Optional[AssignmentToQuib]]:
+def _calculate_assignment_overshoot(old_val, new_val, assigned_val) -> Optional[float]:
+    if new_val == old_val:
+        return None
+    else:
+        return (assigned_val - old_val) / (new_val - old_val)
+
+
+def _is_dragged_in_x_more_than_y(pick_event: PickEvent, mouse_event: MouseEvent) -> int:
     """
-    Get assignments of mouse coordinate (x or y) to corresponding arg
+    Return True / False if mouse is dragged mostly in the x / y direction.
     """
-    return [get_assignment_from_quib_and_path(quib_and_path, value, tolerance) for quib_and_path in quibs_and_paths]
+    return abs(pick_event.x - mouse_event.x) > abs(pick_event.y - mouse_event.y)
 
 
 def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
@@ -126,20 +84,25 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
         and find the point on the line closest to the mouse and assign to the invertible quib.
 
     5. both x and y can be inverted, and the inversion of one affects the other.
-        get the drag-line and invert to the closest point
+        get the drag-line by assigning on the axis with larger mouse movement, and invert to the closest point
 
     6. both x and y can be inverted without affecting each other.
         return the two inversions.
 
-    only x or y are quibs, or because both are quibs and their values are dependent on the shared upstream override.
+    We also correct for overshoot assignment due to binary operators. See test_drag_same_arg_binary_operator
     """
+
+    from pyquibbler import Project
+    project = Project.get_or_create()
     point_indices = pick_event.ind
     ax = pick_event.artist.axes
-    quibs_and_paths = XY.from_func(get_quibs_and_paths_affected_by_event, xy_args, data_index, point_indices)
+
+    # For x and y, get list of (quib, path) for each affected plot index. None if not a quib
+    xy_quibs_and_paths = XY.from_func(get_quibs_and_paths_affected_by_event, xy_args, data_index, point_indices)
 
     if pick_event.mouseevent.button is MouseButton.RIGHT:
-        changes = XY.from_func(get_plot_arg_assignments_for_event, quibs_and_paths, default)
-        changes = [change for change in changes.x + changes.y if change is not None]
+        changes = [get_assignment_from_quib_and_path(quib_and_path, default)
+                   for quib_and_path in xy_quibs_and_paths.x + xy_quibs_and_paths.y if quib_and_path is not None]
         return get_override_group_for_quib_changes(changes)
 
     all_overrides = OverrideGroup()
@@ -149,49 +112,82 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
         return all_overrides
 
     tolerance = get_axes_x_y_tolerance(ax)
-    if not isinstance(ax, Axes):
-        # for testing
-        changes = XY.from_func(get_plot_arg_assignments_for_event, quibs_and_paths, xy_mouse, tolerance)
-        changes = [change for change in changes.x + changes.y if change is not None]
-        return get_override_group_for_quib_changes(changes)
 
-    for quib_and_path in [XY(quib_and_path_x, quib_and_path_y)
-                          for quib_and_path_x, quib_and_path_y in zip(quibs_and_paths.x, quibs_and_paths.y)]:
+    xy_order = (0, 1) if _is_dragged_in_x_more_than_y(pick_event, mouse_event) else (1, 0)
+
+    for xy_quib_and_path, xy_offset in [(XY(quib_and_path_x, quib_and_path_y), PointXY(dxy[0], dxy[1]))
+                                        for quib_and_path_x, quib_and_path_y, dxy
+                                        in zip(xy_quibs_and_paths.x, xy_quibs_and_paths.y, pick_event.xy_offset)]:
+        # We go over each index (vertex) of the plot, and translate the x and y assignment to it into overrides
+        adjusted_xy_mouse = xy_mouse + xy_offset
+        xy_old = PointXY.from_func(_get_quib__value_at_path, xy_quib_and_path)
+
+        xy_assigned_value = PointXY.from_func(convert_scalar_value, xy_old, adjusted_xy_mouse)
+        xy_change = XY.from_func(get_assignment_from_quib_and_path, xy_quib_and_path, xy_assigned_value)
+
         overrides = OverrideGroup()
-        if quib_and_path.x is None and quib_and_path.y is None:
-            # both x and y are not quibs
-            continue
-        elif quib_and_path.is_xor():
-            # either only x is a quib or only y is a quib
-            xy_change = XY.from_func(get_assignment_from_quib_and_path, quib_and_path, xy_mouse, tolerance)
-            override = _get_override_group_for_quib_change_or_none(xy_change.get_value_not_none())
-            overrides = override or overrides
-        else:
-            # both x and y are quibs:
-            xy_change = XY.from_func(get_assignment_from_quib_and_path, quib_and_path, xy_mouse)
-            xy_old = _get_xy_current_point_from_xy_change(xy_change)
-            xy_assigned_value = PointXY.from_func(lambda xy: xy.assignment.value, xy_change)
 
-            is_mouse_dx_larger_than_dy = \
-                np.diff(np.abs(ax.transData.transform(xy_mouse) - ax.transData.transform(xy_old))) < 0
-            xy_order = (0, 1) if is_mouse_dx_larger_than_dy else (1, 0)  # start with the larger mouse move
-            for focal_xy in xy_order:
-                other_xy = 1 - focal_xy
-                focal_override = _get_override_group_for_quib_change_or_none(xy_change[focal_xy])
-                if focal_override is None:
-                    continue
-                focal_override.apply(is_dragging=None)
-                xy_new = _get_xy_current_point_from_xy_change(xy_change)
-                xy_closest, slope = get_closest_point_on_line_in_axes(ax, xy_old, xy_new, xy_assigned_value)
-                adjusted_change = get_assignment_from_quib_and_path(quib_and_path[focal_xy], xy_closest[focal_xy],
-                                                                    tolerance[focal_xy] * slope[focal_xy])
-                along_line_override = _get_override_group_for_quib_change_or_none(adjusted_change)
-                if along_line_override is None:
-                    continue
-                overrides.extend(along_line_override)
+        for focal_xy in xy_order:
+            other_xy = 1 - focal_xy
 
-                if xy_old[other_xy] != xy_new[other_xy]:
-                    # x-y values are dependent
-                    break
+            if xy_quib_and_path[focal_xy] is None:
+                continue
+
+            override = get_override_group_for_quib_change(xy_change[focal_xy], should_raise=False)
+            if override is None:
+                continue
+
+            # temporarily apply change and check the new position of the point at both x and y:
+            override.apply(temporarily=True)
+            xy_new = PointXY.from_func(_get_quib__value_at_path, xy_quib_and_path)
+            project.undo_pending_group(temporarily=True)
+
+            affected_other = xy_old[other_xy] != xy_new[other_xy]
+
+            overshoot = _calculate_assignment_overshoot(xy_old[focal_xy], xy_new[focal_xy], xy_assigned_value[focal_xy])
+
+            if overshoot is not None:
+                # the quib we assigned to did actually change.
+                if affected_other and ax is not None:  # ax can be None in testing
+                    # The other axis also changed. x and y are dependent.  We need to find the drag-line and
+                    # find the point on this line which is closest to the mouse position.
+                    xy_closest, slope = get_closest_point_on_line_in_axes(ax, xy_old, xy_new, xy_assigned_value)
+                    adjusted_assigned_value = xy_closest[focal_xy]
+                    adjustment_to_tolerance = slope[focal_xy]
+                else:
+                    # we are only dragging in one axis
+                    adjusted_assigned_value = xy_assigned_value[focal_xy]
+                    adjustment_to_tolerance = 1
+
+                adjusted_change = get_assignment_from_quib_and_path(
+                    quib_and_path=xy_quib_and_path[focal_xy],
+                    value=xy_old[focal_xy] + (adjusted_assigned_value - xy_old[focal_xy]) * overshoot,
+                    tolerance=None if tolerance[focal_xy] is None else tolerance[focal_xy] * adjustment_to_tolerance)
+                override = get_override_group_for_quib_change(adjusted_change, should_raise=False)
+                if override is None:
+                    continue
+
+            overrides.extend(override)
+
+            if affected_other:
+                # x-y values are dependent. No need to assign to other
+                break
+
         all_overrides.extend(overrides)
     return all_overrides
+
+
+# Possible code for improving assignment results using an iterative numeric solution (might be too slow in practice)
+# See test_drag_same_arg_binary_operator_non_linear
+#
+# from .utils import get_sqr_distance_in_axes
+# def _distance_to_mouse(assigned_values):
+#     along_line_override.quib_changes[0].assignment.value = assigned_values[0]
+#     along_line_override.apply(temporarily=True)
+#     xy_new = _get_xy_current_point_from_xy_change(xy_change)
+#     Project.get_or_create().silently_undo_pending_group()
+#     return get_sqr_distance_in_axes(ax, xy_new, xy_assigned_value)
+#
+# from scipy.optimize import fmin
+# assigned_value = fmin(_distance_to_mouse, [along_line_override.quib_changes[0].assignment.value],
+#                       xtol=1e10, ftol=1)

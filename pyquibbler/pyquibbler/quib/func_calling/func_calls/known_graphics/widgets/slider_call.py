@@ -33,6 +33,7 @@ class SliderQuibFuncCall(WidgetQuibFuncCall):
         # on_release is now disabled. it causes the overriding dialog to appear twice.
         # and it leads to two evaluations of randomization (e.g., in the dice demo).
         widget.on_release = self._on_release
+        widget.on_press = self._on_press
 
 
 class RangeSliderQuibFuncCall(SliderQuibFuncCall):

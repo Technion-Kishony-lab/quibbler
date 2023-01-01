@@ -15,6 +15,7 @@ class QWidgetSlider(QWidget):
     """
     def __init__(self, *args, **kwargs):
         self.on_release = None
+        self.on_press = None
         self._drag_active = False
         super().__init__(*args, **kwargs)
 
@@ -29,6 +30,8 @@ class QWidgetSlider(QWidget):
         self._drag_active = value
         if not value and self.on_release:
             self.on_release(self.val)
+        if value and self.on_press:
+            self.on_press(self.val)
 
     def _stepped_value(self, val):
         """Return *val* coerced to closest number in the ``valstep`` grid."""

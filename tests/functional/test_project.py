@@ -217,7 +217,7 @@ def test_project_undo_with_group_reverts_back_to_before_group_and_runs_graphics_
     add_definition_for_function(mock_func, create_or_reuse_func_definition(is_graphics=True))
     _ = create_quib(func=mock_func, args=(a,), lazy=False)
     project.start_pending_undo_group()
-    with aggregate_redraw_mode(is_dragging=True):
+    with aggregate_redraw_mode():
         a.handler.override(Assignment(
             path=[],
             value=10
@@ -342,7 +342,7 @@ def test_undo_after_undo():
 def test_undo_after_remove_assignment(project):
     quib = iquib(1)
     quib.assign(3)
-    project.remove_assignment_from_quib(quib=quib, assignment_index=0)
+    quib.handler.upsert_override_at_index(None, 0)
     # Sanity
     assert quib.get_value() == 1
 

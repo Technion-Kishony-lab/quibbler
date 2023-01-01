@@ -5,6 +5,7 @@ import threading
 from abc import ABC, abstractmethod
 from typing import List, Type
 from matplotlib.artist import Artist
+from matplotlib.figure import Figure
 from matplotlib.widgets import AxesWidget
 from matplotlib.pyplot import Axes
 
@@ -28,9 +29,9 @@ class UponMethodCall(ABC):
     def wrap_object_method(self, func):
         @functools.wraps(func)
         def wrapped_method(obj, *args, **kwargs):
-            res = func(obj, *args, **kwargs)
             if threading.get_ident() == self._thread_id:
                 self._on_method_call(obj, *args, **kwargs)
+            res = func(obj, *args, **kwargs)
             return res
 
         return wrapped_method
@@ -67,7 +68,8 @@ class GraphicsCollector(UponCreation, ABC):
         return self._objects_collected
 
     def _on_method_call(self, obj, *args, **kwargs):
-        self._objects_collected.append(obj)
+        if not isinstance(obj, (Figure, Axes)):
+            self._objects_collected.append(obj)
 
 
 class ArtistsCollector(GraphicsCollector):

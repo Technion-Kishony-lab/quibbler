@@ -9,6 +9,7 @@ from pyquibbler.function_definitions.func_definition import create_or_reuse_func
 from pyquibbler.path import PathComponent
 from pyquibbler.quib.factory import create_quib
 from pyquibbler.quib.graphics import GraphicsUpdateType, aggregate_redraw_mode
+from pyquibbler.quib.graphics.redraw import start_dragging, end_dragging
 
 
 @pytest.fixture()
@@ -87,10 +88,12 @@ def test_graphics_quib_does_not_copy_color(axes, create_quib_with_return_value):
 def test_graphics_quib_update_on_drag(graphics_update, should_have_called, quib, graphics_quib,
                                       create_quib_with_return_value):
     graphics_quib.graphics_update = graphics_update
-    with aggregate_redraw_mode(is_dragging=True):
+    start_dragging()
+    with aggregate_redraw_mode():
         quib.handler.invalidate_and_aggregate_redraw_at_path([])
 
     assert graphics_quib.func.call_count == (2 if should_have_called else 1)
+    end_dragging()
 
 
 def test_graphics_quib_update_on_drop(quib, graphics_quib):

@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import contextlib
+import weakref
 
-from typing import Set, Dict, Optional
+from typing import Set, Dict
 from matplotlib.figure import Figure
 from matplotlib.pyplot import fignum_exists
 from matplotlib._pylab_helpers import Gcf
@@ -16,14 +17,15 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pyquibbler.quib.quib import Quib
 
-
-QUIBS_TO_REDRAW: Dict[GraphicsUpdateType, Set[Quib]] = {GraphicsUpdateType.DRAG: set(), GraphicsUpdateType.DROP: set()}
-QUIBS_TO_NOTIFY_OVERRIDING_CHANGES: Set[Quib] = set()
+QUIBS_TO_REDRAW: Dict[GraphicsUpdateType, weakref.WeakSet[Quib]] = {GraphicsUpdateType.DRAG: weakref.WeakSet(),
+                                                                    GraphicsUpdateType.DROP: weakref.WeakSet()}
+QUIBS_TO_NOTIFY_OVERRIDING_CHANGES: weakref.WeakSet[Quib] = weakref.WeakSet()
 IN_AGGREGATE_REDRAW_MODE = False
+IN_DRAGGING_MODE = False
 
 
 @contextlib.contextmanager
-def aggregate_redraw_mode(is_dragging: Optional[bool] = False):
+def aggregate_redraw_mode(temporarily: bool = False):
     """
     In aggregate redraw mode, no axeses will be redrawn until the end of the context manager
 
@@ -41,17 +43,42 @@ def aggregate_redraw_mode(is_dragging: Optional[bool] = False):
             yield
         finally:
             IN_AGGREGATE_REDRAW_MODE = False
-        if is_dragging is not None:
+        if not temporarily:
             _redraw_quibs_with_graphics(GraphicsUpdateType.DRAG)
+            if not is_dragging():
+                _redraw_quibs_with_graphics(GraphicsUpdateType.DROP)
             _notify_of_overriding_changes()
-        if is_dragging is False:
-            end_dragging()
+
+
+def start_dragging():
+    from pyquibbler import Project
+    global IN_DRAGGING_MODE
+    if IN_DRAGGING_MODE:
+        return
+    IN_DRAGGING_MODE = True
+    project = Project.get_or_create()
+    project.push_empty_group_to_undo_stack()
+    project.start_pending_undo_group()
 
 
 def end_dragging():
     from pyquibbler import Project
-    _redraw_quibs_with_graphics(GraphicsUpdateType.DROP)
-    Project.get_or_create().push_pending_undo_group_to_undo_stack()
+    global IN_DRAGGING_MODE
+    if not IN_DRAGGING_MODE:
+        return
+    IN_DRAGGING_MODE = False
+    project = Project.get_or_create()
+    try:
+        _redraw_quibs_with_graphics(GraphicsUpdateType.DROP)
+    except Exception:
+        project.undo()
+
+    project.remove_last_undo_group_if_empty()
+    project.set_undo_redo_buttons_enable_state()
+
+
+def is_dragging():
+    return IN_DRAGGING_MODE
 
 
 @contextlib.contextmanager
@@ -68,32 +95,33 @@ def skip_canvas_draws(should_skip: bool = True):
             canvas_class = type(figure_managers[0].canvas)
             original_canvas_draw = canvas_class.draw
             canvas_class.draw = _skip_draw
-
-    yield
-
-    if original_canvas_draw is not None:
-        canvas_class.draw = original_canvas_draw
+    try:
+        yield
+    finally:
+        if original_canvas_draw is not None:
+            canvas_class.draw = original_canvas_draw
 
 
 def _redraw_quibs_with_graphics(graphics_update: GraphicsUpdateType):
     global QUIBS_TO_REDRAW
-    quibs = QUIBS_TO_REDRAW[graphics_update]
-    with timeit("quib redraw", f"redrawing {len(quibs)} quibs"), skip_canvas_draws():
+    quib_refs = QUIBS_TO_REDRAW[graphics_update]
+    quibs = set(quib_refs)
+    with timeit("quib redraw", f"redrawing {len(quib_refs)} quibs"), skip_canvas_draws():
         for quib in quibs:
             quib.handler.reevaluate_graphic_quib()
+            quib_refs.remove(quib)
 
     figures = {figure for quib in quibs for figure in quib.handler.get_figures() if figure is not None}
 
     redraw_figures(figures)
-    quibs.clear()
 
 
 def _notify_of_overriding_changes():
     with timeit("override_notify", f"notifying overriding changes for {len(QUIBS_TO_NOTIFY_OVERRIDING_CHANGES)} quibs"):
-        for quib in QUIBS_TO_NOTIFY_OVERRIDING_CHANGES:
+        quibs = set(QUIBS_TO_NOTIFY_OVERRIDING_CHANGES)
+        for quib in quibs:
             quib.handler.on_overrides_changes()
-
-    QUIBS_TO_NOTIFY_OVERRIDING_CHANGES.clear()
+            QUIBS_TO_NOTIFY_OVERRIDING_CHANGES.remove(quib)
 
 
 def redraw_quib_with_graphics_or_add_in_aggregate_mode(quib: Quib, graphics_update: GraphicsUpdateType):

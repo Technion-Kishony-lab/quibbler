@@ -76,3 +76,47 @@ def testy_drag_axvline(axes, create_axes_mouse_press_move_release_events):
     create_axes_mouse_press_move_release_events(((10, 2), (23, 4)))
 
     assert x.get_value() == 23
+
+
+def testy_drag_scatter_with_mouse_off_point(axes, create_axes_mouse_press_move_release_events):
+    x = iquib([10, 20, 30])
+    y = iquib([10, 20, 30])
+    axes.axis([0, 100, 0, 100])
+    axes.scatter(x, y)
+
+    create_axes_mouse_press_move_release_events(((9, 10), (15, 5)))
+
+    assert x.get_value() == [16, 20, 30]
+    assert y.get_value() == [5, 20, 30]
+
+
+def test_keep_fixed_mouse_distance_from_picked_point(axes, create_axes_mouse_press_move_release_events):
+    x = iquib([10.1, 10.2, 30])
+    axes.plot(x, x, 'o')
+    create_axes_mouse_press_move_release_events(((10, 10), (16, 16)))
+
+    assert x.get_value() == [16.1, 16.2, 30]
+
+
+def test_drag_one_object_to_affect_another_1d(axes, create_axes_mouse_press_move_release_events):
+    x = iquib(5.)
+    dx = x - x
+    axes.axis([-10, 10, -10, 10])
+    axes.plot(dx, 0, 'o')
+    create_axes_mouse_press_move_release_events(((0, 0), (2, 0)))
+
+    assert abs(x.get_value() - 7) < 0.02
+
+
+def test_drag_one_object_to_affect_another_2d(axes, create_axes_mouse_press_move_release_events):
+    x = iquib(5.)
+    y = iquib(5.)
+    dx = x - x
+    dy = y - y
+    axes.axis([-10, 10, -10, 10])
+    axes.plot(dx, dy, 'o')
+    create_axes_mouse_press_move_release_events(((0, 0), (2, 2)))
+
+    assert abs(x.get_value() - 7) < 0.02
+    assert abs(y.get_value() - 7) < 0.02
+

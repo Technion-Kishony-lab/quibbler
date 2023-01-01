@@ -3,24 +3,24 @@ import pickle
 
 import numpy as np
 
-from typing import Any, Optional, Dict, Hashable, List
+from typing import Any, Optional, List, Tuple
 
-from pyquibbler.path.hashable import get_hashable_path
 from pyquibbler.path.path_component import Path, Paths
 from pyquibbler.path.data_accessing import deep_get, deep_set
 from pyquibbler.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
 from pyquibbler.quib.utils import deep_copy_without_quibs_or_graphics
 from pyquibbler.utilities.iterators import recursively_run_func_on_object
 
-from pyquibbler.debug_utils import timeit, logger
+from pyquibbler.debug_utils import timeit
 
 from .assignment import Assignment
 from .assignment_to_from_text import convert_executable_text_to_assignments, convert_assignments_to_executable_text
 from .assignment_template import AssignmentTemplate
 from .default_value import default
-from .exceptions import NoAssignmentFoundAtPathException, CannotConvertAssignmentsToTextException
+from .exceptions import CannotConvertAssignmentsToTextException
 
-PathsToAssignments = Dict[Hashable, Assignment]
+Assignments = List[Assignment]
+TwoAssignments = Tuple[Optional[Assignment], Optional[Assignment]]
 
 
 class Overrider:
@@ -29,61 +29,94 @@ class Overrider:
     """
 
     def __init__(self):
-        self._paths_to_assignments: PathsToAssignments = {}
+        self._assignments: Assignments = []
         self._active_assignment = None
+
+    def get_assignments(self):
+        return self._assignments
+
+    def get_paths(self) -> Paths:
+        return [assignment.path for assignment in self._assignments]
+
+    def get_index_of_path(self, path: Path) -> int:
+        """
+        Returns the first index with assignment matching the specified path.
+        """
+        return self.get_paths().index(path)
+
+    def get_assignment_index(self, assignment: Optional[Assignment]):
+        """
+        Returns the index of an assignment.
+        If assignment=None, returns the len of the assignment list
+        """
+        return len(self) if assignment is None else self._assignments.index(assignment)
 
     def clear_assignments(self) -> Paths:
-        return self.replace_assignments({})
+        """
+        Clear all assignments. Return affected paths.
+        """
+        return self.replace_assignments([])
 
-    def replace_assignments(self, new_paths_to_assignments: PathsToAssignments) -> Paths:
+    def replace_assignments(self, new_assignments: Assignments) -> Paths:
         """
-        replace assignment list and return the changed paths
+        Replace the assignment list with a new list and return affected paths
         """
-        self._paths_to_assignments = new_paths_to_assignments
         self._active_assignment = None
-        # TODO: invalidate only the changed paths
-        return [[]]
+        old_paths = self.get_paths()
+        self._assignments = new_assignments
+        new_paths = self.get_paths()
+        return old_paths + new_paths
 
-    def _add_to_paths_to_assignments(self, assignment: Assignment):
-        hashable_path = get_hashable_path(assignment.path)
-        # We need to first remove and then add to make sure the new key value pair are now first in the dict
-        if hashable_path in self._paths_to_assignments:
-            self._paths_to_assignments.pop(hashable_path)
-        self._paths_to_assignments[hashable_path] = assignment
-
-    def add_assignment(self, assignment: Assignment):
+    def remove_assignments_at_path(self, path: Path) -> TwoAssignments:
         """
-        Adds an override to the overrider - data[key] = value.
+        Remove assignment to specified path.
+        Returns the removed assignment and the assignment next to it (or None if removed assignment is last).
         """
-        self._active_assignment = assignment
-        self._add_to_paths_to_assignments(assignment)
+        try:
+            index = self.get_index_of_path(path)
+            return self.pop_assignment_at_index(index)
+        except ValueError:
+            return None, None
 
-    def pop_assignment_at_path(self, path: Path, raise_on_not_found: bool = True):
-        hashable_path = get_hashable_path(path)
-        if raise_on_not_found and hashable_path not in self._paths_to_assignments:
-            raise NoAssignmentFoundAtPathException(path=path)
-        return self._paths_to_assignments.pop(hashable_path, None)
+    def add_new_assignment_before_assignment(self,
+                                             new_assignment: Assignment,
+                                             next_assignment: Optional[Assignment] = None,
+                                             ):
+        """
+        Add a new_assignment before a specified next_assignment
+        next_assignment: the assignment before which the new assignment is added. None to add at the end.
+        """
+        self.insert_assignment_at_index(self.get_assignment_index(next_assignment), new_assignment)
 
-    def pop_assignment_at_index(self, index: int):
-        new_paths_with_assignments = list(self._paths_to_assignments.items())
-        _, assignment = new_paths_with_assignments.pop(index)
-        self._paths_to_assignments = dict(new_paths_with_assignments)
-        return assignment
+    def add_assignment(self, new_assignment: Assignment) -> TwoAssignments:
+        """
+        Adds an override to the overrider.
+        Remove prior assignments at the same path
+        """
+        self._active_assignment = new_assignment
+        old_assignment_and_next = self.remove_assignments_at_path(new_assignment.path)
+        self.add_new_assignment_before_assignment(new_assignment)
+        return old_assignment_and_next
 
-    def insert_assignment_at_index(self, assignment: Assignment, index: int):
-        hashable_path = get_hashable_path(assignment.path)
-        new_paths_with_assignments = list(self._paths_to_assignments.items())
-        index = min(index, len(new_paths_with_assignments))  # see test_drag_xy_undo
-        new_paths_with_assignments.insert(index, (hashable_path, assignment))
+    def pop_assignment_at_index(self, index) -> TwoAssignments:
+        """
+        Remove assignment at specified index.
+        Returns the removed assignment and the assignment after it (or None if last).
+        """
+        removed_assignment = self._assignments.pop(index)
+        next_assignment = self._assignments[index] if index < len(self) else None
+        return removed_assignment, next_assignment
 
-        # We need to remove any assignments with the same path that came before this index so we don't accidentally
-        # use those (previous) assignments when running `dict` on the list
-        for i, (path, assignment) in enumerate(new_paths_with_assignments[:index][:]):
-            if hashable_path == path:
-                new_paths_with_assignments.pop(i)
+    def pop_assignment_before_assignment(self, next_assignment: Optional[Assignment]) -> Assignment:
+        return self.pop_assignment_at_index(self.get_assignment_index(next_assignment) - 1)
 
-        logger.info(f"New paths with assignments {new_paths_with_assignments}")
-        self._paths_to_assignments = dict(new_paths_with_assignments)
+    def insert_assignment_at_index(self, index: Optional[int], assignment: Assignment) -> Optional[Assignment]:
+        """
+        Insert a new assignment at specified index.
+        Returns the next assignment, or None if new assignment is inserted last
+        """
+        self._assignments.insert(index, assignment)
+        return self._assignments[index + 1] if index + 1 < len(self) else None
 
     def override(self, data: Any, assignment_template: Optional[AssignmentTemplate] = None):
         """
@@ -92,7 +125,7 @@ class Overrider:
         original_data = data
         with timeit("quib_overriding"):
             data = deep_copy_without_quibs_or_graphics(data)
-            for assignment in self._paths_to_assignments.values():
+            for assignment in self._assignments:
                 if assignment.is_default():
                     value = deep_get(original_data, assignment.path)
                 else:
@@ -110,7 +143,7 @@ class Overrider:
         all cells in overridden indexes will be set to True.
         """
         mask = false_mask
-        for assignment in self:
+        for assignment in self._assignments:
             path = assignment.path
             val = assignment.value is not default
             if path:
@@ -127,17 +160,17 @@ class Overrider:
 
         return mask
 
-    def get(self, path: Path, default_value: bool = None) -> Assignment:
+    def get(self, path: Path) -> Assignment:
         """
         Get the assignment at the given path
         """
-        return self._paths_to_assignments.get(get_hashable_path(path), default_value)
+        return self._assignments[self.get_index_of_path(path)]
 
     def __getitem__(self, item) -> Assignment:
-        return list(self._paths_to_assignments.values())[item]
+        return self._assignments[item]
 
     def __len__(self):
-        return len(self._paths_to_assignments)
+        return len(self._assignments)
 
     """
     save/load
@@ -145,14 +178,14 @@ class Overrider:
 
     def save_as_binary(self, file: pathlib.Path):
         with open(file, 'wb') as f:
-            pickle.dump(self._paths_to_assignments, f)
+            pickle.dump(self._assignments, f)
 
     def load_from_binary(self, file: pathlib.Path) -> List[Path]:
         with open(file, 'rb') as f:
             return self.replace_assignments(pickle.load(f))
 
     def save_as_txt(self, file: pathlib.Path):
-        text = convert_assignments_to_executable_text(self._paths_to_assignments.values(),
+        text = convert_assignments_to_executable_text(self._assignments,
                                                       raise_if_not_reversible=True)
         with open(file, "wt") as f:
             f.write(text)
@@ -177,7 +210,7 @@ class Overrider:
 
     def get_pretty_repr(self, name: str = None):
         try:
-            text = convert_assignments_to_executable_text(self._paths_to_assignments.values(), name)
+            text = convert_assignments_to_executable_text(self._assignments, name)
         except CannotConvertAssignmentsToTextException:
             text = '[Cannot convert assignments to text]'
         return text
