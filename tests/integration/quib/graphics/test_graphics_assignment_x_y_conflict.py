@@ -71,3 +71,26 @@ def test_drag_same_arg_binary_operator_non_linear(create_axes_mouse_press_move_r
 
     create_axes_mouse_press_move_release_events(((2, 2), (3, 3)))
     assert abs(xx.get_value() - 3) < 0.01
+
+
+def test_prevent_drag_causing_exception(create_axes_mouse_press_move_release_events, axes):
+    axes.set_xlim(-1, 4)
+    axes.set_ylim(-1, 4)
+
+    data = iquib([0, 1, 2])
+    index = iquib(0)
+
+    axes.plot(index, 0, marker='o')
+    axes.plot(data[index], 1, marker='o')  # exception for x > 2
+
+    create_axes_mouse_press_move_release_events(((0, 0), (1, 0)), release=False)
+    assert index.get_value() == 1
+
+    create_axes_mouse_press_move_release_events(((1, 0), (2, 0)), press=False, release=False)
+    assert index.get_value() == 2
+
+    create_axes_mouse_press_move_release_events(((2, 0), (3, 0)), press=False, release=False)
+    assert index.get_value() == 2  # drag is prevented
+
+    create_axes_mouse_press_move_release_events(((2, 0),), press=False)
+

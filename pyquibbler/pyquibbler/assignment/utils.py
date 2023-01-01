@@ -58,6 +58,8 @@ def convert_scalar_value(current_value, assigned_value):
     """
     Convert an assigned_value to match the type of a current_value.
     """
+    if current_value is None:
+        return None
     if is_integer_scalar(current_value):
         return type(current_value)(round(assigned_value))
     if isinstance(current_value, datetime) and isinstance(assigned_value, float):

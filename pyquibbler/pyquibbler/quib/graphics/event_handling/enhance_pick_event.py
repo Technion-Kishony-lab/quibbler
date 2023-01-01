@@ -38,17 +38,24 @@ ARTIST_TYPES_TO_GET_XY_DATA = {
 
 def _enhance_pick_event(pick_event: PickEvent):
     """
-    Store distance from mouse to picked points
+    Store offset from mouse to picked points
     """
+
+    mouseevent = pick_event.mouseevent
+
+    # add xy_offset for each point
     get_xy_data = ARTIST_TYPES_TO_GET_XY_DATA.get(type(pick_event.artist), None)
     if get_xy_data is None:
         try:
             ind = pick_event.ind
-            pick_event.dxy = np.zeros(len(ind), 2)
+            pick_event.xy_offset = np.zeros(len(ind), 2)
         except (AttributeError, TypeError):
-            pick_event.dxy = ZeroDistance()
+            pick_event.xy_offset = ZeroDistance()
     else:
         xy_data = get_xy_data(pick_event)
         ind = pick_event.ind
-        mouseevent = pick_event.mouseevent
-        pick_event.dxy = xy_data[ind, :] - [[mouseevent.xdata, mouseevent.ydata]]
+        pick_event.xy_offset = xy_data[ind, :] - [[mouseevent.xdata, mouseevent.ydata]]
+
+    # add picked position in pixels
+    pick_event.x = mouseevent.x
+    pick_event.y = mouseevent.y
