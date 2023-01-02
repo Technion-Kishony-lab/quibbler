@@ -7,7 +7,7 @@
 https://user-images.githubusercontent.com/62783755/209929327-67766771-f271-40f0-8f3a-76deb88310b7.mp4
 
 ## What is it?
-<img src="pyquibbler-documentations/docs/images/quibicon.gif" width=250 align='right'>
+<img src="https://github.com/Technion-Kishony-lab/quibbler/blob/master/pyquibbler-documentations/docs/images/quibicon.gif?raw=true" width=250 align='right'>
 
 *Quibbler* is a toolset for building highly interactive, yet reproducible, 
 transparent and efficient data analysis pipelines. *Quibbler* allows using standard 

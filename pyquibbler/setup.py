@@ -5,6 +5,10 @@ setup_directory = Path(__file__).parent
 long_description = (setup_directory / "README.md").read_text(encoding="utf-8")
 
 setup(
+    description='Interactive, reproducible and efficient data analytics',
+    author="Kishony lab, Technion Israel Institute of Technology",
+    author_email="rkishony@technion.ac.il",
+    url="https://github.com/Technion-Kishony-lab/quibbler",
     classifiers=[
         'Framework :: Matplotlib',
         'Framework :: Jupyter',
