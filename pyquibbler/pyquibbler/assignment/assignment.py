@@ -111,11 +111,8 @@ class AssignmentWithTolerance(Assignment):
 def create_assignment(value: Any, path: Path,
                       tolerance: Optional[Any] = None) -> Union[Assignment, AssignmentWithTolerance]:
 
-    if tolerance is None:
+    if tolerance is None or value is default:
         return Assignment(value, path)
-
-    if value is default:
-        return Assignment.create_default(path)
 
     original_type = type(value)
     value_is_list_or_tuple = isinstance(value, (list, tuple))
