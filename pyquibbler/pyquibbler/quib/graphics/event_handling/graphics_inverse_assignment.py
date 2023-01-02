@@ -7,7 +7,7 @@ from typing import Any, Tuple, Union, Optional
 from pyquibbler.quib.types import XY, PointXY
 
 from pyquibbler.assignment import get_axes_x_y_tolerance, create_assignment, OverrideGroup, \
-    get_override_group_for_quib_changes, AssignmentToQuib, Assignment, default, get_override_group_for_quib_change
+    get_override_group_for_quib_changes, AssignmentToQuib, default, get_override_group_for_quib_change
 from pyquibbler.assignment.utils import convert_scalar_value
 from pyquibbler.path import Path, deep_get
 
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from pyquibbler.quib.quib import Quib
 
 
-def _get_quib__value_at_path(quib_and_path: Tuple[Union[Quib, Any], Path]):
+def _get_quib_value_at_path(quib_and_path: Tuple[Union[Quib, Any], Path]):
     if quib_and_path is None:
         return None
 
@@ -36,18 +36,11 @@ def get_assignment_from_quib_and_path(quib_and_path: Optional[Tuple[Quib, Path]]
     if quib_and_path is None or value is None:
         return None
     quib, path = quib_and_path
-    if value is default:
-        assignment = Assignment.create_default(path)
-    else:
-        assignment = create_assignment(value, path, tolerance)
-    return AssignmentToQuib(quib, assignment)
+    return AssignmentToQuib(quib, create_assignment(value, path, tolerance))
 
 
 def _calculate_assignment_overshoot(old_val, new_val, assigned_val) -> Optional[float]:
-    if new_val == old_val:
-        return None
-    else:
-        return (assigned_val - old_val) / (new_val - old_val)
+    return None if new_val == old_val else (assigned_val - old_val) / (new_val - old_val)
 
 
 def _is_dragged_in_x_more_than_y(pick_event: PickEvent, mouse_event: MouseEvent) -> int:
@@ -120,7 +113,7 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
                                         in zip(xy_quibs_and_paths.x, xy_quibs_and_paths.y, pick_event.xy_offset)]:
         # We go over each index (vertex) of the plot, and translate the x and y assignment to it into overrides
         adjusted_xy_mouse = xy_mouse + xy_offset
-        xy_old = PointXY.from_func(_get_quib__value_at_path, xy_quib_and_path)
+        xy_old = PointXY.from_func(_get_quib_value_at_path, xy_quib_and_path)
 
         xy_assigned_value = PointXY.from_func(convert_scalar_value, xy_old, adjusted_xy_mouse)
         xy_change = XY.from_func(get_assignment_from_quib_and_path, xy_quib_and_path, xy_assigned_value)
@@ -139,16 +132,16 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
 
             # temporarily apply change and check the new position of the point at both x and y:
             override.apply(temporarily=True)
-            xy_new = PointXY.from_func(_get_quib__value_at_path, xy_quib_and_path)
+            xy_new = PointXY.from_func(_get_quib_value_at_path, xy_quib_and_path)
             project.undo_pending_group(temporarily=True)
 
-            affected_other = xy_old[other_xy] != xy_new[other_xy]
+            is_other_affected = xy_old[other_xy] != xy_new[other_xy]
 
             overshoot = _calculate_assignment_overshoot(xy_old[focal_xy], xy_new[focal_xy], xy_assigned_value[focal_xy])
 
             if overshoot is not None:
                 # the quib we assigned to did actually change.
-                if affected_other and ax is not None:  # ax can be None in testing
+                if is_other_affected and ax is not None:  # ax can be None in testing
                     # The other axis also changed. x and y are dependent.  We need to find the drag-line and
                     # find the point on this line which is closest to the mouse position.
                     xy_closest, slope = get_closest_point_on_line_in_axes(ax, xy_old, xy_new, xy_assigned_value)
@@ -169,7 +162,7 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
 
             overrides.extend(override)
 
-            if affected_other:
+            if is_other_affected:
                 # x-y values are dependent. No need to assign to other
                 break
 
