@@ -82,7 +82,7 @@ plt.plot([0, x, x], [1 - x, 1 - x, 0], 'D--')
 plt.title(x, fontsize=20)
 ```
 
-<img src="https://github.com/Technion-Kishony-lab/quibbler/blob/master/pyquibbler-documentations/docs/images/minimal_app_3.gif?raw=true width=250">
+![](https://github.com/Technion-Kishony-lab/quibbler/blob/master/pyquibbler-documentations/docs/images/minimal_app_3.gif?raw=true)
 
 
 ## Documentation and Examples
