@@ -39,35 +39,34 @@ For details (and prizes!) see: [Best Quibble Award](https://kishony.technion.ac.
 
 ## Main Features
 
-**Interactivity** 
+* **Interactivity** 
 
-* Creating [interactive graphics](https://quibbler.readthedocs.io/en/latest/Quickstart.html) is as 
+  * Creating [interactive graphics](https://quibbler.readthedocs.io/en/latest/Quickstart.html) is as 
 simple as calling standard Matplotlib graphics functions with arguments that represent your parameter values.
 
-* Any data presented graphically is automatically live and interactive 
+  * Any data presented graphically is automatically live and interactive 
 (no need for the tedious programming of callback functions).
 
-**Traceability and Reproducibility**
-* Trace which specific data items and analysis parameters affect focal downstream results (see 
+* **Traceability and Reproducibility**
+  * Trace which specific data items and analysis parameters affect focal downstream results (see 
 [dependency graph](https://quibbler.readthedocs.io/en/latest/Quib-relationships.html)).  
 
-* Inherent [undo/redo](https://quibbler.readthedocs.io/en/latest/Jupyter-lab-ext.html) functionality.
+  * Inherent [undo/redo](https://quibbler.readthedocs.io/en/latest/Jupyter-lab-ext.html) functionality.
 
-* [Save/load](https://quibbler.readthedocs.io/en/latest/Project-save-load.html) parameter values as 
+  * [Save/load](https://quibbler.readthedocs.io/en/latest/Project-save-load.html) parameter values as 
 human-readable records (either as external text files, 
 or [inside Jupyter notebook](https://quibbler.readthedocs.io/en/latest/Jupyter-lab-ext.html)).
 
-**Computational efficiency**
-* Upon parameter changes, *Quibbler* pinpoints and only recalculates the specifically affected array elements 
+* **Computational efficiency**
+  * Upon parameter changes, *Quibbler* pinpoints and only recalculates the specifically affected array elements 
 of downstream analysis steps ([here](https://quibbler.readthedocs.io/en/latest/Diverged-evaluation.html)).
 
-**All-of-the-above using completely standard functions and programming syntax - 
-_just "iquib" your inputs and your code comes to life!_** 
-
-
-Quibbler currently supports natural coding syntax with all Python operators, slicing, getitem, Numpy functions, 
-Matplotlib graphics, Matplotlib widgets, and ipywidgets. It further provides an easy way to incorporate 
-any user function or functions from any other (non-graphics) packages. 
+* **Very little to learn: your standard-syntax code automatically comes to life.**
+  * To get started with Quibbler, you do not need to learn any new syntax or new functions. Just encapsulate your
+input parameters with `iquib` and your analysis and graphics automatically become live and interactive. 
+  * Quibbler supports standard coding syntax with all Python operators, slicing, getitem, Numpy functions, 
+Matplotlib graphics functions, Matplotlib widgets, and ipywidgets. It further provides an easy way to incorporate 
+any user functions or functions from any other non-graphics packages ([here](https://quibbler.readthedocs.io/en/latest/User-defined-functions.html)). 
 Support for other graphics packages, besides Matplotlib, will be offered in future releases.       
 
 ## Minimal app
@@ -100,10 +99,12 @@ To install run:
 
 `pip install pyquibbler`
 
-If you are using *Jupyter lab*, you can also add the *pyquibbler Jupyter Lab extensions*:
+If you are using Quibbler within *Jupyter lab*, you can also add the 
+[pyquibbler Jupyter Lab extension](https://quibbler.readthedocs.io/en/latest/Jupyter-lab-ext.html):
 
 `pip install pyquibbler_labextension`
 
+## Development 
 To install for developers, 
 see our guide [here](https://github.com/Technion-Kishony-lab/quibbler/blob/master/INSTALL.md).
 
