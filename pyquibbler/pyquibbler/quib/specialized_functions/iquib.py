@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import Any, Optional, Union
 
 from pyquibbler.assignment import AssignmentTemplate
-from pyquibbler.function_overriding.is_initiated import warn_if_quibbler_not_initiated
+from pyquibbler.function_overriding.is_initiated import warn_if_quibbler_not_initialized, is_quibbler_initialized
 from pyquibbler.utilities.decorators import assign_func_name
 from pyquibbler.utilities.missing_value import missing
 from pyquibbler.env import DEBUG
@@ -36,12 +36,32 @@ iquib_definition = create_or_reuse_func_definition(raw_data_source_arguments=[0]
                                                    quib_function_call_cls=IQuibFuncCall)
 
 
+def create_iquib(value: Any,
+                 allow_overriding: bool = True,
+                 save_format: Union[None, str, SaveFormat] = None,
+                 save_directory: Union[None, str, pathlib.Path] = None,
+                 assigned_name: Optional[str] = missing,
+                 assignment_template: Union[None, tuple, AssignmentTemplate] = None,
+                 ) -> Quib:
+    # iquib is implemented as a quib with an identity function
+    return create_quib(
+        func=identity_function,
+        args=(value,),
+        assigned_name=assigned_name,
+        allow_overriding=allow_overriding,
+        assignment_template=assignment_template,
+        save_format=save_format,
+        save_directory=save_directory,
+    )
+
+
 def iquib(value: Any,
           allow_overriding: bool = True,
           save_format: Union[None, str, SaveFormat] = None,
           save_directory: Union[None, str, pathlib.Path] = None,
           assigned_name: Optional[str] = missing,
           assignment_template: Union[None, tuple, AssignmentTemplate] = None,
+          quibify_even_if_quibbler_not_initialized: bool = False,
           ) -> Quib:
     """
     Returns an input-quib that represents a given object
@@ -79,24 +99,29 @@ def iquib(value: Any,
     --------
     q, quiby, Quib.get_value
     Quib.allow_overriding, Quib.save_format, Quib.save_directory, Quib.assigned_name, Quib.assignment_template
+    initialize_quibbler
+
+    Note
+    ----
+    If Quibbler has not been initialized, `iquib` will simply return the value argument, not as a quib.
+    This allows checking how your code works without quibs.
     """
 
-    warn_if_quibbler_not_initiated()
+    if not is_quibbler_initialized() and not quibify_even_if_quibbler_not_initialized:
+        warn_if_quibbler_not_initialized()
+        return value
 
     if DEBUG:
         if is_there_a_quib_in_object(value, recursive=True):
             raise CannotNestQuibInIQuibException(value)
 
-    # iquib is implemented as a quib with an identity function
-    return create_quib(
-        func=identity_function,
-        args=(value,),
-        assigned_name=assigned_name,
-        allow_overriding=allow_overriding,
-        assignment_template=assignment_template,
-        save_format=save_format,
-        save_directory=save_directory,
-    )
+    return create_iquib(value=value,
+                        allow_overriding=allow_overriding,
+                        save_format=save_format,
+                        save_directory=save_directory,
+                        assigned_name=assigned_name,
+                        assignment_template=assignment_template,
+                        )
 
 
 add_definition_for_function(func=identity_function,
