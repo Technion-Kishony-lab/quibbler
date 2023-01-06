@@ -2365,7 +2365,7 @@ class Quib:
         ----
         1. Displaying a quib widget is only supported within Jupyter Lab and with the ipywidgets package installed.
 
-        2. Quibs are automatically displayed as QuibWidgets in Jupyter Lab, if `pyquibbler` is initiated with
+        2. Quibs are automatically displayed as QuibWidgets in Jupyter Lab, if `pyquibbler` is initialized with
            `initialize_quibbler(show_quibs_as_widgets=True)` (default).
         """
         try:

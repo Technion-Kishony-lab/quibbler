@@ -2,8 +2,15 @@ from unittest import mock
 
 import pytest
 
-from pyquibbler import iquib, quiby, obj2quib
+from pyquibbler import iquib, quiby, obj2quib, is_quiby
 from pyquibbler.quib.quib import Quib
+
+
+def test_quibbler_user_function_is_quiby():
+    mock_func = mock.Mock()
+    user_function = quiby(mock_func)
+
+    assert is_quiby(user_function)
 
 
 def test_quibbler_user_function_lazy():

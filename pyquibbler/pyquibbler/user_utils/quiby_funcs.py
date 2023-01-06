@@ -2,7 +2,7 @@ import functools
 from types import ModuleType
 from typing import Union, Type, List, Callable, Optional
 
-from pyquibbler.function_overriding.is_initiated import warn_if_quibbler_not_initiated
+from pyquibbler.function_overriding.is_initiated import warn_if_quibbler_not_initialized, is_quibbler_initialized
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.factory import create_quib
 
@@ -19,7 +19,7 @@ def list_quiby_funcs(module_or_cls: Union[None, ModuleType, Type] = None) -> Lis
         Specifies a module (numpy, matplotlib, ipywidgets). When specified, only functions belonging to the indicated
         module are listed.
     """
-    warn_if_quibbler_not_initiated()
+    warn_if_quibbler_not_initialized()
 
     from pyquibbler.function_definitions.definitions import FUNCS_TO_FUNC_INFO
     from pyquibbler.function_overriding.third_party_overriding.numpy.vectorize_overrides import QVectorize
@@ -49,7 +49,7 @@ def is_quiby(func: Callable) -> bool:
     >>> is_quiby(np.sin)  # -> True
     >>> is_quiby(len)  # -> False
     """
-    warn_if_quibbler_not_initiated()
+    warn_if_quibbler_not_initialized()
 
     return hasattr(func, '__quibbler_wrapped__')
 
@@ -60,6 +60,7 @@ def quiby(func: Callable = None,
           is_random: bool = False,
           is_graphics: Optional[bool] = False,
           is_file_loading: bool = False,
+          quibify_even_if_quibbler_not_initialized: bool = False,
           **kwargs,
           ) -> Callable[..., Quib]:
     """
@@ -140,9 +141,12 @@ def quiby(func: Callable = None,
     >>> reset_random_quibs()
     >>> sum_dice.get_value()
     27
-    """
 
-    warn_if_quibbler_not_initiated()
+    Note
+    ----
+    If Quibbler has not been initialized, `quiby` will simply return the unmodified function, not a quiby function.
+    This allows checking how your code works without quibs.
+    """
 
     if func is None:
         return functools.partial(quiby,
@@ -151,29 +155,35 @@ def quiby(func: Callable = None,
                                  is_random=is_random,
                                  is_graphics=is_graphics,
                                  is_file_loading=is_file_loading,
+                                 quibify_even_if_quibbler_not_initialized=quibify_even_if_quibbler_not_initialized,
                                  **kwargs,
                                  )
-    else:
-        from pyquibbler.function_definitions import get_definition_for_function
 
-        func_definition = get_definition_for_function(func, return_default=False)
-        if func_definition is None:
-            from pyquibbler.function_definitions.func_definition import FuncDefinition
-            func_definition = FuncDefinition(lazy=lazy,
-                                             pass_quibs=pass_quibs,
-                                             is_random=is_random,
-                                             is_graphics=is_graphics,
-                                             is_file_loading=is_file_loading,
-                                             **kwargs,
-                                             )
+    if not is_quibbler_initialized() and not quibify_even_if_quibbler_not_initialized:
+        warn_if_quibbler_not_initialized()
+        return func
 
-        @functools.wraps(func)
-        def _wrapper(*args, **kwargs) -> Quib:
-            return create_quib(func=func, args=args, kwargs=kwargs, func_definition=func_definition)
+    from pyquibbler.function_definitions import get_definition_for_function
 
-        _wrapper.func_definition = func_definition
+    func_definition = get_definition_for_function(func, return_default=False)
+    if func_definition is None:
+        from pyquibbler.function_definitions.func_definition import FuncDefinition
+        func_definition = FuncDefinition(lazy=lazy,
+                                         pass_quibs=pass_quibs,
+                                         is_random=is_random,
+                                         is_graphics=is_graphics,
+                                         is_file_loading=is_file_loading,
+                                         **kwargs,
+                                         )
 
-        return _wrapper
+    @functools.wraps(func)
+    def _wrapper(*args, **kwargs) -> Quib:
+        return create_quib(func=func, args=args, kwargs=kwargs, func_definition=func_definition)
+
+    _wrapper.func_definition = func_definition
+    _wrapper.__quibbler_wrapped__ = func
+
+    return _wrapper
 
 
 def q(func, *args, **kwargs) -> Quib:
@@ -196,8 +206,15 @@ def q(func, *args, **kwargs) -> Quib:
     >>> b = q(str, a)
     >>> b.get_value()
     '2'
+
+    Note
+    ----
+    If Quibbler has not been initialized, `q` will simply evaluate the function and return the result.
+    By not initializing quibbler you can thereby check how your code works without quibs.
     """
 
-    warn_if_quibbler_not_initiated()
+    if not is_quibbler_initialized():
+        warn_if_quibbler_not_initialized()
+        return func(*args, **kwargs)
 
     return create_quib(func=func, args=args, kwargs=kwargs)

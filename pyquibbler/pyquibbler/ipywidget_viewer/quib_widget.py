@@ -62,7 +62,7 @@ def remove_nones(itr: Union[List, Tuple]):
     return type(itr)(item for item in itr if item is not None)
 
 
-@quiby(pass_quibs=True)
+@quiby(pass_quibs=True, quibify_even_if_quibbler_not_initialized=True)
 def html_repr(quib: Quib) -> str:
     try:
         value = quib.get_value()

@@ -1,10 +1,11 @@
 import pytest
 
-from pyquibbler import iquib
 from pyquibbler.env import GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION
 from pyquibbler.quib.graphics.event_handling.graphics_inverse_assigner import inverse_assign_axes_lim_func
 from pyquibbler.quib.quib import Quib
+from pyquibbler.quib.specialized_functions.iquib import create_iquib
 
+iquib = create_iquib
 
 def test_axis_lim_inverse_assigner_happy_flow(axes):
     q = iquib(2.)

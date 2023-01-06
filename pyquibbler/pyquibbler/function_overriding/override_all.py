@@ -10,7 +10,7 @@ from .attribute_override import AttributeOverride
 from .defintion_without_override.python_functions import create_definitions_for_python_functions
 from .exceptionhook import override_jupyterlab_excepthook
 from .function_override import FuncOverride
-from .is_initiated import IS_QUIBBLER_INITIATED
+from .is_initiated import is_quibbler_initialized, set_quibbler_initialized
 from .third_party_overriding.ipywidgets.overrides import override_ipywidgets_if_installed
 from .third_party_overriding.non_quib_overrides import override_axes_methods, switch_widgets_to_quib_supporting_widgets
 from .quib_overrides.operators.overrides import create_operator_overrides
@@ -86,12 +86,15 @@ def initialize_quibbler(draggable_plots: bool = True,
     after pyquibbler is imported.
     Additional calls, though, are harmless and can even be useful as a means to re-specify
     `draggable_plots` and `show_quibs_as_widgets`.
+
+    If Quibbler is not initaited, the `iquib`, `quiby` and `q` will not modify their arguments.
+    Therefore, not initiating Quibbler allows testing your code as a normal code without any quibs.
     """
 
     DRAGGABLE_PLOTS_BY_DEFAULT.set(draggable_plots)
     SHOW_QUIBS_AS_WIDGETS_IN_JUPYTER_LAB.set(show_quibs_as_widgets)
 
-    if IS_QUIBBLER_INITIATED:
+    if is_quibbler_initialized():
         return
 
     within_jupyterlab = jupyterlab_extension and create_jupyter_project_if_in_jupyter_lab()
@@ -140,4 +143,4 @@ def initialize_quibbler(draggable_plots: bool = True,
     if within_jupyterlab:
         override_jupyterlab_excepthook()
 
-    IS_QUIBBLER_INITIATED.set(True)
+    set_quibbler_initialized()

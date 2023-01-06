@@ -1,11 +1,13 @@
 from dataclasses import dataclass
 from typing import Tuple
 
+import pytest
 from pytest import mark, raises, fixture
 
 from pyquibbler import iquib
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.exceptions import NestedQuibException
+from pyquibbler.quib.specialized_functions.iquib import create_iquib
 from pyquibbler.quib.utils import miscellaneous
 from pyquibbler.quib.utils.iterators import iter_quibs_in_args, iter_quibs_in_object
 from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals, is_there_a_quib_in_args
@@ -13,8 +15,9 @@ from pyquibbler.utilities.iterators import is_iterator_empty, iter_objects_of_ty
 from pyquibbler.utilities.unpacker import Unpacker, CannotDetermineNumberOfIterations
 from tests.functional.utils import slicer
 
-iquib1 = iquib(1)
-iquib2 = iquib(2)
+
+iquib1 = create_iquib(1)
+iquib2 = create_iquib(2)
 
 
 @mark.parametrize(['iterator', 'expected_result'], [
