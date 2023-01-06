@@ -14,7 +14,8 @@ def is_quibbler_initialized():
 
 def warn_if_quibbler_not_initialized(message: str = ''):
     if not is_quibbler_initialized():
-        no_header_warn(message + 'WARNING: Quibbler has not be initialized.\n'
+        no_header_warn(message + 'WARNING:\n'
+                                 'Quibbler has not been initialized.\n'
                                  'Your code will run without quibs.\n'
                                  'To initiate Quibbler, run initialize_quibbler()\n',
                        once_only=True)

@@ -206,6 +206,11 @@ def q(func, *args, **kwargs) -> Quib:
     >>> b = q(str, a)
     >>> b.get_value()
     '2'
+
+    Note
+    ----
+    If Quibbler has not been initialized, `q` will simply evaluate the function and return the result.
+    By not initializing quibbler you can thereby check how your code works without quibs.
     """
 
     if not is_quibbler_initialized():
