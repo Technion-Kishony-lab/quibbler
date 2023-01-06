@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+from numbers import Number
+
 from matplotlib.backend_bases import PickEvent, MouseEvent, MouseButton
 
-from typing import Any, Tuple, Union, Optional
+from typing import Any, Union, Optional
 
 from pyquibbler.quib.types import XY, PointXY
 
@@ -16,10 +18,10 @@ from .utils import get_closest_point_on_line_in_axes
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from pyquibbler.quib.quib import Quib
+    from .affected_args_and_paths import QuibAndPath
 
 
-def _get_quib_value_at_path(quib_and_path: Tuple[Union[Quib, Any], Path]):
+def _get_quib_value_at_path(quib_and_path: Optional[QuibAndPath]) -> Optional[Number]:
     if quib_and_path is None:
         return None
 
@@ -27,7 +29,7 @@ def _get_quib_value_at_path(quib_and_path: Tuple[Union[Quib, Any], Path]):
     return deep_get(quib.get_value_valid_at_path(path), path)
 
 
-def get_assignment_from_quib_and_path(quib_and_path: Optional[Tuple[Quib, Path]],
+def get_assignment_from_quib_and_path(quib_and_path: Optional[QuibAndPath],
                                       value: Any = default, tolerance: Any = None,
                                       ) -> Optional[AssignmentToQuib]:
     """
@@ -40,10 +42,14 @@ def get_assignment_from_quib_and_path(quib_and_path: Optional[Tuple[Quib, Path]]
 
 
 def _calculate_assignment_overshoot(old_val, new_val, assigned_val) -> Optional[float]:
+    """
+    Returns the factor by which the point moved more/less than expected.
+    Return `None` if didn't move.
+    """
     return None if new_val == old_val else (assigned_val - old_val) / (new_val - old_val)
 
 
-def _is_dragged_in_x_more_than_y(pick_event: PickEvent, mouse_event: MouseEvent) -> int:
+def _is_dragged_in_x_more_than_y(pick_event: PickEvent, mouse_event: MouseEvent) -> bool:
     """
     Return True / False if mouse is dragged mostly in the x / y direction.
     """
@@ -61,25 +67,19 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
     the key here is to account for cases where dragging could be restricted to a curve, in which case we want to choose
     the point along the curve closest to the mouse.
 
-    The function treats these 6 possibilities:
+    The function treats these possibilities:
 
-    1. x, y are not quibs
+    1. x, y are not quibs, or are quibns that cannot be inverted:
         dragging is disabled
 
-    2. only x or only y are quibs:
+    2. only x or only y are invertible quibs:
         if x is a quib, assign mouse-x to it (if inversion is possible). (same for y)
 
-    3. both x and y are quibs, but neither can be inverted.
-        dragging is disabled
+    3. both x and y quibs and the inversion of one affects the other.
+        get the "drag-line" by assigning on the axis with larger mouse movement, and invert to the point
+        on that line which is closest to the mouse.
 
-    4. both x and y are quibs, but only one can be inverted:
-        get a drag-line by applying the inversion of the invertible quib
-        and find the point on the line closest to the mouse and assign to the invertible quib.
-
-    5. both x and y can be inverted, and the inversion of one affects the other.
-        get the drag-line by assigning on the axis with larger mouse movement, and invert to the closest point
-
-    6. both x and y can be inverted without affecting each other.
+    4. both x and y can be inverted without affecting each other.
         return the two inversions.
 
     We also correct for overshoot assignment due to binary operators. See test_drag_same_arg_binary_operator

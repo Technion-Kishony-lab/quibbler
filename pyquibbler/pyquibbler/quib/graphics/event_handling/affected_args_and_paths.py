@@ -10,6 +10,7 @@ from pyquibbler.utilities.general_utils import Shape
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pyquibbler.quib.quib import Quib
+    QuibAndPath = Tuple[Quib, Path]
 
 
 def _get_affected_path_for_plot(shape: Shape, point_index: int, data_index: int):
@@ -35,7 +36,7 @@ def _get_affected_path_for_scatter(shape: Shape, point_index: int):
 
 def get_quibs_and_paths_affected_by_event(arg: Any,
                                           data_index: Optional[int],
-                                          point_indices: List[int]) -> List[Optional[Tuple[Quib, Path]]]:
+                                          point_indices: List[int]) -> List[Optional[QuibAndPath]]:
     from pyquibbler.quib.quib import Quib
     quibs_and_paths = []
     for point_index in point_indices:
