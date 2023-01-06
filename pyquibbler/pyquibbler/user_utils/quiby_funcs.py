@@ -181,6 +181,7 @@ def quiby(func: Callable = None,
         return create_quib(func=func, args=args, kwargs=kwargs, func_definition=func_definition)
 
     _wrapper.func_definition = func_definition
+    _wrapper.__quibbler_wrapped__ = func
 
     return _wrapper
 
