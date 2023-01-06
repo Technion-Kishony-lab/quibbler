@@ -1,14 +1,48 @@
-# pyquibbler_labextension
+# Quibbler's Jupyterlab extension
 
-[![Github Actions Status](https://github.com/github_username/pyquibbler-labextension/workflows/Build/badge.svg)](https://github.com/github_username/pyquibbler-labextension/actions/workflows/build.yml)[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/github_username/pyquibbler-labextension/main?urlpath=lab)
+![GitHub](https://img.shields.io/github/license/Technion-Kishony-lab/quibbler)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/Technion-Kishony-lab/quibbler)
 
-PyQuibbler lab extension
 
+Integrate Quibbler's Undo/Redo and Save/Load capabilities within JupyterLab.
+
+![](https://github.com/Technion-Kishony-lab/quibbler/blob/master/pyquibbler-documentations/docs/images/labext_open.png?raw=true)
+
+For a complete guide to using Quibbler within JupyterLab, see [here](https://quibbler.readthedocs.io/en/latest/Jupyter-lab-ext.html).
+
+## Undo / Redo
+
+The extension adds **Undo/Redo** buttons to the JupyterLab toolbar.
+
+Here is and example of how these buttons behave 
+(with the
+[image thresholding demo](https://quibbler.readthedocs.io/en/latest/examples/quibdemo_image_thresholding.html)):
+
+![](https://github.com/Technion-Kishony-lab/quibbler/blob/master/pyquibbler-documentations/docs/images/labext_undo_redo.gif?raw=true)
+
+
+## Save / Load
+<img src="https://github.com/Technion-Kishony-lab/quibbler/blob/master/pyquibbler-documentations/docs/images/labext_quibbler_menu.png?raw=true" width=250 align='right'>
+
+Assignments to quibs can be saved into the JupyterLab's notebook,
+allowing restoring prior values both within the session and when
+restarting the notebook as a new session. To enable saving quib assignments into the notebook
+check the “Save/Load inside Notebook” option in the JupyterLab
+*Quibbler* menu.
+
+Once enabled, quib assignments can easily be saved/loaded, either
+globally for the entire notebook by choosing **Save/Load** from the JupyterLab's
+**Quibbler** menu, or
+individually by clicking the Save/Load buttons at the bottom of the Quib
+Editor of the relevant quib, as shown here:
+
+![](https://github.com/Technion-Kishony-lab/quibbler/blob/master/pyquibbler-documentations/docs/images/quib_editor_save_load.gif?raw=true)
 
 
 ## Requirements
 
 * JupyterLab >= 3.0
+
 
 ## Install
 
