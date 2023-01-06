@@ -2,8 +2,11 @@ import pytest
 
 import ipywidgets
 
-from pyquibbler import iquib, CacheStatus
+from pyquibbler import CacheStatus
 from pyquibbler.ipywidget_viewer.quib_widget import QuibWidget, WidgetQuibDeletedException
+from pyquibbler.quib.specialized_functions.iquib import create_iquib
+
+iquib = create_iquib
 
 
 @pytest.fixture

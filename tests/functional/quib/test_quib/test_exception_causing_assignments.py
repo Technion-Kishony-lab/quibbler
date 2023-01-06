@@ -8,13 +8,17 @@ import matplotlib.pyplot as plt
 from tests.conftest import create_axes_mouse_press_move_release_events
 
 
-@quiby(is_graphics=True)
-def validate_input(x):
-    if x < 0:
-        raise Exception("x cannot be negative")
+@pytest.fixture
+def validate_input():
+    @quiby(is_graphics=True)
+    def _validate_input(x):
+        if x < 0:
+            raise Exception("x cannot be negative")
+
+    return _validate_input
 
 
-def test_prevent_assignments_causing_exception():
+def test_prevent_assignments_causing_exception(validate_input):
 
     a = iquib(1)
     validate = validate_input(a)
@@ -24,11 +28,7 @@ def test_prevent_assignments_causing_exception():
     assert a.get_value() == 1
 
 
-def test_prevent_assignments_causing_exception_on_drop():
-    @quiby(is_graphics=True)
-    def validate_input(x):
-        if x < 0:
-            raise Exception("x cannot be negative")
+def test_prevent_assignments_causing_exception_on_drop(validate_input):
 
     a = iquib(1)
     validate = validate_input(a)
@@ -46,7 +46,7 @@ def test_prevent_assignments_causing_exception_on_drop():
 # TODO: need to implement drag causing exception only on one axis. See test below
 
 @pytest.mark.skip
-def test_prevent_assignments_causing_exception_on_one_axis(axes, create_axes_mouse_press_move_release_events):
+def test_prevent_assignments_causing_exception_on_one_axis(axes, create_axes_mouse_press_move_release_events, validate_input):
 
     x = iquib(0)
     y = iquib(5)

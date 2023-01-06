@@ -4,12 +4,16 @@ import numpy as np
 import pytest
 from matplotlib.backend_bases import MouseButton
 
-from pyquibbler import iquib
 from pyquibbler.env import GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION
 from pyquibbler.function_definitions import FuncArgsKwargs
 from pyquibbler.quib.graphics.event_handling.graphics_inverse_assigner import inverse_assign_drawing_func
 from datetime import datetime
 from matplotlib.dates import date2num
+
+from pyquibbler.quib.specialized_functions.iquib import create_iquib
+
+iquib = create_iquib
+
 
 @pytest.fixture
 def mock_plot():
