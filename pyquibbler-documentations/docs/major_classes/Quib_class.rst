@@ -4,7 +4,6 @@ pyquibbler.Quib
 .. currentmodule:: pyquibbler
 
 .. autoclass:: Quib
-   :members: get_value
    :show-inheritance:
    :inherited-members:
 

@@ -11,7 +11,7 @@ function on the *value* of its quib arguments.
     # Imports
     import pyquibbler as qb
     from pyquibbler import iquib
-    qb.initialize_quibbler()
+    qb.initialize_quibbler(show_quibs_as_widgets=False)
     import numpy as np
 
 Checking if a function is ‘quiby’:
@@ -43,16 +43,10 @@ We can therefore use it directly on quib arguments:
 
 
 
+
 .. code:: none
 
-    VBox(children=(Label(value='sin(x)'), HBox(children=(HBox(children=(ToggleButton(value=False, description='Val…
-
-
-
-
-.. raw:: html
-
-    
+    sin(x)
 
 
 
@@ -91,9 +85,9 @@ To see all available quiby functiuons, use ``list_quiby_funcs()``:
 
 .. code:: none
 
-    ['None: <function identity_function at 0x10bc95480>',
-     'None: <function proxy at 0x10bc957e0>',
-     'None: <function identity_function_obj2quib at 0x10c0fb250>',
+    ['None: <function identity_function at 0x7ff4ed1a0160>',
+     'None: <function proxy at 0x7ff4ed1a05e0>',
+     'None: <function identity_function_obj2quib at 0x7ff4ed802ef0>',
      'Quib: __add__',
      'Quib: __sub__',
      'Quib: __mul__',
@@ -135,6 +129,8 @@ To see all available quiby functiuons, use ``list_quiby_funcs()``:
      'Quib: __getitem__',
      'Axes: plot',
      'Axes: scatter',
+     'Axes: axvline',
+     'Axes: axhline',
      'Arc: __new__',
      'Arrow: __new__',
      'ArrowStyle: __new__',
@@ -153,10 +149,8 @@ To see all available quiby functiuons, use ``list_quiby_funcs()``:
      'Axes: angle_spectrum',
      'Axes: annotate',
      'Axes: arrow',
-     'Axes: axhline',
      'Axes: axhspan',
      'Axes: axline',
-     'Axes: axvline',
      'Axes: axvspan',
      'Axes: bar',
      'Axes: barbs',
@@ -283,6 +277,7 @@ To see all available quiby functiuons, use ``list_quiby_funcs()``:
      'Axes3D: voxels',
      'matplotlib.widgets: RadioButtons',
      'matplotlib.widgets: Slider',
+     'matplotlib.widgets: RangeSlider',
      'matplotlib.widgets: CheckButtons',
      'matplotlib.widgets: RectangleSelector',
      'matplotlib.widgets: TextBox',
@@ -316,6 +311,7 @@ To see all available quiby functiuons, use ``list_quiby_funcs()``:
      'numpy: true_divide',
      'numpy: multiply',
      'numpy: power',
+     'numpy: arctan2',
      'numpy: left_shift',
      'numpy: right_shift',
      'numpy: floor_divide',
