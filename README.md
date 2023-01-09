@@ -1,8 +1,11 @@
-# Quibbler
+# Quibbler: your data - interactive!  
 **Interactive, reproducible and efficient data analytics**
+
 
 ![GitHub](https://img.shields.io/github/license/Technion-Kishony-lab/quibbler)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/Technion-Kishony-lab/quibbler)
+
+With *Quibbler*, your data analysis is automatically live and interactive.
 
 https://user-images.githubusercontent.com/62783755/209929327-67766771-f271-40f0-8f3a-76deb88310b7.mp4
 
@@ -16,7 +19,7 @@ automatically maintaining connectivity between downstream results and upstream r
 sources. *Quibbler* facilitates and embraces human interventions as an inherent part 
 of the analysis pipeline: input parameters, as well as exceptions and overrides, 
 can be specified and adjusted either programmatically, or by 
-interacting with "live" graphics, and all such interventions are automatically 
+interacting with live graphics, and all such interventions are automatically 
 recorded in well-documented human-machine readable files. Changes to such parameters 
 propagate downstream, pinpointing which specific data items, or
 even specific elements thereof, are affected, thereby vastly saving unnecessary 
