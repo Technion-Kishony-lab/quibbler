@@ -18,7 +18,7 @@ from ..redraw import end_dragging, start_dragging
 from ..event_handling import graphics_inverse_assigner
 from ..graphics_assignment_mode import graphics_assignment_mode
 
-from .enhance_pick_event import _enhance_pick_event
+from .enhance_pick_event import enhance_pick_event
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
@@ -98,7 +98,7 @@ class CanvasEventHandler:
 
     def _handle_pick_event(self, pick_event: PickEvent):
         start_dragging()
-        _enhance_pick_event(pick_event)
+        enhance_pick_event(pick_event)
         self.current_pick_event = pick_event
         self.current_pick_quib = artist_wrapper.get_creating_quib(pick_event.artist)
         if pick_event.mouseevent.button is MouseButton.RIGHT:

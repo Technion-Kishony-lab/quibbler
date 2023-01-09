@@ -15,7 +15,7 @@ from pyquibbler.path import Path, deep_get
 from pyquibbler.utilities.numpy_original_functions import np_array
 
 from .affected_args_and_paths import get_quibs_and_paths_affected_by_event
-from .utils import get_closest_point_on_line_in_axes
+from .utils import get_closest_point_on_line_in_axes, get_intersect_between_two_lines_in_axes
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
@@ -104,19 +104,22 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
         # out of axes
         return all_overrides
 
+    transData_inverted = ax.transData.inverted()
+
     xy_mouse = np_array([mouse_event.x, mouse_event.y])
+    xydata_mouse = PointXY(*transData_inverted.transform(xy_mouse))
 
     tolerance = get_axes_x_y_tolerance(ax)
-    transData_inverted = ax.transData.inverted()
     xy_order = (0, 1) if _is_dragged_in_x_more_than_y(pick_event, mouse_event) else (1, 0)
 
+    moved_ok = [False] * len(point_indices)
     for xy_quib_and_path, xy_offset in [(XY(quib_and_path_x, quib_and_path_y), dxy)
                                         for quib_and_path_x, quib_and_path_y, dxy
                                         in zip(xy_quibs_and_paths.x, xy_quibs_and_paths.y, pick_event.xy_offset)]:
         # We go over each index (vertex) of the plot, and translate the x and y assignment to it into overrides
         adjusted_xy_mouse = xy_mouse + xy_offset
-        adjusted_xydata_mouse = transData_inverted.transform(adjusted_xy_mouse)
-        adjusted_xydata_mouse = PointXY(*adjusted_xydata_mouse)
+        adjusted_xydata_mouse = PointXY(*transData_inverted.transform(adjusted_xy_mouse))
+
         xy_old = PointXY.from_func(_get_quib_value_at_path, xy_quib_and_path)
 
         xy_assigned_value = PointXY.from_func(convert_scalar_value, xy_old, adjusted_xydata_mouse)
@@ -124,6 +127,7 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
 
         overrides = OverrideGroup()
 
+        is_changed = [False, False]
         for focal_xy in xy_order:
             other_xy = 1 - focal_xy
 
@@ -146,10 +150,18 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
             if overshoot is not None:
                 # the quib we assigned to did actually change.
                 if is_other_affected and ax is not None:  # ax can be None in testing
-                    # The other axis also changed. x and y are dependent.  We need to find the drag-line and
-                    # find the point on this line which is closest to the mouse position.
-                    xy_closest, slope = get_closest_point_on_line_in_axes(ax, xy_old, xy_new, xy_assigned_value)
-                    adjusted_assigned_value = xy_closest[focal_xy]
+                    # The other axis also changed. x and y are dependent. they change along a "drag-line".
+                    if pick_event.is_segment:
+                        # Find the intersection of the drag-line with the dragged segment.
+                        xy_along_line, slope = get_intersect_between_two_lines_in_axes(
+                            ax, xy_old, xy_new, xy_assigned_value, xydata_mouse)
+                    else:
+                        # Find the point on the drag-line which is closest to the mouse position.
+                        xy_along_line, slope = get_closest_point_on_line_in_axes(
+                            ax, xy_old, xy_new, xy_assigned_value)
+                    adjusted_assigned_value = xy_along_line[focal_xy]
+                    if adjusted_assigned_value is None:
+                        continue  # when we move a segment and the lines are parallel
                     adjustment_to_tolerance = slope[focal_xy]
                 else:
                     # we are only dragging in one axis
@@ -165,10 +177,14 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
                     continue
 
             overrides.extend(override)
-
+            is_changed[focal_xy] = True
             if is_other_affected:
                 # x-y values are dependent. No need to assign to other
+                is_changed[other_xy] = True
                 break
+
+        if pick_event.is_segment and not any(is_changed):
+            return OverrideGroup()
 
         all_overrides.extend(overrides)
     return all_overrides

@@ -95,7 +95,7 @@ def test_prevent_drag_causing_exception(create_axes_mouse_press_move_release_eve
     create_axes_mouse_press_move_release_events(((2, 0),), press=False)
 
 
-def test_two_dependent_points(create_axes_mouse_press_move_release_events, axes):
+def test_drag_segment(create_axes_mouse_press_move_release_events, axes):
     axes.set_xlim(-1, 4)
     axes.set_ylim(-1, 4)
 
