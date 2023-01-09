@@ -12,6 +12,7 @@ from pyquibbler.assignment import get_axes_x_y_tolerance, create_assignment, Ove
     get_override_group_for_quib_changes, AssignmentToQuib, default, get_override_group_for_quib_change
 from pyquibbler.assignment.utils import convert_scalar_value
 from pyquibbler.path import Path, deep_get
+from pyquibbler.utilities.numpy_original_functions import np_array
 
 from .affected_args_and_paths import get_quibs_and_paths_affected_by_event
 from .utils import get_closest_point_on_line_in_axes
@@ -99,23 +100,26 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
         return get_override_group_for_quib_changes(changes)
 
     all_overrides = OverrideGroup()
-    xy_mouse = PointXY(mouse_event.xdata, mouse_event.ydata)
-    if xy_mouse.x is None or xy_mouse.y is None:
+    if mouse_event.x is None or mouse_event.y is None:
         # out of axes
         return all_overrides
 
-    tolerance = get_axes_x_y_tolerance(ax)
+    xy_mouse = np_array([mouse_event.x, mouse_event.y])
 
+    tolerance = get_axes_x_y_tolerance(ax)
+    transData_inverted = ax.transData.inverted()
     xy_order = (0, 1) if _is_dragged_in_x_more_than_y(pick_event, mouse_event) else (1, 0)
 
-    for xy_quib_and_path, xy_offset in [(XY(quib_and_path_x, quib_and_path_y), PointXY(dxy[0], dxy[1]))
+    for xy_quib_and_path, xy_offset in [(XY(quib_and_path_x, quib_and_path_y), dxy)
                                         for quib_and_path_x, quib_and_path_y, dxy
                                         in zip(xy_quibs_and_paths.x, xy_quibs_and_paths.y, pick_event.xy_offset)]:
         # We go over each index (vertex) of the plot, and translate the x and y assignment to it into overrides
         adjusted_xy_mouse = xy_mouse + xy_offset
+        adjusted_xydata_mouse = transData_inverted.transform(adjusted_xy_mouse)
+        adjusted_xydata_mouse = PointXY(*adjusted_xydata_mouse)
         xy_old = PointXY.from_func(_get_quib_value_at_path, xy_quib_and_path)
 
-        xy_assigned_value = PointXY.from_func(convert_scalar_value, xy_old, adjusted_xy_mouse)
+        xy_assigned_value = PointXY.from_func(convert_scalar_value, xy_old, adjusted_xydata_mouse)
         xy_change = XY.from_func(get_assignment_from_quib_and_path, xy_quib_and_path, xy_assigned_value)
 
         overrides = OverrideGroup()

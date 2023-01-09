@@ -45,7 +45,9 @@ def _enhance_pick_event(pick_event: PickEvent):
 
     # add xy_offset for each point
     get_xy_data = ARTIST_TYPES_TO_GET_XY_DATA.get(type(pick_event.artist), None)
-    if get_xy_data is None:
+    ax = pick_event.artist.axes
+
+    if get_xy_data is None or mouseevent.xdata is None or mouseevent.ydata is None:
         try:
             ind = pick_event.ind
             pick_event.xy_offset = np.zeros(len(ind), 2)
@@ -53,8 +55,9 @@ def _enhance_pick_event(pick_event: PickEvent):
             pick_event.xy_offset = ZeroDistance()
     else:
         xy_data = get_xy_data(pick_event)
+        xy_pixels = ax.transData.transform(xy_data)
         ind = pick_event.ind
-        pick_event.xy_offset = xy_data[ind, :] - [[mouseevent.xdata, mouseevent.ydata]]
+        pick_event.xy_offset = xy_pixels[ind, :] - [[mouseevent.x, mouseevent.y]]
 
     # add picked position in pixels
     pick_event.x = mouseevent.x
