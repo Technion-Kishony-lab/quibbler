@@ -94,3 +94,14 @@ def test_prevent_drag_causing_exception(create_axes_mouse_press_move_release_eve
 
     create_axes_mouse_press_move_release_events(((2, 0),), press=False)
 
+
+def test_two_dependent_points(create_axes_mouse_press_move_release_events, axes):
+    axes.set_xlim(-1, 4)
+    axes.set_ylim(-1, 4)
+
+    x = iquib(0.5)
+
+    axes.plot([x, x], [1 - x, 0], 'o-')
+
+    create_axes_mouse_press_move_release_events(((0.5, 0.2), (0.3, 0.2)))
+    assert x.get_value() == 0.3
