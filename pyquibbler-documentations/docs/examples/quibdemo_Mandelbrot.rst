@@ -89,7 +89,7 @@ Interactive zooming on Mandelbrot
         # ROI selector:
         if k<2:
             RectangleSelector(axs, extents=XYs[k+1], 
-                rectprops=dict(edgecolor='black', alpha=0.7, 
+                props=dict(edgecolor='black', alpha=0.7, 
                                fill=False, linewidth=3))
     
     # plot the depth slider
