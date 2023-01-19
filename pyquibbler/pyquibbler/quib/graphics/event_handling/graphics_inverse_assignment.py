@@ -14,7 +14,7 @@ from pyquibbler.assignment.utils import convert_scalar_value
 from pyquibbler.path import Path, deep_get
 from pyquibbler.utilities.numpy_original_functions import np_array
 
-from .affected_args_and_paths import get_quibs_and_paths_affected_by_event
+from .affected_args_and_paths import get_quib_and_path_affected_by_event
 from .utils import get_closest_point_on_line_in_axes, get_intersect_between_two_lines_in_axes
 
 from typing import TYPE_CHECKING
@@ -56,53 +56,18 @@ def _is_dragged_in_x_more_than_y(pick_event: PickEvent, mouse_event: MouseEvent)
     """
     return abs(pick_event.x - mouse_event.x) > abs(pick_event.y - mouse_event.y)
 
-
-def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
-                                  pick_event: PickEvent, mouse_event: MouseEvent) -> OverrideGroup:
-    """
-    Get overrides for a mouse event for an artist created by a plt.plot command in correspondence with the
-    `data_index` column of the given data arguments xy_args.x, xy_args.y.
-
-    `data_index=None`: denotes artist produced by plt.scatter (where the x and y arguments are treated as flatten)
-
-    the key here is to account for cases where dragging could be restricted to a curve, in which case we want to choose
-    the point along the curve closest to the mouse.
-
-    The function treats these possibilities:
-
-    1. x, y are not quibs, or are quibns that cannot be inverted:
-        dragging is disabled
-
-    2. only x or only y are invertible quibs:
-        if x is a quib, assign mouse-x to it (if inversion is possible). (same for y)
-
-    3. both x and y quibs and the inversion of one affects the other.
-        get the "drag-line" by assigning on the axis with larger mouse movement, and invert to the point
-        on that line which is closest to the mouse.
-
-    4. both x and y can be inverted without affecting each other.
-        return the two inversions.
-
-    We also correct for overshoot assignment due to binary operators. See test_drag_same_arg_binary_operator
-    """
+def get_override_group_for_picked_index(picked_index: int, xy_args: XY, data_index: Optional[int],
+                                        pick_event: PickEvent, mouse_event: MouseEvent) -> XY[OverrideGroup]:
 
     from pyquibbler import Project
     project = Project.get_or_create()
-    point_indices = pick_event.ind
     ax = pick_event.artist.axes
 
-    # For x and y, get list of (quib, path) for each affected plot index. None if not a quib
-    xy_quibs_and_paths = XY.from_func(get_quibs_and_paths_affected_by_event, xy_args, data_index, point_indices)
+    # For x and y, get affected (quib, path). None if not a quib.
+    xy_quib_and_path = XY.from_func(get_quib_and_path_affected_by_event, xy_args, data_index, picked_index)
 
     if pick_event.mouseevent.button is MouseButton.RIGHT:
-        changes = [get_assignment_from_quib_and_path(quib_and_path, default)
-                   for quib_and_path in xy_quibs_and_paths.x + xy_quibs_and_paths.y if quib_and_path is not None]
-        return get_override_group_for_quib_changes(changes)
-
-    all_overrides = OverrideGroup()
-    if mouse_event.x is None or mouse_event.y is None:
-        # out of axes
-        return all_overrides
+        return XY.from_func(get_assignment_from_quib_and_path, xy_quib_and_path, default)
 
     transData_inverted = ax.transData.inverted()
 
@@ -112,7 +77,7 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
     tolerance = get_axes_x_y_tolerance(ax)
     xy_order = (0, 1) if _is_dragged_in_x_more_than_y(pick_event, mouse_event) else (1, 0)
 
-    moved_ok = [False] * len(point_indices)
+    moved_ok = [False] * len(picked_indices)
     for xy_quib_and_path, xy_offset in [(XY(quib_and_path_x, quib_and_path_y), dxy)
                                         for quib_and_path_x, quib_and_path_y, dxy
                                         in zip(xy_quibs_and_paths.x, xy_quibs_and_paths.y, pick_event.xy_offset)]:
@@ -187,6 +152,47 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
             return OverrideGroup()
 
         all_overrides.extend(overrides)
+
+
+def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
+                                  pick_event: PickEvent, mouse_event: MouseEvent) -> OverrideGroup:
+    """
+    Get overrides for a mouse event for an artist created by a plt.plot command in correspondence with the
+    `data_index` column of the given data arguments xy_args.x, xy_args.y.
+
+    `data_index=None`: denotes artist produced by plt.scatter (where the x and y arguments are treated as flatten)
+
+    the key here is to account for cases where dragging could be restricted to a curve, in which case we want to choose
+    the point along the curve closest to the mouse.
+
+    The function treats these possibilities:
+
+    1. x, y are not quibs, or are quibns that cannot be inverted:
+        dragging is disabled
+
+    2. only x or only y are invertible quibs:
+        if x is a quib, assign mouse-x to it (if inversion is possible). (same for y)
+
+    3. both x and y quibs and the inversion of one affects the other.
+        get the "drag-line" by assigning on the axis with larger mouse movement, and invert to the point
+        on that line which is closest to the mouse.
+
+    4. both x and y can be inverted without affecting each other.
+        return the two inversions.
+
+    We also correct for overshoot assignment due to binary operators. See test_drag_same_arg_binary_operator
+    """
+    all_overrides = OverrideGroup()
+    if mouse_event.x is None or mouse_event.y is None:
+        # out of axes
+        return OverrideGroup()
+
+    picked_indices = pick_event.ind
+
+    for picked_index in picked_indices:
+        all_overrides.extend(
+            get_override_group_for_picked_index(picked_index, xy_args, data_index, pick_event, mouse_event))
+
     return all_overrides
 
 
