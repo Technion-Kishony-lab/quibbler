@@ -6,6 +6,9 @@ from matplotlib.backend_bases import PickEvent, MouseEvent
 from matplotlib.collections import PathCollection
 from matplotlib.lines import Line2D
 
+from pyquibbler.quib.graphics.event_handling.utils import get_closest_point_on_line
+from pyquibbler.quib.types import PointXY
+
 Inds = Tuple[int]
 
 
@@ -47,7 +50,7 @@ def _get_line2D_inds_xydata_segment(pick_event: PickEvent):
     xy_data = artist.get_xydata()
     inds = pick_event.ind
 
-    # Following Line2D.contains():
+    # based on Line2D.contains():
     is_segment = artist._linestyle not in ['None', None]
 
     if is_segment:
@@ -106,11 +109,22 @@ def enhance_pick_event(pick_event: PickEvent):
             pick_event.xy_offset = ZeroDistance()
         pick_event.is_segment = False
     else:
+
         inds, xy_data, is_segment = get_inds_xydata_segment(pick_event)
+
         xy_data_pixels = ax.transData.transform(xy_data[inds, :])
         pick_event.ind = inds
-        pick_event.xy_offset = xy_data_pixels - [[mouseevent.x, mouseevent.y]]
+
         pick_event.is_segment = is_segment
+
+        mouse_point = PointXY(mouseevent.x, mouseevent.y)
+        if is_segment:
+            on_segment_point, _ = get_closest_point_on_line(
+                PointXY(*xy_data_pixels[0]), PointXY(*xy_data_pixels[1]), mouse_point)
+            pick_event.xy_offset = xy_data_pixels - [on_segment_point]
+            pick_event.mouse_to_segment = on_segment_point - mouse_point
+        else:
+            pick_event.xy_offset = xy_data_pixels - [mouse_point]
 
     # add picked position in pixels:
     pick_event.x = mouseevent.x
