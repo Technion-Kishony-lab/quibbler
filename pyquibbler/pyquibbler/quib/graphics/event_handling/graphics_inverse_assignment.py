@@ -11,10 +11,11 @@ from pyquibbler.quib.types import XY, PointXY
 from pyquibbler.assignment import get_axes_x_y_tolerance, create_assignment, OverrideGroup, \
     get_override_group_for_quib_changes, AssignmentToQuib, default, get_override_group_for_quib_change
 from pyquibbler.assignment.utils import convert_scalar_value
-from pyquibbler.path import Path, deep_get
+from pyquibbler.path import deep_get
 from pyquibbler.utilities.numpy_original_functions import np_array
 
 from .affected_args_and_paths import get_quibs_and_paths_affected_by_event
+from .pick_handler import PickHandler
 from .utils import get_closest_point_on_line_in_axes, get_intersect_between_two_lines_in_axes
 
 from typing import TYPE_CHECKING
@@ -58,7 +59,7 @@ def _is_dragged_in_x_more_than_y(pick_event: PickEvent, mouse_event: MouseEvent)
 
 
 def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
-                                  pick_event: PickEvent, mouse_event: MouseEvent) -> OverrideGroup:
+                                  pick_handler: PickHandler, mouse_event: MouseEvent) -> OverrideGroup:
     """
     Get overrides for a mouse event for an artist created by a plt.plot command in correspondence with the
     `data_index` column of the given data arguments xy_args.x, xy_args.y.
@@ -88,6 +89,7 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
 
     from pyquibbler import Project
     project = Project.get_or_create()
+    pick_event = pick_handler.pick_event
     point_indices = pick_event.ind
     ax = pick_event.artist.axes
 
