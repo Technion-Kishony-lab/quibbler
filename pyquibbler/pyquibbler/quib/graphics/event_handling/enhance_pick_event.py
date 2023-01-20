@@ -6,8 +6,9 @@ from matplotlib.backend_bases import PickEvent, MouseEvent
 from matplotlib.collections import PathCollection
 from matplotlib.lines import Line2D
 
-from pyquibbler.quib.graphics.event_handling.utils import get_closest_point_on_line
 from pyquibbler.quib.types import PointXY
+
+from .utils import get_closest_point_on_line
 
 Inds = Tuple[int]
 

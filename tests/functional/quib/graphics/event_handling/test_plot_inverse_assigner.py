@@ -10,6 +10,7 @@ from pyquibbler.quib.graphics.event_handling.graphics_inverse_assigner import in
 from datetime import datetime
 from matplotlib.dates import date2num
 
+from pyquibbler.quib.graphics.event_handling.pick_handler import PickHandler
 from pyquibbler.quib.specialized_functions.iquib import create_iquib
 
 iquib = create_iquib
@@ -76,9 +77,10 @@ def test_plot_inverse_assigner_happy_flow(mock_plot):
     pick_event, mouse_event = create_mock_pick_event_and_mouse_event([0], 10, 20, 0)
 
     inverse_assign_drawing_func(
-        func_args_kwargs=FuncArgsKwargs(mock_plot, (None, q), {}),
+        pick_handler=PickHandler(
+            pick_event=pick_event,
+            func_args_kwargs=FuncArgsKwargs(mock_plot, (None, q), {})),
         mouse_event=mouse_event,
-        pick_event=pick_event
     )
 
     assert np.array_equal(q.get_value(), [20, 2, 3])
@@ -134,9 +136,10 @@ def test_plot_inverse_assigner(mock_plot, indices, artist_index, xdata, ydata, a
 
     with GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.temporary_set(tolerance):
         inverse_assign_drawing_func(
-            func_args_kwargs=FuncArgsKwargs(mock_plot, (None, *args), {}),
+            pick_handler=PickHandler(
+                pick_event=pick_event,
+                func_args_kwargs=FuncArgsKwargs(mock_plot, (None, *args), {})),
             mouse_event=mouse_event,
-            pick_event=pick_event
         )
 
     if isinstance(quib_index, int):
@@ -157,9 +160,10 @@ def test_plot_inverse_assigner_of_list_arg(mock_plot, indices, artist_index, xda
     pick_event, mouse_event = create_mock_pick_event_and_mouse_event(indices, xdata, ydata, artist_index)
 
     inverse_assign_drawing_func(
-        func_args_kwargs=FuncArgsKwargs(mock_plot, (None, *args), {}),
+        pick_handler=PickHandler(
+            pick_event=pick_event,
+            func_args_kwargs=FuncArgsKwargs(mock_plot, (None, *args), {})),
         mouse_event=mouse_event,
-        pick_event=pick_event
     )
 
     assert np.array_equal(args[arg_index][list_index].get_value(), expected_value)
@@ -174,9 +178,10 @@ def test_plot_inverse_assigner_removal(mock_plot):
     assert y.get_value() == [1, 4, 3], "sanity"
 
     inverse_assign_drawing_func(
-        func_args_kwargs=FuncArgsKwargs(mock_plot, (None, y), {}),
+        pick_handler=PickHandler(
+            pick_event=pick_event,
+            func_args_kwargs=FuncArgsKwargs(mock_plot, (None, y), {})),
         mouse_event=None,
-        pick_event=pick_event
     )
 
     assert y.get_value() == [1, 2, 3]
@@ -192,9 +197,10 @@ def test_scatter_inverse_assigner(mock_scatter, indices, artist_index, xdata, yd
 
     with GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.temporary_set(tolerance):
         inverse_assign_drawing_func(
-            func_args_kwargs=FuncArgsKwargs(mock_scatter, (None, *args), {}),
+            pick_handler=PickHandler(
+                pick_event=pick_event,
+                func_args_kwargs=FuncArgsKwargs(mock_scatter, (None, *args), {})),
             mouse_event=mouse_event,
-            pick_event=pick_event
         )
 
     if isinstance(quib_index, int):
