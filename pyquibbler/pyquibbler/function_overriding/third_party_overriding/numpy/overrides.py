@@ -662,16 +662,16 @@ RAW_ENTRIES = [
 
     # Correlating
     ('corrcoef',    _dataless,      nd),
-    # correlate
-    # cov
+    ('correlate',   _dataless,      nd),
+    ('cov',         _dataless,      nd),
 
     # Histograms
-    # histogram
-    # histogram2d
-    # histogramdd
-    # bincount
-    # histogram_bin_edges
-    # digitize
+    ('histogram',   _dataless,      tuple),
+    ('histogram2d', _dataless,      tuple),
+    ('histogramdd', _dataless,      tuple),
+    ('bincount',    _dataless,      nd),
+    ('histogram_bin_edges',    _dataless,      nd),
+    ('digitize',    _dataless,      nd),
 
     # Window functions
     # https://numpy.org/doc/stable/reference/routines.window.html
