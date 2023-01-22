@@ -22,6 +22,9 @@ def identity(x):
 nd = np.ndarray
 
 
+multy = DataArgumentDesignation(PositionalArgument(0), is_multi_arg=True)
+
+
 def _reduction(func_name):
     return numpy_override_reduction(func_name)
 
@@ -135,8 +138,8 @@ RAW_ENTRIES = [
     ('diag',        _one2one,       [0],    nd),
     ('diagflat',    _one2one,       [0],    nd),
     ('tri',         _dataless,      nd),
-    ('tril',        unary_elementwise,  None),  # TODO: need a specialized inverter
-    ('triu',        unary_elementwise,  None),  # TODO: need a specialized inverter
+    ('tril',        _one2one,       [0],    nd),
+    ('triu',        _one2one,       [0],    nd),
     ('vander',      _dataless,      nd),
     # mat
     # bmat
@@ -171,14 +174,14 @@ RAW_ENTRIES = [
     # ascontiguousarray
     # asarray_chkfinite
     # require
-    ('concatenate', _one2one,       [DataArgumentDesignation(PositionalArgument(0), is_multi_arg=True)], nd),
-    # stack
+    ('concatenate', _one2one,       [multy], nd),
+    ('stack',       _one2one,       [multy], nd),
     # block
-    # vstack
-    # hstack
-    # dstack
-    # column_stack
-    # row_stack
+    ('vstack',      _one2one,       [multy], nd),
+    ('hstack',      _one2one,       [multy], nd),
+    ('dstack',      _one2one,       [multy], nd),
+    ('column_stack',_one2one,       [multy], nd),
+    ('row_stack',   _one2one,       [multy], nd),
     # split
     # array_split
     # dsplit
@@ -191,12 +194,12 @@ RAW_ENTRIES = [
     # append
     # resize
     # trim_zeros
-    # unique
+    ('unique',      _dataless,      nd),  # TODO: perhaps can use axiswise translators
     ('flip',        _one2one,       [0],    []),
-    # fliplr
-    # flipud
-    # reshape
-    # roll
+    ('fliplr',      _one2one,       [0],    []),
+    ('flipud',      _one2one,       [0],    []),
+    # reshape [ABOVE]
+    ('roll',        _one2one,       [0],    nd),
     ('rot90',       _one2one,       [0],    nd),
 
     # Binary operations
@@ -346,26 +349,26 @@ RAW_ENTRIES = [
     # ----------------------------------------------------------
     ('all',         _reduction),
     ('any',         _reduction),
-    # isfinite
-    # isinf
-    # isnan
-    # isnat
-    # isneginf
-    # isposinf
-    # iscomplex
-    # iscomplexobj
+    ('isfinite',    unary_elementwise, None),
+    ('isinf',       unary_elementwise, None),
+    ('isnan',       unary_elementwise, None),
+    ('isnat',       unary_elementwise, None),
+    ('isneginf',    unary_elementwise, None),
+    ('isposinf',    unary_elementwise, None),
+    ('iscomplex',   unary_elementwise, None),
+    ('iscomplexobj',_dataless, bool),
     # isfortran
-    # isreal
-    # isrealobj
-    # isscalar
+    ('isreal',      unary_elementwise, None),
+    ('isrealobj',   _dataless, bool),
+    ('isscalar',    _dataless, bool),
     ('logical_and', binary_elementwise, (None, None)),  # TODO: write inverse
     ('logical_or',  binary_elementwise, (None, None)),  # TODO: write inverse
-    # logical_not
+    ('logical_not', unary_elementwise, np.logical_not),
     ('logical_xor', binary_elementwise, (None, None)),  # TODO: write inverse
-    # allclose
-    # isclose
-    # array_equal
-    # array_equiv
+    ('allclose',    _dataless, bool),
+    ('isclose',     binary_elementwise, (None, None)),
+    ('array_equal', _dataless, bool),
+    ('array_equiv', _dataless, bool),
     ('greater',     binary_elementwise, (None, None)),
     ('greater_equal', binary_elementwise, (None, None)),
     ('less',        binary_elementwise, (None, None)),
@@ -383,12 +386,13 @@ RAW_ENTRIES = [
     ('arcsin',      unary_elementwise, np.sin),
     ('arccos',      unary_elementwise, np.cos),
     ('arctan',      unary_elementwise, np.tan),
-    # angles
+
+    # -- Angles --
     ('hypot',       binary_elementwise, (None, None)),  # TODO: write inverse
     ('arctan2',     binary_elementwise, (lambda a, x: x * np.tan(a), lambda a, y: y / np.tan(a))),
     ('degrees',     unary_elementwise, np.radians),
     ('radians',     unary_elementwise, np.degrees),
-    # unwrap
+    ('unwrap',      _axiswise),
     ('deg2rad',     unary_elementwise, np.rad2deg),
     ('rad2deg',     unary_elementwise, np.deg2rad),
 
@@ -434,8 +438,8 @@ RAW_ENTRIES = [
     ('log10',       unary_elementwise, lambda new_y: 10 ** new_y),
     ('log2',        unary_elementwise, np.exp2),
     ('log1p',       unary_elementwise, np.expm1),
-    # logaddexp
-    # logaddexp2
+    ('logaddexp',   binary_elementwise, (None, None)),  # TODO: need to write inverters
+    ('logaddexp2',  binary_elementwise, (None, None)),  # TODO: need to write inverters
 
     # -- Other special functions --
     ('i0',          unary_elementwise, None),
@@ -469,7 +473,7 @@ RAW_ENTRIES = [
     ('mod',         binary_elementwise, (None, None)),  # TODO: write inverse
     ('modf',        unary_elementwise, None),
     ('remainder',   binary_elementwise, (None, None)),  # TODO: write inverse
-    # ('divmod',    binary_elementwise, (None, None)),  # TODO: return tuple, needs attention
+    ('divmod',      _dataless,  nd),  # TODO: should be 'binary', but return tuple, needs attention.
 
     # -- Handling complex numbers --
     ('angle',       unary_elementwise, (lambda a: np.cos(a) + 1j * np.sin(a), lambda a, c: (np.cos(a) + 1j * np.sin(a)) * np.abs(c))),
@@ -601,13 +605,13 @@ RAW_ENTRIES = [
     # https://numpy.org/doc/stable/reference/routines.set.html
     # --------------------------------------------------------
     # lib.arraysetops
-    # unique
-    # in1d
-    # intersect1d
-    # isin
-    # setdiff1d
-    # setxor1d
-    # union1d
+    # unique [ABOVE]
+    ('in1d',        _dataless,      nd),
+    ('intersect1d', _dataless,      []),
+    ('isin',        _dataless,      nd),
+    ('setdiff1d',   _dataless,      nd),
+    ('setxor1d',    _dataless,      nd),
+    ('union1d',    _dataless,      nd),
 
     # Sorting, searching, and counting
     # https://numpy.org/doc/stable/reference/routines.sort.html
@@ -694,8 +698,8 @@ RAW_ENTRIES = [
     # c_
     # r_
     # s_
-    # nonzero
-    # where
+    # nonzero [BELOW]
+    # where [BELOW]
     # indices
     # ix_
     # ogrid
@@ -712,7 +716,7 @@ RAW_ENTRIES = [
     # take_along_axis
     # choose
     # compress
-    # diag
+    # diag [ABOVE]
     ('diagonal',    _one2one, [0], nd),
     # select
     # lib.stride_tricks.sliding_window_view
