@@ -29,23 +29,73 @@ class NumpyArrayOverride(FuncOverride):
 
 numpy_override = partial(override, np)
 
-numpy_override_random = partial(override, np.random, base_func_definition=FUNC_DEFINITION_RANDOM)
 
-numpy_override_read_file = partial(numpy_override, base_func_definition=FUNC_DEFINITION_FILE_LOADING)
+def numpy_override_random(func_name):
+    return override(module_or_cls=np.random,
+                    func_name=func_name,
+                    base_func_definition=FUNC_DEFINITION_RANDOM,
+                    result_type_or_type_translators=np.ndarray,
+                    )
 
-numpy_override_transpositional_one_to_many = partial(numpy_override,
-                                                     base_func_definition=FUNC_DEFINITION_TRANSPOSITIONAL_ONE_TO_MANY)
 
-numpy_override_transpositional_one_to_one = partial(numpy_override,
-                                                    base_func_definition=FUNC_DEFINITION_TRANSPOSITIONAL_ONE_TO_ONE)
+def numpy_override_read_file(func_name):
+    return numpy_override(func_name=func_name,
+                          base_func_definition=FUNC_DEFINITION_FILE_LOADING,
+                          result_type_or_type_translators=np.ndarray,
+                          )
+
 
 numpy_array_override = partial(override_with_cls, NumpyArrayOverride, np,
                                base_func_definition=FUNC_DEFINITION_TRANSPOSITIONAL_ONE_TO_ONE)
 
-numpy_override_accumulation = partial(numpy_override, base_func_definition=FUNC_DEFINITION_ACCUMULATION)
-numpy_override_reduction = partial(numpy_override, base_func_definition=FUNC_DEFINITION_REDUCTION)
-numpy_override_axis_wise = partial(numpy_override, base_func_definition=FUNC_DEFINITION_AXIS_ALL_TO_ALL)
-numpy_override_shape_only = partial(numpy_override, base_func_definition=FUNC_DEFINITION_SHAPE_ONLY)
+
+def numpy_override_dataless(func_name, result_type_or_type_translators):
+    return numpy_override(func_name, result_type_or_type_translators=result_type_or_type_translators)
+
+
+def numpy_override_transpositional_one_to_one(func_name, data_source_arguments, result_type_or_type_translators):
+    return numpy_override(func_name,
+                          base_func_definition=FUNC_DEFINITION_TRANSPOSITIONAL_ONE_TO_ONE,
+                          data_source_arguments=data_source_arguments,
+                          result_type_or_type_translators=result_type_or_type_translators)
+
+
+def numpy_override_transpositional_one_to_many(func_name, data_source_arguments, result_type_or_type_translators):
+    return numpy_override(func_name,
+                          base_func_definition=FUNC_DEFINITION_TRANSPOSITIONAL_ONE_TO_MANY,
+                          data_source_arguments=data_source_arguments,
+                          result_type_or_type_translators=result_type_or_type_translators)
+
+
+def numpy_override_accumulation(func_name):
+    return numpy_override(func_name=func_name,
+                          base_func_definition=FUNC_DEFINITION_ACCUMULATION,
+                          result_type_or_type_translators=np.ndarray)
+
+
+def numpy_override_reduction(func_name):
+    return numpy_override(func_name=func_name,
+                          base_func_definition=FUNC_DEFINITION_REDUCTION)
+
+
+def numpy_override_axis_wise(func_name):
+    return numpy_override(func_name=func_name,
+                          result_type_or_type_translators=np.ndarray,
+                          base_func_definition=FUNC_DEFINITION_AXIS_ALL_TO_ALL)
+
+
+def numpy_override_shape_only(func_name, data_source_arguments, result_type_or_type_translators):
+    return numpy_override(func_name=func_name,
+                          base_func_definition=FUNC_DEFINITION_SHAPE_ONLY,
+                          data_source_arguments=data_source_arguments,
+                          result_type_or_type_translators=result_type_or_type_translators)
+
+
+def numpy_override_array(func_name, data_sources, result_type):
+    return numpy_array_override(func_name,
+                                data_source_arguments=data_sources,
+                                result_type_or_type_translators=result_type)
+
 
 UNARY_ELEMENTWISE_FUNCS_TO_INVERSE_FUNCS: Dict[str, InverseFunc] = {}
 BINARY_ELEMENTWISE_FUNCS_TO_INVERSE_FUNCS: Dict[str, Tuple[Optional[InverseFunc]]] = {}

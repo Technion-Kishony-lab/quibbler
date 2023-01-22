@@ -5,7 +5,7 @@ from contextlib import contextmanager
 from copy import deepcopy
 from typing import Any
 
-from pyquibbler import CacheMode, Assignment, iquib
+from pyquibbler import CacheMode, Assignment, iquib, Quib
 from pyquibbler.path.path_component import PathComponent, Path
 from pyquibbler.path.data_accessing import deep_get, deep_set
 from tests.functional.utils import PathBuilder
@@ -109,6 +109,8 @@ def check_get_value_valid_at_path(func, data, path_to_get_value_at):
         for sub_path in breakdown_path(data, path):
             changed_data = deep_set(deepcopy(data), sub_path, 999)
             result_with_change = func(changed_data)
+            if isinstance(result_with_change, Quib):
+                result_with_change = result_with_change.get_value()
             if equals_at_path(result_with_change, result, path_to_get_value_at):
                 faulty_sub_paths.append(sub_path)
     assert not faulty_sub_paths, faulty_sub_paths
