@@ -9,10 +9,18 @@ from pyquibbler.path_translation.translators.apply_along_axis import ApplyAlongA
 
 from .inverse_functions import inv_sin, inv_cos, inv_tan, keep_sign, inv_power
 from .vectorize_overrides import create_vectorize_overrides
-from .helpers import numpy_override, numpy_override_random, numpy_override_read_file, \
-  numpy_override_transpositional_one_to_many, numpy_override_transpositional_one_to_one, \
-  numpy_override_reduction, numpy_override_accumulation, numpy_override_axis_wise, \
-  binary_elementwise, unary_elementwise, numpy_override_shape_only, numpy_array_override
+from .helpers import numpy_override, binary_elementwise, unary_elementwise
+
+from .helpers import numpy_override_read_file as _fileloading
+from .helpers import numpy_override_shape_only as _shapeonly
+from .helpers import numpy_override_random as _random
+from .helpers import numpy_override_reduction as _reduction
+from .helpers import numpy_override_accumulation as _accumulation
+from .helpers import numpy_override_axis_wise as _axiswise
+from .helpers import numpy_override_array as _array
+from .helpers import numpy_override_transpositional_one_to_one as _one2one
+from .helpers import numpy_override_transpositional_one_to_many as _one2many
+from .helpers import numpy_override_dataless as _dataless
 
 
 def identity(x):
@@ -23,54 +31,6 @@ nd = np.ndarray
 
 
 multy = DataArgumentDesignation(PositionalArgument(0), is_multi_arg=True)
-
-
-def _reduction(func_name):
-    return numpy_override_reduction(func_name)
-
-
-def _accumulation(func_name):
-    return numpy_override_accumulation(func_name, result_type_or_type_translators=nd)
-
-
-def _axiswise(func_name):
-    return numpy_override_axis_wise(func_name, result_type_or_type_translators=nd)
-
-
-def _array(func_name, data_sources, result_type):
-    return numpy_array_override(func_name,
-                                data_source_arguments=data_sources,
-                                result_type_or_type_translators=result_type)
-
-
-def _one2one(func_name, data_sources, result_type):
-    return numpy_override_transpositional_one_to_one(func_name,
-                                                     data_source_arguments=data_sources,
-                                                     result_type_or_type_translators=result_type)
-
-
-def _one2many(func_name, data_sources, result_type):
-    return numpy_override_transpositional_one_to_many(func_name,
-                                                      data_source_arguments=data_sources,
-                                                      result_type_or_type_translators=result_type)
-
-
-def _shapeonly(func_name, data_sources, result_type):
-    return numpy_override_shape_only(func_name,
-                                     data_source_arguments=data_sources,
-                                     result_type_or_type_translators=result_type)
-
-
-def _dataless(func_name, result_type):
-    return numpy_override(func_name, result_type_or_type_translators=result_type)
-
-
-def _fileloading(func_name):
-    return numpy_override_read_file(func_name, result_type_or_type_translators=nd)
-
-
-def _random(func_name):
-    return numpy_override_random(func_name, result_type_or_type_translators=nd)
 
 
 # Elementwise - Binary (two arguments)
