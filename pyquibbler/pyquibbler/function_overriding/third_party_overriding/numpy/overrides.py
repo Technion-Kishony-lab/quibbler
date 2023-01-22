@@ -95,7 +95,7 @@ RAW_ENTRIES = [
     # Array creation routines
     # https://numpy.org/doc/stable/reference/routines.array-creation.html
     # -------------------------------------------------------------------
-    # empty
+    ('empty',       _dataless,      nd),
     ('empty_like',  _shapeonly,     [0],    nd),
     ('eye',         _dataless,      nd),
     ('identity',    _dataless,      nd),
@@ -127,17 +127,17 @@ RAW_ENTRIES = [
     # core.defchararray.asarray
     ('arange',      _dataless,      nd),
     ('linspace',    _dataless,      nd),
-    # logspace
-    # geomspace
-    # meshgrid
-    # mgrid
-    # ogrid
-    # diag
-    # diagflat
-    # tri
-    # tril
-    # triu
-    # vander
+    ('logspace',    _dataless,      nd),
+    ('geomspace',   _dataless,      nd),
+    ('meshgrid',    _dataless,      []),
+    ('mgrid',       _dataless,      []),
+    ('ogrid',       _dataless,      []),
+    ('diag',        _one2one,       [0],    nd),
+    ('diagflat',    _one2one,       [0],    nd),
+    ('tri',         _dataless,      nd),
+    ('tril',        unary_elementwise,  None),  # TODO: need a specialized inverter
+    ('triu',        unary_elementwise,  None),  # TODO: need a specialized inverter
+    ('vander',      _dataless,      nd),
     # mat
     # bmat
 
@@ -150,14 +150,14 @@ RAW_ENTRIES = [
     ('ravel',       _one2one,       [0],    nd),
     # ndarray.flat
     # ndarray.flatten
-    # moveaxis
-    # rollaxis
+    ('moveaxis',    _one2one,       [0],    nd),
+    ('rollaxis',    _one2one,       [0],    nd),
     ('swapaxes',    _one2one,       [0],    nd),
     # ndarray.T
     ('transpose',   _one2one,       [0],    nd),
-    # atleast_1d
-    # atleast_2d
-    # atleast_3d
+    ('atleast_1d',  _one2one,       [0],    nd),
+    ('atleast_2d',  _one2one,       [0],    nd),
+    ('atleast_3d',  _one2one,       [0],    nd),
     # broadcast
     ('broadcast_to',_one2many,      [0],    nd),
     # broadcast_arrays
@@ -171,7 +171,6 @@ RAW_ENTRIES = [
     # ascontiguousarray
     # asarray_chkfinite
     # require
-    # concatenate
     ('concatenate', _one2one,       [DataArgumentDesignation(PositionalArgument(0), is_multi_arg=True)], nd),
     # stack
     # block
@@ -367,17 +366,17 @@ RAW_ENTRIES = [
     # isclose
     # array_equal
     # array_equiv
-    ('greater', binary_elementwise, (None, None)),
+    ('greater',     binary_elementwise, (None, None)),
     ('greater_equal', binary_elementwise, (None, None)),
-    ('less', binary_elementwise, (None, None)),
-    ('less_equal', binary_elementwise, (None, None)),
-    ('equal', binary_elementwise, (None, None)),
-    ('not_equal', binary_elementwise, (None, None)),
+    ('less',        binary_elementwise, (None, None)),
+    ('less_equal',  binary_elementwise, (None, None)),
+    ('equal',       binary_elementwise, (None, None)),
+    ('not_equal',   binary_elementwise, (None, None)),
 
     # Mathematical functions
     # https://numpy.org/doc/stable/reference/routines.math.html
     # ---------------------------------------------------------
-    # Trigonometric / inverse-trigonometric
+    # -- Trigonometric / inverse-trigonometric --
     ('sin',         unary_elementwise, (np.arcsin, inv_sin)),
     ('cos',         unary_elementwise, (np.arccos, inv_cos)),
     ('tan',         unary_elementwise, (np.arctan, inv_tan)),
@@ -393,7 +392,7 @@ RAW_ENTRIES = [
     ('deg2rad',     unary_elementwise, np.rad2deg),
     ('rad2deg',     unary_elementwise, np.deg2rad),
 
-    # Hyperbolic / inverse-hyperbolic
+    # -- Hyperbolic / inverse-hyperbolic --
     ('sinh',        unary_elementwise, np.arcsinh),
     ('cosh',        unary_elementwise, (np.arccosh, keep_sign(np.arccosh))),
     ('tanh',        unary_elementwise, np.arctanh),
@@ -401,7 +400,7 @@ RAW_ENTRIES = [
     ('arccosh',     unary_elementwise, np.cosh),
     ('arctanh',     unary_elementwise, np.tanh),
 
-    # Rounding
+    # -- Rounding --
     ('around',      unary_elementwise, identity),
     ('round',       unary_elementwise, identity),  # Added alias
     ('rint',        unary_elementwise, identity),
@@ -410,7 +409,7 @@ RAW_ENTRIES = [
     ('ceil',        unary_elementwise, identity),
     ('trunc',       unary_elementwise, identity),
 
-    # Sums, products, differences
+    # -- Sums, products, differences --
     ('prod',        _reduction),
     ('product',     _reduction),  # Added alias
     ('sum',         _reduction),
@@ -421,13 +420,13 @@ RAW_ENTRIES = [
     ('cumsum',      _accumulation),
     ('nancumprod',  _accumulation),
     ('nancumsum',   _accumulation),
-    ('diff',        _axiswise),  # TODO: need to write more specific translators that only invalidate/request neighbouring elements
-    # ediff1d
+    ('diff',        _axiswise),  # TODO: write more specific translators that only invalidate/request neighbouring elements
+    ('ediff1d',     _dataless,  nd),  # TODO: write more specific translators
     # gradient
     # cross
     # trapz
 
-    # Exponents and logarithms
+    # -- Exponents and logarithms --
     ('exp',         unary_elementwise, np.log),
     ('expm1',       unary_elementwise, np.log1p),
     ('exp2',        unary_elementwise, np.log2),
@@ -438,11 +437,11 @@ RAW_ENTRIES = [
     # logaddexp
     # logaddexp2
 
-    # Other special functions
+    # -- Other special functions --
     ('i0',          unary_elementwise, None),
     ('sinc',        unary_elementwise, None),
 
-    # Floating point routines
+    # -- Floating point routines --
     # signbit
     # copysign
     # frexp
@@ -450,11 +449,11 @@ RAW_ENTRIES = [
     # nextafter
     # spacing
 
-    # Rational routines
+    # -- Rational routines --
     ('lcm',         binary_elementwise, (None, None)),
     ('gcd',         binary_elementwise, (None, None)),
 
-    # Arithmetic operations
+    # -- Arithmetic operations --
     ('add',         binary_elementwise, (np.subtract, np.subtract)),
     ('reciprocal',  unary_elementwise, None),
     ('positive',    unary_elementwise, identity),
@@ -472,26 +471,26 @@ RAW_ENTRIES = [
     ('remainder',   binary_elementwise, (None, None)),  # TODO: write inverse
     # ('divmod',    binary_elementwise, (None, None)),  # TODO: return tuple, needs attention
 
-    # Handling complex numbers
+    # -- Handling complex numbers --
     ('angle',       unary_elementwise, (lambda a: np.cos(a) + 1j * np.sin(a), lambda a, c: (np.cos(a) + 1j * np.sin(a)) * np.abs(c))),
     ('real',        unary_elementwise, (lambda new_y: new_y, lambda new_y, x: np.imag(x) + new_y)),
     ('imag',        unary_elementwise, (lambda new_y: new_y * 1j, lambda new_y, x: np.real(x) + new_y * 1j)),
     ('conj',        unary_elementwise, np.conj),
     ('conjugate',   unary_elementwise, np.conjugate),
 
-    # Extrema Finding
-    # maximum
+    # -- Extrema Finding --
+    ('maximum',     binary_elementwise, (None, None)),  # TODO: write inverse
     ('fmax',        binary_elementwise, (None, None)),  # TODO: write inverse
     ('amax',        _reduction),
     ('max',         _reduction),  # Added Alias
-    # nanmax
-    # minimum
+    ('nanmax',      _reduction),
+    ('minimum',     binary_elementwise, (None, None)),  # TODO: write inverse
     ('fmin',        binary_elementwise, (None, None)),  # TODO: write inverse
     ('amin',        _reduction),
     ('min',         _reduction),  # Added Alias
-    # nanmin
+    ('nanmin',      _reduction),
 
-    # Miscellaneous
+    # -- Miscellaneous --
     # convolve
     # clip
     ('sqrt',        unary_elementwise, np.square),
@@ -614,58 +613,58 @@ RAW_ENTRIES = [
     # https://numpy.org/doc/stable/reference/routines.sort.html
     # ---------------------------------------------------------
 
-    # Sorting
+    # -- Sorting --
     ('sort',        _axiswise),
     # lexsort
-    # argsort
+    ('argsort',     _axiswise),
     # ndarray.sort
     # sort_complex
     # partition
     # argpartition
 
-    # Searching
+    # -- Searching --
     ('argmax',      _reduction),
     ('nanargmax',   _reduction),
     ('argmin',      _reduction),
     ('nanargmin',   _reduction),
-    # argwhere
+    ('argwhere',    _dataless,      nd),
     ('nonzero',     _dataless,      tuple),  # TODO: needs specifically tailored path translators
-    # flatnonzero
-    # where
-    # searchsorted
-    # extract
+    ('flatnonzero', _dataless,      tuple),
+    ('where',       _dataless,      nd),
+    ('searchsorted',_dataless,      []),
+    ('extract',     _dataless,      nd),
 
-    # Counting
-    # count_nonzero
+    # -- Counting --
+    ('count_nonzero', _reduction),
 
     # Statistics
     # https://numpy.org/doc/stable/reference/routines.statistics.html
     # ---------------------------------------------------------------
 
-    # Order statistics
+    # -- Order statistics --
     ('ptp',         _reduction),
-    # percentile
-    # nanpercentile
-    # quantile
-    # nanquantile
+    ('percentile',  _dataless,      nd),  # TODO: need to write specialized along-axis translators
+    ('nanpercentile', _dataless,    nd),  # TODO: need to write specialized along-axis translators
+    ('quantile',  _dataless,        nd),  # TODO: need to write specialized along-axis translators
+    ('nanquantile', _dataless,      nd),  # TODO: need to write specialized along-axis translators
 
-    # Averages and variances
+    # -- Averages and variances --
     ('median',      _reduction),
     ('average',     _reduction),
     ('mean',        _reduction),
     ('std',         _reduction),
     ('var',         _reduction),
-    # nanmedian
-    # nanmean
-    # nanstd
-    # nanvar
+    ('nanmedian',   _reduction),
+    ('nanmean',     _reduction),
+    ('nanstd',      _reduction),
+    ('nanvar',      _reduction),
 
-    # Correlating
+    # -- Correlating --
     ('corrcoef',    _dataless,      nd),
     ('correlate',   _dataless,      nd),
     ('cov',         _dataless,      nd),
 
-    # Histograms
+    # -- Histograms --
     ('histogram',   _dataless,      tuple),
     ('histogram2d', _dataless,      tuple),
     ('histogramdd', _dataless,      tuple),
@@ -676,13 +675,13 @@ RAW_ENTRIES = [
     # Window functions
     # https://numpy.org/doc/stable/reference/routines.window.html
     # -----------------------------------------------------------
-    # bartlett
-    # blackman
-    # hamming
-    # hanning
-    # kaiser
+    ('bartlett',    _dataless,      nd),
+    ('blackman',    _dataless,      nd),
+    ('hamming',     _dataless,      nd),
+    ('hanning',     _dataless,      nd),
+    ('kaiser',      _dataless,      nd),
 
-    # casting
+    # -- Casting --
     # ('int32',     unary_elementwise, identity),  # causes problems with specifying dtype=np.int32
     # ('int64',     unary_elementwise, identity),  # causes problems with specifying dtype=np.int64
     # ('int',       unary_elementwise, identity),  # DeprecationWarning: `np.int` is a deprecated alias for the builtin `int`.
