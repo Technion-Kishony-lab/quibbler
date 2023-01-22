@@ -28,10 +28,19 @@ def identity(x):
 
 
 nd = np.ndarray
-
-
 multy = DataArgumentDesignation(PositionalArgument(0), is_multi_arg=True)
 
+"""
+LIST OF NUMPY FUNCTIONS
+-----------------------
+
+Below is a comprehensive list of numpy functions curated from the official numpy docs. 
+Relevant functions are listed for quiby-overriding, while other functions remain commented out.
+
+Some of the overridden functions are overridden as "data-less" even though they have specific connections 
+between arg array elements and output array elements. These cases are listed with TODO indicating that in the 
+future it will be good to write specific path translators for them.   
+"""
 
 # Elementwise - Binary (two arguments)
 # For each function we provide a tuple specifying the RawInverseFunc for each of the two arguments.
@@ -76,7 +85,7 @@ RAW_ENTRIES = [
     # copy
     # frombuffer
     # from_dlpack
-    # fromfile
+    ('fromfile',    _fileloading),
     # fromfunction
     # fromiter
     # fromstring
@@ -153,7 +162,7 @@ RAW_ENTRIES = [
     # insert
     # append
     # resize
-    # trim_zeros
+    ('trim_zeros',  _dataless,      nd),
     ('unique',      _dataless,      nd),  # TODO: perhaps can use axiswise translators
     ('flip',        _one2one,       [0],    []),
     ('fliplr',      _one2one,       [0],    []),
@@ -272,17 +281,17 @@ RAW_ENTRIES = [
     # Linear algebra ( numpy.linalg )
     # https://numpy.org/doc/stable/reference/routines.linalg.html
     # -----------------------------------------------------------
-    # dot
+    ('dot',     _dataless,          []),    # TODO: need translators. Possibly also invertors
     # linalg.multi_dot
-    # vdot
-    # inner
-    # outer
-    # matmul
-    # tensordot
-    # einsum
+    ('vdot',    _dataless,          []),    # TODO: need translators. Possibly also invertors
+    ('inner',   _dataless,          []),    # TODO: need translators. Possibly also invertors
+    ('outer',   _dataless,          []),    # TODO: need translators. Possibly also invertors
+    ('matmul',  _dataless,          nd),    # TODO: need matrix multiplication translators
+    ('tensordot', _dataless,        []),    # TODO: need translators. Possibly also invertors
+    ('einsum',  _dataless,          []),    # TODO: need translators.
     # einsum_path
     # linalg.matrix_power
-    # kron
+    ('kron',    _dataless,          []),    # TODO: need translators.
     # linalg.cholesky
     # linalg.qr
     # linalg.svd
