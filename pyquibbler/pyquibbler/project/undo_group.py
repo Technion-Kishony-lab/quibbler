@@ -2,7 +2,6 @@ from contextlib import contextmanager
 from .project import Project
 from pyquibbler.quib.graphics.graphics_assignment_mode import is_within_graphics_assignment_mode
 from pyquibbler.quib.graphics.redraw import is_dragging
-from ..utilities.basic_types import Flag
 
 IN_UNDO_GROUP_MODE = False
 
@@ -23,13 +22,11 @@ def undo_group_mode(temporarily: bool = False):
         yield
     IN_UNDO_GROUP_MODE = True
     project = Project.get_or_create()
-    all_ok = Flag(True)
     try:
         project.start_pending_undo_group()
-        yield all_ok
+        yield
     except Exception:
         if is_within_graphics_assignment_mode():
-            all_ok.set(False)
             project.undo_pending_group(False)
         else:
             raise

@@ -5,7 +5,6 @@ from typing import List, Union
 from pyquibbler.assignment import AssignmentToQuib
 from pyquibbler.project.undo_group import undo_group_mode
 from pyquibbler.quib.graphics import aggregate_redraw_mode
-from pyquibbler.utilities.basic_types import Flag
 
 
 @dataclass
@@ -28,11 +27,11 @@ class OverrideGroup:
     """
     quib_changes: List[AssignmentToQuib] = field(default_factory=list)
 
-    def apply(self, temporarily: bool = False) -> Flag:
-        with undo_group_mode(temporarily) as ugm, aggregate_redraw_mode(temporarily):
-            for quib_change in self.quib_changes:
-                quib_change.apply()
-        return ugm
+    def apply(self, temporarily: bool = False):
+        with undo_group_mode(temporarily):
+            with aggregate_redraw_mode(temporarily):
+                for quib_change in self.quib_changes:
+                    quib_change.apply()
 
     def __bool__(self):
         return len(self.quib_changes) > 0
