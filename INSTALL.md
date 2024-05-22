@@ -32,7 +32,7 @@ Follow these four steps:
 
 #### 2. Install Jupyter lab (optional):
 
-```pip install jupyterlab```
+```pip install jupyterlab==3.4.7```
 
 #### 3. Run the 'install.py' script: 
 
