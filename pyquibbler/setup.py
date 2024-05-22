@@ -39,7 +39,6 @@ setup(
                       "ipynbname==2021.3.2",
                       "flask==2.1.1",
                       "flask_cors==3.0.10",
-                      "Werkzeug==2.0.3",
                       "ipycytoscape",
                       "ipywidgets>=7.0.2",
                       "traitlets",
