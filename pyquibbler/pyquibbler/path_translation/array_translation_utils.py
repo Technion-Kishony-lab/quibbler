@@ -183,7 +183,7 @@ class ArrayPathTranslator:
 
     def _convert_an_arg_to_array_of_source_index_codes(self, arg: Any, path_to_source: Optional[Path] = None,
                                                        ) -> IndexCodeArray:
-        arg_index_array, remaining_path_to_source, path_in_source_array, path_in_source_element,\
+        arg_index_array, remaining_path_to_source, path_in_source_array, path_in_source_element, \
             is_extracting_element_out_of_source_array = \
             convert_an_arg_to_array_of_source_index_codes(arg, self.focal_source, path_to_source, self.path_in_source)
         if path_to_source is not None:

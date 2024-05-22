@@ -2,7 +2,6 @@
 import contextlib
 import subprocess
 import sys
-import os
 import traceback
 from pathlib import Path
 
