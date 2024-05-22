@@ -19,7 +19,8 @@ def reformat_file(file: str):
     os.system(r"sed -i '' -E 's/parsed-literal::/code:: none/g' " + file)
 
     # [[CNN\|\http...]] -> `CNN <http...>`_
-    os.system(r"sed -i '' -E 's/\[\[([A-Z,a-z][-._ [:alnum:]]{1,100})\\\|\\ ([-.:<>/_ [:alnum:]]{1,100})\]\]/`\1 <\2>`_/g' " + file)
+    os.system(r"sed -i '' -E 's/\[\[([A-Z,a-z][-._ [:alnum:]]{1,100})\\\|\\ ([-.:<>/_ [:alnum:]]{1,100})\]\]"
+              r"/`\1 <\2>`_/g' " + file)
 
     # [[Quib]] -> `~pyquibbler.Quib`
     os.system(r"sed -i '' -E 's/\[\[Quib\]\]/:py:class:`~pyquibbler.Quib`/g' " + file)
@@ -31,7 +32,8 @@ def reformat_file(file: str):
     os.system(r"sed -i '' -E 's/\[\[quibdemo([-_[:alnum:]]{1,100}\]\])/\[\[examples\/quibdemo\1/g' " + file)
 
     # [[see this reference|reference]] -> :doc:`see this reference<reference>`
-    os.system(r"sed -i '' -E 's/\[\[([A-Z,a-z][-._ [:alnum:]]{1,100})\|([-.:<>/_ [:alnum:]]{1,100})\]\]/:doc:`\1<\2>`/g' " + file)
+    os.system(r"sed -i '' -E 's/\[\[([A-Z,a-z][-._ [:alnum:]]{1,100})\|([-.:<>/_ [:alnum:]]{1,100})\]\]"
+              r"/:doc:`\1<\2>`/g' " + file)
 
     # [[reference]] -> :doc:`reference`
     os.system(r"sed -i '' -E 's/\[\[([A-Z,a-z][-/_ [:alnum:]]{1,100})\]\]/:doc:`\1`/g' " + file)

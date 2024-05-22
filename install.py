@@ -2,7 +2,6 @@
 import contextlib
 import subprocess
 import sys
-import os
 import traceback
 from pathlib import Path
 
@@ -59,9 +58,12 @@ def install_click_if_necessary():
 
 def is_jupyter_installed():
     try:
-        subprocess.check_call(["jupyter", "lab", "path"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    except Exception:  # noqa
-        return False
+        output = subprocess.check_output(["jupyter", "lab", "--version"], stderr=subprocess.STDOUT)
+        version = output.decode().strip()
+        if not version.startswith('3.'):
+            show_failure_message_and_exist("PyQuibbler is only compatible with Jupyter lab version 3.x.")
+    except subprocess.CalledProcessError as e:
+        show_failure_message_and_exist(f'Failed to get jupyter lab version. Exception :\n{e}')
     return True
 
 

@@ -122,7 +122,7 @@ def create_or_reuse_func_definition(base_func_definition: Optional[FuncDefinitio
     """
     raw_data_source_arguments = raw_data_source_arguments or []
     data_argument_designations = convert_raw_data_arguments_to_data_argument_designations(raw_data_source_arguments)
-    if base_func_definition and (func_definition_cls is None or type(base_func_definition) == func_definition_cls):
+    if base_func_definition and (func_definition_cls is None or type(base_func_definition) is func_definition_cls):
         # use base_func_definition as the default upon which to make changes:
         bfd = base_func_definition
         func_definition = type(bfd)(
