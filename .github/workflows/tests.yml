@@ -20,8 +20,9 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
+          python -m pip install --upgrade pip setuptools
           pip install tox==3.28.0 tox-gh-actions
+          pip install jupyterlab==3.1
 
       - name: Run tox
         run: |
@@ -52,8 +53,9 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
+          python -m pip install --upgrade pip setuptools
           pip install tox==3.28.0 tox-gh-actions
+          pip install jupyterlab==3.1
 
       - name: Run tox flake8
         run: |
@@ -89,8 +91,9 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
+          python -m pip install --upgrade pip setuptools
           pip install tox==3.28.0 tox-gh-actions
+          pip install jupyterlab==3.1
 
       - name: Run tox coverage env
         run: |
