@@ -48,19 +48,28 @@ jobs:
           python -m pip install --upgrade pip setuptools
           python -m pip install jupyterlab==3.1 wheel
 
+      - name: Install Node.js Dependencies
+        run: npm install
+
+      - name: Install Playwright Browsers
+        run: npx playwright install
+
       - name: Build the extension
         run: |
           set -eux
-          npm install
           python -m pip install .
-          python -m pip install jupyterlab==3.1
 
-          jupyter labextension list 2>&1 | grep -ie "pyquibbler-labextension.*OK"
+          echo "Listing Jupyter Lab Extensions"
+          jupyter labextension list
+
+          echo "Running Browser Check"
           python -m jupyterlab.browser_check
 
+          echo "Building Wheel"
           python -m pip wheel . -w ./dist --no-deps
 
-      - uses: actions/upload-artifact@v3
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
         with:
           name: pyquibbler_labextension
           path: ./pyquibbler-labextension/dist/*.whl
