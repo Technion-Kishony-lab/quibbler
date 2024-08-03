@@ -29,8 +29,8 @@ setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     packages=find_packages(),
-    install_requires=["matplotlib",
-                      "numpy==3.9.1",
+    install_requires=["matplotlib==3.9.1",
+                      "numpy==2.0.1",
                       "varname==0.13",
 
                       # TODO: These following packages are not strictly needed.
