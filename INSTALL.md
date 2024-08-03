@@ -5,7 +5,7 @@
 
 If you are using conda, we recommend creating a new environment for `pyquibbler` installation.
 
-```conda create --name pyquibbler python=3.10``` 
+```conda create --name pyquibbler python=3.11``` 
 
 ```conda activate pyquibbler```
 
