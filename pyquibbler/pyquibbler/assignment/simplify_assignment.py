@@ -71,7 +71,9 @@ class AssignmentSimplifier:
             self._assignment.value = np_array(self.value, dtype=self.second_to_last_data.dtype)
         elif self.value is not default:
             try:
-                self._assignment.value = self.second_to_last_data.dtype.type(self.value)
+                new_value = self.second_to_last_data.dtype.type(self.value)
+                if len(repr(new_value)) < len(repr(self.value)):
+                    self._assignment.value = new_value
             except ValueError:
                 pass
 

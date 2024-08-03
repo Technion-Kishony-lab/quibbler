@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from contextlib import contextmanager
+
 import numpy as np
 from dataclasses import dataclass, field
 from typing import Any, List, Union, Optional, Tuple
@@ -10,7 +12,7 @@ from pyquibbler.path import Path
 
 from .default_value import default
 from .rounding import floor_log10
-from .utils import is_numeric_scalar
+from .utils import is_numeric_scalar, replace_np_int_and_float
 from .assignment_template import round_to_num_digits
 
 from typing import TYPE_CHECKING
@@ -46,7 +48,7 @@ class Assignment:
         return ''.join([str(GetItemExpression('', cmp.component)) for cmp in self.path])
 
     def get_pretty_value(self):
-        return repr(self.value)
+        return repr(replace_np_int_and_float(self.value))
 
 
 @dataclass

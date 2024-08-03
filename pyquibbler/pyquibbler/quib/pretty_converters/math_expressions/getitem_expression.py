@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from typing import Callable, Any
 
+from pyquibbler.assignment.utils import replace_np_int_and_float
+
 from pyquibbler.utilities.general_utils import Args
 from .math_expression import MathExpression
 from ..math_precedence import MathPrecedence
@@ -11,7 +13,7 @@ def _convert_sub_item(sub_item: Any) -> str:
         return _convert_slice(sub_item)
     if isinstance(sub_item, type(Ellipsis)):
         return '...'
-    return repr(sub_item)
+    return repr(replace_np_int_and_float(sub_item))
 
 
 def _convert_slice(slice_: slice) -> str:
