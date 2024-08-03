@@ -384,12 +384,12 @@ RAW_ENTRIES = [
 
     # -- Sums, products, differences --
     ('prod',        _reduction),
-    ('product',     _reduction),  # Added alias
+    # ('product',     _reduction),  # Added alias
     ('sum',         _reduction),
     ('nanprod',     _reduction),
     ('nansum',      _reduction),
     ('cumprod',     _accumulation),
-    ('cumproduct',  _accumulation),  # Added alias
+    # ('cumproduct',  _accumulation),  # Added alias
     ('cumsum',      _accumulation),
     ('nancumprod',  _accumulation),
     ('nancumsum',   _accumulation),

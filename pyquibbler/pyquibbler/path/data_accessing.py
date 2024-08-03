@@ -19,7 +19,7 @@ def de_array_by_template(array: NDArray, obj: Any) -> Any:
     with the elements of `array`.
     """
 
-    if isinstance(obj, (list, tuple)):
+    if isinstance(obj, (list, tuple)) and isinstance(array, Iterable):
         return type(obj)(de_array_by_template(sub_array, sub_obj)
                          for sub_array, sub_obj in zip(array, obj))
 

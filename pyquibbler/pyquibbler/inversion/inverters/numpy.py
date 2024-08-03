@@ -33,10 +33,14 @@ class NumpyInverter(Inverter, ABC):
                 in zip(self._func_call.get_data_sources(), self._func_call.data_source_locations)}
 
     def _create_backwards_translator(self):
+        try:
+            shape = np.shape(self._previous_result)
+        except ValueError:
+            shape = np.shape(np.array(self._previous_result, dtype=object))
         return self.BACKWARDS_TRANSLATOR_TYPE(
             func_call=self._func_call,
             path=self._assignment.path,
-            shape=np.shape(self._previous_result),
+            shape=shape,
             type_=type(self._previous_result)
         )
 
