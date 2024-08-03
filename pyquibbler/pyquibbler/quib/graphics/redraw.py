@@ -7,7 +7,6 @@ from typing import Set, Dict
 from matplotlib.figure import Figure
 from matplotlib.pyplot import fignum_exists
 from matplotlib._pylab_helpers import Gcf
-from matplotlib.pyplot import get_backend
 
 from pyquibbler.debug_utils import timeit
 

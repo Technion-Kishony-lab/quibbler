@@ -8,7 +8,6 @@ from typing import Optional, Tuple, Callable, Union
 from matplotlib.artist import Artist
 from matplotlib.backend_bases import MouseEvent, PickEvent, MouseButton, FigureCanvasBase
 from matplotlib.axes import Axes
-from matplotlib_inline.backend_inline import FigureCanvas
 
 from pyquibbler.debug_utils.timer import timeit
 from pyquibbler.env import END_DRAG_IMMEDIATELY

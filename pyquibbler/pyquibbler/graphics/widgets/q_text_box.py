@@ -1,7 +1,5 @@
 from matplotlib.widgets import TextBox
 
-from pyquibbler.quib.graphics.redraw import redraw_canvas
-
 
 class QTextBox(TextBox):
     """
