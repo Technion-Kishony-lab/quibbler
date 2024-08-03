@@ -149,7 +149,7 @@ def choose_override_graphics_dialog(str_options: List[str],
     else:
         for axes in axeses:
             axes.remove()
-        fig.canvas.draw()
+        # fig.canvas.draw()  # old matplotlib
         if is_new_figure:
             plt.close(fig)
     if choice_type.val is OverrideChoiceType.OVERRIDE:

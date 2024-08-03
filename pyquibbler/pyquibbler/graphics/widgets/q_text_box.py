@@ -24,7 +24,8 @@ class QTextBox(TextBox):
     def on_submit(self, func):
         super().on_submit(lambda text: func(self.convert_text_to_original_type(text)))
 
-    def _rendercursor(self):
-        # Matplotlib has a bug - does not update on MacOSX. To fix, we run our own redraw_canvas:
-        super()._rendercursor()
-        redraw_canvas(self.ax.figure.canvas)
+    # old matplotlib:
+    # def _rendercursor(self):
+    #     # Matplotlib has a bug - does not update on MacOSX. To fix, we run our own redraw_canvas:
+    #     super()._rendercursor()
+    #     redraw_canvas(self.ax.figure.canvas)

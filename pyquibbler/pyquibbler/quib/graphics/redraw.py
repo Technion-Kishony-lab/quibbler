@@ -145,16 +145,19 @@ def redraw_canvas(canvas):
     """
     Redraw a specified canvas
     """
-    if get_backend() == 'TkAgg':
-        # `canvas.start_event_loop(0.001)` works with tk, but cause sometimes the kernel to
-        # get stuck when dragging rectangle_selector in jupyterlab.
-        # canvas.draw() works better with tk
-        canvas.draw()
-    else:
-        # `canvas.draw()` does not work with osx. it just doesn't redraw.
-        # based on https://matplotlib.org/stable/api/animation_api.html, we use instead:
-        canvas.draw_idle()
-        canvas.start_event_loop(0.001)
+    canvas.draw()
+
+    # old matplotlib:
+    # if get_backend() == 'TkAgg':
+    #     # `canvas.start_event_loop(0.001)` works with tk, but cause sometimes the kernel to
+    #     # get stuck when dragging rectangle_selector in jupyterlab.
+    #     # canvas.draw() works better with tk
+    #     canvas.draw()
+    # else:
+    #     # `canvas.draw()` does not work with osx. it just doesn't redraw.
+    #     # based on https://matplotlib.org/stable/api/animation_api.html, we use instead:
+    #     canvas.draw_idle()
+    #     canvas.start_event_loop(0.001)
 
 
 def redraw_figures(figures: Set[Figure]):
