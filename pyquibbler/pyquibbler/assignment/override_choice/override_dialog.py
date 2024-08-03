@@ -78,35 +78,19 @@ def add_axes_by_inches(fig, position) -> Axes:
                         axes_locator=divider.new_locator(nx=1, ny=1))
 
 
-def pretty_radio_buttons(fig, box, labels,
-                         line_distance=0.3,
-                         radius=0.08,
-                         top_margin=0.2,
-                         circle_x=0.2,
-                         circle_text_distance=0.05,
-                         color='grey',
-                         ):
-    # all dimensions in inches
+def pretty_radio_buttons(fig, box, labels, color='grey'):
 
     from pyquibbler.graphics.widgets import QRadioButtons
-    from numpy import arange
 
     ax = add_axes_by_inches(fig, box)
     ax.axis([0, box[2], 0, box[3]])
     ax.axis("off")
     ax.transAxes = ax.transData
-    radios = QRadioButtons(ax, labels, activecolor=color)
+    radios = QRadioButtons(ax, labels, activecolor=color,
+                           radio_props={'edgecolor': color},
+                           label_props={'color': [color]}
+                           )
 
-    n = len(labels)
-
-    dy = min(line_distance, (box[3] - 2 * top_margin) / (n - 1))
-    ys = box[3] - top_margin - arange(n) * dy
-
-    for circle, label, y in zip(radios.circles, radios.labels, ys):
-        circle.set_radius(radius)
-        circle.set_center((circle_x, y))
-        label.set_x(circle_x + radius + circle_text_distance)
-        label.set_y(y)
     return ax, radios
 
 
