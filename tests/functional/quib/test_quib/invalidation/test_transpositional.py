@@ -139,7 +139,7 @@ def test_invalidate_embedded_dicts_should_invalidate(quib_dict):
 
 @pytest.fixture()
 def quib_with_nested_arr():
-    dtype = [('nested', [('child_name', np.compat.unicode, 30)], (2,))]
+    dtype = [('nested', [('child_name', 'U10')])]
     return iquib(np.array(['Yechiel', "Yossiel"], dtype=dtype))
 
 

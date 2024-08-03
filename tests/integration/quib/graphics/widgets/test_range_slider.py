@@ -4,7 +4,6 @@ import pytest
 from matplotlib import widgets
 
 from pyquibbler import iquib, undo, default
-from tests.integration.quib.graphics.widgets.utils import count_redraws, quibbler_image_comparison, count_canvas_draws
 
 
 @pytest.fixture()

@@ -21,7 +21,7 @@ from pyquibbler.user_utils.quibapp import QuibApp
 from pyquibbler.utilities.basic_types import Flag
 
 from matplotlib.widgets import Slider as OriginalSlider
-from matplotlib.backend_bases import FigureCanvasBase
+from matplotlib.backend_bases import FigureCanvasBase, MouseEvent
 
 from pyquibbler.debug_utils.track_instances import track_instances_of_class, TRACKED_CLASSES_TO_WEAKREFS, \
     get_all_instances_in_tracked_class
@@ -147,10 +147,15 @@ def set_backend():
 
 @fixture
 def axes():
-    from matplotlib import pyplot as plt
-    plt.close("all")
-    plt.gcf().set_size_inches(8, 6)
-    return plt.gca()
+    ax = get_axes()
+    yield ax
+    plt.close(ax.figure)  # Ensure the figure is closed after the test
+
+
+def get_axes():
+    plt.close('all')
+    fig, ax = plt.subplots(figsize=(8, 6))
+    return ax
 
 
 @fixture(autouse=True)
@@ -220,6 +225,11 @@ def convert_str_xy_to_normalized_xy(xy):
         return 1., 0.5
 
 
+def simulate_event(canvas, name, x, y, button=1):
+    event = MouseEvent(name, canvas, x, y, button=button)
+    canvas.callbacks.process(name, event)
+
+
 def create_mouse_press_move_release_events(ax, xys, button: int = 1,
                                            press: bool = True, release: bool = True, normalized: bool = False,
                                            pause: float = None):
@@ -233,27 +243,23 @@ def create_mouse_press_move_release_events(ax, xys, button: int = 1,
     _xy_init = xys[0]
     _xy_end = xys[-1]
 
-    # We use FigureCanvasBase directly and not as a method because some backends (for example the TkAgg) have
-    # a different signature for this method
+    # Use canvas directly for button press, motion notify, and button release events
+
     if press:
-        FigureCanvasBase.button_press_event(ax.figure.canvas, _xy_init[0], _xy_init[1], button=button)
+        simulate_event(ax.figure.canvas, 'button_press_event', _xy_init[0], _xy_init[1], button=button)
     for _xy in xys[1:]:
-        FigureCanvasBase.motion_notify_event(ax.figure.canvas, _xy[0], _xy[1])
+        simulate_event(ax.figure.canvas, 'motion_notify_event', _xy[0], _xy[1])
         if pause is not None:
             plt.pause(pause)
     if release:
-        FigureCanvasBase.button_release_event(ax.figure.canvas, _xy_end[0], _xy_end[1], button=button)
-
+        simulate_event(ax.figure.canvas, 'button_release_event', _xy_end[0], _xy_end[1], button=button)
 
 @pytest.fixture
 def create_axes_mouse_press_move_release_events(axes):
     return partial(create_mouse_press_move_release_events, axes)
 
 
-@pytest.fixture
-def create_key_press_and_release_event(axes):
-    def _create(key):
-        FigureCanvasBase.key_press_event(axes.figure.canvas, key)
-        FigureCanvasBase.key_release_event(axes.figure.canvas, key)
-
-    return _create
+def create_key_press_and_release_event(axes, key):
+    canvas = axes.figure.canvas
+    canvas.key_press_event(key)
+    canvas.key_release_event(key)

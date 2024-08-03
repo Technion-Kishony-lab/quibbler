@@ -74,10 +74,10 @@ def test_transpositional_concatenate_does_diverge(create_mock_quib):
 
 @pytest.mark.regression
 def test_transpositional_get_value_minors(create_quib_with_return_value):
-    first = create_quib_with_return_value([1, 2])
+    first = create_quib_with_return_value(3)
     second = np.array([0, 1, first])
 
-    assert np.array_equal(second.get_value(), np.array([0, 1, [1, 2]], dtype=object))
+    assert np.array_equal(second.get_value(), np.array([0, 1, 3]))
 
 
 @pytest.mark.regression

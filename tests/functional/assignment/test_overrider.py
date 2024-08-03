@@ -35,7 +35,7 @@ def test_overrider_with_global_override_and_partial_assignments(overrider):
 
 
 def test_overrider_with_field_assignment(overrider):
-    dtype = [('name', np.compat.unicode, 21), ('age', np.int_)]
+    dtype = np.dtype([('name', 'U10'), ('age', int)])
     overrider.add_assignment(Assignment(value=1, path=[PathComponent('age')]))
     new_data = overrider.override(np.array([('maor2', 23)], dtype=dtype))
 
@@ -43,7 +43,7 @@ def test_overrider_with_field_assignment(overrider):
 
 
 def test_overrider_with_field_assignment_and_indices(overrider):
-    dtype = [('name', np.compat.unicode, 21), ('age', np.int_)]
+    dtype = np.dtype([('name', 'U10'), ('age', int)])
     overrider.add_assignment(Assignment(value=1, path=[PathComponent((0, 0)), PathComponent("age")]))
     new_data = overrider.override(np.array([[('maor2', 23)]], dtype=dtype))
 

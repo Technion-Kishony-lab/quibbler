@@ -21,11 +21,11 @@ def test_global_graphics_collecting_mode_happy_flow(axes, data):
 
 
 def test_global_graphics_collecting_stores_props_cycle_indices(axes):
-    axes._get_lines.prop_cycler.current_index = 2
+    axes._get_lines._idx = 2
     with global_collecting.ColorCyclerIndexCollector() as collector:
         axes.plot([10, 11, 12])
 
-    assert collector.color_cyclers_to_index[axes._get_lines.prop_cycler] == 2
+    assert collector.color_cyclers_to_index[axes._get_lines] == 2
 
 
 def test_global_graphics_collecting_within_collecting(axes):
