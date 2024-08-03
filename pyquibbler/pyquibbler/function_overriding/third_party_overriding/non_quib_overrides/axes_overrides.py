@@ -1,9 +1,9 @@
 import functools
-import itertools
 from typing import Callable, Type
 
+from pyquibbler.graphics.process_plot_var_args import quibbler_process_plot_var_args
+
 from pyquibbler.quib.quib import Quib
-from pyquibbler.utilities.settable_cycle import SettableColorCycle
 from pyquibbler.quib.graphics import artist_wrapper
 
 
@@ -16,21 +16,6 @@ def _get_wrapper_for_clear_axes(func: Callable):
             for artist in self._children:
                 artist_wrapper.clear_all_quibs(artist)
         return func(self, *args, **kwargs)
-
-    return _wrapper
-
-
-def _get_wrapper_for_set_prop_cycle(func: Callable):
-
-    @functools.wraps(func)
-    def _wrapper(self, *args, **kwargs):
-        itertools_cycle = itertools.cycle
-        try:
-            itertools.cycle = SettableColorCycle
-            result = func(self, *args, **kwargs)
-        finally:
-            itertools.cycle = itertools_cycle
-        return result
 
     return _wrapper
 
@@ -78,5 +63,5 @@ def override_axes_methods():
             '_sci'):
         wrap_method(_AxesBase, func, _get_wrapper_for_funcs_that_can_work_on_quibs_returning_non_quibs)
 
-    from matplotlib.axes._base import _process_plot_var_args
-    wrap_method(_process_plot_var_args, 'set_prop_cycle', _get_wrapper_for_set_prop_cycle)
+    from matplotlib.axes import _base
+    _base._process_plot_var_args = quibbler_process_plot_var_args

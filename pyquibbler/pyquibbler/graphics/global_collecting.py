@@ -3,14 +3,14 @@ import functools
 import threading
 
 from abc import ABC, abstractmethod
-from typing import List, Type
+from typing import List, Type, Dict
 from matplotlib.artist import Artist
 from matplotlib.figure import Figure
 from matplotlib.widgets import AxesWidget
 from matplotlib.pyplot import Axes
 
 from pyquibbler.exceptions import PyQuibblerException
-from pyquibbler.utilities.settable_cycle import SettableColorCycle
+from pyquibbler.graphics.process_plot_var_args import quibbler_process_plot_var_args
 
 
 class UponMethodCall(ABC):
@@ -100,19 +100,19 @@ class AxesCreationPreventor(UponCreation):
 class ColorCyclerIndexCollector:
 
     def __init__(self):
-        self._color_cyclers_to_index = dict()
+        self._color_cyclers_to_index: Dict[quibbler_process_plot_var_args, int] = dict()
 
     @property
     def color_cyclers_to_index(self):
         return self._color_cyclers_to_index
 
     def __enter__(self):
-        SettableColorCycle.on_next = self._on_next_index
+        quibbler_process_plot_var_args.callback = self._on_next_index
         return self
 
     def __exit__(self, *_, **__):
-        SettableColorCycle.on_next = None
+        quibbler_process_plot_var_args.callback = None
 
-    def _on_next_index(self, obj, index):
+    def _on_next_index(self, obj: quibbler_process_plot_var_args, index):
         if obj not in self._color_cyclers_to_index:
             self._color_cyclers_to_index[obj] = index

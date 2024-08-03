@@ -5,8 +5,7 @@ from typing import List, Dict
 from matplotlib.artist import Artist
 from matplotlib.widgets import AxesWidget
 
-from pyquibbler.utilities.settable_cycle import SettableColorCycle
-
+from .process_plot_var_args import quibbler_process_plot_var_args
 from .update_new_artists import update_new_artists_from_previous_artists, \
     add_new_axesless_patches_to_axes, copy_attributes_from_new_to_previous_artists
 from .global_collecting import ArtistsCollector, AxesWidgetsCollector, AxesCreationPreventor, \
@@ -18,7 +17,7 @@ from .utils import get_axeses_to_starting_indices, get_axeses_to_artists, remove
 class GraphicsCollection:
     widgets: List[AxesWidget] = field(default_factory=list)
     artists: List[Artist] = field(default_factory=list)
-    color_cyclers_to_index: Dict[SettableColorCycle, int] = field(default_factory=dict)
+    color_cyclers_to_index: Dict[quibbler_process_plot_var_args, int] = field(default_factory=dict)
 
     def _get_artists_still_in_axes(self):
         """
@@ -67,7 +66,7 @@ class GraphicsCollection:
         else:
             self.widgets = new_widgets
 
-    def _handle_called_color_cyclers(self, color_cyclers_to_index: Dict[SettableColorCycle, int]):
+    def _handle_called_color_cyclers(self, color_cyclers_to_index: Dict[quibbler_process_plot_var_args, int]):
         """
         Handle color_cyclers that were used during the function call
         """
@@ -75,7 +74,7 @@ class GraphicsCollection:
 
     def set_color_cyclers_back_to_pre_run_index(self):
         for color_cycler, index in self.color_cyclers_to_index.items():
-            color_cycler.current_index = index
+            color_cycler._idx = index
 
     @contextlib.contextmanager
     def track_and_handle_new_graphics(self):
