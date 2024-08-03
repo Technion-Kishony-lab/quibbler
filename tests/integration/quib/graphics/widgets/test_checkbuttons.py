@@ -1,7 +1,7 @@
 import pytest
 from matplotlib import pyplot as plt, widgets
 
-from conftest import get_axes
+from .....conftest import get_axes
 from pyquibbler import iquib, undo, redo
 from tests.integration.quib.graphics.widgets.utils import count_redraws, quibbler_image_comparison
 

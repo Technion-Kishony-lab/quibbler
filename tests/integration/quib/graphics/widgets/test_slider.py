@@ -1,9 +1,8 @@
 import matplotlib.pyplot as plt
 import pytest
-from _pytest.fixtures import fixture
 from matplotlib import widgets
 
-from conftest import get_axes, create_mouse_press_move_release_events
+from .....conftest import get_axes, create_mouse_press_move_release_events
 from pyquibbler import iquib, undo
 from tests.integration.quib.graphics.widgets.utils import count_redraws, quibbler_image_comparison, count_canvas_draws
 

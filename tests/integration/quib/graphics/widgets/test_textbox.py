@@ -1,7 +1,7 @@
 import pytest
 from matplotlib import widgets, pyplot as plt
 
-from conftest import create_mouse_press_move_release_events, create_key_press_and_release_event
+from .....conftest import create_mouse_press_move_release_events, create_key_press_and_release_event
 from pyquibbler import iquib
 
 
