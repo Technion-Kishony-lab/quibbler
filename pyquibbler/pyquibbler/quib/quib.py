@@ -509,9 +509,11 @@ class QuibHandler:
         """
         if WARN_ON_UNSUPPORTED_BACKEND and self.func_definition.is_graphics:
             from matplotlib.pyplot import get_backend
-            if get_backend() not in SUPPORTED_BACKENDS:
+            backend = get_backend()
+            if backend.lower() not in [b.lower() for b in SUPPORTED_BACKENDS]:
                 WARN_ON_UNSUPPORTED_BACKEND.set(False)  # We don't want to warn more than once
-                no_header_warn(('PyQuibbler is only optimized for the following Matplotlib backends:',
+                no_header_warn((f'The Matplotlib backend "{backend}" is not supported.',
+                                'PyQuibbler is only optimized for the following Matplotlib backends:',
                                 f'{", ".join(SUPPORTED_BACKENDS)}.',
                                 'In Jupyter, use: %matplotlib tk.',
                                 'In PyCharm, use:  matplotlib.use("TkAgg").'))
