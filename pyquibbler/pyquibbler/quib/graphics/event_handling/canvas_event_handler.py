@@ -1,17 +1,20 @@
 from __future__ import annotations
 
+import weakref
 from contextlib import contextmanager
 from threading import Lock
 from typing import Optional, Tuple, Callable, Union
 
 from matplotlib.artist import Artist
-from matplotlib.backend_bases import MouseEvent, PickEvent, MouseButton
+from matplotlib.backend_bases import MouseEvent, PickEvent, MouseButton, FigureCanvasBase
 from matplotlib.axes import Axes
+from matplotlib_inline.backend_inline import FigureCanvas
 
 from pyquibbler.debug_utils.timer import timeit
 from pyquibbler.env import END_DRAG_IMMEDIATELY
 
 from .. import artist_wrapper
+from ..artist_wrapper import clear_all_quibs
 from ..redraw import end_dragging, start_dragging
 from ..event_handling import graphics_inverse_assigner
 from ..graphics_assignment_mode import graphics_assignment_mode
@@ -23,12 +26,28 @@ if TYPE_CHECKING:
     from pyquibbler.quib.quib import Quib
 
 
+def _get_all_axs_from_figure(figure: FigureCanvasBase):
+    return figure.get_axes()
+
+
+def _get_all_artists_from_axes(ax: Axes):
+    return ax.get_children()
+
+
+def _get_all_artists_from_axes_of_figure(figure: FigureCanvasBase):
+    axs = _get_all_axs_from_figure(figure)
+    all_artists = axs
+    for ax in axs:
+        all_artists.extend(_get_all_artists_from_axes(ax))
+    return all_artists
+
+
 class CanvasEventHandler:
     """
     Handles all events from the canvas (such as press, drag, and pick), inverse assigning to the relevant quibs
     using a specific graphics inverse assignment function handler
     """
-    CANVASES_TO_TRACKERS = {}
+    CANVASES_TO_TRACKERS = weakref.WeakValueDictionary()
 
     @classmethod
     def get_or_create_initialized_event_handler(cls, canvas):
@@ -41,18 +60,21 @@ class CanvasEventHandler:
 
         return self
 
-    def __init__(self, canvas):
+    def __init__(self, canvas: FigureCanvasBase):
         self.canvas = canvas
         self.current_pick_event: Optional[PickEvent] = None
         self.current_pick_quib: Optional[Quib] = None
         self._previous_mouse_event: Optional[MouseEvent] = None
         self._assignment_lock = Lock()
+        self._handler_ids = []
+        self._original_destroy = None
 
         self.EVENT_HANDLERS = {
             'button_press_event': self._handle_button_press,
             'button_release_event': self._handle_button_release,
             'motion_notify_event': self._handle_motion_notify,
-            'pick_event': self._handle_pick_event
+            'pick_event': self._handle_pick_event,
+            'close_event': self.disconnect,
         }
 
     @staticmethod
@@ -155,20 +177,31 @@ class CanvasEventHandler:
         """
         Initializes the canvas events handler to receive events from the canvas
         """
-        handler_ids = []
+        self._handler_ids = []
         for event_type, handler in self.EVENT_HANDLERS.items():
-            handler_ids.append(self.canvas.mpl_connect(event_type, handler))
+            self._handler_ids.append(self.canvas.mpl_connect(event_type, handler))
 
-        def disconnect(event):
-            for handler_id in handler_ids:
-                self.canvas.mpl_disconnect(handler_id)
+        self._original_destroy = self.canvas.manager.destroy
 
-            self.CANVASES_TO_TRACKERS.pop(self.canvas)
+        self.canvas.manager.destroy = self._manager_destroy
 
-            for ax in self.canvas.figure.axes:
-                ax.cla()
+    def _manager_destroy(self):
+        self._original_destroy()
+        self.disconnect()
 
-        handler_ids.append(self.canvas.mpl_connect('close_event', disconnect))
+    def _delete_all_graphics_quibs(self):
+        if isinstance(self.canvas, FigureCanvasBase):
+            for artist in _get_all_artists_from_axes_of_figure(self.canvas.figure):
+                clear_all_quibs(artist)
+
+    def disconnect(self, _event=None):
+        for handler_id in self._handler_ids:
+            self.canvas.mpl_disconnect(handler_id)
+        self.CANVASES_TO_TRACKERS.pop(self.canvas, None)
+        self.canvas.manager.destroy = self._original_destroy
+        self._original_destroy = None
+        self._delete_all_graphics_quibs()
+        self.CANVASES_TO_TRACKERS.pop(self.canvas, None)
 
     def handle_axes_drag_pan(self, ax: Axes, drawing_func: Callable, lim: Tuple[float, float]):
         """
