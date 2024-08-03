@@ -40,7 +40,7 @@ def axes2(figure) -> plt.Axes:
 def test_redraw_axes_happy_flow(figure):
     redraw_figures({figure})
 
-    figure.canvas.draw_idle.assert_called_once()
+    figure.canvas.draw.assert_called_once()
 
 
 def test_redraw_in_aggregate_mode():
@@ -117,9 +117,9 @@ def test_quibs_deleted_after_figure_clf():
     del figure, a, b
     gc.collect()
 
+    assert ref_figure() is None
     assert ref_a() is None
     assert ref_b() is None
-    assert ref_figure() is None
 
 
 def test_quibs_deleted_after_axes_cla(figure, axes1):
