@@ -2,6 +2,7 @@
 
 import math
 import numpy as np
+from numpy.lib._index_tricks_impl import nd_grid
 
 from pyquibbler.function_definitions.types import DataArgumentDesignation, PositionalArgument
 from pyquibbler.quib.func_calling.func_calls.apply_along_axis_call import ApplyAlongAxisQuibFuncCall
@@ -21,6 +22,7 @@ from .helpers import numpy_override_array as _array
 from .helpers import numpy_override_transpositional_one_to_one as _one2one
 from .helpers import numpy_override_transpositional_one_to_many as _one2many
 from .helpers import numpy_override_dataless as _dataless
+from ..general_helpers import override
 
 
 def identity(x):
@@ -102,8 +104,8 @@ RAW_ENTRIES = [
     ('logspace',    _dataless,      nd),
     ('geomspace',   _dataless,      nd),
     ('meshgrid',    _dataless,      []),
-    ('mgrid',       _dataless,      []),
-    ('ogrid',       _dataless,      []),
+    # ('mgrid',       _dataless,      []),
+    # ('ogrid',       _dataless,      []),
     ('diag',        _one2one,       [0],    nd),
     ('diagflat',    _one2one,       [0],    nd),
     ('tri',         _dataless,      nd),
@@ -384,12 +386,12 @@ RAW_ENTRIES = [
 
     # -- Sums, products, differences --
     ('prod',        _reduction),
-    ('product',     _reduction),  # Added alias
+    # ('product',     _reduction),  # Added alias
     ('sum',         _reduction),
     ('nanprod',     _reduction),
     ('nansum',      _reduction),
     ('cumprod',     _accumulation),
-    ('cumproduct',  _accumulation),  # Added alias
+    # ('cumproduct',  _accumulation),  # Added alias
     ('cumsum',      _accumulation),
     ('nancumprod',  _accumulation),
     ('nancumsum',   _accumulation),
@@ -722,6 +724,8 @@ def create_numpy_overrides():
                        allowed_kwarg_flags=('is_random', 'is_file_loading', 'is_graphics', 'pass_quibs', 'lazy'),
                        forwards_path_translators=[ApplyAlongAxisForwardsPathTranslator],
                        quib_function_call_cls=ApplyAlongAxisQuibFuncCall),
+
+        override(nd_grid, '__getitem__'),
 
         # vectorize
         *create_vectorize_overrides(),

@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [ '3.8', '3.9', '3.10' ]
+        python-version: ['3.9', '3.10', '3.11']
     steps:
       - uses: actions/checkout@v2
 
@@ -23,6 +23,9 @@ jobs:
           python -m pip install --upgrade pip setuptools
           pip install tox==3.28.0 tox-gh-actions
           pip install jupyterlab==3.1
+
+      - name: List directory structure
+        run: ls -alR
 
       - name: Run tox
         run: |
@@ -46,10 +49,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Set up Python 3.8
+      - name: Set up Python 3.9
         uses: actions/setup-python@v2
         with:
-          python-version: 3.8
+          python-version: 3.9
 
       - name: Install dependencies
         run: |
@@ -84,10 +87,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Set up Python 3.8
+      - name: Set up Python 3.9
         uses: actions/setup-python@v2
         with:
-          python-version: 3.8
+          python-version: 3.9
 
       - name: Install dependencies
         run: |

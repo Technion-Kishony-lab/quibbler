@@ -1,14 +1,15 @@
 import pathlib
 
+from ...conftest import get_axes, create_mouse_press_move_release_events
 from tests.integration.quib.graphics.widgets.utils import count_redraws, quibbler_image_comparison, count_canvas_draws
 
 
 @quibbler_image_comparison(baseline_images=['covid_demo'])
-def test_covid_demo(create_axes_mouse_press_move_release_events, axes, get_live_artists):
+def test_covid_demo(get_live_artists):
     from pyquibbler import iquib, q, initialize_quibbler
     from matplotlib import pyplot as plt
     import numpy as np
-
+    axes = get_axes()
     initialize_quibbler()
 
     # Load data file of COVID statistics per countries
@@ -66,6 +67,6 @@ def test_covid_demo(create_axes_mouse_press_move_release_events, axes, get_live_
     plt.pause(0.1)
 
     with count_canvas_draws(axes.figure.canvas) as canvas_redraw_count:
-        create_axes_mouse_press_move_release_events([(15, 0), (12.5, 0), (10, 0)])
+        create_mouse_press_move_release_events(axes, [(15, 0), (12.5, 0), (10, 0)])
 
     assert canvas_redraw_count.count == 2  # 2 x motion

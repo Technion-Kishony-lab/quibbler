@@ -99,4 +99,8 @@ class QRectangleSelector(RectangleSelector):
 
     def update(self):
         if not self.created_in_get_value_context:
-            super().update()
+            try:
+                super().update()
+            except RuntimeError as e:
+                if 'no renderer is available' not in str(e):
+                    raise

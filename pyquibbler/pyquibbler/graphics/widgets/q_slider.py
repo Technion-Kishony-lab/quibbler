@@ -64,7 +64,7 @@ class QSlider(QWidgetSlider, Slider):
 
     """
     def __init__(self, ax, label, valmin, valmax, valinit=0.5, **kwargs):
-        super().__init__(ax, label, valmin, valmax, valinit, **kwargs)
+        super().__init__(ax, label, valmin, valmax, valinit=valinit, **kwargs)
 
 
 class QRangeSlider(QWidgetSlider, RangeSlider):
@@ -74,7 +74,7 @@ class QRangeSlider(QWidgetSlider, RangeSlider):
     * rounding step_value
     """
     def __init__(self, ax, label, valmin, valmax, valinit=None, **kwargs):
-        super().__init__(ax, label, valmin, valmax, valinit, **kwargs)
+        super().__init__(ax, label, valmin, valmax, valinit=valinit, **kwargs)
 
     @staticmethod
     def _convert_val(val):

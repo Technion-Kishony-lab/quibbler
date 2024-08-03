@@ -23,7 +23,10 @@ from pyquibbler.quib.func_calling.func_calls.vectorize.vectorize_metadata import
 ])
 def test_alter_signature(func, signature, args, kwargs, expected_core_ndims, expected_result_ndims,
                          arg_ids_to_new_core_ndims):
-    vectorize = np.vectorize(func, signature=signature)
+    if func is not None:
+        vectorize = np.vectorize(pyfunc=func, signature=signature)
+    else:
+        vectorize = np.vectorize(signature=signature)
     metadata = VectorizeCaller(vectorize, args, kwargs).get_metadata()
     altered_signature = alter_signature(metadata.args_metadata, metadata.result_or_results_core_ndims,
                                         arg_ids_to_new_core_ndims)

@@ -25,13 +25,13 @@ setup(
     ],
     name="pyquibbler",
     version='0.2.11',
-    python_requires='>=3.8',
+    python_requires='>=3.9',
     long_description=long_description,
     long_description_content_type='text/markdown',
     packages=find_packages(),
-    install_requires=["matplotlib==3.5.3",
-                      "numpy==1.23.2",
-                      "varname==0.9.0",
+    install_requires=["matplotlib==3.9.1",
+                      "numpy==2.0.1",
+                      "varname==0.13",
 
                       # TODO: These following packages are not strictly needed.
                       #       They enhance interactive functionality within Jupyter lab.
@@ -40,7 +40,7 @@ setup(
                       "flask==2.1.1",
                       "flask_cors==3.0.10",
                       "ipycytoscape",
-                      "ipywidgets>=7.0.2",
+                      "ipywidgets==8.1",
                       "traitlets",
                       "IPython",
                       ],

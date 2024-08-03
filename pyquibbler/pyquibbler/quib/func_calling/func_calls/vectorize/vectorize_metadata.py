@@ -4,6 +4,8 @@ from functools import partial
 from dataclasses import dataclass, field
 from typing import Any, Dict, Optional, List, Tuple, Callable, Set
 
+from numpy.lib._stride_tricks_impl import broadcast_shapes
+
 from pyquibbler.utilities.general_utils import Args, Kwargs, Shape
 from pyquibbler.quib.func_calling.utils import convert_args_and_kwargs
 from pyquibbler.function_definitions.types import iter_arg_ids_and_values, ArgId
@@ -251,9 +253,8 @@ class VectorizeCaller:
         args_core_ndims, results_core_ndims, is_tuple = self._get_args_and_results_core_ndims(results_dtypes)
         args_metadata = self._get_args_metadata(args_core_ndims)
         # Calculate the result shape like done in np.function_base._parse_input_dimensions
-        dummy_arrays = [np.lib.stride_tricks.as_strided(0, arg_metadata.loop_shape)
-                        for arg_metadata in args_metadata.values()]
-        result_loop_shape = np.lib.stride_tricks._broadcast_shape(*dummy_arrays)
+        dummy_arrays = [arg_metadata.loop_shape for arg_metadata in args_metadata.values()]
+        result_loop_shape = broadcast_shapes(*dummy_arrays)
 
         if sample_result_callback is None:
             sample_result_callback = lambda args_metadata, results_core_ndims: self.get_sample_result(args_metadata)

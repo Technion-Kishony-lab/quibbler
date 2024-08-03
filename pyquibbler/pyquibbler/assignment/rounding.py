@@ -34,7 +34,7 @@ def floor_log10(value):
     Return the number of order of magnitudes of value.
     When value is very close to 0, INFINITE_NUMBER_OF_DIGITS is returned.
     """
-    with np.errstate(divide='ignore'):
+    with np.errstate(divide='ignore', invalid='ignore'):
         num_digits = np.int64(np.floor(np_log10(np_abs(value))))
     num_digits = np_minimum(num_digits, INFINITE_NUMBER_OF_DIGITS)
     num_digits = np_maximum(num_digits, -INFINITE_NUMBER_OF_DIGITS)

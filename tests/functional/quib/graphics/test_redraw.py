@@ -1,3 +1,5 @@
+import gc
+
 import matplotlib.pyplot as plt
 
 from unittest import mock
@@ -6,6 +8,7 @@ from unittest.mock import Mock
 import numpy as np
 import pytest
 
+from developer_tools.deep_get_referrers import deep_get_referrers
 from pyquibbler import iquib, Project
 from pyquibbler.function_definitions import add_definition_for_function
 from pyquibbler.function_definitions.func_definition import create_or_reuse_func_definition
@@ -37,7 +40,7 @@ def axes2(figure) -> plt.Axes:
 def test_redraw_axes_happy_flow(figure):
     redraw_figures({figure})
 
-    figure.canvas.draw_idle.assert_called_once()
+    figure.canvas.draw.assert_called_once()
 
 
 def test_redraw_in_aggregate_mode():
@@ -91,15 +94,30 @@ def test_redraw_after_figure_closed(figure):
 #     assert ref_a() is None
 #     assert ref_b() is None
 
+def test_figure_is_deleted():
+    figure = plt.figure()
+    plt.plot([1, 2, 3])
+    ref_figure = ref(figure)
+    plt.close(figure)
+    del figure
+    gc.collect()  # Explicitly invoke garbage collection
+    assert ref_figure() is None  # Check if weak reference is None
 
-def test_quibs_deleted_after_figure_clf(figure, axes1):
+
+def test_quibs_deleted_after_figure_clf():
+    figure = plt.figure()
     a = iquib(np.array([1, 2]))
-    b = axes1.plot(a, picker=True)
+    b = plt.plot(a, picker=True)
+
+    ref_figure = ref(figure)
     ref_a = ref(a)
     ref_b = ref(b)
-    del a, b
-    figure.clf()
 
+    plt.close(figure)
+    del figure, a, b
+    gc.collect()
+
+    assert ref_figure() is None
     assert ref_a() is None
     assert ref_b() is None
 
@@ -137,10 +155,10 @@ def test_plot_with_implicit_quiby_color_updates_when_color_changes(figure, axes1
 
 def test_plot_with_no_color_spec_maintains_color_when_updates(figure, axes1):
     data = iquib([1, 2, 3])
-    axes1.plot([3, 2, 1]) # advance the color cycle before the quib plot
+    axes1.plot([3, 2, 1])  # advance the color cycle before the quib plot
     p = axes1.plot(data)
     line1 = p.get_value()[0]
-    axes1.plot([3,3, 3]) # to advance the color cycle after the quib plot
+    axes1.plot([3,3, 3])  # to advance the color cycle after the quib plot
 
     data[1] = 1
     line2 = p.get_value()[0]

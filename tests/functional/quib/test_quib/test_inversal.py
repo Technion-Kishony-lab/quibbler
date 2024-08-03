@@ -37,20 +37,21 @@ def test_inverse_assign_field_array_with_function_and_fancy_indexing_and_field_n
 
 
 def test_inverse_assign_nested_with_fancy_rot90_fancy_and_replace(create_quib_with_return_value):
-    dtype = [('name', '|S10'), ('nested', [('child_name', np.compat.unicode, 30)], (3,))]
+    dtype = [('nested', 'S21'), ('child_name', 'S21', (3,))]
     name_1 = 'Maor'
     name_2 = 'StupidMan'
     first_children = ['Yechiel', "Yossiel", "Yirmiyahu"]
     second_children = ["Dumb", "Dumber", "Wow..."]
+    np.array([[(name_1, first_children)],
+              [(name_2, second_children)]], dtype=dtype)
     new_name = "HOWDUMBBBB"
-    families = create_quib_with_return_value(np.array([[(name_1, first_children)],
-                                                       [(name_2, second_children)]], dtype=dtype),
-                                             allow_overriding=True)
+    value = np.array([[(name_1, first_children)], [(name_2, second_children)]], dtype=dtype)
+    families = create_quib_with_return_value(value, allow_overriding=True)
     second_family = families[([1], [0])]  # Fancy Indexing, should copy
-    children_names = second_family['nested']['child_name']
+    children_names = second_family['child_name']
     rotated_children = np.rot90(children_names)
     dumbest_child: Quib = rotated_children[([0], [0])]
-
+    dumbest_child.get_value()
     dumbest_child.assign(new_name, ...)
 
     assert np.array_equal(families.get_value(), np.array([[(name_1, first_children)],

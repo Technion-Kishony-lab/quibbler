@@ -60,8 +60,23 @@ def convert_scalar_value(current_value, assigned_value):
     """
     if current_value is None:
         return None
-    if is_integer_scalar(current_value):
+    if is_integer_scalar(current_value) and not is_integer_scalar(assigned_value):
         return type(current_value)(round(assigned_value))
     if isinstance(current_value, datetime) and isinstance(assigned_value, float):
         return num2date(assigned_value).replace(tzinfo=None)
-    return type(current_value)(assigned_value)
+    new_value = type(current_value)(assigned_value)
+    if len(repr(new_value)) < len(repr(assigned_value)):
+        return new_value
+    return assigned_value
+
+
+def replace_np_int_and_float(obj):
+    if isinstance(obj, np.int64):
+        return int(obj)
+    elif isinstance(obj, np.float64):
+        return float(obj)
+    elif isinstance(obj, (list, tuple, set, frozenset)):
+        return type(obj)(replace_np_int_and_float(x) for x in obj)
+    elif isinstance(obj, dict):
+        return {k: replace_np_int_and_float(v) for k, v in obj.items()}
+    return obj

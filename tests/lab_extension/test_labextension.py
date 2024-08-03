@@ -5,6 +5,7 @@ import time
 from contextlib import suppress
 from pathlib import Path
 
+import matplotlib.pyplot as plt
 import psutil
 import pytest
 import requests
@@ -194,7 +195,7 @@ def test_lab_extension_undo_happy_flow(driver, load_notebook, assert_no_failures
     assert raw_value_after_assignment == "5" != raw_default_value
 
     click_undo()
-
+    plt.pause(0.1)
     assert is_undo_enabled() is False
     assert is_redo_enabled() is True
 
