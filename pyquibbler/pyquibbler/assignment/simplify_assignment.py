@@ -12,6 +12,27 @@ from .utils import is_integer_scalar, is_array_of_size_one, is_numeric_scalar, c
     convert_scalar_value, is_scalar_np
 
 
+def graceful_convert_to_array(obj) -> np.ndarray:
+    try:
+        return np_array(obj)
+    except (ValueError, TypeError):
+        return np_array(obj, dtype=object)
+
+
+def graceful_shape(obj):
+    try:
+        return np.shape(obj)
+    except (ValueError, TypeError):
+        return np.shape(graceful_convert_to_array(obj))
+
+
+def graceful_ndim(obj):
+    try:
+        return np.ndim(obj)
+    except (ValueError, TypeError):
+        return np.ndim(graceful_convert_to_array(obj))
+
+
 class AssignmentSimplifier:
     """
     Takes an Assignment into some data object and simplifies the assignment
@@ -55,6 +76,9 @@ class AssignmentSimplifier:
         if not (is_array_of_size_one(self.value) or is_scalar_np(self.value) or self.value is default):
             return
 
+        if not isinstance(self.second_to_last_data, np.ndarray):
+            return
+
         self.last_component.component = \
             tuple(convert_array_of_size_one_to_scalar(index) for index in self.last_component.component)
         self._assignment.value = convert_array_of_size_one_to_scalar(self._assignment.value)
@@ -87,7 +111,7 @@ class AssignmentSimplifier:
         new_last_component = list(self.last_component.component)
         for axis, sub_component in enumerate(self.last_component.component):
             if isinstance(sub_component, np.ndarray) and sub_component.dtype.type is np.bool_ \
-                    and np.shape(sub_component) == (np.shape(self.second_to_last_data)[axis], ):
+                    and graceful_shape(sub_component) == (graceful_shape(self.second_to_last_data)[axis], ):
                 if np_sum(sub_component) == 1:
                     new_last_component[axis] = np.where(sub_component)[0].tolist()
                 elif np_all(sub_component):
@@ -96,7 +120,7 @@ class AssignmentSimplifier:
 
     def _convert_last_sub_components_from_lists_to_arrays(self):
         self.last_component.component = tuple(
-            np.array(sub_component) if isinstance(sub_component, list)
+            graceful_convert_to_array(sub_component) if isinstance(sub_component, list)
             else sub_component for sub_component in self.last_component.component)
 
     def _convert_last_sub_components_from_arrays_to_lists(self):
@@ -109,7 +133,7 @@ class AssignmentSimplifier:
             return
 
         sub_component = self.last_component.component[0]
-        data_shape = np.shape(self.second_to_last_data)
+        data_shape = graceful_shape(self.second_to_last_data)
         if isinstance(sub_component, np.ndarray) and sub_component.dtype.type is np.bool_ \
                 and sub_component.shape == data_shape:
             # whole-array bool indexing
@@ -140,7 +164,7 @@ class AssignmentSimplifier:
 
             self._convert_whole_array_bool_indexing()
 
-            if len(self.last_component.component) == np.ndim(self.second_to_last_data):
+            if len(self.last_component.component) == graceful_ndim(self.second_to_last_data):
 
                 self._convert_bool_indexing()
 
