@@ -91,11 +91,31 @@ def testy_drag_scatter_with_mouse_off_point(axes, create_axes_mouse_press_move_r
 
 
 def test_keep_fixed_mouse_distance_from_picked_point(axes, create_axes_mouse_press_move_release_events):
-    x = iquib([10.1, 10.2, 30])
+    x = iquib([10.1, 30])
     axes.plot(x, x, 'o')
     create_axes_mouse_press_move_release_events(((10, 10), (16, 16)))
 
-    assert x.get_value() == [16.1, 16.2, 30]
+    assert x.get_value() == [16.1, 30]
+
+
+def test_only_pick_single_point(axes, create_axes_mouse_press_move_release_events):
+    x = iquib([10.1, 10.1, 30])
+    axes.plot(x, x, 'o')
+    create_axes_mouse_press_move_release_events(((10, 10), (16, 16)))
+
+    assert x.get_value() == [16.1, 10.1, 30]
+
+
+def test_pick_segment(axes, create_axes_mouse_press_move_release_events):
+    x = iquib([1, 10, 20])
+    y = iquib([1, 10, 20])
+    axes.plot(x, y, 'o-')
+    dx = 2
+    dy = 3
+    create_axes_mouse_press_move_release_events(((5, 5), (5+dx, 5+dy)))
+
+    assert x.get_value() == [1+dx, 10+dx, 20]
+    assert y.get_value() == [1+dy, 10+dy, 20]
 
 
 def test_drag_one_object_to_affect_another_1d(axes, create_axes_mouse_press_move_release_events):
