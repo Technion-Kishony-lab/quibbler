@@ -34,26 +34,30 @@ def _get_affected_path_for_scatter(shape: Shape, point_index: int):
     assert False, 'Matplotlib is not supposed to support scatter of data arguments with >1 dimensions'
 
 
+def get_quib_and_path_affected_by_event(arg: Any,
+                                        data_index: Optional[int],
+                                        picked_index: int) -> Optional[QuibAndPath]:
+    from pyquibbler.quib.quib import Quib
+    if isinstance(arg, Quib):
+        shape = arg.get_shape()
+        if data_index is None:
+            # scatter
+            path = _get_affected_path_for_scatter(shape, picked_index)
+        else:
+            # plot
+            path = _get_affected_path_for_plot(shape, picked_index, data_index)
+        return arg, path
+
+    # Legacy code. This option is obsolete now that list args of plot are converted to arrays
+    if isinstance(arg, list):
+        quib = arg[data_index]
+        if isinstance(quib, Quib):
+            return quib, []
+
+    return None
+
+
 def get_quibs_and_paths_affected_by_event(arg: Any,
                                           data_index: Optional[int],
                                           point_indices: List[int]) -> List[Optional[QuibAndPath]]:
-    from pyquibbler.quib.quib import Quib
-    quibs_and_paths = []
-    for point_index in point_indices:
-        quib_and_path = None
-        if isinstance(arg, Quib):
-            shape = arg.get_shape()
-            if data_index is None:
-                path = _get_affected_path_for_scatter(shape, point_index)
-            else:
-                path = _get_affected_path_for_plot(shape, point_index, data_index)
-            quib_and_path = (arg, path)
-        elif isinstance(arg, list):
-            # This option is obsolete now that list args of plot are converted to arrays
-            quib = arg[data_index]
-            if isinstance(quib, Quib):
-                quib_and_path = (quib, [])
-
-        quibs_and_paths.append(quib_and_path)
-
-    return quibs_and_paths
+    return [get_quib_and_path_affected_by_event(arg, data_index, point_index) for point_index in point_indices]
