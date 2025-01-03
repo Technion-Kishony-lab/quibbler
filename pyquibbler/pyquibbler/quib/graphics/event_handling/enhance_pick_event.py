@@ -38,42 +38,35 @@ def _return_closest_point(pick_event: PickEvent, xy_data):
     inds = pick_event.ind
     distances = _get_mouse_distance_to_points(pick_event.artist.axes, pick_event.mouseevent, xy_data[inds, :])
     ind = inds[np.argmin(distances)]
-    inds = (ind,)
-    return inds, xy_data, False
+    return [ind], xy_data, False
 
 
 def _get_line2D_inds_xydata_segment(pick_event: PickEvent):
     """
     Get the picked vertices of a Line2D Artist and indicate whether picking a segment
+    For now, we only support picking a single point or a single segment (so is_segment==len(inds)>1)
     """
 
     artist: Line2D = pick_event.artist
     xy_data = artist.get_xydata()
     inds = pick_event.ind
 
-    # based on Line2D.contains():
-    is_segment = artist._linestyle not in ['None', None]
-
-    if is_segment:
-        ind = inds[0]  # TODO: get the closest segment
-        is_segment = ind + 1 < len(artist.get_xydata())
-        if is_segment:
-            distances = _get_mouse_distance_to_points(artist.axes, pick_event.mouseevent, xy_data[ind:ind+2, :])
-            ind_closest = np.argmin(distances)
-            ind_farthest = 1 - ind_closest
-            is_segment = not (distances[ind_farthest] > artist.get_pickradius()
-                              and distances[ind_closest] / distances[ind_farthest] < 0.1)
-            if not is_segment:
-                ind = ind + ind_closest
-    else:
+    if len(inds) > 1:
+        # The mouse is close to multiple points, so pick the closest one:
         return _return_closest_point(pick_event, xy_data)
-
-    if is_segment:
-        inds = (ind, ind + 1)
+    elif len(inds) == 1:
+        # matplotlib shows pick_event.ind with a single index even when picking a segment
+        # so we need to check if this is a segment or a single point
+        ind = inds[0]
+        has_segments = artist._linestyle not in ['None', None]  # based on Line2D.contains()
+        if has_segments and ind + 1 < len(xy_data):
+            distance = _get_mouse_distance_to_points(artist.axes, pick_event.mouseevent, xy_data[ind:ind+1, :])
+            if distance > artist.get_pickradius():
+                # not close to the picked point, so it is a segment
+                return [ind, ind + 1], xy_data, True
+        return [ind], xy_data, False
     else:
-        inds = (ind, )
-
-    return inds, xy_data, is_segment
+        assert False, 'Pick event has no indices'
 
 
 def _get_PathCollection_inds_xydata_segment(pick_event: PickEvent):
