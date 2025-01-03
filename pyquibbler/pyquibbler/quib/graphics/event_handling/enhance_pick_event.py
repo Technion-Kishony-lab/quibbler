@@ -1,16 +1,18 @@
-from typing import Tuple
+from dataclasses import dataclass
+from typing import Dict, Type, Literal
 
 import numpy as np
+from matplotlib.artist import Artist
 from matplotlib.axes import Axes
-from matplotlib.backend_bases import PickEvent, MouseEvent
+from matplotlib.backend_bases import PickEvent, MouseEvent, MouseButton
 from matplotlib.collections import PathCollection
 from matplotlib.lines import Line2D
 
+from pyquibbler.function_definitions import FuncArgsKwargs
 from pyquibbler.quib.types import PointXY
+from pyquibbler.quib.graphics import artist_wrapper
 
 from .utils import get_closest_point_on_line
-
-Inds = Tuple[int]
 
 
 class ZeroDistance:
@@ -78,48 +80,76 @@ def _get_PathCollection_inds_xydata_segment(pick_event: PickEvent):
     return _return_closest_point(pick_event, xy_data)
 
 
-ARTIST_TYPES_TO_GET_XY_DATA = {
+ARTIST_TYPES_TO_GET_XY_DATA: Dict[Type[Artist], callable] = {
     Line2D: _get_line2D_inds_xydata_segment,
     PathCollection: _get_PathCollection_inds_xydata_segment,
 }
 
 
-def enhance_pick_event(pick_event: PickEvent):
-    """
-    Choose which points or line segments were picked and store offset from mouse to picked points
-    """
+@dataclass
+class EnhancedPickEvent:
+    # original PickEvent attributes:
+    ind: np.ndarray
+    artist: Artist
 
-    mouseevent = pick_event.mouseevent
+    # new attributes:
+    button: MouseButton | Literal["up", "down"] | None
+    ax: Axes
+    x: float
+    y: float
+    xy_offset: np.ndarray
+    is_segment: bool
+    mouse_to_segment: PointXY
 
-    # choose picked inds and add xy_offset, in pixels, from the mouse to each point:
-    get_inds_xydata_segment = ARTIST_TYPES_TO_GET_XY_DATA.get(type(pick_event.artist), None)
-    ax = pick_event.artist.axes
+    @classmethod
+    def from_pick_event(cls, pick_event: PickEvent):
+        mouseevent = pick_event.mouseevent
+        artist = pick_event.artist
 
-    if get_inds_xydata_segment is None or mouseevent.xdata is None or mouseevent.ydata is None:
-        try:
-            ind = pick_event.ind
-            pick_event.xy_offset = np.zeros(len(ind), 2)
-        except (AttributeError, TypeError):
-            pick_event.xy_offset = ZeroDistance()
-        pick_event.is_segment = False
-    else:
-
-        inds, xy_data, is_segment = get_inds_xydata_segment(pick_event)
-
-        xy_data_pixels = ax.transData.transform(xy_data[inds, :])
-        pick_event.ind = inds
-
-        pick_event.is_segment = is_segment
-
-        mouse_point = PointXY(mouseevent.x, mouseevent.y)
-        if is_segment:
-            on_segment_point, _ = get_closest_point_on_line(
-                PointXY(*xy_data_pixels[0]), PointXY(*xy_data_pixels[1]), mouse_point)
-            pick_event.xy_offset = xy_data_pixels - [on_segment_point]
-            pick_event.mouse_to_segment = on_segment_point - mouse_point
+        # choose picked inds and add xy_offset, in pixels, from the mouse to each point:
+        get_inds_xydata_segment = ARTIST_TYPES_TO_GET_XY_DATA.get(type(artist))
+        ax = pick_event.artist.axes
+        mouse_to_segment = None
+        if get_inds_xydata_segment is None or mouseevent.xdata is None or mouseevent.ydata is None:
+            try:
+                ind = pick_event.ind
+                xy_offset = np.zeros((len(ind), 2))
+            except (AttributeError, TypeError):
+                xy_offset = None
+            is_segment = False
         else:
-            pick_event.xy_offset = xy_data_pixels - [mouse_point]
+            ind, xy_data, is_segment = get_inds_xydata_segment(pick_event)
 
-    # add picked position in pixels:
-    pick_event.x = mouseevent.x
-    pick_event.y = mouseevent.y
+            xy_data_pixels = ax.transData.transform(xy_data[ind, :])
+
+            mouse_point = PointXY(mouseevent.x, mouseevent.y)
+            if is_segment:
+                on_segment_point, _ = get_closest_point_on_line(
+                    PointXY(*xy_data_pixels[0]), PointXY(*xy_data_pixels[1]), mouse_point)
+                xy_offset = xy_data_pixels - [on_segment_point]
+                mouse_to_segment = on_segment_point - mouse_point
+            else:
+                xy_offset = xy_data_pixels - [mouse_point]
+
+        return cls(
+            ind=ind,
+            artist=artist,
+            button=mouseevent.button,
+            ax=ax,
+            x=mouseevent.x,
+            y=mouseevent.y,
+            xy_offset=xy_offset,
+            is_segment=is_segment,
+            mouse_to_segment=mouse_to_segment,
+        )
+
+
+@dataclass
+class EnhancedPickEventWithFuncArgsKwargs(EnhancedPickEvent):
+    func_args_kwargs: FuncArgsKwargs = None
+
+    @classmethod
+    def from_pick_event(cls, pick_event: PickEvent):
+        obj = super().from_pick_event(pick_event)
+        obj.func_args_kwargs = artist_wrapper.get_creating_quib(obj.artist).handler.func_args_kwargs
+        return obj

@@ -15,7 +15,7 @@ from pyquibbler.path import deep_get
 from pyquibbler.utilities.numpy_original_functions import np_array
 
 from .affected_args_and_paths import get_quibs_and_paths_affected_by_event
-from .pick_handler import PickHandler
+from .enhance_pick_event import EnhancedPickEventWithFuncArgsKwargs
 from .utils import get_closest_point_on_line_in_axes, get_intersect_between_two_lines_in_axes
 
 from typing import TYPE_CHECKING
@@ -51,15 +51,15 @@ def _calculate_assignment_overshoot(old_val, new_val, assigned_val) -> Optional[
     return None if new_val == old_val else (assigned_val - old_val) / (new_val - old_val)
 
 
-def _is_dragged_in_x_more_than_y(pick_event: PickEvent, mouse_event: MouseEvent) -> bool:
+def _is_dragged_in_x_more_than_y(enhanced_pick_event: EnhancedPickEventWithFuncArgsKwargs, mouse_event: MouseEvent) -> bool:
     """
     Return True / False if mouse is dragged mostly in the x / y direction.
     """
-    return abs(pick_event.x - mouse_event.x) > abs(pick_event.y - mouse_event.y)
+    return abs(enhanced_pick_event.x - mouse_event.x) > abs(enhanced_pick_event.y - mouse_event.y)
 
 
 def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
-                                  pick_handler: PickHandler, mouse_event: MouseEvent) -> OverrideGroup:
+                                  enhanced_pick_event: EnhancedPickEventWithFuncArgsKwargs, mouse_event: MouseEvent) -> OverrideGroup:
     """
     Get overrides for a mouse event for an artist created by a plt.plot command in correspondence with the
     `data_index` column of the given data arguments xy_args.x, xy_args.y.
@@ -89,14 +89,13 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
 
     from pyquibbler import Project
     project = Project.get_or_create()
-    pick_event = pick_handler.pick_event
-    point_indices = pick_event.ind
-    ax = pick_event.artist.axes
+    point_indices = enhanced_pick_event.ind
+    ax = enhanced_pick_event.ax
 
     # For x and y, get list of (quib, path) for each affected plot index. None if not a quib
     xy_quibs_and_paths = XY.from_func(get_quibs_and_paths_affected_by_event, xy_args, data_index, point_indices)
 
-    if pick_event.mouseevent.button is MouseButton.RIGHT:
+    if enhanced_pick_event.button is MouseButton.RIGHT:
         changes = [get_assignment_from_quib_and_path(quib_and_path, default)
                    for quib_and_path in xy_quibs_and_paths.x + xy_quibs_and_paths.y if quib_and_path is not None]
         return get_override_group_for_quib_changes(changes)
@@ -112,12 +111,12 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
     xydata_mouse = PointXY(*transData_inverted.transform(xy_mouse))
 
     tolerance = get_axes_x_y_tolerance(ax)
-    xy_order = (0, 1) if _is_dragged_in_x_more_than_y(pick_event, mouse_event) else (1, 0)
+    xy_order = (0, 1) if _is_dragged_in_x_more_than_y(enhanced_pick_event, mouse_event) else (1, 0)
 
     moved_ok = [False] * len(point_indices)
     for xy_quib_and_path, xy_offset in [(XY(quib_and_path_x, quib_and_path_y), dxy)
                                         for quib_and_path_x, quib_and_path_y, dxy
-                                        in zip(xy_quibs_and_paths.x, xy_quibs_and_paths.y, pick_event.xy_offset)]:
+                                        in zip(xy_quibs_and_paths.x, xy_quibs_and_paths.y, enhanced_pick_event.xy_offset)]:
         # We go over each index (vertex) of the plot, and translate the x and y assignment to it into overrides
         adjusted_xy_mouse = xy_mouse + xy_offset
         adjusted_xydata_mouse = PointXY(*transData_inverted.transform(adjusted_xy_mouse))
@@ -153,7 +152,7 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
                 # the quib we assigned to did actually change.
                 if is_other_affected and ax is not None:  # ax can be None in testing
                     # The other axis also changed. x and y are dependent. they change along a "drag-line".
-                    if pick_event.is_segment:
+                    if enhanced_pick_event.is_segment:
                         # Find the intersection of the drag-line with the dragged segment.
                         xy_along_line, slope = get_intersect_between_two_lines_in_axes(
                             ax, xy_old, xy_new, xy_assigned_value, xydata_mouse)
@@ -185,7 +184,7 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
                 is_changed[other_xy] = True
                 break
 
-        if pick_event.is_segment and not any(is_changed):
+        if enhanced_pick_event.is_segment and not any(is_changed):
             return OverrideGroup()
 
         all_overrides.extend(overrides)

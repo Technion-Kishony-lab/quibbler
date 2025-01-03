@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from unittest import mock
 
 import numpy as np
@@ -6,14 +7,24 @@ from matplotlib.backend_bases import MouseButton
 
 from pyquibbler.env import GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION
 from pyquibbler.function_definitions import FuncArgsKwargs
+from pyquibbler.quib.graphics.event_handling.enhance_pick_event import EnhancedPickEvent, \
+    EnhancedPickEventWithFuncArgsKwargs
 from pyquibbler.quib.graphics.event_handling.graphics_inverse_assigner import inverse_assign_drawing_func
 from datetime import datetime
 from matplotlib.dates import date2num
 
-from pyquibbler.quib.graphics.event_handling.pick_handler import PickHandler
 from pyquibbler.quib.specialized_functions.iquib import create_iquib
 
 iquib = create_iquib
+
+@dataclass
+class TestEnhancedPickEvent(EnhancedPickEventWithFuncArgsKwargs):
+
+    @classmethod
+    def from_pick_event_and_func_args_kwargs(cls, pick_event, func_args_kwargs):
+        obj = cls.from_pick_event(pick_event)
+        obj.func_args_kwargs = func_args_kwargs
+        return obj
 
 
 @pytest.fixture
@@ -55,9 +66,7 @@ def create_mock_pick_event_and_mouse_event(indices, x_data, y_data, artist_index
     pick_event.ind = indices
     pick_event.artist._index_in_plot = artist_index
     pick_event.artist.axes = ax
-    pick_event.xy_offset = np.tile([[0, 0]], (len(indices), 1))
-    pick_event.x = mouse_event.x
-    pick_event.y = mouse_event.y
+    pick_event.mouseevent = mouse_event
 
     return pick_event, mouse_event
 
@@ -77,9 +86,8 @@ def test_plot_inverse_assigner_happy_flow(mock_plot):
     pick_event, mouse_event = create_mock_pick_event_and_mouse_event([0], 10, 20, 0)
 
     inverse_assign_drawing_func(
-        pick_handler=PickHandler(
-            pick_event=pick_event,
-            func_args_kwargs=FuncArgsKwargs(mock_plot, (None, q), {})),
+        enhanced_pick_event=TestEnhancedPickEvent.from_pick_event_and_func_args_kwargs(
+            pick_event, FuncArgsKwargs(mock_plot, (None, q), {})),
         mouse_event=mouse_event,
     )
 
@@ -136,9 +144,8 @@ def test_plot_inverse_assigner(mock_plot, indices, artist_index, xdata, ydata, a
 
     with GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.temporary_set(tolerance):
         inverse_assign_drawing_func(
-            pick_handler=PickHandler(
-                pick_event=pick_event,
-                func_args_kwargs=FuncArgsKwargs(mock_plot, (None, *args), {})),
+            enhanced_pick_event=TestEnhancedPickEvent.from_pick_event_and_func_args_kwargs(
+                pick_event, FuncArgsKwargs(mock_plot, (None, *args), {})),
             mouse_event=mouse_event,
         )
 
@@ -160,7 +167,7 @@ def test_plot_inverse_assigner_of_list_arg(mock_plot, indices, artist_index, xda
     pick_event, mouse_event = create_mock_pick_event_and_mouse_event(indices, xdata, ydata, artist_index)
 
     inverse_assign_drawing_func(
-        pick_handler=PickHandler(
+        enhanced_pick_event=TestEnhancedPickEvent.from_pick_event_and_func_args_kwargs(
             pick_event=pick_event,
             func_args_kwargs=FuncArgsKwargs(mock_plot, (None, *args), {})),
         mouse_event=mouse_event,
@@ -178,7 +185,7 @@ def test_plot_inverse_assigner_removal(mock_plot):
     assert y.get_value() == [1, 4, 3], "sanity"
 
     inverse_assign_drawing_func(
-        pick_handler=PickHandler(
+        enhanced_pick_event=TestEnhancedPickEvent.from_pick_event_and_func_args_kwargs(
             pick_event=pick_event,
             func_args_kwargs=FuncArgsKwargs(mock_plot, (None, y), {})),
         mouse_event=None,
@@ -197,7 +204,7 @@ def test_scatter_inverse_assigner(mock_scatter, indices, artist_index, xdata, yd
 
     with GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.temporary_set(tolerance):
         inverse_assign_drawing_func(
-            pick_handler=PickHandler(
+            enhanced_pick_event=TestEnhancedPickEvent.from_pick_event_and_func_args_kwargs(
                 pick_event=pick_event,
                 func_args_kwargs=FuncArgsKwargs(mock_scatter, (None, *args), {})),
             mouse_event=mouse_event,

@@ -4,9 +4,9 @@ from matplotlib.backend_bases import MouseEvent, PickEvent
 from pyquibbler.assignment import AssignmentToQuib, OverrideGroup
 from pyquibbler.assignment import AssignmentCancelledByUserException
 from pyquibbler.utilities.general_utils import Args
+from .enhance_pick_event import EnhancedPickEventWithFuncArgsKwargs
 
 from .set_lim_inverse_assigner import get_override_group_for_axes_set_lim
-from .pick_handler import PickHandler
 
 GRAPHICS_REVERSE_ASSIGNERS = {}
 
@@ -24,19 +24,19 @@ def graphics_inverse_assigner(graphics_func_names_to_handle: List[str]):
     return _decorator
 
 
-def inverse_assign_drawing_func(pick_handler: PickHandler,
+def inverse_assign_drawing_func(enhanced_pick_event: EnhancedPickEventWithFuncArgsKwargs,
                                 mouse_event: MouseEvent,
                                 ):
     """
     Reverse a graphics function quib, assigning to all it's arguments values based on pick event and mouse event
     """
-    assert pick_handler is not None
-    func_args_kwargs = pick_handler.func_args_kwargs
+    assert enhanced_pick_event is not None
+    func_args_kwargs = enhanced_pick_event.func_args_kwargs
     drawing_func = func_args_kwargs.func
     inverse_assigner_func = GRAPHICS_REVERSE_ASSIGNERS.get(drawing_func.__qualname__)
     if inverse_assigner_func is not None:
         try:
-            override_group: OverrideGroup = inverse_assigner_func(pick_handler=pick_handler,
+            override_group: OverrideGroup = inverse_assigner_func(enhanced_pick_event=enhanced_pick_event,
                                                                   mouse_event=mouse_event,
                                                                   )
         except AssignmentCancelledByUserException:

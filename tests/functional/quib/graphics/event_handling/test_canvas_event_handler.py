@@ -2,9 +2,10 @@ from unittest import mock
 
 import pytest
 
+from functional.quib.graphics.event_handling.test_plot_inverse_assigner import TestEnhancedPickEvent
 from pyquibbler.function_definitions import FuncArgsKwargs
 from pyquibbler.quib.graphics.event_handling import graphics_inverse_assigner, CanvasEventHandler
-from pyquibbler.quib.graphics.event_handling.pick_handler import PickHandler
+from pyquibbler.quib.graphics.event_handling.enhance_pick_event import EnhancedPickEventWithFuncArgsKwargs
 
 
 def test_canvas_event_handler_create_happy_flow():
@@ -73,10 +74,9 @@ def test_canvas_event_handler_plot_drag(canvas_event_handler, mock_inverse_graph
     canvas_event_handler._handle_motion_notify(mouse_event)
 
     mock_inverse_graphics_function.assert_called_once_with(
-        pick_handler=PickHandler(
-            pick_event=pick_event,
-            func_args_kwargs=drawing_quib.handler.func_args_kwargs),
         mouse_event=mouse_event,
+        enhanced_pick_event=EnhancedPickEventWithFuncArgsKwargs.from_pick_event(
+            pick_event=pick_event),
         )
 
 
