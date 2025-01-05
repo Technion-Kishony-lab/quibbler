@@ -55,9 +55,3 @@ def get_quib_and_path_affected_by_event(arg: Any,
             return quib, []
 
     return None
-
-
-def get_quibs_and_paths_affected_by_event(arg: Any,
-                                          data_index: Optional[int],
-                                          point_indices: List[int]) -> List[Optional[QuibAndPath]]:
-    return [get_quib_and_path_affected_by_event(arg, data_index, point_index) for point_index in point_indices]

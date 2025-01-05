@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from numbers import Number
 
+import numpy as np
 from matplotlib.backend_bases import PickEvent, MouseEvent, MouseButton
 
 from typing import Any, Union, Optional
@@ -12,9 +13,9 @@ from pyquibbler.assignment import get_axes_x_y_tolerance, create_assignment, Ove
     get_override_group_for_quib_changes, AssignmentToQuib, default, get_override_group_for_quib_change
 from pyquibbler.assignment.utils import convert_scalar_value
 from pyquibbler.path import deep_get
-from pyquibbler.utilities.numpy_original_functions import np_array
+from pyquibbler.utilities.numpy_original_functions import np_array, np_vectorize
 
-from .affected_args_and_paths import get_quibs_and_paths_affected_by_event
+from .affected_args_and_paths import get_quib_and_path_affected_by_event
 from .enhance_pick_event import EnhancedPickEventWithFuncArgsKwargs
 from .utils import get_closest_point_on_line_in_axes, get_intersect_between_two_lines_in_axes
 
@@ -58,6 +59,30 @@ def _is_dragged_in_x_more_than_y(enhanced_pick_event: EnhancedPickEventWithFuncA
     return abs(enhanced_pick_event.x - mouse_event.x) > abs(enhanced_pick_event.y - mouse_event.y)
 
 
+def _temp_apply_and_get_new_value(override: OverrideGroup, xy_quib_and_path: XY) -> PointXY:
+    """
+    Apply the override temporarily and get the new value of the quib
+    """
+    from pyquibbler import Project
+    project = Project.get_or_create()
+    override.apply(temporarily=True)
+    new_value = PointXY.from_func(_get_quib_value_at_path, xy_quib_and_path)
+    project.undo_pending_group(temporarily=True)
+    return new_value
+
+
+def skip_vectorize(func, *args, **kwargs):
+    """
+    Like vectorize, but skips the vectorization if the input is None
+    """
+    def _func(*a, **k):
+        if a[0] is None:
+            return None
+        return func(*a, **k)
+
+    return np_vectorize(_func, *args, **kwargs)
+
+
 def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
                                   enhanced_pick_event: EnhancedPickEventWithFuncArgsKwargs, mouse_event: MouseEvent) -> OverrideGroup:
     """
@@ -87,108 +112,72 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
     We also correct for overshoot assignment due to binary operators. See test_drag_same_arg_binary_operator
     """
 
-    from pyquibbler import Project
-    project = Project.get_or_create()
-    point_indices = enhanced_pick_event.ind
+    point_indices = np.reshape(enhanced_pick_event.ind, (-1, 1))
     ax = enhanced_pick_event.ax
 
     # For x and y, get list of (quib, path) for each affected plot index. None if not a quib
-    xy_quibs_and_paths = XY.from_func(get_quibs_and_paths_affected_by_event, xy_args, data_index, point_indices)
+    xys_quib_and_path = skip_vectorize(get_quib_and_path_affected_by_event, otypes=[object])([xy_args], data_index, point_indices)
 
     if enhanced_pick_event.button is MouseButton.RIGHT:
-        changes = [get_assignment_from_quib_and_path(quib_and_path, default)
-                   for quib_and_path in xy_quibs_and_paths.x + xy_quibs_and_paths.y if quib_and_path is not None]
-        return get_override_group_for_quib_changes(changes)
+        xys_target_values = default
+        tolerance = None
+    else:
+        if mouse_event.x is None or mouse_event.y is None:
+            # out of axes
+            return OverrideGroup()
+        xy_mouse = np_array([[mouse_event.x, mouse_event.y]])
+        xys_old = skip_vectorize(_get_quib_value_at_path, otypes=[object])(xys_quib_and_path)
+        xys_target_values_pixels = xy_mouse + enhanced_pick_event.xy_offset
+        transData_inverted = ax.transData.inverted()
+        xys_target_values = transData_inverted.transform(xys_target_values_pixels)
+        xys_target_values = skip_vectorize(convert_scalar_value, otypes=[object])(xys_old, xys_target_values)
+        tolerance = get_axes_x_y_tolerance(ax)
 
-    all_overrides = OverrideGroup()
-    if mouse_event.x is None or mouse_event.y is None:
-        # out of axes
-        return all_overrides
+    xy_quib_changes = skip_vectorize(get_assignment_from_quib_and_path, otypes=[object])(
+        xys_quib_and_path, xys_target_values)
+    xys_overrides = skip_vectorize(get_override_group_for_quib_change, otypes=[object])(xy_quib_changes,
+                                                                                        should_raise=False)
+    if xys_target_values is default:
+        return OverrideGroup([o for o in xys_overrides.flatten() if o is not None])
 
-    transData_inverted = ax.transData.inverted()
+    xys_sources = skip_vectorize(lambda x: x.quib_changes[0], otypes=[object])(xys_overrides)
 
-    xy_mouse = np_array([mouse_event.x, mouse_event.y])
-    xydata_mouse = PointXY(*transData_inverted.transform(xy_mouse))
-
-    tolerance = get_axes_x_y_tolerance(ax)
-    xy_order = (0, 1) if _is_dragged_in_x_more_than_y(enhanced_pick_event, mouse_event) else (1, 0)
-
-    moved_ok = [False] * len(point_indices)
-    for xy_quib_and_path, xy_offset in [(XY(quib_and_path_x, quib_and_path_y), dxy)
-                                        for quib_and_path_x, quib_and_path_y, dxy
-                                        in zip(xy_quibs_and_paths.x, xy_quibs_and_paths.y, enhanced_pick_event.xy_offset)]:
-        # We go over each index (vertex) of the plot, and translate the x and y assignment to it into overrides
-        adjusted_xy_mouse = xy_mouse + xy_offset
-        adjusted_xydata_mouse = PointXY(*transData_inverted.transform(adjusted_xy_mouse))
-
-        xy_old = PointXY.from_func(_get_quib_value_at_path, xy_quib_and_path)
-
-        xy_assigned_value = PointXY.from_func(convert_scalar_value, xy_old, adjusted_xydata_mouse)
-        xy_change = XY.from_func(get_assignment_from_quib_and_path, xy_quib_and_path, xy_assigned_value)
-
-        overrides = OverrideGroup()
-
-        is_changed = [False, False]
+    for quibs_and_paths, overrides, sources, xy_old, xy_target_values \
+            in zip(xys_quib_and_path, xys_overrides, xys_sources, xys_old, xys_target_values):
+        xy_order = (0, 1) if _is_dragged_in_x_more_than_y(enhanced_pick_event, mouse_event) else (1, 0)
         for focal_xy in xy_order:
             other_xy = 1 - focal_xy
-
-            if xy_quib_and_path[focal_xy] is None:
+            if overrides[focal_xy] is None:
                 continue
-
-            override = get_override_group_for_quib_change(xy_change[focal_xy], should_raise=False)
-            if override is None:
-                continue
-
-            # temporarily apply change and check the new position of the point at both x and y:
-            override.apply(temporarily=True)
-            xy_new = PointXY.from_func(_get_quib_value_at_path, xy_quib_and_path)
-            project.undo_pending_group(temporarily=True)
-
+            xy_new = _temp_apply_and_get_new_value(overrides[focal_xy], XY(*quibs_and_paths))
             is_other_affected = xy_old[other_xy] != xy_new[other_xy]
 
-            overshoot = _calculate_assignment_overshoot(xy_old[focal_xy], xy_new[focal_xy], xy_assigned_value[focal_xy])
-
+            overshoot = _calculate_assignment_overshoot(xy_old[focal_xy], xy_new[focal_xy], xy_target_values[focal_xy])
             if overshoot is not None:
-                # the quib we assigned to did actually change.
-                if is_other_affected and ax is not None:  # ax can be None in testing
-                    # The other axis also changed. x and y are dependent. they change along a "drag-line".
-                    if enhanced_pick_event.is_segment:
-                        # Find the intersection of the drag-line with the dragged segment.
-                        xy_along_line, slope = get_intersect_between_two_lines_in_axes(
-                            ax, xy_old, xy_new, xy_assigned_value, xydata_mouse)
-                    else:
-                        # Find the point on the drag-line which is closest to the mouse position.
-                        xy_along_line, slope = get_closest_point_on_line_in_axes(
-                            ax, xy_old, xy_new, xy_assigned_value)
+                if is_other_affected and ax is not None:
+                    xy_along_line, slope = get_closest_point_on_line_in_axes(
+                        ax, xy_old, xy_new, xy_target_values)
                     adjusted_assigned_value = xy_along_line[focal_xy]
                     if adjusted_assigned_value is None:
-                        continue  # when we move a segment and the lines are parallel
+                        continue
                     adjustment_to_tolerance = slope[focal_xy]
                 else:
-                    # we are only dragging in one axis
-                    adjusted_assigned_value = xy_assigned_value[focal_xy]
+                    adjusted_assigned_value = xy_target_values[focal_xy]
                     adjustment_to_tolerance = 1
+                adjusted_value = xy_old[focal_xy] + (adjusted_assigned_value - xy_old[focal_xy]) * overshoot
+                adjusted_tolerance = None if tolerance[focal_xy] is None else tolerance[focal_xy] * adjustment_to_tolerance
 
                 adjusted_change = get_assignment_from_quib_and_path(
-                    quib_and_path=xy_quib_and_path[focal_xy],
-                    value=xy_old[focal_xy] + (adjusted_assigned_value - xy_old[focal_xy]) * overshoot,
-                    tolerance=None if tolerance[focal_xy] is None else tolerance[focal_xy] * adjustment_to_tolerance)
-                override = get_override_group_for_quib_change(adjusted_change, should_raise=False)
-                if override is None:
-                    continue
+                    quib_and_path=quibs_and_paths[focal_xy],
+                    value=adjusted_value,
+                    tolerance=adjusted_tolerance)
+                override = get_override_group_for_quib_change(adjusted_change)
+                overrides[focal_xy] = override
+                if is_other_affected:
+                    overrides[other_xy] = None
+                    break
 
-            overrides.extend(override)
-            is_changed[focal_xy] = True
-            if is_other_affected:
-                # x-y values are dependent. No need to assign to other
-                is_changed[other_xy] = True
-                break
-
-        if enhanced_pick_event.is_segment and not any(is_changed):
-            return OverrideGroup()
-
-        all_overrides.extend(overrides)
-    return all_overrides
+    return OverrideGroup([o for o in xys_overrides.flatten() if o is not None])
 
 
 # Possible code for improving assignment results using an iterative numeric solution (might be too slow in practice)
