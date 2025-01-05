@@ -175,3 +175,7 @@ class AssignmentToQuib:
     @classmethod
     def create_default(cls, quib: Quib, path: Path):
         return cls(quib, Assignment.create_default(path))
+
+    @classmethod
+    def create(cls, quib: Quib, path: Path, value: Any, tolerance: Optional[Any] = None):
+        return cls(quib, create_assignment(value, path, tolerance))

@@ -4,6 +4,7 @@ import numpy as np
 from matplotlib.axes import Axes
 
 from pyquibbler.quib.types import PointXY
+from pyquibbler.utilities.numpy_original_functions import np_vectorize
 
 EPSILON = 1e-6
 
@@ -43,10 +44,11 @@ def get_closest_point_on_line_in_axes(ax: Axes, xy1: PointXY, xy2: PointXY, xy_p
     also return `slope`: the normalized dx, dy of the line
     """
 
+    transform = ax.transData.transform
     xy, slope = get_closest_point_on_line(
-        PointXY.from_array_like(ax.transData.transform(xy1)),
-        PointXY.from_array_like(ax.transData.transform(xy2)),
-        PointXY.from_array_like(ax.transData.transform(xy_p)),
+        PointXY.from_array_like(transform(xy1)),
+        PointXY.from_array_like(transform(xy2)),
+        PointXY.from_array_like(transform(xy_p)),
     )
 
     return PointXY.from_array_like(ax.transData.inverted().transform(xy)), slope
@@ -99,3 +101,17 @@ def get_sqr_distance_in_axes(ax: Axes, xy1: PointXY, xy2: PointXY) -> float:
     d = xy1 - xy2
 
     return d.x ** 2 + d.y ** 2
+
+
+def skip_vectorize(func, *args, otypes=0, **kwargs):
+    """
+    Like vectorize, but skips the vectorization if the input is None
+    """
+    if otypes == 0:
+        otypes = [object]
+    def _func(*a, **k):
+        if a[0] is None:
+            return None
+        return func(*a, **k)
+
+    return np_vectorize(_func, *args, otypes=otypes, **kwargs)
