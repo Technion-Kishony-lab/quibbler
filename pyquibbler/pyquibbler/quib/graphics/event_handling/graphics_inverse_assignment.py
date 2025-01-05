@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from contextlib import contextmanager
+from dataclasses import dataclass
 from numbers import Number
 
 import numpy as np
@@ -43,34 +45,21 @@ def _calculate_assignment_overshoot(old_val, new_val, assigned_val) -> Optional[
     return None if new_val == old_val else (assigned_val - old_val) / (new_val - old_val)
 
 
-def _is_dragged_in_x_more_than_y(enhanced_pick_event: EnhancedPickEventWithFuncArgsKwargs, mouse_event: MouseEvent) -> bool:
-    """
-    Return True / False if mouse is dragged mostly in the x / y direction.
-    """
-    return abs(enhanced_pick_event.x - mouse_event.x) > abs(enhanced_pick_event.y - mouse_event.y)
-
-
-def _temp_apply_and_get_new_value(override: OverrideGroup, xy_quib_and_path: NDArray[QuibAndPath]) -> NDArray[Number]:
-    """
-    Apply the override temporarily and get the new value of the quib
-    """
-    from pyquibbler import Project
-    project = Project.get_or_create()
-    override.apply(temporarily=True)
-    new_value = skip_vectorize(_get_quib_value_at_path)(xy_quib_and_path)
-    project.undo_pending_group(temporarily=True)
-    return new_value
-
-
 def _get_overrides_from_changes(quib_and_path: NDArray[QuibAndPath], value: NDArray[Number]):
     xy_quib_changes = skip_vectorize(get_assignment_to_quib_from_quib_and_path)(
         quib_and_path, value)
     xys_overrides = skip_vectorize(get_override_group_for_quib_change)(xy_quib_changes, should_raise=False)
-    return xy_quib_changes, xys_overrides
+    return xys_overrides
 
 
-def get_override_group_by_indices(xy_args: NDArray, data_index: Union[None, int],
-                                  enhanced_pick_event: EnhancedPickEventWithFuncArgsKwargs, mouse_event: MouseEvent) -> OverrideGroup:
+
+@dataclass
+class GetOverrideGroupFromGraphics:
+    xy_args: NDArray
+    data_index: Union[None, int]
+    enhanced_pick_event: EnhancedPickEventWithFuncArgsKwargs
+    mouse_event: MouseEvent
+
     """
     Get overrides for a mouse event for an artist created by a plt.plot command in correspondence with the
     `data_index` column of the given data arguments xy_args.x, xy_args.y.
@@ -98,67 +87,88 @@ def get_override_group_by_indices(xy_args: NDArray, data_index: Union[None, int]
     We also correct for overshoot assignment due to binary operators. See test_drag_same_arg_binary_operator
     """
 
-    point_indices = np.reshape(enhanced_pick_event.ind, (-1, 1))
+    def _is_dragged_in_x_more_than_y(self) -> bool:
+        """
+        Return True / False if mouse is dragged mostly in the x / y direction.
+        """
+        return abs(self.enhanced_pick_event.x - self.mouse_event.x) > \
+            abs(self.enhanced_pick_event.y - self.mouse_event.y)
 
-    # For x and y, get list of (quib, path) for each affected plot index. None if not a quib
-    xys_arg_quib_and_path = skip_vectorize(get_quib_and_path_affected_by_event)([xy_args], data_index, point_indices)
+    @property
+    def xy_mouse(self) -> NDArray:
+        return np_array([[self.mouse_event.x, self.mouse_event.y]])
 
-    if enhanced_pick_event.button is MouseButton.RIGHT:
-        _, xys_overrides = _get_overrides_from_changes(xys_arg_quib_and_path, default)
+    @property
+    def ax(self):
+        return self.enhanced_pick_event.ax
+
+    def get_xy_old_and_target_values(self, xys_arg_quib_and_path) -> tuple[NDArray, NDArray]:
+        xys_old = skip_vectorize(_get_quib_value_at_path)(xys_arg_quib_and_path)
+
+        xys_target_values_pixels = self.xy_mouse + self.enhanced_pick_event.xy_offset
+        transData_inverted = self.ax.transData.inverted()
+        xys_target_values = transData_inverted.transform(xys_target_values_pixels)
+        xys_target_values = skip_vectorize(convert_scalar_value)(xys_old, xys_target_values)
+        return xys_old, xys_target_values
+
+    def get_overrides(self) -> OverrideGroup:
+        point_indices = np.reshape(self.enhanced_pick_event.ind, (-1, 1))
+
+        # For x and y, get list of (quib, path) for each affected plot index. None if not a quib
+        xys_arg_quib_and_path = skip_vectorize(get_quib_and_path_affected_by_event)([self.xy_args], self.data_index, point_indices)
+
+        if self.enhanced_pick_event.button is MouseButton.RIGHT:
+            # Right click. We reset the quib to its default value
+            xys_overrides = _get_overrides_from_changes(xys_arg_quib_and_path, default)
+            return OverrideGroup([o for o in xys_overrides.flatten() if o is not None])
+
+        if self.mouse_event.x is None or self.mouse_event.y is None:
+            # Out of axes
+            return OverrideGroup()
+
+        xys_old, xys_target_values = self.get_xy_old_and_target_values(xys_arg_quib_and_path)
+
+        xys_overrides = _get_overrides_from_changes(xys_arg_quib_and_path, xys_target_values)
+
+        xy_tolerance = get_axes_x_y_tolerance(self.ax)
+        xys_sources = skip_vectorize(lambda x: x[0])(xys_overrides)
+
+        for quibs_and_paths, overrides, sources, xy_old, xy_target_values \
+                in zip(xys_arg_quib_and_path, xys_overrides, xys_sources, xys_old, xys_target_values):
+            xy_order = (0, 1) if self._is_dragged_in_x_more_than_y() else (1, 0)
+            for focal_xy in xy_order:
+                other_xy = 1 - focal_xy
+                if overrides[focal_xy] is None:
+                    continue
+                with overrides[focal_xy].temporarily_apply():
+                    xy_new = skip_vectorize(_get_quib_value_at_path)(quibs_and_paths)
+                is_other_affected = xy_old[other_xy] != xy_new[other_xy]
+
+                overshoot = _calculate_assignment_overshoot(xy_old[focal_xy], xy_new[focal_xy], xy_target_values[focal_xy])
+                if overshoot is not None:
+                    if is_other_affected and self.ax is not None:
+                        xy_along_line, slope = get_closest_point_on_line_in_axes(
+                            self.ax, xy_old, xy_new, xy_target_values)
+                        adjusted_assigned_value = xy_along_line[focal_xy]
+                        if adjusted_assigned_value is None:
+                            continue
+                        adjustment_to_tolerance = slope[focal_xy]
+                    else:
+                        adjusted_assigned_value = xy_target_values[focal_xy]
+                        adjustment_to_tolerance = 1
+                    adjusted_value = xy_old[focal_xy] + (adjusted_assigned_value - xy_old[focal_xy]) * overshoot
+                    adjusted_tolerance = None if xy_tolerance[focal_xy] is None else xy_tolerance[focal_xy] * adjustment_to_tolerance
+
+                    adjusted_change = get_assignment_to_quib_from_quib_and_path(quib_and_path=quibs_and_paths[focal_xy],
+                                                                                value=adjusted_value,
+                                                                                tolerance=adjusted_tolerance)
+                    override = get_override_group_for_quib_change(adjusted_change)
+                    overrides[focal_xy] = override
+                    if is_other_affected:
+                        overrides[other_xy] = None
+                        break
+
         return OverrideGroup([o for o in xys_overrides.flatten() if o is not None])
-
-    if mouse_event.x is None or mouse_event.y is None:
-        # out of axes
-        return OverrideGroup()
-
-    ax = enhanced_pick_event.ax
-    xy_mouse = np_array([[mouse_event.x, mouse_event.y]])
-    xys_old = skip_vectorize(_get_quib_value_at_path)(xys_arg_quib_and_path)
-    xys_target_values_pixels = xy_mouse + enhanced_pick_event.xy_offset
-    transData_inverted = ax.transData.inverted()
-    xys_target_values = transData_inverted.transform(xys_target_values_pixels)
-    xys_target_values = skip_vectorize(convert_scalar_value)(xys_old, xys_target_values)
-
-    xy_quib_changes, xys_overrides = _get_overrides_from_changes(xys_arg_quib_and_path, xys_target_values)
-
-    xy_tolerance = get_axes_x_y_tolerance(ax)
-    xys_sources = skip_vectorize(lambda x: x[0])(xys_overrides)
-
-    for quibs_and_paths, overrides, sources, xy_old, xy_target_values \
-            in zip(xys_arg_quib_and_path, xys_overrides, xys_sources, xys_old, xys_target_values):
-        xy_order = (0, 1) if _is_dragged_in_x_more_than_y(enhanced_pick_event, mouse_event) else (1, 0)
-        for focal_xy in xy_order:
-            other_xy = 1 - focal_xy
-            if overrides[focal_xy] is None:
-                continue
-            xy_new = _temp_apply_and_get_new_value(overrides[focal_xy], quibs_and_paths)
-            is_other_affected = xy_old[other_xy] != xy_new[other_xy]
-
-            overshoot = _calculate_assignment_overshoot(xy_old[focal_xy], xy_new[focal_xy], xy_target_values[focal_xy])
-            if overshoot is not None:
-                if is_other_affected and ax is not None:
-                    xy_along_line, slope = get_closest_point_on_line_in_axes(
-                        ax, xy_old, xy_new, xy_target_values)
-                    adjusted_assigned_value = xy_along_line[focal_xy]
-                    if adjusted_assigned_value is None:
-                        continue
-                    adjustment_to_tolerance = slope[focal_xy]
-                else:
-                    adjusted_assigned_value = xy_target_values[focal_xy]
-                    adjustment_to_tolerance = 1
-                adjusted_value = xy_old[focal_xy] + (adjusted_assigned_value - xy_old[focal_xy]) * overshoot
-                adjusted_tolerance = None if xy_tolerance[focal_xy] is None else xy_tolerance[focal_xy] * adjustment_to_tolerance
-
-                adjusted_change = get_assignment_to_quib_from_quib_and_path(quib_and_path=quibs_and_paths[focal_xy],
-                                                                            value=adjusted_value,
-                                                                            tolerance=adjusted_tolerance)
-                override = get_override_group_for_quib_change(adjusted_change)
-                overrides[focal_xy] = override
-                if is_other_affected:
-                    overrides[other_xy] = None
-                    break
-
-    return OverrideGroup([o for o in xys_overrides.flatten() if o is not None])
 
 
 # Possible code for improving assignment results using an iterative numeric solution (might be too slow in practice)

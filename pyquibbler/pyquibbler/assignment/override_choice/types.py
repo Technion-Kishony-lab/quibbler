@@ -1,6 +1,8 @@
 from __future__ import annotations
-from dataclasses import dataclass, field
-from typing import List, Union
+from dataclasses import dataclass
+from typing import List
+
+from prometheus_client.decorator import contextmanager
 
 from pyquibbler.assignment import AssignmentToQuib
 from pyquibbler.project.undo_group import undo_group_mode
@@ -29,3 +31,10 @@ class OverrideGroup(List[AssignmentToQuib]):
             with aggregate_redraw_mode(temporarily):
                 for quib_change in self:
                     quib_change.apply()
+
+    @contextmanager
+    def temporarily_apply(self):
+        from pyquibbler import Project
+        self.apply(temporarily=True)
+        yield
+        Project.get_or_create().undo_pending_group(temporarily=True)
