@@ -140,7 +140,7 @@ def get_override_group_by_indices(xy_args: XY, data_index: Union[None, int],
     if xys_target_values is default:
         return OverrideGroup([o for o in xys_overrides.flatten() if o is not None])
 
-    xys_sources = skip_vectorize(lambda x: x.quib_changes[0], otypes=[object])(xys_overrides)
+    xys_sources = skip_vectorize(lambda x: x[0], otypes=[object])(xys_overrides)
 
     for quibs_and_paths, overrides, sources, xy_old, xy_target_values \
             in zip(xys_quib_and_path, xys_overrides, xys_sources, xys_old, xys_target_values):
