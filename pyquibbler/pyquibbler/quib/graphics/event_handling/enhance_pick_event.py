@@ -111,11 +111,8 @@ class EnhancedPickEvent:
         ax = pick_event.artist.axes
         mouse_to_segment = None
         if get_inds_xydata_segment is None or mouseevent.xdata is None or mouseevent.ydata is None:
-            try:
-                ind = pick_event.ind
-                xy_offset = np.zeros((len(ind), 2))
-            except (AttributeError, TypeError):
-                xy_offset = None
+            ind = pick_event.ind
+            xy_offset = np.zeros((1, 2))
             is_segment = False
         else:
             ind, xy_data, is_segment = get_inds_xydata_segment(pick_event)

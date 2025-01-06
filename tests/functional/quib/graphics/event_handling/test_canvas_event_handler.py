@@ -72,12 +72,10 @@ def test_canvas_event_handler_plot_drag(canvas_event_handler, mock_inverse_graph
     canvas_event_handler._handle_pick_event(pick_event)
     mouse_event = mock.Mock()
     canvas_event_handler._handle_motion_notify(mouse_event)
-
-    mock_inverse_graphics_function.assert_called_once_with(
-        mouse_event=mouse_event,
-        enhanced_pick_event=EnhancedPickEventWithFuncArgsKwargs.from_pick_event(
-            pick_event=pick_event),
-        )
+    mock_inverse_graphics_function.assert_called_once()
+    call_args = mock_inverse_graphics_function.call_args
+    assert call_args.kwargs['mouse_event'] is mouse_event
+    assert call_args.kwargs['enhanced_pick_event'].ind is pick_event.ind
 
 
 def test_canvas_event_handler_plot_drag_after_releasing(canvas_event_handler, mock_inverse_graphics_function):

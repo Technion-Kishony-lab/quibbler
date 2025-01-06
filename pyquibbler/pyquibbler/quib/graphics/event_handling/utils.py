@@ -109,6 +109,7 @@ def skip_vectorize(func, *args, otypes=0, **kwargs):
     """
     if otypes == 0:
         otypes = [object]
+
     def _func(*a, **k):
         if a[0] is None:
             return None
