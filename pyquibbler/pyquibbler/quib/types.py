@@ -1,6 +1,11 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Optional, NamedTuple, Any
+from typing import Optional
+
+import numpy as np
+import pytest
+
+from pyquibbler.utilities.numpy_original_functions import np_array
 
 
 @dataclass
@@ -19,56 +24,53 @@ class FileAndLineNumber:
         return f'<a href="file://{self.file_path}">{self}</a>'
 
 
-class XY(NamedTuple):
-    x: Optional[Any]
-    y: Optional[Any]
+class PointArray(np.ndarray):
+    def __new__(cls, input_array):
+        # Ensure input is a numpy array and shape is (n, 2) or (2,)
+        obj = np.asarray(input_array).view(cls)
+        cls._check_shape(obj)
+        return obj
 
-    @classmethod
-    def from_func(cls, func, *args) -> XY:
-        """
-        Create an XY by apply a func to args two times:
-        (1) when any XY arg is replaced with arg.x
-        (2) when any XY arg is replaced with arg.y
-        """
-        x = func(*(arg.x if isinstance(arg, XY) else arg for arg in args))
-        y = func(*(arg.y if isinstance(arg, XY) else arg for arg in args))
-        return cls(x, y)
+    @staticmethod
+    def _check_shape(obj):
+        if obj.ndim == 2 and obj.shape[1] == 2:
+            pass
+        elif obj.ndim == 1 and obj.shape[0] == 2:
+            pass
+        else:
+            raise ValueError("Input must be a (n, 2) or (2,) array")
 
-    @classmethod
-    def from_array_like(cls, array_like) -> XY:
-        return cls(array_like[0], array_like[1])
+    @property
+    def x(self):
+        if self.ndim == 2:
+            return np_array(self[:, 0])
+        else:
+            return self[0]
 
-    def is_xor(self) -> bool:
-        """
-        Return True if only x or only y are defined
-        """
-        return (self.x is None) ^ (self.y is None)
+    @property
+    def y(self):
+        if self.ndim == 2:
+            return np_array(self[:, 1])
+        else:
+            return self[1]
 
-    def get_xy_not_none(self) -> str:
-        """
-        Return 'x' if only x is defined, 'y' if only 'y' is defined.
-        """
-        return 'x' if self.x is not None else 'y'
+    def __bool__(self):
+        return bool(self.x) or bool(self.y)
 
-    def get_value_not_none(self) -> Any:
-        """
-        Return self.x if only x is defined, self.y if only 'y' is defined.
-        """
-        return self.x if self.x is not None else self.y
+    def __array_finalize__(self, obj):
+        # This is called when the object is created or sliced.
+        if obj is None:  # If called by __new__, no action needed
+            return
+        # Ensure slicing preserves the (n, 2) shape constraint
+        self._check_shape(obj)
 
 
-class PointXY(XY):
-    def __sub__(self, other) -> PointXY:
-        return PointXY(self.x - other.x, self.y - other.y)
-
-    def __add__(self, other) -> PointXY:
-        return PointXY(self.x + other.x, self.y + other.y)
-
-    def __mul__(self, other) -> PointXY:
-        return PointXY(self.x * other.x, self.y * other.y)
-
-    def __abs__(self) -> PointXY:
-        return PointXY(abs(self.x), abs(self.y))
-
-    def __bool__(self) -> bool:
-        return not (self.x is None or self.y is None)
+@pytest.mark.parametrize(['point_nd', 'other', 'expected'], [
+    (PointArray([[1, 2]]), PointArray([[3, 4]]), PointArray([[4, 6]])),
+    (PointArray([[1, 2]]), (3, 4), PointArray([[4, 6]])),
+    (PointArray([[1, 2]]), 3, PointArray([[4, 5]])),
+])
+def test_point_nd_add(point_nd, other, expected):
+    result = point_nd + other
+    assert np.array_equal(result, expected)
+    assert isinstance(result, PointArray)

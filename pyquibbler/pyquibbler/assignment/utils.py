@@ -5,20 +5,20 @@ from matplotlib.axes import Axes
 from datetime import datetime
 from matplotlib.dates import num2date
 
-from pyquibbler.quib.types import PointXY
+from pyquibbler.quib.types import PointArray
 from pyquibbler.env import GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION
 
 
-def get_axes_x_y_tolerance(ax: Axes) -> PointXY:
+def get_axes_x_y_tolerance(ax: Axes) -> PointArray:
     """
     Return the mouse resolution in x-axis and y-axis in which a point can be specified in a given axes.
     """
     n = GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.val
     if n is None:
-        return PointXY(None, None)
+        return PointArray([None, None])
     xlim = ax.get_xlim()
     ylim = ax.get_ylim()
-    return PointXY((xlim[1] - xlim[0]) / n, (ylim[1] - ylim[0]) / n)
+    return PointArray([(xlim[1] - xlim[0]) / n, (ylim[1] - ylim[0]) / n])
 
 
 def is_scalar_np(obj) -> bool:

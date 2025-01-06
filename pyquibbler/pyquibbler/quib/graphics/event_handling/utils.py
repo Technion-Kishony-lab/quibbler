@@ -3,13 +3,13 @@ from typing import Tuple
 import numpy as np
 from matplotlib.axes import Axes
 
-from pyquibbler.quib.types import PointXY
+from pyquibbler.quib.types import PointArray
 from pyquibbler.utilities.numpy_original_functions import np_vectorize
 
 EPSILON = 1e-6
 
 
-def get_closest_point_on_line(xy1: PointXY, xy2: PointXY, xy_p: PointXY) -> Tuple[PointXY, PointXY]:
+def get_closest_point_on_line(xy1: PointArray, xy2: PointArray, xy_p: PointArray) -> Tuple[PointArray, PointArray]:
     """
     Find the closest point along a line to a specified point.
 
@@ -25,33 +25,34 @@ def get_closest_point_on_line(xy1: PointXY, xy2: PointXY, xy_p: PointXY) -> Tupl
     sum_d_s = d_s.x + d_s.y
     sqrt_d_s = np.sqrt(sum_d_s)
     if sum_d_s < EPSILON:
-        return xy1, PointXY(1, 1)
+        return xy1, PointArray([1, 1])
     else:
         x = (d.x * d.y * (xy_p.y - xy1.y) + d_s.x * xy_p.x + d_s.y * xy1.x) / sum_d_s
         y = (d.x * d.y * (xy_p.x - xy1.x) + d_s.y * xy_p.y + d_s.x * xy1.y) / sum_d_s
 
-    return PointXY(x, y), PointXY(d.x / sqrt_d_s, d.y / sqrt_d_s)
+    return PointArray([x, y]), PointArray([d.x / sqrt_d_s, d.y / sqrt_d_s])
 
 
-def get_closest_point_on_line_in_axes(ax: Axes, xy1: PointXY, xy2: PointXY, xy_p: PointXY) -> Tuple[PointXY, PointXY]:
+def get_closest_point_on_line_in_axes(ax: Axes, xy1: PointArray, xy2: PointArray, xy_p: PointArray
+                                      ) -> Tuple[PointArray, PointArray]:
     """
     Find the closest point along a line to a specified point, within the coordinates of a specified axes.
 
     xy1, xy2 are two points, defining a straight line
     xy_p is an arbitrary point
 
-    returns a point, PointXY, which is on the line and closest to xy_p.
+    returns a point, PointArray, which is on the line and closest to xy_p.
     also return `slope`: the normalized dx, dy of the line
     """
 
     transform = ax.transData.transform
     xy, slope = get_closest_point_on_line(
-        PointXY.from_array_like(transform(xy1)),
-        PointXY.from_array_like(transform(xy2)),
-        PointXY.from_array_like(transform(xy_p)),
+        PointArray(transform(xy1)),
+        PointArray(transform(xy2)),
+        PointArray(transform(xy_p)),
     )
 
-    return PointXY.from_array_like(ax.transData.inverted().transform(xy)), slope
+    return PointArray(ax.transData.inverted().transform(xy)), slope
 
 
 def get_intersect_between_two_lines(a_x1, a_y1, a_x2, a_y2, b_x1, b_y1, b_x2, b_y2):
@@ -71,15 +72,15 @@ def get_intersect_between_two_lines(a_x1, a_y1, a_x2, a_y2, b_x1, b_y1, b_x2, b_
 
 
 def get_intersect_between_two_lines_in_axes(ax: Axes,
-                                            a1: PointXY, a2: PointXY,
-                                            b1: PointXY, b2: PointXY) -> Tuple[PointXY, PointXY]:
+                                            a1: PointArray, a2: PointArray,
+                                            b1: PointArray, b2: PointArray) -> Tuple[PointArray, PointArray]:
     """
     Find the closest point along a line to a specified point, within the coordinates of a specified axes.
 
     a1, a2 are two points, defining a straight line a.
     b1, b2 are two points, defining a straight line b.
 
-    returns a point, PointXY, which is on the intersection of the two lines.
+    returns a point, PointArray, which is on the intersection of the two lines.
     also return difference of slopes: of the two lines.
     """
     a1, a2, b1, b2 = ax.transData.transform([a1, a2, b1, b2])
@@ -87,17 +88,17 @@ def get_intersect_between_two_lines_in_axes(ax: Axes,
     xy = get_intersect_between_two_lines(*a1, *a2, *b1, *b2)
 
     # TODO: calculate correct error of intersect
-    err = PointXY(1, 1)
-    return PointXY.from_array_like(ax.transData.inverted().transform(xy)), err
+    err = PointArray([1, 1])
+    return PointArray(ax.transData.inverted().transform(xy)), err
 
 
-def get_sqr_distance_in_axes(ax: Axes, xy1: PointXY, xy2: PointXY) -> float:
+def get_sqr_distance_in_axes(ax: Axes, xy1: PointArray, xy2: PointArray) -> float:
     """
     Returns the square distance in pixels between two points in axes
     """
 
-    xy1 = PointXY.from_array_like(ax.transData.transform(xy1))
-    xy2 = PointXY.from_array_like(ax.transData.transform(xy2))
+    xy1 = PointArray(ax.transData.transform(xy1))
+    xy2 = PointArray(ax.transData.transform(xy2))
     d = xy1 - xy2
 
     return d.x ** 2 + d.y ** 2

@@ -9,7 +9,7 @@ from matplotlib.collections import PathCollection
 from matplotlib.lines import Line2D
 
 from pyquibbler.function_definitions import FuncArgsKwargs
-from pyquibbler.quib.types import PointXY
+from pyquibbler.quib.types import PointArray
 from pyquibbler.quib.graphics import artist_wrapper
 
 from .utils import get_closest_point_on_line
@@ -99,7 +99,7 @@ class EnhancedPickEvent:
     y: float
     xy_offset: np.ndarray
     is_segment: bool
-    mouse_to_segment: PointXY
+    mouse_to_segment: PointArray
 
     @classmethod
     def from_pick_event(cls, pick_event: PickEvent):
@@ -119,10 +119,10 @@ class EnhancedPickEvent:
 
             xy_data_pixels = ax.transData.transform(xy_data[ind, :])
 
-            mouse_point = PointXY(mouseevent.x, mouseevent.y)
+            mouse_point = PointArray([mouseevent.x, mouseevent.y])
             if is_segment:
                 on_segment_point, _ = get_closest_point_on_line(
-                    PointXY(*xy_data_pixels[0]), PointXY(*xy_data_pixels[1]), mouse_point)
+                    PointArray(xy_data_pixels[0]), PointArray(xy_data_pixels[1]), mouse_point)
                 xy_offset = xy_data_pixels - [on_segment_point]
                 mouse_to_segment = on_segment_point - mouse_point
             else:
