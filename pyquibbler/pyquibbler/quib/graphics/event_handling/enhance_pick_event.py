@@ -97,7 +97,7 @@ class EnhancedPickEvent:
     ax: Axes
     x: float
     y: float
-    xy_offset: np.ndarray
+    xy_offset: PointArray
     is_segment: bool
     mouse_to_segment: PointArray
 

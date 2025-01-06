@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from contextlib import contextmanager
 from dataclasses import dataclass
 from numbers import Number
 
@@ -15,13 +14,15 @@ from pyquibbler.assignment import get_axes_x_y_tolerance, OverrideGroup, \
     AssignmentToQuib, default, get_override_group_for_quib_change
 from pyquibbler.assignment.utils import convert_scalar_value
 from pyquibbler.path import deep_get
-from pyquibbler.utilities.numpy_original_functions import np_array
 
 from .affected_args_and_paths import get_quib_and_path_affected_by_event
 from .enhance_pick_event import EnhancedPickEventWithFuncArgsKwargs
 from .utils import get_closest_point_on_line_in_axes, get_intersect_between_two_lines_in_axes, skip_vectorize
 
 from typing import TYPE_CHECKING
+
+from pyquibbler.quib.types import PointArray
+
 if TYPE_CHECKING:
     from .affected_args_and_paths import QuibAndPath
 
@@ -124,7 +125,7 @@ class GetOverrideGroupFromGraphics:
 
     @property
     def xy_mouse(self) -> NDArray:
-        return np_array([[self.mouse_event.x, self.mouse_event.y]])
+        return PointArray([[self.mouse_event.x, self.mouse_event.y]])
 
     @property
     def ax(self):
