@@ -116,4 +116,9 @@ def skip_vectorize(func, *args, otypes=0, **kwargs):
             return None
         return func(*a, **k)
 
-    return np_vectorize(_func, *args, otypes=otypes, **kwargs)
+    vectorized_func = np_vectorize(_func, *args, otypes=otypes, **kwargs)
+
+    def _vectorize_to_point_array(*a, **k):
+        return PointArray(vectorized_func(*a, **k))
+
+    return _vectorize_to_point_array

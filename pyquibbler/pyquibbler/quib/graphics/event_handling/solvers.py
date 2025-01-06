@@ -2,12 +2,15 @@ from typing import Callable, Optional
 
 import pytest
 from numpy.linalg import norm
+from parso.python.tree import Number
 
 from pyquibbler.quib.graphics.event_handling.utils import get_closest_point_on_line
 from pyquibbler.quib.types import PointArray
 
 
-def solve_single_point_on_curve(func: Callable, v0, v1, xy: PointArray, tolerance: float = 1,
+def solve_single_point_on_curve(func: Callable,
+                                v0: Number, v1: Number,
+                                xy: PointArray, tolerance: float = 1,
                                 max_iter: int = 10,
                                 p0: Optional[PointArray] = None, p1: Optional[PointArray] = None
                                 ) -> (float, PointArray, int):
@@ -18,9 +21,9 @@ def solve_single_point_on_curve(func: Callable, v0, v1, xy: PointArray, toleranc
     ----------
     func : Callable
         A function of a single variable. Returns a PointArray.
-    v0 : float
+    v0 : Number
         The initial guess for the variable value.
-    v1 : float
+    v1 : Number
         The second guess for the variable value.
     xy : PointArray
         The point for which the curve should be closest to.
@@ -33,9 +36,9 @@ def solve_single_point_on_curve(func: Callable, v0, v1, xy: PointArray, toleranc
     """
 
     if p0 is None:
-        p0 = func(v0)
+        p0 = func((v0, ))
     if p1 is None:
-        p1 = func(v1)
+        p1 = func((v1, ))
 
     num_iter = 0
     closest_value = None
@@ -56,7 +59,7 @@ def solve_single_point_on_curve(func: Callable, v0, v1, xy: PointArray, toleranc
             overshoot = norm(p1 - p0) / norm(p_target - p0)
             v2 = v0 + (v1 - v0) / overshoot
             num_iter += 1
-            p2 = func(v2)
+            p2 = func((v2, ))
             v0, v1 = v1, v2
             p0, p1 = p1, p2
 
@@ -79,7 +82,8 @@ def test_solve_single_point_on_curve(func, v0, v1, xy, expected_v, accuracy, exp
     """
     Test the solve_single_point_on_curve function.
     """
-    result, point, num_iter = solve_single_point_on_curve(func, v0, v1, xy)
+    tuple_func = lambda x: func(x[0])
+    result, point, num_iter = solve_single_point_on_curve(tuple_func, v0, v1, xy)
     assert abs(result - expected_v) <= accuracy, f'{name}: result is {result}, expected {expected_v}'
     assert num_iter == expected_nun_iter, f'{name}: num_iter is {num_iter}, expected {expected_nun_iter}'
 

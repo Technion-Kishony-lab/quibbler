@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from functools import partial
 from numbers import Number
 
 import numpy as np
+from matplotlib.axes import Axes
 from matplotlib.backend_bases import MouseEvent, MouseButton
 
-from typing import Any, Union, Optional, List
+from typing import Any, Union, Optional, List, Tuple
 
 from numpy._typing import NDArray
 
@@ -17,6 +19,7 @@ from pyquibbler.path import deep_get
 
 from .affected_args_and_paths import get_quib_and_path_affected_by_event
 from .enhance_pick_event import EnhancedPickEventWithFuncArgsKwargs
+from .solvers import solve_single_point_on_curve
 from .utils import get_closest_point_on_line_in_axes, get_intersect_between_two_lines_in_axes, skip_vectorize
 
 from typing import TYPE_CHECKING
@@ -53,14 +56,15 @@ def _get_overrides_from_changes(quib_and_path: NDArray[QuibAndPath], value: NDAr
     return xys_overrides
 
 
-def _get_unique_overrides(overrides: List[AssignmentToQuib]) -> List[AssignmentToQuib]:
+def _get_unique_overrides_and_initial_values(overrides: List[AssignmentToQuib]) -> Tuple[OverrideGroup, List[Number]]:
     """
     find all the unique quib x paths in the overrides
     to assess if override B is the same as A, we apply A and check if B is changing to the same value
     we cannot directly compare the path because the path might look different but point to the same element
     overrides: list of AssignmentToQuib
     """
-    unique_overrides = []
+    unique_overrides = OverrideGroup()
+    initial_values = []
 
     overrides_to_initial_values = {
         override: _get_quib_value_at_path((override.quib, override.assignment.path))
@@ -75,11 +79,27 @@ def _get_unique_overrides(overrides: List[AssignmentToQuib]) -> List[AssignmentT
             if new_value == initial_value:
                 continue
             unique_overrides.append(override)
+            initial_values.append(initial_value)
             for other_override, other_initial_value in list(overrides_to_initial_values.items()):
                 other_new_value = _get_quib_value_at_path((other_override.quib, other_override.assignment.path))
                 if other_initial_value == initial_value and other_new_value == new_value:
                     overrides_to_initial_values.pop(other_override)
-    return unique_overrides
+    return unique_overrides, initial_values
+
+
+def _get_point_on_line_in_axes(ax: Axes,
+                               overrides: OverrideGroup,
+                               xy_quib_and_path: PointArray[QuibAndPath],
+                               values: List[Number],
+                               ) -> PointArray:
+    """
+    function to use in solve_single_point_on_curve
+    """
+    for override, value in zip(overrides, values):
+        override.assignment.value = value
+    with overrides.temporarily_apply():
+        xy_data = skip_vectorize(_get_quib_value_at_path)(xy_quib_and_path)
+    return ax.transData.transform(xy_data)
 
 
 @dataclass
@@ -124,14 +144,14 @@ class GetOverrideGroupFromGraphics:
             abs(self.enhanced_pick_event.y - self.mouse_event.y)
 
     @property
-    def xy_mouse(self) -> NDArray:
+    def xy_mouse(self) -> PointArray:
         return PointArray([[self.mouse_event.x, self.mouse_event.y]])
 
     @property
     def ax(self):
         return self.enhanced_pick_event.ax
 
-    def get_xy_old_and_target_values(self, xys_arg_quib_and_path) -> tuple[NDArray, NDArray]:
+    def get_xy_old_and_target_values(self, xys_arg_quib_and_path) -> tuple[PointArray, PointArray]:
         xys_old = skip_vectorize(_get_quib_value_at_path)(xys_arg_quib_and_path)
 
         xys_target_values_pixels = self.xy_mouse + self.enhanced_pick_event.xy_offset
@@ -142,6 +162,7 @@ class GetOverrideGroupFromGraphics:
 
     def get_overrides(self) -> OverrideGroup:
         point_indices = np.reshape(self.enhanced_pick_event.ind, (-1, 1))
+        num_points = point_indices.size
 
         # For x and y, get list of (quib, path) for each affected plot index. None if not a quib
         xys_arg_quib_and_path = skip_vectorize(get_quib_and_path_affected_by_event)([self.xy_args], self.data_index, point_indices)
@@ -163,7 +184,22 @@ class GetOverrideGroupFromGraphics:
         xy_tolerance = get_axes_x_y_tolerance(self.ax)
         xys_source_overrides = skip_vectorize(lambda x: x[0])(xys_overrides)
         xy_order = (0, 1) if self._is_dragged_in_x_more_than_y() else (1, 0)
-        unique_overrides = _get_unique_overrides([o for o in xys_source_overrides[:, xy_order].flatten() if o is not None])
+        unique_source_overrides, unique_source_initial_values = _get_unique_overrides_and_initial_values(
+            [o for o in xys_source_overrides[:, xy_order].flatten() if o is not None])
+
+        if len(unique_source_overrides) == 1 and num_points == 1 and False:
+            # Only one unique override
+            value, _, _ =solve_single_point_on_curve(
+                func=partial(_get_point_on_line_in_axes, unique_source_overrides, xys_arg_quib_and_path),
+                v0=unique_source_initial_values[0],
+                v1=unique_source_overrides[0].assignment.value,
+                xy=self.xy_mouse,
+                tolerance=1,
+                max_iter=4,
+                p0=xys_old[0],
+            )
+            unique_source_overrides[0].assignment.value = value
+            return unique_source_overrides
 
         for j_ind, (quibs_and_paths, overrides, source_overrides, xy_old, xy_target_values) \
                 in enumerate(zip(xys_arg_quib_and_path, xys_overrides, xys_source_overrides, xys_old, xys_target_values)):
