@@ -48,6 +48,9 @@ class Assignment:
     def get_pretty_value(self):
         return repr(replace_np_int_and_float(self.value))
 
+    def __hash__(self):
+        return hash((self.value, tuple(self.path)))
+
 
 @dataclass
 class AssignmentWithTolerance(Assignment):

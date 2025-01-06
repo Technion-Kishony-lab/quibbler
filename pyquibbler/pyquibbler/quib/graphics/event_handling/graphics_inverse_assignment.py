@@ -7,7 +7,7 @@ from numbers import Number
 import numpy as np
 from matplotlib.backend_bases import MouseEvent, MouseButton
 
-from typing import Any, Union, Optional
+from typing import Any, Union, Optional, List
 
 from numpy._typing import NDArray
 
@@ -51,6 +51,34 @@ def _get_overrides_from_changes(quib_and_path: NDArray[QuibAndPath], value: NDAr
     xys_overrides = skip_vectorize(get_override_group_for_quib_change)(xy_quib_changes, should_raise=False)
     return xys_overrides
 
+
+def _get_unique_overrides(overrides: List[AssignmentToQuib]) -> List[AssignmentToQuib]:
+    """
+    find all the unique quib x paths in the overrides
+    to assess if override B is the same as A, we apply A and check if B is changing to the same value
+    we cannot directly compare the path because the path might look different but point to the same element
+    overrides: list of AssignmentToQuib
+    """
+    unique_overrides = []
+
+    overrides_to_initial_values = {
+        override: _get_quib_value_at_path((override.quib, override.assignment.path))
+        for override in overrides
+    }
+
+    while len(overrides_to_initial_values) > 0:
+        override, initial_value = overrides_to_initial_values.popitem()
+        # remove all the overrides that are the same as the current override
+        with OverrideGroup([override]).temporarily_apply():
+            new_value = _get_quib_value_at_path((override.quib, override.assignment.path))
+            if new_value == initial_value:
+                continue
+            unique_overrides.append(override)
+            for other_override, other_initial_value in list(overrides_to_initial_values.items()):
+                other_new_value = _get_quib_value_at_path((other_override.quib, other_override.assignment.path))
+                if other_initial_value == initial_value and other_new_value == new_value:
+                    overrides_to_initial_values.pop(other_override)
+    return unique_overrides
 
 
 @dataclass
@@ -127,21 +155,26 @@ class GetOverrideGroupFromGraphics:
             return OverrideGroup()
 
         xys_old, xys_target_values = self.get_xy_old_and_target_values(xys_arg_quib_and_path)
+        xys_old_assigned_source_values = skip_vectorize(_get_quib_value_at_path)(xys_arg_quib_and_path)
 
         xys_overrides = _get_overrides_from_changes(xys_arg_quib_and_path, xys_target_values)
 
         xy_tolerance = get_axes_x_y_tolerance(self.ax)
-        xys_sources = skip_vectorize(lambda x: x[0])(xys_overrides)
+        xys_source_overrides = skip_vectorize(lambda x: x[0])(xys_overrides)
+        xy_order = (0, 1) if self._is_dragged_in_x_more_than_y() else (1, 0)
+        unique_overrides = _get_unique_overrides([o for o in xys_source_overrides[:, xy_order].flatten() if o is not None])
 
-        for quibs_and_paths, overrides, sources, xy_old, xy_target_values \
-                in zip(xys_arg_quib_and_path, xys_overrides, xys_sources, xys_old, xys_target_values):
-            xy_order = (0, 1) if self._is_dragged_in_x_more_than_y() else (1, 0)
+        for j_ind, (quibs_and_paths, overrides, source_overrides, xy_old, xy_target_values) \
+                in enumerate(zip(xys_arg_quib_and_path, xys_overrides, xys_source_overrides, xys_old, xys_target_values)):
             for focal_xy in xy_order:
                 other_xy = 1 - focal_xy
                 if overrides[focal_xy] is None:
                     continue
                 with overrides[focal_xy].temporarily_apply():
                     xy_new = skip_vectorize(_get_quib_value_at_path)(quibs_and_paths)
+                    xy_assigned_source_values = skip_vectorize(
+                        lambda override: _get_quib_value_at_path((override.quib, override.assignment.path)))(source_overrides)
+
                 is_other_affected = xy_old[other_xy] != xy_new[other_xy]
 
                 overshoot = _calculate_assignment_overshoot(xy_old[focal_xy], xy_new[focal_xy], xy_target_values[focal_xy])

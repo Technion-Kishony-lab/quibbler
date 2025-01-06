@@ -40,6 +40,9 @@ class PathComponent:
         s = repr(self.component)
         return '{' + s + '}'
 
+    def __hash__(self):
+        return hash(self.component)
+
 
 class SpecialComponent(Enum):
     WHOLE = 'whole'  # whole object
