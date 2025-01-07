@@ -241,7 +241,7 @@ class GetOverrideGroupFromGraphics:
                         adjusted_assigned_value = xy_target_values[focal_xy]
                         adjustment_to_tolerance = 1
                     adjusted_value = xy_old[focal_xy] + (adjusted_assigned_value - xy_old[focal_xy]) * overshoot
-                    adjusted_tolerance = None if xy_tolerance[focal_xy] is None \
+                    adjusted_tolerance = None if xy_tolerance is None \
                         else xy_tolerance[focal_xy] * adjustment_to_tolerance
 
                     adjusted_change = get_assignment_to_quib_from_quib_and_path(quib_and_path=quibs_and_paths[focal_xy],

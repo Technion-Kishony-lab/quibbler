@@ -15,7 +15,7 @@ def get_axes_x_y_tolerance(ax: Axes) -> PointArray:
     """
     n = GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.val
     if n is None:
-        return PointArray([None, None])
+        return None
     xlim = ax.get_xlim()
     ylim = ax.get_ylim()
     return PointArray([(xlim[1] - xlim[0]) / n, (ylim[1] - ylim[0]) / n])

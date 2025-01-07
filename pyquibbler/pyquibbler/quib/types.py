@@ -53,9 +53,6 @@ class PointArray(np.ndarray):
         else:
             return self[1]
 
-    def __bool__(self):
-        return bool(self.x) or bool(self.y)
-
     def __array_finalize__(self, obj):
         # This is called when the object is created or sliced.
         if obj is None:  # If called by __new__, no action needed
