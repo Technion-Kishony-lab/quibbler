@@ -2,10 +2,7 @@ from unittest import mock
 
 import pytest
 
-from functional.quib.graphics.event_handling.test_plot_inverse_assigner import TestEnhancedPickEvent
-from pyquibbler.function_definitions import FuncArgsKwargs
 from pyquibbler.quib.graphics.event_handling import graphics_inverse_assigner, CanvasEventHandler
-from pyquibbler.quib.graphics.event_handling.enhance_pick_event import EnhancedPickEventWithFuncArgsKwargs
 
 
 def test_canvas_event_handler_create_happy_flow():

@@ -62,7 +62,7 @@ def _get_line2D_inds_xydata_segment(pick_event: PickEvent):
         ind = inds[0]
         has_segments = artist._linestyle not in ['None', None]  # based on Line2D.contains()
         if has_segments and ind + 1 < len(xy_data):
-            distance = _get_mouse_distance_to_points(artist.axes, pick_event.mouseevent, xy_data[ind:ind+1, :])
+            distance = _get_mouse_distance_to_points(artist.axes, pick_event.mouseevent, xy_data[ind:ind + 1, :])
             if distance > artist.get_pickradius():
                 # not close to the picked point, so it is a segment
                 return [ind, ind + 1], xy_data, True

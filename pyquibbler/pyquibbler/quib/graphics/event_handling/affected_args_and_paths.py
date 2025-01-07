@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from typing import Any, Optional, List, Tuple
+from typing import Any, Optional, Tuple
 
 from pyquibbler.path import PathComponent, Path
 from pyquibbler.utilities.general_utils import Shape

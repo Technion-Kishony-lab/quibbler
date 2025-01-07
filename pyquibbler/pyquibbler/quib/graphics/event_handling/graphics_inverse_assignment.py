@@ -13,8 +13,7 @@ from typing import Any, Union, Optional, List, Tuple
 from numpy._typing import NDArray
 
 from pyquibbler.assignment import get_axes_x_y_tolerance, OverrideGroup, \
-    AssignmentToQuib, default, get_override_group_for_quib_change, AssignmentWithTolerance, Assignment, \
-    create_assignment
+    AssignmentToQuib, default, get_override_group_for_quib_change, create_assignment
 from pyquibbler.assignment.utils import convert_scalar_value
 from pyquibbler.env import GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION
 from pyquibbler.path import deep_get
@@ -22,7 +21,7 @@ from pyquibbler.path import deep_get
 from .affected_args_and_paths import get_quib_and_path_affected_by_event
 from .enhance_pick_event import EnhancedPickEventWithFuncArgsKwargs
 from .solvers import solve_single_point_on_curve
-from .utils import get_closest_point_on_line_in_axes, get_intersect_between_two_lines_in_axes, skip_vectorize
+from .utils import get_closest_point_on_line_in_axes, skip_vectorize
 
 from typing import TYPE_CHECKING
 
@@ -38,8 +37,8 @@ def _get_quib_value_at_path(quib_and_path: Optional[QuibAndPath]) -> Optional[Nu
 
 
 def get_assignment_to_quib_from_quib_and_path(quib_and_path: Optional[QuibAndPath],
-                                      value: Any = default, tolerance: Any = None,
-                                      ) -> Optional[AssignmentToQuib]:
+                                              value: Any = default, tolerance: Any = None,
+                                              ) -> Optional[AssignmentToQuib]:
     return AssignmentToQuib.create(*quib_and_path, value, tolerance)
 
 
@@ -92,7 +91,7 @@ def _get_unique_overrides_and_initial_values(overrides: List[AssignmentToQuib]) 
 
 
 def _transform_data_with_none_to_pixels(ax: Axes, data: PointArray) -> PointArray:
-    data = np.where(data == None, 0, data)
+    data = np.where(data == None, 0, data)  # noqa
     return PointArray(ax.transData.transform(data))
 
 
@@ -177,7 +176,8 @@ class GetOverrideGroupFromGraphics:
         num_points = point_indices.size
 
         # For x and y, get list of (quib, path) for each affected plot index. None if not a quib
-        xys_arg_quib_and_path = skip_vectorize(get_quib_and_path_affected_by_event)([self.xy_args], self.data_index, point_indices)
+        xys_arg_quib_and_path = skip_vectorize(get_quib_and_path_affected_by_event)(
+            [self.xy_args], self.data_index, point_indices)
 
         if self.enhanced_pick_event.button is MouseButton.RIGHT:
             # Right click. We reset the quib to its default value
@@ -216,19 +216,19 @@ class GetOverrideGroupFromGraphics:
             return unique_source_overrides
 
         for j_ind, (quibs_and_paths, overrides, source_overrides, xy_old, xy_target_values) \
-                in enumerate(zip(xys_arg_quib_and_path, xys_overrides, xys_source_overrides, xys_old, xys_target_values)):
+                in enumerate(zip(xys_arg_quib_and_path, xys_overrides, xys_source_overrides, xys_old,
+                                 xys_target_values)):
             for focal_xy in xy_order:
                 other_xy = 1 - focal_xy
                 if overrides[focal_xy] is None:
                     continue
                 with overrides[focal_xy].temporarily_apply():
                     xy_new = skip_vectorize(_get_quib_value_at_path)(quibs_and_paths)
-                    xy_assigned_source_values = skip_vectorize(
-                        lambda override: _get_quib_value_at_path((override.quib, override.assignment.path)))(source_overrides)
 
                 is_other_affected = xy_old[other_xy] != xy_new[other_xy]
 
-                overshoot = _calculate_assignment_overshoot(xy_old[focal_xy], xy_new[focal_xy], xy_target_values[focal_xy])
+                overshoot = _calculate_assignment_overshoot(xy_old[focal_xy], xy_new[focal_xy],
+                                                            xy_target_values[focal_xy])
                 if overshoot is not None:
                     if is_other_affected and self.ax is not None:
                         xy_along_line, slope = get_closest_point_on_line_in_axes(
@@ -241,7 +241,8 @@ class GetOverrideGroupFromGraphics:
                         adjusted_assigned_value = xy_target_values[focal_xy]
                         adjustment_to_tolerance = 1
                     adjusted_value = xy_old[focal_xy] + (adjusted_assigned_value - xy_old[focal_xy]) * overshoot
-                    adjusted_tolerance = None if xy_tolerance[focal_xy] is None else xy_tolerance[focal_xy] * adjustment_to_tolerance
+                    adjusted_tolerance = None if xy_tolerance[focal_xy] is None \
+                        else xy_tolerance[focal_xy] * adjustment_to_tolerance
 
                     adjusted_change = get_assignment_to_quib_from_quib_and_path(quib_and_path=quibs_and_paths[focal_xy],
                                                                                 value=adjusted_value,

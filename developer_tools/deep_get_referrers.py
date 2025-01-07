@@ -1,5 +1,4 @@
 import gc
-from typing import Optional
 
 
 def deep_get_referrers(obj, depth: int, number_sequence=None):

@@ -58,15 +58,15 @@ def get_closest_point_on_line_in_axes(ax: Axes, xy1: PointArray, xy2: PointArray
 def get_intersect_between_two_lines(a_x1, a_y1, a_x2, a_y2, b_x1, b_y1, b_x2, b_y2):
 
     # Calculate the denominator of the equations of the two lines
-    denominator = ((a_x1-a_x2)*(b_y1-b_y2)) - ((a_y1-a_y2)*(b_x1-b_x2))
+    denominator = (a_x1 - a_x2) * (b_y1 - b_y2) - (a_y1 - a_y2) * (b_x1 - b_x2)
 
     # If the denominator is zero, the lines are parallel and do not intersect
     if denominator == 0:
         return None, None
 
     # Calculate the x and y coordinates of the point of intersection
-    x = (((a_x1*a_y2-a_y1*a_x2)*(b_x1-b_x2))-((a_x1-a_x2)*(b_x1*b_y2-b_y1*b_x2))) / denominator
-    y = (((a_x1*a_y2-a_y1*a_x2)*(b_y1-b_y2))-((a_y1-a_y2)*(b_x1*b_y2-b_y1*b_x2))) / denominator
+    x = ((a_x1 * a_y2 - a_y1 * a_x2) * (b_x1 - b_x2) - (a_x1 - a_x2) * (b_x1 * b_y2 - b_y1 * b_x2)) / denominator
+    y = ((a_x1 * a_y2 - a_y1 * a_x2) * (b_y1 - b_y2) - (a_y1 - a_y2) * (b_x1 * b_y2 - b_y1 * b_x2)) / denominator
 
     return x, y
 

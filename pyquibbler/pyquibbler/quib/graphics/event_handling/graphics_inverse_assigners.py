@@ -11,7 +11,8 @@ from .utils import skip_vectorize
 
 
 @graphics_inverse_assigner(['Axes.plot'])
-def get_override_group_for_axes_plot(enhanced_pick_event: EnhancedPickEventWithFuncArgsKwargs, mouse_event: MouseEvent) -> OverrideGroup:
+def get_override_group_for_axes_plot(enhanced_pick_event: EnhancedPickEventWithFuncArgsKwargs,
+                                     mouse_event: MouseEvent) -> OverrideGroup:
     """
     Returns a group of overrides implementing a mouse interaction with graphics created by `plt.plot(...)`.
     """
@@ -28,7 +29,8 @@ def get_override_group_for_axes_plot(enhanced_pick_event: EnhancedPickEventWithF
 
 
 @graphics_inverse_assigner(['Axes.scatter'])
-def get_override_group_for_axes_scatter(enhanced_pick_event: EnhancedPickEventWithFuncArgsKwargs, mouse_event: MouseEvent) -> OverrideGroup:
+def get_override_group_for_axes_scatter(enhanced_pick_event: EnhancedPickEventWithFuncArgsKwargs,
+                                        mouse_event: MouseEvent) -> OverrideGroup:
     """
     Returns a group of overrides implementing a mouse interaction with graphics created by `plt.scatter(...)`.
     """
@@ -46,7 +48,8 @@ FUNC_NAME_TO_ARGS = {
     'Axes.axvline',
     'Axes.axhline',
 ])
-def get_override_group_for_axes_lines(enhanced_pick_event: EnhancedPickEventWithFuncArgsKwargs, mouse_event: MouseEvent) -> OverrideGroup:
+def get_override_group_for_axes_lines(enhanced_pick_event: EnhancedPickEventWithFuncArgsKwargs,
+                                      mouse_event: MouseEvent) -> OverrideGroup:
     """
     Returns a group of overrides implementing a mouse interaction with graphics created by `plt.scatter(...)`.
     """
