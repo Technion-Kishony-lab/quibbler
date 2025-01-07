@@ -1,4 +1,4 @@
-from typing import Callable, Optional
+from typing import Callable, Optional, NamedTuple, Union
 
 import pytest
 from numpy.linalg import norm
@@ -8,9 +8,16 @@ from pyquibbler.quib.graphics.event_handling.utils import get_closest_point_on_l
 from pyquibbler.quib.types import PointArray
 
 
+class Solution(NamedTuple):
+    value: float
+    point: PointArray
+    distance: float
+    tol_value: float
+
+
 def solve_single_point_on_curve(func: Callable,
                                 v0: Number, v1: Number,
-                                xy: PointArray, tolerance: float = 1,
+                                xy: PointArray, tolerance: Union[Number, PointArray] = 1,
                                 max_iter: int = 10,
                                 p0: Optional[PointArray] = None, p1: Optional[PointArray] = None
                                 ) -> (float, PointArray, int):
@@ -27,7 +34,7 @@ def solve_single_point_on_curve(func: Callable,
         The second guess for the variable value.
     xy : PointArray
         The point for which the curve should be closest to.
-    tolerance : float
+    tolerance : Number or PointArray
         The tolerance for the distance between the curve and the point.
     p0 : Optional[PointArray]
         The point on the curve at v0. If None, it is calculated by calling func(v0).
@@ -41,20 +48,17 @@ def solve_single_point_on_curve(func: Callable,
         p1 = func((v1, ))
 
     num_iter = 0
-    closest_value = None
-    closest_distance = None
-    closest_point = None
+    best_solution = None
     while True:
+        tol_v = (v1 - v0) / norm((p1 - p0) / tolerance)
         distance = norm(p1 - xy)
-        if closest_distance is None or distance < closest_distance:
-            closest_distance = distance
-            closest_point = p1
-            closest_value = v1
+        if best_solution is None or distance < best_solution.distance:
+            best_solution = Solution(v1, p1, distance, tol_v)
         else:
-            return closest_value, closest_point, num_iter
+            return best_solution.value, best_solution.point, best_solution.tol_value, num_iter
         p_target, slope = get_closest_point_on_line(p0, p1, xy)
-        if norm(p1 - p_target) < tolerance or num_iter >= max_iter:
-            return v1, p1, num_iter
+        if norm((p1 - p_target) / tolerance) < 1 or num_iter >= max_iter:
+            return v1, p1, tol_v, num_iter
         else:
             overshoot = norm(p1 - p0) / norm(p_target - p0)
             v2 = v0 + (v1 - v0) / overshoot
@@ -83,7 +87,7 @@ def test_solve_single_point_on_curve(func, v0, v1, xy, expected_v, accuracy, exp
     Test the solve_single_point_on_curve function.
     """
     tuple_func = lambda x: func(x[0])
-    result, point, num_iter = solve_single_point_on_curve(tuple_func, v0, v1, xy)
+    result, point, _, num_iter = solve_single_point_on_curve(tuple_func, v0, v1, xy)
     assert abs(result - expected_v) <= accuracy, f'{name}: result is {result}, expected {expected_v}'
     assert num_iter == expected_nun_iter, f'{name}: num_iter is {num_iter}, expected {expected_nun_iter}'
 

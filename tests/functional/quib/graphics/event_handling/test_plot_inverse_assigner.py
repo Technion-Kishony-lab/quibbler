@@ -47,7 +47,15 @@ def create_mock_axes():
     ax.get_xlim = mock.Mock(return_value=[0, 100])
     ax.get_ylim = mock.Mock(return_value=[0, 100])
     ax.transData = mock.Mock()
-    ax.transData.transform = lambda x: x * pixels_to_data
+    def transform(x):
+        # check if datetime:
+        if isinstance(x, np.ndarray):
+            return np.array([transform(xi) for xi in x])
+        if isinstance(x, datetime):
+            x = date2num(x)
+        return x * pixels_to_data
+
+    ax.transData.transform = transform
     inverted_function = mock.Mock()
     inverted_function.transform = lambda x: x / pixels_to_data
     ax.transData.inverted = mock.Mock(return_value=inverted_function)
@@ -153,6 +161,8 @@ def test_plot_inverse_assigner(mock_plot, indices, artist_index, xdata, ydata, a
         quib_index = [quib_index]
         expected_value = [expected_value]
     for index, expected in zip(quib_index, expected_value):
+        print(args[index].get_value())
+        print(expected)
         assert np.array_equal(args[index].get_value(), expected)
 
 

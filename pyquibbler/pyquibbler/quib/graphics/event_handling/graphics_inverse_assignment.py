@@ -13,8 +13,10 @@ from typing import Any, Union, Optional, List, Tuple
 from numpy._typing import NDArray
 
 from pyquibbler.assignment import get_axes_x_y_tolerance, OverrideGroup, \
-    AssignmentToQuib, default, get_override_group_for_quib_change
+    AssignmentToQuib, default, get_override_group_for_quib_change, AssignmentWithTolerance, Assignment, \
+    create_assignment
 from pyquibbler.assignment.utils import convert_scalar_value
+from pyquibbler.env import GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION
 from pyquibbler.path import deep_get
 
 from .affected_args_and_paths import get_quib_and_path_affected_by_event
@@ -72,7 +74,9 @@ def _get_unique_overrides_and_initial_values(overrides: List[AssignmentToQuib]) 
     }
 
     while len(overrides_to_initial_values) > 0:
-        override, initial_value = overrides_to_initial_values.popitem()
+        # get the first item (not the last) to ensure the order is consistent
+        override = next(iter(overrides_to_initial_values))
+        initial_value = overrides_to_initial_values.pop(override)
         # remove all the overrides that are the same as the current override
         with OverrideGroup([override]).temporarily_apply():
             new_value = _get_quib_value_at_path((override.quib, override.assignment.path))
@@ -87,6 +91,11 @@ def _get_unique_overrides_and_initial_values(overrides: List[AssignmentToQuib]) 
     return unique_overrides, initial_values
 
 
+def _transform_data_with_none_to_pixels(ax: Axes, data: PointArray) -> PointArray:
+    data = np.where(data == None, 0, data)
+    return PointArray(ax.transData.transform(data))
+
+
 def _get_point_on_line_in_axes(ax: Axes,
                                overrides: OverrideGroup,
                                xy_quib_and_path: PointArray[QuibAndPath],
@@ -99,7 +108,7 @@ def _get_point_on_line_in_axes(ax: Axes,
         override.assignment.value = value
     with overrides.temporarily_apply():
         xy_data = skip_vectorize(_get_quib_value_at_path)(xy_quib_and_path)
-    return ax.transData.transform(xy_data)
+    return _transform_data_with_none_to_pixels(ax, xy_data[0])
 
 
 @dataclass
@@ -151,12 +160,15 @@ class GetOverrideGroupFromGraphics:
     def ax(self):
         return self.enhanced_pick_event.ax
 
+    @property
+    def xys_target_values_pixels(self) -> PointArray:
+        return self.xy_mouse + self.enhanced_pick_event.xy_offset
+
     def get_xy_old_and_target_values(self, xys_arg_quib_and_path) -> tuple[PointArray, PointArray]:
         xys_old = skip_vectorize(_get_quib_value_at_path)(xys_arg_quib_and_path)
 
-        xys_target_values_pixels = self.xy_mouse + self.enhanced_pick_event.xy_offset
         transData_inverted = self.ax.transData.inverted()
-        xys_target_values = transData_inverted.transform(xys_target_values_pixels)
+        xys_target_values = transData_inverted.transform(self.xys_target_values_pixels)
         xys_target_values = skip_vectorize(convert_scalar_value)(xys_old, xys_target_values)
         return xys_old, xys_target_values
 
@@ -177,7 +189,6 @@ class GetOverrideGroupFromGraphics:
             return OverrideGroup()
 
         xys_old, xys_target_values = self.get_xy_old_and_target_values(xys_arg_quib_and_path)
-        xys_old_assigned_source_values = skip_vectorize(_get_quib_value_at_path)(xys_arg_quib_and_path)
 
         xys_overrides = _get_overrides_from_changes(xys_arg_quib_and_path, xys_target_values)
 
@@ -187,18 +198,21 @@ class GetOverrideGroupFromGraphics:
         unique_source_overrides, unique_source_initial_values = _get_unique_overrides_and_initial_values(
             [o for o in xys_source_overrides[:, xy_order].flatten() if o is not None])
 
-        if len(unique_source_overrides) == 1 and num_points == 1 and False:
+        if len(unique_source_overrides) == 1 and num_points == 1:
             # Only one unique override
-            value, _, _ =solve_single_point_on_curve(
-                func=partial(_get_point_on_line_in_axes, unique_source_overrides, xys_arg_quib_and_path),
+            value, _, tol_value, _ = solve_single_point_on_curve(
+                func=partial(_get_point_on_line_in_axes, self.ax, unique_source_overrides, xys_arg_quib_and_path),
                 v0=unique_source_initial_values[0],
                 v1=unique_source_overrides[0].assignment.value,
-                xy=self.xy_mouse,
+                xy=self.xys_target_values_pixels[0],
                 tolerance=1,
                 max_iter=4,
-                p0=xys_old[0],
+                p0=_transform_data_with_none_to_pixels(self.ax, xys_old[0]),
             )
-            unique_source_overrides[0].assignment.value = value
+            unique_source_overrides[0].assignment = \
+                create_assignment(value, unique_source_overrides[0].assignment.path,
+                                  None if GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.val is None
+                                  else tol_value / GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.val * 1000)
             return unique_source_overrides
 
         for j_ind, (quibs_and_paths, overrides, source_overrides, xy_old, xy_target_values) \
