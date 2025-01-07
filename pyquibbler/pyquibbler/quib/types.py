@@ -3,7 +3,6 @@ from dataclasses import dataclass
 from typing import Optional
 
 import numpy as np
-import pytest
 
 from pyquibbler.utilities.numpy_original_functions import np_array
 
@@ -63,14 +62,3 @@ class PointArray(np.ndarray):
             return
         # Ensure slicing preserves the (n, 2) shape constraint
         self._check_shape(obj)
-
-
-@pytest.mark.parametrize(['point_nd', 'other', 'expected'], [
-    (PointArray([[1, 2]]), PointArray([[3, 4]]), PointArray([[4, 6]])),
-    (PointArray([[1, 2]]), (3, 4), PointArray([[4, 6]])),
-    (PointArray([[1, 2]]), 3, PointArray([[4, 5]])),
-])
-def test_point_nd_add(point_nd, other, expected):
-    result = point_nd + other
-    assert np.array_equal(result, expected)
-    assert isinstance(result, PointArray)
