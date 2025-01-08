@@ -1,3 +1,4 @@
+import pytest
 from matplotlib import pyplot as plt
 
 from pyquibbler import iquib, undo, redo
@@ -140,3 +141,24 @@ def test_drag_one_object_to_affect_another_2d(axes, create_axes_mouse_press_move
     assert abs(x.get_value() - 7) < 0.04
     assert abs(y.get_value() - 7) < 0.04
 
+
+@pytest.mark.parametrize('s2, d2', [
+    (6, 0),
+    (6, 2),
+    (0, 6),
+])
+def test_two_variables_with_dependent_coordinates(axes, create_axes_mouse_press_move_release_events,
+                                                  s2, d2):
+    x = iquib(2.)
+    y = iquib(2.)
+    s = x + y
+    d = y - x
+    axes.axis([-10, 10, -10, 10])
+    axes.plot(s, d, 'o')
+    create_axes_mouse_press_move_release_events(((4, 0), (s2, d2)))
+
+    solution_x = (s2 - d2) / 2
+    solution_y = (s2 + d2) / 2
+
+    assert abs(x.get_value() - solution_x) < 0.04
+    assert abs(y.get_value() - solution_y) < 0.04
