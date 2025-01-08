@@ -11,16 +11,18 @@ from matplotlib.backend_bases import MouseEvent, MouseButton
 from typing import Any, Union, Optional, List, Tuple
 
 from numpy._typing import NDArray
+from numpy.linalg import norm
 
 from pyquibbler.assignment import get_axes_x_y_tolerance, OverrideGroup, \
     AssignmentToQuib, default, get_override_group_for_quib_change, create_assignment
 from pyquibbler.assignment.utils import convert_scalar_value
 from pyquibbler.env import GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION
 from pyquibbler.path import deep_get
+from pyquibbler.utilities.numpy_original_functions import np_array
 
 from .affected_args_and_paths import get_quib_and_path_affected_by_event
 from .enhance_pick_event import EnhancedPickEventWithFuncArgsKwargs
-from .solvers import solve_single_point_on_curve
+from .solvers import solve_single_point_on_curve, solve_single_point_with_two_variables
 from .utils import get_closest_point_on_line_in_axes, skip_vectorize
 
 from typing import TYPE_CHECKING
@@ -168,8 +170,49 @@ class GetOverrideGroupFromGraphics:
 
         transData_inverted = self.ax.transData.inverted()
         xys_target_values = transData_inverted.transform(self.xys_target_values_pixels)
-        xys_target_values = skip_vectorize(convert_scalar_value)(xys_old, xys_target_values)
-        return xys_old, xys_target_values
+        xys_target_values_typed = skip_vectorize(convert_scalar_value)(xys_old, xys_target_values)
+
+        unchanged = xys_target_values_typed == xys_old
+        if np.any(unchanged):
+            # if the target value is the same as the old value, we add a pixel to the target value
+            # to have some scale for the solver
+            xys_target_values_1 = transData_inverted.transform(self.xys_target_values_pixels + 1)
+            xys_target_values_typed_1 = skip_vectorize(convert_scalar_value)(xys_old, xys_target_values_1)
+            xys_target_values_typed[unchanged] = xys_target_values_typed_1[unchanged]
+        return xys_old, xys_target_values_typed
+
+    def _get_overrides_for_single_point_on_curve(
+            self, xys_arg_quib_and_path, xys_old, unique_source_overrides, unique_source_initial_values):
+        value, _, tol_value, _ = solve_single_point_on_curve(
+            func=partial(_get_point_on_line_in_axes, self.ax, unique_source_overrides, xys_arg_quib_and_path),
+            v0=unique_source_initial_values[0],
+            v1=unique_source_overrides[0].assignment.value,
+            xy=self.xys_target_values_pixels[0],
+            tolerance=1,
+            max_iter=4,
+            p0=_transform_data_with_none_to_pixels(self.ax, xys_old[0]),
+        )
+        unique_source_overrides[0].assignment = \
+            create_assignment(value, unique_source_overrides[0].assignment.path,
+                              None if GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.val is None
+                              else tol_value / GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.val * 1000)
+        return unique_source_overrides
+
+    def _get_overrides_for_single_point_with_two_variables(
+            self, xys_arg_quib_and_path, xys_old, unique_source_overrides, unique_source_initial_values):
+        v1 = np_array([unique_source_overrides[0].assignment.value, unique_source_overrides[1].assignment.value])
+        values, solution_point, tol_values, _ = solve_single_point_with_two_variables(
+            func=partial(_get_point_on_line_in_axes, self.ax, unique_source_overrides, xys_arg_quib_and_path),
+            v0=np_array(unique_source_initial_values),
+            v1=v1,
+            xy=self.xys_target_values_pixels[0], tolerance=1, max_iter=6,
+            p0=_transform_data_with_none_to_pixels(self.ax, xys_old[0]))
+        for override, value, tol_value in zip(unique_source_overrides, values, tol_values):
+            override.assignment = \
+                create_assignment(value, override.assignment.path,
+                                  None if GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.val is None
+                                  else tol_value / GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.val * 1000)
+        return unique_source_overrides
 
     def get_overrides(self) -> OverrideGroup:
         point_indices = np.reshape(self.enhanced_pick_event.ind, (-1, 1))
@@ -198,22 +241,16 @@ class GetOverrideGroupFromGraphics:
         unique_source_overrides, unique_source_initial_values = _get_unique_overrides_and_initial_values(
             [o for o in xys_source_overrides[:, xy_order].flatten() if o is not None])
 
-        if len(unique_source_overrides) == 1 and num_points == 1:
-            # Only one unique override
-            value, _, tol_value, _ = solve_single_point_on_curve(
-                func=partial(_get_point_on_line_in_axes, self.ax, unique_source_overrides, xys_arg_quib_and_path),
-                v0=unique_source_initial_values[0],
-                v1=unique_source_overrides[0].assignment.value,
-                xy=self.xys_target_values_pixels[0],
-                tolerance=1,
-                max_iter=4,
-                p0=_transform_data_with_none_to_pixels(self.ax, xys_old[0]),
-            )
-            unique_source_overrides[0].assignment = \
-                create_assignment(value, unique_source_overrides[0].assignment.path,
-                                  None if GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.val is None
-                                  else tol_value / GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.val * 1000)
-            return unique_source_overrides
+        if num_points == 1:
+            if len(unique_source_overrides) == 1:
+                return self._get_overrides_for_single_point_on_curve(
+                    xys_arg_quib_and_path, xys_old, unique_source_overrides, unique_source_initial_values)
+
+            if len(unique_source_overrides) == 2:
+                return self._get_overrides_for_single_point_with_two_variables(
+                    xys_arg_quib_and_path, xys_old, unique_source_overrides, unique_source_initial_values)
+
+            return OverrideGroup()
 
         for j_ind, (quibs_and_paths, overrides, source_overrides, xy_old, xy_target_values) \
                 in enumerate(zip(xys_arg_quib_and_path, xys_overrides, xys_source_overrides, xys_old,
@@ -254,19 +291,3 @@ class GetOverrideGroupFromGraphics:
                         break
 
         return OverrideGroup([o for o in xys_overrides.flatten() if o is not None])
-
-
-# Possible code for improving assignment results using an iterative numeric solution (might be too slow in practice)
-# See test_drag_same_arg_binary_operator_non_linear
-#
-# from .utils import get_sqr_distance_in_axes
-# def _distance_to_mouse(assigned_values):
-#     along_line_override.quib_changes[0].assignment.value = assigned_values[0]
-#     along_line_override.apply(temporarily=True)
-#     xy_new = _get_xy_current_point_from_xy_change(xy_change)
-#     Project.get_or_create().silently_undo_pending_group()
-#     return get_sqr_distance_in_axes(ax, xy_new, xy_assigned_value)
-#
-# from scipy.optimize import fmin
-# assigned_value = fmin(_distance_to_mouse, [along_line_override.quib_changes[0].assignment.value],
-#                       xtol=1e10, ftol=1)
