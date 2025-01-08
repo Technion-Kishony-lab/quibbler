@@ -13,7 +13,6 @@ from pyquibbler.quib.types import PointArray
 def test_point_array_add(point_nd, other, expected):
     result = point_nd + other
     assert np.array_equal(result, expected)
-    assert isinstance(result, PointArray)
 
 
 @pytest.mark.parametrize('func, v0, v1, xy, expected_v, accuracy, expected_nun_iter, name', [

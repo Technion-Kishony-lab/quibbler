@@ -22,15 +22,15 @@ def get_closest_point_on_line(xy1: PointArray, xy2: PointArray, xy_p: PointArray
     d = xy2 - xy1
     d_s = d * d
 
-    sum_d_s = d_s.x + d_s.y
+    sum_d_s = d_s[0] + d_s[1]
     sqrt_d_s = np.sqrt(sum_d_s)
     if sum_d_s < EPSILON:
         return xy1, PointArray([1, 1])
     else:
-        x = (d.x * d.y * (xy_p.y - xy1.y) + d_s.x * xy_p.x + d_s.y * xy1.x) / sum_d_s
-        y = (d.x * d.y * (xy_p.x - xy1.x) + d_s.y * xy_p.y + d_s.x * xy1.y) / sum_d_s
+        x = (d[0] * d[1] * (xy_p[1] - xy1[1]) + d_s[0] * xy_p[0] + d_s[1] * xy1[0]) / sum_d_s
+        y = (d[0] * d[1] * (xy_p[0] - xy1[0]) + d_s[1] * xy_p[1] + d_s[0] * xy1[1]) / sum_d_s
 
-    return PointArray([x, y]), PointArray([d.x / sqrt_d_s, d.y / sqrt_d_s])
+    return PointArray([x, y]), PointArray([d[0] / sqrt_d_s, d[1] / sqrt_d_s])
 
 
 def get_closest_point_on_line_in_axes(ax: Axes, xy1: PointArray, xy2: PointArray, xy_p: PointArray
@@ -101,7 +101,7 @@ def get_sqr_distance_in_axes(ax: Axes, xy1: PointArray, xy2: PointArray) -> floa
     xy2 = PointArray(ax.transData.transform(xy2))
     d = xy1 - xy2
 
-    return d.x ** 2 + d.y ** 2
+    return d[0] ** 2 + d[1] ** 2
 
 
 def skip_vectorize(func, *args, otypes=0, **kwargs):

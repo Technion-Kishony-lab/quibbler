@@ -55,7 +55,7 @@ class RectangleSelectorQuibFuncCall(WidgetQuibFuncCall):
 
             tolerance = get_axes_x_y_tolerance(self._get_axis())
             if tolerance is not None:
-                tolerance = np.array([tolerance.x, tolerance.x, tolerance.y, tolerance.y])
+                tolerance = tolerance[[0, 0, 1, 1]]
 
             if isinstance(init_val, Quib):
                 self._inverse_assign(init_val,
