@@ -109,7 +109,7 @@ def _get_point_on_line_in_axes(ax: Axes,
         override.assignment.value = value
     with overrides.temporarily_apply():
         xy_data = skip_vectorize(_get_quib_value_at_path)(xy_quib_and_path)
-    return _transform_data_with_none_to_pixels(ax, xy_data[0])
+    return _transform_data_with_none_to_pixels(ax, xy_data)
 
 
 @dataclass
@@ -165,6 +165,10 @@ class GetOverrideGroupFromGraphics:
     def xys_target_values_pixels(self) -> PointArray:
         return self.xy_mouse + self.enhanced_pick_event.xy_offset
 
+    def _get_target_values_pixels(self, j_ind) -> PointArray:
+        xys_target_values_pixels = self.xys_target_values_pixels
+        return xys_target_values_pixels[min(j_ind, len(xys_target_values_pixels) - 1)]
+
     def get_xy_old_and_target_values(self, xys_arg_quib_and_path) -> tuple[PointArray, PointArray]:
         xys_old = skip_vectorize(_get_quib_value_at_path)(xys_arg_quib_and_path)
 
@@ -182,15 +186,15 @@ class GetOverrideGroupFromGraphics:
         return xys_old, xys_target_values_typed
 
     def _get_overrides_for_single_point_on_curve(
-            self, xys_arg_quib_and_path, xys_old, unique_source_overrides, unique_source_initial_values):
+            self, j_ind, xys_arg_quib_and_path, xys_old, unique_source_overrides, unique_source_initial_values):
         value, _, tol_value, _ = solve_single_point_on_curve(
-            func=partial(_get_point_on_line_in_axes, self.ax, unique_source_overrides, xys_arg_quib_and_path),
+            func=partial(_get_point_on_line_in_axes, self.ax, unique_source_overrides, xys_arg_quib_and_path[j_ind]),
             v0=unique_source_initial_values[0],
             v1=unique_source_overrides[0].assignment.value,
-            xy=self.xys_target_values_pixels[0],
+            xy=self._get_target_values_pixels(j_ind),
             tolerance=1,
             max_iter=4,
-            p0=_transform_data_with_none_to_pixels(self.ax, xys_old[0]),
+            p0=_transform_data_with_none_to_pixels(self.ax, xys_old[j_ind]),
         )
         unique_source_overrides[0].assignment = \
             create_assignment(value, unique_source_overrides[0].assignment.path,
@@ -199,14 +203,16 @@ class GetOverrideGroupFromGraphics:
         return unique_source_overrides
 
     def _get_overrides_for_single_point_with_two_variables(
-            self, xys_arg_quib_and_path, xys_old, unique_source_overrides, unique_source_initial_values):
+            self, j_ind, xys_arg_quib_and_path, xys_old, unique_source_overrides, unique_source_initial_values):
         v1 = np_array([unique_source_overrides[0].assignment.value, unique_source_overrides[1].assignment.value])
         values, solution_point, tol_values, _ = solve_single_point_with_two_variables(
-            func=partial(_get_point_on_line_in_axes, self.ax, unique_source_overrides, xys_arg_quib_and_path),
+            func=partial(_get_point_on_line_in_axes, self.ax, unique_source_overrides, xys_arg_quib_and_path[j_ind]),
             v0=np_array(unique_source_initial_values),
             v1=v1,
-            xy=self.xys_target_values_pixels[0], tolerance=1, max_iter=6,
-            p0=_transform_data_with_none_to_pixels(self.ax, xys_old[0]))
+            xy=self._get_target_values_pixels(j_ind),
+            tolerance=1,
+            max_iter=6,
+            p0=_transform_data_with_none_to_pixels(self.ax, xys_old[j_ind]))
         for override, value, tol_value in zip(unique_source_overrides, values, tol_values):
             override.assignment = \
                 create_assignment(value, override.assignment.path,
@@ -235,59 +241,22 @@ class GetOverrideGroupFromGraphics:
 
         xys_overrides = _get_overrides_from_changes(xys_arg_quib_and_path, xys_target_values)
 
-        xy_tolerance = get_axes_x_y_tolerance(self.ax)
         xys_source_overrides = skip_vectorize(lambda x: x[0])(xys_overrides)
         xy_order = (0, 1) if self._is_dragged_in_x_more_than_y() else (1, 0)
-        unique_source_overrides, unique_source_initial_values = _get_unique_overrides_and_initial_values(
-            [o for o in xys_source_overrides[:, xy_order].flatten() if o is not None])
 
-        if num_points == 1:
+        overrides = OverrideGroup()
+
+        for j_ind in range(num_points):
+
+            unique_source_overrides, unique_source_initial_values = _get_unique_overrides_and_initial_values(
+                [o for o in xys_source_overrides[j_ind, xy_order] if o is not None])
+
             if len(unique_source_overrides) == 1:
-                return self._get_overrides_for_single_point_on_curve(
-                    xys_arg_quib_and_path, xys_old, unique_source_overrides, unique_source_initial_values)
+                overrides.extend(self._get_overrides_for_single_point_on_curve(
+                    j_ind, xys_arg_quib_and_path, xys_old, unique_source_overrides, unique_source_initial_values))
 
-            if len(unique_source_overrides) == 2:
-                return self._get_overrides_for_single_point_with_two_variables(
-                    xys_arg_quib_and_path, xys_old, unique_source_overrides, unique_source_initial_values)
+            elif len(unique_source_overrides) == 2:
+                overrides.extend(self._get_overrides_for_single_point_with_two_variables(
+                    j_ind, xys_arg_quib_and_path, xys_old, unique_source_overrides, unique_source_initial_values))
 
-            return OverrideGroup()
-
-        for j_ind, (quibs_and_paths, overrides, source_overrides, xy_old, xy_target_values) \
-                in enumerate(zip(xys_arg_quib_and_path, xys_overrides, xys_source_overrides, xys_old,
-                                 xys_target_values)):
-            for focal_xy in xy_order:
-                other_xy = 1 - focal_xy
-                if overrides[focal_xy] is None:
-                    continue
-                with overrides[focal_xy].temporarily_apply():
-                    xy_new = skip_vectorize(_get_quib_value_at_path)(quibs_and_paths)
-
-                is_other_affected = xy_old[other_xy] != xy_new[other_xy]
-
-                overshoot = _calculate_assignment_overshoot(xy_old[focal_xy], xy_new[focal_xy],
-                                                            xy_target_values[focal_xy])
-                if overshoot is not None:
-                    if is_other_affected and self.ax is not None:
-                        xy_along_line, slope = get_closest_point_on_line_in_axes(
-                            self.ax, xy_old, xy_new, xy_target_values)
-                        adjusted_assigned_value = xy_along_line[focal_xy]
-                        if adjusted_assigned_value is None:
-                            continue
-                        adjustment_to_tolerance = slope[focal_xy]
-                    else:
-                        adjusted_assigned_value = xy_target_values[focal_xy]
-                        adjustment_to_tolerance = 1
-                    adjusted_value = xy_old[focal_xy] + (adjusted_assigned_value - xy_old[focal_xy]) * overshoot
-                    adjusted_tolerance = None if xy_tolerance is None \
-                        else xy_tolerance[focal_xy] * adjustment_to_tolerance
-
-                    adjusted_change = get_assignment_to_quib_from_quib_and_path(quib_and_path=quibs_and_paths[focal_xy],
-                                                                                value=adjusted_value,
-                                                                                tolerance=adjusted_tolerance)
-                    override = get_override_group_for_quib_change(adjusted_change)
-                    overrides[focal_xy] = override
-                    if is_other_affected:
-                        overrides[other_xy] = None
-                        break
-
-        return OverrideGroup([o for o in xys_overrides.flatten() if o is not None])
+        return overrides
