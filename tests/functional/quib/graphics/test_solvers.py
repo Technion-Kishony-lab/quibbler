@@ -36,7 +36,7 @@ def test_solve_single_point_on_curve(func, v0, v1, xy, expected_v, accuracy, exp
     Test the solve_single_point_on_curve function.
     """
     tuple_func = lambda x: func(x[0])
-    result, point, _, num_iter = solve_single_point_on_curve(tuple_func, v0, v1, xy)
+    result, point, _, num_iter = solve_single_point_on_curve(tuple_func, [v0], [v1], xy)
     assert abs(result - expected_v) <= accuracy, f'{name}: result is {result}, expected {expected_v}'
     assert num_iter == expected_nun_iter, f'{name}: num_iter is {num_iter}, expected {expected_nun_iter}'
 

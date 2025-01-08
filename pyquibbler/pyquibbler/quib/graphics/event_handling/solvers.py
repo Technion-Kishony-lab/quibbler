@@ -19,10 +19,10 @@ class Solution(NamedTuple):
 
 
 def solve_single_point_on_curve(func: Callable,
-                                v0: Number, v1: Number,
+                                v0: NDArray, v1: NDArray,
                                 xy: PointArray, tolerance: Union[Number, PointArray] = 1,
                                 max_iter: int = 10,
-                                p0: Optional[PointArray] = None, p1: Optional[PointArray] = None
+                                p0: Optional[PointArray] = None
                                 ) -> (Number, PointArray, Number, int):
     """
     Find the variable value for which the curve defined by func is closest to the point xy.
@@ -31,24 +31,25 @@ def solve_single_point_on_curve(func: Callable,
     ----------
     func : Callable
         A function of a single variable. Returns a PointArray.
-    v0 : Number
-        The initial guess for the variable value.
-    v1 : Number
-        The second guess for the variable value.
+    v0 : NDArray
+        Array of shape (1, ) with the initial guess for the variable value.
+    v1 : NDArray
+        Array of shape (1, ) with the second guess for the variable value.
     xy : PointArray
         The point for which the curve should be closest to.
     tolerance : Number or PointArray
         The tolerance for the distance between the curve and the point.
     p0 : Optional[PointArray]
         The point on the curve at v0. If None, it is calculated by calling func(v0).
-    p1 : Optional[PointArray]
-        The point on the curve at v1. If None, it is calculated by calling func(v1).
     """
+
+    v0 = v0[0]
+    v1 = v1[0]
 
     if p0 is None:
         p0 = func((v0, ))
-    if p1 is None:
-        p1 = func((v1, ))
+
+    p1 = func((v1, ))
 
     num_iter = 0
     best_solution = None
@@ -74,7 +75,7 @@ def solve_single_point_on_curve(func: Callable,
         v0, v1 = v1, v2
         p0, p1 = p1, p2
 
-    return best_solution.value, best_solution.point, best_solution.tol_value, num_iter
+    return np_array([best_solution.value]), best_solution.point, np_array([best_solution.tol_value]), num_iter
 
 
 def decompose_vector_into_two_components(vw: PointArray, xy: PointArray) -> Tuple[NDArray, bool]:

@@ -97,11 +97,11 @@ def _transform_data_with_none_to_pixels(ax: Axes, data: PointArray) -> PointArra
     return PointArray(ax.transData.transform(data))
 
 
-def _get_point_on_line_in_axes(ax: Axes,
-                               overrides: OverrideGroup,
-                               xy_quib_and_path: PointArray[QuibAndPath],
-                               values: List[Number],
-                               ) -> PointArray:
+def _get_axes_point_from_quib_and_paths(ax: Axes,
+                                        overrides: OverrideGroup,
+                                        xy_quib_and_path: PointArray[QuibAndPath],
+                                        values: List[Number],
+                                        ) -> PointArray:
     """
     function to use in solve_single_point_on_curve
     """
@@ -185,40 +185,16 @@ class GetOverrideGroupFromGraphics:
             xys_target_values_typed[unchanged] = xys_target_values_typed_1[unchanged]
         return xys_old, xys_target_values_typed
 
-    def _get_overrides_for_single_point_on_curve(
-            self, j_ind, xys_arg_quib_and_path, xys_old, unique_source_overrides, unique_source_initial_values):
-        value, _, tol_value, _ = solve_single_point_on_curve(
-            func=partial(_get_point_on_line_in_axes, self.ax, unique_source_overrides, xys_arg_quib_and_path[j_ind]),
-            v0=unique_source_initial_values[0],
-            v1=unique_source_overrides[0].assignment.value,
-            xy=self._get_target_values_pixels(j_ind),
-            tolerance=1,
-            max_iter=4,
-            p0=_transform_data_with_none_to_pixels(self.ax, xys_old[j_ind]),
-        )
-        unique_source_overrides[0].assignment = \
-            create_assignment(value, unique_source_overrides[0].assignment.path,
-                              None if GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.val is None
-                              else tol_value / GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.val * 1000)
-        return unique_source_overrides
-
-    def _get_overrides_for_single_point_with_two_variables(
-            self, j_ind, xys_arg_quib_and_path, xys_old, unique_source_overrides, unique_source_initial_values):
-        v1 = np_array([unique_source_overrides[0].assignment.value, unique_source_overrides[1].assignment.value])
-        values, solution_point, tol_values, _ = solve_single_point_with_two_variables(
-            func=partial(_get_point_on_line_in_axes, self.ax, unique_source_overrides, xys_arg_quib_and_path[j_ind]),
+    def _call_geometric_solver(self, solver, j_ind,
+                               xys_arg_quib_and_path, xys_old, unique_source_overrides, unique_source_initial_values):
+        return solver(
+            func=partial(_get_axes_point_from_quib_and_paths, self.ax, unique_source_overrides, xys_arg_quib_and_path[j_ind]),
             v0=np_array(unique_source_initial_values),
-            v1=v1,
+            v1=np_array([o.assignment.value for o in unique_source_overrides]),
             xy=self._get_target_values_pixels(j_ind),
             tolerance=1,
             max_iter=6,
             p0=_transform_data_with_none_to_pixels(self.ax, xys_old[j_ind]))
-        for override, value, tol_value in zip(unique_source_overrides, values, tol_values):
-            override.assignment = \
-                create_assignment(value, override.assignment.path,
-                                  None if GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.val is None
-                                  else tol_value / GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.val * 1000)
-        return unique_source_overrides
 
     def get_overrides(self) -> OverrideGroup:
         point_indices = np.reshape(self.enhanced_pick_event.ind, (-1, 1))
@@ -252,11 +228,17 @@ class GetOverrideGroupFromGraphics:
                 [o for o in xys_source_overrides[j_ind, xy_order] if o is not None])
 
             if len(unique_source_overrides) == 1:
-                overrides.extend(self._get_overrides_for_single_point_on_curve(
-                    j_ind, xys_arg_quib_and_path, xys_old, unique_source_overrides, unique_source_initial_values))
-
+                solver = solve_single_point_on_curve
             elif len(unique_source_overrides) == 2:
-                overrides.extend(self._get_overrides_for_single_point_with_two_variables(
-                    j_ind, xys_arg_quib_and_path, xys_old, unique_source_overrides, unique_source_initial_values))
-
+                solver = solve_single_point_with_two_variables
+            else:
+                continue
+            values, solution_point, tol_values, _ = self._call_geometric_solver(solver, j_ind,
+                xys_arg_quib_and_path, xys_old, unique_source_overrides, unique_source_initial_values)
+            for override, value, tol_value in zip(unique_source_overrides, values, tol_values):
+                override.assignment = \
+                    create_assignment(value, override.assignment.path,
+                                      None if GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.val is None
+                                      else tol_value / GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.val * 1000)
+                overrides.append(override)
         return overrides
