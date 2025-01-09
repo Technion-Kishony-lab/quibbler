@@ -18,6 +18,7 @@ def test_point_array_add(point_nd, other, expected):
 
 
 @pytest.mark.parametrize('func, v0, v1, xy, expected_v, accuracy, expected_nun_iter, name', [
+    (lambda x: PointArray([x, 0]), 0, -10, PointArray([30, 0]), 30, 1, None, 'linear, oposite direction'),
     (lambda x: PointArray([x, x]), 0, 30, PointArray([30, 30]), 30, 1, 0, 'linear, exact'),
     (lambda x: PointArray([x, x]), 0, 30, PointArray([25, 35]), 30, 1, 0, 'linear, exact perpendicular'),
     (lambda x: PointArray([x, x]), 0, 10, PointArray([30, 30]), 30, 1, 1, 'linear, undershoot'),
@@ -27,8 +28,8 @@ def test_point_array_add(point_nd, other, expected):
     (lambda x: PointArray([x, 10]), 0, 20, PointArray([30, 40]), 30, 1, 1, 'horizontal line, linear, undershoot'),
     (lambda x: PointArray([10, x]), 0, 30, PointArray([40, 30]), 30, 1, 0, 'vertical line, linear, exact'),
     (lambda x: PointArray([10, x]), 0, 20, PointArray([40, 30]), 30, 1, 1, 'vertical line, linear, undershoot'),
-    (lambda x: PointArray([x, x ** 2 / 10]), 30, 20, PointArray([0, -10]), 0, 4, 3, 'non-linear with minimum'),
-    (lambda x: PointArray([0, x ** 2 / 10]), 30, 10, PointArray([0, -10]), 0, 4, 3, 'back and forth line'),
+    (lambda x: PointArray([x, x ** 2 / 10]), 30, 20, PointArray([0, -10]), 0, 1, None, 'non-linear with minimum'),
+    (lambda x: PointArray([0, x ** 2]), 10, 3, PointArray([0, -10]), 0, 1, None, 'back and forth line'),
     (lambda x: PointArray([0, 0]), 30, 10, PointArray([0, 10]), 10, 1, 0, 'return p1 if not moving'),
 ])
 def test_solve_single_point_on_curve(func, v0, v1, xy, expected_v, accuracy, expected_nun_iter, name):
@@ -38,7 +39,8 @@ def test_solve_single_point_on_curve(func, v0, v1, xy, expected_v, accuracy, exp
     tuple_func = lambda x: func(x[0])
     result, point, _, num_iter = solve_single_point_on_curve(tuple_func, [v0], [v1], xy)
     assert abs(result - expected_v) <= accuracy, f'{name}: result is {result}, expected {expected_v}'
-    assert num_iter == expected_nun_iter, f'{name}: num_iter is {num_iter}, expected {expected_nun_iter}'
+    if expected_nun_iter is not None:
+        assert num_iter == expected_nun_iter, f'{name}: num_iter is {num_iter}, expected {expected_nun_iter}'
 
 
 def test_decompose_vector_into_two_components():

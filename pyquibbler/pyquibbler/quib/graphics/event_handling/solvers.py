@@ -6,7 +6,7 @@ from numpy._typing import NDArray
 from numpy.linalg import norm
 from numbers import Number
 
-from pyquibbler.quib.graphics.event_handling.utils import get_closest_point_on_line
+from pyquibbler.quib.graphics.event_handling.utils import get_closest_point_on_line, _get_overshoot
 from pyquibbler.quib.types import PointArray
 from pyquibbler.utilities.numpy_original_functions import np_array
 
@@ -66,14 +66,15 @@ def solve_single_point_on_curve(func: Callable,
         distance = norm(p1 - xy)
         if best_solution is None or distance < best_solution.distance:
             best_solution = Solution(v1, p1, distance, tol_v)
-        else:
-            break
 
         p_target, slope = get_closest_point_on_line(p0, p1, xy)
         if norm((p1 - p_target) / tolerance) < 1 or num_iter >= max_iter:
             break
-
-        overshoot = dpv_norm / norm(p_target - p0)
+        norm_diff = norm(p_target - p0)
+        if norm_diff:
+            overshoot = _get_overshoot(p0, p_target, p1)
+        else:
+            overshoot = 1
         v2 = v0 + dv / overshoot
         num_iter += 1
         p2 = func((v2, ))
