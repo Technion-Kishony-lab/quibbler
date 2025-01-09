@@ -8,7 +8,7 @@ import numpy as np
 from matplotlib.axes import Axes
 from matplotlib.backend_bases import MouseEvent, MouseButton
 
-from typing import Any, Union, Optional, List, Tuple
+from typing import Any, Union, Optional, List, Tuple, Dict
 
 from numpy._typing import NDArray
 
@@ -59,7 +59,7 @@ def _get_overrides_from_changes(quib_and_path: NDArray[QuibAndPath], value: NDAr
 
 
 def _get_unique_overrides_and_initial_values(overrides: NDArray[Optional[AssignmentToQuib]]
-                                             ) -> Tuple[OverrideGroup, List[Number]]:
+                                             ) -> Tuple[Dict[AssignmentToQuib, Number], NDArray[int]]:
     """
     find all the unique quib x paths in the overrides
     to assess if override B is the same as A, we apply A and check if B is changing to the same value
@@ -67,7 +67,7 @@ def _get_unique_overrides_and_initial_values(overrides: NDArray[Optional[Assignm
     overrides: list of AssignmentToQuib
     """
     # initiate an object array of size of overrides with all values 'None'
-    oberride_unique_num = np.zeros_like(overrides, dtype=int) - 1
+    overrides_unique_num = np.zeros_like(overrides, dtype=int) - 1
 
     initial_values = skip_vectorize(
         lambda o: _get_quib_value_at_path((o.quib, o.assignment.path)))(overrides)
@@ -77,7 +77,7 @@ def _get_unique_overrides_and_initial_values(overrides: NDArray[Optional[Assignm
     for i, override in enumerate(overrides.flat):
         if override is None:
             continue
-        if oberride_unique_num.flat[i] != -1:
+        if overrides_unique_num.flat[i] != -1:
             continue
         initial_value = initial_values.flat[i]
         # find all the overrides that are the same as the current override
@@ -86,6 +86,9 @@ def _get_unique_overrides_and_initial_values(overrides: NDArray[Optional[Assignm
             if new_value == initial_value:
                 # this override is effectless. we skip it
                 continue
+            current_num = len(unique_overrides_to_intial_values)
+            overrides_unique_num.flat[i] = current_num
+            unique_overrides_to_intial_values[override] = initial_value
             for j in range(i + 1, overrides.size):
                 other_override = overrides.flat[j]
                 if other_override is None:
@@ -93,9 +96,8 @@ def _get_unique_overrides_and_initial_values(overrides: NDArray[Optional[Assignm
                 other_initial_value = initial_values.flat[j]
                 other_new_value = _get_quib_value_at_path((other_override.quib, other_override.assignment.path))
                 if other_initial_value == initial_value and other_new_value == new_value:
-                    oberride_unique_num.flat[j] = len(unique_overrides_to_intial_values)
-            unique_overrides_to_intial_values[override] = new_value
-    return unique_overrides_to_intial_values, oberride_unique_num
+                    overrides_unique_num.flat[j] = current_num
+    return unique_overrides_to_intial_values, overrides_unique_num
 
 
 def _transform_data_with_none_to_pixels(ax: Axes, data: PointArray) -> PointArray:
@@ -270,7 +272,7 @@ class GetOverrideGroupFromGraphics:
             xys_overrides = _get_overrides_from_changes(xys_arg_quib_and_path, default)
             return OverrideGroup([o for o in xys_overrides.flatten() if o is not None])
 
-        if self.mouse_event.x is None or self.mouse_event.y is None:
+        if self.mouse_event.x is None or self.mouse_event.y is None and False:
             # Out of axes
             return OverrideGroup()
 
@@ -280,8 +282,10 @@ class GetOverrideGroupFromGraphics:
 
         xys_source_overrides = skip_vectorize(lambda x: x[0])(xys_overrides)
         xy_order = (0, 1) if self._is_dragged_in_x_more_than_y() else (1, 0)
+        unique_source_overrides_to_initial_values, overrides_unique_num = \
+            _get_unique_overrides_and_initial_values(xys_source_overrides[:, xy_order])
 
-        if self.enhanced_pick_event.is_segment and self.data_index is not None:
+        if self.enhanced_pick_event.is_segment and self.data_index is not None and False:
             unique_source_overrides, unique_source_initial_values = _get_unique_overrides_and_initial_values(
                 [o for o in xys_source_overrides[:, xy_order].flatten() if o is not None])
             # we can solve for getting the held segment point to the mouse
@@ -291,9 +295,13 @@ class GetOverrideGroupFromGraphics:
 
         overrides = OverrideGroup()
         for j_ind in range(num_points):
-            unique_source_overrides, _ = _get_unique_overrides_and_initial_values(xys_source_overrides[j_ind, xy_order])
-            overrides.extend(
-                self._call_geometric_solver_and_get_overrides(j_ind, xys_arg_quib_and_path, xys_old,
-                                                              OverrideGroup(unique_source_overrides.keys()),
-                                                              list(unique_source_overrides.values())))
+            source_nums = np.unique([unique_num for unique_num in overrides_unique_num[j_ind] if unique_num != -1])
+            if len(source_nums) == 0:
+                continue
+            unique_source_overrides = np_array(list(unique_source_overrides_to_initial_values.items()), dtype=object)[
+                source_nums]
+
+            overrides.extend(self._call_geometric_solver_and_get_overrides(
+                j_ind, xys_arg_quib_and_path, xys_old,
+                OverrideGroup(unique_source_overrides[:, 0]), unique_source_overrides[:, 1]))
         return overrides
