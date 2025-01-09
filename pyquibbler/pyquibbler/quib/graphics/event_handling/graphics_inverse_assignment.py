@@ -17,7 +17,7 @@ from pyquibbler.assignment import OverrideGroup, \
 from pyquibbler.assignment.utils import convert_scalar_value
 from pyquibbler.env import GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION
 from pyquibbler.path import deep_get
-from pyquibbler.utilities.numpy_original_functions import np_array, np_zeros
+from pyquibbler.utilities.numpy_original_functions import np_array
 
 from .affected_args_and_paths import get_quib_and_path_affected_by_event
 from .enhance_pick_event import EnhancedPickEventWithFuncArgsKwargs
@@ -253,19 +253,26 @@ class GetOverrideGroupFromGraphics:
             overrides.append(override)
         return overrides
 
-    def _call_geometric_solver_and_get_overrides(self, j_ind, xys_arg_quib_and_path, xys_old,
-                                                 unique_source_overrides, unique_source_initial_values):
+    def _call_geometric_solver_and_get_overrides(self, j_ind, source_nums, xys_arg_quib_and_path, xys_old,
+                                                 unique_source_overrides_and_initial_values):
+        unique_source_overrides = OverrideGroup(unique_source_overrides_and_initial_values[source_nums, 0])
+        unique_source_initial_values = unique_source_overrides_and_initial_values[source_nums, 1]
         values, _, tol_values, _ = self._call_geometric_solver(
             j_ind, xys_arg_quib_and_path, xys_old, unique_source_overrides, unique_source_initial_values)
         return self._translate_geometric_solution_to_overrides(values, tol_values, unique_source_overrides)
 
-    def get_overrides(self) -> OverrideGroup:
-        point_indices = np.reshape(self.enhanced_pick_event.ind, (-1, 1))
-        num_points = point_indices.size
+    @property
+    def point_indices(self) -> NDArray[int]:
+        return np.reshape(self.enhanced_pick_event.ind, (-1, 1))
 
+    @property
+    def num_points(self) -> int:
+        return self.point_indices.size
+
+    def get_overrides(self) -> OverrideGroup:
         # For x and y, get list of (quib, path) for each affected plot index. None if not a quib
         xys_arg_quib_and_path = skip_vectorize(get_quib_and_path_affected_by_event)(
-            [self.xy_args], self.data_index, point_indices)
+            [self.xy_args], self.data_index, self.point_indices)
 
         if self.enhanced_pick_event.button is MouseButton.RIGHT:
             # Right click. We reset the quib to its default value
@@ -282,26 +289,34 @@ class GetOverrideGroupFromGraphics:
 
         xys_source_overrides = skip_vectorize(lambda x: x[0])(xys_overrides)
         xy_order = (0, 1) if self._is_dragged_in_x_more_than_y() else (1, 0)
-        unique_source_overrides_to_initial_values, overrides_unique_num = \
+        unique_source_overrides_to_initial_values, xys_unique_source_nums = \
             _get_unique_overrides_and_initial_values(xys_source_overrides[:, xy_order])
+        unique_source_overrides_and_initial_values = \
+            np_array(list(unique_source_overrides_to_initial_values.items()), dtype=object)
+        sum_unique_sources = len(unique_source_overrides_to_initial_values)
 
-        if self.enhanced_pick_event.is_segment and self.data_index is not None and False:
-            unique_source_overrides, unique_source_initial_values = _get_unique_overrides_and_initial_values(
-                [o for o in xys_source_overrides[:, xy_order].flatten() if o is not None])
-            # we can solve for getting the held segment point to the mouse
-            if len(unique_source_overrides) <= 2:
+        # for each point, get the unique source nums:
+        unique_source_nums = []
+        for j_ind in range(self.num_points):
+            unique_source_nums.append(
+                np.unique([num for num in xys_unique_source_nums[j_ind] if num != -1]))
+
+        if self.enhanced_pick_event.is_segment and self.data_index is not None:
+            sum_overlaping_source_nums = len(set(unique_source_nums[0]) & set(unique_source_nums[1]))
+            num_points_with_sources = sum(1 for nums in unique_source_nums if len(nums) > 0)
+            if (sum_overlaping_source_nums > 0 or num_points_with_sources == 1) and 1 <= sum_unique_sources <= 2:
+                # These are the conditions in which we solve for getting the mouse-held segment point close to the mouse
+                # rather than moving each of the segment points independently
                 return self._call_geometric_solver_and_get_overrides(
-                    None, xys_arg_quib_and_path, xys_old, unique_source_overrides, unique_source_initial_values)
+                    None, np.arange(sum_unique_sources),
+                    xys_arg_quib_and_path, xys_old, unique_source_overrides_and_initial_values)
 
         overrides = OverrideGroup()
-        for j_ind in range(num_points):
-            source_nums = np.unique([unique_num for unique_num in overrides_unique_num[j_ind] if unique_num != -1])
+        for j_ind in range(self.num_points):
+            source_nums = unique_source_nums[j_ind]
             if len(source_nums) == 0:
                 continue
-            unique_source_overrides = np_array(list(unique_source_overrides_to_initial_values.items()), dtype=object)[
-                source_nums]
-
             overrides.extend(self._call_geometric_solver_and_get_overrides(
-                j_ind, xys_arg_quib_and_path, xys_old,
-                OverrideGroup(unique_source_overrides[:, 0]), unique_source_overrides[:, 1]))
+                j_ind, source_nums,
+                xys_arg_quib_and_path, xys_old, unique_source_overrides_and_initial_values))
         return overrides

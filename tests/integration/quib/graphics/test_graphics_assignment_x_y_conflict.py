@@ -102,9 +102,9 @@ def test_drag_segment_single_value(create_axes_mouse_press_move_release_events, 
     a = iquib(0.)
 
     axes.plot([0, np.cos(a)], [0, np.sin(a)], 'o-')
-
-    create_axes_mouse_press_move_release_events(((0.5, 0.), (0.4, 0.1)))
-    assert abs(a.get_value() - np.arctan2(0.1, 0.4)) < 0.02
+    new_a = np.pi / 4
+    create_axes_mouse_press_move_release_events(((0.5, 0.), (0.5*np.cos(new_a), 0.5*np.sin(new_a))))
+    assert abs(a.get_value() - new_a) < 0.02
 
 
 def test_drag_segment_two_values(create_axes_mouse_press_move_release_events, axes):
@@ -134,5 +134,18 @@ def test_drag_parallel(create_axes_mouse_press_move_release_events, axes):
     print()
     print(x1.get_value())
     print(x2.get_value())
-    # assert abs(x1.get_value() - 0.1) < 0.02
-    # assert abs(x2.get_value() - 0.5) < 0.02
+    assert abs(x1.get_value() - 0.2) < 0.02
+    assert abs(x2.get_value() - 0.6) < 0.02
+
+
+def test_drag_middle_tethered_line(create_axes_mouse_press_move_release_events, axes):
+    axes.set_xlim(-2, 2)
+    axes.set_ylim(-2, 2)
+
+    x = iquib(1.)
+
+    axes.plot([-x, x], [-1, 1], 'o-')
+
+    create_axes_mouse_press_move_release_events(((0.5, 0.5), (0.5, 0.4)))
+    print()
+    print(x.get_value())

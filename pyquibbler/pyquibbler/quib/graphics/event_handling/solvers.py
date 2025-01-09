@@ -185,8 +185,7 @@ def solve_single_point_with_two_variables(func: Callable,
         if closest is None or distance_to_xy < closest.distance:
             old_tol_v = closest.tol_value if closest is not None else np.zeros_like(dv)
             # do not warn on division by zero, because it is handled in the next line:
-            with np.errstate(divide='ignore', invalid='ignore'):
-                tol_v = np.abs(dv) / dp_norm * tolerance
+            tol_v = np.abs(dv) / (dp_norm + 1e-10) * tolerance
             tol_v[dv == 0] = old_tol_v[dv == 0]
             closest = Solution(expected_v, p_at_expected, distance_to_xy, tol_v)
         else:
