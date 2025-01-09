@@ -23,7 +23,7 @@ def solve_single_point_on_curve(func: Callable,
                                 xy: PointArray, tolerance: Union[Number, PointArray] = 1,
                                 max_iter: int = 10,
                                 p0: Optional[PointArray] = None
-                                ) -> (Number, PointArray, Number, int):
+                                ) -> (NDArray, PointArray, NDArray, int):
     """
     Find the variable value for which the curve defined by func is closest to the point xy.
 
@@ -178,7 +178,9 @@ def solve_single_point_with_two_variables(func: Callable,
         distance_to_xy = norm(p_at_expected - xy)
         if closest is None or distance_to_xy < closest.distance:
             old_tol_v = closest.tol_value if closest is not None else np.zeros_like(dv)
-            tol_v = np.abs(dv) / dp_norm * tolerance
+            # do not warn on division by zero, because it is handled in the next line:
+            with np.errstate(divide='ignore', invalid='ignore'):
+                tol_v = np.abs(dv) / dp_norm * tolerance
             tol_v[dv == 0] = old_tol_v[dv == 0]
             closest = Solution(expected_v, p_at_expected, distance_to_xy, tol_v)
         else:

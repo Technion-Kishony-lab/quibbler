@@ -112,6 +112,16 @@ def _get_axes_point_from_quib_and_paths(ax: Axes,
     return _transform_data_with_none_to_pixels(ax, xy_data)
 
 
+def _get_axes_segment_point_from_quib_and_paths(ax: Axes,
+                                                overrides: OverrideGroup,
+                                                xy_quib_and_path: PointArray[QuibAndPath],
+                                                values: List[PointArray],
+                                                segment_fraction: float,
+                                                ) -> PointArray:
+    xy_data = _get_axes_point_from_quib_and_paths(ax, overrides, xy_quib_and_path, values)
+    return (1 - segment_fraction) * xy_data[0] + segment_fraction * xy_data[1]
+
+
 @dataclass
 class GetOverrideGroupFromGraphics:
     xy_args: NDArray
@@ -169,6 +179,9 @@ class GetOverrideGroupFromGraphics:
         xys_target_values_pixels = self.xys_target_values_pixels
         return xys_target_values_pixels[min(j_ind, len(xys_target_values_pixels) - 1)]
 
+    def _get_target_segment_held_point(self) -> PointArray:
+        return self.xy_mouse[0] + self.enhanced_pick_event.mouse_to_segment
+
     def get_xy_old_and_target_values(self, xys_arg_quib_and_path) -> tuple[PointArray, PointArray]:
         xys_old = skip_vectorize(_get_quib_value_at_path)(xys_arg_quib_and_path)
 
@@ -185,16 +198,57 @@ class GetOverrideGroupFromGraphics:
             xys_target_values_typed[unchanged] = xys_target_values_typed_1[unchanged]
         return xys_old, xys_target_values_typed
 
-    def _call_geometric_solver(self, solver, j_ind,
+    def _call_geometric_solver(self, j_ind,
                                xys_arg_quib_and_path, xys_old, unique_source_overrides, unique_source_initial_values):
+
+        if len(unique_source_overrides) == 1:
+            solver = solve_single_point_on_curve
+        elif len(unique_source_overrides) == 2:
+            solver = solve_single_point_with_two_variables
+        else:
+            # no solution
+            return None
+
+        if j_ind is None:
+            # segment
+            segment_fraction = self.enhanced_pick_event.segment_fraction
+            func = partial(_get_axes_segment_point_from_quib_and_paths, self.ax, unique_source_overrides,
+                           xys_arg_quib_and_path,
+                           segment_fraction=segment_fraction)
+            p0 = _transform_data_with_none_to_pixels(self.ax, xys_old)
+            p0 = (1 - segment_fraction) * p0[0] + segment_fraction * p0[1]
+            xy = self._get_target_segment_held_point()
+        else:
+            # point
+            func = partial(_get_axes_point_from_quib_and_paths, self.ax, unique_source_overrides,
+                           xys_arg_quib_and_path[j_ind])
+            p0 = _transform_data_with_none_to_pixels(self.ax, xys_old[j_ind])
+            xy = self._get_target_values_pixels(j_ind)
+
         return solver(
-            func=partial(_get_axes_point_from_quib_and_paths, self.ax, unique_source_overrides, xys_arg_quib_and_path[j_ind]),
+            func=func,
             v0=np_array(unique_source_initial_values),
             v1=np_array([o.assignment.value for o in unique_source_overrides]),
-            xy=self._get_target_values_pixels(j_ind),
+            xy=xy,
             tolerance=1,
             max_iter=6,
-            p0=_transform_data_with_none_to_pixels(self.ax, xys_old[j_ind]))
+            p0=p0)
+
+    def _translate_geometric_solution_to_overrides(self, values, tol_values, unique_source_overrides):
+        overrides = OverrideGroup()
+        for override, value, tol_value in zip(unique_source_overrides, values, tol_values):
+            override.assignment = \
+                create_assignment(value, override.assignment.path,
+                                  None if GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.val is None
+                                  else tol_value / GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.val * 1000)
+            overrides.append(override)
+        return overrides
+
+    def _call_geometric_solver_and_get_overrides(self, j_ind, xys_arg_quib_and_path, xys_old,
+                                                 unique_source_overrides, unique_source_initial_values):
+        values, _, tol_values, _ = self._call_geometric_solver(
+            j_ind, xys_arg_quib_and_path, xys_old, unique_source_overrides, unique_source_initial_values)
+        return self._translate_geometric_solution_to_overrides(values, tol_values, unique_source_overrides)
 
     def get_overrides(self) -> OverrideGroup:
         point_indices = np.reshape(self.enhanced_pick_event.ind, (-1, 1))
@@ -220,25 +274,19 @@ class GetOverrideGroupFromGraphics:
         xys_source_overrides = skip_vectorize(lambda x: x[0])(xys_overrides)
         xy_order = (0, 1) if self._is_dragged_in_x_more_than_y() else (1, 0)
 
+        if self.enhanced_pick_event.is_segment and self.data_index is not None:
+            unique_source_overrides, unique_source_initial_values = _get_unique_overrides_and_initial_values(
+                [o for o in xys_source_overrides[:, xy_order].flatten() if o is not None])
+            # we can solve for getting the held segment point to the mouse
+            if len(unique_source_overrides) <= 2:
+                return self._call_geometric_solver_and_get_overrides(
+                    None, xys_arg_quib_and_path, xys_old, unique_source_overrides, unique_source_initial_values)
+
         overrides = OverrideGroup()
-
         for j_ind in range(num_points):
-
             unique_source_overrides, unique_source_initial_values = _get_unique_overrides_and_initial_values(
                 [o for o in xys_source_overrides[j_ind, xy_order] if o is not None])
-
-            if len(unique_source_overrides) == 1:
-                solver = solve_single_point_on_curve
-            elif len(unique_source_overrides) == 2:
-                solver = solve_single_point_with_two_variables
-            else:
-                continue
-            values, solution_point, tol_values, _ = self._call_geometric_solver(solver, j_ind,
-                xys_arg_quib_and_path, xys_old, unique_source_overrides, unique_source_initial_values)
-            for override, value, tol_value in zip(unique_source_overrides, values, tol_values):
-                override.assignment = \
-                    create_assignment(value, override.assignment.path,
-                                      None if GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.val is None
-                                      else tol_value / GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.val * 1000)
-                overrides.append(override)
+            overrides.extend(
+                self._call_geometric_solver_and_get_overrides(j_ind, xys_arg_quib_and_path, xys_old,
+                                                              unique_source_overrides, unique_source_initial_values))
         return overrides

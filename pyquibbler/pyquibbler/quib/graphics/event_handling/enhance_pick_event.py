@@ -7,6 +7,7 @@ from matplotlib.axes import Axes
 from matplotlib.backend_bases import PickEvent, MouseEvent, MouseButton
 from matplotlib.collections import PathCollection
 from matplotlib.lines import Line2D
+from numpy.linalg import norm
 
 from pyquibbler.function_definitions import FuncArgsKwargs
 from pyquibbler.quib.types import PointArray
@@ -100,6 +101,7 @@ class EnhancedPickEvent:
     xy_offset: PointArray
     is_segment: bool
     mouse_to_segment: PointArray
+    segment_fraction: float
 
     @classmethod
     def from_pick_event(cls, pick_event: PickEvent):
@@ -110,6 +112,7 @@ class EnhancedPickEvent:
         get_inds_xydata_segment = ARTIST_TYPES_TO_GET_XY_DATA.get(type(artist))
         ax = pick_event.artist.axes
         mouse_to_segment = None
+        segment_fraction = None
         if get_inds_xydata_segment is None or mouseevent.xdata is None or mouseevent.ydata is None:
             ind = pick_event.ind
             xy_offset = np.zeros((1, 2))
@@ -125,6 +128,8 @@ class EnhancedPickEvent:
                     PointArray(xy_data_pixels[0]), PointArray(xy_data_pixels[1]), mouse_point)
                 xy_offset = xy_data_pixels - [on_segment_point]
                 mouse_to_segment = on_segment_point - mouse_point
+                segment_fraction = norm(on_segment_point - xy_data_pixels[0]) / norm(xy_data_pixels[1] - xy_data_pixels[0])
+
             else:
                 xy_offset = xy_data_pixels - [mouse_point]
 
@@ -138,6 +143,7 @@ class EnhancedPickEvent:
             xy_offset=xy_offset,
             is_segment=is_segment,
             mouse_to_segment=mouse_to_segment,
+            segment_fraction=segment_fraction
         )
 
 
