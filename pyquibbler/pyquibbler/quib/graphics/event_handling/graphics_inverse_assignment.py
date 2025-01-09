@@ -17,7 +17,7 @@ from pyquibbler.assignment import OverrideGroup, \
 from pyquibbler.assignment.utils import convert_scalar_value
 from pyquibbler.env import GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION
 from pyquibbler.path import deep_get
-from pyquibbler.utilities.numpy_original_functions import np_array
+from pyquibbler.utilities.numpy_original_functions import np_array, np_zeros
 
 from .affected_args_and_paths import get_quib_and_path_affected_by_event
 from .enhance_pick_event import EnhancedPickEventWithFuncArgsKwargs
@@ -58,37 +58,44 @@ def _get_overrides_from_changes(quib_and_path: NDArray[QuibAndPath], value: NDAr
     return xys_overrides
 
 
-def _get_unique_overrides_and_initial_values(overrides: List[AssignmentToQuib]) -> Tuple[OverrideGroup, List[Number]]:
+def _get_unique_overrides_and_initial_values(overrides: NDArray[Optional[AssignmentToQuib]]
+                                             ) -> Tuple[OverrideGroup, List[Number]]:
     """
     find all the unique quib x paths in the overrides
     to assess if override B is the same as A, we apply A and check if B is changing to the same value
     we cannot directly compare the path because the path might look different but point to the same element
     overrides: list of AssignmentToQuib
     """
-    unique_overrides = OverrideGroup()
-    initial_values = []
+    # initiate an object array of size of overrides with all values 'None'
+    oberride_unique_num = np.zeros_like(overrides, dtype=int) - 1
 
-    overrides_to_initial_values = {
-        override: _get_quib_value_at_path((override.quib, override.assignment.path))
-        for override in overrides
-    }
+    initial_values = skip_vectorize(
+        lambda o: _get_quib_value_at_path((o.quib, o.assignment.path)))(overrides)
 
-    while len(overrides_to_initial_values) > 0:
-        # get the first item (not the last) to ensure the order is consistent
-        override = next(iter(overrides_to_initial_values))
-        initial_value = overrides_to_initial_values.pop(override)
-        # remove all the overrides that are the same as the current override
+    unique_overrides_to_intial_values = {}
+
+    for i, override in enumerate(overrides.flat):
+        if override is None:
+            continue
+        if oberride_unique_num.flat[i] != -1:
+            continue
+        initial_value = initial_values.flat[i]
+        # find all the overrides that are the same as the current override
         with OverrideGroup([override]).temporarily_apply():
             new_value = _get_quib_value_at_path((override.quib, override.assignment.path))
             if new_value == initial_value:
+                # this override is effectless. we skip it
                 continue
-            unique_overrides.append(override)
-            initial_values.append(initial_value)
-            for other_override, other_initial_value in list(overrides_to_initial_values.items()):
+            for j in range(i + 1, overrides.size):
+                other_override = overrides.flat[j]
+                if other_override is None:
+                    continue
+                other_initial_value = initial_values.flat[j]
                 other_new_value = _get_quib_value_at_path((other_override.quib, other_override.assignment.path))
                 if other_initial_value == initial_value and other_new_value == new_value:
-                    overrides_to_initial_values.pop(other_override)
-    return unique_overrides, initial_values
+                    oberride_unique_num.flat[j] = len(unique_overrides_to_intial_values)
+            unique_overrides_to_intial_values[override] = new_value
+    return unique_overrides_to_intial_values, oberride_unique_num
 
 
 def _transform_data_with_none_to_pixels(ax: Axes, data: PointArray) -> PointArray:
@@ -127,6 +134,11 @@ class GetOverrideGroupFromGraphics:
     data_index: Union[None, int]
     enhanced_pick_event: EnhancedPickEventWithFuncArgsKwargs
     mouse_event: MouseEvent
+
+    nun_args_to_solvers = {
+        1: solve_single_point_on_curve,
+        2: solve_single_point_with_two_variables,
+    }
 
     """
     Get overrides for a mouse event for an artist created by a plt.plot command in correspondence with the
@@ -200,13 +212,9 @@ class GetOverrideGroupFromGraphics:
     def _call_geometric_solver(self, j_ind,
                                xys_arg_quib_and_path, xys_old, unique_source_overrides, unique_source_initial_values):
 
-        if len(unique_source_overrides) == 1:
-            solver = solve_single_point_on_curve
-        elif len(unique_source_overrides) == 2:
-            solver = solve_single_point_with_two_variables
-        else:
-            # no solution
-            return None
+        solver = self.nun_args_to_solvers.get(len(unique_source_overrides))
+        if solver is None:
+            return
 
         if j_ind is None:
             # segment
@@ -283,9 +291,9 @@ class GetOverrideGroupFromGraphics:
 
         overrides = OverrideGroup()
         for j_ind in range(num_points):
-            unique_source_overrides, unique_source_initial_values = _get_unique_overrides_and_initial_values(
-                [o for o in xys_source_overrides[j_ind, xy_order] if o is not None])
+            unique_source_overrides, _ = _get_unique_overrides_and_initial_values(xys_source_overrides[j_ind, xy_order])
             overrides.extend(
                 self._call_geometric_solver_and_get_overrides(j_ind, xys_arg_quib_and_path, xys_old,
-                                                              unique_source_overrides, unique_source_initial_values))
+                                                              OverrideGroup(unique_source_overrides.keys()),
+                                                              list(unique_source_overrides.values())))
         return overrides

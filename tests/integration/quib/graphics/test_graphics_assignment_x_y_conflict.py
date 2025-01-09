@@ -119,3 +119,20 @@ def test_drag_segment_two_values(create_axes_mouse_press_move_release_events, ax
     create_axes_mouse_press_move_release_events(((0.5, 0.), (0.2, 0.2)))
     assert abs(x.get_value() - 0.4) < 0.02
     assert abs(y.get_value() - 0.4) < 0.02
+
+
+def test_drag_parallel(create_axes_mouse_press_move_release_events, axes):
+    axes.set_xlim(-2, 2)
+    axes.set_ylim(-2, 2)
+
+    x1 = iquib(0.)
+    x2 = iquib(0.4)
+
+    axes.plot([x1, x2], [0, 1], 'o-')
+
+    create_axes_mouse_press_move_release_events(((0.1, 0.25), (0.3, 0.25)))
+    print()
+    print(x1.get_value())
+    print(x2.get_value())
+    # assert abs(x1.get_value() - 0.1) < 0.02
+    # assert abs(x2.get_value() - 0.5) < 0.02

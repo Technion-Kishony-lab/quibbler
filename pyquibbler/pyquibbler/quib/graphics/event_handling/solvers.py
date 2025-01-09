@@ -57,6 +57,11 @@ def solve_single_point_on_curve(func: Callable,
         dv = v1 - v0
         dpv = p1 - p0
         dpv_norm = norm(dpv)
+        if dpv_norm == 0:
+            #  dragging a point that is not movable:
+            diff_norm = norm(xy - p0)
+            best_solution = Solution(v1, p0, diff_norm, np.abs(dv) / diff_norm * tolerance)
+            break
         tol_v = dv / dpv_norm * tolerance
         distance = norm(p1 - xy)
         if best_solution is None or distance < best_solution.distance:
