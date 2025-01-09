@@ -2,8 +2,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional
 
-import numpy as np
-
 from pyquibbler.utilities.numpy_original_functions import np_array
 
 

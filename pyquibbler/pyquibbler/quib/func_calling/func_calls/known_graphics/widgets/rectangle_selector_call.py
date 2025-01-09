@@ -1,7 +1,5 @@
 from typing import Optional
 
-import numpy as np
-
 from pyquibbler.debug_utils import timeit
 
 from pyquibbler.quib.quib import Quib

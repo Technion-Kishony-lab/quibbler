@@ -128,7 +128,8 @@ class EnhancedPickEvent:
                     PointArray(xy_data_pixels[0]), PointArray(xy_data_pixels[1]), mouse_point)
                 xy_offset = xy_data_pixels - [on_segment_point]
                 mouse_to_segment = on_segment_point - mouse_point
-                segment_fraction = norm(on_segment_point - xy_data_pixels[0]) / norm(xy_data_pixels[1] - xy_data_pixels[0])
+                segment_fraction = \
+                    norm(on_segment_point - xy_data_pixels[0]) / norm(xy_data_pixels[1] - xy_data_pixels[0])
 
             else:
                 xy_offset = xy_data_pixels - [mouse_point]

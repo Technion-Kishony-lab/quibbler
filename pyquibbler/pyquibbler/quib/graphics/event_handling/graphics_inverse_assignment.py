@@ -11,9 +11,8 @@ from matplotlib.backend_bases import MouseEvent, MouseButton
 from typing import Any, Union, Optional, List, Tuple
 
 from numpy._typing import NDArray
-from numpy.linalg import norm
 
-from pyquibbler.assignment import get_axes_x_y_tolerance, OverrideGroup, \
+from pyquibbler.assignment import OverrideGroup, \
     AssignmentToQuib, default, get_override_group_for_quib_change, create_assignment
 from pyquibbler.assignment.utils import convert_scalar_value
 from pyquibbler.env import GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION
@@ -23,7 +22,7 @@ from pyquibbler.utilities.numpy_original_functions import np_array
 from .affected_args_and_paths import get_quib_and_path_affected_by_event
 from .enhance_pick_event import EnhancedPickEventWithFuncArgsKwargs
 from .solvers import solve_single_point_on_curve, solve_single_point_with_two_variables
-from .utils import get_closest_point_on_line_in_axes, skip_vectorize
+from .utils import skip_vectorize
 
 from typing import TYPE_CHECKING
 
