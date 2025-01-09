@@ -1,3 +1,4 @@
+import numpy as np
 from matplotlib import pyplot as plt
 import pytest
 
@@ -94,13 +95,27 @@ def test_prevent_drag_causing_exception(create_axes_mouse_press_move_release_eve
     create_axes_mouse_press_move_release_events(((2, 0),), press=False)
 
 
-def test_drag_segment(create_axes_mouse_press_move_release_events, axes):
-    axes.set_xlim(-1, 4)
-    axes.set_ylim(-1, 4)
+def test_drag_segment_single_value(create_axes_mouse_press_move_release_events, axes):
+    axes.set_xlim(-2, 2)
+    axes.set_ylim(-2, 2)
 
-    x = iquib(0.5)
+    a = iquib(0.)
 
-    axes.plot([x, x], [1 - x, 0], 'o-')
+    axes.plot([0, np.cos(a)], [0, np.sin(a)], 'o-')
 
-    create_axes_mouse_press_move_release_events(((0.5, 0.2), (0.3, 0.2)))
-    assert x.get_value() == 0.3
+    create_axes_mouse_press_move_release_events(((0.5, 0.), (0.4, 0.1)))
+    assert abs(a.get_value() - np.arctan2(0.1, 0.4)) < 0.02
+
+
+def test_drag_segment_two_values(create_axes_mouse_press_move_release_events, axes):
+    axes.set_xlim(-2, 2)
+    axes.set_ylim(-2, 2)
+
+    x = iquib(1.)
+    y = iquib(0.)
+
+    axes.plot([0, x], [0, y], 'o-')
+
+    create_axes_mouse_press_move_release_events(((0.5, 0.), (0.2, 0.2)))
+    assert abs(x.get_value() - 0.4) < 0.02
+    assert abs(y.get_value() - 0.4) < 0.02
