@@ -57,12 +57,14 @@ def initialize_quibbler_(setup_missing_packages):
 def pytest_configure(config):
     # register additional markers
     config.addinivalue_line("markers", "debug(on): mark test to run with or without debug mode")
+    config.addinivalue_line("markers", "allow_array_with_dtype_object(on): mark test to run with or without ")
     config.addinivalue_line("markers", "evaluate_now(off): mark test to run with or without evaluate now mode")
     config.addinivalue_line("markers", "regression: mark test as regression test")
     config.addinivalue_line("markers", "assignment_restrictions(on): mark test to run with or without assignment "
                                        "restrictions mode")
     config.addinivalue_line("markers", "pretty_repr(on): mark test to run with or without pretty repr")
     config.addinivalue_line("markers", "get_variable_names(on): mark test to run with or without get variable name")
+    config.addinivalue_line("markers", "graphics_driven_assignment_resolution(on): mark test to run with or without ")
     config.addinivalue_line("markers", "show_quib_exceptions_as_quib_traceback(True)(on): "
                                        "mark test to run with traceback")
     # Copied from matplotlib to disable warning

@@ -18,7 +18,7 @@ from pyquibbler.quib.specialized_functions.iquib import create_iquib
 iquib = create_iquib
 
 @dataclass
-class TestEnhancedPickEvent(EnhancedPickEventWithFuncArgsKwargs):
+class TempEnhancedPickEvent(EnhancedPickEventWithFuncArgsKwargs):
 
     @classmethod
     def from_pick_event_and_func_args_kwargs(cls, pick_event, func_args_kwargs):
@@ -94,7 +94,7 @@ def test_plot_inverse_assigner_happy_flow(mock_plot):
     pick_event, mouse_event = create_mock_pick_event_and_mouse_event([0], 10, 20, 0)
 
     inverse_assign_drawing_func(
-        enhanced_pick_event=TestEnhancedPickEvent.from_pick_event_and_func_args_kwargs(
+        enhanced_pick_event=TempEnhancedPickEvent.from_pick_event_and_func_args_kwargs(
             pick_event, FuncArgsKwargs(mock_plot, (None, q), {})),
         mouse_event=mouse_event,
     )
@@ -152,7 +152,7 @@ def test_plot_inverse_assigner(mock_plot, indices, artist_index, xdata, ydata, a
 
     with GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.temporary_set(tolerance):
         inverse_assign_drawing_func(
-            enhanced_pick_event=TestEnhancedPickEvent.from_pick_event_and_func_args_kwargs(
+            enhanced_pick_event=TempEnhancedPickEvent.from_pick_event_and_func_args_kwargs(
                 pick_event, FuncArgsKwargs(mock_plot, (None, *args), {})),
             mouse_event=mouse_event,
         )
@@ -177,7 +177,7 @@ def test_plot_inverse_assigner_of_list_arg(mock_plot, indices, artist_index, xda
     pick_event, mouse_event = create_mock_pick_event_and_mouse_event(indices, xdata, ydata, artist_index)
 
     inverse_assign_drawing_func(
-        enhanced_pick_event=TestEnhancedPickEvent.from_pick_event_and_func_args_kwargs(
+        enhanced_pick_event=TempEnhancedPickEvent.from_pick_event_and_func_args_kwargs(
             pick_event=pick_event,
             func_args_kwargs=FuncArgsKwargs(mock_plot, (None, *args), {})),
         mouse_event=mouse_event,
@@ -195,7 +195,7 @@ def test_plot_inverse_assigner_removal(mock_plot):
     assert y.get_value() == [1, 4, 3], "sanity"
 
     inverse_assign_drawing_func(
-        enhanced_pick_event=TestEnhancedPickEvent.from_pick_event_and_func_args_kwargs(
+        enhanced_pick_event=TempEnhancedPickEvent.from_pick_event_and_func_args_kwargs(
             pick_event=pick_event,
             func_args_kwargs=FuncArgsKwargs(mock_plot, (None, y), {})),
         mouse_event=None,
@@ -214,7 +214,7 @@ def test_scatter_inverse_assigner(mock_scatter, indices, artist_index, xdata, yd
 
     with GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.temporary_set(tolerance):
         inverse_assign_drawing_func(
-            enhanced_pick_event=TestEnhancedPickEvent.from_pick_event_and_func_args_kwargs(
+            enhanced_pick_event=TempEnhancedPickEvent.from_pick_event_and_func_args_kwargs(
                 pick_event=pick_event,
                 func_args_kwargs=FuncArgsKwargs(mock_scatter, (None, *args), {})),
             mouse_event=mouse_event,
