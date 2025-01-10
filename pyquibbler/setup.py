@@ -24,7 +24,7 @@ setup(
         'Operating System :: OS Independent',
     ],
     name="pyquibbler",
-    version='0.3.0',
+    version='0.3.1',
     python_requires='>=3.10',
     long_description=long_description,
     long_description_content_type='text/markdown',
