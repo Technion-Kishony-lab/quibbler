@@ -26,7 +26,7 @@ implemented with quiby ipywidgets.**
 
 .. code:: python
 
-    # Note: running in widget mode requires installing pip install ipympl
+    # Note: running in widget mode requires `pip install ipympl`
     %matplotlib widget
 
 .. code:: python

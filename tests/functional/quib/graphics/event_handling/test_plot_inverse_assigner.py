@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from unittest import mock
 
 import numpy as np
@@ -6,6 +7,8 @@ from matplotlib.backend_bases import MouseButton
 
 from pyquibbler.env import GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION
 from pyquibbler.function_definitions import FuncArgsKwargs
+from pyquibbler.quib.graphics.event_handling.enhance_pick_event import EnhancedPickEvent, \
+    EnhancedPickEventWithFuncArgsKwargs
 from pyquibbler.quib.graphics.event_handling.graphics_inverse_assigner import inverse_assign_drawing_func
 from datetime import datetime
 from matplotlib.dates import date2num
@@ -13,6 +16,15 @@ from matplotlib.dates import date2num
 from pyquibbler.quib.specialized_functions.iquib import create_iquib
 
 iquib = create_iquib
+
+@dataclass
+class TempEnhancedPickEvent(EnhancedPickEventWithFuncArgsKwargs):
+
+    @classmethod
+    def from_pick_event_and_func_args_kwargs(cls, pick_event, func_args_kwargs):
+        obj = cls.from_pick_event(pick_event)
+        obj.func_args_kwargs = func_args_kwargs
+        return obj
 
 
 @pytest.fixture
@@ -29,21 +41,40 @@ def mock_scatter():
     return func
 
 
+def create_mock_axes():
+    pixels_to_data = 10
+    ax = mock.Mock()
+    ax.get_xlim = mock.Mock(return_value=[0, 100])
+    ax.get_ylim = mock.Mock(return_value=[0, 100])
+    ax.transData = mock.Mock()
+    def transform(x):
+        # check if datetime:
+        if isinstance(x, np.ndarray):
+            return np.array([transform(xi) for xi in x])
+        if isinstance(x, datetime):
+            x = date2num(x)
+        return x * pixels_to_data
+
+    ax.transData.transform = transform
+    inverted_function = mock.Mock()
+    inverted_function.transform = lambda x: x / pixels_to_data
+    ax.transData.inverted = mock.Mock(return_value=inverted_function)
+    return ax
+
+
 def create_mock_pick_event_and_mouse_event(indices, x_data, y_data, artist_index):
+    ax = create_mock_axes()
     mouse_event = mock.Mock()
     mouse_event.xdata = x_data
     mouse_event.ydata = y_data
-    mouse_event.x = 0
-    mouse_event.y = 0
+    mouse_event.x = ax.transData.transform(x_data)
+    mouse_event.y = ax.transData.transform(y_data)
 
     pick_event = mock.Mock()
     pick_event.ind = indices
     pick_event.artist._index_in_plot = artist_index
-    pick_event.artist.axes.get_xlim = mock.Mock(return_value=[0, 100])
-    pick_event.artist.axes.get_ylim = mock.Mock(return_value=[0, 100])
-    pick_event.xy_offset = np.tile([[0, 0]], (len(indices), 1))
-    pick_event.x = 0
-    pick_event.y = 0
+    pick_event.artist.axes = ax
+    pick_event.mouseevent = mouse_event
 
     return pick_event, mouse_event
 
@@ -63,9 +94,9 @@ def test_plot_inverse_assigner_happy_flow(mock_plot):
     pick_event, mouse_event = create_mock_pick_event_and_mouse_event([0], 10, 20, 0)
 
     inverse_assign_drawing_func(
-        func_args_kwargs=FuncArgsKwargs(mock_plot, (None, q), {}),
+        enhanced_pick_event=TempEnhancedPickEvent.from_pick_event_and_func_args_kwargs(
+            pick_event, FuncArgsKwargs(mock_plot, (None, q), {})),
         mouse_event=mouse_event,
-        pick_event=pick_event
     )
 
     assert np.array_equal(q.get_value(), [20, 2, 3])
@@ -121,15 +152,17 @@ def test_plot_inverse_assigner(mock_plot, indices, artist_index, xdata, ydata, a
 
     with GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.temporary_set(tolerance):
         inverse_assign_drawing_func(
-            func_args_kwargs=FuncArgsKwargs(mock_plot, (None, *args), {}),
+            enhanced_pick_event=TempEnhancedPickEvent.from_pick_event_and_func_args_kwargs(
+                pick_event, FuncArgsKwargs(mock_plot, (None, *args), {})),
             mouse_event=mouse_event,
-            pick_event=pick_event
         )
 
     if isinstance(quib_index, int):
         quib_index = [quib_index]
         expected_value = [expected_value]
     for index, expected in zip(quib_index, expected_value):
+        print(args[index].get_value())
+        print(expected)
         assert np.array_equal(args[index].get_value(), expected)
 
 
@@ -144,9 +177,10 @@ def test_plot_inverse_assigner_of_list_arg(mock_plot, indices, artist_index, xda
     pick_event, mouse_event = create_mock_pick_event_and_mouse_event(indices, xdata, ydata, artist_index)
 
     inverse_assign_drawing_func(
-        func_args_kwargs=FuncArgsKwargs(mock_plot, (None, *args), {}),
+        enhanced_pick_event=TempEnhancedPickEvent.from_pick_event_and_func_args_kwargs(
+            pick_event=pick_event,
+            func_args_kwargs=FuncArgsKwargs(mock_plot, (None, *args), {})),
         mouse_event=mouse_event,
-        pick_event=pick_event
     )
 
     assert np.array_equal(args[arg_index][list_index].get_value(), expected_value)
@@ -161,9 +195,10 @@ def test_plot_inverse_assigner_removal(mock_plot):
     assert y.get_value() == [1, 4, 3], "sanity"
 
     inverse_assign_drawing_func(
-        func_args_kwargs=FuncArgsKwargs(mock_plot, (None, y), {}),
+        enhanced_pick_event=TempEnhancedPickEvent.from_pick_event_and_func_args_kwargs(
+            pick_event=pick_event,
+            func_args_kwargs=FuncArgsKwargs(mock_plot, (None, y), {})),
         mouse_event=None,
-        pick_event=pick_event
     )
 
     assert y.get_value() == [1, 2, 3]
@@ -179,9 +214,10 @@ def test_scatter_inverse_assigner(mock_scatter, indices, artist_index, xdata, yd
 
     with GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.temporary_set(tolerance):
         inverse_assign_drawing_func(
-            func_args_kwargs=FuncArgsKwargs(mock_scatter, (None, *args), {}),
+            enhanced_pick_event=TempEnhancedPickEvent.from_pick_event_and_func_args_kwargs(
+                pick_event=pick_event,
+                func_args_kwargs=FuncArgsKwargs(mock_scatter, (None, *args), {})),
             mouse_event=mouse_event,
-            pick_event=pick_event
         )
 
     if isinstance(quib_index, int):

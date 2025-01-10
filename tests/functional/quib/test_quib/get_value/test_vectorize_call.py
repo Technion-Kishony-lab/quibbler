@@ -208,7 +208,7 @@ def test_assignment_to_quib_within_vectorize_is_translated_to_override_on_vector
 
     override_group = get_override_group_for_assignment_to_child(parent).get_value()[()]
 
-    assert override_group.quib_changes == [AssignmentToQuib(parent, Assignment(1, []))]
+    assert override_group == [AssignmentToQuib(parent, Assignment(1, []))]
 
 
 @pytest.fixture

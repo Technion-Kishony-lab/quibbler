@@ -239,8 +239,8 @@ def test_override_choice_when_diverged_and_all_diverged_inversions_are_overridde
     override_group = get_overrides_for_assignment(child, Assignment(value=[3, 4],
                                                                     path=[PathComponent((None, None, None))]))
 
-    assert len([o for o in override_group.quib_changes if not o.assignment.is_default()]) == 2
-    assert len([o for o in override_group.quib_changes if o.assignment.is_default()]) == 3
+    assert len([o for o in override_group if not o.assignment.is_default()]) == 2
+    assert len([o for o in override_group if o.assignment.is_default()]) == 3
 
 
 def create_proxy_created_in_context(quib):
@@ -351,7 +351,7 @@ def test_get_overrides_for_assignment_when_can_assign_to_self(diverged_quib_grap
     assignment = AssignmentToQuib(child, assignment_to_multiple)
     override_group = get_override_group_for_quib_change(assignment)
 
-    assert override_group.quib_changes == [assignment]
+    assert override_group == [assignment]
 
 
 def test_get_overrides_for_assignment_when_can_assign_to_parents(diverged_quib_graph, assignment_to_multiple):
@@ -362,7 +362,7 @@ def test_get_overrides_for_assignment_when_can_assign_to_parents(diverged_quib_g
     assignment = AssignmentToQuib(child, assignment_to_multiple)
     override_group = get_override_group_for_quib_change(assignment)
 
-    assert len(override_group.quib_changes) == 3  # Two overrides and one override removal
+    assert len(override_group) == 3  # Two overrides and one override removal
 
 
 def test_get_overrides_for_assignment_with_differed_assigned_quibs(diverged_quib_graph, assignment_to_multiple):
@@ -377,7 +377,7 @@ def test_get_overrides_for_assignment_with_differed_assigned_quibs(diverged_quib
     assignment = AssignmentToQuib(child, assignment_to_multiple)
     override_group = get_override_group_for_quib_change(assignment)
 
-    assert len(override_group.quib_changes) == 4  # Two overrides and two override removal
+    assert len(override_group) == 4  # Two overrides and two override removal
 
 
 def test_raises_cannot_change_when_context_quib_cannot_be_inverted():
@@ -396,4 +396,4 @@ def test_get_override_group_on_context_quibs():
         child.allow_overriding = True
 
     override_group = get_override_group_for_quib_change(AssignmentToQuib(child, Assignment(2, [])))
-    assert override_group.quib_changes == [AssignmentToQuib(non_context_parent, Assignment(1, []))]
+    assert override_group == [AssignmentToQuib(non_context_parent, Assignment(1, []))]

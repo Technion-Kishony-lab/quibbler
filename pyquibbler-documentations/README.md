@@ -1,7 +1,7 @@
 ## Building pyquibbler documentations
 
 Documentations are written mostly as Jupyter lab notebooks, 
-stored in `./examples` abd `./docs_notebooks.`
+stored in `./examples` and `./docs_notebooks.`
 
 Run `convert_doc_notebooks_to_rst` to convert the notebooks
 into rst files which will be created in the `docs` and `docs/examples`.

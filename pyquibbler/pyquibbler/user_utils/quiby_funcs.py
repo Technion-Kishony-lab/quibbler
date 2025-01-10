@@ -18,6 +18,11 @@ def list_quiby_funcs(module_or_cls: Union[None, ModuleType, Type] = None) -> Lis
     module_or_cls: ModuleType, optional (default: None)
         Specifies a module (numpy, matplotlib, ipywidgets). When specified, only functions belonging to the indicated
         module are listed.
+
+    Returns
+    -------
+    list of str
+        a list of strings indicating the quiby functions
     """
     warn_if_quibbler_not_initialized()
 
@@ -110,6 +115,7 @@ def quiby(func: Callable = None,
     See Also
     --------
     is_quiby, q
+    initialize_quibbler
     Quib.graphics_update, Quib.is_graphics, Quib.is_random, Quib.is_file_loading
     reset_random_quibs, reset_file_loading_quibs
 
@@ -125,9 +131,9 @@ def quiby(func: Callable = None,
     ...     return f'{name} = {x}'
     ...
     >>> num = iquib(7)
-    >>> display_num = display_variable('num', num)
+    >>> display_num = display_variable('number', num)
     >>> display_num.get_value()
-    'x = 7'
+    'number = 7'
 
     >>> @quiby(is_random=True)
     ... def sum_of_dice(n: int):

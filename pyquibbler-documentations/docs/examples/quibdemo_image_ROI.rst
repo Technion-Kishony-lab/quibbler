@@ -48,7 +48,7 @@ Interactive image cutting and thresholding
     # Define and plot a rectangle Region Of Interest (ROI)
     ROI = iquib(np.array([250, 400, 300, 450]))
     rectprops = dict(edgecolor='w', alpha=0.7, fill=False, linewidth=3)
-    RectangleSelector(ax, extents=ROI, rectprops=rectprops);
+    RectangleSelector(ax, extents=ROI, props=rectprops);
 
 .. code:: python
 
@@ -95,5 +95,5 @@ Interactive image cutting and thresholding
     # Add a "draggable" rectangle ROI around the extracted image:
     shifted_ROI = ROI - ROI[[0, 0, 2, 2]]
     shrinked_shifted_ROI = shifted_ROI + [7, -7, +7, -7]
-    RectangleSelector(ax_cut, extents=shrinked_shifted_ROI, rectprops=rectprops);
+    RectangleSelector(ax_cut, extents=shrinked_shifted_ROI, props=rectprops);
 .. image:: ../images/demo_gif/quibdemo_image_ROI.gif

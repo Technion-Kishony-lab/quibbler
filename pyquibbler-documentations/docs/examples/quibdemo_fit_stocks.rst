@@ -32,7 +32,7 @@ values**
 
     # Load data of Apple stock:
     t_init = datetime.strptime('2000-01-01', '%Y-%m-%d').timestamp()
-    str2date = lambda x: (datetime.strptime(x.decode("utf-8"), '%Y-%m-%d').timestamp() 
+    str2date = lambda x: (datetime.strptime(x, '%Y-%m-%d').timestamp() 
                           - t_init) / (365 * 24 * 60 * 60) + 2000
     filename = iquib('AAPL.csv')
     d = np.genfromtxt(filename, delimiter=',', names=True, converters = {0: str2date})
@@ -73,4 +73,5 @@ values**
     # Add the slider for the polynomial degree:
     ax = plt.axes([0.3, 0.8, 0.3, 0.03])
     Slider(ax=ax, valmin=0, valmax=3, valinit=n, valstep=1, label='degree');
+
 .. image:: ../images/demo_gif/quibdemo_fit_stocks.gif

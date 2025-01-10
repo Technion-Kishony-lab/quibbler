@@ -62,7 +62,7 @@ by a report of a single “Cutting image …” and then 2\*\ *n*-1 “Comparing
     @partial(np.vectorize, signature='(4),()->()', pass_quibs=True, is_graphics=True)
     def create_roi(roi, axs):
         rectprops = dict(facecolor='k', edgecolor='k', alpha=0.2, fill=True)
-        widgets.RectangleSelector(axs, extents=roi, rectprops=rectprops)
+        widgets.RectangleSelector(axs, extents=roi, props=rectprops)
     
     
     @partial(np.vectorize, signature='(w,h,c),(4),()->()',otypes=[object])

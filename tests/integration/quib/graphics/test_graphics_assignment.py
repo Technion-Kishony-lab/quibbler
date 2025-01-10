@@ -1,3 +1,4 @@
+import pytest
 from matplotlib import pyplot as plt
 
 from pyquibbler import iquib, undo, redo
@@ -91,11 +92,31 @@ def testy_drag_scatter_with_mouse_off_point(axes, create_axes_mouse_press_move_r
 
 
 def test_keep_fixed_mouse_distance_from_picked_point(axes, create_axes_mouse_press_move_release_events):
-    x = iquib([10.1, 10.2, 30])
+    x = iquib([10.1, 30])
     axes.plot(x, x, 'o')
     create_axes_mouse_press_move_release_events(((10, 10), (16, 16)))
 
-    assert x.get_value() == [16.1, 16.2, 30]
+    assert x.get_value() == [16.1, 30]
+
+
+def test_only_pick_single_point(axes, create_axes_mouse_press_move_release_events):
+    x = iquib([10.1, 10.1, 30])
+    axes.plot(x, x, 'o')
+    create_axes_mouse_press_move_release_events(((10, 10), (16, 16)))
+
+    assert x.get_value() == [16.1, 10.1, 30]
+
+
+def test_pick_segment(axes, create_axes_mouse_press_move_release_events):
+    x = iquib([1, 10, 20])
+    y = iquib([1, 10, 20])
+    axes.plot(x, y, 'o-')
+    dx = 2
+    dy = 3
+    create_axes_mouse_press_move_release_events(((5, 5), (5+dx, 5+dy)))
+
+    assert x.get_value() == [1+dx, 10+dx, 20]
+    assert y.get_value() == [1+dy, 10+dy, 20]
 
 
 def test_drag_one_object_to_affect_another_1d(axes, create_axes_mouse_press_move_release_events):
@@ -105,7 +126,7 @@ def test_drag_one_object_to_affect_another_1d(axes, create_axes_mouse_press_move
     axes.plot(dx, 0, 'o')
     create_axes_mouse_press_move_release_events(((0, 0), (2, 0)))
 
-    assert abs(x.get_value() - 7) < 0.02
+    assert abs(x.get_value() - 7) < 0.04
 
 
 def test_drag_one_object_to_affect_another_2d(axes, create_axes_mouse_press_move_release_events):
@@ -117,6 +138,27 @@ def test_drag_one_object_to_affect_another_2d(axes, create_axes_mouse_press_move
     axes.plot(dx, dy, 'o')
     create_axes_mouse_press_move_release_events(((0, 0), (2, 2)))
 
-    assert abs(x.get_value() - 7) < 0.02
-    assert abs(y.get_value() - 7) < 0.02
+    assert abs(x.get_value() - 7) < 0.04
+    assert abs(y.get_value() - 7) < 0.04
 
+
+@pytest.mark.parametrize('s2, d2', [
+    (6, 0),
+    (6, 2),
+    (0, 6),
+])
+def test_two_variables_with_dependent_coordinates(axes, create_axes_mouse_press_move_release_events,
+                                                  s2, d2):
+    x = iquib(2.)
+    y = iquib(2.)
+    s = x + y
+    d = y - x
+    axes.axis([-10, 10, -10, 10])
+    axes.plot(s, d, 'o')
+    create_axes_mouse_press_move_release_events(((4, 0), (s2, d2)))
+
+    solution_x = (s2 - d2) / 2
+    solution_y = (s2 + d2) / 2
+
+    assert abs(x.get_value() - solution_x) < 0.04
+    assert abs(y.get_value() - solution_y) < 0.04

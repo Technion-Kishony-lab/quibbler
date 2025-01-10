@@ -73,7 +73,6 @@ RushHour: dragging with algorithmically specified constraints
             z[x:x+dx, y:y+dy] += 1
         
         if np.any(z>1):
-            print('raising')
             raise ValueError('overlap')
         
         if yy[0] == 4 * d:

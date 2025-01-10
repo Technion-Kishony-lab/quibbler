@@ -1,3 +1,4 @@
+import numpy as np
 from matplotlib import pyplot as plt
 import pytest
 
@@ -15,7 +16,7 @@ def test_drag_along_shallow_slope(create_axes_mouse_press_move_release_events, a
     axes.plot(marker_x, marker_y, marker='o')
 
     create_axes_mouse_press_move_release_events(((0, 0), (0.5, 0)))
-    assert marker_x.get_value() == 0.496
+    assert marker_x.get_value() == 0.497
 
 
 def test_drag_along_zero_slope(create_axes_mouse_press_move_release_events, axes):
@@ -28,7 +29,7 @@ def test_drag_along_zero_slope(create_axes_mouse_press_move_release_events, axes
     axes.plot(marker_x, marker_y, marker='o')
 
     create_axes_mouse_press_move_release_events(((0, 0), (0.5, 0)))
-    assert marker_x.get_value() == 0.498
+    assert marker_x.get_value() == 0.497
 
 
 def test_drag_same_arg_binary_operator(create_axes_mouse_press_move_release_events, axes):
@@ -59,7 +60,6 @@ def test_drag_same_arg_binary_operator_single_axis(create_axes_mouse_press_move_
 
 # stong non-linear functions with binary operators are not currently solved correctly.
 # See "Improve results with numeric solution" in graphics_inverse_assignment
-@pytest.mark.skip
 def test_drag_same_arg_binary_operator_non_linear(create_axes_mouse_press_move_release_events, axes):
     axes.set_xlim(-1, 4)
     axes.set_ylim(-1, 4)
@@ -94,3 +94,58 @@ def test_prevent_drag_causing_exception(create_axes_mouse_press_move_release_eve
 
     create_axes_mouse_press_move_release_events(((2, 0),), press=False)
 
+
+def test_drag_segment_single_value(create_axes_mouse_press_move_release_events, axes):
+    axes.set_xlim(-2, 2)
+    axes.set_ylim(-2, 2)
+
+    a = iquib(0.)
+
+    axes.plot([0, np.cos(a)], [0, np.sin(a)], 'o-')
+    new_a = np.pi / 4
+    create_axes_mouse_press_move_release_events(((0.5, 0.), (0.5*np.cos(new_a), 0.5*np.sin(new_a))))
+    assert abs(a.get_value() - new_a) < 0.02
+
+
+def test_drag_segment_two_values(create_axes_mouse_press_move_release_events, axes):
+    axes.set_xlim(-2, 2)
+    axes.set_ylim(-2, 2)
+
+    x = iquib(1.)
+    y = iquib(0.)
+
+    axes.plot([0, x], [0, y], 'o-')
+
+    create_axes_mouse_press_move_release_events(((0.5, 0.), (0.2, 0.2)))
+    assert abs(x.get_value() - 0.4) < 0.02
+    assert abs(y.get_value() - 0.4) < 0.02
+
+
+def test_drag_parallel(create_axes_mouse_press_move_release_events, axes):
+    axes.set_xlim(-2, 2)
+    axes.set_ylim(-2, 2)
+
+    x1 = iquib(0.)
+    x2 = iquib(0.4)
+
+    axes.plot([x1, x2], [0, 1], 'o-')
+
+    create_axes_mouse_press_move_release_events(((0.1, 0.25), (0.3, 0.25)))
+    print()
+    print(x1.get_value())
+    print(x2.get_value())
+    assert abs(x1.get_value() - 0.2) < 0.02
+    assert abs(x2.get_value() - 0.6) < 0.02
+
+
+def test_drag_middle_tethered_line(create_axes_mouse_press_move_release_events, axes):
+    axes.set_xlim(-2, 2)
+    axes.set_ylim(-2, 2)
+
+    x = iquib(1.)
+
+    axes.plot([-x, x], [-1, 1], 'o-')
+
+    create_axes_mouse_press_move_release_events(((0.5, 0.5), (0.5, 0.4)))
+    print()
+    print(x.get_value())

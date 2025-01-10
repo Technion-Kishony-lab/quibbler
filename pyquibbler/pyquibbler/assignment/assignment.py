@@ -48,6 +48,9 @@ class Assignment:
     def get_pretty_value(self):
         return repr(replace_np_int_and_float(self.value))
 
+    def __hash__(self):
+        return hash((self.value, tuple(self.path)))
+
 
 @dataclass
 class AssignmentWithTolerance(Assignment):
@@ -92,6 +95,10 @@ class AssignmentWithTolerance(Assignment):
                    path=path,
                    value_up=value + tolerance,
                    value_down=value - tolerance)
+
+    @classmethod
+    def from_assignment_and_tolerance(cls, assignment: Assignment, tolerance: Any):
+        return cls.from_value_path_tolerance(assignment.value, assignment.path, tolerance)
 
     def get_pretty_assignment(self) -> Assignment:
 
@@ -154,7 +161,7 @@ def create_assignment_from_nominal_down_up_values(nominal_down_up_values: Union[
     return assignment
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=False)
 class AssignmentToQuib:
     """
     Assignment to a specific quib can either `apply` locally as override or inverted to a list of
@@ -175,3 +182,10 @@ class AssignmentToQuib:
     @classmethod
     def create_default(cls, quib: Quib, path: Path):
         return cls(quib, Assignment.create_default(path))
+
+    @classmethod
+    def create(cls, quib: Quib, path: Path, value: Any, tolerance: Optional[Any] = None):
+        return cls(quib, create_assignment(value, path, tolerance))
+
+    def __hash__(self):
+        return hash((self.quib, self.assignment))

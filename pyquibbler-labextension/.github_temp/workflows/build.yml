@@ -37,7 +37,7 @@ jobs:
         pip uninstall -y "pyquibbler_labextension" jupyterlab
         rm -rf myextension
 
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v4
       with:
         name: myextension-sdist
         path: myextension.tar.gz
@@ -54,7 +54,7 @@ jobs:
       with:
         python-version: '3.8'
         architecture: 'x64'
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v4
       with:
         name: myextension-sdist
     - name: Install and Test

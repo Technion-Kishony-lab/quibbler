@@ -39,7 +39,7 @@ Making the quib icon
         
         def add_segment(added_xy):
             nonlocal xy
-            xy = np.hstack([xy, [[np.NaN], [np.NaN]], added_xy]);
+            xy = np.hstack([xy, [[np.nan], [np.nan]], added_xy]);
     
         xy = np.zeros((2,1))
         

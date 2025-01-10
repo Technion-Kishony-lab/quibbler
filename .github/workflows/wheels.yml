@@ -23,7 +23,7 @@ jobs:
       - name: Build wheel
         run: python -m pip wheel . -w ./dist --no-deps
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: pyquibbler
           path: ./pyquibbler/dist/*.whl
@@ -69,7 +69,7 @@ jobs:
           python -m pip wheel . -w ./dist --no-deps
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: pyquibbler_labextension
           path: ./pyquibbler-labextension/dist/*.whl
@@ -79,7 +79,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           path: .
       - name: Copy to dist

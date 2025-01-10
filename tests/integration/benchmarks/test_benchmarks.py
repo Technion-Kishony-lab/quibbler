@@ -53,7 +53,7 @@ def test_speed_drag(benchmark, axes, create_axes_mouse_press_move_release_events
     # mpl.use(backend)
 
     y = iquib([1., 2., 3.])
-    axes.plot([1, 2, 3], y, 'o-')
+    h = axes.plot([1, 2, 3], y, 'o-')
 
     plt.show(block=False)
 
