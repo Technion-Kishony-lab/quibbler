@@ -61,8 +61,7 @@ using overriding of function quibs.
 
     # Define and plot the default factor
     default_factor = iquib(70, **input_properties)
-    plt.plot([-0.5, n_plates - 0.5], 
-             default_factor * np.array([1, 1]), 'k', 
+    plt.axhline(default_factor, color='k', 
              zorder=3, linewidth=2, picker=True);
 
 .. code:: python

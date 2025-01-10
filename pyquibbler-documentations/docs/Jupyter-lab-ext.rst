@@ -4,9 +4,9 @@ Using Quibbler with Jupyter lab
 *Quibbler* provides several user-interface functionalities available
 when working within within the *Jupyer lab* environment:
 
--  Save/Load quib assignments within the notebook*.
+-  Save/Load quib assignments within the notebook\*.
 
--  Integrated Undo/Redo buttons*.
+-  Integrated Undo/Redo buttons\*.
 
 -  View and edit quib properties, assignments and value.
 

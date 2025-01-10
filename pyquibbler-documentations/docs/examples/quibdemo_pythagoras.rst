@@ -48,7 +48,7 @@ squares.**
     # Draw squares:
     plt.plot([0, 0, a, a], [0, -a, -a, 0], color='red')
     plt.plot([0, -b, -b, 0], [0, 0, b, b], color='green')
-    plt.plot([0, b, a+b, a], [b, b+a, a, 0], color='blue')
+    plt.plot([0, b, b+a, a], [b, a+b, a, 0], color='blue')
     
     # Add area text:
     props = dict(ha='center', va='center', fontsize=16)

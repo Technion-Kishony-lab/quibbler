@@ -110,8 +110,8 @@ Signal analysis with random noise
     width = max_freq - min_freq
     band = Rectangle((min_freq, 0), width, yl, facecolor=(0.8, 1, 0.8))
     ax2.add_patch(band)
-    ax2.plot(min_freq, 0, 'k^', markersize=22)
-    ax2.plot(max_freq, 0, 'k^', markersize=22);
+    ax2.axvline(min_freq)
+    ax2.axvline(max_freq);
 
 .. code:: python
 
