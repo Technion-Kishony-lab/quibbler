@@ -14,6 +14,13 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('./pyquibbler'))
 
+# Test if 'pyquibbler' is accessible
+try:
+    import pyquibbler
+    print("pyquibbler module found:", pyquibbler)
+except ImportError as e:
+    print("pyquibbler module not found:", e)
+
 # -- Project information -----------------------------------------------------
 
 project = 'Quibbler'
