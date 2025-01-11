@@ -266,7 +266,7 @@ class GetOverrideGroupFromGraphics:
             xys_target_values_typed[unchanged] = xys_target_values_typed_1[unchanged]
         return xys_old, xys_target_values_typed
 
-    def _call_geometric_solver(self, target_func: TargetFunc, xy) -> OverrideGroup:
+    def _call_geometric_solver(self, target_func: TargetFunc, xy, with_tolerance=True) -> OverrideGroup:
         solver = self.nun_args_to_solvers.get(target_func.num_values)
         if solver is None:
             return OverrideGroup()
@@ -279,12 +279,12 @@ class GetOverrideGroupFromGraphics:
         for override, value, tol_value in zip(target_func.overrides, values, tol_values):
             override.assignment = \
                 create_assignment(value, override.assignment.path,
-                                  None if GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.val is None
+                                  None if GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.val is None or not with_tolerance
                                   else tol_value / GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION.val * 1000)
             overrides.append(override)
         return overrides
 
-    def _get_overrides_for_point(self, j_ind: Optional[int]) -> OverrideGroup:
+    def _get_overrides_for_point(self, j_ind: Optional[int], with_tolerance=True) -> OverrideGroup:
         source_ids = self._get_source_ids(j_ind)
         if len(source_ids) == 0:
             return OverrideGroup()
@@ -295,7 +295,7 @@ class GetOverrideGroupFromGraphics:
             xys_obj_and_path=self.xys_obj_and_path[j_ind], xys_old=self.xys_old[j_ind])
         xy = self._get_target_values_pixels(j_ind)
 
-        return self._call_geometric_solver(target_func, xy)
+        return self._call_geometric_solver(target_func, xy, with_tolerance)
 
     def _get_overrides_for_segment(self):
         num_unique_sources = len(self.unique_source_overrides_and_initial_values)
@@ -311,12 +311,13 @@ class GetOverrideGroupFromGraphics:
                 initial_values=self.unique_source_overrides_and_initial_values[:, 1],
                 xys_obj_and_path=self.xys_obj_and_path, xys_old=self.xys_old, segment_fraction=segment_fraction)
 
-            return self._call_geometric_solver(target_func, self._get_target_segment_held_point())
+            return self._call_geometric_solver(target_func, self._get_target_segment_held_point(), with_tolerance=False)
 
         # We move each of the segment points independently
         overrides = OverrideGroup()
         for j_ind in range(self.num_points):
-            overrides.extend(self._get_overrides_for_point(j_ind))
+            # suppress tolerance so that the segment points are moved together
+            overrides.extend(self._get_overrides_for_point(j_ind, with_tolerance=False))
         return overrides
 
     def _get_overrides_for_right_click(self, xys_obj_and_path):
