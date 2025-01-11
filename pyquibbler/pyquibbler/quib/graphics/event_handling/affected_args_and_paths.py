@@ -40,9 +40,8 @@ def _get_affected_path_for_scatter(shape: Shape, point_index: int):
 
 
 def get_obj_and_path_affected_by_event(arg: Any,
-                                        data_index: Optional[int],
-                                        picked_index: int) -> Optional[ObjAndPath]:
-
+                                       data_index: Optional[int],
+                                       picked_index: int) -> Optional[ObjAndPath]:
     if isinstance(arg, list):
         # Legacy. This option is obsolete now that list args of plot are converted to arrays
         maybe_quib = arg[data_index]

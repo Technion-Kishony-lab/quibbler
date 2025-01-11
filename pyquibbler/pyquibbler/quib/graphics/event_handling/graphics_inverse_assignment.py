@@ -176,7 +176,7 @@ class GetOverrideGroupFromGraphics:
     """
     Get overrides for a mouse event for an artist created by a ploting command (plot, scatter, axvline, etc).
 
-    `xy_args` is a numpy array of shape (2,). 
+    `xy_args` is a numpy array of shape (2,).
     It contains the x and y arguments of the ploting command.
 
     `data_index` the index of the artist. for multiuple lines created by a plot command of 2D data,
@@ -194,9 +194,9 @@ class GetOverrideGroupFromGraphics:
     3. both x and y quibs but their inversion trace to the same source:
        We are draging on a curve. Invert to the point on the curve closest to the mouse.
 
-    4. both x and y can be inverted to different quibs:   
+    4. both x and y can be inverted to different quibs:
        Solve for the x,y point closest to the mouse.
-       
+
     5. segment:
          If the segment is movable, we solve for the segment point closest to the mouse.
             If the segment is not movable, we solve for the segment points independently.
@@ -240,12 +240,9 @@ class GetOverrideGroupFromGraphics:
 
     def _get_source_ids(self, j_ind: Optional[int]) -> NDArray[int]:
         """Get the source ids of a given point, or the source ids of the segment"""
-        source_ids = []
-        if j_ind is None:
-            j_ind = np.arange(self.num_points)
-        all_ids = self.xys_unique_source_ids[j_ind].flatten()
-        all_ids = all_ids[all_ids != -1]
-        return np.unique(all_ids)
+        ids = self.xys_unique_source_ids[j_ind].flatten()
+        ids = ids[ids != -1]
+        return np.unique(ids)
 
     def _get_target_segment_held_point(self) -> PointArray:
         return self.xy_mouse[0] + self.enhanced_pick_event.mouse_to_segment
@@ -284,7 +281,7 @@ class GetOverrideGroupFromGraphics:
             overrides.append(override)
         return overrides
 
-    def _get_overrides_for_point(self, j_ind: Optional[int], with_tolerance=True) -> OverrideGroup:
+    def _get_overrides_for_point(self, j_ind: int, with_tolerance=True) -> OverrideGroup:
         source_ids = self._get_source_ids(j_ind)
         if len(source_ids) == 0:
             return OverrideGroup()
