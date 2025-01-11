@@ -60,7 +60,12 @@ def solve_single_point_on_curve(func: Callable,
         if dpv_norm == 0:
             #  dragging a point that is not movable:
             diff_norm = norm(xy - p0)
-            best_solution = Solution(v1, p0, diff_norm, np.abs(dv) / diff_norm * tolerance)
+            tol = np.abs(dv) * tolerance
+            if dpv_norm == 0:
+                tol = tol * 0
+            else:
+                tol = tol / dpv_norm
+            best_solution = Solution(v1, p0, diff_norm, tol)
             break
         tol_v = dv / dpv_norm * tolerance
         distance = norm(p1 - xy)
@@ -169,7 +174,12 @@ def solve_single_point_with_two_variables(func: Callable,
         if np.all(dp_norm == 0):
             #  dragging a point that is not movable:
             diff_norm = norm(xy - p0)
-            closest = Solution(v1, p0, diff_norm, np.abs(dv) / diff_norm * tolerance)
+            tol = np.abs(dv) * tolerance
+            if np.all(dp_norm == 0):
+                tol = tol * 0
+            else:
+                tol = tol / dp_norm
+            closest = Solution(v1, p0, diff_norm, tol)
             break
 
         # calculate the coefficients c_v and c_w such that p00 + c_v * dp01 + c_w * dp10 == xy

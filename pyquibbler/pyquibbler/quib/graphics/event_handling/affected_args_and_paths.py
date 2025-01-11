@@ -2,15 +2,20 @@ from __future__ import annotations
 
 import numpy as np
 
-from typing import Any, Optional, Tuple
+from typing import Any, Optional, Tuple, Union
 
 from pyquibbler.path import PathComponent, Path
 from pyquibbler.utilities.general_utils import Shape
 
+from .utils import _is_quib
+
 from typing import TYPE_CHECKING
+
+from pyquibbler.utilities.numpy_original_functions import np_shape
+
 if TYPE_CHECKING:
     from pyquibbler.quib.quib import Quib
-    QuibAndPath = Tuple[Quib, Path]
+    ObjAndPath = Tuple[Union[Quib, Any], Path]
 
 
 def _get_affected_path_for_plot(shape: Shape, point_index: int, data_index: int):
@@ -34,24 +39,24 @@ def _get_affected_path_for_scatter(shape: Shape, point_index: int):
     assert False, 'Matplotlib is not supposed to support scatter of data arguments with >1 dimensions'
 
 
-def get_quib_and_path_affected_by_event(arg: Any,
-                                        data_index: Optional[int],
-                                        picked_index: int) -> Optional[QuibAndPath]:
-    from pyquibbler.quib.quib import Quib
-    if isinstance(arg, Quib):
-        shape = arg.get_shape()
-        if data_index is None:
-            # scatter
-            path = _get_affected_path_for_scatter(shape, picked_index)
-        else:
-            # plot
-            path = _get_affected_path_for_plot(shape, picked_index, data_index)
-        return arg, path
-
-    # Legacy code. This option is obsolete now that list args of plot are converted to arrays
+def get_obj_and_path_affected_by_event(arg: Any,
+                                       data_index: Optional[int],
+                                       picked_index: int) -> Optional[ObjAndPath]:
     if isinstance(arg, list):
-        quib = arg[data_index]
-        if isinstance(quib, Quib):
-            return quib, []
+        # Legacy. This option is obsolete now that list args of plot are converted to arrays
+        maybe_quib = arg[data_index]
+        if _is_quib(maybe_quib):
+            return maybe_quib, []
 
-    return None
+    if _is_quib(arg):
+        shape = arg.get_shape()
+    else:
+        shape = np_shape(arg)
+
+    if data_index is None:
+        # scatter
+        path = _get_affected_path_for_scatter(shape, picked_index)
+    else:
+        # plot
+        path = _get_affected_path_for_plot(shape, picked_index, data_index)
+    return arg, path
