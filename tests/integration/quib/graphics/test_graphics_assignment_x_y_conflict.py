@@ -131,9 +131,6 @@ def test_drag_parallel(create_axes_mouse_press_move_release_events, axes):
     axes.plot([x1, x2], [0, 1], 'o-')
 
     create_axes_mouse_press_move_release_events(((0.1, 0.25), (0.3, 0.25)))
-    print()
-    print(x1.get_value())
-    print(x2.get_value())
     assert abs(x1.get_value() - 0.2) < 0.02
     assert abs(x2.get_value() - 0.6) < 0.02
 
@@ -146,6 +143,6 @@ def test_drag_middle_tethered_line(create_axes_mouse_press_move_release_events, 
 
     axes.plot([-x, x], [-1, 1], 'o-')
 
-    create_axes_mouse_press_move_release_events(((0.5, 0.5), (0.5, 0.4)))
-    print()
-    print(x.get_value())
+    create_axes_mouse_press_move_release_events(((0.5, 0.5), (0.4, 0.5)))
+
+    assert abs(x.get_value() - 0.8) < 0.02
