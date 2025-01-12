@@ -308,7 +308,7 @@ class GetOverrideGroupFromGraphics:
                 initial_values=self.unique_source_overrides_and_initial_values[:, 1],
                 xys_obj_and_path=self.xys_obj_and_path, xys_old=self.xys_old, segment_fraction=segment_fraction)
 
-            return self._call_geometric_solver(target_func, self._get_target_segment_held_point(), with_tolerance=False)
+            return self._call_geometric_solver(target_func, self._get_target_segment_held_point(), with_tolerance=True)
 
         # We move each of the segment points independently
         overrides = OverrideGroup()
