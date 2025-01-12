@@ -60,12 +60,13 @@ def operator_override(func_name,
 def binary_operator_override(func_name,
                              inverse_funcs: Tuple[Optional[InverseFunc]] = None,
                              is_reverse: bool = False,
+                             for_list: bool = False,
                              ):
 
     func = get_operator_func(func_name)
 
     # add special translators/invertors for list addition and multiplication:
-    if func_name in ['__add__', '__mul__']:
+    if for_list:
         base_func_definition = FUNC_DEFINITION_BINARY_ELEMENTWISE_AND_LIST
     else:
         base_func_definition = FUNC_DEFINITION_BINARY_ELEMENTWISE

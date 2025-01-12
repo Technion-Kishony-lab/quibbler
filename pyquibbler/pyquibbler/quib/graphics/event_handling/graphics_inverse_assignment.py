@@ -138,7 +138,7 @@ class TargetFunc:
     def _get_xy_pixel_data(self, values: Optional[List[Number]]) -> PointArray:
         return self._transform_data_with_none_to_pixels(self._get_xy_data(values))
 
-    def get_result(self, values: List[Number]) -> PointArray:
+    def get_result(self, values: Optional[List[Number]]) -> PointArray:
         return NotImplemented
 
 
@@ -267,7 +267,7 @@ class GetOverrideGroupFromGraphics:
         solver = self.nun_args_to_solvers.get(target_func.num_values)
         if solver is None:
             return OverrideGroup()
-        values, _, tol_values, _ = solver(func=target_func.get_result, v0=target_func.initial_values,
+        values, _, tol_values, _ = solver(func=target_func.get_result, v0=target_func.initial_values,  # noqa
                                           v1=target_func.get_override_values(),
                                           xy=xy, tolerance=1, max_iter=6,
                                           p0=target_func.get_result(None))

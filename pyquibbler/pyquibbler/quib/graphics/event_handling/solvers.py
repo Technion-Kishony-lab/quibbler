@@ -80,7 +80,10 @@ def solve_single_point_on_curve(func: Callable,
             overshoot = _get_overshoot(p0, p_target, p1)
         else:
             overshoot = 1
-        v2 = v0 + dv / overshoot
+        if overshoot == 0:
+            v2 = v1  # effectively breaking out of the loop
+        else:
+            v2 = v0 + dv / overshoot
         num_iter += 1
         p2 = func((v2, ))
         v0, v1 = v1, v2

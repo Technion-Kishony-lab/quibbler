@@ -37,7 +37,7 @@ class Inverter(ConditionalRunner, ABC):
             assignment_values += (assignment.value_down, assignment.value_up)
         return assignment_values
 
-    def _get_result_with_assignment_nominal_down_up(self) -> Tuple[Any]:
+    def _get_result_with_assignment_nominal_down_up(self) -> Tuple[Any, ...]:
         """
         Assign the assignment value into the current result and return the result with the new result
 
