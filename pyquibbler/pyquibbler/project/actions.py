@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from typing import Optional, TYPE_CHECKING
 
 from pyquibbler.assignment import Assignment
+from pyquibbler.quib.graphics.redraw import notify_of_overriding_changes_or_add_in_aggregate_mode
 
 if TYPE_CHECKING:
     from pyquibbler.quib.quib import Quib
@@ -52,7 +53,7 @@ class AssignmentAction(Action, ABC):
     def run_post_action(self):
         self.quib.handler.file_syncer.on_data_changed()
         self.quib.handler.invalidate_and_aggregate_redraw_at_path(self.assignment.path)
-        self.quib.handler.on_overrides_changes()
+        notify_of_overriding_changes_or_add_in_aggregate_mode(self.quib)
 
 
 class AddAssignmentAction(AssignmentAction):
