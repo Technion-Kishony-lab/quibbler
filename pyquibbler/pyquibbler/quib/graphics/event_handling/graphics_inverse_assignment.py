@@ -22,7 +22,7 @@ from pyquibbler.utilities.numpy_original_functions import np_array, np_vectorize
 from .affected_args_and_paths import get_obj_and_path_affected_by_event
 from .enhance_pick_event import EnhancedPickEventWithFuncArgsKwargs
 from .solvers import solve_single_point_on_curve, solve_single_point_with_two_variables
-from .utils import skip_vectorize, _is_quib
+from .utils import skip_vectorize, is_quib
 
 from typing import TYPE_CHECKING
 
@@ -34,7 +34,7 @@ if TYPE_CHECKING:
 
 def _get_obj_value_at_path(obj_and_path: Optional[ObjAndPath]) -> Optional[Number]:
     obj, path = obj_and_path
-    if _is_quib(obj):
+    if is_quib(obj):
         obj = obj.get_value_valid_at_path(path)
     return deep_get(obj, path)
 
@@ -43,7 +43,7 @@ def get_assignment_to_quib_from_obj_and_path(obj_and_path: Optional[ObjAndPath],
                                              value: Any = default, tolerance: Any = None,
                                              ) -> Optional[AssignmentToQuib]:
     obj, path = obj_and_path
-    if _is_quib(obj):
+    if is_quib(obj):
         return AssignmentToQuib.create(obj, path, value, tolerance)
     return None
 
@@ -249,12 +249,12 @@ class GetOverrideGroupFromGraphics:
 
     def get_xy_old_and_target_values(self, xys_obj_and_path) -> tuple[PointArray, PointArray]:
         xys_old = skip_vectorize(_get_obj_value_at_path)(xys_obj_and_path)
-        is_quib = np_vectorize(lambda o_and_p: o_and_p is not None and _is_quib(o_and_p[0]))(xys_obj_and_path)
+        is_quib_vec = np_vectorize(lambda o_and_p: o_and_p is not None and is_quib(o_and_p[0]))(xys_obj_and_path)
         transData_inverted = self.ax.transData.inverted()
         xys_target_values = transData_inverted.transform(self.xys_target_values_pixels)
         xys_target_values_typed = skip_vectorize(convert_scalar_value)(xys_old, xys_target_values)
 
-        unchanged = (xys_target_values_typed == xys_old) & is_quib
+        unchanged = (xys_target_values_typed == xys_old) & is_quib_vec
         if np.any(unchanged):
             # if the target value is the same as the old value, we add a pixel to the target value
             # to have some scale for the solver

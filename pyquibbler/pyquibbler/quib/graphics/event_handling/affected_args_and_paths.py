@@ -7,7 +7,7 @@ from typing import Any, Optional, Tuple, Union
 from pyquibbler.path import PathComponent, Path
 from pyquibbler.utilities.general_utils import Shape
 
-from .utils import _is_quib
+from .utils import is_quib
 
 from typing import TYPE_CHECKING
 
@@ -45,10 +45,10 @@ def get_obj_and_path_affected_by_event(arg: Any,
     if isinstance(arg, list):
         # Legacy. This option is obsolete now that list args of plot are converted to arrays
         maybe_quib = arg[data_index]
-        if _is_quib(maybe_quib):
+        if is_quib(maybe_quib):
             return maybe_quib, []
 
-    if _is_quib(arg):
+    if is_quib(arg):
         shape = arg.get_shape()
     else:
         shape = np_shape(arg)
