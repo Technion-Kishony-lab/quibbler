@@ -438,8 +438,8 @@ class Project:
         --------
         undo, redo, can_undo, can_redo
         """
-        self._undo_action_groups = []
-        self._redo_action_groups = []
+        self._undo_action_groups.clear()
+        self._redo_action_groups.clear()
         self.set_undo_redo_buttons_enable_state()
 
     def start_pending_undo_group(self):

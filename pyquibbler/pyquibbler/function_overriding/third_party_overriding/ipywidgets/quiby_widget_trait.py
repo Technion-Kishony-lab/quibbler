@@ -32,6 +32,7 @@ class QuibyWidgetTrait:
         self._immediately_after_quib_set = True
         self._is_dragging = False
         self.denounce_timer = DebounceTimer(UNDO_GROUP_TIME.val, self.on_mouse_drop)
+        self._last_value = None
 
     @contextlib.contextmanager
     def within_quib_set_context(self):
@@ -54,6 +55,9 @@ class QuibyWidgetTrait:
             self._is_dragging = True
         new_value = change['new']
         new_value = self._restrict_value(new_value)
+        if self._last_value is not None and np.all(new_value == self._last_value):
+            return
+
         quib_type = self.quib.get_type()
         if np.issubdtype(quib_type, np.integer):
             new_value = round(new_value)
@@ -99,6 +103,7 @@ class QuibyWidgetTrait:
         self._validate_value(value)
         with self.within_quib_set_context():
             QuibyWidgetTrait.original_set(self.trait, self.widget, value)
+        self._last_value = value
 
     def on_mouse_drop(self, change):
         self._is_dragging = False

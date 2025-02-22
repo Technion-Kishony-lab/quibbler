@@ -80,7 +80,7 @@ def test_quib_is_not_overridden_upon_widget_initiation(quib):
     w.close()
 
 
-def test_quib_value_is_refreshed_upon_widget_change(widget, quib, no_timer):
+def test_quib_value_is_refreshed_upon_widget_change(no_timer, widget, quib):
     assert quib.get_value() == 7., "sanity"
 
     widget.value = 8.
@@ -89,7 +89,7 @@ def test_quib_value_is_refreshed_upon_widget_change(widget, quib, no_timer):
 
 
 
-def test_quib_is_only_overridden_once_per_widget_change(widget, quib, no_timer):
+def test_quib_is_only_overridden_once_per_widget_change(no_timer, widget, quib):
     assert len(quib.handler.overrider) == 0, "sanity"
 
     widget.value = 8.
@@ -97,7 +97,7 @@ def test_quib_is_only_overridden_once_per_widget_change(widget, quib, no_timer):
     simulate_time_delay(widget)
 
 
-def test_quib_is_only_invalidated_once_per_widget_change(widget, quib, no_timer):
+def test_quib_is_only_invalidated_once_per_widget_change(no_timer, widget, quib):
     assert len(quib.handler.overrider) == 0, "sanity"
 
     with count_invalidations(quib) as count:
@@ -107,7 +107,7 @@ def test_quib_is_only_invalidated_once_per_widget_change(widget, quib, no_timer)
     simulate_time_delay(widget)
 
 
-def test_widget_sets_an_in_between_value(widget, quib, no_timer):
+def test_widget_sets_an_in_between_value(no_timer, widget, quib):
     widget.value = 8.7
     assert quib.get_value() == 9
     assert widget.value == 9.
@@ -156,7 +156,7 @@ def test_list_of_quibs_as_widget_value(no_timer):
     w.close()
 
 
-def test_ipywidgets_undo_redo(widget, quib, no_timer, project):
+def test_ipywidgets_undo_redo(no_timer, widget, quib, project):
     widget.value = 8.
     assert quib.get_value() == 8.
     project.undo()
@@ -167,18 +167,18 @@ def test_ipywidgets_undo_redo(widget, quib, no_timer, project):
     simulate_time_delay(widget)
 
 
-def test_ipywidgets_aggregate_undo_redo(widget, quib, no_timer, project):
-    widget.value = 6.
+def test_ipywidgets_aggregate_undo_redo(no_timer, widget, quib, project):
+    widget.value = 6.1
     assert quib.get_value() == 6.
-    widget.value = 5.
+    widget.value = 5.1
     assert quib.get_value() == 5.
 
     # A new undo group is created if the widget is delayed for longer than UNDO_GROUP_TIME
     simulate_time_delay(widget)
 
-    widget.value = 4.
+    widget.value = 4.1
     assert quib.get_value() == 4.
-    widget.value = 3.
+    widget.value = 3.1
     assert quib.get_value() == 3.
 
     project.undo()
@@ -186,6 +186,12 @@ def test_ipywidgets_aggregate_undo_redo(widget, quib, no_timer, project):
 
     project.undo()
     assert quib.get_value() == 7.
+
+    project.redo()
+    assert quib.get_value() == 5.
+
+    project.redo()
+    assert quib.get_value() == 3.
 
     simulate_time_delay(widget)
 
@@ -201,9 +207,22 @@ def test_ipywidgets_restrict_steps(widget, quib):
     assert widget.value == 10
 
 
-def test_ipywidgets_and_graphics(int_widget, no_timer, int_quib, create_axes_mouse_press_move_release_events, axes):
+def test_ipywidgets_and_graphics(no_timer, int_widget, int_quib, create_axes_mouse_press_move_release_events, axes):
     axes.set_xlim(0, 10)
     axes.set_ylim(0, 10)
     axes.plot(int_quib, int_quib, 'o')
     create_axes_mouse_press_move_release_events(((7, 7), (5, 5)))
     assert int_quib.get_value() == 5
+
+
+def test_do_not_override_quib_upon_widget_creation(quib):
+    assert not quib.handler.is_overridden, "sanity"
+    w = ipywidgets.FloatSlider(
+        value=quib,
+        min=0,
+        max=60,
+        step=2,
+        description='Slider:',
+    )
+    assert not quib.handler.is_overridden
+    w.close()
