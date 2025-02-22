@@ -3,7 +3,7 @@ import ipywidgets
 
 from unittest import mock
 
-from pyquibbler import iquib, Project
+from pyquibbler import iquib
 from pyquibbler.function_overriding.third_party_overriding.ipywidgets.overrides import \
     _get_or_create_trait_to_quiby_widget_trait
 from pyquibbler.function_overriding.third_party_overriding.ipywidgets.quiby_widget_trait import UNDO_GROUP_TIME
@@ -16,12 +16,16 @@ def simulate_time_delay(w, attr='value'):
 
 @pytest.fixture
 def widget(quib):
-    yield ipywidgets.FloatSlider(value=quib, min=0, max=10, step=1)
+    w = ipywidgets.FloatSlider(value=quib, min=0, max=10, step=1)
+    yield w
+    w.close()
 
 
 @pytest.fixture
 def int_widget(int_quib):
-    yield ipywidgets.IntSlider(value=int_quib, min=0, max=10, step=1)
+    w = ipywidgets.IntSlider(value=int_quib, min=0, max=10, step=1)
+    yield w
+    w.close()
 
 
 @pytest.fixture
@@ -54,6 +58,7 @@ def test_ipywidgets_ok_on_non_quibs(func):
     assert func.mock_calls[0].args[0]['new'] == 11.
     w.value = 12.
     assert func.mock_calls[1].args[0]['new'] == 12.
+    w.close()
 
 
 def test_ipywidgets_initiate_with_quib_value(widget, quib):
@@ -72,6 +77,7 @@ def test_quib_is_not_overridden_upon_widget_initiation(quib):
     assert not quib.handler.is_overridden, "sanity"
     w = ipywidgets.FloatSlider(value=quib)
     assert not quib.handler.is_overridden
+    w.close()
 
 
 def test_quib_value_is_refreshed_upon_widget_change(widget, quib, no_timer):
@@ -110,11 +116,12 @@ def test_widget_sets_an_in_between_value(widget, quib, no_timer):
 
 def test_slider_value_rounding(no_timer):
     a = iquib(1.)
-    b = 5 * a
+    b = 5 * a  # noqa
     w = ipywidgets.FloatSlider(value=b)
     w.value = 32.7
     assert a.get_value() == 6.54  # without tolerance-rounding, we get 32.8 / 5 -> 6.540000000000001
     simulate_time_delay(w)
+    w.close()
 
 
 def test_tuple_quib_as_widget_value(no_timer):
@@ -124,6 +131,7 @@ def test_tuple_quib_as_widget_value(no_timer):
     w.value = [5., 9.]
     assert a.get_value() == (5., 9.)
     simulate_time_delay(w)
+    w.close()
 
 
 def test_list_quib_as_widget_value(no_timer):
@@ -133,6 +141,7 @@ def test_list_quib_as_widget_value(no_timer):
     w.value = [5., 9.]
     assert a.get_value() == [5., 9.]
     simulate_time_delay(w)
+    w.close()
 
 
 def test_list_of_quibs_as_widget_value(no_timer):
@@ -144,10 +153,10 @@ def test_list_of_quibs_as_widget_value(no_timer):
     assert b.get_value() == 6.
     assert a.get_value() == 2.
     simulate_time_delay(w)
+    w.close()
 
 
-def test_ipywidgets_undo_redo(widget, quib, no_timer):
-    project = Project.get_or_create()
+def test_ipywidgets_undo_redo(widget, quib, no_timer, project):
     widget.value = 8.
     assert quib.get_value() == 8.
     project.undo()
@@ -158,8 +167,7 @@ def test_ipywidgets_undo_redo(widget, quib, no_timer):
     simulate_time_delay(widget)
 
 
-def test_ipywidgets_aggregate_undo_redo(widget, quib, no_timer):
-    project = Project.get_or_create()
+def test_ipywidgets_aggregate_undo_redo(widget, quib, no_timer, project):
     widget.value = 6.
     assert quib.get_value() == 6.
     widget.value = 5.
@@ -191,7 +199,6 @@ def test_ipywidgets_restrict_steps(widget, quib):
         quib.assign(8)
     assert quib.get_value() == 8
     assert widget.value == 10
-    widget.step = 1
 
 
 def test_ipywidgets_and_graphics(int_widget, no_timer, int_quib, create_axes_mouse_press_move_release_events, axes):
