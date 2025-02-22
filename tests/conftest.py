@@ -227,8 +227,10 @@ def convert_str_xy_to_normalized_xy(xy):
         return 1., 0.5
 
 
-def simulate_event(canvas, name, x, y, button=1):
+def simulate_event(canvas, name, x, y, button=1, ax=None):
     event = MouseEvent(name, canvas, x, y, button=button)
+
+    event.inaxes = ax
     canvas.callbacks.process(name, event)
 
 
@@ -248,13 +250,13 @@ def create_mouse_press_move_release_events(ax, xys, button: int = 1,
     # Use canvas directly for button press, motion notify, and button release events
 
     if press:
-        simulate_event(ax.figure.canvas, 'button_press_event', _xy_init[0], _xy_init[1], button=button)
+        simulate_event(ax.figure.canvas, 'button_press_event', _xy_init[0], _xy_init[1], button=button, ax=ax)
     for _xy in xys[1:]:
-        simulate_event(ax.figure.canvas, 'motion_notify_event', _xy[0], _xy[1])
+        simulate_event(ax.figure.canvas, 'motion_notify_event', _xy[0], _xy[1], ax=ax)
         if pause is not None:
             plt.pause(pause)
     if release:
-        simulate_event(ax.figure.canvas, 'button_release_event', _xy_end[0], _xy_end[1], button=button)
+        simulate_event(ax.figure.canvas, 'button_release_event', _xy_end[0], _xy_end[1], button=button, ax=ax)
 
 @pytest.fixture
 def create_axes_mouse_press_move_release_events(axes):
