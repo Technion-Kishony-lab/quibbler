@@ -217,3 +217,77 @@ def solve_single_point_with_two_variables(func: Callable,
         v1 = v2
 
     return closest.value, closest.point, closest.tol_value, num_iter
+
+
+# def solve_segment_on_point(func: Callable,
+#                            v0: NDArray, v1: NDArray,
+#                            xy: PointArray, tolerance: Union[Number, PointArray] = 1,
+#                            max_iter: int = 10,
+#                            p0: Optional[PointArray] = None
+#                            ) -> (NDArray, PointArray, NDArray, int):
+#     """
+#     func returns two points representing a segment.
+#     Find the variable values for which the segment is closest to the point xy.
+#
+#     Parameters
+#     ----------
+#     func : Callable
+#         A function of a single variable. Returns a PointArray of two points, shape (2, 2).
+#
+#     v0 : NDArray
+#         Array of shape (1, ) with the initial guess for the variable value.
+#
+#     v1 : NDArray
+#         Array of shape (1, ) with the second guess for the variable value.
+#
+#     xy : PointArray
+#         The point for which the segment-defined extended line should be closest to.
+#
+#     tolerance : Number or PointArray
+#         The tolerance for the distance between the segment and the point.
+#
+#     p0 : Optional[PointArray]
+#         The func value at v0. If None, it is calculated by calling func(v0).
+#
+#     use get_closest_point_on_line
+#     """
+#     v0 = v0[0]
+#     v1 = v1[0]
+#
+#     if p0 is None:
+#         p0 = func((v0, ))
+#     p1 = func((v1, ))
+#
+#     num_iter = 0
+#     best_solution = None
+#
+#     while True:
+#         dv = v1 - v0
+#         dpv = p1 - p0
+#         dpv_norm = norm(dpv, axis=1)
+#
+#         if np.all(dpv_norm == 0):
+#             #  dragging a segment that is not movable:
+#             diff_norm = norm(xy - p0)
+#             tol = np.abs(dv) * tolerance
+#             if np.all(dpv_norm == 0):
+#                 tol = tol * 0
+#             else:
+#                 tol = tol / dpv_norm
+#             best_solution = Solution(v1, p0, diff_norm, tol)
+#             break
+#
+#         # find the closest point on the line defined by p0 and p1
+#         p_target, slope = get_closest_point_on_line(p0, p1, xy)
+#         distance = norm(p_target - xy)
+#         if best_solution is None or distance < best_solution.distance:
+#             best_solution = Solution(v1, p_target, distance, np.abs(dv) / (dpv_norm + 1e-10) * tolerance)
+#
+#         if norm((p1 - p_target) / tolerance) < 1 or num_iter >= max_iter:
+#             break
+#
+#         norm_diff = norm(p_target - p0)
+#         if norm_diff:
+#             overshoot = get_overshoot(p0, p_target, p1)
+#         else:
+#             overshoot = 1

@@ -19,6 +19,7 @@ if TYPE_CHECKING:
 
 UNDO_GROUP_TIME = Mutable(0.1)
 
+
 class QuibyWidgetTrait:
     original_set: Optional[Callable] = None
     is_draggable: bool = True
