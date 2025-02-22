@@ -162,3 +162,14 @@ def test_two_variables_with_dependent_coordinates(axes, create_axes_mouse_press_
 
     assert abs(x.get_value() - solution_x) < 0.04
     assert abs(y.get_value() - solution_y) < 0.04
+
+
+def test_drag_with_non_numeric_on_one_axis(axes, create_axes_mouse_press_move_release_events):
+    x = iquib([10., 20., 30.])
+    rgb = ['r', 'g', 'b']
+    axes.set_xlim(-1, 3)
+    axes.set_ylim(0, 40)
+    axes.plot(rgb, x, 'o')
+    create_axes_mouse_press_move_release_events(((1, 20), (1, 25)))
+
+    assert abs(x.get_value()[1] - 25) < 0.15

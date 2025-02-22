@@ -590,6 +590,8 @@ class QuibHandler:
         from pyquibbler.function_overriding.quib_overrides.quib_methods import ORIGINAL_GET_QUIBY_NAME
 
         has_name_changed = assigned_name_changed or self.assigned_name is None
+        if self._widget:
+            self._widget.refresh_name()
         for child in self.children:
             if child.handler.func_args_kwargs.func is ORIGINAL_GET_QUIBY_NAME:
                 child.handler.invalidate_self([])
@@ -614,7 +616,6 @@ class QuibHandler:
             from pyquibbler.ipywidget_viewer.quib_widget import QuibWidget
             widget = QuibWidget(self._quib_ref)
             widget.build_widget()
-            widget.refresh()
             self._widget = widget
 
         display(self._widget.get_widget())

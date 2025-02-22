@@ -34,12 +34,12 @@ def test_prevent_assignments_causing_exception_on_drop(validate_input):
     validate = validate_input(a)
     validate.graphics_update = 'drop'
 
-    start_dragging()
+    start_dragging(77)
     with graphics_assignment_mode(True):
         a.assign(-1)
         assert a.get_value() == -1
 
-    end_dragging()
+    end_dragging(77)
     assert a.get_value() == 1
 
 

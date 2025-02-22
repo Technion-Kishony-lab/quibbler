@@ -177,6 +177,7 @@ class QuibWidget:
     def refresh(self):
         self._refresh_assignments()
         self._refresh_save_load_button_disable_state()
+        self.refresh_name()
 
     def _on_delete_assignment(self, assignment_index: int):
         if assignment_index >= len(self.quib.handler.overrider):
@@ -222,7 +223,7 @@ class QuibWidget:
 
         self._main_box = widgets.VBox([])
 
-        self._name_label = widgets.Label(value=self.quib.get_quiby_name(as_repr=True))
+        self._name_label = widgets.Label("")
 
         self._props_button = _create_button(label='Props', callback=self.show_quib_properties_as_pop_up,
                                             tooltip="Show quib's properties")
@@ -235,7 +236,13 @@ class QuibWidget:
                                                              tooltip="Show list of overriding assignments")
             self._assignments_button.value = True
         else:
-            self._refresh_items_in_widget()
+            self._assignments_button = None
+
+        self._refresh_items_in_widget()
+        self.refresh()
+
+    def refresh_name(self):
+        self._name_label.value = self.quib.pretty_repr
 
     def _refresh_items_in_widget(self):
         buttons = widgets.HBox(

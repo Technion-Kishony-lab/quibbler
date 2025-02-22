@@ -3,7 +3,7 @@ from __future__ import annotations
 import contextlib
 import weakref
 
-from typing import Set, Dict
+from typing import Set, Dict, Optional
 from matplotlib.figure import Figure
 from matplotlib.pyplot import fignum_exists
 from matplotlib._pylab_helpers import Gcf
@@ -20,7 +20,7 @@ QUIBS_TO_REDRAW: Dict[GraphicsUpdateType, weakref.WeakSet[Quib]] = {GraphicsUpda
                                                                     GraphicsUpdateType.DROP: weakref.WeakSet()}
 QUIBS_TO_NOTIFY_OVERRIDING_CHANGES: weakref.WeakSet[Quib] = weakref.WeakSet()
 IN_AGGREGATE_REDRAW_MODE = False
-IN_DRAGGING_MODE = False
+IN_DRAGGING_BY: Optional[int] = None
 
 
 @contextlib.contextmanager
@@ -49,23 +49,28 @@ def aggregate_redraw_mode(temporarily: bool = False):
             _notify_of_overriding_changes()
 
 
-def start_dragging():
+def start_dragging(id_: int, replace_other_dragging: bool = True):
     from pyquibbler import Project
-    global IN_DRAGGING_MODE
-    if IN_DRAGGING_MODE:
-        return
-    IN_DRAGGING_MODE = True
+    global IN_DRAGGING_BY
+    if IN_DRAGGING_BY is not None:
+        if IN_DRAGGING_BY == id_ or not replace_other_dragging:
+            return
+        end_dragging(IN_DRAGGING_BY)
+    IN_DRAGGING_BY = id_
     project = Project.get_or_create()
     project.push_empty_group_to_undo_stack()
     project.start_pending_undo_group()
 
 
-def end_dragging():
+def end_dragging(id_: Optional[int], only_if_same_id: bool = True):
+    global IN_DRAGGING_BY
+    id_ = id_ or IN_DRAGGING_BY
     from pyquibbler import Project
-    global IN_DRAGGING_MODE
-    if not IN_DRAGGING_MODE:
+    if IN_DRAGGING_BY is None:
         return
-    IN_DRAGGING_MODE = False
+    if only_if_same_id and id_ != IN_DRAGGING_BY:
+        return
+    IN_DRAGGING_BY = None
     project = Project.get_or_create()
     try:
         _redraw_quibs_with_graphics(GraphicsUpdateType.DROP)
@@ -77,7 +82,7 @@ def end_dragging():
 
 
 def is_dragging():
-    return IN_DRAGGING_MODE
+    return IN_DRAGGING_BY is not None
 
 
 @contextlib.contextmanager

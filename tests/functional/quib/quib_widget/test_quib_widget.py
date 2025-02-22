@@ -66,7 +66,6 @@ def test_widget_names_refresh_when_quib_name_changes(quib, quib_widget, child, c
     assert child_widget._name_label.value == 'child = new_quib + 2'
 
 
-@pytest.mark.skip
 def test_widget_disabled_when_quib_deleted():
     a = iquib(1)
     a._repr_html_()

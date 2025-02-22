@@ -88,12 +88,12 @@ def test_graphics_quib_does_not_copy_color(axes, create_quib_with_return_value):
 def test_graphics_quib_update_on_drag(graphics_update, should_have_called, quib, graphics_quib,
                                       create_quib_with_return_value):
     graphics_quib.graphics_update = graphics_update
-    start_dragging()
+    start_dragging(78)
     with aggregate_redraw_mode():
         quib.handler.invalidate_and_aggregate_redraw_at_path([])
 
     assert graphics_quib.func.call_count == (2 if should_have_called else 1)
-    end_dragging()
+    end_dragging(78)
 
 
 def test_graphics_quib_update_on_drop(quib, graphics_quib):

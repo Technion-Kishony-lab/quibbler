@@ -1,7 +1,6 @@
 from typing import Tuple
 
 import numpy as np
-from matplotlib.axes import Axes
 
 from pyquibbler.quib.types import PointArray
 from pyquibbler.utilities.numpy_original_functions import np_vectorize
@@ -39,28 +38,6 @@ def get_closest_point_on_line(xy1: PointArray, xy2: PointArray, xy_p: PointArray
     return PointArray([x, y]), PointArray([d[0] / sqrt_d_s, d[1] / sqrt_d_s])
 
 
-def get_closest_point_on_line_in_axes(ax: Axes, xy1: PointArray, xy2: PointArray, xy_p: PointArray
-                                      ) -> Tuple[PointArray, PointArray]:
-    """
-    Find the closest point along a line to a specified point, within the coordinates of a specified axes.
-
-    xy1, xy2 are two points, defining a straight line
-    xy_p is an arbitrary point
-
-    returns a point, PointArray, which is on the line and closest to xy_p.
-    also return `slope`: the normalized dx, dy of the line
-    """
-
-    transform = ax.transData.transform
-    xy, slope = get_closest_point_on_line(
-        PointArray(transform(xy1)),
-        PointArray(transform(xy2)),
-        PointArray(transform(xy_p)),
-    )
-
-    return PointArray(ax.transData.inverted().transform(xy)), slope
-
-
 def get_intersect_between_two_lines(a_x1, a_y1, a_x2, a_y2, b_x1, b_y1, b_x2, b_y2):
 
     # Calculate the denominator of the equations of the two lines
@@ -75,39 +52,6 @@ def get_intersect_between_two_lines(a_x1, a_y1, a_x2, a_y2, b_x1, b_y1, b_x2, b_
     y = ((a_x1 * a_y2 - a_y1 * a_x2) * (b_y1 - b_y2) - (a_y1 - a_y2) * (b_x1 * b_y2 - b_y1 * b_x2)) / denominator
 
     return x, y
-
-
-def get_intersect_between_two_lines_in_axes(ax: Axes,
-                                            a1: PointArray, a2: PointArray,
-                                            b1: PointArray, b2: PointArray) -> Tuple[PointArray, PointArray]:
-    """
-    Find the closest point along a line to a specified point, within the coordinates of a specified axes.
-
-    a1, a2 are two points, defining a straight line a.
-    b1, b2 are two points, defining a straight line b.
-
-    returns a point, PointArray, which is on the intersection of the two lines.
-    also return difference of slopes: of the two lines.
-    """
-    a1, a2, b1, b2 = ax.transData.transform([a1, a2, b1, b2])
-
-    xy = get_intersect_between_two_lines(*a1, *a2, *b1, *b2)
-
-    # TODO: calculate correct error of intersect
-    err = PointArray([1, 1])
-    return PointArray(ax.transData.inverted().transform(xy)), err
-
-
-def get_sqr_distance_in_axes(ax: Axes, xy1: PointArray, xy2: PointArray) -> float:
-    """
-    Returns the square distance in pixels between two points in axes
-    """
-
-    xy1 = PointArray(ax.transData.transform(xy1))
-    xy2 = PointArray(ax.transData.transform(xy2))
-    d = xy1 - xy2
-
-    return d[0] ** 2 + d[1] ** 2
 
 
 def skip_vectorize(func, *args, otypes=0, **kwargs):
@@ -130,7 +74,7 @@ def skip_vectorize(func, *args, otypes=0, **kwargs):
     return _vectorize_to_point_array
 
 
-def _get_overshoot(p0: PointArray, p1: PointArray, p: PointArray) -> float:
+def get_overshoot(p0: PointArray, p1: PointArray, p: PointArray) -> float:
     """
     Assuming that p is on the line defined by p0 and p1, calculate the distance of p from p0, in
     the direction of p1 and in units of the distance between p0 and p1.
@@ -155,6 +99,6 @@ def _get_overshoot(p0: PointArray, p1: PointArray, p: PointArray) -> float:
         return (p[1] - p0[1]) / dp[1]
 
 
-def _is_quib(obj):
+def is_quib(obj):
     from pyquibbler import Quib
     return isinstance(obj, Quib)

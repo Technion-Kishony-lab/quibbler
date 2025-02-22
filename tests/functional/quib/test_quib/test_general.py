@@ -45,7 +45,6 @@ def test_quib_iter_exception(quib):
             first, second = quib
 
 
-# TODO: when operators are in motion
 def test_quib_getitem(quib):
     quib.func.return_value = [1, 2, 3]
 

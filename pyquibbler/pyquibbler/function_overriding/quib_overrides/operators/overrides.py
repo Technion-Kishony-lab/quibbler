@@ -19,23 +19,22 @@ def create_operator_overrides():
     return [
 
         # Binary operators with reverse, numeric operators
-        # Note that binary_operator_override has a special exception within for __add__ and __mul__
         *(binary_operator_override(operator_name, inverse_funcs=get_binary_inverse_funcs_for_func(inverter_from),
-                                   is_reverse=is_rev)
+                                   is_reverse=is_rev, for_list=for_list)
           for is_rev in [False, True]
-          for operator_name, inverter_from in (
-            ('__add__',         'add'),         # translators for list addition will also be added
-            ('__sub__',         'subtract'),
-            ('__mul__',         'multiply'),    # translators for list multiplication will also be added
-            ('__truediv__',     'true_divide'),
-            ('__floordiv__',    'floor_divide'),
-            ('__mod__',         'mod'),
-            ('__pow__',         'power'),
-            ('__lshift__',      'left_shift'),
-            ('__rshift__',      'right_shift'),
-            ('__and__',         'logical_and'),
-            ('__xor__',         'logical_xor'),
-            ('__or__',          'logical_or'),
+          for operator_name, inverter_from, for_list in (
+            ('__add__',         'add',           True),  # translators for list addition will also be added
+            ('__sub__',         'subtract',      False),
+            ('__mul__',         'multiply',      True),  # translators for list multiplication will also be added
+            ('__truediv__',     'true_divide',   False),
+            ('__floordiv__',    'floor_divide',  False),
+            ('__mod__',         'mod',           False),
+            ('__pow__',         'power',         False),
+            ('__lshift__',      'left_shift',    False),
+            ('__rshift__',      'right_shift',   False),
+            ('__and__',         'logical_and',   False),
+            ('__xor__',         'logical_xor',   False),
+            ('__or__',          'logical_or',    False),
           )),
 
         # Binary operators without reverse:

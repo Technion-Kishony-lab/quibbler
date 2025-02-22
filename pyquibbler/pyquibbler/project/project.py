@@ -35,7 +35,7 @@ class Project:
     def __init__(self, directory: Optional[Path]):
         self._directory = directory
         self._quib_refs: weakref.WeakSet[Quib] = weakref.WeakSet()
-        self._pending_undo_group: Optional[List] = None
+        self._pending_undo_group: Optional[List[AssignmentAction]] = None
         self._undo_action_groups: List[List[AssignmentAction]] = []
         self._redo_action_groups: List[List[AssignmentAction]] = []
         self._save_format: SaveFormat = self.DEFAULT_SAVE_FORMAT
@@ -438,8 +438,8 @@ class Project:
         --------
         undo, redo, can_undo, can_redo
         """
-        self._undo_action_groups = []
-        self._redo_action_groups = []
+        self._undo_action_groups.clear()
+        self._redo_action_groups.clear()
         self.set_undo_redo_buttons_enable_state()
 
     def start_pending_undo_group(self):

@@ -16,6 +16,7 @@ from pyquibbler.optional_packages.emulate_missing_packages import EMULATE_MISSIN
 from pyquibbler.project import Project
 from pyquibbler import initialize_quibbler
 from pyquibbler.quib.func_calling import CachedQuibFuncCall
+from pyquibbler.quib.graphics.redraw import is_dragging
 from pyquibbler.user_utils.quibapp import QuibApp
 
 from pyquibbler.utilities.basic_types import Flag
@@ -37,6 +38,12 @@ DEFAULT_SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACK = False
 DEFAULT_SAFE_MODE = False
 DEFAULT_GET_VARIABLE_NAMES = False
 DEFAULT_GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION = 1000
+
+
+@pytest.fixture(autouse=True)
+def check_reset_dragging():
+    yield
+    assert is_dragging() is False
 
 
 @fixture(autouse=True, scope="session")
@@ -227,8 +234,10 @@ def convert_str_xy_to_normalized_xy(xy):
         return 1., 0.5
 
 
-def simulate_event(canvas, name, x, y, button=1):
+def simulate_event(canvas, name, x, y, button=1, ax=None):
     event = MouseEvent(name, canvas, x, y, button=button)
+
+    event.inaxes = ax
     canvas.callbacks.process(name, event)
 
 
@@ -248,13 +257,13 @@ def create_mouse_press_move_release_events(ax, xys, button: int = 1,
     # Use canvas directly for button press, motion notify, and button release events
 
     if press:
-        simulate_event(ax.figure.canvas, 'button_press_event', _xy_init[0], _xy_init[1], button=button)
+        simulate_event(ax.figure.canvas, 'button_press_event', _xy_init[0], _xy_init[1], button=button, ax=ax)
     for _xy in xys[1:]:
-        simulate_event(ax.figure.canvas, 'motion_notify_event', _xy[0], _xy[1])
+        simulate_event(ax.figure.canvas, 'motion_notify_event', _xy[0], _xy[1], ax=ax)
         if pause is not None:
             plt.pause(pause)
     if release:
-        simulate_event(ax.figure.canvas, 'button_release_event', _xy_end[0], _xy_end[1], button=button)
+        simulate_event(ax.figure.canvas, 'button_release_event', _xy_end[0], _xy_end[1], button=button, ax=ax)
 
 @pytest.fixture
 def create_axes_mouse_press_move_release_events(axes):

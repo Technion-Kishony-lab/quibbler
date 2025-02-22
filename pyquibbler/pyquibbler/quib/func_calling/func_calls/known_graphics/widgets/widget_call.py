@@ -57,10 +57,10 @@ class WidgetQuibFuncCall(CachedQuibFuncCall):
             get_override_group_for_quib_changes(quib_changes).apply()
 
     def _on_press(self, *_, **__):
-        start_dragging()
+        start_dragging(id(self))
 
     def _on_release(self, *_, **__):
-        end_dragging()
+        end_dragging(id(self))
 
     def _run_single_call(self, func: Callable, graphics_collection: GraphicsCollection,
                          args: Args, kwargs: Kwargs, quibs_allowed_to_access: Set[Quib]):

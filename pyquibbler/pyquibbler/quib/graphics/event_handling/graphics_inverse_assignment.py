@@ -22,7 +22,7 @@ from pyquibbler.utilities.numpy_original_functions import np_array, np_vectorize
 from .affected_args_and_paths import get_obj_and_path_affected_by_event
 from .enhance_pick_event import EnhancedPickEventWithFuncArgsKwargs
 from .solvers import solve_single_point_on_curve, solve_single_point_with_two_variables
-from .utils import skip_vectorize, _is_quib
+from .utils import skip_vectorize, is_quib
 
 from typing import TYPE_CHECKING
 
@@ -34,7 +34,7 @@ if TYPE_CHECKING:
 
 def _get_obj_value_at_path(obj_and_path: Optional[ObjAndPath]) -> Optional[Number]:
     obj, path = obj_and_path
-    if _is_quib(obj):
+    if is_quib(obj):
         obj = obj.get_value_valid_at_path(path)
     return deep_get(obj, path)
 
@@ -43,7 +43,7 @@ def get_assignment_to_quib_from_obj_and_path(obj_and_path: Optional[ObjAndPath],
                                              value: Any = default, tolerance: Any = None,
                                              ) -> Optional[AssignmentToQuib]:
     obj, path = obj_and_path
-    if _is_quib(obj):
+    if is_quib(obj):
         return AssignmentToQuib.create(obj, path, value, tolerance)
     return None
 
@@ -138,7 +138,7 @@ class TargetFunc:
     def _get_xy_pixel_data(self, values: Optional[List[Number]]) -> PointArray:
         return self._transform_data_with_none_to_pixels(self._get_xy_data(values))
 
-    def get_result(self, values: List[Number]) -> PointArray:
+    def get_result(self, values: Optional[List[Number]]) -> PointArray:
         return NotImplemented
 
 
@@ -249,12 +249,12 @@ class GetOverrideGroupFromGraphics:
 
     def get_xy_old_and_target_values(self, xys_obj_and_path) -> tuple[PointArray, PointArray]:
         xys_old = skip_vectorize(_get_obj_value_at_path)(xys_obj_and_path)
-        is_quib = np_vectorize(lambda o_and_p: o_and_p is not None and _is_quib(o_and_p[0]))(xys_obj_and_path)
+        is_quib_vec = np_vectorize(lambda o_and_p: o_and_p is not None and is_quib(o_and_p[0]))(xys_obj_and_path)
         transData_inverted = self.ax.transData.inverted()
         xys_target_values = transData_inverted.transform(self.xys_target_values_pixels)
         xys_target_values_typed = skip_vectorize(convert_scalar_value)(xys_old, xys_target_values)
 
-        unchanged = (xys_target_values_typed == xys_old) & is_quib
+        unchanged = (xys_target_values_typed == xys_old) & is_quib_vec
         if np.any(unchanged):
             # if the target value is the same as the old value, we add a pixel to the target value
             # to have some scale for the solver
@@ -267,7 +267,7 @@ class GetOverrideGroupFromGraphics:
         solver = self.nun_args_to_solvers.get(target_func.num_values)
         if solver is None:
             return OverrideGroup()
-        values, _, tol_values, _ = solver(func=target_func.get_result, v0=target_func.initial_values,
+        values, _, tol_values, _ = solver(func=target_func.get_result, v0=target_func.initial_values,  # noqa
                                           v1=target_func.get_override_values(),
                                           xy=xy, tolerance=1, max_iter=6,
                                           p0=target_func.get_result(None))
@@ -308,7 +308,7 @@ class GetOverrideGroupFromGraphics:
                 initial_values=self.unique_source_overrides_and_initial_values[:, 1],
                 xys_obj_and_path=self.xys_obj_and_path, xys_old=self.xys_old, segment_fraction=segment_fraction)
 
-            return self._call_geometric_solver(target_func, self._get_target_segment_held_point(), with_tolerance=False)
+            return self._call_geometric_solver(target_func, self._get_target_segment_held_point(), with_tolerance=True)
 
         # We move each of the segment points independently
         overrides = OverrideGroup()
@@ -335,6 +335,12 @@ class GetOverrideGroupFromGraphics:
             return OverrideGroup()
 
         self.xys_old, self.xys_target_values = self.get_xy_old_and_target_values(self.xys_obj_and_path)
+
+        # to allow plot with str values (see test_drag_with_non_numeric_on_one_axis):
+        is_str = np.vectorize(lambda x: isinstance(x, str))(self.xys_old)
+        self.xys_obj_and_path[is_str] = None
+        self.xys_target_values[is_str] = None
+        self.xys_old[is_str] = None
 
         xys_overrides = _get_overrides_from_changes(self.xys_obj_and_path, self.xys_target_values)
 

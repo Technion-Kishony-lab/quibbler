@@ -1,19 +1,28 @@
 from __future__ import annotations
 
 import contextlib
-
 import numpy as np
 
+from typing import Optional, Callable, TYPE_CHECKING, Any
+
+from pyquibbler.utilities.basic_types import Mutable
 from pyquibbler.assignment import AssignmentToQuib, get_override_group_for_quib_changes, create_assignment
 from pyquibbler.quib.quib import Quib
-from typing import Optional, Callable, TYPE_CHECKING, Any
+from pyquibbler.quib.graphics.redraw import end_dragging, start_dragging
+
+from .denounce_timer import DebounceTimer
+
 
 if TYPE_CHECKING:
     from pyquibbler.optional_packages.get_ipywidgets import ipywidgets, TraitType
 
 
+UNDO_GROUP_TIME = Mutable(0.1)
+
+
 class QuibyWidgetTrait:
     original_set: Optional[Callable] = None
+    is_draggable: bool = True
 
     def __init__(self, quib: Quib, trait: TraitType, widget: ipywidgets.Widget):
         self.quib = quib
@@ -21,6 +30,9 @@ class QuibyWidgetTrait:
         self.widget = widget
         self._within_quib_set: bool = False
         self._immediately_after_quib_set = True
+        self._is_dragging = False
+        self.denounce_timer = DebounceTimer(UNDO_GROUP_TIME.val, self.on_mouse_drop)
+        self._last_value = None
 
     @contextlib.contextmanager
     def within_quib_set_context(self):
@@ -34,25 +46,70 @@ class QuibyWidgetTrait:
                 self._within_quib_set = False
 
     def _on_widget_change(self, change):
-        if not self._within_quib_set and not self._immediately_after_quib_set:
-            new_value = change['new']
-            quib_type = self.quib.get_type()
-            if np.issubdtype(quib_type, np.integer):
-                new_value = round(new_value)
-            new_value = self.quib.get_type()(new_value)
-            self._inverse_assign(value=new_value)
-        else:
+        if self._within_quib_set or self._immediately_after_quib_set:
             self._immediately_after_quib_set = False
+            return
+
+        if self.is_draggable and not self._is_dragging:
+            start_dragging(id(self))
+            self._is_dragging = True
+        new_value = change['new']
+        new_value = self._restrict_value(new_value)
+        if self._last_value is not None and np.all(new_value == self._last_value):
+            return
+
+        quib_type = self.quib.get_type()
+        if np.issubdtype(quib_type, np.integer):
+            new_value = round(new_value)
+        new_value = self.quib.get_type()(new_value)
+        self._inverse_assign(value=new_value)
+
+        # call mouse drop using denounce timer
+        if self._is_dragging:
+            self.denounce_timer.call(change)
+
+    def _get_attr(self, attr):
+        try:
+            return getattr(self.widget, attr)
+        except AttributeError:
+            return None
+
+    def _get_min_max_step(self):
+        return self._get_attr('min'), self._get_attr('max'), self._get_attr('step')
+
+    def _validate_value(self, value):
+        value_arr = np.array(value)
+        mn, mx, step = self._get_min_max_step()
+        if mn is not None and np.any(value_arr < mn):
+            raise ValueError(f"Value {value} is less than minimum value {mn}")
+        if mx is not None and np.any(value_arr > mx):
+            raise ValueError(f"Value {value} is greater than maximum value {mx}")
+        if step is not None and mn is not None:
+            r = (value_arr - mn) / step
+            if not np.all(np.isclose(r, np.round(r), atol=1e-8)):
+                raise ValueError(f"Value {value} is not a multiple of step {step}")
+
+    def _restrict_value(self, value):
+        mn, mx, step = self._get_min_max_step()
+        if mn is not None:
+            value = np.maximum(value, mn)
+        if mx is not None:
+            value = np.minimum(value, mx)
+        if step is not None and step != 0 and mn is not None:
+            value = mn + np.round((value - mn) / step) * step
+        return value
 
     def _on_quib_change(self, value):
+        self._validate_value(value)
         with self.within_quib_set_context():
             QuibyWidgetTrait.original_set(self.trait, self.widget, value)
+        self._last_value = value
+
+    def on_mouse_drop(self, change):
+        self._is_dragging = False
+        end_dragging(id(self))
 
     def set_widget_to_update_quib_upon_change(self):
-        # TODO: Implement push to undo/redo on mouse drop.
-        #  We will need for this to get mouse release from the widget, possibly using:
-        #  w = ipyevents.Event(source=widget, watched_events=['mouseup'])
-        #  w.on_dom_event(on_drop)
         self.widget.observe(self._on_widget_change, self.trait.name)
 
     def set_quib_to_update_widget_upon_change(self):
