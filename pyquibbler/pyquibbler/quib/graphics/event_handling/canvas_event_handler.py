@@ -85,17 +85,17 @@ class CanvasEventHandler:
         return has_rightclick_callback
 
     def _handle_button_press(self, mouse_event: MouseEvent):
-        start_dragging()
+        start_dragging(id(self), False)
         if mouse_event.button is MouseButton.RIGHT:
             self._call_object_rightclick_callback_if_exists(mouse_event.inaxes, mouse_event)
 
     def _handle_button_release(self, _mouse_event: MouseEvent):
-        end_dragging()
+        end_dragging(id(self), False)
         self.enhanced_pick_event = None
         self._previous_mouse_event = None
 
     def _handle_pick_event(self, pick_event: PickEvent):
-        start_dragging()
+        start_dragging(id(self))
         self.enhanced_pick_event = EnhancedPickEventWithFuncArgsKwargs.from_pick_event(pick_event)
         if self.enhanced_pick_event.button is MouseButton.RIGHT:
             if not self._call_object_rightclick_callback_if_exists(pick_event.artist, pick_event.mouseevent):
