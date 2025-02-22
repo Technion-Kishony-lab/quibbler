@@ -336,6 +336,12 @@ class GetOverrideGroupFromGraphics:
 
         self.xys_old, self.xys_target_values = self.get_xy_old_and_target_values(self.xys_obj_and_path)
 
+        # to allow plot with str values (see test_drag_with_non_numeric_on_one_axis):
+        is_str = np.vectorize(lambda x: isinstance(x, str))(self.xys_old)
+        self.xys_obj_and_path[is_str] = None
+        self.xys_target_values[is_str] = None
+        self.xys_old[is_str] = None
+
         xys_overrides = _get_overrides_from_changes(self.xys_obj_and_path, self.xys_target_values)
 
         xys_source_overrides = skip_vectorize(lambda x: x[0])(xys_overrides)
