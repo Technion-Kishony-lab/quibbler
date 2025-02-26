@@ -29,18 +29,18 @@ setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     packages=find_packages(),
-    install_requires=["matplotlib==3.9.1",
-                      "numpy==2.0.1",
-                      "varname==0.13",
+    install_requires=["matplotlib>=3.9.1",
+                      "numpy>=2.0.1",
+                      "varname>=0.13",
 
                       # TODO: These following packages are not strictly needed.
                       #       They enhance interactive functionality within Jupyter lab.
                       #       We might want to consider whether to define them as "required"
-                      "ipynbname==2021.3.2",
-                      "flask==2.1.1",
-                      "flask_cors==3.0.10",
+                      "ipynbname>=2021.3.2",
+                      "flask>=2.1.1",
+                      "flask_cors>=3.0.10",
                       "ipycytoscape",
-                      "ipywidgets==8.1",
+                      "ipywidgets>=8.1",
                       "traitlets",
                       "IPython",
                       ],
