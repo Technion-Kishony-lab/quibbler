@@ -64,7 +64,7 @@ jobs:
     name: "Publish test results"
     needs: tests
     runs-on: ubuntu-latest
-    if: (success() || failure()) && github.event_name == 'pull_request'
+    if: (success() || failure()) && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
     steps:
       - name: Download Artifacts
         uses: actions/download-artifact@v4
@@ -78,7 +78,7 @@ jobs:
 
   coverage:
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
     steps:
       - uses: actions/checkout@v2
 
@@ -106,7 +106,7 @@ jobs:
           path: coverage.xml
 
       - name: Comment coverage
+        if: github.event.pull_request.head.repo.full_name == github.repository
         uses: coroo/pytest-coverage-commentator@v1.0.2
         with:
           pytest-coverage: coverage.xml
-        if: always()
