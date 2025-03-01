@@ -6,10 +6,6 @@ from pyquibbler.quib.graphics.redraw import is_dragging
 IN_UNDO_GROUP_MODE = False
 
 
-def is_undo_group_mode():
-    return IN_UNDO_GROUP_MODE
-
-
 @contextmanager
 def undo_group_mode(temporarily: bool = False):
     """

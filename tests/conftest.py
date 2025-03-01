@@ -175,6 +175,12 @@ def project(tmpdir):
     shutil.rmtree(path)
 
 
+@fixture(autouse=True)
+def clear_undo_and_redo_stacks(project):
+    project.clear_undo_and_redo_stacks()
+    yield
+
+
 @fixture()
 def quibapp_(tmpdir):
     app = QuibApp.get_or_create()

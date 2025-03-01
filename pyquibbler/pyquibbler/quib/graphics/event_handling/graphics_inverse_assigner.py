@@ -8,7 +8,7 @@ from .enhance_pick_event import EnhancedPickEventWithFuncArgsKwargs
 
 from .set_lim_inverse_assigner import get_override_group_for_axes_set_lim
 
-GRAPHICS_REVERSE_ASSIGNERS = {}
+GRAPHICS_REVERSE_ASSIGNERS: dict[str, Callable[[EnhancedPickEventWithFuncArgsKwargs, MouseEvent], OverrideGroup]] = {}
 
 
 def graphics_inverse_assigner(graphics_func_names_to_handle: List[str]):
@@ -34,16 +34,15 @@ def inverse_assign_drawing_func(enhanced_pick_event: EnhancedPickEventWithFuncAr
     func_args_kwargs = enhanced_pick_event.func_args_kwargs
     drawing_func = func_args_kwargs.func
     inverse_assigner_func = GRAPHICS_REVERSE_ASSIGNERS.get(drawing_func.__qualname__)
-    if inverse_assigner_func is not None:
-        try:
-            override_group: OverrideGroup = inverse_assigner_func(enhanced_pick_event=enhanced_pick_event,
-                                                                  mouse_event=mouse_event,
-                                                                  )
-        except AssignmentCancelledByUserException:
-            pass
-        else:
-            override_group.apply()
-            return override_group
+    if inverse_assigner_func is None:
+        return
+
+    try:
+        override_group = inverse_assigner_func(enhanced_pick_event, mouse_event)
+    except AssignmentCancelledByUserException:
+        pass
+    else:
+        override_group.apply()
 
 
 def inverse_assign_axes_lim_func(args: Args,
@@ -64,4 +63,3 @@ def inverse_assign_axes_lim_func(args: Args,
         pass
     else:
         override_group.apply()
-        return override_group
