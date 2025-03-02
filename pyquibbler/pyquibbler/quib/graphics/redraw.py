@@ -53,22 +53,19 @@ def start_dragging(id_: int, replace_other_dragging: bool = True):
     from pyquibbler import Project
     global IN_DRAGGING_BY
     if IN_DRAGGING_BY is not None:
-        if IN_DRAGGING_BY == id_ or not replace_other_dragging:
-            return
-        end_dragging(IN_DRAGGING_BY)
+        if replace_other_dragging:
+            IN_DRAGGING_BY = id_
+        return
     IN_DRAGGING_BY = id_
     project = Project.get_or_create()
     project.push_empty_group_to_undo_stack()
-    project.start_pending_undo_group()
 
 
-def end_dragging(id_: Optional[int], only_if_same_id: bool = True):
+def end_dragging(id_: Optional[int]):
     global IN_DRAGGING_BY
     id_ = id_ or IN_DRAGGING_BY
     from pyquibbler import Project
-    if IN_DRAGGING_BY is None:
-        return
-    if only_if_same_id and id_ != IN_DRAGGING_BY:
+    if IN_DRAGGING_BY is None or id_ != IN_DRAGGING_BY:
         return
     IN_DRAGGING_BY = None
     project = Project.get_or_create()

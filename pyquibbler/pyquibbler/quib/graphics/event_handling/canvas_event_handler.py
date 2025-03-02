@@ -89,7 +89,7 @@ class CanvasEventHandler:
             self._call_object_rightclick_callback_if_exists(mouse_event.inaxes, mouse_event)
 
     def _handle_button_release(self, _mouse_event: MouseEvent):
-        end_dragging(id(self), False)
+        end_dragging(id(self))
         self.enhanced_pick_event = None
 
     def _handle_pick_event(self, pick_event: PickEvent):
