@@ -184,6 +184,14 @@ class QuibHandler:
         for parent in self.parents:
             parent.handler.remove_child(self.quib)
 
+    def get_children(self, include_proxy: bool = False) -> Set[Quib]:
+        from pyquibbler.quib.specialized_functions.proxy import is_proxy_quib
+        if not include_proxy:
+            children = {child for child in self.children if not is_proxy_quib(child)}
+        else:
+            children = set(self.children)
+        return children
+
     @property
     def is_iquib(self):
         return getattr(self.func_args_kwargs.func, '__name__', None) == 'iquib'
@@ -256,7 +264,7 @@ class QuibHandler:
         """
         Change this quib's state according to a change in a dependency.
         """
-        for child in set(self.children):  # We copy of the set because children can change size during iteration
+        for child in self.quib.get_children():  # We copy of the set because children can change size during iteration
 
             child.handler._invalidate_quib_with_children_at_path(self.quib, path)
 
@@ -592,7 +600,7 @@ class QuibHandler:
         has_name_changed = assigned_name_changed or self.assigned_name is None
         if self._widget:
             self._widget.refresh_name()
-        for child in self.children:
+        for child in self.get_children():
             if child.handler.func_args_kwargs.func is ORIGINAL_GET_QUIBY_NAME:
                 child.handler.invalidate_self([])
                 child.handler.invalidate_and_aggregate_redraw_at_path([])
@@ -1629,7 +1637,7 @@ class Quib:
     """
 
     @validate_user_input(bypass_intermediate_quibs=bool)
-    def get_children(self, bypass_intermediate_quibs: bool = False) -> Set[Quib]:
+    def get_children(self, bypass_intermediate_quibs: bool = False, include_proxy: bool = False) -> Set[Quib]:
         """
         Return the set of quibs that are immediately downstream of the current quib.
 
@@ -1640,6 +1648,10 @@ class Quib:
             Intermediate quibs are defined as unnamed and non-graphics
             quibs (``assigned_name=None`` and ``is_graphics=False``), typically representing
             intermediate calculations.
+
+        include_proxy : bool, default: False
+            Whether to include proxy children quibs in the result.
+            Proxy quibs are quibs that are created as args to quiby functions.
 
         Returns
         -------
@@ -1661,7 +1673,8 @@ class Quib:
         {b = a + 1, c = (a + 2) * b}
         """
 
-        children = set(self.handler.children)
+        children = self.handler.get_children(include_proxy)
+
         if not bypass_intermediate_quibs:
             return children
 

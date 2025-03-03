@@ -19,7 +19,7 @@ def create_proxy(quib: Quib) -> Quib:
     from pyquibbler.quib.factory import create_quib
 
     # We don't need to be the child of our parent, as we never want to be invalidated
-    proxy_quib = create_quib(func=proxy, args=(quib,), register_as_child_of_parents=False)
+    proxy_quib = create_quib(func=proxy, args=(quib,))
     return proxy_quib
 
 
@@ -55,3 +55,7 @@ def get_parent_of_proxy(quib: Quib):
     while quib.func is proxy:
         quib = quib.args[0]
     return quib
+
+
+def is_proxy_quib(quib: Quib):
+    return quib.func is proxy
