@@ -2,7 +2,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 import pytest
 
-from pyquibbler import iquib, undo, redo
+from pyquibbler import iquib, undo, redo, quiby
 from tests.integration.quib.graphics.widgets.utils import count_canvas_draws, count_redraws
 
 
@@ -146,3 +146,22 @@ def test_drag_middle_tethered_line(create_axes_mouse_press_move_release_events, 
     create_axes_mouse_press_move_release_events(((0.5, 0.5), (0.4, 0.5)))
 
     assert abs(x.get_value() - 0.8) < 0.02
+
+
+def test_drag_plot_vreated_in_quiby_func(axes, create_axes_mouse_press_move_release_events):
+    # create the figure
+    plt.axis('square')
+    plt.axis((-1., 10., -1., 10.))
+    plt.pause(0.5)  # pause to allow axes to be resized. see assert below:
+    assert np.abs(np.diff(axes.transData.transform((3, 3)) - axes.transData.transform((0, 0)))) < 1e-10
+
+    @quiby(pass_quibs=True, is_graphics=True)
+    def create_dot(a):
+        axes.plot(a * 3, a * 3, '.', markersize=15, color='c')
+
+    a = iquib(0.)
+
+    create_dot(a)
+    create_axes_mouse_press_move_release_events(((0, 0), (0, 9)))
+
+    assert abs(a.get_value() - 9 / 2 / 3) < 0.02
