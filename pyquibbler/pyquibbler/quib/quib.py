@@ -195,7 +195,13 @@ class QuibHandler:
 
     @property
     def is_iquib(self):
-        return getattr(self.func_args_kwargs.func, '__name__', None) == 'iquib'
+        from pyquibbler.quib.specialized_functions.iquib import identity_function
+        return self.func_args_kwargs.func is identity_function
+
+    @property
+    def is_proxy(self):
+        from pyquibbler.quib.specialized_functions.proxy import proxy
+        return self.func_args_kwargs.func is proxy
 
     """
     properties
@@ -1637,7 +1643,7 @@ class Quib:
     """
 
     @validate_user_input(bypass_intermediate_quibs=bool)
-    def get_children(self, bypass_intermediate_quibs: bool = False, include_proxy: bool = False) -> Set[Quib]:
+    def get_children(self, bypass_intermediate_quibs: bool = False) -> Set[Quib]:
         """
         Return the set of quibs that are immediately downstream of the current quib.
 
@@ -1648,10 +1654,6 @@ class Quib:
             Intermediate quibs are defined as unnamed and non-graphics
             quibs (``assigned_name=None`` and ``is_graphics=False``), typically representing
             intermediate calculations.
-
-        include_proxy : bool, default: False
-            Whether to include proxy children quibs in the result.
-            Proxy quibs are quibs that are created as args to quiby functions.
 
         Returns
         -------
@@ -1673,7 +1675,7 @@ class Quib:
         {b = a + 1, c = (a + 2) * b}
         """
 
-        children = self.handler.get_children(include_proxy)
+        children = self.handler.get_children()
 
         if not bypass_intermediate_quibs:
             return children
@@ -2350,12 +2352,21 @@ class Quib:
         --------
         >>> a = iquib(4)
         >>> b = a + 10
-        >>> a.is_iquib()
+        >>> a.is_iquib
         True
-        >>> b.is_iquib()
+        >>> b.is_iquib
         False
         """
         return self.handler.is_iquib
+
+    @property
+    def is_proxy(self) -> bool:
+        """
+        bool: Indicates whether the quib is a proxy quib.
+
+        Proxy quibs are created as arguments to be passes to quibs created with with pass_quibs=True.
+        """
+        return self.handler.is_proxy
 
     def _repr_html_(self) -> Optional[str]:
         if SHOW_QUIBS_AS_WIDGETS_IN_JUPYTER_LAB:

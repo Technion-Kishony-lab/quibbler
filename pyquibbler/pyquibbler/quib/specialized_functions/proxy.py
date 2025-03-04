@@ -55,7 +55,3 @@ def get_parent_of_proxy(quib: Quib):
     while quib.func is proxy:
         quib = quib.args[0]
     return quib
-
-
-def is_proxy_quib(quib: Quib):
-    return quib.func is proxy
