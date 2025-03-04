@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 QUIBS_TO_REDRAW: Dict[GraphicsUpdateType, weakref.WeakSet[Quib]] = {GraphicsUpdateType.DRAG: weakref.WeakSet(),
                                                                     GraphicsUpdateType.DROP: weakref.WeakSet()}
-QUIBS_TO_NOTIFY_OVERRIDING_CHANGES: weakref.WeakSet[Quib] = weakref.WeakSet()
+QUIBS_THAT_NEED_TO_UPDATE_WIDGETS_TO_REFLECT_OVERRIDING_CHANGES: weakref.WeakSet[Quib] = weakref.WeakSet()
 IN_AGGREGATE_REDRAW_MODE = False
 IN_DRAGGING_BY: Optional[int] = None
 
@@ -46,7 +46,7 @@ def aggregate_redraw_mode(temporarily: bool = False):
             _redraw_quibs_with_graphics(GraphicsUpdateType.DRAG)
             if not is_dragging():
                 _redraw_quibs_with_graphics(GraphicsUpdateType.DROP)
-            _notify_of_overriding_changes()
+            _update_pending_quib_widgets_to_reflect_overriding_changes()
 
 
 def start_dragging(id_: int, replace_other_dragging: bool = True):
@@ -117,12 +117,12 @@ def _redraw_quibs_with_graphics(graphics_update: GraphicsUpdateType):
     redraw_figures(figures)
 
 
-def _notify_of_overriding_changes():
-    with timeit("override_notify", f"notifying overriding changes for {len(QUIBS_TO_NOTIFY_OVERRIDING_CHANGES)} quibs"):
-        quibs = set(QUIBS_TO_NOTIFY_OVERRIDING_CHANGES)
+def _update_pending_quib_widgets_to_reflect_overriding_changes():
+    with timeit("override_notify", f"notifying overriding changes for {len(QUIBS_THAT_NEED_TO_UPDATE_WIDGETS_TO_REFLECT_OVERRIDING_CHANGES)} quibs"):
+        quibs = set(QUIBS_THAT_NEED_TO_UPDATE_WIDGETS_TO_REFLECT_OVERRIDING_CHANGES)
         for quib in quibs:
-            quib.handler.on_overrides_changes()
-            QUIBS_TO_NOTIFY_OVERRIDING_CHANGES.remove(quib)
+            quib.handler.update_widget()
+            QUIBS_THAT_NEED_TO_UPDATE_WIDGETS_TO_REFLECT_OVERRIDING_CHANGES.remove(quib)
 
 
 def redraw_quib_with_graphics_or_add_in_aggregate_mode(quib: Quib, graphics_update: GraphicsUpdateType):
@@ -135,11 +135,11 @@ def redraw_quib_with_graphics_or_add_in_aggregate_mode(quib: Quib, graphics_upda
         _redraw_quibs_with_graphics(graphics_update)
 
 
-def notify_of_overriding_changes_or_add_in_aggregate_mode(quib: Quib):
-    global QUIBS_TO_NOTIFY_OVERRIDING_CHANGES
-    QUIBS_TO_NOTIFY_OVERRIDING_CHANGES.add(quib)
+def update_quib_widget_to_reflect_overriding_changes_or_add_in_aggregate_mode(quib: Quib):
+    global QUIBS_THAT_NEED_TO_UPDATE_WIDGETS_TO_REFLECT_OVERRIDING_CHANGES
+    QUIBS_THAT_NEED_TO_UPDATE_WIDGETS_TO_REFLECT_OVERRIDING_CHANGES.add(quib)
     if not IN_AGGREGATE_REDRAW_MODE:
-        _notify_of_overriding_changes()
+        _update_pending_quib_widgets_to_reflect_overriding_changes()
 
 
 def redraw_canvas(canvas):

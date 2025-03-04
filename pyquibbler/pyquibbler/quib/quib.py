@@ -66,7 +66,7 @@ from pyquibbler.graphics import SUPPORTED_BACKENDS
 from pyquibbler.quib.graphics import GraphicsUpdateType, aggregate_redraw_mode, \
     redraw_quib_with_graphics_or_add_in_aggregate_mode
 from pyquibbler.quib.graphics.persist import PersistQuibOnCreatedArtists, PersistQuibOnSettedArtist
-from pyquibbler.quib.graphics.redraw import notify_of_overriding_changes_or_add_in_aggregate_mode
+from pyquibbler.quib.graphics.redraw import update_quib_widget_to_reflect_overriding_changes_or_add_in_aggregate_mode
 
 # repr:
 from pyquibbler.env import PRETTY_REPR, REPR_RETURNS_SHORT_NAME, REPR_WITH_OVERRIDES, WARN_ON_UNSUPPORTED_BACKEND
@@ -391,7 +391,7 @@ class QuibHandler:
 
         self.file_syncer.on_data_changed()
 
-        notify_of_overriding_changes_or_add_in_aggregate_mode(self.quib)
+        update_quib_widget_to_reflect_overriding_changes_or_add_in_aggregate_mode(self.quib)
 
     def upsert_override_at_index(self, assignment: Optional[Assignment], index: Optional[int]):
         if index is None:
@@ -415,7 +415,7 @@ class QuibHandler:
             self.invalidate_and_aggregate_redraw_at_path(assignment.path)
         if old_assignment:
             self.invalidate_and_aggregate_redraw_at_path(old_assignment.path)
-        self.on_overrides_changes()
+        self.update_widget()
 
     def apply_assignment(self, assignment: Assignment) -> None:
         """
@@ -608,7 +608,7 @@ class QuibHandler:
             if has_name_changed:
                 child.handler.on_name_change(False)
 
-    def on_overrides_changes(self):
+    def update_widget(self):
         if self._widget:
             self._widget.refresh()
 
@@ -2009,7 +2009,7 @@ class Quib:
         """
         if self._get_file_path(response_to_file_not_defined) is not None:
             self.handler.file_syncer.save(skip_user_verification)
-            self.handler.on_overrides_changes()
+            self.handler.update_widget()
 
     def load(self,
              response_to_file_not_defined: ResponseToFileNotDefined = ResponseToFileNotDefined.RAISE,
@@ -2028,7 +2028,7 @@ class Quib:
         """
         if self._get_file_path(response_to_file_not_defined) is not None:
             self.handler.file_syncer.load(skip_user_verification)
-            self.handler.on_overrides_changes()
+            self.handler.update_widget()
 
     def sync(self, response_to_file_not_defined: ResponseToFileNotDefined = ResponseToFileNotDefined.RAISE):
         """
@@ -2050,7 +2050,7 @@ class Quib:
         """
         if self._get_file_path(response_to_file_not_defined) is not None:
             self.handler.file_syncer.sync()
-            self.handler.on_overrides_changes()
+            self.handler.update_widget()
 
     """
     Repr
