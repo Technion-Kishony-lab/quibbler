@@ -42,11 +42,11 @@ def aggregate_redraw_mode(temporarily: bool = False):
             yield
         finally:
             IN_AGGREGATE_REDRAW_MODE = False
-        if not temporarily:
-            _redraw_quibs_with_graphics(GraphicsUpdateType.DRAG)
-            if not is_dragging():
-                _redraw_quibs_with_graphics(GraphicsUpdateType.DROP)
-            _update_pending_quib_widgets_to_reflect_overriding_changes()
+            if not temporarily:
+                _redraw_quibs_with_graphics(GraphicsUpdateType.DRAG)
+                if not is_dragging():
+                    _redraw_quibs_with_graphics(GraphicsUpdateType.DROP)
+                _update_pending_quib_widgets_to_reflect_overriding_changes()
 
 
 def start_dragging(id_: int, replace_other_dragging: bool = True):

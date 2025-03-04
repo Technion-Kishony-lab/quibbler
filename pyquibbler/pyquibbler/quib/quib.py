@@ -6,6 +6,7 @@ import weakref
 
 import numpy as np
 
+from pyquibbler.project.undo_group import undo_group_mode
 # Typing
 from pyquibbler.utilities.general_utils import Shape, Args, Kwargs
 from typing import Set, Any, Optional, Type, List, Union, Iterable, Callable
@@ -402,14 +403,13 @@ class QuibHandler:
             next_assignment = self.overrider.insert_assignment_at_index(index, assignment)
         else:
             next_assignment = None
-        project = self.project
-        project.start_pending_undo_group()
-        project.upsert_assignment_to_pending_undo_group(quib=self.quib,
-                                                        assignment=assignment,
-                                                        next_assignment=next_assignment,
-                                                        old_assignment=old_assignment,
-                                                        old_next_assignment=old_next_assignment)
-        project.push_pending_undo_group_to_undo_stack()
+        with undo_group_mode():
+            self.project.upsert_assignment_to_pending_undo_group(
+                quib=self.quib,
+                assignment=assignment,
+                next_assignment=next_assignment,
+                old_assignment=old_assignment,
+                old_next_assignment=old_next_assignment)
         self.file_syncer.on_data_changed()
         if assignment:
             self.invalidate_and_aggregate_redraw_at_path(assignment.path)

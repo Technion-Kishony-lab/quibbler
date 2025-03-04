@@ -451,7 +451,7 @@ class Project:
         with aggregate_redraw_mode(temporarily):
             for action in actions[-1::-1]:
                 action.undo()
-        self._pending_undo_group = None
+        self.discard_pending_undo_group()
 
     def upsert_assignment_to_pending_undo_group(self,
                                                 quib: Quib,
@@ -480,7 +480,7 @@ class Project:
         """
         actions = self._undo_action_groups.pop(-1)
         actions.extend(self._pending_undo_group)
-        self._pending_undo_group = []
+        self.discard_pending_undo_group()
         remove_index = 1
         while remove_index < len(actions):
             remove_action = actions[remove_index]
@@ -512,9 +512,12 @@ class Project:
         if not self._pending_undo_group:
             return
         self._undo_action_groups.append(self._pending_undo_group)
-        self._pending_undo_group = []
+        self.discard_pending_undo_group()
         self._redo_action_groups.clear()
         self.set_undo_redo_buttons_enable_state()
+
+    def discard_pending_undo_group(self):
+        self._pending_undo_group = None
 
     def set_undo_redo_buttons_enable_state(self):
         pass
