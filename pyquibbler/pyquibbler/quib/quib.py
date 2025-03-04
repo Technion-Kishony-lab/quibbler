@@ -5,7 +5,9 @@ import pathlib
 import weakref
 
 import numpy as np
+from fontTools.cffLib import privateDictOperators
 
+from pyquibbler.assignment.override_choice.types import is_within_temporary_apply_override_group
 from pyquibbler.project.undo_group import undo_group_mode
 # Typing
 from pyquibbler.utilities.general_utils import Shape, Args, Kwargs
@@ -185,12 +187,11 @@ class QuibHandler:
         for parent in self.parents:
             parent.handler.remove_child(self.quib)
 
-    def get_children(self, include_proxy: bool = False) -> Set[Quib]:
-        from pyquibbler.quib.specialized_functions.proxy import is_proxy_quib
-        if not include_proxy:
-            children = {child for child in self.children if not is_proxy_quib(child)}
+    def get_children(self, return_proxy_children: bool = False) -> Set[Quib]:
+        if return_proxy_children:
+            children = {child for child in self.children if not child.pass_quibs}
         else:
-            children = set(self.children)
+            children = {child for child in self.children if not child.is_proxy}
         return children
 
     @property
@@ -271,7 +272,7 @@ class QuibHandler:
         """
         Change this quib's state according to a change in a dependency.
         """
-        for child in self.quib.get_children():  # We copy of the set because children can change size during iteration
+        for child in self.get_children(return_proxy_children=is_within_temporary_apply_override_group()):
 
             child.handler._invalidate_quib_with_children_at_path(self.quib, path)
 
