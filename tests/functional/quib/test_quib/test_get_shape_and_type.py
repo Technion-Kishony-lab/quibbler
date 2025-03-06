@@ -12,7 +12,7 @@ from pyquibbler.quib.quib import QuibHandler, Quib
 
 
 class NoRunQuibFuncCall(QuibFuncCall):
-    def run(self, *args, **kwargs) -> Any:
+    def _run(self, *args, **kwargs) -> Any:
         assert False
 
     def _calculate_type(self):

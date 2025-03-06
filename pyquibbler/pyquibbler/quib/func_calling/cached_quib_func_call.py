@@ -237,7 +237,7 @@ class CachedQuibFuncCall(QuibFuncCall):
         if self.cache is not None:
             self.cache.set_invalid_at_path(path)
 
-    def run(self, valid_paths: List[Union[None, Path]]) -> Any:
+    def _run(self, valid_paths: List[Union[None, Path]]) -> Any:
         """
         Get the actual data that this quib represents, valid at the paths given in the argument.
         The value will necessarily return in the shape of the actual result, but only the values at the given path
@@ -258,5 +258,4 @@ class CachedQuibFuncCall(QuibFuncCall):
         if not self._caching:
             self.cache = None
 
-        self._update_shape_and_type_from_result(result)
         return result

@@ -152,11 +152,11 @@ class QuibFuncCall(FuncCall):
     def get_result_metadata(self) -> Dict:
         return {}
 
-    def _run(self) -> Any:
+    def _run(self, valid_paths: List[Union[None, Path]]) -> Any:
         pass
 
     def run(self, valid_paths: List[Union[None, Path]]) -> Any:
-        result = self._run()
+        result = self._run(valid_paths)
         self._update_shape_and_type_from_result(result)
         return result
 
