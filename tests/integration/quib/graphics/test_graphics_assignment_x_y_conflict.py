@@ -1,9 +1,15 @@
+import gc
+import weakref
+
 import numpy as np
 from matplotlib import pyplot as plt
 import pytest
 
+from developer_tools.deep_get_referrers import deep_get_referrers
 from pyquibbler import iquib, undo, redo, quiby
-from tests.integration.quib.graphics.widgets.utils import count_canvas_draws, count_redraws
+from pyquibbler.debug_utils.timer import Timer
+from pyquibbler.quib.graphics.artist_wrapper import get_upstream_caller_quibs, get_creating_quib, get_all_setter_quibs
+from tests.integration.quib.graphics.widgets.utils import count_canvas_draws, count_redraws, count_invalidations
 
 
 def test_drag_along_shallow_slope(create_axes_mouse_press_move_release_events, axes):
@@ -148,20 +154,54 @@ def test_drag_middle_tethered_line(create_axes_mouse_press_move_release_events, 
     assert abs(x.get_value() - 0.8) < 0.02
 
 
-def test_drag_plot_vreated_in_quiby_func(axes, create_axes_mouse_press_move_release_events):
+def test_drag_plot_created_in_quiby_func(axes, create_axes_mouse_press_move_release_events, get_live_artists):
     # create the figure
-    plt.axis('square')
-    plt.axis((-1., 10., -1., 10.))
+    axes.axis('square')
+    axes.axis((-1., 10., -1., 10.))
+    axes.set_xticks([])
+    axes.set_yticks([])
     plt.pause(0.5)  # pause to allow axes to be resized. see assert below:
     assert np.abs(np.diff(axes.transData.transform((3, 3)) - axes.transData.transform((0, 0)))) < 1e-10
+    creating_quib_ref = None
 
     @quiby(pass_quibs=True, is_graphics=True)
     def create_dot(a):
-        axes.plot(a * 3, a * 3, '.', markersize=15, color='c')
+        nonlocal creating_quib_ref
+        creating_quib = axes.plot(a * 3, a * 3, '.', markersize=15, color='c')
+        creating_quib_ref = weakref.ref(creating_quib)
 
     a = iquib(0.)
+    quiby_quib = create_dot(a)
 
-    create_dot(a)
-    create_axes_mouse_press_move_release_events(((0, 0), (0, 9)))
+    def get_and_check_artist():
+        artists = get_live_artists()
+        assert len(artists) == 1
+        artist = artists[0]
+        assert get_upstream_caller_quibs(artist) == {quiby_quib}
+        assert get_creating_quib(artist) is creating_quib_ref()
+        return weakref.ref(artist)
 
+    artist_ref_1 = get_and_check_artist()
+    assert artist_ref_1() is not None
+
+    creating_quib_ref1 = creating_quib_ref
+    assert creating_quib_ref1() is not None
+
+    with count_redraws(quiby_quib) as quiby_quib_redraw_count, \
+            count_redraws(creating_quib_ref()) as ceating_quib_redraw_count, \
+            count_invalidations(quiby_quib) as quiby_quib_invalidation_count, \
+            count_invalidations(creating_quib_ref()) as creating_quib_invalidation_count, \
+            count_canvas_draws(axes.figure.canvas) as canvas_redraw_count:
+            create_axes_mouse_press_move_release_events(((0, 0), (0, 4), (0, 9)))
+
+    assert creating_quib_ref1() is None
+    gc.collect()  # needed to remove the circular reference: quib->func_call->graphics_collection->artist->quib
+    assert artist_ref_1() is None
+
+    artist_ref_2 = get_and_check_artist()
+
+    assert quiby_quib_invalidation_count.count == 2
+    assert quiby_quib_redraw_count.count == 2
+    # print(creating_quib_invalidation_count.count, ceating_quib_redraw_count.count)
+    assert canvas_redraw_count.count == 2
     assert abs(a.get_value() - 9 / 2 / 3) < 0.02
