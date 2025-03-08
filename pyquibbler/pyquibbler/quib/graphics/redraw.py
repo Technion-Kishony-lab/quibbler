@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 QUIBS_TO_REDRAW: Dict[GraphicsUpdateType, weakref.WeakSet[Quib]] = {GraphicsUpdateType.DRAG: weakref.WeakSet(),
                                                                     GraphicsUpdateType.DROP: weakref.WeakSet()}
-QUIBS_TO_NOTIFY_OVERRIDING_CHANGES: weakref.WeakSet[Quib] = weakref.WeakSet()
+QUIBS_THAT_NEED_TO_UPDATE_WIDGETS_TO_REFLECT_OVERRIDING_CHANGES: weakref.WeakSet[Quib] = weakref.WeakSet()
 IN_AGGREGATE_REDRAW_MODE = False
 IN_DRAGGING_BY: Optional[int] = None
 
@@ -42,33 +42,30 @@ def aggregate_redraw_mode(temporarily: bool = False):
             yield
         finally:
             IN_AGGREGATE_REDRAW_MODE = False
-        if not temporarily:
-            _redraw_quibs_with_graphics(GraphicsUpdateType.DRAG)
-            if not is_dragging():
-                _redraw_quibs_with_graphics(GraphicsUpdateType.DROP)
-            _notify_of_overriding_changes()
+            if not temporarily:
+                _redraw_quibs_with_graphics(GraphicsUpdateType.DRAG)
+                if not is_dragging():
+                    _redraw_quibs_with_graphics(GraphicsUpdateType.DROP)
+                _update_pending_quib_widgets_to_reflect_overriding_changes()
 
 
 def start_dragging(id_: int, replace_other_dragging: bool = True):
     from pyquibbler import Project
     global IN_DRAGGING_BY
     if IN_DRAGGING_BY is not None:
-        if IN_DRAGGING_BY == id_ or not replace_other_dragging:
-            return
-        end_dragging(IN_DRAGGING_BY)
+        if replace_other_dragging:
+            IN_DRAGGING_BY = id_
+        return
     IN_DRAGGING_BY = id_
     project = Project.get_or_create()
     project.push_empty_group_to_undo_stack()
-    project.start_pending_undo_group()
 
 
-def end_dragging(id_: Optional[int], only_if_same_id: bool = True):
+def end_dragging(id_: Optional[int]):
     global IN_DRAGGING_BY
     id_ = id_ or IN_DRAGGING_BY
     from pyquibbler import Project
-    if IN_DRAGGING_BY is None:
-        return
-    if only_if_same_id and id_ != IN_DRAGGING_BY:
+    if IN_DRAGGING_BY is None or id_ != IN_DRAGGING_BY:
         return
     IN_DRAGGING_BY = None
     project = Project.get_or_create()
@@ -120,12 +117,13 @@ def _redraw_quibs_with_graphics(graphics_update: GraphicsUpdateType):
     redraw_figures(figures)
 
 
-def _notify_of_overriding_changes():
-    with timeit("override_notify", f"notifying overriding changes for {len(QUIBS_TO_NOTIFY_OVERRIDING_CHANGES)} quibs"):
-        quibs = set(QUIBS_TO_NOTIFY_OVERRIDING_CHANGES)
+def _update_pending_quib_widgets_to_reflect_overriding_changes():
+    with timeit("override_notify", f"notifying overriding changes for "
+                f"{len(QUIBS_THAT_NEED_TO_UPDATE_WIDGETS_TO_REFLECT_OVERRIDING_CHANGES)} quibs"):
+        quibs = set(QUIBS_THAT_NEED_TO_UPDATE_WIDGETS_TO_REFLECT_OVERRIDING_CHANGES)
         for quib in quibs:
-            quib.handler.on_overrides_changes()
-            QUIBS_TO_NOTIFY_OVERRIDING_CHANGES.remove(quib)
+            quib.handler.update_widget()
+            QUIBS_THAT_NEED_TO_UPDATE_WIDGETS_TO_REFLECT_OVERRIDING_CHANGES.remove(quib)
 
 
 def redraw_quib_with_graphics_or_add_in_aggregate_mode(quib: Quib, graphics_update: GraphicsUpdateType):
@@ -138,11 +136,11 @@ def redraw_quib_with_graphics_or_add_in_aggregate_mode(quib: Quib, graphics_upda
         _redraw_quibs_with_graphics(graphics_update)
 
 
-def notify_of_overriding_changes_or_add_in_aggregate_mode(quib: Quib):
-    global QUIBS_TO_NOTIFY_OVERRIDING_CHANGES
-    QUIBS_TO_NOTIFY_OVERRIDING_CHANGES.add(quib)
+def update_quib_widget_to_reflect_overriding_changes_or_add_in_aggregate_mode(quib: Quib):
+    global QUIBS_THAT_NEED_TO_UPDATE_WIDGETS_TO_REFLECT_OVERRIDING_CHANGES
+    QUIBS_THAT_NEED_TO_UPDATE_WIDGETS_TO_REFLECT_OVERRIDING_CHANGES.add(quib)
     if not IN_AGGREGATE_REDRAW_MODE:
-        _notify_of_overriding_changes()
+        _update_pending_quib_widgets_to_reflect_overriding_changes()
 
 
 def redraw_canvas(canvas):

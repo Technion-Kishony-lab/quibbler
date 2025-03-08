@@ -25,13 +25,13 @@ def roi_list():
 
 
 @quibbler_image_comparison(baseline_images=['move'])
-def test_rectangle_selector_move(get_only_live_widget, get_live_artists, get_live_widgets, roi):
+def test_rectangle_selector_move(get_only_live_widget, live_artists, live_widgets, roi):
     axes = get_axes()
     rectangle_selector = create_rectangle_selector(axes, roi)
     assert len(axes.patches) == 1
     assert len(axes.lines) == 3
-    original_num_artists = len(get_live_artists())
-    original_num_widgets = len(get_live_widgets())
+    original_num_artists = len(live_artists)
+    original_num_widgets = len(live_widgets)
 
     with count_redraws(rectangle_selector) as redraw_count, \
             count_canvas_draws(axes.figure.canvas) as canvas_redraw_count:
@@ -42,21 +42,21 @@ def test_rectangle_selector_move(get_only_live_widget, get_live_artists, get_liv
 
     assert len(axes.patches) == 1
     assert len(axes.lines) == 3
-    assert len(get_live_artists()) == original_num_artists
+    assert len(live_artists) == original_num_artists
 
-    assert len(get_live_widgets()) == original_num_widgets
+    assert len(live_widgets) == original_num_widgets
     new_roi = roi.get_value()
 
     assert np.array_equal(np.round(new_roi, 2), [0.3, 0.9, 0.3, 0.9])
 
 
 @quibbler_image_comparison(baseline_images=['move_list'])
-def test_rectangle_selector_list_extent_move(get_only_live_widget, get_live_artists, get_live_widgets, roi_list):
+def test_rectangle_selector_list_extent_move(get_only_live_widget, live_artists, live_widgets, roi_list):
     axes = get_axes()
     rectangle_selector_list_extents = create_rectangle_selector(axes, roi_list)
     assert len(axes.patches) == 1
     assert len(axes.lines) == 3
-    original_num_artists = len(get_live_artists())
+    original_num_artists = len(live_artists)
 
     with count_redraws(rectangle_selector_list_extents) as redraw_count, \
             count_canvas_draws(axes.figure.canvas) as canvas_redraw_count:
@@ -67,15 +67,15 @@ def test_rectangle_selector_list_extent_move(get_only_live_widget, get_live_arti
 
     assert len(axes.patches) == 1
     assert len(axes.lines) == 3
-    assert len(get_live_artists()) == original_num_artists
+    assert len(live_artists) == original_num_artists
 
-    assert len(get_live_widgets()) == 1
+    assert len(live_widgets) == 1
     new_roi = [roi_item.get_value() for roi_item in roi_list]
 
     assert np.array_equal(np.round(new_roi, 2), [0.3, 0.9, 0.3, 0.9])
 
 
-def test_rectangle_selector_update(axes, get_only_live_widget, get_live_artists, get_live_widgets, roi):
+def test_rectangle_selector_update(axes, get_only_live_widget, live_artists, live_widgets, roi):
     rectangle_selector = create_rectangle_selector(axes, roi)
     widget = rectangle_selector.get_value()
     bbox = widget._rect_bbox

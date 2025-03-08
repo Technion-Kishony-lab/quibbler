@@ -1,11 +1,11 @@
 import pathlib
 
-from ...conftest import get_axes, create_mouse_press_move_release_events
-from tests.integration.quib.graphics.widgets.utils import count_redraws, quibbler_image_comparison, count_canvas_draws
+from tests.conftest import get_axes, create_mouse_press_move_release_events
+from tests.integration.quib.graphics.widgets.utils import quibbler_image_comparison, count_canvas_draws
 
 
 @quibbler_image_comparison(baseline_images=['covid_demo'])
-def test_covid_demo(get_live_artists):
+def test_covid_demo(live_artists):
     from pyquibbler import iquib, q, initialize_quibbler
     from matplotlib import pyplot as plt
     import numpy as np

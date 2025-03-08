@@ -193,7 +193,12 @@ def get_override_group_for_quib_change(quib_change: AssignmentToQuib, should_rai
     When the assignment cannot be translated, CannotChangeQuibAtPathException is raised.
     Might raise AssignmentCancelledByUserException if a user cancels an override choice dialog.
     """
-    options_tree = OverrideOptionsTree.from_quib_change(quib_change)
+    try:
+        options_tree = OverrideOptionsTree.from_quib_change(quib_change)
+    except CannotChangeQuibAtPathException:
+        if should_raise:
+            raise
+        return None
     if not options_tree:
         if should_raise:
             raise CannotChangeQuibAtPathException(quib_change)

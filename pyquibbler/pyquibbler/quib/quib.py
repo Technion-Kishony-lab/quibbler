@@ -6,6 +6,8 @@ import weakref
 
 import numpy as np
 
+from pyquibbler.assignment.override_choice.types import is_within_temporary_apply_override_group
+from pyquibbler.project.undo_group import undo_group_mode
 # Typing
 from pyquibbler.utilities.general_utils import Shape, Args, Kwargs
 from typing import Set, Any, Optional, Type, List, Union, Iterable, Callable
@@ -66,7 +68,7 @@ from pyquibbler.graphics import SUPPORTED_BACKENDS
 from pyquibbler.quib.graphics import GraphicsUpdateType, aggregate_redraw_mode, \
     redraw_quib_with_graphics_or_add_in_aggregate_mode
 from pyquibbler.quib.graphics.persist import PersistQuibOnCreatedArtists, PersistQuibOnSettedArtist
-from pyquibbler.quib.graphics.redraw import notify_of_overriding_changes_or_add_in_aggregate_mode
+from pyquibbler.quib.graphics.redraw import update_quib_widget_to_reflect_overriding_changes_or_add_in_aggregate_mode
 
 # repr:
 from pyquibbler.env import PRETTY_REPR, REPR_RETURNS_SHORT_NAME, REPR_WITH_OVERRIDES, WARN_ON_UNSUPPORTED_BACKEND
@@ -184,9 +186,22 @@ class QuibHandler:
         for parent in self.parents:
             parent.handler.remove_child(self.quib)
 
+    def get_children(self, return_proxy_children: bool = False) -> Set[Quib]:
+        if return_proxy_children:
+            children = {child for child in self.children if not child.pass_quibs}
+        else:
+            children = {child for child in self.children if not child.is_proxy}
+        return children
+
     @property
     def is_iquib(self):
-        return getattr(self.func_args_kwargs.func, '__name__', None) == 'iquib'
+        from pyquibbler.quib.specialized_functions.iquib import identity_function
+        return self.func_args_kwargs.func is identity_function
+
+    @property
+    def is_proxy(self):
+        from pyquibbler.quib.specialized_functions.proxy import proxy
+        return self.func_args_kwargs.func is proxy
 
     """
     properties
@@ -256,7 +271,7 @@ class QuibHandler:
         """
         Change this quib's state according to a change in a dependency.
         """
-        for child in set(self.children):  # We copy of the set because children can change size during iteration
+        for child in self.get_children(return_proxy_children=is_within_temporary_apply_override_group()):
 
             child.handler._invalidate_quib_with_children_at_path(self.quib, path)
 
@@ -383,7 +398,7 @@ class QuibHandler:
 
         self.file_syncer.on_data_changed()
 
-        notify_of_overriding_changes_or_add_in_aggregate_mode(self.quib)
+        update_quib_widget_to_reflect_overriding_changes_or_add_in_aggregate_mode(self.quib)
 
     def upsert_override_at_index(self, assignment: Optional[Assignment], index: Optional[int]):
         if index is None:
@@ -394,20 +409,19 @@ class QuibHandler:
             next_assignment = self.overrider.insert_assignment_at_index(index, assignment)
         else:
             next_assignment = None
-        project = self.project
-        project.start_pending_undo_group()
-        project.upsert_assignment_to_pending_undo_group(quib=self.quib,
-                                                        assignment=assignment,
-                                                        next_assignment=next_assignment,
-                                                        old_assignment=old_assignment,
-                                                        old_next_assignment=old_next_assignment)
-        project.push_pending_undo_group_to_undo_stack()
+        with undo_group_mode():
+            self.project.upsert_assignment_to_pending_undo_group(
+                quib=self.quib,
+                assignment=assignment,
+                next_assignment=next_assignment,
+                old_assignment=old_assignment,
+                old_next_assignment=old_next_assignment)
         self.file_syncer.on_data_changed()
         if assignment:
             self.invalidate_and_aggregate_redraw_at_path(assignment.path)
         if old_assignment:
             self.invalidate_and_aggregate_redraw_at_path(old_assignment.path)
-        self.on_overrides_changes()
+        self.update_widget()
 
     def apply_assignment(self, assignment: Assignment) -> None:
         """
@@ -592,7 +606,7 @@ class QuibHandler:
         has_name_changed = assigned_name_changed or self.assigned_name is None
         if self._widget:
             self._widget.refresh_name()
-        for child in self.children:
+        for child in self.get_children():
             if child.handler.func_args_kwargs.func is ORIGINAL_GET_QUIBY_NAME:
                 child.handler.invalidate_self([])
                 child.handler.invalidate_and_aggregate_redraw_at_path([])
@@ -600,7 +614,7 @@ class QuibHandler:
             if has_name_changed:
                 child.handler.on_name_change(False)
 
-    def on_overrides_changes(self):
+    def update_widget(self):
         if self._widget:
             self._widget.refresh()
 
@@ -1661,7 +1675,8 @@ class Quib:
         {b = a + 1, c = (a + 2) * b}
         """
 
-        children = set(self.handler.children)
+        children = self.handler.get_children()
+
         if not bypass_intermediate_quibs:
             return children
 
@@ -1996,7 +2011,7 @@ class Quib:
         """
         if self._get_file_path(response_to_file_not_defined) is not None:
             self.handler.file_syncer.save(skip_user_verification)
-            self.handler.on_overrides_changes()
+            self.handler.update_widget()
 
     def load(self,
              response_to_file_not_defined: ResponseToFileNotDefined = ResponseToFileNotDefined.RAISE,
@@ -2015,7 +2030,7 @@ class Quib:
         """
         if self._get_file_path(response_to_file_not_defined) is not None:
             self.handler.file_syncer.load(skip_user_verification)
-            self.handler.on_overrides_changes()
+            self.handler.update_widget()
 
     def sync(self, response_to_file_not_defined: ResponseToFileNotDefined = ResponseToFileNotDefined.RAISE):
         """
@@ -2037,7 +2052,7 @@ class Quib:
         """
         if self._get_file_path(response_to_file_not_defined) is not None:
             self.handler.file_syncer.sync()
-            self.handler.on_overrides_changes()
+            self.handler.update_widget()
 
     """
     Repr
@@ -2337,12 +2352,21 @@ class Quib:
         --------
         >>> a = iquib(4)
         >>> b = a + 10
-        >>> a.is_iquib()
+        >>> a.is_iquib
         True
-        >>> b.is_iquib()
+        >>> b.is_iquib
         False
         """
         return self.handler.is_iquib
+
+    @property
+    def is_proxy(self) -> bool:
+        """
+        bool: Indicates whether the quib is a proxy quib.
+
+        Proxy quibs are created as arguments to be passes to quibs created with with pass_quibs=True.
+        """
+        return self.handler.is_proxy
 
     def _repr_html_(self) -> Optional[str]:
         if SHOW_QUIBS_AS_WIDGETS_IN_JUPYTER_LAB:
