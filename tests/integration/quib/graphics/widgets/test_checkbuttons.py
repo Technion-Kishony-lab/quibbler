@@ -39,12 +39,12 @@ def checkbox_list_of_quibs(axes, list_of_bool_quibs):
 
 @pytest.mark.regression
 @quibbler_image_comparison(baseline_images=['multiple_sets'])
-def test_checkbox_multiple_sets(get_only_live_widget, get_live_artists, get_live_widgets,
+def test_checkbox_multiple_sets(get_only_live_widget, live_artists, live_widgets,
                                 actives_quib):
     axes = get_axes()
     checkbox_quib = create_checkbox_quib(axes, actives_quib)
     widget = get_only_live_widget()
-    original_num_artists = len(get_live_artists())
+    original_num_artists = len(live_artists)
     with count_redraws(checkbox_quib) as redraw_count:
         widget.set_active(0)
         widget.set_active(1)
@@ -53,8 +53,8 @@ def test_checkbox_multiple_sets(get_only_live_widget, get_live_artists, get_live
     assert len(axes.patches) == 0
     assert len(axes.texts) == 3
     assert len(axes.lines) == 0
-    assert len(get_live_artists()) == original_num_artists
-    assert len(get_live_widgets()) == 1
+    assert len(live_artists) == original_num_artists
+    assert len(live_widgets) == 1
 
     assert actives_quib.get_value() == [True, True, True]
     assert redraw_count.count == 3

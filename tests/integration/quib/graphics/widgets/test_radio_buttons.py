@@ -26,12 +26,12 @@ def create_radio_buttons(axes, active):
 
 
 @quibbler_image_comparison(baseline_images=['set_active_multiple_times'])
-def test_radio_buttons_set_active_multiple_times(get_only_live_widget, get_live_artists, get_live_widgets,
+def test_radio_buttons_set_active_multiple_times(get_only_live_widget, live_artists, live_widgets,
                                                  active_quib):
     axes = get_axes()
     radio_buttons = create_radio_buttons(axes, active_quib)
     widget = get_only_live_widget()
-    original_num_artists = len(get_live_artists())
+    original_num_artists = len(live_artists)
 
     with count_redraws(radio_buttons) as redraw_count, \
             count_canvas_draws(axes.figure.canvas) as canvas_redraw_count:
@@ -42,15 +42,15 @@ def test_radio_buttons_set_active_multiple_times(get_only_live_widget, get_live_
     assert canvas_redraw_count.count == 3
     assert len(axes.patches) == 0
     assert len(axes.texts) == 3
-    assert len(get_live_artists()) == original_num_artists
-    assert len(get_live_widgets()) == 1
+    assert len(live_artists) == original_num_artists
+    assert len(live_widgets) == 1
 
     assert active_quib.get_value() == 2
     assert get_only_live_widget() is widget
     assert redraw_count.count == 3
 
 
-def test_radio_buttons_rightclick_resets_value(axes, get_only_live_widget, get_live_artists, get_live_widgets,
+def test_radio_buttons_rightclick_resets_value(axes, get_only_live_widget, live_artists, live_widgets,
                                                active_quib):
     radio_buttons = create_radio_buttons(axes, active_quib)
     widget = get_only_live_widget()

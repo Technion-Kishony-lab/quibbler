@@ -5,7 +5,7 @@ from tests.integration.quib.graphics.widgets.utils import quibbler_image_compari
 
 
 @quibbler_image_comparison(baseline_images=['covid_demo'])
-def test_covid_demo(get_live_artists):
+def test_covid_demo(live_artists):
     from pyquibbler import iquib, q, initialize_quibbler
     from matplotlib import pyplot as plt
     import numpy as np

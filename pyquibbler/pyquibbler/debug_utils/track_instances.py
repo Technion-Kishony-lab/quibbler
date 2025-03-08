@@ -1,27 +1,30 @@
+import contextlib
 import functools
-from weakref import ref
+import gc
+from weakref import WeakSet
 from typing import Type
 
-TRACKED_CLASSES_TO_WEAKREFS = {}
 
-
-def track_instances_of_class(cls: Type):
+@contextlib.contextmanager
+def track_instances_of_class(cls: Type, raise_if_any_left_alive=True):
     """
     Track all instances of a class (weak pointers)
     """
     prev_init = cls.__init__
+    live_instances = WeakSet()
 
     @functools.wraps(prev_init)
     def _wrapped_init(self, *args, **kwargs):
         res = prev_init(self, *args, **kwargs)
-        TRACKED_CLASSES_TO_WEAKREFS.setdefault(cls, set()).add(ref(self))
+        live_instances.add(self)
         return res
 
     cls.__init__ = _wrapped_init
 
-
-def get_all_instances_in_tracked_class(cls: Type):
-    """
-    Get all the instances of a tracked class
-    """
-    return {inst() for inst in TRACKED_CLASSES_TO_WEAKREFS.get(cls, set()) if inst() is not None}
+    try:
+        yield live_instances
+    finally:
+        gc.collect()
+        cls.__init__ = prev_init
+        if raise_if_any_left_alive and len(live_instances) > 0:
+            raise ValueError(f"Found {len(live_instances)} instances of {cls} left alive")

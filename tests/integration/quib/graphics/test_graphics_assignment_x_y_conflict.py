@@ -154,7 +154,7 @@ def test_drag_middle_tethered_line(create_axes_mouse_press_move_release_events, 
     assert abs(x.get_value() - 0.8) < 0.02
 
 
-def test_drag_plot_created_in_quiby_func(axes, create_axes_mouse_press_move_release_events, get_live_artists):
+def test_drag_plot_created_in_quiby_func(axes, create_axes_mouse_press_move_release_events, live_artists):
     # create the figure
     axes.axis('square')
     axes.axis((-1., 10., -1., 10.))
@@ -174,9 +174,8 @@ def test_drag_plot_created_in_quiby_func(axes, create_axes_mouse_press_move_rele
     quiby_quib = create_dot(a)
 
     def get_and_check_artist():
-        artists = get_live_artists()
-        assert len(artists) == 1
-        artist = artists[0]
+        assert len(live_artists) == 1
+        artist = live_artists.pop()
         assert get_upstream_caller_quibs(artist) == {quiby_quib}
         assert get_creating_quib(artist) is creating_quib_ref()
         return weakref.ref(artist)

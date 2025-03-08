@@ -50,14 +50,14 @@ def range_slider_quib_of_list_quib(axes, input_quib_list):
 
 
 def test_range_slider_graphics_function_quib_press_and_release_changes(
-        axes, get_live_widgets, range_slider_quib, input_quib1, input_quib2, create_axes_mouse_press_move_release_events):
+        axes, live_widgets, range_slider_quib, input_quib1, input_quib2, create_axes_mouse_press_move_release_events):
 
-    initial_live_widgets = len(get_live_widgets())
+    initial_live_widgets = len(live_widgets)
     assert input_quib1.get_value() == 1, "sanity"
     create_axes_mouse_press_move_release_events(['left'])
 
     assert input_quib1.get_value() == 0
-    assert len(get_live_widgets()) == initial_live_widgets
+    assert len(live_widgets) == initial_live_widgets
 
 
 def test_range_slider_graphics_function_quib_press_and_release_changes_with_list_quib(
@@ -70,19 +70,19 @@ def test_range_slider_graphics_function_quib_press_and_release_changes_with_list
 
 
 def test_range_slider_graphics_function_quib_press_and_motion_notify_changes_and_keeps_same_widget(
-        axes, create_axes_mouse_press_move_release_events, get_live_widgets, range_slider_quib, input_quib1, input_quib2):
+        axes, create_axes_mouse_press_move_release_events, live_widgets, range_slider_quib, input_quib1, input_quib2):
 
-    initial_live_widgets = len(get_live_widgets())
+    initial_live_widgets = len(live_widgets)
     widget = range_slider_quib.get_value()
 
     create_axes_mouse_press_move_release_events(['middle', 'right'])
     assert [input_quib1.get_value(), input_quib2.get_value()] == [1, 4]
 
     assert range_slider_quib.get_value() is widget
-    assert len(get_live_widgets()) == initial_live_widgets
+    assert len(live_widgets) == initial_live_widgets
 
 
-def test_range_slider_rightclick_sets_to_default(axes, get_live_widgets, get_live_artists, input_quib1, input_quib2, range_slider_quib,
+def test_range_slider_rightclick_sets_to_default(axes, live_widgets, live_artists, input_quib1, input_quib2, range_slider_quib,
                                                  create_axes_mouse_press_move_release_events):
 
     assert input_quib2.get_value() == 2
