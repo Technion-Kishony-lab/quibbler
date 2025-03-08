@@ -12,9 +12,8 @@ vertical/horizontal dragging.**
 
 -  **Try me**
 
-   -  Try dragging the circle - note that it can move freely.
-   -  Try dragging the axis-sliders - note that they can only move
-      horizontally / vertically.
+   -  Try dragging the corners ver
+   -  Try dragging the edge
 
 .. code:: python
 
