@@ -5,7 +5,6 @@ import pathlib
 import weakref
 
 import numpy as np
-from fontTools.cffLib import privateDictOperators
 
 from pyquibbler.assignment.override_choice.types import is_within_temporary_apply_override_group
 from pyquibbler.project.undo_group import undo_group_mode

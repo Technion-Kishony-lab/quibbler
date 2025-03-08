@@ -118,7 +118,8 @@ def _redraw_quibs_with_graphics(graphics_update: GraphicsUpdateType):
 
 
 def _update_pending_quib_widgets_to_reflect_overriding_changes():
-    with timeit("override_notify", f"notifying overriding changes for {len(QUIBS_THAT_NEED_TO_UPDATE_WIDGETS_TO_REFLECT_OVERRIDING_CHANGES)} quibs"):
+    with timeit("override_notify", f"notifying overriding changes for "
+                f"{len(QUIBS_THAT_NEED_TO_UPDATE_WIDGETS_TO_REFLECT_OVERRIDING_CHANGES)} quibs"):
         quibs = set(QUIBS_THAT_NEED_TO_UPDATE_WIDGETS_TO_REFLECT_OVERRIDING_CHANGES)
         for quib in quibs:
             quib.handler.update_widget()
