@@ -1,13 +1,11 @@
 import gc
 import weakref
+from functools import partial
 
 import numpy as np
 from matplotlib import pyplot as plt
-import pytest
 
-from developer_tools.deep_get_referrers import deep_get_referrers
-from pyquibbler import iquib, undo, redo, quiby
-from pyquibbler.debug_utils.timer import Timer
+from pyquibbler import iquib, quiby
 from pyquibbler.quib.graphics.artist_wrapper import get_upstream_caller_quibs, get_creating_quib, get_all_setter_quibs
 from tests.integration.quib.graphics.widgets.utils import count_canvas_draws, count_redraws, count_invalidations
 
@@ -204,3 +202,25 @@ def test_drag_plot_created_in_quiby_func(axes, create_axes_mouse_press_move_rele
     # print(creating_quib_invalidation_count.count, ceating_quib_redraw_count.count)
     assert canvas_redraw_count.count == 2
     assert abs(a.get_value() - 9 / 2 / 3) < 0.02
+
+
+def test_vectorized_widgets(axes, create_axes_mouse_press_move_release_events):
+    from matplotlib.widgets import RectangleSelector
+
+    @partial(np.vectorize, signature='(4)->()', pass_quibs=True, is_graphics=True)
+    def create_roi(roi):
+        RectangleSelector(axes, extents=roi)
+
+    axes.axis([0, 500, 0, 500])
+
+    num_images = iquib(3)
+
+    roi_default = iquib([[20, 100, 20, 100]], allow_overriding=False)
+
+    rois = np.repeat(roi_default, num_images, axis=0).setp(allow_overriding=True)
+    create_roi(rois)
+
+    num_images.assign(2)
+
+    create_axes_mouse_press_move_release_events(((60, 60), (100.5, 100.5)))
+    assert np.array_equal(rois.get_value(), [[60, 140, 60, 140], [20, 100, 20, 100]])
