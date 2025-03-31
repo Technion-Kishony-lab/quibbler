@@ -11,6 +11,7 @@ from .update_new_artists import update_new_artists_from_previous_artists, \
 from .global_collecting import ArtistsCollector, AxesWidgetsCollector, AxesCreationPreventor, \
     ColorCyclerIndexCollector
 from .utils import get_axeses_to_starting_indices, get_axeses_to_artists, remove_artists
+from .widget_utils import destroy_widgets
 
 
 @dataclass
@@ -29,6 +30,10 @@ class GraphicsCollection:
     def remove_artists(self):
         remove_artists(self.artists)
         self.artists = []
+
+    def remove_widgets(self):
+        destroy_widgets(self.widgets)
+        self.widgets = []
 
     def _handle_new_artists(self,
                             previous_artists: List[Artist],

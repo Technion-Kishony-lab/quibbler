@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List
 
-from matplotlib.widgets import AxesWidget, Button
+from matplotlib.widgets import AxesWidget, Button, Widget
 
 from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.graphics.widgets import QRangeSlider, QSlider
@@ -50,3 +50,8 @@ def transfer_data_from_new_widgets_to_previous_widgets(previous_widgets: List[Ax
 def destroy_widgets(widgets: List[AxesWidget]):
     for widget in widgets:
         widget.disconnect_events()
+        Widget.set_active(widget, False)  # to avoid mixing with the RadioButtons.set_active method
+        # try:
+        #     widget.set_visible(False)
+        # except AttributeError:
+        #     pass

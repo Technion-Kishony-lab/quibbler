@@ -68,6 +68,7 @@ class QuibFuncCall(FuncCall):
         if self.graphics_collections is not None and self.graphics_collections.shape != loop_shape:
             for graphics_collection in self.flat_graphics_collections():
                 graphics_collection.remove_artists()
+                graphics_collection.remove_widgets()
             self.graphics_collections = None
         if self.graphics_collections is None:
             self.graphics_collections = create_array_from_func(GraphicsCollection, loop_shape)
