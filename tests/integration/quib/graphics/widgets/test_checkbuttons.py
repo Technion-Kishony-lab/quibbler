@@ -74,6 +74,16 @@ def test_checkbox_unset(get_only_live_widget, actives_quib):
     assert redraw_count.count == 2
 
 
+def test_checkbox_respond_to_quib_change(axes, get_only_live_widget, actives_quib):
+    checkbox_quib = create_checkbox_quib(axes, actives_quib)
+    widget = get_only_live_widget()
+    assert actives_quib.get_value() == [False, False, False]
+    assert widget.get_status() == [False, False, False]
+    actives_quib[0] = True
+    assert actives_quib.get_value() == [True, False, False]
+    assert widget.get_status() == [True, False, False]
+
+
 def test_set_quib_in_checkbox_of_list_of_quibs(get_only_live_widget, checkbox_list_of_quibs, list_of_bool_quibs):
     widget = get_only_live_widget()
 
