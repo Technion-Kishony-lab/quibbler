@@ -35,9 +35,9 @@ Interactive zooming on Mandelbrot
         x_range = extent[0:2]
         y_range = extent[2:4]
     
-        dx = np.diff(x_range)
-        dy = np.diff(y_range)
-        d = np.maximum(dx,dy) / num_pixels
+        dx = x_range[1] - x_range[0]
+        dy = y_range[1] - y_range[0]
+        d = np.maximum(dx, dy) / num_pixels
         xy = np.mgrid[y_range[0]:y_range[1]:d, x_range[0]:x_range[1]:d]
         y, x = xy
         c = x + 1j * y
@@ -76,7 +76,7 @@ Interactive zooming on Mandelbrot
     
     for k in range(3):
         # Define a functional quib that calculates Mandelbrot:
-        img = q(mandelbrot,XYs[k], resolution, depth)
+        img = q(mandelbrot, XYs[k], resolution, depth)
     
         # Plot the image:
         axs = fig.add_axes([0.1, 0.13 + (2-k) * 0.28, 0.8, 0.26])
