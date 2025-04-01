@@ -2,6 +2,7 @@ from typing import List, Dict, Set
 
 from matplotlib.artist import Artist
 from matplotlib.axes import Axes
+from matplotlib.collections import PathCollection
 from matplotlib.patches import Patch, Rectangle, Polygon
 from matplotlib.text import Text
 from matplotlib.lines import Line2D
@@ -11,6 +12,7 @@ ATTRIBUTES_TO_COPY = {
     Rectangle: {'_x0', '_y0', '_width', '_height'},
     Patch: {'_path', '_facecolor'},
     Polygon: {'xy', '_path'},
+    PathCollection: {'_paths', '_facecolors', '_edgecolors'},
     Text: {'_text'},
 
     # need to copy '_invalidx', '_invalidy' because the new artists may not be valid (drawn) yet
