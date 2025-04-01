@@ -96,7 +96,6 @@ def _get_quibs_connected_up_down_or_all(focal_quib: Quib,
     quibs = set() if quibs is None else quibs
 
     def _get_quibs_recursively(quib: Quib, depth_: int):
-        nonlocal quibs
         if quib in quibs:
             return
         quibs.add(quib)

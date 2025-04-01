@@ -104,7 +104,6 @@ def skip_canvas_draws(should_skip: bool = True):
 
 
 def _redraw_quibs_with_graphics(graphics_update: GraphicsUpdateType):
-    global QUIBS_TO_REDRAW
     quib_refs = QUIBS_TO_REDRAW[graphics_update]
     quibs = set(quib_refs)
     with timeit("quib redraw", f"redrawing {len(quib_refs)} quibs"), skip_canvas_draws():
@@ -127,7 +126,6 @@ def _update_pending_quib_widgets_to_reflect_overriding_changes():
 
 
 def redraw_quib_with_graphics_or_add_in_aggregate_mode(quib: Quib, graphics_update: GraphicsUpdateType):
-    global QUIBS_TO_REDRAW
     if not (graphics_update == GraphicsUpdateType.DRAG or graphics_update == GraphicsUpdateType.DROP):
         return
 
@@ -137,7 +135,6 @@ def redraw_quib_with_graphics_or_add_in_aggregate_mode(quib: Quib, graphics_upda
 
 
 def update_quib_widget_to_reflect_overriding_changes_or_add_in_aggregate_mode(quib: Quib):
-    global QUIBS_THAT_NEED_TO_UPDATE_WIDGETS_TO_REFLECT_OVERRIDING_CHANGES
     QUIBS_THAT_NEED_TO_UPDATE_WIDGETS_TO_REFLECT_OVERRIDING_CHANGES.add(quib)
     if not IN_AGGREGATE_REDRAW_MODE:
         _update_pending_quib_widgets_to_reflect_overriding_changes()
