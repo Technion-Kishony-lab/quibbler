@@ -20,6 +20,8 @@ def create_mock_quib():
         mock_quib.handler.quib_function_call.result_shape = np.shape(get_value_result)
         mock_quib.handler.quib_function_call.result_type = type(get_value_result)
         mock_quib.handler.get_figures.return_value = []
+        mock_quib.pass_quibs = False
+        mock_quib.is_proxy = False
         mock_quib.get_descendants.return_value = children or set()
         return mock_quib
     return _create

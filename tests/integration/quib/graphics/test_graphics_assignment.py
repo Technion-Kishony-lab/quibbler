@@ -5,7 +5,7 @@ from pyquibbler import iquib, undo, redo
 from tests.integration.quib.graphics.widgets.utils import count_canvas_draws, count_redraws
 
 
-def test_drag_right_click_and_undo(create_axes_mouse_press_move_release_events, axes, get_live_artists):
+def test_drag_right_click_and_undo(create_axes_mouse_press_move_release_events, axes, live_artists):
 
     max_xlim = 20
     axes.set_xlim([0, max_xlim])
@@ -38,7 +38,7 @@ def test_drag_right_click_and_undo(create_axes_mouse_press_move_release_events, 
     assert quib_redraw_count.count == 5
 
 
-def test_drag_xy_undo(axes, create_axes_mouse_press_move_release_events, get_live_artists):
+def test_drag_xy_undo(axes, create_axes_mouse_press_move_release_events, live_artists):
 
     max_lim = 20
     axes.set_xlim(0, max_lim)

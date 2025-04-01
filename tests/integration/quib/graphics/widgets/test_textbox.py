@@ -20,9 +20,9 @@ def create_textbox_quib(ax, initial):
     return widget
 
 
-def test_textbox(axes, input_quib, get_live_artists):
+def test_textbox(axes, input_quib, live_artists):
     textbox_quib = create_textbox_quib(axes, input_quib)
-    original_num_artists = len(get_live_artists())
+    original_num_artists = len(live_artists)
 
     textbox = textbox_quib.get_value()
     assert textbox.text_disp is axes.texts[1], "sanity"
@@ -34,7 +34,7 @@ def test_textbox(axes, input_quib, get_live_artists):
     assert textbox.text_disp is axes.texts[1]
 
     assert input_quib.get_value() == 'h'
-    assert len(get_live_artists()) == original_num_artists
+    assert len(live_artists) == original_num_artists
 
 
 def test_text_box_with_numeric_value(axes):

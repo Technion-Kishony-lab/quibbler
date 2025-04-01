@@ -6,6 +6,7 @@ from matplotlib.axes import Axes
 from matplotlib.artist import Artist
 
 from .global_collecting import ArtistsCollector, AxesWidgetsCollector, AxesCreationPreventor
+from .widget_utils import destroy_widgets
 
 
 def get_axeses_to_artists(artists: Iterable[Artist]) -> Dict[Axes, List[Artist]]:
@@ -68,7 +69,4 @@ def remove_created_graphics():
         yield
 
     remove_artists(collector.objects_collected)
-
-    for widget in widgets_collector.objects_collected:
-        widget.set_active(False)
-        widget.set_visible(False)
+    destroy_widgets(widgets_collector.objects_collected)

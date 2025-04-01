@@ -1,9 +1,13 @@
+import gc
+import weakref
+from functools import partial
+
 import numpy as np
 from matplotlib import pyplot as plt
-import pytest
 
-from pyquibbler import iquib, undo, redo
-from tests.integration.quib.graphics.widgets.utils import count_canvas_draws, count_redraws
+from pyquibbler import iquib, quiby
+from pyquibbler.quib.graphics.artist_wrapper import get_upstream_caller_quibs, get_creating_quib, get_all_setter_quibs
+from tests.integration.quib.graphics.widgets.utils import count_canvas_draws, count_redraws, count_invalidations
 
 
 def test_drag_along_shallow_slope(create_axes_mouse_press_move_release_events, axes):
@@ -146,3 +150,77 @@ def test_drag_middle_tethered_line(create_axes_mouse_press_move_release_events, 
     create_axes_mouse_press_move_release_events(((0.5, 0.5), (0.4, 0.5)))
 
     assert abs(x.get_value() - 0.8) < 0.02
+
+
+def test_drag_plot_created_in_quiby_func(axes, create_axes_mouse_press_move_release_events, live_artists):
+    # create the figure
+    axes.axis('square')
+    axes.axis((-1., 10., -1., 10.))
+    axes.set_xticks([])
+    axes.set_yticks([])
+    plt.pause(0.5)  # pause to allow axes to be resized. see assert below:
+    assert np.abs(np.diff(axes.transData.transform((3, 3)) - axes.transData.transform((0, 0)))) < 1e-10
+    creating_quib_ref = None
+
+    @quiby(pass_quibs=True, is_graphics=True)
+    def create_dot(a):
+        nonlocal creating_quib_ref
+        creating_quib = axes.plot(a * 3, a * 3, '.', markersize=15, color='c')
+        creating_quib_ref = weakref.ref(creating_quib)
+
+    a = iquib(0.)
+    quiby_quib = create_dot(a)
+
+    def get_and_check_artist():
+        assert len(live_artists) == 1
+        artist = live_artists.pop()
+        assert get_upstream_caller_quibs(artist) == {quiby_quib}
+        assert get_creating_quib(artist) is creating_quib_ref()
+        return weakref.ref(artist)
+
+    artist_ref_1 = get_and_check_artist()
+    assert artist_ref_1() is not None
+
+    creating_quib_ref1 = creating_quib_ref
+    assert creating_quib_ref1() is not None
+
+    with count_redraws(quiby_quib) as quiby_quib_redraw_count, \
+            count_redraws(creating_quib_ref()) as ceating_quib_redraw_count, \
+            count_invalidations(quiby_quib) as quiby_quib_invalidation_count, \
+            count_invalidations(creating_quib_ref()) as creating_quib_invalidation_count, \
+            count_canvas_draws(axes.figure.canvas) as canvas_redraw_count:
+            create_axes_mouse_press_move_release_events(((0, 0), (0, 4), (0, 9)))
+
+    assert creating_quib_ref1() is None
+    gc.collect()  # needed to remove the circular reference: quib->func_call->graphics_collection->artist->quib
+    assert artist_ref_1() is None
+
+    artist_ref_2 = get_and_check_artist()
+
+    assert quiby_quib_invalidation_count.count == 2
+    assert quiby_quib_redraw_count.count == 2
+    # print(creating_quib_invalidation_count.count, ceating_quib_redraw_count.count)
+    assert canvas_redraw_count.count == 2
+    assert abs(a.get_value() - 9 / 2 / 3) < 0.02
+
+
+def test_vectorized_widgets(axes, create_axes_mouse_press_move_release_events):
+    from matplotlib.widgets import RectangleSelector
+
+    @partial(np.vectorize, signature='(4)->()', pass_quibs=True, is_graphics=True)
+    def create_roi(roi):
+        RectangleSelector(axes, extents=roi)
+
+    axes.axis([0, 500, 0, 500])
+
+    num_images = iquib(3)
+
+    roi_default = iquib([[20, 100, 20, 100]], allow_overriding=False)
+
+    rois = np.repeat(roi_default, num_images, axis=0).setp(allow_overriding=True)
+    create_roi(rois)
+
+    num_images.assign(2)
+
+    create_axes_mouse_press_move_release_events(((60, 60), (100.5, 100.5)))
+    assert np.array_equal(rois.get_value(), [[60, 140, 60, 140], [20, 100, 20, 100]])

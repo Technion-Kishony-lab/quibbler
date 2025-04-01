@@ -68,6 +68,7 @@ class QuibFuncCall(FuncCall):
         if self.graphics_collections is not None and self.graphics_collections.shape != loop_shape:
             for graphics_collection in self.flat_graphics_collections():
                 graphics_collection.remove_artists()
+                graphics_collection.remove_widgets()
             self.graphics_collections = None
         if self.graphics_collections is None:
             self.graphics_collections = create_array_from_func(GraphicsCollection, loop_shape)
@@ -152,11 +153,11 @@ class QuibFuncCall(FuncCall):
     def get_result_metadata(self) -> Dict:
         return {}
 
-    def _run(self) -> Any:
+    def _run(self, valid_paths: List[Union[None, Path]]) -> Any:
         pass
 
     def run(self, valid_paths: List[Union[None, Path]]) -> Any:
-        result = self._run()
+        result = self._run(valid_paths)
         self._update_shape_and_type_from_result(result)
         return result
 

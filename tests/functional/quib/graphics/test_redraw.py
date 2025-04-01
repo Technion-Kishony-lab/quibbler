@@ -8,8 +8,7 @@ from unittest.mock import Mock
 import numpy as np
 import pytest
 
-from developer_tools.deep_get_referrers import deep_get_referrers
-from pyquibbler import iquib, Project
+from pyquibbler import iquib
 from pyquibbler.function_definitions import add_definition_for_function
 from pyquibbler.function_definitions.func_definition import create_or_reuse_func_definition
 from pyquibbler.quib.factory import create_quib
@@ -59,15 +58,15 @@ def test_redraw_in_aggregate_mode():
     assert mock_func.call_count == 2
 
 
-def tests_artists_are_garbage_collected_upon_redraw(axes, get_live_artists):
+def tests_artists_are_garbage_collected_upon_redraw(axes, live_artists):
     xy = iquib([0.6, 0.4])
-    print(len(get_live_artists()))
+    print(len(live_artists))
     axes.axis([0, 1, 0, 1])
     axes.plot(xy[0], xy[1], 'x')
     axes.text(xy[0], xy[1], 'label')
-    assert len(get_live_artists()) == 2
+    assert len(live_artists) == 2
     xy[1] = 0.3
-    assert len(get_live_artists()) == 2
+    assert len(live_artists) == 2
     axes.remove()
 
 

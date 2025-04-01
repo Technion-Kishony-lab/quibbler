@@ -41,7 +41,7 @@ class CachedQuibFuncCall(QuibFuncCall):
     DEFAULT_CACHE_MODE = CacheMode.AUTO
 
     def _get_cache_behavior(self):
-        if self.func_definition.is_random or self.func_can_create_graphics:
+        if self.func_definition.is_random:
             return CacheMode.ON
         return self.cache_mode
 
@@ -58,8 +58,7 @@ class CachedQuibFuncCall(QuibFuncCall):
             return False
         assert cache_mode is CacheMode.AUTO, \
             f'self.cache_mode has unexpected value: "{cache_mode}"'
-        return elapsed_seconds > consts.MIN_SECONDS_FOR_CACHE \
-            and getsizeof(result) / elapsed_seconds < consts.MAX_BYTES_PER_SECOND
+        return getsizeof(result) / elapsed_seconds < consts.MAX_BYTES_PER_SECOND
 
     def _reset_cache(self):
         self.cache = None
@@ -237,7 +236,7 @@ class CachedQuibFuncCall(QuibFuncCall):
         if self.cache is not None:
             self.cache.set_invalid_at_path(path)
 
-    def run(self, valid_paths: List[Union[None, Path]]) -> Any:
+    def _run(self, valid_paths: List[Union[None, Path]]) -> Any:
         """
         Get the actual data that this quib represents, valid at the paths given in the argument.
         The value will necessarily return in the shape of the actual result, but only the values at the given path
@@ -258,5 +257,4 @@ class CachedQuibFuncCall(QuibFuncCall):
         if not self._caching:
             self.cache = None
 
-        self._update_shape_and_type_from_result(result)
         return result

@@ -62,7 +62,6 @@ class CanvasEventHandler:
     def __init__(self, canvas: FigureCanvasBase):
         self.canvas = canvas
         self.enhanced_pick_event: Optional[EnhancedPickEventWithFuncArgsKwargs] = None
-        self._previous_mouse_event: Optional[MouseEvent] = None
         self._assignment_lock = Lock()
         self._handler_ids = []
         self._original_destroy = None
@@ -90,9 +89,8 @@ class CanvasEventHandler:
             self._call_object_rightclick_callback_if_exists(mouse_event.inaxes, mouse_event)
 
     def _handle_button_release(self, _mouse_event: MouseEvent):
-        end_dragging(id(self), False)
+        end_dragging(id(self))
         self.enhanced_pick_event = None
-        self._previous_mouse_event = None
 
     def _handle_pick_event(self, pick_event: PickEvent):
         start_dragging(id(self))
@@ -154,14 +152,7 @@ class CanvasEventHandler:
                 if locked:
                     # If not locked, there is already another motion handler running, we just drop this one.
                     # This could happen if changes are slow or if a dialog is open
-                    if self._previous_mouse_event is None:
-                        xy_dominance = None
-                    else:
-                        xy_dominance = 'x' if abs(mouse_event.x - self._previous_mouse_event.x) > \
-                                              abs(mouse_event.y - self._previous_mouse_event.y) else 'y'
-                    mouse_event.xy_dominance = xy_dominance
                     self._inverse_assign_graphics(mouse_event)
-                    self._previous_mouse_event = mouse_event
                     if END_DRAG_IMMEDIATELY:
                         self.enhanced_pick_event = None
 

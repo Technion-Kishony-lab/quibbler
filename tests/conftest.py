@@ -6,7 +6,6 @@ import pytest
 from matplotlib import pyplot as plt
 from matplotlib.artist import Artist
 from pytest import fixture
-import gc
 
 from pyquibbler import CacheMode
 from pyquibbler.env import DEBUG, LAZY, PRETTY_REPR, \
@@ -22,10 +21,9 @@ from pyquibbler.user_utils.quibapp import QuibApp
 from pyquibbler.utilities.basic_types import Flag
 
 from matplotlib.widgets import Slider as OriginalSlider
-from matplotlib.backend_bases import FigureCanvasBase, MouseEvent
+from matplotlib.backend_bases import MouseEvent
 
-from pyquibbler.debug_utils.track_instances import track_instances_of_class, TRACKED_CLASSES_TO_WEAKREFS, \
-    get_all_instances_in_tracked_class
+from pyquibbler.debug_utils.track_instances import track_instances_of_class
 
 
 DEFAULT_EMULATE_MISSING_PACKAGES = []
@@ -175,6 +173,12 @@ def project(tmpdir):
     shutil.rmtree(path)
 
 
+@fixture(autouse=True)
+def clear_undo_and_redo_stacks(project):
+    project.clear_undo_and_redo_stacks()
+    yield
+
+
 @fixture()
 def quibapp_(tmpdir):
     app = QuibApp.get_or_create()
@@ -183,17 +187,11 @@ def quibapp_(tmpdir):
 
 
 @fixture()
-def get_live_artists(axes):
+def live_artists(axes):
     axes.figure.canvas.draw()
-    track_instances_of_class(Artist)
-
-    def _get():
-        gc.collect()
-        return list(get_all_instances_in_tracked_class(Artist))
-
-    yield _get
-
-    TRACKED_CLASSES_TO_WEAKREFS[Artist] = set()
+    with track_instances_of_class(Artist, False) as tracker:
+        yield tracker
+        plt.cla()
 
 
 @pytest.fixture
