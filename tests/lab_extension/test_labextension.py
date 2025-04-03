@@ -14,12 +14,12 @@ from selenium.webdriver import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.expected_conditions import presence_of_element_located, alert_is_present
 from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from typing import Callable
 
 from pyquibbler import Project
 
 JUPYTER_PORT = 10_000
-NOTEBOOK_ELEMENT_COUNT = 5  # TODO: We use this to make sure we're loaded- is there a better way?
 NOTEBOOKS_PATH = (Path(__file__).parent / "notebooks").absolute()
 NOTEBOOK_URL = f"http://localhost:{JUPYTER_PORT}/lab/tree/example_notebook.ipynb"
 
@@ -82,7 +82,9 @@ def start_jupyter_lab(notebooks_path):
 @pytest.fixture()
 def load_notebook(driver, start_jupyter_lab, notebooks_path):
     driver.get(f"http://localhost:{JUPYTER_PORT}/lab/tree/example_notebook.ipynb")
-    WebDriverWait(driver, 10).until(lambda d: len(d.find_elements(By.CLASS_NAME, "jp-CodeCell")) == NOTEBOOK_ELEMENT_COUNT)
+    # Wait until the notebook panel is visible, indicating that the notebook has loaded.
+    WebDriverWait(driver, 10).until(
+        EC.visibility_of_element_located((By.CSS_SELECTOR, ".jp-NotebookPanel")))
 
 
 @pytest.fixture()
@@ -180,17 +182,17 @@ def test_lab_extension_undo_happy_flow(driver, load_notebook, assert_no_failures
     run_cells()
     assert_no_failures()
 
-    raw_default_value = run_code("threshold.get_value()")
+    raw_default_value = run_code("quib1.get_value()")
 
     assert is_undo_enabled() is False
     assert is_redo_enabled() is False
 
-    run_code("threshold.assign(5); 'ok'")
+    run_code("quib1.assign(5); 'ok'")
 
     assert is_undo_enabled() is True
     assert is_redo_enabled() is False
 
-    raw_value_after_assignment = run_code("threshold.get_value()")
+    raw_value_after_assignment = run_code("quib1.get_value()")
     # Sanity
     assert raw_value_after_assignment == "5" != raw_default_value
 
@@ -199,5 +201,5 @@ def test_lab_extension_undo_happy_flow(driver, load_notebook, assert_no_failures
     assert is_undo_enabled() is False
     assert is_redo_enabled() is True
 
-    raw_value_after_undo = run_code("threshold.get_value()")
+    raw_value_after_undo = run_code("quib1.get_value()")
     assert raw_value_after_undo == raw_default_value != raw_value_after_assignment
