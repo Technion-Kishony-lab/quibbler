@@ -208,10 +208,12 @@ class JupyterProject(Project):
         self._should_save_load_within_notebook = should_save_load_within_notebook
 
     def _refresh_jupyter_notebook_path(self):
-        try:
-            self._jupyter_notebook_path = ipynbname.path()
-        except FileNotFoundError:
-            self._jupyter_notebook_path = os.environ.get("JUPYTER_NOTEBOOK")
+        self._jupyter_notebook_path = os.environ.get("JUPYTER_NOTEBOOK_TEST")
+        if self._jupyter_notebook_path is None:
+            try:
+                self._jupyter_notebook_path = ipynbname.path()
+            except FileNotFoundError:
+                pass
         if self._jupyter_notebook_path is None:
             no_header_warn(
                 'ibynbname was unable to identify the filename of the Jupyter notebook.\n'
