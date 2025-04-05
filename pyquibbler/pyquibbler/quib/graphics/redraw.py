@@ -75,7 +75,7 @@ def end_dragging(id_: Optional[int]):
         project.undo()
 
     project.remove_last_undo_group_if_empty()
-    project.set_undo_redo_buttons_enable_state()
+    project._on_undo_redo_change()
 
 
 def is_dragging():

@@ -19,10 +19,11 @@ def test_get_or_create_creates_an_instance():
     assert QuibApp.current_quibapp is None, "sanity"
     QuibApp.get_or_create()
     assert QuibApp.current_quibapp is not None
-
+    QuibApp.current_quibapp.close()
 
 def test_get_or_create_only_creates_one_instance():
     assert QuibApp.get_or_create() is QuibApp.get_or_create()
+    QuibApp.current_quibapp.close()
 
 
 def test_quibapp_opens_the_app_figure(quibapp_):
@@ -31,7 +32,7 @@ def test_quibapp_opens_the_app_figure(quibapp_):
 
 def test_quibapp_clears_upon_close(quibapp_):
     assert quibapp_.current_quibapp is not None, "sanity"
-    QuibApp.close()
+    QuibApp.get_or_create().close()
     assert quibapp_.current_quibapp is None
 
 

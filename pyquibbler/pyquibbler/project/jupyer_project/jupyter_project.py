@@ -303,7 +303,8 @@ class JupyterProject(Project):
         # client.
         self._call_client(action_type="getShouldSaveLoadWithinNotebook", message_data={})
 
-    def set_undo_redo_buttons_enable_state(self):
+    def _on_undo_redo_change(self):
+        super()._on_undo_redo_change()
         self._call_client(action_type="setUndoRedoButtons", message_data={'undoEnabled': str(self.can_undo()),
                                                                           'redoEnabled': str(self.can_redo()),
                                                                           })
@@ -330,6 +331,6 @@ def create_jupyter_project_if_in_jupyter_lab() -> bool:
         project.override_quib_persistence_functions()
         project.listen_for_events()
         project.get_save_within_notebook_state()
-        project.set_undo_redo_buttons_enable_state()
+        project._on_undo_redo_change()
 
     return within_jupyter_lab
