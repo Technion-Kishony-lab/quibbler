@@ -6,3 +6,6 @@ exclude_lines =
     raise NotImplementedError
 omit =
     pyquibbler/user_utils.py
+
+[run]
+concurrency = multiprocessing, thread
