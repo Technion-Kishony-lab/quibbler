@@ -141,7 +141,7 @@ class FileSyncer(ABC):
         # has_data:                          Yes       No        Yes       No
         #                              Save  Load Save Load Save Load Save Load
         FileComparison.SAME_FILE:      ('-', '-', '-', '-', 'S', 'o', 'D', 'l'),  # noqa: E241
-        FileComparison.NO_FILE:        ('-', '-', 'V', 'V', 'C', '-', 'V', 'V'),  # noqa: E241
+        FileComparison.NO_FILE:        ('-', 'C', 'V', 'V', 'C', 'c', 'V', 'V'),  # noqa: E241
         FileComparison.CHANGED:        ('o', 'L', 'd', 'L', 'o', 'l', 'd', 'L'),  # noqa: E241
         FileComparison.DELETED:        ('r', 'c', 'V', 'V', 'r', 'c', 'V', 'V'),  # noqa: E241
         FileComparison.CREATED:        ('o', 'L', 'd', 'L', 'o', 'l', 'd', 'L'),  # noqa: E241
