@@ -292,7 +292,7 @@ class FileSyncer(ABC):
         self._update_file_metadata()
         self.is_synced = True
 
-    def sync(self):
+    def sync(self, skip_user_verification: bool = False):
         file_comparison = self._get_file_comparison()
         save_command = self._get_save_action_verification(file_comparison, self.is_synced, self.need_file)
         load_command = self._get_load_action_verification(file_comparison, self.is_synced, self._has_data())
@@ -306,6 +306,8 @@ class FileSyncer(ABC):
                 and (not load_command.action.is_action()
                      or load_command.requires_verification and not save_command.requires_verification):
             action = save_command.action
+        elif skip_user_verification:
+            action = SaveLoadAction.NOTHING
         else:
             from pyquibbler import Project
             answer = Project.get_or_create().text_dialog(self._dialog_title(),
