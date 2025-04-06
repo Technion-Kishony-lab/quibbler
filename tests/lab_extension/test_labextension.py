@@ -117,7 +117,7 @@ def click_undo(driver):
 
 @pytest.fixture()
 def click_menu_item(driver):
-    def _click(menu_name, item_name):
+    def _click(menu_name, item_name, pause=1):
         # Updated XPath: locate the <li> element whose child <div> contains the menu name
         menu_xpath = (
             f'//li[contains(@class, "lm-MenuBar-item") and '
@@ -134,6 +134,7 @@ def click_menu_item(driver):
             EC.element_to_be_clickable((By.XPATH, item_xpath))
         )
         menu_item.click()
+        time.sleep(pause)  # make sure server has time to respond
 
     return _click
 
@@ -142,10 +143,7 @@ def click_menu_item(driver):
 def clear_output_and_restart_kernel(driver, click_menu_item):
     def _clear_and_restart():
         # Trigger the restart/clear action from the Kernel menu
-        click_menu_item('Kernel', 'Restart Kernel and Clear All Outputs' + u'\u2026')
-
-        # Allow time for the UI to update
-        time.sleep(0.1)
+        click_menu_item('Kernel', 'Restart Kernel and Clear All Outputs' + u'\u2026', 0.1)
 
         # Try waiting for a dialog using an alternative locator (using a common JupyterLab dialog class)
         confirm_dialog_xpath = '//div[contains(@class, "jp-Dialog")]'
@@ -261,11 +259,12 @@ def test_lab_extension_undo_happy_flow(driver, load_notebook, assert_no_failures
     raw_value_after_assignment = run_code("quib1.get_value()")
     # Sanity
     assert raw_value_after_assignment == "5" != raw_default_value
-
+    time.sleep(8)
     click_undo()
     plt.pause(0.1)
     assert is_undo_enabled() is False
     assert is_redo_enabled() is True
+    time.sleep(8)
 
     raw_value_after_undo = run_code("quib1.get_value()")
     assert raw_value_after_undo == raw_default_value != raw_value_after_assignment
@@ -273,7 +272,54 @@ def test_lab_extension_undo_happy_flow(driver, load_notebook, assert_no_failures
 
 @pytest.mark.parametrize("notebooks_path", ["test_saving.ipynb"], indirect=True)
 def test_lab_extension_save_load(driver, load_notebook, assert_no_failures,
-                                 run_cells, run_code, click_menu_item, clear_output_and_restart_kernel):
+        run_cells, run_code, click_menu_item, clear_output_and_restart_kernel):
+    run_cells()
+    assert eval(run_code('nums.get_value()')) == [1, 2, 3]
+
+    # assign to the quib
+    run_code("nums[1] = 5; 'ok'")
+    assert eval(run_code('nums.get_value()')) == [1, 5, 3]
+
+    # Save the quib assignment to the notebook
+    click_menu_item('Quibbler', 'Save Quibs')
+
+    # assign to the quib
+    run_code("nums[1] = 6; 'ok'")
+    assert eval(run_code('nums.get_value()')) == [1, 6, 3]
+
+    # Load the quib assignment from the notebook
+    click_menu_item('Quibbler', 'Load Quibs')
+    assert eval(run_code('nums.get_value()')) == [1, 5, 3]
+
+
+@pytest.mark.parametrize("notebooks_path", ["test_saving.ipynb"], indirect=True)
+def test_lab_extension_save_save_load(driver, load_notebook, assert_no_failures,
+        run_cells, run_code, click_menu_item, clear_output_and_restart_kernel):
+    run_cells()
+    assert eval(run_code('nums.get_value()')) == [1, 2, 3]
+
+    # assign to the quib and save
+    run_code("nums[1] = 4; 'ok'")
+    assert eval(run_code('nums.get_value()')) == [1, 4, 3]
+    click_menu_item('Quibbler', 'Save Quibs')
+
+    # assign to the quib and save
+    run_code("nums[1] = 5; 'ok'")
+    assert eval(run_code('nums.get_value()')) == [1, 5, 3]
+    click_menu_item('Quibbler', 'Save Quibs')
+
+    # assign to the quib
+    run_code("nums[1] = 6; 'ok'")
+    assert eval(run_code('nums.get_value()')) == [1, 6, 3]
+
+    # Load the quib assignment from the notebook
+    click_menu_item('Quibbler', 'Load Quibs')
+    assert eval(run_code('nums.get_value()')) == [1, 5, 3]
+
+
+@pytest.mark.parametrize("notebooks_path", ["test_saving.ipynb"], indirect=True)
+def test_lab_extension_save_load_persist_when_kernel_restarts(driver, load_notebook, assert_no_failures,
+        run_cells, run_code, click_menu_item, clear_output_and_restart_kernel):
     run_cells()
     assert eval(run_code('nums.get_value()')) == [1, 2, 3]
 
