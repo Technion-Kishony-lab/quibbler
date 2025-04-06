@@ -154,16 +154,11 @@ class JupyterProject(Project):
         Send the quibs archive to the client- the client is responsible for writing it into the notebook.
         This needs to be called whenever there are changed to quib files (`_wrap_file_system_func` calls this func)
         """
-        notebook_content = self._get_notebook_content()
-        if notebook_content is None:
-            return
-
         logger.info(f"Saving zip into notebook's metadata..., {self._directory}")
         zip_buffer = self._create_zip_buffer_from_save_directory()
 
         base64_bytes = base64.b64encode(zip_buffer.getvalue())
         base64_message = base64_bytes.decode('ascii')
-        notebook_content['metadata']['quibs_archive'] = base64_message
 
         self._comm.send({"type": "quibsArchiveUpdate", "data": base64_message})
 
@@ -179,23 +174,10 @@ class JupyterProject(Project):
         """
         Clear the saved quib data within the notebook
         """
-        notebook_content = self._get_notebook_content()
-        if notebook_content is None:
-            return
-
-        notebook_content['metadata']['quibs_archive'] = None
-
-        with open(self._jupyter_notebook_path, 'w') as f:
-            f.write(json.dumps(notebook_content, indent=2))
-
         if self._tmp_save_directory:
             shutil.rmtree(self._tmp_save_directory)
             os.makedirs(self._tmp_save_directory)
-
-        for quib in self.quibs:
-            if quib.assigned_name and quib.allow_overriding:
-                quib.handler.file_syncer.on_data_changed()
-                self.notify_of_overriding_changes(quib)
+        self.zip_and_send_quibs_archive_to_client()
 
     def _set_should_save_load_within_notebook(self, should_save_load_within_notebook: bool):
         """
@@ -299,7 +281,7 @@ class JupyterProject(Project):
                 self._comm.send({'type': "response", "data": res, "requestId": request_id})
 
     def get_save_within_notebook_state(self):
-        # When we just wake up, we are not initially synchronized with the "SAve/Load inside notebook" state of the
+        # When we just wake up, we are not initially synchronized with the "Save/Load inside notebook" state of the
         # client.
         self._call_client(action_type="getShouldSaveLoadWithinNotebook", message_data={})
 
