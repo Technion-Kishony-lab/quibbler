@@ -47,7 +47,6 @@ class JupyterProject(Project):
 
     def _wrap_file_system_func(self, func: Callable,
                                save_and_send_after_op: bool = False,
-                               skip_user_verification: bool = False,
                                ):
         """
         Wrap a file system function to do whatever is necessary before/after it.
@@ -67,10 +66,10 @@ class JupyterProject(Project):
             if zip_and_send:
                 self._within_zip_and_send_context = True
 
-            if skip_user_verification and self._should_save_load_within_notebook:
-                res = func(*args, **kwargs, skip_user_verification=True)
-            else:
-                res = func(*args, **kwargs)
+            if kwargs.get('skip_user_verification', None) is None:
+                kwargs['skip_user_verification'] = self._should_save_load_within_notebook
+
+            res = func(*args, **kwargs)
 
             if zip_and_send:
                 logger.info("Zipping and sending to client")
@@ -81,24 +80,28 @@ class JupyterProject(Project):
 
         return _func
 
-    def save_quibs(self, response_to_file_not_defined=ResponseToFileNotDefined.WARN_IF_DATA):
-        return self._wrap_file_system_func(super(JupyterProject, self).save_quibs,
-                                           save_and_send_after_op=True)(response_to_file_not_defined)
+    def save_quibs(self, response_to_file_not_defined=ResponseToFileNotDefined.WARN_IF_DATA, *,
+                   skip_user_verification: bool = None):
+       return self._wrap_file_system_func(super(JupyterProject, self).save_quibs, True)(
+           response_to_file_not_defined, skip_user_verification=skip_user_verification)
 
-    def load_quibs(self, response_to_file_not_defined=ResponseToFileNotDefined.WARN_IF_DATA):
-        return self._wrap_file_system_func(super(JupyterProject, self).load_quibs)(response_to_file_not_defined)
+    def load_quibs(self, response_to_file_not_defined=ResponseToFileNotDefined.WARN_IF_DATA, *,
+                   skip_user_verification: bool = None):
+        return self._wrap_file_system_func(super(JupyterProject, self).load_quibs, False)(
+            response_to_file_not_defined, skip_user_verification=skip_user_verification)
 
-    def sync_quibs(self, response_to_file_not_defined=ResponseToFileNotDefined.WARN_IF_DATA):
-        return self._wrap_file_system_func(super(JupyterProject, self).sync_quibs,
-                                           save_and_send_after_op=True)(response_to_file_not_defined)
+    def sync_quibs(self, response_to_file_not_defined=ResponseToFileNotDefined.WARN_IF_DATA, *,
+                   skip_user_verification: bool = None):
+        return self._wrap_file_system_func(super(JupyterProject, self).sync_quibs, True)(
+            response_to_file_not_defined, skip_user_verification=skip_user_verification)
 
     def override_quib_persistence_functions(self):
         """
         Override quib persistence functions to ensure we save to notebook (or load from notebook) where necessary
         """
-        Quib.save = self._wrap_file_system_func(Quib.save, skip_user_verification=True, save_and_send_after_op=True)
-        Quib.load = self._wrap_file_system_func(Quib.load, skip_user_verification=True)
-        Quib.sync = self._wrap_file_system_func(Quib.sync, save_and_send_after_op=True)
+        Quib.save = self._wrap_file_system_func(Quib.save, True)
+        Quib.load = self._wrap_file_system_func(Quib.load, False)
+        Quib.sync = self._wrap_file_system_func(Quib.sync, True)
 
     def _call_client(self, action_type: str, message_data):
         logger.info(f"Sending to client {action_type} {message_data}")

@@ -334,7 +334,8 @@ class Project:
     def save_format(self, save_format: Union[str, SaveFormat]):
         self._save_format = get_enum_by_str(SaveFormat, save_format)
 
-    def save_quibs(self, response_to_file_not_defined=ResponseToFileNotDefined.WARN_IF_DATA):
+    def save_quibs(self, response_to_file_not_defined=ResponseToFileNotDefined.WARN_IF_DATA, *,
+                   skip_user_verification: bool = False):
         """
         Save quib assignments to files.
 
@@ -349,9 +350,11 @@ class Project:
         """
         self._raise_if_directory_is_not_defined('save')
         for quib in self.quibs:
-            quib.save(response_to_file_not_defined)
+            quib.save(response_to_file_not_defined=response_to_file_not_defined,
+                      skip_user_verification=skip_user_verification)
 
-    def load_quibs(self, response_to_file_not_defined=ResponseToFileNotDefined.WARN_IF_DATA):
+    def load_quibs(self, response_to_file_not_defined=ResponseToFileNotDefined.WARN_IF_DATA, *,
+                   skip_user_verification: bool = False):
         """
         Load quib assignments from files.
 
@@ -367,9 +370,11 @@ class Project:
         self._raise_if_directory_is_not_defined('load')
         with aggregate_redraw_mode():
             for quib in self.quibs:
-                quib.load(response_to_file_not_defined)
+                quib.load(response_to_file_not_defined=response_to_file_not_defined,
+                          skip_user_verification=skip_user_verification)
 
-    def sync_quibs(self, response_to_file_not_defined=ResponseToFileNotDefined.WARN_IF_DATA):
+    def sync_quibs(self, response_to_file_not_defined=ResponseToFileNotDefined.WARN_IF_DATA, *,
+                   skip_user_verification: bool = False):
         """
         Sync quib assignments with files.
 
@@ -385,7 +390,8 @@ class Project:
         self._raise_if_directory_is_not_defined('sync')
         with aggregate_redraw_mode():
             for quib in self.quibs:
-                quib.sync(response_to_file_not_defined)
+                quib.sync(response_to_file_not_defined=response_to_file_not_defined,
+                          skip_user_verification=skip_user_verification)
 
     """
     undo/redo
