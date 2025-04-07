@@ -56,24 +56,24 @@ class JupyterProject(Project):
 
         @functools.wraps(func)
         def _func(*args, **kwargs):
-            if self._should_save_load_within_notebook:
-                self._open_project_directory_from_notebook_zip()
-
-            # If we're already within another wrapped file system func, we don't want to save data into notebook
-            # and send the data to the client for this func
-            zip_and_send = save_and_send_after_op and not self._within_zip_and_send_context
-
-            if zip_and_send:
-                self._within_zip_and_send_context = True
+            if not self._should_save_load_within_notebook:
+                return func(*args, **kwargs)
 
             if kwargs.get('skip_user_verification', None) is None:
-                kwargs['skip_user_verification'] = self._should_save_load_within_notebook
+                kwargs['skip_user_verification'] = True
+
+            within_zip_and_send_context = self._within_zip_and_send_context
+            if not within_zip_and_send_context:
+                self._open_project_directory_from_notebook_zip()
+                self._within_zip_and_send_context = True
 
             res = func(*args, **kwargs)
 
-            if zip_and_send:
+            if not within_zip_and_send_context and save_and_send_after_op:
                 logger.info("Zipping and sending to client")
                 self.zip_and_send_quibs_archive_to_client()
+
+            if not within_zip_and_send_context:
                 self._within_zip_and_send_context = False
 
             return res
@@ -82,8 +82,8 @@ class JupyterProject(Project):
 
     def save_quibs(self, response_to_file_not_defined=ResponseToFileNotDefined.WARN_IF_DATA, *,
                    skip_user_verification: bool = None):
-       return self._wrap_file_system_func(super(JupyterProject, self).save_quibs, True)(
-           response_to_file_not_defined, skip_user_verification=skip_user_verification)
+        return self._wrap_file_system_func(super(JupyterProject, self).save_quibs, True)(
+            response_to_file_not_defined, skip_user_verification=skip_user_verification)
 
     def load_quibs(self, response_to_file_not_defined=ResponseToFileNotDefined.WARN_IF_DATA, *,
                    skip_user_verification: bool = None):
