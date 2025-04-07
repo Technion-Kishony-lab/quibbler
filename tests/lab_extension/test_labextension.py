@@ -259,12 +259,12 @@ def test_lab_extension_undo_happy_flow(driver, load_notebook, assert_no_failures
     raw_value_after_assignment = run_code("quib1.get_value()")
     # Sanity
     assert raw_value_after_assignment == "5" != raw_default_value
-    time.sleep(8)
+    time.sleep(0.1)
     click_undo()
     plt.pause(0.1)
     assert is_undo_enabled() is False
     assert is_redo_enabled() is True
-    time.sleep(8)
+    time.sleep(0.1)
 
     raw_value_after_undo = run_code("quib1.get_value()")
     assert raw_value_after_undo == raw_default_value != raw_value_after_assignment
