@@ -10,6 +10,7 @@ from pyquibbler.quib.factory import create_quib
 
 
 def test_quib_invalidate_and_redraw_calls_children_with_graphics(quib, graphics_quib):
+    assert graphics_quib.func.call_count == 1
     quib.handler.invalidate_and_aggregate_redraw_at_path()
 
     assert graphics_quib.func.call_count == 2
@@ -76,3 +77,18 @@ def test_quib_invalidates_all_when_invalidated_at_param_source(quib, create_quib
 
     assert quib_with_param_source.cache_status == CacheStatus.ALL_INVALID
 
+
+file_content = """
+quib[0] = 10
+quib[1] = 10
+"""
+
+def test_quib_load_calls_children_with_graphics_only_once(quib, graphics_quib, tmpdir):
+    assert graphics_quib.func.call_count == 1
+    quib.assigned_name = 'x'
+
+    with open(tmpdir / 'x.txt', 'w') as f:
+        f.write(file_content)
+
+    quib.load()
+    assert graphics_quib.func.call_count == 2
