@@ -20,6 +20,9 @@ class SaveFormat(StrEnum):
     TXT = 'txt'
     "Save assignments as text if possible (``'txt'``; File extension '.txt')."
 
+    JSON = 'json'
+    "Save assignments as a JSON dictionary of path-value pairs (``'json'``; File extension '.json')."
+
     BIN = 'bin'
     "Save assignments as a binary file (``'bin'``; File extension '.quib')."
 

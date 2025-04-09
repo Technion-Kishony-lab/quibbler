@@ -1260,7 +1260,7 @@ class Quib:
         save_directory : str or pathlib.Path, optional
             The directory to which quib assignments are saved.
 
-        save_format : {None, 'off', 'txt', 'bin'} or SaveFormat, optional
+        save_format : {None, 'off', 'txt', 'json', 'bin'} or SaveFormat, optional
             The file format for saving quib assignments.
 
         cache_mode : {'auto', 'on', 'off'} or CacheMode, optional
@@ -1872,6 +1872,8 @@ class Quib:
         Can be set as `SaveFormat` or as `str`, or `None`:
 
         ``'txt'`` - save overriding assignments as text file (extension '.txt').
+
+        ``'json'`` - save overriding assignments as JSON file (extension '.json').
 
         ``'bin'`` - save overriding assignments as a binary file (extension '.quib').
 
