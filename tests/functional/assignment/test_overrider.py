@@ -136,3 +136,9 @@ def test_overrider_loads_multiple_assignments_from_text():
     assert overrider[0] == Assignment(value=10, path=[PathComponent(1)])
     assert overrider[1] == Assignment(value=20, path=[PathComponent(2)])
 
+
+def test_overrider_returns_newly_invalidated_paths():
+    overrider = Overrider()
+    paths = overrider.load_from_assignments_text(assignment_text='quib[1] = 10\nquib[2] = 20')
+    assert paths[0] == [PathComponent(1)]
+    assert paths[1] == [PathComponent(2)]
