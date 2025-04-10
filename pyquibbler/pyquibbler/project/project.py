@@ -243,6 +243,8 @@ class Project:
 
         ``'txt'``: save quib assignments as text if possible (.txt)
 
+        ``'json'``: save quib assignments as a JSON path-value dictionary, if possible (.json)
+
         ``'bin'``: save quib assignments as a binary file (.quib)
 
         See Also

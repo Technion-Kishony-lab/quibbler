@@ -17,6 +17,7 @@ Graphics-driven assignments
    examples/quibdemo_periodic_functions
    examples/quibdemo_quiby_axes
    examples/quibdemo_drag_segments
+   examples/quibdemo_gear
 
 Quib-linked Matplotlib widgets
 ------------------------------

@@ -74,7 +74,7 @@ def iquib(value: Any,
     allow_overriding : bool, default True
         Whether to allow overriding assignments to the quib.
 
-    save_format : {None, 'off', 'txt', 'bin'} or SaveFormat
+    save_format : {None, 'off', 'txt', 'json', 'bin'} or SaveFormat
         The format in which quib assignments are saved to file.
         default: None
 

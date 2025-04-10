@@ -1,9 +1,10 @@
+import json
 import pathlib
 import pickle
 
 import numpy as np
 
-from typing import Any, Optional, List, Tuple
+from typing import Any, Optional, List, Tuple, Union, Dict
 
 from pyquibbler.path.path_component import Path, Paths
 from pyquibbler.path.data_accessing import deep_get, deep_set
@@ -14,7 +15,8 @@ from pyquibbler.utilities.iterators import recursively_run_func_on_object
 from pyquibbler.debug_utils import timeit
 
 from .assignment import Assignment
-from .assignment_to_from_text import convert_executable_text_to_assignments, convert_assignments_to_executable_text
+from .assignment_to_from_text import convert_executable_text_to_assignments, convert_assignments_to_executable_text, \
+    convert_assignments_to_dict_str_str, convert_dict_str_str_to_assignments
 from .assignment_template import AssignmentTemplate
 from .default_value import default
 from .exceptions import CannotConvertAssignmentsToTextException
@@ -184,23 +186,42 @@ class Overrider:
         with open(file, 'rb') as f:
             return self.replace_assignments(pickle.load(f))
 
-    def save_as_txt(self, file: pathlib.Path):
-        text = convert_assignments_to_executable_text(self._assignments,
-                                                      raise_if_not_reversible=True)
-        with open(file, "wt") as f:
-            f.write(text)
+    def save_as_json(self, filepath: pathlib.Path):
+        paths_to_values = convert_assignments_to_dict_str_str(self._assignments,
+                                                              raise_if_not_saveable=True)
+        if filepath is None:
+            return paths_to_values
+        with open(filepath, "wt") as f:
+            f.write(json.dumps(paths_to_values))
 
-    def load_from_assignments_text(self, assignment_text: str):
-        new_assignments = convert_executable_text_to_assignments(assignment_text)
-        return self.replace_assignments(new_assignments)
-
-    def load_from_txt(self, file: pathlib.Path):
+    def load_from_json(self, filepath: pathlib.Path = None, paths_to_values: Union[str, Dict[str, str]] = None):
         """
         load assignments from text file.
         """
-        with open(file, mode='r') as f:
-            assignment_text_commands = f.read()
-        return self.load_from_assignments_text(assignment_text_commands)
+        if filepath is not None:
+            with open(filepath, mode='r') as f:
+                paths_to_values = f.read()
+        if isinstance(paths_to_values, str):
+            paths_to_values = json.loads(paths_to_values)
+        new_assignments = convert_dict_str_str_to_assignments(paths_to_values)
+        return self.replace_assignments(new_assignments)
+
+    def save_as_txt(self, filepath: pathlib.Path = None):
+        text = convert_assignments_to_executable_text(self._assignments, raise_if_not_saveable=True)
+        if filepath is None:
+            return text
+        with open(filepath, "wt") as f:
+            f.write(text)
+
+    def load_from_txt(self, filepath: pathlib.Path = None, assignments_text: str = None):
+        """
+        load assignments from text file.
+        """
+        if filepath is not None:
+            with open(filepath, mode='r') as f:
+                assignments_text = f.read()
+        new_assignments = convert_executable_text_to_assignments(assignments_text)
+        return self.replace_assignments(new_assignments)
 
     """
     repr

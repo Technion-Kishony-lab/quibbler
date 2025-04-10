@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from typing import List, Optional, Iterable, Any
+from typing import List, Optional, Iterable, Any, Dict
 
 from .default_value import default, Default
 from .assignment import Assignment
@@ -74,18 +74,22 @@ def convert_executable_text_to_assignments(assignment_text: str) -> List[Assignm
         raise CannotConvertTextToAssignmentsException(assignment_text) from None
 
 
+def raise_if_assignment_is_not_saveable(assignment: Assignment):
+    if not is_saveable_as_txt([cmp.component for cmp in assignment.path]) \
+            or not is_saveable_as_txt(assignment.value):
+        raise CannotConvertAssignmentsToTextException()
+
+
 def convert_assignments_to_executable_text(
-        assignments: Iterable[Assignment], name: Optional[str] = None, raise_if_not_reversible: bool = False) -> str:
+        assignments: Iterable[Assignment], name: Optional[str] = None, raise_if_not_saveable: bool = False) -> str:
     """
     Convert list of Assignments to text.
     """
     name = 'quib' if name is None else name
     pretty = ''
     for assignment in assignments:
-        if raise_if_not_reversible:
-            if not is_saveable_as_txt([cmp.component for cmp in assignment.path]) \
-                    or not is_saveable_as_txt(assignment.value):
-                raise CannotConvertAssignmentsToTextException()
+        if raise_if_not_saveable:
+            raise_if_assignment_is_not_saveable(assignment)
         pretty_value = assignment.get_pretty_value()
         pretty += '\n' + name
         if assignment.path:
@@ -145,3 +149,27 @@ def convert_assignment_to_simplified_text(assignment: Assignment) -> str:
         return '= ' + assignment.get_pretty_value()
 
     return assignment.get_pretty_path() + ' = ' + assignment.get_pretty_value()
+
+
+def convert_assignments_to_dict_str_str(assignments: List[Assignment],
+                                        raise_if_not_saveable: bool = False) -> Dict[str, str]:
+    """
+    Convert a list of assignments to a dict of str of the path to str of the value.
+    Use ordered dict
+    """
+    paths_to_values = {}
+    for assignment in assignments:
+        if raise_if_not_saveable:
+            raise_if_assignment_is_not_saveable(assignment)
+        paths_to_values[assignment.get_pretty_path()] = assignment.get_pretty_value()
+    return paths_to_values
+
+
+def convert_dict_str_str_to_assignments(
+        assignment_dict: Dict[str, str]) -> List[Assignment]:
+    """
+    Convert a dict of str of the path to str of the value to a list of assignments.
+    Use convert_simplified_text_to_assignment.
+    """
+    return [convert_simplified_text_to_assignment(f'{path_str} = {value_str}')
+            for path_str, value_str in assignment_dict.items()]
