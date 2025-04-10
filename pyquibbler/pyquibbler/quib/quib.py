@@ -35,7 +35,7 @@ from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals
 
 # Save/Load:
 from pyquibbler.project import Project
-from pyquibbler.file_syncing import SaveFormat, SAVE_FORMAT_TO_FILE_EXT, \
+from pyquibbler.file_syncing import SaveFormat, \
     ResponseToFileNotDefined, FileNotDefinedException, QuibFileSyncer
 from pyquibbler.utilities.file_path import PathWithHyperLink
 
@@ -1944,7 +1944,7 @@ class Quib:
                 no_header_warn(str(exception))
         else:
             path = self.actual_save_directory \
-                   / (self.assigned_name + SAVE_FORMAT_TO_FILE_EXT[self.actual_save_format])
+                   / (self.assigned_name + self.actual_save_format.file_ext)
 
         return path
 

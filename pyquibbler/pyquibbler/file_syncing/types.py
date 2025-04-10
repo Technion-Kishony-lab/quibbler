@@ -26,9 +26,14 @@ class SaveFormat(StrEnum):
     BIN = 'bin'
     "Save assignments as a binary file (``'bin'``; File extension '.quib')."
 
+    @property
+    def file_ext(self):
+        return SAVE_FORMAT_TO_FILE_EXT[self]
+
 
 SAVE_FORMAT_TO_FILE_EXT = {
     SaveFormat.BIN: '.quib',
+    SaveFormat.JSON: '.json',
     SaveFormat.TXT: '.txt',
 }
 
