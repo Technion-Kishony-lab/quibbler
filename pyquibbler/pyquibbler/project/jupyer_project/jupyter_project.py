@@ -1,12 +1,9 @@
-import base64
 import functools
-import io
 import json
 import multiprocessing
 import os
-import shutil
 import tempfile
-import zipfile
+from contextlib import contextmanager
 from multiprocessing import Process
 
 import ipynbname
@@ -18,10 +15,14 @@ from pyquibbler.quib.quib import Quib
 from pyquibbler.file_syncing import SaveFormat, ResponseToFileNotDefined
 from pyquibbler.debug_utils.logger import logger
 from pyquibbler.utilities.file_path import PathToNotebook
+from .archive_folder import folder_to_dict, folder_to_zip, dict_to_folder, zip_to_folder
 
 from ..project import Project
 from .flask_dialog_server import run_flask_app
 from .utils import is_within_jupyter_lab, find_free_port
+
+
+SERIALIZE_TO_JSON = True
 
 
 class JupyterProject(Project):
@@ -34,19 +35,18 @@ class JupyterProject(Project):
     JupyterProject is responsible for everything the normal project is, along with interfacing with the Quibbler
     extension of Jupyter lab.
     """
+    DEFAULT_SAVE_FORMAT = SaveFormat.JSON
 
     def __init__(self, directory: Optional[Path], jupyter_notebook_path: Optional[Path] = None):
         super().__init__(directory)
         self._jupyter_notebook_path = jupyter_notebook_path
-        self._tmp_save_directory = None
         self._should_save_load_within_notebook = True
         self._comm = None
-        self._save_format = SaveFormat.TXT
         self._within_zip_and_send_context = False
         self.autoload_upon_first_get_value = True
 
     def _wrap_file_system_func(self, func: Callable,
-                               save_and_send_after_op: bool = False,
+                               save_to_notebook_after_op: bool = False,
                                ):
         """
         Wrap a file system function to do whatever is necessary before/after it.
@@ -62,21 +62,8 @@ class JupyterProject(Project):
             if kwargs.get('skip_user_verification', None) is None:
                 kwargs['skip_user_verification'] = True
 
-            within_zip_and_send_context = self._within_zip_and_send_context
-            if not within_zip_and_send_context:
-                self._open_project_directory_from_notebook_zip()
-                self._within_zip_and_send_context = True
-
-            res = func(*args, **kwargs)
-
-            if not within_zip_and_send_context and save_and_send_after_op:
-                logger.info("Zipping and sending to client")
-                self.zip_and_send_quibs_archive_to_client()
-
-            if not within_zip_and_send_context:
-                self._within_zip_and_send_context = False
-
-            return res
+            with self._open_project_directory_from_notebook_metadata(save_to_notebook_after_op):
+                return func(*args, **kwargs)
 
         return _func
 
@@ -117,70 +104,66 @@ class JupyterProject(Project):
             self._jupyter_notebook_path = None
             return None
 
-    def _open_project_directory_from_notebook_zip(self):
+    @contextmanager
+    def _open_project_directory_from_notebook_metadata(self, save_to_notebook_after_op: bool = True):
         """
         Open a project directory from the notebook's internal zip.
         The directory will be temporary, and will be deleted when the client calls "cleanup" (`_cleanup`)
         """
         notebook_content = self._get_notebook_content()
-        if notebook_content is None:
+        if notebook_content is None or self._within_zip_and_send_context:
+            yield
             return
-
-        if self._tmp_save_directory is None:
-            self._tmp_save_directory = tempfile.mkdtemp()
-        self._directory = PathToNotebook(self._tmp_save_directory)
 
         logger.info(f"Using notebook {self._jupyter_notebook_path}")
         logger.info(f"Loading quibs {self.directory}...")
-        b64_encoded_zip_content = notebook_content['metadata'].get('quibs_archive')
-        if b64_encoded_zip_content is not None:
-            logger.info("Quibs exist! Unzipping quibs archive into directory...")
-            raw_bytes = base64.b64decode(b64_encoded_zip_content)
-            buffer = io.BytesIO(raw_bytes)
-            zipfile.ZipFile(buffer).extractall(self.directory)
+        archive = notebook_content['metadata'].get('quibs_archive', {})
 
-    def _create_zip_buffer_from_save_directory(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            self._within_zip_and_send_context = True
+            previous_directory = self._directory
+            self._directory = PathToNotebook(tmpdir)
+            self._deserialize_save_directory(archive)
+            try:
+                yield
+            finally:
+                if save_to_notebook_after_op:
+                    logger.info(f"Saving zip into notebook's metadata..., {tmpdir}")
+                    archive = self._serialize_save_directory()
+                    self._send_archive_to_notebook(archive)
+                self._within_zip_and_send_context = False
+                self._directory = previous_directory
+
+    def _send_archive_to_notebook(self, archive):
+        self._comm.send({"type": "quibsArchiveUpdate", "data": archive})
+
+    def _serialize_save_directory(self):
         """
         Create a buffer and write a zip file created from the project's save directory into it
         """
-        zip_buffer = io.BytesIO()
-        with zipfile.ZipFile(zip_buffer, "a", zipfile.ZIP_DEFLATED, False) as archive:
-            for root, _, files in os.walk(self.directory):
-                for name in files:
-                    path = os.path.join(root, name)
-                    relative_path = os.path.join(os.path.relpath(root, self.directory), name)
-                    archive.write(path, arcname=relative_path)
-        return zip_buffer
+        if SERIALIZE_TO_JSON:
+            return folder_to_dict(self._directory)
+        else:
+            return folder_to_zip(self._directory)
 
-    def zip_and_send_quibs_archive_to_client(self):
-        """
-        Send the quibs archive to the client- the client is responsible for writing it into the notebook.
-        This needs to be called whenever there are changed to quib files (`_wrap_file_system_func` calls this func)
-        """
-        logger.info(f"Saving zip into notebook's metadata..., {self._directory}")
-        zip_buffer = self._create_zip_buffer_from_save_directory()
-
-        base64_bytes = base64.b64encode(zip_buffer.getvalue())
-        base64_message = base64_bytes.decode('ascii')
-
-        self._comm.send({"type": "quibsArchiveUpdate", "data": base64_message})
+    def _deserialize_save_directory(self, archive):
+        if SERIALIZE_TO_JSON:
+            dict_to_folder(archive, self._directory)
+        else:
+            zip_to_folder(archive, self._directory)
 
     def _cleanup(self):
         """
         Cleanup any temporary directories created for the JupyterProject (this should be called when the user finishes
         the session)
         """
-        if self._tmp_save_directory is not None:
-            shutil.rmtree(self._tmp_save_directory)
+        pass
 
     def _clear_save_data(self):
         """
         Clear the saved quib data within the notebook
         """
-        if self._tmp_save_directory:
-            shutil.rmtree(self._tmp_save_directory)
-            os.makedirs(self._tmp_save_directory)
-        self.zip_and_send_quibs_archive_to_client()
+        self._send_archive_to_notebook({})
 
     def _set_should_save_load_within_notebook(self, should_save_load_within_notebook: bool):
         """
