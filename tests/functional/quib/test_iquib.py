@@ -53,9 +53,8 @@ def test_iquib_pretty_repr_str():
 
 
 # File system
-@pytest.mark.parametrize(['save_format'], [
-    (SaveFormat.TXT,),
-    (SaveFormat.BIN,),
+@pytest.mark.parametrize('save_format', [
+    SaveFormat.JSON, SaveFormat.TXT, SaveFormat.BIN,
 ])
 def test_iquib_save_and_load(save_format: SaveFormat):
     save_name = "example_quib"
@@ -149,5 +148,3 @@ def test_save_iquib_with_save_path(tmpdir):
 
     assert os.path.exists(path)
     assert a.get_value() == 11
-
-

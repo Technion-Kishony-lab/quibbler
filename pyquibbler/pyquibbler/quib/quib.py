@@ -6,8 +6,6 @@ import weakref
 
 import numpy as np
 
-from pyquibbler.assignment.override_choice.types import is_within_temporary_apply_override_group
-from pyquibbler.project.undo_group import undo_group_mode
 # Typing
 from pyquibbler.utilities.general_utils import Shape, Args, Kwargs
 from typing import Set, Any, Optional, Type, List, Union, Iterable, Callable
@@ -32,9 +30,11 @@ from pyquibbler.assignment import \
     get_override_group_for_quib_change, AssignmentTemplate, Overrider, Assignment, AssignmentToQuib, \
     AssignmentCancelledByUserException
 from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals
+from pyquibbler.assignment.override_choice.types import is_within_temporary_apply_override_group
 
-# Save/Load:
+# Save/Load and Undo/Redo:
 from pyquibbler.project import Project
+from pyquibbler.project.undo_group import undo_group_mode
 from pyquibbler.file_syncing import SaveFormat, \
     ResponseToFileNotDefined, FileNotDefinedException, QuibFileSyncer
 from pyquibbler.utilities.file_path import PathWithHyperLink
@@ -579,20 +579,26 @@ class QuibHandler:
     def save_assignments_or_value(self, file_path: pathlib.Path):
         if self.actual_save_format is SaveFormat.OFF:
             return
-        if self.actual_save_format is SaveFormat.BIN:
-            self.overrider.save_as_binary(file_path)
-        if self.actual_save_format is SaveFormat.TXT:
-            self.overrider.save_as_txt(file_path)
+        elif self.actual_save_format is SaveFormat.BIN:
+            return self.overrider.save_as_binary(file_path)
+        elif self.actual_save_format is SaveFormat.JSON:
+            return self.overrider.save_as_json(file_path)
+        elif self.actual_save_format is SaveFormat.TXT:
+            return self.overrider.save_as_txt(file_path)
+        else:
+            assert False, "Unsupported save format encountered"
 
     def load_from_assignment_file_or_value_file(self, file_path: pathlib.Path):
         if self.actual_save_format is SaveFormat.OFF:
             return
         if self.actual_save_format is SaveFormat.BIN:
             changed_paths = self.overrider.load_from_binary(file_path)
+        elif self.actual_save_format is SaveFormat.JSON:
+            changed_paths = self.overrider.load_from_json(file_path)
         elif self.actual_save_format is SaveFormat.TXT:
             changed_paths = self.overrider.load_from_txt(file_path)
         else:
-            assert False
+            assert False, "Unsupported save format encountered"
 
         self.project.clear_undo_and_redo_stacks()
         if not is_within_get_value_context():

@@ -116,6 +116,22 @@ def test_overrider_loads_assignments_from_text(text, expected):
     assert overrider._assignments == expected
 
 
+@pytest.mark.parametrize("text, expected",[
+    ('{"[2]":  "default"}', [Assignment.create_default([PathComponent(2)])]),
+    ('{"": "[1, 2]"}', [Assignment([1, 2], [])]),
+    ('{"[2][1]": "default"}', [Assignment.create_default([PathComponent(2), PathComponent(1)])]),
+    ('{"[array([2])][[1, 2, 3], 5]": "23"}', [Assignment(value=23, path=[PathComponent(np.array([2])), PathComponent((
+            [1, 2, 3], 5))])]),
+    ('{"[1:]": "23"}', [Assignment(value=23, path=[PathComponent(slice(1, None, None))])]),
+    ('{"[1]": "10",\n"[2]": "20"}', [Assignment(value=10, path=[PathComponent(1)]),
+                                    Assignment(value=20, path=[PathComponent(2)])])
+])
+def test_overrider_loads_assignments_from_json(text, expected):
+    overrider = Overrider()
+    overrider.load_from_json(paths_to_values=text)
+    assert overrider._assignments == expected
+
+
 def test_overrider_returns_newly_invalidated_paths():
     overrider = Overrider()
     paths = overrider.load_from_txt(assignments_text='quib[1] = 10\nquib[2] = 20')
