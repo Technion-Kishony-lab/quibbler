@@ -100,45 +100,24 @@ def test_overrider_keeps_order(overrider):
     assert new_data == [10]
 
 
-def test_overrider_loads_default_assignment_from_text():
+@pytest.mark.parametrize("text, expected",[
+    ('quib[2] = default', [Assignment.create_default([PathComponent(2)])]),
+    ('quib.assign([1, 2])', [Assignment([1, 2], [])]),
+    ('quib[2][1] = default', [Assignment.create_default([PathComponent(2), PathComponent(1)])]),
+    ('quib[array([2])][[1, 2, 3], 5] = 23', [Assignment(value=23, path=[PathComponent(np.array([2])), PathComponent((
+            [1, 2, 3], 5))])]),
+    ('quib[1:] = 23', [Assignment(value=23, path=[PathComponent(slice(1, None, None))])]),
+    ('quib[1] = 10\nquib[2] = 20', [Assignment(value=10, path=[PathComponent(1)]),
+                                    Assignment(value=20, path=[PathComponent(2)])])
+])
+def test_overrider_loads_assignments_from_text(text, expected):
     overrider = Overrider()
-    overrider.load_from_assignments_text(assignment_text='quib[2] = default')
-    assert overrider[0] == Assignment.create_default([PathComponent(2)])
-
-
-def test_overrider_loads_whole_object_assignment():
-    overrider = Overrider()
-    overrider.load_from_assignments_text(assignment_text='quib.assign([1, 2])')
-    assert overrider[0] == Assignment([1, 2], [])
-
-
-def test_overrider_loads_multi_level_assignment_from_text():
-    overrider = Overrider()
-    overrider.load_from_assignments_text(assignment_text='quib[2][1] = default')
-    assert overrider[0] == Assignment.create_default([PathComponent(2), PathComponent(1)])
-
-
-def test_overrider_loads_multi_level_nested_parenthesis_assignment_from_text():
-    overrider = Overrider()
-    overrider.load_from_assignments_text(assignment_text='quib[array([2])][[1, 2, 3], 5] = 23')
-    assert overrider[0] == Assignment(value=23, path=[PathComponent(np.array([2])), PathComponent(([1, 2, 3], 5))])
-
-
-def test_overrider_loads_slice_assignment_from_text():
-    overrider = Overrider()
-    overrider.load_from_assignments_text(assignment_text='quib[1:] = 23')
-    assert overrider[0] == Assignment(value=23, path=[PathComponent(slice(1, None, None))])
-
-
-def test_overrider_loads_multiple_assignments_from_text():
-    overrider = Overrider()
-    overrider.load_from_assignments_text(assignment_text='quib[1] = 10\nquib[2] = 20')
-    assert overrider[0] == Assignment(value=10, path=[PathComponent(1)])
-    assert overrider[1] == Assignment(value=20, path=[PathComponent(2)])
+    overrider.load_from_txt(assignments_text=text)
+    assert overrider._assignments == expected
 
 
 def test_overrider_returns_newly_invalidated_paths():
     overrider = Overrider()
-    paths = overrider.load_from_assignments_text(assignment_text='quib[1] = 10\nquib[2] = 20')
+    paths = overrider.load_from_txt(assignments_text='quib[1] = 10\nquib[2] = 20')
     assert paths[0] == [PathComponent(1)]
     assert paths[1] == [PathComponent(2)]

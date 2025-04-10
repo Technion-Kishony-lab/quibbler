@@ -190,17 +190,15 @@ class Overrider:
         with open(file, "wt") as f:
             f.write(text)
 
-    def load_from_assignments_text(self, assignment_text: str):
-        new_assignments = convert_executable_text_to_assignments(assignment_text)
-        return self.replace_assignments(new_assignments)
-
-    def load_from_txt(self, file: pathlib.Path):
+    def load_from_txt(self, filepath: pathlib.Path = None, assignments_text: str = None):
         """
         load assignments from text file.
         """
-        with open(file, mode='r') as f:
-            assignment_text_commands = f.read()
-        return self.load_from_assignments_text(assignment_text_commands)
+        if filepath is not None:
+            with open(filepath, mode='r') as f:
+                assignments_text = f.read()
+        new_assignments = convert_executable_text_to_assignments(assignments_text)
+        return self.replace_assignments(new_assignments)
 
     """
     repr
