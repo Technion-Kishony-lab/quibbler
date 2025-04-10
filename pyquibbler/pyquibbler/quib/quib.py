@@ -267,6 +267,16 @@ class QuibHandler:
         with aggregate_redraw_mode():
             self._invalidate_and_redraw_at_path(path)
 
+    def invalidate_and_aggregate_redraw_at_paths(self, paths: List[Path] = None) -> None:
+        """
+        Perform all actions needed after the quib was mutated (whether by function_definitions or inverse assignment).
+        If path is not given, the whole quib is invalidated.
+        """
+        paths = paths or []
+        with aggregate_redraw_mode():
+            for path in paths:
+                self._invalidate_and_redraw_at_path(path)
+
     def _invalidate_children_at_path(self, path: Path) -> None:
         """
         Change this quib's state according to a change in a dependency.
@@ -586,15 +596,13 @@ class QuibHandler:
 
         self.project.clear_undo_and_redo_stacks()
         if not is_within_get_value_context():
-            for path in changed_paths:
-                self.invalidate_and_aggregate_redraw_at_path(path)
+            self.invalidate_and_aggregate_redraw_at_paths(changed_paths)
 
     def clear_all_overrides(self):
         changed_paths = self.overrider.clear_assignments()
 
         self.project.clear_undo_and_redo_stacks()
-        for path in changed_paths:
-            self.invalidate_and_aggregate_redraw_at_path(path)
+        self.invalidate_and_aggregate_redraw_at_paths(changed_paths)
 
     """
     Widget

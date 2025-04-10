@@ -278,13 +278,14 @@ class FileSyncer(ABC):
             self._do_action(load_command.action)
 
     def _do_action(self, action: SaveLoadAction):
+        filepath = self._get_file_path()
         if action == SaveLoadAction.SAVE:
-            os.makedirs(self._get_file_path().parents[0], exist_ok=True)
-            self._save_data_to_file(self._get_file_path())
+            os.makedirs(filepath.parents[0], exist_ok=True)
+            self._save_data_to_file(filepath)
         elif action == SaveLoadAction.DELETE:
-            os.remove(self._get_file_path())
+            os.remove(filepath)
         elif action == SaveLoadAction.LOAD:
-            self._load_data_from_file(self._get_file_path())
+            self._load_data_from_file(filepath)
         elif action == SaveLoadAction.CLEAR:
             self._clear_data()
 

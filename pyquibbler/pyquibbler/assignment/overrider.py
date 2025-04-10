@@ -191,10 +191,8 @@ class Overrider:
             f.write(text)
 
     def load_from_assignments_text(self, assignment_text: str):
-        self.clear_assignments()
-        for assignment in convert_executable_text_to_assignments(assignment_text):
-            self.add_assignment(assignment)
-        return [[]]
+        new_assignments = convert_executable_text_to_assignments(assignment_text)
+        return self.replace_assignments(new_assignments)
 
     def load_from_txt(self, file: pathlib.Path):
         """

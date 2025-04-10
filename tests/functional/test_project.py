@@ -4,7 +4,7 @@ from unittest import mock
 import pytest
 
 import pyquibbler as qb
-from pyquibbler import iquib, Assignment, default
+from pyquibbler import iquib, Assignment, default, quiby
 from pyquibbler.file_syncing import SaveFormat
 from pyquibbler.function_definitions import add_definition_for_function
 from pyquibbler.function_definitions.func_definition import create_or_reuse_func_definition
@@ -40,6 +40,30 @@ def test_project_raises_on_missing_directory(project):
     project.directory = None
     with pytest.raises(NoProjectDirectoryException, match='.*'):
         project.save_quibs()
+
+
+def test_load_redraws_only_once(tmpdir, project):
+    with open(tmpdir / 'x.txt', 'w') as f:
+        f.write('quib.assign(10)')
+
+    with open(tmpdir / 'y.txt', 'w') as f:
+        f.write('quib.assign(10)')
+
+    x = iquib(1).setp(save_format=SaveFormat.TXT, name='x')
+    y = iquib(1).setp(save_format=SaveFormat.TXT, name='y')
+
+    num_calls = 0
+
+    @quiby(is_graphics=True)
+    def check_equal(a, b):
+        nonlocal num_calls
+        num_calls += 1
+        assert a == b
+
+    is_ok = check_equal(x, y)
+    assert num_calls == 1
+    project.load_quibs()
+    assert num_calls == 2
 
 
 def test_quib_added_to_project_when_created(project):
