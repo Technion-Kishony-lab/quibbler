@@ -6,7 +6,7 @@ class PathWithHyperLink(type(pathlib.Path())):
         return f'<a href="file:///{self}">{self.name}</a>'
 
 
-class PathToNotebook(PathWithHyperLink):
+class NotebookArchiveMirrorPath(PathWithHyperLink):
 
     name = '[Save in notebook]'
 

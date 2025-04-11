@@ -14,7 +14,7 @@ from pyquibbler.utilities.warning_messages import no_header_warn
 from pyquibbler.quib.quib import Quib
 from pyquibbler.file_syncing import SaveFormat, ResponseToFileNotDefined
 from pyquibbler.debug_utils.logger import logger
-from pyquibbler.utilities.file_path import PathToNotebook
+from pyquibbler.utilities.file_path import NotebookArchiveMirrorPath
 from .archive_folder import folder_to_dict, folder_to_zip, dict_to_folder, zip_to_folder
 
 from ..project import Project
@@ -40,10 +40,13 @@ class JupyterProject(Project):
     def __init__(self, directory: Optional[Path], jupyter_notebook_path: Optional[Path] = None):
         super().__init__(directory)
         self._jupyter_notebook_path = jupyter_notebook_path
-        self._should_save_load_within_notebook = True
+        self._directory = NotebookArchiveMirrorPath()
         self._comm = None
         self._within_zip_and_send_context = False
-        self.autoload_upon_first_get_value = True
+
+    @property
+    def _should_save_load_within_notebook(self):
+        return isinstance(self._directory, NotebookArchiveMirrorPath)
 
     def _wrap_file_system_func(self, func: Callable,
                                save_to_notebook_after_op: bool = False,
@@ -122,7 +125,7 @@ class JupyterProject(Project):
         with tempfile.TemporaryDirectory() as tmpdir:
             self._within_zip_and_send_context = True
             previous_directory = self._directory
-            self._directory = PathToNotebook(tmpdir)
+            self._directory = NotebookArchiveMirrorPath(tmpdir)
             self._deserialize_save_directory(archive)
             try:
                 yield
@@ -157,6 +160,7 @@ class JupyterProject(Project):
         Cleanup any temporary directories created for the JupyterProject (this should be called when the user finishes
         the session)
         """
+        # nothing to do. temp folders are now created and destroyed per save/load operartion
         pass
 
     def _clear_save_data(self):
@@ -170,10 +174,10 @@ class JupyterProject(Project):
         When `True`, all save/loads will be kept within the notebook itself
         When `False`, the project will save to whichever directory it is specified to, without saving into the notebook
         """
-        if self._should_save_load_within_notebook and not should_save_load_within_notebook:
+        if should_save_load_within_notebook:
+            self._directory = NotebookArchiveMirrorPath()
+        else:
             self._directory = None
-
-        self._should_save_load_within_notebook = should_save_load_within_notebook
 
     def _refresh_jupyter_notebook_path(self):
         self._jupyter_notebook_path = os.environ.get("JUPYTER_NOTEBOOK_TEST")

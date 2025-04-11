@@ -3,7 +3,7 @@ import pathlib
 
 from dataclasses import dataclass
 
-from pyquibbler.utilities.file_path import PathToNotebook
+from pyquibbler.utilities.file_path import NotebookArchiveMirrorPath
 from pyquibbler.quib.quib import Quib
 from pyquibbler.env import REPR_RETURNS_SHORT_NAME
 
@@ -27,7 +27,7 @@ def _repr(value):
         return value.name
     if isinstance(value, str):
         return f'"{value}"'
-    if isinstance(value, PathToNotebook):
+    if isinstance(value, NotebookArchiveMirrorPath):
         return repr(value)
     if isinstance(value, pathlib.Path):
         return str(value)

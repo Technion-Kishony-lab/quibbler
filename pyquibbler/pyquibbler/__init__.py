@@ -6,7 +6,7 @@ from .file_syncing import SaveFormat, ResponseToFileNotDefined
 from .quib.graphics import GraphicsUpdateType
 from .function_overriding.override_all import initialize_quibbler
 from .quib.quib_properties_viewer import QuibPropertiesViewer
-from .utilities.file_path import PathToNotebook
+from .utilities.file_path import NotebookArchiveMirrorPath
 from pyquibbler.debug_utils.timer import timer, timeit
 from .user_utils.gui_apps import quibapp
 from .user_utils.quiby_funcs import list_quiby_funcs, is_quiby, quiby, q

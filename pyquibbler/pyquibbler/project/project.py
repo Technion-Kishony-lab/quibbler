@@ -42,7 +42,7 @@ class Project:
         self._graphics_update: GraphicsUpdateType = self.DEFAULT_GRAPHICS_UPDATE
         self._path_change_callbacks: List[Callable] = []
         self._undo_redo_callbacks: List[Callable] = []
-        self.autoload_upon_first_get_value = False
+        self.autoload_upon_first_get_value = True
 
     @classmethod
     def get_or_create(cls, directory: Optional[Path, str] = None):
