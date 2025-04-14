@@ -3,6 +3,7 @@ import {IComm, IKernelConnection} from "@jupyterlab/services/lib/kernel/kernel";
 import {showDialog, showRequestDialog} from "./utils";
 import {IRequester, Requester} from "./requester";
 import {ButtonExtension} from './toolbarButtonExtension';
+import {getShouldSaveLoadWithinNotebook} from "./globalConfig";
 
 /**
  * Represents a session between the client and a specific kernel. A session will create a requester once pyquibbler
@@ -93,6 +94,12 @@ export const Session = (panel: NotebookPanel,
         case 'setUndoRedoButtons': {
           undoButton.button.enabled = data.undoEnabled == 'True';
           redoButton.button.enabled = data.redoEnabled == 'True';
+          break;
+        }
+        case 'getShouldSaveLoadWithinNotebook': {
+          getRequester().request("setShouldSaveLoadWithinNotebook", {
+            should_save_load_within_notebook: getShouldSaveLoadWithinNotebook()
+          });
           break;
         }
         case "response": {
