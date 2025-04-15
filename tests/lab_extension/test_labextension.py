@@ -247,12 +247,12 @@ def test_lab_extension_undo_happy_flow(driver, load_notebook, assert_no_failures
     run_cells()
 
     raw_default_value = run_code("quib1.get_value()")
-
+    time.sleep(0.1)
     assert is_undo_enabled() is False
     assert is_redo_enabled() is False
 
     run_code("quib1.assign(5); 'ok'")
-
+    time.sleep(0.1)
     assert is_undo_enabled() is True
     assert is_redo_enabled() is False
 
