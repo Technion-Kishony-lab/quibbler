@@ -4,7 +4,6 @@ from typing import Tuple
 import pytest
 from pytest import mark, raises, fixture
 
-from pyquibbler import iquib
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.exceptions import NestedQuibException
 from pyquibbler.quib.specialized_functions.iquib import create_iquib
@@ -12,6 +11,7 @@ from pyquibbler.quib.utils import miscellaneous
 from pyquibbler.quib.utils.iterators import iter_quibs_in_args, iter_quibs_in_object
 from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals, is_there_a_quib_in_args
 from pyquibbler.utilities.iterators import is_iterator_empty, iter_objects_of_type_in_object_recursively
+from pyquibbler.utilities.to_from_json import to_json_compatible, from_json_compatible
 from pyquibbler.utilities.unpacker import Unpacker, CannotDetermineNumberOfIterations
 from tests.functional.utils import slicer
 
@@ -221,3 +221,28 @@ def test_unpacker_with_set_length_fails_on_too_much(unpacker_with_set_length, un
     with raises(ValueError) as e:
         a, b, c, d = unpacker_with_set_length
     assert e.value.args == ('not enough values to unpack (expected 4, got 3)',)
+
+
+@pytest.mark.parametrize("input_data", [
+    {"key": "value"},
+    [1, 2, 3],
+    (4, 5, 6),
+    {1, 2, 3},
+    None,
+    True,
+    False,
+    42,
+    3.14,
+    "Hello, world!",
+    {"key1": [1, 2, 3], "key2": {"nested_key": "nested_value"}},
+    [1, 2, {"key": "value"}],
+    ])
+def test_to_json_compatible(input_data):
+    """
+    Test the to_json_compatible function.
+    """
+    json_compatible = to_json_compatible(input_data)
+    assert isinstance(json_compatible, (dict, list, str, int, float, bool, type(None)))
+    restored = from_json_compatible(json_compatible)
+    assert input_data == restored
+    assert isinstance(restored, type(input_data))

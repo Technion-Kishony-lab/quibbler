@@ -53,14 +53,19 @@ def test_iquib_pretty_repr_str():
 
 
 # File system
+@pytest.mark.parametrize('assignment', [
+    (10, 1),
+    (10, ),
+    ({'a': 7, 1: 8}, ),
+])
 @pytest.mark.parametrize('save_format', [
     SaveFormat.JSON, SaveFormat.TXT, SaveFormat.BIN,
 ])
-def test_iquib_save_and_load(save_format: SaveFormat):
+def test_iquib_save_and_load(assignment, save_format: SaveFormat):
     save_name = "example_quib"
     original_value = [1, 2, 3]
     a = iquib(original_value).setp(save_format=save_format, name=save_name)
-    a.assign(10, 1)
+    a.assign(*assignment)
     a.save()
 
     b = iquib(original_value).setp(save_format=save_format, name=save_name)

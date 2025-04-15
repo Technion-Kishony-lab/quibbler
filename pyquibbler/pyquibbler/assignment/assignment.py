@@ -45,8 +45,11 @@ class Assignment:
     def get_pretty_path(self):
         return ''.join([str(GetItemExpression('', cmp.component)) for cmp in self.path])
 
+    def get_de_np_value(self):
+        return replace_np_int_and_float(self.value)
+
     def get_pretty_value(self):
-        return repr(replace_np_int_and_float(self.value))
+        return repr(self.get_de_np_value())
 
     def __hash__(self):
         return hash((self.value, tuple(self.path)))

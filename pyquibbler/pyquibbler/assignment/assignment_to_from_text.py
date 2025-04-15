@@ -11,7 +11,7 @@ from pyquibbler.path import Path, PathComponent
 from pyquibbler.utilities.numpy_original_functions import np_array
 from pyquibbler.utilities.iterators import recursively_run_func_on_object
 from .exceptions import CannotConvertTextToAssignmentsException, CannotConvertAssignmentsToTextException
-
+from pyquibbler.utilities.to_from_json import to_json_compatible, from_json_compatible
 
 ASSIGNMENT_VALUE_TEXT_DICT = {'array': np_array, 'default': default}
 
@@ -151,8 +151,8 @@ def convert_assignment_to_simplified_text(assignment: Assignment) -> str:
     return assignment.get_pretty_path() + ' = ' + assignment.get_pretty_value()
 
 
-def convert_assignments_to_dict_str_str(assignments: List[Assignment],
-                                        raise_if_not_saveable: bool = False) -> Dict[str, str]:
+def convert_assignments_to_json_compatible_dict(
+        assignments: List[Assignment], raise_if_not_saveable: bool = False) -> Dict[str, Any]:
     """
     Convert a list of assignments to a dict of str of the path to str of the value.
     Use ordered dict
@@ -161,15 +161,15 @@ def convert_assignments_to_dict_str_str(assignments: List[Assignment],
     for assignment in assignments:
         if raise_if_not_saveable:
             raise_if_assignment_is_not_saveable(assignment)
-        paths_to_values[assignment.get_pretty_path()] = assignment.get_pretty_value()
+        paths_to_values[assignment.get_pretty_path()] = to_json_compatible(assignment.get_de_np_value())
     return paths_to_values
 
 
-def convert_dict_str_str_to_assignments(
-        assignment_dict: Dict[str, str]) -> List[Assignment]:
+def convert_json_compatible_dict_to_assignments(
+        assignment_dict: Dict[str, Any]) -> List[Assignment]:
     """
     Convert a dict of str of the path to str of the value to a list of assignments.
     Use convert_simplified_text_to_assignment.
     """
-    return [convert_simplified_text_to_assignment(f'{path_str} = {value_str}')
-            for path_str, value_str in assignment_dict.items()]
+    return [convert_simplified_text_to_assignment(f'{path_str} = {from_json_compatible(value)}')
+            for path_str, value in assignment_dict.items()]
