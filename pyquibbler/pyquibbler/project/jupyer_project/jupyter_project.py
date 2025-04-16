@@ -188,7 +188,7 @@ class JupyterProject(Project):
                 pass
         if self._jupyter_notebook_path is None:
             no_header_warn(
-                'ibynbname was unable to identify the filename of the Jupyter notebook.\n'
+                'ipynbname was unable to identify the filename of the Jupyter notebook.\n'
                 'Saving quibs to Jupyter notebook is disabled.\n'
                 'To enable saving quibs to Jupyter notebook, you can manually set the notebook file path, using:\n'
                 '`qb.get_project().set_jupyter_notebook_path(...)`\n')
