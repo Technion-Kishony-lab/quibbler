@@ -3,7 +3,8 @@ import pytest
 
 from pyquibbler import default, Assignment
 from pyquibbler.assignment.assignment_to_from_text \
-    import convert_simplified_text_to_assignment, convert_assignment_to_simplified_text
+    import convert_simplified_text_to_assignment, convert_assignment_to_simplified_text, to_json_compatible, \
+    from_json_compatible
 from pyquibbler.assignment.exceptions import CannotConvertTextToAssignmentsException
 from pyquibbler.path import PathComponent
 
@@ -42,3 +43,30 @@ def test_convert_assignment_to_simplified_text(components, value, expected_text)
     assignment = Assignment(path=[PathComponent(component) for component in components],
                             value=value)
     assert convert_assignment_to_simplified_text(assignment) == expected_text
+
+
+@pytest.mark.parametrize("input_data", [
+    {"key": "value"},
+    [1, 2, 3],
+    (4, 5, 6),
+    {1, 2, 3},
+    None,
+    True,
+    False,
+    42,
+    3.14,
+    "Hello, world!",
+    {"key1": [1, 2, 3], "key2": {"nested_key": "nested_value"}},
+    [1, 2, {"key": "value"}],
+    "default",
+    "array([1, 2, 3])",
+    ])
+def test_to_json_compatible(input_data):
+    """
+    Test the to_json_compatible function.
+    """
+    json_compatible = to_json_compatible(input_data)
+    assert isinstance(json_compatible, (dict, list, str, int, float, bool, type(None)))
+    restored = from_json_compatible(json_compatible)
+    assert input_data == restored
+    assert isinstance(restored, type(input_data))

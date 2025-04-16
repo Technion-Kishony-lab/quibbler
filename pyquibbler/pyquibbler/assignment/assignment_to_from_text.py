@@ -11,9 +11,36 @@ from pyquibbler.path import Path, PathComponent
 from pyquibbler.utilities.numpy_original_functions import np_array
 from pyquibbler.utilities.iterators import recursively_run_func_on_object
 from .exceptions import CannotConvertTextToAssignmentsException, CannotConvertAssignmentsToTextException
-from pyquibbler.utilities.to_from_json import to_json_compatible, from_json_compatible
 
 ASSIGNMENT_VALUE_TEXT_DICT = {'array': np_array, 'default': default}
+
+
+def to_json_compatible(obj):
+    """
+    Recursively converts Python objects into a JSON‑serializable format.
+    """
+    if isinstance(obj, (int, float, bool)) or obj is None:
+        return obj
+    elif isinstance(obj, dict):
+        return {repr(k): to_json_compatible(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [to_json_compatible(item) for item in obj]
+    else:
+        return repr(obj)
+
+
+def from_json_compatible(obj):
+    """
+    Converts a JSON compatible object back to its original Python type.
+    """
+    if isinstance(obj, dict):
+        return {from_json_compatible(k): from_json_compatible(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [from_json_compatible(item) for item in obj]
+    elif isinstance(obj, str):
+        return eval(obj, ASSIGNMENT_VALUE_TEXT_DICT)
+    else:
+        return obj
 
 
 @dataclass
