@@ -141,7 +141,7 @@ class FileSyncer(ABC):
         # has_data:                          Yes       No        Yes       No
         #                              Save  Load Save Load Save Load Save Load
         FileComparison.SAME_FILE:      ('-', '-', '-', '-', 'S', 'o', 'D', 'l'),  # noqa: E241
-        FileComparison.NO_FILE:        ('-', '-', 'V', 'V', 'C', '-', 'V', 'V'),  # noqa: E241
+        FileComparison.NO_FILE:        ('-', 'C', 'V', 'V', 'C', 'c', 'V', 'V'),  # noqa: E241
         FileComparison.CHANGED:        ('o', 'L', 'd', 'L', 'o', 'l', 'd', 'L'),  # noqa: E241
         FileComparison.DELETED:        ('r', 'c', 'V', 'V', 'r', 'c', 'V', 'V'),  # noqa: E241
         FileComparison.CREATED:        ('o', 'L', 'd', 'L', 'o', 'l', 'd', 'L'),  # noqa: E241
@@ -292,7 +292,7 @@ class FileSyncer(ABC):
         self._update_file_metadata()
         self.is_synced = True
 
-    def sync(self):
+    def sync(self, skip_user_verification: bool = False):
         file_comparison = self._get_file_comparison()
         save_command = self._get_save_action_verification(file_comparison, self.is_synced, self.need_file)
         load_command = self._get_load_action_verification(file_comparison, self.is_synced, self._has_data())
@@ -306,6 +306,8 @@ class FileSyncer(ABC):
                 and (not load_command.action.is_action()
                      or load_command.requires_verification and not save_command.requires_verification):
             action = save_command.action
+        elif skip_user_verification:
+            action = SaveLoadAction.NOTHING
         else:
             from pyquibbler import Project
             answer = Project.get_or_create().text_dialog(self._dialog_title(),

@@ -547,8 +547,9 @@ class QuibHandler:
         except CannotAccessQuibInScopeException:
             raise
 
-        with get_value_context(self.quib.pass_quibs):
-            if not self._has_ever_called_get_value and Project.get_or_create().autoload_upon_first_get_value:
+        with (get_value_context(self.quib.pass_quibs)):
+            if not self._has_ever_called_get_value and not self.created_in_get_value_context \
+                    and Project.get_or_create().autoload_upon_first_get_value:
                 self.quib.load(ResponseToFileNotDefined.IGNORE)
 
             self._has_ever_called_get_value = True
@@ -2011,7 +2012,7 @@ class Quib:
                 else self.project.directory / save_directory
 
     def save(self,
-             response_to_file_not_defined: ResponseToFileNotDefined = ResponseToFileNotDefined.RAISE,
+             response_to_file_not_defined: ResponseToFileNotDefined = ResponseToFileNotDefined.RAISE, *,
              skip_user_verification: bool = False,
              ):
         """
@@ -2030,7 +2031,7 @@ class Quib:
             self.handler.update_widget()
 
     def load(self,
-             response_to_file_not_defined: ResponseToFileNotDefined = ResponseToFileNotDefined.RAISE,
+             response_to_file_not_defined: ResponseToFileNotDefined = ResponseToFileNotDefined.RAISE, *,
              skip_user_verification: bool = False,
              ):
         """
@@ -2048,7 +2049,10 @@ class Quib:
             self.handler.file_syncer.load(skip_user_verification)
             self.handler.update_widget()
 
-    def sync(self, response_to_file_not_defined: ResponseToFileNotDefined = ResponseToFileNotDefined.RAISE):
+    def sync(self,
+             response_to_file_not_defined: ResponseToFileNotDefined = ResponseToFileNotDefined.RAISE, *,
+             skip_user_verification: bool = False,
+             ):
         """
         Sync quib assignments with the quib's file.
 
@@ -2067,7 +2071,7 @@ class Quib:
         Project.directory
         """
         if self._get_file_path(response_to_file_not_defined) is not None:
-            self.handler.file_syncer.sync()
+            self.handler.file_syncer.sync(skip_user_verification)
             self.handler.update_widget()
 
     """

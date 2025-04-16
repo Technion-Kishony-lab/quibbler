@@ -78,6 +78,18 @@ def test_quib_knows_it_is_created_in_a_context():
     assert create_quib(func).get_value() == 'yay'
 
 
+def test_quib_created_in_a_context_does_not_try_to_load_from_file(project):
+    project.autoload_upon_first_get_value = True
+    def func():
+        within_context_quib = create_quib(mock.Mock(return_value=0))
+        within_context_quib.load = mock.Mock()
+        within_context_quib.get_value()
+        within_context_quib.load.assert_not_called()
+        return 'yay'
+
+    assert create_quib(func).get_value() == 'yay'
+
+
 def test_cant_mutate_function_quib_args_after_creation():
     args = [[], 'cool']
     kwargs = dict(a=[])

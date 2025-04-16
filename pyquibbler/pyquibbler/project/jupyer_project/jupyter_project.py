@@ -1,12 +1,9 @@
-import base64
 import functools
-import io
 import json
 import multiprocessing
 import os
-import shutil
 import tempfile
-import zipfile
+from contextlib import contextmanager
 from multiprocessing import Process
 
 import ipynbname
@@ -17,11 +14,15 @@ from pyquibbler.utilities.warning_messages import no_header_warn
 from pyquibbler.quib.quib import Quib
 from pyquibbler.file_syncing import SaveFormat, ResponseToFileNotDefined
 from pyquibbler.debug_utils.logger import logger
-from pyquibbler.utilities.file_path import PathToNotebook
+from pyquibbler.utilities.file_path import NotebookArchiveMirrorPath
+from .archive_folder import folder_to_dict, folder_to_zip, dict_to_folder, zip_to_folder
 
 from ..project import Project
 from .flask_dialog_server import run_flask_app
 from .utils import is_within_jupyter_lab, find_free_port
+
+
+SERIALIZE_TO_JSON = True
 
 
 class JupyterProject(Project):
@@ -34,20 +35,21 @@ class JupyterProject(Project):
     JupyterProject is responsible for everything the normal project is, along with interfacing with the Quibbler
     extension of Jupyter lab.
     """
+    DEFAULT_SAVE_FORMAT = SaveFormat.JSON
 
     def __init__(self, directory: Optional[Path], jupyter_notebook_path: Optional[Path] = None):
         super().__init__(directory)
         self._jupyter_notebook_path = jupyter_notebook_path
-        self._tmp_save_directory = None
-        self._should_save_load_within_notebook = True
+        self._directory = NotebookArchiveMirrorPath()
         self._comm = None
-        self._save_format = SaveFormat.TXT
         self._within_zip_and_send_context = False
-        self.autoload_upon_first_get_value = True
+
+    @property
+    def _should_save_load_within_notebook(self):
+        return isinstance(self._directory, NotebookArchiveMirrorPath)
 
     def _wrap_file_system_func(self, func: Callable,
-                               save_and_send_after_op: bool = False,
-                               skip_user_verification: bool = False,
+                               save_to_notebook_after_op: bool = False,
                                ):
         """
         Wrap a file system function to do whatever is necessary before/after it.
@@ -57,48 +59,39 @@ class JupyterProject(Project):
 
         @functools.wraps(func)
         def _func(*args, **kwargs):
-            if self._should_save_load_within_notebook:
-                self._open_project_directory_from_notebook_zip()
+            if not self._should_save_load_within_notebook:
+                return func(*args, **kwargs)
 
-            # If we're already within another wrapped file system func, we don't want to save data into notebook
-            # and send the data to the client for this func
-            zip_and_send = save_and_send_after_op and not self._within_zip_and_send_context
+            if kwargs.get('skip_user_verification', None) is None:
+                kwargs['skip_user_verification'] = True
 
-            if zip_and_send:
-                self._within_zip_and_send_context = True
-
-            if skip_user_verification and self._should_save_load_within_notebook:
-                res = func(*args, **kwargs, skip_user_verification=True)
-            else:
-                res = func(*args, **kwargs)
-
-            if zip_and_send:
-                logger.info("Zipping and sending to client")
-                self.zip_and_send_quibs_archive_to_client()
-                self._within_zip_and_send_context = False
-
-            return res
+            with self._open_project_directory_from_notebook_metadata(save_to_notebook_after_op):
+                return func(*args, **kwargs)
 
         return _func
 
-    def save_quibs(self, response_to_file_not_defined=ResponseToFileNotDefined.WARN_IF_DATA):
-        return self._wrap_file_system_func(super(JupyterProject, self).save_quibs,
-                                           save_and_send_after_op=True)(response_to_file_not_defined)
+    def save_quibs(self, response_to_file_not_defined=ResponseToFileNotDefined.WARN_IF_DATA, *,
+                   skip_user_verification: bool = None):
+        return self._wrap_file_system_func(super(JupyterProject, self).save_quibs, True)(
+            response_to_file_not_defined, skip_user_verification=skip_user_verification)
 
-    def load_quibs(self, response_to_file_not_defined=ResponseToFileNotDefined.WARN_IF_DATA):
-        return self._wrap_file_system_func(super(JupyterProject, self).load_quibs)(response_to_file_not_defined)
+    def load_quibs(self, response_to_file_not_defined=ResponseToFileNotDefined.WARN_IF_DATA, *,
+                   skip_user_verification: bool = None):
+        return self._wrap_file_system_func(super(JupyterProject, self).load_quibs, False)(
+            response_to_file_not_defined, skip_user_verification=skip_user_verification)
 
-    def sync_quibs(self, response_to_file_not_defined=ResponseToFileNotDefined.WARN_IF_DATA):
-        return self._wrap_file_system_func(super(JupyterProject, self).sync_quibs,
-                                           save_and_send_after_op=True)(response_to_file_not_defined)
+    def sync_quibs(self, response_to_file_not_defined=ResponseToFileNotDefined.WARN_IF_DATA, *,
+                   skip_user_verification: bool = None):
+        return self._wrap_file_system_func(super(JupyterProject, self).sync_quibs, True)(
+            response_to_file_not_defined, skip_user_verification=skip_user_verification)
 
     def override_quib_persistence_functions(self):
         """
         Override quib persistence functions to ensure we save to notebook (or load from notebook) where necessary
         """
-        Quib.save = self._wrap_file_system_func(Quib.save, skip_user_verification=True, save_and_send_after_op=True)
-        Quib.load = self._wrap_file_system_func(Quib.load, skip_user_verification=True)
-        Quib.sync = self._wrap_file_system_func(Quib.sync, save_and_send_after_op=True)
+        Quib.save = self._wrap_file_system_func(Quib.save, True)
+        Quib.load = self._wrap_file_system_func(Quib.load, False)
+        Quib.sync = self._wrap_file_system_func(Quib.sync, True)
 
     def _call_client(self, action_type: str, message_data):
         logger.info(f"Sending to client {action_type} {message_data}")
@@ -114,107 +107,88 @@ class JupyterProject(Project):
             self._jupyter_notebook_path = None
             return None
 
-    def _open_project_directory_from_notebook_zip(self):
+    @contextmanager
+    def _open_project_directory_from_notebook_metadata(self, save_to_notebook_after_op: bool = True):
         """
         Open a project directory from the notebook's internal zip.
         The directory will be temporary, and will be deleted when the client calls "cleanup" (`_cleanup`)
         """
         notebook_content = self._get_notebook_content()
-        if notebook_content is None:
+        if notebook_content is None or self._within_zip_and_send_context:
+            yield
             return
-
-        if self._tmp_save_directory is None:
-            self._tmp_save_directory = tempfile.mkdtemp()
-        self._directory = PathToNotebook(self._tmp_save_directory)
 
         logger.info(f"Using notebook {self._jupyter_notebook_path}")
         logger.info(f"Loading quibs {self.directory}...")
-        b64_encoded_zip_content = notebook_content['metadata'].get('quibs_archive')
-        if b64_encoded_zip_content is not None:
-            logger.info("Quibs exist! Unzipping quibs archive into directory...")
-            raw_bytes = base64.b64decode(b64_encoded_zip_content)
-            buffer = io.BytesIO(raw_bytes)
-            zipfile.ZipFile(buffer).extractall(self.directory)
+        archive = notebook_content['metadata'].get('quibs_archive', {})
 
-    def _create_zip_buffer_from_save_directory(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            self._within_zip_and_send_context = True
+            previous_directory = self._directory
+            self._directory = NotebookArchiveMirrorPath(tmpdir)
+            self._deserialize_save_directory(archive)
+            try:
+                yield
+            finally:
+                if save_to_notebook_after_op:
+                    logger.info(f"Saving zip into notebook's metadata..., {tmpdir}")
+                    archive = self._serialize_save_directory()
+                    self._send_archive_to_notebook(archive)
+                self._within_zip_and_send_context = False
+                self._directory = previous_directory
+
+    def _send_archive_to_notebook(self, archive):
+        self._comm.send({"type": "quibsArchiveUpdate", "data": archive})
+
+    def _serialize_save_directory(self):
         """
         Create a buffer and write a zip file created from the project's save directory into it
         """
-        zip_buffer = io.BytesIO()
-        with zipfile.ZipFile(zip_buffer, "a", zipfile.ZIP_DEFLATED, False) as archive:
-            for root, _, files in os.walk(self.directory):
-                for name in files:
-                    path = os.path.join(root, name)
-                    relative_path = os.path.join(os.path.relpath(root, self.directory), name)
-                    archive.write(path, arcname=relative_path)
-        return zip_buffer
+        if SERIALIZE_TO_JSON:
+            return folder_to_dict(self._directory)
+        else:
+            return folder_to_zip(self._directory)
 
-    def zip_and_send_quibs_archive_to_client(self):
-        """
-        Send the quibs archive to the client- the client is responsible for writing it into the notebook.
-        This needs to be called whenever there are changed to quib files (`_wrap_file_system_func` calls this func)
-        """
-        notebook_content = self._get_notebook_content()
-        if notebook_content is None:
-            return
-
-        logger.info(f"Saving zip into notebook's metadata..., {self._directory}")
-        zip_buffer = self._create_zip_buffer_from_save_directory()
-
-        base64_bytes = base64.b64encode(zip_buffer.getvalue())
-        base64_message = base64_bytes.decode('ascii')
-        notebook_content['metadata']['quibs_archive'] = base64_message
-
-        self._comm.send({"type": "quibsArchiveUpdate", "data": base64_message})
+    def _deserialize_save_directory(self, archive):
+        if SERIALIZE_TO_JSON:
+            dict_to_folder(archive, self._directory)
+        else:
+            zip_to_folder(archive, self._directory)
 
     def _cleanup(self):
         """
         Cleanup any temporary directories created for the JupyterProject (this should be called when the user finishes
         the session)
         """
-        if self._tmp_save_directory is not None:
-            shutil.rmtree(self._tmp_save_directory)
+        # nothing to do. temp folders are now created and destroyed per save/load operartion
+        pass
 
     def _clear_save_data(self):
         """
         Clear the saved quib data within the notebook
         """
-        notebook_content = self._get_notebook_content()
-        if notebook_content is None:
-            return
-
-        notebook_content['metadata']['quibs_archive'] = None
-
-        with open(self._jupyter_notebook_path, 'w') as f:
-            f.write(json.dumps(notebook_content, indent=2))
-
-        if self._tmp_save_directory:
-            shutil.rmtree(self._tmp_save_directory)
-            os.makedirs(self._tmp_save_directory)
-
-        for quib in self.quibs:
-            if quib.assigned_name and quib.allow_overriding:
-                quib.handler.file_syncer.on_data_changed()
-                self.notify_of_overriding_changes(quib)
+        self._send_archive_to_notebook({})
 
     def _set_should_save_load_within_notebook(self, should_save_load_within_notebook: bool):
         """
         When `True`, all save/loads will be kept within the notebook itself
         When `False`, the project will save to whichever directory it is specified to, without saving into the notebook
         """
-        if self._should_save_load_within_notebook and not should_save_load_within_notebook:
+        if should_save_load_within_notebook:
+            self._directory = NotebookArchiveMirrorPath()
+        else:
             self._directory = None
 
-        self._should_save_load_within_notebook = should_save_load_within_notebook
-
     def _refresh_jupyter_notebook_path(self):
-        try:
-            self._jupyter_notebook_path = ipynbname.path()
-        except FileNotFoundError:
-            self._jupyter_notebook_path = os.environ.get("JUPYTER_NOTEBOOK")
+        self._jupyter_notebook_path = os.environ.get("JUPYTER_NOTEBOOK_TEST")
+        if self._jupyter_notebook_path is None:
+            try:
+                self._jupyter_notebook_path = ipynbname.path()
+            except FileNotFoundError:
+                pass
         if self._jupyter_notebook_path is None:
             no_header_warn(
-                'ibynbname was unable to identify the filename of the Jupyter notebook.\n'
+                'ipynbname was unable to identify the filename of the Jupyter notebook.\n'
                 'Saving quibs to Jupyter notebook is disabled.\n'
                 'To enable saving quibs to Jupyter notebook, you can manually set the notebook file path, using:\n'
                 '`qb.get_project().set_jupyter_notebook_path(...)`\n')
@@ -297,11 +271,12 @@ class JupyterProject(Project):
                 self._comm.send({'type': "response", "data": res, "requestId": request_id})
 
     def get_save_within_notebook_state(self):
-        # When we just wake up, we are not initially synchronized with the "SAve/Load inside notebook" state of the
+        # When we just wake up, we are not initially synchronized with the "Save/Load inside notebook" state of the
         # client.
         self._call_client(action_type="getShouldSaveLoadWithinNotebook", message_data={})
 
-    def set_undo_redo_buttons_enable_state(self):
+    def _on_undo_redo_change(self):
+        super()._on_undo_redo_change()
         self._call_client(action_type="setUndoRedoButtons", message_data={'undoEnabled': str(self.can_undo()),
                                                                           'redoEnabled': str(self.can_redo()),
                                                                           })
@@ -328,6 +303,6 @@ def create_jupyter_project_if_in_jupyter_lab() -> bool:
         project.override_quib_persistence_functions()
         project.listen_for_events()
         project.get_save_within_notebook_state()
-        project.set_undo_redo_buttons_enable_state()
+        project._on_undo_redo_change()
 
     return within_jupyter_lab

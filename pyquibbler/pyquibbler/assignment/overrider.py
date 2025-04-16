@@ -16,7 +16,7 @@ from pyquibbler.debug_utils import timeit
 
 from .assignment import Assignment
 from .assignment_to_from_text import convert_executable_text_to_assignments, convert_assignments_to_executable_text, \
-    convert_assignments_to_dict_str_str, convert_dict_str_str_to_assignments
+    convert_assignments_to_json_compatible_dict, convert_json_compatible_dict_to_assignments
 from .assignment_template import AssignmentTemplate
 from .default_value import default
 from .exceptions import CannotConvertAssignmentsToTextException
@@ -187,8 +187,8 @@ class Overrider:
             return self.replace_assignments(pickle.load(f))
 
     def save_as_json(self, filepath: pathlib.Path):
-        paths_to_values = convert_assignments_to_dict_str_str(self._assignments,
-                                                              raise_if_not_saveable=True)
+        paths_to_values = convert_assignments_to_json_compatible_dict(self._assignments,
+                                                                      raise_if_not_saveable=True)
         if filepath is None:
             return paths_to_values
         with open(filepath, "wt") as f:
@@ -203,7 +203,7 @@ class Overrider:
                 paths_to_values = f.read()
         if isinstance(paths_to_values, str):
             paths_to_values = json.loads(paths_to_values)
-        new_assignments = convert_dict_str_str_to_assignments(paths_to_values)
+        new_assignments = convert_json_compatible_dict_to_assignments(paths_to_values)
         return self.replace_assignments(new_assignments)
 
     def save_as_txt(self, filepath: pathlib.Path = None):

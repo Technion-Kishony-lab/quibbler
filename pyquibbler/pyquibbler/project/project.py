@@ -40,8 +40,9 @@ class Project:
         self._redo_action_groups: List[List[AssignmentAction]] = []
         self._save_format: SaveFormat = self.DEFAULT_SAVE_FORMAT
         self._graphics_update: GraphicsUpdateType = self.DEFAULT_GRAPHICS_UPDATE
-        self.on_path_change: Optional[Callable] = None
-        self.autoload_upon_first_get_value = False
+        self._path_change_callbacks: List[Callable] = []
+        self._undo_redo_callbacks: List[Callable] = []
+        self.autoload_upon_first_get_value = True
 
     @classmethod
     def get_or_create(cls, directory: Optional[Path, str] = None):
@@ -64,6 +65,80 @@ class Project:
             directory = directory or (Path(main_module.__file__).parent if hasattr(main_module, '__file__') else None)
             Project.current_project = cls(directory=directory)
         return Project.current_project
+
+    """
+    callbacks
+    """
+
+    def add_path_change_callback(self, callback: Callable):
+        """
+        Add a callback to be called when the project directory changes.
+
+        Parameters
+        ----------
+        callback : Callable
+            A callable that takes a single argument (the new directory).
+            This callback will be called whenever the project directory changes.
+
+        See Also
+        --------
+        directory
+        """
+        self._path_change_callbacks.append(callback)
+
+    def add_undo_redo_callback(self, callback: Callable):
+        """
+        Add a callback to be called when the undo/redo stacks change.
+
+        Parameters
+        ----------
+        callback : Callable
+            A callable that takes no arguments.
+            This callback will be called whenever the undo/redo stacks change.
+
+        See Also
+        --------
+        undo, redo, can_undo, can_redo
+        """
+        self._undo_redo_callbacks.append(callback)
+
+    def remove_path_change_callback(self, callback: Callable):
+        """
+        Remove a previously registered path change callback.
+
+        Parameters
+        ----------
+        callback : Callable
+            The callback function to remove.
+
+        See Also
+        --------
+        add_path_change_callback
+        """
+        self._path_change_callbacks.remove(callback)
+
+    def remove_undo_redo_callback(self, callback: Callable):
+        """
+        Remove a previously registered undo/redo callback.
+
+        Parameters
+        ----------
+        callback : Callable
+            The callback function to remove.
+
+        See Also
+        --------
+        add_undo_redo_callback
+        """
+        self._undo_redo_callbacks.remove(callback)
+
+    def _on_path_change(self):
+        for callback in self._path_change_callbacks:
+            callback(self._directory)
+
+    def _on_undo_redo_change(self):
+        for callback in self._undo_redo_callbacks:
+            callback()
 
     """
     quibs
@@ -223,8 +298,7 @@ class Project:
         for quib in self.quibs:
             quib.handler.on_project_directory_change()
 
-        if self.on_path_change:
-            self.on_path_change(path)
+        self._on_path_change()
 
     def _raise_if_directory_is_not_defined(self, action: str):
         if self.directory is None:
@@ -260,7 +334,8 @@ class Project:
     def save_format(self, save_format: Union[str, SaveFormat]):
         self._save_format = get_enum_by_str(SaveFormat, save_format)
 
-    def save_quibs(self, response_to_file_not_defined=ResponseToFileNotDefined.WARN_IF_DATA):
+    def save_quibs(self, response_to_file_not_defined=ResponseToFileNotDefined.WARN_IF_DATA, *,
+                   skip_user_verification: bool = False):
         """
         Save quib assignments to files.
 
@@ -275,9 +350,11 @@ class Project:
         """
         self._raise_if_directory_is_not_defined('save')
         for quib in self.quibs:
-            quib.save(response_to_file_not_defined)
+            quib.save(response_to_file_not_defined=response_to_file_not_defined,
+                      skip_user_verification=skip_user_verification)
 
-    def load_quibs(self, response_to_file_not_defined=ResponseToFileNotDefined.WARN_IF_DATA):
+    def load_quibs(self, response_to_file_not_defined=ResponseToFileNotDefined.WARN_IF_DATA, *,
+                   skip_user_verification: bool = False):
         """
         Load quib assignments from files.
 
@@ -293,9 +370,11 @@ class Project:
         self._raise_if_directory_is_not_defined('load')
         with aggregate_redraw_mode():
             for quib in self.quibs:
-                quib.load(response_to_file_not_defined)
+                quib.load(response_to_file_not_defined=response_to_file_not_defined,
+                          skip_user_verification=skip_user_verification)
 
-    def sync_quibs(self, response_to_file_not_defined=ResponseToFileNotDefined.WARN_IF_DATA):
+    def sync_quibs(self, response_to_file_not_defined=ResponseToFileNotDefined.WARN_IF_DATA, *,
+                   skip_user_verification: bool = False):
         """
         Sync quib assignments with files.
 
@@ -311,7 +390,8 @@ class Project:
         self._raise_if_directory_is_not_defined('sync')
         with aggregate_redraw_mode():
             for quib in self.quibs:
-                quib.sync(response_to_file_not_defined)
+                quib.sync(response_to_file_not_defined=response_to_file_not_defined,
+                          skip_user_verification=skip_user_verification)
 
     """
     undo/redo
@@ -396,7 +476,7 @@ class Project:
                 action.undo()
 
         self._redo_action_groups.append(actions)
-        self.set_undo_redo_buttons_enable_state()
+        self._on_undo_redo_change()
 
     def redo(self):
         """
@@ -429,7 +509,7 @@ class Project:
                 action.redo()
 
         self._undo_action_groups.append(actions)
-        self.set_undo_redo_buttons_enable_state()
+        self._on_undo_redo_change()
 
     def clear_undo_and_redo_stacks(self, *_, **__):
         """clear_undo_and_redo_stacks()
@@ -443,7 +523,7 @@ class Project:
         self._undo_action_groups.clear()
         self._redo_action_groups.clear()
         self._pending_undo_group = None
-        self.set_undo_redo_buttons_enable_state()
+        self._on_undo_redo_change()
 
     def start_pending_undo_group(self):
         self._pending_undo_group = []
@@ -516,13 +596,10 @@ class Project:
         self._undo_action_groups.append(self._pending_undo_group)
         self.discard_pending_undo_group()
         self._redo_action_groups.clear()
-        self.set_undo_redo_buttons_enable_state()
+        self._on_undo_redo_change()
 
     def discard_pending_undo_group(self):
         self._pending_undo_group = None
-
-    def set_undo_redo_buttons_enable_state(self):
-        pass
 
     def text_dialog(self, title: str, message: str, buttons_and_options: Mapping[str, str]) -> str:
         print(title)

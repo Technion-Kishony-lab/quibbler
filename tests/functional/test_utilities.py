@@ -1,10 +1,8 @@
 from dataclasses import dataclass
 from typing import Tuple
 
-import pytest
 from pytest import mark, raises, fixture
 
-from pyquibbler import iquib
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.exceptions import NestedQuibException
 from pyquibbler.quib.specialized_functions.iquib import create_iquib

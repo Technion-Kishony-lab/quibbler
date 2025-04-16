@@ -66,6 +66,23 @@ def test_load_redraws_only_once(tmpdir, project):
     assert num_calls == 2
 
 
+def test_project_save_load(project):
+    quib1 = iquib(10, assigned_name='quib1')
+    quib2 = iquib(20, assigned_name='quib2')
+
+    quib1.assign(11)
+    assert quib1.get_value() == 11
+    assert quib2.get_value() == 20
+    project.save_quibs()
+
+    quib1.assign(12)
+    quib2.assign(22)
+
+    project.load_quibs(skip_user_verification=True)
+    assert quib1.get_value() == 11
+    assert quib2.get_value() == 20
+
+
 def test_quib_added_to_project_when_created(project):
     quib = iquib(1)
     assert quib in project.quibs
