@@ -113,11 +113,6 @@ const plugin: JupyterFrontEndPlugin<void> = {
         label: 'Load Quibs',
         action: 'load'
       },
-      {
-        command: 'sync',
-        label: 'Sync Quibs',
-        action: 'sync',
-      },
     ]
 
     fileSavingCommands.map(({command, action, label}) => {
