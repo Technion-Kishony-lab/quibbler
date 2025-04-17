@@ -22,7 +22,7 @@ def to_json_compatible(obj):
     Recursively converts Python objects into a JSON‑serializable format.
     """
     if isinstance(obj, float) and (
-            np.isnan(obj) or np.isinf(obj) or obj == np.round(obj)):
+            np.isnan(obj) or np.isinf(obj) or np.isclose(obj, np.round(obj))):
         # Handle NaN, inf, and roundable floats (otherwise Jupyetr's JSON of 5.0 is 5)
         return repr(obj)
     elif isinstance(obj, (int, float, bool)) or obj is None:
