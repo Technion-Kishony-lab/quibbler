@@ -117,6 +117,12 @@ Editor of the relevant quib (equivalent to the quibs’ methods
 **Note.** Hitting the Save button will both save the quib assignments
 into the notebook and save the notebook to file.
 
+**Quibs assignment data can be inspected in the notebook metadata.** To
+view the saved quib assignments, click on the double gear icon at the
+top right of the notebook. This will open the cell and notebook metadata
+editor. The quib assignments are saved in the ``quibs_archive`` field of
+the notebook metadata.
+
 .. image:: images/quib_editor_save_load.gif
 
 Display a quib dependency graph

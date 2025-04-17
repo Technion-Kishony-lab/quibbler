@@ -68,11 +68,11 @@ Sequencial connections
     # Create derived quibs
     teeth_nums = (np.zeros(n_w, dtype=int) + default_num_tooth)
     teeth_nums.allow_overriding = True
-    teeth_nums = teeth_nums * 2  # make sure teeth_num is even
+    teeth_nums2 = teeth_nums * 2  # make sure teeth_num is even
     
-    radii = teeth_nums * radius_per_teeth
+    radii = teeth_nums2 * radius_per_teeth
     centers = -radii + np.cumsum(2 * radii)
-    transmision = - teeth_nums[:-1] / teeth_nums[1:]
+    transmision = - teeth_nums2[:-1] / teeth_nums2[1:]
     
     colors = iquib(all_colors)[:n_w]
     indices = np.arange(n_w)
@@ -88,18 +88,18 @@ Sequencial connections
 
     # Implement using vectorize
     create_wheels = np.vectorize(create_wheel, pass_quibs=True, is_graphics=True)
-    create_wheels(centers, teeth_nums, radii, phases, indices, colors);
+    create_wheels(centers, teeth_nums2, radii, phases, indices, colors);
 
 .. code:: python
 
     # Implement using quiby (alternative)
     
     # @quiby(pass_quibs=True, is_graphics=True)
-    # def create_wheels(centers, teeth_nums, radii, phases, indices, colors):
+    # def create_wheels(centers, teeth_nums2, radii, phases, indices, colors):
     #     n = len(centers.get_value())
     #     for i in range(n):
-    #         create_wheel(centers[i], teeth_nums[i], radii[i], phases[i], indices[i], colors[i])
+    #         create_wheel(centers[i], teeth_nums2[i], radii[i], phases[i], indices[i], colors[i])
     
         
-    # create_wheels(centers, teeth_nums, radii, phases, indices, colors);
+    # create_wheels(centers, teeth_nums2, radii, phases, indices, colors);
 .. image:: ../images/demo_gif/quibdemo_gear.gif
