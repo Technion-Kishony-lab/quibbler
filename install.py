@@ -20,7 +20,10 @@ def show_failure_message_and_exist(message: str):
 
 def install_package_from_directory(directory: Path, what):
     try:
-        subprocess.check_call([sys.executable, "-m", "pip", "install", '-e', what], cwd=str(directory))
+        subprocess.check_call(
+            [sys.executable, "-m", "pip", "install", '-e', '.', '--config-settings', 'editable_mode=compat'],
+            cwd=str(directory)
+        )
     except subprocess.CalledProcessError as e:
         show_failure_message_and_exist(f'Failed to install. Exception :\n{e}')
 
