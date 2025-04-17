@@ -96,7 +96,11 @@ jobs:
       - name: Run tox coverage env
         run: |
           python -m tox -e coverage
-        continue-on-error: true
+
+      - name: Show coverage.xml stats
+        run: |
+          head coverage.xml || echo "No coverage.xml found"
+          du -h coverage.xml || echo "coverage.xml missing"
 
       - name: Upload coverage.xml for inspection
         if: always()
@@ -110,3 +114,7 @@ jobs:
         uses: coroo/pytest-coverage-commentator@v1.0.2
         with:
           pytest-coverage: coverage.xml
+
+      # Optional: Upload to Codecov (remove if not needed)
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v4
