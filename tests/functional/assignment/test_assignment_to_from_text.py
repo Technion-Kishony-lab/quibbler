@@ -58,8 +58,9 @@ def test_convert_assignment_to_simplified_text(components, value, expected_text)
     "Hello, world!",
     {"key1": [1, 2, 3], "key2": {"nested_key": "nested_value"}},
     [1, 2, {"key": "value"}],
-    "default",
-    "array([1, 2, 3])",
+    default,
+    np.array([1, 2, 3]),
+    np.int64(42),
     ])
 def test_to_json_compatible(input_data):
     """
@@ -68,5 +69,8 @@ def test_to_json_compatible(input_data):
     json_compatible = to_json_compatible(input_data)
     assert isinstance(json_compatible, (dict, list, str, int, float, bool, type(None)))
     restored = from_json_compatible(json_compatible)
-    assert input_data == restored
+    if isinstance(input_data, np.ndarray):
+        assert np.array_equal(input_data, restored)
+    else:
+        assert input_data == restored
     assert isinstance(restored, type(input_data))
