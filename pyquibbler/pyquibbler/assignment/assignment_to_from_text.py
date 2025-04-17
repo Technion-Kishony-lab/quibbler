@@ -4,6 +4,8 @@ from dataclasses import dataclass, field
 
 from typing import List, Optional, Iterable, Any, Dict
 
+import numpy as np
+
 from .default_value import default, Default
 from .assignment import Assignment
 
@@ -12,14 +14,18 @@ from pyquibbler.utilities.numpy_original_functions import np_array
 from pyquibbler.utilities.iterators import recursively_run_func_on_object
 from .exceptions import CannotConvertTextToAssignmentsException, CannotConvertAssignmentsToTextException
 
-ASSIGNMENT_VALUE_TEXT_DICT = {'array': np_array, 'default': default}
+ASSIGNMENT_VALUE_TEXT_DICT = {'array': np_array, 'default': default, 'np': np}
 
 
 def to_json_compatible(obj):
     """
     Recursively converts Python objects into a JSON‑serializable format.
     """
-    if isinstance(obj, (int, float, bool)) or obj is None:
+    if isinstance(obj, float) and (
+            np.isnan(obj) or np.isinf(obj) or obj == np.round(obj)):
+        # Handle NaN, inf, and roundable floats (otherwise Jupyetr's JSON of 5.0 is 5)
+        return repr(obj)
+    elif isinstance(obj, (int, float, bool)) or obj is None:
         return obj
     elif isinstance(obj, dict):
         return {repr(k): to_json_compatible(v) for k, v in obj.items()}
