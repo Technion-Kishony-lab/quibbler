@@ -232,7 +232,7 @@ def test_lab_extension_assert_no_failures_fails(driver, load_notebook, assert_no
         run_cells()
 
 
-def test_lab_extension_undo__redo_is_initially_disabled(driver, load_notebook, assert_no_failures, is_undo_enabled, is_redo_enabled):
+def test_lab_extension_undo_redo_is_initially_disabled(driver, load_notebook, assert_no_failures, is_undo_enabled, is_redo_enabled):
     assert is_undo_enabled() is False
     assert is_redo_enabled() is False
 
@@ -274,22 +274,26 @@ def test_lab_extension_undo_happy_flow(driver, load_notebook, assert_no_failures
 def test_lab_extension_save_load(driver, load_notebook, assert_no_failures,
         run_cells, run_code, click_menu_item, clear_output_and_restart_kernel):
     run_cells()
-    assert eval(run_code('nums.get_value()')) == [1, 2, 3]
+    assert eval(run_code('nums.get_value()')) == [1, 2., 3]
 
     # assign to the quib
-    run_code("nums[1] = 5; 'ok'")
-    assert eval(run_code('nums.get_value()')) == [1, 5, 3]
+    run_code("nums[1] = 5.; 'ok'")
+    assert eval(run_code('nums.get_value()')) == [1, 5., 3]
 
     # Save the quib assignment to the notebook
     click_menu_item('Quibbler', 'Save Quibs')
 
     # assign to the quib
-    run_code("nums[1] = 6; 'ok'")
-    assert eval(run_code('nums.get_value()')) == [1, 6, 3]
+    run_code("nums[1] = 6.4; 'ok'")
+    assert eval(run_code('nums.get_value()')) == [1, 6.4, 3]
 
     # Load the quib assignment from the notebook
     click_menu_item('Quibbler', 'Load Quibs')
-    assert eval(run_code('nums.get_value()')) == [1, 5, 3]
+    assert eval(run_code('nums.get_value()')) == [1, 5., 3]
+
+    # verify that it still a float
+    run_code("nums[1] = 6.4; 'ok'")
+    assert eval(run_code('nums.get_value()')) == [1, 6.4, 3]
 
 
 @pytest.mark.parametrize("notebooks_path", ["test_saving.ipynb"], indirect=True)
