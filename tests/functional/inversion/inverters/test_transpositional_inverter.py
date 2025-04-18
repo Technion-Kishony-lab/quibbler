@@ -24,7 +24,7 @@ def test_inverse_concat():
     new_value = 20
 
     sources_to_results, _ = inverse(func=np.concatenate, args=((first_source_arg, second_source_arg),), indices=(0, 0),
-                                    value=np.array([new_value]))
+                                    value=np.array(new_value))
 
     assert np.array_equal(sources_to_results[first_source_arg], np.array([[new_value, 2, 3]]))
 
@@ -35,7 +35,7 @@ def test_inverse_vstack():
     new_value = 20
 
     sources_to_results, _ = inverse(func=np.vstack, args=((first_source_arg, second_source_arg),), indices=(0, 0),
-                                    value=np.array([new_value]))
+                                    value=np.array(new_value))
 
     assert np.array_equal(sources_to_results[first_source_arg], np.array([[new_value, 2, 3]]))
 
@@ -43,7 +43,7 @@ def test_inverse_vstack():
 @pytest.mark.regression
 def test_inverse_concat_second_arg_non_source_returns_no_inversions():
     sources_to_results, _ = inverse(func=np.concatenate, args=((Source([1]), [0]),), indices=1,
-                                    value=np.array([100]))
+                                    value=np.array(100))
 
     assert sources_to_results == {}
 
