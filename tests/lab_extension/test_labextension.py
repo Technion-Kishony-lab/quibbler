@@ -205,6 +205,7 @@ def run_cells(driver, assert_no_failures):
 @pytest.fixture()
 def run_code(driver):
     def _run(code):
+        time.sleep(0.2)
         driver.execute_async_script(f"""
         const future = Window.pyquibblerKernel.requestExecute({{code: "{code}"}});
         future.onIOPub = (msg) => {{
@@ -216,6 +217,7 @@ def run_code(driver):
         alert = WebDriverWait(driver, 3).until(alert_is_present())
         result = alert.text
         alert.accept()
+        time.sleep(0.2)
         return result
     return _run
 
