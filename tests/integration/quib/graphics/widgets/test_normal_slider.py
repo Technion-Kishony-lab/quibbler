@@ -5,6 +5,7 @@ import numpy as np
 import pytest
 from matplotlib import widgets
 
+from .....conftest import plt_pause
 from pyquibbler.graphics.widgets import QSlider, QRangeSlider
 
 
@@ -28,7 +29,7 @@ def slider(axes, callback1):
         valmin=0,
         valstep=1
     )
-    plt.pause(0.01)
+    plt_pause(0.01)
     slider.on_changed(callback1)
     return slider
 
@@ -43,7 +44,7 @@ def range_slider(axes, callback2):
         valmin=0.,
         valstep=1
     )
-    plt.pause(0.01)
+    plt_pause(0.01)
     slider.on_changed(callback2)
     return slider
 

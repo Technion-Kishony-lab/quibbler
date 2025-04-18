@@ -1,7 +1,7 @@
 import pytest
 from matplotlib import widgets, pyplot as plt
 
-from .....conftest import create_mouse_press_move_release_events, create_key_press_and_release_event
+from .....conftest import create_mouse_press_move_release_events, plt_pause
 from pyquibbler import iquib
 
 
@@ -16,7 +16,7 @@ def create_textbox_quib(ax, initial):
         label="hello",
         initial=initial
     )
-    plt.pause(0.01)
+    plt_pause(0.01)
     return widget
 
 
@@ -45,7 +45,7 @@ def test_text_box_with_numeric_value(axes):
             initial=x
         )
     text_box = text_box_quib.get_value()
-    plt.pause(0.01)
+    plt_pause(0.01)
     create_mouse_press_move_release_events(axes, ['middle'])
     # create_key_press_and_release_event('9')
     # create_key_press_and_release_event('enter')

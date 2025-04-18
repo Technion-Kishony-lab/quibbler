@@ -168,6 +168,18 @@ def get_axes():
     return ax
 
 
+def plt_pause(seconds):
+    fig = plt.gcf()
+    fig.canvas.draw()
+    fig.canvas.flush_events()
+
+
+def plt_show(block=True):
+    fig = plt.gcf()
+    fig.canvas.draw()
+    fig.canvas.flush_events()
+
+
 @fixture(autouse=True)
 def project(tmpdir):
     path = tmpdir.strpath
@@ -262,7 +274,7 @@ def create_mouse_press_move_release_events(ax, xys, button: int = 1,
     for _xy in xys[1:]:
         simulate_event(ax.figure.canvas, 'motion_notify_event', _xy[0], _xy[1], ax=ax)
         if pause is not None:
-            plt.pause(pause)
+            plt_pause(pause)
     if release:
         simulate_event(ax.figure.canvas, 'button_release_event', _xy_end[0], _xy_end[1], button=button, ax=ax)
 

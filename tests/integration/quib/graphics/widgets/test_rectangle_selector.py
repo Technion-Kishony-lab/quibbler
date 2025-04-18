@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 from matplotlib import widgets
 
-from .....conftest import get_axes, create_mouse_press_move_release_events
+from .....conftest import get_axes, create_mouse_press_move_release_events, plt_pause
 from pyquibbler import iquib, undo, redo
 from tests.integration.quib.graphics.widgets.utils import count_redraws, quibbler_image_comparison, count_canvas_draws
 
@@ -15,7 +15,7 @@ def roi():
 
 def create_rectangle_selector(ax, extents):
     selector = widgets.RectangleSelector(ax, extents=extents)
-    plt.pause(0.1)
+    plt_pause(0.1)
     return selector
 
 

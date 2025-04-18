@@ -1,6 +1,6 @@
 import pathlib
 
-from tests.conftest import get_axes, create_mouse_press_move_release_events
+from tests.conftest import get_axes, create_mouse_press_move_release_events, plt_pause
 from tests.integration.quib.graphics.widgets.utils import quibbler_image_comparison, count_canvas_draws
 
 
@@ -64,7 +64,7 @@ def test_covid_demo(live_artists):
     ax = plt.axes([0.3, 0.4, 0.3, 0.3])
     plt.pie([below_threshold_sum, above_threshold_sum], colors=['g', 'r'])
 
-    plt.pause(0.1)
+    plt_pause(0.1)
 
     with count_canvas_draws(axes.figure.canvas) as canvas_redraw_count:
         create_mouse_press_move_release_events(axes, [(15, 0), (12.5, 0), (10, 0)])

@@ -3,8 +3,8 @@ import weakref
 from functools import partial
 
 import numpy as np
-from matplotlib import pyplot as plt
 
+from ....conftest import plt_pause
 from pyquibbler import iquib, quiby
 from pyquibbler.quib.graphics.artist_wrapper import get_upstream_caller_quibs, get_creating_quib, get_all_setter_quibs
 from tests.integration.quib.graphics.widgets.utils import count_canvas_draws, count_redraws, count_invalidations
@@ -158,7 +158,7 @@ def test_drag_plot_created_in_quiby_func(axes, create_axes_mouse_press_move_rele
     axes.axis((-1., 10., -1., 10.))
     axes.set_xticks([])
     axes.set_yticks([])
-    plt.pause(0.5)  # pause to allow axes to be resized. see assert below:
+    plt_pause(0.5)  # pause to allow axes to be resized. see assert below:
     assert np.abs(np.diff(axes.transData.transform((3, 3)) - axes.transData.transform((0, 0)))) < 1e-10
     creating_quib_ref = None
 
