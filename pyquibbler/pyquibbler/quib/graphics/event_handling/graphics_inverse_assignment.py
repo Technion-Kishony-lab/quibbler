@@ -121,7 +121,13 @@ class TargetFunc:
         return np_array([o.assignment.value for o in self.overrides])
 
     def _transform_data_with_none_to_pixels(self, data: PointArray) -> PointArray:
-        data = np.where(data == None, 0, data)  # noqa
+        x_dummy = self.ax.get_xlim()[0]
+        y_dummy = self.ax.get_ylim()[0]
+        data = np.where(data == None, [x_dummy, y_dummy], data)  # noqa
+        try:
+            data = np.asarray(data, dtype=float)
+        except TypeError:
+            pass
         return PointArray(self.ax.transData.transform(data))
 
     def assign_values(self, values: List[Number]):
