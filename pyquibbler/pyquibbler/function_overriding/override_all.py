@@ -4,7 +4,7 @@ from pyquibbler.project.jupyer_project.jupyter_project import create_jupyter_pro
 from pyquibbler.function_definitions import add_definition_for_function
 from pyquibbler.utilities.input_validation_utils import validate_user_input
 from pyquibbler.utilities.warning_messages import no_header_warn
-from pyquibbler.env import DRAGGABLE_PLOTS_BY_DEFAULT, SHOW_QUIBS_AS_WIDGETS_IN_JUPYTER_LAB
+from pyquibbler.env import DRAGGABLE_PLOTS_BY_DEFAULT, SHOW_QUIBS_AS_WIDGETS_IN_JUPYTER_LAB, DEBUG
 
 from .attribute_override import AttributeOverride
 from .defintion_without_override.python_functions import create_definitions_for_python_functions
@@ -129,6 +129,10 @@ def initialize_quibbler(draggable_plots: bool = True,
                                               *create_numpy_overrides(),
                                               *create_quib_method_overrides()]
     for func_override in function_overrides:
+        if not func_override.can_override():
+            if DEBUG:
+                print(f'Warning: {func_override.func_name} cannot be overridden.')
+            continue
         maybe_create_quib = func_override.override()
         add_definition_for_function(
             func=func_override.original_func,

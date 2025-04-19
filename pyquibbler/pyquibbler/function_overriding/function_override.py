@@ -135,6 +135,14 @@ class FuncOverride:
         setattr(self.module_or_cls, self.func_name, maybe_create_quib)
         return maybe_create_quib
 
+    def can_override(self) -> bool:
+        """
+        Check if the function can be overridden.
+        Added to allow compatability with different versions of numpy/matplotlib that
+        may or may not have the function.
+        """
+        return self.module_or_cls is Quib or hasattr(self.module_or_cls, self.func_name)
+
 
 @dataclass
 class ClassOverride(FuncOverride):

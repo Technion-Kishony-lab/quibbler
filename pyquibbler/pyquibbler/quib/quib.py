@@ -671,20 +671,20 @@ class Quib:
                  cache_mode: CacheMode = None,
                  ):
 
-        self.handler = QuibHandler(self, quib_function_call,
-                                   assignment_template,
-                                   allow_overriding,
-                                   assigned_name,
-                                   created_in,
-                                   graphics_update,
-                                   save_directory,
-                                   save_format,
-                                   func,
-                                   args,
-                                   kwargs,
-                                   func_definition,
-                                   cache_mode,
-                                   )
+        self.handler: QuibHandler = QuibHandler(self, quib_function_call,
+                                                assignment_template,
+                                                allow_overriding,
+                                                assigned_name,
+                                                created_in,
+                                                graphics_update,
+                                                save_directory,
+                                                save_format,
+                                                func,
+                                                args,
+                                                kwargs,
+                                                func_definition,
+                                                cache_mode,
+                                                )
 
     """
     Func metadata
