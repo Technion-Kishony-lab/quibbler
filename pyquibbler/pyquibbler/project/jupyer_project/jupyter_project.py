@@ -6,7 +6,6 @@ import tempfile
 from contextlib import contextmanager
 from multiprocessing import Process
 
-import ipynbname
 from pathlib import Path
 from typing import Optional, Iterable, Tuple, Callable, Union
 
@@ -180,6 +179,7 @@ class JupyterProject(Project):
             self._directory = None
 
     def _refresh_jupyter_notebook_path(self):
+        import ipynbname
         self._jupyter_notebook_path = os.environ.get("JUPYTER_NOTEBOOK_TEST")
         if self._jupyter_notebook_path is None:
             try:

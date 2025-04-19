@@ -1,17 +1,8 @@
 [build-system]
-requires = ["jupyter_packaging~=0.10,<2", "jupyterlab>=3,<4"]
-build-backend = "jupyter_packaging.build_api"
-
-[tool.jupyter-packaging.options]
-skip-if-exists = ["pyquibbler_labextension/labextension/static/style.js"]
-ensured-targets = ["pyquibbler_labextension/labextension/static/style.js", "pyquibbler_labextension/labextension/package.json"]
-
-[tool.jupyter-packaging.builder]
-factory = "jupyter_packaging.npm_builder"
-
-[tool.jupyter-packaging.build-args]
-build_cmd = "build:prod"
-npm = ["npm"]
-
-[tool.check-manifest]
-ignore = ["pyquibbler_labextension/labextension/**", "yarn.lock", ".*", "package-lock.json"]
+requires = [
+    "setuptools>=68",
+    "wheel",
+    "jupyter_packaging>=0.12",
+    "jupyterlab>=3,<4"
+]
+build-backend = "setuptools.build_meta"

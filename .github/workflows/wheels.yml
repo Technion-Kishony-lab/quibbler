@@ -11,22 +11,22 @@ jobs:
       run:
         working-directory: ./pyquibbler
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v3
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install setuptools wheel twine
+          python -m pip install build twine
 
-      - name: Build wheel
-        run: python -m pip wheel . -w ./dist --no-deps
+      - name: Build wheel and sdist
+        run: python -m build --wheel --sdist --outdir dist
 
       - uses: actions/upload-artifact@v4
         with:
           name: pyquibbler
-          path: ./pyquibbler/dist/*.whl
+          path: ./pyquibbler/dist/*
 
   build_extension:
     runs-on: ubuntu-latest
@@ -34,8 +34,7 @@ jobs:
       run:
         working-directory: ./pyquibbler-labextension
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v3
 
@@ -46,7 +45,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip setuptools
-          python -m pip install jupyterlab==3.1 wheel
+          python -m pip install jupyterlab==3.1 build
 
       - name: Install Node.js Dependencies
         run: npm install
@@ -65,14 +64,14 @@ jobs:
           echo "Running Browser Check"
           python -m jupyterlab.browser_check
 
-          echo "Building Wheel"
-          python -m pip wheel . -w ./dist --no-deps
+          echo "Building Wheel and sdist"
+          python -m build --wheel --sdist --outdir dist
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: pyquibbler_labextension
-          path: ./pyquibbler-labextension/dist/*.whl
+          path: ./pyquibbler-labextension/dist/*
 
   publish:
     needs: [build_pyquibbler, build_extension]
@@ -82,11 +81,16 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: .
+
       - name: Copy to dist
         run: |
           mkdir dist
           cp -r pyquibbler/* dist/
           cp -r pyquibbler_labextension/* dist/
+
+      - name: Check package metadata
+        run: twine check dist/*
+
       - name: Publish distribution 📦 to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:

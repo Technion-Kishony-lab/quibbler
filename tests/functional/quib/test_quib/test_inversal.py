@@ -224,7 +224,8 @@ def test_inverse_tile_array():
         (str, np.array([1, 2, 3]), '[11, 12, 13]', np.array([11, 12, 13])),
         (int, 4.3, 10, 10.),
         (int, 4.3, 10.3, 10.),
-        (int, np.array([[4.3]]), 10.3, np.array([[10.]])),
+        # (int, np.array([[4.3]]), 10.3, np.array([[10.]])),  # Deprecated in numpy
+        (int, np.array(4.3), 10.3, np.array(10.)),
         (int, '15', 10.2, '10'),
         (bool, 2, False, 0),
         (bool, 2, True, 1),

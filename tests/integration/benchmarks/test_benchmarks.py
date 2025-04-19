@@ -1,6 +1,7 @@
 import pytest
+
+from ...conftest import plt_show
 from pyquibbler import iquib, q
-from matplotlib import pyplot as plt
 import numpy as np
 
 
@@ -55,7 +56,7 @@ def test_speed_drag(benchmark, axes, create_axes_mouse_press_move_release_events
     y = iquib([1., 2., 3.])
     h = axes.plot([1, 2, 3], y, 'o-')
 
-    plt.show(block=False)
+    plt_show(block=False)
 
     def move_marker_with_mouse():
         create_axes_mouse_press_move_release_events(

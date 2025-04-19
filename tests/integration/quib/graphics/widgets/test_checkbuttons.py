@@ -1,7 +1,7 @@
 import pytest
-from matplotlib import pyplot as plt, widgets
+from matplotlib import widgets
 
-from .....conftest import get_axes
+from .....conftest import get_axes, plt_pause
 from pyquibbler import iquib, undo, redo
 from tests.integration.quib.graphics.widgets.utils import count_redraws, quibbler_image_comparison
 
@@ -17,7 +17,7 @@ def create_checkbox_quib(ax, actives):
         labels=['Red', 'Green', 'Blue'],
         actives=actives
     )
-    plt.pause(0.01)
+    plt_pause(0.01)
     return checkbox
 
 
@@ -33,7 +33,7 @@ def checkbox_list_of_quibs(axes, list_of_bool_quibs):
         labels=['Red', 'Green', 'Blue'],
         actives=list_of_bool_quibs
     )
-    plt.pause(0.01)
+    plt_pause(0.01)
     return checkbox
 
 

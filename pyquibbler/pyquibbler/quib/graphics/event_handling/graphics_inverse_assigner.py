@@ -1,3 +1,4 @@
+import warnings
 from typing import Callable, List, Any, Tuple
 from matplotlib.backend_bases import MouseEvent, PickEvent
 
@@ -38,7 +39,10 @@ def inverse_assign_drawing_func(enhanced_pick_event: EnhancedPickEventWithFuncAr
         return
 
     try:
-        override_group = inverse_assigner_func(enhanced_pick_event, mouse_event)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", UserWarning)
+            warnings.simplefilter("ignore", RuntimeWarning)
+            override_group = inverse_assigner_func(enhanced_pick_event, mouse_event)
     except AssignmentCancelledByUserException:
         pass
     else:

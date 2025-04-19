@@ -31,8 +31,9 @@ Follow these four steps:
 ```git clone https://github.com/Technion-Kishony-lab/quibbler```
 
 #### 2. Install Jupyter lab (optional):
+Any 3.x version of *Jupyter Lab* is supported.
 
-```pip install jupyterlab==3.4.7```
+```pip install jupyterlab==3.6.3```
 
 #### 3. Run the 'install.py' script: 
 

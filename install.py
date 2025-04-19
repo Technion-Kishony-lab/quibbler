@@ -20,7 +20,10 @@ def show_failure_message_and_exist(message: str):
 
 def install_package_from_directory(directory: Path, what):
     try:
-        subprocess.check_call([sys.executable, "-m", "pip", "install", '-e', what], cwd=str(directory))
+        subprocess.check_call(
+            [sys.executable, "-m", "pip", "install", '-e', '.', '--config-settings', 'editable_mode=compat'],
+            cwd=str(directory)
+        )
     except subprocess.CalledProcessError as e:
         show_failure_message_and_exist(f'Failed to install. Exception :\n{e}')
 
@@ -59,11 +62,14 @@ def install_click_if_necessary():
 def is_jupyter_installed():
     try:
         output = subprocess.check_output(["jupyter", "lab", "--version"], stderr=subprocess.STDOUT)
-        version = output.decode().strip()
-        if not version.startswith('3.'):
-            show_failure_message_and_exist("PyQuibbler is only compatible with Jupyter lab version 3.x.")
-    except subprocess.CalledProcessError as e:
-        show_failure_message_and_exist(f'Failed to get jupyter lab version. Exception :\n{e}')
+    except (subprocess.CalledProcessError, FileNotFoundError) as e:
+        return False
+    except Exception as e:
+        show_failure_message_and_exist(f'Failed to check for jupyter lab version. Exception :\n{e}')
+        return False
+    version = output.decode().strip()
+    if not version.startswith('3.'):
+        show_failure_message_and_exist("PyQuibbler is only compatible with Jupyter lab version 3.x.")
     return True
 
 

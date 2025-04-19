@@ -3,6 +3,7 @@ import numpy as np
 import pytest
 from matplotlib import widgets
 
+from .....conftest import plt_pause
 from pyquibbler import iquib, undo, default
 
 
@@ -31,7 +32,7 @@ def range_slider_quib(axes, input_quib1, input_quib2):
         valmin=0,
         valstep=1
     )
-    plt.pause(0.01)
+    plt_pause(0.01)
     return slider
 
 
@@ -45,7 +46,7 @@ def range_slider_quib_of_list_quib(axes, input_quib_list):
         valmin=0,
         valstep=1
     )
-    plt.pause(0.01)
+    plt_pause(0.01)
     return slider
 
 

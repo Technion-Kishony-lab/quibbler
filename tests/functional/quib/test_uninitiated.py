@@ -1,23 +1,32 @@
-from pyquibbler import iquib, quiby, q, is_quiby, Quib
+import pytest
 
-not_quib = iquib(3)
-not_quiby_str = quiby(str)
-not_quib_str_3 = q(str, 3)
+from pyquibbler import iquib, quiby, q, is_quiby, Quib
+from pyquibbler.function_overriding.is_initiated import IS_QUIBBLER_INITIATED
 
 
 def test_iquib_does_not_create_quib_when_uninitiated():
+    with IS_QUIBBLER_INITIATED.temporary_set(False):
+        with pytest.warns(UserWarning):
+            quib = iquib(3)
+        assert not isinstance(quib, Quib) and quib == 3
     quib = iquib(3)
     assert isinstance(quib, Quib) and quib.get_value() == 3, "sanity"
-    assert not isinstance(not_quib, Quib) and not_quib == 3
 
 
 def test_quiby_does_not_create_quiby_func_when_uninitiated():
+    with IS_QUIBBLER_INITIATED.temporary_set(False):
+        with pytest.warns(UserWarning):
+            quiby_str = quiby(str)
+        with pytest.warns(UserWarning):
+            assert not is_quiby(quiby_str)
     quiby_str = quiby(str)
     assert is_quiby(quiby_str), "sanity"
-    assert not is_quiby(not_quiby_str)
 
 
 def test_q_does_not_create_quib_when_uninitiated():
-    quib_str_3 = q(str, 3)
-    assert isinstance(quib_str_3, Quib) and quib_str_3.get_value() == '3'
-    assert not isinstance(not_quib_str_3, Quib) and not_quib_str_3 == '3'
+    with IS_QUIBBLER_INITIATED.temporary_set(False):
+        with pytest.warns(UserWarning):
+            quib = q(str, 3)
+        assert not isinstance(quib, Quib) and quib == '3'
+    quib = q(str, 3)
+    assert isinstance(quib, Quib) and quib.get_value() == '3'

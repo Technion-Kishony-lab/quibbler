@@ -37,8 +37,7 @@ Dragging graphics affects upstream quibs
 
 .. code:: python
 
-    # Plot additional graphics based on x and y.
-    # these downstream graphics will change when the marker is moved:
+    # Plot graphics based on x and y:
     
     # Text:
     plt.text(-9, 9, q('X={:.2f}, Y={:.2f}'.format, x, y), 

@@ -1,120 +1,121 @@
-name: Tests
+name: CI
 
 on:
-  push: null
-  pull_request: null
+  push:
+    branches: [main]        # still only run on direct pushes to main
+  pull_request:             # run on every PR to any branch
+
+# ────────────────────────
+# Prevent wasted work:
+# If a new commit arrives for the same PR/branch,
+# cancel the still‑running workflow so only the
+# *latest* tests & coverage finish.
+# ────────────────────────
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
+  # ────────────────────────
+  # Fast unit‑test matrix
+  # ────────────────────────
   tests:
+    # run for PRs OR for direct pushes to main
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ['3.10', '3.11']
-    steps:
-      - uses: actions/checkout@v2
 
-      - name: Set up Python ${{ matrix.python-version }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Minimum‑supported stack
+          - {python: '3.10', tox_env: 'py3.10-mpl37-np20'}
+
+          # Diagonal
+          - {python: '3.10', tox_env: 'py3.10-mpl38-np20'}
+          - {python: '3.11', tox_env: 'py3.11-mpl39-np21'}
+          - {python: '3.12', tox_env: 'py3.12-mpl310-np22'}
+
+          # Bleeding‑edge safety net (dev branches)
+          - {python: '3.12', tox_env: 'py3.12-mpldev-npdev'}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python }}
         uses: actions/setup-python@v4
         with:
-          python-version: "${{ matrix.python-version }}"
+          python-version: ${{ matrix.python }}
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip setuptools
-          pip install tox==3.28.0 tox-gh-actions
+      - name: Install tox
+        run: python -m pip install --upgrade pip setuptools tox==3.28.0
 
-      - name: Run tox
-        run: |
-          python -m tox -- --junit-xml pytest.xml
+      - name: Run tox (${{ matrix.tox_env }})
+        run: python -m tox -e ${{ matrix.tox_env }} -- --junit-xml pytest.xml
 
-      - name: Upload result_images from graphics tests
+      # Fail‑only graphics artefacts (optional)
+      - name: Upload result_images
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: Result images
+          name: result_images-${{ matrix.tox_env }}
           path: result_images
 
-      - name: Upload test results
+      # Always upload XML for test‑summary apps
+      - name: Upload pytest results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: Test results (Python ${{ matrix.python-version }})
+          name: pytest-${{ matrix.tox_env }}
           path: pytest.xml
 
-  linting:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python 3.10
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip setuptools
-          pip install tox==3.28.0 tox-gh-actions
-          pip install jupyterlab==3.1
-
-      - name: Run tox flake8
-        run: |
-          python -m tox -e flake8
-
-  publish-test-results:
-    name: "Publish test results"
-    needs: tests
-    runs-on: ubuntu-latest
-    if: (success() || failure()) && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
-    steps:
-      - name: Download Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-
-      - name: Publish Unit Test Results
-        uses: EnricoMi/publish-unit-test-result-action@v1
-        with:
-          files: artifacts/**/pytest.xml
-
+  # ────────────────────────
+  # Coverage: runs after fast tests,
+  # applies *only* to PRs, and thanks to
+  # concurrency we keep just the latest run.
+  # ────────────────────────
   coverage:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
-    steps:
-      - uses: actions/checkout@v2
+    continue-on-error: false
 
-      - name: Set up Python 3.10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
         uses: actions/setup-python@v4
         with:
-          python-version: "3.10"
+          python-version: '3.11'
 
-      - name: Install dependencies
+      - name: Install tox
+        run: python -m pip install --upgrade pip setuptools tox==3.28.0
+
+      - name: Run coverage env
         run: |
-          python -m pip install --upgrade pip setuptools
-          pip install tox==3.28.0 tox-gh-actions
-          pip install jupyterlab==3.1
+          python -m tox -e coverage | tee pytest-coverage.txt
 
-      - name: Run tox coverage env
-        run: |
-          python -m tox -e coverage
+      - name: Post coverage comment
+        uses: coroo/pytest-coverage-commentator@v1.0.2
+        with:
+          pytest-coverage: pytest-coverage.txt
 
-      - name: Show coverage.xml stats
-        run: |
-          head coverage.xml || echo "No coverage.xml found"
-          du -h coverage.xml || echo "coverage.xml missing"
-
-      - name: Upload coverage.xml for inspection
+      - name: Upload coverage artefact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-xml
-          path: coverage.xml
+          name: coverage
+          path: pytest-coverage.txt
 
-      - name: Comment coverage
-        if: github.event.pull_request.head.repo.full_name == github.repository
-        uses: coroo/pytest-coverage-commentator@v1.0.2
+  # ────────────────────────
+  # Code style / lint
+  # ────────────────────────
+  flake8:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
         with:
-          pytest-coverage: coverage.xml
-
-      # Optional: Upload to Codecov (remove if not needed)
-      - name: Upload to Codecov
-        uses: codecov/codecov-action@v4
+          python-version: '3.10'
+      - run: |
+          python -m pip install --upgrade pip setuptools tox==3.28.0
+          python -m tox -e flake8

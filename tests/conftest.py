@@ -11,11 +11,13 @@ from pyquibbler import CacheMode
 from pyquibbler.env import DEBUG, LAZY, PRETTY_REPR, \
     SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS, GET_VARIABLE_NAMES, GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION, \
     ALLOW_ARRAY_WITH_DTYPE_OBJECT, SAFE_MODE
+from pyquibbler.function_overriding.is_initiated import is_quibbler_initialized
 from pyquibbler.optional_packages.emulate_missing_packages import EMULATE_MISSING_PACKAGES
 from pyquibbler.project import Project
 from pyquibbler import initialize_quibbler
 from pyquibbler.quib.func_calling import CachedQuibFuncCall
 from pyquibbler.quib.graphics.redraw import is_dragging
+from pyquibbler.reset_all import reset_all, is_reset_all
 from pyquibbler.user_utils.quibapp import QuibApp
 
 from pyquibbler.utilities.basic_types import Flag
@@ -40,8 +42,9 @@ DEFAULT_GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION = 1000
 
 @pytest.fixture(autouse=True)
 def check_reset_dragging():
+    reset_all()
     yield
-    assert is_dragging() is False
+    assert is_reset_all() is False
 
 
 @fixture(autouse=True, scope="session")
@@ -54,9 +57,11 @@ def setup_missing_packages(request):
     yield from setup_flag(EMULATE_MISSING_PACKAGES, DEFAULT_EMULATE_MISSING_PACKAGES, request)
 
 
-@pytest.fixture(autouse=True, scope="session")
-def initialize_quibbler_(setup_missing_packages):
+def pytest_sessionstart(session):
+    # runs once, before any collection/parametrize
+    assert is_quibbler_initialized() is False, "Quibbler should not be initialized"
     initialize_quibbler()
+    assert is_quibbler_initialized() is True, "Quibbler should be initialized"
 
 
 def pytest_configure(config):
@@ -165,6 +170,18 @@ def get_axes():
     return ax
 
 
+def plt_pause(seconds):
+    fig = plt.gcf()
+    fig.canvas.draw()
+    fig.canvas.flush_events()
+
+
+def plt_show(block=True):
+    fig = plt.gcf()
+    fig.canvas.draw()
+    fig.canvas.flush_events()
+
+
 @fixture(autouse=True)
 def project(tmpdir):
     path = tmpdir.strpath
@@ -259,7 +276,7 @@ def create_mouse_press_move_release_events(ax, xys, button: int = 1,
     for _xy in xys[1:]:
         simulate_event(ax.figure.canvas, 'motion_notify_event', _xy[0], _xy[1], ax=ax)
         if pause is not None:
-            plt.pause(pause)
+            plt_pause(pause)
     if release:
         simulate_event(ax.figure.canvas, 'button_release_event', _xy_end[0], _xy_end[1], button=button, ax=ax)
 

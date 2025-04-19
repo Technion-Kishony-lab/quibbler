@@ -51,7 +51,7 @@ class NumericCastingInverter(CastingInverter):
 
         source_to_change_type = type(source_to_change_value)
         if source_to_change_type is np.ndarray:
-            assert len(source_to_change_value) == 1
+            assert source_to_change_value.size == 1
             return np.array([assigned_value], dtype=source_to_change_value.dtype).reshape(source_to_change_value.shape)
 
         return source_to_change_type(assigned_value)

@@ -31,10 +31,10 @@ property.
 Assignment file format
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Assignments can be saved as a text file or binary file (``'txt'``, or
-``'bin'``). The file format can be set globally for all quibs using the
-Project’s :py:attr:`~pyquibbler.Project.save_format`, or individually for each quib using
-the Quib’s :py:attr:`~pyquibbler.Quib.save_format`.
+Assignments can be saved as a text file or binary file (``'txt'``,
+``'json'``, or ``'bin'``). The file format can be set globally for all
+quibs using the Project’s :py:attr:`~pyquibbler.Project.save_format`, or individually for
+each quib using the Quib’s :py:attr:`~pyquibbler.Quib.save_format`.
 
 Simple example of assignment saving to file
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

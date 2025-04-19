@@ -3,8 +3,9 @@ import weakref
 from functools import partial
 
 import numpy as np
-from matplotlib import pyplot as plt
+import warnings
 
+from ....conftest import plt_pause
 from pyquibbler import iquib, quiby
 from pyquibbler.quib.graphics.artist_wrapper import get_upstream_caller_quibs, get_creating_quib, get_all_setter_quibs
 from tests.integration.quib.graphics.widgets.utils import count_canvas_draws, count_redraws, count_invalidations
@@ -31,8 +32,9 @@ def test_drag_along_zero_slope(create_axes_mouse_press_move_release_events, axes
     marker_x = iquib(0.)
     marker_y = 0 * marker_x  # line with zero slope
     axes.plot(marker_x, marker_y, marker='o')
-
-    create_axes_mouse_press_move_release_events(((0, 0), (0.5, 0)))
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        create_axes_mouse_press_move_release_events(((0, 0), (0.5, 0)))
     assert marker_x.get_value() == 0.497
 
 
@@ -158,7 +160,7 @@ def test_drag_plot_created_in_quiby_func(axes, create_axes_mouse_press_move_rele
     axes.axis((-1., 10., -1., 10.))
     axes.set_xticks([])
     axes.set_yticks([])
-    plt.pause(0.5)  # pause to allow axes to be resized. see assert below:
+    plt_pause(0.5)  # pause to allow axes to be resized. see assert below:
     assert np.abs(np.diff(axes.transData.transform((3, 3)) - axes.transData.transform((0, 0)))) < 1e-10
     creating_quib_ref = None
 

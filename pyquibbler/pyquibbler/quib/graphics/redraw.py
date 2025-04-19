@@ -23,6 +23,29 @@ IN_AGGREGATE_REDRAW_MODE = False
 IN_DRAGGING_BY: Optional[int] = None
 
 
+def reset_all_redraw():
+    """
+    Reset all the global variables to their initial state
+    """
+    global IN_AGGREGATE_REDRAW_MODE, IN_DRAGGING_BY
+    QUIBS_TO_REDRAW[GraphicsUpdateType.DRAG].clear()
+    QUIBS_TO_REDRAW[GraphicsUpdateType.DROP].clear()
+    QUIBS_THAT_NEED_TO_UPDATE_WIDGETS_TO_REFLECT_OVERRIDING_CHANGES.clear()
+    IN_AGGREGATE_REDRAW_MODE = False
+    IN_DRAGGING_BY = None
+
+
+def is_reset_all_redraw():
+    """
+    Check if all the global variables are in their initial state
+    """
+    return (QUIBS_TO_REDRAW[GraphicsUpdateType.DRAG] == set() and
+            QUIBS_TO_REDRAW[GraphicsUpdateType.DROP] == set() and
+            QUIBS_THAT_NEED_TO_UPDATE_WIDGETS_TO_REFLECT_OVERRIDING_CHANGES == set() and
+            IN_AGGREGATE_REDRAW_MODE is False and
+            IN_DRAGGING_BY is None)
+
+
 @contextlib.contextmanager
 def aggregate_redraw_mode(temporarily: bool = False):
     """
