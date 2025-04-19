@@ -1,8 +1,9 @@
 from __future__ import annotations
+
+from contextlib import contextmanager
 from dataclasses import dataclass
 from typing import List
 
-from prometheus_client.decorator import contextmanager
 
 from pyquibbler.assignment import AssignmentToQuib
 from pyquibbler.project.undo_group import undo_group_mode
