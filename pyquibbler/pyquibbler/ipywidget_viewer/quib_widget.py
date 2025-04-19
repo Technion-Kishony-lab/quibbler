@@ -148,7 +148,7 @@ class QuibWidget:
 
     def _create_assignment_box(self, assignment_index: int, text: str = '') -> widgets.HBox:
         assignment_text_box = widgets.Text(text, continuous_update=False,
-                                           description_tooltip=ASSIGNMENT_TOOLTIP,
+                                           tooltip=ASSIGNMENT_TOOLTIP,
                                            layout=widgets.Layout(width=f'{WIDGET_WIDTH}px'))  # , height='20px'
         assignment_text_box.observe(lambda change: self._on_edit_assignment(assignment_index, change), names='value')
 
