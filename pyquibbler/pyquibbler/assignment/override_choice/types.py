@@ -4,10 +4,27 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from typing import List
 
-
 from pyquibbler.assignment import AssignmentToQuib
 from pyquibbler.project.undo_group import undo_group_mode
 from pyquibbler.quib.graphics import aggregate_redraw_mode
+
+
+WITHIN_TEMPORARY_APPLY_OVERRIDE_GROUP = False
+
+
+def reset_all_override_group():
+    """
+    Reset all global variables to their initial state
+    """
+    global WITHIN_TEMPORARY_APPLY_OVERRIDE_GROUP
+    WITHIN_TEMPORARY_APPLY_OVERRIDE_GROUP = False
+
+
+def is_reset_all_override_group():
+    """
+    Check if all the global variables are in their initial state
+    """
+    return WITHIN_TEMPORARY_APPLY_OVERRIDE_GROUP is False
 
 
 @dataclass
@@ -18,9 +35,6 @@ class QuibChangeWithOverrideRemovals:
     @property
     def quib(self):
         return self.change.quib
-
-
-WITHIN_TEMPORARY_APPLY_OVERRIDE_GROUP = False
 
 
 class OverrideGroup(List[AssignmentToQuib]):

@@ -6,6 +6,21 @@ from pyquibbler.quib.graphics.redraw import is_dragging
 IN_UNDO_GROUP_MODE = False
 
 
+def reset_all_undo_group():
+    """
+    Resets the undo group mode to its initial state.
+    """
+    global IN_UNDO_GROUP_MODE
+    IN_UNDO_GROUP_MODE = False
+
+
+def is_reset_all_undo_group():
+    """
+    Checks if the undo group mode is in its initial state.
+    """
+    return IN_UNDO_GROUP_MODE is False
+
+
 @contextmanager
 def undo_group_mode(temporarily: bool = False):
 

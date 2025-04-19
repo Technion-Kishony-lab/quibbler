@@ -4,6 +4,21 @@ from typing import Optional
 GET_VALUE_CONTEXT_PASS_QUIBS: Optional[bool] = None
 
 
+def reset_all_get_value_context():
+    """
+    Reset all global variables to their initial state
+    """
+    global GET_VALUE_CONTEXT_PASS_QUIBS
+    GET_VALUE_CONTEXT_PASS_QUIBS = None
+
+
+def is_reset_all_get_value_context() -> bool:
+    """
+    Check if all the global variables are in their initial state
+    """
+    return GET_VALUE_CONTEXT_PASS_QUIBS is None
+
+
 @contextmanager
 def get_value_context(pass_quibs: bool = False):
     """

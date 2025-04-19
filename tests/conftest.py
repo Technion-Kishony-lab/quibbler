@@ -17,6 +17,7 @@ from pyquibbler.project import Project
 from pyquibbler import initialize_quibbler
 from pyquibbler.quib.func_calling import CachedQuibFuncCall
 from pyquibbler.quib.graphics.redraw import is_dragging
+from pyquibbler.reset_all import reset_all, is_reset_all
 from pyquibbler.user_utils.quibapp import QuibApp
 
 from pyquibbler.utilities.basic_types import Flag
@@ -41,8 +42,9 @@ DEFAULT_GRAPHICS_DRIVEN_ASSIGNMENT_RESOLUTION = 1000
 
 @pytest.fixture(autouse=True)
 def check_reset_dragging():
+    reset_all()
     yield
-    assert is_dragging() is False
+    assert is_reset_all() is False
 
 
 @fixture(autouse=True, scope="session")
