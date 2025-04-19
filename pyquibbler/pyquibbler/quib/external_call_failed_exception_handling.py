@@ -60,8 +60,10 @@ class ExternalCallFailedException(PyQuibblerException):
 
 
 def get_traceback_outside_of_quibbler(tb):
-    while tb is not None and cached_getmodule(tb.tb_frame.f_code) is not None \
-            and cached_getmodule(tb.tb_frame.f_code).__name__.startswith("pyquibbler"):
+    while tb is not None:
+        module = cached_getmodule(tb.tb_frame.f_code)
+        if module is None or not module.__name__.startswith("pyquibbler"):
+            break
         tb = tb.tb_next
     return tb
 
