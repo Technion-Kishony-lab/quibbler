@@ -77,8 +77,9 @@ for rst_path in rst_paths:
     gif_file = (docs_demo_gif_path / rst_path.stem).with_suffix('.gif')
     if gif_file.exists():
         with open(rst_path, "a") as rstfile:
-            print(f'appending GIF to {rst_path.stem}')
             rstfile.write(f".. image:: ../images/demo_gif/{gif_file.name}\n")
+    else:
+        print(f'GIF file {gif_file} does not exist, skipping...')
 
 
 # convert docs notebooks to rst and move to doc folder:
