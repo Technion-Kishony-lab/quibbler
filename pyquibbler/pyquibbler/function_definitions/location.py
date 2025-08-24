@@ -83,7 +83,7 @@ def get_object_type_locations_in_args_kwargs(object_type, args: Args, kwargs: Kw
     Find all objects of a given type in args and kwargs and return their locations
     """
     positional_locations = [PositionalSourceLocation(PositionalArgument(path[0].component), path[1:]) for
-                            path in get_paths_for_objects_of_type(args, object_type)]
+                            path in get_paths_for_objects_of_type(object_type, args)]
     keyword_locations = [KeywordSourceLocation(KeywordArgument(path[0].component), path[1:]) for
-                         path in get_paths_for_objects_of_type(kwargs, object_type)]
+                         path in get_paths_for_objects_of_type(object_type, kwargs)]
     return positional_locations + keyword_locations

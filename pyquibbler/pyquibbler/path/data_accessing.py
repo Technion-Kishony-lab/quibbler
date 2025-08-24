@@ -59,7 +59,6 @@ def deep_get(obj: Any, path: Path):
         elif component.is_nd_reference() and isinstance(obj, (list, tuple)):
             obj = np_array(obj, dtype=object)[cmp]
         else:
-            print(obj, component)
             obj = obj[cmp]
 
     return obj
@@ -90,6 +89,11 @@ def set_for_dict(obj: Dict, key, value):
     return obj
 
 
+def set_for_slice(sl_, attribute, value):
+    attrs_to_values = {"start": sl_.start, "stop": sl_.stop, "step": sl_.step, attribute: value}
+    return slice(*attrs_to_values.values())
+
+
 def set_key_to_value(obj, key, value):
     obj[key] = value
     return obj
@@ -103,15 +107,16 @@ def set_attr_to_value(obj, attr, value):
 SETTERS = {
     tuple: set_for_tuple,
     dict: set_for_dict,
+    slice: set_for_slice,
     np.ndarray: set_for_ndarray,
 }
 
 
 def get_setter(type_, is_attr: bool):
-    if is_attr:
-        return set_attr_to_value
     if type_ in SETTERS:
         return SETTERS[type_]
+    if is_attr:
+        return set_attr_to_value
     return set_key_to_value
 
 

@@ -4,11 +4,9 @@ from typing import Tuple
 from pytest import mark, raises, fixture
 
 from pyquibbler.quib.quib import Quib
-from pyquibbler.quib.exceptions import NestedQuibException
 from pyquibbler.quib.specialized_functions.iquib import create_iquib
-from pyquibbler.quib.utils import miscellaneous
-from pyquibbler.quib.utils.iterators import iter_quibs_in_args, iter_quibs_in_object
-from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals, is_there_a_quib_in_args
+from pyquibbler.quib.utils.iterators import iter_quibs_in_object
+from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals
 from pyquibbler.utilities.iterators import is_iterator_empty, iter_objects_of_type_in_object_recursively
 from pyquibbler.utilities.unpacker import Unpacker, CannotDetermineNumberOfIterations
 from tests.functional.utils import slicer
@@ -27,33 +25,11 @@ def test_is_iterator_empty(iterator, expected_result):
 
 
 @mark.parametrize(['to_copy', 'depth', 'length', 'expected_result'], [
-    ([1, [2]], None, None, [1, [2]]),
-    ([1, [2]], 0, 0, [1, [2]]),
-    ([1, [2]], 1, 10, [1, [2]]),
-    ([1, [2]], 5, 10, [1, [2]]),
     (iquib1, None, None, 1),
-    (iquib1, 0, 0, 1),
-    (iquib1, 3, 3, 1),
-    ([iquib1], None, None, [1]),
-    ([iquib1], 0, None, [iquib1]),
-    ([iquib1], 1, None, [1]),
-    ([iquib1], 2, None, [1]),
-    ([iquib1], None, 0, [iquib1]),
-    ([iquib1], None, 1, [1]),
-    ([1, [iquib1, [iquib2]]], None, None, [1, [1, [2]]]),
-    ([1, [iquib1, [iquib2]]], 0, None, [1, [iquib1, [iquib2]]]),
-    ([1, [iquib1, [iquib2]]], 1, None, [1, [iquib1, [iquib2]]]),
-    ([1, [iquib1, [iquib2]]], 2, None, [1, [1, [iquib2]]]),
-    ([1, [iquib1, [iquib2]]], 3, None, [1, [1, [2]]]),
-    ([1, [iquib1, [iquib2]]], None, 0, [1, [iquib1, [iquib2]]]),
-    ([1, [iquib1, [iquib2]]], None, 1, [1, [iquib1, [iquib2]]]),
-    ([1, [iquib1, [iquib2]]], None, 2, [1, [1, [2]]]),
 ])
 @mark.debug(False)
 def test_copy_and_replace_quibs_with_vals(monkeypatch, to_copy, depth, length, expected_result):
-    monkeypatch.setattr(miscellaneous, 'SHALLOW_MAX_LENGTH', length)
-    monkeypatch.setattr(miscellaneous, 'SHALLOW_MAX_DEPTH', depth)
-    assert copy_and_replace_quibs_with_vals(to_copy) == expected_result
+    assert copy_and_replace_quibs_with_vals(to_copy, max_depth=depth, max_length=length) == expected_result
 
 
 @mark.parametrize(['to_iter', 'depth', 'length', 'expected_result'], [
@@ -81,6 +57,7 @@ def test_copy_and_replace_quibs_with_vals(monkeypatch, to_copy, depth, length, e
     ([1, [iquib1, [iquib2]]], None, 1, set()),
     ([1, [iquib1, [iquib2]]], None, 2, {iquib1, iquib2}),
     (slicer[iquib1:, iquib1:iquib2], 2, None, {iquib1, iquib2}),
+    (dict(b=[iquib2], c=dict(d=1, e=iquib1)), None, None, {iquib1, iquib2}),
 ])
 def test_iter_quibs_in_object(to_iter, depth, length, expected_result):
     assert set(iter_objects_of_type_in_object_recursively(Quib, to_iter, depth, length)) == expected_result
@@ -93,36 +70,6 @@ args_kwargs_quibs_test = mark.parametrize(['args', 'kwargs', 'quibs'], [
     ((iquib1,), dict(a=iquib2), {iquib1, iquib2}),
     ((), dict(a=[iquib2]), {iquib2}),
 ])
-
-
-@args_kwargs_quibs_test
-def test_iter_quibs_in_args(args, kwargs, quibs):
-    assert set(iter_quibs_in_args(args, kwargs)) == quibs
-
-
-@args_kwargs_quibs_test
-def test_is_there_a_quib_in_args(args, kwargs, quibs):
-    assert is_there_a_quib_in_args(args, kwargs) == (len(quibs) > 0)
-
-
-def test_copy_and_replace_quibs_with_vals_raises_when_receives_nested_quibs():
-    obj = [[[iquib1]]]
-    with raises(NestedQuibException, match='.*') as exc_info:
-        copy_and_replace_quibs_with_vals(obj)
-
-    assert exc_info.type is NestedQuibException
-    assert exc_info.value.obj is obj
-    assert exc_info.value.nested_quibs == {iquib1}
-
-
-def test_iter_quibs_in_object_raises_when_receives_nested_quibs():
-    obj = [[[iquib1]]]
-    with raises(NestedQuibException, match='.*') as exc_info:
-        iter_quibs_in_object(obj)
-
-    assert exc_info.type is NestedQuibException
-    assert exc_info.value.obj is obj
-    assert exc_info.value.nested_quibs == {iquib1}
 
 
 @fixture

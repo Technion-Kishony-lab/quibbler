@@ -1,29 +1,20 @@
 from copy import copy
-from typing import Any, Optional
+from typing import Any
 
-from pyquibbler.env import DEBUG
-from pyquibbler.utilities.iterators import is_iterator_empty, recursively_run_func_on_object, \
-    SHALLOW_MAX_LENGTH, SHALLOW_MAX_DEPTH
-from .iterators import iter_quibs_in_object, iter_quibs_in_args, iter_quibs_in_object_recursively
-from ..exceptions import NestedQuibException
+from attr.validators import max_len
+
+from pyquibbler.utilities.iterators import is_iterator_empty, recursively_run_func_on_object
+from .iterators import iter_quibs_in_object
 
 
-def is_there_a_quib_in_object(obj, recursive: bool = False):
+def is_there_a_quib_in_object(obj) -> bool:
     """
     Returns true if there is a quib object nested inside the given object.
     """
-    return not is_iterator_empty(iter_quibs_in_object(obj, recursive))
+    return not is_iterator_empty(iter_quibs_in_object(obj))
 
 
-def is_there_a_quib_in_args(args, kwargs):
-    """
-    Returns true if there is a quib object nested inside the given args and kwargs and false otherwise.
-    For use by function wrappers that need to determine if the underlying function was called with a quib.
-    """
-    return not is_iterator_empty(iter_quibs_in_args(args, kwargs))
-
-
-def deep_copy_without_quibs_or_graphics(obj: Any, max_depth: Optional[int] = None, max_length: Optional[int] = None):
+def deep_copy_without_quibs_or_graphics(obj: Any, recurse_mode='deep'):
     from matplotlib.artist import Artist
     from matplotlib.widgets import AxesWidget
     from pyquibbler.quib.quib import Quib
@@ -33,11 +24,12 @@ def deep_copy_without_quibs_or_graphics(obj: Any, max_depth: Optional[int] = Non
             return o
         return copy(o)
 
-    return recursively_run_func_on_object(func=copy_if_not_quib_or_artist, max_length=max_length,
-                                          max_depth=max_depth, obj=obj)
+    return recursively_run_func_on_object(func=copy_if_not_quib_or_artist, obj=obj, recurse_mode=recurse_mode,
+                                          iterate_on_attributes=False)
 
 
-def copy_and_replace_quibs_with_vals(obj: Any):
+def copy_and_replace_quibs_with_vals(obj: Any, recurse_mode='deep',
+                                     max_depth: int = None, max_length: int = None) -> Any:
     """
     Copy `obj` while replacing quibs with their values, with a limited depth and length.
     """
@@ -55,10 +47,7 @@ def copy_and_replace_quibs_with_vals(obj: Any):
         except NotImplementedError:
             return o
 
-    result = recursively_run_func_on_object(func=replace_with_value_if_quib_or_copy, max_depth=SHALLOW_MAX_DEPTH,
-                                            max_length=SHALLOW_MAX_LENGTH, obj=obj)
-    if DEBUG:
-        nested_quibs = set(iter_quibs_in_object_recursively(result))
-        if is_there_a_quib_in_object(result, recursive=True):
-            raise NestedQuibException(obj, nested_quibs)
+    result = recursively_run_func_on_object(
+        func=replace_with_value_if_quib_or_copy,
+        obj=obj, recurse_mode=recurse_mode, max_depth=max_depth, max_length=max_length)
     return result

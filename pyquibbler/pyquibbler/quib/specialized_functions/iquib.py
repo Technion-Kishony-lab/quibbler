@@ -111,9 +111,8 @@ def iquib(value: Any,
         warn_if_quibbler_not_initialized()
         return value
 
-    if DEBUG:
-        if is_there_a_quib_in_object(value, recursive=True):
-            raise CannotNestQuibInIQuibException(value)
+    if is_there_a_quib_in_object(value):
+        raise CannotNestQuibInIQuibException(value)
 
     return create_iquib(value=value,
                         allow_overriding=allow_overriding,
