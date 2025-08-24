@@ -65,7 +65,7 @@ def quiby(func: Callable = None,
           is_random: bool = False,
           is_graphics: Optional[bool] = False,
           is_file_loading: bool = False,
-          quibify_even_if_quibbler_not_initialized: bool = False,
+          _quibify_even_if_quibbler_not_initialized: bool = False,
           **kwargs,
           ) -> Callable[..., Quib]:
     """
@@ -161,11 +161,11 @@ def quiby(func: Callable = None,
                                  is_random=is_random,
                                  is_graphics=is_graphics,
                                  is_file_loading=is_file_loading,
-                                 quibify_even_if_quibbler_not_initialized=quibify_even_if_quibbler_not_initialized,
+                                 _quibify_even_if_quibbler_not_initialized=_quibify_even_if_quibbler_not_initialized,
                                  **kwargs,
                                  )
 
-    if not is_quibbler_initialized() and not quibify_even_if_quibbler_not_initialized:
+    if not is_quibbler_initialized() and not _quibify_even_if_quibbler_not_initialized:
         warn_if_quibbler_not_initialized()
         return func
 

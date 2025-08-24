@@ -43,7 +43,7 @@ def test_get_shape_of_q_function_raises_external_call_exception():
 @pytest.mark.show_quib_exceptions_as_quib_traceback(True)
 def test_exception_during_quib_creation():
     import numpy as np
-    a = iquib(np.array([1,2]))
+    a = iquib(np.array([1, 2]))
     b = np.swapaxes(a) # <--- missing positional argument
 
     with pytest.raises(ExternalCallFailedException, match='.*') as r:

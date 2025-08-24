@@ -61,7 +61,7 @@ def iquib(value: Any,
           save_directory: Union[None, str, pathlib.Path] = None,
           assigned_name: Optional[str] = missing,
           assignment_template: Union[None, tuple, AssignmentTemplate] = None,
-          quibify_even_if_quibbler_not_initialized: bool = False,
+          _quibify_even_if_quibbler_not_initialized: bool = False,
           ) -> Quib:
     """
     Returns an input-quib that represents a given object
@@ -107,7 +107,7 @@ def iquib(value: Any,
     This allows checking how your code works without quibs.
     """
 
-    if not is_quibbler_initialized() and not quibify_even_if_quibbler_not_initialized:
+    if not is_quibbler_initialized() and not _quibify_even_if_quibbler_not_initialized:
         warn_if_quibbler_not_initialized()
         return value
 
