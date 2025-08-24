@@ -1,3 +1,5 @@
+import copy
+
 import numpy as np
 from dataclasses import dataclass
 
@@ -127,59 +129,57 @@ def iter_object_type_in_args_kwargs(object_type, args: Args, kwargs: Kwargs):
 
 ITERATE_ON_OBJECT_ARRAYS = False
 
+ITERATE_ON_ATTRIBUTES = True
+
 
 def recursively_run_func_on_object(func: Callable, obj: Any,
                                    path: Optional[Path] = None, max_depth: Optional[int] = None,
                                    max_length: Optional[int] = None,
                                    with_path: bool = False,
+                                   stop_on: type = None,
                                    ):
+    from pyquibbler.quib.quib import Quib
+    stop_on = stop_on or Quib
+
+    next_max_depth = None if max_depth is None else max_depth - 1
+
+    def extend_path(component, is_attr: bool = False):
+        return [*path, PathComponent(component, is_attr=is_attr)] if path is not None else None
+
+    def _recurse(sub_obj, component, is_attr: bool = False):
+        return recursively_run_func_on_object(
+            func, sub_obj, extend_path(component, is_attr), next_max_depth, max_length, with_path, stop_on)
+
+    if max_length is None:
+        below_max_length = True
+    elif is_object_array(obj):
+        below_max_length = obj.size <= max_length
+    else:
+        below_max_length = not hasattr(obj, '__len__') or len(obj) <= max_length
+
     if with_path:
         path = path or []
-    if max_depth is None or max_depth > 0:
+    if (max_depth is None or max_depth > 0) and (stop_on is None or not isinstance(obj, stop_on)) \
+            and below_max_length:
         # Recurse into composite objects
-        next_max_depth = None if max_depth is None else max_depth - 1
-
-        if isinstance(obj, (tuple, list, set)) and (max_length is None or len(obj) <= max_length):
-            return type(obj)((recursively_run_func_on_object(
-                func, sub_obj,
-                [*path, PathComponent(i)] if with_path else None,
-                next_max_depth,
-                with_path=with_path)
-                for i, sub_obj in enumerate(obj)))
+        if isinstance(obj, (tuple, list, set)):
+            return type(obj)((_recurse(sub_obj, i) for i, sub_obj in enumerate(obj)))
         elif isinstance(obj, dict) and (max_length is None or len(obj) <= max_length):
-            return type(obj)({key: recursively_run_func_on_object(
-                func, sub_obj,
-                [*path, PathComponent(key)] if with_path else None,
-                next_max_depth,
-                with_path=with_path)
-                for key, sub_obj in obj.items()})
+            return type(obj)({key: _recurse(value, key) for key, value in obj.items()})
         elif isinstance(obj, slice):
-            return slice(
-                recursively_run_func_on_object(
-                    func, obj.start,
-                    [*path, PathComponent("start")] if with_path else None,
-                    next_max_depth,
-                    with_path=with_path),
-                recursively_run_func_on_object(
-                    func, obj.stop,
-                    [*path, PathComponent("stop")] if with_path else None,
-                    next_max_depth,
-                    with_path=with_path),
-                recursively_run_func_on_object(
-                    func, obj.step,
-                    [*path, PathComponent("step")] if with_path else None,
-                    next_max_depth,
-                    with_path=with_path), )
+            return slice(**{attr: _recurse(getattr(obj, attr), attr, True) for attr in ('start', 'stop', 'step')})
         elif ITERATE_ON_OBJECT_ARRAYS and is_object_array(obj):
             new_array = np_full(obj.shape, None, dtype=object)
             for indices, value in np.ndenumerate(obj):
-                new_array[indices] = \
-                    recursively_run_func_on_object(
-                        func, obj[indices],
-                        [*path, PathComponent(indices)] if with_path else None,
-                        next_max_depth,
-                        with_path=with_path)
+                new_array[indices] = _recurse(value, indices)
             return new_array
+        elif ITERATE_ON_ATTRIBUTES and hasattr(obj, '__dict__'):
+            print(obj)
+            print(vars(obj))
+            new_obj = copy.copy(obj)
+            for attr_name, attr_value in vars(obj).items():
+                setattr(new_obj, attr_name, _recurse(attr_value, attr_name, is_attr=True))
+            return new_obj
 
     return func(path, obj) if with_path else func(obj)
 
