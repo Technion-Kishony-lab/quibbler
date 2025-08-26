@@ -8,7 +8,7 @@ from pyquibbler.utilities.iterators import recursively_run_func_on_object, iter_
     is_iterator_empty
 
 
-def deep_copy_without_graphics(obj: Any, action_on_quibs, recurse_mode='deep',
+def deep_copy_without_graphics(obj: Any, action_on_quibs,
                                max_depth_on_object_arrays=-1, max_depth_on_attributes=-1):
     """
     Deep copies the given object, except for matplotlib Artists and AxesWidgets, which are returned as is.
@@ -39,15 +39,15 @@ def deep_copy_without_graphics(obj: Any, action_on_quibs, recurse_mode='deep',
         except NotImplementedError:
             return o
 
-    return recursively_run_func_on_object(func=replace, obj=obj, recurse_mode=recurse_mode,
+    return recursively_run_func_on_object(func=replace, obj=obj,
                                           max_depth_on_object_arrays=max_depth_on_object_arrays,
                                           max_depth_on_attributes=max_depth_on_attributes)
 
 
-def iter_quibs_in_object(obj, recurse_mode='deep', max_depth_on_object_arrays=-1, max_depth_on_attributes=-1):
+def iter_quibs_in_object(obj, max_depth_on_object_arrays=-1, max_depth_on_attributes=-1):
     from pyquibbler.quib.quib import Quib
     yield from iter_objects_of_type_in_object_recursively(
-        Quib, obj, recurse_mode=recurse_mode,
+        Quib, obj,
         max_depth_on_object_arrays=max_depth_on_object_arrays,
         max_depth_on_attributes=max_depth_on_attributes)
 

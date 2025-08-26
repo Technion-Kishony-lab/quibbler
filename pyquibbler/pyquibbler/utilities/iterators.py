@@ -9,11 +9,6 @@ from .numpy_original_functions import np_full
 
 from pyquibbler.path import Path, PathComponent, Paths
 
-RECURSE_MODE_TO_PARAMS = {
-    'shallow': {'max_depth': 2, 'max_length': 100},
-    'deep': {'max_depth': None, 'max_length': None},
-}
-
 DEFAULT_MAX_DEPTH_ON_OBJECT_ARRAYS = -1
 DEFAULT_MAX_DEPTH_ATTRIBUTES = -1
 
@@ -35,7 +30,6 @@ def is_user_object(obj):
 def iter_paths_and_objects_matching_criteria_in_object_recursively(func: Callable, obj: Any,
                                                                    max_depth: Optional[int] = None,
                                                                    max_length: Optional[int] = None,
-                                                                   recurse_mode: str = None,
                                                                    max_depth_on_object_arrays: int = DEFAULT_MAX_DEPTH_ON_OBJECT_ARRAYS,
                                                                    max_depth_on_attributes: int = DEFAULT_MAX_DEPTH_ATTRIBUTES,
                                                                    stop_on: type = None,
@@ -45,11 +39,6 @@ def iter_paths_and_objects_matching_criteria_in_object_recursively(func: Callabl
 
     if with_path and _path is None:
         _path = []
-
-    if recurse_mode is not None:
-        params = RECURSE_MODE_TO_PARAMS[recurse_mode]
-        max_depth = params['max_depth']
-        max_length = params['max_length']
 
     next_max_depth = None if max_depth is None else max_depth - 1
     next_max_depth_in_case_of_object_arrays = max_depth_on_object_arrays if _larger_than(next_max_depth, max_depth_on_object_arrays) else next_max_depth
@@ -67,7 +56,7 @@ def iter_paths_and_objects_matching_criteria_in_object_recursively(func: Callabl
             actual_next_max_depth = next_max_depth
 
         yield from iter_paths_and_objects_matching_criteria_in_object_recursively(
-            func, sub_obj, actual_next_max_depth, max_length, None, max_depth_on_object_arrays, max_depth_on_attributes, stop_on,
+            func, sub_obj, actual_next_max_depth, max_length, max_depth_on_object_arrays, max_depth_on_attributes, stop_on,
             with_path, extend_path(component, is_attr))
 
     if not _larger_than(max_depth, -1):
@@ -105,7 +94,6 @@ def iter_paths_and_objects_matching_criteria_in_object_recursively(func: Callabl
 def iter_objects_of_type_in_object_recursively(object_type: Type, obj: Any,
                                                max_depth: Optional[int] = None,
                                                max_length: Optional[int] = None,
-                                               recurse_mode: str = None,
                                                prevent_repetitions: bool = True,
                                                max_depth_on_object_arrays: int = DEFAULT_MAX_DEPTH_ON_OBJECT_ARRAYS,
                                                max_depth_on_attributes: int = DEFAULT_MAX_DEPTH_ATTRIBUTES
@@ -125,7 +113,6 @@ def iter_objects_of_type_in_object_recursively(object_type: Type, obj: Any,
         is_match, obj,
         max_depth=max_depth,
         max_length=max_length,
-        recurse_mode=recurse_mode,
         max_depth_on_object_arrays=max_depth_on_object_arrays,
         max_depth_on_attributes=max_depth_on_attributes,
         stop_on=object_type,
@@ -137,7 +124,6 @@ def get_paths_for_objects_of_type(
         object_type: Type, obj: Any,
         max_depth: Optional[int] = None,
         max_length: Optional[int] = None,
-        recurse_mode: str = None,
         max_depth_on_object_arrays: int = DEFAULT_MAX_DEPTH_ON_OBJECT_ARRAYS,
         max_depth_on_attributes: int = DEFAULT_MAX_DEPTH_ATTRIBUTES) -> Paths:
     """
@@ -151,7 +137,6 @@ def get_paths_for_objects_of_type(
             is_match, obj,
             max_depth=max_depth,
             max_length=max_length,
-            recurse_mode=recurse_mode,
             max_depth_on_object_arrays=max_depth_on_object_arrays,
             max_depth_on_attributes=max_depth_on_attributes,
             stop_on=object_type,
@@ -174,16 +159,10 @@ def is_iterator_empty(iterator):
 def recursively_run_func_on_object(func: Callable, obj: Any,
                                    max_depth: Optional[int] = None,
                                    max_length: Optional[int] = None,
-                                   recurse_mode: Optional[str] = 'deep',
                                    max_depth_on_object_arrays: int = DEFAULT_MAX_DEPTH_ON_OBJECT_ARRAYS,
                                    max_depth_on_attributes: int = DEFAULT_MAX_DEPTH_ATTRIBUTES,
                                    stop_on: type = None,
                                    ):
-
-    if recurse_mode is not None:
-        params = RECURSE_MODE_TO_PARAMS[recurse_mode]
-        max_depth = params['max_depth']
-        max_length = params['max_length']
 
     if not (_larger_than(max_depth, 0) and (stop_on is None or not isinstance(obj, stop_on))):
         return obj
@@ -201,7 +180,7 @@ def recursively_run_func_on_object(func: Callable, obj: Any,
             actual_next_max_depth = next_max_depth
 
         return recursively_run_func_on_object(
-            func, sub_obj, actual_next_max_depth, max_length, None, max_depth_on_object_arrays, max_depth_on_attributes, stop_on)
+            func, sub_obj, actual_next_max_depth, max_length, max_depth_on_object_arrays, max_depth_on_attributes, stop_on)
 
     # Recurse into composite objects
     if isinstance(obj, (tuple, list)) and _larger_than(max_length, len(obj)-1):
