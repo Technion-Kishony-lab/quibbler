@@ -341,14 +341,19 @@ class QuibHandler:
         except NoRunnerWorkedException:
             return [[]]
 
-    def reset_quib_func_call(self):
-        definition = get_definition_for_function(self.func_args_kwargs.func)
-        self.quib_function_call = definition.quib_function_call_cls(
+    def reset_quib_func_call(self, reset_func_definition: bool = False):
+        if reset_func_definition:
+            from pyquibbler.function_definitions import get_definition_for_function
+            func_definition = get_definition_for_function(self.func)
+        else:
+            func_definition = self.func_definition
+
+        self.quib_function_call = func_definition.quib_function_call_cls(
             func_args_kwargs=self.func_args_kwargs,
-            func_definition=self.func_definition,
+            func_definition=func_definition,
             cache_mode=self.cache_mode,
         )
-        persist_quib_callback = PersistQuibOnSettedArtist if definition.is_artist_setter \
+        persist_quib_callback = PersistQuibOnSettedArtist if func_definition.is_artist_setter \
             else PersistQuibOnCreatedArtists
         self.quib_function_call.artists_creation_callback = persist_quib_callback(self._quib_ref)
 
