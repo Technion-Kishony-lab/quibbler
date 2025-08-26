@@ -13,7 +13,7 @@ from pyquibbler.graphics.utils import remove_created_graphics
 from pyquibbler.quib.func_calling import CachedQuibFuncCall
 from pyquibbler.quib.func_calling.utils import cache_method_until_full_invalidation
 from pyquibbler.quib.quib import Quib
-from pyquibbler.user_utils.quiby_funcs import q
+from pyquibbler.user_utils.quiby import q
 
 
 class ApplyAlongAxisQuibFuncCall(CachedQuibFuncCall):
