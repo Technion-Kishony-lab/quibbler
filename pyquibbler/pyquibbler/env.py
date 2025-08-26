@@ -27,6 +27,8 @@ GRAPHICS_LAZY = Flag(False)
 
 ALLOW_ARRAY_WITH_DTYPE_OBJECT = Flag(False)
 
+QUIB_SEARCH_PARAMS = dict(max_depth=10, max_length=100, max_depth_on_object_arrays=-1, max_depth_on_attributes=0)
+
 
 """ Graphics """
 

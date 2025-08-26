@@ -5,7 +5,7 @@ from pyquibbler.function_overriding.is_initiated import warn_if_quibbler_not_ini
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.factory import create_quib
 from pyquibbler.user_utils.quiby_methods import get_methods_to_quibify
-from pyquibbler.function_definitions.func_definition import FuncDefinition
+from pyquibbler.function_definitions.func_definition import FuncDefinition, create_or_reuse_func_definition
 
 
 def quiby(func: Callable = None,
@@ -147,14 +147,15 @@ def quiby(func: Callable = None,
 
     func_definition = get_definition_for_function(func, return_default=False)
     if func_definition is None:
-        func_definition = FuncDefinition(lazy=lazy,
-                                         pass_quibs=pass_quibs,
-                                         is_random=is_random,
-                                         is_graphics=is_graphics,
-                                         is_file_loading=is_file_loading,
-                                         is_user_func=True,
-                                         **kwargs,
-                                         )
+        func_definition = create_or_reuse_func_definition(
+            lazy=lazy,
+            pass_quibs=pass_quibs,
+            is_random=is_random,
+            is_graphics=is_graphics,
+            is_file_loading=is_file_loading,
+            search_quibs_in_attributes=True,
+            **kwargs,
+        )
 
     @functools.wraps(func)
     def _wrapper(*args, **kwargs) -> Quib:

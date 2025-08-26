@@ -2,7 +2,6 @@ from typing import Any
 
 # create quib
 from pyquibbler import create_quib
-from pyquibbler.function_definitions.location import get_object_type_locations_in_args_kwargs
 from pyquibbler.quib.quib import Quib
 from pyquibbler.function_definitions import add_definition_for_function
 from pyquibbler.function_definitions.func_definition import create_or_reuse_func_definition
@@ -25,7 +24,9 @@ identity_function_obj2quib.__name__ = 'obj2quib'
 obj2quib_definition = create_or_reuse_func_definition(raw_data_source_arguments=[0], inverters=[Obj2QuibInverter],
                                                       backwards_path_translators=[Obj2QuibBackwardsPathTranslator],
                                                       forwards_path_translators=[Obj2QuibForwardsPathTranslator],
-                                                      result_type_or_type_translators=[SameAsArgumentTypeTranslator])
+                                                      result_type_or_type_translators=[SameAsArgumentTypeTranslator],
+                                                      search_quibs_in_attributes=True,
+                                                      )
 
 
 def obj2quib(obj: Any) -> Quib:
@@ -60,13 +61,8 @@ def obj2quib(obj: Any) -> Quib:
     If the argument obj is a quib, the function returns this quib.
     """
 
-    # TODO: We do the source search here. This is done to make it easier, in the future, to allow adding an exception
-    #  for searching also within object-arrays for this special case of obj2quib (if we want).
-    locations = get_object_type_locations_in_args_kwargs(Quib, (obj, ), {})
-
     return create_quib(
         func=identity_function_obj2quib,
-        quib_locations=locations,
         args=(obj,),
     )
 

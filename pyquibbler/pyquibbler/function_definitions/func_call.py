@@ -10,12 +10,13 @@ from pyquibbler.quib.external_call_failed_exception_handling import external_cal
 from pyquibbler.path import deep_set, PathComponent
 
 from .utils import get_signature_for_func
-from .location import SourceLocation, get_object_type_locations_in_args_kwargs
+from .location import SourceLocation
 from .types import iter_arg_ids_and_values, KeywordArgument, PositionalArgument, Argument, SubArgument, ArgId, \
     convert_argument_id_to_argument
 
 from typing import TYPE_CHECKING
 
+from ..quib.find_quibs import get_quibs_or_sources_locations_in_args_kwargs
 
 if TYPE_CHECKING:
     from .func_definition import FuncDefinition
@@ -182,9 +183,9 @@ class FuncCall(ABC):
         """
 
         if locations is None:
-            locations = get_object_type_locations_in_args_kwargs(self.SOURCE_OBJECT_TYPE,
-                                                                 self.func_args_kwargs.args,
-                                                                 self.func_args_kwargs.kwargs)
+            locations = get_quibs_or_sources_locations_in_args_kwargs(
+                self.SOURCE_OBJECT_TYPE, self.func_args_kwargs.args, self.func_args_kwargs.kwargs,
+                search_in_attributes=self.func_definition.search_quibs_in_attributes)
 
         self.data_source_locations = []
         self.parameter_source_locations = []

@@ -9,7 +9,8 @@ from typing import Callable, Any, Dict, Union, Type, Optional, Tuple, Mapping, L
 from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.function_definitions import FuncArgsKwargs
 from pyquibbler.function_definitions.func_definition import FuncDefinition
-from pyquibbler.function_definitions.location import get_object_type_locations_in_args_kwargs, SourceLocation
+from pyquibbler.function_definitions.location import SourceLocation
+from pyquibbler.quib.find_quibs import get_quibs_or_sources_locations_in_args_kwargs
 from pyquibbler.quib.get_value_context_manager import get_value_context_pass_quibs
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.factory import create_quib
@@ -32,6 +33,7 @@ class FuncOverride:
     func_definition: Optional[FuncDefinition] = None
     allowed_kwarg_flags: Tuple[str] = ()
     should_remove_arguments_equal_to_defaults: bool = False
+    search_quibs_in_attributes: bool = False
     _original_func: Callable = None
 
     def _get_creation_flags(self, args: Args, kwargs: Kwargs):
@@ -62,6 +64,10 @@ class FuncOverride:
     def should_create_quib(func: Callable, args: Args, kwargs: Kwargs):
         return True
 
+    def get_quib_locations(self, args: Args, kwargs: Kwargs) -> List[SourceLocation]:
+        return get_quibs_or_sources_locations_in_args_kwargs(
+            Quib, args, kwargs, search_in_attributes=self.search_quibs_in_attributes)
+
     def _create_quib_supporting_func(self):
         """
         Create a function which *can* support quibs (and return a quib as a result) if any argument is a quib
@@ -78,7 +84,7 @@ class FuncOverride:
         def _maybe_create_quib(*args, **kwargs):
 
             if get_value_context_pass_quibs() is not False:
-                quib_locations = get_object_type_locations_in_args_kwargs(Quib, args, kwargs)
+                quib_locations = self.get_quib_locations(args, kwargs)
 
                 if quib_locations and self.should_create_quib(wrapped_func, args, kwargs):
                     args, kwargs, quib_locations = self._modify_args_kwargs(args, kwargs, quib_locations)
@@ -203,7 +209,7 @@ class NotImplementedOverride(FuncOverride):
         @functools.wraps(wrapped_func)
         def _issue_exception_when_apply_to_quibs(*args, **kwargs):
 
-            quib_locations = get_object_type_locations_in_args_kwargs(Quib, args, kwargs)
+            quib_locations = self.get_quib_locations(args, kwargs)
 
             if quib_locations:
                 raise NotImplementedFunc(wrapped_func, self.message) from None

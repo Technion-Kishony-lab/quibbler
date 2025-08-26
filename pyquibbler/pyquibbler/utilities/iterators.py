@@ -9,9 +9,6 @@ from .numpy_original_functions import np_full
 
 from pyquibbler.path import Path, PathComponent, Paths
 
-DEFAULT_MAX_DEPTH_ON_OBJECT_ARRAYS = -1
-DEFAULT_MAX_DEPTH_ATTRIBUTES = -1
-
 
 def _larger_than(max_val: Optional[int], val: int = 0):
     """We treat None as infinite"""
@@ -30,8 +27,8 @@ def is_user_object(obj):
 def iter_paths_and_objects_matching_criteria_in_object_recursively(func: Callable, obj: Any,
                                                                    max_depth: Optional[int] = None,
                                                                    max_length: Optional[int] = None,
-                                                                   max_depth_on_object_arrays: int = DEFAULT_MAX_DEPTH_ON_OBJECT_ARRAYS,
-                                                                   max_depth_on_attributes: int = DEFAULT_MAX_DEPTH_ATTRIBUTES,
+                                                                   max_depth_on_object_arrays: int = -1,
+                                                                   max_depth_on_attributes: int = -1,
                                                                    stop_on: type = None,
                                                                    with_path: bool = True,
                                                                    _path: Optional[Path] = None,
@@ -95,8 +92,8 @@ def iter_objects_of_type_in_object_recursively(object_type: Type, obj: Any,
                                                max_depth: Optional[int] = None,
                                                max_length: Optional[int] = None,
                                                prevent_repetitions: bool = True,
-                                               max_depth_on_object_arrays: int = DEFAULT_MAX_DEPTH_ON_OBJECT_ARRAYS,
-                                               max_depth_on_attributes: int = DEFAULT_MAX_DEPTH_ATTRIBUTES
+                                               max_depth_on_object_arrays: int = -1,
+                                               max_depth_on_attributes: int = -1
                                                ):
     collected = set()
 
@@ -124,8 +121,8 @@ def get_paths_for_objects_of_type(
         object_type: Type, obj: Any,
         max_depth: Optional[int] = None,
         max_length: Optional[int] = None,
-        max_depth_on_object_arrays: int = DEFAULT_MAX_DEPTH_ON_OBJECT_ARRAYS,
-        max_depth_on_attributes: int = DEFAULT_MAX_DEPTH_ATTRIBUTES) -> Paths:
+        max_depth_on_object_arrays: int = -1,
+        max_depth_on_attributes: int = -1) -> Paths:
     """
     Get paths for all objects of a certain `type_` within an `obj`
     """
@@ -159,8 +156,8 @@ def is_iterator_empty(iterator):
 def recursively_run_func_on_object(func: Callable, obj: Any,
                                    max_depth: Optional[int] = None,
                                    max_length: Optional[int] = None,
-                                   max_depth_on_object_arrays: int = DEFAULT_MAX_DEPTH_ON_OBJECT_ARRAYS,
-                                   max_depth_on_attributes: int = DEFAULT_MAX_DEPTH_ATTRIBUTES,
+                                   max_depth_on_object_arrays: int = -1,
+                                   max_depth_on_attributes: int = -1,
                                    stop_on: type = None,
                                    ):
 
