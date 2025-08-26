@@ -35,6 +35,7 @@ class FuncDefinition:
     is_file_loading: bool = False
     is_graphics: Optional[bool] = False  # None for 'maybe'
     is_operator: bool = False  # is the function an operator
+    is_user_func: bool = False  # is the function user defined (as opposed to third party)
     pass_quibs: bool = False
     lazy: Optional[bool] = None  # None for auto: LAZY for non-graphics, GRAPHICS_LAZY for is_graphics=True
     is_artist_setter: bool = field(repr=False, default=False)
