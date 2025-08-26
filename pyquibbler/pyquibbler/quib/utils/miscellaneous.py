@@ -25,7 +25,8 @@ def deep_copy_without_quibs_or_graphics(obj: Any, recurse_mode='deep'):
         return copy(o)
 
     return recursively_run_func_on_object(func=copy_if_not_quib_or_artist, obj=obj, recurse_mode=recurse_mode,
-                                          iterate_on_attributes=False)
+                                          max_depth_on_object_arrays=-1,
+                                          max_depth_on_attributes=-1)
 
 
 def copy_and_replace_quibs_with_vals(obj: Any, recurse_mode='deep',
