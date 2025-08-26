@@ -4,6 +4,7 @@ from typing import Callable, Optional
 from pyquibbler.function_overriding.is_initiated import warn_if_quibbler_not_initialized, is_quibbler_initialized
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.factory import create_quib
+from pyquibbler.user_utils.quiby_methods import get_methods_to_quibify
 
 
 def quiby(func: Callable = None,
@@ -22,13 +23,15 @@ def quiby(func: Callable = None,
     When such quiby function is called, it creates a function quib that implement
     the original function.
 
-    `quiby` can also be used as a decorator of user functions, either directly, or as a function with
+    For classes, applies quiby behavior to all methods (except static methods).
+
+    `quiby` can also be used as a decorator of user functions or classes, either directly, or as a function with
     parameter specification (see examples).
 
     Parameters
     ----------
-    func : Callable
-        The function to convert.
+    func : Callable or Type
+        The function or class to convert.
 
     lazy : bool or None, default None
         Indicates whether the created function quib evaluates immediately (`lazy=False`), or only when
@@ -82,6 +85,20 @@ def quiby(func: Callable = None,
     >>> display_num.get_value()
     'number = 7'
 
+    >>> @quiby(pass_quibs=False)  # default for all methods in the class
+    ... class MyClass:
+    ...     def __init__(self, x, y, z):
+    ...         self.x = x  # quib
+    ...         self.y = y  # quib
+    ...
+    ...     def get_x(self):
+    ...         return self.x  # Gets value (x.get_value())
+    ...
+    ...     @quiby(pass_quibs=True)  # override for this method only
+    ...     def get_y(self):
+    ...         return self.y  # Gets proxy quib (proxy(y))
+    ...
+
     >>> @quiby(is_random=True)
     ... def sum_of_dice(n: int):
     ...     dice = np.random.randint(1, 6, n)
@@ -116,6 +133,15 @@ def quiby(func: Callable = None,
         warn_if_quibbler_not_initialized()
         return func
 
+    # Handle class decoration.
+
+    # Check if this is a user-defined class (avoid builtins like str, list, etc.)
+    if isinstance(func, type) and getattr(func, "__module__", "") != "builtins":
+        return quiby_class(func, lazy=lazy, pass_quibs=pass_quibs, is_random=is_random,
+                           is_graphics=is_graphics, is_file_loading=is_file_loading, **kwargs)
+
+    # Handle function decoration
+
     from pyquibbler.function_definitions import get_definition_for_function
 
     func_definition = get_definition_for_function(func, return_default=False)
@@ -137,6 +163,16 @@ def quiby(func: Callable = None,
     _wrapper.__quibbler_wrapped__ = func
 
     return _wrapper
+
+
+def quiby_class(cls, *args, **kwargs):
+    """Apply quiby all methods of a user-defined class."""
+    methods_to_quibify = get_methods_to_quibify(cls)
+    for method_name, method in methods_to_quibify.items():
+        quiby_method = quiby(method, *args, **kwargs)
+        setattr(cls, method_name, quiby_method)
+
+    return cls
 
 
 def q(func, *args, **kwargs) -> Quib:
