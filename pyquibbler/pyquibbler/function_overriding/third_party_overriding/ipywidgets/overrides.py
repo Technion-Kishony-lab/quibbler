@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import functools
 
-from pyquibbler.quib.utils.find_quibs import is_there_a_quib_in_object
+from pyquibbler.quib.find_quibs import is_there_a_quib_in_object
 from .quiby_widget_trait import QuibyWidgetTrait, get_quiby_widget_trait_type
 from pyquibbler.user_utils.obj2quib import obj2quib
 from pyquibbler.quib.quib import Quib

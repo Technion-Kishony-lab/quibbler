@@ -9,7 +9,7 @@ from mpl_toolkits.mplot3d import Axes3D
 
 from typing import Any, Tuple, List, Optional
 from pyquibbler.function_definitions import SourceLocation
-from pyquibbler.quib.utils.find_quibs import is_there_a_quib_in_object
+from pyquibbler.quib.find_quibs import is_there_a_quib_in_object
 from pyquibbler.utilities.general_utils import Args, Kwargs
 
 from pyquibbler.env import DRAGGABLE_PLOTS_BY_DEFAULT

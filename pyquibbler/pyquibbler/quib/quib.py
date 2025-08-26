@@ -29,7 +29,7 @@ from pyquibbler.assignment import \
     AssignmentWithTolerance, AssignmentSimplifier, default, InvalidTypeException, create_assignment_template, \
     get_override_group_for_quib_change, AssignmentTemplate, Overrider, Assignment, AssignmentToQuib, \
     AssignmentCancelledByUserException
-from pyquibbler.quib.utils.find_quibs import deep_copy_without_graphics
+from pyquibbler.quib.find_quibs import deep_copy_without_graphics
 from pyquibbler.assignment.override_choice.types import is_within_temporary_apply_override_group
 
 # Save/Load and Undo/Redo:
@@ -50,7 +50,7 @@ from pyquibbler.quib.external_call_failed_exception_handling import raise_quib_c
 from pyquibbler.quib.get_value_context_manager import get_value_context, is_within_get_value_context
 from pyquibbler.quib.quib_guard import guard_raise_if_not_allowed_access_to_quib, \
     CannotAccessQuibInScopeException
-from pyquibbler.function_definitions import get_definition_for_function, FuncArgsKwargs
+from pyquibbler.function_definitions import FuncArgsKwargs
 
 # Cache:
 from pyquibbler.cache import create_cache, CacheStatus

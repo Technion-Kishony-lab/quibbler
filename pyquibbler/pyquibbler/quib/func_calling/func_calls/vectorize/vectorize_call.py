@@ -7,7 +7,7 @@ from pyquibbler import CacheMode
 from pyquibbler.function_definitions import PositionalSourceLocation, FuncArgsKwargs, get_definition_for_function
 from pyquibbler.quib.quib import Quib
 from pyquibbler.path.path_component import Path, SpecialComponent, PathComponent
-from pyquibbler.quib.utils.find_quibs import deep_copy_without_graphics
+from pyquibbler.quib.find_quibs import deep_copy_without_graphics
 from pyquibbler.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
 from pyquibbler.quib.func_calling import CachedQuibFuncCall
 from pyquibbler.quib.func_calling.utils import cache_method_until_full_invalidation, convert_args_and_kwargs

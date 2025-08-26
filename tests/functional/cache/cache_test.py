@@ -8,7 +8,7 @@ from pyquibbler.path import PathComponent
 from pyquibbler.cache.cache import CacheStatus
 from pyquibbler.cache.shallow.shallow_cache import CannotInvalidateEntireCacheException
 from pyquibbler.path.data_accessing import deep_get
-from pyquibbler.quib.utils.find_quibs import deep_copy_without_graphics
+from pyquibbler.quib.find_quibs import deep_copy_without_graphics
 
 
 class CacheTest(ABC):

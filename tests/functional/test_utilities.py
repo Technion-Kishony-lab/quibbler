@@ -5,7 +5,7 @@ from pytest import mark, raises, fixture
 
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.specialized_functions.iquib import create_iquib
-from pyquibbler.quib.utils.find_quibs import deep_copy_without_graphics, iter_quibs_in_object
+from pyquibbler.quib.find_quibs import deep_copy_without_graphics
 from pyquibbler.utilities.iterators import is_iterator_empty, iter_objects_of_type_in_object_recursively
 from pyquibbler.utilities.unpacker import Unpacker, CannotDetermineNumberOfIterations
 from tests.functional.utils import slicer
