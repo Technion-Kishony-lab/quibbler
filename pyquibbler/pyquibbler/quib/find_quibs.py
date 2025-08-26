@@ -51,7 +51,6 @@ def deep_copy_without_graphics(obj: Any, action_on_quibs, search_in_attributes=F
     return recursively_run_func_on_object(func=replace, obj=obj, **get_quib_search_params(search_in_attributes))
 
 
-
 def get_quibs_or_sources_locations_in_args_kwargs(object_type, args: Args, kwargs: Kwargs,
                                                   search_in_attributes: bool = False) -> List[SourceLocation]:
     from pyquibbler.function_definitions.location import get_object_type_locations_in_args_kwargs

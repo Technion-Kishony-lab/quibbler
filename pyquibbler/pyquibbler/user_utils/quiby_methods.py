@@ -31,7 +31,7 @@ def is_regular_method(cls: Type, method_name: str) -> bool:
 def get_methods_to_quibify(cls: Type) -> Dict[str, Callable]:
     """Get all methods that should be made quiby by the class decorator."""
     methods = {}
-    
+
     for name in dir(cls):
         if is_regular_method(cls, name) or is_class_method(cls, name):
             method = getattr(cls, name)
@@ -39,5 +39,5 @@ def get_methods_to_quibify(cls: Type) -> Dict[str, Callable]:
             # so we skip already quiby methods
             if not is_quiby(method):
                 methods[name] = method
-    
+
     return methods

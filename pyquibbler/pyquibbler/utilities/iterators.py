@@ -3,7 +3,7 @@ import copy
 import numpy as np
 
 from typing import Any, Type, Optional, Callable
-from .general_utils import is_object_array, is_non_object_array, Kwargs, Args
+from .general_utils import is_object_array, is_non_object_array
 
 from .numpy_original_functions import np_full
 
@@ -38,13 +38,16 @@ def iter_paths_and_objects_matching_criteria_in_object_recursively(func: Callabl
         _path = []
 
     next_max_depth = None if max_depth is None else max_depth - 1
-    next_max_depth_in_case_of_object_arrays = max_depth_on_object_arrays if _larger_than(next_max_depth, max_depth_on_object_arrays) else next_max_depth
-    next_max_depth_in_case_of_attributes = max_depth_on_attributes if _larger_than(next_max_depth, max_depth_on_attributes) else next_max_depth
+    next_max_depth_in_case_of_object_arrays = max_depth_on_object_arrays \
+        if _larger_than(next_max_depth, max_depth_on_object_arrays) else next_max_depth
+    next_max_depth_in_case_of_attributes = max_depth_on_attributes \
+        if _larger_than(next_max_depth, max_depth_on_attributes) else next_max_depth
 
     def extend_path(component, is_attr: bool = False):
         return [*_path, PathComponent(component, is_attr=is_attr)] if _path is not None else None
 
-    def _recurse(sub_obj, component, is_attr: bool = False, is_object_array: bool = False, is_user_object: bool = False):
+    def _recurse(sub_obj, component, is_attr: bool = False, is_object_array: bool = False,
+                 is_user_object: bool = False):
         if is_object_array:
             actual_next_max_depth = next_max_depth_in_case_of_object_arrays
         elif is_user_object:
@@ -53,8 +56,8 @@ def iter_paths_and_objects_matching_criteria_in_object_recursively(func: Callabl
             actual_next_max_depth = next_max_depth
 
         yield from iter_paths_and_objects_matching_criteria_in_object_recursively(
-            func, sub_obj, actual_next_max_depth, max_length, max_depth_on_object_arrays, max_depth_on_attributes, stop_on,
-            with_path, extend_path(component, is_attr))
+            func, sub_obj, actual_next_max_depth, max_length, max_depth_on_object_arrays,
+            max_depth_on_attributes, stop_on, with_path, extend_path(component, is_attr))
 
     if not _larger_than(max_depth, -1):
         return
@@ -68,16 +71,17 @@ def iter_paths_and_objects_matching_criteria_in_object_recursively(func: Callabl
         return
 
     # Recurse into composite objects
-    if isinstance(obj, (tuple, list)) and _larger_than(max_length, len(obj)-1):
+    if isinstance(obj, (tuple, list)) and _larger_than(max_length, len(obj) - 1):
         for i, sub_obj in enumerate(obj):
             yield from _recurse(sub_obj, i)
-    elif isinstance(obj, dict) and _larger_than(max_length, len(obj)-1):
+    elif isinstance(obj, dict) and _larger_than(max_length, len(obj) - 1):
         for key, sub_obj in obj.items():
             yield from _recurse(sub_obj, key)
     elif isinstance(obj, slice):
         for attr in ('start', 'stop', 'step'):
             yield from _recurse(getattr(obj, attr), attr, is_attr=True)
-    elif  _larger_than(max_depth_on_object_arrays, -1) and is_object_array(obj) and _larger_than(max_length, obj.size-1):
+    elif _larger_than(max_depth_on_object_arrays, -1) and is_object_array(obj) \
+            and _larger_than(max_length, obj.size - 1):
         for indices, value in np.ndenumerate(obj):
             yield from _recurse(value, indices, is_object_array=True)
     elif _larger_than(max_depth_on_attributes, -1) and is_user_object(obj):
@@ -130,15 +134,15 @@ def get_paths_for_objects_of_type(
         return isinstance(sub_obj, object_type)
 
     return [path for _, path in
-        iter_paths_and_objects_matching_criteria_in_object_recursively(
-            is_match, obj,
-            max_depth=max_depth,
-            max_length=max_length,
-            max_depth_on_object_arrays=max_depth_on_object_arrays,
-            max_depth_on_attributes=max_depth_on_attributes,
-            stop_on=object_type,
-            with_path=True)
-        ]
+            iter_paths_and_objects_matching_criteria_in_object_recursively(
+                is_match, obj,
+                max_depth=max_depth,
+                max_length=max_length,
+                max_depth_on_object_arrays=max_depth_on_object_arrays,
+                max_depth_on_attributes=max_depth_on_attributes,
+                stop_on=object_type,
+                with_path=True)
+            ]
 
 
 def is_iterator_empty(iterator):
@@ -165,8 +169,10 @@ def recursively_run_func_on_object(func: Callable, obj: Any,
         return obj
 
     next_max_depth = None if max_depth is None else max_depth - 1
-    next_max_depth_in_case_of_object_arrays = max_depth_on_object_arrays if _larger_than(next_max_depth, max_depth_on_object_arrays) else next_max_depth
-    next_max_depth_in_case_of_attributes = max_depth_on_attributes if _larger_than(next_max_depth, max_depth_on_attributes) else next_max_depth
+    next_max_depth_in_case_of_object_arrays = max_depth_on_object_arrays \
+        if _larger_than(next_max_depth, max_depth_on_object_arrays) else next_max_depth
+    next_max_depth_in_case_of_attributes = max_depth_on_attributes \
+        if _larger_than(next_max_depth, max_depth_on_attributes) else next_max_depth
 
     def _recurse(sub_obj, is_object_array: bool = False, is_attr: bool = False, is_user_object: bool = False):
         if is_object_array:
@@ -177,16 +183,19 @@ def recursively_run_func_on_object(func: Callable, obj: Any,
             actual_next_max_depth = next_max_depth
 
         return recursively_run_func_on_object(
-            func, sub_obj, actual_next_max_depth, max_length, max_depth_on_object_arrays, max_depth_on_attributes, stop_on)
+            func, sub_obj, actual_next_max_depth, max_length, max_depth_on_object_arrays,
+            max_depth_on_attributes, stop_on)
 
     # Recurse into composite objects
-    if isinstance(obj, (tuple, list)) and _larger_than(max_length, len(obj)-1):
+    if isinstance(obj, (tuple, list)) and _larger_than(max_length, len(obj) - 1):
         return type(obj)((_recurse(sub_obj) for i, sub_obj in enumerate(obj)))
-    elif isinstance(obj, dict) and _larger_than(max_length, len(obj)) and _larger_than(max_length, len(obj)-1):
+    elif isinstance(obj, dict) and _larger_than(max_length, len(obj)) \
+            and _larger_than(max_length, len(obj) - 1):
         return type(obj)({key: _recurse(value) for key, value in obj.items()})
     elif isinstance(obj, slice):
         return slice(*(_recurse(getattr(obj, attr), is_attr=True) for attr in ('start', 'stop', 'step')))
-    elif _larger_than(max_depth_on_object_arrays, -1) and is_object_array(obj) and _larger_than(max_length, obj.size-1):
+    elif _larger_than(max_depth_on_object_arrays, -1) and is_object_array(obj) \
+            and _larger_than(max_length, obj.size - 1):
         new_array = np_full(obj.shape, None, dtype=object)
         for indices, value in np.ndenumerate(obj):
             new_array[indices] = _recurse(value, is_object_array=True)

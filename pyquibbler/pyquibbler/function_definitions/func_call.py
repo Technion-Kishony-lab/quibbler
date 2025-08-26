@@ -76,7 +76,7 @@ class FuncArgsKwargs:
         """
         arg_values_by_name = dict(self.iter_args_and_names_in_function_call(include_defaults))
         parameters = list(self.signature.parameters.keys())
-        
+
         for i, param_name in enumerate(parameters):
             if param_name in arg_values_by_name:
                 value = arg_values_by_name[param_name]
@@ -201,7 +201,7 @@ class FuncCall(ABC):
 
     def transform_source_locations(self,
                                    args: Args = None,
-                                   kwargs : Kwargs = None,
+                                   kwargs: Kwargs = None,
                                    locations: List[SourceLocation] = None,
                                    transform_func: Callable[[Any], Any] = None):
         args = self.args if args is None else args

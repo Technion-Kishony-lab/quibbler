@@ -81,7 +81,7 @@ class BinaryElementwiseInverter(NumpyInverter, BaseBinaryElementWiseInverter):
             arg_index=other_argument,
             transform_func=lambda source: source.value
         )
-        
+
         other_argument_value = np.broadcast_to(other_argument_value, np.shape(self._previous_result))
         other_argument_value = deep_get(other_argument_value, path_in_result)
 

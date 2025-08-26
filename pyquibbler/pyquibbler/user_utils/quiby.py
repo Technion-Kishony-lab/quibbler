@@ -5,7 +5,7 @@ from pyquibbler.function_overriding.is_initiated import warn_if_quibbler_not_ini
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.factory import create_quib
 from pyquibbler.user_utils.quiby_methods import get_methods_to_quibify
-from pyquibbler.function_definitions.func_definition import FuncDefinition, create_or_reuse_func_definition
+from pyquibbler.function_definitions.func_definition import create_or_reuse_func_definition
 
 
 def quiby(func: Callable = None,
