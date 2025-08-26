@@ -2,13 +2,11 @@ from __future__ import annotations
 
 import functools
 
-from pyquibbler.quib.utils.iterators import iter_quibs_in_object
+from pyquibbler.quib.utils.find_quibs import is_there_a_quib_in_object
 from .quiby_widget_trait import QuibyWidgetTrait, get_quiby_widget_trait_type
 from pyquibbler.user_utils.obj2quib import obj2quib
 from pyquibbler.quib.quib import Quib
 from typing import Dict
-
-from pyquibbler.utilities.iterators import is_iterator_empty
 
 
 TRAIT_TO_QUIBY_WIDGET_ATTR = '_quibbler_trait_to_quiby_widget'
@@ -29,7 +27,7 @@ def get_wrapper_for_trait_type_set():
     @functools.wraps(QuibyWidgetTrait.original_set)
     def quiby_set(self, obj, value):
         if isinstance(value, (list, tuple)) \
-                and not is_iterator_empty(iter_quibs_in_object(obj=value)):
+                and is_there_a_quib_in_object(value):
             value = obj2quib(value)
 
         if isinstance(value, Quib):

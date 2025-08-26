@@ -15,6 +15,7 @@ SHOW_QUIB_EXCEPTIONS_AS_QUIB_TRACEBACKS = Flag(True)
 
 SAFE_MODE = Flag(True)  # Catch and properly ignore path translation and inversion exceptions.
 
+
 """ Lazy """
 
 LAZY = Flag(True)
@@ -25,6 +26,7 @@ GRAPHICS_LAZY = Flag(False)
 """ Quib creation """
 
 ALLOW_ARRAY_WITH_DTYPE_OBJECT = Flag(False)
+
 
 """ Graphics """
 
@@ -64,6 +66,7 @@ LEN_BOOL_ETC_RAISE_EXCEPTION = Flag(True)
 ITER_RAISE_EXCEPTION = Flag(False)
 
 UNPACKER_CAN_GET_LEN = Flag(True)
+
 
 """ Others """
 

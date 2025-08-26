@@ -29,7 +29,7 @@ from pyquibbler.assignment import \
     AssignmentWithTolerance, AssignmentSimplifier, default, InvalidTypeException, create_assignment_template, \
     get_override_group_for_quib_change, AssignmentTemplate, Overrider, Assignment, AssignmentToQuib, \
     AssignmentCancelledByUserException
-from pyquibbler.quib.utils.deepcopy import deep_copy_without_graphics
+from pyquibbler.quib.utils.find_quibs import deep_copy_without_graphics
 from pyquibbler.assignment.override_choice.types import is_within_temporary_apply_override_group
 
 # Save/Load and Undo/Redo:

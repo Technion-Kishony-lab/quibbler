@@ -1,1 +1,1 @@
-from .deepcopy import deep_copy_without_graphics
+from .find_quibs import deep_copy_without_graphics

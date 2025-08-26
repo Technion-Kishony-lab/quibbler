@@ -4,7 +4,8 @@ from typing import Any
 from matplotlib.artist import Artist
 from matplotlib.widgets import AxesWidget
 
-from pyquibbler.utilities.iterators import recursively_run_func_on_object
+from pyquibbler.utilities.iterators import recursively_run_func_on_object, iter_objects_of_type_in_object_recursively, \
+    is_iterator_empty
 
 
 def deep_copy_without_graphics(obj: Any, action_on_quibs, recurse_mode='deep',
@@ -41,3 +42,18 @@ def deep_copy_without_graphics(obj: Any, action_on_quibs, recurse_mode='deep',
     return recursively_run_func_on_object(func=replace, obj=obj, recurse_mode=recurse_mode,
                                           max_depth_on_object_arrays=max_depth_on_object_arrays,
                                           max_depth_on_attributes=max_depth_on_attributes)
+
+
+def iter_quibs_in_object(obj, recurse_mode='deep', max_depth_on_object_arrays=-1, max_depth_on_attributes=-1):
+    from pyquibbler.quib.quib import Quib
+    yield from iter_objects_of_type_in_object_recursively(
+        Quib, obj, recurse_mode=recurse_mode,
+        max_depth_on_object_arrays=max_depth_on_object_arrays,
+        max_depth_on_attributes=max_depth_on_attributes)
+
+
+def is_there_a_quib_in_object(obj) -> bool:
+    """
+    Returns true if there is a quib object nested inside the given object.
+    """
+    return not is_iterator_empty(iter_quibs_in_object(obj))
