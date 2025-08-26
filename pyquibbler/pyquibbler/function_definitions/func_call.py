@@ -37,27 +37,29 @@ class FuncArgsKwargs:
     args: Union[Tuple[Any, ...], List[Any, ...]]
     kwargs: Dict[str, Any]
 
+    @property
+    def signature(self):
+        return get_signature_for_func(self.func)
+
     def get_kwargs_without_those_equal_to_defaults(self, arguments: Optional[Kwargs] = None):
         """
         Remove arguments which exist as default arguments with the same value.
         """
         arguments = self.kwargs if arguments is None else arguments
-        sig = get_signature_for_func(self.func)
         new_arguments = []
-        parameters = sig.parameters
+        parameters = self.signature.parameters
         for name, value in arguments.items():
             if not (name in parameters and recursively_compare_objects(parameters[name].default, value)):
                 new_arguments.append((name, value))
 
         return dict(new_arguments)
 
-    def _iter_args_and_names_in_function_call(self, include_defaults: bool = True):
+    def iter_args_and_names_in_function_call(self, include_defaults: bool = True):
         """
         Given a specific function call - func, args, kwargs - return an iterator to (name, val) tuples
         of all arguments that would have been passed to the function.
         """
-        sig = get_signature_for_func(self.func)
-        bound_args = sig.bind(*self.args, **self.kwargs)
+        bound_args = self.signature.bind(*self.args, **self.kwargs)
 
         if include_defaults:
             bound_args.apply_defaults()
@@ -65,13 +67,27 @@ class FuncArgsKwargs:
 
         return arguments.items()
 
+    def iter_args_and_names_and_positions_in_function_call(self, include_defaults: bool = True):
+        """
+        an iterator to (position, name, val) tuples
+        of the actual arguments that would have been passed to the function, given args and kwargs.
+        position is -1 for kwargs arguments.
+        """
+        arg_values_by_name = dict(self.iter_args_and_names_in_function_call(include_defaults))
+        parameters = list(self.signature.parameters.keys())
+        
+        for i, param_name in enumerate(parameters):
+            if param_name in arg_values_by_name:
+                value = arg_values_by_name[param_name]
+                yield (value, param_name, i if i < len(self.args) else -1)
+
     def get_args_values_by_keyword_and_position(self, include_defaults: bool = True) \
             -> Tuple[Kwargs, Args]:
         # We use external_call_failed_exception_handling here as if the user provided the wrong arguments to the
         # function we'll fail here
         with external_call_failed_exception_handling():
             try:
-                arg_values_by_name = dict(self._iter_args_and_names_in_function_call(include_defaults))
+                arg_values_by_name = dict(self.iter_args_and_names_in_function_call(include_defaults))
                 arg_values_by_position = tuple(arg_values_by_name.values())
             except (ValueError, TypeError):
                 arg_values_by_name = self.kwargs
