@@ -7,7 +7,6 @@ from pyquibbler.path import PathComponent, Path, Paths
 from pyquibbler.utilities.multiple_instance_runner import ConditionalRunner
 
 from ..base_translators import BackwardsPathTranslator, ForwardsPathTranslator
-from ..utils import copy_and_replace_sources_with_vals
 from ..types import Source
 from ...utilities.numpy_original_functions import np_all, np_any
 
@@ -18,13 +17,20 @@ class BaseGetItemTranslator(ConditionalRunner):
     def _referenced_object(self):
         return self._func_call.args[0]
 
+    def _get_transformed_argument(self, argument_index: int):
+        """Helper method to get transformed argument value with sources replaced."""
+        return self._func_call.transform_sources_in_argument(
+            arg_index=argument_index,
+            transform_func=lambda source: source.value
+        )
+
     @property
     def _referenced_value(self):
-        return copy_and_replace_sources_with_vals(self._referenced_object)
+        return self._get_transformed_argument(0)  # referenced object is at index 0
 
     @property
     def _getitem_component(self):
-        return copy_and_replace_sources_with_vals(self._func_call.args[1])
+        return self._get_transformed_argument(1)  # getitem component is at index 1
 
     def _get_getitem_path_component(self) -> PathComponent:
         return PathComponent(self._getitem_component)

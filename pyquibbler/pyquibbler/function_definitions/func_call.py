@@ -198,11 +198,13 @@ class FuncCall(ABC):
             else:
                 self.parameter_source_locations.append(location)
 
-    def _transform_source_locations(self,
-                                    args,
-                                    kwargs,
-                                    locations: List[SourceLocation],
-                                    transform_func: Callable[[Any], Any]):
+    def transform_source_locations(self,
+                                   args: Args = None,
+                                   kwargs : Kwargs = None,
+                                   locations: List[SourceLocation] = None,
+                                   transform_func: Callable[[Any], Any] = None):
+        args = self.args if args is None else args
+        kwargs = self.kwargs if kwargs is None else kwargs
 
         for location in locations:
             transformed = transform_func(
@@ -210,6 +212,14 @@ class FuncCall(ABC):
             )
             args, kwargs = location.set_in_args_kwargs(args=args, kwargs=kwargs, value=transformed)
         return args, kwargs
+
+    def transform_sources_in_argument(self, arg_index: int, transform_func):
+        # Filter source locations to only include those for the specific argument
+        arg_locations = [loc for loc in self.data_source_locations + self.parameter_source_locations
+                         if loc.argument.get_arg_id() == arg_index]
+
+        new_args, _ = self.transform_source_locations(locations=arg_locations, transform_func=transform_func)
+        return new_args[arg_index]
 
     def transform_sources_in_args_kwargs(self,
                                          transform_data_source_func: Callable[[Any], Any] = None,
@@ -222,13 +232,13 @@ class FuncCall(ABC):
         new_args, new_kwargs = self.args, self.kwargs
 
         if transform_data_source_func is not None:
-            new_args, new_kwargs = self._transform_source_locations(args=new_args, kwargs=new_kwargs,
-                                                                    locations=self.data_source_locations,
-                                                                    transform_func=transform_data_source_func)
+            new_args, new_kwargs = self.transform_source_locations(args=new_args, kwargs=new_kwargs,
+                                                                   locations=self.data_source_locations,
+                                                                   transform_func=transform_data_source_func)
         if transform_parameter_func is not None:
-            new_args, new_kwargs = self._transform_source_locations(args=new_args, kwargs=new_kwargs,
-                                                                    locations=self.parameter_source_locations,
-                                                                    transform_func=transform_parameter_func)
+            new_args, new_kwargs = self.transform_source_locations(args=new_args, kwargs=new_kwargs,
+                                                                   locations=self.parameter_source_locations,
+                                                                   transform_func=transform_parameter_func)
 
         return new_args, new_kwargs
 

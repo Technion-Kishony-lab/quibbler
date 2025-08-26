@@ -10,7 +10,6 @@ from pyquibbler.function_definitions import PositionalArgument, SourceLocation
 
 from ..array_translation_utils import ArrayPathTranslator, run_func_call_with_new_args_kwargs
 from ..types import Source
-from ..utils import copy_and_replace_sources_with_vals
 from ..array_index_codes import INDEX_TYPE
 
 from .numpy import NumpyForwardsPathTranslator, NumpyBackwardsPathTranslator
@@ -78,7 +77,10 @@ class ListOperatorPathTranslator(ConditionalRunner, ABC):
                 # (c) convert back to list
                 func_args_kwargs.args[index] = func_args_kwargs.args[index].tolist()
             else:
-                func_args_kwargs.args[index] = copy_and_replace_sources_with_vals(func_args_kwargs.args[index])
+                func_args_kwargs.args[index] = self._func_call.transform_sources_in_argument(
+                    arg_index=index,
+                    transform_func=lambda source: source.value
+                )
 
         # (d) apply the operator
         result = run_func_call_with_new_args_kwargs(self._func_call, func_args_kwargs)
