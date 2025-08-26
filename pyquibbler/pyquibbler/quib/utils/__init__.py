@@ -1,1 +1,1 @@
-from .miscellaneous import deep_copy_without_graphics
+from .deepcopy import deep_copy_without_graphics

@@ -15,7 +15,7 @@ from .func_calling.cached_quib_func_call import CachedQuibFuncCall
 from .graphics import GraphicsUpdateType
 from .quib_guard import add_new_quib_to_guard_if_exists
 from .quib import Quib
-from .utils.miscellaneous import deep_copy_without_graphics
+from .utils.deepcopy import deep_copy_without_graphics
 from .variable_metadata import get_file_name_and_line_no, get_quib_name
 
 from typing import TYPE_CHECKING

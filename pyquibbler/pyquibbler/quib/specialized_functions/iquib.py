@@ -12,7 +12,7 @@ from pyquibbler.file_syncing import SaveFormat
 from pyquibbler.function_definitions import add_definition_for_function
 from pyquibbler.function_definitions.func_definition import create_or_reuse_func_definition
 from pyquibbler.quib.factory import create_quib
-from pyquibbler.quib.utils.miscellaneous import is_there_a_quib_in_object
+from pyquibbler.quib.utils.iterators import is_there_a_quib_in_object
 from pyquibbler.quib.func_calling.iquib_call import IQuibFuncCall
 
 from pyquibbler.quib.quib import Quib
