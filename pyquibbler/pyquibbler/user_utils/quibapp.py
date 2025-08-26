@@ -12,6 +12,17 @@ from pyquibbler.project.project import Project, NothingToUndoException, NothingT
 APP_TITLE = 'Data Quibbler'
 
 
+def quibapp():
+    """
+    Open the Quibbler App
+
+    See Also
+    --------
+    Project
+    """
+    return QuibApp.get_or_create()
+
+
 def figure_without_toolbar(*args, **kwargs):
     import matplotlib as mpl
     current_toolbar = mpl.rcParams['toolbar']
