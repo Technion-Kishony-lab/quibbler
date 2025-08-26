@@ -6,7 +6,7 @@ from pytest import mark, raises, fixture
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.specialized_functions.iquib import create_iquib
 from pyquibbler.quib.utils.iterators import iter_quibs_in_object
-from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals
+from pyquibbler.quib.utils.miscellaneous import deep_copy_without_graphics
 from pyquibbler.utilities.iterators import is_iterator_empty, iter_objects_of_type_in_object_recursively
 from pyquibbler.utilities.unpacker import Unpacker, CannotDetermineNumberOfIterations
 from tests.functional.utils import slicer
@@ -24,12 +24,12 @@ def test_is_iterator_empty(iterator, expected_result):
     assert is_iterator_empty(iterator) == expected_result
 
 
-@mark.parametrize(['to_copy', 'depth', 'length', 'expected_result'], [
-    (iquib1, None, None, 1),
+@mark.parametrize(['to_copy', 'expected_result'], [
+    (iquib1, 1),
 ])
 @mark.debug(False)
-def test_copy_and_replace_quibs_with_vals(monkeypatch, to_copy, depth, length, expected_result):
-    assert copy_and_replace_quibs_with_vals(to_copy, max_depth=depth, max_length=length) == expected_result
+def test_copy_and_replace_quibs_with_vals(monkeypatch, to_copy, expected_result):
+    assert deep_copy_without_graphics(to_copy, action_on_quibs='value') == expected_result
 
 
 @mark.parametrize(['to_iter', 'depth', 'length', 'expected_result'], [

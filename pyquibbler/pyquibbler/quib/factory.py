@@ -8,14 +8,14 @@ from pyquibbler.utilities.general_utils import Kwargs, Args
 from pyquibbler.env import LAZY, GRAPHICS_LAZY
 from pyquibbler.project import Project
 from pyquibbler.file_syncing.types import SaveFormat
-from pyquibbler.function_definitions.func_definition import FuncDefinition
+from pyquibbler.function_definitions.func_definition import FuncDefinition, ElementWiseFuncDefinition
 from pyquibbler.function_definitions import get_definition_for_function, SourceLocation
 from pyquibbler.utilities.get_original_func import get_original_func
 from .func_calling.cached_quib_func_call import CachedQuibFuncCall
 from .graphics import GraphicsUpdateType
 from .quib_guard import add_new_quib_to_guard_if_exists
 from .quib import Quib
-from .utils.miscellaneous import deep_copy_without_quibs_or_graphics
+from .utils.miscellaneous import deep_copy_without_graphics
 from .variable_metadata import get_file_name_and_line_no, get_quib_name
 
 from typing import TYPE_CHECKING
@@ -56,11 +56,14 @@ def create_quib(func: Optional[Callable],
     kwargs = kwargs or {}
 
     if func is None:
+        assert isinstance(func_definition, ElementWiseFuncDefinition)
         func = func_definition.func
     else:
         func_definition = func_definition or get_definition_for_function(func)
 
-    cache_mode = cache_mode or CachedQuibFuncCall.DEFAULT_CACHE_MODE
+    if cache_mode is None:
+        cache_mode = CachedQuibFuncCall.DEFAULT_CACHE_MODE
+
     assigned_name = get_quib_name() if assigned_name is missing else assigned_name
 
     # Validate automatically assigned names - if invalid, set to None instead of raising exception
@@ -69,8 +72,8 @@ def create_quib(func: Optional[Callable],
 
     quib = Quib(created_in=get_file_name_and_line_no(),
                 func=get_original_func(func),
-                args=deep_copy_without_quibs_or_graphics(args),
-                kwargs=deep_copy_without_quibs_or_graphics(kwargs),
+                args=deep_copy_without_graphics(args, action_on_quibs='keep'),
+                kwargs=deep_copy_without_graphics(kwargs, action_on_quibs='keep'),
                 func_definition=func_definition,
                 )
 

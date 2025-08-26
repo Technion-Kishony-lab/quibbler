@@ -29,7 +29,7 @@ from pyquibbler.assignment import \
     AssignmentWithTolerance, AssignmentSimplifier, default, InvalidTypeException, create_assignment_template, \
     get_override_group_for_quib_change, AssignmentTemplate, Overrider, Assignment, AssignmentToQuib, \
     AssignmentCancelledByUserException
-from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals
+from pyquibbler.quib.utils.miscellaneous import deep_copy_without_graphics
 from pyquibbler.assignment.override_choice.types import is_within_temporary_apply_override_group
 
 # Save/Load and Undo/Redo:
@@ -1103,14 +1103,14 @@ class Quib:
         of the focal quib to which the assignment is made and by the `allow_overriding` property of upstream quibs.
         """
 
-        keys = copy_and_replace_quibs_with_vals(keys)
-        value = copy_and_replace_quibs_with_vals(value)
+        keys = deep_copy_without_graphics(keys, action_on_quibs='value')
+        value = deep_copy_without_graphics(value, action_on_quibs='value')
         path = [PathComponent(key) for key in keys]
         self.handler.apply_assignment(Assignment(value, path))
 
     def __setitem__(self, key, value):
-        key = copy_and_replace_quibs_with_vals(key)
-        value = copy_and_replace_quibs_with_vals(value)
+        key = deep_copy_without_graphics(key, action_on_quibs='value')
+        value = deep_copy_without_graphics(value, action_on_quibs='value')
         path = [PathComponent(key)]
         self.handler.apply_assignment(Assignment(value, path))
 

@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from pyquibbler.inversion.inverter import Inverter
 
 
-def get_default_quib_func_call():
+def get_default_quib_func_call() -> Type[QuibFuncCall]:
     from pyquibbler.quib.func_calling import CachedQuibFuncCall
     return CachedQuibFuncCall
 
