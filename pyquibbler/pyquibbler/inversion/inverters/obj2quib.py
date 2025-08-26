@@ -3,7 +3,6 @@ from typing import List
 from pyquibbler.assignment.assignment import create_assignment_from_nominal_down_up_values
 from pyquibbler.path import split_path_at_end_of_object, deep_get
 from pyquibbler.path_translation.types import Inversal, Source
-from pyquibbler.utilities.iterators import get_paths_for_objects_of_type
 
 from ..inverter import Inverter
 
@@ -27,7 +26,7 @@ class Obj2QuibInverter(Inverter):
         # the assignment refers to a non-source object. all sources within this object are assigned full value
         # based on this path within the object, referring to the result with assignment.
         result_nominal_down_up = self._get_result_with_assignment_nominal_down_up()
-        paths_to_sources_within_assignment_path = get_paths_for_objects_of_type(Source, obj)
+        paths_to_sources_within_assignment_path = [location.path for location in self._func_call.data_source_locations]
         inversals = []
         for path_to_source_within_assignment_path in paths_to_sources_within_assignment_path:
             source = deep_get(obj, path_to_source_within_assignment_path)
