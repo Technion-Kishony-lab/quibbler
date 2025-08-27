@@ -18,9 +18,6 @@ from pyquibbler.graphics.process_plot_var_args import quibbler_process_plot_var_
 def get_current_axes_if_exists() -> Optional[Axes]:
     """
     Get the current axes if any exist, without creating new figures or axes.
-    
-    Returns:
-        The current axes if they exist, None otherwise.
     """
     try:
         fig_nums = plt.get_fignums()
@@ -29,24 +26,23 @@ def get_current_axes_if_exists() -> Optional[Axes]:
     except (TypeError, AttributeError):
         # Handle cases where figure numbers can't be sorted (e.g., Mock objects in tests)
         return None
-        
+
     from matplotlib import _pylab_helpers
     if not _pylab_helpers.Gcf.figs:
         return None
-        
+
     current_fig_manager = _pylab_helpers.Gcf.get_active()
     if current_fig_manager is None:
         return None
-        
+
     fig = current_fig_manager.canvas.figure
     if not fig.axes:
         return None
-        
+
     return fig._axstack.current()
 
 
 class UponMethodCall(ABC):
-
     cls: Type = NotImplemented
     method_name: str = None
 
@@ -79,7 +75,6 @@ class UponMethodCall(ABC):
 
 
 class UponCreation(UponMethodCall, ABC):
-
     method_name = '__init__'
 
 
@@ -105,12 +100,10 @@ class GraphicsCollector(UponCreation, ABC):
 
 
 class ArtistsCollector(GraphicsCollector):
-
     cls = Artist
 
 
 class AxesWidgetsCollector(GraphicsCollector):
-
     cls = AxesWidget
 
 
@@ -122,7 +115,6 @@ class AxesCreatedDuringQuibEvaluationException(PyQuibblerException):
 
 
 class AxesCreationPreventor(UponCreation):
-
     cls = Axes
 
     def _on_method_call(self, obj, *args, **kwargs):
