@@ -22,8 +22,12 @@ def get_current_axes_if_exists() -> Optional[Axes]:
     Returns:
         The current axes if they exist, None otherwise.
     """
-    fig_nums = plt.get_fignums()
-    if not fig_nums:
+    try:
+        fig_nums = plt.get_fignums()
+        if not fig_nums:
+            return None
+    except (TypeError, AttributeError):
+        # Handle cases where figure numbers can't be sorted (e.g., Mock objects in tests)
         return None
         
     from matplotlib import _pylab_helpers
