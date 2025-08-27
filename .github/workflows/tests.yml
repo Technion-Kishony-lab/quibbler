@@ -28,8 +28,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Minimum‑supported stack
-          - {python: '3.10', tox_env: 'py3.10-mpl37-np20'}
+          # Minimum‑supported stack (matplotlib 3.7 is incompatible with numpy 2.0, use numpy 1.x)
+          - {python: '3.10', tox_env: 'py3.10-mpl37-np1x'}
 
           # Diagonal
           - {python: '3.10', tox_env: 'py3.10-mpl38-np20'}
