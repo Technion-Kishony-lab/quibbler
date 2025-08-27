@@ -23,6 +23,12 @@ if TYPE_CHECKING:
     from pyquibbler import CacheMode
 
 
+def is_valid_var_name(name: str) -> bool:
+    """Check if a name is a valid Python variable name (no spaces allowed)."""
+    return len(name) \
+        and name[0].isalpha() and all([c.isalnum() or c == '_' for c in name])
+
+
 def create_quib(func: Optional[Callable],
                 args: Args = (),
                 kwargs: Kwargs = None,
@@ -56,6 +62,10 @@ def create_quib(func: Optional[Callable],
 
     cache_mode = cache_mode or CachedQuibFuncCall.DEFAULT_CACHE_MODE
     assigned_name = get_quib_name() if assigned_name is missing else assigned_name
+
+    # Validate automatically assigned names - if invalid, set to None instead of raising exception
+    if assigned_name is not None and not is_valid_var_name(assigned_name):
+        assigned_name = None
 
     quib = Quib(created_in=get_file_name_and_line_no(),
                 func=get_original_func(func),
