@@ -81,7 +81,7 @@ def quiby_class(dummy_graphics_quib):
             self.CALLED['set_x_value_at_idx'] += 1
             self.x[idx] = value
 
-        @quiby(pass_quibs=True)
+        @quiby(pass_quibs=True, is_graphics=True)
         def create_graphics(self):
             self.CALLED['create_graphics'] += 1
             dummy_graphics_quib.set(self.x + self.y)
@@ -135,3 +135,26 @@ def test_quiby_class_dependent_quiby_method(quiby_obj, x_quib, y_quib, x_value, 
     assert np.array_equal(result.get_value(), 2 * (x_value + y_value + z_value + [19, 0]))
     y_quib.assign(50)
     assert np.array_equal(result.get_value(), 2 * (x_value + 50 + z_value + [19, 0]))
+
+
+def test_quiby_class_set_x_value_at_idx(quiby_obj, x_quib, y_quib, x_value, y_value, z_value):
+    assert np.array_equal(x_quib.get_value(), [1, 2])  # sanity check
+    quiby_obj.set_x_value_at_idx(0, 30)
+    assert np.array_equal(x_quib.get_value(), [30, 2])
+    result = quiby_obj.quiby_method()
+    assert is_quib(result)
+    assert np.array_equal(result.get_value(), np.array([30, 2]) + y_value + z_value)
+    x_quib[0] = 40
+    assert np.array_equal(result.get_value(), np.array([40, 2]) + y_value + z_value)
+
+def test_quiby_class_get_bare_x(quiby_obj, x_quib):
+    bare_x = quiby_obj.get_bare_x()
+    assert bare_x is x_quib
+
+
+def test_quiby_class_create_graphics(quiby_obj, x_quib, y_quib, dummy_graphics_quib):
+    assert dummy_graphics_quib.val is None
+    quiby_obj.create_graphics()
+    assert np.array_equal(dummy_graphics_quib.val.get_value(), np.array([1, 2]) + 10)
+    x_quib[0] = 20
+    assert np.array_equal(dummy_graphics_quib.val.get_value(), np.array([20, 2]) + 10)
