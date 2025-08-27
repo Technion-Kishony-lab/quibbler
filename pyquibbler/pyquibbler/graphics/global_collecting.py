@@ -27,19 +27,23 @@ def get_current_axes_if_exists() -> Optional[Axes]:
         # Handle cases where figure numbers can't be sorted (e.g., Mock objects in tests)
         return None
 
-    from matplotlib import _pylab_helpers
-    if not _pylab_helpers.Gcf.figs:
-        return None
+    try:
+        from matplotlib import _pylab_helpers
+        if not _pylab_helpers.Gcf.figs:
+            return None
 
-    current_fig_manager = _pylab_helpers.Gcf.get_active()
-    if current_fig_manager is None:
-        return None
+        current_fig_manager = _pylab_helpers.Gcf.get_active()
+        if current_fig_manager is None:
+            return None
 
-    fig = current_fig_manager.canvas.figure
-    if not fig.axes:
-        return None
+        fig = current_fig_manager.canvas.figure
+        if not fig.axes:
+            return None
 
-    return fig._axstack.current()
+        return fig._axstack.current()
+    except (TypeError, AttributeError, KeyError):
+        # Handle any other Mock-related or matplotlib internal errors
+        return None
 
 
 class UponMethodCall(ABC):

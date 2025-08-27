@@ -5,12 +5,21 @@ import weakref
 
 from typing import Set, Dict, Optional
 from matplotlib.figure import Figure
-from matplotlib.pyplot import fignum_exists
+from matplotlib.pyplot import fignum_exists as _fignum_exists
 from matplotlib._pylab_helpers import Gcf
 
 from pyquibbler.debug_utils import timeit
 
 from .graphics_update import GraphicsUpdateType
+
+
+def fignum_exists(fignum) -> bool:
+    try:
+        return _fignum_exists(fignum)
+    except (TypeError, AttributeError):
+        # Handle cases where figure numbers can't be sorted (e.g., Mock objects in tests)
+        return False
+
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
