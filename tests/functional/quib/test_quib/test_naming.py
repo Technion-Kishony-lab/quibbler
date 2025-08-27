@@ -71,3 +71,21 @@ def test_quib_can_assign_none_to_name():
     a.name = None
 
     assert a.assigned_name is None
+
+
+@pytest.mark.get_variable_names(True)
+def test_quib_naming_with_dict_assignment():
+    """Test that dictionary assignment doesn't break quib creation due to invalid names."""
+    from pyquibbler import iquib
+    import pyquibbler as qb
+    qb.initialize_quibbler()
+    
+    # Dictionary assignment
+    k = {}
+    k['x'] = iquib(2)  # This used to raise an exception
+    assert k['x'].assigned_name is None
+    
+    # List assignment
+    l = [None]
+    l[0] = iquib(2)
+    assert l[0].assigned_name is None
