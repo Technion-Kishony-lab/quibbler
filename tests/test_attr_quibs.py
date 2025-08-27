@@ -442,17 +442,23 @@ def test_unified_quiby_attribute_handling():
         def class_method(cls, value):
             return value * 3
         
+        # Static method
+        @staticmethod
+        def static_method(a, b):
+            return a - b
+        
         # Property
         @property
         def computed_property(self):
             return self.x * self.y
         
-        # Method that uses all three types
+        # Method that uses all four types
         def use_all_types(self):
             instance_result = self.instance_method()
             class_result = self.class_method(10)
+            static_result = self.static_method(50, 20)
             property_result = self.computed_property
-            return instance_result + class_result + property_result
+            return instance_result + class_result + static_result + property_result
     
     # Test with regular values
     obj = UnifiedTest(2, 3)
@@ -460,8 +466,9 @@ def test_unified_quiby_attribute_handling():
     # All should work without quibs
     assert obj.instance_method() == 5      # 2 + 3
     assert obj.class_method(10) == 30      # 10 * 3
+    assert obj.static_method(50, 20) == 30 # 50 - 20
     assert obj.computed_property == 6      # 2 * 3
-    assert obj.use_all_types() == 41       # 5 + 30 + 6
+    assert obj.use_all_types() == 71       # 5 + 30 + 30 + 6
     
     # Test with quib values
     obj_quib = UnifiedTest(iquib(4), iquib(5))
@@ -476,6 +483,11 @@ def test_unified_quiby_attribute_handling():
     assert not is_quib(class_result)
     assert class_result == 30  # 10 * 3
     
+    # Static method should work normally (no quib args)
+    static_result = obj_quib.static_method(50, 20)
+    assert not is_quib(static_result)
+    assert static_result == 30  # 50 - 20
+    
     # Property should return quib
     property_result = obj_quib.computed_property
     assert is_quib(property_result)
@@ -484,4 +496,43 @@ def test_unified_quiby_attribute_handling():
     # Combined method should return quib
     combined_result = obj_quib.use_all_types()
     assert is_quib(combined_result)
-    assert combined_result.get_value() == 59  # 9 + 30 + 20
+    assert combined_result.get_value() == 89  # 9 + 30 + 30 + 20
+
+
+def test_static_method_quibification():
+    """Test that static methods are properly quibified."""
+    
+    @quiby
+    class StaticTest:
+        @staticmethod
+        def add_numbers(a, b):
+            return a + b
+        
+        @staticmethod
+        def multiply_numbers(x, y):
+            return x * y
+    
+    obj = StaticTest()
+    
+    # Test with regular values
+    assert obj.add_numbers(2, 3) == 5
+    assert StaticTest.add_numbers(2, 3) == 5  # Can call on class too
+    
+    # Test with quib values
+    a_quib = iquib(10)
+    b_quib = iquib(20)
+    
+    # Static method should create quib when called with quib args
+    result = obj.add_numbers(a_quib, b_quib)
+    assert is_quib(result)
+    assert result.get_value() == 30
+    
+    # Should work when called on class directly too
+    result2 = StaticTest.multiply_numbers(a_quib, iquib(3))
+    assert is_quib(result2)
+    assert result2.get_value() == 30  # 10 * 3
+    
+    # Changes to quib should propagate
+    a_quib.assign(15)
+    assert result.get_value() == 35  # 15 + 20
+    assert result2.get_value() == 45  # 15 * 3

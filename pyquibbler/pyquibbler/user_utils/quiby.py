@@ -42,7 +42,7 @@ def quiby(func: Callable = None,
     When such quiby function is called, it creates a function quib that implement
     the original function.
 
-    For classes, applies quiby behavior to all methods (except static methods).
+    For classes, applies quiby behavior to all methods and properties (instance methods, class methods, static methods, and properties).
 
     `quiby` can also be used as a decorator of user functions or classes, either directly, or as a function with
     parameter specification (see examples).

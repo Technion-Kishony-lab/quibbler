@@ -38,7 +38,7 @@ def is_regular_method(cls: Type, method_name: str) -> bool:
         return False
     if not callable(getattr(cls, method_name)):
         return False
-    # Make sure it's not a static method or class method
+    # Make sure it's not a static method or class method (they're handled separately)
     return not _is_method_of_kind(cls, method_name, (staticmethod, classmethod))
 
 
@@ -73,6 +73,12 @@ def _wrap_instancemethod(attribute, quiby_func, *args, **kwargs):
     return quiby_func(attribute, *args, **kwargs)
 
 
+def _wrap_staticmethod(attribute, quiby_func, *args, **kwargs):
+    """Extract function from staticmethod, wrap it, and recreate staticmethod."""
+    wrapped_func = quiby_func(attribute.__func__, *args, **kwargs)
+    return staticmethod(wrapped_func)
+
+
 def get_all_quibifiable_attributes(cls: Type) -> List[QuibifiableAttribute]:
     """Get all attributes (methods and properties) that should be made quiby by the class decorator.
     
@@ -95,6 +101,9 @@ def get_all_quibifiable_attributes(cls: Type) -> List[QuibifiableAttribute]:
         elif is_class_method(cls, name):
             func_to_check = attribute.__func__  # For class methods, check the underlying function
             wrapper_func = _wrap_classmethod
+        elif is_static_method(cls, name):
+            func_to_check = attribute.__func__  # For static methods, check the underlying function
+            wrapper_func = _wrap_staticmethod
         elif is_regular_method(cls, name):
             func_to_check = attribute  # For instance methods, check the function directly
             wrapper_func = _wrap_instancemethod
