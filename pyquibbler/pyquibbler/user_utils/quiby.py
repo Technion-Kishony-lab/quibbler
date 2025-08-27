@@ -184,12 +184,12 @@ def quiby(func: Callable = None,
 
     @functools.wraps(func)
     def _wrapper(*args, **kwargs):
+        if create_quib is True or is_graphics is True:
+            # Always create a quib
+            return create_quib_func(func=func, args=args, kwargs=kwargs, func_definition=func_definition)
         if create_quib is False:
             # Never create a quib, just call the function (the function may still return a quib by itself)
             return func(*args, **kwargs)
-        elif create_quib is True:
-            # Always create a quib (current behavior)
-            return create_quib_func(func=func, args=args, kwargs=kwargs, func_definition=func_definition)
         else:  # create_quib is None
             # Automatic: create quib only if args contain quibs and context allows it
 

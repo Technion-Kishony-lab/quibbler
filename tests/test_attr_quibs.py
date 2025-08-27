@@ -1,13 +1,8 @@
-
-from unittest import mock
-
 import numpy as np
-import pytest
 from pytest import fixture
 
-from pyquibbler import iquib, quiby, obj2quib, is_quiby, not_quiby
+from pyquibbler import iquib, quiby, is_quiby, not_quiby
 from pyquibbler.quib.graphics.event_handling.utils import is_quib
-from pyquibbler.quib.quib import Quib
 from pyquibbler.utilities.basic_types import Mutable
 
 
@@ -154,7 +149,8 @@ def test_quiby_class_get_bare_x(quiby_obj, x_quib):
 
 def test_quiby_class_create_graphics(quiby_obj, x_quib, y_quib, dummy_graphics_quib):
     assert dummy_graphics_quib.val is None
-    quiby_obj.create_graphics()
+    graphics_quib = quiby_obj.create_graphics()
+    assert is_quib(graphics_quib)
     assert np.array_equal(dummy_graphics_quib.val.get_value(), np.array([1, 2]) + 10)
     x_quib[0] = 20
     assert np.array_equal(dummy_graphics_quib.val.get_value(), np.array([20, 2]) + 10)
