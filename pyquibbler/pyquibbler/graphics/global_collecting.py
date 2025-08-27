@@ -144,3 +144,20 @@ class ColorCyclerIndexCollector:
     def _on_next_index(self, obj: quibbler_process_plot_var_args, index):
         if obj not in self._color_cyclers_to_index:
             self._color_cyclers_to_index[obj] = index
+
+
+class AxesManager:
+
+    def __init__(self, original_focal_axes: Optional[Axes] = None):
+        self.original_focal_axes: Optional[Axes] = original_focal_axes
+
+    def __enter__(self):
+        if self.original_focal_axes is not None:
+            plt.sca(self.original_focal_axes)
+        else:
+            # we want to get the current axes if there is any, but not create one if there isn't:
+            self.original_focal_axes = get_current_axes_if_exists()
+        return self
+
+    def __exit__(self, *_, **__):
+        pass

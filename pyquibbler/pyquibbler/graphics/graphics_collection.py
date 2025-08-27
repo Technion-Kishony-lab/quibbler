@@ -1,15 +1,16 @@
 import contextlib
 from dataclasses import dataclass, field
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 from matplotlib.artist import Artist
 from matplotlib.widgets import AxesWidget
+from matplotlib.axes import Axes
 
 from .process_plot_var_args import quibbler_process_plot_var_args
 from .update_new_artists import update_new_artists_from_previous_artists, \
     add_new_axesless_patches_to_axes, copy_attributes_from_new_to_previous_artists
 from .global_collecting import ArtistsCollector, AxesWidgetsCollector, AxesCreationPreventor, \
-    ColorCyclerIndexCollector
+    ColorCyclerIndexCollector, AxesManager
 from .utils import get_axeses_to_starting_indices, get_axeses_to_artists, remove_artists
 from .widget_utils import destroy_widgets
 
@@ -19,6 +20,7 @@ class GraphicsCollection:
     widgets: List[AxesWidget] = field(default_factory=list)
     artists: List[Artist] = field(default_factory=list)
     color_cyclers_to_index: Dict[quibbler_process_plot_var_args, int] = field(default_factory=dict)
+    original_focal_axes: Optional[Axes] = None
 
     def _get_artists_still_in_axes(self):
         """
@@ -77,6 +79,12 @@ class GraphicsCollection:
         """
         self.color_cyclers_to_index = color_cyclers_to_index
 
+    def _handle_original_focal_axes(self, original_focal_axes: Optional[Axes]):
+        """
+        Keep the original focal axes (the one that was active when the quib function started executing)
+        """
+        self.original_focal_axes = original_focal_axes
+
     def set_color_cyclers_back_to_pre_run_index(self):
         for color_cycler, index in self.color_cyclers_to_index.items():
             color_cycler._idx = index
@@ -86,7 +94,8 @@ class GraphicsCollection:
         with ArtistsCollector() as artists_collector, \
                 AxesWidgetsCollector() as widgets_collector, \
                 ColorCyclerIndexCollector() as color_cycler_index_collector, \
-                AxesCreationPreventor():
+                AxesCreationPreventor(), \
+                AxesManager(self.original_focal_axes) as axes_manager:
             raised_exception = None
             try:
                 yield
@@ -102,6 +111,8 @@ class GraphicsCollection:
                                  should_keep_previous_artists=should_keep_previous_artists)
 
         self._handle_called_color_cyclers(color_cycler_index_collector.color_cyclers_to_index)
+
+        self._handle_original_focal_axes(axes_manager.original_focal_axes)
 
         if raised_exception:
             raise raised_exception
