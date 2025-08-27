@@ -33,6 +33,10 @@ def get_methods_to_quibify(cls: Type) -> Dict[str, Callable]:
     methods = {}
 
     for name in dir(cls):
+        # Skip magic methods (dunder methods)
+        if name.startswith('__') and name.endswith('__'):
+            continue
+            
         if is_regular_method(cls, name) or is_class_method(cls, name):
             method = getattr(cls, name)
             # direct decoration of methods take precedence over class decoration
