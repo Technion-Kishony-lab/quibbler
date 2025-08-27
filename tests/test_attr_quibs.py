@@ -386,3 +386,102 @@ def test_dataclass_method_override_stays_quiby():
     new_result = obj.new_method()
     assert is_quib(new_result)
     assert new_result.get_value() == 53 + 25  # 78
+
+
+def test_quiby_class_method_bug():
+    """Test that class methods work correctly in quiby classes.
+    
+    Bug was: When an instance method calls a class method via self.class_method(),
+    the quiby wrapper incorrectly passed (self, args) instead of (cls, args).
+    """
+    
+    @quiby
+    class TestClass:
+        @classmethod
+        def cls_method(cls, x):
+            return x * 2
+        
+        def call_cls_method(self):
+            return self.cls_method(5)  # Should work now
+    
+    obj = TestClass()
+    
+    # This should work without throwing TypeError
+    result = obj.call_cls_method()
+    assert result == 10  # 5 * 2
+    
+    # Test with quib arguments
+    obj.x = iquib(7)
+    
+    def call_with_quib(self):
+        return self.cls_method(self.x)
+    
+    # Dynamically add method to test with quib args
+    TestClass.call_with_quib = quiby(call_with_quib)
+    
+    result_quib = obj.call_with_quib()
+    assert is_quib(result_quib)
+    assert result_quib.get_value() == 14  # 7 * 2
+
+
+def test_unified_quiby_attribute_handling():
+    """Test that the unified approach correctly handles all attribute types."""
+    
+    @quiby
+    class UnifiedTest:
+        def __init__(self, x, y):
+            self.x = x
+            self.y = y
+        
+        # Instance method
+        def instance_method(self):
+            return self.x + self.y
+        
+        # Class method
+        @classmethod
+        def class_method(cls, value):
+            return value * 3
+        
+        # Property
+        @property
+        def computed_property(self):
+            return self.x * self.y
+        
+        # Method that uses all three types
+        def use_all_types(self):
+            instance_result = self.instance_method()
+            class_result = self.class_method(10)
+            property_result = self.computed_property
+            return instance_result + class_result + property_result
+    
+    # Test with regular values
+    obj = UnifiedTest(2, 3)
+    
+    # All should work without quibs
+    assert obj.instance_method() == 5      # 2 + 3
+    assert obj.class_method(10) == 30      # 10 * 3
+    assert obj.computed_property == 6      # 2 * 3
+    assert obj.use_all_types() == 41       # 5 + 30 + 6
+    
+    # Test with quib values
+    obj_quib = UnifiedTest(iquib(4), iquib(5))
+    
+    # Instance method should return quib
+    instance_result = obj_quib.instance_method()
+    assert is_quib(instance_result)
+    assert instance_result.get_value() == 9  # 4 + 5
+    
+    # Class method should work normally (no quib args)
+    class_result = obj_quib.class_method(10)
+    assert not is_quib(class_result)
+    assert class_result == 30  # 10 * 3
+    
+    # Property should return quib
+    property_result = obj_quib.computed_property
+    assert is_quib(property_result)
+    assert property_result.get_value() == 20  # 4 * 5
+    
+    # Combined method should return quib
+    combined_result = obj_quib.use_all_types()
+    assert is_quib(combined_result)
+    assert combined_result.get_value() == 59  # 9 + 30 + 20
