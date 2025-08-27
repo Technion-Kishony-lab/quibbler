@@ -3,7 +3,9 @@ import functools
 import threading
 
 from abc import ABC, abstractmethod
-from typing import List, Type, Dict
+from typing import List, Type, Dict, Optional
+
+from matplotlib import pyplot as plt
 from matplotlib.artist import Artist
 from matplotlib.figure import Figure
 from matplotlib.widgets import AxesWidget
@@ -11,6 +13,32 @@ from matplotlib.pyplot import Axes
 
 from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.graphics.process_plot_var_args import quibbler_process_plot_var_args
+
+
+def get_current_axes_if_exists() -> Optional[Axes]:
+    """
+    Get the current axes if any exist, without creating new figures or axes.
+    
+    Returns:
+        The current axes if they exist, None otherwise.
+    """
+    fig_nums = plt.get_fignums()
+    if not fig_nums:
+        return None
+        
+    from matplotlib import _pylab_helpers
+    if not _pylab_helpers.Gcf.figs:
+        return None
+        
+    current_fig_manager = _pylab_helpers.Gcf.get_active()
+    if current_fig_manager is None:
+        return None
+        
+    fig = current_fig_manager.canvas.figure
+    if not fig.axes:
+        return None
+        
+    return fig._axstack.current()
 
 
 class UponMethodCall(ABC):
