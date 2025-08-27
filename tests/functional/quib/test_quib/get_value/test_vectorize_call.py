@@ -142,7 +142,16 @@ def test_vectorize_with_data_with_zero_dims():
 
 @pytest.fixture
 def temp_axes():
+    # Handle case where matplotlib might be mocked in CI environments
     ax = plt.gca()
+    
+    # If we get a Mock object, try to create a real axes
+    from unittest.mock import Mock
+    if isinstance(ax, Mock):
+        # Force creation of a real figure and axes
+        plt.close('all')  # Clear any existing figures
+        fig, ax = plt.subplots(figsize=(8, 6))
+    
     ax.clear()
     yield ax
     ax.clear()

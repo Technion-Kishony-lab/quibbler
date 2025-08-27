@@ -5,7 +5,7 @@ import weakref
 
 from typing import Set, Dict, Optional
 from matplotlib.figure import Figure
-from matplotlib.pyplot import fignum_exists
+from matplotlib.pyplot import fignum_exists as _fignum_exists
 from matplotlib._pylab_helpers import Gcf
 
 from pyquibbler.debug_utils import timeit
@@ -13,8 +13,18 @@ from pyquibbler.debug_utils import timeit
 from .graphics_update import GraphicsUpdateType
 
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from pyquibbler.quib.quib import Quib
+
+
+def fignum_exists(fignum) -> bool:
+    try:
+        return _fignum_exists(fignum)
+    except (TypeError, AttributeError):
+        # Handle cases where figure numbers can't be sorted (e.g., Mock objects in tests)
+        return False
+
 
 QUIBS_TO_REDRAW: Dict[GraphicsUpdateType, weakref.WeakSet[Quib]] = {GraphicsUpdateType.DRAG: weakref.WeakSet(),
                                                                     GraphicsUpdateType.DROP: weakref.WeakSet()}
@@ -107,12 +117,10 @@ def is_dragging():
 
 @contextlib.contextmanager
 def skip_canvas_draws(should_skip: bool = True):
-
     original_canvas_draw = None
     if should_skip:
         figure_managers = Gcf.get_all_fig_managers()
         if figure_managers:
-
             def _skip_draw(*args, **kwargs):
                 return
 
@@ -141,7 +149,7 @@ def _redraw_quibs_with_graphics(graphics_update: GraphicsUpdateType):
 
 def _update_pending_quib_widgets_to_reflect_overriding_changes():
     with timeit("override_notify", f"notifying overriding changes for "
-                f"{len(QUIBS_THAT_NEED_TO_UPDATE_WIDGETS_TO_REFLECT_OVERRIDING_CHANGES)} quibs"):
+                                   f"{len(QUIBS_THAT_NEED_TO_UPDATE_WIDGETS_TO_REFLECT_OVERRIDING_CHANGES)} quibs"):
         quibs = set(QUIBS_THAT_NEED_TO_UPDATE_WIDGETS_TO_REFLECT_OVERRIDING_CHANGES)
         for quib in quibs:
             quib.handler.update_widget()

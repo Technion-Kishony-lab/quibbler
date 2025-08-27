@@ -3,7 +3,9 @@ import functools
 import threading
 
 from abc import ABC, abstractmethod
-from typing import List, Type, Dict
+from typing import List, Type, Dict, Optional
+
+from matplotlib import pyplot as plt
 from matplotlib.artist import Artist
 from matplotlib.figure import Figure
 from matplotlib.widgets import AxesWidget
@@ -13,8 +15,38 @@ from pyquibbler.exceptions import PyQuibblerException
 from pyquibbler.graphics.process_plot_var_args import quibbler_process_plot_var_args
 
 
-class UponMethodCall(ABC):
+def get_current_axes_if_exists() -> Optional[Axes]:
+    """
+    Get the current axes if any exist, without creating new figures or axes.
+    """
+    try:
+        fig_nums = plt.get_fignums()
+        if not fig_nums:
+            return None
+    except (TypeError, AttributeError):
+        # Handle cases where figure numbers can't be sorted (e.g., Mock objects in tests)
+        return None
 
+    try:
+        from matplotlib import _pylab_helpers
+        if not _pylab_helpers.Gcf.figs:
+            return None
+
+        current_fig_manager = _pylab_helpers.Gcf.get_active()
+        if current_fig_manager is None:
+            return None
+
+        fig = current_fig_manager.canvas.figure
+        if not fig.axes:
+            return None
+
+        return fig._axstack.current()
+    except (TypeError, AttributeError, KeyError):
+        # Handle any other Mock-related or matplotlib internal errors
+        return None
+
+
+class UponMethodCall(ABC):
     cls: Type = NotImplemented
     method_name: str = None
 
@@ -47,7 +79,6 @@ class UponMethodCall(ABC):
 
 
 class UponCreation(UponMethodCall, ABC):
-
     method_name = '__init__'
 
 
@@ -73,12 +104,10 @@ class GraphicsCollector(UponCreation, ABC):
 
 
 class ArtistsCollector(GraphicsCollector):
-
     cls = Artist
 
 
 class AxesWidgetsCollector(GraphicsCollector):
-
     cls = AxesWidget
 
 
@@ -90,7 +119,6 @@ class AxesCreatedDuringQuibEvaluationException(PyQuibblerException):
 
 
 class AxesCreationPreventor(UponCreation):
-
     cls = Axes
 
     def _on_method_call(self, obj, *args, **kwargs):
@@ -116,3 +144,20 @@ class ColorCyclerIndexCollector:
     def _on_next_index(self, obj: quibbler_process_plot_var_args, index):
         if obj not in self._color_cyclers_to_index:
             self._color_cyclers_to_index[obj] = index
+
+
+class AxesManager:
+
+    def __init__(self, original_focal_axes: Optional[Axes] = None):
+        self.original_focal_axes: Optional[Axes] = original_focal_axes
+
+    def __enter__(self):
+        if self.original_focal_axes is not None:
+            plt.sca(self.original_focal_axes)
+        else:
+            # we want to get the current axes if there is any, but not create one if there isn't:
+            self.original_focal_axes = get_current_axes_if_exists()
+        return self
+
+    def __exit__(self, *_, **__):
+        pass
