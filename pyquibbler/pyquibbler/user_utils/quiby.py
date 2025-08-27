@@ -4,7 +4,7 @@ from typing import Callable, Optional
 from pyquibbler.function_overriding.is_initiated import warn_if_quibbler_not_initialized, is_quibbler_initialized
 from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.factory import create_quib
-from pyquibbler.user_utils.quiby_methods import get_methods_to_quibify
+from pyquibbler.user_utils.quiby_methods import get_methods_to_quibify, get_properties_to_quibify
 from pyquibbler.function_definitions.func_definition import create_or_reuse_func_definition
 
 
@@ -187,6 +187,11 @@ def quiby_class(cls, *args, **kwargs):
     for method_name, method in methods_to_quibify.items():
         quiby_method = quiby(method, *args, **kwargs)
         setattr(cls, method_name, quiby_method)
+
+    # Also handle properties: wrap property getters to return quibs
+    for name, attribute in get_properties_to_quibify(cls).items():
+        quiby_getter = quiby(attribute.fget, *args, **kwargs)
+        setattr(cls, name, property(quiby_getter, attribute.fset, attribute.fdel, attribute.__doc__))
 
     return cls
 
