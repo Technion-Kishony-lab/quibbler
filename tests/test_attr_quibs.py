@@ -536,3 +536,85 @@ def test_static_method_quibification():
     a_quib.assign(15)
     assert result.get_value() == 35  # 15 + 20
     assert result2.get_value() == 45  # 15 * 3
+
+
+def test_not_quiby_decorator_ordering():
+    """Test that @not_quiby works with different decorator orderings."""
+    
+    @quiby
+    class DecoratorOrderingTest:
+        # Property - only valid ordering is @property @not_quiby
+        @property
+        @not_quiby
+        def excluded_prop(self):
+            return "not quibified"
+        
+        # Static methods - both orderings should work
+        @not_quiby
+        @staticmethod
+        def excluded_static1(x):
+            return x * 10
+        
+        @staticmethod
+        @not_quiby
+        def excluded_static2(x):
+            return x * 20
+        
+        # Class methods - both orderings should work
+        @not_quiby
+        @classmethod
+        def excluded_class1(cls, x):
+            return x * 30
+        
+        @classmethod
+        @not_quiby
+        def excluded_class2(cls, x):
+            return x * 40
+        
+        # Regular methods for comparison
+        def regular_method(self):
+            return "quibified"
+        
+        @staticmethod
+        def regular_static(x):
+            return x * 2
+    
+    obj = DecoratorOrderingTest()
+    
+    # Test that excluded methods are NOT quibified
+    assert not is_quiby(DecoratorOrderingTest.__dict__['excluded_prop'].fget)  # Property getter
+    assert not is_quiby(obj.excluded_static1)    # Static method (descriptor on func)
+    assert not is_quiby(obj.excluded_static2)    # Static method (func on descriptor)
+    assert not is_quiby(obj.excluded_class1.__func__)  # Class method (descriptor on func)
+    assert not is_quiby(obj.excluded_class2.__func__)  # Class method (func on descriptor)
+    
+    # Test that regular methods ARE quibified
+    assert is_quiby(obj.regular_method)
+    assert is_quiby(obj.regular_static)
+    
+    # Test functionality with quib arguments
+    x_quib = iquib(5)
+    
+    # Excluded methods are NOT quibified by the class decorator, but they still
+    # create quibs when called with quib arguments (normal Python behavior)
+    excluded_static1_result = obj.excluded_static1(x_quib)
+    excluded_static2_result = obj.excluded_static2(x_quib) 
+    excluded_class1_result = obj.excluded_class1(x_quib)
+    excluded_class2_result = obj.excluded_class2(x_quib)
+    
+    # All should create quibs because that's normal behavior for any function called with quibs
+    assert is_quib(excluded_static1_result)
+    assert is_quib(excluded_static2_result)
+    assert is_quib(excluded_class1_result)
+    assert is_quib(excluded_class2_result)
+    
+    # Values should be correct
+    assert excluded_static1_result.get_value() == 50   # 5 * 10
+    assert excluded_static2_result.get_value() == 100  # 5 * 20
+    assert excluded_class1_result.get_value() == 150   # 5 * 30
+    assert excluded_class2_result.get_value() == 200   # 5 * 40
+    
+    # Regular methods should also create quibs
+    regular_static_result = obj.regular_static(x_quib)
+    assert is_quib(regular_static_result)
+    assert regular_static_result.get_value() == 10  # 5 * 2

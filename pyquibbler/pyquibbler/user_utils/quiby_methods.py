@@ -110,9 +110,14 @@ def get_all_quibifiable_attributes(cls: Type) -> List[QuibifiableAttribute]:
         else:
             continue  # Skip attributes that don't match our types
         
-        # Common check for all attribute types - check the function that will be wrapped
-        if (not getattr(get_original_func(func_to_check), '__not_quiby__', False) and
-            not is_quiby(func_to_check)):
+        # Common check for all attribute types - check both the descriptor and the function
+        # This handles different decorator orderings:
+        # @property @not_quiby -> __not_quiby__ on func_to_check
+        # @not_quiby @staticmethod -> __not_quiby__ on attribute (descriptor)
+        func_not_quiby = getattr(get_original_func(func_to_check), '__not_quiby__', False)
+        descriptor_not_quiby = getattr(attribute, '__not_quiby__', False)
+        
+        if (not func_not_quiby and not descriptor_not_quiby and not is_quiby(func_to_check)):
             attributes.append(QuibifiableAttribute(name, attribute, wrapper_func))
 
     return attributes
