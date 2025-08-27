@@ -3,7 +3,9 @@ from typing import Callable, Optional
 
 from pyquibbler.function_overriding.is_initiated import warn_if_quibbler_not_initialized, is_quibbler_initialized
 from pyquibbler.quib.quib import Quib
-from pyquibbler.quib.factory import create_quib
+from pyquibbler.quib.find_quibs import get_quibs_or_sources_locations_in_args_kwargs
+from pyquibbler.quib.factory import create_quib as create_quib_func
+from pyquibbler.quib.get_value_context_manager import get_value_context_pass_quibs
 from pyquibbler.user_utils.quiby_methods import get_methods_to_quibify, get_properties_to_quibify
 from pyquibbler.function_definitions.func_definition import create_or_reuse_func_definition
 
@@ -28,6 +30,7 @@ def quiby(func: Callable = None,
           is_random: bool = False,
           is_graphics: Optional[bool] = False,
           is_file_loading: bool = False,
+          create_quib: Optional[bool] = None,
           _quibify_even_if_quibbler_not_initialized: bool = False,
           **kwargs,
           ) -> Callable[..., Quib]:
@@ -71,6 +74,12 @@ def quiby(func: Callable = None,
     is_file_loading : bool, default: False
         Indicates whether the function's returned value depends on reading of an external file.
         File-loading functions can be invalidated centrally to re-load (see reset_file_loading_quibs).
+
+    create_quib : bool or None, default: True
+        Controls when to create a quib:
+        - True: Always create a quib.
+        - False: Never create a quib, return the normal function output.
+        - None: Automatic (default) - create a quib only if arguments contain quibs.
 
     Returns
     -------
@@ -140,6 +149,7 @@ def quiby(func: Callable = None,
                                  is_random=is_random,
                                  is_graphics=is_graphics,
                                  is_file_loading=is_file_loading,
+                                 create_quib=create_quib,
                                  _quibify_even_if_quibbler_not_initialized=_quibify_even_if_quibbler_not_initialized,
                                  **kwargs,
                                  )
@@ -153,7 +163,8 @@ def quiby(func: Callable = None,
     # Check if this is a user-defined class (avoid builtins like str, list, etc.)
     if isinstance(func, type) and getattr(func, "__module__", "") != "builtins":
         return quiby_class(func, lazy=lazy, pass_quibs=pass_quibs, is_random=is_random,
-                           is_graphics=is_graphics, is_file_loading=is_file_loading, **kwargs)
+                           is_graphics=is_graphics, is_file_loading=is_file_loading, 
+                           create_quib=create_quib, **kwargs)
 
     # Handle function decoration
 
@@ -172,8 +183,25 @@ def quiby(func: Callable = None,
         )
 
     @functools.wraps(func)
-    def _wrapper(*args, **kwargs) -> Quib:
-        return create_quib(func=func, args=args, kwargs=kwargs, func_definition=func_definition)
+    def _wrapper(*args, **kwargs):
+        if create_quib is False:
+            # Never create a quib, just call the function (the function may still return a quib by itself)
+            return func(*args, **kwargs)
+        elif create_quib is True:
+            # Always create a quib (current behavior)
+            return create_quib_func(func=func, args=args, kwargs=kwargs, func_definition=func_definition)
+        else:  # create_quib is None
+            # Automatic: create quib only if args contain quibs and context allows it
+
+            if get_value_context_pass_quibs() is not False:
+                quib_locations = get_quibs_or_sources_locations_in_args_kwargs(
+                    Quib, args, kwargs, search_in_attributes=True)
+                
+                if quib_locations:
+                    return create_quib_func(func=func, args=args, kwargs=kwargs, func_definition=func_definition,
+                                            quib_locations=quib_locations)
+            
+            return func(*args, **kwargs)
 
     _wrapper.func_definition = func_definition
     _wrapper.__quibbler_wrapped__ = func
@@ -227,4 +255,4 @@ def q(func, *args, **kwargs) -> Quib:
         warn_if_quibbler_not_initialized()
         return func(*args, **kwargs)
 
-    return create_quib(func=func, args=args, kwargs=kwargs)
+    return create_quib_func(func=func, args=args, kwargs=kwargs)

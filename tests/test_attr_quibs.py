@@ -51,7 +51,7 @@ def y_quib(y_value):
 @fixture()
 def quiby_class(dummy_graphics_quib):
 
-    @quiby
+    @quiby(create_quib=None)
     class Obj:
         CALLED = {'quiby_property': 0, 'quiby_method': 0, 'dependent_quiby_method': 0,
                   'set_x_value_at_idx': 0, 'create_graphics': 0}
@@ -125,3 +125,13 @@ def test_quiby_class_quiby_property(quiby_obj, x_quib, y_quib, x_value, y_value,
     assert np.array_equal(result.get_value(), x_value + y_value + z_value + [19, 0])
     y_quib.assign(50)
     assert np.array_equal(result.get_value(), x_value + 50 + z_value + [19, 0])
+
+
+def test_quiby_class_dependent_quiby_method(quiby_obj, x_quib, y_quib, x_value, y_value, z_value):
+    result = quiby_obj.dependent_quiby_method(2)
+    assert is_quib(result)
+    assert np.array_equal(result.get_value(), 2 * (x_value + y_value + z_value))
+    x_quib[0] = 20
+    assert np.array_equal(result.get_value(), 2 * (x_value + y_value + z_value + [19, 0]))
+    y_quib.assign(50)
+    assert np.array_equal(result.get_value(), 2 * (x_value + 50 + z_value + [19, 0]))
