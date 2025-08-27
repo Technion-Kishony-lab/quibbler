@@ -6,8 +6,9 @@ from pyquibbler.quib.quib import Quib
 from pyquibbler.quib.find_quibs import get_quibs_or_sources_locations_in_args_kwargs
 from pyquibbler.quib.factory import create_quib as create_quib_func
 from pyquibbler.quib.get_value_context_manager import get_value_context_pass_quibs
-from pyquibbler.user_utils.quiby_methods import get_methods_to_quibify, get_properties_to_quibify
+
 from pyquibbler.function_definitions.func_definition import create_or_reuse_func_definition
+from pyquibbler.user_utils.quiby_methods import get_all_quibifiable_attributes
 
 
 def not_quiby(func: Callable) -> Callable:
@@ -210,16 +211,12 @@ def quiby(func: Callable = None,
 
 
 def quiby_class(cls, *args, **kwargs):
-    """Apply quiby all methods of a user-defined class."""
-    methods_to_quibify = get_methods_to_quibify(cls)
-    for method_name, method in methods_to_quibify.items():
-        quiby_method = quiby(method, *args, **kwargs)
-        setattr(cls, method_name, quiby_method)
+    """Apply quiby to all methods and properties of a user-defined class."""
 
-    # Also handle properties: wrap property getters to return quibs
-    for name, attribute in get_properties_to_quibify(cls).items():
-        quiby_getter = quiby(attribute.fget, *args, **kwargs)
-        setattr(cls, name, property(quiby_getter, attribute.fset, attribute.fdel, attribute.__doc__))
+    for attr in get_all_quibifiable_attributes(cls):
+        # Each wrapper function handles extraction, wrapping, and recreation
+        quiby_attribute = attr.wrapper_func(attr.attribute, quiby, *args, **kwargs)
+        setattr(cls, attr.name, quiby_attribute)
 
     return cls
 
