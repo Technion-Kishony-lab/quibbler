@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 import numpy as np
 from pytest import fixture
 
@@ -154,3 +156,233 @@ def test_quiby_class_create_graphics(quiby_obj, x_quib, y_quib, dummy_graphics_q
     assert np.array_equal(dummy_graphics_quib.val.get_value(), np.array([1, 2]) + 10)
     x_quib[0] = 20
     assert np.array_equal(dummy_graphics_quib.val.get_value(), np.array([20, 2]) + 10)
+
+
+def test_dataclass_fields():
+    @quiby
+    @dataclass
+    class DataClassObj:
+        x: int
+        y: int
+
+        def sum(self):
+            return self.x + self.y
+
+    obj = DataClassObj(10, 20)
+    assert not is_quiby(obj.sum())
+
+    obj.x = iquib(30)
+    assert obj.x.get_value() == 30
+    result = obj.sum()
+    assert is_quib(result)
+    assert result.get_value() == 50
+
+
+def test_dataclass_inheritance():
+    @quiby
+    @dataclass
+    class BaseClass:
+        x: int
+        
+        def base_method(self):
+            return self.x * 2
+
+    @quiby
+    @dataclass  
+    class SubClass(BaseClass):
+        y: int
+        
+        def sub_method(self):
+            return self.x + self.y
+            
+        def combined_method(self):
+            return self.base_method() + self.sub_method()
+
+    obj = SubClass(10, 20)
+
+    assert is_quiby(obj.base_method)
+    assert is_quiby(obj.sub_method)
+    assert is_quiby(obj.combined_method)
+    
+    # Test with non-quib values
+    assert not is_quib(obj.base_method())
+    assert not is_quib(obj.sub_method())
+    assert not is_quib(obj.combined_method())
+    
+    # Make x a quib
+    obj.x = iquib(30)
+    
+    # Both base and sub methods should be quiby when x is a quib
+    base_result = obj.base_method()
+    assert is_quib(base_result)
+    assert base_result.get_value() == 60
+    
+    sub_result = obj.sub_method()
+    assert is_quib(sub_result)
+    assert sub_result.get_value() == 50
+    
+    combined_result = obj.combined_method()
+    assert is_quib(combined_result)
+    assert combined_result.get_value() == 110
+    
+    # Make y a quib too
+    obj.y = iquib(40)
+    
+    # Verify all methods still work with both quibs
+    assert obj.base_method().get_value() == 60  # only depends on x
+    assert obj.sub_method().get_value() == 70   # x + y = 30 + 40
+    assert obj.combined_method().get_value() == 130  # 60 + 70
+
+
+def test_dataclass_multiple_inheritance_with_post_init():
+    @quiby
+    @dataclass
+    class Super1:
+        x: int
+        
+        def __post_init__(self):
+            self._super1_init_called = True
+            
+        def super1_method(self):
+            return self.x * 3
+
+    @quiby
+    @dataclass
+    class Super2:
+        y: int
+        
+        def __post_init__(self):
+            self._super2_init_called = True
+            
+        def super2_method(self):
+            return self.y * 5
+
+    @quiby
+    @dataclass
+    class Sub(Super1, Super2):
+        z: int
+        _super1_init_called: bool = False
+        _super2_init_called: bool = False
+        _sub_init_called: bool = False
+        
+        def __post_init__(self):
+            Super1.__post_init__(self)
+            Super2.__post_init__(self)
+            self._sub_init_called = True
+            
+        def sub_method(self):
+            return self.super1_method() + self.super2_method() + self.z
+    
+    obj = Sub(10, 20, 30)
+    
+    # Check that all __post_init__ methods were called
+    assert obj._super1_init_called
+    assert obj._super2_init_called  
+    assert obj._sub_init_called
+    
+    # Check that all methods are quiby
+    assert is_quiby(obj.super1_method)
+    assert is_quiby(obj.super2_method)
+    assert is_quiby(obj.sub_method)
+    
+    # Test with non-quib values
+    assert not is_quib(obj.super1_method())
+    assert not is_quib(obj.super2_method())
+    assert not is_quib(obj.sub_method())
+    
+    # Make x a quib
+    obj.x = iquib(15)
+    
+    # Methods depending on x should become quiby
+    super1_result = obj.super1_method()
+    assert is_quib(super1_result)
+    assert super1_result.get_value() == 45  # 15 * 3
+    
+    sub_result = obj.sub_method()
+    assert is_quib(sub_result)
+    # x=15, y=10, z=30 -> super1=15*3=45, super2=10*5=50, total=45+50+30=125
+    assert sub_result.get_value() == 45 + 50 + 30  # 15*3 + 10*5 + 30 = 125
+    
+    # Make y a quib too
+    obj.y = iquib(25)
+    
+    super2_result = obj.super2_method()
+    assert is_quib(super2_result)
+    assert super2_result.get_value() == 125  # 25 * 5
+    
+    sub_result = obj.sub_method()
+    assert is_quib(sub_result)
+    assert sub_result.get_value() == 45 + 125 + 30  # 15*3 + 25*5 + 30 = 200
+
+
+def test_dataclass_method_override_stays_quiby():
+    @quiby
+    @dataclass
+    class BaseClass:
+        x: int
+        
+        def calculate(self):
+            return self.x * 2
+            
+        def other_method(self):
+            return self.x + 10
+
+    @quiby
+    @dataclass  
+    class SubClass(BaseClass):
+        y: int
+        
+        def calculate(self):  # Override base method
+            return self.x * 3 + self.y
+            
+        def new_method(self):
+            return self.calculate() + self.other_method()
+
+    obj = SubClass(10, 5)
+    
+    # Check methods are quiby
+    assert is_quiby(obj.calculate)
+    assert is_quiby(obj.other_method)  # inherited method
+    assert is_quiby(obj.new_method)    # new method
+    
+    # Test with non-quib values
+    assert not is_quib(obj.calculate())
+    assert not is_quib(obj.other_method())
+    assert not is_quib(obj.new_method())
+    
+    # Verify overridden method works correctly
+    assert obj.calculate() == 10 * 3 + 5  # 35
+    assert obj.other_method() == 10 + 10   # 20
+    assert obj.new_method() == 35 + 20     # 55
+    
+    # Make x a quib
+    obj.x = iquib(15)
+    
+    # All methods should become quiby since they depend on x
+    calc_result = obj.calculate()
+    assert is_quib(calc_result)
+    assert calc_result.get_value() == 15 * 3 + 5  # 50
+    
+    other_result = obj.other_method()
+    assert is_quib(other_result)
+    assert other_result.get_value() == 15 + 10  # 25
+    
+    new_result = obj.new_method()
+    assert is_quib(new_result)
+    assert new_result.get_value() == 50 + 25  # 75
+    
+    # Make y a quib too
+    obj.y = iquib(8)
+    
+    # Overridden method should work with both quibs
+    calc_result = obj.calculate()
+    assert is_quib(calc_result)
+    assert calc_result.get_value() == 15 * 3 + 8  # 53
+    
+    # other_method only depends on x, so shouldn't change
+    assert obj.other_method().get_value() == 15 + 10  # 25
+    
+    # new_method combines both
+    new_result = obj.new_method()
+    assert is_quib(new_result)
+    assert new_result.get_value() == 53 + 25  # 78
