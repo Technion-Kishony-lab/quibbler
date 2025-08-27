@@ -41,7 +41,8 @@ def get_methods_to_quibify(cls: Type) -> Dict[str, Callable]:
             method = getattr(cls, name)
             # direct decoration of methods take precedence over class decoration
             # so we skip already quiby methods
-            if not is_quiby(method):
+            # also skip methods explicitly marked as not quiby
+            if not is_quiby(method) and not getattr(get_original_func(method), '__not_quiby__', False):
                 methods[name] = method
 
     return methods

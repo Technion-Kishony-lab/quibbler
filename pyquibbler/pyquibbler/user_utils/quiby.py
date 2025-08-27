@@ -8,6 +8,20 @@ from pyquibbler.user_utils.quiby_methods import get_methods_to_quibify
 from pyquibbler.function_definitions.func_definition import create_or_reuse_func_definition
 
 
+def not_quiby(func: Callable) -> Callable:
+    """Mark a method so it will NOT be quibified when decorating its class with `@quiby`.
+
+    Usage:
+        @quiby
+        class MyClass:
+            @not_quiby
+            def helper(self):
+                ...
+    """
+    setattr(func, '__not_quiby__', True)
+    return func
+
+
 def quiby(func: Callable = None,
           lazy: Optional[bool] = None,
           pass_quibs: bool = False,

@@ -9,7 +9,7 @@ from .quib.quib_properties_viewer import QuibPropertiesViewer
 from .utilities.file_path import NotebookArchiveMirrorPath
 from pyquibbler.debug_utils.timer import timer, timeit
 from .user_utils.quibapp import quibapp
-from .user_utils.quiby import quiby, q
+from .user_utils.quiby import quiby, q, not_quiby
 from .user_utils.quiby_funcs import list_quiby_funcs, is_quiby
 from .user_utils.project_wraps import get_project, reset_random_quibs, reset_file_loading_quibs, reset_impure_quibs, \
     get_project_directory, set_project_directory, load_quibs, save_quibs, sync_quibs, undo, redo, can_undo, can_redo, \
