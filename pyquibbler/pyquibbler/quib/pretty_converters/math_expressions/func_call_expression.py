@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Callable, Tuple, Any, Dict
 
+from pyquibbler.utilities.general_utils import Args, Kwargs
 from .math_expression import MathExpression
 from ..math_precedence import MathPrecedence
 
@@ -25,23 +26,17 @@ class FunctionCallMathExpression(MathExpression):
         return MathPrecedence.FUNCTION_CALL
 
 
-def vectorize_call_converter(func: Callable,
-                             args: Tuple[Any, ...],
-                             kwargs: Dict[str, Any]) -> FunctionCallMathExpression:
+def vectorize_call_converter(func: Callable, args: Args, kwargs: Kwargs) -> FunctionCallMathExpression:
     func_being_called, *args = args
     return FunctionCallMathExpression(str(func_being_called), args, kwargs)
 
 
-def function_call_converter(func: Callable,
-                            args: Tuple[Any, ...],
-                            kwargs: Dict[str, Any]) -> FunctionCallMathExpression:
+def function_call_converter(func: Callable, args: Args, kwargs: Kwargs) -> FunctionCallMathExpression:
     func_name = getattr(func, '__name__', str(func))
     return FunctionCallMathExpression(func_name, args, kwargs)
 
 
-def str_format_call_converter(func: Callable,
-                              args: Tuple[Any, ...],
-                              kwargs: Dict[str, Any]) -> FunctionCallMathExpression:
+def str_format_call_converter(func: Callable, args: Args, kwargs: Kwargs) -> FunctionCallMathExpression:
     func_name = getattr(func, '__name__', str(func))
     str_ = getattr(func, '__reduce__')()[1][0]
     str_format_name = f'"{str_}".{func_name}'
