@@ -29,7 +29,7 @@ from pyquibbler.assignment import \
     AssignmentWithTolerance, AssignmentSimplifier, default, InvalidTypeException, create_assignment_template, \
     get_override_group_for_quib_change, AssignmentTemplate, Overrider, Assignment, AssignmentToQuib, \
     AssignmentCancelledByUserException
-from pyquibbler.quib.utils.miscellaneous import copy_and_replace_quibs_with_vals
+from pyquibbler.quib.find_quibs import deep_copy_without_graphics
 from pyquibbler.assignment.override_choice.types import is_within_temporary_apply_override_group
 
 # Save/Load and Undo/Redo:
@@ -50,7 +50,7 @@ from pyquibbler.quib.external_call_failed_exception_handling import raise_quib_c
 from pyquibbler.quib.get_value_context_manager import get_value_context, is_within_get_value_context
 from pyquibbler.quib.quib_guard import guard_raise_if_not_allowed_access_to_quib, \
     CannotAccessQuibInScopeException
-from pyquibbler.function_definitions import get_definition_for_function, FuncArgsKwargs
+from pyquibbler.function_definitions import FuncArgsKwargs
 
 # Cache:
 from pyquibbler.cache import create_cache, CacheStatus
@@ -341,14 +341,19 @@ class QuibHandler:
         except NoRunnerWorkedException:
             return [[]]
 
-    def reset_quib_func_call(self):
-        definition = get_definition_for_function(self.func_args_kwargs.func)
-        self.quib_function_call = definition.quib_function_call_cls(
+    def reset_quib_func_call(self, reset_func_definition: bool = False):
+        if reset_func_definition:
+            from pyquibbler.function_definitions import get_definition_for_function
+            func_definition = get_definition_for_function(self.func)
+        else:
+            func_definition = self.func_definition
+
+        self.quib_function_call = func_definition.quib_function_call_cls(
             func_args_kwargs=self.func_args_kwargs,
-            func_definition=self.func_definition,
+            func_definition=func_definition,
             cache_mode=self.cache_mode,
         )
-        persist_quib_callback = PersistQuibOnSettedArtist if definition.is_artist_setter \
+        persist_quib_callback = PersistQuibOnSettedArtist if func_definition.is_artist_setter \
             else PersistQuibOnCreatedArtists
         self.quib_function_call.artists_creation_callback = persist_quib_callback(self._quib_ref)
 
@@ -547,7 +552,7 @@ class QuibHandler:
         except CannotAccessQuibInScopeException:
             raise
 
-        with (get_value_context(self.quib.pass_quibs)):
+        with get_value_context(self.quib.pass_quibs):
             if not self._has_ever_called_get_value and not self.created_in_get_value_context \
                     and Project.get_or_create().autoload_upon_first_get_value:
                 self.quib.load(ResponseToFileNotDefined.IGNORE)
@@ -1098,14 +1103,14 @@ class Quib:
         of the focal quib to which the assignment is made and by the `allow_overriding` property of upstream quibs.
         """
 
-        keys = copy_and_replace_quibs_with_vals(keys)
-        value = copy_and_replace_quibs_with_vals(value)
+        keys = deep_copy_without_graphics(keys, action_on_quibs='value')
+        value = deep_copy_without_graphics(value, action_on_quibs='value')
         path = [PathComponent(key) for key in keys]
         self.handler.apply_assignment(Assignment(value, path))
 
     def __setitem__(self, key, value):
-        key = copy_and_replace_quibs_with_vals(key)
-        value = copy_and_replace_quibs_with_vals(value)
+        key = deep_copy_without_graphics(key, action_on_quibs='value')
+        value = deep_copy_without_graphics(value, action_on_quibs='value')
         path = [PathComponent(key)]
         self.handler.apply_assignment(Assignment(value, path))
 

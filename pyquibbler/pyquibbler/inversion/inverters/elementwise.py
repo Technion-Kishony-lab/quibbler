@@ -13,7 +13,6 @@ from pyquibbler.function_overriding.third_party_overriding.numpy.inverse_functio
 
 from pyquibbler.path_translation import ForwardsPathTranslator, BackwardsPathTranslator
 from pyquibbler.path_translation.types import Source
-from pyquibbler.path_translation.utils import copy_and_replace_sources_with_vals
 from pyquibbler.path_translation.translators.elementwise import \
     UnaryElementwiseBackwardsPathTranslator, UnaryElementwiseForwardsPathTranslator, \
     BinaryElementwiseBackwardsPathTranslator, BinaryElementwiseForwardsPathTranslator
@@ -78,7 +77,11 @@ class BinaryElementwiseInverter(NumpyInverter, BaseBinaryElementWiseInverter):
 
         inverse_func = self.get_inverse_func_and_raise_if_none(argument_to_invert_to)
 
-        other_argument_value = copy_and_replace_sources_with_vals(self._func_call.args[other_argument])
+        other_argument_value = self._func_call.transform_sources_in_argument(
+            arg_index=other_argument,
+            transform_func=lambda source: source.value
+        )
+
         other_argument_value = np.broadcast_to(other_argument_value, np.shape(self._previous_result))
         other_argument_value = deep_get(other_argument_value, path_in_result)
 

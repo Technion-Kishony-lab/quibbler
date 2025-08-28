@@ -12,8 +12,8 @@ vertical/horizontal dragging.**
 
 -  **Try me**
 
-   -  Try dragging the corners ver
-   -  Try dragging the edge
+   -  Try dragging the corners
+   -  Try dragging the edges
 
 .. code:: python
 

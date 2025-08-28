@@ -1,7 +1,7 @@
 from typing import Dict
 
-from pyquibbler.utilities.iterators import iter_objects_of_type_in_object_recursively
 from pyquibbler.path import Path, Paths, split_path_at_end_of_object
+from pyquibbler.quib.find_quibs import iter_quibs_or_sources_in_object
 
 from ..base_translators import BackwardsTranslationRunCondition, BackwardsPathTranslator, ForwardsPathTranslator
 from ..types import Source
@@ -17,7 +17,8 @@ class Obj2QuibBackwardsPathTranslator(BackwardsPathTranslator):
         if isinstance(obj, Source):
             return {obj: remaining_path}
 
-        sources_within_the_referenced_path = iter_objects_of_type_in_object_recursively(Source, obj)
+        sources_within_the_referenced_path = iter_quibs_or_sources_in_object(
+            obj, type_=Source, search_in_attributes=True)
         return {source: [] for source in sources_within_the_referenced_path}
 
 

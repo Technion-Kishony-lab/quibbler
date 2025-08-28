@@ -10,12 +10,13 @@ from pyquibbler.quib.external_call_failed_exception_handling import external_cal
 from pyquibbler.path import deep_set, PathComponent
 
 from .utils import get_signature_for_func
-from .location import SourceLocation, get_object_type_locations_in_args_kwargs
+from .location import SourceLocation
 from .types import iter_arg_ids_and_values, KeywordArgument, PositionalArgument, Argument, SubArgument, ArgId, \
     convert_argument_id_to_argument
 
 from typing import TYPE_CHECKING
 
+from ..quib.find_quibs import get_quibs_or_sources_locations_in_args_kwargs
 
 if TYPE_CHECKING:
     from .func_definition import FuncDefinition
@@ -37,27 +38,29 @@ class FuncArgsKwargs:
     args: Union[Tuple[Any, ...], List[Any, ...]]
     kwargs: Dict[str, Any]
 
+    @property
+    def signature(self):
+        return get_signature_for_func(self.func)
+
     def get_kwargs_without_those_equal_to_defaults(self, arguments: Optional[Kwargs] = None):
         """
         Remove arguments which exist as default arguments with the same value.
         """
         arguments = self.kwargs if arguments is None else arguments
-        sig = get_signature_for_func(self.func)
         new_arguments = []
-        parameters = sig.parameters
+        parameters = self.signature.parameters
         for name, value in arguments.items():
             if not (name in parameters and recursively_compare_objects(parameters[name].default, value)):
                 new_arguments.append((name, value))
 
         return dict(new_arguments)
 
-    def _iter_args_and_names_in_function_call(self, include_defaults: bool = True):
+    def iter_args_and_names_in_function_call(self, include_defaults: bool = True):
         """
         Given a specific function call - func, args, kwargs - return an iterator to (name, val) tuples
         of all arguments that would have been passed to the function.
         """
-        sig = get_signature_for_func(self.func)
-        bound_args = sig.bind(*self.args, **self.kwargs)
+        bound_args = self.signature.bind(*self.args, **self.kwargs)
 
         if include_defaults:
             bound_args.apply_defaults()
@@ -65,13 +68,27 @@ class FuncArgsKwargs:
 
         return arguments.items()
 
+    def iter_args_and_names_and_positions_in_function_call(self, include_defaults: bool = True):
+        """
+        an iterator to (position, name, val) tuples
+        of the actual arguments that would have been passed to the function, given args and kwargs.
+        position is -1 for kwargs arguments.
+        """
+        arg_values_by_name = dict(self.iter_args_and_names_in_function_call(include_defaults))
+        parameters = list(self.signature.parameters.keys())
+
+        for i, param_name in enumerate(parameters):
+            if param_name in arg_values_by_name:
+                value = arg_values_by_name[param_name]
+                yield (value, param_name, i if i < len(self.args) else -1)
+
     def get_args_values_by_keyword_and_position(self, include_defaults: bool = True) \
             -> Tuple[Kwargs, Args]:
         # We use external_call_failed_exception_handling here as if the user provided the wrong arguments to the
         # function we'll fail here
         with external_call_failed_exception_handling():
             try:
-                arg_values_by_name = dict(self._iter_args_and_names_in_function_call(include_defaults))
+                arg_values_by_name = dict(self.iter_args_and_names_in_function_call(include_defaults))
                 arg_values_by_position = tuple(arg_values_by_name.values())
             except (ValueError, TypeError):
                 arg_values_by_name = self.kwargs
@@ -166,9 +183,9 @@ class FuncCall(ABC):
         """
 
         if locations is None:
-            locations = get_object_type_locations_in_args_kwargs(self.SOURCE_OBJECT_TYPE,
-                                                                 self.func_args_kwargs.args,
-                                                                 self.func_args_kwargs.kwargs)
+            locations = get_quibs_or_sources_locations_in_args_kwargs(
+                self.SOURCE_OBJECT_TYPE, self.func_args_kwargs.args, self.func_args_kwargs.kwargs,
+                search_in_attributes=self.func_definition.search_quibs_in_attributes)
 
         self.data_source_locations = []
         self.parameter_source_locations = []
@@ -182,11 +199,13 @@ class FuncCall(ABC):
             else:
                 self.parameter_source_locations.append(location)
 
-    def _transform_source_locations(self,
-                                    args,
-                                    kwargs,
-                                    locations: List[SourceLocation],
-                                    transform_func: Callable[[Any], Any]):
+    def transform_source_locations(self,
+                                   args: Args = None,
+                                   kwargs: Kwargs = None,
+                                   locations: List[SourceLocation] = None,
+                                   transform_func: Callable[[Any], Any] = None):
+        args = self.args if args is None else args
+        kwargs = self.kwargs if kwargs is None else kwargs
 
         for location in locations:
             transformed = transform_func(
@@ -194,6 +213,14 @@ class FuncCall(ABC):
             )
             args, kwargs = location.set_in_args_kwargs(args=args, kwargs=kwargs, value=transformed)
         return args, kwargs
+
+    def transform_sources_in_argument(self, arg_index: int, transform_func):
+        # Filter source locations to only include those for the specific argument
+        arg_locations = [loc for loc in self.data_source_locations + self.parameter_source_locations
+                         if loc.argument.get_arg_id() == arg_index]
+
+        new_args, _ = self.transform_source_locations(locations=arg_locations, transform_func=transform_func)
+        return new_args[arg_index]
 
     def transform_sources_in_args_kwargs(self,
                                          transform_data_source_func: Callable[[Any], Any] = None,
@@ -206,13 +233,13 @@ class FuncCall(ABC):
         new_args, new_kwargs = self.args, self.kwargs
 
         if transform_data_source_func is not None:
-            new_args, new_kwargs = self._transform_source_locations(args=new_args, kwargs=new_kwargs,
-                                                                    locations=self.data_source_locations,
-                                                                    transform_func=transform_data_source_func)
+            new_args, new_kwargs = self.transform_source_locations(args=new_args, kwargs=new_kwargs,
+                                                                   locations=self.data_source_locations,
+                                                                   transform_func=transform_data_source_func)
         if transform_parameter_func is not None:
-            new_args, new_kwargs = self._transform_source_locations(args=new_args, kwargs=new_kwargs,
-                                                                    locations=self.parameter_source_locations,
-                                                                    transform_func=transform_parameter_func)
+            new_args, new_kwargs = self.transform_source_locations(args=new_args, kwargs=new_kwargs,
+                                                                   locations=self.parameter_source_locations,
+                                                                   transform_func=transform_parameter_func)
 
         return new_args, new_kwargs
 

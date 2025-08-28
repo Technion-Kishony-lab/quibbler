@@ -17,7 +17,7 @@ def axiswise_func(arr, axis):
 
 
 axiswise_func = quiby(axiswise_func,
-                      data_argument_designations=convert_raw_data_arguments_to_data_argument_designations([0]),
+                      raw_data_source_arguments=[0],
                       backwards_path_translators=[AxisAllToAllBackwardsPathTranslator],
                       forwards_path_translators=[AxisAllToAllForwardsPathTranslator])
 

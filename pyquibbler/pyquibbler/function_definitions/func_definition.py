@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from pyquibbler.inversion.inverter import Inverter
 
 
-def get_default_quib_func_call():
+def get_default_quib_func_call() -> Type[QuibFuncCall]:
     from pyquibbler.quib.func_calling import CachedQuibFuncCall
     return CachedQuibFuncCall
 
@@ -35,6 +35,7 @@ class FuncDefinition:
     is_file_loading: bool = False
     is_graphics: Optional[bool] = False  # None for 'maybe'
     is_operator: bool = False  # is the function an operator
+    search_quibs_in_attributes: bool = False
     pass_quibs: bool = False
     lazy: Optional[bool] = None  # None for auto: LAZY for non-graphics, GRAPHICS_LAZY for is_graphics=True
     is_artist_setter: bool = field(repr=False, default=False)
@@ -106,6 +107,7 @@ def create_or_reuse_func_definition(base_func_definition: Optional[FuncDefinitio
                                     is_random: bool = False,
                                     is_file_loading: bool = False,
                                     is_graphics: Optional[bool] = False,
+                                    search_quibs_in_attributes: bool = False,
                                     pass_quibs: bool = False,
                                     lazy: Optional[bool] = None,
                                     is_artist_setter: bool = False,
@@ -129,6 +131,7 @@ def create_or_reuse_func_definition(base_func_definition: Optional[FuncDefinitio
             is_random=is_random or bfd.is_random,
             is_graphics=is_graphics or bfd.is_graphics,
             is_file_loading=is_file_loading or bfd.is_file_loading,
+            search_quibs_in_attributes=search_quibs_in_attributes or bfd.search_quibs_in_attributes,
             data_argument_designations=data_argument_designations or bfd.data_argument_designations,
             inverters=inverters or bfd.inverters,
             backwards_path_translators=backwards_path_translators or bfd.backwards_path_translators,
@@ -147,11 +150,13 @@ def create_or_reuse_func_definition(base_func_definition: Optional[FuncDefinitio
     else:
         # create a new definition from scratch:
         quib_function_call_cls = quib_function_call_cls or get_default_quib_func_call()
-        func_definition_cls = func_definition_cls or FuncDefinition
+        if func_definition_cls is None:
+            func_definition_cls = FuncDefinition
         return func_definition_cls(
             is_random=is_random,
             is_graphics=is_graphics,
             is_file_loading=is_file_loading,
+            search_quibs_in_attributes=search_quibs_in_attributes,
             data_argument_designations=data_argument_designations,
             inverters=inverters or [],
             backwards_path_translators=backwards_path_translators or [],

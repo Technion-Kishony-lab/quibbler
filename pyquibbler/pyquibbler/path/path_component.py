@@ -8,6 +8,7 @@ import numpy as np
 @dataclass
 class PathComponent:
     component: Any
+    is_attr: bool = False
 
     def referencing_field_in_field_array(self, type_) -> bool:
         """
@@ -38,7 +39,8 @@ class PathComponent:
 
     def __repr__(self):
         s = repr(self.component)
-        return '{' + s + '}'
+        dot = '.' if self.is_attr else ''
+        return '{' + dot + s + '}'
 
     def __hash__(self):
         return hash(self.component)

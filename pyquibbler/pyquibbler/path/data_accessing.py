@@ -44,9 +44,8 @@ def deep_get(obj: Any, path: Path):
     """
     for component in path:
         cmp = component.component
-        cls = type(obj)
 
-        if cls == slice:
+        if component.is_attr:
             obj = getattr(obj, cmp)
         elif cmp is True:
             pass
@@ -63,15 +62,6 @@ def deep_get(obj: Any, path: Path):
             obj = obj[cmp]
 
     return obj
-
-
-def set_for_slice(sl_, attribute, value):
-    if attribute == "start":
-        return slice(value, sl_.stop, sl_.step)
-    elif attribute == "stop":
-        return slice(sl_.start, value, sl_.step)
-    else:
-        return slice(sl_.start, sl_.stop, value)
 
 
 def set_for_tuple(tpl: Tuple, index: int, value):
@@ -99,17 +89,35 @@ def set_for_dict(obj: Dict, key, value):
     return obj
 
 
+def set_for_slice(sl_, attribute, value):
+    attrs_to_values = {"start": sl_.start, "stop": sl_.stop, "step": sl_.step, attribute: value}
+    return slice(*attrs_to_values.values())
+
+
 def set_key_to_value(obj, key, value):
     obj[key] = value
+    return obj
+
+
+def set_attr_to_value(obj, attr, value):
+    setattr(obj, attr, value)
     return obj
 
 
 SETTERS = {
     tuple: set_for_tuple,
     dict: set_for_dict,
-    np.ndarray: set_for_ndarray,
     slice: set_for_slice,
+    np.ndarray: set_for_ndarray,
 }
+
+
+def get_setter(type_, is_attr: bool):
+    if type_ in SETTERS:
+        return SETTERS[type_]
+    if is_attr:
+        return set_attr_to_value
+    return set_key_to_value
 
 
 def deep_set(data: Any, path: Path,
@@ -154,7 +162,7 @@ def deep_set(data: Any, path: Path,
         if cmp is SpecialComponent.OUT_OF_ARRAY:
             assert isinstance(new_element, np.ndarray)
             cmp = slice(None, None, None)
-        setter = SETTERS.get(type(new_element), set_key_to_value)
+        setter = get_setter(type(new_element), component.is_attr)
         try:
             new_element = setter(new_element, cmp, last_element)
         except (IndexError, TypeError) as e:

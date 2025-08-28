@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 from typing import Optional, Callable, Union, List, Tuple
 
-from pyquibbler.user_utils.quiby_funcs import quiby
+from pyquibbler.user_utils.quiby import quiby
 from pyquibbler.optional_packages.get_ipywidgets import ipywidgets as widgets
 
 from pyquibbler.assignment.assignment_to_from_text import \
@@ -62,7 +62,7 @@ def remove_nones(itr: Union[List, Tuple]):
     return type(itr)(item for item in itr if item is not None)
 
 
-@quiby(pass_quibs=True, quibify_even_if_quibbler_not_initialized=True)
+@quiby(pass_quibs=True, _quibify_even_if_quibbler_not_initialized=True)
 def html_repr(quib: Quib) -> str:
     try:
         value = quib.get_value()

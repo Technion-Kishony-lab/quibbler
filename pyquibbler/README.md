@@ -7,6 +7,23 @@
 
 With *Quibbler*, your data analysis is automatically live and interactive.
 
+
+## Minimal example
+```python
+from pyquibbler import initialize_quibbler, iquib
+initialize_quibbler()
+import matplotlib.pyplot as plt
+
+x = iquib(0.5)
+y = 1 - x
+plt.plot([0, 1], [1, 0], '-')
+plt.plot([0, x, x], [y, y, 0], '--', marker='D')
+plt.title(x, fontsize=20)
+```
+
+![](https://github.com/Technion-Kishony-lab/quibbler/blob/master/pyquibbler-documentations/docs/images/minimal_app_3.gif?raw=true)
+
+
 https://user-images.githubusercontent.com/62783755/209929327-67766771-f271-40f0-8f3a-76deb88310b7.mp4
 
 ## What is it?
@@ -59,21 +76,6 @@ input parameters with `iquib` and your analysis and graphics automatically becom
 Matplotlib graphics functions, Matplotlib widgets, and ipywidgets. It further provides an easy way to incorporate 
 any user functions or functions from any other non-graphics packages ([here](https://quibbler.readthedocs.io/en/latest/User-defined-functions.html)). 
 Support for other graphics packages, besides Matplotlib, will be offered in future releases.       
-
-## Minimal app
-```python
-from pyquibbler import initialize_quibbler, iquib
-initialize_quibbler()
-import matplotlib.pyplot as plt
-
-x = iquib(0.5)
-y = 1 - x
-plt.plot([0, 1], [1, 0], '-')
-plt.plot([0, x, x], [y, y, 0], '--', marker='D')
-plt.title(x, fontsize=20)
-```
-
-![](https://github.com/Technion-Kishony-lab/quibbler/blob/master/pyquibbler-documentations/docs/images/minimal_app_3.gif?raw=true)
 
 
 ## Documentation and Examples

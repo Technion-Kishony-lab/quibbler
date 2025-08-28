@@ -8,8 +8,8 @@ from matplotlib.axes import Axes
 from mpl_toolkits.mplot3d import Axes3D
 
 from typing import Any, Tuple, List, Optional
-from pyquibbler.quib.quib import Quib
 from pyquibbler.function_definitions import SourceLocation
+from pyquibbler.quib.find_quibs import is_there_a_quib_in_object
 from pyquibbler.utilities.general_utils import Args, Kwargs
 
 from pyquibbler.env import DRAGGABLE_PLOTS_BY_DEFAULT
@@ -19,7 +19,6 @@ from pyquibbler.quib.graphics import artist_wrapper
 
 from pyquibbler.quib.graphics.event_handling import CanvasEventHandler
 from pyquibbler.quib.graphics.event_handling.plt_plot_parser import get_xdata_arg_indices_and_ydata_arg_indices
-from pyquibbler.utilities.iterators import iter_objects_of_type_in_object_recursively, is_iterator_empty
 from .func_definitions import FUNC_DEFINITION_GRAPHICS, FUNC_DEFINITION_GRAPHICS_AXES_SETTER
 from ..numpy.func_definitions import FUNC_DEFINITION_FILE_LOADING
 
@@ -34,8 +33,7 @@ class GraphicsOverride(FuncOverride):
 
 
 def transform_to_array_if_containing_quibs(obj):
-    if isinstance(obj, (list, tuple)) \
-            and not is_iterator_empty(iter_objects_of_type_in_object_recursively(Quib, obj)):
+    if isinstance(obj, (list, tuple)) and is_there_a_quib_in_object(obj):
         return np.array(obj)
     return obj
 

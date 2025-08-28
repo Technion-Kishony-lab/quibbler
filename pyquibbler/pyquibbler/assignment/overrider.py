@@ -9,7 +9,7 @@ from typing import Any, Optional, List, Tuple, Union, Dict
 from pyquibbler.path.path_component import Path, Paths
 from pyquibbler.path.data_accessing import deep_get, deep_set
 from pyquibbler.quib.external_call_failed_exception_handling import external_call_failed_exception_handling
-from pyquibbler.quib.utils import deep_copy_without_quibs_or_graphics
+from pyquibbler.quib.find_quibs import deep_copy_without_graphics
 from pyquibbler.utilities.iterators import recursively_run_func_on_object
 
 from pyquibbler.debug_utils import timeit
@@ -126,7 +126,7 @@ class Overrider:
         """
         original_data = data
         with timeit("quib_overriding"):
-            data = deep_copy_without_quibs_or_graphics(data)
+            data = deep_copy_without_graphics(data, action_on_quibs='raise')
             for assignment in self._assignments:
                 if assignment.is_default():
                     value = deep_get(original_data, assignment.path)
