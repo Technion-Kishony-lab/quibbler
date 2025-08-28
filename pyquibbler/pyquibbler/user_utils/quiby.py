@@ -12,14 +12,35 @@ from pyquibbler.user_utils.quiby_methods import get_all_quibifiable_attributes
 
 
 def not_quiby(func: Callable) -> Callable:
-    """Mark a method so it will NOT be quibified when decorating its class with `@quiby`.
+    """
+    Decorator to mark a method as not quiby, when used inside a quiby-decorated class.
 
-    Usage:
-        @quiby
-        class MyClass:
-            @not_quiby
-            def helper(self):
-                ...
+    Marks the given method as not quiby, so that when used inside a quiby-decorated class,
+
+    Examples
+    --------
+    >>> from pyquibbler import quiby, not_quiby
+    >>>
+    >>> @quiby
+    ... class MyClass:
+    ...     def method(self):
+    ...         ...
+    ...
+    ...     @not_quiby
+    ...     def helper(self):
+    ...         ...
+    ...
+    >>> obj = MyClass()
+    >>> obj.method  # This is a quiby method
+    >>> obj.helper  # This is a regular method
+
+    Note
+    ----
+    This decorator has no effect when used outside a quiby-decorated class.
+
+    See Also
+    --------
+    quiby
     """
     setattr(func, '__not_quiby__', True)
     return func
@@ -89,7 +110,7 @@ def quiby(func: Callable = None,
 
     See Also
     --------
-    is_quiby, q
+    is_quiby, q, not_quiby
     initialize_quibbler
     Quib.graphics_update, Quib.is_graphics, Quib.is_random, Quib.is_file_loading
     reset_random_quibs, reset_file_loading_quibs
