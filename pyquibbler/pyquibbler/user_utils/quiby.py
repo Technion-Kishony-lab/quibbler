@@ -206,24 +206,15 @@ def quiby(func: Callable = None,
 
     @functools.wraps(func)
     def _wrapper(*args, **kwargs):
-        if create_quib is True or is_graphics is True:
-            # Always create a quib
-            return create_quib_func(func=func, args=args, kwargs=kwargs, func_definition=func_definition)
-        if create_quib is False:
-            # Never create a quib, just call the function (the function may still return a quib by itself)
+        if create_quib is False or get_value_context_pass_quibs() is False:
             return func(*args, **kwargs)
-        else:  # create_quib is None
-            # Automatic: create quib only if args contain quibs and context allows it
-
-            if get_value_context_pass_quibs() is not False:
-                quib_locations = get_quibs_or_sources_locations_in_args_kwargs(
-                    Quib, args, kwargs, search_in_attributes=True)
-                
-                if quib_locations:
-                    return create_quib_func(func=func, args=args, kwargs=kwargs, func_definition=func_definition,
-                                            quib_locations=quib_locations)
-            
-            return func(*args, **kwargs)
+        else:
+            quib_locations = get_quibs_or_sources_locations_in_args_kwargs(Quib, args, kwargs, search_in_attributes=True)
+            if create_quib or is_graphics or quib_locations:
+                # detect if we are calling a method of an object (not nessacrily a Quib)
+                return create_quib_func(func=func, args=args, kwargs=kwargs, func_definition=func_definition,
+                                        quib_locations=quib_locations)
+        return func(*args, **kwargs)
 
     _wrapper.func_definition = func_definition
     _wrapper.__quibbler_wrapped__ = func
