@@ -63,7 +63,8 @@ def quiby(func: Callable = None,
     When such quiby function is called, it creates a function quib that implement
     the original function.
 
-    For classes, applies quiby behavior to all methods and properties (instance methods, class methods, static methods, and properties).
+    For classes, applies quiby behavior to all methods and properties (instance methods,
+    class methods, static methods, and properties).
 
     `quiby` can also be used as a decorator of user functions or classes, either directly, or as a function with
     parameter specification (see examples).
@@ -185,7 +186,7 @@ def quiby(func: Callable = None,
     # Check if this is a user-defined class (avoid builtins like str, list, etc.)
     if isinstance(func, type) and getattr(func, "__module__", "") != "builtins":
         return quiby_class(func, lazy=lazy, pass_quibs=pass_quibs, is_random=is_random,
-                           is_graphics=is_graphics, is_file_loading=is_file_loading, 
+                           is_graphics=is_graphics, is_file_loading=is_file_loading,
                            create_quib=create_quib, **kwargs)
 
     # Handle function decoration
@@ -209,11 +210,12 @@ def quiby(func: Callable = None,
         if create_quib is False or get_value_context_pass_quibs() is False:
             return func(*args, **kwargs)
         else:
-            quib_locations = get_quibs_or_sources_locations_in_args_kwargs(Quib, args, kwargs, search_in_attributes=True)
-            # Create quib if explicitly requested, graphics function, has quib args, lazy is explicitly set, 
+            quib_locations = get_quibs_or_sources_locations_in_args_kwargs(Quib, args, kwargs,
+                                                                           search_in_attributes=True)
+            # Create quib if explicitly requested, graphics function, has quib args, lazy is explicitly set,
             # or it's a standalone function (not from class decorator) with default create_quib=None
-            should_create_quib = (create_quib is True or 
-                                  is_graphics or 
+            should_create_quib = (create_quib is True or
+                                  is_graphics or
                                   quib_locations)
             if should_create_quib:
                 # detect if we are calling a method of an object (not nessacrily a Quib)

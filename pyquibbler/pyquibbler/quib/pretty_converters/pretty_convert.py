@@ -18,6 +18,7 @@ from pyquibbler.utilities.iterators import is_user_object
 def is_bound_method(obj: Any, func: Callable) -> bool:
     return hasattr(obj, func.__name__)
 
+
 def is_method_call(func: Callable, args: Args, kwargs: Kwargs) -> bool:
     if len(args) == 0:
         return False

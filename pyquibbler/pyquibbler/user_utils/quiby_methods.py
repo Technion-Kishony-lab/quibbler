@@ -1,8 +1,7 @@
 """
 Class decoration utilities for quiby functionality.
 """
-from typing import Dict, Callable, Type, NamedTuple, Union, List
-from enum import Enum
+from typing import Callable, Type, NamedTuple, Union, List
 
 from pyquibbler.user_utils.quiby_funcs import is_quiby
 from pyquibbler.utilities.get_original_func import get_original_func
@@ -81,7 +80,7 @@ def _wrap_staticmethod(attribute, quiby_func, *args, **kwargs):
 
 def get_all_quibifiable_attributes(cls: Type) -> List[QuibifiableAttribute]:
     """Get all attributes (methods and properties) that should be made quiby by the class decorator.
-    
+
     Returns a unified list of all quibifiable attributes with their types, making it easier
     to handle different attribute types consistently.
     """
@@ -94,7 +93,7 @@ def get_all_quibifiable_attributes(cls: Type) -> List[QuibifiableAttribute]:
 
         # Determine attribute type and get the raw attribute from MRO
         attribute = _get_attribute_from_mro(cls, name)
-        
+
         if is_property(cls, name):
             func_to_check = attribute.fget  # For properties, check the getter function
             wrapper_func = _wrap_property
@@ -109,14 +108,14 @@ def get_all_quibifiable_attributes(cls: Type) -> List[QuibifiableAttribute]:
             wrapper_func = _wrap_instancemethod
         else:
             continue  # Skip attributes that don't match our types
-        
+
         # Common check for all attribute types - check both the descriptor and the function
         # This handles different decorator orderings:
         # @property @not_quiby -> __not_quiby__ on func_to_check
         # @not_quiby @staticmethod -> __not_quiby__ on attribute (descriptor)
         func_not_quiby = getattr(get_original_func(func_to_check), '__not_quiby__', False)
         descriptor_not_quiby = getattr(attribute, '__not_quiby__', False)
-        
+
         if (not func_not_quiby and not descriptor_not_quiby and not is_quiby(func_to_check)):
             attributes.append(QuibifiableAttribute(name, attribute, wrapper_func))
 

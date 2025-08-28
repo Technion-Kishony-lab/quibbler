@@ -13,6 +13,7 @@ def _get_public_attrs_for_class(cls):
     """Return a list of public attributes of a class (not starting with '_ and not callable)"""
     return [attr for attr in dir(cls) if not attr.startswith('_') and not callable(getattr(cls, attr))]
 
+
 def _get_public_attrs_for_instance(obj):
     """Return a list of public attributes of an object (not starting with '_ and not callable)"""
     attrnames = []
