@@ -21,12 +21,12 @@ def test_quib_pretty_repr_with_quibs_being_created_inline():
 @pytest.mark.regression
 @pytest.mark.get_variable_names(True)
 def test_quib_pretty_repr_with_quibs_with_quib_creation_with_name_in_inner_func():
-    @quiby(lazy=False)
+    @quiby(lazy=False, create_quib=True)
     def inner_func():
         d = iquib(4)
         return d
 
-    @quiby(lazy=False)
+    @quiby(lazy=False, create_quib=True)
     def another_inner_func():
         e = iquib(4)
         return e

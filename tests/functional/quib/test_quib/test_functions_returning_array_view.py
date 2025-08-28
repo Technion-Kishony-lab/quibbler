@@ -19,7 +19,7 @@ def test_assignment_into_array_view():
 
 @pytest.mark.regression
 def test_view_should_be_able_to_cache():
-    @quiby
+    @quiby(create_quib=True)
     def get_a_view():
         # this simulates functions like np.genfromtxt which returns a view
         # of an internal array they create

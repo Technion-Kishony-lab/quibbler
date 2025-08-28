@@ -15,7 +15,7 @@ def test_quibbler_user_function_is_quiby():
 
 def test_quibbler_user_function_lazy():
     mock_func = mock.Mock()
-    user_function = quiby(lazy=True)(mock_func)
+    user_function = quiby(lazy=True, create_quib=True)(mock_func)
 
     res = user_function()
 
@@ -25,7 +25,7 @@ def test_quibbler_user_function_lazy():
 
 def test_quibbler_user_function_non_lazy():
     mock_func = mock.Mock()
-    user_function = quiby(lazy=False)(mock_func)
+    user_function = quiby(lazy=False, create_quib=True)(mock_func)
 
     res = user_function()
 
@@ -51,7 +51,7 @@ def test_quibbler_user_function_with_quibs():
 
 def test_quibbler_user_function_change_defintion_after_declearation():
     mock_func = mock.Mock()
-    user_function = quiby(lazy=False)(mock_func)
+    user_function = quiby(lazy=False, create_quib=True)(mock_func)
     user_function.func_definition.lazy = True
     res = user_function()
 
@@ -70,7 +70,7 @@ def test_quibbler_user_function_uses_builtin_defintion():
 
 def test_quiby_creates_quiby_function():
     mock_func = mock.Mock()
-    user_function = quiby(mock_func, lazy=True)
+    user_function = quiby(mock_func, lazy=True, create_quib=True)
 
     res = user_function()
 

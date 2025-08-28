@@ -3,7 +3,7 @@ from unittest import mock
 
 import pytest
 
-from pyquibbler import CacheMode
+from pyquibbler import CacheMode, initialize_quibbler
 from pyquibbler import create_quib, quiby, Quib
 
 from pyquibbler.function_definitions import add_definition_for_function
@@ -29,7 +29,7 @@ def test_quib_does_not_request_shape_or_parents_shapes_on_first_attempt(create_m
 @pytest.mark.regression
 def test_quib_representing_read_only_array():
 
-    @quiby
+    @quiby(is_graphics=True)
     def get_read_only_array():
         a = np.zeros((3,))
         a.setflags(write=False)

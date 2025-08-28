@@ -97,11 +97,11 @@ def quiby(func: Callable = None,
         Indicates whether the function's returned value depends on reading of an external file.
         File-loading functions can be invalidated centrally to re-load (see reset_file_loading_quibs).
 
-    create_quib : bool or None, default: True
+    create_quib : bool or None, default: None
         Controls when to create a quib:
         - True: Always create a quib.
         - False: Never create a quib, return the normal function output.
-        - None: Automatic (default) - create a quib only if arguments contain quibs.
+        - None: Automatic (default) - create a quib only if arguments contain quibs or lazy is explicitly set.
 
     Returns
     -------
@@ -210,7 +210,12 @@ def quiby(func: Callable = None,
             return func(*args, **kwargs)
         else:
             quib_locations = get_quibs_or_sources_locations_in_args_kwargs(Quib, args, kwargs, search_in_attributes=True)
-            if create_quib or is_graphics or quib_locations:
+            # Create quib if explicitly requested, graphics function, has quib args, lazy is explicitly set, 
+            # or it's a standalone function (not from class decorator) with default create_quib=None
+            should_create_quib = (create_quib is True or 
+                                  is_graphics or 
+                                  quib_locations)
+            if should_create_quib:
                 # detect if we are calling a method of an object (not nessacrily a Quib)
                 return create_quib_func(func=func, args=args, kwargs=kwargs, func_definition=func_definition,
                                         quib_locations=quib_locations)
